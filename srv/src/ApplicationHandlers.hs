@@ -20,8 +20,11 @@ import qualified Data.Text.Encoding.Error as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
+import qualified Data.ByteString.Lazy.Char8 as LB8
+import Data.Configurator
 import qualified Data.Aeson as Aeson
 import Data.Aeson (object, (.=))
+import Data.Int
 import Data.List
 import Data.Map (Map)
 import qualified Data.HashMap.Strict as HM
@@ -38,7 +41,8 @@ import System.FilePath
 import System.IO
 import System.Locale
 
-import Database.PostgreSQL.Simple (Query, query_, query, execute)
+import Database.PostgreSQL.Simple ( Query, query_, query, execute
+                                  , ConnectInfo(..))
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import Data.Pool (withResource)
@@ -48,7 +52,6 @@ import Snap.Http.Server.Config as S
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.SimpleLog
-import Snap.Snaplet.Vin
 import Snap.Util.FileServe (serveFile, serveFileAs)
 
 ------------------------------------------------------------------------------
@@ -62,11 +65,14 @@ import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
 import Snaplet.FileUpload (tmp, doUpload)
+import Snaplet.TaskManager as TM
 ------------------------------------------------------------------------------
 import Carma.Model
 import qualified Carma.Model.Role as Role
 import Data.Model.Patch (Patch)
 import qualified Data.Model.Patch.Sql as Patch
+
+import Carma.VIN
 
 import Application
 import AppHandlers.Util
@@ -74,7 +80,6 @@ import AppHandlers.Users
 import Util as U hiding (render)
 import Utils.NotDbLayer (readIdent)
 import RuntimeFlag
-
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
@@ -408,10 +413,10 @@ report = scope "report" $ do
       to = withinAnd addDay (mdl ++ " < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
 
     addDay tm = tm { utctDay = addDays 1 (utctDay tm) }
-    
+
     mkCondition nm = catMaybes [from', to'] where
       (from', to') = fromTo (T.unpack nm)
-  
+
   with db $ DB.generateReport mkCondition template result
   modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
   serveFile result
@@ -420,8 +425,8 @@ createReportHandler :: AppHandler ()
 createReportHandler = do
   res <- with db $ DB.create "report" $ Map.empty
   let Just objId = Map.lookup "id" res
-  f <- with fileUpload $ 
-       doUpload $ "report" </> (U.bToString objId) </> "templates"
+  f <- with fileUpload $ head <$>
+       (doUpload $ "report" </> (U.bToString objId) </> "templates")
   Just name  <- getParam "name"
   -- we have to update all model params after fileupload,
   -- because in multipart/form-data requests we do not have
@@ -444,56 +449,77 @@ serveUsersList = with db usersListPG >>= writeJSON
 
 ------------------------------------------------------------------------------
 -- | Utility functions
+--
+-- TODO Allow to select only program w/o subprogram.
+--
+-- TODO Allow partners to upload VIN files only to their assigned
+-- subprograms.
+--
+-- TODO Should VIN files really be stored permanently?
 vinUploadData :: AppHandler ()
 vinUploadData = scope "vin" $ scope "upload" $ do
   log Trace "Uploading data"
-  fPath <- with fileUpload $ doUpload "vin-upload-data"
+  inPath <- with fileUpload $ (head <$> doUpload "vin-upload-data")
 
-  let fName = takeFileName fPath
+  let inName = takeFileName inPath
 
-  log Trace $ T.concat ["Uploaded to file: ", T.pack fName]
   prog <- getParam "program"
-  case prog of
-    Nothing -> log Error "Program not specified"
-    Just pgmId -> do
-      log Info $ T.concat ["Uploading ", T.pack fName]
-      log Trace $ T.concat ["Program: ", T.decodeUtf8 pgmId]
+  subprog <- getParam "subprogram"
+  format <- getParam "format"
 
-      -- Check if this program is available for user
+  case (B.readInt =<< subprog, B.readInt =<< format) of
+    (Just (sid, _), Just (fid, _)) -> do
+      log Info $ T.concat ["Uploading ", T.pack inName]
+      log Trace $ T.concat ["Subprogram: ", T.pack $ show sid]
+      log Trace $ T.concat ["Format: ", T.pack $ show fid]
+
+      tmpDir <- with fileUpload $ gets tmp
+      (outPath, _) <- liftIO $ openTempFile tmpDir inName
+
+      -- Check user permissions
       Just u <- with auth currentUser
       u' <- with db $ replaceMetaRolesFromPG u
-      let Aeson.String userPgms' = HM.lookupDefault "" "programs" $ userMeta u'
-          userPgms = B.split ',' $ T.encodeUtf8 userPgms'
-      when (not $ 
-            (elem (Role $ identFv Role.partner) (userRoles u') && elem pgmId userPgms) ||
+--      let Aeson.String userPgms' = HM.lookupDefault "" "programs" $ userMeta u'
+--          userPgms = B.split ',' $ T.encodeUtf8 userPgms'
+      when (not $
+--            (elem (Role $ identFv Role.partner) (userRoles u') && elem pgmId userPgms) ||
             (elem (Role $ identFv Role.vinAdmin) (userRoles u'))) $
             handleError 403
 
-      -- Find out which format is used for this program
-      progObj <- with db $ DB.read "program" pgmId
-      let vF = Map.findWithDefault "" "vinFormat" progObj
+      -- Use connection information from DbLayer
+      dbCfg <- with db $ with DB.postgres $ getSnapletUserConfig
+      connInfo <-
+          liftIO $ ConnectInfo
+                     <$> require dbCfg "host"
+                     <*> require dbCfg "port"
+                     <*> require dbCfg "user"
+                     <*> require dbCfg "pass"
+                     <*> require dbCfg "db"
 
-      log Trace $ T.concat ["VIN format: ", T.decodeUtf8 vF]
+      -- Set current user as committer
+      let Just (UserId uid') = userId u
+          Just (uid, _) = B.readInt $ T.encodeUtf8 uid'
 
-      log Trace $ T.concat ["Initializing state for file: ", T.pack fName]
-      with vin $ initUploadState fName
-      log Trace $ T.concat ["Uploading data from file: ", T.pack fName]
+      -- VIN import task handler
+      with taskMgr $ TM.create $ do
+        let opts = Options connInfo inPath outPath uid fid Nothing (Just sid)
+        res <- doImport opts
 
-      -- Set current user as owner
-      let Just (UserId uid) = userId u
-      with vin $ uploadData (T.encodeUtf8 uid) pgmId (T.unpack . T.decodeUtf8 $ vF) fPath
-
-vinStateRead :: AppHandler ()
-vinStateRead = scope "vin" $ scope "state" $ scope "get" $ do
-  log Trace "Getting state"
-  with vin getState
-
-vinStateRemove :: AppHandler ()
-vinStateRemove = scope "vin" $ scope "state" $ scope "remove" $ do
-  log Trace "Remove alert by id"
-  res <- getParam "id"
-  log Trace $ T.concat ["id: ", maybe "<null>" (T.pack . show) res]
-  with vin removeAlert
+        return $ case res of
+            Right (good, bad) ->
+                let
+                    stats :: Map String Int64
+                    stats =  Map.fromList [ ("good", good)
+                                          , ("bad", bad)
+                                          ]
+                in
+                  if bad == 0
+                  then Right (Aeson.String $ T.pack $ show good, [])
+                  else Right (Aeson.toJSON stats, [outPath])
+            Left  e -> Left $ Aeson.toJSON e
+    _ -> do
+      log Error "Subprogram/format not specified"
+      error "Subprogram/format not specified"
 
 
 -- | Upload a CSV file and update the partner database, serving a
@@ -510,7 +536,7 @@ partnerUploadData = scope "partner" $ scope "upload" $ do
   (tmpName, _) <- liftIO $ openTempFile tmpPath "last-pimp.csv"
 
   log Trace "Uploading data"
-  inPath <- with fileUpload $ doUpload "partner-upload-data"
+  inPath <- with fileUpload $ head <$> doUpload "partner-upload-data"
 
   let outPath = tmpPath </> tmpName
 

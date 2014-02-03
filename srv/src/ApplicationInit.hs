@@ -27,12 +27,12 @@ import Snap.Util.FileServe ( serveFile
                            , DirectoryConfig(..)
                            )
 ------------------------------------------------------------------------------
-import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
 import Snaplet.DbLayer
 import qualified Snaplet.FileUpload as FU
 import Snaplet.Geo
 import Snaplet.Search
+import Snaplet.TaskManager
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
@@ -113,8 +113,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/partner/upload.csv",
             chkAuthLocal . method POST $ partnerUploadData)
          , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
-         , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
-         , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
          , ("/vin/reverseLookup/:vin", chkAuth . method GET  $ vinReverseLookup)
          , ("contracts/findByCard/:program/:cardNumber",
             chkAuth . method GET    $ cardNumberLookup)
@@ -134,6 +132,7 @@ dconf :: DirectoryConfig (Handler App App)
 dconf = simpleDirectoryConfig{preServeHook = h}
   where
     h _ = modifyResponse $ setHeader "Cache-Control" "no-cache, must-revalidate"
+
 
 ------------------------------------------------------------------------------
 -- | The application initializer.
@@ -178,7 +177,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   c <- nestSnaplet "cfg" siteConfig $
        initSiteConfig "resources/site-config" pgs
 
-  v <- nestSnaplet "vin" vin vinInit
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   g <- nestSnaplet "geo" geo geoInit
 
@@ -186,6 +184,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        [logger text (file "log/frontend.log")]
 
   search <- nestSnaplet "search" search $ searchInit pgs authMgr
+  tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   addRoutes routes
   wrapSite (claimUserActivity>>)
-  return $ App h s authMgr c d pgs pga v fu g l runtimeFlags ad search
+  return $ App h s authMgr c d pgs pga tm fu g l runtimeFlags ad search

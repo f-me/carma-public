@@ -13,6 +13,7 @@ module Snaplet.FileUpload
   ( fileUploadInit
   , FileUpload(..)
   , doUpload
+  , doUploadTmp
   , getAttachmentPath
   ) where
 
@@ -110,7 +111,7 @@ uploadInManyFields :: (FilePath -> [AttachmentTarget])
                       (Object, [AttachmentTarget], [AttachmentTarget], Bool)
 uploadInManyFields flds nameFun = do
   -- Store the file
-  fPath <- doUpload =<< gets tmp
+  fPath <- head <$> (doUpload =<< gets tmp)
   let (_, fName) = splitFileName fPath
 
   hash <- liftIO $ md5 <$> BL.readFile fPath
@@ -168,7 +169,7 @@ uploadInManyFields flds nameFun = do
 -- target list, @dupe@ is true if the file was a duplicate.
 uploadBulk :: Handler b (FileUpload b) ()
 uploadBulk = do
-  -- 'Just' here for these have already been matched by Snap router
+  -- 'Just' here, for these have already been matched by Snap router
   Just model <- getParam "model"
   Just field <- getParam "field"
   (obj, failedTargets, succTargets, dupe) <-
@@ -261,26 +262,40 @@ attachToField modelName instanceId field ref = do
       lockName = BS.concat [modelName, ":", instanceId, "/", field]
 
 
--- | Store a file upload from the request, return full path to the
--- uploaded file.
-doUpload :: FilePath
-         -- ^ Store a file in this directory (relative to finished
-         -- uploads path)
-         -> Handler b (FileUpload b) FilePath
-doUpload relPath = do
+-- | Process all files in the request and collect results.
+doUpload' :: (PartInfo -> FilePath -> IO (Maybe a))
+          -- ^ Handler for successfully uploaded files.
+          -> Handler b (FileUpload b) [a]
+doUpload' proceed = do
   tmpd <- gets tmp
   cfg  <- gets cfg
-  root <- gets finished
   fns  <- handleFileUploads tmpd cfg (const $ partPol cfg) $
     liftIO . fmap catMaybes . mapM (\(info, r) -> case r of
       Left _    -> return Nothing
-      Right res -> do
+      Right res -> proceed info res)
+  return fns
+
+
+-- | Store files from the request, return full paths to the uploaded
+-- files.
+doUpload :: FilePath
+         -- ^ Store files in this directory (relative to finished
+         -- uploads path)
+         -> Handler b (FileUpload b) [FilePath]
+doUpload relPath = do
+  root <- gets finished
+  let path = root </> relPath
+  doUpload' $ \info res ->
+      do
         let justFname = U.bToString . fromJust $ partFileName info
-        let path      = root </> relPath
         createDirectoryIfMissing True path
         copyFile res $ path </> justFname
-        return $ Just justFname)
-  return $ root </> relPath </> head fns
+        return $ Just $ path </> justFname
+
+
+-- | Store files from the request temporarily.
+doUploadTmp :: Handler b (FileUpload b) [FilePath]
+doUploadTmp = doUpload' (\_ res -> return $ Just res)
 
 
 partPol :: UploadPolicy -> PartUploadPolicy

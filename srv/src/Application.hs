@@ -20,7 +20,7 @@ import Snaplet.Auth.Class
 import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
 import Snaplet.DbLayer.Types (DbLayer)
-import Snap.Snaplet.Vin
+import Snaplet.TaskManager
 import Snaplet.FileUpload hiding (db)
 import Snaplet.Geo
 import Snap.Snaplet.SimpleLog
@@ -38,7 +38,7 @@ data App = App
     , _db         :: Snaplet (DbLayer App)
     , pg_search   :: Pool Pg.Connection
     , pg_actass   :: Pool Pg.Connection
-    , _vin        :: Snaplet Vin
+    , _taskMgr    :: Snaplet (TaskManager App)
     , _fileUpload :: Snaplet (FileUpload App)
     , _geo        :: Snaplet Geo
     , feLog       :: Log

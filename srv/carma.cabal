@@ -50,6 +50,7 @@ Executable carma
     Snaplet.SiteConfig.SpecialPermissions,
     Snaplet.FileUpload,
     Snaplet.Geo,
+    Snaplet.TaskManager,
     Snaplet.Auth.Class,
     Snaplet.Auth.PGUsers,
     Utils.HttpErrors,
@@ -59,11 +60,11 @@ Executable carma
 
   Build-depends:
     aeson                       >= 0.6.2 && < 0.7,
-    attoparsec                  == 0.10.*,
+    attoparsec                  >= 0.10 && < 0.12,
     base                        >= 4 && < 5,
     bytestring                  >= 0.9.1 && < 0.11,
     bytestring-lexing           == 0.4.*,
-    carma-models                >= 0.8.2 && < 0.9,
+    carma-models                == 0.9.*,
     carma-http                  == 0.4.*,
     carma-sync                  >= 0.1.8 && < 0.2,
     carma-partner-import        >= 0.5.1 && < 0.6,
@@ -88,6 +89,7 @@ Executable carma
     postgresql-simple           == 0.3.*,
     postgresql-sync-map         >= 0.4.1 && < 0.5,
     pureMD5                     == 2.1.*,
+    random                      == 1.0.*,
     resource-pool-catchio       >= 0.2 && < 0.3,
     simple-log                  == 0.3.*,
     snap                        == 0.13.*,
@@ -104,7 +106,7 @@ Executable carma
     transformers                >= 0.2 && < 0.4,
     unordered-containers,
     vector                      == 0.10.*,
-    vin-parser                  >= 0.7.1.1 && < 0.8,
+    vinnie                      == 0.1.*,
     weather-api                 >= 0.4.3,
     xlsx                        >= 0.0.2.1 && < 0.1,
     process-extras              == 0.2.*

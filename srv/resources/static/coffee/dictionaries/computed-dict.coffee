@@ -37,7 +37,7 @@ define ["dictionaries/local-dict"], (ld) ->
             , label: (parent.label + ' — ' + obj.label) || ''
             }
 
-    # Dictionary of all programs available to user from VIN screen.
+    # Dictionary of all subprograms available to user from VIN screen.
     # - partner may see only his own programs
     # - vinAdmin role may access all programs
     # - all other users may do nothing
@@ -59,6 +59,13 @@ define ["dictionaries/local-dict"], (ld) ->
             all_pgms
           else
             []
+
+    vinFormats: =>
+      @bgetJSON "/_/VinFormat", (objs) =>
+        @source = for o in objs
+          { value: o.id
+          , label: o.label
+          }
 
     allPartners: =>
       @bgetJSON "/all/partner", (objs) =>

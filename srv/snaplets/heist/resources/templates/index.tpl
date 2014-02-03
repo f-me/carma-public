@@ -236,22 +236,25 @@
       <div style="text-align:center;">
       <fieldset>
         <legend>Загрузка VIN</legend>
-        <form id="vin-import-form" onsubmit="doVin(); return false;">
+        <form id="vin-import-form">
           <p>
-            <select name="program" id="vin-program-select" data-bind="foreach: $data">
+            <select name="subprogram" id="vin-subprogram-select" data-bind="foreach: $data">
+              <option data-bind="value: value, text: label" />
+            </select>
+            <select name="format" id="vin-format-select" data-bind="foreach: $data">
               <option data-bind="value: value, text: label" />
             </select>
             <input type="file"
                    name="file"
                    id="vin-upload-file"
-                   accept="text/csv|application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                   accept="text/csv" />
           </p>
-          <button class="btn btn-success" type="submit">
+          <a class="btn btn-success" onClick="doVin();">
             Отправить
-          </button>
+          </a>
         </form>
       </fieldset>
-      <div id="vin-alert-container" />
+      <div id="vin-box-container" />
       </div>
     </script>
 
@@ -271,32 +274,6 @@
           </input>
         </form>
       </fieldset>
-      </div>
-    </script>
-
-    <script type="text/template"
-            id="vin-alert-template">
-      <!-- TODO Should be row-fluid when fluid containers are
-                fixed in Bootstrap upstream. -->
-      <div class="container">
-        <div class="row">
-          <div class="span6 offset3">
-            {{# alerts}}
-              <div class="alert alert-{{alertType}}" style="margin-bottom: 2px;">
-                <button class="close"
-			data-dismiss="alert"
-			onclick="removeVinAlert('{{alertId}}'); return false;">×</button>
-                {{alertVinFile}}: {{ alertMessage }}
-                {{# alertErrorFile }}
-                  <a href="{{alertErrorFile}}">Файл</a> с необработанными записями.
-                {{/ alertErrorFile }}
-                {{# alertErrorLogFile }}
-                  <a href="{{alertErrorLogFile}}">Файл</a> с описанием ошибок.
-                {{/ alertErrorLogFile }}
-              </div>
-            {{/ alerts}}
-          </div>
-        </div>
       </div>
     </script>
 

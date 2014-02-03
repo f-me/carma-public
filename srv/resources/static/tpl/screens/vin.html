@@ -1,2 +1,23 @@
 <!-- Import VINs screen -->
 <div id="vin-form" />
+
+<script type="text/template"
+        id="vin-box-template">
+  <div class="alert alert-info vin-box">
+    <button class="close" data-dismiss="alert">
+      &times;
+    </button>
+
+    <div>
+      <i class="icon icon-file" /><b data-bind="text: filename" />:
+      <span data-bind="text: status" />
+      <span data-bind="visible: report()">
+        (<a target="_blank"
+            data-bind="attr: { href: report }"
+            ><i class="icon icon-download-alt" /><b>отчёт</b></a>)
+      </span>
+      <span data-bind="visible: error()">
+        (<span data-bind="text: error" />)
+      </span>
+    </div>
+</script>
