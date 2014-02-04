@@ -60,13 +60,6 @@ define ["dictionaries/local-dict"], (ld) ->
           else
             []
 
-    vinFormats: =>
-      @bgetJSON "/_/VinFormat", (objs) =>
-        @source = for o in objs
-          { value: o.id
-          , label: o.label
-          }
-
     allPartners: =>
       @bgetJSON "/all/partner", (objs) =>
         @source = for o in objs when o.name

@@ -1,39 +1,44 @@
 define [ "text!tpl/screens/vin.html"
-       , "utils"
        , "dictionaries"
-       ], (tpl, u, d) ->
-  this.setupVinForm = (viewName, args) ->
-    vin_html = $el("vin-form-template").html()
-    bulk_partner_html = $el("partner-form-template").html()
+       , "lib/taskmanager"
+       , "utils"
+       , "screens/uploads"
+       ], (tpl, d, tm, u, upl) ->
+  @setupVinForm = (viewName, args) ->
+    # vin_html = $el("vin-form-template").html()
+    # bulk_partner_html = $el("partner-form-template").html()
 
-    # Do not show partner bulk upload form when the screen is accessed
-    # by portal users, use appropriate set of programs.
-    all_html = ""
+    # # Do not show partner bulk upload form when the screen is accessed
+    # # by portal users, use appropriate set of programs.
+    # all_html = ""
 
-    if _.contains global.user.roles, global.idents("Role").psaanalyst
-      all_html += bulk_partner_html
+    # if _.contains global.user.roles, global.idents("Role").psaanalyst
+    #   all_html += bulk_partner_html
 
-    if _.contains global.user.roles, global.idents("Role").vinAdmin
-      all_html += vin_html
+    # if _.contains global.user.roles, global.idents("Role").vinAdmin
+    #   all_html += vin_html
 
-    $el(viewName).html(all_html)
+    # $el(viewName).html(all_html)
 
     # Program/format selection
-    dict = (n) -> new d.dicts["ComputedDict"]({ dict: n })
-    subprograms = dict('vinPrograms').source
-    ko.applyBindings(subprograms, el("vin-subprogram-select"))
-    formats = dict('vinFormats').source
-    ko.applyBindings(formats, el("vin-format-select"))
+    subprograms = u.newComputedDict("vinPrograms").source
+    ko.applyBindings subprograms, el("vin-subprogram-select")
+    formats = u.newModelDict("VinFormat").source
+    ko.applyBindings formats, el("vin-format-select")
 
-    global.viewsWare[viewName] = {}
+    $("#vin-send").click (e) ->
+      vinFile = $("#vin-upload-file")[0].files[0]
+      sid = $("#vin-subprogram-select").val()
+      fid = $("#vin-format-select").val()
+      sendVin sid, fid, vinFile
+      false
 
-  this.doVin = ->
-    form     = $el("vin-import-form")[0]
+  # Send VIN file, set up a new box element to track task progress
+  @sendVin = (sid, fid, file) ->
     formData = new FormData()
-    sid = $("#vin-subprogram-select").val()
-    fid = $("#vin-format-select").val()
-    vinFile = $("#vin-upload-file")[0].files[0]
-    formData.append("file", vinFile)
+    formData.append("file", file)
+    formData.append("subprogram", sid)
+    formData.append("format", fid)
 
     uid = _.uniqueId "vin-"
     box = $ $("#vin-box-template").clone().html()
@@ -42,48 +47,31 @@ define [ "text!tpl/screens/vin.html"
     box.appendTo $("#vin-box-container")
     box.fadeIn()
 
-    bvm =
-      filename : ko.observable vinFile.name
-      token    : ko.observable null
-      status   : ko.observable "загружается"
-      report   : ko.observable null
-      error    : ko.observable null
+    bvm = tm.newTaskVM()
+    bvm.filename = file.name
+    bvm.bad = ko.observable 0
     ko.applyBindings bvm, $(box)[0]
 
-    pollToken = (token, bvm) ->
-      bvm.token = token
-      $.getJSON("/tasks/status/#{token}").
-        done((res) ->
-          # TODO More stats here
-          switch res.status
-            when "inprogress"
-              bvm.status "обрабатывается"
-              setTimeout (() -> pollToken(token, bvm)), 1000
-            when "finished"
-              box.removeClass "alert-info"
-              if res.files?.length > 0
-                box.addClass "alert-warning"
-                bvm.status "обработан, есть ошибки"
-                bvm.report "tasks/getFile/#{token}/#{res.files[0]}"
-              else
-                box.addClass "alert-success"
-                bvm.status "обработан без ошибок"
-            when "failed"
-              box.removeClass "alert-info"
-              box.addClass "alert-error"
-              bvm.status "критическая ошибка"
-              bvm.error res.msg)
+    bvm.errorMsg.subscribe (msg) ->
+      box.removeClass("alert-info")
+      box.addClass("alert-error")
 
+    bvm.resultMsg.subscribe (msg) ->
+      box.removeClass("alert-info")
+      if bvm.fileUrls().length > 0
+        box.addClass("alert-warning")
+      else
+        box.addClass("alert-success")
 
-    $.ajax(
-      type        : "POST"
-      url         : "/vin/upload?subprogram=#{sid}&format=#{fid}"
-      data        : formData
-      contentType : false
-      processData : false
-      ).done((res) -> pollToken res.token, bvm)
+    resultFmt = (obj) ->
+      bvm.bad obj.bad
 
-    return false
+    upl.ajaxUpload("/vin/upload?subprogram=#{sid}&format=#{fid}", file).
+      done((res) ->
+        tm.handleTaskWith res.token, bvm, resultFmt, _.identity).
+      fail((res) ->
+        bvm.errorMsg res.responseText
+        bvm.done true)
 
   { constructor: setupVinForm
   , template: tpl

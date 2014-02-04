@@ -231,34 +231,6 @@
     </script>
 
     <script type="text/template"
-            id="vin-form-template"
-            class="view-template">
-      <div style="text-align:center;">
-      <fieldset>
-        <legend>Загрузка VIN</legend>
-        <form id="vin-import-form">
-          <p>
-            <select name="subprogram" id="vin-subprogram-select" data-bind="foreach: $data">
-              <option data-bind="value: value, text: label" />
-            </select>
-            <select name="format" id="vin-format-select" data-bind="foreach: $data">
-              <option data-bind="value: value, text: label" />
-            </select>
-            <input type="file"
-                   name="file"
-                   id="vin-upload-file"
-                   accept="text/csv" />
-          </p>
-          <a class="btn btn-success" onClick="doVin();">
-            Отправить
-          </a>
-        </form>
-      </fieldset>
-      <div id="vin-box-container" />
-      </div>
-    </script>
-
-    <script type="text/template"
             id="partner-form-template"
             class="view-template">
       <div style="text-align:center;">

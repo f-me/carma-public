@@ -478,9 +478,12 @@ serveUsersList = with db usersListPG >>= writeJSON
 vinUploadData :: AppHandler ()
 vinUploadData = scope "vin" $ scope "upload" $ do
   log Trace "Uploading data"
-  inPath <- with fileUpload $ (head <$> doUpload "vin-upload-data")
+  inPath' <- with fileUpload $ doUpload "vin-upload-data"
 
-  let inName = takeFileName inPath
+  let inPath = case inPath' of
+                 (f:_) -> f
+                 _     -> error "Could not upload file"
+      inName = takeFileName inPath
 
   prog <- getParam "program"
   subprog <- getParam "subprogram"

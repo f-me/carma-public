@@ -412,3 +412,8 @@ define ["model/utils", "dictionaries"], (mu, d) ->
       dict: name
       meta:
         dictionaryStringify: stringify
+
+  newComputedDict: (name, meta) ->
+    new d.dicts.ComputedDict
+      dict: name
+      meta: meta

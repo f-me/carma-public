@@ -5,7 +5,9 @@
 
 Handle file uploads using @attachment@ model.
 
-TODO: Handle @attachment@ model permissions in upload handlers.
+TODO Handle @attachment@ model permissions in upload handlers.
+
+TODO Handle file upload policy errors.
 
 -}
 

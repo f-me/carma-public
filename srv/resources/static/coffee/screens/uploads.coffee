@@ -257,4 +257,5 @@ define [ "text!tpl/screens/uploads.html"
   , inlineUploadFile: inlineUploadFile
   , inlineDetachFile: inlineDetachFile
   , template:         tpl
+  , ajaxUpload:       ajaxUpload
   }
