@@ -11,7 +11,7 @@
 Geoservices snaplet (Nominatim forward/reverse geocoding).
 
 All coordinates read by various handlers from request parameters are
-in WSG84 in @<longitude>,<latitude>@ format, as @33.77,52.128@.
+in WSG84 in @longitude,latitude@ format, as @33.77,52.128@.
 
 -}
 
@@ -213,7 +213,7 @@ withinPartners = do
 -- meters as double:
 --
 -- > /distance/37.144775245113,55.542910552955/38.140411231441,56.006347982652/
--- 80825.169705850
+-- > 80825.169705850
 distance :: Handler b Geo ()
 distance = twoPointHandler distanceQuery (head . head :: [[Double]] -> Double)
 

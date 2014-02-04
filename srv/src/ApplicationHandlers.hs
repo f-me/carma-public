@@ -466,7 +466,8 @@ serveUsersList = with db usersListPG >>= writeJSON
 
 
 ------------------------------------------------------------------------------
--- | Utility functions
+-- | Read @program@/@subprogram@/@format@ parameters and upload a VIN
+-- file.
 --
 -- TODO Allow to select only program w/o subprogram.
 --

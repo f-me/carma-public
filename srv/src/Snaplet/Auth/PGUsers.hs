@@ -20,7 +20,7 @@ Populating user roles and meta from PG:
 > Just u <- with auth currentUser
 > u' <- with db $ replaceMetaRolesFromPG u
 
-User meta instances are currently read using DbLayer, which employ
+User meta instances are currently read using DbLayer, which employs
 Redis backend. This is undesirable since we have to maintain separate
 SQL-based code for group select operations required for 'usersListPG'
 helper. We will get rid of this limitation once all models are ported

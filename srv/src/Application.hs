@@ -31,7 +31,7 @@ import Snaplet.Search
 import RuntimeFlag
 
 ------------------------------------------------------------------------------
--- | Application snaplet state type: Redson, Heist.
+-- | CaRMa top-level application state:
 data App = App
     { _heist      :: Snaplet (Heist App)
     , _session    :: Snaplet SessionManager
@@ -48,6 +48,8 @@ data App = App
     , _authDb     :: Snaplet Postgres
     , _search     :: Snaplet (Search App)
     , localName   :: Maybe Text
+    -- ^ Name of CaRMa installation (read from @local-name@ config
+    -- option)
     }
 
 

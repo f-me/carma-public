@@ -95,9 +95,9 @@ selectPartners city isActive isDealer makes = do
   return $ mkMap fields rows
 
 
--- | Read closed, assignedTo, targetGroup (comma-separated),
--- duetimeFrom, duetimeTo (timestamps) parameters and serve a list of
--- matched actions.
+-- | Read @closed@, @assignedTo@, @targetGroup@ (comma-separated),
+-- @duetimeFrom@, @duetimeTo@ (timestamps) parameters and serve a list
+-- of matched actions.
 allActionsHandler :: AppHandler ()
 allActionsHandler = do
   let getRoles = do
@@ -266,7 +266,7 @@ opStatsQ = [sql|
   |]
 
 -- | Serve backoffice operator stats, containing last opened action
--- info for every user with roles back/bo_control:
+-- info for every user with backoffice role:
 --
 -- > {
 -- >   reqTime: 123892,
@@ -277,7 +277,7 @@ opStatsQ = [sql|
 opStats :: AppHandler ()
 opStats = do
   rows <- withPG pg_search $
-          \c -> query c opStatsQ (Role.back, Role.bo_control)
+          \c -> query c opStatsQ (Only Role.back)
   let obj = mkMap [ "login"
                   , "aName"
                   , "caseId"
@@ -352,8 +352,8 @@ actStats = do
                 ([ ("order", orders)
                  , ("control", controls)] :: [(ByteString, ByteString)])
 
--- | Serve users to which actions can be assigned
--- (head/back/supervisor roles, active within last 20 minutes).
+-- | Serve users to which actions can be assigned (head, back or
+-- supervisor roles, active within last 20 minutes).
 boUsers :: AppHandler ()
 boUsers = do
   rows <- withPG pg_search $ \c -> query c [sql|

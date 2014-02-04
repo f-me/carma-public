@@ -49,9 +49,9 @@ createUsermetaTrigger obj =
 
 
 -- | If @login@, @password@ or @isActive@ field is present in a
--- @usermeta@ commit, then change login/password/active status of the
--- corresponding user and strip @password@ from commit. Must be used
--- with @usermeta@ commits only.
+-- @usermeta@ commit, then change login / password / active status of
+-- the corresponding user and strip @password@ from commit. Must be
+-- used with @usermeta@ commits only.
 updateUsermetaTrigger :: ObjectId -> Object -> DbHandler b Object
 updateUsermetaTrigger objId obj = do
   case (M.lookup "login" obj,
