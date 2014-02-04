@@ -6,7 +6,7 @@ import Control.Monad.IO.Class
 
 import qualified Data.Set as Set
 import Data.ByteString (ByteString)
-import Data.Configurator
+import Data.Configurator as Cfg
 import Control.Concurrent.STM
 
 import System.Log.Simple (newLog, fileCfg, logger, text, file)
@@ -140,6 +140,8 @@ appInit :: SnapletInit App App
 appInit = makeSnaplet "app" "Forms application" Nothing $ do
   cfg <- getSnapletUserConfig
 
+  ln <- liftIO $ Cfg.lookup cfg "local-name"
+
   h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
   addAuthSplices h auth
 
@@ -187,4 +189,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   addRoutes routes
   wrapSite (claimUserActivity>>)
-  return $ App h s authMgr c d pgs pga tm fu g l runtimeFlags ad search
+  return $ App h s authMgr c d pgs pga tm fu g l runtimeFlags ad search ln

@@ -9,6 +9,8 @@ import Control.Lens
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
 
+import Data.Text (Text)
+
 import Snap
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth
@@ -45,6 +47,7 @@ data App = App
     , runtimeFlags:: TVar (Set RuntimeFlag)
     , _authDb     :: Snaplet Postgres
     , _search     :: Snaplet (Search App)
+    , localName   :: Maybe Text
     }
 
 

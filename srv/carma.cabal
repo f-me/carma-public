@@ -109,6 +109,7 @@ Executable carma
     vinnie                      == 0.1.*,
     weather-api                 >= 0.4.3,
     xlsx                        >= 0.0.2.1 && < 0.1,
+    xmlhtml                     == 0.2.*,
     process-extras              == 0.2.*
 
   if !os(windows)

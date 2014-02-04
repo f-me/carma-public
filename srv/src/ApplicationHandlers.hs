@@ -1,4 +1,5 @@
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module ApplicationHandlers where
@@ -46,6 +47,9 @@ import Database.PostgreSQL.Simple ( Query, query_, query, execute
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import Data.Pool (withResource)
+import Heist
+import Heist.Interpreted
+import Text.XmlHtml as X
 
 import Snap
 import Snap.Http.Server.Config as S
@@ -81,10 +85,24 @@ import Util as U hiding (render)
 import Utils.NotDbLayer (readIdent)
 import RuntimeFlag
 
+
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
 indexPage :: AppHandler ()
-indexPage = ifTop $ render "index"
+indexPage = ifTop $ do
+    ln <- gets localName
+    -- Render index page with <addLocalName> splice defined, which
+    -- appends the @local-name@ config option to its argument.
+    let addLocalName :: Splice AppHandler
+        addLocalName = do
+            t <- X.nodeText <$> getParamNode
+            let r = case ln of
+                      Just s  -> T.concat [t, " [", s, "]"]
+                      Nothing -> t
+            return $ [X.TextNode r]
+        splices = do
+          "addLocalName" ## addLocalName
+    renderWithSplices "index" splices
 
 
 ------------------------------------------------------------------------------
