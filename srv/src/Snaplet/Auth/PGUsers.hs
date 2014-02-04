@@ -25,7 +25,7 @@ Redis backend. This is undesirable since we have to maintain separate
 SQL-based code for group select operations required for 'usersListPG'
 helper. We will get rid of this limitation once all models are ported
 to use Haskell-side descriptions (which may then be used to generate
-corresponding 'FromRow' instances).
+corresponding 'FromRow' instances) (TODO #1462).
 
 -}
 

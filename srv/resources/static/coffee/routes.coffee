@@ -48,6 +48,20 @@ define [
      , contractsSearch
      , r) ->
     localScreens: ->
+      # "<screen-name>":
+      #    "template": "<top-level-template-name>" (if needed)
+      #    "views":
+      #       "<view1-name>": a screen object;
+      #                       its constructor field will called with
+      #                       view1-name and screen args
+      #       "<view2-name>": ...
+      #
+      # (view names may reference elements in screen template; screen
+      # template is picked from "template" field here or of screen
+      # object used when renderScreen was called)
+      #
+      # TODO: Screen objects are used as both template containers and
+      # view constructors.
       "case":
         "template": "case-screen-template"
         "views":
@@ -70,7 +84,6 @@ define [
         "views":
           "back-form": bo
       "vin":
-        "template": "vin-screen-template"
         "views":
           "vin-form": vin
       "call":
@@ -82,13 +95,11 @@ define [
         "views":
           "partner-view": partner
       "user":
-        "template": "user-screen-template"
         "views":
           "user-view": user
       "uploads":
-        "template": "uploads-screen-template"
         "views":
-          "user-view": uploads
+          "uploads-view": uploads
       "supervisor":
         "template": "supervisor-screen-template"
         "views":
