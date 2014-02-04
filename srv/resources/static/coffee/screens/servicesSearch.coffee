@@ -58,6 +58,7 @@ define [ "utils"
                             (f) -> _.contains fs, f.name)
 
     searchKVM.showFields.del = (fs) ->
+      dynView.removeField fs.name
       searchKVM[fs.name](null)
       searchKVM.showFields( _.reject searchKVM.showFields(),
                            (f) -> _.contains fs, f.name)
@@ -88,7 +89,7 @@ define [ "utils"
 
     # all about results
     tg = smodel.transformFields searchKVM, ssmodels
-    rfields = smodel.mkFieldsDynView searchKVM, tg,
+    {rfields, dynView} = smodel.mkFieldsDynView searchKVM, tg,
       [ { name: 'Case_id', fixed: true }
       , { name: 'contact'              }
       , { name: 'callDate'             }

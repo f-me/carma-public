@@ -44,14 +44,17 @@ define ["utils"], ->
       f = @showFields()
       t = _.keys @groups
       d = _.difference f, t
-      @dynamic.pop d[0]
+      unless _.isEmpty d
+        @dynamic.pop d[0]
 
   mkFieldsDynView: (searchKVM, {labels, groups}, defaults) ->
     dynView = new FieldsDynView searchKVM, {labels, groups}, defaults
-    labels: labels
-    groups: groups
-    fields: dynView.showFields
-    hidden: dynView.hiddenFields
+    rfields =
+      labels: labels
+      groups: groups
+      fields: dynView.showFields
+      hidden: dynView.hiddenFields
+    {rfields, dynView}
 
   transformFields: (searchKVM, models) ->
     labels = {}
