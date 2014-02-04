@@ -497,6 +497,9 @@ vinUploadData = scope "vin" $ scope "upload" $ do
       -- Check user permissions
       Just u <- with auth currentUser
       u' <- with db $ replaceMetaRolesFromPG u
+      -- Allow users with partner role to upload files only to their
+      -- assigned subprograms. Note that usermeta field is still
+      -- called "programs" despite storing a list of subprogram ids.
 --      let Aeson.String userPgms' = HM.lookupDefault "" "programs" $ userMeta u'
 --          userPgms = B.split ',' $ T.encodeUtf8 userPgms'
       when (not $
