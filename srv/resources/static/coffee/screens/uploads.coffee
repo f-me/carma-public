@@ -11,16 +11,16 @@ define [ "text!tpl/screens/uploads.html"
     fd = new FormData()
     fd.append("file", file)
 
-    baseProps = 
+    baseProps =
       type        : "POST"
       url         : url
       contentType : false
       processData : false
       data        : fd
       dataType    : "json"
-    
+
     $.ajax _.extend(baseProps, props)
-  
+
   # Destructively add a reference to attachment:<attId> to files field
   # of a case instance object
   #
@@ -133,7 +133,7 @@ define [ "text!tpl/screens/uploads.html"
         bvm.aid(res.attachment.id)
         bvm.filename(res.attachment.filename)
         bvm.dupe(res.dupe)
-        
+
         for t in res.targets
           bvm.cases.push t[1]
         for t in res.unknown
@@ -230,7 +230,7 @@ define [ "text!tpl/screens/uploads.html"
       ).
       # Re-read instance data when a new attachment is added
       done(() -> formMeta.knockVM._meta.q.fetch())
-      
+
       form.find('input:file').val("").trigger("change")
 
   # Delete an attachment reference from an instance, provided an
@@ -242,7 +242,7 @@ define [ "text!tpl/screens/uploads.html"
     ref = "attachment:#{attId}"
 
     return unless confirm "Вы уверены, что хотите открепить этот файл?"
-    
+
     formMeta = e.parent().parent().siblings("form").data()
     kvm = formMeta.knockVM
 
@@ -252,7 +252,7 @@ define [ "text!tpl/screens/uploads.html"
 
     # Suitable for onClick on <a>
     false
-    
+
   { constructor:      renderUploadsForm
   , inlineUploadFile: inlineUploadFile
   , inlineDetachFile: inlineDetachFile
