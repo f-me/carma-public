@@ -20,7 +20,10 @@ define ["utils"], ->
       for f in @searchKVM._meta.model.fields when not f.meta?.nosearch?
         do (f) =>
           @searchKVM[f.name].subscribe (v) =>
-            @updateFields(f.name) if (v)
+            if (v)
+              @updateFields(f.name)
+            else
+              @removeField f.name
             # rewind to the first page of search results
             @searchKVM._meta.pager.offset 0
 
@@ -49,12 +52,10 @@ define ["utils"], ->
 
   mkFieldsDynView: (searchKVM, {labels, groups}, defaults) ->
     dynView = new FieldsDynView searchKVM, {labels, groups}, defaults
-    rfields =
-      labels: labels
-      groups: groups
-      fields: dynView.showFields
-      hidden: dynView.hiddenFields
-    {rfields, dynView}
+    labels: labels
+    groups: groups
+    fields: dynView.showFields
+    hidden: dynView.hiddenFields
 
   transformFields: (searchKVM, models) ->
     labels = {}
