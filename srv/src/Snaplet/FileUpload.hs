@@ -3,21 +3,24 @@
 
 {-|
 
-Handle file uploads using @attachment@ model.
+File upload helpers and @attachment@ model handling.
 
-TODO Handle @attachment@ model permissions in upload handlers.
+TODO Use @attachment@ model permissions in upload handlers.
 
 TODO Handle file upload policy errors.
 
 -}
 
 module Snaplet.FileUpload
-  ( fileUploadInit
-  , FileUpload(..)
-  , doUpload
-  , doUploadTmp
-  , getAttachmentPath
-  ) where
+    ( fileUploadInit
+    , FileUpload(..)
+    , doUpload
+    , doUploadTmp
+    , withUploads
+    , getAttachmentPath
+    )
+
+where
 
 import Control.Lens
 import Control.Monad
@@ -44,6 +47,7 @@ import qualified Data.Text.Encoding as T
 
 import System.Directory
 import System.FilePath
+import System.IO
 
 import Snap (gets, liftIO)
 import Snap.Core hiding (path)
@@ -264,22 +268,23 @@ attachToField modelName instanceId field ref = do
       lockName = BS.concat [modelName, ":", instanceId, "/", field]
 
 
--- | Process all files in the request and collect results.
-doUpload' :: (PartInfo -> FilePath -> IO (Maybe a))
-          -- ^ Handler for successfully uploaded files.
-          -> Handler b (FileUpload b) [a]
-doUpload' proceed = do
-  tmpd <- gets tmp
-  cfg  <- gets cfg
-  fns  <- handleFileUploads tmpd cfg (const $ partPol cfg) $
+-- | Process all files in the request and collect results. Files are
+-- deleted after the handler runs.
+withUploads :: (PartInfo -> FilePath -> IO (Maybe a))
+            -- ^ Handler for successfully uploaded files.
+            -> Handler b (FileUpload b) [a]
+withUploads proceed = do
+  tmpDir <- gets tmp
+  cfg <- gets cfg
+  fns <- handleFileUploads tmpDir cfg (const $ partPol cfg) $
     liftIO . fmap catMaybes . mapM (\(info, r) -> case r of
       Left _    -> return Nothing
-      Right res -> proceed info res)
+      Right tmp -> proceed info tmp)
   return fns
 
 
 -- | Store files from the request, return full paths to the uploaded
--- files.
+-- files. Original file names are preserved.
 doUpload :: FilePath
          -- ^ Store files in this directory (relative to finished
          -- uploads path)
@@ -287,17 +292,27 @@ doUpload :: FilePath
 doUpload relPath = do
   root <- gets finished
   let path = root </> relPath
-  doUpload' $ \info res ->
+  withUploads $ \info tmp ->
       do
         let justFname = U.bToString . fromJust $ partFileName info
+            newPath = path </> justFname
         createDirectoryIfMissing True path
-        copyFile res $ path </> justFname
-        return $ Just $ path </> justFname
+        copyFile tmp newPath
+        return $ Just newPath
 
-
--- | Store files from the request temporarily.
-doUploadTmp :: Handler b (FileUpload b) [FilePath]
-doUploadTmp = doUpload' (\_ res -> return $ Just res)
+-- | Store files from the request in the temporary dir, return pairs
+-- @(original file name, path to file)@.
+doUploadTmp :: Handler b (FileUpload b) [(FilePath, FilePath)]
+doUploadTmp = do
+  tmpDir <- gets tmp
+  withUploads $ \info tmp ->
+      do
+        let name = case partFileName info of
+                     Just fn -> U.bToString fn
+                     Nothing -> takeFileName tmp
+        (newPath, _) <- openTempFile tmpDir name
+        copyFile tmp newPath
+        return $ Just (name, newPath)
 
 
 partPol :: UploadPolicy -> PartUploadPolicy

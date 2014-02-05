@@ -1,3 +1,4 @@
+{-# LANGUAGE DoAndIfThenElse #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -38,6 +39,7 @@ import Data.Ord (comparing)
 
 import Data.Time
 
+import System.Directory
 import System.FilePath
 import System.IO
 import System.Locale
@@ -68,7 +70,7 @@ import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
-import Snaplet.FileUpload (tmp, doUpload)
+import Snaplet.FileUpload (tmp, doUpload, doUploadTmp)
 import Snaplet.TaskManager as TM
 ------------------------------------------------------------------------------
 import Carma.Model
@@ -477,26 +479,14 @@ serveUsersList = with db usersListPG >>= writeJSON
 -- TODO Should VIN files really be stored permanently?
 vinUploadData :: AppHandler ()
 vinUploadData = scope "vin" $ scope "upload" $ do
-  log Trace "Uploading data"
-  inPath' <- with fileUpload $ doUpload "vin-upload-data"
-
-  let inPath = case inPath' of
-                 (f:_) -> f
-                 _     -> error "Could not upload file"
-      inName = takeFileName inPath
-
   prog <- getParam "program"
   subprog <- getParam "subprogram"
   format <- getParam "format"
 
   case (B.readInt =<< subprog, B.readInt =<< format) of
     (Just (sid, _), Just (fid, _)) -> do
-      log Info $ T.concat ["Uploading ", T.pack inName]
       log Trace $ T.concat ["Subprogram: ", T.pack $ show sid]
       log Trace $ T.concat ["Format: ", T.pack $ show fid]
-
-      tmpDir <- with fileUpload $ gets tmp
-      (outPath, _) <- liftIO $ openTempFile tmpDir inName
 
       -- Check user permissions
       Just u <- with auth currentUser
@@ -511,6 +501,16 @@ vinUploadData = scope "vin" $ scope "upload" $ do
             (elem (Role $ identFv Role.vinAdmin) (userRoles u'))) $
             handleError 403
 
+      inPath' <- with fileUpload $ doUploadTmp
+      let (inName, inPath) =
+              case inPath' of
+                (f:_) -> f
+                _     -> error "Could not upload file"
+
+      log Info $ T.concat ["Processing file: ", T.pack inName]
+      tmpDir <- with fileUpload $ gets tmp
+      (outPath, _) <- liftIO $ openTempFile tmpDir inName
+
       -- Use connection information from DbLayer
       dbCfg <- with db $ with DB.postgres $ getSnapletUserConfig
       connInfo <-
@@ -523,25 +523,31 @@ vinUploadData = scope "vin" $ scope "upload" $ do
 
       -- Set current user as committer
       let Just (UserId uid') = userId u
-          Just (uid, _) = B.readInt $ T.encodeUtf8 uid'
+          Just (uid, _)      = B.readInt $ T.encodeUtf8 uid'
 
       -- VIN import task handler
       with taskMgr $ TM.create $ do
         let opts = Options connInfo inPath outPath uid fid Nothing (Just sid)
         res <- doImport opts
 
-        return $ case res of
-            Right (good, bad) ->
-                let
-                    stats :: Map String Int64
-                    stats =  Map.fromList [ ("good", good)
-                                          , ("bad", bad)
-                                          ]
-                in
-                  if bad == 0
-                  then Right (Aeson.String $ T.pack $ show good, [])
-                  else Right (Aeson.toJSON stats, [outPath])
-            Left  e -> Left $ Aeson.toJSON e
+        removeFile inPath
+        case res of
+          Right (good, bad) ->
+              do
+                if bad == 0
+                then removeFile outPath >>
+                     (return $ Right (Aeson.String $ T.pack $ show good, []))
+                else return $ Right (Aeson.toJSON stats, [outPath])
+                where
+                  stats :: Map String Int64
+                  stats =  Map.fromList [ ("good", good)
+                                        , ("bad", bad)
+                                        ]
+          Left e ->
+              do
+                ex <- doesFileExist outPath
+                when ex $ removeFile outPath
+                return $ Left $ Aeson.toJSON e
     _ -> do
       log Error "Subprogram/format not specified"
       error "Subprogram/format not specified"
