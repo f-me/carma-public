@@ -159,10 +159,6 @@ serveDictionaries = do
   Aeson.Object dictMap <- gets dictionaries
   -- Support legacy client interface for some dictionaries
   writeJSON $ Aeson.Object
-    $ HM.insert "Program"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList programs)])
-    $ HM.insert "SubProgram"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList subprograms)])
     $ HM.insert "ProgramInfo"
       (Aeson.object [("entries", Aeson.Array $ V.fromList programInfos)])
     $ HM.insert "ServiceInfo"
