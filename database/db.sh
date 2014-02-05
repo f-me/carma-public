@@ -208,6 +208,7 @@ if [[ "$1" == "setup" ]] ; then
   setup_db
 elif [[ "$1" == "update" ]] ; then
   update_db
+  echo \*\*\* "Don't forget to do 'git reset' now!"
 elif [[ "$1" == "update-devel" ]] ; then
   update_db --dev
 elif [[ "$1" == "stat" ]] ; then
