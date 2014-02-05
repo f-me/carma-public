@@ -419,6 +419,17 @@ setQueueDefaults =
      |]
 
 
+-- | Add error to every row with missing identifier fields.
+markMissingIdentifiers :: Import Int64
+markMissingIdentifiers =
+    execute
+    [sql|
+     UPDATE vinnie_queue SET errors = errors || ARRAY[?]
+     WHERE length(lower(trim(both ' ' from concat(?)))) == 0;
+     |] ( NoIdentifiers
+        , PT $ sqlCommas identifierFieldNames)
+
+
 -- | Add error to every row where a provided field is empty (used to
 -- mark empty required fields). Parameters: error message, field name.
 markEmptyRequired :: Query
@@ -466,11 +477,14 @@ transferContracts =
 
 
 data RowError = EmptyRequired Text
+              | NoIdentifiers
               | NoSubprogram
                 deriving Show
 
 instance ToField RowError where
     toField (EmptyRequired t) =
         toField $ T.concat ["Обязательное поле «", t, "» не распознано"]
+    toField (NoIdentifiers) =
+        toField $ T.concat ["Ни одно из полей-идентификаторов не распознано"]
     toField NoSubprogram =
         toField $ T.concat ["Подпрограмма не распознана"]

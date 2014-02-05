@@ -282,6 +282,7 @@ process psid mapping = do
                when (Patch.get' vf reqAcc) $
                     execute markEmptyRequired (EmptyRequired fd, PT fn) >>
                     pass)
+  markMissingIdentifiers
 
   -- Finally, write new contracts to live table
   loaded <- deleteDupes >> transferContracts
