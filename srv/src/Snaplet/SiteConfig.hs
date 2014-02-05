@@ -1,4 +1,3 @@
-
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Snaplet.SiteConfig
@@ -113,7 +112,7 @@ stripModel u m = do
   return $ m {fields = foldr fieldFilter [] $ fields m}
 
 -- | Serve available idents for a model (given in @name@ request
--- parameter) as JSON object.
+-- parameter) as JSON object: @{"foo": 12, "bar": 28}@.
 serveIdents :: Handler b (SiteConfig b) ()
 serveIdents = do
   nm <- getParam "name"
@@ -158,6 +157,7 @@ serveDictionaries = do
     $ selectJSON (Colors.ident :. Colors.value :. Colors.label)
 
   Aeson.Object dictMap <- gets dictionaries
+  -- Support legacy client interface for some dictionaries
   writeJSON $ Aeson.Object
     $ HM.insert "Roles"
       (Aeson.object [("entries", Aeson.Array $ V.fromList roles')])

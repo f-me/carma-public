@@ -37,8 +37,8 @@ define [ "utils"
     worker()
 
   # Given /allActions or /littleMoreActions response, try to redirect
-  # to the first order-class action if the user has "bo_order" role.
-  # Otherwise, just show all actions in the table.
+  # to the first order-class action. Otherwise, just show all actions
+  # in the table.
   myActionsHandler = (actions) ->
     if !_.isEmpty actions
       act = _.find actions, (a) ->
