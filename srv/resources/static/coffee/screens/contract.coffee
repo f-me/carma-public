@@ -2,9 +2,8 @@ define [
     "utils",
     "model/main",
     "text!tpl/screens/contract.html",
-    "screenman",
-    "dictionaries"],
-  (utils, main, tpl, screenman, d) ->
+    "screenman"],
+  (utils, main, tpl, screenman) ->
 
     reformatDate = (date)->
       [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
@@ -238,7 +237,7 @@ define [
 
     screenSetup = (viewName, args) ->
       programs = [{id: null, name: 'Выберите программу' }]
-      programDict = new d.dicts["ComputedDict"]({ dict: "vinPrograms" })
+      programDict = utils.newComputedDict("vinPrograms")
       _.each programDict.source, (program) ->
         programs.push {id: program.value, name: program.label}
       ko.applyBindings(programs, el("program-select"))
