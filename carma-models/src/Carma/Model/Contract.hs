@@ -9,7 +9,7 @@ import Data.Time.Clock (UTCTime)
 import Data.Text
 import Data.Typeable
 
-import Database.PostgreSQL.Simple.FromField
+import Database.PostgreSQL.Simple.FromField hiding (name)
 import Database.PostgreSQL.Simple.ToField
 
 import Data.Model
@@ -154,3 +154,15 @@ instance Model Contract where
                 , setMeta "regexp" "plateNum" plateNum
                 , setMeta "regexp" "vin" vin
                 ]
+
+
+-- | List of field names used to search contracts.
+identifierFieldNames :: [Text]
+identifierFieldNames = [ fieldName vin
+                       , fieldName cardNumber
+                       , fieldName plateNum
+                       , fieldName name
+                       , fieldName phone
+                       , fieldName codeWord
+                       , fieldName email
+                       ]
