@@ -260,7 +260,7 @@ process psid mapping = do
   setSpecialDefaults uid (snd psid)
 
   forM_ (vinFormatAccessors) $
-        (\(FFAcc (CF c) _ _ reqAcc defAcc _) ->
+        (\(FFAcc (CF c) _ loadAcc reqAcc defAcc _) ->
              let
                  fn = fieldName c
                  -- TODO Might use CSV titles here instead of Contract
@@ -275,11 +275,8 @@ process psid mapping = do
                -- value is supplied in the file. Probably this is not
                -- expected.
                execute setQueueDefaults (PT fn, dv, PT fn)
-               -- Write errors for empty required columns.
-               --
-               -- TODO Probably non-loadable required fields must be
-               -- ignored here.
-               when (Patch.get' vf reqAcc) $
+               -- Write errors for empty required loadable columns.
+               when (Patch.get' vf reqAcc && Patch.get' vf loadAcc) $
                     execute markEmptyRequired (EmptyRequired fd, PT fn) >>
                     pass)
   markMissingIdentifiers
