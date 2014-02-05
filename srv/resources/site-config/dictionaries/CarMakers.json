@@ -61,6 +61,10 @@
             "label": "Citroen"
         },
         {
+            "value": "daf",
+            "label": "DAF"
+        },
+        {
             "value": "daewoo",
             "label": "Daewoo"
         },

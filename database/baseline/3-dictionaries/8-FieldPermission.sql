@@ -1189,6 +1189,7 @@ parguy	partner	services	t	t
 parguy	partner	serviceWorking	t	t
 parguy	partner	taxScheme	t	t
 parguy	partner	workingTime	t	t
+parguy	partner	foreignIdent	t	t
 core	partnerCancel	caseId	t	t
 core	partnerCancel	comment	t	t
 core	partnerCancel	ctime	t	t

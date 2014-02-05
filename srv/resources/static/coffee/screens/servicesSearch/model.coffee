@@ -28,6 +28,7 @@ define [ "utils"
       "car_model"
       "cardNumber_cardNumber"
       "comment"
+      "callTaker"
       ]
     Service: [
       "type"

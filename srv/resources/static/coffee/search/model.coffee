@@ -20,7 +20,10 @@ define ["utils"], ->
       for f in @searchKVM._meta.model.fields when not f.meta?.nosearch?
         do (f) =>
           @searchKVM[f.name].subscribe (v) =>
-            @updateFields(f.name) if (v)
+            if (v)
+              @updateFields(f.name)
+            else
+              @removeField f.name
             # rewind to the first page of search results
             @searchKVM._meta.pager.offset 0
 
@@ -44,7 +47,8 @@ define ["utils"], ->
       f = @showFields()
       t = _.keys @groups
       d = _.difference f, t
-      @dynamic.pop d[0]
+      unless _.isEmpty d
+        @dynamic.pop d[0]
 
   mkFieldsDynView: (searchKVM, {labels, groups}, defaults) ->
     dynView = new FieldsDynView searchKVM, {labels, groups}, defaults
