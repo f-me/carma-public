@@ -425,7 +425,7 @@ markMissingIdentifiers =
     execute
     [sql|
      UPDATE vinnie_queue SET errors = errors || ARRAY[?]
-     WHERE length(lower(trim(both ' ' from concat(?)))) == 0;
+     WHERE length(lower(trim(both ' ' from concat(?)))) = 0;
      |] ( NoIdentifiers
         , PT $ sqlCommas identifierFieldNames)
 
