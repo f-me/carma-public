@@ -55,8 +55,8 @@ define ["utils"
     n = global.dictValueCache['ActionNames']
     r = global.dictValueCache['ActionResults']
     u = global.dictValueCache['users']
-    g = global.dictValueCache['Roles']
 
+    roles = utils.newModelDict "Role", true
     progs = utils.newModelDict "Program", true
 
     rows = for obj in res.actions
@@ -84,7 +84,7 @@ define ["utils"
       , closed
       , n[obj.name] || ''
       , u[obj.assignedTo] || ''
-      , g[obj.targetGroup] || obj.targetGroup || ''
+      , roles.getLab(obj.targetGroup) || obj.targetGroup || ''
       , duetime || ''
       , timeLabel?[0]
       , r[obj.result] || ''

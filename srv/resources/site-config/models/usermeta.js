@@ -47,7 +47,9 @@
     {
       "meta": {
         "label": "Роли в системе",
-        "dictionaryName": "Roles",
+        "dictionaryName": "Role",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
         "bounded": true
       },
       "type": "dictionary-many",
