@@ -37,6 +37,7 @@ import Snaplet.TaskManager
 import Application
 import ApplicationHandlers
 import AppHandlers.ActionAssignment
+import AppHandlers.Bulk
 import AppHandlers.CustomSearches
 import AppHandlers.PSA
 import AppHandlers.ContractGenerator
@@ -111,8 +112,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/boUsers",       chkAuth . method GET  $ boUsers)
          , ("/dealers/:make", chkAuth . method GET  $ allDealersForMake)
          , ("/partner/upload.csv",
-            chkAuthLocal . method POST $ partnerUploadData)
-         , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
+            chkAuthLocal . method POST $ partnerImport)
+         , ("/vin/upload",    chkAuth . method POST $ vinImport)
          , ("/vin/reverseLookup/:vin", chkAuth . method GET  $ vinReverseLookup)
          , ("contracts/findByCard/:program/:cardNumber",
             chkAuth . method GET    $ cardNumberLookup)

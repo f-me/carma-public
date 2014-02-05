@@ -26,6 +26,7 @@ Executable carma
     AppHandlers.Users,
     AppHandlers.Util,
     AppHandlers.ActionAssignment,
+    AppHandlers.Bulk,
     AppHandlers.CustomSearches,
     AppHandlers.PSA,
     AppHandlers.PSA.Base,
