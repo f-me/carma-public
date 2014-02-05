@@ -16,7 +16,8 @@ types).
 
 Example:
 
-Assume that a certain handler creates a new task using 'create':
+Assume that TaskManager snaplet is installed under @/tasks@ path and a
+another handler creates a new task using 'create':
 
 > /createMyTask/?opts=foo
 
@@ -26,13 +27,13 @@ In response, task token is served in JSON:
 
 Now its status can be queried:
 
-> /status/a7c3db2
+> /tasks/a7c3db2/status
 > {"status":"inprogress"}
 
-> /status/a7c3db2
+> /tasks/a7c3db2/status
 > {"status":"failed", "msg":<JSON produced by task handler>}
 
-> /status/a7c3db2
+> /tasks/a7c3db2/status
 > {"status":"finished", "msg":<JSON>, "files":["foo.txt", "bar.pdf"]}
 
 TaskManager does not specify how result/error JSON should be formed.
@@ -41,12 +42,12 @@ knowing how the task was created.
 
 Result files can be accessed using the provided token and a file name:
 
-> /getFiles/a7c3db2/foo.txt
-> /getFiles/a7c3db2/bar.pdf
+> /tasks/a7c3db2/files/foo.txt
+> /tasks/a7c3db2/files/bar.pdf
 
-Task files may be removed afterwards:
+A task and its files may be removed by sending a DELETE request:
 
-> /cleanup/a7c3db2
+> /tasks/a7c3db2
 
 -}
 
@@ -143,9 +144,9 @@ data TaskManager a = TaskManager
 
 
 routes :: [(ByteString, Handler b (TaskManager b) ())]
-routes = [ ("/status/:token",          method GET status)
-         , ("/getFile/:token/:file",   method GET getFile)
-         , ("/cleanup/:token/",        method GET cleanup)
+routes = [ ("/:token/status",      method GET status)
+         , ("/:token/files/:file", method GET getFile)
+         , ("/:token",             method DELETE cleanup)
          ]
 
 
@@ -204,6 +205,7 @@ getFile = do
   -- Pick a file to serve (we cannot serve the file from inside STM)
   ts <- gets tasks >>= (liftIO . readTVarIO)
   res <- case M.lookup token ts of
+    Just (Task (Finished (_, []))) -> return $ Left "Task produced no files"
     Just (Task (Finished (_, files))) ->
       -- Find if any of output files match the requested name
       case L.find (\f -> (pack $ takeFileName f) == fn) files of
