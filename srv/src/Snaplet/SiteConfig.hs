@@ -39,13 +39,10 @@ import Utils.HttpErrors
 import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
-import qualified Carma.Model.Program as Program
-import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.ProgramInfo as ProgramInfo
 import qualified Carma.Model.ServiceInfo as ServiceInfo
 import qualified Carma.Model.ServiceNames as ServiceNames
 import qualified Carma.Model.Colors as Colors
-import qualified Carma.Model.Role as Role
 
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
@@ -134,18 +131,6 @@ serveIdents = do
 serveDictionaries :: Handler b (SiteConfig b) ()
 serveDictionaries = do
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
-
-  roles <- withPG $ selectJSON (Role.ident :. Role.label)
-  let roles' =
-          map (\(Aeson.Object o) ->
-               Aeson.Object $ HM.insert "value" (o HM.! "id") o)
-          roles
-
-  -- TODO Calculate program active status from subprograms
-  programs <- withPG $ selectJSON
-    (Program.ident :. Program.label)
-  subprograms <- withPG $ selectJSON
-    (SubProgram.ident :. SubProgram.label :. eq SubProgram.active True)
 
   programInfos <- withPG
     $ selectJSON (ProgramInfo.program :. ProgramInfo.info)

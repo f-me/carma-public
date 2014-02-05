@@ -18,7 +18,6 @@ module AppHandlers.Users
 
 where
 
-import Data.Aeson
 import qualified Data.HashMap.Strict as HM
 
 import Snap
