@@ -30,19 +30,11 @@ create view servicesview as
         c.car_makeyear,
         c.car_color,
         c.car_buydate,
-        c.car_checkupdate,
-        c.car_warrantystart,
-        c.car_warrantyend,
-        c.car_mileage,
-        c.car_checkupmileage,
-        c.car_transmission,
-        c.car_engine,
+        trans.label as car_transmission,
+        engine.label as car_engine,
         c.car_liters,
-        c.car_capacity,
-        c.car_dims,
-        c.car_weight,
         c.car_checkperiod,
-        c.car_class,
+        carcl.label as car_class,
         c.car_makecode,
         c.car_modelcode,
         c.car_faultcode,
@@ -127,6 +119,9 @@ create view servicesview as
 
     from casetbl c
         left outer join "Program" pgm on c.program = pgm.id::text
+        left outer join "CarClass" carcl on c.car_class = carcl.id
+        left outer join "Engine" engine on c.car_engine = engine.id
+        left outer join "Transmission" trans on c.car_transmission = trans.id
         left outer join "SubProgram" spgm on pgm.id = spgm.parent
         left outer join partnertbl p3 on c.car_seller = p3.id::text
         left outer join partnertbl p4 on c.car_dealerTO = p4.id::text
