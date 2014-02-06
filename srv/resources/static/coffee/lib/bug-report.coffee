@@ -37,6 +37,7 @@ define ["sync/datamap"], (m) ->
         url: url,
         console: @stack,
         models: models
+        user: global.user.login
       contentB64 = @encodeBase64 JSON.stringify content
       body += "#{@br}#{contentB64}#{@vertBar}#{md5 contentB64}"
 
