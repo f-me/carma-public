@@ -53,7 +53,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/s/",            serveDirectoryWith dconf "resources/static")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/screens",       method GET $ getScreens)
-         , ("/report",        chkAuthLocal . method GET  $ report)
+         -- , ("/report",        chkAuthLocal . method GET  $ report)
          , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
          , ("/callsByPhone/:phone",
                               chkAuthLocal . method GET    $ searchCallsByPhone)
