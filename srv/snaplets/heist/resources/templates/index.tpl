@@ -120,7 +120,7 @@
         <div class="container">
           <ul class="nav" id="nav">
             <a class="brand" href="/">
-              CaRMa
+              <addLocalName>CaRMa</addLocalName>
             </a>
             <li class="divider-vertical" />
             <li id="avaya-panel" class="dropdown" style="display: none">
