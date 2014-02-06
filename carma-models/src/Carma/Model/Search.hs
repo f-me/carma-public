@@ -1,4 +1,3 @@
-
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Carma.Model.Search where
@@ -107,6 +106,13 @@ refExist :: forall m nm desc
  . (SingI nm, SingI desc, Model m)
  => (m -> F Reference nm desc) -> [Predicate m]
 refExist v
+  = map (\p -> p {matchType = MatchRefExist})
+  $ one v
+
+refMExist :: forall m nm desc
+ . (SingI nm, SingI desc, Model m)
+ => (m -> F (Maybe Reference) nm desc) -> [Predicate m]
+refMExist v
   = map (\p -> p {matchType = MatchRefExist})
   $ one v
 

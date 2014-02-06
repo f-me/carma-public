@@ -5,10 +5,14 @@ import Data.Typeable
 
 import Data.Model
 
-import Carma.Model.Program     (Program)
-import Carma.Model.SubProgram  (SubProgram)
-import Carma.Model.Wazzup      (Wazzup)
-import Carma.Model.LegacyTypes
+import Carma.Model.Contract     (Contract)
+import Carma.Model.Program      (Program)
+import Carma.Model.SubProgram   (SubProgram)
+import Carma.Model.Transmission (Transmission)
+import Carma.Model.Engine       (Engine)
+import Carma.Model.CarClass     (CarClass)
+import Carma.Model.Wazzup       (Wazzup)
+import Carma.Model.LegacyTypes hiding (CarClasses)
 
 
 data Case = Case
@@ -22,13 +26,13 @@ data Case = Case
   , comment
     :: F (Maybe (Ident Text Wazzup)) "comment" "Что случилось"
   , diagnosis1
-    :: F (IdentT Diagnosis1) "diagnosis1" "Система"
+    :: F (Maybe (IdentT Diagnosis1)) "diagnosis1" "Система"
   , diagnosis2
-    :: F (IdentT Diagnosis2) "diagnosis2" "Узел/деталь"
+    :: F (Maybe (IdentT Diagnosis2)) "diagnosis2" "Узел/деталь"
   , diagnosis3
-    :: F (IdentT Diagnosis3) "diagnosis3" "Описание причины неисправности"
+    :: F (Maybe (IdentT Diagnosis3)) "diagnosis3" "Описание причины неисправности"
   , diagnosis4
-    :: F (IdentT Diagnosis4) "diagnosis4" "Рекомендация"
+    :: F (Maybe (IdentT Diagnosis4)) "diagnosis4" "Рекомендация"
   , contact_name
     :: F (Maybe Text) "contact_name" "Звонящий"
   , contact_phone1
@@ -60,6 +64,10 @@ data Case = Case
   , subprogram
     :: F (Maybe (IdentI SubProgram))  "subprogram" "Подпрограмма"
 
+  , contractIdentifier
+    :: F (Maybe Text) "contractIdentifier" "Идентификатор контракта"
+  , contract
+    :: F (Maybe (IdentI Contract)) "contract" "Контракт"
   , car_vin
     :: F (Maybe Text) "car_vin" "VIN"
   , car_make
@@ -79,30 +87,14 @@ data Case = Case
   , car_dealerTO
     :: F (Maybe (IdentT Partner)) "car_dealerTO" "Дилер у которого проходило последнее ТО"
   , car_transmission
-    :: F (Maybe (IdentT Transmission)) "car_transmission" "Коробка передач"
+    :: F (Maybe (IdentI Transmission)) "car_transmission" "Коробка передач"
   , car_engine
-    :: F (Maybe (IdentT EngineType)) "car_engine" "Тип двигателя"
+    :: F (Maybe (IdentI Engine)) "car_engine" "Тип двигателя"
   , car_liters
     :: F (Maybe Text) "car_liters" "Объём двигателя"
   , car_class
-    :: F (Maybe (IdentT CarClasses)) "car_class" "Класс автомобиля"
+    :: F (Maybe (IdentI CarClass)) "car_class" "Класс автомобиля"
 
-  , cardNumber_cardNumber
-    :: F (Maybe Text) "cardNumber_cardNumber" "Номер карты участника"
-  , cardNumber_validFrom
-    :: F (Maybe LegacyDate) "cardNumber_validFrom" "Дата регистрации в программе"
-  , cardNumber_validUntil
-    :: F (Maybe LegacyDate) "cardNumber_validUntil" "Программа действует до (дата)"
-  , cardNumber_validUntilMilage
-    :: F (Maybe Text) "cardNumber_validUntilMilage" "Программа действует до (пробег)"
-  , cardNumber_milageTO
-    :: F (Maybe Text) "cardNumber_milageTO" "Пробег при регистрации в программе"
-  , cardNumber_serviceInterval
-    :: F (Maybe Text) "cardNumber_serviceInterval" "Межсервисный интервал"
-  , cardNumber_cardOwner
-    :: F (Maybe Text) "cardNumber_cardOwner" "ФИО владельца карты"
-  , cardNumber_managerr
-    :: F (Maybe Text) "cardNumber_manager" "ФИО менеджера"
   , vinChecked
     :: F (Maybe (IdentT VINChecked)) "vinChecked" "Участие в программе"
   , city
@@ -124,7 +116,7 @@ data Case = Case
   , dealerCause
     :: F (Maybe Text) "dealerCause" "Неисправность со слов дилера/партнёра"
   , caseStatus
-    :: F (IdentT CaseStatuses) "caseStatus" "Статус кейса"
+    :: F (Maybe (IdentT CaseStatuses)) "caseStatus" "Статус кейса"
   , psaExportNeeded
     :: F Checkbox "psaExportNeeded" "Требуется выгрузка в PSA"
   , psaExported
@@ -132,11 +124,11 @@ data Case = Case
   , claim
     :: F (Maybe Text) "claim" "Претензия / Благодарность"
   , services
-    :: F Reference "services" "Услуги"
+    :: F (Maybe Reference) "services" "Услуги"
   , actions
-    :: F Reference "actions" "Действия"
+    :: F (Maybe Reference) "actions" "Действия"
   , comments
     :: F (Maybe Json) "comments" ""
   , files
-    :: F Reference "files" "Прикрепленные файлы"
+    :: F (Maybe Reference) "files" "Прикрепленные файлы"
   } deriving Typeable

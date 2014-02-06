@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Carma.Model.Engine where
 
 import Data.Text
@@ -6,6 +8,7 @@ import Data.Vector
 
 import Data.Model
 import Data.Model.View
+import Data.Model.TH
 
 import Carma.Model.Types()
 
@@ -14,6 +17,11 @@ data Engine = Engine
   , label    :: F Text          "label" "Тип"
   , synonyms :: F (Maybe (Vector Text)) "synonyms" "Синонимы"
   } deriving Typeable
+
+mkIdents [t|Engine|]
+ [ ("petrol", 1)
+ , ("diesel", 2)
+ ]
 
 instance Model Engine where
   type TableName Engine = "Engine"

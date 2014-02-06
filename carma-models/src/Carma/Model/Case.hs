@@ -1,4 +1,3 @@
-
 module Carma.Model.Case
        (Case(..)
        ,caseSearchParams
@@ -21,7 +20,6 @@ caseSearchParams :: [(Text, [Predicate Case])]
 caseSearchParams
   = [("Case_id",    one Case.ident)
     ,("vin",        fuzzy $ one Case.car_vin)
-    ,("cardNumber", fuzzy $ one Case.cardNumber_cardNumber)
     ,("plateNum",   fuzzy $ one Case.car_plateNum)
     ,("phone",      fuzzy $ matchAny
       [one Case.contact_phone1, one Case.contact_phone2
@@ -38,7 +36,7 @@ caseSearchParams
     ,("comment",    fuzzy $ one Case.comment)
     ,("address",    fuzzy $ one Case.caseAddress_address)
     ,("callTaker",  fuzzy $ one Case.callTaker)
-    ,("files",      refExist Case.files)
+    ,("files",      refMExist Case.files)
     ]
 
 instance Model Case where
@@ -100,10 +98,12 @@ caseRo = [
 caseMod = [
    transform "capitalize" contact_name
   ,transform "capitalize" contact_ownerName
-  ,transform "capitalize" cardNumber_cardOwner
   ,transform "uppercase"  car_vin
   ,transform "uppercase"  car_plateNum
   ,setMeta "regexp" "plateNum" car_plateNum
+  ,setMeta "regexp" "vin" car_vin
+
+  ,setMeta "invisible" (Aeson.Bool True) contract
 
   ,setMeta "dictionaryType" "ModelDict" program
   ,setMeta "dictionaryStringify" (Aeson.Bool True) program

@@ -1,4 +1,3 @@
-
 module Carma.Model.LegacyTypes where
 
 import Control.Applicative
@@ -27,8 +26,6 @@ data CarModels = CarModels deriving Typeable
 data CaseStatuses = CaseStatuses deriving Typeable
 data VINChecked = VINChecked deriving Typeable
 data ContractType = ContractType deriving Typeable
-data Transmission = Transmission deriving Typeable
-data EngineType = EngineType deriving Typeable
 data DealerCities = DealerCities deriving Typeable
 data Partner = Partner deriving Typeable
 data LegalForms = LegalForms deriving Typeable
