@@ -33,6 +33,7 @@ import Carma.Model.Colors                 (Colors)
 import Carma.Model.ProgramInfo            (ProgramInfo)
 import Carma.Model.ServiceInfo            (ServiceInfo)
 import Carma.Model.ServiceNames           (ServiceNames)
+import Carma.Model.Call                   (Call)
 
 import Carma.Model.Service                (Service)
 import Carma.Model.Service.AverageCommissioner (AverageCommissioner)
@@ -87,6 +88,7 @@ dispatch model fn = Map.lookup model modelMap
       ,add (undefined :: ProgramInfo)
       ,add (undefined :: ServiceInfo)
       ,add (undefined :: ServiceNames)
+      ,add (undefined :: Call)
 
       ,add (undefined :: Service)
       ,add (undefined :: AverageCommissioner)

@@ -46,6 +46,7 @@ library
     Carma.Model.Wazzup,
     Carma.Model.Case,
     Carma.Model.Case.Type,
+    Carma.Model.Call,
 
     Carma.Model.Service,
     Carma.Model.Service.AverageCommissioner,
