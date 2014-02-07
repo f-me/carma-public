@@ -20,13 +20,13 @@ data Case = Case
   , comment
     :: F (Maybe (Ident Text Wazzup)) "comment" "Что случилось"
   , diagnosis1
-    :: F (IdentT Diagnosis1) "diagnosis1" "Система"
+    :: F (Maybe (IdentT Diagnosis1)) "diagnosis1" "Система"
   , diagnosis2
-    :: F (IdentT Diagnosis2) "diagnosis2" "Узел/деталь"
+    :: F (Maybe (IdentT Diagnosis2)) "diagnosis2" "Узел/деталь"
   , diagnosis3
-    :: F (IdentT Diagnosis3) "diagnosis3" "Описание причины неисправности"
+    :: F (Maybe (IdentT Diagnosis3)) "diagnosis3" "Описание причины неисправности"
   , diagnosis4
-    :: F (IdentT Diagnosis4) "diagnosis4" "Рекомендация"
+    :: F (Maybe (IdentT Diagnosis4)) "diagnosis4" "Рекомендация"
   , contact_name
     :: F (Maybe Text) "contact_name" "Звонящий"
   , contact_phone1
@@ -40,7 +40,7 @@ data Case = Case
   , contact_email
     :: F (Maybe Text) "contact_email" "Email"
   , contact_contactOwner
-    :: F Checkbox     "contact_contactOwner" "Звонящий владелец?"
+    :: F (Maybe Checkbox)     "contact_contactOwner" "Звонящий владелец?"
   , contact_ownerName
     :: F (Maybe Text) "contact_ownerName" "Владелец"
   , contact_ownerPhone1
@@ -67,7 +67,7 @@ data Case = Case
   , car_plateNum
     :: F (Maybe Text) "car_plateNum" "Госномер"
   , car_makeYear
-      :: F (Maybe Text) "car_makeYear" "Год производства автомобиля"
+      :: F (Maybe Int) "car_makeYear" "Год производства автомобиля"
   , car_color
      :: F (Maybe (IdentT Colors)) "car_color" "Цвет"
   , car_buyDate
@@ -77,9 +77,9 @@ data Case = Case
   , car_dealerTO
     :: F (Maybe (IdentT Partner)) "car_dealerTO" "Дилер у которого проходило последнее ТО"
   , car_mileage
-    :: F (Maybe Text) "car_mileage" "Текущий пробег"
+    :: F (Maybe Int) "car_mileage" "Текущий пробег"
   , car_checkupMileage
-    :: F (Maybe Text) "car_checkupMileage" "Пробег на последнем ТО"
+    :: F (Maybe Int) "car_checkupMileage" "Пробег на последнем ТО"
   , car_warrantyStart
     :: F (Maybe LegacyDate) "car_warrantyStart" "Дата начала действия программы"
   , car_warrantyEnd
@@ -99,7 +99,7 @@ data Case = Case
   , car_weight
     :: F (Maybe Text) "car_weight" "Масса"
   , car_checkPeriod
-     :: F (Maybe Text) "car_checkPeriod" "Межсервисный интервал"
+     :: F (Maybe Int) "car_checkPeriod" "Межсервисный интервал"
   , car_class
     :: F (Maybe (IdentT CarClasses)) "car_class" "Класс автомобиля"
   , car_makeCode
@@ -118,11 +118,11 @@ data Case = Case
   , cardNumber_validUntil
     :: F (Maybe LegacyDate) "cardNumber_validUntil" "Программа действует до (дата)"
   , cardNumber_validUntilMilage
-    :: F (Maybe Text) "cardNumber_validUntilMilage" "Программа действует до (пробег)"
+    :: F (Maybe Int) "cardNumber_validUntilMilage" "Программа действует до (пробег)"
   , cardNumber_milageTO
-    :: F (Maybe Text) "cardNumber_milageTO" "Пробег при регистрации в программе"
+    :: F (Maybe Int) "cardNumber_milageTO" "Пробег при регистрации в программе"
   , cardNumber_serviceInterval
-    :: F (Maybe Text) "cardNumber_serviceInterval" "Межсервисный интервал"
+    :: F (Maybe Int) "cardNumber_serviceInterval" "Межсервисный интервал"
   , cardNumber_cardOwner
     :: F (Maybe Text) "cardNumber_cardOwner" "ФИО владельца карты"
   , cardNumber_managerr
@@ -132,13 +132,13 @@ data Case = Case
   , city
     :: F (Maybe (IdentT DealerCities)) "city" "Город"
   , caseAddress_address
-    :: F PickerField "caseAddress_address" "Адрес места поломки"
+    :: F (Maybe PickerField) "caseAddress_address" "Адрес места поломки"
   , caseAddress_comment
     :: F (Maybe Text) "caseAddress_comment" "Примечания"
   , caseAddress_coords
-    :: F PickerField "caseAddress_coords" "Координаты"
+    :: F (Maybe PickerField) "caseAddress_coords" "Координаты"
   , caseAddress_map
-    :: F MapField "caseAddress_map" ""
+    :: F (Maybe MapField) "caseAddress_map" ""
   , temperature
     :: F (Maybe Text) "temperature" "Температура"
   , repair
@@ -150,17 +150,17 @@ data Case = Case
   , caseStatus
     :: F (IdentT CaseStatuses) "caseStatus" "Статус кейса"
   , psaExportNeeded
-    :: F Checkbox "psaExportNeeded" "Требуется выгрузка в PSA"
+    :: F (Maybe Checkbox) "psaExportNeeded" "Требуется выгрузка в PSA"
   , psaExported
-    :: F Checkbox "psaExported" "Выгружен в PSA"
+    :: F (Maybe Checkbox) "psaExported" "Выгружен в PSA"
   , claim
     :: F (Maybe Text) "claim" "Претензия / Благодарность"
   , services
-    :: F Reference "services" "Услуги"
+    :: F (Maybe Reference) "services" "Услуги"
   , actions
-    :: F Reference "actions" "Действия"
+    :: F (Maybe Reference) "actions" "Действия"
   , comments
     :: F (Maybe Json) "comments" ""
   , files
-    :: F Reference "files" "Прикрепленные файлы"
+    :: F (Maybe Reference) "files" "Прикрепленные файлы"
   } deriving Typeable
