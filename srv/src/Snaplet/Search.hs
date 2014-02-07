@@ -114,15 +114,16 @@ class StripRead p where
 instance (Model m, Model (M.Parent m)) => StripRead (Patch m) where
   stripRead = stripReadPatch
 instance (Model m, Model (M.Parent m)) => StripRead (Patch m :. ()) where
-  stripRead c rs (p :. ()) = do
-    s <- stripReadPatch c rs p
-    return $ s :. ()
+  stripRead c rs (p :. ()) = stripReadPatch c rs p *:. ()
 instance (Model m, Model (M.Parent m), StripRead ps)
          => StripRead (Patch m :. ps) where
-  stripRead c rs (p :. ps) = do
-    s  <- stripReadPatch c rs p
-    ss <-  stripRead c rs ps
-    return $ s :. ss
+  stripRead c rs (p :. ps) = stripReadPatch c rs p *:* stripRead c rs ps
+
+(*:*) :: Monad m => m a -> m b -> m (a :. b)
+(*:*) a b = do { a' <- a; b' <- b; return $ a' :. b' }
+
+(*:.) :: Monad m => m a -> b -> m (a :. b)
+(*:.) a b = do { a' <- a; return $ a' :. b }
 
 
 caseSearch :: SearchHandler b (Either String Value)
