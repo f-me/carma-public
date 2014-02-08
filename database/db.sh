@@ -57,7 +57,8 @@ function exec_file {
     bash -e $FILE
   fi
   if [[ $2 != "--dev" ]]; then
-     cd - && cd database
+     cd - >/dev/null
+     cd database
   fi
 }
 
