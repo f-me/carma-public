@@ -55,14 +55,17 @@ serveModel = do
         $ case name of
           "case" -> newCase pgm
           _      -> newSvc pgm name
-      _ -> case Model.dispatch (T.decodeUtf8 $ fixName name) $ viewForModel view of
+      _ -> case Model.dispatch (T.decodeUtf8 $ fixedName) $ viewForModel fixedView of
         Just res -> return res
         Nothing  -> M.lookup name <$> gets models
-        -- Serve case model from carma-models when /cfg/model/case is
-        -- requested
+        -- Serve case model with oldCRUD view from carma-models when
+        -- /cfg/model/case is requested
         where
-          fixName "case" = "Case"
-          fixName n      = n
+          (fixedName, fixedView) =
+              case (name, view) of
+                ("case", "") -> ("Case", "oldCRUD")
+                ("case", v ) -> ("Case", v)
+                _            -> (name, view)
 
   mcu   <- withAuth currentUser
   case return (,) `ap` mcu `ap` model of
