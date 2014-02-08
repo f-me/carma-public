@@ -125,6 +125,23 @@ caseMod = [
   ,textarea claim
   ,invisible comments
   ,invisible actions
+
+  ,infoText "comment" comment
+  ,infoText "system" diagnosis1
+  ,infoText "detail" diagnosis2
+  ,infoText "diagnosis3" diagnosis3
+  ,infoText "recomendation" diagnosis4
+  ,infoText "owner" contact_contactOwner
+  ,infoText "program" program
+
+  ,infoText "platenum" car_plateNum
+  ,infoText "vinChecked" vinChecked
+  ,infoText "city" city
+  ,infoText "caseAddress" caseAddress_address
+  ,infoText "coords" caseAddress_coords
+  ,infoText "temperature" temperature
+  ,infoText "dealerCause" dealerCause
+  ,infoText "claim" claim
   ]
   ++ mapWidget caseAddress_address caseAddress_coords caseAddress_map
   ++ [setMeta "cityField" (Aeson.String $ Model.fieldName city) caseAddress_map]

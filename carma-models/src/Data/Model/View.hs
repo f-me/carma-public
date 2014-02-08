@@ -16,6 +16,7 @@ module Data.Model.View
   ,transform
   ,widget
   ,setType
+  ,infoText
   ,setMeta
   ,modifyByName
   -- from Data.Model.View.Types
@@ -93,6 +94,12 @@ setMeta key val fld = Wrap
   (fieldName fld
   ,\v -> v {fv_meta = Map.insert key val $ fv_meta v}
   )
+
+
+infoText
+  :: SingI name => Text -> (m -> Field typ (FOpt name desc))
+  -> (Text, FieldView -> FieldView) :@ m
+infoText t = setMeta "infoText" (Aeson.String t)
 
 
 readonly
