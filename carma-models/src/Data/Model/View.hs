@@ -1,10 +1,10 @@
-
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model.View
   (defaultView
   ,defaultFieldView
   ,modifyView
+  ,stripId
   ,textarea
   ,readonly
   ,required
@@ -61,6 +61,11 @@ modifyView mv@(ModelView{mv_fields}) fns
     fMap = Map.fromList [(fv_name f, f) | f <- mv_fields]
     fMap' = foldl' tr fMap fns
     tr m (Wrap (nm, fn)) = Map.adjust fn nm m
+
+
+-- | Strip @id@ field from a view (workaround for bug #1530).
+stripId :: forall m . Model m => ModelView m -> ModelView m
+stripId mv = mv{mv_fields = filter (\f -> fv_name f /= "id") $ mv_fields mv}
 
 
 -- field modificators

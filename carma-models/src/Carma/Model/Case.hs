@@ -63,9 +63,11 @@ instance Model Case where
             ((defaultView :: ModelView Case) {mv_title = "Кейс"})
             $ caseMod ++ caseDicts ++ caseRo
       -- fullCase view, but with legacy (lowercase) model name to
-      -- force client use untyped CRUD
+      -- force client use untyped CRUD; id field is stripped out
+      -- (workaround for bug #1530)
       "oldCRUD"
-        -> mv{mv_modelName = "case"} where mv = (modelView "fullCase") :: ModelView Case
+        -> stripId $ mv{mv_modelName = "case"}
+           where mv = (modelView "fullCase") :: ModelView Case
       _ -> defaultView
       where
         setMainOnly mv = mv
