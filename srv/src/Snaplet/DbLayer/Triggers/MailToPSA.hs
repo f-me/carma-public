@@ -30,6 +30,7 @@ import Network.Mail.Mime
 
 import Snap.Snaplet (getSnapletUserConfig)
 
+import qualified Carma.Model.Engine as Engine
 import qualified Carma.Model.SubProgram as SubProgram
 
 import Snaplet.DbLayer.Types (getDict)
@@ -97,9 +98,10 @@ sendMailActually actionId = do
             return $ Map.findWithDefault md md
               $ Map.findWithDefault Map.empty mk
               $ carModel dic
-          fld 1   "Energie" $ get caseId "car_engine" >>= \case
-            "dis" -> return "D"
-            _     -> return "E"
+          fld 1   "Energie" $ get caseId "car_engine" >>= \eng ->
+               if eng == identFv Engine.diesel
+               then return "D"
+               else return "E"
 
           buyDate <- toLocalTime tz <$> lift (get caseId "car_buyDate")
           fld 10  "Date put on road" <=== maybe "" (tmFormat "%d/%m/%Y") buyDate
