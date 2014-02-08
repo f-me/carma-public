@@ -81,6 +81,7 @@ instance Model Case where
 caseDicts = [
    dict comment $ (dictOpt "Wazzup")
               {dictBounded = False}
+  ,dict diagnosis1 $ (dictOpt "Diagnosis1")
   ,dict diagnosis2 $ (dictOpt "Diagnosis2")
               {dictParent = Just $ Model.fieldName diagnosis1}
   ,dict diagnosis3 $ (dictOpt "Diagnosis3")
@@ -89,16 +90,17 @@ caseDicts = [
   ,dict car_vin $ (dictOpt "")
               {dictType = Just "VinDict"}
   ,dict car_model $ (dictOpt "CarModels")
-              {dictParent = Just $ Model.fieldName car_make}
+              {dictParent = Just $ Model.fieldName car_make, dictBounded = True}
   ,dict car_seller $ (dictOpt "")
-              {dictType = Just "DealersDict"}
+              {dictType = Just "DealersDict", dictBounded = True}
   ,dict car_dealerTO $ (dictOpt "")
-              {dictType = Just "DealersDict"}
+              {dictType = Just "DealersDict", dictBounded = True}
   ]
 
 caseRo = [
    readonly callDate
   ,readonly callTaker
+  ,readonly psaExported
   ]
 
 caseMod = [
@@ -111,9 +113,40 @@ caseMod = [
 
   ,setMeta "invisible" (Aeson.Bool True) contract
 
-  ,setMeta "widget" "inline-uploader" files
+  ,widget "inline-uploader" files
   ,setMeta "reference-widget" "files" files
 
+  ,setMeta "visibility" (Aeson.Bool True) callDate
+
+  ,setType "datetime" repair
+
+  ,required city
+  ,required comment
+  ,required diagnosis1
+  ,required diagnosis2
+  ,required program
+  ,required car_vin
+  ,required car_make
+  ,required car_model
+  ,required car_seller
+  ,required car_plateNum
+  ,required car_color
+  ,required car_buyDate
+  ,required car_dealerTO
+  ,required car_transmission
+  ,required vinChecked
+  ,required caseStatus
+
+  ,setMeta "cityField" "city" caseAddress_coords
+
+  ,setMeta "regexp" "email" contact_email
+  ,setMeta "regexp" "email" contact_ownerEmail
+  ,setMeta "regexp" "date" car_buyDate
+
+  ,mainToo contact_contactOwner
+  ,mainToo car_plateNum
+
+  -- TODO Move to caseDicts
   ,setMeta "dictionaryType" "ModelDict" program
   ,setMeta "dictionaryStringify" (Aeson.Bool True) program
   ,setMeta "dictionaryParent" "program" subprogram
@@ -122,6 +155,7 @@ caseMod = [
   ,widget "radio" car_transmission
   ,widget "radio" car_engine
 
+  ,textarea dealerCause
   ,textarea claim
   ,invisible comments
   ,invisible actions
