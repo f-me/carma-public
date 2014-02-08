@@ -62,6 +62,10 @@ instance Model Case where
           $ modifyView
             ((defaultView :: ModelView Case) {mv_title = "Кейс"})
             $ caseMod ++ caseDicts ++ caseRo
+      -- fullCase view, but with legacy (lowercase) model name to
+      -- force client use untyped CRUD
+      "oldCRUD"
+        -> mv{mv_modelName = "case"} where mv = (modelView "fullCase") :: ModelView Case
       _ -> defaultView
       where
         setMainOnly mv = mv
@@ -105,6 +109,9 @@ caseMod = [
 
   ,setMeta "invisible" (Aeson.Bool True) contract
 
+  ,setMeta "widget" "inline-uploader" files
+  ,setMeta "reference-widget" "files" files
+
   ,setMeta "dictionaryType" "ModelDict" program
   ,setMeta "dictionaryStringify" (Aeson.Bool True) program
   ,setMeta "dictionaryParent" "program" subprogram
@@ -115,7 +122,6 @@ caseMod = [
 
   ,textarea claim
   ,invisible comments
-  ,invisible services
   ,invisible actions
   ]
   ++ mapWidget caseAddress_address caseAddress_coords caseAddress_map

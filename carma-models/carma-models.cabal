@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.10
+version:             0.10.1
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
