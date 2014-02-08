@@ -90,6 +90,13 @@ function update_db {
     fi
   fi
 
+  if [[ $2 != "--dev" ]]; then
+    ORIGROOT=${PWD}
+    TMPROOT=$(mktemp -d)
+    git clone --single-branch .. ${TMPROOT}
+    cd ${TMPROOT}/database
+  fi
+
   for f in `find patches -type f | sort -V` ; do
     get_patch_version $f
     local X=$PATCH_VERSION_A
@@ -119,6 +126,10 @@ function update_db {
       $PSQL -c "insert into version (A,B,C) values ($X,$Y,$Z);"
     fi
   done
+  if [[ $2 != "--dev" ]]; then
+      cd ${ORIGROOT}
+      rm -rf ${TMPROOT}
+  fi
   get_db_version
 }
 
@@ -208,7 +219,6 @@ if [[ "$1" == "setup" ]] ; then
   setup_db
 elif [[ "$1" == "update" ]] ; then
   update_db
-  echo \*\*\* "Don't forget to do 'git reset' now!"
 elif [[ "$1" == "update-devel" ]] ; then
   update_db --dev
 elif [[ "$1" == "stat" ]] ; then
