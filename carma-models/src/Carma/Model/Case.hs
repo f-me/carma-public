@@ -66,7 +66,7 @@ instance Model Case where
       -- force client use untyped CRUD; id field is stripped out
       -- (workaround for bug #1530)
       "oldCRUD"
-        -> stripId $ mv{mv_modelName = "case"}
+        -> modifyView (stripId $ mv{mv_modelName = "case"}) caseOldCRUDDicts
            where mv = (modelView "fullCase") :: ModelView Case
       _ -> defaultView
       where
@@ -96,6 +96,14 @@ caseDicts = [
   ,dict car_dealerTO $ (dictOpt "")
               {dictType = Just "DealersDict", dictBounded = True}
   ]
+
+-- Mark several new-style dictionaries to use dictionaryStringify to
+-- be compatible to old CRUD:
+caseOldCRUDDicts =
+    [ setMeta "dictionaryStringify" (Aeson.Bool True) car_class
+    , setMeta "dictionaryStringify" (Aeson.Bool True) car_engine
+    , setMeta "dictionaryStringify" (Aeson.Bool True) car_transmission
+    ]
 
 caseRo = [
    readonly callDate
