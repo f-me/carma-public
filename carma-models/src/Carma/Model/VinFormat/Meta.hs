@@ -1,3 +1,8 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 {-|
 
 VinFormat macros and meta helpers.
@@ -10,11 +15,6 @@ how a source field has is mapped to a group of produced VinFormat
 accessors.
 
 -}
-
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Carma.Model.VinFormat.Meta
     ( FormatFieldType(..), FormatFieldTitle(..), Sing(..)
