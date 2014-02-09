@@ -15,9 +15,10 @@ define ->
     resultMsg : ko.observable null
     fileUrls  : ko.observableArray()
     cleanup   : () ->
-      $.ajax
-        type: "DELETE"
-        url:  "/tasks/#{@token()}"
+      if @token()?
+        $.ajax
+          type: "DELETE"
+          url:  "/tasks/#{@token()}"
 
   # Watch task status and update task VM as it changes.
   # resultFormatter and errorFormatter are applied to msg served in
