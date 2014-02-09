@@ -250,7 +250,7 @@ protoDictLookup iname dictTableName =
      (SELECT DISTINCT
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms))))
       FROM "?");
-
+-- TODO label/synonyms field names
      WITH dict AS
      (SELECT DISTINCT ON (label) id AS did,
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms)))) AS label
@@ -296,6 +296,7 @@ protoPartnerLookup iname =
         , PT iname
         , PT iname)
         where
+          -- TODO partner{Name,Code}
           partnerTable = PT $ tableName $ (modelInfo :: ModelInfo Partner)
 
 
@@ -316,6 +317,7 @@ protoSubprogramLookup pid sid iname =
       lower(trim(both ' ' from s.label))
       FROM "?" s, "?" p WHERE s.parent = p.id AND p.id = ?);
 
+     -- TODO label/parent fields
      WITH dict AS
      (SELECT s.id AS did,
       lower(trim(both ' ' from s.label)) AS label
@@ -387,6 +389,7 @@ setSpecialDefaults :: Int -> Maybe Int -> Import Int64
 setSpecialDefaults cid sid =
     execute
     [sql|
+     -- TODO committer name
      UPDATE vinnie_queue SET committer = ?;
      UPDATE vinnie_queue SET subprogram = ? WHERE subprogram IS NULL;
      |] (cid, sid)
@@ -427,7 +430,7 @@ markMissingIdentifiers =
      UPDATE vinnie_queue SET errors = errors || ARRAY[?]
      WHERE length(lower(trim(both ' ' from concat(?)))) = 0;
      |] ( NoIdentifiers
-        , PT $ sqlCommas identifierFieldNames)
+        , PT $ sqlCommas identifierNames)
 
 
 -- | Add error to every row where a provided field is empty (used to
