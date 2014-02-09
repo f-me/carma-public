@@ -118,6 +118,7 @@ caseMod = [
   ,transform "uppercase"  car_plateNum
   ,setMeta "regexp" "plateNum" car_plateNum
   ,setMeta "regexp" "vin" car_vin
+  ,setMeta "regexp" "year" car_makeYear
 
   ,setMeta "invisible" (Aeson.Bool True) contract
 
