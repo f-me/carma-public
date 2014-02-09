@@ -22,6 +22,7 @@ import Data.Aeson
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.HashMap.Strict as HM
+import qualified Data.Text.Encoding as T
 import qualified Data.Vector as V
 
 
@@ -38,6 +39,8 @@ import qualified Data.Vector as V
 --
 -- > {"entries":[{"value": "v1", "label": "Label for v1"}, ..]}
 --
+-- TODO Use Text here.
+--
 -- Only single-level dictionaries are supported.
 newtype Dict = Dict ( HM.HashMap BS.ByteString BS.ByteString
                     , HM.HashMap BS.ByteString BS.ByteString
@@ -50,11 +53,16 @@ instance FromJSON Dict where
           entries <- v .: "entries"
           -- Read mapping objects in entries list and fill forward and
           -- inverse mappings for Dict.
-          (fm, im)  <- V.foldM' (\(fm, im) e -> do
-                                   val <- e .: "value"
-                                   lab <- e .: "label"
-                                   return $ (HM.insert val lab fm,
-                                             HM.insert lab val im))
+          (fm, im)  <-
+              V.foldM' (\(fm, im) e -> do
+                          val <- e .: "value"
+                          lab <- e .: "label"
+                          return $ (HM.insert
+                                    (T.encodeUtf8 val)
+                                    (T.encodeUtf8 lab) fm,
+                                    HM.insert
+                                    (T.encodeUtf8 lab)
+                                    (T.encodeUtf8 val) im))
                        (HM.empty, HM.empty) entries
           return $ Dict (fm, im)
     parseJSON _          = mzero
