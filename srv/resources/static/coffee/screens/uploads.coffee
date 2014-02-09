@@ -85,6 +85,15 @@ define [ "text!tpl/screens/uploads.html"
   # Upload new attachment, render file progress bar and whistles.
   # Argument is a File object.
   @sendFile = (file) ->
+    # Prevent oversized files from being uploaded
+    max = global.config("max-file-size")
+    maxMb = max / (1024.0 * 1024.0)
+    if file.size > max
+      window.alert "Размер файла #{file.name}
+        превышает допустимый (#{maxMb} Мб)!
+        Файл не будет загружен"
+      return
+
     uid = _.uniqueId "upload-"
 
     # A box for this upload, with a progress bar and whistles
