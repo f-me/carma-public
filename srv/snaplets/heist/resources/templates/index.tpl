@@ -595,11 +595,6 @@
               <i class="icon icon-chevron-down" />
             </span>
           </div>
-          {{# meta.targetCategory }}
-          <ul data-depends="{{ name }}"
-              data-source="{{ meta.targetCategory }}"
-              data-provide="checklist" />
-          {{/ meta.targetCategory }}
         </div>
       </div>
     </script>
@@ -667,11 +662,6 @@
             </li>
           </ul>
           <!-- /ko -->
-          {{# meta.targetCategory }}
-          <ul data-depends="{{ name }}"
-              data-source="{{ meta.targetCategory }}"
-              data-provide="checklist" />
-          {{/ meta.targetCategory }}
         </div>
       </div>
     </script>
