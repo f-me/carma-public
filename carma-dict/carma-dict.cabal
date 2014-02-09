@@ -1,6 +1,6 @@
 name:                carma-dict
-version:             0.1.0.0
-synopsis:            Load and query CaRMa dictionaries
+version:             0.1.0.1
+synopsis:            Load and query legacy CaRMa dictionaries
 homepage:            https://github.com/f-me/carma-dict
 license:             BSD3
 license-file:        LICENSE
@@ -19,7 +19,7 @@ library
   ghc-options: -Wall
 
   build-depends:
-    aeson                       == 0.6.*,
+    aeson                       >= 0.6 && < 0.8,
     base                        == 4.6.*,
     bytestring                  == 0.10.*,
     unordered-containers        == 0.2.*,
