@@ -59,7 +59,7 @@ import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
-import Snaplet.FileUpload (doUpload)
+import Snaplet.FileUpload (doUpload, oneUpload)
 
 import Carma.Model
 import Data.Model.Patch (Patch)
@@ -430,7 +430,7 @@ createReportHandler :: AppHandler ()
 createReportHandler = do
   res <- with db $ DB.create "report" $ Map.empty
   let Just objId = Map.lookup "id" res
-  f <- with fileUpload $ head <$>
+  f <- with fileUpload $ oneUpload =<<
        (doUpload $ "report" </> (U.bToString objId) </> "templates")
   Just name  <- getParam "name"
   -- we have to update all model params after fileupload,

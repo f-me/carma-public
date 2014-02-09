@@ -7,8 +7,6 @@ File upload helpers and @attachment@ model handling.
 
 TODO Use @attachment@ model permissions in upload handlers.
 
-TODO Handle file upload policy errors.
-
 -}
 
 module Snaplet.FileUpload
@@ -17,6 +15,7 @@ module Snaplet.FileUpload
     , doUpload
     , doUploadTmp
     , withUploads
+    , oneUpload
     , getAttachmentPath
     )
 
@@ -117,7 +116,7 @@ uploadInManyFields :: (FilePath -> [AttachmentTarget])
                       (Object, [AttachmentTarget], [AttachmentTarget], Bool)
 uploadInManyFields flds nameFun = do
   -- Store the file
-  fPath <- head <$> (doUpload =<< gets tmp)
+  fPath <- oneUpload =<< doUpload =<< gets tmp
   let (_, fName) = splitFileName fPath
 
   hash <- liftIO $ md5 <$> BL.readFile fPath
@@ -268,19 +267,35 @@ attachToField modelName instanceId field ref = do
       lockName = BS.concat [modelName, ":", instanceId, "/", field]
 
 
+-- | Error which occured when processing an uploaded part.
+type PartError = (PartInfo, PolicyViolationException)
+
+
 -- | Process all files in the request and collect results. Files are
--- deleted after the handler runs.
-withUploads :: (PartInfo -> FilePath -> IO (Maybe a))
+-- deleted after the handler runs. To permanently store the uploaded
+-- files, copy them in the handler.
+withUploads :: (PartInfo -> FilePath -> IO a)
             -- ^ Handler for successfully uploaded files.
-            -> Handler b (FileUpload b) [a]
+            -> Handler b (FileUpload b) [Either PartError a]
 withUploads proceed = do
   tmpDir <- gets tmp
   cfg <- gets cfg
   fns <- handleFileUploads tmpDir cfg (const $ partPol cfg) $
-    liftIO . fmap catMaybes . mapM (\(info, r) -> case r of
-      Left _    -> return Nothing
-      Right tmp -> proceed info tmp)
+    liftIO . mapM (\(info, r) -> case r of
+      Right tmp -> Right <$> proceed info tmp
+      Left e    -> return $ Left (info, e)
+      )
   return fns
+
+
+-- | Helper which extracts first non-erroneous element from
+-- 'withUploads' result or raises error if there's no such element.
+oneUpload :: [Either PartError a] -> Handler b (FileUpload b) a
+oneUpload res =
+    case partitionEithers res of
+      (_,         (f:_)) -> return f
+      (((_, e):_), _   ) -> error $ T.unpack $ policyViolationExceptionReason e
+      ([], [])           -> error "No uploaded parts provided"
 
 
 -- | Store files from the request, return full paths to the uploaded
@@ -288,7 +303,7 @@ withUploads proceed = do
 doUpload :: FilePath
          -- ^ Store files in this directory (relative to finished
          -- uploads path)
-         -> Handler b (FileUpload b) [FilePath]
+         -> Handler b (FileUpload b) [Either PartError FilePath]
 doUpload relPath = do
   root <- gets finished
   let path = root </> relPath
@@ -298,11 +313,12 @@ doUpload relPath = do
             newPath = path </> justFname
         createDirectoryIfMissing True path
         copyFile tmp newPath
-        return $ Just newPath
+        return newPath
+
 
 -- | Store files from the request in the temporary dir, return pairs
 -- @(original file name, path to file)@.
-doUploadTmp :: Handler b (FileUpload b) [(FilePath, FilePath)]
+doUploadTmp :: Handler b (FileUpload b) [Either PartError (FilePath, FilePath)]
 doUploadTmp = do
   tmpDir <- gets tmp
   withUploads $ \info tmp ->
@@ -312,7 +328,7 @@ doUploadTmp = do
                      Nothing -> takeFileName tmp
         (newPath, _) <- openTempFile tmpDir name
         copyFile tmp newPath
-        return $ Just (name, newPath)
+        return (name, newPath)
 
 
 partPol :: UploadPolicy -> PartUploadPolicy

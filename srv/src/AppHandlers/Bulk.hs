@@ -42,7 +42,7 @@ import           AppHandlers.Util
 
 import           Snaplet.Auth.PGUsers
 import qualified Snaplet.DbLayer.Types as DB
-import           Snaplet.FileUpload (tmp, doUpload, doUploadTmp)
+import           Snaplet.FileUpload (tmp, doUpload, doUploadTmp, oneUpload)
 import           Snaplet.TaskManager as TM
 import           Util as U hiding (render)
 
@@ -80,11 +80,7 @@ vinImport = scope "vin" $ scope "upload" $ do
             (elem (Role $ identFv Role.vinAdmin) (userRoles u'))) $
             handleError 403
 
-      inPath' <- with fileUpload $ doUploadTmp
-      let (inName, inPath) =
-              case inPath' of
-                (f:_) -> f
-                _     -> error "Could not upload file"
+      (inName, inPath) <- with fileUpload $ oneUpload =<< doUploadTmp
 
       log Info $ T.concat ["Processing file: ", T.pack inName]
       tmpDir <- with fileUpload $ gets tmp
@@ -150,7 +146,7 @@ partnerImport = scope "partner" $ scope "upload" $ do
   (tmpName, _) <- liftIO $ openTempFile tmpPath "last-pimp.csv"
 
   log Trace "Uploading data"
-  inPath <- with fileUpload $ head <$> doUpload "partner-upload-data"
+  inPath <- with fileUpload $ oneUpload =<< doUpload "partner-upload-data"
 
   let outPath = tmpPath </> tmpName
 
