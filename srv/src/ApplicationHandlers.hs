@@ -21,6 +21,7 @@ import qualified Data.Text.Encoding.Error as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
+import qualified Data.Attoparsec.Number as A
 import qualified Data.Aeson as Aeson
 import Data.Aeson (object, (.=))
 import Data.List
@@ -50,6 +51,7 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.SimpleLog
 import Snap.Util.FileServe (serveFile)
+import Snap.Util.FileUploads (getMaximumFormInputSize)
 
 import WeatherApi (getWeather', tempC)
 
@@ -59,7 +61,7 @@ import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
-import Snaplet.FileUpload (doUpload, oneUpload)
+import Snaplet.FileUpload (FileUpload(cfg), doUpload, oneUpload)
 
 import Carma.Model
 import Data.Model.Patch (Patch)
@@ -593,6 +595,13 @@ getRuntimeFlags
   >>= liftIO . readTVarIO
   >>= writeJSON . map show . Set.elems
 
+-- | Serve parts of the application config to client in JSON.
+clientConfig :: AppHandler ()
+clientConfig = do
+  mus <- with fileUpload $ gets (fromIntegral . getMaximumFormInputSize . cfg)
+  let config :: Map.Map T.Text Aeson.Value
+      config = Map.fromList [("max-file-size", Aeson.Number $ A.I mus)]
+  writeJSON config
 
 setRuntimeFlags :: AppHandler ()
 setRuntimeFlags = do

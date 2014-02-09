@@ -22,8 +22,9 @@ define [ "model/render"
        , "sync/crud"
        , "lib/serialize"
        , "lib/idents"
+       , "lib/config"
        ],
-       (render, dict, sync, S, Idents) ->
+       (render, dict, sync, S, Idents, Config) ->
   mainSetup = ( localScreens
                    , localRouter
                    , localDictionaries
@@ -34,6 +35,7 @@ define [ "model/render"
 
     dictCache = dict.buildCache(localDictionaries)
     imgr = new Idents
+    configmgr = new Config
 
     # Convert user.roles to use integer ids
     user.roles = _.map user.roles, (v) -> parseInt v
@@ -53,6 +55,8 @@ define [ "model/render"
         # Provided a model name, return available idents for that
         # model
         idents: (mn) -> imgr.getIdents mn
+        # Return client config option value
+        config: (cn) -> configmgr.getOption cn
         model: do ->
           modelCache = {}
           (name, arg) ->
