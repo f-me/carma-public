@@ -29,5 +29,6 @@ library
     HTTP                   == 4000.2.*,
     lens                   >= 3.8 && < 3.11,
     network                == 2.4.*,
+    text                   == 0.11.*,
     transformers           == 0.3.*,
     unordered-containers   == 0.2.*

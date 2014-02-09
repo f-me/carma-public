@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 {-|
 
@@ -54,6 +56,7 @@ import Data.Maybe
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy.Char8 as BSL
+import qualified Data.Text.Encoding as T
 
 import Network.HTTP
 import Network.Stream (Result)
@@ -67,6 +70,17 @@ type FieldName = BS.ByteString
 
 -- | An instance of a model is a set of key-value pairs.
 type InstanceData = M.HashMap FieldName FieldValue
+{-# DEPRECATED InstanceData "Legacy ByteString-based interface" #-}
+
+instance ToJSON InstanceData where
+    toJSON = Object . mapKeyVal T.decodeUtf8 (toJSON . T.decodeUtf8)
+
+instance FromJSON InstanceData where
+    parseJSON = fmap (mapKeyVal T.encodeUtf8 T.encodeUtf8) . parseJSON
+
+mapKeyVal fk kv = M.foldrWithKey (\k v -> M.insert (fk k) (kv v)) M.empty
+
+mapKey fk = mapKeyVal fk id
 
 
 -- | Options used to connect to a running CaRMa instance.
