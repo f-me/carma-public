@@ -37,6 +37,7 @@ import Data.Vector (Vector)
 import Database.PostgreSQL.Simple.ToField
 
 import Data.Model
+import Data.Model.TH (typeRepToType)
 import Data.Model.Types
 
 import Carma.Model.Contract (Contract)
@@ -58,16 +59,6 @@ fieldProjFormatter proj cf format = printf format $ proj cf
 
 ns :: TypeQ -> StrictTypeQ
 ns = strictType (return NotStrict)
-
-
--- | Convert 'TypeRep' to Template Haskell 'Type'.
-typeRepToType :: TypeRep -> Type
-typeRepToType tr =
-    let
-        tyConToType tyCon = ConT $ mkName $ tyConName tyCon
-        (conTr, trs)      = splitTyConApp tr
-    in
-      foldl (\t m -> AppT t (typeRepToType m)) (tyConToType conTr) trs
 
 
 -- | VIN format field parameter.

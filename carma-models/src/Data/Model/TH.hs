@@ -2,6 +2,7 @@
 
 module Data.Model.TH
     ( mkIdents
+    , typeRepToType
     )
 
 where
@@ -9,6 +10,7 @@ where
 import Control.Monad
 
 import qualified Data.HashMap.Strict as HM
+import           Data.Typeable
 
 import Language.Haskell.TH
 
@@ -46,3 +48,13 @@ mkIdents modelTy names = do
                 names
     idMapDef <- valD (varP list) (normalB ((varE 'HM.fromList) `appE` (listE pairs))) []
     return $ concat $ identDefs ++ [[idMapTy, idMapDef]]
+
+
+-- | Convert 'TypeRep' to Template Haskell 'Type'.
+typeRepToType :: TypeRep -> Type
+typeRepToType tr =
+    let
+        tyConToType tyCon = ConT $ mkName $ tyConName tyCon
+        (conTr, trs)      = splitTyConApp tr
+    in
+      foldl (\t m -> AppT t (typeRepToType m)) (tyConToType conTr) trs
