@@ -240,6 +240,7 @@ core	case	contractIdentifier	t	t
 core	case	contract	t	t
 core	case	car_vin	t	t
 core	case	car_make	t	t
+core	case	car_mileage	t	t
 core	case	car_model	t	t
 core	case	car_seller	t	t
 core	case	car_plateNum	t	t
