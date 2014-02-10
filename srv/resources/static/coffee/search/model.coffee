@@ -16,6 +16,9 @@ define ["utils"], ->
         _.difference (_.keys @groups), @showFields()
 
       @sfieldsh   = arrToObj 'name', @searchKVM._meta.model.fields
+      # storage for shifted user fields
+      # free fields will be out of here
+      @history = []
 
       for f in @searchKVM._meta.model.fields when not f.meta?.nosearch?
         do (f) =>
@@ -40,15 +43,25 @@ define ["utils"], ->
 
     addField:    (f) =>
       return if _.contains @dynamic(), f
-      @dynamic.shift()
+      @changeHistory @dynamic.shift()
       @dynamic.push(f)
 
     addFree: =>
-      f = @showFields()
-      t = _.keys @groups
-      d = _.difference f, t
-      unless _.isEmpty d
-        @dynamic.pop d[0]
+      unless _.isEmpty @history
+        # add a recently shifted field
+        @dynamic.push @history.shift()
+      else
+        # add a random field
+        f = @showFields()
+        t = _.keys @groups
+        d = _.difference t, f
+        unless _.isEmpty d
+          @dynamic.push d[0]
+
+    changeHistory: (f...) =>
+      # move fields to first position
+      @history = _.without @history, f
+      @history = _.union f, @history
 
   mkFieldsDynView: (searchKVM, {labels, groups}, defaults) ->
     dynView = new FieldsDynView searchKVM, {labels, groups}, defaults
