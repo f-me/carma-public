@@ -101,12 +101,12 @@ CREATE TABLE "VinFormat"
   , buyDateRequired          bool NOT NULL DEFAULT TRUE
 
   , sellerLoad               bool NOT NULL DEFAULT TRUE
-  , sellerTitles             text[] NOT NULL DEFAULT ARRAY['Дилер, продавший автомобиль']
+  , sellerTitles             text[] NOT NULL DEFAULT ARRAY['Дилер']
   , sellerDefault            int4 REFERENCES partnertbl
   , sellerRequired           bool NOT NULL DEFAULT TRUE
 
   , lastCheckDealerLoad      bool NOT NULL DEFAULT TRUE
-  , lastCheckDealerTitles    text[] NOT NULL DEFAULT ARRAY['Дилер, у которого проходило последнее ТО']
+  , lastCheckDealerTitles    text[] NOT NULL DEFAULT ARRAY['Дилер ТО']
   , lastCheckDealerDefault   int4 REFERENCES partnertbl
   , lastCheckDealerRequired  bool NOT NULL DEFAULT TRUE
 
