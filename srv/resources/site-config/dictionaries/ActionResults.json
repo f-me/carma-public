@@ -15,7 +15,7 @@
             },
             {
                 "value": "moveToAnalyst",
-                "label": "Передать аналитику"
+                "label": "Передать специалисту по вторичным услугам"
             },
             {
                 "value": "busyLine",
@@ -65,7 +65,7 @@
         "orderServiceAnalyst": [
             {
                 "value": "serviceOrderedAnalyst",
-                "label": "Услуга заказана аналитиком"
+                "label": "Услуга заказана специалистом"
             },
             {
                 "value": "needPartnerAnalyst",
