@@ -5,6 +5,8 @@ import Data.Typeable
 
 import Data.Model
 
+import Carma.Model.Types
+
 import Carma.Model.Contract     (Contract)
 import Carma.Model.Program      (Program)
 import Carma.Model.SubProgram   (SubProgram)
@@ -79,13 +81,15 @@ data Case = Case
   , car_plateNum
     :: F (Maybe Text) "car_plateNum" "Госномер"
   , car_makeYear
-    :: F (Maybe Text) "car_makeYear" "Год производства автомобиля"
+    :: F (Maybe TInt) "car_makeYear" "Год производства автомобиля"
   , car_color
     :: F (Maybe (IdentT Colors)) "car_color" "Цвет"
   , car_buyDate
     :: F (Maybe LegacyDate) "car_buyDate" "Дата покупки"
   , car_dealerTO
     :: F (Maybe (IdentT Partner)) "car_dealerTO" "Дилер у которого проходило последнее ТО"
+  , car_mileage
+    :: F (Maybe TInt) "car_mileage" "Текущий пробег"
   , car_transmission
     :: F (Maybe (IdentI Transmission)) "car_transmission" "Коробка передач"
   , car_engine
