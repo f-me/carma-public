@@ -79,7 +79,7 @@ import RuntimeFlag
 -- | Render empty form for model.
 indexPage :: AppHandler ()
 indexPage = ifTop $ do
-    ln <- gets localName
+    ln <- gets $ localName . options
     -- Render index page with <addLocalName> splice defined, which
     -- appends the @local-name@ config option to its argument.
     let addLocalName :: Splice AppHandler

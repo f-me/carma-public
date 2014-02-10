@@ -522,7 +522,11 @@ searchContracts = do
   sid <- getIntParam "subprogram"
   limit' <- getIntParam "limit"
   let limit = fromMaybe 100 limit'
+  -- TODO Support non-ByteString search queries?
   q <- fromMaybe (error "No search query provided") <$> getParam "query"
+
+  ml <- gets $ searchMinLength . options
+  when (B.length q < ml) $ error "Search query is too short"
 
   -- Form query template and all of its parameters. Contract
   -- identifierFieldNames define placeholder list lengths.

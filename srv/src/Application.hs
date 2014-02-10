@@ -2,13 +2,13 @@
 
 module Application where
 
-import Data.Set (Set)
 import Control.Concurrent.STM
 import Control.Lens
 
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
 
+import Data.Set (Set)
 import Data.Text (Text)
 
 import Snap
@@ -16,8 +16,8 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.Session
+import Snap.Snaplet.SimpleLog
 
-------------------------------------------------------------------------------
 import Snaplet.Auth.Class
 import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
@@ -25,13 +25,23 @@ import Snaplet.DbLayer.Types (DbLayer)
 import Snaplet.TaskManager
 import Snaplet.FileUpload hiding (db)
 import Snaplet.Geo
-import Snap.Snaplet.SimpleLog
 import Snaplet.Search
 
 import RuntimeFlag
 
-------------------------------------------------------------------------------
--- | CaRMa top-level application state:
+
+-- | Global application options.
+data AppOptions = AppOptions
+    { localName       :: Maybe Text
+      -- ^ Name of CaRMa installation (read from @local-name@ config
+      -- option)
+    , searchMinLength :: Int
+      -- ^ Minimal query length for database-heavy searches
+      -- (@search-min-length@).
+    }
+
+
+-- | CaRMa top-level application state.
 data App = App
     { _heist      :: Snaplet (Heist App)
     , _session    :: Snaplet SessionManager
@@ -47,9 +57,7 @@ data App = App
     , runtimeFlags:: TVar (Set RuntimeFlag)
     , _authDb     :: Snaplet Postgres
     , _search     :: Snaplet (Search App)
-    , localName   :: Maybe Text
-    -- ^ Name of CaRMa installation (read from @local-name@ config
-    -- option)
+    , options     :: AppOptions
     }
 
 
