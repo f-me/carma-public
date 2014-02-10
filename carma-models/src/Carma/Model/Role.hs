@@ -14,6 +14,7 @@ data Role = Role
   {ident  :: PK Int Role ""
   ,label  :: F Text "label"  "Название роли"
   ,value  :: F Text "value"  "Внутреннее название роли"
+  -- ^ Internal label is only used to set screen permissions.
   ,isBack :: F Bool "isBack" "Роль бэкофиса"
   } deriving Typeable
 
@@ -54,6 +55,7 @@ mkIdents [t|Role|]
  , ("front", 33)
  , ("dpViewer", 34)
  , ("programManager", 35)
+ , ("bo_secondary", 41)
  ]
 
 instance Model Role where
