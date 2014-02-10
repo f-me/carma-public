@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Util
   (readJSON
@@ -18,6 +19,11 @@ module Util
   , render
   , projNow
   , identFv
+  -- Postgres ToRow/ToField helpers
+  , PlainText(..)
+  , (:*)(..)
+  , ToRowList(..)
+  , sqlFlagPair
   ) where
 
 import qualified Data.Map as Map
@@ -27,6 +33,7 @@ import Data.Maybe
 import Control.Exception
 import Control.Applicative
 import Control.Monad.IO.Class
+import qualified Blaze.ByteString.Builder.Char8 as BZ
 import Data.Typeable
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Lazy  as L
@@ -48,6 +55,10 @@ import qualified Data.Attoparsec.ByteString.Lazy as Atto
 
 import Data.Attoparsec.Combinator (many1, choice)
 import qualified Data.Attoparsec.ByteString.Char8 as A
+
+import Database.PostgreSQL.Simple.ToField
+import Database.PostgreSQL.Simple.ToRow
+import Database.PostgreSQL.Simple.Types
 
 import Text.Printf (printf)
 
@@ -195,3 +206,54 @@ projNow fn =
 -- | Convert a Role Ident to untyped field value.
 identFv :: Model.Model m => Model.IdentI m -> ByteString
 identFv (Model.Ident v) = B.pack $ show v
+
+
+-- | Text wrapper with a non-quoting 'ToField' instance.
+--
+-- Copied from vinnie.
+newtype PlainText = PT Text
+
+instance ToField PlainText where
+    toField (PT i) = Plain $ BZ.fromText i
+
+
+-- | Works almost like '(:.)' for 'ToField' instances. Start with `()`
+-- and append as many fields as needed:
+--
+-- > () :* f1 :* f2 :* f3
+--
+-- Initial `()` saves the type hassle.
+data a :* b = a :* b deriving (Eq, Ord, Show, Read)
+
+infixl 3 :*
+
+instance (ToRow a, ToField b) => ToRow (a :* b) where
+    toRow (a :* b) = toRow $ a :. (Only b)
+
+
+-- | A list of 'ToRow' values with concatenating behavour of 'ToRow'.
+data ToRowList a = ToRowList [a]
+
+instance (ToRow a) => ToRow (ToRowList a) where
+    toRow (ToRowList l) = concat $ map toRow l
+
+
+-- | Apply a function to a 'Maybe' value, producing a pair with True
+-- if Nothing is provided and False otherwise. Similar to 'maybe'.
+--
+-- This is handy when used with Postgres 'query' in order to support
+-- optional select query conditions which are ignored when Nothing is
+-- provided:
+--
+-- > mval <- getParam "someParam"
+-- > query "SELECT * FROM foo WHERE (? AND field = ?);"
+-- >       (sqlFlagPair ""::ByteString id mval)
+sqlFlagPair :: b
+            -- ^ Default value (will be ignored in queries).
+            -> (a -> b)
+            -- ^ Projection if the parameter is Just.
+            -> Maybe a
+            -- ^ Parameter value.
+            -> (Bool, b)
+sqlFlagPair def _ Nothing  = (True,  def)
+sqlFlagPair _   f (Just v) = (False, f v)

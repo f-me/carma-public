@@ -80,13 +80,14 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method GET $ psaCasesHandler)
          , ("/repTowages/:id",
                               chkAuthLocal . method GET $ repTowagesHandler)
-         , ("/cardOwnerLookup", chkAuth . method GET  $ cardOwnerLookup)
          , ("/allContracts/:program",
                               chkAuth . method GET   $ selectContracts)
          , ("/renderContract",
                               chkAuth . method GET    $ renderContractHandler)
          , ("contracts/findSame",
                              chkAuth . method GET    $ findSameContract)
+         , ("searchContracts/",
+                              method GET    $ searchContracts)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:model",      chkAuth . method GET    $ readManyHandler)
@@ -114,9 +115,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/partner/upload.csv",
             chkAuthLocal . method POST $ partnerImport)
          , ("/vin/upload",    chkAuth . method POST $ vinImport)
-         , ("/vin/reverseLookup/:vin", chkAuth . method GET  $ vinReverseLookup)
-         , ("contracts/findByCard/:program/:cardNumber",
-            chkAuth . method GET    $ cardNumberLookup)
          , ("/opts/:model/:id/", chkAuthLocal . method GET $ getSrvTarifOptions)
          , ("/smspost",       chkAuthLocal . method POST $ smspost)
          , ("/sms/processing", chkAuthLocal . method GET $ smsProcessingHandler)

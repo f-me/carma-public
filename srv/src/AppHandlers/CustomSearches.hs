@@ -1,29 +1,67 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module AppHandlers.CustomSearches where
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators #-}
+
+module AppHandlers.CustomSearches
+    ( allPartnersHandler
+    , partnersForSrvHandler
+
+    , allActionsHandler
+    , selectActions
+
+    , searchCallsByPhone
+    , getActionsForCase
+    , getCancelsForCase
+
+    , selectContracts
+    , opStats
+    , busyOps
+    , actStats
+    , boUsers
+
+    , allDealersForMake
+    , getLatestCases
+    , searchCases
+    , findSameContract
+
+    , searchContracts
+    )
+
+where
 
 import Control.Applicative
+import Control.Monad
+
 import Data.Aeson as A
-import Data.String (fromString)
-import Data.Maybe
-import Data.Map as M (Map, (!), delete, fromList)
+import Data.Aeson.TH
+
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
+import Data.List
+import Data.Map as M (Map, (!), delete, fromList)
+import Data.Maybe
+import Data.String (fromString)
+import Data.Text (Text)
+import qualified Data.Vector as V
+
+import Database.PostgreSQL.Simple
+import Database.PostgreSQL.Simple.FromRow
+import Database.PostgreSQL.Simple.SqlQQ
 
 import Snap
 import Snap.Snaplet.Auth
-import Database.PostgreSQL.Simple
-import Database.PostgreSQL.Simple.SqlQQ
---------------------------------------------------------------------
+
 import Application
 import AppHandlers.Util
 import Utils.HttpErrors
 import Util
-import qualified Data.Vector as V
 
-import qualified Carma.Model.Program as Program
+import           Data.Model
+import qualified Carma.Model.Contract as C
 import qualified Carma.Model.Role as Role
+
 
 type MBS = Maybe ByteString
 
@@ -37,6 +75,7 @@ allPartnersHandler
     <*> getParam "makes")
   >>= writeJSON
 
+
 partnersForSrvHandler :: AppHandler ()
 partnersForSrvHandler =
     join (selectPartnersForSrv <$>
@@ -45,6 +84,7 @@ partnersForSrvHandler =
           getParam "srv"       <*>
           getParam "makes")
     >>= writeJSON
+
 
 selectPartnersForSrv :: MBS -> MBS -> MBS -> MBS
                      -> AppHandler [Map ByteString ByteString]
@@ -76,6 +116,7 @@ selectPartnersForSrv city isActive service makes = do
         ,"priority1", "priority2", "priority3"
         ]
   return $ mkMap fields rows
+
 
 selectPartners :: MBS -> MBS -> MBS -> MBS -> AppHandler [Map ByteString ByteString]
 selectPartners city isActive isDealer makes = do
@@ -113,6 +154,7 @@ allActionsHandler = do
   writeJSON $ A.object [ "actions" .= acts
                        , "reqTime" .= dn
                        ]
+
 
 selectActions
   :: MBS -> MBS -> Maybe [ByteString] -> MBS -> MBS
@@ -192,6 +234,7 @@ getActionsForCase = do
         ["closeTime", "result", "name", "assignedTo", "comment"]
   writeJSON $ mkMap fields rows
 
+
 getCancelsForCase :: AppHandler ()
 getCancelsForCase = do
   Just caseId <- getParam "id"
@@ -209,6 +252,7 @@ getCancelsForCase = do
         , "comment", "owner", "partnerName"
         ]
   writeJSON $ mkMap fields rows
+
 
 selectContracts :: AppHandler ()
 selectContracts = do
@@ -250,6 +294,7 @@ selectContracts = do
         ]
   writeJSON $ mkMap fields rows
 
+
 opStatsQ :: Query
 opStatsQ = [sql|
   SELECT u.login, ca.name, ca.caseId,
@@ -265,6 +310,7 @@ opStatsQ = [sql|
   AND (? :: text = ANY (u.roles) OR ? :: text = ANY (u.roles))
   ORDER BY closeTime;
   |]
+
 
 -- | Serve backoffice operator stats, containing last opened action
 -- info for every user with backoffice role:
@@ -291,6 +337,7 @@ opStats = do
                        , "stats" .= obj'
                        ]
 
+
 busyOpsQ :: Query
 busyOpsQ = [sql|
   SELECT assignedTo, count(1)::text
@@ -300,10 +347,12 @@ busyOpsQ = [sql|
   HAVING   assignedTo is not null AND assignedTo != ''
   |]
 
+
 busyOps :: AppHandler ()
 busyOps = do
   rows <- withPG pg_search $ \c -> query_ c busyOpsQ
   writeJSON $ mkMap [ "login", "count"] rows
+
 
 actStatsQ :: Query
 actStatsQ = [sql|
@@ -314,6 +363,7 @@ actStatsQ = [sql|
   AND (? OR extract (epoch from duetime) >= ?)
   AND (? OR extract (epoch from duetime) <= ?);
   |]
+
 
 -- | Serve JSON object with fields `order` and `control`, each
 -- containing a number of unassigned actions in that category. Accepts
@@ -343,15 +393,16 @@ actStats = do
                      , "tellDelayClient"
                      , "checkEndOfService"
                      ]
-  (Only orders:_) <- 
+  (Only orders:_) <-
       withPG pg_search $
       \c -> query c actStatsQ ((Only $ V.fromList orderNames) :. flags)
-  (Only controls:_) <- 
+  (Only controls:_) <-
       withPG pg_search $
       \c -> query c actStatsQ ((Only $ V.fromList controlNames) :. flags)
   writeJSON $ M.fromList
                 ([ ("order", orders)
                  , ("control", controls)] :: [(ByteString, ByteString)])
+
 
 -- | Serve users to which actions can be assigned (head, back or
 -- supervisor roles, active within last 20 minutes).
@@ -366,6 +417,7 @@ boUsers = do
     |] (Only $ V.fromList [Role.head, Role.back, Role.supervisor])
   writeJSON $ mkMap ["name", "login"] rows
 
+
 allDealersForMake :: AppHandler ()
 allDealersForMake = do
   Just make <- getParam "make"
@@ -375,6 +427,7 @@ allDealersForMake = do
       WHERE isActive AND isDealer AND ? = ANY (makes)
     |] [make]
   writeJSON $ mkMap ["id", "name"] rows
+
 
 getLatestCases :: AppHandler ()
 getLatestCases = do
@@ -391,6 +444,7 @@ getLatestCases = do
     ["id", "contact_name", "callDate", "contact_phone1"
     ,"car_plateNum", "car_vin", "program", "comment"]
     rows
+
 
 searchCases :: AppHandler ()
 searchCases = do
@@ -430,66 +484,89 @@ findSameContract = do
         ++ ")"
       writeJSON $ mkMap ["id", "ctime"] rows
 
-vinReverseLookup :: AppHandler ()
-vinReverseLookup = do
-  carvin <- fromJust <$> getParam "vin"
-  q      <- withPG pg_search $ \c -> query c (fromString $ [sql|
-     SELECT carvin
-          , concat('', carmake)
-          , concat('', carmodel)
-          , concat('', program)
-          , to_char(carBuyDate, 'DD.MM.YYYY')
-     FROM contracttbl
-     WHERE id IN
-     (SELECT max(id)
-      FROM contracttbl
-      WHERE isactive = 't' AND dixi = 't'
-      GROUP BY carvin, program
-      HAVING lower(carvin) like '%' || lower(?) || '%'
-      ORDER BY max(id) DESC
-      LIMIT 15)
-    |]) [carvin]
-  writeJSON $ mkMap ["vin", "make", "model", "program", "buyDate"] q
+
+$(deriveJSON defaultOptions ''(,,,,,,))
 
 
--- | Serve a list of contract suggestions given a program and
--- cardNumber (possibly a part of the whole string) in request
--- parameters.
-cardNumberLookup :: AppHandler ()
-cardNumberLookup = do
-  p  <- getParam "program"
-  cn <- getParam "cardNumber"
-  case (p, cn) of
-    (Just program, Just cardNumber) -> do
-      q      <- withPG pg_search $ \c -> query c (fromString $ [sql|
-        SELECT id::text
-             , cardNumber
-             , concat('', carVin)
-             , concat('', carmake)
-             , concat('', carmodel)
-             , to_char(carBuyDate, 'DD.MM.YYYY')
-        FROM contracttbl
-        WHERE id IN
-        (SELECT max(c.id)
-         FROM contracttbl c
-         LEFT JOIN programtbl p ON p.id::text = c.program
-         WHERE c.isactive AND c.dixi AND p.value = ?
-         GROUP BY cardNumber, c.program
-         HAVING lower(c.cardNumber) like '%' || lower(?) || '%'
-         ORDER BY max(c.id) DESC
-         LIMIT 15)
-       |]) [program, cardNumber]
-      writeJSON $ mkMap ["cid", "cardNumber", "vin", "make", "model", "buyDate"] q
-    (_, _) -> error "Bad request: program & cardNumber parameters not set"
+-- | Wrapper for 'searchContracts' query results.
+data SearchResult =
+    SearchResult (IdentI C.Contract) Text $(C.identifierTypes)
 
-cardOwnerLookup :: AppHandler ()
-cardOwnerLookup = do
-  cardOwner <- fromJust <$> getParam "q"
-  res <- withPG pg_search $ \c -> query c (fromString $ [sql|
-     SELECT cardOwner FROM contracttbl c
-      WHERE isactive AND dixi
-        AND c.program = ?::text
-        AND cardOwner ilike '%' || ? || '%'
-        LIMIT 15
-    |]) (Only Program.vtb24 :. Only cardOwner)
-  writeJSON $ mkMap ["cardOwner"] res
+instance FromRow SearchResult where
+    fromRow = SearchResult <$> field <*> field <*> fromRow
+
+instance ToJSON SearchResult where
+    toJSON (SearchResult i t vals) =
+        object $ [ "id"     .= i
+                 , "_match" .= t
+                 ] ++ zip C.identifierNames listVals
+        where
+          jsonVals = toJSON vals
+          -- Assume that if identifierTypes is a tuple, its ToJSON
+          -- instance produces a list of Values.
+          listVals =
+              case jsonVals of
+                A.Array vec -> V.toList vec
+                _           -> error "(ToJSON identifierTypes) is broken"
+
+
+-- | Read @query@, @program@ (optional), @subprogram@ (optional),
+-- @limit@ (defaults to 100) parameters and return list of contracts
+-- with matching identifier fields. Every result contains @_match@
+-- field with matched field name.
+--
+-- TODO Program/subprogram filtering.
+searchContracts :: AppHandler ()
+searchContracts = do
+  pid <- getIntParam "program"
+  sid <- getIntParam "subprogram"
+  limit' <- getIntParam "limit"
+  let limit = fromMaybe 100 limit'
+  q <- fromMaybe (error "No search query provided") <$> getParam "query"
+
+  -- Form query template and all of its parameters. Contract
+  -- identifierFieldNames define placeholder list lengths.
+  let -- Search contract by one field. Parameters (5): quoted field
+      -- name, Contract table name, field name, query string, limit.
+      fieldSubQuery = concat
+          [ "(SELECT id, ? as _match FROM \"?\" "
+          , "WHERE lower(?) LIKE '%' || lower(?) || '%' LIMIT ?)"
+          ]
+      -- List of sets of subquery parameters, each having ToRow
+      -- instance
+      subParams = map (\fn -> (()
+                               :* fn
+                               :* contractTable
+                               :* (PT fn)
+                               :* q
+                               :* limit))
+                  C.identifierNames
+      unite = intercalate " UNION "
+      totalQuery = intercalate " "
+          [ "WITH sources AS ("
+          -- 5N parameters, where N is the length of
+          -- identifierNames
+          , unite (map (const fieldSubQuery) C.identifierNames)
+          , ")"
+          , "SELECT DISTINCT ON(c.id) c.id, _match,"
+          -- N + 2 more parameters: field list, Contract table name,
+          -- limit.
+          , intercalate "," $
+            map (const "c.?") C.identifierNames
+          , "FROM sources, \"?\" c"
+          , "WHERE c.id IN (SELECT id FROM sources)"
+          , "ORDER BY c.id DESC LIMIT ?;"
+          ]
+      -- Fields selected from matching rows
+      selectedFieldsParam = map PT C.identifierNames
+      contractTable = PT $ tableName $
+                      (modelInfo :: ModelInfo C.Contract)
+
+  res <- withPG pg_search $ \c -> query c (fromString totalQuery)
+         (()
+          :. (ToRowList subParams)
+          :. (selectedFieldsParam)
+          :. (Only contractTable
+              :* limit))
+
+  writeJSON (res :: [SearchResult])

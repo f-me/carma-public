@@ -4,7 +4,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TypeOperators #-}
 
 {-|
 
@@ -38,7 +37,6 @@ import Data.Maybe as Maybe
 
 import Data.Configurator
 import Database.PostgreSQL.Simple.SqlQQ
-import Database.PostgreSQL.Simple.ToField (ToField(..))
 import Data.Text.Encoding
 
 import Network.HTTP as H (simpleHTTP, getRequest, getResponseBody)
@@ -47,6 +45,8 @@ import Snap.Core
 import Snap.Extras.JSON
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
+
+import Util
 
 
 data Geo = Geo
@@ -64,20 +64,6 @@ makeLenses ''Geo
 
 instance HasPostgres (Handler b Geo) where
     getPostgresState = with postgres $ get
-
-
--- | Works almost like '(:.)' for 'ToField' instances. Start with `()`
--- and append as many fields as needed:
---
--- > () :* f1 :* f2 :* f3
---
--- Initial `()` saves the type hassle.
-data a :* b = a :* b deriving (Eq, Ord, Show, Read)
-
-infixl 3 :*
-
-instance (ToRow a, ToField b) => ToRow (a :* b) where
-    toRow (a :* b) = toRow $ a :. (Only b)
 
 
 routes :: [(ByteString, Handler b Geo ())]
