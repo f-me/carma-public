@@ -190,7 +190,7 @@ processTitles :: C VinFormat
 processTitles vf csvHeader =
     (\l -> (interMapOrd, catMaybes l)) <$>
     (mapM
-     (\f@(FFAcc (CF c) _ _ req _ _) ->
+     (\f@(FFAcc (FA c) _ _ req _ _) ->
       let
           titles :: [ColumnTitle]
           titles = ffaTitles f vf
@@ -260,7 +260,7 @@ process psid mapping = do
   setSpecialDefaults uid (snd psid)
 
   forM_ (vinFormatAccessors) $
-        (\(FFAcc (CF c) _ loadAcc reqAcc defAcc _) ->
+        (\(FFAcc (FA c) _ loadAcc reqAcc defAcc _) ->
              let
                  fn = fieldName c
                  -- TODO Might use CSV titles here instead of Contract
@@ -318,7 +318,7 @@ processField :: C VinFormat
              -- ^ Program & subprogram ids.
              -> FFMapper
              -> (Import (), (Text, Text))
-processField vf (pid, sid) (FM iname f@(FFAcc (CF c) stag _ _ defAcc _) cols) =
+processField vf (pid, sid) (FM iname f@(FFAcc (FA c) stag _ _ defAcc _) cols) =
     case stag of
       SRaw -> (pass, (sqlCast iname "text", fn))
       SNumber ->

@@ -148,7 +148,7 @@ contractTable = PT $ tableName $
 -- | Loadable Contract field names.
 contractFields :: [Text]
 contractFields =
-    map (\(FFAcc (CF c) _ _ _ _ _) -> fieldName c) vinFormatAccessors
+    map (\(FFAcc (FA c) _ _ _ _ _) -> fieldName c) vinFormatAccessors
 
 
 -- | Create temporary pristine and proto tables for CSV data.

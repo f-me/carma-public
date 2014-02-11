@@ -1,8 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeOperators #-}
 
 module AppHandlers.CustomSearches
     ( allPartnersHandler
@@ -35,33 +33,27 @@ import Control.Applicative
 import Control.Monad
 
 import Data.Aeson as A
-import Data.Aeson.TH
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
-import Data.List
 import Data.Map as M (Map, (!), delete, fromList)
 import Data.Maybe
 import Data.String (fromString)
-import Data.Text (Text)
 import qualified Data.Vector as V
 
 import Database.PostgreSQL.Simple
-import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.SqlQQ
 
 import Snap
 import Snap.Snaplet.Auth
 
 import Application
+import AppHandlers.CustomSearches.Contract
 import AppHandlers.Util
 import Utils.HttpErrors
 import Util
 
-import           Data.Model
-import qualified Carma.Model.Contract as C
 import qualified Carma.Model.Role as Role
-
 
 type MBS = Maybe ByteString
 
@@ -483,94 +475,3 @@ findSameContract = do
         ++ (maybe "" (\x -> " OR cardNumber = " ++ quote x) num)
         ++ ")"
       writeJSON $ mkMap ["id", "ctime"] rows
-
-
-$(deriveJSON defaultOptions ''(,,,,,,))
-
-
--- | Wrapper for 'searchContracts' query results.
-data SearchResult =
-    SearchResult (IdentI C.Contract) Text $(C.identifierTypes)
-
-instance FromRow SearchResult where
-    fromRow = SearchResult <$> field <*> field <*> fromRow
-
-instance ToJSON SearchResult where
-    toJSON (SearchResult i t vals) =
-        object $ [ "id"     .= i
-                 , "_match" .= t
-                 ] ++ zip C.identifierNames listVals
-        where
-          jsonVals = toJSON vals
-          -- Assume that if identifierTypes is a tuple, its ToJSON
-          -- instance produces a list of Values.
-          listVals =
-              case jsonVals of
-                A.Array vec -> V.toList vec
-                _           -> error "(ToJSON identifierTypes) is broken"
-
-
--- | Read @query@, @program@ (optional), @subprogram@ (optional),
--- @limit@ (defaults to 100) parameters and return list of contracts
--- with matching identifier fields. Every result contains @_match@
--- field with matched field name.
---
--- TODO Program/subprogram filtering.
-searchContracts :: AppHandler ()
-searchContracts = do
-  pid <- getIntParam "program"
-  sid <- getIntParam "subprogram"
-  limit' <- getIntParam "limit"
-  let limit = fromMaybe 100 limit'
-  -- TODO Support non-ByteString search queries?
-  q <- fromMaybe (error "No search query provided") <$> getParam "query"
-
-  ml <- gets $ searchMinLength . options
-  when (B.length q < ml) $ error "Search query is too short"
-
-  -- Form query template and all of its parameters. Contract
-  -- identifierFieldNames define placeholder list lengths.
-  let -- Search contract by one field. Parameters (5): quoted field
-      -- name, Contract table name, field name, query string, limit.
-      fieldSubQuery = concat
-          [ "(SELECT id, ? as _match FROM \"?\" "
-          , "WHERE lower(?) LIKE '%' || lower(?) || '%' LIMIT ?)"
-          ]
-      -- List of sets of subquery parameters, each having ToRow
-      -- instance
-      subParams = map (\fn -> (()
-                               :* fn
-                               :* contractTable
-                               :* (PT fn)
-                               :* q
-                               :* limit))
-                  C.identifierNames
-      unite = intercalate " UNION "
-      totalQuery = intercalate " "
-          [ "WITH sources AS ("
-          -- 5N parameters, where N is the length of
-          -- identifierNames
-          , unite (map (const fieldSubQuery) C.identifierNames)
-          , ")"
-          , "SELECT DISTINCT ON(c.id) c.id, _match,"
-          -- N + 2 more parameters: field list, Contract table name,
-          -- limit.
-          , intercalate "," $
-            map (const "c.?") C.identifierNames
-          , "FROM sources, \"?\" c"
-          , "WHERE c.id IN (SELECT id FROM sources)"
-          , "ORDER BY c.id DESC LIMIT ?;"
-          ]
-      -- Fields selected from matching rows
-      selectedFieldsParam = map PT C.identifierNames
-      contractTable = PT $ tableName $
-                      (modelInfo :: ModelInfo C.Contract)
-
-  res <- withPG pg_search $ \c -> query c (fromString totalQuery)
-         (()
-          :. (ToRowList subParams)
-          :. (selectedFieldsParam)
-          :. (Only contractTable
-              :* limit))
-
-  writeJSON (res :: [SearchResult])
