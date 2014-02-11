@@ -3,7 +3,14 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Carma.Model.Contract where
+module Carma.Model.Contract
+    ( Contract(..)
+    , identifiers
+    , identifierNames
+    , WDay
+    )
+
+where
 
 import Data.Aeson
 import Data.Time.Calendar (Day)
@@ -14,10 +21,7 @@ import Data.Typeable
 import Database.PostgreSQL.Simple.FromField (FromField)
 import Database.PostgreSQL.Simple.ToField
 
-import Language.Haskell.TH
-
 import Data.Model
-import Data.Model.TH
 import Data.Model.Types
 import Data.Model.View
 
@@ -34,7 +38,6 @@ import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
 import Carma.Model.Usermeta     (Usermeta)
 import Carma.Model.Engine       (Engine)
-
 
 
 -- | Transparent 'Day' wrapper so that @typeOf WDay@ points to this
@@ -161,29 +164,18 @@ instance Model Contract where
                 ]
 
 
-data CI = forall t n d. FieldI t n d => CI (Contract -> F t n d)
-
-
 -- | Contract identifiers used to import/search contracts.
-identifiers :: [CI]
-identifiers = [ CI vin
-              , CI cardNumber
-              , CI plateNum
-              , CI name
-              , CI phone
-              , CI codeWord
-              , CI email
+identifiers :: [FA Contract]
+identifiers = [ FA vin
+              , FA cardNumber
+              , FA plateNum
+              , FA name
+              , FA phone
+              , FA codeWord
+              , FA email
               ]
 
 
--- | List of field names used to search contracts.
+-- | List of 'identifiers' field names used to search contracts.
 identifierNames :: [Text]
-identifierNames = map (\(CI f) -> fieldName f) identifiers
-
-
--- | N-tuple of identifier field types, where N matches length of
--- 'identifiers'.
-identifierTypes :: Q Type
-identifierTypes =
-    return $ foldl AppT (TupleT (length identifiers)) $
-           map (\(CI f) -> (typeRepToType $ fieldType f)) identifiers
+identifierNames = map fieldNameE identifiers

@@ -1,3 +1,5 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model
@@ -8,7 +10,10 @@ module Data.Model
   , Field(..), F, PK
   , FOpt
   , FieldDesc(..)
+  -- Field accessor introspection
   , fieldName, fieldDesc, fieldType
+  -- Existential field accessors and introspection
+  , FA(..), fieldNameE, fieldTypesQ
   -- from Data.Model.View.Types
   , ModelView(..)
   ) where
@@ -27,6 +32,9 @@ import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Data.Dynamic
 import GHC.TypeLits
 
+import Language.Haskell.TH
+
+import Data.Model.TH
 import Data.Model.Types
 
 
@@ -60,7 +68,7 @@ class (SingI (TableName m), Typeable m, Typeable (Parent m)) => Model m where
 
   modelInfo :: ModelInfo m
   modelView :: Text -> ModelView m
-               
+
   -- | String-to-ident mappings for the model.
   idents    :: HashMap.HashMap String (IdentI m)
   idents    =  HashMap.empty
@@ -94,6 +102,18 @@ fieldType
   :: forall m t name desc
   . Typeable t => (m -> Field t (FOpt name desc)) -> TypeRep
 fieldType _ = typeOf (undefined :: t)
+
+
+fieldNameE :: FA m -> Text
+fieldNameE (FA f) = fieldName f
+
+
+-- | Expand to N-tuple of field types, where N matches length of
+-- 'identifiers'.
+fieldTypesQ :: [FA m] -> Q Type
+fieldTypesQ fields =
+    return $ foldl AppT (TupleT (length fields)) $
+           map (\(FA f) -> (typeRepToType $ fieldType f)) fields
 
 
 class GetModelFields m ctr where

@@ -18,7 +18,7 @@ accessors.
 
 module Carma.Model.VinFormat.Meta
     ( FormatFieldType(..), FormatFieldTitle(..), Sing(..)
-    , ContractField(..), FF(..)
+    , ContractField, FF(..)
     , mkVinFormat
     , FormatFieldAccessor(..)
     )
@@ -44,13 +44,11 @@ import Carma.Model.Contract (Contract)
 
 
 -- | Existential wrapper for 'Contract' field accessors.
-data ContractField t where
-    CF :: (FieldI t n d) =>
-          (Contract -> F t n d) -> ContractField t
+type ContractField = FA Contract
 
 
-fieldProjFormatter :: (ContractField t -> String)
-                   -> ContractField t
+fieldProjFormatter :: (ContractField -> String)
+                   -> ContractField
                    -> String
                    -- ^ 'printf' format.
                    -> String
@@ -81,7 +79,7 @@ type SFFL a = SFormatFieldTitle a
 
 -- | Minimal definition includes 'nameFormat' and 'descFormat'.
 class Typeable (ParamType a) => FFParameterI a where
-    paramTypeRep :: a -> ContractField t -> TypeRep
+    paramTypeRep :: a -> ContractField -> TypeRep
     type ParamType a
 
     nameFormat :: a -> String
@@ -114,22 +112,22 @@ instance FFParameterI (SFFP Format) where
     descFormat _ = "Формат для поля «%s»"
 
 instance FFParameterI (SFFP Default) where
-    paramTypeRep _ (CF f) = fieldType f
+    paramTypeRep _ (FA f) = fieldType f
     nameFormat _ = "%sDefault"
     descFormat _ = "Значение поля «%s» по умолчанию"
 
 
-name :: FFParameterI a => a -> ContractField t -> String
-name a cf = fieldProjFormatter (\(CF f) -> T.unpack $ fieldName f) cf $
+name :: FFParameterI a => a -> ContractField -> String
+name a cf = fieldProjFormatter (\(FA f) -> T.unpack $ fieldName f) cf $
             nameFormat a
 
 
-desc :: FFParameterI a => a -> ContractField t -> String
-desc a cf = fieldProjFormatter (\(CF f) -> T.unpack $ fieldDesc f) cf $
+desc :: FFParameterI a => a -> ContractField -> String
+desc a cf = fieldProjFormatter (\(FA f) -> T.unpack $ fieldDesc f) cf $
             descFormat a
 
 
-mkAcc :: FFParameterI a => a -> ContractField t -> VarStrictTypeQ
+mkAcc :: FFParameterI a => a -> ContractField -> VarStrictTypeQ
 mkAcc a cf =
     varStrictType (mkName n) $ ns $
     [t|
@@ -237,7 +235,7 @@ mkVinFormat formatFields =
             map
             (\(FF (fft :: SFFT a) proj) ->
              let
-                 acc = CF proj
+                 acc = FA proj
                  -- Lack of Data instance for singletons means that we
                  -- need to reconstruct singleton from the name of
                  -- demoted value constructor.
@@ -248,7 +246,7 @@ mkVinFormat formatFields =
                (,)
              [e|
               FFAcc
-              $(appE [e|CF|] (varE $ mkName $ T.unpack $ fieldName proj))
+              $(appE [e|FA|] (varE $ mkName $ T.unpack $ fieldName proj))
               $(sigE [e|sing|] $
                 appT [t|SFFT|] $ conT $ mkName $ showConstr $ toConstr fallenFft)
               $(varE $ mkName (name SLoad acc))
@@ -289,7 +287,7 @@ data FormatFieldAccessor m =
      FieldI (ParamType (SFFP Required)) n2 d2,
      ToField t, Typeable t, FieldI t n3 d3,
      FieldI (ParamType (TitleParameter (SFFT a))) n4 d4) =>
-    FFAcc { cf       :: ContractField t
+    FFAcc { cf       :: ContractField
           -- ^ Original field @f@.
           , tag      :: SFFT a
           -- ^ Original annotation. Pattern matching on this field

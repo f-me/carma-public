@@ -1,5 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+{-| Template Haskell helpers for carma-models. -}
+
 module Data.Model.TH
     ( mkIdents
     , typeRepToType
