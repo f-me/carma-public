@@ -59,8 +59,13 @@
 
     <div>
       <i class="icon icon-file" /><b data-bind="text: filename" />:
-      <span data-bind="visible: !done()">
-        обрабатывается <i class="icon-refresh icon-refresh-animate" />
+      <span data-bind="visible: !uploaded()">
+        загружается
+      </span>
+      <span data-bind="visible: uploaded()">
+        <span data-bind="visible: !done()">
+          обрабатывается <i class="icon-refresh icon-refresh-animate" />
+        </span>
       </span>
 
       <span data-bind="visible: resultMsg">
@@ -79,5 +84,9 @@
       <span data-bind="visible: errorMsg">
         критическая ошибка (<span data-bind="text: errorMsg" />)
       </span>
+
+      <div class="progress progress-striped active">
+        <div class="bar" style="width: 0%;"></div>
+      </div>
     </div>
 </script>

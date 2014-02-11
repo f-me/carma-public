@@ -36,6 +36,8 @@ define [ "text!tpl/screens/vin.html"
 
   # Send VIN file, set up a new box element to track task progress
   @sendVin = (sid, fid, file) ->
+    if upl.checkFileSize(file)
+      return
     formData = new FormData()
     formData.append("file", file)
     formData.append("subprogram", sid)
@@ -51,6 +53,7 @@ define [ "text!tpl/screens/vin.html"
     bvm = tm.newTaskVM()
     bvm.filename = file.name
     bvm.bad = ko.observable 0
+    bvm.uploaded = ko.observable false
     ko.applyBindings bvm, $(box)[0]
 
     bvm.errorMsg.subscribe (msg) ->
@@ -67,7 +70,10 @@ define [ "text!tpl/screens/vin.html"
     resultFmt = (obj) ->
       bvm.bad obj.bad
 
-    upl.ajaxUpload("/vin/upload?subprogram=#{sid}&format=#{fid}", file).
+    upl.ajaxUpload("/vin/upload?subprogram=#{sid}&format=#{fid}", file,
+      xhr: upl.progressXHR box.find ".progress"
+      ).
+      always(() -> bvm.uploaded true).
       done((res) ->
         tm.handleTaskWith res.token, bvm, resultFmt, _.identity).
       fail((res) ->

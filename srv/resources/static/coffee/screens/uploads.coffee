@@ -82,16 +82,41 @@ define [ "text!tpl/screens/uploads.html"
           $.putJSON(caseUrl, {files: res.files}).
             done(() -> bvm.cases.push caseId))
 
-  # Upload new attachment, render file progress bar and whistles.
-  # Argument is a File object.
-  @sendFile = (file) ->
-    # Prevent oversized files from being uploaded
+  # Produce an XHR-creating callback which updates a Bootstrap
+  # .progress element as the file upload progresses (use in xhr
+  # argument $.ajax).
+  @progressXHR = (progress) -> () ->
+    hideProgress = () -> progress.hide()
+    hideProgress()
+    xhr = new XMLHttpRequest()
+    xhr.upload.addEventListener("progress",
+      (e) ->
+        progress.show()
+        if e.lengthComputable
+          fraction = e.loaded / e.total
+          percent = fraction * 100.0
+          progress.find(".bar").css "width", percent + "%"
+      , false)
+    xhr.upload.addEventListener "load", hideProgress, false
+    xhr.upload.addEventListener "error", hideProgress, false
+    return xhr
+
+  # Return true if a file is oversized
+  @checkFileSize = (file) ->
     max = global.config("max-file-size")
     maxMb = max / (1024.0 * 1024.0)
     if file.size > max
       window.alert "Размер файла #{file.name}
         превышает допустимый (#{maxMb} Мб)!
         Файл не будет загружен"
+      true
+    else
+      false
+
+  # Upload new attachment, render file progress bar and whistles.
+  # Argument is a File object.
+  @sendFile = (file) ->
+    if checkFileSize(file)
       return
 
     uid = _.uniqueId "upload-"
@@ -120,17 +145,7 @@ define [ "text!tpl/screens/uploads.html"
 
     # Upload the file asynchronously
     @ajaxUpload("/upload/case/bulk/files/", file,
-      xhr: () ->
-        xhr = new XMLHttpRequest()
-        xhr.upload.addEventListener("progress",
-          (e) ->
-            if e.lengthComputable
-              # Update progress bar as upload progresses
-              fraction = e.loaded / e.total
-              percent = fraction * 100.0
-              box.find(".bar").css "width", percent + "%"
-          , false)
-        return xhr
+      xhr: progressXHR box.find ".progress"
       ).
       always(() ->
         box.find(".progress").fadeOut()
@@ -267,4 +282,6 @@ define [ "text!tpl/screens/uploads.html"
   , inlineDetachFile: inlineDetachFile
   , template:         tpl
   , ajaxUpload:       ajaxUpload
+  , progressXHR:      progressXHR
+  , checkFileSize:    checkFileSize
   }
