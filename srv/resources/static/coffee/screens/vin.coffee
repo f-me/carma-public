@@ -2,7 +2,7 @@ define [ "text!tpl/screens/vin.html"
        , "dictionaries"
        , "lib/taskmanager"
        , "utils"
-       , "screens/uploads"
+       , "lib/upload"
        ], (tpl, d, tm, u, upl) ->
   @setupVinForm = (viewName, args) ->
     # vin_html = $el("vin-form-template").html()

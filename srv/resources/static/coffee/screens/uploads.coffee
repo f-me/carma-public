@@ -3,24 +3,8 @@
 # Uses "attachment" model and /upload/case/[bulk|<n>]/files server
 # handlers.
 define [ "text!tpl/screens/uploads.html"
-       , "model/utils"], (tpl, mu) ->
-  # Base object for asynchronous requests to /uploads.
-  #
-  # props is an object with extra properties of $.ajax
-  @ajaxUpload = (url, file, props) ->
-    fd = new FormData()
-    fd.append("file", file)
-
-    baseProps =
-      type        : "POST"
-      url         : url
-      contentType : false
-      processData : false
-      data        : fd
-      dataType    : "json"
-
-    $.ajax _.extend(baseProps, props)
-
+       , "lib/upload"
+       , "model/utils"], (tpl, upl, mu) ->
   # Destructively add a reference to attachment:<attId> to files field
   # of a case instance object
   #
@@ -82,41 +66,10 @@ define [ "text!tpl/screens/uploads.html"
           $.putJSON(caseUrl, {files: res.files}).
             done(() -> bvm.cases.push caseId))
 
-  # Produce an XHR-creating callback which updates a Bootstrap
-  # .progress element as the file upload progresses (use in xhr
-  # argument $.ajax).
-  @progressXHR = (progress) -> () ->
-    hideProgress = () -> progress.hide()
-    hideProgress()
-    xhr = new XMLHttpRequest()
-    xhr.upload.addEventListener("progress",
-      (e) ->
-        progress.show()
-        if e.lengthComputable
-          fraction = e.loaded / e.total
-          percent = fraction * 100.0
-          progress.find(".bar").css "width", percent + "%"
-      , false)
-    xhr.upload.addEventListener "load", hideProgress, false
-    xhr.upload.addEventListener "error", hideProgress, false
-    return xhr
-
-  # Return true if a file is oversized
-  @checkFileSize = (file) ->
-    max = global.config("max-file-size")
-    maxMb = max / (1024.0 * 1024.0)
-    if file.size > max
-      window.alert "Размер файла #{file.name}
-        превышает допустимый (#{maxMb} Мб)!
-        Файл не будет загружен"
-      true
-    else
-      false
-
   # Upload new attachment, render file progress bar and whistles.
   # Argument is a File object.
   @sendFile = (file) ->
-    if checkFileSize(file)
+    if upl.checkFileSize(file)
       return
 
     uid = _.uniqueId "upload-"
@@ -144,8 +97,8 @@ define [ "text!tpl/screens/uploads.html"
     ko.applyBindings bvm, $(box)[0]
 
     # Upload the file asynchronously
-    @ajaxUpload("/upload/case/bulk/files/", file,
-      xhr: progressXHR box.find ".progress"
+    upl.ajaxUpload("/upload/case/bulk/files/", file,
+      xhr: upl.progressXHR box.find ".progress"
       ).
       always(() ->
         box.find(".progress").fadeOut()
@@ -240,48 +193,6 @@ define [ "text!tpl/screens/uploads.html"
         $("#upload-dialog").val("")
         $("#upload-dialog").change()
 
-  # Add an attachment reference to an instance, provided a form from
-  # inline-uploader template
-  @inlineUploadFile = (form) ->
-    formMeta = form.data()
-    url      = form.attr('action')
-    files    = form.find(".upload-dialog")[0].files
-    if files.length > 0
-      @ajaxUpload(url, files[0]).
-      fail((e) ->
-        console.log e
-        alert "Не удалось загрузить файл!"
-      ).
-      # Re-read instance data when a new attachment is added
-      done(() -> formMeta.knockVM._meta.q.fetch())
-
-      form.find('input:file').val("").trigger("change")
-
-  # Delete an attachment reference from an instance, provided an
-  # element from reference template with data-attachment and
-  # data-field fields set.
-  @inlineDetachFile = (e) ->
-    attId = e.data("attachment")
-    field = e.data("field")
-    ref = "attachment:#{attId}"
-
-    return unless confirm "Вы уверены, что хотите открепить этот файл?"
-
-    formMeta = e.parent().parent().siblings("form").data()
-    kvm = formMeta.knockVM
-
-    # Cut out attachment ref and re-save the instance
-    kvm[field] _.without(kvm[field]().split(','), ref).join(',')
-    kvm._meta.q.save()
-
-    # Suitable for onClick on <a>
-    false
-
   { constructor:      renderUploadsForm
-  , inlineUploadFile: inlineUploadFile
-  , inlineDetachFile: inlineDetachFile
   , template:         tpl
-  , ajaxUpload:       ajaxUpload
-  , progressXHR:      progressXHR
-  , checkFileSize:    checkFileSize
   }
