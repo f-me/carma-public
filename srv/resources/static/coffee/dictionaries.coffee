@@ -1,5 +1,5 @@
 define [ "dictionaries/local-dict"
-       , "dictionaries/vin-dict"
+       , "dictionaries/contracts-dict"
        , "dictionaries/bo-users-dict"
        , "dictionaries/computed-dict"
        , "dictionaries/dealers-dict"

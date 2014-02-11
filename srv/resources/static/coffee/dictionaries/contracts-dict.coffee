@@ -1,8 +1,8 @@
 define ["dictionaries/meta-dict", ], (m) ->
-  class VinDict extends m.dict
+  class ContractsDict extends m.dict
     find: (q, cb) ->
-      return cb({}) if q.length < 5
-      $.getJSON "/vin/reverseLookup/#{q}", (r) =>
+      return cb({}) if q.length < 4
+      $.getJSON "/searchContracts/?query=#{q}", (r) =>
         @found = _.pluck r, 'vin'
         a = for i in r
           do (i) ->
@@ -13,4 +13,4 @@ define ["dictionaries/meta-dict", ], (m) ->
 
     id2val: (i) -> @found[i]
 
-  dict: VinDict
+  dict: ContractsDict
