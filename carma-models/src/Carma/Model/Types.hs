@@ -270,7 +270,7 @@ instance DefaultFieldView (Vector Text) where
   defaultFieldView f = (defFieldView f)
     {fv_type = "dictionary-set"
     ,fv_meta
-      = Map.insert "widget" "dictionary-many" 
+      = Map.insert "widget" "dictionary-many"
       $ fv_meta $ defFieldView f
     }
 
@@ -292,7 +292,6 @@ instance DefaultFieldView (Vector t) => DefaultFieldView (Vector (Maybe t))
   where
   defaultFieldView (f :: m -> F (Vector (Maybe t)) nm desc) =
    defaultFieldView (undefined :: m -> F (Vector t) nm desc)
-
 
 
 typeName :: forall t . Typeable t => t -> Text

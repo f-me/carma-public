@@ -83,7 +83,7 @@ data Case = Case
   , car_makeYear
     :: F (Maybe TInt) "car_makeYear" "Год производства автомобиля"
   , car_color
-    :: F (Maybe (IdentT Colors)) "car_color" "Цвет"
+    :: F (Maybe Text) "car_color" "Цвет"
   , car_buyDate
     :: F (Maybe LegacyDate) "car_buyDate" "Дата покупки"
   , car_dealerTO

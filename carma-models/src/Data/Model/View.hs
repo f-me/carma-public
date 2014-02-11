@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model.View
@@ -10,6 +11,7 @@ module Data.Model.View
   ,required
   ,invisible
   ,dict, dictOpt, DictOpt(..)
+  ,completeWith
   ,mapWidget
   ,mainToo
   ,mainOnly
@@ -158,6 +160,40 @@ dict fld (DictOpt{..}) = Wrap
   )
   where
     us = snd . unWrap
+
+
+-- | Add autocompletion from a dictionary to a text field. Any value
+-- is stored as-is (without converting to internal dictionary element
+-- id).
+--
+-- Example:
+--
+-- > someField `completeWith` Dictionary.label
+completeWith :: forall m m1 t n d t1 n1 d1.
+                (Model m1, SingI n, SingI n1) =>
+                (m -> F t n d)
+             -> (m1 -> F t1 n1 d1)
+             -- ^ Target dictionary field.
+             -> (Text, FieldView -> FieldView) :@ m
+completeWith fld ann =
+    Wrap
+    ( fieldName fld
+    ,   us (setType "dictionary" fld)
+      . us (setMeta "dictionaryType"
+            (Aeson.String "ModelDict") fld)
+      . us (setMeta "dictionaryName"
+            (Aeson.String $
+             Model.modelName (modelInfo :: ModelInfo m1)) fld)
+      . us (setMeta "bounded" (Aeson.Bool False) fld)
+      . us (setMeta "dictionaryLabel"
+            (Aeson.String $ Model.fieldName ann) fld)
+      -- This will force saving of labels even for in-dictionary values
+      . us (setMeta "dictionaryKey"
+            (Aeson.String $ Model.fieldName ann) fld)
+    )
+    where
+      us = snd . unWrap
+
 
 mapWidget
   :: (SingI n1, SingI n2, SingI n3)

@@ -11,9 +11,10 @@ import qualified Data.Map as Map
 import Data.Model as Model
 import Data.Model.View as View
 
+import Carma.Model.Case.Type as Case
+import Carma.Model.Colors as Color
 import Carma.Model.Search as S
 import Carma.Model.Types()
-import Carma.Model.Case.Type as Case
 
 
 caseSearchParams :: [(Text, [Predicate Case])]
@@ -94,6 +95,8 @@ caseDicts = [
               {dictType = Just "DealersDict", dictBounded = True}
   ,dict car_dealerTO $ (dictOpt "")
               {dictType = Just "DealersDict", dictBounded = True}
+
+  ,car_color `completeWith` Color.label
   ]
 
 -- Mark several new-style dictionaries to use dictionaryStringify,
