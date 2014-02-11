@@ -19,7 +19,7 @@ callSearchParams
     ]
 
 instance Model Call where
-  type TableName Call = "casetbl"
+  type TableName Call = "calltbl"
   modelInfo   = mkModelInfo Call ident
   modelView "search" = modifyView (searchView callSearchParams)
                        [modifyByName "id" (\v -> v { fv_type = "ident" })]
