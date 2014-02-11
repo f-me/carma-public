@@ -12,7 +12,7 @@ import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.Time (parseUTCTime)
 import Data.Time.Clock.POSIX
 import Data.Time.Clock (UTCTime)
-import Data.Time.Format (parseTime)
+import Data.Time.Format (parseTime, formatTime)
 import System.Locale (defaultTimeLocale)
 import qualified Data.ByteString.Char8 as B
 
@@ -122,7 +122,7 @@ instance FromJSON LegacyDate where
       Just v  -> return $ LegacyDate $ v
       Nothing -> fail $ "LegacyDatetime.parseJSON: invalid date " ++ show txt
 instance ToJSON LegacyDate where
-  toJSON (LegacyDate utc) = toJSON $ show $ utcTimeToPOSIXSeconds utc
+  toJSON (LegacyDate utc) = toJSON $ formatTime undefined "%s" utc
 instance ToField LegacyDate where
   toField (LegacyDate utc) = toField utc
 instance FromField LegacyDate where
@@ -135,7 +135,7 @@ instance FromJSON LegacyDatetime where
       Just v  -> return $ LegacyDatetime $ v
       Nothing -> fail $ "LegacyDatetime.parseJSON: invalid date " ++ show txt
 instance ToJSON LegacyDatetime where
-  toJSON (LegacyDatetime utc) = toJSON $ show $ utcTimeToPOSIXSeconds utc
+  toJSON (LegacyDatetime utc) = toJSON $ formatTime undefined "%s" utc
 instance ToField LegacyDatetime where
   toField (LegacyDatetime utc) = toField utc
 instance FromField LegacyDatetime where
