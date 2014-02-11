@@ -697,7 +697,7 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "orderServiceAnalyst"
       "Заказ вторичной услуги"
-      (roleIdent Role.bo_secondary) "1" (+60) objId
+      (identFv Role.bo_secondary) "1" (+60) objId
     clearAssignee act
   )
   ,("moveToBack", \objId -> do
