@@ -1,6 +1,5 @@
 define [ "dictionaries/local-dict"
        , "dictionaries/vin-dict"
-       , "dictionaries/cards-dict"
        , "dictionaries/bo-users-dict"
        , "dictionaries/computed-dict"
        , "dictionaries/dealers-dict"
