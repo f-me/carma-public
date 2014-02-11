@@ -167,11 +167,10 @@ hs2pgtype t =
       _    -> error "Unknown type in hs2pgtype"
 
 predicatesFromParams
-  ::PG.Connection -> Aeson.Value -> [(Text, [Predicate m])]
+  ::PG.Connection -> Aeson.Object -> [(Text, [Predicate m])]
     -> IO (Either String Text)
-predicatesFromParams c v modelParams = case v of
-  Aeson.Object o -> renderPredicate c params $ filterParams o
-  _ -> return $ Left $ "Object expected but found: " ++ show v
+predicatesFromParams c o modelParams =
+  renderPredicate c params $ filterParams o
   where
     params = HM.fromList modelParams
     filterParams o = HM.intersection o params
