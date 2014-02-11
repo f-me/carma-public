@@ -13,7 +13,7 @@
 module Snaplet.Search (Search, searchInit)  where
 
 import           Prelude hiding (pred)
-import           Control.Applicative ((<$>), (<*>))
+import           Control.Applicative ((<$>), (<*>), pure)
 import           Control.Monad
 import           Control.Monad.State
 import           Control.Lens (makeLenses)
@@ -36,6 +36,7 @@ import           Data.Aeson
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Auth hiding (Role)
+import           Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
 import           Database.PostgreSQL.Simple as PG
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.Types ((:.))
@@ -44,11 +45,12 @@ import           GHC.Generics
 
 import           Util
 import           Utils.HttpErrors
+import           Utils.Roles
 
 import qualified Data.Model       as M
 import qualified Data.Model.Types as M
 
-import           Data.Model.Patch
+import           Data.Model.Patch (Patch, empty)
 
 import           Carma.Model
 import           Carma.Model.Role
@@ -60,11 +62,15 @@ import           Carma.Model.FieldPermission
 
 
 data Search b = Search
-  {postgres :: Pool Connection
-  ,_auth    :: Snaplet (AuthManager b)
+  {pg      :: Pool Connection
+  ,_postgres :: Snaplet Postgres
+  ,_auth     :: Snaplet (AuthManager b)
   }
 
 makeLenses ''Search
+
+instance HasPostgres (Handler b (Search b)) where
+    getPostgresState = with postgres get
 
 type SearchHandler b t = Handler b (Search b) t
 
@@ -114,22 +120,16 @@ class StripRead p where
 instance (Model m, Model (M.Parent m)) => StripRead (Patch m) where
   stripRead = stripReadPatch
 instance (Model m, Model (M.Parent m)) => StripRead (Patch m :. ()) where
-  stripRead c rs (p :. ()) = stripReadPatch c rs p *:. ()
+  stripRead c rs (p :. ()) = (:.) <$> stripReadPatch c rs p <*> pure ()
 instance (Model m, Model (M.Parent m), StripRead ps)
          => StripRead (Patch m :. ps) where
-  stripRead c rs (p :. ps) = stripReadPatch c rs p *:* stripRead c rs ps
-
-(*:*) :: Monad m => m a -> m b -> m (a :. b)
-(*:*) a b = do { a' <- a; b' <- b; return $ a' :. b' }
-
-(*:.) :: Monad m => m a -> b -> m (a :. b)
-(*:.) a b = do { a' <- a; return $ a' :. b }
+  stripRead c rs (p :. ps) =
+    (:.) <$> stripReadPatch c rs p <*> stripRead c rs ps
 
 
 caseSearch :: SearchHandler b (Either String Value)
 caseSearch = do
-  Just usr <- with auth currentUser
-  let Just uid = userId usr
+  roles    <- with auth currentUser >>= userRolesIds . fromJust
   lim      <- getLimit
   offset   <- getOffset
   args     <- getJsonBody
@@ -141,11 +141,11 @@ caseSearch = do
     case partitionEithers [casePreds, srvPreds, towPreds] of
       ([], preds) -> do
         s  <- query_ c (mkQuery (concatPredStrings preds) 1 offset "")
-        s' <- mapM (parsePatch c []) s
+        s' <- mapM (parsePatch c roles) s
         return $ Right $ toJSON $ SearchResult s' lim offset
       (errs, _) -> return $ Left $ foldl (++) "" errs
   where
-    parsePatch conn [] [c, s, t] = stripRead conn [] $
+    parsePatch conn roles [c, s, t] = stripRead conn roles $
       (parse c :: Patch Case)    :.
       (parse s :: Patch Service) :.
       (parse t :: Patch Towage)  :.
@@ -192,14 +192,16 @@ mkQuery pred lim offset ord
 searchInit
   :: Pool Connection -> Snaplet (AuthManager b) -> SnapletInit b (Search b)
 searchInit conn sessionMgr = makeSnaplet "search" "Search snaplet" Nothing $ do
+  pg <- nestSnaplet "db" postgres $ makeSnaplet "postgresql-simple" "" Nothing $
+        return $ Postgres conn
   addRoutes [("services", method POST $ search caseSearch)]
-  return $ Search conn sessionMgr
+  return $ Search conn pg sessionMgr
 
 
 -- Utils
 ----------------------------------------------------------------------
 withPG :: (Connection -> IO a) -> SearchHandler b a
-withPG f = gets postgres >>= liftIO . (`withResource` f)
+withPG f = gets pg >>= liftIO . (`withResource` f)
 
 getJsonBody :: FromJSON v => SearchHandler b v
 getJsonBody = Util.readJSONfromLBS <$> readRequestBody 4096
