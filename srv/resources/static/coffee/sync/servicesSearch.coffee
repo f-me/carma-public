@@ -1,7 +1,7 @@
 define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
   class ServicesSearchQ extends metaq
     constructor: (@kvm, @options) ->
-      @api = "/search/services"
+      @api = "/search/case"
       @requestUrl = @api
       @model = @kvm._meta.model
       @searchFields = @options.defaultSort.fields
