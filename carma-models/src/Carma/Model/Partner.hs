@@ -1,11 +1,19 @@
+{-# LANGUAGE ConstraintKinds #-}
+
 {-|
 
 Proxy model for a subset of legacy partner model.
 
 -}
 
-module Carma.Model.Partner where
+module Carma.Model.Partner
+    ( Partner(..)
+    , partnerKey
+    )
 
+where
+
+import Data.Aeson as A
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import Data.Typeable
@@ -13,6 +21,7 @@ import Data.Vector
 
 import Data.Model
 import Data.Model.View
+import Data.Model.Types
 
 import Carma.Model.Types()
 import Carma.Model.City hiding (ident)
@@ -56,3 +65,10 @@ instance Model Partner where
   type TableName Partner = "partnertbl"
   modelInfo = mkModelInfo Partner ident
   modelView _ = defaultView
+
+-- | Set proper @dictionaryLabel@ meta for a field referring to
+-- 'Partner'.
+partnerKey :: FieldI t n d =>
+             (m -> F t n d)
+          -> (Text, FieldView -> FieldView) :@ m
+partnerKey f = setMeta "dictionaryLabel" (A.String $ fieldName name) f

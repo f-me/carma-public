@@ -36,7 +36,7 @@ import Carma.Model.CarModel     (CarModel)
 import Carma.Model.CheckType    (CheckType)
 import Carma.Model.Colors       (Colors)
 import Carma.Model.LegalForm    (LegalForm)
-import Carma.Model.Partner      (Partner)
+import Carma.Model.Partner      (Partner, partnerKey)
 import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
 import Carma.Model.Engine       (Engine)
@@ -75,7 +75,10 @@ mkVinFormat  [ FF SName   Contract.name
 instance Model VinFormat where
   type TableName VinFormat = "VinFormat"
   modelInfo = mkModelInfo VinFormat ident
-  modelView _ = defaultView
+  modelView _ = modifyView (defaultView :: ModelView VinFormat) $
+                [ partnerKey lastCheckDealerDefault
+                , partnerKey sellerDefault
+                ]
 
 
 -- | Export a list of titles from a field.
