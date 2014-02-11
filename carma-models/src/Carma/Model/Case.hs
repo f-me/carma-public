@@ -86,9 +86,8 @@ caseDicts = [
               {dictParent = Just $ Model.fieldName diagnosis1}
   ,dict diagnosis3 $ (dictOpt "Diagnosis3")
   ,dict diagnosis4 $ (dictOpt "Diagnosis4")
-  ,setType "dictionary" car_vin
-  ,dict car_vin $ (dictOpt "")
-              {dictType = Just "VinDict"}
+  ,setType "dictionary" contractIdentifier
+  ,dict contractIdentifier $ (dictOpt "") {dictType = Just "ContractsDict"}
   ,dict car_model $ (dictOpt "CarModels")
               {dictParent = Just $ Model.fieldName car_make, dictBounded = True}
   ,dict car_seller $ (dictOpt "")
@@ -98,7 +97,7 @@ caseDicts = [
   ]
 
 -- Mark several new-style dictionaries to use dictionaryStringify,
--- wrap integers in strings to be compatible to old CRUD:
+-- wrap integers in strings to be compatible with the old CRUD.
 caseOldCRUDHacks =
     [ setMeta "dictionaryStringify" (Aeson.Bool True) car_class
     , setMeta "dictionaryStringify" (Aeson.Bool True) car_engine
