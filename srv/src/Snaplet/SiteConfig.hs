@@ -158,8 +158,6 @@ serveDictionaries = do
       (Aeson.object [("entries", Aeson.Array $ V.fromList serviceInfos)])
     $ HM.insert "ServiceNames"
       (Aeson.object [("entries", Aeson.Array $ V.fromList serviceNames)])
-    $ HM.insert "Colors"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList colors)])
       dictMap
 
 
