@@ -1,8 +1,5 @@
 module Utils.Roles where
 
-import           Control.Applicative
-
-import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as B
 
 import Data.Model

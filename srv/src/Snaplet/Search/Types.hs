@@ -15,26 +15,26 @@ import           Control.Applicative ((<$>), (<*>), pure)
 import           Control.Lens (makeLenses)
 import           Control.Monad.State
 
-import           Data.Text (Text)
+import           Data.Maybe
+import           Data.Text
 import           Data.Pool
 import           Data.Aeson
 
 import           GHC.Generics
 
--- import           Database.PostgreSQL.Simple.Types ((:.))
 import           Database.PostgreSQL.Simple as PG
 
--- import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Auth hiding (Role)
 import           Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
 
+import qualified Data.Vector           as V
 import qualified Data.HashMap.Strict   as HM
 
 import           Data.Model       as M
--- import           Data.Model.Types as M
 import           Data.Model.Patch (Patch)
 
+import           Carma.Model
 import           Carma.Model.Role
 import           Carma.Model.FieldPermission
 
@@ -55,26 +55,56 @@ type SearchHandler b t = Handler b (Search b) t
 
 
 data SearchReq = SearchReq { predicates :: Object
-                           , sorts      :: SearchSorts
+                           , sorts      :: Order
                            } deriving (Show, Generic)
-
 instance FromJSON SearchReq
 
-data SearchSorts = SearchSorts { fields :: [SimpleField]
-                               , order  :: Text
-                               } deriving (Show, Generic)
+data OrderType = Asc | Desc deriving Show
+instance FromJSON OrderType where
+  parseJSON (String "asc")  = return Asc
+  parseJSON (String "desc") = return Desc
+  parseJSON v = fail $ "Unknown OrderType, waiting 'asc'|'desc', but got: " ++
+                show v
 
-instance FromJSON SearchSorts
+data Order = Order { fields :: [FieldIdent]
+                   , order  :: OrderType
+                   } deriving Show
 
-data SimpleField = SimpleField { name :: Text, model :: Text }
-                 deriving (Show, Generic)
+instance FromJSON Order where
+  parseJSON (Object o) = Order <$> o .: "fields" <*> o .: "order"
 
-instance FromJSON SimpleField
+data FieldIdent = FieldIdent { tablename :: Text
+                             , fname     :: Text
+                             } deriving Show
+instance FromJSON FieldIdent where
+  parseJSON (Object o) = do
+    model <- o .: "model"
+    name  <- o .: "name"
+    case FieldIdent <$> gettn model <*> getfn model name of
+      Nothing ->
+        fail $ "Can't parse FieldDesc, can't find field with model: "
+        ++ show model ++ " and name: " ++ show name
+      Just d  -> return $ d
+    where
+      getTable :: forall m.Model m => m -> Text
+      getTable _ = tableName (modelInfo :: ModelInfo m)
+      gettn model = dispatch model getTable
 
-data SearchResult t = SearchResult 
+      getFMap :: forall m.Model m => m -> HM.HashMap Text FieldDesc
+      getFMap _ = modelFieldsMap (modelInfo :: ModelInfo m)
+      getfn model name =
+        dispatch model (getFMap) >>= HM.lookup name >>= return . fd_name
+
+  parseJSON v = fail $ "Can't parse FieldDesc, expecting object, but got: " ++
+                show v
+
+instance Show FieldDesc where
+  show fd = "FieldDesc: " ++ (show $ fd_name fd)
+
+data SearchResult t = SearchResult
   { values :: [t]
-  , limit  :: Int
-  , offset :: Int
+  , next :: Maybe Int
+  , prev :: Maybe Int
   } deriving (Generic)
 instance ToJSON t => ToJSON (SearchResult t)
 

@@ -30,7 +30,7 @@ caseSearch = do
     mkQuery $ \conn roles (c, s, t) -> stripRead conn roles $
       (parsePatch c) :. (parsePatch s) :. (parsePatch t) :. ()
 
-mkQuery :: Text -> Int -> Int -> Text -> Query
+mkQuery :: Text -> Int -> Int -> String -> Query
 mkQuery pred lim offset ord
   = fromString $ printf
       (  "    select row_to_json(casetbl.*)    :: text,"
@@ -42,4 +42,4 @@ mkQuery pred lim offset ord
       ++ "       on servicetbl.id = towagetbl.id"
       ++ "     where (%s) %s limit %i offset %i;"
       )
-      (T.unpack pred)  (T.unpack ord) lim offset
+      (T.unpack pred) ord lim offset
