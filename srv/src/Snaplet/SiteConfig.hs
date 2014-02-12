@@ -33,7 +33,7 @@ import Snaplet.SiteConfig.Models
 import Snaplet.SiteConfig.FakeModels
 import Snaplet.SiteConfig.Dictionaries
 
-import AppHandlers.Util
+import AppHandlers.Util hiding (withPG)
 import Utils.HttpErrors
 
 import Data.Model.Sql

@@ -9,11 +9,15 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 
 import Data.Aeson as Aeson
+import Data.List.Utils
+
+import Data.Pool
+import Database.PostgreSQL.Simple as Pg
 
 import Snap
+import Snap.Snaplet.PostgresqlSimple
 
 import Util
-import Data.List.Utils
 
 ------------------------------------------------------------------------------
 -- | Utility functions
@@ -49,3 +53,11 @@ getIntParam :: ByteString -> Handler a b (Maybe Int)
 getIntParam name = do
   val <- getParam name
   return $ fst <$> (B.readInt =<< val)
+
+
+-- | Use a connection from a pool to run a query.
+withPG :: (v -> Pool Pg.Connection)
+       -> (Pg.Connection -> IO res)
+       -- ^ Query action.
+       -> Handler b v res
+withPG pool f = gets pool >>= liftIO .(`withResource` f)

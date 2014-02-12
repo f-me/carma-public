@@ -79,9 +79,3 @@ instance MonadLog (Handler App App) where
 
 instance HasPostgres (Handler b App) where
   getPostgresState = with authDb get
-
-
-withPG
-  :: (App -> Pool Pg.Connection) -> (Pg.Connection -> IO res)
-  -> AppHandler res
-withPG pool f = gets pool >>= liftIO .(`withResource` f)
