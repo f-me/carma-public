@@ -62,7 +62,6 @@ ns = strictType (return NotStrict)
 -- | VIN format field parameter.
 data FormatFieldParameter = Load
                           | Required
-                          | Format
                           | Default
 
 
@@ -105,11 +104,6 @@ instance FFParameterI (SFFL MultiTitles) where
     type ParamType (SFFL MultiTitles) = Vector Text
     nameFormat _ = "%sTitles"
     descFormat _ = "Заголовки поля «%s»"
-
-instance FFParameterI (SFFP Format) where
-    type ParamType (SFFP Format) = Text
-    nameFormat _ = "%sFormat"
-    descFormat _ = "Формат для поля «%s»"
 
 instance FFParameterI (SFFP Default) where
     paramTypeRep _ (FA f) = fieldType f
