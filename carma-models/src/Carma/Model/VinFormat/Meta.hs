@@ -7,12 +7,13 @@
 
 VinFormat macros and meta helpers.
 
-The idea is to list a set of annotated 'Contract' fields and generate
-VinFormat model from it. Each source field @f@ is spliced into several
-fields @fLoad@, @fRequired@ etc., depending on the annotation given
-for that field. 'FormatFieldAccessor' type preserves information about
-how a source field has is mapped to a group of produced VinFormat
-accessors.
+The idea is to list a set 'Contract' fields annotated by
+'FormatFieldType' and generate VinFormat model from it. A source field
+@f@ of 'Contract' is spliced into several fields (format parameters
+for that source field) @fLoad@, @fRequired@ etc. of 'VinFormat',
+depending on the annotation given for the source field.
+'FormatFieldAccessor' type preserves information about how a source
+field has is mapped to a group of produced VinFormat accessors.
 
 -}
 
@@ -59,12 +60,14 @@ ns :: TypeQ -> StrictTypeQ
 ns = strictType (return NotStrict)
 
 
--- | VIN format field parameter.
+-- | Basic VIN format field parameter. These are generated for every
+-- source field.
 data FormatFieldParameter = Load
                           | Required
                           | Default
 
 
+-- | VIN format field title type.
 data FormatFieldTitle = Title
                       | MultiTitles
 
@@ -76,12 +79,24 @@ type SFFP a = SFormatFieldParameter a
 type SFFL a = SFormatFieldTitle a
 
 
--- | Minimal definition includes 'nameFormat' and 'descFormat'.
+-- | This class describes how a format parameter is generated from a
+-- source 'Contract' field.
+--
+-- Minimal definition includes 'nameFormat' and 'descFormat'.
 class Typeable (ParamType a) => FFParameterI a where
+    -- | Type of parameter value (if a parameter is a checkbox, this
+    -- is 'Bool' (which is also the default instance for this family).
+     type ParamType a
+    -- | Reified type of parameter value. This exists because it's not
+    -- possible to statically encode value type to parameter
+    -- annotation. This matches 'ParamType' by default, though.
     paramTypeRep :: a -> ContractField -> TypeRep
-    type ParamType a
 
+    -- | 'printf'-compatible format used to produce a parameter name
+    -- from a source field name (first @%s@ is replaced by the source
+    -- field name).
     nameFormat :: a -> String
+    -- | The same as 'nameFormat', but for field description.
     descFormat :: a -> String
 
     paramTypeRep _ _ = typeOf (undefined :: ParamType a)
@@ -121,7 +136,13 @@ desc a cf = fieldProjFormatter (\(FA f) -> T.unpack $ fieldDesc f) cf $
             descFormat a
 
 
-mkAcc :: FFParameterI a => a -> ContractField -> VarStrictTypeQ
+-- | Produce a parameter accessor.
+mkAcc :: FFParameterI a =>
+         a
+      -- ^ Parameter type.
+      -> ContractField
+      -- ^ Source field.
+      -> VarStrictTypeQ
 mkAcc a cf =
     varStrictType (mkName n) $ ns $
     [t|
@@ -134,7 +155,13 @@ mkAcc a cf =
       t = paramTypeRep a cf
 
 
--- | Semantic annotations for 'Contract' fields.
+-- | Semantic annotations for 'Contract' fields. This datatype defines
+-- how a source field should be spliced into its format parameters and
+-- how they should be used later.
+--
+-- Pattern-matching on these may be used to both define field
+-- processing behavour in a VIN processing tool and refine some of
+-- extra parameter types.
 --
 -- TODO Regexps for Raw fields?
 data FormatFieldType = Raw
@@ -162,7 +189,14 @@ $(genSingletons [''FormatFieldType])
 type SFFT a = SFormatFieldType a
 
 
--- Bind format field types and their extra parameters.
+-- | Bind format field types and their extra parameters. Contrary to
+-- 'FormatFieldParameter', extra parameters vary between different
+-- 'FormatFieldTypes'.
+--
+-- TODO Encode all extra parameters in a single type-level container
+-- instead of using an associated type family for every parameter.
+-- This is not crucial now as we now have only one variable extra
+-- parameter (title).
 class (FFParameterI (TitleParameter a)) => FFTypeI a where
     type TitleParameter a
     type TitleParameter a = (SFFL Title)
@@ -200,10 +234,9 @@ data FF where
           (SFFT a) -> (Contract -> F t n d) -> FF
 
 
--- | Generate VinFormat model. Haskell field accessor names equal
--- field names. Also bind @vinFormatAccessors@ to a list of
--- 'FormatFieldAccessor' values, one for every group of produced
--- fields.
+-- | Generate VinFormat model, bind @vinFormatAccessors@ to a list of
+-- 'FormatFieldAccessor' values, one for every group of fields
+-- produced from a single 'Contract' field.
 mkVinFormat :: [FF]
             -- ^ Annotated subset of 'Contract' fields.
             -> Q [Dec]
@@ -241,19 +274,24 @@ mkVinFormat formatFields =
              [e|
               FFAcc
               $(appE [e|FA|] (varE $ mkName $ T.unpack $ fieldName proj))
+              -- We used type-level information about the annotation
+              -- to generate parameters, while also preserving the
+              -- annotation in 'FormatFieldAccessor' so that it can be
+              -- used later.
               $(sigE [e|sing|] $
-                appT [t|SFFT|] $ conT $ mkName $ showConstr $ toConstr fallenFft)
+                appT [t|SFFT|] $
+                conT $ mkName $ showConstr $ toConstr fallenFft)
               $(varE $ mkName (name SLoad acc))
               $(varE $ mkName (name SRequired acc))
               $(varE $ mkName (name SDefault acc))
               $(varE $ mkName (name titleSing acc))
               |] $
-             -- fLoad,fRequired,fTitle(s) fields
-             [ mkAcc SLoad acc
-             , mkAcc SRequired acc
-             , mkAcc SDefault acc
-             , mkAcc titleSing acc
-             ]
+              -- fLoad,fRequired,fTitle(s) fields
+              [ mkAcc SLoad acc
+              , mkAcc SRequired acc
+              , mkAcc SDefault acc
+              , mkAcc titleSing acc
+              ]
             )
             $
             formatFields
