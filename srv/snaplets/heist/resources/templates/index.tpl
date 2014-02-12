@@ -1528,6 +1528,7 @@
             г.&nbsp;<span data-bind="text: cityLocal"/>:</b>
           <span id="city-towage-average-time" />
         </p>
+        <div id="contract"></div>
         <div class="program">
           <div id="case-comments">
             <legend> Комментарий </legend>
@@ -1613,6 +1614,12 @@
         <button type="button" class="close" data-dismiss="alert">&times;</button>
         <strong>Внимание!</strong>
         {{message}}
+      </div>
+    </script>
+
+    <script type="text/html" id="contract-content-template">
+      <div id="contract-content"
+           data-bind="renderContract: '{{ title }}'">
       </div>
     </script>
   </body>

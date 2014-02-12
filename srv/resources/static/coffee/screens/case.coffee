@@ -4,8 +4,9 @@ define [ "utils"
        , "model/utils"
        , "model/main"
        , "sync/datamap"
+       , "dictionaries"
        ],
-  (utils, hotkeys, tpl, mu, main, dm) ->
+  (utils, hotkeys, tpl, mu, main, DataMap, Dict) ->
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
     # Case view (renders to #left, #center and #right as well)
@@ -22,6 +23,13 @@ define [ "utils"
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
       setCommentsHandler()
+
+      # show linked contract if it there
+      if kvm["contract"]() then showContract kvm["contract"]()
+
+      # change contract view, when user choose another contract
+      kvm["contract"].subscribe (id) ->
+        if id then showContract id else hideContract()
 
       $("#empty-fields-placeholder").html(
           Mustache.render($("#empty-fields-template").html(), ctx))
@@ -91,6 +99,53 @@ define [ "utils"
     removeCaseMain = ->
       $("body").off "change.input"
       $('.navbar').css "-webkit-transform", ""
+
+    showContract = (id)->
+      modelName = "Contract"
+      contract = null
+      $.bgetJSON "/_/#{modelName}/#{id}", (c) ->
+        contract = c
+
+        if contract.make
+          carMakeDict = new Dict.dicts.ModelDict
+            dict: 'CarMake'
+          contract.make = carMakeDict.getLab contract.make
+
+        if contract.model
+          carModelDict = new Dict.dicts.ModelDict
+            dict: 'CarModel'
+          contract.model = carModelDict.getLab contract.model
+
+        if contract.subprogram
+          subprogramDict = new Dict.dicts.ComputedDict(dict: "usermetaPrograms")
+          contract.subprogram = subprogramDict.getLab contract.subprogram
+
+        if contract.committer
+          $.bgetJSON "/allUsers", (users) ->
+            user = _.find users, (u) ->
+              parseInt(u.mid) is contract.committer
+            if user then contract.committer = user.label
+
+        contract.isActive = if contract.isActive then "Да" else "Нет"
+
+        if contract.seller
+          carSellerDict = new Dict.dicts.ModelDict
+            dict: 'Partner'
+            meta:
+              dictionaryKey: 'id'
+              dictionaryLabel: 'name'
+          contract.seller = carSellerDict.getLab contract.seller
+
+        model = global.model modelName
+        mapper = new DataMap.Mapper(model)
+        kvm = main.buildKVM model, {fetched: mapper.s2cObj contract}
+        $("#contract").html(
+          Mustache.render($("#contract-content-template").html(), {title: "Контракт"}))
+        ko.applyBindings(kvm, el("contract-content"))
+
+    hideContract = ->
+      $("#contract").empty()
+
 
     { constructor       : setupCaseMain
     , destructor        : removeCaseMain
