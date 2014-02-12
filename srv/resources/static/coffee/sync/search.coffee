@@ -1,7 +1,7 @@
 define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
-  class ServicesSearchQ extends metaq
+  class searchQ extends metaq
     constructor: (@kvm, @options) ->
-      @api = "/search/services"
+      @api = @options.apiUrl
       @requestUrl = @api
       @model = @kvm._meta.model
       @searchFields = @options.defaultSort.fields
@@ -59,7 +59,7 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
 
     errorCb: (x, status) =>
       @hideSpinner x, status
-      console.error "ServicesSearchQ: search failed with
+      console.error "searchQ: search failed with
  '#{x.status}: #{x.statusText}'"
 
-  ServicesSearchQ: ServicesSearchQ
+  searchQ: searchQ

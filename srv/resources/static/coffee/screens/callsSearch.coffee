@@ -4,11 +4,9 @@ define [ "utils"
        , "search/model"
        , "search/utils"
        , "search/pager"
-       , "screens/servicesSearch/model"
        , "text!tpl/screens/search.html"
-       , "json!/cfg/model/Case?view=search"
-       , "json!/cfg/model/Service?view=search"
-       , "json!/cfg/model/Towage?view=search"
+       , "json!/cfg/model/Call"
+       , "json!/cfg/model/Call?view=search"
        , "sync/search"
        , "lib/state-url"
        ], ( utils
@@ -17,20 +15,38 @@ define [ "utils"
           , smodel
           , SUtils
           , SPager
-          , ssmodels
           , tpl
-          , caseModel
-          , servicesModel
-          , towageModel
+          , callModel
+          , callSearchModel
           , sync
           , State) ->
 
-  model = $.extend true, {}, caseModel
-  model.fields = model.fields
-    .concat(servicesModel.fields)
-    .concat(towageModel.fields)
+  allModels = arrToObj 'name', [callModel]
 
-  model.fields = model.fields.concat [
+  resultFields =
+    Call: [
+      "callDate"
+      "carContact_phone1"
+      "carContact_phone2"
+      "carContact_phone3"
+      "carContact_phone4"
+      "carContact_ownerPhone1"
+      "carContact_ownerPhone2"
+      "carContact_ownerPhone3"
+      "carContact_ownerPhone4"
+      "carContact_name"
+      "carContact_ownerName"
+      "program"
+      "wazzup"
+      "callTaker"
+      ]
+
+  all = $.extend true, {}, allModels
+  for n,m of all
+    m.fields = _.filter m.fields, (f) -> _.contains resultFields[n], f.name
+  arrToObj 'name', all
+
+  callSearchModel.fields = callSearchModel.fields.concat [
     {
     , name: "showFields"
     , meta:
@@ -47,6 +63,8 @@ define [ "utils"
     }
   ]
 
+  model = callSearchModel
+
   constructor: ->
     searchKVM = main.buildKVM model, {}
 
@@ -62,22 +80,14 @@ define [ "utils"
       searchKVM.showFields( _.reject searchKVM.showFields(),
                            (f) -> _.contains fs, f.name)
 
-    searchKVM.showFields.set(
-                          [ "callDate"
-                            "createTime"
-                            "Case_id"
-                            "phone"
-                            "contact"
-                            "vin"
-                            "plateNum"
-                          ] )
+    searchKVM.showFields.set([ "phone", "callDate" ])
 
-    searchKVM.searchResults = SUtils.mkResultObservable searchKVM, ssmodels
+    searchKVM.searchResults = SUtils.mkResultObservable searchKVM, all
 
     q = new sync.searchQ searchKVM,
-      apiUrl: "/search/case"
+      apiUrl: "/search/call"
       defaultSort:
-        fields: [ { model: "Case", name: "id" } ]
+        fields: [ { model: "Call", name: "id" } ]
         order: "desc"
     searchKVM._meta.q = q
 
@@ -88,15 +98,13 @@ define [ "utils"
                      $("#show-field")[0]
 
     # all about results
-    tg = smodel.transformFields searchKVM, ssmodels
+    tg = smodel.transformFields searchKVM, all
     rfields = smodel.mkFieldsDynView searchKVM, tg,
-      [ { name: 'Case_id', fixed: true }
-      , { name: 'contact'              }
-      , { name: 'callDate'             }
-      , { name: 'phone'                }
-      , { name: "comment"              }
-      , { name: 'vin'                  }
-      , { name: 'program'              }
+      [ { name: 'phone',    fixed: true }
+      , { name: 'callDate', fixed: true }
+      , { name: 'Call_program'          }
+      , { name: 'Call_wazzup'           }
+      , { name: 'Call_callTaker'        }
       ]
 
     ctx =
