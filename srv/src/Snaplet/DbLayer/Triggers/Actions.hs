@@ -13,6 +13,7 @@ import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
 import Data.Char
+import Data.List (intercalate)
 import Data.Maybe
 import Data.String (fromString)
 
@@ -41,6 +42,10 @@ import Snap.Snaplet.SimpleLog
 
 import Carma.HTTP (read1Reference)
 
+
+import Data.Model
+import qualified Carma.Model.Case as Case
+import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role as Role
@@ -48,6 +53,7 @@ import qualified Carma.Model.SmsTemplate as SmsTemplate
 
 import Util as U
 import qualified  Utils.RKCCalc as RKC
+
 
 services :: [ModelName]
 services =
@@ -153,42 +159,10 @@ actions
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
-          ,("cardNumber_cardOwner", [\objId val -> do
-              let cardOwner = T.decodeUtf8 val
-              when (T.length cardOwner > 7) $ do
-                res <- liftDb $ PG.query (fromString [sql|
-                  SELECT
-                    extract (epoch from contractValidFromDate)::int8::text,
-                    extract (epoch from contractValidUntilDate)::int8::text
-                    FROM contracttbl c, "Program" p
-                    WHERE isactive AND dixi
-                      AND p.id::text = c.program AND p.id = ?
-                      AND c.cardOwner = ?
-                    ORDER BY ctime DESC LIMIT 1
-                  |]) (Only Program.vtb24 :. Only cardOwner)
-                case res of
-                  []    -> set objId "vinChecked" "vinNotFound"
-                  row:_ -> do
-                    zipWithM_ (maybe (return ()) . (set objId))
-                      ["cardNumber_validFrom", "cardNumber_validUntil"]
-                      row
-                    set objId "vinChecked" "base"
-              ])
           ,("car_plateNum", [\objId val ->
             when (B.length val > 5)
               $ set objId "car_plateNum" $ bToUpper val])
-          ,("car_vin", [\objId val -> do
-            let vin = T.encodeUtf8 . T.toUpper . T.filter isAlphaNum
-                    $ T.decodeUtf8 val
-            when (B.length vin == 17) $ do
-              set objId "car_vin" vin
-              fillFromContract vin objId >>= \case
-                True -> set objId "vinChecked" "base"
-                False -> do
-                    res <- requestFddsVin objId val
-                    set objId "vinChecked"
-                      $ if res then "fdds" else "vinNotFound"
-            ])
+          ,("contract", [\objId val -> void $ fillFromContract val objId])
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
           ])
@@ -204,43 +178,56 @@ actions
 bToUpper :: ByteString -> ByteString
 bToUpper = T.encodeUtf8 . T.toUpper . T.decodeUtf8
 
+
+-- | Mapping between contract and case fields.
+--
+-- TODO Describe joins.
+contractToCase :: [(FA Contract.Contract, FA Case.Case)]
+contractToCase =
+    [ (FA Contract.name, FA Case.contact_name)
+    , (FA Contract.vin, FA Case.car_vin)
+    , (FA Contract.make, FA Case.car_make)
+    , (FA Contract.model, FA Case.car_model)
+    , (FA Contract.seller, FA Case.car_seller)
+    , (FA Contract.plateNum, FA Case.car_plateNum)
+    , (FA Contract.makeYear, FA Case.car_makeYear)
+    , (FA Contract.color, FA Case.car_color)
+    , (FA Contract.buyDate, FA Case.car_buyDate)
+    , (FA Contract.lastCheckDealer, FA Case.car_dealerTO)
+    , (FA Contract.transmission, FA Case.car_transmission)
+    , (FA Contract.engineType, FA Case.car_engine)
+    , (FA Contract.engineVolume, FA Case.car_liters)
+    , (FA Contract.carClass, FA Case.car_class)
+    , (FA Contract.subprogram, FA Case.subprogram)
+    ]
+
+
 fillFromContract :: MonadTrigger m b => ByteString -> ByteString -> m b Bool
-fillFromContract vin objId = do
-  res <- liftDb $ PG.query (fromString [sql|
-    SELECT
-      p.value, carMake, carModel, carPlateNum, carColor,
-      carTransmission, carEngine, contractType, carCheckPeriod::text,
-      extract (epoch from carBuyDate)::int8::text,
-      extract (epoch from carCheckupDate)::int8::text,
-      carCheckupMilage::text, milageTO::text, cardNumber, carMakeYear::text,
-      contractValidUntilMilage::text,
-      extract (epoch from contractValidFromDate)::int8::text,
-      extract (epoch from contractValidUntilDate)::int8::text,
-      extract (epoch from warrantyStart)::int8::text,
-      extract (epoch from warrantyEnd)::int8::text,
-      carSeller, carDealerTO
-      FROM contracttbl c LEFT JOIN programtbl p ON p.id::text = c.program
-      WHERE isactive AND dixi AND lower(carVin) like lower(?)
-      ORDER BY c.id DESC LIMIT 1
-    |]) [vin]
+fillFromContract contract objId = do
+  let cid :: IdentI Contract.Contract
+      cid = maybe (error "Could not read contract id") (Ident . fst) $
+            B.readInt contract
+  res <- liftDb $ PG.query
+         (fromString $ concat
+          [ "SELECT "
+          , intercalate "," $ map (const "?") contractToCase
+          , " FROM \"?\" WHERE id = ?;"
+          ]) $
+         map (PT . fieldNameE . fst) contractToCase :.
+        (Only $ PT $ tableName (modelInfo :: ModelInfo Contract.Contract)) :.
+        (Only cid)
   case res of
     [] -> return False
     [row] -> do
+      -- Replace only empty fields of case
       let setIfEmpty oid nm val = get oid nm >>= \case
               "" -> set objId nm val
               _  -> return ()
       zipWithM_ (maybe (return ()) . (setIfEmpty objId))
-        ["program", "car_make", "car_model", "car_plateNum" ,"car_color"
-        ,"car_transmission","car_engine", "car_contractType", "car_checkPeriod"
-        ,"car_buyDate", "car_checkupDate"
-        ,"car_checkupMileage", "cardNumber_milageTO"
-        ,"cardNumber_cardNumber", "car_makeYear", "cardNumber_validUntilMilage"
-        ,"cardNumber_validFrom", "cardNumber_validUntil"
-        ,"car_warrantyStart", "car_warrantyEnd"
-        ,"car_seller", "car_dealerTO"]
-        row
+                (map (T.encodeUtf8 . fieldNameE . snd) contractToCase)
+                row
       return True
-    _ -> error "fillFromContract: you broke SQL LIMIT"
+    _ -> error "fillFromContract: Contract primary key is broken"
 
 
 -- | This is called when service status is changed in some trigger.
