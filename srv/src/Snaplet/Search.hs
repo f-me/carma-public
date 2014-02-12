@@ -15,6 +15,7 @@ import           Database.PostgreSQL.Simple as PG
 import           Utils.HttpErrors
 
 import Snaplet.Search.Case
+import Snaplet.Search.Call
 import Snaplet.Search.Types
 import Snaplet.Search.Utils
 
@@ -28,5 +29,7 @@ searchInit
 searchInit conn sessionMgr = makeSnaplet "search" "Search snaplet" Nothing $ do
   pg <- nestSnaplet "db" postgres $ makeSnaplet "postgresql-simple" "" Nothing $
         return $ Postgres conn
-  addRoutes [("case", method POST $ search caseSearch)]
+  addRoutes [ ("case", method POST $ search caseSearch)
+            , ("call", method POST $ search callSearch)
+            ]
   return $ Search conn pg sessionMgr
