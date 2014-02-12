@@ -162,6 +162,7 @@ renderPredicate conn pMap vals = do
   cjs <- mapM renderConjunct $ HM.toList vals
   return $ case partitionEithers cjs of
     (errs@(_:_), _) -> Left $ show errs
+    ([], [])        -> Right "true"
     ([], res)       -> Right $ T.intercalate " AND " $ map parenthize res
 
 hs2pgtype :: TypeRep -> Text
