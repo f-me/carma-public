@@ -18,7 +18,7 @@ field has is mapped to a group of produced VinFormat accessors.
 -}
 
 module Carma.Model.VinFormat.Meta
-    ( FormatFieldType(..), FormatFieldTitle(..), Sing(..)
+    ( FormatFieldType(..), Sing(..)
     , ContractField, FF(..)
     , mkVinFormat
     , FormatFieldAccessor(..)
@@ -60,33 +60,14 @@ ns :: TypeQ -> StrictTypeQ
 ns = strictType (return NotStrict)
 
 
--- | Basic VIN format field parameter. These are generated for every
--- source field.
-data FormatFieldParameter = Load
-                          | Required
-                          | Default
-
-
--- | VIN format field title type.
-data FormatFieldTitle = Title
-                      | MultiTitles
-
-
-$(genSingletons [''FormatFieldParameter, ''FormatFieldTitle])
-
-
-type SFFP a = SFormatFieldParameter a
-type SFFL a = SFormatFieldTitle a
-
-
 -- | This class describes how a format parameter is generated from a
 -- source 'Contract' field.
 --
 -- Minimal definition includes 'nameFormat' and 'descFormat'.
-class Typeable (ParamType a) => FFParameterI a where
+class Typeable (ParamType a) => FormatFieldParameter a where
     -- | Type of parameter value (if a parameter is a checkbox, this
     -- is 'Bool' (which is also the default instance for this family).
-     type ParamType a
+    type ParamType a
     -- | Reified type of parameter value. This exists because it's not
     -- possible to statically encode value type to parameter
     -- annotation. This matches 'ParamType' by default, though.
@@ -102,42 +83,57 @@ class Typeable (ParamType a) => FFParameterI a where
     paramTypeRep _ _ = typeOf (undefined :: ParamType a)
     type ParamType a = Bool
 
-instance FFParameterI (SFFP Load) where
+
+data Load = Load
+instance FormatFieldParameter Load where
     nameFormat _ = "%sLoad"
     descFormat _ = "Загружать поле «%s»"
 
-instance FFParameterI (SFFP Required) where
+
+data Required = Required
+instance FormatFieldParameter Required where
     nameFormat _ = "%sRequired"
     descFormat _ = "Поле «%s» обязательно"
 
-instance FFParameterI (SFFL Title) where
-    type ParamType (SFFL Title) = Text
-    nameFormat _ = "%sTitle"
-    descFormat _ = "Заголовок поля «%s»"
 
-instance FFParameterI (SFFL MultiTitles) where
-    type ParamType (SFFL MultiTitles) = Vector Text
-    nameFormat _ = "%sTitles"
-    descFormat _ = "Заголовки поля «%s»"
-
-instance FFParameterI (SFFP Default) where
+data Default = Default
+instance FormatFieldParameter Default where
     paramTypeRep _ (FA f) = fieldType f
     nameFormat _ = "%sDefault"
     descFormat _ = "Значение поля «%s» по умолчанию"
 
 
-name :: FFParameterI a => a -> ContractField -> String
+-- | VIN format field title type.
+data FormatFieldTitle = Title
+                      | MultiTitles
+
+$(genSingletons [''FormatFieldTitle])
+
+type SFFL a = SFormatFieldTitle a
+
+instance FormatFieldParameter (SFFL Title) where
+    type ParamType (SFFL Title) = Text
+    nameFormat _ = "%sTitle"
+    descFormat _ = "Заголовок поля «%s»"
+
+instance FormatFieldParameter (SFFL MultiTitles) where
+    type ParamType (SFFL MultiTitles) = Vector Text
+    nameFormat _ = "%sTitles"
+    descFormat _ = "Заголовки поля «%s»"
+
+
+name :: FormatFieldParameter a => a -> ContractField -> String
 name a cf = fieldProjFormatter (\(FA f) -> T.unpack $ fieldName f) cf $
             nameFormat a
 
 
-desc :: FFParameterI a => a -> ContractField -> String
+desc :: FormatFieldParameter a => a -> ContractField -> String
 desc a cf = fieldProjFormatter (\(FA f) -> T.unpack $ fieldDesc f) cf $
             descFormat a
 
 
 -- | Produce a parameter accessor.
-mkAcc :: FFParameterI a =>
+mkAcc :: FormatFieldParameter a =>
          a
       -- ^ Parameter type.
       -> ContractField
@@ -185,19 +181,18 @@ data FormatFieldType = Raw
 
 $(genSingletons [''FormatFieldType])
 
-
 type SFFT a = SFormatFieldType a
 
 
--- | Bind format field types and their extra parameters. Contrary to
--- 'FormatFieldParameter', extra parameters vary between different
--- 'FormatFieldTypes'.
+-- | Bind format field types and their extra parameters. Extra
+-- parameters vary between different 'FormatFieldTypes'.
 --
 -- TODO Encode all extra parameters in a single type-level container
 -- instead of using an associated type family for every parameter.
--- This is not crucial now as we now have only one variable extra
--- parameter (title).
-class (FFParameterI (TitleParameter a)) => FFTypeI a where
+-- This will likely require proper type-level map in order to be
+-- useful. This is not crucial now as we now have only one variable
+-- extra parameter (title).
+class (FormatFieldParameter (TitleParameter a)) => FFTypeI a where
     type TitleParameter a
     type TitleParameter a = (SFFL Title)
 
@@ -281,15 +276,15 @@ mkVinFormat formatFields =
               $(sigE [e|sing|] $
                 appT [t|SFFT|] $
                 conT $ mkName $ showConstr $ toConstr fallenFft)
-              $(varE $ mkName (name SLoad acc))
-              $(varE $ mkName (name SRequired acc))
-              $(varE $ mkName (name SDefault acc))
+              $(varE $ mkName (name Load acc))
+              $(varE $ mkName (name Required acc))
+              $(varE $ mkName (name Default acc))
               $(varE $ mkName (name titleSing acc))
               |] $
               -- fLoad,fRequired,fTitle(s) fields
-              [ mkAcc SLoad acc
-              , mkAcc SRequired acc
-              , mkAcc SDefault acc
+              [ mkAcc Load acc
+              , mkAcc Required acc
+              , mkAcc Default acc
               , mkAcc titleSing acc
               ]
             )
@@ -315,8 +310,8 @@ mkVinFormat formatFields =
 -- singleton value to enable type refinement of accessor types.
 data FormatFieldAccessor m =
     forall a n1 d1 n2 d2 t n3 d3 n4 d4.
-    (FieldI (ParamType (SFFP Load)) n1 d1,
-     FieldI (ParamType (SFFP Required)) n2 d2,
+    (FieldI (ParamType Load) n1 d1,
+     FieldI (ParamType Required) n2 d2,
      ToField t, Typeable t, FieldI t n3 d3,
      FieldI (ParamType (TitleParameter (SFFT a))) n4 d4) =>
     FFAcc { cf       :: ContractField
@@ -324,9 +319,9 @@ data FormatFieldAccessor m =
           , tag      :: SFFT a
           -- ^ Original annotation. Pattern matching on this field
           -- will refine types of extra parameters.
-          , load     :: (m -> F (ParamType (SFFP Load)) n1 d1)
+          , load     :: (m -> F (ParamType Load) n1 d1)
           -- ^ @fLoad@ accessor.
-          , required :: (m -> F (ParamType (SFFP Required)) n2 d2)
+          , required :: (m -> F (ParamType Required) n2 d2)
           -- ^ @fRequired@ accessor.
           , def      :: (m -> F t n3 d3)
           -- ^ @fDefault@ accessor.
