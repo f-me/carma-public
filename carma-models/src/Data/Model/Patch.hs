@@ -1,14 +1,14 @@
-
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model.Patch
-    ( Patch, untypedPatch
-    , get, get'
-    )
+  ( Patch(Patch), untypedPatch
+  , get, get'
+  , empty
+  )
 
 where
 
-import Control.Applicative
+import Control.Applicative ((<$>))
 import Data.Aeson.Types
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
@@ -24,7 +24,7 @@ import GHC.TypeLits
 import Data.Model
 
 
-data Patch m = Patch {untypedPatch :: HashMap Text Dynamic}
+data Patch m = Patch { untypedPatch :: HashMap Text Dynamic }
 
 get
   :: (Typeable t, SingI name)
@@ -32,6 +32,13 @@ get
 get (Patch m) f
   = fromJust . fromDynamic
   <$> HashMap.lookup (fieldName f) m
+
+put :: (Typeable t, SingI name)
+    => (m -> Field t (FOpt name desc)) -> t -> Patch m -> Patch m
+put f v (Patch m) = Patch $ HashMap.insert (fieldName f) (toDyn v) m
+
+empty :: Patch m
+empty = Patch HashMap.empty
 
 
 get'

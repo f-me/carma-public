@@ -30,8 +30,7 @@ import           GHC.TypeLits
 
 import           Data.Model hiding (fieldName, modelName, fieldDesc)
 import qualified Data.Model as Model
-import           Data.Model.Types hiding (modelName, fieldDesc)
-import           Data.Model.View as View
+import           Data.Model.Types hiding (modelName)
 import           Carma.Model.Types
 import           Carma.Model.LegacyTypes (LegacyDatetime, Reference)
 
@@ -94,17 +93,22 @@ fuzzy = map (\p -> p {matchType = MatchFuzzy})
 matchAny :: [[Predicate m]] -> [Predicate m]
 matchAny = concat
 
-interval
- :: forall m nm desc
- . (SingI nm, SingI desc, Model m)
- => (m -> F LegacyDatetime nm desc) -> [Predicate m]
-interval _
- = map (\p -> p {matchType = MatchInterval})
- $ one (undefined :: m -> F (Interval UTCTime) nm desc)
+class IntervalPred t m where
+  interval :: t -> [Predicate m]
+
+instance forall m nm desc . (SingI nm, SingI desc, Model m)
+         => IntervalPred (m -> F LegacyDatetime nm desc) m  where
+  interval _ = map (\p -> p {matchType = MatchInterval})
+               $ one (undefined :: m -> F (Interval UTCTime) nm desc)
+
+instance forall m nm desc . (SingI nm, SingI desc, Model m)
+         => IntervalPred (m -> F (Maybe LegacyDatetime) nm desc) m where
+  interval _ =
+    interval (undefined :: (m -> F LegacyDatetime nm desc)) :: [Predicate m]
 
 refExist :: forall m nm desc
  . (SingI nm, SingI desc, Model m)
- => (m -> F Reference nm desc) -> [Predicate m]
+ => (m -> F (Maybe Reference) nm desc) -> [Predicate m]
 refExist v
   = map (\p -> p {matchType = MatchRefExist})
   $ one v
@@ -164,23 +168,22 @@ renderPredicate conn pMap vals = do
   cjs <- mapM renderConjunct $ HM.toList vals
   return $ case partitionEithers cjs of
     (errs@(_:_), _) -> Left $ show errs
+    ([], [])        -> Right "true"
     ([], res)       -> Right $ T.intercalate " AND " $ map parenthize res
 
-hs2pgtype t =
-  let uint = typeOf (undefined :: Interval UTCTime)
-  in  case t of
-      uint -> "tstzrange"
-      _    -> error "Unknown type in hs2pgtype"
+hs2pgtype :: TypeRep -> Text
+hs2pgtype t
+  | t == typeOf (undefined :: Interval UTCTime) = "tstzrange"
+  | otherwise  = error "Unknown type in hs2pgtype"
 
 predicatesFromParams
-  ::PG.Connection -> Aeson.Value -> [(Text, [Predicate m])]
+  ::PG.Connection -> Aeson.Object -> [(Text, [Predicate m])]
     -> IO (Either String Text)
-predicatesFromParams c v modelParams = case v of
-  Aeson.Object o -> renderPredicate c params $ filterParams o
-  _ -> return $ Left $ "Object expected but found: " ++ show v
+predicatesFromParams c o modelParams =
+  renderPredicate c params $ filterParams o
   where
     params = HM.fromList modelParams
-    filterParams o = HM.intersection o params
+    filterParams h = HM.intersection h params
 
 concatPredStrings :: [Text] -> Text
 concatPredStrings [] = "true"

@@ -48,7 +48,7 @@ data Case = Case
   , contact_email
     :: F (Maybe Text) "contact_email" "Email"
   , contact_contactOwner
-    :: F Checkbox     "contact_contactOwner" "Звонящий владелец?"
+    :: F (Maybe Checkbox)     "contact_contactOwner" "Звонящий владелец?"
   , contact_ownerName
     :: F (Maybe Text) "contact_ownerName" "Владелец"
   , contact_ownerPhone1
@@ -104,13 +104,13 @@ data Case = Case
   , city
     :: F (Maybe (IdentT DealerCities)) "city" "Город"
   , caseAddress_address
-    :: F PickerField "caseAddress_address" "Адрес места поломки"
+    :: F (Maybe PickerField) "caseAddress_address" "Адрес места поломки"
   , caseAddress_comment
     :: F (Maybe Text) "caseAddress_comment" "Примечания"
   , caseAddress_coords
-    :: F PickerField "caseAddress_coords" "Координаты"
+    :: F (Maybe PickerField) "caseAddress_coords" "Координаты"
   , caseAddress_map
-    :: F MapField "caseAddress_map" ""
+    :: F (Maybe MapField) "caseAddress_map" ""
   , temperature
     :: F (Maybe Text) "temperature" "Температура"
   , repair
@@ -122,9 +122,9 @@ data Case = Case
   , caseStatus
     :: F (Maybe (IdentT CaseStatuses)) "caseStatus" "Статус кейса"
   , psaExportNeeded
-    :: F Checkbox "psaExportNeeded" "Требуется выгрузка в PSA"
+    :: F (Maybe Checkbox) "psaExportNeeded" "Требуется выгрузка в PSA"
   , psaExported
-    :: F Checkbox "psaExported" "Выгружен в PSA"
+    :: F (Maybe Checkbox) "psaExported" "Выгружен в PSA"
   , claim
     :: F (Maybe Text) "claim" "Претензия / Благодарность"
   , services

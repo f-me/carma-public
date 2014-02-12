@@ -1,15 +1,19 @@
 module Carma.Model.LegacyTypes where
 
 import Control.Applicative
+import Control.Error.Util
 import Data.Text
 import qualified Data.Text.Read as T
 import Data.Typeable
 import Data.Aeson
 import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Database.PostgreSQL.Simple.FromField (FromField(..))
+import Database.PostgreSQL.Simple.Time (parseUTCTime)
 import Data.Time.Clock.POSIX
 import Data.Time.Clock (UTCTime)
-
+import Data.Time.Format (parseTime, formatTime)
+import System.Locale (defaultTimeLocale)
+import qualified Data.ByteString.Char8 as B
 
 data Diagnosis1 = Diagnosis1 deriving Typeable
 data Diagnosis2 = Diagnosis2 deriving Typeable
@@ -97,7 +101,9 @@ instance FromField MapField where
 
 data Checkbox = Checkbox Bool deriving Typeable
 instance FromJSON Checkbox where
-  parseJSON fld = Checkbox . (==("1"::Text)) <$> parseJSON fld
+  parseJSON fld =
+    (Checkbox . (==("1"::Text)) <$> parseJSON fld) <|>
+    (Checkbox . (== True)       <$> parseJSON fld)
 instance ToJSON Checkbox where
   toJSON (Checkbox b) = toJSON (if b then "1" else "0" :: Text)
 instance ToField Checkbox where
@@ -108,11 +114,12 @@ instance FromField Checkbox where
 
 data LegacyDate = LegacyDate UTCTime deriving Typeable
 instance FromJSON LegacyDate where
-  parseJSON fld = parseJSON fld >>= \txt -> case T.decimal txt of
-    Right (res, "") -> return $ LegacyDate $ posixSecondsToUTCTime (fromInteger res)
-    _ -> fail $ "LegacyDate.parseJSON: invalid date " ++ show txt
+  parseJSON fld = parseJSON fld >>= \txt ->
+    case parseTime undefined "%s" (B.unpack txt) <|> hush (parseUTCTime txt) of
+      Just v  -> return $ LegacyDate $ v
+      Nothing -> fail $ "LegacyDatetime.parseJSON: invalid date " ++ show txt
 instance ToJSON LegacyDate where
-  toJSON (LegacyDate utc) = toJSON $ show $ utcTimeToPOSIXSeconds utc
+  toJSON (LegacyDate utc) = toJSON $ formatTime undefined "%s" utc
 instance ToField LegacyDate where
   toField (LegacyDate utc) = toField utc
 instance FromField LegacyDate where
@@ -120,11 +127,12 @@ instance FromField LegacyDate where
 
 data LegacyDatetime = LegacyDatetime UTCTime deriving Typeable
 instance FromJSON LegacyDatetime where
-  parseJSON fld = parseJSON fld >>= \txt -> case T.decimal txt of
-    Right (res, "") -> return $ LegacyDatetime $ posixSecondsToUTCTime (fromInteger res)
-    _ -> fail $ "LegacyDatetime.parseJSON: invalid date " ++ show txt
+  parseJSON fld = parseJSON fld >>= \txt ->
+    case parseTime undefined "%s" (B.unpack txt) <|> hush (parseUTCTime txt) of
+      Just v  -> return $ LegacyDatetime $ v
+      Nothing -> fail $ "LegacyDatetime.parseJSON: invalid date " ++ show txt
 instance ToJSON LegacyDatetime where
-  toJSON (LegacyDatetime utc) = toJSON $ show $ utcTimeToPOSIXSeconds utc
+  toJSON (LegacyDatetime utc) = toJSON $ formatTime undefined "%s" utc
 instance ToField LegacyDatetime where
   toField (LegacyDatetime utc) = toField utc
 instance FromField LegacyDatetime where

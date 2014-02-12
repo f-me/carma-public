@@ -5,8 +5,12 @@
 module Data.Model.Sql
   ( select
   , selectJSON
+  , selectPatch
   , update
   , eq
+  , sql_in
+
+  , SqlP
   ) where
 
 import Text.Printf (printf)
@@ -15,17 +19,18 @@ import Data.List (intersperse)
 import Data.Int (Int64)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Monoid
 
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromField hiding (Field)
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToField
-import Data.Aeson (ToJSON(..))
+import Data.Aeson (ToJSON(..), fromJSON, Result)
 import qualified Data.Aeson as Aeson
 import GHC.TypeLits
 
 import Data.Model
-
+import Data.Model.Patch
 
 select :: (FromRow (QRes q), SqlQ q) => q -> Connection -> IO [QRes q]
 select q c = uncurry (query c) $ mkSelect q
@@ -80,6 +85,11 @@ selectJSON q c = select q c >>= return
     . zip (queryProjection q)
     . toValueList
     )
+
+selectPatch
+  :: (ToValueList (QRes q), SqlQ q, FromRow (QRes q), Model m)
+  => q -> Connection -> IO (Result [Patch m])
+selectPatch q c = selectJSON q c >>= return . sequence . map fromJSON
 
 mkSelect :: SqlQ q => q -> (Query, QArg q)
 mkSelect q =
@@ -164,3 +174,8 @@ eq
   => (m -> Field t (FOpt nm desc)) -> t
   -> SqlP m t
 eq f v = SqlP (T.unpack $ fieldName f) v "="
+
+sql_in :: (Model m, SingI nm)
+       => (m -> Field t (FOpt nm desc)) -> [t]
+       -> SqlP m (In [t])
+sql_in f v = SqlP (T.unpack $ fieldName f) (In v) "IN"
