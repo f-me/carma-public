@@ -14,7 +14,7 @@ import Carma.Model.Search as S
 
 callSearchParams :: [(Text, [Predicate Call])]
 callSearchParams
-  = [ ("phone", matchAny
+  = [ ("phone", fuzzy $ matchAny
         [ one callerName_phone1, one callerName_ownerPhone1
         , one callerName_phone2, one callerName_ownerPhone2
         , one callerName_phone3, one callerName_ownerPhone3
