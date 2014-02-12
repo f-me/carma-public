@@ -75,6 +75,7 @@ serveModel = do
         ("Case") -> writeModel m
         ("Service") -> writeModel m
         ("Towage") -> writeModel m
+        ("Call")   -> writeModel m
         _        -> stripModel cu m >>= writeModel
 
 viewForModel :: forall m . Model.Model m => T.Text -> m -> Maybe Model
