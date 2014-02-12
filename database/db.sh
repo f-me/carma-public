@@ -45,11 +45,23 @@ function exec_file {
   echo ... $FILE
   ext=${FILE##*.}
   if [[ $2 != "--dev" ]]; then
-      COMMIT=$(git log -n 1 --no-merges --pretty=format:%h -- ${FILE})
+      # Checkout database version specified by #CHECKOUT=<commit>/<file>
+      COMMIT=$(grep '#CHECKOUT=' ${FILE} | sed -e 's/#CHECKOUT=\([[:alnum:]]\+\)\/.\+$/\1/')
+      OLDNAME=$(grep '#CHECKOUT=' ${FILE} | sed -e 's/#CHECKOUT=.\+\/\(.\+\)$/\1/')
+      # Otherwise checkout last version the file was changed in
+      if [[ -z $COMMIT ]]; then
+          COMMIT=$(git log -n 1 --no-merges --pretty=format:%h -- ${FILE})
+      else
+          # Use file name from #CHECKOUT line
+          if [[ -n $OLDNAME ]]; then
+              FILE="patches/${OLDNAME}"
+          fi
+      fi
       TMP=$(mktemp -d)
       cd ..
       git --work-tree="${TMP}" checkout ${COMMIT} -- database/
       cd "${TMP}/database"
+      echo ... using snapshot from ${COMMIT}
   fi
   if [[ "sql" == $ext ]] ; then
     $PSQL -f $FILE
