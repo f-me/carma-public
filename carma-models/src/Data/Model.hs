@@ -11,6 +11,7 @@ module Data.Model
   , fieldName, fieldDesc
   -- from Data.Model.View.Types
   , ModelView(..)
+  , hasNoParent
   ) where
 
 
@@ -37,7 +38,7 @@ mkModelInfo
   -> ModelInfo m
 mkModelInfo ctr pk =
   let parentFlds
-        = if typeOf (undefined :: Parent m) == typeOf (undefined :: NoParent)
+        = if hasNoParent (undefined :: m)
           then []
           else modelFields (modelInfo :: ModelInfo (Parent m))
       modelOnlyFlds = unWrap (getModelFields ctr :: [FieldDesc] :@ m)
@@ -50,6 +51,9 @@ mkModelInfo ctr pk =
     , modelOnlyFields= modelOnlyFlds
     , modelFieldsMap = HashMap.fromList [(fd_name f, f) | f <- modelFlds]
     }
+
+hasNoParent :: forall m.(Model (Parent m)) => m -> Bool
+hasNoParent _ = typeOf (undefined :: Parent m) == typeOf (undefined :: NoParent)
 
 
 class (SingI (TableName m), Typeable m, Typeable (Parent m)) => Model m where

@@ -1,7 +1,9 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving, ViewPatterns, ScopedTypeVariables, RankNTypes #-}
 
-module Carma.Model.Types where
+module Carma.Model.Types ( Dict(..)
+                         , Interval(..)
+                         , TInt) where
 
 import Control.Applicative
 
@@ -17,7 +19,7 @@ import Data.Vector (Vector, (!))
 import qualified Data.Map as Map
 
 import Data.Time
-import Data.Time.Calendar (Day)
+import Data.Time.Calendar ()
 import Data.Fixed (Pico)
 
 import Database.PostgreSQL.Simple.FromField (FromField(..))
@@ -171,7 +173,7 @@ dayToBuilder (toGregorian -> (y,m,d)) = do
 
 -- default filed view
 instance DefaultFieldView t => DefaultFieldView (Maybe t) where
-  defaultFieldView (f :: m -> F (Maybe t) nm desc)
+  defaultFieldView (_ :: m -> F (Maybe t) nm desc)
     = defaultFieldView (undefined :: m -> F t nm desc)
 
 
@@ -262,7 +264,7 @@ instance DefaultFieldView (Vector Text) where
 
 instance DefaultFieldView (Ident t tag) =>
  DefaultFieldView (Vector (Ident t tag)) where
-  defaultFieldView (f :: m -> F (Vector (Ident t tag)) nm desc) =
+  defaultFieldView (_ :: m -> F (Vector (Ident t tag)) nm desc) =
     let v = defaultFieldView (undefined :: m -> F (Ident t tag) nm desc)
     in v{fv_type = "dictionary-set"
         ,fv_meta = Map.insert "widget" "dictionary-many" $ fv_meta v
@@ -276,7 +278,7 @@ instance DefaultFieldView (Interval Day) where
 
 instance DefaultFieldView (Vector t) => DefaultFieldView (Vector (Maybe t))
   where
-  defaultFieldView (f :: m -> F (Vector (Maybe t)) nm desc) =
+  defaultFieldView (_ :: m -> F (Vector (Maybe t)) nm desc) =
    defaultFieldView (undefined :: m -> F (Vector t) nm desc)
 
 
