@@ -1,5 +1,5 @@
 #!/bin/bash -e
-
+#CHECKOUT=904be9f955d8a8f4b498c0f3f98cef6c3ed8b3dd/1.8.1-fix-sequences.sh
 $PSQL -c 'drop view if exists servicesview;'
 $PSQL -c 'drop view if exists partnercancelview;'
 $PSQL -c 'drop table if exists "VinFormat"'
