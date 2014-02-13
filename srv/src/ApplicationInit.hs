@@ -74,7 +74,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/allPartners",   chkAuthLocal . method GET  $ allPartnersHandler)
          , ("/partnersFor/:srv",
                               chkAuthLocal . method GET $ partnersForSrvHandler)
-         , ("/psaCases/",
+         , ("/psaCases",
                               chkAuthLocal . method GET $ psaCasesHandler)
          , ("/psaCases/:program",
                               chkAuthLocal . method GET $ psaCasesHandler)
@@ -86,7 +86,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuth . method GET    $ renderContractHandler)
          , ("contracts/findSame",
                              chkAuth . method GET    $ findSameContract)
-         , ("searchContracts/",
+         , ("/searchContracts",
                               method GET    $ searchContracts)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
