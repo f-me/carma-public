@@ -56,18 +56,20 @@ extraContractFieldNames = map fieldNameE extraContractFields
 data SearchResult =
     SearchResult { cid         :: (IdentI Contract)
                  , match       :: Text
+                 , expired     :: Maybe Bool
                  -- ^ Name of a field which matched.
                  , identifiers :: $(fieldTypesQ C.identifiers)
                  , extras      :: $(fieldTypesQ extraContractFields)
                  }
 
 instance FromRow SearchResult where
-    fromRow = SearchResult <$> field <*> field <*> fromRow <*> fromRow
+    fromRow = SearchResult <$> field <*> field <*> field <*> fromRow <*> fromRow
 
 instance ToJSON SearchResult where
-    toJSON (SearchResult i t vals (cm, cl)) =
-        object $ [ "id"     .= i
-                 , "_match" .= t
+    toJSON (SearchResult i t e vals (cm, cl)) =
+        object $ [ "id"       .= i
+                 , "_match"   .= t
+                 , "_expired" .= e
                  ] ++ (zip C.identifierNames listVals)
                    ++ (zip extraContractFieldNames [toJSON cm, toJSON cl])
         where
@@ -82,8 +84,10 @@ instance ToJSON SearchResult where
 
 -- | Read @query@, @program@ (optional), @subprogram@ (optional),
 -- @limit@ (defaults to 100) parameters and return list of contracts
--- with matching identifier fields. Every result contains @_match@
--- field with matched field name.
+-- with matching identifier fields. Every result in the list contains
+-- a subset of contract fields, @_match@ field with matched field name
+-- and @_expired@ which is a boolean flag indicating whether a
+-- contract is expired or not.
 --
 -- TODO Program/subprogram filtering.
 --
@@ -128,10 +132,12 @@ searchContracts = do
           , unite (map (const fieldSubQuery) C.identifierNames)
           , ")"
           , "SELECT DISTINCT ON(c.id) c.id, _match,"
-          -- M + N + 2 more parameters: field list, Contract table
-          -- name, limit.
+          -- 2 more parameters: contract start/end date
+          , "((now() < ?) or (? < now())),"
+          -- M + N more parameters: field list.
           , intercalate "," $
             map (const "c.?") selectedFieldsParam
+          -- 2 more parameters: Contract table name, limit.
           , "FROM sources, \"?\" c"
           , "WHERE c.id IN (SELECT id FROM sources)"
           , "ORDER BY c.id DESC LIMIT ?;"
@@ -146,6 +152,7 @@ searchContracts = do
          (()
           -- 5*M
           :. (ToRowList subParams)
+          :. (fieldName C.validSince, fieldName C.validUntil)
           -- M + N
           :. (selectedFieldsParam)
           -- 2
