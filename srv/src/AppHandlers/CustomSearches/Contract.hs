@@ -152,7 +152,7 @@ searchContracts = do
          (()
           -- 5*M
           :. (ToRowList subParams)
-          :. (fieldName C.validSince, fieldName C.validUntil)
+          :. (PT $ fieldName C.validSince, PT $ fieldName C.validUntil)
           -- M + N
           :. (selectedFieldsParam)
           -- 2
