@@ -121,10 +121,12 @@ define [ "utils"
           contract.subprogram = subprogramDict.getLab contract.subprogram
 
         if contract.committer
-          $.bgetJSON "/allUsers", (users) ->
-            user = _.find users, (u) ->
-              parseInt(u.mid) is contract.committer
-            if user then contract.committer = user.label
+          usersDict = new Dict.dicts.ModelDict
+            dict: 'Usermeta'
+            meta:
+              dictionaryKey: 'id'
+              dictionaryLabel: 'realName'
+          contract.committer = usersDict.getLab contract.committer
 
         contract.isActive = if contract.isActive then "Да" else "Нет"
 
