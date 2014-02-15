@@ -4,7 +4,9 @@
 
 {-|
 
-  Interface to HTTP API provided by a CaRMa server.
+Interface to HTTP API provided by a CaRMa server.
+
+TODO: Port InstanceData to use Text.
 
 -}
 
@@ -43,6 +45,7 @@ module Carma.HTTP
 
 where
 
+import Control.Exception
 import Control.Lens hiding (createInstance)
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
@@ -125,10 +128,10 @@ modelPidURI cp model pid = (modelURI cp model) ++ (show pid)
 
 
 runCarma :: CarmaOptions -> CarmaIO a -> IO a
-runCarma opts action = do
-  s <- openStream localhost (carmaPort opts)
-  res <- runReaderT action (opts, s)
-  close s >> return res
+runCarma opts action =
+    bracket (openStream localhost (carmaPort opts))
+            (close)
+            (\s -> runReaderT action (opts, s))
 
 
 -- | Send request to c/r/u/d an instance of model, possibly using new
