@@ -42,7 +42,6 @@ import qualified Carma.Model as Model
 import qualified Carma.Model.ProgramInfo as ProgramInfo
 import qualified Carma.Model.ServiceInfo as ServiceInfo
 import qualified Carma.Model.ServiceNames as ServiceNames
-import qualified Carma.Model.Colors as Colors
 
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
@@ -147,8 +146,6 @@ serveDictionaries = do
     $ selectJSON (ServiceInfo.program :. ServiceInfo.service :. ServiceInfo.info)
   serviceNames <- withPG
     $ selectJSON (ServiceNames.ident :. ServiceNames.value :. ServiceNames.label :. ServiceNames.icon)
-  colors <- withPG
-    $ selectJSON (Colors.ident :. Colors.value :. Colors.label)
 
   Aeson.Object dictMap <- gets dictionaries
   -- Support legacy client interface for some dictionaries

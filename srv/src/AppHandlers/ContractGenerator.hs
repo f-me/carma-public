@@ -25,6 +25,7 @@ module AppHandlers.ContractGenerator where
 
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as B (toStrict)
 import           Data.Aeson as Aeson
 
@@ -68,6 +69,7 @@ q = [sql|
      WHERE c.id = ?
 |]
 
+fields :: [ByteString]
 fields = [ "car_vin"
          , "car_seller"
          , "car_make"
