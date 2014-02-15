@@ -1,5 +1,5 @@
 name:                sagai-exporter
-version:             0.2
+version:             0.2.1
 synopsis:            SAGAI integration facilities for CaRMa
 license:             BSD3
 license-file:        LICENSE

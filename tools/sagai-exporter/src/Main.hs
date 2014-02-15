@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-|
 
@@ -9,6 +10,7 @@ CLI tool used to perform SAGAI export, with logging and FTP operation.
 -}
 
 import Control.Applicative
+import Control.Exception
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
@@ -184,11 +186,11 @@ loggerName :: String
 loggerName = programName
 
 
-logInfo :: String -> CarmaIO ()
+logInfo :: MonadIO m => String -> m ()
 logInfo s = liftIO $ infoM loggerName s
 
 
-logError :: String -> CarmaIO ()
+logError :: MonadIO m => String -> m ()
 logError s = liftIO $ errorM loggerName s
 
 
@@ -327,8 +329,9 @@ main =
                                     (if useSyslog
                                      then setHandlers [syslog]
                                      else id))
-      runCarma carmaOpts $ do
-         logInfo "Starting up"
+      logInfo "Starting up"
+      handle (\(e :: IOException) -> logError ("Critical error: " ++ show e)) $
+       runCarma carmaOpts $ do
          when testMode $ logInfo "No FTP host specified, test mode"
          logInfo $ "CaRMa port: " ++ show carmaPort
 
@@ -425,4 +428,4 @@ main =
                              markExported exportedNumbers
                            e -> logError $
                                 "Error when uploading: " ++ show e
-         logInfo "Powering down"
+      logInfo "Powering down"
