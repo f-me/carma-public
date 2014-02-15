@@ -210,7 +210,7 @@ fillFromContract contract objId = do
   res <- liftDb $ PG.query
          (fromString $ concat
           [ "SELECT "
-          , intercalate "," $ map (const "?") contractToCase
+          , intercalate "," $ map (const "?::text") contractToCase
           , " FROM \"?\" WHERE id = ?;"
           ]) $
          map (PT . fieldNameE . fst) contractToCase :.
