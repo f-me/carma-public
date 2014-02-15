@@ -9,12 +9,10 @@ CLI tool used to perform SAGAI export, with logging and FTP operation.
 -}
 
 import Control.Applicative
-import Control.Concurrent
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
-import Control.Monad.Trans.Reader
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
 
@@ -22,7 +20,6 @@ import Data.Aeson
 import Data.Either
 import Data.Maybe
 import qualified Data.HashMap.Strict as HM
-import qualified Data.Text as T
 
 import Data.Time.Clock
 import Data.Time.LocalTime
@@ -30,12 +27,13 @@ import Data.Time.Format
 
 import Network.Curl
 import Network.HTTP
+
 import System.IO
 import System.Console.CmdArgs
 import System.Directory
-import System.Log.Simple as L
-import System.Log.Simple.Syslog
 import System.Locale
+import System.Log.Logger
+import System.Log.Handler.Syslog
 
 import Carma.HTTP hiding (carmaPort)
 import qualified Carma.HTTP as H (carmaPort)
@@ -182,18 +180,16 @@ fetchPSACaseNumbers pn = do
   return $ decode' $ BSL.pack rsb
 
 
-logInfo :: String -> ReaderT Log CarmaIO ()
-logInfo s = L.log L.Trace $ T.pack s
+loggerName :: String
+loggerName = programName
 
 
-logError :: String -> ReaderT Log CarmaIO ()
-logError =  L.log L.Error . T.pack
+logInfo :: String -> CarmaIO ()
+logInfo s = liftIO $ infoM loggerName s
 
 
-mainLog :: Politics -> Logger -> ReaderT Log CarmaIO a -> CarmaIO a
-mainLog policy logL a = do
-  l <- liftIO $ newLog (constant [ rule root $ use policy ]) [logL]
-  withLog l a
+logError :: String -> CarmaIO ()
+logError s = liftIO $ errorM loggerName s
 
 
 curlOptions :: [CurlOption]
@@ -305,11 +301,8 @@ main =
       -- True if -q is NOT set
       nq <- isNormal
 
-      -- Choose logging facility (stderr or syslog)
-      let logL = if useSyslog
-                 then syslog_ programName
-                 else logger text consoleErr
-          -- Translate -v/-q into simple-log logging policy.
+      let
+          -- Translate -v/-q into logging level.
           --
           -- When -v is specified, logInfo's are included in the log.
           --
@@ -320,13 +313,21 @@ main =
           -- are logged.
           --
           -- -v supercedes -q.
-          logPolicy = case (vv, nq) of
-                     (True, _)  -> Politics L.Trace L.Trace
-                     (_, False) -> Politics L.Fatal L.Fatal
-                     _          -> Politics L.Info L.Error
+          logLevel = case (vv, nq) of
+                     (True, _)  -> DEBUG
+                     (_, False) -> EMERGENCY
+                     _          -> ERROR
           carmaOpts = defaultCarmaOptions{H.carmaPort = carmaPort}
 
-      runCarma carmaOpts $ mainLog logPolicy logL $ do
+      -- Set logging facility (default stderr or syslog) and level.
+      -- Root logger handler is implicitly called in addition to our
+      -- logger, so stderr logging is always enabled.
+      syslog <- openlog loggerName [PID] USER logLevel
+      updateGlobalLogger loggerName (setLevel logLevel .
+                                    (if useSyslog
+                                     then setHandlers [syslog]
+                                     else id))
+      runCarma carmaOpts $ do
          logInfo "Starting up"
          when testMode $ logInfo "No FTP host specified, test mode"
          logInfo $ "CaRMa port: " ++ show carmaPort
@@ -341,7 +342,7 @@ main =
          -- Load Wazzup dictionaries from CaRMa.
          dictsRes <- do
              logInfo "Loading dictionaries from CaRMa"
-             lift fetchExportDicts
+             fetchExportDicts
 
          -- If any case numbers supplied on command line, use them.
          -- Otherwise, fetch case numbers from local CaRMa.
@@ -352,7 +353,7 @@ main =
                      "Fetching case numbers from CaRMa (" ++
                      maybe "all valid subprograms" (++ " subprogram")
                      caseSubprogram ++ ")"
-                 lift $ fetchPSACaseNumbers caseSubprogram
+                 fetchPSACaseNumbers caseSubprogram
                l  -> do
                  logInfo $ "Using case numbers specified in the command line"
                  return $ Just l
@@ -368,7 +369,6 @@ main =
                  logInfo $ "Exporting cases: " ++ show caseNumbers
                  -- Bulk export of selected cases
                  (newCnt, errors, res) <-
-                     lift $
                      exportManyCases cnt caseNumbers dicts encoding
 
                  -- Dump errors if there're any
@@ -422,10 +422,7 @@ main =
 
                              -- Set psaExported field for exported cases
                              logInfo "Flagging exported cases in CaRMa"
-                             lift $ markExported exportedNumbers
+                             markExported exportedNumbers
                            e -> logError $
                                 "Error when uploading: " ++ show e
          logInfo "Powering down"
-      -- simple-log workaround (don't rush the main thread and wait
-      -- for children)
-      threadDelay (1000 * 1000)
