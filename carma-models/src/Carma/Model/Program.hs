@@ -16,7 +16,7 @@ import Carma.Model.ProgramType hiding (ident)
 import Carma.Model.Usermeta hiding (ident)
 
 data Program = Program
-  { ident                 :: PK Int Program ""
+  { ident                 :: PK Int Program             "Программа"
   , label                 :: F Text            "label"  "Название"
   , client                :: F (Maybe Text)    "client" "Заказчик"
   , clientAddress         :: F (Maybe Text)    "clientAddress" "Адрес заказчика"

@@ -1,4 +1,3 @@
-
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE Rank2Types #-}
 module Carma.Model
@@ -32,6 +31,7 @@ import Carma.Model.Program                (Program)
 import Carma.Model.Region                 (Region)
 import Carma.Model.Role                   (Role)
 import Carma.Model.SubProgram             (SubProgram)
+import Carma.Model.SubProgramService      (SubProgramService)
 import Carma.Model.VinFormat              (VinFormat)
 import Carma.Model.Case                   (Case)
 import Carma.Model.Colors                 (Colors)
@@ -94,6 +94,7 @@ dispatch model fn = Map.lookup model modelMap
       ,add (undefined :: Transmission)
       ,add (undefined :: Role)
       ,add (undefined :: SubProgram)
+      ,add (undefined :: SubProgramService)
       ,add (undefined :: VinFormat)
       ,add (undefined :: Case)
       ,add (undefined :: Colors)

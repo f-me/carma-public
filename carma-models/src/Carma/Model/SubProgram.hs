@@ -1,41 +1,21 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Carma.Model.SubProgram where
+module Carma.Model.SubProgram
+    ( SubProgram(..)
+    )
 
-import Data.Aeson as A (Value(Bool))
-import Data.Text
-import Data.Typeable
-import Data.Vector
+where
+
+import Data.Aeson as A (Value(Bool, String))
 
 import Data.Model
 import Data.Model.TH
 import Data.Model.View
 
-import Carma.Model.Types (TInt)
-import Carma.Model.LegacyTypes (Reference)
-import Carma.Model.Program hiding (ident)
-import Carma.Model.ServiceNames hiding (ident)
+import Carma.Model.SubProgram.Type
+import Carma.Model.SubProgramService hiding (ident)
 
-data SubProgram = SubProgram
-  { ident        :: PK Int SubProgram ""
-  , parent       :: F (IdentI Program)         "parent"    "Программа"
-  , label        :: F Text                     "label"     "Название"
-  , active       :: F Bool                     "active"    "Активна"
-  , value        :: F Text                     "value"     "Внутренняя метка"
-  , mailAddr     :: F (Maybe Text)             "mailAddr"  "Mail для отправки писем"
-  , mailPass     :: F (Maybe Text)             "mailPass"  "Пароль для отправки писем"
-  , contacts     :: F (Maybe Text)             "contacts"  "Контактные лица"
-  , services     :: F (Maybe (Vector (IdentI ServiceNames)))
-                    "services"  "Услуги, предоставляемые по программе"
-  , checkPeriod  :: F (Maybe TInt)
-                    "checkPeriod"  "Межсервисный интервал по умолчанию"
-  , validFor     :: F (Maybe TInt)
-                    "validFor"   "Срок действия программы по умолчанию"
-  , contract     :: F (Maybe Reference)        "contract" "Шаблон договора"
-  , logo         :: F (Maybe Reference)        "logo" "Логотип"
-  , help         :: F (Maybe Text)             "help" "Справка"
-  , dealerHelp   :: F (Maybe Text)             "dealerHelp" "Справка для дилеров"
-  } deriving Typeable
 
 mkIdents [t|SubProgram|]
  [ ("vwMotor", 1)
@@ -54,6 +34,13 @@ instance Model SubProgram where
                 , setMeta "regexp" "email" mailAddr
                 , widget "text" checkPeriod
                 , widget "text" validFor
+                , setMeta "reference-label"
+                  (A.String "Добавить услугу") services
+                , setMeta "adoptReferences" (A.Bool True) services
+                , setMeta "model"
+                  (A.String $
+                   modelName (modelInfo :: ModelInfo SubProgramService))
+                  services
                 , textarea help
                 , textarea dealerHelp
                 , setMeta "widget" "inline-uploader" contract
