@@ -16,7 +16,7 @@ import qualified Data.Vector as V
 import Snap.Snaplet.PostgresqlSimple
 import Snap
 
-import Carma.Model.SubProgram as SubProgram
+import Carma.Model.SubProgram.Type as SubProgram
 
 import AppHandlers.PSA.Base
 import AppHandlers.Util

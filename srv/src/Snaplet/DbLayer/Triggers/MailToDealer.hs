@@ -27,7 +27,8 @@ import Network.Mail.Mime
 import Carma.HTTP
 
 import Carma.Model
-import qualified Carma.Model.SubProgram as SubProgram
+import Carma.Model.SubProgram
+import qualified Carma.Model.SubProgram.Type as SubProgram
 
 import AppHandlers.PSA.Base
 
@@ -198,7 +199,7 @@ sendRepTowageMail :: MonadTrigger m b =>
                   -- ^ Towage service reference.
                   -> ByteString
                   -- ^ Reference to a previous service for this car.
-                  -> (IdentI SubProgram.SubProgram)
+                  -> (IdentI SubProgram)
                   -> m b ()
 sendRepTowageMail caseRef towageRef prevRef subprogram = do
   cfg      <- liftDb getSnapletUserConfig

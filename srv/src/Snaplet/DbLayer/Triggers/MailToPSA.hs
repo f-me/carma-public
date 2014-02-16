@@ -31,7 +31,7 @@ import Network.Mail.Mime
 import Snap.Snaplet (getSnapletUserConfig)
 
 import qualified Carma.Model.Engine as Engine
-import qualified Carma.Model.SubProgram as SubProgram
+import qualified Carma.Model.SubProgram.Type as SubProgram
 
 import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
