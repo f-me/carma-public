@@ -112,7 +112,7 @@ CREATE TABLE "VinFormat"
 
   , checkPeriodLoad          bool NOT NULL DEFAULT TRUE
   , checkPeriodTitle         text NOT NULL DEFAULT 'Межсервисный интервал'
-  , checkPeriodDefault       int2
+  , checkPeriodDefault       int4
   , checkPeriodRequired      bool NOT NULL DEFAULT TRUE
 
   , checkTypeLoad            bool NOT NULL DEFAULT TRUE
