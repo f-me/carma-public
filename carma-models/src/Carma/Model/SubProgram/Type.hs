@@ -1,6 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Carma.Model.SubProgram.Type
-    ( SubProgram(..)
-    )
 
 where
 
@@ -8,6 +8,7 @@ import Data.Text
 import Data.Typeable
 
 import Data.Model
+import Data.Model.TH
 
 import Carma.Model.Types (TInt)
 import Carma.Model.LegacyTypes (Reference)
@@ -60,3 +61,11 @@ data SubProgram = SubProgram
                    "dealerHelp"
                    "Справка для дилеров"
   } deriving Typeable
+
+
+mkIdents [t|SubProgram|]
+ [ ("vwMotor", 1)
+ , ("vwCargo", 2)
+ , ("peugeot", 3)
+ , ("citroen", 4)
+ ]
