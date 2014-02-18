@@ -67,6 +67,18 @@
       ]
     },
     { "type"    : "dropdown",
+      "name"    : "search",
+      "label"   : "Поиск",
+      "permissions": ["searchCase"],
+      "screens" : [
+        { "name"  : "servicesSearch",
+          "label" : "Поиск услуг",
+          "type"  : "li",
+          "permissions": ["searchCase"]
+        }
+      ]
+    },
+    { "type"    : "dropdown",
       "name"    : "more",
       "label"   : "Ещё",
       "permissions": ["reportManager", "billManager", "userAdmin", "userViewer", "parguy", "vinAdmin", "psaanalyst", "lovAdmin", "lovViewer", "core"],
@@ -115,11 +127,6 @@
           "label" : "Редактирование справочников",
           "type"  : "li",
           "permissions": ["lovAdmin", "lovViewer"]
-        },
-        { "name"  : "servicesSearch",
-          "label" : "Поиск услуг",
-          "type"  : "li",
-          "permissions": ["searchCase"]
         }
       ]
     }
