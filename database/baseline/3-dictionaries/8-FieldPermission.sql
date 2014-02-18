@@ -1591,6 +1591,12 @@ insert into "FieldPermission" (role, model, field, r, w)
         from "FieldPermission"
         where model = 'case');
 
+-- Case field permissios made from case
+insert into "FieldPermission" (role, model, field, r, w)
+(select role, 'Call' as model, field, r, w
+        from "FieldPermission"
+        where model = 'call');
+
 
 GRANT ALL ON "FieldPermission" TO carma_search;
 GRANT ALL ON "FieldPermission" TO carma_db_sync;
