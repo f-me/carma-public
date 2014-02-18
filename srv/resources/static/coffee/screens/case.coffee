@@ -25,11 +25,16 @@ define [ "utils"
       setCommentsHandler()
 
       # show linked contract if it there
-      if kvm["contract"]() then showContract kvm["contract"]()
+      if kvm["contract"]() then showContract fetchContract kvm["contract"]()
 
       # change contract view, when user choose another contract
       kvm["contract"].subscribe (id) ->
-        if id then showContract id else hideContract()
+        if id
+          c = fetchContract id
+          showContract c
+          fillCarParams c, kvm
+        else
+          hideContract()
 
       $("#empty-fields-placeholder").html(
           Mustache.render($("#empty-fields-template").html(), ctx))
@@ -100,54 +105,79 @@ define [ "utils"
       $("body").off "change.input"
       $('.navbar').css "-webkit-transform", ""
 
-    showContract = (id)->
-      modelName = "Contract"
-      contract = null
-      $.bgetJSON "/_/#{modelName}/#{id}", (c) ->
-        contract = c
+    showContract = (contract)->
+      if contract.make
+        carMakeDict = new Dict.dicts.ModelDict
+          dict: 'CarMake'
+        contract.make = carMakeDict.getLab contract.make
 
-        if contract.make
-          carMakeDict = new Dict.dicts.ModelDict
-            dict: 'CarMake'
-          contract.make = carMakeDict.getLab contract.make
+      if contract.model
+        carModelDict = new Dict.dicts.ModelDict
+          dict: 'CarModel'
+        contract.model = carModelDict.getLab contract.model
 
-        if contract.model
-          carModelDict = new Dict.dicts.ModelDict
-            dict: 'CarModel'
-          contract.model = carModelDict.getLab contract.model
+      if contract.subprogram
+        subprogramDict = new Dict.dicts.ComputedDict(dict: "usermetaPrograms")
+        contract.subprogram = subprogramDict.getLab contract.subprogram
 
-        if contract.subprogram
-          subprogramDict = new Dict.dicts.ComputedDict(dict: "usermetaPrograms")
-          contract.subprogram = subprogramDict.getLab contract.subprogram
+      if contract.committer
+        usersDict = new Dict.dicts.ModelDict
+          dict: 'Usermeta'
+          meta:
+            dictionaryKey: 'id'
+            dictionaryLabel: 'realName'
+        contract.committer = usersDict.getLab contract.committer
 
-        if contract.committer
-          usersDict = new Dict.dicts.ModelDict
-            dict: 'Usermeta'
-            meta:
-              dictionaryKey: 'id'
-              dictionaryLabel: 'realName'
-          contract.committer = usersDict.getLab contract.committer
+      contract.isActive = if contract.isActive then "Да" else "Нет"
 
-        contract.isActive = if contract.isActive then "Да" else "Нет"
+      if contract.seller
+        carSellerDict = new Dict.dicts.ModelDict
+          dict: 'Partner'
+          meta:
+            dictionaryKey: 'id'
+            dictionaryLabel: 'name'
+        contract.seller = carSellerDict.getLab contract.seller
 
-        if contract.seller
-          carSellerDict = new Dict.dicts.ModelDict
-            dict: 'Partner'
-            meta:
-              dictionaryKey: 'id'
-              dictionaryLabel: 'name'
-          contract.seller = carSellerDict.getLab contract.seller
-
-        model = global.model modelName
-        mapper = new DataMap.Mapper(model)
-        kvm = main.buildKVM model, {fetched: mapper.s2cObj contract}
-        $("#contract").html(
-          Mustache.render($("#contract-content-template").html(), {title: "Контракт"}))
-        ko.applyBindings(kvm, el("contract-content"))
+      model = global.model 'Contract'
+      mapper = new DataMap.Mapper(model)
+      kvm = main.buildKVM model, {fetched: mapper.s2cObj contract}
+      $("#contract").html(
+        Mustache.render($("#contract-content-template").html(), {title: "Контракт"}))
+      ko.applyBindings(kvm, el("contract-content"))
 
     hideContract = ->
       $("#contract").empty()
 
+    fetchContract = (id) ->
+      JSON.parse ($.bgetJSON "/_/Contract/#{id}").responseText
+
+    fillCarParams = (c, kvm) ->
+      unless c.buyDate and kvm.car_buyDate()
+        kvm.car_buyDate c.buyDate
+      unless c.carClass and kvm.car_class()
+        kvm.car_class c.carClass
+      unless c.color and kvm.car_color()
+        kvm.car_color c.color
+      unless c.engineType and kvm.car_engine()
+        kvm.car_engine c.engineType
+      unless c.engineVolume and kvm.car_liters()
+        kvm.car_liters c.engineVolume
+      unless c.make and kvm.car_make()
+        kvm.car_make c.make
+      unless c.makeYear and kvm.car_makeYear()
+        kvm.car_makeYear c.makeYear
+      unless c.model and kvm.car_model()
+        kvm.car_model c.model
+      unless c.plateNum and kvm.car_plateNum()
+        kvm.car_plateNum c.plateNum
+      unless c.seller and kvm.car_seller()
+        kvm.car_seller c.seller
+      unless c.startMileage and kvm.car_mileage()
+        kvm.car_mileage c.startMileage
+      unless c.transmission and kvm.car_transmission()
+        kvm.car_transmission c.transmission
+      unless c.vin and kvm.car_vin()
+        kvm.car_vin c.vin
 
     { constructor       : setupCaseMain
     , destructor        : removeCaseMain
