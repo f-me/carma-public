@@ -31,7 +31,7 @@ import Carma.Model.CarClass     (CarClass)
 import Carma.Model.CarMake      (CarMake)
 import Carma.Model.CarModel     (CarModel)
 import Carma.Model.CheckType    (CheckType)
-import Carma.Model.Colors       (Colors)
+import Carma.Model.Colors as Color (label)
 import Carma.Model.LegalForm    (LegalForm)
 import Carma.Model.Partner      (Partner)
 import Carma.Model.SubProgram   (SubProgram)
@@ -94,8 +94,7 @@ data Contract = Contract
   , carClass         :: F (Maybe (IdentI CarClass))
                         "carClass"
                         "Класс автомобиля"
-  -- TODO Unbounded dictionary #1305
-  , color            :: F (Maybe (IdentT Colors))
+  , color            :: F (Maybe Text)
                         "color"
                         "Цвет"
   , transmission     :: F (Maybe (IdentI Transmission))
@@ -137,6 +136,7 @@ data Contract = Contract
   , legalForm        :: F (Maybe (IdentI LegalForm))
                         "legalForm"
                         "Физическое/юридическое лицо"
+  -- This references Usermeta object, not Snap.Auth user!
   , committer        :: F (IdentI Usermeta)
                         "committer"
                         "Пользователь, внёсший данные"
@@ -161,6 +161,7 @@ instance Model Contract where
                 , setMeta "regexp" "phone" phone
                 , setMeta "regexp" "plateNum" plateNum
                 , setMeta "regexp" "vin" vin
+                , color `completeWith` Color.label
                 ]
 
 
