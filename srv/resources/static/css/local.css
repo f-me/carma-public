@@ -289,3 +289,12 @@ table.dataTable tr.selected-row td.sorting_1 {
   position: relative;
   z-index: 1030;
 }
+
+.finded {
+  background-color: #fefa4f;
+  color: #000;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  padding: 2px 4px;
+}
