@@ -79,7 +79,7 @@ COPY "SubProgram_tmp" (id, program, label, value) FROM stdin;
 53	Независимость BMW /B2B	Основная	nz
 54	АВИЛОН VW /B2B	Основная	avilon
 55	VW Центр Внуково /B2B	Основная	vnukovo
-56	Ирито	Базовая	irito
+56	Ирито	Базовая	rnbase
 57	Ирито	Продвинутая	iritoadv
 58	Aston Martin	Основная	aston
 59	Bentley	Основная	bentley
