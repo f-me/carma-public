@@ -103,7 +103,8 @@ INSERT INTO "Contract"
        checkperiod,
        subprogram,
        ctime)
-      SELECT
+      SELECT DISTINCT ON
+      (row_to_json(row(carvin,cardNumber,carplateNum,cardowner))::text)
        cardowner,
        carvin,
        cardnumber,
