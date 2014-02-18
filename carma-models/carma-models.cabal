@@ -40,7 +40,6 @@ library
     Carma.Model.Program,
     Carma.Model.ProgramType,
     Carma.Model.SubProgram,
-    Carma.Model.SubProgram.Type,
     Carma.Model.SubProgramService,
     Carma.Model.Transmission,
     Carma.Model.VinFormat,
@@ -86,7 +85,9 @@ library
     Carma.Model.Usermeta
 
   other-modules:
-    Data.Model.TH
+    Data.Model.TH,
+
+    Carma.Model.SubProgram.Type
 
   hs-source-dirs:    src
   build-depends:
