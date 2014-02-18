@@ -128,6 +128,7 @@ COPY "SubProgram_tmp" (id, program, label, value) FROM stdin;
 102	РАМК	Основная	ra
 103	Тестовая программа	Тест 1	test1
 104	Тестовая программа	Тест 2	test2
+105	Аларм Ассистанс	Основная	alarmass
 \.
 
 INSERT INTO "SubProgram" (id, label, parent, value)

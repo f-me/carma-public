@@ -13,7 +13,7 @@ COPY "Program" (id, label, pType) FROM stdin;
 2	ВТБ24 /B2C	2
 3	VW Гарантия Мобильности /B2B	1
 4	GM Assistance /B2B	1
-5	Chevrolet Korea	\N
+5	Аларм Ассистанс	\N
 6	Ford - помощь на дорогах /B2B	1
 7	Мапфре /B2B	1
 8	KIA /B2B	1
