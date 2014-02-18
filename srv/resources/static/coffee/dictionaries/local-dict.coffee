@@ -14,7 +14,8 @@ define ["dictionaries/meta-dict"], (m) ->
           @dictValueCache = null
           @dictLabelCache = null
         @kvm[@parent].subscribe (val) => updateChildren (val)
-        updateChildren null
+      else if @parent
+        @source = _.union.apply @, _.values @s.entries
       else
         @source = @s.entries
 

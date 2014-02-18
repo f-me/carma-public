@@ -26,19 +26,20 @@ define [ "utils"
   resultFields =
     Call: [
       "callDate"
-      "carContact_phone1"
-      "carContact_phone2"
-      "carContact_phone3"
-      "carContact_phone4"
-      "carContact_ownerPhone1"
-      "carContact_ownerPhone2"
-      "carContact_ownerPhone3"
-      "carContact_ownerPhone4"
-      "carContact_name"
-      "carContact_ownerName"
+      "callerName_phone1"
+      "callerName_phone2"
+      "callerName_phone3"
+      "callerName_phone4"
+      "callerName_ownerPhone1"
+      "callerName_ownerPhone2"
+      "callerName_ownerPhone3"
+      "callerName_ownerPhone4"
+      "callerName_name"
+      "callerName_ownerName"
       "program"
       "wazzup"
       "callTaker"
+      "callType"
       ]
 
   all = $.extend true, {}, allModels
@@ -80,7 +81,13 @@ define [ "utils"
       searchKVM.showFields( _.reject searchKVM.showFields(),
                            (f) -> _.contains fs, f.name)
 
-    searchKVM.showFields.set([ "phone", "callDate" ])
+    searchKVM.showFields.set([ "phone"
+                               "callDate"
+                               "callTaker"
+                               "callType"
+                               "program"
+                               "wazzup"
+                            ])
 
     searchKVM.searchResults = SUtils.mkResultObservable searchKVM, all
 
@@ -94,7 +101,9 @@ define [ "utils"
     ko.applyBindings { kvm: searchKVM, wrapFields: "search-wrap"},
                      $("#search-conditions")[0]
 
-    ko.applyBindings { kvm: searchKVM, f: _.last(searchKVM._meta.model.fields) },
+    ko.applyBindings { kvm: searchKVM
+                     , f: _.last(searchKVM._meta.model.fields)
+                     },
                      $("#show-field")[0]
 
     # all about results
@@ -102,9 +111,9 @@ define [ "utils"
     rfields = smodel.mkFieldsDynView searchKVM, tg,
       [ { name: 'phone',    fixed: true }
       , { name: 'callDate', fixed: true }
-      , { name: 'Call_program'          }
-      , { name: 'Call_wazzup'           }
-      , { name: 'Call_callTaker'        }
+      , { name: 'program'               }
+      , { name: 'wazzup'                }
+      , { name: 'callTaker'             }
       ]
 
     ctx =
@@ -112,10 +121,12 @@ define [ "utils"
       showFields: rfields
       searchKVM: searchKVM
 
-    searchKVM.searchResults.set_sorter = (name, ord) -> searchKVM.sort(name, ord)
+    searchKVM.searchResults.set_sorter =
+     (name, ord) -> searchKVM.sort(name, ord)
 
     searchKVM.sort = (fname, ord) ->
-      fs = arrToObj 'name', searchKVM._meta.model.fields, (v) -> v.meta.search?.original
+      fs = arrToObj 'name', searchKVM._meta.model.fields, (v) ->
+        v.meta.search?.original
       searchKVM._meta.q.sort(fs[fname], ord)
 
     ko.applyBindings ctx, $("#search-results")[0]
