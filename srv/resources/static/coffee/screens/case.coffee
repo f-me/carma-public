@@ -29,12 +29,7 @@ define [ "utils"
 
       # change contract view, when user choose another contract
       kvm["contract"].subscribe (id) ->
-        if id
-          c = fetchContract id
-          showContract c
-          fillCarParams c, kvm
-        else
-          hideContract()
+        if id then showContract fetchContract id else hideContract()
 
       $("#empty-fields-placeholder").html(
           Mustache.render($("#empty-fields-template").html(), ctx))
@@ -150,34 +145,6 @@ define [ "utils"
 
     fetchContract = (id) ->
       JSON.parse ($.bgetJSON "/_/Contract/#{id}").responseText
-
-    fillCarParams = (c, kvm) ->
-      unless c.buyDate and kvm.car_buyDate()
-        kvm.car_buyDate c.buyDate
-      unless c.carClass and kvm.car_class()
-        kvm.car_class c.carClass
-      unless c.color and kvm.car_color()
-        kvm.car_color c.color
-      unless c.engineType and kvm.car_engine()
-        kvm.car_engine c.engineType
-      unless c.engineVolume and kvm.car_liters()
-        kvm.car_liters c.engineVolume
-      unless c.make and kvm.car_make()
-        kvm.car_make c.make
-      unless c.makeYear and kvm.car_makeYear()
-        kvm.car_makeYear c.makeYear
-      unless c.model and kvm.car_model()
-        kvm.car_model c.model
-      unless c.plateNum and kvm.car_plateNum()
-        kvm.car_plateNum c.plateNum
-      unless c.seller and kvm.car_seller()
-        kvm.car_seller c.seller
-      unless c.startMileage and kvm.car_mileage()
-        kvm.car_mileage c.startMileage
-      unless c.transmission and kvm.car_transmission()
-        kvm.car_transmission c.transmission
-      unless c.vin and kvm.car_vin()
-        kvm.car_vin c.vin
 
     { constructor       : setupCaseMain
     , destructor        : removeCaseMain
