@@ -47,7 +47,7 @@ import Data.Model
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.Program as Program
-import qualified Carma.Model.SubProgram.Type as SubProgram
+import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role as Role
 import qualified Carma.Model.SmsTemplate as SmsTemplate
 
