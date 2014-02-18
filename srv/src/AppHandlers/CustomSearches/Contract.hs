@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-|
 
@@ -50,12 +51,11 @@ extraContractFieldNames = map fieldNameE extraContractFields
 
 
 -- | Wrapper for 'searchContracts' query results, a subset of
--- 'Contract' fields with match type annotation.
+-- 'Contract' fields with @expired@ flag.
 --
 -- 'FromRow'/'ToJSON' instance uses field instances from carma-models.
 data SearchResult =
     SearchResult { cid         :: (IdentI Contract)
-                 , match       :: Text
                  , expired     :: Maybe Bool
                  -- ^ Name of a field which matched.
                  , identifiers :: $(fieldTypesQ C.identifiers)
@@ -63,12 +63,11 @@ data SearchResult =
                  }
 
 instance FromRow SearchResult where
-    fromRow = SearchResult <$> field <*> field <*> field <*> fromRow <*> fromRow
+    fromRow = SearchResult <$> field <*> field <*> fromRow <*> fromRow
 
 instance ToJSON SearchResult where
-    toJSON (SearchResult i t e vals (cm, cl)) =
+    toJSON (SearchResult i e vals (cm, cl)) =
         object $ [ "id"       .= i
-                 , "_match"   .= t
                  , "_expired" .= e
                  ] ++ (zip C.identifierNames listVals)
                    ++ (zip extraContractFieldNames [toJSON cm, toJSON cl])
@@ -79,20 +78,20 @@ instance ToJSON SearchResult where
           listVals =
               case jsonVals of
                 A.Array vec -> V.toList vec
-                _           -> error "(ToJSON identifierTypes) is broken"
+                _           -> error "(toJSON identifierTypes) is broken"
 
 
 -- | Read @query@, @program@ (optional), @subprogram@ (optional),
 -- @limit@ (defaults to 100) parameters and return list of contracts
 -- with matching identifier fields. Every result in the list contains
--- a subset of contract fields, @_match@ field with matched field name
--- and @_expired@ which is a boolean flag indicating whether a
--- contract is expired or not.
+-- a subset of contract fields and @_expired@ which is a boolean flag
+-- indicating whether a contract is expired or not.
 --
 -- TODO Program/subprogram filtering.
 --
--- TODO Try rewriting subqueries with carma-models SQL (possibly
--- joining dictionaries on the server).
+-- TODO Try rewriting the query with carma-models SQL. @_expired@ is
+-- the only reason we build a custom query here and use SearchResult
+-- wrapper type.
 searchContracts :: AppHandler ()
 searchContracts = do
   pid <- getIntParam "program"
@@ -107,39 +106,25 @@ searchContracts = do
 
   -- Form query template and all of its parameters. Contract
   -- identifiers (length M) and extraContractFields (length N) define
-  -- how many subqueries are produced and what fields are included in
-  -- the result.
-
-  let -- Search contract by one field. Parameters (5): quoted field
-      -- name, Contract table name, field name, query string, limit.
-      fieldSubQuery = concat
-          [ "(SELECT id, ? as _match FROM \"?\" "
-          , "WHERE lower(?) LIKE '%' || lower(?) || '%' LIMIT ?)"
-          ]
-      -- List of sets of subquery parameters, each having ToRow
-      -- instance
-      subParams = map (\fn -> (()
-                               :* fn
-                               :* contractTable
-                               :* (PT fn)
-                               :* q
-                               :* limit))
-                  C.identifierNames
-      unite = intercalate " UNION "
+  -- what fields are included in the result.
+  let -- Predicate which filters contracts by one field. Parameters
+      -- (2): field name, query string.
+      fieldPredicate =
+          "(lower(?) LIKE '%' || lower(?) || '%')"
+      fieldParams = zip (map PT C.identifierNames) $ repeat q
       totalQuery = intercalate " "
-          [ "WITH sources AS ("
-          -- 5*M parameters
-          , unite (map (const fieldSubQuery) C.identifierNames)
-          , ")"
-          , "SELECT DISTINCT ON(c.id) c.id, _match,"
-          -- 2 more parameters: contract start/end date
+          [ "SELECT DISTINCT ON(c.id) c.id,"
+          -- 2 parameters: contract start/end date field name
           , "((now() < ?) or (? < now())),"
-          -- M + N more parameters: field list.
+          -- M + N more parameters: selected fields.
           , intercalate "," $
             map (const "c.?") selectedFieldsParam
           -- 2 more parameters: Contract table name, limit.
-          , "FROM sources, \"?\" c"
-          , "WHERE c.id IN (SELECT id FROM sources)"
+          , "FROM \"?\" c"
+          , "WHERE"
+          -- 2*M parameters: identifier fields and query
+          , intercalate " OR " $
+            map (const fieldPredicate) C.identifierNames
           , "ORDER BY c.id DESC LIMIT ?;"
           ]
       -- Fields selected from matching rows
@@ -150,13 +135,12 @@ searchContracts = do
 
   res <- withPG pg_search $ \c -> query c (fromString totalQuery)
          (()
-          -- 5*M
-          :. (ToRowList subParams)
           :. (PT $ fieldName C.validSince, PT $ fieldName C.validUntil)
           -- M + N
           :. (selectedFieldsParam)
           -- 2
-          :. (Only contractTable
-              :* limit))
+          :. Only contractTable
+          :. (ToRowList fieldParams)
+          :. Only limit)
 
   writeJSON (res :: [SearchResult])
