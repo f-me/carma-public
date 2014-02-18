@@ -88,7 +88,21 @@ define ["utils"], ->
         if "#{o.model}_#{o.name}" != f.name
           delete groups["#{o.model}_#{o.name}"]
         groups[f.name][o.model] ?= []
-        groups[f.name][o.model].push fh[o.model][o.name]
+        # we don't need some fields combined into groups, if we have
+        # exact match, we don't need tham in the table, and we may not get tham
+        # in resutlt at all, so just ignore this case
+        if _.isUndefined fh[o.model][o.name] and
+            (f.meta.search.matchType == "MatchExact" or
+             f.meta.search.matchType == "MatchRefExist")
+          continue
+        # if we can't ignore field and have to draw something in the table
+        # but don't have such field in given model, we better fail
+        # during init
+        else if _.isUndefined fh[o.model][o.name]
+          throw new Error "Can't make field group, can't find" +
+            " field for #{o.model}.#{o.name}"
+        else
+          groups[f.name][o.model].push fh[o.model][o.name]
 
       labels[f.name] = f.meta.label if f.meta?.label?
     return { labels: labels, groups: groups }
