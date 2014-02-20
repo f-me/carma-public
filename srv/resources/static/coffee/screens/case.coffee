@@ -25,11 +25,15 @@ define [ "utils"
       setCommentsHandler()
 
       # show linked contract if it there
-      if kvm["contract"]() then showContract fetchContract kvm["contract"]()
+      if kvm["contract"]()
+        showContract (fetchContract kvm["contract"]()), kvm
 
       # change contract view, when user choose another contract
       kvm["contract"].subscribe (id) ->
-        if id then showContract fetchContract id else hideContract()
+        if id
+          showContract (fetchContract id), kvm
+        else
+          hideContract()
 
       $("#empty-fields-placeholder").html(
           Mustache.render($("#empty-fields-template").html(), ctx))
@@ -100,7 +104,7 @@ define [ "utils"
       $("body").off "change.input"
       $('.navbar').css "-webkit-transform", ""
 
-    showContract = (contract)->
+    showContract = (contract, caseKVM)->
       if contract.make
         carMakeDict = new Dict.dicts.ModelDict
           dict: 'CarMake'
@@ -136,6 +140,13 @@ define [ "utils"
       model = global.model 'Contract'
       mapper = new DataMap.Mapper(model)
       kvm = main.buildKVM model, {fetched: mapper.s2cObj contract}
+
+      kvm.isExpired = ko.computed ->
+        callDate = Date.parse(caseKVM.callDate()).getTime()
+        validSince = Date.parse(contract.validSince).getTime()
+        validUntil = Date.parse(contract.validUntil).getTime()
+        callDate < validSince or callDate > validUntil
+
       $("#contract").html(
         Mustache.render($("#contract-content-template").html(), {title: "Контракт"}))
       ko.applyBindings(kvm, el("contract-content"))
