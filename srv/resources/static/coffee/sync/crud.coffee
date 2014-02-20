@@ -37,7 +37,7 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
     # other case is when fetch failed, but some code initialize
     # itself with nulls, we also don't want to break data it such case
     # issue #1568
-    haveBefore: (b, a) => b == a or (_.isUndefined b and _.isNull a)
+    haveBefore: (b, a) => b == a or ((_.isUndefined b) and (_.isNull a))
 
     save: (cb) =>
       cb ?= _.identity # just to be sure we have something to call
