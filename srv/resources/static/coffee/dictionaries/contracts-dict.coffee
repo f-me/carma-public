@@ -47,13 +47,14 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
       html = ""
       # show matched and required fields
       _.each _.union(req, fs), (f) ->
-        switch f
-          when "vin"
-            html += "<b>#{c[f]}</b>"
-          when "_expired"
-            html += "#{c[f]}"
-          else
-            html += "<br/>#{c[f]}"
+        if c[f]
+          switch f
+            when "vin"
+              html += "<b>#{c[f]}</b>"
+            when "_expired"
+              html += "#{c[f]}"
+            else
+              html += "<br/>#{c[f]}"
       html
 
     id2val: (i) ->
