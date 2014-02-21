@@ -250,7 +250,7 @@ protoDictLookup iname dictTableName =
      (SELECT DISTINCT
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms))))
       FROM "?");
--- TODO label/synonyms field names
+     -- TODO label/synonyms field names
      WITH dict AS
      (SELECT DISTINCT ON (label) id AS did,
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms)))) AS label
@@ -278,7 +278,8 @@ protoPartnerLookup iname =
     [sql|
      UPDATE vinnie_proto SET ?=null WHERE lower(trim(both ' ' from ?)) NOT IN
      (SELECT DISTINCT
-      lower(trim(both ' ' from (unnest(ARRAY[name, code]))))
+      -- TODO name/code/synonyms field names
+      lower(trim(both ' ' from (unnest(ARRAY[name, code] || synonyms))))
       FROM "?");
 
      WITH dict AS
@@ -313,8 +314,8 @@ protoSubprogramLookup pid sid iname =
     execute
     [sql|
      UPDATE vinnie_proto SET ?=? WHERE lower(trim(both ' ' from ?)) NOT IN
-     (SELECT
-      lower(trim(both ' ' from s.label))
+     (SELECT DISTINCT
+      lower(trim(both ' ' from (unnest(ARRAY[s.label] || synonyms))))
       FROM "?" s, "?" p WHERE s.parent = p.id AND p.id = ?);
 
      -- TODO label/parent fields

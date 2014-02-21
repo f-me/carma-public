@@ -1165,6 +1165,7 @@ parguy	partner	isPayBackConfirmed	t	t
 parguy	partner	makes	t	t
 parguy	partner	mtime	t	t
 parguy	partner	name	t	t
+parguy	partner	synonyms	t	t
 parguy	partner	personInCharge	t	t
 parguy	partner	phone1	t	t
 parguy	partner	phones	t	t
@@ -1205,6 +1206,8 @@ lovViewer	SubProgram	label	t	f
 lovAdmin	SubProgram	label	t	t
 lovViewer	SubProgram	active	t	f
 lovAdmin	SubProgram	active	t	t
+lovViewer	SubProgram	synonyms	t	f
+lovAdmin	SubProgram	synonyms	t	t
 lovViewer	SubProgram	value	t	f
 lovAdmin	SubProgram	value	t	t
 lovViewer	SubProgram	mailAddr	t	f
