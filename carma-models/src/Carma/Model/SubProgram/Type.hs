@@ -5,6 +5,7 @@ where
 
 import Data.Text
 import Data.Typeable
+import Data.Vector
 
 import Data.Model
 
@@ -25,6 +26,9 @@ data SubProgram = SubProgram
   , active      :: F Bool
                    "active"
                    "Активна"
+  , synonyms    :: F (Maybe (Vector Text))
+                   "synonyms"
+                   "Синонимы"
   , value       :: F Text
                    "value"
                    "Внутренняя метка"
