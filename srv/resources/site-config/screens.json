@@ -75,6 +75,11 @@
           "label" : "Поиск услуг",
           "type"  : "li",
           "permissions": ["searchCase"]
+        },
+        { "name"  : "callsSearch",
+          "label" : "Поиск звонков",
+          "type"  : "li",
+          "permissions": ["searchCall"]
         }
       ]
     },
