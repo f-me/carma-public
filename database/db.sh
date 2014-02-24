@@ -103,7 +103,7 @@ function update_db {
     fi
   fi
 
-  if [[ $2 != "--dev" ]]; then
+  if [[ $1 != "--dev" ]]; then
     ORIGROOT=${PWD}
     TMPROOT=$(mktemp -d)
     git clone --single-branch .. ${TMPROOT}
@@ -139,7 +139,7 @@ function update_db {
       $PSQL -c "insert into version (A,B,C) values ($X,$Y,$Z);"
     fi
   done
-  if [[ $2 != "--dev" ]]; then
+  if [[ $1 != "--dev" ]]; then
       cd ${ORIGROOT}
       rm -rf ${TMPROOT}
   fi
