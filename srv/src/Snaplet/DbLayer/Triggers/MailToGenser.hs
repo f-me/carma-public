@@ -27,13 +27,15 @@ q = [sql|
         where email->>'key' = 'list'),
     message as
       (select
+          c.id as case_id,
           t.id as service_id,
           p.id as partner_id,
-          p.foreignIdent as partner_foreignId,
+          p.foreignIdent as partner_foreign_id,
           p.name as partner_name,
           to_char(t.createTime at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
             as svc_create_time,
-          c.id as caseId,
+          to_char(t.times_expectedServiceStart at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+            as svc_start_time,
           (case ?
               when 'serviceOk' then 'Услуга оказана'
               when 'serviceOrdered' then 'Услуга заказана'
@@ -49,8 +51,6 @@ q = [sql|
           coalesce(t.towAddress_address, '') as tow_addr,
           coalesce(diag.label, c.comment, '') as problem_desc,
           coalesce(c.caseAddress_address, '') as case_addr,
-          to_char(t.times_expectedServiceStart at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
-            as svc_start_time,
           (case
               when t.payment_paidByClient ~ E'^\\d{1,7}(\\.\\d{1,2}){0,1}$'
               then t.payment_paidByClient::numeric
