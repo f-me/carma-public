@@ -10,13 +10,13 @@ define ["dictionaries/local-dict"], (ld) ->
         @dictValueCache = null
         @dictLabelCache = null
 
-        kvm.fieldsList ''
+        kvm.fieldsList null
 
       kvm.fieldsList.subscribe (v) =>
         return unless v
         $_ = _.pluck (ko.utils.unwrapObservable kvm.showFields), "name"
         $_ = $_.concat v
-        $_ = _.map $_, (v) => @fldsh[v]
+        $_ = _.compact _.map $_, (v) => @fldsh[v]
         kvm.showFields($_)
 
     getLab: (val) -> @dictValues()[val]
