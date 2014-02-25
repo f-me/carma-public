@@ -25,6 +25,8 @@ callSearchParams
     , ("program", one program)
     , ("wazzup", fuzzy $ one wazzup)
     , ("callType", one callType)
+    , ("caller", fuzzy $ matchAny
+        [one callerName_name, one callerName_ownerName])
     ]
 
 instance Model Call where
