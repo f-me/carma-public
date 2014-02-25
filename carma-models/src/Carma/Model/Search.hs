@@ -55,7 +55,7 @@ data MatchType
 -- FIXME: check if field type \in {Text, Int, ..}
 one
   :: forall m t nm desc
-  . (FromJSON t, ToField t, DefaultFieldView t
+  . (FromJSON t, ToField t, DefaultFieldView t, Typeable t
     ,SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]
 one f =
@@ -65,7 +65,9 @@ one f =
     , modelName = Model.modelName mi
     , fieldName = Model.fieldName f
     , fieldDesc = Wrap $ (modelFieldsMap mi HM.! Model.fieldName f)
-        { fd_view = defaultFieldView (const Field :: m -> F t nm desc) }
+        { fd_view = defaultFieldView (const Field :: m -> F t nm desc)
+        , fd_type = typeOf (undefined :: t)
+        }
     , matchType = MatchExact
     , escapeVal = \conn qTpl val ->
         case fromJSON val :: Aeson.Result t of
@@ -79,7 +81,7 @@ one f =
 
 listOf
   :: forall m t nm desc
-  . (FromJSON t, ToField t, DefaultFieldView (Vector t)
+  . (FromJSON t, ToField t, DefaultFieldView (Vector t), Typeable (Vector t)
     ,SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]
 listOf _
@@ -168,7 +170,9 @@ renderPredicate conn pMap vals = do
 hs2pgtype :: TypeRep -> Text
 hs2pgtype t
   | t == typeOf (undefined :: Interval UTCTime) = "tstzrange"
-  | otherwise  = error "Unknown type in hs2pgtype"
+  | t == typeOf (undefined :: Interval (Maybe UTCTime)) = "tstzrange"
+  | t == typeOf (undefined :: Interval LegacyDatetime) = "tstzrange"
+  | otherwise  = error $ "Unknown type in hs2pgtype: " ++ show t
 
 predicatesFromParams
   ::PG.Connection -> Aeson.Object -> [(Text, [Predicate m])]
