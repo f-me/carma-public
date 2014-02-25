@@ -24,6 +24,7 @@ define [ "search/screen"
                     "callType"
                     "program"
                     "wazzup"
+                    "caller"
                   ]
     defaultSort: { fields: [{ model: "Call", name: "id" }], order: "desc" }
     allowedResultFields:
