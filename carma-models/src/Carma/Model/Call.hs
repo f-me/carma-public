@@ -39,6 +39,11 @@ dicts =
   [ dict callType $ (dictOpt "CallTypes")
       {dictParent = Just $ Model.fieldName callerType}
   , dict callTaker $ (dictOpt "users")
+  ,dict program $ (dictOpt "casePrograms")
+              { dictType    = Just "ComputedDict"
+              , dictBounded = True
+              , dictTgtCat  = Just "program"
+              }
   ]
 
 data Call = Call
