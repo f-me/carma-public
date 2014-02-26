@@ -278,6 +278,7 @@ fillFromContract contract objId = do
       zipWithM_ (maybe (return ()) . (setIfEmpty objId))
                 (map (T.encodeUtf8 . fieldNameE . snd) contractToCase)
                 row
+      set objId "vinChecked" "base"
       return True
     _ -> error "fillFromContract: Contract primary key is broken"
 
