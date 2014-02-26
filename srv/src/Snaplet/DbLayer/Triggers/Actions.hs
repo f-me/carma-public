@@ -167,7 +167,11 @@ actions
           ,("car_plateNum", [\objId val ->
             when (B.length val > 5)
               $ set objId "car_plateNum" $ bToUpper val])
-          ,("contract", [\objId val -> void $ fillFromContract val objId])
+          ,("contract", [\objId val ->
+                         fillFromContract val objId >>= \case
+                           True -> set objId "vinChecked" "base"
+                           False -> return ()
+                        ])
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
           ])
@@ -278,7 +282,6 @@ fillFromContract contract objId = do
       zipWithM_ (maybe (return ()) . (setIfEmpty objId))
                 (map (T.encodeUtf8 . fieldNameE . snd) contractToCase)
                 row
-      set objId "vinChecked" "base"
       return True
     _ -> error "fillFromContract: Contract primary key is broken"
 
