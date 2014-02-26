@@ -1,4 +1,7 @@
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
+
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Prelude hiding (log)
@@ -44,6 +47,8 @@ import Carma.HTTP (read1Reference)
 
 
 import Data.Model
+import qualified Carma.Model.CarMake as CarMake
+import qualified Carma.Model.CarModel as CarModel
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.Program as Program
@@ -179,42 +184,89 @@ bToUpper :: ByteString -> ByteString
 bToUpper = T.encodeUtf8 . T.toUpper . T.decodeUtf8
 
 
+
+data C2C = P (FA Contract.Contract)
+         -- ^ Copy Contract field as is.
+         | forall m. Model m => J (FA Contract.Contract) (FA m) (FA m)
+         -- ^ Which Contract field to join with another model field
+         -- and how to project that model field to case.
+
+
 -- | Mapping between contract and case fields.
---
--- TODO Describe joins.
-contractToCase :: [(FA Contract.Contract, FA Case.Case)]
+contractToCase :: [(C2C, FA Case.Case)]
 contractToCase =
-    [ (FA Contract.name, FA Case.contact_name)
-    , (FA Contract.vin, FA Case.car_vin)
-    , (FA Contract.make, FA Case.car_make)
-    , (FA Contract.model, FA Case.car_model)
-    , (FA Contract.seller, FA Case.car_seller)
-    , (FA Contract.plateNum, FA Case.car_plateNum)
-    , (FA Contract.makeYear, FA Case.car_makeYear)
-    , (FA Contract.color, FA Case.car_color)
-    , (FA Contract.buyDate, FA Case.car_buyDate)
-    , (FA Contract.lastCheckDealer, FA Case.car_dealerTO)
-    , (FA Contract.transmission, FA Case.car_transmission)
-    , (FA Contract.engineType, FA Case.car_engine)
-    , (FA Contract.engineVolume, FA Case.car_liters)
-    , (FA Contract.carClass, FA Case.car_class)
-    , (FA Contract.subprogram, FA Case.subprogram)
+    [ (P $ FA Contract.name, FA Case.contact_name)
+    , (P $ FA Contract.vin, FA Case.car_vin)
+    , (J (FA Contract.make) (FA CarMake.ident) (FA CarMake.value),
+       FA Case.car_make)
+    , (J (FA Contract.model) (FA CarModel.ident) (FA CarModel.value),
+       FA Case.car_model)
+    , (P $ FA Contract.seller, FA Case.car_seller)
+    , (P $ FA Contract.plateNum, FA Case.car_plateNum)
+    , (P $ FA Contract.makeYear, FA Case.car_makeYear)
+    , (P $ FA Contract.color, FA Case.car_color)
+    , (P $ FA Contract.buyDate, FA Case.car_buyDate)
+    , (P $ FA Contract.lastCheckDealer, FA Case.car_dealerTO)
+    , (P $ FA Contract.transmission, FA Case.car_transmission)
+    , (P $ FA Contract.engineType, FA Case.car_engine)
+    , (P $ FA Contract.engineVolume, FA Case.car_liters)
+    , (P $ FA Contract.carClass, FA Case.car_class)
+    , (P $ FA Contract.subprogram, FA Case.subprogram)
     ]
 
 
-fillFromContract :: MonadTrigger m b => ByteString -> ByteString -> m b Bool
+fillFromContract :: MonadTrigger m b =>
+                    ByteString
+                 -- ^ Contract id.
+                 -> ByteString
+                 -> m b Bool
 fillFromContract contract objId = do
   let cid :: IdentI Contract.Contract
       cid = maybe (error "Could not read contract id") (Ident . fst) $
             B.readInt contract
+      contractTable = tableName (modelInfo :: ModelInfo Contract.Contract)
   res <- liftDb $ PG.query
-         (fromString $ concat
-          [ "SELECT "
-          , intercalate "," $ map (const "?::text") contractToCase
-          , " FROM \"?\" WHERE id = ?;"
+         (fromString $ intercalate " "
+          [ "SELECT"
+            -- 2 * M arguments, where M is the length of contractToCase
+          , intercalate "," $ map (const "\"?\".?::text") contractToCase
+            -- 1 more argument
+          , "FROM \"?\""
+          , intercalate " " $
+            -- 5 * J arguments, where J is the amount of join entries
+            -- in contractToCase
+            map (const "LEFT OUTER JOIN \"?\" ON \"?\".? = \"?\".?") $
+            filter (\case {P _ -> False; J _ _ _ -> True}) $
+            map fst contractToCase
+            -- 2 more arguments
+          , "WHERE \"?\".id = ?;"
           ]) $
-         map (PT . fieldNameE . fst) contractToCase :.
-        (Only $ PT $ tableName (modelInfo :: ModelInfo Contract.Contract)) :.
+         -- Selected fields
+         ToRowList
+         (map
+          (\f ->
+           case fst f of
+             P c ->
+                 (PT contractTable, PT $ fieldNameE c)
+             J _ _ (p :: FA m) ->
+                 (PT $ tableName (modelInfo :: ModelInfo m),
+                  PT $ fieldNameE p))
+          contractToCase) :.
+        (Only $ PT contractTable) :.
+         -- JOIN arguments
+         ToRowList
+         (mapMaybe
+          (\f ->
+           case fst f of
+             J c (j :: FA m) _ ->
+                 Just ( PT $ tableName (modelInfo :: ModelInfo m)
+                      , PT $ tableName (modelInfo :: ModelInfo m)
+                      , PT $ fieldNameE j
+                      , PT contractTable
+                      , PT $ fieldNameE c)
+             _ -> Nothing)
+          contractToCase) :.
+        (Only $ PT contractTable) :.
         (Only cid)
   case res of
     [] -> return False
