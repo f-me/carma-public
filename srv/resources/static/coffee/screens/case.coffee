@@ -142,9 +142,9 @@ define [ "utils"
       kvm = main.buildKVM model, {fetched: mapper.s2cObj contract}
 
       kvm.isExpired = ko.computed ->
-        callDate = Date.parse(caseKVM.callDate()).getTime()
-        validSince = Date.parse(contract.validSince).getTime()
-        validUntil = Date.parse(contract.validUntil).getTime()
+        callDate = Date.parseExact(caseKVM.callDate(), "dd.MM.yyyy HH:mm").getTime()
+        validSince = Date.parseExact(contract.validSince, "yyyy-MM-dd").getTime()
+        validUntil = Date.parseExact(contract.validUntil, "yyyy-MM-dd").getTime()
         callDate < validSince or callDate > validUntil
 
       $("#contract").html(
