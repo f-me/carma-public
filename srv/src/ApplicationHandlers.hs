@@ -390,11 +390,10 @@ report = scope "report" $ do
   let result = "resources/reports/" ++ tplName
   let
     -- convert format and UTCize time, and apply f to UTCTime
-    validateAnd f dateStr = fmap (format . f . toUTC) $ parse dateStr where
+    validateAnd f dateStr = fmap (format . f) $ parse dateStr where
       format = T.pack . formatTime defaultTimeLocale "%d.%m.%Y %X"
-      parse :: T.Text -> Maybe LocalTime
+      parse :: T.Text -> Maybe UTCTime
       parse = parseTime defaultTimeLocale "%d.%m.%Y" . T.unpack
-      toUTC = localTimeToUTC tz
     withinAnd f pre post dateValue = do
       v <- dateValue
       s <- validateAnd f v
