@@ -44,7 +44,7 @@ q :: Query
 q = [sql|
      SELECT
           carVin
-        , carSeller
+        , s.name
         , carMake.label
         , carModel.label
         , carPlateNum
@@ -65,6 +65,7 @@ q = [sql|
      LEFT JOIN "CarMake"  carMake  ON carMake.value  = carMake
      LEFT JOIN "CarModel" carModel ON carModel.value = carModel
      LEFT JOIN usermetatbl u ON u.uid::text = c.owner
+     LEFT JOIN partnertbl s ON s.id::text = carSeller
      WHERE c.id = ?
 |]
 

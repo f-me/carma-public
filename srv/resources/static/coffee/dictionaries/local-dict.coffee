@@ -9,11 +9,14 @@ define ["dictionaries/meta-dict"], (m) ->
       unless @s
         throw new Error("Unknown dictionary #{$(@el).attr('data-source')}")
       if @parent and _.isFunction @kvm[@parent]
-        @kvm[@parent].subscribe (val) =>
+        updateChildren = (val) =>
           @source = @s.entries[val]
           @dictValueCache = null
           @dictLabelCache = null
-        @kvm[@parent].valueHasMutated()
+        @kvm[@parent].subscribe (val) => updateChildren (val)
+        updateChildren(@kvm[@parent]())
+      else if @parent
+        @source = _.union.apply @, _.values @s.entries
       else
         @source = @s.entries
 

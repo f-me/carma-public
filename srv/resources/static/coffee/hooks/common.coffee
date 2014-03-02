@@ -93,40 +93,6 @@ define [ "utils"
   tarifOptNameDef: (m, k) ->
     k["nameOrDef"] = ko.computed -> k["optionName"]() or "Тарифная опция…"
 
-  # Update a field with the distance between two coordinates whenever
-  # they change
-  distHook: (model, kvm) ->
-    for f in model.fields when f.meta?.distanceTo1? and f.meta?.distanceTo2?
-      do (f) ->
-        n = f.name
-        m = f.meta
-
-        # Find VMs and fields to watch for coordinates
-        d1_meta = u.splitFieldInView m.distanceTo1
-        if not d1_meta.view?
-          vm1 = kvm
-        else
-          vm1 = u.findVM d1_meta.view
-
-        d2_meta = u.splitFieldInView m.distanceTo2
-        if not d2_meta.view?
-          vm2 = kvm
-        else
-          vm2 = u.findVM d2_meta.view
-
-        # Subscribe to change in either of coordinates
-        vm1[d1_meta.field].subscribe (new_coord) ->
-          other_coord = vm2[d2_meta.field]()
-          if other_coord
-            $.get distanceQuery(new_coord, other_coord), (resp) ->
-              kvm[n](u.formatDistance(resp).toString())
-
-        vm2[d2_meta.field].subscribe (new_coord) ->
-          other_coord = vm1[d1_meta.field]()
-          if other_coord
-            $.get distanceQuery(new_coord, other_coord), (resp) ->
-              kvm[n](u.formatDistance(resp).toString())
-
   # - <field>Locals for dictionary fields: reads array
   #  of { label: ..., value: ... } objects
   # - <field>Many fields: reads nothing, writes - add value

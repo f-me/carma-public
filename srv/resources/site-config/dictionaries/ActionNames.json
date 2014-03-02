@@ -14,7 +14,7 @@
         },
         {
             "value": "orderServiceAnalyst",
-            "label": "Заказ услуги аналитиком"
+            "label": "Заказ вторичной услуги"
         },
         {
             "value": "needPartner",

@@ -58,10 +58,9 @@ writeJSON v = do
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
   Just name  <- getParam "name"
-  view  <-  T.decodeUtf8 <$> fromMaybe "" <$> getParam "view"
-  model <- getParam "arg" >>= \arg ->
-    case T.splitOn ":" . T.decodeUtf8 <$> arg of
-      Just ["newCase",pgm] -> fmap Just
+  view  <- T.decodeUtf8 . fromMaybe "" <$> getParam "view"
+  model <- case T.splitOn ":" view of
+      ["newCase",pgm] -> fmap Just
         $ case name of
           "case" -> newCase pgm
           _      -> newSvc pgm name
@@ -74,10 +73,11 @@ serveModel = do
     Nothing -> finishWithError 401 ""
     Just (cu, m) ->
       case name of
-        ("Case") -> writeModel m
-        ("Service") -> writeModel m
-        ("Towage") -> writeModel m
-        _        -> stripModel cu m >>= writeModel
+        "Case"    -> writeModel m
+        "Service" -> writeModel m
+        "Towage"  -> writeModel m
+        "Call"    -> writeModel m
+        _         -> stripModel cu m >>= writeModel
 
 viewForModel :: forall m . Model.Model m => T.Text -> m -> Maybe Model
 viewForModel name _

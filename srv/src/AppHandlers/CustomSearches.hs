@@ -228,7 +228,8 @@ selectContracts = do
       extract (epoch from contractValidUntilDate at time zone 'UTC')::int8::text,
       contractValidUntilMilage::text, milageTO::text, cardOwner, manager,
       carSeller, carDealerTO,
-      u2.realname
+      u2.realname,
+      contractType
       FROM contracttbl c, usermetatbl u, usermetatbl u2
       WHERE dixi
         AND u.login = ? AND ? = ANY (u.programs)
@@ -244,7 +245,7 @@ selectContracts = do
         , "carBuyDate", "warrantyStart", "contractValidFromDate"
         , "contractValidUntilDate", "contractValidUntilMilage"
         , "milageTO", "cardOwner", "manager", "carSeller", "carDealerTO"
-        , "owner"
+        , "owner", "contractType"
         ]
   writeJSON $ mkMap fields rows
 

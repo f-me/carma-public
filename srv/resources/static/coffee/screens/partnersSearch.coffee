@@ -119,7 +119,9 @@ define [ "utils"
           a = partner['addrDeFacto']
           a(utils.getKeyedJsonValue partner.addrs(), 'serv')
           a(utils.getKeyedJsonValue partner.addrs(), 'fact') unless a()
-        global.pubSub.pub subName(ctx.field, id), partner._meta.q.toRawObj()
+        pRawObj = partner._meta.q.toRawObj()
+        pRawObj["distanceFormatted"] = partner["distanceFormatted"]()
+        global.pubSub.pub subName(ctx.field, id), pRawObj
 
     kvm['selectPartner'] = (partner, ev) ->
       selected = kvm['selectedPartner']()
