@@ -47,9 +47,9 @@ define [ "model/render"
         user: user
         model: do ->
           modelCache = {}
-          (name, arg) ->
+          (name, view) ->
             url = "/cfg/model/#{name}"
-            url = url + "?arg=#{arg}" if arg
+            url = url + "?view=#{view}" if view
             if not modelCache[url]
               $.ajax url,
                 async: false

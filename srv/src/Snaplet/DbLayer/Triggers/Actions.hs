@@ -693,8 +693,8 @@ actionResultMap = Map.fromList
   ,("moveToAnalyst", \objId -> do
     act <- replaceAction
       "orderServiceAnalyst"
-      "Заказ услуги аналитиком"
-      (roleIdent Role.bo_order) "1" (+60) objId
+      "Заказ вторичной услуги"
+      (roleIdent Role.bo_secondary) "1" (+60) objId
     clearAssignee act
   )
   ,("moveToBack", \objId -> do
@@ -1026,12 +1026,12 @@ closeAction objId = do
   set objId "closed" "1"
 
 replaceAction :: MonadTrigger m b =>
-                 FieldValue 
+                 FieldValue
               -> String
-              -> FieldValue 
-              -> FieldValue 
-              -> (Int -> Int) 
-              -> ObjectId 
+              -> FieldValue
+              -> FieldValue
+              -> (Int -> Int)
+              -> ObjectId
               -> m b ObjectId
 replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   assignee <- get objId "assignedTo"

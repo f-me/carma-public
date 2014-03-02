@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Produce GPX tracks from partner coordinate update logs.
+#
 # Usage:
 #
 # $ grep 'partner/3298' db.log > out

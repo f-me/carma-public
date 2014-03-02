@@ -47,6 +47,7 @@ INSERT INTO "Role" (id, value, label, isBack) VALUES
 , (33, 'front', 'Оператор Front Office','f')
 , (34, 'dpViewer', 'Пользователь экрана ДиП','f')
 , (40, 'sms', 'Отправка SMS','f')
+, (41, 'bo_secondary', 'БО: Заказ вторичных услуг','t')
 ;
 
 SELECT setval(pg_get_serial_sequence('"Role"', 'id'), max(id)) from "Role";

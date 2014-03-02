@@ -85,7 +85,7 @@ define ["utils"
       , u[obj.assignedTo] || ''
       , g[obj.targetGroup] || obj.targetGroup || ''
       , duetime || ''
-      , timeLabel
+      , timeLabel?[0] || ''
       , r[obj.result] || ''
       , obj.priority || ''
       , global.dictValueCache['DealerCities'][obj.city] || ''

@@ -16,11 +16,17 @@ define ["utils"], ->
         _.difference (_.keys @groups), @showFields()
 
       @sfieldsh   = arrToObj 'name', @searchKVM._meta.model.fields
+      # storage for shifted user fields
+      # free fields will be out of here
+      @history = []
 
       for f in @searchKVM._meta.model.fields when not f.meta?.nosearch?
         do (f) =>
           @searchKVM[f.name].subscribe (v) =>
-            @updateFields(f.name) if (v)
+            if (v)
+              @updateFields(f.name)
+            else
+              @removeField f.name
             # rewind to the first page of search results
             @searchKVM._meta.pager.offset 0
 
@@ -37,14 +43,25 @@ define ["utils"], ->
 
     addField:    (f) =>
       return if _.contains @dynamic(), f
-      @dynamic.shift()
+      @changeHistory @dynamic.shift()
       @dynamic.push(f)
 
     addFree: =>
-      f = @showFields()
-      t = _.keys @groups
-      d = _.difference f, t
-      @dynamic.pop d[0]
+      unless _.isEmpty @history
+        # add a recently shifted field
+        @dynamic.push @history.shift()
+      else
+        # add a random field
+        f = @showFields()
+        t = _.keys @groups
+        d = _.difference t, f
+        unless _.isEmpty d
+          @dynamic.push d[0]
+
+    changeHistory: (f...) =>
+      # move fields to first position
+      @history = _.without @history, f
+      @history = _.union f, @history
 
   mkFieldsDynView: (searchKVM, {labels, groups}, defaults) ->
     dynView = new FieldsDynView searchKVM, {labels, groups}, defaults
@@ -71,7 +88,21 @@ define ["utils"], ->
         if "#{o.model}_#{o.name}" != f.name
           delete groups["#{o.model}_#{o.name}"]
         groups[f.name][o.model] ?= []
-        groups[f.name][o.model].push fh[o.model][o.name]
+        # we don't need some fields combined into groups, if we have
+        # exact match, we don't need tham in the table, and we may not get tham
+        # in resutlt at all, so just ignore this case
+        if _.isUndefined fh[o.model][o.name] and
+            (f.meta.search.matchType == "MatchExact" or
+             f.meta.search.matchType == "MatchRefExist")
+          continue
+        # if we can't ignore field and have to draw something in the table
+        # but don't have such field in given model, we better fail
+        # during init
+        else if _.isUndefined fh[o.model][o.name]
+          throw new Error "Can't make field group, can't find" +
+            " field for #{o.model}.#{o.name}"
+        else
+          groups[f.name][o.model].push fh[o.model][o.name]
 
       labels[f.name] = f.meta.label if f.meta?.label?
     return { labels: labels, groups: groups }

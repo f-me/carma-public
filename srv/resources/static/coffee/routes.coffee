@@ -21,6 +21,7 @@ define [
   "screens/program"
   "screens/partnersSearch"
   "screens/servicesSearch"
+  "screens/callsSearch"
   "screens/contractsSearch"
   "render/screen"
   ], ( bo
@@ -45,6 +46,7 @@ define [
      , program
      , partnersSearch
      , servicesSearch
+     , callsSearch
      , contractsSearch
      , r) ->
     localScreens: ->
@@ -137,6 +139,9 @@ define [
       "servicesSearch":
         "views":
           "search-view": servicesSearch
+      "callsSearch":
+        "views":
+          "search-view": callsSearch
       "contractsSearch":
         "views":
           "search-view": contractsSearch
@@ -177,6 +182,7 @@ define [
         "partnersSearch"        : "partnersSearch"
         "partnersSearch/:model" : "partnersSearchModel"
         "servicesSearch*any"    : "servicesSearch"
+        "callsSearch*any"       : "callsSearch"
         "contractsSearch*any"   : "contractsSearch"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
@@ -218,6 +224,7 @@ define [
       partnersSearchModel: (model) ->
         r.renderScreen "partnersSearch", partnersSearch, {model: model}
       servicesSearch     : -> r.renderScreen("servicesSearch", servicesSearch)
+      callsSearch        : -> r.renderScreen("callsSearch", callsSearch)
       contractsSearch    : -> r.renderScreen("contractsSearch", contractsSearch)
 
       current : ->

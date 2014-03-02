@@ -1,0 +1,107 @@
+define [ "utils"
+       , "model/main"
+       , "model/utils"
+       , "search/screen"
+       , "search/model"
+       , "search/utils"
+       , "search/pager"
+       , "sync/search"
+       , "lib/state-url"
+       ], ( utils
+          , main
+          , mutils
+          , Screen
+          , smodel
+          , SUtils
+          , SPager
+          , sync
+          , State) ->
+
+  filterModels = (allowed, models) ->
+    mdls = for m in  models
+      mdl = $.extend true, {}, m
+      mdl.fields = _.filter m.fields, (f) ->
+         _.contains allowed[m.name], f.name
+      mdl
+    arrToObj 'name', mdls
+
+  mergeFields = (ms) ->
+    m = $.extend true, {}, ms[0]
+    m.fields = _.union.apply @, _.pluck ms, 'fields'
+    m
+
+
+  constructor: (opts)->
+
+    allModels = filterModels opts.allowedResultFields, opts.resultModels
+
+    searchModel = mergeFields opts.searchModels
+    searchModel.fields = searchModel.fields.concat [
+      { name: "showFields"
+      , meta:
+          noadd: true
+          nosearch: true
+      },
+      { name: "fieldsList"
+      , type: "dictionary"
+      , meta:
+          label: "Добавить критерий поиска"
+          noadd: true
+          nosearch: true
+          dictionaryType: "HiddenFieldsDict"
+      }]
+
+    searchKVM = main.buildKVM searchModel, {}
+
+    SPager.buildPager searchKVM
+    ko.applyBindings searchKVM._meta.pager, $(".pager")[0]
+
+    searchKVM.showFields.set = (fs) ->
+      searchKVM.showFields _.filter searchKVM._meta.model.fields, (f) ->
+         _.contains fs, f.name
+
+    searchKVM.showFields.del = (fs) ->
+      searchKVM[fs.name](null)
+      searchKVM.showFields _.reject searchKVM.showFields(), (f) ->
+         _.contains fs, f.name
+
+    searchKVM.showFields.set opts.searchFields
+
+    searchKVM.searchResults = SUtils.mkResultObservable searchKVM, allModels
+
+    q = new sync.searchQ searchKVM,
+      apiUrl: opts.apiUrl
+      defaultSort: opts.defaultSort
+    searchKVM._meta.q = q
+
+    ko.applyBindings { kvm: searchKVM, wrapFields: "search-wrap"},
+                     $("#search-conditions")[0]
+
+    ko.applyBindings { kvm: searchKVM
+                     , f: _.last(searchKVM._meta.model.fields)
+                     },
+                     $("#show-field")[0]
+
+    tg = smodel.transformFields searchKVM, allModels
+    rfields = smodel.mkFieldsDynView searchKVM, tg, opts.resultTable
+
+    ctx =
+      kvms: searchKVM.searchResults
+      showFields: rfields
+      searchKVM: searchKVM
+
+    searchKVM.searchResults.set_sorter = (name, ord) ->
+      searchKVM.sort(name, ord)
+
+    searchKVM.sort = (fname, ord) ->
+      fs = arrToObj 'name', searchKVM._meta.model.fields, (v) ->
+        v.meta.search?.original
+      searchKVM._meta.q.sort(fs[fname], ord)
+
+    ko.applyBindings ctx, $("#search-results")[0]
+
+    state = { kvm: searchKVM, pager: searchKVM._meta.pager }
+    State.load state
+
+    State.persistKVM 'kvm', state
+    searchKVM._meta.pager.offset.subscribe -> State.save state

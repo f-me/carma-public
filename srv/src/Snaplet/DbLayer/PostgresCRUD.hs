@@ -2,7 +2,6 @@
 
 module Snaplet.DbLayer.PostgresCRUD (
     loadRelations,
-    createIO,
     insert, update, updateMany, insertUpdate, insertUpdateMany,
     generateReport
     ) where
@@ -220,14 +219,6 @@ functions tz dict = [
             return srvIndex
 
         backOperator fs = M.lookup "servicesview.backoperator" fs
-                      
-local :: P.ConnectInfo
-local = P.ConnectInfo {
-    P.connectHost = "localhost",
-    P.connectPort = 5432,
-    P.connectUser = "carma_db_sync",
-    P.connectPassword = "pass",
-    P.connectDatabase = "carma" }
 
 escope :: (MonadLog m) => T.Text -> m () -> m ()
 escope s act = catch (scope_ s act) onError where
@@ -238,16 +229,6 @@ loadRelations :: FilePath -> Log -> IO S.Relations
 loadRelations f l = withLog l $ do
     log Trace "Loading relations"
     liftIO $ fmap (fromMaybe (error "Unable to load relations") . A.decode) $ LB.readFile f
-
-createIO :: [MT.TableDesc] -> Log -> IO ()
-createIO tbls l = do
-    con <- P.connect local
-    let
-        onError :: E.SomeException -> IO ()
-        onError _ = return ()
-    E.catch (void $ P.execute_ con "create extension hstore") onError
-    mapM_ (withLog l . MT.createExtend con) tbls
-    --withLog l $ S.transaction con $ S.create (S.modelsSyncs ms)
 
 toStr :: ByteString -> String
 toStr = T.unpack . T.decodeUtf8

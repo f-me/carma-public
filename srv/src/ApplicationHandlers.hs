@@ -29,6 +29,7 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.String
 
+import Data.Monoid
 import Data.Maybe
 import Data.Ord (comparing)
 
@@ -84,15 +85,15 @@ indexPage = ifTop $ render "index"
 -- | Redirect using 303 See Other to login form.
 --
 -- Used after unsuccessful access/login attempt or logout.
-redirectToLogin :: MonadSnap m => m a
-redirectToLogin = redirect' "/login/" 303
+redirectToLogin :: MonadSnap m => ByteString -> m a
+redirectToLogin failCount = redirect' ("/login/?fc=" <> failCount) 303
 
 
 ------------------------------------------------------------------------------
 -- | If user is not logged in, redirect to login page, pass to
 -- handler otherwise.
 authOrLogin :: AppHandler () -> AppHandler ()
-authOrLogin = requireUser auth redirectToLogin
+authOrLogin = requireUser auth (redirectToLogin "")
 
 
 ------------------------------------------------------------------------------
@@ -105,18 +106,19 @@ loginForm = serveFile "snaplets/heist/resources/templates/login.html"
 -- | Login user.
 doLogin :: AppHandler ()
 doLogin = ifTop $ do
+  failCount <- fromMaybe "0" <$> getParam "fc"
   l <- fromMaybe "" <$> getParam "login"
   p <- fromMaybe "" <$> getParam "password"
   r <- isJust <$> getParam "remember"
   res <- with auth $ loginByUsername (T.decodeUtf8 l) (ClearText p) r
-  either (const redirectToLogin) (const $ redirect "/") res
+  either (const $ redirectToLogin failCount) (const $ redirect "/") res
 
 
 doLogout :: AppHandler ()
 doLogout = ifTop $ do
   claimUserLogout
   with auth logout
-  redirectToLogin
+  redirectToLogin ""
 
 
 ------------------------------------------------------------------------------
@@ -388,11 +390,10 @@ report = scope "report" $ do
   let result = "resources/reports/" ++ tplName
   let
     -- convert format and UTCize time, and apply f to UTCTime
-    validateAnd f dateStr = fmap (format . f . toUTC) $ parse dateStr where
+    validateAnd f dateStr = fmap (format . f) $ parse dateStr where
       format = T.pack . formatTime defaultTimeLocale "%d.%m.%Y %X"
-      parse :: T.Text -> Maybe LocalTime
+      parse :: T.Text -> Maybe UTCTime
       parse = parseTime defaultTimeLocale "%d.%m.%Y" . T.unpack
-      toUTC = localTimeToUTC tz
     withinAnd f pre post dateValue = do
       v <- dateValue
       s <- validateAnd f v
