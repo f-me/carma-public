@@ -398,11 +398,11 @@ caseField1 fn = dataField1 fn =<< getCase
 
 
 -- | True if a service is a false call (@falseCall@ field is not
--- @none@ and @status@ is not @mistake@).
+-- @none@ or @status@ is a @mistake@).
 falseService :: Service -> Bool
 falseService (_, _, d) =
-  dataField0 "falseCall" d /= "none" &&
-  dataField0 "status" d /= "mistake"
+  dataField0 "falseCall" d /= "none" ||
+  dataField0 "status" d == "mistake"
 
 
 -- | True if service should be exported to SAGAI.
