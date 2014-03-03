@@ -73,6 +73,7 @@ q = [sql|
     select row_to_json(msg.*) as msgData, email.addr as email, 'please-send' as status
       from message msg
         left join partnerEmail email on (email.partner_id = msg.partner_id)
+    returning id
   |]
 
 
