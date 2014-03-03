@@ -7,10 +7,14 @@ define ["dictionaries/local-dict", ], (ld) ->
 
       # We use DealersDict on the case screen and on the contracts screen also.
       # This is the reason for the double name check in the following line.
-      carMake = (@kvm.car_make || @kvm.carMake)?()
-      (@kvm.car_make || @kvm.carMake)?.subscribe (v) =>
+      carMake = (@kvm.car_make || @kvm.carMake)
+
+      updateSource = (v) =>
         $.getJSON "/dealers/#{v}", (@dealers) =>
           @source = ({value: i.id, label: i.name} for i in @dealers)
+
+      carMake?.subscribe updateSource
+      updateSource(carMake()) if carMake?
 
     getLab: (val) ->
       if val?.match /^\d+$/
