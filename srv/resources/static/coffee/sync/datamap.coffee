@@ -24,14 +24,13 @@ define [], ->
     return null if _.isEmpty v
     JSON.parse(v)
 
-  c2sDictSet = (v) ->
-    vals = v.split(',')
+  c2sDictSet = (vals) ->
     ids = _.map vals, (v) -> parseInt v
     # check type of keys, we have in dict, it may be Text or Int
     if _.all ids, _.isNaN
-      vals
+      _.uniq vals.sort(), true
     else
-      ids
+      _.uniq ids.sort((a, b) -> a - b), true
 
   c2sTypes =
     'dictionary-set': c2sDictSet
@@ -46,7 +45,7 @@ define [], ->
       v.map (t) -> Date.parseExact(t, "dd.MM.yyyy")?.toString "yyyy-MM-ddTHH:mm:ss.0Z"
 
   s2cTypes =
-    'dictionary-set': (v) -> v.join(',')
+    'dictionary-set': (v) -> v
     checkbox  : (v) -> v == "1"
     Bool      : (v) -> v
     dictionary: (v) -> v

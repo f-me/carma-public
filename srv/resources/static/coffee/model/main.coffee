@@ -106,7 +106,10 @@ define [ "model/render"
     # build observables for real model fields
     for f in fields
       do (f) ->
-        kvm[f.name] = ko.observable(null)
+        if f.type is 'dictionary-many' or f.type is 'dictionary-set'
+          kvm[f.name] = ko.observableArray()
+        else
+          kvm[f.name] = ko.observable(null)
         kvm[f.name].field = f
 
     # set id only when it wasn't set from from prefetched data
