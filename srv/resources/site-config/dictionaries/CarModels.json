@@ -462,6 +462,7 @@
             {"value": "Matrix", "label": "Matrix"},
             {"value": "Tucson", "label": "Tucson"},
             {"value": "H-1 Starex", "label": "H-1 Starex"},
+            {"value": "i40", "label": "i40"},
             {
                 "value": "centennial",
                 "label": "Centennial"
@@ -639,6 +640,10 @@
             {
                 "value": "spectra",
                 "label": "Spectra"
+            },
+            {
+                "value": "Carens",
+                "label": "Carens"
             }
         ],
         "lada": [
