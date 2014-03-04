@@ -37,7 +37,7 @@ assignQ pri usr = fromString
   ++ "    AND c.id::text = substring(act.caseId, ':(.*)')"
   ++ "    AND priority = '" ++ show pri ++ "'"
   ++ "    AND (CASE WHEN act.name IN ('orderService', 'orderServiceAnalyst')"
-  ++ "        THEN coalesce(svc.times_expectedServiceStart,act.duetime)"
+  ++ "        THEN coalesce(svc.times_expectedServiceStart - interval '23:55', act.duetime)"
   ++ "        ELSE act.duetime"
   ++ "        END) at time zone 'UTC' - now() <= interval '5 minutes'"
   ++ "    AND targetGroup = ANY (u.roles)"
