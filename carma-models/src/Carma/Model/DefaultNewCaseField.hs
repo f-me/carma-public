@@ -6,6 +6,7 @@ import Data.Typeable
 import Data.Model
 import Data.Model.View
 import Carma.Model.Types()
+import Carma.Model.PgTypes()
 
 data DefaultNewCaseField = DefaultNewCaseField
   {ident    :: PK Int DefaultNewCaseField ""

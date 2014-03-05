@@ -8,10 +8,12 @@ module Data.Model
   , Field(..), F, PK
   , FOpt
   , FieldDesc(..)
+  , buildFieldDesc
   , fieldName, fieldDesc
   -- from Data.Model.View.Types
   , ModelView(..)
   , hasNoParent
+  , GetModelFields(..)
   ) where
 
 
@@ -96,14 +98,21 @@ class GetModelFields m ctr where
 
 instance
     (GetModelFields m ctr, SingI nm, SingI desc, DefaultFieldView t
-    ,FromJSON t, ToJSON t, FromField t, ToField t, Typeable t)
+    ,FromJSON t, ToJSON t, FromField t, ToField t, Typeable t, PgTypeable t)
     => GetModelFields m (Field t (FOpt nm desc) -> ctr)
   where
     getModelFields f = Wrap
-      $ fd
+      $ buildFieldDesc (undefined :: m -> Field t (FOpt nm desc))
       : unWrap (getModelFields (f Field) :: [FieldDesc] :@ m)
-      where
-        fd = FieldDesc
+
+instance GetModelFields m m where
+  getModelFields _ = Wrap []
+
+buildFieldDesc :: forall m t nm desc.
+  (SingI nm, SingI desc, DefaultFieldView t, PgTypeable t
+  ,FromJSON t, ToJSON t, FromField t, ToField t, Typeable t)
+  => (m -> Field t (FOpt nm desc)) -> FieldDesc
+buildFieldDesc _ =  FieldDesc
           {fd_name      = T.pack $ fromSing (sing :: Sing nm)
           ,fd_desc      = T.pack $ fromSing (sing :: Sing desc)
           ,fd_type      = typeOf   (undefined :: t)
@@ -112,7 +121,5 @@ instance
           ,fd_fromField = toDyn <$> (field :: RowParser t)
           ,fd_toField   = \d -> toField (fromJust $ fromDynamic d :: t)
           ,fd_view      = defaultFieldView (const Field :: m -> F t nm desc)
+          ,fd_pgType    = pgTypeOf (undefined :: t)
           }
-
-instance GetModelFields m m where
-  getModelFields _ = Wrap []

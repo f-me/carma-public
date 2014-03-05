@@ -11,6 +11,7 @@ import Data.Typeable
 import Data.Model
 import Data.Model.View
 import Carma.Model.Types ()
+import Carma.Model.PgTypes()
 
 data OldProgram = OldProgram
   { ident                 :: PK Int OldProgram ""

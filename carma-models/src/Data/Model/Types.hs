@@ -1,7 +1,7 @@
 
 module Data.Model.Types where
 
-import Data.Text (Text)
+import Data.Text (Text, unpack)
 import Data.HashMap.Strict (HashMap)
 import Data.Aeson.Types as Aeson
 import Data.Map (Map)
@@ -62,6 +62,7 @@ data FieldDesc = FieldDesc
   ,fd_fromField  :: RowParser Dynamic
   ,fd_toField    :: Dynamic -> Action
   ,fd_view       :: FieldView
+  ,fd_pgType     :: PgType
   }
 
 
@@ -101,3 +102,12 @@ instance ToJSON (ModelView m) where
     , "canUpdate" .= True
     , "canDelete" .= True
     ]
+
+data PgType = PgType { pgTypeName :: Text, pgNotNull :: Bool } deriving Eq
+
+class PgTypeable t where
+  pgTypeOf :: t -> PgType
+
+instance Show PgType where
+  show PgType{..} =
+    unpack pgTypeName ++ (if pgNotNull then " NOT NULL " else "")

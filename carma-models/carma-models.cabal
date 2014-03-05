@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                carma-models
-version:             0.6.4
+version:             0.6.5
 -- synopsis:
 -- description:
 license:             MIT
@@ -26,6 +26,7 @@ library
     Carma.Model,
     Carma.Model.Search,
     Carma.Model.Types,
+    Carma.Model.PgTypes,
     Carma.Model.LegacyTypes,
     Carma.Model.City,
     Carma.Model.CarMake,

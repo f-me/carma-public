@@ -9,6 +9,7 @@ import Data.Model
 import Data.Model.View
 import Data.Model.TH
 import Carma.Model.Types()
+import Carma.Model.PgTypes()
 
 data Role = Role
   {ident  :: PK Int Role ""

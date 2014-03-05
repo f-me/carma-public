@@ -5,6 +5,7 @@ import Data.Typeable
 import Data.Model
 import Data.Model.View
 import Carma.Model.Types()
+import Carma.Model.PgTypes()
 
 data SmsTokenName = SmsTokenName
   { ident   :: PK Int SmsTokenName "Переменные шаблонов СМС"
