@@ -8,6 +8,7 @@ module Carma.Model.Contract
     , identifiers
     , identifierNames
     , WDay
+    , contractSearchParams
     )
 
 where
@@ -38,7 +39,7 @@ import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
 import Carma.Model.Usermeta     (Usermeta)
 import Carma.Model.Engine       (Engine)
-
+import Carma.Model.Search
 
 -- | Transparent 'Day' wrapper so that @typeOf WDay@ points to this
 -- module (original name is hidden: @Data.Time.Calendar.Days.Day@).
@@ -180,3 +181,16 @@ identifiers = [ FA vin
 -- | List of 'identifiers' field names used to search contracts.
 identifierNames :: [Text]
 identifierNames = map fieldNameE identifiers
+
+-- | List of search params
+contractSearchParams :: [(Text, [Predicate Contract])]
+contractSearchParams
+  = [ ("vin",        fuzzy $ one vin)
+    , ("cardNumber", fuzzy $ one cardNumber)
+    , ("plateNum",   fuzzy $ one plateNum)
+    , ("name",       fuzzy $ one name)
+    , ("phone",      fuzzy $ one phone)
+    , ("codeword",   fuzzy $ one codeWord)
+    , ("email",      fuzzy $ one email)
+    ]
+
