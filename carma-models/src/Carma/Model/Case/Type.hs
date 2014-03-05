@@ -8,15 +8,14 @@ import Carma.Model.Program  (Program)
 import Carma.Model.Wazzup   (Wazzup)
 import Carma.Model.LegacyTypes
 
-
 data Case = Case
   { ident :: PK Int Case "Номер кейса"
   , callDate
-    :: F LegacyDatetime "callDate" "Дата звонка"
+    :: F (Maybe LegacyDatetime) "callDate" "Дата звонка"
   , vwcreatedate
     :: F (Maybe LegacyDatetime) "vwcreatedate" "Дата звонка"
   , callTaker
-    :: F Text            "callTaker" "Сотрудник РАМК"
+    :: F (Maybe Text)           "callTaker" "Сотрудник РАМК"
   , comment
     :: F (Maybe (Ident Text Wazzup)) "comment" "Что случилось"
   , diagnosis1
@@ -54,7 +53,7 @@ data Case = Case
   , contact_ownerEmail
     :: F (Maybe Text) "contact_ownerEmail" "Email"
   , program
-    :: F (IdentT Program)  "program" "Программа"
+    :: F (Maybe (IdentT Program))  "program" "Программа"
 
   , car_vin
     :: F (Maybe Text) "car_vin" "VIN"
