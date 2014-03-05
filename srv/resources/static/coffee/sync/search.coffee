@@ -24,8 +24,8 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
 
     search: =>
       q = {}
-      for f in @model.fields when @kvm[f.name]() and not f.meta?.nosearch
-        q[f.name] = @kvm[f.name]()
+      for f in @model.fields when not f.meta?.nosearch
+        q[f.name] = @kvm[f.name]() unless _.isEmpty @kvm[f.name]()
       preds =  m.c2sObj(q, @ftypes)
       sorts = { fields: @searchFields, order: @searchOrder }
       # have nothing to search, maybe user delete value
