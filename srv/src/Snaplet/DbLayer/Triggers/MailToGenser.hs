@@ -82,6 +82,6 @@ sendMailToGenser svcId = do
   liftDb $ log Trace (T.pack $ "sendMailToGenser(" ++ show svcId ++ ")")
   -- we need new status value but from postgres we can get only the old one
   svcStatus <- get svcId "status"
-  [[msgId]] <- liftDb $ PG.query q [svcStatus, svcId]
-  liftDb $ log Trace (T.pack $ "sendMailToGenser(" ++ show svcId ++ ":" ++ show (msgId::Int) ++ ")")
+  res <- liftDb $ PG.query q [svcStatus, svcId]
+  liftDb $ log Trace (T.pack $ "sendMailToGenser(" ++ show svcId ++ ":" ++ show (res::[[Int]]) ++ ")")
 
