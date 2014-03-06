@@ -184,13 +184,7 @@ identifierNames = map fieldNameE identifiers
 
 -- | List of search params
 contractSearchParams :: [(Text, [Predicate Contract])]
-contractSearchParams
-  = [ ("vin",        fuzzy $ one vin)
-    , ("cardNumber", fuzzy $ one cardNumber)
-    , ("plateNum",   fuzzy $ one plateNum)
-    , ("name",       fuzzy $ one name)
-    , ("phone",      fuzzy $ one phone)
-    , ("codeword",   fuzzy $ one codeWord)
-    , ("email",      fuzzy $ one email)
-    ]
-
+contractSearchParams = identifierParams
+  where
+    identifierParams =
+      map (\p@(FA f) -> (fieldNameE p, fuzzy $ one $ f)) identifiers

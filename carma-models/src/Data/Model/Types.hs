@@ -52,7 +52,10 @@ data FA m = forall t n d. (FieldI t n d) => FA (m -> Field t (FOpt n d))
 
 -- | Common constraint for higher-rank functions using field
 -- accessors.
-type FieldI t (n :: Symbol) (d :: Symbol) = (Typeable t, SingI n, SingI d)
+type FieldI t (n :: Symbol) (d :: Symbol) = (Typeable t, DefaultFieldView t
+                                            , FromJSON t, ToJSON t
+                                            , FromField t, ToField t
+                                            , SingI n, SingI d)
 
 
 data ModelInfo m = ModelInfo
