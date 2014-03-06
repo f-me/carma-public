@@ -11,7 +11,7 @@ import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Data.Model
 import Data.Model.View
 import Carma.Model.Types()
-
+import Carma.Model.PgTypes()
 
 -- FIXME: Carma.Types
 data Coords = Coords -- {lon :: Double, lat :: Double}

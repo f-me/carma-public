@@ -3,7 +3,7 @@ module Carma.Model.Call where
 import Data.Text
 import Data.Typeable
 
-import Data.Model
+import Data.Model as Model
 import Data.Model.View
 
 import Carma.Model.Program  (Program)
@@ -21,20 +21,37 @@ callSearchParams
         , one callerName_phone4, one callerName_ownerPhone4
         ])
     , ("callDate", interval callDate)
+    , ("callTaker", fuzzy $ one callTaker)
+    , ("program", one program)
+    , ("wazzup", fuzzy $ one wazzup)
+    , ("callType", one callType)
+    , ("caller", fuzzy $ matchAny
+        [one callerName_name, one callerName_ownerName])
     ]
 
 instance Model Call where
   type TableName Call = "calltbl"
   modelInfo   = mkModelInfo Call ident
-  modelView "search" = searchView callSearchParams
-  modelView _ = defaultView
+  modelView "search" = modifyView (searchView callSearchParams) dicts
+  modelView _ = modifyView defaultView dicts
+
+dicts =
+  [ dict callType $ (dictOpt "CallTypes")
+      {dictParent = Just $ Model.fieldName callerType}
+  , dict callTaker $ (dictOpt "users")
+  ,dict program $ (dictOpt "casePrograms")
+              { dictType    = Just "ComputedDict"
+              , dictBounded = True
+              , dictTgtCat  = Just "program"
+              }
+  ]
 
 data Call = Call
   { ident :: PK Int Call "Номер звонка"
   , callDate
-   :: F LegacyDatetime "callDate" "Дата звонка"
+    :: F LegacyDatetime "callDate" "Дата звонка"
   , callTaker
-   :: F Text "callTaker" "Сотрудник РАМК"
+    :: F (IdentT Users) "callTaker" "Сотрудник РАМК"
   , program
     :: F (Maybe (IdentT Program)) "program" "Программа"
   , wazzup
@@ -65,18 +82,18 @@ data Call = Call
     :: F (Maybe Text) "callerName_ownerPhone4" ""
   , callerName_ownerEmail
     :: F (Maybe Text) "callerName_ownerEmail" "Email"
-  -- , callerType
-  --   :: F (Maybe (Ident CallerTypes)) "callerType" "Кто звонит?"
+  , callerType
+    :: F (Maybe (IdentT CallerTypes)) "callerType" "Кто звонит?"
   , city
     :: F (Maybe (IdentT DealerCities)) "city" "Город"
---  , coords
---    :: F (Maybe Text) "coords" "Координаты места поломки"
---  , address
---    :: F (Maybe Text) "address" "Адрес места поломки"
+  -- , coords
+  --   :: F (Maybe Text) "coords" "Координаты места поломки"
+  , address
+    :: F (Maybe Text) "address" "Адрес места поломки"
   , carMake
     :: F (Maybe (IdentT CarMakers)) "carMake" "Марка"
   , carModel
     :: F (Maybe (IdentT CarModels)) "carModel" "Модель"
-  -- , callType
-  --   :: F (Maybe (Ident CallTypes)) "callType" "Тип звонка"
+  , callType
+    :: F (Maybe (IdentT CallTypes)) "callType" "Тип звонка"
   } deriving Typeable

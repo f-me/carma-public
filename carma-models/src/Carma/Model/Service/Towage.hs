@@ -81,14 +81,15 @@ instance Model Towage where
     $ (setType "dictionary-set" towDealer_partnerId) : viewModifier
   modelView _ =
     modifyView (defaultView :: ModelView Towage) {mv_title = "Эвакуация"}
-      $(setType "dictionary" towDealer_partnerId) : viewModifier
+      $(setType "dictionary" towDealer_partnerId)
+      : invisible towDealer_partnerId
+      : viewModifier
 
 viewModifier =
   [dict towDealer_partnerId $ (dictOpt "allPartners")
           { dictType    = Just "ComputedDict"
           , dictBounded = True
           }
-  ,invisible towDealer_partnerId
   ]
   ++ mapWidget towAddress_address towAddress_coords towAddress_map
   ++ mapWidget towerAddress_address towerAddress_coords towerAddress_map

@@ -9,6 +9,7 @@ import Data.Model
 import Data.Model.View
 
 import Carma.Model.Types()
+import Carma.Model.PgTypes()
 
 data CarMake = CarMake
   { ident    :: PK Int CarMake ""

@@ -24,6 +24,7 @@ import           Data.Time.Clock (UTCTime)
 import           Data.Aeson as Aeson
 import           Database.PostgreSQL.Simple as PG
 import           Database.PostgreSQL.Simple.ToField (ToField)
+import           Database.PostgreSQL.Simple.FromField (FromField)
 
 import           Text.Printf
 import           GHC.TypeLits
@@ -33,6 +34,7 @@ import qualified Data.Model as Model
 import           Data.Model.Types hiding (modelName)
 import           Carma.Model.Types
 import           Carma.Model.LegacyTypes (LegacyDatetime, Reference)
+import           Carma.Model.PgTypes()
 
 data Predicate m
   = Predicate
@@ -54,8 +56,9 @@ data MatchType
 -- FIXME: check if field type \in {Text, Int, ..}
 one
   :: forall m t nm desc
-  . (FromJSON t, ToField t, DefaultFieldView t
-    ,SingI nm, SingI desc, Model m)
+  . (ToJSON t, FromJSON t, ToField t, FromField t
+    , DefaultFieldView t, Typeable t, PgTypeable t
+    , SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]
 one f =
   let mi = modelInfo :: ModelInfo m
@@ -63,8 +66,7 @@ one f =
     { tableName = Model.tableName mi
     , modelName = Model.modelName mi
     , fieldName = Model.fieldName f
-    , fieldDesc = Wrap $ (modelFieldsMap mi HM.! Model.fieldName f)
-        { fd_view = defaultFieldView (const Field :: m -> F t nm desc) }
+    , fieldDesc = Wrap $ buildFieldDesc f
     , matchType = MatchExact
     , escapeVal = \conn qTpl val ->
         case fromJSON val :: Aeson.Result t of
@@ -78,7 +80,8 @@ one f =
 
 listOf
   :: forall m t nm desc
-  . (FromJSON t, ToField t, DefaultFieldView (Vector t)
+  . (ToJSON t, FromJSON t, ToField t, FromField t
+    ,DefaultFieldView (Vector t), Typeable (Vector t), Typeable t, PgTypeable t
     ,SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]
 listOf _
@@ -174,7 +177,9 @@ renderPredicate conn pMap vals = do
 hs2pgtype :: TypeRep -> Text
 hs2pgtype t
   | t == typeOf (undefined :: Interval UTCTime) = "tstzrange"
-  | otherwise  = error "Unknown type in hs2pgtype"
+  | t == typeOf (undefined :: Interval (Maybe UTCTime)) = "tstzrange"
+  | t == typeOf (undefined :: Interval LegacyDatetime) = "tstzrange"
+  | otherwise  = error $ "Unknown type in hs2pgtype: " ++ show t
 
 predicatesFromParams
   ::PG.Connection -> Aeson.Object -> [(Text, [Predicate m])]

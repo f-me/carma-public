@@ -9,7 +9,7 @@ import Data.Vector (Vector)
 
 import Data.Model.View
 import Carma.Model.Types()
-
+import Carma.Model.PgTypes()
 
 data Dictionary = Dictionary
   {ident

@@ -14,6 +14,7 @@ import Data.Model.TH
 import Carma.Model.Types()
 import Carma.Model.ProgramType hiding (ident)
 import Carma.Model.Usermeta hiding (ident)
+import Carma.Model.PgTypes()
 
 data Program = Program
   { ident                 :: PK Int Program             "Программа"

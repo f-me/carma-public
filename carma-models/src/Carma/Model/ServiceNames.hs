@@ -6,6 +6,7 @@ import Data.Text (Text)
 import Data.Typeable
 
 import Carma.Model.Types()
+import Carma.Model.PgTypes()
 
 import Data.Model
 import Data.Model.View

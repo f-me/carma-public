@@ -16,15 +16,14 @@ import Carma.Model.CarClass     (CarClass)
 import Carma.Model.Wazzup       (Wazzup)
 import Carma.Model.LegacyTypes hiding (CarClasses)
 
-
 data Case = Case
   { ident :: PK Int Case "Номер кейса"
   , callDate
-    :: F LegacyDatetime "callDate" "Дата звонка"
+    :: F (Maybe LegacyDatetime) "callDate" "Дата звонка"
   , vwcreatedate
     :: F (Maybe LegacyDatetime) "vwcreatedate" "Дата звонка"
   , callTaker
-    :: F Text            "callTaker" "Сотрудник РАМК"
+    :: F (Maybe Text)           "callTaker" "Сотрудник РАМК"
   , comment
     :: F (Maybe (Ident Text Wazzup)) "comment" "Что случилось"
   , diagnosis1

@@ -12,8 +12,9 @@ import Carma.Model.LegacyTypes
 import Carma.Model.Search as S
 
 data Service = Service
+  -- FIXME: ident can be null in pg
   { ident                        :: PK Int Service ""
-  , svcType                      :: F (IdentT ServiceNames) "type"
+  , svcType                      :: F (Maybe (IdentT ServiceNames)) "type"
                                  "Услуга"
   , parentId                     :: F Text "parentId"
                                  ""

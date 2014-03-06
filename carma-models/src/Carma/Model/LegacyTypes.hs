@@ -43,7 +43,9 @@ data UrgentServiceReason = UrgentServiceReason deriving Typeable
 data Satisfaction = Satisfaction deriving Typeable
 data FalseStatuses = FalseStatuses deriving Typeable
 data ServiceStatuses = ServiceStatuses deriving Typeable
-
+data CallerTypes = CallerTypes deriving Typeable
+data CallTypes   = CallTypes   deriving Typeable
+data Users = Users deriving Typeable
 
 data Json = Json Text deriving Typeable
 instance FromJSON Json where
