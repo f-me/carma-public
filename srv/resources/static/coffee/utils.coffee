@@ -368,12 +368,6 @@ define ["model/utils", "dictionaries"], (mu, d) ->
 
   repeat: (times, v) -> [1..times].map -> v
 
-  splitVals: (v) ->
-    return [] if not v or v == ""
-    # some times we send them as array right from backend
-    return v if _.isArray v
-    v.split ','
-
   modelsFromUrl: modelsFromUrl
 
   reloadScreen: -> global.router.navigate modelsFromUrl(), { trigger: true }

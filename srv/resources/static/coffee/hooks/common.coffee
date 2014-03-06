@@ -120,26 +120,20 @@ define [ "utils"
             return if lab == ""
             return if k["#{n}Disabled"]()
             val = dict.getVal(lab)
-            c = u.splitVals k[n]()
-            return if _.contains c, val
-            c.push (val or lab)
+            return if _.contains k[n](), val
             if (bounded and val) or (not bounded)
-              k[n](c.sort().join(','))
+              k[n].unshift (val or lab)
 
         k["#{n}Locals"] = ko.computed
           read: ->
-            for val in u.splitVals k[n]()
+            for val in k[n]()
               do (val) ->
                 lab = dict.getLab(val)
                 {label: lab || val, value: val}
 
         k["#{n}Remove"] = (el) ->
           return if k["#{n}Disabled"]()
-          # FIXME: I think, this should be made with bb observable
-          # arrays, so we can make them in metamodel and use normal
-          # collections, without splitting it manually
-          c = u.splitVals(k[n]())
-          k[n] _.without(c, el.value).join(',')
+          k[n].remove el.value
 
         k["#{n}TypeaheadBuilder"] = ->
           new ThMenu

@@ -86,7 +86,7 @@ define ["utils"
       , u[obj.assignedTo] || ''
       , roles.getLab(obj.targetGroup) || obj.targetGroup || ''
       , duetime || ''
-      , timeLabel?[0]
+      , timeLabel?[0] || ''
       , r[obj.result] || ''
       , obj.priority || ''
       , global.dictValueCache['DealerCities'][obj.city] || ''

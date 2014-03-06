@@ -462,6 +462,7 @@
             {"value": "Matrix", "label": "Matrix"},
             {"value": "Tucson", "label": "Tucson"},
             {"value": "H-1 Starex", "label": "H-1 Starex"},
+            {"value": "i40", "label": "i40"},
             {
                 "value": "centennial",
                 "label": "Centennial"
@@ -639,6 +640,10 @@
             {
                 "value": "spectra",
                 "label": "Spectra"
+            },
+            {
+                "value": "Carens",
+                "label": "Carens"
             }
         ],
         "lada": [
@@ -1344,7 +1349,9 @@
             {
                 "value": "usVehicles",
                 "label": "US Vehicles"
-            }
+            },
+            {"value": "Oldtimer", "label": "Oldtimer"},
+            {"value": "Eco Sport", "label": "Eco Sport"}
         ],
         "bmw": [
             {
@@ -1552,7 +1559,8 @@
             {"value": "Latitude", "label": "Latitude"},
             {"value": "Scenic", "label": "Scenic"},
             {"value": "Fluence", "label": "Fluence"},
-            {"value": "Kangoo", "label": "Kangoo"}
+            {"value": "Kangoo", "label": "Kangoo"},
+            {"value": "Duster", "label": "Duster"}
         ],
         "rolls": [
             {

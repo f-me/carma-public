@@ -31,6 +31,14 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
 
     _save: => @debounced_save()
 
+    # we have cases with new models when lastFetch is still empty
+    # but we allready wrote null in some field, we don't need to
+    # actually save such data, anyway it's empty
+    # other case is when fetch failed, but some code initialize
+    # itself with nulls, we also don't want to break data it such case
+    # issue #1568
+    haveBefore: (b, a) => b == a or ((_.isUndefined b) and (_.isNull a))
+
     save: (cb) =>
       cb ?= _.identity # just to be sure we have something to call
       @saveKvm() unless @persisted

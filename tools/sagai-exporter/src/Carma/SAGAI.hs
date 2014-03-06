@@ -167,12 +167,9 @@ instance ExportMonad CaseExport where
       let twgPred = \s@(mn, _, _) ->
                       mn == "towage" &&
                       (not $ falseService s)
-          notMistake = \(_, _, d) ->
-                         dataField0 "status" d /= "mistake"
-      -- Include order number of the first non-mistake service,
-      -- include contractor code of the first non-false towage service
-      -- (if present).
-          oNum = find notMistake servs >>=
+      -- Include order number of the first non-false service,
+      -- include contractor code of the first non-false towage service.
+          oNum = find (not . falseService) servs >>=
                  \(_, _, d) -> return $ dataField0 "orderNumber" d
       pCode <- case find twgPred servs of
                  Just s -> contractorCode s towagePid >>= (return . Just)
@@ -401,9 +398,11 @@ caseField1 fn = dataField1 fn =<< getCase
 
 
 -- | True if a service is a false call (@falseCall@ field is not
--- @none@).
+-- @none@ or @status@ is a @mistake@).
 falseService :: Service -> Bool
-falseService (_, _, d) = dataField0 "falseCall" d /= "none"
+falseService (_, _, d) =
+  dataField0 "falseCall" d /= "none" ||
+  dataField0 "status" d == "mistake"
 
 
 -- | True if service should be exported to SAGAI.

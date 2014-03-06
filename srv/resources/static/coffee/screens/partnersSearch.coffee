@@ -199,7 +199,7 @@ define [ "utils"
   bindCityPlaces = (kvm) ->
     kvm["city"].subscribe (newCities) ->
       return unless newCities?
-      chunks = _.reject newCities.split(","), _.isEmpty
+      chunks = _.reject newCities, _.isEmpty
       kvm["cityPlacesExpected"] = chunks.length
       kvm["cityPlaces"].removeAll()
       for c in chunks
