@@ -28,7 +28,7 @@ define ["dictionaries/local-dict"], (ld) ->
 
     # Dictionary of all subprograms, with labels including parent
     # program name (used to assign users to subprograms)
-    usermetaPrograms: =>
+    usermetaSubPrograms: =>
       @bgetJSON "/_/Program", (parentObjs) =>
         @bgetJSON "/_/SubProgram", (objs) =>
           @source = for obj in objs

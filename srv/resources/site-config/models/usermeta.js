@@ -59,7 +59,7 @@
     {
       "meta": {
         "label": "Подпрограммы",
-        "dictionaryName": "usermetaPrograms",
+        "dictionaryName": "usermetaSubPrograms",
         "dictionaryType": "ComputedDict"
       },
       "type": "dictionary-many",
