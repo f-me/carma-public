@@ -61,7 +61,7 @@ data Case = Case
   , contact_ownerEmail
     :: F (Maybe Text) "contact_ownerEmail" "Email"
   , program
-    :: F (Maybe (IdentT Program))  "program" "Программа"
+    :: F (Maybe (IdentI Program))  "program" "Программа"
   , subprogram
     :: F (Maybe (IdentI SubProgram))  "subprogram" "Подпрограмма"
 

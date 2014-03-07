@@ -53,7 +53,7 @@ data Call = Call
   , callTaker
     :: F (IdentT Users) "callTaker" "Сотрудник РАМК"
   , program
-    :: F (Maybe (IdentT Program)) "program" "Программа"
+    :: F (Maybe (IdentI Program)) "program" "Программа"
   , wazzup
     :: F (Maybe (Ident Text Wazzup)) "wazzup" "Что случилось"
   , callerName_name

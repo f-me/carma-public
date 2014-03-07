@@ -99,14 +99,16 @@ caseDicts = [
   ,car_color `completeWith` Color.label
   ]
 
--- Mark several new-style dictionaries to use dictionaryStringify,
--- wrap integers in strings to be compatible with the old CRUD.
+-- | Mark several new-style dictionaries to use dictionaryStringify,
+-- to wrap integers in strings to be compatible with the old CRUD.
 caseOldCRUDHacks =
     [ setMeta "dictionaryStringify" (Aeson.Bool True) car_class
     , setMeta "dictionaryStringify" (Aeson.Bool True) car_engine
     , setMeta "dictionaryStringify" (Aeson.Bool True) car_transmission
     , setType "text" car_mileage
     , setType "text" car_makeYear
+    , setMeta "dictionaryStringify" (Aeson.Bool True) program
+    , setMeta "dictionaryStringify" (Aeson.Bool True) subprogram
     ]
 
 caseRo = [
@@ -160,11 +162,7 @@ caseMod = [
   ,mainToo contact_contactOwner
   ,mainToo car_plateNum
 
-  -- TODO Move to caseDicts
-  ,setMeta "dictionaryType" "ModelDict" program
-  ,setMeta "dictionaryStringify" (Aeson.Bool True) program
   ,setMeta "dictionaryParent" "program" subprogram
-  ,setMeta "dictionaryStringify" (Aeson.Bool True) subprogram
 
   ,widget "radio" car_transmission
   ,widget "radio" car_engine
