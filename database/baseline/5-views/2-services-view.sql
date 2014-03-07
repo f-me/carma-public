@@ -118,7 +118,7 @@ create view servicesview as
         p4.name as car_dealerto_name
 
     from casetbl c
-        left outer join "Program" pgm on c.program = pgm.id::text
+        left outer join "Program" pgm on c.program = pgm.id
         left outer join "CarClass" carcl on c.car_class = carcl.id
         left outer join "Engine" engine on c.car_engine = engine.id
         left outer join "Transmission" trans on c.car_transmission = trans.id

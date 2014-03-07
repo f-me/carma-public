@@ -119,7 +119,7 @@
           "permissions": ["vinAdmin"]
         },
         { "name"  : "program",
-          "label" : "Редактирование программ",
+          "label" : "Редактирование СТАРЫХ программ",
           "type"  : "li",
           "permissions": ["lovAdmin", "lovViewer"]
         },
@@ -136,4 +136,3 @@
       ]
     }
 ]
-

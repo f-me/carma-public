@@ -201,6 +201,7 @@ contractToCase :: [(C2C, FA Case.Case)]
 contractToCase =
     [ (P $ FA Contract.name, FA Case.contact_name)
     , (P $ FA Contract.vin, FA Case.car_vin)
+      -- FIXME We won't need this after #1360
     , (J (FA Contract.make) (FA CarMake.ident) (FA CarMake.value),
        FA Case.car_make)
     , (J (FA Contract.model) (FA CarModel.ident) (FA CarModel.value),

@@ -62,7 +62,7 @@ q = [sql|
         , client, clientCode, clientAddress
         , u.realname
      FROM contracttbl c
-     INNER JOIN programtbl p ON c.program::int4 = p.id
+     INNER JOIN programtbl p ON c.program = p.id
      LEFT JOIN "CarMake"  carMake  ON carMake.value  = carMake
      LEFT JOIN "CarModel" carModel ON carModel.value = carModel
      LEFT JOIN usermetatbl u ON u.uid::text = c.owner
