@@ -25,7 +25,7 @@ import           Utils.HttpErrors
 
 
 type Permissions = [ByteString]
-type Program = (ByteString, ByteString)
+type SubProgram = (ByteString, ByteString)
 type Screens = [Screen]
 
 data Screen = Sms { name        :: ByteString
@@ -75,7 +75,7 @@ instance ToJSON Screen where
 chkPerms :: Permissions -> Permissions -> Bool
 chkPerms perms roles = not $ null $ intersect perms roles
 
-processScreens :: Screens -> Permissions -> [Program] -> Screens
+processScreens :: Screens -> Permissions -> [SubProgram] -> Screens
 processScreens ss rls prms = reverse $ foldl prcScr [] ss
   where
     prcScr acc d
@@ -86,12 +86,12 @@ processScreens ss rls prms = reverse $ foldl prcScr [] ss
     process acc d@(Dropdown _ _ _ scrs) =
       d{ screens = processScreens scrs rls prms } : acc
     process acc d = d : acc
-    mkContractLi (pid, label) = Li (B8.concat ["contract/", pid]) label []
+    mkContractLi (sid, label) = Li (B8.concat ["contract/", sid]) label []
 
 readScreens :: IO (Either String Screens)
 readScreens = eitherDecode <$> L8.readFile "resources/site-config/screens.json"
 
--- | Select user roles and programs. User roles are converted to
+-- | Select user roles and subprograms. User roles are converted to
 -- internal values since screens.json references roles by values and
 -- currently we have no way to extract ident by string on Haskell side
 -- (FIXME)
@@ -105,16 +105,16 @@ SELECT DISTINCT s.roles, u.programs FROM
 |]
 
 qProgram :: Query
-qProgram = [sql| SELECT id::text, label FROM programtbl WHERE id::text in ? |]
+qProgram = [sql| SELECT id::text, label FROM "SubProgram" WHERE id::text in ? |]
 
 getScreens :: AppHandler ()
 getScreens = do
   s  <- liftIO readScreens
   (Just (UserId uid)) <- (userId . fromJust) <$> withAuth currentUser
-  [(roles, progIds)] <- with db $ query q (Only uid)
+  [(roles, subProgIds)] <- with db $ query q (Only uid)
         :: Handler App App [([ByteString], Maybe [ByteString])]
-  programs <- with db $ query qProgram (Only (In $ fromMaybe [] progIds))
-        :: Handler App App [Program]
+  subprograms <- with db $ query qProgram (Only (In $ fromMaybe [] subProgIds))
+        :: Handler App App [SubProgram]
   case s of
-    Right s' -> writeJSON $ processScreens s' roles programs
+    Right s' -> writeJSON $ processScreens s' roles subprograms
     Left err -> finishWithError 403 err
