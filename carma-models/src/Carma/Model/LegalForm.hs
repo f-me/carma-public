@@ -8,6 +8,7 @@ import Data.Model
 import Data.Model.View
 
 import Carma.Model.Types()
+import Carma.Model.PgTypes()
 
 data LegalForm = LegalForm
   { ident    :: PK Int LegalForm   "Форма организации"

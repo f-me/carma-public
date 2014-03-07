@@ -48,6 +48,8 @@ newtype WDay = WDay Day deriving (FromField, ToField,
                                   DefaultFieldView,
                                   Typeable)
 
+instance PgTypeable WDay where
+  pgTypeOf _ = pgTypeOf (undefined :: Day)
 
 data Contract = Contract
   { ident            :: PK Int Contract ""

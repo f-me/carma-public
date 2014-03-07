@@ -28,7 +28,6 @@ import           Carma.Model.DefaultNewCaseField         (DefaultNewCaseField)
 import           Carma.Model.Dictionary                  (Dictionary)
 import           Carma.Model.FieldPermission             (FieldPermission)
 import           Carma.Model.NewCaseField                (NewCaseField)
-import           Carma.Model.OldProgram                  (OldProgram)
 import           Carma.Model.Program                     (Program)
 import           Carma.Model.ProgramInfo                 (ProgramInfo)
 import           Carma.Model.Region                      (Region)
@@ -37,6 +36,12 @@ import           Carma.Model.ServiceInfo                 (ServiceInfo)
 import           Carma.Model.ServiceNames                (ServiceNames)
 import           Carma.Model.SubProgram                  (SubProgram)
 import           Carma.Model.SubProgramService           (SubProgramService)
+import           Carma.Model.Contract
+import           Carma.Model.Partner
+import           Carma.Model.LegalForm
+import           Carma.Model.VinFormat
+import           Carma.Model.ProgramType
+
 import           Data.Model
 
 import           Carma.Model.Service                     (Service)

@@ -8,6 +8,7 @@ import Data.Model
 import Data.Model.View
 
 import Carma.Model.Types()
+import Carma.Model.PgTypes()
 
 data Transmission = Transmission
   { ident    :: PK Int Transmission "Коробка передач"

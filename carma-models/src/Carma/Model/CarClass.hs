@@ -8,6 +8,7 @@ import Data.Model
 import Data.Model.View
 
 import Carma.Model.Types()
+import Carma.Model.PgTypes()
 
 data CarClass = CarClass
   { ident    :: PK Int CarClass "Класс автомобиля"

@@ -8,6 +8,7 @@ import Data.Model
 import Data.Model.View
 
 import Carma.Model.Types()
+import Carma.Model.PgTypes()
 
 data CheckType = CheckType
   { ident    :: PK Int CheckType "Вид ТО"

@@ -10,6 +10,7 @@ import Data.Model.View
 import Data.Model.TH
 
 import Carma.Model.Types()
+import Carma.Model.PgTypes()
 
 data ProgramType = ProgramType
   { ident                 :: PK Int ProgramType "Тип программы"
