@@ -29,7 +29,7 @@ psaQuery :: Query
 psaQuery = [sql|
 SELECT id FROM casetbl
 WHERE psaExportNeeded='yes'
-AND  (subprogram = ANY (?::text[]))
+AND  (subprogram = ANY (?))
 AND  (NOT psaexported='yes' OR psaexported IS NULL)
 AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
 |]
