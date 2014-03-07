@@ -49,6 +49,8 @@ data Call = Call
     :: F (IdentT Users) "callTaker" "Сотрудник РАМК"
   , program
     :: F (Maybe (IdentI Program)) "program" "Программа"
+  , subprogram
+    :: F (Maybe (IdentI Program)) "subprogram" "Подпрограмма"
   , wazzup
     :: F (Maybe (Ident Text Wazzup)) "wazzup" "Что случилось"
   , callerName_name
