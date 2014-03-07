@@ -1,5 +1,7 @@
 module Carma.Model.SubProgram.Type
-    (SubProgram(..))
+    ( SubProgram(..)
+    , SubProgramService(..)
+    )
 
 where
 
@@ -9,9 +11,10 @@ import Data.Vector
 
 import Data.Model
 
-import Carma.Model.Types (TInt)
+import Carma.Model.Types (TInt, IdentList)
 import Carma.Model.LegacyTypes (Reference)
 import Carma.Model.Program hiding (ident)
+import Carma.Model.ServiceNames hiding (ident)
 
 
 data SubProgram = SubProgram
@@ -41,7 +44,7 @@ data SubProgram = SubProgram
   , contacts    :: F (Maybe Text)
                    "contacts"
                    "Контактные лица"
-  , services    :: F (Maybe Reference)
+  , services    :: F (Maybe (IdentList SubProgramService))
                    "services"
                    "Услуги, предоставляемые по программе"
   , checkPeriod :: F (Maybe TInt)
@@ -63,3 +66,22 @@ data SubProgram = SubProgram
                    "dealerHelp"
                    "Справка для дилеров"
   } deriving Typeable
+
+
+data SubProgramService = SubProgramService
+    { sIdent      :: PK Int SubProgramService "Услуга по подпрограмме"
+    , sParent     :: F (IdentI SubProgram) "parent" "Подпрограмма"
+    , sType       :: F (IdentI ServiceNames) "type" "Услуга"
+    , maxCost     :: F (Maybe Text)
+                     "maxCost"
+                     "Лимит стоимости"
+    , maxDistance :: F (Maybe TInt)
+                     "maxDistance"
+                     "Лимит расстояния"
+    , maxPeriod   :: F (Maybe TInt)
+                     "maxPeriod"
+                     "Лимит продолжительности (в днях)"
+    , maxCount    :: F (Maybe TInt)
+                     "maxCount"
+                     "Лимит количества предоставления услуги"
+    } deriving Typeable

@@ -12,7 +12,7 @@ import           Data.Vector             (Vector)
 import           Data.Model.Types
 
 import           Carma.Model.LegacyTypes
-import           Carma.Model.Types       (Interval, TInt)
+import           Carma.Model.Types       (Interval, TInt, IdentList)
 
 instance PgTypeable t => PgTypeable (Maybe t) where
   pgTypeOf _ = PgType { pgNotNull  = False
@@ -42,6 +42,9 @@ instance PgTypeable Bool where
 
 instance PgTypeable TInt where
   pgTypeOf _ = PgType "integer" True
+
+instance PgTypeable (IdentList m) where
+  pgTypeOf _ = pgTypeOf (undefined :: Vector (IdentI m))
 
 instance PgTypeable Reference where
   pgTypeOf _ = PgType "text" True

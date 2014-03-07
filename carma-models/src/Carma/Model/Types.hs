@@ -3,7 +3,8 @@
 
 module Carma.Model.Types ( Dict(..)
                          , Interval(..)
-                         , TInt) where
+                         , TInt
+                         , IdentList) where
 
 import Control.Applicative
 
@@ -83,10 +84,27 @@ instance ToField   (Interval Day) where
 -- | Int wrapper which instructs CaRMa client to use JSON integers in
 -- commits.
 --
--- This should be preferred integer type for use with new models until
+-- This is the preferred integer type for use with new models until
 -- string-wrapped integers are no more used anywhere on the client.
 newtype TInt = TInt Int deriving (FromField, ToField,
                                   FromJSON, ToJSON, Typeable)
+
+-- | List of model instance identifiers. Used to accomodate client
+-- pull-children behaviour.
+data IdentList m = RL (Vector (IdentI m))
+                       deriving (Typeable)
+
+instance ToField (IdentList m) where
+    toField (RL v) = toField v
+
+instance Typeable m => FromField (IdentList m) where
+    fromField f s = RL <$> fromField f s
+
+instance ToJSON (IdentList m) where
+    toJSON (RL v) = toJSON v
+
+instance FromJSON (IdentList m) where
+    parseJSON v = RL <$> parseJSON v
 
 utcTimeIntervalToBuilder :: Interval UTCTime -> Builder
 utcTimeIntervalToBuilder (Interval begin end) =
@@ -182,6 +200,14 @@ instance DefaultFieldView TInt where
     , fv_meta
       = Map.insert "regexp" "number"
       $ Map.insert "widget" "text"
+      $ fv_meta $ defFieldView f
+    }
+
+instance Model m => DefaultFieldView (IdentList m) where
+  defaultFieldView f = (defFieldView f)
+    { fv_type = "IdentList"
+    , fv_meta
+      = Map.insert "model" (Aeson.String $ modelName (modelInfo :: ModelInfo m))
       $ fv_meta $ defFieldView f
     }
 

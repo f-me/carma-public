@@ -184,6 +184,7 @@ identifiers = [ FA vin
 identifierNames :: [Text]
 identifierNames = map fieldNameE identifiers
 
+
 -- | List of search params
 contractSearchParams :: [(Text, [Predicate Contract])]
 contractSearchParams = identifierParams
