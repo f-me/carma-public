@@ -40,14 +40,20 @@ define [], ->
   c2sDictSet = (vals) ->
     ids = _.map vals, (v) -> parseInt v
     # check type of keys, we have in dict, it may be Text or Int
-    if _.all ids, _.isNaN
-      _.uniq vals.sort(), true
+    res = if _.all ids, _.isNaN
+            _.uniq vals.sort(), true
+          else
+            _.uniq ids.sort((a, b) -> a - b), true
+    # Convert empty arrays to null (otherwise the server gets confused
+    # about types)
+    if _.isEmpty res
+      null
     else
-      _.uniq ids.sort((a, b) -> a - b), true
+      res
 
   c2sTypes =
     'dictionary-set': c2sDictSet
-    'dictionary-many': (v) -> c2sDictSet(v).join ','
+    'dictionary-many': (v) -> (c2sDictSet(v)?.join ',') || ''
     checkbox  : (v) -> if v then "1" else "0"
     Bool      : (v) -> v
     Integer   : (v) -> parseInt v
