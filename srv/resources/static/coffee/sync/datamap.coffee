@@ -47,6 +47,7 @@ define [], ->
 
   c2sTypes =
     'dictionary-set': c2sDictSet
+    'dictionary-many': (v) -> c2sDictSet(v).join ','
     checkbox  : (v) -> if v then "1" else "0"
     Bool      : (v) -> v
     Integer   : (v) -> parseInt v
@@ -62,6 +63,7 @@ define [], ->
 
   s2cTypes =
     'dictionary-set': (v) -> v
+    'dictionary-many': (v) -> v.split(',')
     checkbox  : (v) -> v == "1"
     Bool      : (v) -> v
     Integer   : (v) -> v
