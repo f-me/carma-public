@@ -60,7 +60,8 @@
       "meta": {
         "label": "Подпрограммы",
         "dictionaryName": "usermetaSubPrograms",
-        "dictionaryType": "ComputedDict"
+        "dictionaryType": "ComputedDict",
+        "bounded": true
       },
       "type": "dictionary-many",
       "groupName": null,
