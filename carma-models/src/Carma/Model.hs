@@ -1,12 +1,14 @@
-
 {-# LANGUAGE Rank2Types          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+
 module Carma.Model
-  (Model
-  ,Ident(..), IdentI, IdentT
-  ,dispatch
-  ,modelMap
-  ) where
+  ( Model
+  , Ident(..), IdentI, IdentT
+  , dispatch
+  , modelMap
+  )
+
+where
 
 import qualified Data.Map                                as Map
 import           Data.Text                               (Text)
