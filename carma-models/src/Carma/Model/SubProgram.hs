@@ -15,7 +15,7 @@ import Data.Model.TH
 import Data.Model.View
 
 import Carma.Model.SubProgram.Type
-import Carma.Model.SubProgramService
+import Carma.Model.SubProgramService ()
 
 
 mkIdents [t|SubProgram|]
@@ -38,6 +38,7 @@ instance Model SubProgram where
                 , widget "text" validFor
                 , setMeta "reference-label"
                   (A.String "Добавить услугу") services
+                , setMeta "reference-widget" "subprogram-services" services
                 , textarea help
                 , textarea dealerHelp
                 , setMeta "widget" "inline-uploader" contract

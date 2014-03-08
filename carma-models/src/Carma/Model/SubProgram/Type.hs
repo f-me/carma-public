@@ -71,7 +71,7 @@ data SubProgram = SubProgram
 data SubProgramService = SubProgramService
     { sIdent      :: PK Int SubProgramService "Услуга по подпрограмме"
     , sParent     :: F (IdentI SubProgram) "parent" "Подпрограмма"
-    , sType       :: F (IdentI ServiceNames) "type" "Услуга"
+    , sType       :: F (Maybe (IdentI ServiceNames)) "type" "Услуга"
     , maxCost     :: F (Maybe Text)
                      "maxCost"
                      "Лимит стоимости"
