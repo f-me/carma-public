@@ -266,7 +266,7 @@ newCase = do
                   HM.insert subProgField (BS.pack $ show subProgValue) $
                   HM.delete "lon" $
                   HM.delete "lat" $
-                  HM.delete "car_vin" $ -- we'll insert it later to run trigger
+                  HM.delete "car_vin" $ -- We insert it later to run the trigger
                   jsonRq'
 
   modifyResponse $ setContentType "application/json"
@@ -295,10 +295,8 @@ newCase = do
   let actId = fst actResp
   runCarma $ updateInstance "case" caseId $ HM.fromList $
           [ ("actions", actionIdReference actId) ]
-          -- we update car_vin here to trigger vin-search (it's a bit
-          -- easier than adding correct trigger handling on POST
-          -- request)
-          ++ maybe [] (\vin -> [("car_vin", vin)]) car_vin
+          -- We update contractIdentifier here to trigger contract search
+          ++ maybe [] (\vin -> [("contractIdentifier", vin)]) car_vin
 
   writeLBS . encode $ object $ [ "caseId" .= caseId ]
 
