@@ -53,13 +53,13 @@ serveModel = do
         $ case name of
           "case" -> newCase pgm
           _      -> newSvc pgm name
-      _ -> case Model.dispatch (T.decodeUtf8 $ fixedName) $ viewForModel fixedView of
+      _ -> case Model.dispatch (T.decodeUtf8 $ name') $ viewForModel view' of
         Just res -> return res
         Nothing  -> M.lookup name <$> gets models
         -- Serve case model with oldCRUD view from carma-models when
         -- /cfg/model/case is requested
         where
-          (fixedName, fixedView) =
+          (name', view') =
               case (name, view) of
                 ("case", "") -> ("Case", "oldCRUD")
                 ("case", v ) -> ("Case", v)
@@ -98,6 +98,11 @@ writeModel model
 stripModel :: AuthUser -> Model -> Handler b (SiteConfig b) Model
 stripModel u m = do
   let Just uid = userId u
+      -- Use Case permissions even when faked to serve Case model
+      -- while being asked for case (see oldCRUD branch in
+      -- serveModel).
+      fixCaseModelName "case" = "Case"
+      fixCaseModelName v      = v
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
   readableFields <- withPG $ \c -> query c [sql|
     select p.field, max(p.w::int)::bool
@@ -108,7 +113,7 @@ stripModel u m = do
         and p.role::text = ANY (u.roles)
       group by p.field
     |]
-    (unUid uid, modelName m)
+    (unUid uid, fixCaseModelName $ modelName m)
   let fieldsMap = M.fromList readableFields
   let fieldFilter f fs = case M.lookup (name f) fieldsMap of
         Nothing -> fs
