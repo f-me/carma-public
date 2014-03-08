@@ -38,6 +38,7 @@ instance Model SubProgram where
                 , required parent
                 , required label
                 , required value
+                , infoText "subProgramValue" value
                 , widget "text" checkPeriod
                 , widget "text" validFor
                 , setMeta "reference-label"

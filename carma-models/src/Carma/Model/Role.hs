@@ -63,4 +63,7 @@ instance Model Role where
   type TableName Role = "Role"
   idents = Carma.Model.Role.idents
   modelInfo = mkModelInfo Role ident
-  modelView _ = modifyView defaultView [readonly value]
+  modelView _ = modifyView defaultView
+                [ readonly value
+                , infoText "roleValue" value
+                ]
