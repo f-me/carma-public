@@ -27,7 +27,7 @@ Executable carma-mobile-server
     bytestring                  >= 0.9.1 && < 0.11,
     carma-dict                  == 0.1.*,
     carma-http                  >= 0.3 && < 0.5,
-    carma-models                >= 0.5.8 && < 0.8,
+    carma-models                >= 0.15.1 && < 0.16,
     configurator                == 0.2.*,
     lens                        >= 3.8 && < 3.10,
     hedis                       == 0.6.*,

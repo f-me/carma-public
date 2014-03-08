@@ -19,50 +19,52 @@ module Application
 
 where
 
-import Control.Applicative
-import Control.Lens hiding ((.=), createInstance)
-import Control.Monad
-import Control.Monad.State hiding (ap)
+import           Control.Applicative
+import           Control.Lens hiding ((.=), createInstance)
+import           Control.Monad
+import           Control.Monad.State hiding (ap)
 
-import Data.Aeson as Aeson
+import           Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
 
-import Data.Attoparsec.Number
-import Data.Attoparsec.ByteString.Char8
+import           Data.Attoparsec.Number
+import           Data.Attoparsec.ByteString.Char8
 
-import Data.ByteString.Char8 (ByteString)
+import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import Data.Dict
-import Data.Maybe
+import           Data.Dict
+import           Data.Maybe
 import qualified Data.Text as T (pack)
-import Data.Text.Encoding (encodeUtf8)
+import           Data.Text.Encoding (encodeUtf8)
 
-import Data.Configurator
+import           Data.Configurator
 
-import Data.Time.Clock
-import Data.Time.Format
+import           Data.Time.Clock
+import           Data.Time.Format
 
 import qualified Database.Redis as R
-import Database.PostgreSQL.Simple.SqlQQ
+import           Database.PostgreSQL.Simple.SqlQQ
 
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)
 
 import qualified Network.HTTP as H
 
-import System.Locale
+import           System.Locale
 
-import Snap.Core
-import Snap.Snaplet
-import Snap.Snaplet.PostgresqlSimple
-import Snap.Snaplet.RedisDB
+import           Snap.Core
+import           Snap.Snaplet
+import           Snap.Snaplet.PostgresqlSimple
+import           Snap.Snaplet.RedisDB
 
-import Data.Model as Model
-import Carma.Model.Program as Program
-import qualified Carma.Model.Role as Role
+import           Data.Model             as Model
+import           Carma.Model.Case       as Case hiding (car_vin, city)
+import           Carma.Model.Program    as Program
+import           Carma.Model.SubProgram as SubProgram hiding (name)
+import qualified Carma.Model.Role       as Role
 
-import Carma.HTTP hiding (runCarma)
+import           Carma.HTTP hiding (runCarma)
 import qualified Carma.HTTP as CH (runCarma)
 
 
@@ -83,9 +85,9 @@ instance HasPostgres (Handler b GeoApp) where
 
 
 routes :: [(ByteString, Handler b GeoApp ())]
-routes = [ ("/geo/partner/:pid", method PUT $ updatePosition)
+routes = [ ("/geo/partner/:pid",           method PUT $ updatePosition)
          , ("/geo/partnersAround/:coords", method GET $ partnersAround)
-         , ("/geo/case/", method POST $ newCase)
+         , ("/geo/case/",                  method POST $ newCase)
          ]
 
 
@@ -182,12 +184,6 @@ updatePartnerData pid lon lat free addr mtime =
 
 
 ------------------------------------------------------------------------------
--- | Default program id for created cases.
-defaultProgram :: Int
-defaultProgram = n where (Ident n) = Program.ramc
-
-
-------------------------------------------------------------------------------
 -- | Build a reference to a case.
 caseIdReference :: Int -> ByteString
 caseIdReference n = BS.pack $ "case:" ++ (show n)
@@ -208,7 +204,8 @@ roleIdent (Ident v) = BS.pack $ show v
 -- Perform reverse geocoding using coordinates from values under @lon@
 -- and @lat@ (read as JSON doubles), writing the obtained city and
 -- street address to the new case. New @callMeMaybe@ action is created
--- for the case.
+-- for the case. @program@ parameter is read as a number, but
+-- @Cadillac@ string value is also supported.
 --
 -- Response body is a JSON of form @{"caseId":<n>}@, where @n@ is the
 -- new case id.
@@ -216,12 +213,14 @@ newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
   rqb <- readRequestBody 4096
-  let progField = "program"
+  let progField    = encodeUtf8 $ fieldName Case.program
+      subProgField = encodeUtf8 $ fieldName Case.subprogram
       -- Do not enforce typing on values when reading JSON
       Just jsonRq0 :: Maybe (HM.HashMap ByteString Value) =
                       Aeson.decode rqb
       coords' = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
-      program = HM.lookup progField jsonRq0
+      program'    = HM.lookup progField jsonRq0
+      subprogram' = HM.lookup subProgField jsonRq0
       -- Now read all values but coords and program into ByteStrings
       jsonRq = HM.map (\(String s) -> encodeUtf8 s) $
                HM.filter (\case
@@ -247,12 +246,24 @@ newCase = do
         jsonRq
     _ -> return jsonRq
 
-  -- Set default program (if not provided by client), then form a new
-  -- case request to send to CaRMa
-  let progValue = BS.pack $ show $ case program of
-                                     Just (Number (I n)) -> fromInteger n
-                                     _                   -> defaultProgram
-      caseBody  = HM.insert progField progValue $
+  let numberToInt :: Maybe Value -> Maybe Int
+      numberToInt (Just (Number (I n))) = Just $ fromIntegral n
+      numberToInt _                     = Nothing
+
+      identToInt :: IdentI m -> Int
+      identToInt i = n where (Ident n) = i
+
+      -- Set default program/subprogram (if not provided by client)
+      (progValue, subProgValue) =
+          case (program', subprogram') of
+            (Just (Aeson.String "Cadillac"), _) ->
+                (Just $ identToInt Program.gm,
+                 Just $ identToInt SubProgram.cad2012)
+            (a, b) -> (numberToInt a, numberToInt b)
+
+      -- Form a new case request to send to CaRMa
+      caseBody  = HM.insert progField (BS.pack $ show progValue) $
+                  HM.insert subProgField (BS.pack $ show subProgValue) $
                   HM.delete "lon" $
                   HM.delete "lat" $
                   HM.delete "car_vin" $ -- we'll insert it later to run trigger
