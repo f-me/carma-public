@@ -267,7 +267,7 @@ define ["model/utils", "utils"], (mu, u) ->
     # makes no sense)
     if city_field?
       city_meta = u.splitFieldInView city_field, viewName
-      city = u.findVM(city_meta.view)[city_meta.field]()
+      city = (u.findVM(city_meta.view) || kvm)[city_meta.field]()
       if city?.length > 0
         fixed_city = global.dictValueCache.DealerCities[city]
         $.getJSON geoQuery(fixed_city), (res) ->
