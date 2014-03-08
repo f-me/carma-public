@@ -32,6 +32,7 @@ mkIdents [t|Program|]
  [ ("vtb24", 2)
  , ("genser", 32)
  , ("ramc", 64)
+ , ("gm", 4)
  ]
 
 instance Model Program where

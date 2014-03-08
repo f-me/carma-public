@@ -24,6 +24,8 @@ mkIdents [t|SubProgram|]
  , ("vwCargo", 2)
  , ("peugeot", 3)
  , ("citroen", 4)
+ , ("cad2012", 9)
+ , ("ramc", 102)
  ]
 
 
