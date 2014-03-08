@@ -3,16 +3,13 @@ module Carma.Model.LegacyTypes where
 import Control.Applicative
 import Control.Error.Util
 import Data.Text
-import qualified Data.Text.Read as T
 import Data.Typeable
 import Data.Aeson
 import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.Time (parseUTCTime)
-import Data.Time.Clock.POSIX
 import Data.Time.Clock (UTCTime)
 import Data.Time.Format (parseTime, formatTime)
-import System.Locale (defaultTimeLocale)
 import qualified Data.ByteString.Char8 as B
 
 data Diagnosis1 = Diagnosis1 deriving Typeable

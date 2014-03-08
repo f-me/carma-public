@@ -1,4 +1,3 @@
-
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverlappingInstances #-}
 
@@ -19,7 +18,6 @@ import Data.List (intersperse)
 import Data.Int (Int64)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Monoid
 
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromField hiding (Field)
@@ -37,7 +35,7 @@ select q c = uncurry (query c) $ mkSelect q
 
 
 update :: (SqlQ how, SqlQ which, QMod how ~ QMod which) =>
-          how 
+          how
        -- ^ How to transform target set of rows.
        -> which
        -- ^ Which rows to select for UPDATE.
