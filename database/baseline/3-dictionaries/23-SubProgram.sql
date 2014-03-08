@@ -11,7 +11,7 @@ CREATE TABLE "SubProgram"
   , services int4[] -- ELEMENT REFERENCES SubProgramService
   , checkPeriod integer
   , validFor integer
-  , contract text
+  , template text
   , logo text
   , help text
   , dealerHelp text

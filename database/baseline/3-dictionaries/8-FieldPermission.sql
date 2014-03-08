@@ -1222,8 +1222,8 @@ lovViewer	SubProgram	checkPeriod	t	f
 lovAdmin	SubProgram	checkPeriod	t	t
 lovViewer	SubProgram	validFor	t	f
 lovAdmin	SubProgram	validFor	t	t
-lovViewer	SubProgram	contract	t	f
-lovAdmin	SubProgram	contract	t	t
+lovViewer	SubProgram	template	t	f
+lovAdmin	SubProgram	template	t	t
 lovViewer	SubProgram	logo	t	f
 lovAdmin	SubProgram	logo	t	t
 lovViewer	SubProgram	help	t	f
