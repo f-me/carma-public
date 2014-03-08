@@ -262,8 +262,12 @@ newCase = do
             (a, b) -> (numberToInt a, numberToInt b)
 
       -- Form a new case request to send to CaRMa
-      caseBody  = HM.insert progField (BS.pack $ show progValue) $
-                  HM.insert subProgField (BS.pack $ show subProgValue) $
+      caseBody  = HM.insert progField
+                  (BS.pack $ show $
+                   fromMaybe (identToInt Program.ramc) progValue) $
+                  HM.insert subProgField
+                  (BS.pack $ show $
+                   fromMaybe (identToInt SubProgram.ramc) subProgValue) $
                   HM.delete "lon" $
                   HM.delete "lat" $
                   HM.delete "car_vin" $ -- We insert it later to run the trigger
