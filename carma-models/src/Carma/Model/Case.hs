@@ -29,6 +29,7 @@ caseSearchParams
       ,one Case.contact_ownerPhone3, one Case.contact_ownerPhone4
       ])
     ,("program",    listOf Case.program)
+    ,("subprogram", listOf Case.subprogram)
     ,("city",       listOf Case.city)
     ,("carMake",    listOf Case.car_make)
     ,("callDate",   interval Case.callDate)

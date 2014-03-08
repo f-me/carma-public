@@ -23,6 +23,7 @@ callSearchParams
     , ("callDate", interval callDate)
     , ("callTaker", fuzzy $ one callTaker)
     , ("program", one program)
+    , ("subprogram", one subprogram)
     , ("wazzup", fuzzy $ one wazzup)
     , ("callType", one callType)
     , ("caller", fuzzy $ matchAny
