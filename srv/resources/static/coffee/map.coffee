@@ -1,5 +1,3 @@
-# TODO Use city in reverse geocoding routines!
-
 define ["model/utils", "utils"], (mu, u) ->
 
   # Default marker icon size
@@ -341,9 +339,9 @@ define ["model/utils", "utils"], (mu, u) ->
             options.current_blip_type
     )
 
-  # Give OpenLayers.Coords object (in WSG projection), try to fill a
-  # set of model fields, updating text coordinates, map position, city
-  # and address.
+  # Given an OpenLayers.Coords object (in WSG projection), try to fill
+  # a set of model fields, updating text coordinates, map position,
+  # city and address.
   #
   # Options is an object with following keys:
   #
