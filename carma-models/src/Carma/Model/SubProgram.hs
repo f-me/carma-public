@@ -35,6 +35,9 @@ instance Model SubProgram where
                 [ setMeta "regexp" "number" checkPeriod
                 , setMeta "regexp" "number" validFor
                 , setMeta "regexp" "email" mailAddr
+                , required parent
+                , required label
+                , required value
                 , widget "text" checkPeriod
                 , widget "text" validFor
                 , setMeta "reference-label"
