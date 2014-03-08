@@ -41,8 +41,8 @@ instance Model SubProgram where
                 , setMeta "reference-widget" "subprogram-services" services
                 , textarea help
                 , textarea dealerHelp
-                , setMeta "widget" "inline-uploader" contract
-                , setMeta "reference-widget" "files" contract
+                , setMeta "widget" "inline-uploader" template
+                , setMeta "reference-widget" "files" template
                 , setMeta "widget" "inline-uploader" logo
                 , setMeta "reference-widget" "files" logo
                 , setMeta "single-uploader" (A.Bool True) logo

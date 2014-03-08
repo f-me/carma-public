@@ -53,8 +53,8 @@ data SubProgram = SubProgram
   , validFor    :: F (Maybe TInt)
                    "validFor"
                    "Срок действия программы по умолчанию"
-  , contract    :: F (Maybe Reference)
-                   "contract"
+  , template    :: F (Maybe Reference)
+                   "template"
                    "Шаблон договора"
   , logo        :: F (Maybe Reference)
                    "logo"
