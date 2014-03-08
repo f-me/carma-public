@@ -37,6 +37,7 @@ import           Carma.Model.Role                        (Role)
 import           Carma.Model.ServiceInfo                 (ServiceInfo)
 import           Carma.Model.ServiceNames                (ServiceNames)
 import           Carma.Model.SubProgram                  (SubProgram)
+import           Carma.Model.SubProgramContact
 import           Carma.Model.SubProgramService           (SubProgramService)
 import           Carma.Model.Contract
 import           Carma.Model.Partner
@@ -102,6 +103,7 @@ modelMap fn = modelMap'
       ,add (undefined :: Transmission)
       ,add (undefined :: Role)
       ,add (undefined :: SubProgram)
+      ,add (undefined :: SubProgramContact)
       ,add (undefined :: SubProgramService)
       ,add (undefined :: VinFormat)
       ,add (undefined :: Case)

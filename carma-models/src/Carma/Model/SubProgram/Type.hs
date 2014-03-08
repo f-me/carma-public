@@ -1,5 +1,6 @@
 module Carma.Model.SubProgram.Type
     ( SubProgram(..)
+    , SubProgramContact(..)
     , SubProgramService(..)
     )
 
@@ -41,7 +42,7 @@ data SubProgram = SubProgram
   , mailPass    :: F (Maybe Text)
                    "mailPass"
                    "Пароль для отправки писем"
-  , contacts    :: F (Maybe Text)
+  , contacts    :: F (Maybe (IdentList SubProgramContact))
                    "contacts"
                    "Контактные лица"
   , services    :: F (Maybe (IdentList SubProgramService))
@@ -84,4 +85,13 @@ data SubProgramService = SubProgramService
     , maxCount    :: F (Maybe TInt)
                      "maxCount"
                      "Лимит количества предоставления услуги"
+    } deriving Typeable
+
+
+data SubProgramContact = SubProgramContact
+    { cIdent      :: PK Int SubProgramContact "Контактное лицо"
+    , cParent     :: F (IdentI SubProgram) "parent" "Подпрограмма"
+    , name        :: F (Maybe Text)        "name"   "ФИО"
+    , email       :: F (Maybe Text)        "email"  "E-mail"
+    , phone       :: F (Maybe Text)        "phone"  "Телефон"
     } deriving Typeable

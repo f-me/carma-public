@@ -15,6 +15,7 @@ import Data.Model.TH
 import Data.Model.View
 
 import Carma.Model.SubProgram.Type
+import Carma.Model.SubProgramContact ()
 import Carma.Model.SubProgramService ()
 
 
@@ -36,6 +37,9 @@ instance Model SubProgram where
                 , setMeta "regexp" "email" mailAddr
                 , widget "text" checkPeriod
                 , widget "text" validFor
+                , setMeta "reference-label"
+                  (A.String "Добавить контактное лицо") contacts
+                , setMeta "reference-widget" "subprogram-contacts" contacts
                 , setMeta "reference-label"
                   (A.String "Добавить услугу") services
                 , setMeta "reference-widget" "subprogram-services" services
