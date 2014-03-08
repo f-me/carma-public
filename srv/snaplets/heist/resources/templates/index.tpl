@@ -1167,7 +1167,7 @@
       <div>
         <a href="#"
            class="detach-button text-error"
-           onClick="inlineDetachFile($(this))"
+           onClick="inlineDetachFile($(this)); return false"
            data-attachment="{{ refId }}"
            data-field="{{ refField }}">×</a>
         <span class="{{ refClass }}"
