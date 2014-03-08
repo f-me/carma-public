@@ -319,13 +319,22 @@ instance ToJSON Partner where
 -- filter is enabled (active low) & value for this parameter), maximum
 -- distance (flag & value) and limit onto query; then fetch list of
 -- partners ordered by distance to the provided point, in ascending
--- order. Serve only dealer partners with non-empty names.
+-- order. Serve only dealer partners with non-empty names. First
+-- @fact@ address and first @disp@ phone are included for each
+-- partner.
 partnersAroundQuery :: Query
 partnersAroundQuery = [sql|
 WITH subquery AS (
-  SELECT *, ST_Distance_Sphere(coords, ST_PointFromText('POINT(? ?)', 4326)) dist
-  FROM partnertbl
+  SELECT *,
+         addr->>'value' as addrDeFacto,
+         phone->>'value' as phone1,
+         ST_Distance_Sphere(coords, ST_PointFromText('POINT(? ?)', 4326)) dist
+  FROM partnertbl,
+       json_array_elements(addrs) as addr,
+       json_array_elements(phones) as phone
   WHERE isDealer
+  AND addr->>'key' = 'fact'
+  AND phone->>'key' = 'disp'
   AND name != ''
   AND (? or ? = ANY(makes)))
 SELECT id, st_x(coords), st_y(coords),
