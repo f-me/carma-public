@@ -7,7 +7,7 @@ CREATE TABLE "SubProgram"
   , value text UNIQUE NOT NULL
   , mailAddr text
   , mailPass text
-  , contacts text
+  , contacts int4[] -- ELEMENT REFERENCES SubProgramContact
   , services int4[] -- ELEMENT REFERENCES SubProgramService
   , checkPeriod integer
   , validFor integer

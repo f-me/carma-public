@@ -1242,6 +1242,14 @@ lovViewer	SubProgramService	maxPeriod	t	f
 lovAdmin	SubProgramService	maxPeriod	t	t
 lovViewer	SubProgramService	maxCount	t	f
 lovAdmin	SubProgramService	maxCount	t	t
+lovViewer	SubProgramContact	parent	t	f
+lovAdmin	SubProgramContact	parent	t	t
+lovViewer	SubProgramContact	name	t	f
+lovAdmin	SubProgramContact	name	t	t
+lovViewer	SubProgramContact	email	t	f
+lovAdmin	SubProgramContact	email	t	t
+lovViewer	SubProgramContact	phone	t	f
+lovAdmin	SubProgramContact	phone	t	t
 lovViewer	program	active	t	f
 lovAdmin	program	active	t	t
 lovViewer	program	carCheckPeriodDefault	t	f
