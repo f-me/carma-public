@@ -50,7 +50,7 @@ define [ "hooks/common"
 
       "ken" : [ s.openPartnerSearch ]
 
-      "partner" : [ c.bindRemoveHook 'services'
+      "partner" : [ (c.bindRemoveHook 'services')
                   , p.serviceRepeat
                   , p.factAddr
                   ]
