@@ -76,7 +76,7 @@ define ["model/utils", "utils"], (mu, u) ->
     coords: new OpenLayers.LonLat(50.19039, 53.200568)
     bounds: new OpenLayers.Bounds(
       49.959505, 53.198916,
-      50.44771, 53.416821)      
+      50.44771, 53.416821)
 
   # Build a place for city from geoQuery response (overrides
   # coordinates and boundaries for certain key cities)
@@ -241,6 +241,7 @@ define ["model/utils", "utils"], (mu, u) ->
 
     fieldName = $(el).attr("name")
     view = $(mu.elementView($(el)))
+    viewName = view.id
     modelName = mu.elementModel($(el))
     kvm = u.findVM parentView
 
@@ -267,7 +268,8 @@ define ["model/utils", "utils"], (mu, u) ->
     # not been recognized (fitting whole city when coords are set
     # makes no sense)
     if city_field?
-      city = kvm[city_field]()
+      city_meta = u.splitFieldInView city_field, viewName
+      city = u.findVM(city_meta.view)[city_meta.field]()
       if city?.length > 0
         fixed_city = global.dictValueCache.DealerCities[city]
         $.getJSON geoQuery(fixed_city), (res) ->
@@ -288,7 +290,12 @@ define ["model/utils", "utils"], (mu, u) ->
           coord_field: coord_field
           osmap: osmap
           current_blip_type: current_blip_type
-          city_field: city_field
+          city_field:
+            # Do not set city on click if it's in a different view
+            if /\//.test city_field
+              null
+            else
+              city_field
           addr_field: addr_field
       )
 
@@ -441,7 +448,7 @@ define ["model/utils", "utils"], (mu, u) ->
     current_blip_type =
       mu.modelField(modelName, map_field).meta["currentBlipType"] or "default"
     kvm = u.findVM(viewName)
-    
+
     spliceCoords coords, kvm,
       osmap: osmap
       current_blip_type: current_blip_type
