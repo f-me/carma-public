@@ -57,7 +57,6 @@ define ->
     if files.length > 0
       @ajaxUpload(url, files[0]).
       fail((e) ->
-        console.log e
         alert "Не удалось загрузить файл!"
       ).
       # Re-read instance data when a new attachment is added
