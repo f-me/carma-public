@@ -472,7 +472,9 @@ define [ "model/render"
     e = $('#' + kvm['view'])
     e.parent().prev()[0].scrollIntoView()
     e.find('input')[0].focus()
-    e.find('input').parents(".accordion-body").first().collapse('show')
+    accordion = e.find('input').parents(".accordion-body").first()
+    if !accordion.hasClass('in')
+      accordion.collapse('show')
 
   getrForest = (kvm, fld) ->
     modelName = kvm._meta.model.name

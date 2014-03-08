@@ -1147,7 +1147,7 @@
         </div>
 
         <div id="{{ refView }}-head"
-             class="accordion-body collapse in">
+             class="accordion-body collapse">
           <div class="accordion-inner {{ refClass }}"
                id="{{ refView }}">
             <!-- Instance contents are rendered here -->
@@ -1172,7 +1172,7 @@
         </div>
 
         <div id="{{ refView }}-head"
-             class="accordion-body collapse in">
+             class="accordion-body collapse">
           <div class="accordion-inner {{ refClass }}"
                id="{{ refView }}">
             <!-- Instance contents are rendered here -->
