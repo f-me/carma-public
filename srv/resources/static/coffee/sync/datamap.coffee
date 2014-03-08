@@ -59,6 +59,7 @@ define [], ->
     Integer   : (v) -> parseInt v
     Double    : (v) -> parseFloat v.replace ',', '.'
     Day       : c2sDay("dd.MM.yyyy")
+    IdentList : (v) -> v
     dictionary: (v) -> if _.isNull v then '' else v
     date      : c2sDate("dd.MM.yyyy")
     datetime  : c2sDate("dd.MM.yyyy HH:mm")
@@ -74,6 +75,7 @@ define [], ->
     Bool      : (v) -> v
     Integer   : (v) -> v
     Double    : (v) -> v
+    IdentList : (v) -> v
     Day       : s2cDay("dd.MM.yyyy")
     dictionary: (v) -> v
     date      : s2cDate("dd.MM.yyyy")

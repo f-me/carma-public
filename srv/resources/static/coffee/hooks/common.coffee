@@ -278,3 +278,7 @@ define [ "utils"
       e.parents(".accordion-group")[0].scrollIntoView()
     f = e.find(".focusable")[0]
     f and f.focus()
+
+  bindRemoveHook: (fieldName) ->
+    (model, kvm) ->
+      kvm[fieldName].subscribe -> u.bindRemove kvm, fieldName

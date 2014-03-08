@@ -1094,6 +1094,69 @@
       </div>
     </script>
 
+
+
+    <!-- NOP here — IdentList references are rendered after model has loaded -->
+    <script type="text/template"
+            class="field-template"
+            id="IdentList-field-template">
+        <div class="control-group">
+
+          <div class="control-label">
+            <label>{{ meta.label }}</label>
+          </div>
+
+          <div class="controls">
+            <span class="accordion"
+                  id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
+          </div>
+
+          {{# meta.model}}
+          <div id="add-reference-button" class="controls">
+            <button class="dropdown-toggle btn btn-action"
+                    data-bind="bindClick: add{{ name }}"
+                    type="button">
+              <i class="icon icon-plus"></i>&nbsp;{{ meta.reference-label }}
+            </button>
+          </div>
+          {{/ meta.model}}
+
+        </div>
+    </script>
+
+    <!--
+         SubProgram.services (SubProgramService model) reference
+         template
+    -->
+    <script type="text/template"
+            class="reference-template"
+            id="subprogram-services-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <div class="accordion-toggle"
+               data-target="#{{ refView }}-head"
+               data-toggle="collapse"
+               id="{{ refView }}-link">
+            <a class="icon icon-remove" />
+            <a
+               data-bind="text: typeLocal">
+               Услуга
+            </a>
+
+          </div>
+        </div>
+
+        <div id="{{ refView }}-head"
+             class="accordion-body collapse in">
+          <div class="accordion-inner {{ refClass }}"
+               id="{{ refView }}">
+            <!-- Instance contents are rendered here -->
+
+          </div>
+        </div>
+      </div>
+    </script>
+
     <!--
          Attachment list reference template. By convention, such
          fields are named "files". See also file-field-template.

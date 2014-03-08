@@ -1,6 +1,6 @@
 CREATE TABLE "SubProgramService"
   ( id    SERIAL PRIMARY KEY
-  , parent int4 REFERENCES "SubProgram"
+  , parent int4 REFERENCES "SubProgram" NOT NULL
   , type int4 REFERENCES "ServiceNames"
   , maxCost text
   , maxDistance integer
