@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 {-|
 
 Proxy model for a subset of legacy usermeta model.
@@ -11,10 +13,12 @@ import Data.Typeable
 import Data.Vector
 
 import Data.Model
+import Data.Model.TH
 import Data.Model.View
 
 import Carma.Model.Types ()
 import Carma.Model.Role hiding (ident)
+
 
 data Usermeta = Usermeta
   { ident :: PK Int Usermeta          "Данные о пользователе"
@@ -24,6 +28,11 @@ data Usermeta = Usermeta
   -- is fully migrated to new models)
   , roles :: F (Maybe (Vector (IdentT Role))) "roles" "Роли в системе"
   } deriving Typeable
+
+
+mkIdents [t|Usermeta|]
+ [ ("psa", 387) ]
+
 
 instance Model Usermeta where
   type TableName Usermeta = "usermetatbl"

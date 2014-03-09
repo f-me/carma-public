@@ -41,6 +41,7 @@ import Carma.Model.Usermeta     (Usermeta)
 import Carma.Model.Engine       (Engine)
 import Carma.Model.Search
 
+
 -- | Transparent 'Day' wrapper so that @typeOf WDay@ points to this
 -- module (original name is hidden: @Data.Time.Calendar.Days.Day@).
 newtype WDay = WDay Day deriving (FromField, ToField,
@@ -50,6 +51,7 @@ newtype WDay = WDay Day deriving (FromField, ToField,
 
 instance PgTypeable WDay where
   pgTypeOf _ = pgTypeOf (undefined :: Day)
+
 
 data Contract = Contract
   { ident            :: PK Int Contract ""

@@ -4,6 +4,7 @@
 
 module Carma.Model.VinFormat
     ( VinFormat(..)
+    , Carma.Model.VinFormat.idents
     , Sing(..)
     , ContractField
     , FormatFieldAccessor(..)
@@ -21,6 +22,7 @@ import Data.Vector (Vector, toList)
 
 import Data.Model
 import Data.Model.Patch as Patch
+import Data.Model.TH
 import Data.Model.View
 
 import Carma.Model.Types (TInt)
@@ -70,6 +72,11 @@ mkVinFormat  [ FF SName   Contract.name
              , FF SDict   Contract.legalForm
              , FF SSubprogram Contract.subprogram
              ]
+
+
+mkIdents [t|VinFormat|]
+ [ ("arc", 1000) ]
+
 
 instance Model VinFormat where
   type TableName VinFormat = "VinFormat"

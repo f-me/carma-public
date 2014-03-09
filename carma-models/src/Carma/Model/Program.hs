@@ -16,6 +16,7 @@ import Carma.Model.ProgramType hiding (ident)
 import Carma.Model.Usermeta hiding (ident)
 import Carma.Model.PgTypes()
 
+
 data Program = Program
   { ident                 :: PK Int Program             "Программа"
   , label                 :: F Text            "label"  "Название"
@@ -28,12 +29,14 @@ data Program = Program
                              "pType"  "Тип программы"
   } deriving Typeable
 
+
 mkIdents [t|Program|]
  [ ("vtb24", 2)
  , ("genser", 32)
  , ("ramc", 64)
  , ("gm", 4)
  ]
+
 
 instance Model Program where
   type TableName Program = "Program"
