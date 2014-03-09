@@ -106,6 +106,8 @@ data Case = Case
     :: F (Maybe PickerField) "caseAddress_address" "Адрес места поломки"
   , caseAddress_comment
     :: F (Maybe Text) "caseAddress_comment" "Примечания"
+  , caseAddress_notRussia
+    :: F (Maybe Checkbox) "caseAddress_notRussia" "Не по РФ"
   , caseAddress_coords
     :: F (Maybe PickerField) "caseAddress_coords" "Координаты"
   , caseAddress_map

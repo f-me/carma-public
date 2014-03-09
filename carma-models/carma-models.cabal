@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.15.1
+version:             0.15.2
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -93,7 +93,7 @@ library
 
   hs-source-dirs:    src
   build-depends:
-    aeson                >= 0.6 && < 0.8,
+    aeson                >= 0.6 && < 0.7,
     base                 == 4.6.*,
     containers           == 0.5.*,
     unordered-containers == 0.2.*,

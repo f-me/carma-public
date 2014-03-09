@@ -154,8 +154,6 @@ caseMod = [
   ,required vinChecked
   ,required caseStatus
 
-  ,setMeta "cityField" "city" caseAddress_coords
-
   ,setMeta "regexp" "email" contact_email
   ,setMeta "regexp" "email" contact_ownerEmail
   ,setMeta "regexp" "date" car_buyDate
@@ -163,7 +161,8 @@ caseMod = [
   ,mainToo contact_contactOwner
   ,mainToo car_plateNum
 
-  ,setMeta "dictionaryParent" "program" subprogram
+  ,setMeta "dictionaryParent"
+   (Aeson.String $ Model.fieldName program) subprogram
 
   ,widget "radio" car_transmission
   ,widget "radio" car_engine
@@ -191,4 +190,5 @@ caseMod = [
   ,infoText "claim" claim
   ]
   ++ mapWidget caseAddress_address caseAddress_coords caseAddress_map
-  ++ [setMeta "cityField" (Aeson.String $ Model.fieldName city) caseAddress_map]
+  ++ [ setMeta "cityField" (Aeson.String $ Model.fieldName city) caseAddress_map
+     , setMeta "cityField" (Aeson.String $ Model.fieldName city) caseAddress_coords]
