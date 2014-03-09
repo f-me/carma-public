@@ -230,21 +230,33 @@ fillFromContract contract objId = do
       cid = maybe (error "Could not read contract id") (Ident . fst) $
             B.readInt contract
       contractTable = tableName (modelInfo :: ModelInfo Contract.Contract)
+      programTable = PT $ tableName $
+                     (modelInfo :: ModelInfo Program.Program)
+      subProgramTable = PT $ tableName $
+                        (modelInfo :: ModelInfo SubProgram.SubProgram)
   res <- liftDb $ PG.query
          (fromString $ intercalate " "
           [ "SELECT"
-            -- 2 * M arguments, where M is the length of contractToCase
-          , intercalate "," $ map (const "\"?\".?::text") contractToCase
-            -- 1 more argument
-          , "FROM \"?\""
+          -- 2 * M arguments, where M is the length of contractToCase
+          , intercalate "," $ map (const "?.?::text") contractToCase
+          -- 1: program id field
+          , ", p.?::text"
+            -- 1 argument: Contract table name
+          , "FROM \"?\" c"
+          -- 3 more parameters: SubProgram table name, Contract
+          -- subprogram field, subprogram id field.
+          , "JOIN \"?\" s ON c.? = s.?"
+          -- 3 more parameters: Program table name, SubProgram parent
+          -- field, program id field.
+          , "JOIN \"?\" p ON s.? = p.?"
           , intercalate " " $
-            -- 5 * J arguments, where J is the amount of join entries
+            -- 4 * J arguments, where J is the amount of join entries
             -- in contractToCase
-            map (const "LEFT OUTER JOIN \"?\" ON \"?\".? = \"?\".?") $
+            map (const "LEFT OUTER JOIN \"?\" ON \"?\".? = c.?") $
             filter (\case {P _ -> False; J _ _ _ -> True}) $
             map fst contractToCase
-            -- 2 more arguments
-          , "WHERE \"?\".id = ?;"
+            -- 2 more arguments: contract id field, contract id value
+          , "WHERE c.? = ?;"
           ]) $
          -- Selected fields
          ToRowList
@@ -252,27 +264,36 @@ fillFromContract contract objId = do
           (\f ->
            case fst f of
              P c ->
-                 (PT contractTable, PT $ fieldNameE c)
+                 (PT "c", PT $ fieldNameE c)
              J _ _ (p :: FA m) ->
-                 (PT $ tableName (modelInfo :: ModelInfo m),
+                 (PT $
+                  T.concat ["\"", tableName (modelInfo :: ModelInfo m), "\""],
                   PT $ fieldNameE p))
-          contractToCase) :.
-        (Only $ PT contractTable) :.
-         -- JOIN arguments
-         ToRowList
-         (mapMaybe
-          (\f ->
-           case fst f of
-             J c (j :: FA m) _ ->
-                 Just ( PT $ tableName (modelInfo :: ModelInfo m)
-                      , PT $ tableName (modelInfo :: ModelInfo m)
-                      , PT $ fieldNameE j
-                      , PT contractTable
-                      , PT $ fieldNameE c)
-             _ -> Nothing)
-          contractToCase) :.
-        (Only $ PT contractTable) :.
-        (Only cid)
+          contractToCase)
+         -- 2
+         :. (Only $ PT $ fieldName Program.ident)
+         :. (Only $ PT contractTable)
+         -- 3
+         :. (Only subProgramTable)
+         :. (PT $ fieldName Contract.subprogram,
+             PT $ fieldName SubProgram.ident)
+         -- 3
+         :. Only programTable
+         :. (PT $ fieldName SubProgram.parent, PT $ fieldName Program.ident)
+         -- 4 * J JOIN arguments
+         :. (ToRowList
+             (mapMaybe
+              (\f ->
+               case fst f of
+                 J c (j :: FA m) _ ->
+                     Just ( PT $ tableName (modelInfo :: ModelInfo m)
+                          , PT $ tableName (modelInfo :: ModelInfo m)
+                          , PT $ fieldNameE j
+                          , PT $ fieldNameE c)
+                 _ -> Nothing)
+              contractToCase))
+         -- 2
+         :. (PT $ fieldName Contract.ident, cid)
   case res of
     [] -> return False
     [row] -> do
@@ -281,7 +302,8 @@ fillFromContract contract objId = do
               "" -> set objId nm val
               _  -> return ()
       zipWithM_ (maybe (return ()) . (setIfEmpty objId))
-                (map (T.encodeUtf8 . fieldNameE . snd) contractToCase)
+                (map (T.encodeUtf8 . fieldNameE . snd) $
+                 contractToCase ++ [(undefined, FA Case.program)])
                 row
       return True
     _ -> error "fillFromContract: Contract primary key is broken"
