@@ -169,8 +169,9 @@ actions
               $ set objId "car_plateNum" $ bToUpper val])
           ,("contract", [\objId val ->
                          fillFromContract val objId >>= \case
-                           True -> set objId "vinChecked" "base"
-                           False -> return ()
+                           Loaded -> set objId "vinChecked" "base"
+                           Expired -> set objId "vinChecked" "vinExpired"
+                           None -> return ()
                         ])
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
@@ -220,16 +221,24 @@ contractToCase =
     ]
 
 
+data ContractFillResult = None
+                        -- ^ No contract found.
+                        | Loaded
+                        -- ^ Contract loaded from database.
+                        | Expired
+                        -- ^ Contract loaded and is expired.
+
+
 fillFromContract :: MonadTrigger m b =>
                     ByteString
                  -- ^ Contract id.
                  -> ByteString
-                 -> m b Bool
+                 -> m b ContractFillResult
 fillFromContract contract objId = do
   let cid :: IdentI Contract.Contract
       cid = maybe (error "Could not read contract id") (Ident . fst) $
             B.readInt contract
-      contractTable = tableName (modelInfo :: ModelInfo Contract.Contract)
+      contractTable = PT $ tableName (modelInfo :: ModelInfo Contract.Contract)
       programTable = PT $ tableName $
                      (modelInfo :: ModelInfo Program.Program)
       subProgramTable = PT $ tableName $
@@ -272,7 +281,7 @@ fillFromContract contract objId = do
           contractToCase)
          -- 2
          :. (Only $ PT $ fieldName Program.ident)
-         :. (Only $ PT contractTable)
+         :. (Only contractTable)
          -- 3
          :. (Only subProgramTable)
          :. (PT $ fieldName Contract.subprogram,
@@ -295,7 +304,7 @@ fillFromContract contract objId = do
          -- 2
          :. (PT $ fieldName Contract.ident, cid)
   case res of
-    [] -> return False
+    [] -> return None
     [row] -> do
       -- Replace only empty fields of case
       let setIfEmpty oid nm val = get oid nm >>= \case
@@ -305,7 +314,16 @@ fillFromContract contract objId = do
                 (map (T.encodeUtf8 . fieldNameE . snd) $
                  contractToCase ++ [(undefined, FA Case.program)])
                 row
-      return True
+      resExp <- liftDb $ PG.query
+                [sql|SELECT ((now() < ?) or (? < now())) FROM "?" WHERE ? = ?;|]
+                ( PT $ fieldName Contract.validSince
+                , PT $ fieldName Contract.validUntil
+                , contractTable
+                , PT $ fieldName Contract.ident
+                , cid)
+      return $ case resExp of
+                 [Only (Just True)] -> Expired
+                 _                  -> Loaded
     _ -> error "fillFromContract: Contract primary key is broken"
 
 
