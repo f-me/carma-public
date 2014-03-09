@@ -168,6 +168,7 @@ data FormatFieldType = Raw
                      | VIN
                      | Email
                      | Plate
+                     | Year
                      | Phone
                      -- ^ Store as text after stripping non-digits and
                      -- leading plus sign.
@@ -205,6 +206,8 @@ instance FFTypeI (SFFT VIN)
 instance FFTypeI (SFFT Email)
 
 instance FFTypeI (SFFT Plate)
+
+instance FFTypeI (SFFT Year)
 
 instance FFTypeI (SFFT Phone)
 

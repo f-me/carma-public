@@ -53,7 +53,7 @@ mkVinFormat  [ FF SName   Contract.name
              , FF SNumber Contract.startMileage
              , FF SDict   Contract.make
              , FF SDict   Contract.model
-             , FF SNumber Contract.makeYear
+             , FF SYear   Contract.makeYear
              , FF SDict   Contract.carClass
              , FF SRaw    Contract.color
              , FF SDict   Contract.transmission
@@ -96,6 +96,7 @@ ffaTitles (FFAcc _ sTag _ _ _ tAcc) vf =
                  SVIN        -> textProj
                  SEmail      -> textProj
                  SPlate      -> textProj
+                 SYear       -> textProj
                  SPhone      -> textProj
                  SName       -> vecProj
                  SDate       -> textProj
