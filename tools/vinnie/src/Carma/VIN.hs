@@ -58,7 +58,7 @@ import           Carma.VIN.SQL
 
 -- | Perform VIN file import, write report.
 --
--- Return how many rows were loaded and how many erroneous rows
+-- Return how many new rows were loaded and how many erroneous rows
 -- occured.
 doImport :: Options -> IO (Either ImportError (Int64, Int64))
 doImport opts = runImport vinImport opts
@@ -204,7 +204,8 @@ processTitles vf csvHeader =
           -- Fail when a required column lacks proper titles
           [] -> errIfRequired $ NoTitle (fieldDesc c)
           _  ->
-              case (filter (\x -> not $ x `elem` iCsvHeader) iTitles, titles) of
+              case (filter (not . (flip elem iCsvHeader) . toCaseFold) titles,
+                    titles) of
                 -- Single-column field
                 ([], [t])    -> return $ Just $
                                 FM (interName t) f Nothing
