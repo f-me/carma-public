@@ -1884,6 +1884,11 @@ insert into "FieldPermission" (role, model, field, r, w)
         from "FieldPermission"
         where model = 'call');
 
+insert into "FieldPermission" (role, model, field, r, w)
+(select role, 'Contract' as model, field, r, w
+        from "FieldPermission"
+        where model = 'contract');
+
 
 GRANT ALL ON "FieldPermission" TO carma_search;
 GRANT ALL ON "FieldPermission" TO carma_db_sync;
