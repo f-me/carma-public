@@ -41,7 +41,7 @@ import           Data.Maybe
 import qualified Data.Map as Map
 
 import           Data.String (fromString)
-import           Data.Text (Text)
+import           Data.Text (Text, toCaseFold)
 
 import           Database.PostgreSQL.Simple (Only(..))
 import           Database.PostgreSQL.Simple.Copy
@@ -174,12 +174,13 @@ data FFMapper =
 --
 -- Return:
 --
--- 1. A mapping between CSV columns (header row) and internal field
--- names.
+-- 1. An ordered mapping between CSV columns (header row) and internal
+-- field names. All fields of CSV are present in this mapping, even
+-- those not in the format.
 --
 -- 2. List of CSV columns which matched any of format fields, wrapped
--- in 'FFMapper'. Internal name of any such column is also present in
--- the first mapping.
+-- in 'FFMapper'. Matching is case-insensitive. Internal name of any
+-- such column is also present in the first mapping.
 --
 -- Yield error if the format is broken or the header misses required
 -- columns.
@@ -188,21 +189,22 @@ processTitles :: C VinFormat
               -- ^ CSV columns.
               -> Import ([(ColumnTitle, InternalName)], [FFMapper])
 processTitles vf csvHeader =
-    (\l -> (interMapOrd, catMaybes l)) <$>
+    (\l -> (interMap, catMaybes l)) <$>
     (mapM
      (\f@(FFAcc (FA c) _ _ req _ _) ->
       let
           titles :: [ColumnTitle]
           titles = ffaTitles f vf
+          iTitles = map toCaseFold titles
           errIfRequired e = if Patch.get' vf req
                             then throwError e
                             else return $ Nothing
       in
         case titles of
           -- Fail when a required column lacks proper titles
-          []     -> errIfRequired $ NoTitle (fieldDesc c)
-          notNil ->
-              case (filter (\x -> not $ x `elem` csvHeader) notNil, notNil) of
+          [] -> errIfRequired $ NoTitle (fieldDesc c)
+          _  ->
+              case (filter (\x -> not $ x `elem` iCsvHeader) iTitles, titles) of
                 -- Single-column field
                 ([], [t])    -> return $ Just $
                                 FM (interName t) f Nothing
@@ -213,9 +215,14 @@ processTitles vf csvHeader =
                 (m, _) -> errIfRequired $ NoColumn (fieldDesc c) m) $
      loadable vf vinFormatAccessors)
         where
-          interMapOrd = zip csvHeader $ mkInternalNames csvHeader
-          interMap = Map.fromList interMapOrd
-          interName t = interMap Map.! t
+          iCsvHeader = map toCaseFold csvHeader
+          interMap = zip csvHeader $ mkInternalNames csvHeader
+          -- Unordered interMap with case-folded keys
+          foldedInterMap =
+              (Map.fromList $
+               map (\(k, v) -> (toCaseFold k, v)) interMap)
+          -- Internal name of a CSV column (case-insensitive lookup)
+          interName t = foldedInterMap Map.! (toCaseFold t)
 
 
 -- | Perform VIN file import using the provided mapping.
