@@ -72,8 +72,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/supervisor/opStats",  chkAuthLocal . method GET $ opStats)
          , ("/supervisor/actStats", chkAuthLocal . method GET $ actStats)
          , ("/allPartners",   chkAuthLocal . method GET  $ allPartnersHandler)
-         , ("/partnersFor/:srv",
-                              chkAuthLocal . method GET $ partnersForSrvHandler)
          , ("/psaCases",
                               chkAuthLocal . method GET $ psaCasesHandler)
          , ("/psaCases/:program",

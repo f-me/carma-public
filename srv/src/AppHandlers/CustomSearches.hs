@@ -4,7 +4,6 @@
 
 module AppHandlers.CustomSearches
     ( allPartnersHandler
-    , partnersForSrvHandler
 
     , allActionsHandler
     , selectActions
@@ -66,52 +65,6 @@ allPartnersHandler
     <*> getParam "isDealer"
     <*> getParam "makes")
   >>= writeJSON
-
-
-partnersForSrvHandler :: AppHandler ()
-partnersForSrvHandler =
-    join (selectPartnersForSrv <$>
-          getParam "city"      <*>
-          getParam "isActive"  <*>
-          getParam "srv"       <*>
-          getParam "makes")
-    >>= writeJSON
-
-
-selectPartnersForSrv :: MBS -> MBS -> MBS -> MBS
-                     -> AppHandler [Map ByteString ByteString]
-selectPartnersForSrv city isActive service makes = do
-  rows <- withPG pg_search $ \c -> query_ c $ fromString
-    $  "SELECT p.id::text, p.name, p.city,"
-    ++ "       p.comment, addr->>'value' as addrDeFacto,"
-    ++ "       phone->>'value' as phone1, phone->>'note' as workingTime,"
-    ++ "       (p.isDealer::int)::text, (p.isMobile::int)::text,"
-    ++ "       s.priority1, s.priority2, s.priority3"
-    ++ "   FROM partnertbl p"
-    ++ "       json_array_elements(addrs) as addr,"
-    ++ "       json_array_elements(phones) as phone"
-    ++ "   INNER JOIN partner_servicetbl s"
-    ++ "   ON p.id = cast(split_part(s.parentid, ':', 2) as integer)"
-    ++ "   AND s.parentid is not null"
-    ++ "   AND s.parentid != ''"
-    ++ "   AND s.parentid != 'partner:null'"
-    ++ " WHERE addr->>'key' = 'fact'"
-    ++ "   AND phone->>'key' = 'disp'"
-    ++ (maybe "" (\x -> "  AND p.city = " ++ quote x) city)
-    ++ (maybe "" (\x -> "  AND p.isActive = " ++ toBool x) isActive)
-    ++ (maybe "" (\x -> "  AND s.servicename = " ++ quote x) service)
-    -- array_dims(make) IS NULL is array emptiness check
-    ++ (maybe " AND array_dims(makes) IS NULL"
-              (\x -> "  AND (array_dims(makes) IS NULL OR "
-                     ++ quote x ++ " = ANY (makes))")
-              makes)
-
-  let fields =
-        ["id","name","city","comment" ,"addrDeFacto"
-        ,"phone1","workingTime","isDealer","isMobile"
-        ,"priority1", "priority2", "priority3"
-        ]
-  return $ mkMap fields rows
 
 
 selectPartners :: MBS -> MBS -> MBS -> MBS -> AppHandler [Map ByteString ByteString]
