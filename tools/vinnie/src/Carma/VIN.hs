@@ -325,23 +325,18 @@ processField vf (pid, sid) (FM iname f@(FFAcc (FA c) stag _ _ defAcc _) cols) =
           ( void $ protoUpdateWithFun iname
             "regexp_replace" [iname, "'\\D'", "''", "'g'"]
           , (sqlCast iname "int", fn))
-      -- TODO Perhaps mismatched regexp fields should always fail a
-      -- row, not only when the field is required
       SVIN ->
-          ( when (isRequired vf f) $
-                 void $ protoCheckRegexp iname
-                          "^[0-9a-hj-npr-z]{17}$"
+          ( void $ protoCheckRegexp iname
+            "^[0-9a-hj-npr-z]{17}$"
           , (sqlCast iname "text", fn))
       SEmail ->
-          ( when (isRequired vf f) $
-                 void $ protoCheckRegexp iname
-                          "^[\\w\\+\\.\\-]+@[\\w\\+\\.\\-]+\\.\\w+$"
+          ( void $ protoCheckRegexp iname
+            "^[\\w\\+\\.\\-]+@[\\w\\+\\.\\-]+\\.\\w+$"
           , (sqlCast iname "text", fn))
       SPlate ->
-          ( when (isRequired vf f) $
-                 void $ protoCheckRegexp iname $ fromString $
-                          "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}" ++
-                          "[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$"
+          ( void $ protoCheckRegexp iname $ fromString $
+            "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}" ++
+            "[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$"
           , (sqlCast iname "text", fn))
       SPhone ->
           ( void $ protoUpdateWithFun iname
