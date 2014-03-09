@@ -122,9 +122,10 @@ define [ "utils"
             val = dict.getVal(lab)
             return if _.contains k[n](), val
             if (bounded and val) or (not bounded)
-              # Start a new array or update the existing one
+              # Start a new observable array or update the existing
+              # one
               if _.isEmpty k[n]()
-                k[n] [val or lab]
+                k[n] = ko.observableArray([val or lab])
               else
                 k[n].push (val or lab)
 
