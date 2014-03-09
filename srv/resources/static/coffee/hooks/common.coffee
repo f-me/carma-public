@@ -125,9 +125,10 @@ define [ "utils"
               # Start a new observable array or update the existing
               # one
               if _.isEmpty k[n]()
-                k[n] = ko.observableArray([val or lab])
-              else
-                k[n].push (val or lab)
+                k[n] []
+              v = k[n]()
+              v.push (val or lab)
+              k[n] v
 
         k["#{n}Locals"] = ko.computed
           read: ->
@@ -138,7 +139,8 @@ define [ "utils"
 
         k["#{n}Remove"] = (el) ->
           return if k["#{n}Disabled"]()
-          k[n].remove el.value
+          v = k[n]()
+          k[n] _.without v, el.value
 
         k["#{n}TypeaheadBuilder"] = ->
           new ThMenu
