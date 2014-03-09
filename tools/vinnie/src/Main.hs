@@ -41,9 +41,6 @@ main = do
       res <- doImport clArgs
       case res of
         Left e            -> print e
-        Right (good, bad) ->
-            print $ concat [ "Loaded: "
-                           , show good
-                           , ", errors: "
-                           , show bad
-                           ]
+        Right (good, bad) -> do
+            putStrLn $ concat [show good, " loaded"]
+            putStrLn $ concat [show bad,  " errors"]
