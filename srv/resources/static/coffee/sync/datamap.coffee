@@ -40,7 +40,7 @@ define [], ->
   c2sDictSet = (vals) ->
     ids = _.map vals, (v) -> parseInt v
     # check type of keys, we have in dict, it may be Text or Int
-    res = if _.all ids, _.isNaN
+    res = if _.any ids, _.isNaN
             _.uniq vals.sort(), true
           else
             _.uniq ids.sort((a, b) -> a - b), true
