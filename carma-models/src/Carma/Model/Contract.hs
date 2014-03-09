@@ -158,6 +158,7 @@ data Contract = Contract
 instance Model Contract where
   type TableName Contract = "Contract"
   modelInfo = mkModelInfo Contract ident
+  modelView "search" = searchView (contractSearchParams)
   modelView _ = modifyView defaultView
                 [ setMeta "dictionaryParent" "make" model
                 , setMeta "regexp" "email" email
