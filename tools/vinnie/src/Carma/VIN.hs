@@ -338,6 +338,10 @@ processField vf (pid, sid) (FM iname f@(FFAcc (FA c) stag _ _ defAcc _) cols) =
             "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}" ++
             "[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$"
           , (sqlCast iname "text", fn))
+      SYear ->
+          ( void $ protoCheckRegexp iname $ fromString $
+            "^[12][09][0-9]{2}$"
+          , (sqlCast iname "int2", fn))
       SPhone ->
           ( void $ protoUpdateWithFun iname
             "'+'||regexp_replace" [iname, "'\\D'", "''", "'g'"]
