@@ -36,6 +36,8 @@ import           Data.Model
 import           Carma.Model.Contract as C
 import           Carma.Model.CarMake
 import           Carma.Model.CarModel
+import           Carma.Model.Program as P
+import           Carma.Model.SubProgram as S
 
 import           Application
 import           AppHandlers.Util
@@ -87,8 +89,6 @@ instance ToJSON SearchResult where
 -- a subset of contract fields and @_expired@ which is a boolean flag
 -- indicating whether a contract is expired or not.
 --
--- TODO Program/subprogram filtering.
---
 -- TODO Try rewriting the query with carma-models SQL. @_expired@ is
 -- the only reason we build a custom query here and use SearchResult
 -- wrapper type.
@@ -118,12 +118,27 @@ searchContracts = do
           -- M + N more parameters: selected fields.
           , intercalate "," $
             map (const "c.?") selectedFieldsParam
-          -- 2 more parameters: Contract table name, limit.
+          -- 1 parameter: Contract table name
           , "FROM \"?\" c"
+          -- 3 more parameters: SubProgram table name, Contract
+          -- subprogram field, subprogram id field.
+          , "JOIN \"?\" s ON c.? = s.?"
+          -- 3 more parameters: Program table name, SubProgram parent
+          -- field, program id field.
+          , "JOIN \"?\" p ON s.? = p.?"
           , "WHERE"
+          , "("
           -- 2*M parameters: identifier fields and query
           , intercalate " OR " $
             map (const fieldPredicate) C.identifierNames
+          , ")"
+          -- 3 parameters: flag pair for subprogram id, contract
+          -- subprogram field name.
+          , "AND (? OR ? = c.?)"
+          -- 3 parameters: flag pair for program id, program id field
+          -- name.
+          , "AND (? OR ? = p.?)"
+          -- 1 parameter: LIMIT value
           , "ORDER BY c.id DESC LIMIT ?;"
           ]
       -- Fields selected from matching rows
@@ -131,15 +146,33 @@ searchContracts = do
           map PT $ C.identifierNames ++ extraContractFieldNames
       contractTable = PT $ tableName $
                       (modelInfo :: ModelInfo C.Contract)
+      programTable = PT $ tableName $
+                     (modelInfo :: ModelInfo P.Program)
+      subProgramTable = PT $ tableName $
+                        (modelInfo :: ModelInfo S.SubProgram)
 
   res <- withPG pg_search $ \c -> query c (fromString totalQuery)
          (()
           :. (PT $ fieldName C.validSince, PT $ fieldName C.validUntil)
           -- M + N
           :. (selectedFieldsParam)
-          -- 2
+          -- 1
           :. Only contractTable
+          -- 3
+          :. Only subProgramTable
+          :. (PT $ fieldName C.subprogram, PT $ fieldName S.ident)
+          -- 3
+          :. Only programTable
+          :. (PT $ fieldName S.parent, PT $ fieldName P.ident)
+          -- 2*M
           :. (ToRowList fieldParams)
+          -- 3
+          :. (sqlFlagPair (0::Int) id sid)
+          :. (Only $ PT $ fieldName C.subprogram)
+          -- 3
+          :. (sqlFlagPair (0::Int) id pid)
+          :. (Only $ PT $ fieldName P.ident)
+          -- 1
           :. Only limit)
 
   writeJSON (res :: [SearchResult])

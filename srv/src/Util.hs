@@ -246,8 +246,8 @@ instance (ToRow a) => ToRow (ToRowList a) where
 -- provided:
 --
 -- > mval <- getParam "someParam"
--- > query "SELECT * FROM foo WHERE (? AND field = ?);"
--- >       (sqlFlagPair ""::ByteString id mval)
+-- > query "SELECT * FROM foo WHERE (? AND ? = field);"
+-- >       (sqlFlagPair (""::ByteString) id mval)
 sqlFlagPair :: b
             -- ^ Default value (will be ignored in queries).
             -> (a -> b)
