@@ -353,10 +353,23 @@ installFunctions =
     execute_
     [sql|
      CREATE OR REPLACE FUNCTION pg_temp.dateordead(text) RETURNS text AS $$
+     DECLARE f TEXT;
      DECLARE x DATE;
      BEGIN
-         x = $1::DATE;
-         RETURN $1;
+         f = replace($1, 'Янв', 'Jan');
+         f = replace(f, 'Фев', 'Feb');
+         f = replace(f, 'Мар', 'Mar');
+         f = replace(f, 'Апр', 'Apr');
+         f = replace(f, 'Май', 'May');
+         f = replace(f, 'Июл', 'Jun');
+         f = replace(f, 'Июн', 'Jul');
+         f = replace(f, 'Авг', 'Aug');
+         f = replace(f, 'Сен', 'Sep');
+         f = replace(f, 'Окт', 'Oct');
+         f = replace(f, 'Ноя', 'Nov');
+         f = replace(f, 'Дек', 'Dec');
+         x = f::DATE;
+         RETURN f;
      EXCEPTION WHEN others THEN
          RETURN null;
      END;
