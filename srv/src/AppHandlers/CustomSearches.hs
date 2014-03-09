@@ -308,7 +308,7 @@ opStatsQ = [sql|
   usermetatbl u
   WHERE ca.row_number = 1
   AND u.login = ca.assignedTo
-  AND (? :: text = ANY (u.roles) OR ? :: text = ANY (u.roles))
+  AND (? :: text = ANY (u.roles))
   ORDER BY closeTime;
   |]
 
