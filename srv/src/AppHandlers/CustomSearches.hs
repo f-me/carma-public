@@ -83,16 +83,20 @@ selectPartnersForSrv :: MBS -> MBS -> MBS -> MBS
 selectPartnersForSrv city isActive service makes = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
     $  "SELECT p.id::text, p.name, p.city,"
-    ++ "       p.comment, p.addrDeFacto, p.phone1, p.workingTime,"
+    ++ "       p.comment, addr->>'value' as addrDeFacto,"
+    ++ "       phone->>'value' as phone1, phone->>'note' as workingTime,"
     ++ "       (p.isDealer::int)::text, (p.isMobile::int)::text,"
     ++ "       s.priority1, s.priority2, s.priority3"
     ++ "   FROM partnertbl p"
+    ++ "       json_array_elements(addrs) as addr,"
+    ++ "       json_array_elements(phones) as phone"
     ++ "   INNER JOIN partner_servicetbl s"
     ++ "   ON p.id = cast(split_part(s.parentid, ':', 2) as integer)"
     ++ "   AND s.parentid is not null"
     ++ "   AND s.parentid != ''"
     ++ "   AND s.parentid != 'partner:null'"
-    ++ "   WHERE true"
+    ++ " WHERE addr->>'key' = 'fact'"
+    ++ "   AND phone->>'key' = 'disp'"
     ++ (maybe "" (\x -> "  AND p.city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND p.isActive = " ++ toBool x) isActive)
     ++ (maybe "" (\x -> "  AND s.servicename = " ++ quote x) service)
@@ -114,9 +118,14 @@ selectPartners :: MBS -> MBS -> MBS -> MBS -> AppHandler [Map ByteString ByteStr
 selectPartners city isActive isDealer makes = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
     $  "SELECT id::text, name, city,"
-    ++ "       comment, addrDeFacto, phone1, workingTime,"
+    ++ "       comment, addr->>'value' as addrDeFacto,"
+    ++ "       phone->>'value' as phone1, phone->>'note' as workingTime,"
     ++ "       (isDealer::int)::text, (isMobile::int)::text"
-    ++ "  FROM partnertbl WHERE true"
+    ++ "  FROM partnertbl,"
+    ++ "       json_array_elements(addrs) as addr,"
+    ++ "       json_array_elements(phones) as phone"
+    ++ " WHERE addr->>'key' = 'fact'"
+    ++ "   AND phone->>'key' = 'disp'"
     ++ (maybe "" (\x -> "  AND city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND isActive = " ++ toBool x) isActive)
     ++ (maybe "" (\x -> "  AND isDealer = " ++ toBool x) isDealer)
