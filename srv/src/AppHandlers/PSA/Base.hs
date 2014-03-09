@@ -45,6 +45,7 @@ ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
 WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase)
 AND (s.status='serviceOk' OR s.status='serviceClosed')
+AND s.falseCall='none'
 AND c.calldate >= ((SELECT calldate FROM parentcase) - INTERVAL '30 days')
 AND c.calldate < (SELECT calldate FROM parentcase)
 AND c.comment=(SELECT comment FROM parentcase);
