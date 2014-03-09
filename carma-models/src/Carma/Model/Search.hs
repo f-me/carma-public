@@ -134,22 +134,23 @@ renderPredicate conn pMap vals = do
         = (\q -> escapeVal conn (fromString q) v)
         $ case matchType of
           MatchExact
-            -> printf "%s.%s = ?"
+            -> printf "\"%s\".%s = ?"
               (T.unpack tableName) (T.unpack fieldName)
           MatchFuzzy
-            -> printf "lower(%s.%s) like ('%%' || lower(?) || '%%')"
+            -> printf "lower(\"%s\".%s) like ('%%' || lower(?) || '%%')"
               (T.unpack tableName) (T.unpack fieldName)
           MatchArray
-            -> printf "%s.%s = ANY(?)"
+            -> printf "\"%s\".%s = ANY(?)"
               (T.unpack tableName) (T.unpack fieldName)
           MatchInterval
-            -> printf "%s.%s <@ ?::%s"
+            -> printf "\"%s\".%s <@ ?::%s"
                (T.unpack tableName)
                (T.unpack fieldName)
                (T.unpack $ hs2pgtype $ fd_type $ unWrap fieldDesc)
           MatchRefExist
             -> let fname :: String
-                     = printf "%s.%s" (T.unpack tableName) (T.unpack fieldName)
+                     = printf "\"%s\".%s"
+                       (T.unpack tableName) (T.unpack fieldName)
                in printf ("case ? " ++
                           "when 'yes'    then coalesce(%s, '') != '' " ++
                           "when 'no'     then coalesce(%s, '') =  '' " ++
