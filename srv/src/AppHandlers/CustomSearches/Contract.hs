@@ -109,7 +109,7 @@ searchContracts = do
   let -- Predicate which filters contracts by one field. Parameters
       -- (2): field name, query string.
       fieldPredicate =
-          "(lower(?) LIKE '%' || lower(?) || '%')"
+          "(? ILIKE '%' || ? || '%')"
       fieldParams = zip (map PT C.identifierNames) $ repeat q
       totalQuery = intercalate " "
           [ "SELECT DISTINCT ON(c.id) c.id,"
