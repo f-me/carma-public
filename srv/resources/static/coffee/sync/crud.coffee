@@ -42,7 +42,7 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
     save: (cb) =>
       cb ?= _.identity # just to be sure we have something to call
       @saveKvm() unless @persisted
-      delete @q[k] for k, v of @q when @lastFetch[k] == v
+      delete @q[k] for k, v of @q when @haveBefore(@lastFetch[k], v)
       method = if @persisted then "PUT" else "POST"
       url    = if @persisted then "#{@url}/#{@kvm.id()}" else @url
       return cb(@kvm, @model) if _.isEmpty @q
