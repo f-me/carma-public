@@ -195,7 +195,6 @@ processTitles vf csvHeader =
       let
           titles :: [ColumnTitle]
           titles = ffaTitles f vf
-          iTitles = map toCaseFold titles
           errIfRequired e = if Patch.get' vf req
                             then throwError e
                             else return $ Nothing
@@ -252,7 +251,7 @@ process psid mapping = do
 
   -- Process proto table
   let (protoActions, transferChunks) =
-          unzip $ map (processField vf psid) $ snd mapping
+          unzip $ map (processField psid) $ snd mapping
   sequence_ protoActions
 
   -- By now all values in proto are either suitable for Contract or
@@ -321,12 +320,11 @@ pass = return ()
 
 -- | Produce an action for proto processing and bits for
 -- proto-to-queue transfer (@("field23::int", "mileage")@) of a field.
-processField :: C VinFormat
-             -> (Int, Maybe Int)
+processField :: (Int, Maybe Int)
              -- ^ Program & subprogram ids.
              -> FFMapper
              -> (Import (), (Text, Text))
-processField vf (pid, sid) (FM iname f@(FFAcc (FA c) stag _ _ defAcc _) cols) =
+processField (pid, sid) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
     case stag of
       SRaw -> (pass, (sqlCast iname "text", fn))
       SNumber ->
