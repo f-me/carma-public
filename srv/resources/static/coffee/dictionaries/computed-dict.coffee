@@ -42,7 +42,7 @@ define ["dictionaries/local-dict"], (ld) ->
     # - vinAdmin role may access all programs
     # - all other users may do nothing
     vinPrograms: =>
-      all_pgms = new ComputedDict(dict: "usermetaPrograms").source
+      all_pgms = new ComputedDict(dict: "usermetaSubPrograms").source
       # Requires user to reload the page to update list of available
       # programs
       user_pgms =
