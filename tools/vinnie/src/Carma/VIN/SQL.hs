@@ -1,13 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE QuasiQuotes #-}
+
 {-|
 
 SQL helpers used during VIN import process.
 
 -}
-
-
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE QuasiQuotes #-}
 
 module Carma.VIN.SQL
 
@@ -270,18 +269,20 @@ protoDictLookup iname dictTableName =
 
 -- | Replace partner label/code references with partner ids. Clear bad
 -- references.
---
--- TODO Speed up first query.
 protoPartnerLookup :: InternalName
                    -> Import Int64
 protoPartnerLookup iname =
     execute
     [sql|
-     UPDATE vinnie_proto SET ?=null WHERE lower(trim(both ' ' from ?)) NOT IN
-     (SELECT DISTINCT
+     CREATE OR REPLACE TEMPORARY VIEW partner_syn_cache AS
+     SELECT DISTINCT
       -- TODO name/code/synonyms field names
-      lower(trim(both ' ' from (unnest(ARRAY[name, code] || synonyms))))
-      FROM "?");
+      lower(trim(both ' ' from (unnest(ARRAY[name, code] || synonyms)))) as label
+      FROM "?";
+
+     UPDATE vinnie_proto SET ?=null WHERE NOT EXISTS
+     (SELECT 1 FROM vinnie_proto, partner_syn_cache
+      WHERE lower(trim(both ' ' from ?)) = partner_syn_cache.label);
 
      WITH dict AS
      (SELECT DISTINCT ON (label) id AS did,
@@ -291,9 +292,9 @@ protoPartnerLookup iname =
      UPDATE vinnie_proto SET ? = dict.did
      FROM dict WHERE length(lower(trim(both ' ' from ?))) > 0 AND
                      dict.label=lower(trim(both ' ' from ?));
-     |] ( PT iname
+     |] ( partnerTable
         , PT iname
-        , partnerTable
+        , PT iname
         , partnerTable
         , PT iname
         , PT iname
