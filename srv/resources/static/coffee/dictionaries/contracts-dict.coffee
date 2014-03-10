@@ -40,6 +40,7 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
       # highlight matched search string
       if (not _.isEmpty fs) and q
         _.each fs, (f) ->
+          return if f == "id"
           c[f] = "<span>#{c[f].replace(q, "<span class='finded'>#{q}</span>")}</span>"
 
       # required fields
