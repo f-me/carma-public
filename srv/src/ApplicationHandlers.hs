@@ -1,4 +1,5 @@
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module ApplicationHandlers where
@@ -20,11 +21,11 @@ import qualified Data.Text.Encoding.Error as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
+import qualified Data.Attoparsec.Number as A
 import qualified Data.Aeson as Aeson
 import Data.Aeson (object, (.=))
 import Data.List
 import Data.Map (Map)
-import qualified Data.HashMap.Strict as HM
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.String
@@ -36,49 +37,62 @@ import Data.Ord (comparing)
 import Data.Time
 
 import System.FilePath
-import System.IO
 import System.Locale
 
-import Database.PostgreSQL.Simple (Query, query_, query, execute)
+import Database.PostgreSQL.Simple ( Query, query_, query, execute)
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import Data.Pool (withResource)
+import Heist
+import Heist.Interpreted
+import Text.XmlHtml as X
 
 import Snap
-import Snap.Http.Server.Config as S
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.SimpleLog
-import Snap.Snaplet.Vin
-import Snap.Util.FileServe (serveFile, serveFileAs)
+import Snap.Util.FileServe (serveFile)
+import Snap.Util.FileUploads (getMaximumFormInputSize)
 
-------------------------------------------------------------------------------
-import Carma.Partner
 import WeatherApi (getWeather', tempC)
------------------------------------------------------------------------------
+
 import Snaplet.Auth.PGUsers
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
-import Snaplet.FileUpload (tmp, doUpload)
-------------------------------------------------------------------------------
+import Snaplet.FileUpload (FileUpload(cfg), doUpload, oneUpload)
+
+import Carma.Model
+import Data.Model.Patch (Patch)
+import qualified Data.Model.Patch.Sql as Patch
+
 import Application
 import AppHandlers.Util
 import AppHandlers.Users
 import Util as U hiding (render)
+import Utils.NotDbLayer (readIdent)
 import RuntimeFlag
 
-import Carma.Model
-import qualified Carma.Model.Role as Role
-import Data.Model.Patch (Patch)
-import qualified Data.Model.Patch.Sql as Patch
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
 indexPage :: AppHandler ()
-indexPage = ifTop $ render "index"
+indexPage = ifTop $ do
+    ln <- gets $ localName . options
+    -- Render index page with <addLocalName> splice defined, which
+    -- appends the @local-name@ config option to its argument.
+    let addLocalName :: Splice AppHandler
+        addLocalName = do
+            t <- X.nodeText <$> getParamNode
+            let r = case ln of
+                      Just s  -> T.concat [t, " [", s, "]"]
+                      Nothing -> t
+            return $ [X.TextNode r]
+        splices = do
+          "addLocalName" ## addLocalName
+    renderWithSplices "index" splices
 
 
 ------------------------------------------------------------------------------
@@ -137,9 +151,6 @@ smspost = do
 readInt :: (Read i, Integral i) => ByteString -> i
 readInt = read . read . show
 
-readIdent :: ByteString -> IdentI m
-readIdent = Ident . readInt
-
 
 createHandler :: AppHandler ()
 createHandler = do
@@ -149,7 +160,12 @@ createHandler = do
         commit <- getJSONBody :: AppHandler (Patch m)
         s <- PS.getPostgresState
         i <- liftIO $ withResource (PS.pgPool s) (Patch.create commit)
-        return $ Aeson.object ["id" .= i]
+        res <- liftIO $ withResource (PS.pgPool s) (Patch.read i)
+        -- TODO Cut out fields from original commit like DB.create
+        -- does
+        case (Aeson.decode $ Aeson.encode res) of
+          Just [obj] -> return obj
+          err   -> error $ "BUG in createHandler: " ++ show err
   case Carma.Model.dispatch (T.decodeUtf8 model) createModel of
     Just fn -> logResp $ fn
     Nothing -> logResp $ do
@@ -172,6 +188,7 @@ readHandler = do
           [obj] -> writeJSON obj
           []    -> handleError 404
           _     -> error $ "BUG in readHandler: " ++ show (Aeson.encode res)
+  -- See also Utils.NotDbLayer.read
   case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
     Just fn -> fn
     _ -> with db (DB.read model objId) >>= \case
@@ -230,7 +247,7 @@ updateHandler = do
         case res of
           0 -> handleError 404
           _ -> writeJSON $ Aeson.object []
-
+  -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch (T.decodeUtf8 model) updateModel of
     Just fn -> fn
     Nothing -> do
@@ -404,10 +421,10 @@ report = scope "report" $ do
       to = withinAnd addDay (mdl ++ " < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
 
     addDay tm = tm { utctDay = addDays 1 (utctDay tm) }
-    
+
     mkCondition nm = catMaybes [from', to'] where
       (from', to') = fromTo (T.unpack nm)
-  
+
   with db $ DB.generateReport mkCondition template result
   modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
   serveFile result
@@ -416,8 +433,8 @@ createReportHandler :: AppHandler ()
 createReportHandler = do
   res <- with db $ DB.create "report" $ Map.empty
   let Just objId = Map.lookup "id" res
-  f <- with fileUpload $ 
-       doUpload $ "report" </> (U.bToString objId) </> "templates"
+  f <- with fileUpload $ oneUpload =<<
+       (doUpload $ "report" </> (U.bToString objId) </> "templates")
   Just name  <- getParam "name"
   -- we have to update all model params after fileupload,
   -- because in multipart/form-data requests we do not have
@@ -436,89 +453,6 @@ deleteReportHandler = do
 
 serveUsersList :: AppHandler ()
 serveUsersList = with db usersListPG >>= writeJSON
-
-
-------------------------------------------------------------------------------
--- | Utility functions
-vinUploadData :: AppHandler ()
-vinUploadData = scope "vin" $ scope "upload" $ do
-  log Trace "Uploading data"
-  fPath <- with fileUpload $ doUpload "vin-upload-data"
-
-  let fName = takeFileName fPath
-
-  log Trace $ T.concat ["Uploaded to file: ", T.pack fName]
-  prog <- getParam "program"
-  case prog of
-    Nothing -> log Error "Program not specified"
-    Just pgmId -> do
-      log Info $ T.concat ["Uploading ", T.pack fName]
-      log Trace $ T.concat ["Program: ", T.decodeUtf8 pgmId]
-
-      -- Check if this program is available for user
-      Just u <- with auth currentUser
-      u' <- with db $ replaceMetaRolesFromPG u
-      let Aeson.String userPgms' = HM.lookupDefault "" "programs" $ userMeta u'
-          userPgms = B.split ',' $ T.encodeUtf8 userPgms'
-      when (not $ 
-            (elem (Role $ roleIdent Role.partner) (userRoles u') && elem pgmId userPgms) ||
-            (elem (Role $ roleIdent Role.vinAdmin) (userRoles u'))) $
-            handleError 403
-
-      -- Find out which format is used for this program
-      progObj <- with db $ DB.read "program" pgmId
-      let vF = Map.findWithDefault "" "vinFormat" progObj
-
-      log Trace $ T.concat ["VIN format: ", T.decodeUtf8 vF]
-
-      log Trace $ T.concat ["Initializing state for file: ", T.pack fName]
-      with vin $ initUploadState fName
-      log Trace $ T.concat ["Uploading data from file: ", T.pack fName]
-
-      -- Set current user as owner
-      let Just (UserId uid) = userId u
-      with vin $ uploadData (T.encodeUtf8 uid) pgmId (T.unpack . T.decodeUtf8 $ vF) fPath
-
-vinStateRead :: AppHandler ()
-vinStateRead = scope "vin" $ scope "state" $ scope "get" $ do
-  log Trace "Getting state"
-  with vin getState
-
-vinStateRemove :: AppHandler ()
-vinStateRemove = scope "vin" $ scope "state" $ scope "remove" $ do
-  log Trace "Remove alert by id"
-  res <- getParam "id"
-  log Trace $ T.concat ["id: ", maybe "<null>" (T.pack . show) res]
-  with vin removeAlert
-
-
--- | Upload a CSV file and update the partner database, serving a
--- report back to the client.
---
--- (carma-partner-import package interface).
-partnerUploadData :: AppHandler ()
-partnerUploadData = scope "partner" $ scope "upload" $ do
-  sCfg <- liftIO $ commandLineConfig (emptyConfig :: S.Config Snap a)
-  let carmaPort = case getPort sCfg of
-                    Just n -> n
-                    Nothing -> error "No port"
-  tmpPath <- with fileUpload $ gets tmp
-  (tmpName, _) <- liftIO $ openTempFile tmpPath "last-pimp.csv"
-
-  log Trace "Uploading data"
-  inPath <- with fileUpload $ doUpload "partner-upload-data"
-
-  let outPath = tmpPath </> tmpName
-
-  log Trace $ T.pack $ "Input file " ++ inPath
-  log Trace $ T.pack $ "Output file " ++ outPath
-
-  log Trace "Loading dictionaries from CaRMa"
-  Just dicts <- liftIO $ loadIntegrationDicts carmaPort
-  log Trace "Processing data"
-  liftIO $ processData carmaPort inPath outPath dicts
-  log Trace "Serve processing report"
-  serveFileAs "text/csv" outPath
 
 
 getSrvTarifOptions :: AppHandler ()
@@ -662,6 +596,13 @@ getRuntimeFlags
   >>= liftIO . readTVarIO
   >>= writeJSON . map show . Set.elems
 
+-- | Serve parts of the application config to client in JSON.
+clientConfig :: AppHandler ()
+clientConfig = do
+  mus <- with fileUpload $ gets (fromIntegral . getMaximumFormInputSize . cfg)
+  let config :: Map.Map T.Text Aeson.Value
+      config = Map.fromList [("max-file-size", Aeson.Number $ A.I mus)]
+  writeJSON config
 
 setRuntimeFlags :: AppHandler ()
 setRuntimeFlags = do
@@ -682,7 +623,7 @@ restoreProgramDefaults = do
   Just pgm <- getParam "pgm"
   withPG pg_search $ \c -> do
     validPgm <- query c
-      [sql| SELECT 1 FROM programtbl WHERE id = ?::int |]
+      [sql| SELECT 1 FROM "Program" WHERE id = ?::int |]
       [pgm]
     case validPgm of
       [[1::Int]] -> do

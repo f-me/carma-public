@@ -114,7 +114,7 @@ renderOrder (Order fs ord) = printf "ORDER BY %s" $
   intercalate (", " :: String) $ map printIdent fs
   where
     printIdent (FieldIdent t n) =
-      printf "%s.%s %s" (unpack t) (unpack n) printOrd
+      printf "\"%s\".%s %s" (unpack t) (unpack n) printOrd
     printOrd :: String
     printOrd = case ord of
       Asc  -> "ASC"

@@ -1,4 +1,3 @@
-
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Snaplet.SiteConfig
@@ -34,25 +33,15 @@ import Snaplet.SiteConfig.Models
 import Snaplet.SiteConfig.FakeModels
 import Snaplet.SiteConfig.Dictionaries
 
+import AppHandlers.Util hiding (withPG)
 import Utils.HttpErrors
 
 import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
-import qualified Carma.Model.OldProgram as OldProgram
-import qualified Carma.Model.Program as Program
-import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.ProgramInfo as ProgramInfo
 import qualified Carma.Model.ServiceInfo as ServiceInfo
 import qualified Carma.Model.ServiceNames as ServiceNames
-import qualified Carma.Model.Colors as Colors
-import qualified Carma.Model.Role as Role
-
-
-writeJSON :: Aeson.ToJSON v => v -> Handler a b ()
-writeJSON v = do
-  modifyResponse $ setContentType "application/json"
-  writeLBS $ Aeson.encode v
 
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
@@ -64,20 +53,25 @@ serveModel = do
         $ case name of
           "case" -> newCase pgm
           _      -> newSvc pgm name
-      _ -> case Model.dispatch (T.decodeUtf8 name) $ viewForModel view of
+      _ -> case Model.dispatch (T.decodeUtf8 $ name') $ viewForModel view' of
         Just res -> return res
         Nothing  -> M.lookup name <$> gets models
+        -- Serve case model with oldCRUD view from carma-models when
+        -- /cfg/model/case is requested
+        where
+          (name', view') =
+              case (name, view) of
+                ("case", "") -> ("Case", "oldCRUD")
+                ("case", v ) -> ("Case", v)
+                _            -> (name, view)
 
   mcu   <- withAuth currentUser
   case return (,) `ap` mcu `ap` model of
     Nothing -> finishWithError 401 ""
     Just (cu, m) ->
-      case name of
-        "Case"    -> writeModel m
-        "Service" -> writeModel m
-        "Towage"  -> writeModel m
-        "Call"    -> writeModel m
-        _         -> stripModel cu m >>= writeModel
+      case view == "search" of
+        True  -> writeModel m
+        False -> stripModel cu m >>= writeModel
 
 viewForModel :: forall m . Model.Model m => T.Text -> m -> Maybe Model
 viewForModel name _
@@ -101,6 +95,11 @@ writeModel model
 stripModel :: AuthUser -> Model -> Handler b (SiteConfig b) Model
 stripModel u m = do
   let Just uid = userId u
+      -- Use Case permissions even when faked to serve Case model
+      -- while being asked for case (see oldCRUD branch in
+      -- serveModel).
+      fixCaseModelName "case" = "Case"
+      fixCaseModelName v      = v
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
   readableFields <- withPG $ \c -> query c [sql|
     select p.field, max(p.w::int)::bool
@@ -111,33 +110,36 @@ stripModel u m = do
         and p.role::text = ANY (u.roles)
       group by p.field
     |]
-    (unUid uid, modelName m)
+    (unUid uid, fixCaseModelName $ modelName m)
   let fieldsMap = M.fromList readableFields
   let fieldFilter f fs = case M.lookup (name f) fieldsMap of
         Nothing -> fs
         Just wr -> f {canWrite = canWrite f && wr} : fs
   return $ m {fields = foldr fieldFilter [] $ fields m}
 
+-- | Serve available idents for a model (given in @name@ request
+-- parameter) as JSON object: @{"foo": 12, "bar": 28}@.
+serveIdents :: Handler b (SiteConfig b) ()
+serveIdents = do
+  nm <- getParam "name"
+  case nm of
+    Nothing -> error "Must provide model name"
+    Just name ->
+        let
+            fun :: Model.Model m =>
+                   m
+                -> HM.HashMap String (Model.IdentI m)
+            fun _ = Model.idents
+            idents' = Model.dispatch (T.decodeUtf8 name) (Aeson.encode . fun)
+        in
+          case idents' of
+            Just e -> (modifyResponse $ setContentType "application/json") >>
+                      writeLBS e
+            Nothing -> handleError 404
 
 serveDictionaries :: Handler b (SiteConfig b) ()
 serveDictionaries = do
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
-
-  roles <- withPG $ selectJSON (Role.ident :. Role.label)
-  let roles' =
-          map (\(Aeson.Object o) ->
-               Aeson.Object $ HM.insert "value" (o HM.! "id") o)
-          roles
-
-  -- Load old programs dictionary proxy
-  oldPrograms <- withPG $ selectJSON
-    (OldProgram.ident :. OldProgram.value :. OldProgram.label :. eq OldProgram.active True)
-
-  -- TODO Calculate program active status from subprograms
-  programs <- withPG $ selectJSON
-    (Program.ident :. Program.label)
-  subprograms <- withPG $ selectJSON
-    (SubProgram.ident :. SubProgram.label :. eq SubProgram.active True)
 
   programInfos <- withPG
     $ selectJSON (ProgramInfo.program :. ProgramInfo.info)
@@ -145,27 +147,16 @@ serveDictionaries = do
     $ selectJSON (ServiceInfo.program :. ServiceInfo.service :. ServiceInfo.info)
   serviceNames <- withPG
     $ selectJSON (ServiceNames.ident :. ServiceNames.value :. ServiceNames.label :. ServiceNames.icon)
-  colors <- withPG
-    $ selectJSON (Colors.ident :. Colors.value :. Colors.label)
 
   Aeson.Object dictMap <- gets dictionaries
+  -- Support legacy client interface for some dictionaries
   writeJSON $ Aeson.Object
-    $ HM.insert "Roles"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList roles')])
-    $ HM.insert "Programs"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList oldPrograms)])
-    $ HM.insert "Program"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList programs)])
-    $ HM.insert "SubProgram"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList subprograms)])
     $ HM.insert "ProgramInfo"
       (Aeson.object [("entries", Aeson.Array $ V.fromList programInfos)])
     $ HM.insert "ServiceInfo"
       (Aeson.object [("entries", Aeson.Array $ V.fromList serviceInfos)])
     $ HM.insert "ServiceNames"
       (Aeson.object [("entries", Aeson.Array $ V.fromList serviceNames)])
-    $ HM.insert "Colors"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList colors)])
       dictMap
 
 
@@ -177,8 +168,9 @@ initSiteConfig cfgDir pg_pool = makeSnaplet
   "site-config" "Site configuration storage"
   Nothing $ do
     addRoutes
-      [("model/:name",  method GET serveModel)
-      ,("dictionaries", method GET serveDictionaries)
+      [ ("model/:name",  method GET serveModel)
+      , ("idents/:name", method GET serveIdents)
+      , ("dictionaries", method GET serveDictionaries)
       ]
     liftIO $ SiteConfig
       <$> loadModels cfgDir

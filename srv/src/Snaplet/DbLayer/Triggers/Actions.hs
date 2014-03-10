@@ -1,4 +1,7 @@
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
+
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Prelude hiding (log)
@@ -13,6 +16,7 @@ import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
 import Data.Char
+import Data.List (intercalate)
 import Data.Maybe
 import Data.String (fromString)
 
@@ -27,6 +31,7 @@ import System.Locale (defaultTimeLocale)
 import Snap (gets, with)
 import Snap.Snaplet.Auth
 import qualified Snap.Snaplet.PostgresqlSimple as PG
+import Snap.Snaplet.PostgresqlSimple ((:.)(..), Only(..))
 import Database.PostgreSQL.Simple.SqlQQ
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
@@ -40,11 +45,20 @@ import Snap.Snaplet.SimpleLog
 
 import Carma.HTTP (read1Reference)
 
+
+import Data.Model
+import qualified Carma.Model.CarMake as CarMake
+import qualified Carma.Model.CarModel as CarModel
+import qualified Carma.Model.Case as Case
+import qualified Carma.Model.Contract as Contract
+import qualified Carma.Model.Program as Program
+import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role as Role
 import qualified Carma.Model.SmsTemplate as SmsTemplate
 
 import Util as U
 import qualified  Utils.RKCCalc as RKC
+
 
 services :: [ModelName]
 services =
@@ -125,7 +139,7 @@ actions
                 ,("ctime", now)
                 ,("duetime", due)
                 ,("description", utf8 "Требуется дополнительная обработка кейса")
-                ,("targetGroup", roleIdent Role.bo_order)
+                ,("targetGroup", identFv Role.bo_order)
                 ,("priority", "1")
                 ,("caseId", kazeId)
                 ,("closed", "0")
@@ -150,42 +164,15 @@ actions
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
-          ,("cardNumber_cardOwner", [\objId val -> do
-              let cardOwner = T.decodeUtf8 val
-              when (T.length cardOwner > 7) $ do
-                res <- liftDb $ PG.query (fromString [sql|
-                  SELECT
-                    extract (epoch from contractValidFromDate)::int8::text,
-                    extract (epoch from contractValidUntilDate)::int8::text
-                    FROM contracttbl c, programtbl p
-                    WHERE isactive AND dixi
-                      AND p.id::text = c.program AND p.value = 'vtb24'
-                      AND c.cardOwner = ?
-                    ORDER BY ctime DESC LIMIT 1
-                  |]) [cardOwner]
-                case res of
-                  []    -> set objId "vinChecked" "vinNotFound"
-                  row:_ -> do
-                    zipWithM_ (maybe (return ()) . (set objId))
-                      ["cardNumber_validFrom", "cardNumber_validUntil"]
-                      row
-                    set objId "vinChecked" "base"
-              ])
           ,("car_plateNum", [\objId val ->
             when (B.length val > 5)
               $ set objId "car_plateNum" $ bToUpper val])
-          ,("car_vin", [\objId val -> do
-            let vin = T.encodeUtf8 . T.toUpper . T.filter isAlphaNum
-                    $ T.decodeUtf8 val
-            when (B.length vin == 17) $ do
-              set objId "car_vin" vin
-              fillFromContract vin objId >>= \case
-                True -> set objId "vinChecked" "base"
-                False -> do
-                    res <- requestFddsVin objId val
-                    set objId "vinChecked"
-                      $ if res then "fdds" else "vinNotFound"
-            ])
+          ,("contract", [\objId val ->
+                         fillFromContract val objId >>= \case
+                           Loaded -> set objId "vinChecked" "base"
+                           Expired -> set objId "vinChecked" "vinExpired"
+                           None -> return ()
+                        ])
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
           ])
@@ -201,43 +188,143 @@ actions
 bToUpper :: ByteString -> ByteString
 bToUpper = T.encodeUtf8 . T.toUpper . T.decodeUtf8
 
-fillFromContract :: MonadTrigger m b => ByteString -> ByteString -> m b Bool
-fillFromContract vin objId = do
-  res <- liftDb $ PG.query (fromString [sql|
-    SELECT
-      p.value, carMake, carModel, carPlateNum, carColor,
-      carTransmission, carEngine, contractType, carCheckPeriod::text,
-      extract (epoch from carBuyDate)::int8::text,
-      extract (epoch from carCheckupDate)::int8::text,
-      carCheckupMilage::text, milageTO::text, cardNumber, carMakeYear::text,
-      contractValidUntilMilage::text,
-      extract (epoch from contractValidFromDate)::int8::text,
-      extract (epoch from contractValidUntilDate)::int8::text,
-      extract (epoch from warrantyStart)::int8::text,
-      extract (epoch from warrantyEnd)::int8::text,
-      carSeller, carDealerTO
-      FROM contracttbl c LEFT JOIN programtbl p ON p.id::text = c.program
-      WHERE isactive AND dixi AND lower(carVin) like lower(?)
-      ORDER BY c.id DESC LIMIT 1
-    |]) [vin]
+
+
+data C2C = P (FA Contract.Contract)
+         -- ^ Copy Contract field as is.
+         | forall m. Model m => J (FA Contract.Contract) (FA m) (FA m)
+         -- ^ Which Contract field to join with another model field
+         -- and how to project that model field to case.
+
+
+-- | Mapping between contract and case fields.
+contractToCase :: [(C2C, FA Case.Case)]
+contractToCase =
+    [ (P $ FA Contract.name, FA Case.contact_name)
+    , (P $ FA Contract.vin, FA Case.car_vin)
+      -- FIXME We won't need this after #1360
+    , (J (FA Contract.make) (FA CarMake.ident) (FA CarMake.value),
+       FA Case.car_make)
+    , (J (FA Contract.model) (FA CarModel.ident) (FA CarModel.value),
+       FA Case.car_model)
+    , (P $ FA Contract.seller, FA Case.car_seller)
+    , (P $ FA Contract.plateNum, FA Case.car_plateNum)
+    , (P $ FA Contract.makeYear, FA Case.car_makeYear)
+    , (P $ FA Contract.color, FA Case.car_color)
+    , (P $ FA Contract.buyDate, FA Case.car_buyDate)
+    , (P $ FA Contract.lastCheckDealer, FA Case.car_dealerTO)
+    , (P $ FA Contract.transmission, FA Case.car_transmission)
+    , (P $ FA Contract.engineType, FA Case.car_engine)
+    , (P $ FA Contract.engineVolume, FA Case.car_liters)
+    , (P $ FA Contract.carClass, FA Case.car_class)
+    , (P $ FA Contract.subprogram, FA Case.subprogram)
+    ]
+
+
+data ContractFillResult = None
+                        -- ^ No contract found.
+                        | Loaded
+                        -- ^ Contract loaded from database.
+                        | Expired
+                        -- ^ Contract loaded and is expired.
+
+
+fillFromContract :: MonadTrigger m b =>
+                    ByteString
+                 -- ^ Contract id.
+                 -> ByteString
+                 -> m b ContractFillResult
+fillFromContract contract objId = do
+  let cid :: IdentI Contract.Contract
+      cid = maybe (error "Could not read contract id") (Ident . fst) $
+            B.readInt contract
+      contractTable = PT $ tableName (modelInfo :: ModelInfo Contract.Contract)
+      programTable = PT $ tableName $
+                     (modelInfo :: ModelInfo Program.Program)
+      subProgramTable = PT $ tableName $
+                        (modelInfo :: ModelInfo SubProgram.SubProgram)
+  res <- liftDb $ PG.query
+         (fromString $ intercalate " "
+          [ "SELECT"
+          -- 2 * M arguments, where M is the length of contractToCase
+          , intercalate "," $ map (const "?.?::text") contractToCase
+          -- 1: program id field
+          , ", p.?::text"
+            -- 1 argument: Contract table name
+          , "FROM \"?\" c"
+          -- 3 more parameters: SubProgram table name, Contract
+          -- subprogram field, subprogram id field.
+          , "JOIN \"?\" s ON c.? = s.?"
+          -- 3 more parameters: Program table name, SubProgram parent
+          -- field, program id field.
+          , "JOIN \"?\" p ON s.? = p.?"
+          , intercalate " " $
+            -- 4 * J arguments, where J is the amount of join entries
+            -- in contractToCase
+            map (const "LEFT OUTER JOIN \"?\" ON \"?\".? = c.?") $
+            filter (\case {P _ -> False; J _ _ _ -> True}) $
+            map fst contractToCase
+            -- 2 more arguments: contract id field, contract id value
+          , "WHERE c.? = ?;"
+          ]) $
+         -- Selected fields
+         ToRowList
+         (map
+          (\f ->
+           case fst f of
+             P c ->
+                 (PT "c", PT $ fieldNameE c)
+             J _ _ (p :: FA m) ->
+                 (PT $
+                  T.concat ["\"", tableName (modelInfo :: ModelInfo m), "\""],
+                  PT $ fieldNameE p))
+          contractToCase)
+         -- 2
+         :. (Only $ PT $ fieldName Program.ident)
+         :. (Only contractTable)
+         -- 3
+         :. (Only subProgramTable)
+         :. (PT $ fieldName Contract.subprogram,
+             PT $ fieldName SubProgram.ident)
+         -- 3
+         :. Only programTable
+         :. (PT $ fieldName SubProgram.parent, PT $ fieldName Program.ident)
+         -- 4 * J JOIN arguments
+         :. (ToRowList
+             (mapMaybe
+              (\f ->
+               case fst f of
+                 J c (j :: FA m) _ ->
+                     Just ( PT $ tableName (modelInfo :: ModelInfo m)
+                          , PT $ tableName (modelInfo :: ModelInfo m)
+                          , PT $ fieldNameE j
+                          , PT $ fieldNameE c)
+                 _ -> Nothing)
+              contractToCase))
+         -- 2
+         :. (PT $ fieldName Contract.ident, cid)
   case res of
-    [] -> return False
+    [] -> return None
     [row] -> do
+      -- Replace only empty fields of case
       let setIfEmpty oid nm val = get oid nm >>= \case
               "" -> set objId nm val
               _  -> return ()
       zipWithM_ (maybe (return ()) . (setIfEmpty objId))
-        ["program", "car_make", "car_model", "car_plateNum" ,"car_color"
-        ,"car_transmission","car_engine", "car_contractType", "car_checkPeriod"
-        ,"car_buyDate", "car_checkupDate"
-        ,"car_checkupMileage", "cardNumber_milageTO"
-        ,"cardNumber_cardNumber", "car_makeYear", "cardNumber_validUntilMilage"
-        ,"cardNumber_validFrom", "cardNumber_validUntil"
-        ,"car_warrantyStart", "car_warrantyEnd"
-        ,"car_seller", "car_dealerTO"]
-        row
-      return True
-    _ -> error "fillFromContract: you broke SQL LIMIT"
+                (map (T.encodeUtf8 . fieldNameE . snd) $
+                 contractToCase ++ [(undefined, FA Case.program)])
+                row
+      resExp <- liftDb $ PG.query
+                [sql|SELECT ((now() < ?) or (? < now())) FROM "?" WHERE ? = ?;|]
+                ( PT $ fieldName Contract.validSince
+                , PT $ fieldName Contract.validUntil
+                , contractTable
+                , PT $ fieldName Contract.ident
+                , cid)
+      return $ case resExp of
+                 [Only (Just True)] -> Expired
+                 _                  -> Loaded
+    _ -> error "fillFromContract: Contract primary key is broken"
 
 
 -- | This is called when service status is changed in some trigger.
@@ -251,7 +338,7 @@ onRecursiveServiceStatusChange svcId val = do
   pgm     <- get caseId "program"
   let (svc:_) = B.split ':' svcId
   when (svc == "towage"
-      && pgm == "gensernov"
+      && pgm == identFv Program.genser
       && payType == "ruamc"
       && val `elem`
         ["serviceOrdered", "serviceOk"
@@ -288,8 +375,8 @@ tryToPassChainToControl :: MonadTrigger m b =>
                            AuthUser -> ObjectId -> m b ()
 tryToPassChainToControl user action =
     when (not
-          (elem (Role $ roleIdent Role.bo_control) (userRoles user) &&
-           elem (Role $ roleIdent Role.bo_order) (userRoles user))) $
+          (elem (Role $ identFv Role.bo_control) (userRoles user) &&
+           elem (Role $ identFv Role.bo_order) (userRoles user))) $
     clearAssignee action
 
 -- | Clear assignee and assignTime of an action.
@@ -321,7 +408,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Заказать услугу")
-            ,("targetGroup", roleIdent Role.bo_order)
+            ,("targetGroup", identFv Role.bo_order)
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -340,7 +427,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8  "Заказ услуги (требуется дополнительная информация)")
-            ,("targetGroup", roleIdent Role.bo_order)
+            ,("targetGroup", identFv Role.bo_order)
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -359,7 +446,7 @@ serviceActions = Map.fromList
             ,("duetime", due)
             ,("assignTime", now)
             ,("description", utf8 "Сообщить клиенту о договорённости")
-            ,("targetGroup", roleIdent Role.bo_control)
+            ,("targetGroup", identFv Role.bo_control)
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -375,7 +462,7 @@ serviceActions = Map.fromList
             ,("ctime", now2)
             ,("duetime", due2)
             ,("description", utf8 "Прикрепить счёт")
-            ,("targetGroup", roleIdent Role.bo_bill)
+            ,("targetGroup", identFv Role.bo_bill)
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -392,7 +479,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Требуется конференция с механиком")
-            ,("targetGroup", roleIdent Role.bo_control)
+            ,("targetGroup", identFv Role.bo_control)
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -409,7 +496,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Требуется конференция с дилером")
-            ,("targetGroup", roleIdent Role.bo_control)
+            ,("targetGroup", identFv Role.bo_control)
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -427,7 +514,7 @@ serviceActions = Map.fromList
             ,("duetime", due)
             ,("description",
                 utf8 "Клиент попросил уточнить, когда начнётся оказание услуги")
-            ,("targetGroup", roleIdent Role.bo_control)
+            ,("targetGroup", identFv Role.bo_control)
             ,("priority", "3")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -443,7 +530,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Требуется согласование с дилером")
-            ,("targetGroup", roleIdent Role.bo_control)
+            ,("targetGroup", identFv Role.bo_control)
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -459,7 +546,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Требуется согласование с заказчиком программы")
-            ,("targetGroup", roleIdent Role.bo_control)
+            ,("targetGroup", identFv Role.bo_control)
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -475,7 +562,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Клиент отказался от услуги (сообщил об этом оператору Front Office)")
-            ,("targetGroup", roleIdent Role.bo_control)
+            ,("targetGroup", identFv Role.bo_control)
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -502,7 +589,7 @@ serviceActions = Map.fromList
               ,("ctime", now)
               ,("duetime", due)
               ,("description", utf8 "Клиент предъявил претензию")
-              ,("targetGroup", roleIdent Role.bo_qa)
+              ,("targetGroup", identFv Role.bo_qa)
               ,("priority", "1")
               ,("parentId", objId)
               ,("caseId", kazeId)
@@ -582,7 +669,7 @@ actionActions = Map.fromList
          void $ replaceAction
              "orderService"
              "Заказать услугу"
-             (roleIdent Role.bo_order) "1" (+5*60) objId
+             (identFv Role.bo_order) "1" (+5*60) objId
 
     ,\objId _al -> do
       dateNow id >>= set objId "closeTime"
@@ -632,7 +719,7 @@ actionResultMap = Map.fromList
      newAction <- replaceAction
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
-         (roleIdent Role.bo_parguy) "1" (+60) objId
+         (identFv Role.bo_parguy) "1" (+60) objId
      clearAssignee newAction
   )
   ,("serviceOrdered", \objId -> do
@@ -644,7 +731,7 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"
-      (roleIdent Role.bo_bill) "1" (+14*24*60*60)
+      (identFv Role.bo_bill) "1" (+14*24*60*60)
       objId
     clearAssignee act
 
@@ -657,7 +744,7 @@ actionResultMap = Map.fromList
         act' <- replaceAction
           "tellClient"
           "Сообщить клиенту о договорённости"
-          (roleIdent Role.bo_control) "1" (+60) objId
+          (identFv Role.bo_control) "1" (+60) objId
         Just u <- liftDb $ with auth currentUser
         tryToPassChainToControl u act'
   )
@@ -679,7 +766,7 @@ actionResultMap = Map.fromList
         act <- replaceAction
           "checkStatus"
           "Уточнить статус оказания услуги"
-          (roleIdent Role.bo_control) "3" (changeTime (+5*60) tm)
+          (identFv Role.bo_control) "3" (changeTime (+5*60) tm)
           objId
         Just u <- liftDb $ with auth currentUser
         tryToPassChainToControl u act
@@ -688,20 +775,20 @@ actionResultMap = Map.fromList
     replaceAction
       "cancelService"
       "Требуется отказаться от заказанной услуги"
-      (roleIdent Role.bo_control) "1" (+60)
+      (identFv Role.bo_control) "1" (+60)
   )
   ,("moveToAnalyst", \objId -> do
     act <- replaceAction
       "orderServiceAnalyst"
       "Заказ вторичной услуги"
-      (roleIdent Role.bo_secondary) "1" (+60) objId
+      (identFv Role.bo_secondary) "1" (+60) objId
     clearAssignee act
   )
   ,("moveToBack", \objId -> do
     act <- replaceAction
       "orderService"
       "Заказ услуги оператором Back Office"
-      (roleIdent Role.bo_order) "1" (+60) objId
+      (identFv Role.bo_order) "1" (+60) objId
     clearAssignee act
   )
   ,("needPartnerAnalyst",     \objId -> do
@@ -709,7 +796,7 @@ actionResultMap = Map.fromList
      newAction <- replaceAction
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
-         (roleIdent Role.bo_parguy) "1" (+60) objId
+         (identFv Role.bo_parguy) "1" (+60) objId
      clearAssignee newAction
   )
   ,("serviceOrderedAnalyst", \objId -> do
@@ -724,7 +811,7 @@ actionResultMap = Map.fromList
         act <- replaceAction
           "tellClient"
           "Сообщить клиенту о договорённости"
-          (roleIdent Role.bo_control) "1" (+60) objId
+          (identFv Role.bo_control) "1" (+60) objId
         Just u <- liftDb $ with auth currentUser
         tryToPassChainToControl u act
   )
@@ -732,20 +819,20 @@ actionResultMap = Map.fromList
     replaceAction
       "tellDealerDenied"
       "Сообщить об отказе дилера"
-      (roleIdent Role.bo_control) "3" (+60)
+      (identFv Role.bo_control) "3" (+60)
   )
   ,("carmakerNotApproved", void .
     replaceAction
       "tellMakerDenied"
       "Сообщить об отказе автопроизводителя"
-      (roleIdent Role.bo_control) "3" (+60)
+      (identFv Role.bo_control) "3" (+60)
   )
   ,("partnerNotOkCancel", \objId -> do
       setServiceStatus objId "cancelService"
       void $ replaceAction
          "cancelService"
          "Требуется отказаться от заказанной услуги"
-         (roleIdent Role.bo_control) "1" (+60) objId
+         (identFv Role.bo_control) "1" (+60) objId
   )
   ,("partnerOk", \objId ->
     isReducedMode >>= \case
@@ -755,7 +842,7 @@ actionResultMap = Map.fromList
         void $ replaceAction
           "checkStatus"
           "Уточнить статус оказания услуги"
-          (roleIdent Role.bo_control) "3" (changeTime (+5*60) tm)
+          (identFv Role.bo_control) "3" (changeTime (+5*60) tm)
           objId
   )
   ,("serviceDelayed", \objId -> do
@@ -763,7 +850,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "tellDelayClient"
       "Сообщить клиенту о задержке начала оказания услуги"
-      (roleIdent Role.bo_control) "1" (+60)
+      (identFv Role.bo_control) "1" (+60)
       objId
   )
   ,("serviceInProgress", \objId -> do
@@ -775,7 +862,7 @@ actionResultMap = Map.fromList
         void $ replaceAction
           "checkEndOfService"
           "Уточнить у клиента окончено ли оказание услуги"
-          (roleIdent Role.bo_control) "3" (changeTime (+5*60) tm)
+          (identFv Role.bo_control) "3" (changeTime (+5*60) tm)
           objId
   )
   ,("prescheduleService", \objId -> do
@@ -786,7 +873,7 @@ actionResultMap = Map.fromList
         void $ replaceAction
           "checkEndOfService"
           "Уточнить у клиента окончено ли оказание услуги"
-          (roleIdent Role.bo_control) "3" (+60)
+          (identFv Role.bo_control) "3" (+60)
           objId
   )
   ,("serviceStillInProgress", \objId ->
@@ -802,7 +889,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "checkStatus"
       "Уточнить статус оказания услуги"
-      (roleIdent Role.bo_control) "3" (changeTime (+5*60) tm)
+      (identFv Role.bo_control) "3" (changeTime (+5*60) tm)
       objId
   )
   ,("serviceFinished", \objId -> do
@@ -816,7 +903,7 @@ actionResultMap = Map.fromList
     act1 <- replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
-      (roleIdent Role.bo_qa) "1" (+60)
+      (identFv Role.bo_qa) "1" (+60)
       objId
     clearAssignee act1
   )
@@ -825,70 +912,70 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      (roleIdent Role.head) "1" (+360) objId
+      (identFv Role.head) "1" (+360) objId
     clearAssignee act
   )
   ,("parguyToBack", \objId -> do
     act <- replaceAction
       "parguyNeedInfo"
       "Менеджер по Партнёрам запросил доп. информацию"
-      (roleIdent Role.bo_control) "3" (+360) objId
+      (identFv Role.bo_control) "3" (+360) objId
     clearAssignee act
   )
   ,("backToParyguy", \objId -> do
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"
-      (roleIdent Role.bo_bill) "1" (+360) objId
+      (identFv Role.bo_bill) "1" (+360) objId
     clearAssignee act
   )
   ,("headToParyguy", \objId -> do
     act <- replaceAction
       "addBill"
       "На доработку МпП"
-      (roleIdent Role.bo_bill) "1" (+360) objId
+      (identFv Role.bo_bill) "1" (+360) objId
     clearAssignee act
   )
   ,("confirm", \objId -> do
     act <- replaceAction
       "directorCheck"
       "Проверка директором"
-      (roleIdent Role.bo_director) "1" (+360) objId
+      (identFv Role.bo_director) "1" (+360) objId
     clearAssignee act
   )
   ,("confirmWODirector", \objId -> do
     act <- replaceAction
       "accountCheck"
       "Проверка бухгалтерией"
-      (roleIdent Role.bo_account) "1" (+360) objId
+      (identFv Role.bo_account) "1" (+360) objId
     clearAssignee act
   )
   ,("confirmFinal", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
-      (roleIdent Role.bo_analyst) "1" (+360) objId
+      (identFv Role.bo_analyst) "1" (+360) objId
     clearAssignee act
   )
   ,("directorToHead", \objId -> do
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      (roleIdent Role.head) "1" (+360) objId
+      (identFv Role.head) "1" (+360) objId
     clearAssignee act
   )
   ,("directorConfirm", \objId -> do
     act <- replaceAction
       "accountCheck"
       "Проверка бухгалтерией"
-      (roleIdent Role.bo_account) "1" (+360) objId
+      (identFv Role.bo_account) "1" (+360) objId
     clearAssignee act
   )
   ,("dirConfirmFinal", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
-      (roleIdent Role.bo_analyst) "1" (+360) objId
+      (identFv Role.bo_analyst) "1" (+360) objId
     clearAssignee act
   )
   ,("vwclosed", \objId -> do
@@ -910,14 +997,14 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
-      (roleIdent Role.bo_analyst) "1" (+360) objId
+      (identFv Role.bo_analyst) "1" (+360) objId
     clearAssignee act
   )
   ,("accountToDirector", \objId -> do
     act <- replaceAction
       "directorCheck"
       "Проверка директором"
-      (roleIdent Role.bo_director) "1" (+360) objId
+      (identFv Role.bo_director) "1" (+360) objId
     clearAssignee act
   )
   ,("analystChecked", closeAction)
@@ -996,14 +1083,16 @@ closeServiceAndSendInfoVW objId = do
   act1 <- replaceAction
     "closeCase"
     "Закрыть заявку"
-    (roleIdent Role.bo_close) "3" (changeTime (+7*24*60*60) tm)
+    (identFv Role.bo_close) "3" (changeTime (+7*24*60*60) tm)
     objId
   clearAssignee act1
   addParComment act1
 
-  program <- get objId "caseId" >>= (`get` "program")
+  subprogram <- get objId "caseId" >>= (`get` "subprogram")
   st <- getServiceType objId
-  when (program `elem` ["vwMotor", "vwcargo", "peugeot", "citroen"]) $ do
+  when (subprogram `elem`
+        (map identFv [ SubProgram.peugeot, SubProgram.citroen
+                     , SubProgram.vwMotor, SubProgram.vwCargo])) $ do
     dueDelta <- if st == Just "tech"
                 then do
                   fse <- getService objId "times_factServiceEnd"
@@ -1013,7 +1102,7 @@ closeServiceAndSendInfoVW objId = do
     act2 <- replaceAction
       "getInfoDealerVW"
       "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"
-      (roleIdent Role.bo_dealer) "3" dueDelta
+      (identFv Role.bo_dealer) "3" dueDelta
       objId
     clearAssignee act2
     addParComment act2

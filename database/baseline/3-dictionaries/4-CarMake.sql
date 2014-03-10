@@ -1,7 +1,8 @@
 CREATE TABLE "CarMake"
-  (id    SERIAL PRIMARY KEY
-  ,value text
-  ,label text UNIQUE NOT NULL
+  ( id    SERIAL PRIMARY KEY
+  , value text
+  , label text UNIQUE NOT NULL
+  , synonyms text[]
   );
 
 COPY "CarMake" (id, value, label) FROM stdin;
@@ -53,3 +54,10 @@ COPY "CarMake" (id, value, label) FROM stdin;
 46	maz	Maz
 47	greatWall	Great Wall
 \.
+
+GRANT ALL ON "CarMake" TO carma_db_sync;
+GRANT ALL ON "CarMake" TO carma_search;
+GRANT ALL ON "CarMake_id_seq" TO carma_db_sync;
+GRANT ALL ON "CarMake_id_seq" TO carma_search;
+
+SELECT setval(pg_get_serial_sequence('"CarMake"', 'id'), max(id)) from "CarMake";

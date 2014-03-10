@@ -89,6 +89,10 @@ require [ "domready"
     if user.login == "darya" or user.login == "e.balabanova"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')
 
+    # Enable Popover data API
+    $( () -> $('body').popover
+                          selector: '[data-provide="popover"]',
+                          trigger: 'hover')
 
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']

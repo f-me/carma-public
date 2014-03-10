@@ -4,8 +4,9 @@ define [ "utils"
        , "model/utils"
        , "model/main"
        , "sync/datamap"
+       , "dictionaries"
        ],
-  (utils, hotkeys, tpl, mu, main, dm) ->
+  (utils, hotkeys, tpl, mu, main, DataMap, Dict) ->
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
     # Case view (renders to #left, #center and #right as well)
@@ -22,6 +23,17 @@ define [ "utils"
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
       setCommentsHandler()
+
+      # show linked contract if it there
+      if kvm["contract"]()
+        showContract (fetchContract kvm["contract"]()), kvm
+
+      # change contract view, when user choose another contract
+      kvm["contract"].subscribe (id) ->
+        if id
+          showContract (fetchContract id), kvm
+        else
+          hideContract()
 
       $("#empty-fields-placeholder").html(
           Mustache.render($("#empty-fields-template").html(), ctx))
@@ -92,56 +104,61 @@ define [ "utils"
       $("body").off "change.input"
       $('.navbar').css "-webkit-transform", ""
 
-    # Load case data from contract, possibly ignoring a set of given
-    # case fields
-    loadContract = (cid, ignored_fields) ->
-      date = (v) -> dm.s2c v, "date"
-      fieldMap =
-        [ { from: "carVin", to: "car_vin" }
-        , { from: "carMake", to: "car_make" }
-        , { from: "carModel", to: "car_model" }
-        , { from: "carPlateNum", to: "car_plateNum" }
-        , { from: "carColor", to: "car_color" }
-        , { from: "carTransmission", to: "car_transmission" }
-        , { from: "carEngine", to: "car_engine" }
-        , { from: "contractType", to: "car_contractType" }
-        , { from: "carCheckPeriod", to: "car_checkPeriod" }
-        , { from: "carBuyDate", to: "car_buyDate", proj: date }
-        , { from: "carCheckupDate", to: "car_checkupDate", proj: date }
-        , { from: "carCheckupMilage", to: "car_checkupMileage" }
-        , { from: "milageTO", to: "cardNumber_milageTO" }
-        , { from: "cardNumber", to: "cardNumber_cardNumber" }
-        , { from: "carMakeYear", to: "car_makeYear" }
-        , { from: "contractValidUntilMilage", to: "cardNumber_validUntilMilage" }
-        , { from: "contractValidFromDate", to: "cardNumber_validFrom", proj: date }
-        , { from: "contractValidUntilDate", to: "cardNumber_validUntil", proj: date }
-        , { from: "warrantyStart", to: "car_warrantyStart", proj: date }
-        , { from: "warrantyEnd", to: "car_warrantyEnd", proj: date }
-        , { from: "carSeller", to: "car_seller" }
-        , { from: "carDealerTO", to: "car_dealerTO" }
-        ]
+    showContract = (contract, caseKVM)->
+      if contract.make
+        carMakeDict = new Dict.dicts.ModelDict
+          dict: 'CarMake'
+        contract.make = carMakeDict.getLab contract.make
 
-      kvm = global.viewsWare["case-form"].knockVM
-      
-      $.getJSON "/_/contract/#{cid}", (res) ->
-        for field in _.filter fieldMap, ((f) -> !_.contains ignored_fields, f.to)
-          do (field) ->
-            # Do not splice unknown contract fields, do not overwrite
-            # existing case fields
-            if res[field.from]? && _.isEmpty kvm[field.to]()
-              if field.proj?
-                kvm[field.to] field.proj res[field.from]
-              else
-                kvm[field.to] res[field.from]
+      if contract.model
+        carModelDict = new Dict.dicts.ModelDict
+          dict: 'CarModel'
+        contract.model = carModelDict.getLab contract.model
 
-    loadContractCard = (cid) -> loadContract cid, ["cardNumber_cardNumber"]
+      if contract.subprogram
+        subprogramDict = new Dict.dicts.ComputedDict(dict: "usermetaPrograms")
+        contract.subprogram = subprogramDict.getLab contract.subprogram
 
-    # Globalize loader so that cards-dict can use it
-    utils.build_global_fn 'loadContractCard', ['screens/case']
+      if contract.committer
+        usersDict = new Dict.dicts.ModelDict
+          dict: 'Usermeta'
+          meta:
+            dictionaryKey: 'id'
+            dictionaryLabel: 'realName'
+        contract.committer = usersDict.getLab contract.committer
+
+      contract.isActive = if contract.isActive then "Да" else "Нет"
+
+      if contract.seller
+        carSellerDict = new Dict.dicts.ModelDict
+          dict: 'Partner'
+          meta:
+            dictionaryKey: 'id'
+            dictionaryLabel: 'name'
+        contract.seller = carSellerDict.getLab contract.seller
+
+      model = global.model 'Contract'
+      mapper = new DataMap.Mapper(model)
+      kvm = main.buildKVM model, {fetched: mapper.s2cObj contract}
+
+      kvm.isExpired = ko.computed ->
+        callDate = Date.parseExact(caseKVM.callDate(), "dd.MM.yyyy HH:mm").getTime()
+        validSince = Date.parseExact(contract.validSince, "yyyy-MM-dd").getTime()
+        validUntil = Date.parseExact(contract.validUntil, "yyyy-MM-dd").getTime()
+        callDate < validSince or callDate > validUntil
+
+      $("#contract").html(
+        Mustache.render($("#contract-content-template").html(), {title: "Контракт"}))
+      ko.applyBindings(kvm, el("contract-content"))
+
+    hideContract = ->
+      $("#contract").empty()
+
+    fetchContract = (id) ->
+      JSON.parse ($.bgetJSON "/_/Contract/#{id}").responseText
 
     { constructor       : setupCaseMain
     , destructor        : removeCaseMain
     , template          : tpl
     , addService        : addService
-    , loadContractCard  : loadContractCard
     }

@@ -90,7 +90,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         dict = global.dictValueCache
 
         # Fill programs
-        programs = for v in global.dictionaries.Programs.entries
+        programs = for v in (utils.newModelDict "Program", true).source
           p =
             id: v.value
             name: v.label

@@ -8,7 +8,7 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
       @persisted = @kvm.id()?
       @ftypes[f.name] = f.type for f in @model.fields
       @debounced_save = _.debounce((-> @save()), 1300)
-      # lastfetch is keeping data that was fetched from server during
+      # lastfetch is keeping date that was fetched from server during
       # last push, it is used to prevent immediate pushback of just fetched
       # fields
       @lastFetch = {}
@@ -27,7 +27,7 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
             @._save() unless @options?.manual_save
 
     fetch: =>
-      $.bgetJSON "#{@url}/#{@kvm.id()}", (o) => @updateKvm m.s2cObj(o, @ftypes)
+      $.bgetJSON "#{@url}/#{@kvm.id()}", (o) => @updadeKvm m.s2cObj(o, @ftypes)
 
     _save: => @debounced_save()
 
@@ -68,7 +68,7 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
         _.each (_.keys @qbackup), (fname) =>
           @kvm["#{fname}Sync"] false
 
-    updateKvm: (obj) =>
+    updadeKvm: (obj) =>
       @lastFetch = {}
       for k, v of obj
         @lastFetch[k] = _.clone v
@@ -76,7 +76,7 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
 
     saveSuccessCb: (cb) => (json) =>
       @persisted ||= true
-      @updateKvm(m.s2cObj(json, @ftypes))
+      @updadeKvm(m.s2cObj(json, @ftypes))
       @hideSyncAnim()
       @qbackup = {}
       cb(@kvm, @model)

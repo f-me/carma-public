@@ -16,8 +16,6 @@ define [
   "screens/vin"
   "screens/report"
   "screens/contract"
-  "screens/editVin"
-  "screens/newVin"
   "screens/program"
   "screens/partnersSearch"
   "screens/servicesSearch"
@@ -41,8 +39,6 @@ define [
      , vin
      , report
      , contract
-     , editVin
-     , newVin
      , program
      , partnersSearch
      , servicesSearch
@@ -50,6 +46,20 @@ define [
      , contractsSearch
      , r) ->
     localScreens: ->
+      # "<screen-name>":
+      #    "template": "<top-level-template-name>" (if needed)
+      #    "views":
+      #       "<view1-name>": a screen object;
+      #                       its constructor field will called with
+      #                       view1-name and screen args
+      #       "<view2-name>": ...
+      #
+      # (view names may reference elements in screen template; screen
+      # template is picked from "template" field here or of screen
+      # object used when renderScreen was called)
+      #
+      # TODO: Screen objects are used as both template containers and
+      # view constructors.
       "case":
         "template": "case-screen-template"
         "views":
@@ -72,7 +82,6 @@ define [
         "views":
           "back-form": bo
       "vin":
-        "template": "vin-screen-template"
         "views":
           "vin-form": vin
       "call":
@@ -84,13 +93,11 @@ define [
         "views":
           "partner-view": partner
       "user":
-        "template": "user-screen-template"
         "views":
           "user-view": user
       "uploads":
-        "template": "uploads-screen-template"
         "views":
-          "user-view": uploads
+          "uploads-view": uploads
       "supervisor":
         "template": "supervisor-screen-template"
         "views":
@@ -119,12 +126,6 @@ define [
         "template": "contract-screen-template"
         "views":
           "contract-form": contract
-      "newVin":
-        "template": "newVin-screen-template"
-      "editVin":
-        "template": "editVin-screen-template"
-        "views":
-          "vin-form": editVin
       "printSrv":
         "template": "printSrv-screen-template"
         "views":
@@ -169,8 +170,6 @@ define [
         "partner/:id"    : "loadPartner"
         "usermeta"       : "newUser"
         "usermeta/:id"   : "loadUser"
-        "editVin/:id"    : "editVin"
-        "newVin"         : "newVin"
         "supervisor"     : "supervisor"
         "supervisorOps"  : "supervisorOps"
         "rkc"            : "rkc"
@@ -209,8 +208,6 @@ define [
                               r.renderScreen("contract", contract, {"program": p, "id": null})
       contractEditEntry : (p,id) ->
                               r.renderScreen("contract", contract, {"program": p, "id": id})
-      editVin       : (id) -> r.renderScreen("editVin", editVin, {"id": id})
-      newVin        :      -> r.renderScreen("newVin", newVin, {"id": null})
       supervisor    :      -> r.renderScreen("supervisor", supervisor)
       supervisorOps :      -> r.renderScreen("supervisorOps", supervisorOps)
       rkc           :      -> r.renderScreen("rkc", rkc)

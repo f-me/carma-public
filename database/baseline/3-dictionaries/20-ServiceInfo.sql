@@ -1,2323 +1,364 @@
-DROP TABLE IF EXISTS "ServiceInfo";
-
 CREATE TABLE "ServiceInfo"
-  (
-    id      SERIAL PRIMARY KEY
-  , program int4 REFERENCES "programtbl" ON DELETE SET NULL
-  , service int4 REFERENCES "ServiceNames" ON DELETE SET NULL
+  ( id      SERIAL PRIMARY KEY
+  , program int4 REFERENCES "Program"
+  , service int4 REFERENCES "ServiceNames"
   , info    text NOT NULL DEFAULT ''
   );
 
 GRANT ALL ON "ServiceInfo" TO carma_db_sync;
 GRANT ALL ON "ServiceInfo" TO carma_search;
+GRANT ALL ON "ServiceInfo_id_seq" TO carma_db_sync;
+GRANT ALL ON "ServiceInfo_id_seq" TO carma_search;
 
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Правила оказания:</b><br>Если неполадка не может быть устранена в течении 45 минут заказывается эвакуация в ДЦ'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		''
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br><b>Правила оказания:</b><br>Максимум 2 дня<br>До 14 дней заграницей<br>Класс G'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Условия:</b><br>Неисправоность не может быть исправлена в день обращения<br>Неисправность возникла в 80 км от места проживания клиента<br><b>Правила оказания:</b><br>Максимум 2 дня<br>Завтрак должен быть включён'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'<b>Условия:</b><br>Неисправоность не может быть исправлена в день обращения<br>Неисправность возникла в 80 км от места проживания клиента'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в течении 8 дней<br><b>Правила оказания:</b><br>Если клиент за границей'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'aston';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Правила оказания:</b><br>До ближайшего ДЦ'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'<b>Правила оказания:</b><br>На 3 рабочих дня<br>BMW 5 series, Mercedes E class, Audi A6 или другие автомобили того же класса<br>По требованию компании BML срок пользования подменным автомобилем может выть продлен с дальнейшим выставлением компании счета за услуги в случае, если инцидент случился за пределами страны, в которой автомобиль был куплен'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Неисправность возникла в 80 км от места проживания клиента<br><b>Правила оказания:</b><br>Для водителя и пассажиров<br>Максимум 2 дня'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'<b>Правила оказания:</b><br>До ближайшего воказал или аэропорта<br>Доставка к отремонтированному ТС'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'<b>Правила оказания:</b><br>Билеты 1ого класса на поезд, если ехать меньше 6 часов<br>Билеты 1ого класса на самолёт, если поездом ехать больше 6 часов'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		''
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bentley';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Условия:</b><br>&lt; 100 км от Москвы<br><b>Правила оказания:</b><br>Включая подзарядку АКБ, замена колёс, не включая вскрытие автомобиля и подвоз топлива'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 100 км от Москвы<br><b>Правила оказания:</b><br>Только в Автокрафт'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'kraft';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Правила оказания:</b><br>До 1850 рублей в черте города'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tele';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Правила оказания:</b><br>До 1850 рублей в черте города'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arc';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Правила оказания:</b><br>До 1850 рублей в черте города'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hyundai';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Правила оказания:</b><br>До 1850 рублей в черте города'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'arval';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Предоставляемые услуги техпомощи:</b><br>Подвоз топлива<br>Замена колеса<br>Запуск двигателя<br><b>Условия:</b><br>&lt;100 км до клиента<br>Не ДТП<br><b>Правила оказания:</b><br>Оплата топлива по чеку АЗС, только если топливо закончилось (Подвоз топлива)'
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt;100 км до клиента<br>Не ДТП'
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		''
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		''
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'vtb24';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Правила оказания:</b><br>До 1850 рублей в черте города'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'jenser';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Правила оказания:</b><br>До 1850 рублей в черте города'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'auimp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Правила оказания:</b><br>До 1850 рублей в черте города'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tvd';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Правила оказания:</b><br>До 1850 рублей в черте города'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Правила оказания:</b><br>Ограничение по стоимости'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'corpse';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Предоставляемые услуги техпомощи:</b><br>Подвоз топлива<br>Замена колеса<br>Запуск двигателя<br><b>Условия:</b><br>&lt;100 км до клиента<br>Не ДТП<br><b>Правила оказания:</b><br>Оплата топлива по чеку АЗС, только если топливо закончилось (Подвоз топлива)'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt;100 км до клиента<br>Не ДТП'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		''
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnbase';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Предоставляемые услуги техпомощи:</b><br>Подвоз топлива<br>Замена колеса<br>Запуск двигателя<br><b>Условия:</b><br>&lt;100 км до клиента<br>Не ДТП<br><b>Правила оказания:</b><br>Оплата топлива по чеку АЗС, только если топливо закончилось (Подвоз топлива)'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt;100 км до клиента<br>Не ДТП'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		''
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'rnstandard';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Предоставляемые услуги техпомощи:</b><br>Подвоз топлива<br>Вскрытие автомобиля<br><b>Условия:</b><br>Не более одного раза в год (Вскрытие автомобиля)<br><b>Правила оказания:</b><br>Оплата топлива по чеку АЗС, только если топливо закончилось'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt;100 км до клиента<br>ДТП<br>Не более одного раза в год'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'<b>Условия:</b><br>Эвакуация РАМК<br>ДТП<br><b>Правила оказания:</b><br>Максимум 1000 руб. с НДС'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		''
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'unicredit';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Предоставляемые услуги техпомощи:</b><br>Подвоз топлива<br><b>Правила оказания:</b><br>Оплата топлива по чеку АЗС, только если топливо закончилось<br>До 20 литров'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt;100 км от города<br>ДТП, офрмлено в ГИБДД<br>Не более одного раза в год'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'<b>Условия:</b><br>Эвакуация РАМК<br>ДТП<br><b>Правила оказания:</b><br>Максимум 1000 руб. с НДС'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'<b>Условия:</b><br>По телефону'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'lyckoil';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Предоставляемые услуги техпомощи:</b><br>Подвоз топлива<br>Замена колеса<br>Запуск двигателя<br>Вскрытие автомобиля<br><b>Условия:</b><br>Не более двух раз за срок действия программы<br>Не более одного раза за срок действия программы (Вскрытие автомобиля)<br>&lt; 50 км от МКАД или &lt;30 км от города<br><b>Правила оказания:</b><br>Топливо оплачивает клиент(Подвоз топлива)'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>Не более двух раз за срок действия программы<br>&lt; 50 км от МКАД или &lt;30 км от города'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'<b>Условия:</b><br>Не более одного раза в год'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2c';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		''
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'b2cplat';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Предоставляемые услуги техпомощи:</b><br>Слив топлива<br><b>Правила оказания:</b><br>Лимит стоимости 1490 рублей'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Правила оказания:</b><br>Лимит стоимости 1490 рублей'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'bp';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Предоставляемые услуги техпомощи:</b><br>Зарядка АКБ<br>Замена колеса<br>Вскрытие автомобиля<br>Подвоз топлива<br><b>Условия:</b><br>&lt; 100 км от Москвы или Спб'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 100 км от Москвы или Спб<br>Не ДТП<br>Не вандализм<br><b>Правила оказания:</b><br>Если на гарантии к ближайшему дилеру<br>Если не на гарантии, то в любой сервис'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>До 3 суток'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>До 50 км'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>СТО в 100 км от места проживания клиента<br>Клиент документально подтверждает, что путешествие было запланировано<br><b>Правила оказания:</b><br>Железнодорожний билеты первого класса<br>Авиабилеты эконом-класса (если до точки назначения &gt; 600 км)<br>Лимит стоимости 50000 рублей'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		''
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chartis';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Условия:</b><br>&lt; 200 км до клиента<br><b>Правила оказания:</b><br>Бесплатно 200 км, остальное за наличные (в том числе возвращение на дорожное полотно)'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 200 км до ДЦ<br><b>Правила оказания:</b><br>Бесплатно 200 км, остальное за наличные'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Требуется согласование производителя<br><b>Правила оказания:</b><br>На срок не более чем 2 рабочих днях'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Лимит стоимости 1000 рублей с НДС (820 рублей без НДС)<br>От места поломки или от ДЦ до дома клиента'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>До трёх лиц'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'ford';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Условия:</b><br>&lt; 130 км до клиента<br><b>Правила оказания:</b><br>Устранение поломки на месте будет предприниматься во всех случаях, за исключением тех, где могут быть гарантийные обязательства'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 130 км от клиента до ДЦ<br>Клиент договорился с ДЦ<br><b>Правила оказания:</b><br>Автомобиль с прицепом или без<br>Эвакуация до любого места, если до ближайшего авторизированного дилера &gt; 130 км'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'<b>Условия:</b><br>Требуется согласование производителя<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум на 4 дня'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Условия:</b><br>Неисправность возникла в 130 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум 4 дня<br>3 звезды или эквивалент'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Лимит стоимости 1854 рубля<br>Оплата проезда от места неисправности или от мастерской до пункта посадки на транспорт (или обратно)'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'<b>Условия:</b><br>Не более трёх раз за срок действия программы<br>&lt; 130 км<br><b>Правила оказания:</b><br>Если ОСАГО на неограниченное число лиц - вызывается трезвый водитель.<br>Если ОСАГО ограничено вызывается эвакуатор (при этом услуга засчитывается как Трезвый водитель)'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Клиент документально подтверждает, что путешествие было запланировано<br><b>Правила оказания:</b><br>Железнодорожний билеты первого класса или авиабилет экономкласса (если время в пути поездом превышает 8 часов) <br>Лимит стоимости 27585 рублей на клиента'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br>В стране нет возможности получить деталь через авторизованного дилера GM<br><b>Правила оказания:</b><br>Оплачивается организация доставки, таможенную очистку (за исключением стоимости таможенных сборов) и расходы по транспортировке запасной части. <br>В случае гарантийной поломки обязанность по оплате стоимости запасных частей ложится на GM , во всех остальных случаях на Клиента.'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cadold';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Условия:</b><br>&lt; 130 км до клиента<br><b>Правила оказания:</b><br>Устранение поломки на месте будет предприниматься во всех случаях, за исключением тех, где могут быть гарантийные обязательства<br>Доставка топлива: <b>Условия:</b><br>&lt; 130 км<br><b>Правила оказания:</b><br>Клиент оплачивает по квитанции само топливо, доставка топлива бесплатна'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 130 км от клиента до ДЦ<br>Клиент договорился с ДЦ<br><b>Правила оказания:</b><br>Автомобиль с прицепом или без<br>Эвакуация до любого места, если до ближайшего авторизированного дилера &gt; 130 км'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'<b>Условия:</b><br>Требуется согласование производителя<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум на 4 дня'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Условия:</b><br>Неисправность возникла в 130 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум 4 дня<br>3 звезды или эквивалент'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Лимит стоимости 1854 рубля<br>Оплата проезда от места неисправности или от мастерской до пункта посадки на транспорт (или обратно)'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Клиент документально подтверждает, что путешествие было запланировано<br><b>Правила оказания:</b><br>Железнодорожний билеты первого класса или авиабилет экономкласса (если время в пути поездом превышает 8 часов) <br>Лимит стоимости 27585 рублей на клиента'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br>В стране нет возможности получить деталь через авторизованного дилера GM<br><b>Правила оказания:</b><br>Оплачивается организация доставки, таможенную очистку (за исключением стоимости таможенных сборов) и расходы по транспортировке запасной части. <br>В случае гарантийной поломки обязанность по оплате стоимости запасных частей ложится на GM , во всех остальных случаях на Клиента.'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'cad2012';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Условия:</b><br>&lt; 130 км до клиента<br><b>Правила оказания:</b><br>Устранение поломки на месте будет предприниматься во всех случаях, за исключением тех, где могут быть гарантийные обязательства'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 130 км от клиента до ДЦ<br>Клиент договорился с ДЦ<br><b>Правила оказания:</b><br>Автомобиль с прицепом или без<br>Эвакуация до любого места, если до ближайшего авторизированного дилера &gt; 130 км'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'<b>Условия:</b><br>Требуется согласование производителя<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум на 4 дня'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Условия:</b><br>Неисправность возникла в 130 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум 4 дня<br>3 звезды или эквивалент'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Лимит стоимости 1854 рубля<br>Оплата проезда от места неисправности или от мастерской до пункта посадки на транспорт (или обратно)'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Клиент документально подтверждает, что путешествие было запланировано<br><b>Правила оказания:</b><br>Железнодорожний билеты первого класса или авиабилет экономкласса (если время в пути поездом превышает 8 часов) <br>Лимит стоимости 27585 рублей на клиента'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br>В стране нет возможности получить деталь через авторизованного дилера GM<br><b>Правила оказания:</b><br>Оплачивается организация доставки, таможенную очистку (за исключением стоимости таможенных сборов) и расходы по транспортировке запасной части. <br>В случае гарантийной поломки обязанность по оплате стоимости запасных частей ложится на GM , во всех остальных случаях на Клиента.'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyko';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Условия:</b><br>&lt; 130 км до клиента<br><b>Правила оказания:</b><br>Устранение поломки на месте будет предприниматься во всех случаях, за исключением тех, где могут быть гарантийные обязательства'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 130 км от клиента до ДЦ<br>Клиент договорился с ДЦ<br><b>Правила оказания:</b><br>Автомобиль с прицепом или без<br>Эвакуация до любого места, если до ближайшего авторизированного дилера &gt; 130 км'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'<b>Условия:</b><br>Требуется согласование производителя<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум на 4 дня'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Условия:</b><br>Неисправность возникла в 130 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум 4 дня<br>3 звезды или эквивалент'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Лимит стоимости 1854 рубля<br>Оплата проезда от места неисправности или от мастерской до пункта посадки на транспорт (или обратно)'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Клиент документально подтверждает, что путешествие было запланировано<br><b>Правила оказания:</b><br>Железнодорожний билеты первого класса или авиабилет экономкласса (если время в пути поездом превышает 8 часов) <br>Лимит стоимости 27585 рублей на клиента'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br>В стране нет возможности получить деталь через авторизованного дилера GM<br><b>Правила оказания:</b><br>Оплачивается организация доставки, таможенную очистку (за исключением стоимости таможенных сборов) и расходы по транспортировке запасной части. <br>В случае гарантийной поломки обязанность по оплате стоимости запасных частей ложится на GM , во всех остальных случаях на Клиента.'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'chevyna';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Условия:</b><br>&lt; 130 км до клиента<br><b>Правила оказания:</b><br>Устранение поломки на месте будет предприниматься во всех случаях, за исключением тех, где могут быть гарантийные обязательства'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 130 км от клиента до ДЦ<br>Клиент договорился с ДЦ<br><b>Правила оказания:</b><br>Автомобиль с прицепом или без<br>Эвакуация до любого места, если до ближайшего авторизированного дилера &gt; 130 км'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'<b>Условия:</b><br>Требуется согласование производителя<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум на 4 дня'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Условия:</b><br>Неисправность возникла в 130 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум 4 дня<br>3 звезды или эквивалент'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Лимит стоимости 1854 рубля<br>Оплата проезда от места неисправности или от мастерской до пункта посадки на транспорт (или обратно)'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Клиент документально подтверждает, что путешествие было запланировано<br><b>Правила оказания:</b><br>Железнодорожний билеты первого класса или авиабилет экономкласса (если время в пути поездом превышает 8 часов) <br>Лимит стоимости 27585 рублей на клиента'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br>В стране нет возможности получить деталь через авторизованного дилера GM<br><b>Правила оказания:</b><br>Оплачивается организация доставки, таможенную очистку (за исключением стоимости таможенных сборов) и расходы по транспортировке запасной части. <br>В случае гарантийной поломки обязанность по оплате стоимости запасных частей ложится на GM , во всех остальных случаях на Клиента.'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'hum';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Условия:</b><br>&lt; 130 км до клиента<br><b>Правила оказания:</b><br>Устранение поломки на месте будет предприниматься во всех случаях, за исключением тех, где могут быть гарантийные обязательства'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 130 км от клиента до ДЦ<br>Клиент договорился с ДЦ<br><b>Правила оказания:</b><br>Автомобиль с прицепом или без<br>Эвакуация до любого места, если до ближайшего авторизированного дилера &gt; 130 км'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'<b>Условия:</b><br>Требуется согласование производителя<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум на 4 дня'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Условия:</b><br>Неисправность возникла в 130 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум 4 дня<br>3 звезды или эквивалент'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Лимит стоимости 1854 рубля<br>Оплата проезда от места неисправности или от мастерской до пункта посадки на транспорт (или обратно)'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Клиент документально подтверждает, что путешествие было запланировано<br><b>Правила оказания:</b><br>Железнодорожний билеты первого класса или авиабилет экономкласса (если время в пути поездом превышает 8 часов) <br>Лимит стоимости 27585 рублей на клиента'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br>В стране нет возможности получить деталь через авторизованного дилера GM<br><b>Правила оказания:</b><br>Оплачивается организация доставки, таможенную очистку (за исключением стоимости таможенных сборов) и расходы по транспортировке запасной части. <br>В случае гарантийной поломки обязанность по оплате стоимости запасных частей ложится на GM , во всех остальных случаях на Клиента.'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'opel';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Предоставляемые услуги техпомощи:</b><br>Замена колеса<br>Зарядка аккумулятора<br><b>Условия:</b><br>&lt; 125 км до клиента<br>Прокол больше чем 1 колеса<br><b>Правила оказания:</b><br>Бесплатно 125 км, всё остальное за наличные'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 125 км до ДЦ<br>Поломка (не ДТП и не вандализм)<br>Клиент договорился с ДЦ<br><b>Правила оказания</b><br>Бесплатно 125 км, всё остальное за наличные'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Если клиент самостоятельно доехал до дилера, то от дилера требуется письмо подтверждением (TODO: шаблон письма)<br>Требуется согласование производителя<br>Клиент не пользовался услугой Гостиница<br><b>Правила оказания:</b><br>До 5 дней для владельцев VW Phaeton<br>До 3 дней для владельцев остальных моделей'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Условия:</b><br>Неисправность возникла в 80 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент не пользовался услугой Подменный автомобиль<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Не более 5 ночей для владельцев VW Phaeton<br>Не более 1 ночи для владельцев остальных моделей<br>Для водителя и всех пассажиров (но не более чем посадочных мест в автомобиле)<br>Не более 6600 рублей без НДС на человека на день'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwMotor';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Предоставляемые услуги техпомощи:</b><br>Замена колеса<br>Зарядка аккумулятора<br><b>Условия:</b><br>&lt; 250 км до клиента<br>Прокол больше чем 1 колеса<br><b>Правила оказания:</b><br>Бесплатно 250 км, всё остальное за наличные'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 250 км до ДЦ<br>Поломка (не ДТП и не вандализм)<br><b>Правила оказания:</b><br>Бесплатно 250 км, всё остальное за наличные'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Клиент не пользовался услугой Гостиница<br>Если клиент самостоятельно доехал до дилера, то от дилера требуется письмо подтверждением (TODO: шаблон письма)<br><b>Правила оказания:</b><br>До трёх дней'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'<b>Условия:</b><br>Неисправность возникла в 80 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент не пользовался услугой Подменный автомобиль<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Не более 1 ночи для водителя и всех пассажиров (для VW Crafter водитель и не более чем 2 пассажира)<br>Не более 6600 рублей без НДС на человека на день'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'vwcargo';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Предоставляемые услуги техпомощи:</b><br>Зарядка АКБ<br>Замена колеса<br><b>Условия:</b><br>&lt;125 км до клиента<br><b>Правила оказания:</b>Не включает в себя возвращение на дорогу, вскрытие автомобиля, подвоз топлива, слив топлива'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 125 км<br>Не вандализм<br><b>Правила оказания:</b><br>Только в ДЦ Аталант М'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'Правила оказания:</b><br>До трёх лиц'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'atlant';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличные'
-	FROM programtbl WHERE value = 'Cash';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличные'
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		''
-	FROM programtbl WHERE value = 'tickets';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech'),
-		'<b>Предоставляемые услуги техпомощи:</b><br>Зарядка АКБ<br>Замена колеса<br><b>Условия:</b><br>&lt;125 км до клиента<br><b>Правила оказания:</b>Не включает в себя возвращение на дорогу, вскрытие автомобиля и подвоз топлива'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'towage'),
-		'<b>Условия:</b><br>&lt; 125 км<br><b>Правила оказания:</b><br>Эвакуация только в Рус Лан<br>В нерабочее время эвакуация домой, затем в Рус Лан<br>В том числе в случае ДТП'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'rent'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'hotel'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'taxi'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'sober'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'transportation'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverCar'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'deliverParts'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'ken'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tech1'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'information'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'bank'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'ruslan';
-INSERT INTO "ServiceInfo" (program, service, info)
-	SELECT id,
-		(SELECT id FROM "ServiceNames" WHERE value = 'tickets'),
-		'За наличный рассчёт'
-	FROM programtbl WHERE value = 'ruslan';
+COPY "ServiceInfo" (service, program, info) FROM STDIN;
+1	21	<b>Правила оказания:</b><br>Если неполадка не может быть устранена в течении 45 минут заказывается эвакуация в ДЦ
+2	21	
+3	21	<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br><b>Правила оказания:</b><br>Максимум 2 дня<br>До 14 дней заграницей<br>Класс G
+4	21	<b>Условия:</b><br>Неисправоность не может быть исправлена в день обращения<br>Неисправность возникла в 80 км от места проживания клиента<br><b>Правила оказания:</b><br>Максимум 2 дня<br>Завтрак должен быть включён
+5	21	За наличные
+6	21	За наличные
+7	21	<b>Условия:</b><br>Неисправоность не может быть исправлена в день обращения<br>Неисправность возникла в 80 км от места проживания клиента
+8	21	<b>Условия:</b><br>Неисправность не может быть исправлена в течении 8 дней<br><b>Правила оказания:</b><br>Если клиент за границей
+9	21	За наличные
+10	21	За наличные
+11	21	За наличные
+12	21	За наличные
+16	21	За наличные
+14	21	За наличные
+1	22	За наличные
+2	22	<b>Правила оказания:</b><br>До ближайшего ДЦ
+3	22	<b>Правила оказания:</b><br>На 3 рабочих дня<br>BMW 5 series, Mercedes E class, Audi A6 или другие автомобили того же класса<br>По требованию компании BML срок пользования подменным автомобилем может выть продлен с дальнейшим выставлением компании счета за услуги в случае, если инцидент случился за пределами страны, в которой автомобиль был куплен
+4	22	<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Неисправность возникла в 80 км от места проживания клиента<br><b>Правила оказания:</b><br>Для водителя и пассажиров<br>Максимум 2 дня
+5	22	<b>Правила оказания:</b><br>До ближайшего воказал или аэропорта<br>Доставка к отремонтированному ТС
+6	22	За наличные
+7	22	<b>Правила оказания:</b><br>Билеты 1ого класса на поезд, если ехать меньше 6 часов<br>Билеты 1ого класса на самолёт, если поездом ехать больше 6 часов
+8	22	
+9	22	За наличные
+10	22	За наличные
+11	22	За наличные
+12	22	За наличные
+16	22	За наличные
+14	22	За наличные
+1	35	<b>Правила оказания:</b><br>До 1850 рублей в черте города
+2	35	<b>Правила оказания:</b><br>Ограничение по стоимости
+3	35	За наличные
+4	35	<b>Правила оказания:</b><br>Ограничение по стоимости
+5	35	За наличные
+6	35	За наличные
+7	35	За наличные
+8	35	За наличные
+9	35	За наличные
+10	35	За наличные
+11	35	За наличные
+12	35	За наличные
+16	35	За наличные
+14	35	За наличные
+1	30	<b>Правила оказания:</b><br>До 1850 рублей в черте города
+2	30	<b>Правила оказания:</b><br>Ограничение по стоимости
+3	30	За наличные
+4	30	<b>Правила оказания:</b><br>Ограничение по стоимости
+5	30	За наличные
+6	30	За наличные
+7	30	За наличные
+8	30	За наличные
+9	30	За наличные
+10	30	За наличные
+11	30	За наличные
+12	30	За наличные
+16	30	За наличные
+14	30	За наличные
+1	27	<b>Правила оказания:</b><br>До 1850 рублей в черте города
+2	27	<b>Правила оказания:</b><br>Ограничение по стоимости
+3	27	За наличные
+4	27	<b>Правила оказания:</b><br>Ограничение по стоимости
+5	27	За наличные
+6	27	За наличные
+7	27	За наличные
+8	27	За наличные
+9	27	За наличные
+10	27	За наличные
+11	27	За наличные
+12	27	За наличные
+16	27	За наличные
+14	27	За наличные
+1	37	<b>Правила оказания:</b><br>До 1850 рублей в черте города
+2	37	<b>Правила оказания:</b><br>Ограничение по стоимости
+3	37	За наличные
+4	37	<b>Правила оказания:</b><br>Ограничение по стоимости
+5	37	За наличные
+6	37	За наличные
+7	37	За наличные
+8	37	За наличные
+9	37	За наличные
+10	37	За наличные
+11	37	За наличные
+12	37	За наличные
+16	37	За наличные
+14	37	За наличные
+1	2	<b>Предоставляемые услуги техпомощи:</b><br>Подвоз топлива<br>Замена колеса<br>Запуск двигателя<br><b>Условия:</b><br>&lt;100 км до клиента<br>Не ДТП<br><b>Правила оказания:</b><br>Оплата топлива по чеку АЗС, только если топливо закончилось (Подвоз топлива)
+2	2	<b>Условия:</b><br>&lt;100 км до клиента<br>Не ДТП
+3	2	За наличные
+4	2	За наличные
+5	2	За наличные
+6	2	За наличные
+7	2	За наличные
+8	2	За наличные
+9	2	За наличные
+10	2	
+11	2	За наличные
+12	2	
+16	2	За наличные
+14	2	За наличные
+1	42	<b>Правила оказания:</b><br>До 1850 рублей в черте города
+2	42	<b>Правила оказания:</b><br>Ограничение по стоимости
+3	42	За наличные
+4	42	<b>Правила оказания:</b><br>Ограничение по стоимости
+5	42	За наличные
+6	42	За наличные
+7	42	За наличные
+8	42	За наличные
+9	42	За наличные
+10	42	За наличные
+11	42	За наличные
+12	42	За наличные
+16	42	За наличные
+14	42	За наличные
+1	38	<b>Правила оказания:</b><br>До 1850 рублей в черте города
+2	38	<b>Правила оказания:</b><br>Ограничение по стоимости
+3	38	За наличные
+4	38	<b>Правила оказания:</b><br>Ограничение по стоимости
+5	38	За наличные
+6	38	За наличные
+7	38	За наличные
+8	38	За наличные
+9	38	За наличные
+10	38	За наличные
+11	38	За наличные
+12	38	За наличные
+16	38	За наличные
+14	38	За наличные
+1	12	<b>Правила оказания:</b><br>До 1850 рублей в черте города
+2	12	<b>Правила оказания:</b><br>Ограничение по стоимости
+3	12	За наличные
+4	12	<b>Правила оказания:</b><br>Ограничение по стоимости
+5	12	За наличные
+6	12	За наличные
+7	12	За наличные
+8	12	За наличные
+9	12	За наличные
+10	12	За наличные
+11	12	За наличные
+12	12	За наличные
+16	12	За наличные
+14	12	За наличные
+1	47	<b>Предоставляемые услуги техпомощи:</b><br>Подвоз топлива<br>Вскрытие автомобиля<br><b>Условия:</b><br>Не более одного раза в год (Вскрытие автомобиля)<br><b>Правила оказания:</b><br>Оплата топлива по чеку АЗС, только если топливо закончилось
+2	47	<b>Условия:</b><br>&lt;100 км до клиента<br>ДТП<br>Не более одного раза в год
+3	47	За наличные
+4	47	За наличные
+5	47	<b>Условия:</b><br>Эвакуация РАМК<br>ДТП<br><b>Правила оказания:</b><br>Максимум 1000 руб. с НДС
+6	47	За наличные
+7	47	За наличные
+8	47	За наличные
+9	47	За наличные
+10	47	
+11	47	За наличные
+12	47	За наличные
+16	47	За наличные
+14	47	За наличные
+1	45	<b>Предоставляемые услуги техпомощи:</b><br>Подвоз топлива<br><b>Правила оказания:</b><br>Оплата топлива по чеку АЗС, только если топливо закончилось<br>До 20 литров
+2	45	<b>Условия:</b><br>&lt;100 км от города<br>ДТП, офрмлено в ГИБДД<br>Не более одного раза в год
+3	45	За наличные
+4	45	За наличные
+5	45	<b>Условия:</b><br>Эвакуация РАМК<br>ДТП<br><b>Правила оказания:</b><br>Максимум 1000 руб. с НДС
+6	45	За наличные
+7	45	За наличные
+8	45	За наличные
+9	45	За наличные
+10	45	<b>Условия:</b><br>По телефону
+11	45	За наличные
+12	45	За наличные
+16	45	За наличные
+14	45	За наличные
+1	15	За наличные
+2	15	За наличные
+3	15	За наличные
+4	15	За наличные
+5	15	За наличные
+6	15	За наличные
+7	15	За наличные
+8	15	За наличные
+9	15	За наличные
+10	15	
+11	15	За наличные
+12	15	За наличные
+16	15	За наличные
+14	15	За наличные
+1	61	<b>Предоставляемые услуги техпомощи:</b><br>Слив топлива<br><b>Правила оказания:</b><br>Лимит стоимости 1490 рублей
+2	61	<b>Правила оказания:</b><br>Лимит стоимости 1490 рублей
+3	61	За наличные
+4	61	За наличные
+5	61	За наличные
+6	61	За наличные
+7	61	За наличные
+8	61	За наличные
+9	61	За наличные
+10	61	За наличные
+11	61	За наличные
+12	61	За наличные
+16	61	За наличные
+14	61	За наличные
+1	24	<b>Предоставляемые услуги техпомощи:</b><br>Зарядка АКБ<br>Замена колеса<br>Вскрытие автомобиля<br>Подвоз топлива<br><b>Условия:</b><br>&lt; 100 км от Москвы или Спб
+2	24	<b>Условия:</b><br>&lt; 100 км от Москвы или Спб<br>Не ДТП<br>Не вандализм<br><b>Правила оказания:</b><br>Если на гарантии к ближайшему дилеру<br>Если не на гарантии, то в любой сервис
+3	24	<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>До 3 суток
+4	24	За наличные
+5	24	<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>До 50 км
+6	24	За наличные
+7	24	<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>СТО в 100 км от места проживания клиента<br>Клиент документально подтверждает, что путешествие было запланировано<br><b>Правила оказания:</b><br>Железнодорожний билеты первого класса<br>Авиабилеты эконом-класса (если до точки назначения &gt; 600 км)<br>Лимит стоимости 50000 рублей
+8	24	За наличные
+9	24	За наличные
+10	24	
+11	24	За наличные
+12	24	За наличные
+16	24	За наличные
+14	24	За наличные
+1	6	<b>Условия:</b><br>&lt; 200 км до клиента<br><b>Правила оказания:</b><br>Бесплатно 200 км, остальное за наличные (в том числе возвращение на дорожное полотно)
+2	6	<b>Условия:</b><br>&lt; 200 км до ДЦ<br><b>Правила оказания:</b><br>Бесплатно 200 км, остальное за наличные
+3	6	<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Требуется согласование производителя<br><b>Правила оказания:</b><br>На срок не более чем 2 рабочих днях
+4	6	За наличные
+5	6	<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Лимит стоимости 1000 рублей с НДС (820 рублей без НДС)<br>От места поломки или от ДЦ до дома клиента
+6	6	За наличные
+7	6	За наличные
+8	6	За наличные
+9	6	За наличные
+10	6	За наличные
+11	6	За наличные
+12	6	<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>До трёх лиц
+16	6	За наличные
+14	6	За наличные
+8	4	За наличные
+11	11	За наличный расчёт
+1	4	<b>Условия:</b><br>&lt; 130 км до клиента<br><b>Правила оказания:</b><br>Устранение поломки на месте будет предприниматься во всех случаях, за исключением тех, где могут быть гарантийные обязательства<br>Доставка топлива: <b>Условия:</b><br>&lt; 130 км<br><b>Правила оказания:</b><br>Клиент оплачивает по квитанции само топливо, доставка топлива бесплатна
+2	4	<b>Условия:</b><br>&lt; 130 км от клиента до ДЦ<br>Клиент договорился с ДЦ<br><b>Правила оказания:</b><br>Автомобиль с прицепом или без<br>Эвакуация до любого места, если до ближайшего авторизированного дилера &gt; 130 км
+3	4	<b>Условия:</b><br>Требуется согласование производителя<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум на 4 дня
+4	4	<b>Условия:</b><br>Неисправность возникла в 130 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум 4 дня<br>3 звезды или эквивалент
+5	4	<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Лимит стоимости 1854 рубля<br>Оплата проезда от места неисправности или от мастерской до пункта посадки на транспорт (или обратно)
+6	4	За наличные
+7	4	<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Клиент документально подтверждает, что путешествие было запланировано<br><b>Правила оказания:</b><br>Железнодорожний билеты первого класса или авиабилет экономкласса (если время в пути поездом превышает 8 часов) <br>Лимит стоимости 27585 рублей на клиента
+8	4	За наличные
+8	4	За наличные
+2	11	<b>Условия:</b><br>&lt; 125 км<br>Не вандализм<br><b>Правила оказания:</b><br>Только в ДЦ Аталант М
+3	11	За наличный расчёт
+4	11	За наличный расчёт
+5	11	За наличный расчёт
+6	11	За наличный расчёт
+7	11	За наличный расчёт
+8	11	За наличный расчёт
+9	4	<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br>В стране нет возможности получить деталь через авторизованного дилера GM<br><b>Правила оказания:</b><br>Оплачивается организация доставки, таможенную очистку (за исключением стоимости таможенных сборов) и расходы по транспортировке запасной части. <br>В случае гарантийной поломки обязанность по оплате стоимости запасных частей ложится на GM , во всех остальных случаях на Клиента.
+10	4	За наличные
+11	4	За наличные
+12	4	За наличные
+16	4	За наличные
+14	4	За наличные
+1	4	<b>Условия:</b><br>&lt; 130 км до клиента<br><b>Правила оказания:</b><br>Устранение поломки на месте будет предприниматься во всех случаях, за исключением тех, где могут быть гарантийные обязательства
+2	4	<b>Условия:</b><br>&lt; 130 км от клиента до ДЦ<br>Клиент договорился с ДЦ<br><b>Правила оказания:</b><br>Автомобиль с прицепом или без<br>Эвакуация до любого места, если до ближайшего авторизированного дилера &gt; 130 км
+3	4	<b>Условия:</b><br>Требуется согласование производителя<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум на 4 дня
+4	4	<b>Условия:</b><br>Неисправность возникла в 130 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум 4 дня<br>3 звезды или эквивалент
+5	4	<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Лимит стоимости 1854 рубля<br>Оплата проезда от места неисправности или от мастерской до пункта посадки на транспорт (или обратно)
+6	4	За наличные
+7	4	<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Клиент документально подтверждает, что путешествие было запланировано<br><b>Правила оказания:</b><br>Железнодорожний билеты первого класса или авиабилет экономкласса (если время в пути поездом превышает 8 часов) <br>Лимит стоимости 27585 рублей на клиента
+8	4	За наличные
+9	4	<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br>В стране нет возможности получить деталь через авторизованного дилера GM<br><b>Правила оказания:</b><br>Оплачивается организация доставки, таможенную очистку (за исключением стоимости таможенных сборов) и расходы по транспортировке запасной части. <br>В случае гарантийной поломки обязанность по оплате стоимости запасных частей ложится на GM , во всех остальных случаях на Клиента.
+10	4	За наличные
+11	4	За наличные
+12	4	За наличные
+16	4	За наличные
+14	4	За наличные
+1	4	<b>Условия:</b><br>&lt; 130 км до клиента<br><b>Правила оказания:</b><br>Устранение поломки на месте будет предприниматься во всех случаях, за исключением тех, где могут быть гарантийные обязательства
+2	4	<b>Условия:</b><br>&lt; 130 км от клиента до ДЦ<br>Клиент договорился с ДЦ<br><b>Правила оказания:</b><br>Автомобиль с прицепом или без<br>Эвакуация до любого места, если до ближайшего авторизированного дилера &gt; 130 км
+3	4	<b>Условия:</b><br>Требуется согласование производителя<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум на 4 дня
+4	4	<b>Условия:</b><br>Неисправность возникла в 130 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум 4 дня<br>3 звезды или эквивалент
+5	4	<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Лимит стоимости 1854 рубля<br>Оплата проезда от места неисправности или от мастерской до пункта посадки на транспорт (или обратно)
+6	4	За наличные
+7	4	<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Клиент документально подтверждает, что путешествие было запланировано<br><b>Правила оказания:</b><br>Железнодорожний билеты первого класса или авиабилет экономкласса (если время в пути поездом превышает 8 часов) <br>Лимит стоимости 27585 рублей на клиента
+9	4	<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br>В стране нет возможности получить деталь через авторизованного дилера GM<br><b>Правила оказания:</b><br>Оплачивается организация доставки, таможенную очистку (за исключением стоимости таможенных сборов) и расходы по транспортировке запасной части. <br>В случае гарантийной поломки обязанность по оплате стоимости запасных частей ложится на GM , во всех остальных случаях на Клиента.
+10	4	За наличные
+11	4	За наличные
+12	4	За наличные
+16	4	За наличные
+14	4	За наличные
+1	4	<b>Условия:</b><br>&lt; 130 км до клиента<br><b>Правила оказания:</b><br>Устранение поломки на месте будет предприниматься во всех случаях, за исключением тех, где могут быть гарантийные обязательства
+2	4	<b>Условия:</b><br>&lt; 130 км от клиента до ДЦ<br>Клиент договорился с ДЦ<br><b>Правила оказания:</b><br>Автомобиль с прицепом или без<br>Эвакуация до любого места, если до ближайшего авторизированного дилера &gt; 130 км
+3	4	<b>Условия:</b><br>Требуется согласование производителя<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум на 4 дня
+4	4	<b>Условия:</b><br>Неисправность возникла в 130 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Максимум 4 дня<br>3 звезды или эквивалент
+5	4	<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Лимит стоимости 1854 рубля<br>Оплата проезда от места неисправности или от мастерской до пункта посадки на транспорт (или обратно)
+6	4	За наличные
+7	4	<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Клиент документально подтверждает, что путешествие было запланировано<br><b>Правила оказания:</b><br>Железнодорожний билеты первого класса или авиабилет экономкласса (если время в пути поездом превышает 8 часов) <br>Лимит стоимости 27585 рублей на клиента
+9	4	<b>Условия:</b><br>Клиент воспользовался эвакуацией РАМК<br>В стране нет возможности получить деталь через авторизованного дилера GM<br><b>Правила оказания:</b><br>Оплачивается организация доставки, таможенную очистку (за исключением стоимости таможенных сборов) и расходы по транспортировке запасной части. <br>В случае гарантийной поломки обязанность по оплате стоимости запасных частей ложится на GM , во всех остальных случаях на Клиента.
+10	4	За наличные
+11	4	За наличные
+12	4	За наличные
+16	4	За наличные
+14	4	За наличные
+1	3	<b>Предоставляемые услуги техпомощи:</b><br>Замена колеса<br>Зарядка аккумулятора<br><b>Условия:</b><br>&lt; 125 км до клиента<br>Прокол больше чем 1 колеса<br><b>Правила оказания:</b><br>Бесплатно 125 км, всё остальное за наличные
+2	3	<b>Условия:</b><br>&lt; 125 км до ДЦ<br>Поломка (не ДТП и не вандализм)<br>Клиент договорился с ДЦ<br><b>Правила оказания</b><br>Бесплатно 125 км, всё остальное за наличные
+3	3	<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Если клиент самостоятельно доехал до дилера, то от дилера требуется письмо подтверждением (TODO: шаблон письма)<br>Требуется согласование производителя<br>Клиент не пользовался услугой Гостиница<br><b>Правила оказания:</b><br>До 5 дней для владельцев VW Phaeton<br>До 3 дней для владельцев остальных моделей
+4	3	<b>Условия:</b><br>Неисправность возникла в 80 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент не пользовался услугой Подменный автомобиль<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Не более 5 ночей для владельцев VW Phaeton<br>Не более 1 ночи для владельцев остальных моделей<br>Для водителя и всех пассажиров (но не более чем посадочных мест в автомобиле)<br>Не более 6600 рублей без НДС на человека на день
+5	3	За наличный расчёт
+6	3	За наличный расчёт
+7	3	За наличный расчёт
+8	3	За наличный расчёт
+9	3	За наличный расчёт
+10	3	За наличный расчёт
+11	3	За наличный расчёт
+12	3	За наличный расчёт
+16	3	За наличный расчёт
+14	3	За наличный расчёт
+1	3	<b>Предоставляемые услуги техпомощи:</b><br>Замена колеса<br>Зарядка аккумулятора<br><b>Условия:</b><br>&lt; 250 км до клиента<br>Прокол больше чем 1 колеса<br><b>Правила оказания:</b><br>Бесплатно 250 км, всё остальное за наличные
+2	3	<b>Условия:</b><br>&lt; 250 км до ДЦ<br>Поломка (не ДТП и не вандализм)<br><b>Правила оказания:</b><br>Бесплатно 250 км, всё остальное за наличные
+3	3	<b>Условия:</b><br>Неисправность не может быть исправлена в день обращения<br>Клиент воспользовался эвакуацией РАМК<br>Клиент не пользовался услугой Гостиница<br>Если клиент самостоятельно доехал до дилера, то от дилера требуется письмо подтверждением (TODO: шаблон письма)<br><b>Правила оказания:</b><br>До трёх дней
+4	3	<b>Условия:</b><br>Неисправность возникла в 80 км от места проживания клиента<br>Неисправность не может быть исправлена в день обращения<br>Клиент не пользовался услугой Подменный автомобиль<br>Клиент воспользовался эвакуацией РАМК<br><b>Правила оказания:</b><br>Не более 1 ночи для водителя и всех пассажиров (для VW Crafter водитель и не более чем 2 пассажира)<br>Не более 6600 рублей без НДС на человека на день
+5	3	За наличный расчёт
+6	3	За наличный расчёт
+7	3	За наличный расчёт
+8	3	За наличный расчёт
+9	3	За наличный расчёт
+10	3	За наличный расчёт
+11	3	За наличный расчёт
+12	3	За наличный расчёт
+16	3	За наличный расчёт
+14	3	За наличный расчёт
+1	11	<b>Предоставляемые услуги техпомощи:</b><br>Зарядка АКБ<br>Замена колеса<br><b>Условия:</b><br>&lt;125 км до клиента<br><b>Правила оказания:</b>Не включает в себя возвращение на дорогу, вскрытие автомобиля, подвоз топлива, слив топлива
+9	11	За наличный расчёт
+10	11	За наличный расчёт
+12	11	Правила оказания:</b><br>До трёх лиц
+16	11	За наличный расчёт
+14	11	За наличный расчёт
+1	63	За наличные
+2	63	За наличные
+3	63	За наличные
+4	63	За наличные
+5	63	За наличные
+6	63	За наличные
+7	63	За наличные
+8	63	За наличные
+9	63	За наличные
+10	63	За наличные
+11	63	За наличные
+12	63	За наличные
+16	63	За наличные
+14	63	
+1	16	<b>Предоставляемые услуги техпомощи:</b><br>Зарядка АКБ<br>Замена колеса<br><b>Условия:</b><br>&lt;125 км до клиента<br><b>Правила оказания:</b>Не включает в себя возвращение на дорогу, вскрытие автомобиля и подвоз топлива
+2	16	<b>Условия:</b><br>&lt; 125 км<br><b>Правила оказания:</b><br>Эвакуация только в Рус Лан<br>В нерабочее время эвакуация домой, затем в Рус Лан<br>В том числе в случае ДТП
+3	16	За наличный расчёт
+4	16	За наличный расчёт
+5	16	За наличный расчёт
+6	16	За наличный расчёт
+7	16	За наличный расчёт
+8	16	За наличный расчёт
+9	16	За наличный расчёт
+10	16	За наличный расчёт
+11	16	За наличный расчёт
+12	16	За наличный расчёт
+16	16	За наличный расчёт
+14	16	За наличный расчёт
+\.

@@ -10,9 +10,6 @@ define ["utils"], (u) ->
   bindTitleServiceName: (model, kvm) ->
     kvm['modelTitle'] = kvm['serviceNameLocal']
 
-  bindRemoveService: (model, kvm) ->
-    kvm['services'].subscribe -> u.bindRemove kvm, 'services'
-
   serviceRepeat: (model, kvm) ->
     kvm['serviceRepeat'] = ko.observableArray([])
     kvm['services'].subscribe -> setServiceRepeat()

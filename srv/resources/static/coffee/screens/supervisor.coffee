@@ -3,8 +3,7 @@ define ["utils"
       , "text!tpl/screens/supervisor.html"
       , "screenman"
       , "hooks/common"
-      , "lib/ident/role"
-      ], (utils, main, tpl, screenman, hook, role) ->
+      ], (utils, main, tpl, screenman, hook) ->
 
   dataTableOptions = ->
     aoColumns: utils
@@ -56,7 +55,9 @@ define ["utils"
     n = global.dictValueCache['ActionNames']
     r = global.dictValueCache['ActionResults']
     u = global.dictValueCache['users']
-    g = global.dictValueCache['Roles']
+
+    roles = utils.newModelDict "Role", true
+    progs = utils.newModelDict "Program", true
 
     rows = for obj in res.actions
       if obj.parentId
@@ -83,13 +84,13 @@ define ["utils"
       , closed
       , n[obj.name] || ''
       , u[obj.assignedTo] || ''
-      , g[obj.targetGroup] || obj.targetGroup || ''
+      , roles.getLab(obj.targetGroup) || obj.targetGroup || ''
       , duetime || ''
       , timeLabel?[0] || ''
       , r[obj.result] || ''
       , obj.priority || ''
       , global.dictValueCache['DealerCities'][obj.city] || ''
-      , global.dictValueCache['Programs'][obj.program] || ''
+      , progs.getLab(obj.program) || ''
       , srvStart || ''
       , obj.name || ''
       ]
@@ -139,7 +140,7 @@ define ["utils"
     tpl = $('#dictionary-many-field-template').html()
     $('#roles').html(Mustache.render tpl, roleModel.fields[0])
     ko.applyBindings roleKVM, $('#roles')[0]
-    roleKVM.roles.push parseInt role.bo_order
+    roleKVM.roles [global.idents("Role").bo_order]
     roleKVM
 
   # Update unassigned action counts using currently selected duetime

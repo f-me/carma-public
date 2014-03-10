@@ -56,3 +56,4 @@ COPY "Diagnosis3" (id, value, label) FROM stdin;
 
 GRANT SELECT ON TABLE "Diagnosis3" TO carma_search;
 
+SELECT setval(pg_get_serial_sequence('"Diagnosis3"', 'id'), max(id)) from "Diagnosis3";

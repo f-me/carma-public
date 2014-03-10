@@ -1,11 +1,9 @@
 define [
     "utils",
     "model/main",
-    "lib/ident/role",
     "text!tpl/screens/contract.html",
-    "screenman",
-    "dictionaries"],
-  (utils, main, role, tpl, screenman, dicts) ->
+    "screenman"],
+  (utils, main, tpl, screenman) ->
 
     reformatDate = (date)->
       [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
@@ -149,9 +147,9 @@ define [
           refs: [])
 
       kvm['isActiveDisableDixi'](true)
-      if _.find(global.user.roles, (r) -> r == role.partner)
+      if _.find(global.user.roles, (r) -> r == global.idents("Role").partner)
         kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
-      if _.find(global.user.roles, (r) -> r == role.contract_admin)
+      if _.find(global.user.roles, (r) -> r == global.idents("Role").contract_admin)
         kvm['disableDixi'](true)
 
       kvm["updateUrl"] = ->
@@ -239,7 +237,7 @@ define [
 
     screenSetup = (viewName, args) ->
       programs = [{id: null, name: 'Выберите программу' }]
-      programDict = new dicts.dicts["ComputedDict"]({ dict: "vinPrograms" })
+      programDict = utils.newComputedDict("vinPrograms")
       _.each programDict.source, (program) ->
         programs.push {id: program.value, name: program.label}
       ko.applyBindings(programs, el("program-select"))

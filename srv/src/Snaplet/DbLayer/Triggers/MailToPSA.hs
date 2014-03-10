@@ -1,4 +1,3 @@
-
 module Snaplet.DbLayer.Triggers.MailToPSA
   ( sendMailToPSA
   ) where
@@ -29,7 +28,13 @@ import System.Log.Simple.Base (scoperLog)
 import Data.Configurator (require)
 import Network.Mail.Mime
 
+import Carma.HTTP
+
 import Snap.Snaplet (getSnapletUserConfig)
+
+import qualified Carma.Model.Engine as Engine
+import qualified Carma.Model.SubProgram as SubProgram
+
 import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
@@ -50,8 +55,10 @@ sendMailToPSA actionId = do
     "towage":_ -> return True
     _ -> return False
   caseId  <- get actionId "caseId"
-  program <- get caseId   "program"
-  when (isValidSvc && program `elem` ["peugeot", "citroen"])
+  subprogram <- get caseId   "subprogram"
+  when (isValidSvc &&
+        subprogram `elem`
+        (map identFv [SubProgram.peugeot, SubProgram.citroen]))
     $ get svcId "payType" >>= \case
       "ruamc" -> sendMailActually actionId
       "mixed" -> sendMailActually actionId
@@ -66,14 +73,24 @@ sendMailActually actionId = do
 
     svcId   <- get actionId "parentId"
     caseId  <- get actionId "caseId"
-    program <- get caseId   "program"
+    subprogram <- get caseId   "subprogram"
+
+    let (acode, mcode) | subprogram == identFv SubProgram.peugeot =
+                           ("RUMC01R", "PEU")
+                       | subprogram == identFv SubProgram.citroen =
+                           ("FRRM01R", "CIT")
+                       | otherwise = error $
+                                     "Invalid subprogram: " ++ show subprogram
+        get'Keyed key from field =
+            (T.decodeUtf8
+             . (fromMaybe "") . (flip getKeyedJsonValue key) . T.encodeUtf8)
+            <$> (get' from field)
+
 
     let body = do
           fld 4   "BeginOfFile"     <=== "True"
-          fld 50  "Assistance Code" <=== case program of
-            "peugeot" -> "RUMC01R"
-            "citroen" -> "FRRM01R"
-            _ -> error $ "Invalid program: " ++ show program
+          fld 50  "Assistance Code" <=== acode
+
           fld 2   "Country Code" <=== "RU"
           fld 9   "Task Id"      <===
             case B.readInt $ B.dropWhile (not.isDigit) caseId of
@@ -84,10 +101,7 @@ sendMailActually actionId = do
             <$> lift (get caseId "callDate")
 
           fld 5   "Time of Incident" <=== tmFormat "%H:%M" callDate
-          fld 3   "Make"             <=== case program of
-            "peugeot" -> "PEU"
-            "citroen" -> "CIT"
-            _ -> error $ "Invalid program: " ++ show program
+          fld 3   "Make"             <=== mcode
 
           fld 13  "Model"   $ do
             mk <- get' caseId "car_make"
@@ -95,9 +109,10 @@ sendMailActually actionId = do
             return $ Map.findWithDefault md md
               $ Map.findWithDefault Map.empty mk
               $ carModel dic
-          fld 1   "Energie" $ get caseId "car_engine" >>= \case
-            "dis" -> return "D"
-            _     -> return "E"
+          fld 1   "Energie" $ get caseId "car_engine" >>= \eng ->
+               if eng == identFv Engine.diesel
+               then return "D"
+               else return "E"
 
           buyDate <- toLocalTime tz <$> lift (get caseId "car_buyDate")
           fld 10  "Date put on road" <=== maybe "" (tmFormat "%d/%m/%Y") buyDate
@@ -124,9 +139,9 @@ sendMailActually actionId = do
           fld 100 "Breakdown Location"   $ get' caseId "caseAddress_address"
           fld 20  "Breakdown Area"       $ tr (city dic) <$> get' caseId "city"
           fld 100 "Breakdown Service"    $ get' partnerId "name"
-          fld 20  "Service Tel Number 1" $ get' partnerId "phone1"
-          fld 20  "Service Tel Number 2" $ get' partnerId "closeTicketPhone"
-          fld 100 "Patrol Address 1"     $ get' partnerId "addrDeFacto"
+          fld 20  "Service Tel Number 1" $ get'Keyed "disp" partnerId "phones"
+          fld 20  "Service Tel Number 2" $ get'Keyed "close" partnerId "phones"
+          fld 100 "Patrol Address 1"     $ get'Keyed "fact" partnerId "addrs"
           fld 100 "Patrol Address 2"     <===  ""
           fld 100 "Patrol Address V"     <===  ""
           fld 50  "User Name"            $ U.upCaseName <$> get' caseId "contact_name"

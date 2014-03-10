@@ -1,14 +1,18 @@
 CREATE TABLE "CarModel"
-  (id     SERIAL PRIMARY KEY
-  ,value  text
-  ,label  text NOT NULL
-  ,parent int4 REFERENCES "CarMake" ON DELETE SET NULL
+  ( id     SERIAL PRIMARY KEY
+  , value  text
+  , label  text NOT NULL
+  , parent int4 REFERENCES "CarMake" ON DELETE SET NULL
+  , info   text NOT NULL DEFAULT ''
+  , synonyms text[]
   ,UNIQUE (label, parent)
   );
 CREATE UNIQUE INDEX ON "CarModel" (label) WHERE parent IS NULL;
 
 GRANT ALL ON "CarModel" TO carma_search;
 GRANT ALL ON "CarModel" TO carma_db_sync;
+GRANT ALL ON "CarModel_id_seq" TO carma_db_sync;
+GRANT ALL ON "CarModel_id_seq" TO carma_search;
 
 COPY "CarModel" (id, value, label, parent) FROM stdin;
 1	alfa147	147	9
@@ -410,3 +414,5 @@ COPY "CarModel" (id, value, label, parent) FROM stdin;
 397	avalanche	Avalanche	2
 398	juke	Juke	32
 \.
+
+SELECT setval(pg_get_serial_sequence('"CarModel"', 'id'), max(id)) from "CarModel";

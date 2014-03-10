@@ -12,7 +12,7 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
       postProc arg.kase,
         time: ['callDate']
         lookup:
-          Programs   : 'program'
+          Program    : 'program'
           Wazzup     : 'comment'
           CarMakers  : 'car_make'
           CarModels  : 'car_model'

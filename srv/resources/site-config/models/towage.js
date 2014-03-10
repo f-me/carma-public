@@ -216,7 +216,7 @@
       "type": "checkbox",
       "groupName": null,
       "name": "companion"
-    },    
+    },
     {
       "meta": {
         "label": "Пробег эвакуатора за городом"
@@ -396,9 +396,6 @@
         "targetAddr": "towAddress_address",
         "targetCoords": "towAddress_coords",
         "currentBlipType": "dealer",
-        "moreCoords": [
-          "case-form/caseAddress_coords"
-        ],
         "cityField": "case-form/city"
       },
       "targets": [
@@ -428,9 +425,6 @@
         "targetAddr": "towerAddress_address",
         "targetCoords": "towerAddress_coords",
         "currentBlipType": "tow",
-        "moreCoords": [
-          "case-form/caseAddress_coords"
-        ],
         "cityField": "case-form/city"
       },
       "targets": [
@@ -439,15 +433,6 @@
     },
     {
       "meta": {
-        "targetPartner": "towDealer_partner",
-        "targetPartnerId": "towDealer_partnerId",
-        "targetPartnerAddr": "towDealer_address",
-        "targetPartnerCoords": "towDealer_coords",
-        "partnerTable": "towDealer_partnerTable",
-        "highlightIdFields": [
-          "contractor_partnerId",
-          "towDealer_partnerId"
-        ],
         "cityField": "case-form/city"
       },
       "targets": [
@@ -456,15 +441,6 @@
     },
     {
       "meta": {
-        "targetPartner": "contractor_partner",
-        "targetPartnerId": "contractor_partnerId",
-        "targetPartnerAddr": "contractor_address",
-        "targetPartnerCoords": "contractor_coords",
-        "partnerTable": "contractor_partnerTable",
-        "highlightIdFields": [
-          "contractor_partnerId",
-          "towDealer_partnerId"
-        ],
         "cityField": "case-form/city"
       },
       "targets": [

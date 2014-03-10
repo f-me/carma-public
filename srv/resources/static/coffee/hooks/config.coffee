@@ -26,7 +26,8 @@ define [ "hooks/common"
                , k.eventsHistoryKbHook
                , k.cityStatsHook
                , k.regionHook
-               , k.vinExpiredHook
+              # TODO Restore this
+              # , k.vinExpiredHook
                , k.vwfakeHook
                , k.carModelInfoHook
                ]
@@ -49,7 +50,10 @@ define [ "hooks/common"
 
       "ken" : [ s.openPartnerSearch ]
 
-      "partner" : [p.bindRemoveService, p.serviceRepeat, p.factAddr]
+      "partner" : [ (c.bindRemoveHook 'services')
+                  , p.serviceRepeat
+                  , p.factAddr
+                  ]
 
       "partner_service" : [ p.bindTitleServiceName
                           , p.partnerServiceRepeat
@@ -107,3 +111,5 @@ define [ "hooks/common"
                  , s.costsMark
                  , s.openPartnerSearch
                  ]
+
+      "SubProgram" : [ c.bindRemoveHook 'services' ]

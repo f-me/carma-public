@@ -122,18 +122,25 @@ define [ "utils"
             val = dict.getVal(lab)
             return if _.contains k[n](), val
             if (bounded and val) or (not bounded)
-              k[n].unshift (val or lab)
+              # Start a new observable array or update the existing
+              # one
+              if _.isEmpty k[n]()
+                k[n] []
+              v = k[n]()
+              v.push (val or lab)
+              k[n] v
 
         k["#{n}Locals"] = ko.computed
           read: ->
-            for val in k[n]()
+            for val in (k[n]() || [])
               do (val) ->
                 lab = dict.getLab(val)
                 {label: lab || val, value: val}
 
         k["#{n}Remove"] = (el) ->
           return if k["#{n}Disabled"]()
-          k[n].remove el.value
+          v = k[n]()
+          k[n] _.without v, el.value
 
         k["#{n}TypeaheadBuilder"] = ->
           new ThMenu
@@ -274,3 +281,7 @@ define [ "utils"
       e.parents(".accordion-group")[0].scrollIntoView()
     f = e.find(".focusable")[0]
     f and f.focus()
+
+  bindRemoveHook: (fieldName) ->
+    (model, kvm) ->
+      kvm[fieldName].subscribe -> u.bindRemove kvm, fieldName

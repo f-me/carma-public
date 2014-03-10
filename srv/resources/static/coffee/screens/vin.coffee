@@ -1,55 +1,84 @@
 define [ "text!tpl/screens/vin.html"
-       , "utils"
-       , "lib/ident/role"
        , "dictionaries"
-       ], (tpl, u, role, d) ->
-  this.setupVinForm = (viewName, args) ->
-    vin_html = $el("vin-form-template").html()
-    bulk_partner_html = $el("partner-form-template").html()
+       , "lib/taskmanager"
+       , "utils"
+       , "lib/upload"
+       ], (tpl, d, tm, u, upl) ->
+  @setupVinForm = (viewName, args) ->
+    # vin_html = $el("vin-form-template").html()
+    # bulk_partner_html = $el("partner-form-template").html()
 
-    # Do not show partner bulk upload form when the screen is accessed
-    # by portal users, use appropriate set of programs.
-    dict = (n) -> new d.dicts["ComputedDict"]({ dict: n })
-    programs = dict('vinPrograms').source
-    all_html = ""
+    # # Do not show partner bulk upload form when the screen is accessed
+    # # by portal users, use appropriate set of programs.
+    # all_html = ""
 
-    if _.contains global.user.roles, role.psaanalyst
-      all_html += bulk_partner_html
+    # if _.contains global.user.roles, global.idents("Role").psaanalyst
+    #   all_html += bulk_partner_html
 
-    if _.contains global.user.roles, role.vinAdmin
-      all_html += vin_html
+    # if _.contains global.user.roles, global.idents("Role").vinAdmin
+    #   all_html += vin_html
 
+    # $el(viewName).html(all_html)
 
-    $el(viewName).html(all_html)
+    # Program/format selection
+    subprograms = u.newComputedDict("vinPrograms").source
+    ko.applyBindings subprograms, el("vin-subprogram-select")
+    formats = u.newModelDict("VinFormat").source
+    ko.applyBindings formats, el("vin-format-select")
 
-    global.viewsWare[viewName] = {}
-    ko.applyBindings(programs, el("vin-program-select"))
+    $("#vin-send").click (e) ->
+      vinFile = $("#vin-upload-file")[0].files[0]
+      sid = $("#vin-subprogram-select").val()
+      fid = $("#vin-format-select").val()
+      if sid? && fid? && vinFile?
+        sendVin sid, fid, vinFile
+      false
 
-    setInterval(getVinAlerts, 1000)
-
-  getVinAlerts = ->
-    $.getJSON("/vin/state", null, (data) ->
-      $("#vin-alert-container").html(
-        Mustache.render($("#vin-alert-template").html(), data)))
-
-  this.doVin = ->
-    form     = $el("vin-import-form")[0]
+  # Send VIN file, set up a new box element to track task progress
+  @sendVin = (sid, fid, file) ->
+    if upl.checkFileSize(file)
+      return
     formData = new FormData()
-    pid = $("#vin-program-select").val()
-    vinFile = $("#vin-upload-file")[0].files[0]
-    formData.append("file", vinFile)
+    formData.append("file", file)
+    formData.append("subprogram", sid)
+    formData.append("format", fid)
 
-    $.ajax(
-      type        : "POST"
-      url         : "/vin/upload?program=" + pid
-      data        : formData
-      contentType : false
-      processData : false
-      ).done((msg)-> alert( "Result: " + msg))
+    uid = _.uniqueId "vin-"
+    box = $ $("#vin-box-template").clone().html()
+    box.attr "id", uid
+    box.hide()
+    box.appendTo $("#vin-box-container")
+    box.fadeIn()
 
-  removeVinAlert = (val) -> $.post "/vin/state", { id: val }
+    bvm = tm.newTaskVM()
+    bvm.filename = file.name
+    bvm.bad = ko.observable 0
+    bvm.uploaded = ko.observable false
+    ko.applyBindings bvm, $(box)[0]
 
-  u.build_global_fn 'removeVinAlert', ['screens/vin']
+    bvm.errorMsg.subscribe (msg) ->
+      box.removeClass("alert-info")
+      box.addClass("alert-error")
+
+    bvm.resultMsg.subscribe (msg) ->
+      box.removeClass("alert-info")
+      if bvm.fileUrls().length > 0
+        box.addClass("alert-warning")
+      else
+        box.addClass("alert-success")
+
+    resultFmt = (obj) ->
+      bvm.bad obj.bad
+
+    upl.ajaxUpload("/vin/upload?subprogram=#{sid}&format=#{fid}", file,
+      xhr: upl.progressXHR box.find ".progress"
+      ).
+      always(() -> bvm.uploaded true).
+      done((res) ->
+        tm.handleTaskWith res.token, bvm, resultFmt, _.identity).
+      fail((res) ->
+        bvm.errorMsg res.responseText
+        bvm.done true)
 
   { constructor: setupVinForm
   , template: tpl

@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>CaRMa</title>
+    <title><addLocalName>CaRMa</addLocalName></title>
     <link rel="stylesheet" href="/s/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/s/css/datepicker.css" />
     <link rel="stylesheet" href="/s/css/jquery.dataTables.css" />
@@ -120,7 +120,7 @@
         <div class="container">
           <ul class="nav" id="nav">
             <a class="brand" href="/">
-              CaRMa
+              <addLocalName>CaRMa</addLocalName>
             </a>
             <li class="divider-vertical" />
             <li id="avaya-panel" class="dropdown" style="display: none">
@@ -231,31 +231,6 @@
     </script>
 
     <script type="text/template"
-            id="vin-form-template"
-            class="view-template">
-      <div style="text-align:center;">
-      <fieldset>
-        <legend>Загрузка VIN</legend>
-        <form id="vin-import-form" onsubmit="doVin(); return false;">
-          <p>
-            <select name="program" id="vin-program-select" data-bind="foreach: $data">
-              <option data-bind="value: value, text: label" />
-            </select>
-            <input type="file"
-                   name="file"
-                   id="vin-upload-file"
-                   accept="text/csv|application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-          </p>
-          <button class="btn btn-success" type="submit">
-            Отправить
-          </button>
-        </form>
-      </fieldset>
-      <div id="vin-alert-container" />
-      </div>
-    </script>
-
-    <script type="text/template"
             id="partner-form-template"
             class="view-template">
       <div style="text-align:center;">
@@ -271,32 +246,6 @@
           </input>
         </form>
       </fieldset>
-      </div>
-    </script>
-
-    <script type="text/template"
-            id="vin-alert-template">
-      <!-- TODO Should be row-fluid when fluid containers are
-                fixed in Bootstrap upstream. -->
-      <div class="container">
-        <div class="row">
-          <div class="span6 offset3">
-            {{# alerts}}
-              <div class="alert alert-{{alertType}}" style="margin-bottom: 2px;">
-                <button class="close"
-			data-dismiss="alert"
-			onclick="removeVinAlert('{{alertId}}'); return false;">×</button>
-                {{alertVinFile}}: {{ alertMessage }}
-                {{# alertErrorFile }}
-                  <a href="{{alertErrorFile}}">Файл</a> с необработанными записями.
-                {{/ alertErrorFile }}
-                {{# alertErrorLogFile }}
-                  <a href="{{alertErrorLogFile}}">Файл</a> с описанием ошибок.
-                {{/ alertErrorLogFile }}
-              </div>
-            {{/ alerts}}
-          </div>
-        </div>
       </div>
     </script>
 
@@ -646,11 +595,6 @@
               <i class="icon icon-chevron-down" />
             </span>
           </div>
-          {{# meta.targetCategory }}
-          <ul data-depends="{{ name }}"
-              data-source="{{ meta.targetCategory }}"
-              data-provide="checklist" />
-          {{/ meta.targetCategory }}
         </div>
       </div>
     </script>
@@ -718,11 +662,6 @@
             </li>
           </ul>
           <!-- /ko -->
-          {{# meta.targetCategory }}
-          <ul data-depends="{{ name }}"
-              data-source="{{ meta.targetCategory }}"
-              data-provide="checklist" />
-          {{/ meta.targetCategory }}
         </div>
       </div>
     </script>
@@ -1155,6 +1094,94 @@
       </div>
     </script>
 
+
+
+    <!-- NOP here — IdentList references are rendered after model has loaded -->
+    <script type="text/template"
+            class="field-template"
+            id="IdentList-field-template">
+        <div class="control-group">
+
+          <div class="control-label">
+            <label>{{ meta.label }}</label>
+          </div>
+
+          <div class="controls">
+            <span class="accordion"
+                  id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
+          </div>
+
+          {{# meta.model}}
+          <div id="add-reference-button" class="controls">
+            <button class="dropdown-toggle btn btn-action"
+                    data-bind="bindClick: add{{ name }}"
+                    type="button">
+              <i class="icon icon-plus"></i>&nbsp;{{ meta.reference-label }}
+            </button>
+          </div>
+          {{/ meta.model}}
+
+        </div>
+    </script>
+
+    <!--
+         SubProgram.services (SubProgramService model) reference
+         template
+    -->
+    <script type="text/template"
+            class="reference-template"
+            id="subprogram-services-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <div class="accordion-toggle"
+               data-target="#{{ refView }}-head"
+               data-toggle="collapse"
+               id="{{ refView }}-link">
+            <a class="icon icon-remove" />
+            <a
+               data-bind="text: typeLocal">
+               Услуга
+            </a>
+
+          </div>
+        </div>
+
+        <div id="{{ refView }}-head"
+             class="accordion-body collapse">
+          <div class="accordion-inner {{ refClass }}"
+               id="{{ refView }}">
+            <!-- Instance contents are rendered here -->
+
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="reference-template"
+            id="subprogram-contacts-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <div class="accordion-toggle"
+               data-target="#{{ refView }}-head"
+               data-toggle="collapse"
+               id="{{ refView }}-link">
+            <a class="icon icon-remove" />
+            <span data-bind="text: [name(), email(), phone()].join(' ')" />
+          </div>
+        </div>
+
+        <div id="{{ refView }}-head"
+             class="accordion-body collapse">
+          <div class="accordion-inner {{ refClass }}"
+               id="{{ refView }}">
+            <!-- Instance contents are rendered here -->
+
+          </div>
+        </div>
+      </div>
+    </script>
+
     <!--
          Attachment list reference template. By convention, such
          fields are named "files". See also file-field-template.
@@ -1165,7 +1192,7 @@
       <div>
         <a href="#"
            class="detach-button text-error"
-           onClick="inlineDetachFile($(this))"
+           onClick="inlineDetachFile($(this)); return false"
            data-attachment="{{ refId }}"
            data-field="{{ refField }}">×</a>
         <span class="{{ refClass }}"
@@ -1589,6 +1616,7 @@
             г.&nbsp;<span data-bind="text: cityLocal"/>:</b>
           <span id="city-towage-average-time" />
         </p>
+        <div id="contract"></div>
         <div class="program">
           <div id="case-comments">
             <legend> Комментарий </legend>
@@ -1674,6 +1702,12 @@
         <button type="button" class="close" data-dismiss="alert">&times;</button>
         <strong>Внимание!</strong>
         {{message}}
+      </div>
+    </script>
+
+    <script type="text/html" id="contract-content-template">
+      <div id="contract-content"
+           data-bind="renderContract: '{{ title }}'">
       </div>
     </script>
   </body>

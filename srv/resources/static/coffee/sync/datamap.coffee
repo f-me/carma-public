@@ -12,6 +12,15 @@ define [], ->
       console.error("datamap: can't parse date '#{v}' with '#{fmt}'")
       ""
 
+  iso8601date = "yyyy-MM-dd"
+
+  c2sDay = (fmt) -> (v) ->
+    date = Date.parseExact(v, fmt)
+    if date
+      date.toString(iso8601date)
+    else
+      console.error("datamap: can't parse date '#{v}' in ISO-8601")
+
   s2cDate = (fmt) -> (v) ->
     return null if _.isEmpty v
     d = undefined
@@ -20,6 +29,10 @@ define [], ->
     d = Date.parseExact(v, "yyyy-MM-dd HH:mm:ssz")
     return d.toString(fmt) if not _.isNull(d) && isFinite d
 
+  s2cDay = (fmt) -> (v) ->
+    return null if _.isEmpty v
+    new Date.parseExact(v, iso8601date).toString(fmt)
+
   s2cJson = (v) ->
     return null if _.isEmpty v
     JSON.parse(v)
@@ -27,16 +40,26 @@ define [], ->
   c2sDictSet = (vals) ->
     ids = _.map vals, (v) -> parseInt v
     # check type of keys, we have in dict, it may be Text or Int
-    if _.all ids, _.isNaN
-      _.uniq vals.sort(), true
+    res = if _.any ids, _.isNaN
+            _.uniq vals.sort(), true
+          else
+            _.uniq ids.sort((a, b) -> a - b), true
+    # Convert empty arrays to null (otherwise the server gets confused
+    # about types)
+    if _.isEmpty res
+      null
     else
-      _.uniq ids.sort((a, b) -> a - b), true
+      res
 
   c2sTypes =
     'dictionary-set': c2sDictSet
-    'dictionary-many': (v) -> c2sDictSet(v).join ','
+    'dictionary-many': (v) -> (c2sDictSet(v)?.join ',') || ''
     checkbox  : (v) -> if v then "1" else "0"
     Bool      : (v) -> v
+    Integer   : (v) -> parseInt v
+    Double    : (v) -> parseFloat v.replace ',', '.'
+    Day       : c2sDay("dd.MM.yyyy")
+    IdentList : (v) -> v
     dictionary: (v) -> if _.isNull v then '' else v
     date      : c2sDate("dd.MM.yyyy")
     datetime  : c2sDate("dd.MM.yyyy HH:mm")
@@ -50,6 +73,10 @@ define [], ->
     'dictionary-many': (v) -> v.split(',')
     checkbox  : (v) -> v == "1"
     Bool      : (v) -> v
+    Integer   : (v) -> v
+    Double    : (v) -> v
+    IdentList : (v) -> v
+    Day       : s2cDay("dd.MM.yyyy")
     dictionary: (v) -> v
     date      : s2cDate("dd.MM.yyyy")
     datetime  : s2cDate("dd.MM.yyyy HH:mm")

@@ -1,0 +1,14 @@
+ALTER TABLE partnertbl
+DROP COLUMN addrdejure,
+DROP COLUMN addrdefacto,
+DROP COLUMN workingtime,
+DROP COLUMN phone1,
+DROP COLUMN fax,
+DROP COLUMN closeticketphone,
+DROP COLUMN closeticketemail,
+DROP COLUMN serviceaddress,
+DROP COLUMN servicephone,
+DROP COLUMN serviceworking,
+DROP COLUMN salesaddress,
+DROP COLUMN salesphone,
+DROP COLUMN salesworking;
