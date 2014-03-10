@@ -46,6 +46,10 @@ require [ "domready"
 
     window.onerror = console.error
 
+    $(document).ajaxError (event, jqXHR, settings, error) ->
+      console.error "#{settings.type} #{settings.url} #{jqXHR.status}
+ (#{jqXHR.statusText})\n#{settings.data}\n#{jqXHR.responseText}"
+
   # this will be called on dom ready
   dom ->
     bugReport.setElement $('#send-bug-report')
