@@ -16,8 +16,6 @@ define [
   "screens/vin"
   "screens/report"
   "screens/contract"
-  "screens/editVin"
-  "screens/newVin"
   "screens/program"
   "screens/partnersSearch"
   "screens/servicesSearch"
@@ -41,8 +39,6 @@ define [
      , vin
      , report
      , contract
-     , editVin
-     , newVin
      , program
      , partnersSearch
      , servicesSearch
@@ -130,12 +126,6 @@ define [
         "template": "contract-screen-template"
         "views":
           "contract-form": contract
-      "newVin":
-        "template": "newVin-screen-template"
-      "editVin":
-        "template": "editVin-screen-template"
-        "views":
-          "vin-form": editVin
       "printSrv":
         "template": "printSrv-screen-template"
         "views":
@@ -180,8 +170,6 @@ define [
         "partner/:id"    : "loadPartner"
         "usermeta"       : "newUser"
         "usermeta/:id"   : "loadUser"
-        "editVin/:id"    : "editVin"
-        "newVin"         : "newVin"
         "supervisor"     : "supervisor"
         "supervisorOps"  : "supervisorOps"
         "rkc"            : "rkc"
@@ -220,8 +208,6 @@ define [
                               r.renderScreen("contract", contract, {"program": p, "id": null})
       contractEditEntry : (p,id) ->
                               r.renderScreen("contract", contract, {"program": p, "id": id})
-      editVin       : (id) -> r.renderScreen("editVin", editVin, {"id": id})
-      newVin        :      -> r.renderScreen("newVin", newVin, {"id": null})
       supervisor    :      -> r.renderScreen("supervisor", supervisor)
       supervisorOps :      -> r.renderScreen("supervisorOps", supervisorOps)
       rkc           :      -> r.renderScreen("rkc", rkc)

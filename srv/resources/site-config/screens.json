@@ -113,11 +113,6 @@
           "type"  : "li",
           "permissions": ["reportManager"]
         },
-        { "name"  : "newVin",
-          "label" : "Редактирование VIN",
-          "type"  : "li",
-          "permissions": ["vinAdmin"]
-        },
         { "name"  : "program",
           "label" : "Редактирование СТАРЫХ программ",
           "type"  : "li",
