@@ -164,7 +164,7 @@ searchCallsByPhone = do
   let phone = last $ B.split '/' uri
 
   rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT wazzup, callerName_name, city, program, make, model,"
+    $  "SELECT wazzup, callerName_name, city, program::text, make, model,"
     ++ "       callTaker, callType,"
     ++ "       extract (epoch from callDate at time zone 'UTC')::int8::text"
     ++ "  FROM calltbl"
