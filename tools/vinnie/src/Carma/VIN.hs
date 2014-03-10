@@ -160,6 +160,10 @@ isRequired :: C VinFormat -> FFA -> Bool
 isRequired vf (FFAcc _ _ _ r _ _) = Patch.get' vf r
 
 
+ffaFieldName :: FFA -> ContractFieldName
+ffaFieldName (FFAcc (FA c) _ _ _ _ _) = CN $ fieldName c
+
+
 -- | Binds internal names and format accessors.
 data FFMapper =
     FM { internal :: InternalName
@@ -238,14 +242,21 @@ process psid mapping = do
   -- Load CSV data into pristine and proto tables, which match CSV
   -- file schema
   let (columnTitles, internalNames) = unzip $ fst mapping
-  createCSVTables internalNames
+      contractNames = map (ffaFieldName . ffa) $ snd mapping
+  createCSVTables internalNames contractNames
   conn  <- asks connection
   input <- getOption infile
   copyPristineStart internalNames
   liftIO $ do
     BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
     putCopyEnd conn
-  pristineToProto
+
+  -- Load pristine data to proto table, which matches loadable subset
+  -- of Contract
+  let protoMapping :: [(InternalName, ContractFieldName)]
+      protoMapping =
+          zip (map internal $ snd mapping) contractNames
+  pristineToProto protoMapping
 
   installFunctions >> createQueueTable
 
@@ -256,7 +267,7 @@ process psid mapping = do
 
   -- By now all values in proto are either suitable for Contract or
   -- null. Queue table has only typed Contract fields.
-  uncurry transferQueue (unzip transferChunks)
+  protoToQueue transferChunks
 
   -- Set committer and subprogram. Note that if subprogram was not
   -- recognized in a file row, it will be set to the subprogram
@@ -323,67 +334,71 @@ pass = return ()
 processField :: (Int, Maybe Int)
              -- ^ Program & subprogram ids.
              -> FFMapper
-             -> (Import (), (Text, Text))
+             -> (Import (), (Text, ContractFieldName))
 processField (pid, sid) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
     case stag of
-      SRaw -> (pass, (sqlCast iname "text", fn))
+      SRaw -> (pass, (sqlCast cn "text"))
       SNumber ->
-          ( void $ protoUpdateWithFun iname
+          ( void $ protoUpdateWithFun cn
             "regexp_replace" [iname, "'\\D'", "''", "'g'"]
-          , (sqlCast iname "int", fn))
+          , (sqlCast cn "int"))
       SVIN ->
-          ( void $ protoCheckRegexp iname
+          ( void $ protoCheckRegexp iname cn
             "^[0-9a-hj-npr-z]{17}$"
-          , (sqlCast iname "text", fn))
+          , (sqlCast cn "text"))
       SEmail ->
-          ( void $ protoCheckRegexp iname
+          ( void $ protoCheckRegexp iname cn
             "^[\\w\\+\\.\\-]+@[\\w\\+\\.\\-]+\\.\\w+$"
-          , (sqlCast iname "text", fn))
+          , (sqlCast cn "text"))
       SPlate ->
-          ( void $ protoCheckRegexp iname $ fromString $
+          ( void $ protoCheckRegexp iname cn $ fromString $
             "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}" ++
             "[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$"
-          , (sqlCast iname "text", fn))
+          , (sqlCast cn "text"))
       SYear ->
-          ( void $ protoCheckRegexp iname $ fromString $
+          ( void $ protoCheckRegexp iname cn $ fromString $
             "^[12][09][0-9]{2}$"
-          , (sqlCast iname "int2", fn))
+          , (sqlCast cn "int2"))
       SPhone ->
-          ( void $ protoUpdateWithFun iname
+          ( void $ protoUpdateWithFun cn
             "'+'||regexp_replace" [iname, "'\\D'", "''", "'g'"]
-          , (sqlCast iname "text", fn))
+          , (sqlCast cn "text"))
       SName ->
           ( case cols of
-              Just l@(_:_) -> void $ protoUpdateWithFun iname "concat_ws"
+              Just l@(_:_) -> void $ protoUpdateWithFun cn "concat_ws"
                               ([joinSymbol, iname] ++ l)
               _            -> pass
-          , (sqlCast iname "text", fn))
+          , (sqlCast cn "text"))
       SDate ->
           -- Delete all malformed dates
-          ( void $ protoUpdateWithFun iname "pg_temp.dateordead" [iname]
-          , (sqlCast iname "date", fn))
+          ( void $ protoUpdateWithFun cn "pg_temp.dateordead" [cn']
+          , (sqlCast cn "date"))
       SDict ->
           ( -- Try to recognize references to dictionary elements
-            protoDictLookup iname (identModelName defAcc) >>
-            protoUpdateWithFun iname "pg_temp.numordead" [iname] >>
+            protoDictLookup iname cn (identModelName defAcc) >>
+            protoUpdateWithFun cn "pg_temp.numordead" [cn'] >>
             pass
-          , (sqlCast iname "int", fn))
+          , (sqlCast cn "int"))
       SSubprogram ->
           ( -- Try to recognize references to subprograms
-            protoSubprogramLookup pid sid iname >>
-            protoUpdateWithFun iname "pg_temp.numordead" [iname] >>
+            protoSubprogramLookup pid sid iname cn >>
+            protoUpdateWithFun cn "pg_temp.numordead" [cn'] >>
             pass
-          , (sqlCast iname "int", fn))
+          , (sqlCast cn "int"))
       SDealer ->
-          ( -- Try to recognize partner names/codes in all columns
+          ( -- Try to recognize partner names/codes from all columns
+            -- (latter ones are preferred)
+            protoPartnerCleanup allNames cn >>
             (forM_ allNames
              (\n -> do
-                protoPartnerLookup n
-                protoUpdateWithFun n "pg_temp.numordead" [n])) >>
-            -- Pick the first match
-            protoUpdateWithFun iname "coalesce" allNames >>
+                protoPartnerLookup n cn)) >>
+            -- Delete if no matches found
+            protoUpdateWithFun cn "pg_temp.numordead" [cn'] >>
             pass
-          , (sqlCast iname "int", fn))
+          , (sqlCast cn "int"))
       where
-        fn = fieldName c
+        cn :: ContractFieldName
+        cn = CN cn'
+        cn' :: Text
+        cn' = fieldName c
         allNames = [iname] ++ fromMaybe [] cols

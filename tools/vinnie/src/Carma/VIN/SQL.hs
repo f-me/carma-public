@@ -46,16 +46,23 @@ import           Carma.Model.VinFormat
 import           Carma.VIN.Base
 
 
--- | Internal field name for a CSV column. It is neither external
--- column title, nor Contract field name.
-type InternalName = T.Text
-
-
 -- | Text wrapper with a non-quoting 'ToField' instance.
 newtype PlainText = PT InternalName
 
 instance ToField PlainText where
     toField (PT i) = Plain $ BZ.fromText i
+
+
+-- | Internal field name for a CSV column. It is neither external
+-- column title, nor Contract field name.
+type InternalName = T.Text
+
+
+-- | Name of a field in Contract model.
+newtype ContractFieldName = CN T.Text
+
+instance ToField ContractFieldName where
+    toField (CN i) = toField (PT i)
 
 
 -- | Works almost like '(:.)' for 'ToField' instances. Start with `()`
@@ -113,13 +120,16 @@ kid :: InternalName
 kid = "id"
 
 
+tKid = PT kid
+
+
 -- | First argument of @concat_ws@, quoted.
 joinSymbol :: T.Text
 joinSymbol = "' '"
 
 
-sqlCast :: T.Text -> T.Text -> T.Text
-sqlCast val t = T.concat [val, "::", t]
+sqlCast :: ContractFieldName -> T.Text -> (T.Text, ContractFieldName)
+sqlCast cn@(CN n) t = (T.concat [n, "::", t], cn)
 
 
 sqlCommas :: [T.Text] -> T.Text
@@ -144,6 +154,10 @@ contractTable = PT $ tableName $
                 (modelInfo :: ModelInfo Contract)
 
 
+partnerTable = PT $ tableName $
+               (modelInfo :: ModelInfo Partner)
+
+
 -- | Loadable Contract field names.
 contractFields :: [Text]
 contractFields =
@@ -151,21 +165,23 @@ contractFields =
 
 
 -- | Create temporary pristine and proto tables for CSV data.
-createCSVTables :: [InternalName] -> Import ()
-createCSVTables names =
-    execute_ (mkProto "vinnie_pristine") >>
-    execute_ (mkProto "vinnie_proto") >>
+createCSVTables :: [InternalName]
+                -> [ContractFieldName]
+                -> Import ()
+createCSVTables inames cnames =
+    execute_ (mkProto "vinnie_pristine" inames) >>
+    execute_ (mkProto "vinnie_proto" $ map (\(CN t) -> t) cnames) >>
     return ()
     where
-      mkProto table = fromString $ concat
-                      [ "CREATE TEMPORARY TABLE "
-                      , table
-                      , " ("
-                      , intercalate "," $
-                        (map (\t -> (T.unpack t) ++ " text") names) ++
-                        [(T.unpack kid) ++ " serial"]
-                      , ");"
-                      ]
+      mkProto table names = fromString $ concat
+                            [ "CREATE TEMPORARY TABLE "
+                            , table
+                            , " ("
+                            , intercalate "," $
+                              (map (\n -> (T.unpack n) ++ " text") names) ++
+                              [(T.unpack kid) ++ " serial"]
+                            , ");"
+                            ]
 
 
 -- | Read CSV into pristine table.
@@ -192,116 +208,154 @@ copyReportStart inames =
 
 
 -- | Copy pristine table data to proto.
-pristineToProto :: Import Int64
-pristineToProto =
-   execute_
+pristineToProto :: [(InternalName, ContractFieldName)]
+                -- ^ Internal names of loadable fields and target
+                -- contract field names.
+                -> Import Int64
+pristineToProto names =
+   execute
    [sql|
-    INSERT INTO vinnie_proto
-    SELECT *
+    INSERT INTO vinnie_proto (?)
+    SELECT ?
     FROM vinnie_pristine;
-    |]
+    |] ( PT $ sqlCommas (kid:(map (\(_, CN t) -> t) names))
+       , PT $ sqlCommas (kid:(map fst names)))
 
 
-protoUpdate :: Query
-protoUpdate = [sql|UPDATE vinnie_proto SET ? = ?;|]
-
-
-protoUpdateWithFun :: InternalName
+protoUpdateWithFun :: ContractFieldName
                    -> Text
+                   -- ^ Function name.
                    -> [Text]
+                   -- ^ Function arguments, must refer only to columns
+                   -- of vinnie_pristine.
                    -> Import Int64
-protoUpdateWithFun iname fun args =
-    execute protoUpdate
-                ( PT iname
-                , PT $ T.concat [fun, "(", sqlCommas args, ")"])
+protoUpdateWithFun cname fun args =
+    execute
+    [sql|
+     UPDATE vinnie_proto SET ? = ?
+     FROM vinnie_pristine
+     WHERE vinnie_proto.? = vinnie_pristine.?;
+     |] ( cname
+        , PT $ T.concat [fun, "(", sqlCommas args, ")"]
+        , tKid
+        , tKid
+        )
 
 
 -- | Clear field values which do not match a regular expression (case
 -- insensitive).
-protoCheckRegexp :: Text
-                 -- ^ Field name.
+protoCheckRegexp :: InternalName
+                 -> ContractFieldName
                  -> Text
                  -- ^ Regular expression.
                  -> Import Int64
-protoCheckRegexp fname regexp =
+protoCheckRegexp iname cname regexp =
     execute
     [sql|
-     UPDATE vinnie_proto SET ? = trim(both ' ' from ?);
+     UPDATE vinnie_proto SET ? = trim(both ' ' from ?)
+     FROM vinnie_pristine
+     WHERE vinnie_proto.? = vinnie_pristine.?;
      UPDATE vinnie_proto SET ? = null WHERE ? !~* ?;
-     |] ( PT fname
-        , PT fname
-        , PT fname
-        , PT fname
+     |] ( cname
+        , PT iname
+        , tKid
+        , tKid
+        , cname
+        , cname
         , regexp)
 
 
 -- | Replace dictionary label references with dictionary element ids.
 -- Clear bad references.
 protoDictLookup :: InternalName
-                -- ^ Field name.
+                -> ContractFieldName
                 -> Text
                 -- ^ Dictionary table name.
                 -> Import Int64
-protoDictLookup iname dictTableName =
+protoDictLookup iname cname dictTableName =
     execute
     [sql|
-     UPDATE vinnie_proto SET ?=null WHERE lower(trim(both ' ' from ?)) NOT IN
+     UPDATE vinnie_proto SET ?=null
+     FROM vinnie_pristine s
+     WHERE lower(trim(both ' ' from s.?)) NOT IN
      (SELECT DISTINCT
      -- TODO label/synonyms field names
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms))))
-      FROM "?");
+      FROM "?")
+     AND vinnie_proto.? = s.?;
 
      WITH dict AS
      (SELECT DISTINCT ON (label) id AS did,
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms)))) AS label
       FROM "?")
      UPDATE vinnie_proto SET ? = dict.did
-     FROM dict WHERE length(lower(trim(both ' ' from ?))) > 0 AND
-                     dict.label=lower(trim(both ' ' from ?));
-     |] ( PT iname
-        , PT iname
-        , PT dictTableName
-        , PT dictTableName
-        , PT iname
-        , PT iname
-        , PT iname)
+     FROM dict, vinnie_pristine s
+     WHERE length(lower(trim(both ' ' from ?))) > 0
+     AND dict.label=lower(trim(both ' ' from ?))
+     AND vinnie_proto.? = s.?;
+     |] (()
+         :* cname
+         :* PT iname
+         :* PT dictTableName
+         :* tKid :* tKid
+
+         :* PT dictTableName
+         :* cname
+         :* PT iname
+         :* PT iname
+         :* tKid :* tKid)
 
 
--- | Replace partner label/code references with partner ids. Clear bad
--- references.
-protoPartnerLookup :: InternalName
-                   -> Import Int64
-protoPartnerLookup iname =
+-- | Clear bad partner references.
+protoPartnerCleanup :: [InternalName]
+                    -> ContractFieldName
+                    -> Import Int64
+protoPartnerCleanup inames cname =
     execute
     [sql|
      CREATE OR REPLACE TEMPORARY VIEW partner_syn_cache AS
      SELECT DISTINCT
-      -- TODO name/code/synonyms field names
-      lower(trim(both ' ' from (unnest(ARRAY[name, code] || synonyms)))) as label
-      FROM "?";
+     -- TODO name/code/synonyms field names
+     lower(trim(both ' ' from (unnest(ARRAY[name, code] || synonyms)))) as label
+     FROM "?";
 
-     UPDATE vinnie_proto SET ?=null WHERE NOT EXISTS
-     (SELECT 1 FROM vinnie_proto, partner_syn_cache
-      WHERE lower(trim(both ' ' from ?)) = partner_syn_cache.label);
+     UPDATE vinnie_proto SET ?=null
+     FROM vinnie_pristine s
+     WHERE NOT EXISTS
+     (SELECT 1 FROM partner_syn_cache,
+              (SELECT lower(trim(both ' ' from unnest(ARRAY[?]))) as label) labs
+      WHERE labs.label = partner_syn_cache.label)
+     AND vinnie_proto.? = s.?;
+     |] (()
+         :* partnerTable
+         :* cname
+         :* (PT $ sqlCommas inames)
+         :* tKid :* tKid)
 
+
+-- | Replace partner label/code references with partner ids.
+protoPartnerLookup :: InternalName
+                   -> ContractFieldName
+                   -> Import Int64
+protoPartnerLookup iname cname =
+    execute
+    [sql|
      WITH dict AS
      (SELECT DISTINCT ON (label) id AS did,
       lower(trim(both ' ' from (unnest(ARRAY[name, code] || synonyms))))
        AS label
       FROM "?")
      UPDATE vinnie_proto SET ? = dict.did
-     FROM dict WHERE length(lower(trim(both ' ' from ?))) > 0 AND
-                     dict.label=lower(trim(both ' ' from ?));
-     |] ( partnerTable
-        , PT iname
-        , PT iname
-        , partnerTable
-        , PT iname
-        , PT iname
-        , PT iname)
-        where
-          -- TODO partner{Name,Code}
-          partnerTable = PT $ tableName $ (modelInfo :: ModelInfo Partner)
+     FROM dict, vinnie_pristine s
+     WHERE length(lower(trim(both ' ' from ?))) > 0
+     AND dict.label=lower(trim(both ' ' from ?))
+     AND vinnie_proto.? = s.?;
+     |] (()
+         :* partnerTable
+         :* cname
+         :* PT iname
+         :* PT iname
+         :* tKid :* tKid)
 
 
 -- | Replace subprogram label references with subprogram ids. Only
@@ -312,14 +366,18 @@ protoSubprogramLookup :: Int
                       -> Maybe Int
                       -- ^ Default subprogram id.
                       -> InternalName
+                      -> ContractFieldName
                       -> Import Int64
-protoSubprogramLookup pid sid iname =
+protoSubprogramLookup pid sid iname cname =
     execute
     [sql|
-     UPDATE vinnie_proto SET ?=? WHERE lower(trim(both ' ' from ?)) NOT IN
+     UPDATE vinnie_proto SET ?=?
+     FROM vinnie_pristine s
+     WHERE lower(trim(both ' ' from ?)) NOT IN
      (SELECT DISTINCT
       lower(trim(both ' ' from (unnest(ARRAY[s.label] || synonyms))))
-      FROM "?" s, "?" p WHERE s.parent = p.id AND p.id = ?);
+      FROM "?" sub, "?" p WHERE sub.parent = p.id AND p.id = ?)
+     AND vinnie_proto.? = s.?;
 
      -- TODO label/parent fields
      WITH dict AS
@@ -327,21 +385,26 @@ protoSubprogramLookup pid sid iname =
       lower(trim(both ' ' from (unnest(ARRAY[s.label] || synonyms)))) AS label
       FROM "?" s, "?" p WHERE s.parent = p.id AND p.id = ?)
      UPDATE vinnie_proto SET ? = dict.did
-     FROM dict WHERE length(lower(trim(both ' ' from ?))) > 0 AND
-                     dict.label=lower(trim(both ' ' from ?));
+     FROM dict, vinnie_pristine s
+     WHERE length(lower(trim(both ' ' from ?))) > 0
+     AND dict.label=lower(trim(both ' ' from ?))
+     AND vinnie_proto.? = s.?;
      |] (()
-         :* PT iname
+         :* cname
          :* sid
          :* PT iname
          :* subProgramTable
          :* programTable
          :* pid
+         :* tKid :* tKid
+
          :* subProgramTable
          :* programTable
          :* pid
+         :* cname
          :* PT iname
          :* PT iname
-         :* PT iname)
+         :* tKid :* tKid)
         where
           programTable = PT $ tableName $ (modelInfo :: ModelInfo Program)
           subProgramTable = PT $ tableName $ (modelInfo :: ModelInfo SubProgram)
@@ -414,19 +477,19 @@ setSpecialDefaults cid sid =
 
 -- | Transfer from proto table to queue table, casting text values
 -- from proto table to actual types used by Contract model.
-transferQueue :: [Text]
-              -- ^ Internal column names of proto table, with type
-              -- casting specifiers (@field17::int@).
-              -> [Text]
-              -- ^ Loadable Contract columns (@mileage@).
-              -> Import Int64
-transferQueue inames fnames =
-    execute [sql|
+protoToQueue :: [(Text, ContractFieldName)]
+             -- ^ Internal column names of proto table with type
+             -- casting specifiers (@mileage::int@), mapped to
+             -- Loadable Contract columns (@mileage@).
+             -> Import Int64
+protoToQueue names =
+    execute
+    [sql|
      INSERT INTO vinnie_queue (?)
      SELECT ?
      FROM vinnie_proto;
-     |] ( PT $ sqlCommas (kid:fnames)
-        , PT $ sqlCommas (kid:inames))
+     |] ( PT $ sqlCommas (kid:(map (\(_, CN t) -> t) names))
+        , PT $ sqlCommas (kid:(map fst names)))
 
 
 -- | Set default values for a column in queue table. Parameters: field
