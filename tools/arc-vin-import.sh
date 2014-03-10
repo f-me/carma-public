@@ -31,7 +31,7 @@ PG="localhost,5432,carma_db_sync,pass,carma"
 
 DIR="/Production/Vehicle_info/Common"
 
-VINNIE="${HOME}/projects/carma/tools/vinnie/.cabal-sandbox/bin/vinnie"
+VINNIE="${HOME}/carma/tools/vinnie/cabal-dev/bin/vinnie"
 TMPDIR=$(mktemp -d /tmp/arcXXXXXX)
 
 TMP="${TMPDIR}/${NAME}"
