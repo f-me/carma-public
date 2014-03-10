@@ -26,9 +26,13 @@ define ["utils"], ->
             if (v)
               @updateFields(f.name)
             else
-              @removeField f.name
+              unless @isDefault f.name
+                @removeField f.name
             # rewind to the first page of search results
             @searchKVM._meta.pager.offset 0
+
+    isDefault: (f) ->
+      _.contains _.pluck(@defaults, 'name'), f
 
     updateFields: (f) ->
       switch @sfieldsh[f].meta.search.matchType
