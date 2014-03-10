@@ -319,18 +319,25 @@ protoPartnerCleanup inames cname =
      lower(trim(both ' ' from (unnest(ARRAY[name, code] || synonyms)))) as label
      FROM "?";
 
+     CREATE OR REPLACE TEMPORARY VIEW partner_labels AS
+     SELECT
+     lower(trim(both ' ' from unnest(ARRAY[?]))) as label,
+     ? as id
+     FROM vinnie_pristine;
+
      UPDATE vinnie_proto SET ?=null
      FROM vinnie_pristine s
      WHERE NOT EXISTS
-     (SELECT 1 FROM partner_syn_cache,
-              (SELECT lower(trim(both ' ' from unnest(ARRAY[?]))) as label) labs
-      WHERE labs.label = partner_syn_cache.label)
+     (SELECT 1 FROM partner_syn_cache, partner_labels
+      WHERE vinnie_proto.? = partner_labels.id
+      AND partner_labels.label = partner_syn_cache.label)
      AND vinnie_proto.? = s.?;
      |] (()
          :* partnerTable
-         :* cname
          :* (PT $ sqlCommas inames)
-         :* tKid :* tKid)
+         :* tKid
+         :* cname
+         :* tKid :* tKid :* tKid)
 
 
 -- | Replace partner label/code references with partner ids.
@@ -342,6 +349,7 @@ protoPartnerLookup iname cname =
     [sql|
      WITH dict AS
      (SELECT DISTINCT ON (label) id AS did,
+      -- TODO name/code/synonyms field names
       lower(trim(both ' ' from (unnest(ARRAY[name, code] || synonyms))))
        AS label
       FROM "?")
