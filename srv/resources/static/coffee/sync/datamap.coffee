@@ -40,10 +40,11 @@ define [], ->
   c2sDictSet = (vals) ->
     ids = _.map vals, (v) -> parseInt v
     # check type of keys, we have in dict, it may be Text or Int
+    # TODO: move uniq check to hooks when typed dictionaries appears
     res = if _.any ids, _.isNaN
-            _.uniq vals.sort(), true
+            _.uniq vals
           else
-            _.uniq ids.sort((a, b) -> a - b), true
+            _.uniq ids
     # Convert empty arrays to null (otherwise the server gets confused
     # about types)
     if _.isEmpty res
