@@ -161,7 +161,7 @@ isRequired vf (FFAcc _ _ _ r _ _) = Patch.get' vf r
 
 
 ffaFieldName :: FFA -> ContractFieldName
-ffaFieldName (FFAcc (FA c) _ _ _ _ _) = CN $ fieldName c
+ffaFieldName (FFAcc (FA c) _ _ _ _ _) = cfn c
 
 
 -- | Binds internal names and format accessors.
@@ -269,14 +269,6 @@ process psid mapping = do
   -- null. Queue table has only typed Contract fields.
   protoToQueue transferChunks
 
-  -- Set committer and subprogram. Note that if subprogram was not
-  -- recognized in a file row, it will be set to the subprogram
-  -- specified in import options.
-  --
-  -- TODO Probably the behavior should be different if subprogram is
-  -- loadable from file and required.
-  setSpecialDefaults uid (snd psid)
-
   forM_ (vinFormatAccessors) $
         (\(FFAcc (FA c) _ loadAcc reqAcc defAcc _) ->
              let
@@ -295,6 +287,14 @@ process psid mapping = do
                       void $ execute markEmptyRequired (EmptyRequired fd, PT fn)
                  -- Set default values.
                  void $ execute setQueueDefaults (PT fn, dv, PT fn))
+
+  -- Set committer and subprogram. If the subprogram is loadable and
+  -- was not recognized in a file row, it will be set to the
+  -- subprogram specified in import options. However, if it is
+  -- required, the corresponding file row has already been marked as
+  -- erroneous on the previous step.
+  setSpecialDefaults uid (snd psid)
+
   markMissingIdentifiers
 
   -- Finally, write new contracts to live table
@@ -333,7 +333,7 @@ processField :: (Int, Maybe Int)
              -- ^ Program & subprogram ids.
              -> FFMapper
              -> (Import (), (Text, ContractFieldName))
-processField (pid, sid) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
+processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
     case stag of
       SRaw -> (pass, (sqlCast cn "text"))
       SNumber ->
@@ -379,7 +379,7 @@ processField (pid, sid) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
           , (sqlCast cn "int"))
       SSubprogram ->
           ( -- Try to recognize references to subprograms
-            protoSubprogramLookup pid sid iname cn >>
+            protoSubprogramLookup pid iname cn >>
             protoUpdateWithFun cn "pg_temp.numordead" [cn'] >>
             pass
           , (sqlCast cn "int"))

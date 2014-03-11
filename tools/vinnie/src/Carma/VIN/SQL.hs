@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -37,7 +38,8 @@ import           Database.PostgreSQL.Simple.ToField
 import           Database.PostgreSQL.Simple.ToRow
 
 import           Data.Model
-import           Carma.Model.Contract
+import           Data.Model.Types
+import           Carma.Model.Contract as C
 import           Carma.Model.Partner
 import           Carma.Model.Program
 import           Carma.Model.SubProgram
@@ -120,7 +122,22 @@ kid :: InternalName
 kid = "id"
 
 
+tKid :: PlainText
 tKid = PT kid
+
+
+cfn :: FieldI t n d => (Contract -> F t n d) -> ContractFieldName
+cfn f= CN $ fieldName f
+
+
+contractTable :: PlainText
+contractTable = PT $ tableName $
+                (modelInfo :: ModelInfo Contract)
+
+
+partnerTable :: PlainText
+partnerTable = PT $ tableName $
+               (modelInfo :: ModelInfo Partner)
 
 
 -- | First argument of @concat_ws@, quoted.
@@ -148,14 +165,6 @@ getProgram sid =
         , PT $ tableName $ (modelInfo :: ModelInfo SubProgram)
         , sid)
 
-
-contractTable :: PlainText
-contractTable = PT $ tableName $
-                (modelInfo :: ModelInfo Contract)
-
-
-partnerTable = PT $ tableName $
-               (modelInfo :: ModelInfo Partner)
 
 
 -- | Loadable Contract field names.
@@ -367,31 +376,29 @@ protoPartnerLookup iname cname =
 
 
 -- | Replace subprogram label references with subprogram ids. Only
--- children of a provided program are selected. If no reference found,
--- default to a provided subprogram .
+-- children of the provided program are selected. If no reference
+-- found, set to null.
 protoSubprogramLookup :: Int
                       -- ^ Program id.
-                      -> Maybe Int
-                      -- ^ Default subprogram id.
                       -> InternalName
                       -> ContractFieldName
                       -> Import Int64
-protoSubprogramLookup pid sid iname cname =
+protoSubprogramLookup pid iname cname =
     execute
     [sql|
-     UPDATE vinnie_proto SET ?=?
+     UPDATE vinnie_proto SET ?=null
      FROM vinnie_pristine s
      WHERE lower(trim(both ' ' from ?)) NOT IN
      (SELECT DISTINCT
-      lower(trim(both ' ' from (unnest(ARRAY[s.label] || synonyms))))
+      lower(trim(both ' ' from (unnest(ARRAY[sub.label] || synonyms))))
       FROM "?" sub, "?" p WHERE sub.parent = p.id AND p.id = ?)
      AND vinnie_proto.? = s.?;
 
      -- TODO label/parent fields
      WITH dict AS
-     (SELECT DISTINCT s.id AS did,
-      lower(trim(both ' ' from (unnest(ARRAY[s.label] || synonyms)))) AS label
-      FROM "?" s, "?" p WHERE s.parent = p.id AND p.id = ?)
+     (SELECT DISTINCT sub.id AS did,
+      lower(trim(both ' ' from (unnest(ARRAY[sub.label] || synonyms)))) AS label
+      FROM "?" sub, "?" p WHERE sub.parent = p.id AND p.id = ?)
      UPDATE vinnie_proto SET ? = dict.did
      FROM dict, vinnie_pristine s
      WHERE length(lower(trim(both ' ' from ?))) > 0
@@ -399,7 +406,6 @@ protoSubprogramLookup pid sid iname cname =
      AND vinnie_proto.? = s.?;
      |] (()
          :* cname
-         :* sid
          :* PT iname
          :* subProgramTable
          :* programTable
@@ -477,10 +483,10 @@ setSpecialDefaults :: Int -> Maybe Int -> Import Int64
 setSpecialDefaults cid sid =
     execute
     [sql|
-     -- TODO committer name
-     UPDATE vinnie_queue SET committer = ?;
-     UPDATE vinnie_queue SET subprogram = ? WHERE subprogram IS NULL;
-     |] (cid, sid)
+     UPDATE vinnie_queue SET ? = ?;
+     UPDATE vinnie_queue SET ? = ? WHERE ? IS NULL;
+     |] (cfn C.committer, cid,
+         cfn C.subprogram, sid, cfn C.subprogram)
 
 
 -- | Transfer from proto table to queue table, casting text values
