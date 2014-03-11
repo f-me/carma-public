@@ -123,7 +123,7 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
            (extract (epoch from a.opentime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.closetime at time zone 'UTC')::int8)::text,
            a.result, a.priority, a.description, a.comment,
-           c.city, c.program,
+           c.city, c.program::text,
            (extract (epoch from
              coalesce(s.times_expectedServiceStart, a.duetime)
               at time zone 'UTC')::int8)::text
@@ -389,7 +389,7 @@ getLatestCases = do
     SELECT
       id::text, contact_name,
       extract (epoch from callDate at time zone 'UTC')::int8::text,
-      contact_phone1, car_plateNum, car_vin, program, comment
+      contact_phone1, car_plateNum, car_vin, program::text, comment
     FROM casetbl
     ORDER BY callDate DESC
     LIMIT 120
@@ -407,7 +407,7 @@ searchCases = do
     SELECT
       id::text, contact_name,
       extract (epoch from callDate at time zone 'UTC')::int8::text,
-      contact_phone1, car_plateNum, car_vin, program, comment
+      contact_phone1, car_plateNum, car_vin, program::text, comment
     FROM CaseSearch(?)
     ORDER BY callDate DESC
     LIMIT 100
