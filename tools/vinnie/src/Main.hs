@@ -40,7 +40,8 @@ main = do
       clArgs <- cmdArgs sample
       res <- doImport clArgs
       case res of
-        Left e            -> print e
-        Right (good, bad) -> do
+        Right (ImportResult (total, good, bad)) -> do
+            putStrLn $ concat [show total, " total"]
             putStrLn $ concat [show good, " loaded"]
             putStrLn $ concat [show bad,  " errors"]
+        Left e -> print e

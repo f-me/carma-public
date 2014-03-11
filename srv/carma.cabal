@@ -110,7 +110,7 @@ Executable carma
     transformers                >= 0.2 && < 0.4,
     unordered-containers,
     vector                      == 0.10.*,
-    vinnie                      == 0.1.*,
+    vinnie                      == 0.2.*,
     weather-api                 >= 0.4.3,
     xlsx                        >= 0.0.2.1 && < 0.1,
     xmlhtml                     == 0.2.*,

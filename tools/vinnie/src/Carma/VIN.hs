@@ -1,3 +1,8 @@
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
 {-|
 
 Main VIN import actions.
@@ -6,19 +11,17 @@ TODO Give an outline of how it works (pristine, proto, queue tables).
 
 -}
 
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Carma.VIN
     ( doImport
     , Options(..)
+    , ImportResult(..)
     , ImportError(..)
     )
 
 where
 
 import           Control.Applicative
+import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Fix
 import           Control.Monad.IO.Class
@@ -35,13 +38,14 @@ import           Data.Conduit.Binary hiding (mapM_)
 import qualified Data.Conduit.List as CL
 import qualified Data.CSV.Conduit as CSV
 
-import           Data.Int
 import           Data.List
 import           Data.Maybe
 import qualified Data.Map as Map
 
 import           Data.String (fromString)
-import           Data.Text (Text, toCaseFold)
+import           Data.Text (Text, toCaseFold, snoc)
+import           Data.Text.Encoding
+import qualified Data.Text.ICU.Convert as ICU
 
 import           Database.PostgreSQL.Simple (Only(..))
 import           Database.PostgreSQL.Simple.Copy
@@ -57,10 +61,7 @@ import           Carma.VIN.SQL
 
 
 -- | Perform VIN file import, write report.
---
--- Return how many new rows were loaded and how many erroneous rows
--- occured.
-doImport :: Options -> IO (Either ImportError (Int64, Int64))
+doImport :: Options -> IO (Either ImportError ImportResult)
 doImport opts = runImport vinImport opts
 
 
@@ -75,7 +76,7 @@ throwError err = lift $ E.throwError err
 -- | Main VIN file import action.
 --
 -- TODO Track import state.
-vinImport :: Import (Int64, Int64)
+vinImport :: Import ImportResult
 vinImport = do
   vf <- asks vinFormat
   (pid, sid) <- (,) <$> (getOption program) <*> (getOption subprogram)
@@ -93,10 +94,7 @@ vinImport = do
               _        -> throwError NoTarget
 
   -- Read head row to find out original column order
-  hr <- liftIO $ (runResourceT $
-        sourceIOHandle (skipBomInputHandle input) $=
-        CSV.intoCSV csvSettings $$
-        CL.head :: IO (Maybe (CSV.Row Text)))
+  (hr, enc) <- readHeaderAndEncoding input
 
   case hr of
     Nothing -> throwError NoHeader
@@ -109,7 +107,7 @@ vinImport = do
         when (not $ (isJust sid') ||
               (hasSubprogram vf $ map ffa $ snd mapping)) $
              throwError NoTarget
-        process (pid', sid') mapping
+        process (pid', sid') enc mapping
 
 
 type FFA = FormatFieldAccessor VinFormat
@@ -127,18 +125,36 @@ bom :: B8.ByteString
 bom = B8.pack ['\xef', '\xbb', '\xbf']
 
 
--- | Provide a read-only handle to a file, skipping first 3 bytes if
--- UTF-8 BOM is present (otherwise, read from the beginning).
-skipBomInputHandle :: FilePath -> IO Handle
-skipBomInputHandle fileName = do
-  h <- openFile fileName ReadMode
-  eof <- hIsEOF h
-  when (not eof) $ do
-    hSetEncoding h char8
-    c <- hLookAhead h
-    when (c == '\xef') $ hSeek h AbsoluteSeek 3
-    hSetEncoding h utf8
-  return h
+-- | Skip first 3 bytes if a bytestring starts with UTF-8 BOM
+-- (otherwise, read from the beginning).
+skipBom :: B8.ByteString -> B8.ByteString
+skipBom bs | bom `B8.isPrefixOf` bs = B8.drop (B8.length bom) bs
+           | otherwise              = bs
+
+
+-- | Read CSV file header header, guess file encoding for Postgres
+-- COPY. If not enough lines in the file, throw 'ImportError'.
+-- Encoding recognition uses first two lines of the file.
+readHeaderAndEncoding :: FilePath -> Import (Maybe (CSV.Row Text), String)
+readHeaderAndEncoding fileName = do
+  r <- liftIO $
+       openFile fileName ReadMode >>=
+       \h -> try ((,) <$> B8.hGetLine h <*> B8.hGetLine h)
+  case r of
+    Right (l1, l2) ->
+        do
+          (topText, enc) <-
+              case (decodeUtf8' l1, decodeUtf8' l2) of
+                (Right _, Right _) ->
+                    return (decodeUtf8 $ skipBom l1, "UTF8")
+                _ -> do
+                  conv <- liftIO $ ICU.open "CP1251" Nothing
+                  return (ICU.toUnicode conv l1, "WIN1251")
+          header <- runResourceT $
+                yield (topText `snoc` '\n') $=
+                CSV.intoCSV csvSettings $$ CL.head
+          return (header, enc)
+    Left e -> throwError $ NoData e
 
 
 -- | Get loadable fields of a format.
@@ -154,10 +170,6 @@ hasSubprogram vf ffas =
          (FFAcc _ SSubprogram _ _ _ _) -> True
          _                             -> False) $
     loadable vf ffas
-
-
-isRequired :: C VinFormat -> FFA -> Bool
-isRequired vf (FFAcc _ _ _ r _ _) = Patch.get' vf r
 
 
 ffaFieldName :: FFA -> ContractFieldName
@@ -232,10 +244,12 @@ processTitles vf csvHeader =
 -- | Perform VIN file import using the provided mapping.
 process :: (Int, Maybe Int)
         -- ^ Program & subprogram ids.
+        -> String
+        -- ^ Input file encoding name.
         -> ([(ColumnTitle, InternalName)], [FFMapper])
         -- ^ Total column mapping and loadable fields mapping.
-        -> Import (Int64, Int64)
-process psid mapping = do
+        -> Import ImportResult
+process psid enc mapping = do
   vf   <- asks vinFormat
   uid  <- getOption committer
 
@@ -246,10 +260,14 @@ process psid mapping = do
   createCSVTables internalNames contractNames
   conn  <- asks connection
   input <- getOption infile
-  copyPristineStart internalNames
-  liftIO $ do
-    BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
-    putCopyEnd conn
+
+  copyPristineStart enc internalNames
+  res <- liftIO $ try $ do
+           BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
+           putCopyEnd conn
+  total <- case res of
+             Right r                 -> return r
+             Left (_ :: IOException) -> throwError LoadingFailed
 
   -- Load pristine data to proto table, which matches loadable subset
   -- of Contract
@@ -320,7 +338,7 @@ process psid mapping = do
                          CopyOutRow s ->
                              BS.appendFile output s >> next
                          CopyOutDone n -> return n
-  return (loaded, errors)
+  return $ ImportResult (total, loaded, errors)
 
 
 pass :: Monad m => m ()

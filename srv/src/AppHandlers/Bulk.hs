@@ -109,7 +109,7 @@ vinImport = scope "vin" $ scope "upload" $ do
 
         removeFile inPath
         case res of
-          Right (good, bad) ->
+          Right (ImportResult (total, good, bad)) ->
               do
                 if bad == 0
                 then removeFile outPath >>
@@ -119,6 +119,7 @@ vinImport = scope "vin" $ scope "upload" $ do
                   stats :: Map String Int64
                   stats =  Map.fromList [ ("good", good)
                                         , ("bad", bad)
+                                        , ("total", total)
                                         ]
           Left e ->
               do

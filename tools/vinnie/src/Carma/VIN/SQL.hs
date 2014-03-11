@@ -194,13 +194,13 @@ createCSVTables inames cnames =
 
 
 -- | Read CSV into pristine table.
-copyPristineStart :: [InternalName] -> Import ()
-copyPristineStart inames =
+copyPristineStart :: String -> [InternalName] -> Import ()
+copyPristineStart enc inames =
   copy
   [sql|
    COPY vinnie_pristine (?)
-   FROM STDIN (FORMAT CSV, HEADER 1, DELIMITER ';');
-   |] (Only $ PT $ sqlCommas inames)
+   FROM STDIN (FORMAT CSV, HEADER 1, DELIMITER ';', ENCODING ?);
+   |] (PT $ sqlCommas inames, enc)
 
 
 -- | Initiate COPY FROM for report.
