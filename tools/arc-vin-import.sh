@@ -18,26 +18,31 @@ then
     exit 1
 fi
 
+# ARC VinFormat id
 FORMAT="1000"
+# Contract commiter (PSA user)
 COMMITTER="387"
 
 NAME="$1"
 SUBPROGRAM="$2"
 
+# ARC host data
 USER="ramc"
 HOST="arcftp.arceurope.com"
 
+# CaRMa Postgres connection info
 PG="localhost,5432,carma_db_sync,pass,carma"
 
-DIR="/Production/Vehicle_info/Common"
+DIR="Production/Vehicle_info/Common"
 
+# Absolute path to vinnie executable
 VINNIE="${HOME}/carma/tools/vinnie/cabal-dev/bin/vinnie"
-TMPDIR=$(mktemp -d /tmp/arcXXXXXX)
 
+TMPDIR=$(mktemp -d /tmp/arcXXXXXX)
 TMP="${TMPDIR}/${NAME}"
 
 # Download VIN database
-curl -k --netrc "sftp://${USER}@${HOST}${DIR}/${NAME}" > ${TMP}
+echo "get ${DIR}/${NAME} ${TMP}" | sshpass -p $(grep ${HOST} ~/.netrc | cut -d' ' -f6) sftp ${USER}@${HOST}
 
 # Unpack single file from the archive
 NAME="${TMPDIR}/$(unzip -Z -1 ${TMP})"
