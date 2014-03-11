@@ -285,18 +285,16 @@ process psid mapping = do
                  -- field name
                  fd = fieldDesc c
                  dv = Patch.get' vf defAcc
-             in do
-               -- Set default values.
-               --
-               -- TODO Loadable required field is overwritten with its
-               -- default value (when there's any) if no well-formed
-               -- value is supplied in the file. Probably this is not
-               -- expected.
-               execute setQueueDefaults (PT fn, dv, PT fn)
-               -- Write errors for empty required loadable columns.
-               when (Patch.get' vf reqAcc && Patch.get' vf loadAcc) $
-                    execute markEmptyRequired (EmptyRequired fd, PT fn) >>
-                    pass)
+             in
+               when (Patch.get' vf loadAcc) $ do
+                 -- Write errors for empty required loadable
+                 -- columns. Loadable required field with a
+                 -- default value (when there's any) is marked
+                 -- as missing when empty.
+                 when (Patch.get' vf reqAcc) $
+                      void $ execute markEmptyRequired (EmptyRequired fd, PT fn)
+                 -- Set default values.
+                 void $ execute setQueueDefaults (PT fn, dv, PT fn))
   markMissingIdentifiers
 
   -- Finally, write new contracts to live table
