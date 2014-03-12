@@ -65,11 +65,12 @@ ns = strictType (return NotStrict)
 --
 -- Minimal definition includes 'nameFormat' and 'descFormat'.
 class Typeable (ParamType a) => FormatFieldParameter a where
-    -- | Type of parameter value (if a parameter is a checkbox, this
-    -- is 'Bool' (which is also the default instance for this family).
+    -- | Type of parameter value (for example, if the parameter is a
+    -- checkbox, this is 'Bool' (which is also the default instance
+    -- for this family).
     type ParamType a
-    -- | Reified type of parameter value. This exists because it's not
-    -- possible to statically encode value type to parameter
+    -- | Reified type of the parameter value. This exists because it's
+    -- not possible to statically encode value type to parameter
     -- annotation. This matches 'ParamType' by default, though.
     paramTypeRep :: a -> ContractField -> TypeRep
 

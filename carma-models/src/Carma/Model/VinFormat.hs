@@ -43,6 +43,9 @@ import Carma.Model.Transmission (Transmission)
 import Carma.Model.Engine       (Engine)
 
 
+-- Produce 'VinFormat' model from 'Contract'. All mentioned Contract
+-- fields must be nullable (any field may be marked as optional by
+-- users).
 mkVinFormat  [ FF SName   Contract.name
              , FF SEmail  Contract.email
              , FF SVIN    Contract.vin
