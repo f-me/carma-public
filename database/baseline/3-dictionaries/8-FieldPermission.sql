@@ -177,6 +177,31 @@ call	call	coords	t	t
 call	call	program	t	t
 call	call	subprogram	t	t
 call	call	wazzup	t	t
+searchCall	call	address	t	f
+searchCall	call	callDate	t	f
+searchCall	call	callerName_contactOwner	t	f
+searchCall	call	callerName_email	t	f
+searchCall	call	callerName_name	t	f
+searchCall	call	callerName_ownerEmail	t	f
+searchCall	call	callerName_ownerName	t	f
+searchCall	call	callerName_ownerPhone1	t	f
+searchCall	call	callerName_ownerPhone2	t	f
+searchCall	call	callerName_ownerPhone3	t	f
+searchCall	call	callerName_ownerPhone4	t	f
+searchCall	call	callerName_phone1	t	f
+searchCall	call	callerName_phone2	t	f
+searchCall	call	callerName_phone3	t	f
+searchCall	call	callerName_phone4	t	f
+searchCall	call	callerType	t	f
+searchCall	call	callTaker	t	f
+searchCall	call	callType	t	f
+searchCall	call	carMake	t	f
+searchCall	call	carModel	t	f
+searchCall	call	city	t	f
+searchCall	call	coords	t	f
+searchCall	call	program	t	f
+searchCall	call	subprogram	t	f
+searchCall	call	wazzup	t	f
 lovViewer	CarMake	label	t	f
 lovAdmin	CarMake	label	t	t
 lovViewer	CarMake	value	t	f
@@ -385,6 +410,39 @@ core	Contract	committer	t	f
 core	Contract	dixi	t	f
 core	Contract	isActive	t	f
 core	Contract	ctime	t	f
+searchContract	Contract	id	t	f
+searchContract	Contract	name	t	f
+searchContract	Contract	email	t	f
+searchContract	Contract	vin	t	f
+searchContract	Contract	cardNumber	t	f
+searchContract	Contract	codeWord	t	f
+searchContract	Contract	phone	t	f
+searchContract	Contract	plateNum	t	f
+searchContract	Contract	validSince	t	f
+searchContract	Contract	validUntil	t	f
+searchContract	Contract	startMileage	t	f
+searchContract	Contract	make	t	f
+searchContract	Contract	model	t	f
+searchContract	Contract	makeYear	t	f
+searchContract	Contract	carClass	t	f
+searchContract	Contract	color	t	f
+searchContract	Contract	transmission	t	f
+searchContract	Contract	engineVolume	t	f
+searchContract	Contract	engineType	t	f
+searchContract	Contract	buyDate	t	f
+searchContract	Contract	seller	t	f
+searchContract	Contract	lastCheckDealer	t	f
+searchContract	Contract	checkPeriod	t	f
+searchContract	Contract	checkType	t	f
+searchContract	Contract	orderNumber	t	f
+searchContract	Contract	managerName	t	f
+searchContract	Contract	comment	t	f
+searchContract	Contract	subprogram	t	f
+searchContract	Contract	legalForm	t	f
+searchContract	Contract	committer	t	f
+searchContract	Contract	dixi	t	f
+searchContract	Contract	isActive	t	f
+searchContract	Contract	ctime	t	f
 lovAdmin	VinFormat	label	t	t
 lovAdmin	VinFormat	nameLoad	t	t
 lovAdmin	VinFormat	nameTitles	t	t
@@ -1878,7 +1936,7 @@ insert into "FieldPermission" (role, model, field, r, w)
         from "FieldPermission"
         where model = 'case');
 
--- Case field permissios made from case
+-- Call field permissios made from case
 insert into "FieldPermission" (role, model, field, r, w)
 (select role, 'Call' as model, field, r, w
         from "FieldPermission"
