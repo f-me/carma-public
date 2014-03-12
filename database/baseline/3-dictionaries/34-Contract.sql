@@ -29,7 +29,7 @@ CREATE TABLE "Contract"
   , subprogram  int4 REFERENCES "SubProgram"
   , legalForm  int4 REFERENCES "LegalForm"
   , committer  int4 REFERENCES usermetatbl (id) NOT NULL
-  , dixi bool NOT NULL DEFAULT TRUE
+  , dixi bool NOT NULL DEFAULT FALSE
   , isActive bool NOT NULL DEFAULT TRUE
   , ctime timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
