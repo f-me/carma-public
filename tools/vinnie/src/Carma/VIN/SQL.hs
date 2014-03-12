@@ -484,8 +484,10 @@ setSpecialDefaults cid sid =
     execute
     [sql|
      UPDATE vinnie_queue SET ? = ?;
+     UPDATE vinnie_queue SET ? = 't';
      UPDATE vinnie_queue SET ? = ? WHERE ? IS NULL;
      |] (cfn C.committer, cid,
+         cfn C.dixi,
          cfn C.subprogram, sid, cfn C.subprogram)
 
 
