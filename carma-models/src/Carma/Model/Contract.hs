@@ -27,6 +27,7 @@ import Data.Model.Types
 import Data.Model.View
 
 import Carma.Model.Types (TInt)
+import  Carma.Model.LegacyTypes (LegacyDatetime)
 
 import Carma.Model.CarClass     (CarClass)
 import Carma.Model.CarMake      (CarMake)
@@ -151,7 +152,8 @@ data Contract = Contract
   , isActive         :: F Bool
                         "isActive"
                         "Активен"
-  , ctime            :: F UTCTime
+  -- FIXME: change to normal UTCTime when searh will get rid of row_to_json
+  , ctime            :: F LegacyDatetime
                         "ctime"
                         "Время создания контракта"
   } deriving Typeable
