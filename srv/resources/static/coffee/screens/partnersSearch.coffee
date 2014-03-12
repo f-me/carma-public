@@ -62,8 +62,8 @@ define [ "utils"
     kaseKVM = m.buildKVM global.model('case'),  {fetched: kase}
     srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
     kvm['fromCase'] = true
-    kvm['city'](kaseKVM.city())
-    kvm['make'](kaseKVM.car_make())
+    kvm['city']([kaseKVM.city()])
+    kvm['make']([kaseKVM.car_make()])
     kvm['field'] = ctx['field']
 
     pid = parseInt srvKVM["#{ctx['field']}Id"]()?.split(":")[1]
@@ -76,7 +76,7 @@ define [ "utils"
     unless ctx['field'].split('_')[0] == 'contractor'
       kvm['isDealer'](true)
     else
-      kvm['services'](srvName)
+      kvm['services']([srvName])
     kvm['isDealerDisabled'](true)
     kvm['caseInfo'] = """
     <ul class='unstyled'>
