@@ -93,6 +93,7 @@ chkAuthRoles :: RoleChecker
              -- this predicate.
              -> AppHandler () -> AppHandler ()
 chkAuthRoles roleCheck handler = do
+  ipHeaderFilter
   req <- getRequest
   if rqRemoteAddr req /= rqLocalAddr req
   then with auth currentUser >>= maybe
