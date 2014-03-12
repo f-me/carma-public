@@ -69,7 +69,7 @@
     { "type"    : "dropdown",
       "name"    : "search",
       "label"   : "Поиск",
-      "permissions": ["searchCase"],
+      "permissions": ["searchCase", "searchCall", "searchContract"],
       "screens" : [
         { "name"  : "servicesSearch",
           "label" : "Поиск услуг",
@@ -80,6 +80,11 @@
           "label" : "Поиск звонков",
           "type"  : "li",
           "permissions": ["searchCall"]
+        },
+        { "name"  : "contractsSearch",
+          "label" : "Поиск контрактов",
+          "type"  : "li",
+          "permissions": ["searchContract"]
         }
       ]
     },
