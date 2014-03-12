@@ -618,14 +618,14 @@ actionResultMap = Map.fromList
       deferBy <- get objId "deferBy"
       -- Deferring is a phantom result which is not preserved
       set objId "deferBy" "" >> set objId "result" ""  >> set objId "closeTime" ""
-      -- Clear assignee when deferring actions
-      clearAssignee objId
       case (map B.readInt $ B.split ':' deferBy) of
         (Just (hours, _):Just (minutes, _):_) ->
             when (0 <= hours && 0 <= minutes && minutes <= 59) $
                  dateNow (+ (60 * (hours * 60 + minutes)))
                              >>= set objId "duetime"
         _ -> return ()
+      -- Clear assignee when deferring actions
+      clearAssignee objId
   )
   ,("needPartner",     \objId -> do
      setServiceStatus objId "needPartner"
