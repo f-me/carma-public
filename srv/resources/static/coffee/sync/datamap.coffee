@@ -12,14 +12,20 @@ define [], ->
       console.error("datamap: can't parse date '#{v}' with '#{fmt}'")
       ""
 
-  iso8601date = "yyyy-MM-dd"
+  # How a Day is formatted on client
+  guiDayFormat = "dd.MM.yyyy"
 
-  c2sDay = (fmt) -> (v) ->
-    date = Date.parseExact(v, fmt)
+  # How a UTCTime is formatted on client
+  guiUTCTimeFormat = "dd.MM.yyyy HH:mm"
+
+  # Convert a formatted string to ISO 8601 string
+  c2sISO = (fmt) -> (v) ->
+    date = Date.parseExact v, fmt
     if date
-      date.toString(iso8601date)
+      date.toISOString()
     else
-      console.error("datamap: can't parse date '#{v}' in ISO-8601")
+      console.error("datamap: could not parse date '#{v}' with '#{fmt}'")
+      null
 
   s2cDate = (fmt) -> (v) ->
     return null if _.isEmpty v
@@ -29,9 +35,10 @@ define [], ->
     d = Date.parseExact(v, "yyyy-MM-dd HH:mm:ssz")
     return d.toString(fmt) if not _.isNull(d) && isFinite d
 
-  s2cDay = (fmt) -> (v) ->
+  # Convert ISO 8601 date/time object to a formatted string
+  s2cISO = (fmt) -> (v) ->
     return null if _.isEmpty v
-    new Date.parseExact(v, iso8601date).toString(fmt)
+    new Date(v).toString fmt
 
   s2cJson = (v) ->
     return null if _.isEmpty v
@@ -59,7 +66,8 @@ define [], ->
     Bool      : (v) -> v
     Integer   : (v) -> parseInt v
     Double    : (v) -> parseFloat v.replace ',', '.'
-    Day       : c2sDay("dd.MM.yyyy")
+    Day       : (v) -> ((c2sISO guiDayFormat) v)?.slice(0, 10)
+    UTCTime   : c2sISO guiUTCTimeFormat
     IdentList : (v) -> v
     dictionary: (v) -> if _.isNull v then '' else v
     date      : c2sDate("dd.MM.yyyy")
@@ -77,7 +85,8 @@ define [], ->
     Integer   : (v) -> v
     Double    : (v) -> v
     IdentList : (v) -> v
-    Day       : s2cDay("dd.MM.yyyy")
+    Day       : s2cISO guiDayFormat
+    UTCTime   : s2cISO guiUTCTimeFormat
     dictionary: (v) -> v
     date      : s2cDate("dd.MM.yyyy")
     datetime  : s2cDate("dd.MM.yyyy HH:mm")

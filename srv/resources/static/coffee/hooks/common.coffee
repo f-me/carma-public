@@ -83,7 +83,7 @@ define [ "utils"
   #       )(fieldName)
 
   dateTimeHook: (m, k) ->
-    for f in m.fields when f.type == "datetime"
+    for f in m.fields when _.contains ["datetime", "Day", "UTCTime"], f.type
       do (f) ->
         n = f.name
         k["#{n}DateTime"] = ko.computed
@@ -258,7 +258,8 @@ define [ "utils"
         # Delete an object by its index
         kvm["#{n}DeleteObj"] =
           (v) ->
-            return unless confirm "Вы уверены, что хотите удалить запись #{v.value()}?"
+            return unless \
+              confirm "Вы уверены, что хотите удалить запись #{v.value()}?"
             # Remove key by index from field JSON
             newFull = kvm[n]()
             newFull.splice v.idx(), 1
