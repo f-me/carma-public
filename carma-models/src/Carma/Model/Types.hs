@@ -40,6 +40,7 @@ import Data.Model
 import Data.Model.Types
 import Carma.Model.LegacyTypes
 
+-- ISO 8601
 instance FromJSON Day where
   parseJSON (String s)
     = case parseTime undefined "%Y-%m-%d" $ T.unpack s of
@@ -47,6 +48,7 @@ instance FromJSON Day where
       Nothing  -> fail $ "invalid date format: " ++ show s
   parseJSON v = fail $ "invalid date: " ++ show v
 
+-- ISO 8601
 instance ToJSON Day where
   toJSON = String . fromString . show
 
@@ -187,9 +189,14 @@ instance DefaultFieldView t => DefaultFieldView (Maybe t) where
   defaultFieldView (_ :: m -> F (Maybe t) nm desc)
     = defaultFieldView (undefined :: m -> F t nm desc)
 
-
 instance DefaultFieldView UTCTime where
-  defaultFieldView f = (defFieldView f) {fv_type = "datetime"}
+  defaultFieldView f = (defFieldView f)
+    { fv_type = "UTCTime"
+    , fv_meta
+      = Map.insert "regexp" "datetime"
+      $ Map.insert "widget" "datetime"
+      $ fv_meta $ defFieldView f
+    }
 
 instance DefaultFieldView Bool where
   defaultFieldView f = (defFieldView f) {fv_type = "Bool"}
