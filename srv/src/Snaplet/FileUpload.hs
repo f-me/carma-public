@@ -208,7 +208,7 @@ getAttachmentPath aid = do
   case M.lookup "filename" obj of
     Just fName -> return $
                   fPath </> "attachment" </>
-                  B8.unpack aid </> B8.unpack fName
+                  B8.unpack aid </> bToString fName
     _ -> error $ "Broken attachment" ++ B8.unpack aid
 
 -- | Append a reference of form @attachment:213@ to a field of another
