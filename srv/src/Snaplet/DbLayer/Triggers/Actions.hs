@@ -392,8 +392,11 @@ serviceActions = Map.fromList
           kazeId <- get objId "parentId"
           -- Check if backoffice transfer is related to callMeMaybe action
           relatedUser <- liftDb $ PG.query (fromString [sql|
-            SELECT coalesce(a.assignedTo, '') FROM actiontbl a
+            SELECT coalesce(a.assignedTo, '') FROM actiontbl a, usermetatbl u
               WHERE a.caseId = ?
+                AND u.login = a.assignedTo
+                AND (lastlogout IS NULL OR lastlogout < lastactivity)
+                AND now() - lastactivity < '30 min'
                 AND a.name IN ('tellMeMore', 'callMeMaybe')
                 AND coalesce(a.result, '') <> 'communicated'
               LIMIT 1
