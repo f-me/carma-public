@@ -138,6 +138,8 @@ searchContracts = do
           -- 3 parameters: flag pair for program id, program id field
           -- name.
           , "AND (? OR ? = p.?)"
+          -- 2 parameters: dixi and isActive field names
+          , "AND c.? and c.?"
           -- 1 parameter: LIMIT value
           , "ORDER BY c.id DESC LIMIT ?;"
           ]
@@ -172,6 +174,8 @@ searchContracts = do
           -- 3
           :. (sqlFlagPair (0::Int) id pid)
           :. (Only $ PT $ fieldName P.ident)
+          -- 2
+          :. (PT $ fieldName C.dixi, PT $ fieldName C.isActive)
           -- 1
           :. Only limit)
 
