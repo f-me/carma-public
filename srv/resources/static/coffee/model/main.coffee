@@ -450,7 +450,7 @@ define [ "model/render"
     #
     # For old-style references (reference type), store parent id in
     # "model:<id>" form in "parentId" field
-    if ref.options.newStyle
+    if ref.options?.newStyle
       parentField = ref.options.parentField
       thisId = knockVM.id()
     else
