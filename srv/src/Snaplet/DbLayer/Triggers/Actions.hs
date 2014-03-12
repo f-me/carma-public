@@ -635,11 +635,13 @@ serviceActions = Map.fromList
   ,("providedFor",    [\objId _ -> setSrvMCost objId])
   ,("times_expectedServiceStart",
     [\objId val -> do
-      let Just tm = fst <$> B.readInt val
-      let h = 3600 -- seconds
-      set objId "times_expectedServiceEnd"     $ B.pack $ show $ tm + 1*h
-      set objId "times_expectedServiceClosure" $ B.pack $ show $ tm + 11*h
-      set objId "times_factServiceStart" ""
+      case fst <$> B.readInt val of
+        Just tm -> do
+          let h = 3600 -- seconds
+          set objId "times_expectedServiceEnd"     $ B.pack $ show $ tm + 1*h
+          set objId "times_expectedServiceClosure" $ B.pack $ show $ tm + 11*h
+          set objId "times_factServiceStart" ""
+        Nothing -> return ()
     ])
   ,("times_expectedDispatch",
     [\objId _ -> set objId "times_factServiceStart" ""
