@@ -10,6 +10,7 @@ import qualified Data.Map as Map
 
 import Data.Model as Model
 import Data.Model.View as View
+import Data.Model.Types ((:@))
 
 import Carma.Model.Case.Type as Case
 import Carma.Model.Colors as Color
@@ -47,29 +48,25 @@ instance Model Case where
   modelView v =
     case v of
       "search" -> modifyView (searchView caseSearchParams) $
-                  [modifyByName "Case_id" (\v -> v { fv_type = "ident" })
-                  ,modifyByName "files"   (\v -> v { fv_type = "dictionary" })
+                  [modifyByName "Case_id" (\x -> x { fv_type = "ident" })
+                  ,modifyByName "files"   (\x -> x { fv_type = "dictionary" })
                   ,dict files $ (dictOpt "ExistDict")
                               { dictType    = Just "ComputedDict"
                               , dictBounded = True
                               }
                   ]
                   ++ caseMod ++ caseDicts
-      "fullCase"
+      "full"
         -> modifyView
-          ((defaultView :: ModelView Case) {mv_title = "Кейс"})
-          $ caseMod ++ caseDicts ++ caseRo
+          (stripId $ (defaultView :: ModelView Case)
+            {mv_modelName = "case"
+            ,mv_title = "Кейс"})
+          $ caseMod ++ caseDicts ++ caseRo ++ caseOldCRUDHacks
       "newCase"
         -> setMainOnly
           $ modifyView
             ((defaultView :: ModelView Case) {mv_title = "Кейс"})
             $ caseMod ++ caseDicts ++ caseRo
-      -- fullCase view, but with legacy (lowercase) model name to
-      -- force client use untyped CRUD; id field is stripped out
-      -- (workaround for bug #1530)
-      "oldCRUD"
-        -> modifyView (stripId $ mv{mv_modelName = "case"}) caseOldCRUDHacks
-           where mv = (modelView "fullCase") :: ModelView Case
       _ -> defaultView
       where
         setMainOnly mv = mv
@@ -80,6 +77,7 @@ instance Model Case where
              ]
           }
 
+caseDicts :: [(Text, FieldView -> FieldView) :@ Case]
 caseDicts = [
    dict comment $ (dictOpt "Wazzup")
               {dictBounded = False}
@@ -102,6 +100,7 @@ caseDicts = [
 
 -- | Mark several new-style dictionaries to use dictionaryStringify,
 -- to wrap integers in strings to be compatible with the old CRUD.
+caseOldCRUDHacks :: [(Text, FieldView -> FieldView) :@ Case]
 caseOldCRUDHacks =
     [ setMeta "dictionaryStringify" (Aeson.Bool True) car_class
     , setMeta "dictionaryStringify" (Aeson.Bool True) car_engine
@@ -112,12 +111,14 @@ caseOldCRUDHacks =
     , setMeta "dictionaryStringify" (Aeson.Bool True) subprogram
     ]
 
+caseRo :: [(Text, FieldView -> FieldView) :@ Case]
 caseRo = [
    readonly callDate
   ,readonly callTaker
   ,readonly psaExported
   ]
 
+caseMod :: [(Text, FieldView -> FieldView) :@ Case]
 caseMod = [
    transform "capitalize" contact_name
   ,transform "capitalize" contact_ownerName
