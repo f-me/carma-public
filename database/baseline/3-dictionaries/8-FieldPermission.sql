@@ -1894,6 +1894,26 @@ core	case	id	t	f
 core	service	id	t	f
 core	service	type	t	f
 core	towage	id	t	f
+lovAdmin	ConstructorFieldOption	model	t	t
+lovAdmin	ConstructorFieldOption	screen	t	t
+lovAdmin	ConstructorFieldOption	program	t	t
+lovAdmin	ConstructorFieldOption	ord	t	t
+lovAdmin	ConstructorFieldOption	field	t	t
+lovAdmin	ConstructorFieldOption	label	t	t
+lovAdmin	ConstructorFieldOption	info	t	t
+lovAdmin	ConstructorFieldOption	required	t	t
+lovAdmin	ConstructorFieldOption	r	t	t
+lovAdmin	ConstructorFieldOption	w	t	t
+lovViewer	ConstructorFieldOption	model	t	f
+lovViewer	ConstructorFieldOption	screen	t	f
+lovViewer	ConstructorFieldOption	program	t	f
+lovViewer	ConstructorFieldOption	ord	t	f
+lovViewer	ConstructorFieldOption	field	t	f
+lovViewer	ConstructorFieldOption	label	t	f
+lovViewer	ConstructorFieldOption	info	t	f
+lovViewer	ConstructorFieldOption	required	t	f
+lovViewer	ConstructorFieldOption	r	t	f
+lovViewer	ConstructorFieldOption	w	t	f
 \.
 
 INSERT INTO "FieldPermission" (role, model, field, r, w)

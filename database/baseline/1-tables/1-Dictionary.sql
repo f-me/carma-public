@@ -11,7 +11,9 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
 , (1, 'CarModel', 'Модель машины', ARRAY[0], ARRAY['id', 'parent', 'label', 'info'])
 , (2, 'City', 'Город', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (3, 'Region', 'Регион', ARRAY[]::int4[], ARRAY['id', 'label'])
-, (4, 'NewCaseField', 'Поля для экрана нового кейса', ARRAY[]::int4[], ARRAY['id', 'program', 'label'])
+, (4, 'ConstructorFieldOption', 'Конструктор экранов',
+    ARRAY[]::int4[],
+    ARRAY['id', 'screen', 'model', 'program', 'label'])
 , (5, 'FieldPermission', 'Разрешения для полей', ARRAY[]::int4[], ARRAY['id', 'role', 'model', 'field'])
 , (6, 'SmsTemplate', 'Шаблон СМС', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (7, 'Role', 'Роли', ARRAY[]::int4[], ARRAY['id', 'value', 'label'])

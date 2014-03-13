@@ -9,9 +9,10 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.State
 import Data.Maybe
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import qualified Data.Map as M
+import qualified Data.Map as Map
 import qualified Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
@@ -51,15 +52,15 @@ serveModel = do
   model <- case T.splitOn ":" view of
       ["ctr",scr,pgm]
         | name == "case" -> case Model.dispatch "Case" $ viewForModel scr of
-          Just res -> return res
-          Nothing  -> error "BUG"
+          Just (Just res) -> Just <$> constructModel "Case" scr pgm res
+          _ -> error "BUG"
       ["newCase",pgm] -> fmap Just
         $ case name of
           "case" -> newCase pgm
           _      -> newSvc pgm name
       _ -> case Model.dispatch name' $ viewForModel view' of
         Just res -> return res
-        Nothing  -> M.lookup name <$> gets models
+        Nothing  -> Map.lookup name <$> gets models
         -- Serve case model with oldCRUD view from carma-models when
         -- /cfg/model/case is requested
         where
@@ -79,6 +80,37 @@ serveModel = do
 viewForModel :: forall m . Model.Model m => T.Text -> m -> Maybe Model
 viewForModel name _
   = Aeson.decode $ Aeson.encode (Model.modelView name :: Model.ModelView m)
+
+
+constructModel
+  :: Text -> Text -> Text -> Model
+  -> Handler b (SiteConfig b) Model
+constructModel mdlName screen program model = do
+  let q = [sql|
+      select c.field, c.label, c.w, c.required, c.info
+        from "ConstructorFieldOption" c, "Program" p
+        where c.r
+          and c.model = ?
+          and c.screen = ?
+          and p.id = ? :: int
+        order by c.ord
+      |]
+  pg <- gets pg_search
+  res <- liftIO (withResource pg $ \c -> query c q [mdlName,screen,program])
+  let optMap = Map.fromList [(nm,(l,w,rq,inf)) | (nm,l,w,rq,inf) <- res]
+  let adjustField f = case Map.lookup (name f) optMap of
+        Nothing -> [f] -- NB: field is not modified if no options found
+        Just (l,w,rq,inf) ->
+          [f {meta
+              = Map.insert "label"    (Aeson.String l)
+              . Map.insert "required" (Aeson.Bool rq)
+              . Map.insert "infoText" (Aeson.String inf)
+              . Map.insert "readonly" (Aeson.Bool $ not w)
+              <$> meta f
+            , canWrite = w}
+          ]
+  return $ model {fields = concatMap adjustField $ fields model}
+
 
 writeModel :: Model -> Handler b (SiteConfig b) ()
 writeModel model
@@ -114,8 +146,8 @@ stripModel u m = do
       group by p.field
     |]
     (unUid uid, fixCaseModelName $ modelName m)
-  let fieldsMap = M.fromList readableFields
-  let fieldFilter f fs = case M.lookup (name f) fieldsMap of
+  let fieldsMap = Map.fromList readableFields
+  let fieldFilter f fs = case Map.lookup (name f) fieldsMap of
         Nothing -> fs
         Just wr -> f {canWrite = canWrite f && wr} : fs
   return $ m {fields = foldr fieldFilter [] $ fields m}
