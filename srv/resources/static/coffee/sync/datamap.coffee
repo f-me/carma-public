@@ -79,7 +79,7 @@ define [], ->
 
   s2cTypes =
     'dictionary-set': (v) -> v
-    'dictionary-many': (v) -> v.split(',')
+    'dictionary-many': (v) -> if _.isEmpty v then [] else v.split(',')
     checkbox  : (v) -> v == "1"
     Bool      : (v) -> v
     Integer   : (v) -> v
