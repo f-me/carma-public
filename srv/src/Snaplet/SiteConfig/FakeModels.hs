@@ -14,7 +14,6 @@ import Data.String (fromString)
 import Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as B
 
 import Data.Pool
 import Database.PostgreSQL.Simple
@@ -55,13 +54,13 @@ filterFields cfg = catMaybes . map tr
           , canWrite = w}
 
 
-newSvc :: Text -> B.ByteString -> Handler b (SiteConfig b) Model
+newSvc :: Text -> Text -> Handler b (SiteConfig b) Model
 newSvc pgm name = do
   cfg <- modelConfig pgm
   return $ Model
-    { modelName    = name
-    , title
-        = T.encodeUtf8 $ Map.findWithDefault "Неизвестная услуга" name svcNames
+    { modelName    = T.encodeUtf8 name
+    , title        = T.encodeUtf8
+      $ Map.findWithDefault "Неизвестная услуга" name svcNames
     , fields       = filterFields cfg $ newSvcFields name
     , applications = []
     , _canCreateM  = Everyone
@@ -71,7 +70,7 @@ newSvc pgm name = do
     }
 
 
-svcNames :: Map.Map B.ByteString Text
+svcNames :: Map.Map Text Text
 svcNames = Map.fromList
   [("averageCommissioner","Аварийный комиссар")
   ,("bank","Банковская поддержка")
@@ -94,7 +93,7 @@ svcNames = Map.fromList
   ,("transportation","Транспортировка")
   ]
 
-newSvcFields :: B.ByteString -> [Field]
+newSvcFields :: Text -> [Field]
 newSvcFields name
   = [mkF "parentId" "text" "Ссылка на кейс"
       [("invisible", Aeson.Bool True)

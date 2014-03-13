@@ -13,13 +13,19 @@ define [ "utils"
     setupCaseMain = (viewName, args) -> setupCaseModel viewName, args
 
     setupCaseModel = (viewName, args) ->
+      kaze = {}
+      if args.id
+        $.bgetJSON "/_/case/#{args.id}", (rsp) -> kaze = rsp
 
       kvm = main.modelSetup("case") viewName, args,
                          permEl       : "case-permissions"
                          focusClass   : "focusable"
-                         slotsee      : ["case-number", "case-program-description", "case-car-description"]
+                         slotsee      : ["case-number",
+                                         "case-program-description",
+                                         "case-car-description"]
                          groupsForest : "center"
                          defaultGroup : "default-case"
+                         modelArg     : "ctr:full:#{kaze.program}"
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
       setCommentsHandler()

@@ -46,14 +46,18 @@ import qualified Carma.Model.ServiceNames as ServiceNames
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
-  Just name  <- getParam "name"
+  Just name  <- fmap T.decodeUtf8 <$> getParam "name"
   view  <- T.decodeUtf8 . fromMaybe "" <$> getParam "view"
   model <- case T.splitOn ":" view of
+      ["ctr",scr,pgm]
+        | name == "case" -> case Model.dispatch "Case" $ viewForModel scr of
+          Just res -> return res
+          Nothing  -> error "BUG"
       ["newCase",pgm] -> fmap Just
         $ case name of
           "case" -> newCase pgm
           _      -> newSvc pgm name
-      _ -> case Model.dispatch (T.decodeUtf8 $ name') $ viewForModel view' of
+      _ -> case Model.dispatch name' $ viewForModel view' of
         Just res -> return res
         Nothing  -> M.lookup name <$> gets models
         -- Serve case model with oldCRUD view from carma-models when
@@ -61,7 +65,6 @@ serveModel = do
         where
           (name', view') =
               case (name, view) of
-                ("case", "") -> ("Case", "oldCRUD")
                 ("case", v ) -> ("Case", v)
                 _            -> (name, view)
 
