@@ -14,7 +14,7 @@ data ConstructorFieldOption = ConstructorFieldOption
   {ident    :: PK Int ConstructorFieldOption ""
   ,model    :: F Text  "model"    "Модель к которой относится поле"
   ,screen   :: F Text  "screen"   "Экран"
-  ,program  :: F (Maybe Text) -- FIXME: (Maybe (IdentI Program))
+  ,program  :: F (IdentI Program)
                        "program"  "Программа"
   ,ord      :: F Int   "ord"      "Порядок сортировки"
   ,field    :: F Text  "field"    "Внутреннее название поля"
@@ -39,4 +39,4 @@ instance Model ConstructorFieldOption where
         ])
         {mv_modelName = "ConstructorFieldOption"}
     _ -> modifyView defaultView
-      [textarea info, readonly field, invisible ord]
+      [textarea info, invisible ord]
