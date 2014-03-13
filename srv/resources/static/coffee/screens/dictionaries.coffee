@@ -93,7 +93,9 @@ define [ "utils"
 
         $('#permissions').find('.btn-success').on 'click', ->
           row = _.map majorFields, (field) -> kvm[field.name]?() || ''
-          table.dataTable.fnAddData [row]
+          id = row[0]
+          if _.every(table.dataTable.fnGetData(), (x) -> x[0] != id)
+            table.dataTable.fnAddData [row]
 
         $("#add-new-item-btn").on 'click', ->
           location.hash="#dict/#{args.dict}"
