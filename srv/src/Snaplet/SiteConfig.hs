@@ -87,20 +87,20 @@ constructModel
   -> Handler b (SiteConfig b) Model
 constructModel mdlName screen program model = do
   let q = [sql|
-      select c.field, c.label, c.w, c.required, c.info
+      select c.field, c.label, c.r, c.w, c.required, c.info
         from "ConstructorFieldOption" c, "Program" p
-        where c.r
-          and c.model = ?
+        where c.model = ?
           and c.screen = ?
           and p.id = ? :: int
         order by c.ord
       |]
   pg <- gets pg_search
   res <- liftIO (withResource pg $ \c -> query c q [mdlName,screen,program])
-  let optMap = Map.fromList [(nm,(l,w,rq,inf)) | (nm,l,w,rq,inf) <- res]
+  let optMap = Map.fromList [(nm,(l,r,w,rq,inf)) | (nm,l,r,w,rq,inf) <- res]
   let adjustField f = case Map.lookup (name f) optMap of
         Nothing -> [f] -- NB: field is not modified if no options found
-        Just (l,w,rq,inf) ->
+        Just (_,False,_,_,_) -> [] -- unreadable field
+        Just (l,True,w,rq,inf) ->
           [f {meta
               = Map.insert "label"    (Aeson.String l)
               . Map.insert "required" (Aeson.Bool rq)
