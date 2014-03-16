@@ -95,7 +95,11 @@ printErrors me@ModelErrors{..} = do
             typeMissmatch
     printBox $ hsep 1 left (map ( vcat left . map text) (transpose d))
 
-data Main = Main { user :: String, db :: String, model :: Maybe String }
+data Main = Main { user :: String
+                 , pass :: String
+                 , db :: String
+                 , model :: Maybe String
+                 }
      deriving (Typeable, Data, Eq, Show)
 
 instance Attributes Main where
@@ -103,6 +107,10 @@ instance Attributes Main where
          user  %> [ Help "PG user."
                   , ArgHelp "TEXT"
                   , Default ("postgres" :: String)
+                  ],
+         pass  %> [ Help "PG password."
+                  , ArgHelp "TEXT"
+                  , Default ("" :: String)
                   ],
          db    %> [ Help "Carma database"
                   , ArgHelp "TEXT"
@@ -122,6 +130,7 @@ main = do
   getArgs >>= executeR Main {} >>= \opts -> do
     conn <- connect defaultConnectInfo { connectUser     = user opts
                                        , connectDatabase = db opts
+                                       , connectPassword = pass opts
                                        }
     case model opts of
       Nothing -> do
