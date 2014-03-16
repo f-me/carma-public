@@ -102,7 +102,7 @@ define [ 'utils'
         caseAddress_address:  v['address']()
         comment:              v['wazzup']()
         callTaker:            global.user.meta.realName
-      main.buildNewModel 'case', args, {},
+      main.buildNewModel 'case', args, {modelArg: "ctr:full:#{v.program()}"},
         (m, k) -> global.router.navigate(
           "newCase/#{k.program()}/#{k.id()}",
           {trigger: true})
