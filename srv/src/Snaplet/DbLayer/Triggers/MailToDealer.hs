@@ -245,7 +245,7 @@ sendRepTowageMail caseRef towageRef prevRef subprogram = do
 -- | Send a mail using exim.
 sendEximMail :: Text -> Text -> Text -> Part -> IO ()
 sendEximMail mailFrom mailTo mailSubj mailBody =
-    renderSendMailCustom "/usr/sbin/exim" ["-t", "-r", T.unpack mailFrom] $
+    renderSendMailCustom "/usr/sbin/sendmail" ["-t", "-r", T.unpack mailFrom] $
     (emptyMail $ Address Nothing mailFrom)
     { mailTo = map (Address Nothing . T.strip) $ T.splitOn "," mailTo
     , mailHeaders = [("Subject", mailSubj)]
