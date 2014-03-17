@@ -547,9 +547,6 @@
             class="field-template"
             id="dictionary-field-template">
       <div class="control-group"
-           {{# meta.expired  }}
-             data-bind="css: { expired: {{name}}Expired }"
-           {{/ meta.expired  }}
            {{# meta.required }}
              data-bind="css: { error: {{name}}Not }"
            {{/ meta.required }}

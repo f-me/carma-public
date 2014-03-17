@@ -153,18 +153,6 @@ define ["utils", "dictionaries"], (u, d) ->
             (r) -> res = r.join ','
         res
 
-  vinExpiredHook: (model, knockVM) ->
-    knockVM['car_vinExpired'] = ko.computed ->
-      expired = false
-      if knockVM['car_warrantyStart']() and knockVM['car_warrantyEnd']()
-        startDate = Date.parseExact knockVM['car_warrantyStart'](), "dd.MM.yyyy"
-        endDate = Date.parseExact knockVM['car_warrantyEnd'](), "dd.MM.yyyy"
-        callDate = Date.parseExact knockVM['callDate'](), "dd.MM.yyyy HH:mm"
-        if callDate < startDate or callDate > endDate
-          knockVM['vinChecked'] 'vinExpired'
-          expired = true
-      expired
-
   vwfakeHook: (model, knockVM) ->
     knockVM['callDateVisible'] = ko.computed ->
       not _.contains global.user.roles, global.idents("Role").vwfake
