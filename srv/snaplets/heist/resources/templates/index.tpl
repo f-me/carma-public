@@ -1593,12 +1593,6 @@
           <span data-bind="text: contact_name"/>&nbsp;
           <span data-bind="text: contact_phone1"/>
         </p>
-        <p data-bind="visible: car_make">
-          <b>Машина:</b>
-          <span data-bind="text: car_makeLocal"/>&nbsp;
-          <span data-bind="text: car_modelLocal"/>&nbsp;
-          <span data-bind="text: car_plateNum"/>
-        </p>
         <p data-bind="visible: caseAddress_address">
           <b>Адрес кейса:</b>
           <span data-bind="text: caseAddress_address"/><br/>
