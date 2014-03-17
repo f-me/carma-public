@@ -2,7 +2,7 @@ CREATE TABLE "CarModel"
   ( id     SERIAL PRIMARY KEY
   , value  text
   , label  text NOT NULL
-  , parent int4 REFERENCES "CarMake" ON DELETE SET NULL
+  , parent int4 REFERENCES "CarMake" NOT NULL ON DELETE SET NULL
   , info   text NOT NULL DEFAULT ''
   , synonyms text[]
   ,UNIQUE (label, parent)
