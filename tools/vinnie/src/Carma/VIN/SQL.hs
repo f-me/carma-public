@@ -571,8 +571,10 @@ transferContracts =
      SELECT DISTINCT ?
      FROM vinnie_queue WHERE errors IS NULL;
      |] ( contractTable
-        , PT $ sqlCommas $ "committer":contractFields
-        , PT $ sqlCommas $ "committer":contractFields)
+        , PT $ sqlCommas $
+          (fieldName C.committer):(fieldName C.dixi):contractFields
+        , PT $ sqlCommas $
+          (fieldName C.committer):(fieldName C.dixi):contractFields)
 
 
 data RowError = EmptyRequired Text
