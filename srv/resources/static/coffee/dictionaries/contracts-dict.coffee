@@ -16,12 +16,15 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
           id: c.id
           vin: c.vin
 
-        a = for i in r
-          do (i) =>
-            # fields which matched search query
-            fields = _.filter(_.keys(i), (f) ->
-              i[f] && String(i[f]).indexOf(q) != -1)
-            @contr2html i, fields, q
+        a = if _.isEmpty r
+            ["<span><i class='icon-ban-circle icon-white'></i>&nbsp;Ничего не найдено :(</span>"]
+          else
+            for i in r
+              do (i) =>
+                # fields which matched search query
+                fields = _.filter(_.keys(i), (f) ->
+                  i[f] && String(i[f]).indexOf(q) != -1)
+                @contr2html i, fields, q
         cb(a)
 
     # returns html representation of contract
@@ -59,6 +62,7 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
       html
 
     id2val: (i) ->
+      return unless @found[i]
       # notify @kvm what contract was changed
       @kvm.contract(String(@found[i].id))
       @found[i].vin
