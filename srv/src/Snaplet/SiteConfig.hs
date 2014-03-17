@@ -89,7 +89,8 @@ constructModel mdlName screen program model = do
   let q = [sql|
       select c.field, c.label, c.r, c.w, c.required, c.info
         from "ConstructorFieldOption" c, "Program" p
-        where c.model = ?
+        where c.program = p.id
+          and c.model = ?
           and c.screen = ?
           and p.id = ? :: int
         order by c.ord
