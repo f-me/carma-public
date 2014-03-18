@@ -43,7 +43,7 @@ assignQ pri usr = fromString
   ++ "    AND (coalesce("
   ++ "            array_length(u.boPrograms, 1),"
   ++ "            array_length(u.boCities, 1)) is null"
-  ++ "         OR (c.program = ANY (u.boPrograms) OR c.city = ANY (u.boCities)))"
+  ++ "         OR (c.program::text = ANY (u.boPrograms) OR c.city = ANY (u.boCities)))"
   ++ "    ORDER BY"
   ++ "      (u.boPrograms IS NOT NULL AND c.program::text = ANY (u.boPrograms)) DESC,"
   ++ "      (u.boCities   IS NOT NULL AND c.city          = ANY (u.boCities)) DESC,"
