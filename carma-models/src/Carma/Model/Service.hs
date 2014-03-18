@@ -71,12 +71,12 @@ data Service = Service
                                  "Адрес"
   , contractor_coords            :: F (Maybe Text) "contractor_coords"
                                  "Координаты"
-  , cost_counted                 :: F (Maybe Int) "cost_counted"
-                                 "Расчётная стоимость"
-  , cost_serviceTarifOptions     :: F (Maybe Reference) "cost_serviceTarifOptions"
-                                 "Тарифные опции"
-  , marginalCost                 :: F (Maybe Text) "marginalCost"
-                                 "Предельная стоимость"
+  -- , cost_counted                 :: F (Maybe Int) "cost_counted"
+  --                                "Расчётная стоимость"
+  -- , cost_serviceTarifOptions     :: F (Maybe Reference) "cost_serviceTarifOptions"
+  --                                "Тарифные опции"
+  -- , marginalCost                 :: F (Maybe Text) "marginalCost"
+  --                                "Предельная стоимость"
 
   , paid                         :: F (Maybe Checkbox) "paid"
                                  "Оплата"
@@ -94,10 +94,10 @@ data Service = Service
                                  "Гарантийный случай"
   , files                        :: F (Maybe Reference) "files"
                                  "Прикрепленные файлы"
-  , service_tarifOptions         :: F (Maybe Reference) "service_tarifOptions"
-                                 ""
-  , assignedTo                   :: F (Maybe Text) "assignedTo"
-                                 ""
+  -- , service_tarifOptions         :: F (Maybe Reference) "service_tarifOptions"
+  --                                ""
+  -- , assignedTo                   :: F (Maybe Text) "assignedTo"
+  --                                ""
   }
   deriving Typeable
 
@@ -121,7 +121,7 @@ svcMod =
           , dictBounded = True
           }
     ,setType "dictionary" contractor_partnerId
-    ,invisible service_tarifOptions
+    -- ,invisible service_tarifOptions
     ]
 
 
