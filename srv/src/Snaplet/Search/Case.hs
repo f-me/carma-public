@@ -1,4 +1,5 @@
-{-# LANGUAGE TypeOperators
+{-# LANGUAGE TypeOperators,
+             ScopedTypeVariables
  #-}
 module Snaplet.Search.Case where
 
@@ -24,22 +25,20 @@ import           Snaplet.Search.Utils
 caseSearch :: SearchHandler b
               (Either String
                (SearchResult
-                (Patch Case :. Patch Service :. Patch Towage :. ())))
-caseSearch = do
-  mkSearch (caseSearchParams :. serviceSearchParams :. towageSearchParams)
-    mkQuery $ \conn roles (c, s, t) -> stripRead conn roles $
-      (parsePatch c) :. (parsePatch s) :. (parsePatch t) :. ()
+                (Patch Case :. Maybe (Patch Service) :. Maybe (Patch Towage) :. ())))
+caseSearch = defaultSearch
+    (caseSearchParams :. serviceSearchParams :. towageSearchParams)
+    mkQuery
 
-mkQuery :: Text -> Int -> Int -> String -> Query
-mkQuery pred lim offset ord
+mkQuery :: forall t.MkSelect t => t -> Text -> Int -> Int -> String -> Query
+mkQuery _ pred lim offset ord
   = fromString $ printf
-      (  "    select row_to_json(casetbl.*)    :: text,"
-      ++ "           row_to_json(servicetbl.*) :: text,"
-      ++ "           row_to_json(towagetbl.*)  :: text"
+      (  "    select %s "
       ++ "     from casetbl left join servicetbl"
       ++ "       on split_part(servicetbl.parentId, ':', 2)::int = casetbl.id"
       ++ "     left join towagetbl"
       ++ "       on servicetbl.id = towagetbl.id"
       ++ "     where (%s) %s limit %i offset %i;"
       )
+      (T.unpack $ (mkSel (undefined :: t)))
       (T.unpack pred) ord lim offset

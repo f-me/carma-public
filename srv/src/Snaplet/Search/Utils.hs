@@ -17,6 +17,7 @@ import           Data.List (intercalate)
 import           Data.Pool
 import           Data.Aeson
 import           Data.Text (Text, toLower, unpack)
+import qualified Data.Text as T
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy  as LB
 import qualified Data.HashMap.Strict   as HM
@@ -60,13 +61,11 @@ instance (Model m, RenderPrms ps)
       ([], preds) -> return $ Right $ concatPredStrings preds
       (errs, _)   -> return $ Left $ foldl (++) "" errs
 
-
-mkSearch :: (RenderPrms p, FromRow s)
+mkSearch :: (RenderPrms p, FromRow t, MkSelect t)
          => p
-         -> (Text -> Int -> Int -> String -> Query)
-         -> (Connection -> [IdentI Role] -> s -> IO t)
+         -> (t -> Text -> Int -> Int -> String -> Query)
          -> SearchHandler b (Either String (SearchResult t))
-mkSearch prms mkq patchParser = do
+mkSearch prms mkq = do
   roles    <- with auth currentUser >>= userRolesIds . fromJust
   lim      <- getLimit
   offset   <- getOffset
@@ -77,9 +76,9 @@ mkSearch prms mkq patchParser = do
       Right p -> do
         -- retrieving onw more elements than limit, so we know
         -- is there is next page
-        s  <- query_ c (mkq p (lim + 1) offset (renderOrder $ sorts args))
-        s' <- mapM (patchParser c roles) s
-        return $ Right $ buildResult s' lim offset
+        s  <- query_ c (mkq (undefined :: t) p (lim + 1) offset
+                        (renderOrder $ sorts args))
+        return $ Right $ buildResult s lim offset
       Left es -> return $ Left es
   where
     buildResult :: [t] -> Int -> Int -> SearchResult t
@@ -88,26 +87,6 @@ mkSearch prms mkq patchParser = do
           prev = if offset - lim < 0  then Nothing else Just (offset - lim)
           res' = if length res <= lim then res     else init res
       in SearchResult res' next prev
-
-parsePgJson :: forall m.Model m => LB.ByteString -> Patch m
-parsePgJson bs =
-  fromMaybe empty $ decode bs >>= decodeJs >>= fromResult . fromJSON
-  where
-    fromResult (Error s) = error $ "Error while parsing patch for: " ++
-      (show $ M.modelName (M.modelInfo :: ModelInfo m)) ++
-      ", error: " ++ s
-    fromResult (Success r) = Just r
-    decodeJs (Object obj) =
-      Just $ Object $ HM.foldlWithKey' fixName HM.empty obj
-    decodeJs _ = Nothing
-    fsMap    = M.modelFieldsMap (M.modelInfo :: M.ModelInfo m)
-    namesMap =
-      foldl (\a k -> HM.insert (toLower k) k a) HM.empty $ HM.keys fsMap
-    fixName h k v = maybe h (\f -> HM.insert f v h) $ HM.lookup k namesMap
-
-parsePatch :: Model m => Maybe LB.ByteString -> Patch m
-parsePatch (Just v) = parsePgJson v
-parsePatch Nothing  = empty
 
 renderOrder :: Order -> String
 renderOrder (Order fs ord) = printf "ORDER BY %s" $
@@ -141,3 +120,20 @@ writeJSON v = do
   modifyResponse $ setContentType "application/json"
   writeLBS $ encode v
 
+stripResults :: StripRead t
+             => SearchResult t -> SearchHandler b (SearchResult t)
+stripResults s@SearchResult{..} = do
+  roles <- with auth currentUser >>= userRolesIds . fromJust
+  withPG $ \c -> do
+    vals <- mapM (stripRead c roles) values
+    return $ s{ values = vals }
+
+defaultSearch :: (RenderPrms p, FromRow t, MkSelect t, StripRead t)
+              => p
+              -> (t -> Text -> Int -> Int -> String -> Query)
+              -> SearchHandler b (Either String (SearchResult t))
+defaultSearch searchParams mkq = do
+  r <- mkSearch (searchParams) mkq
+  case r of
+    Left  e -> return $ Left e
+    Right v -> Right <$> stripResults v

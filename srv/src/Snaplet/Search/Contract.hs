@@ -1,4 +1,6 @@
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeOperators,
+             ScopedTypeVariables
+ #-}
 module Snaplet.Search.Contract where
 
 import           Data.String (fromString)
@@ -22,16 +24,14 @@ contractSearch :: SearchHandler b
               (Either String
                (SearchResult
                 (Patch Contract :. ())))
-contractSearch = do
-  mkSearch (contractSearchParams)
-    mkQuery $ \conn roles (Only c) ->
-      stripRead conn roles $ (parsePatch c) :. ()
+contractSearch = defaultSearch contractSearchParams mkQuery
 
-mkQuery :: Text -> Int -> Int -> String -> Query
-mkQuery pred lim offset ord
+mkQuery :: forall t.MkSelect t => t -> Text -> Int -> Int -> String -> Query
+mkQuery _ pred lim offset ord
   = fromString $ printf
-      (  "    select row_to_json(\"Contract\".*) :: text"
+      (  "    select %s"
       ++ "     from \"Contract\""
       ++ "     where (%s) %s limit %i offset %i;"
       )
+      (T.unpack $ mkSel (undefined :: t))
       (T.unpack pred) ord lim offset
