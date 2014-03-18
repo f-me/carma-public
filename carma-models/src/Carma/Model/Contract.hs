@@ -152,8 +152,7 @@ data Contract = Contract
   , isActive         :: F Bool
                         "isActive"
                         "Активен"
-  -- FIXME: change to normal UTCTime when searh will get rid of row_to_json
-  , ctime            :: F LegacyDatetime
+  , ctime            :: F UTCTime
                         "ctime"
                         "Время создания контракта"
   } deriving Typeable
