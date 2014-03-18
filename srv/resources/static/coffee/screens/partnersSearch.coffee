@@ -87,11 +87,11 @@ define [ "utils"
       <li> <b>Номер кеса:</b> #{kaseKVM.id() || ''} </li>
       <li> <b>Адрес кейса:</b> #{kaseKVM.caseAddress_address() || ''}</li>
       <li> <b>Название программы: </b> #{kaseKVM.programLocal() || ''} </li>
-      <li> <b> Марка: </b> #{kaseKVM.car_makeLocal() || ''}</li>
-      <li> <b> Модель: </b> #{kaseKVM.car_modelLocal() || ''}</li>
-      <li> <b> Госномер: </b> #{kaseKVM.car_plateNum() || ''}</li>
-      <li> <b> Цвет: </b> #{kaseKVM.car_colorLocal() || ''}</li>
-      <li> <b> VIN:</b> #{kaseKVM.car_vin() || ''}</li>
+      <li> <b> Марка: </b> #{kaseKVM.car_makeLocal?() || ''}</li>
+      <li> <b> Модель: </b> #{kaseKVM.car_modelLocal?() || ''}</li>
+      <li> <b> Госномер: </b> #{kaseKVM.car_plateNum?() || ''}</li>
+      <li> <b> Цвет: </b> #{kaseKVM.car_colorLocal?() || ''}</li>
+      <li> <b> VIN:</b> #{kaseKVM.car_vin?() || ''}</li>
       <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal() || ''}</li>
       <li> <b> Клиент/Доверенное лицо будет сопровождать автомобиль:</b>
       #{if srvKVM.companion?() then '✓' else '' }</li>
