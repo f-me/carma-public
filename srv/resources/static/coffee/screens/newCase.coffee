@@ -7,6 +7,10 @@ define [ 'utils'
   (utils, hotkeys, tpl, mu, main) ->
 
     setupCaseMain = (viewName, args) ->
+      kaze = {}
+      if args.id
+        $.bgetJSON "/_/case/#{args.id}", (rsp) -> kaze = rsp
+
       kvm = main.modelSetup('case') viewName, args,
                          permEl       : 'case-permissions'
                          groupsForest : "center"
@@ -14,7 +18,7 @@ define [ 'utils'
                          slotsee      : ["case-number"]
                          focusClass   : 'focusable'
                          screenName   : 'newCase'
-                         modelArg     : "newCase:#{args.program}"
+                         modelArg     : "ctr:new:#{kaze.program}"
                          hooks        : ['*']
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
@@ -103,9 +107,7 @@ define [ 'utils'
         comment:              v['wazzup']()
         callTaker:            global.user.meta.realName
       main.buildNewModel 'case', args, {modelArg: "ctr:full:#{v.program()}"},
-        (m, k) -> global.router.navigate(
-          "newCase/#{k.program()}/#{k.id()}",
-          {trigger: true})
+        (m, k) -> global.router.navigate "newCase/#{k.id()}", {trigger: true}
 
     makeCase = _.throttle makeCaseAux, 2000, {trailing: false}
 

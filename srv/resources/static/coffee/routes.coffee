@@ -152,7 +152,7 @@ define [
       # Must _not_ end with trailing slashes
       routes:
         "case/:id"       : "loadCase"
-        "newCase/:p/:id" : "loadNewCase"
+        "newCase/:id"    : "loadNewCase"
         "dict"           : "dictAll"
         "dict/:dict"     : "dictOne"
         "dict/:dict/:id" : "dictEditEntry"
@@ -185,8 +185,7 @@ define [
         "contractsSearch*any"   : "contractsSearch"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
-      loadNewCase   : (p,id) ->
-                              r.renderScreen("newCase", newCase, {"program":p, "id": id})
+      loadNewCase   : (id) -> r.renderScreen("newCase", newCase, {"id": id})
       dictAll       :      -> r.renderScreen("dictionaries", dictionaries, {})
       dictOne       : (dict) ->
                               r.renderScreen("dictionaries", dictionaries, {dict})
