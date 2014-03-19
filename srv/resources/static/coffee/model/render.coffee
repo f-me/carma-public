@@ -171,7 +171,8 @@ define ["dictionaries"], (d) ->
         tpl = chooseFieldTemplate(f, templates)
 
         # Put field HTML in appropriate section
-        contents[currentSection] += Mustache.render(tpl, ctx)
+        if not f.meta?.mainOnly
+          contents[currentSection] += Mustache.render(tpl, ctx)
 
         if f.meta and (f.meta.mainToo or f.meta.mainOnly)
           contents[mainGroup] += Mustache.render(tpl, ctx)
