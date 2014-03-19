@@ -157,12 +157,10 @@ define [
         if h[-3..-1][0] == "#contract"
           # /#contract/progid/id case
           u = h[-3..-1].join '/'
-          global.router.navigate "#{h[-3..-2].join '/'}/#{kvm['id']()}",
-            { trigger: false }
+          Finch.navigate "#{h[-3..-2].join '/'}/#{kvm['id']()}", true
         else
           # /#contract/progid case
-          global.router.navigate "#{h[-2..-1].join '/'}/#{kvm['id']()}",
-            { trigger: false }
+          Finch.navigate "#{h[-2..-1].join '/'}/#{kvm['id']()}", true
 
       # need this timeout, so this event won't be fired on saved
       # model, after it's first fetch

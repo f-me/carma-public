@@ -370,7 +370,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
 
   modelsFromUrl: modelsFromUrl
 
-  reloadScreen: -> global.router.navigate modelsFromUrl(), { trigger: true }
+  reloadScreen: -> Finch.navigate modelsFromUrl()
 
   checkMatch: checkMatch
   kvmCheckMatch: kvmCheckMatch
@@ -393,11 +393,11 @@ define ["model/utils", "dictionaries"], (mu, d) ->
 
   setUrlParams: (prms) ->
     [url, currPrms] = document.location.href.split("?")
-    scr = global.router.current()
+    scr = window.location.href.split("#", 2)[1]
     nparams = $.extend (@fromUrlParams currPrms), prms
     enc = encodeURIComponent
     q = (("#{enc k}=#{enc v}" for k, v of nparams).join("&"))
-    global.router.navigate "#{scr}?#{q}"
+    Finch.navigate "#{scr}?#{q}"
 
   inject: (dest, src) -> dest[k] = v for k, v of src when not dest[k]
 

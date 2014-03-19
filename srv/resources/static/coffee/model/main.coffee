@@ -25,13 +25,11 @@ define [ "model/render"
        , "lib/config"
        ],
        (render, dict, sync, S, Idents, Config) ->
-  mainSetup = ( localScreens
-                   , localRouter
-                   , localDictionaries
-                   , hooks
-                   , user
-                   , pubSub) ->
-    Screens = localScreens
+  mainSetup = (Finch
+             , localDictionaries
+             , hooks
+             , user
+             , pubSub) ->
 
     dictCache = dict.buildCache(localDictionaries)
     imgr = new Idents
@@ -41,10 +39,8 @@ define [ "model/render"
     user.roles = _.map user.roles, (v) -> parseInt v
 
     window.global =
-        # «Screen» element which holds all views
         topElement: $el("layout")
-        screens: Screens
-        router: new localRouter
+        router: Finch
         dictionaries: localDictionaries
         # Maps labels to values for every dictionary
         dictLabelCache: dictCache.labelCache
@@ -93,7 +89,7 @@ define [ "model/render"
         # renderers maintain their viewsWare.
         viewsWare: {}
 
-    Backbone.history.start({pushState: false})
+    Finch.listen()
 
   # Knockout model builder
   #
@@ -374,8 +370,7 @@ define [ "model/render"
 
       screenName = options.screenName or modelName
       kvm["updateUrl"] = ->
-        global.router.navigate "#{screenName}/#{kvm.id()}",
-                               { trigger: false }
+        Finch.navigate "#{screenName}/#{kvm.id()}", true
 
       hooks = options.hooks or ['*', model.name]
       applyHooks global.hooks.model, hooks, elName

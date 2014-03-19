@@ -14,7 +14,7 @@ require [ "domready"
         , "lstorePubSub"
         ], ( dom
            , main
-           , Routes
+           , Finch
            , hooks
            , dicts
            , user
@@ -63,8 +63,7 @@ require [ "domready"
         for i in users
           {value: i.value, label: i.roles }
 
-    main.setup Routes.localScreens(),
-              Routes.localRouter,
+    main.setup Finch,
               dicts,
               hooks,
               user,
@@ -82,7 +81,7 @@ require [ "domready"
         global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
 
     if window.location.hash == "" and user.meta.homepage
-      global.router.navigate user.meta.homepage, {trigger: true}
+      Finch.navigate user.meta.homepage.replace '/', ''
 
     sendSms.setup()
 

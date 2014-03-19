@@ -43,9 +43,6 @@
     <!-- Utility library, Backbone dependency -->
     <script src="/s/js/3p/underscore-1.3.1.min.js" />
 
-    <!-- Loose MVC -->
-    <script src="/s/js/3p/backbone-0.9.1.min.js" />
-
     <!-- Simple templates -->
     <script src="/s/js/3p/mustache.js" />
 

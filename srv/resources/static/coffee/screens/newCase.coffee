@@ -33,7 +33,7 @@ define [ 'utils'
       hotkeys.setup()
 
       $('#go-back-to-call').on 'click', ->
-        global.router.navigate "call", {trigger: true}
+        Finch.navigate "call"
 
       $('#go-back-and-transfer-to-bo').on 'click', ->
         kvm = global.viewsWare["case-form"].knockVM
@@ -42,11 +42,11 @@ define [ 'utils'
         # service.status will run in parallel and try to update case.actions.
         for svc in kvm.servicesReference()
           svc.status 'backoffice'
-        global.router.navigate "call", {trigger: true}
+        Finch.navigate "call"
 
       $('#go-to-full-case').on 'click', ->
         kvm = global.viewsWare["case-form"].knockVM
-        global.router.navigate "case/#{kvm.id()}", {trigger: true}
+        Finch.navigate "case/#{kvm.id()}"
 
       $("#case-comments-b").on 'click', ->
         i = $("#case-comments-i")
@@ -103,9 +103,7 @@ define [ 'utils'
         comment:              v['wazzup']()
         callTaker:            global.user.meta.realName
       main.buildNewModel 'case', args, {modelArg: "ctr:full:#{v.program()}"},
-        (m, k) -> global.router.navigate(
-          "newCase/#{k.program()}/#{k.id()}",
-          {trigger: true})
+        (m, k) -> Finch.navigate "newCase/#{k.program()}/#{k.id()}"
 
     makeCase = _.throttle makeCaseAux, 2000, {trailing: false}
 
