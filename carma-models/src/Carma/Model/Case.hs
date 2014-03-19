@@ -62,18 +62,16 @@ instance Model Case where
             {mv_modelName = "case"
             ,mv_title = "Кейс"})
           $ caseMod ++ caseDicts ++ caseRo ++ caseOldCRUDHacks
-      "newCase"
-        -> setMainOnly
-          $ modifyView
-            ((defaultView :: ModelView Case) {mv_title = "Кейс"})
-            $ caseMod ++ caseDicts ++ caseRo
+      "new"
+        -> setMainOnly (modelView "full" :: ModelView Case)
       _ -> defaultView
       where
         setMainOnly mv = mv
           {mv_fields =
              [fv{fv_meta = Map.insert "mainOnly" (Aeson.Bool True) $ fv_meta fv}
              |fv <- mv_fields mv
-             ,not $ "caseAddress" `T.isPrefixOf` fv_name fv
+             ,not $ fv_name fv `elem`
+               ["caseAddress_map", "caseAddress_comment", "caseAddress_coords"]
              ]
           }
 
