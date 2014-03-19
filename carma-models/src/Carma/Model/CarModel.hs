@@ -28,6 +28,7 @@ instance Model CarModel where
   type TableName CarModel = "CarModel"
   modelInfo = mkModelInfo CarModel ident
   modelView = \case
-    "parents" -> (searchView [("parent", one parent)])
-      {mv_modelName = "CarModel"}
-    _ -> modifyView defaultView [textarea info]
+    ""        -> Just $ modifyView defaultView [textarea info]
+    "parents" -> Just
+      $ (searchView [("parent", one parent)]) {mv_modelName = "CarModel"}
+    _  -> Nothing

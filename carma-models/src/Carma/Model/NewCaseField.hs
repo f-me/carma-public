@@ -25,4 +25,6 @@ data NewCaseField = NewCaseField
 instance Model NewCaseField where
   type TableName NewCaseField = "NewCaseField"
   modelInfo = mkModelInfo NewCaseField ident
-  modelView _ = modifyView defaultView [textarea info, readonly field]
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

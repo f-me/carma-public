@@ -30,7 +30,7 @@ instance Model Tickets where
   type TableName Tickets = "ticketstbl"
   type Parent Tickets = Service
   modelInfo = mkModelInfo Tickets ident
-  modelView _ = modifyView
+  modelView _ = Just $ modifyView
     (defaultView :: ModelView Tickets) {mv_title = "Заказ билетов"}
     $ mapWidget ticketsFrom_address ticketsFrom_coords ticketsFrom_map
     ++ mapWidget ticketsTo_address ticketsTo_coords ticketsTo_map

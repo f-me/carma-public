@@ -42,8 +42,10 @@ instance Model Program where
   type TableName Program = "Program"
   idents = Carma.Model.Program.idents
   modelInfo = mkModelInfo Program ident
-  modelView _ = modifyView defaultView
+  modelView = \case
+    "" -> Just $ modifyView defaultView
                 [ setMeta "dictionaryType" "ComputedDict" managers
                 , setMeta "dictionaryName" "programManagers" managers
                 , setMeta "bounded" (A.Bool True) managers
                 ]
+    _  -> Nothing

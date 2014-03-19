@@ -37,4 +37,6 @@ mkIdents [t|Usermeta|]
 instance Model Usermeta where
   type TableName Usermeta = "usermetatbl"
   modelInfo = mkModelInfo Usermeta ident
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

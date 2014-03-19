@@ -31,7 +31,9 @@ data FieldPermission = FieldPermission
 instance Model FieldPermission where
   type TableName FieldPermission = "FieldPermission"
   modelInfo = mkModelInfo FieldPermission ident
-  modelView _ = modifyView defaultView [readonly field, readonly model]
+  modelView = \case
+    "" -> Just $ modifyView defaultView [readonly field, readonly model]
+    _  -> Nothing
 
 stripReadPatch :: (Model m, Model (Parent m))
                => Connection

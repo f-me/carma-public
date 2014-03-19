@@ -24,6 +24,6 @@ instance Model Transportation where
   type TableName Transportation = "transportationtbl"
   type Parent Transportation = Service
   modelInfo = mkModelInfo Transportation ident
-  modelView _ = modifyView
+  modelView _ = Just $ modifyView
     (defaultView :: ModelView Transportation) {mv_title = "Транспортировка"}
     $ mapWidget fromToAddress_address fromToAddress_coords fromToAddress_map

@@ -22,7 +22,7 @@ instance Model TechInspect where
   type TableName TechInspect = "tech1"
   type Parent TechInspect = Service
   modelInfo = mkModelInfo TechInspect ident
-  modelView _ = modifyView
+  modelView _ = Just $ modifyView
     (defaultView :: ModelView TechInspect) {mv_title = "TO"}
     [textarea whatToSay1]
 

@@ -26,4 +26,6 @@ instance Model ProgramType where
   type TableName ProgramType = "ProgramType"
   idents = Carma.Model.ProgramType.idents
   modelInfo = mkModelInfo ProgramType ident
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

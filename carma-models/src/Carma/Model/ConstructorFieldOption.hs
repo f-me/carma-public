@@ -31,12 +31,12 @@ instance Model ConstructorFieldOption where
   type TableName ConstructorFieldOption = "ConstructorFieldOption"
   modelInfo = mkModelInfo ConstructorFieldOption ident
   modelView = \case
-    "parents"
-      -> (searchView
+    "parents" -> Just
+      $ (searchView
         [("screen",  one screen)
         ,("program", one program)
         ,("model",   one model)
         ])
         {mv_modelName = "ConstructorFieldOption"}
-    _ -> modifyView defaultView
-      [textarea info, invisible ord]
+    "" -> Just $ modifyView defaultView [textarea info, invisible ord]
+    _  -> Nothing

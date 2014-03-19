@@ -27,7 +27,6 @@ import Data.Model.Types
 import Data.Model.View
 
 import Carma.Model.Types (TInt)
-import  Carma.Model.LegacyTypes (LegacyDatetime)
 
 import Carma.Model.CarClass     (CarClass)
 import Carma.Model.CarMake      (CarMake)
@@ -161,15 +160,18 @@ data Contract = Contract
 instance Model Contract where
   type TableName Contract = "Contract"
   modelInfo = mkModelInfo Contract ident
-  modelView "search" = searchView (contractSearchParams)
-  modelView _ = modifyView defaultView
-                [ setMeta "dictionaryParent" "make" model
-                , setMeta "regexp" "email" email
-                , setMeta "regexp" "phone" phone
-                , setMeta "regexp" "plateNum" plateNum
-                , setMeta "regexp" "vin" vin
-                , color `completeWith` Color.label
-                ]
+  modelView = \case
+    "search" -> Just $ searchView (contractSearchParams)
+    ""       -> Just
+      $ modifyView defaultView
+        [ setMeta "dictionaryParent" "make" model
+        , setMeta "regexp" "email" email
+        , setMeta "regexp" "phone" phone
+        , setMeta "regexp" "plateNum" plateNum
+        , setMeta "regexp" "vin" vin
+        , color `completeWith` Color.label
+        ]
+    _ -> Nothing
 
 
 -- | Contract identifiers used to import/search contracts.

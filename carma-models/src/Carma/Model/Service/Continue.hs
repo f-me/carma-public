@@ -31,7 +31,7 @@ instance Model Continue where
   type TableName Continue = "continuetbl"
   type Parent Continue = Service
   modelInfo = mkModelInfo Continue ident
-  modelView _ = modifyView
+  modelView _ = Just $ modifyView
     (defaultView :: ModelView Continue) {mv_title = "Продолжение путешествия"}
     $ mapWidget deliverFrom_address deliverFrom_coords deliverFrom_map
     ++ mapWidget deliverTo_address deliverTo_coords deliverTo_map

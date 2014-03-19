@@ -29,7 +29,7 @@ instance Model SoberDriver where
   type TableName SoberDriver = "sobertbl"
   type Parent SoberDriver = Service
   modelInfo = mkModelInfo SoberDriver ident
-  modelView _ = modifyView
+  modelView _ = Just $ modifyView
     (defaultView :: ModelView SoberDriver) {mv_title = "Трезвый водитель"}
     $ mapWidget fromAddress_address fromAddress_coords fromAddress_map
     ++ mapWidget toAddress_address toAddress_coords toAddress_map

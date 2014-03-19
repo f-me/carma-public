@@ -11,8 +11,10 @@ import Carma.Model.SubProgram.Type
 instance Model SubProgramContact where
   type TableName SubProgramContact = "SubProgramContact"
   modelInfo = mkModelInfo SubProgramContact cIdent
-  modelView _ = modifyView defaultView
+  modelView = \case
+    "" -> Just $ modifyView defaultView
                 [ invisible cParent
                 , setMeta "regexp" "email" email
                 , setMeta "regexp" "phone" phone
                 ]
+    _  -> Nothing

@@ -33,7 +33,8 @@ instance Model SubProgram where
   type TableName SubProgram = "SubProgram"
   idents = Carma.Model.SubProgram.idents
   modelInfo = mkModelInfo SubProgram ident
-  modelView _ = modifyView defaultView
+  modelView = \case
+    "" -> Just $ modifyView defaultView
                 [ setMeta "regexp" "number" checkPeriod
                 , setMeta "regexp" "number" validFor
                 , setMeta "regexp" "email" mailAddr
@@ -57,3 +58,4 @@ instance Model SubProgram where
                 , setMeta "reference-widget" "files" logo
                 , setMeta "single-uploader" (A.Bool True) logo
                 ]
+    _  -> Nothing

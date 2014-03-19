@@ -42,4 +42,6 @@ data City = City
 instance Model City where
   type TableName City = "City"
   modelInfo = mkModelInfo City ident
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

@@ -29,11 +29,13 @@ data Sms = Sms
 instance Model Sms where
   type TableName Sms = "Sms"
   modelInfo = mkModelInfo Sms ident
-  modelView _ = modifyView defaultView
-    [invisible ctime
-    ,invisible mtime
-    ,invisible status
-    ,invisible sender
-    ,textarea  msgText
-    ,setMeta "regexp" "phone" phone
-    ]
+  modelView = \case
+    "" -> Just $ modifyView defaultView
+      [invisible ctime
+      ,invisible mtime
+      ,invisible status
+      ,invisible sender
+      ,textarea  msgText
+      ,setMeta "regexp" "phone" phone
+      ]
+    _  -> Nothing

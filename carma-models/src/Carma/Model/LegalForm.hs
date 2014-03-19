@@ -19,4 +19,6 @@ data LegalForm = LegalForm
 instance Model LegalForm where
   type TableName LegalForm = "LegalForm"
   modelInfo = mkModelInfo LegalForm ident
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

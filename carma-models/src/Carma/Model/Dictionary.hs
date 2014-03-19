@@ -29,4 +29,6 @@ data Dictionary = Dictionary
 instance Model Dictionary where
   type TableName Dictionary = "Dictionary"
   modelInfo = mkModelInfo Dictionary ident
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

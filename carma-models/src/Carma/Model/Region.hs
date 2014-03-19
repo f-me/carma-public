@@ -20,4 +20,6 @@ data Region = Region
 instance Model Region where
   type TableName Region = "Region"
   modelInfo = mkModelInfo Region ident
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

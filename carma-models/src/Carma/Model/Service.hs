@@ -105,14 +105,17 @@ data Service = Service
 instance Model Service where
   type TableName Service = "servicetbl"
   modelInfo = mkModelInfo Service ident
-  modelView "search" = modifyView (searchView serviceSearchParams) svcMod
-  modelView "newCase" = modifyView defaultView
-    $ svcMod
-    ++ [mainOnly times_expectedServiceStart
-       ,mainOnly times_expectedServiceEnd
-       ,mainOnly times_expectedDispatch
-       ]
-  modelView _ = modifyView defaultView svcMod
+  modelView = \case
+    "search" -> Just $ modifyView (searchView serviceSearchParams) svcMod
+    "full"   -> Just $ modifyView defaultView svcMod
+    "new"    -> Just $ modifyView defaultView
+      $ svcMod
+      ++ [mainOnly times_expectedServiceStart
+         ,mainOnly times_expectedServiceEnd
+         ,mainOnly times_expectedDispatch
+         ]
+    "" -> Just $ modifyView defaultView svcMod
+    _  -> Nothing
 
 
 svcMod =

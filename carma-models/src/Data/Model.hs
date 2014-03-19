@@ -72,7 +72,7 @@ class (SingI (TableName m), Typeable m, Typeable (Parent m)) => Model m where
   type Parent m = NoParent
 
   modelInfo :: ModelInfo m
-  modelView :: Text -> ModelView m
+  modelView :: Text -> Maybe (ModelView m)
 
   -- | String-to-ident mappings for the model.
   idents    :: HashMap.HashMap String (IdentI m)

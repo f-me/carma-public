@@ -22,7 +22,9 @@ data SmsTemplate = SmsTemplate
 instance Model SmsTemplate where
   type TableName SmsTemplate = "SmsTemplate"
   modelInfo = mkModelInfo SmsTemplate ident
-  modelView _ = modifyView defaultView [textarea text]
+  modelView = \case
+    "" -> Just $ modifyView defaultView [textarea text]
+    _  -> Nothing
 
 
 order :: IdentI SmsTemplate

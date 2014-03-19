@@ -22,5 +22,7 @@ data ServiceInfo = ServiceInfo
 instance Model ServiceInfo where
   type TableName ServiceInfo = "ServiceInfo"
   modelInfo = mkModelInfo ServiceInfo ident
-  modelView _ = modifyView defaultView
-    [readonly program, readonly service, textarea info]
+  modelView = \case
+    "" -> Just $ modifyView defaultView
+      [readonly program, readonly service, textarea info]
+    _  -> Nothing

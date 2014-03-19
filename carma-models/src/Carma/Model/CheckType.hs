@@ -19,4 +19,6 @@ data CheckType = CheckType
 instance Model CheckType where
   type TableName CheckType = "CheckType"
   modelInfo = mkModelInfo CheckType ident
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

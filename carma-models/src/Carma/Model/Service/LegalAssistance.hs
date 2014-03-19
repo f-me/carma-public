@@ -23,5 +23,5 @@ instance Model LegalAssistance where
   type TableName LegalAssistance = "kentbl"
   type Parent LegalAssistance = Service
   modelInfo = mkModelInfo LegalAssistance ident
-  modelView _ = (defaultView :: ModelView LegalAssistance)
+  modelView _ = Just $ (defaultView :: ModelView LegalAssistance)
     {mv_title = "Юридическая помощь"}

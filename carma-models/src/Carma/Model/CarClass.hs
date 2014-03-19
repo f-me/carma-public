@@ -19,4 +19,6 @@ data CarClass = CarClass
 instance Model CarClass where
   type TableName CarClass = "CarClass"
   modelInfo = mkModelInfo CarClass ident
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

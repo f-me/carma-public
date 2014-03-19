@@ -84,10 +84,12 @@ mkIdents [t|VinFormat|]
 instance Model VinFormat where
   type TableName VinFormat = "VinFormat"
   modelInfo = mkModelInfo VinFormat ident
-  modelView _ = modifyView (defaultView :: ModelView VinFormat) $
+  modelView = \case
+    "" -> Just $ modifyView (defaultView :: ModelView VinFormat) $
                 [ partnerKey lastCheckDealerDefault
                 , partnerKey sellerDefault
                 ]
+    _  -> Nothing
 
 
 -- | Export a list of titles from a field.

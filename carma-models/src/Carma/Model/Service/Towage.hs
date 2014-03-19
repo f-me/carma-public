@@ -77,13 +77,16 @@ instance Model Towage where
   type TableName Towage = "towagetbl"
   type Parent Towage = Service
   modelInfo = mkModelInfo Towage ident
-  modelView "search" = modifyView (searchView towageSearchParams)
-    $ (setType "dictionary-set" towDealer_partnerId) : viewModifier
-  modelView _ =
-    modifyView (defaultView :: ModelView Towage) {mv_title = "Эвакуация"}
-      $(setType "dictionary" towDealer_partnerId)
-      : invisible towDealer_partnerId
-      : viewModifier
+  modelView = \case
+    "search" -> Just
+      $ modifyView (searchView towageSearchParams)
+      $ (setType "dictionary-set" towDealer_partnerId) : viewModifier
+    ""       -> Just
+      $ modifyView (defaultView :: ModelView Towage) {mv_title = "Эвакуация"}
+        $(setType "dictionary" towDealer_partnerId)
+        : invisible towDealer_partnerId
+        : viewModifier
+    _ -> Nothing
 
 viewModifier =
   [dict towDealer_partnerId $ (dictOpt "allPartners")

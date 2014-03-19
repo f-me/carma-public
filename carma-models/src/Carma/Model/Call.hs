@@ -32,9 +32,10 @@ callSearchParams
 
 instance Model Call where
   type TableName Call = "calltbl"
-  modelInfo   = mkModelInfo Call ident
-  modelView "search" = modifyView (searchView callSearchParams) dicts
-  modelView _ = modifyView defaultView dicts
+  modelInfo = mkModelInfo Call ident
+  modelView = \case
+    "search" -> Just $ modifyView (searchView callSearchParams) dicts
+    _        -> Just $ modifyView defaultView dicts
 
 dicts =
   [ dict callType $ (dictOpt "CallTypes")

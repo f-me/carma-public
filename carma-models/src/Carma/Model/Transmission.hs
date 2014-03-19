@@ -19,4 +19,6 @@ data Transmission = Transmission
 instance Model Transmission where
   type TableName Transmission = "Transmission"
   modelInfo = mkModelInfo Transmission ident
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

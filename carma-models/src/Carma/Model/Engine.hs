@@ -27,4 +27,6 @@ mkIdents [t|Engine|]
 instance Model Engine where
   type TableName Engine = "Engine"
   modelInfo = mkModelInfo Engine ident
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

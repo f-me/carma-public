@@ -4,7 +4,6 @@ module Carma.Model.Case
        ) where
 
 import Data.Text (Text)
-import qualified Data.Text as T
 import Data.Aeson as Aeson
 import qualified Data.Map as Map
 
@@ -44,27 +43,27 @@ caseSearchParams
 
 instance Model Case where
   type TableName Case = "casetbl"
-  modelInfo   = mkModelInfo Case Case.ident
-  modelView v =
-    case v of
-      "search" -> modifyView (searchView caseSearchParams) $
-                  [modifyByName "Case_id" (\x -> x { fv_type = "ident" })
-                  ,modifyByName "files"   (\x -> x { fv_type = "dictionary" })
-                  ,dict files $ (dictOpt "ExistDict")
-                              { dictType    = Just "ComputedDict"
-                              , dictBounded = True
-                              }
-                  ]
-                  ++ caseMod ++ caseDicts
-      "full"
-        -> modifyView
+  modelInfo = mkModelInfo Case Case.ident
+  modelView = \case
+      "search" -> Just
+        $ modifyView (searchView caseSearchParams)
+        $ [modifyByName "Case_id" (\x -> x { fv_type = "ident" })
+          ,modifyByName "files"   (\x -> x { fv_type = "dictionary" })
+          ,dict files $ (dictOpt "ExistDict")
+                      { dictType    = Just "ComputedDict"
+                      , dictBounded = True
+                      }
+          ]
+          ++ caseMod ++ caseDicts
+      "full" -> Just
+        $ modifyView
           (stripId $ (defaultView :: ModelView Case)
             {mv_modelName = "case"
             ,mv_title = "Кейс"})
           $ caseMod ++ caseDicts ++ caseRo ++ caseOldCRUDHacks
-      "new"
-        -> setMainOnly (modelView "full" :: ModelView Case)
-      _ -> defaultView
+      "new" -> setMainOnly `fmap` (modelView "full" :: Maybe (ModelView Case))
+      ""    -> modelView "full" :: Maybe (ModelView Case)
+      _ -> Nothing
       where
         setMainOnly mv = mv
           {mv_fields =

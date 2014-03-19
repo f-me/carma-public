@@ -17,4 +17,6 @@ data SmsTokenName = SmsTokenName
 instance Model SmsTokenName where
   type TableName SmsTokenName = "SmsTokenName"
   modelInfo = mkModelInfo SmsTokenName ident
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

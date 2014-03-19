@@ -34,5 +34,5 @@ instance Model Bank where
   type TableName Bank = "banktbl"
   type Parent Bank = Service
   modelInfo = mkModelInfo Bank ident
-  modelView _ = (defaultView :: ModelView Bank)
+  modelView _ = Just $ (defaultView :: ModelView Bank)
     {mv_title = "Банковская поддержка"}

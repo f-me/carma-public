@@ -21,5 +21,6 @@ data ServiceNames = ServiceNames
 instance Model ServiceNames where
   type TableName ServiceNames = "ServiceNames"
   modelInfo = mkModelInfo ServiceNames ident
-  modelView _ = modifyView defaultView [readonly value]
-
+  modelView = \case
+    "" -> Just $ modifyView defaultView [readonly value]
+    _  -> Nothing

@@ -20,4 +20,6 @@ data ProgramInfo = ProgramInfo
 instance Model ProgramInfo where
   type TableName ProgramInfo = "ProgramInfo"
   modelInfo = mkModelInfo ProgramInfo ident
-  modelView _ = modifyView defaultView [readonly program, textarea info]
+  modelView = \case
+    "" -> Just $ modifyView defaultView [readonly program, textarea info]
+    _  -> Nothing

@@ -19,4 +19,6 @@ data Wazzup = Wazzup
 instance Model Wazzup where
   type TableName Wazzup = "Wazzup"
   modelInfo = mkModelInfo Wazzup value
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

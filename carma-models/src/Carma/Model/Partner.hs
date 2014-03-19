@@ -65,7 +65,9 @@ data Partner = Partner
 instance Model Partner where
   type TableName Partner = "partnertbl"
   modelInfo = mkModelInfo Partner ident
-  modelView _ = defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing
 
 -- | Set proper @dictionaryLabel@ meta for a field referring to
 -- 'Partner'.
