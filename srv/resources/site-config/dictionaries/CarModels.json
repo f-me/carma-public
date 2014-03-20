@@ -44,9 +44,10 @@
                 "label": "Arnage"
             },
             {
-                "value": "continental",
+                "value": "continental FS",
                 "label": "Continental Flying Spur"
-            }
+            },
+            {"value": "Continental", "label": "Continental"}
         ],
         "chrysler": [
             {"value": "Grand Voyager", "label": "Grand Voyager"},
@@ -155,6 +156,10 @@
             {
                 "value": "c4",
                 "label": "C4"
+            },
+             {
+                "value": "C4L",
+                "label": "C4L"
             },
             {
                 "value": "c5",
@@ -703,7 +708,8 @@
                 "value": "largus",
                 "label": "Largus"
             },
-            {"value": "21041", "label": "21041"}
+            {"value": "21041", "label": "21041"},
+            {"value": "2131", "label": "2131"}
         ],        
         "lancia": [
             {
@@ -1506,6 +1512,10 @@
                 "label": "3008"
             },
             {
+                "value": "2008",
+                "label": "2008"
+            },
+            {
                 "value": "4007",
                 "label": "4007"
             },
@@ -1840,7 +1850,7 @@
             {"value": "CC6461", "label": "CC6461"}
         ],
         "jeep": [
-            {"value": "cherokee", "label": "Grand Cherokee"},
+            {"value": "Grand Cherokee", "label": "Grand Cherokee"},
             {"value": "Compass", "label": "Compass"},
             {"value": "Cherokee", "label": "Cherokee"}
         ],
