@@ -135,13 +135,39 @@ define [ "utils"
 
       contract.isActive = if contract.isActive then "Да" else "Нет"
 
-      if contract.seller
+      if contract.seller or contract.lastCheckDealer
         carSellerDict = new Dict.dicts.ModelDict
           dict: 'Partner'
           meta:
             dictionaryKey: 'id'
             dictionaryLabel: 'name'
         contract.seller = carSellerDict.getLab contract.seller
+        contract.lastCheckDealer = carSellerDict.getLab contract.lastCheckDealer
+
+      if contract.model
+        carModelDict = new Dict.dicts.ModelDict
+          dict: 'CarClass'
+        contract.carClass = carModelDict.getLab contract.carClass
+
+      if contract.model
+        carModelDict = new Dict.dicts.ModelDict
+          dict: 'CheckType'
+        contract.checkType = carModelDict.getLab contract.checkType
+
+      if contract.model
+        carModelDict = new Dict.dicts.ModelDict
+          dict: 'Transmission'
+        contract.transmission = carModelDict.getLab contract.transmission
+
+      if contract.model
+        carModelDict = new Dict.dicts.ModelDict
+          dict: 'Engine'
+        contract.engineType = carModelDict.getLab contract.engineType
+
+      if contract.model
+        carModelDict = new Dict.dicts.ModelDict
+          dict: 'LegalForm'
+        contract.legalForm = carModelDict.getLab contract.legalForm
 
       model = global.model 'Contract'
       mapper = new DataMap.Mapper(model)
