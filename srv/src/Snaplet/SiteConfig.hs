@@ -79,7 +79,9 @@ serveModel = do
 
 viewForModel :: forall m . Model.Model m => T.Text -> m -> Maybe Model
 viewForModel name _
-  = Aeson.decode $ Aeson.encode (Model.modelView name :: Model.ModelView m)
+  = join
+  $ fmap (Aeson.decode . Aeson.encode)
+  $ (Model.modelView name :: Maybe (Model.ModelView m))
 
 
 constructModel
@@ -87,13 +89,11 @@ constructModel
   -> Handler b (SiteConfig b) Model
 constructModel mdlName screen program model = do
   let q = [sql|
-      select c.field, c.label, c.r, c.w, c.required, c.info
-        from "ConstructorFieldOption" c, "Program" p
-        where c.program = p.id
-          and c.model = ?
-          and c.screen = ?
-          and p.id = ? :: int
-        order by c.ord
+      select field, label, r, w, required, info
+        from "ConstructorFieldOption"
+        where model = ?
+          and screen = ?
+          and program = ? :: int
       |]
   pg <- gets pg_search
   res <- liftIO (withResource pg $ \c -> query c q [mdlName,screen,program])
