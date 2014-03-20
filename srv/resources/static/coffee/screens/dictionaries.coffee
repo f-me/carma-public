@@ -131,10 +131,11 @@ define [ "utils"
           setupButtonPanel kvm, table, args, objURL
           textarea2wysiwyg()
 
-        # if dict has parents
-        unless _.isEmpty dict.parent
-          # let user show entries from a particular parent
-          parentModel = global.model dictName, "parents"
+        initEditControls()
+
+        # let user show entries from a particular parent
+        parentModel = global.model dictName, "parents"
+        if parentModel
           parentKVM = main.buildKVM parentModel, {}
           parentKVM.find = =>
             # TODO:
@@ -145,9 +146,6 @@ define [ "utils"
               table.setObjs objURL
             else
               initEditControls()
-        else
-          # no parents, show all entries
-          initEditControls()
 
       # show parent select controls
       # I know what parentKVM may be 'undefined' here

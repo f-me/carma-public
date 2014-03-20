@@ -19,7 +19,6 @@ define [ 'utils'
                          focusClass   : 'focusable'
                          screenName   : 'newCase'
                          modelArg     : "ctr:new:#{kaze.program}"
-                         hooks        : ['*']
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
       $("#empty-fields-placeholder").html(
