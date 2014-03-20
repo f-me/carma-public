@@ -30,7 +30,7 @@ define [ "utils"
     else
       "search_#{model}_#{fld}"
 
-  open = (prm) -> window.open("/#partnersSearch/#{prm}", "_blank")
+  open = (prm) -> window.open("/#search/partners/#{prm}", "_blank")
 
   # fh is just mapping from field name to field
   fh = {}
