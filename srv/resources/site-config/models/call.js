@@ -98,7 +98,8 @@
     {
       "meta": {
         "dictionaryName": "CarMakers",
-        "label": "Марка"
+        "label": "Марка",
+        "bounded": true
       },
       "type": "dictionary",
       "groupName": null,
@@ -108,7 +109,8 @@
       "meta": {
         "dictionaryName": "CarModels",
         "dictionaryParent": "carMake",
-        "label": "Модель"
+        "label": "Модель",
+        "bounded": true
       },
       "type": "dictionary",
       "groupName": null,
