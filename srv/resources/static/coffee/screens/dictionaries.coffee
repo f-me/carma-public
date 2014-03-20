@@ -26,8 +26,7 @@ define [ "utils"
       options = {permEl, focusClass, refs}
       kvm = main.modelSetup(dict.name) viewName, args, options
       kvm['updateUrl'] = ->
-        global.router.navigate "dict/#{dict.id}/#{kvm.id()}",
-                               { trigger: false }
+        Finch.navigate "dict/#{dict.id}/#{kvm.id()}", true
       kvm
 
     majorFieldsSetup = (dict, dictModel) ->

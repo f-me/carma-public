@@ -1,240 +1,164 @@
-define [
-  "screens/backoffice"
-  "screens/call"
-  "screens/case"
-  "screens/newCase"
-  "screens/dictionaries"
-  "screens/partners"
-  "screens/user"
-  "screens/uploads"
-  "screens/printService"
-  "screens/rkc"
-  "screens/rkcFront"
-  "screens/rkcOps"
-  "screens/supervisor"
-  "screens/supervisorOps"
-  "screens/vin"
-  "screens/report"
-  "screens/contract"
-  "screens/program"
-  "screens/partnersSearch"
-  "screens/servicesSearch"
-  "screens/callsSearch"
-  "screens/contractsSearch"
-  "render/screen"
-  ], ( bo
-     , call
-     , kase
-     , newCase
-     , dictionaries
-     , partner
-     , user
-     , uploads
-     , print
-     , rkc
-     , rkcFront
-     , rkcOps
-     , supervisor
-     , supervisorOps
-     , vin
-     , report
-     , contract
-     , program
-     , partnersSearch
-     , servicesSearch
-     , callsSearch
-     , contractsSearch
-     , r) ->
-    localScreens: ->
-      # "<screen-name>":
-      #    "template": "<top-level-template-name>" (if needed)
-      #    "views":
-      #       "<view1-name>": a screen object;
-      #                       its constructor field will called with
-      #                       view1-name and screen args
-      #       "<view2-name>": ...
-      #
-      # (view names may reference elements in screen template; screen
-      # template is picked from "template" field here or of screen
-      # object used when renderScreen was called)
-      #
-      # TODO: Screen objects are used as both template containers and
-      # view constructors.
-      "case":
-        "template": "case-screen-template"
-        "views":
-          "case-form": kase
-      "newCase":
-        "template": "case-screen-template"
-        "views":
-          "case-form": newCase
-      "dictionaries":
-        "template": "dictionaries-screen-template"
-        "views":
-          "dictionaries-view": dictionaries
-      "search":
-        "template": "search-screen-template"
-        "views":
-          "tableView":
-             constructor: setupSearchTable
-      "back":
-        "template": "back-screen-template"
-        "views":
+define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
+
+  Finch.route "back", (bind) ->
+    require ["screens/backoffice"], (bo) ->
+      bo.screen =
+        name : "back"
+        template: "back-screen-template"
+        views:
           "back-form": bo
-      "vin":
-        "views":
-          "vin-form": vin
-      "call":
-        "template": "call-screen-template"
-        "views":
+      r.renderScreen bo, bind
+
+  Finch.route "call/:id", (bind) ->
+    require ["screens/call"], (call) ->
+      call.screen =
+        name : "call"
+        template: "call-screen-template"
+        views:
           "call-form": call
-      "partner":
-        "template": "partner-screen-template"
-        "views":
+      r.renderScreen call, bind
+
+  Finch.route "case/:id", (bind) ->
+    require ["screens/case"], (kase) ->
+      kase.screen =
+        name : "case"
+        template: "case-screen-template"
+        views:
+          "case-form": kase
+      r.renderScreen kase, bind
+
+  Finch.route "newCase/:id", (bind) ->
+    require ["screens/newCase"], (newCase) ->
+      newCase.screen =
+        name : "newCase"
+        template: "case-screen-template"
+        views:
+          "case-form": newCase
+      r.renderScreen newCase, bind
+
+  Finch.route "dict/:dict/:id", (bind) ->
+    require ["screens/dictionaries"], (dictionaries) ->
+      dictionaries.screen =
+        name : "dictionaries"
+        template: "dictionaries-screen-template"
+        views:
+          "dictionaries-view": dictionaries
+      r.renderScreen dictionaries, bind
+
+  Finch.route "partner/:id", (bind) ->
+    require ["screens/partners"], (partner) ->
+      partner.screen =
+        name : "partner"
+        template: "partner-screen-template"
+        views:
           "partner-view": partner
-      "user":
-        "views":
+      r.renderScreen partner, bind
+
+  Finch.route "usermeta/:id", (bind) ->
+    require ["screens/user"], (user) ->
+      user.screen =
+        name : "user"
+        views:
           "user-view": user
-      "uploads":
-        "views":
+      r.renderScreen user, bind
+
+  Finch.route "uploads", (bind) ->
+    require ["screens/uploads"], (uploads) ->
+      uploads.screen =
+        name : "uploads"
+        views:
           "uploads-view": uploads
-      "supervisor":
-        "template": "supervisor-screen-template"
-        "views":
-          "action-form": supervisor
-      "supervisorOps":
-        "template": "supervisorOps-screen-template"
-        "views":
-          "supervisorOps-table": supervisorOps
-      "rkc":
-        "template": "rkc-screen-template"
-        "views":
-          "rkc-form": rkc
-      "rkcOps":
-        "template": "rkcOps-screen-template"
-        "views":
-          "rkcOps-form": rkcOps
-      "rkcFront":
-        "template": "rkcFront-screen-template"
-        "views":
-          "rkcFront-form": rkcFront
-      "reports":
-        "template": "reports-screen-template"
-        "views":
-          "reports": report
-      "contract":
-        "template": "contract-screen-template"
-        "views":
-          "contract-form": contract
-      "printSrv":
-        "template": "printSrv-screen-template"
-        "views":
+      r.renderScreen uploads, bind
+
+  Finch.route "printSrv/:model/:id", (bind) ->
+    require ["screens/printService"], (print) ->
+      print.screen =
+        name : "printSrv"
+        template: "printSrv-screen-template"
+        views:
           "print-table": print
-      "program":
-        "template": "program-screen-template"
-        "views":
+      r.renderScreen print, bind
+
+  Finch.route "rkc", (bind) ->
+    require ["screens/rkc"], (rkc) ->
+      rkc.screen =
+        name : "rkc"
+        template: "rkc-screen-template"
+        views:
+          "rkc-form": rkc
+      r.renderScreen rkc, bind
+
+  Finch.route "rkcFront", (bind) ->
+    require ["screens/rkcFront"], (rkcFront) ->
+      rkcFront.screen =
+        name : "rkcFront"
+        template: "rkcFront-screen-template"
+        views:
+          "rkcFront-form": rkcFront
+      r.renderScreen rkcFront, bind
+
+  Finch.route "rkcOps", (bind) ->
+    require ["screens/rkcOps"], (rkcOps) ->
+      rkcOps.screen =
+        name : "rkcOps"
+        template: "rkcOps-screen-template"
+        views:
+          "rkcOps-form": rkcOps
+      r.renderScreen rkcOps, bind
+
+  Finch.route "supervisor", (bind) ->
+    require ["screens/supervisor"], (supervisor) ->
+      supervisor.screen =
+        name : "supervisor"
+        template: "supervisor-screen-template"
+        views:
+          "action-form": supervisor
+      r.renderScreen supervisor, bind
+
+  Finch.route "supervisorOps", (bind) ->
+    require ["screens/supervisorOps"], (supervisorOps) ->
+      supervisorOps.screen =
+        name : "supervisorOps"
+        template: "supervisorOps-screen-template"
+        views:
+          "supervisorOps-table": supervisorOps
+      r.renderScreen supervisorOps, bind
+
+  Finch.route "vin", (bind) ->
+    require ["screens/vin"], (vin) ->
+      vin.screen =
+        name : "vin"
+        views:
+          "vin-form": vin
+      r.renderScreen vin, bind
+
+  Finch.route "reports", (bind) ->
+    require ["screens/report"], (report) ->
+      report.screen =
+        name : "reports"
+        template: "reports-screen-template"
+        views:
+          reports: report
+      r.renderScreen report, bind
+
+  Finch.route "contract/:program/:id", (bind) ->
+    require ["screens/contract"], (contract) ->
+      contract.screen =
+        name : "contract"
+        template: "contract-screen-template"
+        views:
+          "contract-form": contract
+      r.renderScreen contract, bind
+
+  Finch.route "program/:id", (bind) ->
+    require ["screens/program"], (program) ->
+      program.screen =
+        name : "program"
+        template: "program-screen-template"
+        views:
           "program-view": program
-      "partnersSearch":
-        "views":
-          "search-view": partnersSearch
-      "servicesSearch":
-        "views":
-          "search-view": servicesSearch
-      "callsSearch":
-        "views":
-          "search-view": callsSearch
-      "contractsSearch":
-        "views":
-          "search-view": contractsSearch
+      r.renderScreen program, bind
 
-    # Setup routing
-    localRouter: Backbone.Router.extend
-      # Must _not_ end with trailing slashes
-      routes:
-        "case/:id"       : "loadCase"
-        "newCase/:id"    : "loadNewCase"
-        "dict"           : "dictAll"
-        "dict/:dict"     : "dictOne"
-        "dict/:dict/:id" : "dictEditEntry"
-        "search"         : "search"
-        "uploads"        : "uploads"
-        "vin"            : "vin"
-        "back"           : "back"
-        "call/:id"       : "loadCall"
-        "call"           : "call"
-        "reports"        : "reports"
-        "contract"        : "contractAll"
-        "contract/:p"     : "contractOne"
-        "contract/:p/:id" : "contractEditEntry"
-        "partner"        : "newPartner"
-        "partner/:id"    : "loadPartner"
-        "usermeta"       : "newUser"
-        "usermeta/:id"   : "loadUser"
-        "supervisor"     : "supervisor"
-        "supervisorOps"  : "supervisorOps"
-        "rkc"            : "rkc"
-        "rkcOps"         : "rkcOps"
-        "rkcFront"       : "rkcFront"
-        "program"        : "program"
-        "program/:id"    : "loadProgram"
-        "printSrv/:model/:id" : "printSrv"
-        "partnersSearch"        : "partnersSearch"
-        "partnersSearch/:model" : "partnersSearchModel"
-        "servicesSearch*any"    : "servicesSearch"
-        "callsSearch*any"       : "callsSearch"
-        "contractsSearch*any"   : "contractsSearch"
+  Search.attachTo("search")
 
-      loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
-      loadNewCase   : (id) -> r.renderScreen("newCase", newCase, {"id": id})
-      dictAll       :      -> r.renderScreen("dictionaries", dictionaries, {})
-      dictOne       : (dict) ->
-                              r.renderScreen("dictionaries", dictionaries, {dict})
-      dictEditEntry : (dict,id) ->
-                              r.renderScreen("dictionaries", dictionaries, {dict, id})
-      uploads       :      -> r.renderScreen("uploads", uploads)
-      back          :      -> r.renderScreen("back", bo)
-      vin           :      -> r.renderScreen("vin", vin)
-      newPartner    :      -> r.renderScreen("partner", partner, {"id": null})
-      loadPartner   : (id) -> r.renderScreen("partner", partner, {"id": id})
-      newUser       :      -> r.renderScreen("user", user, {"id": null})
-      loadUser      : (id) -> r.renderScreen("user", user, {"id": id})
-      loadCall      : (id) -> r.renderScreen("call", call, {"id": id})
-      call          :      -> r.renderScreen("call", call, {"id": null})
-      reports       :      -> r.renderScreen("reports", report)
-      contractAll       :        ->
-                              r.renderScreen("contract", contract, {})
-      contractOne       : (p)    ->
-                              r.renderScreen("contract", contract, {"program": p, "id": null})
-      contractEditEntry : (p,id) ->
-                              r.renderScreen("contract", contract, {"program": p, "id": id})
-      supervisor    :      -> r.renderScreen("supervisor", supervisor)
-      supervisorOps :      -> r.renderScreen("supervisorOps", supervisorOps)
-      rkc           :      -> r.renderScreen("rkc", rkc)
-      rkcOps        :      -> r.renderScreen("rkcOps", rkcOps)
-      rkcFront      :      -> r.renderScreen("rkcFront", rkcFront)
-      program       :      -> r.renderScreen("program", program)
-      loadProgram   : (id) -> r.renderScreen("program", program, {"id": id})
-      printSrv      : (model,id) ->
-        r.renderScreen "printSrv", print, {model: model, id: id}
-      partnersSearch     : -> r.renderScreen("partnersSearch", partnersSearch)
-      partnersSearchModel: (model) ->
-        r.renderScreen "partnersSearch", partnersSearch, {model: model}
-      servicesSearch     : -> r.renderScreen("servicesSearch", servicesSearch)
-      callsSearch        : -> r.renderScreen("callsSearch", callsSearch)
-      contractsSearch    : -> r.renderScreen("contractsSearch", contractsSearch)
-
-      current : ->
-        Router   = this
-        fragment = Backbone.history.fragment
-        routes   = ([k,v] for k, v of Router.routes)
-        # route = null
-        # params = null
-
-        matched = _.find routes, (handler) ->
-          route = if _.isRegExp(handler[0])
-              handler[0]
-            else
-              Router._routeToRegExp(handler[0])
-          return route.test(fragment)
-
-        return matched[1]
+  Finch

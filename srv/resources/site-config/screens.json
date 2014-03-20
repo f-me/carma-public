@@ -71,17 +71,17 @@
       "label"   : "Поиск",
       "permissions": ["searchCase", "searchCall", "searchContract"],
       "screens" : [
-        { "name"  : "servicesSearch",
+        { "name"  : "search/services",
           "label" : "Поиск услуг",
           "type"  : "li",
           "permissions": ["searchCase"]
         },
-        { "name"  : "callsSearch",
+        { "name"  : "search/calls",
           "label" : "Поиск звонков",
           "type"  : "li",
           "permissions": ["searchCall"]
         },
-        { "name"  : "contractsSearch",
+        { "name"  : "search/contracts",
           "label" : "Поиск контрактов",
           "type"  : "li",
           "permissions": ["searchContract"]
@@ -123,7 +123,7 @@
           "type"  : "li",
           "permissions": ["lovAdmin", "lovViewer"]
         },
-        { "name"  : "partnersSearch",
+        { "name"  : "search/partners",
           "label" : "Дилеры и партнеры",
           "type"  : "li",
           "permissions": ["dpViewer"]
