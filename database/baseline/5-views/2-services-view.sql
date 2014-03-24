@@ -22,7 +22,7 @@ create view servicesview as
         c.contact_ownerphone4,
         c.contact_owneremail,
         spgm.value as program,
-        pgm.label as programLabel,
+        pgm.label || '-' || spgm.label as programLabel,
         c.car_vin,
         c.car_make,
         c.car_model,
