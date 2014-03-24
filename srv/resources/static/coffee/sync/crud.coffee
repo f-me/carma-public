@@ -52,6 +52,7 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
         type     : method
         url      : url
         dataType : 'json'
+        contentType:'application/json; charset=utf-8'
         success  : @saveSuccessCb(cb)
         error    : @saveErrorCb
         data     : JSON.stringify m.c2sObj(@qbackup, @ftypes)
