@@ -8,12 +8,16 @@ import Data.Model.View
 import Carma.Model.Types()
 import Carma.Model.Search (searchView, one)
 import Carma.Model.Program (Program)
+import Carma.Model.CtrScreen (CtrScreen)
+import Carma.Model.CtrModel  (CtrModel)
 
 
 data ConstructorFieldOption = ConstructorFieldOption
   {ident    :: PK Int ConstructorFieldOption ""
-  ,model    :: F Text  "model"    "Модель к которой относится поле"
-  ,screen   :: F Text  "screen"   "Экран"
+  ,model    :: F (IdentI CtrModel)
+                       "model"    "Модель, к которой относится поле"
+  ,screen   :: F (IdentI CtrScreen)
+                       "screen"   "Экран"
   ,program  :: F (IdentI Program)
                        "program"  "Программа"
   ,ord      :: F Int   "ord"      "Порядок сортировки"
@@ -38,5 +42,5 @@ instance Model ConstructorFieldOption where
         ,("model",   one model)
         ])
         {mv_modelName = "ConstructorFieldOption"}
-    "" -> Just $ modifyView defaultView [textarea info, invisible ord]
+    "" -> Just $ modifyView defaultView [readonly field, textarea info]
     _  -> Nothing

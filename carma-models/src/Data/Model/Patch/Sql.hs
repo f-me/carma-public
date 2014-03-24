@@ -4,7 +4,7 @@
 module Data.Model.Patch.Sql
   (create
   ,read
-  ,readMany
+  ,readMany, readManyWithFilter
   ,update
   ) where
 
@@ -15,6 +15,7 @@ import Data.Int (Int64)
 import Data.String
 import Text.Printf
 
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as HashMap
 import Database.PostgreSQL.Simple
@@ -58,6 +59,19 @@ readMany lim off c = query_ c (fromString q)
       (show $ tableName mInfo)
       lim off
 
+readManyWithFilter
+  :: forall m . Model m
+  => Int64 -> Int64
+  -> [(Text,Text)]
+  -> Connection -> IO [Patch m]
+readManyWithFilter lim off params c = query_ c (fromString q)
+  where
+    mInfo = modelInfo :: ModelInfo m
+    fieldNames = map fd_name $ modelFields mInfo
+    q = printf "SELECT %s FROM %s ORDER BY id LIMIT %i OFFSET %i"
+      (T.unpack $ T.intercalate ", " fieldNames)
+      (show $ tableName mInfo)
+      lim off
 
 update :: forall m . Model m => IdentI m -> Patch m -> Connection -> IO Int64
 update (Ident i) p c = execute c (fromString q) p
