@@ -119,8 +119,8 @@ define ["utils", "dictionaries"], (u, d) ->
       title:       s._meta.model.title
     knockVM['servicesDescs'] = ko.computed
       read: ->
-        p = parseInt knockVM['program']()
-        s = knockVM['servicesReference']()
+        p = parseInt knockVM['program']?()
+        s = knockVM['servicesReference']?()
         return [] unless p?
         _.chain(s).map((x) -> mkServicesDescs(p,x)).compact().value()
     knockVM['programDesc'] = ko.computed
@@ -130,9 +130,9 @@ define ["utils", "dictionaries"], (u, d) ->
   eventsHistoryKbHook: (model, knockVM) ->
     fillEventsHistory(knockVM)()
     knockVM['fillEventHistory'] = fillEventsHistory(knockVM)
-    knockVM['contact_phone1'].subscribe fillEventsHistory(knockVM)
+    knockVM['contact_phone1']?.subscribe fillEventsHistory(knockVM)
     knockVM['actions']?.subscribe fillEventsHistory(knockVM)
-    knockVM['comments'].subscribe fillEventsHistory(knockVM)
+    knockVM['comments']?.subscribe fillEventsHistory(knockVM)
 
   # Display daily service stats in central pane when `city` field of
   # case is changed.
