@@ -23,8 +23,9 @@ define [ "model/render"
        , "lib/serialize"
        , "lib/idents"
        , "lib/config"
+       , "json!/cfg/modelTrMap"
        ],
-       (render, dict, sync, S, Idents, Config) ->
+       (render, dict, sync, S, Idents, Config, TrMap) ->
   mainSetup = (Finch
              , localDictionaries
              , hooks
@@ -479,8 +480,8 @@ define [ "model/render"
       return fold
 
   applyHooks = (hooks, selectors, args...) ->
-    fs = _.chain(hooks[k] for k in selectors).flatten().compact().value()
-    f.apply(this, args) for f in fs
+    fs = _.map selectors, (s) -> hooks[(_.invert TrMap)[s] || s]
+    f.apply(this, args) for f in _.compact _.flatten fs
 
   { setup         : mainSetup
   , modelSetup    : modelSetup
