@@ -57,8 +57,7 @@ instance Model Case where
           ++ caseMod ++ caseDicts
       "full" -> Just
         $ modifyView
-          (stripId $ (defaultView :: ModelView Case)
-            {mv_title = "Кейс"})
+          ((defaultView :: ModelView Case) {mv_title = "Кейс"})
           $ caseMod ++ caseDicts ++ caseRo ++ caseOldCRUDHacks
       "new" -> setMainOnly `fmap` (modelView "full" :: Maybe (ModelView Case))
       ""    -> modelView "full" :: Maybe (ModelView Case)
