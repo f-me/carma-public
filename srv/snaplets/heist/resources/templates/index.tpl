@@ -41,7 +41,7 @@
     <script src="/s/js/3p/knockout-2.2.1.js" />
 
     <!-- Utility library, Backbone dependency -->
-    <script src="/s/js/3p/underscore-1.3.1.min.js" />
+    <script src="/s/js/3p/underscore-1.6.0.min.js" />
 
     <!-- Simple templates -->
     <script src="/s/js/3p/mustache.js" />
