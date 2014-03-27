@@ -53,9 +53,9 @@ mkIdents [t|Role|]
  , ("bo_dealer", 31)
 
  , ("vwfake", 32)
- , ("front", 33)
  , ("dpViewer", 34)
  , ("programManager", 35)
+ , ("sms", 40)
  , ("bo_secondary", 41)
  ]
 
@@ -67,5 +67,6 @@ instance Model Role where
     "" -> Just $ modifyView defaultView
                 [ readonly value
                 , infoText "roleValue" value
+                , infoText "roleBack" isBack
                 ]
     _  -> Nothing
