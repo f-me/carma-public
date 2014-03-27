@@ -24,8 +24,11 @@ define [], ->
     if date
       date.toISOString()
     else
-      console.error("datamap: could not parse date '#{v}' with '#{fmt}'")
-      null
+      if v != ""
+        console.error("datamap: could not parse date '#{v}' with '#{fmt}'")
+        null
+      else
+        ""
 
   s2cDate = (fmt) -> (v) ->
     return null if _.isEmpty v
