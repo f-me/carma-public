@@ -12,6 +12,8 @@ import Prelude hiding (read)
 
 import Control.Applicative
 import Data.Int (Int64)
+import Data.List (isPrefixOf)
+import Data.Monoid ((<>))
 import Data.String
 import Text.Printf
 
@@ -59,19 +61,30 @@ readMany lim off c = query_ c (fromString q)
       (show $ tableName mInfo)
       lim off
 
+
+-- FIXME: supports only integer idents and text in filters
 readManyWithFilter
   :: forall m . Model m
   => Int64 -> Int64
   -> [(Text,Text)]
   -> Connection -> IO [Patch m]
-readManyWithFilter lim off params c = query_ c (fromString q)
+readManyWithFilter lim off params c = query c (fromString q) filterArgs
   where
     mInfo = modelInfo :: ModelInfo m
     fieldNames = map fd_name $ modelFields mInfo
-    q = printf "SELECT %s FROM %s ORDER BY id LIMIT %i OFFSET %i"
+    q = printf "SELECT %s FROM %s WHERE %s ORDER BY id LIMIT %i OFFSET %i"
       (T.unpack $ T.intercalate ", " fieldNames)
       (show $ tableName mInfo)
-      lim off
+      filterPred lim off
+    filterArgs = [val | (key,val) <- params, HashMap.member key (modelFieldsMap mInfo)]
+    filterPred = T.unpack $ T.intercalate " AND "
+      $ "TRUE"
+      : [key <> " = ? " <> typ
+        | (key,_) <- params
+        , let Just fDesc = HashMap.lookup key (modelFieldsMap mInfo)
+        , let typ = if "Ident Int" `isPrefixOf` show (fd_type fDesc) then ":: int" else ""
+        ]
+
 
 update :: forall m . Model m => IdentI m -> Patch m -> Connection -> IO Int64
 update (Ident i) p c = execute c (fromString q) p
