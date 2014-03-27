@@ -162,6 +162,7 @@ writeModel model
 
 stripModel :: AuthUser -> Model -> Handler b (SiteConfig b) Model
 stripModel u m = do
+  liftIO $ mapM_ (print.Aeson.encode) $ fields m
   let Just uid = userId u
       -- Use Case permissions even when faked to serve Case model
       -- while being asked for case (see oldCRUD branch in
