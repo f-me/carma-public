@@ -345,6 +345,7 @@ mkF nm typ lab mt = Field
   , fieldType = typ
   , groupName = Nothing
   , canWrite  = True
+  , sortingOrder = Nothing
   , meta      = Just $ Map.fromList
     $ [("label",    Aeson.String lab)
       ]

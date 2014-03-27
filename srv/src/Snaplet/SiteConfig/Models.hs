@@ -43,6 +43,7 @@ data Field = Field { name           :: FieldName
                    , groupName      :: Maybe B.ByteString
                    , meta           :: Maybe FieldMeta
                    , canWrite       :: Bool
+                   , sortingOrder   :: Maybe Int
                    } deriving (Show)
 
 -- | A list of properties to be applied to named fields.
@@ -115,7 +116,8 @@ instance FromJSON Field where
       v .:? "type" .!= defaultFieldType <*>
       v .:? "groupName"                 <*>
       v .:? "meta"                      <*>
-      pure True
+      pure True                         <*>
+      pure Nothing
     parseJSON _          = error "Could not parse field properties"
 
 instance ToJSON Field where
