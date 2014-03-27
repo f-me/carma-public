@@ -198,14 +198,22 @@ readHandler = do
 
 readManyHandler :: AppHandler ()
 readManyHandler = do
-  Just model  <- getParam "model"
+  Just model  <- getParam "mdl" -- NB: this param can shadow query params
   limit  <- fromMaybe 2000 . fmap readInt <$> getParam "limit"
-  offset <- fromMaybe   0 . fmap readInt <$> getParam "offset"
+  offset <- fromMaybe    0 . fmap readInt <$> getParam "offset"
+  params <- getQueryParams
+  let queryFilter =
+          [(T.decodeUtf8 k, T.decodeUtf8 v)
+          | (k,v:_) <- Map.toList params
+          , not $ k `elem` ["limit", "offset"]
+          ]
   let readModel :: forall m . Model m => m -> AppHandler ()
       readModel _ = do
         res <- with db $ do
           s   <- PS.getPostgresState
-          liftIO $ withResource (PS.pgPool s) (Patch.readMany limit offset)
+          liftIO $ withResource
+            (PS.pgPool s)
+            (Patch.readManyWithFilter limit offset queryFilter)
         writeJSON (res :: [Patch m])
   case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
     Just fn -> fn

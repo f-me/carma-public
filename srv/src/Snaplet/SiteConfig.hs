@@ -9,6 +9,8 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.State
 import Data.Maybe
+import Data.List (sortBy)
+import Data.Ord (comparing)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -113,28 +115,34 @@ constructModel
   -> Handler b (SiteConfig b) Model
 constructModel mdlName screen program model = do
   let q = [sql|
-      select field, label, r, w, required, info
-        from "ConstructorFieldOption"
-        where model = ?
-          and screen = ?
+      select c.field, c.label, c.r, c.w, c.required, c.info, c.ord
+        from "ConstructorFieldOption" c, "CtrModel" m, "CtrScreen" s
+        where m.id = c.model and s.id = c.screen
+          and m.value = ?
+          and s.value = ?
           and program = ? :: int
+        order by ord asc
       |]
   pg <- gets pg_search
   res <- liftIO (withResource pg $ \c -> query c q [mdlName,screen,program])
-  let optMap = Map.fromList [(nm,(l,r,w,rq,inf)) | (nm,l,r,w,rq,inf) <- res]
+  let optMap = Map.fromList [(nm,(l,r,w,rq,inf,o)) | (nm,l,r,w,rq,inf,o) <- res]
   let adjustField f = case Map.lookup (name f) optMap of
         Nothing -> [f] -- NB: field is not modified if no options found
-        Just (_,False,_,_,_) -> [] -- unreadable field
-        Just (l,True,w,rq,inf) ->
+        Just (_,False,_,_,_,_) -> [] -- unreadable field
+        Just (l,True,w,rq,inf,o) ->
           [f {meta
               = Map.insert "label"    (Aeson.String l)
               . Map.insert "required" (Aeson.Bool rq)
               . Map.insert "infoText" (Aeson.String inf)
               . Map.insert "readonly" (Aeson.Bool $ not w)
               <$> meta f
+            , sortingOrder = Just o
             , canWrite = w}
           ]
-  return $ model {fields = concatMap adjustField $ fields model}
+  return $ model
+    {fields = sortBy (comparing sortingOrder)
+            $ concatMap adjustField
+            $ fields model}
 
 
 writeModel :: Model -> Handler b (SiteConfig b) ()
