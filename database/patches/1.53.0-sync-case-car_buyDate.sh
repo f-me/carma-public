@@ -16,3 +16,5 @@ rm ${REDIS}
 # servicesview dropped in 1.52.0-fix-car_buyDate.sql
 
 $PSQL -f baseline/5-views/2-services-view.sql
+
+# bump
