@@ -46,7 +46,7 @@ define ["utils"], ->
         @addFree()
 
     addField:    (f) =>
-      return if _.contains @dynamic(), f
+      return if _.contains @showFields(), f
       @changeHistory @dynamic.shift()
       @dynamic.push(f)
 
