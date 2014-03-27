@@ -1,6 +1,7 @@
 module Carma.Model.Case.Type where
 
 import Data.Text
+import Data.Time.Calendar
 import Data.Typeable
 
 import Data.Model
@@ -84,7 +85,7 @@ data Case = Case
   , car_color
     :: F (Maybe Text) "car_color" "Цвет"
   , car_buyDate
-    :: F (Maybe LegacyDate) "car_buyDate" "Дата покупки"
+    :: F (Maybe Day) "car_buyDate" "Дата покупки"
   , car_dealerTO
     :: F (Maybe (IdentT Partner)) "car_dealerTO" "Дилер у которого проходило последнее ТО"
   , car_mileage
