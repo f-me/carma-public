@@ -26,7 +26,8 @@ define [ "utils"
       options = {permEl, focusClass, refs}
       kvm = main.modelSetup(dict.name) viewName, args, options
       kvm['updateUrl'] = ->
-        Finch.navigate "dict/#{dict.id}/#{kvm.id()}", true
+        # FIXME: Drop this, because it makes filters unusable
+        # Finch.navigate "dict/#{dict.id}/#{kvm.id()}", true
       kvm
 
     majorFieldsSetup = (dict, dictModel) ->
