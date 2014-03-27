@@ -13,7 +13,7 @@ GRANT ALL ON "Role_id_seq" TO carma_search;
 
 INSERT INTO "Role" (id, value, label, isBack) VALUES
   (1, 'core', 'Экран кейса и базовые поля','f')
-, (2, 'call', 'Оператор Front','f')
+, (2, 'call', 'Оператор Front Office','f')
 , (3, 'parguy', 'Администрирование партнёров','f')
 , (4, 'userAdmin', 'Администрирование пользователей','f')
 , (5, 'userViewer', 'Просмотр справочника пользователей','f')
@@ -44,7 +44,6 @@ INSERT INTO "Role" (id, value, label, isBack) VALUES
 , (30, 'bo_close', 'БО: Закрытие кейсов','t')
 , (31, 'bo_dealer', 'БО: Аналитик по работе с дилерами','t')
 , (32, 'vwfake', 'Секретная роль vwfake','f')
-, (33, 'front', 'Оператор Front Office','f')
 , (34, 'dpViewer', 'Пользователь экрана ДиП','f')
 , (35, 'programManager', 'Менеджер по программе','f')
 , (40, 'sms', 'Отправка SMS','f')
