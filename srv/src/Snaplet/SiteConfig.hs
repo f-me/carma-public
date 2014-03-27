@@ -113,10 +113,11 @@ constructModel
   -> Handler b (SiteConfig b) Model
 constructModel mdlName screen program model = do
   let q = [sql|
-      select field, label, r, w, required, info
-        from "ConstructorFieldOption"
-        where model = ?
-          and screen = ?
+      select c.field, c.label, c.r, c.w, c.required, c.info
+        from "ConstructorFieldOption" c, "CtrModel" m, "CtrScreen" s
+        where m.id = c.model and s.id = s.screen
+          and m.value = ?
+          and s.value = ?
           and program = ? :: int
       |]
   pg <- gets pg_search

@@ -117,10 +117,10 @@ define [ "utils"
 
         majorFields = majorFieldsSetup dict, dictModel
         table = null
-        objURL = "/_/#{dictName}?limit=10000"
+        objURL = "/_/#{dictName}?limit=1000"
 
         # func to init dict table and controls to edit selected entry
-        initEditControls = () ->
+        initEditControls = (objURL) ->
           table = tableSetup objURL, majorFields, dict, viewName
           kvm = modelSetup dict, viewName, args
 
@@ -133,21 +133,23 @@ define [ "utils"
           setupButtonPanel kvm, table, args, objURL
           textarea2wysiwyg()
 
-        initEditControls()
-
         # let user show entries from a particular parent
         parentModel = global.model dictName, "parents"
-        if parentModel
+        if not parentModel
+          initEditControls objURL
+        else
           parentKVM = main.buildKVM parentModel, {}
           parentKVM.find = =>
-            # TODO:
-            # Search code here
-            # Change 'objURL' to change data in table
-            # objURL = "/_/#{dictName}?limit=10000"
+            filterParams = []
+            for f in parentModel.fields
+              val = parentKVM[f.name]()
+              filterParams = filterParams.concat("#{f.name}=#{val}") if val
+
+            objURL = "/_/#{dictName}?#{filterParams.join '&'}"
             if table
               table.setObjs objURL
             else
-              initEditControls()
+              initEditControls objURL
 
       # show parent select controls
       # I know what parentKVM may be 'undefined' here

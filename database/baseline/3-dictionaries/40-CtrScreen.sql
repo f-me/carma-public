@@ -6,8 +6,8 @@ create table "CtrScreen" (
 );
 
 insert into "CtrScreen" (id, value, label) values
- (0, 'new', 'Экран создания кейса')
-,(1, 'full', 'Полный экран кейса')
+ (1, 'new', 'Экран создания кейса')
+,(2, 'full', 'Полный экран кейса')
 ;
 
 GRANT ALL ON "CtrScreen" TO carma_db_sync;
