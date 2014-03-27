@@ -29,6 +29,7 @@ create view servicesview as
         c.car_platenum,
         c.car_makeyear,
         c.car_color,
+        c.car_mileage,
         c.car_buydate,
         trans.label as car_transmission,
         engine.label as car_engine,
