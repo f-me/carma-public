@@ -27,6 +27,9 @@ define [ "utils"
                          defaultGroup : "default-case"
                          modelArg     : "ctr:full:#{kaze.program}"
 
+      # NB: fix uppercase model name
+      kvm._meta.model.name = 'case'
+
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
       setCommentsHandler()
 
@@ -95,13 +98,14 @@ define [ "utils"
     # Top-level wrapper for storeService
     addService = (name) ->
       kvm = global.viewsWare["case-form"].knockVM
+      modelArg = "ctr:new:#{kvm.program()}"
       mu.addReference kvm,
-                   'services',
-                   { modelName : name },
-                   (k) ->
-                      e = $('#' + k['view'])
-                      e.parent().prev()[0].scrollIntoView()
-                      e.find('input')[0].focus()
+        'services',
+        {modelName : name, options: {modelArg: modelArg, hooks: ['*']}},
+        (k) ->
+          e = $('#' + k['view'])
+          e.parent().prev()[0]?.scrollIntoView()
+          e.find('input')[0]?.focus()
 
     utils.build_global_fn 'addService', ['screens/case']
 
