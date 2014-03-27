@@ -114,7 +114,7 @@ sendMailActually actionId = do
                then return "D"
                else return "E"
 
-          buyDate <- toLocalTime tz <$> lift (get caseId "car_buyDate")
+          buyDate <- readGregorian <$> lift (get caseId "car_buyDate")
           fld 10  "Date put on road" <=== maybe "" (tmFormat "%d/%m/%Y") buyDate
           fld 17  "VIN number"       $ get' caseId "car_vin"
           fld 10  "Reg No"           $ get' caseId "car_plateNum"
@@ -203,7 +203,7 @@ fld len name f = do
 (<===) :: Monad m => (m a -> t) -> a -> t
 f <=== v = f $ return v
 
-tmFormat :: String -> LocalTime -> Text
+tmFormat :: FormatTime t => String -> t -> Text
 tmFormat = (T.pack .) . formatTime defaultTimeLocale
 
 toLocalTime :: TimeZone -> ByteString -> Maybe LocalTime
@@ -211,3 +211,10 @@ toLocalTime tz tm = case B.readInt tm of
   Just (s,"") -> Just $ utcToLocalTime tz
     $ posixSecondsToUTCTime $ fromIntegral s
   _ -> Nothing
+
+readGregorian :: ByteString -> Maybe Day
+readGregorian tm =
+    case map B.readInt $ B.split '-' tm of
+      [Just (y, _), Just (m, _), Just (d, _)] ->
+          fromGregorianValid (fromIntegral y) m d
+      _ -> Nothing
