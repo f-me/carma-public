@@ -118,11 +118,6 @@
           "type"  : "li",
           "permissions": ["reportManager"]
         },
-        { "name"  : "program",
-          "label" : "Редактирование СТАРЫХ программ",
-          "type"  : "li",
-          "permissions": ["lovAdmin", "lovViewer"]
-        },
         { "name"  : "search/partners",
           "label" : "Дилеры и партнеры",
           "type"  : "li",
