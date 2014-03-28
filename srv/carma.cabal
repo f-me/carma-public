@@ -141,7 +141,7 @@ Executable tools
   main-is: Main.hs
   Build-depends:
       postgresql-simple           == 0.3.*,
-      carma-models                >= 0.16.1 && < 0.17,
+      carma-models                >= 0.16.2 && < 0.17,
       unordered-containers        == 0.2.*,
       cmdlib                      == 0.3.*,
       boxes                       == 0.1.*
