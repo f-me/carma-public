@@ -40,6 +40,7 @@ import           Carma.Model.ServiceInfo                 (ServiceInfo)
 import           Carma.Model.ServiceNames                (ServiceNames)
 import           Carma.Model.SubProgram                  (SubProgram)
 import           Carma.Model.SubProgramContact
+import           Carma.Model.SubProgramContractPermission
 import           Carma.Model.SubProgramService           (SubProgramService)
 import           Carma.Model.Contract
 import           Carma.Model.Partner
@@ -108,6 +109,7 @@ modelMap fn = modelMap'
       ,add (undefined :: Role)
       ,add (undefined :: SubProgram)
       ,add (undefined :: SubProgramContact)
+      ,add (undefined :: SubProgramContractPermission)
       ,add (undefined :: SubProgramService)
       ,add (undefined :: VinFormat)
       ,add (undefined :: Case)

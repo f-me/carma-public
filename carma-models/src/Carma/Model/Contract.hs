@@ -55,6 +55,12 @@ instance PgTypeable WDay where
 
 data Contract = Contract
   { ident            :: PK Int Contract ""
+  , ctime            :: F UTCTime
+                        "ctime"
+                        "Время создания контракта"
+  , isActive         :: F Bool
+                        "isActive"
+                        "Активен"
   , name             :: F (Maybe Text)
                         "name"
                         "ФИО клиента"
@@ -147,13 +153,7 @@ data Contract = Contract
                         "Пользователь, внёсший данные"
   , dixi             :: F Bool
                         "dixi"
-                        ""
-  , isActive         :: F Bool
-                        "isActive"
-                        "Активен"
-  , ctime            :: F UTCTime
-                        "ctime"
-                        "Время создания контракта"
+                        "Сохранить"
   } deriving Typeable
 
 
@@ -169,6 +169,7 @@ instance Model Contract where
         , setMeta "regexp" "phone" phone
         , setMeta "regexp" "plateNum" plateNum
         , setMeta "regexp" "vin" vin
+        , widget "checkbutton" dixi
         , color `completeWith` Color.label
         ]
     _ -> Nothing
@@ -191,9 +192,8 @@ identifierNames :: [Text]
 identifierNames = map fieldNameE identifiers
 
 
--- | List of search params
+-- | List of searchable Contract fields.
 contractSearchParams :: [(Text, [Predicate Contract])]
-contractSearchParams = identifierParams
-  where
-    identifierParams =
-      map (\p@(FA f) -> (fieldNameE p, fuzzy $ one $ f)) identifiers
+contractSearchParams =
+    (Data.Model.fieldName subprogram, one subprogram):
+    (map (\p@(FA f) -> (fieldNameE p, fuzzy $ one $ f)) identifiers)

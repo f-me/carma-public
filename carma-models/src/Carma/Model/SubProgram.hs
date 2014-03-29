@@ -15,8 +15,9 @@ import Data.Model.TH
 import Data.Model.View
 
 import Carma.Model.SubProgram.Type
-import Carma.Model.SubProgramContact ()
-import Carma.Model.SubProgramService ()
+import Carma.Model.SubProgramContact            ()
+import Carma.Model.SubProgramContractPermission ()
+import Carma.Model.SubProgramService            ()
 
 
 mkIdents [t|SubProgram|]
@@ -50,6 +51,12 @@ instance Model SubProgram where
                 , setMeta "reference-label"
                   (A.String "Добавить услугу") services
                 , setMeta "reference-widget" "subprogram-services" services
+                , setMeta "reference-label"
+                  (A.String "Добавить ограничение на поле контракта")
+                  contractPrs
+                , setMeta
+                  "reference-widget" "subprogram-contract-fields"
+                  contractPrs
                 , textarea help
                 , textarea dealerHelp
                 , setMeta "widget" "inline-uploader" template

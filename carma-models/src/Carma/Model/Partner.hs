@@ -4,6 +4,8 @@
 
 Proxy model for a subset of legacy partner model.
 
+TODO JSON & coords Haskell types.
+
 -}
 
 module Carma.Model.Partner

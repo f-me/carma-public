@@ -1,6 +1,9 @@
+{-| Subprogram and subordinate models. -}
+
 module Carma.Model.SubProgram.Type
     ( SubProgram(..)
     , SubProgramContact(..)
+    , SubProgramContractPermission(..)
     , SubProgramService(..)
     )
 
@@ -54,6 +57,9 @@ data SubProgram = SubProgram
   , validFor    :: F (Maybe TInt)
                    "validFor"
                    "Срок действия программы по умолчанию"
+  , contractPrs :: F (Maybe (IdentList SubProgramContractPermission))
+                   "contractPermissions"
+                   "Ограничения прав"
   , template    :: F (Maybe Reference)
                    "template"
                    "Шаблон договора"
@@ -72,6 +78,9 @@ data SubProgram = SubProgram
 data SubProgramService = SubProgramService
     { sIdent      :: PK Int SubProgramService "Услуга по подпрограмме"
     , sParent     :: F (IdentI SubProgram) "parent" "Подпрограмма"
+    -- TODO This is wrapped in Maybe only because the client first
+    -- creates and empty instance, then rendering a form where the
+    -- type may be selected.
     , sType       :: F (Maybe (IdentI ServiceNames)) "type" "Услуга"
     , maxCost     :: F (Maybe Text)
                      "maxCost"
@@ -85,6 +94,27 @@ data SubProgramService = SubProgramService
     , maxCount    :: F (Maybe TInt)
                      "maxCount"
                      "Лимит количества предоставления услуги"
+    } deriving Typeable
+
+
+data SubProgramContractPermission = SubProgramContractPermission
+    { fIdent     :: PK Int SubProgramContractPermission
+                    "Ограничение на поле контракта"
+    , fParent    :: F (IdentI SubProgram)
+                   "parent"
+                   "Подпрограмма"
+    -- TODO This must be limited to Contract field names only.
+    --
+    -- Wrapped in Maybe just like the type field in SubProgramService.
+    , field     :: F (Maybe Text)
+                   "contractField"
+                   "Тип поля"
+    , showTable :: F Bool
+                   "showTable"
+                   "Отображается в таблице"
+    , showForm  :: F Bool
+                   "showForm"
+                   "Отображается в форме"
     } deriving Typeable
 
 
