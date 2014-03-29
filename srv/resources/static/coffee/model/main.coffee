@@ -177,6 +177,7 @@ define [ "model/render"
     #
     # IdentList fields store a list of instance ids (as array of
     # numbers). Thus, meta.model is required when using such fields.
+    # The referenced model must have parent field.
     for f in fields when f.type == "IdentList"
       do (f) ->
         kvm["#{f.name}Reference"] =

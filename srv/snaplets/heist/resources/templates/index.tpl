@@ -1176,6 +1176,35 @@
       </div>
     </script>
 
+    <script type="text/template"
+            class="reference-template"
+            id="subprogram-contract-fields-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <div class="accordion-toggle"
+               data-target="#{{ refView }}-head"
+               data-toggle="collapse"
+               id="{{ refView }}-link">
+            <a class="icon icon-remove" />
+            <a
+               data-bind="text: contractFieldLocal">
+               Поле
+            </a>
+
+          </div>
+        </div>
+
+        <div id="{{ refView }}-head"
+             class="accordion-body collapse">
+          <div class="accordion-inner {{ refClass }}"
+               id="{{ refView }}">
+            <!-- Instance contents are rendered here -->
+
+          </div>
+        </div>
+      </div>
+    </script>
+
     <!--
          Attachment list reference template. By convention, such
          fields are named "files". See also file-field-template.
@@ -1266,28 +1295,6 @@
                id="{{ refView }}">
             <!-- Instance contents are rendered here -->
 
-          </div>
-        </div>
-      </div>
-    </script>
-
-    <script type="text/template"
-            class="reference-template"
-            id="programPermissions-reference-template">
-      <div class="accordion-group">
-        <div class="accordion-heading"
-             id="{{ refView }}-link">
-          <a class="accordion-toggle"
-             data-bind="text: contractFieldLocal"
-             data-target="#{{ refView }}-head"
-             data-toggle="collapse"></a>
-        </div>
-
-        <div id="{{ refView }}-head"
-             class="accordion-body collapse {{^refId}}in{{/refId}}">
-          <div class="accordion-inner {{ refClass }}"
-               id="{{ refView }}">
-            <!-- Instance contents are rendered here -->
           </div>
         </div>
       </div>

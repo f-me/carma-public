@@ -7,11 +7,9 @@
 -- Модель                             | car_model
 -- ФИО владельца карты                | cardnumber_cardowner
 -- Номер карты                        | cardnumber_cardnumber
--- Пробег при регистрации в программе | cardnumber_milageto
 -- ФИО менеджера                      | cardnumber_manager
 -- Дата регистрации в программе       | cardnumber_validfrom
 -- Программа действует до (Дата)      | cardnumber_validuntil
--- Программа действует до (Пробег)    | cardnumber_validuntilmilage
 -- Межсервисный интервал              | cardnumber_serviceinterval
 -- Дата начала гарантии               | car_warrantystart
 -- Дата покупки                       | car_buydate
@@ -44,29 +42,30 @@ import           Snaplet.FileUpload hiding (db)
 q :: Query
 q = [sql|
      SELECT
-          carVin
+          c.vin
         , s.name
         , carMake.label
         , carModel.label
-        , carPlateNum
-        , to_char(carBuydate at time zone 'MSK', 'DD/MM/YYYY')
+        , plateNum
+        , to_char(c.buyDate, 'DD/MM/YYYY')
         , cardNumber::text
-        , to_char(contractValidFromDate at time zone 'MSK', 'DD/MM/YYYY')
-        , to_char(contractValidUntilDate at time zone 'MSK', 'DD/MM/YYYY')
-        , contractValidUntilMilage::text
-        , milageTO::text
-        , carCheckPeriod::text
-        , cardOwner
-        , manager
-        , to_char(warrantyStart at time zone 'MSK', 'DD/MM/YYYY')
+        , to_char(c.validSince, 'DD/MM/YYYY')
+        , to_char(c.validUntil, 'DD/MM/YYYY')
+        , '-'
+        , '-'
+        , c.checkPeriod::text
+        , c.name
+        , c.managerName
+        , to_char(c.validSince, 'DD/MM/YYYY')
         , client, clientCode, clientAddress
-        , u.realname
-     FROM contracttbl c
-     INNER JOIN programtbl p ON c.program = p.id
-     LEFT JOIN "CarMake"  carMake  ON carMake.value  = carMake
-     LEFT JOIN "CarModel" carModel ON carModel.value = carModel
-     LEFT JOIN usermetatbl u ON u.uid::text = c.owner
-     LEFT JOIN partnertbl s ON s.id::text = carSeller
+        , u.realName
+     FROM "Contract" c
+     INNER JOIN "SubProgram" spgm ON c.subprogram = spgm.id
+     INNER JOIN "Program" pgm ON spgm.parent = pgm.id
+     LEFT JOIN "CarMake"  carMake  ON carMake.id  = make
+     LEFT JOIN "CarModel" carModel ON carModel.id = model
+     LEFT JOIN usermetatbl u ON u.id = c.committer
+     LEFT JOIN partnertbl s ON s.id = seller
      WHERE c.id = ?
 |]
 
@@ -94,14 +93,16 @@ fields = [ "car_vin"
 
 renderContractHandler :: AppHandler ()
 renderContractHandler = do
-  Just contractId <- fmap T.decodeUtf8 <$> getParam "ctr"
-  Just programId  <- fmap T.decodeUtf8 <$> getParam "prog"
+  Just contractId <- fmap T.decodeUtf8 <$> getParam "contract"
   aids <- withPG pg_search $ \c -> query c
                 [sql|
-                 SELECT a.id::text FROM attachmenttbl a, programtbl p
-                 WHERE p.contracts=concat('attachment:', a.id) and p.id = ?
+                 SELECT a.id::text
+                 FROM attachmenttbl a, "SubProgram" s, "Contract" c
+                 WHERE s.template=concat('attachment:', a.id)
+                 AND c.subprogram = s.id
+                 AND c.id = ?
                  |]
-                [programId]
+                [contractId]
   case aids of
     (Only aid:_) -> do
         tplPath <- with fileUpload $ getAttachmentPath aid
@@ -122,4 +123,4 @@ renderContractHandler = do
                     writeBS out
                 ExitFailure _ -> writeBS err
           [] -> error "No contract selected (bad id or broken contract data)"
-    [] -> error "No template attached to program or bad program id"
+    [] -> error "No template attached to subprogram or bad contract id"

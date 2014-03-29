@@ -406,7 +406,6 @@ report = scope "report" $ do
   fromDate <- liftM (fmap T.decodeUtf8) $ getParam "from"
   toDate <- liftM (fmap T.decodeUtf8) $ getParam "to"
   reportInfo <- with db $ DB.read "report" reportId
-  tz <- liftIO getCurrentTimeZone
   let tplName = B.unpack (reportInfo Map.! "templates")
   log Info $ T.concat ["Generating report ", T.pack tplName]
   let template

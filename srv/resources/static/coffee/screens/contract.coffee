@@ -42,7 +42,7 @@ define [
       vin = kvm['carVin']?()
       num = kvm['cardNumber']?()
       params  = ["id=#{kvm.id()}"]
-      params.unshift "carVin=#{vin}"     if vin
+      params.unshift "vin=#{vin}"     if vin
       params.unshift "cardNumber=#{num}" if num
       $.getJSON "/contracts/findSame?#{params.join('&')}", cb
 

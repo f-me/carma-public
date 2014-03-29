@@ -1281,6 +1281,8 @@ lovViewer	SubProgram	checkPeriod	t	f
 lovAdmin	SubProgram	checkPeriod	t	t
 lovViewer	SubProgram	validFor	t	f
 lovAdmin	SubProgram	validFor	t	t
+lovViewer	SubProgram	contractPermissions	t	f
+lovAdmin	SubProgram	contractPermissions	t	t
 lovViewer	SubProgram	template	t	f
 lovAdmin	SubProgram	template	t	t
 lovViewer	SubProgram	logo	t	f
@@ -1309,6 +1311,14 @@ lovViewer	SubProgramContact	email	t	f
 lovAdmin	SubProgramContact	email	t	t
 lovViewer	SubProgramContact	phone	t	f
 lovAdmin	SubProgramContact	phone	t	t
+lovViewer	SubProgramContractPermission	parent	t	f
+lovAdmin	SubProgramContractPermission	parent	t	t
+lovViewer	SubProgramContractPermission	contractField	t	f
+lovAdmin	SubProgramContractPermission	contractField	t	t
+lovViewer	SubProgramContractPermission	showTable	t	f
+lovAdmin	SubProgramContractPermission	showTable	t	t
+lovViewer	SubProgramContractPermission	showForm	t	f
+lovAdmin	SubProgramContractPermission	showForm	t	t
 lovViewer	program	active	t	f
 lovAdmin	program	active	t	t
 lovViewer	program	carCheckPeriodDefault	t	f

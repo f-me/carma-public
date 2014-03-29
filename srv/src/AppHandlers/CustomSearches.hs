@@ -12,7 +12,6 @@ module AppHandlers.CustomSearches
     , getActionsForCase
     , getCancelsForCase
 
-    , selectContracts
     , opStats
     , busyOps
     , actStats
@@ -208,47 +207,6 @@ getCancelsForCase = do
   writeJSON $ mkMap fields rows
 
 
-selectContracts :: AppHandler ()
-selectContracts = do
-  dateFrom <- fromMaybe "1970-01-01" <$> getParam "from"
-  dateTo   <- fromMaybe "2970-01-01" <$> getParam "to"
-  Just prg <- getParam "program"
-  Just usr <- with auth currentUser
-
-  rows <- withPG pg_search $ \c -> query c [sql|
-    SELECT c.id::text,
-      extract (epoch from ctime at time zone 'UTC')::int8::text,
-      c.isActive::text,
-      carVin, carMake, carModel, carColor, carPlateNum, cardNumber::text,
-      carMakeYear::text, carCheckPeriod::text,
-      extract (epoch from carBuyDate at time zone 'UTC')::int8::text,
-      extract (epoch from warrantyStart at time zone 'UTC')::int8::text,
-      extract (epoch from contractValidFromDate at time zone 'UTC')::int8::text,
-      extract (epoch from contractValidUntilDate at time zone 'UTC')::int8::text,
-      contractValidUntilMilage::text, milageTO::text, cardOwner, manager,
-      carSeller, carDealerTO,
-      u2.realname,
-      contractType
-      FROM contracttbl c, usermetatbl u, usermetatbl u2
-      WHERE dixi
-        AND u.login = ? AND ? = ANY (u.programs)
-        AND c.owner = u2.uid::text
-        AND (coalesce(u.isDealer,false) = false OR c.owner = u.uid::text)
-        AND c.program = ? AND date(ctime) between ? AND ?
-      ORDER BY c.id DESC
-      LIMIT 500
-    |] (userLogin usr, prg, prg, dateFrom, dateTo)
-  let fields =
-        [ "id", "ctime", "isActive", "carVin", "carMake", "carModel", "carColor"
-        , "carPlateNum", "cardNumber", "carMakeYear", "carCheckPeriod"
-        , "carBuyDate", "warrantyStart", "contractValidFromDate"
-        , "contractValidUntilDate", "contractValidUntilMilage"
-        , "milageTO", "cardOwner", "manager", "carSeller", "carDealerTO"
-        , "owner", "contractType"
-        ]
-  writeJSON $ mkMap fields rows
-
-
 opStatsQ :: Query
 opStatsQ = [sql|
   SELECT u.login, ca.name, ca.caseId,
@@ -420,7 +378,7 @@ searchCases = do
 
 findSameContract :: AppHandler ()
 findSameContract = do
-  cvin <- getParam "carVin"
+  cvin <- getParam "vin"
   num  <- getParam "cardNumber"
   cid  <- getParam "id"
 
@@ -429,11 +387,11 @@ findSameContract = do
     Just id' -> do
       rows <- withPG pg_search $ \c -> query_ c $ fromString
         $  " SELECT id::text, to_char(ctime, 'YYYY-MM-DD HH24:MI')"
-        ++ " FROM contracttbl"
+        ++ " FROM \"Contract\""
         ++ " WHERE ctime > now() - interval '30 days'"
         ++ " AND id != " ++ quote id'
         ++ "AND (false "
-        ++ (maybe "" (\x -> " OR carVin = "     ++ quote x) cvin)
+        ++ (maybe "" (\x -> " OR vin = "        ++ quote x) cvin)
         ++ (maybe "" (\x -> " OR cardNumber = " ++ quote x) num)
         ++ ")"
       writeJSON $ mkMap ["id", "ctime"] rows

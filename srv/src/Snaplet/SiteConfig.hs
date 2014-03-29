@@ -149,13 +149,17 @@ writeModel :: Model -> Handler b (SiteConfig b) ()
 writeModel model
   = writeJSON
   =<< case modelName model of
-    "contract" -> do
-      field <- fromMaybe "showform" <$> getParam "field"
-      when (field /= "showform" && field /= "showtable") $
-        finishWithError 403 "field param should have showform of showtable value"
-      pid   <- getParam "pid"
-      when (pid == Nothing) $ finishWithError 403 "need pid param"
-      stripContract model (fromJust pid) field
+    -- If sid parameter is specified for Contract model, serve model
+    -- for portal screen table/form.
+    "Contract" -> do
+      sid <- getParam "sid"
+      case sid of
+        Just i -> do
+          field <- fromMaybe "showform" <$> getParam "field"
+          when (field /= "showform" && field /= "showtable") $
+               finishWithError 403 "field param be either showform or showtable"
+          stripContract model (fromJust sid) field
+        Nothing -> return model
     _ -> return model
 
 

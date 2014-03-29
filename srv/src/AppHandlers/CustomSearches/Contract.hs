@@ -37,7 +37,7 @@ import           Carma.Model.Contract as C
 import           Carma.Model.CarMake
 import           Carma.Model.CarModel
 import           Carma.Model.Program as P
-import           Carma.Model.SubProgram as S
+import           Carma.Model.SubProgram as S hiding (field)
 
 import           Application
 import           AppHandlers.Util
