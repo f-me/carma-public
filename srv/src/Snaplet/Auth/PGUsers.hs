@@ -144,18 +144,19 @@ userRolesPG user =
 
 ------------------------------------------------------------------------------
 -- | Get meta from the database for a user.
-userMetaPG :: AuthUser -> DbHandler b (Maybe UserMeta)
+userMetaPG :: AuthUser -> DbHandler b (Maybe (Int, UserMeta))
 userMetaPG user =
     case userId user of
       Nothing -> return Nothing
       Just (UserId uid) -> do
         mid' <- query userMidQuery (Only uid)
         case mid' of
-          (((mid :: Int):_):_) -> do
-            -- This will read usermeta instance from Redis. If we
-            -- could only read Postgres rows to commits.
+          ((mid:_):_) -> do
+            -- This will read usermeta instance from Redis.
+            --
+            -- TODO If we could only read Postgres rows to commits.
             res <- DB.read "usermeta" $ pack $ show mid
-            return $ Just $ UserMeta $ toSnapMeta res
+            return $ Just (mid, UserMeta $ toSnapMeta res)
           _     -> return Nothing
 
 
@@ -166,7 +167,7 @@ replaceMetaRolesFromPG user = do
   ur <- userRolesPG user
   umRes <- userMetaPG user
   let um' = case umRes of
-              Just (UserMeta um) -> um
+              Just (_, UserMeta um) -> um
               Nothing -> userMeta user
   return user{userRoles = ur, userMeta = um'}
 

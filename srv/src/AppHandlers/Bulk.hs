@@ -18,7 +18,6 @@ import           Data.Int
 import           Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 
 import           Database.PostgreSQL.Simple (ConnectInfo(..))
 
@@ -97,10 +96,7 @@ vinImport = scope "vin" $ scope "upload" $ do
                      <*> require dbCfg "db"
 
       -- Set current user as committer
-      --
-      -- TODO Use usermeta id
-      let Just (UserId uid') = userId u
-          Just (uid, _)      = B.readInt $ T.encodeUtf8 uid'
+      uid <- maybe (error "No usermeta id") fst <$> (with db $ userMetaPG u)
 
       -- VIN import task handler
       with taskMgr $ TM.create $ do
