@@ -141,23 +141,19 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           reports: report
       r.renderScreen report, bind
 
-  Finch.route "contract/:program/:id", (bind) ->
+  Finch.route "contract/:sub/:id", (bind) ->
     require ["screens/contract"], (contract) ->
       contract.screen =
         name : "contract"
         template: "contract-screen-template"
         views:
           "contract-form": contract
-      r.renderScreen contract, bind
-
-  Finch.route "program/:id", (bind) ->
-    require ["screens/program"], (program) ->
-      program.screen =
-        name : "program"
-        template: "program-screen-template"
-        views:
-          "program-view": program
-      r.renderScreen program, bind
+      # Do not update screen if we stay in the same subprogram. This
+      # prevents screen reloading when table rows are clicked on
+      # portal screen.
+      unless global.previousHash?.match "contract/#{bind.sub}/?$"
+        global.previousHash = window.location.hash
+        r.renderScreen contract, bind
 
   Search.attachTo("search")
 

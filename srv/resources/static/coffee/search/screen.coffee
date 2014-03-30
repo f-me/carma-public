@@ -100,8 +100,11 @@ define [ "utils"
 
     ko.applyBindings ctx, $("#search-results")[0]
 
-    state = { kvm: searchKVM, pager: searchKVM._meta.pager }
-    State.load state
+    if !opts.noState?
+      state = { kvm: searchKVM, pager: searchKVM._meta.pager }
+      State.load state
 
-    State.persistKVM 'kvm', state
+      State.persistKVM 'kvm', state
     searchKVM._meta.pager.offset.subscribe -> State.save state
+
+    searchKVM

@@ -99,7 +99,7 @@ serveModel = do
   case return (,) `ap` mcu `ap` model of
     Nothing -> finishWithError 401 ""
     Just (cu, m) ->
-      case view == "search" of
+      case view `elem` ["search", "portalSearch"] of
         True  -> writeModel m
         False -> stripModel cu m >>= writeModel
 
@@ -158,7 +158,7 @@ writeModel model
           field <- fromMaybe "showform" <$> getParam "field"
           when (field /= "showform" && field /= "showtable") $
                finishWithError 403 "field param be either showform or showtable"
-          stripContract model (fromJust sid) field
+          stripContract model i field
         Nothing -> return model
     _ -> return model
 

@@ -41,7 +41,7 @@ stripContract model sid field = do
       filterFields perms flds = filter (isCanShow perms) flds
       isCanShow perms f  = fromMaybe False $ check perms (name f)
       check _ "dixi"       = return True
+      check _ "committer"  = return True
       check _ "isActive"   = return True
-      check _ "subprogram" = return True
       check _ "ctime"      = return True
       check perms name     = M.lookup name perms >>= return . ("t" ==)
