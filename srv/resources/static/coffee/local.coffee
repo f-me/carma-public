@@ -95,6 +95,8 @@ require [ "domready"
 
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']
+  u.build_global_fn 'inlineUploadFile', ['lib/upload']
+  u.build_global_fn 'inlineDetachFile', ['lib/upload']
   u.build_global_fn 'doPick', ['utils']
   u.build_global_fn 'kdoPick', ['utils']
   u.build_global_fn 'focusField', ['utils']
