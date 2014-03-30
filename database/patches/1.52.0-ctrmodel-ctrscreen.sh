@@ -6,3 +6,5 @@ $PSQL -c 'drop table if exists "CtrScreen"'
 $PSQL -f baseline/3-dictionaries/39-CtrModel.sql
 $PSQL -f baseline/3-dictionaries/40-CtrScreen.sql
 $PSQL -f baseline/3-dictionaries/38-ConstructorFieldOption.sql
+
+# bump
