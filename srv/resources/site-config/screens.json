@@ -91,12 +91,12 @@
     { "type"    : "dropdown",
       "name"    : "more",
       "label"   : "Ещё",
-      "permissions": ["reportManager", "billManager", "userAdmin", "userViewer", "parguy", "vinAdmin", "psaanalyst", "lovAdmin", "lovViewer", "core"],
+      "permissions": ["reportManager", "billManager", "userAdmin", "userViewer", "parguy", "vinAdmin", "partner", "psaanalyst", "lovAdmin", "lovViewer", "core"],
       "screens" : [
         { "name"  : "vin",
-          "label" : "Обновление базы VIN и партнёров",
+          "label" : "Обновление базы VIN",
           "type"  : "li",
-          "permissions": ["vinAdmin", "psaanalyst"]
+          "permissions": ["vinAdmin", "partner", "psaanalyst"]
         },
         { "name"  : "partner",
           "label" : "Редактирование партнёров",
