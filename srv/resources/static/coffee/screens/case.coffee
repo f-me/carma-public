@@ -126,7 +126,7 @@ define [ "utils"
         contract.model = carModelDict.getLab contract.model
 
       if contract.subprogram
-        subprogramDict = utils.newComputedDict "usermetaSubPrograms"
+        subprogramDict = utils.newComputedDict "prefixedSubPrograms"
         contract.subprogram = subprogramDict.getLab contract.subprogram
 
       if contract.committer

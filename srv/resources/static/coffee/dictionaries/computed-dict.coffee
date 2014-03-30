@@ -28,30 +28,31 @@ define ["dictionaries/local-dict"], (ld) ->
 
     # Dictionary of all subprograms, with labels including parent
     # program name (used to assign users to subprograms)
-    usermetaSubPrograms: =>
+    prefixedSubPrograms: =>
       @bgetJSON "/_/Program", (parentObjs) =>
         @bgetJSON "/_/SubProgram", (objs) =>
           @source = for obj in objs
             parent = _.find parentObjs, (p) -> p.id == obj.parent
-            { value: String(obj.id)
+            { value: obj.id
             , label: (parent.label + ' — ' + obj.label) || ''
             }
 
-    # Dictionary of all subprograms available to user from VIN screen.
-    # - partner may see only his own programs
+    # Dictionary of all subprograms available to user from VIN/portal screen.
+    # - partner/psaanalyst may see only his own programs
     # - vinAdmin role may access all programs
-    # - all other users may do nothing
-    vinPrograms: =>
-      all_pgms = new ComputedDict(dict: "usermetaSubPrograms").source
+    # - all other users see no programs
+    portalSubPrograms: =>
+      all_pgms = new ComputedDict(dict: "prefixedSubPrograms").source
       # Requires user to reload the page to update list of available
       # programs
       user_pgms =
         if global.user.meta.programs
-          global.user.meta.programs.split ','
+          _.map (global.user.meta.programs.split ','), (s) -> parseInt s
         else
           []
       @source =
-        if _.contains global.user.roles, global.idents("Role").partner
+        if _.contains global.user.roles, global.idents("Role").partner or
+           _.contains global.user.roles, global.idents("Role").psaanalyst
           _.filter(all_pgms,
                   (e) -> _.contains user_pgms, e.value)
         else

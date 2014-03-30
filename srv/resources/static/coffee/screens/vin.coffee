@@ -21,7 +21,7 @@ define [ "text!tpl/screens/vin.html"
     # $el(viewName).html(all_html)
 
     # Program/format selection
-    subprograms = u.newComputedDict("vinPrograms").source
+    subprograms = u.newComputedDict("portalSubPrograms").source
     ko.applyBindings subprograms, el("vin-subprogram-select")
     formats = u.newModelDict("VinFormat").source
     ko.applyBindings formats, el("vin-format-select")
