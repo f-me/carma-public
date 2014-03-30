@@ -10,7 +10,7 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
 
     find: (q, cb) ->
       return cb({}) if q.length < 4
-      query = "/searchContracts/?query=#{q}&program=#{@kvm.program()}&subprogram=#{@kvm.subprogram()}"
+      query = "/searchContracts/?query=#{q}&program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}"
       $.getJSON query, (r) =>
         @found = _.map r, (c) ->
           id: c.id
