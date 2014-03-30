@@ -161,9 +161,15 @@ instance Model Contract where
   type TableName Contract = "Contract"
   modelInfo = mkModelInfo Contract ident
   modelView = \case
-    "search" -> Just $ searchView (contractSearchParams)
-    ""       -> Just
-      $ modifyView defaultView
+    "search" ->
+        Just $ subDict "prefixedSubPrograms" $
+        searchView (contractSearchParams)
+    "portalSearch" ->
+        Just $ subDict "portalSubPrograms" $
+        searchView (contractSearchParams)
+    ""       ->
+        Just $ subDict "prefixedSubPrograms" $
+        modifyView defaultView
         [ setMeta "dictionaryParent" "make" model
         , setMeta "regexp" "email" email
         , setMeta "regexp" "phone" phone
@@ -173,6 +179,13 @@ instance Model Contract where
         , color `completeWith` Color.label
         ]
     _ -> Nothing
+    where
+      -- Make subprogram field more usable on client
+      subDict n v =
+          modifyView v
+          [ dict subprogram $
+            (dictOpt n){ dictType = Just "ComputedDict", dictBounded = True}
+          ]
 
 
 -- | Contract identifiers used to import/search contracts.
