@@ -123,7 +123,8 @@ caseMod = [
   ,setMeta "regexp" "vin" car_vin
   ,setMeta "regexp" "year" car_makeYear
 
-  ,setMeta "invisible" (Aeson.Bool True) contract
+  ,invisible contract
+  ,setType "text" contract
 
   ,widget "inline-uploader" files
   ,setMeta "reference-widget" "files" files
