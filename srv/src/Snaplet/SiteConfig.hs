@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, PatternGuards #-}
 
 module Snaplet.SiteConfig
   ( SiteConfig
@@ -77,9 +77,10 @@ serveModel = do
   view  <- T.decodeUtf8 . fromMaybe "" <$> getParam "view"
   model <- case T.splitOn ":" view of
       ["ctr",scr,pgm]
-        | name == "case" -> case Model.dispatch "Case" $ viewForModel scr of
-          Just (Just res) -> Just <$> constructModel "Case" scr pgm res
-          _ -> error "BUG"
+        | Just name' <- Map.lookup name modelTrMap
+          -> case Model.dispatch name' $ viewForModel scr of
+            Just (Just res) -> Just <$> constructModel name' scr pgm res
+            _ -> error $ "Unexpected model name" ++ show name'
       ["newCase",pgm] -> fmap Just
         $ case name of
           "case" -> newCase pgm

@@ -1995,17 +1995,41 @@ INSERT INTO "FieldPermission" (role, model, field, r, w)
        WHERE model = 'towage'
        AND   lower(field) in (select col from own));
 
--- Case field permissios made from case
-insert into "FieldPermission" (role, model, field, r, w)
-(select role, 'Case' as model, field, r, w
-        from "FieldPermission"
-        where model = 'case');
 
--- Call field permissios made from case
+-- copy permissions for new models
 insert into "FieldPermission" (role, model, field, r, w)
-(select role, 'Call' as model, field, r, w
-        from "FieldPermission"
-        where model = 'call');
+(select
+    role,
+    case model
+      when 'case' then 'Case'
+      when 'call' then 'Call'
+      when 'averageCommissioner' then 'AverageCommissioner'
+      when 'bank' then 'Bank'
+      when 'consultation' then 'Consultation'
+      when 'continue' then 'Continue'
+      when 'deliverCar' then 'DeliverCar'
+      when 'deliverParts' then 'DeliverParts'
+      when 'hotel' then 'Hotel'
+      when 'information' then 'Information'
+      when 'ken' then 'LegalAssistance'
+      when 'rent' then 'Rent'
+      when 'sober' then 'SoberDriver'
+      when 'taxi' then 'Taxi'
+      when 'tech' then 'Tech'
+      when 'tech1' then 'TechInspect'
+      when 'tickets' then 'Tickets'
+      when 'towage' then 'Towage'
+      when 'transportation' then 'Transportation'
+      end,
+    field, r, w
+  from "FieldPermission"
+  where model in 
+    ('case', 'call',
+    'averageCommissioner', 'bank', 'consultation', 'continue',
+    'deliverCar', 'deliverParts', 'hotel', 'information', 'ken',
+    'rent', 'sober', 'taxi', 'tech', 'tech1',
+    'tickets', 'towage', 'transportation')
+);
 
 
 GRANT ALL ON "FieldPermission" TO carma_search;
