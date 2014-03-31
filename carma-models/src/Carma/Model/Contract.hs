@@ -37,7 +37,7 @@ import Carma.Model.LegalForm    (LegalForm)
 import Carma.Model.Partner      (Partner)
 import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
-import Carma.Model.Usermeta     (Usermeta)
+import Carma.Model.Usermeta     (Usermeta, value)
 import Carma.Model.Engine       (Engine)
 import Carma.Model.Search
 
@@ -171,6 +171,9 @@ instance Model Contract where
         Just $ subDict "prefixedSubPrograms" $
         modifyView defaultView
         [ setMeta "dictionaryParent" "make" model
+        , setMeta "dictionaryLabel"
+          (String $ Data.Model.fieldName Carma.Model.Usermeta.value)
+          committer
         , setMeta "regexp" "email" email
         , setMeta "regexp" "phone" phone
         , setMeta "regexp" "plateNum" plateNum
