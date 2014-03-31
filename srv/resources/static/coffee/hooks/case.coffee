@@ -147,7 +147,7 @@ define ["utils", "dictionaries"], (u, d) ->
     knockVM['region'] = ko.computed
       read: ->
         res = ''
-        city = knockVM.city()
+        city = knockVM.city?()
         if city
           $.bgetJSON "/regionByCity/#{city}",
             (r) -> res = r.join ','
@@ -164,4 +164,4 @@ define ["utils", "dictionaries"], (u, d) ->
         dictionaryKey: 'value'
         dictionaryLabel: 'info'
     knockVM['car_modelInfo'] = ko.computed ->
-      dict.getLab knockVM['car_model']()
+      dict.getLab knockVM['car_model']?()
