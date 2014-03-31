@@ -87,7 +87,7 @@ data Case = Case
   , car_buyDate
     :: F (Maybe Day) "car_buyDate" "Дата покупки"
   , car_dealerTO
-    :: F (Maybe (IdentT Partner)) "car_dealerTO" "Дилер у которого проходило последнее ТО"
+    :: F (Maybe (IdentT Partner)) "car_dealerTO" "Дилер, у которого проходило последнее ТО"
   , car_mileage
     :: F (Maybe TInt) "car_mileage" "Текущий пробег"
   , car_transmission
