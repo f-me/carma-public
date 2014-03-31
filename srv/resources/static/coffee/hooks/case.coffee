@@ -139,7 +139,7 @@ define ["utils", "dictionaries"], (u, d) ->
   cityStatsHook: (model, knockVM) ->
     cityField = "city"
     u.hideComplex
-    knockVM[cityField].subscribe (new_city) ->
+    knockVM[cityField]?.subscribe (new_city) ->
       $.getJSON "/stats/towAvgTime/" + new_city,
         (r) -> $("#city-towage-average-time").text(u.formatSecToMin(r[0]))
 
