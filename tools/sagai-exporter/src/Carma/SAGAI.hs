@@ -145,7 +145,7 @@ instance ExportMonad CaseExport where
     expenseType = return Dossier
 
     ddrField = do
-      servs <- filter exportable <$> getAllServices
+      servs <- getAllServices
       timestampToDate =<< case servs of
         [] -> caseField1 "callDate"
         ((_, _, d):_) -> dataField1 "times_factServiceStart" d

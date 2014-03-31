@@ -31,8 +31,7 @@ psaQuery = [sql|
 SELECT id FROM casetbl
 WHERE psaExportNeeded='yes'
 AND  (program=?)
-AND  (NOT psaexported='yes' OR psaexported IS NULL)
-AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
+AND  (NOT psaexported='yes' OR psaexported IS NULL);
 |]
 
 
@@ -43,8 +42,7 @@ psaQuery0 = [sql|
 SELECT id FROM casetbl
 WHERE psaExportNeeded='yes'
 AND  (program='citroen' OR program='peugeot')
-AND  (NOT psaexported='yes' OR psaexported IS NULL)
-AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
+AND  (NOT psaexported='yes' OR psaexported IS NULL);
 |]
 
 
