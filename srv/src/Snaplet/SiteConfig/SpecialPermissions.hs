@@ -16,6 +16,7 @@ import           Data.String (fromString)
 
 import           Database.PostgreSQL.Simple (Query, query)
 import           Database.PostgreSQL.Simple.SqlQQ
+import           Database.PostgreSQL.Simple.ToField
 
 import           Snaplet.SiteConfig.Models
 import           Snaplet.SiteConfig.Config
@@ -23,7 +24,7 @@ import           Snaplet.SiteConfig.Config
 import           Snap
 import           Util
 
-q :: ByteString -> Query
+q :: Query
 q = [sql|
      SELECT contractField,
      (case ? when true then 't' else 'f' end)
