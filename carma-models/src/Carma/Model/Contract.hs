@@ -22,7 +22,7 @@ import Data.Typeable
 import Database.PostgreSQL.Simple.FromField (FromField)
 import Database.PostgreSQL.Simple.ToField
 
-import Data.Model
+import Data.Model as DM
 import Data.Model.Types
 import Data.Model.View
 
@@ -35,11 +35,11 @@ import Carma.Model.CheckType    (CheckType)
 import Carma.Model.Colors as Color (label)
 import Carma.Model.LegalForm    (LegalForm)
 import Carma.Model.Partner      (Partner)
+import Carma.Model.Search
 import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
 import Carma.Model.Usermeta     (Usermeta, value)
 import Carma.Model.Engine       (Engine)
-import Carma.Model.Search
 
 
 -- | Transparent 'Day' wrapper so that @typeOf WDay@ points to this
@@ -172,7 +172,7 @@ instance Model Contract where
         modifyView defaultView
         [ setMeta "dictionaryParent" "make" model
         , setMeta "dictionaryLabel"
-          (String $ Data.Model.fieldName Carma.Model.Usermeta.value)
+          (String $ DM.fieldName Carma.Model.Usermeta.value)
           committer
         , setMeta "regexp" "email" email
         , setMeta "regexp" "phone" phone
@@ -191,7 +191,8 @@ instance Model Contract where
           ]
 
 
--- | Contract identifiers used to import/search contracts.
+-- | Contract identifiers used to import contracts in bulk and to
+-- search contracts on case screen.
 identifiers :: [FA Contract]
 identifiers = [ FA vin
               , FA cardNumber
@@ -209,7 +210,32 @@ identifierNames = map fieldNameE identifiers
 
 
 -- | List of searchable Contract fields.
+--
+-- Must include all fields possibly available through portal screen.
 contractSearchParams :: [(Text, [Predicate Contract])]
 contractSearchParams =
-    (Data.Model.fieldName subprogram, one subprogram):
-    (map (\p@(FA f) -> (fieldNameE p, fuzzy $ one $ f)) identifiers)
+    (map (\p@(FA f) -> (fieldNameE p, one $ f)) $
+     [ FA subprogram
+     , FA isActive
+     , FA make
+     , FA model
+     , FA carClass
+     , FA transmission
+     , FA engineType
+     , FA seller
+     , FA lastCheckDealer
+     , FA checkType
+     , FA legalForm
+     , FA committer
+     ]) ++
+    (map (\p@(FA f) -> (fieldNameE p, fuzzy $ one $ f)) $
+     identifiers ++
+     [ FA startMileage
+     , FA makeYear
+     , FA color
+     , FA engineVolume
+     , FA checkPeriod
+     , FA orderNumber
+     , FA managerName
+     , FA comment
+     ])
