@@ -38,7 +38,7 @@ data Case = Case
   , contact_name
     :: F (Maybe Text) "contact_name" "Звонящий"
   , contact_phone1
-    :: F (Maybe Phone) "contact_phone1" "Контактные телефоны"
+    :: F (Maybe Phone) "contact_phone1" "Контактные телефоны звонящего"
   , contact_phone2
     :: F (Maybe Phone) "contact_phone2" ""
   , contact_phone3
@@ -46,13 +46,13 @@ data Case = Case
   , contact_phone4
     :: F (Maybe Phone) "contact_phone4" ""
   , contact_email
-    :: F (Maybe Text) "contact_email" "Email"
+    :: F (Maybe Text) "contact_email" "Email звонящего"
   , contact_contactOwner
     :: F (Maybe Checkbox)     "contact_contactOwner" "Звонящий владелец?"
   , contact_ownerName
     :: F (Maybe Text) "contact_ownerName" "Владелец"
   , contact_ownerPhone1
-    :: F (Maybe Phone) "contact_ownerPhone1" "Контактные телефоны"
+    :: F (Maybe Phone) "contact_ownerPhone1" "Контактные телефоны владельца"
   , contact_ownerPhone2
     :: F (Maybe Phone) "contact_ownerPhone2" ""
   , contact_ownerPhone3
@@ -60,7 +60,7 @@ data Case = Case
   , contact_ownerPhone4
     :: F (Maybe Phone) "contact_ownerPhone4" ""
   , contact_ownerEmail
-    :: F (Maybe Text) "contact_ownerEmail" "Email"
+    :: F (Maybe Text) "contact_ownerEmail" "Email владельца"
   , program
     :: F (Maybe (IdentI Program))  "program" "Программа"
   , subprogram
