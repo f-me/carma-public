@@ -12,8 +12,6 @@ import           Data.Pool
 
 import           Control.Applicative
 
-import           Data.String (fromString)
-
 import           Database.PostgreSQL.Simple (Query, query)
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.ToField
@@ -53,8 +51,9 @@ stripContract model sid flt = do
         (query conn q (flt, progid) :: IO [(ByteString, ByteString)])
       filterFields perms flds = filter (isCanShow perms) flds
       isCanShow perms f  = fromMaybe False $ check flt perms (name f)
-      check Form "dixi"      = return True
-      check Form "committer" = return True
-      check Form "isActive"  = return True
-      check Form "ctime"     = return True
-      check _    perms name  = M.lookup name perms >>= return . ("t" ==)
+      check Form _ "dixi"        = return True
+      check Form _ "committer"   = return True
+      check Form _ "isActive"    = return True
+      check Form _ "ctime"       = return True
+      check Table _ "subprogram" = return True
+      check _ perms name         = M.lookup name perms >>= return . ("t" ==)
