@@ -33,8 +33,7 @@ define [ "utils"
 
   constructor: (opts)->
 
-    unless opts.allowAll?
-        allModels = filterModels opts.allowedResultFields, opts.resultModels
+    allModels = filterModels opts.allowedResultFields, opts.resultModels
 
     searchModel = mergeFields opts.searchModels
     searchModel.fields = searchModel.fields.concat [
