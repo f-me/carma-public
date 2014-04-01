@@ -1,27 +1,28 @@
 # Portal screen, derived from contract search screen
 define [ "search/screen"
-       , "json!/cfg/model/Contract"
-       , "json!/cfg/model/Contract?view=portalSearch"
        , "text!tpl/screens/contract.html"
        , "model/main"
        , "utils"
-       ], (Screen, Contract, Search, tpl, main, u) ->
-  screenConstructor = (res) ->
-    resultFields = _.map res.fields, (f) ->
+       ], (Screen, tpl, main, u) ->
+  # Initialize portal search screen from portal-stripped Contract
+  # model
+  screenConstructor = (Contract, Search, Table) ->
+    # All portal fields marked with showtable option in subprogram
+    # dictionary are searchable and shown in the table
+    resultFields = _.map Table.fields, (f) ->
             name: f.name
             fixed: true
     searchFields = _.pluck resultFields, 'name'
-    # Always search by subprogram
-    unless _.contains searchFields, "subprogram"
-      searchFields.push "subprogram"
     Screen.constructor
         noState: true
         apiUrl: "/search/contract"
         searchModels: [Search]
         resultModels: [Contract]
-        resultTable: resultFields
+        resultTable: _.filter resultFields, (f) -> f.name != "subprogram"
         searchFields: searchFields
         defaultSort: { fields: [{ model: "Contract", name: "ctime" }], order: "desc" }
+        allowedResultFields:
+          Contract: _.pluck Contract.fields, 'name'
 
   # Given subprogram id and its title, setup logo, title and dealer
   # help on page header
@@ -37,84 +38,90 @@ define [ "search/screen"
 
   contractForm = "contract-form"
 
+  redirect = (hash) -> window.location.hash = hash
+
   template: tpl
   constructor: (viewName, {sub: subprogram, id: id}) ->
-    $.getJSON "/cfg/model/Contract?sid=#{subprogram}&showform=showtable", (mdl) ->
-      # Open a contract by its id. If id is null, setup an empty
-      # contract form.
-      openContract = (cid) ->
-        sid = searchVM.subprogram()
-        $('a[href="#contract-tab"]').tab("show")
-        contractModel = "Contract?sid=#{sid}"
-        if cid?
-          $('#render-contract').attr(
-            "href",
-            "/renderContract?contract=#{cid}")
-          main.modelSetup(contractModel) contractForm, {id: cid}, {}
-        else
-          main.modelSetup(contractModel) contractForm,
-            # TODO Set committer on server
-            {subprogram: sid, committer: parseInt global.user.meta.mid}, {}
+    spgms = u.newComputedDict "portalSubPrograms"
+    def_spgm = spgms.source[0]?.value
 
-        # Role-specific permissions
-        kvm = global.viewsWare[contractForm].knockVM
-        kvm['isActiveDisableDixi'](true)
-        if _.find(global.user.roles, (r) -> r == global.idents("Role").partner)
-          kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
-        if _.find(global.user.roles, (r) -> r == global.idents("Role").contract_admin)
-          kvm['disableDixi'](true)
+    # Current contract id
+    contract = ko.observable null
 
-      spgms = u.newComputedDict "portalSubPrograms"
-      def_pgm = spgms.source[0]?.value
+    # Ensure that subprogram is set
+    if subprogram?
+      s = parseInt subprogram
+      if _.isNumber s
+        subprogram = s
+        if id?
+          i = parseInt id
+          if _.isNumber i
+            contract i
 
-      # Search form setup and interaction
-      searchVM = screenConstructor mdl
+    # Redirect to default program when #contract is accessed
+    unless _.isNumber subprogram
+      redirect "contract/#{def_spgm}"
+      return
 
-      # Current contract id
-      contract = ko.observable null
+    contract.subscribe (c) ->
+      if _.isNumber(c)
+        # Redirect to contract URL (does not cause actual reload due
+        # to a hack in routes module)
+        redirect "contract/#{subprogram}/#{c}"
+        openContract c
 
-      # Hide subprogram predicate remove button, make subprogram label bold
-      $(".icon-remove").first().parents("div").first().css("visibility","hidden")
-      $(".control-label label").first().css("font-weight", "bold")
+    logoSetup subprogram, spgms.getLab subprogram
 
-      # Setup screen from URL
-      if subprogram?
-        s = parseInt subprogram
-        if _.isNumber s
-          searchVM.subprogram s
-          if id?
-            i = parseInt id
-            if _.isNumber i
-              contract i
+    # Open contract from URL
+    openContract contract() if contract()
 
-      # Update URL&info when subprogram changes
-      searchVM.subprogram.subscribe (s) ->
-        # Default if the subprogram is erased
-        if _.isNull s
-          searchVM.subprogram def_pgm
-        # Redirect to subprogram URL
-        window.location.hash = "contract/#{searchVM.subprogram()}"
+    # Open contracts upon table row click
+    $("#tbl").on "click", "tr", ->
+      contract $(this).data("source")
 
-      contract.subscribe (c) ->
-        sid = searchVM.subprogram()
-        if _.isNumber(sid) &&  _.isNumber(c)
-          # Redirect to contract URL
-          window.location.hash = "contract/#{sid}/#{c}"
-          openContract c
+    # Create new contracts
+    $("#new-contract-btn").click () ->
+      contract null
+      openContract contract()
 
-      if !searchVM.subprogram()
-        # Redirect to default subprogram
-        searchVM.subprogram def_pgm
+    contractModel = "Contract?sid=#{subprogram}"
+
+    # Open a contract by its id. If id is null, setup an empty
+    # contract form.
+    openContract = (cid) ->
+      $('a[href="#contract-tab"]').tab("show")
+      if cid?
+        $('#render-contract').attr(
+          "href",
+          "/renderContract?contract=#{cid}")
+        main.modelSetup(contractModel) contractForm, {id: cid}, {}
       else
-        logoSetup subprogram, spgms.getLab subprogram
+        main.modelSetup(contractModel) contractForm,
+          # TODO Set committer on server
+          {subprogram: sid, committer: parseInt global.user.meta.mid}, {}
 
-      # Open contract from URL
-      openContract contract() if contract()
+      # Role-specific permissions
+      kvm = global.viewsWare[contractForm].knockVM
+      kvm['isActiveDisableDixi'](true)
+      if _.find(global.user.roles, (r) -> r == global.idents("Role").partner)
+        kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
+      if _.find(global.user.roles, (r) -> r == global.idents("Role").contract_admin)
+        kvm['disableDixi'](true)
 
-      # Open contracts upon click
-      $("#tbl").on "click", "tr", ->
-        contract $(this).data("source")
+    $.getJSON "/cfg/model/#{contractModel}", (Contract) ->
+      $.getJSON "/cfg/model/#{contractModel}&field=showtable&view=portalSearch", (Search) ->
+        $.getJSON "/cfg/model/#{contractModel}&field=showtable", (Table) ->
+          # Search subscreen
+          searchVM = screenConstructor Contract, Search, Table
+          searchVM.subprogram subprogram
 
-      $("#new-contract-btn").click () ->
-        contract null
-        openContract contract()
+          # Update URL&info when subprogram changes
+          searchVM.subprogram.subscribe (s) ->
+            # Default if the subprogram is erased
+            if _.isNull s
+              searchVM.subprogram def_spgm
+            redirect "contract/#{searchVM.subprogram()}"
+
+          # Hide subprogram predicate remove button, make subprogram label bold
+          $(".icon-remove").first().parents("div").first().css("visibility","hidden")
+          $(".control-label label").first().css("font-weight", "bold")
