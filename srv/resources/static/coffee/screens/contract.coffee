@@ -16,6 +16,7 @@ define [ "search/screen"
       searchFields.push "subprogram"
     Screen.constructor
         noState: true
+        allowAll: true
         apiUrl: "/search/contract"
         searchModels: [Search]
         resultModels: [Contract]
