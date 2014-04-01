@@ -64,6 +64,9 @@ instance PgTypeable LegacyDatetime where
 instance PgTypeable (Interval UTCTime) where
   pgTypeOf _ = PgType "tstzrange" True
 
+instance PgTypeable (Interval Day) where
+  pgTypeOf _ = PgType "daterange" True
+
 instance PgTypeable  Diagnosis1          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Diagnosis2          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Diagnosis3          where pgTypeOf _ = PgType "text" True

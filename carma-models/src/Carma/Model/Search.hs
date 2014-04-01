@@ -10,6 +10,7 @@ import           Data.String (fromString)
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import           Data.Time.Calendar (Day)
 
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
@@ -105,9 +106,20 @@ instance forall m nm desc . (SingI nm, SingI desc, Model m)
                $ one (undefined :: m -> F (Interval UTCTime) nm desc)
 
 instance forall m nm desc . (SingI nm, SingI desc, Model m)
-         => IntervalPred (m -> F (Maybe LegacyDatetime) nm desc) m where
+         => IntervalPred (m -> F UTCTime nm desc) m  where
+  interval _ = map (\p -> p {matchType = MatchInterval})
+               $ one (undefined :: m -> F (Interval UTCTime) nm desc)
+
+instance forall m nm desc . (SingI nm, SingI desc, Model m)
+         => IntervalPred (m -> F Day nm desc) m  where
+  interval _ = map (\p -> p {matchType = MatchInterval})
+               $ one (undefined :: m -> F (Interval Day) nm desc)
+
+instance forall m nm desc t.
+    (SingI nm, SingI desc, Model m, IntervalPred (m -> F t nm desc) m)
+         => IntervalPred (m -> F (Maybe t) nm desc) m where
   interval _ =
-    interval (undefined :: (m -> F LegacyDatetime nm desc)) :: [Predicate m]
+    interval (undefined :: (m -> F t nm desc)) :: [Predicate m]
 
 refExist :: forall m nm desc
  . (SingI nm, SingI desc, Model m)
@@ -180,6 +192,7 @@ hs2pgtype t
   | t == typeOf (undefined :: Interval UTCTime) = "tstzrange"
   | t == typeOf (undefined :: Interval (Maybe UTCTime)) = "tstzrange"
   | t == typeOf (undefined :: Interval LegacyDatetime) = "tstzrange"
+  | t == typeOf (undefined :: Interval Day) = "daterange"
   | otherwise  = error $ "Unknown type in hs2pgtype: " ++ show t
 
 predicatesFromParams

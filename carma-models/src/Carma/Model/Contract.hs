@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Carma.Model.Contract
     ( Contract(..)
@@ -19,6 +20,8 @@ import Data.Time.Clock (UTCTime)
 import Data.Text (Text)
 import Data.Typeable
 
+import GHC.TypeLits
+
 import Database.PostgreSQL.Simple.FromField (FromField)
 import Database.PostgreSQL.Simple.ToField
 
@@ -34,7 +37,7 @@ import Carma.Model.CarModel     (CarModel)
 import Carma.Model.CheckType    (CheckType)
 import Carma.Model.Colors as Color (label)
 import Carma.Model.LegalForm    (LegalForm)
-import Carma.Model.Partner      (Partner)
+import Carma.Model.Partner      (Partner, partnerKey)
 import Carma.Model.Search
 import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
@@ -47,10 +50,14 @@ import Carma.Model.Engine       (Engine)
 newtype WDay = WDay Day deriving (FromField, ToField,
                                   FromJSON, ToJSON,
                                   DefaultFieldView,
-                                  Typeable)
+                                  Show, Typeable)
 
 instance PgTypeable WDay where
   pgTypeOf _ = pgTypeOf (undefined :: Day)
+
+instance forall m nm desc . (SingI nm, SingI desc, Model m)
+         => IntervalPred (m -> F WDay nm desc) m  where
+  interval _ = interval (undefined :: (m -> F Day nm desc)) :: [Predicate m]
 
 
 data Contract = Contract
@@ -156,39 +163,47 @@ data Contract = Contract
                         "Сохранить"
   } deriving Typeable
 
-
 instance Model Contract where
   type TableName Contract = "Contract"
   modelInfo = mkModelInfo Contract ident
   modelView = \case
     "search" ->
         Just $ subDict "prefixedSubPrograms" $
+        flip modifyView commonMeta $
         searchView (contractSearchParams)
     "portalSearch" ->
         Just $ subDict "portalSubPrograms" $
+        flip modifyView commonMeta $
         searchView (contractSearchParams)
     ""       ->
         Just $ subDict "prefixedSubPrograms" $
-        modifyView defaultView
-        [ setMeta "dictionaryParent" "make" model
-        , setMeta "dictionaryLabel"
-          (String $ DM.fieldName Carma.Model.Usermeta.value)
-          committer
-        , setMeta "regexp" "email" email
+        modifyView defaultView $
+        [ setMeta "regexp" "email" email
         , setMeta "regexp" "phone" phone
         , setMeta "regexp" "plateNum" plateNum
         , setMeta "regexp" "vin" vin
         , widget "checkbutton" dixi
-        , color `completeWith` Color.label
-        ]
+        ] ++ commonMeta
     _ -> Nothing
     where
       -- Make subprogram field more usable on client
       subDict n v =
           modifyView v
           [ dict subprogram $
-            (dictOpt n){ dictType = Just "ComputedDict", dictBounded = True}
+            (dictOpt n){dictType = Just "ComputedDict", dictBounded = True}
           ]
+
+
+-- | Meta setters common for standard and search views.
+commonMeta =
+    [ setMeta "dictionaryParent" "make" model
+    , setMeta "dictionaryLabel"
+      (String $ DM.fieldName Carma.Model.Usermeta.value)
+      committer
+    , color `completeWith` Color.label
+    , partnerKey seller
+    , partnerKey lastCheckDealer
+    ]
 
 
 -- | Contract identifiers used to import contracts in bulk and to
@@ -238,4 +253,8 @@ contractSearchParams =
      , FA orderNumber
      , FA managerName
      , FA comment
-     ])
+     ]) ++
+    [ (DM.fieldName ctime, interval ctime)
+    , (DM.fieldName validSince, interval validSince)
+    , (DM.fieldName validUntil, interval validUntil)
+    , (DM.fieldName buyDate, interval buyDate)]

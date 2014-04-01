@@ -322,7 +322,12 @@ instance DefaultFieldView (Interval UTCTime) where
   defaultFieldView f = (defFieldView f) {fv_type = "interval-datetime"}
 
 instance DefaultFieldView (Interval Day) where
-  defaultFieldView f = (defFieldView f) {fv_type = "interval-date"}
+  defaultFieldView f = (defFieldView f)
+    {fv_type = "interval-date"
+    ,fv_meta
+      = Map.insert "widget" "interval-datetime"
+      $ fv_meta $ defFieldView f
+    }
 
 instance DefaultFieldView (Vector t) => DefaultFieldView (Vector (Maybe t))
   where
