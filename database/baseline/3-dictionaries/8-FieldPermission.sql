@@ -1991,12 +1991,6 @@ INSERT INTO "FieldPermission" (role, model, field, r, w)
        WHERE model = 'towage'
        AND   lower(field) in (select col from inherited))
 )
-INSERT INTO "FieldPermission" (role, model, field, r, w)
-       (SELECT role, 'Towage' as model, field, r, w
-       FROM "FieldPermission"
-       WHERE model = 'towage'
-       AND   lower(field) in (select col from own));
-
 
 -- copy permissions for new models
 insert into "FieldPermission" (role, model, field, r, w)
@@ -2025,7 +2019,7 @@ insert into "FieldPermission" (role, model, field, r, w)
       end,
     field, r, w
   from "FieldPermission"
-  where model in 
+  where model in
     ('case', 'call',
     'averageCommissioner', 'bank', 'consultation', 'continue',
     'deliverCar', 'deliverParts', 'hotel', 'information', 'ken',
