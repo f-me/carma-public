@@ -157,9 +157,11 @@ writeModel model
       case sid of
         Just i -> do
           field <- fromMaybe "showform" <$> getParam "field"
-          when (field /= "showform" && field /= "showtable") $
-               finishWithError 403 "field param be either showform or showtable"
-          stripContract model i field
+          case field of
+            "showform"  -> stripContract model i Form
+            "showtable" -> stripContract model i Table
+            _ ->
+              finishWithError 403 "field param be either showform or showtable"
         Nothing -> return model
     _ -> return model
 
