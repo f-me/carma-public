@@ -3,7 +3,8 @@ define ["model/main", "render/screen"], (main, render) ->
   elementView = (elt) -> _.last($(elt).parents("[id*=view]"))
 
   # Save instance loaded in view
-  saveInstance = (viewName) -> global.viewsWare[viewName].knockVM._meta.q.save()
+  saveInstance = (viewName, cb, force) ->
+    global.viewsWare[viewName].knockVM._meta.q.save(cb, force)
 
   window.saveInstance = saveInstance
 

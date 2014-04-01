@@ -74,7 +74,7 @@ define [], ->
     IdentList : (v) -> v
     dictionary: (v) -> if _.isNull v then '' else v
     date      : c2sDate("dd.MM.yyyy")
-    datetime  : c2sDate("dd.MM.yyyy HH:mm")
+    datetime  : c2sDate("dd.MM.yyyy HH:mm:ss")
     json      : JSON.stringify
     ident     : (v) -> parseInt v
     'interval-datetime': (v) ->
@@ -92,7 +92,7 @@ define [], ->
     UTCTime   : s2cISO guiUTCTimeFormat
     dictionary: (v) -> v
     date      : s2cDate("dd.MM.yyyy")
-    datetime  : s2cDate("dd.MM.yyyy HH:mm")
+    datetime  : s2cDate("dd.MM.yyyy HH:mm:ss")
     json      : s2cJson
     'interval-date': (v) -> v
 

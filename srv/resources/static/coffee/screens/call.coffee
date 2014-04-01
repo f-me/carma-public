@@ -11,7 +11,7 @@ define [ "utils"
   setupCallForm = (viewName, args) ->
     knockVM = main.modelSetup("call") viewName, args,
                        permEl     : "case-permissions"
-                       slotsee    : ["call-number"]
+                       slotsee    : ["call-number", "right"]
                        focusClass : "focusable"
                        groupsForest : "center"
     $('input[name="callDate"]').parents('.control-group').hide()
@@ -26,7 +26,7 @@ define [ "utils"
         window.location.hash = "case/" + id
     )
 
-    isProgramDefined = -> 
+    isProgramDefined = ->
       p = knockVM.program()
       p && p != ''
     $('#new-case').prop 'disabled', not isProgramDefined()
@@ -51,6 +51,9 @@ define [ "utils"
     dtSearch st
     hotkeys.setup()
     $("#search-partner").on 'click', partnerSearchClick
+    $("#make-new-call").on 'click', -> makeCallClick viewName
+    $("#end-call").on 'click', -> endCallClick viewName
+    setModalVisible not args.id?
 
   fillTable = (st, objs) ->
     st.fnClearTable()
@@ -89,6 +92,38 @@ define [ "utils"
 
     localStorage[pSearch.storeKey] = JSON.stringify kvm._meta.q.toRawObj()
     pSearch.open('call')
+
+
+  makeCallClick = (viewName) ->
+    saveInstance viewName, (-> hideModal()), true
+
+  endCallClick = (viewName) ->
+    kvm = global.viewsWare[viewName].knockVM
+    kvm.endDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
+    saveInstance viewName, ->
+      reloadScreen()
+
+  setModalVisible = (visible) ->
+    if visible then showModal() else hideModal()
+
+  showModal = ->
+    $("#new-call-modal")
+      .removeClass("out")
+      .addClass("in")
+    $("#left").hide()
+    $("#center").hide()
+    $("#right").hide()
+    $("#bottom").hide()
+
+  hideModal = ->
+    $("#left").show()
+    $("#center").show()
+    $("#right").show()
+    $("#bottom").show()
+    $("#new-call-modal")
+      .removeClass("in")
+      .addClass("out")
+
 
   { constructor: setupCallForm
   , template: tpl

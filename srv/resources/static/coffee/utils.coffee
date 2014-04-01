@@ -101,7 +101,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
       , #{Base64.encode('\uFEFF' + head + s)}"
     s
 
-  modelsFromUrl = -> window.location.hash.match(/#(.*)\/.*/)[1]
+  modelsFromUrl = -> location.hash.match(/#(\w+)/)[1];
 
   # Generate a random password of given length (default 10)
   genPassword = (len) ->

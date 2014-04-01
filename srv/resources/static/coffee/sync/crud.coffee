@@ -42,13 +42,13 @@ define [ "sync/metaq"
     # issue #1568
     haveBefore: (b, a) => b == a or ((_.isUndefined b) and (_.isNull a))
 
-    save: (cb) =>
+    save: (cb, force = false) =>
       cb ?= _.identity # just to be sure we have something to call
       @saveKvm() unless @persisted
       delete @q[k] for k, v of @q when @haveBefore(@lastFetch[k], v)
       method = if @persisted then "PUT" else "POST"
       url    = if @persisted then "#{@url}/#{@kvm.id()}" else @url
-      return cb(@kvm, @model) if _.isEmpty @q
+      return cb(@kvm, @model) if (_.isEmpty @q) and not force
       @qbackup = _.clone(@q)
       @q       = {}
       $.ajax

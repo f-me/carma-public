@@ -155,6 +155,7 @@ core	bank	warrantyCase	t	t
 core	bank	whatToSay1	t	t
 call	call	address	t	t
 call	call	callDate	t	t
+call	call	endDate	t	t
 call	call	callerName_contactOwner	t	t
 call	call	callerName_email	t	t
 call	call	callerName_name	t	t
@@ -180,6 +181,7 @@ call	call	subprogram	t	t
 call	call	wazzup	t	t
 searchCall	call	address	t	f
 searchCall	call	callDate	t	f
+searchCall	call	endDate	t	f
 searchCall	call	callerName_contactOwner	t	f
 searchCall	call	callerName_email	t	f
 searchCall	call	callerName_name	t	f

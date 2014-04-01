@@ -11,6 +11,15 @@
     },
     {
       "meta": {
+        "label": "Дата завершения звонка",
+        "readonly": true
+      },
+      "type": "datetime",
+      "groupName": null,
+      "name": "endDate"
+    },
+    {
+      "meta": {
         "label": "Сотрудник РАМК",
         "required": true,
         "readonly": true
