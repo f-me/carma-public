@@ -28,7 +28,7 @@
       </button>
     </div>
     <div class="control-group"
-          data-bind="visible: id">
+          data-bind="visible: id() && !endDate()">
       <button id="end-call" class="btn btn-danger">
         Закончить звонок
       </button>

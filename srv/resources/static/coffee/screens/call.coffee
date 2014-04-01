@@ -7,8 +7,14 @@ define [ "utils"
 
   utils.build_global_fn 'makeCase', ['screens/newCase']
   utils.build_global_fn 'reloadScreen', ['utils']
+  storeKey = "call"
 
   setupCallForm = (viewName, args) ->
+    # if user have unfinished call redirect him to close it
+    unfinished = localStorage["#{storeKey}.id"]
+    if unfinished and args.id isnt unfinished
+        return Finch.navigate "call/#{unfinished}"
+
     knockVM = main.modelSetup("call") viewName, args,
                        permEl     : "case-permissions"
                        slotsee    : ["call-number", "right"]
@@ -95,11 +101,19 @@ define [ "utils"
 
 
   makeCallClick = (viewName) ->
-    saveInstance viewName, (-> hideModal()), true
+    cb = ->
+      hideModal()
+      kvm = global.viewsWare[viewName].knockVM
+      localStorage["#{storeKey}.id"] = kvm.id()
+    saveInstance viewName, cb, true
+
 
   endCallClick = (viewName) ->
     kvm = global.viewsWare[viewName].knockVM
     kvm.endDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
+
+    localStorage.removeItem "#{storeKey}.id"
+
     saveInstance viewName, ->
       reloadScreen()
 
