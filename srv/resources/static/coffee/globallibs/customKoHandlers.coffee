@@ -90,7 +90,7 @@ ko.bindingHandlers.sort =
 ko.bindingHandlers.renderField =
   init: (el, acc, allBindigns, fld, ctx) ->
     return if acc().meta.invisible
-    tplid = acc().meta.widget || acc().type || 'text'
+    tplid = acc().meta?.widget || acc().type || 'text'
     tplid = "dictionary-many" if acc().type == "dictionary-set"
     tplid = "text" if acc().type == "ident"
     tpl   = Mustache.render $("##{tplid}-field-template").html(), acc()
@@ -127,7 +127,7 @@ ko.bindingHandlers.renderGroup =
 ko.bindingHandlers.render =
   init: (el, acc, allBindigns, ctx) ->
     return unless acc().field
-    tplName = acc().field.type || 'text'
+    tplName = acc().field.meta?.widget || acc().field.type || 'text'
     tpl = $("##{tplName}-ro-template").html()
     console.error "Cant find template for #{tplName}" unless tpl
     ko.utils.setHtml el, tpl
