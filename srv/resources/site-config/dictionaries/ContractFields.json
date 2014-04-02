@@ -1,6 +1,10 @@
 {
    "entries" : [
-     {
+      {
+         "value" : "ctime",
+         "label" : "Время создания контракта"
+      },
+      {
          "value" : "isActive",
          "label" : "Активен"
       },
