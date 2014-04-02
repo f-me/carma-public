@@ -39,7 +39,7 @@ define ["dictionaries/local-dict"], (ld) ->
 
     # Dictionary of all subprograms available to user from VIN/portal screen.
     # - partner/psaanalyst may see only his own programs
-    # - vinAdmin role may access all programs
+    # - contractAdmin/vinAdmin role may access all programs
     # - all other users see no programs
     portalSubPrograms: =>
       all_pgms = new ComputedDict(dict: "prefixedSubPrograms").source
@@ -56,7 +56,8 @@ define ["dictionaries/local-dict"], (ld) ->
           _.filter(all_pgms,
                   (e) -> _.contains user_pgms, e.value)
         else
-          if _.contains global.user.roles, global.idents("Role").vinAdmin
+          if _.contains global.user.roles, global.idents("Role").vinAdmin or
+             _.contains global.user.roles, global.idents("Role").contract_admin
             all_pgms
           else
             []
