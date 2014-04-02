@@ -18,18 +18,20 @@ define [], ->
   # How a UTCTime is formatted on client
   guiUTCTimeFormat = "dd.MM.yyyy HH:mm"
 
-  # Convert a formatted string to ISO 8601 string
-  c2sISO = (fmt) -> (v) ->
+  # Server format for Date (ISO 8601)
+  serverDayFormat = "yyyy-MM-dd"
+
+  # Parse a formatted string to ISO 8601 Date
+  parseISO = (fmt) -> (v) ->
     date = Date.parseExact v, fmt
     if date
-      date.toISOString()
+      date
     else
       if v != ""
         console.error("datamap: could not parse date '#{v}' with '#{fmt}'")
         null
       else
         ""
-
   s2cDate = (fmt) -> (v) ->
     return null if _.isEmpty v
     d = undefined
@@ -46,6 +48,8 @@ define [], ->
   s2cJson = (v) ->
     return null if _.isEmpty v
     JSON.parse(v)
+
+  c2sDay = (v) -> ((parseISO guiDayFormat) v)?.toString serverDayFormat
 
   c2sDictSet = (vals) ->
     ids = _.map vals, (v) -> parseInt v
@@ -69,14 +73,15 @@ define [], ->
     Bool      : (v) -> v
     Integer   : (v) -> parseInt v
     Double    : (v) -> parseFloat v.replace ',', '.'
-    Day       : (v) -> ((c2sISO guiDayFormat) v)?.slice(0, 10)
-    UTCTime   : c2sISO guiUTCTimeFormat
+    Day       : c2sDay
+    UTCTime   : (v) -> ((parseISO guiUTCTimeFormat) v)?.toISOString()
     IdentList : (v) -> v
     dictionary: (v) -> if _.isNull v then '' else v
     date      : c2sDate("dd.MM.yyyy")
     datetime  : c2sDate("dd.MM.yyyy HH:mm:ss")
     json      : JSON.stringify
     ident     : (v) -> parseInt v
+    'interval-date' : (v) -> v.map c2sDay
     'interval-datetime': (v) ->
       v.map (t) -> Date.parseExact(t, "dd.MM.yyyy")?.toString "yyyy-MM-ddTHH:mm:ss.0Z"
 
@@ -94,7 +99,6 @@ define [], ->
     date      : s2cDate("dd.MM.yyyy")
     datetime  : s2cDate("dd.MM.yyyy HH:mm:ss")
     json      : s2cJson
-    'interval-date': (v) -> v
 
   defaultc2s = (v) -> if _.isNull(v) then "" else String(v)
   c2s = (val, type) -> (c2sTypes[type] || defaultc2s)(val)
