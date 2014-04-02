@@ -51,6 +51,7 @@ library
     Carma.Model.VinFormat.Meta,
     Carma.Model.Region,
     Carma.Model.Role,
+    Carma.Model.BusinessRole,
     Carma.Model.Wazzup,
     Carma.Model.Case,
     Carma.Model.Case.Type,
