@@ -151,7 +151,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
       # Do not update screen if we stay in the same subprogram. This
       # prevents screen reloading when table rows are clicked on
       # portal screen.
-      unless global.previousHash?.match "contract/#{bind.sub}/?$"
+      unless global.previousHash?.match "contract/#{bind.sub}/?"
         global.previousHash = window.location.hash
         r.renderScreen contract, bind
 
