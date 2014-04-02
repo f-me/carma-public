@@ -1,7 +1,7 @@
 CREATE TABLE "SubProgram"
   ( id    SERIAL PRIMARY KEY
   , parent int4 REFERENCES "Program" NOT NULL ON DELETE SET NULL
-  , label text NOT NULL
+  , label text NOT NULL CHECK (label <> '')
   , active bool NOT NULL DEFAULT true
   , synonyms text[]
   , value text UNIQUE NOT NULL

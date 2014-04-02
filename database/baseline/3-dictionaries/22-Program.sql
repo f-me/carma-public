@@ -1,6 +1,6 @@
 CREATE TABLE "Program"
   ( id    SERIAL PRIMARY KEY
-  , label text UNIQUE NOT NULL
+  , label text UNIQUE NOT NULL CHECK (label <> '')
   , client text
   , clientAddress text
   , clientCode text
