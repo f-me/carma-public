@@ -1,4 +1,3 @@
-
 module Carma.Model.Colors where
 
 
@@ -13,7 +12,6 @@ import Data.Model.View
 
 data Colors = Colors
   {ident   :: PK Int Colors ""
-  ,value   :: F Text "value" "Внутреннее название цвета"
   ,label   :: F Text "label" "Название цвета"
   } deriving Typeable
 
@@ -23,4 +21,3 @@ instance Model Colors where
   modelView = \case
     "" -> Just $ modifyView defaultView [readonly value]
     _  -> Nothing
-
