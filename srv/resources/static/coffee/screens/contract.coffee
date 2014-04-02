@@ -64,27 +64,6 @@ define [ "search/screen"
       redirect "contract/#{def_spgm}"
       return
 
-    contract.subscribe (c) ->
-      if _.isNumber(c)
-        # Redirect to contract URL (does not cause actual reload due
-        # to a hack in routes module)
-        redirect "contract/#{subprogram}/#{c}"
-        openContract c
-
-    logoSetup subprogram, spgms.getLab subprogram
-
-    # Open contract from URL
-    openContract contract() if contract()
-
-    # Open contracts upon table row click
-    $("#tbl").on "click", "tr", ->
-      contract $(this).data("source")
-
-    # Create new contracts
-    $("#new-contract-btn").click () ->
-      contract null
-      openContract contract()
-
     contractModel = "Contract?sid=#{subprogram}"
 
     # Open a contract by its id. If id is null, setup an empty
@@ -108,6 +87,27 @@ define [ "search/screen"
         kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
       if _.find(global.user.roles, (r) -> r == global.idents("Role").contract_admin)
         kvm['disableDixi'](true)
+
+    contract.subscribe (c) ->
+      if _.isNumber(c)
+        # Redirect to contract URL (does not cause actual reload due
+        # to a hack in routes module)
+        redirect "contract/#{subprogram}/#{c}"
+        openContract c
+
+    logoSetup subprogram, spgms.getLab subprogram
+
+    # Open contract from URL
+    openContract contract() if contract()?
+
+    # Open contracts upon table row click
+    $("#tbl").on "click", "tr", ->
+      contract $(this).data("source")
+
+    # Create new contracts
+    $("#new-contract-btn").click () ->
+      contract null
+      openContract contract()
 
     $.getJSON "/cfg/model/#{contractModel}", (Contract) ->
       $.getJSON "/cfg/model/#{contractModel}&field=showtable&view=portalSearch", (Search) ->
