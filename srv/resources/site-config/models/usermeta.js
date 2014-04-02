@@ -58,6 +58,18 @@
     },
     {
       "meta": {
+        "label": "Бизнес-роль",
+        "dictionaryName": "BusinessRole",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
+        "bounded": true
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "businessRole"
+    },
+    {
+      "meta": {
         "label": "Подпрограммы",
         "dictionaryName": "prefixedSubPrograms",
         "dictionaryType": "ComputedDict",

@@ -247,6 +247,8 @@ lovViewer	Role	value	t	f
 lovAdmin	Role	value	t	f
 lovViewer	Role	isBack	t	f
 lovAdmin	Role	isBack	t	t
+lovViewer	BusinessRole	label	t	f
+lovAdmin	BusinessRole	label	t	t
 lovAdmin	FieldPermission	role	t	f
 lovAdmin	FieldPermission	model	t	f
 lovAdmin	FieldPermission	field	t	f
@@ -1911,6 +1913,8 @@ userAdmin	usermeta	realName	t	t
 userViewer	usermeta	realName	t	f
 userAdmin	usermeta	roles	t	t
 userViewer	usermeta	roles	t	f
+userAdmin	usermeta	businessRole	t	t
+userViewer	usermeta	businessRole	t	f
 userAdmin	usermeta	uid	t	t
 userViewer	usermeta	uid	t	f
 userAdmin	usermeta	workPhone	t	t
