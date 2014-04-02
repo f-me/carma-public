@@ -47,6 +47,7 @@ define [ "utils"
       , meta:
           label: "Добавить критерий поиска"
           noadd: true
+          invisible: opts?.hideFieldsList
           nosearch: true
           dictionaryType: "HiddenFieldsDict"
       }]

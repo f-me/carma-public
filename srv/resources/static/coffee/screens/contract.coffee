@@ -15,6 +15,7 @@ define [ "search/screen"
     searchFields = _.pluck resultFields, 'name'
     Screen.constructor
         noState: true
+        hideFieldsList: true
         apiUrl: "/search/contract"
         searchModels: [Search]
         resultModels: [Contract]
@@ -122,6 +123,5 @@ define [ "search/screen"
               searchVM.subprogram def_spgm
             redirect "contract/#{searchVM.subprogram()}"
 
-          # Hide subprogram predicate remove button, make subprogram label bold
-          $(".icon-remove").first().parents("div").first().css("visibility","hidden")
+          # Make subprogram label bold
           $(".control-label label").first().css("font-weight", "bold")
