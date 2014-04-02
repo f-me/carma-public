@@ -41,23 +41,25 @@ define ["dictionaries/local-dict"], (ld) ->
     # - partner/psaanalyst may see only his own programs
     # - contractAdmin/vinAdmin role may access all programs
     # - all other users see no programs
+    #
+    # TODO Compute this on server.
     portalSubPrograms: =>
       all_pgms = new ComputedDict(dict: "prefixedSubPrograms").source
       # Requires user to reload the page to update list of available
       # programs
-      user_pgms =
-        if global.user.meta.programs
-          _.map (global.user.meta.programs.split ','), (s) -> parseInt s
-        else
-          []
       @source =
-        if _.contains global.user.roles, global.idents("Role").partner or
-           _.contains global.user.roles, global.idents("Role").psaanalyst
+        if _.contains(global.user.roles, global.idents("Role").partner) or
+           _.contains(global.user.roles, global.idents("Role").psaanalyst)
+          user_pgms =
+            if global.user.meta.programs
+              _.map (global.user.meta.programs.split ','), (s) -> parseInt s
+            else
+              []
           _.filter(all_pgms,
                   (e) -> _.contains user_pgms, e.value)
         else
-          if _.contains global.user.roles, global.idents("Role").vinAdmin or
-             _.contains global.user.roles, global.idents("Role").contract_admin
+          if _.contains(global.user.roles, global.idents("Role").vinAdmin) or
+             _.contains(global.user.roles, global.idents("Role").contract_admin)
             all_pgms
           else
             []
