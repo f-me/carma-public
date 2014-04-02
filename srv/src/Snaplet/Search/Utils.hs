@@ -16,16 +16,12 @@ import           Data.Either
 import           Data.List (intercalate)
 import           Data.Pool
 import           Data.Aeson
-import           Data.Text (Text, toLower, unpack)
-import qualified Data.Text as T
+import           Data.Text (Text, unpack)
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy  as LB
-import qualified Data.HashMap.Strict   as HM
 
 import           Database.PostgreSQL.Simple as PG
 
 import           Data.Model       as M
-import           Data.Model.Patch (Patch, empty)
 
 import           Snap.Core
 import           Snap.Snaplet
@@ -37,7 +33,6 @@ import           Utils.Roles
 
 import           Snaplet.Search.Types
 import           Carma.Model.Search
-import           Carma.Model.Role
 
 
 class ParamPred m where
@@ -66,7 +61,6 @@ mkSearch :: (RenderPrms p, FromRow t, MkSelect t)
          -> (t -> Text -> Int -> Int -> String -> Query)
          -> SearchHandler b (Either String (SearchResult t))
 mkSearch prms mkq = do
-  roles    <- with auth currentUser >>= userRolesIds . fromJust
   lim      <- getLimit
   offset   <- getOffset
   args     <- getJsonBody
