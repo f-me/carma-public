@@ -50,9 +50,12 @@ ko.bindingHandlers.bindDict =
   init: (el, acc, allBindigns, kvm) ->
     th = kvm["#{acc()}TypeaheadBuilder"]()
     th.setElement(el)
+    # Do not open TH menu if the field is non-writable
+    console.log acc()
+    fld = _.find kvm._meta.model.fields, (f) -> f.name == acc()
     # bind th.draw here, because we don't have ready th
     # during binding any more, see bug #1148
-    $(el).next().on 'click', th.drawAll
+    $(el).next().on 'click', th.drawAll unless fld?.readonly
 
 
 ko.bindingHandlers.sort =
