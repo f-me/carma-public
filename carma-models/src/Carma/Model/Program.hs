@@ -47,6 +47,6 @@ instance Model Program where
                 [ setMeta "dictionaryType" "ComputedDict" managers
                 , setMeta "dictionaryName" "programManagers" managers
                 , setMeta "bounded" (A.Bool True) managers
-                , required label
+                , required Carma.Model.Program.label
                 ]
     _  -> Nothing

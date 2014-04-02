@@ -19,5 +19,5 @@ instance Model Colors where
   type TableName Colors = "Colors"
   modelInfo = mkModelInfo Colors ident
   modelView = \case
-    "" -> Just $ modifyView defaultView [readonly value]
+    "" -> Just defaultView
     _  -> Nothing
