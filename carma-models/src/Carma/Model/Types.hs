@@ -199,7 +199,13 @@ instance DefaultFieldView UTCTime where
     }
 
 instance DefaultFieldView Bool where
-  defaultFieldView f = (defFieldView f) {fv_type = "Bool"}
+  defaultFieldView f = (defFieldView f)
+    { fv_type = "Bool"
+    , fv_meta
+      = Map.insert "widget" "checkbox"
+      $ fv_meta $ defFieldView f
+    }
+
 
 instance DefaultFieldView TInt where
   defaultFieldView f = (defFieldView f)
