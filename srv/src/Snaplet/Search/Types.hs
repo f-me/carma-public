@@ -5,6 +5,7 @@
              FlexibleInstances,
              FlexibleContexts,
              OverlappingInstances,
+             Rank2Types,
              UndecidableInstances
  #-}
 
@@ -12,7 +13,7 @@
 module Snaplet.Search.Types where
 
 import           Control.Applicative ((<$>), (<*>), (<|>), (*>),  pure)
-import           Control.Lens (makeLenses)
+import           Control.Lens (Lens', makeLenses)
 import           Control.Monad.State
 
 import           Prelude hiding (null)
@@ -41,11 +42,13 @@ import           Carma.Model
 import           Carma.Model.Role
 import           Carma.Model.FieldPermission hiding (field)
 
+import           Snaplet.DbLayer.Types (DbLayer)
 
 data Search b = Search
-  {pg      :: Pool Connection
-  ,_postgres :: Snaplet Postgres
-  ,_auth     :: Snaplet (AuthManager b)
+  { pg        :: Pool Connection
+  , _postgres :: Snaplet Postgres
+  , _auth     :: Snaplet (AuthManager b)
+  , db        :: Lens' b (Snaplet (DbLayer b))
   }
 
 makeLenses ''Search

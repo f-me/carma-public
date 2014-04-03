@@ -1,9 +1,11 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Rank2Types #-}
 
 module Snaplet.DbLayer
   (create
   ,read
   ,read'
+  ,selectDb
   ,update
   ,delete
   ,exists
@@ -26,6 +28,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import Data.Maybe (fromJust, isJust)
 import Data.String
+import Data.Pool
 import qualified Data.Text as T
 
 import Network.URI (parseURI)
@@ -35,12 +38,18 @@ import Data.Configurator.Types
 
 import WeatherApi.WWOnline (initApi)
 
+import Data.Model.Sql (SqlQ(..), select)
+
 import Snap.Snaplet
 import Snap.Snaplet.Auth
-import Snap.Snaplet.PostgresqlSimple (Postgres, pgsInit)
+import Snap.Snaplet.PostgresqlSimple ( Postgres
+                                     , getPostgresState
+                                     , pgPool
+                                     , pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInitConf, runRedisDB)
 import Snap.Snaplet.SimpleLog
 import System.Log.Simple.Syslog
+import Database.PostgreSQL.Simple.FromRow
 import qualified Database.Redis as Redis hiding (exists)
 
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
@@ -151,6 +160,13 @@ smsProcessing = runRedisDB redis $ do
   (Right i) <- Redis.llen "smspost"
   (Right ri) <- Redis.llen "smspost:retry"
   return $ i + ri
+
+
+-- | Select using carma-models.
+selectDb :: (FromRow (QRes q), SqlQ q) => q -> Handler b (DbLayer b) [QRes q]
+selectDb q = do
+  s <- getPostgresState
+  liftIO $ withResource (pgPool s) $ select q
 
 
 -- TODO Use lens to an external AuthManager

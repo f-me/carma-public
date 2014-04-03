@@ -16,7 +16,7 @@ define [ "search/screen"
     Screen.constructor
         noState: true
         hideFieldsList: true
-        apiUrl: "/search/contract"
+        apiUrl: "/search/portal"
         searchModels: [Search]
         resultModels: [Contract]
         resultTable: _.filter resultFields, (f) -> f.name != "subprogram"

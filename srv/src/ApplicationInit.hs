@@ -183,7 +183,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
        [logger text (file "log/frontend.log")]
 
-  search <- nestSnaplet "search" search $ searchInit pgs authMgr
+  search <- nestSnaplet "search" search $ searchInit pgs authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   addRoutes routes
   wrapSite (claimUserActivity>>)

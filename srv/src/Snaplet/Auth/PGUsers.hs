@@ -20,6 +20,14 @@ Populating user roles and meta from PG:
 > Just u <- with auth currentUser
 > u' <- with db $ replaceMetaRolesFromPG u
 
+Obtain Usermeta id from Snap user:
+
+> Just u <- with auth currentUser
+> Just (i, _) <- with db $ userMetaPG u
+
+Usermeta ids are preferred over Snap user when a reference to a user
+is stored.
+
 User meta instances are currently read using DbLayer, which employs
 Redis backend. This is undesirable since we have to maintain separate
 SQL-based code for group select operations required for 'usersListPG'
