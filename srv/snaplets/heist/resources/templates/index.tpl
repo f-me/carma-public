@@ -824,7 +824,7 @@
             id="checkbutton-field-template">
       <div class="control-group">
         <div class="controls checkbutton">
-          <label class="checkbox inline">
+          <label style="padding-left: 0" class="checkbox inline">
             <input type="checkbox"
                    name="{{ name }}"
                    {{# readonly }}disabled{{/ readonly }}
