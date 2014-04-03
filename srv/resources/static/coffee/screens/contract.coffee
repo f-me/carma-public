@@ -90,15 +90,17 @@ define [ "search/screen"
           # TODO Set committer on server
           {subprogram: subprogram, committer: parseInt global.user.meta.mid}, {}
 
-      # Role-specific permissions
       kvm = global.viewsWare[contractForm].knockVM
+
+      kvm["id"].subscribe (i) -> redirect "contract/#{subprogram}/#{i}"
+
+      # Role-specific permissions
       kvm['isActiveDisableDixi'](true)
       if _.find(global.user.roles, (r) -> r == global.idents("Role").partner)
         kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
       if _.find(global.user.roles, (r) -> r == global.idents("Role").contract_admin)
         kvm['disableDixi'](true)
 
-      subs = []
       # Prevent on-off behaviour of dixi: once true, it's always
       # true (#1042)
       kvm["old_dixi"] = kvm["dixi"]()
@@ -114,7 +116,7 @@ define [ "search/screen"
         # fields are first fetched)
         t = kvm["dixi"].subscribe (o) ->
           t.dispose()
-          subs["dialog"] = kvm["dixi"].subscribe (v) ->
+          check = kvm["dixi"].subscribe (v) ->
             return if !v
             findSame kvm, (r) ->
               return if _.isEmpty(r)
@@ -122,7 +124,7 @@ define [ "search/screen"
                     "таким же VIN или номером карты участника, их id: " +
                     "#{_.pluck(r, 'id').join(', ')}. Всё равно сохранить?"
               if confirm(txt)
-                subs["dialog"].dispose()
+                check.dispose()
               else
                 kvm["dixi"](false)
 
