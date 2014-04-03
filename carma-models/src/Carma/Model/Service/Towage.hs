@@ -5,6 +5,7 @@ import Data.Text
 import Data.Typeable
 
 import Data.Model
+import Data.Model.Types
 import Data.Model.View
 import Carma.Model.Types()
 import Carma.Model.LegacyTypes
@@ -81,13 +82,15 @@ instance Model Towage where
     "search" -> Just
       $ modifyView (searchView towageSearchParams)
       $ (setType "dictionary-set" towDealer_partnerId) : viewModifier
-    ""       -> Just
+    "full"   -> modelView "new"
+    "new"    -> Just
       $ modifyView (defaultView :: ModelView Towage) {mv_title = "Эвакуация"}
         $(setType "dictionary" towDealer_partnerId)
         : invisible towDealer_partnerId
         : viewModifier
     _ -> Nothing
 
+viewModifier :: [(Text, FieldView -> FieldView) :@ Towage]
 viewModifier =
   [dict towDealer_partnerId $ (dictOpt "allPartners")
           { dictType    = Just "ComputedDict"
