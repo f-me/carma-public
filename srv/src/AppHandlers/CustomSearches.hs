@@ -35,7 +35,6 @@ import Data.Aeson as A
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import Data.Map as M (Map, (!), delete, fromList)
-import Data.Maybe
 import Data.String (fromString)
 import qualified Data.Vector as V
 
@@ -43,7 +42,6 @@ import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.SqlQQ
 
 import Snap
-import Snap.Snaplet.Auth
 
 import Application
 import AppHandlers.CustomSearches.Contract
