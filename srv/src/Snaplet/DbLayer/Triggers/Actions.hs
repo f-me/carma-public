@@ -716,8 +716,6 @@ actionResultMap = Map.fromList
                  dateNow (+ (60 * (hours * 60 + minutes)))
                              >>= set objId "duetime"
         _ -> return ()
-      -- Clear assignee when deferring actions
-      clearAssignee objId
   )
   ,("needPartner",     \objId -> do
      setServiceStatus objId "needPartner"
