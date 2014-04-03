@@ -9,6 +9,7 @@ module Data.Model.Sql
   , eq
   , sql_in
 
+  , SqlQ(..)
   , SqlP
   ) where
 
