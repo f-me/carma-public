@@ -111,6 +111,7 @@ define [ "model/render"
     # Build kvm with fetched data if have one
     kvm = {}
     kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
+    kvm.safelyGet = (prop) -> kvm[prop]?() || ''
 
     # build observables for real model fields
     for f in fields

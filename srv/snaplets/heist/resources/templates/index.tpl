@@ -1594,21 +1594,21 @@
                 id="default-case">
         <p>
           <b>Кто звонил:</b>
-          <span data-bind="text: contact_name"/>&nbsp;
-          <span data-bind="text: contact_phone1"/>
+          <span data-bind="text: safelyGet('contact_name')"/>&nbsp;
+          <span data-bind="text: safelyGet('contact_phone1')"/>
         </p>
-        <p data-bind="visible: caseAddress_address">
+        <p data-bind="visible: safelyGet('caseAddress_address')">
           <b>Адрес кейса:</b>
-          <span data-bind="text: caseAddress_address"/><br/>
-          <span data-bind="text: caseAddress_comment"/>
+          <span data-bind="text: safelyGet('caseAddress_address')"/><br/>
+          <span data-bind="text: safelyGet('caseAddress_comment')"/>
         </p>
-        <p data-bind="visible: cityLocal">
+        <p data-bind="visible: safelyGet('cityLocal')">
           <b>Регион:</b>
-          <span data-bind="text: region" />
+          <span data-bind="text: safelyGet('region')" />
         </p>
-        <p data-bind="visible: cityLocal">
+        <p data-bind="visible: safelyGet('cityLocal')">
           <b>Расчётное значение ожидания эвакуатора в
-            г.&nbsp;<span data-bind="text: cityLocal"/>:</b>
+            г.&nbsp;<span data-bind="text: safelyGet('cityLocal')"/>:</b>
           <span id="city-towage-average-time" />
         </p>
         <div id="contract"></div>
