@@ -55,5 +55,5 @@ stripContract model sid flt = do
       check Form _ "committer"   = return True
       check Form _ "isActive"    = return True
       check Form _ "ctime"       = return True
-      check Table _ "subprogram" = return True
+      check _ _ "subprogram" = return True
       check _ perms name         = M.lookup name perms >>= return . ("t" ==)
