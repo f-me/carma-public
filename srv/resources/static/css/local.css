@@ -298,3 +298,7 @@ table.dataTable tr.selected-row td.sorting_1 {
   border-radius: 3px;
   padding: 2px 4px;
 }
+
+.modal {
+  z-index: 1;
+}
