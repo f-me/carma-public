@@ -4,7 +4,7 @@ module Carma.Model.ConstructorFieldOption where
 import Data.Text
 import Data.Typeable
 import Data.Model
-import Data.Model.View
+import Data.Model.View as View
 import Carma.Model.Types (TInt)
 import Carma.Model.Search (searchView, one)
 import Carma.Model.Program (Program)
@@ -43,10 +43,12 @@ instance Model ConstructorFieldOption where
         ])
         {mv_modelName = "ConstructorFieldOption"}
     "" -> Just $ modifyView defaultView
-      [readonly model
-      ,readonly screen
-      ,readonly program
-      ,readonly field
+      [readonly model,   View.required model
+      ,readonly screen,  View.required screen
+      ,readonly program, View.required program
+      ,readonly field,   View.required field
+      ,View.required ord
+      ,View.required label
       ,textarea info
       ]
     _  -> Nothing
