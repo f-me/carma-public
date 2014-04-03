@@ -21,13 +21,24 @@ import Carma.Model.Role hiding (ident)
 
 
 data Usermeta = Usermeta
-  { ident  :: PK Int Usermeta          "Данные о пользователе"
-  , snapId :: F Int                    "uid" "Snap-идентификатор"
-  , label  :: F Text                   "login" "Логин"
-  , value  :: F (Maybe Text)           "realName" "ФИО пользователя"
+  { ident    :: PK Int Usermeta          "Данные о пользователе"
+  , snapId   :: F Int
+                "uid"
+                "Snap-идентификатор"
+  , label    :: F Text
+                "login"
+                "Логин"
+  , value    :: F (Maybe Text)
+                "realName"
+                "ФИО пользователя"
+  , isDealer :: F Bool
+                "isDealer"
+                "Дилер"
   -- TODO String-wrapped list of Role ids (to be used until usermeta
   -- is fully migrated to new models)
-  , roles  :: F (Maybe (Vector (IdentT Role))) "roles" "Роли в системе"
+  , roles    :: F (Maybe (Vector (IdentT Role)))
+                "roles"
+                "Роли в системе"
   } deriving Typeable
 
 
