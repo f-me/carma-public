@@ -1,6 +1,6 @@
-{-| Bulk import handlers. -}
-
 {-# LANGUAGE DoAndIfThenElse #-}
+
+{-| Bulk import handlers. -}
 
 module AppHandlers.Bulk
     ( vinImport
@@ -14,10 +14,13 @@ import Prelude hiding (log)
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as B
 import           Data.Configurator
+import qualified Data.HashMap.Strict as HM
 import           Data.Int
+import           Data.Maybe
 import           Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 
 import           Database.PostgreSQL.Simple (ConnectInfo(..))
 
@@ -51,8 +54,7 @@ import           Util as U hiding (render)
 --
 -- TODO Allow to select only program w/o subprogram.
 --
--- TODO Allow partners to upload VIN files only to their assigned
--- subprograms.
+-- TODO Use carma-models API to select user programs.
 --
 -- TODO Should VIN files really be stored permanently?
 vinImport :: AppHandler ()
@@ -72,11 +74,15 @@ vinImport = scope "vin" $ scope "upload" $ do
       -- Allow users with partner role to upload files only to their
       -- assigned subprograms. Note that usermeta field is still
       -- called "programs" despite storing a list of subprogram ids.
---      let Aeson.String userPgms' = HM.lookupDefault "" "programs" $ userMeta u'
---          userPgms = B.split ',' $ T.encodeUtf8 userPgms'
+      let Aeson.String userSpgms' = HM.lookupDefault "" "programs" $ userMeta u'
+          userSpgms = map fst $
+                     mapMaybe B.readInt $
+                     B.split ',' $ T.encodeUtf8 userSpgms'
       when (not $
---            (elem (Role $ identFv Role.partner) (userRoles u') && elem pgmId userPgms) ||
-            (elem (Role $ identFv Role.vinAdmin) (userRoles u'))) $
+            (elem (Role $ identFv Role.partner) (userRoles u') &&
+             elem sid userSpgms) ||
+            (elem (Role $ identFv Role.vinAdmin) (userRoles u')) ||
+            (elem (Role $ identFv Role.psaanalyst) (userRoles u'))) $
             handleError 403
 
       (inName, inPath) <- with fileUpload $ oneUpload =<< doUploadTmp
