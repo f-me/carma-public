@@ -66,6 +66,16 @@ define [ "search/screen"
 
     contractModel = "Contract?sid=#{subprogram}"
 
+    findSame = (kvm, cb) ->
+      return unless kvm.id()
+      vin = kvm['vin']?()
+      num = kvm['cardNumber']?()
+      params = ["id=#{kvm.id()}"]
+      params.unshift "vin=#{vin}" if vin
+      params.unshift "cardNumber=#{num}" if num
+      $.getJSON "/contracts/findSame?#{params.join('&')}", cb
+
+
     # Open a contract by its id. If id is null, setup an empty
     # contract form.
     openContract = (cid) ->
@@ -87,6 +97,34 @@ define [ "search/screen"
         kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
       if _.find(global.user.roles, (r) -> r == global.idents("Role").contract_admin)
         kvm['disableDixi'](true)
+
+      subs = []
+      # Prevent on-off behaviour of dixi: once true, it's always
+      # true (#1042)
+      kvm["old_dixi"] = kvm["dixi"]()
+      kvm["dixi"].subscribe (v) ->
+        if kvm["old_dixi"]
+          kvm["dixi"] true
+        else
+          kvm["old_dixi"] = v
+
+      unless kvm["dixi"]()
+        # When creating new contracts, check contract duplicates upon
+        # contract saving, ignoring first dixi update (when default
+        # fields are first fetched)
+        t = kvm["dixi"].subscribe (o) ->
+          t.dispose()
+          subs["dialog"] = kvm["dixi"].subscribe (v) ->
+            return if !v
+            findSame kvm, (r) ->
+              return if _.isEmpty(r)
+              txt = "За последние 30 дней уже были созданы контракты с " +
+                    "таким же VIN или номером карты участника, их id: " +
+                    "#{_.pluck(r, 'id').join(', ')}. Всё равно сохранить?"
+              if confirm(txt)
+                subs["dialog"].dispose()
+              else
+                kvm["dixi"](false)
 
     contract.subscribe (c) ->
       if _.isNumber(c)
