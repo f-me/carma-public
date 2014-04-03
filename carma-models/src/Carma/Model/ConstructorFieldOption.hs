@@ -5,7 +5,7 @@ import Data.Text
 import Data.Typeable
 import Data.Model
 import Data.Model.View
-import Carma.Model.Types()
+import Carma.Model.Types (TInt)
 import Carma.Model.Search (searchView, one)
 import Carma.Model.Program (Program)
 import Carma.Model.CtrScreen (CtrScreen)
@@ -20,7 +20,7 @@ data ConstructorFieldOption = ConstructorFieldOption
                        "screen"   "Экран"
   ,program  :: F (IdentI Program)
                        "program"  "Программа"
-  ,ord      :: F Int   "ord"      "Порядок сортировки"
+  ,ord      :: F TInt  "ord"      "Порядок сортировки"
   ,field    :: F Text  "field"    "Внутреннее название поля"
   ,label    :: F Text  "label"    "Подпись к полю"
   ,info     :: F Text  "info"     "Текст для всплывающей подсказки"
@@ -42,5 +42,11 @@ instance Model ConstructorFieldOption where
         ,("model",   one model)
         ])
         {mv_modelName = "ConstructorFieldOption"}
-    "" -> Just $ modifyView defaultView [readonly field, textarea info]
+    "" -> Just $ modifyView defaultView
+      [readonly model
+      ,readonly screen
+      ,readonly program
+      ,readonly field
+      ,textarea info
+      ]
     _  -> Nothing
