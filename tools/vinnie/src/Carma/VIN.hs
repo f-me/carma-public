@@ -391,6 +391,7 @@ processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
           , (sqlCast cn "date"))
       SDict ->
           ( -- Try to recognize references to dictionary elements
+            protoDictCleanup iname cn (identModelName defAcc) >>
             protoDictLookup iname cn (identModelName defAcc) >>
             protoUpdateWithFun cn "pg_temp.numordead" [cn'] >>
             pass

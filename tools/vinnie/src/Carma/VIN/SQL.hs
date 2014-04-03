@@ -166,7 +166,6 @@ getProgram sid =
         , sid)
 
 
-
 -- | Loadable Contract field names.
 contractFields :: [Text]
 contractFields =
@@ -274,45 +273,69 @@ protoCheckRegexp iname cname regexp =
         , regexp)
 
 
+-- | Clear bad dictionary element references.
+protoDictCleanup :: InternalName
+                 -> ContractFieldName
+                 -> Text
+                 -- ^ Dictionary table name.
+                 -> Import Int64
+protoDictCleanup iname cname dictTableName =
+    execute
+    [sql|
+     CREATE OR REPLACE TEMPORARY VIEW dict_syn_cache AS
+     SELECT DISTINCT
+      -- TODO label/synonyms field names
+      lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms)))) as label
+      FROM "?";
+
+     CREATE OR REPLACE TEMPORARY VIEW dict_labels AS
+     SELECT
+     lower(trim(both ' ' from ?)) as label,
+     ? as id
+     FROM vinnie_pristine;
+
+     UPDATE vinnie_proto SET ?=null
+     FROM vinnie_pristine s
+     WHERE NOT EXISTS
+     (SELECT 1 FROM dict_syn_cache, dict_labels
+      WHERE vinnie_proto.? = dict_labels.id
+      AND dict_labels.label = dict_syn_cache.label)
+     AND vinnie_proto.? = s.?;
+     |] ( PT dictTableName
+        , PT iname
+        , tKid
+        , cname
+        , tKid
+        , tKid
+        , tKid)
+
+
 -- | Replace dictionary label references with dictionary element ids.
--- Clear bad references.
 protoDictLookup :: InternalName
-                -> ContractFieldName
-                -> Text
-                -- ^ Dictionary table name.
-                -> Import Int64
+                 -> ContractFieldName
+                 -> Text
+                 -- ^ Dictionary table name.
+                 -> Import Int64
 protoDictLookup iname cname dictTableName =
     execute
     [sql|
-     UPDATE vinnie_proto SET ?=null
-     FROM vinnie_pristine s
-     WHERE lower(trim(both ' ' from s.?)) NOT IN
-     (SELECT DISTINCT
-     -- TODO label/synonyms field names
-      lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms))))
-      FROM "?")
-     AND vinnie_proto.? = s.?;
-
      WITH dict AS
      (SELECT DISTINCT ON (label) id AS did,
-      lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms)))) AS label
+      -- TODO name/code/synonyms field names
+      lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms))))
+       AS label
       FROM "?")
      UPDATE vinnie_proto SET ? = dict.did
      FROM dict, vinnie_pristine s
      WHERE length(lower(trim(both ' ' from ?))) > 0
      AND dict.label=lower(trim(both ' ' from ?))
      AND vinnie_proto.? = s.?;
-     |] (()
-         :* cname
-         :* PT iname
-         :* PT dictTableName
-         :* tKid :* tKid
-
-         :* PT dictTableName
-         :* cname
-         :* PT iname
-         :* PT iname
-         :* tKid :* tKid)
+     |] ( PT dictTableName
+        , cname
+        , PT iname
+        , PT iname
+        , tKid
+        , tKid)
 
 
 -- | Clear bad partner references.
@@ -553,12 +576,15 @@ deleteDupes :: Import Int64
 deleteDupes =
     execute
     [sql|
-     DELETE FROM vinnie_queue
-     WHERE row_to_json(row(?))::text IN
-     (SELECT row_to_json(row(?))::text FROM "?");
-     |] ( PT $ sqlCommas contractFields
-        , PT $ sqlCommas contractFields
-        , contractTable)
+     DELETE FROM vinnie_queue q
+     WHERE EXISTS
+     (SELECT 1 FROM "?" c WHERE ?);
+     |] ( contractTable
+        , PT $ T.intercalate " AND " $
+          map (\f -> T.concat [ "coalesce(q.", f, "::text,'') "
+                              , "= coalesce(c.", f, "::text,'')"])
+          contractFields
+        )
 
 
 -- | Transfer all contracts w/o errors from queue to live Contract
