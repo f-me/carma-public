@@ -169,6 +169,7 @@ caseMod = [
   ,invisible comments
   ,invisible actions
 
+  ,infoText "carVin" car_vin
   ,infoText "comment" comment
   ,infoText "system" diagnosis1
   ,infoText "detail" diagnosis2
