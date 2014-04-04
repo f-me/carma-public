@@ -3,8 +3,9 @@ define [ 'utils'
        , 'text!tpl/screens/newCase.html'
        , 'model/utils'
        , 'model/main'
+       , "components/contract"
        ],
-  (utils, hotkeys, tpl, mu, main) ->
+  (utils, hotkeys, tpl, mu, main, Contract) ->
 
     setupCaseMain = (viewName, args) ->
       kaze = {}
@@ -37,6 +38,7 @@ define [ 'utils'
             }))
 
       hotkeys.setup()
+      Contract.setup "contract", kvm
 
       $('#go-back-to-call').on 'click', ->
         Finch.navigate "call"

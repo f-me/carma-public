@@ -171,19 +171,3 @@ ko.bindingHandlers.eachNonEmpty =
     fns = ko.bindingHandlers.eachNonEmpty.nonEmpty fnames, ctx, koctx
     ko.applyBindingsToNode el, {foreach: fns}, koctx
     { controlsDescendantBindings: true }
-
-ko.bindingHandlers.renderContract =
-  update: (el, acc, allBindigns, contract, ctx) ->
-    title = ko.utils.unwrapObservable acc()
-    expired = if contract.isExpired()
-                "<span class='label label-important'>Просрочен</span>"
-              else
-                "<span class='label label-success'>Действует</span>"
-    $(el).append("<legend>#{title} ##{contract.id()} #{expired}</legend>")
-    $dl = $("<table class='table table-condensed table-striped'></table>")
-    $(el).append $dl
-    _.each contract._meta.model.fields, (f) ->
-      if contract[f.name]() and f.meta.label
-        label = "<td><strong>#{f.meta.label}</strong></td>"
-        value = "<td>#{contract[f.name]()}</td>"
-        $dl.append("<tr>#{label}#{value}</tr>")
