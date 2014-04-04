@@ -90,6 +90,7 @@ require [ "domready"
 
     # Enable Popover data API
     $( () -> $('body').popover
+                          html: true,
                           selector: '[data-provide="popover"]',
                           trigger: 'hover')
 
