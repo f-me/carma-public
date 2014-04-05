@@ -33,7 +33,6 @@ import Snaplet.Auth.Class
 import Snaplet.SiteConfig.Config
 import Snaplet.SiteConfig.SpecialPermissions
 import Snaplet.SiteConfig.Models
-import Snaplet.SiteConfig.FakeModels
 import Snaplet.SiteConfig.Dictionaries
 
 import AppHandlers.Util hiding (withPG)
@@ -81,20 +80,9 @@ serveModel = do
           -> case Model.dispatch name' $ viewForModel scr of
             Just (Just res) -> Just <$> constructModel name' scr pgm res
             _ -> error $ "Unexpected model name" ++ show name'
-      ["newCase",pgm] -> fmap Just
-        $ case name of
-          "case" -> newCase pgm
-          _      -> newSvc pgm name
-      _ -> case Model.dispatch name' $ viewForModel view' of
-        Just res -> return res
-        Nothing  -> Map.lookup name <$> gets models
-        -- Serve case model with oldCRUD view from carma-models when
-        -- /cfg/model/case is requested
-        where
-          (name', view') =
-              case (name, view) of
-                ("case", v ) -> ("Case", v)
-                _            -> (name, view)
+      _ -> case Model.dispatch name $ viewForModel view of
+          Just res -> return res
+          Nothing  -> Map.lookup name <$> gets models
 
   mcu   <- withAuth currentUser
   case return (,) `ap` mcu `ap` model of
