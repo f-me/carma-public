@@ -71,7 +71,7 @@ data Case = Case
   , contract
     :: F (Maybe (IdentI Contract)) "contract" "Контракт"
   , car_vin
-    :: F (Maybe Text) "car_vin" "Автомобиль"
+    :: F (Maybe Text) "car_vin" "Автомобиль (VIN)"
   , car_make
     :: F (Maybe (IdentT CarMakers)) "car_make" "Марка"
   , car_model
