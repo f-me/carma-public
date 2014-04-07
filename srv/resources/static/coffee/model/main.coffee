@@ -389,6 +389,7 @@ define [ "model/render"
 
   buildNewModel = (modelName, args, options, cb) ->
     model = global.model(modelName, options.modelArg)
+    model.name = (_.invert TrMap)[model.name] || model.name
     [knockVM, q] = buildModel(model, args, options)
     if _.isFunction cb
       q.save -> cb(model, knockVM)
