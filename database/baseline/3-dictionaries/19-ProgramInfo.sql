@@ -1,6 +1,6 @@
 CREATE TABLE "ProgramInfo"
   ( id       SERIAL PRIMARY KEY
-  , program  int4 REFERENCES "Program"
+  , program  int4 REFERENCES "Program" NOT NULL
   , info     text NOT NULL DEFAULT ''
   );
 
