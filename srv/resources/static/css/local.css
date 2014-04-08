@@ -299,6 +299,6 @@ table.dataTable tr.selected-row td.sorting_1 {
   padding: 2px 4px;
 }
 
-.modal {
+.modal-dont-block {
   z-index: 1;
 }
