@@ -159,7 +159,10 @@ define [ "model/render"
                 k.parent = kvm
                 k
             write: (v) ->
-              ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
+              invTr = _.invert TrMap
+              modelName = (k) -> k._meta.model.name
+              tr = (n) -> invTr[n] || n
+              ks = ("#{tr(modelName k)}:#{k.id()}" for k in v).join(',')
               kvm[f.name](ks)
 
         # setup reference add button
