@@ -3,6 +3,7 @@ module Carma.Model.Case
        ,caseSearchParams
        ) where
 
+import Control.Applicative
 import Data.Text (Text)
 import Data.Aeson as Aeson
 import qualified Data.Map as Map
@@ -59,8 +60,10 @@ instance Model Case where
         $ modifyView
           ((defaultView :: ModelView Case) {mv_title = "Кейс"})
           $ caseMod ++ caseDicts ++ caseRo ++ caseOldCRUDHacks
-      "new" -> setMainOnly `fmap` (modelView "full" :: Maybe (ModelView Case))
-      ""    -> modelView "full" :: Maybe (ModelView Case)
+      "new"
+        ->  setMainOnly . (`modifyView` [invisible services])
+        <$> (modelView "full" :: Maybe (ModelView Case))
+      "" -> modelView "full" :: Maybe (ModelView Case)
       _ -> Nothing
       where
         setMainOnly mv = mv
