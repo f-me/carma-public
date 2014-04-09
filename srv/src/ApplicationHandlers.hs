@@ -245,19 +245,28 @@ updateHandler :: AppHandler ()
 updateHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
-  let updateModel :: forall m . Model m => m -> AppHandler ()
+  let updateModel :: forall m . Model m => m -> AppHandler (Either Int Aeson.Value)
       updateModel _ = do
         let ident = readIdent objId :: IdentI m
         commit <- getJSONBody :: AppHandler (Patch m)
+        s   <- PS.getPostgresState
         res <- with db $ do
-          s   <- PS.getPostgresState
           liftIO $ withResource (PS.pgPool s) (Patch.update ident commit)
         case res of
-          0 -> handleError 404
-          _ -> writeJSON $ Aeson.object []
+          0 -> return $ Left 404
+          _ -> do
+            res <- liftIO $ withResource (PS.pgPool s) (Patch.read ident)
+            -- TODO Cut out fields from original commit like DB.update
+            -- does
+            case (Aeson.decode $ Aeson.encode res) of
+              Just [obj] -> return $ Right obj
+              err        -> error $ "BUG in updateHandler: " ++ show err
   -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch (T.decodeUtf8 model) updateModel of
-    Just fn -> fn
+    Just fn ->
+        fn >>= \case
+           Left n -> handleError n
+           Right o -> logResp $ return o
     Nothing -> do
       commit <- getJSONBody
       logReq commit
