@@ -152,10 +152,6 @@ define ["model/utils", "dictionaries"], (mu, d) ->
     else
       "#{hours}ч #{mins}м"
 
-  # Return true if user may access case/service-related actions
-  canReadActions: () ->
-    _.some (global.model "case").fields, (f) -> f.name == 'actions'
-
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
   # build global function from local to module one

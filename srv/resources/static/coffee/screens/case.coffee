@@ -58,16 +58,14 @@ define [ "utils"
       hotkeys.setup()
       kvm = global.viewsWare[viewName].knockVM
 
-      if utils.canReadActions()
+      if _.has kvm, 'actions'
         # Disable action results if any of required case fields is not
         # set
         do (kvm) ->
           ko.computed ->
             nots = (i for i of kvm when /.*Not$/.test i)
-            if (_.any nots, (e) -> kvm[e]())
-              k["resultDisabled"](true)  for k in kvm["actionsReference"]()
-            else
-              k["resultDisabled"](false) for k in kvm["actionsReference"]()
+            disable = _.any nots, (e) -> kvm[e]()
+            k.resultDisabled?(disable) for k in kvm.actionsReference?()
 
     setCommentsHandler = ->
       $("#case-comments-b").on 'click', ->
