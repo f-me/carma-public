@@ -302,3 +302,8 @@ table.dataTable tr.selected-row td.sorting_1 {
 .modal-dont-block {
   z-index: 1;
 }
+
+.table-break-word {
+  table-layout: fixed;
+  word-wrap: break-word;
+}

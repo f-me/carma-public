@@ -63,6 +63,7 @@ define [ "utils"
       table = screenman.addScreen(dict.name, -> )
         .addTable(tableParams)
         .setObjsToRowsConverter(objsToRows)
+        .setDataTableOptions({aoColumnDefs: [{sWidth: "10%", aTargets: [0]}]})
         .on("click.datatable", "tr", ->
           id = @children[0].innerText
           k = modelSetup dict, viewName, {id}
