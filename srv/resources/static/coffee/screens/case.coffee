@@ -86,7 +86,7 @@ define [ "utils"
     # Top-level wrapper for storeService
     addService = (name) ->
       kvm = global.viewsWare["case-form"].knockVM
-      modelArg = "ctr:new:#{kvm.program()}"
+      modelArg = "ctr:full:#{kvm.program()}"
       mu.addReference kvm,
         'services',
         {modelName : name, options: {modelArg: modelArg, hooks: ['*']}},
