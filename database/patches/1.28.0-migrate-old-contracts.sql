@@ -5,7 +5,7 @@ CREATE TEMPORARY TABLE contract_tmp AS (SELECT * FROM contracttbl WHERE 'f');
 -- Transfer selected contracts to temporary table
 INSERT INTO contract_tmp
 SELECT c.* FROM contracttbl c, programtbl p
-WHERE p.value=ANY(array['alarmass','ruslan','vwCarePoint','rnbase','nz'])
+WHERE p.value=ANY(array['alarmass','ruslan','vwCarePoint','rnbase','nz','ArendaAuto'])
 AND p.id::text=c.program;
 
 -- Set new subprogram
