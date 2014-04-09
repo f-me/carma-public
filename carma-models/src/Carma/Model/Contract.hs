@@ -183,7 +183,6 @@ instance Model Contract where
         , setMeta "regexp" "plateNum" plateNum
         , setMeta "regexp" "vin" vin
         , widget "checkbutton" dixi
-        , invisible dixi
         ] ++ commonMeta
     _ -> Nothing
     where
