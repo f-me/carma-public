@@ -126,6 +126,7 @@ svcMod =
     ,setType "dictionary" contractor_partnerId
     ,invisible parentId
     ,invisible svcType
+    ,invisible falseCallPercent
     -- ,invisible service_tarifOptions
     ]
 
