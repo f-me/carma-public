@@ -31,7 +31,7 @@ define ["dictionaries"], (d) ->
       options.renderCb(r, subViewN)
 
     # render mask on datetime input
-    $('.datetime-field').each((i,e) -> $(e).mask("99.99.9999 99:99"))
+    $('.datetime-field').each((i,e) -> $(e).mask("99.99.9999 99:99:99"))
 
     return depViews
 
