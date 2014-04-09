@@ -101,14 +101,18 @@ define [ "search/screen"
       if _.find(global.user.roles, (r) -> r == global.idents("Role").contract_admin)
         kvm['disableDixi'](true)
 
+      # True if a duplicate contract caused user to not save the
+      # contract
+      dupe = false
+
       # Prevent on-off behaviour of dixi: once true, it's always
       # true (#1042)
-      kvm["old_dixi"] = kvm["dixi"]()
+      kvm["always_true"] = false
       kvm["dixi"].subscribe (v) ->
-        if kvm["old_dixi"]
+        if v
+          kvm["always_true"] = true
+        if kvm["always_true"] and !dupe
           kvm["dixi"] true
-        else
-          kvm["old_dixi"] = v
 
       unless kvm["dixi"]()
         # When creating new contracts, check contract duplicates upon
@@ -119,13 +123,17 @@ define [ "search/screen"
           check = kvm["dixi"].subscribe (v) ->
             return if !v
             findSame kvm, (r) ->
-              return if _.isEmpty(r)
+              if _.isEmpty(r)
+                dupe = false
+                return
               txt = "За последние 30 дней уже были созданы контракты с " +
                     "таким же VIN или номером карты участника, их id: " +
                     "#{_.pluck(r, 'id').join(', ')}. Всё равно сохранить?"
               if confirm(txt)
+                dupe = false
                 check.dispose()
               else
+                dupe = true
                 kvm["dixi"](false)
 
     contract.subscribe (c) ->
