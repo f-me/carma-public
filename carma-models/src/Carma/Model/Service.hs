@@ -124,6 +124,8 @@ svcMod =
           , dictBounded = True
           }
     ,setType "dictionary" contractor_partnerId
+    ,invisible parentId
+    ,invisible svcType
     -- ,invisible service_tarifOptions
     ]
 
