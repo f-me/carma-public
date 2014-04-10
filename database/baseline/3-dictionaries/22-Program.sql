@@ -74,6 +74,7 @@ COPY "Program" (id, label, pType) FROM stdin;
 63	Заказ билетов	\N
 64	РАМК	\N
 65	Тестовая программа	\N
+66	Аренда-Авто Ассистанс /B2B	1
 \.
 
 GRANT ALL ON "Program" TO carma_db_sync;
