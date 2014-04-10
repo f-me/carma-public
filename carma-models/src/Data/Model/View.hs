@@ -3,6 +3,7 @@
 
 module Data.Model.View
   (defaultView
+  ,parentView
   ,defaultFieldView
   ,modifyView
   ,stripId
@@ -51,8 +52,19 @@ defaultView
     mv = ModelView
       { mv_modelName = Model.modelName mi
       , mv_title = ""
-      , mv_fields = map fd_view $ modelFields mi
+      , mv_fields = map fd_view $ modelOnlyFields mi
       }
+
+
+parentView
+  :: forall m . (Model m, Model (Parent m))
+  => Text -> Maybe (ModelView m)
+parentView v
+  = case modelView v :: Maybe (ModelView (Parent m)) of
+    Nothing -> Nothing
+    Just pv ->
+      let mv = defaultView :: ModelView m
+      in Just $ mv {mv_fields = mv_fields pv ++ mv_fields mv}
 
 
 modifyView

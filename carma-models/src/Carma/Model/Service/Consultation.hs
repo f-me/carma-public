@@ -21,5 +21,6 @@ instance Model Consultation where
   type TableName Consultation = "consultationtbl"
   type Parent Consultation = Service
   modelInfo = mkModelInfo Consultation ident
-  modelView _ = Just $ (defaultView :: ModelView Consultation)
-    {mv_title = "Консультация"}
+  modelView v = case parentView v :: Maybe (ModelView Consultation) of
+    Nothing -> Nothing
+    Just mv -> Just $ mv {mv_title = "Консультация"}

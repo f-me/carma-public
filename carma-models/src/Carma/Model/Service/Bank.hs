@@ -34,5 +34,6 @@ instance Model Bank where
   type TableName Bank = "banktbl"
   type Parent Bank = Service
   modelInfo = mkModelInfo Bank ident
-  modelView _ = Just $ (defaultView :: ModelView Bank)
-    {mv_title = "Банковская поддержка"}
+  modelView v = case parentView v :: Maybe (ModelView Bank) of
+    Nothing -> Nothing
+    Just mv -> Just $ mv {mv_title = "Банковская поддержка"}

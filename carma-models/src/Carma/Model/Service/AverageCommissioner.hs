@@ -40,7 +40,8 @@ instance Model AverageCommissioner where
   type TableName AverageCommissioner = "averagecommissionertbl"
   type Parent AverageCommissioner = Service
   modelInfo = mkModelInfo AverageCommissioner ident
-  modelView = \case
-    _ -> Just $ modifyView
-      (defaultView :: ModelView AverageCommissioner) {mv_title = "Аварийный комиссар"}
+  modelView v = case parentView v :: Maybe (ModelView AverageCommissioner) of
+    Nothing -> Nothing
+    Just mv -> Just
+      $ modifyView (mv {mv_title = "Аварийный комиссар"})
       $ mapWidget commAddress_address commAddress_coords commAddress_map

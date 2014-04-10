@@ -31,8 +31,9 @@ instance Model DeliverClient where
   type TableName DeliverClient = "deliverclienttbl"
   type Parent DeliverClient = Service
   modelInfo = mkModelInfo DeliverClient ident
-  modelView _ = Just $ modifyView
-    (defaultView :: ModelView DeliverClient)
-      {mv_title = "Доставка клиента к отремонтированному автомобилю"}
-    $ mapWidget deliverFrom_address deliverFrom_coords deliverFrom_map
-    ++ mapWidget deliverTo_address deliverTo_coords deliverTo_map
+  modelView v = case parentView v :: Maybe (ModelView DeliverClient) of
+    Nothing -> Nothing
+    Just mv -> Just
+      $ modifyView (mv {mv_title = "Доставка клиента к отремонтированному автомобилю"})
+      $ mapWidget deliverFrom_address deliverFrom_coords deliverFrom_map
+      ++ mapWidget deliverTo_address deliverTo_coords deliverTo_map

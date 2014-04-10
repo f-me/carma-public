@@ -22,7 +22,7 @@ instance Model TechInspect where
   type TableName TechInspect = "tech1"
   type Parent TechInspect = Service
   modelInfo = mkModelInfo TechInspect ident
-  modelView _ = Just $ modifyView
-    (defaultView :: ModelView TechInspect) {mv_title = "TO"}
-    [textarea whatToSay1]
+  modelView v = case parentView v :: Maybe (ModelView TechInspect) of
+    Nothing -> Nothing
+    Just mv -> Just $ modifyView (mv {mv_title = "TO"}) [textarea whatToSay1]
 

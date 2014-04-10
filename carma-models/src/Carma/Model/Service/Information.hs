@@ -28,5 +28,6 @@ instance Model Information where
   type TableName Information = "informationtbl"
   type Parent Information = Service
   modelInfo = mkModelInfo Information ident
-  modelView _ = Just $ (defaultView :: ModelView Information)
-    {mv_title = "Информирование о происшествии"}
+  modelView v = case parentView v :: Maybe (ModelView Information) of
+    Nothing -> Nothing
+    Just mv -> Just $ mv {mv_title = "Информирование о происшествии"}

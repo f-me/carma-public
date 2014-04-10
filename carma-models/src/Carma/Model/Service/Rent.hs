@@ -36,6 +36,8 @@ instance Model Rent where
   type TableName Rent = "renttbl"
   type Parent Rent = Service
   modelInfo = mkModelInfo Rent ident
-  modelView _ = Just $ modifyView
-    (defaultView :: ModelView Rent) {mv_title = "Подменный автомобиль"}
-    $ mapWidget rentAddress_address rentAddress_coords rentAddress_map
+  modelView v = case parentView v :: Maybe (ModelView Rent) of
+    Nothing -> Nothing
+    Just mv -> Just
+      $ modifyView (mv {mv_title = "Подменный автомобиль"})
+      $ mapWidget rentAddress_address rentAddress_coords rentAddress_map

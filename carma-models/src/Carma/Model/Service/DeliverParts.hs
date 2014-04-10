@@ -24,6 +24,8 @@ instance Model DeliverParts where
   type TableName DeliverParts = "deliverpartstbl"
   type Parent DeliverParts = Service
   modelInfo = mkModelInfo DeliverParts ident
-  modelView _ = Just $ modifyView
-    (defaultView :: ModelView DeliverParts) {mv_title = "Доставка запчастей"}
-    $ mapWidget toAddress_address toAddress_coords toAddress_map
+  modelView v = case parentView v :: Maybe (ModelView DeliverParts) of
+    Nothing -> Nothing
+    Just mv -> Just
+      $ modifyView (mv {mv_title = "Доставка запчастей"})
+      $ mapWidget toAddress_address toAddress_coords toAddress_map

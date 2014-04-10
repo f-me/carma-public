@@ -19,4 +19,6 @@ instance Model Tech where
   type TableName Tech = "techtbl"
   type Parent Tech = Service
   modelInfo = mkModelInfo Tech ident
-  modelView _ = Just $ (defaultView :: ModelView Tech) {mv_title = "Техпомощь"}
+  modelView v = case parentView v :: Maybe (ModelView Tech) of
+    Nothing -> Nothing
+    Just mv -> Just $ mv {mv_title = "Техпомощь"}

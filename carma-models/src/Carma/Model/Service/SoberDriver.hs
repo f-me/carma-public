@@ -29,7 +29,9 @@ instance Model SoberDriver where
   type TableName SoberDriver = "sobertbl"
   type Parent SoberDriver = Service
   modelInfo = mkModelInfo SoberDriver ident
-  modelView _ = Just $ modifyView
-    (defaultView :: ModelView SoberDriver) {mv_title = "Трезвый водитель"}
-    $ mapWidget fromAddress_address fromAddress_coords fromAddress_map
-    ++ mapWidget toAddress_address toAddress_coords toAddress_map
+  modelView v = case parentView v :: Maybe (ModelView SoberDriver) of
+    Nothing -> Nothing
+    Just mv -> Just
+      $ modifyView (mv {mv_title = "Трезвый водитель"})
+      $ mapWidget fromAddress_address fromAddress_coords fromAddress_map
+      ++ mapWidget toAddress_address toAddress_coords toAddress_map

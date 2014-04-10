@@ -27,7 +27,8 @@ instance Model Insurance where
   type TableName Insurance = "insurancetbl"
   type Parent Insurance = Service
   modelInfo = mkModelInfo Insurance ident
-  modelView _ = Just $ modifyView
-    (defaultView :: ModelView Insurance)
-      {mv_title = "Сбор справок для страховой компании"}
-    $ mapWidget commAddress_address commAddress_coords commAddress_map
+  modelView v = case parentView v :: Maybe (ModelView Insurance) of
+    Nothing -> Nothing
+    Just mv -> Just
+      $ modifyView (mv {mv_title = "Сбор справок для страховой компании"})
+      $ mapWidget commAddress_address commAddress_coords commAddress_map

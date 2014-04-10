@@ -28,7 +28,9 @@ instance Model Taxi where
   type TableName Taxi = "taxitbl"
   type Parent Taxi = Service
   modelInfo = mkModelInfo Taxi ident
-  modelView _ = Just $ modifyView
-    (defaultView :: ModelView Taxi) {mv_title = "Такси"}
-    $ mapWidget taxiFrom_address taxiFrom_coords taxiFrom_map
-    ++ mapWidget taxiTo_address taxiTo_coords taxiTo_map
+  modelView v = case parentView v :: Maybe (ModelView Taxi) of
+    Nothing -> Nothing
+    Just mv -> Just
+      $ modifyView (mv {mv_title = "Такси"})
+      $ mapWidget taxiFrom_address taxiFrom_coords taxiFrom_map
+      ++ mapWidget taxiTo_address taxiTo_coords taxiTo_map
