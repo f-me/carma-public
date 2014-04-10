@@ -44,7 +44,7 @@ insert into "ConstructorFieldOption"
 ,(1,1,0,22,'subprogram','Подпрограмма','',false)
 ,(1,1,0,23,'contractIdentifier','Идентификатор контракта','',false)
 ,(1,1,0,24,'contract','Контракт','',false)
-,(1,1,0,25,'car_vin','Автомобиль','',true)
+,(1,1,0,25,'car_vin','Автомобиль (VIN)','',true)
 ,(1,1,0,26,'car_make','Марка','',true)
 ,(1,1,0,27,'car_model','Модель','',true)
 ,(1,1,0,28,'car_seller','Дилер, продавший автомобиль','',true)
