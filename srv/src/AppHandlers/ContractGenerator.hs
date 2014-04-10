@@ -52,7 +52,7 @@ q = [sql|
         , to_char(c.validSince, 'DD/MM/YYYY')
         , to_char(c.validUntil, 'DD/MM/YYYY')
         , '-'
-        , '-'
+        , c.startMileage::text
         , c.checkPeriod::text
         , c.name
         , c.managerName
