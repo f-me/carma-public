@@ -54,8 +54,7 @@ data Service = Service
                                  "Ложный вызов"
   , clientCancelReason           :: F (Maybe (IdentT ClientCancelReason)) "clientCancelReason"
                                  "Причина отказа клиента"
-  , falseCallPercent             :: F (Maybe Text) "falseCallPercent"
-                                 ""
+  -- , falseCallPercent             :: F (Maybe Text) "falseCallPercent" ""
   , bill_billNumber              :: F (Maybe Text) "bill_billNumber"
                                  "Номер счёта"
   , bill_billingCost             :: F (Maybe Int) "bill_billingCost"
@@ -126,8 +125,6 @@ svcMod =
     ,setType "dictionary" contractor_partnerId
     ,invisible parentId
     ,invisible svcType
-    ,invisible falseCallPercent
-    -- ,invisible service_tarifOptions
     ]
 
 
