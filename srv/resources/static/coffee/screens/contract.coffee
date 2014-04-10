@@ -113,6 +113,7 @@ define [ "search/screen"
           kvm["always_true"] = true
         if kvm["always_true"] and !dupe
           kvm["dixi"] true
+        global.searchVM?._meta.q.search()
 
       unless kvm["dixi"]()
         # When creating new contracts, check contract duplicates upon
@@ -162,6 +163,7 @@ define [ "search/screen"
         $.getJSON "/cfg/model/#{contractModel}&field=showtable", (Table) ->
           # Search subscreen
           searchVM = screenConstructor Contract, Search, Table
+          global.searchVM = searchVM
           searchVM.subprogram subprogram
 
           # Update URL&info when subprogram changes
