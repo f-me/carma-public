@@ -5,9 +5,10 @@ import Data.Text
 import Data.Typeable
 
 import Data.Model
+import Data.Model.Types ((:@))
 import Data.Model.View
 import Carma.Model.ServiceNames (ServiceNames)
-import Carma.Model.Types()
+import Carma.Model.Types (TInt)
 import Carma.Model.LegacyTypes
 import Carma.Model.Search as S
 
@@ -117,6 +118,7 @@ instance Model Service where
     _  -> Nothing
 
 
+svcMod :: [(Text, FieldView -> FieldView) :@ Service]
 svcMod =
     [dict contractor_partnerId $ (dictOpt "allPartners")
           { dictType    = Just "ComputedDict"
