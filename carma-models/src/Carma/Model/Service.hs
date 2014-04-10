@@ -125,6 +125,9 @@ svcMod =
           , dictBounded = True
           }
     ,setType "dictionary" contractor_partnerId
+    ,setMeta "widget" "partner" contractor_partner
+    ,invisible contractor_partnerId
+    ,invisible contractor_coords
     ,invisible parentId
     ,invisible svcType
     ]

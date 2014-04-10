@@ -214,23 +214,18 @@ mapWidget
   -> (m -> Field mapField    (FOpt n3 d3))
   -> [(Text, FieldView -> FieldView) :@ m]
 mapWidget addr coords mapWid =
-  [Wrap (fieldName addr,  us $ setMeta "picker" "geoPicker" addr)
-  ,Wrap (fieldName addr,  us
-    $ setMeta "targetCoords" (Aeson.String $ fieldName coords) addr)
-  ,Wrap (fieldName addr,  us
-    $ setMeta "targetMap" (Aeson.String $ fieldName mapWid) addr)
-  ,Wrap (fieldName coords, us $ setMeta "picker" "reverseGeoPicker" coords)
-  ,Wrap (fieldName coords, us
-    $ setMeta "targetAddr" (Aeson.String $ fieldName addr) coords)
-  ,Wrap (fieldName coords, us
-    $ setMeta "targetMap" (Aeson.String $ fieldName mapWid) coords)
-  ,Wrap (fieldName mapWid, us
-    $ setMeta "targetCoords" (Aeson.String $ fieldName coords) mapWid)
-  ,Wrap (fieldName mapWid, us
-    $ setMeta "targetAddr" (Aeson.String $ fieldName addr) mapWid)
+  [xxx addr   $ setMeta "picker" "geoPicker"
+  ,xxx addr   $ setMeta "targetCoords" (Aeson.String $ fieldName coords)
+  ,xxx addr   $ setMeta "targetMap" (Aeson.String $ fieldName mapWid)
+  ,xxx coords $ setMeta "picker" "reverseGeoPicker"
+  ,xxx coords $ setMeta "targetAddr" (Aeson.String $ fieldName addr)
+  ,xxx coords $ setMeta "targetMap" (Aeson.String $ fieldName mapWid)
+  ,xxx mapWid $ setMeta "targetCoords" (Aeson.String $ fieldName coords)
+  ,xxx mapWid $ setMeta "targetAddr" (Aeson.String $ fieldName addr)
   ]
   where
-    us = snd . unWrap
+    xxx f m = Wrap (fieldName f, snd $ unWrap $ m f)
+
 
 widget
   :: SingI name

@@ -40,4 +40,8 @@ instance Model Rent where
     Nothing -> Nothing
     Just mv -> Just
       $ modifyView (mv {mv_title = "Подменный автомобиль"})
-      $ mapWidget rentAddress_address rentAddress_coords rentAddress_map
+      $ setType "dictionary" towDealer_partnerId
+      : setMeta "widget" "partner" towDealer_partner
+      : invisible towDealer_partnerId
+      : invisible towDealer_coords
+      ++ mapWidget rentAddress_address rentAddress_coords rentAddress_map
