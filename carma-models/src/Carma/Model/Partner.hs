@@ -35,7 +35,7 @@ data Partner = Partner
   , isDealer :: F (Maybe Bool) "isDealer" "Дилер"
   , isMobile :: F (Maybe Bool) "isMobile" "Мобильный партнёр"
   , isFree   :: F (Maybe Bool) "isFree" "Свободен"
-  , name     :: F Text          "name" "Название"
+  , name     :: F (Maybe Text)          "name" "Название"
   , synonyms :: F (Maybe (Vector Text)) "synonyms" "Синонимы"
   , code     :: F (Maybe Text) "code" "Код"
   , city     :: F (Maybe (IdentT City)) "city" "Город"
