@@ -132,6 +132,7 @@ COPY "SubProgram_tmp" (id, program, label, value) FROM stdin;
 104	Тестовая программа	Тест 2	test2
 105	Аларм Ассистанс	Основная	alarmass
 106	Аренда-Авто Ассистанс /B2B	Основная	ArendaAuto
+116	ПАРИ /B2C	GOLD	parigold
 \.
 
 INSERT INTO "SubProgram" (id, label, parent, value)
