@@ -23,6 +23,8 @@ define  [ "utils"
             Mustache.render tpl, userModel.fieldHash.boPrograms)
           ko.applyBindings aData[7], nRow
 
+      # FIXME: change `allUsers` so it will send arrays for dict values
+      fixdict = (s) -> _.compact _.invoke s.split(','), 'trim'
 
       $.getJSON "/allUsers", (us) ->
        $.getJSON "/supervisor/opStats", (os) ->
@@ -32,10 +34,10 @@ define  [ "utils"
         rows = for u in us when (backRe.test u.roles)
           do (u) ->
             koUser =
-              boCities: ko.observable u.boCities
+              boCities: ko.observable fixdict u.boCities
               boCitiesDisabled: ko.observable false
               boCitiesSync: ko.observable false
-              boPrograms: ko.observable u.boPrograms
+              boPrograms: ko.observable fixdict u.boPrograms
               boProgramsDisabled: ko.observable false
               boProgramsSync: ko.observable false
 
