@@ -59,7 +59,7 @@ data SubProgram = SubProgram
                    "Срок действия программы по умолчанию"
   , contractPrs :: F (Maybe (IdentList SubProgramContractPermission))
                    "contractPermissions"
-                   "Ограничения прав"
+                   "Настройка партнёрского интерфейса"
   , template    :: F (Maybe Reference)
                    "template"
                    "Шаблон договора"

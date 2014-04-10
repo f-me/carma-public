@@ -52,7 +52,7 @@ instance Model SubProgram where
                   (A.String "Добавить услугу") services
                 , setMeta "reference-widget" "subprogram-services" services
                 , setMeta "reference-label"
-                  (A.String "Добавить ограничение на поле контракта")
+                  (A.String "Добавить поле")
                   contractPrs
                 , setMeta
                   "reference-widget" "subprogram-contract-fields"
