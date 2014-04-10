@@ -1918,16 +1918,16 @@
             {"value": "Cooper", "label": "Cooper"}
         ],
         "Acura": [
-            {"value": "MDX", "label": "MDX"},
+            {"value": "MDX", "label": "MDX"}
         ],
         "Gaz": [
-            {"value": "31029", "label": "31029"},
+            {"value": "31029", "label": "31029"}
         ],
         "Zaz": [
-            {"value": "Chance", "label": "Шанс"},
+            {"value": "Chance", "label": "Шанс"}
         ],
         "Msk": [
-            {"value": "2141", "label": "2141"},
+            {"value": "2141", "label": "2141"}
         ]
     }
 }
