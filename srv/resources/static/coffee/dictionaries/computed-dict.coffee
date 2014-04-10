@@ -48,19 +48,19 @@ define ["dictionaries/local-dict"], (ld) ->
       # Requires user to reload the page to update list of available
       # programs
       @source =
-        if _.contains(global.user.roles, global.idents("Role").partner) or
-           _.contains(global.user.roles, global.idents("Role").psaanalyst)
-          user_pgms =
-            if global.user.meta.programs
-              _.map (global.user.meta.programs.split ','), (s) -> parseInt s
-            else
-              []
-          _.filter(all_pgms,
-                  (e) -> _.contains user_pgms, e.value)
+        if _.contains(global.user.roles, global.idents("Role").vinAdmin) or
+           _.contains(global.user.roles, global.idents("Role").contract_admin)
+          all_pgms
         else
-          if _.contains(global.user.roles, global.idents("Role").vinAdmin) or
-             _.contains(global.user.roles, global.idents("Role").contract_admin)
-            all_pgms
+          if _.contains(global.user.roles, global.idents("Role").partner) or
+             _.contains(global.user.roles, global.idents("Role").psaanalyst)
+            user_pgms =
+              if global.user.meta.programs
+                _.map (global.user.meta.programs.split ','), (s) -> parseInt s
+              else
+                []
+            _.filter(all_pgms,
+                    (e) -> _.contains user_pgms, e.value)
           else
             []
 
