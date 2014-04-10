@@ -88,6 +88,7 @@ instance Model Towage where
         $(setType "dictionary" towDealer_partnerId)
         : invisible towDealer_partnerId
         : viewModifier
+    ""       -> modelView "full"
     _ -> Nothing
 
 viewModifier :: [(Text, FieldView -> FieldView) :@ Towage]
