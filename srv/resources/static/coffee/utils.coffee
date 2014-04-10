@@ -389,11 +389,11 @@ define ["model/utils", "dictionaries"], (mu, d) ->
 
   setUrlParams: (prms) ->
     [url, currPrms] = document.location.href.split("?")
-    scr = window.location.href.split("#", 2)[1]
+    scr = window.location.href.match(/#(.*?)(\?|$)/)[1]
     nparams = $.extend (@fromUrlParams currPrms), prms
     enc = encodeURIComponent
     q = (("#{enc k}=#{enc v}" for k, v of nparams).join("&"))
-    Finch.navigate "#{scr}?#{q}"
+    window.history.replaceState null, null, "/##{scr}?#{q}"
 
   inject: (dest, src) -> dest[k] = v for k, v of src when not dest[k]
 

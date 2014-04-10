@@ -59,12 +59,12 @@ define [ "utils"
 
     searchKVM.showFields.set = (fs) ->
       searchKVM.showFields _.filter searchKVM._meta.model.fields, (f) ->
-         _.contains fs, f.name
+        _.contains fs, f.name
 
     searchKVM.showFields.del = (fs) ->
       searchKVM[fs.name](null)
       searchKVM.showFields _.reject searchKVM.showFields(), (f) ->
-         _.contains fs, f.name
+        _.contains fs, f.name
 
     searchKVM.showFields.set opts.searchFields
 
