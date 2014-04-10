@@ -81,8 +81,13 @@ serveModel = do
             Just (Just res) -> Just <$> constructModel name name' scr pgm res
             _ -> error $ "Unexpected model name" ++ show name'
       _ -> case Model.dispatch name $ viewForModel view of
-          Just res -> return res
-          Nothing  -> Map.lookup name <$> gets models
+        Just res -> return res
+        Nothing
+          | Just name' <- Map.lookup name modelTrMap
+          -> case Model.dispatch name' $ viewForModel view of
+            Just res -> return res
+            Nothing  -> Map.lookup name <$> gets models
+        _ -> Map.lookup name <$> gets models
 
   mcu   <- withAuth currentUser
   case return (,) `ap` mcu `ap` model of
@@ -91,6 +96,7 @@ serveModel = do
       case view `elem` ["search", "portalSearch"] of
         True  -> writeModel m
         False -> stripModel cu m >>= writeModel
+
 
 viewForModel :: forall m . Model.Model m => T.Text -> m -> Maybe Model
 viewForModel name _
