@@ -28,7 +28,7 @@ define  [ "utils"
        $.getJSON "/supervisor/opStats", (os) ->
         dt.fnClearTable()
         backRe = new RegExp(String(global.idents("Role").back))
-        
+
         rows = for u in us when (backRe.test u.roles)
           do (u) ->
             koUser =
@@ -39,17 +39,18 @@ define  [ "utils"
               boProgramsDisabled: ko.observable false
               boProgramsSync: ko.observable false
 
+            koUser._meta = { model: { fields: [] }}
             hook.dictManyHook userModel, koUser
             login = u.value
 
             stats = os.stats[login]
-            if stats              
+            if stats
               [idle, [formattedTs, ts]] =
                 if _.isEmpty stats.closeTime
                   [false, (utils.timeFrom stats.openTime, os.reqTime)]
                 else
                   [true, (utils.timeFrom stats.closeTime, os.reqTime)]
-                  
+
               [caseLink, actionLabel] =
                 if idle
                   ["нет", null]
