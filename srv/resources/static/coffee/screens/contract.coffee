@@ -21,7 +21,7 @@ define [ "search/screen"
         resultModels: [Contract]
         resultTable: _.filter resultFields, (f) -> f.name != "subprogram"
         searchFields: searchFields
-        defaultSort: { fields: [{ model: "Contract", name: "ctime" }], order: "desc" }
+        defaultSort: { fields: [{ model: "Contract", name: "id" }], order: "desc" }
         allowedResultFields:
           Contract: _.pluck Contract.fields, 'name'
 
