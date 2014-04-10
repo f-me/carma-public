@@ -16,3 +16,4 @@ delete from "ConstructorFieldOption"
   where program = 0;
 
 drop table if exists "NewCaseField";
+drop table if exists "DefaultNewCtrField";
