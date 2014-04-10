@@ -918,6 +918,25 @@ update "ConstructorFieldOption" new
     and old.program = 57
     and new.field = old.field;
 
+
+update "ConstructorFieldOption"
+  set r = 't', w = 't'
+  where field = 'contract';
+
+update "ConstructorFieldOption"
+  set r = 'f', w = 'f'
+  where field = 'createTime' and screen = 1;
+
+update "ConstructorFieldOption"
+  set r = 't', w = 'f'
+  where field = 'createTime' and screen = 2;
+
+
+delete from "ConstructorFieldOption"
+  where program = 0;
+
+drop table "NewCaseField";
+
 GRANT ALL ON "ConstructorFieldOption" TO carma_db_sync;
 GRANT ALL ON "ConstructorFieldOption" TO carma_search;
 GRANT ALL ON "ConstructorFieldOption_id_seq" TO carma_db_sync;
