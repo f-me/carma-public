@@ -62,8 +62,8 @@ define [ "utils"
     kaseKVM = m.buildKVM global.model('case'),  {fetched: kase}
     srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
     kvm['fromCase'] = true
-    kvm['city']([kaseKVM.city()])
-    kvm['make']([kaseKVM.car_make()])
+    kvm['city'](if kaseKVM.city() then [kaseKVM.city()] else [])
+    kvm['make'](if kaseKVM.car_make() then [kaseKVM.car_make()] else [])
     kvm['field'] = ctx['field']
 
     pid = parseInt srvKVM["#{ctx['field']}Id"]()?.split(":")[1]
@@ -151,8 +151,8 @@ define [ "utils"
         setupCase kvm, ctx
       when "call"
         return unless args?.model and s
-        kvm['city'](ctx.city)
-        kvm['make'](ctx.carMake)
+        kvm['city'](if ctx.city then [ctx.city] else [])
+        kvm['make'](if ctx.carMake then [ctx.carMake] else [])
         kvm['isDealer'](true)
 
         kvm['coords'] ctx.coords
@@ -300,7 +300,7 @@ define [ "utils"
             ico = map.hlIconName(ico)
 
           p.ico(ico)
-          
+
           coords = new OpenLayers.LonLat p.st_x(), p.st_y()
           # Add blip to map
           mark = new OpenLayers.Marker(
