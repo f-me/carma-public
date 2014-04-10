@@ -458,7 +458,8 @@
                 "value": "logo",
                 "label": "Logo"
             },
-            {"value": "Pilot", "label": "Pilot"}
+            {"value": "Pilot", "label": "Pilot"},
+            {"value": "Element", "label": "Element"}
         ],
         "hyundai": [
             {
@@ -661,6 +662,10 @@
             {
                 "value": "spectra",
                 "label": "Spectra"
+            },
+            {
+                "value": "Venga",
+                "label": "Venga"
             },
             {
                 "value": "Carens",
@@ -872,6 +877,14 @@
             {
                 "value": "laurel",
                 "label": "Laurel"
+            },
+            {
+                "value": "Liberty",
+                "label": "Liberty"
+            },
+            {
+                "value": "March",
+                "label": "March"
             },
             {
                 "value": "maxima",
@@ -1650,6 +1663,7 @@
         "skoda": [
             {"value": "Yeti", "label": "Yeti"},
             {"value": "Roomster", "label": "Roomster"},
+            {"value": "Felicia", "label": "Felicia"},
             {
                 "value": "fabia",
                 "label": "Fabia"
@@ -1775,7 +1789,8 @@
             {"value": "Hilux", "label": "Hilux"},
             {"value": "Alphard", "label": "Alphard"},
             {"value": "Sequoia", "label": "Sequoia"},
-            {"value": "Venza", "label": "Venza"}
+            {"value": "Venza", "label": "Venza"},
+            {"value": "Gaia", "label": "Gaia"}
         ],
         "volvo": [
             {
@@ -1880,7 +1895,8 @@
             {"value": "A13", "label": "A13"},
             {"value": "SUV T11", "label": "SUV T11"},
             {"value": "S18D", "label": "S18D"},
-            {"value": "S21", "label": "S21"}
+            {"value": "S21", "label": "S21"},
+            {"value": "S12", "label": "S12"}
         ],
         "SsangYong": [
             {"value": "Actyon", "label": "Actyon"},
@@ -1900,6 +1916,18 @@
         "mini": [
             {"value": "One", "label": "One"},
             {"value": "Cooper", "label": "Cooper"}
+        ],
+        "Acura": [
+            {"value": "MDX", "label": "MDX"},
+        ],
+        "Gaz": [
+            {"value": "31029", "label": "31029"},
+        ],
+        "Zaz": [
+            {"value": "Chance", "label": "Шанс"},
+        ],
+        "Msk": [
+            {"value": "2141", "label": "2141"},
         ]
     }
 }
