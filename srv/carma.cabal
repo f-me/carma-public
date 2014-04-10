@@ -68,7 +68,7 @@ Executable carma
     blaze-builder               == 0.3.*,
     bytestring                  >= 0.9.1 && < 0.11,
     bytestring-lexing           == 0.4.*,
-    carma-models                >= 0.17.3 && < 0.18,
+    carma-models                >= 0.17.4 && < 0.18,
     carma-http                  == 0.4.*,
     carma-sync                  >= 0.2 && < 0.3,
     carma-partner-import        >= 0.5.1 && < 0.6,
@@ -141,7 +141,7 @@ Executable tools
   main-is: Main.hs
   Build-depends:
       postgresql-simple           == 0.3.*,
-      carma-models                >= 0.17.3 && < 0.18,
+      carma-models                >= 0.17.4 && < 0.18,
       unordered-containers        == 0.2.*,
       cmdlib                      == 0.3.*,
       boxes                       == 0.1.*
