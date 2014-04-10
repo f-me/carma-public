@@ -1,4 +1,7 @@
-define ["text!tpl/screens/printSrv.html"], (tpl) ->
+define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
+
+  # FIXME: rewrite this screen with models and all dat cool stuff
+
   setupPrintSrv = (viewName, {model: model, id: id}) ->
     $(".navbar").hide()
 
@@ -53,7 +56,11 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
     new Date(time * 1000).toString("dd.MM.yyyy HH:mm")
 
   lookup = (dict, val) ->
-    global.dictValueCache[dict][val] || ''
+    # little hack to make it work
+    if dict == "Program"
+      (new D.dicts['ModelDict'](dict: 'Program')).getLab(val)
+    else
+      global.dictValueCache[dict][val] || ''
 
   postProc = (obj, procs) ->
     if procs.time
