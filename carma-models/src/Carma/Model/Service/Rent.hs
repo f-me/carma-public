@@ -44,4 +44,4 @@ instance Model Rent where
       : setMeta "widget" "partner" towDealer_partner
       : invisible towDealer_partnerId
       : invisible towDealer_coords
-      ++ mapWidget rentAddress_address rentAddress_coords rentAddress_map
+      : mapWidget rentAddress_address rentAddress_coords rentAddress_map
