@@ -23,9 +23,8 @@ define [ "model/render"
        , "lib/serialize"
        , "lib/idents"
        , "lib/config"
-       , "json!/cfg/modelTrMap"
        ],
-       (render, dict, sync, S, Idents, Config, TrMap) ->
+       (render, dict, sync, S, Idents, Config) ->
   mainSetup = (Finch
              , localDictionaries
              , hooks
@@ -159,10 +158,7 @@ define [ "model/render"
                 k.parent = kvm
                 k
             write: (v) ->
-              invTr = _.invert TrMap
-              modelName = (k) -> k._meta.model.name
-              tr = (n) -> invTr[n] || n
-              ks = ("#{tr(modelName k)}:#{k.id()}" for k in v).join(',')
+              ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
               kvm[f.name](ks)
 
         # setup reference add button
@@ -392,7 +388,6 @@ define [ "model/render"
 
   buildNewModel = (modelName, args, options, cb) ->
     model = global.model(modelName, options.modelArg)
-    model.name = (_.invert TrMap)[model.name] || model.name
     [knockVM, q] = buildModel(model, args, options)
     if _.isFunction cb
       q.save -> cb(model, knockVM)
@@ -486,7 +481,7 @@ define [ "model/render"
       return fold
 
   applyHooks = (hooks, selectors, args...) ->
-    fs = _.map selectors, (s) -> hooks[(_.invert TrMap)[s] || s]
+    fs = _.map selectors, (s) -> hooks[s]
     f.apply(this, args) for f in _.compact _.flatten fs
 
   { setup         : mainSetup

@@ -26,9 +26,6 @@ define [ "utils"
                          defaultGroup : "default-case"
                          modelArg     : "ctr:full:#{kaze.program}"
 
-      # NB: fix uppercase model name
-      kvm._meta.model.name = 'case'
-
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
       setCommentsHandler()
 

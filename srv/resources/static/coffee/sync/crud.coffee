@@ -1,10 +1,9 @@
 define [ "sync/metaq"
        , "sync/datamap"
-       , "json!/cfg/modelTrMap"
-       ], (metaq, m, Map) ->
+       ], (metaq, m) ->
   class CrudQueue extends metaq
     constructor: (@kvm, @model, @options) ->
-      @url = "/_/#{(_.invert Map)[@model.name] || @model.name}"
+      @url = "/_/#{@model.name}"
       @q       = {}
       @qbackup = {}
       @ftypes  = {}

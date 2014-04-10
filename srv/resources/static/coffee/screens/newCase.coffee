@@ -21,9 +21,6 @@ define [ 'utils'
                          screenName   : 'newCase'
                          modelArg     : "ctr:new:#{kaze.program}"
 
-      # NB: fix uppercase model name
-      kvm._meta.model.name = 'case'
-
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
       $("#empty-fields-placeholder").html(
           Mustache.render $("#empty-fields-template").html(), ctx)
