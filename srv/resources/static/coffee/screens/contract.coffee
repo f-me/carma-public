@@ -173,3 +173,13 @@ define [ "search/screen"
 
           # Make subprogram label bold
           $(".control-label label").first().css("font-weight", "bold")
+
+          w = $(window).height()
+          gap = 20
+
+          # Limit maximum height of portal screen containers
+          t = $("#sidebar-content").offset().top
+          $("#sidebar-content").height(w - t - gap)
+
+          t = $("#main-content").offset().top
+          $("#main-content").height(w - t - gap)

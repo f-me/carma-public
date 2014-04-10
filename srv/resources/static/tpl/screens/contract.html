@@ -1,6 +1,6 @@
 <!-- Portal screen template. Derived from search screen template -->
 <div class="row-fluid">
-  <div class="span9">
+  <div class="span9" id="main-content">
     <!-- Page header: logo and subprogram description. -->
     <div id="logo-help" class="form-inline well">
       <div class="media" style="text-align: center">
@@ -18,7 +18,7 @@
     </div>
     <!-- Table -->
     <div id="search-results"
-         style="min-height: 480px; overflow-x: scroll"
+         style="min-height: 50%; overflow-x: scroll"
          data-bind="spinner: $root.searchKVM.searchResultsSpinner">
       <table id="tbl" class="table table-hover table-striped table-bordered">
         <thead>
@@ -65,7 +65,7 @@
     </div>
   </div>
 
-  <!-- Sidebar -->
+  <!-- Sidebar header -->
   <div class="span3">
     <ul class="nav nav-tabs">
       <li class="active">
@@ -76,7 +76,9 @@
       </li>
     </ul>
   </div>
-  <div class="span3 tab-content">
+  <div class="span3 tab-content"
+       id="sidebar-content"
+       style="overflow-y: scroll">
     <!-- Search tab -->
     <div class="tab-pane active"
          style="width:95%"
