@@ -10,3 +10,9 @@ logo IS NOT NULL AND
 NOT logo like 'attachment:%' AND
 logo <> ''
 );
+UPDATE servicetbl SET files=NULL WHERE
+(
+files IS NOT NULL AND
+NOT files like 'attachment:%' AND
+files <> ''
+);

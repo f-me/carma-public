@@ -1,8 +1,7 @@
 define  [ "utils"
         , "hooks/common"
-        , "lib/ident/role"
         , "text!tpl/screens/supervisorOps.html"
-        ], (utils, hook, role, tpl) ->
+        ], (utils, hook, tpl) ->
   # data = { tick: true }
   tick = true
   setupSupervisorOpsScreen = (viewName, args) ->
@@ -24,33 +23,36 @@ define  [ "utils"
             Mustache.render tpl, userModel.fieldHash.boPrograms)
           ko.applyBindings aData[7], nRow
 
+      # FIXME: change `allUsers` so it will send arrays for dict values
+      fixdict = (s) -> _.compact _.invoke s.split(','), 'trim'
 
       $.getJSON "/allUsers", (us) ->
        $.getJSON "/supervisor/opStats", (os) ->
         dt.fnClearTable()
-        backRe = new RegExp(role.back)
-        
+        backRe = new RegExp(String(global.idents("Role").back))
+
         rows = for u in us when (backRe.test u.roles)
           do (u) ->
             koUser =
-              boCities: ko.observable u.boCities
+              boCities: ko.observable fixdict u.boCities
               boCitiesDisabled: ko.observable false
               boCitiesSync: ko.observable false
-              boPrograms: ko.observable u.boPrograms
+              boPrograms: ko.observable fixdict u.boPrograms
               boProgramsDisabled: ko.observable false
               boProgramsSync: ko.observable false
 
+            koUser._meta = { model: { fields: [] }}
             hook.dictManyHook userModel, koUser
             login = u.value
 
             stats = os.stats[login]
-            if stats              
+            if stats
               [idle, [formattedTs, ts]] =
                 if _.isEmpty stats.closeTime
                   [false, (utils.timeFrom stats.openTime, os.reqTime)]
                 else
                   [true, (utils.timeFrom stats.closeTime, os.reqTime)]
-                  
+
               [caseLink, actionLabel] =
                 if idle
                   ["нет", null]
@@ -113,7 +115,10 @@ define  [ "utils"
       , meta: {dictionaryName: 'DealerCities'}
       , type: "dictionary-many" },
       { name: 'boPrograms'
-      , meta: {dictionaryName: 'Programs'}
+      , meta: { dictionaryName: 'Program'
+              , dictionaryType: 'ModelDict'
+              , dictionaryStringify: true
+              }
       , type: "dictionary-many"
       } ]
 

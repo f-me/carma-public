@@ -12,6 +12,8 @@ define ["dictionaries/local-dict", ], (ld) ->
       updateSource = (v) =>
         $.getJSON "/dealers/#{v}", (@dealers) =>
           @source = ({value: i.id, label: i.name} for i in @dealers)
+          @dictValueCache = null
+          @dictLabelCache = null
 
       carMake?.subscribe updateSource
       updateSource(carMake()) if carMake?

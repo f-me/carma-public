@@ -6,7 +6,7 @@ import Control.Monad.IO.Class
 
 import qualified Data.Set as Set
 import Data.ByteString (ByteString)
-import Data.Configurator
+import Data.Configurator as Cfg
 import Control.Concurrent.STM
 
 import System.Log.Simple (newLog, fileCfg, logger, text, file)
@@ -27,16 +27,17 @@ import Snap.Util.FileServe ( serveFile
                            , DirectoryConfig(..)
                            )
 ------------------------------------------------------------------------------
-import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
 import Snaplet.DbLayer
 import qualified Snaplet.FileUpload as FU
 import Snaplet.Geo
 import Snaplet.Search
+import Snaplet.TaskManager
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
 import AppHandlers.ActionAssignment
+import AppHandlers.Bulk
 import AppHandlers.CustomSearches
 import AppHandlers.PSA
 import AppHandlers.ContractGenerator
@@ -71,24 +72,21 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/supervisor/opStats",  chkAuthLocal . method GET $ opStats)
          , ("/supervisor/actStats", chkAuthLocal . method GET $ actStats)
          , ("/allPartners",   chkAuthLocal . method GET  $ allPartnersHandler)
-         , ("/partnersFor/:srv",
-                              chkAuthLocal . method GET $ partnersForSrvHandler)
-         , ("/psaCases/",
+         , ("/psaCases",
                               chkAuthLocal . method GET $ psaCasesHandler)
          , ("/psaCases/:program",
                               chkAuthLocal . method GET $ psaCasesHandler)
          , ("/repTowages/:id",
                               chkAuthLocal . method GET $ repTowagesHandler)
-         , ("/cardOwnerLookup", chkAuth . method GET  $ cardOwnerLookup)
-         , ("/allContracts/:program",
-                              chkAuth . method GET   $ selectContracts)
          , ("/renderContract",
                               chkAuth . method GET    $ renderContractHandler)
          , ("contracts/findSame",
                              chkAuth . method GET    $ findSameContract)
+         , ("/searchContracts",
+                              method GET    $ searchContracts)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
-         , ("/_/:model",      chkAuth . method GET    $ readManyHandler)
+         , ("/_/:mdl",        chkAuth . method GET    $ readManyHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
          , ("/_/:model/:id",  chkAuth . method DELETE $ deleteHandler)
@@ -111,13 +109,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/boUsers",       chkAuth . method GET  $ boUsers)
          , ("/dealers/:make", chkAuth . method GET  $ allDealersForMake)
          , ("/partner/upload.csv",
-            chkAuthLocal . method POST $ partnerUploadData)
-         , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
-         , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
-         , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
-         , ("/vin/reverseLookup/:vin", chkAuth . method GET  $ vinReverseLookup)
-         , ("contracts/findByCard/:program/:cardNumber",
-            chkAuth . method GET    $ cardNumberLookup)
+            chkAuthLocal . method POST $ partnerImport)
+         , ("/vin/upload",    chkAuth . method POST $ vinImport)
          , ("/opts/:model/:id/", chkAuthLocal . method GET $ getSrvTarifOptions)
          , ("/smspost",       chkAuthLocal . method POST $ smspost)
          , ("/sms/processing", chkAuthLocal . method GET $ smsProcessingHandler)
@@ -125,6 +118,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
             chkAuthLocal . method GET $ printServiceHandler)
          , ("/runtimeFlags",  chkAuthLocal . method GET  $ getRuntimeFlags)
          , ("/runtimeFlags",  chkAuthLocal . method PUT  $ setRuntimeFlags)
+         , ("/clientConfig",       chkAuth . method GET  $ clientConfig)
          , ("/restoreProgramDefaults/:pgm",
             chkAuthAdmin . method PUT $ restoreProgramDefaults)
          , ("/errors",        method POST errorsHandler)
@@ -135,11 +129,16 @@ dconf = simpleDirectoryConfig{preServeHook = h}
   where
     h _ = modifyResponse $ setHeader "Cache-Control" "no-cache, must-revalidate"
 
+
 ------------------------------------------------------------------------------
 -- | The application initializer.
 appInit :: SnapletInit App App
 appInit = makeSnaplet "app" "Forms application" Nothing $ do
   cfg <- getSnapletUserConfig
+
+  opts <- liftIO $ AppOptions
+                <$> Cfg.lookup cfg "local-name"
+                <*> Cfg.lookupDefault 4 cfg "search-min-length"
 
   h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
   addAuthSplices h auth
@@ -178,14 +177,14 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   c <- nestSnaplet "cfg" siteConfig $
        initSiteConfig "resources/site-config" pgs
 
-  v <- nestSnaplet "vin" vin vinInit
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   g <- nestSnaplet "geo" geo geoInit
 
   l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
        [logger text (file "log/frontend.log")]
 
-  search <- nestSnaplet "search" search $ searchInit pgs authMgr
+  search <- nestSnaplet "search" search $ searchInit pgs authMgr db
+  tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   addRoutes routes
   wrapSite (claimUserActivity>>)
-  return $ App h s authMgr c d pgs pga v fu g l runtimeFlags ad search
+  return $ App h s authMgr c d pgs pga tm fu g l runtimeFlags ad search opts

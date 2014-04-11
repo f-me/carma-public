@@ -813,6 +813,10 @@
             "label": "Краснокамск"
         },
         {
+            "value": "Krasnoturinsk",
+            "label": "Краснотурьинск"
+        },
+        {
             "value": "Krasnoyarsk",
             "label": "Красноярск"
         },
@@ -1405,6 +1409,10 @@
             "label": "Салават"
         },
         {
+            "value": "Salekhard",
+            "label": "Салехард"
+        },
+        {
             "value": "Samara",
             "label": "Самара"
         },
@@ -1799,6 +1807,10 @@
         {
             "value": "YAsnogorsk",
             "label": "Ясногорск"
+        },
+        {
+            "value": "YAkhroma",
+            "label": "Яхрома"
         }
     ]
 }

@@ -24,6 +24,7 @@ import Data.Time
 import Data.Function
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Read as T
 import Text.Format
 
 import qualified Database.PostgreSQL.Simple.ToField as PS
@@ -36,7 +37,7 @@ import Snaplet.DbLayer.ARC
 
 import Snap.Snaplet.SimpleLog hiding ((%=))
 
-
+import Util
 
 fquery :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => String -> FormatArgs -> q -> m [r]
 fquery fmt args v = query (fromString $ T.unpack $ format fmt args) v
@@ -253,7 +254,7 @@ caseServices fromDate toDate constraints names = scope "caseServices" $ do
         lookAt = fromMaybe 0 . lookup n
   return $ toJSON $ map makeServiceInfo names
   where
-    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type", p, constraints, betweenTime fromDate toDate "servicetbl" "createTime", groupBy "servicetbl" "type"]  
+    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type", p, constraints, betweenTime fromDate toDate "servicetbl" "createTime", groupBy "servicetbl" "type"]
 
 rkcCase :: (PS.HasPostgres m, MonadLog m) => Filter -> PreQuery -> [T.Text] -> m Value
 rkcCase filt@(Filter fromDate toDate _ _ _) constraints services = scope "rkcCase" $ do
@@ -357,15 +358,19 @@ rkcComplaints fromDate toDate constraints = scope "rkcComplaints" $ do
 -- times).
 rkcStats :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
 rkcStats (Filter from to program city partner) = scope "rkcStats" $ do
-  let qParams = ( T.null program
-                , program
-                , T.null city
-                , city
-                , T.null partner
-                , partner
-                , from
-                , to
-                )
+  let qParams = sqlFlagPair (0 :: Int) id program'
+                PS.:. ( T.null city
+                      , city
+                      , T.null partner
+                      , partner
+                      , from
+                      , to
+                      )
+      program' = if T.null program
+                 then Nothing
+                 else case (T.decimal program) of
+                        Right (n, _) -> Just n
+                        _            -> Nothing
   rsp1 <- PS.query procAvgTimeQuery qParams
   rsp2 <- PS.query towStartAvgTimeQuery qParams
   let procAvgTime :: Maybe Double
@@ -449,7 +454,7 @@ rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = scope 
         where
           k = T.decodeUtf8 $ m HM.! "value"
           v = T.decodeUtf8 $ m HM.! "label"
-        
+
 
 rkcFront :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
 rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "front" $ do
@@ -537,7 +542,7 @@ WITH actiontimes AS (
  SELECT (max(a2.closeTime - a1.ctime))
  FROM casetbl c, servicetbl s, actiontbl a1, actiontbl a2
  WHERE a1.parentid=a2.parentid
- AND (a2.result='serviceOrdered' 
+ AND (a2.result='serviceOrdered'
       OR a2.result='serviceOrderedSMS')
  AND a1.name='orderService'
  AND a1.parentid=concat(s.type, ':', s.id)

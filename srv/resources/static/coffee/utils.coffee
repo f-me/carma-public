@@ -1,4 +1,4 @@
-define ["model/utils", "lib/ident/role"], (mu, role) ->
+define ["model/utils", "dictionaries"], (mu, d) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -101,7 +101,7 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
       , #{Base64.encode('\uFEFF' + head + s)}"
     s
 
-  modelsFromUrl = -> window.location.hash.match(/#(.*)\/.*/)[1]
+  modelsFromUrl = -> location.hash.match(/#(\w+)/)[1];
 
   # Generate a random password of given length (default 10)
   genPassword = (len) ->
@@ -152,10 +152,6 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
     else
       "#{hours}ч #{mins}м"
 
-  # Return true if user may access case/service-related actions
-  canReadActions: () ->
-    _.some (global.model "case").fields, (f) -> f.name == 'actions'
-
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
   # build global function from local to module one
@@ -182,25 +178,15 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
   # Model method HTTP access point wrt redson location
   modelMethod: (modelName, method) -> "/_/#{modelName}/#{method}"
 
-  getServiceDesc: (program, service) ->
-    if p = @findProgram program
-      si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
-        info.program == p.id and info.service == service
-      si?.info or ""
-    else
-      ""
+  getServiceDesc: (pid, service) ->
+    si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
+      info.program == pid and info.service == service
+    si?.info or ""
 
-  getProgramDesc: (program) ->
-    if p = @findProgram program
-      pi = _.find global.dictionaries['ProgramInfo'].entries, (info) ->
-        info.program == p.id
-      pi?.info or ""
-    else
-      ""
-
-  findProgram: (name) ->
-    _.find global.dictionaries['Programs'].entries, (program) ->
-      program.value == name
+  getProgramDesc: (pid) ->
+    pi = _.find global.dictionaries['ProgramInfo'].entries, (info) ->
+      info.program == pid
+    pi?.info or ""
 
   # Scroll case field into view and focus
   focusField: (name) ->
@@ -378,15 +364,9 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
 
   repeat: (times, v) -> [1..times].map -> v
 
-  splitVals: (v) ->
-    return [] if not v or v == ""
-    # some times we send them as array right from backend
-    return v if _.isArray v
-    v.split ','
-
   modelsFromUrl: modelsFromUrl
 
-  reloadScreen: -> global.router.navigate modelsFromUrl(), { trigger: true }
+  reloadScreen: -> Finch.navigate modelsFromUrl()
 
   checkMatch: checkMatch
   kvmCheckMatch: kvmCheckMatch
@@ -409,10 +389,21 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
 
   setUrlParams: (prms) ->
     [url, currPrms] = document.location.href.split("?")
-    scr = global.router.current()
+    scr = window.location.href.match(/#(.*?)(\?|$)/)[1]
     nparams = $.extend (@fromUrlParams currPrms), prms
     enc = encodeURIComponent
     q = (("#{enc k}=#{enc v}" for k, v of nparams).join("&"))
-    global.router.navigate "#{scr}?#{q}"
+    window.history.replaceState null, null, "/##{scr}?#{q}"
 
   inject: (dest, src) -> dest[k] = v for k, v of src when not dest[k]
+
+  newModelDict: (name, stringify) ->
+    new d.dicts.ModelDict
+      dict: name
+      meta:
+        dictionaryStringify: stringify
+
+  newComputedDict: (name, meta) ->
+    new d.dicts.ComputedDict
+      dict: name
+      meta: meta

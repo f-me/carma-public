@@ -83,7 +83,7 @@ define [ "utils"
   #       )(fieldName)
 
   dateTimeHook: (m, k) ->
-    for f in m.fields when f.type == "datetime"
+    for f in m.fields when _.contains ["datetime", "Day", "UTCTime"], f.type
       do (f) ->
         n = f.name
         k["#{n}DateTime"] = ko.computed
@@ -120,26 +120,27 @@ define [ "utils"
             return if lab == ""
             return if k["#{n}Disabled"]()
             val = dict.getVal(lab)
-            c = u.splitVals k[n]()
-            return if _.contains c, val
-            c.push (val or lab)
+            return if _.contains k[n](), val
             if (bounded and val) or (not bounded)
-              k[n](c.sort().join(','))
+              # Start a new observable array or update the existing
+              # one
+              if _.isEmpty k[n]()
+                k[n] []
+              v = k[n]()
+              v.push (val or lab)
+              k[n] v
 
         k["#{n}Locals"] = ko.computed
           read: ->
-            for val in u.splitVals k[n]()
+            for val in (k[n]() || [])
               do (val) ->
                 lab = dict.getLab(val)
                 {label: lab || val, value: val}
 
         k["#{n}Remove"] = (el) ->
           return if k["#{n}Disabled"]()
-          # FIXME: I think, this should be made with bb observable
-          # arrays, so we can make them in metamodel and use normal
-          # collections, without splitting it manually
-          c = u.splitVals(k[n]())
-          k[n] _.without(c, el.value).join(',')
+          v = k[n]()
+          k[n] _.without v, el.value
 
         k["#{n}TypeaheadBuilder"] = ->
           new ThMenu
@@ -257,7 +258,8 @@ define [ "utils"
         # Delete an object by its index
         kvm["#{n}DeleteObj"] =
           (v) ->
-            return unless confirm "Вы уверены, что хотите удалить запись #{v.value()}?"
+            return unless \
+              confirm "Вы уверены, что хотите удалить запись #{v.value()}?"
             # Remove key by index from field JSON
             newFull = kvm[n]()
             newFull.splice v.idx(), 1
@@ -280,3 +282,7 @@ define [ "utils"
       e.parents(".accordion-group")[0].scrollIntoView()
     f = e.find(".focusable")[0]
     f and f.focus()
+
+  bindRemoveHook: (fieldName) ->
+    (model, kvm) ->
+      kvm[fieldName].subscribe -> u.bindRemove kvm, fieldName

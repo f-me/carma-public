@@ -227,6 +227,22 @@
         {
             "value": "greatWall",
             "label": "Great Wall"
+        },
+        {
+            "value": "Acura",
+            "label": "Acura"
+        },
+        {
+            "value": "Gaz",
+            "label": "ГАЗ"
+        },
+        {
+            "value": "Zaz",
+            "label": "ЗАЗ"
+        },
+        {
+            "value": "Msk",
+            "label": "Москвич"
         }
     ]
 }

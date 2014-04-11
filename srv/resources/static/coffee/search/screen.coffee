@@ -47,6 +47,7 @@ define [ "utils"
       , meta:
           label: "Добавить критерий поиска"
           noadd: true
+          invisible: opts?.hideFieldsList
           nosearch: true
           dictionaryType: "HiddenFieldsDict"
       }]
@@ -58,12 +59,12 @@ define [ "utils"
 
     searchKVM.showFields.set = (fs) ->
       searchKVM.showFields _.filter searchKVM._meta.model.fields, (f) ->
-         _.contains fs, f.name
+        _.contains fs, f.name
 
     searchKVM.showFields.del = (fs) ->
       searchKVM[fs.name](null)
       searchKVM.showFields _.reject searchKVM.showFields(), (f) ->
-         _.contains fs, f.name
+        _.contains fs, f.name
 
     searchKVM.showFields.set opts.searchFields
 
@@ -100,8 +101,11 @@ define [ "utils"
 
     ko.applyBindings ctx, $("#search-results")[0]
 
-    state = { kvm: searchKVM, pager: searchKVM._meta.pager }
-    State.load state
+    if !opts.noState?
+      state = { kvm: searchKVM, pager: searchKVM._meta.pager }
+      State.load state
 
-    State.persistKVM 'kvm', state
+      State.persistKVM 'kvm', state
     searchKVM._meta.pager.offset.subscribe -> State.save state
+
+    searchKVM

@@ -21,23 +21,26 @@ define [ "model/render"
        , "dictionaries/local-dict"
        , "sync/crud"
        , "lib/serialize"
+       , "lib/idents"
+       , "lib/config"
        ],
-       (render, dict, sync, S) ->
-  mainSetup = ( localScreens
-                   , localRouter
-                   , localDictionaries
-                   , hooks
-                   , user
-                   , pubSub) ->
-    Screens = localScreens
+       (render, dict, sync, S, Idents, Config) ->
+  mainSetup = (Finch
+             , localDictionaries
+             , hooks
+             , user
+             , pubSub) ->
 
     dictCache = dict.buildCache(localDictionaries)
+    imgr = new Idents
+    configmgr = new Config
+
+    # Convert user.roles to use integer ids
+    user.roles = _.map user.roles, (v) -> parseInt v
 
     window.global =
-        # «Screen» element which holds all views
         topElement: $el("layout")
-        screens: Screens
-        router: new localRouter
+        router: Finch
         dictionaries: localDictionaries
         # Maps labels to values for every dictionary
         dictLabelCache: dictCache.labelCache
@@ -45,6 +48,11 @@ define [ "model/render"
         dictValueCache: dictCache.valueCache
         hooks: hooks
         user: user
+        # Provided a model name, return available idents for that
+        # model
+        idents: (mn) -> imgr.getIdents mn
+        # Return client config option value
+        config: (cn) -> configmgr.getOption cn
         model: do ->
           modelCache = {}
           (name, view) ->
@@ -81,7 +89,7 @@ define [ "model/render"
         # renderers maintain their viewsWare.
         viewsWare: {}
 
-    Backbone.history.start({pushState: false})
+    Finch.listen()
 
   # Knockout model builder
   #
@@ -102,6 +110,7 @@ define [ "model/render"
     # Build kvm with fetched data if have one
     kvm = {}
     kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
+    kvm.safelyGet = (prop) -> kvm[prop]?() || ''
 
     # build observables for real model fields
     for f in fields
@@ -110,7 +119,7 @@ define [ "model/render"
         kvm[f.name].field = f
 
     # set id only when it wasn't set from from prefetched data
-    kvm['id'] = ko.observable(fetched?['id']) unless _.isFunction kvm['id']
+    kvm['id'] = ko.observable(fetched?['id'])
 
     # set queue if have one, and sync it with backend
     kvm._meta.q = new queue(kvm, model, queueOptions) if queue
@@ -160,6 +169,46 @@ define [ "model/render"
               modelName: f.meta.model
               options:
                 modelArg: queueOptions?.modelArg
+                newStyle: false
+            addRef kvm, f.name, opts, (kvm) -> focusRef(kvm)
+
+    # Setup new-style reference (IdentList) fields: they will be
+    # stored in <name>Reference as array of kvm models.
+    #
+    # IdentList fields store a list of instance ids (as array of
+    # numbers). Thus, meta.model is required when using such fields.
+    # The referenced model must have parent field.
+    for f in fields when f.type == "IdentList"
+      do (f) ->
+        kvm["#{f.name}Reference"] =
+          ko.computed
+            read: ->
+              # FIXME: this will be evaluated on every write
+              # so reference kvms is better be cached or there will be
+              # get on every new reference creation
+              return [] unless kvm[f.name]()
+              ids = kvm[f.name]()
+              return [] unless ids
+              for i in ids
+                k = buildKVM global.model(f.meta.model, queueOptions?.modelArg),
+                  fetched: {id: i}
+                  queue:   queue
+                k.parent = kvm
+                k
+            write: (v) ->
+              ks = _.map v, (k) -> k.id()
+              kvm[f.name](ks)
+
+        # setup reference add button
+        if f.meta?.model
+          # define add-reference-button ko.bindingHandlers.bindClick function
+          kvm["add#{f.name}"] = ->
+            opts =
+              modelName: f.meta.model
+              options:
+                modelArg: queueOptions?.modelArg
+                newStyle: true
+                parentField : 'parent'
             addRef kvm, f.name, opts, (kvm) -> focusRef(kvm)
 
     kvm["maybeId"] = ko.computed -> kvm['id']() or "—"
@@ -323,8 +372,7 @@ define [ "model/render"
 
       screenName = options.screenName or modelName
       kvm["updateUrl"] = ->
-        global.router.navigate "#{screenName}/#{kvm.id()}",
-                               { trigger: false }
+        Finch.navigate "#{screenName}/#{kvm.id()}", true
 
       hooks = options.hooks or ['*', model.name]
       applyHooks global.hooks.model, hooks, elName
@@ -370,9 +418,8 @@ define [ "model/render"
 
     knockVM['view'] = elName
 
-    for f in knockVM._meta.model.fields when f.type == 'reference'
+    for f in knockVM._meta.model.fields when f.type == 'reference' or f.type == 'IdentList'
       do (f) ->
-        pview = $("##{knockVM['view']}")
         refsForest = getrForest(knockVM, f.name)
         $("##{refsForest}").empty()
         knockVM["#{f.name}Reference"].subscribe (newValue) ->
@@ -394,8 +441,21 @@ define [ "model/render"
 
   addRef = (knockVM, field, ref, cb) ->
     field = "#{field}Reference" unless /Reference$/.test(field)
-    thisId = knockVM._meta.model.name + ":" + knockVM.id()
-    ref.args = _.extend({"parentId":thisId}, ref.args)
+    # For new-style references (IdentList type), store parent id as a
+    # number in a field of the reference set by
+    # ref.options.parentField
+    #
+    # For old-style references (reference type), store parent id in
+    # "model:<id>" form in "parentId" field
+    if ref.options?.newStyle
+      parentField = ref.options.parentField
+      thisId = knockVM.id()
+    else
+      parentField = 'parentId'
+      thisId = knockVM._meta.model.name + ":" + knockVM.id()
+    patch = {}
+    patch[parentField] = thisId
+    ref.args = _.extend(patch, ref.args)
     buildNewModel ref.modelName, ref.args, ref.options or {},
       (model, refKVM) ->
         newVal = knockVM[field]().concat refKVM
@@ -406,8 +466,9 @@ define [ "model/render"
     e = $('#' + kvm['view'])
     e.parent().prev()[0].scrollIntoView()
     e.find('input')[0].focus()
-    e.find('input').parents(".accordion-body").first().collapse('show')
-
+    accordion = e.find('input').parents(".accordion-body").first()
+    if !accordion.hasClass('in')
+      accordion.collapse('show')
 
   getrForest = (kvm, fld) ->
     modelName = kvm._meta.model.name
@@ -420,8 +481,8 @@ define [ "model/render"
       return fold
 
   applyHooks = (hooks, selectors, args...) ->
-    fs = _.chain(hooks[k] for k in selectors).flatten().compact().value()
-    f.apply(this, args) for f in fs
+    fs = _.map selectors, (s) -> hooks[s]
+    f.apply(this, args) for f in _.compact _.flatten fs
 
   { setup         : mainSetup
   , modelSetup    : modelSetup

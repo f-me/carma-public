@@ -121,7 +121,9 @@
       "meta": {
         "label": "Роль",
         "invisible": true,
-        "dictionaryName": "Roles"
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
+        "dictionaryName": "Role"
       },
       "type": "dictionary",
       "groupName": null,

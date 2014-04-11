@@ -14,7 +14,7 @@ require [ "domready"
         , "lstorePubSub"
         ], ( dom
            , main
-           , Routes
+           , Finch
            , hooks
            , dicts
            , user
@@ -46,6 +46,10 @@ require [ "domready"
 
     window.onerror = console.error
 
+    $(document).ajaxError (event, jqXHR, settings, error) ->
+      console.error "#{settings.type} #{settings.url} #{jqXHR.status}
+ (#{jqXHR.statusText})\n#{settings.data}\n#{jqXHR.responseText}"
+
   # this will be called on dom ready
   dom ->
     bugReport.setElement $('#send-bug-report')
@@ -59,8 +63,7 @@ require [ "domready"
         for i in users
           {value: i.value, label: i.roles }
 
-    main.setup Routes.localScreens(),
-              Routes.localRouter,
+    main.setup Finch,
               dicts,
               hooks,
               user,
@@ -78,16 +81,23 @@ require [ "domready"
         global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
 
     if window.location.hash == "" and user.meta.homepage
-      global.router.navigate user.meta.homepage, {trigger: true}
+      Finch.navigate user.meta.homepage.replace '/', ''
 
     sendSms.setup()
 
     if user.login == "darya" or user.login == "e.balabanova"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')
 
+    # Enable Popover data API
+    $( () -> $('body').popover
+                          html: true,
+                          selector: '[data-provide="popover"]',
+                          trigger: 'hover')
 
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']
+  u.build_global_fn 'inlineUploadFile', ['lib/upload']
+  u.build_global_fn 'inlineDetachFile', ['lib/upload']
   u.build_global_fn 'doPick', ['utils']
   u.build_global_fn 'kdoPick', ['utils']
   u.build_global_fn 'focusField', ['utils']

@@ -1,259 +1,188 @@
-define [
-    "utils",
-    "model/main",
-    "lib/ident/role",
-    "text!tpl/screens/contract.html",
-    "screenman",
-    "dictionaries"],
-  (utils, main, role, tpl, screenman, dicts) ->
+# Portal screen, derived from contract search screen
+define [ "search/screen"
+       , "text!tpl/screens/contract.html"
+       , "model/main"
+       , "utils"
+       ], (Screen, tpl, main, u) ->
+  # Initialize portal search screen from portal-stripped Contract
+  # model
+  screenConstructor = (Contract, Search, Table) ->
+    # All portal fields marked with showtable option in subprogram
+    # dictionary are searchable and shown in the table
+    resultFields = _.map Table.fields, (f) ->
+            name: f.name
+            fixed: true
+    searchFields = _.pluck resultFields, 'name'
+    Screen.constructor
+        noState: true
+        hideFieldsList: true
+        apiUrl: "/search/portal"
+        searchModels: [Search]
+        resultModels: [Contract]
+        resultTable: _.filter resultFields, (f) -> f.name != "subprogram"
+        searchFields: searchFields
+        defaultSort: { fields: [{ model: "Contract", name: "id" }], order: "desc" }
+        allowedResultFields:
+          Contract: _.pluck Contract.fields, 'name'
 
-    reformatDate = (date)->
-      [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
-      "#{y}-#{m}-#{d}"
+  # Given subprogram id and its title, setup logo, title and dealer
+  # help on page header
+  logoSetup = (sid, title) ->
+    $.getJSON "/_/SubProgram/#{sid}", (instance) ->
+      if instance.logo
+        attachmentId = instance.logo.split(':')?[1]
+        main.modelSetup("attachment") "logo", {id: attachmentId}, {}
+      else
+        $("#logo").attr "src", null
+      $("#help-program").text(title)
+      $("#help-text").html(instance.dealerHelp)
 
-    getContractURL = (id) ->
-      "/_/contract/#{id}"
+  contractForm = "contract-form"
 
-    getContractsURL = (program) ->
-      min = reformatDate $('#date-min').val()
-      max = reformatDate $('#date-max').val()
-      "/allContracts/#{program}?from=#{min}&to=#{max}"
+  redirect = (hash) -> window.location.hash = hash
 
-    formatTableColumns = (program) ->
-      tableCols =
-            [ { name: "id", label: "#" }
-            , { name: "isActive"
-              , fn  : (c) -> if c.isActive is "true" or c.isActive is "1" then "✓" else ""
-              }
-            , "ctime"
-            , { name: "carVin", fn: (v) -> v.carVin }
-            , "carMake"
-            , "carModel"
-            , "carPlateNum"
-            , "contractValidFromDate"
-            , "contractValidUntilDate"
-            , "contractValidUntilMilage"
-            , "manager"
-            , "owner"
-            , "contractType"
-            , "cardNumber"
-            , "milageTO"
-            ]
+  template: tpl
+  constructor: (viewName, {sub: subprogram, id: id}) ->
+    spgms = u.newComputedDict "portalSubPrograms"
+    def_spgm = spgms.source[0]?.value
+
+    # Current contract id
+    contract = ko.observable null
+
+    # Ensure that subprogram is set
+    if subprogram?
+      s = parseInt subprogram
+      if _.isNumber s
+        subprogram = s
+        if id?
+          i = parseInt id
+          if _.isNumber i
+            contract i
+
+    # Redirect to default program when #contract is accessed
+    unless _.isNumber subprogram
+      redirect "contract/#{def_spgm}"
+      return
+
+    contractModel = "Contract?sid=#{subprogram}"
 
     findSame = (kvm, cb) ->
-      vin = kvm['carVin']?()
+      return unless kvm.id()
+      vin = kvm['vin']?()
       num = kvm['cardNumber']?()
-      params  = ["id=#{kvm.id()}"]
-      params.unshift "carVin=#{vin}"     if vin
+      params = ["id=#{kvm.id()}"]
+      params.unshift "vin=#{vin}" if vin
       params.unshift "cardNumber=#{num}" if num
       $.getJSON "/contracts/findSame?#{params.join('&')}", cb
 
-    mkTableSkeleton = (tableModel, fields) ->
-      h = {}
-      tableModel.fields.map (f) -> h[f.name] = f
 
-      # remove columns that we don't have in model
-      fieldNames = _.pluck tableModel.fields, 'name'
-      filterFields = _.filter fields, (e) ->
-        return true if typeof e is 'object'
-        _.contains(fieldNames, e)
-
-      fs = filterFields.map (field) ->
-        # get field description
-        # field may be a string or object with 'name', 'label' and 'fn' params
-        # if type of field is string it should contain model fields name value
-        desc = if field?.name then h[field.name] else h[field]
-
-        # define field label
-        defineLabel = ->
-          # for fields which haven't label in model like 'id' field
-          label = field.label if field?.label?
-          # try to find field label in model
-          label = desc.meta.label if desc?.meta?.label?
-          label
-
-        # define value render function by field type
-        defineFnByType = ->
-          if desc.type is 'dictionary'
-            d = global.dictValueCache[desc.meta.dictionaryName]
-            (contract) -> d[contract[field]] || contract[field] || ''
-          else if desc.type is 'date'
-            (contract) -> if contract[field]
-                new Date(contract[field] * 1000).toString "dd.MM.yyyy"
-              else ''
-          else if desc.type is 'datetime'
-            (contract) -> if contract[field]
-                new Date(contract[field] * 1000).toString "dd.MM.yyyy HH:mm:ss"
-              else ''
-          else
-            (contract) -> contract[field] || ''
-
-        # define value render function by field name
-        defineFnByName = ->
-          name = if field?.name
-            field.name
-          else
-            field
-          if name is 'id'
-            (contract) -> contract.id
-
-        # define field value render function
-        defineFn = ->
-          # for fields wich have predefined render function
-          fn = field.fn if field?.fn?
-          # try get by field type or name
-          fn = do defineFnByName if not fn?
-          fn = do defineFnByType if not fn?
-          fn
-
-        name = do defineLabel
-        fn = do defineFn
-        {name, fn}
-
-      th = $('<thead/>')
-      tr = $('<tr/>')
-      th.append tr
-      fs.map (f) -> tr.append $('<th/>', {html: f.name})
-
-      { mkRow: ((obj) -> fs.map (f) -> f.fn obj)
-      , headerHtml: th
-      }
-
-    dataTableOptions = ->
-      aoColumnDefs: [ aTargets: [1] ]
-      aaSorting   : [ [1, 'desc' ] ]
-      # enable horizontal scrolling
-      sScrollX: "100%"
-      sScrollXInner: "110%"
-
-    logoSetup = (args) ->
-      $.getJSON "/_/program/#{args.program}", (instance) ->
-        if instance.logo
-          attachURLPart = instance.logo.replace ':', '/'
-          $.getJSON "/_/#{attachURLPart}", (attachment) ->
-            logourl= "/s/fileupload/#{attachURLPart}/#{attachment.filename}"
-            $("#logo").attr "src", logourl
-            $("#help-program").text(instance.label)
-            $("#help-text").text(instance.help)
-
-    modelSetup = (modelName, viewName, args, programModel) ->
-      if args.id
+    # Open a contract by its id. If id is null, setup an empty
+    # contract form.
+    openContract = (cid) ->
+      $('a[href="#contract-tab"]').tab("show")
+      if cid?
         $('#render-contract').attr(
           "href",
-          "/renderContract?prog=#{args.program}&ctr=#{args.id}")
+          "/renderContract?contract=#{cid}")
+        $('#render-contract').attr "onclick", null
+        main.modelSetup(contractModel) contractForm, {id: cid}, {}
+      else
+        main.modelSetup(contractModel) contractForm,
+          # TODO Set committer on server
+          {subprogram: subprogram, committer: parseInt global.user.meta.mid}, {}
 
-      kvm = main.modelSetup(modelName, programModel)(
-        viewName, args,
-          permEl: "contract-permissions"
-          focusClass: "focusable"
-          refs: [])
+      kvm = global.viewsWare[contractForm].knockVM
 
+      kvm["id"].subscribe (i) -> redirect "contract/#{subprogram}/#{i}"
+
+      # Role-specific permissions
       kvm['isActiveDisableDixi'](true)
-      if _.find(global.user.roles, (r) -> r == role.partner)
+      if _.find(global.user.roles, (r) -> r == global.idents("Role").partner)
         kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
-      if _.find(global.user.roles, (r) -> r == role.contract_admin)
+      if _.find(global.user.roles, (r) -> r == global.idents("Role").contract_admin)
         kvm['disableDixi'](true)
 
-      kvm["updateUrl"] = ->
-        h = window.location.href.split '/'
-        if h[-3..-1][0] == "#contract"
-          # /#contract/progid/id case
-          u = h[-3..-1].join '/'
-          global.router.navigate "#{h[-3..-2].join '/'}/#{kvm['id']()}",
-            { trigger: false }
-        else
-          # /#contract/progid case
-          global.router.navigate "#{h[-2..-1].join '/'}/#{kvm['id']()}",
-            { trigger: false }
+      # True if a duplicate contract caused user to not save the
+      # contract
+      dupe = false
 
-      # need this timeout, so this event won't be fired on saved
-      # model, after it's first fetch
-      utils.sTout 3000, ->
-        subs = []
-        subs["always_true"] = kvm["dixi"].subscribe ->
-          kvm["dixi"](true)
-        subs["dialog"] = kvm["dixi"].subscribe (v) ->
-          subs["dialog"].dispose()
-          findSame kvm, (r) ->
-            return if _.isEmpty(r)
-            txt = "В течении 30 дней уже были созданы контракты с
-                   таким же vin или номером карты участника, их id:
-                   #{_.pluck(r, 'id').join(', ')}. Всеравно сохранить?"
-            unless confirm(txt)
-              subs["always_true"].dispose()
-              kvm["dixi"](false)
+      # Prevent on-off behaviour of dixi: once true, it's always
+      # true (#1042)
+      kvm["always_true"] = false
+      kvm["dixi"].subscribe (v) ->
+        if v
+          kvm["always_true"] = true
+        if kvm["always_true"] and !dupe
+          kvm["dixi"] true
+        global.searchVM?._meta.q.search()
 
-      return kvm
+      unless kvm["dixi"]()
+        # When creating new contracts, check contract duplicates upon
+        # contract saving, ignoring first dixi update (when default
+        # fields are first fetched)
+        t = kvm["dixi"].subscribe (o) ->
+          t.dispose()
+          check = kvm["dixi"].subscribe (v) ->
+            return if !v
+            findSame kvm, (r) ->
+              if _.isEmpty(r)
+                dupe = false
+                return
+              txt = "За последние 30 дней уже были созданы контракты с " +
+                    "таким же VIN или номером карты участника, их id: " +
+                    "#{_.pluck(r, 'id').join(', ')}. Всё равно сохранить?"
+              if confirm(txt)
+                dupe = false
+                check.dispose()
+              else
+                dupe = true
+                kvm["dixi"](false)
 
-    programSetup = (viewName, args, programModel, programURL) ->
-      $('#date-min').val (new Date).addDays(-30).toString('dd/MM/yyyy')
-      $('#date-max').val (new Date).toString('dd/MM/yyyy')
+    contract.subscribe (c) ->
+      if _.isNumber(c)
+        # Redirect to contract URL (does not cause actual reload due
+        # to a hack in routes module)
+        redirect "contract/#{subprogram}/#{c}"
+        openContract c
 
-      $('#new-contract-btn').on 'click', (e) ->
-        e.preventDefault()
-        location.hash = "#contract/#{args.program}"
-        location.reload(true)
+    logoSetup subprogram, spgms.getLab subprogram
 
-      logoSetup(args)
+    # Open contract from URL
+    openContract contract() if contract()?
 
-      modelName = "contract"
-      kvm = modelSetup modelName, viewName, args, programModel
+    # Open contracts upon table row click
+    $("#tbl").on "click", "tr", ->
+      contract $(this).data("source")
 
-      tableModelURL = "#{programURL}&field=showtable"
+    # Create new contracts
+    $("#new-contract-btn").click () ->
+      contract null
+      openContract contract()
 
-      $.getJSON tableModelURL, (tableModel) ->
-        sk = mkTableSkeleton tableModel, formatTableColumns args.program
-        $table = $("#contracts-table")
-        $table.append sk.headerHtml
-        $table.append "<tbody/>"
+    $.getJSON "/cfg/model/#{contractModel}", (Contract) ->
+      $.getJSON "/cfg/model/#{contractModel}&field=showtable&view=portalSearch", (Search) ->
+        $.getJSON "/cfg/model/#{contractModel}&field=showtable", (Table) ->
+          # Search subscreen
+          searchVM = screenConstructor Contract, Search, Table
+          global.searchVM = searchVM
+          searchVM.subprogram subprogram
 
-        objsToRows = (objs) ->
-          objs.map sk.mkRow
+          # Update URL&info when subprogram changes
+          searchVM.subprogram.subscribe (s) ->
+            # Default if the subprogram is erased
+            if _.isNull s
+              searchVM.subprogram def_spgm
+            redirect "contract/#{searchVM.subprogram()}"
 
-        tableParams =
-          tableName: "contracts"
-          objURL: getContractsURL args.program
-        table = screenman.addScreen(modelName, ->)
-          .addTable(tableParams)
-          .setObjsToRowsConverter(objsToRows)
-          .setDataTableOptions(do dataTableOptions)
-        table
-          .on("click.datatable", "tr", ->
-            if (table.dataTable.fnGetPosition this) != null
-              id = @children[0].innerText
-              k  = modelSetup modelName, viewName,
-                {"id": id, "program": args.program}, programModel
-              k["updateUrl"]()
-              k)
+          # Make subprogram label bold
+          $(".control-label label").first().css("font-weight", "bold")
 
-        $("#filter-btn").on 'click', ->
-          table.setObjs getContractsURL args.program
+          w = $(window).height()
+          gap = 20
 
-        if args.id == null && args.program == '2'
-          kvm.carMake 'vw' if kvm.carMake
-        kvm.dixi.subscribe ->
-          $.getJSON getContractURL(kvm['id']()), (obj) ->
-            table.dataTable.fnAddData sk.mkRow obj
+          # Limit maximum height of portal screen containers
+          t = $("#sidebar-content").offset().top
+          $("#sidebar-content").height(w - t - gap)
 
-        screenman.showScreen modelName
-
-    screenSetup = (viewName, args) ->
-      programs = [{id: null, name: 'Выберите программу' }]
-      programDict = new dicts.dicts["ComputedDict"]({ dict: "vinPrograms" })
-      _.each programDict.source, (program) ->
-        programs.push {id: program.value, name: program.label}
-      ko.applyBindings(programs, el("program-select"))
-
-      if args.program
-        $('#program-select').val(args.program)
-        programURL = "/cfg/model/contract?pid=#{args.program}"
-        $.getJSON programURL, (programModel) ->
-          programSetup viewName, args, programModel, programURL
-
-      $('#program-select').change ->
-        if @value
-          location.hash="contract/#{@value}"
-          location.reload true
-
-    template: tpl
-    constructor: screenSetup
+          t = $("#main-content").offset().top
+          $("#main-content").height(w - t - gap)

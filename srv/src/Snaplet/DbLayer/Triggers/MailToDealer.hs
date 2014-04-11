@@ -26,6 +26,9 @@ import Network.Mail.Mime
 
 import Carma.HTTP
 
+import Carma.Model
+import qualified Carma.Model.SubProgram as SubProgram
+
 import AppHandlers.PSA.Base
 
 import Snap.Snaplet (getSnapletUserConfig)
@@ -110,8 +113,8 @@ sendMailToDealer actionId = do
   let svcName = head $ B.split ':' svcId
   when (svcId /= "" && svcName == "towage") $ do
     caseId  <- get actionId "caseId"
-    program <- get caseId   "program"
-    when (program `elem` ["peugeot", "citroen"]) $ do
+    subprogram <- get caseId   "subprogram"
+    when (subprogram `elem` (map identFv [SubProgram.peugeot, SubProgram.citroen])) $ do
       payType <- get svcId "payType"
       when (payType `elem` ["ruamc", "mixed", "refund"]) $ do
         dealerId <- get svcId "towDealer_partnerId"
@@ -171,21 +174,20 @@ tryRepTowageMail caseRef = do
                 case (B.readInt t, B.readInt n) of
                   (Just (_, _), Just (cid, _)) -> do
                       prevRefs <- liftDb $ repTowages cid
-                      program <- get caseRef "program"
-                      case (prevRefs, program) of
+                      subprogram <- get caseRef "subprogram"
+                      let ident | subprogram == identFv SubProgram.citroen =
+                                   Just SubProgram.citroen
+                                | subprogram == identFv SubProgram.peugeot =
+                                    Just SubProgram.peugeot
+                                | otherwise = Nothing
+                      case (prevRefs, ident) of
                         ([], _) -> return ()
-                        (pr, "citroen") ->
-                          sendRepTowageMail caseRef svcRef (last pr) Citroen
-                        (pr, "peugeot") ->
-                          sendRepTowageMail caseRef svcRef (last pr) Peugeot
+                        (pr, Just i) ->
+                          sendRepTowageMail caseRef svcRef (last pr) i
                         _ -> return ()
                   _ -> return ()
             _ -> return ()
       _ -> return ()
-
-
-data PSAProgram = Citroen
-                | Peugeot
 
 
 -- | Send a mail to PSA, reporting on a repeated towage.
@@ -196,9 +198,9 @@ sendRepTowageMail :: MonadTrigger m b =>
                   -- ^ Towage service reference.
                   -> ByteString
                   -- ^ Reference to a previous service for this car.
-                  -> PSAProgram
+                  -> (IdentI SubProgram.SubProgram)
                   -> m b ()
-sendRepTowageMail caseRef towageRef prevRef program = do
+sendRepTowageMail caseRef towageRef prevRef subprogram = do
   cfg      <- liftDb getSnapletUserConfig
 
   mailFrom <- liftIO $ require cfg "reptowage-smtp-from"
@@ -227,11 +229,9 @@ sendRepTowageMail caseRef towageRef prevRef program = do
                  QuotedPrintableText Nothing []
                  (TL.encodeUtf8 $ TL.fromStrict mailText)
 
-      -- Pick recipient and subject line depending on case program
-      (mailTo, subjPrefix) =
-          case program of
-            Citroen -> (citrTo, "FRRM01R")
-            Peugeot -> (peugTo, "RUMC01R")
+      -- Pick recipient and subject line depending on case subprogram
+      (mailTo, subjPrefix) | subprogram == SubProgram.citroen = (citrTo, "FRRM01R")
+                           | subprogram == SubProgram.peugeot = (peugTo, "RUMC01R")
       mailSubj = T.concat [subjPrefix, " ", vin]
 
   l <- liftDb askLog
@@ -245,7 +245,7 @@ sendRepTowageMail caseRef towageRef prevRef program = do
 -- | Send a mail using exim.
 sendEximMail :: Text -> Text -> Text -> Part -> IO ()
 sendEximMail mailFrom mailTo mailSubj mailBody =
-    renderSendMailCustom "/usr/sbin/exim" ["-t", "-r", T.unpack mailFrom] $
+    renderSendMailCustom "/usr/sbin/sendmail" ["-t", "-r", T.unpack mailFrom] $
     (emptyMail $ Address Nothing mailFrom)
     { mailTo = map (Address Nothing . T.strip) $ T.splitOn "," mailTo
     , mailHeaders = [("Subject", mailSubj)]

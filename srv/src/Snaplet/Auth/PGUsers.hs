@@ -20,12 +20,20 @@ Populating user roles and meta from PG:
 > Just u <- with auth currentUser
 > u' <- with db $ replaceMetaRolesFromPG u
 
-User meta instances are currently read using DbLayer, which employ
+Obtain Usermeta id from Snap user:
+
+> Just u <- with auth currentUser
+> Just (i, _) <- with db $ userMetaPG u
+
+Usermeta ids are preferred over Snap user when a reference to a user
+is stored.
+
+User meta instances are currently read using DbLayer, which employs
 Redis backend. This is undesirable since we have to maintain separate
 SQL-based code for group select operations required for 'usersListPG'
 helper. We will get rid of this limitation once all models are ported
 to use Haskell-side descriptions (which may then be used to generate
-corresponding 'FromRow' instances).
+corresponding 'FromRow' instances) (TODO #1462).
 
 -}
 
@@ -144,18 +152,19 @@ userRolesPG user =
 
 ------------------------------------------------------------------------------
 -- | Get meta from the database for a user.
-userMetaPG :: AuthUser -> DbHandler b (Maybe UserMeta)
+userMetaPG :: AuthUser -> DbHandler b (Maybe (Int, UserMeta))
 userMetaPG user =
     case userId user of
       Nothing -> return Nothing
       Just (UserId uid) -> do
         mid' <- query userMidQuery (Only uid)
         case mid' of
-          (((mid :: Int):_):_) -> do
-            -- This will read usermeta instance from Redis. If we
-            -- could only read Postgres rows to commits.
+          ((mid:_):_) -> do
+            -- This will read usermeta instance from Redis.
+            --
+            -- TODO If we could only read Postgres rows to commits.
             res <- DB.read "usermeta" $ pack $ show mid
-            return $ Just $ UserMeta $ toSnapMeta res
+            return $ Just (mid, UserMeta $ toSnapMeta res)
           _     -> return Nothing
 
 
@@ -166,7 +175,7 @@ replaceMetaRolesFromPG user = do
   ur <- userRolesPG user
   umRes <- userMetaPG user
   let um' = case umRes of
-              Just (UserMeta um) -> um
+              Just (_, UserMeta um) -> um
               Nothing -> userMeta user
   return user{userRoles = ur, userMeta = um'}
 

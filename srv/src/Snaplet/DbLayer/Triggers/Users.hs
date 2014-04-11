@@ -12,7 +12,6 @@ module Snaplet.DbLayer.Triggers.Users
 
 where
 
-import Data.Maybe
 import Data.Map as M ((!), delete, insert, lookup)
 import Data.Text.Encoding
 import Data.Time.Calendar.Julian
@@ -44,14 +43,14 @@ createUsermetaTrigger obj =
             let (Just (UserId uid)) = userId newUser
             return $ M.delete "password"
                    $ M.insert "uid" (encodeUtf8 uid) obj
-    (_, _) -> 
+    (_, _) ->
         error "Login and password not set when creating new user"
 
 
 -- | If @login@, @password@ or @isActive@ field is present in a
--- @usermeta@ commit, then change login/password/active status of the
--- corresponding user and strip @password@ from commit. Must be used
--- with @usermeta@ commits only.
+-- @usermeta@ commit, then change login / password / active status of
+-- the corresponding user and strip @password@ from commit. Must be
+-- used with @usermeta@ commits only.
 updateUsermetaTrigger :: ObjectId -> Object -> DbHandler b Object
 updateUsermetaTrigger objId obj = do
   case (M.lookup "login" obj,

@@ -11,6 +11,15 @@
     },
     {
       "meta": {
+        "label": "Дата завершения звонка",
+        "readonly": true
+      },
+      "type": "datetime",
+      "groupName": null,
+      "name": "endDate"
+    },
+    {
+      "meta": {
         "label": "Сотрудник РАМК",
         "required": true,
         "readonly": true
@@ -21,14 +30,27 @@
     },
     {
       "meta": {
-        "dictionaryName": "casePrograms",
-        "dictionaryType": "ComputedDict",
+        "dictionaryName": "Program",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
         "bounded": true,
         "label": "Программа"
       },
       "type": "dictionary",
       "groupName": null,
       "name": "program"
+    },
+    {
+      "meta": {
+        "dictionaryName": "SubProgram",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
+        "dictionaryParent": "program",
+        "bounded": true,
+        "label": "Подпрограмма"
+      },
+      "type": "dictionary",
+      "name": "subprogram"
     },
     {
       "meta": {
@@ -85,7 +107,8 @@
     {
       "meta": {
         "dictionaryName": "CarMakers",
-        "label": "Марка"
+        "label": "Марка",
+        "bounded": true
       },
       "type": "dictionary",
       "groupName": null,
@@ -95,7 +118,8 @@
       "meta": {
         "dictionaryName": "CarModels",
         "dictionaryParent": "carMake",
-        "label": "Модель"
+        "label": "Модель",
+        "bounded": true
       },
       "type": "dictionary",
       "groupName": null,

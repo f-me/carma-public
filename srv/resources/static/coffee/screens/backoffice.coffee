@@ -1,6 +1,5 @@
 define [ "utils"
-       , "lib/ident/role"
-       , "text!tpl/screens/back.html"], (utils, role, tpl) ->
+       , "text!tpl/screens/back.html"], (utils, tpl) ->
   onBackofficeScreen = true
 
   setupBackOffice = ->
@@ -37,18 +36,20 @@ define [ "utils"
         setTimeout worker, cycle_resolution
     worker()
 
+  isOrderAction = (actionName) ->
+    _.contains(
+      [ "orderService"
+      , "orderServiceAnalyst"
+      , "tellMeMore"
+      , "callMeMaybe"],
+      actionName)
+
   # Given /allActions or /littleMoreActions response, try to redirect
-  # to the first order-class action if the user has "bo_order" role.
-  # Otherwise, just show all actions in the table.
+  # to the first order-class action. Otherwise, just show all actions
+  # in the table.
   myActionsHandler = (actions) ->
     if !_.isEmpty actions
-      act = _.find actions, (a) ->
-        _.contains(
-          [ "orderService"
-          , "orderServiceAnalyst"
-          , "tellMeMore"
-          , "callMeMaybe"],
-          a.name)
+      act = _.find actions, (a) -> isOrderAction a.name
       if act?
         openCaseAction act.id, act.caseId.split(':')[1]
       setupBoTable actions

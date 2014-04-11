@@ -46,8 +46,10 @@
     },
     {
       "meta": {
-        "label": "Роль в системе",
-        "dictionaryName": "Roles",
+        "label": "Роли в системе",
+        "dictionaryName": "Role",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
         "bounded": true
       },
       "type": "dictionary-many",
@@ -56,9 +58,22 @@
     },
     {
       "meta": {
-        "label": "Программы",
-        "dictionaryName": "allPrograms",
-        "dictionaryType": "ComputedDict"
+        "label": "Бизнес-роль",
+        "dictionaryName": "BusinessRole",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
+        "bounded": true
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "businessRole"
+    },
+    {
+      "meta": {
+        "label": "Подпрограммы",
+        "dictionaryName": "prefixedSubPrograms",
+        "dictionaryType": "ComputedDict",
+        "bounded": true
       },
       "type": "dictionary-many",
       "groupName": null,
@@ -77,7 +92,10 @@
     {
       "meta": {
         "label": "boPrograms",
-        "dictionaryName": "Programs",
+        "dictionaryName": "Program",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
+        "bounded": true,
         "invisible": true
       },
       "type": "dictionary-many",

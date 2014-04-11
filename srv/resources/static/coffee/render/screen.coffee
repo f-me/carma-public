@@ -24,14 +24,14 @@ define [], ->
   # Render top-level screen template (static)
   #
   # args object is passed further to all view setup functions.
-  renderScreen: (screenName, screenObj, args) ->
+  renderScreen: (screenObj, args) ->
     forgetScreen()
-    screen = global.screens[screenName]
+    screen = screenObj.screen
     global.activeScreen = screen
 
     # Highlight the new item in navbar
     $("li.active").removeClass("active")
-    $el(screenName + "-screen-nav").addClass("active")
+    $el(screen.name + "-screen-nav").addClass("active")
 
     rawPartials = if screenObj.partials
         $('.partial').add($(screenObj.partials).siblings(".partial"))
@@ -48,7 +48,7 @@ define [], ->
     tpl ||= $el(screen.template).html()
 
     unless tpl?
-      throw "Template for screen #{screenName} is not found"
+      throw "Template for screen #{screen.name} is not found"
 
     tpl1 = Mustache.render tpl, wrappers, partials
     global.topElement.html(tpl1)

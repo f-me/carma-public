@@ -1,11 +1,11 @@
 * Prerequisites
   - we aim at GHC 7.6.3 compatibility;
-  
+
   - snap-0.13 is required;
 
   - bootstrap-typeahead is custom (source is a dictionary entry (see
     below), source annotation is eval'd, show on click)
-    
+
   - bootstrap-datepicker is custom (data API, optional autoshow)
 * Field meta
   `meta` bag of every field contains *client-only* annotations.
@@ -14,7 +14,7 @@
 
   - `dictionaryName`: set name of dictionary when field type is
     `dictionary` (see section below)
-  
+
   - `dictionaryParent`: set parent dictionary for dependent dictionary
     (see section below)
 
@@ -24,7 +24,7 @@
     with «warning» outline if its contents do not match regular
     expression. Knockout model will provide `<fieldName>Regexp`
     observable (which is the inverse of check result).
-    
+
   - `mainToo`: when specified in member of group, field is rendered in
     main pane, too (in addition to rendering in view of group)
 
@@ -47,7 +47,7 @@
   - `single-uploader`: when true, if `inline-uploader` widget is used,
     then uploader is shown only when no files have been attached in
     that field yet
-    
+
   - `required`: highlight field with red outline and show it in
     rightmost pane when it's empty
 
@@ -69,5 +69,3 @@
     only.
 
   Non-meta field annotations are described in [[https://github.com/f-me/snaplet-redson/blob/master/README.org][snaplet-redson]] docs.
-  
-
