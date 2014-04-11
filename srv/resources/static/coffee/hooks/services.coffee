@@ -3,6 +3,7 @@ define [ "utils"
        , "screens/partnersSearch"
        ], (u, mu, pSearch) ->
   partnerOptsHook: (model, knockVM) ->
+    return
     knockVM['contractor_partner']?.subscribe (n) ->
       return unless knockVM['view']
       v = global.viewsWare[knockVM['view']].depViews['cost_counted'][0]
