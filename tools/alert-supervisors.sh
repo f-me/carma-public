@@ -80,24 +80,24 @@ UNASSIGNED="
     replace(caseid, 'case:', 'http://carma:8000/#case/'),
     split_part(caseid, ':', 2),
     assignedto,
-    date_trunc('seconds', now() at time zone 'UTC' - ctime),
+    date_trunc('seconds', now() - ctime),
     \"ActionName\".label,
-    duetime at time zone 'UTC',
+    duetime,
     \"City\".label,
-    programtbl.label
+    \"Program\".label
   FROM
     actiontbl
   LEFT JOIN \"ActionName\" ON actiontbl.name = \"ActionName\".value
   INNER JOIN casetbl ON split_part(actiontbl.caseid, ':', 2)::int = casetbl.id
   LEFT JOIN \"City\" ON casetbl.city = \"City\".value
-  LEFT JOIN programtbl ON casetbl.program = programtbl.value
+  LEFT JOIN \"Program\" ON casetbl.program = \"Program\".id
   WHERE
     NOT closed
-    AND ctime > (now() at time zone 'UTC')::date - 7
-    AND now() at time zone 'UTC' > duetime
+    AND ctime > now()::date - 7
+    AND now() > duetime
     AND name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst, tellMeMore}')
     AND assigntime IS NULL
-    AND now() at time zone 'UTC' > ('5 minutes'::interval + ctime)
+    AND now() > ('5 minutes'::interval + ctime)
 "
 
 OUTSTANDING="
@@ -105,24 +105,24 @@ OUTSTANDING="
     replace(caseid, 'case:', 'http://carma:8000/#case/'),
     split_part(caseid, ':', 2),
     assignedto,
-    date_trunc('seconds', now() at time zone 'UTC' - assigntime),
+    date_trunc('seconds', now() - assigntime),
     \"ActionName\".label,
-    duetime at time zone 'UTC',
+    duetime,
     \"City\".label,
-    programtbl.label
+    \"Program\".label
   FROM
     actiontbl
   LEFT JOIN \"ActionName\" ON actiontbl.name = \"ActionName\".value
   INNER JOIN casetbl ON split_part(actiontbl.caseid, ':', 2)::int = casetbl.id
   LEFT JOIN \"City\" ON casetbl.city = \"City\".value
-  LEFT JOIN programtbl ON casetbl.program = programtbl.value
+  LEFT JOIN \"Program\" ON casetbl.program = \"Program\".id
   WHERE
     NOT closed
-    AND ctime > (now() at time zone 'UTC')::date - 7
-    AND now() at time zone 'UTC' > ('10 minutes'::interval + duetime)
+    AND ctime > now()::date - 7
+    AND now() > ('10 minutes'::interval + duetime)
     AND name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst, tellMeMore}')
     AND (assigntime IS NOT NULL AND closetime IS NULL)
-    AND now() at time zone 'UTC' > ('15 minutes'::interval + assigntime)
+    AND now() > ('15 minutes'::interval + assigntime)
 "
 
 UNASSIGNED_RESULT=$(run_query "$UNASSIGNED")
