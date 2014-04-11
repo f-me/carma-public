@@ -100,7 +100,9 @@
     },
     {
       "meta": {
-        "dictionaryName": "CarClasses",
+        "dictionaryName": "CarClass",
+        "dictionaryStringify": true,
+        "dictionaryType": "ModelDict",
         "bounded": true,
         "label": "Класс автомобиля"
       },
