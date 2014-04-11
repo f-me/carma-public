@@ -1,4 +1,3 @@
-
 {-# LANGUAGE QuasiQuotes #-}
 
 module Snaplet.DbLayer.Triggers.MailToGenser
@@ -56,12 +55,13 @@ q = [sql|
               then t.payment_paidByClient::numeric
               else 0 end)
             as svc_cost,
-          (case c.car_legalForm
-              when 'corporation' then true
+          (case coalesce(cntr.legalForm, 1)
+              when 2 then true
               else false end)
             as isOrganisation
 
         from towagetbl t, partnertbl p, casetbl c
+          left join "Contract" cntr on (cntr.id = c.contract)
           left join "Diagnosis0" diag on (diag.value = c.comment)
           left join "CarMake" mk on (mk.value = c.car_make)
           left join "CarModel" mdl on (mdl.value = c.car_model)
@@ -84,4 +84,3 @@ sendMailToGenser svcId = do
   svcStatus <- get svcId "status"
   res <- liftDb $ PG.query q [svcStatus, svcId]
   liftDb $ log Trace (T.pack $ "sendMailToGenser(" ++ show svcId ++ ":" ++ show (res::[[Int]]) ++ ")")
-
