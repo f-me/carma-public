@@ -7,6 +7,7 @@ import Control.Applicative
 import Data.Text (Text)
 import Data.Aeson as Aeson
 import qualified Data.Map as Map
+import Data.Monoid ((<>))
 
 import Data.Model as Model
 import Data.Model.View as View
@@ -68,11 +69,11 @@ instance Model Case where
       where
         setMainOnly mv = mv
           {mv_fields =
-             [fv{fv_meta = Map.insert "mainOnly" (Aeson.Bool True) $ fv_meta fv}
-             |fv <- mv_fields mv
-             ,not $ fv_name fv `elem`
-               ["caseAddress_map", "caseAddress_comment", "caseAddress_coords"]
-             ]
+            [if fv_name fv `elem` (map ("caseAddress_" <>) ["map", "comment", "coords"])
+              then fv
+              else fv{fv_meta = Map.insert "mainOnly" (Aeson.Bool True) $ fv_meta fv}
+            |fv <- mv_fields mv
+            ]
           }
 
 caseDicts :: [(Text, FieldView -> FieldView) :@ Case]
