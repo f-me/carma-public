@@ -7,11 +7,17 @@ define [ "utils"
 
   utils.build_global_fn 'makeCase', ['screens/newCase']
   utils.build_global_fn 'reloadScreen', ['utils']
+  storeKey = "call"
 
   setupCallForm = (viewName, args) ->
+    # if user have unfinished call redirect him to close it
+    unfinished = localStorage["#{storeKey}.id"]
+    if unfinished and args.id isnt unfinished
+        return Finch.navigate "call/#{unfinished}"
+
     knockVM = main.modelSetup("call") viewName, args,
                        permEl     : "case-permissions"
-                       slotsee    : ["call-number"]
+                       slotsee    : ["call-number", "right"]
                        focusClass : "focusable"
                        groupsForest : "center"
     $('input[name="callDate"]').parents('.control-group').hide()
@@ -26,7 +32,7 @@ define [ "utils"
         window.location.hash = "case/" + id
     )
 
-    isProgramDefined = -> 
+    isProgramDefined = ->
       p = knockVM.program()
       p && p != ''
     $('#new-case').prop 'disabled', not isProgramDefined()
@@ -51,10 +57,14 @@ define [ "utils"
     dtSearch st
     hotkeys.setup()
     $("#search-partner").on 'click', partnerSearchClick
+    $("#make-new-call").on 'click', -> makeCallClick viewName
+    $("#end-call").on 'click', -> endCallClick viewName
+    setModalVisible not args.id?
 
   fillTable = (st, objs) ->
     st.fnClearTable()
     dict = global.dictValueCache
+    progs = utils.newModelDict "Program", true
     rows = for obj in objs
       continue if obj.id.length > 10
       row = [obj.id.split(":")[1] || obj.id
@@ -63,7 +73,7 @@ define [ "utils"
             ,obj.contact_phone1 || ''
             ,(obj.car_plateNum || "").toUpperCase()
             ,(obj.car_vin || "").toUpperCase()
-            ,dict.Programs[obj.program] || obj.program || ''
+            ,progs.getLab(obj.program) || obj.program || ''
             ,dict.Wazzup[obj.comment] || obj.comment || ''
             ]
     st.fnAddData(rows)
@@ -88,6 +98,46 @@ define [ "utils"
 
     localStorage[pSearch.storeKey] = JSON.stringify kvm._meta.q.toRawObj()
     pSearch.open('call')
+
+
+  makeCallClick = (viewName) ->
+    cb = ->
+      hideModal()
+      kvm = global.viewsWare[viewName].knockVM
+      localStorage["#{storeKey}.id"] = kvm.id()
+    saveInstance viewName, cb, true
+
+
+  endCallClick = (viewName) ->
+    kvm = global.viewsWare[viewName].knockVM
+    kvm.endDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
+
+    localStorage.removeItem "#{storeKey}.id"
+
+    saveInstance viewName, ->
+      reloadScreen()
+
+  setModalVisible = (visible) ->
+    if visible then showModal() else hideModal()
+
+  showModal = ->
+    $("#new-call-modal")
+      .removeClass("out")
+      .addClass("in")
+    $("#left").hide()
+    $("#center").hide()
+    $("#right").hide()
+    $("#bottom").hide()
+
+  hideModal = ->
+    $("#left").show()
+    $("#center").show()
+    $("#right").show()
+    $("#bottom").show()
+    $("#new-call-modal")
+      .removeClass("in")
+      .addClass("out")
+
 
   { constructor: setupCallForm
   , template: tpl

@@ -3,10 +3,15 @@ define [ 'utils'
        , 'text!tpl/screens/newCase.html'
        , 'model/utils'
        , 'model/main'
+       , "components/contract"
        ],
-  (utils, hotkeys, tpl, mu, main) ->
+  (utils, hotkeys, tpl, mu, main, Contract) ->
 
     setupCaseMain = (viewName, args) ->
+      kaze = {}
+      if args.id
+        $.bgetJSON "/_/case/#{args.id}", (rsp) -> kaze = rsp
+
       kvm = main.modelSetup('case') viewName, args,
                          permEl       : 'case-permissions'
                          groupsForest : "center"
@@ -14,8 +19,7 @@ define [ 'utils'
                          slotsee      : ["case-number"]
                          focusClass   : 'focusable'
                          screenName   : 'newCase'
-                         modelArg     : "newCase:#{args.program}"
-                         hooks        : ['*']
+                         modelArg     : "ctr:new:#{kaze.program}"
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
       $("#empty-fields-placeholder").html(
@@ -31,9 +35,10 @@ define [ 'utils'
             }))
 
       hotkeys.setup()
+      Contract.setup "contract", kvm
 
       $('#go-back-to-call').on 'click', ->
-        global.router.navigate "call", {trigger: true}
+        Finch.navigate "call"
 
       $('#go-back-and-transfer-to-bo').on 'click', ->
         kvm = global.viewsWare["case-form"].knockVM
@@ -42,11 +47,11 @@ define [ 'utils'
         # service.status will run in parallel and try to update case.actions.
         for svc in kvm.servicesReference()
           svc.status 'backoffice'
-        global.router.navigate "call", {trigger: true}
+        Finch.navigate "call"
 
       $('#go-to-full-case').on 'click', ->
         kvm = global.viewsWare["case-form"].knockVM
-        global.router.navigate "case/#{kvm.id()}", {trigger: true}
+        Finch.navigate "case/#{kvm.id()}"
 
       $("#case-comments-b").on 'click', ->
         i = $("#case-comments-i")
@@ -94,6 +99,7 @@ define [ 'utils'
         contact_ownerPhone4:  v['callerName_ownerPhone4']()
         contact_ownerEmail:   v['callerName_ownerEmail']()
         program:              v['program']()
+        subprogram:           v['subprogram']()
         city:                 v['city']()
         car_make:             v['carMake']()
         car_model:            v['carModel']()
@@ -101,16 +107,14 @@ define [ 'utils'
         caseAddress_address:  v['address']()
         comment:              v['wazzup']()
         callTaker:            global.user.meta.realName
-      main.buildNewModel 'case', args, {},
-        (m, k) -> global.router.navigate(
-          "newCase/#{k.program()}/#{k.id()}",
-          {trigger: true})
+      main.buildNewModel 'case', args, {modelArg: "ctr:full:#{v.program()}"},
+        (m, k) -> Finch.navigate "newCase/#{k.id()}"
 
     makeCase = _.throttle makeCaseAux, 2000, {trailing: false}
 
     addNewService = (name) ->
       kvm = global.viewsWare["case-form"].knockVM
-      modelArg = "newCase:#{kvm.program()}"
+      modelArg = "ctr:new:#{kvm.program()}"
       mu.addReference kvm,
         'services',
         {modelName : name, options: {modelArg: modelArg, hooks: ['*']}},

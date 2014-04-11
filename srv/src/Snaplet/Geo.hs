@@ -4,14 +4,13 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TypeOperators #-}
 
 {-|
 
-Geoservices snaplet.
+Geoservices snaplet (Nominatim forward/reverse geocoding).
 
 All coordinates read by various handlers from request parameters are
-in WSG84 in @<longitude>,<latitude>@ format, as @33.77,52.128@.
+in WSG84 in @longitude,latitude@ format, as @33.77,52.128@.
 
 -}
 
@@ -38,7 +37,6 @@ import Data.Maybe as Maybe
 
 import Data.Configurator
 import Database.PostgreSQL.Simple.SqlQQ
-import Database.PostgreSQL.Simple.ToField (ToField(..))
 import Data.Text.Encoding
 
 import Network.HTTP as H (simpleHTTP, getRequest, getResponseBody)
@@ -47,6 +45,8 @@ import Snap.Core
 import Snap.Extras.JSON
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
+
+import Util
 
 
 data Geo = Geo
@@ -64,20 +64,6 @@ makeLenses ''Geo
 
 instance HasPostgres (Handler b Geo) where
     getPostgresState = with postgres $ get
-
-
--- | Works almost like '(:.)' for 'ToField' instances. Start with `()`
--- and append as many fields as needed:
---
--- > () :* f1 :* f2 :* f3
---
--- Initial `()` saves the type hassle.
-data a :* b = a :* b deriving (Eq, Ord, Show, Read)
-
-infixl 3 :*
-
-instance (ToRow a, ToField b) => ToRow (a :* b) where
-    toRow (a :* b) = toRow $ a :. (Only b)
 
 
 routes :: [(ByteString, Handler b Geo ())]
@@ -213,7 +199,7 @@ withinPartners = do
 -- meters as double:
 --
 -- > /distance/37.144775245113,55.542910552955/38.140411231441,56.006347982652/
--- 80825.169705850
+-- > 80825.169705850
 distance :: Handler b Geo ()
 distance = twoPointHandler distanceQuery (head . head :: [[Double]] -> Double)
 

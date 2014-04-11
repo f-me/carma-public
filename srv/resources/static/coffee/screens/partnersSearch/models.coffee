@@ -169,7 +169,6 @@ define [], ->
           dictionaryName: "Services",
           label: "Услуга"
         type: "dictionary",
-        groupName: null,
         name: "servicename"
       },
       {

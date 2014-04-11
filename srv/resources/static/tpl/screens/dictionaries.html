@@ -9,13 +9,28 @@
             <option data-bind="value: id, text: name" />
           </select>
       </div>
+      <div id="dict-parent" data-bind="if: kvm">
+        <span class="lead" data-bind="text: kvm._meta.model.title"></span>
+        <div data-bind="foreach: kvm._meta.model.fields">
+          <div data-bind="renderField: $data"></div>
+        </div>
+        <p>
+          <a class="btn"
+             type="button"
+             data-bind="click: function() { kvm.find(); }">
+            <i class="icon-search"></i>
+            Найти
+          </a>
+        </p>
+      </div>
     </div>
-    <table id="dict-table" class="table table-striped table-bordered">
+    <table id="dict-table"
+           class="table table-striped table-bordered table-break-word">
     </table>
   </div>
 
   <div class="span7">
-    <div class="page-header">
+    <div id="button-panel" class="page-header" style="display: none;">
       <button id="add-new-item-btn" class="btn btn-action" type="button">
         <i class="icon icon-plus"></i>&nbsp;Добавить
       </button>

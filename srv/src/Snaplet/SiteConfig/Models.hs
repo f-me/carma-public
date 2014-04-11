@@ -9,6 +9,8 @@ import Control.Monad (filterM)
 import Data.Aeson as Aeson
 import Data.Maybe (fromMaybe)
 
+import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 
@@ -41,6 +43,7 @@ data Field = Field { name           :: FieldName
                    , groupName      :: Maybe B.ByteString
                    , meta           :: Maybe FieldMeta
                    , canWrite       :: Bool
+                   , sortingOrder   :: Maybe Int
                    } deriving (Show)
 
 -- | A list of properties to be applied to named fields.
@@ -113,7 +116,8 @@ instance FromJSON Field where
       v .:? "type" .!= defaultFieldType <*>
       v .:? "groupName"                 <*>
       v .:? "meta"                      <*>
-      pure True
+      pure True                         <*>
+      pure Nothing
     parseJSON _          = error "Could not parse field properties"
 
 instance ToJSON Field where
@@ -210,8 +214,8 @@ loadModel modelFile groups
 
 
 -- | Build metamodel name from its file path.
-pathToModelName :: FilePath -> ModelName
-pathToModelName filepath = B.pack $ takeBaseName filepath
+pathToModelName :: FilePath -> Text
+pathToModelName filepath = T.pack $ takeBaseName filepath
 
 
 -- | Read all models from directory to a map.
@@ -219,7 +223,7 @@ pathToModelName filepath = B.pack $ takeBaseName filepath
 -- TODO: Perhaps rely on special directory file which explicitly lists
 -- all models.
 loadModels :: FilePath -- ^ Models directory
-           -> IO (Map ModelName Model)
+           -> IO (Map Text Model)
 loadModels cfgDir =
       do
         let directory = cfgDir </> "models"

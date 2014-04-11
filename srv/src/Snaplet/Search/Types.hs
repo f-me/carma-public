@@ -5,24 +5,28 @@
              FlexibleInstances,
              FlexibleContexts,
              OverlappingInstances,
+             Rank2Types,
              UndecidableInstances
  #-}
 
 
 module Snaplet.Search.Types where
 
-import           Control.Applicative ((<$>), (<*>), pure)
-import           Control.Lens (makeLenses)
+import           Control.Applicative ((<$>), (<*>), (<|>), (*>),  pure)
+import           Control.Lens (Lens', makeLenses)
 import           Control.Monad.State
 
+import           Prelude hiding (null)
 import           Data.Maybe
-import           Data.Text
+import           Data.Text as T hiding (map, null, length)
 import           Data.Pool
 import           Data.Aeson
 
 import           GHC.Generics
 
 import           Database.PostgreSQL.Simple as PG
+import           Database.PostgreSQL.Simple.Types
+import           Database.PostgreSQL.Simple.FromRow
 
 import           Snap.Snaplet
 import           Snap.Snaplet.Auth hiding (Role)
@@ -36,13 +40,15 @@ import           Data.Model.Patch (Patch)
 
 import           Carma.Model
 import           Carma.Model.Role
-import           Carma.Model.FieldPermission
+import           Carma.Model.FieldPermission hiding (field)
 
+import           Snaplet.DbLayer.Types (DbLayer)
 
 data Search b = Search
-  {pg      :: Pool Connection
-  ,_postgres :: Snaplet Postgres
-  ,_auth     :: Snaplet (AuthManager b)
+  { pg        :: Pool Connection
+  , _postgres :: Snaplet Postgres
+  , _auth     :: Snaplet (AuthManager b)
+  , db        :: Lens' b (Snaplet (DbLayer b))
   }
 
 makeLenses ''Search
@@ -113,6 +119,13 @@ instance forall m.(Model m) => ToJSON (Patch m :. ()) where
   toJSON (p :. ()) =
     object [(M.modelName (M.modelInfo :: M.ModelInfo m)) .= toJSON p]
 
+instance forall m.(Model m) => ToJSON (Maybe (Patch m) :. ()) where
+  toJSON (Just p :. ()) =
+    object [(M.modelName (M.modelInfo :: M.ModelInfo m)) .= toJSON p]
+  toJSON (Nothing :. ()) =
+    object [(M.modelName (M.modelInfo :: M.ModelInfo m)) .= object []]
+
+
 instance forall m b.(Model m, ToJSON b) => ToJSON (Patch m :. b) where
   toJSON (p :. ps) = merge
     (object [(M.modelName (M.modelInfo :: M.ModelInfo m)) .= toJSON p])
@@ -122,15 +135,57 @@ instance forall m b.(Model m, ToJSON b) => ToJSON (Patch m :. b) where
       merge (Object o1) (Object o2) =
         Object $ HM.fromList $ (HM.toList o1) ++ (HM.toList o2)
 
+instance forall m b.(Model m, ToJSON b) => ToJSON (Maybe (Patch m) :. b) where
+  toJSON (Just p :. ps)  = toJSON (p :. ps)
+  toJSON (Nothing :. ps) = toJSON ps
+
 
 class StripRead p where
   stripRead :: Connection -> [IdentI Role] -> p -> IO p
 
 instance (Model m, Model (M.Parent m)) => StripRead (Patch m) where
   stripRead = stripReadPatch
-instance (Model m, Model (M.Parent m)) => StripRead (Patch m :. ()) where
-  stripRead c rs (p :. ()) = (:.) <$> stripReadPatch c rs p <*> pure ()
-instance (Model m, Model (M.Parent m), StripRead ps)
-         => StripRead (Patch m :. ps) where
+
+instance (Model m, Model (M.Parent m)) => StripRead (Maybe (Patch m)) where
+  stripRead c rs Nothing  = return Nothing
+  stripRead c rs (Just p) = Just <$> stripReadPatch c rs p
+
+instance StripRead a => StripRead (a :. ()) where
+  stripRead c rs (p :. ()) = (:.) <$> stripRead c rs p <*> pure ()
+
+instance (StripRead p, StripRead ps) => StripRead (p :. ps) where
   stripRead c rs (p :. ps) =
-    (:.) <$> stripReadPatch c rs p <*> stripRead c rs ps
+    (:.) <$> stripRead c rs p <*> stripRead c rs ps
+
+class MkSelect t where
+  mkSel :: t -> Text
+
+instance Model m => MkSelect (ModelInfo m) where
+  mkSel _ = T.intercalate ", " $ map (tofldName.fd_name) $ modelFields mInfo
+    where
+      mInfo = modelInfo :: ModelInfo m
+      tofldName f = T.concat ["\"", M.tableName mInfo, "\"", ".", f]
+
+instance Model m => MkSelect (Patch m) where
+  mkSel _ = mkSel (modelInfo :: ModelInfo m)
+
+instance Model m => MkSelect (Maybe (Patch m)) where
+  mkSel _ = mkSel (modelInfo :: ModelInfo m)
+
+instance MkSelect a => MkSelect (a :. ())where
+  mkSel _ = mkSel (undefined :: a)
+
+instance (MkSelect a, MkSelect b) => MkSelect (a :. b) where
+  mkSel _ = T.concat [ mkSel (undefined :: a)
+                     , ", "
+                     , mkSel (undefined :: b)
+                     ]
+
+null :: RowParser Null
+null =  field
+
+instance Model m => FromRow (Maybe (Patch m)) where
+  fromRow =
+    (replicateM_ n null *> pure Nothing) <|> (Just <$> fromRow)
+    where
+      n = length $ modelFields (modelInfo :: ModelInfo m)

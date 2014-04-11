@@ -30,7 +30,7 @@ define [ "utils"
     else
       "search_#{model}_#{fld}"
 
-  open = (prm) -> window.open("/#partnersSearch/#{prm}", "_blank")
+  open = (prm) -> window.open("/#search/partners/#{prm}", "_blank")
 
   # fh is just mapping from field name to field
   fh = {}
@@ -62,8 +62,8 @@ define [ "utils"
     kaseKVM = m.buildKVM global.model('case'),  {fetched: kase}
     srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
     kvm['fromCase'] = true
-    kvm['city'](kaseKVM.city())
-    kvm['make'](kaseKVM.car_make())
+    kvm['city'](if kaseKVM.city() then [kaseKVM.city()] else [])
+    kvm['make'](if kaseKVM.car_make() then [kaseKVM.car_make()] else [])
     kvm['field'] = ctx['field']
 
     pid = parseInt srvKVM["#{ctx['field']}Id"]()?.split(":")[1]
@@ -76,7 +76,7 @@ define [ "utils"
     unless ctx['field'].split('_')[0] == 'contractor'
       kvm['isDealer'](true)
     else
-      kvm['services'](srvName)
+      kvm['services']([srvName])
     kvm['isDealerDisabled'](true)
     kvm['caseInfo'] = """
     <ul class='unstyled'>
@@ -87,11 +87,11 @@ define [ "utils"
       <li> <b>Номер кеса:</b> #{kaseKVM.id() || ''} </li>
       <li> <b>Адрес кейса:</b> #{kaseKVM.caseAddress_address() || ''}</li>
       <li> <b>Название программы: </b> #{kaseKVM.programLocal() || ''} </li>
-      <li> <b> Марка: </b> #{kaseKVM.car_makeLocal() || ''}</li>
-      <li> <b> Модель: </b> #{kaseKVM.car_modelLocal() || ''}</li>
-      <li> <b> Госномер: </b> #{kaseKVM.car_plateNum() || ''}</li>
-      <li> <b> Цвет: </b> #{kaseKVM.car_colorLocal() || ''}</li>
-      <li> <b> VIN:</b> #{kaseKVM.car_vin() || ''}</li>
+      <li> <b> Марка: </b> #{kaseKVM.car_makeLocal?() || ''}</li>
+      <li> <b> Модель: </b> #{kaseKVM.car_modelLocal?() || ''}</li>
+      <li> <b> Госномер: </b> #{kaseKVM.car_plateNum?() || ''}</li>
+      <li> <b> Цвет: </b> #{kaseKVM.car_colorLocal?() || ''}</li>
+      <li> <b> VIN:</b> #{kaseKVM.car_vin?() || ''}</li>
       <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal() || ''}</li>
       <li> <b> Клиент/Доверенное лицо будет сопровождать автомобиль:</b>
       #{if srvKVM.companion?() then '✓' else '' }</li>
@@ -151,8 +151,8 @@ define [ "utils"
         setupCase kvm, ctx
       when "call"
         return unless args?.model and s
-        kvm['city'](ctx.city)
-        kvm['make'](ctx.carMake)
+        kvm['city'](if ctx.city then [ctx.city] else [])
+        kvm['make'](if ctx.carMake then [ctx.carMake] else [])
         kvm['isDealer'](true)
 
         kvm['coords'] ctx.coords
@@ -199,7 +199,7 @@ define [ "utils"
   bindCityPlaces = (kvm) ->
     kvm["city"].subscribe (newCities) ->
       return unless newCities?
-      chunks = _.reject newCities.split(","), _.isEmpty
+      chunks = _.reject newCities, _.isEmpty
       kvm["cityPlacesExpected"] = chunks.length
       kvm["cityPlaces"].removeAll()
       for c in chunks
@@ -300,7 +300,7 @@ define [ "utils"
             ico = map.hlIconName(ico)
 
           p.ico(ico)
-          
+
           coords = new OpenLayers.LonLat p.st_x(), p.st_y()
           # Add blip to map
           mark = new OpenLayers.Marker(

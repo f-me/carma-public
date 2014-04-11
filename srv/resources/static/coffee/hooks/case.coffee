@@ -1,4 +1,4 @@
-define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
+define ["utils", "dictionaries"], (u, d) ->
   fillEventsHistory = (knockVM) -> ->
     t = $("#call-searchtable")
     st = t.dataTable()
@@ -17,6 +17,7 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
     # FIXME: refactor all this, use sync/datamap at least for time
     st.fnClearTable()
     dict = global.dictValueCache
+    progs = u.newModelDict "Program", true
 
     $.getJSON( "/callsByPhone/#{phone}" )
     .done( (calls) ->
@@ -38,7 +39,7 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
         city = dict['DealerCities'][obj.city]
         comment.push("Город: #{city}") if city
 
-        program = global.dictionaries['Programs'][obj.program]
+        program = progs.getLab obj.program
         comment.push("Программа: #{program}") if program
 
         make = dict['CarMakers'][obj.make]
@@ -118,27 +119,27 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
       title:       s._meta.model.title
     knockVM['servicesDescs'] = ko.computed
       read: ->
-        p = knockVM['program']()
-        s = knockVM['servicesReference']()
+        p = parseInt knockVM['program']?()
+        s = knockVM['servicesReference']?()
         return [] unless p?
         _.chain(s).map((x) -> mkServicesDescs(p,x)).compact().value()
     knockVM['programDesc'] = ko.computed
       read: ->
-        u.getProgramDesc knockVM['program']()
+        u.getProgramDesc (parseInt knockVM['program']())
 
   eventsHistoryKbHook: (model, knockVM) ->
     fillEventsHistory(knockVM)()
     knockVM['fillEventHistory'] = fillEventsHistory(knockVM)
-    knockVM['contact_phone1'].subscribe fillEventsHistory(knockVM)
+    knockVM['contact_phone1']?.subscribe fillEventsHistory(knockVM)
     knockVM['actions']?.subscribe fillEventsHistory(knockVM)
-    knockVM['comments'].subscribe fillEventsHistory(knockVM)
+    knockVM['comments']?.subscribe fillEventsHistory(knockVM)
 
   # Display daily service stats in central pane when `city` field of
   # case is changed.
   cityStatsHook: (model, knockVM) ->
     cityField = "city"
     u.hideComplex
-    knockVM[cityField].subscribe (new_city) ->
+    knockVM[cityField]?.subscribe (new_city) ->
       $.getJSON "/stats/towAvgTime/" + new_city,
         (r) -> $("#city-towage-average-time").text(u.formatSecToMin(r[0]))
 
@@ -146,27 +147,15 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
     knockVM['region'] = ko.computed
       read: ->
         res = ''
-        city = knockVM.city()
+        city = knockVM.city?()
         if city
           $.bgetJSON "/regionByCity/#{city}",
             (r) -> res = r.join ','
         res
 
-  vinExpiredHook: (model, knockVM) ->
-    knockVM['car_vinExpired'] = ko.computed ->
-      expired = false
-      if knockVM['car_warrantyStart']() and knockVM['car_warrantyEnd']()
-        startDate = Date.parseExact knockVM['car_warrantyStart'](), "dd.MM.yyyy"
-        endDate = Date.parseExact knockVM['car_warrantyEnd'](), "dd.MM.yyyy"
-        callDate = Date.parseExact knockVM['callDate'](), "dd.MM.yyyy HH:mm"
-        if callDate < startDate or callDate > endDate
-          knockVM['vinChecked'] 'vinExpired'
-          expired = true
-      expired
-
   vwfakeHook: (model, knockVM) ->
     knockVM['callDateVisible'] = ko.computed ->
-      not _.contains global.user.roles, role.vwfake
+      not _.contains global.user.roles, global.idents("Role").vwfake
 
   carModelInfoHook: (model, knockVM) ->
     dict = new d.dicts.ModelDict
@@ -175,4 +164,4 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
         dictionaryKey: 'value'
         dictionaryLabel: 'info'
     knockVM['car_modelInfo'] = ko.computed ->
-      dict.getLab knockVM['car_model']()
+      dict.getLab knockVM['car_model']?()

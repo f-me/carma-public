@@ -11,27 +11,28 @@
     </div>
     <div id="call-form"/>
   </div>
-  <div id="center" class="nice-scrollbar call-pane" />
+  <div id="center" class="nice-scrollbar call-pane">
+  </div>
   <div id="right" class="pane">
-    <div class="control-group">
-      <button id="reload-screen"
-              class="btn btn-success"
-              type="submit"
-              onClick="reloadScreen()" >
-        Новый звонок
-      </button>
-    </div>
     <div class="control-group">
       <button id="search-partner"
               class="btn btn-success">
         <i class="icon icon-white icon-search"/> Дилеры и партнеры
       </button>
     </div>
-    <button id="new-case" class="btn btn-success"
-            type="submit"
-            onClick="makeCase()" >
-      Новый кейс
-    </button>
+    <div class="control-group">
+      <button id="new-case" class="btn btn-success"
+              type="submit"
+              onClick="makeCase()" >
+        Новый кейс
+      </button>
+    </div>
+    <div class="control-group"
+          data-bind="visible: id() && !endDate()">
+      <button id="end-call" class="btn btn-danger">
+        Закончить звонок
+      </button>
+    </div>
   </div>
   <div id="bottom">
     <div class="control-group">
@@ -61,4 +62,16 @@
       <tbody/>
     </table>
   </div>
-
+  <div id="new-call-modal" class="modal fade modal-dont-block">
+    <div class="modal-body">
+      <form class="form-inline text-center">
+        <span class="lead">
+          Начать новый звонок
+        </span>
+        <img id="make-new-call"
+          src="/s/img/phone_pickup.png"
+          class="img-circle"
+          style="width: 256px; height: 256px; cursor: pointer;">
+      </form>
+    </div>
+  </div>

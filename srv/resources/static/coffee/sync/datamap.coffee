@@ -12,6 +12,26 @@ define [], ->
       console.error("datamap: can't parse date '#{v}' with '#{fmt}'")
       ""
 
+  # How a Day is formatted on client
+  guiDayFormat = "dd.MM.yyyy"
+
+  # How a UTCTime is formatted on client
+  guiUTCTimeFormat = "dd.MM.yyyy HH:mm"
+
+  # Server format for Date (ISO 8601)
+  serverDayFormat = "yyyy-MM-dd"
+
+  # Parse a formatted string to ISO 8601 Date
+  parseISO = (fmt) -> (v) ->
+    date = Date.parseExact v, fmt
+    if date
+      date
+    else
+      if v != ""
+        console.error("datamap: could not parse date '#{v}' with '#{fmt}'")
+        null
+      else
+        ""
   s2cDate = (fmt) -> (v) ->
     return null if _.isEmpty v
     d = undefined
@@ -20,40 +40,65 @@ define [], ->
     d = Date.parseExact(v, "yyyy-MM-dd HH:mm:ssz")
     return d.toString(fmt) if not _.isNull(d) && isFinite d
 
+  # Convert ISO 8601 date/time object to a formatted string
+  s2cISO = (fmt) -> (v) ->
+    return null if _.isEmpty v
+    new Date(v).toString fmt
+
   s2cJson = (v) ->
     return null if _.isEmpty v
     JSON.parse(v)
 
-  c2sDictSet = (v) ->
-    vals = v.split(',')
+  c2sDay = (v) -> ((parseISO guiDayFormat) v)?.toString serverDayFormat
+
+  c2sDictSet = (vals) ->
     ids = _.map vals, (v) -> parseInt v
     # check type of keys, we have in dict, it may be Text or Int
-    if _.all ids, _.isNaN
-      vals
+    # TODO: move uniq check to hooks when typed dictionaries appears
+    res = if _.any ids, _.isNaN
+            _.uniq vals
+          else
+            _.uniq ids
+    # Convert empty arrays to null (otherwise the server gets confused
+    # about types)
+    if _.isEmpty res
+      null
     else
-      ids
+      res
 
   c2sTypes =
     'dictionary-set': c2sDictSet
+    'dictionary-many': (v) -> (c2sDictSet(v)?.join ',') || ''
     checkbox  : (v) -> if v then "1" else "0"
     Bool      : (v) -> v
+    Integer   : (v) -> parseInt v
+    Double    : (v) -> parseFloat v.replace ',', '.'
+    Day       : c2sDay
+    UTCTime   : (v) -> ((parseISO guiUTCTimeFormat) v)?.toISOString()
+    IdentList : (v) -> v
     dictionary: (v) -> if _.isNull v then '' else v
     date      : c2sDate("dd.MM.yyyy")
-    datetime  : c2sDate("dd.MM.yyyy HH:mm")
+    datetime  : c2sDate("dd.MM.yyyy HH:mm:ss")
     json      : JSON.stringify
     ident     : (v) -> parseInt v
+    'interval-date' : (v) -> v.map c2sDay
     'interval-datetime': (v) ->
       v.map (t) -> Date.parseExact(t, "dd.MM.yyyy")?.toString "yyyy-MM-ddTHH:mm:ss.0Z"
 
   s2cTypes =
-    'dictionary-set': (v) -> v.join(',')
+    'dictionary-set': (v) -> v
+    'dictionary-many': (v) -> if _.isEmpty v then [] else v.split(',')
     checkbox  : (v) -> v == "1"
     Bool      : (v) -> v
+    Integer   : (v) -> v
+    Double    : (v) -> v
+    IdentList : (v) -> v
+    Day       : s2cISO guiDayFormat
+    UTCTime   : s2cISO guiUTCTimeFormat
     dictionary: (v) -> v
     date      : s2cDate("dd.MM.yyyy")
-    datetime  : s2cDate("dd.MM.yyyy HH:mm")
+    datetime  : s2cDate("dd.MM.yyyy HH:mm:ss")
     json      : s2cJson
-    'interval-date': (v) -> v
 
   defaultc2s = (v) -> if _.isNull(v) then "" else String(v)
   c2s = (val, type) -> (c2sTypes[type] || defaultc2s)(val)

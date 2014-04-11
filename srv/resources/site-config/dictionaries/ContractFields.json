@@ -1,99 +1,103 @@
 {
    "entries" : [
-     {
-         "value" : "isActive",
-         "label" : "Активен"
-     },
-     {
-         "value" : "program",
-         "label" : "Программа"
+      {
+         "value" : "ctime",
+         "label" : "Время создания контракта"
       },
       {
-         "value" : "carVin",
+         "value" : "isActive",
+         "label" : "Активен"
+      },
+      {
+         "value" : "name",
+         "label" : "ФИО клиента"
+      },
+      {
+         "value" : "email",
+         "label" : "E-mail клиента"
+      },
+      {
+         "value" : "vin",
          "label" : "VIN"
       },
       {
-         "value" : "carSeller",
-         "label" : "Дилер, продавший автомобиль"
+         "value" : "cardNumber",
+         "label" : "Номер карты"
       },
       {
-         "value" : "carMake",
-         "label" : "Марка"
+         "value" : "codeWord",
+         "label" : "Кодовое слово"
       },
       {
-         "value" : "carModel",
-         "label" : "Модель"
+         "value" : "phone",
+         "label" : "Номер телефона"
       },
       {
-         "value" : "carPlateNum",
+         "value" : "plateNum",
          "label" : "Госномер"
       },
       {
-         "value" : "carMakeYear",
-         "label" : "Год производства автомобиля"
-      },
-      {
-         "value" : "carColor",
-         "label" : "Цвет"
-      },
-      {
-         "value" : "carBuyDate",
-         "label" : "Дата покупки"
-      },
-      {
-         "value" : "carCheckupDate",
-         "label" : "Дата последнего ТО"
-      },
-      {
-         "value" : "carDealerTO",
-         "label" : "Дилер у которого проходило последнее ТО"
-      },
-      {
-         "value" : "carCheckupMilage",
-         "label" : "Пробег на последнем ТО"
-      },
-      {
-         "value" : "carTransmission",
-         "label" : "Коробка передач"
-      },
-      {
-         "value" : "carEngine",
-         "label" : "Тип двигателя"
-      },
-      {
-         "value" : "carCheckPeriod",
-         "label" : "Межсервисный интервал"
-      },
-      {
-         "value" : "contractType",
-         "label" : "Тип контракта"
-      },
-      {
-         "value" : "cardNumber",
-         "label" : "Номер карты участника"
-      },
-      {
-         "value" : "contractValidFromDate",
+         "value" : "validSince",
          "label" : "Дата регистрации в программе"
       },
       {
-         "value" : "contractValidUntilDate",
-         "label" : "Программа действует до (дата)"
+         "value" : "validUntil",
+         "label" : "Программа действует до (Дата)"
       },
       {
-         "value" : "milageTO",
+         "value" : "startMileage",
          "label" : "Пробег при регистрации в программе"
       },
       {
-         "value" : "contractValidUntilMilage",
-         "label" : "Программа действует до (пробег)"
+         "value" : "make",
+         "label" : "Марка"
       },
       {
-         "value" : "cardOwner",
-         "label" : "ФИО владельца карты"
+         "value" : "model",
+         "label" : "Модель"
       },
       {
-         "value" : "techType",
+         "value" : "makeYear",
+         "label" : "Год производства автомобиля"
+      },
+      {
+         "value" : "carClass",
+         "label" : "Класс автомобиля"
+      },
+      {
+         "value" : "color",
+         "label" : "Цвет"
+      },
+      {
+         "value" : "transmission",
+         "label" : "Коробка передач"
+      },
+      {
+         "value" : "engineVolume",
+         "label" : "Объём двигателя"
+      },
+      {
+         "value" : "engineType",
+         "label" : "Тип двигателя"
+      },
+      {
+         "value" : "buyDate",
+         "label" : "Дата покупки"
+      },
+      {
+         "value" : "seller",
+         "label" : "Дилер, продавший автомобиль"
+      },
+      {
+         "value" : "lastCheckDealer",
+         "label" : "Дилер, у которого проходило последнее ТО"
+      },
+      {
+         "value" : "checkPeriod",
+         "label" : "Межсервисный интервал"
+      },
+      {
+         "value" : "checkType",
          "label" : "Вид ТО"
       },
       {
@@ -101,20 +105,20 @@
          "label" : "Номер заказ-наряда"
       },
       {
-         "value" : "manager",
+         "value" : "managerName",
          "label" : "ФИО менеджера"
       },
       {
-         "value" : "warrantyStart",
-         "label" : "Дата начала действия программы"
+         "value" : "comment",
+         "label" : "Комментарий"
       },
       {
-          "value" : "comment",
-          "label" : "Комментарий"
+          "value" : "legalForm",
+          "label" : "Физическое/юридическое лицо"
       },
       {
-          "value" : "owner",
-          "label" : "Дилер"
+          "value" : "committer",
+          "label" : "Пользователь, внёсший данные"
       }
    ]
 }

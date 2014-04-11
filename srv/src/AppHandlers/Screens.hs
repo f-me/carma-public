@@ -25,7 +25,6 @@ import           Utils.HttpErrors
 
 
 type Permissions = [ByteString]
-type Program = (ByteString, ByteString)
 type Screens = [Screen]
 
 data Screen = Sms { name        :: ByteString
@@ -75,46 +74,37 @@ instance ToJSON Screen where
 chkPerms :: Permissions -> Permissions -> Bool
 chkPerms perms roles = not $ null $ intersect perms roles
 
-processScreens :: Screens -> Permissions -> [Program] -> Screens
-processScreens ss rls prms = reverse $ foldl prcScr [] ss
+processScreens :: Screens -> Permissions -> Screens
+processScreens ss rls = reverse $ foldl prcScr [] ss
   where
     prcScr acc d
       | chkPerms (permissions d) rls == True = process acc d
       | otherwise                            = acc
-    process acc d@(Dropdown "contracts" _ _ _) =
-      d{ screens = map mkContractLi prms } : acc
     process acc d@(Dropdown _ _ _ scrs) =
-      d{ screens = processScreens scrs rls prms } : acc
+      d{ screens = processScreens scrs rls } : acc
     process acc d = d : acc
-    mkContractLi (pid, label) = Li (B8.concat ["contract/", pid]) label []
 
 readScreens :: IO (Either String Screens)
 readScreens = eitherDecode <$> L8.readFile "resources/site-config/screens.json"
 
--- | Select user roles and programs. User roles are converted to
+-- | Select user roles. User roles are converted to
 -- internal values since screens.json references roles by values and
 -- currently we have no way to extract ident by string on Haskell side
 -- (FIXME)
 q :: Query
 q = [sql|
 WITH u AS
-(SELECT unnest(roles) AS id, programs FROM usermetatbl WHERE uid = ?)
-SELECT DISTINCT s.roles, u.programs FROM
+(SELECT unnest(roles) AS id FROM usermetatbl WHERE uid = ?)
+SELECT DISTINCT s.roles FROM
 (SELECT array_agg(value) AS roles FROM u, "Role" r
  WHERE r.id=u.id::integer) s, u;
 |]
-
-qProgram :: Query
-qProgram = [sql| SELECT id::text, label FROM programtbl WHERE id::text in ? |]
 
 getScreens :: AppHandler ()
 getScreens = do
   s  <- liftIO readScreens
   (Just (UserId uid)) <- (userId . fromJust) <$> withAuth currentUser
-  [(roles, progIds)] <- with db $ query q (Only uid)
-        :: Handler App App [([ByteString], Maybe [ByteString])]
-  programs <- with db $ query qProgram (Only (In $ fromMaybe [] progIds))
-        :: Handler App App [Program]
+  [Only roles] <- with db $ query q (Only uid)
   case s of
-    Right s' -> writeJSON $ processScreens s' roles programs
+    Right s' -> writeJSON $ processScreens s' roles
     Left err -> finishWithError 403 err

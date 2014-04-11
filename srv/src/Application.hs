@@ -2,34 +2,46 @@
 
 module Application where
 
-import Data.Set (Set)
 import Control.Concurrent.STM
 import Control.Lens
 
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
 
+import Data.Set (Set)
+import Data.Text (Text)
+
 import Snap
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.Session
+import Snap.Snaplet.SimpleLog
 
-------------------------------------------------------------------------------
 import Snaplet.Auth.Class
 import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
 import Snaplet.DbLayer.Types (DbLayer)
-import Snap.Snaplet.Vin
+import Snaplet.TaskManager
 import Snaplet.FileUpload hiding (db)
 import Snaplet.Geo
-import Snap.Snaplet.SimpleLog
 import Snaplet.Search
 
 import RuntimeFlag
 
-------------------------------------------------------------------------------
--- | Application snaplet state type: Redson, Heist.
+
+-- | Global application options.
+data AppOptions = AppOptions
+    { localName       :: Maybe Text
+      -- ^ Name of CaRMa installation (read from @local-name@ config
+      -- option)
+    , searchMinLength :: Int
+      -- ^ Minimal query length for database-heavy searches
+      -- (@search-min-length@).
+    }
+
+
+-- | CaRMa top-level application state.
 data App = App
     { _heist      :: Snaplet (Heist App)
     , _session    :: Snaplet SessionManager
@@ -38,13 +50,14 @@ data App = App
     , _db         :: Snaplet (DbLayer App)
     , pg_search   :: Pool Pg.Connection
     , pg_actass   :: Pool Pg.Connection
-    , _vin        :: Snaplet Vin
+    , _taskMgr    :: Snaplet (TaskManager App)
     , _fileUpload :: Snaplet (FileUpload App)
     , _geo        :: Snaplet Geo
     , feLog       :: Log
     , runtimeFlags:: TVar (Set RuntimeFlag)
     , _authDb     :: Snaplet Postgres
     , _search     :: Snaplet (Search App)
+    , options     :: AppOptions
     }
 
 
@@ -66,9 +79,3 @@ instance MonadLog (Handler App App) where
 
 instance HasPostgres (Handler b App) where
   getPostgresState = with authDb get
-
-
-withPG
-  :: (App -> Pool Pg.Connection) -> (Pg.Connection -> IO res)
-  -> AppHandler res
-withPG pool f = gets pool >>= liftIO .(`withResource` f)

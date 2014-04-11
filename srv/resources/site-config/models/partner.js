@@ -42,6 +42,13 @@
     },
     {
       "meta": {
+        "label": "Синонимы"
+      },
+      "type": "dictionary-many",
+      "name": "synonyms"
+    },
+    {
+      "meta": {
         "label": "Код"
       },
       "type": null,
