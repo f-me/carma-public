@@ -42,7 +42,7 @@ insert into "ConstructorFieldOption"
 ,(1,1,0,20,'contact_ownerEmail','Email','',false)
 ,(1,1,0,21,'program','Программа','program',true)
 ,(1,1,0,22,'subprogram','Подпрограмма','',false)
-,(1,1,0,23,'contractIdentifier','Идентификатор контракта','',false)
+,(1,1,0,23,'contractIdentifier','Идентификатор контракта','',true)
 ,(1,1,0,24,'contract','Контракт','',false)
 ,(1,1,0,25,'car_vin','Автомобиль (VIN)','',true)
 ,(1,1,0,26,'car_make','Марка','',true)
