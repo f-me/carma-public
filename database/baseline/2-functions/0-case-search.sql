@@ -30,7 +30,6 @@ $$
         select * from casetbl where
           lower(      to_char(callDate + '4:00','DD.MM.YYYY')
             || ' ' || coalesce(comment, '')
-            || ' ' || coalesce(betaComment, '')
             || ' ' || coalesce(city, '')
             || ' ' || coalesce(dealerCause, '')
             || ' ' || coalesce(contact_name, '')
@@ -40,12 +39,8 @@ $$
             || ' ' || coalesce(car_model, '')
             || ' ' || coalesce(car_seller, '')
             || ' ' || coalesce(car_dealerTO, '')
-            || ' ' || coalesce(cardNumber_cardNumber, '')
-            || ' ' || coalesce(cardNumber_cardOwner, '')
             || ' ' || coalesce(caseAddress_address, '')
-            || ' ' || coalesce(program, '')
           ) like '%' || q || '%';
     end case;
   end;
 $$ language plpgsql;
-
