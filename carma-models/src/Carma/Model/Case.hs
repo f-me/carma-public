@@ -69,10 +69,13 @@ instance Model Case where
       where
         setMainOnly mv = mv
           {mv_fields =
-            [if fv_name fv `elem` (map ("caseAddress_" <>) ["map", "comment", "coords"])
+            [if fv_name fv `elem` addrFields
               then fv
               else fv{fv_meta = Map.insert "mainOnly" (Aeson.Bool True) $ fv_meta fv}
             |fv <- mv_fields mv
+            ,let addrFields = map
+                  ("caseAddress_" <>)
+                  ["address","map","notRussia","comment","coords"]
             ]
           }
 
