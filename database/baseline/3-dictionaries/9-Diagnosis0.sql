@@ -1,4 +1,3 @@
-
 CREATE TABLE "Diagnosis0" (
     id SERIAL PRIMARY KEY,
     value text UNIQUE NOT NULL,
@@ -299,5 +298,6 @@ COPY "Diagnosis0" (id, value, label, d1val, d2val, d3val, d4val) FROM stdin;
 
 
 GRANT SELECT ON TABLE "Diagnosis0" TO carma_search;
+GRANT SELECT ON TABLE "Diagnosis0" TO carma_db_sync;
 
 SELECT setval(pg_get_serial_sequence('"Diagnosis0"', 'id'), max(id)) from "Diagnosis0";
