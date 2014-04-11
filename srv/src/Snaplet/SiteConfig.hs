@@ -78,14 +78,16 @@ serveModel = do
       ["ctr",scr,pgm]
         | Just name' <- Map.lookup name modelTrMap
           -> case Model.dispatch name' $ viewForModel scr of
-            Just (Just res) -> Just <$> constructModel name name' scr pgm res
+            Just (Just res)
+              -> Just . setModelName name
+              <$> constructModel name' scr pgm res
             _ -> error $ "Unexpected model name" ++ show name'
       _ -> case Model.dispatch name $ viewForModel view of
         Just res -> return res
         Nothing
           | Just name' <- Map.lookup name modelTrMap
           -> case Model.dispatch name' $ viewForModel view of
-            Just res -> return res
+            Just res -> return $ setModelName name <$> res
             Nothing  -> Map.lookup name <$> gets models
         _ -> Map.lookup name <$> gets models
 
@@ -105,10 +107,13 @@ viewForModel name _
   $ (Model.modelView name :: Maybe (Model.ModelView m))
 
 
+setModelName :: Text -> Model -> Model
+setModelName n m = m {modelName = T.encodeUtf8 n}
+
 constructModel
-  :: Text -> Text -> Text -> Text -> Model
+  :: Text -> Text -> Text -> Model
   -> Handler b (SiteConfig b) Model
-constructModel mdlName mdlName' screen program model = do
+constructModel mdlName screen program model = do
   let q = [sql|
       select c.field, c.label, c.r, c.w, c.required, c.info, c.ord
         from "ConstructorFieldOption" c, "CtrModel" m, "CtrScreen" s
@@ -119,7 +124,7 @@ constructModel mdlName mdlName' screen program model = do
         order by ord asc
       |]
   pg <- gets pg_search
-  res <- liftIO (withResource pg $ \c -> query c q [mdlName',screen,program])
+  res <- liftIO (withResource pg $ \c -> query c q [mdlName,screen,program])
   let optMap = Map.fromList [(nm,(l,r,w,rq,inf,o)) | (nm,l,r,w,rq,inf,o) <- res]
   let adjustField f = case Map.lookup (name f) optMap of
         Nothing -> [f] -- NB: field is not modified if no options found
@@ -135,8 +140,7 @@ constructModel mdlName mdlName' screen program model = do
             , canWrite = w}
           ]
   return $ model
-    {modelName = T.encodeUtf8 mdlName
-    ,fields = sortBy (comparing sortingOrder)
+    {fields = sortBy (comparing sortingOrder)
         $ concatMap adjustField
         $ fields model
     }
