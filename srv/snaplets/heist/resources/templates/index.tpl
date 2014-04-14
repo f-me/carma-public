@@ -1600,6 +1600,12 @@
           <span data-bind="text: safelyGet('contact_name')"/>&nbsp;
           <span data-bind="text: safelyGet('contact_phone1')"/>
         </p>
+        <p data-bind="visible: safelyGet('car_make')">
+          <b>Автомобиль:</b>
+          <span data-bind="text: safelyGet('car_makeLocal')"/>&nbsp;
+          <span data-bind="text: safelyGet('car_modelLocal')"/>&nbsp;
+          <span data-bind="text: safelyGet('car_plateNum')"/>
+        </p>
         <p data-bind="visible: safelyGet('caseAddress_address')">
           <b>Адрес кейса:</b>
           <span data-bind="text: safelyGet('caseAddress_address')"/><br/>
