@@ -127,7 +127,7 @@
             },
             {
                 "value": "jumpy",
-                "label": "Jumper"
+                "label": "Jumpy"
             },
             {
                 "value": "nemo",
@@ -644,10 +644,6 @@
                 "label": "Quoris"
             },
             {
-                "value": "venga",
-                "label": "Venga"
-            },
-            {
                 "value": "soul",
                 "label": "Soul"
             },
@@ -688,7 +684,7 @@
             {
                 "value": "2114Samara",
                 "label": "2114 (Samara)"
-            },            
+            },
             {
                 "value": "2115Samara",
                 "label": "2115 (Samara)"
@@ -708,14 +704,14 @@
             {
                 "value": "priora",
                 "label": "Priora"
-            },            
+            },
             {
                 "value": "largus",
                 "label": "Largus"
             },
             {"value": "21041", "label": "21041"},
             {"value": "2131", "label": "2131"}
-        ],        
+        ],
         "lancia": [
             {
                 "value": "thesis",
@@ -728,8 +724,8 @@
                 "label": "Defender"
             },
             {
-                "value": "discavery",
-                "label": "Discavery"
+                "value": "discovery",
+                "label": "Discovery"
             },
             {
                 "value": "freelander",
@@ -1133,7 +1129,7 @@
             {
                 "value": "passatCC",
                 "label": "Passat CC"
-            },            
+            },
             {
                 "value": "jetta",
                 "label": "Jetta"
@@ -1153,7 +1149,7 @@
             {
                 "value": "sharan",
                 "label": "Sharan"
-            },            
+            },
             {
                 "value": "touran",
                 "label": "Touran"
@@ -1587,7 +1583,7 @@
             {
                 "value": "408",
                 "label": "408"
-            },            
+            },
             {
                 "value": "607",
                 "label": "607"
