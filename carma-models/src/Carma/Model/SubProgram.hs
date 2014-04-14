@@ -21,10 +21,8 @@ import Carma.Model.SubProgramService            ()
 
 
 mkIdents [t|SubProgram|]
- [ ("vwMotor", 1)
- , ("vwCargo", 2)
- , ("peugeot", 3)
- , ("citroen", 4)
+ [ ("peugeotWarranty", 3)
+ , ("citroenWarranty", 4)
  , ("cad2012", 9)
  , ("ramc", 102)
  ]

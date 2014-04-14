@@ -35,6 +35,9 @@ mkIdents [t|Program|]
  , ("genser", 32)
  , ("ramc", 64)
  , ("gm", 4)
+ , ("vw", 3)
+ , ("peugeot", 1)
+ , ("citroen", 67)
  ]
 
 
