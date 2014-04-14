@@ -130,6 +130,10 @@ svcMod =
     ,invisible contractor_coords
     ,invisible parentId
     ,invisible svcType
+    , setType "text" payment_partnerCost
+    , setType "text" payment_calculatedCost
+    , setType "text" payment_limitedCost
+    , setType "text" bill_billingCost      
     ]
 
 
