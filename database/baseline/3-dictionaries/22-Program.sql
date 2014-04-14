@@ -9,7 +9,7 @@ CREATE TABLE "Program"
   );
 
 COPY "Program" (id, label, pType) FROM stdin;
-1	PSA	\N
+1	Peugeot	\N
 2	ВТБ24 /B2C	2
 3	VW Гарантия Мобильности /B2B	1
 4	GM Assistance /B2B	1
@@ -75,6 +75,7 @@ COPY "Program" (id, label, pType) FROM stdin;
 64	РАМК	\N
 65	Тестовая программа	\N
 66	Аренда-Авто Ассистанс /B2B	1
+67	Citroen	\N
 \.
 
 GRANT ALL ON "Program" TO carma_db_sync;
