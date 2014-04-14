@@ -110,7 +110,7 @@
    LEFT JOIN "CarClass" carcl ON c.car_class = carcl.id
    LEFT JOIN "Engine" engine ON c.car_engine = engine.id
    LEFT JOIN "Transmission" trans ON c.car_transmission = trans.id
-   LEFT JOIN "SubProgram" spgm ON pgm.id = spgm.parent
+   LEFT JOIN "SubProgram" spgm ON c.subprogram = spgm.id
    LEFT JOIN partnertbl p3 ON c.car_seller = p3.id::text
    LEFT JOIN partnertbl p4 ON c.car_dealerto = p4.id::text
    LEFT JOIN "Contract" contract ON c.contract = contract.id,
