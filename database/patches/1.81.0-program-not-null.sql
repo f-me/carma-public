@@ -1,0 +1,1 @@
+ALTER TABLE casetbl ALTER program SET NOT NULL;
