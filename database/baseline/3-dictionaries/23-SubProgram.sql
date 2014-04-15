@@ -140,6 +140,7 @@ COPY "SubProgram_tmp" (id, program, label, value) FROM stdin;
 121	Citroen	Essential Drive	ced
 122	Citroen	Perfect Drive	cpf
 123	Citroen	Free Drive	cfd
+124	МариАвто Ассистанс	Основная	mariavto
 \.
 
 INSERT INTO "SubProgram" (id, label, parent, value)
