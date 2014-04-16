@@ -68,22 +68,15 @@ selectPartners :: MBS -> MBS -> MBS -> MBS -> AppHandler [Map ByteString ByteStr
 selectPartners city isActive isDealer makes = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
     $  "SELECT id::text, name, city,"
-    ++ "       comment, addr->>'value' as addrDeFacto,"
-    ++ "       phone->>'value' as phone1, phone->>'note' as workingTime,"
+    ++ "       comment,"
     ++ "       (isDealer::int)::text, (isMobile::int)::text"
-    ++ "  FROM partnertbl,"
-    ++ "       json_array_elements(addrs) as addr,"
-    ++ "       json_array_elements(phones) as phone"
-    ++ " WHERE addr->>'key' = 'fact'"
-    ++ "   AND phone->>'key' = 'disp'"
+    ++ "  FROM partnertbl"
+    ++ " WHERE"
     ++ (maybe "" (\x -> "  AND city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND isActive = " ++ toBool x) isActive)
     ++ (maybe "" (\x -> "  AND isDealer = " ++ toBool x) isDealer)
     ++ (maybe "" (\x -> "  AND " ++ quote x ++ " = ANY (makes)") makes)
-  let fields =
-        ["id","name","city","comment" ,"addrDeFacto"
-        ,"phone1","workingTime","isDealer","isMobile"
-        ]
+  let fields = ["id", "name", "city", "comment", "isDealer", "isMobile"]
   return $ mkMap fields rows
 
 
