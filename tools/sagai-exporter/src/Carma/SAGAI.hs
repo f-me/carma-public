@@ -85,6 +85,9 @@ import Text.Printf
 
 import Carma.HTTP
 
+import qualified Carma.Model.Program as Program
+import qualified Carma.Model.SubProgram as SubProgram
+
 import Carma.SAGAI.Base
 import Carma.SAGAI.Codes
 import Carma.SAGAI.Util
@@ -226,7 +229,7 @@ instance ExportMonad ServiceExport where
           -- Special handling for rental service cost calculation.
           Rent ->
               do
-                subprogram <- caseField "subprogram"
+                program <- caseField "program"
                 (_, _, d) <- getService
                 carClass <- dataField1 "carClass" d
                 -- Select costs table depending on whether the rent
@@ -241,7 +244,7 @@ instance ExportMonad ServiceExport where
                                   then rentCostsPSA
                                   else rentCosts
                           dailyCost =
-                              case M.lookup (subprogram, carClass) costs of
+                              case M.lookup (program, carClass) costs of
                                 Just dc -> dc
                                 -- Zero cost for unknown car classes.
                                 Nothing -> 0
@@ -426,26 +429,6 @@ exportable (mn, _, d) = statusOk && typeOk
                 status = dataField0 "status" d
 
 
--- | Check if @callDate@ field of the case contains a date between dates
--- stored in two other case fields.
-callDateWithin :: ExportMonad m =>
-                  FieldName
-               -- ^ Name of field with first date. @callDate@ must be
-               -- not less that this.
-               -> FieldName
-               -- ^ @callDate@ must not exceed this.
-               -> m Bool
-callDateWithin f1 f2 = do
-  ts1 <- caseField0 f1
-  ts  <- caseField1 "callDate"
-  ts2 <- caseField0 f2
-  return $ case (parseTimestamp ts1,
-                 parseTimestamp ts,
-                 parseTimestamp ts2) of
-    (Just t1, Just t, Just t2) -> t1 <= t && t < t2
-    _ -> False
-
-
 -- | Name of a towage service field with a reference to partner id.
 towagePid :: FieldName
 towagePid = "towDealer_partnerId"
@@ -490,9 +473,9 @@ isPSADealer pid = do
 -- | Check if servicing contract is in effect.
 onService :: ExportMonad m => m Bool
 onService = do
-  d <- callDateWithin "car_warrantyStart" "car_warrantyEnd"
-  ct <- caseField0 "car_contractType"
-  return $ d && (not $ elem ct ["warranty", ""])
+  ct <- caseField0 "subprogram"
+  return $ (not $ elem ct $ map identFv [ SubProgram.peugeotWarranty
+                                        , SubProgram.citroenWarranty])
 
 
 -- | An action which pushes new content to contents of the SAGAI entry
@@ -518,11 +501,12 @@ rowBreak = push newline
 
 pdvField :: ExportField
 pdvField = do
-  fv <- caseField1 "subprogram"
-  case fv of
-    "peugeot" -> push "RUMC01R01"
-    "citroen" -> push "FRRM01R01"
-    _         -> exportError $ UnknownSubprogram fv
+  fv <- caseField1 "program"
+  if (fv == identFv Program.peugeot)
+  then push "RUMC01R01"
+  else if (fv == identFv Program.citroen)
+       then push "FRRM01R01"
+       else exportError $ UnknownProgram fv
 
 
 dtField :: ExportField
@@ -575,10 +559,10 @@ codeField :: ExportMonad m =>
           -- matching 'codesData' entry.
           -> m BS.ByteString
 codeField proj = do
-  subprogram <- caseField "subprogram"
+  program <- caseField "program"
   key <- expenseType
-  case M.lookup (subprogram, key) codesData of
-    Nothing -> exportError $ UnknownSubprogram subprogram
+  case M.lookup (program, key) codesData of
+    Nothing -> exportError $ UnknownProgram program
     Just c -> return $ proj c
 
 

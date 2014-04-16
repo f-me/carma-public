@@ -8,6 +8,7 @@ module Carma.SAGAI.Util
     ( padLeft
     , padRight
     , parseTimestamp
+    , identFv
     )
 
 where
@@ -18,6 +19,8 @@ import qualified Data.ByteString.Char8 as B8
 import Data.Time.Clock
 import Data.Time.Format
 import System.Locale
+
+import Data.Model as Model
 
 
 -- | Return string required to pad input up to provided length. Length
@@ -62,3 +65,8 @@ padLeft padLen pad input = BS.append input (genericPad padLen pad input)
 
 parseTimestamp :: B8.ByteString -> Maybe UTCTime
 parseTimestamp = parseTime defaultTimeLocale "%s" . B8.unpack
+
+
+-- | Convert an Ident to untyped field value.
+identFv :: Model.Model m => Model.IdentI m -> BS.ByteString
+identFv (Model.Ident v) = B8.pack $ show v
