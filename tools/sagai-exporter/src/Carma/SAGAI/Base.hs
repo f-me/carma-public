@@ -108,7 +108,7 @@ data ExportError = CaseError ErrorType
 
 data ErrorType = NoField FieldName
                | EmptyField FieldName
-               | UnknownSubprogram FieldValue
+               | UnknownProgram FieldValue
                | UnknownService String
                | UnknownTechType FieldValue
                | UnreadableContractorId FieldValue
