@@ -25,6 +25,7 @@ import Data.ByteString as BS
 import Data.Map as M
 
 import Carma.HTTP
+import qualified Carma.Model.CarClass as CarClass
 import qualified Carma.Model.Program as Program
 
 import Carma.SAGAI.Util
@@ -59,6 +60,22 @@ peugeot :: FieldValue
 peugeot = identFv Program.peugeot
 
 
+psab :: FieldValue
+psab = identFv CarClass.psab
+
+
+psam1 :: FieldValue
+psam1 = identFv CarClass.psam1
+
+
+psam2 :: FieldValue
+psam2 = identFv CarClass.psam2
+
+
+psah :: FieldValue
+psah = identFv CarClass.psah
+
+
 -- | List of costs and I/C/D codes for all programs and expenses.
 --
 -- Costs for Rent expenses are ignored (see 'rentCostsPSA' &
@@ -91,26 +108,26 @@ codesData = M.fromList
 -- Map key is a @(subprogram, carClass)@ tuple.
 rentCostsPSA :: M.Map (FieldValue, FieldValue) Double
 rentCostsPSA = M.fromList
-    [ ((citroen, "psab"),  1729)
-    , ((citroen, "psam1"), 2034)
-    , ((citroen, "psam2"), 2848)
-    , ((citroen, "psah"),  0)
-    , ((peugeot, "psab"),  2040.20)
-    , ((peugeot, "psam1"), 2400.10)
-    , ((peugeot, "psam2"), 3360.60)
-    , ((peugeot, "psah"),  0)
+    [ ((citroen, psab),  1729)
+    , ((citroen, psam1), 2034)
+    , ((citroen, psam2), 2848)
+    , ((citroen, psah),  0)
+    , ((peugeot, psab),  2040.20)
+    , ((peugeot, psam1), 2400.10)
+    , ((peugeot, psam2), 3360.60)
+    , ((peugeot, psah),  0)
     ]
 
 
 -- | Daily costs for car rent service provided by third-party dealers.
 rentCosts :: M.Map (FieldValue, FieldValue) Double
 rentCosts = M.fromList
-    [ ((citroen, "psab"),  1758)
-    , ((citroen, "psam1"), 2310)
-    , ((citroen, "psam2"), 3041)
-    , ((citroen, "psah"),  3994)
-    , ((peugeot, "psab"),  2074.44)
-    , ((peugeot, "psam1"), 2725.80)
-    , ((peugeot, "psam2"), 3588.38)
-    , ((peugeot, "psah"),  4712.92)
+    [ ((citroen, psab),  1758)
+    , ((citroen, psam1), 2310)
+    , ((citroen, psam2), 3041)
+    , ((citroen, psah),  3994)
+    , ((peugeot, psab),  2074.44)
+    , ((peugeot, psam1), 2725.80)
+    , ((peugeot, psam2), 3588.38)
+    , ((peugeot, psah),  4712.92)
     ]
