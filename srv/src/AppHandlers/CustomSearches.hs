@@ -71,7 +71,7 @@ selectPartners city isActive isDealer makes = do
     ++ "       comment,"
     ++ "       (isDealer::int)::text, (isMobile::int)::text"
     ++ "  FROM partnertbl"
-    ++ " WHERE"
+    ++ " WHERE true"
     ++ (maybe "" (\x -> "  AND city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND isActive = " ++ toBool x) isActive)
     ++ (maybe "" (\x -> "  AND isDealer = " ++ toBool x) isDealer)
