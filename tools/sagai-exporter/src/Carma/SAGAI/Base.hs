@@ -30,6 +30,7 @@ import Control.Monad.Trans.Writer
 
 import Data.ByteString as BS
 import Data.Dict as D
+import Data.Dict.New (NewDict)
 import Data.Text.ICU.Convert
 
 import Carma.HTTP
@@ -61,7 +62,7 @@ data ExportDicts = ExportDicts { wazzup :: D.Dict
                                , techTypes :: D.Dict
                                -- ^ Dictionary used on the @techType@
                                -- field of a @tech@ service.
-                               , carClasses :: D.Dict
+                               , carClasses :: NewDict
                                -- ^ Dictionary used on the @carClass@
                                -- field of a @rent@ service.
                                , result :: D.Dict
