@@ -39,6 +39,8 @@ import System.Log.Handler.Syslog
 
 import Carma.HTTP hiding (carmaPort)
 import qualified Carma.HTTP as H (carmaPort)
+import Data.Dict.New
+
 import Carma.SAGAI
 
 
@@ -165,7 +167,8 @@ fetchExportDicts :: CarmaIO (Maybe ExportDicts)
 fetchExportDicts = do
   w <- readDictionary "Wazzup"
   t <- readDictionary "TechTypes"
-  c <- readDictionary "CarClasses"
+  carCl <- readNewDictionary "CarClasses"
+  let c = loadNewDict' <$> carCl
   r <- readDictionary "Result"
   return $ ExportDicts <$> w <*> t <*> c <*> r
 
