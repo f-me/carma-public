@@ -47,7 +47,7 @@ import Application
 import AppHandlers.CustomSearches.Contract
 import AppHandlers.Util
 import Utils.HttpErrors
-import Util
+import Util hiding (withPG)
 
 import qualified Carma.Model.Role as Role
 

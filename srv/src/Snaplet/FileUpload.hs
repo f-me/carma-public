@@ -55,7 +55,6 @@ import Snap.Snaplet.PostgresqlSimple hiding (field)
 import Snap.Util.FileUploads
 
 import Snaplet.Auth.Class
-import Snaplet.Auth.PGUsers
 
 import qualified Snaplet.DbLayer as DB
 import qualified Utils.NotDbLayer as NDB
@@ -75,7 +74,7 @@ data FileUpload b = FU { cfg      :: UploadPolicy
                        }
 
 
-routes :: [(ByteString, Handler b (FileUpload b) ())]
+routes :: HasAuth b => [(ByteString, Handler b (FileUpload b) ())]
 routes = [ (":model/bulk/:field",      method POST uploadBulk)
          , (":model/:id/:field",       method POST uploadInField)
          ]
@@ -107,7 +106,8 @@ type AttachmentTarget = (ModelName, ObjectId, FieldName)
 --
 -- The file is stored under @attachment/<newid>@ directory hierarchy
 -- of finished uploads dir.
-uploadInManyFields :: (FilePath -> [AttachmentTarget])
+uploadInManyFields :: HasAuth b
+                   => (FilePath -> [AttachmentTarget])
                    -- ^ Convert the uploaded file name to a list of
                    -- fields in instances to attach the file to.
                    -> Maybe (FilePath -> FilePath)
@@ -172,7 +172,7 @@ uploadInManyFields flds nameFun = do
 -- contains an attachment object, @targets@ contains a list of triples
 -- with attachment targets used, @unknown@ is a failed attachment
 -- target list, @dupe@ is true if the file was a duplicate.
-uploadBulk :: Handler b (FileUpload b) ()
+uploadBulk :: HasAuth b => Handler b (FileUpload b) ()
 uploadBulk = do
   -- 'Just' here, for these have already been matched by Snap router
   Just model <- getParam "model"
@@ -205,7 +205,7 @@ uploadBulk = do
 
 -- | Upload and attach a file (as in 'uploadInManyFields') to a single
 -- instance, given by @model@, @id@ and @field@ request parameters.
-uploadInField :: Handler b (FileUpload b) ()
+uploadInField :: HasAuth b => Handler b (FileUpload b) ()
 uploadInField = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
@@ -233,7 +233,8 @@ getAttachmentPath aid = do
 
 -- | Append a reference of form @attachment:213@ to a field of another
 -- instance, which must exist. This handler is thread-safe.
-attachToField :: ModelName
+attachToField :: HasAuth b
+              => ModelName
               -- ^ Name of target instance model.
               -> ObjectId
               -- ^ Id of target instance.

@@ -46,7 +46,8 @@ import Snap.Snaplet.SimpleLog
 import Carma.HTTP (read1Reference)
 
 
-import Data.Model
+import           Data.Model
+
 import qualified Carma.Model.CarMake as CarMake
 import qualified Carma.Model.CarModel as CarModel
 import qualified Carma.Model.Case as Case
@@ -55,9 +56,13 @@ import qualified Carma.Model.Program as Program
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role as Role
 import qualified Carma.Model.SmsTemplate as SmsTemplate
+import           Carma.Model.Event (EventType(..))
+import qualified Carma.Model.Action as Act
+import qualified Carma.Model.Call   as Call
 
 import Util as U
-import qualified  Utils.RKCCalc as RKC
+import qualified Utils.Events  as Evt
+import qualified Utils.RKCCalc as RKC
 
 
 services :: [ModelName]
@@ -182,6 +187,10 @@ actions
           ,("carCheckPeriod", [setContractValidUntilMilage])
           ,("milageTO",       [setContractValidUntilMilage])
           ,("contractValidFromDate", [setContractValidUntilDate])
+          ])
+        ,("call", Map.fromList
+          [("endDate", [\objId _ ->
+             liftDb $ Evt.logLegacyCRUD Update (objId) Call.endDate])
           ])
         ]
 
@@ -383,7 +392,8 @@ tryToPassChainToControl user action =
 clearAssignee :: MonadTrigger m b => ObjectId -> m b ()
 clearAssignee action = set action "assignedTo" "" >> set action "assignTime" ""
 
-serviceActions :: MonadTrigger m b => Map.Map ByteString [ObjectId -> ObjectId -> m b ()]
+serviceActions :: MonadTrigger m b
+               => Map.Map ByteString [ObjectId -> ObjectId -> m b ()]
 serviceActions = Map.fromList
   [("status", [\objId val ->
     case val of
@@ -666,7 +676,8 @@ resultSet1 =
   ,"carmakerApproved", "dealerApproved", "needService"
   ]
 
-actionActions :: MonadTrigger m b => Map.Map ByteString [ObjectId -> ByteString -> m b ()]
+actionActions :: (MonadTrigger m b)
+              => Map.Map ByteString [ObjectId -> ByteString -> m b ()]
 actionActions = Map.fromList
   [("result",
     [\objId val -> when (val `elem` resultSet1) $ do
@@ -683,6 +694,8 @@ actionActions = Map.fromList
 
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
+    ,\objId _ ->
+      liftDb $ Evt.logLegacyCRUD Update (objId) Act.result
     ])
   ,("assignedTo",
     [\objId _val -> dateNow id >>= set objId "assignTime"
@@ -695,9 +708,14 @@ actionActions = Map.fromList
         upd kazeId "actions" $ addToList objId
       _ -> error "action.closed not 0 or 1"
     ])
-  ]
+   ,("openTime",
+     [\objId _ ->
+       liftDb $ Evt.logLegacyCRUD Update (objId) Act.openTime
+     ])
+   ]
 
-actionResultMap :: MonadTrigger m b => Map.Map ByteString (ObjectId -> m b ())
+actionResultMap :: MonadTrigger m b
+                => Map.Map ByteString (ObjectId -> m b ())
 actionResultMap = Map.fromList
   [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime" >> set objId "result" "")
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime" >> set objId "result" "")
