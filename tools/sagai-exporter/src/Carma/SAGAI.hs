@@ -2,6 +2,7 @@
 {-# LANGUAGE DoAndIfThenElse #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
 {-|
@@ -75,7 +76,6 @@ import Data.Text.Encoding
 import Data.Text.ICU.Convert
 
 import Data.Time.Clock
-import Data.Time.Clock.POSIX
 import Data.Time.Format
 import System.Locale
 
@@ -470,6 +470,29 @@ isPSADealer pid = do
            any (flip elem ["citroen", "peugeot"]) makes
 
 
+-- | Fetch a field from contract stored in the case.
+contractField1 :: ExportMonad m =>
+                  FieldName
+               -> m FieldValue
+contractField1 fn = do
+  cid <- caseField1 "contract"
+  -- TODO Get rid of this when carma-http is ported to typed CRUD
+  uri <- liftCIO $ methodURI $ "_/" ++ (B8.unpack cid)
+  res <- liftIO $ do
+           rs <- simpleHTTP $ getRequest uri
+           rsb <- getResponseBody rs
+           return $ encodeUtf8 <$> case (decode' $ BSL.pack rsb) of
+                                     Nothing -> Nothing
+                                     Just d ->
+                                         case HM.lookup fn d of
+                                           Just (String v) -> Just v
+                                           _               -> Nothing
+  case res of
+    Just v -> return v
+    Nothing -> exportError (BadContract cid)
+
+
+
 -- | Check if servicing contract is in effect.
 onService :: ExportMonad m => m Bool
 onService = do
@@ -525,29 +548,12 @@ dateFormat :: String
 dateFormat = "%d%m%y"
 
 
--- | Convert timestamp to DDMMYY format.
+-- | Convert a timestamp to DDMMYY format.
 timestampToDate :: BS.ByteString -> ExportField
 timestampToDate input =
     case parseTimestamp input of
       Just time ->
           push $ B8.pack $ formatTime defaultTimeLocale dateFormat time
-      Nothing -> exportError $ BadTime input
-
-
--- | Convert a timestamp to DDMMYY format, adding one full day if the
--- timestamp is not at midnight.
---
--- TODO This is a dirty workaround, we should fix the date problem in
--- CaRMa instead.
-timestampToDate' :: BS.ByteString -> ExportField
-timestampToDate' input =
-    case parseTimestamp input of
-      Just time ->
-          push $ B8.pack $ formatTime defaultTimeLocale dateFormat fixedTime
-          where
-            fixedTime = if utctDayTime time == 0
-                        then time
-                        else addUTCTime posixDayLength time
       Nothing -> exportError $ BadTime input
 
 
@@ -612,7 +618,13 @@ composField = do
 
 
 ddgField :: ExportField
-ddgField = timestampToDate' =<< caseField1 "car_warrantyStart"
+ddgField = do
+  validSince <- contractField1 "validSince"
+  -- TODO Use date format from carma-models
+  case parseTime defaultTimeLocale "%d-%m-%y" $ B8.unpack validSince of
+    Just (t :: UTCTime) ->
+        push $ B8.pack $ formatTime defaultTimeLocale dateFormat t
+    Nothing -> exportError $ BadDate validSince
 
 
 ddcField :: ExportField
