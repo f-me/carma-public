@@ -2,7 +2,7 @@ module Carma.Model.Call where
 
 import Data.Text
 import Data.Typeable
-
+import Data.Time.Clock (UTCTime)
 import Data.Model as Model
 import Data.Model.View
 
@@ -96,4 +96,6 @@ data Call = Call
     :: F (Maybe (IdentT CarModels)) "carModel" "Модель"
   , callType
     :: F (Maybe (IdentT CallTypes)) "callType" "Тип звонка"
+  , endDate
+    :: F (Maybe UTCTime )           "endDate"  "Время окончания звонка"
   } deriving Typeable

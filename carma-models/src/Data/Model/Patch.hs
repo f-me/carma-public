@@ -2,7 +2,7 @@
 
 module Data.Model.Patch
   ( Patch(Patch), untypedPatch
-  , get, get'
+  , get, get', put
   , empty
   )
 

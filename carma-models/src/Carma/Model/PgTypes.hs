@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Carma.Model.PgTypes where
@@ -8,11 +9,12 @@ import           Data.Text
 import           Data.Time               (Day, UTCTime)
 import           Data.Time.Calendar      ()
 import           Data.Vector             (Vector)
+import           Data.Aeson              (Value)
 
 import           Data.Model.Types
 
 import           Carma.Model.LegacyTypes
-import           Carma.Model.Types       (Interval, TInt, IdentList)
+import           Carma.Model.Types
 
 instance PgTypeable t => PgTypeable (Maybe t) where
   pgTypeOf _ = PgType { pgNotNull  = False
@@ -66,6 +68,15 @@ instance PgTypeable (Interval UTCTime) where
 
 instance PgTypeable (Interval Day) where
   pgTypeOf _ = PgType "daterange" True
+
+instance PgTypeable EventType where
+  pgTypeOf _ = PgType "EventType" True
+
+instance PgTypeable UserStateVal where
+  pgTypeOf _ = PgType "UserStateVal" True
+
+instance PgTypeable Value where
+  pgTypeOf _ = PgType "json" True
 
 instance PgTypeable  Diagnosis1          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Diagnosis2          where pgTypeOf _ = PgType "text" True

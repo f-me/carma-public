@@ -1,10 +1,18 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving, ViewPatterns, ScopedTypeVariables, RankNTypes #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving
+           , ViewPatterns
+           , ScopedTypeVariables
+           , RankNTypes
+           , DeriveGeneric
+ #-}
 
 module Carma.Model.Types ( Dict(..)
                          , Interval(..)
                          , TInt
-                         , IdentList) where
+                         , IdentList
+                         , EventType(..)
+                         , UserStateVal(..)
+                         ) where
 
 import Control.Applicative
 
@@ -12,7 +20,7 @@ import Data.Aeson as Aeson
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
-
+import qualified Data.ByteString.Char8 as B
 import Data.Int (Int16, Int32)
 import qualified Data.Vector as V
 import Data.Vector (Vector, (!))
@@ -22,7 +30,12 @@ import Data.Time
 import Data.Time.Calendar ()
 import Data.Fixed (Pico)
 
-import Database.PostgreSQL.Simple.FromField (FromField(..))
+import Text.Read (readMaybe)
+
+import Database.PostgreSQL.Simple.FromField (FromField(..)
+                                            ,ResultError(..)
+                                            ,typename
+                                            ,returnError)
 import Database.PostgreSQL.Simple.ToField   (ToField(..), Action(..), inQuotes)
 
 import Data.ByteString.Internal (w2c)
@@ -35,10 +48,12 @@ import Data.Monoid (Monoid, (<>))
 
 import Unsafe.Coerce
 import GHC.TypeLits
+import GHC.Generics
 
 import Data.Model
 import Data.Model.Types
 import Carma.Model.LegacyTypes
+
 
 -- ISO 8601
 instance FromJSON Day where
@@ -280,6 +295,9 @@ instance DefaultFieldView LegacyDatetime where
 instance DefaultFieldView Json where
   defaultFieldView f = (defFieldView f) {fv_type = "json"}
 
+instance DefaultFieldView Aeson.Value where
+  defaultFieldView f = (defFieldView f) {fv_type = "json"}
+
 instance DefaultFieldView Phone where
   defaultFieldView f = (defFieldView f)
     {fv_type = "phone"
@@ -340,6 +358,67 @@ instance DefaultFieldView (Vector t) => DefaultFieldView (Vector (Maybe t))
   defaultFieldView (_ :: m -> F (Vector (Maybe t)) nm desc) =
    defaultFieldView (undefined :: m -> F (Vector t) nm desc)
 
+-- | Used to describe event type in Event model
+--
+-- Represented as "EventType" enum type in postgres
+--
+-- FIXME: Find a way to check mapping from hs to pg type
+data EventType = Login | Logout | Create | Update
+               deriving (Eq, Show, Read, Typeable, Generic)
+
+instance FromJSON EventType
+instance ToJSON   EventType
+
+instance FromField EventType where
+  fromField f mdata = do
+    typname <- typename f
+    case typname /= "EventType" of
+      True  -> returnError Incompatible f ""
+      False -> case B.unpack `fmap` mdata of
+        Nothing  -> returnError UnexpectedNull f ""
+        Just v   -> case readMaybe v of
+          Nothing -> returnError ConversionFailed f "mismatched enums"
+          Just v' -> return v'
+
+instance ToField EventType where
+  toField = toField . show
+
+instance DefaultFieldView EventType where
+  defaultFieldView f = (defFieldView f)
+
+data UserStateVal = LoggedOut | Ready | Rest | Busy
+                  deriving (Eq, Enum, Bounded, Show, Read, Typeable, Generic)
+
+instance FromJSON UserStateVal
+instance ToJSON   UserStateVal
+
+instance ToField UserStateVal where
+  toField = toField . show
+
+instance FromField UserStateVal where
+  fromField f mdata = do
+    typname <- typename f
+    case typname /= "UserStateVal" of
+      True  -> returnError Incompatible f ""
+      False -> case B.unpack `fmap` mdata of
+        Nothing  -> returnError UnexpectedNull f ""
+        Just v   -> case readMaybe v of
+          Nothing -> returnError ConversionFailed f "mismatched enums"
+          Just v' -> return v'
+
+instance DefaultFieldView UserStateVal where
+  defaultFieldView f = (defFieldView f)
+
+instance FromField Aeson.Object where
+  fromField f mdata = do
+    val :: Aeson.Value <- fromField f mdata
+    case val of
+      Aeson.Object obj -> return obj
+      _                -> returnError ConversionFailed f $
+                          "expecting object, but got: " ++ show val
+
+instance ToField Aeson.Object where
+  toField obj = toField $ Aeson.Object obj
 
 typeName :: forall t . Typeable t => t -> Text
 typeName _ = T.pack $ tyConName $ typeRepTyCon $ typeOf (undefined :: t)
