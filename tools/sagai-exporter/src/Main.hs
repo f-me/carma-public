@@ -173,8 +173,7 @@ fetchExportDicts = do
 -- | Attempt to fetch a list of cases to be exported from CaRMa, as
 -- returned by @/psaCases@.
 fetchPSACaseNumbers :: Maybe String
-                    -- ^ Filter cases by this subprogram name when
-                    -- set.
+                    -- ^ Filter cases by this program name when set.
                     -> CarmaIO (Maybe [Int])
 fetchPSACaseNumbers pn = do
   uri <- methodURI ("psaCases/" ++ fromMaybe "" pn)
@@ -238,7 +237,7 @@ data Options = Options { carmaPort      :: Int
                        , ftpServer      :: Maybe String
                        , remotePath     :: Maybe FilePath
                        , encoding       :: String
-                       , caseSubprogram :: Maybe String
+                       , caseProgram    :: Maybe String
                        , argCases       :: [Int]
                        , useSyslog      :: Bool
                        }
@@ -271,12 +270,12 @@ main =
                    &= name "f"
                    &= help ("URL of an FTP server to upload the result to. " ++
                             "Must include URL scheme prefix.")
-                 , caseSubprogram = Nothing
+                 , caseProgram = Nothing
                    &= explicit
-                   &= name "subprogram"
+                   &= name "program"
                    &= name "o"
                    &= help ("When case id's are not provided explicitly, " ++
-                            "export only cases for the specified subprogram")
+                            "export only cases for the specified program")
                  , remotePath = Nothing
                    &= name "r"
                    &= help remotePathHelp
@@ -354,9 +353,9 @@ main =
                [] -> do
                  logInfo $
                      "Fetching case numbers from CaRMa (" ++
-                     maybe "all valid subprograms" (++ " subprogram")
-                     caseSubprogram ++ ")"
-                 fetchPSACaseNumbers caseSubprogram
+                     maybe "all valid programs" (++ " program")
+                     caseProgram ++ ")"
+                 fetchPSACaseNumbers caseProgram
                l  -> do
                  logInfo $ "Using case numbers specified in the command line"
                  return $ Just l

@@ -33,7 +33,7 @@ import Carma.HTTP
 import Snap.Snaplet (getSnapletUserConfig)
 
 import qualified Carma.Model.Engine as Engine
-import qualified Carma.Model.SubProgram as SubProgram
+import qualified Carma.Model.Program as Program
 
 import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
@@ -55,10 +55,10 @@ sendMailToPSA actionId = do
     "towage":_ -> return True
     _ -> return False
   caseId  <- get actionId "caseId"
-  subprogram <- get caseId   "subprogram"
+  program <- get caseId   "program"
   when (isValidSvc &&
-        subprogram `elem`
-        (map identFv [SubProgram.peugeot, SubProgram.citroen]))
+        program `elem`
+        (map identFv [Program.peugeot, Program.citroen]))
     $ get svcId "payType" >>= \case
       "ruamc" -> sendMailActually actionId
       "mixed" -> sendMailActually actionId
@@ -73,14 +73,14 @@ sendMailActually actionId = do
 
     svcId   <- get actionId "parentId"
     caseId  <- get actionId "caseId"
-    subprogram <- get caseId   "subprogram"
+    program <- get caseId   "program"
 
-    let (acode, mcode) | subprogram == identFv SubProgram.peugeot =
+    let (acode, mcode) | program == identFv Program.peugeot =
                            ("RUMC01R", "PEU")
-                       | subprogram == identFv SubProgram.citroen =
+                       | program == identFv Program.citroen =
                            ("FRRM01R", "CIT")
                        | otherwise = error $
-                                     "Invalid subprogram: " ++ show subprogram
+                                     "Invalid program: " ++ show program
         get'Keyed key from field =
             (T.decodeUtf8
              . (fromMaybe "") . (flip getKeyedJsonValue key) . T.encodeUtf8)

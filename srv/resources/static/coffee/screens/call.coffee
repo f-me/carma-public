@@ -1,9 +1,10 @@
 define [ "utils"
+       , "spiral"
        , "hotkeys"
        , "model/main"
        , "screens/partnersSearch"
        , "text!tpl/screens/call.html"
-       ], (utils, hotkeys, main, pSearch, tpl) ->
+       ], (utils, spiral, hotkeys, main, pSearch, tpl) ->
 
   utils.build_global_fn 'makeCase', ['screens/newCase']
   utils.build_global_fn 'reloadScreen', ['utils']
@@ -128,12 +129,15 @@ define [ "utils"
     $("#center").hide()
     $("#right").hide()
     $("#bottom").hide()
+    $("#spiral").show()
+    spiral.start()
 
   hideModal = ->
     $("#left").show()
     $("#center").show()
     $("#right").show()
     $("#bottom").show()
+    $("#spiral").hide()
     $("#new-call-modal")
       .removeClass("in")
       .addClass("out")

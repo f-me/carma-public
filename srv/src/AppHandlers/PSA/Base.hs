@@ -24,12 +24,12 @@ import Snap.Snaplet.PostgresqlSimple
 
 
 -- | Query used to select exportable case ids, parametrized by vector
--- of subprogram ids, used by @/psaCases@.
+-- of program ids, used by @/psaCases@.
 psaQuery :: Query
 psaQuery = [sql|
 SELECT id FROM casetbl
 WHERE psaExportNeeded='yes'
-AND  (subprogram = ANY (?))
+AND  (program = ANY (?))
 AND  (NOT psaexported='yes' OR psaexported IS NULL);
 |]
 

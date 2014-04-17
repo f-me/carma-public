@@ -51,7 +51,7 @@ q = [sql|
         , cardNumber::text
         , to_char(c.validSince, 'DD/MM/YYYY')
         , to_char(c.validUntil, 'DD/MM/YYYY')
-        , '-'
+        , (c.startMileage + c.checkPeriod)::text
         , c.startMileage::text
         , c.checkPeriod::text
         , c.name
