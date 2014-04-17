@@ -483,7 +483,7 @@ contractField1 :: ExportMonad m =>
 contractField1 fn = do
   cid <- caseField1 "contract"
   -- TODO Get rid of this when carma-http is ported to typed CRUD
-  uri <- liftCIO $ methodURI $ "_/" ++ (B8.unpack cid)
+  uri <- liftCIO $ methodURI $ "_/Contract/" ++ (B8.unpack cid)
   res <- liftIO $ do
            rs <- simpleHTTP $ getRequest uri
            rsb <- getResponseBody rs
@@ -627,7 +627,7 @@ ddgField :: ExportField
 ddgField = do
   validSince <- contractField1 "validSince"
   -- TODO Use date format from carma-models
-  case parseTime defaultTimeLocale "%d-%m-%y" $ B8.unpack validSince of
+  case parseTime defaultTimeLocale "%Y-%m-%d" $ B8.unpack validSince of
     Just (t :: UTCTime) ->
         push $ B8.pack $ formatTime defaultTimeLocale dateFormat t
     Nothing -> exportError $ BadDate validSince
