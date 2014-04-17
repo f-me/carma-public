@@ -36,6 +36,7 @@ module Carma.HTTP
     -- * Auxiliary methods
     , methodURI
     , readDictionary
+    , readNewDictionary
     , manyFieldDivisor
     -- ** Dict-objects JSON helpers
     , getKeyedJsonValue
@@ -64,6 +65,7 @@ import qualified Data.Text.Encoding as T
 import Network.HTTP
 import Network.Stream (Result)
 
+import Data.Dict.New
 import Carma.HTTP.Util
 
 
@@ -260,6 +262,17 @@ methodURI :: String
 methodURI meth =
     getPort >>= \cp ->
         return $ concat ["http://", localhost, ":", show cp, "/", meth]
+
+
+-- | Load a new-style dictionary with given name from CaRMa.
+readNewDictionary :: String
+                  -- ^ Dictionary name.
+                  -> CarmaIO (Maybe PreDict)
+readNewDictionary name = do
+  uri <- methodURI $ "_/" ++ name
+  rs <- sendRequest $ getRequest uri
+  rsb <- liftIO $ getResponseBody rs
+  return $ decode' $ BSL.pack rsb
 
 
 -- | Load a dictionary with given name from CaRMa.
