@@ -167,7 +167,7 @@ fetchExportDicts :: CarmaIO (Maybe ExportDicts)
 fetchExportDicts = do
   w <- readDictionary "Wazzup"
   t <- readDictionary "TechTypes"
-  carCl <- readNewDictionary "CarClasses"
+  carCl <- readNewDictionary "CarClass"
   let c = loadNewDict' <$> carCl
   r <- readDictionary "Result"
   return $ ExportDicts <$> w <*> t <*> c <*> r
