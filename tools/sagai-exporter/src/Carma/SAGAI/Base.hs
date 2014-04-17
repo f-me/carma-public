@@ -114,8 +114,10 @@ data ErrorType = NoField FieldName
                | UnreadableContractorId FieldValue
                | UnknownDictValue FieldValue
                | BadTime FieldValue
+               | BadDate FieldValue
                | BadDays FieldValue
                | BadVin FieldValue
+               | BadContract FieldValue
                | WrongLength Int ByteString
                  deriving Show
 
