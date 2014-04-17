@@ -67,6 +67,7 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Aeson
 import Data.Char
 import qualified Data.Dict as D
+import qualified Data.Dict.New as ND
 import Data.Functor
 import qualified Data.HashMap.Strict as HM
 import Data.List
@@ -103,6 +104,7 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     getAllServices :: m [Service]
     -- | Fetch a dictionary from export options using a projection.
     getDict        :: (ExportDicts -> D.Dict) -> m D.Dict
+    getDict'       :: (ExportDicts -> ND.NewDict) -> m ND.NewDict
     getConverter   :: m Converter
     -- | Return expense type for the case or currently processed
     -- service, depending on monad.
@@ -134,6 +136,8 @@ instance ExportMonad CaseExport where
     getAllServices = lift $ asks $ snd . fst
 
     getDict proj = lift $ asks $ proj . dicts . snd
+
+    getDict' proj = lift $ asks $ proj . dicts . snd
 
     getConverter = lift $ asks $ utfConv . snd
 
@@ -191,6 +195,8 @@ instance ExportMonad ServiceExport where
     getAllServices = lift $ lift $ asks $ snd . fst
 
     getDict proj = lift $ lift $ asks $ proj . dicts . snd
+
+    getDict' proj = lift $ lift $ asks $ proj . dicts . snd
 
     getConverter = lift $ lift $ asks $ utfConv . snd
 
@@ -275,9 +281,9 @@ instance ExportMonad ServiceExport where
               -- More fields are requred for towage/rental service
               "rent" ->
                   do
-                    carCl <- labelOfValue
+                    carCl <- labelOfValue'
                              (dataField0 "carClass" d)
-                             (getDict carClasses)
+                             (getDict' carClasses)
                     return [carCl, oNum]
               "towage" ->
                   do
@@ -691,6 +697,23 @@ labelOfValue val dict = do
   d <- dict
   case D.labelOfValue val d of
     Just label -> return label
+    Nothing -> exportError $ UnknownDictValue val
+
+
+-- | Like 'labelOfValue', but for new-style dictionaries.
+labelOfValue' :: ExportMonad m =>
+                 BS.ByteString
+              -> (m ND.NewDict)
+              -- ^ A projection used to fetch dictionary from export
+              -- monad state.
+              -> m BS.ByteString
+labelOfValue' val dict = do
+  d <- dict
+  case B8.readInt val of
+    Just (n, _) ->
+        case ND.labelOfValue n d of
+          Just label -> return $ encodeUtf8 label
+          Nothing -> exportError $ UnknownDictValue val
     Nothing -> exportError $ UnknownDictValue val
 
 
