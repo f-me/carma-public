@@ -1091,11 +1091,10 @@ closeServiceAndSendInfoVW objId = do
   clearAssignee act1
   addParComment act1
 
-  subprogram <- get objId "caseId" >>= (`get` "subprogram")
+  program <- get objId "caseId" >>= (`get` "program")
   st <- getServiceType objId
-  when (subprogram `elem`
-        (map identFv [ SubProgram.peugeot, SubProgram.citroen
-                     , SubProgram.vwMotor, SubProgram.vwCargo])) $ do
+  when (program `elem`
+        (map identFv [Program.vw, Program.peugeot, Program.citroen])) $ do
     dueDelta <- if st == Just "tech"
                 then do
                   fse <- getService objId "times_factServiceEnd"

@@ -108,14 +108,16 @@ data ExportError = CaseError ErrorType
 
 data ErrorType = NoField FieldName
                | EmptyField FieldName
-               | UnknownSubprogram FieldValue
+               | UnknownProgram FieldValue
                | UnknownService String
                | UnknownTechType FieldValue
                | UnreadableContractorId FieldValue
                | UnknownDictValue FieldValue
                | BadTime FieldValue
+               | BadDate FieldValue
                | BadDays FieldValue
                | BadVin FieldValue
+               | BadContract FieldValue
                | WrongLength Int ByteString
                  deriving Show
 

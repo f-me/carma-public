@@ -28,8 +28,8 @@ CREATE TEMPORARY TABLE "SubProgram_tmp"
 COPY "SubProgram_tmp" (id, program, label, value) FROM stdin;
 1	VW Гарантия Мобильности /B2B	Легковые	vwMotor
 2	VW Гарантия Мобильности /B2B	Коммерческие	vwcargo
-3	PSA	Peugeot	peugeot
-4	PSA	Citroen	citroen
+3	Peugeot	Гарантия	peugeot
+4	Citroen	Гарантия	citroen
 5	VW Гарантия Мобильности /B2B	Продлённая гарантия (коммерческие)	vwCarePoint
 6	VW Гарантия Мобильности /B2B	ДТП	vwdtp
 7	GM Assistance /B2B	Opel (c 01.04.2011)	opel
@@ -133,6 +133,14 @@ COPY "SubProgram_tmp" (id, program, label, value) FROM stdin;
 105	Аларм Ассистанс	Основная	alarmass
 106	Аренда-Авто Ассистанс /B2B	Основная	ArendaAuto
 116	ПАРИ /B2C	GOLD	parigold
+117	Peugeot	Service Plus (2-years)	psp2
+118	Peugeot	Service Plus (3-years)	psp3
+119	Peugeot	Service Optimum (3-years)	pso3
+120	Peugeot	Service Maximum (3-years)	psm3
+121	Citroen	Essential Drive	ced
+122	Citroen	Perfect Drive	cpf
+123	Citroen	Free Drive	cfd
+124	МариАвто Ассистанс	Основная	mariavto
 \.
 
 INSERT INTO "SubProgram" (id, label, parent, value)

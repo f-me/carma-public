@@ -1,4 +1,4 @@
-﻿CREATE OR REPLACE VIEW servicesview AS
+CREATE OR REPLACE VIEW servicesview AS
  SELECT c.id AS caseid,
     c.calldate,
     c.calltaker,

@@ -127,7 +127,7 @@
             },
             {
                 "value": "jumpy",
-                "label": "Jumper"
+                "label": "Jumpy"
             },
             {
                 "value": "nemo",
@@ -644,10 +644,6 @@
                 "label": "Quoris"
             },
             {
-                "value": "venga",
-                "label": "Venga"
-            },
-            {
                 "value": "soul",
                 "label": "Soul"
             },
@@ -728,8 +724,8 @@
                 "label": "Defender"
             },
             {
-                "value": "discavery",
-                "label": "Discavery"
+                "value": "discovery",
+                "label": "Discovery"
             },
             {
                 "value": "freelander",

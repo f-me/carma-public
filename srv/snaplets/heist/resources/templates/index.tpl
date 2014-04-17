@@ -67,6 +67,8 @@
     <!-- Joseph Meyers md5 implementation -->
     <script src="/s/js/3p/md5.js" />
 
+    <script src="/s/js/3p/d3-3.4.6-min.js" />
+
     <!-- global libs, that is not handled by require js -->
     <!-- typeahead menu -->
     <script src="/s/js/gen/globallibs/th-menu.js" />
@@ -111,6 +113,7 @@
 
   </head>
   <body>
+    <svg id="spiral" xmlns="http://www.w3.org/2000/svg" version="1.1" height="100%" width="100%"></svg>
     <!-- Navigation bar on top -->
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
@@ -1596,6 +1599,12 @@
           <b>Кто звонил:</b>
           <span data-bind="text: safelyGet('contact_name')"/>&nbsp;
           <span data-bind="text: safelyGet('contact_phone1')"/>
+        </p>
+        <p data-bind="visible: safelyGet('car_make')">
+          <b>Автомобиль:</b>
+          <span data-bind="text: safelyGet('car_makeLocal')"/>&nbsp;
+          <span data-bind="text: safelyGet('car_modelLocal')"/>&nbsp;
+          <span data-bind="text: safelyGet('car_plateNum')"/>
         </p>
         <p data-bind="visible: safelyGet('caseAddress_address')">
           <b>Адрес кейса:</b>
