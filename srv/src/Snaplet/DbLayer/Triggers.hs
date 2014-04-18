@@ -18,7 +18,7 @@ import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Defaults
 import Snaplet.DbLayer.Triggers.Actions
 import Snaplet.DbLayer.Triggers.Users
-
+import Snaplet.Auth.Class
 
 triggerCreate :: ModelName -> Object -> DbHandler b Object
 triggerCreate model obj = 
@@ -27,7 +27,8 @@ triggerCreate model obj =
       _ -> return obj
 
 
-triggerUpdate :: ModelName -> ObjectId -> Object -> DbHandler b ObjectMap
+triggerUpdate :: HasAuth b
+              => ModelName -> ObjectId -> Object -> DbHandler b ObjectMap
 triggerUpdate model objId commit = do
   let fullId = B.concat [model, ":", objId]
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)

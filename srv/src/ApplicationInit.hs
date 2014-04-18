@@ -122,6 +122,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/restoreProgramDefaults/:pgm",
             chkAuthAdmin . method PUT $ restoreProgramDefaults)
          , ("/errors",        method POST errorsHandler)
+         , ("/userStates/:userId", chkAuth . method GET $ serveUserStates)
          ]
 
 dconf :: DirectoryConfig (Handler App App)

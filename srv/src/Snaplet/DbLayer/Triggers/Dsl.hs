@@ -22,11 +22,13 @@ import Data.Maybe
 
 import Snap (gets, with)
 import Snap.Snaplet.Auth
+import Snaplet.Auth.Class
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 
 
 import RuntimeFlag
+import Util
 
 tryAll :: Alternative f => (a -> f b) -> [a] -> f b
 tryAll f = foldl (<|>) empty . map f
@@ -89,6 +91,6 @@ isReducedMode = do
   flags <- liftDb (gets runtimeFlags) >>= liftIO . readTVarIO
   return $ Set.member ReducedActionsMode flags
 
-getCurrentUser :: MonadTrigger m b => m b (Maybe AuthUser)
-getCurrentUser = liftDb (with auth $ currentUser)
-  
+getCurrentUser :: (MonadTrigger m b, HasAuth b) => m b (Maybe AuthUser)
+getCurrentUser = liftDb (withAuth $ currentUser)
+

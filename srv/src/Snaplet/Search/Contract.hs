@@ -36,14 +36,14 @@ contractSearch :: SearchHandler b
 contractSearch = defaultSearch contractSearchParams mkQuery
 
 mkQuery :: forall t.MkSelect t => t -> Text -> Int -> Int -> String -> Query
-mkQuery _ pred lim offset ord
+mkQuery _ predicate lim offset ord
   = fromString $ printf
       (  "    select %s"
       ++ "     from \"Contract\""
       ++ "     where (%s) %s limit %i offset %i;"
       )
       (T.unpack $ mkSel (undefined :: t))
-      (T.unpack pred) ord lim offset
+      (T.unpack predicate) ord lim offset
 
 -- | Identical to 'contractSearch', but yields only contracts created
 -- by current user if isDealer flag is set.

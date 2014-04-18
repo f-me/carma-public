@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Snaplet.DbLayer
   (create
@@ -60,10 +61,17 @@ import Snaplet.DbLayer.Types
 import qualified Carma.ModelTables as MT (loadTables)
 import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
+import Snaplet.Auth.Class
 import DictionaryCache
 import RuntimeFlag
 
-create :: ModelName -> Object
+import qualified Carma.Model.Call as Call
+import           Carma.Model.Event (EventType(..))
+import qualified Utils.Events as Evt
+
+
+create :: HasAuth b
+       => ModelName -> Object
        -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
 create model commit = scoper "create" $ do
   tbls <- gets syncTables
@@ -86,10 +94,14 @@ create model commit = scoper "create" $ do
   --
   Right _ <- Redis.updateMany redis changes
 -}
-  return $ Map.insert "id" objId
-         $ obj Map.\\ commit
 
-findOrCreate :: ModelName -> ObjectId -> Object
+  when (model == "call") $
+    Evt.logLegacyCRUD Create (B.concat [model, ":", objId]) Call.ident
+
+  return $ Map.insert "id" objId $ obj Map.\\ commit
+
+findOrCreate :: HasAuth b
+             => ModelName -> ObjectId -> Object
              -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
 findOrCreate model objId commit = do
   r <- read model objId
@@ -109,7 +121,8 @@ read model objId = do
 read' :: ByteString -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
 read' objId = Redis.read' redis objId
 
-update :: ModelName -> ObjectId -> Object
+update :: HasAuth b
+       =>  ModelName -> ObjectId -> Object
        -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
 update model objId commit = scoper "update" $ do
   tbls <- gets syncTables
@@ -125,9 +138,15 @@ update model objId commit = scoper "update" $ do
     toPair [x, y] = Just (x, y)
     toPair _ = Nothing
 
-  let changes' = Map.mapWithKey (\(_,k) v -> Map.insert "id" k v) . Map.mapKeys fromJust . Map.filterWithKey (\k _ -> isJust k) . Map.mapKeys (toPair . C8.split ':') $ changes
-  log Trace $ fromString $ "Changes: " ++ show changes'
+  let changes' = Map.mapWithKey (\(_,k) v -> Map.insert "id" k v) .
+                 Map.mapKeys fromJust                             .
+                 Map.filterWithKey (\k _ -> isJust k)             .
+                 Map.mapKeys (toPair . C8.split ':')              $
+                 changes
+  log Trace $ fromString $ "Changes: " ++ show changes
   Postgres.insertUpdateMany tbls changes'
+
+  -- mapM_ (uncurry $ Evt.logLegacyCRUD Update) $ Map.toList changes'
   --
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
   return $ stripUnchanged commit $ changes Map.! fullId

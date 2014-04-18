@@ -24,6 +24,7 @@ module Util
   , (:*)(..)
   , ToRowList(..)
   , sqlFlagPair
+  , withPG
   ) where
 
 import qualified Data.Map as Map
@@ -62,8 +63,11 @@ import Database.PostgreSQL.Simple.Types
 
 import Text.Printf (printf)
 
-import qualified Data.Model as Model
+import Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
+import qualified Database.PostgreSQL.Simple as P
 
+import qualified Data.Model as Model
+import Data.Pool
 
 data JSONParseException
   = AttoparsecError FilePath String
@@ -258,3 +262,11 @@ sqlFlagPair :: b
             -> (Bool, b)
 sqlFlagPair def _ Nothing  = (True,  def)
 sqlFlagPair _   f (Just v) = (False, f v)
+
+withPG :: (HasPostgres m)
+       => (P.Connection -> IO b) -> m b
+withPG f = do
+    s <- getPostgresState
+    let pool = pgPool s
+    liftIO $ withResource pool f
+

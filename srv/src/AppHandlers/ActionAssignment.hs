@@ -17,7 +17,7 @@ import Database.PostgreSQL.Simple
 import Application
 import AppHandlers.CustomSearches
 import AppHandlers.Util
-import Util
+import Util hiding (withPG)
 
 
 assignQ :: Int -> AuthUser -> Query
