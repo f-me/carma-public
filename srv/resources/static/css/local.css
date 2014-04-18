@@ -362,16 +362,16 @@ table.dataTable tr.selected-row td.sorting_1 {
     stroke-opacity: .2;
 }
 
-.chart .login {
-    fill: #002b36;
-}
-
-.chart .ready {
+.chart .Ready {
     fill: #2aa198;
 }
 
-.chart .busy {
+.chart .Busy {
     fill: #859900;
+}
+
+.chart .LoggedOut {
+    fill: #93a1a1;
 }
 
 .chart .lunch {
@@ -384,10 +384,6 @@ table.dataTable tr.selected-row td.sorting_1 {
 
 .chart .service_break {
     fill: #dc322f;
-}
-
-.chart .logout {
-    fill: #93a1a1;
 }
 
 .chart .line {
