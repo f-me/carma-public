@@ -1,4 +1,4 @@
-{-# LANGUAGE DoAndIfThenElse #-}
+{-# LANGUAGE DoAndIfThenElse, ScopedTypeVariables #-}
 
 {-|
 
@@ -14,25 +14,39 @@ module AppHandlers.Users
     , claimUserActivity
     , claimUserLogout
     , serveUserCake
+    , serveUserStates
     )
 
 where
 
+import           Data.Maybe
+import qualified Data.Text           as T
 import qualified Data.HashMap.Strict as HM
+import           Data.String (fromString)
+
+import           Text.Printf
+
+import           Database.PostgreSQL.Simple (query)
 
 import Snap
 import Snap.Snaplet.Auth hiding (Role, session)
 import qualified Snap.Snaplet.Auth as Snap (Role(..))
-import Snap.Snaplet.PostgresqlSimple
+import Snap.Snaplet.PostgresqlSimple hiding (query)
 
 import Data.Model
-import Carma.Model.Role as Role
+import Data.Model.Patch
+
+import Carma.Model.Role      as Role
+import Carma.Model.Usermeta  as Usermeta
+import Carma.Model.UserState as UserState
 
 import Application
 import AppHandlers.Util
 import Snaplet.Auth.PGUsers
+import Snaplet.Search.Types (mkSel)
 
 import Util (identFv)
+import Utils.LegacyModel (readIdent)
 
 
 ------------------------------------------------------------------------------
@@ -141,3 +155,13 @@ serveUserCake
       writeJSON $ usr
         {userMeta = HM.insert "homepage" homePage $ userMeta usr
         }
+
+-- | Serve user states
+serveUserStates :: AppHandler ()
+serveUserStates = do
+  usrId :: IdentI Usermeta <- readIdent <$> fromJust <$> getParam "userId"
+  states <- withPG pg_search $ \c -> do
+    query c (fromString $ printf
+      "SELECT %s FROM \"UserState\" WHERE userId = ? ORDER BY id desc"
+      (T.unpack $ mkSel (undefined :: Patch UserState))) $ Only $ identVal usrId
+  writeJSON (states :: [Patch UserState])
