@@ -162,6 +162,6 @@ serveUserStates = do
   usrId :: IdentI Usermeta <- readIdent <$> fromJust <$> getParam "userId"
   states <- withPG pg_search $ \c -> do
     query c (fromString $ printf
-      "SELECT %s FROM \"UserState\" WHERE userId = ? ORDER BY id desc"
+      "SELECT %s FROM \"UserState\" WHERE userId = ? ORDER BY id ASC"
       (T.unpack $ mkSel (undefined :: Patch UserState))) $ Only $ identVal usrId
   writeJSON (states :: [Patch UserState])
