@@ -152,11 +152,11 @@ define ["model/utils", "dictionaries"], (mu, d) ->
     else
       "#{hours}ч #{mins}м"
 
-  newModelDict = (name, stringify) ->
+  newModelDict = (name, stringify, meta) ->
     new d.dicts.ModelDict
       dict: name
       meta:
-        dictionaryStringify: stringify
+        _.extend (meta || {}), {dictionaryStringify: stringify}
 
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
@@ -190,11 +190,12 @@ define ["model/utils", "dictionaries"], (mu, d) ->
     si?.info or ""
 
   getProgramDesc: (pid, sid) ->
-    pi = _.find newModelDict('Program').entries, (p) ->
-      p.id == pid
-    si = _.find newModelDict('SubProgram').entries, (s) ->
-      s.id == sid
-    _.compact([pi?.help, si?.help]).join '<br />'
+    meta = {dictionaryLabel: 'help'}
+    pi = _.find newModelDict('Program', false, meta).source, (p) ->
+      p.value == pid
+    si = _.find newModelDict('SubProgram', false, meta).source, (s) ->
+      s.value == sid
+    _.compact([pi?.label, si?.label]).join '<br />'
 
   # Scroll case field into view and focus
   focusField: (name) ->

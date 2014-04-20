@@ -125,7 +125,7 @@ define ["utils", "dictionaries"], (u, d) ->
         _.chain(s).map((x) -> mkServicesDescs(p,x)).compact().value()
     knockVM['programDesc'] = ko.computed
       read: ->
-        u.getProgramDesc (parseInt knockVM['program'](), parseInt knockVM['subprogram']?())
+        u.getProgramDesc (parseInt knockVM['program']()), (parseInt knockVM['subprogram']?())
 
   eventsHistoryKbHook: (model, knockVM) ->
     fillEventsHistory(knockVM)()
