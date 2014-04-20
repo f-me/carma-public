@@ -4,6 +4,7 @@ CREATE TABLE "Program"
   , client text
   , clientAddress text
   , clientCode text
+  , fdds int4
   , managers int4[] -- ELEMENT REFERENCES Usermeta
   , pType int4 REFERENCES "ProgramType"
   );
