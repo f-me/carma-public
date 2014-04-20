@@ -49,6 +49,12 @@ import           Carma.Model.ProgramType
 
 import           Data.Model
 
+import           Carma.Model.Diagnostics.Cause           (Cause)
+import           Carma.Model.Diagnostics.Part            (Part)
+import           Carma.Model.Diagnostics.Suggestion      (Suggestion)
+import           Carma.Model.Diagnostics.System          (System)
+import           Carma.Model.Diagnostics.Wazzup          (Wazzup)
+
 import           Carma.Model.Service                     (Service)
 import           Carma.Model.Service.AverageCommissioner (AverageCommissioner)
 import           Carma.Model.Service.Bank                (Bank)
@@ -118,6 +124,12 @@ modelMap fn = modelMap'
       ,add (undefined :: ServiceInfo)
       ,add (undefined :: ServiceNames)
       ,add (undefined :: Call)
+
+      ,add (undefined :: Cause)
+      ,add (undefined :: Part)
+      ,add (undefined :: Suggestion)
+      ,add (undefined :: System)
+      ,add (undefined :: Wazzup)
 
       ,add (undefined :: Service)
       ,add (undefined :: AverageCommissioner)

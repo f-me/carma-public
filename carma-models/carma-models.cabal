@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.17.10
+version:             0.17.11
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -54,6 +54,12 @@ library
     Carma.Model.Case,
     Carma.Model.Case.Type,
     Carma.Model.Call,
+
+    Carma.Model.Diagnostics.Cause,
+    Carma.Model.Diagnostics.Part,
+    Carma.Model.Diagnostics.Suggestion,
+    Carma.Model.Diagnostics.System,
+    Carma.Model.Diagnostics.Wazzup,
 
     Carma.Model.Service,
     Carma.Model.Service.AverageCommissioner,
