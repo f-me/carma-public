@@ -10,3 +10,5 @@ $PSQL -f baseline/3-dictionaries/46-Part.sql
 $PSQL -f baseline/3-dictionaries/47-Cause.sql
 $PSQL -f baseline/3-dictionaries/48-Suggestion.sql
 $PSQL -f baseline/3-dictionaries/49-Wazzup.sql
+
+# bump
