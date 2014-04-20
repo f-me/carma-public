@@ -34,6 +34,16 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (24, 'SmsTokenValue', 'Значения переменных шаблонов СМС',
        ARRAY[]::int4[], ARRAY['id', 'token', 'program', 'subprogram'])
+, (25, 'Wazzup', 'Диагностика: что случилось',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (26, 'System', 'Диагностика: системы',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (27, 'Part', 'Диагностика: узлы/детали',
+       ARRAY[]::int4[], ARRAY['id', 'parent', 'label'])
+, (28, 'Cause', 'Диагностика: причины неисправности',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (29, 'Suggestion', 'Диагностика: рекомендации',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
 ;
 
 GRANT SELECT ON "Dictionary" TO carma_db_sync;
