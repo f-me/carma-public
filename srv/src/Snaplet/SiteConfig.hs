@@ -42,7 +42,6 @@ import Utils.LegacyModel
 import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
-import qualified Carma.Model.ProgramInfo as ProgramInfo
 import qualified Carma.Model.ServiceInfo as ServiceInfo
 import qualified Carma.Model.ServiceNames as ServiceNames
 
@@ -196,8 +195,6 @@ serveDictionaries :: Handler b (SiteConfig b) ()
 serveDictionaries = do
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
 
-  programInfos <- withPG
-    $ selectJSON (ProgramInfo.program :. ProgramInfo.info)
   serviceInfos <- withPG
     $ selectJSON (ServiceInfo.program :. ServiceInfo.service :. ServiceInfo.info)
   serviceNames <- withPG
@@ -206,8 +203,6 @@ serveDictionaries = do
   Aeson.Object dictMap <- gets dictionaries
   -- Support legacy client interface for some dictionaries
   writeJSON $ Aeson.Object
-    $ HM.insert "ProgramInfo"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList programInfos)])
     $ HM.insert "ServiceInfo"
       (Aeson.object [("entries", Aeson.Array $ V.fromList serviceInfos)])
     $ HM.insert "ServiceNames"

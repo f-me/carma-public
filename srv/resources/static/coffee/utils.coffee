@@ -152,6 +152,12 @@ define ["model/utils", "dictionaries"], (mu, d) ->
     else
       "#{hours}ч #{mins}м"
 
+  newModelDict = (name, stringify) ->
+    new d.dicts.ModelDict
+      dict: name
+      meta:
+        dictionaryStringify: stringify
+
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
   # build global function from local to module one
@@ -183,10 +189,12 @@ define ["model/utils", "dictionaries"], (mu, d) ->
       info.program == pid and info.service == service
     si?.info or ""
 
-  getProgramDesc: (pid) ->
-    pi = _.find global.dictionaries['ProgramInfo'].entries, (info) ->
-      info.program == pid
-    pi?.info or ""
+  getProgramDesc: (pid, sid) ->
+    pi = _.find newModelDict('Program').entries, (p) ->
+      p.id == pid
+    si = _.find newModelDict('SubProgram').entries, (s) ->
+      s.id == sid
+    _.compact([pi?.help, si?.help]).join '<br />'
 
   # Scroll case field into view and focus
   focusField: (name) ->
@@ -397,11 +405,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
 
   inject: (dest, src) -> dest[k] = v for k, v of src when not dest[k]
 
-  newModelDict: (name, stringify) ->
-    new d.dicts.ModelDict
-      dict: name
-      meta:
-        dictionaryStringify: stringify
+  newModelDict: newModelDict
 
   newComputedDict: (name, meta) ->
     new d.dicts.ComputedDict

@@ -17,7 +17,6 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
 , (5, 'FieldPermission', 'Разрешения для полей', ARRAY[]::int4[], ARRAY['id', 'role', 'model', 'field'])
 , (6, 'SmsTemplate', 'Шаблон СМС', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (7, 'Role', 'Роли', ARRAY[]::int4[], ARRAY['id', 'value', 'label'])
-, (8, 'ProgramInfo', 'Информация о программах', ARRAY[11], ARRAY['id', 'program', 'info'])
 , (9, 'ServiceNames', 'Услуги', ARRAY[]::int4[], ARRAY['id', 'value', 'label', 'icon'])
 , (10, 'ServiceInfo', 'Информация об услугах', ARRAY[11,9], ARRAY['id', 'program', 'service', 'info'])
 , (11, 'Program', 'Программа', ARRAY[]::int4[], ARRAY['id', 'label'])
