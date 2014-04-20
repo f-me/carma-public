@@ -10,3 +10,5 @@ $PSQL -f baseline/3-dictionaries/27-Sms.sql
 
 $PSQL -f baseline/3-dictionaries/43-SmsTokenName.sql
 $PSQL -f baseline/3-dictionaries/44-SmsTokenValue.sql
+
+# bump

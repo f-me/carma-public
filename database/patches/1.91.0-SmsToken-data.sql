@@ -4,6 +4,8 @@ COPY "SmsTokenName" (id, var_name, label) FROM stdin;
 3	program_info	Название программы
 \.
 
+SELECT setval(pg_get_serial_sequence('"SmsTokenName"', 'id'), max(id)) from "SmsTokenName";
+
 CREATE TEMPORARY TABLE "SmsTokenValue_tmp" (tok int, pValue text, value text);
 -- program_contact_info
 COPY "SmsTokenValue_tmp" (tok, pValue, value) FROM stdin;
