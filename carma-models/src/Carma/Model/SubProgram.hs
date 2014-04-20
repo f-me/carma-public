@@ -39,6 +39,8 @@ instance Model SubProgram where
                 , required label
                 , required value
                 , infoText "subProgramValue" value
+                , infoText "programHelp" help
+                , infoText "programDealerHelp" dealerHelp
                 , setMeta "reference-label"
                   (A.String "Добавить контактное лицо") contacts
                 , setMeta "reference-widget" "subprogram-contacts" contacts

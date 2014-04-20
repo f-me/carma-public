@@ -28,6 +28,8 @@ data Program = Program
                              "managers"  "Менеджеры по программе"
   , pType                 :: F (Maybe (IdentI ProgramType))
                              "pType"  "Тип программы"
+  , help                  :: F (Maybe Text)
+                             "help" "Справка"
   } deriving Typeable
 
 
@@ -51,6 +53,8 @@ instance Model Program where
                 [ setMeta "dictionaryType" "ComputedDict" managers
                 , setMeta "dictionaryName" "programManagers" managers
                 , setMeta "bounded" (A.Bool True) managers
+                , textarea help
+                , infoText "programHelp" help
                 , required Carma.Model.Program.label
                 ]
     _  -> Nothing

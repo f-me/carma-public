@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.17.9
+version:             0.17.10
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -76,7 +76,6 @@ library
     Carma.Model.Service.TechInspect,
     Carma.Model.Service.Towage,
 
-    Carma.Model.ProgramInfo,
     Carma.Model.ServiceInfo,
     Carma.Model.ServiceNames,
     Carma.Model.Colors,
