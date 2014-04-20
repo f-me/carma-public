@@ -195,6 +195,7 @@ instance Model Contract where
 
 
 -- | Meta setters common for standard and search views.
+commonMeta :: [(Text, FieldView -> FieldView) :@ Contract]
 commonMeta =
     [ setMeta "dictionaryParent" "make" model
     , setMeta "dictionaryLabel"

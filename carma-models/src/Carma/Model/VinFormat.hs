@@ -95,7 +95,7 @@ instance Model VinFormat where
 -- | Export a list of titles from a field.
 --
 -- TODO Refactor this so that we can match on TitleParameter singleton
--- (requires witness that TitleParameter (SFFT a) ~ SFFL v).
+-- (requires type witness that TitleParameter (SFFT a) ~ SFFL v).
 ffaTitles :: FormatFieldAccessor VinFormat -> Patch.Patch VinFormat -> [Text]
 ffaTitles (FFAcc _ sTag _ _ _ tAcc) vf =
     let
