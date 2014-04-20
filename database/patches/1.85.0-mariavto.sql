@@ -31,12 +31,6 @@ UPDATE contract_tmp c
 SET carmodel = m.id::text FROM "CarModel" m
 WHERE m.value = c.carmodel;
 
-UPDATE contract_tmp SET carcolor = null WHERE NOT carcolor IN
-(SELECT value FROM "Colors");
-UPDATE contract_tmp c
-SET carcolor = l.id::text FROM "Colors" l
-WHERE l.value = c.carcolor;
-
 UPDATE contract_tmp SET cartransmission = '1' WHERE cartransmission='auto';
 UPDATE contract_tmp SET cartransmission = '2' WHERE cartransmission='mech';
 UPDATE contract_tmp SET cartransmission = '3' WHERE cartransmission='robot';
