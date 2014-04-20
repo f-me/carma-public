@@ -15,7 +15,6 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
     ARRAY[]::int4[],
     ARRAY['id', 'screen', 'model', 'program', 'label'])
 , (5, 'FieldPermission', 'Разрешения для полей', ARRAY[]::int4[], ARRAY['id', 'role', 'model', 'field'])
-, (6, 'SmsTemplate', 'Шаблон СМС', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (7, 'Role', 'Роли', ARRAY[]::int4[], ARRAY['id', 'value', 'label'])
 , (9, 'ServiceNames', 'Услуги', ARRAY[]::int4[], ARRAY['id', 'value', 'label', 'icon'])
 , (10, 'ServiceInfo', 'Информация об услугах', ARRAY[11,9], ARRAY['id', 'program', 'service', 'info'])
@@ -30,6 +29,11 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
 , (19, 'CheckType', 'Вид ТО', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (20, 'CarClass', 'Классы автомобилей', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (21, 'BusinessRole', 'Бизнес-роли', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (22, 'SmsTemplate', 'Шаблон СМС', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (23, 'SmsTokenName', 'Переменные шаблонов СМС',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (24, 'SmsTokenValue', 'Значения переменных шаблонов СМС',
+       ARRAY[]::int4[], ARRAY['id', 'token', 'program', 'subprogram'])
 ;
 
 GRANT SELECT ON "Dictionary" TO carma_db_sync;

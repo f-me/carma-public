@@ -45,6 +45,7 @@ Executable carma
     Snaplet.DbLayer.Triggers.Types,
     Snaplet.DbLayer.Triggers.Users,
     Snaplet.DbLayer.Types,
+    Snaplet.DbLayer.Util,
     Snaplet.SiteConfig,
     Snaplet.SiteConfig.Class,
     Snaplet.SiteConfig.Dictionaries,
