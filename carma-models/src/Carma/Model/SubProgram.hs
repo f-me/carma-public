@@ -34,15 +34,11 @@ instance Model SubProgram where
   modelInfo = mkModelInfo SubProgram ident
   modelView = \case
     "" -> Just $ modifyView defaultView
-                [ setMeta "regexp" "number" checkPeriod
-                , setMeta "regexp" "number" validFor
-                , setMeta "regexp" "email" mailAddr
+                [ setMeta "regexp" "email" mailAddr
                 , required parent
                 , required label
                 , required value
                 , infoText "subProgramValue" value
-                , widget "text" checkPeriod
-                , widget "text" validFor
                 , setMeta "reference-label"
                   (A.String "Добавить контактное лицо") contacts
                 , setMeta "reference-widget" "subprogram-contacts" contacts
