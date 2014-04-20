@@ -211,6 +211,8 @@ lovViewer	CarMake	value	t	f
 lovAdmin	CarMake	value	t	t
 lovViewer	CarMake	synonyms	t	f
 lovAdmin	CarMake	synonyms	t	t
+lovViewer	CarMake	fdds	t	f
+lovAdmin	CarMake	fdds	t	t
 lovViewer	CarModel	label	t	f
 lovAdmin	CarModel	label	t	t
 lovViewer	CarModel	parent	t	f
@@ -221,6 +223,8 @@ lovViewer	CarModel	info	t	f
 lovAdmin	CarModel	info	t	t
 lovViewer	CarModel	synonyms	t	f
 lovAdmin	CarModel	synonyms	t	t
+lovViewer	CarModel	fdds	t	f
+lovAdmin	CarModel	fdds	t	t
 lovViewer	Engine	label	t	f
 lovAdmin	Engine	label	t	t
 lovViewer	Engine	synonyms	t	f
@@ -1298,6 +1302,8 @@ lovViewer	Program	managers	t	f
 lovAdmin	Program	managers	t	t
 lovViewer	Program	pType	t	f
 lovAdmin	Program	pType	t	t
+lovViewer	Program	fdds	t	f
+lovAdmin	Program	fdds	t	t
 lovViewer	SubProgram	parent	t	f
 lovAdmin	SubProgram	parent	t	t
 lovViewer	SubProgram	label	t	f
