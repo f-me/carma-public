@@ -1,7 +1,89 @@
 define ["text!tpl/screens/timeline.html"
       , "d3"
-      , "screenman"]
-    , (tpl, d3, Screenman) ->
+      , "utils"]
+    , (tpl, d3, Utils) ->
+
+
+  class Table
+    constructor: (opt) ->
+      @limitDef = 10
+      @offsetDef = 0
+
+      @columns = opt.columns
+      @data = opt.data
+
+      @items = ko.observableArray(_.clone @data)
+
+      @limit = ko.observable(@limitDef)
+      @offset = ko.observable(@offsetDef)
+
+      @typeahead = ko.observable()
+      @typeahead.subscribe (value) =>
+        @resetPager()
+        @items.removeAll()
+        if value
+          items = _.filter @data, (row) =>
+            _.some @columns, (column) =>
+              row[column.name].indexOf(value) isnt -1
+          @items(items)
+        else
+          @items(_.clone @data)
+
+      @prev = ko.computed =>
+        offset = @offset() - @limit()
+        if offset < 0 then null else offset / @limit() + 1
+
+      @next = ko.computed =>
+        length = @items().length
+        offset = @offset() + @limit()
+        if (length - offset) > 0 then offset / @limit() + 1 else null
+
+      @page = ko.computed =>
+        @offset() / @limit() + 1
+
+      @clickCb = []
+
+      @rows = ko.computed =>
+        @items.slice(@offset(), @offset() + @limit())
+
+    resetPager: =>
+        @limit(@limitDef)
+        @offset(@offsetDef)
+
+    prevPage: =>
+      @offset(@offset() - @limit())
+
+    nextPage: =>
+      @offset(@offset() + @limit())
+
+    onClick: (cb) =>
+      @clickCb.push cb
+
+    rowClick: (data) =>
+      return =>
+        _.each @clickCb, (cb) ->
+          cb(data)
+
+    sortColumn: (data) =>
+      return =>
+        name = data.name
+        sort = data.sort
+        column = @columns[@columns.indexOf(data)]
+        if (sort is "desc") or not sort
+          @items.sort (a, b) =>
+            @asc(a[name], b[name])
+          column.sort = "asc"
+        else
+          @items.sort (a, b) =>
+            @desc(a[name], b[name])
+          column.sort = "desc"
+        @resetPager()
+
+    asc: (a, b) ->
+      if a.toLowerCase() > b.toLowerCase() then 1 else -1
+
+    desc: (a, b) ->
+      if a.toLowerCase() < b.toLowerCase() then 1 else -1
 
   class Timeline
 
@@ -13,7 +95,7 @@ define ["text!tpl/screens/timeline.html"
 
       @user = bind.user
       @elementId = "chart-#{@user.id}"
-      @title = "Таймлайн - #{@user.realName}"
+      @title = "Таймлайн - #{@user.realName} (#{@user.login})"
       @legend_data = [ {text: "Готов" ,     state: "Ready"     }
                      , {text: "Занят",      state: "Busy"      }
                      , {text: "Разлогинен", state: "LoggedOut" }
@@ -195,35 +277,26 @@ define ["text!tpl/screens/timeline.html"
           .attr("width", (d) => @rectWidth(@xMainScale, d))
 
   setupScreen = (viewName, args) ->
+    model = global.model("usermeta")
+    columns = _.map ["login", "realName"], (c) =>
+      _.find model.fields, (f) =>
+        f.name is c
+    data = new Utils.newModelDict("Usermeta")
+    table = new Table
+      data: data.items
+      columns: columns
+
     kvm =
       timelines: ko.observableArray()
+      table: table
 
-    tableParams =
-      tableName: "users"
-      objURL: "/_/Usermeta"
-
-    users = []
-    objsToRows = (objs) ->
-      users = objs
-      rows = for obj in objs
-        [obj.id
-        ,"#{obj.realName}" || ''
-        ]
-
-    table = Screenman.addScreen(viewName, -> )
-      .addTable(tableParams)
-      .setObjsToRowsConverter(objsToRows)
-      .on("click.datatable", "tr", ->
-        i = table.dataTable.fnGetPosition(@)
-        user = users[i]
-        unless _.find(kvm.timelines(), (t) -> t.user.id is user.id)
-          $("html, body").animate({ scrollTop: $(document).height() }, "slow")
-          $.getJSON "/userStates/#{user.id}", (states) ->
-            timeline = new Timeline({user: user})
-            timeline.setData(states)
-            kvm.timelines.push(timeline))
-
-    Screenman.showScreen viewName
+    table.onClick (user) ->
+      unless _.find(kvm.timelines(), (t) -> t.user.id is user.id)
+        $("html, body").animate({ scrollTop: $(document).height() }, "slow")
+        $.getJSON "/userStates/#{user.id}", (states) ->
+          timeline = new Timeline({user: user})
+          timeline.setData(states)
+          kvm.timelines.push(timeline)
 
     ko.applyBindings(kvm, el(viewName))
 
