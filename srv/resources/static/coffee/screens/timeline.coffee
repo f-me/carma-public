@@ -100,6 +100,7 @@ define ["text!tpl/screens/timeline.html"
                      , {text: "Занят",      state: "Busy"      }
                      , {text: "Разлогинен", state: "LoggedOut" }
                      ]
+      @closeCbs = []
 
     setData: (states) =>
       unless _.isEmpty states
@@ -276,6 +277,14 @@ define ["text!tpl/screens/timeline.html"
           .attr("x", (d) => @xMainScale(d.value.begin))
           .attr("width", (d) => @rectWidth(@xMainScale, d))
 
+    onClose: (cb) =>
+      @closeCbs.push cb
+
+    closeClick: (data) =>
+      el(data.elementId).remove()
+      _.each @closeCbs, (cb) ->
+        cb(data)
+
   setupScreen = (viewName, args) ->
     model = global.model("usermeta")
     columns = _.map ["login", "realName"], (c) =>
@@ -296,7 +305,9 @@ define ["text!tpl/screens/timeline.html"
         $.getJSON "/userStates/#{user.id}", (states) ->
           timeline = new Timeline({user: user})
           timeline.setData(states)
-          kvm.timelines.push(timeline)
+          timeline.onClose ->
+            kvm.timelines.remove timeline
+          kvm.timelines.push timeline
 
     ko.applyBindings(kvm, el(viewName))
 

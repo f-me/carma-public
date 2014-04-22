@@ -68,10 +68,14 @@
   <!-- /ko -->
 
   <script type="text/html" id="timeline-template">
-    <div class="row-fluid">
+    <div class="row-fluid timeline">
       <div class="bs-docs-example span10 offset1">
         <div class="bs-docs-example-after"
               data-bind="text: $data.title">
+        </div>
+        <div class="bs-docs-example-close">
+          <button type="button" class="close"
+              data-bind="click: $data.closeClick">&times;</button>
         </div>
         <div class="row-fluid">
           <div class="chart">

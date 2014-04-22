@@ -346,6 +346,13 @@ table.dataTable tr.selected-row td.sorting_1 {
   border-radius: 4px 0 4px 0;
 }
 
+.bs-docs-example-close {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  padding: 6px 14px;
+}
+
 .chart path, .chart line {
     fill: none;
     stroke: #000;
