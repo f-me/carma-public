@@ -114,7 +114,37 @@ define ["text!tpl/screens/timeline.html"
       @data = d3.entries(srects)
       if @chart then @draw()
 
+    showRangePicker: (element) =>
+      moment().lang("ru")
+      $picker = $(element).find(".rangepicker")
+      $picker.daterangepicker(
+        {
+          format: 'D MMMM, YYYY',
+          locale: {
+            applyLabel: 'Установить',
+            cancelLabel: 'Отмена',
+            fromLabel: 'С',
+            toLabel: 'ПО',
+            weekLabel: 'Н',
+            customRangeLabel: 'Календарь...',
+          },
+          ranges: {
+            'Сегодня': [moment(), moment()],
+            'Вчера': [moment().subtract('days', 1), moment().subtract('days', 1)],
+            'Последние 7 дней': [moment().subtract('days', 6), moment()],
+          },
+          startDate: moment().subtract('days', 29),
+          endDate: moment()
+        },
+        (start, end) ->
+          # TODO: do get data request
+          # and call @setData
+          console.log start.valueOf(), end.valueOf()
+      )
+
     showTimeline: (element) =>
+      @showRangePicker(element)
+
       # main container
       @chart = d3.select($(element).find(".chart")[0])
         .append("svg")
