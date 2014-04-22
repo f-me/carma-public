@@ -21,7 +21,7 @@
     c.contact_ownerphone4,
     c.contact_owneremail,
     spgm.value AS program,
-    (pgm.label || ' — '::text) || spgm.label AS programlabel,
+    (pgm.label || ' — '::text) || coalesce(spgm.label, '') AS programlabel,
     c.car_vin,
     c.car_make,
     c.car_model,
