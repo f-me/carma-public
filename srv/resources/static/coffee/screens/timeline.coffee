@@ -166,6 +166,12 @@ define ["text!tpl/screens/timeline.html"
       @mini = @chart.append("g")
         .attr("class", "mini")
         .attr("transform", => "translate(#{@margin}, 200)")
+      @mini.append("text")
+        .attr("x", @width / 2 - 40)
+        .attr("y", 0)
+        .attr("width", 40)
+        .attr("height", 20)
+        .text("(Выберите диапазон)")
 
       ###
         define scales and axis for charts
