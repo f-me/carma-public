@@ -132,9 +132,7 @@ define ["text!tpl/screens/timeline.html"
             'Сегодня': [moment(), moment()],
             'Вчера': [moment().subtract('days', 1), moment().subtract('days', 1)],
             'Последние 7 дней': [moment().subtract('days', 6), moment()],
-          },
-          startDate: moment().subtract('days', 29),
-          endDate: moment()
+          }
         },
         (start, end) ->
           # TODO: do get data request
