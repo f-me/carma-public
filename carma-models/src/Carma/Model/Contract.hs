@@ -61,7 +61,7 @@ instance forall m nm desc . (SingI nm, SingI desc, Model m)
 
 
 data Contract = Contract
-  { ident            :: PK Int Contract ""
+  { ident            :: PK Int Contract "№ контракта"
   , ctime            :: F UTCTime
                         "ctime"
                         "Время создания контракта"
@@ -203,6 +203,8 @@ commonMeta =
       committer
     , color `completeWith` Color.label
     , partnerKey seller
+    , setType "Integer" ident
+    , widget "text" ident
     , partnerKey lastCheckDealer
     ]
 
@@ -233,6 +235,7 @@ contractSearchParams =
     (map (\p@(FA f) -> (fieldNameE p, one $ f)) $
      [ FA subprogram
      , FA isActive
+     , FA ident
      , FA make
      , FA model
      , FA carClass
