@@ -6,7 +6,7 @@ define [ "search/screen"
        ], (Screen, tpl, main, u) ->
   # Initialize portal search screen from portal-stripped Contract
   # model
-  screenConstructor = (Contract, Search, Table) ->
+  screenConstructor = (Search, Table) ->
     # All portal fields marked with showtable option in subprogram
     # dictionary are searchable and shown in the table
     resultFields = _.map Table.fields, (f) ->
@@ -18,12 +18,12 @@ define [ "search/screen"
         hideFieldsList: true
         apiUrl: "/search/portal"
         searchModels: [Search]
-        resultModels: [Contract]
+        resultModels: [Table]
         resultTable: _.filter resultFields, (f) -> f.name != "subprogram"
         searchFields: searchFields
         defaultSort: { fields: [{ model: "Contract", name: "id" }], order: "desc" }
         allowedResultFields:
-          Contract: _.pluck Contract.fields, 'name'
+          Contract: _.pluck Table.fields, 'name'
 
   # Given subprogram id and its title, setup logo, title and dealer
   # help on page header
@@ -159,11 +159,10 @@ define [ "search/screen"
       contract null
       openContract contract()
 
-    $.getJSON "/cfg/model/#{contractModel}", (Contract) ->
-      $.getJSON "/cfg/model/#{contractModel}&field=showtable&view=portalSearch", (Search) ->
-        $.getJSON "/cfg/model/#{contractModel}&field=showtable", (Table) ->
+    $.getJSON "/cfg/model/#{contractModel}&field=showtable&view=portalSearch", (Search) ->
+      $.getJSON "/cfg/model/#{contractModel}&field=showtable", (Table) ->
           # Search subscreen
-          searchVM = screenConstructor Contract, Search, Table
+          searchVM = screenConstructor Search, Table
           global.searchVM = searchVM
           searchVM.subprogram subprogram
 
