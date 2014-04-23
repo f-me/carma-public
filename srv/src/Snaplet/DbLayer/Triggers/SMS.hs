@@ -30,9 +30,8 @@ import Database.PostgreSQL.Simple.SqlQQ
 import Data.Model as Model
 import Data.Model.Sql
 
-import Carma.Model.SmsTokenName as Token
-import Carma.Model.SmsTokenValue as Token
 import Carma.Model.SmsTemplate (SmsTemplate)
+import Carma.Model.SubProgram as SubProgram
 
 import DictionaryCache
 import Util as U
@@ -62,28 +61,18 @@ sendSMS actId tplId = do
 
   opName  <- T.decodeUtf8 <$> actId `get` "assignedTo"
   cityVal <- T.decodeUtf8 <$> caseId `get` "city"
-  program <- caseId `get` "program"
   subProgram <- caseId `get` "subProgram"
   (sender, pInfo, pCInfo) <-
-      case (B8.readInt program, B8.readInt subProgram) of
-        (Just (pid, _), Just (sid, _)) ->
+      case (B8.readInt subProgram) of
+        Just (sid, _) ->
             do
-              let q t = Token.value :.
-                        Token.program `eq` Ident pid :.
-                        Token.subProgram `eq` Ident sid :.
-                        Token.token `eq` t
-              s' <- liftDb $ selectDb $ q Token.program_from_name
-              i' <- liftDb $ selectDb $ q Token.program_info
-              c' <- liftDb $ selectDb $ q Token.program_contact_info
-              let s = case s' of
-                        [PG.Only r :. ()] -> T.encodeUtf8 r
-                        _                 -> "RAMC"
-              let getInfo res = case res of
-                                  [PG.Only r :. ()] -> Just r
-                                  _                 -> Nothing
-                  i = getInfo i'
-                  c = getInfo c'
-              return (s, i, c)
+              [s :. i :. c :. ()] <- liftDb $ selectDb $
+                                     SubProgram.smsSender :.
+                                     SubProgram.smsContact :.
+                                     SubProgram.smsProgram :.
+                                     SubProgram.ident `eq` Ident sid
+              let t (PG.Only v) = v
+              return (T.encodeUtf8 $ t s, Just $ t i, Just $ t c)
         _ -> return ("RAMC", Nothing, Nothing)
   when (isJust pInfo && isJust pCInfo) $ do
     eSvcTm <- svcId `get` "times_expectedServiceStart"
