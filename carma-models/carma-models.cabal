@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.17.12
+version:             0.17.13
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -88,8 +88,6 @@ library
 
     Carma.Model.Sms,
     Carma.Model.SmsTemplate,
-    Carma.Model.SmsTokenName,
-    Carma.Model.SmsTokenValue,
 
     Carma.Model.Usermeta,
     Carma.Model.Action,

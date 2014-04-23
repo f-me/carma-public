@@ -57,6 +57,15 @@ data SubProgram = SubProgram
   , validFor    :: F (Maybe TInt)
                    "validFor"
                    "Срок действия программы по умолчанию"
+  , smsSender   :: F Text
+                   "smsSender"
+                   "Отправитель SMS"
+  , smsContact  :: F Text
+                   "smsContact"
+                   "Контактный номер телефона в SMS"
+  , smsProgram  :: F Text
+                   "smsProgram"
+                   "Название программы в SMS"
   , contractPrs :: F (Maybe (IdentList SubProgramContractPermission))
                    "contractPermissions"
                    "Настройка партнёрского интерфейса"

@@ -80,8 +80,6 @@ import           Carma.Model.UserState                   (UserState)
 
 import           Carma.Model.Sms                         (Sms)
 import           Carma.Model.SmsTemplate                 (SmsTemplate)
-import           Carma.Model.SmsTokenName                (SmsTokenName)
-import           Carma.Model.SmsTokenValue               (SmsTokenValue)
 
 
 dispatch :: forall a . Text -> (forall m . Model m => m -> a) -> Maybe a
@@ -155,6 +153,4 @@ modelMap fn = modelMap'
       ,add (undefined :: UserState)
       ,add (undefined :: Sms)
       ,add (undefined :: SmsTemplate)
-      ,add (undefined :: SmsTokenName)
-      ,add (undefined :: SmsTokenValue)
       ]

@@ -38,6 +38,12 @@ instance Model SubProgram where
                 , required parent
                 , required label
                 , required value
+                , setMeta "regexp" "smsSender" smsSender
+                , infoText "smsSender" smsSender
+                , setMeta "regexp" "phone" smsContact
+                , required smsSender
+                , required smsContact
+                , required smsProgram
                 , infoText "subProgramValue" value
                 , infoText "programHelp" help
                 , infoText "programDealerHelp" dealerHelp
