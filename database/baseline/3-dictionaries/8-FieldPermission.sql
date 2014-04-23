@@ -1380,6 +1380,12 @@ lovViewer	SubProgram	services	t	f
 lovAdmin	SubProgram	services	t	t
 lovViewer	SubProgram	checkPeriod	t	f
 lovAdmin	SubProgram	checkPeriod	t	t
+lovViewer	SubProgram	smsSender	t	f
+lovAdmin	SubProgram	smsSender	t	t
+lovViewer	SubProgram	smsContact	t	f
+lovAdmin	SubProgram	smsContact	t	t
+lovViewer	SubProgram	smsProgram	t	f
+lovAdmin	SubProgram	smsProgram	t	t
 lovViewer	SubProgram	validFor	t	f
 lovAdmin	SubProgram	validFor	t	t
 lovViewer	SubProgram	contractPermissions	t	f
