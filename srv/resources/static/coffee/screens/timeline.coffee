@@ -130,14 +130,18 @@ define ["text!tpl/screens/timeline.html"
           },
           ranges: {
             'Сегодня': [moment(), moment()],
-            'Вчера': [moment().subtract('days', 1), moment().subtract('days', 1)],
+            'Вчера': [ moment().subtract('days', 1)
+                     , moment().subtract('days', 1)
+                     ],
             'Последние 7 дней': [moment().subtract('days', 6), moment()],
           }
         },
-        (start, end) ->
-          # TODO: do get data request
-          # and call @setData
-          console.log start.valueOf(), end.valueOf()
+        (start, end) =>
+          toS = (v) -> (new Date(v)).toString("yyyy-MM-dd")
+          s = toS start.valueOf()
+          e = toS end.valueOf()
+          $.getJSON "/userStates/#{@user.id}/#{s}/#{e}", @setData
+
       )
 
     showTimeline: (element) =>
@@ -240,8 +244,6 @@ define ["text!tpl/screens/timeline.html"
         .x(@xMiniScale)
         .on("brush", @brushed)
 
-      @draw()
-
     rectWidth: (scale, rect) => scale(rect.value.end) - scale(rect.value.begin)
 
     drawRect: (scale, margin, h) => (sel) =>
@@ -336,12 +338,9 @@ define ["text!tpl/screens/timeline.html"
     table.onClick (user) ->
       unless _.find(kvm.timelines(), (t) -> t.user.id is user.id)
         $("html, body").animate({ scrollTop: $(document).height() }, "slow")
-        $.getJSON "/userStates/#{user.id}", (states) ->
-          timeline = new Timeline({user: user})
-          timeline.setData(states)
-          timeline.onClose ->
-            kvm.timelines.remove timeline
-          kvm.timelines.push timeline
+        timeline = new Timeline({user: user})
+        timeline.onClose -> kvm.timelines.remove timeline
+        kvm.timelines.push timeline
 
     ko.applyBindings(kvm, el(viewName))
 

@@ -23,6 +23,8 @@ import           Data.Maybe
 import qualified Data.Text           as T
 import qualified Data.HashMap.Strict as HM
 import           Data.String (fromString)
+import           Data.Time.Calendar (Day)
+import qualified Data.ByteString.Char8 as BS
 
 import           Text.Printf
 
@@ -159,9 +161,20 @@ serveUserCake
 -- | Serve user states
 serveUserStates :: AppHandler ()
 serveUserStates = do
-  usrId :: IdentI Usermeta <- readIdent <$> fromJust <$> getParam "userId"
+  usrId <- readUsermeta <$> getParam "userId"
+  from  <- readDay <$> getParam "from"
+  to    <- readDay <$> getParam "to"
   states <- withPG pg_search $ \c -> do
     query c (fromString $ printf
-      "SELECT %s FROM \"UserState\" WHERE userId = ? ORDER BY id ASC"
-      (T.unpack $ mkSel (undefined :: Patch UserState))) $ Only $ identVal usrId
+      ("SELECT %s FROM \"UserState\" WHERE userId = ? " ++
+       " AND ctime BETWEEN ? AND timestamp ? + interval '1 day'" ++
+       " ORDER BY id ASC"
+      )
+      (T.unpack $ mkSel (undefined :: Patch UserState))) $
+      (identVal usrId, from, to)
   writeJSON (states :: [Patch UserState])
+  where
+    readDay :: Maybe BS.ByteString -> Day
+    readDay = read . BS.unpack . fromJust
+    readUsermeta :: Maybe BS.ByteString -> IdentI Usermeta
+    readUsermeta = readIdent . fromJust
