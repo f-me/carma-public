@@ -324,7 +324,7 @@ protoDictLookup iname cname dictTableName =
       -- TODO name/code/synonyms field names
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms))))
        AS label
-      FROM "?")
+      FROM "?" ORDER BY label, did)
      UPDATE vinnie_proto SET ? = dict.did
      FROM dict, vinnie_pristine s
      WHERE length(lower(trim(both ' ' from ?))) > 0
@@ -384,7 +384,7 @@ protoPartnerLookup iname cname =
       -- TODO name/code/synonyms field names
       lower(trim(both ' ' from (unnest(ARRAY[name, code] || synonyms))))
        AS label
-      FROM "?")
+      FROM "?" ORDER BY label, did)
      UPDATE vinnie_proto SET ? = dict.did
      FROM dict, vinnie_pristine s
      WHERE length(lower(trim(both ' ' from ?))) > 0
@@ -421,7 +421,7 @@ protoSubprogramLookup pid iname cname =
      WITH dict AS
      (SELECT DISTINCT sub.id AS did,
       lower(trim(both ' ' from (unnest(ARRAY[sub.label] || synonyms)))) AS label
-      FROM "?" sub, "?" p WHERE sub.parent = p.id AND p.id = ?)
+      FROM "?" sub, "?" p WHERE sub.parent = p.id AND p.id = ? ORDER BY did)
      UPDATE vinnie_proto SET ? = dict.did
      FROM dict, vinnie_pristine s
      WHERE length(lower(trim(both ' ' from ?))) > 0
