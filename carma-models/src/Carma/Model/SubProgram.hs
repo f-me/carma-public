@@ -39,7 +39,6 @@ instance Model SubProgram where
                 , required label
                 , required value
                 , setMeta "regexp" "smsSender" smsSender
-                , infoText "smsSender" smsSender
                 , setMeta "regexp" "phone" smsContact
                 , required smsSender
                 , required smsContact
