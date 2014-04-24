@@ -15,7 +15,7 @@ data ServiceNames = ServiceNames
   ,value   :: F Text "value" "Внутреннее название услуги"
   ,label   :: F Text "label" "Название услуги"
   ,icon    :: F Text "icon"  "Иконка"
-  ,fdds    :: F Text "fdds"  "FDDS-код"
+  ,fdds    :: F (Maybe TInt) "fdds"  "FDDS-код"
   } deriving Typeable
 
 instance Model ServiceNames where
