@@ -217,6 +217,10 @@
             "label": "Toyota"
         },
         {
+            "value": "tagaz",
+            "label": "Tagaz"
+        },
+        {
             "value": "volvo",
             "label": "Volvo"
         },

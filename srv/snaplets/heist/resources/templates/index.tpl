@@ -16,6 +16,9 @@
     <link rel="stylesheet" href="/s/css/bootstrap-wysihtml5.css" />
     <link rel="stylesheet" href="/s/css/wysiwyg-color.css" />
 
+    <!-- Date Range Picker for Bootstrap -->
+    <link rel="stylesheet" href="/s/css/daterangepicker-bs2.css" />
+
     <!-- DOM manipulation -->
     <script src="/s/js/3p/jquery-1.7.1.min.js" />
 
@@ -29,6 +32,11 @@
     <script src="/s/js/3p/wysihtml5.min.js" />
     <script src="/s/js/3p/bootstrap-wysihtml5.min.js" />
     <script src="/s/js/3p/bootstrap-wysihtml5.ru-RU.js" />
+
+    <!-- Date Range Picker for Bootstrap -->
+    <script src="/s/js/3p/moment/moment.min.js" />
+    <script src="/s/js/3p/moment/ru.js" />
+    <script src="/s/js/3p/daterangepicker.js" />
 
     <!-- Spinner -->
     <script src="/s/js/3p/spin.min.js" />
@@ -113,7 +121,6 @@
 
   </head>
   <body>
-    <svg id="spiral" xmlns="http://www.w3.org/2000/svg" version="1.1" height="100%" width="100%"></svg>
     <!-- Navigation bar on top -->
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">

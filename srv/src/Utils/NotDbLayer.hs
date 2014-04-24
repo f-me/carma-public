@@ -32,12 +32,12 @@ import Control.Monad.IO.Class
 import Data.Functor
 
 import qualified Data.Aeson as Aeson
-import Data.ByteString.Char8 (readInt)
 import Data.Int (Int64)
 import qualified Data.HashMap.Strict as HM
 import Data.Pool (withResource)
 import qualified Data.Text.Encoding as T
 import qualified Snap.Snaplet.PostgresqlSimple as PS
+import           Snaplet.Auth.Class
 
 import Carma.Model
 import qualified Data.Model.Patch.Sql as Patch
@@ -45,11 +45,7 @@ import qualified Data.Model.Patch.Sql as Patch
 import qualified Snaplet.DbLayer as DB (exists, read, update)
 import Snaplet.DbLayer.Types hiding (Object)
 
-
-readIdent :: ObjectId -> IdentI m
-readIdent bs = case readInt bs of
-                 Just (n, _) -> Ident n
-                 Nothing     -> error "readIdent: no integer"
+import Utils.LegacyModel
 
 
 type ProtoObject = Aeson.Object
@@ -71,11 +67,6 @@ exists model objId =
     case Carma.Model.dispatch (T.decodeUtf8 model) modelExists of
       Just fn -> fn
       _       -> DB.exists model objId
-
-recode :: (Aeson.FromJSON t, Aeson.ToJSON f) => f -> t
-recode o = case Aeson.decode $ Aeson.encode o of
-             Just v -> v
-             Nothing -> error "NDB: JSON conversion failed"
 
 -- | 'DbLayer.read' replacement.
 read :: ModelName -> ObjectId -> DbHandler b ProtoObject
@@ -114,7 +105,7 @@ fieldProj field p =
 
 -- | 'DbLayer.update' replacement. All triggers are ignored with new
 -- models. Return empty object when used with new models.
-update :: ModelName -> ObjectId -> ProtoObject
+update :: HasAuth b => ModelName -> ObjectId -> ProtoObject
        -> DbHandler b ProtoObject
 update model objId commit =
   let -- Return error message or count of rows that have been updated,

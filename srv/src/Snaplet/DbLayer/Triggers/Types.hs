@@ -17,6 +17,7 @@ import qualified Data.Text.Encoding as T
 import Snap.Snaplet
 import Snap.Snaplet.RedisDB (runRedisDB)
 import Snaplet.DbLayer.Types
+import Snaplet.Auth.Class
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Database.Redis as Redis
 
@@ -34,12 +35,18 @@ emptyContext :: TriggerContext
 emptyContext = TriggerContext Map.empty Map.empty Map.empty
 
 newtype TriggerMonad b r = TriggerMonad {
-    runTriggerMonad :: StateT TriggerContext (Handler b (DbLayer b)) r }
-        deriving (Functor, Monad, MonadIO, MonadState TriggerContext)
+    runTriggerMonad :: StateT TriggerContext (Handler b (DbLayer b)) r
+    } deriving (Functor, Monad, MonadIO, MonadState TriggerContext)
+
 type Trigger b = ObjectId -> FieldValue -> TriggerMonad b ()
 type TriggerMap b = Map ModelName (Map FieldName [Trigger b])
 
-class (Functor (m b), MonadIO (m b), MonadState TriggerContext (m b)) => MonadTrigger m b where
+class ( Functor (m b)
+      , MonadIO (m b)
+      , MonadState TriggerContext (m b)
+      , HasAuth b
+      )
+      => MonadTrigger m b where
     createObject :: ModelName -> Object -> m b ByteString
     readObject :: ByteString -> m b (Map.Map ByteString ByteString)
     redisLPush :: ByteString -> [ByteString] -> m b (Either Redis.Reply Integer)
@@ -61,7 +68,7 @@ reply :: Either Redis.Reply a -> Either String a
 reply (Left r) = Left (show r)
 reply (Right r) = Right r
 
-instance MonadTrigger TriggerMonad b where
+instance HasAuth b => MonadTrigger TriggerMonad b where
     createObject model obj = liftDb $ scope "detail" $ scope "trigger" $ scope "create" $ do
         i <- Redis.create redis model obj
         logObject "create" $ object [

@@ -1,4 +1,3 @@
-
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -18,13 +17,11 @@ import Data.Aeson.TH
 import System.FilePath
 
 
-data DictCache = DictCache 
+data DictCache = DictCache
   {city        :: Map Text Text
   ,wazzup      :: Map Text Text
   ,carMake     :: Map Text Text
   ,carModel    :: Map Text (Map Text Text)
-  ,smsToken    :: Map Text Text
-  ,smsTokenVal :: Map Text (Map Text Text)
   ,cancelReason:: Map Text Text
   }
 
@@ -36,8 +33,6 @@ loadDictionaries dir = do
     <*> flatDict (dir </> "Wazzup.json")
     <*> flatDict (dir </> "CarMakers.json")
     <*> nestDict (dir </> "CarModels.json")
-    <*> flatDict (dir </> "SmsTokens.json")
-    <*> nestDict (dir </> "SmsTokensValues.json")
     <*> flatDict (dir </> "ClientCancelReason.json")
 
 
@@ -68,4 +63,3 @@ data NestDict = NestDict {n'entries :: Map Text [KeyVal]}
 $(deriveFromJSON defaultOptions ''KeyVal)
 $(deriveFromJSON defaultOptions{fieldLabelModifier = drop 2} ''FlatDict)
 $(deriveFromJSON defaultOptions{fieldLabelModifier = drop 2} ''NestDict)
-

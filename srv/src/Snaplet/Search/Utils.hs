@@ -8,13 +8,11 @@
 module Snaplet.Search.Utils where
 
 import           Control.Applicative ((<$>))
-import           Control.Monad.State
 
 import           Data.Maybe
 import           Data.Either
 
 import           Data.List (intercalate)
-import           Data.Pool
 import           Data.Aeson
 import           Data.Text (Text, unpack)
 import qualified Data.ByteString.Char8 as B
@@ -92,9 +90,6 @@ renderOrder (Order fs ord) = printf "ORDER BY %s" $
     printOrd = case ord of
       Asc  -> "ASC"
       Desc -> "DESC"
-
-withPG :: (Connection -> IO a) -> SearchHandler b a
-withPG f = gets pg >>= liftIO . (`withResource` f)
 
 getJsonBody :: FromJSON v => SearchHandler b v
 getJsonBody = Util.readJSONfromLBS <$> readRequestBody 4096

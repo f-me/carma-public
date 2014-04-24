@@ -18,6 +18,7 @@ import Data.Maybe
 import System.Locale (defaultTimeLocale)
 import Snap
 import Snap.Snaplet.Auth
+import Snaplet.Auth.Class
 
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
@@ -25,9 +26,13 @@ import Snaplet.DbLayer.Types
 
 import Util
 import Utils.RKCCalc
+import qualified Utils.Events as Evt
 
 -- | Populate a commit with default field values.
-applyDefaults :: ModelName -> Map FieldName B.ByteString -> Handler b (DbLayer b) (Map FieldName B.ByteString)
+applyDefaults :: HasAuth b
+              => ModelName
+              -> Map FieldName B.ByteString
+              -> Handler b (DbLayer b) (Map FieldName B.ByteString)
 applyDefaults model obj = do
   ct <- liftIO $ round . utcTimeToPOSIXSeconds
               <$> getCurrentTime
@@ -46,7 +51,7 @@ applyDefaults model obj = do
               $ obj
     "case" -> return cd
     "call" -> do
-          Just u <- with auth currentUser
+          Just u <- withAuth currentUser
           let login = T.encodeUtf8 $ userLogin u
           return $ Map.insert "callTaker" login cd
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
@@ -54,7 +59,7 @@ applyDefaults model obj = do
       -- Store user id in owner field if it's not present
       case Map.lookup "owner" obj of
         Nothing -> do
-          Just u <- with auth currentUser
+          Just u <- withAuth currentUser
           let Just (UserId uid) = userId u
           return $ Map.insert "owner" (T.encodeUtf8 uid) obj
         _ -> return obj

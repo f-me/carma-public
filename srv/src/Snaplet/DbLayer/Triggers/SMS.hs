@@ -8,6 +8,7 @@ import Control.Exception
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as B8
 import Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Read as T
@@ -20,11 +21,17 @@ import System.Locale
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
+import Snaplet.DbLayer.Util
 
 import qualified Snap.Snaplet.PostgresqlSimple as PG
+import Snap.Snaplet.PostgresqlSimple ((:.)(..))
 import Database.PostgreSQL.Simple.SqlQQ
+
 import Data.Model as Model
+import Data.Model.Sql
+
 import Carma.Model.SmsTemplate (SmsTemplate)
+import Carma.Model.SubProgram as SubProgram
 
 import DictionaryCache
 import Util as U
@@ -54,13 +61,19 @@ sendSMS actId tplId = do
 
   opName  <- T.decodeUtf8 <$> actId `get` "assignedTo"
   cityVal <- T.decodeUtf8 <$> caseId `get` "city"
-  program <- T.decodeUtf8 <$> caseId `get` "program"
-  let sender = T.encodeUtf8
-        $ Map.findWithDefault "RAMC" program
-        $ smsTokenVal dic Map.! "program_from_name"
-
-  let pInfo  = Map.lookup program $ smsTokenVal dic Map.! "program_info"
-  let pCInfo = Map.lookup program $ smsTokenVal dic Map.! "program_contact_info"
+  subProgram <- caseId `get` "subprogram"
+  (sender, pInfo, pCInfo) <-
+      case (B8.readInt subProgram) of
+        Just (sid, _) ->
+            do
+              [s :. i :. c :. ()] <- liftDb $ selectDb $
+                                     SubProgram.smsSender :.
+                                     SubProgram.smsProgram :.
+                                     SubProgram.smsContact :.
+                                     SubProgram.ident `eq` Ident sid
+              let t (PG.Only v) = v
+              return (T.encodeUtf8 $ t s, Just $ t i, Just $ t c)
+        _ -> return ("RAMC", Nothing, Nothing)
   when (isJust pInfo && isJust pCInfo) $ do
     eSvcTm <- svcId `get` "times_expectedServiceStart"
     eSvcStart <- liftIO $ formatDate $ T.unpack $ T.decodeUtf8 eSvcTm
@@ -96,6 +109,8 @@ sendSMS actId tplId = do
     Right _ <- redisLPush "smspost" [smsId]
     return ()
 
+
+-- TODO Plug to new Sms model
 updateSMS :: MonadTrigger m b => ObjectId -> m b ()
 updateSMS smsId = do
   auto <- get smsId "auto"
@@ -128,7 +143,6 @@ updateSMS smsId = do
 
     dic <- liftDb $ getDict id
     program <- T.decodeUtf8 <$> caseId `get` "program"
-    let sender = T.encodeUtf8
-          $ Map.findWithDefault "RAMC" program
-          $ smsTokenVal dic Map.! "program_from_name"
+    -- TODO Use "SmsTokenValue" from DB
+    let sender = "RAMC"
     set smsId "sender" sender

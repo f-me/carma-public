@@ -37,38 +37,17 @@ import Snaplet.SiteConfig.Dictionaries
 
 import AppHandlers.Util hiding (withPG)
 import Utils.HttpErrors
+import Utils.LegacyModel
 
 import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
-import qualified Carma.Model.ProgramInfo as ProgramInfo
 import qualified Carma.Model.ServiceInfo as ServiceInfo
 import qualified Carma.Model.ServiceNames as ServiceNames
 
+
 serveModelTrMap :: Handler b (SiteConfig b) ()
 serveModelTrMap = writeJSON modelTrMap
-
-modelTrMap :: Map.Map Text Text
-modelTrMap = Map.fromList
-  [("case", "Case")
-  ,("averageCommissioner", "AverageCommissioner")
-  ,("bank", "Bank")
-  ,("consultation", "Consultation")
-  ,("continue", "Continue")
-  ,("deliverCar", "DeliverCar")
-  ,("deliverParts", "DeliverParts")
-  ,("hotel", "Hotel")
-  ,("information", "Information")
-  ,("ken", "LegalAssistance")
-  ,("rent", "Rent")
-  ,("sober", "SoberDriver")
-  ,("taxi", "Taxi")
-  ,("tech", "Tech")
-  ,("tech1", "TechInspect")
-  ,("tickets", "Tickets")
-  ,("towage", "Towage")
-  ,("transportation", "Transportation")
-  ]
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
@@ -216,8 +195,6 @@ serveDictionaries :: Handler b (SiteConfig b) ()
 serveDictionaries = do
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
 
-  programInfos <- withPG
-    $ selectJSON (ProgramInfo.program :. ProgramInfo.info)
   serviceInfos <- withPG
     $ selectJSON (ServiceInfo.program :. ServiceInfo.service :. ServiceInfo.info)
   serviceNames <- withPG
@@ -226,8 +203,6 @@ serveDictionaries = do
   Aeson.Object dictMap <- gets dictionaries
   -- Support legacy client interface for some dictionaries
   writeJSON $ Aeson.Object
-    $ HM.insert "ProgramInfo"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList programInfos)])
     $ HM.insert "ServiceInfo"
       (Aeson.object [("entries", Aeson.Array $ V.fromList serviceInfos)])
     $ HM.insert "ServiceNames"

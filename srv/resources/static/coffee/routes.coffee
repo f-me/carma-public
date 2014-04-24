@@ -155,6 +155,15 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
         global.previousHash = window.location.hash
         r.renderScreen contract, bind
 
+  Finch.route "timeline", (bind) ->
+    require ["screens/timeline"], (timeline) ->
+      timeline.screen =
+        name : "timeline"
+        template: "timeline-screen-template"
+        views:
+          "timeline-form": timeline
+      r.renderScreen timeline, bind
+
   Search.attachTo("search")
 
   Finch
