@@ -4,6 +4,7 @@ CREATE TABLE "ServiceNames"
   , label    text NOT NULL DEFAULT ''
   , value    text UNIQUE NOT NULL
   , icon     text DEFAULT ''
+  , fdds     int4
   );
 
 GRANT ALL ON "ServiceNames" TO carma_db_sync;
@@ -29,4 +30,3 @@ INSERT INTO "ServiceNames" (value, label, icon) VALUES
   , ('deliverClient', 'Доставка клиента к отремонтированному автомобилю', '')
   , ('averageCommissioner', 'Аварийный комиссар', '')
   , ('insurance', 'Сбор справок для страховой компании', '')
-
