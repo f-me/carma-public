@@ -133,6 +133,7 @@ define [ "utils"
     spiral.start()
 
   hideModal = ->
+    spiral.stop()
     $("#left").show()
     $("#center").show()
     $("#right").show()
@@ -144,5 +145,7 @@ define [ "utils"
 
 
   { constructor: setupCallForm
+  , destructor:
+      -> spiral.stop()
   , template: tpl
   }

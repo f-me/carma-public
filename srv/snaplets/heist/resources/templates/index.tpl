@@ -121,7 +121,6 @@
 
   </head>
   <body>
-    <svg id="spiral" xmlns="http://www.w3.org/2000/svg" version="1.1" height="100%" width="100%"></svg>
     <!-- Navigation bar on top -->
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">

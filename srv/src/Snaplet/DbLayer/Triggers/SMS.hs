@@ -61,7 +61,7 @@ sendSMS actId tplId = do
 
   opName  <- T.decodeUtf8 <$> actId `get` "assignedTo"
   cityVal <- T.decodeUtf8 <$> caseId `get` "city"
-  subProgram <- caseId `get` "subProgram"
+  subProgram <- caseId `get` "subprogram"
   (sender, pInfo, pCInfo) <-
       case (B8.readInt subProgram) of
         Just (sid, _) ->
