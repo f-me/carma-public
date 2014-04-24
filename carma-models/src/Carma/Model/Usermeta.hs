@@ -16,7 +16,7 @@ import Data.Model
 import Data.Model.TH
 import Data.Model.View
 
-import Carma.Model.Types ()
+import Carma.Model.Types (UserStateVal)
 import Carma.Model.Role hiding (ident)
 
 
@@ -39,6 +39,9 @@ data Usermeta = Usermeta
   , roles    :: F (Maybe (Vector (IdentT Role)))
                 "roles"
                 "Роли в системе"
+  , delayedState :: F (Maybe UserStateVal)
+                 "delayedState"
+                 "Отложенный статус"
   } deriving Typeable
 
 

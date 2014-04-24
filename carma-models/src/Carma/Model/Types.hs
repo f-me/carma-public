@@ -386,7 +386,7 @@ instance ToField EventType where
 instance DefaultFieldView EventType where
   defaultFieldView f = (defFieldView f)
 
-data UserStateVal = LoggedOut | Ready | Rest | Busy
+data UserStateVal = LoggedOut | Ready | Rest | Busy | Dinner | ServiceBreak
                   deriving (Eq, Enum, Bounded, Show, Read, Typeable, Generic)
 
 instance FromJSON UserStateVal
@@ -408,17 +408,13 @@ instance FromField UserStateVal where
 
 instance DefaultFieldView UserStateVal where
   defaultFieldView f = (defFieldView f)
-
-instance FromField Aeson.Object where
-  fromField f mdata = do
-    val :: Aeson.Value <- fromField f mdata
-    case val of
-      Aeson.Object obj -> return obj
-      _                -> returnError ConversionFailed f $
-                          "expecting object, but got: " ++ show val
-
-instance ToField Aeson.Object where
-  toField obj = toField $ Aeson.Object obj
+    { fv_type = "dictionary"
+    , fv_meta = Map.union (fv_meta (defFieldView f)) $ Map.fromList
+                [("dictionaryType", "computedDict")
+                ,("dictionaryName", "UserStateVal")
+                ,("bounded", "true")
+                ]
+    }
 
 typeName :: forall t . Typeable t => t -> Text
 typeName _ = T.pack $ tyConName $ typeRepTyCon $ typeOf (undefined :: t)
