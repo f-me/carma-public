@@ -68,8 +68,8 @@ sendSMS actId tplId = do
             do
               [s :. i :. c :. ()] <- liftDb $ selectDb $
                                      SubProgram.smsSender :.
-                                     SubProgram.smsContact :.
                                      SubProgram.smsProgram :.
+                                     SubProgram.smsContact :.
                                      SubProgram.ident `eq` Ident sid
               let t (PG.Only v) = v
               return (T.encodeUtf8 $ t s, Just $ t i, Just $ t c)

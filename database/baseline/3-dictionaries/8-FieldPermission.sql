@@ -1965,6 +1965,8 @@ lovViewer	ServiceNames	value	t	f
 lovAdmin	ServiceNames	value	t	t
 lovViewer	ServiceNames	icon	t	f
 lovAdmin	ServiceNames	icon	t	t
+lovViewer	ServiceNames	fdds	t	f
+lovAdmin	ServiceNames	fdds	t	t
 lovViewer	Colors	label	t	f
 lovAdmin	Colors	label	t	t
 lovViewer	Colors	value	t	f
