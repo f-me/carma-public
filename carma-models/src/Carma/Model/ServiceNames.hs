@@ -1,11 +1,10 @@
-
 module Carma.Model.ServiceNames where
 
 
 import Data.Text (Text)
 import Data.Typeable
 
-import Carma.Model.Types()
+import Carma.Model.Types (TInt)
 import Carma.Model.PgTypes()
 
 import Data.Model
@@ -16,6 +15,7 @@ data ServiceNames = ServiceNames
   ,value   :: F Text "value" "Внутреннее название услуги"
   ,label   :: F Text "label" "Название услуги"
   ,icon    :: F Text "icon"  "Иконка"
+  ,fdds    :: F Text "fdds"  "FDDS-код"
   } deriving Typeable
 
 instance Model ServiceNames where
