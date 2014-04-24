@@ -24,7 +24,7 @@ define ["text!tpl/screens/timeline.html"
         if value
           items = _.filter @data, (row) =>
             _.some @columns, (column) =>
-              row[column.name].indexOf(value) isnt -1
+              row[column.name].toLowerCase().indexOf(value.toLowerCase()) isnt -1
           @items(items)
         else
           @items(_.clone @data)
@@ -117,9 +117,19 @@ define ["text!tpl/screens/timeline.html"
     showRangePicker: (element) =>
       moment().lang("ru")
       $picker = $(element).find(".rangepicker")
+      cb = (start, end) =>
+        s = start.format("YYYY-MM-DD")
+        e = end.format("YYYY-MM-DD")
+        $.getJSON "/userStates/#{@user.id}/#{s}/#{e}", @setData
+
+      startDate = moment().subtract('days', 1).format('DD MMM, YYYY')
+      endDate = moment().format('DD MMM, YYYY')
+      $picker.val("#{startDate} - #{endDate}")
       $picker.daterangepicker(
         {
-          format: 'D MMMM, YYYY',
+          format: 'DD MMM, YYYY',
+          startDate: startDate,
+          endDate: endDate,
           locale: {
             applyLabel: 'Установить',
             cancelLabel: 'Отмена',
@@ -129,20 +139,17 @@ define ["text!tpl/screens/timeline.html"
             customRangeLabel: 'Календарь...',
           },
           ranges: {
-            'Сегодня': [moment(), moment()],
-            'Вчера': [ moment().subtract('days', 1)
+            'Сегодня': [moment().subtract('days', 1), moment()],
+            'Вчера': [ moment().subtract('days', 2)
                      , moment().subtract('days', 1)
                      ],
             'Последние 7 дней': [moment().subtract('days', 6), moment()],
           }
         },
-        (start, end) =>
-          toS = (v) -> (new Date(v)).toString("yyyy-MM-dd")
-          s = toS start.valueOf()
-          e = toS end.valueOf()
-          $.getJSON "/userStates/#{@user.id}/#{s}/#{e}", @setData
-
+        cb
       )
+      # put init data to timeline
+      cb(moment().subtract('days', 1), moment())
 
     showTimeline: (element) =>
       @showRangePicker(element)
@@ -231,6 +238,11 @@ define ["text!tpl/screens/timeline.html"
         .orient("top")
         .tickFormat(format)
 
+      # draw Axis on large scale chart
+      @main.append("g")
+        .attr("class", "x main axis")
+        .call(@xMainAxis)
+
       @xMiniScale = d3.time.scale()
         .range([0, @width])
 
@@ -239,51 +251,63 @@ define ["text!tpl/screens/timeline.html"
         .orient("bottom")
         .tickFormat(format)
 
-      # provides an ability to select a part of mini chart
-      @brush = d3.svg.brush()
-        .x(@xMiniScale)
-        .on("brush", @brushed)
-
-    rectWidth: (scale, rect) => scale(rect.value.end) - scale(rect.value.begin)
-
-    drawRect: (scale, margin, h) => (sel) =>
-      sel.append("rect")
-        .attr("class", (d) -> d.value.state)
-        .attr("x",     (d) => scale(d.value.begin))
-        .attr("y", "#{margin}")
-        .attr("height", h)
-        .attr("width", (d) => @rectWidth(scale, d))
-
-    draw: =>
-      @xMainScale.domain(d3.extent(@data, (d) -> d.value.begin))
-      @xMiniScale.domain([d3.min(@data, (d) -> d.value.begin), new Date()])
-
-      # draw large scale chart
-      @itemRects.selectAll("rect")
-        .data(@data)
-        .enter()
-        .call(@drawRect(@xMainScale, @margin, 100))
-
-      # draw Axis on large scale chart
-      @main.append("g")
-        .attr("class", "x main axis")
-        .call(@xMainAxis)
-
-      # draw mini chart
-      @mini.selectAll("rect")
-        .data(@data)
-        .enter()
-        .call(@drawRect(@xMiniScale, -@margin, 5))
-
       # draw Axis on mini chart
       @mini.append("g")
         .attr("transform", => "translate(0, #{@margin / 2})")
         .attr("class", "x mini axis")
         .call(@xMiniAxis)
 
-      # append component for select the part of chart to mini chart
+      # provides an ability to select a part of mini chart
+      @brush = d3.svg.brush()
+        .x(@xMiniScale)
+        .on("brush", @brushed)
+
       @mini.append("g")
         .attr("class", "brush")
+        .call(@brush)
+        .selectAll("rect")
+        .attr("y", -@margin * 2)
+        .attr("height", @margin * 2)
+
+    rectWidth: (scale, rect) => scale(rect.value.end) - scale(rect.value.begin)
+
+    drawRect: (scale, margin, h) => (sel) =>
+      sel.append("rect")
+        .attr("class", (d) -> "#{d.value.state} bar")
+        .attr("x",     (d) => scale(d.value.begin))
+        .attr("y", "#{margin}")
+        .attr("height", h)
+        .attr("width", (d) => @rectWidth(scale, d))
+
+    draw: =>
+      domain = [
+        d3.min(@data, (d) -> d.value.begin),
+        d3.max(@data, (d) -> d.value.end)]
+      @xMainScale.domain(domain)
+      @xMiniScale.domain(domain)
+
+      @main.select(".x.main.axis").call(@xMainAxis)
+      @mini.select(".x.mini.axis").call(@xMiniAxis)
+
+      # draw large scale chart
+      itemRects = @itemRects.selectAll("rect")
+        .data(@data)
+      itemRects
+        .exit().remove()
+      itemRects
+        .enter()
+        .call(@drawRect(@xMainScale, @margin, 100))
+
+      # draw mini chart
+      miniRects = @mini.selectAll(".bar")
+        .data(@data)
+      miniRects
+        .exit().remove()
+      miniRects
+        .enter()
+        .call(@drawRect(@xMiniScale, -@margin, 5))
+
+      @mini.select(".brush")
         .call(@brush)
         .selectAll("rect")
         .attr("y", -@margin * 2)
