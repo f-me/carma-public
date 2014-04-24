@@ -22,6 +22,7 @@
     c.contact_owneremail,
     spgm.value AS program,
     (pgm.label || ' — '::text) || coalesce(spgm.label, '') AS programlabel,
+    pt.label AS programtype,
     c.car_vin,
     c.car_make,
     c.car_model,
@@ -107,6 +108,7 @@
     contract.startmileage AS car_checkupmileage
    FROM casetbl c
    LEFT JOIN "Program" pgm ON c.program = pgm.id
+   LEFT JOIN "ProgramType" pt ON pgm.ptype = pt.id
    LEFT JOIN "CarClass" carcl ON c.car_class = carcl.id
    LEFT JOIN "Engine" engine ON c.car_engine = engine.id
    LEFT JOIN "Transmission" trans ON c.car_transmission = trans.id
