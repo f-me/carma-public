@@ -134,11 +134,11 @@ define [ "utils"
           setupButtonPanel kvm, table, args, objURL
           textarea2wysiwyg()
 
-        # let user show entries from a particular parent
-        parentModel = global.model dictName, "parents"
-        if not parentModel
+        if _.isEmpty dict.parent
           initEditControls objURL
         else
+          # let user show entries from a particular parent
+          parentModel = global.model dictName, "parents"
           parentKVM = main.buildKVM parentModel, {}
           parentKVM.find = =>
             filterParams = []
