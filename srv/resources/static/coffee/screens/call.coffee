@@ -62,6 +62,12 @@ define [ "utils"
     $("#end-call").on 'click', -> endCallClick viewName
     setModalVisible not args.id?
 
+    searchQuery = localStorage["#{storeKey}.search-query"]
+    if searchQuery
+      $("#search-query").val(searchQuery)
+      $("#search-query").change()
+      localStorage.removeItem "#{storeKey}.search-query"
+
   fillTable = (st, objs) ->
     st.fnClearTable()
     dict = global.dictValueCache
