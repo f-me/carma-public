@@ -1,4 +1,4 @@
-{-# LANGUAGE DoAndIfThenElse #-}
+{-# LANGUAGE DoAndIfThenElse, ScopedTypeVariables #-}
 
 {-|
 
@@ -14,25 +14,41 @@ module AppHandlers.Users
     , claimUserActivity
     , claimUserLogout
     , serveUserCake
+    , serveUserStates
     )
 
 where
 
+import           Data.Maybe
+import qualified Data.Text           as T
 import qualified Data.HashMap.Strict as HM
+import           Data.String (fromString)
+import           Data.Time.Calendar (Day)
+import qualified Data.ByteString.Char8 as BS
+
+import           Text.Printf
+
+import           Database.PostgreSQL.Simple (query)
 
 import Snap
 import Snap.Snaplet.Auth hiding (Role, session)
 import qualified Snap.Snaplet.Auth as Snap (Role(..))
-import Snap.Snaplet.PostgresqlSimple
+import Snap.Snaplet.PostgresqlSimple hiding (query)
 
 import Data.Model
-import Carma.Model.Role as Role
+import Data.Model.Patch
+
+import Carma.Model.Role      as Role
+import Carma.Model.Usermeta  as Usermeta
+import Carma.Model.UserState as UserState
 
 import Application
 import AppHandlers.Util
 import Snaplet.Auth.PGUsers
+import Snaplet.Search.Types (mkSel)
 
 import Util (identFv)
+import Utils.LegacyModel (readIdent)
 
 
 ------------------------------------------------------------------------------
@@ -141,3 +157,24 @@ serveUserCake
       writeJSON $ usr
         {userMeta = HM.insert "homepage" homePage $ userMeta usr
         }
+
+-- | Serve user states
+serveUserStates :: AppHandler ()
+serveUserStates = do
+  usrId <- readUsermeta <$> getParam "userId"
+  from  <- readDay <$> getParam "from"
+  to    <- readDay <$> getParam "to"
+  states <- withPG pg_search $ \c -> do
+    query c (fromString $ printf
+      ("SELECT %s FROM \"UserState\" WHERE userId = ? " ++
+       " AND ctime BETWEEN ? AND timestamp ? + interval '1 day'" ++
+       " ORDER BY id ASC"
+      )
+      (T.unpack $ mkSel (undefined :: Patch UserState))) $
+      (identVal usrId, from, to)
+  writeJSON (states :: [Patch UserState])
+  where
+    readDay :: Maybe BS.ByteString -> Day
+    readDay = read . BS.unpack . fromJust
+    readUsermeta :: Maybe BS.ByteString -> IdentI Usermeta
+    readUsermeta = readIdent . fromJust

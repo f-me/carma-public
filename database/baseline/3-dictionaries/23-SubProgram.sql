@@ -11,6 +11,9 @@ CREATE TABLE "SubProgram"
   , services int4[] -- ELEMENT REFERENCES SubProgramService
   , checkPeriod integer
   , validFor integer
+  , smsSender text NOT NULL DEFAULT 'RAMC' CHECK (smsSender <> '')
+  , smsContact text NOT NULL DEFAULT '+78002507262' CHECK (smsContact <> '')
+  , smsProgram text NOT NULL DEFAULT 'РАМК' CHECK (smsProgram <> '')
   , contractPermissions int4[] -- ELEMENT REFERENCES SubProgramContractPermission
   , template text
   , logo text

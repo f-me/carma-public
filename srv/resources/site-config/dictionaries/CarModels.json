@@ -26,6 +26,7 @@
             {"value": "A5", "label": "A5"},
             {"value": "Q7", "label": "Q7"},
             {"value": "Q3", "label": "Q3"},
+            {"value": "Q5", "label": "Q5"},
             {"value": "S5", "label": "S5"},
             {"value": "A1", "label": "A1"},
             {"value": "Allroad", "label": "Allroad"},
@@ -74,6 +75,10 @@
                 "label": "Berlingo"
             },
             {
+                "value": "berlingo1st",
+                "label": "Berlingo First"
+            },
+            {
                 "value": "c15",
                 "label": "C15"
             },
@@ -92,6 +97,10 @@
             {
                 "value": "c4Picasso",
                 "label": "C4 Picasso"
+            },
+             {
+                "value": "c4GrandPicasso",
+                "label": "C4 Grand Picasso"
             },
             {
                 "value": "c8",
@@ -668,6 +677,12 @@
                 "label": "Carens"
             }
         ],
+        "tagaz": [
+            {
+                "value": "RoadPartner",
+                "label": "Road Partner"
+            }
+        ],
         "lada": [
             {
                 "value": "2104",
@@ -676,6 +691,10 @@
             {
                 "value": "2107",
                 "label": "2107"
+            },
+            {
+                "value": "2112",
+                "label": "2112"
             },
             {
                 "value": "2113Samara",
@@ -775,6 +794,10 @@
             {
                 "value": "mazda3",
                 "label": "3"
+            },
+             {
+                "value": "mazda5",
+                "label": "5"
             },
             {
                 "value": "mazda6",
@@ -1651,6 +1674,7 @@
         ],
         "seat": [
             {"value": "Cordoba", "label": "Cordoba"},
+            {"value": "Ibiza", "label": "Ibiza"},
             {
                 "value": "leon",
                 "label": "Leon"
@@ -1714,7 +1738,8 @@
                 "label": "Vitara"
             },
             {"value": "Grand Vitara", "label": "Grand Vitara"},
-            {"value": "Jimny", "label": "Jimny"}
+            {"value": "Jimny", "label": "Jimny"},
+            {"value": "Kizashi", "label": "Kizashi"}
         ],
         "toyota": [
             {
@@ -1914,7 +1939,8 @@
             {"value": "Cooper", "label": "Cooper"}
         ],
         "Acura": [
-            {"value": "MDX", "label": "MDX"}
+            {"value": "MDX", "label": "MDX"},
+            {"value": "RDX", "label": "RDX"}
         ],
         "Gaz": [
             {"value": "31029", "label": "31029"}

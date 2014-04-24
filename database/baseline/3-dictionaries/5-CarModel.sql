@@ -5,6 +5,7 @@ CREATE TABLE "CarModel"
   , parent int4 REFERENCES "CarMake" NOT NULL ON DELETE SET NULL
   , info   text NOT NULL DEFAULT ''
   , synonyms text[]
+  , fdds int4
   ,UNIQUE (label, parent)
   );
 

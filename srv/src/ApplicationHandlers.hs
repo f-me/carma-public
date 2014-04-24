@@ -71,8 +71,12 @@ import qualified Data.Model.Patch.Sql as Patch
 import Application
 import AppHandlers.Util
 import AppHandlers.Users
-import Util as U hiding (render)
+import Util as U hiding (render, withPG)
 import Utils.NotDbLayer (readIdent)
+
+import Carma.Model.Event (EventType(..))
+import Utils.Events (logLogin)
+
 import RuntimeFlag
 
 
@@ -125,12 +129,17 @@ doLogin = ifTop $ do
   p <- fromMaybe "" <$> getParam "password"
   r <- isJust <$> getParam "remember"
   res <- with auth $ loginByUsername (T.decodeUtf8 l) (ClearText p) r
-  either (const $ redirectToLogin failCount) (const $ redirect "/") res
+  case res of
+    Left  _ -> redirectToLogin failCount
+    Right _ -> do
+      logLogin Login
+      redirect "/"
 
 
 doLogout :: AppHandler ()
 doLogout = ifTop $ do
   claimUserLogout
+  logLogin Logout
   with auth logout
   redirectToLogin ""
 

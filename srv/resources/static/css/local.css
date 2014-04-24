@@ -32,7 +32,7 @@ body {
   height: 100%;
   z-index: 1;
   background: #ddd;
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 #bottom {
@@ -319,3 +319,89 @@ table.dataTable tr.selected-row td.sorting_1 {
   table-layout: fixed;
   word-wrap: break-word;
 }
+
+.bs-docs-example {
+  position: relative;
+  margin: 15px 0;
+  padding: 39px 19px 14px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+}
+
+.bs-docs-example-after {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  padding: 3px 7px;
+  font-size: 12px;
+  font-weight: bold;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #9da0a4;
+  -webkit-border-radius: 4px 0 4px 0;
+  -moz-border-radius: 4px 0 4px 0;
+  border-radius: 4px 0 4px 0;
+}
+
+.bs-docs-example-close {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  padding: 6px 14px;
+}
+
+.chart path, .chart line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.chart text {
+    font: 10px sans-serif;
+}
+
+.chart .grid-line {
+    stroke: black;
+    shape-rendering: crispEdges;
+    stroke-opacity: .2;
+}
+
+.chart .Ready {
+    fill: #2aa198;
+}
+
+.chart .Busy {
+    fill: #859900;
+}
+
+.chart .LoggedOut {
+    fill: #93a1a1;
+}
+
+.chart .lunch {
+    fill: #b58900;
+}
+
+.chart .break {
+    fill: #cb4b16;
+}
+
+.chart .service_break {
+    fill: #dc322f;
+}
+
+.chart .line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 2;
+}
+
+.chart .brush .extent {
+  stroke: #fff;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}
+
