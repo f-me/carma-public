@@ -182,6 +182,16 @@
       "type": "datetime",
       "groupName": null,
       "name": "lastlogout"
+    },
+    {
+      "meta": {
+        "dictionaryName": "UserStateVal",
+        "dictionaryType": "EnumDict",
+        "bounded": true
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "delayedState"
     }
   ],
   "applications": [],

@@ -1,4 +1,10 @@
-CREATE TYPE "UserStateVal" AS ENUM('LoggedOut', 'Ready', 'Rest', 'Busy');
+CREATE TYPE "UserStateVal"
+  AS ENUM( 'LoggedOut'
+         , 'Ready'
+         , 'Rest'
+         , 'Busy'
+         , 'Dinner'
+         , 'ServiceBreak');
 
 CREATE TABLE "UserState"
   (id      SERIAL PRIMARY KEY

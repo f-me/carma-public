@@ -37,7 +37,7 @@ import           Carma.Model.Event (Event, EventType(..))
 import qualified Carma.Model.Event     as E
 import           Carma.Model.UserState (UserState, UserStateVal(..))
 import qualified Carma.Model.UserState as State
-import           Carma.Model.Usermeta  (Usermeta)
+import           Carma.Model.Usermeta  (Usermeta(..))
 import           Carma.Model.Action    (Action)
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.Call   as Call
@@ -137,23 +137,32 @@ checkUserState :: HasPostgres (Handler b m)
                -> Patch Event
                -> Handler b m ()
 checkUserState uid ev = do
-  hist :: [Patch UserState] <- query
+  hist <- query
     (fromString (printf
     "SELECT %s FROM \"UserState\" WHERE userId = ? ORDER BY id DESC LIMIT 1"
     (T.unpack $ mkSel (modelInfo :: ModelInfo UserState)))) (Only uid)
+  dst <- query [sql| SELECT delayedState FROM usermetatbl where uid = ? |]
+         (Only uid)
+  let delayedSt = head $ head dst
   case hist of
-    []          -> setNext $ nextState' LoggedOut
-    [lastState] -> setNext $ nextState' $ P.get' lastState State.state
+    []          -> setNext $ nextState' LoggedOut delayedSt
+    [lastState] -> setNext $ nextState'
+                   (P.get' lastState State.state)
+                   delayedSt
   where
-    nextState' s = join $ dispatch (P.get' ev E.modelName) (nextState'' s)
+    nextState' s d = join $ dispatch (P.get' ev E.modelName) (nextState'' s d)
 
-    nextState'' :: forall m.Model m => UserStateVal -> m -> Maybe UserStateVal
-    nextState'' s _ =
+    nextState'' :: forall m.Model m =>
+                   UserStateVal -> Maybe UserStateVal -> m -> Maybe UserStateVal
+    nextState'' s d _ =
       let mname = modelName (modelInfo :: ModelInfo m)
-      in nextState s (P.get' ev E.eventType) mname (join $ P.get ev E.field)
+      in nextState s d (P.get' ev E.eventType) mname (join $ P.get ev E.field)
 
     setNext Nothing = return ()
-    setNext (Just s) = (withPG $ \c -> P.create (mkState s) c) >> return ()
+    setNext (Just s) = withPG $ \c -> do
+      P.create (mkState s) c
+      P.update uid (P.put delayedState Nothing P.empty) c
+      return ()
 
     mkState s = P.put State.eventId (P.get' ev E.ident) $
                 P.put State.userId uid                  $
@@ -161,6 +170,7 @@ checkUserState uid ev = do
                 P.empty
 
 data UserStateEnv = UserStateEnv { lastState :: UserStateVal
+                                 , delayed   :: Maybe UserStateVal
                                  , evType    :: EventType
                                  , mdlName   :: Text
                                  , mdlFld    :: Maybe Text
@@ -175,14 +185,16 @@ data Matcher = Fields [(Text, Text)] | Models [Text] | NoModel
 -- | Calculate next state
 nextState :: UserStateVal
           -- ^ Last user state
+          -> (Maybe UserStateVal)
+          -- ^ Delayed user state
           -> EventType
           -> Text
           -- ^ Model name
           -> Maybe Text
           -- ^ Field name
           -> Maybe UserStateVal
-nextState lastState evt mname fld =
-  execUserStateEnv (UserStateEnv lastState evt mname fld) $ do
+nextState lastState delayed evt mname fld =
+  execUserStateEnv (UserStateEnv lastState delayed evt mname fld) $ do
     change ([Busy] >>> Ready) $
       on Update $ Fields [field Call.endDate, field Action.result]
     change ([Ready] >>> Busy) $ do
@@ -190,6 +202,11 @@ nextState lastState evt mname fld =
       on Update $ Fields [field Action.openTime]
     change ([LoggedOut] >>> Ready)     $ on Login  NoModel
     change (allStates   >>> LoggedOut) $ on Logout NoModel
+    case delayed of
+      Nothing     -> return ()
+      Just dState -> change ([Ready] >>> dState) $
+                     on Update $ Fields [field delayedState]
+    checkDelayed
   where
     field :: forall t n d m1.(Model m1, SingI n)
           => (m1 -> F t n d) -> (Text, Text)
@@ -197,11 +214,17 @@ nextState lastState evt mname fld =
     model :: forall t n d m1.(Model m1, SingI n) => (m1 -> F t n d) -> Text
     model _ = modelName (modelInfo :: ModelInfo m1)
     allStates = [minBound .. ]
+    checkDelayed = do
+      UserStateEnv{..} <- ask
+      newstate         <- get
+      case (delayed, newstate) of
+        (Just dst, Just Ready) -> put delayed
+        _                      -> return ()
 
 on :: EventType -> Matcher -> UserStateM
 on tpe matcher = do
-  UserStateEnv _ evType mname fld <- ask
-  let applicable = evType == tpe && isMatch mname fld matcher
+  UserStateEnv{..} <- ask
+  let applicable = evType == tpe && isMatch mdlName mdlFld matcher
   tell [applicable]
   where
     isMatch _     _ NoModel         = True

@@ -57,6 +57,7 @@ import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role as Role
 import qualified Carma.Model.SmsTemplate as SmsTemplate
 import           Carma.Model.Event (EventType(..))
+import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Action as Act
 import qualified Carma.Model.Call   as Call
 
@@ -191,6 +192,10 @@ actions
         ,("call", Map.fromList
           [("endDate", [\objId _ ->
              liftDb $ Evt.logLegacyCRUD Update (objId) Call.endDate])
+          ])
+        ,("usermeta", Map.fromList
+          [("delayedState", [\objId _ ->
+             liftDb $ Evt.logLegacyCRUD Update (objId) Usermeta.delayedState])
           ])
         ]
 
