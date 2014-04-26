@@ -497,7 +497,28 @@ createQueueTable =
      CREATE TEMPORARY TABLE vinnie_queue
      AS (SELECT * FROM "?" WHERE 'f');
      ALTER TABLE vinnie_queue ADD COLUMN errors text[];
-     |] (Only contractTable)
+
+     -- subprogram is filled last in setSpecialDefaults, thus we bind
+     -- triggers to subprogram field updates.
+     CREATE TRIGGER "vinnie_queue_validUntil_update" BEFORE UPDATE OF ?
+     ON vinnie_queue
+     FOR EACH ROW
+     WHEN (NEW.? IS NOT NULL
+           AND NEW.? IS NOT NULL
+           AND NEW.? IS NULL)
+     EXECUTE PROCEDURE fillValidUntil();
+
+     CREATE TRIGGER "vinnie_queue_checkPeriod" BEFORE UPDATE OF ?
+     ON vinnie_queue
+     FOR EACH ROW
+     WHEN (NEW.? IS NOT NULL
+           AND NEW.? IS NULL)
+     EXECUTE PROCEDURE fillCheckPeriod();
+     |] (contractTable,
+         cfn C.subprogram,
+         cfn C.validSince, cfn C.subprogram, cfn C.validUntil,
+         cfn C.subprogram,
+         cfn C.subprogram, cfn C.checkPeriod)
 
 
 -- | Set committer and subprogram (if not previously set) for
