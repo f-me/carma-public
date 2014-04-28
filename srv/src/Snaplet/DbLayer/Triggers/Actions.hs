@@ -733,6 +733,13 @@ actionResultMap = Map.fromList
       deferBy <- get objId "deferBy"
       -- Deferring is a phantom result which is not preserved
       set objId "deferBy" "" >> set objId "result" ""  >> set objId "closeTime" ""
+      name <- get objId "name"
+      -- Clear assignee when deferring order-class actions
+      when (name `elem` [ "orderService"
+                        , "callMeMaybe"
+                        , "tellMeMore"
+                        , "orderServiceAnalyst"]) $
+           clearAssignee objId
       case (map B.readInt $ B.split ':' deferBy) of
         (Just (hours, _):Just (minutes, _):_) ->
             when (0 <= hours && 0 <= minutes && minutes <= 59) $
