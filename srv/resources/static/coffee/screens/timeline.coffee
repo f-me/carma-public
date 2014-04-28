@@ -24,7 +24,10 @@ define ["text!tpl/screens/timeline.html"
         if value
           items = _.filter @data, (row) =>
             _.some @columns, (column) =>
-              row[column.name].toLowerCase().indexOf(value.toLowerCase()) isnt -1
+              if row[column.name]
+                row[column.name].toLowerCase().indexOf(value.toLowerCase()) isnt -1
+              else
+                false
           @items(items)
         else
           @items(_.clone @data)
@@ -80,9 +83,17 @@ define ["text!tpl/screens/timeline.html"
         @resetPager()
 
     asc: (a, b) ->
+      unless a
+        return -1
+      unless b
+        return 1
       if a.toLowerCase() > b.toLowerCase() then 1 else -1
 
     desc: (a, b) ->
+      unless a
+        return 1
+      unless b
+        return -1
       if a.toLowerCase() < b.toLowerCase() then 1 else -1
 
   class Timeline
