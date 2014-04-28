@@ -129,5 +129,10 @@
           "permissions": ["lovAdmin", "lovViewer"]
         }
       ]
+    },
+    { "name"  :"timeline",
+      "label" : "Таймлайн",
+      "type"  : "li",
+      "permissions": ["supervisor"]
     }
 ]
