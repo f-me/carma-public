@@ -161,7 +161,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
         name : "timeline"
         template: "timeline-screen-template"
         views:
-          "timeline-form": timeline
+          "timeline-view": timeline
       r.renderScreen timeline, bind
 
   Search.attachTo("search")
