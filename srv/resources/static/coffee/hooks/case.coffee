@@ -9,10 +9,6 @@ define ["utils", "dictionaries"], (u, d) ->
       return
 
     phone = knockVM['contact_phone1']()
-    $('.navbar').css "-webkit-transform",
-      if phone % 52652243 == 25848698 and phone[8] == phone[9]
-      then "scaleY(-1)"
-      else ""
 
     # FIXME: refactor all this, use sync/datamap at least for time
     st.fnClearTable()

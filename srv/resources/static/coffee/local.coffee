@@ -85,7 +85,7 @@ require [ "domready"
 
     sendSms.setup()
 
-    if user.login == "darya" or user.login == "e.balabanova"
+    if user.login == "darya"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')
 
     # Enable Popover data API
