@@ -24,7 +24,10 @@ define ["text!tpl/screens/timeline.html"
         if value
           items = _.filter @data, (row) =>
             _.some @columns, (column) =>
-              row[column.name].toLowerCase().indexOf(value.toLowerCase()) isnt -1
+              if row[column.name]
+                row[column.name].toLowerCase().indexOf(value.toLowerCase()) isnt -1
+              else
+                false
           @items(items)
         else
           @items(_.clone @data)
@@ -80,9 +83,17 @@ define ["text!tpl/screens/timeline.html"
         @resetPager()
 
     asc: (a, b) ->
+      unless a
+        return -1
+      unless b
+        return 1
       if a.toLowerCase() > b.toLowerCase() then 1 else -1
 
     desc: (a, b) ->
+      unless a
+        return 1
+      unless b
+        return -1
       if a.toLowerCase() < b.toLowerCase() then 1 else -1
 
   class Timeline
@@ -105,7 +116,7 @@ define ["text!tpl/screens/timeline.html"
     setData: (states) =>
       unless _.isEmpty states
         states = _.map states, (s) -> s.ctime = new Date(s.ctime); s
-        spairs = _.zip states, states[1..-1].concat [{ ctime: new Date()}]
+        spairs = _.zip states, states[1..-1].concat [{ ctime: @endDate}]
         srects = _.map spairs, ([s1, s2]) ->
           id:    s1.id
           state: s1.state
@@ -118,6 +129,8 @@ define ["text!tpl/screens/timeline.html"
       moment().lang("ru")
       $picker = $(element).find(".rangepicker")
       cb = (start, end) =>
+        @startDate = start.toDate()
+        @endDate = end.toDate()
         s = start.format("YYYY-MM-DD")
         e = end.format("YYYY-MM-DD")
         $.getJSON "/userStates/#{@user.id}/#{s}/#{e}", @setData
@@ -290,22 +303,28 @@ define ["text!tpl/screens/timeline.html"
       @mini.select(".x.mini.axis").call(@xMiniAxis)
 
       # draw large scale chart
-      itemRects = @itemRects.selectAll("rect")
+      itemRects = @itemRects.selectAll(".bar")
         .data(@data)
-      itemRects
-        .exit().remove()
       itemRects
         .enter()
         .call(@drawRect(@xMainScale, @margin, 100))
+      itemRects
+        .attr("x",     (d) => @xMainScale(d.value.begin))
+        .attr("width", (d) => @rectWidth(@xMainScale, d))
+      itemRects
+        .exit().remove()
 
       # draw mini chart
       miniRects = @mini.selectAll(".bar")
         .data(@data)
       miniRects
-        .exit().remove()
-      miniRects
         .enter()
         .call(@drawRect(@xMiniScale, -@margin, 5))
+      miniRects
+        .attr("x",     (d) => @xMiniScale(d.value.begin))
+        .attr("width", (d) => @rectWidth(@xMiniScale, d))
+      miniRects
+        .exit().remove()
 
       @mini.select(".brush")
         .call(@brush)
@@ -332,7 +351,7 @@ define ["text!tpl/screens/timeline.html"
       ###
         replace showing data on the large scale chart
       ###
-      rects = @itemRects.selectAll("rect")
+      rects = @itemRects.selectAll(".bar")
         .data(visData)
           .attr("x", (d) => @xMainScale(d.value.begin))
           .attr("width", (d) => @rectWidth(@xMainScale, d))
