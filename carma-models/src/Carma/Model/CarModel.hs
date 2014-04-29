@@ -9,7 +9,6 @@ import Data.Model.View
 
 import Carma.Model.CarMake (CarMake)
 import Carma.Model.Search (searchView, one)
-import Carma.Model.Types (TInt)
 
 
 data CarModel = CarModel
@@ -19,7 +18,7 @@ data CarModel = CarModel
   , info     :: F Text             "info"     "Информация о модели"
   , parent   :: F (IdentI CarMake) "parent"   "Марка машины"
   , synonyms :: F (Maybe (Vector Text)) "synonyms" "Синонимы"
-  , fdds     :: F (Maybe TInt) "fdds" "FDDS-код"
+  , fdds     :: F (Maybe Text) "fdds" "FDDS-код"
   }
   deriving Typeable
 

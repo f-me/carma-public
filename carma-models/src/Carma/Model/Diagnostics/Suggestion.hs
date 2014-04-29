@@ -4,7 +4,6 @@ import Data.Text
 import Data.Typeable
 
 import Carma.Model.PgTypes ()
-import Carma.Model.Types (TInt)
 import Data.Model
 import Data.Model.View
 
@@ -12,7 +11,7 @@ import Data.Model.View
 data Suggestion = Suggestion
   { ident :: PK Int Suggestion "Рекомендация"
   , label :: F Text "label" "Рекомендация"
-  , fdds  :: F (Maybe TInt) "fdds" "FDDS-код"
+  , fdds  :: F (Maybe Text) "fdds" "FDDS-код"
   } deriving Typeable
 
 instance Model Suggestion where

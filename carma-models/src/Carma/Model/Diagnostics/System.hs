@@ -12,7 +12,7 @@ import Data.Model.View
 data System = System
   { ident :: PK Int System "Система"
   , label :: F Text "label" "Название"
-  , fdds  :: F (Maybe TInt) "fdds" "FDDS-код"
+  , fdds  :: F (Maybe Text) "fdds" "FDDS-код"
   } deriving Typeable
 
 instance Model System where

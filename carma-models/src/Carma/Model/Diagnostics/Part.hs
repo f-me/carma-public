@@ -14,7 +14,7 @@ data Part = Part
   { ident  :: PK Int Part "Узел/деталь"
   , parent :: F (IdentI System) "parent" "Система"
   , label  :: F Text "label" "Название"
-  , fdds   :: F (Maybe TInt) "fdds" "FDDS-код"
+  , fdds   :: F (Maybe Text) "fdds" "FDDS-код"
   } deriving Typeable
 
 instance Model Part where

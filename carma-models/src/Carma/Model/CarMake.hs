@@ -7,7 +7,6 @@ import Data.Vector
 import Data.Model
 import Data.Model.View
 
-import Carma.Model.Types (TInt)
 import Carma.Model.PgTypes()
 
 
@@ -16,7 +15,7 @@ data CarMake = CarMake
   , value    :: F Text "value" "value"
   , label    :: F Text "label" "Марка"
   , synonyms :: F (Maybe (Vector Text)) "synonyms" "Синонимы"
-  , fdds     :: F (Maybe TInt) "fdds" "FDDS-код"
+  , fdds     :: F (Maybe Text) "fdds" "FDDS-код"
   }
   deriving Typeable
 

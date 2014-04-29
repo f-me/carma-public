@@ -11,7 +11,6 @@ import Data.Model
 import Data.Model.View
 import Data.Model.TH
 
-import Carma.Model.Types (TInt)
 import Carma.Model.ProgramType hiding (ident)
 import Carma.Model.Usermeta hiding (ident)
 import Carma.Model.PgTypes()
@@ -23,7 +22,7 @@ data Program = Program
   , client                :: F (Maybe Text)    "client" "Заказчик"
   , clientAddress         :: F (Maybe Text)    "clientAddress" "Адрес заказчика"
   , clientCode            :: F (Maybe Text)    "clientCode" "Код заказчика"
-  , fdds                  :: F (Maybe TInt)    "fdds" "FDDS-код"
+  , fdds                  :: F (Maybe Text)    "fdds" "FDDS-код"
   , managers              :: F (Maybe (Vector (IdentI Usermeta)))
                              "managers"  "Менеджеры по программе"
   , pType                 :: F (Maybe (IdentI ProgramType))
