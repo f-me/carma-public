@@ -4,7 +4,7 @@ CREATE TABLE "ServiceNames"
   , label    text NOT NULL DEFAULT ''
   , value    text UNIQUE NOT NULL
   , icon     text DEFAULT ''
-  , fdds     int4
+  , fdds     text
   );
 
 GRANT ALL ON "ServiceNames" TO carma_db_sync;
