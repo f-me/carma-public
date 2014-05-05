@@ -1078,6 +1078,10 @@
                 "label": "DTS"
             },
             {
+                "value": "ATS",
+                "label": "ATS"
+            },
+            {
                 "value": "eldorado",
                 "label": "Eldorado"
             },
@@ -1592,12 +1596,20 @@
                 "label": "207"
             },
             {
+                "value": "207CC",
+                "label": "207CC"
+            },
+            {
                 "value": "307",
                 "label": "307"
             },
             {
                 "value": "308",
                 "label": "308"
+            },
+             {
+                "value": "308CC",
+                "label": "308CC"
             },
             {
                 "value": "407",
