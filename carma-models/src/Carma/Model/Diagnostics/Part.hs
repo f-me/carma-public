@@ -4,7 +4,6 @@ import Data.Text
 import Data.Typeable
 
 import Carma.Model.PgTypes ()
-import Carma.Model.Types (TInt)
 import Data.Model
 import Data.Model.View
 

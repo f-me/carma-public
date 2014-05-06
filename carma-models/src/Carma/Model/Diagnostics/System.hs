@@ -4,7 +4,6 @@ import Data.Text
 import Data.Typeable
 
 import Carma.Model.PgTypes ()
-import Carma.Model.Types (TInt)
 import Data.Model
 import Data.Model.View
 
@@ -12,7 +11,6 @@ import Data.Model.View
 data System = System
   { ident :: PK Int System "Система"
   , label :: F Text "label" "Название"
-  , fdds  :: F (Maybe Text) "fdds" "FDDS-код"
   } deriving Typeable
 
 instance Model System where
