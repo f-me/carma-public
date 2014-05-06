@@ -12,10 +12,6 @@ import Data.Time.Clock (UTCTime)
 import Data.Time.Format (parseTime, formatTime)
 import qualified Data.ByteString.Char8 as B
 
-data Diagnosis1 = Diagnosis1 deriving Typeable
-data Diagnosis2 = Diagnosis2 deriving Typeable
-data Diagnosis3 = Diagnosis3 deriving Typeable
-data Diagnosis4 = Diagnosis4 deriving Typeable
 data Activity = Activity deriving Typeable
 data RequestType = RequestType deriving Typeable
 data ConsultationType = ConsultationType deriving Typeable
@@ -26,10 +22,7 @@ data CarModels = CarModels deriving Typeable
 data CaseStatuses = CaseStatuses deriving Typeable
 data DealerCities = DealerCities deriving Typeable
 data Partner = Partner deriving Typeable
-data LegalForms = LegalForms deriving Typeable
-data TechTypes = TechTypes deriving Typeable
 data TowerTypes = TowerTypes deriving Typeable
-data TowTypes = TowTypes deriving Typeable
 data WheelsBlockedCount = WheelsBlockedCount deriving Typeable
 data PaymentTypes = PaymentTypes deriving Typeable
 data UrgentServiceReason = UrgentServiceReason deriving Typeable

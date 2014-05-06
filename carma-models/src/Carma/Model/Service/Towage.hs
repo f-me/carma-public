@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.Towage where
 
 import Data.Text
@@ -11,12 +10,13 @@ import Carma.Model.Types()
 import Carma.Model.LegacyTypes
 import Carma.Model.Service (Service)
 import Carma.Model.Search as S
+import Carma.Model.TowType (TowType)
 
 data Towage = Towage
   { ident                    :: PK Int Towage ""
   , towerType                :: F (Maybe (IdentT TowerTypes)) "towerType"
                              "Тип эвакуатора"
-  , towType                  :: F (Maybe (IdentT TowTypes)) "towType"
+  , towType                  :: F (Maybe (IdentI TowType)) "towType"
                              "Вид эвакуации"
   , vandalism                :: F (Maybe Checkbox) "vandalism"
                              "Случай вандализма"
