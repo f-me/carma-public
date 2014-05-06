@@ -8,8 +8,9 @@ import Data.Model.View
 
 import Carma.Model.Program         (Program)
 import Carma.Model.SubProgram.Type (SubProgram)
-import Carma.Model.Wazzup          (Wazzup)
 import Carma.Model.LegacyTypes
+
+import Carma.Model.Diagnostics.Wazzup (Wazzup)
 
 import Carma.Model.Search as S
 
@@ -54,7 +55,7 @@ data Call = Call
   , subprogram
     :: F (Maybe (IdentI SubProgram)) "subprogram" "Подпрограмма"
   , wazzup
-    :: F (Maybe (Ident Text Wazzup)) "wazzup" "Что случилось"
+    :: F (Maybe (IdentI Wazzup)) "wazzup" "Что случилось"
   , callerName_name
     :: F (Maybe Text) "callerName_name" "Звонящий"
   , callerName_phone1

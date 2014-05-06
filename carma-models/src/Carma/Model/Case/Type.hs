@@ -14,8 +14,14 @@ import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
 import Carma.Model.Engine       (Engine)
 import Carma.Model.CarClass     (CarClass)
-import Carma.Model.Wazzup       (Wazzup)
 import Carma.Model.LegacyTypes hiding (CarClasses)
+
+import Carma.Model.Diagnostics.Cause      (Cause)
+import Carma.Model.Diagnostics.Part       (Part)
+import Carma.Model.Diagnostics.Suggestion (Suggestion)
+import Carma.Model.Diagnostics.System     (System)
+import Carma.Model.Diagnostics.Wazzup     (Wazzup)
+
 
 data Case = Case
   { ident :: PK Int Case "Номер кейса"
@@ -25,16 +31,18 @@ data Case = Case
     :: F (Maybe LegacyDatetime) "vwcreatedate" "Дата звонка"
   , callTaker
     :: F (Maybe Text)           "callTaker" "Сотрудник РАМК"
+  , customerComment
+    :: F (Maybe Text) "customerComment" "Неисправность со слов клиента"
   , comment
-    :: F (Maybe (Ident Text Wazzup)) "comment" "Что случилось"
+    :: F (Maybe (IdentI Wazzup)) "comment" "Что случилось"
   , diagnosis1
-    :: F (Maybe (IdentT Diagnosis1)) "diagnosis1" "Система"
+    :: F (Maybe (IdentI System)) "diagnosis1" "Система"
   , diagnosis2
-    :: F (Maybe (IdentT Diagnosis2)) "diagnosis2" "Узел/деталь"
+    :: F (Maybe (IdentI Part)) "diagnosis2" "Узел/деталь"
   , diagnosis3
-    :: F (Maybe (IdentT Diagnosis3)) "diagnosis3" "Описание причины неисправности"
+    :: F (Maybe (IdentI Cause)) "diagnosis3" "Описание причины неисправности"
   , diagnosis4
-    :: F (Maybe (IdentT Diagnosis4)) "diagnosis4" "Рекомендация"
+    :: F (Maybe (IdentI Suggestion)) "diagnosis4" "Рекомендация"
   , contact_name
     :: F (Maybe Text) "contact_name" "Звонящий"
   , contact_phone1

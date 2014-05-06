@@ -1,4 +1,3 @@
-
 module Carma.Model.Service where
 
 import Data.Text
@@ -7,10 +6,12 @@ import Data.Typeable
 import Data.Model
 import Data.Model.Types ((:@))
 import Data.Model.View
-import Carma.Model.ServiceNames (ServiceNames)
-import Carma.Model.Types (TInt)
-import Carma.Model.LegacyTypes
-import Carma.Model.Search as S
+
+import qualified Carma.Model.ClientRefusalReason as CRR
+import           Carma.Model.LegacyTypes
+import           Carma.Model.Search as S
+import           Carma.Model.ServiceNames        (ServiceNames)
+import           Carma.Model.Types (TInt)
 
 data Service = Service
   -- FIXME: ident can be null in pg
@@ -53,7 +54,7 @@ data Service = Service
                                  "Фактическое время закрытия услуги"
   , falseCall                    :: F (Maybe (IdentT FalseStatuses)) "falseCall"
                                  "Ложный вызов"
-  , clientCancelReason           :: F (Maybe (IdentT ClientCancelReason)) "clientCancelReason"
+  , clientCancelReason           :: F (Maybe Text) "clientCancelReason"
                                  "Причина отказа клиента"
   -- , falseCallPercent             :: F (Maybe Text) "falseCallPercent" ""
   , bill_billNumber              :: F (Maybe Text) "bill_billNumber"
@@ -133,7 +134,8 @@ svcMod =
     , setType "text" payment_partnerCost
     , setType "text" payment_calculatedCost
     , setType "text" payment_limitedCost
-    , setType "text" bill_billingCost      
+    , setType "text" bill_billingCost
+    , clientCancelReason `completeWith` CRR.label
     ]
 
 

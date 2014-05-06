@@ -80,13 +80,8 @@ instance Model Case where
 
 caseDicts :: [(Text, FieldView -> FieldView) :@ Case]
 caseDicts = [
-   dict comment $ (dictOpt "Wazzup")
-              {dictBounded = False}
-  ,dict diagnosis1 $ (dictOpt "Diagnosis1")
-  ,dict diagnosis2 $ (dictOpt "Diagnosis2")
-              {dictParent = Just $ Model.fieldName diagnosis1}
-  ,dict diagnosis3 $ (dictOpt "Diagnosis3")
-  ,dict diagnosis4 $ (dictOpt "Diagnosis4")
+   setMeta "dictionaryParent"
+   (Aeson.String $ Model.fieldName diagnosis1) diagnosis2
   ,setType "dictionary" contractIdentifier
   ,dict contractIdentifier $ (dictOpt "") {dictType = Just "ContractsDict"}
   ,dict car_model $ (dictOpt "CarModels")

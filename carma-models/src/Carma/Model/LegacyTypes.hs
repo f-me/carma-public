@@ -35,7 +35,6 @@ data TowerTypes = TowerTypes deriving Typeable
 data TowTypes = TowTypes deriving Typeable
 data WheelsBlockedCount = WheelsBlockedCount deriving Typeable
 data PaymentTypes = PaymentTypes deriving Typeable
-data ClientCancelReason = ClientCancelReason deriving Typeable
 data UrgentServiceReason = UrgentServiceReason deriving Typeable
 data Satisfaction = Satisfaction deriving Typeable
 data FalseStatuses = FalseStatuses deriving Typeable

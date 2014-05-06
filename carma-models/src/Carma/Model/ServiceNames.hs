@@ -4,7 +4,6 @@ module Carma.Model.ServiceNames where
 import Data.Text (Text)
 import Data.Typeable
 
-import Carma.Model.Types (TInt)
 import Carma.Model.PgTypes()
 
 import Data.Model
