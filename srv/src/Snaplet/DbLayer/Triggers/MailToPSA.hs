@@ -122,7 +122,7 @@ sendMailActually actionId = do
 
           actionResult <- lift $ get actionId "result"
           fld 150 "Customer effet"   $ case actionResult of
-            "clientCanceledService" -> tr (cancelReason dic) <$> get' svcId "clientCancelReason"
+            "clientCanceledService" -> getCRRLabel svcId
             _                       -> getCommentLabel caseId
           fld 150 "Component fault"  $ get' caseId "dealerCause"
 

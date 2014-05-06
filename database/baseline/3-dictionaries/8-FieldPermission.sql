@@ -338,6 +338,14 @@ core	Case	services	t	t
 core	Case	temperature	t	t
 core	Case	vinChecked	t	t
 vwfake	Case	vwcreatedate	t	t
+lovViewer	ClientRefusalReason	id	t	f
+lovAdmin	ClientRefusalReason	id	t	f
+lovViewer	ClientRefusalReason	label	t	f
+lovAdmin	ClientRefusalReason	label	t	t
+lovViewer	PartnerRefusalReason	id	t	f
+lovAdmin	PartnerRefusalReason	id	t	f
+lovViewer	PartnerRefusalReason	label	t	f
+lovAdmin	PartnerRefusalReason	label	t	t
 lovViewer	Wazzup	id	t	f
 lovAdmin	Wazzup	id	t	f
 lovViewer	Wazzup	label	t	f
