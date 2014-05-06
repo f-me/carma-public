@@ -1,6 +1,6 @@
 CREATE TABLE "Cause"
   ( id SERIAL PRIMARY KEY
-  , label text UNIQUE NOT NULL
+  , label text UNIQUE NOT NULL CHECK (label <> '')
   , fdds text
   );
 

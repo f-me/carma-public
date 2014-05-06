@@ -1,6 +1,6 @@
 CREATE TABLE "System"
   ( id SERIAL PRIMARY KEY
-  , label text UNIQUE NOT NULL
+  , label text UNIQUE NOT NULL CHECK (label <> '')
   );
 
 GRANT ALL ON "System" TO carma_db_sync;

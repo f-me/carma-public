@@ -1,7 +1,7 @@
 CREATE TABLE "Part"
   ( id SERIAL PRIMARY KEY
   , parent int4 REFERENCES "System" NOT NULL
-  , label text UNIQUE NOT NULL
+  , label text UNIQUE NOT NULL CHECK (label <> '')
   , fdds text
   );
 
