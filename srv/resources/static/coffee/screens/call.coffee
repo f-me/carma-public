@@ -71,6 +71,7 @@ define [ "utils"
     st.fnClearTable()
     dict = global.dictValueCache
     progs = utils.newModelDict "Program", true
+    wazzup = utils.newModelDict "Wazzup", true
     rows = for obj in objs
       continue if obj.id.length > 10
       row = [obj.id.split(":")[1] || obj.id
@@ -80,7 +81,7 @@ define [ "utils"
             ,(obj.car_plateNum || "").toUpperCase()
             ,(obj.car_vin || "").toUpperCase()
             ,progs.getLab(obj.program) || obj.program || ''
-            ,dict.Wazzup[obj.comment] || obj.comment || ''
+            ,wazzup.getLab(obj.comment) || obj.comment || ''
             ]
     st.fnAddData(rows)
 

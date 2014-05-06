@@ -14,6 +14,7 @@ define ["utils", "dictionaries"], (u, d) ->
     st.fnClearTable()
     dict = global.dictValueCache
     progs = u.newModelDict "Program", true
+    waz = u.newModelDict "Wazzup", true
 
     $.getJSON( "/callsByPhone/#{phone}" )
     .done( (calls) ->
@@ -24,7 +25,7 @@ define ["utils", "dictionaries"], (u, d) ->
           else
             ''
         comment = []
-        wazzup  = dict.Wazzup[obj.wazzup] || obj.wazzup || ''
+        wazzup  = waz.getLab obj.wazzup
         comment.push("Что случилось: #{wazzup}") if wazzup
 
         callType = dict.CallTypes[obj.callType] || obj.callType || ''
