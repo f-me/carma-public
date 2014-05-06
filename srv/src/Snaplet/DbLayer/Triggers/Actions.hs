@@ -52,6 +52,7 @@ import qualified Carma.Model.CarMake as CarMake
 import qualified Carma.Model.CarModel as CarModel
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.Contract as Contract
+import qualified Carma.Model.ContractCheckStatus as CCS
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role as Role
@@ -175,8 +176,10 @@ actions
               $ set objId "car_plateNum" $ bToUpper val])
           ,("contract", [\objId val ->
                          fillFromContract val objId >>= \case
-                           Loaded -> set objId "vinChecked" "base"
-                           Expired -> set objId "vinChecked" "vinExpired"
+                           Loaded -> set objId "vinChecked" $
+                                     identFv CCS.base
+                           Expired -> set objId "vinChecked" $
+                                      identFv CCS.vinExpired
                            None -> return ()
                         ])
           ,("psaExportNeeded",

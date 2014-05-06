@@ -2,6 +2,9 @@
 
 Helpers for carma-models dictionaries used in legacy CRUD triggers.
 
+TODO: Refactor this module to a single typed helper for new
+dictionaries.
+
 -}
 
 module Snaplet.DbLayer.Triggers.Util
@@ -26,10 +29,12 @@ import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
 import           Snaplet.DbLayer.Triggers.Dsl
 import           Snaplet.DbLayer.Triggers.Types
+import           Snaplet.DbLayer.Types
 import           Snaplet.DbLayer.Util
 
 
 -- | Fetch label of @comment@ field of a case.
+getCommentLabel :: MonadTrigger m b => ObjectId -> m b Text
 getCommentLabel caseId = do
   c <- get caseId $ T.encodeUtf8 $ fieldName Case.comment
   case (B.readInt c) of
@@ -42,6 +47,7 @@ getCommentLabel caseId = do
 
 
 -- | Fetch label of @clientCancelReason@ field of a service.
+getCRRLabel :: MonadTrigger m b => ObjectId -> m b Text
 getCRRLabel caseId = do
   c <- get caseId $ T.encodeUtf8 $ fieldName Service.clientCancelReason
   case (B.readInt c) of

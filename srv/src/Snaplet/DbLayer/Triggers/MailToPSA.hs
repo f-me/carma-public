@@ -34,6 +34,7 @@ import Snap.Snaplet (getSnapletUserConfig)
 
 import qualified Carma.Model.Engine as Engine
 import qualified Carma.Model.Program as Program
+import qualified Carma.Model.TechType as TT
 
 import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
@@ -48,7 +49,7 @@ sendMailToPSA actionId = do
   svcId  <- get actionId "parentId"
   isValidSvc <- case B.split ':' svcId of
     "tech":_
-      -> (`elem` ["charge", "starter", "condition"])
+      -> (`elem` map identFv [TT.charge, TT.starter, TT.ac])
       <$> get svcId "techType"
     "consultation":_
       -> (`elem` ["consOk","consOkAfter"])

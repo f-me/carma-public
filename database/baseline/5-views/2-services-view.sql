@@ -1,7 +1,8 @@
-﻿SELECT c.id AS caseid,
+﻿CREATE OR REPLACE VIEW servicesview AS
+SELECT c.id AS caseid,
     c.calldate,
     c.calltaker,
-    c.comment,
+    wazzup.label,
     c.diagnosis1,
     c.diagnosis2,
     c.diagnosis3,
@@ -114,7 +115,8 @@
    LEFT JOIN "SubProgram" spgm ON c.subprogram = spgm.id
    LEFT JOIN partnertbl p3 ON c.car_seller = p3.id::text
    LEFT JOIN partnertbl p4 ON c.car_dealerto = p4.id::text
-   LEFT JOIN "Contract" contract ON c.contract = contract.id, 
+   LEFT JOIN "Contract" contract ON c.contract = contract.id
+   LEFT JOIN "Wazzup" wazzup ON c.comment = wazzup.id,
    servicetbl s
    LEFT JOIN allservicesview t ON t.id = s.id AND t.type = s.type AND s.parentid = t.parentid
    LEFT JOIN partnertbl p1 ON s.contractor_partnerid = ('partner:'::text || p1.id)

@@ -7,3 +7,6 @@ $PSQL -f baseline/3-dictionaries/8-FieldPermission.sql
 
 $PSQL -f baseline/3-dictionaries/50-ClientRefusalReason.sql
 $PSQL -f baseline/3-dictionaries/51-PartnerRefusalReason.sql
+$PSQL -f baseline/3-dictionaries/52-ContractCheckStatus.sql
+$PSQL -f baseline/3-dictionaries/53-TowType.sql
+$PSQL -f baseline/3-dictionaries/54-TechType.sql

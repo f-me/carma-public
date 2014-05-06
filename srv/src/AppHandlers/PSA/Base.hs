@@ -22,6 +22,7 @@ import Database.PostgreSQL.Simple.SqlQQ
 
 import Snap.Snaplet.PostgresqlSimple
 
+import Carma.Model.TechType
 
 -- | Query used to select exportable case ids, parametrized by vector
 -- of program ids, used by @/psaCases@.
@@ -62,7 +63,7 @@ WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase)
 AND (s.status='serviceOk' OR s.status='serviceClosed')
 AND s.falseCall='none'
-AND s.techType='charge'
+AND s.techType='?'
 AND c.calldate >= ((SELECT calldate FROM parentcase) - INTERVAL '2 days')
 AND c.calldate <= (SELECT calldate FROM parentcase)
 AND c.comment=(SELECT comment FROM parentcase);
@@ -80,5 +81,5 @@ repTowages :: HasPostgres m =>
            -> m [ByteString]
 repTowages n = do
   rows <- query rtQuery [n]
-  rows' <- query rtQuery' [n]
+  rows' <- query rtQuery' (n, charge)
   return $ nub $ map head (rows ++ rows')

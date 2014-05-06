@@ -1,7 +1,6 @@
-
 module Snaplet.DbLayer.Triggers.Defaults
   (applyDefaults
-  ) where 
+  ) where
 
 import Prelude hiding (id)
 
@@ -22,6 +21,9 @@ import Snaplet.Auth.Class
 
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
+
+import qualified Carma.Model.TowType as TowType
+
 import Snaplet.DbLayer.Types
 
 import Util
@@ -164,9 +166,9 @@ defaults = Map.fromList
     ,("services", "")
     ,("actions", "")
     ])
-  ,("towage", Map.union serviceDefaults $ Map.fromList 
+  ,("towage", Map.union serviceDefaults $ Map.fromList
     [("towerType", "evac")
-    ,("towType", "dealer")
+    ,("towType", identFv TowType.dealer)
     ,("vandalism", "0")
     ,("accident", "0")
     ,("wheelsUnblocked", "w0")

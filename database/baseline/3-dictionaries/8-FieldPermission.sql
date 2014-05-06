@@ -306,7 +306,7 @@ core	Case	caseStatus	t	t
 core	Case	city	t	t
 core	Case	claim	t	t
 core	Case	comment	t	t
-core	Case	customerComment t	t
+core	Case	customerComment	t	t
 core	Case	comments	t	t
 core	Case	contact_contactOwner	t	t
 core	Case	contact_email	t	t
@@ -346,6 +346,18 @@ lovViewer	PartnerRefusalReason	id	t	f
 lovAdmin	PartnerRefusalReason	id	t	f
 lovViewer	PartnerRefusalReason	label	t	f
 lovAdmin	PartnerRefusalReason	label	t	t
+lovViewer	ContractCheckStatus	id	t	f
+lovAdmin	ContractCheckStatus	id	t	f
+lovViewer	ContractCheckStatus	label	t	f
+lovAdmin	ContractCheckStatus	label	t	t
+lovViewer	TechType	id	t	f
+lovAdmin	TechType	id	t	f
+lovViewer	TechType	label	t	f
+lovAdmin	TechType	label	t	t
+lovViewer	TowType	id	t	f
+lovAdmin	TowType	id	t	f
+lovViewer	TowType	label	t	f
+lovAdmin	TowType	label	t	t
 lovViewer	Wazzup	id	t	f
 lovAdmin	Wazzup	id	t	f
 lovViewer	Wazzup	label	t	f

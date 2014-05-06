@@ -99,6 +99,8 @@ UPDATE casetbl
 SET customerComment = comment
 WHERE comment_tmp IS NULL;
 
+DROP VIEW servicesview;
+
 ALTER TABLE casetbl DROP COLUMN comment;
 ALTER TABLE casetbl DROP COLUMN diagnosis1;
 ALTER TABLE casetbl DROP COLUMN diagnosis2;
