@@ -48,7 +48,7 @@ q = [sql|
           coalesce(initcap(c.contact_name), '') as contact_name,
           coalesce(c.contact_phone1, '') as contact_phone,
           coalesce(t.towAddress_address, '') as tow_addr,
-          coalesce(diag.label, c.comment, '') as problem_desc,
+          coalesce(diag.label, c.customerComment, '') as problem_desc,
           coalesce(c.caseAddress_address, '') as case_addr,
           (case
               when t.payment_paidByClient ~ E'^\\d{1,7}(\\.\\d{1,2}){0,1}$'
@@ -62,7 +62,7 @@ q = [sql|
 
         from towagetbl t, partnertbl p, casetbl c
           left join "Contract" cntr on (cntr.id = c.contract)
-          left join "Diagnosis0" diag on (diag.value = c.comment)
+          left join "Wazzup" diag on (diag.id = c.comment)
           left join "CarMake" mk on (mk.value = c.car_make)
           left join "CarModel" mdl on (mdl.value = c.car_model)
         where c.id = substring(t.parentId, ':(.*)') :: int

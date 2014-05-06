@@ -179,6 +179,7 @@ call	call	coords	t	t
 call	call	program	t	t
 call	call	subprogram	t	t
 call	call	wazzup	t	t
+call	call	customerComment	t	t
 searchCall	call	address	t	f
 searchCall	call	callDate	t	f
 searchCall	call	endDate	t	f
@@ -205,6 +206,7 @@ searchCall	call	coords	t	f
 searchCall	call	program	t	f
 searchCall	call	subprogram	t	f
 searchCall	call	wazzup	t	f
+searchCall	call	customerComment	t	f
 lovViewer	CarMake	label	t	f
 lovAdmin	CarMake	label	t	t
 lovViewer	CarMake	value	t	f
@@ -304,6 +306,7 @@ core	Case	caseStatus	t	t
 core	Case	city	t	t
 core	Case	claim	t	t
 core	Case	comment	t	t
+core	Case	customerComment t	t
 core	Case	comments	t	t
 core	Case	contact_contactOwner	t	t
 core	Case	contact_email	t	t

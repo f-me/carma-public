@@ -336,10 +336,11 @@ getLatestCases :: AppHandler ()
 getLatestCases = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString $ [sql|
     SELECT
-      id::text, contact_name,
+      casetbl.id::text, contact_name,
       extract (epoch from callDate at time zone 'UTC')::int8::text,
-      contact_phone1, car_plateNum, car_vin, program::text, comment
+      contact_phone1, car_plateNum, car_vin, program::text, w.label
     FROM casetbl
+    LEFT OUTER JOIN "Wazzup" w ON w.id = comment
     ORDER BY callDate DESC
     LIMIT 120
     |]
@@ -354,10 +355,11 @@ searchCases = do
   Just q <- getParam "q"
   rows <- withPG pg_search $ \c -> query c (fromString $ [sql|
     SELECT
-      id::text, contact_name,
+      cs.id::text, contact_name,
       extract (epoch from callDate at time zone 'UTC')::int8::text,
-      contact_phone1, car_plateNum, car_vin, program::text, comment
-    FROM CaseSearch(?)
+      contact_phone1, car_plateNum, car_vin, program::text, w.label
+    FROM CaseSearch(?) cs
+    LEFT OUTER JOIN "Wazzup" w ON w.id = comment
     ORDER BY callDate DESC
     LIMIT 100
     |]) [q]

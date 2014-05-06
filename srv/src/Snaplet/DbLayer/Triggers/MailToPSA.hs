@@ -38,6 +38,7 @@ import qualified Carma.Model.Program as Program
 import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
+import Snaplet.DbLayer.Triggers.Util
 import DictionaryCache
 import Util as U
 
@@ -122,7 +123,7 @@ sendMailActually actionId = do
           actionResult <- lift $ get actionId "result"
           fld 150 "Customer effet"   $ case actionResult of
             "clientCanceledService" -> tr (cancelReason dic) <$> get' svcId "clientCancelReason"
-            _                       -> tr (wazzup dic) <$> get' caseId "comment"
+            _                       -> getCommentLabel caseId
           fld 150 "Component fault"  $ get' caseId "dealerCause"
 
           factServiceStart
