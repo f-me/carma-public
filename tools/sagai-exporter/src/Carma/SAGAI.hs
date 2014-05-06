@@ -165,7 +165,7 @@ instance ExportMonad CaseExport where
 
     comm1Field = do
       val <- caseField1 "comment"
-      pushComment =<< tryLabelOfValue val (getDict wazzup)
+      pushComment =<< tryLabelOfValue val (getDict' wazzup)
 
     comm2Field = pushComment =<< caseField0 "dealerCause"
 
@@ -721,12 +721,15 @@ labelOfValue' val dict = do
 -- label if its value is not found.
 tryLabelOfValue :: ExportMonad m =>
                    BS.ByteString
-                -> (m D.Dict)
+                -> (m ND.NewDict)
                 -> m BS.ByteString
 tryLabelOfValue val dict = do
   d <- dict
-  return $ case D.labelOfValue val d of
-    Just label -> label
+  return $ case B8.readInt val of
+    Just (n, _) ->
+        case ND.labelOfValue n d of
+          Just label -> encodeUtf8 label
+          Nothing -> val
     Nothing -> val
 
 

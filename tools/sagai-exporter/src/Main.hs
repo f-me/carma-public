@@ -165,8 +165,10 @@ programName = "sagai-exporter"
 
 fetchExportDicts :: CarmaIO (Maybe ExportDicts)
 fetchExportDicts = do
-  w <- readDictionary "Wazzup"
-  t <- readDictionary "TechTypes"
+  w' <- readNewDictionary "Wazzup"
+  let w = loadNewDict' <$> w'
+  t' <- readNewDictionary "TechTypes"
+  let t = loadNewDict' <$> t'
   carCl <- readNewDictionary "CarClass"
   let c = loadNewDict' <$> carCl
   r <- readDictionary "Result"
