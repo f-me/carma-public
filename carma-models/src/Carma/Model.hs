@@ -44,6 +44,7 @@ import           Carma.Model.SubProgramContact
 import           Carma.Model.SubProgramContractPermission
 import           Carma.Model.SubProgramService           (SubProgramService)
 import           Carma.Model.Contract
+import           Carma.Model.ContractCheckStatus
 import           Carma.Model.Partner
 import           Carma.Model.LegalForm
 import           Carma.Model.VinFormat
@@ -103,6 +104,7 @@ modelMap fn = modelMap'
       ,add (undefined :: CtrModel)
       ,add (undefined :: CtrScreen)
       ,add (undefined :: Contract)
+      ,add (undefined :: ContractCheckStatus)
       ,add (undefined :: Partner)
       ,add (undefined :: LegalForm)
       ,add (undefined :: Program)

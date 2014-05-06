@@ -78,11 +78,6 @@ instance PgTypeable UserStateVal where
 instance PgTypeable Value where
   pgTypeOf _ = PgType "json" True
 
-instance PgTypeable  Diagnosis1          where pgTypeOf _ = PgType "text" True
-instance PgTypeable  Diagnosis2          where pgTypeOf _ = PgType "text" True
-instance PgTypeable  Diagnosis3          where pgTypeOf _ = PgType "text" True
-instance PgTypeable  Diagnosis4          where pgTypeOf _ = PgType "text" True
-instance PgTypeable  Colors              where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Activity            where pgTypeOf _ = PgType "text" True
 instance PgTypeable  RequestType         where pgTypeOf _ = PgType "text" True
 instance PgTypeable  ConsultationType    where pgTypeOf _ = PgType "text" True
@@ -91,8 +86,6 @@ instance PgTypeable  CarClasses          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  CarMakers           where pgTypeOf _ = PgType "text" True
 instance PgTypeable  CarModels           where pgTypeOf _ = PgType "text" True
 instance PgTypeable  CaseStatuses        where pgTypeOf _ = PgType "text" True
-instance PgTypeable  VINChecked          where pgTypeOf _ = PgType "text" True
-instance PgTypeable  ContractType        where pgTypeOf _ = PgType "text" True
 instance PgTypeable  DealerCities        where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Partner             where pgTypeOf _ = PgType "text" True
 instance PgTypeable  LegalForms          where pgTypeOf _ = PgType "text" True
@@ -101,7 +94,6 @@ instance PgTypeable  TowerTypes          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  TowTypes            where pgTypeOf _ = PgType "text" True
 instance PgTypeable  WheelsBlockedCount  where pgTypeOf _ = PgType "text" True
 instance PgTypeable  PaymentTypes        where pgTypeOf _ = PgType "text" True
-instance PgTypeable  ClientCancelReason  where pgTypeOf _ = PgType "text" True
 instance PgTypeable  UrgentServiceReason where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Satisfaction        where pgTypeOf _ = PgType "text" True
 instance PgTypeable  FalseStatuses       where pgTypeOf _ = PgType "text" True

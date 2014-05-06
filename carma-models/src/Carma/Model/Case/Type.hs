@@ -9,6 +9,7 @@ import Data.Model
 import Carma.Model.Types
 
 import Carma.Model.Contract     (Contract)
+import Carma.Model.ContractCheckStatus
 import Carma.Model.Program      (Program)
 import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
@@ -108,7 +109,7 @@ data Case = Case
     :: F (Maybe (IdentI CarClass)) "car_class" "Класс автомобиля"
 
   , vinChecked
-    :: F (Maybe (IdentT VINChecked)) "vinChecked" "Участие в программе"
+    :: F (Maybe (IdentI ContractCheckStatus)) "vinChecked" "Участие в программе"
   , city
     :: F (Maybe (IdentT DealerCities)) "city" "Город"
   , caseAddress_address

@@ -30,6 +30,7 @@ library
     Carma.Model.CarModel,
     Carma.Model.Engine,
     Carma.Model.Contract,
+    Carma.Model.ContractCheckStatus,
     Carma.Model.FieldPermission,
     Carma.Model.Dictionary,
     Carma.Model.LegalForm,
