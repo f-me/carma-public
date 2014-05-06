@@ -88,6 +88,7 @@ import Carma.HTTP
 
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.SubProgram as SubProgram
+import qualified Carma.Model.TechType as TT
 
 import Carma.SAGAI.Base
 import Carma.SAGAI.Codes
@@ -235,9 +236,9 @@ instance ExportMonad ServiceExport where
           -- Special handling for rental service cost calculation.
           Rent ->
               do
-                program <- caseField "program"
+                program <- fvIdent <$> caseField "program"
                 (_, _, d) <- getService
-                carClass <- dataField1 "carClass" d
+                carClass <- fvIdent <$> dataField1 "carClass" d
                 -- Select costs table depending on whether the rent
                 -- service contractor is a PSA dealer.
                 sPid <- dataField1 "contractor_partnerId" d
@@ -250,10 +251,13 @@ instance ExportMonad ServiceExport where
                                   then rentCostsPSA
                                   else rentCosts
                           dailyCost =
-                              case M.lookup (program, carClass) costs of
-                                Just dc -> dc
-                                -- Zero cost for unknown car classes.
-                                Nothing -> 0
+                              case (program, carClass) of
+                                (Just p, Just c) ->
+                                    case M.lookup (p, c) costs of
+                                      Just dc -> dc
+                                      -- Zero cost for unknown car classes.
+                                      Nothing -> 0
+                                _ -> 0
                       return $ formatCost $
                              dailyCost * (fromIntegral $ capRentDays d)
           _ -> codeField (formatCost . cost)
@@ -361,11 +365,13 @@ serviceExpenseType s@(mn, _, d) = do
     (_, "rent") -> return Rent
     (_, "tech") -> do
             techType <- dataField1 "techType" d
-            case techType of
-              "charge"    -> return Charge
-              "condition" -> return Condition
-              "starter"   -> return Starter
-              _           -> exportError $ UnknownTechType techType
+            let ttMap = M.fromList [ (Just TT.charge, Charge)
+                                   , (Just TT.ac, Condition)
+                                   , (Just TT.starter, Starter)
+                                   ]
+            case M.lookup (fvIdent techType) ttMap of
+              Just v  -> return v
+              Nothing -> exportError $ UnknownTechType techType
     _        -> exportError $ UnknownService mn
 
 
@@ -424,8 +430,8 @@ exportable (mn, _, d) = statusOk && typeOk
                 "consultation" -> True
                 "towage"       -> True
                 "rent"         -> True
-                "tech"         -> elem (dataField0 "techType" d)
-                                  ["charge", "condition", "starter"]
+                "tech"         -> elem (fvIdent $ dataField0 "techType" d) $
+                                  map Just [TT.charge, TT.ac, TT.starter]
                 _        -> False
           -- Check status and falseCall fields
           statusOk = (falseCall == "none" && status == "serviceClosed") ||
@@ -502,9 +508,9 @@ contractField1 fn = do
 -- | Check if servicing contract is in effect.
 onService :: ExportMonad m => m Bool
 onService = do
-  ct <- caseField0 "subprogram"
-  return $ (not $ elem ct $ map identFv [ SubProgram.peugeotWarranty
-                                        , SubProgram.citroenWarranty])
+  ct <- fvIdent <$> caseField0 "subprogram"
+  return $ (not $ elem ct [ Just SubProgram.peugeotWarranty
+                          , Just SubProgram.citroenWarranty])
 
 
 -- | An action which pushes new content to contents of the SAGAI entry
@@ -531,9 +537,10 @@ rowBreak = push newline
 pdvField :: ExportField
 pdvField = do
   fv <- caseField1 "program"
-  if (fv == identFv Program.peugeot)
+  let i = fvIdent fv
+  if (i == Just Program.peugeot)
   then push "RUMC01R01"
-  else if (fv == identFv Program.citroen)
+  else if (i == Just Program.citroen)
        then push "FRRM01R01"
        else exportError $ UnknownProgram fv
 
@@ -573,9 +580,12 @@ codeField :: ExportMonad m =>
 codeField proj = do
   program <- caseField "program"
   key <- expenseType
-  case M.lookup (program, key) codesData of
+  case fvIdent program of
+    Just p ->
+        case M.lookup (p, key) codesData of
+          Nothing -> exportError $ UnknownProgram program
+          Just c -> return $ proj c
     Nothing -> exportError $ UnknownProgram program
-    Just c -> return $ proj c
 
 
 -- | Format 231.42 as "23142". Fractional part is truncated to 2

@@ -24,11 +24,10 @@ where
 import Data.ByteString as BS
 import Data.Map as M
 
-import Carma.HTTP
-import qualified Carma.Model.CarClass as CarClass
-import qualified Carma.Model.Program as Program
+import Data.Model
 
-import Carma.SAGAI.Util
+import Carma.Model.CarClass
+import Carma.Model.Program
 
 
 data ExpenseType = Dossier
@@ -52,35 +51,11 @@ data CodeRow = CodeRow { cost             :: Double
                        }
 
 
-citroen :: FieldValue
-citroen = identFv Program.citroen
-
-
-peugeot :: FieldValue
-peugeot = identFv Program.peugeot
-
-
-psab :: FieldValue
-psab = identFv CarClass.psab
-
-
-psam1 :: FieldValue
-psam1 = identFv CarClass.psam1
-
-
-psam2 :: FieldValue
-psam2 = identFv CarClass.psam2
-
-
-psah :: FieldValue
-psah = identFv CarClass.psah
-
-
 -- | List of costs and I/C/D codes for all programs and expenses.
 --
 -- Costs for Rent expenses are ignored (see 'rentCostsPSA' &
 -- 'rentCosts' instead).
-codesData :: M.Map (FieldValue, ExpenseType) CodeRow
+codesData :: M.Map (IdentI Program, ExpenseType) CodeRow
 codesData = M.fromList
     [ ((citroen, Dossier),     CodeRow 1148    "DV1" "DV4" "9929" "G5F")
     , ((citroen, FalseCall),   CodeRow 574     "DR1" "DR4" "9943" "296")
@@ -106,7 +81,7 @@ codesData = M.fromList
 -- | Daily costs for car rent service provided by PSA dealers.
 --
 -- Map key is a @(subprogram, carClass)@ tuple.
-rentCostsPSA :: M.Map (FieldValue, FieldValue) Double
+rentCostsPSA :: M.Map (IdentI Program, IdentI CarClass) Double
 rentCostsPSA = M.fromList
     [ ((citroen, psab),  1729)
     , ((citroen, psam1), 2034)
@@ -120,7 +95,7 @@ rentCostsPSA = M.fromList
 
 
 -- | Daily costs for car rent service provided by third-party dealers.
-rentCosts :: M.Map (FieldValue, FieldValue) Double
+rentCosts :: M.Map (IdentI Program, IdentI CarClass) Double
 rentCosts = M.fromList
     [ ((citroen, psab),  1758)
     , ((citroen, psam1), 2310)
