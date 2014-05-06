@@ -21,11 +21,10 @@ type a :@ t = Wrap t a
 
 
 data Ident t model = Ident {identVal :: t}
-  deriving (Typeable, Eq)
+  deriving (Ord, Typeable, Eq)
 
 type IdentI m = Ident Int m
 type IdentT m = Ident Text m
-
 
 instance FromField t => FromField (Ident t m) where
   fromField f x = Ident `fmap` fromField f x
