@@ -41,6 +41,7 @@ library
     Carma.Model.CheckType,
     Carma.Model.Partner,
     Carma.Model.PartnerRefusalReason,
+    Carma.Model.PaymentType,
     Carma.Model.Program,
     Carma.Model.ProgramType,
     Carma.Model.SubProgram,

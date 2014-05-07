@@ -90,7 +90,6 @@ instance PgTypeable  DealerCities        where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Partner             where pgTypeOf _ = PgType "text" True
 instance PgTypeable  TowerTypes          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  WheelsBlockedCount  where pgTypeOf _ = PgType "text" True
-instance PgTypeable  PaymentTypes        where pgTypeOf _ = PgType "text" True
 instance PgTypeable  UrgentServiceReason where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Satisfaction        where pgTypeOf _ = PgType "text" True
 instance PgTypeable  FalseStatuses       where pgTypeOf _ = PgType "text" True

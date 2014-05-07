@@ -24,7 +24,6 @@ data DealerCities = DealerCities deriving Typeable
 data Partner = Partner deriving Typeable
 data TowerTypes = TowerTypes deriving Typeable
 data WheelsBlockedCount = WheelsBlockedCount deriving Typeable
-data PaymentTypes = PaymentTypes deriving Typeable
 data UrgentServiceReason = UrgentServiceReason deriving Typeable
 data Satisfaction = Satisfaction deriving Typeable
 data FalseStatuses = FalseStatuses deriving Typeable

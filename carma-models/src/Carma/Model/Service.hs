@@ -9,6 +9,7 @@ import Data.Model.View
 
 import qualified Carma.Model.ClientRefusalReason as CRR
 import           Carma.Model.LegacyTypes
+import           Carma.Model.PaymentType         (PaymentType)
 import           Carma.Model.Search as S
 import           Carma.Model.ServiceNames        (ServiceNames)
 import           Carma.Model.Types (TInt)
@@ -22,7 +23,7 @@ data Service = Service
                                  ""
   , createTime                   :: F (Maybe LegacyDatetime) "createTime"
                                  "Дата создания услуги"
-  , payType                      :: F (Maybe (IdentT PaymentTypes)) "payType"
+  , payType                      :: F (Maybe (IdentI PaymentType)) "payType"
                                  "Тип оплаты"
   , payment_costTranscript       :: F (Maybe Text) "payment_costTranscript"
                                  "Расшифровка стоимости"
