@@ -26,14 +26,10 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
 , (16, 'Engine', 'Типы двигателя', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (17, 'Transmission', 'Коробки передач', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (18, 'LegalForm', 'Формы организации', ARRAY[]::int4[], ARRAY['id', 'label'])
-, (19, 'CheckType', 'Вид ТО', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (19, 'CheckType', 'Виды ТО', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (20, 'CarClass', 'Классы автомобилей', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (21, 'BusinessRole', 'Бизнес-роли', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (22, 'SmsTemplate', 'Шаблон СМС', ARRAY[]::int4[], ARRAY['id', 'label'])
-, (23, 'SmsTokenName', 'Переменные шаблонов СМС',
-       ARRAY[]::int4[], ARRAY['id', 'label'])
-, (24, 'SmsTokenValue', 'Значения переменных шаблонов СМС',
-       ARRAY[]::int4[], ARRAY['id', 'token', 'program', 'subprogram'])
 , (25, 'Wazzup', 'Диагностика: что случилось',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (26, 'System', 'Диагностика: системы',
