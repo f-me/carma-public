@@ -53,6 +53,7 @@ import qualified Carma.Model.CarModel as CarModel
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.ContractCheckStatus as CCS
+import qualified Carma.Model.PaymentType as PaymentType
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role as Role
@@ -356,7 +357,7 @@ onRecursiveServiceStatusChange svcId val = do
   let (svc:_) = B.split ':' svcId
   when (svc == "towage"
       && pgm == identFv Program.genser
-      && payType == "ruamc"
+      && payType == identFv PaymentType.ruamc
       && val `elem`
         ["serviceOrdered", "serviceOk"
         ,"cancelService", "clientCanceled"])

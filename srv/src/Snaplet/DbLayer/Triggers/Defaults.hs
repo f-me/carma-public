@@ -22,6 +22,7 @@ import Snaplet.Auth.Class
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
 
+import qualified Carma.Model.PaymentType as PaymentType
 import qualified Carma.Model.TowType as TowType
 
 import Snaplet.DbLayer.Types
@@ -151,7 +152,7 @@ services =
 serviceDefaults :: Map FieldName B.ByteString
 serviceDefaults = Map.fromList
   [("status", "creating")
-  ,("payType", "ruamc")
+  ,("payType", identFv PaymentType.ruamc)
   ,("warrantyCase", "0")
   ,("overcosted", "0")
   ,("falseCall", "none")

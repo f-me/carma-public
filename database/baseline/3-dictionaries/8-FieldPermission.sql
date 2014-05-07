@@ -350,6 +350,10 @@ lovViewer	ContractCheckStatus	id	t	f
 lovAdmin	ContractCheckStatus	id	t	f
 lovViewer	ContractCheckStatus	label	t	f
 lovAdmin	ContractCheckStatus	label	t	t
+lovViewer	PaymentType	id	t	f
+lovAdmin	PaymentType	id	t	f
+lovViewer	PaymentType	label	t	f
+lovAdmin	PaymentType	label	t	t
 lovViewer	TechType	id	t	f
 lovAdmin	TechType	id	t	f
 lovViewer	TechType	label	t	f

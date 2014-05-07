@@ -28,6 +28,7 @@ import Carma.HTTP
 
 import Data.Model as Model
 
+import qualified Carma.Model.PaymentType as PT
 import qualified Carma.Model.Program as Program
 
 import AppHandlers.PSA.Base
@@ -118,7 +119,7 @@ sendMailToDealer actionId = do
     program <- get caseId   "program"
     when (program `elem` (map identFv [Program.peugeot, Program.citroen])) $ do
       payType <- get svcId "payType"
-      when (payType `elem` ["ruamc", "mixed", "refund"]) $ do
+      when (payType `elem` (map identFv [PT.ruamc, PT.mixed, PT.refund])) $ do
         dealerId <- get svcId "towDealer_partnerId"
         when (dealerId /= "") $ do
           dms <- get dealerId "emails"

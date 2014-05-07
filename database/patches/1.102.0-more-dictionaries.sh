@@ -10,3 +10,4 @@ $PSQL -f baseline/3-dictionaries/51-PartnerRefusalReason.sql
 $PSQL -f baseline/3-dictionaries/52-ContractCheckStatus.sql
 $PSQL -f baseline/3-dictionaries/53-TowType.sql
 $PSQL -f baseline/3-dictionaries/54-TechType.sql
+$PSQL -f baseline/3-dictionaries/55-PaymentType.sql

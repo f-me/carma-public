@@ -67,6 +67,8 @@ import Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
 import qualified Database.PostgreSQL.Simple as P
 
 import qualified Data.Model as Model
+import qualified Carma.Model.PaymentType as PT
+
 import Data.Pool
 
 data JSONParseException
@@ -148,8 +150,9 @@ getCostField srv = lookupNE "payType" srv >>= selectPrice
 
 selectPrice :: ByteString -> Maybe ByteString
 selectPrice v
-          | v == "ruamc"                             = Just "price2"
-          | any (== v) ["client", "mixed", "refund"] = Just "price1"
+          | v == identFv PT.ruamc                    = Just "price2"
+          | any (== v) $ map identFv [PT.client, PT.mixed, PT.refund]
+              = Just "price1"
           | otherwise                               = Nothing
 
 printPrice :: Double -> String
@@ -269,4 +272,3 @@ withPG f = do
     s <- getPostgresState
     let pool = pgPool s
     liftIO $ withResource pool f
-
