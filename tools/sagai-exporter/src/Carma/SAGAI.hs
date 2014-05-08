@@ -87,6 +87,7 @@ import Text.Printf
 import Carma.HTTP
 
 import qualified Carma.Model.Program as Program
+import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.TechType as TT
 
@@ -417,7 +418,7 @@ caseField1 fn = dataField1 fn =<< getCase
 falseService :: Service -> Bool
 falseService (_, _, d) =
   dataField0 "falseCall" d /= "none" ||
-  dataField0 "status" d == "mistake"
+  fvIdent (dataField0 "status" d) == Just SS.mistake
 
 
 -- | True if service should be exported to SAGAI.
@@ -434,8 +435,10 @@ exportable (mn, _, d) = statusOk && typeOk
                                   map Just [TT.charge, TT.ac, TT.starter]
                 _        -> False
           -- Check status and falseCall fields
-          statusOk = (falseCall == "none" && status == "serviceClosed") ||
-                     (falseCall == "bill" && status == "clientCanceled")
+          statusOk = (falseCall == "none" &&
+                      fvIdent status == Just SS.serviceClosed) ||
+                     (falseCall == "bill" &&
+                      fvIdent status == Just SS.clientCanceled)
               where
                 falseCall = dataField0 "falseCall" d
                 status = dataField0 "status" d

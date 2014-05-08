@@ -350,6 +350,14 @@ lovViewer	ContractCheckStatus	id	t	f
 lovAdmin	ContractCheckStatus	id	t	f
 lovViewer	ContractCheckStatus	label	t	f
 lovAdmin	ContractCheckStatus	label	t	t
+lovViewer	CaseStatus	id	t	f
+lovAdmin	CaseStatus	id	t	f
+lovViewer	CaseStatus	label	t	f
+lovAdmin	CaseStatus	label	t	t
+lovViewer	ServiceStatus	id	t	f
+lovAdmin	ServiceStatus	id	t	f
+lovViewer	ServiceStatus	label	t	f
+lovAdmin	ServiceStatus	label	t	t
 lovViewer	PaymentType	id	t	f
 lovAdmin	PaymentType	id	t	f
 lovViewer	PaymentType	label	t	f

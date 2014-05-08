@@ -46,11 +46,15 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (32, 'ContractCheckStatus', 'Статусы проверки контракта',
        ARRAY[]::int4[], ARRAY['id', 'label'])
-, (33, 'TowageType', 'Типы эвакуации',
+, (33, 'TowType', 'Типы эвакуации',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (34, 'TechType', 'Типы техпомощи',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (35, 'PaymentType', 'Типы оплаты',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (36, 'CaseStatus', 'Статусы кейса',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (37, 'ServiceStatus', 'Статусы услуги',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 ;
 

@@ -17,11 +17,14 @@ where
 
 import Data.ByteString (ByteString)
 import Data.List
+import qualified Data.Vector as V
+
 import Database.PostgreSQL.Simple hiding (query)
 import Database.PostgreSQL.Simple.SqlQQ
 
 import Snap.Snaplet.PostgresqlSimple
 
+import Carma.Model.ServiceStatus
 import Carma.Model.TechType
 
 -- | Query used to select exportable case ids, parametrized by vector
@@ -35,8 +38,8 @@ AND  (NOT psaexported='yes' OR psaexported IS NULL);
 |]
 
 
--- | Towages within previous 30 days, parametrized by case id, used in
--- @/repTowages@.
+-- | Towages within previous 30 days, parametrized by case id and
+-- service status list, used in @/repTowages@.
 rtQuery :: Query
 rtQuery = [sql|
 WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
@@ -44,7 +47,7 @@ SELECT concat(s.type, ':', s.id) FROM casetbl c INNER JOIN towagetbl s
 ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
 WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase)
-AND (s.status='serviceOk' OR s.status='serviceClosed')
+AND (s.status = ANY (?))
 AND s.falseCall='none'
 AND c.calldate >= ((SELECT calldate FROM parentcase) - INTERVAL '30 days')
 AND c.calldate < (SELECT calldate FROM parentcase)
@@ -52,8 +55,8 @@ AND c.comment=(SELECT comment FROM parentcase);
 |]
 
 
--- | Recharges within previous 48 hours, parametrized by case id, used
--- in @/repTowages@.
+-- | Recharges within previous 48 hours, parametrized by case id and
+-- service status list, used in @/repTowages@.
 rtQuery' :: Query
 rtQuery' = [sql|
 WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
@@ -61,9 +64,9 @@ SELECT concat(s.type, ':', s.id) FROM casetbl c INNER JOIN techtbl s
 ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
 WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase)
-AND (s.status='serviceOk' OR s.status='serviceClosed')
+AND (s.status = ANY (?))
 AND s.falseCall='none'
-AND s.techType='?'
+AND s.techType = ?
 AND c.calldate >= ((SELECT calldate FROM parentcase) - INTERVAL '2 days')
 AND c.calldate <= (SELECT calldate FROM parentcase)
 AND c.comment=(SELECT comment FROM parentcase);
@@ -80,6 +83,7 @@ repTowages :: HasPostgres m =>
            -- ^ Case ID.
            -> m [ByteString]
 repTowages n = do
-  rows <- query rtQuery [n]
-  rows' <- query rtQuery' (n, charge)
+  let statuses = V.fromList [ok, closed]
+  rows <- query rtQuery (n, statuses)
+  rows' <- query rtQuery' (n, statuses, charge)
   return $ nub $ map head (rows ++ rows')

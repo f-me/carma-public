@@ -210,9 +210,15 @@ projNow fn =
   (B.pack . show . fn . round . utcTimeToPOSIXSeconds) <$> getCurrentTime
 
 
--- | Convert a Role Ident to untyped field value.
+-- | Convert an Ident to an untyped field value.
 identFv :: Model.Model m => Model.IdentI m -> ByteString
 identFv (Model.Ident v) = B.pack $ show v
+
+
+-- | Convert an untyped field value to an Ident if it's a numeric
+-- string.
+fvIdent :: Model.Model m => ByteString -> Maybe (Model.IdentI m)
+fvIdent s = (Model.Ident . fst) <$> B.readInt s
 
 
 -- | Text wrapper with a non-quoting 'ToField' instance.

@@ -51,12 +51,14 @@ import           Data.Model
 import qualified Carma.Model.CarMake as CarMake
 import qualified Carma.Model.CarModel as CarModel
 import qualified Carma.Model.Case as Case
+import qualified Carma.Model.CaseStatus as CaseStatus
 import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.ContractCheckStatus as CCS
 import qualified Carma.Model.PaymentType as PaymentType
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role as Role
+import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.SmsTemplate as SmsTemplate
 import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.Usermeta as Usermeta
@@ -359,8 +361,10 @@ onRecursiveServiceStatusChange svcId val = do
       && pgm == identFv Program.genser
       && payType == identFv PaymentType.ruamc
       && val `elem`
-        ["serviceOrdered", "serviceOk"
-        ,"cancelService", "clientCanceled"])
+        (map identFv [ SS.ordered
+                     , SS.ok
+                     , SS.canceled
+                     , SS.clientCanceled]))
     $ sendMailToGenser svcId
 
   updateCaseStatus caseId
@@ -373,16 +377,23 @@ updateCaseStatus caseId =
   set caseId "caseStatus" =<< do
     servs <- B.split ',' <$> get caseId "services"
     statuses <- mapM (`get` "status") servs
-    return $ case statuses of
-      _ | all (`elem` ["serviceClosed","falseCall","mistake"]) statuses
-          -> "s2" -- closed
-        | all (`elem` ["clientCanceled","serviceClosed"]) statuses
-          -> "s2" -- closed
-        | all (`elem` ["clientCanceled", "cancelService"]) statuses
-          -> "s3" -- cancel
-        | any (== "creating") statuses
-          -> "s0" -- Front Office
-        | otherwise -> "s1" -- Back Office
+    return $ identFv $ case statuses of
+      _ | all (`elem`
+               (map identFv [ SS.closed
+                            , SS.falseCall
+                            , SS.mistake])) statuses
+          -> CaseStatus.closed
+        | all (`elem`
+               (map identFv [ SS.clientCanceled
+                            , SS.closed])) statuses
+          -> CaseStatus.closed
+        | all (`elem`
+               (map identFv [ SS.clientCanceled
+                            , SS.canceled])) statuses
+          -> CaseStatus.canceled
+        | any (== (identFv SS.creating)) statuses
+          -> CaseStatus.front
+        | otherwise -> CaseStatus.back
 
 
 -- | Clear assignee of control-class action chain head (which has

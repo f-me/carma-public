@@ -36,10 +36,10 @@ q = [sql|
           to_char(t.times_expectedServiceStart at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
             as svc_start_time,
           (case ?
-              when 'serviceOk' then 'Услуга оказана'
-              when 'serviceOrdered' then 'Услуга заказана'
-              when 'cancelService' then 'Отказ от услуги'
-              when 'clientCanceled' then 'Клиент отказался от услуги'
+              when '19' then 'Услуга оказана'
+              when '15' then 'Услуга заказана'
+              when '14' then 'Отказ от услуги'
+              when '4' then 'Клиент отказался от услуги'
               else '-' end)
             as svc_status,
           coalesce(mk.label, c.car_make, '-') as car_make,
