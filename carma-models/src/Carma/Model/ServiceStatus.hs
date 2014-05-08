@@ -23,13 +23,13 @@ mkIdents [t|ServiceStatus|]
  [ ("creating", 2)
  , ("clientCanceled", 4)
  , ("mistake", 9)
- , ("cancelService", 14)
- , ("serviceOrdered", 15)
- , ("serviceDelayed", 16)
- , ("serviceInProgress", 17)
+ , ("canceled", 14)
+ , ("ordered", 15)
+ , ("delayed", 16)
+ , ("inProgress", 17)
  , ("falseCall", 18)
- , ("serviceOk", 19)
- , ("serviceClosed", 20)
+ , ("ok", 19)
+ , ("closed", 20)
  ]
 
 instance Model ServiceStatus where

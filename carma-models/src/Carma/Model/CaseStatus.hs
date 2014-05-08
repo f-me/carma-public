@@ -21,7 +21,9 @@ data CaseStatus = CaseStatus
 
 mkIdents [t|CaseStatus|]
  [ ("front", 1)
+ , ("back", 3)
  , ("closed", 4)
+ , ("canceled", 5)
  ]
 
 instance Model CaseStatus where
