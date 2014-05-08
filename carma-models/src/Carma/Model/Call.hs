@@ -54,6 +54,8 @@ data Call = Call
     :: F (Maybe (IdentI Program)) "program" "Программа"
   , subprogram
     :: F (Maybe (IdentI SubProgram)) "subprogram" "Подпрограмма"
+  , customerComment
+    :: F (Maybe Text) "customerComment" "Неисправность со слов клиента"
   , wazzup
     :: F (Maybe (IdentI Wazzup)) "wazzup" "Что случилось"
   , callerName_name
