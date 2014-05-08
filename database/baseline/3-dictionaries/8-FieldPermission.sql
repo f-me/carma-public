@@ -590,12 +590,10 @@ lovAdmin	VinFormat	plateNumDefault	t	t
 lovAdmin	VinFormat	plateNumRequired	t	t
 lovAdmin	VinFormat	validSinceLoad	t	t
 lovAdmin	VinFormat	validSinceTitle	t	t
-lovAdmin	VinFormat	validSinceFormat	t	t
 lovAdmin	VinFormat	validSinceDefault	t	t
 lovAdmin	VinFormat	validSinceRequired	t	t
 lovAdmin	VinFormat	validUntilLoad	t	t
 lovAdmin	VinFormat	validUntilTitle	t	t
-lovAdmin	VinFormat	validUntilFormat	t	t
 lovAdmin	VinFormat	validUntilDefault	t	t
 lovAdmin	VinFormat	validUntilRequired	t	t
 lovAdmin	VinFormat	startMileageLoad	t	t
@@ -636,7 +634,6 @@ lovAdmin	VinFormat	engineTypeDefault	t	t
 lovAdmin	VinFormat	engineTypeRequired	t	t
 lovAdmin	VinFormat	buyDateLoad	t	t
 lovAdmin	VinFormat	buyDateTitle	t	t
-lovAdmin	VinFormat	buyDateFormat	t	t
 lovAdmin	VinFormat	buyDateDefault	t	t
 lovAdmin	VinFormat	buyDateRequired	t	t
 lovAdmin	VinFormat	sellerLoad	t	t
@@ -705,12 +702,10 @@ lovViewer	VinFormat	plateNumDefault	t	f
 lovViewer	VinFormat	plateNumRequired	t	f
 lovViewer	VinFormat	validSinceLoad	t	f
 lovViewer	VinFormat	validSinceTitle	t	f
-lovViewer	VinFormat	validSinceFormat	t	f
 lovViewer	VinFormat	validSinceDefault	t	f
 lovViewer	VinFormat	validSinceRequired	t	f
 lovViewer	VinFormat	validUntilLoad	t	f
 lovViewer	VinFormat	validUntilTitle	t	f
-lovViewer	VinFormat	validUntilFormat	t	f
 lovViewer	VinFormat	validUntilDefault	t	f
 lovViewer	VinFormat	validUntilRequired	t	f
 lovViewer	VinFormat	startMileageLoad	t	f
@@ -751,7 +746,6 @@ lovViewer	VinFormat	engineTypeDefault	t	f
 lovViewer	VinFormat	engineTypeRequired	t	f
 lovViewer	VinFormat	buyDateLoad	t	f
 lovViewer	VinFormat	buyDateTitle	t	f
-lovViewer	VinFormat	buyDateFormat	t	f
 lovViewer	VinFormat	buyDateDefault	t	f
 lovViewer	VinFormat	buyDateRequired	t	f
 lovViewer	VinFormat	sellerLoad	t	f
@@ -768,7 +762,6 @@ lovViewer	VinFormat	lastCheckMileageDefault	t	f
 lovViewer	VinFormat	lastCheckMileageRequired	t	f
 lovViewer	VinFormat	lastCheckDateLoad	t	f
 lovViewer	VinFormat	lastCheckDateTitle	t	f
-lovViewer	VinFormat	lastCheckDateFormat	t	f
 lovViewer	VinFormat	lastCheckDateDefault	t	f
 lovViewer	VinFormat	lastCheckDateRequired	t	f
 lovViewer	VinFormat	checkPeriodLoad	t	f
