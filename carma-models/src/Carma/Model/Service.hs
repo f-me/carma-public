@@ -12,6 +12,7 @@ import           Carma.Model.LegacyTypes
 import           Carma.Model.PaymentType         (PaymentType)
 import           Carma.Model.Search as S
 import           Carma.Model.ServiceNames        (ServiceNames)
+import           Carma.Model.ServiceStatus       (ServiceStatus)
 import           Carma.Model.Types (TInt)
 
 data Service = Service
@@ -88,7 +89,7 @@ data Service = Service
                                  "Оригинал получен"
   , urgentService                :: F (Maybe (IdentT UrgentServiceReason)) "urgentService"
                                  "Приоритетная услуга"
-  , status                       :: F (Maybe (IdentT ServiceStatuses)) "status"
+  , status                       :: F (Maybe (IdentI ServiceStatus)) "status"
                                  "Статус услуги"
   , clientSatisfied              :: F (Maybe (IdentT Satisfaction)) "clientSatisfied"
                                  "Клиент доволен"

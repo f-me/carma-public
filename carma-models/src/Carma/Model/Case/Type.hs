@@ -8,6 +8,7 @@ import Data.Model
 
 import Carma.Model.Types
 
+import Carma.Model.CaseStatus
 import Carma.Model.Contract     (Contract)
 import Carma.Model.ContractCheckStatus
 import Carma.Model.Program      (Program)
@@ -131,7 +132,7 @@ data Case = Case
   , dealerCause
     :: F (Maybe Text) "dealerCause" "Неисправность со слов дилера/партнёра"
   , caseStatus
-    :: F (Maybe (IdentT CaseStatuses)) "caseStatus" "Статус кейса"
+    :: F (Maybe (IdentI CaseStatus)) "caseStatus" "Статус кейса"
   , psaExportNeeded
     :: F (Maybe Checkbox) "psaExportNeeded" "Требуется выгрузка в PSA"
   , psaExported
