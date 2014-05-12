@@ -1721,5 +1721,104 @@
            data-bind="renderContract: '{{ title }}'">
       </div>
     </script>
+
+    <script type="text/template"
+            id="dictionary-many-table-template">
+      <span>
+        <div class="input-append">
+          <input type="text"
+             class="focusable
+                    {{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}
+                    {{# readonly }}disabled{{/ readonly }}"
+             {{# readonly }}readonly{{/ readonly }}
+             autocomplete="off"
+             name="{{ name }}"
+             data-bind="value: {{ name }}Many,
+                        valueUpdate: 'change',
+                        disabled: {{ name }}Disabled,
+                        pickerDisable: {{ name }}Disabled,
+                        bindDict: '{{ name }}'"/>
+          <span class="add-on" style="padding: 4px;">
+            <i class="icon icon-chevron-down"></i>
+          </span>
+        </div>
+        <!-- ko if: {{ name }}Locals().length -->
+        <ul class="unstyled" data-bind="foreach: {{ name }}Locals">
+          <li>
+            <span data-bind="text: $data.label" />
+            <a href=""
+              class="close"
+              style="float: none"
+              data-bind="click: $parent.{{ name }}Remove">&times;</a>
+          </li>
+        </ul>
+        <!-- /ko -->
+      </span>
+    </script>
+
+    <script type="text/template"
+            class="field-template"
+            id="text-table-template">
+      <span data-bind="text: {{ name }}" />
+    </script>
+
+    <script type="text/html" id="table-template">
+      <div class="row-fluid">
+        <div class="bs-docs-example-after">
+          Пользователи
+        </div>
+        <div class="row-fluid">
+          <p>
+            <input type="text"
+                   class="input-large search-query"
+                   placeholder="Поиск"
+                   data-bind="value: $data.typeahead">
+          </p>
+        </div>
+        <div class="row-fluid">
+          <table class="table table-hover table-bordered table-striped table-condensed">
+            <thead>
+              <tr>
+                <!-- ko foreach: {data: $data.columns, as: 'column'} -->
+                <th>
+                  <button class="btn btn-link"
+                          data-bind="{text: column.meta.label
+                            , sort: column.name}">
+                  </button>
+                </th>
+                <!-- /ko -->
+              </tr>
+            </thead>
+            <tbody data-bind="foreach: {data: $data.rows, as: 'row'}">
+              <tr data-bind="{renderRow: row
+                    , event: {dblclick: $parent.rowClick(row)}}">
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="row-fluid">
+          <div class="pager">
+            <ul>
+              <li style="cursor: pointer"
+                  data-bind="css: {fade: !_.isNumber($data.prev())}">
+                <button class="btn btn-link" data-bind="click: $data.prevPage">
+                  &larr;
+                </button>
+              </li>
+              <li>
+                <a data-bind="text: $data.page()">
+                </a>
+              </li>
+              <li style="cursor: pointer"
+                  data-bind="css: {fade: !_.isNumber($data.next())}">
+                <button class="btn btn-link" data-bind="click: $data.nextPage">
+                  &rarr;
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </script>
   </body>
 </html>

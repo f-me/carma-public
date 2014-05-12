@@ -71,7 +71,7 @@ ko.bindingHandlers.sort =
         $(el).find('i').removeClass()
         $(el).find('i').addClass 'icon-arrow-up'
         # launch sorting
-        ctx.$root.kvms.set_sorter name(), "asc"
+        ctx.$parent.kvms.set_sorter name(), "asc"
       ->
         # reset icon for others columns
         resetSort el, defaultClass
@@ -79,7 +79,7 @@ ko.bindingHandlers.sort =
         $(el).find('i').removeClass()
         $(el).find('i').addClass 'icon-arrow-down'
         # launch sorting
-        ctx.$root.kvms.set_sorter name(), "desc"
+        ctx.$parent.kvms.set_sorter name(), "desc"
     )
     # reset icon to default (without sorting) for all column headers
     resetSort = (el, defaultClass) ->

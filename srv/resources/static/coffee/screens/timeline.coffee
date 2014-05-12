@@ -1,92 +1,10 @@
 define ["text!tpl/screens/timeline.html"
       , "d3"
-      , "utils"]
-    , (tpl, d3, Utils) ->
-
-
-  class Table
-    constructor: (opt) ->
-      @limitDef = 10
-      @offsetDef = 0
-
-      @columns = opt.columns
-      @data = opt.data
-
-      @items = ko.observableArray(_.clone @data)
-
-      @limit = ko.observable(@limitDef)
-      @offset = ko.observable(@offsetDef)
-
-      @typeahead = ko.observable()
-      @typeahead.subscribe (value) =>
-        @resetPager()
-        @items.removeAll()
-        if value
-          items = _.filter @data, (row) =>
-            _.some @columns, (column) =>
-              row[column.name].toLowerCase().indexOf(value.toLowerCase()) isnt -1
-          @items(items)
-        else
-          @items(_.clone @data)
-
-      @prev = ko.computed =>
-        offset = @offset() - @limit()
-        if offset < 0 then null else offset / @limit() + 1
-
-      @next = ko.computed =>
-        length = @items().length
-        offset = @offset() + @limit()
-        if (length - offset) > 0 then offset / @limit() + 1 else null
-
-      @page = ko.computed =>
-        @offset() / @limit() + 1
-
-      @clickCb = []
-
-      @rows = ko.computed =>
-        @items.slice(@offset(), @offset() + @limit())
-
-    resetPager: =>
-        @limit(@limitDef)
-        @offset(@offsetDef)
-
-    prevPage: =>
-      @offset(@offset() - @limit())
-
-    nextPage: =>
-      @offset(@offset() + @limit())
-
-    onClick: (cb) =>
-      @clickCb.push cb
-
-    rowClick: (data) =>
-      return =>
-        _.each @clickCb, (cb) ->
-          cb(data)
-
-    sortColumn: (data) =>
-      return =>
-        name = data.name
-        sort = data.sort
-        column = @columns[@columns.indexOf(data)]
-        if (sort is "desc") or not sort
-          @items.sort (a, b) =>
-            @asc(a[name], b[name])
-          column.sort = "asc"
-        else
-          @items.sort (a, b) =>
-            @desc(a[name], b[name])
-          column.sort = "desc"
-        @resetPager()
-
-    asc: (a, b) ->
-      if a.toLowerCase() > b.toLowerCase() then 1 else -1
-
-    desc: (a, b) ->
-      if a.toLowerCase() < b.toLowerCase() then 1 else -1
+      , "model/main"
+      , "components/table"]
+    , (tpl, d3, Main, Table) ->
 
   class Timeline
-
     constructor: (bind) ->
       @margin = 25
 
@@ -346,26 +264,21 @@ define ["text!tpl/screens/timeline.html"
         cb(data)
 
   setupScreen = (viewName, args) ->
-    model = global.model("usermeta")
-    columns = _.map ["login", "realName"], (c) =>
-      _.find model.fields, (f) =>
-        f.name is c
-    data = new Utils.newModelDict("Usermeta")
-    table = new Table
-      data: data.items
-      columns: columns
+    columns = ['login', 'realName', 'roles']
+    viewModel = 'usermeta'
+    dataModel = 'Usermeta'
+    table = new Table {viewModel, dataModel, columns}
 
-    kvm =
-      timelines: ko.observableArray()
-      table: table
+    timelines = ko.observableArray()
 
     table.onClick (user) ->
-      unless _.find(kvm.timelines(), (t) -> t.user.id is user.id)
+      unless _.find(timelines(), (t) -> t.user.id is user.id)
         $("html, body").animate({ scrollTop: $(document).height() }, "slow")
         timeline = new Timeline({user: user})
-        timeline.onClose -> kvm.timelines.remove timeline
-        kvm.timelines.push timeline
+        timeline.onClose -> timelines.remove timeline
+        timelines.push timeline
 
+    kvm = {table, timelines}
     ko.applyBindings(kvm, el(viewName))
 
   constructor: setupScreen
