@@ -23,7 +23,7 @@ data DeliverParts = DeliverParts
 instance Model DeliverParts where
   type TableName DeliverParts = "deliverpartstbl"
   type Parent DeliverParts = Service
-  modelInfo = mkModelInfo DeliverParts ident
+  modelInfo = mkModelInfo DeliverParts ident `withLegacyName` "deliverParts"
   modelView v = case parentView v :: Maybe (ModelView DeliverParts) of
     Nothing -> Nothing
     Just mv -> Just

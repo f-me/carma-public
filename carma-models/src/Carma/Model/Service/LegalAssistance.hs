@@ -22,7 +22,7 @@ data LegalAssistance = LegalAssistance
 instance Model LegalAssistance where
   type TableName LegalAssistance = "kentbl"
   type Parent LegalAssistance = Service
-  modelInfo = mkModelInfo LegalAssistance ident
+  modelInfo = mkModelInfo LegalAssistance ident `withLegacyName` "ken"
   modelView v = case parentView v :: Maybe (ModelView LegalAssistance) of
     Nothing -> Nothing
     Just mv -> Just $ mv {mv_title = "Юридическая помощь"}

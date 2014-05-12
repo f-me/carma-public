@@ -29,7 +29,7 @@ data Tickets = Tickets
 instance Model Tickets where
   type TableName Tickets = "ticketstbl"
   type Parent Tickets = Service
-  modelInfo = mkModelInfo Tickets ident
+  modelInfo = mkModelInfo Tickets ident `withLegacyName` "tickets"
   modelView v = case parentView v :: Maybe (ModelView Tickets) of
     Nothing -> Nothing
     Just mv -> Just

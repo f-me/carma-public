@@ -27,7 +27,7 @@ data Taxi = Taxi
 instance Model Taxi where
   type TableName Taxi = "taxitbl"
   type Parent Taxi = Service
-  modelInfo = mkModelInfo Taxi ident
+  modelInfo = mkModelInfo Taxi ident `withLegacyName` "taxi"
   modelView v = case parentView v :: Maybe (ModelView Taxi) of
     Nothing -> Nothing
     Just mv -> Just

@@ -24,7 +24,7 @@ data Hotel = Hotel
 instance Model Hotel where
   type TableName Hotel = "hoteltbl"
   type Parent Hotel = Service
-  modelInfo = mkModelInfo Hotel ident
+  modelInfo = mkModelInfo Hotel ident `withLegacyName` "hotel"
   modelView v = case parentView v :: Maybe (ModelView Hotel) of
     Nothing -> Nothing
     Just mv -> Just

@@ -26,7 +26,7 @@ data Insurance = Insurance
 instance Model Insurance where
   type TableName Insurance = "insurancetbl"
   type Parent Insurance = Service
-  modelInfo = mkModelInfo Insurance ident
+  modelInfo = mkModelInfo Insurance ident `withLegacyName` "insurance"
   modelView v = case parentView v :: Maybe (ModelView Insurance) of
     Nothing -> Nothing
     Just mv -> Just

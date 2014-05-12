@@ -33,7 +33,7 @@ data Bank = Bank
 instance Model Bank where
   type TableName Bank = "banktbl"
   type Parent Bank = Service
-  modelInfo = mkModelInfo Bank ident
+  modelInfo = mkModelInfo Bank ident `withLegacyName` "bank"
   modelView v = case parentView v :: Maybe (ModelView Bank) of
     Nothing -> Nothing
     Just mv -> Just $ mv {mv_title = "Банковская поддержка"}

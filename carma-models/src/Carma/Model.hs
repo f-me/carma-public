@@ -5,6 +5,7 @@ module Carma.Model
   ( Model
   , Ident(..), IdentI, IdentT
   , dispatch
+  , legacyModelNames
   , modelMap
   )
 
@@ -93,6 +94,17 @@ import           Carma.Model.SmsTemplate                 (SmsTemplate)
 
 dispatch :: forall a . Text -> (forall m . Model m => m -> a) -> Maybe a
 dispatch model fn = Map.lookup model $ modelMap fn
+
+
+legacyModelNames :: Map.Map Text Text
+legacyModelNames = Map.fromList
+  [(legacy, new)
+  |(new, Just legacy) <- Map.toList $ modelMap getLegacy
+  ]
+  where
+    getLegacy :: forall m . Model m => m -> Maybe Text
+    getLegacy _ = legacyModelName (modelInfo :: ModelInfo m)
+
 
 modelMap :: forall a . (forall m . Model m => m -> a) -> Map.Map Text a
 modelMap fn = modelMap'

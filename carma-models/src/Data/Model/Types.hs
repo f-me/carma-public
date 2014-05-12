@@ -60,12 +60,17 @@ type FieldI t (n :: Symbol) (d :: Symbol) = (Typeable t, PgTypeable t
 
 data ModelInfo m = ModelInfo
   { modelName      :: Text
+  , legacyModelName:: Maybe Text
   , tableName      :: Text
   , primKeyName    :: Text
   , modelFields    :: [FieldDesc]
   , modelOnlyFields:: [FieldDesc]
   , modelFieldsMap :: HashMap Text (FieldDesc)
   }
+
+withLegacyName :: ModelInfo m -> Text -> ModelInfo m
+withLegacyName m n = m {legacyModelName = Just n}
+
 
 data FieldDesc = FieldDesc
   {fd_name       :: Text

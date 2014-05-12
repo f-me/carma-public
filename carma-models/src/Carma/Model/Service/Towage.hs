@@ -77,7 +77,7 @@ data Towage = Towage
 instance Model Towage where
   type TableName Towage = "towagetbl"
   type Parent Towage = Service
-  modelInfo = mkModelInfo Towage ident
+  modelInfo = mkModelInfo Towage ident `withLegacyName` "towage"
   modelView = \case
     "search" -> Just
       $ modifyView (searchView towageSearchParams)

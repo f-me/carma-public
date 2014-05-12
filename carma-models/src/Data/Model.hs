@@ -18,6 +18,7 @@ module Data.Model
   , ModelView(..)
   , hasNoParent
   , GetModelFields(..)
+  , withLegacyName -- imported from Data.Model.Types
   ) where
 
 
@@ -54,6 +55,7 @@ mkModelInfo ctr pk =
       modelFlds = parentFlds ++ modelOnlyFlds
   in ModelInfo
     { modelName      = T.pack $ show $ typeOf (undefined :: m)
+    , legacyModelName= Nothing
     , tableName      = T.pack $ fromSing (sing :: Sing (TableName m))
     , primKeyName    = fieldName pk
     , modelFields    = modelFlds

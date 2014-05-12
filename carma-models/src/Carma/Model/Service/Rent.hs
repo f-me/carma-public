@@ -36,7 +36,7 @@ data Rent = Rent
 instance Model Rent where
   type TableName Rent = "renttbl"
   type Parent Rent = Service
-  modelInfo = mkModelInfo Rent ident
+  modelInfo = mkModelInfo Rent ident `withLegacyName` "rent"
   modelView v = case parentView v :: Maybe (ModelView Rent) of
     Nothing -> Nothing
     Just mv -> Just

@@ -44,7 +44,7 @@ caseSearchParams
 
 instance Model Case where
   type TableName Case = "casetbl"
-  modelInfo = mkModelInfo Case Case.ident
+  modelInfo = mkModelInfo Case Case.ident `withLegacyName` "case"
   modelView = \case
       "search" -> Just
         $ modifyView (searchView caseSearchParams)

@@ -17,7 +17,7 @@ data Tech = Tech
 instance Model Tech where
   type TableName Tech = "techtbl"
   type Parent Tech = Service
-  modelInfo = mkModelInfo Tech ident
+  modelInfo = mkModelInfo Tech ident `withLegacyName` "tech"
   modelView v = case parentView v :: Maybe (ModelView Tech) of
     Nothing -> Nothing
     Just mv -> Just $ mv {mv_title = "Техпомощь"}

@@ -23,7 +23,7 @@ data Transportation = Transportation
 instance Model Transportation where
   type TableName Transportation = "transportationtbl"
   type Parent Transportation = Service
-  modelInfo = mkModelInfo Transportation ident
+  modelInfo = mkModelInfo Transportation ident `withLegacyName` "transportation"
   modelView v = case parentView v :: Maybe (ModelView Transportation) of
     Nothing -> Nothing
     Just mv -> Just

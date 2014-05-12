@@ -28,7 +28,7 @@ data SoberDriver = SoberDriver
 instance Model SoberDriver where
   type TableName SoberDriver = "sobertbl"
   type Parent SoberDriver = Service
-  modelInfo = mkModelInfo SoberDriver ident
+  modelInfo = mkModelInfo SoberDriver ident `withLegacyName` "sober"
   modelView v = case parentView v :: Maybe (ModelView SoberDriver) of
     Nothing -> Nothing
     Just mv -> Just
