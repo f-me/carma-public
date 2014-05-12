@@ -25,7 +25,6 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
 , (15, 'ProgramType', 'Типы программ', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (16, 'Engine', 'Типы двигателя', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (17, 'Transmission', 'Коробки передач', ARRAY[]::int4[], ARRAY['id', 'label'])
-, (18, 'LegalForm', 'Формы организации', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (19, 'CheckType', 'Виды ТО', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (20, 'CarClass', 'Классы автомобилей', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (21, 'BusinessRole', 'Бизнес-роли', ARRAY[]::int4[], ARRAY['id', 'label'])
@@ -55,6 +54,10 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
 , (36, 'CaseStatus', 'Статусы кейса',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (37, 'ServiceStatus', 'Статусы услуги',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (38, 'LegalForm', 'Формы организации',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (39, 'TaxScheme', 'Формы налогообложения',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 ;
 

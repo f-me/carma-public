@@ -13,3 +13,4 @@ $PSQL -f baseline/3-dictionaries/54-TechType.sql
 $PSQL -f baseline/3-dictionaries/55-PaymentType.sql
 $PSQL -f baseline/3-dictionaries/56-CaseStatus.sql
 $PSQL -f baseline/3-dictionaries/57-ServiceStatus.sql
+$PSQL -f baseline/3-dictionaries/58-TaxScheme.sql

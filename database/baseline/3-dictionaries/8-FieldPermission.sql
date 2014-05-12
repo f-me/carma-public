@@ -362,6 +362,10 @@ lovViewer	PaymentType	id	t	f
 lovAdmin	PaymentType	id	t	f
 lovViewer	PaymentType	label	t	f
 lovAdmin	PaymentType	label	t	t
+lovViewer	TaxScheme	id	t	f
+lovAdmin	TaxScheme	id	t	f
+lovViewer	TaxScheme	label	t	f
+lovAdmin	TaxScheme	label	t	t
 lovViewer	TechType	id	t	f
 lovAdmin	TechType	id	t	f
 lovViewer	TechType	label	t	f
