@@ -50,6 +50,7 @@ library
     Carma.Model.SubProgramContact,
     Carma.Model.SubProgramContractPermission,
     Carma.Model.SubProgramService,
+    Carma.Model.TaxScheme,
     Carma.Model.TechType,
     Carma.Model.TowType,
     Carma.Model.Transmission,

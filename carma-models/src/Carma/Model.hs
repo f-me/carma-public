@@ -46,6 +46,7 @@ import           Carma.Model.SubProgram                  (SubProgram)
 import           Carma.Model.SubProgramContact
 import           Carma.Model.SubProgramContractPermission
 import           Carma.Model.SubProgramService           (SubProgramService)
+import           Carma.Model.TaxScheme                   (TaxScheme)
 import           Carma.Model.TechType                    (TechType)
 import           Carma.Model.TowType                     (TowType)
 import           Carma.Model.Contract
@@ -128,6 +129,7 @@ modelMap fn = modelMap'
       ,add (undefined :: SubProgramContact)
       ,add (undefined :: SubProgramContractPermission)
       ,add (undefined :: SubProgramService)
+      ,add (undefined :: TaxScheme)
       ,add (undefined :: TechType)
       ,add (undefined :: TowType)
       ,add (undefined :: VinFormat)
