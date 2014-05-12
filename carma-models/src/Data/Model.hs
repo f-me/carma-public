@@ -16,7 +16,6 @@ module Data.Model
   , FA(..), fieldNameE, fieldTypesQ
   -- from Data.Model.View.Types
   , ModelView(..)
-  , hasNoParent
   , GetModelFields(..)
   , withLegacyName -- imported from Data.Model.Types
   ) where
@@ -47,14 +46,13 @@ mkModelInfo
   => ctr -> (m -> F (Ident pkTy m) pkNm pkDesc)
   -> ModelInfo m
 mkModelInfo ctr pk =
-  let parentFlds
-        = if hasNoParent (undefined :: m)
-          then []
-          else modelFields (modelInfo :: ModelInfo (Parent m))
+  let parent        = (modelParent :: Maybe (ModelInfo (Parent m) :@ m))
+      parentFlds    = maybe [] (modelFields . unWrap) parent
       modelOnlyFlds = unWrap (getModelFields ctr :: [FieldDesc] :@ m)
-      modelFlds = parentFlds ++ modelOnlyFlds
+      modelFlds     = parentFlds ++ modelOnlyFlds
   in ModelInfo
     { modelName      = T.pack $ show $ typeOf (undefined :: m)
+    , parentName     = modelName . unWrap <$> parent
     , legacyModelName= Nothing
     , tableName      = T.pack $ fromSing (sing :: Sing (TableName m))
     , primKeyName    = fieldName pk
@@ -63,9 +61,6 @@ mkModelInfo ctr pk =
     , modelFieldsMap = HashMap.fromList [(fd_name f, f) | f <- modelFlds]
     }
 
-hasNoParent :: forall m.(Model (Parent m)) => m -> Bool
-hasNoParent _ = typeOf (undefined :: Parent m) == typeOf (undefined :: NoParent)
-
 
 class (SingI (TableName m), Typeable m, Typeable (Parent m)) => Model m where
   type TableName m :: Symbol
@@ -73,8 +68,14 @@ class (SingI (TableName m), Typeable m, Typeable (Parent m)) => Model m where
   type Parent m
   type Parent m = NoParent
 
-  modelInfo :: ModelInfo m
-  modelView :: Text -> Maybe (ModelView m)
+  modelParent :: Model (Parent m) => Maybe (ModelInfo (Parent m) :@ m)
+  modelParent
+    = if typeOf (undefined :: Parent m) == typeOf (undefined :: NoParent)
+      then Nothing
+      else Just (Wrap modelInfo)
+
+  modelInfo   :: ModelInfo m
+  modelView   :: Text -> Maybe (ModelView m)
 
   -- | String-to-ident mappings for the model.
   idents    :: HashMap.HashMap String (IdentI m)
@@ -90,7 +91,6 @@ instance (Model m, Show t) => Show (Ident t m) where
 data NoParent deriving Typeable
 instance Model NoParent where
   type TableName NoParent = "(undefined)"
-  type Parent NoParent = NoParent
   modelInfo = error "ModelInfo NoParent"
   modelView = error "ModelView NoParent"
 

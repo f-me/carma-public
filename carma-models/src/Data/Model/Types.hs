@@ -60,6 +60,7 @@ type FieldI t (n :: Symbol) (d :: Symbol) = (Typeable t, PgTypeable t
 
 data ModelInfo m = ModelInfo
   { modelName      :: Text
+  , parentName     :: Maybe Text
   , legacyModelName:: Maybe Text
   , tableName      :: Text
   , primKeyName    :: Text

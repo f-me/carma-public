@@ -98,9 +98,7 @@ retrieveFields :: forall m.(Model m, Model (Parent m))
                -> IO [Text]
 retrieveFields q c rs mInfo = do
   fs <- getFields $ modelName mInfo
-  fsp <- if hasNoParent (undefined :: m)
-         then return []
-         else getFields $ modelName (modelInfo :: ModelInfo (Parent m))
+  fsp <- maybe (return []) getFields $ parentName mInfo
   return $ fs ++ fsp
   where
     pred n = field :. sql_in role rs :. model `eq` n :. q
