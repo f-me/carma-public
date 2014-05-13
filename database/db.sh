@@ -64,7 +64,7 @@ function exec_file {
       echo ... using snapshot from ${COMMIT}
   fi
   if [[ "sql" == $ext ]] ; then
-    $PSQL --single-transaction -f $FILE
+    $PSQL -f $FILE
   elif [[ "sh" == $ext ]] ;  then
     bash -e $FILE
   fi
