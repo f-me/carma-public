@@ -37,7 +37,6 @@ import Snaplet.SiteConfig.Dictionaries
 
 import AppHandlers.Util hiding (withPG)
 import Utils.HttpErrors
-import Utils.LegacyModel
 
 import Data.Model.Sql
 import qualified Data.Model as Model
@@ -46,16 +45,13 @@ import qualified Carma.Model.ServiceInfo as ServiceInfo
 import qualified Carma.Model.ServiceNames as ServiceNames
 
 
-serveModelTrMap :: Handler b (SiteConfig b) ()
-serveModelTrMap = writeJSON modelTrMap
-
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
   Just name  <- fmap T.decodeUtf8 <$> getParam "name"
   view  <- T.decodeUtf8 . fromMaybe "" <$> getParam "view"
   model <- case T.splitOn ":" view of
       ["ctr",scr,pgm]
-        | Just name' <- Map.lookup name modelTrMap
+        | Just name' <- Map.lookup name Model.legacyModelNames
           -> case Model.dispatch name' $ viewForModel scr of
             Just (Just res)
               -> Just . setModelName name
@@ -64,7 +60,7 @@ serveModel = do
       _ -> case Model.dispatch name $ viewForModel view of
         Just res -> return res
         Nothing
-          | Just name' <- Map.lookup name modelTrMap
+          | Just name' <- Map.lookup name Model.legacyModelNames
           -> case Model.dispatch name' $ viewForModel view of
             Just res -> return $ setModelName name <$> res
             Nothing  -> Map.lookup name <$> gets models
@@ -221,7 +217,6 @@ initSiteConfig cfgDir pg_pool = makeSnaplet
       [ ("model/:name",  method GET serveModel)
       , ("idents/:name", method GET serveIdents)
       , ("dictionaries", method GET serveDictionaries)
-      , ("modelTrMap",   method GET serveModelTrMap)
       ]
     liftIO $ SiteConfig
       <$> loadModels cfgDir
