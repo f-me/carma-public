@@ -1,22 +1,5 @@
 define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
   (utils, tpl, partials) ->
-    initReducedModeBtn = ->
-      currentState = false
-      btn = $('#rkc-ReducedActionsMode')
-      updState = (fs) ->
-          currentState = _.contains fs, "ReducedActionsMode"
-          btnName = if currentState then "Выключить" else "Включить"
-          btn.text btnName
-
-      $.getJSON '/runtimeFlags', updState
-
-      btn.click ->
-        $.ajax
-          type: 'PUT'
-          url: '/runtimeFlags'
-          data: "{\"ReducedActionsMode\": #{not currentState}}"
-          success: updState
-
     rkcFillWeather = (result, cities) ->
       dict = global.dictValueCache
       cities.removeAll()
@@ -141,8 +124,6 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
     setupRKCScreen = (viewName, args) ->
       setTimeout ->
-        initReducedModeBtn()
-
         $('#add-weather').on 'click', ->
           rkcWeatherAddCity($('#rkc-weather-city-select').val())
 
