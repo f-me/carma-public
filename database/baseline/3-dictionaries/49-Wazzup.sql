@@ -1,6 +1,6 @@
 CREATE TABLE "Wazzup"
   ( id SERIAL PRIMARY KEY
-  , label text UNIQUE NOT NULL
+  , label text UNIQUE NOT NULL CHECK (label <> '')
   , system int4 REFERENCES "System"
   , part int4 REFERENCES "Part"
   , cause int4 REFERENCES "Cause"

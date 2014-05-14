@@ -19,7 +19,7 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
           Wazzup     : 'comment'
           CarMakers  : 'car_make'
           CarModels  : 'car_model'
-          VINChecked : 'vinChecked'
+          ContractCheckStatus : 'vinChecked'
       postProc arg.service,
         time: ['createTime', 'times_factServiceStart', 'times_factServiceEnd']
         lookup:
@@ -31,9 +31,9 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
         s.service = s.serviceid.split(':')[0]
         postProc s,
           lookup:
-            users               : 'owner'
-            PartnerCancelReason : 'partnerCancelReason'
-            Services            : 'service'
+            users                : 'owner'
+            PartnerRefusalReason : 'partnerCancelReason'
+            Services             : 'service'
           time: ['ctime']
 
       arg.kase.comments = $.parseJSON arg.kase.comments
@@ -57,8 +57,13 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
 
   lookup = (dict, val) ->
     # little hack to make it work
-    if dict == "Program"
-      (new D.dicts['ModelDict'](dict: 'Program')).getLab(val)
+    newDicts = [ "Program"
+               , "Wazzup"
+               , "PartnerRefusalReason"
+               , "ContractCheckStatus"
+               ]
+    if _.contains newDicts, dict
+      (new D.dicts['ModelDict'](dict: dict)).getLab(val)
     else
       global.dictValueCache[dict][val] || ''
 

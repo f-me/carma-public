@@ -51,12 +51,17 @@ import           Data.Model
 import qualified Carma.Model.CarMake as CarMake
 import qualified Carma.Model.CarModel as CarModel
 import qualified Carma.Model.Case as Case
+import qualified Carma.Model.CaseStatus as CaseStatus
 import qualified Carma.Model.Contract as Contract
+import qualified Carma.Model.ContractCheckStatus as CCS
+import qualified Carma.Model.PaymentType as PaymentType
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role as Role
+import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.SmsTemplate as SmsTemplate
 import           Carma.Model.Event (EventType(..))
+import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Action as Act
 import qualified Carma.Model.Call   as Call
 
@@ -174,8 +179,10 @@ actions
               $ set objId "car_plateNum" $ bToUpper val])
           ,("contract", [\objId val ->
                          fillFromContract val objId >>= \case
-                           Loaded -> set objId "vinChecked" "base"
-                           Expired -> set objId "vinChecked" "vinExpired"
+                           Loaded -> set objId "vinChecked" $
+                                     identFv CCS.base
+                           Expired -> set objId "vinChecked" $
+                                      identFv CCS.vinExpired
                            None -> return ()
                         ])
           ,("psaExportNeeded",
@@ -191,6 +198,10 @@ actions
         ,("call", Map.fromList
           [("endDate", [\objId _ ->
              liftDb $ Evt.logLegacyCRUD Update (objId) Call.endDate])
+          ])
+        ,("usermeta", Map.fromList
+          [("delayedState", [\objId _ ->
+             liftDb $ Evt.logLegacyCRUD Update (objId) Usermeta.delayedState])
           ])
         ]
 
@@ -348,10 +359,12 @@ onRecursiveServiceStatusChange svcId val = do
   let (svc:_) = B.split ':' svcId
   when (svc == "towage"
       && pgm == identFv Program.genser
-      && payType == "ruamc"
+      && payType == identFv PaymentType.ruamc
       && val `elem`
-        ["serviceOrdered", "serviceOk"
-        ,"cancelService", "clientCanceled"])
+        (map identFv [ SS.ordered
+                     , SS.ok
+                     , SS.canceled
+                     , SS.clientCanceled]))
     $ sendMailToGenser svcId
 
   updateCaseStatus caseId
@@ -364,16 +377,23 @@ updateCaseStatus caseId =
   set caseId "caseStatus" =<< do
     servs <- B.split ',' <$> get caseId "services"
     statuses <- mapM (`get` "status") servs
-    return $ case statuses of
-      _ | all (`elem` ["serviceClosed","falseCall","mistake"]) statuses
-          -> "s2" -- closed
-        | all (`elem` ["clientCanceled","serviceClosed"]) statuses
-          -> "s2" -- closed
-        | all (`elem` ["clientCanceled", "cancelService"]) statuses
-          -> "s3" -- cancel
-        | any (== "creating") statuses
-          -> "s0" -- Front Office
-        | otherwise -> "s1" -- Back Office
+    return $ identFv $ case statuses of
+      _ | all (`elem`
+               (map identFv [ SS.closed
+                            , SS.falseCall
+                            , SS.mistake])) statuses
+          -> CaseStatus.closed
+        | all (`elem`
+               (map identFv [ SS.clientCanceled
+                            , SS.closed])) statuses
+          -> CaseStatus.closed
+        | all (`elem`
+               (map identFv [ SS.clientCanceled
+                            , SS.canceled])) statuses
+          -> CaseStatus.canceled
+        | any (== (identFv SS.creating)) statuses
+          -> CaseStatus.front
+        | otherwise -> CaseStatus.back
 
 
 -- | Clear assignee of control-class action chain head (which has
@@ -728,6 +748,13 @@ actionResultMap = Map.fromList
       deferBy <- get objId "deferBy"
       -- Deferring is a phantom result which is not preserved
       set objId "deferBy" "" >> set objId "result" ""  >> set objId "closeTime" ""
+      name <- get objId "name"
+      -- Clear assignee when deferring order-class actions
+      when (name `elem` [ "orderService"
+                        , "callMeMaybe"
+                        , "tellMeMore"
+                        , "orderServiceAnalyst"]) $
+           clearAssignee objId
       case (map B.readInt $ B.split ':' deferBy) of
         (Just (hours, _):Just (minutes, _):_) ->
             when (0 <= hours && 0 <= minutes && minutes <= 59) $

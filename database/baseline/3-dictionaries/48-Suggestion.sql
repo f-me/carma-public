@@ -1,7 +1,6 @@
 CREATE TABLE "Suggestion"
   ( id SERIAL PRIMARY KEY
-  , label text UNIQUE NOT NULL
-  , fdds int4
+  , label text UNIQUE NOT NULL CHECK (label <> '')
   );
 
 GRANT ALL ON "Suggestion" TO carma_db_sync;

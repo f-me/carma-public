@@ -36,10 +36,10 @@ q = [sql|
           to_char(t.times_expectedServiceStart at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
             as svc_start_time,
           (case ?
-              when 'serviceOk' then 'Услуга оказана'
-              when 'serviceOrdered' then 'Услуга заказана'
-              when 'cancelService' then 'Отказ от услуги'
-              when 'clientCanceled' then 'Клиент отказался от услуги'
+              when '19' then 'Услуга оказана'
+              when '15' then 'Услуга заказана'
+              when '14' then 'Отказ от услуги'
+              when '4' then 'Клиент отказался от услуги'
               else '-' end)
             as svc_status,
           coalesce(mk.label, c.car_make, '-') as car_make,
@@ -48,7 +48,7 @@ q = [sql|
           coalesce(initcap(c.contact_name), '') as contact_name,
           coalesce(c.contact_phone1, '') as contact_phone,
           coalesce(t.towAddress_address, '') as tow_addr,
-          coalesce(diag.label, c.comment, '') as problem_desc,
+          coalesce(diag.label, c.customerComment, '') as problem_desc,
           coalesce(c.caseAddress_address, '') as case_addr,
           (case
               when t.payment_paidByClient ~ E'^\\d{1,7}(\\.\\d{1,2}){0,1}$'
@@ -62,7 +62,7 @@ q = [sql|
 
         from towagetbl t, partnertbl p, casetbl c
           left join "Contract" cntr on (cntr.id = c.contract)
-          left join "Diagnosis0" diag on (diag.value = c.comment)
+          left join "Wazzup" diag on (diag.id = c.comment)
           left join "CarMake" mk on (mk.value = c.car_make)
           left join "CarModel" mdl on (mdl.value = c.car_model)
         where c.id = substring(t.parentId, ':(.*)') :: int

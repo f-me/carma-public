@@ -4,8 +4,8 @@ DB_NAME=${1:-carma}
 
 SUBJECT="[Действия] - Сообщение от CaRMa"
 EMAIL_TO="supervisor@ruamc.ru, robots@formalmethods.ru"
-EMAIL_FROM="carma@ruamc.ru"
-EMAIL_SENDER="psa@ruamc.ru"
+EMAIL_FROM="carma@carma.ruamc.ru"
+EMAIL_SENDER="psa@carma.ruamc.ru"
 
 run_query () {
   psql -c "$1" \
@@ -145,4 +145,3 @@ if [[ ! -z "$MESSAGE" ]]
 then
   send_message "$MESSAGE"
 fi
-

@@ -30,7 +30,6 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.String
 
-import Data.Monoid
 import Data.Maybe
 import Data.Ord (comparing)
 
@@ -103,15 +102,15 @@ indexPage = ifTop $ do
 -- | Redirect using 303 See Other to login form.
 --
 -- Used after unsuccessful access/login attempt or logout.
-redirectToLogin :: MonadSnap m => ByteString -> m a
-redirectToLogin failCount = redirect' ("/login/?fc=" <> failCount) 303
+redirectToLogin :: MonadSnap m => m a
+redirectToLogin = redirect' "/login" 303
 
 
 ------------------------------------------------------------------------------
 -- | If user is not logged in, redirect to login page, pass to
 -- handler otherwise.
 authOrLogin :: AppHandler () -> AppHandler ()
-authOrLogin = requireUser auth (redirectToLogin "")
+authOrLogin = requireUser auth redirectToLogin
 
 
 ------------------------------------------------------------------------------
@@ -124,13 +123,12 @@ loginForm = serveFile "snaplets/heist/resources/templates/login.html"
 -- | Login user.
 doLogin :: AppHandler ()
 doLogin = ifTop $ do
-  failCount <- fromMaybe "0" <$> getParam "fc"
   l <- fromMaybe "" <$> getParam "login"
   p <- fromMaybe "" <$> getParam "password"
   r <- isJust <$> getParam "remember"
   res <- with auth $ loginByUsername (T.decodeUtf8 l) (ClearText p) r
   case res of
-    Left  _ -> redirectToLogin failCount
+    Left  _ -> redirectToLogin
     Right _ -> do
       logLogin Login
       redirect "/"
@@ -141,7 +139,7 @@ doLogout = ifTop $ do
   claimUserLogout
   logLogin Logout
   with auth logout
-  redirectToLogin ""
+  redirectToLogin
 
 
 ------------------------------------------------------------------------------

@@ -23,6 +23,7 @@ import Data.Either
 import Data.Maybe
 import qualified Data.HashMap.Strict as HM
 
+import Data.Text (unpack)
 import Data.Time.Clock
 import Data.Time.LocalTime
 import Data.Time.Format
@@ -40,6 +41,11 @@ import System.Log.Handler.Syslog
 import Carma.HTTP hiding (carmaPort)
 import qualified Carma.HTTP as H (carmaPort)
 import Data.Dict.New
+
+import Carma.Model.CarClass
+import Carma.Model.TechType
+import Carma.Model.Diagnostics.Wazzup
+import Data.Model
 
 import Carma.SAGAI
 
@@ -165,9 +171,14 @@ programName = "sagai-exporter"
 
 fetchExportDicts :: CarmaIO (Maybe ExportDicts)
 fetchExportDicts = do
-  w <- readDictionary "Wazzup"
-  t <- readDictionary "TechTypes"
-  carCl <- readNewDictionary "CarClass"
+  w' <- readNewDictionary $
+        unpack $ modelName (modelInfo :: ModelInfo Wazzup)
+  let w = loadNewDict' <$> w'
+  t' <- readNewDictionary $
+        unpack $ modelName (modelInfo :: ModelInfo TechType)
+  let t = loadNewDict' <$> t'
+  carCl <- readNewDictionary $
+           unpack $ modelName (modelInfo :: ModelInfo CarClass)
   let c = loadNewDict' <$> carCl
   r <- readDictionary "Result"
   return $ ExportDicts <$> w <*> t <*> c <*> r

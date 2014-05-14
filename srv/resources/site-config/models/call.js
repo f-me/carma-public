@@ -55,11 +55,21 @@
     {
       "meta": {
         "dictionaryName": "Wazzup",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
+        "bounded": true,
         "label": "Что случилось"
       },
       "type": "dictionary",
       "groupName": null,
       "name": "wazzup"
+    },
+    {
+      "meta": {
+        "label": "Неисправность со слов клиента"
+      },
+      "type": "text",
+      "name": "customerComment"
     },
     {
       "meta": {

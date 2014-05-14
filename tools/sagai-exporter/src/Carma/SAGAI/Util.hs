@@ -8,13 +8,15 @@ module Carma.SAGAI.Util
     ( padLeft
     , padRight
     , parseTimestamp
-    , identFv
+    , fvIdent
     )
 
 where
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
+
+import Data.Functor
 
 import Data.Time.Clock
 import Data.Time.Format
@@ -67,6 +69,7 @@ parseTimestamp :: B8.ByteString -> Maybe UTCTime
 parseTimestamp = parseTime defaultTimeLocale "%s" . B8.unpack
 
 
--- | Convert an Ident to untyped field value.
-identFv :: Model.Model m => Model.IdentI m -> BS.ByteString
-identFv (Model.Ident v) = B8.pack $ show v
+-- | Convert an untyped field value to an Ident if it's a numeric
+-- string.
+fvIdent :: Model.Model m => BS.ByteString -> Maybe (Model.IdentI m)
+fvIdent s = (Model.Ident . fst) <$> B8.readInt s

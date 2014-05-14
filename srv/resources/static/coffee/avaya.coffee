@@ -52,11 +52,10 @@ class @AvayaWidget
       phone.calling()
       panel.find(".search-query").val(number)
 
-      $("#search-query").val("!Тел:" + number)
-      $("#search-query").change()
+      localStorage["call.search-query"] = "!Тел:" + number
 
       vm = global.viewsWare['call-form'].knockVM
-      vm.callDate(new Date().toString("dd.MM.yyyy HH:mm"))
+      vm.callDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
       vm.callerName_phone1(number)
       info = lineInfo[line]
       if info

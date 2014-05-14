@@ -22,6 +22,7 @@ insert into "ConstructorFieldOption"
  (1,1,0,0,'callDate','Дата звонка','',false)
 ,(1,1,0,1,'vwcreatedate','Дата звонка','',false)
 ,(1,1,0,2,'callTaker','Сотрудник РАМК','',false)
+,(1,1,0,3,'customerComment','Неисправность со слов клиента','',false)
 ,(1,1,0,3,'comment','Что случилось','comment',true)
 ,(1,1,0,4,'diagnosis1','Система','system',true)
 ,(1,1,0,5,'diagnosis2','Узел/деталь','detail',true)
