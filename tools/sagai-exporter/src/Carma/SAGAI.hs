@@ -165,9 +165,7 @@ instance ExportMonad CaseExport where
 
     somField = push =<< padRight 10 '0' <$> codeField (formatCost . cost)
 
-    comm1Field = do
-      val <- caseField1 "comment"
-      pushComment =<< tryLabelOfValue val (getDict' wazzup)
+    comm1Field = pushComment =<< caseField1 "customerComment"
 
     comm2Field = pushComment =<< caseField0 "dealerCause"
 
