@@ -85,6 +85,8 @@ define [
           dict: 'LegalForm'
         contract.legalForm = carModelDict.getLab contract.legalForm
 
+      delete contract.dixi
+
       model = global.model 'Contract'
       mapper = new DataMap.Mapper(model)
       kvm = Main.buildKVM model, {fetched: mapper.s2cObj contract}
