@@ -1,3 +1,4 @@
+{-# LANGUAGE DoAndIfThenElse #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -178,12 +179,15 @@ actions
             when (B.length val > 5)
               $ set objId "car_plateNum" $ bToUpper val])
           ,("contract", [\objId val ->
-                         fillFromContract val objId >>= \case
-                           Loaded -> set objId "vinChecked" $
-                                     identFv CCS.base
-                           Expired -> set objId "vinChecked" $
-                                      identFv CCS.vinExpired
-                           None -> return ()
+                         if (not $ B.null val)
+                         then do
+                           fillFromContract val objId >>= \case
+                             Loaded -> set objId "vinChecked" $
+                                       identFv CCS.base
+                             Expired -> set objId "vinChecked" $
+                                        identFv CCS.vinExpired
+                             None -> return ()
+                         else return ()
                         ])
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
