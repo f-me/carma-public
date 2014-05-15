@@ -15,7 +15,9 @@ define [
               "<span class='label label-important'>Просрочен</span>"
             else
               "<span class='label label-success'>Действует</span>"
-        $(el).append("<legend>#{title} ##{contract.id()} #{expired}</legend>")
+        close = "<button class='close'>&times;</button>"
+        $(el).append("<legend>#{title} ##{contract.id()} #{expired} #{close}</legend>")
+        $(el).find('.close').on 'click', -> contract.close()
         $dl = $("<table class='table table-condensed table-striped'></table>")
         $(el).append $dl
         _.each contract._meta.model.fields, (f) ->
@@ -93,6 +95,9 @@ define [
         validSince = Date.parseExact(contract.validSince, "yyyy-MM-dd")?.getTime()
         validUntil = Date.parseExact(contract.validUntil, "yyyy-MM-dd")?.getTime()
         callDate < validSince or callDate > validUntil
+
+      kvm.close = ->
+        knockVM.contract("");
 
       $("##{el}").html(
         Mustache.render($("#contract-content-template").html(), {title: "Контракт"}))
