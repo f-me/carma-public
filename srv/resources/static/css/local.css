@@ -393,3 +393,14 @@ table.dataTable tr.selected-row td.sorting_1 {
   shape-rendering: crispEdges;
 }
 
+.control-group.error label {
+  border-radius: 5px;
+  background-color: #b94a48;
+  padding: 2px 4px;
+  color: #fff;
+}
+
+.control-group.error label * {
+  color: #b94a48;
+}
+
