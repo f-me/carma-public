@@ -32,6 +32,12 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
       # make values human readable
       c.make  = @carMakeDict.getLab c.make || c.make
       c.model = @carModelDict.getLab c.model || c.model
+
+      if c.subprogram
+        subprogramDict = new @Dict.dicts.ComputedDict
+          dict: "prefixedSubPrograms"
+        c.subprogram = subprogramDict.getLab c.subprogram
+
       c._expired = do ->
         if _.isNull c._expired
           ""
@@ -47,7 +53,13 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
           c[f] = "<span>#{c[f].replace(q, "<span class='finded'>#{q}</span>")}</span>"
 
       # required fields
-      req = ["vin", "make", "model", "_expired"]
+      req = ["vin"
+           , "make"
+           , "model"
+           , "_expired"
+           , "startMileage"
+           , "validSince"
+           , "subprogram"]
       html = ""
       # show matched and required fields
       _.each _.union(req, fs), (f) ->
@@ -56,9 +68,15 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
             when "vin"
               html += "<b>#{c[f]}</b>"
             when "_expired"
-              html += "#{c[f]}"
+              html += " #{c[f]}"
+            when "startMileage"
+              html += " [ #{c[f]} км ]"
+            when "subprogram"
+              html += "<br/>#{c[f]}<br/>"
+            when "validSince"
+              html += " <i>#{c[f]}</i>"
             else
-              html += "<br/>#{c[f]}"
+              html += " #{c[f]}"
       html
 
     id2val: (i) ->
