@@ -206,6 +206,7 @@ define ["text!tpl/screens/timeline.html"
       scale(rect.value.drawEnd) - scale(rect.value.drawBegin)
 
     drawTimeLine: (sel, scale, margin, height) ->
+      sel.selectAll(".bar").remove()
       rs = sel.selectAll(".bar").data(@data, (d) -> d.value.id)
         .attr("x",     (d) => scale(d.value.drawBegin))
         .attr("width", (d) => @rectWidth(scale, d))
@@ -238,6 +239,8 @@ define ["text!tpl/screens/timeline.html"
         .selectAll("rect")
         .attr("y", -@margin * 2)
         .attr("height", @margin * 2)
+
+      @brushed()
 
     ###
     #  redraw the large scale chart
