@@ -81,7 +81,7 @@ instance Model Towage where
   modelView = \case
     "search" -> Just
       $ modifyView (searchView towageSearchParams)
-      $ (setType "dictionary-set" towDealer_partnerId) : viewModifier
+      $ (setType "dictionary-set-text" towDealer_partnerId) : viewModifier
     ""    -> modelView "full"
     v | v == "full" || v == "new"
       -> case parentView v :: Maybe (ModelView Towage) of

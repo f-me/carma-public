@@ -328,19 +328,28 @@ instance Typeable tag => DefaultFieldView (Ident Text tag) where
 
 instance DefaultFieldView (Vector Text) where
   defaultFieldView f = (defFieldView f)
-    {fv_type = "dictionary-set"
+    {fv_type = "dictionary-text-set"
     ,fv_meta
       = Map.insert "widget" "dictionary-many"
       $ fv_meta $ defFieldView f
     }
 
-instance DefaultFieldView (Ident t tag) =>
- DefaultFieldView (Vector (Ident t tag)) where
-  defaultFieldView (_ :: m -> F (Vector (Ident t tag)) nm desc) =
-    let v = defaultFieldView (undefined :: m -> F (Ident t tag) nm desc)
-    in v{fv_type = "dictionary-set"
+instance DefaultFieldView (Ident Int tag) =>
+ DefaultFieldView (Vector (Ident Int tag)) where
+  defaultFieldView (_ :: m -> F (Vector (Ident Int tag)) nm desc) =
+    let v = defaultFieldView (undefined :: m -> F (Ident Int tag) nm desc)
+    in v{fv_type = "dictionary-set-int"
         ,fv_meta = Map.insert "widget" "dictionary-many" $ fv_meta v
         }
+
+instance DefaultFieldView (Ident Text tag) =>
+ DefaultFieldView (Vector (Ident Text tag)) where
+  defaultFieldView (_ :: m -> F (Vector (Ident Text tag)) nm desc) =
+    let v = defaultFieldView (undefined :: m -> F (Ident Text tag) nm desc)
+    in v{fv_type = "dictionary-set-text"
+        ,fv_meta = Map.insert "widget" "dictionary-many" $ fv_meta v
+        }
+
 
 instance DefaultFieldView (Interval UTCTime) where
   defaultFieldView f = (defFieldView f) {fv_type = "interval-datetime"}
