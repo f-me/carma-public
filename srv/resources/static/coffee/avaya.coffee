@@ -60,7 +60,7 @@ class @AvayaWidget
       info = lineInfo[line]
       if info
         panel.find("#avaya-info").text(info.greeting)
-        vm.program(info.program)
+        vm.program(String(global.idents("Program")[info.program] || ''))
 
   call: (number) ->
     @__phone.call(number)
@@ -76,13 +76,13 @@ lineInfo =
     program: "citroen"
   "VW+B":
     greeting: "VW Гарантия мобильности, имя оператора, чем могу Вам помочь?"
-    program: "vwMotor"
+    program: "vw"
   "GMKOR+B":
     greeting: "GM ассистанс, добрый день, чем могу Вам помочь?"
-    program: "chevyko"
+    program: "gm"
   "GM+B":
     greeting: "GM ассистанс, добрый день, чем могу Вам помочь?"
-    program: "opel"
+    program: "gm"
   "FORD+B":
     greeting: "Ford помощь на дорогах, имя оператора, добрый день, чем могу Вам помочь?"
     program: "ford"
@@ -91,7 +91,7 @@ lineInfo =
     program: "arc"
   "RAMC B2C+B":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
-    program: "b2cSt"
+    program: "b2c"
   "RUS-LAN+B":
     greeting: "Рус-Лан ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "ruslan"
