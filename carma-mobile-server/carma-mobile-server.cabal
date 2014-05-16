@@ -1,5 +1,5 @@
 Name:                carma-mobile-server
-Version:             0.2.3
+Version:             0.2.3.1
 Synopsis:            Outer world interface for CaRMa
 Description:         Standalone application to handle requests from mobile
                      partners and clients, using CaRMa HTTP API.
@@ -30,7 +30,6 @@ Executable carma-mobile-server
     carma-models                >= 0.15.1 && < 0.18,
     configurator                == 0.2.*,
     lens                        >= 3.8 && < 3.11,
-    hedis                       == 0.6.*,
     HTTP                        == 4000.2.*,
     MonadCatchIO-transformers   >= 0.2.1 && < 0.4,
     mtl                         >= 2 && < 3,
@@ -42,7 +41,6 @@ Executable carma-mobile-server
     snap-server                 >= 0.9.2 && <0.10,
     snap-loader-static          == 0.9.*,
     snaplet-postgresql-simple   >= 0.3 && < 0.5,
-    snaplet-redis               == 0.1.*,
     text                        >= 0.11 && < 0.12,
     time                        >= 1.1 && < 1.5,
     unordered-containers        == 0.2.*,

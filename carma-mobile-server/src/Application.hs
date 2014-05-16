@@ -43,7 +43,6 @@ import           Data.Configurator
 import           Data.Time.Clock
 import           Data.Time.Format
 
-import qualified Database.Redis as R
 import           Database.PostgreSQL.Simple.SqlQQ
 
 import qualified Data.Vector as V
@@ -56,7 +55,6 @@ import           System.Locale
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.PostgresqlSimple
-import           Snap.Snaplet.RedisDB
 
 import           Data.Model             as Model
 import           Carma.Model.Case       as Case hiding (car_vin, city)
@@ -70,7 +68,6 @@ import qualified Carma.HTTP as CH (runCarma)
 
 data GeoApp = GeoApp
     { _postgres :: Snaplet Postgres
-    , _redis :: Snaplet RedisDB
     , carmaOptions :: CarmaOptions
     -- ^ Options of CaRMa running on localhost.
     , cityDict :: Dict
@@ -388,7 +385,6 @@ partnersAround = do
 geoAppInit :: SnapletInit b GeoApp
 geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     db <- nestSnaplet "postgres" postgres pgsInit
-    rdb <- nestSnaplet "redis" redis $ redisDBInit R.defaultConnectInfo
     cfg <- getSnapletUserConfig
 
     cp <- liftIO $ lookupDefault 8000 cfg "carma_port"
@@ -398,7 +394,7 @@ geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     addRoutes routes
     cDict' <- liftIO $ CH.runCarma cOpts $ readDictionary dName
     case cDict' of
-      Just cDict -> return $ GeoApp db rdb cOpts cDict
+      Just cDict -> return $ GeoApp db cOpts cDict
       Nothing -> error "Could not load cities dictionary from CaRMa"
 
 
