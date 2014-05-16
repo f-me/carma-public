@@ -47,7 +47,7 @@ define ["dictionaries/meta-dict"], (m) ->
       cb(r)
 
     match: (q, item) ->
-      ~item.toLowerCase().indexOf(q.toLowerCase())
+      ~item?.toLowerCase().indexOf(q.toLowerCase())
 
     highlight: (item) ->
       item.replace new RegExp("(#{@q})", 'ig'), ($1, match) ->
