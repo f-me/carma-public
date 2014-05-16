@@ -21,70 +21,18 @@ define [
         $dl = $("<table class='table table-condensed table-striped'></table>")
         $(el).append $dl
         _.each contract._meta.model.fields, (f) ->
-          if contract[f.name]() and f.meta.label
+          if f.type.indexOf("dictionary") != -1
+            value = contract["#{f.name}Local"]()
+          else
+            value = contract[f.name]()
+
+          if value and f.meta.label
+            value = "<td>#{value}</td>"
             label = "<td><strong>#{f.meta.label}</strong></td>"
-            value = "<td>#{contract[f.name]()}</td>"
             $dl.append("<tr>#{label}#{value}</tr>")
 
     showContract = (contract, knockVM, el) ->
-      if contract.make
-        carMakeDict = new Dict.dicts.ModelDict
-          dict: 'CarMake'
-        contract.make = carMakeDict.getLab contract.make
-
-      if contract.model
-        carModelDict = new Dict.dicts.ModelDict
-          dict: 'CarModel'
-        contract.model = carModelDict.getLab contract.model
-
-      if contract.subprogram
-        subprogramDict = Utils.newComputedDict "prefixedSubPrograms"
-        contract.subprogram = subprogramDict.getLab contract.subprogram
-
-      if contract.committer
-        usersDict = new Dict.dicts.ModelDict
-          dict: 'Usermeta'
-          meta:
-            dictionaryKey: 'id'
-            dictionaryLabel: 'realName'
-        contract.committer = usersDict.getLab contract.committer
-
       contract.isActive = if contract.isActive then "Да" else "Нет"
-
-      if contract.seller or contract.lastCheckDealer
-        carSellerDict = new Dict.dicts.ModelDict
-          dict: 'Partner'
-          meta:
-            dictionaryKey: 'id'
-            dictionaryLabel: 'name'
-        contract.seller = carSellerDict.getLab contract.seller
-        contract.lastCheckDealer = carSellerDict.getLab contract.lastCheckDealer
-
-      if contract.model
-        carModelDict = new Dict.dicts.ModelDict
-          dict: 'CarClass'
-        contract.carClass = carModelDict.getLab contract.carClass
-
-      if contract.model
-        carModelDict = new Dict.dicts.ModelDict
-          dict: 'CheckType'
-        contract.checkType = carModelDict.getLab contract.checkType
-
-      if contract.model
-        carModelDict = new Dict.dicts.ModelDict
-          dict: 'Transmission'
-        contract.transmission = carModelDict.getLab contract.transmission
-
-      if contract.model
-        carModelDict = new Dict.dicts.ModelDict
-          dict: 'Engine'
-        contract.engineType = carModelDict.getLab contract.engineType
-
-      if contract.model
-        carModelDict = new Dict.dicts.ModelDict
-          dict: 'LegalForm'
-        contract.legalForm = carModelDict.getLab contract.legalForm
-
       delete contract.dixi
 
       model = global.model 'Contract'
