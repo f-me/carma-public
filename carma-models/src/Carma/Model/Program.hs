@@ -33,13 +33,24 @@ data Program = Program
 
 
 mkIdents [t|Program|]
- [ ("vtb24", 2)
- , ("genser", 32)
- , ("ramc", 64)
- , ("gm", 4)
- , ("vw", 3)
- , ("peugeot", 1)
+ [ ("arc", 30)
+ , ("atlant", 11)
+ , ("avilon", 18)
+ , ("b2c", 15)
  , ("citroen", 67)
+ , ("euro", 9)
+ , ("ford", 6)
+ , ("genser", 32)
+ , ("gm", 4)
+ , ("nz", 17)
+ , ("map", 7)
+ , ("peugeot", 1)
+ , ("ramc", 64)
+ , ("ruslan", 16)
+ , ("unicredit", 47)  
+ , ("vnukovo", 19)   
+ , ("vtb24", 2)
+ , ("vw", 3)
  ]
 
 
