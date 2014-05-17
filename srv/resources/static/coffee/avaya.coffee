@@ -109,7 +109,7 @@ lineInfo =
     program: "euro"
   "MAPFRE+B":
     greeting: "Ассистанс центр МАПФРЕ УОРРЭНТИ, добрый день, чем могу Вам помочь?"
-    program: "map"
+    program: "mapfre"
   "VW VNUKOVO+B":
     greeting: "Фольксваген Внуково Ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "vnukovo"
