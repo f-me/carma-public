@@ -121,12 +121,6 @@ actions
       ]
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
-      ++[("sms", Map.fromList
-        [("caseId",   [\smsId _ -> updateSMS smsId])
-        ,("template", [\smsId _ -> updateSMS smsId])
-        ,("msg",      [\smsId _ -> updateSMS smsId])
-        ]
-      )]
       ++[("action", actionActions)
         ,("cost_serviceTarifOption", Map.fromList
           [("count",
