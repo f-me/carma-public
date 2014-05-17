@@ -11,7 +11,7 @@ import Data.Model
 import Data.Model.View
 import Data.Model.TH
 
-import Carma.Model.ProgramType hiding (ident)
+import Carma.Model.ProgramType hiding (b2c, ident)
 import Carma.Model.Usermeta hiding (ident)
 import Carma.Model.PgTypes()
 
@@ -43,7 +43,7 @@ mkIdents [t|Program|]
  , ("genser", 32)
  , ("gm", 4)
  , ("nz", 17)
- , ("map", 7)
+ , ("mapfre", 7)
  , ("peugeot", 1)
  , ("ramc", 64)
  , ("ruslan", 16)
