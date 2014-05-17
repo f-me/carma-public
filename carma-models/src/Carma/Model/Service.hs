@@ -1,5 +1,7 @@
 module Carma.Model.Service where
 
+import qualified Data.Aeson as Aeson
+
 import Data.Text
 import Data.Typeable
 
@@ -137,6 +139,8 @@ svcMod =
     , setType "text" payment_calculatedCost
     , setType "text" payment_limitedCost
     , setType "text" bill_billingCost
+    , setMeta "dictionaryStringify" (Aeson.Bool True) payType
+    , setMeta "dictionaryStringify" (Aeson.Bool True) status
     , clientCancelReason `completeWith` CRR.label
     ]
 

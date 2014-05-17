@@ -105,6 +105,13 @@ caseOldCRUDHacks =
     , setType "text" car_makeYear
     , setMeta "dictionaryStringify" (Aeson.Bool True) program
     , setMeta "dictionaryStringify" (Aeson.Bool True) subprogram
+    , setMeta "dictionaryStringify" (Aeson.Bool True) comment
+    , setMeta "dictionaryStringify" (Aeson.Bool True) diagnosis1
+    , setMeta "dictionaryStringify" (Aeson.Bool True) diagnosis2
+    , setMeta "dictionaryStringify" (Aeson.Bool True) diagnosis3
+    , setMeta "dictionaryStringify" (Aeson.Bool True) diagnosis4
+    , setMeta "dictionaryStringify" (Aeson.Bool True) vinChecked
+    , setMeta "dictionaryStringify" (Aeson.Bool True) caseStatus
     ]
 
 caseRo :: [(Text, FieldView -> FieldView) :@ Case]
