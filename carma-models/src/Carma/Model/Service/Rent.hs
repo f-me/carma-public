@@ -44,6 +44,8 @@ instance Model Rent where
       $ setType "dictionary" towDealer_partnerId
       : setMeta "dictionaryType" (Aeson.String "ModelDict") carClass
       : setMeta "dictionaryStringify" (Aeson.Bool True) carClass
+      : setMeta "dictionaryParent"
+        (Aeson.String $ fieldName rentedMake) rentedModel
       : setMeta "widget" "partner" towDealer_partner
       : invisible towDealer_partnerId
       : invisible towDealer_coords
