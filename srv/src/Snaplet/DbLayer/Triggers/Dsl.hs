@@ -5,7 +5,6 @@ import Control.Applicative
 import Control.Monad (when)
 import Control.Monad.Trans (liftIO)
 import qualified Control.Monad.State as ST
-import Control.Concurrent.STM
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
@@ -17,18 +16,13 @@ import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 
 import Data.Map (Map)
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 import Data.Maybe
 
-import Snap (gets, with)
 import Snap.Snaplet.Auth
 import Snaplet.Auth.Class
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 
-
-import RuntimeFlag
-import Util
 
 tryAll :: Alternative f => (a -> f b) -> [a] -> f b
 tryAll f = foldl (<|>) empty . map f
@@ -85,11 +79,6 @@ dropFromList val = B.intercalate "," . filter (/=val) . B.split ','
 
 utf8 :: String -> ByteString
 utf8 = T.encodeUtf8 . T.pack
-
-isReducedMode :: MonadTrigger m b => m b Bool
-isReducedMode = do
-  flags <- liftDb (gets runtimeFlags) >>= liftIO . readTVarIO
-  return $ Set.member ReducedActionsMode flags
 
 getCurrentUser :: (MonadTrigger m b, HasAuth b) => m b (Maybe AuthUser)
 getCurrentUser = liftDb (withAuth $ currentUser)

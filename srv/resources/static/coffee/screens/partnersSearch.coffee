@@ -370,7 +370,7 @@ define [ "utils"
 
   constructor: (view, args) ->
     # remove padding so blank space after removing navbar can be used
-    if args?
+    if args?.model?
       $('body').css('padding-top', '0px')
       $(".navbar").hide()
 

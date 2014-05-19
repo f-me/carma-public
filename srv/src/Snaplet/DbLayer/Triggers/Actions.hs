@@ -1,3 +1,4 @@
+{-# LANGUAGE DoAndIfThenElse #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -120,12 +121,6 @@ actions
       ]
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
-      ++[("sms", Map.fromList
-        [("caseId",   [\smsId _ -> updateSMS smsId])
-        ,("template", [\smsId _ -> updateSMS smsId])
-        ,("msg",      [\smsId _ -> updateSMS smsId])
-        ]
-      )]
       ++[("action", actionActions)
         ,("cost_serviceTarifOption", Map.fromList
           [("count",
@@ -178,12 +173,15 @@ actions
             when (B.length val > 5)
               $ set objId "car_plateNum" $ bToUpper val])
           ,("contract", [\objId val ->
-                         fillFromContract val objId >>= \case
-                           Loaded -> set objId "vinChecked" $
-                                     identFv CCS.base
-                           Expired -> set objId "vinChecked" $
-                                      identFv CCS.vinExpired
-                           None -> return ()
+                         if (not $ B.null val)
+                         then do
+                           fillFromContract val objId >>= \case
+                             Loaded -> set objId "vinChecked" $
+                                       identFv CCS.base
+                             Expired -> set objId "vinChecked" $
+                                        identFv CCS.vinExpired
+                             None -> return ()
+                         else return ()
                         ])
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
@@ -784,17 +782,12 @@ actionResultMap = Map.fromList
     clearAssignee act
 
     sendMailToPSA objId
-    isReducedMode >>= \case
-      True -> do
-        closeServiceAndSendInfoVW objId
-        sendMailToDealer objId
-      False -> do
-        act' <- replaceAction
-          "tellClient"
-          "Сообщить клиенту о договорённости"
-          (identFv Role.bo_control) "1" (+60) objId
-        Just u <- liftDb $ with auth currentUser
-        tryToPassChainToControl u act'
+    act' <- replaceAction
+      "tellClient"
+      "Сообщить клиенту о договорённости"
+      (identFv Role.bo_control) "1" (+60) objId
+    Just u <- liftDb $ with auth currentUser
+    tryToPassChainToControl u act'
   )
   ,("serviceOrderedSMS", \objId -> do
     sendSMS objId SmsTemplate.order
@@ -805,19 +798,14 @@ actionResultMap = Map.fromList
     set svcId "assignedTo" assignee
 
     sendMailToPSA objId
-    isReducedMode >>= \case
-      True -> do
-        closeServiceAndSendInfoVW objId
-        sendMailToDealer objId
-      False -> do
-        tm <- getService objId "times_expectedServiceStart"
-        act <- replaceAction
-          "checkStatus"
-          "Уточнить статус оказания услуги"
-          (identFv Role.bo_control) "3" (changeTime (+5*60) tm)
-          objId
-        Just u <- liftDb $ with auth currentUser
-        tryToPassChainToControl u act
+    tm <- getService objId "times_expectedServiceStart"
+    act <- replaceAction
+      "checkStatus"
+      "Уточнить статус оказания услуги"
+      (identFv Role.bo_control) "3" (changeTime (+5*60) tm)
+      objId
+    Just u <- liftDb $ with auth currentUser
+    tryToPassChainToControl u act
   )
   ,("partnerNotOk", void .
     replaceAction
@@ -851,17 +839,12 @@ actionResultMap = Map.fromList
     setServiceStatus objId "serviceOrdered"
     sendMailToPSA objId
 
-    isReducedMode >>= \case
-      True -> do
-        closeAction objId
-        sendMailToDealer objId
-      False -> do
-        act <- replaceAction
-          "tellClient"
-          "Сообщить клиенту о договорённости"
-          (identFv Role.bo_control) "1" (+60) objId
-        Just u <- liftDb $ with auth currentUser
-        tryToPassChainToControl u act
+    act <- replaceAction
+      "tellClient"
+      "Сообщить клиенту о договорённости"
+      (identFv Role.bo_control) "1" (+60) objId
+    Just u <- liftDb $ with auth currentUser
+    tryToPassChainToControl u act
   )
   ,("dealerNotApproved", void .
     replaceAction
@@ -882,10 +865,7 @@ actionResultMap = Map.fromList
          "Требуется отказаться от заказанной услуги"
          (identFv Role.bo_control) "1" (+60) objId
   )
-  ,("partnerOk", \objId ->
-    isReducedMode >>= \case
-      True -> closeAction objId
-      False -> do
+  ,("partnerOk", \objId -> do
         tm <- getService objId "times_expectedServiceStart"
         void $ replaceAction
           "checkStatus"
@@ -903,31 +883,22 @@ actionResultMap = Map.fromList
   )
   ,("serviceInProgress", \objId -> do
     setServiceStatus objId "serviceInProgress"
-    isReducedMode >>= \case
-      True -> closeAction objId
-      False -> do
-        tm <- getService objId "times_expectedServiceEnd"
-        void $ replaceAction
-          "checkEndOfService"
-          "Уточнить у клиента окончено ли оказание услуги"
-          (identFv Role.bo_control) "3" (changeTime (+5*60) tm)
-          objId
+    tm <- getService objId "times_expectedServiceEnd"
+    void $ replaceAction
+      "checkEndOfService"
+      "Уточнить у клиента окончено ли оказание услуги"
+      (identFv Role.bo_control) "3" (changeTime (+5*60) tm)
+      objId
   )
   ,("prescheduleService", \objId -> do
     setServiceStatus objId "serviceInProgress"
-    isReducedMode >>= \case
-      True -> closeAction objId
-      False -> do
-        void $ replaceAction
-          "checkEndOfService"
-          "Уточнить у клиента окончено ли оказание услуги"
-          (identFv Role.bo_control) "3" (+60)
-          objId
+    void $ replaceAction
+      "checkEndOfService"
+      "Уточнить у клиента окончено ли оказание услуги"
+      (identFv Role.bo_control) "3" (+60)
+      objId
   )
-  ,("serviceStillInProgress", \objId ->
-    isReducedMode >>= \case
-      True -> closeAction objId
-      False -> do
+  ,("serviceStillInProgress", \objId -> do
         tm <- getService objId "times_expectedServiceEnd"
         dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
         set objId "result" ""

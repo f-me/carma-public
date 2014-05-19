@@ -8,7 +8,7 @@ define ["model/main"
     update: (el, acc, allBindigns, fld, ctx) ->
       _.each ctx.$parent.columns, (c) ->
         tplid = c.meta?.widget || c.type || 'text'
-        tplid = "dictionary-many" if c.type == "dictionary-set"
+        tplid = "dictionary-many" if /^dictionary-set/.test(c.type)
         tplid = "text" if c.type == "ident"
         tpl = Mustache.render $("##{tplid}-table-template").html(), c
         td = document.createElement("td")

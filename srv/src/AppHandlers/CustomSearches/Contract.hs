@@ -38,6 +38,7 @@ import           Carma.Model.CarMake
 import           Carma.Model.CarModel
 import           Carma.Model.Program as P
 import           Carma.Model.SubProgram as S hiding (field)
+import           Carma.Model.Types (TInt)
 
 import           Application
 import           AppHandlers.Util
@@ -68,11 +69,15 @@ instance FromRow SearchResult where
     fromRow = SearchResult <$> field <*> field <*> fromRow <*> fromRow
 
 instance ToJSON SearchResult where
-    toJSON (SearchResult i e vals (cm, cl)) =
+    toJSON (SearchResult i e vals (cm, cl, ml, sp, d)) =
         object $ [ "id"       .= i
                  , "_expired" .= e
                  ] ++ (zip C.identifierNames listVals)
-                   ++ (zip extraContractFieldNames [toJSON cm, toJSON cl])
+                   ++ (zip extraContractFieldNames [ toJSON cm
+                                                   , toJSON cl
+                                                   , toJSON ml
+                                                   , toJSON sp
+                                                   , toJSON d])
         where
           jsonVals = toJSON vals
           -- Assume that if identifierTypes is a tuple, its ToJSON

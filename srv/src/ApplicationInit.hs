@@ -4,10 +4,8 @@ module ApplicationInit (appInit) where
 import Control.Applicative
 import Control.Monad.IO.Class
 
-import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import Data.Configurator as Cfg
-import Control.Concurrent.STM
 
 import System.Log.Simple (newLog, fileCfg, logger, text, file)
 
@@ -116,8 +114,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/sms/processing", chkAuthLocal . method GET $ smsProcessingHandler)
          , ("/printSrv/:model/:id",
             chkAuthLocal . method GET $ printServiceHandler)
-         , ("/runtimeFlags",  chkAuthLocal . method GET  $ getRuntimeFlags)
-         , ("/runtimeFlags",  chkAuthLocal . method PUT  $ setRuntimeFlags)
          , ("/clientConfig",       chkAuth . method GET  $ clientConfig)
          , ("/restoreProgramDefaults/:pgm",
             chkAuthAdmin . method PUT $ restoreProgramDefaults)
@@ -149,8 +145,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             lookupDefault "resources/private/client_session_key.aes"
                           cfg "session-key"
 
-  runtimeFlags <- liftIO $ newTVarIO Set.empty
-
   s <- nestSnaplet "session" session $
        initCookieSessionManager sesKey "_session" Nothing
 
@@ -159,7 +153,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
 
-  d <- nestSnaplet "db" db $ initDbLayer authMgr authDb runtimeFlags "resources/site-config"
+  d <- nestSnaplet "db" db $ initDbLayer authMgr authDb "resources/site-config"
 
   -- init PostgreSQL connection pool that will be used for searching only
   let lookupCfg nm = lookupDefault (error $ show nm) cfg nm
@@ -185,8 +179,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
        [logger text (file "log/frontend.log")]
 
-  search <- nestSnaplet "search" search $ searchInit pgs authMgr db
+  search' <- nestSnaplet "search" search $ searchInit pgs authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   addRoutes routes
   wrapSite (claimUserActivity>>)
-  return $ App h s authMgr c d pgs pga tm fu g l runtimeFlags ad search opts
+  return $ App h s authMgr c d pgs pga tm fu g l ad search' opts

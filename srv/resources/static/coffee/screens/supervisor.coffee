@@ -159,8 +159,8 @@ define ["utils"
       $("#unassigned-controls").text(as.control)
 
   screenSetup = (viewName, args) ->
-    dateFrom = (new Date).addDays(-14)
-    dateTo = (new Date).addDays(+7)
+    dateFrom = (new Date).addDays(-1)
+    dateTo = (new Date).addDays(+1)
     $('#date-min').val dateFrom.toString('dd.MM.yyyy HH:mm')
     $('#date-max').val dateTo.toString('dd.MM.yyyy HH:mm')
 

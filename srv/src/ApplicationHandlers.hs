@@ -12,7 +12,6 @@ import Control.Monad
 import Control.Monad.CatchIO
 import Control.Exception (SomeException)
 import Control.Concurrent (myThreadId)
-import Control.Concurrent.STM
 
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -27,7 +26,6 @@ import Data.Aeson (object, (.=))
 import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 import Data.String
 
 import Data.Maybe
@@ -75,8 +73,6 @@ import Utils.NotDbLayer (readIdent)
 
 import Carma.Model.Event (EventType(..))
 import Utils.Events (logLogin)
-
-import RuntimeFlag
 
 
 ------------------------------------------------------------------------------
@@ -266,11 +262,11 @@ updateHandler = do
                  -- TODO #1352 workaround for Contract triggers
                  "Contract" ->
                      do
-                       res <- liftIO $
+                       res' <- liftIO $
                               withResource (PS.pgPool s) (Patch.read ident)
                       -- TODO Cut out fields from original commit like
                       -- DB.update does
-                       case (Aeson.decode $ Aeson.encode res) of
+                       case (Aeson.decode $ Aeson.encode res') of
                          Just [obj] -> return $ Right obj
                          err        -> error $
                                        "BUG in updateHandler: " ++ show err
@@ -620,11 +616,6 @@ printServiceHandler = do
                              , "serviceid"
                              ] rows
 
-getRuntimeFlags :: AppHandler ()
-getRuntimeFlags
-  = gets runtimeFlags
-  >>= liftIO . readTVarIO
-  >>= writeJSON . map show . Set.elems
 
 -- | Serve parts of the application config to client in JSON.
 clientConfig :: AppHandler ()
@@ -634,19 +625,6 @@ clientConfig = do
       config = Map.fromList [("max-file-size", Aeson.Number $ A.I mus)]
   writeJSON config
 
-setRuntimeFlags :: AppHandler ()
-setRuntimeFlags = do
-  flags <- getJSONBody
-  gets runtimeFlags
-    >>= liftIO . atomically
-    . (`modifyTVar'` updAll flags)
-  getRuntimeFlags
-  where
-    updAll :: Map String Bool -> RuntimeFlags -> RuntimeFlags
-    updAll flags s = foldl' upd s $ Map.toList flags
-    upd s (k,True)  = Set.insert (read k) s
-    upd s (k,False) = Set.delete (read k) s
-    -- upd _ kv = error $ "Unexpected runtime flag: " ++ show kv
 
 restoreProgramDefaults :: AppHandler ()
 restoreProgramDefaults = do

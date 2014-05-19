@@ -7,8 +7,7 @@ define ["sync/datamap"], (m) ->
       @vertBar = "%7C"
       @comma = "%2C"
       @setElement options.el if options?.el
-      @mail_subject = options?.mail_subject or
-                      "BUG:#{@sp}Users#{@sp}report#{@sp}from#{@sp}CaRMa"
+      @mail_subject = options?.mail_subject or ""
       @mail_to = options?.mail_to or "support@formalmethods.ru"
       @mail_cc = options?.mail_cc or "pavel.golovnin@ruamc.ru#{@comma}vladimir.kulakov@ruamc.ru"
       @stack = []
