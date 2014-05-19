@@ -48,7 +48,7 @@ data Case = Case
   , contact_name
     :: F (Maybe Text) "contact_name" "Звонящий"
   , contact_phone1
-    :: F (Maybe Phone) "contact_phone1" "Контактные телефоны звонящего"
+    :: F (Maybe Phone) "contact_phone1" "Телефоны"
   , contact_phone2
     :: F (Maybe Phone) "contact_phone2" ""
   , contact_phone3
