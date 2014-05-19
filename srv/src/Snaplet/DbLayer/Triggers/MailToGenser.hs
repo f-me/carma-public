@@ -48,7 +48,7 @@ q = [sql|
           coalesce(initcap(c.contact_name), '') as contact_name,
           coalesce(c.contact_phone1, '') as contact_phone,
           coalesce(t.towAddress_address, '') as tow_addr,
-          coalesce(diag.label, c.customerComment, '') as problem_desc,
+          coalesce(c.customerComment, diag.label, '') as problem_desc,
           coalesce(c.caseAddress_address, '') as case_addr,
           (case
               when t.payment_paidByClient ~ E'^\\d{1,7}(\\.\\d{1,2}){0,1}$'
