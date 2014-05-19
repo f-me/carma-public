@@ -276,9 +276,8 @@ define ["text!tpl/screens/timeline.html"
 
   setupScreen = (viewName, args) ->
     columns = ['login', 'realName', 'roles']
-    viewModel = 'usermeta'
     dataModel = 'Usermeta'
-    table = new Table {viewModel, dataModel, columns}
+    table = new Table {dataModel, columns}
 
     timelines = ko.observableArray()
 
