@@ -404,3 +404,13 @@ table.dataTable tr.selected-row td.sorting_1 {
   color: #b94a48;
 }
 
+.control-group.warning label {
+  border-radius: 5px;
+  background-color: #f89406;
+  padding: 2px 4px;
+  color: #fff;
+}
+
+.control-group.warning label * {
+  color: #f89406;
+}
