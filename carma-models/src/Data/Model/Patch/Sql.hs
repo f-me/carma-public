@@ -45,7 +45,7 @@ read :: forall m . Model m => IdentI m -> Connection -> IO [Patch m]
 read (Ident i) c = query c (fromString q) [i]
   where
     mInfo = modelInfo :: ModelInfo m
-    fieldNames = map fd_name $ modelFields mInfo
+    fieldNames = map fd_name $ onlyDefaultFields $ modelFields mInfo
     q = printf "SELECT %s FROM %s WHERE id = ?"
       (T.unpack $ T.intercalate ", " fieldNames)
       (show $ tableName mInfo)
@@ -55,12 +55,11 @@ readMany :: forall m . Model m => Int64 -> Int64 -> Connection -> IO [Patch m]
 readMany lim off c = query_ c (fromString q)
   where
     mInfo = modelInfo :: ModelInfo m
-    fieldNames = map fd_name $ modelFields mInfo
+    fieldNames = map fd_name $ onlyDefaultFields $ modelFields mInfo
     q = printf "SELECT %s FROM %s ORDER BY id LIMIT %i OFFSET %i"
       (T.unpack $ T.intercalate ", " fieldNames)
       (show $ tableName mInfo)
       lim off
-
 
 -- FIXME: supports only integer idents and text in filters
 readManyWithFilter
@@ -71,7 +70,7 @@ readManyWithFilter
 readManyWithFilter lim off params c = query c (fromString q) filterArgs
   where
     mInfo = modelInfo :: ModelInfo m
-    fieldNames = map fd_name $ modelFields mInfo
+    fieldNames = map fd_name $ onlyDefaultFields $ modelFields mInfo
     q = printf "SELECT %s FROM %s WHERE %s ORDER BY id LIMIT %i OFFSET %i"
       (T.unpack $ T.intercalate ", " fieldNames)
       (show $ tableName mInfo)

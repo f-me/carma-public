@@ -86,13 +86,13 @@ stripId mv = mv{mv_fields = filter (\f -> fv_name f /= "id") $ mv_fields mv}
 -- field modificators
 
 setType
-  :: SingI name => Text -> (m -> Field t (FOpt name desc))
+  :: SingI name => Text -> (m -> Field t (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 setType typ fld = Wrap
   (fieldName fld, \v -> v {fv_type = typ})
 
 textarea
-  :: SingI name => (m -> Field t (FOpt name desc))
+  :: SingI name => (m -> Field t (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 textarea fld = Wrap
   (fieldName fld
@@ -102,7 +102,7 @@ textarea fld = Wrap
 setMeta
   :: SingI name
   => Text -> Aeson.Value
-  -> (m -> Field typ (FOpt name desc))
+  -> (m -> Field typ (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 setMeta key val fld = Wrap
   (fieldName fld
@@ -111,25 +111,25 @@ setMeta key val fld = Wrap
 
 
 infoText
-  :: SingI name => Text -> (m -> Field typ (FOpt name desc))
+  :: SingI name => Text -> (m -> Field typ (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 infoText t = setMeta "infoText" (Aeson.String t)
 
 
 readonly
-  :: SingI name => (m -> Field typ (FOpt name desc))
+  :: SingI name => (m -> Field typ (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 readonly = setMeta "readonly" (Aeson.Bool True)
 
 
 required
-  :: SingI name => (m -> Field typ (FOpt name desc))
+  :: SingI name => (m -> Field typ (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 required = setMeta "required" (Aeson.Bool True)
 
 
 invisible
-  :: SingI name => (m -> Field typ (FOpt name desc))
+  :: SingI name => (m -> Field typ (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 invisible = setMeta "invisible" (Aeson.Bool True)
 
@@ -153,7 +153,7 @@ dictOpt nm = DictOpt
 
 dict
   :: SingI name
-  => (m -> Field typ (FOpt name desc)) -- FIXME: typ ~ Ident xx
+  => (m -> Field typ (FOpt name desc app)) -- FIXME: typ ~ Ident xx
   -> DictOpt
   -> (Text, FieldView -> FieldView) :@ m
 dict fld (DictOpt{..}) = Wrap
@@ -209,9 +209,9 @@ completeWith fld ann =
 
 mapWidget
   :: (SingI n1, SingI n2, SingI n3)
-  => (m -> Field pickerField (FOpt n1 d1))
-  -> (m -> Field pickerField (FOpt n2 d2))
-  -> (m -> Field mapField    (FOpt n3 d3))
+  => (m -> Field pickerField (FOpt n1 d1 app))
+  -> (m -> Field pickerField (FOpt n2 d2 app))
+  -> (m -> Field mapField    (FOpt n3 d3 app))
   -> [(Text, FieldView -> FieldView) :@ m]
 mapWidget addr coords mapWid =
   [xxx addr   $ setMeta "picker" "geoPicker"
@@ -229,26 +229,26 @@ mapWidget addr coords mapWid =
 
 widget
   :: SingI name
-  => Text -> (m -> Field typ (FOpt name desc))
+  => Text -> (m -> Field typ (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 widget nm = setMeta "widget" (Aeson.String nm)
 
 mainToo
   :: SingI name
-  => (m -> Field typ (FOpt name desc))
+  => (m -> Field typ (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 mainToo = setMeta "mainToo" (Aeson.Bool True)
 
 mainOnly
   :: SingI name
-  => (m -> Field typ (FOpt name desc))
+  => (m -> Field typ (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 mainOnly = setMeta "mainOnly" (Aeson.Bool True)
 
 
 transform
   :: SingI name
-  => Text -> (m -> Field typ (FOpt name desc))
+  => Text -> (m -> Field typ (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 transform tr = setMeta "transform" (Aeson.String tr)
 

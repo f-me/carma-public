@@ -37,9 +37,9 @@ import Text.Printf
 import Data.Vector (Vector)
 import Database.PostgreSQL.Simple.ToField
 
-import Data.Model
+import Data.Model hiding (FF)
 import Data.Model.TH (typeRepToType)
-import Data.Model.Types
+import Data.Model.Types hiding (FF)
 
 import Carma.Model.Contract (Contract)
 

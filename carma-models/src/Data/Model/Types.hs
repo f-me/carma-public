@@ -39,23 +39,26 @@ instance ToField t => ToField (Ident t m) where
   toField (Ident i) = toField i
 
 
-data FOpt (name :: Symbol) (desc :: Symbol) = FOpt
+data FOpt (name :: Symbol) (desc :: Symbol) (app :: Symbol) = FOpt
 data Field typ opt = Field
-type F t n d = Field t (FOpt n d)
-type PK t m n = Field (Ident t m) (FOpt "id" n)
-
+type FF t n d a = Field t (FOpt n d a)
+type F  t n d   = FF t n d "default"
+type EF t n d   = FF t n d "ephemeral"
+type PK t m n   = FF (Ident t m) "id" n "default"
 
 -- | Existential wrapper for field accessors.
-data FA m = forall t n d. (FieldI t n d) => FA (m -> Field t (FOpt n d))
+data FA m = forall t n d. (FieldI t n d) =>
+            FA (m -> F t n d)
 
 
 -- | Common constraint for higher-rank functions using field
 -- accessors.
-type FieldI t (n :: Symbol) (d :: Symbol) = (Typeable t, PgTypeable t
-                                            , DefaultFieldView t
-                                            , FromJSON t, ToJSON t
-                                            , FromField t, ToField t
-                                            , SingI n, SingI d)
+type FieldI t (n :: Symbol) (d :: Symbol) =
+  ( Typeable t, PgTypeable t
+  , DefaultFieldView t "default"
+  , FromJSON t, ToJSON t
+  , FromField t, ToField t
+  , SingI n, SingI d)
 
 
 data ModelInfo m = ModelInfo
@@ -83,8 +86,13 @@ data FieldDesc = FieldDesc
   ,fd_toField    :: Dynamic -> Action
   ,fd_view       :: FieldView
   ,fd_pgType     :: PgType
+  } | EFieldDesc
+  {fd_name       :: Text
+  ,fd_desc       :: Text
+  ,fd_type       :: TypeRep
+  ,fd_toJSON     :: Dynamic -> Value
+  ,fd_view       :: FieldView
   }
-
 
 data FieldView = FieldView
   { fv_name     :: Text
@@ -102,8 +110,10 @@ instance ToJSON FieldView where
     ]
 
 
-class DefaultFieldView t where
-  defaultFieldView :: (SingI nm, SingI desc) => (m -> F t nm desc) -> FieldView
+class DefaultFieldView t a where
+  defaultFieldView ::
+    (SingI nm, SingI desc) => (m -> FF t nm desc a) -> FieldView
+  -- defaultFieldView :: t -> FieldView
 
 
 data ModelView m = ModelView

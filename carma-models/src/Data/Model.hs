@@ -7,7 +7,7 @@ module Data.Model
   , Model(..)
   , NoParent
   , ModelInfo(..), mkModelInfo
-  , Field(..), F, PK
+  , Field(..), FF, F, EF, PK
   , FOpt
   , FieldDesc(..)
   -- Field accessor introspection
@@ -18,6 +18,7 @@ module Data.Model
   , ModelView(..)
   , GetModelFields(..)
   , withLegacyName -- imported from Data.Model.Types
+  , onlyDefaultFields
   ) where
 
 
@@ -96,24 +97,29 @@ instance Model NoParent where
 
 
 fieldName
-  :: forall m t name desc
-  . SingI name => (m -> Field t (FOpt name desc)) -> Text
+  :: forall m t name desc app
+  . SingI name => (m -> Field t (FOpt name desc app)) -> Text
 fieldName _ = T.pack $ fromSing (sing :: Sing name)
 
 fieldDesc
-  :: forall m t name desc
-  . SingI desc => (m -> Field t (FOpt name desc)) -> Text
+  :: forall m t name desc app
+  . SingI desc => (m -> Field t (FOpt name desc app)) -> Text
 fieldDesc _ = T.pack $ fromSing (sing :: Sing desc)
 
 fieldType
-  :: forall m t name desc
-  . Typeable t => (m -> Field t (FOpt name desc)) -> TypeRep
+  :: forall m t name desc app
+  . Typeable t => (m -> Field t (FOpt name desc app)) -> TypeRep
 fieldType _ = typeOf (undefined :: t)
 
 
 fieldNameE :: FA m -> Text
 fieldNameE (FA f) = fieldName f
 
+onlyDefaultFields :: [FieldDesc] -> [FieldDesc]
+onlyDefaultFields fs = filter isDefault fs
+  where
+    isDefault FieldDesc{..} = True
+    isDefault _             = False
 
 -- | Expand to N-tuple of field types, where N matches length of
 -- 'identifiers'.
@@ -127,29 +133,65 @@ class GetModelFields m ctr where
   getModelFields :: ctr -> Wrap m [FieldDesc]
 
 instance
-    (GetModelFields m ctr, SingI nm, SingI desc, DefaultFieldView t
-    ,FromJSON t, ToJSON t, FromField t, ToField t, Typeable t, PgTypeable t)
-    => GetModelFields m (Field t (FOpt nm desc) -> ctr)
+    ( GetModelFields m ctr
+    , Typeable t, PgTypeable t
+    , DefaultFieldView t "default"
+    , FromJSON t, ToJSON t
+    , FromField t, ToField t
+    , SingI nm, SingI desc)
+
+    => GetModelFields m (F t nm desc -> ctr)
+  where
+    getModelFields f  = Wrap
+      $ buildFieldDesc (undefined :: m -> F t nm desc)
+      : unWrap (getModelFields (f Field) :: [FieldDesc] :@ m)
+
+-- instance
+--     ( GetModelFields m ctr
+--     , Typeable (Ident t m), PgTypeable (Ident t m)
+--     , DefaultFieldView (Ident t m) "pk"
+--     , FromJSON (Ident t m), ToJSON (Ident t m)
+--     , FromField (Ident t m), ToField (Ident t m)
+--     , SingI desc)
+--     => GetModelFields m (PK t m desc -> ctr)
+--   where
+--     getModelFields f  = Wrap
+--       $ buildFieldDesc (undefined :: m -> PK t m desc)
+--       : unWrap (getModelFields (f Field) :: [FieldDesc] :@ m)
+
+
+
+instance
+    (GetModelFields m ctr, SingI nm, SingI desc
+    ,DefaultFieldView t "ephemeral"
+    ,ToJSON t, Typeable t)
+    => GetModelFields m (EF t nm desc -> ctr)
   where
     getModelFields f = Wrap
-      $ buildFieldDesc (undefined :: m -> Field t (FOpt nm desc))
+      $ EFieldDesc
+        { fd_name   = T.pack $ fromSing (sing :: Sing nm)
+        , fd_desc   = T.pack $ fromSing (sing :: Sing desc)
+        , fd_type   = typeOf   (undefined :: t)
+        , fd_toJSON = \d -> toJSON  (fromJust $ fromDynamic d :: t)
+        , fd_view   = defaultFieldView (const Field :: m -> EF t nm desc)
+        }
       : unWrap (getModelFields (f Field) :: [FieldDesc] :@ m)
 
 instance GetModelFields m m where
   getModelFields _ = Wrap []
 
-buildFieldDesc :: forall m t nm desc.
-  (SingI nm, SingI desc, DefaultFieldView t, PgTypeable t
+buildFieldDesc :: forall m t nm desc app.
+  (SingI nm, SingI desc, DefaultFieldView t app, PgTypeable t
   ,FromJSON t, ToJSON t, FromField t, ToField t, Typeable t)
-  => (m -> Field t (FOpt nm desc)) -> FieldDesc
+  => (m -> FF t nm desc app) -> FieldDesc
 buildFieldDesc _ =  FieldDesc
-          {fd_name      = T.pack $ fromSing (sing :: Sing nm)
-          ,fd_desc      = T.pack $ fromSing (sing :: Sing desc)
-          ,fd_type      = typeOf   (undefined :: t)
-          ,fd_parseJSON = \v -> toDyn <$> (parseJSON v :: Parser t)
-          ,fd_toJSON    = \d -> toJSON  (fromJust $ fromDynamic d :: t)
-          ,fd_fromField = toDyn <$> (field :: RowParser t)
-          ,fd_toField   = \d -> toField (fromJust $ fromDynamic d :: t)
-          ,fd_view      = defaultFieldView (const Field :: m -> F t nm desc)
-          ,fd_pgType    = pgTypeOf (undefined :: t)
-          }
+  {fd_name      = T.pack $ fromSing (sing :: Sing nm)
+  ,fd_desc      = T.pack $ fromSing (sing :: Sing desc)
+  ,fd_type      = typeOf   (undefined :: t)
+  ,fd_parseJSON = \v -> toDyn <$> (parseJSON v :: Parser t)
+  ,fd_toJSON    = \d -> toJSON  (fromJust $ fromDynamic d :: t)
+  ,fd_fromField = toDyn <$> (field :: RowParser t)
+  ,fd_toField   = \d -> toField (fromJust $ fromDynamic d :: t)
+  ,fd_view      = defaultFieldView (const Field :: m -> FF t nm desc app)
+  ,fd_pgType    = pgTypeOf (undefined :: t)
+  }

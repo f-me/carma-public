@@ -49,8 +49,11 @@ import Carma.Model.Engine       (Engine)
 -- module (original name is hidden: @Data.Time.Calendar.Days.Day@).
 newtype WDay = WDay Day deriving (FromField, ToField,
                                   FromJSON, ToJSON,
-                                  DefaultFieldView,
                                   Show, Typeable)
+
+instance DefaultFieldView WDay "default" where
+  defaultFieldView (_ :: m -> F WDay n d) =
+    defaultFieldView (undefined :: m -> F Day n d)
 
 instance PgTypeable WDay where
   pgTypeOf _ = pgTypeOf (undefined :: Day)

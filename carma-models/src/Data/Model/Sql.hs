@@ -113,22 +113,22 @@ class (ToRow (QArg q), Model (QMod q)) => SqlQ q where
 
 
 instance (Model m, SingI nm, FromField t)
-    => SqlQ (m -> Field t (FOpt nm desc))
+    => SqlQ (m -> Field t (FOpt nm desc app))
   where
-    type QRes (m -> Field t (FOpt nm desc)) = Only t
-    type QArg (m -> Field t (FOpt nm desc)) = ()
-    type QMod (m -> Field t (FOpt nm desc)) = m
+    type QRes (m -> Field t (FOpt nm desc app)) = Only t
+    type QArg (m -> Field t (FOpt nm desc app)) = ()
+    type QMod (m -> Field t (FOpt nm desc app)) = m
     queryProjection f = [fieldName f]
     queryPredicate  f = []
     queryTbl       _ = tableName (modelInfo :: ModelInfo m)
     queryArgs       _ = ()
 
 instance (Model m, SingI nm, FromField t, SqlQ q, QMod q ~ m)
-    => SqlQ ((m -> Field t (FOpt nm desc)) :. q)
+    => SqlQ ((m -> Field t (FOpt nm desc app)) :. q)
   where
-    type QRes ((m -> Field t (FOpt nm desc)) :. q) = Only t :. QRes q
-    type QArg ((m -> Field t (FOpt nm desc)) :. q) = QArg q
-    type QMod ((m -> Field t (FOpt nm desc)) :. q) = m
+    type QRes ((m -> Field t (FOpt nm desc app)) :. q) = Only t :. QRes q
+    type QArg ((m -> Field t (FOpt nm desc app)) :. q) = QArg q
+    type QMod ((m -> Field t (FOpt nm desc app)) :. q) = m
     queryProjection (f :. q) = fieldName f : queryProjection q
     queryPredicate  (f :. q) = queryPredicate q
     queryTbl       _        = tableName (modelInfo :: ModelInfo m)
@@ -170,11 +170,11 @@ instance (Model m, ToField t, SqlQ q, QMod q ~ m)
 
 eq
   :: (Model m, SingI nm)
-  => (m -> Field t (FOpt nm desc)) -> t
+  => (m -> Field t (FOpt nm desc app)) -> t
   -> SqlP m t
 eq f v = SqlP (T.unpack $ fieldName f) v "="
 
 sql_in :: (Model m, SingI nm)
-       => (m -> Field t (FOpt nm desc)) -> [t]
+       => (m -> Field t (FOpt nm desc app)) -> [t]
        -> SqlP m (In [t])
 sql_in f v = SqlP (T.unpack $ fieldName f) (In v) "IN"

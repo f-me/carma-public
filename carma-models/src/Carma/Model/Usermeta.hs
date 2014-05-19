@@ -42,6 +42,7 @@ data Usermeta = Usermeta
   , delayedState :: F (Maybe UserStateVal)
                  "delayedState"
                  "Отложенный статус"
+  , currentState :: EF UserStateVal "currentState" "Текущий статус"
   } deriving Typeable
 
 
