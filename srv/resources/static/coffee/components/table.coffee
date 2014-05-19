@@ -24,10 +24,9 @@ define ["model/main"
       @limit = ko.observable(@limitDef)
       @offset = ko.observable(@offsetDef)
 
-      @viewModel = global.model(opt.viewModel)
-      @dataModel = opt.dataModel
+      @dataModel = global.model(opt.dataModel)
       @columns = _.map opt.columns, (c) =>
-        _.find @viewModel.fields, (f) =>
+        _.find @dataModel.fields, (f) =>
           f.name is c
       @items = ko.observableArray()
 
@@ -42,7 +41,7 @@ define ["model/main"
         kvms:
           @items
         sorters:
-          ModelUtils.buildSorters @viewModel
+          ModelUtils.buildSorters @dataModel
         filters:
           typeahead: (v) =>
             return true unless @typeaheadK()
@@ -68,7 +67,7 @@ define ["model/main"
 
 
     fetchData: =>
-      $.getJSON "/_/#{@dataModel}", (data) =>
+      $.getJSON "/_/#{@dataModel.name}", (data) =>
         @setData data
 
     setData: (data) =>
@@ -76,7 +75,7 @@ define ["model/main"
       @items.removeAll()
       mapper = new DataMap.Mapper(@dataModel)
       kvms = _.map @data, (d) =>
-        k = Main.buildKVM @viewModel, {fetched: mapper.s2cObj d}
+        k = Main.buildKVM @dataModel, {fetched: mapper.s2cObj d}
         k._meta.q = new Crud.CrudQueue(k, k._meta.model, {not_fetch: true})
         k
       @items(kvms)
