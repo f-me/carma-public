@@ -1,8 +1,9 @@
 define ["model/main"
       , "model/utils"
       , "utils"
-      , "sync/crud"]
-    , (Main, ModelUtils, Utils, Crud) ->
+      , "sync/crud"
+      , "sync/datamap"]
+    , (Main, ModelUtils, Utils, Crud, DataMap) ->
 
   ko.bindingHandlers.renderRow =
     update: (el, acc, allBindigns, fld, ctx) ->
@@ -73,8 +74,11 @@ define ["model/main"
     setData: (data) =>
       @data = data
       @items.removeAll()
+      mapper = new DataMap.Mapper(@dataModel)
       kvms = _.map @data, (d) =>
-        Main.buildKVM @viewModel, {fetched: d, queue: Crud.CrudQueue}
+        k = Main.buildKVM @viewModel, {fetched: mapper.s2cObj d}
+        k._meta.q = new Crud.CrudQueue(k, k._meta.model, {not_fetch: true})
+        k
       @items(kvms)
 
     resetPager: =>
