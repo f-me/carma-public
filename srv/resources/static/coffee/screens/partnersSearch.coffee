@@ -421,6 +421,18 @@ define [ "utils"
 
     kvm["searchK"] = ko.computed(->kvm["search"]()).extend { throttle: 300 }
 
+    sortFn = (v) ->
+      sort = kvm['choosenSort']()[0]
+      srvs = kvm['servicesLocals']()
+      return v.distanceFormatted() if sort == "distance"
+      unless _.isEmpty srvs
+        parseInt (_.find v.servicesNested(),
+                 (s) -> s.servicename() == srvs[0].value)?[sort]?()
+    sorters = {}
+    sorterName = "only"
+    sorters[sorterName] = {}
+    sorters[sorterName]["asc"] = sortFn
+
     kvm['searchProcessed'] = ko.sorted
         kvms: kvm['searchA']
 
@@ -436,16 +448,9 @@ define [ "utils"
                              ''
             time.isWorkingNow time.parseWorkTimes(times)
 
-        sorters:
-          only: (v) ->
-            sort = kvm['choosenSort']()[0]
-            srvs = kvm['servicesLocals']()
-            return v.distanceFormatted() if sort == "distance"
-            unless _.isEmpty srvs
-              parseInt (_.find v.servicesNested(),
-                       (s) -> s.servicename() == srvs[0].value)?[sort]?()
+        sorters: sorters
 
-    kvm['searchProcessed'].set_sorter('only')
+    kvm['searchProcessed'].set_sorter(sorterName, 'asc')
     kvm['searchProcessed'].change_filters ['searchq', 'workNow']
     kvm['selectedPartner'] = ko.observable(null)
 
