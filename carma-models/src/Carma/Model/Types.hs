@@ -328,7 +328,7 @@ instance Typeable tag => DefaultFieldView (Ident Text tag) where
 
 instance DefaultFieldView (Vector Text) where
   defaultFieldView f = (defFieldView f)
-    {fv_type = "dictionary-text-set"
+    {fv_type = "dictionary-set-text"
     ,fv_meta
       = Map.insert "widget" "dictionary-many"
       $ fv_meta $ defFieldView f
