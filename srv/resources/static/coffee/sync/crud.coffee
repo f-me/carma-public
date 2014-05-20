@@ -17,7 +17,7 @@ define [ "sync/metaq"
       # when we have id, first fetch data and only after that subscribe
       # to changes, fetch will block, so we won't get fetched data to the save
       # queue
-      @fetch() if @persisted and not @options.not_fetch
+      @fetch() if @persisted and not @options?.not_fetch
       @subscribe()
       @
 
