@@ -1758,6 +1758,32 @@
 
     <script type="text/template"
             class="field-template"
+            id="dictionary-table-template">
+      <span>
+        <div class="input-append">
+          <input type="text"
+                 class="focusable
+                        {{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}
+                        {{# readonly }}disabled{{/ readonly }}"
+                 {{# readonly }}readonly{{/ readonly }}
+                 autocomplete="off"
+                 name="{{ name }}"
+                 data-bind="value: {{ name }}Local,
+                            valueUpdate: 'change',
+                            disabled: {{ name }}Disabled,
+                            pickerDisable: {{ name }}Disabled,
+                            bindDict: '{{ name }}'"
+                 />
+          <span class="add-on" style="padding: 4px;">
+            <i class="icon icon-chevron-down" />
+          </span>
+        </div>
+      </span>
+    </script>
+
+
+    <script type="text/template"
+            class="field-template"
             id="text-table-template">
       <span data-bind="text: {{ name }}" />
     </script>

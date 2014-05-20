@@ -275,7 +275,13 @@ define ["text!tpl/screens/timeline.html"
         cb(data)
 
   setupScreen = (viewName, args) ->
-    columns = ['login', 'realName', 'roles']
+    columns = [ 'login'
+              , 'realName'
+              , 'businessRole'
+              , 'programs'
+              , 'bocities'
+              , 'boprograms'
+              ]
     dataModel = 'Usermeta'
     table = new Table {dataModel, columns}
 
