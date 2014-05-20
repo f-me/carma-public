@@ -278,7 +278,6 @@ define ["text!tpl/screens/timeline.html"
     columns = [ 'login'
               , 'realName'
               , 'businessRole'
-              , 'programs'
               , 'bocities'
               , 'boprograms'
               ]
