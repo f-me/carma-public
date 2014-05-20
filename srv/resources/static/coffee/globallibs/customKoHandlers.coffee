@@ -156,13 +156,14 @@ ko.bindingHandlers.expand =
 
 ko.bindingHandlers.eachNonEmpty =
   nonEmpty: (fnames, ctx, koctx) ->
-    fns = _.reject fnames, (fname) ->
+    _.reject fnames, (fname) ->
       g = koctx.$root.showFields.groups[fname]
       _.all (_.keys g), (m) ->
         kvm = ctx[m]
         _.all g[m], (f) ->
+          v = kvm[f.name]()
           if f
-            _.isEmpty kvm[f.name]()
+            (_.isArray v and _.isEmpty v) or _.isNull v
           else
             true
 
