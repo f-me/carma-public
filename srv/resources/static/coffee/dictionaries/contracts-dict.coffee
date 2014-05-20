@@ -12,9 +12,7 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
       return cb({}) if q.length < 4
       query = "/searchContracts/?query=#{q}&program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}"
       $.getJSON query, (r) =>
-        @found = _.map r, (c) ->
-          id: c.id
-          vin: c.vin
+        @found = []
 
         a = if _.isEmpty r
             ["<span><i class='icon-ban-circle icon-white'></i>&nbsp;Ничего не найдено :(</span>"]
@@ -24,6 +22,9 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
                 # fields which matched search query
                 fields = _.filter(_.keys(i), (f) ->
                   i[f] && String(i[f]).indexOf(q) != -1)
+                @found.push
+                  id: i.id
+                  matched: _.pick(i, fields)
                 @contr2html i, fields, q
         cb(a)
 
@@ -83,6 +84,6 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
       return unless @found[i]
       # notify @kvm what contract was changed
       @kvm.contract(String(@found[i].id))
-      @found[i].vin
+      _.chain(@found[i].matched).values().first().value()
 
   dict: ContractsDict
