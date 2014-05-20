@@ -135,8 +135,9 @@ actions
             ])
           ])
         ,("case", Map.fromList
-          [("caseStatus", [\kazeId st -> case st of
-            "s0.5" -> do
+          [("caseStatus", [\kazeId st ->
+            if st == identFv CaseStatus.needInfo
+            then do
               now <- dateNow Prelude.id
               due <- dateNow (+ (1*60))
               actionId <- new "action" $ Map.fromList
@@ -150,7 +151,7 @@ actions
                 ,("closed", "0")
                 ]
               upd kazeId "actions" $ addToList actionId
-            _      -> return ()])
+            else return ()])
           ,("services", [\caseId _ -> updateCaseStatus caseId])
           ,("partner", [\objId _ -> do
             mapM_ setSrvMCost =<< B.split ',' <$> get objId "services"
@@ -1011,7 +1012,7 @@ actionResultMap = Map.fromList
   ,("okButNoService", \objId -> do
     caseId <- get objId "caseId"
     get caseId "services" >>= \case
-      "" -> set caseId "caseStatus" "s2" -- closed
+      "" -> set caseId "caseStatus" (identFv CaseStatus.closed)
       _  -> return ()
     closeAction objId
   )
