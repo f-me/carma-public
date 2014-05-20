@@ -12,13 +12,15 @@ import Data.Text
 import Data.Typeable
 import Data.Vector
 
+import qualified Data.Aeson as Aeson
+
 import Data.Model
 import Data.Model.TH
 import Data.Model.View
 
 import Carma.Model.Types (UserStateVal)
-import Carma.Model.Role hiding (ident)
-
+import Carma.Model.Role         hiding (ident)
+import Carma.Model.BusinessRole hiding (ident)
 
 data Usermeta = Usermeta
   { ident    :: PK Int Usermeta          "Данные о пользователе"
@@ -39,9 +41,17 @@ data Usermeta = Usermeta
   , roles    :: F (Maybe (Vector (IdentT Role)))
                 "roles"
                 "Роли в системе"
+  , businessRole :: F (Maybe (IdentT BusinessRole))
+                    "businessRole" "Бизнес-роль"
   , delayedState :: F (Maybe UserStateVal)
                  "delayedState"
                  "Отложенный статус"
+  , programs     :: F (Maybe (Vector Text))
+                    "programs" "Подпрограммы"
+  , bocities     :: F (Maybe (Vector Text))
+                    "bocities" "Города"
+  , boprograms   :: F (Maybe (Vector Text))
+                    "boprograms" "Программы"
   } deriving Typeable
 
 
@@ -53,5 +63,30 @@ instance Model Usermeta where
   type TableName Usermeta = "usermetatbl"
   modelInfo = mkModelInfo Usermeta ident
   modelView = \case
-    "" -> Just defaultView
+    "" -> Just $ modifyView (defaultView)
+          [ setMeta "dictionaryStringify" (Aeson.Bool True)          roles
+          , setMeta "dictionaryType"      (Aeson.String "ModelDict") roles
+          , setMeta "bounded"             (Aeson.Bool True)          roles
+
+          ,setMeta "dictionaryStringify" (Aeson.Bool True)          businessRole
+          ,setMeta "dictionaryType"      (Aeson.String "ModelDict") businessRole
+          ,setMeta "bounded"             (Aeson.Bool True)          businessRole
+
+          , setMeta "dictionaryStringify" (Aeson.Bool True)          programs
+
+          , setMeta "dictionaryStringify" (Aeson.Bool True)          bocities
+
+          , setMeta "dictionaryStringify" (Aeson.Bool True)          boprograms
+
+          , dict programs $ (dictOpt "prefixedSubPrograms")
+              {dictType = Just "ComputedDict"
+              ,dictBounded = True
+              }
+          , dict bocities $ (dictOpt "DealerCities")
+              {dictBounded = True}
+          , dict boprograms $ (dictOpt "Program")
+              {dictType = Just "ModelDict"
+              ,dictBounded = True
+              }
+      ]
     _  -> Nothing
