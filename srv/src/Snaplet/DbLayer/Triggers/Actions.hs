@@ -414,8 +414,9 @@ serviceActions :: MonadTrigger m b
                => Map.Map ByteString [ObjectId -> ObjectId -> m b ()]
 serviceActions = Map.fromList
   [("status", [\objId val ->
-    case val of
-      "backoffice" -> do
+    let
+     proceed s
+      | s == Just SS.backoffice = do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
           -- Check if backoffice transfer is related to callMeMaybe action
@@ -449,7 +450,7 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId SmsTemplate.create
-      "recallClient" -> do
+      | s == Just SS.recallClient = do
           now <- dateNow id
           due <- dateNow (+ (15*60))
           kazeId <- get objId "parentId"
@@ -466,7 +467,7 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId SmsTemplate.create
-      "serviceOrdered" -> do
+      | s == Just SS.ordered = do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
           Just u <- liftDb $ with auth currentUser
@@ -501,7 +502,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList act2
-      "mechanicConf" -> do
+      | s == Just SS.mechanicConf = do
           now <- dateNow id
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
@@ -518,7 +519,7 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId SmsTemplate.create
-      "dealerConf" -> do
+      | s == Just SS.dealerConf = do
           now <- dateNow id
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
@@ -535,7 +536,7 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId SmsTemplate.create
-      "pleaseCheck" -> do
+      | s == Just SS.checkNeeded = do
           now <- dateNow id
           due <- dateNow (+ (5*60))
           kazeId <- get objId "parentId"
@@ -552,7 +553,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-      "dealerConformation" -> do
+      | s == Just SS.dealerConfirmation = do
           now <- dateNow id
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
@@ -568,7 +569,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-      "makerConformation" -> do
+      | s == Just SS.makerConfirmation = do
           now <- dateNow id
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
@@ -584,7 +585,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-      "clientCanceled" -> do
+      | s == Just SS.clientCanceled = do
           now <- dateNow id
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
@@ -600,7 +601,9 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-      _ -> return ()
+      | otherwise = return ()
+    in
+      proceed (fvIdent val)
     -- Another one service status trigger.
     -- Sets corresponding case status.
     ,\objId val -> do
