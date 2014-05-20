@@ -19,6 +19,7 @@ module Util
   , render
   , projNow
   , identFv
+  , fvIdent
   -- Postgres ToRow/ToField helpers
   , PlainText(..)
   , (:*)(..)
