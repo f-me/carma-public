@@ -151,6 +151,15 @@ class ThMenu
         return @.hide() if _.isEmpty v
         return @.render(v).show()
 
+  # this methos is for .add-on search on the field
+  drawAllForce: =>
+    return @ unless @$element
+    unless @$element.is(':disabled')
+      @dict.lookup @$element.val(), (v) =>
+        return @.hide() if _.isEmpty v
+        return @.render(v).show()
+      , {force: true}
+
 
   keyup: (e) =>
     switch e.keyCode

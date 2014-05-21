@@ -8,9 +8,9 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
       @carModelDict = new @Dict.dicts.ModelDict
         dict: 'CarModel'
 
-    find: (q, cb) ->
-      return cb({}) if q.length < 4
-      query = "/searchContracts/?query=#{q}&program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}"
+    find: (q, cb, opt) ->
+      return cb({}) if q.length < 4 and not opt?.force
+      query = "/searchContracts/?query=#{q}&program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}#{if opt?.force then '&type=exact' else ''}"
       $.getJSON query, (r) =>
         @found = []
 
