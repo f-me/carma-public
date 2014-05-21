@@ -549,6 +549,59 @@
       </div>
     </script>
 
+    <script type="text/template"
+            class="field-template"
+            id="force-find-dictionary-field-template">
+      <div class="control-group"
+           {{# meta.required }}
+             data-bind="css: { error: {{name}}Not }"
+           {{/ meta.required }}
+           {{# meta.regexp   }}
+             data-bind="css: { warning: {{name}}Regexp }"
+           {{/ meta.regexp   }}
+           >
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText1 }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
+          </label>
+        </div>
+        <div class="controls">
+          <div class="input-append">
+            <!--
+
+            Note the difference between readonly attribute and
+            disabled class from Bootstrap.
+
+            -->
+
+            <input type="text"
+                   class="pane-span
+                          focusable
+                          {{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}
+                          {{# readonly }}disabled{{/ readonly }}"
+                   {{# readonly }}readonly{{/ readonly }}
+                   autocomplete="off"
+                   name="{{ name }}"
+                   data-bind="value: {{ name }}Local,
+                              valueUpdate: 'change',
+                              disabled: {{ name }}Disabled,
+                              pickerDisable: {{ name }}Disabled,
+                              bindDict: '{{ name }}'"
+                   />
+            <span class="add-on">
+              <i class="icon icon-search" />
+            </span>
+          </div>
+        </div>
+      </div>
+    </script>
+
 
     <script type="text/template"
             class="field-template"

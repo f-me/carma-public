@@ -54,7 +54,13 @@ ko.bindingHandlers.bindDict =
     fld = _.find kvm._meta.model.fields, (f) -> f.name == acc()
     # bind th.draw here, because we don't have ready th
     # during binding any more, see bug #1148
-    $(el).next().on 'click', th.drawAll unless fld?.readonly
+    chevron = $(el).siblings().find('.icon-chevron-down')[0]
+    if chevron
+      $(chevron).on 'click', th.drawAll unless fld?.readonly
+
+    search = $(el).siblings().find('.icon-search')[0]
+    if search
+      $(search).on 'click', th.drawAllForce unless fld?.readonly
 
 
 ko.bindingHandlers.sort =
