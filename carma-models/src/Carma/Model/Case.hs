@@ -134,6 +134,8 @@ caseMod = [
   ,invisible contract
   ,setType "text" contract
 
+  ,widget "force-find-dictionary" contractIdentifier
+
   ,widget "inline-uploader" files
   ,setMeta "reference-widget" "files" files
 
