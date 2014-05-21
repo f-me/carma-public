@@ -25,7 +25,7 @@ callSearchParams
     , ("callDate", interval callDate)
     , ("callTaker", fuzzy $ one callTaker)
     , ("program", one program)
-    , ("wazzup", fuzzy $ one wazzup)
+    , ("wazzup", one wazzup)
     , ("callType", one callType)
     , ("caller", fuzzy $ matchAny
         [one callerName_name, one callerName_ownerName])
