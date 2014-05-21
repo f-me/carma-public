@@ -175,6 +175,7 @@ sendMailActually actionId = do
     cfg     <- liftDb getSnapletUserConfig
     cfgFrom <- liftIO $ require cfg "psa-smtp-from"
     cfgTo   <- liftIO $ require cfg "psa-smtp-recipients"
+    cfgReply<- liftIO $ require cfg "psa-smtp-replyto"
 
     l <- liftDb askLog
     -- FIXME: throws `error` if sendmail exits with error code
@@ -184,7 +185,8 @@ sendMailActually actionId = do
       $ (emptyMail $ Address Nothing cfgFrom)
         {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
         ,mailHeaders
-          = [("Subject"
+          = [ ("Reply-To", cfgReply)
+            , ("Subject"
           ,T.concat ["RAMC ", T.decodeUtf8 svcId, " / ", T.decodeUtf8 actionId])]
         ,mailParts = [[bodyPart]]
         }

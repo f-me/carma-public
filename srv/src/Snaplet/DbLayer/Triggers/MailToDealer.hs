@@ -135,6 +135,7 @@ sendMailActually actId caseId addrTo = do
   cfg <- liftDb getSnapletUserConfig
   cfgFrom <- liftIO $ require cfg "psa-smtp-from"
   cfgTo'  <- liftIO $ require cfg "psa-smtp-copyto"
+  cfgReply<- liftIO $ require cfg "psa-smtp-replyto"
   let cfgTo = if cfgTo' /= ""
         then T.decodeUtf8 addrTo `T.append` "," `T.append` cfgTo'
         else cfgTo'
@@ -151,7 +152,7 @@ sendMailActually actId caseId addrTo = do
   -- it also saves us from exceptions thrown while sending an e-mail
   void $ liftIO $ forkIO
     $ scoperLog l (T.concat ["sendMailToDealer(", T.decodeUtf8 caseId, ")"])
-    $ sendEximMail cfgFrom cfgTo subj body
+    $ sendEximMail cfgFrom cfgTo cfgReply subj body
 
 
 -- | If a case has towage services which is a repeated towage, send a
@@ -207,6 +208,7 @@ sendRepTowageMail caseRef towageRef prevRef program = do
   cfg      <- liftDb getSnapletUserConfig
 
   mailFrom <- liftIO $ require cfg "reptowage-smtp-from"
+  replyTo  <- liftIO $ require cfg "psa-smtp-replyto"
   citrTo   <- liftIO $ require cfg "reptowage-citroen-recipients"
   peugTo   <- liftIO $ require cfg "reptowage-peugeot-recipients"
   copyTo   <- liftIO $ require cfg "psa-smtp-copyto"
@@ -242,15 +244,16 @@ sendRepTowageMail caseRef towageRef prevRef program = do
   -- Fire off mail-sending process
   void $ liftIO $ forkIO $
        scoperLog l (T.append "sendRepTowageMail " $ T.decodeUtf8 caseRef) $
-       sendEximMail mailFrom (T.concat [mailTo, ",", copyTo]) mailSubj mailBody
+       sendEximMail mailFrom (T.concat [mailTo, ",", copyTo]) replyTo
+                    mailSubj mailBody
 
 
 -- | Send a mail using exim.
-sendEximMail :: Text -> Text -> Text -> Part -> IO ()
-sendEximMail mailFrom mailTo mailSubj mailBody =
+sendEximMail :: Text -> Text -> Text -> Text -> Part -> IO ()
+sendEximMail mailFrom mailTo mailReplyTo mailSubj mailBody =
     renderSendMailCustom "/usr/sbin/sendmail" ["-t", "-r", T.unpack mailFrom] $
     (emptyMail $ Address Nothing mailFrom)
     { mailTo = map (Address Nothing . T.strip) $ T.splitOn "," mailTo
-    , mailHeaders = [("Subject", mailSubj)]
+    , mailHeaders = [("Subject", mailSubj), ("Reply-To", mailReplyTo)]
     , mailParts = [[mailBody]]
     }
