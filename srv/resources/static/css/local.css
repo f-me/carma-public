@@ -393,7 +393,7 @@ table.dataTable tr.selected-row td.sorting_1 {
   shape-rendering: crispEdges;
 }
 
-.control-group.warning label {
+.control-group.warning input {
   border-radius: 5px;
   background-color: #f89406;
   padding: 2px 4px;
