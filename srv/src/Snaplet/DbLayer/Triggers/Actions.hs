@@ -609,7 +609,7 @@ serviceActions = Map.fromList
     ,\objId val -> do
       set objId "status" val -- push change to the commit stack
       onRecursiveServiceStatusChange objId $
-      maybe (error "Unknown service status") (identFv val)
+        fromMaybe (error "Unknown service status") (fvIdent val)
     ]
   )
   ,("clientSatisfied",
