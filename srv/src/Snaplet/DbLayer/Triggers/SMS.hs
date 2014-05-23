@@ -27,7 +27,7 @@ sendSMS actId tplId = do
   res <- liftDb $ PG.query
         [sql|
           select
-            cs.id,
+            cs.id::text,
             coalesce("City".label, ''),
             coalesce(cs.contact_phone1, ''),
             coalesce(act.assignedTo, ''),
