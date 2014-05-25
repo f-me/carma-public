@@ -22,20 +22,23 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
 
     _search: _.debounce((-> @search()), 300)
 
-    search: =>
+    searchParams: =>
       q = {}
       for f in @model.fields when not f.meta?.nosearch
         if (_.isNumber @kvm[f.name]()) || (!_.isEmpty @kvm[f.name]())
           q[f.name] = @kvm[f.name]()
       preds =  m.c2sObj(q, @ftypes)
       sorts = { fields: @searchFields, order: @searchOrder }
+      { predicates: preds, sorts: sorts }
+
+    search: =>
       # have nothing to search, maybe user delete value
       # return @kvm['searchResults']([]) if _.isEmpty req
       $.ajax
         url      : @requestUrl
         dataType : 'json'
         type     : 'POST'
-        data     : JSON.stringify { predicates: preds, sorts: sorts }
+        data     : JSON.stringify @searchParams()
         success  : @successCb
         error    : @errorCb
         beforeSend : @showSpinner

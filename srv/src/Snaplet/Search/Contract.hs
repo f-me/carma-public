@@ -1,8 +1,20 @@
-{-# LANGUAGE TypeOperators,
-             ScopedTypeVariables
- #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators #-}
+
 module Snaplet.Search.Contract where
 
+import           Control.Monad.Fix
+import           Control.Monad.IO.Class
+
+import           Data.Aeson
+
+import           Data.ByteString.Char8 as B8
+import           Data.ByteString.Lazy
+import           Data.Functor
+import qualified Data.HashMap.Strict as HM
+import           Data.Maybe
 import           Data.String (fromString)
 
 import           Data.Text (Text)
@@ -11,29 +23,39 @@ import qualified Data.Text             as T
 import           Text.Printf
 
 import           Database.PostgreSQL.Simple as PG
+import           Database.PostgreSQL.Simple.Copy as PG
+import           Database.PostgreSQL.Simple.SqlQQ
+
+import           Data.Pool
 
 import           Snap (gets)
+import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Auth
 
+import           Data.Model
 import           Data.Model.Patch (Patch)
 import           Data.Model.Sql
-import           Data.Model.Types
 
 import           Carma.Model.Contract
 import qualified Carma.Model.Usermeta as Usermeta
 
 import           Snaplet.Auth.PGUsers
 import           Snaplet.DbLayer
+import           Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
 
 import           Snaplet.Search.Types
 import           Snaplet.Search.Utils
+
+import           Util
+
 
 contractSearch :: SearchHandler b
               (Either String
                (SearchResult
                 (Patch Contract :. ())))
 contractSearch = defaultSearch contractSearchParams mkQuery
+
 
 mkQuery :: forall t.MkSelect t => t -> Text -> Int -> Int -> String -> Query
 mkQuery _ predicate lim offset ord
@@ -45,24 +67,105 @@ mkQuery _ predicate lim offset ord
       (T.unpack $ mkSel (undefined :: t))
       (T.unpack predicate) ord lim offset
 
--- | Identical to 'contractSearch', but yields only contracts created
--- by current user if isDealer flag is set.
+
+-- | Read contract search parameters as JSON from @q@ query parameter
+-- and serve search results as CSV.
+contractCSV :: (Text -> Text) -> SearchHandler b ()
+contractCSV t = do
+  q <- getParam "q"
+  let args' = decode =<< (fromStrict <$> q)
+      bom :: B8.ByteString
+      bom = B8.pack ['\xef', '\xbb', '\xbf']
+      -- COPY TO STDOUT query with CSV data, 3 (plain text) arguments:
+      -- fields list, predicates, ordering
+      csvQuery :: Query
+      csvQuery
+          = [sql|
+             COPY (SELECT ? FROM "Contract_csv" WHERE (?) ?)
+             TO STDOUT (FORMAT CSV, FORCE_QUOTE *, DELIMITER ';')
+             |]
+      -- Convert list [foo, bar, ..] of fields to [fooExternal,
+      -- barExternal, ..] (see "Contract_csv" view) and concatenate it
+      -- with commas
+      fieldList :: [Text] -> Text
+      fieldList fs = T.intercalate "," $
+                     Prelude.map (flip T.append "External") fs
+      cmi :: ModelInfo Contract
+      cmi = modelInfo
+      -- Non-standard view is used while predicates are provided for
+      -- Contract model
+      fixTable = T.replace (tableName cmi) "Contract_csv"
+      fieldNameToDesc :: ModelInfo m -> Text -> Maybe Text
+      fieldNameToDesc mi name =
+          case HM.lookup name (modelFieldsMap mi) of
+            Just f -> Just $ fd_desc f
+            _      -> Nothing
+  case args' of
+    Nothing -> error "Could not read parameters"
+    Just args -> do
+      modifyResponse $ setContentType "text/csv"
+      writeBS bom
+      -- Unwrap withPG to preserve MonadSnap for inner function
+      getPostgresState >>= \s -> withResource (pgPool s) $ \c -> do
+        prms <- liftIO $ renderPrms c (predicates args) contractSearchParams
+        -- Prepare query and request CSV from Postgres
+        case (resultFields args, prms) of
+          (Just rf, Right p) -> do
+            let header = T.intercalate ";" $
+                         Prelude.map ((\f -> T.concat ["\"", f, "\""]) .
+                                      fromMaybe (error "Unknown field") .
+                                      fieldNameToDesc cmi) rf
+            writeText $! header
+            writeText "\n"
+            liftIO $ PG.copy c csvQuery
+                     -- TODO Check field permissions in resultFields
+                     (PT $ fieldList rf,
+                      PT $ fixTable (t p),
+                      PT $ fixTable $ T.pack $ renderOrder $ sorts args)
+            -- Write selected rows to response
+            fix $ \next ->
+                (liftIO $ getCopyData c) >>= \case
+                            CopyOutRow row ->
+                                writeBS row >> next
+                            CopyOutDone _ -> return ()
+          _ -> error "Error reading predicates or header fields"
+
+
+-- | Return function which adds an SQL predicate to select only
+-- contracts created by current user if isDealer flag is set.
+portalQuery :: AuthUser -> SearchHandler b (Text -> Text)
+portalQuery au = do
+  let withDb = (gets db >>=) . flip withTop
+  Just (ui, _) <- withDb $ userMetaPG au
+  [Only isDealer :. ()] <-
+      withDb $
+      selectDb (Usermeta.isDealer :. Usermeta.ident `eq` Ident ui)
+  let commPred = printf " AND committer = %i" ui
+  return $ \s -> if isDealer
+                 then T.append s $ T.pack commPred
+                 else s
+
+
+-- | Identical to 'contractSearch' but with 'portalQuery' applied.
 portalSearch :: SearchHandler b
-              (Either String
-               (SearchResult
-                (Patch Contract :. ())))
-portalSearch = do
+                (Either String
+                 (SearchResult
+                  (Patch Contract :. ())))
+portalSearch =
+    portalHandler searchHandler
+        where
+          searchHandler t =
+            defaultSearch contractSearchParams mkQuery'
+                where
+                  mkQuery' s p = mkQuery s $ t p
+
+
+-- | Feed 'portalQuery' result to a handler.
+portalHandler :: ((Text -> Text) -> SearchHandler b t)
+              -> SearchHandler b t
+portalHandler f = do
   u <- with auth currentUser
   case u of
     Just au -> do
-        let withDb = (gets db >>=) . flip withTop
-        Just (ui, _) <- withDb $ userMetaPG au
-        [Only isDealer :. ()] <-
-            withDb $
-            selectDb (Usermeta.isDealer :. Usermeta.ident `eq` Ident ui)
-        let commPred = printf " AND committer = %i" ui
-            mkQuery' s p = mkQuery s (if isDealer
-                                      then T.append p $ T.pack commPred
-                                      else p)
-        defaultSearch contractSearchParams mkQuery'
-    Nothing -> return $ Left "No user"
+        portalQuery au >>= f
+    Nothing -> error "No user"

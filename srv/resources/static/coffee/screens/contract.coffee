@@ -37,6 +37,14 @@ define [ "search/screen"
       $("#help-program").text(title)
       $("#help-text").html(instance.dealerHelp)
 
+  # Download current search results in CSV form
+  downloadCSV = (searchVM) ->
+    params = searchVM?._meta.q.searchParams()
+    params.resultFields = searchVM?.resultFields.fields()
+    q = JSON.stringify params
+    url = "/search/#{q}/contract.csv"
+    window.location = url
+
   contractForm = "contract-form"
 
   redirect = (hash) -> window.location.hash = hash
@@ -172,6 +180,10 @@ define [ "search/screen"
             if _.isNull s
               searchVM.subprogram def_spgm
             redirect "contract/#{searchVM.subprogram()}"
+
+          # Bind CSV download link to search parameters
+          $("#download-csv-btn").click () ->
+            downloadCSV searchVM
 
           # Make subprogram label bold
           $(".control-label label").first().css("font-weight", "bold")
