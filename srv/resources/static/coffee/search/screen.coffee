@@ -85,6 +85,7 @@ define [ "utils"
 
     tg = smodel.transformFields searchKVM, allModels
     rfields = smodel.mkFieldsDynView searchKVM, tg, opts.resultTable
+    searchKVM.resultFields = rfields
 
     ctx =
       kvms: searchKVM.searchResults
