@@ -6,7 +6,7 @@ import Data.ByteString (ByteString)
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
 
-import Snaplet.DbLayer.Triggers.Types
+import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Util
 
 import qualified Snap.Snaplet.PostgresqlSimple as PG
@@ -22,9 +22,9 @@ import qualified Carma.Model.SmsTemplate as SmsTemplate
 import Util as U
 
 
-sendSMS :: MonadTrigger m b => ByteString -> Model.IdentI SmsTemplate -> m b ()
+sendSMS :: ByteString -> Model.IdentI SmsTemplate -> DbHandler b ()
 sendSMS actId tplId = do
-  res <- liftDb $ PG.query
+  res <- PG.query
         [sql|
           select
             cs.id::text,
@@ -61,12 +61,11 @@ sendSMS actId tplId = do
               ]
 
         [PG.Only templateText :. ()]
-            <- liftDb
-              $ selectDb $ SmsTemplate.text :. SmsTemplate.ident `eq` tplId
+            <- selectDb $ SmsTemplate.text :. SmsTemplate.ident `eq` tplId
 
         let msg = T.encodeUtf8 $ U.render varMap templateText
 
-        void $ liftDb $ PG.execute
+        void $ PG.execute
           [sql|
             insert into "Sms"
                 (caseRef, phone, sender, template, msgText, status)
