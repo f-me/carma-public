@@ -155,4 +155,6 @@ GRANT ALL ON "SubProgram" TO carma_search;
 GRANT ALL ON "SubProgram_id_seq" TO carma_db_sync;
 GRANT ALL ON "SubProgram_id_seq" TO carma_search;
 
+GRANT SELECT ON "SubProgram" TO reportgen;
+
 SELECT setval(pg_get_serial_sequence('"SubProgram"', 'id'), max(id)) from "SubProgram";
