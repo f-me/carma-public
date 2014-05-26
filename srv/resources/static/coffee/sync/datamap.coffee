@@ -53,6 +53,10 @@ define [], ->
 
   c2sDictSetInt = (vals) -> nullOnEmpty _.map vals, (v) -> parseInt v
 
+  c2sDictSetText = (vals) ->
+    # Force stringifying of ints, anyway we can't save int[] in such field
+    nullOnEmpty _.map vals, (v) -> if _.isNumber v then String v else v
+
   nullOnEmpty = (v) ->
     # Convert empty arrays to null (otherwise the server gets confused
     # about types)
@@ -60,7 +64,7 @@ define [], ->
 
   c2sTypes =
     'dictionary-set-int':  c2sDictSetInt
-    'dictionary-set-text': nullOnEmpty
+    'dictionary-set-text': c2sDictSetText
     'dictionary-many': (v) -> (v?.join ',') || ''
     checkbox  : (v) -> if v then "1" else "0"
     Bool      : (v) -> v

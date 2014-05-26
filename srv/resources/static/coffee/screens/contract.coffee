@@ -37,6 +37,14 @@ define [ "search/screen"
       $("#help-program").text(title)
       $("#help-text").html(instance.dealerHelp)
 
+  # Download current search results in CSV form
+  downloadCSV = (searchVM) ->
+    params = searchVM?._meta.q.searchParams()
+    params.resultFields = searchVM?.resultFields.fields()
+    q = JSON.stringify params
+    url = "/search/#{q}/contract.csv"
+    window.location = url
+
   contractForm = "contract-form"
 
   redirect = (hash) -> window.location.hash = hash
@@ -108,7 +116,7 @@ define [ "search/screen"
 
       # Prevent on-off behaviour of dixi: once true, it's always
       # true (#1042)
-      kvm["always_true"] = false
+      kvm["always_true"] = kvm["dixi"]()? || false
       kvm["dixi"].subscribe (v) ->
         if v
           kvm["always_true"] = true
@@ -172,6 +180,10 @@ define [ "search/screen"
             if _.isNull s
               searchVM.subprogram def_spgm
             redirect "contract/#{searchVM.subprogram()}"
+
+          # Bind CSV download link to search parameters
+          $("#download-csv-btn").click () ->
+            downloadCSV searchVM
 
           # Make subprogram label bold
           $(".control-label label").first().css("font-weight", "bold")

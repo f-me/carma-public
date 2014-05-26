@@ -81,7 +81,7 @@ define ["utils", "dictionaries"], (u, d) ->
       rows = for r in cancels
         ctime = new Date(r.ctime * 1000).toString("dd.MM.yyyy HH:mm")
         pname = r.partnerName
-        reason = dict['PartnerCancelReason'][r.partnerCancelReason] || ''
+        reason = r.partnerCancelReason || ''
         owner  = dict['users'][r.owner] || r.owner
         comment = r.comment
         row = [ ctime

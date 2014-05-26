@@ -6,7 +6,7 @@ import Data.ByteString (ByteString)
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
 
-import Snaplet.DbLayer.Triggers.Types
+import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Util
 
 import qualified Snap.Snaplet.PostgresqlSimple as PG
@@ -22,28 +22,28 @@ import qualified Carma.Model.SmsTemplate as SmsTemplate
 import Util as U
 
 
-sendSMS :: MonadTrigger m b => ByteString -> Model.IdentI SmsTemplate -> m b ()
+sendSMS :: ByteString -> Model.IdentI SmsTemplate -> DbHandler b ()
 sendSMS actId tplId = do
-  res <- liftDb $ PG.query
+  res <- PG.query
         [sql|
           select
-            cs.id,
+            cs.id::text,
             coalesce("City".label, ''),
             coalesce(cs.contact_phone1, ''),
             coalesce(act.assignedTo, ''),
-            to_char(svc.times_expectedServiceStart, 'MM-DD HH24:MI'),
-            to_char(svc.times_factServiceStart, 'MM-DD HH24:MI'),
+            coalesce(to_char(svc.times_expectedServiceStart, 'MM-DD HH24:MI'), ''),
+            coalesce(to_char(svc.times_factServiceStart, 'MM-DD HH24:MI'), ''),
             prog.smsSender, prog.smsProgram, prog.smsContact
           from
             casetbl cs left join "City" on ("City".value = cs.city),
             actiontbl act, servicetbl svc,
             "SubProgram" prog
           where true
-            and act.id = ? :: int
-            and svc.id::text = substring(act.parentId, ':(.*)')
-            and svc.type     = substring(act.parentId, '(.*):')
-            and cs.id::text  = substring(act.caseId, ':(.*)')
-            and prog.id = cs.subprogram
+            and act.id   = substring(?, ':(.*)')::int
+            and svc.id   = substring(act.parentId, ':(.*)')::int
+            and svc.type = substring(act.parentId, '(.*):')
+            and cs.id    = substring(act.caseId, ':(.*)')::int
+            and prog.id  = cs.subprogram
         |]
         [actId]
   case res of
@@ -61,12 +61,11 @@ sendSMS actId tplId = do
               ]
 
         [PG.Only templateText :. ()]
-            <- liftDb
-              $ selectDb $ SmsTemplate.text :. SmsTemplate.ident `eq` tplId
+            <- selectDb $ SmsTemplate.text :. SmsTemplate.ident `eq` tplId
 
         let msg = T.encodeUtf8 $ U.render varMap templateText
 
-        void $ liftDb $ PG.execute
+        void $ PG.execute
           [sql|
             insert into "Sms"
                 (caseRef, phone, sender, template, msgText, status)

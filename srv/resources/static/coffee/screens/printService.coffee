@@ -24,7 +24,7 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
         time: ['createTime', 'times_factServiceStart', 'times_factServiceEnd']
         lookup:
           Services        : 'type'
-          ServiceStatuses : 'status'
+          ServiceStatus   : 'status'
           FalseStatuses   : 'falseCall'
 
       for s in (arg.cancels || [])
@@ -61,6 +61,7 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
                , "Wazzup"
                , "PartnerRefusalReason"
                , "ContractCheckStatus"
+               , "ServiceStatus"
                ]
     if _.contains newDicts, dict
       (new D.dicts['ModelDict'](dict: dict)).getLab(val)

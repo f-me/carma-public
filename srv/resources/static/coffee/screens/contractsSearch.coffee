@@ -27,4 +27,4 @@ define [ "search/screen"
                   ]
     defaultSort: { fields: [{ model: "Contract", name: "id" }], order: "desc" }
     allowedResultFields:
-      Contract: _.without(_.pluck(Contract.fields, 'name'), 'id')
+      Contract: _.without(_.pluck(Contract.fields, 'name'), 'id', 'dixi')

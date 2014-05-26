@@ -25,25 +25,26 @@ import qualified Util as U
 
 import System.Log.Simple
 
-data TriggerContext = TriggerContext
+data TriggerContext b = TriggerContext
   {dbCache :: ObjectMap
   ,updates :: ObjectMap
   ,current :: ObjectMap
+  ,futures :: [DbHandler b ()]
   }
 
-emptyContext :: TriggerContext
-emptyContext = TriggerContext Map.empty Map.empty Map.empty
+emptyContext :: TriggerContext b
+emptyContext = TriggerContext Map.empty Map.empty Map.empty []
 
 newtype TriggerMonad b r = TriggerMonad {
-    runTriggerMonad :: StateT TriggerContext (Handler b (DbLayer b)) r
-    } deriving (Functor, Monad, MonadIO, MonadState TriggerContext)
+    runTriggerMonad :: StateT (TriggerContext b) (Handler b (DbLayer b)) r
+    } deriving (Functor, Monad, MonadIO, MonadState (TriggerContext b))
 
 type Trigger b = ObjectId -> FieldValue -> TriggerMonad b ()
 type TriggerMap b = Map ModelName (Map FieldName [Trigger b])
 
 class ( Functor (m b)
       , MonadIO (m b)
-      , MonadState TriggerContext (m b)
+      , MonadState (TriggerContext b) (m b)
       , HasAuth b
       )
       => MonadTrigger m b where
