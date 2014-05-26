@@ -434,7 +434,7 @@ exportable (mn, _, d) = statusOk && typeOk
                 _        -> False
           -- Check status and falseCall fields
           statusOk = (falseCall == "none" &&
-                      fvIdent status == Just SS.serviceClosed) ||
+                      fvIdent status == Just SS.closed) ||
                      (falseCall == "bill" &&
                       fvIdent status == Just SS.clientCanceled)
               where
