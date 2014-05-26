@@ -2,13 +2,10 @@
 
 module Application where
 
-import Control.Concurrent.STM
 import Control.Lens
 
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
-
-import Data.Set (Set)
 import Data.Text (Text)
 
 import Snap
@@ -26,8 +23,6 @@ import Snaplet.TaskManager
 import Snaplet.FileUpload hiding (db)
 import Snaplet.Geo
 import Snaplet.Search
-
-import RuntimeFlag
 
 
 -- | Global application options.
@@ -54,7 +49,6 @@ data App = App
     , _fileUpload :: Snaplet (FileUpload App)
     , _geo        :: Snaplet Geo
     , feLog       :: Log
-    , runtimeFlags:: TVar (Set RuntimeFlag)
     , _authDb     :: Snaplet Postgres
     , _search     :: Snaplet (Search App)
     , options     :: AppOptions

@@ -56,10 +56,7 @@ data ExportState = ExportState { counter :: Int
 
 -- | Various dictionaries used during export process to map values
 -- stored in fields to corresponding dictionary labels.
-data ExportDicts = ExportDicts { wazzup :: D.Dict
-                               -- ^ Dictionary used on the @comment@
-                               -- field of a case.
-                               , techTypes :: D.Dict
+data ExportDicts = ExportDicts { techTypes :: NewDict
                                -- ^ Dictionary used on the @techType@
                                -- field of a @tech@ service.
                                , carClasses :: NewDict

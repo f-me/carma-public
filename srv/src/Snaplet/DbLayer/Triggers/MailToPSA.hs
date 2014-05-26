@@ -33,11 +33,14 @@ import Carma.HTTP
 import Snap.Snaplet (getSnapletUserConfig)
 
 import qualified Carma.Model.Engine as Engine
+import qualified Carma.Model.PaymentType as PT
 import qualified Carma.Model.Program as Program
+import qualified Carma.Model.TechType as TT
 
 import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
+import Snaplet.DbLayer.Triggers.Util
 import DictionaryCache
 import Util as U
 
@@ -47,7 +50,7 @@ sendMailToPSA actionId = do
   svcId  <- get actionId "parentId"
   isValidSvc <- case B.split ':' svcId of
     "tech":_
-      -> (`elem` ["charge", "starter", "condition"])
+      -> (`elem` map identFv [TT.charge, TT.starter, TT.ac])
       <$> get svcId "techType"
     "consultation":_
       -> (`elem` ["consOk","consOkAfter"])
@@ -56,13 +59,13 @@ sendMailToPSA actionId = do
     _ -> return False
   caseId  <- get actionId "caseId"
   program <- get caseId   "program"
+  payType <- get svcId "payType"
   when (isValidSvc &&
         program `elem`
-        (map identFv [Program.peugeot, Program.citroen]))
-    $ get svcId "payType" >>= \case
-      "ruamc" -> sendMailActually actionId
-      "mixed" -> sendMailActually actionId
-      _ -> return ()
+        (map identFv [Program.peugeot, Program.citroen]) &&
+        payType `elem`
+        (map identFv [PT.ruamc, PT.mixed])) $
+      sendMailActually actionId
 
 
 sendMailActually :: MonadTrigger m b => ByteString -> m b ()
@@ -121,8 +124,8 @@ sendMailActually actionId = do
 
           actionResult <- lift $ get actionId "result"
           fld 150 "Customer effet"   $ case actionResult of
-            "clientCanceledService" -> tr (cancelReason dic) <$> get' svcId "clientCancelReason"
-            _                       -> tr (wazzup dic) <$> get' caseId "comment"
+            "clientCanceledService" -> getCRRLabel svcId
+            _                       -> getCommentLabel caseId
           fld 150 "Component fault"  $ get' caseId "dealerCause"
 
           factServiceStart

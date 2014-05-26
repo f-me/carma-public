@@ -1,8 +1,8 @@
 ﻿CREATE OR REPLACE VIEW servicesview AS
- SELECT c.id AS caseid,
+SELECT c.id AS caseid,
     c.calldate,
     c.calltaker,
-    c.comment,
+    wazzup.label,
     c.diagnosis1,
     c.diagnosis2,
     c.diagnosis3,
@@ -21,7 +21,8 @@
     c.contact_ownerphone4,
     c.contact_owneremail,
     spgm.value AS program,
-    (pgm.label || ' — '::text) || coalesce(spgm.label, '') AS programlabel,
+    (pgm.label || ' — '::text) || spgm.label AS programlabel,
+    pt.label AS programtype,
     c.car_vin,
     c.car_make,
     c.car_model,
@@ -107,15 +108,17 @@
     contract.startmileage AS car_checkupmileage
    FROM casetbl c
    LEFT JOIN "Program" pgm ON c.program = pgm.id
+   LEFT JOIN "ProgramType" pt ON pgm.ptype = pt.id
    LEFT JOIN "CarClass" carcl ON c.car_class = carcl.id
    LEFT JOIN "Engine" engine ON c.car_engine = engine.id
    LEFT JOIN "Transmission" trans ON c.car_transmission = trans.id
    LEFT JOIN "SubProgram" spgm ON c.subprogram = spgm.id
    LEFT JOIN partnertbl p3 ON c.car_seller = p3.id::text
    LEFT JOIN partnertbl p4 ON c.car_dealerto = p4.id::text
-   LEFT JOIN "Contract" contract ON c.contract = contract.id,
-    servicetbl s
-   LEFT JOIN allservicesview t ON t.id = s.id AND t.type = s.type
+   LEFT JOIN "Contract" contract ON c.contract = contract.id
+   LEFT JOIN "Wazzup" wazzup ON c.comment = wazzup.id,
+   servicetbl s
+   LEFT JOIN allservicesview t ON t.id = s.id AND t.type = s.type AND s.parentid = t.parentid
    LEFT JOIN partnertbl p1 ON s.contractor_partnerid = ('partner:'::text || p1.id)
    LEFT JOIN partnertbl p2 ON t.towdealer_partnerid = ('partner:'::text || p2.id)
-  WHERE c.id::text = "substring"(s.parentid, ':(.*)'::text);
+   WHERE c.id = split_part(s.parentid, ':', 2)::Integer;

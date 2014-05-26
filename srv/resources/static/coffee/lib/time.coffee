@@ -19,8 +19,8 @@ define [], ->
     { begin: beg, end: end, days: days }
 
   isWorkingNow = (wtimes) ->
-    now = Date.now().toString("HH:mm")
-    day = Date.now().getDay()
+    now = new Date().toString("HH:mm")
+    day = new Date().getDay()
     # special case for sunday
     day ||= 7
     _.any wtimes, ({begin, end, days}) ->

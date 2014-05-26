@@ -43,7 +43,11 @@
     },
     {
       "meta": {
-        "dictionaryName": "PartnerCancelReason",
+        "dictionaryName": "PartnerRefusalReason",
+        "dictionaryType": "ModelDict",
+        "bounded": "false",
+        "dictionaryLabel": "label",
+        "dictionaryKey": "label",
         "label": "Причина отказа партнера"
       },
       "type": "dictionary",

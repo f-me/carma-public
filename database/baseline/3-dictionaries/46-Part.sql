@@ -1,8 +1,8 @@
 CREATE TABLE "Part"
   ( id SERIAL PRIMARY KEY
   , parent int4 REFERENCES "System" NOT NULL
-  , label text UNIQUE NOT NULL
-  , fdds int4
+  , label text UNIQUE NOT NULL CHECK (label <> '')
+  , fdds text
   );
 
 GRANT ALL ON "Part" TO carma_db_sync;

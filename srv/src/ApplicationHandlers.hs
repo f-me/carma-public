@@ -12,7 +12,6 @@ import Control.Monad
 import Control.Monad.CatchIO
 import Control.Exception (SomeException)
 import Control.Concurrent (myThreadId)
-import Control.Concurrent.STM
 
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -27,10 +26,8 @@ import Data.Aeson (object, (.=))
 import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 import Data.String
 
-import Data.Monoid
 import Data.Maybe
 import Data.Ord (comparing)
 
@@ -77,8 +74,6 @@ import Utils.NotDbLayer (readIdent)
 import Carma.Model.Event (EventType(..))
 import Utils.Events (logLogin)
 
-import RuntimeFlag
-
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
@@ -103,15 +98,15 @@ indexPage = ifTop $ do
 -- | Redirect using 303 See Other to login form.
 --
 -- Used after unsuccessful access/login attempt or logout.
-redirectToLogin :: MonadSnap m => ByteString -> m a
-redirectToLogin failCount = redirect' ("/login/?fc=" <> failCount) 303
+redirectToLogin :: MonadSnap m => m a
+redirectToLogin = redirect' "/login" 303
 
 
 ------------------------------------------------------------------------------
 -- | If user is not logged in, redirect to login page, pass to
 -- handler otherwise.
 authOrLogin :: AppHandler () -> AppHandler ()
-authOrLogin = requireUser auth (redirectToLogin "")
+authOrLogin = requireUser auth redirectToLogin
 
 
 ------------------------------------------------------------------------------
@@ -124,13 +119,12 @@ loginForm = serveFile "snaplets/heist/resources/templates/login.html"
 -- | Login user.
 doLogin :: AppHandler ()
 doLogin = ifTop $ do
-  failCount <- fromMaybe "0" <$> getParam "fc"
   l <- fromMaybe "" <$> getParam "login"
   p <- fromMaybe "" <$> getParam "password"
   r <- isJust <$> getParam "remember"
   res <- with auth $ loginByUsername (T.decodeUtf8 l) (ClearText p) r
   case res of
-    Left  _ -> redirectToLogin failCount
+    Left  _ -> redirectToLogin
     Right _ -> do
       logLogin Login
       redirect "/"
@@ -141,7 +135,7 @@ doLogout = ifTop $ do
   claimUserLogout
   logLogin Logout
   with auth logout
-  redirectToLogin ""
+  redirectToLogin
 
 
 ------------------------------------------------------------------------------
@@ -268,11 +262,11 @@ updateHandler = do
                  -- TODO #1352 workaround for Contract triggers
                  "Contract" ->
                      do
-                       res <- liftIO $
+                       res' <- liftIO $
                               withResource (PS.pgPool s) (Patch.read ident)
                       -- TODO Cut out fields from original commit like
                       -- DB.update does
-                       case (Aeson.decode $ Aeson.encode res) of
+                       case (Aeson.decode $ Aeson.encode res') of
                          Just [obj] -> return $ Right obj
                          err        -> error $
                                        "BUG in updateHandler: " ++ show err
@@ -622,11 +616,6 @@ printServiceHandler = do
                              , "serviceid"
                              ] rows
 
-getRuntimeFlags :: AppHandler ()
-getRuntimeFlags
-  = gets runtimeFlags
-  >>= liftIO . readTVarIO
-  >>= writeJSON . map show . Set.elems
 
 -- | Serve parts of the application config to client in JSON.
 clientConfig :: AppHandler ()
@@ -636,19 +625,6 @@ clientConfig = do
       config = Map.fromList [("max-file-size", Aeson.Number $ A.I mus)]
   writeJSON config
 
-setRuntimeFlags :: AppHandler ()
-setRuntimeFlags = do
-  flags <- getJSONBody
-  gets runtimeFlags
-    >>= liftIO . atomically
-    . (`modifyTVar'` updAll flags)
-  getRuntimeFlags
-  where
-    updAll :: Map String Bool -> RuntimeFlags -> RuntimeFlags
-    updAll flags s = foldl' upd s $ Map.toList flags
-    upd s (k,True)  = Set.insert (read k) s
-    upd s (k,False) = Set.delete (read k) s
-    -- upd _ kv = error $ "Unexpected runtime flag: " ++ show kv
 
 restoreProgramDefaults :: AppHandler ()
 restoreProgramDefaults = do

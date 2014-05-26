@@ -12,10 +12,10 @@ ko.sorted = ({kvms, filters, sorters}) ->
                                    (f) -> filters[f](e)
 
       if active_sorter()?
-        if _.isFunction sorters[active_sorter()]
-          fltd = _.sortBy fltd, sorters[active_sorter()]
-        else if sorters[active_sorter()].reverse
-          fltd = (_.sortBy fltd, sorters[active_sorter()].fn).reverse()
+        if _.isFunction active_sorter()
+          fltd = _.sortBy fltd, active_sorter()
+        else if active_sorter().reverse
+          fltd = (_.sortBy fltd, active_sorter().fn).reverse()
 
       return fltd
 
@@ -43,9 +43,9 @@ ko.sorted = ({kvms, filters, sorters}) ->
   result.change_filters = (filter, del) ->
     active_filters(filter, del)
 
-  result.set_sorter = (name) ->
-    if sorters[name]?
-      active_sorter(name)
+  result.set_sorter = (name, ord) ->
+    if sorters[name][ord]?
+      active_sorter(sorters[name][ord])
     else
       throw new Error "Unknown sorter: #{name}"
 

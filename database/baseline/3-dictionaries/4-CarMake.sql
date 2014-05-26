@@ -3,7 +3,7 @@ CREATE TABLE "CarMake"
   , value text
   , label text UNIQUE NOT NULL
   , synonyms text[]
-  , fdds int4
+  , fdds text
   );
 
 GRANT ALL ON "CarMake" TO carma_db_sync;

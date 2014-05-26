@@ -1,103 +1,10 @@
 define ["text!tpl/screens/timeline.html"
       , "d3"
-      , "utils"]
-    , (tpl, d3, Utils) ->
-
-
-  class Table
-    constructor: (opt) ->
-      @limitDef = 10
-      @offsetDef = 0
-
-      @columns = opt.columns
-      @data = opt.data
-
-      @items = ko.observableArray(_.clone @data)
-
-      @limit = ko.observable(@limitDef)
-      @offset = ko.observable(@offsetDef)
-
-      @typeahead = ko.observable()
-      @typeahead.subscribe (value) =>
-        @resetPager()
-        @items.removeAll()
-        if value
-          items = _.filter @data, (row) =>
-            _.some @columns, (column) =>
-              if row[column.name]
-                row[column.name].toLowerCase().indexOf(value.toLowerCase()) isnt -1
-              else
-                false
-          @items(items)
-        else
-          @items(_.clone @data)
-
-      @prev = ko.computed =>
-        offset = @offset() - @limit()
-        if offset < 0 then null else offset / @limit() + 1
-
-      @next = ko.computed =>
-        length = @items().length
-        offset = @offset() + @limit()
-        if (length - offset) > 0 then offset / @limit() + 1 else null
-
-      @page = ko.computed =>
-        @offset() / @limit() + 1
-
-      @clickCb = []
-
-      @rows = ko.computed =>
-        @items.slice(@offset(), @offset() + @limit())
-
-    resetPager: =>
-        @limit(@limitDef)
-        @offset(@offsetDef)
-
-    prevPage: =>
-      @offset(@offset() - @limit())
-
-    nextPage: =>
-      @offset(@offset() + @limit())
-
-    onClick: (cb) =>
-      @clickCb.push cb
-
-    rowClick: (data) =>
-      return =>
-        _.each @clickCb, (cb) ->
-          cb(data)
-
-    sortColumn: (data) =>
-      return =>
-        name = data.name
-        sort = data.sort
-        column = @columns[@columns.indexOf(data)]
-        if (sort is "desc") or not sort
-          @items.sort (a, b) =>
-            @asc(a[name], b[name])
-          column.sort = "asc"
-        else
-          @items.sort (a, b) =>
-            @desc(a[name], b[name])
-          column.sort = "desc"
-        @resetPager()
-
-    asc: (a, b) ->
-      unless a
-        return -1
-      unless b
-        return 1
-      if a.toLowerCase() > b.toLowerCase() then 1 else -1
-
-    desc: (a, b) ->
-      unless a
-        return 1
-      unless b
-        return -1
-      if a.toLowerCase() < b.toLowerCase() then 1 else -1
+      , "model/main"
+      , "components/table"]
+    , (tpl, d3, Main, Table) ->
 
   class Timeline
-
     constructor: (bind) ->
       @margin = 25
 
@@ -116,12 +23,25 @@ define ["text!tpl/screens/timeline.html"
     setData: (states) =>
       unless _.isEmpty states
         states = _.map states, (s) -> s.ctime = new Date(s.ctime); s
-        spairs = _.zip states, states[1..-1].concat [{ ctime: @endDate}]
+        spairs = _.zip states, states[1..-1].concat [{ ctime: Infinity }]
+        # `drawBegin` and `drawEnd` is dates that really will be drawn,
+        # and they always in the selection range. When real states borders are
+        # outside of the selection range then `draw(Begin|End)` will stick to
+        # the selection boundaries.
+        # Server will always send more data than selected, so we can build rects
+        # near borders.
         srects = _.map spairs, ([s1, s2]) ->
           id:    s1.id
           state: s1.state
           begin: s1.ctime
           end:   s2.ctime
+          drawBegin: s1.ctime
+          drawEnd:   s2.ctime
+        srects = _.filter srects, (s) =>
+          s.begin <= @endDate and s.end >= @startDate
+        if _.first(srects).begin <= @startDate
+          _.first(srects).drawBegin = @startDate
+        _.last(srects).drawEnd  = @endDate
       @data = d3.entries(srects)
       if @chart then @draw()
 
@@ -282,20 +202,26 @@ define ["text!tpl/screens/timeline.html"
         .attr("y", -@margin * 2)
         .attr("height", @margin * 2)
 
-    rectWidth: (scale, rect) => scale(rect.value.end) - scale(rect.value.begin)
+    rectWidth: (scale, rect) =>
+      scale(rect.value.drawEnd) - scale(rect.value.drawBegin)
 
-    drawRect: (scale, margin, h) => (sel) =>
-      sel.append("rect")
-        .attr("class", (d) -> "#{d.value.state} bar")
-        .attr("x",     (d) => scale(d.value.begin))
-        .attr("y", "#{margin}")
-        .attr("height", h)
+    drawTimeLine: (sel, scale, margin, height) ->
+      sel.selectAll(".bar").remove()
+      rs = sel.selectAll(".bar").data(@data, (d) -> d.value.id)
+        .attr("x",     (d) => scale(d.value.drawBegin))
         .attr("width", (d) => @rectWidth(scale, d))
+      rs.enter().append("rect")
+        .attr("class", (d) -> "#{d.value.state} bar")
+        .attr("x",     (d) => scale(d.value.drawBegin))
+        .attr("y", "#{margin}")
+        .attr("height", height)
+        .attr("width", (d) => @rectWidth(scale, d))
+      rs.exit().remove()
 
     draw: =>
       domain = [
-        d3.min(@data, (d) -> d.value.begin),
-        d3.max(@data, (d) -> d.value.end)]
+        d3.min(@data, (d) -> d.value.drawBegin),
+        d3.max(@data, (d) -> d.value.drawEnd)]
       @xMainScale.domain(domain)
       @xMiniScale.domain(domain)
 
@@ -303,34 +229,18 @@ define ["text!tpl/screens/timeline.html"
       @mini.select(".x.mini.axis").call(@xMiniAxis)
 
       # draw large scale chart
-      itemRects = @itemRects.selectAll(".bar")
-        .data(@data)
-      itemRects
-        .enter()
-        .call(@drawRect(@xMainScale, @margin, 100))
-      itemRects
-        .attr("x",     (d) => @xMainScale(d.value.begin))
-        .attr("width", (d) => @rectWidth(@xMainScale, d))
-      itemRects
-        .exit().remove()
+      @drawTimeLine(@itemRects, @xMainScale, @margin, 100)
 
       # draw mini chart
-      miniRects = @mini.selectAll(".bar")
-        .data(@data)
-      miniRects
-        .enter()
-        .call(@drawRect(@xMiniScale, -@margin, 5))
-      miniRects
-        .attr("x",     (d) => @xMiniScale(d.value.begin))
-        .attr("width", (d) => @rectWidth(@xMiniScale, d))
-      miniRects
-        .exit().remove()
+      @drawTimeLine(@mini, @xMiniScale, -@margin, 5)
 
       @mini.select(".brush")
         .call(@brush)
         .selectAll("rect")
         .attr("y", -@margin * 2)
         .attr("height", @margin * 2)
+
+      @brushed()
 
     ###
     #  redraw the large scale chart
@@ -345,15 +255,15 @@ define ["text!tpl/screens/timeline.html"
       @main.select(".x.main.axis").call(@xMainAxis)
 
       visData = @data.filter (d) =>
-        (d.value.begin < domain[1].getTime()) or
-        (d.value.end > domain[0].getTime())
+        (d.value.drawBegin < domain[1].getTime()) or
+        (d.value.drawEnd > domain[0].getTime())
 
       ###
         replace showing data on the large scale chart
       ###
       rects = @itemRects.selectAll(".bar")
         .data(visData)
-          .attr("x", (d) => @xMainScale(d.value.begin))
+          .attr("x", (d) => @xMainScale(d.value.drawBegin))
           .attr("width", (d) => @rectWidth(@xMainScale, d))
 
     onClose: (cb) =>
@@ -365,26 +275,20 @@ define ["text!tpl/screens/timeline.html"
         cb(data)
 
   setupScreen = (viewName, args) ->
-    model = global.model("usermeta")
-    columns = _.map ["login", "realName"], (c) =>
-      _.find model.fields, (f) =>
-        f.name is c
-    data = new Utils.newModelDict("Usermeta")
-    table = new Table
-      data: data.items
-      columns: columns
+    columns = ['login', 'realName', 'roles']
+    dataModel = 'Usermeta'
+    table = new Table {dataModel, columns}
 
-    kvm =
-      timelines: ko.observableArray()
-      table: table
+    timelines = ko.observableArray()
 
     table.onClick (user) ->
-      unless _.find(kvm.timelines(), (t) -> t.user.id is user.id)
+      unless _.find(timelines(), (t) -> t.user.id is user.id)
         $("html, body").animate({ scrollTop: $(document).height() }, "slow")
         timeline = new Timeline({user: user})
-        timeline.onClose -> kvm.timelines.remove timeline
-        kvm.timelines.push timeline
+        timeline.onClose -> timelines.remove timeline
+        timelines.push timeline
 
+    kvm = {table, timelines}
     ko.applyBindings(kvm, el(viewName))
 
   constructor: setupScreen

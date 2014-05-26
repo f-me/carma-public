@@ -31,6 +31,8 @@ import qualified Database.PostgreSQL.Simple.ToField as PS
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
+import qualified Carma.Model.ServiceStatus as SS
+
 import Snaplet.Auth.PGUsers
 import Snaplet.DbLayer.Dictionary
 import Snaplet.DbLayer.ARC
@@ -91,10 +93,10 @@ orderBy tbl col = preQuery_ [] [tbl] [] [] [T.concat [tbl, ".", col]]
 
 -- | Done services
 doneServices :: PreQuery
-doneServices = inList "servicetbl" "status" [
-  "serviceInProgress",
-  "serviceOk",
-  "serviceClosed"]
+doneServices = inList "servicetbl" "status" $ map (T.decodeUtf8 . identFv)
+               [ SS.inProgress
+               , SS.ok
+               , SS.closed]
 
 serviceCaseRel :: PreQuery
 serviceCaseRel = cond ["casetbl", "servicetbl"] "'case:' || casetbl.id = servicetbl.parentId"
@@ -224,7 +226,12 @@ caseSummary (Filter fromDate toDate program city partner) constraints = scope "c
     (mechanicR, mechanicRActions) = strQuery $ mconcat [
       count' "cnt",
       equals "consultationtbl" "constype" "mech",
-      inList "consultationtbl" "status" ["serviceInProgress", "serviceOk", "serviceClosed", "serviceOrdered", "serviceDelayed"],
+      inList "consultationtbl" "status" $
+             map (T.decodeUtf8 . identFv) [ SS.inProgress
+                                          , SS.ok
+                                          , SS.closed
+                                          , SS.ordered
+                                          , SS.delayed],
       betweenTime fromDate toDate "consultationtbl" "createTime",
       consultationCaseRel,
       ifNotNull program $ equals "casetbl" "program",
