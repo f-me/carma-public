@@ -18,7 +18,7 @@ WITH servicecounts AS (
     timezone('Europe/Moscow'::text, servicetbl.createtime) AS "Дата и время создания услуги",
     upper(casetbl.car_platenum) AS "Регистрационный номер автомобиля",
     DATE(timezone('Europe/Moscow'::text, casetbl.car_buydate::timestamp with time zone)) AS "Дата продажи автомобиля",
-    upper(casetbl.car_vin) AS "VIN автомобиля(кейс)",
+    upper(casetbl.car_vin) AS "VIN автомобиля",
     upper("Contract".vin) AS "VIN автомобиля(контракт)",
     "ContractCheckStatus".label AS "VIN проверен(Участие в программе)",
     casetbl.car_mileage AS "Пробег автомобиля",
