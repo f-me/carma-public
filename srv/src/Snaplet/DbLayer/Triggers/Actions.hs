@@ -449,7 +449,7 @@ serviceActions = Map.fromList
             ,("assignedTo", assignee)
             ]
           upd kazeId "actions" $ addToList actionId
-          sendSMS actionId SmsTemplate.create
+          future $ sendSMS actionId SmsTemplate.create
       | s == Just SS.recallClient = do
           now <- dateNow id
           due <- dateNow (+ (15*60))
@@ -466,7 +466,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-          sendSMS actionId SmsTemplate.create
+          future $ sendSMS actionId SmsTemplate.create
       | s == Just SS.ordered = do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
@@ -518,7 +518,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-          sendSMS actionId SmsTemplate.create
+          future $ sendSMS actionId SmsTemplate.create
       | s == Just SS.dealerConf = do
           now <- dateNow id
           due <- dateNow (+ (1*60))
@@ -535,7 +535,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-          sendSMS actionId SmsTemplate.create
+          future $ sendSMS actionId SmsTemplate.create
       | s == Just SS.checkNeeded = do
           now <- dateNow id
           due <- dateNow (+ (5*60))
@@ -742,7 +742,11 @@ actionResultMap = Map.fromList
   [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime" >> set objId "result" "")
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
-  ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId SmsTemplate.cancel >> sendMailToPSA objId)
+  ,("clientCanceledService", \objId -> do
+      closeAction objId
+      liftDb $ sendSMS objId SmsTemplate.cancel
+      sendMailToPSA objId
+   )
   ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
   -- Defer an action by an amount of time specified in deferBy field
   -- in HH:MM format
@@ -794,7 +798,7 @@ actionResultMap = Map.fromList
     tryToPassChainToControl u act'
   )
   ,("serviceOrderedSMS", \objId -> do
-    sendSMS objId SmsTemplate.order
+    liftDb $ sendSMS objId SmsTemplate.order
 
     setServiceStatus objId SS.ordered
     svcId    <- get objId "parentId"
@@ -917,7 +921,7 @@ actionResultMap = Map.fromList
   )
   ,("serviceFinished", \objId -> do
     closeServiceAndSendInfoVW objId
-    sendSMS objId SmsTemplate.complete
+    liftDb $ sendSMS objId SmsTemplate.complete
     sendMailToDealer objId
   )
   ,("complaint", \objId -> do
@@ -1042,12 +1046,12 @@ actionResultMap = Map.fromList
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId
-     sendSMS objId SmsTemplate.cancel
+     liftDb $ sendSMS objId SmsTemplate.cancel
   )
   ,("falseCallWOBill", \objId -> do
      setService objId "falseCall" "nobill"
      closeAction objId
-     sendSMS objId SmsTemplate.cancel
+     liftDb $ sendSMS objId SmsTemplate.cancel
   )
   ,("clientNotified", \objId -> do
      setServiceStatus objId SS.closed
