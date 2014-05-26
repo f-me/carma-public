@@ -1,4 +1,4 @@
-﻿CREATE VIEW "Отказы партнёров" AS
+﻿CREATE VIEW "Отказы партнеров" AS
 --ОБЪЕДИНЕНИЕ ГОРОДОВ ИЗ "Region" В ОДНУ СТРОКУ ДЛЯ ИЗБЕЖАНИЯ ЗАДВОЕНИЯ СТРОК В ОТЧЕТЕ
 WITH cities_regions as (WITH cit AS (SELECT label, unnest(cities) as cities FROM "Region"  )
 SELECT array_to_string(array_agg(label), ',') as regionlist, cities FROM cit GROUP BY cities ORDER BY cities)
@@ -33,5 +33,5 @@ LEFT JOIN "ServiceNames" ON servicetbl.type = "ServiceNames".value
         LEFT JOIN cities_regions ON "City".id = cities_regions.cities::Integer
 ORDER BY partnercanceltbl.ctime ASC, casetbl.id ASC;
 
-GRANT SELECT ON "Отказы партнёров" TO reportgen;
-GRANT ALL ON "Отказы партнёров" TO analyst;
+GRANT SELECT ON "Отказы партнеров" TO reportgen;
+GRANT ALL ON "Отказы партнеров" TO analyst;
