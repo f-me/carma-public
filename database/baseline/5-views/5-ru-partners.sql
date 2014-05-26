@@ -1,4 +1,4 @@
-﻿CREATE VIEW "Партнёры" AS
+﻿CREATE VIEW "Партнеры" AS
 --ВЫБИРАЕМ НОРМАЛЬНЫЕ НАЗВАНИЯ УСЛУГ У ПАРТНЕРА
 WITH servicelabel AS 
 (
@@ -82,5 +82,5 @@ LEFT JOIN "City" ON partnertbl.city = "City".value
 LEFT JOIN "TaxScheme" ON partnertbl.taxScheme::Integer = "TaxScheme".id
 LEFT JOIN servicelabel ON partnertbl.id = servicelabel.id;
 
-GRANT SELECT ON "Партнёры" TO reportgen;
-GRANT ALL ON "Партнёры" TO analyst;
+GRANT SELECT ON "Партнеры" TO reportgen;
+GRANT ALL ON "Партнеры" TO analyst;
