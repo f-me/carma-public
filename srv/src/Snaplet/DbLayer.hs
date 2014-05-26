@@ -58,7 +58,6 @@ import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
 import Snaplet.Auth.Class
 import DictionaryCache
-import RuntimeFlag
 
 import qualified Carma.Model.Call as Call
 import           Carma.Model.Event (EventType(..))
@@ -126,7 +125,7 @@ update model objId commit = scoper "update" $ do
   let fullId = B.concat [model, ":", objId]
   -- FIXME: catch NotFound => transfer from postgres to redis
   -- (Copy on write)
-  changes <- triggerUpdate model objId commit
+  (futures, changes) <- triggerUpdate model objId commit
   Right _ <- Redis.updateMany redis changes
   --
   let
@@ -140,6 +139,7 @@ update model objId commit = scoper "update" $ do
                  changes
   log Trace $ fromString $ "Changes: " ++ show changes
   Postgres.insertUpdateMany tbls changes'
+  sequence_ futures -- run delayed actions
 
   -- mapM_ (uncurry $ Evt.logLegacyCRUD Update) $ Map.toList changes'
   --
@@ -180,10 +180,9 @@ initDbLayer :: Snaplet (AuthManager b)
             -> Lens' b (Snaplet Postgres)
             -- ^ Lens to a snaplet with Postgres DB used for user
             -- authorization.
-            -> TVar RuntimeFlags
             -> FilePath
             -> SnapletInit b (DbLayer b)
-initDbLayer sessionMgr adb rtF cfgDir = makeSnaplet "db-layer" "Storage abstraction"
+initDbLayer sessionMgr adb cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
       [logger text (file "log/db.log"), syslog "carma" [PID] USER]
@@ -208,7 +207,6 @@ initDbLayer sessionMgr adb rtF cfgDir = makeSnaplet "db-layer" "Storage abstract
       <*> (return dc)
       <*> (return $ initApi wkey)
       <*> (liftIO $ readRKCCalc cfgDir)
-      <*> pure rtF
 
 ----------------------------------------------------------------------
 

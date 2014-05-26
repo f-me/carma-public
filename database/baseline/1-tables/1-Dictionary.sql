@@ -25,15 +25,10 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
 , (15, 'ProgramType', 'Типы программ', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (16, 'Engine', 'Типы двигателя', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (17, 'Transmission', 'Коробки передач', ARRAY[]::int4[], ARRAY['id', 'label'])
-, (18, 'LegalForm', 'Формы организации', ARRAY[]::int4[], ARRAY['id', 'label'])
-, (19, 'CheckType', 'Вид ТО', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (19, 'CheckType', 'Виды ТО', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (20, 'CarClass', 'Классы автомобилей', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (21, 'BusinessRole', 'Бизнес-роли', ARRAY[]::int4[], ARRAY['id', 'label'])
 , (22, 'SmsTemplate', 'Шаблон СМС', ARRAY[]::int4[], ARRAY['id', 'label'])
-, (23, 'SmsTokenName', 'Переменные шаблонов СМС',
-       ARRAY[]::int4[], ARRAY['id', 'label'])
-, (24, 'SmsTokenValue', 'Значения переменных шаблонов СМС',
-       ARRAY[]::int4[], ARRAY['id', 'token', 'program', 'subprogram'])
 , (25, 'Wazzup', 'Диагностика: что случилось',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (26, 'System', 'Диагностика: системы',
@@ -43,6 +38,26 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
 , (28, 'Cause', 'Диагностика: причины неисправности',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (29, 'Suggestion', 'Диагностика: рекомендации',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (30, 'ClientRefusalReason', 'Причины отказа клиента',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (31, 'PartnerRefusalReason', 'Причины отказа партнёра',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (32, 'ContractCheckStatus', 'Статусы проверки контракта',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (33, 'TowType', 'Типы эвакуации',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (34, 'TechType', 'Типы техпомощи',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (35, 'PaymentType', 'Типы оплаты',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (36, 'CaseStatus', 'Статусы кейса',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (37, 'ServiceStatus', 'Статусы услуги',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (38, 'LegalForm', 'Формы организации',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (39, 'TaxScheme', 'Формы налогообложения',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 ;
 

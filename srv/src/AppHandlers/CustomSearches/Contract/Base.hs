@@ -20,4 +20,7 @@ import Carma.Model.Contract
 extraContractFields :: [FA Contract]
 extraContractFields = [ FA make
                       , FA model
+                      , FA startMileage
+                      , FA subprogram
+                      , FA validSince
                       ]

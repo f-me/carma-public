@@ -23,6 +23,7 @@ import Data.Either
 import Data.Maybe
 import qualified Data.HashMap.Strict as HM
 
+import Data.Text (unpack)
 import Data.Time.Clock
 import Data.Time.LocalTime
 import Data.Time.Format
@@ -40,6 +41,10 @@ import System.Log.Handler.Syslog
 import Carma.HTTP hiding (carmaPort)
 import qualified Carma.HTTP as H (carmaPort)
 import Data.Dict.New
+
+import Carma.Model.CarClass
+import Carma.Model.TechType
+import Data.Model
 
 import Carma.SAGAI
 
@@ -165,12 +170,14 @@ programName = "sagai-exporter"
 
 fetchExportDicts :: CarmaIO (Maybe ExportDicts)
 fetchExportDicts = do
-  w <- readDictionary "Wazzup"
-  t <- readDictionary "TechTypes"
-  carCl <- readNewDictionary "CarClass"
+  t' <- readNewDictionary $
+        unpack $ modelName (modelInfo :: ModelInfo TechType)
+  let t = loadNewDict' <$> t'
+  carCl <- readNewDictionary $
+           unpack $ modelName (modelInfo :: ModelInfo CarClass)
   let c = loadNewDict' <$> carCl
   r <- readDictionary "Result"
-  return $ ExportDicts <$> w <*> t <*> c <*> r
+  return $ ExportDicts <$> t <*> c <*> r
 
 
 -- | Attempt to fetch a list of cases to be exported from CaRMa, as
@@ -344,7 +351,7 @@ main =
          cnt <- liftIO $ loadCompos composPath
          logInfo $ "COMPOS counter value: " ++ show cnt
 
-         -- Load Wazzup dictionaries from CaRMa.
+         -- Load dictionaries from CaRMa.
          dictsRes <- do
              logInfo "Loading dictionaries from CaRMa"
              fetchExportDicts

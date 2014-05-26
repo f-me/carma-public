@@ -4,7 +4,7 @@ CREATE TABLE "Program"
   , client text
   , clientAddress text
   , clientCode text
-  , fdds int4
+  , fdds text
   , managers int4[] -- ELEMENT REFERENCES Usermeta
   , pType int4 REFERENCES "ProgramType"
   , help text
@@ -85,5 +85,7 @@ GRANT ALL ON "Program" TO carma_db_sync;
 GRANT ALL ON "Program" TO carma_search;
 GRANT ALL ON "Program_id_seq" TO carma_db_sync;
 GRANT ALL ON "Program_id_seq" TO carma_search;
+
+GRANT SELECT ON "Program" TO reportgen;
 
 SELECT setval(pg_get_serial_sequence('"Program"', 'id'), max(id)) from "Program";

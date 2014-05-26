@@ -49,6 +49,9 @@ define ["model/utils", "dictionaries"], (mu, d) ->
         $alert.fadeOut 'slow', -> $(@).remove()
       , delay
 
+  window.inlineSpinner = (el) ->
+    $(el).addClass("inline-spinner").append("<div class='bounce1'></div><div class='bounce2'></div><div class='bounce3'></div>")
+
   window.getDictionary = (d) ->
     dict = global.dictionaries[d]
     return dict if dict

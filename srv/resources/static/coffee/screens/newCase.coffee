@@ -46,7 +46,7 @@ define [ 'utils'
         # FIXME! Possible race condition on the server: several triggers on
         # service.status will run in parallel and try to update case.actions.
         for svc in kvm.servicesReference()
-          svc.status 'backoffice'
+          svc.status String global.idents("ServiceStatus")['backoffice']
         Finch.navigate "call"
 
       $('#go-to-full-case').on 'click', ->
@@ -106,6 +106,7 @@ define [ 'utils'
         caseAddress_coords:   v['coords']()
         caseAddress_address:  v['address']()
         comment:              v['wazzup']()
+        customerComment:      v['customerComment']()
         callTaker:            global.user.meta.realName
       main.buildNewModel 'case', args, {modelArg: "ctr:full:#{v.program()}"},
         (m, k) -> Finch.navigate "newCase/#{k.id()}"

@@ -166,8 +166,10 @@ serveUserStates = do
   to    <- readDay <$> getParam "to"
   states <- withPG pg_search $ \c -> do
     query c (fromString $ printf
+      -- Get more then asked, we need this during drawing of timeline
       ("SELECT %s FROM \"UserState\" WHERE userId = ? " ++
-       " AND ctime BETWEEN ? AND timestamp ? + interval '1 day'" ++
+       " AND ctime BETWEEN timestamp ? - interval '1 month' " ++
+       "           AND     timestamp ? + interval '1 month' " ++
        " ORDER BY id ASC"
       )
       (T.unpack $ mkSel (undefined :: Patch UserState))) $

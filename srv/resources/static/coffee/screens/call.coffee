@@ -1,10 +1,9 @@
 define [ "utils"
-       , "spiral"
        , "hotkeys"
        , "model/main"
        , "screens/partnersSearch"
        , "text!tpl/screens/call.html"
-       ], (utils, spiral, hotkeys, main, pSearch, tpl) ->
+       ], (utils, hotkeys, main, pSearch, tpl) ->
 
   utils.build_global_fn 'makeCase', ['screens/newCase']
   utils.build_global_fn 'reloadScreen', ['utils']
@@ -62,10 +61,17 @@ define [ "utils"
     $("#end-call").on 'click', -> endCallClick viewName
     setModalVisible not args.id?
 
+    searchQuery = localStorage["#{storeKey}.search-query"]
+    if searchQuery
+      $("#search-query").val(searchQuery)
+      $("#search-query").change()
+      localStorage.removeItem "#{storeKey}.search-query"
+
   fillTable = (st, objs) ->
     st.fnClearTable()
     dict = global.dictValueCache
     progs = utils.newModelDict "Program", true
+    wazzup = utils.newModelDict "Wazzup", true
     rows = for obj in objs
       continue if obj.id.length > 10
       row = [obj.id.split(":")[1] || obj.id
@@ -75,7 +81,7 @@ define [ "utils"
             ,(obj.car_plateNum || "").toUpperCase()
             ,(obj.car_vin || "").toUpperCase()
             ,progs.getLab(obj.program) || obj.program || ''
-            ,dict.Wazzup[obj.comment] || obj.comment || ''
+            ,wazzup.getLab(obj.comment) || obj.comment || ''
             ]
     st.fnAddData(rows)
 
@@ -129,23 +135,17 @@ define [ "utils"
     $("#center").hide()
     $("#right").hide()
     $("#bottom").hide()
-    $("#spiral").show()
-    spiral.start()
 
   hideModal = ->
-    spiral.stop()
     $("#left").show()
     $("#center").show()
     $("#right").show()
     $("#bottom").show()
-    $("#spiral").hide()
     $("#new-call-modal")
       .removeClass("in")
       .addClass("out")
 
 
   { constructor: setupCallForm
-  , destructor:
-      -> spiral.stop()
   , template: tpl
   }

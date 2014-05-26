@@ -38,6 +38,7 @@ searchInit conn sessionMgr dbl = makeSnaplet "search" "Search snaplet" Nothing $
   addRoutes [ ("case",     method POST $ search caseSearch)
             , ("call",     method POST $ search callSearch)
             , ("contract", method POST $ search contractSearch)
+            , (":q/contract.csv", method GET $ portalHandler contractCSV)
             , ("portal", method POST $ search portalSearch)
             ]
   return $ Search conn pg sessionMgr dbl

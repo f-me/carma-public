@@ -21,10 +21,11 @@ library
 
   build-depends:
     aeson             >= 0.6 && < 0.8,
+    attoparsec-conduit== 1.0.*,
     base              >= 4.6 && < 4.7,
     blaze-builder     == 0.3.*,
     bytestring        == 0.10.*,
-    carma-models      >= 0.16 && < 0.18,
+    carma-models      >= 0.16 && < 0.21,
     conduit           == 1.0.*,
     containers        == 0.5.*,
     csv-conduit       == 0.5.*,
@@ -50,10 +51,11 @@ executable vinnie
 
   build-depends:
     aeson             >= 0.6 && < 0.8,
+    attoparsec-conduit== 1.0.*,
     base              >= 4.6 && < 4.7,
     blaze-builder     == 0.3.*,
     bytestring        == 0.10.*,
-    carma-models      >= 0.16 && < 0.18,
+    carma-models      >= 0.16 && < 0.21,
     cmdargs           == 0.10.*,
     conduit           == 1.0.*,
     containers        == 0.5.*,

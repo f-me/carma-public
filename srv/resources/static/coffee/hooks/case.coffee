@@ -9,15 +9,12 @@ define ["utils", "dictionaries"], (u, d) ->
       return
 
     phone = knockVM['contact_phone1']()
-    $('.navbar').css "-webkit-transform",
-      if phone % 52652243 == 25848698 and phone[8] == phone[9]
-      then "scaleY(-1)"
-      else ""
 
     # FIXME: refactor all this, use sync/datamap at least for time
     st.fnClearTable()
     dict = global.dictValueCache
     progs = u.newModelDict "Program", true
+    waz = u.newModelDict "Wazzup", true
 
     $.getJSON( "/callsByPhone/#{phone}" )
     .done( (calls) ->
@@ -28,7 +25,7 @@ define ["utils", "dictionaries"], (u, d) ->
           else
             ''
         comment = []
-        wazzup  = dict.Wazzup[obj.wazzup] || obj.wazzup || ''
+        wazzup  = waz.getLab obj.wazzup
         comment.push("Что случилось: #{wazzup}") if wazzup
 
         callType = dict.CallTypes[obj.callType] || obj.callType || ''
@@ -84,7 +81,7 @@ define ["utils", "dictionaries"], (u, d) ->
       rows = for r in cancels
         ctime = new Date(r.ctime * 1000).toString("dd.MM.yyyy HH:mm")
         pname = r.partnerName
-        reason = dict['PartnerCancelReason'][r.partnerCancelReason] || ''
+        reason = r.partnerCancelReason || ''
         owner  = dict['users'][r.owner] || r.owner
         comment = r.comment
         row = [ ctime

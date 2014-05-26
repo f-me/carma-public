@@ -328,7 +328,8 @@ process psid enc mapping = do
        liftIO $ void $ do
          BS.writeFile output bom
          -- Write report header, adding errors column title if not present
-         runResourceT $ yield (nub $ columnTitles ++ [errorsTitle]) $=
+         runResourceT $ yield ((delete errorsTitle columnTitles) ++
+                               [errorsTitle]) $=
                         CSV.fromCSV csvSettings $$
                         sinkIOHandle (openFile output AppendMode)
 

@@ -54,7 +54,13 @@ ko.bindingHandlers.bindDict =
     fld = _.find kvm._meta.model.fields, (f) -> f.name == acc()
     # bind th.draw here, because we don't have ready th
     # during binding any more, see bug #1148
-    $(el).next().on 'click', th.drawAll unless fld?.readonly
+    chevron = $(el).siblings().find('.icon-chevron-down')[0]
+    if chevron
+      $(chevron).on 'click', th.drawAll unless fld?.readonly
+
+    search = $(el).siblings().find('.icon-search')[0]
+    if search
+      $(search).on 'click', th.drawAllForce unless fld?.readonly
 
 
 ko.bindingHandlers.sort =
@@ -71,7 +77,7 @@ ko.bindingHandlers.sort =
         $(el).find('i').removeClass()
         $(el).find('i').addClass 'icon-arrow-up'
         # launch sorting
-        ctx.$root.kvms.set_sorter name(), "asc"
+        ctx.$parent.kvms.set_sorter name(), "asc"
       ->
         # reset icon for others columns
         resetSort el, defaultClass
@@ -79,7 +85,7 @@ ko.bindingHandlers.sort =
         $(el).find('i').removeClass()
         $(el).find('i').addClass 'icon-arrow-down'
         # launch sorting
-        ctx.$root.kvms.set_sorter name(), "desc"
+        ctx.$parent.kvms.set_sorter name(), "desc"
     )
     # reset icon to default (without sorting) for all column headers
     resetSort = (el, defaultClass) ->
@@ -93,7 +99,7 @@ ko.bindingHandlers.renderField =
   init: (el, acc, allBindigns, fld, ctx) ->
     return if acc().meta.invisible
     tplid = acc().meta?.widget || acc().type || 'text'
-    tplid = "dictionary-many" if acc().type == "dictionary-set"
+    tplid = "dictionary-many" if /^dictionary-set/.test(acc().type)
     tplid = "text" if acc().type == "ident"
     tpl   = Mustache.render $("##{tplid}-field-template").html(), acc()
 
@@ -156,13 +162,14 @@ ko.bindingHandlers.expand =
 
 ko.bindingHandlers.eachNonEmpty =
   nonEmpty: (fnames, ctx, koctx) ->
-    fns = _.reject fnames, (fname) ->
+    _.reject fnames, (fname) ->
       g = koctx.$root.showFields.groups[fname]
       _.all (_.keys g), (m) ->
         kvm = ctx[m]
         _.all g[m], (f) ->
+          v = kvm[f.name]()
           if f
-            _.isEmpty kvm[f.name]()
+            (_.isArray v and _.isEmpty v) or _.isNull v
           else
             true
 

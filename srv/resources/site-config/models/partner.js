@@ -138,7 +138,10 @@
     },
     {
       "meta": {
-        "dictionaryName": "TaxSchemes",
+        "dictionaryName": "TaxScheme",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
+        "bounded": true,
         "label": "Форма налогообложения"
       },
       "type": "dictionary",

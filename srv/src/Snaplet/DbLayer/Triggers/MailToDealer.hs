@@ -26,7 +26,9 @@ import Network.Mail.Mime
 
 import Carma.HTTP
 
-import Carma.Model
+import Data.Model as Model
+
+import qualified Carma.Model.PaymentType as PT
 import qualified Carma.Model.Program as Program
 
 import AppHandlers.PSA.Base
@@ -35,6 +37,7 @@ import Snap.Snaplet (getSnapletUserConfig)
 import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
+import Snaplet.DbLayer.Triggers.Util
 import DictionaryCache
 
 import Util as U
@@ -91,7 +94,7 @@ fillVars caseId
   >>= add "caseDate"     (get caseId "callDate" >>= U.formatTimestamp)
   >>= add "car_vin"      (txt <$> get caseId "car_vin")
   >>= add "car_plateNum" (txt <$> get caseId "car_plateNum")
-  >>= add "wazzup"       (get caseId "comment"   >>= tr wazzup . txt)
+  >>= add "wazzup"       (getCommentLabel caseId)
   >>= add "car_make"     (get caseId "car_make"  >>= tr carMake . txt)
   >>= add "car_model"    getCarModel
   -- TODO Refactor this to a separate monad
@@ -116,7 +119,7 @@ sendMailToDealer actionId = do
     program <- get caseId   "program"
     when (program `elem` (map identFv [Program.peugeot, Program.citroen])) $ do
       payType <- get svcId "payType"
-      when (payType `elem` ["ruamc", "mixed", "refund"]) $ do
+      when (payType `elem` (map identFv [PT.ruamc, PT.mixed, PT.refund])) $ do
         dealerId <- get svcId "towDealer_partnerId"
         when (dealerId /= "") $ do
           dms <- get dealerId "emails"
@@ -132,6 +135,7 @@ sendMailActually actId caseId addrTo = do
   cfg <- liftDb getSnapletUserConfig
   cfgFrom <- liftIO $ require cfg "psa-smtp-from"
   cfgTo'  <- liftIO $ require cfg "psa-smtp-copyto"
+  cfgReply<- liftIO $ require cfg "psa-smtp-replyto"
   let cfgTo = if cfgTo' /= ""
         then T.decodeUtf8 addrTo `T.append` "," `T.append` cfgTo'
         else cfgTo'
@@ -148,7 +152,7 @@ sendMailActually actId caseId addrTo = do
   -- it also saves us from exceptions thrown while sending an e-mail
   void $ liftIO $ forkIO
     $ scoperLog l (T.concat ["sendMailToDealer(", T.decodeUtf8 caseId, ")"])
-    $ sendEximMail cfgFrom cfgTo subj body
+    $ sendEximMail cfgFrom cfgTo cfgReply subj body
 
 
 -- | If a case has towage services which is a repeated towage, send a
@@ -204,6 +208,7 @@ sendRepTowageMail caseRef towageRef prevRef program = do
   cfg      <- liftDb getSnapletUserConfig
 
   mailFrom <- liftIO $ require cfg "reptowage-smtp-from"
+  replyTo  <- liftIO $ require cfg "psa-smtp-replyto"
   citrTo   <- liftIO $ require cfg "reptowage-citroen-recipients"
   peugTo   <- liftIO $ require cfg "reptowage-peugeot-recipients"
   copyTo   <- liftIO $ require cfg "psa-smtp-copyto"
@@ -239,15 +244,16 @@ sendRepTowageMail caseRef towageRef prevRef program = do
   -- Fire off mail-sending process
   void $ liftIO $ forkIO $
        scoperLog l (T.append "sendRepTowageMail " $ T.decodeUtf8 caseRef) $
-       sendEximMail mailFrom (T.concat [mailTo, ",", copyTo]) mailSubj mailBody
+       sendEximMail mailFrom (T.concat [mailTo, ",", copyTo]) replyTo
+                    mailSubj mailBody
 
 
 -- | Send a mail using exim.
-sendEximMail :: Text -> Text -> Text -> Part -> IO ()
-sendEximMail mailFrom mailTo mailSubj mailBody =
+sendEximMail :: Text -> Text -> Text -> Text -> Part -> IO ()
+sendEximMail mailFrom mailTo mailReplyTo mailSubj mailBody =
     renderSendMailCustom "/usr/sbin/sendmail" ["-t", "-r", T.unpack mailFrom] $
     (emptyMail $ Address Nothing mailFrom)
     { mailTo = map (Address Nothing . T.strip) $ T.splitOn "," mailTo
-    , mailHeaders = [("Subject", mailSubj)]
+    , mailHeaders = [("Subject", mailSubj), ("Reply-To", mailReplyTo)]
     , mailParts = [[mailBody]]
     }

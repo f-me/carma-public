@@ -62,6 +62,7 @@ type SearchHandler b t = Handler b (Search b) t
 
 data SearchReq = SearchReq { predicates :: Object
                            , sorts      :: Order
+                           , resultFields :: Maybe [Text]
                            } deriving (Show, Generic)
 instance FromJSON SearchReq
 

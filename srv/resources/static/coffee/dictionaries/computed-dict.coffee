@@ -77,4 +77,15 @@ define ["dictionaries/local-dict"], (ld) ->
                 , {label: "Нет",       value: "no"     }
                 ]
 
+    UserStateVal: =>
+      vals =
+        { LoggedOut:    "Разлогинен"
+        , Ready:        "Готов"
+        , Rest:         "Перерыв"
+        , Busy:         "Занят"
+        , Dinner:       "Обед"
+        , ServiceBreak: "Служебный перерыв"
+        }
+      @source = _.map vals, (v, k) -> {label: v, value: k}
+
   dict: ComputedDict

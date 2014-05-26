@@ -51,24 +51,21 @@ define [], ->
 
   c2sDay = (v) -> ((parseISO guiDayFormat) v)?.toString serverDayFormat
 
-  c2sDictSet = (vals) ->
-    ids = _.map vals, (v) -> parseInt v
-    # check type of keys, we have in dict, it may be Text or Int
-    # TODO: move uniq check to hooks when typed dictionaries appears
-    res = if _.any ids, _.isNaN
-            _.uniq vals
-          else
-            _.uniq ids
+  c2sDictSetInt = (vals) -> nullOnEmpty _.map vals, (v) -> parseInt v
+
+  c2sDictSetText = (vals) ->
+    # Force stringifying of ints, anyway we can't save int[] in such field
+    nullOnEmpty _.map vals, (v) -> if _.isNumber v then String v else v
+
+  nullOnEmpty = (v) ->
     # Convert empty arrays to null (otherwise the server gets confused
     # about types)
-    if _.isEmpty res
-      null
-    else
-      res
+    if _.isEmpty v then null else v
 
   c2sTypes =
-    'dictionary-set': c2sDictSet
-    'dictionary-many': (v) -> (c2sDictSet(v)?.join ',') || ''
+    'dictionary-set-int':  c2sDictSetInt
+    'dictionary-set-text': c2sDictSetText
+    'dictionary-many': (v) -> (v?.join ',') || ''
     checkbox  : (v) -> if v then "1" else "0"
     Bool      : (v) -> v
     Integer   : (v) -> parseInt v
@@ -82,11 +79,12 @@ define [], ->
     json      : JSON.stringify
     ident     : (v) -> parseInt v
     'interval-date' : (v) -> v.map c2sDay
-    'interval-datetime': (v) ->
-      v.map (t) -> Date.parseExact(t, "dd.MM.yyyy")?.toString "yyyy-MM-ddTHH:mm:ss.0Z"
+    'interval-datetime': (v) -> v.map (t) ->
+      Date.parseExact(t, "dd.MM.yyyy")?.toString "yyyy-MM-ddTHH:mm:ss.0Z"
 
   s2cTypes =
-    'dictionary-set': (v) -> v
+    'dictionary-set-int':  _.identity
+    'dictionary-set-text': _.identity
     'dictionary-many': (v) -> if _.isEmpty v then [] else v.split(',')
     checkbox  : (v) -> v == "1"
     Bool      : (v) -> v
@@ -109,7 +107,8 @@ define [], ->
     r[k] = mapper(v, types[k]) for k, v of obj
     r
 
-  modelTypes = (model) -> _.foldl model.fields, ((m, f) -> m[f.name] = f.type; m), {}
+  modelTypes = (model) ->
+    _.foldl model.fields, ((m, f) -> m[f.name] = f.type; m), {}
 
   class Mapper
     constructor: (model) ->

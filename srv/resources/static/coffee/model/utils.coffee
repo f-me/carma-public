@@ -55,8 +55,9 @@ define ["model/main", "render/screen"], (main, render) ->
   buildSorters: (model) ->
     sorters = {}
     mkSortFns = (name, fn) ->
-      sorters["#{name}SortAsc"]  = fn
-      sorters["#{name}SortDesc"] = { fn: fn, reverse: true }
+      sorters[name] = {}
+      sorters[name]["asc"]  = fn
+      sorters[name]["desc"] = { fn: fn, reverse: true }
 
     ignoreType = (type) ->
       _.contains ["reference", "nested-model", "json"], type
@@ -69,5 +70,5 @@ define ["model/main", "render/screen"], (main, render) ->
         else if f.type == "checkbox"
           mkSortFns f.name, (k) -> k[f.name]() == true
         else
-          mkSortFns f.name, (k) -> k[f.name]
+          mkSortFns f.name, (k) -> k[f.name]()
     return sorters
