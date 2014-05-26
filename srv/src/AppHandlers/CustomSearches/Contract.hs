@@ -145,8 +145,8 @@ searchContracts = do
           , "AND (? OR ? = p.?)"
           -- 2 parameters: dixi and isActive field names
           , "AND c.? and c.?"
-          -- 1 parameter: LIMIT value
-          , "ORDER BY c.id DESC LIMIT ?;"
+          -- 2 parameters: ordering field name and LIMIT value
+          , "ORDER BY c.? DESC LIMIT ?;"
           ]
       -- Fields selected from matching rows
       selectedFieldsParam =
@@ -181,7 +181,7 @@ searchContracts = do
           :. (Only $ PT $ fieldName P.ident)
           -- 2
           :. (PT $ fieldName C.dixi, PT $ fieldName C.isActive)
-          -- 1
-          :. Only limit)
+          -- 2
+          :. (PT $ fieldName C.validSince, limit))
 
   writeJSON (res :: [SearchResult])
