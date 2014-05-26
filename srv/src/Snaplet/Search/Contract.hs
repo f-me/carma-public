@@ -10,6 +10,7 @@ import           Control.Monad.IO.Class
 
 import           Data.Aeson
 
+import           Data.ByteString as BS
 import           Data.ByteString.Char8 as B8
 import           Data.ByteString.Lazy
 import           Data.Functor
@@ -19,14 +20,15 @@ import           Data.String (fromString)
 
 import           Data.Text (Text)
 import qualified Data.Text             as T
+import qualified Data.Text.IO          as T
 
+import           System.IO
+import           System.Directory
 import           Text.Printf
 
 import           Database.PostgreSQL.Simple as PG
 import           Database.PostgreSQL.Simple.Copy as PG
 import           Database.PostgreSQL.Simple.SqlQQ
-
-import           Data.Pool
 
 import           Snap (gets)
 import           Snap.Core
@@ -42,7 +44,6 @@ import qualified Carma.Model.Usermeta as Usermeta
 
 import           Snaplet.Auth.PGUsers
 import           Snaplet.DbLayer
-import           Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
 
 import           Snaplet.Search.Types
 import           Snaplet.Search.Utils
@@ -104,10 +105,12 @@ contractCSV t = do
     Nothing -> error "Could not read parameters"
     Just args -> do
       modifyResponse $ setContentType "text/csv"
-      writeBS bom
-      -- Unwrap withPG to preserve MonadSnap for inner function
-      getPostgresState >>= \s -> withResource (pgPool s) $ \c -> do
-        prms <- liftIO $ renderPrms c (predicates args) contractSearchParams
+      (fp, fh) <- liftIO $
+                  getTemporaryDirectory >>=
+                  flip openTempFile "portal.csv"
+      withPG $ \c -> do
+        BS.hPut fh bom
+        prms <- renderPrms c (predicates args) contractSearchParams
         -- Prepare query and request CSV from Postgres
         case (resultFields args, prms) of
           (Just rf, Right p) -> do
@@ -115,20 +118,21 @@ contractCSV t = do
                          Prelude.map ((\f -> T.concat ["\"", f, "\""]) .
                                       fromMaybe (error "Unknown field") .
                                       fieldNameToDesc cmi) rf
-            writeText $! header
-            writeText "\n"
-            liftIO $ PG.copy c csvQuery
+            T.hPutStrLn fh $! header
+            PG.copy c csvQuery
                      -- TODO Check field permissions in resultFields
                      (PT $ fieldList rf,
                       PT $ fixTable (t p),
                       PT $ fixTable $ T.pack $ renderOrder $ sorts args)
             -- Write selected rows to response
             fix $ \next ->
-                (liftIO $ getCopyData c) >>= \case
+                getCopyData c >>= \case
                             CopyOutRow row ->
-                                writeBS row >> next
+                                B8.hPut fh row >> next
                             CopyOutDone _ -> return ()
           _ -> error "Error reading predicates or header fields"
+      liftIO $ hClose fh
+      sendFile fp
 
 
 -- | Return function which adds an SQL predicate to select only
