@@ -44,9 +44,9 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
         if _.isNull c._expired
           ""
         if c._expired
-          "<span class='label label-important pull-right'>Просрочен</span>"
+          "<span class='label label-important'>Просрочен</span>"
         else
-          "<span class='label label-success pull-right'>Действует</span>"
+          "<span class='label label-success'>Действует</span>"
 
       # highlight matched search string
       if (not _.isEmpty fs) and q
@@ -58,9 +58,9 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
       req = ["vin"
            , "make"
            , "model"
-           , "_expired"
            , "startMileage"
            , "validSince"
+           , "_expired"
            , "subprogram"]
       html = ""
       # show matched and required fields
