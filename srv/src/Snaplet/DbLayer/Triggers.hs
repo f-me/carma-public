@@ -28,7 +28,7 @@ triggerCreate model obj =
 
 
 triggerUpdate :: HasAuth b
-              => ModelName -> ObjectId -> Object -> DbHandler b ObjectMap
+              => ModelName -> ObjectId -> Object -> DbHandler b ([DbHandler b ()], ObjectMap)
 triggerUpdate model objId commit = do
   let fullId = B.concat [model, ":", objId]
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
@@ -41,9 +41,9 @@ triggerUpdate model objId commit = do
   -- dimensions when car model is determined.
   loop actions (1 :: Int) emptyContext $ Map.singleton fullId commit''
   where
-    loop _ 0 cxt changes = return $ unionMaps changes $ updates cxt
+    loop _ 0 cxt changes = return (futures cxt, unionMaps changes $ updates cxt)
     loop cfg n cxt changes
-      | Map.null changes = return $ updates cxt
+      | Map.null changes = return (futures cxt, updates cxt)
       | otherwise = do
         let tgs = matchingTriggers cfg changes
         let cxt' = cxt

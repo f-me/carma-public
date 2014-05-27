@@ -22,6 +22,7 @@ import Snaplet.Auth.Class
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
 
+import qualified Carma.Model.CaseStatus as CS
 import qualified Carma.Model.PaymentType as PaymentType
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.TowType as TowType
@@ -163,7 +164,7 @@ serviceDefaults = Map.fromList
 defaults :: Map ModelName Object
 defaults = Map.fromList
   [("case", Map.fromList
-    [("caseStatus", "s0")
+    [("caseStatus", identFv CS.front)
     ,("callerOwner", "1")
     ,("services", "")
     ,("actions", "")

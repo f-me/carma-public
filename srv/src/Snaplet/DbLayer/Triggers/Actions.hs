@@ -135,8 +135,9 @@ actions
             ])
           ])
         ,("case", Map.fromList
-          [("caseStatus", [\kazeId st -> case st of
-            "s0.5" -> do
+          [("caseStatus", [\kazeId st ->
+            if st == identFv CaseStatus.needInfo
+            then do
               now <- dateNow Prelude.id
               due <- dateNow (+ (1*60))
               actionId <- new "action" $ Map.fromList
@@ -150,7 +151,7 @@ actions
                 ,("closed", "0")
                 ]
               upd kazeId "actions" $ addToList actionId
-            _      -> return ()])
+            else return ()])
           ,("services", [\caseId _ -> updateCaseStatus caseId])
           ,("partner", [\objId _ -> do
             mapM_ setSrvMCost =<< B.split ',' <$> get objId "services"
@@ -347,7 +348,7 @@ fillFromContract contract objId = do
 
 -- | This is called when service status is changed in some trigger.
 onRecursiveServiceStatusChange
-  :: MonadTrigger m b => ByteString -> ByteString -> m b ()
+  :: MonadTrigger m b => ByteString -> (IdentI SS.ServiceStatus) -> m b ()
 onRecursiveServiceStatusChange svcId val = do
   caseId  <- get svcId "parentId"
 
@@ -358,11 +359,10 @@ onRecursiveServiceStatusChange svcId val = do
   when (svc == "towage"
       && pgm == identFv Program.genser
       && payType == identFv PaymentType.ruamc
-      && val `elem`
-        (map identFv [ SS.ordered
-                     , SS.ok
-                     , SS.canceled
-                     , SS.clientCanceled]))
+      && val `elem` [ SS.ordered
+                    , SS.ok
+                    , SS.canceled
+                    , SS.clientCanceled])
     $ sendMailToGenser svcId
 
   updateCaseStatus caseId
@@ -449,7 +449,7 @@ serviceActions = Map.fromList
             ,("assignedTo", assignee)
             ]
           upd kazeId "actions" $ addToList actionId
-          sendSMS actionId SmsTemplate.create
+          future $ sendSMS actionId SmsTemplate.create
       | s == Just SS.recallClient = do
           now <- dateNow id
           due <- dateNow (+ (15*60))
@@ -466,7 +466,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-          sendSMS actionId SmsTemplate.create
+          future $ sendSMS actionId SmsTemplate.create
       | s == Just SS.ordered = do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
@@ -518,7 +518,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-          sendSMS actionId SmsTemplate.create
+          future $ sendSMS actionId SmsTemplate.create
       | s == Just SS.dealerConf = do
           now <- dateNow id
           due <- dateNow (+ (1*60))
@@ -535,7 +535,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-          sendSMS actionId SmsTemplate.create
+          future $ sendSMS actionId SmsTemplate.create
       | s == Just SS.checkNeeded = do
           now <- dateNow id
           due <- dateNow (+ (5*60))
@@ -608,7 +608,8 @@ serviceActions = Map.fromList
     -- Sets corresponding case status.
     ,\objId val -> do
       set objId "status" val -- push change to the commit stack
-      onRecursiveServiceStatusChange objId val
+      onRecursiveServiceStatusChange objId $
+        fromMaybe (error "Unknown service status") (fvIdent val)
     ]
   )
   ,("clientSatisfied",
@@ -702,7 +703,7 @@ actionActions :: (MonadTrigger m b)
 actionActions = Map.fromList
   [("result",
     [\objId val -> when (val `elem` resultSet1) $ do
-         setServiceStatus objId "orderService"
+         setServiceStatus objId SS.order
          void $ replaceAction
              "orderService"
              "Заказать услугу"
@@ -741,7 +742,11 @@ actionResultMap = Map.fromList
   [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime" >> set objId "result" "")
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
-  ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId SmsTemplate.cancel >> sendMailToPSA objId)
+  ,("clientCanceledService", \objId -> do
+      closeAction objId
+      liftDb $ sendSMS objId SmsTemplate.cancel
+      sendMailToPSA objId
+   )
   ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
   -- Defer an action by an amount of time specified in deferBy field
   -- in HH:MM format
@@ -764,7 +769,7 @@ actionResultMap = Map.fromList
         _ -> return ()
   )
   ,("needPartner",     \objId -> do
-     setServiceStatus objId "needPartner"
+     setServiceStatus objId SS.needPartner
      newAction <- replaceAction
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
@@ -772,7 +777,7 @@ actionResultMap = Map.fromList
      clearAssignee newAction
   )
   ,("serviceOrdered", \objId -> do
-    setServiceStatus objId "serviceOrdered"
+    setServiceStatus objId SS.ordered
     svcId    <- get objId "parentId"
     assignee <- get objId "assignedTo"
     set svcId "assignedTo" assignee
@@ -793,9 +798,9 @@ actionResultMap = Map.fromList
     tryToPassChainToControl u act'
   )
   ,("serviceOrderedSMS", \objId -> do
-    sendSMS objId SmsTemplate.order
+    liftDb $ sendSMS objId SmsTemplate.order
 
-    setServiceStatus objId "serviceOrdered"
+    setServiceStatus objId SS.ordered
     svcId    <- get objId "parentId"
     assignee <- get objId "assignedTo"
     set svcId "assignedTo" assignee
@@ -831,7 +836,7 @@ actionResultMap = Map.fromList
     clearAssignee act
   )
   ,("needPartnerAnalyst",     \objId -> do
-     setServiceStatus objId "needPartner"
+     setServiceStatus objId SS.needPartner
      newAction <- replaceAction
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
@@ -839,7 +844,7 @@ actionResultMap = Map.fromList
      clearAssignee newAction
   )
   ,("serviceOrderedAnalyst", \objId -> do
-    setServiceStatus objId "serviceOrdered"
+    setServiceStatus objId SS.ordered
     sendMailToPSA objId
 
     act <- replaceAction
@@ -862,7 +867,7 @@ actionResultMap = Map.fromList
       (identFv Role.bo_control) "3" (+60)
   )
   ,("partnerNotOkCancel", \objId -> do
-      setServiceStatus objId "cancelService"
+      setServiceStatus objId SS.canceled
       void $ replaceAction
          "cancelService"
          "Требуется отказаться от заказанной услуги"
@@ -877,7 +882,7 @@ actionResultMap = Map.fromList
           objId
   )
   ,("serviceDelayed", \objId -> do
-    setServiceStatus objId "serviceDelayed"
+    setServiceStatus objId SS.delayed
     void $ replaceAction
       "tellDelayClient"
       "Сообщить клиенту о задержке начала оказания услуги"
@@ -885,7 +890,7 @@ actionResultMap = Map.fromList
       objId
   )
   ,("serviceInProgress", \objId -> do
-    setServiceStatus objId "serviceInProgress"
+    setServiceStatus objId SS.inProgress
     tm <- getService objId "times_expectedServiceEnd"
     void $ replaceAction
       "checkEndOfService"
@@ -894,7 +899,7 @@ actionResultMap = Map.fromList
       objId
   )
   ,("prescheduleService", \objId -> do
-    setServiceStatus objId "serviceInProgress"
+    setServiceStatus objId SS.inProgress
     void $ replaceAction
       "checkEndOfService"
       "Уточнить у клиента окончено ли оказание услуги"
@@ -916,7 +921,7 @@ actionResultMap = Map.fromList
   )
   ,("serviceFinished", \objId -> do
     closeServiceAndSendInfoVW objId
-    sendSMS objId SmsTemplate.complete
+    liftDb $ sendSMS objId SmsTemplate.complete
     sendMailToDealer objId
   )
   ,("complaint", \objId -> do
@@ -1011,7 +1016,7 @@ actionResultMap = Map.fromList
   ,("okButNoService", \objId -> do
     caseId <- get objId "caseId"
     get caseId "services" >>= \case
-      "" -> set caseId "caseStatus" "s2" -- closed
+      "" -> set caseId "caseStatus" (identFv CaseStatus.closed)
       _  -> return ()
     closeAction objId
   )
@@ -1031,7 +1036,7 @@ actionResultMap = Map.fromList
   )
   ,("analystChecked", closeAction)
   ,("caseClosed", \objId -> do
-    setServiceStatus objId "serviceClosed"
+    setServiceStatus objId SS.closed
     closeAction objId
   )
   ,("partnerGivenCloseTime", \objId -> do
@@ -1041,19 +1046,19 @@ actionResultMap = Map.fromList
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId
-     sendSMS objId SmsTemplate.cancel
+     liftDb $ sendSMS objId SmsTemplate.cancel
   )
   ,("falseCallWOBill", \objId -> do
      setService objId "falseCall" "nobill"
      closeAction objId
-     sendSMS objId SmsTemplate.cancel
+     liftDb $ sendSMS objId SmsTemplate.cancel
   )
   ,("clientNotified", \objId -> do
-     setServiceStatus objId "serviceClosed"
+     setServiceStatus objId SS.closed
      closeAction objId
   )
   ,("notNeedService", \objId -> do
-     setServiceStatus objId "serviceClosed"
+     setServiceStatus objId SS.closed
      closeAction objId
   )
   ]
@@ -1071,10 +1076,11 @@ setService objId field val = do
 -- Due to disabled trigger recursion we need to call
 -- onRecursiveServiceStatusChange manually
 -- on each service.status change
-setServiceStatus :: MonadTrigger m b => ObjectId -> FieldName -> m b ()
+setServiceStatus :: MonadTrigger m b =>
+                    ObjectId -> (IdentI SS.ServiceStatus) -> m b ()
 setServiceStatus actId val = do
   svcId <- get actId "parentId"
-  set svcId "status" val
+  set svcId "status" (identFv val)
   onRecursiveServiceStatusChange svcId val
 
 getService :: MonadTrigger m b => ObjectId -> FieldName -> m b FieldValue
@@ -1094,7 +1100,7 @@ getServiceType actId = do
 
 closeServiceAndSendInfoVW :: MonadTrigger m b => ObjectId -> m b ()
 closeServiceAndSendInfoVW objId = do
-  setServiceStatus objId "serviceOk"
+  setServiceStatus objId SS.ok
 
   partner <- getService objId "contractor_partner"
   comment <- get objId "comment"

@@ -125,7 +125,7 @@ update model objId commit = scoper "update" $ do
   let fullId = B.concat [model, ":", objId]
   -- FIXME: catch NotFound => transfer from postgres to redis
   -- (Copy on write)
-  changes <- triggerUpdate model objId commit
+  (futures, changes) <- triggerUpdate model objId commit
   Right _ <- Redis.updateMany redis changes
   --
   let
@@ -139,6 +139,7 @@ update model objId commit = scoper "update" $ do
                  changes
   log Trace $ fromString $ "Changes: " ++ show changes
   Postgres.insertUpdateMany tbls changes'
+  sequence_ futures -- run delayed actions
 
   -- mapM_ (uncurry $ Evt.logLegacyCRUD Update) $ Map.toList changes'
   --

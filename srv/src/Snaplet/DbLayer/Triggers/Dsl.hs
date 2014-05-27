@@ -83,3 +83,5 @@ utf8 = T.encodeUtf8 . T.pack
 getCurrentUser :: (MonadTrigger m b, HasAuth b) => m b (Maybe AuthUser)
 getCurrentUser = liftDb (withAuth $ currentUser)
 
+future :: MonadTrigger m b => DbHandler b () -> m b ()
+future f = ST.modify $ \st -> st {futures = f : futures st}
