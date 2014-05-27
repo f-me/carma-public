@@ -246,14 +246,14 @@ contractSearchParams =
      , FA checkType
      , FA legalForm
      , FA committer
+     , FA startMileage
+     , FA checkPeriod
+     , FA makeYear
      ]) ++
     (map (\p@(FA f) -> (fieldNameE p, fuzzy $ one $ f)) $
      identifiers ++
-     [ FA startMileage
-     , FA makeYear
-     , FA color
+     [ FA color
      , FA engineVolume
-     , FA checkPeriod
      , FA orderNumber
      , FA managerName
      , FA comment
