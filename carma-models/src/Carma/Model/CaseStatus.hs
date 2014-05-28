@@ -21,6 +21,7 @@ data CaseStatus = CaseStatus
 
 mkIdents [t|CaseStatus|]
  [ ("front", 1)
+ , ("needInfo", 2)
  , ("back", 3)
  , ("closed", 4)
  , ("canceled", 5)

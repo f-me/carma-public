@@ -20,9 +20,19 @@ data ServiceStatus = ServiceStatus
   } deriving Typeable
 
 mkIdents [t|ServiceStatus|]
- [ ("creating", 2)
+ [ ("backoffice", 1)
+ , ("creating", 2)
+ , ("recallClient", 3)
  , ("clientCanceled", 4)
+ , ("mechanicConf", 5)
+ , ("dealerConf", 6)
+ , ("checkNeeded", 7)
+ , ("checking", 8)
  , ("mistake", 9)
+ , ("dealerConfirmation", 10)
+ , ("makerConfirmation", 11)
+ , ("order", 12)
+ , ("needPartner", 13)
  , ("canceled", 14)
  , ("ordered", 15)
  , ("delayed", 16)
