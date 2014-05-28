@@ -141,7 +141,7 @@ checkUserState uid ev = do
     (fromString (printf
     "SELECT %s FROM \"UserState\" WHERE userId = ? ORDER BY id DESC LIMIT 1"
     (T.unpack $ mkSel (modelInfo :: ModelInfo UserState)))) (Only uid)
-  dst <- query [sql| SELECT delayedState FROM usermetatbl where uid = ? |]
+  dst <- query [sql| SELECT delayedState FROM usermetatbl where id = ? |]
          (Only uid)
   let delayedSt = head $ head dst
   case hist of
