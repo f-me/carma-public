@@ -437,8 +437,8 @@ instance DefaultFieldView (Ident t m) "pk" where
 instance DefaultFieldView t "default"
          => DefaultFieldView t "ephemeral" where
   defaultFieldView (_ :: m -> EF t n d) =
-    (defaultFieldView (undefined :: m -> F t n d))
-        { fv_meta = Map.fromList [("readonly", Aeson.Bool True)] }
+    let d = defaultFieldView (undefined :: m -> F t n d)
+    in d{ fv_meta = Map.insert "readonly" (Aeson.Bool True) (fv_meta d) }
 
 typeName :: forall t . Typeable t => t -> Text
 typeName _ = T.pack $ tyConName $ typeRepTyCon $ typeOf (undefined :: t)
