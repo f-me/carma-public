@@ -38,6 +38,7 @@ import Data.Pool (withResource)
 import qualified Data.Text.Encoding as T
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import           Snaplet.Auth.Class
+import           Snaplet.Messenger.Class
 
 import Carma.Model
 import qualified Data.Model.Patch.Sql as Patch
@@ -105,7 +106,7 @@ fieldProj field p =
 
 -- | 'DbLayer.update' replacement. All triggers are ignored with new
 -- models. Return empty object when used with new models.
-update :: HasAuth b => ModelName -> ObjectId -> ProtoObject
+update :: (HasAuth b, HasMsg b) => ModelName -> ObjectId -> ProtoObject
        -> DbHandler b ProtoObject
 update model objId commit =
   let -- Return error message or count of rows that have been updated,

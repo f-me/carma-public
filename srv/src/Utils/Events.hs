@@ -43,13 +43,15 @@ import qualified Carma.Model.Action as Action
 import qualified Carma.Model.Call   as Call
 
 import           Snaplet.Search.Types
+import           Snaplet.Messenger
+import           Snaplet.Messenger.Class
 
 import           Util
 import           Utils.LegacyModel
 
 
 -- | Create `Event` for login/logout fact
-logLogin :: (HasPostgres (Handler b m), HasAuth b)
+logLogin :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
          => EventType -> Handler b m ()
 logLogin tpe = do
   uid <- getRealUid
@@ -57,7 +59,8 @@ logLogin tpe = do
   return ()
 
 -- | Interface for events from legacy CRUD
-logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, Model m, SingI n)
+logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
+                 , Model m, SingI n)
               => EventType
               -- ^ event type
               -> ByteString
@@ -68,12 +71,18 @@ logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, Model m, SingI n)
 logLegacyCRUD tpe mdl fld = log $ buildLegacy tpe mdl fld
 
 -- | Create event from patch and change user state when needed
-log :: (HasPostgres (Handler b m), HasAuth b) => Patch Event -> Handler b m ()
+log :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
+    => Patch Event -> Handler b m ()
 log p = do
   uid <- getRealUid
   id' <- create $ setUsr uid p
   let p' = P.put E.ident id' p
-  checkUserState uid p'
+  s <- checkUserState uid p'
+  case s of
+    Nothing -> return ()
+    Just st -> do
+      withMsg $ sendMessage (T.concat ["Usermeta:", T.pack $ show (identVal uid)])
+        (P.put currentState st P.empty)
   return ()
 
 -- Implementation --------------------------------------------------------------
@@ -135,7 +144,7 @@ data States = States { from :: [UserStateVal], to :: UserStateVal }
 checkUserState :: HasPostgres (Handler b m)
                => IdentI Usermeta
                -> Patch Event
-               -> Handler b m ()
+               -> Handler b m (Maybe UserStateVal)
 checkUserState uid ev = do
   hist <- query
     (fromString (printf
@@ -158,11 +167,11 @@ checkUserState uid ev = do
       let mname = modelName (modelInfo :: ModelInfo m)
       in nextState s d (P.get' ev E.eventType) mname (join $ P.get ev E.field)
 
-    setNext Nothing = return ()
+    setNext Nothing = return Nothing
     setNext (Just s) = withPG $ \c -> do
       P.create (mkState s) c
       P.update uid (P.put delayedState Nothing P.empty) c
-      return ()
+      return $ Just s
 
     mkState s = P.put State.eventId (P.get' ev E.ident) $
                 P.put State.userId uid                  $

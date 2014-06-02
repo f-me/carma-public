@@ -18,6 +18,7 @@ import Snap.Snaplet
 import Snap.Snaplet.RedisDB (runRedisDB)
 import Snaplet.DbLayer.Types
 import Snaplet.Auth.Class
+import Snaplet.Messenger.Class
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Database.Redis as Redis
 
@@ -46,6 +47,7 @@ class ( Functor (m b)
       , MonadIO (m b)
       , MonadState (TriggerContext b) (m b)
       , HasAuth b
+      , HasMsg  b
       )
       => MonadTrigger m b where
     createObject :: ModelName -> Object -> m b ByteString
@@ -69,7 +71,7 @@ reply :: Either Redis.Reply a -> Either String a
 reply (Left r) = Left (show r)
 reply (Right r) = Right r
 
-instance HasAuth b => MonadTrigger TriggerMonad b where
+instance (HasAuth b, HasMsg b) => MonadTrigger TriggerMonad b where
     createObject model obj = liftDb $ scope "detail" $ scope "trigger" $ scope "create" $ do
         i <- Redis.create redis model obj
         logObject "create" $ object [

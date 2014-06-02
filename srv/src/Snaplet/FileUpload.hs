@@ -55,6 +55,7 @@ import Snap.Snaplet.PostgresqlSimple hiding (field)
 import Snap.Util.FileUploads
 
 import Snaplet.Auth.Class
+import Snaplet.Messenger.Class
 
 import qualified Snaplet.DbLayer as DB
 import qualified Utils.NotDbLayer as NDB
@@ -74,7 +75,7 @@ data FileUpload b = FU { cfg      :: UploadPolicy
                        }
 
 
-routes :: HasAuth b => [(ByteString, Handler b (FileUpload b) ())]
+routes :: (HasAuth b, HasMsg b) => [(ByteString, Handler b (FileUpload b) ())]
 routes = [ (":model/bulk/:field",      method POST uploadBulk)
          , (":model/:id/:field",       method POST uploadInField)
          ]
@@ -106,7 +107,7 @@ type AttachmentTarget = (ModelName, ObjectId, FieldName)
 --
 -- The file is stored under @attachment/<newid>@ directory hierarchy
 -- of finished uploads dir.
-uploadInManyFields :: HasAuth b
+uploadInManyFields :: (HasAuth b, HasMsg b)
                    => (FilePath -> [AttachmentTarget])
                    -- ^ Convert the uploaded file name to a list of
                    -- fields in instances to attach the file to.
@@ -172,7 +173,7 @@ uploadInManyFields flds nameFun = do
 -- contains an attachment object, @targets@ contains a list of triples
 -- with attachment targets used, @unknown@ is a failed attachment
 -- target list, @dupe@ is true if the file was a duplicate.
-uploadBulk :: HasAuth b => Handler b (FileUpload b) ()
+uploadBulk :: (HasAuth b, HasMsg b) => Handler b (FileUpload b) ()
 uploadBulk = do
   -- 'Just' here, for these have already been matched by Snap router
   Just model <- getParam "model"
@@ -205,7 +206,7 @@ uploadBulk = do
 
 -- | Upload and attach a file (as in 'uploadInManyFields') to a single
 -- instance, given by @model@, @id@ and @field@ request parameters.
-uploadInField :: HasAuth b => Handler b (FileUpload b) ()
+uploadInField :: (HasAuth b, HasMsg b) => Handler b (FileUpload b) ()
 uploadInField = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
@@ -233,7 +234,7 @@ getAttachmentPath aid = do
 
 -- | Append a reference of form @attachment:213@ to a field of another
 -- instance, which must exist. This handler is thread-safe.
-attachToField :: HasAuth b
+attachToField :: (HasAuth b, HasMsg b)
               => ModelName
               -- ^ Name of target instance model.
               -> ObjectId
@@ -336,7 +337,7 @@ partPol :: UploadPolicy -> PartUploadPolicy
 partPol = allowWithMaximumSize . getMaximumFormInputSize
 
 
-fileUploadInit :: HasAuth b =>
+fileUploadInit :: (HasAuth b, HasMsg b) =>
                   Lens' b (Snaplet (DbLayer b))
                -> SnapletInit b (FileUpload b)
 fileUploadInit db =
