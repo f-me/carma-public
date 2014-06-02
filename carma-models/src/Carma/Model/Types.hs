@@ -421,7 +421,7 @@ instance DefaultFieldView UserStateVal "default" where
   defaultFieldView f = (defFieldView f)
     { fv_type = "dictionary"
     , fv_meta = Map.union (fv_meta (defFieldView f)) $ Map.fromList
-                [("dictionaryType", "computedDict")
+                [("dictionaryType", "ComputedDict")
                 ,("dictionaryName", "UserStateVal")
                 ,("bounded", "true")
                 ]
