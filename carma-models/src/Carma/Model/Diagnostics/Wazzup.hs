@@ -31,5 +31,6 @@ instance Model Wazzup where
   type TableName Wazzup = "Wazzup"
   modelInfo = mkModelInfo Wazzup ident
   modelView = \case
-    "" -> Just defaultView
+    "" -> Just $ modifyView defaultView
+                 [ setMeta "dictionaryParent" (fieldName system) part ]
     _  -> Nothing
