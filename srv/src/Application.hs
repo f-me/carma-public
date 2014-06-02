@@ -23,6 +23,8 @@ import Snaplet.TaskManager
 import Snaplet.FileUpload hiding (db)
 import Snaplet.Geo
 import Snaplet.Search
+import Snaplet.Messenger
+import Snaplet.Messenger.Class
 
 
 -- | Global application options.
@@ -52,6 +54,7 @@ data App = App
     , _authDb     :: Snaplet Postgres
     , _search     :: Snaplet (Search App)
     , options     :: AppOptions
+    , _messenger  :: Snaplet Messenger
     }
 
 
@@ -73,3 +76,6 @@ instance MonadLog (Handler App App) where
 
 instance HasPostgres (Handler b App) where
   getPostgresState = with authDb get
+
+instance HasMsg App where
+  messengerLens = subSnaplet messenger

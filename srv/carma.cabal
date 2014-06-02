@@ -116,7 +116,12 @@ Executable carma
     weather-api                 >= 0.4.3,
     xlsx                        >= 0.0.2.1 && < 0.1,
     xmlhtml                     == 0.2.*,
-    process-extras              == 0.2.*
+    process-extras              == 0.2.*,
+    websockets                  == 0.8.*,
+    websockets-snap             == 0.8.*,
+    BoundedChan                 == 1.0.3.*,
+    timers                      == 0.2.*,
+    suspend                     == 0.1.*
 
   if !os(windows)
     build-depends:
