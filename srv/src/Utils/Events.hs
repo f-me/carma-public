@@ -121,7 +121,7 @@ create :: HasPostgres m
        -> m (IdentI Event)
 create ev = withPG $ \c -> liftIO $ P.create ev c
 
--- | Log event for legacy model crud
+-- | Build log event for legacy model crud
 buildLegacy :: forall m t n d.(Model m, SingI n)
             => EventType
             -- ^ Type of the event
@@ -213,8 +213,12 @@ nextState lastState delayed evt mname fld =
     change (allStates   >>> LoggedOut) $ on Logout NoModel
     case delayed of
       Nothing     -> return ()
+      Just Ready  -> change ([Rest, Dinner, ServiceBreak] >>> Ready) $
+        on Update $ Fields [field delayedState]
       Just dState -> change ([Ready] >>> dState) $
-                     on Update $ Fields [field delayedState]
+        on Update $ Fields [field delayedState]
+
+    -- Check if we can switch user into delayed state
     checkDelayed
   where
     field :: forall t n d m1.(Model m1, SingI n)

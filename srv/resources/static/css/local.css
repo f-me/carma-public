@@ -505,3 +505,18 @@ table.dataTable tr.selected-row td.sorting_1 {
     -webkit-transform: scale(1.0);
   }
 }
+
+.navbar .nav>li>span.nav-block {
+  float: none;
+  padding: 7.5px 15px 7.5px;
+  color: #999999;
+  text-decoration: none;
+}
+.nav>li>span.nav-block {
+  display: block;
+}
+
+.current-user-menu {
+  margin-left: 5px;
+  margin-right: 5px;
+}

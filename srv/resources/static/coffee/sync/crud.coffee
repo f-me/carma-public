@@ -78,7 +78,11 @@ define [ "sync/metaq"
           @kvm["#{fname}Sync"] false
 
     updadeKvm: (obj) =>
-      @lastFetch = {}
+      # Hope This won't break anything, erasing last fetch don't work
+      # with ws notifications because we may receive 2 updates after
+      # put first from crud second from ws queue and second update
+      # will be immediately put back
+      # @lastFetch = {}
       for k, v of obj
         @lastFetch[k] = _.clone v
         @kvm[k]?(v)

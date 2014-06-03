@@ -12,6 +12,8 @@ require [ "domready"
         , "sendSms"
         , "lib/bug-report"
         , "lstorePubSub"
+        , "sync/crud"
+        , "lib/messenger"
         ], ( dom
            , main
            , Finch
@@ -24,6 +26,8 @@ require [ "domready"
            , sendSms
            , bug
            , pubSub
+           , Crud
+           , Messenger
            ) ->
 
   bugReport = new bug.BugReport
@@ -93,6 +97,27 @@ require [ "domready"
                           html: true,
                           selector: '[data-provide="popover"]',
                           trigger: 'hover')
+
+    usr = main.buildKVM global.model('Usermeta'),
+      queue: Crud.CrudQueue
+      fetched: { id: user.meta.mid }
+
+    window.global.Usermeta = usr
+
+    usr.toggleDelayed = (st) =>
+      if usr.delayedState() == st
+        usr.delayedState null
+      else
+        usr.delayedState(st)
+
+    Messenger.subscribe "#{global.model('Usermeta').name}:#{usr.id()}",
+      usr._meta.q.saveSuccessCb(_.identity)
+
+    ko.applyBindings(usr, $("#current-user")[0])
+
+    # little hack so dropdown with delayed states won't close when user
+    # change next state
+    $('#current-user .dropdown-menu').click (event) -> event.stopPropagation()
 
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']

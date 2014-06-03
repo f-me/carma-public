@@ -26,6 +26,7 @@ import Data.Aeson (object, (.=))
 import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map
+import qualified Data.HashMap.Strict as HM
 import Data.String
 
 import Data.Maybe
@@ -62,7 +63,7 @@ import qualified Snaplet.DbLayer.Dictionary as Dict
 import Snaplet.FileUpload (FileUpload(cfg), doUpload, oneUpload)
 
 import Carma.Model
-import Data.Model.Patch (Patch)
+import Data.Model.Patch (Patch(..))
 import qualified Data.Model.Patch.Sql as Patch
 
 import Application
@@ -72,7 +73,9 @@ import Util as U hiding (render, withPG)
 import Utils.NotDbLayer (readIdent)
 
 import Carma.Model.Event (EventType(..))
-import Utils.Events (logLogin)
+import Utils.Events (logLogin, logLegacyCRUD)
+
+import qualified Carma.Model.Usermeta as Usermeta
 
 
 ------------------------------------------------------------------------------
@@ -270,6 +273,15 @@ updateHandler = do
                          Just [obj] -> return $ Right obj
                          err        -> error $
                                        "BUG in updateHandler: " ++ show err
+                 -- TODO: workaround to catch delayed state updates
+                 -- remove with new triggers
+                 "Usermeta" -> do
+                   let hmcommit = untypedPatch commit
+                       legacyId = B.concat ["Usermeta:", objId]
+                   when (HM.member "delayedState" hmcommit) $ do
+                     void $ logLegacyCRUD Update legacyId Usermeta.delayedState
+                   return $ Right $ Aeson.object []
+
                  _ -> return $ Right $ Aeson.object []
   -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch (T.decodeUtf8 model) updateModel of

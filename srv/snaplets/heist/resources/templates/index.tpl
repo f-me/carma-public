@@ -151,21 +151,67 @@
             </li>
           </ul>
           <ifLoggedIn>
-            <ul class="nav pull-right">
+            <ul class="nav pull-right" id="current-user">
               <li class="divider-vertical" />
               <li class="dropdown">
                 <a href="#"
                    class="dropdown-toggle"
                    data-toggle="dropdown">
-                  <i id="icon-user" class="icon-user icon-white" />&nbsp;<loggedInUser />
+                  <i id="icon-user" class="icon-user icon-white" />&nbsp;
+                  <span data-bind="text: safelyGet('login')" />
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
+                  <div class="current-user-menu">
                   <li>
-                    <a href="/logout/">
-                      <i class="icon-off icon-black" />&nbsp;Выход
-                    </a>
+                    Текущий статус:
+                    <span data-bind="text: safelyGet('currentStateLocal')" />
+
+                    <div class="btn-group btn-group-xs"
+                         id="user-state-btngroup">
+                      <button type="button"
+                              class="btn btn-default btn-small"
+                              data-bind="css: {
+                                         'btn-success': delayedState() == 'Ready'
+                                         },
+                                         click: function () {
+                                           toggleDelayed('Ready')
+                                         }">
+                        Готов
+                      </button>
+                      <button type="button"
+                              class="btn btn-default btn-small"
+                              data-bind="css: {
+                                         'btn-success': delayedState() == 'Rest'
+                                         },
+                                         click: function () {
+                                           toggleDelayed('Rest')
+                                         }">
+                        Перерыв
+                      </button>
+                      <button type="button"
+                              class="btn btn-default btn-small"
+                              data-bind="css: {
+                                         'btn-success': delayedState() == 'Dinner'
+                                         },
+                                         click: function () {
+                                           toggleDelayed('Dinner')
+                                         }">
+                        Обед
+                      </button>
+                      <button type="button"
+                              class="btn btn-default btn-small"
+                              onclick="window.location.href='/logout'">
+                        Выход
+                      </button>
+                    </div>
+                  </li>
+                  </div>
                 </ul>
+              </li>
+              <li>
+                <span class="nav-block"
+                      data-bind="text: safelyGet('currentStateLocal')"/>
               </li>
             </ul>
           </ifLoggedIn>
