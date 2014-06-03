@@ -1,6 +1,7 @@
 define [ "sync/metaq"
        , "sync/datamap"
-       ], (metaq, m) ->
+       , "lib/Messenger"
+       ], (metaq, m, Messenger) ->
   class CrudQueue extends metaq
     constructor: (@kvm, @model, @options) ->
       @url = "/_/#{@model.name}"
@@ -19,6 +20,11 @@ define [ "sync/metaq"
       # queue
       @fetch() if @persisted and not @options?.not_fetch
       @subscribe()
+
+      # Example of ws crud updates listener
+      # if @persisted
+      #   Messenger.subscribe "#{model.name}:#{@kvm.id()}",
+      #                       @saveSuccessCb(_.identity)
       @
 
     subscribe: =>

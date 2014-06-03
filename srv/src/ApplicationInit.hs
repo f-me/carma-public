@@ -31,6 +31,7 @@ import qualified Snaplet.FileUpload as FU
 import Snaplet.Geo
 import Snaplet.Search
 import Snaplet.TaskManager
+import Snaplet.Messenger
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
@@ -181,6 +182,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   search' <- nestSnaplet "search" search $ searchInit pgs authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
+  msgr <- nestSnaplet "wsmessenger" messenger messengerInit
+
   addRoutes routes
   wrapSite (claimUserActivity>>)
-  return $ App h s authMgr c d pgs pga tm fu g l ad search' opts
+  return $ App h s authMgr c d pgs pga tm fu g l ad search' opts msgr

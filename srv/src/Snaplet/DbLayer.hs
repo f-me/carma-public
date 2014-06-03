@@ -29,7 +29,8 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import Data.Maybe (fromJust, isJust)
 import Data.String
-import qualified Data.Text as T
+import qualified Data.Text          as T
+import qualified Data.Text.Encoding as T
 
 import Network.URI (parseURI)
 import qualified Fdds
@@ -57,6 +58,8 @@ import qualified Carma.ModelTables as MT (loadTables)
 import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
 import Snaplet.Auth.Class
+import Snaplet.Messenger (sendMessage)
+import Snaplet.Messenger.Class
 import DictionaryCache
 
 import qualified Carma.Model.Call as Call
@@ -64,7 +67,7 @@ import           Carma.Model.Event (EventType(..))
 import qualified Utils.Events as Evt
 
 
-create :: HasAuth b
+create :: (HasAuth b, HasMsg b)
        => ModelName -> Object
        -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
 create model commit = scoper "create" $ do
@@ -94,7 +97,7 @@ create model commit = scoper "create" $ do
 
   return $ Map.insert "id" objId $ obj Map.\\ commit
 
-findOrCreate :: HasAuth b
+findOrCreate :: (HasAuth b, HasMsg b)
              => ModelName -> ObjectId -> Object
              -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
 findOrCreate model objId commit = do
@@ -115,7 +118,7 @@ read model objId = do
 read' :: ByteString -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
 read' objId = Redis.read' redis objId
 
-update :: HasAuth b
+update :: (HasAuth b, HasMsg b)
        =>  ModelName -> ObjectId -> Object
        -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
 update model objId commit = scoper "update" $ do
@@ -144,7 +147,10 @@ update model objId commit = scoper "update" $ do
   -- mapM_ (uncurry $ Evt.logLegacyCRUD Update) $ Map.toList changes'
   --
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
-  return $ stripUnchanged commit $ changes Map.! fullId
+      commit' = stripUnchanged commit $ changes Map.! fullId
+
+  withMsg $ sendMessage (T.decodeUtf8 fullId) commit'
+  return commit'
 
 delete :: ModelName -> ObjectId -> Handler b (DbLayer b) ()
 delete model objId = Redis.delete redis model objId

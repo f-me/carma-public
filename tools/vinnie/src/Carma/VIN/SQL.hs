@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE QuasiQuotes #-}
-
+{-# LANGUAGE FlexibleContexts #-}
 {-|
 
 SQL helpers used during VIN import process.

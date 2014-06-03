@@ -19,6 +19,7 @@ import Snaplet.DbLayer.Triggers.Defaults
 import Snaplet.DbLayer.Triggers.Actions
 import Snaplet.DbLayer.Triggers.Users
 import Snaplet.Auth.Class
+import Snaplet.Messenger.Class
 
 triggerCreate :: ModelName -> Object -> DbHandler b Object
 triggerCreate model obj = 
@@ -27,7 +28,7 @@ triggerCreate model obj =
       _ -> return obj
 
 
-triggerUpdate :: HasAuth b
+triggerUpdate :: (HasAuth b, HasMsg b)
               => ModelName -> ObjectId -> Object -> DbHandler b ([DbHandler b ()], ObjectMap)
 triggerUpdate model objId commit = do
   let fullId = B.concat [model, ":", objId]
