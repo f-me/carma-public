@@ -1,5 +1,6 @@
 module Carma.Model.Diagnostics.Wazzup where
 
+import Data.Aeson as Aeson
 import Data.Text
 import Data.Typeable
 
@@ -32,5 +33,6 @@ instance Model Wazzup where
   modelInfo = mkModelInfo Wazzup ident
   modelView = \case
     "" -> Just $ modifyView defaultView
-                 [ setMeta "dictionaryParent" (fieldName system) part ]
+                 [ setMeta "dictionaryParent"
+                   (Aeson.String $ fieldName system) part ]
     _  -> Nothing
