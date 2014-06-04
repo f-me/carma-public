@@ -1,6 +1,6 @@
 define [ "sync/metaq"
        , "sync/datamap"
-       , "lib/Messenger"
+       , "lib/messenger"
        ], (metaq, m, Messenger) ->
   class CrudQueue extends metaq
     constructor: (@kvm, @model, @options) ->
