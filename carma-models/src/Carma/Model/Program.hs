@@ -47,10 +47,11 @@ mkIdents [t|Program|]
  , ("peugeot", 1)
  , ("ramc", 64)
  , ("ruslan", 16)
- , ("unicredit", 47)  
- , ("vnukovo", 19)   
+ , ("unicredit", 47)
+ , ("vnukovo", 19)
  , ("vtb24", 2)
  , ("vw", 3)
+ , ("alarm", 5)
  ]
 
 

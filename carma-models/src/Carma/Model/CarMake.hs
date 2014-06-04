@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Carma.Model.CarMake where
 
 import Data.Text
@@ -6,6 +8,7 @@ import Data.Vector
 
 import Data.Model
 import Data.Model.View
+import Data.Model.TH
 
 import Carma.Model.PgTypes()
 
@@ -19,6 +22,11 @@ data CarMake = CarMake
   }
   deriving Typeable
 
+
+mkIdents [t|CarMake|]
+ [ ("vw", 1)
+ , ("sy", 48)
+ ]
 
 instance Model CarMake where
   type TableName CarMake = "CarMake"
