@@ -99,6 +99,17 @@ define [ "search/screen"
           # TODO Set committer on server
           {subprogram: subprogram, committer: parseInt global.user.meta.mid}, {}
 
+        program = (main.buildKVM "SubProgram",
+                   { fetched: { id: subprogram } })?.parent()
+        kvm = global.viewsWare[contractForm].knockVM
+        switch program
+          when global.idents("Program").alarm
+          then kvm.make global.idents("CarMake").sy if kvm.make?
+
+          when global.idents("Program").vw
+          then kvm.make global.idents("CarMake").vw if kvm.make?
+
+
       kvm = global.viewsWare[contractForm].knockVM
 
       kvm["id"].subscribe (i) -> redirect "contract/#{subprogram}/#{i}"
