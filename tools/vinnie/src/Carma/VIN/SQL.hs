@@ -266,6 +266,32 @@ protoTransfer iname cname =
         )
 
 
+-- | Copy a pristine table column to proto table, trimming whitespace
+-- and translating characters.
+protoTranslate :: InternalName
+                   -> Text
+                   -- ^ Source pattern.
+                   -> Text
+                   -- ^ Target pattern (its length must match that of
+                   -- the source pattern).
+                   -> ContractFieldName
+                   -> Import Int64
+protoTranslate iname from to cname =
+    execute
+    [sql|
+     UPDATE vinnie_proto
+     SET ? = translate(trim(both ' ' from ?), ?, ?)
+     FROM vinnie_pristine
+     WHERE vinnie_proto.? = vinnie_pristine.?;
+     |] ( cname
+        , PT iname
+        , from
+        , to
+        , tKid
+        , tKid
+        )
+
+
 -- | Clear field values which do not match a regular expression (case
 -- insensitive).
 protoCheckRegexp :: ContractFieldName

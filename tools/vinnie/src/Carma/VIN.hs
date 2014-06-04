@@ -360,9 +360,11 @@ processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
             "regexp_replace" [iname, "'\\D'", "''", "'g'"]
           , (sqlCast cn "int"))
       SVIN ->
-          ( protoTransfer iname cn >>
-            protoCheckRegexp cn
-            "^[0-9a-hj-npr-z]{17}$" >>
+          -- We don't use protoUpdateWithFun here because it breaks
+          -- encoding of function arguments
+          ( protoTranslate iname
+            "ЗАВЕКМНРСТУХавекмнрстух" "3ABEKMHPCTYXabekmhpctyx" cn >>
+            protoCheckRegexp cn "^[0-9a-hj-npr-z]{17}$" >>
             pass
           , (sqlCast cn "text"))
       SEmail ->
