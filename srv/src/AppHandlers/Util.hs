@@ -64,3 +64,5 @@ withPG :: (v -> Pool Pg.Connection)
        -- ^ Query action.
        -> Handler b v res
 withPG pool f = gets pool >>= liftIO .(`withResource` f)
+
+withLens x = (gets x >>=) . flip withTop

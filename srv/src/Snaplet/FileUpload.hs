@@ -61,6 +61,7 @@ import qualified Snaplet.DbLayer as DB
 import qualified Utils.NotDbLayer as NDB
 import Snaplet.DbLayer.Types
 
+import AppHandlers.Util as U
 import Util as U
 
 
@@ -83,7 +84,7 @@ routes = [ (":model/bulk/:field",      method POST uploadBulk)
 
 -- | Lift a DbLayer handler action to FileUpload handler.
 withDb :: Handler b (DbLayer b) a -> Handler b (FileUpload b) a
-withDb = (gets db >>=) . flip withTop
+withDb = withLens db
 
 
 -- | SQL query used to select attachment id by hash. Parametrized by

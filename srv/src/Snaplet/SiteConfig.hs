@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE Rank2Types, ScopedTypeVariables, PatternGuards #-}
 
 module Snaplet.SiteConfig
   ( SiteConfig
@@ -6,8 +6,10 @@ module Snaplet.SiteConfig
   ) where
 
 import Control.Applicative
+import Control.Lens
 import Control.Monad
 import Control.Monad.State
+
 import Data.Maybe
 import Data.List (sortBy)
 import Data.Ord (comparing)
@@ -30,6 +32,7 @@ import Snap.Snaplet.Auth
 ----------------------------------------------------------------------
 import Snaplet.Auth.Class
 
+import Snaplet.DbLayer.Types
 import Snaplet.SiteConfig.Config
 import Snaplet.SiteConfig.SpecialPermissions
 import Snaplet.SiteConfig.Models
@@ -121,7 +124,7 @@ constructModel mdlName screen program model = do
     }
 
 
-writeModel :: Model -> Handler b (SiteConfig b) ()
+writeModel :: HasAuth b => Model -> Handler b (SiteConfig b) ()
 writeModel model
   = writeJSON
   =<< case modelName model of
@@ -209,8 +212,9 @@ serveDictionaries = do
 initSiteConfig :: HasAuth b
                   => FilePath
                   -> Pool Pg.Connection
+                  -> Lens' b (Snaplet (DbLayer b))
                   -> SnapletInit b (SiteConfig b)
-initSiteConfig cfgDir pg_pool = makeSnaplet
+initSiteConfig cfgDir pg_pool db = makeSnaplet
   "site-config" "Site configuration storage"
   Nothing $ do
     addRoutes
@@ -218,7 +222,6 @@ initSiteConfig cfgDir pg_pool = makeSnaplet
       , ("idents/:name", method GET serveIdents)
       , ("dictionaries", method GET serveDictionaries)
       ]
-    liftIO $ SiteConfig
-      <$> loadModels cfgDir
-      <*> loadDictionaries cfgDir
-      <*> pure pg_pool
+    mdls <- liftIO $ loadModels cfgDir
+    dicts <- liftIO $ loadDictionaries cfgDir
+    return $ SiteConfig mdls dicts pg_pool db

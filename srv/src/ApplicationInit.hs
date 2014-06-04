@@ -172,7 +172,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   pga <- liftIO $ createPool (Pg.connect cInfoActass) Pg.close 1 5 20
 
   c <- nestSnaplet "cfg" siteConfig $
-       initSiteConfig "resources/site-config" pgs
+       initSiteConfig "resources/site-config" pgs db
 
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   g <- nestSnaplet "geo" geo geoInit
