@@ -508,17 +508,38 @@ createQueueTable =
            AND NEW.? IS NULL)
      EXECUTE PROCEDURE fillValidUntil();
 
-     CREATE TRIGGER "vinnie_queue_checkPeriod" BEFORE UPDATE OF ?
+     -- subprogram may also be recognized prior to
+     -- vinnie_proto-vinnie_queue transfer from a file column, thus an
+     -- insert trigger is also required
+     CREATE TRIGGER "vinnie_queue_validUntil_insert" BEFORE INSERT
+     ON vinnie_queue
+     FOR EACH ROW
+     WHEN (NEW.? IS NOT NULL
+           AND NEW.? IS NOT NULL
+           AND NEW.? IS NULL)
+     EXECUTE PROCEDURE fillValidUntil();
+
+     CREATE TRIGGER "vinnie_queue_checkPeriod_update" BEFORE UPDATE OF ?
      ON vinnie_queue
      FOR EACH ROW
      WHEN (NEW.? IS NOT NULL
            AND NEW.? IS NULL)
      EXECUTE PROCEDURE fillCheckPeriod();
-     |] (contractTable,
-         cfn C.subprogram,
-         cfn C.validSince, cfn C.subprogram, cfn C.validUntil,
-         cfn C.subprogram,
-         cfn C.subprogram, cfn C.checkPeriod)
+
+     CREATE TRIGGER "vinnie_queue_checkPeriod_insert" BEFORE INSERT
+     ON vinnie_queue
+     FOR EACH ROW
+     WHEN (NEW.? IS NOT NULL
+           AND NEW.? IS NULL)
+     EXECUTE PROCEDURE fillCheckPeriod();
+     |] (()
+         :* contractTable
+         :* cfn C.subprogram
+         :* cfn C.validSince :* cfn C.subprogram :* cfn C.validUntil
+         :* cfn C.validSince :* cfn C.subprogram :* cfn C.validUntil
+         :* cfn C.subprogram
+         :* cfn C.subprogram :* cfn C.checkPeriod
+         :* cfn C.subprogram :* cfn C.checkPeriod)
 
 
 -- | Set committer and subprogram (if not previously set) for
