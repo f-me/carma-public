@@ -11,7 +11,7 @@ module Carma.Model.Usermeta where
 import Data.Text
 import Data.Typeable
 import Data.Vector
-
+import Data.Time.Clock (UTCTime)
 import qualified Data.Aeson as Aeson
 
 import Data.Model
@@ -46,7 +46,8 @@ data Usermeta = Usermeta
   , delayedState :: F (Maybe UserStateVal)
                  "delayedState"
                  "Отложенный статус"
-  , currentState :: EF UserStateVal "currentState" "Текущий статус"
+  , currentState      :: EF UserStateVal "currentState"      "Текущий статус"
+  , currentStateCTime :: EF UTCTime      "currentStateCTime" ""
   , programs     :: F (Maybe (Vector Text))
                     "programs" "Подпрограммы"
   , bocities     :: F (Maybe (Vector Text))
