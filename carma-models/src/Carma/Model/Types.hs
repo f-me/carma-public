@@ -328,7 +328,7 @@ instance Typeable tag => DefaultFieldView (Ident Text tag) "default" where
       $ fv_meta $ defFieldView f
     }
 
-instance DefaultFieldView (Vector Text) a where
+instance SingI a => DefaultFieldView (Vector Text) a where
   defaultFieldView f = (defFieldView f)
     {fv_type = "dictionary-set-text"
     ,fv_meta
@@ -446,17 +446,23 @@ instance DefaultFieldView t "default"
          => DefaultFieldView t "ephemeral" where
   defaultFieldView (_ :: m -> EF t n d) =
     let d = defaultFieldView (undefined :: m -> F t n d)
-    in d{ fv_meta = Map.insert "readonly" (Aeson.Bool True) (fv_meta d) }
+    in d{ fv_meta =
+             Map.insert "readonly" (Aeson.Bool True)          $
+             Map.insert "app"      (Aeson.String "ephemeral") $
+             (fv_meta d)
+        }
 
 typeName :: forall t . Typeable t => t -> Text
 typeName _ = T.pack $ tyConName $ typeRepTyCon $ typeOf (undefined :: t)
 
-defFieldView :: (SingI nm, SingI desc) => (m -> FF t nm desc a) -> FieldView
+defFieldView :: forall nm desc a m t.(SingI nm, SingI desc, SingI a)
+             => (m -> FF t nm desc a) -> FieldView
 defFieldView f = FieldView
   {fv_name = fieldName f
   ,fv_type = "undefined"
   ,fv_canWrite = True
   ,fv_meta = Map.fromList
     [("label", Aeson.String $ fieldDesc f)
+    ,("app",   Aeson.String $ T.pack $ fromSing (sing :: Sing a))
     ]
   }
