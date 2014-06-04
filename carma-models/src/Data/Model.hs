@@ -164,7 +164,7 @@ instance
 instance
     (GetModelFields m ctr, SingI nm, SingI desc
     ,DefaultFieldView t "ephemeral"
-    ,ToJSON t, Typeable t)
+    ,ToJSON t, FromJSON t, Typeable t)
     => GetModelFields m (EF t nm desc -> ctr)
   where
     getModelFields f = Wrap
@@ -173,6 +173,7 @@ instance
         , fd_desc   = T.pack $ fromSing (sing :: Sing desc)
         , fd_type   = typeOf   (undefined :: t)
         , fd_toJSON = \d -> toJSON  (fromJust $ fromDynamic d :: t)
+        , fd_parseJSON = \v -> toDyn <$> (parseJSON v :: Parser t)
         , fd_view   = defaultFieldView (const Field :: m -> EF t nm desc)
         }
       : unWrap (getModelFields (f Field) :: [FieldDesc] :@ m)

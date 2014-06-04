@@ -91,6 +91,7 @@ data FieldDesc = FieldDesc
   ,fd_desc       :: Text
   ,fd_type       :: TypeRep
   ,fd_toJSON     :: Dynamic -> Value
+  ,fd_parseJSON  :: Value -> Parser Dynamic
   ,fd_view       :: FieldView
   }
 
