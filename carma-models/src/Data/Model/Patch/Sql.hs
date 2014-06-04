@@ -89,11 +89,14 @@ update :: forall m . Model m => IdentI m -> Patch m -> Connection -> IO Int64
 update (Ident i) p c = execute c (fromString q) p
   where
     mInfo = modelInfo :: ModelInfo m
+    realfs = map fd_name $ onlyDefaultFields $ modelFields mInfo
     m = untypedPatch p
     -- we use `map fst . HashMap.toList` instead of `HashMap.keys`
     -- just to be sure that `insFields` are in the same order as
     -- `ToRow (Patch m)` expects
-    updFields = map (T.concat . (:["=?"]) . fst) $ HashMap.toList m
+    updFields = map (T.concat . (:["=?"]) . fst)           $
+                filter (\(fname, _) -> fname `elem` realfs) $
+                HashMap.toList m
     q = printf "UPDATE %s SET %s WHERE id = %d"
       (show $ tableName mInfo)
       (T.unpack $ T.intercalate ", " updFields)
