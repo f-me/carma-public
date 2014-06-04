@@ -12,8 +12,7 @@ require [ "domready"
         , "sendSms"
         , "lib/bug-report"
         , "lstorePubSub"
-        , "sync/crud"
-        , "lib/messenger"
+        , "lib/current-user"
         ], ( dom
            , main
            , Finch
@@ -26,8 +25,7 @@ require [ "domready"
            , sendSms
            , bug
            , pubSub
-           , Crud
-           , Messenger
+           , CurrentUser
            ) ->
 
   bugReport = new bug.BugReport
@@ -84,9 +82,6 @@ require [ "domready"
       if extPwd
         global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
 
-    if window.location.hash == "" and user.meta.homepage
-      Finch.navigate user.meta.homepage.replace '/', ''
-
     sendSms.setup()
 
     if user.login == "darya"
@@ -98,26 +93,7 @@ require [ "domready"
                           selector: '[data-provide="popover"]',
                           trigger: 'hover')
 
-    usr = main.buildKVM global.model('Usermeta'),
-      queue: Crud.CrudQueue
-      fetched: { id: user.meta.mid }
-
-    window.global.Usermeta = usr
-
-    usr.toggleDelayed = (st) =>
-      if usr.delayedState() == st
-        usr.delayedState null
-      else
-        usr.delayedState(st)
-
-    Messenger.subscribe "#{global.model('Usermeta').name}:#{usr.id()}",
-      usr._meta.q.saveSuccessCb(_.identity)
-
-    ko.applyBindings(usr, $("#current-user")[0])
-
-    # little hack so dropdown with delayed states won't close when user
-    # change next state
-    $('#current-user .dropdown-menu').click (event) -> event.stopPropagation()
+    CurrentUser.initialize()
 
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']

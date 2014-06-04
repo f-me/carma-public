@@ -164,6 +164,14 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "timeline-view": timeline
       r.renderScreen timeline, bind
 
+  Finch.route "rest", (bind) ->
+    require ["screens/rest"], (scr) ->
+      scr.screen =
+        name: "rest"
+        views:
+          'rest-view': scr
+      r.renderScreen scr, bind
+
   Search.attachTo("search")
 
   Finch
