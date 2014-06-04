@@ -172,16 +172,6 @@
                       <button type="button"
                               class="btn btn-default btn-small"
                               data-bind="css: {
-                                         'btn-success': delayedState() == 'Ready'
-                                         },
-                                         click: function () {
-                                           toggleDelayed('Ready')
-                                         }">
-                        Готов
-                      </button>
-                      <button type="button"
-                              class="btn btn-default btn-small"
-                              data-bind="css: {
                                          'btn-success': delayedState() == 'Rest'
                                          },
                                          click: function () {
