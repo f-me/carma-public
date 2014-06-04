@@ -10,7 +10,7 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
 
     find: (q, cb, opt) ->
       return cb({}) if q.length < 4 and not opt?.force
-      query = "/searchContracts/?query=#{q}&program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}#{if opt?.force then '&type=exact' else ''}"
+      query = "/searchContracts/?query=#{q}&case=kvm.id?()&program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}#{if opt?.force then '&type=exact' else ''}"
       cb([inlineSpinner "<div class='inline-spinner'></div>"])
       $.getJSON query, (r) =>
         @found = []

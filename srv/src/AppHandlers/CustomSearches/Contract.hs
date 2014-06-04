@@ -33,9 +33,10 @@ import           Database.PostgreSQL.Simple.FromRow
 import           Snap
 
 import           Data.Model
-import           Carma.Model.Contract as C
 import           Carma.Model.CarMake
 import           Carma.Model.CarModel
+import           Carma.Model.Case as Case
+import           Carma.Model.Contract as C
 import           Carma.Model.Program as P
 import           Carma.Model.SubProgram as S hiding (field)
 import           Carma.Model.Types (TInt)
@@ -88,11 +89,12 @@ instance ToJSON SearchResult where
                 _           -> error "(toJSON identifierTypes) is broken"
 
 
--- | Read @query@, @program@ (optional), @subprogram@ (optional),
--- @limit@ (defaults to 100) parameters and return list of contracts
--- with matching identifier fields. Every result in the list contains
--- a subset of contract fields and @_expired@ which is a boolean flag
--- indicating whether a contract is expired or not.
+-- | Read @query@, @case@, @program@ (optional), @subprogram@
+-- (optional), @limit@ (defaults to 100) parameters and return list of
+-- contracts with matching identifier fields. Every result in the list
+-- contains a subset of contract fields and @_expired@ which is a
+-- boolean flag indicating whether a contract is expired or not,
+-- compared to callDate field of the provided case.
 --
 -- TODO Try rewriting the query with carma-models SQL. @_expired@ is
 -- the only reason we build a custom query here and use SearchResult
@@ -101,9 +103,9 @@ searchContracts :: AppHandler ()
 searchContracts = do
   pid <- getIntParam "program"
   sid <- getIntParam "subprogram"
-  limit' <- getIntParam "limit"
-  let limit = fromMaybe 100 limit'
+  limit <- fromMaybe 100 <$> getIntParam "limit"
   q <- fromMaybe (error "No search query provided") <$> getParam "query"
+  caseId <- fromMaybe (error "No case number provided") <$> getIntParam "case"
 
   ml <- gets $ searchMinLength . options
   when (B.length q < ml) $ error "Search query is too short"
@@ -118,13 +120,14 @@ searchContracts = do
       fieldParams = zip (map PT C.identifierNames) $ repeat q
       totalQuery = intercalate " "
           [ "SELECT DISTINCT ON(c.id) c.id,"
-          -- 2 parameters: contract start/end date field name
-          , "((now() < ?) or (? < now())),"
+          -- 4 parameters: case callDate name, contract start/end date
+          -- field name, case callDate name
+          , "((case.? < ?) or (? < case.?)),"
           -- M + N more parameters: selected fields.
           , intercalate "," $
             map (const "c.?") selectedFieldsParam
-          -- 1 parameter: Contract table name
-          , "FROM \"?\" c"
+          -- 2 parameters: Contract table name, Case table name
+          , "FROM \"?\" c, \"?\" case"
           -- 3 more parameters: SubProgram table name, Contract
           -- subprogram field, subprogram id field.
           , "JOIN \"?\" s ON c.? = s.?"
@@ -145,6 +148,8 @@ searchContracts = do
           , "AND (? OR ? = p.?)"
           -- 2 parameters: dixi and isActive field names
           , "AND c.? and c.?"
+          -- 2 parameters: case id field name and case number
+          , "AND (case.? = ?)"
           -- 1 parameter: LIMIT value
           , "ORDER BY c.id DESC LIMIT ?;"
           ]
@@ -160,11 +165,15 @@ searchContracts = do
 
   res <- withPG pg_search $ \c -> query c (fromString totalQuery)
          (()
-          :. (PT $ fieldName C.validSince, PT $ fieldName C.validUntil)
+          -- 4
+          :. ( PT $ fieldName Case.callDate
+             , PT $ fieldName C.validSince
+             , PT $ fieldName C.validUntil
+             , PT $ fieldName Case.callDate)
           -- M + N
           :. (selectedFieldsParam)
-          -- 1
-          :. Only contractTable
+          -- 2
+          :. (contractTable, PT $ tableName (modelInfo :: ModelInfo Case.Case))
           -- 3
           :. Only subProgramTable
           :. (PT $ fieldName C.subprogram, PT $ fieldName S.ident)
@@ -181,6 +190,8 @@ searchContracts = do
           :. (Only $ PT $ fieldName P.ident)
           -- 2
           :. (PT $ fieldName C.dixi, PT $ fieldName C.isActive)
+          -- 2
+          :. (PT $ fieldName Case.ident, caseId)
           -- 1
           :. Only limit)
 
