@@ -1,6 +1,6 @@
 define ["lib/ws"], (WS) ->
 
-  messengerUrl = "ws://localhost:8000/wsmessenger"
+  messengerUrl = "ws://#{location.hostname}:8000/wsmessenger"
 
   subscribe: (topic, cb) =>
     ws = new WS(messengerUrl)
