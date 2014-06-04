@@ -9,19 +9,16 @@ import Prelude hiding (log)
 
 import Control.Monad
 import Control.Monad.Trans
-import Control.Exception
 import Control.Applicative
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
-import Data.Char
 import Data.List (intercalate)
 import Data.Maybe
 import Data.String (fromString)
 
-import qualified Fdds as Fdds
 ------------------------------------------------------------------------------
 import WeatherApi (getWeather', tempC)
 -----------------------------------------------------------------------------
@@ -1171,17 +1168,6 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   upd kazeId "actions" $ addToList actionId
   closeAction objId
   return actionId
-
-requestFddsVin :: MonadTrigger m b => B.ByteString -> B.ByteString -> m b Bool
-requestFddsVin _ vin = do
-  let preparedVin = B.unpack $ B.map toUpper vin
-  conf     <- liftDb $ gets fdds
-  vinState <- liftIO Fdds.vinSearchInit
-  result   <- liftIO (try $ Fdds.vinSearch conf vinState preparedVin
-                      :: IO (Either SomeException [Fdds.Result]))
-  case result of
-    Right v -> return $ any (Fdds.rValid) v
-    Left _  -> return False
 
 setWeather :: MonadTrigger m b => B.ByteString -> B.ByteString -> m b ()
 setWeather objId city = do

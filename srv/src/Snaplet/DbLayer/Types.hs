@@ -20,7 +20,6 @@ import qualified Database.PostgreSQL.Sync.Base as SM
 
 import qualified WeatherApi as W
 
-import qualified Fdds as Fdds
 import DictionaryCache
 
 type ObjectId = ByteString
@@ -44,7 +43,6 @@ data DbLayer b = DbLayer
     ,_postgres :: Snaplet Postgres
     ,_dbLog    :: Snaplet SimpleLog
     ,_auth     :: Snaplet (AuthManager b)
-    ,fdds      :: Fdds.Conf
     ,syncRelations :: SM.Relations
     ,syncTables :: [TableDesc]
     ,dictCache :: TVar DictCache

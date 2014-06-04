@@ -33,7 +33,6 @@ import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 
 import Network.URI (parseURI)
-import qualified Fdds
 import Data.Configurator
 import Data.Configurator.Types
 
@@ -207,18 +206,8 @@ initDbLayer sessionMgr adb cfgDir = makeSnaplet "db-layer" "Storage abstraction"
       <*> nestSnaplet "pgsql" postgres pgsInit
       <*> nestSnaplet "dblog" dbLog (simpleLogInit_ l)
       <*> pure sessionMgr
-      <*> (liftIO $ fddsConfig cfg)
       <*> (return rels)
       <*> (return tbls)
       <*> (return dc)
       <*> (return $ initApi wkey)
       <*> (liftIO $ readRKCCalc cfgDir)
-
-----------------------------------------------------------------------
-
-fddsConfig :: Config -> IO Fdds.Conf
-fddsConfig cfg = do
-  uri   <- require cfg "fdds-uri"
-  login <- require cfg "fdds-login"
-  passw <- require cfg "fdds-password"
-  return $ Fdds.Conf (fromJust $ parseURI uri) login passw
