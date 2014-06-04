@@ -4,7 +4,8 @@
      data-bind="spinner: delayedState() == 'Ready' ">
   <div class="offset5 span4">
     <button class="btn btn-default"
-            data-bind="css: { 'btn-success': delayedState() == 'Ready'
+            data-bind="css: { 'btn-success': delayedState() == 'Ready',
+                              'btn-danger':  delayedState() != 'Ready'
                        },
                        click: function () { delayedState('Ready') }">
       Вернуться из перерыва
