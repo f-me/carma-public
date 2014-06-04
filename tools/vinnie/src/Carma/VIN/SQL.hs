@@ -250,25 +250,33 @@ protoUpdateWithFun cname fun args =
         )
 
 
--- | Clear field values which do not match a regular expression (case
--- insensitive).
-protoCheckRegexp :: InternalName
-                 -> ContractFieldName
-                 -> Text
-                 -- ^ Regular expression.
-                 -> Import Int64
-protoCheckRegexp iname cname regexp =
+-- | Copy a pristine table column to proto table, trimming
+-- leading/trailing whitespace.
+protoTransfer :: InternalName -> ContractFieldName -> Import Int64
+protoTransfer iname cname =
     execute
     [sql|
      UPDATE vinnie_proto SET ? = trim(both ' ' from ?)
      FROM vinnie_pristine
      WHERE vinnie_proto.? = vinnie_pristine.?;
-     UPDATE vinnie_proto SET ? = null WHERE ? !~* ?;
      |] ( cname
         , PT iname
         , tKid
         , tKid
-        , cname
+        )
+
+
+-- | Clear field values which do not match a regular expression (case
+-- insensitive).
+protoCheckRegexp :: ContractFieldName
+                 -> Text
+                 -- ^ Regular expression.
+                 -> Import Int64
+protoCheckRegexp cname regexp =
+    execute
+    [sql|
+     UPDATE vinnie_proto SET ? = null WHERE ? !~* ?;
+     |] ( cname
         , cname
         , regexp)
 

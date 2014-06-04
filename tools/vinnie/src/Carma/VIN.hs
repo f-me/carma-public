@@ -360,21 +360,29 @@ processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
             "regexp_replace" [iname, "'\\D'", "''", "'g'"]
           , (sqlCast cn "int"))
       SVIN ->
-          ( void $ protoCheckRegexp iname cn
-            "^[0-9a-hj-npr-z]{17}$"
+          ( protoTransfer iname cn >>
+            protoCheckRegexp cn
+            "^[0-9a-hj-npr-z]{17}$" >>
+            pass
           , (sqlCast cn "text"))
       SEmail ->
-          ( void $ protoCheckRegexp iname cn
-            "^[\\w\\+\\.\\-]+@[\\w\\+\\.\\-]+\\.\\w+$"
+          ( protoTransfer iname cn >>
+            protoCheckRegexp cn
+            "^[\\w\\+\\.\\-]+@[\\w\\+\\.\\-]+\\.\\w+$" >>
+            pass
           , (sqlCast cn "text"))
       SPlate ->
-          ( void $ protoCheckRegexp iname cn $ fromString $
-            "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}" ++
-            "[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$"
+          ( protoTransfer iname cn >>
+            (protoCheckRegexp cn $ fromString $
+             "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}" ++
+             "[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$") >>
+            pass
           , (sqlCast cn "text"))
       SYear ->
-          ( void $ protoCheckRegexp iname cn $ fromString $
-            "^[12][09][0-9]{2}$"
+          ( protoTransfer iname cn >>
+            (protoCheckRegexp cn $ fromString $
+             "^[12][09][0-9]{2}$") >>
+            pass
           , (sqlCast cn "int2"))
       SPhone ->
           ( void $ protoUpdateWithFun cn
