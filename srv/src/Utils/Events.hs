@@ -15,7 +15,7 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as B
-
+import           Data.Time.Clock (getCurrentTime)
 import           GHC.TypeLits
 
 import           Data.Model
@@ -81,8 +81,13 @@ log p = do
   case s of
     Nothing -> return ()
     Just st -> do
+      -- well it's hack of course, current time will be little differene
+      -- from real ctime of new state
+      time <- liftIO $ getCurrentTime
       withMsg $ sendMessage (T.concat ["Usermeta:", T.pack $ show (identVal uid)])
-        (P.put currentState st P.empty)
+        (P.put currentState      st   $
+         P.put currentStateCTime time $
+         P.empty)
   return ()
 
 -- Implementation --------------------------------------------------------------
@@ -169,8 +174,8 @@ checkUserState uid ev = do
 
     setNext Nothing = return Nothing
     setNext (Just s) = withPG $ \c -> do
-      P.create (mkState s) c
-      P.update uid (P.put delayedState Nothing P.empty) c
+      void $ P.create (mkState s) c
+      void $ P.update uid (P.put delayedState Nothing P.empty) c
       return $ Just s
 
     mkState s = P.put State.eventId (P.get' ev E.ident) $
@@ -231,8 +236,8 @@ nextState lastState delayed evt mname fld =
       UserStateEnv{..} <- ask
       newstate         <- get
       case (delayed, newstate) of
-        (Just dst, Just Ready) -> put delayed
-        _                      -> return ()
+        (Just _, Just Ready) -> put delayed
+        _                     -> return ()
 
 on :: EventType -> Matcher -> UserStateM
 on tpe matcher = do

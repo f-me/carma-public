@@ -166,7 +166,7 @@
                   <li>
                     Текущий статус:
                     <span data-bind="text: safelyGet('currentStateLocal')" />
-
+                    <span data-bind="text: safelyGet('timeInCurrentState')" />
                     <div class="btn-group btn-group-xs"
                          id="user-state-btngroup">
                       <button type="button"
