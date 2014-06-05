@@ -395,14 +395,20 @@ define [ "model/render"
       q.save()
     return [knockVM, q]
 
+  # little helper, ko 3.1.0 don't allow to bind to already binded dom
+  # so cleanup it first
+  rebindko = (kvm, el) =>
+    ko.cleanNode(el)
+    ko.applyBindings(kvm, el)
+
   bindDepViews = (knockVM, parentView, depViews) ->
     for k, v of depViews
       global.viewsWare[v] =
         parentView: parentView
       if _.isArray(v)
-        ko.applyBindings(knockVM, el(s)) for s in v
+        rebindko(knockVM, el(s)) for s in v
       else
-        ko.applyBindings(knockVM, el(v))
+        rebindko(knockVM, el(v))
 
   setupView = (elName, knockVM,  options) ->
     tpls = render.getTemplates("reference-template")
@@ -411,10 +417,10 @@ define [ "model/render"
     # separately)
     bindDepViews(knockVM, elName, depViews)
     # Bind extra views if provided
-    ko.applyBindings knockVM, el(v) for k, v of options.slotsee when el(v)
+    rebindko knockVM, el(v) for k, v of options.slotsee when el(v)
 
     # Bind the model to Knockout UI
-    ko.applyBindings(knockVM, el(elName)) if el(elName)
+    rebindko(knockVM, el(elName)) if el(elName)
 
     knockVM['view'] = elName
 
