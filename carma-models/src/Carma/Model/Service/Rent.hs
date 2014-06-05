@@ -29,6 +29,7 @@ data Rent = Rent
                            "Марка предоставленного автомобиля"
   , rentedModel         :: F (IdentT CarModels) "rentedModel"
                            "Модель предоставленного автомобиля"
+  , orderNumber         :: F (Maybe Text) "orderNumber" "Номер заказ-наряда"
   }
   deriving Typeable
 

@@ -2,6 +2,7 @@ module Carma.Model.Service.Tech where
 
 import qualified Data.Aeson as Aeson
 
+import Data.Text
 import Data.Typeable
 
 import Data.Model
@@ -11,8 +12,9 @@ import Carma.Model.TechType (TechType)
 
 
 data Tech = Tech
-  { ident    :: PK Int Tech ""
-  , techType :: F (Maybe (IdentI TechType)) "techType" "Услуга"
+  { ident       :: PK Int Tech ""
+  , techType    :: F (Maybe (IdentI TechType)) "techType" "Услуга"
+  , orderNumber :: F (Maybe Text) "orderNumber" "Номер заказ-наряда"
   }
   deriving Typeable
 
