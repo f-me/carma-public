@@ -28,7 +28,7 @@ define [ "sync/metaq"
       @
 
     subscribe: =>
-      for f in @model.fields when not (f.meta.app == "ephemeral")
+      for f in @model.fields when not (f.meta?.app == "ephemeral")
         do (f) =>
           @kvm[f.name].subscribe (v) =>
             @q[f.name] = v
