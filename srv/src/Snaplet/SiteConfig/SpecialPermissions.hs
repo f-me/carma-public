@@ -1,3 +1,10 @@
+{-|
+
+Contract model processing for portal screen (per-subprogram field
+permissions and hacks).
+
+-}
+
 module Snaplet.SiteConfig.SpecialPermissions
     ( stripContract
     , FilterType(..)
@@ -63,8 +70,10 @@ stripContract model sid flt = do
   return model{fields = map procField $ filterFields perms (fields model)}
     where
       reqField f =
-          f{meta = Just $ M.insert "required" (Aeson.Bool True) $
-                   fromMaybe M.empty $ meta f}
+          if name f /= "comment"
+          then f{meta = Just $ M.insert "required" (Aeson.Bool True) $
+                 fromMaybe M.empty $ meta f}
+          else f
       getPerms progid conn = M.fromList <$>
         (query conn q (flt, progid) :: IO [(ByteString, ByteString)])
       filterFields perms flds = filter (isCanShow perms) flds
