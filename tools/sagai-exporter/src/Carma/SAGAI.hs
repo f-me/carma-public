@@ -169,12 +169,19 @@ instance ExportMonad CaseExport where
 
     comm2Field = pushComment =<< caseField0 "dealerCause"
 
+    -- Include order number of the first exportable service,
+    -- include contractor code of the first exportable towage
+    -- service.
     comm3Field = do
-      servs <- filter exportable <$> getAllServices
+      servs <-
+          filter (\s@(_, _, d) ->
+                  exportable s ||
+                  -- Canceled non-billed services are considered
+                  -- exportable for this field
+                  (dataField0 "falseCall" d == "nobill" &&
+                   fvIdent (dataField0 "status" d) == Just SS.clientCanceled)) <$>
+          getAllServices
       let twgPred = \(mn, _, _) -> mn == "towage"
-          -- Include order number of the first exportable service,
-          -- include contractor code of the first exportable towage
-          -- service.
           oNum = find (const True) servs >>=
                  \(_, _, d) -> return $ dataField0 "orderNumber" d
       pCode <- case find twgPred servs of
