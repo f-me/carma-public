@@ -170,13 +170,12 @@ instance ExportMonad CaseExport where
     comm2Field = pushComment =<< caseField0 "dealerCause"
 
     comm3Field = do
-      servs <- getAllServices
-      let twgPred = \s@(mn, _, _) ->
-                      mn == "towage" &&
-                      (not $ falseService s)
-      -- Include order number of the first non-false service,
-      -- include contractor code of the first non-false towage service.
-          oNum = find (not . falseService) servs >>=
+      servs <- filter exportable <$> getAllServices
+      let twgPred = \(mn, _, _) -> mn == "towage"
+          -- Include order number of the first exportable service,
+          -- include contractor code of the first exportable towage
+          -- service.
+          oNum = find (const True) servs >>=
                  \(_, _, d) -> return $ dataField0 "orderNumber" d
       pCode <- case find twgPred servs of
                  Just s -> contractorCode s towagePid >>= (return . Just)
@@ -505,7 +504,6 @@ contractField1 fn = do
     Nothing -> exportError (BadContract cid)
 
 
-
 -- | Check if servicing contract is in effect.
 onService :: ExportMonad m => m Bool
 onService = do
@@ -726,22 +724,6 @@ labelOfValue' val dict = do
           Just label -> return $ encodeUtf8 label
           Nothing -> exportError $ UnknownDictValue val
     Nothing -> exportError $ UnknownDictValue val
-
-
--- | Try to map a label of a dictionary to its value, fall back to
--- label if its value is not found.
-tryLabelOfValue :: ExportMonad m =>
-                   BS.ByteString
-                -> (m ND.NewDict)
-                -> m BS.ByteString
-tryLabelOfValue val dict = do
-  d <- dict
-  return $ case B8.readInt val of
-    Just (n, _) ->
-        case ND.labelOfValue n d of
-          Just label -> encodeUtf8 label
-          Nothing -> val
-    Nothing -> val
 
 
 -- | A list of field combinators (typed as ExportField) to form a part
