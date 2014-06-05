@@ -36,6 +36,8 @@ caseSearchParams
     ,("callDate",   interval Case.callDate)
     ,("contact",    fuzzy $ matchAny
                     [one Case.contact_name, one Case.contact_ownerName])
+    ,("customerComment",
+      fuzzy $ one Case.customerComment)
     ,("comment",    fuzzy $ one Case.comment)
     ,("address",    fuzzy $ one Case.caseAddress_address)
     ,("callTaker",  fuzzy $ one Case.callTaker)
