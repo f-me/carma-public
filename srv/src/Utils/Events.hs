@@ -75,16 +75,22 @@ log :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
     => Patch Event -> Handler b m ()
 log p = do
   uid <- getRealUid
+  -- Little hack to determine target user for state change in case if
+  -- someone else changed @delayedState@ field of current user
+  tgtUsr <- case (P.get p E.modelName, P.get p E.modelId, P.get p E.field) of
+    (Just "Usermeta", Just i, Just (Just "delayedState")) -> return $ Ident i
+    _                                                     -> return uid
   id' <- create $ setUsr uid p
   let p' = P.put E.ident id' p
-  s <- checkUserState uid p'
+  s <- checkUserState tgtUsr p'
   case s of
     Nothing -> return ()
     Just st -> do
       -- well it's hack of course, current time will be little differene
       -- from real ctime of new state
       time <- liftIO $ getCurrentTime
-      withMsg $ sendMessage (T.concat ["Usermeta:", T.pack $ show (identVal uid)])
+      withMsg $ sendMessage
+        (mkLegacyIdent tgtUsr)
         (P.put currentState      st   $
          P.put currentStateCTime time $
          P.empty)
