@@ -121,13 +121,16 @@ searchContracts = do
       totalQuery = intercalate " "
           [ "SELECT DISTINCT ON(c.id) c.id,"
           -- 4 parameters: case callDate name, contract start/end date
-          -- field name, case callDate name
-          , "((case.? < ?) or (? < case.?)),"
+          -- field name, case callDate name (expiration predicate)
+          , "((cs.? < ?) or (? < cs.?)),"
           -- M + N more parameters: selected fields.
           , intercalate "," $
             map (const "c.?") selectedFieldsParam
-          -- 2 parameters: Contract table name, Case table name
-          , "FROM \"?\" c, \"?\" case"
+          -- 1 parameter: Contract table name
+          , "FROM \"?\" c"
+          -- 3 parameters: Case table name, Case ident field name,
+          -- Case id.
+          , "JOIN \"?\" cs ON cs.? = ?"
           -- 3 more parameters: SubProgram table name, Contract
           -- subprogram field, subprogram id field.
           , "JOIN \"?\" s ON c.? = s.?"
@@ -148,8 +151,6 @@ searchContracts = do
           , "AND (? OR ? = p.?)"
           -- 2 parameters: dixi and isActive field names
           , "AND c.? and c.?"
-          -- 2 parameters: case id field name and case number
-          , "AND (case.? = ?)"
           -- 1 parameter: LIMIT value
           , "ORDER BY c.id DESC LIMIT ?;"
           ]
@@ -169,11 +170,17 @@ searchContracts = do
           :. ( PT $ fieldName Case.callDate
              , PT $ fieldName C.validSince
              , PT $ fieldName C.validUntil
-             , PT $ fieldName Case.callDate)
+             , PT $ fieldName Case.callDate
+             )
           -- M + N
           :. (selectedFieldsParam)
-          -- 2
-          :. (contractTable, PT $ tableName (modelInfo :: ModelInfo Case.Case))
+          -- 1
+          :. (Only contractTable)
+          -- 3
+          :. ( PT $ tableName (modelInfo :: ModelInfo Case.Case)
+             , PT $ fieldName Case.ident
+             , caseId
+             )
           -- 3
           :. Only subProgramTable
           :. (PT $ fieldName C.subprogram, PT $ fieldName S.ident)
@@ -190,8 +197,6 @@ searchContracts = do
           :. (Only $ PT $ fieldName P.ident)
           -- 2
           :. (PT $ fieldName C.dixi, PT $ fieldName C.isActive)
-          -- 2
-          :. (PT $ fieldName Case.ident, caseId)
           -- 1
           :. Only limit)
 
