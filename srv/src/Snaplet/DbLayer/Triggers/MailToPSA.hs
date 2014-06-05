@@ -125,7 +125,7 @@ sendMailActually actionId = do
           actionResult <- lift $ get actionId "result"
           fld 150 "Customer effet"   $ case actionResult of
             "clientCanceledService" -> getCRRLabel svcId
-            _                       -> getCommentLabel caseId
+            _                       -> get' caseId "customerComment"
           fld 150 "Component fault"  $ get' caseId "dealerCause"
 
           factServiceStart

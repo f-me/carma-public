@@ -32,9 +32,7 @@ import Data.String
 import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 
-import Network.URI (parseURI)
 import Data.Configurator
-import Data.Configurator.Types
 
 import WeatherApi.WWOnline (initApi)
 

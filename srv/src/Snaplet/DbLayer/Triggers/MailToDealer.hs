@@ -37,7 +37,6 @@ import Snap.Snaplet (getSnapletUserConfig)
 import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
-import Snaplet.DbLayer.Triggers.Util
 import DictionaryCache
 
 import Util as U
@@ -94,7 +93,7 @@ fillVars caseId
   >>= add "caseDate"     (get caseId "callDate" >>= U.formatTimestamp)
   >>= add "car_vin"      (txt <$> get caseId "car_vin")
   >>= add "car_plateNum" (txt <$> get caseId "car_plateNum")
-  >>= add "wazzup"       (getCommentLabel caseId)
+  >>= add "wazzup"       (txt <$> get caseId "customerComment")
   >>= add "car_make"     (get caseId "car_make"  >>= tr carMake . txt)
   >>= add "car_model"    getCarModel
   -- TODO Refactor this to a separate monad
