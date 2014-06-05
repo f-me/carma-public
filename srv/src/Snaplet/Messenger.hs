@@ -13,8 +13,8 @@ import           Control.Lens (makeLenses)
 
 import           Control.Concurrent (forkIO)
 import           Control.Concurrent.BoundedChan
-import           Control.Concurrent.Suspend.Lifted
-import           Control.Concurrent.Timer
+-- import           Control.Concurrent.Suspend.Lifted
+-- import           Control.Concurrent.Timer
 
 
 
@@ -138,14 +138,15 @@ messengerInit =
     q <- liftIO $ newBoundedChan 500
     -- worker thread that will actually send messages thru websocket
     void $ liftIO $ forkIO $ sendFromQ q
+    -- FIXME: Restore this when will be found way to use logger inside IO
     -- timer with subscriptions logger
     -- void $ liftIO $ forkIO $ void $ repeatedTimer (showSubs m) (sDelay 1)
     return $ Messenger m q
-  where
-    showSubs m = do
-      s <- readIORef m
-      mapM_ (\(k, v) -> print $ (unpack k) ++ ": " ++ (show $ Set.size v))
-        $ Map.toList s
+  -- where
+  --   showSubs m = do
+  --     s <- readIORef m
+  --     mapM_ (\(k, v) -> print $ (unpack k) ++ ": " ++ (show $ Set.size v))
+  --       $ Map.toList s
 
 -- | Really send messages from the queue. Use 'forkIO' for each message
 -- so slow cliens wan't jam the queue.
