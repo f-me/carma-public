@@ -57,7 +57,7 @@ define [ "model/main"
       usr.timeInCurrentState "#{hhpretty}:#{mmpretty}"
 
     # update time diff on each state change
-    usr.currentStateCTime.subscribe (v) => calcTime()
+    usr.currentStateCTime?.subscribe (v) => calcTime()
 
     # update time diff each 10 seconds
     setInterval(calcTime, 10000)
