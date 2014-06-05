@@ -21,7 +21,7 @@ define ['dictionaries/local-dict',], (ld) ->
       @key      = @opts.meta?.dictionaryKey || "id"
       @label    = @opts.meta?.dictionaryLabel || "label"
       parentKey = @opts.meta?.dictionaryParentKey || "parent"
-      
+
       # Send numeric ids in strings when storing a dictionary value
       # (old models compatibility)
       @fun =
@@ -32,12 +32,13 @@ define ['dictionaries/local-dict',], (ld) ->
 
       @bgetJSON "/_/#{@model}", (@items) =>
         if @parent and _.isFunction @kvm[@parent]
-          @kvm[@parent].subscribe (val) =>
+          updateChildren = (val) =>
             fun = @fun
             @updateSource(_.filter @items, (e) -> fun(e[parentKey]) == val)
             @dictValueCache = null
             @dictLabelCache = null
-          @kvm[@parent].valueHasMutated()
+          @kvm[@parent].subscribe updateChildren
+          updateChildren(@kvm[@parent]())
         else
           @updateSource @items
 
