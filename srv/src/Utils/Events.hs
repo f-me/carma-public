@@ -223,10 +223,11 @@ nextState lastState delayed evt mname fld =
     change ([LoggedOut] >>> Ready)     $ on Login  NoModel
     change (allStates   >>> LoggedOut) $ on Logout NoModel
     case delayed of
-      Nothing     -> return ()
+      Nothing     -> change ([ServiceBreak] >>> Ready) $
+        on Update $ Fields [field delayedState]
       Just Ready  -> change ([Rest, Dinner, ServiceBreak] >>> Ready) $
         on Update $ Fields [field delayedState]
-      Just dState -> change ([Ready] >>> dState) $
+      Just dState -> change ([Ready, Rest, Dinner, ServiceBreak] >>> dState) $
         on Update $ Fields [field delayedState]
 
     -- Check if we can switch user into delayed state

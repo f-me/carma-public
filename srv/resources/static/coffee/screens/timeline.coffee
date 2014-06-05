@@ -280,6 +280,8 @@ define ["text!tpl/screens/timeline.html"
               , 'businessRole'
               , 'bocities'
               , 'boprograms'
+              , 'currentState'
+              , 'delayedState'
               ]
     dataModel = 'Usermeta'
     table = new Table {dataModel, columns}

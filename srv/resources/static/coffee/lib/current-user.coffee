@@ -12,6 +12,8 @@ define [ "model/main"
     st = window.global?.Usermeta?.currentState?()
     if _.contains(["Dinner", "Rest"], st)
       oldNav("rest")
+    else if st == 'ServiceBreak'
+      oldNav('serviceBreak')
     else
       oldNav.apply(@, args)
 
@@ -26,12 +28,6 @@ define [ "model/main"
     # due to dependencies
     window.global.Usermeta = usr
 
-    usr.toggleDelayed = (st) =>
-      if usr.delayedState() == st
-        usr.delayedState null
-      else
-        usr.delayedState(st)
-
     Messenger.subscribe "#{global.model('Usermeta').name}:#{usr.id()}",
       usr._meta.q.saveSuccessCb(_.identity)
 
@@ -45,6 +41,7 @@ define [ "model/main"
 
     # calculate diff between state change and current time in 'hh:mm' format
     calcTime = =>
+      return unless usr.currentStateCTime?()
       t1 = Date.parseExact usr.currentStateCTime(), Map.guiUTCTimeFormat
       t2 = new Date()
       diff = t2 - t1

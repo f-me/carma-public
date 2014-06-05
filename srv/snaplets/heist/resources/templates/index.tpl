@@ -1877,6 +1877,22 @@
       <span data-bind="text: {{ name }}" />
     </script>
 
+    <script type="text/template"
+            class="field-template"
+            id="onlyServiceBreak-table-template">
+      <button type="button"
+              class="btn btn-default btn-small"
+              data-bind="css: {
+                         'btn-success': delayedState() == 'ServiceBreak'
+                         },
+                         click: function () {
+                         toggleDelayed('ServiceBreak')
+                         }">
+        Служебный перерыв
+      </button>
+    </script>
+
+
     <script type="text/html" id="table-template">
       <div class="row-fluid">
         <div class="bs-docs-example-after">
