@@ -38,7 +38,7 @@ caseSearchParams
                     [one Case.contact_name, one Case.contact_ownerName])
     ,("customerComment",
       fuzzy $ one Case.customerComment)
-    ,("comment",    fuzzy $ one Case.comment)
+    ,("comment",    one Case.comment)
     ,("address",    fuzzy $ one Case.caseAddress_address)
     ,("callTaker",  fuzzy $ one Case.callTaker)
     ,("files",      refMExist Case.files)
