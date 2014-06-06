@@ -1,9 +1,11 @@
 module Carma.Model.Call where
 
+import Data.Aeson as Aeson
 import Data.Text
 import Data.Typeable
 import Data.Time.Clock (UTCTime)
 import Data.Model as Model
+import Data.Model.Types ((:@))
 import Data.Model.View
 
 import Carma.Model.Program         (Program)
@@ -33,31 +35,58 @@ callSearchParams
 
 instance Model Call where
   type TableName Call = "calltbl"
-  modelInfo = mkModelInfo Call ident
+  modelInfo = mkModelInfo Call ident `withLegacyName` "call"
   modelView = \case
     "search" -> Just $ modifyView (searchView callSearchParams) dicts
-    _        -> Just $ modifyView defaultView dicts
+    _        -> Just $ modifyView defaultView (metas ++ dicts ++ callOldCRUDHacks)
 
 dicts =
   [ dict callType $ (dictOpt "CallTypes")
-      {dictParent = Just $ Model.fieldName callerType}
+    {dictParent = Just $ Model.fieldName callerType}
+  , dict carModel $ (dictOpt "CarModels")
+    {dictParent = Just $ Model.fieldName carMake, dictBounded = True}
   , dict callTaker $ (dictOpt "users")
+  , setMeta "dictionaryParent"
+    (Aeson.String $ Model.fieldName program) subprogram
   ]
+
+metas :: [(Text, FieldView -> FieldView) :@ Call]
+metas =
+    [ readonly callDate
+    , readonly endDate
+
+    , readonly callTaker
+    , required callTaker
+
+    , invisible coords
+    , invisible address
+    ]
+
+-- | Mark several new-style dictionaries to use dictionaryStringify,
+-- to wrap integers in strings to be compatible with the old CRUD.
+callOldCRUDHacks :: [(Text, FieldView -> FieldView) :@ Call]
+callOldCRUDHacks =
+    [ setMeta "dictionaryStringify" (Aeson.Bool True) program
+    , setMeta "dictionaryStringify" (Aeson.Bool True) subprogram
+    , setMeta "dictionaryStringify" (Aeson.Bool True) wazzup
+    ]
 
 data Call = Call
   { ident :: PK Int Call "Номер звонка"
   , callDate
     :: F LegacyDatetime "callDate" "Дата звонка"
+  , endDate
+    :: F (Maybe LegacyDatetime) "endDate"  "Время окончания звонка"
   , callTaker
     :: F (IdentT Users) "callTaker" "Сотрудник РАМК"
   , program
     :: F (Maybe (IdentI Program)) "program" "Программа"
   , subprogram
     :: F (Maybe (IdentI SubProgram)) "subprogram" "Подпрограмма"
-  , customerComment
-    :: F (Maybe Text) "customerComment" "Неисправность со слов клиента"
   , wazzup
     :: F (Maybe (IdentI Wazzup)) "wazzup" "Что случилось"
+  , customerComment
+    :: F (Maybe Text) "customerComment" "Неисправность со слов клиента"
   , callerName_name
     :: F (Maybe Text) "callerName_name" "Звонящий"
   , callerName_phone1
@@ -88,8 +117,8 @@ data Call = Call
     :: F (Maybe (IdentT CallerTypes)) "callerType" "Кто звонит?"
   , city
     :: F (Maybe (IdentT DealerCities)) "city" "Город"
-  -- , coords
-  --   :: F (Maybe Text) "coords" "Координаты места поломки"
+  , coords
+    :: F (Maybe Text) "coords" "Координаты места поломки"
   , address
     :: F (Maybe Text) "address" "Адрес места поломки"
   , carMake
@@ -98,6 +127,4 @@ data Call = Call
     :: F (Maybe (IdentT CarModels)) "carModel" "Модель"
   , callType
     :: F (Maybe (IdentT CallTypes)) "callType" "Тип звонка"
-  , endDate
-    :: F (Maybe UTCTime )           "endDate"  "Время окончания звонка"
   } deriving Typeable
