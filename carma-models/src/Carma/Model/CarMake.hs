@@ -18,7 +18,7 @@ data CarMake = CarMake
   , value    :: F Text "value" "value"
   , label    :: F Text "label" "Марка"
   , synonyms :: F (Maybe (Vector Text)) "synonyms" "Синонимы"
-  , fdds     :: F (Maybe Text) "fdds" "FDDS-код"
+  , fdds     :: F (Maybe Text) "fdds" "VEHICLE MAKE"
   }
   deriving Typeable
 
