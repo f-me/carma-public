@@ -152,6 +152,7 @@ stripModel u m = do
       -- while being asked for case (see oldCRUD branch in
       -- serveModel).
       fixCaseModelName "case" = "Case"
+      fixCaseModelName "call" = "Call"
       fixCaseModelName v      = v
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
   readableFields <- withPG $ \c -> query c [sql|
