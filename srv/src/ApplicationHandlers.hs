@@ -9,6 +9,7 @@ import Prelude hiding (log)
 
 import Data.Functor
 import Control.Monad
+import Control.Monad.Trans.Either
 import Control.Monad.CatchIO
 import Control.Exception (SomeException)
 import Control.Concurrent (myThreadId)
@@ -63,8 +64,9 @@ import qualified Snaplet.DbLayer.Dictionary as Dict
 import Snaplet.FileUpload (FileUpload(cfg), doUpload, oneUpload)
 
 import Carma.Model
-import Data.Model.Patch (Patch(..))
+import Data.Model.CRUD
 import qualified Data.Model.Patch.Sql as Patch
+import Data.Model.Patch (Patch(..))
 
 import Application
 import AppHandlers.Util
@@ -163,15 +165,13 @@ createHandler = do
   Just model <- getParam "model"
   let createModel :: forall m . Model m => m -> AppHandler Aeson.Value
       createModel _ = do
-        commit <- getJSONBody :: AppHandler (Patch m)
+        let crud = getModelCRUD :: CRUD m
+        commit <- getJSONBody :: AppHandler Aeson.Value
         s <- PS.getPostgresState
-        i <- liftIO $ withResource (PS.pgPool s) (Patch.create commit)
-        res <- liftIO $ withResource (PS.pgPool s) (Patch.read i)
-        -- TODO Cut out fields from original commit like DB.create
-        -- does
-        case (Aeson.decode $ Aeson.encode res) of
-          Just [obj] -> return obj
-          err   -> error $ "BUG in createHandler: " ++ show err
+        res <- liftIO $ withResource (PS.pgPool s) (runEitherT . crud_create crud commit)
+        case res of
+          Right obj -> return obj
+          Left err  -> error $ "in createHandler: " ++ show err
   case Carma.Model.dispatch (T.decodeUtf8 model) createModel of
     Just fn -> logResp $ fn
     Nothing -> logResp $ do
@@ -189,11 +189,11 @@ readHandler = do
         res <- with db $ do
           let ident = readIdent objId :: IdentI m
           s <- PS.getPostgresState
-          liftIO $ withResource (PS.pgPool s) (Patch.read ident)
+          liftIO $ withResource (PS.pgPool s) (runEitherT . crud_read getModelCRUD ident)
         case res of
-          [obj] -> writeJSON obj
-          []    -> handleError 404
-          _     -> error $ "BUG in readHandler: " ++ show (Aeson.encode res)
+          Right obj              -> writeJSON obj
+          Left (NoSuchObject _)  -> handleError 404
+          Left err               -> error $ "in readHandler: " ++ show err
   -- See also Utils.NotDbLayer.read
   case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
     Just fn -> fn

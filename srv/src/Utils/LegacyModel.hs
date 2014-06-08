@@ -20,6 +20,6 @@ recode o = case decode $ encode o of
              Just v -> v
              Nothing -> error "recode: JSON conversion failed"
 
-mkLegacyIdent :: forall m.Model m => IdentI m => Text
+mkLegacyIdent :: forall m.Model m => IdentI m -> Text
 mkLegacyIdent idt = T.concat [mdl, ":", T.pack $ show $ identVal idt]
     where mdl = modelName (modelInfo :: ModelInfo m)
