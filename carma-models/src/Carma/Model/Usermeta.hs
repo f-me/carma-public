@@ -17,8 +17,9 @@ import qualified Data.Aeson as Aeson
 import Data.Model
 import Data.Model.TH
 import Data.Model.View
+import Data.Model.CRUD
 
-import Carma.Model.Types (UserStateVal)
+import Carma.Model.Types (UserStateVal(Dinner))
 import Carma.Model.Role         hiding (ident)
 import Carma.Model.BusinessRole hiding (ident)
 
@@ -64,6 +65,7 @@ mkIdents [t|Usermeta|]
 instance Model Usermeta where
   type TableName Usermeta = "usermetatbl"
   modelInfo = mkModelInfo Usermeta ident
+    `withEphemeralField` (currentState, \_ident _pg -> return Dinner)
   modelView = \case
     "" -> Just $ modifyView (defaultView)
           [ setMeta "dictionaryStringify" (Aeson.Bool True)          roles

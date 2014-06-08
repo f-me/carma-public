@@ -46,7 +46,7 @@ read (Ident i) c = query c (fromString q) [i]
   where
     mInfo = modelInfo :: ModelInfo m
     fieldNames = map fd_name $ onlyDefaultFields $ modelFields mInfo
-    q = printf "SELECT %s FROM %s WHERE id = ?"
+    q = printf "SELECT %s FROM %s WHERE id = ? LIMIT 2"
       (T.unpack $ T.intercalate ", " fieldNames)
       (show $ tableName mInfo)
 

@@ -3,11 +3,13 @@
 
 module Data.Model.Types where
 
+import Control.Monad.Trans.Either (EitherT)
 import Data.Text (Text, unpack)
 import Data.HashMap.Strict (HashMap)
 import Data.Aeson.Types as Aeson
 import Data.Map (Map)
 
+import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.FromRow   (RowParser)
 import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.ToField   (ToField(..), Action)
@@ -70,6 +72,7 @@ data ModelInfo m = ModelInfo
   , modelFields    :: [FieldDesc]
   , modelOnlyFields:: [FieldDesc]
   , modelFieldsMap :: HashMap Text (FieldDesc)
+  , modelCRUD      :: Maybe (CRUD m) -- ^ `Nothing` means `defaultCRUD`
   }
 
 withLegacyName :: ModelInfo m -> Text -> ModelInfo m
@@ -109,6 +112,23 @@ instance ToJSON FieldView where
     , "canWrite" .= fv_canWrite f
     , "meta"     .= fv_meta f
     ]
+
+
+data CrudError
+  = NoSuchObject String
+  | InconsistentDbState String
+  | MalformedJSON String
+  | PgException String
+  deriving Show
+
+type CrudRes = EitherT CrudError IO Aeson.Value
+
+data CRUD m = CRUD
+  { crud_create :: Aeson.Value             -> PG.Connection -> CrudRes
+  , crud_read   :: IdentI m                -> PG.Connection -> CrudRes
+  , crud_update :: IdentI m -> Aeson.Value -> PG.Connection -> CrudRes
+  , crud_delete :: IdentI m                -> PG.Connection -> CrudRes
+  }
 
 
 class DefaultFieldView t a where

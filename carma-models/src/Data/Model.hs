@@ -60,6 +60,7 @@ mkModelInfo ctr pk =
     , modelFields    = modelFlds
     , modelOnlyFields= modelOnlyFlds
     , modelFieldsMap = HashMap.fromList [(fd_name f, f) | f <- modelFlds]
+    , modelCRUD      = Nothing
     }
 
 
