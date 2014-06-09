@@ -3,7 +3,6 @@ module Carma.Model.Call where
 import Data.Aeson as Aeson
 import Data.Text
 import Data.Typeable
-import Data.Time.Clock (UTCTime)
 import Data.Model as Model
 import Data.Model.Types ((:@))
 import Data.Model.View
@@ -40,6 +39,7 @@ instance Model Call where
     "search" -> Just $ modifyView (searchView callSearchParams) dicts
     _        -> Just $ modifyView defaultView (metas ++ dicts ++ callOldCRUDHacks)
 
+dicts :: [(Text, FieldView -> FieldView) :@ Call]
 dicts =
   [ dict callType $ (dictOpt "CallTypes")
     {dictParent = Just $ Model.fieldName callerType}

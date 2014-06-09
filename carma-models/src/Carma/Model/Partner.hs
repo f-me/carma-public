@@ -17,7 +17,6 @@ where
 
 import Data.Aeson as A
 import Data.Text (Text)
-import Data.Time.Clock (UTCTime)
 import Data.Typeable
 import Data.Vector
 

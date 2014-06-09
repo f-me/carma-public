@@ -2,7 +2,7 @@
 
 module Carma.Model.FieldPermission where
 
-
+import           Prelude hiding (pred)
 import           Data.Text hiding (filter)
 import           Data.Model
 import           Data.Typeable
@@ -102,9 +102,8 @@ retrieveFields q c rs mInfo = do
   return $ fs ++ fsp
   where
     pred n = field :. sql_in role rs :. model `eq` n :. q
-    getFields mInfo = do
-    fs :: Result [Patch FieldPermission] <- selectPatch (pred mInfo) c
-    case fs of
-      Error s   -> fail $
-                   "Can't check permission fields retrieve failed with: " ++ s
-      Success p -> return $ Prelude.map (fromJust . flip get field) p
+    getFields info
+      = selectPatch (pred info) c >>= \case
+        Error s   -> fail $
+                     "Can't check permission fields retrieve failed with: " ++ s
+        Success p -> return $ Prelude.map (fromJust . flip get field) p
