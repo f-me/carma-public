@@ -86,7 +86,6 @@ Executable carma
     hformat                     == 0.1.*,
     HTTP                        == 4000.2.*,
     lens                        >= 3.8 && < 3.11,
-    MissingH                    == 1.2.*,
     MonadCatchIO-transformers   >= 0.2 && < 0.4,
     mtl                         == 2.1.*,
     mime-mail                   == 0.4.1.2,
@@ -128,6 +127,7 @@ Executable carma
       simple-log-syslog           >= 0.1.1
 
   Extensions:
+    FlexibleContexts,
     OverloadedStrings,
     RecordWildCards,
     NamedFieldPuns,
