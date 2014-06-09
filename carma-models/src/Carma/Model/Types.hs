@@ -68,12 +68,12 @@ instance FromJSON Day where
 instance ToJSON Day where
   toJSON = String . fromString . show
 
-newtype Model m => Dict m = Dict Text
-               deriving (FromField, ToField,
-                         FromJSON, ToJSON,
-                         Typeable, Monoid, IsString)
+newtype Dict m = Dict Text
+   deriving (FromField, ToField,
+             FromJSON, ToJSON,
+             Typeable, Monoid, IsString)
 
-data (Typeable t, Show t) => Interval t = Interval t t deriving Typeable
+data Interval t = Interval t t deriving Typeable
 
 instance (Typeable t, Show t) => Show (Interval t) where
   show (Interval begin end) = show begin ++ " | " ++ show end
