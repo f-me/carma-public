@@ -18,7 +18,7 @@ data CarModel = CarModel
   , info     :: F Text             "info"     "Информация о модели"
   , parent   :: F (IdentI CarMake) "parent"   "Марка машины"
   , synonyms :: F (Maybe (Vector Text)) "synonyms" "Синонимы"
-  , fdds     :: F (Maybe Text) "fdds" "VEHICLE MAKE"
+  , fdds     :: F (Maybe Text) "fdds" "VEHICLE MODEL"
   }
   deriving Typeable
 
