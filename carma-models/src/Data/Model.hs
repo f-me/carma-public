@@ -136,7 +136,7 @@ class GetModelFields m ctr where
 instance
     ( GetModelFields m ctr
     , Typeable t, PgTypeable t
-    , DefaultFieldView t DefaultField
+    , DefaultFieldView t
     , FromJSON t, ToJSON t
     , FromField t, ToField t
     , SingI nm, SingI desc)
@@ -164,7 +164,7 @@ instance
 
 instance
     (GetModelFields m ctr, SingI nm, SingI desc
-    ,DefaultFieldView t EphemeralField
+    ,DefaultFieldView t
     ,ToJSON t, FromJSON t, Typeable t)
     => GetModelFields m (EF t nm desc -> ctr)
   where
@@ -183,7 +183,7 @@ instance GetModelFields m m where
   getModelFields _ = Wrap []
 
 buildFieldDesc :: forall m t nm desc app.
-  (SingI nm, SingI desc, DefaultFieldView t app, PgTypeable t
+  (SingI nm, SingI desc, FieldKindSing app, DefaultFieldView t, PgTypeable t
   ,FromJSON t, ToJSON t, FromField t, ToField t, Typeable t)
   => (m -> FF t nm desc app) -> FieldDesc
 buildFieldDesc _ =  FieldDesc

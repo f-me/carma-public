@@ -56,9 +56,9 @@ data MatchType
 
 -- FIXME: check if field type \in {Text, Int, ..}
 one
-  :: forall m t nm desc a
+  :: forall m t nm desc
   . (ToJSON t, FromJSON t, ToField t, FromField t
-    , DefaultFieldView t DefaultField, Typeable t, PgTypeable t
+    , DefaultFieldView t, Typeable t, PgTypeable t
     , SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]
 one f =
@@ -80,9 +80,9 @@ one f =
     } : []
 
 listOf
-  :: forall m t nm desc a
+  :: forall m t nm desc
   . (ToJSON t, FromJSON t, ToField t, FromField t
-    ,DefaultFieldView (Vector t) DefaultField
+    ,DefaultFieldView (Vector t)
     ,Typeable (Vector t), Typeable t, PgTypeable t
     ,SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]

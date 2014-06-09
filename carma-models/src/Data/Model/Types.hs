@@ -1,4 +1,4 @@
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds, GADTs #-}
 {-# LANGUAGE ExistentialQuantification #-}
 
 module Data.Model.Types where
@@ -40,7 +40,18 @@ instance ToJSON t => ToJSON (Ident t m) where
 instance ToField t => ToField (Ident t m) where
   toField (Ident i) = toField i
 
+
+-- | FieldKind and it's singletons
 data FieldKind = DefaultField | EphemeralField
+data FieldKindSingleton (k :: FieldKind) where
+  FKSDefault   :: FieldKindSingleton DefaultField
+  FKSEphemeral :: FieldKindSingleton EphemeralField
+
+class FieldKindSing k where fieldKindSing :: FieldKindSingleton k
+instance FieldKindSing DefaultField   where fieldKindSing = FKSDefault
+instance FieldKindSing EphemeralField where fieldKindSing = FKSEphemeral
+
+
 data FOpt (name :: Symbol) (desc :: Symbol) (app :: FieldKind) = FOpt
 data Field typ opt = Field
 type FF t n d a = Field t (FOpt n d a)
@@ -57,7 +68,7 @@ data FA m = forall t n d. (FieldI t n d) =>
 -- accessors.
 type FieldI t (n :: Symbol) (d :: Symbol) =
   ( Typeable t, PgTypeable t
-  , DefaultFieldView t DefaultField
+  , DefaultFieldView t
   , FromJSON t, ToJSON t
   , FromField t, ToField t
   , SingI n, SingI d)
@@ -131,10 +142,10 @@ data CRUD m = CRUD
   }
 
 
-class DefaultFieldView t a where
-  defaultFieldView ::
-    (SingI nm, SingI desc) => (m -> FF t nm desc a) -> FieldView
-  -- defaultFieldView :: t -> FieldView
+class DefaultFieldView t where
+  defaultFieldView
+    :: (SingI nm, SingI desc, FieldKindSing a)
+    => (m -> FF t nm desc a) -> FieldView
 
 
 data ModelView m = ModelView
