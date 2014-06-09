@@ -4,6 +4,7 @@
            , ScopedTypeVariables
            , RankNTypes
            , DeriveGeneric
+           , GADTs
            , UndecidableInstances
  #-}
 
@@ -206,7 +207,7 @@ instance DefaultFieldView t a =>
   defaultFieldView (_ :: m -> FF (Maybe t) nm desc a)
     = defaultFieldView (undefined :: m -> FF t nm desc a)
 
-instance DefaultFieldView UTCTime "default" where
+instance DefaultFieldView UTCTime DefaultField where
   defaultFieldView f = (defFieldView f)
     { fv_type = "UTCTime"
     , fv_meta
@@ -215,7 +216,7 @@ instance DefaultFieldView UTCTime "default" where
       $ fv_meta $ defFieldView f
     }
 
-instance DefaultFieldView Bool "default" where
+instance DefaultFieldView Bool DefaultField where
   defaultFieldView f = (defFieldView f)
     { fv_type = "Bool"
     , fv_meta
@@ -224,7 +225,7 @@ instance DefaultFieldView Bool "default" where
     }
 
 
-instance DefaultFieldView TInt "default" where
+instance DefaultFieldView TInt DefaultField where
   defaultFieldView f = (defFieldView f)
     { fv_type = "Integer"
     , fv_meta
@@ -233,7 +234,7 @@ instance DefaultFieldView TInt "default" where
       $ fv_meta $ defFieldView f
     }
 
-instance Model m => DefaultFieldView (IdentList m) "default" where
+instance Model m => DefaultFieldView (IdentList m) DefaultField where
   defaultFieldView f = (defFieldView f)
     { fv_type = "IdentList"
     , fv_meta
@@ -241,7 +242,7 @@ instance Model m => DefaultFieldView (IdentList m) "default" where
       $ fv_meta $ defFieldView f
     }
 
-instance DefaultFieldView Double "default" where
+instance DefaultFieldView Double DefaultField where
   defaultFieldView f = (defFieldView f)
     { fv_type = "Double"
     , fv_meta
@@ -250,7 +251,7 @@ instance DefaultFieldView Double "default" where
       $ fv_meta $ defFieldView f
     }
 
-instance DefaultFieldView Int "default" where
+instance DefaultFieldView Int DefaultField where
   defaultFieldView f = (defFieldView f)
     {fv_type = "int"
     ,fv_meta
@@ -258,16 +259,16 @@ instance DefaultFieldView Int "default" where
       $ fv_meta $ defFieldView f
     }
 
-instance DefaultFieldView Int16 "default" where
+instance DefaultFieldView Int16 DefaultField where
   defaultFieldView f = (defFieldView f) {fv_type = "int"}
 
-instance DefaultFieldView Int32 "default" where
+instance DefaultFieldView Int32 DefaultField where
   defaultFieldView f = (defFieldView f) {fv_type = "int"}
 
-instance DefaultFieldView Text "default" where
+instance DefaultFieldView Text DefaultField where
   defaultFieldView f = (defFieldView f) {fv_type = "text"}
 
-instance DefaultFieldView Day "default" where
+instance DefaultFieldView Day DefaultField where
   defaultFieldView f = (defFieldView f)
     { fv_type = "Day"
     , fv_meta
@@ -276,31 +277,31 @@ instance DefaultFieldView Day "default" where
       $ fv_meta $ defFieldView f
     }
 
-instance DefaultFieldView PickerField "default" where
+instance DefaultFieldView PickerField DefaultField where
   defaultFieldView f = (defFieldView f) {fv_type = "picker"}
 
-instance DefaultFieldView MapField "default" where
+instance DefaultFieldView MapField DefaultField where
   defaultFieldView f = (defFieldView f) {fv_type = "map"}
 
-instance DefaultFieldView Reference "default" where
+instance DefaultFieldView Reference DefaultField where
   defaultFieldView f = (defFieldView f) {fv_type = "reference"}
 
-instance DefaultFieldView Checkbox "default" where
+instance DefaultFieldView Checkbox DefaultField where
   defaultFieldView f = (defFieldView f) {fv_type = "checkbox"}
 
-instance DefaultFieldView LegacyDate "default" where
+instance DefaultFieldView LegacyDate DefaultField where
   defaultFieldView f = (defFieldView f) {fv_type = "date"}
 
-instance DefaultFieldView LegacyDatetime "default" where
+instance DefaultFieldView LegacyDatetime DefaultField where
   defaultFieldView f = (defFieldView f) {fv_type = "datetime"}
 
-instance DefaultFieldView Json "default" where
+instance DefaultFieldView Json DefaultField where
   defaultFieldView f = (defFieldView f) {fv_type = "json"}
 
-instance DefaultFieldView Aeson.Value "default"  where
+instance DefaultFieldView Aeson.Value DefaultField  where
   defaultFieldView f = (defFieldView f) {fv_type = "json"}
 
-instance DefaultFieldView Phone "default" where
+instance DefaultFieldView Phone DefaultField where
   defaultFieldView f = (defFieldView f)
     {fv_type = "phone"
     ,fv_meta
@@ -309,7 +310,7 @@ instance DefaultFieldView Phone "default" where
       $ fv_meta $ defFieldView f
     }
 
-instance Typeable tag => DefaultFieldView (Ident Int tag) "default" where
+instance Typeable tag => DefaultFieldView (Ident Int tag) DefaultField where
   defaultFieldView f = (defFieldView f)
     {fv_type = "dictionary"
     ,fv_meta
@@ -319,7 +320,7 @@ instance Typeable tag => DefaultFieldView (Ident Int tag) "default" where
       $ fv_meta $ defFieldView f
     }
 
-instance Typeable tag => DefaultFieldView (Ident Text tag) "default" where
+instance Typeable tag => DefaultFieldView (Ident Text tag) DefaultField where
   defaultFieldView f = (defFieldView f)
     {fv_type = "dictionary"
     ,fv_meta
@@ -328,7 +329,7 @@ instance Typeable tag => DefaultFieldView (Ident Text tag) "default" where
       $ fv_meta $ defFieldView f
     }
 
-instance SingI a => DefaultFieldView (Vector Text) a where
+instance NamedFieldKind a => DefaultFieldView (Vector Text) a where
   defaultFieldView f = (defFieldView f)
     {fv_type = "dictionary-set-text"
     ,fv_meta
@@ -336,16 +337,16 @@ instance SingI a => DefaultFieldView (Vector Text) a where
       $ fv_meta $ defFieldView f
     }
 
-instance DefaultFieldView (Ident Int tag) "default" =>
- DefaultFieldView (Vector (Ident Int tag)) "default" where
+instance DefaultFieldView (Ident Int tag) DefaultField =>
+ DefaultFieldView (Vector (Ident Int tag)) DefaultField where
   defaultFieldView (_ :: m -> F (Vector (Ident Int tag)) nm desc) =
     let v = defaultFieldView (undefined :: m -> F (Ident Int tag) nm desc)
     in v{fv_type = "dictionary-set-int"
         ,fv_meta = Map.insert "widget" "dictionary-many" $ fv_meta v
         }
 
-instance DefaultFieldView (Ident Text tag) "default" =>
- DefaultFieldView (Vector (Ident Text tag)) "default" where
+instance DefaultFieldView (Ident Text tag) DefaultField =>
+ DefaultFieldView (Vector (Ident Text tag)) DefaultField where
   defaultFieldView (_ :: m -> F (Vector (Ident Text tag)) nm desc) =
     let v = defaultFieldView (undefined :: m -> F (Ident Text tag) nm desc)
     in v{fv_type = "dictionary-set-text"
@@ -353,10 +354,10 @@ instance DefaultFieldView (Ident Text tag) "default" =>
         }
 
 
-instance DefaultFieldView (Interval UTCTime) "default" where
+instance DefaultFieldView (Interval UTCTime) DefaultField where
   defaultFieldView f = (defFieldView f) {fv_type = "interval-datetime"}
 
-instance DefaultFieldView (Interval Day) "default" where
+instance DefaultFieldView (Interval Day) DefaultField where
   defaultFieldView f = (defFieldView f)
     {fv_type = "interval-date"
     ,fv_meta
@@ -394,7 +395,7 @@ instance FromField EventType where
 instance ToField EventType where
   toField = toField . show
 
-instance DefaultFieldView EventType "default" where
+instance DefaultFieldView EventType DefaultField where
   defaultFieldView f = (defFieldView f)
 
 data UserStateVal = LoggedOut | Ready | Rest | Busy | Dinner | ServiceBreak
@@ -425,7 +426,7 @@ instance FromField UserStateVal where
           Nothing -> returnError ConversionFailed f "mismatched enums"
           Just v' -> return v'
 
-instance DefaultFieldView UserStateVal "default" where
+instance DefaultFieldView UserStateVal DefaultField where
   defaultFieldView f = (defFieldView f)
     { fv_type = "dictionary"
     , fv_meta = Map.union (fv_meta (defFieldView f)) $ Map.fromList
@@ -435,15 +436,15 @@ instance DefaultFieldView UserStateVal "default" where
                 ]
     }
 
-instance DefaultFieldView (Ident t m) "pk" where
+instance DefaultFieldView (Ident t m) KeyField where
   defaultFieldView f = (defFieldView f)
     { fv_meta = Map.fromList [("readonly", Aeson.Bool True)]
     , fv_type = "Integer"
     , fv_canWrite = False
     }
 
-instance DefaultFieldView t "default"
-         => DefaultFieldView t "ephemeral" where
+instance DefaultFieldView t DefaultField
+         => DefaultFieldView t EphemeralField where
   defaultFieldView (_ :: m -> EF t n d) =
     let d = defaultFieldView (undefined :: m -> F t n d)
     in d{ fv_meta =
@@ -455,14 +456,24 @@ instance DefaultFieldView t "default"
 typeName :: forall t . Typeable t => t -> Text
 typeName _ = T.pack $ tyConName $ typeRepTyCon $ typeOf (undefined :: t)
 
-defFieldView :: forall nm desc a m t.(SingI nm, SingI desc, SingI a)
-             => (m -> FF t nm desc a) -> FieldView
+
+data FKindSing (f :: FieldKind)
+class    NamedFieldKind (k :: FieldKind) where fieldKindName :: FKindSing k -> Text
+instance NamedFieldKind DefaultField     where fieldKindName _ = "default"
+instance NamedFieldKind EphemeralField   where fieldKindName _ = "ephemeral"
+instance NamedFieldKind KeyField         where fieldKindName _ = "pk"
+
+
+defFieldView
+  :: forall nm desc a m t
+  .  (SingI nm, SingI desc, NamedFieldKind a)
+  => (m -> FF t nm desc a) -> FieldView
 defFieldView f = FieldView
   {fv_name = fieldName f
   ,fv_type = "undefined"
   ,fv_canWrite = True
   ,fv_meta = Map.fromList
     [("label", Aeson.String $ fieldDesc f)
-    ,("app",   Aeson.String $ T.pack $ fromSing (sing :: Sing a))
+    ,("app",   Aeson.String $ fieldKindName (undefined :: FKindSing a))
     ]
   }

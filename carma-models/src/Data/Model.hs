@@ -136,7 +136,7 @@ class GetModelFields m ctr where
 instance
     ( GetModelFields m ctr
     , Typeable t, PgTypeable t
-    , DefaultFieldView t "default"
+    , DefaultFieldView t DefaultField
     , FromJSON t, ToJSON t
     , FromField t, ToField t
     , SingI nm, SingI desc)
@@ -164,7 +164,7 @@ instance
 
 instance
     (GetModelFields m ctr, SingI nm, SingI desc
-    ,DefaultFieldView t "ephemeral"
+    ,DefaultFieldView t EphemeralField
     ,ToJSON t, FromJSON t, Typeable t)
     => GetModelFields m (EF t nm desc -> ctr)
   where

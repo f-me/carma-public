@@ -51,7 +51,7 @@ newtype WDay = WDay Day deriving (FromField, ToField,
                                   FromJSON, ToJSON,
                                   Show, Typeable)
 
-instance DefaultFieldView WDay "default" where
+instance DefaultFieldView WDay DefaultField where
   defaultFieldView (_ :: m -> F WDay n d) =
     defaultFieldView (undefined :: m -> F Day n d)
 

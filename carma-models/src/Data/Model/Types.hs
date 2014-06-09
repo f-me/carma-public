@@ -40,13 +40,13 @@ instance ToJSON t => ToJSON (Ident t m) where
 instance ToField t => ToField (Ident t m) where
   toField (Ident i) = toField i
 
-
-data FOpt (name :: Symbol) (desc :: Symbol) (app :: Symbol) = FOpt
+data FieldKind = DefaultField | EphemeralField | KeyField
+data FOpt (name :: Symbol) (desc :: Symbol) (app :: FieldKind) = FOpt
 data Field typ opt = Field
 type FF t n d a = Field t (FOpt n d a)
-type F  t n d   = FF t n d "default"
-type EF t n d   = FF t n d "ephemeral"
-type PK t m n   = FF (Ident t m) "id" n "default"
+type F  t n d   = FF t n d DefaultField
+type EF t n d   = FF t n d EphemeralField
+type PK t m n   = FF (Ident t m) "id" n DefaultField
 
 -- | Existential wrapper for field accessors.
 data FA m = forall t n d. (FieldI t n d) =>
@@ -57,7 +57,7 @@ data FA m = forall t n d. (FieldI t n d) =>
 -- accessors.
 type FieldI t (n :: Symbol) (d :: Symbol) =
   ( Typeable t, PgTypeable t
-  , DefaultFieldView t "default"
+  , DefaultFieldView t DefaultField
   , FromJSON t, ToJSON t
   , FromField t, ToField t
   , SingI n, SingI d)

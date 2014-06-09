@@ -58,7 +58,7 @@ data MatchType
 one
   :: forall m t nm desc a
   . (ToJSON t, FromJSON t, ToField t, FromField t
-    , DefaultFieldView t "default", Typeable t, PgTypeable t
+    , DefaultFieldView t DefaultField, Typeable t, PgTypeable t
     , SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]
 one f =
@@ -82,7 +82,7 @@ one f =
 listOf
   :: forall m t nm desc a
   . (ToJSON t, FromJSON t, ToField t, FromField t
-    ,DefaultFieldView (Vector t) "default"
+    ,DefaultFieldView (Vector t) DefaultField
     ,Typeable (Vector t), Typeable t, PgTypeable t
     ,SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]
