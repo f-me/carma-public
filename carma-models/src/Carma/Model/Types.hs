@@ -436,12 +436,6 @@ instance DefaultFieldView UserStateVal DefaultField where
                 ]
     }
 
-instance DefaultFieldView (Ident t m) KeyField where
-  defaultFieldView f = (defFieldView f)
-    { fv_meta = Map.fromList [("readonly", Aeson.Bool True)]
-    , fv_type = "Integer"
-    , fv_canWrite = False
-    }
 
 instance DefaultFieldView t DefaultField
          => DefaultFieldView t EphemeralField where
@@ -461,7 +455,6 @@ data FKindSing (f :: FieldKind)
 class    NamedFieldKind (k :: FieldKind) where fieldKindName :: FKindSing k -> Text
 instance NamedFieldKind DefaultField     where fieldKindName _ = "default"
 instance NamedFieldKind EphemeralField   where fieldKindName _ = "ephemeral"
-instance NamedFieldKind KeyField         where fieldKindName _ = "pk"
 
 
 defFieldView

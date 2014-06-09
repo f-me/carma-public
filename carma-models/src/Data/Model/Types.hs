@@ -40,7 +40,7 @@ instance ToJSON t => ToJSON (Ident t m) where
 instance ToField t => ToField (Ident t m) where
   toField (Ident i) = toField i
 
-data FieldKind = DefaultField | EphemeralField | KeyField
+data FieldKind = DefaultField | EphemeralField
 data FOpt (name :: Symbol) (desc :: Symbol) (app :: FieldKind) = FOpt
 data Field typ opt = Field
 type FF t n d a = Field t (FOpt n d a)
