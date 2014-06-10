@@ -3,15 +3,16 @@
 module Data.Model.CRUD
   (getModelCRUD
   ,customizeRead
+  ,replaceReadManyWithFilter
   ,CrudError(..)
   ,CRUD(..)
   ) where
 
 import Control.Error
+import Control.Applicative ((<$>))
 import qualified Data.Aeson as Aeson
 import qualified Database.PostgreSQL.Simple as PG
-import Data.Typeable
-import GHC.TypeLits
+import Data.Text (Text)
 
 import Data.Model
 import Data.Model.Types
@@ -43,6 +44,9 @@ defaultCRUD = CRUD
         _ -> Left  $ InconsistentDbState $ show ident
 
   , crud_delete = error "not implemented"
+  , crud_readManyWithFilter = \lim off flt pg -> do
+      ps :: [Patch m] <- tryPg $ Sql.readManyWithFilter lim off flt pg
+      hoistEither $ return $ Aeson.toJSON ps
   }
 
 
@@ -60,6 +64,16 @@ customizeRead m fn = m {modelCRUD = Just crud'}
       p'  <- tryPg $ fn p ident pg
       return $ Aeson.toJSON p'
 
+replaceReadManyWithFilter
+  :: forall m .  (Model m)
+  => ModelInfo m
+  -> (Limit -> Offset -> [(Text,Text)] -> PG.Connection -> IO [Patch m])
+  -> ModelInfo m
+replaceReadManyWithFilter m fn = m {modelCRUD = Just crud'}
+  where
+    crud = fromMaybe defaultCRUD $ modelCRUD m :: CRUD m
+    crud' = crud { crud_readManyWithFilter = read'}
+    read' lim off flt pg = Aeson.toJSON <$> (tryPg $ fn lim off flt pg)
 
 parseJSON :: Model m => Aeson.Value -> Either CrudError (Patch m)
 parseJSON jsn = case Aeson.fromJSON jsn of

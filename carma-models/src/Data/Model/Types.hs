@@ -8,6 +8,7 @@ import Data.Text (Text, unpack)
 import Data.HashMap.Strict (HashMap)
 import Data.Aeson.Types as Aeson
 import Data.Map (Map)
+import Data.Int (Int64)
 
 import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.FromRow   (RowParser)
@@ -139,8 +140,13 @@ data CRUD m = CRUD
   , crud_read   :: IdentI m                -> PG.Connection -> CrudRes
   , crud_update :: IdentI m -> Aeson.Value -> PG.Connection -> CrudRes
   , crud_delete :: IdentI m                -> PG.Connection -> CrudRes
+  , crud_readManyWithFilter
+                :: Limit  -> Offset -> [(Text,Text)]
+                                           -> PG.Connection -> CrudRes
   }
 
+type Limit  = Int64
+type Offset = Int64
 
 class DefaultFieldView t where
   defaultFieldView
