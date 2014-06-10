@@ -168,7 +168,8 @@ createHandler = do
         let crud = getModelCRUD :: CRUD m
         commit <- getJSONBody :: AppHandler Aeson.Value
         s <- PS.getPostgresState
-        res <- liftIO $ withResource (PS.pgPool s) (runEitherT . crud_create crud commit)
+        res <- liftIO $ withResource (PS.pgPool s)
+                (runEitherT . crud_create crud commit)
         case res of
           Right obj -> return obj
           Left err  -> error $ "in createHandler: " ++ show err
@@ -189,7 +190,8 @@ readHandler = do
         res <- with db $ do
           let ident = readIdent objId :: IdentI m
           s <- PS.getPostgresState
-          liftIO $ withResource (PS.pgPool s) (runEitherT . crud_read getModelCRUD ident)
+          liftIO $ withResource (PS.pgPool s)
+                     (runEitherT . crud_read getModelCRUD ident)
         case res of
           Right obj              -> writeJSON obj
           Left (NoSuchObject _)  -> handleError 404
