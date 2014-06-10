@@ -221,8 +221,11 @@ readManyHandler = do
           s   <- PS.getPostgresState
           liftIO $ withResource
             (PS.pgPool s)
-            (Patch.readManyWithFilter limit offset queryFilter)
-        writeJSON (res :: [Patch m])
+            (runEitherT . crud_readManyWithFilter
+                        (getModelCRUD :: CRUD m) limit offset queryFilter)
+        case res of
+          Right obj -> writeJSON obj
+          Left err  -> error $ "in readHandler: " ++ show err
   case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
     Just fn -> fn
     _       -> handleError 404
