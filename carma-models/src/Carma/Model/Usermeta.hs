@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, ScopedTypeVariables #-}
 
 {-|
 
@@ -8,14 +8,18 @@ Proxy model for a subset of legacy usermeta model.
 
 module Carma.Model.Usermeta where
 
-import           Data.Text
+import           Data.Int (Int64)
+import           Data.Text (Text, intercalate, unpack, append)
 import           Data.Typeable
-import           Data.Vector
+import           Data.Vector     (Vector)
 import           Data.Time.Clock (UTCTime)
 import qualified Data.Aeson as Aeson
+import           Data.String (fromString)
+import           Text.Printf
 
 import qualified Database.PostgreSQL.Simple as PG
 import           Database.PostgreSQL.Simple.SqlQQ
+import           Database.PostgreSQL.Simple.Types
 
 import           Data.Model
 import           Data.Model.Patch (Patch)
@@ -70,7 +74,8 @@ mkIdents [t|Usermeta|]
 instance Model Usermeta where
   type TableName Usermeta = "usermetatbl"
   modelInfo = mkModelInfo Usermeta ident
-    `customizeRead` fillCurrentState
+    `customizeRead`             fillCurrentState
+    `replaceReadManyWithFilter` fillStatesForAll
   modelView = \case
     "" -> Just $ modifyView (defaultView)
           [ setMeta "dictionaryStringify" (Aeson.Bool True)          roles
@@ -115,3 +120,31 @@ fillCurrentState p idt c = do
                         P.put currentStateCTime ctime $
                         p
     _                -> return p
+
+fillStatesForAll :: Int64 -> Int64 -> [(Text, Text)] -> PG.Connection
+                 -> IO [Patch Usermeta]
+fillStatesForAll lim off _ c = do
+  usrs :: [(Patch Usermeta) :. (Maybe UserStateVal, Maybe UTCTime)] <-
+          PG.query c (fromString q) (lim, off)
+  return $ map addStates usrs
+      where
+        -- FIXME: make normal query generator allready
+        q = printf allUsrsQ $ unpack $ intercalate ", " $
+            map (append "u.") fieldNames
+        fieldNames = map fd_name $ onlyDefaultFields $ modelFields mInfo
+        mInfo = modelInfo :: ModelInfo Usermeta
+        addStates (um :. (Just s, Just ct)) =
+            P.put currentState s $ P.put currentStateCTime ct $ um
+        addStates (um :. _) = um
+
+
+-- | Select all users with their current states
+allUsrsQ :: String
+allUsrsQ =
+ "SELECT %s, s.state, s.ctime "                                     ++
+ "FROM usermetatbl u "                                              ++
+ "LEFT JOIN (SELECT DISTINCT ON (userid) id, state, ctime, userid " ++
+            "FROM \"UserState\" ORDER BY userid, id DESC) s "       ++
+ "ON u.id = s.userid "                                              ++
+ "LIMIT ? OFFSET ? ;"
+
