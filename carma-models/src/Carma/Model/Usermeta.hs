@@ -92,5 +92,6 @@ instance Model Usermeta where
               {dictType = Just "ModelDict"
               ,dictBounded = True
               }
+          ,widget "onlyServiceBreak" delayedState
       ]
     _  -> Nothing
