@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
 
 {-|
 
@@ -8,20 +8,25 @@ Proxy model for a subset of legacy usermeta model.
 
 module Carma.Model.Usermeta where
 
-import Data.Text
-import Data.Typeable
-import Data.Vector
-import Data.Time.Clock (UTCTime)
+import           Data.Text
+import           Data.Typeable
+import           Data.Vector
+import           Data.Time.Clock (UTCTime)
 import qualified Data.Aeson as Aeson
 
-import Data.Model
-import Data.Model.TH
-import Data.Model.View
-import Data.Model.CRUD
+import qualified Database.PostgreSQL.Simple as PG
+import           Database.PostgreSQL.Simple.SqlQQ
 
-import Carma.Model.Types (UserStateVal(Dinner))
-import Carma.Model.Role         hiding (ident)
-import Carma.Model.BusinessRole hiding (ident)
+import           Data.Model
+import           Data.Model.Patch (Patch)
+import qualified Data.Model.Patch as P
+import           Data.Model.TH
+import           Data.Model.View
+import           Data.Model.CRUD
+
+import           Carma.Model.Types (UserStateVal)
+import           Carma.Model.Role hiding (ident)
+import           Carma.Model.BusinessRole hiding (ident)
 
 data Usermeta = Usermeta
   { ident    :: PK Int Usermeta          "Данные о пользователе"
@@ -65,7 +70,7 @@ mkIdents [t|Usermeta|]
 instance Model Usermeta where
   type TableName Usermeta = "usermetatbl"
   modelInfo = mkModelInfo Usermeta ident
-    `withEphemeralField` (currentState, \_ident _pg -> return Dinner)
+    `customizeRead` fillCurrentState
   modelView = \case
     "" -> Just $ modifyView (defaultView)
           [ setMeta "dictionaryStringify" (Aeson.Bool True)          roles
@@ -95,3 +100,18 @@ instance Model Usermeta where
           ,widget "onlyServiceBreak" delayedState
       ]
     _  -> Nothing
+
+fillCurrentState :: Patch Usermeta -> IdentI Usermeta -> PG.Connection
+                 -> IO (Patch Usermeta)
+fillCurrentState p idt c = do
+  st <- PG.query c [sql|
+          SELECT ctime, state
+          FROM "UserState" WHERE userId = ?
+          ORDER BY id DESC LIMIT 1
+        |] (PG.Only idt)
+  case st of
+    [(ctime, state)] -> return $
+                        P.put currentState      state $
+                        P.put currentStateCTime ctime $
+                        p
+    _                -> return p

@@ -2,7 +2,7 @@
 
 module Data.Model.CRUD
   (getModelCRUD
-  ,withEphemeralField
+  ,customizeRead
   ,CrudError(..)
   ,CRUD(..)
   ) where
@@ -46,20 +46,19 @@ defaultCRUD = CRUD
   }
 
 
-withEphemeralField
-  :: forall m t n d
-  .  (SingI n, Model m, Typeable t)
-  => ModelInfo m -> (m -> EF t n d, IdentI m -> PG.Connection -> IO t)
+customizeRead
+  :: forall m .  (Model m)
+  => ModelInfo m -> (Patch m -> IdentI m -> PG.Connection -> IO (Patch m))
   -> ModelInfo m
-withEphemeralField m (f, fn) = m {modelCRUD = Just crud'}
+customizeRead m fn = m {modelCRUD = Just crud'}
   where
     crud = fromMaybe defaultCRUD $ modelCRUD m :: CRUD m
     crud' = crud { crud_read = crud_read'}
     crud_read' ident pg = do
       obj <- crud_read crud ident pg
       p   <- hoistEither $ parseJSON obj
-      v   <- tryPg $ fn ident pg
-      return $ Aeson.toJSON $ Patch.put f v p
+      p'  <- tryPg $ fn p ident pg
+      return $ Aeson.toJSON p'
 
 
 parseJSON :: Model m => Aeson.Value -> Either CrudError (Patch m)
