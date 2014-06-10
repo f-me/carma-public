@@ -119,8 +119,8 @@ instance (Model m, SingI nm, FromField t)
     type QArg (m -> Field t (FOpt nm desc app)) = ()
     type QMod (m -> Field t (FOpt nm desc app)) = m
     queryProjection f = [fieldName f]
-    queryPredicate  f = []
-    queryTbl       _ = tableName (modelInfo :: ModelInfo m)
+    queryPredicate  _ = []
+    queryTbl       _  = tableName (modelInfo :: ModelInfo m)
     queryArgs       _ = ()
 
 instance (Model m, SingI nm, FromField t, SqlQ q, QMod q ~ m)
@@ -130,9 +130,9 @@ instance (Model m, SingI nm, FromField t, SqlQ q, QMod q ~ m)
     type QArg ((m -> Field t (FOpt nm desc app)) :. q) = QArg q
     type QMod ((m -> Field t (FOpt nm desc app)) :. q) = m
     queryProjection (f :. q) = fieldName f : queryProjection q
-    queryPredicate  (f :. q) = queryPredicate q
+    queryPredicate  (_ :. q) = queryPredicate q
     queryTbl       _        = tableName (modelInfo :: ModelInfo m)
-    queryArgs       (f :. q) = queryArgs q
+    queryArgs       (_ :. q) = queryArgs q
 
 -- NB!
 instance FromRow a => FromRow (a :. ()) where
@@ -160,7 +160,7 @@ instance (Model m, ToField t, SqlQ q, QMod q ~ m)
     type QRes (SqlP m t :. q) = QRes q
     type QArg (SqlP m t :. q) = Only t :. QArg q
     type QMod (SqlP m t :. q) = m
-    queryProjection  (p :. q) = queryProjection q
+    queryProjection  (_ :. q) = queryProjection q
     queryPredicate   (p :. q)
       = printf "%s %s ?" (sqlP_fieldName p) (sqlP_op p)
       : queryPredicate q
