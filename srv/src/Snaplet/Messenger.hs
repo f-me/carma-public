@@ -121,7 +121,8 @@ handler subs pending = do
              ("Unknown message, expecting subscription request" :: Text)
       loop conn s
 
-    disconnect conn s = do
+    disconnect conn@(MConnection _ c) s = do
+      sendClose c ("buy" :: Text)
       atomicModifyIORef' s $ \m ->
         (Map.filter (not . Set.null) $ Map.map (Set.delete conn) m, ())
 
