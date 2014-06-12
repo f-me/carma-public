@@ -12,8 +12,8 @@ define ["text!tpl/screens/timeline.html"
       @height = 240
 
       @user = bind.user
-      @elementId = "chart-#{@user.id}"
-      @title = "Таймлайн - #{@user.realName} (#{@user.login})"
+      @elementId = "chart-#{@user.id()}"
+      @title = "Таймлайн - #{@user.realName()} (#{@user.login()})"
       @legend_data = [ {text: "Готов" ,     state: "Ready"     }
                      , {text: "Занят",      state: "Busy"      }
                      , {text: "Разлогинен", state: "LoggedOut" }
@@ -53,7 +53,7 @@ define ["text!tpl/screens/timeline.html"
         @endDate = end.toDate()
         s = start.format("YYYY-MM-DD")
         e = end.format("YYYY-MM-DD")
-        $.getJSON "/userStates/#{@user.id}/#{s}/#{e}", @setData
+        $.getJSON "/userStates/#{@user.id()}/#{s}/#{e}", @setData
 
       startDate = moment().subtract('days', 1).format('DD MMM, YYYY')
       endDate = moment().format('DD MMM, YYYY')

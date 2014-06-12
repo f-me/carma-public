@@ -2,8 +2,9 @@ define ["model/main"
       , "model/utils"
       , "utils"
       , "sync/crud"
-      , "sync/datamap"]
-    , (Main, ModelUtils, Utils, Crud, DataMap) ->
+      , "sync/datamap"
+      , "lib/messenger"]
+    , (Main, ModelUtils, Utils, Crud, DataMap, WS) ->
 
   ko.bindingHandlers.renderRow =
     update: (el, acc, allBindigns, fld, ctx) ->
@@ -66,19 +67,16 @@ define ["model/main"
       @fetchData()
 
 
-    fetchData: =>
-      $.getJSON "/_/#{@dataModel.name}", (data) =>
-        @setData data
+    fetchData: => $.getJSON "/_/#{@dataModel.name}", @setData
 
     setData: (data) =>
-      @data = data
       @items.removeAll()
       mapper = new DataMap.Mapper(@dataModel)
-      kvms = _.map @data, (d) =>
+      @items _.map data, (d) =>
         k = Main.buildKVM @dataModel, {fetched: mapper.s2cObj d}
         k._meta.q = new Crud.CrudQueue(k, k._meta.model, {not_fetch: true})
         k
-      @items(kvms)
+      WS.multisubKVM(@items)
 
     resetPager: =>
       @limit(@limitDef)
@@ -94,10 +92,6 @@ define ["model/main"
       @clickCb.push cb
 
     rowClick: (row) =>
-      return =>
-        rowData = _.find @data, (d) ->
-          d.id is parseInt row.id()
-        _.each @clickCb, (cb) ->
-          cb(rowData)
+      return => _.each @clickCb, (cb) -> cb(row)
 
   Table
