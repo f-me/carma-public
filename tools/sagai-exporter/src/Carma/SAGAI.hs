@@ -373,6 +373,7 @@ serviceExpenseType s@(mn, _, d) = do
             let ttMap = M.fromList [ (Just TT.charge, Charge)
                                    , (Just TT.ac, Condition)
                                    , (Just TT.starter, Starter)
+                                   , (Just TT.lights, Lights)
                                    ]
             case M.lookup (fvIdent techType) ttMap of
               Just v  -> return v
@@ -436,7 +437,7 @@ exportable (mn, _, d) = statusOk && typeOk
                 "towage"       -> True
                 "rent"         -> True
                 "tech"         -> elem (fvIdent $ dataField0 "techType" d) $
-                                  map Just [TT.charge, TT.ac, TT.starter]
+                                  map Just [TT.charge, TT.ac, TT.starter, TT.lights]
                 _        -> False
           -- Check status and falseCall fields
           statusOk = (falseCall == "none" &&
