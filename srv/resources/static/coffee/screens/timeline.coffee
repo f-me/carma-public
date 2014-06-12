@@ -274,17 +274,21 @@ define ["text!tpl/screens/timeline.html"
       _.each @closeCbs, (cb) ->
         cb(data)
 
+  kvms = null
+
   setupScreen = (viewName, args) ->
-    columns = [ 'login'
-              , 'realName'
-              , 'businessRole'
-              , 'bocities'
-              , 'boprograms'
-              , 'currentState'
-              , 'delayedState'
-              ]
-    dataModel = 'Usermeta'
-    table = new Table {dataModel, columns}
+    table = new Table
+      dataModel: 'Usermeta'
+      columns: [ 'login'
+               , 'realName'
+               , 'businessRole'
+               , 'bocities'
+               , 'boprograms'
+               , 'currentState'
+               , 'delayedState'
+               ]
+
+    kvms = table
 
     timelines = ko.observableArray()
 
@@ -299,4 +303,14 @@ define ["text!tpl/screens/timeline.html"
     ko.applyBindings(kvm, el(viewName))
 
   constructor: setupScreen
+  destructor:  (viewName) =>
+    $('#timeline-view').off()
+    ko.removeNode $('#timeline-view')[0]
+    for k in kvms.items()
+      for n, f of k when ko.isComputed f
+        f.dispose()
+      for n, f of k when /TypeaheadBuilder$/.test(n)
+        f.destroy()
+    kvms.kvms.clean()
+    kvms = null
   template: tpl

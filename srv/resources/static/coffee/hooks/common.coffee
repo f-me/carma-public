@@ -4,6 +4,18 @@ define [ "utils"
   distanceQuery = (coord1, coord2) ->
     u.stripWs "/geo/distance/#{coord1}/#{coord2}/"
 
+  thmenuInit = (k, fname, dict, setter) ->
+    thmenu = []
+    k["#{fname}TypeaheadBuilder"] = ->
+      m = new ThMenu { select: setter, dict  : dict }
+      thmenu.push(m)
+      return m
+
+    k["#{fname}TypeaheadBuilder"].destroy = ->
+      _.map thmenu, (v) -> v.destructor()
+      thmenu = []
+
+
   # - <field>Local for dictionary fields: reads as label, writes real
   #   value back to Backbone model;
   dictionaryKbHook: (m, kvm) ->
@@ -36,12 +48,9 @@ define [ "utils"
         # Use builder here, because same field can be in group
         # and in the main section, and we need to have
         # different instances og thMenu for them
-        kvm["#{fieldName}TypeaheadBuilder"] = ->
-          new ThMenu
-            select: (v) ->
-              kvm[fieldName](dict.id2val(v))
-              kvm[fieldName].valueHasMutated()
-            dict  : dict
+        thmenuInit kvm, fieldName, dict, (v) ->
+          kvm[fieldName](dict.id2val(v))
+          kvm[fieldName].valueHasMutated()
 
         # dict.disabled = kvm["#{fieldName}Disabled"]()
         kvm["#{fieldName}Disabled"].subscribe (v) -> dict.disabled = v
@@ -142,12 +151,9 @@ define [ "utils"
           v = k[n]()
           k[n] _.without v, el.value
 
-        k["#{n}TypeaheadBuilder"] = ->
-          new ThMenu
-            select: (v) ->
-              # FIXME: find more appropriate way to set values here
-              k["#{n}Many"](dict.getLab(dict.id2val(v)))
-            dict  : dict
+        thmenuInit k, n, dict, (v) ->
+          # FIXME: find more appropriate way to set values here
+          k["#{n}Many"](dict.getLab(dict.id2val(v)))
 
         dict.disabled = k["#{n}Disabled"]()
         k["#{n}Disabled"].subscribe (v) -> dict.disabled = v
