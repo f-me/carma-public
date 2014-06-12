@@ -23,6 +23,7 @@ mkIdents [t|TechType|]
  [ ("charge", 4)
  , ("starter", 5)
  , ("ac", 6)
+ , ("lights", 13)
  ]
 
 instance Model TechType where
