@@ -1,6 +1,6 @@
 {-|
 
-  API methods used by PSA integration points.
+API methods used by PSA integration points.
 
 -}
 

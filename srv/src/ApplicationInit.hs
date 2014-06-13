@@ -34,6 +34,7 @@ import Snaplet.Messenger
 import Application
 import ApplicationHandlers
 import AppHandlers.ActionAssignment
+import AppHandlers.ARC
 import AppHandlers.Bulk
 import AppHandlers.CustomSearches
 import AppHandlers.PSA
@@ -78,9 +79,11 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/renderContract",
                               chkAuth . method GET    $ renderContractHandler)
          , ("contracts/findSame",
-                             chkAuth . method GET    $ findSameContract)
+                              chkAuth . method GET    $ findSameContract)
          , ("/searchContracts",
-                              method GET    $ searchContracts)
+                              chkAuthLocal . method GET $ searchContracts)
+         , ("/arcImport/:vin",
+                              chkAuthLocal . method GET $ arcImport)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:mdl",        chkAuth . method GET    $ readManyHandler)

@@ -36,6 +36,7 @@ import qualified Data.ByteString.Lazy as BL
 import           Data.Conduit
 import           Data.Conduit.Binary hiding (mapM_)
 import qualified Data.Conduit.List as CL
+import           Data.CSV.Conduit (runResourceT)
 import qualified Data.CSV.Conduit as CSV
 
 import           Data.List

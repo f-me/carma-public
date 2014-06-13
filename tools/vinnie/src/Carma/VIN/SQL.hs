@@ -683,9 +683,15 @@ transferContracts =
      FROM vinnie_queue WHERE errors IS NULL;
      |] ( contractTable
         , PT $ sqlCommas $
-          (fieldName C.committer):(fieldName C.dixi):contractFields
+          (fieldName C.fromArc):
+          (fieldName C.committer):
+          (fieldName C.dixi):
+          contractFields
         , PT $ sqlCommas $
-          (fieldName C.committer):(fieldName C.dixi):contractFields)
+          (fieldName C.fromArc):
+          (fieldName C.committer):
+          (fieldName C.dixi):
+          contractFields)
 
 
 data RowError = EmptyRequired Text

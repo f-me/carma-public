@@ -132,6 +132,8 @@ contractCSV t = do
                             CopyOutDone _ -> return ()
           _ -> error "Error reading predicates or header fields"
       liftIO $ hClose fh
+      -- TODO Using withTempFile instead breaks sendFile, so we have
+      -- to keep the temporary file even after the handler finishes.
       sendFile fp
 
 

@@ -7,6 +7,9 @@
 
 Contract search.
 
+See 'AppHandlers.CustomSearches.Contract.Base' to add extra fields in
+@/searchContracts@ response.
+
 -}
 
 module AppHandlers.CustomSearches.Contract
@@ -70,7 +73,7 @@ instance FromRow SearchResult where
     fromRow = SearchResult <$> field <*> field <*> fromRow <*> fromRow
 
 instance ToJSON SearchResult where
-    toJSON (SearchResult i e vals (cm, cl, ml, sp, d)) =
+    toJSON (SearchResult i e vals (cm, cl, ml, sp, d, a)) =
         object $ [ "id"       .= i
                  , "_expired" .= e
                  ] ++ (zip C.identifierNames listVals)
@@ -78,7 +81,8 @@ instance ToJSON SearchResult where
                                                    , toJSON cl
                                                    , toJSON ml
                                                    , toJSON sp
-                                                   , toJSON d])
+                                                   , toJSON d
+                                                   , toJSON a])
         where
           jsonVals = toJSON vals
           -- Assume that if identifierTypes is a tuple, its ToJSON

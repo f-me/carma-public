@@ -23,4 +23,5 @@ extraContractFields = [ FA make
                       , FA startMileage
                       , FA subprogram
                       , FA validSince
+                      , FA fromArc
                       ]

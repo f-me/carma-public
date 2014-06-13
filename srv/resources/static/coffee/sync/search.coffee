@@ -32,6 +32,8 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
       { predicates: preds, sorts: sorts }
 
     search: =>
+      if @options.searchHook?
+        @options.searchHook(this)
       # have nothing to search, maybe user delete value
       # return @kvm['searchResults']([]) if _.isEmpty req
       $.ajax
