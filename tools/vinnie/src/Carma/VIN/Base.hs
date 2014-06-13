@@ -59,6 +59,8 @@ data Options = Options
     , subprogram :: Maybe Int
     -- ^ If subprogram not set, VIN file must provide a subprogram
     -- name in every row.
+    , fromArc    :: Bool
+    -- ^ Contracts are loaded from ARC.
     } deriving (Show, Data, Typeable)
 
 

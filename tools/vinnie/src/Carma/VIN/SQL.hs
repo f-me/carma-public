@@ -579,16 +579,24 @@ createQueueTable =
 
 -- | Set committer and subprogram (if not previously set) for
 -- contracts in queue.
-setSpecialDefaults :: Int -> Maybe Int -> Import Int64
-setSpecialDefaults cid sid =
+setSpecialDefaults :: Int
+                   -- ^ Committer.
+                   -> Maybe Int
+                   -- ^ Subprogram.
+                   -> Bool
+                   -- ^ Contracts are loaded from ARC.
+                   -> Import Int64
+setSpecialDefaults cid sid fromArc =
     execute
     [sql|
      UPDATE vinnie_queue SET ? = ?;
      UPDATE vinnie_queue SET ? = 't';
      UPDATE vinnie_queue SET ? = ? WHERE ? IS NULL;
+     UPDATE vinnie_queue SET ? = ?;
      |] (cfn C.committer, cid,
          cfn C.dixi,
-         cfn C.subprogram, sid, cfn C.subprogram)
+         cfn C.subprogram, sid, cfn C.subprogram,
+         cfn C.fromArc, fromArc)
 
 
 -- | Transfer from proto table to queue table, casting text values

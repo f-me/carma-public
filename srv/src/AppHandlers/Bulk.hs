@@ -106,7 +106,8 @@ vinImport = scope "vin" $ scope "upload" $ do
 
       -- VIN import task handler
       with taskMgr $ TM.create $ do
-        let opts = Options connInfo inPath outPath uid fid Nothing (Just sid)
+        let opts = Options connInfo inPath outPath
+                           uid fid Nothing (Just sid) False
         res <- doImport opts
 
         removeFile inPath
