@@ -33,6 +33,9 @@ data SubProgram = SubProgram
   , active      :: F Bool
                    "active"
                    "Активна"
+  , leader      :: F Bool
+                   "leader"
+                   "Основная"
   , synonyms    :: F (Maybe (Vector Text))
                    "synonyms"
                    "Синонимы"

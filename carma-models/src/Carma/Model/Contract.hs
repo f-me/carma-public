@@ -77,6 +77,9 @@ data Contract = Contract
   , email            :: F (Maybe Text)
                         "email"
                         "E-mail клиента"
+  , fromArc          :: F Bool
+                        "fromArc"
+                        "Подгружен из ARC"
   , vin              :: F (Maybe Text)
                         "vin"
                         "VIN"
@@ -161,6 +164,9 @@ data Contract = Contract
   , committer        :: F (IdentI Usermeta)
                         "committer"
                         "Пользователь, внёсший данные"
+  , extra          :: F (Maybe Value)
+                        "extra"
+                        "Дополнительные данные"
   , dixi             :: F Bool
                         "dixi"
                         "Сохранить"

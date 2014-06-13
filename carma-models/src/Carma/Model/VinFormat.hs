@@ -4,7 +4,7 @@
 
 module Carma.Model.VinFormat
     ( VinFormat(..)
-    , Carma.Model.VinFormat.idents
+    , Carma.Model.VinFormat.idents, arc
     , Sing(..)
     , ContractField
     , FormatFieldAccessor(..)

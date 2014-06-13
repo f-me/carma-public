@@ -44,6 +44,7 @@ instance Model SubProgram where
                 , required smsContact
                 , required smsProgram
                 , infoText "subProgramValue" value
+                , infoText "subProgramLeader" leader
                 , infoText "programHelp" help
                 , infoText "programDealerHelp" dealerHelp
                 , setMeta "reference-label"
