@@ -90,11 +90,12 @@ instance ToJSON SearchResult where
 
 
 -- | Read @query@, @case@, @program@ (optional), @subprogram@
--- (optional), @limit@ (defaults to 100) parameters and return list of
--- contracts with matching identifier fields. Every result in the list
--- contains a subset of contract fields and @_expired@ which is a
--- boolean flag indicating whether a contract is expired or not,
--- compared to callDate field of the provided case.
+-- (optional), @limit@ (defaults to 100), @type@ (match type)
+-- parameters and return list of contracts with matching identifier
+-- fields. Every result in the list contains a subset of contract
+-- fields and @_expired@ which is a boolean flag indicating whether a
+-- contract is expired or not, compared to callDate field of the
+-- provided case.
 --
 -- TODO Try rewriting the query with carma-models SQL. @_expired@ is
 -- the only reason we build a custom query here and use SearchResult
@@ -106,6 +107,7 @@ searchContracts = do
   limit <- fromMaybe 100 <$> getIntParam "limit"
   q <- fromMaybe (error "No search query provided") <$> getParam "query"
   caseId <- fromMaybe (error "No case number provided") <$> getIntParam "case"
+  matchType <- fromMaybe "" <$> getParam "type"
 
   ml <- gets $ searchMinLength . options
   when (B.length q < ml) $ error "Search query is too short"
@@ -115,8 +117,13 @@ searchContracts = do
   -- what fields are included in the result.
   let -- Predicate which filters contracts by one field. Parameters
       -- (2): field name, query string.
-      fieldPredicate =
+      fuzzyFieldPredicate =
           "(? ILIKE '%' || ? || '%')"
+      exactFieldPredicate =
+          "(? = ? )"
+      fieldPredicate = if matchType == "exact"
+                       then exactFieldPredicate
+                       else fuzzyFieldPredicate
       fieldParams = zip (map PT C.identifierNames) $ repeat q
       totalQuery = intercalate " "
           [ "SELECT DISTINCT ON(c.id) c.id,"
