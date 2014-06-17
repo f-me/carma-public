@@ -291,6 +291,15 @@ define [ "model/render"
     applyHooks global.hooks.observable, hooks, model, kvm
     return kvm
 
+  # Cleanup stuff that can prevent remove by gc
+  cleanupKVM = (kvm) =>
+    for k in kvms.items()
+      for n, f of k when ko.isComputed f
+        f.dispose()
+      for n, f of k when /TypeaheadBuilder$/.test(n)
+        f.destroy()
+
+
   #/ Model functions.
 
   # Return function which will setup views for that model given its
@@ -494,6 +503,7 @@ define [ "model/render"
   , modelSetup    : modelSetup
   , buildNewModel : buildNewModel
   , buildKVM      : buildKVM
+  , cleanupKVM    : cleanupKVM
   , addRef        : addRef
   , focusRef      : focusRef
   }

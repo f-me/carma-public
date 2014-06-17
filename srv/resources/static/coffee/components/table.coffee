@@ -27,8 +27,7 @@ define ["model/main"
 
       @dataModel = global.model(opt.dataModel)
       @columns = _.map opt.columns, (c) =>
-        _.find @dataModel.fields, (f) =>
-          f.name is c
+        _.find @dataModel.fields, (f) => f.name is c
       @items = ko.observableArray()
 
       @clickCb = []
@@ -66,6 +65,10 @@ define ["model/main"
 
       @fetchData()
 
+    destructor: =>
+      @ws?.close()
+      @kvms.clean()
+      _.map @items, Main.cleanupKVM
 
     fetchData: => $.getJSON "/_/#{@dataModel.name}", @setData
 
@@ -76,7 +79,7 @@ define ["model/main"
         k = Main.buildKVM @dataModel, {fetched: mapper.s2cObj d}
         k._meta.q = new Crud.CrudQueue(k, k._meta.model, {not_fetch: true})
         k
-      WS.multisubKVM(@items)
+      @ws = WS.multisubKVM(@items)
 
     resetPager: =>
       @limit(@limitDef)

@@ -274,7 +274,7 @@ define ["text!tpl/screens/timeline.html"
       _.each @closeCbs, (cb) ->
         cb(data)
 
-  kvms = null
+  tbl = null
 
   setupScreen = (viewName, args) ->
     table = new Table
@@ -288,7 +288,7 @@ define ["text!tpl/screens/timeline.html"
                , 'delayedState'
                ]
 
-    kvms = table
+    tbl = table
 
     timelines = ko.observableArray()
 
@@ -306,11 +306,6 @@ define ["text!tpl/screens/timeline.html"
   destructor:  (viewName) =>
     $('#timeline-view').off()
     ko.removeNode $('#timeline-view')[0]
-    for k in kvms.items()
-      for n, f of k when ko.isComputed f
-        f.dispose()
-      for n, f of k when /TypeaheadBuilder$/.test(n)
-        f.destroy()
-    kvms.kvms.clean()
+    tbl.destructor()
     kvms = null
   template: tpl
