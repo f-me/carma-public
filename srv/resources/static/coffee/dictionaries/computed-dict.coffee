@@ -79,13 +79,14 @@ define ["dictionaries/local-dict"], (ld) ->
 
     UserStateVal: =>
       vals =
-        { LoggedOut:    "Разлогинен"
-        , Ready:        "Готов"
-        , Rest:         "Перерыв"
-        , Busy:         "Занят"
-        , Dinner:       "Обед"
-        , ServiceBreak: "Служебный перерыв"
+        { LoggedOut:    ["Разлогинен",        "#888a85"]
+        , Ready:        ["Готов",             "#ef2929"]
+        , Busy:         ["Занят",             "#8ae234"]
+        , Rest:         ["Перерыв",           "#fcaf3e"]
+        , Dinner:       ["Обед",              "#e9b96e"]
+        , ServiceBreak: ["Служебный перерыв", "#729fcf"]
         }
-      @source = _.map vals, (v, k) -> {label: v, value: k}
+      @colors = _.reduce vals, ((m, [_, c], k) -> m[k] = c), {}
+      @source = _.map vals, ([v, c], k) -> {label: v, value: k, color: c}
 
   dict: ComputedDict

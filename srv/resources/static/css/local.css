@@ -358,27 +358,27 @@ table.dataTable tr.selected-row td.sorting_1 {
 }
 
 .chart .Ready {
-    fill: #2aa198;
+    fill: #ef2929;
 }
 
 .chart .Busy {
-    fill: #859900;
+    fill: #8ae234;
 }
 
 .chart .LoggedOut {
-    fill: #93a1a1;
+    fill: #888a85;
 }
 
-.chart .lunch {
-    fill: #b58900;
+.chart .Rest {
+    fill: #fcaf3e;
 }
 
-.chart .break {
-    fill: #cb4b16;
+.chart .Dinner {
+    fill: #e9b96e;
 }
 
-.chart .service_break {
-    fill: #dc322f;
+.chart .ServiceBreak {
+    fill: #729fcf;
 }
 
 .chart .line {

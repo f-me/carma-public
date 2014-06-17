@@ -1,8 +1,9 @@
 define ["text!tpl/screens/timeline.html"
       , "d3"
       , "model/main"
-      , "components/table"]
-    , (tpl, d3, Main, Table) ->
+      , "components/table"
+      , "dictionaries/computed-dict"]
+    , (tpl, d3, Main, Table, D) ->
 
   class Timeline
     constructor: (bind) ->
@@ -14,10 +15,8 @@ define ["text!tpl/screens/timeline.html"
       @user = bind.user
       @elementId = "chart-#{@user.id()}"
       @title = "Таймлайн - #{@user.realName()} (#{@user.login()})"
-      @legend_data = [ {text: "Готов" ,     state: "Ready"     }
-                     , {text: "Занят",      state: "Busy"      }
-                     , {text: "Разлогинен", state: "LoggedOut" }
-                     ]
+      @states = new D.dict(dict: "UserStateVal")
+      @legend_data = @states.source
       @closeCbs = []
 
     setData: (states) =>
@@ -110,7 +109,7 @@ define ["text!tpl/screens/timeline.html"
         .each((d, i) ->
           g = d3.select(@)
           g.append("rect")
-            .attr("class", (d) -> d.state)
+            .attr("class", (d) -> d.value)
             .attr("x", 25)
             .attr("y", i * 25)
             .attr("width", 30)
@@ -120,7 +119,7 @@ define ["text!tpl/screens/timeline.html"
             .attr("y", i * 25 + 5)
             .attr("width", 40)
             .attr("height", 20)
-            .text(d.text)
+            .text(d.label)
         )
 
       # container for large scale chart
