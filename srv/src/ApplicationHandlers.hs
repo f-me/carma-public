@@ -1,29 +1,22 @@
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module ApplicationHandlers where
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
 
-import Prelude hiding (log)
-
 import Data.Functor
 import Control.Monad
 import Control.Monad.Trans.Either
-import Control.Monad.CatchIO
-import Control.Exception (SomeException)
-import Control.Concurrent (myThreadId)
 
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import qualified Data.Text.Encoding.Error as T
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.Attoparsec.Number as A
 import qualified Data.Aeson as Aeson
-import Data.Aeson (object, (.=))
+import Data.Aeson
 import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -49,7 +42,6 @@ import Text.XmlHtml as X
 import Snap
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
-import Snap.Snaplet.SimpleLog
 import Snap.Util.FileServe (serveFile)
 import Snap.Util.FileUploads (getMaximumFormInputSize)
 
@@ -333,7 +325,7 @@ getParamOrEmpty :: ByteString -> AppHandler T.Text
 getParamOrEmpty = liftM (maybe T.empty T.decodeUtf8) . getParam
 
 rkcHandler :: AppHandler ()
-rkcHandler = scope "rkc" $ scope "handler" $ do
+rkcHandler = logExceptions "handler/rkc" $ do
   p <- getParamOrEmpty "program"
   c <- getParamOrEmpty "city"
   part <- getParamOrEmpty "partner"
@@ -353,12 +345,12 @@ rkcHandler = scope "rkc" $ scope "handler" $ do
   writeJSON info
 
 rkcWeatherHandler :: AppHandler ()
-rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
+rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
   let defaults = ["Moskva", "Sankt-Peterburg"]
   cities <- (fromMaybe defaults . (>>= (Aeson.decode . LB.fromStrict)))
     <$> getParam "cities"
 
-  log Trace $ T.concat ["Cities: ", fromString $ intercalate ", " cities]
+  syslogJSON Info "handler/rkc/weather" ["cities" .= intercalate ", " cities]
 
   conf <- with db $ gets DB.weather
   let weatherForCity = liftIO . getWeather' conf . filter (/= '\'')
@@ -373,7 +365,7 @@ rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
 
 
 rkcFrontHandler :: AppHandler ()
-rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do
+rkcFrontHandler = logExceptions "handler/rkc/front" $ do
   p <- getParamOrEmpty "program"
   c <- getParamOrEmpty "city"
   part <- getParamOrEmpty "partner"
@@ -392,7 +384,7 @@ rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do
   writeJSON res
 
 rkcPartners :: AppHandler ()
-rkcPartners = scope "rkc" $ scope "handler" $ scope "partners" $ do
+rkcPartners = logExceptions "handler/rkc/partners" $ do
   flt <- liftIO RKC.todayFilter
   (from, to) <- getFromTo
 
@@ -406,10 +398,10 @@ rkcPartners = scope "rkc" $ scope "handler" $ scope "partners" $ do
 
 
 arcReportHandler :: AppHandler ()
-arcReportHandler = scope "arc" $ scope "handler" $ do
+arcReportHandler = logExceptions "handler/arc" $ do
   year <- tryParam B.readInteger "year"
   month <- tryParam B.readInt "month"
-  dicts <- scope "dictionaries" . Dict.loadDictionaries $ "resources/site-config/dictionaries"
+  dicts <- Dict.loadDictionaries $ "resources/site-config/dictionaries"
   with db $ ARC.arcReport dicts year month
   serveFile "ARC.xlsx"
   where
@@ -436,14 +428,14 @@ findOrCreateHandler = do
 ------------------------------------------------------------------------------
 -- | Reports
 report :: AppHandler ()
-report = scope "report" $ do
+report = logExceptions "handler/report" $ do
   extendTimeout 6000
   Just reportId <- getParam "program"
   fromDate <- liftM (fmap T.decodeUtf8) $ getParam "from"
   toDate <- liftM (fmap T.decodeUtf8) $ getParam "to"
   reportInfo <- with db $ DB.read "report" reportId
   let tplName = B.unpack (reportInfo Map.! "templates")
-  log Info $ T.concat ["Generating report ", T.pack tplName]
+  syslogTxt Info "handler/report" $ "Generating report " ++ tplName
   let template
         = "resources/static/fileupload/report/"
         ++ (B.unpack reportId) ++ "/templates/" ++ tplName
@@ -569,7 +561,7 @@ getRegionByCity = do
 
 
 smsProcessingHandler :: AppHandler ()
-smsProcessingHandler = scope "sms" $ do
+smsProcessingHandler = logExceptions "handler/sms" $ do
   res <- with db DB.smsProcessing
   writeJSON $ object [
     "processing" .= res]
@@ -668,10 +660,15 @@ restoreProgramDefaults = do
 
 errorsHandler :: AppHandler ()
 errorsHandler = do
-  l <- gets feLog
-  r <- readRequestBody 4096
-  liftIO $ withLog l $ scope "frontend" $ do
-  log Info $ lb2t' r
+  r  <- readRequestBody 4096
+  ip <- rqRemoteAddr <$> getRequest
+  user <- fmap userLogin <$> with auth currentUser
+  syslogJSON Warning "handler/errorsHandler"
+    ["err" .= r
+    ,"ip"  .= ip
+    ,"user".= user
+    ]
+  writeJSON ()
 
 unassignedActionsHandler :: AppHandler ()
 unassignedActionsHandler = do
@@ -683,41 +680,21 @@ unassignedActionsHandler = do
                ++ " AND closed = false"
   writeJSON $ join (r :: [[Integer]])
 
-lb2t' :: LB.ByteString -> T.Text
-lb2t' = T.decodeUtf8With T.lenientDecode . LB.toStrict
-
 logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do
   user <- fmap userLogin <$> with auth currentUser
   r <- getRequest
-  thId <- liftIO myThreadId
-  let params = rqParams r
-      uri    = rqURI r
-      rmethod = rqMethod r
-  scope "detail" $ scope "req" $ log Trace $ lb2t' $ Aeson.encode $ object [
-    "threadId" .= show thId,
-    "request" .= object [
-      "user" .= user,
-      "method" .= show rmethod,
-      "uri" .= uri,
-      "params" .= params,
-      "body" .= commit]]
+  syslogJSON Info "handler/logReq"
+    ["ip"     .= rqRemoteAddr r
+    ,"user"   .= user
+    ,"method" .= show (rqMethod r)
+    ,"uri"    .= rqURI r
+    ,"params" .= rqParams r
+    ,"body"   .= commit
+    ]
 
 logResp :: Aeson.ToJSON v => AppHandler v -> AppHandler ()
-logResp act = runAct `catch` logFail where
-  runAct = do
-    r' <- act
-    scope "detail" $ scope "resp" $ do
-      thId <- liftIO myThreadId
-      log Trace $ lb2t' $ Aeson.encode $ object [
-        "threadId" .= show thId,
-        "response" .= r']
-      writeJSON r'
-  logFail :: SomeException -> AppHandler ()
-  logFail e = do
-    scope "detail" $ scope "resp" $ do
-      thId <- liftIO myThreadId
-      log Trace $ lb2t' $ Aeson.encode $ object [
-        "threadId" .= show thId,
-        "response" .= object ["error" .= show e]]
-    throw e
+logResp act = logExceptions "handler/logResp" $ do
+  r <- act
+  syslogJSON Info "handler/logResp" ["response" .= r]
+  writeJSON r

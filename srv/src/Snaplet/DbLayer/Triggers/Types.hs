@@ -1,18 +1,13 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleContexts, FlexibleInstances, RankNTypes, MultiParamTypeClasses #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, RankNTypes #-}
 
 module Snaplet.DbLayer.Triggers.Types where
 
-import Prelude hiding (log)
-
-import Control.Concurrent (myThreadId)
 import Control.Monad.State
+import Control.Monad.CatchIO (MonadCatchIO)
 import Data.ByteString (ByteString)
-import Data.ByteString.Lazy (toStrict)
 import Data.Map (Map)
 import qualified Data.Map as Map
-
-import Data.Aeson (Value, encode, object, (.=))
-import qualified Data.Text.Encoding as T
+import Data.Aeson (Value, object)
 
 import Snap.Snaplet
 import Snap.Snaplet.RedisDB (runRedisDB)
@@ -22,9 +17,8 @@ import Snaplet.Messenger.Class
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Database.Redis as Redis
 
-import qualified Util as U
+import Util
 
-import System.Log.Simple
 
 data TriggerContext b = TriggerContext
   {dbCache :: ObjectMap
@@ -38,13 +32,13 @@ emptyContext = TriggerContext Map.empty Map.empty Map.empty []
 
 newtype TriggerMonad b r = TriggerMonad {
     runTriggerMonad :: StateT (TriggerContext b) (Handler b (DbLayer b)) r
-    } deriving (Functor, Monad, MonadIO, MonadState (TriggerContext b))
+    } deriving (Functor, Monad, MonadIO, MonadCatchIO, MonadState (TriggerContext b))
 
 type Trigger b = ObjectId -> FieldValue -> TriggerMonad b ()
 type TriggerMap b = Map ModelName (Map FieldName [Trigger b])
 
 class ( Functor (m b)
-      , MonadIO (m b)
+      , MonadCatchIO (m b)
       , MonadState (TriggerContext b) (m b)
       , HasAuth b
       , HasMsg  b
@@ -59,20 +53,16 @@ class ( Functor (m b)
     dateNow :: (Int -> Int) -> m b FieldValue
     liftDb :: Handler b (DbLayer b) r -> m b r
 
-logObject :: MonadLog m => String -> Value -> m ()
-logObject name v = do
-    thId <- liftIO myThreadId
-    log Trace $ T.decodeUtf8 $ toStrict $ encode $ object [
-        "threadId" .= show thId,
-        "trigger" .= name,
-        "data" .= v]
+logObject :: MonadIO m => String -> Value -> m ()
+logObject name v
+  = syslogJSON Debug "trigger/object" ["trigger" .= name, "data" .= v]
 
 reply :: Either Redis.Reply a -> Either String a
 reply (Left r) = Left (show r)
 reply (Right r) = Right r
 
 instance (HasAuth b, HasMsg b) => MonadTrigger TriggerMonad b where
-    createObject model obj = liftDb $ scope "detail" $ scope "trigger" $ scope "create" $ do
+    createObject model obj = logExceptions "trigger/create" $ liftDb $ do
         i <- Redis.create redis model obj
         logObject "create" $ object [
             "model" .= model,
@@ -81,31 +71,31 @@ instance (HasAuth b, HasMsg b) => MonadTrigger TriggerMonad b where
         return i
     readObject key = do
         v <- TriggerMonad $ lift $ Redis.read' redis key
-        liftDb $ scope "detail" $ scope "trigger" $ scope "read" $ logObject "read" $ object [
+        liftDb $ logObject "trigger/read" $ object [
             "key" .= key,
             "result" .= v]
         return v
-    redisLPush lst vals = liftDb $ scope "detail" $ scope "trigger" $ scope "lpush" $ do
+    redisLPush lst vals = logExceptions "trigger/lpush" $ liftDb $ do
         logObject "lpush" $ object [
             "list" .= lst,
             "values" .= vals]
         runRedisDB redis $ Redis.lpush lst vals
-    redisHGet key val = liftDb $ scope "detail" $ scope "trigger" $ scope "hget" $ do
+    redisHGet key val = logExceptions "trigger/hget" $ liftDb $ do
         result <- runRedisDB redis $ Redis.hget key val
         logObject "hget" $ object [
             "key" .= key,
             "member" .= val,
             "result" .= reply result]
         return result
-    redisHGetAll key = liftDb $ scope "detail" $ scope "trigger" $ scope "hgetall" $ do
+    redisHGetAll key = logExceptions "trigger/hgetall" $ liftDb $ do
         result <- runRedisDB redis $ Redis.hgetall key
         logObject "hgetall" $ object [
             "key" .= key,
             "result" .= reply result]
         return result
-    redisDel keys = liftDb $ scope "detail" $ scope "trigger" $ scope "del" $ do
+    redisDel keys = logExceptions "trigger/del" $ liftDb $ do
         logObject "del" $ object [
             "keys" .= keys]
         runRedisDB redis $ Redis.del keys
-    dateNow fn = TriggerMonad $ liftIO $ U.projNow fn
+    dateNow fn = TriggerMonad $ liftIO $ projNow fn
     liftDb act = TriggerMonad $ lift act
