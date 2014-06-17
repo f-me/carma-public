@@ -8,8 +8,6 @@ module Snaplet.DbLayer.Dictionary (
     readRKCCalc
     ) where
 
-import Prelude hiding (log)
-
 import Control.Applicative
 import Control.Arrow
 import Control.Monad
@@ -17,7 +15,6 @@ import Control.Monad.IO.Class
 import Data.Aeson hiding (Result(..))
 import qualified Data.Aeson as A (Result(..))
 import Data.Maybe
-import Data.String
 import qualified Data.ByteString.Lazy.Char8 as LC8
 import qualified Data.Text           as T
 import qualified Data.Text.Encoding  as T
@@ -26,11 +23,10 @@ import qualified Data.Map            as Map
 import qualified Data.Vector         as V
 import System.FilePath
 import System.Directory
-import System.Log.Simple
 
 import Snaplet.DbLayer.Types
 
-import Util (readJSON)
+import Util (readJSON,syslogTxt,Priority(..))
 
 data KeyValue = KeyValue {
     key :: T.Text,
@@ -91,8 +87,8 @@ loadDictionary f = fmap (decode >=> unEntries) $ LC8.readFile f where
         | otherwise = Nothing
     unEntries d = Just d
 
-loadDictionaries :: MonadLog m => FilePath -> m Dictionary
-loadDictionaries cfg = scope "loadDictionaries" $ do
+loadDictionaries :: MonadIO m => FilePath -> m Dictionary
+loadDictionaries cfg = do
     contents <- liftIO $ getDirectoryContents cfg
     let
         toName = T.pack . dropExtension . takeFileName
@@ -102,10 +98,11 @@ loadDictionaries cfg = scope "loadDictionaries" $ do
     ds <- mapM loadDictionary' files
     return $ Dictionaries $ catMaybes $ zipWith (fmap . (,)) names ds
     where
-        loadDictionary' :: MonadLog m => FilePath -> m (Maybe Dictionary)
+        loadDictionary' :: MonadIO m => FilePath -> m (Maybe Dictionary)
         loadDictionary' f = do
             r <- liftIO $ loadDictionary f
-            when (not $ isJust r) $ log Warning $ T.concat ["Unable to load dictionary ", fromString f]
+            when (not $ isJust r)
+              $ syslogTxt Error "loadDictionaries" $ concat ["Unable to load dictionary ", f]
             return r
 
 readRKCCalc :: FilePath -> IO RKCCalc
