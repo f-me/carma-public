@@ -121,10 +121,6 @@ Executable carma
     timers                      == 0.2.*,
     suspend                     == 0.1.*
 
-  if !os(windows)
-    build-depends:
-      simple-log-syslog           >= 0.1.1
-
   Extensions:
     MultiParamTypeClasses,
     FlexibleInstances,
