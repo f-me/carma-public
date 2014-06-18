@@ -11,7 +11,7 @@ define [ "sync/metaq"
       @persisted = @kvm.id()?
       @ftypes[f.name] = f.type for f in @model.fields
       @debounced_save = _.debounce((-> @save()), 1300)
-      # lastfetch is keeping date that was fetched from server during
+      # lastfetch is keeping data from model previous state
       # last push, it is used to prevent immediate pushback of just fetched
       # fields
       @lastFetch = {}
@@ -43,6 +43,7 @@ define [ "sync/metaq"
       cb ?= _.identity # just to be sure we have something to call
       @saveKvm() unless @persisted
       delete @q[k] for k, v of @q when @lastFetch[k] == v
+      _.extend @lastFetch, @q
       method = if @persisted then "PUT" else "POST"
       url    = if @persisted then "#{@url}/#{@kvm.id()}" else @url
       return cb(@kvm, @model) if (_.isEmpty @q) and not force
