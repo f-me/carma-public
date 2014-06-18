@@ -91,8 +91,9 @@ log p = do
       time <- liftIO $ getCurrentTime
       withMsg $ sendMessage
         (mkLegacyIdent tgtUsr)
-        (P.put currentState      st   $
-         P.put currentStateCTime time $
+        (P.put currentState      st      $
+         P.put currentStateCTime time    $
+         P.put delayedState      Nothing $
          P.empty)
   return ()
 
