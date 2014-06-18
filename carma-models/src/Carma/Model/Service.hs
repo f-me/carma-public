@@ -112,12 +112,12 @@ instance Model Service where
     "search" -> Just $ modifyView (searchView serviceSearchParams) svcMod
     "full"   -> Just $ modifyView defaultView svcMod
     "new"    -> Just $ modifyView defaultView
-      $ svcMod
+      $ usualSvcMod
       ++ [mainOnly times_expectedServiceStart
          ,mainOnly times_expectedServiceEnd
          ,mainOnly times_expectedDispatch
          ]
-    "" -> Just $ modifyView defaultView svcMod
+    "" -> Just $ modifyView defaultView usualSvcMod
     _  -> Nothing
 
 
@@ -129,10 +129,8 @@ svcMod =
           }
     ,setType "dictionary" contractor_partnerId
     ,setMeta "widget" "partner" contractor_partner
-    ,invisible contractor_partnerId
     ,invisible contractor_coords
     ,invisible parentId
-    ,invisible svcType
     , setType "text" payment_partnerCost
     , setType "text" payment_calculatedCost
     , setType "text" payment_limitedCost
@@ -142,6 +140,12 @@ svcMod =
     , clientCancelReason `completeWith` CRR.label
     ]
 
+-- | Mods that shouldn't be appied to search view
+usualSvcMod :: [(Text, FieldView -> FieldView) :@ Service]
+usualSvcMod = svcMod ++
+            [ invisible contractor_partnerId
+            , invisible svcType
+            ]
 
 serviceSearchParams :: [(Text, [Predicate Service])]
 serviceSearchParams
