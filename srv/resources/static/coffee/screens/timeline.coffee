@@ -2,8 +2,12 @@ define ["text!tpl/screens/timeline.html"
       , "d3"
       , "model/main"
       , "components/table"
-      , "dictionaries/computed-dict"]
-    , (tpl, d3, Main, Table, D) ->
+      , "dictionaries/computed-dict"
+      , "lib/messenger"
+      , "sync/crud"
+      , "sync/datamap"
+      ]
+    , (tpl, d3, Main, Table, D, WS, Crud, DataMap) ->
 
   class Timeline
     constructor: (bind) ->
@@ -274,6 +278,7 @@ define ["text!tpl/screens/timeline.html"
         cb(data)
 
   tbl = null
+  ws  = null
 
   setupScreen = (viewName, args) ->
     table = new Table
@@ -298,6 +303,17 @@ define ["text!tpl/screens/timeline.html"
         timeline.onClose -> timelines.remove timeline
         timelines.push timeline
 
+
+    $.getJSON "/_/Usermeta", (data) =>
+      model = global.model('Usermeta')
+      kvms = _.map _.filter(data, (v) -> v.isActive), (d) =>
+        mapper = new DataMap.Mapper(model)
+        k = Main.buildKVM model, {fetched: mapper.s2cObj d}
+        k._meta.q = new Crud.CrudQueue(k, k._meta.model, {dontFetch: true})
+        k
+      table.setData kvms
+      ws = WS.multisubKVM(kvms)
+
     kvm = {table, timelines}
     ko.applyBindings(kvm, el(viewName))
 
@@ -306,5 +322,8 @@ define ["text!tpl/screens/timeline.html"
     $('#timeline-view').off()
     ko.removeNode $('#timeline-view')[0]
     tbl.destructor()
+    _.map tbl.items(), (k) -> k.cleanupKVM()
+    ws?.close()
+    ws   = null
     kvms = null
   template: tpl

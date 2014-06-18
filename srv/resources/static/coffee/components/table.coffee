@@ -1,10 +1,8 @@
 define ["model/main"
       , "model/utils"
       , "utils"
-      , "sync/crud"
-      , "sync/datamap"
-      , "lib/messenger"]
-    , (Main, ModelUtils, Utils, Crud, DataMap, WS) ->
+      ]
+    , (Main, ModelUtils, Utils) ->
 
   ko.bindingHandlers.renderRow =
     update: (el, acc, allBindigns, fld, ctx) ->
@@ -63,23 +61,9 @@ define ["model/main"
       @page = ko.computed =>
         @offset() / @limit() + 1
 
-      @fetchData()
+    destructor: => @kvms.clean()
 
-    destructor: =>
-      @ws?.close()
-      @kvms.clean()
-      _.map @items, Main.cleanupKVM
-
-    fetchData: => $.getJSON "/_/#{@dataModel.name}", @setData
-
-    setData: (data) =>
-      @items.removeAll()
-      mapper = new DataMap.Mapper(@dataModel)
-      @items _.map data, (d) =>
-        k = Main.buildKVM @dataModel, {fetched: mapper.s2cObj d}
-        k._meta.q = new Crud.CrudQueue(k, k._meta.model, {not_fetch: true})
-        k
-      @ws = WS.multisubKVM(@items)
+    setData: (data) => @items(data)
 
     resetPager: =>
       @limit(@limitDef)
