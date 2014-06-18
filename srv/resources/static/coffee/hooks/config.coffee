@@ -112,4 +112,4 @@ define [ "hooks/common"
                  ]
 
       "SubProgram" : [ c.bindRemoveHook 'services' ]
-      "Usermeta": [Um.toggleDelayed]
+      "Usermeta": [Um.stateStuff]

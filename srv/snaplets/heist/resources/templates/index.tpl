@@ -162,46 +162,49 @@
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
-                  <div class="current-user-menu">
                   <li>
-                    Текущий статус:
-                    <span data-bind="text: safelyGet('currentStateLocal')" />
-                    <span data-bind="text: safelyGet('timeInCurrentState')" />
-                    <div class="btn-group btn-group-xs"
-                         id="user-state-btngroup">
-                      <button type="button"
-                              class="btn btn-default btn-small"
-                              data-bind="css: {
-                                         'btn-success': delayedState() == 'Rest'
-                                         },
-                                         click: function () {
-                                           toggleDelayed('Rest')
-                                         }">
-                        Перерыв
-                      </button>
-                      <button type="button"
-                              class="btn btn-default btn-small"
-                              data-bind="css: {
-                                         'btn-success': delayedState() == 'Dinner'
-                                         },
-                                         click: function () {
-                                           toggleDelayed('Dinner')
-                                         }">
-                        Обед
-                      </button>
-                      <button type="button"
-                              class="btn btn-default btn-small"
-                              onclick="window.location.href='/logout'">
-                        Выход
-                      </button>
-                    </div>
+                    <a href="/logout/">
+                      <i class="icon-off icon-black" />&nbsp;Выход
+                    </a>
                   </li>
-                  </div>
                 </ul>
               </li>
-              <li>
-                <span class="nav-block"
-                      data-bind="text: safelyGet('currentStateLocal')"/>
+              <li class=dropdown>
+                <a class="nav-block dropdown-toggle"
+                   data-toggle="dropdown"
+                   data-bind="text: safelyGet('currentStateLocal')"/>
+                  <ul class="dropdown-menu">
+                    <li class="current-user-menu">
+                      Текущий статус:
+                      <span data-bind="text: safelyGet('currentStateLocal')" />
+                      <span data-bind="text: safelyGet('timeInCurrentState')" />
+                      <div class="btn-group btn-group-xs"
+                           id="user-state-btngroup">
+                        <button type="button"
+                                class="btn btn-default btn-small"
+                                data-bind="css: {
+                                           'btn-success': delayedState() == 'Rest'
+                                           },
+                                           disable: inSBreak(),
+                                           click: function () {
+                                           toggleDelayed('Rest')
+                                           }">
+                          Перерыв
+                        </button>
+                        <button type="button"
+                              class="btn btn-default btn-small"
+                                data-bind="css: {
+                                           'btn-success': delayedState() == 'Dinner'
+                                           },
+                                           disable: inSBreak(),
+                                           click: function () {
+                                           toggleDelayed('Dinner')
+                                           }">
+                          Обед
+                        </button>
+                      </div>
+                    </li>
+                  </ul>
               </li>
             </ul>
           </ifLoggedIn>
@@ -1882,12 +1885,9 @@
             id="onlyServiceBreak-table-template">
       <button type="button"
               class="btn btn-default btn-small"
-              data-bind="css: {
-                         'btn-success': delayedState() == 'ServiceBreak'
-                         },
-                         click: function () {
-                         toggleDelayed('ServiceBreak')
-                         }">
+              data-bind="css: { 'btn-success': inSBreak },
+                         click: toggleServiceBreak
+                         ">
         Служебный перерыв
       </button>
     </script>
