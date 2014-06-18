@@ -43,6 +43,9 @@ data Usermeta = Usermeta
   , value    :: F (Maybe Text)
                 "realName"
                 "ФИО пользователя"
+  , isActive :: F (Maybe Bool)
+                "isActive"
+                "Активен"
   , isDealer :: F Bool
                 "isDealer"
                 "Дилер"
