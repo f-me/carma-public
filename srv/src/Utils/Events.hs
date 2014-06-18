@@ -228,7 +228,7 @@ nextState lastState delayed evt mname fld =
         on Update $ Fields [field delayedState]
       Just Ready  -> change ([Rest, Dinner, ServiceBreak] >>> Ready) $
         on Update $ Fields [field delayedState]
-      Just dState -> change ([Ready, Rest, Dinner, ServiceBreak] >>> dState) $
+      Just dState -> change ([Ready, Rest, Dinner] >>> dState) $
         on Update $ Fields [field delayedState]
 
     -- Check if we can switch user into delayed state
