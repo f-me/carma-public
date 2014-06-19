@@ -63,8 +63,9 @@ define [ "utils"
       fieldName = f.name
       regexp    = f.meta.regexp
       ((f, r) ->
-        kvm["#{f}Regexp"] =
-              ko.computed -> not r.test kvm[f]()
+        kvm["#{f}Regexp"] = ko.computed ->
+          return false if kvm[f]() == "" or _.isNull(kvm[f]())
+          not r.test kvm[f]()
       )(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]))
 
   # For a field <name> with type=file, add an extra observable
