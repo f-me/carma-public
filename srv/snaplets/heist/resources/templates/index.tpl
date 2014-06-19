@@ -312,7 +312,6 @@
             id="textarea-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -332,7 +331,11 @@
                     rows="7"
                     data-bind="value: {{ name }},
                                valueUpdate: 'afterkeydown',
-                               disabled: {{ name }}Disabled" />
+                               disabled: {{ name }}Disabled,
+                               {{# meta.regexp }}
+                               css: { warning: {{name}}Regexp }
+                               {{/ meta.regexp }}"
+                    />
         </div>
       </div>
     </script>
@@ -350,7 +353,6 @@
             id="text-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -379,7 +381,11 @@
                             {{^ meta.koupdate }}
                             valueUpdate: 'afterkeydown',
                             {{/ meta.koupdate }}
-                            readonly: {{ name }}Disabled" />
+                            readonly: {{ name }}Disabled,
+                            {{# meta.regexp }}
+                            css: { 're-failed': {{name}}Regexp }
+                            {{/ meta.regexp}}"
+                 />
         </div>
       </div>
     </script>
@@ -389,7 +395,6 @@
             id="password-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -414,7 +419,10 @@
                  placeholder="********"
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown',
-                            readonly: {{ name }}Disabled"/>
+                            readonly: {{ name }}Disabled,
+                            {{# meta.regexp }}
+                            css: { 're-failed': {{name}}Regexp }
+                            {{/ meta.regexp}}"/>
           <div class="text-right">
             <button class="btn btn-info"
                     type="button"
@@ -433,7 +441,6 @@
             id="datetime-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            {{# meta.visibility }}data-bind="visible: {{name}}Visible"{{/ meta.visibility}}
            >
         <div class="control-label">
@@ -455,7 +462,11 @@
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }}DateTime,
                             valueUpdate: 'change',
-                            disabled: {{ name }}Disabled" />
+                            disabled: {{ name }}Disabled,
+                            {{# meta.regexp }}
+                            css: { 're-failed': {{name}}Regexp }
+                            {{/ meta.regexp}}"
+                 />
         </div>
       </div>
     </script>
@@ -466,7 +477,6 @@
             id="date-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -500,7 +510,11 @@
                               {{^ meta.koupdate }}
                               valueUpdate: 'afterkeydown',
                               {{/ meta.koupdate }}
-                              readonly: {{ name }}Disabled" />
+                              readonly: {{ name }}Disabled,
+                              {{# meta.regexp }}
+                              css: { 're-failed': {{name}}Regexp }
+                              {{/ meta.regexp}}"
+                   />
             <span class="add-on"><i class="icon icon-calendar" /></span>
           </div>
         </div>
@@ -561,7 +575,6 @@
             id="phone-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}</label>
@@ -574,7 +587,10 @@
                    name="{{ name }}"
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown',
-                              disabled: {{ name }}Disabled"
+                              disabled: {{ name }}Disabled,
+                              {{# meta.regexp }}
+                              css: { 're-failed': {{name}}Regexp }
+                              {{/ meta.regexp}}"
                    onkeyDown="kdoPick('{{ meta.picker }}',
                                       '{{ name }}',
                                       73, event);"
@@ -595,9 +611,6 @@
            {{# meta.required }}
              data-bind="css: { error: {{name}}Not }"
            {{/ meta.required }}
-           {{# meta.regexp   }}
-             data-bind="css: { warning: {{name}}Regexp }"
-           {{/ meta.regexp   }}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -631,8 +644,11 @@
                               valueUpdate: 'change',
                               disabled: {{ name }}Disabled,
                               pickerDisable: {{ name }}Disabled,
-                              bindDict: '{{ name }}'"
-                   />
+                              bindDict: '{{ name }}',
+                              {{# meta.regexp   }}
+                              css: { 're-failed': {{name}}Regexp }
+                              {{/ meta.regexp   }}"
+                              />
             <span class="add-on">
               <i class="icon icon-search" />
             </span>
@@ -649,9 +665,6 @@
            {{# meta.required }}
              data-bind="css: { error: {{name}}Not }"
            {{/ meta.required }}
-           {{# meta.regexp   }}
-             data-bind="css: { warning: {{name}}Regexp }"
-           {{/ meta.regexp   }}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -685,7 +698,10 @@
                               valueUpdate: 'change',
                               disabled: {{ name }}Disabled,
                               pickerDisable: {{ name }}Disabled,
-                              bindDict: '{{ name }}'"
+                              bindDict: '{{ name }}',
+                              {{# meta.regexp   }}
+                              css: { 're-failed': {{name}}Regexp }
+                              {{/ meta.regexp   }}"
                    />
             <span class="add-on">
               <i class="icon icon-chevron-down" />
@@ -703,9 +719,6 @@
            {{# meta.required }}
              data-bind="css: { error: {{name}}Not }"
            {{/ meta.required }}
-           {{# meta.regexp   }}
-             data-bind="css: { warning: {{name}}Regexp }"
-           {{/ meta.regexp   }}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -739,9 +752,10 @@
                               valueUpdate: 'change',
                               disabled: {{ name }}Disabled,
                               pickerDisable: {{ name }}Disabled,
-                              bindDict: '{{ name }}'"
-
-
+                              bindDict: '{{ name }}',
+                              {{# meta.regexp   }}
+                              css: { 're-failed': {{name}}Regexp }
+                              {{/ meta.regexp   }}"
                    />
             <span class="add-on">
               <i class="icon icon-chevron-down"
@@ -768,7 +782,6 @@
             id="picker-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -793,7 +806,10 @@
                    name="{{ name }}"
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown',
-                              disabled: {{ name }}Disabled"
+                              disabled: {{ name }}Disabled,
+                              {{# meta.regexp }}
+                              css: { 're-failed': {{name}}Regexp }
+                              {{/ meta.regexp}}"
                    onkeyDown="kdoPick('{{ meta.picker }}',
                                       '{{ name }}',
                                       66, event);"
@@ -1446,9 +1462,7 @@
         </div>
         <ul data-bind="foreach: {{ name }}Objects">
           <li>
-          <div class="control-group"
-               {{# meta.regexp }}data-bind="css: { warning: regexp }"{{/ meta.regexp}}
-               >
+          <div class="control-group">
             <div class="control-label">
               <label>
                 <span data-bind="text: keyLocal" />
@@ -1465,7 +1479,11 @@
                        {{/ meta.transform }}
                        {{# readonly }}readonly{{/ readonly }}
                        data-bind="value: value,
-                                  valueUpdate: 'afterkeydown'" />
+                                  valueUpdate: 'afterkeydown',
+                       {{# meta.regexp }}
+                       css: { 're-failed': regexp }
+                       {{/ meta.regexp }}"
+                       />
             </div>
           </div>
           {{# meta.showNote }}

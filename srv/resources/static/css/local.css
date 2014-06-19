@@ -520,3 +520,7 @@ table.dataTable tr.selected-row td.sorting_1 {
   margin-left: 5px;
   margin-right: 5px;
 }
+
+input.re-failed {
+  background-color: #FEE793;
+}
