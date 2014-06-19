@@ -33,10 +33,11 @@ require [ "domready"
   do ->
     reportBug = (msg, url, line) ->
       bugReport.addError msg, url, line
-      $.ajax
-        type: "POST"
-        url : "/errors"
-        data: "#{msg} #{url} #{line}"
+      # This can cause dos when backend fail to handle request
+      # $.ajax
+      #   type: "POST"
+      #   url : "/errors"
+      #   data: "#{msg} #{url} #{line}"
 
     originConsoleError = console.error
 
