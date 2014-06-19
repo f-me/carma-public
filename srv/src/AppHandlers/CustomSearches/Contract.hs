@@ -109,8 +109,10 @@ searchContracts = do
   caseId <- fromMaybe (error "No case number provided") <$> getIntParam "case"
   matchType <- fromMaybe "" <$> getParam "type"
 
+  let exact = matchType == "exact"
+
   ml <- gets $ searchMinLength . options
-  when (B.length q < ml) $ error "Search query is too short"
+  when (B.length q < ml && not exact) $ error "Search query is too short"
 
   -- Form query template and all of its parameters. Contract
   -- identifiers (length M) and extraContractFields (length N) define
@@ -120,8 +122,8 @@ searchContracts = do
       fuzzyFieldPredicate =
           "(? ILIKE '%' || ? || '%')"
       exactFieldPredicate =
-          "(? = ? )"
-      fieldPredicate = if matchType == "exact"
+          "(? = ?)"
+      fieldPredicate = if exact
                        then exactFieldPredicate
                        else fuzzyFieldPredicate
       fieldParams = zip (map PT C.identifierNames) $ repeat q
