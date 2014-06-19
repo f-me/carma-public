@@ -16,46 +16,47 @@ define ["utils", "dictionaries"], (u, d) ->
     progs = u.newModelDict "Program", true
     waz = u.newModelDict "Wazzup", true
 
-    $.getJSON( "/callsByPhone/#{phone}" )
-    .done( (calls) ->
-      rows = for i of calls
-        obj = calls[i]
-        callDate = if obj.callDate
-            new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
-          else
-            ''
-        comment = []
-        wazzup  = waz.getLab obj.wazzup
-        comment.push("Что случилось: #{wazzup}") if wazzup
+    if phone
+      $.getJSON( "/callsByPhone/#{phone}" )
+      .done( (calls) ->
+        rows = for i of calls
+          obj = calls[i]
+          callDate = if obj.callDate
+              new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
+            else
+              ''
+          comment = []
+          wazzup  = waz.getLab obj.wazzup
+          comment.push("Что случилось: #{wazzup}") if wazzup
 
-        callType = dict.CallTypes[obj.callType] || obj.callType || ''
-        comment.push("Тип звонка: #{callType}") if callType
+          callType = dict.CallTypes[obj.callType] || obj.callType || ''
+          comment.push("Тип звонка: #{callType}") if callType
 
-        comment.push("ФИО: #{obj.callerName_name}") if obj.callerName_name
+          comment.push("ФИО: #{obj.callerName_name}") if obj.callerName_name
 
-        city = dict['DealerCities'][obj.city]
-        comment.push("Город: #{city}") if city
+          city = dict['DealerCities'][obj.city]
+          comment.push("Город: #{city}") if city
 
-        program = progs.getLab obj.program
-        comment.push("Программа: #{program}") if program
+          program = progs.getLab obj.program
+          comment.push("Программа: #{program}") if program
 
-        make = dict['CarMakers'][obj.make]
-        comment.push("Марка: #{make}") if make
+          make = dict['CarMakers'][obj.make]
+          comment.push("Марка: #{make}") if make
 
-        model = dict['CarModels'][obj.model]
-        comment.push("Модель: #{model}") if model
+          model = dict['CarModels'][obj.model]
+          comment.push("Модель: #{model}") if model
 
-        comment.push("Сотрудник РАМК: #{obj.callTaker}") if obj.callTaker
-        row = [ callDate
-              , obj.callTaker || ''
-              , "звонок"
-              , comment.join("<br/>")
-              , ''
-              ]
-      st.fnAddData rows
-    ).fail( (jqXHR, status, error) ->
-      console.log "[#{status}] Can't load calls for '#{phone}' (#{error})"
-    )
+          comment.push("Сотрудник РАМК: #{obj.callTaker}") if obj.callTaker
+          row = [ callDate
+                , obj.callTaker || ''
+                , "звонок"
+                , comment.join("<br/>")
+                , ''
+                ]
+        st.fnAddData rows
+      ).fail( (jqXHR, status, error) ->
+        console.log "[#{status}] Can't load calls for '#{phone}' (#{error})"
+      )
 
     $.getJSON( "/actionsFor/#{knockVM.id()}" )
     .done( (actions) ->
