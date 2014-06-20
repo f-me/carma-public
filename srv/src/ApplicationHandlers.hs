@@ -54,11 +54,13 @@ import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
 import Snaplet.FileUpload (FileUpload(cfg), doUpload, oneUpload)
+import           Snaplet.Messenger
+import           Snaplet.Messenger.Class
 
 import Carma.Model
 import Data.Model.CRUD
 import qualified Data.Model.Patch.Sql as Patch
-import Data.Model.Patch (Patch(..))
+import           Data.Model.Patch (Patch(..))
 
 import Application
 import AppHandlers.Util
@@ -275,8 +277,9 @@ updateHandler = do
                  "Usermeta" -> do
                    let hmcommit = untypedPatch commit
                        legacyId = B.concat ["Usermeta:", objId]
-                   when (HM.member "delayedState" hmcommit) $ do
-                     void $ logLegacyCRUD Update legacyId Usermeta.delayedState
+                   when (HM.member "delayedState" hmcommit) $ void $ do
+                     withMsg $ sendMessage (T.decodeUtf8 legacyId) commit
+                     logLegacyCRUD Update legacyId Usermeta.delayedState
                    return $ Right $ Aeson.object []
 
                  _ -> return $ Right $ Aeson.object []

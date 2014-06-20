@@ -77,6 +77,8 @@
 
     <script src="/s/js/3p/d3-3.4.6-min.js" />
 
+    <script src="/s/js/3p/notify.js" />
+
     <!-- global libs, that is not handled by require js -->
     <!-- typeahead menu -->
     <script src="/s/js/gen/globallibs/th-menu.js" />

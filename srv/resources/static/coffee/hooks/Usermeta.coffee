@@ -14,5 +14,7 @@ define [], ->
     kvm.toggleServiceBreak = =>
       if kvm.currentState() == 'ServiceBreak'
         kvm.delayedState('Ready')
+      else if kvm.delayedState() == 'ServiceBreak'
+        kvm.delayedState(null)
       else
         kvm.delayedState('ServiceBreak')

@@ -62,10 +62,18 @@ define [ "model/main"
     # update time diff each 10 seconds
     setInterval(calcTime, 10000)
 
+    usr.delayedStateLocal?.subscribeWithOld (n, o) =>
+      return if usr.currentState?() == "Ready"
+      if _.isNull n
+        msg = "Переход в статус \"#{o}\" отменен."
+      else
+        msg = "Переход в статус \"#{n}\" после завершения текущего действия."
+      $.notify msg, className: "info"
+
     ko.applyBindings(usr, $("#current-user")[0])
     # little hack so dropdown with delayed states won't close when user
     # change next state
-    $('#current-user .dropdown-menu').click (event) -> event.stopPropagation()
+    # $('#current-user .dropdown-menu').click (event) -> event.stopPropagation()
 
     if window.location.hash == "" and user.meta.homepage
       Finch.navigate user.meta.homepage.replace '/', ''
