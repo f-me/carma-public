@@ -1,6 +1,5 @@
 module AppHandlers.ActionAssignment where
 
-import Prelude hiding (log)
 import Control.Monad
 import Data.String (fromString)
 
@@ -10,7 +9,6 @@ import qualified Data.Text.Encoding as T
 
 import Snap
 import Snap.Snaplet.Auth
-import Snap.Snaplet.SimpleLog
 import qualified Snaplet.DbLayer as DB
 import Database.PostgreSQL.Simple
 ----------------------------------------------------------------------
@@ -61,7 +59,7 @@ assignQ pri usr = fromString
 
 
 littleMoreActionsHandler :: AppHandler ()
-littleMoreActionsHandler = scoper "littleMoreActions" $ do
+littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   Just cUsr' <- with auth currentUser
 
   actIds'   <- withPG pg_actass (`query_` assignQ 1 cUsr')
@@ -80,9 +78,8 @@ littleMoreActionsHandler = scoper "littleMoreActions" $ do
                        ,("assignTime", now)
                        ]
 
-  when (not $ null actIds''') $ log Info $ fromString
-    $ "New actions for " ++ show uLogin
-    ++ ": " ++ show actIds'''
+  when (not $ null actIds''')
+    $ syslogJSON Info "littleMoreActions" ["login" .= uLogin, "actions" .= show actIds''']
 
   selectActions (Just "0") (Just uLogin) Nothing Nothing Nothing
     >>= writeJSON

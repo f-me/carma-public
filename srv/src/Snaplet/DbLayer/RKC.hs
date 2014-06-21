@@ -1,5 +1,4 @@
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Snaplet.DbLayer.RKC (
   Filter(..), todayFilter,
@@ -8,13 +7,13 @@ module Snaplet.DbLayer.RKC (
   partners
   ) where
 
-import Prelude hiding (log)
-
 import Control.Arrow
 import Control.Monad
 
 import Data.Aeson
 import Data.Maybe
+import Control.Monad.IO.Class
+import Control.Monad.CatchIO (MonadCatchIO)
 import Data.Monoid
 import Data.List (intersect, sort, nub)
 import Data.String
@@ -37,14 +36,18 @@ import Snaplet.Auth.PGUsers
 import Snaplet.DbLayer.Dictionary
 import Snaplet.DbLayer.ARC
 
-import Snap.Snaplet.SimpleLog hiding ((%=))
-
 import Util
 
-fquery :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => String -> FormatArgs -> q -> m [r]
+trace :: (Show a, MonadIO m) => T.Text -> m a -> m a
+trace name fn = do
+  val <- fn
+  syslogJSON Info "rkc/trace" [name .= show val]
+  return val
+
+fquery :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => String -> FormatArgs -> q -> m [r]
 fquery fmt args v = query (fromString $ T.unpack $ format fmt args) v
 
-runQuery_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => PreQuery -> m [r]
+runQuery_ :: (PS.HasPostgres m, MonadCatchIO m, PS.FromRow r) => PreQuery -> m [r]
 runQuery_ pq = runQuery [relations pq]
 
 -- Column of table is in list
@@ -184,16 +187,16 @@ relations q = q `mappend` mconcat (map snd $ filter (hasTables . fst) tableRelat
     (["casetbl", "consultationtbl"], consultationCaseRel),
     (["servicetbl", "actiontbl"], actionServiceRel)]
 
-mintQuery :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m (Maybe Integer)
+mintQuery :: (PS.HasPostgres m, MonadCatchIO m) => PreQuery -> m (Maybe Integer)
 mintQuery qs = do
     rs <- runQuery [relations qs]
     case rs of
         [] -> error "Int query returns no rows"
         (PS.Only r:_) -> return r
 
-caseSummary :: (PS.HasPostgres m, MonadLog m) => Filter -> PreQuery -> m Value
-caseSummary (Filter fromDate toDate program city partner) constraints = scope "caseSummary" $ do
-  log Trace "Loading summary"
+caseSummary :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> PreQuery -> m Value
+caseSummary (Filter fromDate toDate program city partner) constraints = logExceptions "rkc/caseSummary" $ do
+  syslogTxt Info "rkc/caseSummary" "Loading summary"
   [t, m, d, dur, calc, lim, sat] <- sequence [
     trace "total" (run count),
     trace "mechanics" mech,
@@ -245,8 +248,8 @@ caseSummary (Filter fromDate toDate program city partner) constraints = scope "c
         oneInt :: [PS.Only Integer] -> Integer
         oneInt = maybe 0 PS.fromOnly . listToMaybe
 
-caseServices :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
-caseServices fromDate toDate constraints names = scope "caseServices" $ do
+caseServices :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
+caseServices fromDate toDate constraints names = logExceptions "rkc/caseServices" $ do
   [totals, startAvgs, endAvgs, calcs, lims] <- mapM todayAndGroup [count, averageStart, averageEnd, calculatedCost, limitedCost]
   let
     makeServiceInfo n = object [
@@ -263,17 +266,17 @@ caseServices fromDate toDate constraints names = scope "caseServices" $ do
   where
     todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type", p, constraints, betweenTime fromDate toDate "servicetbl" "createTime", groupBy "servicetbl" "type"]
 
-rkcCase :: (PS.HasPostgres m, MonadLog m) => Filter -> PreQuery -> [T.Text] -> m Value
-rkcCase filt@(Filter fromDate toDate _ _ _) constraints services = scope "rkcCase" $ do
+rkcCase :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> PreQuery -> [T.Text] -> m Value
+rkcCase filt@(Filter fromDate toDate _ _ _) constraints services = logExceptions "rkc/rkcCase" $ do
   s <- caseSummary filt (mconcat [doneServices, constraints])
   ss <- caseServices fromDate toDate (mconcat [constraints, doneServices]) services
   return $ object [
     "summary" .= s,
     "services" .= ss]
 
-actionsSummary :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> m Value
-actionsSummary fromDate toDate constraints = scope "actionsSummary" $ do
-  log Trace "Loading summary"
+actionsSummary :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> m Value
+actionsSummary fromDate toDate constraints = logExceptions "rkc/actionsSummary" $ do
+  syslogTxt Info "rkc/actionsSummary" "Loading summary"
   t <- trace "total" (run count)
   u <- trace "undone" (run (mconcat [count, undoneAction]))
   return $ object [
@@ -282,8 +285,8 @@ actionsSummary fromDate toDate constraints = scope "actionsSummary" $ do
   where
     run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, betweenTime fromDate toDate "actiontbl" "duetime"]
 
-actionsActions :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
-actionsActions fromDate toDate constraints actions = scope "actionsActions" $ do
+actionsActions :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
+actionsActions fromDate toDate constraints actions = logExceptions "rkc/actionsActions" $ do
   [totals, undones, avgs] <- mapM todayAndGroup [
     (count, "duetime"),
     (mconcat [count, undoneAction], "duetime"),
@@ -301,8 +304,8 @@ actionsActions fromDate toDate constraints actions = scope "actionsActions" $ do
   where
     todayAndGroup (p, tm) = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, betweenTime fromDate toDate "actiontbl" tm, groupBy "actiontbl" "name"]
 
-rkcActions :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
-rkcActions fromDate toDate constraints actions = scope "rkcActions" $ do
+rkcActions :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
+rkcActions fromDate toDate constraints actions = logExceptions "rkc/rkcActions" $ do
   s <- actionsSummary fromDate toDate constraints
   as <- actionsActions fromDate toDate constraints actions
   return $ object [
@@ -310,8 +313,8 @@ rkcActions fromDate toDate constraints actions = scope "rkcActions" $ do
     "actions" .= as]
 
 -- | Average time for each operator and action
-rkcEachActionOpAvg :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> [(T.Text, T.Text)] -> [T.Text] -> m Value
-rkcEachActionOpAvg fromDate toDate constraints usrs acts = scope "rkcEachActionOpAvg" $ do
+rkcEachActionOpAvg :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [(T.Text, T.Text)] -> [T.Text] -> m Value
+rkcEachActionOpAvg fromDate toDate constraints usrs acts = logExceptions "rkc/rkcEachActionOpAvg" $ do
   r <- trace "result" $ runQuery_ $ mconcat [
     constraints,
     select "actiontbl" "assignedTo",
@@ -342,8 +345,8 @@ rkcEachActionOpAvg fromDate toDate constraints usrs acts = scope "rkcEachActionO
           avgSum st' = (average *** sum) $ unzip $ map snd st'
           average l = sum l `div` fromIntegral (length l)
 
-rkcComplaints :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> m Value
-rkcComplaints fromDate toDate constraints = scope "rkcComplaints" $ do
+rkcComplaints :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> m Value
+rkcComplaints fromDate toDate constraints = logExceptions "rkc/rkcComplaints" $ do
   compls <- trace "result" $ runQuery_ $ mconcat [
     constraints,
     select "casetbl" "id",
@@ -363,8 +366,8 @@ rkcComplaints fromDate toDate constraints = scope "rkcComplaints" $ do
 
 -- | Calculate @stats@ numbers of @/rkc@ response (average processing
 -- times).
-rkcStats :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
-rkcStats (Filter from to program city partner) = scope "rkcStats" $ do
+rkcStats :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> m Value
+rkcStats (Filter from to program city partner) = logExceptions "rkc/rkcStats" $ do
   let qParams = sqlFlagPair (0 :: Int) id program'
                 PS.:. ( T.null city
                       , city
@@ -423,21 +426,20 @@ todayFilter = do
     filterCity = "",
     filterPartner = "" }
 
-traceFilter :: MonadLog m => Filter -> m ()
-traceFilter (Filter from to prog city partner) = do
-  logTrace "Program: " prog
-  logTrace "City: " city
-  logTrace "From: " $ fromString $ show from
-  logTrace "To: " $ fromString $ show to
-  logTrace "Partner: " partner
-  where
-    logTrace :: MonadLog m => T.Text -> T.Text -> m ()
-    logTrace prefix value = log Trace $ T.concat [prefix, value]
+traceFilter :: MonadCatchIO m => String -> Filter -> m ()
+traceFilter tag (Filter from to prog city partner)
+  = syslogJSON Info tag
+    ["program" .= prog
+    ,"city"    .= city
+    ,"from"    .= show from
+    ,"to"      .= show to
+    ,"partner" .= partner
+    ]
 
-rkc :: (PS.HasPostgres m, MonadLog m) => UsersList -> Filter -> m Value
-rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = scope "rkc" $ do
-  traceFilter filt
-  dicts <- scope "dictionaries" . loadDictionaries $ "resources/site-config/dictionaries"
+rkc :: (PS.HasPostgres m, MonadCatchIO m) => UsersList -> Filter -> m Value
+rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = logExceptions "rkc/rkc" $ do
+  traceFilter "rkc/rkc" filt
+  dicts <- loadDictionaries $ "resources/site-config/dictionaries"
   c <- rkcCase filt constraints (serviceNames dicts)
   a <- rkcActions fromDate toDate constraints (actionNames dicts)
   ea <- rkcEachActionOpAvg fromDate toDate constraints usrs' (actionNames dicts)
@@ -463,9 +465,9 @@ rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = scope 
           v = T.decodeUtf8 $ m HM.! "label"
 
 
-rkcFront :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
-rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "front" $ do
-  traceFilter filt
+rkcFront :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> m Value
+rkcFront filt@(Filter fromDate toDate program city _) = logExceptions "rkc/rkcFront" $ do
+  traceFilter "rkc/rkcFront" filt
 
   let
     args = [
@@ -521,10 +523,9 @@ rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "fro
       "cases" .= cases]
 
 -- | All partners on services within time interval
-partners :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> m Value
-partners fromDate toDate = scope "rkc" $ scope "partners" $ do
-  log Trace $ T.concat ["From: ", fromString $ show fromDate]
-  log Trace $ T.concat ["To: ", fromString $ show toDate]
+partners :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> m Value
+partners fromDate toDate = logExceptions "rkc/partners" $ do
+  syslogJSON Info "rkc/partners" ["from" .= show fromDate, "to" .= show toDate]
 
   let
     q = [
@@ -534,7 +535,7 @@ partners fromDate toDate = scope "rkc" $ scope "partners" $ do
   ps <- trace "result" $ queryFmt q [] [asLocal fromDate, asLocal toDate]
   return $ toJSON (mapMaybe PS.fromOnly ps :: [T.Text])
 
-queryFmt :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => [String] -> FormatArgs -> q -> m [r]
+queryFmt :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => [String] -> FormatArgs -> q -> m [r]
 queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)
 
 -- | Calculate average service processing time (in seconds).

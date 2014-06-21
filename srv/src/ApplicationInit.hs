@@ -7,8 +7,6 @@ import Control.Monad.IO.Class
 import Data.ByteString (ByteString)
 import Data.Configurator as Cfg
 
-import System.Log.Simple (newLog, fileCfg, logger, text, file)
-
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
 
@@ -177,13 +175,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   g <- nestSnaplet "geo" geo geoInit
 
-  l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
-       [logger text (file "log/frontend.log")]
-
   search' <- nestSnaplet "search" search $ searchInit pgs authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 
   addRoutes routes
   wrapSite (claimUserActivity>>)
-  return $ App h s authMgr c d pgs pga tm fu g l ad search' opts msgr
+  return $ App h s authMgr c d pgs pga tm fu g ad search' opts msgr

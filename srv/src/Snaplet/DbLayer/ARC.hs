@@ -10,11 +10,10 @@ module Snaplet.DbLayer.ARC (
     saveArcReport
     ) where
 
-import Prelude hiding (log)
-
 import Control.Arrow
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Monad.CatchIO
 import Data.Monoid
 import Data.Maybe (fromMaybe)
 import Data.List
@@ -22,7 +21,6 @@ import Data.Function (on)
 import qualified Data.Map as M
 import Data.String
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import Data.Time
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import qualified Database.PostgreSQL.Simple.ToField as PS
@@ -32,19 +30,19 @@ import Text.Format
 
 import qualified Codec.Xlsx as Xlsx
 import qualified Codec.Xlsx.Writer as Xlsx
+import Util
 
-import Snap.Snaplet.SimpleLog hiding ((%=))
 
-query_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => PS.Query -> m [r]
+query_ :: (PS.HasPostgres m, MonadCatchIO m, PS.FromRow r) => PS.Query -> m [r]
 query_ s = do
     bs <- PS.formatQuery s ()
-    log Trace $ T.concat ["query: ", T.decodeUtf8 bs]
+    syslogJSON Debug "ARC/query_" ["query" .= bs]
     PS.query_ s
 
-query :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => PS.Query -> q -> m [r]
+query :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => PS.Query -> q -> m [r]
 query s v = do
     bs <- PS.formatQuery s v
-    log Trace $ T.concat ["query: ", T.decodeUtf8 bs]
+    syslogJSON Debug "ARC/query" ["query" .= bs]
     PS.query s v
 
 -- pre-query, holds fields, table names and conditions in separate list to edit
@@ -83,17 +81,17 @@ strQuery (PreQuery f t c g o a) = (str, a) where
     nonullcat [] _ = ""
     nonullcat _ s = T.concat s
 
-runQuery :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => [PreQuery] -> m [r]
+runQuery :: (PS.HasPostgres m, MonadCatchIO m, PS.FromRow r) => [PreQuery] -> m [r]
 runQuery qs = query (fromString compiled) a where
     (compiled, a) = strQuery (mconcat qs)
 
-intQuery :: (PS.HasPostgres m, MonadLog m) => [PreQuery] -> m Integer
+intQuery :: (PS.HasPostgres m, MonadCatchIO m) => [PreQuery] -> m Integer
 intQuery qs = do
     rs <- runQuery qs
     case rs of
         [] -> error "Int query returns no rows"
         ((PS.Only r):_) -> do
-            log Debug $ T.concat ["Int query result: ", T.pack (show r)]
+            syslogTxt Debug "ARC/intQuery" $ concat ["Int query result: ", show r]
             return r
 
 -- | Create ARC report for year and month
@@ -104,9 +102,9 @@ intQuery qs = do
 -- select count(*) from casetbl, servicetbl where ('case:' || casetbl.id = servicetbl.parentId) and (servicetbl.type = 'towage') and (casetbl.diagnosis1 = 'dtp') and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
 -- select count(*) from casetbl, servicetbl where ('case:' || casetbl.id = servicetbl.parentId) and (servicetbl.type not in ('tech', 'towage')) and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
 -- select count(*) from casetbl, servicetbl where ('case:' || casetbl.id = servicetbl.parentId) and (servicetbl.clientSatisfied = 'notSatis') and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
-arcReport :: (PS.HasPostgres m, MonadLog m) => Dictionary -> Integer -> Int -> m ()
-arcReport d year month = scope "arc" $ do
-    log Info $ T.concat ["Creating arc report for ", fromString (formatTime defaultTimeLocale "%m.%Y" (fromGregorian year month 1))]
+arcReport :: (PS.HasPostgres m, MonadCatchIO m) => Dictionary -> Integer -> Int -> m ()
+arcReport d year month = logExceptions "ARC/arcReport" $ do
+    syslogTxt Debug "ARC/arcReport" $ concat ["Creating arc report for ", formatTime defaultTimeLocale "%m.%Y" (fromGregorian year month 1)]
     tzMins <- liftM timeZoneMinutes $ liftIO getCurrentTimeZone
     let
         daysCount = gregorianMonthLength year month
@@ -146,7 +144,7 @@ arcReport d year month = scope "arc" $ do
     others <- queryFmt ["$serviceSelect and (servicetbl.type not in ('tech', 'towage')) and $inThisMonth $serviceGroup"]
     notSatisfied <- queryFmt ["$serviceSelect and (servicetbl.clientSatisfied = 'notSatis') and $inThisMonth $serviceGroup"]
 
-    log Trace "Saving to ARC.xlsx"
+    syslogTxt Debug "ARC/arcReport" "Saving to ARC.xlsx"
 
     let
         reportData = M.unionsWith (++) [
@@ -168,7 +166,7 @@ arcReport d year month = scope "arc" $ do
         header = replicate 2 (Xlsx.CellText "") ++ map (Xlsx.CellDouble . fromIntegral) [1.. daysCount]
 
     liftIO $ saveXlsx "ARC.xlsx" header sheetData
-    log Info "Report saved to ARC.xlsx"
+    syslogTxt Debug "ARC/arcReport" "Report saved to ARC.xlsx"
 
 saveXlsx :: FilePath -> [Xlsx.CellValue] -> [[Xlsx.CellValue]] -> IO ()
 saveXlsx f ts fs = Xlsx.writeXlsx f [sheet] where

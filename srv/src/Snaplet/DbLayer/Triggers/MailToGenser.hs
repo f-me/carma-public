@@ -5,16 +5,13 @@ module Snaplet.DbLayer.Triggers.MailToGenser
   ) where
 
 
-import Prelude hiding (log)
-import qualified Data.Text as T
 import Data.ByteString (ByteString)
-
 import qualified Snap.Snaplet.PostgresqlSimple as PG
 import Database.PostgreSQL.Simple.SqlQQ
-import System.Log.Simple
 
 import Snaplet.DbLayer.Triggers.Types (MonadTrigger, liftDb)
 import Snaplet.DbLayer.Triggers.Dsl (get)
+import Util
 
 
 q :: PG.Query
@@ -79,8 +76,8 @@ q = [sql|
 
 sendMailToGenser :: MonadTrigger m b => ByteString -> m b ()
 sendMailToGenser svcId = do
-  liftDb $ log Trace (T.pack $ "sendMailToGenser(" ++ show svcId ++ ")")
+  syslogJSON Info "trigger/mailToGenser" ["svcId" .= svcId]
   -- we need new status value but from postgres we can get only the old one
   svcStatus <- get svcId "status"
   res <- liftDb $ PG.query q [svcStatus, svcId]
-  liftDb $ log Trace (T.pack $ "sendMailToGenser(" ++ show svcId ++ ":" ++ show (res::[[Int]]) ++ ")")
+  syslogJSON Info "trigger/mailToGenser" ["svcId" .= svcId, "res" .= show (res::[[Int]])]

@@ -1,18 +1,14 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Snaplet.DbLayer.PostgresCRUD (
     loadRelations,
     insert, update, updateMany, insertUpdate, insertUpdateMany,
     generateReport
     ) where
 
-import Prelude hiding (log)
 
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.CatchIO
-import qualified Control.Exception as E
 
 import qualified Data.Aeson as A
 import qualified Data.Map as M
@@ -42,17 +38,16 @@ import System.Locale
 import Text.Printf
 
 import Snaplet.DbLayer.Dictionary
-import Snap.Snaplet.SimpleLog
-
 import qualified Carma.ModelTables as MT
+import Util
 
-withPG :: (PS.HasPostgres m, MonadLog m) => S.TIO a -> m a
-withPG f = do
+
+withPgTIO :: (PS.HasPostgres m, MonadCatchIO m) => S.TIO a -> m a
+withPgTIO f = do
     s <- PS.getPostgresState
-    l <- askLog
-    liftIO $ Pool.withResource (PS.pgPool s) (withLog l . S.inPG f)
+    liftIO $ Pool.withResource (PS.pgPool s) (S.inPG f)
 
-inPsql :: (PS.HasPostgres m, MonadLog m) => (P.Connection -> m ()) -> m ()
+inPsql :: (PS.HasPostgres m, MonadCatchIO m) => (P.Connection -> m ()) -> m ()
 inPsql act = do
     s <- PS.getPostgresState
     Pool.withResource (PS.pgPool s) act
@@ -127,7 +122,7 @@ functions tz dict = [
             [(t, "")] -> Just $ fromInteger t
             _ -> Nothing
         toPosix _ = Nothing
-        
+
         -- | Dirty: xlsx doesn't have datediff type, but we can specify diff
         -- by days (double)
         dateDiff [from, to] = do
@@ -155,7 +150,7 @@ functions tz dict = [
                 (S.StringValue . formatTime defaultTimeLocale fmt)
                 (fmap (utcToLocalTime tz . posixSecondsToUTCTime) $ toPosix v)
         formatTimeFun _ (v:_) = v
-        
+
         fddsFun fs = do
             pr <- M.lookup "servicesview.program" fs
             lookupField [S.StringValue "FDDS", pr]
@@ -166,7 +161,7 @@ functions tz dict = [
         falseFun fs = do
             (S.StringValue isFalse) <- M.lookup "servicesview.falseCall" fs
             return $ S.StringValue (if isFalse `elem` ["bill", "nobill"] then "Y" else "N")
-        
+
         billFun fs = do
             (S.StringValue isFalse) <- M.lookup "servicesview.falseCall" fs
             return $ S.StringValue (if isFalse == "bill" then "Y" else "N")
@@ -177,7 +172,7 @@ functions tz dict = [
                 "satis" -> "Y"
                 "notSatis" -> "N"
                 _ -> ""
-            
+
         faultFun fs = do
             d2 <- M.lookup "servicesview.diagnosis2" fs
             d3 <- M.lookup "servicesview.diagnosis3" fs
@@ -188,11 +183,11 @@ functions tz dict = [
                                       [S.StringValue "FaultCode", S.StringValue "diagnosis3", d3]
             (S.StringValue s')  <- lookupField [S.StringValue "FaultCode", S.StringValue "service", s]
             return $ S.StringValue $ d2' ++ d3' ++ s'
-            
+
         vehicleMakeFun fs = do
             m <- M.lookup "servicesview.car_make" fs
             lookupField [S.StringValue "VehicleMake", m]
-            
+
         vehicleModelFun fs = do
             mk <- M.lookup "servicesview.car_make" fs
             md <- M.lookup "servicesview.car_model" fs
@@ -220,15 +215,11 @@ functions tz dict = [
 
         backOperator fs = M.lookup "servicesview.backoperator" fs
 
-escope :: (MonadLog m) => T.Text -> m () -> m ()
-escope s act = catch (scope_ s act) onError where
-    onError :: (MonadLog m) => E.SomeException -> m ()
-    onError _ = return ()
-
-loadRelations :: FilePath -> Log -> IO S.Relations
-loadRelations f l = withLog l $ do
-    log Trace "Loading relations"
-    liftIO $ fmap (fromMaybe (error "Unable to load relations") . A.decode) $ LB.readFile f
+loadRelations :: FilePath -> IO S.Relations
+loadRelations
+  = liftIO
+  . fmap (fromMaybe (error "Unable to load relations") . A.decode)
+  . LB.readFile
 
 toStr :: ByteString -> String
 toStr = T.unpack . T.decodeUtf8
@@ -236,35 +227,43 @@ toStr = T.unpack . T.decodeUtf8
 getModel :: Monad m => ByteString -> [MT.TableDesc] -> m MT.TableDesc
 getModel modelName descs = maybe (error $ "No model " ++ toStr modelName) return $ MT.tableByModel modelName descs
 
-insert :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> ByteString -> M.Map ByteString ByteString -> m ()
-insert descs modelName dat = escope "insert" $ inPsql $ \con -> do
+insert :: (PS.HasPostgres m, MonadCatchIO m) => [MT.TableDesc] -> ByteString -> M.Map ByteString ByteString -> m ()
+insert descs modelName dat
+  = hushExceptions "PostgresCRUD/insert" $ inPsql $ \con -> do
     desc' <- getModel modelName descs
     MT.insert con desc' (MT.addType desc' dat)
 
-update :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> ByteString -> ByteString -> M.Map ByteString ByteString -> m ()
-update descs modelName modelId dat = escope "update" $ inPsql $ \con -> do
+update :: (PS.HasPostgres m, MonadCatchIO m) => [MT.TableDesc] -> ByteString -> ByteString -> M.Map ByteString ByteString -> m ()
+update descs modelName modelId dat
+  = hushExceptions "PostgresCRUD/update" $ inPsql $ \con -> do
     desc' <- getModel modelName descs
     MT.update con desc' modelId dat
 
-insertUpdate :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> ByteString -> ByteString -> M.Map ByteString ByteString -> m ()
-insertUpdate descs modelName modelId dat = escope "insertUpdate" $ inPsql $ \con -> do
+insertUpdate :: (PS.HasPostgres m, MonadCatchIO m) => [MT.TableDesc] -> ByteString -> ByteString -> M.Map ByteString ByteString -> m ()
+insertUpdate descs modelName modelId dat
+  = hushExceptions "PostgresCRUD/insertUpdate" $ inPsql $ \con -> do
     desc' <- getModel modelName descs
     MT.insertUpdate con desc' modelId dat
 
-updateMany :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> M.Map (ByteString, ByteString) (M.Map ByteString ByteString) -> m ()
-updateMany descs m = scope "updateMany" $ forM_ (M.toList m) $ uncurry update' where
+updateMany :: (PS.HasPostgres m, MonadCatchIO m) => [MT.TableDesc] -> M.Map (ByteString, ByteString) (M.Map ByteString ByteString) -> m ()
+updateMany descs m
+  = logExceptions "PostgresCRUD/updateMany" $ forM_ (M.toList m) $ uncurry update'
+  where
     update' (mdlName, mdlId) = update descs mdlName mdlId
 
-insertUpdateMany :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> M.Map (ByteString, ByteString) (M.Map ByteString ByteString) -> m ()
-insertUpdateMany descs m = scope "insertUpdateMany" $ forM_ (M.toList m) $ uncurry insertUpdate' where
+insertUpdateMany :: (PS.HasPostgres m, MonadCatchIO m) => [MT.TableDesc] -> M.Map (ByteString, ByteString) (M.Map ByteString ByteString) -> m ()
+insertUpdateMany descs m
+  = logExceptions "PostgresCRUD/insertUpdateMany" $ forM_ (M.toList m) $ uncurry insertUpdate'
+  where
     insertUpdate' (mdlName, mdlId) = insertUpdate descs mdlName mdlId
 
-generateReport :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> [S.Condition] -> (T.Text -> [T.Text]) -> FilePath -> FilePath -> m ()
-generateReport tbls relations superCond tpl fileName = scope "generate" $ do
-    log Debug "Generating report "
-    log Trace "Loading dictionaries"
+generateReport :: (PS.HasPostgres m, MonadCatchIO m) => [MT.TableDesc] -> [S.Condition] -> (T.Text -> [T.Text]) -> FilePath -> FilePath -> m ()
+generateReport tbls relations superCond tpl fileName
+  = logExceptions "PostgresCRUD/generateReport" $ do
+    syslogTxt Debug "PostgresCRUD/generateReport" "Generating report "
+    syslogTxt Debug "PostgresCRUD/generateReport" "Loading dictionaries"
     tz <- liftIO getCurrentTimeZone
-    dicts <- scope "dictionaries" . loadDictionaries $ "resources/site-config/dictionaries"
+    dicts <- loadDictionaries $ "resources/site-config/dictionaries"
     -- TODO: Orderby must not be here!
-    withPG (R.createReport tbls relations (functions tz dicts) superCond [] [] tpl fileName)
-    log Debug "Report generated"
+    withPgTIO (R.createReport tbls relations (functions tz dicts) superCond [] [] tpl fileName)
+    syslogTxt Debug "PostgresCRUD/generateReport" "Report generated"
