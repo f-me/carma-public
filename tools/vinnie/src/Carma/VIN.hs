@@ -36,6 +36,7 @@ import qualified Data.ByteString.Lazy as BL
 import           Data.Conduit
 import           Data.Conduit.Binary hiding (mapM_)
 import qualified Data.Conduit.List as CL
+import           Data.CSV.Conduit (runResourceT)
 import qualified Data.CSV.Conduit as CSV
 
 import           Data.List
@@ -243,7 +244,7 @@ processTitles vf csvHeader =
 
 -- | Perform VIN file import using the provided mapping.
 process :: (Int, Maybe Int)
-        -- ^ Program & subprogram ids.
+        -- ^ Program & subprogram ids, obtained from import options.
         -> String
         -- ^ Input file encoding name.
         -> ([(ColumnTitle, InternalName)], [FFMapper])
@@ -306,12 +307,13 @@ process psid enc mapping = do
                  -- Set default values.
                  void $ execute setQueueDefaults (PT fn, dv, PT fn))
 
+  arc <- getOption fromArc
   -- Set committer and subprogram. If the subprogram is loadable and
   -- was not recognized in a file row, it will be set to the
   -- subprogram specified in import options. However, if it is
   -- required, the corresponding file row has already been marked as
   -- erroneous on the previous step.
-  setSpecialDefaults uid (snd psid)
+  setSpecialDefaults uid (snd psid) arc
 
   markMissingIdentifiers
 

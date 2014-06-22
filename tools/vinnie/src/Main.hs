@@ -34,6 +34,7 @@ main = do
                    &= typ "FORMAT-ID"
                  , VIN.program = Nothing
                  , subprogram = Nothing
+                 , fromArc = False
                  }
                  &= program programName
     in do

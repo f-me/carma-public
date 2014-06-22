@@ -11,7 +11,6 @@ where
 
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as B
-import           Data.Configurator
 import qualified Data.HashMap.Strict as HM
 import           Data.Int
 import           Data.Maybe
@@ -19,8 +18,6 @@ import           Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-
-import           Database.PostgreSQL.Simple (ConnectInfo(..))
 
 import           System.Directory
 import           System.FilePath
@@ -88,21 +85,15 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       (outPath, _) <- liftIO $ openTempFile tmpDir inName
 
       -- Use connection information from DbLayer
-      dbCfg <- with db $ with DB.postgres $ getSnapletUserConfig
-      connInfo <-
-          liftIO $ ConnectInfo
-                     <$> require dbCfg "host"
-                     <*> require dbCfg "port"
-                     <*> require dbCfg "user"
-                     <*> require dbCfg "pass"
-                     <*> require dbCfg "db"
+      connInfo <- with db $ with DB.postgres $ getConnectInfo
 
       -- Set current user as committer
       uid <- maybe (error "No usermeta id") fst <$> (with db $ userMetaPG u)
 
       -- VIN import task handler
       with taskMgr $ TM.create $ do
-        let opts = Options connInfo inPath outPath uid fid Nothing (Just sid)
+        let opts = Options connInfo inPath outPath
+                           uid fid Nothing (Just sid) False
         res <- doImport opts
 
         removeFile inPath
