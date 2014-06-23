@@ -34,7 +34,8 @@ define [ "model/main"
     usr.currentState?.subscribe (v) =>
       # order of conditions is matter, second won't be avaluatd if first
       # is false, and 'Finch.navigate()' may change current route
-      if Finch.navigate() == 'rest' and v == 'Ready'
+      if (_.contains ['rest', 'serviceBreak'], Finch.navigate()) and
+          v == 'Ready'
         window.location.href = user.meta.homepage
 
     usr.timeInCurrentState = ko.observable()
