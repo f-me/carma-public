@@ -19,7 +19,7 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
 
       if q.length == 17
         arcQuery = "/arcImport/#{q}?#{params}"
-        needArc = true
+        @needArc = true
 
       processResponse = (r) =>
         @found = []
