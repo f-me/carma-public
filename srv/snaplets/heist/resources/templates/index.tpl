@@ -185,7 +185,7 @@
                         <button type="button"
                                 class="btn btn-default btn-small"
                                 data-bind="css: {
-                                           'btn-success': delayedState() == 'Rest'
+                                           'btn-success': safelyGet('delayedState') == 'Rest'
                                            },
                                            disable: inSBreak(),
                                            click: function () {
@@ -196,7 +196,7 @@
                         <button type="button"
                               class="btn btn-default btn-small"
                                 data-bind="css: {
-                                           'btn-success': delayedState() == 'Dinner'
+                                           'btn-success': safelyGet('delayedState') == 'Dinner'
                                            },
                                            disable: inSBreak(),
                                            click: function () {
