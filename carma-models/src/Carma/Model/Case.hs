@@ -86,7 +86,7 @@ caseDicts = [
    (Aeson.String $ Model.fieldName diagnosis1) diagnosis2
   ,setType "dictionary" contractIdentifier
   ,dict contractIdentifier $ (dictOpt "") {dictType = Just "ContractsDict"}
-  ,dict car_model $ (dictOpt "CarModels")
+  ,dict car_model $ (dictOpt "CarModel")
               {dictParent = Just $ Model.fieldName car_make, dictBounded = True}
   ,dict car_seller $ (dictOpt "")
               {dictType = Just "DealersDict", dictBounded = True}
@@ -103,6 +103,8 @@ caseOldCRUDHacks =
     [ setMeta "dictionaryStringify" (Aeson.Bool True) car_class
     , setMeta "dictionaryStringify" (Aeson.Bool True) car_engine
     , setMeta "dictionaryStringify" (Aeson.Bool True) car_transmission
+    , setMeta "dictionaryStringify" (Aeson.Bool True) car_make
+    , setMeta "dictionaryStringify" (Aeson.Bool True) car_model
     , setType "text" car_mileage
     , setType "text" car_makeYear
     , setMeta "dictionaryStringify" (Aeson.Bool True) program

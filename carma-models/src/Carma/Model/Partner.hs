@@ -39,7 +39,7 @@ data Partner = Partner
   , code     :: F (Maybe Text) "code" "Код"
   , city     :: F (Maybe (IdentT City)) "city" "Город"
   , makes
-    :: F (Maybe (Vector (IdentT CarMake))) "makes" "Обслуживаемые марки"
+    :: F (Maybe (Vector (IdentI CarMake))) "makes" "Обслуживаемые марки"
 --  , phones
 --   :: F (Maybe Text) {- json -} "phones" "Телефоны"
 --  , coords
