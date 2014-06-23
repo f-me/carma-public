@@ -94,7 +94,7 @@ arcImport = do
   connInfo <- with db $ with DB.postgres $ getConnectInfo
 
   -- Fetch & load
-  csv <- liftIO $ parseArc colNames <$> fetchArc vin
+  csv <- liftIO $ parseArc <$> fetchArc vin
 
   let vinS = B8.unpack vin
   syslogTxt Info "ARC" $ "Obtained good XML for VIN=" ++ vinS
@@ -180,13 +180,11 @@ fetchArc vin = do
 
 
 -- | Parse ARC XML response to CSV file contents.
-parseArc :: [Text]
-         -- ^ List of extracted column names.
-         -> Document
+parseArc :: Document
          -> Maybe Text
-parseArc colNames doc = if Prelude.null csvContents
-                        then Nothing
-                        else Just $ T.unlines $ [csvHeader] ++ csvContents
+parseArc doc = if Prelude.null csvContents
+               then Nothing
+               else Just $ T.unlines $ [csvHeader] ++ csvContents
     where
       root = fromDocument doc
       -- Name with namespace

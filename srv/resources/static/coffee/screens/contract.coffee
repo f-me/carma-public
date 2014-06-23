@@ -105,9 +105,12 @@ define [ "search/screen"
 
       # Role-specific permissions
       kvm['isActiveDisableDixi'](true)
-      if _.find(global.user.roles, (r) -> r == global.idents("Role").partner)
+      is_partner = _.find(global.user.roles,
+        (r) -> r == global.idents("Role").partner)
+      if is_partner
         kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
-      if _.find(global.user.roles, (r) -> r == global.idents("Role").contract_admin)
+      if _.find(global.user.roles,
+        (r) -> r == global.idents("Role").contract_admin)
         kvm['disableDixi'](true)
 
       # True if a duplicate contract caused user to not save the

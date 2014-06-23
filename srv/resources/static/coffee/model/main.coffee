@@ -249,10 +249,11 @@ define [ "model/render"
             disabled(not not a)
 
     # make dixi button disabled
-    # until all required fields are filled
+    # until all editable required fields are filled
     kvm['disableDixiU'] = ko.computed ->
       return unless kvm['dixi']
-      notFlds = (not kvm["#{f.name}Not"]() for f in required)
+      notFlds = (not kvm["#{f.name}Not"]() \
+        for f in required when f.canWrite && f.name != "dixi")
       isFilled = _.all notFlds, _.identity
       if isFilled
         kvm['dixiDisabled'](false) unless kvm['dixi']()
