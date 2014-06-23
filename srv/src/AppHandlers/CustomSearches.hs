@@ -75,7 +75,9 @@ selectPartners city isActive isDealer makes = do
     ++ (maybe "" (\x -> "  AND city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND isActive = " ++ toBool x) isActive)
     ++ (maybe "" (\x -> "  AND isDealer = " ++ toBool x) isDealer)
-    ++ (maybe "" (\x -> "  AND " ++ quote x ++ " = ANY (makes)") makes)
+    ++ (maybe "" (\x -> "  AND ("
+      ++ quote x ++ " = 'null' OR "
+      ++ quote x ++ " = ANY (makes))")) makes
   let fields = ["id", "name", "city", "comment", "isDealer", "isMobile"]
   return $ mkMap fields rows
 
@@ -328,7 +330,7 @@ allDealersForMake = do
   rows <- withPG pg_search $ \c -> query c [sql|
     SELECT id::text, name
       FROM partnertbl
-      WHERE isActive AND isDealer AND ? = ANY (makes)
+      WHERE isActive AND isDealer AND ?::int = ANY (makes)
     |] [make]
   writeJSON $ mkMap ["id", "name"] rows
 

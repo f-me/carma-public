@@ -39,12 +39,6 @@ define ["utils", "dictionaries"], (u, d) ->
         program = progs.getLab obj.program
         comment.push("Программа: #{program}") if program
 
-        make = dict['CarMakers'][obj.make]
-        comment.push("Марка: #{make}") if make
-
-        model = dict['CarModels'][obj.model]
-        comment.push("Модель: #{model}") if model
-
         comment.push("Сотрудник РАМК: #{obj.callTaker}") if obj.callTaker
         row = [ callDate
               , obj.callTaker || ''
@@ -158,7 +152,7 @@ define ["utils", "dictionaries"], (u, d) ->
     dict = new d.dicts.ModelDict
       dict: 'CarModel'
       meta:
-        dictionaryKey: 'value'
+        dictionaryKey: 'id'
         dictionaryLabel: 'info'
     knockVM['car_modelInfo'] = ko.computed ->
       dict.getLab knockVM['car_model']?()

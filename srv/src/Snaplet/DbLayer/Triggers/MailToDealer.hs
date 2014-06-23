@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 module Snaplet.DbLayer.Triggers.MailToDealer
   ( sendMailToDealer
   , tryRepTowageMail
@@ -31,11 +32,11 @@ import qualified Carma.Model.Program as Program
 
 import AppHandlers.PSA.Base
 
+import qualified Snap.Snaplet.PostgresqlSimple as PG
+import Database.PostgreSQL.Simple.SqlQQ
 import Snap.Snaplet (getSnapletUserConfig)
-import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
-import DictionaryCache
 
 import Util as U
 
@@ -92,20 +93,27 @@ fillVars caseId
   >>= add "car_vin"      (txt <$> get caseId "car_vin")
   >>= add "car_plateNum" (txt <$> get caseId "car_plateNum")
   >>= add "wazzup"       (txt <$> get caseId "customerComment")
-  >>= add "car_make"     (get caseId "car_make"  >>= tr carMake . txt)
-  >>= add "car_model"    getCarModel
-  -- TODO Refactor this to a separate monad
+  >>= add "car_make"     (sqlRes <$> carMake)
+  >>= add "car_model"    (sqlRes <$> carModel)
   where
     txt = T.decodeUtf8
     add k f m = f >>= \v -> return (Map.insert k v m)
-    tr d v = Map.findWithDefault v v <$> liftDb (getDict d)
-    getCarModel = do
-      mk <- txt <$> get caseId "car_make"
-      md <- txt <$> get caseId "car_model"
-      dc <- liftDb $ getDict carModel
-      return
-        $ Map.findWithDefault md md
-        $ Map.findWithDefault Map.empty mk dc
+    sqlRes = \case {[[res]] -> res; _ -> ""}
+    carModel = liftDb $ PG.query
+      [sql|
+        select md.label
+        from casetbl cs, "CarModel" md
+        where cs.id = substring(?, ':(.*)') :: int
+          and md.id = cs.car_model |]
+      [caseId]
+    carMake = liftDb $ PG.query
+      [sql|
+        select mk.label
+        from casetbl cs, "CarMake" mk
+        where cs.id = substring(?, ':(.*)') :: int
+          and mk.id = cs.car_make |]
+      [caseId]
+
 
 sendMailToDealer :: MonadTrigger m b => ByteString -> m b ()
 sendMailToDealer actionId = do

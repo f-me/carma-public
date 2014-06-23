@@ -42,8 +42,6 @@ import Carma.HTTP (read1Reference)
 
 import           Data.Model
 
-import qualified Carma.Model.CarMake as CarMake
-import qualified Carma.Model.CarModel as CarModel
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.CaseStatus as CaseStatus
 import qualified Carma.Model.Contract as Contract
@@ -207,6 +205,7 @@ data C2C = P (FA Contract.Contract)
          | forall m. Model m => J (FA Contract.Contract) (FA m) (FA m)
          -- ^ Which Contract field to join with another model field
          -- and how to project that model field to case.
+         -- FIXME: seems that @J@ is not used anymore.
 
 
 -- | Mapping between contract and case fields.
@@ -214,11 +213,8 @@ contractToCase :: [(C2C, FA Case.Case)]
 contractToCase =
     [ (P $ FA Contract.name, FA Case.contact_name)
     , (P $ FA Contract.vin, FA Case.car_vin)
-      -- FIXME We won't need this after #1360
-    , (J (FA Contract.make) (FA CarMake.ident) (FA CarMake.value),
-       FA Case.car_make)
-    , (J (FA Contract.model) (FA CarModel.ident) (FA CarModel.value),
-       FA Case.car_model)
+    , (P $ FA Contract.make, FA Case.car_make)
+    , (P $ FA Contract.model, FA Case.car_model)
     , (P $ FA Contract.seller, FA Case.car_seller)
     , (P $ FA Contract.plateNum, FA Case.car_plateNum)
     , (P $ FA Contract.makeYear, FA Case.car_makeYear)

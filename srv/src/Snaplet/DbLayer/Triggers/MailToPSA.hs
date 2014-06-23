@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 module Snaplet.DbLayer.Triggers.MailToPSA
   ( sendMailToPSA
   ) where
@@ -28,6 +29,8 @@ import Network.Mail.Mime
 import Carma.HTTP
 
 import Snap.Snaplet (getSnapletUserConfig)
+import qualified Snap.Snaplet.PostgresqlSimple as PG
+import Database.PostgreSQL.Simple.SqlQQ
 
 import qualified Carma.Model.Engine as Engine
 import qualified Carma.Model.PaymentType as PT
@@ -104,11 +107,17 @@ sendMailActually actionId = do
           fld 3   "Make"             <=== mcode
 
           fld 13  "Model"   $ do
-            mk <- get' caseId "car_make"
-            md <- get' caseId "car_model"
-            return $ Map.findWithDefault md md
-              $ Map.findWithDefault Map.empty mk
-              $ carModel dic
+            res <- liftDb $ PG.query
+                  [sql|
+                    select md.label
+                    from casetbl cs, "CarModel" md
+                    where cs.id = substring(?, ':(.*)') :: int
+                      and md.id = cs.car_model
+                      and md.parent = cs.car_make |]
+                  [caseId]
+            return $ case res of
+              [[modelName]] -> modelName
+              _ -> ""
           fld 1   "Energie" $ get caseId "car_engine" >>= \eng ->
                if eng == identFv Engine.diesel
                then return "D"
@@ -174,19 +183,19 @@ sendMailActually actionId = do
     cfgTo   <- liftIO $ require cfg "psa-smtp-recipients"
     cfgReply<- liftIO $ require cfg "psa-smtp-replyto"
 
-    -- FIXME: throws `error` if sendmail exits with error code
     void $ liftIO $ forkIO $ do
       syslogJSON Info "trigger/mailToPSA/sendMailToPSA" ["actionId" .= actionId]
       logExceptions "trigger/mailToPSA/sendMailToPSA"
         $ renderSendMailCustom "/usr/sbin/sendmail" ["-t", "-r", T.unpack cfgFrom]
-        $ (emptyMail $ Address Nothing cfgFrom)
-          {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
-          ,mailHeaders
-            = [ ("Reply-To", cfgReply)
-              , ("Subject"
-            ,T.concat ["RAMC ", T.decodeUtf8 svcId, " / ", T.decodeUtf8 actionId])]
-          ,mailParts = [[bodyPart]]
-          }
+          $ (emptyMail $ Address Nothing cfgFrom)
+            {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
+            ,mailHeaders
+              = [ ("Reply-To", cfgReply)
+                , ("Subject"
+                , T.concat ["RAMC ", T.decodeUtf8 svcId, " / ", T.decodeUtf8 actionId])
+                ]
+            ,mailParts = [[bodyPart]]
+            }
 
 
 get' :: MonadTrigger m b => ByteString -> ByteString -> m b Text

@@ -15,7 +15,7 @@ define [], ->
       { name: "make"
       , type: "dictionary-many"
       , meta:
-          dictionaryName: "CarMakers"
+          dictionaryName: "CarMake"
           label: "Марка"
       },
       { name: "services"
@@ -150,7 +150,7 @@ define [], ->
       , type: "dictionary-many"
       , meta:
          label: "Марки"
-         dictionaryName: "CarMakers"
+         dictionaryName: "CarMake"
       },
       { name: "services"
       , type: "nested-model"
