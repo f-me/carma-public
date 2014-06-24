@@ -76,6 +76,12 @@ define ["model/utils", "utils"], (mu, u) ->
       49.959505, 53.198916,
       50.44771, 53.416821)
 
+  Chekhov =
+    coords: new OpenLayers.LonLat(37.4545328, 55.1426603)
+    bounds: new OpenLayers.Bounds(
+      37.4053535461426, 55.1205749511719,
+      37.494945526123, 55.1808853149414)
+
   # Build a place for city from geoQuery response (overrides
   # coordinates and boundaries for certain key cities)
   buildCityPlace = (res) ->
@@ -88,6 +94,8 @@ define ["model/utils", "utils"], (mu, u) ->
         Petersburg
       when "74728345"
         Samara
+      when "50457539"
+        Chekhov
       else
         buildPlace res
 
