@@ -4,7 +4,7 @@ import Data.Aeson as Aeson
 import Data.Text
 import Data.Typeable
 
-import Data.Model
+import Data.Model as Model
 import Data.Model.View
 import Carma.Model.LegacyTypes
 import Carma.Model.CarClass (CarClass)
