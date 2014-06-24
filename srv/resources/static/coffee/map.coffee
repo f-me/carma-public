@@ -94,7 +94,7 @@ define ["model/utils", "utils"], (mu, u) ->
         Petersburg
       when "74728345"
         Samara
-      when "50457539"
+      when "47656825"
         Chekhov
       else
         buildPlace res
