@@ -86,8 +86,9 @@ caseDicts = [
    (Aeson.String $ Model.fieldName diagnosis1) diagnosis2
   ,setType "dictionary" contractIdentifier
   ,dict contractIdentifier $ (dictOpt "") {dictType = Just "ContractsDict"}
-  ,dict car_model $ (dictOpt "CarModel")
-              {dictParent = Just $ Model.fieldName car_make, dictBounded = True}
+  , setMeta "dictionaryParent"
+      (Aeson.String $ Model.fieldName car_make)
+      car_model
   ,dict car_seller $ (dictOpt "")
               {dictType = Just "DealersDict", dictBounded = True}
   ,dict car_dealerTO $ (dictOpt "")

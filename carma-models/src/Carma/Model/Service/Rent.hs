@@ -47,7 +47,6 @@ instance Model Rent where
       $ setType "dictionary" towDealer_partnerId
       : setMeta "dictionaryType" (Aeson.String "ModelDict") carClass
       : setMeta "dictionaryStringify" (Aeson.Bool True) carClass
-      : setMeta "dictionaryParent" (Model.fieldName rentedMake) rentedModel
       : setMeta "dictionaryStringify" (Aeson.Bool True) rentedMake
       : setMeta "dictionaryStringify" (Aeson.Bool True) rentedModel
       : setMeta "dictionaryParent"
