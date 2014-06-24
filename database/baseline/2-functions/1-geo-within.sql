@@ -28,7 +28,7 @@ returns table (res text) as
 $$
   declare
     ca  text[] = string_to_array(city, ',');
-    ma  text[] = string_to_array(makes, ',');
+    ma  int[]  = string_to_array(makes, ' ');
     sa  text[] = string_to_array(services, ',');
     p2a text[] = string_to_array(priority2, ',');
     p3a text[] = string_to_array(priority3, ',');

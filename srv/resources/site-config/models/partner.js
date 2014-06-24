@@ -66,12 +66,14 @@
     },
     {
       "meta": {
-        "dictionaryName": "CarMakers",
+        "dictionaryName": "CarMake",
+        "dictionaryType": "ModelDict",
+        "widget": "dictionary-many",
         "required": true,
         "bounded": true,
         "label": "Обслуживаемые марки"
       },
-      "type": "dictionary-many",
+      "type": "dictionary-set-int",
       "groupName": null,
       "name": "makes"
     },
