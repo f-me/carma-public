@@ -4,7 +4,7 @@ import Data.Aeson as Aeson
 import Data.Text
 import Data.Typeable
 
-import Data.Model
+import Data.Model as Model
 import Data.Model.View
 import Carma.Model.LegacyTypes
 import Carma.Model.CarClass (CarClass)
@@ -47,7 +47,7 @@ instance Model Rent where
       $ setType "dictionary" towDealer_partnerId
       : setMeta "dictionaryType" (Aeson.String "ModelDict") carClass
       : setMeta "dictionaryStringify" (Aeson.Bool True) carClass
-      : setMeta "dictionaryParent" (Model.fieldName rentedMake) rentedModel
+      : setMeta "dictionaryParent" (Aeson.String $ Model.fieldName rentedMake) rentedModel
       : setMeta "dictionaryStringify" (Aeson.Bool True) rentedMake
       : setMeta "dictionaryStringify" (Aeson.Bool True) rentedModel
       : setMeta "dictionaryParent"
