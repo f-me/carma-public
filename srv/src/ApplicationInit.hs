@@ -7,8 +7,6 @@ import Control.Monad.IO.Class
 import Data.ByteString (ByteString)
 import Data.Configurator as Cfg
 
-import System.Log.Simple (newLog, fileCfg, logger, text, file)
-
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
 
@@ -31,10 +29,12 @@ import qualified Snaplet.FileUpload as FU
 import Snaplet.Geo
 import Snaplet.Search
 import Snaplet.TaskManager
+import Snaplet.Messenger
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
 import AppHandlers.ActionAssignment
+import AppHandlers.ARC
 import AppHandlers.Bulk
 import AppHandlers.CustomSearches
 import AppHandlers.PSA
@@ -79,9 +79,11 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/renderContract",
                               chkAuth . method GET    $ renderContractHandler)
          , ("contracts/findSame",
-                             chkAuth . method GET    $ findSameContract)
+                              chkAuth . method GET    $ findSameContract)
          , ("/searchContracts",
-                              method GET    $ searchContracts)
+                              chkAuthLocal . method GET $ searchContracts)
+         , ("/arcImport/:vin",
+                              chkAuthLocal . method GET $ arcImport)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:mdl",        chkAuth . method GET    $ readManyHandler)
@@ -171,16 +173,15 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   pga <- liftIO $ createPool (Pg.connect cInfoActass) Pg.close 1 5 20
 
   c <- nestSnaplet "cfg" siteConfig $
-       initSiteConfig "resources/site-config" pgs
+       initSiteConfig "resources/site-config" pgs db
 
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   g <- nestSnaplet "geo" geo geoInit
 
-  l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
-       [logger text (file "log/frontend.log")]
-
   search' <- nestSnaplet "search" search $ searchInit pgs authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
+  msgr <- nestSnaplet "wsmessenger" messenger messengerInit
+
   addRoutes routes
   wrapSite (claimUserActivity>>)
-  return $ App h s authMgr c d pgs pga tm fu g l ad search' opts
+  return $ App h s authMgr c d pgs pga tm fu g ad search' opts msgr

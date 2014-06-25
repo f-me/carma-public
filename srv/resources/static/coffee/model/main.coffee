@@ -152,11 +152,17 @@ define [ "model/render"
               return [] unless rs
               ms = (m.split(':') for m in rs)
               for m in ms
-                k = buildKVM global.model(m[0], queueOptions?.modelArg),
-                  fetched: {id: m[1]}
-                  queue:   queue
-                k.parent = kvm
-                k
+                # HACK: have to use this temporary observable, wich is
+                # disposed right after creation, so current computed
+                # won't subscribe to any field in built kvm #1860
+                k = ko.computed ->
+                  buildKVM global.model(m[0], queueOptions?.modelArg),
+                    fetched: {id: m[1]}
+                    queue:   queue
+                refKVM = k.peek()
+                k.dispose()
+                refKVM.parent = kvm
+                refKVM
             write: (v) ->
               ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
               kvm[f.name](ks)
@@ -243,10 +249,11 @@ define [ "model/render"
             disabled(not not a)
 
     # make dixi button disabled
-    # until all required fields are filled
+    # until all editable required fields are filled
     kvm['disableDixiU'] = ko.computed ->
       return unless kvm['dixi']
-      notFlds = (not kvm["#{f.name}Not"]() for f in required)
+      notFlds = (not kvm["#{f.name}Not"]() \
+        for f in required when f.canWrite && f.name != "dixi")
       isFilled = _.all notFlds, _.identity
       if isFilled
         kvm['dixiDisabled'](false) unless kvm['dixi']()
@@ -290,6 +297,15 @@ define [ "model/render"
     hooks = queueOptions?.hooks or ['*', model.name]
     applyHooks global.hooks.observable, hooks, model, kvm
     return kvm
+
+  # Cleanup stuff that can prevent remove by gc
+  cleanupKVM = (kvm) =>
+    for k in kvms.items()
+      for n, f of k when ko.isComputed f
+        f.dispose()
+      for n, f of k when /TypeaheadBuilder$/.test(n)
+        f.destroy()
+
 
   #/ Model functions.
 
@@ -395,14 +411,20 @@ define [ "model/render"
       q.save()
     return [knockVM, q]
 
+  # little helper, ko 3.1.0 don't allow to bind to already binded dom
+  # so cleanup it first
+  rebindko = (kvm, el) =>
+    ko.cleanNode(el)
+    ko.applyBindings(kvm, el)
+
   bindDepViews = (knockVM, parentView, depViews) ->
     for k, v of depViews
       global.viewsWare[v] =
         parentView: parentView
       if _.isArray(v)
-        ko.applyBindings(knockVM, el(s)) for s in v
+        rebindko(knockVM, el(s)) for s in v
       else
-        ko.applyBindings(knockVM, el(v))
+        rebindko(knockVM, el(v))
 
   setupView = (elName, knockVM,  options) ->
     tpls = render.getTemplates("reference-template")
@@ -411,10 +433,10 @@ define [ "model/render"
     # separately)
     bindDepViews(knockVM, elName, depViews)
     # Bind extra views if provided
-    ko.applyBindings knockVM, el(v) for k, v of options.slotsee when el(v)
+    rebindko knockVM, el(v) for k, v of options.slotsee when el(v)
 
     # Bind the model to Knockout UI
-    ko.applyBindings(knockVM, el(elName)) if el(elName)
+    rebindko(knockVM, el(elName)) if el(elName)
 
     knockVM['view'] = elName
 
@@ -488,6 +510,7 @@ define [ "model/render"
   , modelSetup    : modelSetup
   , buildNewModel : buildNewModel
   , buildKVM      : buildKVM
+  , cleanupKVM    : cleanupKVM
   , addRef        : addRef
   , focusRef      : focusRef
   }

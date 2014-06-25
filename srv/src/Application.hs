@@ -13,7 +13,6 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.Session
-import Snap.Snaplet.SimpleLog
 
 import Snaplet.Auth.Class
 import Snaplet.SiteConfig
@@ -23,6 +22,8 @@ import Snaplet.TaskManager
 import Snaplet.FileUpload hiding (db)
 import Snaplet.Geo
 import Snaplet.Search
+import Snaplet.Messenger
+import Snaplet.Messenger.Class
 
 
 -- | Global application options.
@@ -48,10 +49,10 @@ data App = App
     , _taskMgr    :: Snaplet (TaskManager App)
     , _fileUpload :: Snaplet (FileUpload App)
     , _geo        :: Snaplet Geo
-    , feLog       :: Log
     , _authDb     :: Snaplet Postgres
     , _search     :: Snaplet (Search App)
     , options     :: AppOptions
+    , _messenger  :: Snaplet Messenger
     }
 
 
@@ -68,8 +69,8 @@ instance HasAuth App where
 instance HasSiteConfig App where
   siteConfigLens = subSnaplet siteConfig
 
-instance MonadLog (Handler App App) where
-  askLog = with db askLog
-
 instance HasPostgres (Handler b App) where
   getPostgresState = with authDb get
+
+instance HasMsg App where
+  messengerLens = subSnaplet messenger

@@ -464,6 +464,8 @@ contract_admin	Contract	legalForm	t	t
 contract_admin	Contract	committer	t	f
 contract_admin	Contract	dixi	t	t
 contract_admin	Contract	isActive	t	t
+contract_admin	Contract	fromArc	t	f
+contract_admin	Contract	extra	t	f
 contract_admin	Contract	ctime	t	f
 partner	Contract	id	t	f
 partner	Contract	name	t	t
@@ -497,6 +499,8 @@ partner	Contract	legalForm	t	t
 partner	Contract	committer	t	f
 partner	Contract	dixi	t	t
 partner	Contract	isActive	t	t
+partner	Contract	fromArc	t	f
+partner	Contract	extra	t	f
 partner	Contract	ctime	t	f
 core	Contract	name	t	f
 core	Contract	email	t	f
@@ -529,6 +533,8 @@ core	Contract	legalForm	t	f
 core	Contract	committer	t	f
 core	Contract	dixi	t	f
 core	Contract	isActive	t	f
+core	Contract	fromArc	t	f
+core	Contract	extra	t	f
 core	Contract	ctime	t	f
 searchContract	Contract	id	t	f
 searchContract	Contract	name	t	f
@@ -562,6 +568,8 @@ searchContract	Contract	legalForm	t	f
 searchContract	Contract	committer	t	f
 searchContract	Contract	dixi	t	f
 searchContract	Contract	isActive	t	f
+searchContract	Contract	fromArc	t	f
+searchContract	Contract	extra	t	f
 searchContract	Contract	ctime	t	f
 lovAdmin	VinFormat	label	t	t
 lovAdmin	VinFormat	nameLoad	t	t
@@ -1382,6 +1390,8 @@ lovViewer	SubProgram	label	t	f
 lovAdmin	SubProgram	label	t	t
 lovViewer	SubProgram	active	t	f
 lovAdmin	SubProgram	active	t	t
+lovViewer	SubProgram	leader	t	f
+lovAdmin	SubProgram	leader	t	t
 lovViewer	SubProgram	synonyms	t	f
 lovAdmin	SubProgram	synonyms	t	t
 lovViewer	SubProgram	value	t	f

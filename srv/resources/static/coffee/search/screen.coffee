@@ -73,6 +73,7 @@ define [ "utils"
     q = new sync.searchQ searchKVM,
       apiUrl: opts.apiUrl
       defaultSort: opts.defaultSort
+      searchHook: opts.searchHook
     searchKVM._meta.q = q
 
     ko.applyBindings { kvm: searchKVM, wrapFields: "search-wrap"},

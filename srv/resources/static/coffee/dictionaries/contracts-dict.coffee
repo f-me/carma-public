@@ -10,24 +10,68 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
 
     find: (q, cb, opt) ->
       return cb({}) if q.length < 4 and not opt?.force
-      query = "/searchContracts/?query=#{q}&program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}#{if opt?.force then '&type=exact' else ''}"
-      cb([inlineSpinner "<div class='inline-spinner'></div>"])
-      $.getJSON query, (r) =>
+      params = "program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}"
+      query = "/searchContracts/?query=#{q}&case=#{@kvm.id?()}&#{params}#{if opt?.force then '&type=exact' else ''}"
+
+      @needArc = false
+      @orig = null
+      @nonEmpty = false
+
+      if q.length == 17
+        arcQuery = "/arcImport/#{q}?#{params}"
+        @needArc = true
+
+      processResponse = (r) =>
         @found = []
 
-        a = if _.isEmpty r
-            ["<span><i class='icon-ban-circle icon-white'></i>&nbsp;Ничего не найдено :(</span>"]
-          else
-            for i in r
-              do (i) =>
-                # fields which matched search query
-                fields = _.filter(_.keys(i), (f) ->
-                  i[f] && String(i[f]).indexOf(q) != -1)
-                @found.push
-                  id: i.id
-                  matched: _.pick(i, fields)
-                @contr2html i, fields, q
-        cb(a)
+        if _.isEmpty r
+          ["<span><i class='icon-ban-circle icon-white'></i>&nbsp;Ничего не найдено :(</span>"]
+        else
+          for i in r
+            do (i) =>
+              # fields which matched search query
+              fields = _.filter(_.keys(i), (f) ->
+                i[f] && String(i[f]).indexOf(q) != -1)
+              @found.push
+                id: i.id
+                matched: _.pick(i, fields)
+              @contr2html i, fields, q
+
+      fetchResults = (d) ->
+        if !d.nonEmpty
+          cb [inlineSpinner "<div class='inline-spinner'></div>"]
+        $.getJSON query, (res) ->
+          d.nonEmpty = !_.isEmpty res
+          items = processResponse res
+          d.orig = _.clone items
+          cb items
+          # Show trailing spinner if ARC query is pending
+          if d.needArc
+            items.push inlineSpinner "<div class='inline-spinner'></div>"
+            cb items
+
+      # We explicitly pass dictionary object so that it is accessible
+      # inside fetchResults (we can store original search response
+      # this way to use later after ARC loading finishes)
+      firstFetch = fetchResults(this)
+
+      if @needArc
+        parentThis = this
+        $.getJSON(arcQuery)
+          .always(() ->
+            parentThis.needArc = false)
+          .done((ar) ->
+            # New contracts? Repeat contract search.
+            if ar[0] > 0
+              firstFetch.done () ->
+                items = parentThis.orig
+                items.push inlineSpinner "<div class='inline-spinner'></div>"
+                cb items
+                fetchResults(parentThis)
+            # Remove trailing spinner
+            else
+              if parentThis.orig?
+                cb parentThis.orig)
 
     # returns html representation of contract
     contr2html: (c, fs = [], q = "") ->
@@ -55,18 +99,23 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
           c[f] = "<span>#{c[f].replace(q, "<span class='finded'>#{q}</span>")}</span>"
 
       # required fields
-      req = ["vin"
+      req = ["fromArc"
+           , "vin"
            , "make"
            , "model"
            , "startMileage"
            , "validSince"
            , "_expired"
-           , "subprogram"]
+           , "subprogram"
+           ]
       html = ""
       # show matched and required fields
       _.each _.union(req, fs), (f) ->
         if c[f]
           switch f
+            when "fromArc"
+              if c[f]
+                html += "<span class='label'>ARC</span> "
             when "vin"
               html += "<b>#{c[f]}</b>"
             when "_expired"

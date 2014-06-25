@@ -31,6 +31,8 @@ CREATE TABLE "Contract"
   , committer  int4 REFERENCES usermetatbl (id) NOT NULL
   , dixi bool NOT NULL DEFAULT FALSE
   , isActive bool NOT NULL DEFAULT TRUE
+  , fromArc bool NOT NULL DEFAULT FALSE
+  , extra json
   , ctime timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
 

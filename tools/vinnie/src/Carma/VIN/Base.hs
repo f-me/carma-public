@@ -59,6 +59,8 @@ data Options = Options
     , subprogram :: Maybe Int
     -- ^ If subprogram not set, VIN file must provide a subprogram
     -- name in every row.
+    , fromArc    :: Bool
+    -- ^ Contracts are loaded from ARC.
     } deriving (Show, Data, Typeable)
 
 
@@ -70,6 +72,7 @@ data ImportContext = ImportContext
 
 -- | Import result: total rows processed, loaded row, rejected rows.
 newtype ImportResult = ImportResult (Int64, Int64, Int64)
+                       deriving Show
 
 
 -- | Critical VIN import errors which result in the whole process

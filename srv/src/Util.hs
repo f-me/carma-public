@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Util
   (readJSON
@@ -26,19 +27,25 @@ module Util
   , ToRowList(..)
   , sqlFlagPair
   , withPG
+  , syslogJSON, syslogTxt, Syslog.Priority(..)
+  , hushExceptions, logExceptions
+  , (Aeson..=)
   ) where
 
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Maybe
 
-import Control.Exception
 import Control.Applicative
 import Control.Monad.IO.Class
+import qualified Control.Exception as Ex
+import Control.Monad.CatchIO as IOEx
+import Control.Concurrent (myThreadId)
 import qualified Blaze.ByteString.Builder.Char8 as BZ
 import Data.Typeable
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Lazy  as L
+import qualified Data.ByteString.Lazy.Char8  as L8
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lex.Double as B
 
@@ -52,6 +59,7 @@ import Data.Time.Clock.POSIX
 import System.Locale (defaultTimeLocale)
 
 import Data.Aeson as Aeson
+import qualified Data.Aeson.Types as Aeson
 import Data.Attoparsec.ByteString.Lazy (Result(..))
 import qualified Data.Attoparsec.ByteString.Lazy as Atto
 
@@ -69,6 +77,7 @@ import qualified Database.PostgreSQL.Simple as P
 
 import qualified Data.Model as Model
 import qualified Carma.Model.PaymentType as PT
+import qualified System.Posix.Syslog as Syslog
 
 import Data.Pool
 
@@ -77,7 +86,7 @@ data JSONParseException
   | FromJSONError FilePath String
   deriving (Show, Typeable)
 
-instance Exception JSONParseException
+instance Ex.Exception JSONParseException
 
 
 readJSON :: FromJSON v => FilePath -> IO v
@@ -91,8 +100,8 @@ readJSONfromLBS' src s
   = case Atto.parse Aeson.json' s of
     Done _ jsn -> case Aeson.fromJSON jsn of
       Success t -> t
-      Error err -> throw $ FromJSONError src err
-    err -> throw $ AttoparsecError src (show err)
+      Error err -> Ex.throw $ FromJSONError src err
+    err -> Ex.throw $ AttoparsecError src (show err)
 
 
 --------------------------------------------------------------------------------
@@ -279,3 +288,32 @@ withPG f = do
     s <- getPostgresState
     let pool = pgPool s
     liftIO $ withResource pool f
+
+
+syslogTxt :: MonadIO m => Syslog.Priority -> String -> String -> m ()
+syslogTxt p tag msg = syslogJSON p tag ["msg" .= msg]
+
+
+syslogJSON :: MonadIO m => Syslog.Priority -> String -> [Aeson.Pair] -> m ()
+syslogJSON p tag msg = liftIO $ do
+  tid <- myThreadId
+  let msg' = ("tid" .= show tid) : msg
+  let msgBS = L8.concat -- FIXME: escape '%' in messge
+        [L8.pack tag, " ", Aeson.encode $ Aeson.object msg']
+  B.useAsCString (L8.toStrict msgBS)
+    $ Syslog._syslog (toEnum (fromEnum p))
+
+hushExceptions :: MonadCatchIO m => String -> m () -> m ()
+hushExceptions tag act = IOEx.catch act $ \(e :: Ex.SomeException) ->
+  syslogJSON Syslog.Warning tag
+    ["msg" .= Aeson.String "hushed exception"
+    ,"exn" .= Aeson.String (T.pack $ show e)
+    ]
+
+logExceptions :: MonadCatchIO m => String -> m a -> m a
+logExceptions tag act = IOEx.catch act $ \(e :: Ex.SomeException) -> do
+  syslogJSON Syslog.Error tag
+    ["msg" .= (Aeson.String "rethrowed exception")
+    ,"exn" .= Aeson.String (T.pack $ show e)
+    ]
+  IOEx.throw e

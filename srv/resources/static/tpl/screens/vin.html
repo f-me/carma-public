@@ -3,29 +3,9 @@
   <div class="central-form">
     <fieldset>
       <legend>Загрузка VIN</legend>
-      <form id="vin-import-form" class="form-horizontal">
-        <div class="control-group">
-          <label class="control-label" for="vin-subprogram-select">
-            Подпрограмма
-          </label>
-          <div class="controls">
-            <select id="vin-subprogram-select" data-bind="foreach: $data">
-              <option data-bind="value: value, text: label" />
-            </select>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <label class="control-label" for="vin-format-select">
-            Формат
-          </label>
-          <div class="controls">
-            <select id="vin-format-select" data-bind="foreach: $data">
-              <option data-bind="value: value, text: label" />
-            </select>
-          </div>
-        </div>
-
+      <form id="vin-import-form" class="form-horizontal"
+            style="width: 75%">
+        <div id="new-form" />
         <div class="control-group">
           <label class="control-label" for="vin-upload-file">
             Файл
@@ -36,7 +16,7 @@
         </div>
 
         <div class="controls">
-          <!-- TODO Found out how to use button here without causing
+          <!-- TODO Find out how to use button here without causing
                weird shit -->
           <a class="btn btn-primary" id="vin-send">
             <i class="icon icon-upload icon-white" />&nbsp;Загрузить

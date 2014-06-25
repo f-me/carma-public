@@ -18,9 +18,9 @@ module Snaplet.DbLayer
   ,findOrCreate
   ) where
 
-import Prelude hiding (read, log)
+import Prelude hiding (read)
 import Control.Applicative
-import Control.Lens
+import Control.Lens (Lens')
 import Control.Monad.State
 import Control.Concurrent.STM
 import qualified Data.Map as Map
@@ -28,13 +28,10 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import Data.Maybe (fromJust, isJust)
-import Data.String
-import qualified Data.Text as T
+import qualified Data.Text          as T
+import qualified Data.Text.Encoding as T
 
-import Network.URI (parseURI)
-import qualified Fdds
 import Data.Configurator
-import Data.Configurator.Types
 
 import WeatherApi.WWOnline (initApi)
 
@@ -42,8 +39,6 @@ import Snap.Snaplet
 import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (Postgres, pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInitConf, runRedisDB)
-import Snap.Snaplet.SimpleLog
-import System.Log.Simple.Syslog
 
 import qualified Database.Redis as Redis hiding (exists)
 
@@ -57,26 +52,28 @@ import qualified Carma.ModelTables as MT (loadTables)
 import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
 import Snaplet.Auth.Class
+import Snaplet.Messenger (sendMessage)
+import Snaplet.Messenger.Class
 import DictionaryCache
 
 import qualified Carma.Model.Call as Call
 import           Carma.Model.Event (EventType(..))
 import qualified Utils.Events as Evt
+import Util
 
 
-create :: HasAuth b
+create :: (HasAuth b, HasMsg b)
        => ModelName -> Object
        -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
-create model commit = scoper "create" $ do
+create model commit = do
   tbls <- gets syncTables
-  log Trace $ fromString $ "Model: " ++ show model
-  log Trace $ fromString $ "Commit: " ++ show commit
+  syslogJSON Debug "DbLayer/create" ["model" .= model, "commit" .= commit]
   --
   obj <- triggerCreate model =<< applyDefaults model commit
   objId <- Redis.create redis model obj
   --
   let obj' = Map.insert (C8.pack "id") objId obj
-  log Trace $ fromString $ "Object with id: " ++ show obj'
+  syslogJSON Debug "DbLayer/create" ["obj'" .= obj']
   --
   Postgres.insert tbls model obj'
 {-
@@ -92,9 +89,11 @@ create model commit = scoper "create" $ do
   when (model == "call") $
     Evt.logLegacyCRUD Create (B.concat [model, ":", objId]) Call.ident
 
-  return $ Map.insert "id" objId $ obj Map.\\ commit
+  let result = Map.insert "id" objId $ obj Map.\\ commit
+  syslogJSON Debug "DbLayer/create/result" ["result" .= result]
+  return result
 
-findOrCreate :: HasAuth b
+findOrCreate :: (HasAuth b, HasMsg b)
              => ModelName -> ObjectId -> Object
              -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
 findOrCreate model objId commit = do
@@ -115,12 +114,12 @@ read model objId = do
 read' :: ByteString -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
 read' objId = Redis.read' redis objId
 
-update :: HasAuth b
+update :: (HasAuth b, HasMsg b)
        =>  ModelName -> ObjectId -> Object
        -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
-update model objId commit = scoper "update" $ do
+update model objId commit = do
   tbls <- gets syncTables
-  log Trace $ fromString $ "Model: " ++ show model
+  syslogJSON Debug "DbLayer/update" ["model" .= model, "commit" .= commit]
   --
   let fullId = B.concat [model, ":", objId]
   -- FIXME: catch NotFound => transfer from postgres to redis
@@ -137,14 +136,18 @@ update model objId commit = scoper "update" $ do
                  Map.filterWithKey (\k _ -> isJust k)             .
                  Map.mapKeys (toPair . C8.split ':')              $
                  changes
-  log Trace $ fromString $ "Changes: " ++ show changes
+  syslogJSON Debug "DbLayer/update" ["changes" .= changes]
   Postgres.insertUpdateMany tbls changes'
   sequence_ futures -- run delayed actions
 
   -- mapM_ (uncurry $ Evt.logLegacyCRUD Update) $ Map.toList changes'
   --
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
-  return $ stripUnchanged commit $ changes Map.! fullId
+      commit' = stripUnchanged commit $ changes Map.! fullId
+
+  withMsg $ sendMessage (T.decodeUtf8 fullId) commit'
+  syslogJSON Debug "DbLayer/update/result" ["result" .= commit']
+  return commit'
 
 delete :: ModelName -> ObjectId -> Handler b (DbLayer b) ()
 delete model objId = Redis.delete redis model objId
@@ -184,10 +187,8 @@ initDbLayer :: Snaplet (AuthManager b)
             -> SnapletInit b (DbLayer b)
 initDbLayer sessionMgr adb cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
-    l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
-      [logger text (file "log/db.log"), syslog "carma" [PID] USER]
-    liftIO $ withLog l $ log Info "Server started"
-    rels <- liftIO $ Postgres.loadRelations "resources/site-config/syncs.json" l
+    -- syslog Info "Server started"
+    rels <- liftIO $ Postgres.loadRelations "resources/site-config/syncs.json"
     tbls <- liftIO $ MT.loadTables "resources/site-config/models" "resources/site-config/field-groups.json"
     cfg <- getSnapletUserConfig
     wkey <- liftIO $ lookupDefault "" cfg "weather-key"
@@ -199,20 +200,9 @@ initDbLayer sessionMgr adb cfgDir = makeSnaplet "db-layer" "Storage abstraction"
     DbLayer adb
       <$> nestSnaplet "redis" redis redisDBInitConf
       <*> nestSnaplet "pgsql" postgres pgsInit
-      <*> nestSnaplet "dblog" dbLog (simpleLogInit_ l)
       <*> pure sessionMgr
-      <*> (liftIO $ fddsConfig cfg)
       <*> (return rels)
       <*> (return tbls)
       <*> (return dc)
       <*> (return $ initApi wkey)
       <*> (liftIO $ readRKCCalc cfgDir)
-
-----------------------------------------------------------------------
-
-fddsConfig :: Config -> IO Fdds.Conf
-fddsConfig cfg = do
-  uri   <- require cfg "fdds-uri"
-  login <- require cfg "fdds-login"
-  passw <- require cfg "fdds-password"
-  return $ Fdds.Conf (fromJust $ parseURI uri) login passw

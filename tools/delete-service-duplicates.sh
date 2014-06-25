@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 EMAIL_TO="robots@formalmethods.ru"
-EMAIL_FROM="carma@ruamc.ru"
-EMAIL_SENDER="psa@ruamc.ru"
+EMAIL_FROM="carma@carma.ruamc.ru"
+EMAIL_SENDER="carma@carma.ruamc.ru"
 
 
 send_message () {

@@ -1,6 +1,14 @@
 define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
 
-  Finch.route "back", (bind) ->
+  # wrapper which will abort execution when user on a brake
+  addRoute = (url, fn) ->
+    Finch.route url,
+      setup: (bind) ->
+        if _.contains(['rest', 'serviceBreak'], Finch.navigate())
+          return Finch.abort()
+        fn(bind)
+
+  addRoute "back", (bind) ->
     require ["screens/backoffice"], (bo) ->
       bo.screen =
         name : "back"
@@ -9,7 +17,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "back-form": bo
       r.renderScreen bo, bind
 
-  Finch.route "call/:id", (bind) ->
+  addRoute "call/:id", (bind) ->
     require ["screens/call"], (call) ->
       call.screen =
         name : "call"
@@ -18,7 +26,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "call-form": call
       r.renderScreen call, bind
 
-  Finch.route "case/:id", (bind) ->
+  addRoute "case/:id", (bind) ->
     require ["screens/case"], (kase) ->
       kase.screen =
         name : "case"
@@ -27,7 +35,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "case-form": kase
       r.renderScreen kase, bind
 
-  Finch.route "newCase/:id", (bind) ->
+  addRoute "newCase/:id", (bind) ->
     require ["screens/newCase"], (newCase) ->
       newCase.screen =
         name : "newCase"
@@ -36,7 +44,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "case-form": newCase
       r.renderScreen newCase, bind
 
-  Finch.route "dict/:dict/:id", (bind) ->
+  addRoute "dict/:dict/:id", (bind) ->
     require ["screens/dictionaries"], (dictionaries) ->
       dictionaries.screen =
         name : "dictionaries"
@@ -45,7 +53,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "dictionaries-view": dictionaries
       r.renderScreen dictionaries, bind
 
-  Finch.route "partner/:id", (bind) ->
+  addRoute "partner/:id", (bind) ->
     require ["screens/partners"], (partner) ->
       partner.screen =
         name : "partner"
@@ -54,7 +62,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "partner-view": partner
       r.renderScreen partner, bind
 
-  Finch.route "usermeta/:id", (bind) ->
+  addRoute "usermeta/:id", (bind) ->
     require ["screens/user"], (user) ->
       user.screen =
         name : "user"
@@ -62,7 +70,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "user-view": user
       r.renderScreen user, bind
 
-  Finch.route "uploads", (bind) ->
+  addRoute "uploads", (bind) ->
     require ["screens/uploads"], (uploads) ->
       uploads.screen =
         name : "uploads"
@@ -70,7 +78,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "uploads-view": uploads
       r.renderScreen uploads, bind
 
-  Finch.route "printSrv/:model/:id", (bind) ->
+  addRoute "printSrv/:model/:id", (bind) ->
     require ["screens/printService"], (print) ->
       print.screen =
         name : "printSrv"
@@ -79,7 +87,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "print-table": print
       r.renderScreen print, bind
 
-  Finch.route "rkc", (bind) ->
+  addRoute "rkc", (bind) ->
     require ["screens/rkc"], (rkc) ->
       rkc.screen =
         name : "rkc"
@@ -88,7 +96,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "rkc-form": rkc
       r.renderScreen rkc, bind
 
-  Finch.route "rkcFront", (bind) ->
+  addRoute "rkcFront", (bind) ->
     require ["screens/rkcFront"], (rkcFront) ->
       rkcFront.screen =
         name : "rkcFront"
@@ -97,7 +105,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "rkcFront-form": rkcFront
       r.renderScreen rkcFront, bind
 
-  Finch.route "rkcOps", (bind) ->
+  addRoute "rkcOps", (bind) ->
     require ["screens/rkcOps"], (rkcOps) ->
       rkcOps.screen =
         name : "rkcOps"
@@ -106,7 +114,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "rkcOps-form": rkcOps
       r.renderScreen rkcOps, bind
 
-  Finch.route "supervisor", (bind) ->
+  addRoute "supervisor", (bind) ->
     require ["screens/supervisor"], (supervisor) ->
       supervisor.screen =
         name : "supervisor"
@@ -115,7 +123,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "action-form": supervisor
       r.renderScreen supervisor, bind
 
-  Finch.route "supervisorOps", (bind) ->
+  addRoute "supervisorOps", (bind) ->
     require ["screens/supervisorOps"], (supervisorOps) ->
       supervisorOps.screen =
         name : "supervisorOps"
@@ -124,7 +132,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "supervisorOps-table": supervisorOps
       r.renderScreen supervisorOps, bind
 
-  Finch.route "vin", (bind) ->
+  addRoute "vin", (bind) ->
     require ["screens/vin"], (vin) ->
       vin.screen =
         name : "vin"
@@ -132,7 +140,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "vin-form": vin
       r.renderScreen vin, bind
 
-  Finch.route "reports", (bind) ->
+  addRoute "reports", (bind) ->
     require ["screens/report"], (report) ->
       report.screen =
         name : "reports"
@@ -141,7 +149,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           reports: report
       r.renderScreen report, bind
 
-  Finch.route "contract/:sub/:id", (bind) ->
+  addRoute "contract/:sub/:id", (bind) ->
     require ["screens/contract"], (contract) ->
       contract.screen =
         name : "contract"
@@ -155,7 +163,7 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
         global.previousHash = window.location.hash
         r.renderScreen contract, bind
 
-  Finch.route "timeline", (bind) ->
+  addRoute "timeline", (bind) ->
     require ["screens/timeline"], (timeline) ->
       timeline.screen =
         name : "timeline"
@@ -164,6 +172,23 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "timeline-view": timeline
       r.renderScreen timeline, bind
 
+  Finch.route "rest", (bind) ->
+    require ["screens/rest"], (scr) ->
+      scr.screen =
+        name: "rest"
+        views:
+          'rest-view': scr
+      r.renderScreen scr, bind
+
+  Finch.route "serviceBreak", (bind) ->
+    require ["screens/serviceBreak"], (scr) ->
+      scr.screen =
+        name: "serviceBreak"
+        views:
+          'break-view': scr
+      r.renderScreen scr, bind
+
+  addRoute "search", =>
   Search.attachTo("search")
 
   Finch

@@ -1,6 +1,7 @@
 define [ "sync/metaq"
        , "sync/datamap"
-       ], (metaq, m) ->
+       , "lib/messenger"
+       ], (metaq, m, Messenger) ->
   class CrudQueue extends metaq
     constructor: (@kvm, @model, @options) ->
       @url = "/_/#{@model.name}"
@@ -10,19 +11,24 @@ define [ "sync/metaq"
       @persisted = @kvm.id()?
       @ftypes[f.name] = f.type for f in @model.fields
       @debounced_save = _.debounce((-> @save()), 1300)
-      # lastfetch is keeping date that was fetched from server during
+      # lastfetch is keeping data from model previous state
       # last push, it is used to prevent immediate pushback of just fetched
       # fields
       @lastFetch = {}
       # when we have id, first fetch data and only after that subscribe
       # to changes, fetch will block, so we won't get fetched data to the save
       # queue
-      @fetch() if @persisted and not @options?.not_fetch
+      @fetch() if @persisted and not @options?.dontFetch
       @subscribe()
+
+      # Example of ws crud updates listener
+      # if @persisted
+      #   Messenger.subscribe "#{model.name}:#{@kvm.id()}",
+      #                       @saveSuccessCb(_.identity)
       @
 
     subscribe: =>
-      for f in @model.fields
+      for f in @model.fields when not (f.meta?.app == "ephemeral")
         do (f) =>
           @kvm[f.name].subscribe (v) =>
             @q[f.name] = v
@@ -33,18 +39,11 @@ define [ "sync/metaq"
 
     _save: => @debounced_save()
 
-    # we have cases with new models when lastFetch is still empty
-    # but we allready wrote null in some field, we don't need to
-    # actually save such data, anyway it's empty
-    # other case is when fetch failed, but some code initialize
-    # itself with nulls, we also don't want to break data it such case
-    # issue #1568
-    haveBefore: (b, a) => b == a or ((_.isUndefined b) and (_.isNull a))
-
     save: (cb, force = false) =>
       cb ?= _.identity # just to be sure we have something to call
       @saveKvm() unless @persisted
-      delete @q[k] for k, v of @q when @haveBefore(@lastFetch[k], v)
+      delete @q[k] for k, v of @q when @lastFetch[k] == v
+      _.extend @lastFetch, @q
       method = if @persisted then "PUT" else "POST"
       url    = if @persisted then "#{@url}/#{@kvm.id()}" else @url
       return cb(@kvm, @model) if (_.isEmpty @q) and not force
@@ -72,7 +71,11 @@ define [ "sync/metaq"
           @kvm["#{fname}Sync"] false
 
     updadeKvm: (obj) =>
-      @lastFetch = {}
+      # Hope This won't break anything, erasing last fetch don't work
+      # with ws notifications because we may receive 2 updates after
+      # put first from crud second from ws queue and second update
+      # will be immediately put back
+      # @lastFetch = {}
       for k, v of obj
         @lastFetch[k] = _.clone v
         @kvm[k]?(v)

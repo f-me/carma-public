@@ -11,8 +11,7 @@ import Database.PostgreSQL.Simple.FromRow
 import Snap
 import Snap.Snaplet.PostgresqlSimple ( Postgres
                                      , getPostgresState
-                                     , pgPool
-                                     , pgsInit)
+                                     , pgPool)
 
 import Data.Model.Sql (SqlQ(..), select)
 

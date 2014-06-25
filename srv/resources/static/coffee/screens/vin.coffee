@@ -1,9 +1,11 @@
 define [ "text!tpl/screens/vin.html"
        , "dictionaries"
        , "lib/taskmanager"
+       , "model/main"
        , "utils"
+       , "screens/vin/models"
        , "lib/upload"
-       ], (tpl, d, tm, u, upl) ->
+       ], (tpl, d, tm, Main, u, models, upl) ->
   @setupVinForm = (viewName, args) ->
     # vin_html = $el("vin-form-template").html()
     # bulk_partner_html = $el("partner-form-template").html()
@@ -21,15 +23,15 @@ define [ "text!tpl/screens/vin.html"
     # $el(viewName).html(all_html)
 
     # Program/format selection
-    subprograms = u.newComputedDict("portalSubPrograms").source
-    ko.applyBindings subprograms, el("vin-subprogram-select")
-    formats = u.newModelDict("VinFormat").source
-    ko.applyBindings formats, el("vin-format-select")
-
+    options =
+      permEl: null,
+      manual_save: true
+    kvm = Main.modelSetup("vinUpload", models.VinUpload) "new-form", {}, options
+    global.vu = kvm
     $("#vin-send").click (e) ->
       vinFile = $("#vin-upload-file")[0].files[0]
-      sid = $("#vin-subprogram-select").val()
-      fid = $("#vin-format-select").val()
+      sid = kvm.subprogram()
+      fid = kvm.format()
       if sid? && fid? && vinFile?
         sendVin sid, fid, vinFile
       false

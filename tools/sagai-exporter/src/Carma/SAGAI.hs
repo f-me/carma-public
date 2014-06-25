@@ -169,14 +169,20 @@ instance ExportMonad CaseExport where
 
     comm2Field = pushComment =<< caseField0 "dealerCause"
 
+    -- Include order number of the first exportable service,
+    -- include contractor code of the first exportable towage
+    -- service.
     comm3Field = do
-      servs <- getAllServices
-      let twgPred = \s@(mn, _, _) ->
-                      mn == "towage" &&
-                      (not $ falseService s)
-      -- Include order number of the first non-false service,
-      -- include contractor code of the first non-false towage service.
-          oNum = find (not . falseService) servs >>=
+      servs <-
+          filter (\s@(_, _, d) ->
+                  exportable s ||
+                  -- Canceled non-billed services are considered
+                  -- exportable for this field
+                  (dataField0 "falseCall" d == "nobill" &&
+                   fvIdent (dataField0 "status" d) == Just SS.clientCanceled)) <$>
+          getAllServices
+      let twgPred = \(mn, _, _) -> mn == "towage"
+          oNum = find (const True) servs >>=
                  \(_, _, d) -> return $ dataField0 "orderNumber" d
       pCode <- case find twgPred servs of
                  Just s -> contractorCode s towagePid >>= (return . Just)
@@ -367,6 +373,7 @@ serviceExpenseType s@(mn, _, d) = do
             let ttMap = M.fromList [ (Just TT.charge, Charge)
                                    , (Just TT.ac, Condition)
                                    , (Just TT.starter, Starter)
+                                   , (Just TT.lights, Lights)
                                    ]
             case M.lookup (fvIdent techType) ttMap of
               Just v  -> return v
@@ -430,11 +437,11 @@ exportable (mn, _, d) = statusOk && typeOk
                 "towage"       -> True
                 "rent"         -> True
                 "tech"         -> elem (fvIdent $ dataField0 "techType" d) $
-                                  map Just [TT.charge, TT.ac, TT.starter]
+                                  map Just [TT.charge, TT.ac, TT.starter, TT.lights]
                 _        -> False
           -- Check status and falseCall fields
           statusOk = (falseCall == "none" &&
-                      fvIdent status == Just SS.serviceClosed) ||
+                      fvIdent status == Just SS.closed) ||
                      (falseCall == "bill" &&
                       fvIdent status == Just SS.clientCanceled)
               where
@@ -503,7 +510,6 @@ contractField1 fn = do
   case res of
     Just v -> return v
     Nothing -> exportError (BadContract cid)
-
 
 
 -- | Check if servicing contract is in effect.
@@ -726,22 +732,6 @@ labelOfValue' val dict = do
           Just label -> return $ encodeUtf8 label
           Nothing -> exportError $ UnknownDictValue val
     Nothing -> exportError $ UnknownDictValue val
-
-
--- | Try to map a label of a dictionary to its value, fall back to
--- label if its value is not found.
-tryLabelOfValue :: ExportMonad m =>
-                   BS.ByteString
-                -> (m ND.NewDict)
-                -> m BS.ByteString
-tryLabelOfValue val dict = do
-  d <- dict
-  return $ case B8.readInt val of
-    Just (n, _) ->
-        case ND.labelOfValue n d of
-          Just label -> encodeUtf8 label
-          Nothing -> val
-    Nothing -> val
 
 
 -- | A list of field combinators (typed as ExportField) to form a part

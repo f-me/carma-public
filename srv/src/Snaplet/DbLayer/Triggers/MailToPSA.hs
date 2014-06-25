@@ -2,7 +2,6 @@ module Snaplet.DbLayer.Triggers.MailToPSA
   ( sendMailToPSA
   ) where
 
-import Prelude hiding (log)
 import Control.Applicative
 import Control.Monad
 import Control.Monad.Writer.Strict
@@ -23,8 +22,6 @@ import Data.Time
 import Data.Time.Clock.POSIX
 import System.Locale (defaultTimeLocale)
 
-import System.Log.Simple
-import System.Log.Simple.Base (scoperLog)
 import Data.Configurator (require)
 import Network.Mail.Mime
 
@@ -70,7 +67,7 @@ sendMailToPSA actionId = do
 
 sendMailActually :: MonadTrigger m b => ByteString -> m b ()
 sendMailActually actionId = do
-    liftDb $ log Trace (T.pack $ "sendMailToPSA(" ++ show actionId ++ ")")
+    syslogJSON Info "trigger/mailToPSA/sendMailToPSA" ["actionId" .= actionId]
     dic <- liftDb $ getDict id
     tz <- liftIO getCurrentTimeZone
 
@@ -125,7 +122,7 @@ sendMailActually actionId = do
           actionResult <- lift $ get actionId "result"
           fld 150 "Customer effet"   $ case actionResult of
             "clientCanceledService" -> getCRRLabel svcId
-            _                       -> getCommentLabel caseId
+            _                       -> get' caseId "customerComment"
           fld 150 "Component fault"  $ get' caseId "dealerCause"
 
           factServiceStart
@@ -177,19 +174,19 @@ sendMailActually actionId = do
     cfgTo   <- liftIO $ require cfg "psa-smtp-recipients"
     cfgReply<- liftIO $ require cfg "psa-smtp-replyto"
 
-    l <- liftDb askLog
     -- FIXME: throws `error` if sendmail exits with error code
-    void $ liftIO $ forkIO
-      $ scoperLog l (T.concat ["sendMailToPSA(", T.decodeUtf8 actionId, ")"])
-      $ renderSendMailCustom "/usr/sbin/sendmail" ["-t", "-r", T.unpack cfgFrom]
-      $ (emptyMail $ Address Nothing cfgFrom)
-        {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
-        ,mailHeaders
-          = [ ("Reply-To", cfgReply)
-            , ("Subject"
-          ,T.concat ["RAMC ", T.decodeUtf8 svcId, " / ", T.decodeUtf8 actionId])]
-        ,mailParts = [[bodyPart]]
-        }
+    void $ liftIO $ forkIO $ do
+      syslogJSON Info "trigger/mailToPSA/sendMailToPSA" ["actionId" .= actionId]
+      logExceptions "trigger/mailToPSA/sendMailToPSA"
+        $ renderSendMailCustom "/usr/sbin/sendmail" ["-t", "-r", T.unpack cfgFrom]
+        $ (emptyMail $ Address Nothing cfgFrom)
+          {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
+          ,mailHeaders
+            = [ ("Reply-To", cfgReply)
+              , ("Subject"
+            ,T.concat ["RAMC ", T.decodeUtf8 svcId, " / ", T.decodeUtf8 actionId])]
+          ,mailParts = [[bodyPart]]
+          }
 
 
 get' :: MonadTrigger m b => ByteString -> ByteString -> m b Text

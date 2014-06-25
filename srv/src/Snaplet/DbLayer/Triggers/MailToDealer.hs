@@ -19,8 +19,6 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Char (isNumber)
 
-import System.Log.Simple
-import System.Log.Simple.Base (scoperLog)
 import Data.Configurator (require)
 import Network.Mail.Mime
 
@@ -37,7 +35,6 @@ import Snap.Snaplet (getSnapletUserConfig)
 import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
-import Snaplet.DbLayer.Triggers.Util
 import DictionaryCache
 
 import Util as U
@@ -94,7 +91,7 @@ fillVars caseId
   >>= add "caseDate"     (get caseId "callDate" >>= U.formatTimestamp)
   >>= add "car_vin"      (txt <$> get caseId "car_vin")
   >>= add "car_plateNum" (txt <$> get caseId "car_plateNum")
-  >>= add "wazzup"       (getCommentLabel caseId)
+  >>= add "wazzup"       (txt <$> get caseId "customerComment")
   >>= add "car_make"     (get caseId "car_make"  >>= tr carMake . txt)
   >>= add "car_model"    getCarModel
   -- TODO Refactor this to a separate monad
@@ -147,12 +144,12 @@ sendMailActually actId caseId addrTo = do
         (TL.encodeUtf8 $ TL.fromStrict $ U.render varMap mailTemplate)
 
   let subj = "Доставлена машина на ремонт / " `T.append` T.decodeUtf8 actId
-  l <- liftDb askLog
   -- NB. notice `forkIO` below
   -- it also saves us from exceptions thrown while sending an e-mail
-  void $ liftIO $ forkIO
-    $ scoperLog l (T.concat ["sendMailToDealer(", T.decodeUtf8 caseId, ")"])
-    $ sendEximMail cfgFrom cfgTo cfgReply subj body
+  void $ liftIO $ forkIO $ do
+    syslogJSON Info "trigger/mailToDealer/sendMailToDealer" ["caseId" .= caseId]
+    logExceptions "trigger/mailToDealer/sendMailToDealer"
+      $ sendEximMail cfgFrom cfgTo cfgReply subj body
 
 
 -- | If a case has towage services which is a repeated towage, send a
@@ -239,13 +236,13 @@ sendRepTowageMail caseRef towageRef prevRef program = do
                            | program == Program.peugeot = (peugTo, "RUMC01R")
       mailSubj = T.concat [subjPrefix, " ", vin]
 
-  l <- liftDb askLog
-
   -- Fire off mail-sending process
-  void $ liftIO $ forkIO $
-       scoperLog l (T.append "sendRepTowageMail " $ T.decodeUtf8 caseRef) $
-       sendEximMail mailFrom (T.concat [mailTo, ",", copyTo]) replyTo
-                    mailSubj mailBody
+  void $ liftIO $ forkIO $ do
+       syslogJSON Info "trigger/mailToDealer/sendRepTowageMail" ["caseId" .= caseRef]
+       logExceptions "trigger/mailToDealer/sendRepTowageMail"
+         $ sendEximMail
+             mailFrom (T.concat [mailTo, ",", copyTo])
+             replyTo mailSubj mailBody
 
 
 -- | Send a mail using exim.

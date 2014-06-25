@@ -1,8 +1,13 @@
 define ["text!tpl/screens/timeline.html"
       , "d3"
       , "model/main"
-      , "components/table"]
-    , (tpl, d3, Main, Table) ->
+      , "components/table"
+      , "dictionaries/computed-dict"
+      , "lib/messenger"
+      , "sync/crud"
+      , "sync/datamap"
+      ]
+    , (tpl, d3, Main, Table, D, WS, Crud, DataMap) ->
 
   class Timeline
     constructor: (bind) ->
@@ -12,12 +17,10 @@ define ["text!tpl/screens/timeline.html"
       @height = 240
 
       @user = bind.user
-      @elementId = "chart-#{@user.id}"
-      @title = "Таймлайн - #{@user.realName} (#{@user.login})"
-      @legend_data = [ {text: "Готов" ,     state: "Ready"     }
-                     , {text: "Занят",      state: "Busy"      }
-                     , {text: "Разлогинен", state: "LoggedOut" }
-                     ]
+      @elementId = "chart-#{@user.id()}"
+      @title = "Таймлайн - #{@user.realName()} (#{@user.login()})"
+      @states = new D.dict(dict: "UserStateVal")
+      @legend_data = @states.source
       @closeCbs = []
 
     setData: (states) =>
@@ -53,7 +56,7 @@ define ["text!tpl/screens/timeline.html"
         @endDate = end.toDate()
         s = start.format("YYYY-MM-DD")
         e = end.format("YYYY-MM-DD")
-        $.getJSON "/userStates/#{@user.id}/#{s}/#{e}", @setData
+        $.getJSON "/userStates/#{@user.id()}/#{s}/#{e}", @setData
 
       startDate = moment().subtract('days', 1).format('DD MMM, YYYY')
       endDate = moment().format('DD MMM, YYYY')
@@ -110,7 +113,7 @@ define ["text!tpl/screens/timeline.html"
         .each((d, i) ->
           g = d3.select(@)
           g.append("rect")
-            .attr("class", (d) -> d.state)
+            .attr("class", (d) -> d.value)
             .attr("x", 25)
             .attr("y", i * 25)
             .attr("width", 30)
@@ -120,7 +123,7 @@ define ["text!tpl/screens/timeline.html"
             .attr("y", i * 25 + 5)
             .attr("width", 40)
             .attr("height", 20)
-            .text(d.text)
+            .text(d.label)
         )
 
       # container for large scale chart
@@ -274,15 +277,22 @@ define ["text!tpl/screens/timeline.html"
       _.each @closeCbs, (cb) ->
         cb(data)
 
+  tbl = null
+  ws  = null
+
   setupScreen = (viewName, args) ->
-    columns = [ 'login'
-              , 'realName'
-              , 'businessRole'
-              , 'bocities'
-              , 'boprograms'
-              ]
-    dataModel = 'Usermeta'
-    table = new Table {dataModel, columns}
+    table = new Table
+      dataModel: 'Usermeta'
+      columns: [ 'login'
+               , 'realName'
+               , 'businessRole'
+               , 'bocities'
+               , 'boprograms'
+               , 'currentState'
+               , 'delayedState'
+               ]
+
+    tbl = table
 
     timelines = ko.observableArray()
 
@@ -293,8 +303,27 @@ define ["text!tpl/screens/timeline.html"
         timeline.onClose -> timelines.remove timeline
         timelines.push timeline
 
+
+    $.getJSON "/_/Usermeta", (data) =>
+      model = global.model('Usermeta')
+      kvms = _.map _.filter(data, (v) -> v.isActive), (d) =>
+        mapper = new DataMap.Mapper(model)
+        k = Main.buildKVM model, {fetched: mapper.s2cObj d}
+        k._meta.q = new Crud.CrudQueue(k, k._meta.model, {dontFetch: true})
+        k
+      table.setData kvms
+      ws = WS.multisubKVM(kvms)
+
     kvm = {table, timelines}
     ko.applyBindings(kvm, el(viewName))
 
   constructor: setupScreen
+  destructor:  (viewName) =>
+    $('#timeline-view').off()
+    ko.removeNode $('#timeline-view')[0]
+    tbl.destructor()
+    _.map tbl.items(), (k) -> k.cleanupKVM()
+    ws?.close()
+    ws   = null
+    kvms = null
   template: tpl

@@ -25,7 +25,7 @@ define [ "search/screen"
                  , { name: 'contact'              }
                  , { name: 'callDate'             }
                  , { name: 'phone'                }
-                 , { name: "comment"              }
+                 , { name: "customerComment"      }
                  , { name: 'vin'                  }
                  , { name: 'program'              }
                  ]
@@ -62,6 +62,7 @@ define [ "search/screen"
         "cardNumber_cardNumber"
         "comment"
         "callTaker"
+        "customerComment"
         ]
       Service: [
         "type"
