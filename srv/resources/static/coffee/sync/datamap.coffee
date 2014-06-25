@@ -122,3 +122,6 @@ define [], ->
   c2sObj : mapObj(c2s)
   s2cObj : mapObj(s2c)
   Mapper : Mapper
+  guiDayFormat    : guiDayFormat
+  guiUTCTimeFormat: guiUTCTimeFormat
+  serverDayFormat : serverDayFormat

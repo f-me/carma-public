@@ -27,19 +27,25 @@ class ThMenu
       @$element.on('keydown.typeahead', $.proxy(@.keypress, @))
 
   destructor: =>
-    @$menu.remove
-    @$element
-      .off('blur.typeahead')
-      .off('keypress.typeahead')
-      .off('keyup.typeahead')
+    if @$element
+      # console.log 'el exist, destroying'
+      @$element
+        .off('blur.typeahead')
+        .off('keypress.typeahead')
+        .off('keyup.typeahead')
 
-    if $.browser.webkit or $.browser.msie
-      @$element.off('keydown.typeahead')
+      if ($.browser.webkit or $.browser.msie) and @$element
+        @$element.off('keydown.typeahead')
+
+    @$menu.remove()
+    @$menu    = null
+    @$element = null
+
+
 
   select: =>
     @selectcb(@.$menu.find('.active').attr('data-value'))
     @hide()
-    @$element.change()
     return @
 
   show: =>

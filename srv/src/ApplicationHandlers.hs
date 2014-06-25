@@ -1,31 +1,26 @@
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module ApplicationHandlers where
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
 
-import Prelude hiding (log)
-
 import Data.Functor
 import Control.Monad
-import Control.Monad.CatchIO
-import Control.Exception (SomeException)
-import Control.Concurrent (myThreadId)
+import Control.Monad.Trans.Either
 
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import qualified Data.Text.Encoding.Error as T
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.Attoparsec.Number as A
 import qualified Data.Aeson as Aeson
-import Data.Aeson (object, (.=))
+import Data.Aeson
 import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map
+import qualified Data.HashMap.Strict as HM
 import Data.String
 
 import Data.Maybe
@@ -47,7 +42,6 @@ import Text.XmlHtml as X
 import Snap
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
-import Snap.Snaplet.SimpleLog
 import Snap.Util.FileServe (serveFile)
 import Snap.Util.FileUploads (getMaximumFormInputSize)
 
@@ -60,10 +54,13 @@ import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
 import Snaplet.FileUpload (FileUpload(cfg), doUpload, oneUpload)
+import           Snaplet.Messenger
+import           Snaplet.Messenger.Class
 
 import Carma.Model
-import Data.Model.Patch (Patch)
+import Data.Model.CRUD
 import qualified Data.Model.Patch.Sql as Patch
+import           Data.Model.Patch (Patch(..))
 
 import Application
 import AppHandlers.Util
@@ -72,7 +69,9 @@ import Util as U hiding (render, withPG)
 import Utils.NotDbLayer (readIdent)
 
 import Carma.Model.Event (EventType(..))
-import Utils.Events (logLogin)
+import Utils.Events (logLogin, logLegacyCRUD)
+
+import qualified Carma.Model.Usermeta as Usermeta
 
 
 ------------------------------------------------------------------------------
@@ -160,15 +159,14 @@ createHandler = do
   Just model <- getParam "model"
   let createModel :: forall m . Model m => m -> AppHandler Aeson.Value
       createModel _ = do
-        commit <- getJSONBody :: AppHandler (Patch m)
+        let crud = getModelCRUD :: CRUD m
+        commit <- getJSONBody :: AppHandler Aeson.Value
         s <- PS.getPostgresState
-        i <- liftIO $ withResource (PS.pgPool s) (Patch.create commit)
-        res <- liftIO $ withResource (PS.pgPool s) (Patch.read i)
-        -- TODO Cut out fields from original commit like DB.create
-        -- does
-        case (Aeson.decode $ Aeson.encode res) of
-          Just [obj] -> return obj
-          err   -> error $ "BUG in createHandler: " ++ show err
+        res <- liftIO $ withResource (PS.pgPool s)
+                (runEitherT . crud_create crud commit)
+        case res of
+          Right obj -> return obj
+          Left err  -> error $ "in createHandler: " ++ show err
   case Carma.Model.dispatch (T.decodeUtf8 model) createModel of
     Just fn -> logResp $ fn
     Nothing -> logResp $ do
@@ -186,11 +184,12 @@ readHandler = do
         res <- with db $ do
           let ident = readIdent objId :: IdentI m
           s <- PS.getPostgresState
-          liftIO $ withResource (PS.pgPool s) (Patch.read ident)
+          liftIO $ withResource (PS.pgPool s)
+                     (runEitherT . crud_read getModelCRUD ident)
         case res of
-          [obj] -> writeJSON obj
-          []    -> handleError 404
-          _     -> error $ "BUG in readHandler: " ++ show (Aeson.encode res)
+          Right obj              -> writeJSON obj
+          Left (NoSuchObject _)  -> handleError 404
+          Left err               -> error $ "in readHandler: " ++ show err
   -- See also Utils.NotDbLayer.read
   case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
     Just fn -> fn
@@ -216,8 +215,11 @@ readManyHandler = do
           s   <- PS.getPostgresState
           liftIO $ withResource
             (PS.pgPool s)
-            (Patch.readManyWithFilter limit offset queryFilter)
-        writeJSON (res :: [Patch m])
+            (runEitherT . crud_readManyWithFilter
+                        (getModelCRUD :: CRUD m) limit offset queryFilter)
+        case res of
+          Right obj -> writeJSON obj
+          Left err  -> error $ "in readHandler: " ++ show err
   case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
     Just fn -> fn
     _       -> handleError 404
@@ -270,6 +272,16 @@ updateHandler = do
                          Just [obj] -> return $ Right obj
                          err        -> error $
                                        "BUG in updateHandler: " ++ show err
+                 -- TODO: workaround to catch delayed state updates
+                 -- remove with new triggers
+                 "Usermeta" -> do
+                   let hmcommit = untypedPatch commit
+                       legacyId = B.concat ["Usermeta:", objId]
+                   when (HM.member "delayedState" hmcommit) $ void $ do
+                     withMsg $ sendMessage (T.decodeUtf8 legacyId) commit
+                     logLegacyCRUD Update legacyId Usermeta.delayedState
+                   return $ Right $ Aeson.object []
+
                  _ -> return $ Right $ Aeson.object []
   -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch (T.decodeUtf8 model) updateModel of
@@ -316,7 +328,7 @@ getParamOrEmpty :: ByteString -> AppHandler T.Text
 getParamOrEmpty = liftM (maybe T.empty T.decodeUtf8) . getParam
 
 rkcHandler :: AppHandler ()
-rkcHandler = scope "rkc" $ scope "handler" $ do
+rkcHandler = logExceptions "handler/rkc" $ do
   p <- getParamOrEmpty "program"
   c <- getParamOrEmpty "city"
   part <- getParamOrEmpty "partner"
@@ -336,12 +348,12 @@ rkcHandler = scope "rkc" $ scope "handler" $ do
   writeJSON info
 
 rkcWeatherHandler :: AppHandler ()
-rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
+rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
   let defaults = ["Moskva", "Sankt-Peterburg"]
   cities <- (fromMaybe defaults . (>>= (Aeson.decode . LB.fromStrict)))
     <$> getParam "cities"
 
-  log Trace $ T.concat ["Cities: ", fromString $ intercalate ", " cities]
+  syslogJSON Info "handler/rkc/weather" ["cities" .= intercalate ", " cities]
 
   conf <- with db $ gets DB.weather
   let weatherForCity = liftIO . getWeather' conf . filter (/= '\'')
@@ -356,7 +368,7 @@ rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
 
 
 rkcFrontHandler :: AppHandler ()
-rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do
+rkcFrontHandler = logExceptions "handler/rkc/front" $ do
   p <- getParamOrEmpty "program"
   c <- getParamOrEmpty "city"
   part <- getParamOrEmpty "partner"
@@ -375,7 +387,7 @@ rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do
   writeJSON res
 
 rkcPartners :: AppHandler ()
-rkcPartners = scope "rkc" $ scope "handler" $ scope "partners" $ do
+rkcPartners = logExceptions "handler/rkc/partners" $ do
   flt <- liftIO RKC.todayFilter
   (from, to) <- getFromTo
 
@@ -389,10 +401,10 @@ rkcPartners = scope "rkc" $ scope "handler" $ scope "partners" $ do
 
 
 arcReportHandler :: AppHandler ()
-arcReportHandler = scope "arc" $ scope "handler" $ do
+arcReportHandler = logExceptions "handler/arc" $ do
   year <- tryParam B.readInteger "year"
   month <- tryParam B.readInt "month"
-  dicts <- scope "dictionaries" . Dict.loadDictionaries $ "resources/site-config/dictionaries"
+  dicts <- Dict.loadDictionaries $ "resources/site-config/dictionaries"
   with db $ ARC.arcReport dicts year month
   serveFile "ARC.xlsx"
   where
@@ -419,14 +431,14 @@ findOrCreateHandler = do
 ------------------------------------------------------------------------------
 -- | Reports
 report :: AppHandler ()
-report = scope "report" $ do
+report = logExceptions "handler/report" $ do
   extendTimeout 6000
   Just reportId <- getParam "program"
   fromDate <- liftM (fmap T.decodeUtf8) $ getParam "from"
   toDate <- liftM (fmap T.decodeUtf8) $ getParam "to"
   reportInfo <- with db $ DB.read "report" reportId
   let tplName = B.unpack (reportInfo Map.! "templates")
-  log Info $ T.concat ["Generating report ", T.pack tplName]
+  syslogTxt Info "handler/report" $ "Generating report " ++ tplName
   let template
         = "resources/static/fileupload/report/"
         ++ (B.unpack reportId) ++ "/templates/" ++ tplName
@@ -552,7 +564,7 @@ getRegionByCity = do
 
 
 smsProcessingHandler :: AppHandler ()
-smsProcessingHandler = scope "sms" $ do
+smsProcessingHandler = logExceptions "handler/sms" $ do
   res <- with db DB.smsProcessing
   writeJSON $ object [
     "processing" .= res]
@@ -651,10 +663,15 @@ restoreProgramDefaults = do
 
 errorsHandler :: AppHandler ()
 errorsHandler = do
-  l <- gets feLog
-  r <- readRequestBody 4096
-  liftIO $ withLog l $ scope "frontend" $ do
-  log Info $ lb2t' r
+  r  <- readRequestBody 4096
+  ip <- rqRemoteAddr <$> getRequest
+  user <- fmap userLogin <$> with auth currentUser
+  syslogJSON Warning "handler/errorsHandler"
+    ["err" .= r
+    ,"ip"  .= ip
+    ,"user".= user
+    ]
+  writeJSON ()
 
 unassignedActionsHandler :: AppHandler ()
 unassignedActionsHandler = do
@@ -666,41 +683,21 @@ unassignedActionsHandler = do
                ++ " AND closed = false"
   writeJSON $ join (r :: [[Integer]])
 
-lb2t' :: LB.ByteString -> T.Text
-lb2t' = T.decodeUtf8With T.lenientDecode . LB.toStrict
-
 logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do
   user <- fmap userLogin <$> with auth currentUser
   r <- getRequest
-  thId <- liftIO myThreadId
-  let params = rqParams r
-      uri    = rqURI r
-      rmethod = rqMethod r
-  scope "detail" $ scope "req" $ log Trace $ lb2t' $ Aeson.encode $ object [
-    "threadId" .= show thId,
-    "request" .= object [
-      "user" .= user,
-      "method" .= show rmethod,
-      "uri" .= uri,
-      "params" .= params,
-      "body" .= commit]]
+  syslogJSON Info "handler/logReq"
+    ["ip"     .= rqRemoteAddr r
+    ,"user"   .= user
+    ,"method" .= show (rqMethod r)
+    ,"uri"    .= rqURI r
+    ,"params" .= rqParams r
+    ,"body"   .= commit
+    ]
 
 logResp :: Aeson.ToJSON v => AppHandler v -> AppHandler ()
-logResp act = runAct `catch` logFail where
-  runAct = do
-    r' <- act
-    scope "detail" $ scope "resp" $ do
-      thId <- liftIO myThreadId
-      log Trace $ lb2t' $ Aeson.encode $ object [
-        "threadId" .= show thId,
-        "response" .= r']
-      writeJSON r'
-  logFail :: SomeException -> AppHandler ()
-  logFail e = do
-    scope "detail" $ scope "resp" $ do
-      thId <- liftIO myThreadId
-      log Trace $ lb2t' $ Aeson.encode $ object [
-        "threadId" .= show thId,
-        "response" .= object ["error" .= show e]]
-    throw e
+logResp act = logExceptions "handler/logResp" $ do
+  r <- act
+  syslogJSON Info "handler/logResp" ["response" .= r]
+  writeJSON r

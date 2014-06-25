@@ -5,9 +5,9 @@ WITH servicecounts AS (
            FROM servicetbl servicetbl_1
           GROUP BY servicetbl_1.parentid
         )
- SELECT
+ SELECT 
     "PaymentType".label AS "Тип оплаты",
-        "substring"(servicetbl.parentid, 6) || COALESCE(('/'::text || rank() OVER (PARTITION BY servicetbl.parentid ORDER BY servicetbl.id DESC)) ||
+        "substring"(servicetbl.parentid, 6) || COALESCE(('/'::text || rank() OVER (PARTITION BY servicetbl.parentid ORDER BY servicetbl.createtime ASC)) ||
         CASE
             WHEN servicecounts.amount < 2 THEN NULL::text
             ELSE ''::text
@@ -23,16 +23,16 @@ WITH servicecounts AS (
     "ContractCheckStatus".label AS "VIN проверен(Участие в программе)",
     casetbl.car_mileage AS "Пробег автомобиля",
     --СПРАВОЧНИК "Марка" unbounded, ПОЛЬЗОВАТЕЛЬ МОЖЕТ НАПИСАТЬ В ПОЛЕ ЛЮБОЕ ЗНАЧЕНИЕ
-    CASE
-        WHEN "CarMake".label IS NULL
-        THEN casetbl.car_make
-        ELSE "CarMake".label
+    CASE 
+	WHEN "CarMake".label IS NULL
+	THEN casetbl.car_make
+	ELSE "CarMake".label
     END AS "Марка автомобиля",
     --СПРАВОЧНИК "Модель" unbounded, ПОЛЬЗОВАТЕЛЬ МОЖЕТ НАПИСАТЬ В ПОЛЕ ЛЮБОЕ ЗНАЧЕНИЕ
-    CASE
-        WHEN "CarModel".label IS NULL
-        THEN casetbl.car_model
-        ELSE "CarModel".label
+    CASE 
+	WHEN "CarModel".label IS NULL
+	THEN casetbl.car_model
+	ELSE "CarModel".label
     END AS "Модель автомобиля",
     p3.name AS "Дилер, продавший автомобиль",
     "Wazzup".label AS "Что случилось",
@@ -42,50 +42,50 @@ WITH servicecounts AS (
     "CarMake".fdds AS "VEHICLE MAKE",
     --Реализация функции VEHICLEMODEL()
     CASE
-        WHEN
-                ("CarMake".value = 'ford' OR "CarMake".label = 'Ford') AND "CarModel".fdds IS NULL
-                THEN
-                        '0900'
-        WHEN
-                ("CarMake".value = 'chevy' OR "CarMake".label = 'Chevrolet') AND "CarModel".fdds IS NULL
-                THEN
-                        '1000'
-        WHEN
-                ("CarMake".value = 'opel' OR "CarMake".label = 'Opel' OR "CarMake".label = 'Vauxhall') AND "CarModel".fdds IS NULL
-                THEN
-                        '2300'
-        WHEN
-                ("CarMake".value = 'cad' OR "CarMake".label = 'Cadillac') AND "CarModel".fdds IS NULL
-                THEN
-                        '1115'
-        ELSE
-                "CarModel".fdds
+	WHEN
+		("CarMake".value = 'ford' OR "CarMake".label = 'Ford') AND "CarModel".fdds IS NULL
+		THEN
+			'0900'
+	WHEN 
+		("CarMake".value = 'chevy' OR "CarMake".label = 'Chevrolet') AND "CarModel".fdds IS NULL
+		THEN 
+			'1000'
+	WHEN
+		("CarMake".value = 'opel' OR "CarMake".label = 'Opel' OR "CarMake".label = 'Vauxhall') AND "CarModel".fdds IS NULL
+		THEN 
+			'2300'
+	WHEN
+		("CarMake".value = 'cad' OR "CarMake".label = 'Cadillac') AND "CarModel".fdds IS NULL
+		THEN 
+			'1115'
+	ELSE 
+		"CarModel".fdds
     END AS "VEHICLE MODEL",
-
-
-
-
+	
+	
+	
+	
     --ФУНКЦИЯ FAULTCODE (ЕСЛИ УСЛУГА НЕ ЗАПОЛНЕНА, НО ФОЛТКОДА НЕТУ)
-    CASE
-                WHEN "ServiceNames".fdds IS NOT NULL
-                THEN
-                concat(
-                        CASE
-                                WHEN
-                                        "Part".fdds IS NULL
-                                THEN '150'
-                                ELSE "Part".fdds
-                        END,
-                CASE
-                        WHEN
-                                "Cause".fdds IS NULL
-                        THEN '09'
-                        ELSE "Cause".fdds
-                END,
-     "ServiceNames".fdds)::text
-                ELSE
-                NULL::text
-        END AS "FAULTCODE",
+    CASE 
+		WHEN "ServiceNames".fdds IS NOT NULL
+		THEN
+		concat(
+			CASE 
+				WHEN
+					"Part".fdds IS NULL
+				THEN '150'
+				ELSE "Part".fdds
+			END,
+		CASE 
+			WHEN
+				"Cause".fdds IS NULL
+			THEN '09'
+			ELSE "Cause".fdds	
+		END,
+     "ServiceNames".fdds)::text 
+		ELSE
+		NULL::text
+	END AS "FAULTCODE", 
     casetbl.temperature AS "Погодные условия",
     casetbl.customerComment AS "Комментарий к кейсу",
     casetbl.caseaddress_address AS "Место поломки",
@@ -101,7 +101,7 @@ WITH servicecounts AS (
             ELSE 'N'::text
         END AS "Выставлен счет за ложный вызов",
         'Обработано'::text AS "Статус обращения(: обработано)",
-
+        
             "ServiceNames".label as "Тип обращения",--"Услуга"
    allservicesview.towdealer_partner AS "Назначение эвакуации-назв. дилера",
    p2.code AS "Код дилера",
@@ -114,7 +114,7 @@ WITH servicecounts AS (
    CASE
             WHEN casetbl.contact_contactowner =true THEN '+'::text
             ELSE '-'::text
-
+            
    END AS "Владелец",
     CASE
             WHEN servicetbl.warrantycase = true THEN '+'::text
@@ -133,13 +133,13 @@ WITH servicecounts AS (
     allservicesview.assignedto AS "Сотрудник, заказавший услугу", --"Ответственный",
     timezone('Europe/Moscow'::text, servicetbl.times_factservicestart) AS "Время погруз.(Факт. нач. ок. усл.)",
     timezone('Europe/Moscow'::text, servicetbl.times_factserviceend) AS "Время разгр.(Факт.оконч. ок. усл.)",
-    CASE
-        WHEN
-                servicetbl.clientsatisfied = 'satis' THEN 'Доволен'
-        WHEN
-                servicetbl.clientsatisfied = 'notSatis' THEN 'Недоволен'
-        ELSE
-                servicetbl.clientsatisfied
+    CASE 
+	WHEN 
+		servicetbl.clientsatisfied = 'satis' THEN 'Доволен'
+	WHEN 
+		servicetbl.clientsatisfied = 'notSatis' THEN 'Недоволен'
+	ELSE
+		servicetbl.clientsatisfied
     END    AS "Комментарий (Клиент доволен/нет)",
     casetbl.claim AS "Претензии / Благодарность",
     p4.name AS "Дилер прохождение ТО",
@@ -164,8 +164,8 @@ WITH servicecounts AS (
     "Contract".validuntil AS "Дата окончания действия гарантии",
     --ТО, ЧТО НЕ ВХОДИТ В ОБЩИЙ ОТЧЕТ НА МОМЕНТ (12.05.2014)
     --РЕАЛИЗАЦИЯ ФУНКЦИИ DATEDIFF
-        round(EXTRACT(EPOCH FROM(servicetbl.times_factServiceStart-servicetbl.createtime))/60) AS "Время прибытия",
-        round(EXTRACT(EPOCH FROM(servicetbl.times_factServiceEnd-servicetbl.times_factservicestart))/60) AS "Время выполнения",
+	round(EXTRACT(EPOCH FROM(servicetbl.times_factServiceStart-servicetbl.createtime))/60) AS "Время прибытия",
+	round(EXTRACT(EPOCH FROM(servicetbl.times_factServiceEnd-servicetbl.times_factservicestart))/60) AS "Время выполнения",
     casetbl.contact_owneremail AS "Email владельца",
     casetbl.contact_email AS "Email звонящего",
     servicetbl.contractor_address AS "Адрес выезда эвакуатора",
@@ -187,32 +187,32 @@ WITH servicecounts AS (
     timezone('Europe/Moscow'::text, servicetbl.times_expectedserviceclosure) AS "Ожидаемое время закрытия услуги",
     timezone('Europe/Moscow'::text, servicetbl.times_expectedserviceend) AS "Ожид. время оконч. оказания услуги",
     timezone('Europe/Moscow'::text, servicetbl.times_expecteddealerinfo) AS "Ожид. время получения информации",
-    CASE
-        WHEN
-                servicetbl.paid = true THEN 'Y'
-        ELSE 'N'
+    CASE 
+	WHEN 
+		servicetbl.paid = true THEN 'Y'
+	ELSE 'N' 
     END   AS "Оплата",
     servicetbl.payment_paidbyclient AS "Оплата Клиент",
     servicetbl.original AS "Оригинал получен",
     --РЕАЛИЗАЦИЯ ФУНКЦИИ DATEDIFF
-        round(EXTRACT(EPOCH FROM(servicetbl.times_factservicestart-servicetbl.times_expecteddispatch))/60) AS "Нач.оказ.усл-время выезда партнера",
+	round(EXTRACT(EPOCH FROM(servicetbl.times_factservicestart-servicetbl.times_expecteddispatch))/60) AS "Нач.оказ.усл-время выезда партнера",
     servicetbl.payment_calculatedcost AS "Расчётная стоимость",
-    "Suggestion".label AS "Рекомендация",
+    "Suggestion".label AS "Рекомендация", 
     servicetbl.scan AS "Скан загружен",
     "CaseStatus".label AS "Статус кейса",
-    CASE
-        WHEN
-                servicetbl.payment_overcosted = true THEN 'Y'
-        ELSE 'N'
-    END   AS "Стоимость превышена?",
-    servicetbl.bill_billingcost AS "Сумма по счёту",
-    casetbl.services AS "Услуги",
+    CASE 
+	WHEN 
+		servicetbl.payment_overcosted = true THEN 'Y'
+	ELSE 'N' 
+    END   AS "Стоимость превышена?",  
+    servicetbl.bill_billingcost AS "Сумма по счёту", 
+    casetbl.services AS "Услуги",    
     casetbl.files AS "Файлы, прикрепленные к кейсу",
     servicetbl.files AS "Файлы, прикрепленные к услуге",
     timezone('Europe/Moscow'::text, servicetbl.times_factserviceclosure) AS "Фактическое время закрытия услуги",
     timezone('Europe/Moscow'::text, servicetbl.times_factdealerinfo) AS "Факт. время получения информации",
-    casetbl.contact_name AS "ФИО звонящего"
-
+    casetbl.contact_name AS "ФИО звонящего"   
+    
    FROM casetbl
    LEFT JOIN "Program" ON casetbl.program = "Program".id
    LEFT JOIN "ProgramType" ON "Program".ptype = "ProgramType".id
@@ -236,7 +236,7 @@ WITH servicecounts AS (
    LEFT JOIN "ContractCheckStatus" ON casetbl.vinchecked = "ContractCheckStatus".id,
    servicetbl
    LEFT JOIN allservicesview ON allservicesview.id = servicetbl.id AND allservicesview.type = servicetbl.type  AND servicetbl.parentid = allservicesview.parentid
-   LEFT JOIN partnertbl p1 ON servicetbl.contractor_partnerid = ('partner:'::text || p1.id)
+   LEFT JOIN partnertbl p1 ON servicetbl.contractor_partnerid = ('partner:'::text || p1.id) 
    LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = ('partner:'::text || p2.id)
    LEFT JOIN servicecounts ON servicetbl.parentid = servicecounts.parentid
    LEFT JOIN "ServiceNames" ON servicetbl.type = "ServiceNames".value

@@ -14,13 +14,11 @@ import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
 import Carma.ModelTables (TableDesc)
-import Snap.Snaplet.SimpleLog
 
 import qualified Database.PostgreSQL.Sync.Base as SM
 
 import qualified WeatherApi as W
 
-import qualified Fdds as Fdds
 import DictionaryCache
 
 type ObjectId = ByteString
@@ -42,9 +40,7 @@ data DbLayer b = DbLayer
     {authDb    :: Lens' b (Snaplet Postgres)
     ,_redis    :: Snaplet RedisDB
     ,_postgres :: Snaplet Postgres
-    ,_dbLog    :: Snaplet SimpleLog
     ,_auth     :: Snaplet (AuthManager b)
-    ,fdds      :: Fdds.Conf
     ,syncRelations :: SM.Relations
     ,syncTables :: [TableDesc]
     ,dictCache :: TVar DictCache
@@ -57,8 +53,6 @@ makeLenses ''DbLayer
 instance HasPostgres (Handler b (DbLayer b)) where
     getPostgresState = with postgres get
 
-instance MonadLog (Handler b (DbLayer b)) where
-    askLog = with dbLog askLog
 
 getDict :: (DictCache -> dict) -> Handler b (DbLayer b) dict
 getDict dict

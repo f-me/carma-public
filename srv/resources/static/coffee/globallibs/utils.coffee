@@ -1,3 +1,8 @@
+ko.subscribable.fn.subscribeWithOld = (callback) ->
+    oldValue = null
+    @subscribe ((old) -> oldValue = old), this, 'beforeChange'
+
+    @subscribe (newValue) -> callback(newValue, oldValue)
 
 window.urlFor = (kvm, name) ->
   switch kvm._meta.model.name

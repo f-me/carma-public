@@ -34,6 +34,10 @@ main = do
                    &= typ "FORMAT-ID"
                  , VIN.program = Nothing
                  , subprogram = Nothing
+                 , fromArc = False
+                   &= explicit
+                   &= name "arc"
+                   &= help "Set the flag indicating ARC is the source"
                  }
                  &= program programName
     in do

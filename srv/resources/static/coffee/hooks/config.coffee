@@ -3,8 +3,9 @@ define [ "hooks/common"
        , "hooks/services"
        , "hooks/partner"
        , "hooks/actions"
+       , "hooks/Usermeta"
        ],
-       (c, k, s, p, a) ->
+       (c, k, s, p, a, Um) ->
   model:
       "*"    : [c.stdElCb]
   observable:
@@ -111,3 +112,4 @@ define [ "hooks/common"
                  ]
 
       "SubProgram" : [ c.bindRemoveHook 'services' ]
+      "Usermeta": [Um.stateStuff]

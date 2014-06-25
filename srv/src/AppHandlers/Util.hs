@@ -5,7 +5,7 @@ module AppHandlers.Util where
 import Data.Aeson as Aeson
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
-import Data.List.Utils
+import           Data.Configurator
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Pool
@@ -41,7 +41,7 @@ toBool _   = "false"
 
 
 quote :: ByteString -> String
-quote x = "'" ++ (replace "'" "''" $ T.unpack (T.decodeUtf8 x)) ++ "'"
+quote x = "'" ++ (T.unpack $ T.replace "'" "''" $ T.decodeUtf8 x) ++ "'"
 
 
 int :: ByteString -> String
@@ -64,3 +64,19 @@ withPG :: (v -> Pool Pg.Connection)
        -- ^ Query action.
        -> Handler b v res
 withPG pool f = gets pool >>= liftIO .(`withResource` f)
+
+
+withLens :: MonadState s (Handler b v')
+         => (s -> SnapletLens b v) -> Handler b v res
+         -> Handler b v' res
+withLens x = (gets x >>=) . flip withTop
+
+getConnectInfo :: Handler b v ConnectInfo
+getConnectInfo = do
+    dbCfg <- getSnapletUserConfig
+    liftIO $ ConnectInfo
+               <$> require dbCfg "host"
+               <*> require dbCfg "port"
+               <*> require dbCfg "user"
+               <*> require dbCfg "pass"
+               <*> require dbCfg "db"

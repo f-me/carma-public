@@ -2,9 +2,11 @@
 #
 # Example:
 #
-# vm = newTaskVM ()
+# bvm = newTaskVM ()
 # ko.applyBindings vm, someElement
 # $.ajax(url: "/createSomeTask" ... ).done((res) -> handleTask res.token, bvm)
+#
+# Now use bvm fields to access task data
 
 define ->
   # Create a new ViewModel for tracking task status

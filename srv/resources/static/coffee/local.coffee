@@ -12,6 +12,7 @@ require [ "domready"
         , "sendSms"
         , "lib/bug-report"
         , "lstorePubSub"
+        , "lib/current-user"
         ], ( dom
            , main
            , Finch
@@ -24,6 +25,7 @@ require [ "domready"
            , sendSms
            , bug
            , pubSub
+           , CurrentUser
            ) ->
 
   bugReport = new bug.BugReport
@@ -81,9 +83,6 @@ require [ "domready"
       if extPwd
         global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
 
-    if window.location.hash == "" and user.meta.homepage
-      Finch.navigate user.meta.homepage.replace '/', ''
-
     sendSms.setup()
 
     if user.login == "darya"
@@ -94,6 +93,8 @@ require [ "domready"
                           html: true,
                           selector: '[data-provide="popover"]',
                           trigger: 'hover')
+
+    CurrentUser.initialize()
 
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']

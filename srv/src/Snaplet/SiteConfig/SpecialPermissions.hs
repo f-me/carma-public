@@ -1,3 +1,10 @@
+{-|
+
+Contract model processing for portal screen (per-subprogram field
+permissions and hacks).
+
+-}
+
 module Snaplet.SiteConfig.SpecialPermissions
     ( stripContract
     , FilterType(..)
@@ -5,6 +12,7 @@ module Snaplet.SiteConfig.SpecialPermissions
 
 where
 
+import           Data.Aeson as Aeson
 import           Data.Maybe
 import qualified Data.Map as M
 import           Data.ByteString (ByteString)
@@ -16,10 +24,18 @@ import           Database.PostgreSQL.Simple (Query, query)
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.ToField
 
+import           Snap
+import           Snap.Snaplet.Auth hiding (Role)
+import qualified Snap.Snaplet.Auth as Snap (Role(..))
+
+import           Carma.Model.Role as Role
+
+import           Snaplet.Auth.Class
+import           Snaplet.Auth.PGUsers
 import           Snaplet.SiteConfig.Models
 import           Snaplet.SiteConfig.Config
 
-import           Snap
+import           AppHandlers.Util
 import           Util
 
 q :: Query
@@ -37,7 +53,8 @@ instance ToField FilterType where
   toField Form = toField $ PT "showform"
   toField Table = toField $ PT "showtable"
 
-stripContract :: Model
+stripContract :: HasAuth b =>
+                 Model
               -> ByteString
               -- ^ SubProgram id.
               -> FilterType
@@ -45,8 +62,18 @@ stripContract :: Model
 stripContract model sid flt = do
   pg    <- gets pg_search
   perms <- liftIO $ withResource pg $ getPerms sid
-  return model{fields = filterFields perms (fields model)}
+  Just mcu <- withAuth currentUser
+  mcu'     <- withLens db $ replaceMetaRolesFromPG mcu
+  let procField = if (Snap.Role $ identFv Role.partner) `elem` userRoles mcu'
+                  then reqField
+                  else id
+  return model{fields = map procField $ filterFields perms (fields model)}
     where
+      reqField f =
+          if name f /= "comment"
+          then f{meta = Just $ M.insert "required" (Aeson.Bool True) $
+                 fromMaybe M.empty $ meta f}
+          else f
       getPerms progid conn = M.fromList <$>
         (query conn q (flt, progid) :: IO [(ByteString, ByteString)])
       filterFields perms flds = filter (isCanShow perms) flds

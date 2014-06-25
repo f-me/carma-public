@@ -36,6 +36,7 @@ import qualified Data.ByteString.Lazy as BL
 import           Data.Conduit
 import           Data.Conduit.Binary hiding (mapM_)
 import qualified Data.Conduit.List as CL
+import           Data.CSV.Conduit (runResourceT)
 import qualified Data.CSV.Conduit as CSV
 
 import           Data.List
@@ -243,7 +244,7 @@ processTitles vf csvHeader =
 
 -- | Perform VIN file import using the provided mapping.
 process :: (Int, Maybe Int)
-        -- ^ Program & subprogram ids.
+        -- ^ Program & subprogram ids, obtained from import options.
         -> String
         -- ^ Input file encoding name.
         -> ([(ColumnTitle, InternalName)], [FFMapper])
@@ -306,12 +307,13 @@ process psid enc mapping = do
                  -- Set default values.
                  void $ execute setQueueDefaults (PT fn, dv, PT fn))
 
+  arc <- getOption fromArc
   -- Set committer and subprogram. If the subprogram is loadable and
   -- was not recognized in a file row, it will be set to the
   -- subprogram specified in import options. However, if it is
   -- required, the corresponding file row has already been marked as
   -- erroneous on the previous step.
-  setSpecialDefaults uid (snd psid)
+  setSpecialDefaults uid (snd psid) arc
 
   markMissingIdentifiers
 
@@ -360,21 +362,31 @@ processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
             "regexp_replace" [iname, "'\\D'", "''", "'g'"]
           , (sqlCast cn "int"))
       SVIN ->
-          ( void $ protoCheckRegexp iname cn
-            "^[0-9a-hj-npr-z]{17}$"
+          -- We don't use protoUpdateWithFun here because it breaks
+          -- encoding of function arguments
+          ( protoTranslate iname
+            "ЗАВЕКМНРСТУХавекмнрстух" "3ABEKMHPCTYXabekmhpctyx" cn >>
+            protoCheckRegexp cn "^[0-9a-hj-npr-z]{17}$" >>
+            pass
           , (sqlCast cn "text"))
       SEmail ->
-          ( void $ protoCheckRegexp iname cn
-            "^[\\w\\+\\.\\-]+@[\\w\\+\\.\\-]+\\.\\w+$"
+          ( protoTransfer iname cn >>
+            protoCheckRegexp cn
+            "^[\\w\\+\\.\\-]+@[\\w\\+\\.\\-]+\\.\\w+$" >>
+            pass
           , (sqlCast cn "text"))
       SPlate ->
-          ( void $ protoCheckRegexp iname cn $ fromString $
-            "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}" ++
-            "[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$"
+          ( protoTransfer iname cn >>
+            (protoCheckRegexp cn $ fromString $
+             "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}" ++
+             "[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$") >>
+            pass
           , (sqlCast cn "text"))
       SYear ->
-          ( void $ protoCheckRegexp iname cn $ fromString $
-            "^[12][09][0-9]{2}$"
+          ( protoTransfer iname cn >>
+            (protoCheckRegexp cn $ fromString $
+             "^[12][09][0-9]{2}$") >>
+            pass
           , (sqlCast cn "int2"))
       SPhone ->
           ( void $ protoUpdateWithFun cn

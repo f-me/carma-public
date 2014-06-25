@@ -5,23 +5,18 @@
 
 module Snaplet.DbLayer.Triggers.Actions where
 
-import Prelude hiding (log)
-
 import Control.Monad
 import Control.Monad.Trans
-import Control.Exception
 import Control.Applicative
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
-import Data.Char
 import Data.List (intercalate)
 import Data.Maybe
 import Data.String (fromString)
 
-import qualified Fdds as Fdds
 ------------------------------------------------------------------------------
 import WeatherApi (getWeather', tempC)
 -----------------------------------------------------------------------------
@@ -41,8 +36,6 @@ import Snaplet.DbLayer.Triggers.SMS
 import Snaplet.DbLayer.Triggers.MailToDealer
 import Snaplet.DbLayer.Triggers.MailToPSA
 import Snaplet.DbLayer.Triggers.MailToGenser
-
-import Snap.Snaplet.SimpleLog
 
 import Carma.HTTP (read1Reference)
 
@@ -1172,37 +1165,25 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   closeAction objId
   return actionId
 
-requestFddsVin :: MonadTrigger m b => B.ByteString -> B.ByteString -> m b Bool
-requestFddsVin _ vin = do
-  let preparedVin = B.unpack $ B.map toUpper vin
-  conf     <- liftDb $ gets fdds
-  vinState <- liftIO Fdds.vinSearchInit
-  result   <- liftIO (try $ Fdds.vinSearch conf vinState preparedVin
-                      :: IO (Either SomeException [Fdds.Result]))
-  case result of
-    Right v -> return $ any (Fdds.rValid) v
-    Left _  -> return False
-
 setWeather :: MonadTrigger m b => B.ByteString -> B.ByteString -> m b ()
 setWeather objId city = do
   conf    <- liftDb $ gets weather
   weather <- liftIO $ getWeather' conf $ U.bToString $ B.filter (/= '\'') city
   case weather of
     Right w   -> do
-      liftDb $ scope "weather" $ log Trace $ T.concat
-        [ "got for: ", T.decodeUtf8 objId
-        , "; city: " , T.decodeUtf8 city
-        , "; weather: ", T.pack $ show w
+      syslogJSON Debug "trigger/weather"
+        [ "objId" .= objId
+        , "city"  .=  city
+        , "res"   .= show w
         ]
       set objId "temperature" $ B.pack $ show $ tempC w
     Left  err -> do
       set objId "temperature" ""
-      liftDb $ scope "weather" $ log Debug $ T.concat
-        [ "can't retrieve for: ", T.decodeUtf8 objId
-        , "; city: " , T.decodeUtf8 city
-        , "; error: ", T.pack $ show err
+      syslogJSON Debug "trigger/weather"
+        [ "objId" .= objId
+        , "city"  .= city
+        , "error" .= show err
         ]
-      return ()
 
 srvCostCounted :: MonadTrigger m b => ObjectId -> m b FieldValue
 srvCostCounted srvId = do

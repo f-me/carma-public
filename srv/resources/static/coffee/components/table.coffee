@@ -1,9 +1,8 @@
 define ["model/main"
       , "model/utils"
       , "utils"
-      , "sync/crud"
-      , "sync/datamap"]
-    , (Main, ModelUtils, Utils, Crud, DataMap) ->
+      ]
+    , (Main, ModelUtils, Utils) ->
 
   ko.bindingHandlers.renderRow =
     update: (el, acc, allBindigns, fld, ctx) ->
@@ -26,8 +25,7 @@ define ["model/main"
 
       @dataModel = global.model(opt.dataModel)
       @columns = _.map opt.columns, (c) =>
-        _.find @dataModel.fields, (f) =>
-          f.name is c
+        _.find @dataModel.fields, (f) => f.name is c
       @items = ko.observableArray()
 
       @clickCb = []
@@ -63,22 +61,9 @@ define ["model/main"
       @page = ko.computed =>
         @offset() / @limit() + 1
 
-      @fetchData()
+    destructor: => @kvms.clean()
 
-
-    fetchData: =>
-      $.getJSON "/_/#{@dataModel.name}", (data) =>
-        @setData data
-
-    setData: (data) =>
-      @data = data
-      @items.removeAll()
-      mapper = new DataMap.Mapper(@dataModel)
-      kvms = _.map @data, (d) =>
-        k = Main.buildKVM @dataModel, {fetched: mapper.s2cObj d}
-        k._meta.q = new Crud.CrudQueue(k, k._meta.model, {not_fetch: true})
-        k
-      @items(kvms)
+    setData: (data) => @items(data)
 
     resetPager: =>
       @limit(@limitDef)
@@ -94,10 +79,6 @@ define ["model/main"
       @clickCb.push cb
 
     rowClick: (row) =>
-      return =>
-        rowData = _.find @data, (d) ->
-          d.id is parseInt row.id()
-        _.each @clickCb, (cb) ->
-          cb(rowData)
+      return => _.each @clickCb, (cb) -> cb(row)
 
   Table

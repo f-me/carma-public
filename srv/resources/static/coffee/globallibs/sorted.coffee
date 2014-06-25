@@ -49,4 +49,9 @@ ko.sorted = ({kvms, filters, sorters}) ->
     else
       throw new Error "Unknown sorter: #{name}"
 
+  result.clean = ->
+    kvms.removeAll?()
+    result.dispose()
+
+
   return result

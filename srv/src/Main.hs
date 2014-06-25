@@ -18,7 +18,8 @@ import           Snap.Snaplet.Config
 import           Snap.Core
 
 import           System.IO
-
+import           System.Posix.Syslog
+import           System.Environment (getProgName)
 import           ApplicationInit
 
 #ifdef DEVELOPMENT
@@ -39,7 +40,9 @@ main = do
                                           'getActions
                                           ["snaplets/heist/templates"])
 
-    _ <- try $ httpServe conf site :: IO (Either SomeException ())
+    progName <- getProgName
+    _ <- withSyslog progName [PID] USER
+      $ try $ httpServe conf site :: IO (Either SomeException ())
     cleanup
 
 

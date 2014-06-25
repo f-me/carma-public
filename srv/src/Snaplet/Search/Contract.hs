@@ -30,7 +30,6 @@ import           Database.PostgreSQL.Simple as PG
 import           Database.PostgreSQL.Simple.Copy as PG
 import           Database.PostgreSQL.Simple.SqlQQ
 
-import           Snap (gets)
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Auth
@@ -48,6 +47,7 @@ import           Snaplet.DbLayer
 import           Snaplet.Search.Types
 import           Snaplet.Search.Utils
 
+import           AppHandlers.Util hiding (withPG)
 import           Util
 
 
@@ -132,6 +132,8 @@ contractCSV t = do
                             CopyOutDone _ -> return ()
           _ -> error "Error reading predicates or header fields"
       liftIO $ hClose fh
+      -- TODO Using withTempFile instead breaks sendFile, so we have
+      -- to keep the temporary file even after the handler finishes.
       sendFile fp
 
 
@@ -139,7 +141,7 @@ contractCSV t = do
 -- contracts created by current user if isDealer flag is set.
 portalQuery :: AuthUser -> SearchHandler b (Text -> Text)
 portalQuery au = do
-  let withDb = (gets db >>=) . flip withTop
+  let withDb = withLens db
   Just (ui, _) <- withDb $ userMetaPG au
   [Only isDealer :. ()] <-
       withDb $

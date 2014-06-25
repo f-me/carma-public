@@ -15,7 +15,7 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as B
-
+import           Data.Time.Clock (getCurrentTime)
 import           GHC.TypeLits
 
 import           Data.Model
@@ -43,13 +43,15 @@ import qualified Carma.Model.Action as Action
 import qualified Carma.Model.Call   as Call
 
 import           Snaplet.Search.Types
+import           Snaplet.Messenger
+import           Snaplet.Messenger.Class
 
 import           Util
 import           Utils.LegacyModel
 
 
 -- | Create `Event` for login/logout fact
-logLogin :: (HasPostgres (Handler b m), HasAuth b)
+logLogin :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
          => EventType -> Handler b m ()
 logLogin tpe = do
   uid <- getRealUid
@@ -57,7 +59,8 @@ logLogin tpe = do
   return ()
 
 -- | Interface for events from legacy CRUD
-logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, Model m, SingI n)
+logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
+                 , Model m, SingI n)
               => EventType
               -- ^ event type
               -> ByteString
@@ -68,12 +71,30 @@ logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, Model m, SingI n)
 logLegacyCRUD tpe mdl fld = log $ buildLegacy tpe mdl fld
 
 -- | Create event from patch and change user state when needed
-log :: (HasPostgres (Handler b m), HasAuth b) => Patch Event -> Handler b m ()
+log :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
+    => Patch Event -> Handler b m ()
 log p = do
   uid <- getRealUid
+  -- Little hack to determine target user for state change in case if
+  -- someone else changed @delayedState@ field of current user
+  tgtUsr <- case (P.get p E.modelName, P.get p E.modelId, P.get p E.field) of
+    (Just "Usermeta", Just i, Just (Just "delayedState")) -> return $ Ident i
+    _                                                     -> return uid
   id' <- create $ setUsr uid p
   let p' = P.put E.ident id' p
-  checkUserState uid p'
+  s <- checkUserState tgtUsr p'
+  case s of
+    Nothing -> return ()
+    Just st -> do
+      -- well it's hack of course, current time will be little differene
+      -- from real ctime of new state
+      time <- liftIO $ getCurrentTime
+      withMsg $ sendMessage
+        (mkLegacyIdent tgtUsr)
+        (P.put currentState      st      $
+         P.put currentStateCTime time    $
+         P.put delayedState      Nothing $
+         P.empty)
   return ()
 
 -- Implementation --------------------------------------------------------------
@@ -112,7 +133,7 @@ create :: HasPostgres m
        -> m (IdentI Event)
 create ev = withPG $ \c -> liftIO $ P.create ev c
 
--- | Log event for legacy model crud
+-- | Build log event for legacy model crud
 buildLegacy :: forall m t n d.(Model m, SingI n)
             => EventType
             -- ^ Type of the event
@@ -135,7 +156,7 @@ data States = States { from :: [UserStateVal], to :: UserStateVal }
 checkUserState :: HasPostgres (Handler b m)
                => IdentI Usermeta
                -> Patch Event
-               -> Handler b m ()
+               -> Handler b m (Maybe UserStateVal)
 checkUserState uid ev = do
   hist <- query
     (fromString (printf
@@ -158,11 +179,11 @@ checkUserState uid ev = do
       let mname = modelName (modelInfo :: ModelInfo m)
       in nextState s d (P.get' ev E.eventType) mname (join $ P.get ev E.field)
 
-    setNext Nothing = return ()
+    setNext Nothing = return Nothing
     setNext (Just s) = withPG $ \c -> do
-      P.create (mkState s) c
-      P.update uid (P.put delayedState Nothing P.empty) c
-      return ()
+      void $ P.create (mkState s) c
+      void $ P.update uid (P.put delayedState Nothing P.empty) c
+      return $ Just s
 
     mkState s = P.put State.eventId (P.get' ev E.ident) $
                 P.put State.userId uid                  $
@@ -203,9 +224,14 @@ nextState lastState delayed evt mname fld =
     change ([LoggedOut] >>> Ready)     $ on Login  NoModel
     change (allStates   >>> LoggedOut) $ on Logout NoModel
     case delayed of
-      Nothing     -> return ()
-      Just dState -> change ([Ready] >>> dState) $
-                     on Update $ Fields [field delayedState]
+      Nothing     -> change ([ServiceBreak] >>> Ready) $
+        on Update $ Fields [field delayedState]
+      Just Ready  -> change ([Rest, Dinner, ServiceBreak] >>> Ready) $
+        on Update $ Fields [field delayedState]
+      Just dState -> change ([Ready, Rest, Dinner] >>> dState) $
+        on Update $ Fields [field delayedState]
+
+    -- Check if we can switch user into delayed state
     checkDelayed
   where
     field :: forall t n d m1.(Model m1, SingI n)
@@ -218,8 +244,8 @@ nextState lastState delayed evt mname fld =
       UserStateEnv{..} <- ask
       newstate         <- get
       case (delayed, newstate) of
-        (Just dst, Just Ready) -> put delayed
-        _                      -> return ()
+        (Just _, Just Ready) -> put delayed
+        _                     -> return ()
 
 on :: EventType -> Matcher -> UserStateM
 on tpe matcher = do

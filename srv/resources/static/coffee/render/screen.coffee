@@ -14,8 +14,10 @@ define [], ->
   # Clean up all views on screen and everything.
   forgetScreen = ->
     for name, cs of global.activeScreen?.views when cs.destructor?
-      cs.destructor()
+      cs.destructor(name)
     forgetView(viewName) for viewName of global.viewsWare
+    global.topElement.off()
+    ko.cleanNode global.topElement[0]
     global.topElement.empty()
     global.viewsWare = {}
     global.activeScreen = null

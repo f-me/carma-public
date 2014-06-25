@@ -3,6 +3,7 @@ CREATE TABLE "SubProgram"
   , parent int4 REFERENCES "Program" NOT NULL ON DELETE SET NULL
   , label text NOT NULL CHECK (label <> '')
   , active bool NOT NULL DEFAULT true
+  , leader bool NOT NULL DEFAULT false
   , synonyms text[]
   , value text UNIQUE NOT NULL
   , mailAddr text

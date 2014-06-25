@@ -7,6 +7,9 @@
 
 Contract search.
 
+See 'AppHandlers.CustomSearches.Contract.Base' to add extra fields in
+@/searchContracts@ response.
+
 -}
 
 module AppHandlers.CustomSearches.Contract
@@ -33,9 +36,10 @@ import           Database.PostgreSQL.Simple.FromRow
 import           Snap
 
 import           Data.Model
-import           Carma.Model.Contract as C
 import           Carma.Model.CarMake
 import           Carma.Model.CarModel
+import           Carma.Model.Case as Case
+import           Carma.Model.Contract as C
 import           Carma.Model.Program as P
 import           Carma.Model.SubProgram as S hiding (field)
 import           Carma.Model.Types (TInt)
@@ -69,7 +73,7 @@ instance FromRow SearchResult where
     fromRow = SearchResult <$> field <*> field <*> fromRow <*> fromRow
 
 instance ToJSON SearchResult where
-    toJSON (SearchResult i e vals (cm, cl, ml, sp, d)) =
+    toJSON (SearchResult i e vals (cm, cl, ml, sp, d, a)) =
         object $ [ "id"       .= i
                  , "_expired" .= e
                  ] ++ (zip C.identifierNames listVals)
@@ -77,7 +81,8 @@ instance ToJSON SearchResult where
                                                    , toJSON cl
                                                    , toJSON ml
                                                    , toJSON sp
-                                                   , toJSON d])
+                                                   , toJSON d
+                                                   , toJSON a])
         where
           jsonVals = toJSON vals
           -- Assume that if identifierTypes is a tuple, its ToJSON
@@ -88,11 +93,13 @@ instance ToJSON SearchResult where
                 _           -> error "(toJSON identifierTypes) is broken"
 
 
--- | Read @query@, @program@ (optional), @subprogram@ (optional),
--- @limit@ (defaults to 100) parameters and return list of contracts
--- with matching identifier fields. Every result in the list contains
--- a subset of contract fields and @_expired@ which is a boolean flag
--- indicating whether a contract is expired or not.
+-- | Read @query@, @case@, @program@ (optional), @subprogram@
+-- (optional), @limit@ (defaults to 100), @type@ (match type)
+-- parameters and return list of contracts with matching identifier
+-- fields. Every result in the list contains a subset of contract
+-- fields and @_expired@ which is a boolean flag indicating whether a
+-- contract is expired or not, compared to callDate field of the
+-- provided case.
 --
 -- TODO Try rewriting the query with carma-models SQL. @_expired@ is
 -- the only reason we build a custom query here and use SearchResult
@@ -101,30 +108,42 @@ searchContracts :: AppHandler ()
 searchContracts = do
   pid <- getIntParam "program"
   sid <- getIntParam "subprogram"
-  limit' <- getIntParam "limit"
-  let limit = fromMaybe 100 limit'
+  limit <- fromMaybe 100 <$> getIntParam "limit"
   q <- fromMaybe (error "No search query provided") <$> getParam "query"
+  caseId <- fromMaybe (error "No case number provided") <$> getIntParam "case"
+  matchType <- fromMaybe "" <$> getParam "type"
+
+  let exact = matchType == "exact"
 
   ml <- gets $ searchMinLength . options
-  when (B.length q < ml) $ error "Search query is too short"
+  when (B.length q < ml && not exact) $ error "Search query is too short"
 
   -- Form query template and all of its parameters. Contract
   -- identifiers (length M) and extraContractFields (length N) define
   -- what fields are included in the result.
   let -- Predicate which filters contracts by one field. Parameters
       -- (2): field name, query string.
-      fieldPredicate =
+      fuzzyFieldPredicate =
           "(? ILIKE '%' || ? || '%')"
+      exactFieldPredicate =
+          "(? = ?)"
+      fieldPredicate = if exact
+                       then exactFieldPredicate
+                       else fuzzyFieldPredicate
       fieldParams = zip (map PT C.identifierNames) $ repeat q
       totalQuery = intercalate " "
           [ "SELECT DISTINCT ON(c.id) c.id,"
-          -- 2 parameters: contract start/end date field name
-          , "((now() < ?) or (? < now())),"
+          -- 4 parameters: case callDate name, contract start/end date
+          -- field name, case callDate name (expiration predicate)
+          , "((cs.? < ?) or (? < cs.?)),"
           -- M + N more parameters: selected fields.
           , intercalate "," $
             map (const "c.?") selectedFieldsParam
           -- 1 parameter: Contract table name
           , "FROM \"?\" c"
+          -- 3 parameters: Case table name, Case ident field name,
+          -- Case id.
+          , "JOIN \"?\" cs ON cs.? = ?"
           -- 3 more parameters: SubProgram table name, Contract
           -- subprogram field, subprogram id field.
           , "JOIN \"?\" s ON c.? = s.?"
@@ -160,11 +179,21 @@ searchContracts = do
 
   res <- withPG pg_search $ \c -> query c (fromString totalQuery)
          (()
-          :. (PT $ fieldName C.validSince, PT $ fieldName C.validUntil)
+          -- 4
+          :. ( PT $ fieldName Case.callDate
+             , PT $ fieldName C.validSince
+             , PT $ fieldName C.validUntil
+             , PT $ fieldName Case.callDate
+             )
           -- M + N
           :. (selectedFieldsParam)
           -- 1
-          :. Only contractTable
+          :. (Only contractTable)
+          -- 3
+          :. ( PT $ tableName (modelInfo :: ModelInfo Case.Case)
+             , PT $ fieldName Case.ident
+             , caseId
+             )
           -- 3
           :. Only subProgramTable
           :. (PT $ fieldName C.subprogram, PT $ fieldName S.ident)

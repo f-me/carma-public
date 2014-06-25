@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 {-|
 
@@ -250,25 +251,59 @@ protoUpdateWithFun cname fun args =
         )
 
 
--- | Clear field values which do not match a regular expression (case
--- insensitive).
-protoCheckRegexp :: InternalName
-                 -> ContractFieldName
-                 -> Text
-                 -- ^ Regular expression.
-                 -> Import Int64
-protoCheckRegexp iname cname regexp =
+-- | Copy a pristine table column to proto table, trimming
+-- leading/trailing whitespace.
+protoTransfer :: InternalName -> ContractFieldName -> Import Int64
+protoTransfer iname cname =
     execute
     [sql|
      UPDATE vinnie_proto SET ? = trim(both ' ' from ?)
      FROM vinnie_pristine
      WHERE vinnie_proto.? = vinnie_pristine.?;
-     UPDATE vinnie_proto SET ? = null WHERE ? !~* ?;
      |] ( cname
         , PT iname
         , tKid
         , tKid
-        , cname
+        )
+
+
+-- | Copy a pristine table column to proto table, trimming whitespace
+-- and translating characters.
+protoTranslate :: InternalName
+                   -> Text
+                   -- ^ Source pattern.
+                   -> Text
+                   -- ^ Target pattern (its length must match that of
+                   -- the source pattern).
+                   -> ContractFieldName
+                   -> Import Int64
+protoTranslate iname from to cname =
+    execute
+    [sql|
+     UPDATE vinnie_proto
+     SET ? = translate(trim(both ' ' from ?), ?, ?)
+     FROM vinnie_pristine
+     WHERE vinnie_proto.? = vinnie_pristine.?;
+     |] ( cname
+        , PT iname
+        , from
+        , to
+        , tKid
+        , tKid
+        )
+
+
+-- | Clear field values which do not match a regular expression (case
+-- insensitive).
+protoCheckRegexp :: ContractFieldName
+                 -> Text
+                 -- ^ Regular expression.
+                 -> Import Int64
+protoCheckRegexp cname regexp =
+    execute
+    [sql|
+     UPDATE vinnie_proto SET ? = null WHERE ? !~* ?;
+     |] ( cname
         , cname
         , regexp)
 
@@ -508,31 +543,60 @@ createQueueTable =
            AND NEW.? IS NULL)
      EXECUTE PROCEDURE fillValidUntil();
 
-     CREATE TRIGGER "vinnie_queue_checkPeriod" BEFORE UPDATE OF ?
+     -- subprogram may also be recognized prior to
+     -- vinnie_proto-vinnie_queue transfer from a file column, thus an
+     -- insert trigger is also required
+     CREATE TRIGGER "vinnie_queue_validUntil_insert" BEFORE INSERT
+     ON vinnie_queue
+     FOR EACH ROW
+     WHEN (NEW.? IS NOT NULL
+           AND NEW.? IS NOT NULL
+           AND NEW.? IS NULL)
+     EXECUTE PROCEDURE fillValidUntil();
+
+     CREATE TRIGGER "vinnie_queue_checkPeriod_update" BEFORE UPDATE OF ?
      ON vinnie_queue
      FOR EACH ROW
      WHEN (NEW.? IS NOT NULL
            AND NEW.? IS NULL)
      EXECUTE PROCEDURE fillCheckPeriod();
-     |] (contractTable,
-         cfn C.subprogram,
-         cfn C.validSince, cfn C.subprogram, cfn C.validUntil,
-         cfn C.subprogram,
-         cfn C.subprogram, cfn C.checkPeriod)
+
+     CREATE TRIGGER "vinnie_queue_checkPeriod_insert" BEFORE INSERT
+     ON vinnie_queue
+     FOR EACH ROW
+     WHEN (NEW.? IS NOT NULL
+           AND NEW.? IS NULL)
+     EXECUTE PROCEDURE fillCheckPeriod();
+     |] (()
+         :* contractTable
+         :* cfn C.subprogram
+         :* cfn C.validSince :* cfn C.subprogram :* cfn C.validUntil
+         :* cfn C.validSince :* cfn C.subprogram :* cfn C.validUntil
+         :* cfn C.subprogram
+         :* cfn C.subprogram :* cfn C.checkPeriod
+         :* cfn C.subprogram :* cfn C.checkPeriod)
 
 
 -- | Set committer and subprogram (if not previously set) for
 -- contracts in queue.
-setSpecialDefaults :: Int -> Maybe Int -> Import Int64
-setSpecialDefaults cid sid =
+setSpecialDefaults :: Int
+                   -- ^ Committer.
+                   -> Maybe Int
+                   -- ^ Subprogram.
+                   -> Bool
+                   -- ^ Contracts are loaded from ARC.
+                   -> Import Int64
+setSpecialDefaults cid sid fromArc =
     execute
     [sql|
      UPDATE vinnie_queue SET ? = ?;
      UPDATE vinnie_queue SET ? = 't';
      UPDATE vinnie_queue SET ? = ? WHERE ? IS NULL;
+     UPDATE vinnie_queue SET ? = ?;
      |] (cfn C.committer, cid,
          cfn C.dixi,
-         cfn C.subprogram, sid, cfn C.subprogram)
+         cfn C.subprogram, sid, cfn C.subprogram,
+         cfn C.fromArc, fromArc)
 
 
 -- | Transfer from proto table to queue table, casting text values
@@ -619,9 +683,15 @@ transferContracts =
      FROM vinnie_queue WHERE errors IS NULL;
      |] ( contractTable
         , PT $ sqlCommas $
-          (fieldName C.committer):(fieldName C.dixi):contractFields
+          (fieldName C.fromArc):
+          (fieldName C.committer):
+          (fieldName C.dixi):
+          contractFields
         , PT $ sqlCommas $
-          (fieldName C.committer):(fieldName C.dixi):contractFields)
+          (fieldName C.fromArc):
+          (fieldName C.committer):
+          (fieldName C.dixi):
+          contractFields)
 
 
 data RowError = EmptyRequired Text
