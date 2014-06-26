@@ -46,6 +46,7 @@ class ThMenu
   select: =>
     @selectcb(@.$menu.find('.active').attr('data-value'))
     @hide()
+    @$element.change()
     return @
 
   show: =>
