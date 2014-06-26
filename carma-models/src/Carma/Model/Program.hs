@@ -12,7 +12,7 @@ import Data.Model.View
 import Data.Model.TH
 
 import Carma.Model.ProgramType hiding (b2c, ident)
-import Carma.Model.Usermeta hiding (ident)
+import Carma.Model.Usermeta hiding (arc, ident)
 import Carma.Model.PgTypes()
 
 

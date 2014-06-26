@@ -71,7 +71,9 @@ data Usermeta = Usermeta
 
 
 mkIdents [t|Usermeta|]
- [ ("psa", 387) ]
+ [ ("psa", 387)
+ , ("arc", 728)
+ ]
 
 
 instance Model Usermeta where
@@ -150,4 +152,3 @@ allUsrsQ =
             "FROM \"UserState\" ORDER BY userid, id DESC) s "       ++
  "ON u.id = s.userid "                                              ++
  "LIMIT ? OFFSET ? ;"
-
