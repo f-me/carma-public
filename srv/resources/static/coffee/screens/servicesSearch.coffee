@@ -62,6 +62,7 @@ define [ "search/screen"
         "cardNumber_cardNumber"
         "comment"
         "callTaker"
+        "customerComment"
         ]
       Service: [
         "type"

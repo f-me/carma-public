@@ -152,11 +152,17 @@ define [ "model/render"
               return [] unless rs
               ms = (m.split(':') for m in rs)
               for m in ms
-                k = buildKVM global.model(m[0], queueOptions?.modelArg),
-                  fetched: {id: m[1]}
-                  queue:   queue
-                k.parent = kvm
-                k
+                # HACK: have to use this temporary observable, wich is
+                # disposed right after creation, so current computed
+                # won't subscribe to any field in built kvm #1860
+                k = ko.computed ->
+                  buildKVM global.model(m[0], queueOptions?.modelArg),
+                    fetched: {id: m[1]}
+                    queue:   queue
+                refKVM = k.peek()
+                k.dispose()
+                refKVM.parent = kvm
+                refKVM
             write: (v) ->
               ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
               kvm[f.name](ks)
@@ -291,6 +297,15 @@ define [ "model/render"
     hooks = queueOptions?.hooks or ['*', model.name]
     applyHooks global.hooks.observable, hooks, model, kvm
     return kvm
+
+  # Cleanup stuff that can prevent remove by gc
+  cleanupKVM = (kvm) =>
+    for k in kvms.items()
+      for n, f of k when ko.isComputed f
+        f.dispose()
+      for n, f of k when /TypeaheadBuilder$/.test(n)
+        f.destroy()
+
 
   #/ Model functions.
 
@@ -495,6 +510,7 @@ define [ "model/render"
   , modelSetup    : modelSetup
   , buildNewModel : buildNewModel
   , buildKVM      : buildKVM
+  , cleanupKVM    : cleanupKVM
   , addRef        : addRef
   , focusRef      : focusRef
   }

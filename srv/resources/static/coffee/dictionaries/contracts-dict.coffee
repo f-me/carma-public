@@ -13,10 +13,13 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
       params = "program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}"
       query = "/searchContracts/?query=#{q}&case=#{@kvm.id?()}&#{params}#{if opt?.force then '&type=exact' else ''}"
 
-      needArc = false
+      @needArc = false
+      @orig = null
+      @nonEmpty = false
+
       if q.length == 17
         arcQuery = "/arcImport/#{q}?#{params}"
-        needArc = true
+        @needArc = true
 
       processResponse = (r) =>
         @found = []
@@ -35,32 +38,40 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
               @contr2html i, fields, q
 
       fetchResults = (d) ->
-        cb [inlineSpinner "<div class='inline-spinner'></div>"]
-        $.getJSON query, (res) =>
+        if !d.nonEmpty
+          cb [inlineSpinner "<div class='inline-spinner'></div>"]
+        $.getJSON query, (res) ->
+          d.nonEmpty = !_.isEmpty res
           items = processResponse res
           d.orig = _.clone items
           cb items
           # Show trailing spinner if ARC query is pending
-          if needArc
+          if d.needArc
             items.push inlineSpinner "<div class='inline-spinner'></div>"
             cb items
 
       # We explicitly pass dictionary object so that it is accessible
       # inside fetchResults (we can store original search response
       # this way to use later after ARC loading finishes)
-      fetchResults(this)
+      firstFetch = fetchResults(this)
 
-      if needArc
+      if @needArc
+        parentThis = this
         $.getJSON(arcQuery)
           .always(() ->
-            needArc = false)
-          .done((ar) =>
+            parentThis.needArc = false)
+          .done((ar) ->
             # New contracts? Repeat contract search.
             if ar[0] > 0
-              fetchResults(this)
+              firstFetch.done () ->
+                items = parentThis.orig
+                items.push inlineSpinner "<div class='inline-spinner'></div>"
+                cb items
+                fetchResults(parentThis)
             # Remove trailing spinner
             else
-              cb this.orig)
+              if parentThis.orig?
+                cb parentThis.orig)
 
     # returns html representation of contract
     contr2html: (c, fs = [], q = "") ->
