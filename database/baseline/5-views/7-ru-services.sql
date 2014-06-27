@@ -104,6 +104,111 @@ WITH servicecounts AS (
         
             "ServiceNames".label as "Тип обращения",--"Услуга"
    allservicesview.towdealer_partner AS "Назначение эвакуации-назв. дилера",
+   p2.code AS "Код дилера",WITH servicecounts AS (
+         SELECT servicetbl_1.parentid,
+            count(*) AS amount
+           FROM servicetbl servicetbl_1
+          GROUP BY servicetbl_1.parentid
+        )
+ SELECT 
+    "PaymentType".label AS "Тип оплаты",
+        "substring"(servicetbl.parentid, 6) || COALESCE(('/'::text || rank() OVER (PARTITION BY servicetbl.parentid ORDER BY servicetbl.createtime ASC)) ||
+        CASE
+            WHEN servicecounts.amount < 2 THEN NULL::text
+            ELSE ''::text
+        END, ''::text) AS "Номер происшествия",
+    '1-RAMC'::text AS "Орг-ия, обрабатывающая происшеств.",
+    timezone('Europe/Moscow'::text, casetbl.calldate) AS "Дата и время звонка (МСК)", --"Дата звонка"
+    timezone('Europe/Moscow'::text, servicetbl.times_expectedservicestart) AS "Ожид. время нач. оказания услуги",
+    timezone('Europe/Moscow'::text, servicetbl.createtime) AS "Дата и время создания услуги",
+    upper(casetbl.car_platenum) AS "Регистрационный номер автомобиля",
+    DATE(timezone('Europe/Moscow'::text, casetbl.car_buydate::timestamp with time zone)) AS "Дата продажи автомобиля",
+    upper(casetbl.car_vin) AS "VIN автомобиля",
+    upper("Contract".vin) AS "VIN автомобиля(контракт)",
+    "ContractCheckStatus".label AS "VIN проверен(Участие в программе)",
+    casetbl.car_mileage AS "Пробег автомобиля",
+    --СПРАВОЧНИК "Марка" unbounded, ПОЛЬЗОВАТЕЛЬ МОЖЕТ НАПИСАТЬ В ПОЛЕ ЛЮБОЕ ЗНАЧЕНИЕ
+    CASE 
+	WHEN "CarMake".label IS NULL
+	THEN casetbl.car_make
+	ELSE "CarMake".label
+    END AS "Марка автомобиля",
+    --СПРАВОЧНИК "Модель" unbounded, ПОЛЬЗОВАТЕЛЬ МОЖЕТ НАПИСАТЬ В ПОЛЕ ЛЮБОЕ ЗНАЧЕНИЕ
+    CASE 
+	WHEN "CarModel".label IS NULL
+	THEN casetbl.car_model
+	ELSE "CarModel".label
+    END AS "Модель автомобиля",
+    p3.name AS "Дилер, продавший автомобиль",
+    "Wazzup".label AS "Что случилось",
+    "System".label AS "Система, где произошла неиспр.",
+    "Part".label AS "Неисправная деталь(узел)",
+    "Cause".label AS "Описание причины неисправности",
+    "CarMake".fdds AS "VEHICLE MAKE",
+    --Реализация функции VEHICLEMODEL()
+    CASE
+	WHEN
+		("CarMake".value = 'ford' OR "CarMake".label = 'Ford') AND "CarModel".fdds IS NULL
+		THEN
+			'0900'
+	WHEN 
+		("CarMake".value = 'chevy' OR "CarMake".label = 'Chevrolet') AND "CarModel".fdds IS NULL
+		THEN 
+			'1000'
+	WHEN
+		("CarMake".value = 'opel' OR "CarMake".label = 'Opel' OR "CarMake".label = 'Vauxhall') AND "CarModel".fdds IS NULL
+		THEN 
+			'2300'
+	WHEN
+		("CarMake".value = 'cad' OR "CarMake".label = 'Cadillac') AND "CarModel".fdds IS NULL
+		THEN 
+			'1115'
+	ELSE 
+		"CarModel".fdds
+    END AS "VEHICLE MODEL",
+	
+	
+	
+	
+    --ФУНКЦИЯ FAULTCODE (ЕСЛИ УСЛУГА НЕ ЗАПОЛНЕНА, НО ФОЛТКОДА НЕТУ)
+    CASE 
+		WHEN "ServiceNames".fdds IS NOT NULL
+		THEN
+		concat(
+			CASE 
+				WHEN
+					"Part".fdds IS NULL
+				THEN '150'
+				ELSE "Part".fdds
+			END,
+		CASE 
+			WHEN
+				"Cause".fdds IS NULL
+			THEN '09'
+			ELSE "Cause".fdds	
+		END,
+     "ServiceNames".fdds)::text 
+		ELSE
+		NULL::text
+	END AS "FAULTCODE", 
+    casetbl.temperature AS "Погодные условия",
+    casetbl.customerComment AS "Комментарий к кейсу",
+    casetbl.caseaddress_address AS "Место поломки",
+    casetbl.caseaddress_comment AS "Адрес места поломки/примечания",
+    servicetbl.contractor_partner AS "Субподрядчик, оказавший услугу",
+    "ServiceStatus".label AS "Результат оказания помощи",
+    CASE
+            WHEN servicetbl.falsecall = 'bill'::text OR servicetbl.falsecall = 'nobill'::text THEN 'Y'::text
+            ELSE 'N'::text
+        END AS "Ложный вызов",
+        CASE
+            WHEN servicetbl.falsecall = 'bill'::text THEN 'Y'::text
+            ELSE 'N'::text
+        END AS "Выставлен счет за ложный вызов",
+        'Обработано'::text AS "Статус обращения(: обработано)",
+        
+            "ServiceNames".label as "Тип обращения",--"Услуга"
+   allservicesview.towdealer_partner AS "Назначение эвакуации-назв. дилера",
    p2.code AS "Код дилера",
    casecity.label AS "Город места поломки",
    dealercity.label AS "Город дилера (куда эвакуируют)",
@@ -122,7 +227,12 @@ WITH servicecounts AS (
     END AS "Гарантийный случай",
     allservicesview.repairenddate AS "Дата окончания ремонта",
     allservicesview.suburbanmilage AS "Пробег эвак-ра/техпом. за городом",
-    concat_ws(', '::text, casetbl.contact_phone1, casetbl.contact_phone2, casetbl.contact_phone3, casetbl.contact_phone4) AS "Телефоны клиента",
+      concat_ws(', '::text, 
+	SUBSTRING(casetbl.contact_phone1, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone1, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone1, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone1, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone1, 10, 2)::text || ' '::text, 
+	SUBSTRING(casetbl.contact_phone2, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone2, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone2, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone2, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone2, 10, 2)::text || ' '::text, 
+	SUBSTRING(casetbl.contact_phone3, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone3, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone3, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone3, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone3, 10, 2)::text || ' '::text, 
+	SUBSTRING(casetbl.contact_phone4, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone4, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone4, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone4, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone4, 10, 2)::text || ' '::text)
+	 AS "Телефоны клиента",
     servicetbl.payment_limitedcost AS "Стоимость для заказчика",
     allservicesview.providedfor AS "Дни(Срок предоставления)",
     servicetbl.contractor_partner AS "Субпод-к, оказ.усл.(как по дог-ру)",
