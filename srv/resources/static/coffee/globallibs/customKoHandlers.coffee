@@ -178,3 +178,9 @@ ko.bindingHandlers.eachNonEmpty =
     fns = ko.bindingHandlers.eachNonEmpty.nonEmpty fnames, ctx, koctx
     ko.applyBindingsToNode el, {foreach: fns}, koctx
     { controlsDescendantBindings: true }
+
+ko.bindingHandlers.addMask =
+  init: (el, acc) ->
+    switch acc()
+      when "datetime" then $(el).mask("99.99.9999 99:99:99")
+      else console.error("unknown mask")
