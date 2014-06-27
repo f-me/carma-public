@@ -5,6 +5,7 @@ define ["model/main"], (main) ->
       main.modelSetup("Sms") "sms-send-form", {id:null},
                             focusClass: "focusable"
                             refs: refs
+                            manual_save: true
 
       buttonDisabled = (dsbl) ->
         btn = $('#do-send-sms')
@@ -37,6 +38,7 @@ define ["model/main"], (main) ->
         .on('click', () ->
           $('#sms-send-modal').modal('hide')
           smsVM.status 'please-send'
+          smsVM._meta.q.save()
           )
     )
   ,1000)
