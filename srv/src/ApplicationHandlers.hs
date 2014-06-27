@@ -28,7 +28,6 @@ import Data.Ord (comparing)
 
 import Data.Time
 
-import System.FilePath
 import System.Locale
 
 import Database.PostgreSQL.Simple ( Query, query_, query, execute)
@@ -50,10 +49,8 @@ import WeatherApi (getWeather', tempC)
 import Snaplet.Auth.PGUsers
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
-import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
-import qualified Snaplet.DbLayer.Dictionary as Dict
-import Snaplet.FileUpload (FileUpload(cfg), doUpload, oneUpload)
+import Snaplet.FileUpload (FileUpload(cfg))
 import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
 
@@ -399,23 +396,6 @@ rkcPartners = logExceptions "handler/rkc/partners" $ do
   res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
   writeJSON res
 
-
-arcReportHandler :: AppHandler ()
-arcReportHandler = logExceptions "handler/arc" $ do
-  year <- tryParam B.readInteger "year"
-  month <- tryParam B.readInt "month"
-  dicts <- Dict.loadDictionaries $ "resources/site-config/dictionaries"
-  with db $ ARC.arcReport dicts year month
-  serveFile "ARC.xlsx"
-  where
-    tryParam :: MonadSnap m => (ByteString -> Maybe (a, ByteString)) -> ByteString -> m a
-    tryParam reader name = do
-      bs <- getParam name
-      case bs >>= reader of
-        Nothing -> error $ "Unable to parse " ++ B.unpack name
-        Just (v, "") -> return v
-        Just (_, _) -> error $ "Unable to parse " ++ B.unpack name
-
 -- | This action recieve model and id as parameters to lookup for
 -- and json object with values to create new model with specified
 -- id when it's not found
@@ -428,70 +408,8 @@ findOrCreateHandler = do
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
-------------------------------------------------------------------------------
--- | Reports
-report :: AppHandler ()
-report = logExceptions "handler/report" $ do
-  extendTimeout 6000
-  Just reportId <- getParam "program"
-  fromDate <- liftM (fmap T.decodeUtf8) $ getParam "from"
-  toDate <- liftM (fmap T.decodeUtf8) $ getParam "to"
-  reportInfo <- with db $ DB.read "report" reportId
-  let tplName = B.unpack (reportInfo Map.! "templates")
-  syslogTxt Info "handler/report" $ "Generating report " ++ tplName
-  let template
-        = "resources/static/fileupload/report/"
-        ++ (B.unpack reportId) ++ "/templates/" ++ tplName
-  let result = "resources/reports/" ++ tplName
-  let
-    -- convert format and UTCize time, and apply f to UTCTime
-    validateAnd f dateStr = fmap (format . f) $ parse dateStr where
-      format = T.pack . formatTime defaultTimeLocale "%d.%m.%Y %X"
-      parse :: T.Text -> Maybe UTCTime
-      parse = parseTime defaultTimeLocale "%d.%m.%Y" . T.unpack
-    withinAnd f pre post dateValue = do
-      v <- dateValue
-      s <- validateAnd f v
-      return $ T.concat [T.pack pre, s, T.pack post]
-
-    fromTo mdl = (from, to) where
-      from = withinAnd id (mdl ++ " >= to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
-      to = withinAnd addDay (mdl ++ " < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
-
-    addDay tm = tm { utctDay = addDays 1 (utctDay tm) }
-
-    mkCondition nm = catMaybes [from', to'] where
-      (from', to') = fromTo (T.unpack nm)
-
-  with db $ DB.generateReport mkCondition template result
-  modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
-  serveFile result
-
-createReportHandler :: AppHandler ()
-createReportHandler = do
-  res <- with db $ DB.create "report" $ Map.empty
-  let Just objId = Map.lookup "id" res
-  f <- with fileUpload $ oneUpload =<<
-       (doUpload $ "report" </> (U.bToString objId) </> "templates")
-  Just name  <- getParam "name"
-  -- we have to update all model params after fileupload,
-  -- because in multipart/form-data requests we do not have
-  -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
-  _ <- with db $ DB.update "report" objId $
-    Map.fromList [ ("templates", T.encodeUtf8 $ T.pack $ takeFileName f)
-                 , ("name",      name) ]
-  redirect "/#reports"
-
-deleteReportHandler :: AppHandler ()
-deleteReportHandler = do
-  Just objId  <- getParam "id"
-  with db $ DB.delete "report" objId
-  -- TODO Rewrite this using CRUD triggers
-  -- with fileUpload $ doDeleteAll' "report" $ U.bToString objId
-
 serveUsersList :: AppHandler ()
 serveUsersList = with db usersListPG >>= writeJSON
-
 
 getSrvTarifOptions :: AppHandler ()
 getSrvTarifOptions = do
