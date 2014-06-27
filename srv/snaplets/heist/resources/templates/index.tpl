@@ -466,8 +466,9 @@
                             valueUpdate: 'change',
                             disabled: {{ name }}Disabled,
                             {{# meta.regexp }}
-                            css: { 're-failed': {{name}}Regexp }
-                            {{/ meta.regexp}}"
+                            css: { 're-failed': {{name}}Regexp },
+                            {{/ meta.regexp}}
+                            addMask: 'datetime'"
                  />
         </div>
       </div>
