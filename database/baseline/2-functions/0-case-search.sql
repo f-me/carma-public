@@ -29,7 +29,7 @@ $$
       else return query
         select * from casetbl where
           lower(      to_char(callDate + '4:00','DD.MM.YYYY')
-            || ' ' || coalesce(comment, '')
+            || ' ' || coalesce(customerComment, '')
             || ' ' || coalesce(city, '')
             || ' ' || coalesce(dealerCause, '')
             || ' ' || coalesce(contact_name, '')

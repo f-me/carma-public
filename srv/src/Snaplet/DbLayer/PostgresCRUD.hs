@@ -1,30 +1,20 @@
 module Snaplet.DbLayer.PostgresCRUD (
     loadRelations,
-    insert, update, updateMany, insertUpdate, insertUpdateMany,
-    generateReport
+    insert, update, updateMany, insertUpdate, insertUpdateMany
     ) where
 
 
-import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.CatchIO
 
 import qualified Data.Aeson as A
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
+import Data.Maybe (fromMaybe)
 import Data.ByteString (ByteString)
-import Data.Char
-import Data.List (elemIndex)
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import qualified Data.Text.Lazy as L
-import qualified Data.Text.Lazy.Encoding as L
-import Data.Time
-import Data.Time.Clock.POSIX
-import qualified Data.HashMap.Strict as HM
-import qualified Data.Vector  as V
 
 import qualified Database.PostgreSQL.Simple as P
 import qualified Snap.Snaplet.PostgresqlSimple as PS
@@ -32,188 +22,15 @@ import qualified Data.Pool as Pool
 
 import qualified Database.PostgreSQL.Sync as S
 import Database.PostgreSQL.Sync.JSON ()
-import qualified Database.PostgreSQL.Report as R
-import qualified Database.PostgreSQL.Report.Xlsx as R
-import System.Locale
-import Text.Printf
 
-import Snaplet.DbLayer.Dictionary
 import qualified Carma.ModelTables as MT
 import Util
 
-
-withPgTIO :: (PS.HasPostgres m, MonadCatchIO m) => S.TIO a -> m a
-withPgTIO f = do
-    s <- PS.getPostgresState
-    liftIO $ Pool.withResource (PS.pgPool s) (S.inPG f)
 
 inPsql :: (PS.HasPostgres m, MonadCatchIO m) => (P.Connection -> m ()) -> m ()
 inPsql act = do
     s <- PS.getPostgresState
     Pool.withResource (PS.pgPool s) act
-
-functions :: TimeZone -> Dictionary -> [R.ReportFunction]
-functions tz dict = [
-    R.onString "NAME" (capitalize. fromMaybe "" . listToMaybe . drop 1 . words),
-    R.onString "LASTNAME" (capitalize . fromMaybe "" . listToMaybe . words),
-    R.onString "UPPER" (map toUpper),
-    R.onString "LOWER" (map toLower),
-    R.onString "PHONE" phoneFmt,
-    R.function "COMMENT" composeComment,
-    R.function "CONCAT" concatFields,
-    R.functionMaybe "LOOKUP" lookupField,
-    R.function "IF" ifFun,
-    R.functionMaybe "DATEDIFF" dateDiff,
-    R.functionMaybe "YESNO" yesNo,
-    R.function "DATE" (formatTimeFun "%d.%m.%Y"),
-    R.function "TIME" (formatTimeFun "%d.%m.%Y %H:%M"),
-    R.uses ["servicesview.callerOwner", "servicesview.caller_name", "servicesview.owner_name"] $ R.constFunction "OWNER" ownerFun,
-    R.uses ["servicesview.program"] $ R.constFunction "FDDS" fddsFun,
-    R.uses ["servicesview.falseCall"] $ R.constFunction "FALSECALL" falseFun,
-    R.uses ["servicesview.falseCall"] $ R.constFunction "BILL" billFun,
-    R.uses ["servicesview.clientSatisfied"] $ R.constFunction "SATISFIED" satisfiedFun,
-    R.uses ["servicesview.diagnosis2", "servicesview.diagnosis3", "servicesview.type"] $ R.constFunction "FAULTCODE" faultFun,
-    R.uses ["servicesview.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
-    R.uses ["servicesview.car_make", "servicesview.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun,
-    R.uses ["servicesview.caseid", "servicesview.services", "servicesview.id", "servicesview.type"] $ R.constFunction "SERVICEID" serviceId,
-    R.uses ["servicesview.backoperator"] $ R.constFunction "BACKOPERATOR" backOperator]
-    where
-        capitalize "" = ""
-        capitalize (c:cs) = toUpper c : map toLower cs
-
-        phoneFmt ('+':'7': xs@[a,b,c,d,e,f,g,h,i,j])
-          | all isDigit xs
-            = printf "+7 (%s) %s %s %s" [a,b,c] [d,e,f] [g,h] [i,j]
-        phoneFmt s = s
-
-        composeComment = S.StringValue . \case
-          [S.StringValue s]
-            -> case A.decode $ L.encodeUtf8 $ L.pack s of
-              Just (A.Array a) -> concatMap mkComment $ V.toList a
-              _ -> ""
-          _ -> ""
-         where
-          mkComment = \case
-            A.Object o -> case HM.lookup "comment" o of
-              Just (A.String s) -> T.unpack s ++ "\n--\n"
-              _ -> ""
-            _ -> ""
-
-        concatFields fs = S.StringValue $ concat $ mapMaybe fromStringField fs
-        fromStringField (S.StringValue s) = Just s
-        fromStringField _ = Nothing
-
-        lookupField fs = lookupFieldWithDefault (last fs) fs
-
-        lookupFieldWithDefault _   [] = Nothing
-        lookupFieldWithDefault def fs = tryLook <|> Just def where
-            tryLook = do
-                ks <- mapM (fmap T.pack . fromStringField) fs
-                fmap (S.StringValue . T.unpack) $ lookAny ks dict
-
-        ifFun [i, t, f]
-            | i `elem` [S.StringValue "1", S.StringValue "true", S.StringValue "Y", S.IntValue 1, S.BoolValue True] = t
-            | otherwise = f
-        ifFun _ = S.StringValue ""
-
-        toPosix :: S.FieldValue -> Maybe POSIXTime
-        toPosix (S.TimeValue t) = Just t
-        toPosix (S.StringValue s) = case reads s of
-            [(t, "")] -> Just $ fromInteger t
-            _ -> Nothing
-        toPosix _ = Nothing
-
-        -- | Dirty: xlsx doesn't have datediff type, but we can specify diff
-        -- by days (double)
-        dateDiff [from, to] = do
-            f <- toPosix from
-            t <- toPosix to
-            return $ S.DoubleValue $ fromInteger $ round $ (t - f) / 60.0
-        dateDiff _ = Nothing
-
-        yesNo [v]
-            | v `elem` [S.IntValue 0, S.StringValue "0", S.DoubleValue 0.0, S.BoolValue False] = Just $ S.StringValue "N"
-            | v `elem` [S.IntValue 1, S.StringValue "1", S.DoubleValue 1.0, S.BoolValue True] = Just $ S.StringValue "Y"
-            | otherwise = Nothing
-        yesNo _ = Nothing
-
-        formatTimeFun :: String -> [S.FieldValue] -> S.FieldValue
-        formatTimeFun _ [] = S.StringValue ""
-        formatTimeFun defFmt [v] =
-            maybe
-                v
-                (S.StringValue . formatTime defaultTimeLocale defFmt)
-                (fmap (utcToLocalTime tz . posixSecondsToUTCTime) $ toPosix v)
-        formatTimeFun _ [v, S.StringValue fmt] =
-            maybe
-                v
-                (S.StringValue . formatTime defaultTimeLocale fmt)
-                (fmap (utcToLocalTime tz . posixSecondsToUTCTime) $ toPosix v)
-        formatTimeFun _ (v:_) = v
-
-        fddsFun fs = do
-            pr <- M.lookup "servicesview.program" fs
-            lookupField [S.StringValue "FDDS", pr]
-
-        ownerFun fs = do
-            (S.IntValue isOwner) <- M.lookup "servicesview.callerOwner" fs
-            (if isOwner == 1 then M.lookup "servicesview.caller_name" else M.lookup "servicesview.owner_name") fs
-        falseFun fs = do
-            (S.StringValue isFalse) <- M.lookup "servicesview.falseCall" fs
-            return $ S.StringValue (if isFalse `elem` ["bill", "nobill"] then "Y" else "N")
-
-        billFun fs = do
-            (S.StringValue isFalse) <- M.lookup "servicesview.falseCall" fs
-            return $ S.StringValue (if isFalse == "bill" then "Y" else "N")
-
-        satisfiedFun fs = do
-            (S.StringValue sat) <- M.lookup "servicesview.clientSatisfied" fs
-            return $ S.StringValue $ case sat of
-                "satis" -> "Y"
-                "notSatis" -> "N"
-                _ -> ""
-
-        faultFun fs = do
-            d2 <- M.lookup "servicesview.diagnosis2" fs
-            d3 <- M.lookup "servicesview.diagnosis3" fs
-            s  <- M.lookup "servicesview.type" fs
-            (S.StringValue d2') <- lookupFieldWithDefault (S.StringValue "150")
-                                      [S.StringValue "FaultCode", S.StringValue "diagnosis2", d2]
-            (S.StringValue d3') <- lookupFieldWithDefault (S.StringValue "09")
-                                      [S.StringValue "FaultCode", S.StringValue "diagnosis3", d3]
-            (S.StringValue s')  <- lookupField [S.StringValue "FaultCode", S.StringValue "service", s]
-            return $ S.StringValue $ d2' ++ d3' ++ s'
-
-        vehicleMakeFun fs = do
-            m <- M.lookup "servicesview.car_make" fs
-            lookupField [S.StringValue "VehicleMake", m]
-
-        vehicleModelFun fs = do
-            mk <- M.lookup "servicesview.car_make" fs
-            md <- M.lookup "servicesview.car_model" fs
-            lookupField [S.StringValue "VehicleModel", mk, md]
-
-        serviceId fs = do
-            (S.IntValue caseId) <- M.lookup "servicesview.caseid" fs
-            (S.StringValue caseSrvs) <- M.lookup "servicesview.services" fs
-            (S.IntValue srvId) <- M.lookup "servicesview.id" fs
-            (S.StringValue serviceType) <- M.lookup "servicesview.type" fs
-            -- form service complex id type:id
-            let
-                srvIdName = serviceType ++ ":" ++ show srvId
-                splitByComma = words . map (\c -> if c == ',' then ' ' else c)
-                getIndex v = fmap succ . elemIndex v
-                defaultIdx = S.StringValue $ show caseId ++ "/" ++ serviceType ++ ":" ++ show srvId
-                formIdx i = S.StringValue $ show caseId ++ "/" ++ show i
-
-                srvsWords = splitByComma caseSrvs
-                srvIndex
-                    | length srvsWords == 1 = S.StringValue $ show caseId
-                    | otherwise = maybe defaultIdx formIdx $ getIndex srvIdName srvsWords
-
-            return srvIndex
-
-        backOperator fs = M.lookup "servicesview.backoperator" fs
 
 loadRelations :: FilePath -> IO S.Relations
 loadRelations
@@ -256,14 +73,3 @@ insertUpdateMany descs m
   = logExceptions "PostgresCRUD/insertUpdateMany" $ forM_ (M.toList m) $ uncurry insertUpdate'
   where
     insertUpdate' (mdlName, mdlId) = insertUpdate descs mdlName mdlId
-
-generateReport :: (PS.HasPostgres m, MonadCatchIO m) => [MT.TableDesc] -> [S.Condition] -> (T.Text -> [T.Text]) -> FilePath -> FilePath -> m ()
-generateReport tbls relations superCond tpl fileName
-  = logExceptions "PostgresCRUD/generateReport" $ do
-    syslogTxt Debug "PostgresCRUD/generateReport" "Generating report "
-    syslogTxt Debug "PostgresCRUD/generateReport" "Loading dictionaries"
-    tz <- liftIO getCurrentTimeZone
-    dicts <- loadDictionaries $ "resources/site-config/dictionaries"
-    -- TODO: Orderby must not be here!
-    withPgTIO (R.createReport tbls relations (functions tz dicts) superCond [] [] tpl fileName)
-    syslogTxt Debug "PostgresCRUD/generateReport" "Report generated"

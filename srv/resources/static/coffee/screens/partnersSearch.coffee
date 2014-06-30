@@ -426,8 +426,11 @@ define [ "utils"
       srvs = kvm['servicesLocals']()
       return v.distanceFormatted() if sort == "distance"
       unless _.isEmpty srvs
-        parseInt (_.find v.servicesNested(),
+        v = parseInt (_.find v.servicesNested(),
                  (s) -> s.servicename() == srvs[0].value)?[sort]?()
+        # sorter will sort arrays with NaN as multiple arrays divided by NaN
+        if _.isNaN v then Infinity else v
+
     sorters = {}
     sorterName = "only"
     sorters[sorterName] = {}

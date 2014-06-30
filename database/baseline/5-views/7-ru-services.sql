@@ -112,7 +112,12 @@ WITH servicecounts AS (
     END AS "Гарантийный случай",
     allservicesview.repairenddate AS "Дата окончания ремонта",
     allservicesview.suburbanmilage AS "Пробег эвак-ра/техпом. за городом",
-    concat_ws(', '::text, casetbl.contact_phone1, casetbl.contact_phone2, casetbl.contact_phone3, casetbl.contact_phone4) AS "Телефоны клиента",
+      concat_ws(', '::text, 
+	SUBSTRING(casetbl.contact_phone1, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone1, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone1, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone1, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone1, 10, 2)::text || ' '::text, 
+	SUBSTRING(casetbl.contact_phone2, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone2, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone2, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone2, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone2, 10, 2)::text || ' '::text, 
+	SUBSTRING(casetbl.contact_phone3, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone3, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone3, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone3, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone3, 10, 2)::text || ' '::text, 
+	SUBSTRING(casetbl.contact_phone4, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone4, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone4, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone4, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone4, 10, 2)::text || ' '::text)
+	 AS "Телефоны клиента",
     servicetbl.payment_limitedcost AS "Стоимость для заказчика",
     allservicesview.providedfor AS "Дни(Срок предоставления)",
     servicetbl.contractor_partner AS "Субпод-к, оказ.усл.(как по дог-ру)",

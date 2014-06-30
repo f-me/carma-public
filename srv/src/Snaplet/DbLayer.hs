@@ -11,7 +11,6 @@ module Snaplet.DbLayer
   ,delete
   ,exists
   ,submitTask
-  ,generateReport
   ,readAll
   ,smsProcessing
   ,initDbLayer
@@ -28,7 +27,6 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import Data.Maybe (fromJust, isJust)
-import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 
 import Data.Configurator
@@ -45,7 +43,6 @@ import qualified Database.Redis as Redis hiding (exists)
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
 import Snaplet.DbLayer.Util (selectDb)
-import qualified Database.PostgreSQL.Sync.Base as S
 
 import Snaplet.DbLayer.Types
 import qualified Carma.ModelTables as MT (loadTables)
@@ -162,12 +159,6 @@ submitTask queueName taskId
   = runRedisDB redis
   $ Redis.lpush queueName [taskId]
 
-
-generateReport :: (T.Text -> [T.Text]) -> FilePath -> FilePath -> Handler b (DbLayer b) ()
-generateReport superCond template filename = do
-    rels <- gets syncRelations
-    tbls <- gets syncTables
-    Postgres.generateReport tbls (S.relationsConditions rels) superCond template filename
 
 readAll :: ByteString -> Handler b (DbLayer b) [Map.Map ByteString ByteString]
 readAll model = Redis.readAll redis model

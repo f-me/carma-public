@@ -34,7 +34,6 @@ import qualified Carma.Model.ServiceStatus as SS
 
 import Snaplet.Auth.PGUsers
 import Snaplet.DbLayer.Dictionary
-import Snaplet.DbLayer.ARC
 
 import Util
 
@@ -46,6 +45,52 @@ trace name fn = do
 
 fquery :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => String -> FormatArgs -> q -> m [r]
 fquery fmt args v = query (fromString $ T.unpack $ format fmt args) v
+
+query :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => PS.Query -> q -> m [r]
+query s v = do
+    bs <- PS.formatQuery s v
+    syslogJSON Debug "RKC/query" ["query" .= bs]
+    PS.query s v
+
+-- pre-query, holds fields, table names and conditions in separate list to edit
+data PreQuery = PreQuery {
+    _preFields :: [T.Text],
+    preTables :: [T.Text],
+    _preConditions :: [T.Text],
+    _preGroups :: [T.Text],
+    _preOrders :: [T.Text],
+    _preArgs :: [PS.Action] }
+
+preQuery :: (PS.ToRow q) => [T.Text] -> [T.Text] -> [T.Text] -> [T.Text] -> [T.Text] -> q -> PreQuery
+preQuery fs ts cs gs os as = PreQuery fs ts cs gs os (PS.toRow as)
+
+preQuery_ :: [T.Text] -> [T.Text] -> [T.Text] -> [T.Text] -> [T.Text] -> PreQuery
+preQuery_ fs ts cs gs os = PreQuery fs ts cs gs os []
+
+instance Monoid PreQuery where
+    mempty = PreQuery [] [] [] [] [] []
+    (PreQuery lf lt lc lg lo la) `mappend` (PreQuery rf rt rc rg ro ra) = PreQuery
+        (nub $ lf ++ rf)
+        (nub $ lt ++ rt)
+        (nub $ lc ++ rc)
+        (nub $ lg ++ rg)
+        (nub $ lo ++ ro)
+        (la ++ ra)
+
+strQuery :: PreQuery -> (String, [PS.Action])
+strQuery (PreQuery f t c g o a) = (str, a) where
+    str = T.unpack $ T.concat [
+        "select ", T.intercalate ", " f,
+        " from ", T.intercalate ", " t,
+        nonullcat c [" where ", T.intercalate " and " (map (T.cons '(' . (`T.snoc` ')')) c)],
+        nonullcat g [" group by ", T.intercalate ", " g],
+        nonullcat o [" order by ", T.intercalate ", " o]]
+    nonullcat [] _ = ""
+    nonullcat _ s = T.concat s
+
+runQuery :: (PS.HasPostgres m, MonadCatchIO m, PS.FromRow r) => [PreQuery] -> m [r]
+runQuery qs = query (fromString compiled) a where
+    (compiled, a) = strQuery (mconcat qs)
 
 runQuery_ :: (PS.HasPostgres m, MonadCatchIO m, PS.FromRow r) => PreQuery -> m [r]
 runQuery_ pq = runQuery [relations pq]

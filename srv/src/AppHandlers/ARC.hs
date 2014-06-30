@@ -107,7 +107,7 @@ arcImport = do
         withTempFile dir "arc.csv" $ \fp fh -> do
           T.hPutStr fh csv'
           hClose fh
-          let Ident uid = U.psa
+          let Ident uid = U.arc
               Ident fid = VF.arc
               opts = Options connInfo fp fp uid fid Nothing (Just sid') True
           syslogTxt Info "ARC" $ "Loading file into subprogram=" ++ show sid'

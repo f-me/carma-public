@@ -113,11 +113,6 @@
           "type"  : "li",
           "permissions": ["billManager"]
         },
-        { "name"  : "reports",
-          "label" : "Отчёты",
-          "type"  : "li",
-          "permissions": ["reportManager"]
-        },
         { "name"  : "search/partners",
           "label" : "Дилеры и партнеры",
           "type"  : "li",

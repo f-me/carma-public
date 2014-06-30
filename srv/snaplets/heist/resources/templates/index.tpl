@@ -77,6 +77,8 @@
 
     <script src="/s/js/3p/d3-3.4.6-min.js" />
 
+    <script src="/s/js/3p/notify.js" />
+
     <!-- global libs, that is not handled by require js -->
     <!-- typeahead menu -->
     <script src="/s/js/gen/globallibs/th-menu.js" />
@@ -162,46 +164,49 @@
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
-                  <div class="current-user-menu">
                   <li>
-                    Текущий статус:
-                    <span data-bind="text: safelyGet('currentStateLocal')" />
-                    <span data-bind="text: safelyGet('timeInCurrentState')" />
-                    <div class="btn-group btn-group-xs"
-                         id="user-state-btngroup">
-                      <button type="button"
-                              class="btn btn-default btn-small"
-                              data-bind="css: {
-                                         'btn-success': delayedState() == 'Rest'
-                                         },
-                                         click: function () {
-                                           toggleDelayed('Rest')
-                                         }">
-                        Перерыв
-                      </button>
-                      <button type="button"
-                              class="btn btn-default btn-small"
-                              data-bind="css: {
-                                         'btn-success': delayedState() == 'Dinner'
-                                         },
-                                         click: function () {
-                                           toggleDelayed('Dinner')
-                                         }">
-                        Обед
-                      </button>
-                      <button type="button"
-                              class="btn btn-default btn-small"
-                              onclick="window.location.href='/logout'">
-                        Выход
-                      </button>
-                    </div>
+                    <a href="/logout/">
+                      <i class="icon-off icon-black" />&nbsp;Выход
+                    </a>
                   </li>
-                  </div>
                 </ul>
               </li>
-              <li>
-                <span class="nav-block"
-                      data-bind="text: safelyGet('currentStateLocal')"/>
+              <li class=dropdown>
+                <a class="nav-block dropdown-toggle"
+                   data-toggle="dropdown"
+                   data-bind="text: safelyGet('currentStateLocal')"/>
+                  <ul class="dropdown-menu">
+                    <li class="current-user-menu">
+                      Текущий статус:
+                      <span data-bind="text: safelyGet('currentStateLocal')" />
+                      <span data-bind="text: safelyGet('timeInCurrentState')" />
+                      <div class="btn-group btn-group-xs"
+                           id="user-state-btngroup">
+                        <button type="button"
+                                class="btn btn-default btn-small"
+                                data-bind="css: {
+                                           'btn-success': safelyGet('delayedState') == 'Rest'
+                                           },
+                                           disable: inSBreak(),
+                                           click: function () {
+                                           toggleDelayed('Rest')
+                                           }">
+                          Перерыв
+                        </button>
+                        <button type="button"
+                              class="btn btn-default btn-small"
+                                data-bind="css: {
+                                           'btn-success': safelyGet('delayedState') == 'Dinner'
+                                           },
+                                           disable: inSBreak(),
+                                           click: function () {
+                                           toggleDelayed('Dinner')
+                                           }">
+                          Обед
+                        </button>
+                      </div>
+                    </li>
+                  </ul>
               </li>
             </ul>
           </ifLoggedIn>
@@ -309,7 +314,6 @@
             id="textarea-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -329,7 +333,11 @@
                     rows="7"
                     data-bind="value: {{ name }},
                                valueUpdate: 'afterkeydown',
-                               disabled: {{ name }}Disabled" />
+                               disabled: {{ name }}Disabled,
+                               {{# meta.regexp }}
+                               css: { warning: {{name}}Regexp }
+                               {{/ meta.regexp }}"
+                    />
         </div>
       </div>
     </script>
@@ -347,7 +355,6 @@
             id="text-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -376,7 +383,11 @@
                             {{^ meta.koupdate }}
                             valueUpdate: 'afterkeydown',
                             {{/ meta.koupdate }}
-                            readonly: {{ name }}Disabled" />
+                            readonly: {{ name }}Disabled,
+                            {{# meta.regexp }}
+                            css: { 're-failed': {{name}}Regexp }
+                            {{/ meta.regexp}}"
+                 />
         </div>
       </div>
     </script>
@@ -386,7 +397,6 @@
             id="password-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -411,7 +421,10 @@
                  placeholder="********"
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown',
-                            readonly: {{ name }}Disabled"/>
+                            readonly: {{ name }}Disabled,
+                            {{# meta.regexp }}
+                            css: { 're-failed': {{name}}Regexp }
+                            {{/ meta.regexp}}"/>
           <div class="text-right">
             <button class="btn btn-info"
                     type="button"
@@ -430,7 +443,6 @@
             id="datetime-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            {{# meta.visibility }}data-bind="visible: {{name}}Visible"{{/ meta.visibility}}
            >
         <div class="control-label">
@@ -452,7 +464,12 @@
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }}DateTime,
                             valueUpdate: 'change',
-                            disabled: {{ name }}Disabled" />
+                            disabled: {{ name }}Disabled,
+                            {{# meta.regexp }}
+                            css: { 're-failed': {{name}}Regexp },
+                            {{/ meta.regexp}}
+                            addMask: 'datetime'"
+                 />
         </div>
       </div>
     </script>
@@ -463,7 +480,6 @@
             id="date-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -497,7 +513,11 @@
                               {{^ meta.koupdate }}
                               valueUpdate: 'afterkeydown',
                               {{/ meta.koupdate }}
-                              readonly: {{ name }}Disabled" />
+                              readonly: {{ name }}Disabled,
+                              {{# meta.regexp }}
+                              css: { 're-failed': {{name}}Regexp }
+                              {{/ meta.regexp}}"
+                   />
             <span class="add-on"><i class="icon icon-calendar" /></span>
           </div>
         </div>
@@ -558,7 +578,6 @@
             id="phone-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}</label>
@@ -571,7 +590,10 @@
                    name="{{ name }}"
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown',
-                              disabled: {{ name }}Disabled"
+                              disabled: {{ name }}Disabled,
+                              {{# meta.regexp }}
+                              css: { 're-failed': {{name}}Regexp }
+                              {{/ meta.regexp}}"
                    onkeyDown="kdoPick('{{ meta.picker }}',
                                       '{{ name }}',
                                       73, event);"
@@ -592,9 +614,6 @@
            {{# meta.required }}
              data-bind="css: { error: {{name}}Not }"
            {{/ meta.required }}
-           {{# meta.regexp   }}
-             data-bind="css: { warning: {{name}}Regexp }"
-           {{/ meta.regexp   }}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -628,8 +647,11 @@
                               valueUpdate: 'change',
                               disabled: {{ name }}Disabled,
                               pickerDisable: {{ name }}Disabled,
-                              bindDict: '{{ name }}'"
-                   />
+                              bindDict: '{{ name }}',
+                              {{# meta.regexp   }}
+                              css: { 're-failed': {{name}}Regexp }
+                              {{/ meta.regexp   }}"
+                              />
             <span class="add-on">
               <i class="icon icon-search" />
             </span>
@@ -646,9 +668,6 @@
            {{# meta.required }}
              data-bind="css: { error: {{name}}Not }"
            {{/ meta.required }}
-           {{# meta.regexp   }}
-             data-bind="css: { warning: {{name}}Regexp }"
-           {{/ meta.regexp   }}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -682,7 +701,10 @@
                               valueUpdate: 'change',
                               disabled: {{ name }}Disabled,
                               pickerDisable: {{ name }}Disabled,
-                              bindDict: '{{ name }}'"
+                              bindDict: '{{ name }}',
+                              {{# meta.regexp   }}
+                              css: { 're-failed': {{name}}Regexp }
+                              {{/ meta.regexp   }}"
                    />
             <span class="add-on">
               <i class="icon icon-chevron-down" />
@@ -700,9 +722,6 @@
            {{# meta.required }}
              data-bind="css: { error: {{name}}Not }"
            {{/ meta.required }}
-           {{# meta.regexp   }}
-             data-bind="css: { warning: {{name}}Regexp }"
-           {{/ meta.regexp   }}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -736,9 +755,10 @@
                               valueUpdate: 'change',
                               disabled: {{ name }}Disabled,
                               pickerDisable: {{ name }}Disabled,
-                              bindDict: '{{ name }}'"
-
-
+                              bindDict: '{{ name }}',
+                              {{# meta.regexp   }}
+                              css: { 're-failed': {{name}}Regexp }
+                              {{/ meta.regexp   }}"
                    />
             <span class="add-on">
               <i class="icon icon-chevron-down"
@@ -765,7 +785,6 @@
             id="picker-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -790,7 +809,10 @@
                    name="{{ name }}"
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown',
-                              disabled: {{ name }}Disabled"
+                              disabled: {{ name }}Disabled,
+                              {{# meta.regexp }}
+                              css: { 're-failed': {{name}}Regexp }
+                              {{/ meta.regexp}}"
                    onkeyDown="kdoPick('{{ meta.picker }}',
                                       '{{ name }}',
                                       66, event);"
@@ -1443,9 +1465,7 @@
         </div>
         <ul data-bind="foreach: {{ name }}Objects">
           <li>
-          <div class="control-group"
-               {{# meta.regexp }}data-bind="css: { warning: regexp }"{{/ meta.regexp}}
-               >
+          <div class="control-group">
             <div class="control-label">
               <label>
                 <span data-bind="text: keyLocal" />
@@ -1462,7 +1482,11 @@
                        {{/ meta.transform }}
                        {{# readonly }}readonly{{/ readonly }}
                        data-bind="value: value,
-                                  valueUpdate: 'afterkeydown'" />
+                                  valueUpdate: 'afterkeydown',
+                       {{# meta.regexp }}
+                       css: { 're-failed': regexp }
+                       {{/ meta.regexp }}"
+                       />
             </div>
           </div>
           {{# meta.showNote }}
@@ -1882,12 +1906,9 @@
             id="onlyServiceBreak-table-template">
       <button type="button"
               class="btn btn-default btn-small"
-              data-bind="css: {
-                         'btn-success': delayedState() == 'ServiceBreak'
-                         },
-                         click: function () {
-                         toggleDelayed('ServiceBreak')
-                         }">
+              data-bind="css: { 'btn-success': inSBreak },
+                         click: toggleServiceBreak
+                         ">
         Служебный перерыв
       </button>
     </script>
