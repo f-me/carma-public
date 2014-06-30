@@ -57,9 +57,9 @@ import           Snap.Snaplet
 import           Snap.Snaplet.PostgresqlSimple
 
 import           Data.Model             as Model
-import           Carma.Model.Case       as Case hiding (car_vin, city)
-import           Carma.Model.Program    as Program
-import           Carma.Model.SubProgram as SubProgram hiding (name)
+import qualified Carma.Model.Case       as Case
+import qualified Carma.Model.Program    as Program
+import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role       as Role
 
 import           Carma.HTTP hiding (runCarma)
@@ -225,6 +225,11 @@ newCase = do
                           _        -> False)
                jsonRq0
       car_vin = HM.lookup "car_vin" jsonRq
+      car_make = HM.lookup "car_make" jsonRq
+
+  carMakeId
+    <- (\case { [[makeId]] -> Just makeId; _ -> Nothing })
+    <$> query [sql|select id::text from "CarMake" where value = ?|] [car_make]
 
   dict <- gets cityDict
 
@@ -268,6 +273,7 @@ newCase = do
                   HM.delete "lon" $
                   HM.delete "lat" $
                   HM.delete "car_vin" $ -- We insert it later to run the trigger
+                  maybe id (HM.insert "car_make") carMakeId $
                   jsonRq'
 
   modifyResponse $ setContentType "application/json"
@@ -335,18 +341,21 @@ instance ToJSON Partner where
 partnersAroundQuery :: Query
 partnersAroundQuery = [sql|
 WITH subquery AS (
-  SELECT *,
+  SELECT partnertbl.*,
          addr->>'value' as addrDeFacto,
          phone->>'value' as phone1,
          ST_Distance_Sphere(coords, ST_PointFromText('POINT(? ?)', 4326)) dist
   FROM partnertbl,
        json_array_elements(addrs) as addr,
-       json_array_elements(phones) as phone
+       json_array_elements(phones) as phone,
+       unnest(makes) as partner_make,
+       "CarMake"
   WHERE isDealer
   AND addr->>'key' = 'fact'
   AND phone->>'key' = 'disp'
   AND name != ''
-  AND (? or ? = ANY(makes)))
+  AND "CarMake".id = partner_make
+  AND (? or ? = "CarMake".value))
 SELECT id, st_x(coords), st_y(coords),
 isDealer, isMobile,
 name, addrDeFacto, phone1
