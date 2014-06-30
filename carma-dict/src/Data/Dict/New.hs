@@ -18,8 +18,6 @@ module Data.Dict.New
 where
 
 import Data.Aeson
-import Data.Attoparsec.Number
-
 import qualified Data.HashMap.Strict as HM
 
 import Data.Text (Text)
@@ -52,10 +50,10 @@ loadNewDict :: Text
 loadNewDict kv kl entries =
     NewDict $ V.foldl' (\(fm, im) e ->
                         case (HM.lookup kv e, HM.lookup kl e) of
-                          (Just (Number (I val)), Just (String lab)) ->
+                          (Just (Number val), Just (String lab)) ->
                               (HM.insert v lab fm, HM.insert lab v im)
                                   where
-                                    v = fromIntegral val
+                                    v = round val :: Int
                           _ -> (fm, im)) (HM.empty, HM.empty) entries
 
 

@@ -1,5 +1,5 @@
 name:                carma-dict
-version:             0.1.1
+version:             0.1.2
 synopsis:            Load and query legacy CaRMa dictionaries
 homepage:            https://github.com/f-me/carma-dict
 license:             BSD3
@@ -20,8 +20,8 @@ library
   ghc-options: -Wall
 
   build-depends:
-    aeson                       >= 0.6 && < 0.8,
-    attoparsec                  == 0.11.*,
+    aeson                       >= 0.7 && < 0.8,
+    scientific                  >= 0.3.1 && < 0.4,
     base                        == 4.6.*,
     bytestring                  == 0.10.*,
     text                        == 0.11.*,
