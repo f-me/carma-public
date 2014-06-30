@@ -4,30 +4,32 @@ import Data.Aeson as Aeson
 import Data.Text
 import Data.Typeable
 
-import Data.Model
+import Data.Model as Model
 import Data.Model.View
 import Carma.Model.LegacyTypes
 import Carma.Model.CarClass (CarClass)
+import Carma.Model.CarMake  (CarMake)
+import Carma.Model.CarModel (CarModel)
 import Carma.Model.Service (Service)
 
 
 data Rent = Rent
   { ident :: PK Int Rent ""
-  , towDealer_partner   :: F Text "towDealer_partner" "Дилер"
-  , towDealer_partnerId :: F Text "towDealer_partnerId" ""
-  , towDealer_address   :: F Text "towDealer_address" "Адрес"
-  , towDealer_coords    :: F Text "towDealer_coords" "Координаты"
+  , towDealer_partner   :: F (Maybe Text) "towDealer_partner" "Дилер"
+  , towDealer_partnerId :: F (Maybe Text) "towDealer_partnerId" ""
+  , towDealer_address   :: F (Maybe Text) "towDealer_address" "Адрес"
+  , towDealer_coords    :: F (Maybe Text) "towDealer_coords" "Координаты"
   , rentAddress_address :: F PickerField "rentAddress_address" "Адрес доставки"
-  , rentAddress_comment :: F Text "rentAddress_comment" "Примечания"
+  , rentAddress_comment :: F (Maybe Text) "rentAddress_comment" "Примечания"
   , rentAddress_coords  :: F PickerField "rentAddress_coords" "Координаты"
   , rentAddress_map     :: F MapField "rentAddress_map" ""
-  , vinRent             :: F Text "vinRent" "VIN подменного автомобиля"
-  , carClass            :: F (IdentT CarClass) "carClass" "Класс автомобиля"
-  , providedFor         :: F Text "providedFor"
+  , vinRent             :: F (Maybe Text) "vinRent" "VIN подменного автомобиля"
+  , carClass            :: F (Maybe (IdentT CarClass)) "carClass" "Класс автомобиля"
+  , providedFor         :: F (Maybe Text) "providedFor"
                            "Срок, на который предоставлен автомобиль (дней)"
-  , rentedMake          :: F (IdentT CarMakers) "rentedMake"
+  , rentedMake          :: F (Maybe (IdentI CarMake)) "rentedMake"
                            "Марка предоставленного автомобиля"
-  , rentedModel         :: F (IdentT CarModels) "rentedModel"
+  , rentedModel         :: F (Maybe (IdentI CarModel)) "rentedModel"
                            "Модель предоставленного автомобиля"
   , orderNumber         :: F (Maybe Text) "orderNumber" "Номер заказ-наряда"
   }
@@ -45,6 +47,8 @@ instance Model Rent where
       $ setType "dictionary" towDealer_partnerId
       : setMeta "dictionaryType" (Aeson.String "ModelDict") carClass
       : setMeta "dictionaryStringify" (Aeson.Bool True) carClass
+      : setMeta "dictionaryStringify" (Aeson.Bool True) rentedMake
+      : setMeta "dictionaryStringify" (Aeson.Bool True) rentedModel
       : setMeta "dictionaryParent"
         (Aeson.String $ fieldName rentedMake) rentedModel
       : setMeta "widget" "partner" towDealer_partner

@@ -16,6 +16,8 @@ import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
 import Carma.Model.Engine       (Engine)
 import Carma.Model.CarClass     (CarClass)
+import Carma.Model.CarMake      (CarMake)
+import Carma.Model.CarModel     (CarModel)
 import Carma.Model.LegacyTypes hiding (CarClasses)
 
 import Carma.Model.Diagnostics.Cause      (Cause)
@@ -83,9 +85,9 @@ data Case = Case
   , car_vin
     :: F (Maybe Text) "car_vin" "Автомобиль (VIN)"
   , car_make
-    :: F (Maybe (IdentT CarMakers)) "car_make" "Марка"
+    :: F (Maybe (IdentI CarMake)) "car_make" "Марка"
   , car_model
-    :: F (Maybe (IdentT CarModels)) "car_model" "Модель"
+    :: F (Maybe (IdentI CarModel)) "car_model" "Модель"
   , car_seller
     :: F (Maybe (IdentT Partner)) "car_seller" "Дилер, продавший автомобиль"
   , car_plateNum

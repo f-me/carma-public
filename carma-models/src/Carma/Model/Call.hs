@@ -9,6 +9,8 @@ import Data.Model.View
 
 import Carma.Model.Program         (Program)
 import Carma.Model.SubProgram.Type (SubProgram)
+import Carma.Model.CarMake         (CarMake)
+import Carma.Model.CarModel        (CarModel)
 import Carma.Model.LegacyTypes
 
 import Carma.Model.Diagnostics.Wazzup (Wazzup)
@@ -43,8 +45,10 @@ dicts :: [(Text, FieldView -> FieldView) :@ Call]
 dicts =
   [ dict callType $ (dictOpt "CallTypes")
     {dictParent = Just $ Model.fieldName callerType}
-  , dict carModel $ (dictOpt "CarModels")
+  , dict carModel $ (dictOpt "CarModel")
     {dictParent = Just $ Model.fieldName carMake, dictBounded = True}
+  , setMeta "dictionaryStringify" (Aeson.Bool True) carMake
+  , setMeta "dictionaryStringify" (Aeson.Bool True) carModel
   , dict callTaker $ (dictOpt "users")
   , setMeta "dictionaryParent"
     (Aeson.String $ Model.fieldName program) subprogram
@@ -122,9 +126,9 @@ data Call = Call
   , address
     :: F (Maybe Text) "address" "Адрес места поломки"
   , carMake
-    :: F (Maybe (IdentT CarMakers)) "carMake" "Марка"
+    :: F (Maybe (IdentI CarMake)) "carMake" "Марка"
   , carModel
-    :: F (Maybe (IdentT CarModels)) "carModel" "Модель"
+    :: F (Maybe (IdentI CarModel)) "carModel" "Модель"
   , callType
     :: F (Maybe (IdentT CallTypes)) "callType" "Тип звонка"
   } deriving Typeable
