@@ -23,11 +23,9 @@ import Control.Lens (Lens')
 import Control.Monad.State
 import Control.Concurrent.STM
 import qualified Data.Map as Map
-import Data.ByteString (ByteString)
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as C8
 import Data.Maybe (fromJust, isJust)
-import qualified Data.Text.Encoding as T
+import Data.ByteString (ByteString)
+import qualified Data.Text          as T
 
 import Data.Configurator
 
@@ -61,7 +59,7 @@ import Util
 
 create :: (HasAuth b, HasMsg b)
        => ModelName -> Object
-       -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
+       -> Handler b (DbLayer b) Object
 create model commit = do
   tbls <- gets syncTables
   syslogJSON Debug "DbLayer/create" ["model" .= model, "commit" .= commit]
@@ -69,22 +67,13 @@ create model commit = do
   obj <- triggerCreate model =<< applyDefaults model commit
   objId <- Redis.create redis model obj
   --
-  let obj' = Map.insert (C8.pack "id") objId obj
+  let obj' = Map.insert "id" objId obj
   syslogJSON Debug "DbLayer/create" ["obj'" .= obj']
   --
   Postgres.insert tbls model obj'
-{-
-  let fullId = B.concat [model, ":", objId]
-  changes <- triggerUpdate fullId obj
-  --
-  let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
-  log Trace $ fromString $ "Changes: " ++ show changes'
-  --
-  Right _ <- Redis.updateMany redis changes
--}
 
   when (model == "call") $
-    Evt.logLegacyCRUD Create (B.concat [model, ":", objId]) Call.ident
+    Evt.logLegacyCRUD Create (T.concat [model, ":", objId]) Call.ident
 
   let result = Map.insert "id" objId $ obj Map.\\ commit
   syslogJSON Debug "DbLayer/create/result" ["result" .= result]
@@ -92,7 +81,7 @@ create model commit = do
 
 findOrCreate :: (HasAuth b, HasMsg b)
              => ModelName -> ObjectId -> Object
-             -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
+             -> Handler b (DbLayer b) Object
 findOrCreate model objId commit = do
   r <- read model objId
   case Map.toList r of
@@ -102,23 +91,23 @@ findOrCreate model objId commit = do
     _  -> return r
 
 read :: ModelName -> ObjectId
-     -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
+     -> Handler b (DbLayer b) Object
 read model objId = do
   res <- Redis.read redis model objId
   -- FIXME: catch NotFound => search in postgres
   return res
 
-read' :: ByteString -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
-read' objId = Redis.read' redis objId
+read' :: ObjectId -> Handler b (DbLayer b) Object
+read' = Redis.read' redis
 
 update :: (HasAuth b, HasMsg b)
        =>  ModelName -> ObjectId -> Object
-       -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
+       -> Handler b (DbLayer b) Object
 update model objId commit = do
   tbls <- gets syncTables
   syslogJSON Debug "DbLayer/update" ["model" .= model, "commit" .= commit]
   --
-  let fullId = B.concat [model, ":", objId]
+  let fullId = T.concat [model, ":", objId]
   -- FIXME: catch NotFound => transfer from postgres to redis
   -- (Copy on write)
   (futures, changes) <- triggerUpdate model objId commit
@@ -131,7 +120,7 @@ update model objId commit = do
   let changes' = Map.mapWithKey (\(_,k) v -> Map.insert "id" k v) .
                  Map.mapKeys fromJust                             .
                  Map.filterWithKey (\k _ -> isJust k)             .
-                 Map.mapKeys (toPair . C8.split ':')              $
+                 Map.mapKeys (toPair . T.splitOn ":")             $
                  changes
   syslogJSON Debug "DbLayer/update" ["changes" .= changes]
   Postgres.insertUpdateMany tbls changes'
@@ -142,7 +131,7 @@ update model objId commit = do
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
       commit' = stripUnchanged commit $ changes Map.! fullId
 
-  withMsg $ sendMessage (T.decodeUtf8 fullId) commit'
+  withMsg $ sendMessage fullId commit'
   syslogJSON Debug "DbLayer/update/result" ["result" .= commit']
   return commit'
 
@@ -160,8 +149,9 @@ submitTask queueName taskId
   $ Redis.lpush queueName [taskId]
 
 
-readAll :: ByteString -> Handler b (DbLayer b) [Map.Map ByteString ByteString]
-readAll model = Redis.readAll redis model
+readAll :: ModelName -> Handler b (DbLayer b) [Object]
+readAll = Redis.readAll redis
+
 
 smsProcessing :: Handler b (DbLayer b) Integer
 smsProcessing = runRedisDB redis $ do

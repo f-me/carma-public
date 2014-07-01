@@ -1,14 +1,13 @@
 module Utils.RKCCalc where
 
 import qualified Data.Map as M
-import           Data.Map (Map)
-import           Data.ByteString (ByteString)
+import           Data.Text (Text)
 import           Data.Maybe
 
 import           Snaplet.DbLayer.Types
 import           Util
 
-setSrvMCost :: ByteString -> Object -> Object -> RKCCalc -> ByteString
+setSrvMCost :: Text -> Object -> Object -> RKCCalc -> Text
 setSrvMCost "towage" obj parent dict =
   calcMCost "towCost" "towCallCost" "towMileCost"
             obj parent dict
@@ -31,8 +30,8 @@ setSrvMCost "taxi" _ parent dict = printBPrice $ rkc parent "taxiLimit" dict
 
 setSrvMCost _        _   _      _    = "0"
 
-calcMCost :: ByteString -> ByteString -> ByteString
-             -> Object -> Object -> RKCCalc -> ByteString
+calcMCost :: Text -> Text -> Text
+             -> Object -> Object -> RKCCalc -> Text
 calcMCost costName callName mileName obj parent dict =
   let cost'    = rkc parent costName dict
       callCost = rkc parent callName dict
@@ -40,7 +39,7 @@ calcMCost costName callName mileName obj parent dict =
       mileage  = readDouble $ fromMaybe "0" $ M.lookup "suburbanMilage" obj
   in printBPrice $ cost' + callCost + mileage * mileCost
 
-rkc :: Map ByteString ByteString -> ByteString -> RKCCalc -> Double
+rkc :: Object -> Text -> RKCCalc -> Double
 rkc parent field dict = do
   fromMaybe 0 $
     M.lookup "program" parent >>= flip M.lookup dict >>= M.lookup field

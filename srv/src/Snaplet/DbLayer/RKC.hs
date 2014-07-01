@@ -49,7 +49,7 @@ fquery fmt args v = query (fromString $ T.unpack $ format fmt args) v
 query :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => PS.Query -> q -> m [r]
 query s v = do
     bs <- PS.formatQuery s v
-    syslogJSON Debug "RKC/query" ["query" .= bs]
+    syslogJSON Debug "RKC/query" ["query" .= T.decodeUtf8 bs]
     PS.query s v
 
 -- pre-query, holds fields, table names and conditions in separate list to edit
@@ -141,7 +141,7 @@ orderBy tbl col = preQuery_ [] [tbl] [] [] [T.concat [tbl, ".", col]]
 
 -- | Done services
 doneServices :: PreQuery
-doneServices = inList "servicetbl" "status" $ map (T.decodeUtf8 . identFv)
+doneServices = inList "servicetbl" "status" $ map identFv
                [ SS.inProgress
                , SS.ok
                , SS.closed]
@@ -275,11 +275,11 @@ caseSummary (Filter fromDate toDate program city partner) constraints = logExcep
       count' "cnt",
       equals "consultationtbl" "constype" "mech",
       inList "consultationtbl" "status" $
-             map (T.decodeUtf8 . identFv) [ SS.inProgress
-                                          , SS.ok
-                                          , SS.closed
-                                          , SS.ordered
-                                          , SS.delayed],
+             map identFv [ SS.inProgress
+                         , SS.ok
+                         , SS.closed
+                         , SS.ordered
+                         , SS.delayed],
       betweenTime fromDate toDate "consultationtbl" "createTime",
       consultationCaseRel,
       ifNotNull program $ equals "casetbl" "program",
@@ -506,8 +506,8 @@ rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = logExc
     -- realNames
     toUsr m = (k, v)
         where
-          k = T.decodeUtf8 $ m HM.! "value"
-          v = T.decodeUtf8 $ m HM.! "label"
+          k = m HM.! "value"
+          v = m HM.! "label"
 
 
 rkcFront :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> m Value

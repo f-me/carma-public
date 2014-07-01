@@ -29,7 +29,7 @@ import Control.Monad.State hiding (state)
 import Data.Aeson as A
 
 import Data.Attoparsec.ByteString.Char8
-import Data.ByteString.Char8 as BS (ByteString, concat)
+import Data.ByteString.Char8 as BS (ByteString)
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Map as M
 import Data.HashMap.Strict as HM (delete)
@@ -37,7 +37,8 @@ import Data.Maybe as Maybe
 
 import Data.Configurator
 import Database.PostgreSQL.Simple.SqlQQ
-import Data.Text.Encoding
+import Data.Text (Text)
+import qualified Data.Text as T
 
 import Network.HTTP as H (simpleHTTP, getRequest, getResponseBody)
 
@@ -207,23 +208,21 @@ distance = twoPointHandler distanceQuery (head . head :: [[Double]] -> Double)
 ------------------------------------------------------------------------------
 -- | True only for names of Russian cities which are federal subjects
 -- (in UTF-8, ru-RU).
-isFederal :: ByteString -> Bool
-isFederal s = (s == e8 "Москва") || (s == e8 "Санкт-Петербург")
-    where
-      e8 = encodeUtf8
+isFederal :: Text -> Bool
+isFederal s = s == "Москва" || s == "Санкт-Петербург"
 
 
 ------------------------------------------------------------------------------
 -- | City and street address. 'FromJSON' instance parses a UTF-8
 -- response from the Nominatim reverse geocoder, properly handling
 -- federal city names.
-data FullAddress = FullAddress (Maybe ByteString) (Maybe ByteString)
+data FullAddress = FullAddress (Maybe Text) (Maybe Text)
                    deriving Show
 
 
 instance FromJSON FullAddress where
     parseJSON (Object v) = do
-        (err::Maybe ByteString) <- v .:? "error"
+        (err::Maybe Text) <- v .:? "error"
         case err of
           Just _ -> fail "Geocoding failed"
           Nothing -> do
@@ -241,7 +240,7 @@ instance FromJSON FullAddress where
                 -- Include house number information in the street
                 -- address, if present
                 streetAddr = case (street, house) of
-                               (Just s, Just h) -> Just $ BS.concat [s, ", ", h]
+                               (Just s, Just h) -> Just $ T.concat [s, ", ", h]
                                _ -> street
                 -- Use the name of the state as the city name for
                 -- federal cities

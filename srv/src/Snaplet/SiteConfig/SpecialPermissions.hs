@@ -15,7 +15,8 @@ where
 import           Data.Aeson as Aeson
 import           Data.Maybe
 import qualified Data.Map as M
-import           Data.ByteString (ByteString)
+import           Data.Text (Text)
+import qualified Data.Text.Encoding as T
 import           Data.Pool
 
 import           Control.Applicative
@@ -55,8 +56,7 @@ instance ToField FilterType where
 
 stripContract :: HasAuth b =>
                  Model
-              -> ByteString
-              -- ^ SubProgram id.
+              -> Text -- ^ SubProgram id.
               -> FilterType
               -> Handler b (SiteConfig b) Model
 stripContract model sid flt = do
@@ -64,7 +64,8 @@ stripContract model sid flt = do
   perms <- liftIO $ withResource pg $ getPerms sid
   Just mcu <- withAuth currentUser
   mcu'     <- withLens db $ replaceMetaRolesFromPG mcu
-  let procField = if (Snap.Role $ identFv Role.partner) `elem` userRoles mcu'
+  let role = Snap.Role $ T.encodeUtf8 $ identFv Role.partner
+  let procField = if role `elem` userRoles mcu'
                   then reqField
                   else id
   return model{fields = map procField $ filterFields perms (fields model)}
@@ -75,7 +76,7 @@ stripContract model sid flt = do
                  fromMaybe M.empty $ meta f}
           else f
       getPerms progid conn = M.fromList <$>
-        (query conn q (flt, progid) :: IO [(ByteString, ByteString)])
+        (query conn q (flt, progid) :: IO [(Text, Text)])
       filterFields perms flds = filter (isCanShow perms) flds
       isCanShow perms f  = fromMaybe False $ check flt perms (name f)
       check Form _ "dixi"        = return True

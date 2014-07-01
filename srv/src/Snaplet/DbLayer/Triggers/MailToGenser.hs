@@ -5,7 +5,7 @@ module Snaplet.DbLayer.Triggers.MailToGenser
   ) where
 
 
-import Data.ByteString (ByteString)
+import Data.Text (Text)
 import qualified Snap.Snaplet.PostgresqlSimple as PG
 import Database.PostgreSQL.Simple.SqlQQ
 
@@ -74,7 +74,7 @@ q = [sql|
   |]
 
 
-sendMailToGenser :: MonadTrigger m b => ByteString -> m b ()
+sendMailToGenser :: MonadTrigger m b => Text -> m b ()
 sendMailToGenser svcId = do
   syslogJSON Info "trigger/mailToGenser" ["svcId" .= svcId]
   -- we need new status value but from postgres we can get only the old one

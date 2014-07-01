@@ -2,7 +2,6 @@
 module Snaplet.DbLayer.Triggers.SMS (sendSMS) where
 
 import Control.Monad (void)
-import Data.ByteString (ByteString)
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
 
@@ -22,7 +21,7 @@ import qualified Carma.Model.SmsTemplate as SmsTemplate
 import Util as U
 
 
-sendSMS :: ByteString -> Model.IdentI SmsTemplate -> DbHandler b ()
+sendSMS :: ObjectId -> Model.IdentI SmsTemplate -> DbHandler b ()
 sendSMS actId tplId = do
   res <- PG.query
         [sql|
