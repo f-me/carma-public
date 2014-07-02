@@ -4,7 +4,7 @@
 
 module Carma.Model.VinFormat
     ( VinFormat(..)
-    , Carma.Model.VinFormat.idents, arc
+    , Carma.Model.VinFormat.idents, arc, arcFord
     , Sing(..)
     , ContractField
     , FormatFieldAccessor(..)
@@ -78,7 +78,9 @@ mkVinFormat  [ FF SName   Contract.name
 
 
 mkIdents [t|VinFormat|]
- [ ("arc", 1000) ]
+ [ ("arc", 1000)
+ , ("arcFord", 2000)
+ ]
 
 
 instance Model VinFormat where

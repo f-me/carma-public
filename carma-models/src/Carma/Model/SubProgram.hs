@@ -25,6 +25,7 @@ mkIdents [t|SubProgram|]
  , ("citroenWarranty", 4)
  , ("cad2012", 9)
  , ("ramc", 102)
+ , ("ford", 14)
  ]
 
 
