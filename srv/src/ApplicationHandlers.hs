@@ -134,15 +134,6 @@ doLogout = ifTop $ do
 
 
 ------------------------------------------------------------------------------
--- | Geodecode mockup.
-smspost :: AppHandler ()
-smspost = do
-  Just smsId <- getParam "smsId"
-  Right _ <- with db $ DB.submitTask "smspost" smsId
-  writeBS ""
-
-
-------------------------------------------------------------------------------
 -- | CRUD
 
 -- FIXME: this is way too slow
@@ -477,12 +468,6 @@ getRegionByCity = do
       writeJSON (res :: [[Text]])
     _ -> error "Could not read city from request"
 
-
-smsProcessingHandler :: AppHandler ()
-smsProcessingHandler = logExceptions "handler/sms" $ do
-  res <- with db DB.smsProcessing
-  writeJSON $ object [
-    "processing" .= res]
 
 -- | Read @actionid@ request parameter and set @openTime@ of that
 -- action to current time.

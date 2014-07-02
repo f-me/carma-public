@@ -287,23 +287,10 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
         global.rkcData = {}
 
-        # Get SMS
-        sms = $('#sms-processing')
-
-        updateSMS = () ->
-            $.getJSON("/sms/processing", (result) ->
-                sms.val(result.processing))
-
-        global.rkcData.smsHandler = setInterval(updateSMS, 5000)
-
-        updateSMS()
         update()
         updatePartners(partners)
         updateWeather()
 
-    removeRKCScreen = ->
-        h = global.rkcData.smsHandler
-        clearInterval h if h?
 
     # function which return object with functions returning functions
     wraps = (partials) ->
@@ -314,7 +301,6 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
 
     { constructor : setupRKCScreen
-    , destructor  : removeRKCScreen
     , template    : tpl
     , partials    : partials
     , wrappers    : wraps

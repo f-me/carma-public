@@ -108,8 +108,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
             chkAuthLocal . method POST $ partnerImport)
          , ("/vin/upload",    chkAuth . method POST $ vinImport)
          , ("/opts/:model/:id/", chkAuthLocal . method GET $ getSrvTarifOptions)
-         , ("/smspost",       chkAuthLocal . method POST $ smspost)
-         , ("/sms/processing", chkAuthLocal . method GET $ smsProcessingHandler)
          , ("/printSrv/:model/:id",
             chkAuthLocal . method GET $ printServiceHandler)
          , ("/clientConfig",       chkAuth . method GET  $ clientConfig)

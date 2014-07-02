@@ -12,7 +12,6 @@ module Snaplet.DbLayer
   ,exists
   ,submitTask
   ,readAll
-  ,smsProcessing
   ,initDbLayer
   ,findOrCreate
   ) where
@@ -152,12 +151,6 @@ submitTask queueName taskId
 readAll :: ModelName -> Handler b (DbLayer b) [Object]
 readAll = Redis.readAll redis
 
-
-smsProcessing :: Handler b (DbLayer b) Integer
-smsProcessing = runRedisDB redis $ do
-  (Right i) <- Redis.llen "smspost"
-  (Right ri) <- Redis.llen "smspost:retry"
-  return $ i + ri
 
 -- TODO Use lens to an external AuthManager
 initDbLayer :: Snaplet (AuthManager b)
