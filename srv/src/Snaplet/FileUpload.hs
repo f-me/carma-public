@@ -34,13 +34,12 @@ import qualified Data.Map as M
 import Data.Maybe
 import Data.Configurator
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.ByteString.Char8 as B8
 import Data.Digest.Pure.MD5 (md5)
 import qualified Data.HashSet as HS
 import Database.PostgreSQL.Simple.SqlQQ
 import Data.Char
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
@@ -62,7 +61,6 @@ import qualified Utils.NotDbLayer as NDB
 import Snaplet.DbLayer.Types
 
 import AppHandlers.Util as U
-import Util as U
 
 
 data FileUpload b = FU { cfg      :: UploadPolicy
@@ -70,7 +68,7 @@ data FileUpload b = FU { cfg      :: UploadPolicy
                        , finished :: FilePath
                        -- ^ Root directory of finished uploads.
                        , db       :: Lens' b (Snaplet (DbLayer b))
-                       , locks    :: TVar (HS.HashSet ByteString)
+                       , locks    :: TVar (HS.HashSet Text)
                        -- ^ Set of references to currently locked
                        -- instances.
                        }
@@ -132,15 +130,15 @@ uploadInManyFields flds nameFun = do
 
       root <- gets finished
       let aid        = attach M.! "id"
-          newDir     = root </> "attachment" </> B8.unpack aid
+          newDir     = root </> "attachment" </> T.unpack aid
           newName    = (fromMaybe id nameFun) fName
       -- Move file to attachment/<aid>
       liftIO $ createDirectoryIfMissing True newDir >>
                copyFile fPath (newDir </> newName) >>
                removeFile fPath
       _ <- withDb $ DB.update "attachment" aid $
-                    M.insert "hash" (stringToB $ show hash) $
-                    M.singleton "filename" (stringToB newName)
+                    M.insert "hash" (T.pack $ show hash) $
+                    M.singleton "filename" (T.pack newName)
       return (aid, False)
     (Only aid:_) -> return (aid, True)
 
@@ -152,7 +150,7 @@ uploadInManyFields flds nameFun = do
           e <- withDb $ NDB.exists model objId
           if e
           then do
-              attachToField model objId field $ B8.append "attachment:" aid
+              attachToField model objId field $ T.append "attachment:" aid
               return $ Right t
           else
               return $ Left t
@@ -177,8 +175,8 @@ uploadInManyFields flds nameFun = do
 uploadBulk :: (HasAuth b, HasMsg b) => Handler b (FileUpload b) ()
 uploadBulk = do
   -- 'Just' here, for these have already been matched by Snap router
-  Just model <- getParam "model"
-  Just field <- getParam "field"
+  Just model <- getParamT "model"
+  Just field <- getParamT "field"
   (obj, failedTargets, succTargets, dupe) <-
       uploadInManyFields
              (\fName -> map (\i -> (model, i, field)) (readIds fName))
@@ -193,7 +191,7 @@ uploadBulk = do
         -- skipping everything else.
         readIds :: FilePath -> [ObjectId]
         readIds fn =
-            either (const []) (map $ stringToB . (show :: Int -> String)) $
+            either (const []) (map $ T.pack . (show :: Int -> String)) $
             parseOnly (manyTill
                        (skipWhile (not . isDigit) >> decimal)
                        (char '-'))
@@ -209,9 +207,9 @@ uploadBulk = do
 -- instance, given by @model@, @id@ and @field@ request parameters.
 uploadInField :: (HasAuth b, HasMsg b) => Handler b (FileUpload b) ()
 uploadInField = do
-  Just model <- getParam "model"
-  Just objId <- getParam "id"
-  Just field <- getParam "field"
+  Just model <- getParamT "model"
+  Just objId <- getParamT "id"
+  Just field <- getParamT "field"
   (res, fails, _, _) <- uploadInManyFields (const [(model, objId, field)]) Nothing
   if null fails
   then writeLBS $ A.encode $ res
@@ -229,8 +227,8 @@ getAttachmentPath aid = do
   case M.lookup "filename" obj of
     Just fName -> return $
                   fPath </> "attachment" </>
-                  B8.unpack aid </> bToString fName
-    _ -> error $ "Broken attachment" ++ B8.unpack aid
+                  T.unpack aid </> T.unpack fName
+    _ -> error $ "Broken attachment" ++ T.unpack aid
 
 
 -- | Append a reference of form @attachment:213@ to a field of another
@@ -242,7 +240,7 @@ attachToField :: (HasAuth b, HasMsg b)
               -- ^ Id of target instance.
               -> FieldName
               -- ^ Field name in target instance.
-              -> ByteString
+              -> Text
               -- ^ A reference to an attachment instance to be added
               -- in a field of target instance.
               -> Handler b (FileUpload b) ()
@@ -258,7 +256,7 @@ attachToField modelName instanceId field ref = do
   oldRefs <- NDB.fieldProj field <$> (withDb $ NDB.read modelName instanceId)
   let newRefs = addRef oldRefs ref
   _  <- withDb $ NDB.update modelName instanceId
-        (NDB.fieldPatch field (A.String $ T.decodeUtf8 newRefs))
+        (NDB.fieldPatch field (A.String newRefs))
   -- Unlock the field
   liftIO $ atomically $ do
     hs <- readTVar l
@@ -266,8 +264,8 @@ attachToField modelName instanceId field ref = do
   return ()
     where
       addRef ""    r = r
-      addRef val   r = BS.concat [val, ",", r]
-      lockName = BS.concat [modelName, ":", instanceId, "/", field]
+      addRef val   r = T.concat [val, ",", r]
+      lockName = T.concat [modelName, ":", instanceId, "/", field]
 
 
 -- | Error which occured when processing an uploaded part.
@@ -312,7 +310,7 @@ doUpload relPath = do
   let path = root </> relPath
   withUploads $ \info tmp ->
       do
-        let justFname = U.bToString . fromJust $ partFileName info
+        let justFname = T.unpack .T.decodeUtf8 . fromJust $ partFileName info
             newPath = path </> justFname
         createDirectoryIfMissing True path
         copyFile tmp newPath
@@ -327,7 +325,7 @@ doUploadTmp = do
   withUploads $ \info tmp ->
       do
         let name = case partFileName info of
-                     Just fn -> U.bToString fn
+                     Just fn -> T.unpack $ T.decodeUtf8 fn
                      Nothing -> takeFileName tmp
         (newPath, _) <- openTempFile tmpDir name
         copyFile tmp newPath

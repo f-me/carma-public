@@ -8,17 +8,16 @@ import Data.Functor
 import Control.Monad
 import Control.Monad.Trans.Either
 
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy.Encoding as TL
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
-import qualified Data.Attoparsec.Number as A
 import qualified Data.Aeson as Aeson
 import Data.Aeson
 import Data.List
-import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
 import Data.String
@@ -28,7 +27,6 @@ import Data.Ord (comparing)
 
 import Data.Time
 
-import System.FilePath
 import System.Locale
 
 import Database.PostgreSQL.Simple ( Query, query_, query, execute)
@@ -50,10 +48,8 @@ import WeatherApi (getWeather', tempC)
 import Snaplet.Auth.PGUsers
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
-import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
-import qualified Snaplet.DbLayer.Dictionary as Dict
-import Snaplet.FileUpload (FileUpload(cfg), doUpload, oneUpload)
+import Snaplet.FileUpload (FileUpload(cfg))
 import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
 
@@ -156,7 +152,7 @@ readInt = read . read . show
 
 createHandler :: AppHandler ()
 createHandler = do
-  Just model <- getParam "model"
+  Just model <- getParamT "model"
   let createModel :: forall m . Model m => m -> AppHandler Aeson.Value
       createModel _ = do
         let crud = getModelCRUD :: CRUD m
@@ -167,7 +163,7 @@ createHandler = do
         case res of
           Right obj -> return obj
           Left err  -> error $ "in createHandler: " ++ show err
-  case Carma.Model.dispatch (T.decodeUtf8 model) createModel of
+  case Carma.Model.dispatch model createModel of
     Just fn -> logResp $ fn
     Nothing -> logResp $ do
       commit <- getJSONBody
@@ -177,8 +173,8 @@ createHandler = do
 
 readHandler :: AppHandler ()
 readHandler = do
-  Just model <- getParam "model"
-  Just objId <- getParam "id"
+  Just model <- getParamT "model"
+  Just objId <- getParamT "id"
   let readModel :: forall m . Model m => m -> AppHandler ()
       readModel _ = do
         res <- with db $ do
@@ -191,7 +187,7 @@ readHandler = do
           Left (NoSuchObject _)  -> handleError 404
           Left err               -> error $ "in readHandler: " ++ show err
   -- See also Utils.NotDbLayer.read
-  case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
+  case Carma.Model.dispatch model readModel of
     Just fn -> fn
     _ -> with db (DB.read model objId) >>= \case
       obj | Map.null obj -> handleError 404
@@ -200,7 +196,7 @@ readHandler = do
 
 readManyHandler :: AppHandler ()
 readManyHandler = do
-  Just model  <- getParam "mdl" -- NB: this param can shadow query params
+  Just model  <- getParamT "mdl" -- NB: this param can shadow query params
   limit  <- fromMaybe 2000 . fmap readInt <$> getParam "limit"
   offset <- fromMaybe    0 . fmap readInt <$> getParam "offset"
   params <- getQueryParams
@@ -220,36 +216,35 @@ readManyHandler = do
         case res of
           Right obj -> writeJSON obj
           Left err  -> error $ "in readHandler: " ++ show err
-  case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
+  case Carma.Model.dispatch model readModel of
     Just fn -> fn
     _       -> handleError 404
 
 
 readAllHandler :: AppHandler ()
 readAllHandler = do
-  Just model <- getParam "model"
+  Just model <- getParamT "model"
   (with db $ DB.readAll model)
     >>= apply "orderby" sortBy (flip . comparing . Map.lookup)
-    >>= apply "limit"   take   (read . B.unpack)
+    >>= apply "limit"   take   (read . T.unpack)
     >>= apply "select"  filter flt
     >>= apply "fields"  map    proj
     >>= writeJSON
   where
     apply name f g = \xs
       -> maybe xs (\p -> f (g p) xs)
-      <$> getParam name
-
+      <$> getParamT name
     proj fs = \obj -> Map.fromList
       [(k, Map.findWithDefault "" k obj)
-      | k <- B.split ',' fs
+      | k <- T.splitOn "," fs
       ]
+    flt prm = \obj -> all (selectParse obj) $ T.splitOn "," prm
 
-    flt prm = \obj -> all (selectParse obj) $ B.split ',' prm
 
 updateHandler :: AppHandler ()
 updateHandler = do
-  Just model <- getParam "model"
-  Just objId <- getParam "id"
+  Just model <- getParamT "model"
+  Just objId <- getParamT "id"
   let updateModel :: forall m. Model m =>
                      m -> AppHandler (Either Int Aeson.Value)
       updateModel _ = do
@@ -276,15 +271,15 @@ updateHandler = do
                  -- remove with new triggers
                  "Usermeta" -> do
                    let hmcommit = untypedPatch commit
-                       legacyId = B.concat ["Usermeta:", objId]
+                       legacyId = T.concat ["Usermeta:", objId]
                    when (HM.member "delayedState" hmcommit) $ void $ do
-                     withMsg $ sendMessage (T.decodeUtf8 legacyId) commit
+                     withMsg $ sendMessage legacyId commit
                      logLegacyCRUD Update legacyId Usermeta.delayedState
                    return $ Right $ Aeson.object []
 
                  _ -> return $ Right $ Aeson.object []
   -- See also Utils.NotDbLayer.update
-  case Carma.Model.dispatch (T.decodeUtf8 model) updateModel of
+  case Carma.Model.dispatch model updateModel of
     Just fn ->
         fn >>= \case
            Left n -> handleError n
@@ -302,8 +297,8 @@ updateHandler = do
 
 deleteHandler :: AppHandler ()
 deleteHandler = do
-  Just model <- getParam "model"
-  Just objId <- getParam "id"
+  Just model <- getParamT "model"
+  Just objId <- getParamT "id"
   res        <- with db $ DB.delete model objId
   writeJSON res
 
@@ -399,106 +394,27 @@ rkcPartners = logExceptions "handler/rkc/partners" $ do
   res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
   writeJSON res
 
-
-arcReportHandler :: AppHandler ()
-arcReportHandler = logExceptions "handler/arc" $ do
-  year <- tryParam B.readInteger "year"
-  month <- tryParam B.readInt "month"
-  dicts <- Dict.loadDictionaries $ "resources/site-config/dictionaries"
-  with db $ ARC.arcReport dicts year month
-  serveFile "ARC.xlsx"
-  where
-    tryParam :: MonadSnap m => (ByteString -> Maybe (a, ByteString)) -> ByteString -> m a
-    tryParam reader name = do
-      bs <- getParam name
-      case bs >>= reader of
-        Nothing -> error $ "Unable to parse " ++ B.unpack name
-        Just (v, "") -> return v
-        Just (_, _) -> error $ "Unable to parse " ++ B.unpack name
-
 -- | This action recieve model and id as parameters to lookup for
 -- and json object with values to create new model with specified
 -- id when it's not found
 findOrCreateHandler :: AppHandler ()
 findOrCreateHandler = do
-  Just model <- getParam "model"
-  Just objId    <- getParam "id"
+  Just model <- getParamT "model"
+  Just objId    <- getParamT "id"
   commit <- getJSONBody
   res <- with db $ DB.findOrCreate model objId commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
-------------------------------------------------------------------------------
--- | Reports
-report :: AppHandler ()
-report = logExceptions "handler/report" $ do
-  extendTimeout 6000
-  Just reportId <- getParam "program"
-  fromDate <- liftM (fmap T.decodeUtf8) $ getParam "from"
-  toDate <- liftM (fmap T.decodeUtf8) $ getParam "to"
-  reportInfo <- with db $ DB.read "report" reportId
-  let tplName = B.unpack (reportInfo Map.! "templates")
-  syslogTxt Info "handler/report" $ "Generating report " ++ tplName
-  let template
-        = "resources/static/fileupload/report/"
-        ++ (B.unpack reportId) ++ "/templates/" ++ tplName
-  let result = "resources/reports/" ++ tplName
-  let
-    -- convert format and UTCize time, and apply f to UTCTime
-    validateAnd f dateStr = fmap (format . f) $ parse dateStr where
-      format = T.pack . formatTime defaultTimeLocale "%d.%m.%Y %X"
-      parse :: T.Text -> Maybe UTCTime
-      parse = parseTime defaultTimeLocale "%d.%m.%Y" . T.unpack
-    withinAnd f pre post dateValue = do
-      v <- dateValue
-      s <- validateAnd f v
-      return $ T.concat [T.pack pre, s, T.pack post]
-
-    fromTo mdl = (from, to) where
-      from = withinAnd id (mdl ++ " >= to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
-      to = withinAnd addDay (mdl ++ " < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
-
-    addDay tm = tm { utctDay = addDays 1 (utctDay tm) }
-
-    mkCondition nm = catMaybes [from', to'] where
-      (from', to') = fromTo (T.unpack nm)
-
-  with db $ DB.generateReport mkCondition template result
-  modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
-  serveFile result
-
-createReportHandler :: AppHandler ()
-createReportHandler = do
-  res <- with db $ DB.create "report" $ Map.empty
-  let Just objId = Map.lookup "id" res
-  f <- with fileUpload $ oneUpload =<<
-       (doUpload $ "report" </> (U.bToString objId) </> "templates")
-  Just name  <- getParam "name"
-  -- we have to update all model params after fileupload,
-  -- because in multipart/form-data requests we do not have
-  -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
-  _ <- with db $ DB.update "report" objId $
-    Map.fromList [ ("templates", T.encodeUtf8 $ T.pack $ takeFileName f)
-                 , ("name",      name) ]
-  redirect "/#reports"
-
-deleteReportHandler :: AppHandler ()
-deleteReportHandler = do
-  Just objId  <- getParam "id"
-  with db $ DB.delete "report" objId
-  -- TODO Rewrite this using CRUD triggers
-  -- with fileUpload $ doDeleteAll' "report" $ U.bToString objId
-
 serveUsersList :: AppHandler ()
 serveUsersList = with db usersListPG >>= writeJSON
 
-
 getSrvTarifOptions :: AppHandler ()
 getSrvTarifOptions = do
-  Just objId    <- getParam "id"
-  Just model <- getParam "model"
+  Just objId <- getParamT "id"
+  Just model <- getParamT "model"
   srv     <- with db $ DB.read model objId
-  partner <- with db $ getObj $ B.split ':' $
+  partner <- with db $ getObj $ T.splitOn ":" $
              fromMaybe "" $ Map.lookup "contractor_partnerId" srv
   -- partner services with same serviceName as current service model
   partnerSrvs <- with db $ mapM getObj $ getIds "services" partner
@@ -508,15 +424,14 @@ getSrvTarifOptions = do
       tarifOptions <- with db $ mapM getObj $ getIds "tarifOptions" x
       writeJSON $ map rebuilOpt tarifOptions
   where
-      getIds f m = map (B.split ':') $ B.split ',' $
+      getIds f m = map (T.splitOn ":") $ T.splitOn "," $
                    fromMaybe "" $ Map.lookup f m
       getObj [m, objId] = Map.insert "id" objId <$> DB.read m objId
       getObj _       = return $ Map.empty
       mSrv m = (m ==) . fromMaybe "" . Map.lookup "serviceName"
-      rebuilOpt :: Map ByteString ByteString -> Map ByteString ByteString
-      rebuilOpt o = Map.fromList $
-                    [("id"        , fromMaybe "" $ Map.lookup "id" o)
-                    ,("optionName", fromMaybe "" $ Map.lookup "optionName" o)]
+      rebuilOpt o = Aeson.object
+                    ["id"         .= (fromMaybe "" $ Map.lookup "id" o)
+                    ,"optionName" .= (fromMaybe "" $ Map.lookup "optionName" o)]
 
 -- | Calculate average tower arrival time (in seconds) for today,
 -- parametrized by city (a value from DealerCities dictionary).
@@ -559,7 +474,7 @@ getRegionByCity = do
           WHERE c.id = ANY(r.cities) AND c.value = ?
         |]
         [city]
-      writeJSON (res :: [[ByteString]])
+      writeJSON (res :: [[Text]])
     _ -> error "Could not read city from request"
 
 
@@ -573,7 +488,7 @@ smsProcessingHandler = logExceptions "handler/sms" $ do
 -- action to current time.
 openAction :: AppHandler ()
 openAction = do
-  aid <- getParam "actionid"
+  aid <- getParamT "actionid"
   case aid of
     Nothing -> error "Could not read actionid parameter"
     Just i -> do
@@ -600,20 +515,20 @@ lookupSrvQ = [sql|
 
 printServiceHandler :: AppHandler ()
 printServiceHandler = do
-  Just model <- getParam "model"
-  Just objId <- getParam "id"
+  Just model <- getParamT "model"
+  Just objId <- getParamT "id"
   srv     <- with db $ DB.read model objId
   kase    <- with db $ DB.read' $ fromMaybe "" $ Map.lookup "parentId" srv
   actions <- with db $ mapM DB.read' $
-             B.split ',' $ Map.findWithDefault "" "actions" kase
-  let modelId = B.concat [model, ":", objId]
+             T.splitOn "," $ Map.findWithDefault "" "actions" kase
+  let modelId = T.concat [model, ":", objId]
       action  = head' $ filter ((Just modelId ==) . Map.lookup "parentId")
                       $ actions
   rows <- withPG pg_search $ \conn -> query conn lookupSrvQ [modelId]
-  writeJSON $ Map.fromList [ ("action" :: ByteString, [action])
-                           , ("kase",    [kase])
-                           , ("service", [srv])
-                           , ("cancels", cancelMap rows)
+  writeJSON $ Aeson.object [ "action"  .= [action]
+                           , "kase"    .=  [kase]
+                           , "service" .=  [srv]
+                           , "cancels" .=  cancelMap rows
                            ]
     where
       head' []     = Map.empty
@@ -634,7 +549,7 @@ clientConfig :: AppHandler ()
 clientConfig = do
   mus <- with fileUpload $ gets (fromIntegral . getMaximumFormInputSize . cfg)
   let config :: Map.Map T.Text Aeson.Value
-      config = Map.fromList [("max-file-size", Aeson.Number $ A.I mus)]
+      config = Map.fromList [("max-file-size", Aeson.Number mus)]
   writeJSON config
 
 
@@ -667,8 +582,8 @@ errorsHandler = do
   ip <- rqRemoteAddr <$> getRequest
   user <- fmap userLogin <$> with auth currentUser
   syslogJSON Warning "handler/errorsHandler"
-    ["err" .= r
-    ,"ip"  .= ip
+    ["err" .= TL.decodeUtf8 r
+    ,"ip"  .= T.decodeUtf8 ip
     ,"user".= user
     ]
   writeJSON ()
@@ -688,11 +603,11 @@ logReq commit  = do
   user <- fmap userLogin <$> with auth currentUser
   r <- getRequest
   syslogJSON Info "handler/logReq"
-    ["ip"     .= rqRemoteAddr r
+    ["ip"     .= show (rqRemoteAddr r)
     ,"user"   .= user
     ,"method" .= show (rqMethod r)
-    ,"uri"    .= rqURI r
-    ,"params" .= rqParams r
+    ,"uri"    .= show (rqURI r)
+    ,"params" .= show (rqParams r)
     ,"body"   .= commit
     ]
 

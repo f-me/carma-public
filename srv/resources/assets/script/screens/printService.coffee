@@ -15,10 +15,10 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
       postProc arg.kase,
         time: ['callDate']
         lookup:
-          Program    : 'program'
-          Wazzup     : 'comment'
-          CarMakers  : 'car_make'
-          CarModels  : 'car_model'
+          Program  : 'program'
+          Wazzup   : 'comment'
+          CarMake  : 'car_make'
+          CarMode  : 'car_model'
           ContractCheckStatus : 'vinChecked'
       postProc arg.service,
         time: ['createTime', 'times_factServiceStart', 'times_factServiceEnd']

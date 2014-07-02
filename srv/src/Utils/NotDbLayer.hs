@@ -35,7 +35,6 @@ import qualified Data.Aeson as Aeson
 import Data.Int (Int64)
 import qualified Data.HashMap.Strict as HM
 import Data.Pool (withResource)
-import qualified Data.Text.Encoding as T
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import           Snaplet.Auth.Class
 import           Snaplet.Messenger.Class
@@ -65,7 +64,7 @@ exists model objId =
                withResource (PS.pgPool s) (Patch.read ident)
         return $ not $ null res
   in
-    case Carma.Model.dispatch (T.decodeUtf8 model) modelExists of
+    case Carma.Model.dispatch model modelExists of
       Just fn -> fn
       _       -> DB.exists model objId
 
@@ -84,7 +83,7 @@ read model objId = do
           [obj] -> Right $ recode obj
           []    -> Left  $ "NDB.read: could not read model"
           _     -> Left  $ "NDB.read: " ++ show (Aeson.encode res)
-  case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
+  case Carma.Model.dispatch model readModel of
     Just fn -> fn >>= \case
                Right obj -> return $ recode obj
                -- Short-circuit in case of errors or if no object is
@@ -99,9 +98,9 @@ read model objId = do
 fieldProj :: FieldName -> ProtoObject -> FieldValue
 fieldProj field p =
     maybe "" (\case
-              (Aeson.String t) -> T.encodeUtf8 t
-              _                -> "") $
-    HM.lookup (T.decodeUtf8 field) p
+              Aeson.String t -> t
+              _              -> "") $
+    HM.lookup field p
 
 
 -- | 'DbLayer.update' replacement. All triggers are ignored with new
@@ -122,7 +121,7 @@ update model objId commit =
                withResource (PS.pgPool s) (Patch.update ident commit')
         return $ Right res
   in
-    case Carma.Model.dispatch (T.decodeUtf8 model) updateModel of
+    case Carma.Model.dispatch model updateModel of
       Just fn -> fn >>= \case
                  Right 0  -> error "NDB.update: could not update model"
                  Right _  -> return $ HM.empty
@@ -133,4 +132,4 @@ update model objId commit =
 -- | Convenience helper to be used with 'update' to update just one field
 -- value.
 fieldPatch :: FieldName -> Aeson.Value -> ProtoObject
-fieldPatch f v = HM.singleton (T.decodeUtf8 f) v
+fieldPatch f v = HM.singleton f v

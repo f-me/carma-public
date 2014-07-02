@@ -8,10 +8,10 @@ module Snaplet.DbLayer.Triggers.Actions where
 import Control.Monad
 import Control.Monad.Trans
 import Control.Applicative
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B
+import Data.Text (Text)
 import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Read as T
 import qualified Data.Map as Map
 import Data.List (intercalate)
 import Data.Maybe
@@ -42,8 +42,6 @@ import Carma.HTTP (read1Reference)
 
 import           Data.Model
 
-import qualified Carma.Model.CarMake as CarMake
-import qualified Carma.Model.CarModel as CarModel
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.CaseStatus as CaseStatus
 import qualified Carma.Model.Contract as Contract
@@ -137,7 +135,7 @@ actions
                 [("name", "tellMeMore")
                 ,("ctime", now)
                 ,("duetime", due)
-                ,("description", utf8 "Требуется дополнительная обработка кейса")
+                ,("description", "Требуется дополнительная обработка кейса")
                 ,("targetGroup", identFv Role.bo_order)
                 ,("priority", "1")
                 ,("caseId", kazeId)
@@ -147,27 +145,21 @@ actions
             else return ()])
           ,("services", [\caseId _ -> updateCaseStatus caseId])
           ,("partner", [\objId _ -> do
-            mapM_ setSrvMCost =<< B.split ',' <$> get objId "services"
+            mapM_ setSrvMCost =<< T.splitOn "," <$> get objId "services"
             ])
           ,("program", [\objId _ -> do
-            mapM_ setSrvMCost =<< B.split ',' <$> get objId "services"
+            mapM_ setSrvMCost =<< T.splitOn "," <$> get objId "services"
             ])
           -- ,("contact_name",
           --   [\objId val -> set objId "contact_name" $ upCaseStr val])
           -- ,("contact_ownerName",
           --   [\objId val -> set objId "contact_ownerName" $ upCaseStr val])
-          ,("city", [\objId val -> do
-                      oldCity <- redisHGet objId "city"
-                      case oldCity of
-                        Left _         -> return ()
-                        Right Nothing  -> setWeather objId val
-                        Right (Just c) -> when (c /= val) $ setWeather objId val
-                      ])
+          ,("city", [setWeather])
           ,("car_plateNum", [\objId val ->
-            when (B.length val > 5)
-              $ set objId "car_plateNum" $ bToUpper val])
+            when (T.length val > 5)
+              $ set objId "car_plateNum" $ T.toUpper val])
           ,("contract", [\objId val ->
-                         if (not $ B.null val)
+                         if (not $ T.null val)
                          then do
                            fillFromContract val objId >>= \case
                              Loaded -> set objId "vinChecked" $
@@ -181,55 +173,41 @@ actions
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
           ])
         ,("contract", Map.fromList
-          [("carPlateNum",  [\o -> set o "carPlateNum" . bToUpper])
-          ,("carVin",       [\o -> set o "carVin" . bToUpper])
+          [("carPlateNum",  [\o -> set o "carPlateNum" . T.toUpper])
+          ,("carVin",       [\o -> set o "carVin" . T.toUpper])
           ,("carCheckPeriod", [setContractValidUntilMilage])
           ,("milageTO",       [setContractValidUntilMilage])
           ,("contractValidFromDate", [setContractValidUntilDate])
           ])
         ,("call", Map.fromList
           [("endDate", [\objId _ ->
-             liftDb $ Evt.logLegacyCRUD Update (objId) Call.endDate])
+             liftDb $ Evt.logLegacyCRUD Update objId Call.endDate])
           ])
         ,("usermeta", Map.fromList
           [("delayedState", [\objId _ ->
-             liftDb $ Evt.logLegacyCRUD Update (objId) Usermeta.delayedState])
+             liftDb $ Evt.logLegacyCRUD Update objId Usermeta.delayedState])
           ])
         ]
 
-bToUpper :: ByteString -> ByteString
-bToUpper = T.encodeUtf8 . T.toUpper . T.decodeUtf8
-
-
-
-data C2C = P (FA Contract.Contract)
-         -- ^ Copy Contract field as is.
-         | forall m. Model m => J (FA Contract.Contract) (FA m) (FA m)
-         -- ^ Which Contract field to join with another model field
-         -- and how to project that model field to case.
-
 
 -- | Mapping between contract and case fields.
-contractToCase :: [(C2C, FA Case.Case)]
+contractToCase :: [(FA Contract.Contract, FA Case.Case)]
 contractToCase =
-    [ (P $ FA Contract.name, FA Case.contact_name)
-    , (P $ FA Contract.vin, FA Case.car_vin)
-      -- FIXME We won't need this after #1360
-    , (J (FA Contract.make) (FA CarMake.ident) (FA CarMake.value),
-       FA Case.car_make)
-    , (J (FA Contract.model) (FA CarModel.ident) (FA CarModel.value),
-       FA Case.car_model)
-    , (P $ FA Contract.seller, FA Case.car_seller)
-    , (P $ FA Contract.plateNum, FA Case.car_plateNum)
-    , (P $ FA Contract.makeYear, FA Case.car_makeYear)
-    , (P $ FA Contract.color, FA Case.car_color)
-    , (P $ FA Contract.buyDate, FA Case.car_buyDate)
-    , (P $ FA Contract.lastCheckDealer, FA Case.car_dealerTO)
-    , (P $ FA Contract.transmission, FA Case.car_transmission)
-    , (P $ FA Contract.engineType, FA Case.car_engine)
-    , (P $ FA Contract.engineVolume, FA Case.car_liters)
-    , (P $ FA Contract.carClass, FA Case.car_class)
-    , (P $ FA Contract.subprogram, FA Case.subprogram)
+    [ (FA Contract.name, FA Case.contact_name)
+    , (FA Contract.vin, FA Case.car_vin)
+    , (FA Contract.make, FA Case.car_make)
+    , (FA Contract.model, FA Case.car_model)
+    , (FA Contract.seller, FA Case.car_seller)
+    , (FA Contract.plateNum, FA Case.car_plateNum)
+    , (FA Contract.makeYear, FA Case.car_makeYear)
+    , (FA Contract.color, FA Case.car_color)
+    , (FA Contract.buyDate, FA Case.car_buyDate)
+    , (FA Contract.lastCheckDealer, FA Case.car_dealerTO)
+    , (FA Contract.transmission, FA Case.car_transmission)
+    , (FA Contract.engineType, FA Case.car_engine)
+    , (FA Contract.engineVolume, FA Case.car_liters)
+    , (FA Contract.carClass, FA Case.car_class)
+    , (FA Contract.subprogram, FA Case.subprogram)
     ]
 
 
@@ -242,14 +220,15 @@ data ContractFillResult = None
 
 
 fillFromContract :: MonadTrigger m b =>
-                    ByteString
+                    ObjectId
                  -- ^ Contract id.
-                 -> ByteString
+                 -> ObjectId
                  -> m b ContractFillResult
 fillFromContract contract objId = do
   let cid :: IdentI Contract.Contract
-      cid = maybe (error "Could not read contract id") (Ident . fst) $
-            B.readInt contract
+      cid = case T.decimal contract of
+          Right (i,_) -> Ident i
+          _           -> error "Could not read contract id"
       contractTable = PT $ tableName (modelInfo :: ModelInfo Contract.Contract)
       programTable = PT $ tableName $
                      (modelInfo :: ModelInfo Program.Program)
@@ -270,27 +249,12 @@ fillFromContract contract objId = do
           -- 3 more parameters: Program table name, SubProgram parent
           -- field, program id field.
           , "JOIN \"?\" p ON s.? = p.?"
-          , intercalate " " $
-            -- 4 * J arguments, where J is the amount of join entries
-            -- in contractToCase
-            map (const "LEFT OUTER JOIN \"?\" ON \"?\".? = c.?") $
-            filter (\case {P _ -> False; J _ _ _ -> True}) $
-            map fst contractToCase
             -- 2 more arguments: contract id field, contract id value
           , "WHERE c.? = ?;"
           ]) $
          -- Selected fields
          ToRowList
-         (map
-          (\f ->
-           case fst f of
-             P c ->
-                 (PT "c", PT $ fieldNameE c)
-             J _ _ (p :: FA m) ->
-                 (PT $
-                  T.concat ["\"", tableName (modelInfo :: ModelInfo m), "\""],
-                  PT $ fieldNameE p))
-          contractToCase)
+         (map (\f -> (PT "c", PT $ fieldNameE $ fst f)) contractToCase)
          -- 2
          :. (Only $ PT $ fieldName Program.ident)
          :. (Only contractTable)
@@ -301,18 +265,6 @@ fillFromContract contract objId = do
          -- 3
          :. Only programTable
          :. (PT $ fieldName SubProgram.parent, PT $ fieldName Program.ident)
-         -- 4 * J JOIN arguments
-         :. (ToRowList
-             (mapMaybe
-              (\f ->
-               case fst f of
-                 J c (j :: FA m) _ ->
-                     Just ( PT $ tableName (modelInfo :: ModelInfo m)
-                          , PT $ tableName (modelInfo :: ModelInfo m)
-                          , PT $ fieldNameE j
-                          , PT $ fieldNameE c)
-                 _ -> Nothing)
-              contractToCase))
          -- 2
          :. (PT $ fieldName Contract.ident, cid)
   case res of
@@ -323,7 +275,7 @@ fillFromContract contract objId = do
               "" -> set objId nm val
               _  -> return ()
       zipWithM_ (maybe (return ()) . (setIfEmpty objId))
-                (map (T.encodeUtf8 . fieldNameE . snd) $
+                (map (fieldNameE . snd) $
                  contractToCase ++ [(undefined, FA Case.program)])
                 row
       resExp <- liftDb $ PG.query
@@ -341,14 +293,14 @@ fillFromContract contract objId = do
 
 -- | This is called when service status is changed in some trigger.
 onRecursiveServiceStatusChange
-  :: MonadTrigger m b => ByteString -> (IdentI SS.ServiceStatus) -> m b ()
+  :: MonadTrigger m b => ObjectId -> (IdentI SS.ServiceStatus) -> m b ()
 onRecursiveServiceStatusChange svcId val = do
   caseId  <- get svcId "parentId"
 
   -- Check if we need to send message to Genser
   payType <- get svcId "payType"
   pgm     <- get caseId "program"
-  let (svc:_) = B.split ':' svcId
+  let (svc:_) = T.splitOn ":" svcId
   when (svc == "towage"
       && pgm == identFv Program.genser
       && payType == identFv PaymentType.ruamc
@@ -363,10 +315,10 @@ onRecursiveServiceStatusChange svcId val = do
 
 -- | Automatically change case status according to statuses
 -- of the contained services.
-updateCaseStatus :: MonadTrigger m b => ByteString -> m b ()
+updateCaseStatus :: MonadTrigger m b => ObjectId -> m b ()
 updateCaseStatus caseId =
   set caseId "caseStatus" =<< do
-    servs <- B.split ',' <$> get caseId "services"
+    servs <- T.splitOn "," <$> get caseId "services"
     statuses <- mapM (`get` "status") servs
     return $ identFv $ case statuses of
       _ | all (`elem`
@@ -393,18 +345,20 @@ updateCaseStatus caseId =
 -- be pulled from action pool by bo_control users.
 tryToPassChainToControl :: MonadTrigger m b =>
                            AuthUser -> ObjectId -> m b ()
-tryToPassChainToControl user action =
-    when (not
-          (elem (Role $ identFv Role.bo_control) (userRoles user) &&
-           elem (Role $ identFv Role.bo_order) (userRoles user))) $
-    clearAssignee action
+tryToPassChainToControl user action = do
+  let tr = Role . T.encodeUtf8 . identFv
+  when
+    (not (elem (tr Role.bo_control) (userRoles user)
+      &&  elem (tr Role.bo_order) (userRoles user)))
+    $ clearAssignee action
+
 
 -- | Clear assignee and assignTime of an action.
 clearAssignee :: MonadTrigger m b => ObjectId -> m b ()
 clearAssignee action = set action "assignedTo" "" >> set action "assignTime" ""
 
 serviceActions :: MonadTrigger m b
-               => Map.Map ByteString [ObjectId -> ObjectId -> m b ()]
+               => Map.Map FieldName [ObjectId -> FieldValue -> m b ()]
 serviceActions = Map.fromList
   [("status", [\objId val ->
     let
@@ -413,7 +367,7 @@ serviceActions = Map.fromList
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
           -- Check if backoffice transfer is related to callMeMaybe action
-          relatedUser <- liftDb $ PG.query (fromString [sql|
+          relatedUser <- liftDb $ PG.query [sql|
             SELECT coalesce(a.assignedTo, '') FROM actiontbl a, usermetatbl u
               WHERE a.caseId = ?
                 AND u.login = a.assignedTo
@@ -422,7 +376,7 @@ serviceActions = Map.fromList
                 AND a.name IN ('tellMeMore', 'callMeMaybe')
                 AND coalesce(a.result, '') <> 'communicated'
               LIMIT 1
-            |]) [kazeId]
+            |] [kazeId]
           now <- dateNow id
           let (assignee, assignTime) =
                   case relatedUser of
@@ -432,7 +386,7 @@ serviceActions = Map.fromList
             [("name", "orderService")
             ,("ctime", now)
             ,("duetime", due)
-            ,("description", utf8 "Заказать услугу")
+            ,("description", "Заказать услугу")
             ,("targetGroup", identFv Role.bo_order)
             ,("priority", "1")
             ,("parentId", objId)
@@ -451,7 +405,7 @@ serviceActions = Map.fromList
             [("name", "tellMeMore")
             ,("ctime", now)
             ,("duetime", due)
-            ,("description", utf8  "Заказ услуги (требуется дополнительная информация)")
+            ,("description",  "Заказ услуги (требуется дополнительная информация)")
             ,("targetGroup", identFv Role.bo_order)
             ,("priority", "1")
             ,("parentId", objId)
@@ -470,7 +424,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("assignTime", now)
-            ,("description", utf8 "Сообщить клиенту о договорённости")
+            ,("description", "Сообщить клиенту о договорённости")
             ,("targetGroup", identFv Role.bo_control)
             ,("priority", "1")
             ,("parentId", objId)
@@ -486,7 +440,7 @@ serviceActions = Map.fromList
             [("name", "addBill")
             ,("ctime", now2)
             ,("duetime", due2)
-            ,("description", utf8 "Прикрепить счёт")
+            ,("description", "Прикрепить счёт")
             ,("targetGroup", identFv Role.bo_bill)
             ,("priority", "1")
             ,("parentId", objId)
@@ -503,7 +457,7 @@ serviceActions = Map.fromList
             [("name", "mechanicConf")
             ,("ctime", now)
             ,("duetime", due)
-            ,("description", utf8 "Требуется конференция с механиком")
+            ,("description", "Требуется конференция с механиком")
             ,("targetGroup", identFv Role.bo_control)
             ,("priority", "2")
             ,("parentId", objId)
@@ -520,7 +474,7 @@ serviceActions = Map.fromList
             [("name", "dealerConf")
             ,("ctime", now)
             ,("duetime", due)
-            ,("description", utf8 "Требуется конференция с дилером")
+            ,("description", "Требуется конференция с дилером")
             ,("targetGroup", identFv Role.bo_control)
             ,("priority", "2")
             ,("parentId", objId)
@@ -538,7 +492,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description",
-                utf8 "Клиент попросил уточнить, когда начнётся оказание услуги")
+                "Клиент попросил уточнить, когда начнётся оказание услуги")
             ,("targetGroup", identFv Role.bo_control)
             ,("priority", "3")
             ,("parentId", objId)
@@ -554,7 +508,7 @@ serviceActions = Map.fromList
             [("name", "dealerApproval")
             ,("ctime", now)
             ,("duetime", due)
-            ,("description", utf8 "Требуется согласование с дилером")
+            ,("description", "Требуется согласование с дилером")
             ,("targetGroup", identFv Role.bo_control)
             ,("priority", "2")
             ,("parentId", objId)
@@ -570,7 +524,7 @@ serviceActions = Map.fromList
             [("name", "carmakerApproval")
             ,("ctime", now)
             ,("duetime", due)
-            ,("description", utf8 "Требуется согласование с заказчиком программы")
+            ,("description", "Требуется согласование с заказчиком программы")
             ,("targetGroup", identFv Role.bo_control)
             ,("priority", "2")
             ,("parentId", objId)
@@ -586,7 +540,7 @@ serviceActions = Map.fromList
             [("name", "cancelService")
             ,("ctime", now)
             ,("duetime", due)
-            ,("description", utf8 "Клиент отказался от услуги (сообщил об этом оператору Front Office)")
+            ,("description", "Клиент отказался от услуги (сообщил об этом оператору Front Office)")
             ,("targetGroup", identFv Role.bo_control)
             ,("priority", "1")
             ,("parentId", objId)
@@ -616,7 +570,7 @@ serviceActions = Map.fromList
               [("name", "complaintResolution")
               ,("ctime", now)
               ,("duetime", due)
-              ,("description", utf8 "Клиент предъявил претензию")
+              ,("description", "Клиент предъявил претензию")
               ,("targetGroup", identFv Role.bo_qa)
               ,("priority", "1")
               ,("parentId", objId)
@@ -629,16 +583,16 @@ serviceActions = Map.fromList
   ,("contractor_partner",
     [\objId _ -> do
         opts <- get objId "cost_serviceTarifOptions"
-        let ids = B.split ',' opts
+        let ids = T.splitOn "," opts
         redisDel ids >> set objId "cost_serviceTarifOptions" ""
     ])
   ,("falseCall",
     [\objId _ -> set objId "cost_counted" =<< srvCostCounted objId])
   ,("contractor_partnerId",
     [\objId val -> do
-        srvs <- get val "services" >>= return  . B.split ','
-        let m = head $ B.split ':' objId
-        s <- filterM (\s -> get s "serviceName" >>= return . (m ==)) srvs
+        srvs <- T.splitOn "," <$> get val "services"
+        let m = head $ T.splitOn ":" objId
+        s <- filterM (\s -> (m ==) <$> get s "serviceName") srvs
         case s of
           []     -> set objId "falseCallPercent" ""
           (x:_) -> get x "falseCallPercent" >>= set objId "falseCallPercent"
@@ -648,8 +602,7 @@ serviceActions = Map.fromList
         case selectPrice val of
           Nothing       -> set objId "cost_counted" ""
           Just priceSel -> do
-            ids <- get objId "cost_serviceTarifOptions" >>=
-                         return . B.split ','
+            ids <- T.splitOn "," <$> get objId "cost_serviceTarifOptions"
             forM_ ids $ \oid -> do
               price <- get oid priceSel >>= return . fromMaybe 0 . mbreadDouble
               set oid "price" $  printBPrice price
@@ -663,13 +616,13 @@ serviceActions = Map.fromList
   ,("providedFor",    [\objId _ -> setSrvMCost objId])
   ,("times_expectedServiceStart",
     [\objId val -> do
-      case fst <$> B.readInt val of
-        Just tm -> do
-          let h = 3600 -- seconds
-          set objId "times_expectedServiceEnd"     $ B.pack $ show $ tm + 1*h
-          set objId "times_expectedServiceClosure" $ B.pack $ show $ tm + 11*h
+      case T.decimal val of
+        Right (tm, _) -> do
+          let h = 3600 :: Int -- seconds
+          set objId "times_expectedServiceEnd"     $ T.pack $ show $ tm + 1*h
+          set objId "times_expectedServiceClosure" $ T.pack $ show $ tm + 11*h
           set objId "times_factServiceStart" ""
-        Nothing -> return ()
+        _ -> return ()
     ])
   ,("times_expectedDispatch",
     [\objId _ -> set objId "times_factServiceStart" ""
@@ -692,7 +645,7 @@ resultSet1 =
   ]
 
 actionActions :: (MonadTrigger m b)
-              => Map.Map ByteString [ObjectId -> ByteString -> m b ()]
+              => Map.Map Text [ObjectId -> FieldValue -> m b ()]
 actionActions = Map.fromList
   [("result",
     [\objId val -> when (val `elem` resultSet1) $ do
@@ -705,7 +658,7 @@ actionActions = Map.fromList
     ,\objId _al -> do
       dateNow id >>= set objId "closeTime"
       Just u <- liftDb $ with auth currentUser
-      set objId "assignedTo" $ T.encodeUtf8 $ userLogin u
+      set objId "assignedTo" $ userLogin u
 
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
@@ -730,7 +683,7 @@ actionActions = Map.fromList
    ]
 
 actionResultMap :: MonadTrigger m b
-                => Map.Map ByteString (ObjectId -> m b ())
+                => Map.Map Text (ObjectId -> m b ())
 actionResultMap = Map.fromList
   [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime" >> set objId "result" "")
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime" >> set objId "result" "")
@@ -754,8 +707,8 @@ actionResultMap = Map.fromList
                         , "tellMeMore"
                         , "orderServiceAnalyst"]) $
            clearAssignee objId
-      case (map B.readInt $ B.split ':' deferBy) of
-        (Just (hours, _):Just (minutes, _):_) ->
+      case (map T.decimal $ T.splitOn ":" deferBy) of
+        (Right (hours, _):Right (minutes, _):_) ->
             when (0 <= hours && 0 <= minutes && minutes <= 59) $
                  dateNow (+ (60 * (hours * 60 + minutes)))
                              >>= set objId "duetime"
@@ -1056,9 +1009,9 @@ actionResultMap = Map.fromList
   )
   ]
 
-changeTime :: (Int -> Int) -> ByteString -> Int -> Int
-changeTime fn x y = case B.readInt x of
-  Just (r,"") -> fn r
+changeTime :: (Int -> Int) -> Text -> Int -> Int
+changeTime fn x y = case T.decimal x of
+  Right (r,"") -> fn r
   _ -> fn y
 
 setService :: MonadTrigger m b => ObjectId -> FieldName -> FieldValue -> m b ()
@@ -1087,7 +1040,7 @@ getServiceType :: MonadTrigger m b =>
                -- ^ Action id.
                -> m b (Maybe String)
 getServiceType actId = do
-  v <- get actId "parentId"
+  v <- T.encodeUtf8 <$> get actId "parentId"
   return $ fst <$> read1Reference v
 
 
@@ -1098,7 +1051,7 @@ closeServiceAndSendInfoVW objId = do
   partner <- getService objId "contractor_partner"
   comment <- get objId "comment"
   let addParComment act = set act "comment"
-        $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
+        $ T.concat ["Партнёр: ", partner, "\n\n", comment]
 
   tm <- getService objId "times_expectedServiceClosure"
   act1 <- replaceAction
@@ -1136,7 +1089,7 @@ closeAction objId = do
 
 replaceAction :: MonadTrigger m b =>
                  FieldValue
-              -> String
+              -> Text
               -> FieldValue
               -> FieldValue
               -> (Int -> Int)
@@ -1151,7 +1104,7 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   actionId <- new "action" $ Map.fromList
     [("name", actionName)
     ,("ctime", now)
-    ,("description", utf8 actionDesc)
+    ,("description", actionDesc)
     ,("targetGroup", targetGroup)
     ,("assignedTo", assignee)
     ,("assignTime", now)
@@ -1165,10 +1118,10 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   closeAction objId
   return actionId
 
-setWeather :: MonadTrigger m b => B.ByteString -> B.ByteString -> m b ()
+setWeather :: MonadTrigger m b => ObjectId -> Text -> m b ()
 setWeather objId city = do
   conf    <- liftDb $ gets weather
-  weather <- liftIO $ getWeather' conf $ U.bToString $ B.filter (/= '\'') city
+  weather <- liftIO $ getWeather' conf $ T.unpack $ T.filter (/= '\'') city
   case weather of
     Right w   -> do
       syslogJSON Debug "trigger/weather"
@@ -1176,7 +1129,7 @@ setWeather objId city = do
         , "city"  .=  city
         , "res"   .= show w
         ]
-      set objId "temperature" $ B.pack $ show $ tempC w
+      set objId "temperature" $ T.pack $ show $ tempC w
     Left  err -> do
       set objId "temperature" ""
       syslogJSON Debug "trigger/weather"
@@ -1190,7 +1143,7 @@ srvCostCounted srvId = do
   falseCall        <- get srvId "falseCall"
   falseCallPercent <- get srvId "falseCallPercent" >>=
                       return . fromMaybe 100 . mbreadDouble
-  tarifIds <- get srvId "cost_serviceTarifOptions" >>= return . B.split ','
+  tarifIds <- T.splitOn "," <$> get srvId "cost_serviceTarifOptions"
   cost <- sum <$> mapM calcCost tarifIds
   case falseCall of
     "bill" -> return $ printBPrice $ cost * (falseCallPercent / 100)
@@ -1210,27 +1163,27 @@ setSrvMCost objId = do
   set objId "marginalCost" $ RKC.setSrvMCost srvName obj parent dict
     where
       -- readR   = lift . RC.read' redis
-      srvName = head $ B.split ':' objId
+      srvName = head $ T.splitOn ":" objId
 
 setContractValidUntilMilage :: MonadTrigger m b =>
-                               B.ByteString -> B.ByteString -> m b ()
+                               ObjectId -> Text -> m b ()
 setContractValidUntilMilage obj _ = do
   v      <- get obj "contractValidUntilMilage"
   milage <- mbreadInt <$> get obj "milageTO"
   p   <- get obj "program"
-  per <- mbreadInt <$> get (B.concat ["program:", p]) "carCheckPeriodDefault"
+  per <- mbreadInt <$> get (T.concat ["program:", p]) "carCheckPeriodDefault"
   case (v, per, milage) of
-    ("", Just c, Just m) -> setMillage $ B.pack $ show $ c + m
+    ("", Just c, Just m) -> setMillage $ T.pack $ show $ c + m
     _ -> return ()
     where setMillage = set obj "contractValidUntilMilage"
 
 setContractValidUntilDate ::  MonadTrigger m b =>
-                              B.ByteString -> B.ByteString -> m b ()
+                              ObjectId -> Text -> m b ()
 setContractValidUntilDate obj val = do
-  let d = parseTime defaultTimeLocale "%s" $ B.unpack val :: Maybe UTCTime
+  let d = parseTime defaultTimeLocale "%s" $ T.unpack val :: Maybe UTCTime
   v   <- get obj "contractValidUntilDate"
   p   <- get obj "program"
-  due <- mbreadInt <$> get (B.concat ["program:", p]) "duedateDefault"
+  due <- mbreadInt <$> get (T.concat ["program:", p]) "duedateDefault"
   case (v, d, due) of
     ("", Just d', Just due') -> setUntilDate $ addUTCTime (d2s due') d'
     _ -> return ()
@@ -1238,5 +1191,5 @@ setContractValidUntilDate obj val = do
     d2s d = (fromIntegral d) * 24 * 60 * 60
     setUntilDate =
       set obj "contractValidUntilDate" .
-      B.pack .
+      T.pack .
       formatTime defaultTimeLocale "%s"

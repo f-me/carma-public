@@ -5,7 +5,6 @@ import Data.String (fromString)
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 
 import Snap
 import Snap.Snaplet.Auth
@@ -70,7 +69,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
                  []  -> withPG pg_actass (`query_` assignQ 3 cUsr')
                  _   -> return actIds''
 
-  let uLogin = T.encodeUtf8 $ userLogin cUsr'
+  let uLogin = userLogin cUsr'
   now <- liftIO $ projNow id
   with db $ forM_ actIds''' $ \[actId] ->
       DB.update "action" actId

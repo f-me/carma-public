@@ -55,9 +55,9 @@ import Control.Applicative
 
 import Data.Aeson
 import Data.Aeson.TH
-import Data.ByteString.Char8 (ByteString, intercalate, pack)
 import Data.Text (Text)
-import Data.Text.Encoding
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import Data.Maybe
 import Data.Map as M hiding (map)
 import Data.HashMap.Strict as HM (HashMap, fromList)
@@ -91,7 +91,7 @@ instance FromField [Role] where
     fromField f dat = (map Role . V.toList) <$> fromField f dat
 
 
-instance FromField [ByteString] where
+instance FromField [Text] where
     fromField f dat = V.toList <$> fromField f dat
 
 
@@ -114,10 +114,10 @@ SELECT id FROM usermetatbl WHERE uid=?;
 ------------------------------------------------------------------------------
 -- | Convert a usermeta instance as read from DbLayer to use with
 -- Snap. Values always use 'String' constructor.
-toSnapMeta :: Map ByteString ByteString -> HashMap Text Value
+toSnapMeta :: Map Text Text -> HashMap Text Value
 toSnapMeta usermeta =
     HM.fromList $
-    map (\(k, v) -> (decodeUtf8 k, String $ decodeUtf8 v)) $
+    map (\(k, v) -> (k, String v)) $
     M.toList $
     -- Strip internal fields
     M.delete "login" $
@@ -164,7 +164,7 @@ userMetaPG user =
             -- This will read usermeta instance from Redis.
             --
             -- TODO If we could only read Postgres rows to commits.
-            res <- DB.read "usermeta" $ pack $ show mid
+            res <- DB.read "usermeta" $ T.pack $ show mid
             return $ Just (mid, UserMeta $ toSnapMeta res)
           _     -> return Nothing
 
@@ -186,8 +186,7 @@ replaceMetaRolesFromPG user = do
 -- serve user DB to client.
 --
 -- Previously known as @UsersDict@.
-data UsersList = UsersList [HM.HashMap ByteString ByteString]
-                 deriving (Show)
+data UsersList = UsersList [HM.HashMap Text Text]
 
 $(deriveToJSON defaultOptions ''UsersList)
 
@@ -212,21 +211,21 @@ usersListPG = do
   return $ UsersList $ map toEntry rows
       where
         toEntry :: (Int,
-                    ByteString,
-                    Maybe ByteString,
+                    Text,
+                    Maybe Text,
                     Maybe [Role],
-                    Maybe [ByteString],
-                    Maybe [ByteString])
-                 -> HM.HashMap ByteString ByteString
+                    Maybe [Text],
+                    Maybe [Text])
+                 -> HM.HashMap Text Text
         toEntry (mid, login, rn, rls, boC, boP) =
             HM.fromList
-                  [ ("mid", pack $ show $ mid)
+                  [ ("mid", T.pack $ show $ mid)
                   , ("value", login)
                   , ("label", fromMaybe login rn)
                   , ("roles",
-                     intercalate "," (map (\(Role r) -> r) $ fromMaybe [] rls))
+                     T.intercalate "," (map (\(Role r) -> T.decodeUtf8 r) $ fromMaybe [] rls))
                   , ("boCities",
-                     intercalate "," $ fromMaybe [] boC)
+                     T.intercalate "," $ fromMaybe [] boC)
                   , ("boPrograms",
-                     intercalate "," $ fromMaybe [] boP)
+                     T.intercalate "," $ fromMaybe [] boP)
                   ]

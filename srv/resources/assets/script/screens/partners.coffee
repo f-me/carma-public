@@ -26,7 +26,7 @@ define [ "utils"
         ]
 
     screenSetup = (viewName, args) ->
-      modelName = "partner"
+      modelName = "Partner"
       kvm = modelSetup modelName, viewName, args
 
       # I need this object because I can't clean foreach binding, once

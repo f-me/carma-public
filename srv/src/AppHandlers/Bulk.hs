@@ -53,7 +53,6 @@ import           Util as U hiding (render)
 -- TODO Should VIN files really be stored permanently?
 vinImport :: AppHandler ()
 vinImport = logExceptions "Bulk/vinImport" $ do
-  prog <- getParam "program"
   subprog <- getParam "subprogram"
   format <- getParam "format"
 
@@ -71,11 +70,12 @@ vinImport = logExceptions "Bulk/vinImport" $ do
           userSpgms = map fst $
                      mapMaybe B.readInt $
                      B.split ',' $ T.encodeUtf8 userSpgms'
+      let tr = Role . T.encodeUtf8 . identFv
       when (not $
-            (elem (Role $ identFv Role.partner) (userRoles u') &&
+            (elem (tr Role.partner) (userRoles u') &&
              elem sid userSpgms) ||
-            (elem (Role $ identFv Role.vinAdmin) (userRoles u')) ||
-            (elem (Role $ identFv Role.psaanalyst) (userRoles u'))) $
+            (elem (tr Role.vinAdmin) (userRoles u')) ||
+            (elem (tr Role.psaanalyst) (userRoles u'))) $
             handleError 403
 
       (inName, inPath) <- with fileUpload $ oneUpload =<< doUploadTmp

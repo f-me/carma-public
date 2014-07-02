@@ -15,7 +15,7 @@ module AppHandlers.PSA.Base
 
 where
 
-import Data.ByteString (ByteString)
+import Data.Text (Text)
 import Data.List
 import qualified Data.Vector as V
 
@@ -81,7 +81,7 @@ AND c.comment=(SELECT comment FROM parentcase);
 repTowages :: HasPostgres m =>
               Int
            -- ^ Case ID.
-           -> m [ByteString]
+           -> m [Text]
 repTowages n = do
   let statuses = V.fromList [ok, closed]
   rows <- query rtQuery (n, statuses)

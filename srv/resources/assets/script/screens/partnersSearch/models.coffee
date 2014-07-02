@@ -13,9 +13,12 @@ define [], ->
           label: "Город"
       },
       { name: "make"
-      , type: "dictionary-many"
+      , type: "dictionary-set-int"
       , meta:
-          dictionaryName: "CarMakers"
+          widget: "dictionary-many"
+          dictionaryName: "CarMake"
+          dictionaryType: "ModelDict"
+          dictionaryStringify: true
           label: "Марка"
       },
       { name: "services"
@@ -147,10 +150,13 @@ define [], ->
           dictionaryName: "EmailTypes"
       },
       { name: "makes"
-      , type: "dictionary-many"
+      , type: "dictionary-set-int"
       , meta:
          label: "Марки"
-         dictionaryName: "CarMakers"
+         widget: "dictionary-many"
+         dictionaryName: "CarMake"
+         dictionaryType: "ModelDict"
+         dictionaryStringify: true
       },
       { name: "services"
       , type: "nested-model"

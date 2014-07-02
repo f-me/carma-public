@@ -22,18 +22,8 @@ WITH servicecounts AS (
     upper("Contract".vin) AS "VIN автомобиля(контракт)",
     "ContractCheckStatus".label AS "VIN проверен(Участие в программе)",
     casetbl.car_mileage AS "Пробег автомобиля",
-    --СПРАВОЧНИК "Марка" unbounded, ПОЛЬЗОВАТЕЛЬ МОЖЕТ НАПИСАТЬ В ПОЛЕ ЛЮБОЕ ЗНАЧЕНИЕ
-    CASE 
-	WHEN "CarMake".label IS NULL
-	THEN casetbl.car_make
-	ELSE "CarMake".label
-    END AS "Марка автомобиля",
-    --СПРАВОЧНИК "Модель" unbounded, ПОЛЬЗОВАТЕЛЬ МОЖЕТ НАПИСАТЬ В ПОЛЕ ЛЮБОЕ ЗНАЧЕНИЕ
-    CASE 
-	WHEN "CarModel".label IS NULL
-	THEN casetbl.car_model
-	ELSE "CarModel".label
-    END AS "Модель автомобиля",
+    "CarMake".label AS "Марка автомобиля",
+    "CarModel".label AS "Модель автомобиля",
     p3.name AS "Дилер, продавший автомобиль",
     "Wazzup".label AS "Что случилось",
     "System".label AS "Система, где произошла неиспр.",
@@ -229,8 +219,8 @@ WITH servicecounts AS (
    LEFT JOIN partnertbl p4 ON casetbl.car_dealerto = p4.id::text
    LEFT JOIN "City" casecity ON casetbl.city = casecity.value
    LEFT JOIN "City" dealercity ON p4.city = dealercity.value
-   LEFT JOIN "CarMake" ON casetbl.car_make = "CarMake".value OR casetbl.car_make = "CarMake".label
-   LEFT JOIN "CarModel" ON casetbl.car_model = "CarModel".value OR casetbl.car_model = "CarModel".label
+   LEFT JOIN "CarMake" ON casetbl.car_make = "CarMake".id
+   LEFT JOIN "CarModel" ON casetbl.car_model = "CarModel".id
    LEFT JOIN "Contract" ON casetbl.contract = "Contract".id
    LEFT JOIN "Wazzup" ON casetbl.comment = "Wazzup".id
    LEFT JOIN "System" ON casetbl.diagnosis1 = "System".id

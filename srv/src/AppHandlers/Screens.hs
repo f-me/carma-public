@@ -5,8 +5,7 @@ module AppHandlers.Screens (getScreens) where
 import           Data.List (intersect)
 import           Data.Maybe
 import           Data.Aeson
-import           Data.ByteString.Char8 (ByteString)
-import qualified Data.ByteString.Char8 as B8
+import           Data.Text (Text)
 import qualified Data.ByteString.Lazy  as L8
 
 import           Control.Applicative
@@ -25,18 +24,18 @@ import           AppHandlers.Util
 import           Utils.HttpErrors
 
 
-type Permissions = [ByteString]
+type Permissions = [Text]
 type Screens = [Screen]
 
-data Screen = Sms { name        :: ByteString
+data Screen = Sms { name        :: Text
                   , permissions :: Permissions
                   }
-            | Li  { name        :: ByteString
-                  , label       :: ByteString
+            | Li  { name        :: Text
+                  , label       :: Text
                   , permissions :: Permissions
                   }
-            | Dropdown { name        :: ByteString
-                       , label       :: ByteString
+            | Dropdown { name        :: Text
+                       , label       :: Text
                        , permissions :: Permissions
                        , screens     :: Screens
                        }
@@ -58,16 +57,16 @@ instance FromJSON Screen where
 
 instance ToJSON Screen where
   toJSON (Sms name p) = object [ "name" .= name
-                               , "type" .= B8.pack "sms"
+                               , "type" .= ("sms" :: Text)
                                , "permissions" .= p]
   toJSON (Li  n l p ) = object [ "name"        .= n
                                , "label"       .= l
-                               , "type"        .= B8.pack "li"
+                               , "type"        .= ("li" :: Text)
                                , "permissions" .= p
                                ]
   toJSON (Dropdown n l p ss) = object  [ "name"        .= n
                                        , "label"       .= l
-                                       , "type"        .= B8.pack "dropdown"
+                                       , "type"        .= ("dropdown" :: Text)
                                        , "permissions" .= p
                                        , "screens"     .= ss
                                        ]

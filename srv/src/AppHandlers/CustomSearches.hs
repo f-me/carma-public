@@ -32,6 +32,7 @@ import Control.Monad
 
 import Data.Aeson as A
 
+import Data.Text (Text)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import Data.Map as M (Map, (!), delete, fromList)
@@ -64,7 +65,7 @@ allPartnersHandler
   >>= writeJSON
 
 
-selectPartners :: MBS -> MBS -> MBS -> MBS -> AppHandler [Map ByteString ByteString]
+selectPartners :: MBS -> MBS -> MBS -> MBS -> AppHandler [Map Text Text]
 selectPartners city isActive isDealer makes = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
     $  "SELECT id::text, name, city,"
@@ -75,7 +76,9 @@ selectPartners city isActive isDealer makes = do
     ++ (maybe "" (\x -> "  AND city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND isActive = " ++ toBool x) isActive)
     ++ (maybe "" (\x -> "  AND isDealer = " ++ toBool x) isDealer)
-    ++ (maybe "" (\x -> "  AND " ++ quote x ++ " = ANY (makes)") makes)
+    ++ (maybe "" (\x -> "  AND ("
+      ++ quote x ++ " = 'null' OR "
+      ++ quote x ++ " = ANY (makes))")) makes
   let fields = ["id", "name", "city", "comment", "isDealer", "isMobile"]
   return $ mkMap fields rows
 
@@ -90,7 +93,7 @@ allActionsHandler = do
           return $ B.split ',' <$> tg
   acts <- join (selectActions
           <$> getParam "closed"
-          <*> getParam "assignedTo"
+          <*> getParamT "assignedTo"
           <*> getRoles
           <*> getParam "duetimeFrom"
           <*> getParam "duetimeTo")
@@ -101,8 +104,8 @@ allActionsHandler = do
 
 
 selectActions
-  :: MBS -> MBS -> Maybe [ByteString] -> MBS -> MBS
-  -> AppHandler [Map ByteString ByteString]
+  :: MBS -> Maybe Text -> Maybe [ByteString] -> MBS -> MBS
+  -> AppHandler [Map Text Text]
 selectActions mClosed mAssignee mRoles mFrom mTo = do
   let actQ = [sql|
      SELECT a.id::text, a.caseId, a.parentId,
@@ -305,7 +308,7 @@ actStats = do
       \c -> query c actStatsQ ((Only $ V.fromList controlNames) :. flags)
   writeJSON $ M.fromList
                 ([ ("order", orders)
-                 , ("control", controls)] :: [(ByteString, ByteString)])
+                 , ("control", controls)] :: [(Text, Text)])
 
 
 -- | Serve users to which actions can be assigned (head, back or
@@ -328,7 +331,7 @@ allDealersForMake = do
   rows <- withPG pg_search $ \c -> query c [sql|
     SELECT id::text, name
       FROM partnertbl
-      WHERE isActive AND isDealer AND ? = ANY (makes)
+      WHERE isActive AND isDealer AND ?::int = ANY (makes)
     |] [make]
   writeJSON $ mkMap ["id", "name"] rows
 

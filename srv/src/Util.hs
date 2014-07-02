@@ -47,12 +47,12 @@ import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Lazy  as L
 import qualified Data.ByteString.Lazy.Char8  as L8
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lex.Double as B
 
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Read as T
 
 import Data.Time
 import Data.Time.Clock.POSIX
@@ -64,7 +64,7 @@ import Data.Attoparsec.ByteString.Lazy (Result(..))
 import qualified Data.Attoparsec.ByteString.Lazy as Atto
 
 import Data.Attoparsec.Combinator (many1, choice)
-import qualified Data.Attoparsec.ByteString.Char8 as A
+import qualified Data.Attoparsec.Text as A
 
 import Database.PostgreSQL.Simple.ToField
 import Database.PostgreSQL.Simple.ToRow
@@ -106,12 +106,12 @@ readJSONfromLBS' src s
 
 --------------------------------------------------------------------------------
 -- param parser for select
-sParse :: ByteString -> [ByteString]
+sParse :: Text -> [Text]
 sParse prm =
-  let A.Done _ r = A.feed (A.parse (c) prm) B.empty
+  let A.Done _ r = A.feed (A.parse (c) prm) T.empty
   in r
     where
-      n = return . B.pack =<< (trim $ many1 $ A.satisfy $ A.notInClass "<>=")
+      n = return . T.pack =<< (trim $ many1 $ A.satisfy $ A.notInClass "<>=")
       p = trim $ choice $ map (A.string) ["<=", "<", ">=", ">", "=="]
       c = do
         v    <- n
@@ -128,7 +128,7 @@ s2p ">=" = (>=)
 s2p "==" = (==)
 s2p _    = error "Invalid argument of s2p"
 
-selectParse :: Map ByteString ByteString -> ByteString -> Bool
+selectParse :: Map Text Text -> Text -> Bool
 selectParse obj prm =
   let [l,p,r] = sParse prm
       p' = s2p p
@@ -136,39 +136,39 @@ selectParse obj prm =
     Nothing -> False
     Just v  -> p' v r
 
-mbreadInt :: B.ByteString -> Maybe Int
-mbreadInt s = B.readInt s >>= r
-  where  r (i, "") = Just i
-         r _       = Nothing
+mbreadInt :: Text -> Maybe Int
+mbreadInt s = case T.decimal s of
+  Right (i, "") -> Just i
+  _             -> Nothing
 
-mbreadDouble :: B.ByteString -> Maybe Double
-mbreadDouble s =  B.readDouble s >>= r
-  where r (i, "") = Just i
-        r _       = Nothing
+mbreadDouble :: Text -> Maybe Double
+mbreadDouble s =  case T.double s of
+  Right (i,"") -> Just i
+  _            -> Nothing
 
-readDouble :: B.ByteString -> Double
+readDouble :: Text -> Double
 readDouble = fromMaybe 0 . mbreadDouble
 
 -- | Like Map.lookup but treat Just "" as Nothing
-lookupNE :: Ord k => k -> Map k B.ByteString -> Maybe B.ByteString
+lookupNE :: Ord k => k -> Map k Text -> Maybe Text
 lookupNE key obj = Map.lookup key obj >>= lp
   where lp "" = Nothing
         lp v  = return v
 
-getCostField :: Map ByteString ByteString -> Maybe ByteString
+getCostField :: Map Text Text -> Maybe Text
 getCostField srv = lookupNE "payType" srv >>= selectPrice
 
-selectPrice :: ByteString -> Maybe ByteString
+selectPrice :: Text -> Maybe Text
 selectPrice v
-          | v == identFv PT.ruamc                    = Just "price2"
+          | v == identFv PT.ruamc  = Just "price2"
           | any (== v) $ map identFv [PT.client, PT.mixed, PT.refund]
               = Just "price1"
-          | otherwise                               = Nothing
+          | otherwise              = Nothing
 
 printPrice :: Double -> String
 printPrice p = printf "%.2f" p
-printBPrice :: Double -> ByteString
-printBPrice p = B.pack $ printPrice p
+printBPrice :: Double -> Text
+printBPrice p = T.pack $ printPrice p
 
 -- | Convert UTF-8 encoded BS to Haskell string.
 bToString :: ByteString -> String
@@ -203,9 +203,9 @@ render varMap = T.concat . loop
 
 
 -- | Format timestamp as "DD/MM/YYYY".
-formatTimestamp :: MonadIO m => ByteString -> m Text
-formatTimestamp tm = case B.readInt tm of
-  Just (s,"") -> do
+formatTimestamp :: MonadIO m => Text -> m Text
+formatTimestamp tm = case T.decimal tm of
+  Right (s :: Int, "") -> do
     tz <- liftIO getCurrentTimeZone
     return $ T.pack $ formatTime defaultTimeLocale "%d/%m/%Y"
       $ utcToLocalTime tz
@@ -215,20 +215,22 @@ formatTimestamp tm = case B.readInt tm of
 
 -- | Get current UNIX timestamp, round and apply a function to it,
 -- then format the result as a bytestring.
-projNow :: (Int -> Int) -> IO ByteString
+projNow :: (Int -> Int) -> IO Text
 projNow fn =
-  (B.pack . show . fn . round . utcTimeToPOSIXSeconds) <$> getCurrentTime
+  (T.pack . show . fn . round . utcTimeToPOSIXSeconds) <$> getCurrentTime
 
 
 -- | Convert an Ident to an untyped field value.
-identFv :: Model.Model m => Model.IdentI m -> ByteString
-identFv (Model.Ident v) = B.pack $ show v
+identFv :: Model.Model m => Model.IdentI m -> Text
+identFv (Model.Ident v) = T.pack $ show v
 
 
 -- | Convert an untyped field value to an Ident if it's a numeric
 -- string.
-fvIdent :: Model.Model m => ByteString -> Maybe (Model.IdentI m)
-fvIdent s = (Model.Ident . fst) <$> B.readInt s
+fvIdent :: Model.Model m => Text -> Maybe (Model.IdentI m)
+fvIdent s = case T.decimal s of
+  Right (i,_) -> Just $ Model.Ident i
+  _           -> Nothing
 
 
 -- | Text wrapper with a non-quoting 'ToField' instance.

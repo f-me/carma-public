@@ -140,15 +140,6 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
           "vin-form": vin
       r.renderScreen vin, bind
 
-  addRoute "reports", (bind) ->
-    require ["screens/report"], (report) ->
-      report.screen =
-        name : "reports"
-        template: "reports-screen-template"
-        views:
-          reports: report
-      r.renderScreen report, bind
-
   addRoute "contract/:sub/:id", (bind) ->
     require ["screens/contract"], (contract) ->
       contract.screen =

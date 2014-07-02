@@ -22,7 +22,6 @@ import           Control.Applicative
 import           Control.Monad
 
 import           Data.Aeson as A
-import           Data.Aeson.TH
 import qualified Data.ByteString.Char8 as B
 import           Data.List
 import           Data.Maybe
@@ -48,9 +47,6 @@ import           Application
 import           AppHandlers.Util
 import           AppHandlers.CustomSearches.Contract.Base
 import           Util hiding (withPG)
-
-
-$(deriveJSON defaultOptions ''(,,,,,,))
 
 
 extraContractFieldNames :: [Text]

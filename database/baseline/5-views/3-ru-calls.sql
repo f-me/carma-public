@@ -49,8 +49,8 @@ LEFT JOIN calltypes ON calltbl.calltype = calltypes.value
 LEFT JOIN "Program" ON calltbl.program = "Program".id
 LEFT JOIN "SubProgram" ON calltbl.subprogram = "SubProgram".id
 LEFT JOIN usermetatbl ON calltbl.calltaker = usermetatbl.login
-LEFT JOIN "CarMake" ON calltbl.carmake = "CarMake".value
-LEFT JOIN "CarModel" ON calltbl.carmodel = "CarModel".value
+LEFT JOIN "CarMake" ON calltbl.carmake = "CarMake".id
+LEFT JOIN "CarModel" ON calltbl.carmodel = "CarModel".id
 ORDER BY calldate ASC;
 
 GRANT SELECT ON "Звонки" TO reportgen;

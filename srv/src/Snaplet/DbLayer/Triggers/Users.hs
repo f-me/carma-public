@@ -13,7 +13,7 @@ module Snaplet.DbLayer.Triggers.Users
 where
 
 import Data.Map as M ((!), delete, insert, lookup)
-import Data.Text.Encoding
+import qualified Data.Text.Encoding as T
 import Data.Time.Calendar.Julian
 import Data.Time.Clock
 
@@ -34,15 +34,15 @@ createUsermetaTrigger obj =
         M.lookup "password" obj) of
     (Just login, Just password) -> do
       let user = lockoutUser (M.lookup "isActive" obj) $
-                 defAuthUser{userLogin = decodeUtf8 login}
-      user' <- liftIO $ setPassword user password
+                 defAuthUser{userLogin = login}
+      user' <- liftIO $ setPassword user (T.encodeUtf8 password)
       uRes <- with auth $ withBackend $ \bk -> liftIO $ save bk user'
       case uRes of
         Left e -> error $ "Could not create new user: " ++ show e
         Right newUser -> do
             let (Just (UserId uid)) = userId newUser
             return $ M.delete "password"
-                   $ M.insert "uid" (encodeUtf8 uid) obj
+                   $ M.insert "uid" uid obj
     (_, _) ->
         error "Login and password not set when creating new user"
 
@@ -61,7 +61,7 @@ updateUsermetaTrigger objId obj = do
       -- Could use DB.read here if it didn't result in a cyclic module
       -- dependency
       fullMeta <- Redis.read redis "usermeta" objId
-      let uid = UserId (decodeUtf8 $ fullMeta ! "uid")
+      let uid = UserId (fullMeta ! "uid")
       -- Read Auth user
       uRes <- with auth $ withBackend $ \bk -> liftIO $ lookupByUserId bk uid
       case uRes of
@@ -69,11 +69,11 @@ updateUsermetaTrigger objId obj = do
         Just user -> do
              let newLogin = case login' of
                               Just "" -> error "Login not set"
-                              Just l  -> decodeUtf8 l
+                              Just l  -> l
                               Nothing -> userLogin user
                  pwAction = case password' of
                               Just "" -> error "Password not set"
-                              Just s  -> flip setPassword s
+                              Just s  -> flip setPassword (T.encodeUtf8 s)
                               Nothing -> return
              -- Save new user data
              uRes' <- with auth $ withBackend $
@@ -82,7 +82,7 @@ updateUsermetaTrigger objId obj = do
              case uRes' of
                Left e -> error $
                          "Could not save login/password for user: " ++ show e
-               Right _ -> return $ M.insert "login" (encodeUtf8 newLogin) $
+               Right _ -> return $ M.insert "login" newLogin $
                                    M.delete "password" obj
 
 
