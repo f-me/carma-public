@@ -112,6 +112,8 @@ library
   build-depends:
     aeson                >= 0.7 && < 0.8,
     base                 == 4.6.*,
+    base16-bytestring    == 0.1.*,
+    cereal               == 0.4.*,
     containers           == 0.5.*,
     unordered-containers == 0.2.*,
     errors               == 1.4.*,

@@ -21,8 +21,13 @@ import Data.Aeson as Aeson
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
+
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.Base16 as B16
+
 import Data.Int (Int16, Int32)
+
+import Data.Serialize as S
 import qualified Data.Vector as V
 import Data.Vector (Vector, (!))
 import qualified Data.Map as Map
@@ -362,6 +367,48 @@ instance DefaultFieldView UserStateVal where
                 ,("bounded", "true")
                 ]
     }
+
+
+-- | PostGIS coordinates type (longitude and latitude as doubles in
+-- WGS 84).
+--
+-- ToField/FromField instances assume that bytestring data is
+-- hex-encoded little-endian WKB for 2D point with SRID=4326.
+-- (http://trac.osgeo.org/postgis/browser/trunk/doc/ZMSgeoms.txt)
+newtype Coords = Coords (Double, Double)
+                 deriving (Show, Typeable)
+
+instance FromField Coords where
+    fromField f Nothing = returnError UnexpectedNull f "No coordinates"
+    fromField f (Just s) = case S.decode $ fst $ B16.decode s of
+                             Left err -> returnError ConversionFailed f err
+                             Right v -> return v
+
+instance ToField Coords where
+    toField c = Escape $ B16.encode $ S.encode c
+
+instance Serialize Coords where
+    get = do
+      -- Skip byte order mark
+      skip 1
+      -- Skip type annotation
+      skip 4
+      -- Skip SRID value
+      skip 4
+      -- Read coordinates
+      x <- getFloat64le
+      y <- getFloat64le
+      return $ Coords (x, y)
+    put (Coords (x, y)) = do
+      -- LE
+      putWord8 1
+      -- Point with SRID flag
+      putWord32le 0x20000001
+      -- SRID=4326
+      putWord32le 0x000010E6
+      -- Write coordinates
+      putFloat64le x
+      putFloat64le y
 
 
 typeName :: forall t . Typeable t => t -> Text
