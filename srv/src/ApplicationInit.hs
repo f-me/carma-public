@@ -104,8 +104,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/allUsers",      chkAuth . method GET  $ serveUsersList)
          , ("/boUsers",       chkAuth . method GET  $ boUsers)
          , ("/dealers/:make", chkAuth . method GET  $ allDealersForMake)
-         , ("/partner/upload.csv",
-            chkAuthLocal . method POST $ partnerImport)
          , ("/vin/upload",    chkAuth . method POST $ vinImport)
          , ("/opts/:model/:id/", chkAuthLocal . method GET $ getSrvTarifOptions)
          , ("/printSrv/:model/:id",

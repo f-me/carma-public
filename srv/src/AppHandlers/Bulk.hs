@@ -4,7 +4,6 @@
 
 module AppHandlers.Bulk
     ( vinImport
-    , partnerImport
     )
 
 where
@@ -30,7 +29,6 @@ import           Snap.Util.FileServe (serveFileAs)
 
 import qualified Carma.Model.Role as Role
 
-import           Carma.Partner
 import           Carma.VIN
 
 import           Application
@@ -119,33 +117,3 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       let err = "Subprogram/format not specified"
       syslogJSON Warning "Bulk/vinImport" ["err" .= err]
       error err
-
-
--- | Upload a CSV file and update the partner database, serving a
--- report back to the client.
---
--- (carma-partner-import package interface).
---
--- TODO Use TaskManager
-partnerImport :: AppHandler ()
-partnerImport = logExceptions "Bulk/partnerImport" $ do
-  sCfg <- liftIO $ commandLineConfig (emptyConfig :: S.Config Snap a)
-  let carmaPort = case getPort sCfg of
-                    Just n -> n
-                    Nothing -> error "No port"
-  tmpPath <- with fileUpload $ gets tmp
-  (tmpName, _) <- liftIO $ openTempFile tmpPath "last-pimp.csv"
-
-  syslogTxt Info "Bulk/partnerImport" "Uploading data"
-  inPath <- with fileUpload $ oneUpload =<< doUpload "partner-upload-data"
-
-  let outPath = tmpPath </> tmpName
-
-  syslogJSON Info "Bulk/partnerImport" ["inPath" .= inPath, "outPath" .= outPath]
-
-  syslogTxt Info "Bulk/partnerImport" "Loading dictionaries from CaRMa"
-  Just dicts <- liftIO $ loadIntegrationDicts carmaPort
-  syslogTxt Info "Bulk/partnerImport" "Processing data"
-  liftIO $ processData carmaPort inPath outPath dicts
-  syslogTxt Info "Bulk/partnerImport" "Serve processing report"
-  serveFileAs "text/csv" outPath

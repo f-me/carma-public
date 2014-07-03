@@ -71,7 +71,6 @@ Executable carma
     carma-models                >= 0.20.6 && < 0.21,
     carma-http                  == 0.4.*,
     carma-sync                  >= 0.4 && < 0.5,
-    carma-partner-import        >= 0.5.1 && < 0.6,
     conduit                     == 1.1.*,
     configurator                == 0.2.*,
     connection                  == 0.2.*,
