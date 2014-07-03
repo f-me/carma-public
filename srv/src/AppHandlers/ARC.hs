@@ -22,7 +22,7 @@ import           Data.Functor
 import qualified Data.HashMap.Strict as HM
 import           Data.Maybe
 
-import           Data.Text as T hiding (map)
+import           Data.Text as T hiding (filter, map)
 import           Data.Text.IO as T
 import           Data.Text.Encoding
 
@@ -42,6 +42,8 @@ import           Text.XML as XML
 import           Text.XML.Cursor as XML
 
 import           Data.Model
+import           Data.Model.Patch as Patch
+import           Data.Model.Patch.Sql as Patch
 
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Usermeta as U
@@ -93,8 +95,20 @@ arcImport = do
 
   connInfo <- with db $ with DB.postgres $ getConnectInfo
 
+  let Ident fid = VF.arc
+
+  -- Obtain list of loadable format fields
+  vf' <- withPG pg_search $ \c -> Patch.read (Ident fid) c
+  let vf = case vf' of
+             (v:_) -> v
+             _ -> error $ "Could not read format " ++ show fid
+      loadables =
+          filter (\(VF.FFAcc _ _ l _ _ _) -> Patch.get' vf l)
+                 VF.vinFormatAccessors
+      titles = Prelude.concat $ map (flip VF.ffaTitles vf) loadables
+
   -- Fetch & load
-  csv <- liftIO $ parseArc <$> fetchArc vin
+  csv <- liftIO $ (parseArc titles) <$> fetchArc titles vin
 
   let vinS = B8.unpack vin
   syslogTxt Info "ARC" $ "Obtained good XML for VIN=" ++ vinS
@@ -108,7 +122,6 @@ arcImport = do
           T.hPutStr fh csv'
           hClose fh
           let Ident uid = U.arc
-              Ident fid = VF.arc
               opts = Options connInfo fp fp uid fid Nothing (Just sid') True
           syslogTxt Info "ARC" $ "Loading file into subprogram=" ++ show sid'
           doImport opts
@@ -127,10 +140,12 @@ authString = "cmFtY193ZWJzZXJ2aWNlczp2NDczMjJySQ=="
 
 
 -- | Form request body for VIN webservice.
-requestText :: ByteString
+requestText :: [Text]
+            -- ^ Requested field names.
+            -> ByteString
             -- ^ VIN.
             -> ByteString
-requestText vin =
+requestText colNames vin =
     BS.concat [ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
               , "<RequestBody><OutputColumns>"
               , BS.concat $
@@ -143,32 +158,16 @@ requestText vin =
               ]
 
 
--- | List of known XML fields in ARC response. This may be obtained
--- from ARC VinFormat as well (field names here match those in
--- VinFormat). However, we include some hacks for parsing XML, so the
--- list is fixed here.
-colNames :: [Text]
-colNames = [ "DEALER_CODE"
-           , "VALID_FROM"
-           , "VALID_TO"
-           , "VIN_NUMBER"
-           , "LICENCE_PLATE_NO"
-           , "MAKE"
-           , "MODEL"
-           , "FIRST_REGISTRATION_DATE"
-           ]
-
-
 -- | Fetch ARC webservice XML response given a VIN. May throw HTTP or
 -- XML exception.
 fetchArc :: (MonadBaseControl IO m, MonadIO m, MonadThrow m) =>
-            ByteString -> m Document
-fetchArc vin = do
+            [Text] -> ByteString -> m Document
+fetchArc colNames vin = do
   url <- parseUrl apiUrl
   let request = url{ requestHeaders = [ ("Authorization", authString)
                                       , ("Content-Type", "text/xml")
                                       ]
-                   , requestBody = RequestBodyBS $ requestText vin
+                   , requestBody = RequestBodyBS $ requestText colNames vin
                    , method = methodPost
                    }
       -- ARC host has broken certificate, thus we disable server
@@ -180,11 +179,14 @@ fetchArc vin = do
 
 
 -- | Parse ARC XML response to CSV file contents.
-parseArc :: Document
+parseArc :: [Text]
+         -- ^ List of known XML fields in ARC response (matches titles
+         -- of fields marked as loadable in a VIN format).
+         -> Document
          -> Maybe Text
-parseArc doc = if Prelude.null csvContents
-               then Nothing
-               else Just $ T.unlines $ [csvHeader] ++ csvContents
+parseArc colNames doc = if Prelude.null csvContents
+                        then Nothing
+                        else Just $ T.unlines $ [csvHeader] ++ csvContents
     where
       root = fromDocument doc
       -- Name with namespace
