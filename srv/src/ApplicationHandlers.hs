@@ -538,29 +538,6 @@ clientConfig = do
   writeJSON config
 
 
-restoreProgramDefaults :: AppHandler ()
-restoreProgramDefaults = do
-  Just pgm <- getParam "pgm"
-  withPG pg_search $ \c -> do
-    validPgm <- query c
-      [sql| SELECT 1 FROM "Program" WHERE id = ?::int |]
-      [pgm]
-    case validPgm of
-      [[1::Int]] -> do
-        void $ execute c
-          [sql| DELETE FROM "NewCaseField" where program = ? |]
-          [pgm]
-        void $ execute c
-          [sql|
-            INSERT INTO "NewCaseField"
-                (program, field, label, info, required, r, w)
-              SELECT ?::int, field, label, info, required, r, w
-              FROM "DefaultNewCaseField"
-            |]
-          [pgm]
-      _ -> error $ "invalid program " ++ show pgm
-
-
 errorsHandler :: AppHandler ()
 errorsHandler = do
   r  <- readRequestBody 4096

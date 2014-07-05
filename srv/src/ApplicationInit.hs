@@ -110,8 +110,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/printSrv/:model/:id",
             chkAuthLocal . method GET $ printServiceHandler)
          , ("/clientConfig",       chkAuth . method GET  $ clientConfig)
-         , ("/restoreProgramDefaults/:pgm",
-            chkAuthAdmin . method PUT $ restoreProgramDefaults)
          , ("/errors",        method POST errorsHandler)
          , ("/userStates/:userId/:from/:to",
             chkAuth . method GET $ serveUserStates)

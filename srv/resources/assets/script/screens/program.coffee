@@ -41,11 +41,6 @@ define [ "model/main"
     $('#program-permissions').find('.btn-success').on 'click', ->
       table.dataTable.fnAddData [[ kvm['id'](), kvm['label']() ]]
 
-    $("#restore-defaults-btn").on 'click', ->
-      $.ajax
-        type: 'PUT'
-        url: "/restoreProgramDefaults/#{kvm['id']()}"
-
   constructor: screenSetup
   destructor: ->
   template: tpl
