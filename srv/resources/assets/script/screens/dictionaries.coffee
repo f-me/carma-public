@@ -93,6 +93,42 @@ define [ "utils"
       else
         $("#active-items-btn").hide()
 
+      if kvm._meta.model.name != 'ConstructorFieldOption'
+        $("#add-new-item-btn").show()
+        $("#copy-options-btn").hide()
+      else
+        $("#active-items-btn").hide()
+        $("#add-new-item-btn").hide()
+        $("#copy-options-btn").show()
+        copyModel =
+          name: 'CopyCtrOptions'
+          fields: [
+            {name: 'from'
+            ,type: 'dictionary'
+            ,meta:
+              bounded: true
+              dictionaryType: 'ModelDict'
+              dictionaryName: 'Program'
+              label: 'Из программы'
+            },
+            {name: 'to'
+            ,type: 'dictionary'
+            ,meta:
+              bounded: true
+              dictionaryType: 'ModelDict'
+              dictionaryName: 'Program'
+              label: 'В программу'
+            }]
+        copyKVM = main.buildKVM copyModel, {}
+        copyKVM.canCopy = ko.computed((-> @from() and @to() and @from() != @to()), copyKVM)
+        copyKVM.doCopy = ->
+          $.ajax
+            type     : 'POST'
+            url      : "/copyCtrOptions?from=#{copyKVM.from()}&to=#{copyKVM.to()}"
+          $('#ctr-copy-modal').modal 'hide'
+
+        ko.applyBindings {kvm: copyKVM}, el("ctr-copy-modal")
+
 
     screenSetup = (viewName, args) ->
       # show choose dict controls

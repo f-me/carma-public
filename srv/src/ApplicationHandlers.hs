@@ -573,6 +573,27 @@ errorsHandler = do
     ]
   writeJSON ()
 
+
+copyCtrOptions :: AppHandler ()
+copyCtrOptions = do
+  from <- getParam "from"
+  to   <- getParam "to"
+  withPG pg_search $ \c -> do
+    void $ execute c
+      [sql|delete from "ConstructorFieldOption" where program = ?|]
+      [to]
+    void $ execute c
+      [sql|
+        insert into "ConstructorFieldOption"
+            (model,screen,program,ord,field,label,info,required,r,w)
+          select model,screen,?::int,ord,field,label,info,required,r,w
+            from "ConstructorFieldOption"
+            where program = ?
+      |]
+      [to, from]
+  writeJSON ()
+
+
 unassignedActionsHandler :: AppHandler ()
 unassignedActionsHandler = do
   r <- withPG pg_search

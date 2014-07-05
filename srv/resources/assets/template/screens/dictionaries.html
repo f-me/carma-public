@@ -31,6 +31,9 @@
 
   <div class="span7">
     <div id="button-panel" class="page-header" style="display: none;">
+      <a id="copy-options-btn" href="#ctr-copy-modal" data-toggle="modal" class="btn btn-action" style="display: none;">
+        <i class="icon icon-random"></i>&nbsp;Копировать настройки
+      </a>
       <button id="add-new-item-btn" class="btn btn-action" type="button">
         <i class="icon icon-plus"></i>&nbsp;Добавить
       </button>
@@ -38,6 +41,27 @@
         <i class="icon icon-eye-close"></i>
           Aктивные
       </button>
+    </div>
+
+    <!-- copy constructor options -->
+    <div id="ctr-copy-modal" class="modal hide fade">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3>Копирование настроек конструктора</h3>
+      </div>
+      <div class="modal-body">
+        <div data-bind="foreach: kvm._meta.model.fields">
+          <div data-bind="renderField: $data"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Отменить</button>
+        <button
+            class="btn btn-primary"
+            data-bind="enable: kvm.canCopy, click: kvm.doCopy">
+            Копировать
+        </button>
+      </div>
     </div>
 
     <div id="dictionaries-view">
