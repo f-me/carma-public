@@ -23,10 +23,7 @@ alter table partnertbl alter isfree set not null;
 alter table partnertbl alter isfree set default false;
 
 update partnertbl set name = id :: text where name is null or name ~ '^\s*$';
-update partnertbl set name = name || ' ' || id::text
-  where name in (select name from partnertbl group by name having count(*) > 1);
 alter table partnertbl alter name set not null;
-alter table partnertbl add constraint name_is_uniqie unique (name);
 alter table partnertbl add constraint name_is_valid check (name !~ '^\s*$');
 
 update partnertbl set services = '' where services is null;
