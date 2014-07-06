@@ -22,7 +22,7 @@ define ["dictionaries/local-dict", ], (ld) ->
       if val?.match /^\d+$/
         res = @dictValues()[val]
         unless res
-          $.bgetJSON "/_/partner/#{val}", (rsp) -> res = rsp['name']
+          $.bgetJSON "/_/Partner/#{val}", (rsp) -> res = rsp['name']
         res
 
   dict: DealersDict

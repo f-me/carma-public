@@ -64,8 +64,9 @@ define ["dictionaries/local-dict"], (ld) ->
           else
             []
 
+    # FIXME: maybe we can drop this and use `ModelDict:Partner` instead
     allPartners: =>
-      @bgetJSON "/all/partner", (objs) =>
+      @bgetJSON "/_/Partner", (objs) =>
         @source = for o in objs when o.name
           { value: o.id, label: o.name }
 

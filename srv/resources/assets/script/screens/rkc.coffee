@@ -251,21 +251,19 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
             bt.fnAddData(brows)
 
             # Fill mobile partners table
-            $.getJSON "/all/partner/?select=isMobile==1,isActive==1" +
-                      "&fields=name,mtime,city,addrs",
+            $.getJSON "/_/Partner/?isMobile=true&isActive=true",
               (result) ->
                 mt.fnClearTable()
                 mrows = for minfo in result
                   mrow =
                     [ minfo.name
                     , if minfo.mtime.length > 0
-                        new Date(1000 * JSON.parse minfo.mtime).
-                        toString('dd.MM.yyyy HH:mm')
+                        new Date(minfo.mtime).toString('dd.MM.yyyy HH:mm')
                       else
                         ""
                     , dict.DealerCities[minfo.city] || minfo.city
                     , if minfo.addrs.length > 0
-                        (utils.getKeyedJsonValue (JSON.parse minfo.addrs), "fact") || ""
+                        (utils.getKeyedJsonValue minfo.addrs, "fact") || ""
                       else
                         ""
                     ]
