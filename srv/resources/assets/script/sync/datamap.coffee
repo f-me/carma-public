@@ -47,7 +47,8 @@ define [], ->
 
   s2cJson = (v) ->
     return null if _.isEmpty v
-    JSON.parse(v)
+    # FIXME: real JSON (Aeson.Value in model) does not require parsing
+    if typeof v == 'object' then v else JSON.parse v
 
   c2sDay = (v) -> ((parseISO guiDayFormat) v)?.toString serverDayFormat
 
@@ -76,6 +77,7 @@ define [], ->
     dictionary: (v) -> if _.isNull v then '' else v
     date      : c2sDate("dd.MM.yyyy")
     datetime  : c2sDate("dd.MM.yyyy HH:mm:ss")
+    # FIXME: provide pure JSON if field has Aeson.Value type
     json      : JSON.stringify
     ident     : (v) -> parseInt v
     'interval-date' : (v) -> v.map c2sDay

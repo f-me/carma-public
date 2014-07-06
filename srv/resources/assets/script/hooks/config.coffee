@@ -49,7 +49,7 @@ define [ "hooks/common"
 
       "ken" : [ s.openPartnerSearch ]
 
-      "partner" : [ (c.bindRemoveHook 'services')
+      "Partner" : [ (c.bindRemoveHook 'services')
                   , p.serviceRepeat
                   , p.factAddr
                   ]
