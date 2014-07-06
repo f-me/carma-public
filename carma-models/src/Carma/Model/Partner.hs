@@ -1,65 +1,53 @@
 {-# LANGUAGE ConstraintKinds #-}
 
-{-|
-
-Proxy model for a subset of legacy partner model.
-
-TODO JSON & coords Haskell types.
-
--}
+-- TODO JSON & coords Haskell types.
 
 module Carma.Model.Partner
     ( Partner(..)
     , partnerKey
-    )
-
-where
+    ) where
 
 import Data.Aeson as A
 import Data.Text (Text)
 import Data.Typeable
 import Data.Vector
+import Data.Time.Clock (UTCTime)
 
 import Data.Model
 import Data.Model.View
 import Data.Model.Types
 
-import Carma.Model.Types()
-import Carma.Model.City hiding (ident)
-import Carma.Model.CarMake hiding (ident)
+import Carma.Model.LegacyTypes (DealerCities, Reference)
+import Carma.Model.CarMake (CarMake)
+import Carma.Model.TaxScheme (TaxScheme)
+
 
 data Partner = Partner
   { ident    :: PK Int Partner "Партнёр"
-  , isActive :: F (Maybe Bool) "isActive" "Партнёр активен"
-  , isDealer :: F (Maybe Bool) "isDealer" "Дилер"
-  , isMobile :: F (Maybe Bool) "isMobile" "Мобильный партнёр"
-  , isFree   :: F (Maybe Bool) "isFree" "Свободен"
-  , name     :: F (Maybe Text)          "name" "Название"
-  , synonyms :: F (Maybe (Vector Text)) "synonyms" "Синонимы"
-  , code     :: F (Maybe Text) "code" "Код"
-  , city     :: F (Maybe (IdentT City)) "city" "Город"
-  , makes
-    :: F (Maybe (Vector (IdentI CarMake))) "makes" "Обслуживаемые марки"
---  , phones
---   :: F (Maybe Text) {- json -} "phones" "Телефоны"
---  , coords
---   :: F (Maybe Text) {- coords -} "coords" "Координаты фактического адреса"
---  , addrs
---    :: F (Maybe Text) {- json -} "addrs" "Адреса"
---  , emails
---    :: F (Maybe Text) {- json -} "emails" "E-mail"
---  , personInCharge
---    :: F (Maybe Text) "personInCharge" "Ответственное лицо"
-  -- , taxScheme
-  --   :: F (Maybe (Ident TaxSchemes)) "taxScheme" "Форма налогообложения"
---  , isPayBackConfirmed
---    :: F (Maybe Bool) "isPayBackConfirmed" "Соглашение о вознаграждении"
---  , mtime
---    :: F (Maybe UTCTime) "mtime" ""
---  , services
---    :: F (Maybe Text) "services" ""
---  , comment
---    :: F (Maybe Text) "comment" "Комментарий"
+  , isActive :: F Bool         "isActive" "Партнёр активен"
+  , isDealer :: F Bool         "isDealer" "Дилер"
+  , isMobile :: F Bool         "isMobile" "Мобильный партнёр"
+  , isFree   :: F Bool         "isFree"   "Свободен"
+  , name     :: F Text         "name"     "Название"
+  , synonyms :: F (Vector Text)"synonyms" "Синонимы"
+  , code     :: F (Maybe Text) "code"     "Код"
+  , city     :: F (Maybe (IdentT DealerCities)) "city" "Город"
+  , makes    :: F (Vector (IdentI CarMake)) "makes" "Обслуживаемые марки"
+  , phones   :: F A.Value      "phones" "Телефоны"
+--  , coords   :: F (Maybe Text) {- coords -} "coords" "Координаты фактического адреса"
+  , addrs    :: F A.Value       "addrs" "Адреса"
+  , emails   :: F A.Value       "emails" "E-mail"
+  , personInCharge
+             :: F (Maybe Text) "personInCharge" "Ответственное лицо"
+  , taxScheme
+             :: F (Maybe (IdentT TaxScheme)) "taxScheme" "Форма налогообложения"
+  , isPayBackConfirmed
+             :: F Bool         "isPayBackConfirmed" "Соглашение о вознаграждении"
+  , foreignIdent
+             :: F (Maybe Text) "foreignIdent" "Внешний код партнёра"
+  , mtime    :: F UTCTime      "mtime" ""
+  , services :: F Reference    "services" ""
+  , comment  :: F Text         "comment" "Комментарий"
   }
   deriving Typeable
 
@@ -67,12 +55,51 @@ instance Model Partner where
   type TableName Partner = "partnertbl"
   modelInfo = mkModelInfo Partner ident
   modelView = \case
-    "" -> Just defaultView
+    "" -> Just $ modifyView defaultView
+      [required makes
+      ,setMeta "noteLabel"        "Время работы"     phones
+      ,setMeta "showNote"         (A.Bool True)      phones
+      ,setMeta "regexp"           "phone"            phones
+      ,setMeta "addLabel"         "Добавить телефон и время работы"
+                                                     phones
+      ,setMeta "jsonSchema"       "dict-objects"     phones
+      ,setMeta "dictionaryName"   "PhoneTypes"       phones
+      ,setMeta "widget"           "dict-objects"     phones
+
+--      ,setMeta "widget"           "picker"           coords
+--      ,setMeta "cityField"        "city"             coords
+--      ,setMeta "infoText"         "coords"           coords
+--      ,setMeta "required"         (A.Bool True)      coords
+--      ,setMeta "targetCoords"     "coords"           coords
+--      ,setMeta "targetAddr"       "factAddr"         coords
+--      ,setMeta "picker"           "mapPicker"        coords
+--      ,setMeta "currentBlipType"  "partner"          coords
+
+      ,setMeta "addLabel"         "Добавить адрес"   addrs
+      ,setMeta "jsonSchema"       "dict-objects"     addrs
+      ,setMeta "dictionaryName"   "AddressTypes"     addrs
+      ,setMeta "widget"           "dict-objects"     addrs
+
+      ,setMeta "regexp"           "email"            emails
+      ,setMeta "addLabel"         "Добавить e-mail"  emails
+      ,setMeta "jsonSchema"       "dict-objects"     emails
+      ,setMeta "dictionaryName"   "EmailTypes"       emails
+      ,setMeta "widget"           "dict-objects"     emails
+
+      ,setMeta "dictionaryStringify" (A.Bool True)   taxScheme
+      ,setMeta "dictionaryType"   "ModelDict"        taxScheme
+      ,setMeta "reference-label"  "Добавить услугу"  services
+      ,setMeta "reference-widget" "partner_services" services
+      ,setMeta "model"            "partner_service"  services
+      ,textarea comment
+      ,invisible mtime
+      ]
     _  -> Nothing
+
 
 -- | Set proper @dictionaryLabel@ meta for a field referring to
 -- 'Partner'.
-partnerKey :: FieldI t n d =>
-             (m -> F t n d)
-          -> (Text, FieldView -> FieldView) :@ m
+partnerKey
+  :: FieldI t n d
+  => (m -> F t n d) -> (Text, FieldView -> FieldView) :@ m
 partnerKey f = setMeta "dictionaryLabel" (A.String $ fieldName name) f
