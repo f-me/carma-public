@@ -40,7 +40,7 @@ data Partner = Partner
   , personInCharge
              :: F (Maybe Text) "personInCharge" "Ответственное лицо"
   , taxScheme
-             :: F (Maybe (IdentT TaxScheme)) "taxScheme" "Форма налогообложения"
+             :: F (Maybe (IdentI TaxScheme)) "taxScheme" "Форма налогообложения"
   , isPayBackConfirmed
              :: F Bool         "isPayBackConfirmed" "Соглашение о вознаграждении"
   , foreignIdent
