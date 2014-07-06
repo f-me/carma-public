@@ -1,5 +1,5 @@
 Name:                carma-mobile-server
-Version:             0.2.4
+Version:             0.2.5
 Synopsis:            Outer world interface for CaRMa
 Description:         Standalone application to handle requests from mobile
                      partners and clients, using CaRMa HTTP API.
@@ -21,7 +21,7 @@ Executable carma-mobile-server
   main-is: Main.hs
 
   Build-depends:
-    aeson                       == 0.6.*,
+    aeson                       == 0.7.*,
     attoparsec                  == 0.11.*,
     base                        >= 4 && < 5,
     bytestring                  >= 0.9.1 && < 0.11,
