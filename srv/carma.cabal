@@ -102,7 +102,7 @@ Executable carma
     resource-pool-catchio       >= 0.2 && < 0.3,
     snap                        == 0.13.*,
     snap-core                   == 0.9.*,
-    snap-extras                 == 0.8.*,
+    snap-extras                 == 0.9.*,
     snap-loader-static          >= 0.9.0.1 && < 0.10,
     snap-server                 == 0.9.*,
     snaplet-postgresql-simple   >= 0.3 && < 0.6,
