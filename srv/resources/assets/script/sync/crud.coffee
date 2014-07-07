@@ -47,7 +47,7 @@ define [ "sync/metaq"
       method = if @persisted then "PUT" else "POST"
       url    = if @persisted then "#{@url}/#{@kvm.id()}" else @url
       return cb(@kvm, @model) if (_.isEmpty @q) and not force
-      @qbackup = _.clone(@q)
+      @qbackup = $.extend @qbackup, _.clone(@q)
       @q       = {}
       $.ajax
         type     : method
@@ -65,7 +65,8 @@ define [ "sync/metaq"
 
     hideSyncAnim: (jqXHR, status) =>
       if status
-        alertUser "Данные не были сохранены. Попробуйте сохранить изменения ещё раз."
+        alertUser "Данные не были сохранены. Попробуйте сохранить изменения
+         ещё раз."
       else
         _.each (_.keys @qbackup), (fname) =>
           @kvm["#{fname}Sync"] false
@@ -92,7 +93,6 @@ define [ "sync/metaq"
     saveErrorCb: (x, status) =>
       @q = _.defaults(@q, @qbackup)
       @hideSyncAnim(x, status)
-      @qbackup = {}
       console.error "CRUD sync: save of '#{@model.name}:#{@kvm.id()}' failed
  with '#{x.status}: #{x.statusText}'"
 
