@@ -32,15 +32,15 @@ data ActionNames = ActionNames deriving Typeable
 data DeferTimes  = DeferTimes deriving Typeable
 data ActionResults = ActionResults deriving Typeable
 
-data Json = Json Text deriving Typeable
-instance FromJSON Json where
-  parseJSON fld = Json <$> parseJSON fld
-instance ToJSON Json where
-  toJSON (Json txt) = toJSON txt
-instance ToField Json where
-  toField (Json txt) = toField txt
-instance FromField Json where
-  fromField fld m = Json <$> fromField fld m
+data JsonAsText = JsonAsText Text deriving Typeable
+instance FromJSON JsonAsText where
+  parseJSON fld = JsonAsText <$> parseJSON fld
+instance ToJSON JsonAsText where
+  toJSON (JsonAsText txt) = toJSON txt
+instance ToField JsonAsText where
+  toField (JsonAsText txt) = toField txt
+instance FromField JsonAsText where
+  fromField fld m = JsonAsText <$> fromField fld m
 
 data Phone = Phone Text deriving Typeable
 instance FromJSON Phone where

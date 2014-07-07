@@ -146,7 +146,7 @@ data Case = Case
   , actions
     :: F (Maybe Reference) "actions" "Действия"
   , comments
-    :: F (Maybe Json) "comments" "Комментарии"
+    :: F (Maybe JsonAsText) "comments" "Комментарии"
   , files
     :: F (Maybe Reference) "files" "Прикрепленные файлы"
   } deriving Typeable

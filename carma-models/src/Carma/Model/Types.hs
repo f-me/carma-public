@@ -227,11 +227,11 @@ instance DefaultFieldView LegacyDate where
 instance DefaultFieldView LegacyDatetime where
   defaultFieldView f = (defFieldView f) {fv_type = "datetime"}
 
-instance DefaultFieldView Json where
-  defaultFieldView f = (defFieldView f) {fv_type = "json"}
+instance DefaultFieldView JsonAsText where
+  defaultFieldView f = (defFieldView f) {fv_type = "JsonAsText"}
 
 instance DefaultFieldView Aeson.Value where
-  defaultFieldView f = (defFieldView f) {fv_type = "json"}
+  defaultFieldView f = (defFieldView f) {fv_type = "JSON"}
 
 instance DefaultFieldView Phone where
   defaultFieldView f = (defFieldView f)
