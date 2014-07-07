@@ -17,6 +17,7 @@ import Data.Model
 import Data.Model.View
 import Data.Model.Types
 
+import Carma.Model.Types (Coords)
 import Carma.Model.LegacyTypes (DealerCities, Reference)
 import Carma.Model.CarMake (CarMake)
 import Carma.Model.TaxScheme (TaxScheme)
@@ -33,10 +34,10 @@ data Partner = Partner
   , code     :: F (Maybe Text) "code"     "Код"
   , city     :: F (Maybe (IdentT DealerCities)) "city" "Город"
   , makes    :: F (Vector (IdentI CarMake)) "makes" "Обслуживаемые марки"
-  , phones   :: F A.Value      "phones" "Телефоны"
---  , coords   :: F (Maybe Text) {- coords -} "coords" "Координаты фактического адреса"
-  , addrs    :: F A.Value       "addrs" "Адреса"
-  , emails   :: F A.Value       "emails" "E-mail"
+  , phones   :: F A.Value      "phones"   "Телефоны"
+  , coords   :: F (Maybe Coords)"coords"  "Координаты фактического адреса"
+  , addrs    :: F A.Value       "addrs"   "Адреса"
+  , emails   :: F A.Value       "emails"  "E-mail"
   , personInCharge
              :: F (Maybe Text) "personInCharge" "Ответственное лицо"
   , taxScheme
@@ -66,14 +67,14 @@ instance Model Partner where
       ,setMeta "dictionaryName"   "PhoneTypes"       phones
       ,setMeta "widget"           "dict-objects"     phones
 
---      ,setMeta "widget"           "picker"           coords
---      ,setMeta "cityField"        "city"             coords
---      ,setMeta "infoText"         "coords"           coords
---      ,setMeta "required"         (A.Bool True)      coords
---      ,setMeta "targetCoords"     "coords"           coords
---      ,setMeta "targetAddr"       "factAddr"         coords
---      ,setMeta "picker"           "mapPicker"        coords
---      ,setMeta "currentBlipType"  "partner"          coords
+      ,setMeta "widget"           "picker"           coords
+      ,setMeta "cityField"        "city"             coords
+      ,setMeta "infoText"         "coords"           coords
+      ,setMeta "required"         (A.Bool True)      coords
+      ,setMeta "targetCoords"     "coords"           coords
+      ,setMeta "targetAddr"       "factAddr"         coords
+      ,setMeta "picker"           "mapPicker"        coords
+      ,setMeta "currentBlipType"  "partner"          coords
 
       ,setMeta "addLabel"         "Добавить адрес"   addrs
       ,setMeta "jsonSchema"       "dict-objects"     addrs

@@ -13,6 +13,7 @@ module Carma.Model.Types ( Dict(..)
                          , IdentList
                          , EventType(..)
                          , UserStateVal(..)
+                         , Coords
                          ) where
 
 import Control.Applicative
@@ -21,6 +22,7 @@ import Data.Aeson as Aeson
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Read as T
 
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Base16 as B16
@@ -32,6 +34,7 @@ import qualified Data.Vector as V
 import Data.Vector (Vector, (!))
 import qualified Data.Map as Map
 
+import Data.Either (rights)
 import Data.Time
 import System.Locale (defaultTimeLocale)
 
@@ -409,6 +412,22 @@ instance Serialize Coords where
       -- Write coordinates
       putFloat64le x
       putFloat64le y
+
+
+instance FromJSON Coords where
+  parseJSON (String s)
+    = case rights $ map (T.signed T.double) $ T.splitOn "," s of
+      [(x,""), (y,"")] -> return $ Coords (x, y)
+      _                -> fail $ "invalid Coords: " ++ show s
+  parseJSON v = fail $ "invalid Coords: " ++ show v
+
+
+instance ToJSON Coords where
+  toJSON (Coords (x,y)) = String $ T.pack $ show x ++ "," ++ show y
+
+
+instance DefaultFieldView Coords where
+  defaultFieldView f = (defFieldView f) {fv_type = "coords"}
 
 
 typeName :: forall t . Typeable t => t -> Text

@@ -98,3 +98,5 @@ instance PgTypeable  Phone               where pgTypeOf _ = PgType "text" True
 instance PgTypeable  PickerField         where pgTypeOf _ = PgType "text" True
 instance PgTypeable  MapField            where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Checkbox where pgTypeOf _ = PgType "boolean" True
+instance PgTypeable  Coords where
+  pgTypeOf _ = PgType "geometry(Point,4326)" True
