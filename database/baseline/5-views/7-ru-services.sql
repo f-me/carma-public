@@ -124,7 +124,7 @@ WITH servicecounts AS (
     servicetbl.payment_partnercost AS "Стоимость у партнера (число)",
     servicetbl.payment_costtranscript AS "Расшифровка стоимости",
     servicetbl.payment_paidbyruamc AS "Стоимость со слов партнёра", --"Оплата РАМК",
-    casetbl.calltaker AS "Сотрудник, принявший звонок", --"Сотрудник РАМК"
+    usermetatbl.realname AS "Сотрудник, принявший звонок", --"Сотрудник РАМК"
     allservicesview.assignedto AS "Сотрудник, заказавший услугу", --"Ответственный",
     timezone('Europe/Moscow'::text, servicetbl.times_factservicestart) AS "Время погруз.(Факт. нач. ок. усл.)",
     timezone('Europe/Moscow'::text, servicetbl.times_factserviceend) AS "Время разгр.(Факт.оконч. ок. усл.)",
@@ -209,6 +209,7 @@ WITH servicecounts AS (
     casetbl.contact_name AS "ФИО звонящего"   
     
    FROM casetbl
+   LEFT JOIN usermetatbl ON casetbl.callTaker = usermetatbl.id
    LEFT JOIN "Program" ON casetbl.program = "Program".id
    LEFT JOIN "ProgramType" ON "Program".ptype = "ProgramType".id
    LEFT JOIN "SubProgram" ON casetbl.subprogram = "SubProgram".id

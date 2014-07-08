@@ -20,6 +20,7 @@ import System.Locale (defaultTimeLocale)
 import Snap
 import Snap.Snaplet.Auth
 import Snaplet.Auth.Class
+import Snap.Snaplet.PostgresqlSimple
 
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
@@ -59,7 +60,9 @@ applyDefaults model obj = do
     "case" -> return cd
     "call" -> do
           Just u <- withAuth currentUser
-          return $ Map.insert "callTaker" (userLogin u) cd
+          [[u']] <- query "SELECT id::text FROM usermetatbl WHERE uid::text = ?"
+             (Only $ return . unUid =<< userId u)
+          return $ Map.insert "callTaker" u' cd
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
     "contract" ->
       -- Store user id in owner field if it's not present

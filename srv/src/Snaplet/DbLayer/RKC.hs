@@ -525,11 +525,12 @@ rkcFront filt@(Filter fromDate toDate program city _) = logExceptions "rkc/rkcFr
       " group by callertype, calltype order by callertype, calltype"]
     opCallsq = concat [
       "select u.realName, count(*) from calltbl c, usermetatbl u where",
-      " u.login = c.calltaker and",
+      " u.id = c.calltaker and",
       " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
       " group by u.realName order by u.realName"]
     opCasesq = concat [
-      "select calltaker, count(*) from casetbl where",
+      "select u.realName, count(*) from casetbl c, usermetatbl u where",
+      " u.id = c.calltaker and",
       " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
       " group by calltaker order by calltaker"]
 

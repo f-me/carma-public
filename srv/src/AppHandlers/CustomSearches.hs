@@ -158,10 +158,11 @@ searchCallsByPhone = do
 
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT w.label, callerName_name, city, program::text, make, model,"
-    ++ "       callTaker, callType,"
+    ++ "       u.login, callType,"
     ++ "       extract (epoch from callDate at time zone 'UTC')::int8::text"
-    ++ "  FROM calltbl"
+    ++ "  FROM calltbl c"
     ++ "  LEFT OUTER JOIN \"Wazzup\" w ON w.id = wazzup"
+    ++ "  LEFT OUTER JOIN usermetatbl u ON u.id = c.calltaker"
     ++ "  WHERE callerName_phone1 = ?") [phone]
   let fields =
         ["wazzup","callerName_name", "city", "program"
