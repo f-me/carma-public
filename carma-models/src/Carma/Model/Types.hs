@@ -16,8 +16,10 @@ module Carma.Model.Types ( Dict(..)
                          , Coords
                          ) where
 
-import Control.Applicative
+import Control.Applicative ((<$>), (<*>), (*>))
+import Control.Monad (void)
 
+import Data.Maybe
 import Data.Aeson as Aeson
 import Data.String
 import Data.Text (Text)
@@ -29,7 +31,13 @@ import qualified Data.ByteString.Base16 as B16
 
 import Data.Int (Int16, Int32)
 
-import Data.Serialize as S
+import qualified Data.Serialize as S
+import           Data.Serialize ( Serialize
+                                , skip
+                                , getFloat64le
+                                , putWord8
+                                , putWord32le
+                                , putFloat64le)
 import qualified Data.Vector as V
 import Data.Vector (Vector, (!))
 import qualified Data.Map as Map
@@ -40,12 +48,16 @@ import System.Locale (defaultTimeLocale)
 
 import Text.Read (readMaybe)
 import Text.Printf
+import Text.Parsec
 
 import Database.PostgreSQL.Simple.FromField (FromField(..)
                                             ,ResultError(..)
                                             ,typename
-                                            ,returnError)
+                                            ,returnError
+                                            ,typeOid)
 import Database.PostgreSQL.Simple.ToField   (ToField(..), Action(..), inQuotes)
+import Database.PostgreSQL.Simple.TypeInfo.Static (interval, typoid)
+
 import qualified Blaze.ByteString.Builder.Char8 as Builder
 
 import GHC.TypeLits
@@ -92,7 +104,8 @@ instance (FromJSON t, Typeable t, Show t) => FromJSON (Interval t) where
 instance (Typeable t, ToJSON t, Show t) => ToJSON (Interval t) where
   toJSON (Interval begin end) = Array $ V.fromList [toJSON begin, toJSON end]
 
-instance FromField (Interval t) where fromField = undefined -- FIXME: ?
+ -- FIXME: write appropriate instance sometime
+instance FromField (Interval t) where fromField = undefined
 
 instance ToField   (Interval UTCTime) where
   toField (Interval begin end)
@@ -452,3 +465,45 @@ defFieldView f = FieldView
     fieldKind = case fieldKindSing :: FieldKindSingleton a of
       FKSDefault   -> "default"
       FKSEphemeral -> "ephemeral"
+
+
+instance DefaultFieldView DiffTime where
+  defaultFieldView f = (defFieldView f)
+    { fv_type = "DiffTime"
+    , fv_meta
+      = Map.insert "widget" "datetime"
+      $ fv_meta $ defFieldView f
+    }
+
+instance FromField DiffTime where
+  fromField f mdata = if typeOid f /= typoid interval
+    then returnError Incompatible f ""
+    else case parseDiffTime `fmap` mdata of
+      Just (Right d)  -> return d
+      Just (Left err) -> returnError ConversionFailed f (show err)
+      Nothing         -> returnError UnexpectedNull f ""
+
+parseDiffTime :: B.ByteString -> Either ParseError DiffTime
+parseDiffTime = parse diffTime "DiffTime"
+  where
+    diffTime = do
+      d <- optionMaybe $ try $ days
+      void $ optional space
+      t <- optionMaybe $ try time
+      case (d, t) of
+        (Nothing, Nothing) -> fail "can't parse interval"
+        _ -> return $ secondsToDiffTime $ (fromMaybe 0 d) + (fromMaybe 0 t)
+    days = do
+      mi    <- minus
+      ds    <- manyTill digit (try (string " day"))
+      void $ optional $ char 's'
+      case readMaybe ds of
+        Just d -> return $ mi * d * 60 * 60 * 24
+        _           -> fail "no days found"
+    time = do
+      mi <- minus
+      ds <- many1 digit `sepBy` char ':' >>= return . map (readMaybe)
+      case sequence ds of
+        Just [h :: Integer, m, s] -> return $  mi * (s + m*60 + h*3600)
+        _                         -> fail "no time found"
+    minus = option 1 $ char '-' *> return (-1 :: Integer)
