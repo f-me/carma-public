@@ -26,6 +26,7 @@ import Carma.Model.Diagnostics.Suggestion (Suggestion)
 import Carma.Model.Diagnostics.System     (System)
 import Carma.Model.Diagnostics.Wazzup     (Wazzup)
 
+import Carma.Model.Usermeta (Usermeta)
 
 data Case = Case
   { ident :: PK Int Case "Номер кейса"
@@ -34,7 +35,7 @@ data Case = Case
   , vwcreatedate
     :: F (Maybe LegacyDatetime) "vwcreatedate" "Дата звонка"
   , callTaker
-    :: F (Maybe Text)           "callTaker" "Сотрудник РАМК"
+    :: F (IdentI Usermeta)      "callTaker" "Сотрудник РАМК"
   , customerComment
     :: F (Maybe Text) "customerComment" "Неисправность со слов клиента"
   , comment

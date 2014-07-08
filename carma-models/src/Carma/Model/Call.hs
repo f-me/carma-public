@@ -11,6 +11,7 @@ import Carma.Model.Program         (Program)
 import Carma.Model.SubProgram.Type (SubProgram)
 import Carma.Model.CarMake         (CarMake)
 import Carma.Model.CarModel        (CarModel)
+import Carma.Model.Usermeta        (Usermeta)
 import Carma.Model.LegacyTypes
 
 import Carma.Model.Diagnostics.Wazzup (Wazzup)
@@ -26,7 +27,7 @@ callSearchParams
         , one callerName_phone4, one callerName_ownerPhone4
         ])
     , ("callDate", interval callDate)
-    , ("callTaker", fuzzy $ one callTaker)
+    , ("callTaker", one callTaker)
     , ("program", one program)
     , ("wazzup", one wazzup)
     , ("callType", one callType)
@@ -82,7 +83,7 @@ data Call = Call
   , endDate
     :: F (Maybe LegacyDatetime) "endDate"  "Время окончания звонка"
   , callTaker
-    :: F (IdentT Users) "callTaker" "Сотрудник РАМК"
+    :: F (IdentI Usermeta) "callTaker" "Сотрудник РАМК"
   , program
     :: F (Maybe (IdentI Program)) "program" "Программа"
   , subprogram

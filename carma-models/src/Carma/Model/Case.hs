@@ -40,7 +40,7 @@ caseSearchParams
       fuzzy $ one Case.customerComment)
     ,("comment",    one Case.comment)
     ,("address",    fuzzy $ one Case.caseAddress_address)
-    ,("callTaker",  fuzzy $ one Case.callTaker)
+    ,("callTaker",  listOf Case.callTaker)
     ,("files",      refMExist Case.files)
     ]
 
@@ -95,6 +95,7 @@ caseDicts = [
               {dictType = Just "DealersDict", dictBounded = True}
 
   ,car_color `completeWith` Color.label
+  ,setMeta "dictionaryLabel" (Aeson.String "realName") callTaker
   ]
 
 -- | Mark several new-style dictionaries to use dictionaryStringify,
