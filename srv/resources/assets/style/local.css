@@ -524,3 +524,12 @@ table.dataTable tr.selected-row td.sorting_1 {
 input.re-failed {
   background-color: #FEE793;
 }
+
+.default-bs {
+  padding: 20px 10px 20px 10px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+}

@@ -4,6 +4,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-watch')
   grunt.loadNpmTasks('grunt-contrib-copy')
   grunt.loadNpmTasks('grunt-contrib-clean')
+  grunt.loadNpmTasks('grunt-contrib-jade')
 
   content = "resources/assets"
   pub     = "resources/static"
@@ -45,6 +46,22 @@ module.exports = (grunt) ->
         dest: tpl
         filter: 'isFile'
 
+    jade:
+      compile:
+        options:
+          pretty: true
+          basedir: "#{content}/template"
+        files: [
+          cwd: "#{content}/template"
+          src: "**/*.jade"
+          filter: (f) ->
+            # ignore lib dir and files, that begin with "_"
+            (not /\/lib/.test(f)) and (not /.*?\/?_[^\/]+\.jade/.test(f))
+          dest: tpl
+          expand: true
+          ext: ".html"
+          ]
+
     clean:
       all:
         src: ["#{js}/**/*", tpl, css]
@@ -52,10 +69,10 @@ module.exports = (grunt) ->
 
     watch:
       scripts:
-        files: "#{scripts}/**/*.*"
-        tasks: ['coffee', 'copy'],
+        files: "#{content}/**/*.*"
+        tasks: 'build'
 
-  grunt.registerTask("build",   ['coffee', 'copy'])
+  grunt.registerTask("build",   ['coffee', 'copy', 'jade'])
   grunt.registerTask("rebuild", ['clean', 'build'])
 
   grunt.registerTask("default", "rebuild");

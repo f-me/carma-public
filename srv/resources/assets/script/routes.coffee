@@ -1,4 +1,8 @@
-define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
+define ["render/screen"
+        "finch"
+        "search/routes"
+        "kpi/routes"
+       ], (r, Finch, Search, KPI) ->
 
   # wrapper which will abort execution when user on a brake
   addRoute = (url, fn) ->
@@ -181,5 +185,8 @@ define ["render/screen", "finch", "search/routes"], (r, Finch, Search) ->
 
   addRoute "search", =>
   Search.attachTo("search")
+
+  addRoute "kpi", =>
+  KPI.attachTo("kpi")
 
   Finch
