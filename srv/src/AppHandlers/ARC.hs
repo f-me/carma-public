@@ -95,7 +95,9 @@ arcImport = do
 
   connInfo <- with db $ with DB.postgres $ getConnectInfo
 
-  let Ident fid = VF.arc
+  let Ident fid = if Ident sid' == SubProgram.ford
+                  then VF.arcFord
+                  else VF.arc
 
   -- Obtain list of loadable format fields
   vf' <- withPG pg_search $ \c -> Patch.read (Ident fid) c
