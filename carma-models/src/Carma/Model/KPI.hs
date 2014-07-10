@@ -8,7 +8,8 @@ import           Data.Model
 import           Data.Model.View
 
 import           Carma.Model.Usermeta (Usermeta)
-import           Carma.Model.Types (UserStateVal)
+import           Carma.Model.Case     (Case)
+import           Carma.Model.Types    (UserStateVal)
 
 data BaseKPI = BaseKPI
   { baseIdent    :: PK Int BaseKPI      "KPI пользователя"
@@ -56,4 +57,69 @@ instance Model FrontKPI where
   modelInfo = mkModelInfo FrontKPI frontIdent
   modelView = \case
     "" -> Just $ modifyView (defaultView) [invisible frontIdent]
+    _  -> Nothing
+
+
+data OrderKPI = OrderKPI
+  { orderIdent    :: PK Int OrderKPI "KPI пользователя"
+  , currentCase   :: F (IdentI Case) "currentCase" "Номер кейса"
+
+  , ordersCount   :: F Int      "ordersCount"   "Заказ услуги"
+  , ordersAvgTime :: F DiffTime "ordersAvgTime" "Среднее время"
+
+  , tellMeMoreCount   :: F Int "tellMeMoreCount" "Требуется доп. информация"
+  , tellMeMoreAvgTime :: F DiffTime "tellMeMoreAvgTime" "Среднее время"
+
+  , callMeMaybeCount   :: F Int "callMeMaybeCount" "Через мобильное приложение"
+  , callMeMaybeAvtTime :: F DiffTime "callMeMaybeAvtTime" "Среднее время"
+
+  , totalOrderCount
+      :: F Int "totalCount"  "Итого: Выполненных действий"
+  , totalOrderAvgTime
+      :: F DiffTime "totalAvgTime" "Итого: Среднее время обработки"
+
+  , orderUtil :: F Int "util" "Утилизация (Back)"
+  } deriving Typeable
+
+instance Model OrderKPI where
+  type TableName OrderKPI = "OrderKPI"
+  type Parent    OrderKPI = BaseKPI
+  modelInfo = mkModelInfo OrderKPI orderIdent
+  modelView = \case
+    "" -> Just $ modifyView (defaultView) [invisible orderIdent]
+    _  -> Nothing
+
+
+data ControlKPI = ControlKPI
+  { controlIdent :: PK Int ControlKPI ""
+  , assignedControlCount
+    :: F Int "assignedControlCount" "Итого: Назначено \"Контроль услуги\""
+  , overdue
+    :: F Int "overdue" "Просрочено из назначенных"
+  , finishedControl
+    :: F Int "finishedControl ""Итого: Выполнено (Back-Office: Контроль услуг)"
+  , finishedOverdue
+    :: F Int "finishedOverdue" "Просрочено из выполненных"
+  , notFinished
+    :: F Int "notFinished" "Итого: Не выполнено \"Контроль услуги\""
+  , notFinishedOverdue
+    :: F Int "notFinishedOverdue" "Просрочено из не выполненных"
+  , totalAvg
+    :: F DiffTime "totalAvg" "Среднее время обработки \"Контроль услуги\""
+  , controlUtil
+    :: F Int "util" "Утилизация"
+  , overdueAvg
+    :: F DiffTime "overdueAvg" "Среднее время просроченности действия"
+  , actionsFrac
+    :: F Int "actionsFrac" "Отношение: Действия"
+  , avgTimeFrac
+    :: F DiffTime "avgTimeFrac" "Отношение: Время"
+  } deriving Typeable
+
+instance Model ControlKPI where
+  type TableName ControlKPI = "ControlKPI"
+  type Parent    ControlKPI = BaseKPI
+  modelInfo = mkModelInfo ControlKPI controlIdent
+  modelView = \case
+    "" -> Just $ modifyView (defaultView) [invisible controlIdent]
     _  -> Nothing
