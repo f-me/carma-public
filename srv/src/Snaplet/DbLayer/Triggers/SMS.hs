@@ -31,8 +31,8 @@ sendSMS actId tplId = do
             coalesce("City".label, ''),
             coalesce(cs.contact_phone1, ''),
             coalesce(act.assignedTo, ''),
-            coalesce(to_char(svc.times_expectedServiceStart, 'MM-DD HH24:MI'), ''),
-            coalesce(to_char(svc.times_factServiceStart, 'MM-DD HH24:MI'), ''),
+            coalesce(to_char(svc.times_expectedServiceStart, 'HH24:MI MM-DD-YYYY'), ''),
+            coalesce(to_char(svc.times_factServiceStart, 'HH24:MI MM-DD-YYYY'), ''),
             prog.smsSender, prog.smsProgram, prog.smsContact
           from
             casetbl cs left join "City" on ("City".value = cs.city),
