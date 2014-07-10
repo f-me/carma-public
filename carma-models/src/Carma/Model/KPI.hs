@@ -10,9 +10,8 @@ import           Data.Model.View
 import           Carma.Model.Usermeta (Usermeta)
 import           Carma.Model.Types (UserStateVal)
 
-
-data FrontKPI = FrontKPI
-  { ident        :: PK Int FrontKPI     "KPI пользователя"
+data BaseKPI = BaseKPI
+  { baseIdent    :: PK Int BaseKPI      "KPI пользователя"
   , user         :: F (IdentI Usermeta) "user"          "Оператор"
   , currentState :: F UserStateVal      "currentState"  "Текущий статус"
 
@@ -25,23 +24,36 @@ data FrontKPI = FrontKPI
                  :: F DiffTime "inServiceBreak" "Служебный перерыв"
   , allRest      :: F DiffTime "inRest"         "Всего в перерывах"
   , loggedIn     :: F DiffTime "inRest"         "Всего в системе"
+  } deriving Typeable
+
+instance Model BaseKPI where
+  type TableName BaseKPI = "no table"
+  modelInfo = mkModelInfo BaseKPI baseIdent
+  modelView = \case
+    "" -> Just $ modifyView (defaultView) [invisible baseIdent]
+    _  -> Nothing
+
+
+data FrontKPI = FrontKPI
+  { frontIdent   :: PK Int FrontKPI     "KPI пользователя"
 
   , infoCall     :: F DiffTime "infoCallTime"  "В разговоре: информационные"
-  , infoCount    :: F Int     "infoCallCount" "Количество: информационные"
+  , infoCount    :: F Int      "infoCallCount" "Количество: информационные"
 
   , caseCall     :: F DiffTime "infoCallTime"  "В разговоре: Обработка кейса"
-  , caseCount    :: F Int     "infoCallCount" "Количество: Обработка кейса"
+  , caseCount    :: F Int      "infoCallCount" "Количество: Обработка кейса"
 
   , newCall      :: F DiffTime "infoCallTime"  "В разговоре: Создание кейса"
-  , newCount     :: F Int     "infoCallCount" "Количество: Создание кейса"
+  , newCount     :: F Int      "infoCallCount" "Количество: Создание кейса"
 
-  , totalCall  :: F DiffTime   "totalCall"  "Итого: Время в разговоре"
-  , totalCount :: F Int       "totalCount" "Итого: Количество звонков"
-  } deriving (Typeable)
+  , totalCall    :: F DiffTime "totalCall"  "Итого: Время в разговоре"
+  , totalCount   :: F Int      "totalCount" "Итого: Количество звонков"
+  } deriving Typeable
 
 instance Model FrontKPI where
   type TableName FrontKPI = "FrontKPI"
-  modelInfo = mkModelInfo FrontKPI ident
+  type Parent    FrontKPI = BaseKPI
+  modelInfo = mkModelInfo FrontKPI frontIdent
   modelView = \case
-    "" -> Just $ modifyView (defaultView) [invisible ident]
+    "" -> Just $ modifyView (defaultView) [invisible frontIdent]
     _  -> Nothing

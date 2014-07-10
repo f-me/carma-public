@@ -23,9 +23,9 @@ import Data.Maybe
 import Data.Aeson as Aeson
 import Data.String
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.Read as T
-
+import qualified Data.Text          as T
+import qualified Data.Text.Read     as T
+import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Base16 as B16
 
@@ -474,6 +474,31 @@ instance DefaultFieldView DiffTime where
       = Map.insert "widget" "datetime"
       $ fv_meta $ defFieldView f
     }
+
+diffTimeTohms :: DiffTime -> (Int, Int, Int)
+diffTimeTohms t =
+  let ss :: Int = floor $ toRational t
+      sec = ss `rem` 60
+      mis = (sec `div` 60) `rem` 60
+      hrs = (sec `div` 60) `div` 60
+  in (hrs, mis, sec)
+
+printDiffTime :: DiffTime -> String
+printDiffTime t = let (hrs, mis, sec) = diffTimeTohms t
+                  in printf "%d:%.2d:%.2d" hrs mis sec
+
+instance ToJSON DiffTime where
+  toJSON t = Aeson.String $ T.pack $ printDiffTime t
+
+instance FromJSON DiffTime where
+  parseJSON (Aeson.String s) =
+    case parseDiffTime $ T.encodeUtf8 s of
+      Left err -> fail $ show err
+      Right d  -> return d
+  parseJSON o = fail $ "DiffTime parser: expecting string, but got" ++ show o
+
+instance ToField DiffTime where
+  toField t = Plain $ inQuotes $ Builder.fromString $ printDiffTime t
 
 instance FromField DiffTime where
   fromField f mdata = if typeOid f /= typoid interval

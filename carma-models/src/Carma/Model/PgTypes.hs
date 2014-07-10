@@ -8,6 +8,7 @@ import           Data.Maybe              ()
 import           Data.Text
 import           Data.Time               (Day, UTCTime)
 import           Data.Time.Calendar      ()
+import           Data.Time.Clock         (DiffTime)
 import           Data.Vector             (Vector)
 import           Data.Aeson              (Value)
 
@@ -100,3 +101,6 @@ instance PgTypeable  MapField            where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Checkbox where pgTypeOf _ = PgType "boolean" True
 instance PgTypeable  Coords where
   pgTypeOf _ = PgType "geometry(Point,4326)" True
+
+instance PgTypeable  DiffTime where
+  pgTypeOf _ = PgType "interval" True
