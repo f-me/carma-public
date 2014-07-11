@@ -50,7 +50,7 @@ dicts =
     {dictParent = Just $ Model.fieldName carMake, dictBounded = True}
   , setMeta "dictionaryStringify" (Aeson.Bool True) carMake
   , setMeta "dictionaryStringify" (Aeson.Bool True) carModel
-  , dict callTaker $ (dictOpt "users")
+  , setMeta "dictionaryLabel" (Aeson.String "realName") callTaker
   , setMeta "dictionaryParent"
     (Aeson.String $ Model.fieldName program) subprogram
   ]
