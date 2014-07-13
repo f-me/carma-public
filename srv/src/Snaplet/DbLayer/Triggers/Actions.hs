@@ -36,8 +36,9 @@ import Snaplet.DbLayer.Triggers.MailToGenser
 
 import Carma.HTTP (read1Reference)
 
-
 import           Data.Model
+import qualified Data.Model.Patch as Patch (Patch, get)
+import qualified Data.Model.Patch.Sql as Patch (read)
 
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.CaseStatus as CaseStatus
@@ -53,6 +54,7 @@ import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Action as Act
 import qualified Carma.Model.Call   as Call
+import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
 import Util as U
 import qualified Utils.Events  as Evt
@@ -140,6 +142,30 @@ actions
                 ]
               upd kazeId "actions" $ addToList actionId
             else return ()])
+          ,("wazzup", [\caseId val ->
+            case fvIdent val of
+              Nothing -> return ()
+              Just wi -> do
+                  res :: [Patch.Patch Wazzup.Wazzup] <-
+                         liftDb $ withPG $ \c -> Patch.read wi c
+                  case res of
+                    [] -> return ()
+                    (patch:_) ->
+                        let
+                            f acc = maybe "" identFv $
+                                    fromMaybe Nothing $
+                                    Patch.get patch acc
+                            s = f Wazzup.system
+                            p = f Wazzup.part
+                            c = f Wazzup.cause
+                            g = f Wazzup.suggestion
+                        in
+                          set caseId "diagnosis1" s >>
+                          set caseId "diagnosis2" p >>
+                          set caseId "diagnosis3" c >>
+                          set caseId "diagnosis4" g >>
+                          return ()
+            ])
           ,("services", [\caseId _ -> updateCaseStatus caseId])
           ,("partner", [\objId _ -> do
             mapM_ setSrvMCost =<< T.splitOn "," <$> get objId "services"
