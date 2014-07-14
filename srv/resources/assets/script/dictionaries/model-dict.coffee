@@ -33,9 +33,13 @@ define ['dictionaries/local-dict',], (ld) ->
       @bgetJSON "/_/#{@model}", (@items) =>
         if @parent and _.isFunction @kvm[@parent]
           updateChildren = (val) =>
-            fun = @fun
-            @updateSource(_.filter @items, (e) -> fun(e[parentKey]) == val)
-            @dictValueCache = null
+            @updateSource(_.filter @items, (e) => @fun(e[parentKey]) == val)
+            # we need to gracefully handle cases when parent is not yet
+            # initialised but child field should be rendered (see #2027)
+            @dictValueCache = _.reduce(
+              @items,
+              ((m,i) => m[@fun i[@key]] = i[@label]; m),
+              {})
             @dictLabelCache = null
           @kvm[@parent].subscribe updateChildren
           updateChildren(@kvm[@parent]())
