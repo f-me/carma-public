@@ -172,13 +172,6 @@ actions
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
           ])
-        ,("contract", Map.fromList
-          [("carPlateNum",  [\o -> set o "carPlateNum" . T.toUpper])
-          ,("carVin",       [\o -> set o "carVin" . T.toUpper])
-          ,("carCheckPeriod", [setContractValidUntilMilage])
-          ,("milageTO",       [setContractValidUntilMilage])
-          ,("contractValidFromDate", [setContractValidUntilDate])
-          ])
         ,("call", Map.fromList
           [("endDate", [\objId _ ->
              liftDb $ Evt.logLegacyCRUD Update objId Call.endDate])
@@ -1164,32 +1157,3 @@ setSrvMCost objId = do
     where
       -- readR   = lift . RC.read' redis
       srvName = head $ T.splitOn ":" objId
-
-setContractValidUntilMilage :: MonadTrigger m b =>
-                               ObjectId -> Text -> m b ()
-setContractValidUntilMilage obj _ = do
-  v      <- get obj "contractValidUntilMilage"
-  milage <- mbreadInt <$> get obj "milageTO"
-  p   <- get obj "program"
-  per <- mbreadInt <$> get (T.concat ["program:", p]) "carCheckPeriodDefault"
-  case (v, per, milage) of
-    ("", Just c, Just m) -> setMillage $ T.pack $ show $ c + m
-    _ -> return ()
-    where setMillage = set obj "contractValidUntilMilage"
-
-setContractValidUntilDate ::  MonadTrigger m b =>
-                              ObjectId -> Text -> m b ()
-setContractValidUntilDate obj val = do
-  let d = parseTime defaultTimeLocale "%s" $ T.unpack val :: Maybe UTCTime
-  v   <- get obj "contractValidUntilDate"
-  p   <- get obj "program"
-  due <- mbreadInt <$> get (T.concat ["program:", p]) "duedateDefault"
-  case (v, d, due) of
-    ("", Just d', Just due') -> setUntilDate $ addUTCTime (d2s due') d'
-    _ -> return ()
-  where
-    d2s d = (fromIntegral d) * 24 * 60 * 60
-    setUntilDate =
-      set obj "contractValidUntilDate" .
-      T.pack .
-      formatTime defaultTimeLocale "%s"
