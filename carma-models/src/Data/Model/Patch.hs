@@ -24,7 +24,9 @@ import GHC.TypeLits
 import Data.Model
 
 
-data Patch m = Patch { untypedPatch :: HashMap Text Dynamic }
+data Patch m
+  = Patch { untypedPatch :: HashMap Text Dynamic }
+  deriving Typeable
 
 get
   :: (Typeable t, SingI name)
