@@ -28,9 +28,6 @@ define [ "utils"
                               permEl: "user-permissions"
                               focusClass: "focusable"
                               manual_save: true
-        # clear all Roles when changed BusinessRole
-        kvm['businessRole'].subscribe (val) ->
-          if val then kvm['roles']([])
       )
 
       # Populate the table
