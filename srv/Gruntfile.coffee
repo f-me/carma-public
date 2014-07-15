@@ -1,10 +1,6 @@
 module.exports = (grunt) ->
 
-  grunt.loadNpmTasks('grunt-contrib-coffee')
-  grunt.loadNpmTasks('grunt-contrib-watch')
-  grunt.loadNpmTasks('grunt-contrib-copy')
-  grunt.loadNpmTasks('grunt-contrib-clean')
-  grunt.loadNpmTasks('grunt-contrib-jade')
+  require('load-grunt-tasks')(grunt)
 
   content = "resources/assets"
   pub     = "resources/static"
@@ -68,11 +64,15 @@ module.exports = (grunt) ->
         filter: (f) -> not /js\/3p/.test(f)
 
     watch:
-      scripts:
-        files: "#{content}/**/*.*"
-        tasks: 'build'
+      all:
+        files: "#{content}/**/*"
+        tasks: "build"
 
-  grunt.registerTask("build",   ['coffee', 'copy', 'jade'])
+  newerify = (ts) -> "newer:#{t}" for t in ts
+
+  grunt.registerTask("build", newerify ['coffee', 'copy', 'jade'])
   grunt.registerTask("rebuild", ['clean', 'build'])
+
+  grunt.registerTask("bwatch", ['build', 'watch'])
 
   grunt.registerTask("default", "rebuild");
