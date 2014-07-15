@@ -30,7 +30,7 @@ import           Data.Model.CRUD
 
 import           Carma.Model.Types (UserStateVal)
 import           Carma.Model.Role hiding (ident)
-import           Carma.Model.BusinessRole hiding (ident)
+import           Carma.Model.BusinessRole (BusinessRole)
 
 data Usermeta = Usermeta
   { ident    :: PK Int Usermeta          "Данные о пользователе"
@@ -54,7 +54,7 @@ data Usermeta = Usermeta
   , roles    :: F (Maybe (Vector (IdentT Role)))
                 "roles"
                 "Роли в системе"
-  , businessRole :: F (Maybe (IdentT BusinessRole))
+  , businessRole :: F (Maybe (IdentI BusinessRole))
                     "businessRole" "Бизнес-роль"
   , delayedState :: F (Maybe UserStateVal)
                  "delayedState"
@@ -86,10 +86,6 @@ instance Model Usermeta where
           [ setMeta "dictionaryStringify" (Aeson.Bool True)          roles
           , setMeta "dictionaryType"      (Aeson.String "ModelDict") roles
           , setMeta "bounded"             (Aeson.Bool True)          roles
-
-          ,setMeta "dictionaryStringify" (Aeson.Bool True)          businessRole
-          ,setMeta "dictionaryType"      (Aeson.String "ModelDict") businessRole
-          ,setMeta "bounded"             (Aeson.Bool True)          businessRole
 
           , setMeta "dictionaryStringify" (Aeson.Bool True)          programs
 
