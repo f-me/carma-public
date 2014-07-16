@@ -64,9 +64,21 @@ module.exports = (grunt) ->
         filter: (f) -> not /js\/3p/.test(f)
 
     watch:
-      all:
-        files: "#{content}/**/*"
-        tasks: "build"
+      coffee:
+        files: "#{scripts}/**/*.coffee"
+        tasks: "newer:coffee"
+      js:
+        files: "#{scripts}/**/*.js"
+        tasks: "newer:copy:js"
+      jade:
+        files: ["#{content}/template/**/*.jade"]
+        tasks: "newer:jade"
+      html:
+        files: ["#{content}/template/**/*.html"]
+        tasks: "newer:copy:template"
+      style:
+        files: ["#{content}/style/**/*"]
+        tasks: "newer:copy:css"
 
   newerify = (ts) -> "newer:#{t}" for t in ts
 
