@@ -306,7 +306,7 @@
                     name="{{ name }}"
                     {{# readonly }}disabled{{/ readonly }}
                     rows="7"
-                    data-bind="value: {{ name }},
+                    data-bind="value: {{ name }}Text,
                                valueUpdate: 'afterkeydown',
                                disabled: {{ name }}Disabled,
                                {{# meta.regexp }}
@@ -321,7 +321,7 @@
             class="field-template"
             id="statictext-field-template">
       <div class="control-group">
-          <span data-bind="text: {{ name }}" />
+          <span data-bind="text: {{ name }}Text" />
       </div>
     </script>
 
@@ -329,7 +329,9 @@
             class="field-template"
             id="text-field-template">
       <div class="control-group"
-           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.required }}
+           data-bind="css: { error: {{name}}Not }"
+           {{/ meta.required}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -351,7 +353,7 @@
                     style="text-transform:{{meta.transform}};"
                  {{/ meta.transform }}
                  {{# readonly }}readonly{{/ readonly }}
-                 data-bind="value: {{ name }},
+                 data-bind="value: {{ name }}Text,
                             {{# meta.koupdate }}
                             valueUpdate: '{{meta.koupdate}}',
                             {{/ meta.koupdate }}
