@@ -3,6 +3,7 @@ module Carma.Model.Service where
 import qualified Data.Aeson as Aeson
 
 import Data.Text
+import Data.Time.Clock
 import Data.Typeable
 
 import Data.Model
@@ -42,7 +43,7 @@ data Service = Service
                                  "Оплата РАМК"
   , payment_paidByClient         :: F (Maybe Text) "payment_paidByClient"
                                  "Оплата Клиент"
-  , times_expectedServiceStart   :: F (Maybe LegacyDatetime) "times_expectedServiceStart"
+  , times_expectedServiceStart   :: F (Maybe UTCTime) "times_expectedServiceStart"
                                  "Ожидаемое время начала оказания услуги"
   , times_expectedDispatch       :: F (Maybe LegacyDatetime) "times_expectedDispatch"
                                  "Время выезда партнёра"

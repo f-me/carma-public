@@ -1,4 +1,3 @@
-
 module Carma.Model.SmsTemplate where
 
 
@@ -38,3 +37,6 @@ complete = Ident 3
 
 create :: IdentI SmsTemplate
 create = Ident 13
+
+parguy :: IdentI SmsTemplate
+parguy = Ident 7
