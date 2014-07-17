@@ -432,7 +432,7 @@ mixin dict(nameMod, iconClass)
         i.icon.icon-search(
           data-bind='click: openPartnerSearch.bind($data, \'{{ name }}\')')
 
-// Modal dialog launch button 
+// Modal dialog launch button
 #modalDialogButton-field-template.field-template
   .control-group
     .controls.checkbutton
@@ -441,7 +441,7 @@ mixin dict(nameMod, iconClass)
           data-bind='disabled: {{ name }}Disabled, click: {{meta.click}}')
             | {{ meta.label}}
 
-// NOP here — IdentList references are rendered after model has loaded 
+// NOP here — IdentList references are rendered after model has loaded
 #IdentList-field-template.field-template
   .control-group
     .control-label
@@ -457,12 +457,12 @@ mixin dict(nameMod, iconClass)
         | {{ meta.reference-label }}
     | {{/ meta.model}}
 
-// File upload template 
+// File upload template
 #file-field-template.field-template(type='text/template')
   i.icon.icon-file
   a.file-name(data-bind='attr: { href: {{ name }}Url }, text: {{ name }}')
 
-// Modal dialog template 
+// Modal dialog template
 #modalDialog-field-template.field-template(type='text/template')
   .modal.hide.fade(id="{{ id }}-modal")
     .modal-header
@@ -500,7 +500,7 @@ mixin refCommon
         block
     .accordion-body.collapse.in(id="{{ refView }}-head")
       .accordion-inner(class="{{ refClass }}" id="{{ refView }}")
-        // Instance contents are rendered here 
+        // Instance contents are rendered here
 
 mixin simpleRefHdr(name, bindName)
   a.icon.icon-remove
@@ -558,3 +558,48 @@ mixin simpleRefHdr(name, bindName)
 #tarifOptions-reference-template.reference-template
   +refCommon
     +simpleRefHdr("Тарифная опция…", "nameOrDef")
+
+// Default case group view template
+#default-case-group-template.group-template
+  fieldset#default-case.complex-field.default-complex-field
+    p
+      b Кто звонил:
+      span(data-bind='text: safelyGet(\'contact_name\')')
+      span(data-bind='text: safelyGet(\'contact_phone1\')')
+    p(data-bind='visible: safelyGet(\'car_make\')')
+      b Автомобиль:
+      span(data-bind='text: safelyGet(\'car_makeLocal\')')
+      span(data-bind='text: safelyGet(\'car_modelLocal\')')
+      span(data-bind='text: safelyGet(\'car_plateNum\')')
+    p(data-bind='visible: safelyGet(\'caseAddress_address\')')
+      b Адрес кейса:
+      span(data-bind='text: safelyGet(\'caseAddress_address\')')
+      br
+      span(data-bind='text: safelyGet(\'caseAddress_comment\')')
+    p(data-bind='visible: safelyGet(\'cityLocal\')')
+      b Регион:
+      span(data-bind='text: safelyGet(\'region\')')
+    p(data-bind='visible: safelyGet(\'cityLocal\')')
+      b
+        | Расчётное значение ожидания эвакуатора в
+        | г.
+        span(data-bind='text: safelyGet(\'cityLocal\')')
+        | :
+      span#city-towage-average-time
+    #contract
+    .program
+      #case-comments
+        legend  Комментарий
+        textarea#case-comments-i(rows='2')
+        button#case-comments-b.btn
+          | Добавить комментарий
+      legend История звонков
+      table#call-searchtable.table.table-striped.table-bordered
+        thead
+          tr
+            th Дата
+            th Сотрудник РАМК
+            th Тип коммуникации
+            th Комментарий
+            th Результат действия
+        tbody

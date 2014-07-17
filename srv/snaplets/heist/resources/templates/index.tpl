@@ -361,65 +361,6 @@
       </button>
     </script>
 
-
-    <!-- Default case group view template -->
-    <script type="text/template"
-            class="group-template"
-            id="default-case-group-template">
-      <fieldset class="complex-field default-complex-field"
-                id="default-case">
-        <p>
-          <b>Кто звонил:</b>
-          <span data-bind="text: safelyGet('contact_name')"/>&nbsp;
-          <span data-bind="text: safelyGet('contact_phone1')"/>
-        </p>
-        <p data-bind="visible: safelyGet('car_make')">
-          <b>Автомобиль:</b>
-          <span data-bind="text: safelyGet('car_makeLocal')"/>&nbsp;
-          <span data-bind="text: safelyGet('car_modelLocal')"/>&nbsp;
-          <span data-bind="text: safelyGet('car_plateNum')"/>
-        </p>
-        <p data-bind="visible: safelyGet('caseAddress_address')">
-          <b>Адрес кейса:</b>
-          <span data-bind="text: safelyGet('caseAddress_address')"/><br/>
-          <span data-bind="text: safelyGet('caseAddress_comment')"/>
-        </p>
-        <p data-bind="visible: safelyGet('cityLocal')">
-          <b>Регион:</b>
-          <span data-bind="text: safelyGet('region')" />
-        </p>
-        <p data-bind="visible: safelyGet('cityLocal')">
-          <b>Расчётное значение ожидания эвакуатора в
-            г.&nbsp;<span data-bind="text: safelyGet('cityLocal')"/>:</b>
-          <span id="city-towage-average-time" />
-        </p>
-        <div id="contract"></div>
-        <div class="program">
-          <div id="case-comments">
-            <legend> Комментарий </legend>
-            <textarea  id="case-comments-i" rows="2"  />
-            <button    id="case-comments-b" class="btn">
-              Добавить комментарий
-            </button>
-          </div>
-          <legend>История звонков</legend>
-          <table id="call-searchtable" class="table table-striped table-bordered">
-            <thead>
-              <tr>
-                <th>Дата</th>
-                <th>Сотрудник РАМК</th>
-                <th>Тип коммуникации</th>
-                <th>Комментарий</th>
-                <th>Результат действия</th>
-              </tr>
-            </thead>
-            <tbody/>
-          </table>
-        </div>
-      </fieldset>
-    </script>
-
-
     <!-- navigation menu templates -->
     <script type="text/html" id="nav-li-template">
       <!-- ko if: $data -->
