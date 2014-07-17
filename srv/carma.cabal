@@ -59,6 +59,7 @@ Executable carma
     Snaplet.Auth.PGUsers,
     ModelTriggers,
     Trigger.Dsl,
+    Trigger.Dsl.SendWsMessage,
     Utils.HttpErrors,
     Utils.NotDbLayer,
     Utils.RKCCalc,

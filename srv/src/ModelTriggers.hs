@@ -18,6 +18,7 @@ import Data.Model as Model
 import Data.Model.Patch (Patch, untypedPatch)
 
 import Trigger.Dsl
+import qualified Carma.Model.Usermeta as Usermeta
 
 
 
@@ -25,13 +26,12 @@ runUpdateTriggers
   :: forall m . Model m
   => IdentI m -> Patch m -> AppHandler (TriggerRes m)
 runUpdateTriggers = runTriggers $ Map.unionsWith (++)
-  [
+  [trigOn Usermeta.delayedState $ \_ -> sendWsMessage Usermeta.delayedState
   ]
 
 --  - runReadTriggers
 --    - ephemeral fields
 --      - moves logic from carma-models
-
 
 
 -- Utility
@@ -44,10 +44,10 @@ type TriggersMap = Map (ModelName, FieldName) [Dynamic]
 
 -- | This is how we make new trigger
 trigOn
-  :: forall m name typ desc app
+  :: forall m name typ desc app res
   . (Model m, SingI name, Typeable typ)
   => (m -> Field typ (FOpt name desc app)) -- ^ watch this field
-  -> (typ -> Free (Dsl m) (TriggerRes m))  -- ^ run this if field changed
+  -> (typ -> Free (Dsl m) res)             -- ^ run this if field changed
   -> TriggersMap
 trigOn fld fun = Map.singleton (mName, fName) [toDyn fun']
   where
@@ -55,7 +55,7 @@ trigOn fld fun = Map.singleton (mName, fName) [toDyn fun']
     fName = Model.fieldName fld
     fun'  = getPatchField fld >>= \case
       Nothing  -> error "BUG! We just triggered on this field. It MUST be there."
-      Just val -> fun val
+      Just val -> fun val >> tOk
 
 
 -- | This is how we run triggers on a patch
