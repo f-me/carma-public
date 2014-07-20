@@ -101,6 +101,7 @@ data Service = Service
                                  "Прикрепленные файлы"
   -- , service_tarifOptions         :: F (Maybe Reference) "service_tarifOptions"
   --                                ""
+  , assignedTo                   :: F (Maybe Text) "assignedTo" ""
   }
   deriving Typeable
 
@@ -131,6 +132,7 @@ svcMod =
     ,setMeta "widget" "partner" contractor_partner
     ,invisible contractor_coords
     ,invisible parentId
+    ,invisible assignedTo
     , setType "text" payment_partnerCost
     , setType "text" payment_calculatedCost
     , setType "text" payment_limitedCost
