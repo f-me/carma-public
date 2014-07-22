@@ -109,8 +109,7 @@ actions
       ++[("action", actionActions)
         ,("case", Map.fromList
           [("caseStatus", [\kazeId st ->
-            if st == identFv CaseStatus.needInfo
-            then do
+            when (st == identFv CaseStatus.needInfo) $ do
               now <- dateNow Prelude.id
               due <- dateNow (+ (1*60))
               actionId <- new "action" $ Map.fromList
@@ -123,8 +122,7 @@ actions
                 ,("caseId", kazeId)
                 ,("closed", "0")
                 ]
-              upd kazeId "actions" $ addToList actionId
-            else return ()])
+              upd kazeId "actions" $ addToList actionId])
           ,("wazzup", [\caseId val ->
             case fvIdent val of
               Nothing -> return ()
@@ -159,15 +157,13 @@ actions
             when (T.length val > 5)
               $ set objId "car_plateNum" $ T.toUpper val])
           ,("contract", [\objId val ->
-                         if (not $ T.null val)
-                         then do
+                         unless (T.null val) $
                            fillFromContract val objId >>= \case
                              Loaded -> set objId "vinChecked" $
                                        identFv CCS.base
                              Expired -> set objId "vinChecked" $
                                         identFv CCS.vinExpired
                              None -> return ()
-                         else return ()
                         ])
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
@@ -191,7 +187,7 @@ updateBusinessRole objId val =  do
     " where id :: text = ?;") (Only val)
   case rs of
     [Only r] -> set objId "roles" r
-    _        -> error $ "unknown BusinessRole id: " ++ (show val)
+    _        -> error $ "unknown BusinessRole id: " ++ show val
 
 -- | Mapping between contract and case fields.
 contractToCase :: [(FA Contract.Contract, FA Case.Case)]
@@ -238,7 +234,7 @@ fillFromContract contract objId = do
       subProgramTable = PT $ tableName $
                         (modelInfo :: ModelInfo SubProgram.SubProgram)
   res <- liftDb $ PG.query
-         (fromString $ intercalate " "
+         (fromString $ unwords
           [ "SELECT"
           -- 2 * M arguments, where M is the length of contractToCase
           , intercalate "," $ map (const "?.?::text") contractToCase
@@ -277,7 +273,7 @@ fillFromContract contract objId = do
       let setIfEmpty oid nm val = get oid nm >>= \case
               "" -> set objId nm val
               _  -> return ()
-      zipWithM_ (maybe (return ()) . (setIfEmpty objId))
+      zipWithM_ (maybe (return ()) . setIfEmpty objId)
                 (map (fieldNameE . snd) $
                  contractToCase ++ [(undefined, FA Case.program)])
                 row
@@ -296,7 +292,7 @@ fillFromContract contract objId = do
 
 -- | This is called when service status is changed in some trigger.
 onRecursiveServiceStatusChange
-  :: MonadTrigger m b => ObjectId -> (IdentI SS.ServiceStatus) -> m b ()
+  :: MonadTrigger m b => ObjectId -> IdentI SS.ServiceStatus -> m b ()
 onRecursiveServiceStatusChange svcId val = do
   caseId  <- get svcId "parentId"
 
@@ -337,7 +333,7 @@ updateCaseStatus caseId =
                (map identFv [ SS.clientCanceled
                             , SS.canceled])) statuses
           -> CaseStatus.canceled
-        | any (== (identFv SS.creating)) statuses
+        | identFv SS.creating `elem` statuses
           -> CaseStatus.front
         | otherwise -> CaseStatus.back
 
@@ -593,7 +589,7 @@ serviceActions = Map.fromList
           (x:_) -> get x "falseCallPercent" >>= set objId "falseCallPercent"
     ])
   ,("times_expectedServiceStart",
-    [\objId val -> do
+    [\objId val ->
       case T.decimal val of
         Right (tm, _) -> do
           let h = 3600 :: Int -- seconds
@@ -641,7 +637,7 @@ actionActions = Map.fromList
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ,\objId _ ->
-      liftDb $ Evt.logLegacyCRUD Update (objId) Act.result
+      liftDb $ Evt.logLegacyCRUD Update objId Act.result
     ])
   ,("assignedTo",
     [\objId _val -> dateNow id >>= set objId "assignTime"
@@ -656,7 +652,7 @@ actionActions = Map.fromList
     ])
    ,("openTime",
      [\objId _ ->
-       liftDb $ Evt.logLegacyCRUD Update (objId) Act.openTime
+       liftDb $ Evt.logLegacyCRUD Update objId Act.openTime
      ])
    ]
 
@@ -1001,7 +997,7 @@ setService objId field val = do
 -- onRecursiveServiceStatusChange manually
 -- on each service.status change
 setServiceStatus :: MonadTrigger m b =>
-                    ObjectId -> (IdentI SS.ServiceStatus) -> m b ()
+                    ObjectId -> IdentI SS.ServiceStatus -> m b ()
 setServiceStatus actId val = do
   svcId <- get actId "parentId"
   set svcId "status" (identFv val)

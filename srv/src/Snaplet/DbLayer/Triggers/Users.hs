@@ -52,7 +52,7 @@ createUsermetaTrigger obj =
 -- the corresponding user and strip @password@ from commit. Must be
 -- used with @usermeta@ commits only.
 updateUsermetaTrigger :: ObjectId -> Object -> DbHandler b Object
-updateUsermetaTrigger objId obj = do
+updateUsermetaTrigger objId obj =
   case (M.lookup "login" obj,
         M.lookup "password" obj,
         M.lookup "isActive" obj) of

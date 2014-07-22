@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 module ApplicationInit (appInit) where
 
 import Control.Applicative

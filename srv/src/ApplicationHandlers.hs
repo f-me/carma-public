@@ -84,8 +84,7 @@ indexPage = ifTop $ do
                       Just s  -> T.concat [t, " [", s, "]"]
                       Nothing -> t
             return $ [X.TextNode r]
-        splices = do
-          "addLocalName" ## addLocalName
+        splices = "addLocalName" ## addLocalName
     renderWithSplices "index" splices
 
 
@@ -188,8 +187,8 @@ readHandler = do
 readManyHandler :: AppHandler ()
 readManyHandler = do
   Just model  <- getParamT "mdl" -- NB: this param can shadow query params
-  limit  <- fromMaybe 2000 . fmap readInt <$> getParam "limit"
-  offset <- fromMaybe    0 . fmap readInt <$> getParam "offset"
+  limit  <- maybe 2000 readInt <$> getParam "limit"
+  offset <- maybe    0 readInt <$> getParam "offset"
   params <- getQueryParams
   let queryFilter =
           [(T.decodeUtf8 k, T.decodeUtf8 v)
@@ -242,7 +241,7 @@ updateHandler = do
         let ident = readIdent objId :: IdentI m
         commit <- getJSONBody :: AppHandler (Patch m)
         s   <- PS.getPostgresState
-        res <- with db $ do
+        res <- with db $
           liftIO $ withResource (PS.pgPool s) (Patch.update ident commit)
         case res of
           0 -> return $ Left 404
@@ -431,7 +430,7 @@ towAvgTime = do
 
 
 getRegionByCity :: AppHandler ()
-getRegionByCity = do
+getRegionByCity =
   getParam "city" >>= \case
     Just city -> do
       res <- withPG pg_search $ \c -> query c

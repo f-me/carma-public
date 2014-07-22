@@ -86,7 +86,7 @@ applyDefaults model obj = do
     _ -> return obj
 
   obj'' <- if model `elem` services
-      then do
+      then
         return $ Map.union obj' $ Map.fromList
           [("times_expectedServiceStart",   T.pack $ show $ ct + h)
           ,("times_factServiceStart",       T.pack $ show $ ct + h)

@@ -201,7 +201,7 @@ getFile = do
   Just token <- getParam "token"
   Just file  <- getParam "file"
   let fn :: Text
-      fn = decodeUtf8 $ file
+      fn = decodeUtf8 file
 
   -- Pick a file to serve (we cannot serve the file from inside STM)
   ts <- gets tasks >>= (liftIO . readTVarIO)
@@ -209,7 +209,7 @@ getFile = do
     Just (Task (Finished (_, []))) -> return $ Left "Task produced no files"
     Just (Task (Finished (_, files))) ->
       -- Find if any of output files match the requested name
-      case L.find (\f -> (pack $ takeFileName f) == fn) files of
+      case L.find (\f -> pack (takeFileName f) == fn) files of
         Just f  -> return $ Right f
         Nothing -> return $ Left "Incorrect file name"
     Just (Task (Failed _)) -> return $ Left "Task produced no result"
@@ -258,7 +258,7 @@ cleanup = do
 
 lockToken :: Token -> Handler b (TaskManager b) ()
 lockToken token =
-  waitTokenAnd (flip modifyTVar' (HS.insert token)) token
+  waitTokenAnd (`modifyTVar'` HS.insert token) token
 
 
 releaseToken :: Token -> Handler b (TaskManager b) ()
@@ -291,5 +291,5 @@ taskManagerInit = makeSnaplet "task-manager" "TaskMgr" Nothing $ do
    addRoutes routes
    TaskManager
      <$> (liftIO $ newTVarIO M.empty)
-     <*> (liftIO $ (newTVarIO =<< newStdGen))
-     <*> (liftIO $ (newTVarIO HS.empty))
+     <*> (liftIO (newTVarIO =<< newStdGen))
+     <*> (liftIO $ newTVarIO HS.empty)

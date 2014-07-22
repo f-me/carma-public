@@ -19,13 +19,10 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
 import           System.Directory
-import           System.FilePath
 import           System.IO
 
 import           Snap
-import           Snap.Http.Server.Config as S
 import           Snap.Snaplet.Auth hiding (session)
-import           Snap.Util.FileServe (serveFileAs)
 
 import qualified Carma.Model.Role as Role
 
@@ -36,7 +33,7 @@ import           AppHandlers.Util
 
 import           Snaplet.Auth.PGUsers
 import qualified Snaplet.DbLayer.Types as DB
-import           Snaplet.FileUpload (tmp, doUpload, doUploadTmp, oneUpload)
+import           Snaplet.FileUpload (tmp, doUploadTmp, oneUpload)
 import           Snaplet.TaskManager as TM
 import           Util as U hiding (render)
 
@@ -72,8 +69,8 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       when (not $
             (elem (tr Role.partner) (userRoles u') &&
              elem sid userSpgms) ||
-            (elem (tr Role.vinAdmin) (userRoles u')) ||
-            (elem (tr Role.psaanalyst) (userRoles u'))) $
+            (tr Role.vinAdmin `elem` userRoles u') ||
+            (tr Role.psaanalyst `elem` userRoles u')) $
             handleError 403
 
       (inName, inPath) <- with fileUpload $ oneUpload =<< doUploadTmp
@@ -83,10 +80,10 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       (outPath, _) <- liftIO $ openTempFile tmpDir inName
 
       -- Use connection information from DbLayer
-      connInfo <- with db $ with DB.postgres $ getConnectInfo
+      connInfo <- with db $ with DB.postgres getConnectInfo
 
       -- Set current user as committer
-      uid <- maybe (error "No usermeta id") fst <$> (with db $ userMetaPG u)
+      uid <- maybe (error "No usermeta id") fst <$> with db (userMetaPG u)
 
       -- VIN import task handler
       with taskMgr $ TM.create $ do
@@ -97,11 +94,10 @@ vinImport = logExceptions "Bulk/vinImport" $ do
         removeFile inPath
         case res of
           Right (ImportResult (total, good, bad)) ->
-              do
-                if bad == 0
-                then removeFile outPath >>
-                     (return $ Right (Aeson.String $ T.pack $ show good, []))
-                else return $ Right (Aeson.toJSON stats, [outPath])
+              if bad == 0
+              then removeFile outPath >>
+                   (return $ Right (Aeson.String $ T.pack $ show good, []))
+              else return $ Right (Aeson.toJSON stats, [outPath])
                 where
                   stats :: Map String Int64
                   stats =  Map.fromList [ ("good", good)

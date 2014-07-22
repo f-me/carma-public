@@ -134,8 +134,8 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
      |]
   rows <- withPG pg_search $ \c -> query c actQ $
           (sqlFlagPair False   (== "1") mClosed)               :.
-          (sqlFlagPair ("")    id       mAssignee)             :.
-          (sqlFlagPair (In []) (In)     mRoles)                :.
+          (sqlFlagPair ""      id       mAssignee)             :.
+          (sqlFlagPair (In []) In       mRoles)                :.
           (sqlFlagPair 0       fst      (mFrom >>= B.readInt)) :.
           (sqlFlagPair 0       fst      (mTo >>= B.readInt))
   let fields
