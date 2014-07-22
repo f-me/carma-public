@@ -59,7 +59,6 @@ Executable carma
     Snaplet.Auth.PGUsers,
     Utils.HttpErrors,
     Utils.NotDbLayer,
-    Utils.RKCCalc,
     Util
 
   Build-depends:

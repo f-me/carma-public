@@ -58,7 +58,6 @@ import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
 import Util as U
 import qualified Utils.Events  as Evt
-import qualified Utils.RKCCalc as RKC
 
 
 services :: [ModelName]
@@ -93,11 +92,7 @@ add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (
 actions :: MonadTrigger m b => Map.Map ModelName (Map.Map FieldName [ObjectId -> FieldValue -> m b ()])
 -- actions :: TriggerMap a
 actions
-    = add "towage" "suburbanMilage" [\objId _ -> setSrvMCost objId]
-    $ add "tech"   "suburbanMilage" [\objId _ -> setSrvMCost objId]
-    $ add "rent"   "providedFor"    [\objId _ -> setSrvMCost objId]
-    $ add "hotel"  "providedFor"    [\objId _ -> setSrvMCost objId]
-    $ add "towage" "contractor_address" [
+    = add "towage" "contractor_address" [
       \objId val -> set objId "towerAddress_address" val
       ]
     $ add "towage" "towDealer_address" [
@@ -112,18 +107,6 @@ actions
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
       ++[("action", actionActions)
-        ,("cost_serviceTarifOption", Map.fromList
-          [("count",
-            [\objId val -> do
-                case mbreadDouble val of
-                  Nothing -> return ()
-                  Just v  -> do
-                    p <- get objId "price" >>= return . fromMaybe 0 . mbreadDouble
-                    set objId "cost" $ printBPrice $ v * p
-                    srvId <- get objId "parentId"
-                    set srvId "cost_counted" =<< srvCostCounted srvId
-            ])
-          ])
         ,("case", Map.fromList
           [("caseStatus", [\kazeId st ->
             if st == identFv CaseStatus.needInfo
@@ -167,12 +150,6 @@ actions
                           return ()
             ])
           ,("services", [\caseId _ -> updateCaseStatus caseId])
-          ,("partner", [\objId _ -> do
-            mapM_ setSrvMCost =<< T.splitOn "," <$> get objId "services"
-            ])
-          ,("program", [\objId _ -> do
-            mapM_ setSrvMCost =<< T.splitOn "," <$> get objId "services"
-            ])
           -- ,("contact_name",
           --   [\objId val -> set objId "contact_name" $ upCaseStr val])
           -- ,("contact_ownerName",
@@ -606,14 +583,6 @@ serviceActions = Map.fromList
             upd kazeId "actions" $ addToList actionId
           _ -> return ()]
   )
-  ,("contractor_partner",
-    [\objId _ -> do
-        opts <- get objId "cost_serviceTarifOptions"
-        let ids = T.splitOn "," opts
-        redisDel ids >> set objId "cost_serviceTarifOptions" ""
-    ])
-  ,("falseCall",
-    [\objId _ -> set objId "cost_counted" =<< srvCostCounted objId])
   ,("contractor_partnerId",
     [\objId val -> do
         srvs <- T.splitOn "," <$> get val "services"
@@ -623,23 +592,6 @@ serviceActions = Map.fromList
           []     -> set objId "falseCallPercent" ""
           (x:_) -> get x "falseCallPercent" >>= set objId "falseCallPercent"
     ])
-  ,("payType",
-    [\objId val -> do
-        case selectPrice val of
-          Nothing       -> set objId "cost_counted" ""
-          Just priceSel -> do
-            ids <- T.splitOn "," <$> get objId "cost_serviceTarifOptions"
-            forM_ ids $ \oid -> do
-              price <- get oid priceSel >>= return . fromMaybe 0 . mbreadDouble
-              set oid "price" $  printBPrice price
-              set oid "cost" =<< printBPrice <$> calcCost oid
-            srvCostCounted objId >>= set objId "cost_counted"
-        ])
-  ,("cost_serviceTarifOptions",
-    [\objId _ -> set objId "cost_counted" =<< srvCostCounted objId ])
-   -- RKC calc
-  ,("suburbanMilage", [\objId _ -> setSrvMCost objId])
-  ,("providedFor",    [\objId _ -> setSrvMCost objId])
   ,("times_expectedServiceStart",
     [\objId val -> do
       case T.decimal val of
@@ -1163,30 +1115,3 @@ setWeather objId city = do
         , "city"  .= city
         , "error" .= show err
         ]
-
-srvCostCounted :: MonadTrigger m b => ObjectId -> m b FieldValue
-srvCostCounted srvId = do
-  falseCall        <- get srvId "falseCall"
-  falseCallPercent <- get srvId "falseCallPercent" >>=
-                      return . fromMaybe 100 . mbreadDouble
-  tarifIds <- T.splitOn "," <$> get srvId "cost_serviceTarifOptions"
-  cost <- sum <$> mapM calcCost tarifIds
-  case falseCall of
-    "bill" -> return $ printBPrice $ cost * (falseCallPercent / 100)
-    _      -> return $ printBPrice cost
-
-calcCost :: MonadTrigger m b => ObjectId -> m b Double
-calcCost objId = do
-  p <- get objId "price" >>= return . fromMaybe 0 . mbreadDouble
-  c <- get objId "count" >>= return . fromMaybe 0 . mbreadDouble
-  return $ p * c
-
-setSrvMCost :: MonadTrigger m b => ObjectId -> m b ()
-setSrvMCost objId = do
-  obj    <- readObject objId
-  parent <- readObject $ fromJust $ Map.lookup "parentId" obj
-  dict   <- liftDb $ gets rkcDict
-  set objId "marginalCost" $ RKC.setSrvMCost srvName obj parent dict
-    where
-      -- readR   = lift . RC.read' redis
-      srvName = head $ T.splitOn ":" objId
