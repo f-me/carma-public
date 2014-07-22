@@ -132,3 +132,248 @@ days = 24 * hours
 
 -- | Action existentially quantified over Backoffice implementations.
 type ActionDef = forall impl. Backoffice impl => Action impl
+
+
+orderService :: ActionDef
+orderService =
+    Action
+    ActionType.orderService
+    Role.bo_order
+    (let
+        n = (1 * minutes) `since` now
+        t = (1 * days) `before` serviceField' times_expectedServiceStart
+     in
+       switch [ (Backoffice.not $ t > n, t) ] ((5 * minutes) `since` now)
+    )
+    [ (ActionResult.serviceOrdered,
+       sendSMS SMS.order *>
+       sendPSAMail *>
+       setServiceStatus SS.ordered *>
+       proceed [tellClient, addBill])
+    , (ActionResult.serviceOrderedSMS,
+       sendSMS SMS.order *>
+       sendPSAMail *>
+       setServiceStatus SS.ordered *>
+       proceed [checkStatus, addBill])
+    , (ActionResult.needPartner,
+       sendSMS SMS.parguy *>
+       setServiceStatus SS.needPartner *>
+       proceed [needPartner])
+    , (ActionResult.clientCanceledService,
+       sendSMS SMS.cancel *>
+       sendPSAMail *>
+       setServiceStatus SS.canceled *>
+       finish)
+    , (ActionResult.defer, defer)
+    ]
+
+
+orderServiceAnalyst :: ActionDef
+orderServiceAnalyst =
+    Action
+    ActionType.orderServiceAnalyst
+    Role.bo_secondary
+    (let
+        n = (1 * minutes) `since` now
+        t = (1 * days) `before` serviceField' times_expectedServiceStart
+     in
+       switch [ (Backoffice.not $ t > n, t) ] ((5 * minutes) `since` now)
+    )
+    [ (ActionResult.serviceOrderedAnalyst,
+       switch
+       [ ( (serviceField svcType == const ServiceType.rent) &&
+           caseField Case.program `oneOf` [Program.peugeot, Program.citroen]
+         , setServiceStatus SS.inProgress *>
+           proceed [checkEndOfService, addBill]
+         )
+       , ( serviceField svcType `oneOf`
+           [ ServiceType.taxi
+           , ServiceType.sober
+           , ServiceType.adjuster
+           , ServiceType.insurance
+           ]
+         , setServiceStatus SS.ordered *>
+           proceed [checkStatus, addBill])
+       ]
+       (setServiceStatus SS.ordered *> proceed [closeCase, addBill]))
+    , (ActionResult.defer, defer)
+    ]
+
+
+tellClient :: ActionDef
+tellClient =
+    Action
+    ActionType.tellClient
+    Role.bo_control
+    ((5 * minutes) `since` now)
+    [ (ActionResult.clientOk, proceed [checkStatus])
+    , (ActionResult.defer, defer)
+    ]
+
+
+checkStatus :: ActionDef
+checkStatus =
+    Action
+    ActionType.checkStatus
+    Role.bo_control
+    ((5 * minutes) `since` serviceField' times_expectedServiceStart)
+    [ (ActionResult.serviceInProgress, defer)
+    , (ActionResult.defer, defer)
+    ]
+
+
+needPartner :: ActionDef
+needPartner =
+    Action
+    ActionType.needPartner
+    Role.bo_order
+    ((15 * minutes) `since` now)
+    [ (ActionResult.partnerFound, proceed [orderService])
+    , (ActionResult.defer, defer)
+    ]
+
+checkEndOfService :: ActionDef
+checkEndOfService =
+    Action
+    ActionType.checkEndOfService
+    Role.bo_control
+    ((5 * minutes) `since` serviceField' times_expectedServiceEnd)
+    [ (ActionResult.serviceDone,
+       sendSMS SMS.cancel *>
+       sendDealerMail *>
+       setServiceStatus SS.ok *>
+       switch [( caseField Case.program `oneOf`
+                 [Program.peugeot, Program.citroen, Program.vw]
+               , proceed [closeCase, getDealerInfo])
+              ]
+              (proceed [closeCase]))
+    , (ActionResult.defer, defer)
+    ]
+
+
+closeCase :: ActionDef
+closeCase =
+    Action
+    ActionType.closeCase
+    Role.head
+    ((5 * minutes) `since` now)
+    [ (ActionResult.caseClosed, setServiceStatus SS.closed *> finish)
+    , (ActionResult.defer, defer)
+    ]
+
+
+getDealerInfo :: ActionDef
+getDealerInfo =
+    Action
+    ActionType.getDealerInfo
+    Role.bo_dealer
+    ((14 * days) `since` now)
+    [ (ActionResult.gotInfo, sendPSAMail *> finish)
+    , (ActionResult.defer, defer)
+    ]
+
+
+makerApproval :: ActionDef
+makerApproval =
+    Action
+    ActionType.makerApproval
+    Role.bo_control
+    ((1 * minutes) `since` now)
+    [ (ActionResult.makerApproved, proceed [orderService])
+    , (ActionResult.makerDeclined, proceed [tellMakerDeclined])
+    ]
+
+
+tellMakerDeclined :: ActionDef
+tellMakerDeclined =
+    Action
+    ActionType.tellMakerDeclined
+    Role.bo_control
+    ((5 * minutes) `since` now)
+    [ (ActionResult.clientNotified,
+       setServiceStatus SS.closed *> proceed [orderService])
+    ]
+
+
+addBill :: ActionDef
+addBill =
+    Action
+    ActionType.addBill
+    Role.bo_bill
+    ((7 * days) `since` now)
+    [ (ActionResult.billAttached, proceed [headCheck])
+    , (ActionResult.returnToBack, proceed [billmanNeedInfo])
+    , (ActionResult.defer, defer)
+    ]
+
+
+billmanNeedInfo :: ActionDef
+billmanNeedInfo =
+    Action
+    ActionType.billmanNeedInfo
+    Role.bo_qa
+    ((5 * minutes) `since` now)
+    [ (ActionResult.returnToBillman, proceed [addBill])
+    , (ActionResult.defer, defer)
+    ]
+
+
+headCheck :: ActionDef
+headCheck =
+    Action
+    ActionType.headCheck
+    Role.head
+    ((5 * minutes) `since` now)
+    [ (ActionResult.confirmedFinal, proceed [analystCheck])
+    , (ActionResult.confirmedWODirector, proceed [accountCheck])
+    , (ActionResult.confirmedHead, proceed [directorCheck])
+    , (ActionResult.returnToBillman, proceed [addBill])
+    , (ActionResult.defer, defer)
+    ]
+
+
+directorCheck :: ActionDef
+directorCheck =
+    Action
+    ActionType.directorCheck
+    Role.bo_director
+    ((5 * minutes) `since` now)
+    [ (ActionResult.directorToHead, proceed [headCheck])
+    , (ActionResult.confirmedDirector, proceed [accountCheck])
+    , (ActionResult.confirmedFinal, proceed [analystCheck])
+    , (ActionResult.defer, defer)
+    ]
+
+
+accountCheck :: ActionDef
+accountCheck =
+    Action
+    ActionType.accountCheck
+    Role.bo_account
+    ((5 * minutes) `since` now)
+    [ (ActionResult.accountToDirector, proceed [directorCheck])
+    , (ActionResult.confirmedAccount, proceed [analystCheck])
+    , (ActionResult.defer, defer)
+    ]
+
+
+analystCheck :: ActionDef
+analystCheck =
+    Action
+    ActionType.analystCheck
+    Role.bo_analyst
+    ((5 * minutes) `since` now)
+    [ (ActionResult.confirmedAnalyst, finish)
+    , (ActionResult.defer, defer)
+    ]
+
+
+complaintResolution :: ActionDef
+complaintResolution =
+    Action
+    ActionType.complaintResolution
+    Role.bo_qa
+    ((1 * minutes) `since` now)
+    [ (ActionResult.complaintManaged, finish)
+    , (ActionResult.defer, defer)
+    ]
