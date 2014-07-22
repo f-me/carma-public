@@ -4,6 +4,8 @@
 module ApplicationHandlers where
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
 
+import Backoffice
+
 import Data.Functor
 import Control.Monad
 import Control.Monad.Trans.Either
@@ -599,3 +601,7 @@ logResp act = logExceptions "handler/logResp" $ do
   r <- act
   syslogJSON Info "handler/logResp" ["response" .= r]
   writeJSON r
+
+
+serveBackofficeGraph :: AppHandler ()
+serveBackofficeGraph = writeBS $ T.encodeUtf8 backofficeGraph

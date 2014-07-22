@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 
-module Backoffice ()
+module Backoffice (backofficeGraph)
 
 where
 
@@ -143,7 +143,7 @@ orderService =
         n = (1 * minutes) `since` now
         t = (1 * days) `before` serviceField' times_expectedServiceStart
      in
-       switch [ (Backoffice.not $ t > n, t) ] ((5 * minutes) `since` now)
+       switch [(Backoffice.not $ t > n, t)] ((5 * minutes) `since` now)
     )
     [ (ActionResult.serviceOrdered,
        sendSMS SMS.order *>
@@ -177,7 +177,7 @@ orderServiceAnalyst =
         n = (1 * minutes) `since` now
         t = (1 * days) `before` serviceField' times_expectedServiceStart
      in
-       switch [ (Backoffice.not $ t > n, t) ] ((5 * minutes) `since` now)
+       switch [(Backoffice.not $ t > n, t)] ((5 * minutes) `since` now)
     )
     [ (ActionResult.serviceOrderedAnalyst,
        switch
@@ -377,3 +377,108 @@ complaintResolution =
     [ (ActionResult.complaintManaged, finish)
     , (ActionResult.defer, defer)
     ]
+
+
+-- | Graphviz embedding for DSL types.
+data GraphE (a :: Effects) t = GraphE Text
+
+
+-- We ignore actual values in Graphviz.
+instance Functor (GraphE Eff) where
+    fmap f a = GraphE $ toGraph a
+
+
+instance Applicative (GraphE Eff) where
+    pure a = GraphE ""
+    a <*> b = GraphE $ T.concat [toGraph a, ", ", toGraph b]
+
+
+-- | Graphviz interpreter.
+instance Backoffice GraphE where
+    now = GraphE "Текущее время"
+    since dt t =
+        GraphE $ T.concat [toGraph t, " + ", formatDiff dt]
+    before dt t =
+        GraphE $ T.concat [toGraph t, " - ", formatDiff dt]
+
+    caseField     = GraphE . fieldDesc
+    caseField'    = GraphE . fieldDesc
+    serviceField  = GraphE . fieldDesc
+    serviceField' = GraphE . fieldDesc
+
+    not v = GraphE $ T.concat ["НЕ выполнено условие ", toGraph v]
+    a > b = GraphE $ T.concat [toGraph a, " > ", toGraph b]
+    a == b = GraphE $ T.concat [toGraph a, " равно ", toGraph b]
+    a && b = GraphE $ T.concat ["(", toGraph a, ") и (", toGraph b, ")"]
+    a || b = GraphE $ T.concat ["(", toGraph a, ") или (", toGraph b, ")"]
+
+    switch conds ow =
+        GraphE $ T.concat
+        [ T.intercalate ",\n" $ Prelude.map f conds
+        , ",\nво всех других случаях — "
+        , toGraph ow
+        ]
+        where
+          f (cond, act) = T.concat ["Если ", toGraph cond, ", то ", toGraph act]
+
+    setServiceStatus i =
+        GraphE $ T.concat [fieldDesc Service.status, " ← ", T.pack $ show i]
+
+    sendSMS (Ident i) =
+        GraphE $ T.concat ["Отправить SMS по шаблону №", T.pack $ show i]
+
+    sendPSAMail = GraphE "Отправить письмо в PSA"
+
+    sendDealerMail = GraphE "Отправить письмо дилеру"
+
+    sendGenserMail = GraphE "Отправить письмо в Genser"
+
+
+-- | Graphviz evaluator for DSL.
+toGraph :: GraphE e v -> Text
+toGraph (GraphE t) = t
+
+
+-- | Show non-zero days, hours, minutes and seconds of a time
+-- difference.
+formatDiff :: NominalDiffTime -> Text
+formatDiff nd' =
+    let
+        nd :: Int
+        nd = round nd'
+        totalDays = nd `div` days
+        r1 = nd - totalDays * days
+        totalHours = r1 `div` hours
+        r2 = r1 - totalHours * hours
+        totalMins = r2 `div` minutes
+        totalSecs = (r2 - totalMins * minutes)
+        labels = zip
+                 [totalDays, totalHours, totalMins, totalSecs]
+                 ["д", "ч", "м", "с"]
+        nonZeros = filter (\(v, _) -> v /= 0) labels
+    in
+      T.pack $ concatMap (\(v, l) -> show v ++ l) nonZeros
+
+
+-- | WIP
+backofficeGraph :: Text
+backofficeGraph =
+    T.unlines $
+    map (toGraph .due) [ orderService
+                       , orderServiceAnalyst
+                       , tellClient
+                       , checkStatus
+                       , needPartner
+                       , checkEndOfService
+                       , closeCase
+                       , getDealerInfo
+                       , makerApproval
+                       , tellMakerDeclined
+                       , addBill
+                       , billmanNeedInfo
+                       , headCheck
+                       , directorCheck
+                       , accountCheck
+                       , analystCheck
+                       , complaintResolution
+                       ]

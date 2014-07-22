@@ -2,8 +2,6 @@
 
 module Application where
 
-import Backoffice
-
 import Control.Lens
 
 import Data.Pool
