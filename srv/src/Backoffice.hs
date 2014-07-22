@@ -1,16 +1,23 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 
-module Backoffice where
+module Backoffice ()
 
-import           Prelude hiding ((>), (==), (||), (&&))
+where
+
+import           Prelude hiding ((>), (==), (||), (&&), const)
 import qualified Prelude ((>), (==), (||), (&&))
 
-import           Data.Functor
-import           Data.Maybe
+import           Control.Applicative
+import           Data.Text as T hiding (concatMap, filter, map, zip)
 
 import           Data.Time.Clock
 
+import           Data.Model
 import           Data.Model.Types
 
 import           Carma.Model.ActionResult (ActionResult)
@@ -18,10 +25,12 @@ import qualified Carma.Model.ActionResult as ActionResult
 import           Carma.Model.ActionType (ActionType)
 import qualified Carma.Model.ActionType as ActionType
 import           Carma.Model.Case.Type as Case
+import           Carma.Model.Program as Program
 import           Carma.Model.Role as Role
 import           Carma.Model.Service as Service
 import           Carma.Model.ServiceStatus (ServiceStatus)
 import qualified Carma.Model.ServiceStatus as SS
+import           Carma.Model.ServiceType as ServiceType
 import           Carma.Model.SmsTemplate (SmsTemplate)
 import qualified Carma.Model.SmsTemplate as SMS
 
@@ -36,10 +45,9 @@ data Action impl =
            , targetRole :: IdentI Role
            -- ^ Default target role for newly created actions
            -- of this type.
-           , due        :: impl UTCTime
-           -- ^ Default due time for new actions. TODO: This should
-           -- live in a subset of impl to avoid side effects.
-           , outcomes   :: [(IdentI ActionResult, impl ActionOutcome)]
+           , due        :: impl Pure UTCTime
+           -- ^ Default due time for new actions.
+           , outcomes   :: [(IdentI ActionResult, impl Eff ActionOutcome)]
            -- ^ All action results (outward node edges).
            }
 
@@ -49,179 +57,78 @@ data Action impl =
 data ActionOutcome
 
 
--- | Back office language (tagless final embedding).
-class (Functor impl, Monad impl) => Backoffice impl where
+-- | Type tag for effect control. Pure and Eff are lifted to type
+-- level.
+data Effects = Pure | Eff
+
+
+-- | Back office language (typed tagless final representation).
+class (Applicative (impl Eff)) => Backoffice impl where
     -- Time helpers (see also 'minutes', 'hours', 'days').
-    now    :: impl UTCTime
-    since  :: NominalDiffTime -> impl UTCTime -> impl UTCTime
-    before :: NominalDiffTime -> impl UTCTime -> impl UTCTime
+    now    :: impl Pure UTCTime
+    since  :: NominalDiffTime -> impl Pure UTCTime -> impl Pure UTCTime
+    before :: NominalDiffTime -> impl Pure UTCTime -> impl Pure UTCTime
     before diff time = (-diff) `since` time
 
     -- Context access
-    caseField        :: (Case -> F t n d) -> impl t
-    serviceField     :: (Service -> F t n d) -> impl t
-    setServiceStatus :: IdentI ServiceStatus -> impl ()
+    caseField     :: FieldI t n d =>
+                     (Case -> F t n d) -> impl Pure t
+    caseField'    :: FieldI t n d =>
+                     (Case -> F (Maybe t) n d) -> impl Pure t
+    serviceField  :: FieldI t n d =>
+                     (Service -> F t n d) -> impl Pure t
+    serviceField' :: FieldI t n d =>
+                     (Service -> F (Maybe t) n d) -> impl Pure t
 
     -- Boolean combinators (lifted to impl because we usually use
     -- terms from impl as arguments)
-    not  :: impl Bool -> impl Bool
+    not  :: impl Pure Bool -> impl Pure Bool
     infix 4 >
-    (>)  :: Ord v => impl v -> impl v -> impl Bool
+    (>)  :: Ord v => impl Pure v -> impl Pure v -> impl Pure Bool
     infix 4 ==
-    (==) :: Eq v => impl v -> impl v -> impl Bool
+    (==) :: Eq v => impl Pure v -> impl Pure v -> impl Pure Bool
     infixr 3 &&
-    (&&) :: impl Bool -> impl Bool -> impl Bool
+    (&&) :: impl Pure Bool -> impl Pure Bool -> impl Pure Bool
     infixr 2 ||
-    (||) :: impl Bool -> impl Bool -> impl Bool
+    (||) :: impl Pure Bool -> impl Pure Bool -> impl Pure Bool
 
-    -- List elem replacement
-    oneOf :: impl v -> [v] -> impl Bool
+    const :: v -> impl Pure v
+
+    -- List membership predicate
+    oneOf :: impl Pure v -> [v] -> impl Pure Bool
 
     -- Conditions
-    switch :: [(impl Bool, impl v)] -> impl v
+    switch :: [(impl Pure Bool, impl e v)]
+           -- ^ List of condition/value pair. The first condition to
+           -- be true selects the value of the expression.
+           -> impl e v
+           -- ^ Default branch (used when no true conditions occured).
+           -> impl e v
 
-    pure :: v -> impl v
-    pure = return
+    -- Verbs with side effects
+    setServiceStatus :: IdentI ServiceStatus -> impl Eff ()
+    sendDealerMail :: impl Eff ()
+    sendGenserMail :: impl Eff ()
+    sendPSAMail    :: impl Eff ()
+    sendSMS        :: IdentI SmsTemplate -> impl Eff ()
 
-    sendDealerMail :: impl ()
-    sendGenserMail :: impl ()
-    sendPSAMail    :: impl ()
-
-    sendSMS :: IdentI SmsTemplate -> impl ()
-
-    finish  :: impl ActionOutcome
-    proceed :: [Action impl] -> impl ActionOutcome
-    defer   :: impl ActionOutcome
+    -- Control flow combinators
+    finish  :: impl Eff ActionOutcome
+    proceed :: [Action impl] -> impl Eff ActionOutcome
+    defer   :: impl Eff ActionOutcome
 
 
-minutes :: NominalDiffTime
+minutes :: Num i => i
 minutes = 60
 
 
-hours :: NominalDiffTime
+hours :: Num i => i
 hours = 60 * minutes
 
 
-days :: NominalDiffTime
+days :: Num i => i
 days = 24 * hours
 
 
 -- | Action existentially quantified over Backoffice implementations.
 type ActionDef = forall impl. Backoffice impl => Action impl
-
-
-order :: ActionDef
-order = Action
-        ActionType.orderService
-        Role.bo_order
-        (let
-            n = (1 * minutes) `since` now
-            s = fromJust <$> serviceField times_expectedServiceStart
-            t = (1 * days) `before` s
-         in
-           switch [ (t > n || t == n, n)
-                  , (n > t, t)
-                  ]
-        )
-        [ (ActionResult.serviceOrdered,
-           do
-             sendSMS SMS.order
-             sendPSAMail
-             setServiceStatus SS.ordered
-             proceed [tellClient, addBill])
-        , (ActionResult.serviceOrderedSMS,
-           do
-             sendSMS SMS.order
-             sendPSAMail
-             setServiceStatus SS.ordered
-             proceed [checkStatus, addBill])
-        , (ActionResult.needPartner,
-           do
-             sendSMS SMS.parguy
-             setServiceStatus SS.needPartner
-             proceed [needPartner])
-        , (ActionResult.clientCanceledService,
-           do
-             sendSMS SMS.cancel
-             sendPSAMail
-             setServiceStatus SS.canceled
-             finish)
-        , (ActionResult.defer, defer)
-        ]
-
-
-orderServiceAnalyst :: ActionDef
-orderServiceAnalyst = Action
-                      ActionType.orderServiceAnalyst
-                      Role.bo_secondary
-                      ((5 * minutes) `since` now)
-                      [ (ActionResult.defer, defer) ]
-
-
-tellClient :: ActionDef
-tellClient = Action
-             ActionType.tellClient
-             Role.bo_control
-             ((5 * minutes) `since` now)
-             [ (ActionResult.clientOk, proceed [checkStatus])
-             , (ActionResult.defer, defer)
-             ]
-
-
-checkStatus :: ActionDef
-checkStatus = Action
-              ActionType.checkStatus
-              Role.bo_control
-              ((5 * minutes) `since`
-               (fromJust <$> serviceField times_expectedServiceStart))
-              [ (ActionResult.serviceInProgress, defer)
-              , (ActionResult.defer, defer)
-              ]
-
-needPartner :: ActionDef
-needPartner = Action
-              ActionType.needPartner
-              Role.bo_order
-              ((15 * minutes) `since` now)
-              [ (ActionResult.partnerFound, proceed [order])
-              , (ActionResult.defer, defer)
-              ]
-
-
-addBill :: ActionDef
-addBill = Action
-          ActionType.addBill
-          Role.bo_bill
-          ((7 * days) `since` now)
-          [ (ActionResult.billAttached, proceed [headCheck])
-          , (ActionResult.returnToBack, proceed [billmanNeedInfo])
-          , (ActionResult.defer, defer)
-          ]
-
-
-headCheck :: ActionDef
-headCheck = Action
-            ActionType.headCheck
-            Role.head
-            ((5 * minutes) `since` now)
-            [ (ActionResult.defer, defer) ]
-
-
-billmanNeedInfo :: ActionDef
-billmanNeedInfo = Action
-                  ActionType.billmanNeedInfo
-                  Role.bo_qa
-                  ((5 * minutes) `since` now)
-                  [ (ActionResult.returnToBillman, proceed [addBill])
-                  , (ActionResult.defer, defer )]
-
-
--- graphedActions :: [Action Graph]
--- graphedActions = [ orderServiceAnalyst
---                  , tellClient
---                  , checkStatus
---                  , needPartner
---                  , addBill
---                  , headCheck
---                  , billmanNeedInfo
---                  ]
