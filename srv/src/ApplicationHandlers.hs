@@ -400,30 +400,6 @@ findOrCreateHandler = do
 serveUsersList :: AppHandler ()
 serveUsersList = with db usersListPG >>= writeJSON
 
-getSrvTarifOptions :: AppHandler ()
-getSrvTarifOptions = do
-  Just objId <- getParamT "id"
-  Just model <- getParamT "model"
-  srv     <- with db $ DB.read model objId
-  partner <- with db $ getObj $ T.splitOn ":" $
-             fromMaybe "" $ Map.lookup "contractor_partnerId" srv
-  -- partner services with same serviceName as current service model
-  partnerSrvs <- with db $ mapM getObj $ getIds "services" partner
-  case filter (mSrv model) partnerSrvs of
-    []     -> return ()
-    (x:_) -> do
-      tarifOptions <- with db $ mapM getObj $ getIds "tarifOptions" x
-      writeJSON $ map rebuilOpt tarifOptions
-  where
-      getIds f m = map (T.splitOn ":") $ T.splitOn "," $
-                   fromMaybe "" $ Map.lookup f m
-      getObj [m, objId] = Map.insert "id" objId <$> DB.read m objId
-      getObj _       = return $ Map.empty
-      mSrv m = (m ==) . fromMaybe "" . Map.lookup "serviceName"
-      rebuilOpt o = Aeson.object
-                    ["id"         .= (fromMaybe "" $ Map.lookup "id" o)
-                    ,"optionName" .= (fromMaybe "" $ Map.lookup "optionName" o)]
-
 -- | Calculate average tower arrival time (in seconds) for today,
 -- parametrized by city (a value from DealerCities dictionary).
 towAvgTimeQuery :: Query
