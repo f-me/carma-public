@@ -139,7 +139,9 @@ define [ "model/render"
 
     # special observable for text, so it won't be saved on update null -> ""
     # #1221
-    for f in fields when _.contains ["text", "textarea", "statictext"], f.type
+    # make this for all types, because it can't break anything, but will
+    # help if some non text field will require text template
+    for f in fields
       do (f) ->
         kvm["#{f.name}Text"] = ko.computed
           read: -> kvm[f.name]()
