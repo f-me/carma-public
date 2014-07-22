@@ -10,6 +10,7 @@ define ["dictionaries/local-dict", ], (ld) ->
       carMake = (@kvm.car_make || @kvm.carMake)
 
       updateSource = (v) =>
+        return if _.isEmpty v
         $.getJSON "/dealers/#{v}", (@dealers) =>
           @source = ({value: i.id, label: i.name} for i in @dealers)
           @dictValueCache = null
