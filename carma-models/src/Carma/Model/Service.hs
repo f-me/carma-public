@@ -14,14 +14,14 @@ import qualified Carma.Model.ClientRefusalReason as CRR
 import           Carma.Model.LegacyTypes
 import           Carma.Model.PaymentType         (PaymentType)
 import           Carma.Model.Search as S
-import           Carma.Model.ServiceNames        (ServiceNames)
 import           Carma.Model.ServiceStatus       (ServiceStatus)
+import           Carma.Model.ServiceType         (ServiceType)
 import           Carma.Model.Types (TInt)
 
 data Service = Service
   -- FIXME: ident can be null in pg
   { ident                        :: PK Int Service ""
-  , svcType                      :: F (Maybe (IdentT ServiceNames)) "type"
+  , svcType                      :: F (IdentI ServiceType) "type"
                                  "Услуга"
   , parentId                     :: F Text "parentId"
                                  ""
@@ -49,7 +49,7 @@ data Service = Service
                                  "Время выезда партнёра"
   , times_factServiceStart       :: F (Maybe LegacyDatetime) "times_factServiceStart"
                                  "Фактическое время начала оказания услуги"
-  , times_expectedServiceEnd     :: F (Maybe LegacyDatetime) "times_expectedServiceEnd"
+  , times_expectedServiceEnd     :: F (Maybe UTCTime) "times_expectedServiceEnd"
                                  "Ожидаемое время окончания оказания услуги"
   , times_factServiceEnd         :: F (Maybe LegacyDatetime) "times_factServiceEnd"
                                  "Фактическое время окончания оказания услуги"
