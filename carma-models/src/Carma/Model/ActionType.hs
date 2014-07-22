@@ -32,7 +32,7 @@ mkIdents [t|ActionType|]
  , ("getDealerInfo", 8)
  , ("cancelService", 9)
  , ("makerApproval", 10)
- , ("tellMakerDenied", 11)
+ , ("tellMakerDeclined", 11)
  , ("addBill", 12)
  , ("billmanNeedInfo", 13)
  , ("headCheck", 14)

@@ -38,6 +38,15 @@ mkIdents [t|ActionResult|]
  , ("billAttached", 16)
  , ("returnToBack", 17)
  , ("returnToBillman", 18)
+ , ("confirmedFinal", 19)
+ , ("confirmedWODirector", 20)
+ , ("confirmedHead", 21)
+ , ("directorToHead", 22)
+ , ("confirmedDirector", 23)
+ , ("accountToDirector", 24)
+ , ("confirmedAccount", 25)
+ , ("confirmedAnalyst", 26)
+ , ("complaintManaged", 27)
  ]
 
 instance Model ActionResult where
