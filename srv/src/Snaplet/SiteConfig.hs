@@ -44,7 +44,6 @@ import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
 import qualified Carma.Model.ServiceInfo as ServiceInfo
-import qualified Carma.Model.ServiceNames as ServiceNames
 
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
@@ -196,16 +195,12 @@ serveDictionaries = do
 
   serviceInfos <- withPG
     $ selectJSON (ServiceInfo.program :. ServiceInfo.service :. ServiceInfo.info)
-  serviceNames <- withPG
-    $ selectJSON (ServiceNames.ident :. ServiceNames.value :. ServiceNames.label :. ServiceNames.icon)
 
   Aeson.Object dictMap <- gets dictionaries
   -- Support legacy client interface for some dictionaries
   writeJSON $ Aeson.Object
     $ HM.insert "ServiceInfo"
       (Aeson.object [("entries", Aeson.Array $ V.fromList serviceInfos)])
-    $ HM.insert "ServiceNames"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList serviceNames)])
       dictMap
 
 
