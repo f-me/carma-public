@@ -319,6 +319,16 @@ table.dataTable tr.selected-row td.sorting_1 {
   border-radius: 4px;
 }
 
+.bs-docs-less-margins {
+  position: relative;
+  padding: 30px 19px 1px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+}
+
 .bs-docs-example-after {
   position: absolute;
   top: -1px;

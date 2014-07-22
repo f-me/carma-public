@@ -1,10 +1,23 @@
-mixin table(hdrs)
-  table.table.table-bordered
+mixin table
+  table#tbl.table.table-striped.table-bordered
     thead
-      - each h in hdrs
-        th= h
-    tbody
-      - each r in [1,2,3]
-        tr
-          - each h in hdrs
-            td= h
+      tr
+        th(data-bind='expandAll: $data')
+        // ko foreach: showFields.fields
+        th
+          button.btn.btn-link(
+            style='white-space: nowrap;'
+            data-bind='text: $root.showFields.labels[$data], sort: $data')
+        // /ko
+    tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
+      tr
+        td.expand-contoller(data-bind='expand: kvm')
+        // ko foreach: $root.showFields.fields 
+        td(data-bind='renderField: $parent')
+        // /ko
+      tr.hidden
+        td(data-bind='attr: {colspan: $root.showFields.fields().length + 1}')
+          dl(data-bind='eachNonEmpty: $root.showFields.hidden')
+            dt(data-bind='text: $root.showFields.labels[$data]')
+            dd(style='font-size: 16.25px; font-weight: 300; line-height: 1.25;'
+               data-bind='renderFields: $parent')
