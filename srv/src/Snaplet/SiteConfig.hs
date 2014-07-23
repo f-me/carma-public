@@ -72,7 +72,7 @@ serveModel = do
   case return (,) `ap` mcu `ap` model of
     Nothing -> finishWithError 401 ""
     Just (cu, m) ->
-      case view `elem` ["search", "portalSearch"] of
+      case view `elem` ["search", "portalSearch", "kpi"] of
         True  -> writeModel m
         False -> stripModel cu m >>= writeModel
 

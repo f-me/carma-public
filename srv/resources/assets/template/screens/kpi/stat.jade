@@ -5,19 +5,15 @@ include _table
     include _statNav
     .row-fluid#settings
       .span12.bs-docs-less-margins#kpi-list
-        .bs-docs-example-after
+        .bs-docs-example-after#settings-label
           i.icon-plus
           | Настройки
         #kpi-list-inner.in(style="height: 20em; overflow-x: auto;")
-          - var n = 0
-
-          ul.unstyled
-            while n < 50
-              - n++
-              li
-                label.checkbox
-                  input(type="checkbox")
-                  = "Показатель " + n
+          ul.unstyled(data-bind="foreach: $data")
+            li
+              label.checkbox
+                input(type="checkbox" data-bind="checked: show")
+                span(data-bind="text: label")
 
       .row-fluid
         .span4#date-range(style="margin-top: 10px")
@@ -44,5 +40,6 @@ include _table
               span.add-on
                 i.icon.icon-calendar
 
-    .row-fluid#results
+    .row-fluid#results(style="overflow-y: auto")
       +table
+
