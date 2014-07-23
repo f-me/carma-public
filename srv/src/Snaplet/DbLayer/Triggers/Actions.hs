@@ -142,7 +142,7 @@ actions
                 ]
               upd kazeId "actions" $ addToList actionId
             else return ()])
-          ,("wazzup", [\caseId val ->
+          ,("comment", [\caseId val ->
             case fvIdent val of
               Nothing -> return ()
               Just wi -> do
