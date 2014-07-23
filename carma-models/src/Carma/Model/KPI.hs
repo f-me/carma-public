@@ -56,8 +56,8 @@ instance Model FrontKPI where
   type Parent    FrontKPI = BaseKPI
   modelInfo = mkModelInfo FrontKPI frontIdent
   modelView = \case
-    "" -> Just $ modifyView (defaultView) [invisible frontIdent]
-    _  -> Nothing
+    "kpi" -> Just $ modifyView (defaultView) [invisible frontIdent]
+    _     -> Nothing
 
 
 data OrderKPI = OrderKPI
