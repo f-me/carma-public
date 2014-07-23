@@ -29,7 +29,6 @@ data CallerTypes = CallerTypes deriving Typeable
 data CallTypes   = CallTypes   deriving Typeable
 data Users = Users deriving Typeable
 data ActionNames = ActionNames deriving Typeable
-data DeferTimes  = DeferTimes deriving Typeable
 data ActionResults = ActionResults deriving Typeable
 
 data JsonAsText = JsonAsText Text deriving Typeable

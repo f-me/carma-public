@@ -23,6 +23,7 @@ library
     Carma.Model,
     Carma.Model.ActionType,
     Carma.Model.ActionResult,
+    Carma.Model.DeferTime,
     Carma.Model.Search,
     Carma.Model.Types,
     Carma.Model.PgTypes,
