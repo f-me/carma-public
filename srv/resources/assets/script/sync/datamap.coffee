@@ -15,10 +15,11 @@ define [], ->
   # How a Day is formatted on client
   guiDayFormat = "dd.MM.yyyy"
 
-  # How a UTCTime is formatted on client
-  guiUTCTimeFormat = "dd.MM.yyyy HH:mm"
+  # How a UTCTime is formatted on client (must match mask for datetime
+  # field templates)
+  guiUTCTimeFormat = "dd.MM.yyyy HH:mm:ss"
 
-  # Server format for Date (ISO 8601)
+  # Server format for Day (ISO 8601)
   serverDayFormat = "yyyy-MM-dd"
 
   # Parse a formatted string to ISO 8601 Date
