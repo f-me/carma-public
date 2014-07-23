@@ -207,6 +207,16 @@ searchCall	call	program	t	f
 searchCall	call	subprogram	t	f
 searchCall	call	wazzup	t	f
 searchCall	call	customerComment	t	f
+lovViewer	ActionType	label	t	f
+lovAdmin	ActionType	label	t	t
+lovViewer	ActionType	desc	t	f
+lovAdmin	ActionType	desc	t	t
+lovViewer	ActionType	priority	t	f
+lovAdmin	ActionType	priority	t	t
+lovViewer	ActionName	label	t	f
+lovAdmin	ActionName	label	t	t
+lovViewer	DeferTime	time	t	f
+lovAdmin	DeferTime	time	t	t
 lovViewer	CarMake	label	t	f
 lovAdmin	CarMake	label	t	t
 lovViewer	CarMake	value	t	f
