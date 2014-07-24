@@ -18,7 +18,7 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
           Program  : 'program'
           Wazzup   : 'comment'
           CarMake  : 'car_make'
-          CarMode  : 'car_model'
+          CarModel : 'car_model'
           ContractCheckStatus : 'vinChecked'
       postProc arg.service,
         time: ['createTime', 'times_factServiceStart', 'times_factServiceEnd']
@@ -62,6 +62,8 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
                , "PartnerRefusalReason"
                , "ContractCheckStatus"
                , "ServiceStatus"
+               , "CarMake"
+               , "CarModel"
                ]
     if _.contains newDicts, dict
       (new D.dicts['ModelDict'](dict: dict)).getLab(val)
