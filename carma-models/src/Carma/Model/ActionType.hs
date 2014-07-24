@@ -9,7 +9,7 @@ import Data.Model
 import Data.Model.View
 import Data.Model.TH
 
-import Carma.Model.Types()
+import Carma.Model.Types (TInt)
 import Carma.Model.PgTypes()
 
 data ActionType = ActionType
@@ -19,6 +19,8 @@ data ActionType = ActionType
     :: F Text "label" "Тип действия"
   , desc
     :: F Text "desc" "Описание"
+  , priority
+    :: F TInt "priority" "Приоритет"
   } deriving Typeable
 
 mkIdents [t|ActionType|]
@@ -47,5 +49,7 @@ instance Model ActionType where
   idents = Carma.Model.ActionType.idents
   modelInfo = mkModelInfo ActionType ident
   modelView = \case
-    "" -> Just defaultView
+    "" -> Just $ modifyView defaultView $
+          [ infoText "actpriority" priority
+          ]
     _  -> Nothing

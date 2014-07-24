@@ -13,7 +13,6 @@ import Carma.Model.Case (Case)
 import Carma.Model.DeferTime (time)
 import Carma.Model.LegacyTypes
 import Carma.Model.Role (Role)
-import Carma.Model.Types (TInt)
 import Carma.Model.Usermeta (Usermeta)
 
 data Action = Action
@@ -31,7 +30,6 @@ data Action = Action
   , closeTime   :: F (Maybe UTCTime)                "closeTime" ""
   , assignedTo  :: F (Maybe (IdentI Usermeta))      "assignedTo" "Ответственный"
   , targetGroup :: F (IdentI Role)                  "targetGroup" "Роль"
-  , priority    :: F TInt                           "priority" "Приоритет"
   , closed      :: F Bool                           "closed" "Закрыто"
   } deriving Typeable
 
@@ -41,5 +39,6 @@ instance Model Action where
   modelView = \case
     "" -> Just $ modifyView defaultView $
           [ deferBy `completeWith` time
+          , infoText "defertime" deferBy
           ]
     _  -> Nothing
