@@ -21,9 +21,9 @@ import           Data.Model
 import           Data.Model.Types
 
 import           Carma.Model.ActionResult (ActionResult)
-import qualified Carma.Model.ActionResult as ActionResult
+import qualified Carma.Model.ActionResult as AResult
 import           Carma.Model.ActionType (ActionType)
-import qualified Carma.Model.ActionType as ActionType
+import qualified Carma.Model.ActionType as AType
 import           Carma.Model.Case.Type as Case
 import           Carma.Model.Program as Program
 import           Carma.Model.Role as Role
@@ -114,7 +114,7 @@ class (Applicative (impl Eff)) => Backoffice impl where
 
     -- Control flow combinators
     finish  :: impl Eff ActionOutcome
-    proceed :: [Action impl] -> impl Eff ActionOutcome
+    proceed :: [IdentI ActionType] -> impl Eff ActionOutcome
     defer   :: impl Eff ActionOutcome
 
 
@@ -137,54 +137,54 @@ type ActionDef = forall impl. Backoffice impl => Action impl
 orderService :: ActionDef
 orderService =
     Action
-    ActionType.orderService
+    AType.orderService
     Role.bo_order
     (let
         n = (1 * minutes) `since` now
         t = (1 * days) `before` serviceField' times_expectedServiceStart
      in
-       switch [(Backoffice.not $ t > n, t)] ((5 * minutes) `since` now)
+       switch [(t > n, t)] ((5 * minutes) `since` now)
     )
-    [ (ActionResult.serviceOrdered,
+    [ (AResult.serviceOrdered,
        sendSMS SMS.order *>
        sendPSAMail *>
        setServiceStatus SS.ordered *>
-       proceed [tellClient, addBill])
-    , (ActionResult.serviceOrderedSMS,
+       proceed [AType.tellClient, AType.addBill])
+    , (AResult.serviceOrderedSMS,
        sendSMS SMS.order *>
        sendPSAMail *>
        setServiceStatus SS.ordered *>
-       proceed [checkStatus, addBill])
-    , (ActionResult.needPartner,
+       proceed [AType.checkStatus, AType.addBill])
+    , (AResult.needPartner,
        sendSMS SMS.parguy *>
        setServiceStatus SS.needPartner *>
-       proceed [needPartner])
-    , (ActionResult.clientCanceledService,
+       proceed [AType.needPartner])
+    , (AResult.clientCanceledService,
        sendSMS SMS.cancel *>
        sendPSAMail *>
        setServiceStatus SS.canceled *>
        finish)
-    , (ActionResult.defer, defer)
+    , (AResult.defer, defer)
     ]
 
 
 orderServiceAnalyst :: ActionDef
 orderServiceAnalyst =
     Action
-    ActionType.orderServiceAnalyst
+    AType.orderServiceAnalyst
     Role.bo_secondary
     (let
         n = (1 * minutes) `since` now
         t = (1 * days) `before` serviceField' times_expectedServiceStart
      in
-       switch [(Backoffice.not $ t > n, t)] ((5 * minutes) `since` now)
+       switch [(t > n, t)] ((5 * minutes) `since` now)
     )
-    [ (ActionResult.serviceOrderedAnalyst,
+    [ (AResult.serviceOrderedAnalyst,
        switch
        [ ( (serviceField svcType == const ServiceType.rent) &&
            caseField Case.program `oneOf` [Program.peugeot, Program.citroen]
          , setServiceStatus SS.inProgress *>
-           proceed [checkEndOfService, addBill]
+           proceed [AType.checkEndOfService, AType.addBill]
          )
        , ( serviceField svcType `oneOf`
            [ ServiceType.taxi
@@ -193,250 +193,260 @@ orderServiceAnalyst =
            , ServiceType.insurance
            ]
          , setServiceStatus SS.ordered *>
-           proceed [checkStatus, addBill])
+           proceed [AType.checkStatus, AType.addBill])
        ]
-       (setServiceStatus SS.ordered *> proceed [closeCase, addBill]))
-    , (ActionResult.defer, defer)
+       (setServiceStatus SS.ordered *>
+        proceed [AType.closeCase, AType.addBill]))
+    , (AResult.defer, defer)
     ]
 
 
 tellClient :: ActionDef
 tellClient =
     Action
-    ActionType.tellClient
+    AType.tellClient
     Role.bo_control
     ((5 * minutes) `since` now)
-    [ (ActionResult.clientOk, proceed [checkStatus])
-    , (ActionResult.defer, defer)
+    [ (AResult.clientOk, proceed [AType.checkStatus])
+    , (AResult.defer, defer)
     ]
 
 
 checkStatus :: ActionDef
 checkStatus =
     Action
-    ActionType.checkStatus
+    AType.checkStatus
     Role.bo_control
     ((5 * minutes) `since` serviceField' times_expectedServiceStart)
-    [ (ActionResult.serviceInProgress, defer)
-    , (ActionResult.defer, defer)
+    [ (AResult.serviceInProgress, defer)
+    , (AResult.defer, defer)
     ]
 
 
 needPartner :: ActionDef
 needPartner =
     Action
-    ActionType.needPartner
+    AType.needPartner
     Role.bo_order
     ((15 * minutes) `since` now)
-    [ (ActionResult.partnerFound, proceed [orderService])
-    , (ActionResult.defer, defer)
+    [ (AResult.partnerFound, proceed [AType.orderService])
+    , (AResult.defer, defer)
     ]
 
 checkEndOfService :: ActionDef
 checkEndOfService =
     Action
-    ActionType.checkEndOfService
+    AType.checkEndOfService
     Role.bo_control
     ((5 * minutes) `since` serviceField' times_expectedServiceEnd)
-    [ (ActionResult.serviceDone,
+    [ (AResult.serviceDone,
        sendSMS SMS.cancel *>
        sendDealerMail *>
        setServiceStatus SS.ok *>
        switch [( caseField Case.program `oneOf`
                  [Program.peugeot, Program.citroen, Program.vw]
-               , proceed [closeCase, getDealerInfo])
+               , proceed [AType.closeCase, AType.getDealerInfo])
               ]
-              (proceed [closeCase]))
-    , (ActionResult.defer, defer)
+              (proceed [AType.closeCase]))
+    , (AResult.defer, defer)
     ]
 
 
 closeCase :: ActionDef
 closeCase =
     Action
-    ActionType.closeCase
+    AType.closeCase
     Role.head
     ((5 * minutes) `since` now)
-    [ (ActionResult.caseClosed, setServiceStatus SS.closed *> finish)
-    , (ActionResult.defer, defer)
+    [ (AResult.caseClosed, setServiceStatus SS.closed *> finish)
+    , (AResult.defer, defer)
     ]
 
 
 getDealerInfo :: ActionDef
 getDealerInfo =
     Action
-    ActionType.getDealerInfo
+    AType.getDealerInfo
     Role.bo_dealer
     ((14 * days) `since` now)
-    [ (ActionResult.gotInfo, sendPSAMail *> finish)
-    , (ActionResult.defer, defer)
+    [ (AResult.gotInfo, sendPSAMail *> finish)
+    , (AResult.defer, defer)
     ]
 
 
 makerApproval :: ActionDef
 makerApproval =
     Action
-    ActionType.makerApproval
+    AType.makerApproval
     Role.bo_control
     ((1 * minutes) `since` now)
-    [ (ActionResult.makerApproved, proceed [orderService])
-    , (ActionResult.makerDeclined, proceed [tellMakerDeclined])
+    [ (AResult.makerApproved, proceed [AType.orderService])
+    , (AResult.makerDeclined, proceed [AType.tellMakerDeclined])
     ]
 
 
 tellMakerDeclined :: ActionDef
 tellMakerDeclined =
     Action
-    ActionType.tellMakerDeclined
+    AType.tellMakerDeclined
     Role.bo_control
     ((5 * minutes) `since` now)
-    [ (ActionResult.clientNotified,
-       setServiceStatus SS.closed *> proceed [orderService])
+    [ (AResult.clientNotified,
+       setServiceStatus SS.closed *> proceed [AType.orderService])
     ]
 
 
 addBill :: ActionDef
 addBill =
     Action
-    ActionType.addBill
+    AType.addBill
     Role.bo_bill
     ((7 * days) `since` now)
-    [ (ActionResult.billAttached, proceed [headCheck])
-    , (ActionResult.returnToBack, proceed [billmanNeedInfo])
-    , (ActionResult.defer, defer)
+    [ (AResult.billAttached, proceed [AType.headCheck])
+    , (AResult.returnToBack, proceed [AType.billmanNeedInfo])
+    , (AResult.defer, defer)
     ]
 
 
 billmanNeedInfo :: ActionDef
 billmanNeedInfo =
     Action
-    ActionType.billmanNeedInfo
+    AType.billmanNeedInfo
     Role.bo_qa
     ((5 * minutes) `since` now)
-    [ (ActionResult.returnToBillman, proceed [addBill])
-    , (ActionResult.defer, defer)
+    [ (AResult.returnToBillman, proceed [AType.addBill])
+    , (AResult.defer, defer)
     ]
 
 
 headCheck :: ActionDef
 headCheck =
     Action
-    ActionType.headCheck
+    AType.headCheck
     Role.head
     ((5 * minutes) `since` now)
-    [ (ActionResult.confirmedFinal, proceed [analystCheck])
-    , (ActionResult.confirmedWODirector, proceed [accountCheck])
-    , (ActionResult.confirmedHead, proceed [directorCheck])
-    , (ActionResult.returnToBillman, proceed [addBill])
-    , (ActionResult.defer, defer)
+    [ (AResult.confirmedFinal, proceed [AType.analystCheck])
+    , (AResult.confirmedWODirector, proceed [AType.accountCheck])
+    , (AResult.confirmedHead, proceed [AType.directorCheck])
+    , (AResult.returnToBillman, proceed [AType.addBill])
+    , (AResult.defer, defer)
     ]
 
 
 directorCheck :: ActionDef
 directorCheck =
     Action
-    ActionType.directorCheck
+    AType.directorCheck
     Role.bo_director
     ((5 * minutes) `since` now)
-    [ (ActionResult.directorToHead, proceed [headCheck])
-    , (ActionResult.confirmedDirector, proceed [accountCheck])
-    , (ActionResult.confirmedFinal, proceed [analystCheck])
-    , (ActionResult.defer, defer)
+    [ (AResult.directorToHead, proceed [AType.headCheck])
+    , (AResult.confirmedDirector, proceed [AType.accountCheck])
+    , (AResult.confirmedFinal, proceed [AType.analystCheck])
+    , (AResult.defer, defer)
     ]
 
 
 accountCheck :: ActionDef
 accountCheck =
     Action
-    ActionType.accountCheck
+    AType.accountCheck
     Role.bo_account
     ((5 * minutes) `since` now)
-    [ (ActionResult.accountToDirector, proceed [directorCheck])
-    , (ActionResult.confirmedAccount, proceed [analystCheck])
-    , (ActionResult.defer, defer)
+    [ (AResult.accountToDirector, proceed [AType.directorCheck])
+    , (AResult.confirmedAccount, proceed [AType.analystCheck])
+    , (AResult.defer, defer)
     ]
 
 
 analystCheck :: ActionDef
 analystCheck =
     Action
-    ActionType.analystCheck
+    AType.analystCheck
     Role.bo_analyst
     ((5 * minutes) `since` now)
-    [ (ActionResult.confirmedAnalyst, finish)
-    , (ActionResult.defer, defer)
+    [ (AResult.confirmedAnalyst, finish)
+    , (AResult.defer, defer)
     ]
 
 
 complaintResolution :: ActionDef
 complaintResolution =
     Action
-    ActionType.complaintResolution
+    AType.complaintResolution
     Role.bo_qa
     ((1 * minutes) `since` now)
-    [ (ActionResult.complaintManaged, finish)
-    , (ActionResult.defer, defer)
+    [ (AResult.complaintManaged, finish)
+    , (AResult.defer, defer)
     ]
 
 
--- | Graphviz embedding for DSL types.
-data GraphE (a :: Effects) t = GraphE Text
+-- | Text embedding for DSL types.
+--
+-- Functor and Applicative instances ignore actual values produced by
+-- terms.
+newtype TextE (a :: Effects) t = TextE Text
 
 
--- We ignore actual values in Graphviz.
-instance Functor (GraphE Eff) where
-    fmap f a = GraphE $ toGraph a
+instance Functor (TextE Eff) where
+    fmap _ a = TextE $ toText a
 
 
-instance Applicative (GraphE Eff) where
-    pure a = GraphE ""
-    a <*> b = GraphE $ T.concat [toGraph a, ", ", toGraph b]
+instance Applicative (TextE Eff) where
+    pure _ = TextE ""
+    a <*> b = TextE $ T.concat [toText a, ", ", toText b]
 
 
--- | Graphviz interpreter.
-instance Backoffice GraphE where
-    now = GraphE "Текущее время"
+instance Backoffice TextE where
+    now = TextE "Текущее время"
     since dt t =
-        GraphE $ T.concat [toGraph t, " + ", formatDiff dt]
+        TextE $ T.concat [toText t, " + ", formatDiff dt]
     before dt t =
-        GraphE $ T.concat [toGraph t, " - ", formatDiff dt]
+        TextE $ T.concat [toText t, " - ", formatDiff dt]
 
-    caseField     = GraphE . fieldDesc
-    caseField'    = GraphE . fieldDesc
-    serviceField  = GraphE . fieldDesc
-    serviceField' = GraphE . fieldDesc
+    caseField     = TextE . fieldDesc
+    caseField'    = TextE . fieldDesc
+    serviceField  = TextE . fieldDesc
+    serviceField' = TextE . fieldDesc
 
-    not v = GraphE $ T.concat ["НЕ выполнено условие ", toGraph v]
-    a > b = GraphE $ T.concat [toGraph a, " > ", toGraph b]
-    a == b = GraphE $ T.concat [toGraph a, " равно ", toGraph b]
-    a && b = GraphE $ T.concat ["(", toGraph a, ") и (", toGraph b, ")"]
-    a || b = GraphE $ T.concat ["(", toGraph a, ") или (", toGraph b, ")"]
+    not v = TextE $ T.concat ["НЕ выполнено условие ", toText v]
+    a > b = TextE $ T.concat [toText a, " > ", toText b]
+    a == b = TextE $ T.concat [toText a, " равно ", toText b]
+    a && b = TextE $ T.concat ["(", toText a, ") и (", toText b, ")"]
+    a || b = TextE $ T.concat ["(", toText a, ") или (", toText b, ")"]
 
     switch conds ow =
-        GraphE $ T.concat
-        [ T.intercalate ",\n" $ Prelude.map f conds
-        , ",\nво всех других случаях — "
-        , toGraph ow
+        TextE $ T.concat
+        [ T.intercalate "; " $ Prelude.map pp conds
+        , "; во всех других случаях — "
+        , toText ow
         ]
         where
-          f (cond, act) = T.concat ["Если ", toGraph cond, ", то ", toGraph act]
+          pp (cond, act) = T.concat ["Если ", toText cond, ", то ", toText act]
 
     setServiceStatus i =
-        GraphE $ T.concat [fieldDesc Service.status, " ← ", T.pack $ show i]
+        TextE $ T.concat [fieldDesc Service.status, " ← ", T.pack $ show i]
 
     sendSMS (Ident i) =
-        GraphE $ T.concat ["Отправить SMS по шаблону №", T.pack $ show i]
+        TextE $ T.concat ["Отправить SMS по шаблону №", T.pack $ show i]
 
-    sendPSAMail = GraphE "Отправить письмо в PSA"
+    sendPSAMail = TextE "Отправить письмо в PSA"
 
-    sendDealerMail = GraphE "Отправить письмо дилеру"
+    sendDealerMail = TextE "Отправить письмо дилеру"
 
-    sendGenserMail = GraphE "Отправить письмо в Genser"
+    sendGenserMail = TextE "Отправить письмо в Genser"
+
+    defer = TextE "Отложить действие"
+
+    finish = TextE "Завершить обработку"
+
+    proceed acts =
+        TextE $ T.concat (["Создать действия: "] ++
+                          (Prelude.map (toText . const) acts))
 
 
--- | Graphviz evaluator for DSL.
-toGraph :: GraphE e v -> Text
-toGraph (GraphE t) = t
+-- | Text evaluator for DSL.
+toText :: TextE e v -> Text
+toText (TextE t) = t
 
 
 -- | Show non-zero days, hours, minutes and seconds of a time
@@ -464,21 +474,37 @@ formatDiff nd' =
 backofficeGraph :: Text
 backofficeGraph =
     T.unlines $
-    map (toGraph .due) [ orderService
-                       , orderServiceAnalyst
-                       , tellClient
-                       , checkStatus
-                       , needPartner
-                       , checkEndOfService
-                       , closeCase
-                       , getDealerInfo
-                       , makerApproval
-                       , tellMakerDeclined
-                       , addBill
-                       , billmanNeedInfo
-                       , headCheck
-                       , directorCheck
-                       , accountCheck
-                       , analystCheck
-                       , complaintResolution
-                       ]
+    map (fmtAction) [ orderService
+                    , orderServiceAnalyst
+                    , tellClient
+                    , checkStatus
+                    , needPartner
+                    , checkEndOfService
+                    , closeCase
+                    , getDealerInfo
+                    , makerApproval
+                    , tellMakerDeclined
+                    , addBill
+                    , billmanNeedInfo
+                    , headCheck
+                    , directorCheck
+                    , accountCheck
+                    , analystCheck
+                    , complaintResolution
+                    ]
+    where
+      formatAType :: IdentI ActionType -> Text
+      formatAType = T.pack . show
+      formatAResult :: IdentI ActionResult -> Text
+      formatAResult = T.pack . show
+      indent :: [Text] -> [Text]
+      indent = map ("\t" `T.append`)
+      fmtAction a =
+          T.unlines $
+               [formatAType $ aType a] ++
+               (indent $
+                [ T.concat ["Время выполнения: ", toText $ due a]
+                , "Результаты:" ] ++
+                (indent $
+                 Prelude.map (\(r, _) -> formatAResult r) $ outcomes a)
+               )
