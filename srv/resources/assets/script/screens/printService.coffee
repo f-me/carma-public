@@ -19,6 +19,7 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
           Wazzup   : 'comment'
           CarMake  : 'car_make'
           CarModel : 'car_model'
+          Usermeta : 'callTaker'
           ContractCheckStatus : 'vinChecked'
       postProc arg.service,
         time: ['createTime', 'times_factServiceStart', 'times_factServiceEnd']
@@ -64,9 +65,12 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
                , "ServiceStatus"
                , "CarMake"
                , "CarModel"
+               , "Usermeta"
                ]
     if _.contains newDicts, dict
-      (new D.dicts['ModelDict'](dict: dict)).getLab(val)
+      label = if dict == 'Usermeta' then 'realName' else 'label'
+      opts  = dict: dict, meta: {dictionaryLabel: label}
+      (new D.dicts.ModelDict(opts)).getLab val
     else
       global.dictValueCache[dict][val] || ''
 
