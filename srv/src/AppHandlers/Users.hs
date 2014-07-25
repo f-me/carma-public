@@ -150,11 +150,11 @@ serveUserCake
     Just u'  -> do
       usr <- with db $ replaceMetaRolesFromPG u'
       let homePage = case [T.decodeUtf8 r | Snap.Role r <- userRoles usr] of
-            rs | (identFv Role.head)       `elem` rs -> "/#rkc"
+            rs | identFv Role.head       `elem` rs -> "/#rkc"
                | identFv Role.supervisor `elem` rs -> "/#supervisor"
-               | (identFv Role.call)       `elem` rs -> "/#call"
-               | (identFv Role.back)       `elem` rs -> "/#back"
-               | (identFv Role.parguy)     `elem` rs -> "/#partner"
+               | identFv Role.call       `elem` rs -> "/#call"
+               | identFv Role.back       `elem` rs -> "/#back"
+               | identFv Role.parguy     `elem` rs -> "/#partner"
                | otherwise                   -> ""
       writeJSON $ usr
         {userMeta = HM.insert "homepage" homePage $ userMeta usr
