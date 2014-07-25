@@ -1,11 +1,12 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 
-module Backoffice (backofficeGraph)
+module Backoffice (backofficeGraph, IBox(..))
 
 where
 
@@ -14,10 +15,10 @@ import qualified Prelude ((>), (==), (||), (&&), const)
 
 import           Data.Map (Map)
 import qualified Data.Map as Map
-import           Data.Maybe
 import           Data.Text as T hiding (concatMap, filter, map, zip)
 
 import           Data.Time.Clock
+import           Data.Typeable
 
 import           Data.Model
 import           Data.Model.Types
@@ -96,10 +97,13 @@ class Backoffice impl where
     infixr 2 ||
     (||) :: impl Pure Bool -> impl Pure Bool -> impl Pure Bool
 
-    const :: Show v => v -> impl Pure v
+    -- Lift idents for use with comparison combinators
+    const :: Model v =>
+             IdentI v -> impl Pure (IdentI v)
 
     -- List membership predicate
-    oneOf :: Show v => impl Pure v -> [v] -> impl Pure Bool
+    oneOf :: Model v =>
+             impl Pure (IdentI v) -> [IdentI v] -> impl Pure Bool
 
     -- Branching (preserves effect typing)
     switch :: [(impl Pure Bool, impl e v)]
@@ -393,14 +397,40 @@ textE :: Text -> TextE a t
 textE t = TextE (Prelude.const t)
 
 
+
+-- | Existential container for model idents.
+--
+-- Used to store idents for multiple models in a single lookup table.
+data IBox = forall m. Model m => IBox (IdentI m)
+
+
+instance Show IBox where
+    show (IBox i) = show i
+
+
+instance Eq IBox where
+    (IBox b1@(Ident i1)) == (IBox b2@(Ident i2)) =
+        (typeOf b1, i1) Prelude.== (typeOf b2, i2)
+
+
+instance Ord IBox where
+    compare (IBox b1@(Ident i1)) (IBox b2@(Ident i2)) =
+        (typeOf b1, i1) `compare` (typeOf b2, i2)
+
+
 -- | Context for text embedding (stores mappings from constants to
 -- text).
-data TCtx = TCtx { aTypes :: Map (IdentI ActionType) Text
+data TCtx = TCtx { identMap :: Map IBox Text
                  }
 
 
-pp :: (Ord t, Show t) => t -> Map t Text -> Text
-pp k env = fromMaybe (T.pack $ show k) (Map.lookup k env)
+-- | Convert an ident to text.
+lkp :: IBox -> Map IBox Text -> Text
+lkp k@(IBox k'@(Ident i)) env =
+    maybe
+    (T.pack $ show k')
+    (\t -> T.concat [t, "#", T.pack $ show i])
+    (Map.lookup k env)
 
 
 instance Backoffice TextE where
@@ -426,13 +456,13 @@ instance Backoffice TextE where
     a || b =
         TextE (\c -> T.concat ["(", toText c a, ") или (", toText c b, ")"])
 
-    const v = textE (T.pack $ show v)
+    const v = TextE (lkp (IBox v) . identMap)
 
     oneOf val set =
         TextE $ \c ->
             T.concat [ toText c val
                      , " ∈ {"
-                     , T.intercalate "," (map (T.pack . show) set)
+                     , T.intercalate "," (map (toText c . const) set)
                      , "}"
                      ]
 
@@ -448,10 +478,12 @@ instance Backoffice TextE where
                        ]
 
     setServiceStatus i =
-        textE $ T.concat [fieldDesc Service.status, " ← ", T.pack $ show i]
+        TextE $ \c ->
+            T.concat [fieldDesc Service.status, " ← ", (toText c . const) i]
 
     sendSMS (Ident i) =
-        textE $ T.concat ["Отправить SMS по шаблону №", T.pack $ show i]
+        TextE $ \c ->
+            T.concat ["Отправить SMS по шаблону №", T.pack $ show i]
 
     sendPSAMail = textE "Отправить письмо в PSA"
 
@@ -466,7 +498,7 @@ instance Backoffice TextE where
     proceed acts =
         TextE $ \c ->
             T.append "Создать действия: " $
-            T.intercalate ", " (Prelude.map (\a -> pp a (aTypes c)) acts)
+            T.intercalate ", " (map (toText c . const) acts)
 
     a *> b =
         TextE $ \c ->
@@ -500,10 +532,8 @@ formatDiff nd' =
 
 
 -- | WIP
-backofficeGraph :: Map (IdentI ActionType) Text
-                -> Map (IdentI ActionResult) Text
-                -> Text
-backofficeGraph aTypeMap aResMap =
+backofficeGraph :: Map IBox Text -> Text
+backofficeGraph iMap =
     T.unlines $
     map (fmtAction) [ orderService
                     , orderServiceAnalyst
@@ -524,22 +554,18 @@ backofficeGraph aTypeMap aResMap =
                     , complaintResolution
                     ]
     where
-      ctx = TCtx aTypeMap
-      formatAType :: IdentI ActionType -> Text
-      formatAType = flip pp aTypeMap
-      formatAResult :: IdentI ActionResult -> Text
-      formatAResult = T.pack . show
+      ctx = TCtx iMap
       indent :: [Text] -> [Text]
       indent = map ("\t" `T.append`)
       fmtAction a =
           T.unlines $
-               [formatAType $ aType a] ++
+               [lkp (IBox $ aType a) iMap] ++
                (indent $
                 [ T.concat ["Время выполнения: ", toText ctx $ due a]
                 , "Результаты:" ] ++
                 (indent $
                  Prelude.map (\(r, eff) ->
-                              T.concat [ formatAResult r
+                              T.concat [ lkp (IBox r) iMap
                                        , ": "
                                        , toText ctx eff
                                        ]) $

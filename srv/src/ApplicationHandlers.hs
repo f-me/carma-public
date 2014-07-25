@@ -72,6 +72,12 @@ import Utils.Events (logLogin, logLegacyCRUD)
 
 import qualified Carma.Model.Usermeta as Usermeta
 
+import Carma.Model.ActionResult (ActionResult)
+import Carma.Model.ActionType (ActionType)
+import Carma.Model.ServiceStatus (ServiceStatus)
+import Carma.Model.ServiceType (ServiceType)
+import Carma.Model.Program (Program)
+
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
@@ -603,11 +609,21 @@ logResp act = logExceptions "handler/logResp" $ do
   syslogJSON Info "handler/logResp" ["response" .= r]
   writeJSON r
 
+type IBoxMap m = Map.Map (IdentI m) Text
 
 serveBackofficeGraph :: AppHandler ()
 serveBackofficeGraph =
-  writeBS $ T.encodeUtf8 $ backofficeGraph iMap iMap
+  writeBS $ T.encodeUtf8 $ backofficeGraph boxedIMap
   where
     -- Simple ident mapping
     iMap :: Model m => Map.Map (IdentI m) Text
     iMap = Map.fromList $ map (\(k, v) -> (v, T.pack k)) $ HM.toList idents
+
+    boxMap :: Model m => Map.Map (IdentI m) Text -> Map.Map IBox Text
+    boxMap = Map.mapKeys IBox
+    boxedIMap = Map.unions [ boxMap (iMap :: IBoxMap ActionResult)
+                           , boxMap (iMap :: IBoxMap ActionType)
+                           , boxMap (iMap :: IBoxMap ServiceStatus)
+                           , boxMap (iMap :: IBoxMap ServiceType)
+                           , boxMap (iMap :: IBoxMap Program)
+                           ]
