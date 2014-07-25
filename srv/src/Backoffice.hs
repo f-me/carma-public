@@ -226,7 +226,7 @@ checkStatus =
     AType.checkStatus
     Role.bo_control
     ((5 * minutes) `since` serviceField' times_expectedServiceStart)
-    [ (AResult.serviceInProgress, defer)
+    [ (AResult.serviceInProgress, proceed [AType.checkEndOfService])
     , (AResult.defer, defer)
     ]
 
@@ -248,7 +248,7 @@ checkEndOfService =
     Role.bo_control
     ((5 * minutes) `since` serviceField' times_expectedServiceEnd)
     [ (AResult.serviceDone,
-       sendSMS SMS.cancel *>
+       sendSMS SMS.complete *>
        sendDealerMail *>
        setServiceStatus SS.ok *>
        switch [( caseField Case.program `oneOf`
@@ -276,7 +276,12 @@ getDealerInfo =
     Action
     AType.getDealerInfo
     Role.bo_dealer
-    ((14 * days) `since` now)
+    (switch
+       [ ( (serviceField svcType == const ServiceType.rent) &&
+           caseField Case.program `oneOf` [Program.peugeot, Program.citroen]
+         , (5 * minutes) `since` serviceField' times_factServiceEnd)
+       ]
+     ((14 * days) `since` serviceField' times_factServiceEnd))
     [ (AResult.gotInfo, sendPSAMail *> finish)
     , (AResult.defer, defer)
     ]
@@ -309,7 +314,7 @@ addBill =
     Action
     AType.addBill
     Role.bo_bill
-    ((7 * days) `since` now)
+    ((14 * days) `since` now)
     [ (AResult.billAttached, proceed [AType.headCheck])
     , (AResult.returnToBack, proceed [AType.billmanNeedInfo])
     , (AResult.defer, defer)
