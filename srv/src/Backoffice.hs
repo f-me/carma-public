@@ -10,8 +10,11 @@ module Backoffice (backofficeGraph)
 where
 
 import           Prelude hiding ((>), (==), (||), (&&), const)
-import qualified Prelude ((>), (==), (||), (&&))
+import qualified Prelude ((>), (==), (||), (&&), const)
 
+import           Data.Map (Map)
+import qualified Data.Map as Map
+import           Data.Maybe
 import           Data.Text as T hiding (concatMap, filter, map, zip)
 
 import           Data.Time.Clock
@@ -93,10 +96,10 @@ class Backoffice impl where
     infixr 2 ||
     (||) :: impl Pure Bool -> impl Pure Bool -> impl Pure Bool
 
-    const :: v -> impl Pure v
+    const :: Show v => v -> impl Pure v
 
     -- List membership predicate
-    oneOf :: impl Pure v -> [v] -> impl Pure Bool
+    oneOf :: Show v => impl Pure v -> [v] -> impl Pure Bool
 
     -- Branching (preserves effect typing)
     switch :: [(impl Pure Bool, impl e v)]
@@ -382,72 +385,97 @@ complaintResolution =
 
 
 -- | Text embedding for DSL types.
-newtype TextE (a :: Effects) t = TextE Text
+newtype TextE (a :: Effects) t = TextE (TCtx -> Text)
+
+
+-- | Simple TextE constructor which leaves the context unchanged.
+textE :: Text -> TextE a t
+textE t = TextE (Prelude.const t)
+
+
+-- | Context for text embedding (stores mappings from constants to
+-- text).
+data TCtx = TCtx { aTypes :: Map (IdentI ActionType) Text
+                 }
+
+
+pp :: (Ord t, Show t) => t -> Map t Text -> Text
+pp k env = fromMaybe (T.pack $ show k) (Map.lookup k env)
 
 
 instance Backoffice TextE where
-    now = TextE "Текущее время"
+    now = textE "Текущее время"
     since dt t =
-        TextE $ T.concat [toText t, " + ", formatDiff dt]
+        TextE (\c -> T.concat [toText c t, " + ", formatDiff dt])
     before dt t =
-        TextE $ T.concat [toText t, " - ", formatDiff dt]
+        TextE (\c -> T.concat [toText c t, " - ", formatDiff dt])
 
-    caseField     = TextE . fieldDesc
-    caseField'    = TextE . fieldDesc
-    serviceField  = TextE . fieldDesc
-    serviceField' = TextE . fieldDesc
+    caseField     = textE . fieldDesc
+    caseField'    = textE . fieldDesc
+    serviceField  = textE . fieldDesc
+    serviceField' = textE . fieldDesc
 
-    not v = TextE $ T.concat ["НЕ выполнено условие ", toText v]
-    a > b = TextE $ T.concat [toText a, " > ", toText b]
-    a == b = TextE $ T.concat [toText a, " равно ", toText b]
-    a && b = TextE $ T.concat ["(", toText a, ") и (", toText b, ")"]
-    a || b = TextE $ T.concat ["(", toText a, ") или (", toText b, ")"]
+    not v =
+        TextE (\c -> T.concat ["НЕ выполнено условие ", toText c v])
+    a > b =
+        TextE (\c -> T.concat [toText c a, " > ", toText c b])
+    a == b =
+        TextE (\c -> T.concat [toText c a, " равно ", toText c b])
+    a && b =
+        TextE (\c -> T.concat ["(", toText c a, ") и (", toText c b, ")"])
+    a || b =
+        TextE (\c -> T.concat ["(", toText c a, ") или (", toText c b, ")"])
 
-    const = TextE . T.pack . show
+    const v = textE (T.pack $ show v)
 
     oneOf val set =
-        TextE $
-        T.concat [toText val
-                 , " ∈ {"
-                 , T.intercalate "," (map (T.pack . show) set)
-                 , "}"
-                 ]
+        TextE $ \c ->
+            T.concat [ toText c val
+                     , " ∈ {"
+                     , T.intercalate "," (map (T.pack . show) set)
+                     , "}"
+                     ]
 
     switch conds ow =
-        TextE $ T.concat
-        [ T.intercalate "; " $ Prelude.map pp conds
-        , "; во всех других случаях — "
-        , toText ow
-        ]
-        where
-          pp (cond, act) = T.concat ["Если ", toText cond, ", то ", toText act]
+        TextE $ \c ->
+            let
+                ppc (cond, act) =
+                    T.concat ["Если ", toText c cond, ", то ", toText c act]
+            in
+              T.concat [ T.intercalate "; " $ Prelude.map ppc conds
+                       , "; во всех других случаях — "
+                       , toText c ow
+                       ]
 
     setServiceStatus i =
-        TextE $ T.concat [fieldDesc Service.status, " ← ", T.pack $ show i]
+        textE $ T.concat [fieldDesc Service.status, " ← ", T.pack $ show i]
 
     sendSMS (Ident i) =
-        TextE $ T.concat ["Отправить SMS по шаблону №", T.pack $ show i]
+        textE $ T.concat ["Отправить SMS по шаблону №", T.pack $ show i]
 
-    sendPSAMail = TextE "Отправить письмо в PSA"
+    sendPSAMail = textE "Отправить письмо в PSA"
 
-    sendDealerMail = TextE "Отправить письмо дилеру"
+    sendDealerMail = textE "Отправить письмо дилеру"
 
-    sendGenserMail = TextE "Отправить письмо в Genser"
+    sendGenserMail = textE "Отправить письмо в Genser"
 
-    defer = TextE "Отложить действие"
+    defer = textE "Отложить действие"
 
-    finish = TextE "Завершить обработку"
+    finish = textE "Завершить обработку"
 
     proceed acts =
-        TextE $ T.append "Создать действия: " $
-        T.intercalate "," (Prelude.map (toText . const) acts)
+        TextE $ \c ->
+            T.append "Создать действия: " $
+            T.intercalate ", " (Prelude.map (\a -> pp a (aTypes c)) acts)
 
-    a *> b = TextE $ T.concat [toText a, ", ", toText b]
+    a *> b =
+        TextE $ \c ->
+        T.concat [toText c a, ", ", toText c b]
 
 
 -- | Text evaluator for DSL.
-toText :: TextE e v -> Text
-toText (TextE t) = t
+toText :: TCtx -> TextE e v -> Text
+toText ctx (TextE f) = f ctx
 
 
 -- | Show non-zero days, hours, minutes and seconds of a time
@@ -472,8 +500,10 @@ formatDiff nd' =
 
 
 -- | WIP
-backofficeGraph :: Text
-backofficeGraph =
+backofficeGraph :: Map (IdentI ActionType) Text
+                -> Map (IdentI ActionResult) Text
+                -> Text
+backofficeGraph aTypeMap aResMap =
     T.unlines $
     map (fmtAction) [ orderService
                     , orderServiceAnalyst
@@ -494,8 +524,9 @@ backofficeGraph =
                     , complaintResolution
                     ]
     where
+      ctx = TCtx aTypeMap
       formatAType :: IdentI ActionType -> Text
-      formatAType = T.pack . show
+      formatAType = flip pp aTypeMap
       formatAResult :: IdentI ActionResult -> Text
       formatAResult = T.pack . show
       indent :: [Text] -> [Text]
@@ -504,13 +535,13 @@ backofficeGraph =
           T.unlines $
                [formatAType $ aType a] ++
                (indent $
-                [ T.concat ["Время выполнения: ", toText $ due a]
+                [ T.concat ["Время выполнения: ", toText ctx $ due a]
                 , "Результаты:" ] ++
                 (indent $
                  Prelude.map (\(r, eff) ->
                               T.concat [ formatAResult r
                                        , ": "
-                                       , toText eff
+                                       , toText ctx eff
                                        ]) $
                  outcomes a)
                )

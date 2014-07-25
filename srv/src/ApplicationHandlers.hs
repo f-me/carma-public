@@ -56,6 +56,7 @@ import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
 
 import Carma.Model
+import Data.Model (idents)
 import Data.Model.CRUD
 import qualified Data.Model.Patch.Sql as Patch
 import           Data.Model.Patch (Patch(..))
@@ -604,4 +605,9 @@ logResp act = logExceptions "handler/logResp" $ do
 
 
 serveBackofficeGraph :: AppHandler ()
-serveBackofficeGraph = writeBS $ T.encodeUtf8 backofficeGraph
+serveBackofficeGraph =
+  writeBS $ T.encodeUtf8 $ backofficeGraph iMap iMap
+  where
+    -- Simple ident mapping
+    iMap :: Model m => Map.Map (IdentI m) Text
+    iMap = Map.fromList $ map (\(k, v) -> (v, T.pack k)) $ HM.toList idents
