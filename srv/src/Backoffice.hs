@@ -12,7 +12,6 @@ where
 import           Prelude hiding ((>), (==), (||), (&&), const)
 import qualified Prelude ((>), (==), (||), (&&))
 
-import           Control.Applicative
 import           Data.Text as T hiding (concatMap, filter, map, zip)
 
 import           Data.Time.Clock
@@ -38,16 +37,18 @@ import qualified Carma.Model.SmsTemplate as SMS
 -- | A node in a directed graph of back office actions. Type parameter
 -- selects a back office implementation (which depends on how the
 -- graph is used).
-data Action impl =
+data Action =
     Action { aType      :: IdentI ActionType
            -- ^ Binds action definition to its name and
            -- description as stored in the database.
            , targetRole :: IdentI Role
            -- ^ Default target role for newly created actions
            -- of this type.
-           , due        :: impl Pure UTCTime
+           , due        :: forall impl. (Backoffice impl) =>
+                           impl Pure UTCTime
            -- ^ Default due time for new actions.
-           , outcomes   :: [(IdentI ActionResult, impl Eff ActionOutcome)]
+           , outcomes   :: forall impl. (Backoffice impl) =>
+                           [(IdentI ActionResult, impl Eff ActionOutcome)]
            -- ^ All action results (outward node edges).
            }
 
@@ -63,7 +64,7 @@ data Effects = Pure | Eff
 
 
 -- | Back office language (typed tagless final representation).
-class (Applicative (impl Eff)) => Backoffice impl where
+class Backoffice impl where
     -- Time helpers (see also 'minutes', 'hours', 'days').
     now    :: impl Pure UTCTime
     since  :: NominalDiffTime -> impl Pure UTCTime -> impl Pure UTCTime
@@ -97,7 +98,7 @@ class (Applicative (impl Eff)) => Backoffice impl where
     -- List membership predicate
     oneOf :: impl Pure v -> [v] -> impl Pure Bool
 
-    -- Conditions
+    -- Branching (preserves effect typing)
     switch :: [(impl Pure Bool, impl e v)]
            -- ^ List of condition/value pair. The first condition to
            -- be true selects the value of the expression.
@@ -117,6 +118,10 @@ class (Applicative (impl Eff)) => Backoffice impl where
     proceed :: [IdentI ActionType] -> impl Eff ActionOutcome
     defer   :: impl Eff ActionOutcome
 
+    -- Action chains
+    infixr *>
+    (*>) :: impl Eff () -> impl Eff ActionOutcome -> impl Eff ActionOutcome
+
 
 minutes :: Num i => i
 minutes = 60
@@ -130,11 +135,7 @@ days :: Num i => i
 days = 24 * hours
 
 
--- | Action existentially quantified over Backoffice implementations.
-type ActionDef = forall impl. Backoffice impl => Action impl
-
-
-orderService :: ActionDef
+orderService :: Action
 orderService =
     Action
     AType.orderService
@@ -168,7 +169,7 @@ orderService =
     ]
 
 
-orderServiceAnalyst :: ActionDef
+orderServiceAnalyst :: Action
 orderServiceAnalyst =
     Action
     AType.orderServiceAnalyst
@@ -201,7 +202,7 @@ orderServiceAnalyst =
     ]
 
 
-tellClient :: ActionDef
+tellClient :: Action
 tellClient =
     Action
     AType.tellClient
@@ -212,7 +213,7 @@ tellClient =
     ]
 
 
-checkStatus :: ActionDef
+checkStatus :: Action
 checkStatus =
     Action
     AType.checkStatus
@@ -223,7 +224,7 @@ checkStatus =
     ]
 
 
-needPartner :: ActionDef
+needPartner :: Action
 needPartner =
     Action
     AType.needPartner
@@ -233,7 +234,7 @@ needPartner =
     , (AResult.defer, defer)
     ]
 
-checkEndOfService :: ActionDef
+checkEndOfService :: Action
 checkEndOfService =
     Action
     AType.checkEndOfService
@@ -252,7 +253,7 @@ checkEndOfService =
     ]
 
 
-closeCase :: ActionDef
+closeCase :: Action
 closeCase =
     Action
     AType.closeCase
@@ -263,7 +264,7 @@ closeCase =
     ]
 
 
-getDealerInfo :: ActionDef
+getDealerInfo :: Action
 getDealerInfo =
     Action
     AType.getDealerInfo
@@ -274,7 +275,7 @@ getDealerInfo =
     ]
 
 
-makerApproval :: ActionDef
+makerApproval :: Action
 makerApproval =
     Action
     AType.makerApproval
@@ -285,7 +286,7 @@ makerApproval =
     ]
 
 
-tellMakerDeclined :: ActionDef
+tellMakerDeclined :: Action
 tellMakerDeclined =
     Action
     AType.tellMakerDeclined
@@ -296,7 +297,7 @@ tellMakerDeclined =
     ]
 
 
-addBill :: ActionDef
+addBill :: Action
 addBill =
     Action
     AType.addBill
@@ -308,7 +309,7 @@ addBill =
     ]
 
 
-billmanNeedInfo :: ActionDef
+billmanNeedInfo :: Action
 billmanNeedInfo =
     Action
     AType.billmanNeedInfo
@@ -319,7 +320,7 @@ billmanNeedInfo =
     ]
 
 
-headCheck :: ActionDef
+headCheck :: Action
 headCheck =
     Action
     AType.headCheck
@@ -333,7 +334,7 @@ headCheck =
     ]
 
 
-directorCheck :: ActionDef
+directorCheck :: Action
 directorCheck =
     Action
     AType.directorCheck
@@ -346,7 +347,7 @@ directorCheck =
     ]
 
 
-accountCheck :: ActionDef
+accountCheck :: Action
 accountCheck =
     Action
     AType.accountCheck
@@ -358,7 +359,7 @@ accountCheck =
     ]
 
 
-analystCheck :: ActionDef
+analystCheck :: Action
 analystCheck =
     Action
     AType.analystCheck
@@ -369,7 +370,7 @@ analystCheck =
     ]
 
 
-complaintResolution :: ActionDef
+complaintResolution :: Action
 complaintResolution =
     Action
     AType.complaintResolution
@@ -381,19 +382,7 @@ complaintResolution =
 
 
 -- | Text embedding for DSL types.
---
--- Functor and Applicative instances ignore actual values produced by
--- terms.
 newtype TextE (a :: Effects) t = TextE Text
-
-
-instance Functor (TextE Eff) where
-    fmap _ a = TextE $ toText a
-
-
-instance Applicative (TextE Eff) where
-    pure _ = TextE ""
-    a <*> b = TextE $ T.concat [toText a, ", ", toText b]
 
 
 instance Backoffice TextE where
@@ -413,6 +402,16 @@ instance Backoffice TextE where
     a == b = TextE $ T.concat [toText a, " равно ", toText b]
     a && b = TextE $ T.concat ["(", toText a, ") и (", toText b, ")"]
     a || b = TextE $ T.concat ["(", toText a, ") или (", toText b, ")"]
+
+    const = TextE . T.pack . show
+
+    oneOf val set =
+        TextE $
+        T.concat [toText val
+                 , " ∈ {"
+                 , T.intercalate "," (map (T.pack . show) set)
+                 , "}"
+                 ]
 
     switch conds ow =
         TextE $ T.concat
@@ -440,8 +439,10 @@ instance Backoffice TextE where
     finish = TextE "Завершить обработку"
 
     proceed acts =
-        TextE $ T.concat (["Создать действия: "] ++
-                          (Prelude.map (toText . const) acts))
+        TextE $ T.append "Создать действия: " $
+        T.intercalate "," (Prelude.map (toText . const) acts)
+
+    a *> b = TextE $ T.concat [toText a, ", ", toText b]
 
 
 -- | Text evaluator for DSL.
@@ -506,5 +507,10 @@ backofficeGraph =
                 [ T.concat ["Время выполнения: ", toText $ due a]
                 , "Результаты:" ] ++
                 (indent $
-                 Prelude.map (\(r, _) -> formatAResult r) $ outcomes a)
+                 Prelude.map (\(r, eff) ->
+                              T.concat [ formatAResult r
+                                       , ": "
+                                       , toText eff
+                                       ]) $
+                 outcomes a)
                )
