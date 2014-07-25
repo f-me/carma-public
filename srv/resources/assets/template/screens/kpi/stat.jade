@@ -9,7 +9,11 @@ include _table
           i.icon-plus
           | Настройки
         #kpi-list-inner.in(style="height: 20em; overflow-x: auto;")
-          ul.unstyled(data-bind="foreach: $data")
+          .control-group
+            .controls
+              input#kpi-list-filter.focusable(type="text"
+                data-bind="value: filter, valueUpdate: 'afterkeydown'")
+          ul.unstyled(data-bind="foreach: fields")
             li
               label.checkbox
                 input(type="checkbox" data-bind="checked: show")

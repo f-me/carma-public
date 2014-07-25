@@ -10,11 +10,19 @@ define ["text!tpl/screens/kpi/stat.html"
       else
         $("#kpi-list-inner").addClass("in").slideDown()
 
-    flds = _.map Model.fields, (f) ->
+    flds = ko.observable _.map Model.fields, (f) ->
       {name: f.name, label: f.meta.label, show: ko.observable(false)}
 
-    window.kkk = flds
-    ko.applyBindings(flds, $("#kpi-list-inner")[0])
-    ko.applyBindings({fields: flds, kvms: []}, $("#tbl")[0])
+    filter = ko.observable("")
+
+    filted = ko.computed ->
+      fs = ko.utils.unwrapObservable flds
+      return fs if _.isEmpty filter()
+      _.filter fs, (f) ->
+        f.label.toLowerCase().indexOf(filter().toLowerCase()) >= 0
+
+    ctx = {fields: filted, kvms: [], filter: filter}
+    ko.applyBindings(ctx, $("#kpi-list-inner")[0])
+    ko.applyBindings(ctx, $("#tbl")[0])
 
     $("##{opts.model}-screen").addClass("active")
