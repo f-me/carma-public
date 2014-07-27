@@ -305,7 +305,7 @@ tellMakerDeclined =
     Role.bo_control
     ((5 * minutes) `since` now)
     [ (AResult.clientNotified,
-       setServiceStatus SS.closed *> proceed [AType.orderService])
+       setServiceStatus SS.closed *> finish)
     ]
 
 
