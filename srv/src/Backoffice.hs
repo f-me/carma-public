@@ -6,7 +6,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 
-module Backoffice (backofficeGraph, IBox(..))
+module Backoffice (backofficeText, IBox(..))
 
 where
 
@@ -486,9 +486,9 @@ instance Backoffice TextE where
         TextE $ \c ->
             T.concat [fieldDesc Service.status, " ← ", (toText c . const) i]
 
-    sendSMS (Ident i) =
+    sendSMS i =
         TextE $ \c ->
-            T.concat ["Отправить SMS по шаблону №", T.pack $ show i]
+            T.concat ["Отправить SMS по шаблону ", (toText c . const) i]
 
     sendPSAMail = textE "Отправить письмо в PSA"
 
@@ -537,8 +537,8 @@ formatDiff nd' =
 
 
 -- | WIP
-backofficeGraph :: Map IBox Text -> Text
-backofficeGraph iMap =
+backofficeText :: Map IBox Text -> Text
+backofficeText iMap =
     T.unlines $
     map (fmtAction) [ orderService
                     , orderServiceAnalyst

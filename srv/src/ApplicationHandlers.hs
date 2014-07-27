@@ -76,6 +76,7 @@ import Carma.Model.ActionResult (ActionResult)
 import Carma.Model.ActionType (ActionType)
 import Carma.Model.ServiceStatus (ServiceStatus)
 import Carma.Model.ServiceType (ServiceType)
+import Carma.Model.SmsTemplate (SmsTemplate)
 import Carma.Model.Program (Program)
 
 
@@ -609,21 +610,23 @@ logResp act = logExceptions "handler/logResp" $ do
   syslogJSON Info "handler/logResp" ["response" .= r]
   writeJSON r
 
-type IBoxMap m = Map.Map (IdentI m) Text
+type IdentMap m = Map.Map (IdentI m) Text
 
-serveBackofficeGraph :: AppHandler ()
-serveBackofficeGraph =
-  writeBS $ T.encodeUtf8 $ backofficeGraph boxedIMap
+serveBackofficeText :: AppHandler ()
+serveBackofficeText =
+  writeBS $ T.encodeUtf8 $ backofficeText boxedIMap
   where
     -- Simple ident mapping
-    iMap :: Model m => Map.Map (IdentI m) Text
+    iMap :: Model m => IdentMap m
     iMap = Map.fromList $ map (\(k, v) -> (v, T.pack k)) $ HM.toList idents
 
-    boxMap :: Model m => Map.Map (IdentI m) Text -> Map.Map IBox Text
+    boxMap :: Model m => IdentMap m -> Map.Map IBox Text
     boxMap = Map.mapKeys IBox
-    boxedIMap = Map.unions [ boxMap (iMap :: IBoxMap ActionResult)
-                           , boxMap (iMap :: IBoxMap ActionType)
-                           , boxMap (iMap :: IBoxMap ServiceStatus)
-                           , boxMap (iMap :: IBoxMap ServiceType)
-                           , boxMap (iMap :: IBoxMap Program)
+    -- Combine mappings for multiple models into one
+    boxedIMap = Map.unions [ boxMap (iMap :: IdentMap ActionResult)
+                           , boxMap (iMap :: IdentMap ActionType)
+                           , boxMap (iMap :: IdentMap ServiceStatus)
+                           , boxMap (iMap :: IdentMap ServiceType)
+                           , boxMap (iMap :: IdentMap SmsTemplate)
+                           , boxMap (iMap :: IdentMap Program)
                            ]

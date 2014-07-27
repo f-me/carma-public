@@ -57,7 +57,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
          , ("/cancelsFor/:id",chkAuthLocal . method GET    $ getCancelsForCase)
-         , ("/backoffice/graph", method GET $ serveBackofficeGraph)
+         , ("/backoffice/spec.txt", method GET $ serveBackofficeText)
          , ("/backoffice/littleMoreActions",
             chkAuthLocal . method PUT $ littleMoreActionsHandler)
          , ("/backoffice/openAction/:actionid",
