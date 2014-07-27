@@ -79,7 +79,6 @@ import Carma.Model.ServiceType (ServiceType)
 import Carma.Model.SmsTemplate (SmsTemplate)
 import Carma.Model.Program (Program)
 
-
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
 indexPage :: AppHandler ()
@@ -610,23 +609,27 @@ logResp act = logExceptions "handler/logResp" $ do
   syslogJSON Info "handler/logResp" ["response" .= r]
   writeJSON r
 
+data BORepr = Txt | Dot
+
 type IdentMap m = Map.Map (IdentI m) Text
 
-serveBackofficeText :: AppHandler ()
-serveBackofficeText =
-  writeBS $ T.encodeUtf8 $ backofficeText boxedIMap
-  where
-    -- Simple ident mapping
-    iMap :: Model m => IdentMap m
-    iMap = Map.fromList $ map (\(k, v) -> (v, T.pack k)) $ HM.toList idents
+serveBackofficeSpec :: BORepr -> AppHandler ()
+serveBackofficeSpec repr =
+    case repr of
+      Txt -> writeText $ backofficeText boxedIMap
+      Dot -> writeLazyText $ backofficeDot boxedIMap
+    where
+      -- Simple ident mapping
+      iMap :: Model m => IdentMap m
+      iMap = Map.fromList $ map (\(k, v) -> (v, T.pack k)) $ HM.toList idents
 
-    boxMap :: Model m => IdentMap m -> Map.Map IBox Text
-    boxMap = Map.mapKeys IBox
-    -- Combine mappings for multiple models into one
-    boxedIMap = Map.unions [ boxMap (iMap :: IdentMap ActionResult)
-                           , boxMap (iMap :: IdentMap ActionType)
-                           , boxMap (iMap :: IdentMap ServiceStatus)
-                           , boxMap (iMap :: IdentMap ServiceType)
-                           , boxMap (iMap :: IdentMap SmsTemplate)
-                           , boxMap (iMap :: IdentMap Program)
-                           ]
+      boxMap :: Model m => IdentMap m -> Map.Map IBox Text
+      boxMap = Map.mapKeys IBox
+      -- Combine mappings for multiple models into one
+      boxedIMap = Map.unions [ boxMap (iMap :: IdentMap ActionResult)
+                             , boxMap (iMap :: IdentMap ActionType)
+                             , boxMap (iMap :: IdentMap ServiceStatus)
+                             , boxMap (iMap :: IdentMap ServiceType)
+                             , boxMap (iMap :: IdentMap SmsTemplate)
+                             , boxMap (iMap :: IdentMap Program)
+                             ]

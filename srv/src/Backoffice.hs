@@ -5,17 +5,29 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE TypeFamilies #-}
 
-module Backoffice (backofficeText, IBox(..))
-
+module Backoffice ( backofficeText
+                  , backofficeDot
+                  , IBox(..)
+                  )
 where
 
 import           Prelude hiding ((>), (==), (||), (&&), const)
 import qualified Prelude ((>), (==), (||), (&&), const)
 
+
+import           Data.Graph.Inductive.Graph
+import           Data.Graph.Inductive.PatriciaTree
+import           Data.GraphViz hiding (fromNode)
+import           Data.GraphViz.Printing (printIt)
+
+import Data.Maybe
 import           Data.Map (Map)
 import qualified Data.Map as Map
-import           Data.Text as T hiding (concatMap, filter, map, zip)
+import           Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as LT (Text)
 
 import           Data.Time.Clock
 import           Data.Typeable
@@ -515,6 +527,91 @@ toText :: TCtx -> TextE e v -> Text
 toText ctx (TextE f) = f ctx
 
 
+-- | GraphE (fgl graph edge) embedding doesn't fit well in tagless
+-- world. Thus we allow some terms to produce no result after
+-- interpreting, efficiently *tagging* results using Maybe
+-- constructors.
+data GraphE (e :: Effects) t = GraphE (GraphCtx -> Maybe [LEdge Text])
+
+
+data GraphCtx = GraphCtx { fromNode  :: Int
+                         , finalNode :: Int
+                         , result    :: IdentI ActionResult
+                         , edgeLabel :: [Text]
+                         -- ^ Extra text for edge label.
+                         , tCtx      :: TCtx
+                         }
+
+
+fullEdgeLabel :: GraphCtx -> Text
+fullEdgeLabel c =
+    T.concat [ resultLabel
+             , if null (edgeLabel c)
+               then ""
+               else ": " `T.append` (T.intercalate ", " $ edgeLabel c)
+             ]
+    where
+      resultLabel = lkp (IBox $ result c) $ identMap $ tCtx c
+
+
+nothing :: GraphE e t
+nothing = GraphE $ Prelude.const Nothing
+
+
+instance Backoffice GraphE where
+    now = nothing
+    since _ _ = nothing
+    before _ _ = nothing
+
+    caseField _ = nothing
+    caseField' _ = nothing
+    serviceField _ = nothing
+    serviceField' _ = nothing
+
+    not _ = nothing
+    _ > _ = nothing
+    _ == _ = nothing
+    _ && _ = nothing
+    _ || _ = nothing
+
+    switch conds ow =
+        GraphE $ \c ->
+            let
+                toGraph' = toGraph c{edgeLabel="?":(edgeLabel c)}
+            in
+              Just $ concat $ catMaybes $
+                       (toGraph' ow):(map (toGraph' . snd) conds)
+
+    oneOf _ _ = nothing
+
+    const _ = nothing
+    setServiceStatus _ = nothing
+    sendDealerMail = nothing
+    sendGenserMail = nothing
+    sendPSAMail = nothing
+    sendSMS _ = nothing
+
+    defer = GraphE (\c -> Just [(fromNode c, fromNode c, fullEdgeLabel c)])
+    finish = GraphE (\c -> Just [(fromNode c, finalNode c, fullEdgeLabel c)])
+    proceed acts =
+        GraphE $ \c ->
+            Just $ map (\(Ident ai) -> (fromNode c, ai, fullEdgeLabel c)) acts
+
+    -- Mark presence of left-hand effects
+    _ *> b = GraphE $ \c -> toGraph c{edgeLabel = "*":(edgeLabel c)} b
+
+
+toGraph :: GraphCtx -> GraphE e v -> Maybe [LEdge Text]
+toGraph ctx (GraphE f) = f ctx
+
+
+toEdge :: GraphCtx -> GraphE Eff ActionOutcome -> [LEdge Text]
+toEdge ctx g =
+    case toGraph ctx g of
+      Just v -> v
+      Nothing -> error "Interpreter broken"
+
+
 -- | Show non-zero days, hours, minutes and seconds of a time
 -- difference.
 formatDiff :: NominalDiffTime -> Text
@@ -536,28 +633,33 @@ formatDiff nd' =
       T.pack $ concatMap (\(v, l) -> show v ++ l) nonZeros
 
 
+backofficeActions :: [Action]
+backofficeActions =
+    [ orderService
+    , orderServiceAnalyst
+    , tellClient
+    , checkStatus
+    , needPartner
+    , checkEndOfService
+    , closeCase
+    , getDealerInfo
+    , makerApproval
+    , tellMakerDeclined
+    , addBill
+    , billmanNeedInfo
+    , headCheck
+    , directorCheck
+    , accountCheck
+    , analystCheck
+    , complaintResolution
+    ]
+
+
 -- | WIP
 backofficeText :: Map IBox Text -> Text
 backofficeText iMap =
     T.unlines $
-    map (fmtAction) [ orderService
-                    , orderServiceAnalyst
-                    , tellClient
-                    , checkStatus
-                    , needPartner
-                    , checkEndOfService
-                    , closeCase
-                    , getDealerInfo
-                    , makerApproval
-                    , tellMakerDeclined
-                    , addBill
-                    , billmanNeedInfo
-                    , headCheck
-                    , directorCheck
-                    , accountCheck
-                    , analystCheck
-                    , complaintResolution
-                    ]
+    map (fmtAction) backofficeActions
     where
       ctx = TCtx iMap
       indent :: [Text] -> [Text]
@@ -576,3 +678,30 @@ backofficeText iMap =
                                        ]) $
                  outcomes a)
                )
+
+
+backofficeGraph :: Map IBox Text -> Gr Text Text
+backofficeGraph iMap =
+    mkGraph ((finishId, "FINISH"):(map (mkNode) backofficeActions)) $
+    concat (map (mkEdges) backofficeActions)
+    where
+      finishId = 0
+      mkEdges :: Action -> [LEdge Text]
+      mkEdges a =
+          concat $
+          map (\(r, o) ->
+               toEdge (GraphCtx i finishId r [] (TCtx iMap)) o) $ outcomes a
+          where
+            Ident i = aType a
+      mkNode :: Action -> LNode Text
+      mkNode a = (i, lkp (IBox t) iMap)
+          where
+            t@(Ident i) = aType a
+
+
+backofficeDot :: Map IBox Text -> LT.Text
+backofficeDot iMap =
+    printIt $
+    graphToDot nonClusteredParams{ fmtNode = \(_, l) -> [toLabel l]
+                                 , fmtEdge = \(_, _, l) -> [toLabel l]} $
+    backofficeGraph iMap
