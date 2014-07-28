@@ -42,19 +42,12 @@ triggerUpdate model objId commit = do
   -- Seems that we don't need recursive triggers actually.
   -- There is only one place where they are used intentionally: filling car
   -- dimensions when car model is determined.
-  loop actions (1 :: Int) emptyContext $ Map.singleton fullId commit''
-  where
-    loop _ 0 cxt changes = return (futures cxt, unionMaps changes $ updates cxt)
-    loop cfg n cxt changes
-      | Map.null changes = return (futures cxt, updates cxt)
-      | otherwise = do
-        let tgs = matchingTriggers cfg changes
-        let cxt' = cxt
-              {updates = unionMaps changes $ updates cxt
-              ,current = Map.empty
-              }
-        cxt'' <- foldM (flip execStateT) cxt' $ map runTriggerMonad tgs
-        loop cfg (n-1) cxt'' $ current cxt''
+  do
+    let changes = Map.singleton fullId commit''
+    let tgs = matchingTriggers actions changes
+    let cxt = emptyContext{updates = changes}
+    cxt' <- foldM (flip execStateT) cxt $ map runTriggerMonad tgs
+    return (futures cxt', unionMaps (current cxt') $ updates cxt')
 
 
 unionMaps :: ObjectMap -> ObjectMap -> ObjectMap
