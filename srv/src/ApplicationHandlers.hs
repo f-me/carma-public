@@ -19,14 +19,12 @@ import qualified Data.Aeson as Aeson
 import Data.Aeson
 import Data.List
 import qualified Data.Map as Map
-import qualified Data.HashMap.Strict as HM
 import Data.String
 
 import Data.Maybe
 import Data.Ord (comparing)
 
 import Data.Time
-
 import System.Locale
 
 import Database.PostgreSQL.Simple ( Query, query_, query, execute)
@@ -50,8 +48,6 @@ import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (FileUpload(cfg))
-import           Snaplet.Messenger
-import           Snaplet.Messenger.Class
 
 import Carma.Model
 import Data.Model.CRUD
@@ -65,9 +61,9 @@ import Util as U hiding (render, withPG)
 import Utils.NotDbLayer (readIdent)
 
 import Carma.Model.Event (EventType(..))
-import Utils.Events (logLogin, logLegacyCRUD)
+import Utils.Events (logLogin)
 
-import qualified Carma.Model.Usermeta as Usermeta
+import ModelTriggers (runUpdateTriggers)
 
 
 ------------------------------------------------------------------------------
@@ -240,34 +236,27 @@ updateHandler = do
       updateModel _ = do
         let ident = readIdent objId :: IdentI m
         commit <- getJSONBody :: AppHandler (Patch m)
-        s   <- PS.getPostgresState
-        res <- with db $
-          liftIO $ withResource (PS.pgPool s) (Patch.update ident commit)
-        case res of
-          0 -> return $ Left 404
-          _ -> case model of
-                 -- TODO #1352 workaround for Contract triggers
-                 "Contract" ->
-                     do
-                       res' <- liftIO $
-                              withResource (PS.pgPool s) (Patch.read ident)
-                      -- TODO Cut out fields from original commit like
-                      -- DB.update does
-                       case (Aeson.decode $ Aeson.encode res') of
-                         Just [obj] -> return $ Right obj
-                         err        -> error $
-                                       "BUG in updateHandler: " ++ show err
-                 -- TODO: workaround to catch delayed state updates
-                 -- remove with new triggers
-                 "Usermeta" -> do
-                   let hmcommit = untypedPatch commit
-                       legacyId = T.concat ["Usermeta:", objId]
-                   when (HM.member "delayedState" hmcommit) $ void $ do
-                     withMsg $ sendMessage legacyId commit
-                     logLegacyCRUD Update legacyId Usermeta.delayedState
-                   return $ Right $ Aeson.object []
-
-                 _ -> return $ Right $ Aeson.object []
+        runUpdateTriggers  ident commit >>= \case
+          Left (code,_err) -> return $ Left code
+          Right commit' -> do
+            s   <- PS.getPostgresState
+            res <- with db $
+              liftIO $ withResource (PS.pgPool s) (Patch.update ident commit')
+            case res of
+              0 -> return $ Left 404
+              _ -> case model of
+                     -- TODO #1352 workaround for Contract triggers
+                     "Contract" ->
+                         do
+                           res' <- liftIO $
+                                  withResource (PS.pgPool s) (Patch.read ident)
+                          -- TODO Cut out fields from original commit like
+                          -- DB.update does
+                           case (Aeson.decode $ Aeson.encode res') of
+                             Just [obj] -> return $ Right obj
+                             err        -> error $
+                                           "BUG in updateHandler: " ++ show err
+                     _ -> return $ Right $ Aeson.object []
   -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch model updateModel of
     Just fn ->
