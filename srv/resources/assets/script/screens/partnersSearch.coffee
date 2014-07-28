@@ -114,6 +114,8 @@ define [ "utils"
         # Highlight partner blip on map
         $("#map").trigger "drawpartners"
         if kvm['field'].split('_')[0] == 'contractor'
+          # FIXME: There is no such field on partner anymore, but it's simplest
+          # hack to make it work
           partner['addrDeFacto'] utils.getKeyedJsonValue partner.addrs(), 'fact'
         else
           a = partner['addrDeFacto']
