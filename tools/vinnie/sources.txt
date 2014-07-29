@@ -1,2 +1,2 @@
 ./
-https://github.com/f-me/carma-models
+https://github.com/f-me/carma-models ghc-7.8

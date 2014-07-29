@@ -26,7 +26,7 @@ import           Control.Monad
 import           Control.Monad.Fix
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
-import qualified Control.Monad.Trans.Error as E
+import qualified Control.Monad.Trans.Except as E
 import           Control.Monad.Trans.Reader
 
 import qualified Data.ByteString as BS
@@ -71,7 +71,7 @@ getOption proj = lift $ lift $ asks proj
 
 
 throwError :: ImportError -> Import a
-throwError err = lift $ E.throwError err
+throwError err = lift $ E.throwE err
 
 
 -- | Main VIN file import action.

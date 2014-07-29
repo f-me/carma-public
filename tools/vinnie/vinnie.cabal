@@ -22,10 +22,10 @@ library
   build-depends:
     aeson             >= 0.6 && < 0.8,
     attoparsec-conduit== 1.1.*,
-    base              >= 4.6 && < 4.7,
+    base              >= 4.6 && < 4.8,
     blaze-builder     == 0.3.*,
     bytestring        == 0.10.*,
-    carma-models      >= 0.16 && < 0.21,
+    carma-models      >= 0.16 && < 0.22,
     conduit           >= 1.0 && < 1.2,
     conduit-extra     == 1.1.*,
     containers        == 0.5.*,
@@ -33,9 +33,9 @@ library
     lifted-base       == 0.2.*,
     monad-control     == 0.3.*,
     postgresql-simple == 0.3.*,
-    text              == 0.11.*,
+    text              >= 0.11 && < 1.2,
     text-icu          == 0.6.*,
-    transformers      == 0.3.*,
+    transformers      >= 0.3 && < 0.5,
     vector            == 0.10.*
 
   ghc-options:         -Wall -fno-warn-unused-do-bind
@@ -53,10 +53,10 @@ executable vinnie
   build-depends:
     aeson             >= 0.6 && < 0.8,
     attoparsec-conduit== 1.1.*,
-    base              >= 4.6 && < 4.7,
+    base              >= 4.6 && < 4.8,
     blaze-builder     == 0.3.*,
     bytestring        == 0.10.*,
-    carma-models      >= 0.16 && < 0.21,
+    carma-models      >= 0.16 && < 0.22,
     cmdargs           == 0.10.*,
     conduit           >= 1.0 && < 1.2,
     conduit-extra     == 1.1.*,
@@ -65,9 +65,9 @@ executable vinnie
     lifted-base       == 0.2.*,
     monad-control     == 0.3.*,
     postgresql-simple == 0.3.*,
-    text              == 0.11.*,
+    text              >= 0.11 && < 1.2,
     text-icu          == 0.6.*,
-    transformers      == 0.3.*,
+    transformers      >= 0.3 && < 0.5,
     vector            == 0.10.*
 
   ghc-options:         -Wall -fno-warn-unused-do-bind
