@@ -66,11 +66,11 @@ Executable carma
 
   Build-depends:
     aeson                       >= 0.7 && < 0.8,
-    attoparsec                  >= 0.10 && < 0.12,
+    attoparsec                  >= 0.10 && < 0.13,
     base                        >= 4 && < 5,
     blaze-builder               == 0.3.*,
     bytestring                  >= 0.9.1 && < 0.11,
-    carma-models                >= 0.20.7 && < 0.21,
+    carma-models                >= 0.20.7 && < 0.22,
     carma-http                  == 0.4.*,
     carma-sync                  >= 0.4 && < 0.5,
     conduit                     == 1.1.*,
@@ -93,9 +93,9 @@ Executable carma
     http-types                  == 0.8.*,
     lens                        >= 3.8 && < 3.11,
     MonadCatchIO-transformers   >= 0.2 && < 0.4,
-    mtl                         == 2.1.*,
+    mtl                         >= 2.1 && < 2.3,
     mime-mail                   == 0.4.1.2,
-    network                     == 2.4.*,
+    network                     >= 2.4 && < 2.6,
     old-locale                  == 1.0.*,
     postgresql-simple           == 0.3.*,
     postgresql-sync-map         >= 0.6 && < 0.7,
@@ -112,9 +112,9 @@ Executable carma
     snaplet-redis               >= 0.1.1 && < 0.2,
     stm                         == 2.4.*,
     temporary                   == 1.2.*,
-    text                        >= 0.11 && < 0.12,
+    text                        >= 0.11 && < 1.2,
     time                        >= 1.1 && < 1.5,
-    transformers                >= 0.2 && < 0.4,
+    transformers                >= 0.2 && < 0.5,
     unordered-containers,
     vector                      == 0.10.*,
     vinnie                      == 0.3.*,
@@ -126,7 +126,7 @@ Executable carma
     websockets-snap             == 0.8.*,
     BoundedChan                 == 1.0.3.*,
     timers                      == 0.2.*,
-    suspend                     == 0.1.*
+    suspend                     >= 0.1 && < 0.3
 
   Extensions:
     MultiParamTypeClasses,
