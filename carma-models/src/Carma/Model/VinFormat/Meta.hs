@@ -27,7 +27,7 @@ module Carma.Model.VinFormat.Meta
 where
 
 import Data.Data
-import Data.Singletons.List
+--import Data.Singletons.List
 import Data.Singletons.TH
 import Language.Haskell.TH hiding (Name)
 

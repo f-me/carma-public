@@ -19,7 +19,9 @@ import Database.PostgreSQL.Simple.ToRow
 
 import Data.Maybe (fromJust)
 import Data.Dynamic
-import GHC.TypeLits
+
+import Data.Singletons
+import Data.Singletons.TypeLits
 
 import Data.Model
 

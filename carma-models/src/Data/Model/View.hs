@@ -32,7 +32,8 @@ import Data.Text (Text)
 import qualified Data.Map as Map
 import Data.Aeson as Aeson
 
-import GHC.TypeLits
+import Data.Singletons
+import Data.Singletons.TypeLits
 
 import Data.Model.Types
 import Data.Model as Model
@@ -208,7 +209,7 @@ completeWith fld ann =
 
 
 mapWidget
-  :: (SingI n1, SingI n2, SingI n3)
+  :: (KnownSymbol n1, KnownSymbol n2, KnownSymbol n3)
   => (m -> Field pickerField (FOpt n1 d1 app))
   -> (m -> Field pickerField (FOpt n2 d2 app))
   -> (m -> Field mapField    (FOpt n3 d3 app))

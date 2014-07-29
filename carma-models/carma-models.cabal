@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.20.7
+version:             0.21
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -113,7 +113,7 @@ library
   hs-source-dirs:    src
   build-depends:
     aeson                >= 0.7 && < 0.8,
-    base                 == 4.6.*,
+    base                 == 4.7,
     base16-bytestring    == 0.1.*,
     cereal               == 0.4.*,
     containers           == 0.5.*,
@@ -121,11 +121,11 @@ library
     errors               == 1.4.*,
     either               == 4.3.*,
     postgresql-simple    == 0.3.*,
-    singletons           == 0.9.*,
-    text                 >= 0.11 && < 1.1,
+    singletons           == 1.0.*,
+    text                 >= 0.11 && < 1.2,
     template-haskell,
     time                 == 1.4.*,
-    transformers         == 0.3.*,
+    transformers         >= 0.3 && < 0.5,
     vector               == 0.10.*,
     bytestring           == 0.10.*,
     blaze-builder        == 0.3.*,
@@ -143,4 +143,4 @@ library
     NamedFieldPuns, RecordWildCards,
     LambdaCase
 
-  ghc-options: -Wall
+  ghc-options: -Wall -fcontext-stack=200

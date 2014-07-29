@@ -20,7 +20,7 @@ import Data.Time.Clock (UTCTime)
 import Data.Text (Text)
 import Data.Typeable
 
-import GHC.TypeLits
+import Data.Singletons
 
 import Database.PostgreSQL.Simple.FromField (FromField)
 import Database.PostgreSQL.Simple.ToField

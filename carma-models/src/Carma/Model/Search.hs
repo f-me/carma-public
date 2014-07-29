@@ -27,8 +27,9 @@ import           Database.PostgreSQL.Simple as PG
 import           Database.PostgreSQL.Simple.ToField (ToField)
 import           Database.PostgreSQL.Simple.FromField (FromField)
 
+import           Data.Singletons
+
 import           Text.Printf
-import           GHC.TypeLits
 
 import           Data.Model hiding (fieldName, modelName, fieldDesc)
 import qualified Data.Model as Model

@@ -16,7 +16,9 @@ import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.ToField   (ToField(..), Action)
 
 import Data.Dynamic
-import GHC.TypeLits
+
+import Data.Singletons
+import Data.Singletons.TypeLits
 
 
 data Wrap t a = Wrap {unWrap :: a}

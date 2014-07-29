@@ -26,7 +26,9 @@ import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToField
 import Data.Aeson (ToJSON(..), fromJSON, Result)
 import qualified Data.Aeson as Aeson
-import GHC.TypeLits
+
+import Data.Singletons
+import Data.Singletons.TypeLits
 
 import Data.Model
 import Data.Model.Patch

@@ -33,7 +33,9 @@ import Database.PostgreSQL.Simple.FromRow   (RowParser,field)
 import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Data.Dynamic
-import GHC.TypeLits
+
+import Data.Singletons
+import Data.Singletons.TypeLits
 
 import Language.Haskell.TH
 
