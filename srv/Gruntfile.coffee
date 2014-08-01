@@ -53,6 +53,9 @@ module.exports = (grunt) ->
       d3:         bowerCopy 'd3',        'd3.min.js'
       mustache:   bowerCopy 'mustache',  'mustache.js'
       underscore: bowerCopy 'underscore','underscore.js'
+      finch:      bowerCopy 'finchjs',   'finch.min.js'
+      jquery:     bowerCopy 'jquery',    'jquery.js'
+      knockout:   bowerCopy 'knockoutjs/dist', 'knockout.js'
       notify:     bowerCopy 'notifyjs/dist', 'notify-combined.min.js'
       spin:       bowerCopy('spin.js', ['spin.js', 'jquery.spin.js'])
 
@@ -101,4 +104,4 @@ module.exports = (grunt) ->
 
   grunt.registerTask("bwatch", ['build', 'watch'])
 
-  grunt.registerTask("default", "rebuild");
+  grunt.registerTask("default", "rebuild")

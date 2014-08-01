@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="/s/css/daterangepicker-bs2.css" />
 
     <!-- DOM manipulation -->
-    <script src="/s/js/3p/jquery-1.7.1.min.js" />
+    <script src="/s/js/3p/jquery.js" />
 
     <!-- Rich UI -->
     <script src="/s/js/3p/bootstrap.min.js" />
@@ -39,14 +39,14 @@
     <script src="/s/js/3p/daterangepicker.js" />
 
     <!-- Spinner -->
-    <script src="/s/js/3p/spin.min.js" />
+    <script src="/s/js/3p/spin.js" />
     <script src="/s/js/3p/jquery.spin.js" />
 
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
 
     <!-- Responsive UI javascript library -->
-    <script src="/s/js/3p/knockout-3.1.0.js" />
+    <script src="/s/js/3p/knockout.js" />
 
     <!-- Utility library, Backbone dependency -->
     <script src="/s/js/3p/underscore.js" />
