@@ -49,7 +49,7 @@
     <script src="/s/js/3p/knockout-3.1.0.js" />
 
     <!-- Utility library, Backbone dependency -->
-    <script src="/s/js/3p/underscore-1.6.0.min.js" />
+    <script src="/s/js/3p/underscore.js" />
 
     <!-- Simple templates -->
     <script src="/s/js/3p/mustache.js" />
@@ -75,7 +75,7 @@
 
     <script src="/s/js/3p/d3.min.js" />
 
-    <script src="/s/js/3p/notify.js" />
+    <script src="/s/js/3p/notify-combined.min.js" />
 
     <!-- global libs, that is not handled by require js -->
     <!-- typeahead menu -->

@@ -10,7 +10,7 @@ module.exports = (grunt) ->
   tpl     = "#{pub}/tpl"
   css     = "#{pub}/css"
 
-  bowerCopyFile = (dir, file) ->
+  bowerCopy = (dir, file) ->
     expand: true
     cwd:  "bower_components/#{dir}"
     src:  file
@@ -48,9 +48,13 @@ module.exports = (grunt) ->
         src: ["**/*.html"]
         dest: tpl
         filter: 'isFile'
-      md5:    bowerCopyFile 'js-md5/js', 'md5.min.js'
-      base64: bowerCopyFile 'js-base64', 'base64.min.js'
-      d3:     bowerCopyFile 'd3',        'd3.min.js'
+      md5:        bowerCopy 'js-md5/js', 'md5.min.js'
+      base64:     bowerCopy 'js-base64', 'base64.min.js'
+      d3:         bowerCopy 'd3',        'd3.min.js'
+      mustache:   bowerCopy 'mustache',  'mustache.js'
+      underscore: bowerCopy 'underscore','underscore.js'
+      notify:     bowerCopy 'notifyjs/dist', 'notify-combined.min.js'
+      spin:       bowerCopy('spin.js', ['spin.js', 'jquery.spin.js'])
 
     jade:
       compile:
