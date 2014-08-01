@@ -28,7 +28,6 @@ import Data.Aeson (ToJSON(..), fromJSON, Result)
 import qualified Data.Aeson as Aeson
 
 import Data.Singletons
-import Data.Singletons.TypeLits
 
 import Data.Model
 import Data.Model.Patch

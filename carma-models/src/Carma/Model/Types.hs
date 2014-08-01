@@ -61,7 +61,6 @@ import Database.PostgreSQL.Simple.TypeInfo.Static (interval, typoid)
 import qualified Blaze.ByteString.Builder.Char8 as Builder
 
 import Data.Singletons
-import Data.Singletons.TypeLits
 
 import GHC.Generics
 import Data.Typeable

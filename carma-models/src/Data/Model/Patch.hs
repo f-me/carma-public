@@ -21,7 +21,6 @@ import Data.Maybe (fromJust)
 import Data.Dynamic
 
 import Data.Singletons
-import Data.Singletons.TypeLits
 
 import Data.Model
 
