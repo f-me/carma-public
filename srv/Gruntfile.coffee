@@ -10,14 +10,7 @@ module.exports = (grunt) ->
   tpl     = "#{pub}/tpl"
   css     = "#{pub}/css"
 
-  bowerCopy = (dir, file) ->
-    expand: true
-    cwd:  "bower_components/#{dir}"
-    src:  file
-    dest: "#{pub}/js/3p"
-
-
-  grunt.initConfig
+  config =
     pkg: grunt.file.readJSON('package.json')
     coffee:
       all:
@@ -48,15 +41,6 @@ module.exports = (grunt) ->
         src: ["**/*.html"]
         dest: tpl
         filter: 'isFile'
-      md5:        bowerCopy 'js-md5/js', 'md5.min.js'
-      d3:         bowerCopy 'd3',        'd3.min.js'
-      mustache:   bowerCopy 'mustache',  'mustache.js'
-      underscore: bowerCopy 'underscore','underscore.js'
-      finch:      bowerCopy 'finchjs',   'finch.min.js'
-      jquery:     bowerCopy 'jquery',    'jquery.js'
-      knockout:   bowerCopy 'knockoutjs/dist', 'knockout.js'
-      notify:     bowerCopy 'notifyjs/dist', 'notify-combined.min.js'
-      spin:       bowerCopy('spin.js', ['spin.js', 'jquery.spin.js'])
 
     jade:
       compile:
@@ -96,11 +80,37 @@ module.exports = (grunt) ->
         files: ["#{content}/style/**/*"]
         tasks: "newer:copy:css"
 
+
+  thirdParty =
+    md5:        {dir: 'js-md5/js',       file: 'md5.min.js'}
+    d3:         {dir: 'd3',              file: 'd3.min.js'}
+    mustache:   {dir: 'mustache',        file: 'mustache.js'}
+    underscore: {dir: 'underscore',      file: 'underscore.js'}
+    finch:      {dir: 'finchjs',         file: 'finch.min.js'}
+    jquery:     {dir: 'jquery',          file: 'jquery.js'}
+    knockout:   {dir: 'knockoutjs/dist', file: 'knockout.js'}
+    notify:     {dir: 'notifyjs/dist',   file: 'notify-combined.min.js'}
+    spin:       {dir: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
+
+
+  mkCopyAndClean = (libs, cfg) ->
+    for lib, libCfg of libs
+      cfg.copy[lib] =
+        expand: true
+        cwd:  "bower_components/#{libCfg.dir}"
+        src:  libCfg.file
+        dest: "#{pub}/js/3p"
+      cfg.clean[lib] =
+        expand: true
+        cwd: "#{pub}/js/3p"
+        src: libCfg.file
+
+  mkCopyAndClean thirdParty, config
+  grunt.initConfig config
+
   newerify = (ts) -> "newer:#{t}" for t in ts
 
   grunt.registerTask("build", newerify ['coffee', 'copy', 'jade'])
   grunt.registerTask("rebuild", ['clean', 'build'])
-
   grunt.registerTask("bwatch", ['build', 'watch'])
-
   grunt.registerTask("default", "rebuild")
