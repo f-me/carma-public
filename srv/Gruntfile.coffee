@@ -50,6 +50,7 @@ module.exports = (grunt) ->
         filter: 'isFile'
       md5:    bowerCopyFile 'js-md5/js', 'md5.min.js'
       base64: bowerCopyFile 'js-base64', 'base64.min.js'
+      d3:     bowerCopyFile 'd3',        'd3.min.js'
 
     jade:
       compile:

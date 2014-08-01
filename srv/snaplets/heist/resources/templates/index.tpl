@@ -73,7 +73,7 @@
     <script src="/s/js/3p/base64.min.js" />
     <script src="/s/js/3p/md5.min.js" />
 
-    <script src="/s/js/3p/d3-3.4.6-min.js" />
+    <script src="/s/js/3p/d3.min.js" />
 
     <script src="/s/js/3p/notify.js" />
 
