@@ -113,7 +113,7 @@ library
   hs-source-dirs:    src
   build-depends:
     aeson                >= 0.7 && < 0.8,
-    base                 == 4.7,
+    base                 == 4.7.*,
     base16-bytestring    == 0.1.*,
     cereal               == 0.4.*,
     containers           == 0.5.*,
