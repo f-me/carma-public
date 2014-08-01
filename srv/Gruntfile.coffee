@@ -10,6 +10,13 @@ module.exports = (grunt) ->
   tpl     = "#{pub}/tpl"
   css     = "#{pub}/css"
 
+  bowerCopyFile = (dir, file) ->
+    expand: true
+    cwd:  "bower_components/#{dir}"
+    src:  file
+    dest: "#{pub}/js/3p"
+
+
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
     coffee:
@@ -41,6 +48,8 @@ module.exports = (grunt) ->
         src: ["**/*.html"]
         dest: tpl
         filter: 'isFile'
+      md5:    bowerCopyFile 'js-md5/js', 'md5.min.js'
+      base64: bowerCopyFile 'js-base64', 'base64.min.js'
 
     jade:
       compile:

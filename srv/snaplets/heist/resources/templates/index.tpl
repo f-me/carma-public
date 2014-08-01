@@ -70,10 +70,8 @@
     <script src="/s/js/3p/jquery.maskedinput-1.3.js" />
 
     <!-- base 64 encode/decode library -->
-    <script src="/s/js/3p/b64.js" />
-
-    <!-- Joseph Meyers md5 implementation -->
-    <script src="/s/js/3p/md5.js" />
+    <script src="/s/js/3p/base64.min.js" />
+    <script src="/s/js/3p/md5.min.js" />
 
     <script src="/s/js/3p/d3-3.4.6-min.js" />
 

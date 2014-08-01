@@ -104,7 +104,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
       , #{Base64.encode('\uFEFF' + head + s)}"
     s
 
-  modelsFromUrl = -> location.hash.match(/#(\w+)/)[1];
+  modelsFromUrl = -> location.hash.match(/#(\w+)/)[1]
 
   # Generate a random password of given length (default 10)
   genPassword = (len) ->
@@ -167,7 +167,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   # function should belong to first dependency
   build_global_fn: (name, deps) ->
     window[name] = ->
-      args = arguments;
+      args = arguments
       require deps, (dep) -> dep[name].apply(this, args)
 
   mkDataTable: (t, opts) ->

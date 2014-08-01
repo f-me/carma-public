@@ -1,0 +1,18 @@
+{
+  "name": "carma",
+  "version": "0.0.0",
+  "authors": [
+    "f-me <dev@fromalmethods.ru>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "js-md5": "~1.1.0",
+    "js-base64": "~2.1.5"
+  }
+}
