@@ -49,7 +49,6 @@ module.exports = (grunt) ->
         dest: tpl
         filter: 'isFile'
       md5:        bowerCopy 'js-md5/js', 'md5.min.js'
-      base64:     bowerCopy 'js-base64', 'base64.min.js'
       d3:         bowerCopy 'd3',        'd3.min.js'
       mustache:   bowerCopy 'mustache',  'mustache.js'
       underscore: bowerCopy 'underscore','underscore.js'

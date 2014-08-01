@@ -69,8 +69,6 @@
     <!-- masked input for datetime fields -->
     <script src="/s/js/3p/jquery.maskedinput-1.3.js" />
 
-    <!-- base 64 encode/decode library -->
-    <script src="/s/js/3p/base64.min.js" />
     <script src="/s/js/3p/md5.min.js" />
 
     <script src="/s/js/3p/d3.min.js" />
