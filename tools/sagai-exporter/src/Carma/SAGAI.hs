@@ -55,7 +55,7 @@ where
 
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
-import Control.Monad.Trans.Error
+import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Writer
@@ -144,7 +144,7 @@ instance ExportMonad CaseExport where
 
     getConverter = lift $ asks $ utfConv . snd
 
-    exportError e = lift $ lift $ lift $ throwError $ CaseError e
+    exportError e = lift $ lift $ lift $ throwE $ CaseError e
 
     getState = get
 
@@ -209,7 +209,7 @@ instance ExportMonad ServiceExport where
 
     exportError e = do
       (m, i, _) <- getService
-      lift $ lift $ lift $ lift $ throwError $ ServiceError m i e
+      lift $ lift $ lift $ lift $ throwE $ ServiceError m i e
 
     expenseType = asks snd
 
