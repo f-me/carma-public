@@ -64,6 +64,9 @@ define [ "utils"
             disable = _.any nots, (e) -> kvm[e]()
             k.resultDisabled?(disable) for k in kvm.actionsReference?()
 
+      # make colored services and actions a little bit nicer
+      $('.accordion-toggle:has(> .alert)').css 'padding', 0
+
     setCommentsHandler = ->
       $("#case-comments-b").on 'click', ->
         i = $("#case-comments-i")
@@ -91,6 +94,8 @@ define [ "utils"
           e = $('#' + k['view'])
           e.parent().prev()[0]?.scrollIntoView()
           e.find('input')[0]?.focus()
+          # make colored service a little bit nicer even if it is just created
+          $('.accordion-toggle:has(> .alert)').css 'padding', 0
 
     utils.build_global_fn 'addService', ['screens/case']
 
