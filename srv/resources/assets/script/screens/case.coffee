@@ -96,6 +96,7 @@ define [ "utils"
           e.find('input')[0]?.focus()
           # make colored service a little bit nicer even if it is just created
           $('.accordion-toggle:has(> .alert)').css 'padding', 0
+          e.parent().collapse 'show'
 
     utils.build_global_fn 'addService', ['screens/case']
 

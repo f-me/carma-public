@@ -494,11 +494,11 @@ mixin dict(nameMod, iconClass)
 mixin refCommon
   .accordion-group
     .accordion-heading
-      .accordion-toggle(id="{{ refView }}-link"
+      .accordion-toggle.collapsed(id="{{ refView }}-link"
           data-target='#{{ refView }}-head'
           data-toggle='collapse')
         block
-    .accordion-body.collapse.in(id="{{ refView }}-head")
+    .accordion-body.collapse(id="{{ refView }}-head")
       .accordion-inner(class="{{ refClass }}" id="{{ refView }}")
         // Instance contents are rendered here
 
