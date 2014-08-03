@@ -61,7 +61,6 @@ module.exports = (grunt) ->
     clean:
       all:
         src: ["#{js}/**/*", tpl, css]
-        filter: (f) -> not /js\/3p/.test(f)
 
     watch:
       coffee:
@@ -114,10 +113,10 @@ module.exports = (grunt) ->
         expand: true
         cwd:  "bower_components/#{libCfg.src}"
         src:  libCfg.file
-        dest: "#{pub}/js/3p/#{libCfg.dest ? ''}"
+        dest: "#{pub}/3p/#{libCfg.dest ? ''}"
       cfg.clean[lib] =
         expand: true
-        cwd: "#{pub}/js/3p/#{libCfg.dest ? ''}"
+        cwd: "#{pub}/3p/#{libCfg.dest ? ''}"
         src: libCfg.file
 
   mkCopyAndClean thirdParty, config
