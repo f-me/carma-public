@@ -30,7 +30,7 @@ getPatch = liftFree (GetPatch id)
 
 
 getPatchField
-  :: (SingI name, Typeable typ)
+  :: (KnownSymbol name, Typeable typ)
   => (m -> Field typ (FOpt name desc app))
   -> Free (Dsl m) (Maybe typ)
 getPatchField fld = (`Patch.get` fld) <$> getPatch
@@ -45,7 +45,7 @@ tOk = Right <$> getPatch
 
 -- FIXME: we need better name for this operation
 sendWsMessage
-  :: (Model m, SingI name, Typeable typ)
+  :: (Model m, KnownSymbol name, Typeable typ)
   => (m -> F typ name opt)
   -> Free (Dsl m) ()
 sendWsMessage fld = liftFree (WsMessage (WsMessageField fld) ())

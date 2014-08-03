@@ -22,7 +22,7 @@ data WsMessageField m = forall fld . SendWsMessage m fld => WsMessageField fld
 class SendWsMessage m fld where
   sendWsMsg :: fld -> IdentI m -> Patch m -> AppHandler ()
 
-instance (Model m, SingI name, Typeable typ)
+instance (Model m, KnownSymbol name, Typeable typ)
     => SendWsMessage m (m -> F typ name opt)
   where
     sendWsMsg fld i p = do

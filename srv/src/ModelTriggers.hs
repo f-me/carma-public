@@ -45,7 +45,7 @@ type TriggersMap = Map (ModelName, FieldName) [Dynamic]
 -- | This is how we make new trigger
 trigOn
   :: forall m name typ desc app res
-  . (Model m, SingI name, Typeable typ)
+  . (Model m, KnownSymbol name, Typeable typ)
   => (m -> Field typ (FOpt name desc app)) -- ^ watch this field
   -> (typ -> Free (Dsl m) res)             -- ^ run this if field changed
   -> TriggersMap
