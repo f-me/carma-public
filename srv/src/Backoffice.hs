@@ -7,7 +7,8 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Backoffice ( backofficeText
+module Backoffice ( checkBackoffice
+                  , backofficeText
                   , backofficeDot
                   , IBox(..)
                   )
@@ -16,19 +17,19 @@ where
 import           Prelude hiding ((>), (==), (||), (&&), const)
 import qualified Prelude ((>), (==), (||), (&&), const)
 
-
 import           Data.Graph.Inductive.Graph
 import           Data.Graph.Inductive.PatriciaTree
+import           Data.Graph.Inductive.Query.BFS
 import           Data.GraphViz hiding (fromNode)
 import           Data.GraphViz.Printing (printIt)
 
-import Data.Maybe
+import           Data.List
+import           Data.Maybe
 import           Data.Map (Map)
 import qualified Data.Map as Map
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT (Text)
-
 import           Data.Time.Clock
 import           Data.Typeable
 
@@ -50,11 +51,17 @@ import           Carma.Model.SmsTemplate (SmsTemplate)
 import qualified Carma.Model.SmsTemplate as SMS
 
 
+type ActionTypeI = IdentI ActionType
+
+
+type ActionResultI = IdentI ActionResult
+
+
 -- | A node in a directed graph of back office actions. Type parameter
 -- selects a back office implementation (which depends on how the
 -- graph is used).
 data Action =
-    Action { aType      :: IdentI ActionType
+    Action { aType      :: ActionTypeI
            -- ^ Binds action definition to its name and
            -- description as stored in the database.
            , targetRole :: IdentI Role
@@ -64,7 +71,7 @@ data Action =
                            impl Pure UTCTime
            -- ^ Default due time for new actions.
            , outcomes   :: forall impl. (Backoffice impl) =>
-                           [(IdentI ActionResult, impl Eff ActionOutcome)]
+                           [(ActionResultI, impl Eff ActionOutcome)]
            -- ^ All action results (outward node edges).
            }
 
@@ -134,7 +141,7 @@ class Backoffice impl where
 
     -- Control flow combinators
     finish  :: impl Eff ActionOutcome
-    proceed :: [IdentI ActionType] -> impl Eff ActionOutcome
+    proceed :: [ActionTypeI] -> impl Eff ActionOutcome
     defer   :: impl Eff ActionOutcome
 
     -- Action chains
@@ -528,7 +535,7 @@ toText ctx (TextE f) = f ctx
 
 
 -- | FGL graph edge embedding. Only effectful terms with semantic type
--- 'ActionOutcome' are interpreted into non-Nothing values. Chain
+-- 'ActionOutcome' are interpreted into non-Nothing values. Chained
 -- effects and switch conditions are marked on edge labels with @*@
 -- and @?@ symbols.
 --
@@ -551,7 +558,7 @@ data EdgeE (e :: Effects) t = EdgeE (GraphCtx -> Maybe [LEdge Text])
 
 data GraphCtx = GraphCtx { fromNode  :: Int
                          , finalNode :: Int
-                         , result    :: IdentI ActionResult
+                         , result    :: ActionResultI
                          , edgeLabel :: [Text]
                          -- ^ Extra text for edge label.
                          , tCtx      :: TCtx
@@ -594,10 +601,10 @@ instance Backoffice EdgeE where
     switch conds ow =
         EdgeE $ \c ->
             let
-                toGraph' = toGraph c{edgeLabel="?":(edgeLabel c)}
+                branches = ow:(map snd conds)
+                toGraph' = toGraph c{edgeLabel = "?":(edgeLabel c)}
             in
-              Just $ concat $ catMaybes $
-                       (toGraph' ow):(map (toGraph' . snd) conds)
+              Just $ concat $ catMaybes $ map toGraph' branches
 
     oneOf _ _ = nothing
 
@@ -652,7 +659,11 @@ formatDiff nd' =
       T.pack $ concatMap (\(v, l) -> show v ++ l) nonZeros
 
 
-backofficeActions :: [Action]
+-- | Formal description of how a back office operates.
+type BackofficeSpec = [Action]
+
+
+backofficeActions :: BackofficeSpec
 backofficeActions =
     [ orderService
     , orderServiceAnalyst
@@ -674,7 +685,7 @@ backofficeActions =
     ]
 
 
--- | WIP
+-- | Produce a textual spec from a back office description.
 backofficeText :: Map IBox Text -> Text
 backofficeText iMap =
     T.unlines $
@@ -699,12 +710,28 @@ backofficeText iMap =
                )
 
 
-backofficeGraph :: Map IBox Text -> Gr Text Text
-backofficeGraph iMap =
-    mkGraph ((finishId, "FINISH"):(map (mkNode) backofficeActions)) $
-    concat (map (mkEdges) backofficeActions)
+startId :: Int
+startId = -1
+
+
+finishId :: Int
+finishId = 0
+
+
+-- | FGL interface. Produce labeled nodes and edges from a back office
+-- description.
+--
+-- Node indices correspond to numeric values of corresponding
+-- ActionType idents.
+--
+-- Extra finish node is explicitly inserted into the graph. Node index
+-- 'finishId' must not be used by any of other idents.
+backofficeNodesEdges :: Map IBox Text -> ([LNode Text], [LEdge Text])
+backofficeNodesEdges iMap =
+    ( (finishId, "FINISH"):(map mkNode backofficeActions)
+    , concat $ map mkEdges backofficeActions
+    )
     where
-      finishId = 0
       mkEdges :: Action -> [LEdge Text]
       mkEdges a =
           concat $
@@ -718,9 +745,68 @@ backofficeGraph iMap =
             t@(Ident i) = aType a
 
 
+backofficeGraph :: Map IBox Text -> Gr Text Text
+backofficeGraph iMap = uncurry mkGraph (backofficeNodesEdges iMap)
+
+
+-- | Produce GraphViz .dot code.
 backofficeDot :: Map IBox Text -> LT.Text
 backofficeDot iMap =
     printIt $
     graphToDot nonClusteredParams{ fmtNode = \(_, l) -> [toLabel l]
                                  , fmtEdge = \(_, _, l) -> [toLabel l]} $
     backofficeGraph iMap
+
+
+-- | A critical flaw in back office.
+data ValidityError = OutOfGraphTargets (ActionTypeI, ActionTypeI)
+                   -- ^ The edge leads to a node not described in the
+                   -- graph.
+                   | Trap (ActionTypeI)
+                   -- ^ The node has no path to finish node.
+                   | DuplicateNode ActionTypeI
+                   -- ^ A node is described more than once.
+                   | ExplicitStart
+                   -- ^ Start node explicitly mentioned (ident
+                   -- collision).
+                   | ExplicitFinish
+                   -- ^ Finish node explicitly mentioned (ident
+                   -- collision).
+                     deriving Show
+
+
+-- | Run back office validity checks.
+--
+-- Our back office description uses indirect addressing, which may
+-- lead to graph consistency errors untraceable on type level. Another
+-- source of errors is ident mapping (multiple action types may be
+-- accidentally assigned the same numeric id, or some of the magic
+-- id's may be referred).
+--
+-- If this returns non-null, the back office cannot be used.
+checkBackoffice :: Map IBox Text -> [ValidityError]
+checkBackoffice iMap =
+    -- Check dupes
+    map DuplicateNode (origNodes \\ uniqNodes) ++
+    -- Detect traps
+    map Trap (filter (\(Ident n) ->
+                      null $ esp n finishId graph) origNodes) ++
+    -- Check START/FINISH collisions
+    if Ident finishId `elem` origNodes
+    then [ExplicitFinish] else [] ++
+    if Ident startId `elem` origNodes
+    then [ExplicitStart] else [] ++
+    -- Check unknown outcomes
+    outs
+    where
+      origNodes = map aType backofficeActions
+      uniqNodes = nub origNodes
+      (_, edges') = backofficeNodesEdges iMap
+      graph = backofficeGraph iMap
+      outs = map OutOfGraphTargets $
+             mapMaybe (\(from, to, _) ->
+                       if or [ Ident to `elem` origNodes
+                             , to Prelude.== finishId
+                             ]
+                       then Nothing
+                       else Just (Ident from, Ident to)) edges'
