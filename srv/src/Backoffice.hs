@@ -527,11 +527,26 @@ toText :: TCtx -> TextE e v -> Text
 toText ctx (TextE f) = f ctx
 
 
--- | GraphE (fgl graph edge) embedding doesn't fit well in tagless
--- world. Thus we allow some terms to produce no result after
--- interpreting, efficiently *tagging* results using Maybe
--- constructors.
-data GraphE (e :: Effects) t = GraphE (GraphCtx -> Maybe [LEdge Text])
+-- | FGL graph edge embedding. Only effectful terms with semantic type
+-- 'ActionOutcome' are interpreted into non-Nothing values. Chain
+-- effects and switch conditions are marked on edge labels with @*@
+-- and @?@ symbols.
+--
+-- This embedding is basically a tagged one due to use of Maybe.
+-- There're several reasons for this.
+--
+-- It's unclear what should pure terms produce. One way would be to
+-- reinterpret them using text embedding, but by the time an
+-- interpreter is selected all types of pure combinators such as
+-- 'oneOf' are fixed so that @impl ~ EdgeE@.
+--
+-- Effect-polymorphic 'switch' is another problem. Switch could
+-- combine branches into a list of produced edges (if branches are
+-- effectful) or a list of strings (for pure branches). Without
+-- meta-language tags to distinguish terms embedded as node lists and
+-- those embedded as strings, it's impossible to write a well-typed
+-- combine function.
+data EdgeE (e :: Effects) t = EdgeE (GraphCtx -> Maybe [LEdge Text])
 
 
 data GraphCtx = GraphCtx { fromNode  :: Int
@@ -540,6 +555,8 @@ data GraphCtx = GraphCtx { fromNode  :: Int
                          , edgeLabel :: [Text]
                          -- ^ Extra text for edge label.
                          , tCtx      :: TCtx
+                         -- ^ Text embedding context (used for
+                         -- labeling idents).
                          }
 
 
@@ -554,11 +571,11 @@ fullEdgeLabel c =
       resultLabel = lkp (IBox $ result c) $ identMap $ tCtx c
 
 
-nothing :: GraphE e t
-nothing = GraphE $ Prelude.const Nothing
+nothing :: EdgeE e t
+nothing = EdgeE $ Prelude.const Nothing
 
 
-instance Backoffice GraphE where
+instance Backoffice EdgeE where
     now = nothing
     since _ _ = nothing
     before _ _ = nothing
@@ -575,7 +592,7 @@ instance Backoffice GraphE where
     _ || _ = nothing
 
     switch conds ow =
-        GraphE $ \c ->
+        EdgeE $ \c ->
             let
                 toGraph' = toGraph c{edgeLabel="?":(edgeLabel c)}
             in
@@ -591,21 +608,23 @@ instance Backoffice GraphE where
     sendPSAMail = nothing
     sendSMS _ = nothing
 
-    defer = GraphE (\c -> Just [(fromNode c, fromNode c, fullEdgeLabel c)])
-    finish = GraphE (\c -> Just [(fromNode c, finalNode c, fullEdgeLabel c)])
+    defer = EdgeE (\c -> Just [(fromNode c, fromNode c, fullEdgeLabel c)])
+    finish = EdgeE (\c -> Just [(fromNode c, finalNode c, fullEdgeLabel c)])
     proceed acts =
-        GraphE $ \c ->
+        EdgeE $ \c ->
             Just $ map (\(Ident ai) -> (fromNode c, ai, fullEdgeLabel c)) acts
 
     -- Mark presence of left-hand effects
-    _ *> b = GraphE $ \c -> toGraph c{edgeLabel = "*":(edgeLabel c)} b
+    _ *> b = EdgeE $ \c -> toGraph c{edgeLabel = "*":(edgeLabel c)} b
 
 
-toGraph :: GraphCtx -> GraphE e v -> Maybe [LEdge Text]
-toGraph ctx (GraphE f) = f ctx
+-- | Interpreter helper to recursively process terms.
+toGraph :: GraphCtx -> EdgeE e v -> Maybe [LEdge Text]
+toGraph ctx (EdgeE f) = f ctx
 
 
-toEdge :: GraphCtx -> GraphE Eff ActionOutcome -> [LEdge Text]
+-- | Edge evaluator for DSL.
+toEdge :: GraphCtx -> EdgeE Eff ActionOutcome -> [LEdge Text]
 toEdge ctx g =
     case toGraph ctx g of
       Just v -> v
