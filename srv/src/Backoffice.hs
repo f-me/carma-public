@@ -596,18 +596,18 @@ toText ctx (TextE f) = f ctx
 -- meta-language tags to distinguish terms embedded as node lists and
 -- those embedded as strings, it's impossible to write a well-typed
 -- combine function.
-data EdgeE (e :: Effects) t = EdgeE (GraphCtx -> Maybe [LEdge Text])
+data EdgeE (e :: Effects) t = EdgeE (EdgeCtx -> Maybe [LEdge Text])
 
 
-data GraphCtx = GraphCtx { fromNode  :: Int
-                         , finalNode :: Int
-                         , edgeLabel :: [Text]
-                         -- ^ Text for edge label.
-                         }
+data EdgeCtx = EdgeCtx { fromNode  :: Int
+                       , finalNode :: Int
+                       , edgeLabel :: [Text]
+                       -- ^ Text for edge label.
+                       }
 
 
-fullEdgeLabel :: GraphCtx -> Text
-fullEdgeLabel c = T.intercalate "|" $ edgeLabel c
+fullEdgeLabel :: EdgeCtx -> Text
+fullEdgeLabel c = T.intercalate "," $ edgeLabel c
 
 
 nothing :: EdgeE e t
@@ -622,6 +622,7 @@ instance Backoffice EdgeE where
     caseField _ = nothing
     serviceField _ = nothing
     serviceField' _ = nothing
+    onServiceField' _ _ = nothing
 
     not _ = nothing
     _ > _ = nothing
@@ -657,12 +658,12 @@ instance Backoffice EdgeE where
 
 
 -- | Interpreter helper to recursively process terms.
-toGraph :: GraphCtx -> EdgeE e v -> Maybe [LEdge Text]
+toGraph :: EdgeCtx -> EdgeE e v -> Maybe [LEdge Text]
 toGraph ctx (EdgeE f) = f ctx
 
 
 -- | Edge evaluator for DSL.
-toEdge :: GraphCtx -> EdgeE Eff ActionOutcome -> [LEdge Text]
+toEdge :: EdgeCtx -> EdgeE Eff ActionOutcome -> [LEdge Text]
 toEdge ctx g =
     case toGraph ctx g of
       Just v -> v
@@ -694,8 +695,8 @@ formatDiff nd' =
 type BackofficeSpec = ([Entry], [Action])
 
 
-backofficeActions :: BackofficeSpec
-backofficeActions =
+carmaBackoffice :: BackofficeSpec
+carmaBackoffice =
     ( [ toBack
       , complaint
       ]
@@ -725,9 +726,9 @@ backofficeText :: Map IBox Text -> Text
 backofficeText iMap =
     T.unlines $
     ["ВХОДЫ:"] ++
-    (indent . concat $ map fmtEntry $ fst backofficeActions) ++
+    (indent . concat $ map fmtEntry $ fst carmaBackoffice) ++
     ["ДЕЙСТВИЯ:"] ++
-    (indent . concat $ map fmtAction $ snd backofficeActions)
+    (indent . concat $ map fmtAction $ snd carmaBackoffice)
     where
       ctx = TCtx iMap
       indent :: [Text] -> [Text]
@@ -772,28 +773,26 @@ backofficeNodesEdges :: Map IBox Text -> ([LNode Text], [LEdge Text])
 backofficeNodesEdges iMap =
     ( (startId, "START"):
       (finishId, "FINISH"):
-      (map mkNode $ snd backofficeActions)
+      (map mkNode $ snd carmaBackoffice)
     , concat $
-      (map mkEntryEdges $ fst backofficeActions) ++
-      (map mkResultEdges $ snd backofficeActions)
+      (map mkEntryEdges $ fst carmaBackoffice) ++
+      (map mkResultEdges $ snd carmaBackoffice)
     )
     where
       mkEntryEdges :: Entry -> [LEdge Text]
       mkEntryEdges e =
-          toEdge (GraphCtx
+          toEdge (EdgeCtx
                   startId
                   finishId
-                  ["!"]
-                  (TCtx iMap)) $ result e
+                  ["!"]) $ result e
       mkResultEdges :: Action -> [LEdge Text]
       mkResultEdges a =
           concat $
           map (\(r, o) ->
-               toEdge (GraphCtx
+               toEdge (EdgeCtx
                        i
                        finishId
-                       [lkp (IBox r) iMap]
-                       (TCtx iMap)) o) $ outcomes a
+                       [lkp (IBox r) iMap]) o) $ outcomes a
           where
             Ident i = aType a
       mkNode :: Action -> LNode Text
@@ -856,7 +855,7 @@ checkBackoffice iMap =
     -- Check unknown outcomes
     outs
     where
-      origNodes = map aType $ snd backofficeActions
+      origNodes = map aType $ snd carmaBackoffice
       uniqNodes = nub origNodes
       (_, edges') = backofficeNodesEdges iMap
       graph = backofficeGraph iMap
