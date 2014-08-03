@@ -20,9 +20,6 @@ import Data.String (fromString)
 ------------------------------------------------------------------------------
 import WeatherApi (getWeather', tempC)
 -----------------------------------------------------------------------------
-import Data.Time.Format (parseTime, formatTime)
-import Data.Time.Clock (UTCTime, addUTCTime)
-import System.Locale (defaultTimeLocale)
 
 import Snap (gets, with)
 import Snap.Snaplet.Auth
@@ -39,8 +36,9 @@ import Snaplet.DbLayer.Triggers.MailToGenser
 
 import Carma.HTTP (read1Reference)
 
-
 import           Data.Model
+import qualified Data.Model.Patch as Patch (Patch, get)
+import qualified Data.Model.Patch.Sql as Patch (read)
 
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.CaseStatus as CaseStatus
@@ -56,10 +54,10 @@ import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Action as Act
 import qualified Carma.Model.Call   as Call
+import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
 import Util as U
 import qualified Utils.Events  as Evt
-import qualified Utils.RKCCalc as RKC
 
 
 services :: [ModelName]
@@ -94,11 +92,7 @@ add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (
 actions :: MonadTrigger m b => Map.Map ModelName (Map.Map FieldName [ObjectId -> FieldValue -> m b ()])
 -- actions :: TriggerMap a
 actions
-    = add "towage" "suburbanMilage" [\objId _ -> setSrvMCost objId]
-    $ add "tech"   "suburbanMilage" [\objId _ -> setSrvMCost objId]
-    $ add "rent"   "providedFor"    [\objId _ -> setSrvMCost objId]
-    $ add "hotel"  "providedFor"    [\objId _ -> setSrvMCost objId]
-    $ add "towage" "contractor_address" [
+    = add "towage" "contractor_address" [
       \objId val -> set objId "towerAddress_address" val
       ]
     $ add "towage" "towDealer_address" [
@@ -113,22 +107,9 @@ actions
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
       ++[("action", actionActions)
-        ,("cost_serviceTarifOption", Map.fromList
-          [("count",
-            [\objId val -> do
-                case mbreadDouble val of
-                  Nothing -> return ()
-                  Just v  -> do
-                    p <- get objId "price" >>= return . fromMaybe 0 . mbreadDouble
-                    set objId "cost" $ printBPrice $ v * p
-                    srvId <- get objId "parentId"
-                    set srvId "cost_counted" =<< srvCostCounted srvId
-            ])
-          ])
         ,("case", Map.fromList
           [("caseStatus", [\kazeId st ->
-            if st == identFv CaseStatus.needInfo
-            then do
+            when (st == identFv CaseStatus.needInfo) $ do
               now <- dateNow Prelude.id
               due <- dateNow (+ (1*60))
               actionId <- new "action" $ Map.fromList
@@ -141,15 +122,32 @@ actions
                 ,("caseId", kazeId)
                 ,("closed", "0")
                 ]
-              upd kazeId "actions" $ addToList actionId
-            else return ()])
+              upd kazeId "actions" $ addToList actionId])
+          ,("wazzup", [\caseId val ->
+            case fvIdent val of
+              Nothing -> return ()
+              Just wi -> do
+                  res :: [Patch.Patch Wazzup.Wazzup] <-
+                         liftDb $ withPG $ \c -> Patch.read wi c
+                  case res of
+                    [] -> return ()
+                    (patch:_) ->
+                        let
+                            f acc = maybe "" identFv $
+                                    fromMaybe Nothing $
+                                    Patch.get patch acc
+                            s = f Wazzup.system
+                            p = f Wazzup.part
+                            c = f Wazzup.cause
+                            g = f Wazzup.suggestion
+                        in
+                          set caseId "diagnosis1" s >>
+                          set caseId "diagnosis2" p >>
+                          set caseId "diagnosis3" c >>
+                          set caseId "diagnosis4" g >>
+                          return ()
+            ])
           ,("services", [\caseId _ -> updateCaseStatus caseId])
-          ,("partner", [\objId _ -> do
-            mapM_ setSrvMCost =<< T.splitOn "," <$> get objId "services"
-            ])
-          ,("program", [\objId _ -> do
-            mapM_ setSrvMCost =<< T.splitOn "," <$> get objId "services"
-            ])
           -- ,("contact_name",
           --   [\objId val -> set objId "contact_name" $ upCaseStr val])
           -- ,("contact_ownerName",
@@ -159,25 +157,16 @@ actions
             when (T.length val > 5)
               $ set objId "car_plateNum" $ T.toUpper val])
           ,("contract", [\objId val ->
-                         if (not $ T.null val)
-                         then do
+                         unless (T.null val) $
                            fillFromContract val objId >>= \case
                              Loaded -> set objId "vinChecked" $
                                        identFv CCS.base
                              Expired -> set objId "vinChecked" $
                                         identFv CCS.vinExpired
                              None -> return ()
-                         else return ()
                         ])
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
-          ])
-        ,("contract", Map.fromList
-          [("carPlateNum",  [\o -> set o "carPlateNum" . T.toUpper])
-          ,("carVin",       [\o -> set o "carVin" . T.toUpper])
-          ,("carCheckPeriod", [setContractValidUntilMilage])
-          ,("milageTO",       [setContractValidUntilMilage])
-          ,("contractValidFromDate", [setContractValidUntilDate])
           ])
         ,("call", Map.fromList
           [("endDate", [\objId _ ->
@@ -186,9 +175,19 @@ actions
         ,("usermeta", Map.fromList
           [("delayedState", [\objId _ ->
              liftDb $ Evt.logLegacyCRUD Update objId Usermeta.delayedState])
+          ,("businessRole", [updateBusinessRole])
           ])
         ]
 
+updateBusinessRole :: MonadTrigger m b => ObjectId -> FieldValue -> m b ()
+updateBusinessRole _     ""  = return ()
+updateBusinessRole objId val =  do
+  rs <- liftDb $ PG.query (fromString $
+    "select array_to_string(roles, ',') from \"BusinessRole\"" ++
+    " where id :: text = ?;") (Only val)
+  case rs of
+    [Only r] -> set objId "roles" r
+    _        -> error $ "unknown BusinessRole id: " ++ show val
 
 -- | Mapping between contract and case fields.
 contractToCase :: [(FA Contract.Contract, FA Case.Case)]
@@ -235,7 +234,7 @@ fillFromContract contract objId = do
       subProgramTable = PT $ tableName $
                         (modelInfo :: ModelInfo SubProgram.SubProgram)
   res <- liftDb $ PG.query
-         (fromString $ intercalate " "
+         (fromString $ unwords
           [ "SELECT"
           -- 2 * M arguments, where M is the length of contractToCase
           , intercalate "," $ map (const "?.?::text") contractToCase
@@ -274,7 +273,7 @@ fillFromContract contract objId = do
       let setIfEmpty oid nm val = get oid nm >>= \case
               "" -> set objId nm val
               _  -> return ()
-      zipWithM_ (maybe (return ()) . (setIfEmpty objId))
+      zipWithM_ (maybe (return ()) . setIfEmpty objId)
                 (map (fieldNameE . snd) $
                  contractToCase ++ [(undefined, FA Case.program)])
                 row
@@ -293,7 +292,7 @@ fillFromContract contract objId = do
 
 -- | This is called when service status is changed in some trigger.
 onRecursiveServiceStatusChange
-  :: MonadTrigger m b => ObjectId -> (IdentI SS.ServiceStatus) -> m b ()
+  :: MonadTrigger m b => ObjectId -> IdentI SS.ServiceStatus -> m b ()
 onRecursiveServiceStatusChange svcId val = do
   caseId  <- get svcId "parentId"
 
@@ -334,7 +333,7 @@ updateCaseStatus caseId =
                (map identFv [ SS.clientCanceled
                             , SS.canceled])) statuses
           -> CaseStatus.canceled
-        | any (== (identFv SS.creating)) statuses
+        | identFv SS.creating `elem` statuses
           -> CaseStatus.front
         | otherwise -> CaseStatus.back
 
@@ -580,14 +579,6 @@ serviceActions = Map.fromList
             upd kazeId "actions" $ addToList actionId
           _ -> return ()]
   )
-  ,("contractor_partner",
-    [\objId _ -> do
-        opts <- get objId "cost_serviceTarifOptions"
-        let ids = T.splitOn "," opts
-        redisDel ids >> set objId "cost_serviceTarifOptions" ""
-    ])
-  ,("falseCall",
-    [\objId _ -> set objId "cost_counted" =<< srvCostCounted objId])
   ,("contractor_partnerId",
     [\objId val -> do
         srvs <- T.splitOn "," <$> get val "services"
@@ -597,25 +588,8 @@ serviceActions = Map.fromList
           []     -> set objId "falseCallPercent" ""
           (x:_) -> get x "falseCallPercent" >>= set objId "falseCallPercent"
     ])
-  ,("payType",
-    [\objId val -> do
-        case selectPrice val of
-          Nothing       -> set objId "cost_counted" ""
-          Just priceSel -> do
-            ids <- T.splitOn "," <$> get objId "cost_serviceTarifOptions"
-            forM_ ids $ \oid -> do
-              price <- get oid priceSel >>= return . fromMaybe 0 . mbreadDouble
-              set oid "price" $  printBPrice price
-              set oid "cost" =<< printBPrice <$> calcCost oid
-            srvCostCounted objId >>= set objId "cost_counted"
-        ])
-  ,("cost_serviceTarifOptions",
-    [\objId _ -> set objId "cost_counted" =<< srvCostCounted objId ])
-   -- RKC calc
-  ,("suburbanMilage", [\objId _ -> setSrvMCost objId])
-  ,("providedFor",    [\objId _ -> setSrvMCost objId])
   ,("times_expectedServiceStart",
-    [\objId val -> do
+    [\objId val ->
       case T.decimal val of
         Right (tm, _) -> do
           let h = 3600 :: Int -- seconds
@@ -663,7 +637,7 @@ actionActions = Map.fromList
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ,\objId _ ->
-      liftDb $ Evt.logLegacyCRUD Update (objId) Act.result
+      liftDb $ Evt.logLegacyCRUD Update objId Act.result
     ])
   ,("assignedTo",
     [\objId _val -> dateNow id >>= set objId "assignTime"
@@ -678,7 +652,7 @@ actionActions = Map.fromList
     ])
    ,("openTime",
      [\objId _ ->
-       liftDb $ Evt.logLegacyCRUD Update (objId) Act.openTime
+       liftDb $ Evt.logLegacyCRUD Update objId Act.openTime
      ])
    ]
 
@@ -1023,7 +997,7 @@ setService objId field val = do
 -- onRecursiveServiceStatusChange manually
 -- on each service.status change
 setServiceStatus :: MonadTrigger m b =>
-                    ObjectId -> (IdentI SS.ServiceStatus) -> m b ()
+                    ObjectId -> IdentI SS.ServiceStatus -> m b ()
 setServiceStatus actId val = do
   svcId <- get actId "parentId"
   set svcId "status" (identFv val)
@@ -1137,59 +1111,3 @@ setWeather objId city = do
         , "city"  .= city
         , "error" .= show err
         ]
-
-srvCostCounted :: MonadTrigger m b => ObjectId -> m b FieldValue
-srvCostCounted srvId = do
-  falseCall        <- get srvId "falseCall"
-  falseCallPercent <- get srvId "falseCallPercent" >>=
-                      return . fromMaybe 100 . mbreadDouble
-  tarifIds <- T.splitOn "," <$> get srvId "cost_serviceTarifOptions"
-  cost <- sum <$> mapM calcCost tarifIds
-  case falseCall of
-    "bill" -> return $ printBPrice $ cost * (falseCallPercent / 100)
-    _      -> return $ printBPrice cost
-
-calcCost :: MonadTrigger m b => ObjectId -> m b Double
-calcCost objId = do
-  p <- get objId "price" >>= return . fromMaybe 0 . mbreadDouble
-  c <- get objId "count" >>= return . fromMaybe 0 . mbreadDouble
-  return $ p * c
-
-setSrvMCost :: MonadTrigger m b => ObjectId -> m b ()
-setSrvMCost objId = do
-  obj    <- readObject objId
-  parent <- readObject $ fromJust $ Map.lookup "parentId" obj
-  dict   <- liftDb $ gets rkcDict
-  set objId "marginalCost" $ RKC.setSrvMCost srvName obj parent dict
-    where
-      -- readR   = lift . RC.read' redis
-      srvName = head $ T.splitOn ":" objId
-
-setContractValidUntilMilage :: MonadTrigger m b =>
-                               ObjectId -> Text -> m b ()
-setContractValidUntilMilage obj _ = do
-  v      <- get obj "contractValidUntilMilage"
-  milage <- mbreadInt <$> get obj "milageTO"
-  p   <- get obj "program"
-  per <- mbreadInt <$> get (T.concat ["program:", p]) "carCheckPeriodDefault"
-  case (v, per, milage) of
-    ("", Just c, Just m) -> setMillage $ T.pack $ show $ c + m
-    _ -> return ()
-    where setMillage = set obj "contractValidUntilMilage"
-
-setContractValidUntilDate ::  MonadTrigger m b =>
-                              ObjectId -> Text -> m b ()
-setContractValidUntilDate obj val = do
-  let d = parseTime defaultTimeLocale "%s" $ T.unpack val :: Maybe UTCTime
-  v   <- get obj "contractValidUntilDate"
-  p   <- get obj "program"
-  due <- mbreadInt <$> get (T.concat ["program:", p]) "duedateDefault"
-  case (v, d, due) of
-    ("", Just d', Just due') -> setUntilDate $ addUTCTime (d2s due') d'
-    _ -> return ()
-  where
-    d2s d = (fromIntegral d) * 24 * 60 * 60
-    setUntilDate =
-      set obj "contractValidUntilDate" .
-      T.pack .
-      formatTime defaultTimeLocale "%s"

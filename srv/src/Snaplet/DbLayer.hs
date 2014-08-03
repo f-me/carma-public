@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE FlexibleContexts #-}
 
 module Snaplet.DbLayer
   (create
@@ -44,7 +43,6 @@ import Snaplet.DbLayer.Util (selectDb)
 import Snaplet.DbLayer.Types
 import qualified Carma.ModelTables as MT (loadTables)
 import Snaplet.DbLayer.Triggers
-import Snaplet.DbLayer.Dictionary (readRKCCalc)
 import Snaplet.Auth.Class
 import Snaplet.Messenger (sendMessage)
 import Snaplet.Messenger.Class
@@ -179,4 +177,3 @@ initDbLayer sessionMgr adb cfgDir = makeSnaplet "db-layer" "Storage abstraction"
       <*> (return tbls)
       <*> (return dc)
       <*> (return $ initApi wkey)
-      <*> (liftIO $ readRKCCalc cfgDir)

@@ -56,17 +56,17 @@ import Utils.LegacyModel (readIdent)
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated users.
 chkAuth :: AppHandler () -> AppHandler ()
-chkAuth h = chkAuthRoles alwaysPass h
+chkAuth = chkAuthRoles alwaysPass
 
 
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated or non-local users.
 chkAuthLocal :: AppHandler () -> AppHandler ()
-chkAuthLocal f = chkAuthRoles (hasNoneOfRoles [Role.partner]) f
+chkAuthLocal = chkAuthRoles (hasNoneOfRoles [Role.partner])
 
 
 chkAuthAdmin :: AppHandler () -> AppHandler ()
-chkAuthAdmin f = chkAuthRoles (hasAnyOfRoles [Role.lovAdmin]) f
+chkAuthAdmin = chkAuthRoles (hasAnyOfRoles [Role.lovAdmin])
 
 
 ------------------------------------------------------------------------------
@@ -93,14 +93,14 @@ alwaysPass = const True
 
 hasAnyOfRoles :: [IdentI Role] -> RoleChecker
 hasAnyOfRoles authRoles =
-    \userRoles -> any (flip elem ar) userRoles
-        where ar = map (\i -> Snap.Role $ T.encodeUtf8 $ identFv i) authRoles
+    any (`elem` ar)
+        where ar = map (Snap.Role . T.encodeUtf8 . identFv) authRoles
 
 
 hasNoneOfRoles :: [IdentI Role] -> RoleChecker
 hasNoneOfRoles authRoles =
-    \userRoles -> not $ any (flip elem ar) userRoles
-        where ar = map (\i -> Snap.Role $ T.encodeUtf8 $ identFv i) authRoles
+    any (`elem` ar)
+        where ar = map (Snap.Role . T.encodeUtf8 . identFv) authRoles
 
 
 ------------------------------------------------------------------------------
@@ -150,11 +150,11 @@ serveUserCake
     Just u'  -> do
       usr <- with db $ replaceMetaRolesFromPG u'
       let homePage = case [T.decodeUtf8 r | Snap.Role r <- userRoles usr] of
-            rs | (identFv Role.head)       `elem` rs -> "/#rkc"
-               | (identFv Role.supervisor) `elem` rs -> "/#supervisor"
-               | (identFv Role.call)       `elem` rs -> "/#call"
-               | (identFv Role.back)       `elem` rs -> "/#back"
-               | (identFv Role.parguy)     `elem` rs -> "/#partner"
+            rs | identFv Role.head       `elem` rs -> "/#rkc"
+               | identFv Role.supervisor `elem` rs -> "/#supervisor"
+               | identFv Role.call       `elem` rs -> "/#call"
+               | identFv Role.back       `elem` rs -> "/#back"
+               | identFv Role.parguy     `elem` rs -> "/#partner"
                | otherwise                   -> ""
       writeJSON $ usr
         {userMeta = HM.insert "homepage" homePage $ userMeta usr
@@ -166,7 +166,7 @@ serveUserStates = do
   usrId <- readUsermeta <$> getParamT "userId"
   from  <- readDay <$> getParam "from"
   to    <- readDay <$> getParam "to"
-  states <- withPG pg_search $ \c -> do
+  states <- withPG pg_search $ \c ->
     query c (fromString $ printf
       -- Get more then asked, we need this during drawing of timeline
       ("SELECT %s FROM \"UserState\" WHERE userId = ? " ++

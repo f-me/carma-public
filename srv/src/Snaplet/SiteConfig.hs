@@ -68,10 +68,11 @@ serveModel = do
         _ -> Map.lookup name <$> gets models
 
   mcu   <- withAuth currentUser
-  case return (,) `ap` mcu `ap` model of
-    Nothing -> finishWithError 401 ""
-    Just (cu, m) ->
-      case view `elem` ["search", "portalSearch"] of
+  case (mcu, model) of
+    (Nothing, _) -> finishWithError 401 ""
+    (_, Nothing) -> finishWithError 404 "Unknown model/view"
+    (Just cu, Just m) ->
+      case view `elem` ["search", "portalSearch", "kpi"] of
         True  -> writeModel m
         False -> stripModel cu m >>= writeModel
 

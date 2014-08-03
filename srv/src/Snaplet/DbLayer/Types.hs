@@ -29,10 +29,6 @@ type ObjectMap = Map ObjectId Object
 type ModelName = Text
 
 type ProgramName = Text
-type RKCName     = Text
-type RKCValue    = Double
-type RKCEntry    = Map RKCName RKCValue
-type RKCCalc     = Map ProgramName RKCEntry
 
 type DbHandler b r = Handler b (DbLayer b) r
 
@@ -45,7 +41,6 @@ data DbLayer b = DbLayer
     ,syncTables :: [TableDesc]
     ,dictCache :: TVar DictCache
     ,weather   :: W.Config
-    ,rkcDict   :: RKCCalc
     }
 
 makeLenses ''DbLayer

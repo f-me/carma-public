@@ -1,0 +1,603 @@
+//-
+  Form field templates.
+//-
+  Field template must have id in form of <type>-field-template,
+  where <type> is field type to be rendered using this
+  template, or <name>-<type>-field-template, where <name> is
+  the name of field of given type which will be rendered with
+  this template. Client code must prefer named templates to
+  only-typed ones.
+
+mixin fieldControlGroup
+  .control-group(data-bind="\n\
+                            {{# meta.required }}\n\
+                            css: { error: {{name}}Not }\n\
+                            {{/ meta.required}}\n\
+                            {{# meta.visibility }}\n\
+                            visible: {{name}}Visible\n\
+                            {{/ meta.visibility}}")
+    .control-label
+      label {{ meta.label }}
+        | {{# meta.infoText1 }}
+        i.icon.icon-question-sign(data-provide="popover"
+                                  data-content="{{ meta.infoText1 }}")
+        | {{/ meta.infoText1 }}
+        i.icon-refresh.icon-refresh-animate(data-bind="sync: {{ name }}Sync"
+                                            style="display: none;")
+    block
+
+mixin defaultInput(nameMod, dataBinds, change, attrs)
+  input.pane-span.focusable(type="text" autocomplete="off"
+    name="{{ name }}"
+    style="{{# meta.transform }}\n\
+           text-transform:{{meta.transform}};\n\
+           {{/ meta.transform }}"
+    data-bind="\n\
+               value: {{ name }}#{nameMod},\n\
+               valueUpdate: '#{change}',\n\
+               readonly: {{ name }}Disabled,\n\
+               {{# meta.regexp }}\n\
+               css: { 're-failed': {{name}}Regexp }\n\
+               {{/ meta.regexp}}\n\
+               #{dataBinds}"
+    )&attributes(attributes)
+
+.field-template#textarea-field-template
+  +fieldControlGroup
+    .controls
+      textarea.pane-span.focusable(name="{{ name }}" rows="7"
+        data-bind="\n\
+                   value: {{ name }}Text,\n\
+                   valueUpdate: 'afterkeydown',\n\
+                   disabled: {{ name }}Disabled,\n\
+                   {{# meta.regexp }}\n\
+                   css: { warning: {{name}}Regexp }\n\
+                   {{/ meta.regexp }}")
+
+.field-template#statictext-field-template
+  .control-group
+    span(data-bind="text: {{ name }}Text")
+
+.field-template#text-field-template
+  +fieldControlGroup
+    .controls
+      +defaultInput("Text", "", "afterkeydown")
+
+.field-template#password-field-template
+  +fieldControlGroup
+    .controls
+      +defaultInput("", "", "change")(placeholder="********")
+      .text-right
+        button.btn.btn-info(type="button"
+          onclick="doPick('passwordPicker', '{{ name }}', event.target);")
+          i.icon-refresh Создать пароль
+
+.field-template#datetime-field-template
+  +fieldControlGroup
+    .controls
+      +defaultInput("DateTime", "addMask: 'datetime'", "change")
+
+.field-template#date-field-template
+  +fieldControlGroup
+    .controls
+      .input-append.date(data-provide="datepicker"
+                         data-autoshow-datepicker="true"
+                         data-date-format="dd.mm.yyyy"
+                         data-date-weekstart="1"
+                         data-bind="pickerDisable: {{ name }}Disabled")
+        +defaultInput("", "", "afterkeydown")
+        span.add-on
+          i.icon.icon-calendar
+
+.field-template#interval-datetime-field-template
+  .control-group
+    .control-label
+      label {{ meta.label }} (Диапазон)
+    .controls
+      .row-fluid
+        .span4
+          .input-append.date(data-provide="datepicker"
+                             data-autoshow-datepicker="true"
+                             data-date-format="dd.mm.yyyy"
+                             data-date-weekstart="1")
+            input.pane-span.focusable(type="text"
+              autocomplete="off"
+              name="{{ name }}Begin"
+              data-bind="value: {{ name }}Begin, valueUpdate: 'change'")
+            span.add-on
+              i.icon.icon-calendar
+        .span4.offset1
+          .input-append.date(data-provide="datepicker"
+                             data-autoshow-datepicker="true"
+                             data-date-format="dd.mm.yyyy"
+                             data-date-weekstart="1")
+            input.pane-span.focusable(type="text"
+              autocomplete="off"
+              name="{{ name }}End"
+              data-bind="value: {{ name }}End, valueUpdate: 'change'")
+            span.add-on
+              i.icon.icon-calendar
+
+.field-template#phone-field-template
+  +fieldControlGroup
+    .controls
+      .input-append
+        +defaultInput("","","afterkeydown")(
+          onkeyDown="kdoPick('{{ meta.picker }}', '{{ name }}', 73, event);")
+        span.add-on
+          i.icon.stolen-icon-phone(onclick="doPick('{{ meta.picker }}',\
+                                                    '{{ name }}');")
+
+mixin dict(nameMod, iconClass)
+  +fieldControlGroup
+    .controls
+      .input-append
+
+        //- Note the difference between readonly attribute and
+        //- disabled class from Bootstrap.
+
+        input.pane-span( type="text"
+           focusable
+           autocomplete="off"
+           name="{{ name }}"
+           data-bind="\n\
+                      value: {{ name }}#{nameMod},\n\
+                      valueUpdate: 'change',\n\
+                      disabled: {{ name }}Disabled,\n\
+                      pickerDisable: {{ name }}Disabled,\n\
+                      bindDict: '{{ name }}',\n\
+                      {{# meta.regexp   }}\n\
+                      css: { 're-failed': {{name}}Regexp }\n\
+                      {{/ meta.regexp   }}")
+        span.add-on
+          i.icon(class=iconClass)
+      block
+
+.field-template#force-find-dictionary-field-template
+  +dict("Local", "icon-search")
+
+.field-template#dictionary-field-template
+  +dict("Local", "icon-chevron-down")
+
+.field-template#dictionary-many-field-template
+  +dict("Many", "icon-chevron-down")
+    // ko if: {{ name }}Locals().length
+    ul(data-bind="foreach: {{ name }}Locals")
+      li
+        span(data-bind="text: $data.label")
+          a(href="" data-bind="click: $parent.{{ name }}Remove") x
+    // /ko
+
+//- Picker which fills fields with stored data
+.field-template#picker-field-template
+  +fieldControlGroup
+    .controls
+      .input-append
+          +defaultInput("", "", "afterkeydown")(
+            onkeyDown="kdoPick('{{ meta.picker }}', '{{ name }}', 66, event);")
+        span.add-on
+          i.icon.icon-search(onclick="doPick('{{ meta.picker }}',\
+                                             '{{ name }}', event.target);")
+
+//- radio widget for flat dictionary fields -->
+.field-template#radio-field-template
+  +fieldControlGroup
+    .controls
+      | {{# dictionary.source }}
+      label.radio
+      //- Mustache.js contexts support bubbling -->
+      input(type="radio"
+            name="{{ name }}"
+            value="{{ value }}"
+            data-bind="checked: {{ name }}, disabled: {{ name }}Disabled")
+      | {{ label }}
+      | {{/ dictionary.source }}
+
+//- May be used for plain rendering of flat dictionaries as well -->
+.field-template#select-field-template
+  +fieldControlGroup
+    .controls
+      select(name="{{ name }}"
+             data-bind="\n\
+                        value: {{ name }},\n\
+                        valueUpdate: 'change',\n\
+                        disabled: {{ name }}Disabled")
+      | {{# dictionary.entries }}
+      option(value="{{value}}")
+        | {{meta.label}}
+      | {{/ dictionary.entries }}
+
+///////////////////////////////////////////////////////////
+
+// type=Bool field
+#Bool-field-template.field-template(type='text/template')
+  .control-group
+    .controls
+      label.checkbox.inline
+        input(type="checkbox"
+              name="{{ name }}"
+              data-bind="checked: {{ name }},\
+                         valueUpdate: 'change',\
+                         disabled: {{ name }}Disabled")
+        | {{ meta.label }}
+        | {{# meta.infoText1 }}
+        i.icon.icon-question-sign(data-provide='popover'
+                                  data-content='{{ meta.infoText1 }}')
+        | {{/ meta.infoText1 }}
+        i.icon-refresh.icon-refresh-animate(data-bind='sync: {{ name }}Sync',
+                                            style='display: none;')
+
+// type=checkbox field
+#checkbox-field-template.field-template(type='text/template')
+  .control-group
+    .controls
+      label.checkbox.inline
+        input(type='checkbox'
+              name='{{ name }}'
+              data-bind="checked: {{ name }},\
+                         valueUpdate: 'change',\
+                         disabled: {{ name }}Disabled")
+        | {{ meta.label }}
+        | {{# meta.infoText1 }}
+        i.icon.icon-question-sign(data-provide='popover',
+                                  data-content='{{ meta.infoText1 }}')
+        | {{/ meta.infoText1 }}
+        i.icon-refresh.icon-refresh-animate(data-bind='sync: {{ name }}Sync',
+                                            style='display: none;')
+
+#checkbutton-field-template.field-template(type='text/template')
+  .control-group
+    .controls.checkbutton
+      label.checkbox.inline(style='padding-left: 0;')
+        input(type='checkbox'
+              name='{{ name }}'
+              data-bind="checked: {{ name }},\
+                         valueUpdate: 'change',\
+                         disabled: {{ name }}Disabled")
+        span.btn.btn-success(data-bind='disabled: {{ name }}Disabled',
+                             onclick='successfulSave.call(this);')
+          | {{ meta.label }}
+        span.save-result
+        | {{# meta.infoText1 }}
+        i.icon.icon-question-sign(data-provide='popover'
+                                  data-content='{{ meta.infoText1 }}')
+        | {{/ meta.infoText1 }}
+        i.icon-refresh.icon-refresh-animate(data-bind='sync: {{ name }}Sync',
+                                            style='display: none;')
+
+// // OpenLayers map container field
+#map-field-template.field-template(type='text/template')
+  .control-group
+    .controls
+      div.osMap(name='{{ name }}' id="{{ viewName }}-{{ name }}")
+
+#table-field-template.field-template(type='text/template')
+  .control-group
+    .controls
+      table.dataTable.table.table-striped.table-bordered(id="{{ name }}")
+        thead
+          tr
+            | {{# meta.columns }}
+            th {{ label }}
+            | {{/ meta.columns }}
+        tbody
+
+#partnerTable-field-template.field-template(type='text/template')
+  table.table.table-striped.table-bordered(id="{{name}}")
+    thead
+      tr
+        th
+        th Название
+        th Город
+        th Адрес
+        th Телефоны
+        th Время работы
+        th ПБГ
+        th ПБЗ
+        th ПН
+    tbody
+
+// NOP here — references are rendered after model has loaded
+#reference-field-template.field-template(type='text/template')
+  .control-group
+    .control-label
+      label
+    .controls
+      span.accordion(id="{{ modelName }}-{{ cid }}-{{ name }}-references")
+    | {{# meta.model}}
+    #add-reference-button.controls
+      button.dropdown-toggle.btn.btn-action(
+        data-bind='bindClick: add{{ name }}'
+        type='button')
+        i.icon.icon-plus
+        | {{ meta.reference-label }}
+    | {{/ meta.model}}
+
+// Container field template for attachment reference list, with upload
+// form. See also files-reference-template for each item template.
+#inline-uploader-field-template.field-template(type='text/template')
+  .controls
+    .accordion.accordion-group
+      label {{ meta.label }}
+      div(id="{{ modelName }}-{{ cid }}-{{ name }}-references")
+      form(data-bind="\n\
+        attr: { action: '/upload/{{ modelName }}/'+maybeId()+'/{{ name }}'},\
+        {{#meta.single-uploader}} \n\
+        visible: _.isEmpty({{name}}()),\n\
+        {{/meta.single-uploader}}\n\
+        setdata: {{ name }}"
+        style='margin-bottom: 0;')
+
+        // File chooser widget
+        .input-append(style='width: 100%;')
+          input.upload-dialog(type='file'
+            onchange='$(this).siblings(\'.upload-names\').val($(this).val());'
+            data-bind='disabled: {{ name }}Disabled'
+            style='display: none;')
+          input.upload-names(type='text'
+                             style='width: 50%;'
+                             disabled='disabled')
+          a.btn(data-bind='disabled: {{ name }}Disabled'
+                onclick="$(this).siblings('.upload-dialog').click();")
+            i.icon.icon-folder-open
+            | Обзор
+          a.btn.btn-primary(data-bind='disabled: {{ name }}Disabled', onclick='inlineUploadFile($(this).closest(\'form\'));')
+            i.icon.icon-upload.icon-white
+            | Загрузить
+
+//- Special template used to render first field of group in parent view.
+#group-field-template.field-template(type='text/template')
+  .control-group
+    .control-label
+      label
+        | {{ meta.label }}
+        | {{# meta.infoText1 }}
+        i.icon.icon-question-sign(data-provide='popover'
+                                  data-content='{{ meta.infoText1 }}')
+        | {{/ meta.infoText1 }}
+        i.icon-refresh.icon-refresh-animate(data-bind='sync: {{ name }}Sync'
+                                            style='display: none;')
+    .controls
+      .input-append
+        input.pane-span(type='text'
+                        name='name'
+                        autocomplete='off'
+                        meta.transform='meta.transform'
+                        onfocus="showComplex('{{ viewName }}', '{{ name }}');"
+                        data-bind="value: {{ name }},\
+                                   valueUpdate: 'afterkeydown',\
+                                   disabled: {{ name }}Disabled")
+        span.add-on
+          i.icon.icon-share(
+            onclick="showComplex('{{ viewName }}', '{{ name }}');")
+
+// Template for fields with unknown type
+.field-template#unknown-field-template
+  .control-group
+    .controls
+      span.label.label-important
+        | (Ошибка — поле {{ names }} неизвестного типа)
+
+// Template for fields with unknown type
+.field-template#dict-objects-field-template
+  +fieldControlGroup
+    ul(data-bind="foreach: {{ name }}Objects")
+      li
+        .control-group
+          .control-label
+            label
+              span(data-bind="text: keyLocal")
+                a.text-error(href="#"
+                  data-bind="click: $parent.{{name}}DeleteObj")
+                  | ×
+          .controls
+            input.pane-span.focusable(type="text"
+              autocomplete="off"
+              style="{{# meta.transform }}\n\
+                     text-transform:{{meta.transform}};\n\
+                     {{/ meta.transform }}"
+              data-bind="value: value,\n\
+                         valueUpdate: 'afterkeydown',\n\
+                         {{# meta.regexp }}\n\
+                         css: { 're-failed': regexp }\n\
+                         {{/ meta.regexp }}")
+        | {{# meta.showNote }}
+        .control-group
+          .control-label
+            label {{ meta.noteLabel }}
+          .controls
+            input.pane-span.focusable(type="text"
+              autocomplete="off"
+              data-bind="value: note, valueUpdate: 'afterkeydown'")
+        | {{/ meta.showNote }}
+
+        ul.nav.nav-pills
+          li.dropup
+            button.dropdown-toggle.btn.btn-action(type="button"
+              data-toggle="dropdown")
+              i.icon.icon-plus
+                | &nbsp;{{ meta.addLabel }}
+            ul.dropdown-menu(data-bind="foreach: {{name}}KeyDictionary")
+              li
+                a(data-bind="text: label, click: $parent.{{name}}AddObj"
+                  href="#")
+
+#partner-field-template.field-template
+  +fieldControlGroup
+    .controls.input-append
+      input.pane-span.focusable(type='text'
+        name='{{ name }}'
+        data-bind='value: {{ name }}')
+      span.add-on
+        i.icon.icon-search(
+          data-bind='click: openPartnerSearch.bind($data, \'{{ name }}\')')
+
+// Modal dialog launch button
+#modalDialogButton-field-template.field-template
+  .control-group
+    .controls.checkbutton
+      label.inline
+        button.btn.btn-danger(type='button'
+          data-bind='disabled: {{ name }}Disabled, click: {{meta.click}}')
+            | {{ meta.label}}
+
+// NOP here — IdentList references are rendered after model has loaded
+#IdentList-field-template.field-template
+  .control-group
+    .control-label
+      label {{ meta.label }}
+    .controls
+      span.accordion(id="{{ modelName }}-{{ cid }}-{{ name }}-references")
+    | {{# meta.model}}
+    #add-reference-button.controls
+      button.dropdown-toggle.btn.btn-action(
+        data-bind='bindClick: add{{ name }}'
+        type='button')
+        i.icon.icon-plus
+        | {{ meta.reference-label }}
+    | {{/ meta.model}}
+
+// File upload template
+#file-field-template.field-template(type='text/template')
+  i.icon.icon-file
+  a.file-name(data-bind='attr: { href: {{ name }}Url }, text: {{ name }}')
+
+// Modal dialog template
+#modalDialog-field-template.field-template(type='text/template')
+  .modal.hide.fade(id="{{ id }}-modal")
+    .modal-header
+      button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
+      h3 {{ title }}
+    .alert(id="{{ id }}-alert-container")
+      button.close(type='button') ×
+      .alert-message
+    .modal-body(id="{{ id }}-form")
+    .modal-footer
+      button.btn.btn-primary(id="{{ id }}-save") {{ saveLabel }}
+      button.btn(data-dismiss='modal', aria-hidden='true') {{ cancelLabel}}
+
+// Group view container
+.group-template(id="-group-template" type='text/template')
+  fieldset.complex-field(id="{{ refView }}" style='display: none;')
+    i.icon.icon-remove.complex-field-close(onclick='hideComplex()')
+    form.content.form-vertical
+
+
+//
+  Template for one of references.
+  Must generate id="{{ refView }}" element which
+  will hold contents of referenced model. Its class must be is
+  {{ refClass }}.
+  "{{ refView }}-perms" will be used for instance permissions.
+  May setup on-demand loading function.
+
+mixin refCommon
+  .accordion-group
+    .accordion-heading
+      .accordion-toggle.collapsed(id="{{ refView }}-link"
+          data-target='#{{ refView }}-head'
+          data-toggle='collapse')
+        block
+    .accordion-body.collapse(id="{{ refView }}-head")
+      .accordion-inner(class="{{ refClass }}" id="{{ refView }}")
+        // Instance contents are rendered here
+
+mixin simpleRefHdr(name, bindName)
+  a.icon.icon-remove
+  a(data-bind="text: #{bindName}")= name
+
+#services-reference-template.reference-template
+  +refCommon
+    div.alert(data-bind='style: {"background-color": _svcColor}')
+      a.icon.icon-remove
+      span &nbsp;
+      a(data-bind='text: _meta.model.title')
+        | Услуга…
+      span &nbsp;
+      a(data-bind='attr: { href: \'#printSrv/\'+_meta.model.name+\'/\'+id() }'
+        target='_blank')
+        | [Печать]
+
+
+#partner_services-reference-template.reference-template
+  +refCommon
+    +simpleRefHdr("Тариф", "serviceNameLocal")
+
+// SubProgram.services (SubProgramService model) reference template
+#subprogram-services-reference-template.reference-template
+  +refCommon
+    +simpleRefHdr("Услуга", "typeLocal")
+
+#subprogram-contacts-reference-template.reference-template
+  +refCommon
+    a.icon.icon-remove
+    span(data-bind='text: [name(), email(), phone()].join(\' \')')
+
+#subprogram-contract-fields-reference-template.reference-template
+  +refCommon
+    +simpleRefHdr("Поле", "contractFieldLocal")
+
+#files-reference-template.reference-template
+  div
+    a.detach-button.text-error(href='#'
+       onclick='inlineDetachFile($(this)); return false'
+       data-attachment='{{ refId }}'
+       data-field='{{ refField }}')
+      | ×
+    span(id="{{ refView }}" class="{{ refClass }}")
+    // Attachment contents are rendered here
+
+#actions-reference-template.reference-template
+  +refCommon
+    div.alert(data-bind='style: {"background-color": _actColor}')
+      a(data-bind='text: actionNameLocal')
+        | Действие…
+
+#tarifOptions-reference-template.reference-template
+  +refCommon
+    +simpleRefHdr("Тарифная опция…", "nameOrDef")
+
+// Default case group view template
+#default-case-group-template.group-template
+  fieldset#default-case.complex-field.default-complex-field
+    p
+      b Кто звонил:
+      span(data-bind='text: safelyGet(\'contact_name\')')
+      span(data-bind='text: safelyGet(\'contact_phone1\')')
+    p(data-bind='visible: safelyGet(\'car_make\')')
+      b Автомобиль:
+      span(data-bind='text: safelyGet(\'car_makeLocal\')')
+      span(data-bind='text: safelyGet(\'car_modelLocal\')')
+      span(data-bind='text: safelyGet(\'car_plateNum\')')
+    p(data-bind='visible: safelyGet(\'caseAddress_address\')')
+      b Адрес кейса:
+      span(data-bind='text: safelyGet(\'caseAddress_address\')')
+      br
+      span(data-bind='text: safelyGet(\'caseAddress_comment\')')
+    p(data-bind='visible: safelyGet(\'cityLocal\')')
+      b Регион:
+      span(data-bind='text: safelyGet(\'region\')')
+    p(data-bind='visible: safelyGet(\'cityLocal\')')
+      b
+        | Расчётное значение ожидания эвакуатора в
+        | г.
+        span(data-bind='text: safelyGet(\'cityLocal\')')
+        | :
+      span#city-towage-average-time
+    #contract
+    .program
+      #case-comments
+        legend  Комментарий
+        textarea#case-comments-i(rows='2')
+        button#case-comments-b.btn
+          | Добавить комментарий
+      legend История звонков
+      table#call-searchtable.table.table-striped.table-bordered
+        thead
+          tr
+            th Дата
+            th Сотрудник РАМК
+            th Тип коммуникации
+            th Комментарий
+            th Результат действия
+        tbody

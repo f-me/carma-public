@@ -117,7 +117,8 @@ define [ "utils"
 
   endCallClick = (viewName) ->
     kvm = global.viewsWare[viewName].knockVM
-    kvm.endDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
+    if _.isNull kvm.endDate()
+      kvm.endDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
 
     localStorage.removeItem "#{storeKey}.id"
 

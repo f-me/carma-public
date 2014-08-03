@@ -95,3 +95,9 @@ define [ "utils"
       localStorage[pSearch.storeKey] =
         JSON.stringify {case: kase, service: srv, field: field}
       pSearch.open('case')
+
+  serviceColor: (model, kvm) ->
+    kvm._svcColor = ko.computed ->
+      hash = md5(kvm._meta.model.name + ':' + kvm.id())
+      ix = parseInt(hash.slice(0,6), 16) % u.palette.length
+      u.palette[ix]

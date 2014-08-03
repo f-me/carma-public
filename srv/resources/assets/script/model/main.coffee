@@ -137,6 +137,18 @@ define [ "model/render"
       do (f) ->
         kvm["#{f.name}Sync"] = ko.observable(false)
 
+    # special observable for text, so it won't be saved on update null -> ""
+    # #1221
+    # make this for all types, because it can't break anything, but will
+    # help if some non text field will require text template
+    for f in fields
+      do (f) ->
+        kvm["#{f.name}Text"] = ko.computed
+          read: -> kvm[f.name]()
+          write: (v) ->
+            return if _.isEmpty(kvm[f.name]()) and v == ""
+            kvm[f.name](v)
+
     # Setup reference fields: they will be stored in <name>Reference as array
     # of kvm models
     for f in fields when f.type == "reference"

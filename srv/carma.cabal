@@ -58,9 +58,11 @@ Executable carma
     Snaplet.TaskManager,
     Snaplet.Auth.Class,
     Snaplet.Auth.PGUsers,
+    ModelTriggers,
+    Trigger.Dsl,
+    Trigger.Dsl.SendWsMessage,
     Utils.HttpErrors,
     Utils.NotDbLayer,
-    Utils.RKCCalc,
     Util
 
   Build-depends:
@@ -83,6 +85,7 @@ Executable carma
     fgl                         == 5.5.*,
     filepath                    == 1.3.*,
     graphviz                    == 2999.17.*,
+    free                        == 4.9.*,
     hashable                    >= 1.1 && < 1.3,
     hedis                       == 0.6.*,
     heist                       == 0.13.*,

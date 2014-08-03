@@ -260,7 +260,7 @@ change :: States -> UserStateM -> UserStateM
 change (States from to) onFn = do
   lState <- lastState <$> ask
   ons    <- snd <$> listen onFn
-  case lState `elem` from && (any id ons) of
+  case lState `elem` from && (or ons) of
     False -> return ()
     True  -> put (Just to)
 

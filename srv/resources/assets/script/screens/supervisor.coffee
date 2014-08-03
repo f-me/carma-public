@@ -6,9 +6,7 @@ define ["utils"
       ], (utils, main, tpl, screenman, hook) ->
 
   dataTableOptions = ->
-    aoColumns: utils
-      .repeat(11, null)
-      .concat(utils.repeat(2, { bVisible: false}))
+    aoColumns: utils.repeat(11, null).concat utils.repeat(2, { bVisible: false})
     bPaginate: true
     fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
       caseId = aData[0].split('/')[0]

@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 module ApplicationInit (appInit) where
 
 import Control.Applicative
@@ -108,7 +107,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/dealers/:make", chkAuth . method GET  $ allDealersForMake)
          , ("/vin/upload",    chkAuth . method POST $ vinImport)
          , ("copyCtrOptions", chkAuth . method POST $ copyCtrOptions)
-         , ("/opts/:model/:id/", chkAuthLocal . method GET $ getSrvTarifOptions)
          , ("/printSrv/:model/:id",
             chkAuthLocal . method GET $ printServiceHandler)
          , ("/clientConfig",       chkAuth . method GET  $ clientConfig)

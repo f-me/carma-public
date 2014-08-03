@@ -415,3 +415,20 @@ define ["model/utils", "dictionaries"], (mu, d) ->
     new d.dicts.ComputedDict
       dict: name
       meta: meta
+
+  # subset of d3.scale.category20 with dark colors removed
+  palette:
+    ['#aec7e8' # 1
+    ,'#ff7f0e' # 2
+    ,'#ffbb78' # 3
+    ,'#98df8a' # 5
+    ,'#ff9896' # 7
+    ,'#c5b0d5' # 9
+    ,'#c49c94' # 11
+    ,'#e377c2' # 12
+    ,'#f7b6d2' # 13
+    ,'#c7c7c7' # 15
+    ,'#bcbd22' # 16
+    ,'#dbdb8d' # 17
+    ,'#9edae5' # 19
+    ]

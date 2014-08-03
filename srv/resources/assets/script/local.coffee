@@ -6,10 +6,10 @@ require [ "domready"
         , "hooks/config"
         , "json!/cfg/dictionaries"
         , "json!/_whoami"
-        , "json!/screens"
         , "json!/allUsers"
         , "utils"
         , "sendSms"
+        , "liveMenu"
         , "lib/bug-report"
         , "lstorePubSub"
         , "lib/current-user"
@@ -19,10 +19,10 @@ require [ "domready"
            , hooks
            , dicts
            , user
-           , nav
            , users
            , u
            , sendSms
+           , liveMenu
            , bug
            , pubSub
            , CurrentUser
@@ -72,10 +72,10 @@ require [ "domready"
               user,
               new pubSub
     global.all_users = users
-    global.nav = nav
     global.keys = {}
     global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
-    ko.applyBindings global.nav, $('#nav')[0]
+
+    liveMenu.setup(document.getElementById 'nav')
 
     avayaCred = document.cookie.match /avaya=([^;]*)/
     if avayaCred?[1]

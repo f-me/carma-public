@@ -3,11 +3,47 @@ include _table
 .row-fluid
   .span12.default-bs
     include _statNav
+    .row-fluid#settings
+      .span12.bs-docs-less-margins#kpi-list
+        .bs-docs-example-after#settings-label
+          i.icon-plus
+          | Настройки
+        #kpi-list-inner.in(style="height: 20em; overflow-x: auto;")
+          .control-group
+            .controls
+              input#kpi-list-filter.focusable(type="text"
+                data-bind="value: filter, valueUpdate: 'afterkeydown'")
+          ul.unstyled(data-bind="foreach: fields")
+            li
+              label.checkbox
+                input(type="checkbox" data-bind="checked: show")
+                span(data-bind="text: label")
 
-    +table(["Оператор",
-            "Текущий статус",
-            "Время",
-            "Готов",
-            "Занят",
-            "Обед",
-            "Перерыв"])
+      .row-fluid
+        .span4#date-range(style="margin-top: 10px")
+          .span4
+            .input-append.date(data-provide="datepicker"
+                               data-autoshow-datepicker="true"
+                               data-date-format="dd.mm.yyyy"
+                               data-date-weekstart="1")
+              input.pane-span.focusable(type="text"
+                autocomplete="off"
+                name="{{ name }}Begin"
+                data-bind="value: {{ name }}Begin, valueUpdate: 'change'")
+              span.add-on
+                i.icon.icon-calendar
+          .span4.offset1
+            .input-append.date(data-provide="datepicker"
+                               data-autoshow-datepicker="true"
+                               data-date-format="dd.mm.yyyy"
+                               data-date-weekstart="1")
+              input.pane-span.focusable(type="text"
+                autocomplete="off"
+                name="{{ name }}End"
+                data-bind="value: {{ name }}End, valueUpdate: 'change'")
+              span.add-on
+                i.icon.icon-calendar
+
+    .row-fluid#results(style="overflow-y: auto")
+      +table
+
