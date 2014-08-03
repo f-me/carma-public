@@ -95,6 +95,17 @@ module.exports = (grunt) ->
       src: 'OpenLayers'
       dest: 'OpenLayers'
       file: ['OpenLayers.js', 'img/**', 'theme/**']
+    wysihtml5:
+      src:  'wysihtml5/dist'
+      dest: 'wysihtml5'
+      file: 'wysihtml5-0.3.0.min.js'
+    'wysihtml5-boot':
+      src:  'bootstrap-wysihtml5/src'
+      dest: 'wysihtml5'
+      file: [
+        'bootstrap-wysihtml5.js',
+        'bootstrap-wysihtml5.css',
+        'locales/bootstrap-wysihtml5.ru-RU.js']
 
 
   mkCopyAndClean = (libs, cfg) ->

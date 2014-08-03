@@ -12,10 +12,6 @@
 
     <link rel="stylesheet" href="/s/css/local.css" />
 
-    <!-- WYSIWYG -->
-    <link rel="stylesheet" href="/s/css/bootstrap-wysihtml5.css" />
-    <link rel="stylesheet" href="/s/css/wysiwyg-color.css" />
-
     <!-- Date Range Picker for Bootstrap -->
     <link rel="stylesheet" href="/s/css/daterangepicker-bs2.css" />
 
@@ -29,9 +25,11 @@
     <script src="/s/js/3p/bootstrap-tagautocomplete.js" />
 
     <!-- WYSIWYG -->
-    <script src="/s/js/3p/wysihtml5.min.js" />
-    <script src="/s/js/3p/bootstrap-wysihtml5.min.js" />
-    <script src="/s/js/3p/bootstrap-wysihtml5.ru-RU.js" />
+    <link rel="stylesheet" href="/s/js/3p/wysihtml5/bootstrap-wysihtml5.css" />
+    <link rel="stylesheet" href="/s/js/3p/wysihtml5/wysiwyg-color.css" />
+    <script src="/s/js/3p/wysihtml5/wysihtml5-0.3.0.min.js" />
+    <script src="/s/js/3p/wysihtml5/bootstrap-wysihtml5.js" />
+    <script src="/s/js/3p/wysihtml5/locales/bootstrap-wysihtml5.ru-RU.js" />
 
     <!-- Date Range Picker for Bootstrap -->
     <script src="/s/js/3p/moment/moment.min.js" />
