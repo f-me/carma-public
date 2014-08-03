@@ -71,6 +71,7 @@ import ModelTriggers (runUpdateTriggers)
 
 import Carma.Model.ActionResult (ActionResult)
 import Carma.Model.ActionType (ActionType)
+import Carma.Model.Satisfaction (Satisfaction)
 import Carma.Model.ServiceStatus (ServiceStatus)
 import Carma.Model.ServiceType (ServiceType)
 import Carma.Model.SmsTemplate (SmsTemplate)
@@ -593,6 +594,7 @@ serveBackofficeSpec repr =
       -- Combine mappings for multiple models into one
       boxedIMap = Map.unions [ boxMap (iMap :: IdentMap ActionResult)
                              , boxMap (iMap :: IdentMap ActionType)
+                             , boxMap (iMap :: IdentMap Satisfaction)
                              , boxMap (iMap :: IdentMap ServiceStatus)
                              , boxMap (iMap :: IdentMap ServiceType)
                              , boxMap (iMap :: IdentMap SmsTemplate)

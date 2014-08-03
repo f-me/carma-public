@@ -43,10 +43,11 @@ import qualified Carma.Model.ActionType as AType
 import           Carma.Model.Case.Type as Case
 import           Carma.Model.Program as Program
 import           Carma.Model.Role as Role
+import           Carma.Model.Satisfaction as Satisfaction
 import           Carma.Model.Service as Service
 import           Carma.Model.ServiceStatus (ServiceStatus)
 import qualified Carma.Model.ServiceStatus as SS
-import           Carma.Model.ServiceType as ServiceType
+import           Carma.Model.ServiceType as ST
 import           Carma.Model.SmsTemplate (SmsTemplate)
 import qualified Carma.Model.SmsTemplate as SMS
 
@@ -81,6 +82,9 @@ data Action =
 data ActionOutcome
 
 
+data Trigger
+
+
 -- | Type tag for effect control. Pure and Eff are lifted to type
 -- level.
 data Effects = Pure | Eff
@@ -97,12 +101,15 @@ class Backoffice impl where
     -- Context access
     caseField     :: FieldI t n d =>
                      (Case -> F t n d) -> impl Pure t
-    caseField'    :: FieldI t n d =>
-                     (Case -> F (Maybe t) n d) -> impl Pure t
     serviceField  :: FieldI t n d =>
                      (Service -> F t n d) -> impl Pure t
     serviceField' :: FieldI t n d =>
                      (Service -> F (Maybe t) n d) -> impl Pure t
+
+    onServiceField' :: FieldI t n d =>
+                       (Service -> F (Maybe t) n d)
+                    -> impl Pure t
+                    -> impl Pure Trigger
 
     -- Boolean combinators (lifted to impl because we usually use
     -- terms from impl as arguments)
@@ -149,6 +156,34 @@ class Backoffice impl where
     (*>) :: impl Eff () -> impl Eff ActionOutcome -> impl Eff ActionOutcome
 
 
+data Entry =
+    Entry { trigger :: forall impl. (Backoffice impl) => impl Pure Trigger
+          , result  :: forall impl. (Backoffice impl) => impl Eff ActionOutcome
+          }
+
+
+toBack :: Entry
+toBack =
+    Entry
+    (Service.status `onServiceField'` (const SS.backoffice))
+    (switch
+     [ ( serviceField svcType `oneOf` [ST.towage, ST.tech]
+       , sendSMS SMS.create *> proceed [AType.orderService]
+       )
+     , ( serviceField svcType `oneOf` [ST.ken, ST.consultation]
+       , proceed [AType.closeCase, AType.addBill]
+       )
+     ]
+     (proceed [AType.orderServiceAnalyst])
+    )
+
+complaint :: Entry
+complaint =
+    Entry
+    (Service.clientSatisfied `onServiceField'` (const Satisfaction.none))
+    (proceed [AType.complaintResolution])
+
+
 minutes :: Num i => i
 minutes = 60
 
@@ -159,6 +194,7 @@ hours = 60 * minutes
 
 days :: Num i => i
 days = 24 * hours
+
 
 
 orderService :: Action
@@ -208,16 +244,16 @@ orderServiceAnalyst =
     )
     [ (AResult.serviceOrderedAnalyst,
        switch
-       [ ( (serviceField svcType == const ServiceType.rent) &&
+       [ ( (serviceField svcType == const ST.rent) &&
            caseField Case.program `oneOf` [Program.peugeot, Program.citroen]
          , setServiceStatus SS.inProgress *>
            proceed [AType.checkEndOfService, AType.addBill]
          )
        , ( serviceField svcType `oneOf`
-           [ ServiceType.taxi
-           , ServiceType.sober
-           , ServiceType.adjuster
-           , ServiceType.insurance
+           [ ST.taxi
+           , ST.sober
+           , ST.adjuster
+           , ST.insurance
            ]
          , setServiceStatus SS.ordered *>
            proceed [AType.checkStatus, AType.addBill])
@@ -296,7 +332,7 @@ getDealerInfo =
     AType.getDealerInfo
     Role.bo_dealer
     (switch
-       [ ( (serviceField svcType == const ServiceType.rent) &&
+       [ ( (serviceField svcType == const ST.rent) &&
            caseField Case.program `oneOf` [Program.peugeot, Program.citroen]
          , (5 * minutes) `since` serviceField' times_factServiceEnd)
        ]
@@ -412,14 +448,13 @@ complaintResolution =
     ]
 
 
--- | Text embedding for DSL types.
+-- | Text embedding for Backoffice DSL types.
 newtype TextE (a :: Effects) t = TextE (TCtx -> Text)
 
 
 -- | Simple TextE constructor which leaves the context unchanged.
 textE :: Text -> TextE a t
 textE t = TextE (Prelude.const t)
-
 
 
 -- | Existential container for model idents.
@@ -465,9 +500,16 @@ instance Backoffice TextE where
         TextE (\c -> T.concat [toText c t, " - ", formatDiff dt])
 
     caseField     = textE . fieldDesc
-    caseField'    = textE . fieldDesc
     serviceField  = textE . fieldDesc
     serviceField' = textE . fieldDesc
+
+    onServiceField' a v =
+        TextE $ \c ->
+            T.concat [ "Когда "
+                     , toText c $ serviceField' a
+                     , " приобретает значение "
+                     , toText c v
+                     ]
 
     not v =
         TextE (\c -> T.concat ["НЕ выполнено условие ", toText c v])
@@ -529,15 +571,16 @@ instance Backoffice TextE where
         T.concat [toText c a, ", ", toText c b]
 
 
--- | Text evaluator for DSL.
+-- | Text evaluator for Backoffice DSL.
 toText :: TCtx -> TextE e v -> Text
 toText ctx (TextE f) = f ctx
 
 
--- | FGL graph edge embedding. Only effectful terms with semantic type
--- 'ActionOutcome' are interpreted into non-Nothing values. Chained
--- effects and switch conditions are marked on edge labels with @*@
--- and @?@ symbols.
+-- | FGL graph edge embedding. A DSL term is converted to a list of
+-- edges depending on all possible outcomes. Only effectful terms with
+-- semantic type 'ActionOutcome' are interpreted into non-Nothing
+-- values. Chained effects and switch conditions are marked on edge
+-- labels with @*@ and @?@ symbols.
 --
 -- This embedding is basically a tagged one due to use of Maybe.
 -- There're several reasons for this.
@@ -558,24 +601,13 @@ data EdgeE (e :: Effects) t = EdgeE (GraphCtx -> Maybe [LEdge Text])
 
 data GraphCtx = GraphCtx { fromNode  :: Int
                          , finalNode :: Int
-                         , result    :: ActionResultI
                          , edgeLabel :: [Text]
-                         -- ^ Extra text for edge label.
-                         , tCtx      :: TCtx
-                         -- ^ Text embedding context (used for
-                         -- labeling idents).
+                         -- ^ Text for edge label.
                          }
 
 
 fullEdgeLabel :: GraphCtx -> Text
-fullEdgeLabel c =
-    T.concat [ resultLabel
-             , if null (edgeLabel c)
-               then ""
-               else ": " `T.append` (T.intercalate ", " $ edgeLabel c)
-             ]
-    where
-      resultLabel = lkp (IBox $ result c) $ identMap $ tCtx c
+fullEdgeLabel c = T.intercalate "|" $ edgeLabel c
 
 
 nothing :: EdgeE e t
@@ -588,7 +620,6 @@ instance Backoffice EdgeE where
     before _ _ = nothing
 
     caseField _ = nothing
-    caseField' _ = nothing
     serviceField _ = nothing
     serviceField' _ = nothing
 
@@ -602,7 +633,7 @@ instance Backoffice EdgeE where
         EdgeE $ \c ->
             let
                 branches = ow:(map snd conds)
-                toGraph' = toGraph c{edgeLabel = "?":(edgeLabel c)}
+                toGraph' = toGraph c{edgeLabel = (edgeLabel c) ++ ["?"]}
             in
               Just $ concat $ catMaybes $ map toGraph' branches
 
@@ -622,7 +653,7 @@ instance Backoffice EdgeE where
             Just $ map (\(Ident ai) -> (fromNode c, ai, fullEdgeLabel c)) acts
 
     -- Mark presence of left-hand effects
-    _ *> b = EdgeE $ \c -> toGraph c{edgeLabel = "*":(edgeLabel c)} b
+    _ *> b = EdgeE $ \c -> toGraph c{edgeLabel = (edgeLabel c) ++ ["*"]} b
 
 
 -- | Interpreter helper to recursively process terms.
@@ -660,54 +691,65 @@ formatDiff nd' =
 
 
 -- | Formal description of how a back office operates.
-type BackofficeSpec = [Action]
+type BackofficeSpec = ([Entry], [Action])
 
 
 backofficeActions :: BackofficeSpec
 backofficeActions =
-    [ orderService
-    , orderServiceAnalyst
-    , tellClient
-    , checkStatus
-    , needPartner
-    , checkEndOfService
-    , closeCase
-    , getDealerInfo
-    , makerApproval
-    , tellMakerDeclined
-    , addBill
-    , billmanNeedInfo
-    , headCheck
-    , directorCheck
-    , accountCheck
-    , analystCheck
-    , complaintResolution
-    ]
+    ( [ toBack
+      , complaint
+      ]
+    , [ orderService
+      , orderServiceAnalyst
+      , tellClient
+      , checkStatus
+      , needPartner
+      , checkEndOfService
+      , closeCase
+      , getDealerInfo
+      , makerApproval
+      , tellMakerDeclined
+      , addBill
+      , billmanNeedInfo
+      , headCheck
+      , directorCheck
+      , accountCheck
+      , analystCheck
+      , complaintResolution
+      ]
+    )
 
 
 -- | Produce a textual spec from a back office description.
 backofficeText :: Map IBox Text -> Text
 backofficeText iMap =
     T.unlines $
-    map (fmtAction) backofficeActions
+    ["ВХОДЫ:"] ++
+    (indent . concat $ map fmtEntry $ fst backofficeActions) ++
+    ["ДЕЙСТВИЯ:"] ++
+    (indent . concat $ map fmtAction $ snd backofficeActions)
     where
       ctx = TCtx iMap
       indent :: [Text] -> [Text]
-      indent = map ("\t" `T.append`)
+      indent = map ('\t' `T.cons`)
+      fmtEntry e =
+          [T.snoc (toText ctx $ trigger e) ':'] ++
+          (indent [toText ctx $ result e]) ++
+          ["\n"]
       fmtAction a =
-          T.unlines $
-               [lkp (IBox $ aType a) iMap] ++
-               (indent $
-                [ T.concat ["Время выполнения: ", toText ctx $ due a]
-                , "Результаты:" ] ++
-                (indent $
-                 Prelude.map (\(r, eff) ->
-                              T.concat [ lkp (IBox r) iMap
-                                       , ": "
-                                       , toText ctx eff
-                                       ]) $
-                 outcomes a)
-               )
+          [lkp (IBox $ aType a) iMap] ++
+          (indent $
+           [ T.concat ["Время выполнения: ", toText ctx $ due a]
+           , "Результаты:" ] ++
+           (indent $
+            Prelude.map (\(r, eff) ->
+                         T.concat [ lkp (IBox r) iMap
+                                  , ": "
+                                  , toText ctx eff
+                                  ]) $
+            outcomes a)
+          ) ++
+          ["\n"]
 
 
 startId :: Int
@@ -728,15 +770,30 @@ finishId = 0
 -- 'finishId' must not be used by any of other idents.
 backofficeNodesEdges :: Map IBox Text -> ([LNode Text], [LEdge Text])
 backofficeNodesEdges iMap =
-    ( (finishId, "FINISH"):(map mkNode backofficeActions)
-    , concat $ map mkEdges backofficeActions
+    ( (startId, "START"):
+      (finishId, "FINISH"):
+      (map mkNode $ snd backofficeActions)
+    , concat $
+      (map mkEntryEdges $ fst backofficeActions) ++
+      (map mkResultEdges $ snd backofficeActions)
     )
     where
-      mkEdges :: Action -> [LEdge Text]
-      mkEdges a =
+      mkEntryEdges :: Entry -> [LEdge Text]
+      mkEntryEdges e =
+          toEdge (GraphCtx
+                  startId
+                  finishId
+                  ["!"]
+                  (TCtx iMap)) $ result e
+      mkResultEdges :: Action -> [LEdge Text]
+      mkResultEdges a =
           concat $
           map (\(r, o) ->
-               toEdge (GraphCtx i finishId r [] (TCtx iMap)) o) $ outcomes a
+               toEdge (GraphCtx
+                       i
+                       finishId
+                       [lkp (IBox r) iMap]
+                       (TCtx iMap)) o) $ outcomes a
           where
             Ident i = aType a
       mkNode :: Action -> LNode Text
@@ -799,7 +856,7 @@ checkBackoffice iMap =
     -- Check unknown outcomes
     outs
     where
-      origNodes = map aType backofficeActions
+      origNodes = map aType $ snd backofficeActions
       uniqNodes = nub origNodes
       (_, edges') = backofficeNodesEdges iMap
       graph = backofficeGraph iMap
