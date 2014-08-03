@@ -82,27 +82,31 @@ module.exports = (grunt) ->
 
 
   thirdParty =
-    md5:        {dir: 'js-md5/js',       file: 'md5.min.js'}
-    d3:         {dir: 'd3',              file: 'd3.min.js'}
-    mustache:   {dir: 'mustache',        file: 'mustache.js'}
-    underscore: {dir: 'underscore',      file: 'underscore.js'}
-    finch:      {dir: 'finchjs',         file: 'finch.min.js'}
-    jquery:     {dir: 'jquery',          file: 'jquery.js'}
-    knockout:   {dir: 'knockoutjs/dist', file: 'knockout.js'}
-    notify:     {dir: 'notifyjs/dist',   file: 'notify-combined.min.js'}
-    spin:       {dir: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
+    md5:        {src: 'js-md5/js',       file: 'md5.min.js'}
+    d3:         {src: 'd3',              file: 'd3.min.js'}
+    mustache:   {src: 'mustache',        file: 'mustache.js'}
+    underscore: {src: 'underscore',      file: 'underscore.js'}
+    finch:      {src: 'finchjs',         file: 'finch.min.js'}
+    jquery:     {src: 'jquery',          file: 'jquery.js'}
+    knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
+    notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
+    spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
+    openLayers:
+      src: 'OpenLayers'
+      dest: 'OpenLayers'
+      file: ['OpenLayers.js', 'img/**', 'theme/**']
 
 
   mkCopyAndClean = (libs, cfg) ->
     for lib, libCfg of libs
       cfg.copy[lib] =
         expand: true
-        cwd:  "bower_components/#{libCfg.dir}"
+        cwd:  "bower_components/#{libCfg.src}"
         src:  libCfg.file
-        dest: "#{pub}/js/3p"
+        dest: "#{pub}/js/3p/#{libCfg.dest ? ''}"
       cfg.clean[lib] =
         expand: true
-        cwd: "#{pub}/js/3p"
+        cwd: "#{pub}/js/3p/#{libCfg.dest ? ''}"
         src: libCfg.file
 
   mkCopyAndClean thirdParty, config
