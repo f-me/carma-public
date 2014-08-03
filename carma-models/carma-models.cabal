@@ -49,6 +49,7 @@ library
     Carma.Model.PaymentType,
     Carma.Model.Program,
     Carma.Model.ProgramType,
+    Carma.Model.Satisfaction,
     Carma.Model.ServiceStatus,
     Carma.Model.ServiceType,
     Carma.Model.SubProgram,

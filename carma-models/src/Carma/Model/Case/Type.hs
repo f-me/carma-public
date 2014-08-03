@@ -18,7 +18,7 @@ import Carma.Model.Engine       (Engine)
 import Carma.Model.CarClass     (CarClass)
 import Carma.Model.CarMake      (CarMake)
 import Carma.Model.CarModel     (CarModel)
-import Carma.Model.LegacyTypes hiding (CarClasses)
+import Carma.Model.LegacyTypes
 
 import Carma.Model.Diagnostics.Cause      (Cause)
 import Carma.Model.Diagnostics.Part       (Part)
