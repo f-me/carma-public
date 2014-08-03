@@ -494,11 +494,11 @@ mixin dict(nameMod, iconClass)
 mixin refCommon
   .accordion-group
     .accordion-heading
-      .accordion-toggle(id="{{ refView }}-link"
+      .accordion-toggle.collapsed(id="{{ refView }}-link"
           data-target='#{{ refView }}-head'
           data-toggle='collapse')
         block
-    .accordion-body.collapse.in(id="{{ refView }}-head")
+    .accordion-body.collapse(id="{{ refView }}-head")
       .accordion-inner(class="{{ refClass }}" id="{{ refView }}")
         // Instance contents are rendered here
 
@@ -508,12 +508,15 @@ mixin simpleRefHdr(name, bindName)
 
 #services-reference-template.reference-template
   +refCommon
-    a.icon.icon-remove
-    a(data-bind='text: _meta.model.title')
-      | Услуга…
-    a(data-bind='attr: { href: \'#printSrv/\'+_meta.model.name+\'/\'+id() }'
-      target='_blank')
-      | [Печать]
+    div.alert(data-bind='style: {"background-color": _svcColor}')
+      a.icon.icon-remove
+      span &nbsp;
+      a(data-bind='text: _meta.model.title')
+        | Услуга…
+      span &nbsp;
+      a(data-bind='attr: { href: \'#printSrv/\'+_meta.model.name+\'/\'+id() }'
+        target='_blank')
+        | [Печать]
 
 
 #partner_services-reference-template.reference-template
@@ -545,15 +548,10 @@ mixin simpleRefHdr(name, bindName)
     // Attachment contents are rendered here
 
 #actions-reference-template.reference-template
-  .accordion-group
-    .accordion-heading(id="{{ refView }}-link")
-      a.accordion-toggle(data-bind='text: actionNameLocal'
-                         data-target='#{{ refView }}-head'
-                         data-toggle='collapse')
+  +refCommon
+    div.alert(data-bind='style: {"background-color": _actColor}')
+      a(data-bind='text: actionNameLocal')
         | Действие…
-    .accordion-body.collapse.in(id="{{ refView }}-head")
-      .accordion-inner(id="{{ refView }}" class="{{ refClass }}")
-        // Instance contents are rendered here
 
 #tarifOptions-reference-template.reference-template
   +refCommon

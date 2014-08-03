@@ -285,6 +285,14 @@ table.dataTable tr.selected-row td.sorting_1 {
   -moz-filter: blur(8px);
 }
 
+/* colorized actions & services */
+div.accordion-toggle > div.alert {
+  margin: 0;
+  z-index: 0;
+  text-shadow: 0;
+  font-weight: bold;
+}
+
 .alert {
   position: relative;
   z-index: 1030;
