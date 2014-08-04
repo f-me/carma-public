@@ -4,7 +4,7 @@
 module ApplicationHandlers where
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
 
-import Backoffice
+import qualified Backoffice hiding (const, not, (==))
 
 import Data.Functor
 import Control.Monad

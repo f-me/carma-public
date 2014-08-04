@@ -7,7 +7,17 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Backoffice ( checkBackoffice
+module Backoffice (
+                   -- * Back office DSL and definition
+                    Action(..)
+                  , Entry(..)
+                  , Backoffice(..)
+                  , Effects(..)
+                  , Trigger
+                  , carmaBackoffice
+
+                  -- * Validation
+                  , checkBackoffice
                   , backofficeText
                   , backofficeDot
                   , IBox(..)

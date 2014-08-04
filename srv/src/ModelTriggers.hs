@@ -1,4 +1,6 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module ModelTriggers where
 
@@ -20,14 +22,32 @@ import Data.Model.Patch (Patch, untypedPatch)
 import Trigger.Dsl
 import qualified Carma.Model.Usermeta as Usermeta
 
+import Backoffice hiding (const)
 
 
 runUpdateTriggers
   :: forall m . Model m
   => IdentI m -> Patch m -> AppHandler (TriggerRes m)
 runUpdateTriggers = runTriggers $ Map.unionsWith (++)
-  [trigOn Usermeta.delayedState $ \_ -> sendWsMessage Usermeta.delayedState
-  ]
+  ([ trigOn Usermeta.delayedState $ \_ -> sendWsMessage Usermeta.delayedState ] ++
+   (map entryToTrigger $ fst carmaBackoffice))
+
+entryToTrigger e = toHaskell (trigger e)
+
+newtype HaskellE (e :: Effects) t = HaskellE (HaskellType t)
+
+type family HaskellType t
+
+type instance HaskellType Trigger = Map (ModelName, FieldName) [Dynamic]
+
+instance Backoffice HaskellE where
+    onServiceField' acc f =
+        HaskellE $ trigOn acc $ \_ -> undefined
+
+
+toHaskell :: HaskellE e t -> HaskellType t
+toHaskell (HaskellE term) = term
+
 
 --  - runReadTriggers
 --    - ephemeral fields
