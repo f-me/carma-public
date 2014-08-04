@@ -61,7 +61,7 @@ wsMessage :: Free (Dsl m) ()
 wsMessage = liftFree (WsMessage ())
 
 logLegacy
-  :: (Model m, SingI name, Typeable typ)
+  :: (Model m, KnownSymbol name, Typeable typ)
   => (m -> F typ name opt)
   -> Free (Dsl m) ()
 logLegacy fld = liftFree (LogLegacy fld ())
@@ -88,10 +88,10 @@ data Dsl m k where
   DbUpdate :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
   WsMessage:: k -> Dsl m k
   LogLegacy
-    :: (Model m, SingI name, Typeable typ)
+    :: (Model m, KnownSymbol name, Typeable typ)
     => (m -> F typ name opt) -> k -> Dsl m k
 
-deriving instance Typeable2 Dsl
+deriving instance Typeable Dsl
 
 -- deriving instance Functor  (Dsl m)
 -- seems we can do this automatically in GHC 7.8
