@@ -20,5 +20,6 @@ instance Model DeferTime where
   type TableName DeferTime = "DeferTime"
   modelInfo = mkModelInfo DeferTime ident
   modelView = \case
-    "" -> Just $ modifyView defaultView [infoText "defertime" time]
+    "" -> Just $ modifyView defaultView [ infoText "defertime" time
+                                        , setMeta "regexp" "timespan" time]
     _  -> Nothing
