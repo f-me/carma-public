@@ -12,6 +12,8 @@ module Backoffice (
                     Action(..)
                   , Entry(..)
                   , Backoffice(..)
+                  , ActionAssignment
+                  , ActionOutcome
                   , Trigger
                   , carmaBackoffice
 
@@ -89,13 +91,13 @@ data Action =
            }
 
 
+data ActionAssignment
+
+
 data ActionOutcome
 
 
 data Trigger
-
-
-data ActionAssignment
 
 
 -- | Back office language (typed tagless final representation).
@@ -111,6 +113,9 @@ class Backoffice impl where
     -- Keep an action assigned to the current user, but also make it
     -- available to a role
     currentUserOr :: IdentI Role -> impl ActionAssignment
+
+    -- Source action which led to this one
+    previousAction :: impl ActionTypeI
 
     -- Context access
     userField     :: FieldI t n d =>
@@ -187,7 +192,7 @@ toBack =
        , sendSMS SMS.create *> proceed [AType.orderService]
        )
      , ( serviceField svcType `oneOf` [ST.ken, ST.consultation]
-       , proceed [AType.closeCase, AType.addBill]
+       , sendSMS SMS.complete *> proceed [AType.closeCase, AType.addBill]
        )
      ]
      (proceed [AType.orderServiceAnalyst])
@@ -217,8 +222,12 @@ orderService :: Action
 orderService =
     Action
     AType.orderService
-    (switch [(userField Usermeta.isJack, currentUserOr Role.bo_order)]
-            (role Role.bo_order))
+    (switch
+     [ (previousAction == const AType.needPartner, currentUserOr Role.bo_order)
+     , (userField Usermeta.isJack, currentUserOr Role.bo_order)
+     ]
+     (role Role.bo_order)
+    )
     (let
         n = (1 * minutes) `since` now
         t = (1 * days) `before` serviceField' times_expectedServiceStart
@@ -522,6 +531,8 @@ instance Backoffice TextE where
     currentUserOr r =
         TextE $ \c ->
             T.append "Текущий пользователь и другие с ролью " $ toText c (const r)
+
+    previousAction = textE "Предыдущее действие"
 
     userField     = textE . fieldDesc
     caseField     = textE . fieldDesc
