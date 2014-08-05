@@ -24,8 +24,10 @@ import Database.PostgreSQL.Simple.SqlQQ
 
 import Snap.Snaplet.PostgresqlSimple
 
+import Carma.Model.FalseCall
 import Carma.Model.ServiceStatus
 import Carma.Model.TechType
+
 
 -- | Query used to select exportable case ids, parametrized by vector
 -- of program ids, used by @/psaCases@.
@@ -38,8 +40,8 @@ AND  (NOT psaexported='yes' OR psaexported IS NULL);
 |]
 
 
--- | Towages within previous 30 days, parametrized by case id and
--- service status list, used in @/repTowages@.
+-- | Towages within previous 30 days, parametrized by case id, service
+-- status list and required falseCall; used in @/repTowages@.
 rtQuery :: Query
 rtQuery = [sql|
 WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
@@ -48,15 +50,16 @@ ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
 WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase)
 AND (s.status = ANY (?))
-AND s.falseCall='none'
+AND s.falseCall=?
 AND c.calldate >= ((SELECT calldate FROM parentcase) - INTERVAL '30 days')
 AND c.calldate < (SELECT calldate FROM parentcase)
 AND c.comment=(SELECT comment FROM parentcase);
 |]
 
 
--- | Recharges within previous 48 hours, parametrized by case id and
--- service status list, used in @/repTowages@.
+-- | Recharges within previous 48 hours, parametrized by case id,
+-- service status list, required falseCall and techType; used in
+-- @/repTowages@.
 rtQuery' :: Query
 rtQuery' = [sql|
 WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
@@ -65,7 +68,7 @@ ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
 WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase)
 AND (s.status = ANY (?))
-AND s.falseCall='none'
+AND s.falseCall= ?
 AND s.techType = ?
 AND c.calldate >= ((SELECT calldate FROM parentcase) - INTERVAL '2 days')
 AND c.calldate <= (SELECT calldate FROM parentcase)
@@ -84,6 +87,6 @@ repTowages :: HasPostgres m =>
            -> m [Text]
 repTowages n = do
   let statuses = V.fromList [ok, closed]
-  rows <- query rtQuery (n, statuses)
-  rows' <- query rtQuery' (n, statuses, charge)
+  rows <- query rtQuery (n, statuses, none)
+  rows' <- query rtQuery' (n, statuses, none, charge)
   return $ nub $ map head (rows ++ rows')
