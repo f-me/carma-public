@@ -20,10 +20,12 @@ import Data.Model as Model
 import Data.Model.Patch (Patch, untypedPatch)
 
 import Trigger.Dsl
+
+import Carma.Model.Role (Role)
+import Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 
-import Backoffice hiding (const)
-
+import Backoffice as BO
 
 runUpdateTriggers
   :: forall m . Model m
@@ -40,7 +42,21 @@ type family HaskellType t
 
 type instance HaskellType Trigger = Map (ModelName, FieldName) [Dynamic]
 
+type instance HaskellType Bool = Bool
+
+type instance HaskellType (IdentI m) = (IdentI m)
+
+type instance HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
+
+type instance HaskellType ActionOutcome = IO ()
+
 instance Backoffice HaskellE where
+    const = HaskellE
+
+    role r = HaskellE (Nothing, r)
+
+    not a = HaskellE $ Prelude.not $ toHaskell a
+
     onServiceField' acc f =
         HaskellE $ trigOn acc $ \_ -> undefined
 
@@ -93,4 +109,4 @@ runTriggers trMap ident patch
     matchingTriggers = concat $ catMaybes $ map (`Map.lookup` trMap) keys
     joinTriggers k tr = do
       let tr' = fromDyn tr $ tError 500 "dynamic BUG"
-      tr' >>= either (return . Left) (const k)
+      tr' >>= either (return . Left) (Prelude.const k)
