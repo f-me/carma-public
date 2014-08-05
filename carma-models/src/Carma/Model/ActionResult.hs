@@ -47,6 +47,8 @@ mkIdents [t|ActionResult|]
  , ("confirmedAccount", 25)
  , ("confirmedAnalyst", 26)
  , ("complaintManaged", 27)
+ , ("falseCallBilled", 28)
+ , ("falseCallUnbilled", 29)
  ]
 
 instance Model ActionResult where
