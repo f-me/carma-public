@@ -135,7 +135,7 @@ data Case = Case
   , dealerCause
     :: F (Maybe Text) "dealerCause" "Неисправность со слов дилера/партнёра"
   , caseStatus
-    :: F (Maybe (IdentI CaseStatus)) "caseStatus" "Статус кейса"
+    :: F (IdentI CaseStatus) "caseStatus" "Статус кейса"
   , psaExportNeeded
     :: F (Maybe Checkbox) "psaExportNeeded" "Требуется выгрузка в PSA"
   , psaExported
