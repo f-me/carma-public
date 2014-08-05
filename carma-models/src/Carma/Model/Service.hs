@@ -93,7 +93,7 @@ data Service = Service
                                  "Оригинал получен"
   , urgentService                :: F (Maybe (IdentT UrgentServiceReason)) "urgentService"
                                  "Приоритетная услуга"
-  , status                       :: F (Maybe (IdentI ServiceStatus)) "status"
+  , status                       :: F (IdentI ServiceStatus) "status"
                                  "Статус услуги"
   , clientSatisfied              :: F (Maybe (IdentI Satisfaction)) "clientSatisfied"
                                  "Клиент доволен"
@@ -135,6 +135,7 @@ svcMod =
     ,invisible contractor_coords
     ,invisible parentId
     ,invisible assignedTo
+    , readonly status
     , setType "text" payment_partnerCost
     , setType "text" payment_calculatedCost
     , setType "text" payment_limitedCost
