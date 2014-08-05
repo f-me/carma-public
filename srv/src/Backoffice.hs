@@ -954,11 +954,13 @@ backofficeDot iMap =
 
 
 -- | A critical flaw in back office.
-data ValidityError = OutOfGraphTargets (ActionTypeI, ActionTypeI)
+data ValidityError = OutOfGraphTarget (ActionTypeI, ActionTypeI)
                    -- ^ The edge leads to a node not described in the
                    -- graph.
                    | Trap (ActionTypeI)
                    -- ^ The node has no path to finish node.
+                   | Unreachable (ActionTypeI)
+                   -- ^ The node has no path from start node.
                    | DuplicateNode ActionTypeI
                    -- ^ A node is described more than once.
                    | ExplicitStart
@@ -986,6 +988,9 @@ checkBackoffice iMap =
     -- Detect traps
     map Trap (filter (\(Ident n) ->
                       null $ esp n finishId graph) origNodes) ++
+    -- Detect unreachable nodes
+    map Unreachable (filter (\(Ident n) ->
+                      null $ esp startId n graph) origNodes) ++
     -- Check START/FINISH collisions
     if Ident finishId `elem` origNodes
     then [ExplicitFinish] else [] ++
@@ -998,7 +1003,7 @@ checkBackoffice iMap =
       uniqNodes = nub origNodes
       (_, edges') = backofficeNodesEdges iMap
       graph = backofficeGraph iMap
-      outs = map OutOfGraphTargets $
+      outs = map OutOfGraphTarget $
              mapMaybe (\(from, to, _) ->
                        if or [ Ident to `elem` origNodes
                              , to Prelude.== finishId
