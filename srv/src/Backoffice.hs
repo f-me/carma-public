@@ -12,7 +12,6 @@ module Backoffice (
                     Action(..)
                   , Entry(..)
                   , Backoffice(..)
-                  , Effects(..)
                   , Trigger
                   , carmaBackoffice
 
@@ -79,10 +78,10 @@ data Action =
            -- ^ Default target role for newly created actions
            -- of this type.
            , due        :: forall impl. (Backoffice impl) =>
-                           impl Pure UTCTime
+                           impl UTCTime
            -- ^ Default due time for new actions.
            , outcomes   :: forall impl. (Backoffice impl) =>
-                           [(ActionResultI, impl Eff ActionOutcome)]
+                           [(ActionResultI, impl ActionOutcome)]
            -- ^ All action results (outward node edges).
            }
 
@@ -95,80 +94,75 @@ data ActionOutcome
 data Trigger
 
 
--- | Type tag for effect control. Pure and Eff are lifted to type
--- level.
-data Effects = Pure | Eff
-
-
 -- | Back office language (typed tagless final representation).
 class Backoffice impl where
     -- Time helpers (see also 'minutes', 'hours', 'days').
-    now    :: impl Pure UTCTime
-    since  :: NominalDiffTime -> impl Pure UTCTime -> impl Pure UTCTime
-    before :: NominalDiffTime -> impl Pure UTCTime -> impl Pure UTCTime
+    now    :: impl UTCTime
+    since  :: NominalDiffTime -> impl UTCTime -> impl UTCTime
+    before :: NominalDiffTime -> impl UTCTime -> impl UTCTime
     before diff time = (-diff) `since` time
 
     -- Context access
     caseField     :: FieldI t n d =>
-                     (Case -> F t n d) -> impl Pure t
+                     (Case -> F t n d) -> impl t
     serviceField  :: FieldI t n d =>
-                     (Service -> F t n d) -> impl Pure t
+                     (Service -> F t n d) -> impl t
     serviceField' :: FieldI t n d =>
-                     (Service -> F (Maybe t) n d) -> impl Pure t
+                     (Service -> F (Maybe t) n d) -> impl t
 
     onServiceField' :: FieldI t n d =>
                        (Service -> F (Maybe t) n d)
-                    -> impl Pure t
-                    -> impl Pure Trigger
+                    -> impl t
+                    -> impl Trigger
 
     -- Boolean combinators (lifted to impl because we usually use
     -- terms from impl as arguments)
-    not  :: impl Pure Bool -> impl Pure Bool
+    not  :: impl Bool -> impl Bool
     infix 4 >
-    (>)  :: Ord v => impl Pure v -> impl Pure v -> impl Pure Bool
+    (>)  :: Ord v => impl v -> impl v -> impl Bool
     infix 4 ==
-    (==) :: Eq v => impl Pure v -> impl Pure v -> impl Pure Bool
+    (==) :: Eq v => impl v -> impl v -> impl Bool
     infixr 3 &&
-    (&&) :: impl Pure Bool -> impl Pure Bool -> impl Pure Bool
+    (&&) :: impl Bool -> impl Bool -> impl Bool
     infixr 2 ||
-    (||) :: impl Pure Bool -> impl Pure Bool -> impl Pure Bool
+    (||) :: impl Bool -> impl Bool -> impl Bool
 
     -- Lift idents for use with comparison combinators
     const :: Model v =>
-             IdentI v -> impl Pure (IdentI v)
+             IdentI v -> impl (IdentI v)
 
     -- List membership predicate
     oneOf :: Model v =>
-             impl Pure (IdentI v) -> [IdentI v] -> impl Pure Bool
+             impl (IdentI v) -> [IdentI v] -> impl Bool
 
-    -- Branching (preserves effect typing)
-    switch :: [(impl Pure Bool, impl e v)]
+    -- Branching
+    switch :: [(impl Bool, impl v)]
            -- ^ List of condition/value pair. The first condition to
            -- be true selects the value of the expression.
-           -> impl e v
+           -> impl v
            -- ^ Default branch (used when no true conditions occured).
-           -> impl e v
+           -> impl v
 
     -- Verbs with side effects
-    setServiceStatus :: IdentI ServiceStatus -> impl Eff ()
-    sendDealerMail :: impl Eff ()
-    sendGenserMail :: impl Eff ()
-    sendPSAMail    :: impl Eff ()
-    sendSMS        :: IdentI SmsTemplate -> impl Eff ()
+    setServiceStatus :: IdentI ServiceStatus -> impl ()
+    sendDealerMail :: impl ()
+    sendGenserMail :: impl ()
+    sendPSAMail    :: impl ()
+    sendSMS        :: IdentI SmsTemplate -> impl ()
 
     -- Control flow combinators
-    finish  :: impl Eff ActionOutcome
-    proceed :: [ActionTypeI] -> impl Eff ActionOutcome
-    defer   :: impl Eff ActionOutcome
+    finish  :: impl ActionOutcome
+    proceed :: [ActionTypeI] -> impl ActionOutcome
+    defer   :: impl ActionOutcome
 
     -- Action chains
     infixr *>
-    (*>) :: impl Eff () -> impl Eff ActionOutcome -> impl Eff ActionOutcome
+    (*>) :: impl () -> impl ActionOutcome -> impl ActionOutcome
 
 
 data Entry =
-    Entry { trigger :: forall impl. (Backoffice impl) => impl Pure Trigger
-          , result  :: forall impl. (Backoffice impl) => impl Eff ActionOutcome
+    Entry { trigger :: forall impl. (Backoffice impl) => impl Trigger
+          , result  :: forall impl. (Backoffice impl) => impl ActionOutcome
           }
 
 
@@ -459,11 +453,11 @@ complaintResolution =
 
 
 -- | Text embedding for Backoffice DSL types.
-newtype TextE (a :: Effects) t = TextE (TCtx -> Text)
+newtype TextE t = TextE (TCtx -> Text)
 
 
 -- | Simple TextE constructor which leaves the context unchanged.
-textE :: Text -> TextE a t
+textE :: Text -> TextE t
 textE t = TextE (Prelude.const t)
 
 
@@ -582,15 +576,15 @@ instance Backoffice TextE where
 
 
 -- | Text evaluator for Backoffice DSL.
-toText :: TCtx -> TextE e v -> Text
+toText :: TCtx -> TextE v -> Text
 toText ctx (TextE f) = f ctx
 
 
 -- | FGL graph edge embedding. A DSL term is converted to a list of
--- edges depending on all possible outcomes. Only effectful terms with
--- semantic type 'ActionOutcome' are interpreted into non-Nothing
--- values. Chained effects and switch conditions are marked on edge
--- labels with @*@ and @?@ symbols.
+-- edges depending on all possible outcomes. Only terms with semantic
+-- type 'ActionOutcome' are interpreted into non-Nothing values.
+-- Chained effects and switch conditions are marked on edge labels
+-- with @*@ and @?@ symbols.
 --
 -- This embedding is basically a tagged one due to use of Maybe.
 -- There're several reasons for this.
@@ -600,13 +594,13 @@ toText ctx (TextE f) = f ctx
 -- interpreter is selected all types of pure combinators such as
 -- 'oneOf' are fixed so that @impl ~ EdgeE@.
 --
--- Effect-polymorphic 'switch' is another problem. Switch could
--- combine branches into a list of produced edges (if branches are
--- effectful) or a list of strings (for pure branches). Without
+-- Polymorphic 'switch' is another problem. Switch could combine
+-- branches into a list of produced edges (if branches are
+-- ActionOutcomes) or a list of strings (for other branches). Without
 -- meta-language tags to distinguish terms embedded as node lists and
 -- those embedded as strings, it's impossible to write a well-typed
 -- combine function.
-data EdgeE (e :: Effects) t = EdgeE (EdgeCtx -> Maybe [LEdge Text])
+data EdgeE t = EdgeE (EdgeCtx -> Maybe [LEdge Text])
 
 
 data EdgeCtx = EdgeCtx { fromNode  :: Int
@@ -620,7 +614,7 @@ fullEdgeLabel :: EdgeCtx -> Text
 fullEdgeLabel c = T.intercalate "," $ edgeLabel c
 
 
-nothing :: EdgeE e t
+nothing :: EdgeE t
 nothing = EdgeE $ Prelude.const Nothing
 
 
@@ -668,12 +662,12 @@ instance Backoffice EdgeE where
 
 
 -- | Interpreter helper to recursively process terms.
-toGraph :: EdgeCtx -> EdgeE e v -> Maybe [LEdge Text]
+toGraph :: EdgeCtx -> EdgeE v -> Maybe [LEdge Text]
 toGraph ctx (EdgeE f) = f ctx
 
 
 -- | Edge evaluator for DSL.
-toEdge :: EdgeCtx -> EdgeE Eff ActionOutcome -> [LEdge Text]
+toEdge :: EdgeCtx -> EdgeE ActionOutcome -> [LEdge Text]
 toEdge ctx g =
     case toGraph ctx g of
       Just v -> v

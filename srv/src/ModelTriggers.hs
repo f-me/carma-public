@@ -34,7 +34,7 @@ runUpdateTriggers = runTriggers $ Map.unionsWith (++)
 
 entryToTrigger e = toHaskell (trigger e)
 
-newtype HaskellE (e :: Effects) t = HaskellE (HaskellType t)
+newtype HaskellE t = HaskellE (HaskellType t)
 
 type family HaskellType t
 
@@ -45,7 +45,7 @@ instance Backoffice HaskellE where
         HaskellE $ trigOn acc $ \_ -> undefined
 
 
-toHaskell :: HaskellE e t -> HaskellType t
+toHaskell :: HaskellE v -> HaskellType v
 toHaskell (HaskellE term) = term
 
 
