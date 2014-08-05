@@ -298,7 +298,8 @@ checkStatus =
     AType.checkStatus
     (role Role.bo_control)
     ((5 * minutes) `since` serviceField' times_expectedServiceStart)
-    [ (AResult.serviceInProgress, proceed [AType.checkEndOfService])
+    [ (AResult.serviceInProgress,
+       setServiceStatus SS.inProgress *> proceed [AType.checkEndOfService])
     , (AResult.defer, defer)
     ]
 
@@ -309,7 +310,8 @@ needPartner =
     AType.needPartner
     (currentUserOr Role.bo_order)
     ((15 * minutes) `since` now)
-    [ (AResult.partnerFound, proceed [AType.orderService])
+    [ (AResult.partnerFound,
+       setServiceStatus SS.order *> proceed [AType.orderService])
     , (AResult.defer, defer)
     ]
 
