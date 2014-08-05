@@ -783,12 +783,13 @@ backofficeText iMap =
           ["\n"]
 
 
+-- Internal ActionType-like code for graph start and node. Used only
+-- when a back office graph is analyzed or printed. Actions of this
+-- type are never actually created. No ActionType ident must collide
+-- with any of these ids.
 startId :: Int
-startId = -1
-
-
 finishId :: Int
-finishId = 0
+(startId, finishId) = (-1, 0)
 
 
 -- | FGL interface. Produce labeled nodes and edges from a back office
@@ -814,7 +815,7 @@ backofficeNodesEdges iMap =
           toEdge (EdgeCtx
                   startId
                   finishId
-                  ["!"]) $ result e
+                  ["T"]) $ result e
       mkResultEdges :: Action -> [LEdge Text]
       mkResultEdges a =
           concat $
