@@ -59,6 +59,8 @@ import qualified Carma.Model.ServiceStatus as SS
 import           Carma.Model.ServiceType as ST
 import           Carma.Model.SmsTemplate (SmsTemplate)
 import qualified Carma.Model.SmsTemplate as SMS
+import           Carma.Model.Usermeta (Usermeta)
+import qualified Carma.Model.Usermeta as Usermeta
 
 
 type ActionTypeI = IdentI ActionType
@@ -74,9 +76,10 @@ data Action =
     Action { aType      :: ActionTypeI
            -- ^ Binds action definition to its name and
            -- description as stored in the database.
-           , targetRole :: IdentI Role
-           -- ^ Default target role for newly created actions
-           -- of this type.
+           , assignment :: forall impl. (Backoffice impl) =>
+                           impl ActionAssignment
+           -- ^ Default target role/user for newly created actions of
+           -- this type.
            , due        :: forall impl. (Backoffice impl) =>
                            impl UTCTime
            -- ^ Default due time for new actions.
@@ -86,12 +89,13 @@ data Action =
            }
 
 
--- | Forces us to use one of the action-ending verbs from Backoffice
--- DSL.
 data ActionOutcome
 
 
 data Trigger
+
+
+data ActionAssignment
 
 
 -- | Back office language (typed tagless final representation).
@@ -102,7 +106,15 @@ class Backoffice impl where
     before :: NominalDiffTime -> impl UTCTime -> impl UTCTime
     before diff time = (-diff) `since` time
 
+    -- Make an action assignable to users with the given role
+    role :: IdentI Role -> impl ActionAssignment
+    -- Keep an action assigned to the current user, but also make it
+    -- available to a role
+    currentUserOr :: IdentI Role -> impl ActionAssignment
+
     -- Context access
+    userField     :: FieldI t n d =>
+                     (Usermeta -> F t n d) -> impl t
     caseField     :: FieldI t n d =>
                      (Case -> F t n d) -> impl t
     serviceField  :: FieldI t n d =>
@@ -205,7 +217,8 @@ orderService :: Action
 orderService =
     Action
     AType.orderService
-    Role.bo_order
+    (switch [(userField Usermeta.isJack, currentUserOr Role.bo_order)]
+            (role Role.bo_order))
     (let
         n = (1 * minutes) `since` now
         t = (1 * days) `before` serviceField' times_expectedServiceStart
@@ -239,7 +252,7 @@ orderServiceAnalyst :: Action
 orderServiceAnalyst =
     Action
     AType.orderServiceAnalyst
-    Role.bo_secondary
+    (role Role.bo_secondary)
     (let
         n = (1 * minutes) `since` now
         t = (1 * days) `before` serviceField' times_expectedServiceStart
@@ -272,7 +285,7 @@ tellClient :: Action
 tellClient =
     Action
     AType.tellClient
-    Role.bo_control
+    (role Role.bo_control)
     ((5 * minutes) `since` now)
     [ (AResult.clientOk, proceed [AType.checkStatus])
     , (AResult.defer, defer)
@@ -283,7 +296,7 @@ checkStatus :: Action
 checkStatus =
     Action
     AType.checkStatus
-    Role.bo_control
+    (role Role.bo_control)
     ((5 * minutes) `since` serviceField' times_expectedServiceStart)
     [ (AResult.serviceInProgress, proceed [AType.checkEndOfService])
     , (AResult.defer, defer)
@@ -294,7 +307,7 @@ needPartner :: Action
 needPartner =
     Action
     AType.needPartner
-    Role.bo_order
+    (currentUserOr Role.bo_order)
     ((15 * minutes) `since` now)
     [ (AResult.partnerFound, proceed [AType.orderService])
     , (AResult.defer, defer)
@@ -304,7 +317,7 @@ checkEndOfService :: Action
 checkEndOfService =
     Action
     AType.checkEndOfService
-    Role.bo_control
+    (role Role.bo_control)
     ((5 * minutes) `since` serviceField' times_expectedServiceEnd)
     [ (AResult.serviceDone,
        sendSMS SMS.complete *>
@@ -323,7 +336,7 @@ closeCase :: Action
 closeCase =
     Action
     AType.closeCase
-    Role.head
+    (role Role.head)
     ((5 * minutes) `since` now)
     [ (AResult.caseClosed, setServiceStatus SS.closed *> finish)
     , (AResult.defer, defer)
@@ -334,7 +347,7 @@ getDealerInfo :: Action
 getDealerInfo =
     Action
     AType.getDealerInfo
-    Role.bo_dealer
+    (role Role.bo_dealer)
     (switch
        [ ( (serviceField svcType == const ST.rent) &&
            caseField Case.program `oneOf` [Program.peugeot, Program.citroen]
@@ -350,7 +363,7 @@ makerApproval :: Action
 makerApproval =
     Action
     AType.makerApproval
-    Role.bo_control
+    (role Role.bo_control)
     ((1 * minutes) `since` now)
     [ (AResult.makerApproved, proceed [AType.orderService])
     , (AResult.makerDeclined, proceed [AType.tellMakerDeclined])
@@ -361,7 +374,7 @@ tellMakerDeclined :: Action
 tellMakerDeclined =
     Action
     AType.tellMakerDeclined
-    Role.bo_control
+    (role Role.bo_control)
     ((5 * minutes) `since` now)
     [ (AResult.clientNotified,
        setServiceStatus SS.closed *> finish)
@@ -372,7 +385,7 @@ addBill :: Action
 addBill =
     Action
     AType.addBill
-    Role.bo_bill
+    (role Role.bo_bill)
     ((14 * days) `since` now)
     [ (AResult.billAttached, proceed [AType.headCheck])
     , (AResult.returnToBack, proceed [AType.billmanNeedInfo])
@@ -384,7 +397,7 @@ billmanNeedInfo :: Action
 billmanNeedInfo =
     Action
     AType.billmanNeedInfo
-    Role.bo_qa
+    (role Role.bo_qa)
     ((5 * minutes) `since` now)
     [ (AResult.returnToBillman, proceed [AType.addBill])
     , (AResult.defer, defer)
@@ -395,7 +408,7 @@ headCheck :: Action
 headCheck =
     Action
     AType.headCheck
-    Role.head
+    (role Role.head)
     ((5 * minutes) `since` now)
     [ (AResult.confirmedFinal, proceed [AType.analystCheck])
     , (AResult.confirmedWODirector, proceed [AType.accountCheck])
@@ -409,7 +422,7 @@ directorCheck :: Action
 directorCheck =
     Action
     AType.directorCheck
-    Role.bo_director
+    (role Role.bo_director)
     ((5 * minutes) `since` now)
     [ (AResult.directorToHead, proceed [AType.headCheck])
     , (AResult.confirmedDirector, proceed [AType.accountCheck])
@@ -422,7 +435,7 @@ accountCheck :: Action
 accountCheck =
     Action
     AType.accountCheck
-    Role.bo_account
+    (role Role.bo_account)
     ((5 * minutes) `since` now)
     [ (AResult.accountToDirector, proceed [AType.directorCheck])
     , (AResult.confirmedAccount, proceed [AType.analystCheck])
@@ -434,7 +447,7 @@ analystCheck :: Action
 analystCheck =
     Action
     AType.analystCheck
-    Role.bo_analyst
+    (role Role.bo_analyst)
     ((5 * minutes) `since` now)
     [ (AResult.confirmedAnalyst, finish)
     , (AResult.defer, defer)
@@ -445,7 +458,7 @@ complaintResolution :: Action
 complaintResolution =
     Action
     AType.complaintResolution
-    Role.bo_qa
+    (role Role.bo_qa)
     ((1 * minutes) `since` now)
     [ (AResult.complaintManaged, finish)
     , (AResult.defer, defer)
@@ -503,6 +516,12 @@ instance Backoffice TextE where
     before dt t =
         TextE (\c -> T.concat [toText c t, " - ", formatDiff dt])
 
+    role r = TextE (\c -> T.append "Пользователи с ролью " $ toText c (const r))
+    currentUserOr r =
+        TextE $ \c ->
+            T.append "Текущий пользователь и другие с ролью " $ toText c (const r)
+
+    userField     = textE . fieldDesc
     caseField     = textE . fieldDesc
     serviceField  = textE . fieldDesc
     serviceField' = textE . fieldDesc
@@ -623,6 +642,10 @@ instance Backoffice EdgeE where
     since _ _ = nothing
     before _ _ = nothing
 
+    role _ = nothing
+    currentUserOr _ = nothing
+
+    userField _ = nothing
     caseField _ = nothing
     serviceField _ = nothing
     serviceField' _ = nothing
@@ -745,6 +768,7 @@ backofficeText iMap =
           [lkp (IBox $ aType a) iMap] ++
           (indent $
            [ T.concat ["Время выполнения: ", toText ctx $ due a]
+           , T.concat ["Ответственность: ", toText ctx $ assignment a]
            , "Результаты:" ] ++
            (indent $
             Prelude.map (\(r, eff) ->
