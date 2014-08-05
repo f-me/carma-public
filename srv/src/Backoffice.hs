@@ -52,6 +52,7 @@ import qualified Carma.Model.ActionResult as AResult
 import           Carma.Model.ActionType (ActionType)
 import qualified Carma.Model.ActionType as AType
 import           Carma.Model.Case.Type as Case
+import           Carma.Model.FalseCall as FS
 import           Carma.Model.Program as Program
 import           Carma.Model.Role as Role
 import           Carma.Model.Satisfaction as Satisfaction
@@ -127,10 +128,16 @@ class Backoffice impl where
     serviceField' :: FieldI t n d =>
                      (Service -> F (Maybe t) n d) -> impl t
 
+    onServiceField :: FieldI t n d =>
+                      (Service -> F t n d)
+                   -> impl t
+                   -> impl Trigger
+
     onServiceField' :: FieldI t n d =>
                        (Service -> F (Maybe t) n d)
                     -> impl t
                     -> impl Trigger
+
 
     -- Boolean combinators (lifted to impl because we usually use
     -- terms from impl as arguments)
@@ -161,7 +168,8 @@ class Backoffice impl where
            -> impl v
 
     -- Verbs with side effects
-    setServiceStatus :: IdentI ServiceStatus -> impl ()
+    setServiceField :: (Model m, t ~ (IdentI m), FieldI t n d) =>
+                       (Service -> F t n d) -> t -> impl ()
     sendDealerMail :: impl ()
     sendGenserMail :: impl ()
     sendPSAMail    :: impl ()
@@ -177,6 +185,10 @@ class Backoffice impl where
     (*>) :: impl () -> impl ActionOutcome -> impl ActionOutcome
 
 
+setServiceStatus :: Backoffice impl => IdentI ServiceStatus -> impl ()
+setServiceStatus = setServiceField Service.status
+
+
 data Entry =
     Entry { trigger :: forall impl. (Backoffice impl) => impl Trigger
           , result  :: forall impl. (Backoffice impl) => impl ActionOutcome
@@ -186,7 +198,7 @@ data Entry =
 toBack :: Entry
 toBack =
     Entry
-    (Service.status `onServiceField'` (const SS.backoffice))
+    (Service.status `onServiceField` (const SS.backoffice))
     (switch
      [ ( serviceField svcType `oneOf` [ST.towage, ST.tech]
        , sendSMS SMS.create *> proceed [AType.orderService]
@@ -197,6 +209,7 @@ toBack =
      ]
      (proceed [AType.orderServiceAnalyst])
     )
+
 
 complaint :: Entry
 complaint =
@@ -370,6 +383,25 @@ getDealerInfo =
     ]
 
 
+cancelService :: Action
+cancelService =
+    Action
+    AType.cancelService
+    (role bo_control)
+    ((1 * minutes) `since` now)
+    [ (AResult.falseCallUnbilled,
+       sendSMS SMS.cancel *>
+       setServiceStatus SS.canceled *>
+       setServiceField Service.falseCall FS.nobill *>
+       finish)
+    , (AResult.falseCallBilled,
+       sendSMS SMS.cancel *>
+       setServiceStatus SS.canceled *>
+       setServiceField Service.falseCall FS.bill *>
+       finish)
+    , (AResult.defer, defer)
+    ]
+
 makerApproval :: Action
 makerApproval =
     Action
@@ -485,6 +517,17 @@ textE :: Text -> TextE t
 textE t = TextE (Prelude.const t)
 
 
+-- | TextE constructor for trigger terms.
+triggerText :: TextE a -> TextE v -> TextE t
+triggerText field value =
+    TextE $ \c ->
+        T.concat [ "Когда "
+                 , toText c field
+                 , " приобретает значение "
+                 , toText c value
+                 ]
+
+
 -- | Existential container for model idents.
 --
 -- Used to store idents for multiple models in a single lookup table.
@@ -539,13 +582,8 @@ instance Backoffice TextE where
     serviceField  = textE . fieldDesc
     serviceField' = textE . fieldDesc
 
-    onServiceField' a v =
-        TextE $ \c ->
-            T.concat [ "Когда "
-                     , toText c $ serviceField' a
-                     , " приобретает значение "
-                     , toText c v
-                     ]
+    onServiceField a v = triggerText (serviceField a) v
+    onServiceField' a v = triggerText (serviceField' a) v
 
     not v =
         TextE (\c -> T.concat ["НЕ выполнено условие ", toText c v])
@@ -579,9 +617,9 @@ instance Backoffice TextE where
                        , toText c ow
                        ]
 
-    setServiceStatus i =
+    setServiceField acc i =
         TextE $ \c ->
-            T.concat [fieldDesc Service.status, " ← ", (toText c . const) i]
+            T.concat [fieldDesc acc, " ← ", (toText c . const) i]
 
     sendSMS i =
         TextE $ \c ->
@@ -658,10 +696,14 @@ instance Backoffice EdgeE where
     role _ = nothing
     currentUserOr _ = nothing
 
+    previousAction = nothing
+
     userField _ = nothing
     caseField _ = nothing
     serviceField _ = nothing
     serviceField' _ = nothing
+
+    onServiceField _ _ = nothing
     onServiceField' _ _ = nothing
 
     not _ = nothing
@@ -681,7 +723,7 @@ instance Backoffice EdgeE where
     oneOf _ _ = nothing
 
     const _ = nothing
-    setServiceStatus _ = nothing
+    setServiceField _ _ = nothing
     sendDealerMail = nothing
     sendGenserMail = nothing
     sendPSAMail = nothing
@@ -748,6 +790,7 @@ carmaBackoffice =
       , checkEndOfService
       , closeCase
       , getDealerInfo
+      , cancelService
       , makerApproval
       , tellMakerDeclined
       , addBill
