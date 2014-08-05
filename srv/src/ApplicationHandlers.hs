@@ -71,6 +71,7 @@ import ModelTriggers (runUpdateTriggers)
 
 import Carma.Model.ActionResult (ActionResult)
 import Carma.Model.ActionType (ActionType)
+import Carma.Model.CaseStatus (CaseStatus)
 import qualified Carma.Model.Role as Role
 import Carma.Model.Satisfaction (Satisfaction)
 import Carma.Model.ServiceStatus (ServiceStatus)
@@ -576,7 +577,7 @@ logResp act = logExceptions "handler/logResp" $ do
   syslogJSON Info "handler/logResp" ["response" .= r]
   writeJSON r
 
-data BORepr = Txt | Dot
+data BORepr = Txt | Dot | Check
 
 type IdentMap m = Map.Map (IdentI m) Text
 
@@ -585,6 +586,7 @@ serveBackofficeSpec repr =
     case repr of
       Txt -> writeText $ backofficeText boxedIMap
       Dot -> writeLazyText $ backofficeDot boxedIMap
+      Check -> writeJSON $ map show $ checkBackoffice boxedIMap
     where
       -- Simple ident mapping
       iMap :: Model m => IdentMap m
@@ -595,6 +597,7 @@ serveBackofficeSpec repr =
       -- Combine mappings for multiple models into one
       boxedIMap = Map.unions [ boxMap (iMap :: IdentMap ActionResult)
                              , boxMap (iMap :: IdentMap ActionType)
+                             , boxMap (iMap :: IdentMap CaseStatus)
                              , boxMap (iMap :: IdentMap Role.Role)
                              , boxMap (iMap :: IdentMap Satisfaction)
                              , boxMap (iMap :: IdentMap ServiceStatus)
