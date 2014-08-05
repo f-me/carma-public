@@ -22,7 +22,6 @@ data Partner = Partner deriving Typeable
 data TowerTypes = TowerTypes deriving Typeable
 data WheelsBlockedCount = WheelsBlockedCount deriving Typeable
 data UrgentServiceReason = UrgentServiceReason deriving Typeable
-data FalseStatuses = FalseStatuses deriving Typeable
 data CallerTypes = CallerTypes deriving Typeable
 data CallTypes   = CallTypes   deriving Typeable
 data Users = Users deriving Typeable

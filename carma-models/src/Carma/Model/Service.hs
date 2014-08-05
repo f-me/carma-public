@@ -11,6 +11,7 @@ import Data.Model.Types ((:@))
 import Data.Model.View
 
 import qualified Carma.Model.ClientRefusalReason as CRR
+import           Carma.Model.FalseCall           (FalseCall)
 import           Carma.Model.LegacyTypes
 import           Carma.Model.PaymentType         (PaymentType)
 import           Carma.Model.Satisfaction        (Satisfaction)
@@ -58,7 +59,7 @@ data Service = Service
                                  "Ожидаемое время закрытия услуги"
   , times_factServiceClosure     :: F (Maybe UTCTime) "times_factServiceClosure"
                                  "Фактическое время закрытия услуги"
-  , falseCall                    :: F (Maybe (IdentT FalseStatuses)) "falseCall"
+  , falseCall                    :: F (IdentI FalseCall) "falseCall"
                                  "Ложный вызов"
   , clientCancelReason           :: F (Maybe Text) "clientCancelReason"
                                  "Причина отказа клиента"

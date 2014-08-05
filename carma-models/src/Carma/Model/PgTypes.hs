@@ -88,7 +88,6 @@ instance PgTypeable  Partner             where pgTypeOf _ = PgType "text" True
 instance PgTypeable  TowerTypes          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  WheelsBlockedCount  where pgTypeOf _ = PgType "text" True
 instance PgTypeable  UrgentServiceReason where pgTypeOf _ = PgType "text" True
-instance PgTypeable  FalseStatuses       where pgTypeOf _ = PgType "text" True
 instance PgTypeable  CallerTypes         where pgTypeOf _ = PgType "text" True
 instance PgTypeable  CallTypes           where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Users               where pgTypeOf _ = PgType "text" True
