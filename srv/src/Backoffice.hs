@@ -52,6 +52,7 @@ import qualified Carma.Model.ActionResult as AResult
 import           Carma.Model.ActionType (ActionType)
 import qualified Carma.Model.ActionType as AType
 import           Carma.Model.Case.Type as Case
+import qualified Carma.Model.CaseStatus as CS
 import           Carma.Model.FalseCall as FS
 import           Carma.Model.Program as Program
 import           Carma.Model.Role as Role
@@ -128,11 +129,14 @@ class Backoffice impl where
     serviceField' :: FieldI t n d =>
                      (Service -> F (Maybe t) n d) -> impl t
 
+    onCaseField :: FieldI t n d =>
+                   (Case -> F t n d)
+                -> impl t
+                -> impl Trigger
     onServiceField :: FieldI t n d =>
                       (Service -> F t n d)
                    -> impl t
                    -> impl Trigger
-
     onServiceField' :: FieldI t n d =>
                        (Service -> F (Maybe t) n d)
                     -> impl t
@@ -204,11 +208,20 @@ toBack =
        , sendSMS SMS.create *> proceed [AType.orderService]
        )
      , ( serviceField svcType `oneOf` [ST.ken, ST.consultation]
-       , sendSMS SMS.complete *> proceed [AType.closeCase, AType.addBill]
+       , sendSMS SMS.complete *>
+         setServiceStatus SS.ok *>
+         proceed [AType.closeCase, AType.addBill]
        )
      ]
      (proceed [AType.orderServiceAnalyst])
     )
+
+
+needInfo :: Entry
+needInfo =
+    Entry
+    (Case.caseStatus `onCaseField` (const CS.needInfo))
+    (proceed [AType.tellMeMore])
 
 
 complaint :: Entry
@@ -508,6 +521,30 @@ complaintResolution =
     ]
 
 
+tellMeMore :: Action
+tellMeMore =
+    Action
+    AType.tellMeMore
+    (role bo_order)
+    ((1 * minutes) `since` now)
+    [ (AResult.communicated, finish)
+    , (AResult.okButNoService, finish)
+    , (AResult.defer, defer)
+    ]
+
+
+callMeMaybe :: Action
+callMeMaybe =
+    Action
+    AType.callMeMaybe
+    (role bo_order)
+    ((1 * minutes) `since` now)
+    [ (AResult.complaintManaged, finish)
+    , (AResult.okButNoService, finish)
+    , (AResult.defer, defer)
+    ]
+
+
 -- | Text embedding for Backoffice DSL types.
 newtype TextE t = TextE (TCtx -> Text)
 
@@ -582,6 +619,7 @@ instance Backoffice TextE where
     serviceField  = textE . fieldDesc
     serviceField' = textE . fieldDesc
 
+    onCaseField a v = triggerText (caseField a) v
     onServiceField a v = triggerText (serviceField a) v
     onServiceField' a v = triggerText (serviceField' a) v
 
@@ -703,6 +741,7 @@ instance Backoffice EdgeE where
     serviceField _ = nothing
     serviceField' _ = nothing
 
+    onCaseField _ _ = nothing
     onServiceField _ _ = nothing
     onServiceField' _ _ = nothing
 
@@ -780,6 +819,7 @@ type BackofficeSpec = ([Entry], [Action])
 carmaBackoffice :: BackofficeSpec
 carmaBackoffice =
     ( [ toBack
+      , needInfo
       , complaint
       ]
     , [ orderService
@@ -800,6 +840,8 @@ carmaBackoffice =
       , accountCheck
       , analystCheck
       , complaintResolution
+      , callMeMaybe
+      , tellMeMore
       ]
     )
 
