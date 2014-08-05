@@ -179,6 +179,8 @@ class Backoffice impl where
     sendPSAMail    :: impl ()
     sendSMS        :: IdentI SmsTemplate -> impl ()
 
+    closeWith :: [ActionTypeI] -> ActionResultI -> impl ()
+
     -- Control flow combinators
     finish  :: impl ActionOutcome
     proceed :: [ActionTypeI] -> impl ActionOutcome
@@ -669,6 +671,14 @@ instance Backoffice TextE where
 
     sendGenserMail = textE "Отправить письмо в Genser"
 
+    closeWith acts r =
+        TextE $ \c ->
+            T.concat [ "Закрыть все ранее созданные действия {"
+                     , T.intercalate ", " $ map (toText c . const) acts
+                     , "} с результатом "
+                     , (toText c . const) r
+                     ]
+
     defer = textE "Отложить действие"
 
     finish = textE "Завершить обработку"
@@ -767,6 +777,8 @@ instance Backoffice EdgeE where
     sendGenserMail = nothing
     sendPSAMail = nothing
     sendSMS _ = nothing
+
+    closeWith _ _ = nothing
 
     defer = EdgeE (\c -> Just [(fromNode c, fromNode c, fullEdgeLabel c)])
     finish = EdgeE (\c -> Just [(fromNode c, finalNode c, fullEdgeLabel c)])
