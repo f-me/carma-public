@@ -9,6 +9,7 @@ import           Data.Configurator
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Pool
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
@@ -48,9 +49,12 @@ int :: ByteString -> String
 int = T.unpack . T.decodeUtf8
 
 
-mkMap :: [ByteString] -> [[Maybe ByteString]] -> [Map ByteString ByteString]
+mkMap :: [Text] -> [[Maybe Text]] -> [Map Text Text]
 mkMap fields = map $ Map.fromList . zip fields . map (maybe "" id)
 
+
+getParamT :: ByteString -> Handler a b (Maybe Text)
+getParamT = fmap (fmap T.decodeUtf8) . getParam
 
 getIntParam :: ByteString -> Handler a b (Maybe Int)
 getIntParam name = do

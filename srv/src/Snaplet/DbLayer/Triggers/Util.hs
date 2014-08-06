@@ -13,9 +13,8 @@ module Snaplet.DbLayer.Triggers.Util
 
 where
 
-import qualified Data.ByteString.Char8 as B
 import           Data.Text (Text)
-import qualified Data.Text.Encoding as T
+import qualified Data.Text.Read as T
 
 import           Snap.Snaplet.PostgresqlSimple ((:.)(..), Only(..))
 
@@ -33,11 +32,11 @@ import           Snaplet.DbLayer.Util
 -- | Fetch label of @clientCancelReason@ field of a service.
 getCRRLabel :: MonadTrigger m b => ObjectId -> m b Text
 getCRRLabel caseId = do
-  c <- get caseId $ T.encodeUtf8 $ fieldName Service.clientCancelReason
-  case (B.readInt c) of
-    Just (c', _) ->
+  c <- get caseId $ fieldName Service.clientCancelReason
+  case T.decimal c of
+    Right (c', _) ->
         do
           [Only l :. ()] <- liftDb $ selectDb $
                             CRR.label :. CRR.ident `eq` Ident c'
           return l
-    Nothing -> return $ T.decodeUtf8 c
+    Left _ -> return c

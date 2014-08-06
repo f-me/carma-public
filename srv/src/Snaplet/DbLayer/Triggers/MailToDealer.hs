@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 module Snaplet.DbLayer.Triggers.MailToDealer
   ( sendMailToDealer
   , tryRepTowageMail
@@ -12,6 +13,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import Data.Text (Text)
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Read as T
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
@@ -31,11 +33,12 @@ import qualified Carma.Model.Program as Program
 
 import AppHandlers.PSA.Base
 
+import qualified Snap.Snaplet.PostgresqlSimple as PG
+import Database.PostgreSQL.Simple.SqlQQ
 import Snap.Snaplet (getSnapletUserConfig)
-import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
-import DictionaryCache
+import Snaplet.DbLayer.Types
 
 import Util as U
 
@@ -84,33 +87,39 @@ mailTemplate = T.pack
   ++ "<p>Заранее благодарим за своевременный ответ, в течение 24 часов.</p>"
 
 
-fillVars :: MonadTrigger m b => ByteString -> m b (Map Text Text)
+fillVars :: MonadTrigger m b => ObjectId -> m b (Map Text Text)
 fillVars caseId
   =   (return $ Map.empty)
-  >>= add "caseId"       (return $ T.filter isNumber $ txt caseId)
+  >>= add "caseId"       (return $ T.filter isNumber caseId)
   >>= add "caseDate"     (get caseId "callDate" >>= U.formatTimestamp)
-  >>= add "car_vin"      (txt <$> get caseId "car_vin")
-  >>= add "car_plateNum" (txt <$> get caseId "car_plateNum")
-  >>= add "wazzup"       (txt <$> get caseId "customerComment")
-  >>= add "car_make"     (get caseId "car_make"  >>= tr carMake . txt)
-  >>= add "car_model"    getCarModel
-  -- TODO Refactor this to a separate monad
+  >>= add "car_vin"      (get caseId "car_vin")
+  >>= add "car_plateNum" (get caseId "car_plateNum")
+  >>= add "wazzup"       (get caseId "customerComment")
+  >>= add "car_make"     (sqlRes <$> carMake)
+  >>= add "car_model"    (sqlRes <$> carModel)
   where
-    txt = T.decodeUtf8
     add k f m = f >>= \v -> return (Map.insert k v m)
-    tr d v = Map.findWithDefault v v <$> liftDb (getDict d)
-    getCarModel = do
-      mk <- txt <$> get caseId "car_make"
-      md <- txt <$> get caseId "car_model"
-      dc <- liftDb $ getDict carModel
-      return
-        $ Map.findWithDefault md md
-        $ Map.findWithDefault Map.empty mk dc
+    sqlRes = \case {[[res]] -> res; _ -> ""}
+    carModel = liftDb $ PG.query
+      [sql|
+        select md.label
+        from casetbl cs, "CarModel" md
+        where cs.id = substring(?, ':(.*)') :: int
+          and md.id = cs.car_model |]
+      [caseId]
+    carMake = liftDb $ PG.query
+      [sql|
+        select mk.label
+        from casetbl cs, "CarMake" mk
+        where cs.id = substring(?, ':(.*)') :: int
+          and mk.id = cs.car_make |]
+      [caseId]
 
-sendMailToDealer :: MonadTrigger m b => ByteString -> m b ()
+
+sendMailToDealer :: MonadTrigger m b => ObjectId -> m b ()
 sendMailToDealer actionId = do
   svcId  <- get actionId "parentId"
-  let svcName = head $ B.split ':' svcId
+  let svcName = head $ T.splitOn ":" svcId
   when (svcId /= "" && svcName == "towage") $ do
     caseId  <- get actionId "caseId"
     program <- get caseId   "program"
@@ -119,7 +128,7 @@ sendMailToDealer actionId = do
       when (payType `elem` (map identFv [PT.ruamc, PT.mixed, PT.refund])) $ do
         dealerId <- get svcId "towDealer_partnerId"
         when (dealerId /= "") $ do
-          dms <- get dealerId "emails"
+          dms <- T.encodeUtf8 <$> get dealerId "emails"
           let mails = getAllKeyedJsonValues dms "close"
           when (mails /= []) $ do
             sendMailActually actionId caseId $
@@ -127,7 +136,7 @@ sendMailToDealer actionId = do
 
 sendMailActually
   :: MonadTrigger m b
-  => ByteString -> ByteString -> ByteString -> m b ()
+  => ObjectId -> ObjectId -> ByteString -> m b ()
 sendMailActually actId caseId addrTo = do
   cfg <- liftDb getSnapletUserConfig
   cfgFrom <- liftIO $ require cfg "psa-smtp-from"
@@ -143,7 +152,7 @@ sendMailActually actId caseId addrTo = do
         QuotedPrintableText Nothing []
         (TL.encodeUtf8 $ TL.fromStrict $ U.render varMap mailTemplate)
 
-  let subj = "Доставлена машина на ремонт / " `T.append` T.decodeUtf8 actId
+  let subj = "Доставлена машина на ремонт / " `T.append` actId
   -- NB. notice `forkIO` below
   -- it also saves us from exceptions thrown while sending an e-mail
   void $ liftIO $ forkIO $ do
@@ -155,25 +164,25 @@ sendMailActually actId caseId addrTo = do
 -- | If a case has towage services which is a repeated towage, send a
 -- mail to PSA.
 tryRepTowageMail :: MonadTrigger m b =>
-                    ByteString
+                    ObjectId
                  -- ^ A reference to a case in the trigger monad
                  -- context.
                  -> m b ()
 tryRepTowageMail caseRef = do
-  serviceRefs <- B.split ',' <$> get caseRef "services"
+  serviceRefs <- T.splitOn "," <$> get caseRef "services"
 
   -- Extract references and proceed to sendRepTowageMail, which
   -- actually does the job.
 
   -- Check if a service is a towage
   forM_ serviceRefs $ \svcRef ->
-    case B.split ':' svcRef of
+    case T.splitOn ":" svcRef of
       "towage":t:_ -> do
           -- Extract corresponding case id.
-          case B.split ':' caseRef of
+          case T.splitOn ":" caseRef of
             "case":n:_ ->
-                case (B.readInt t, B.readInt n) of
-                  (Just (_, _), Just (cid, _)) -> do
+                case ((T.decimal :: T.Reader Int) t, T.decimal n) of
+                  (Right (_ , _), Right (cid, _)) -> do
                       prevRefs <- liftDb $ repTowages cid
                       program <- get caseRef "program"
                       let ident | program == identFv Program.citroen =
@@ -193,11 +202,11 @@ tryRepTowageMail caseRef = do
 
 -- | Send a mail to PSA, reporting on a repeated towage.
 sendRepTowageMail :: MonadTrigger m b =>
-                     ByteString
+                     ObjectId
                   -- ^ Case reference.
-                  -> ByteString
+                  -> ObjectId
                   -- ^ Towage service reference.
-                  -> ByteString
+                  -> ObjectId
                   -- ^ Reference to a previous service for this car.
                   -> (IdentI Program.Program)
                   -> m b ()
@@ -212,7 +221,7 @@ sendRepTowageMail caseRef towageRef prevRef program = do
   bodyTpl  <- liftIO $ require cfg "reptowage-template"
 
   -- Gather data and render mail body
-  vin <- T.decodeUtf8 <$> get caseRef "car_vin"
+  vin <- get caseRef "car_vin"
   twgData <- readObject towageRef
   prevData <- readObject prevRef
 

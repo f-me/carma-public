@@ -7,6 +7,10 @@
         {
             "value": "notSatis",
             "label": "Клиент не доволен"
+        },
+        {
+            "value": "zedIsDead",
+            "label": "Клиент не отвечает"
         }
     ]
 }

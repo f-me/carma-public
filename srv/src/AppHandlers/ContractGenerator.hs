@@ -21,9 +21,9 @@
 
 module AppHandlers.ContractGenerator where
 
+import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as B (toStrict)
 import           Data.Aeson as Aeson
 
@@ -69,7 +69,7 @@ q = [sql|
      WHERE c.id = ?
 |]
 
-fields :: [ByteString]
+fields :: [Text]
 fields = [ "car_vin"
          , "car_seller"
          , "car_make"
@@ -93,7 +93,7 @@ fields = [ "car_vin"
 
 renderContractHandler :: AppHandler ()
 renderContractHandler = do
-  Just contractId <- fmap T.decodeUtf8 <$> getParam "contract"
+  Just contractId <- getParamT "contract"
   aids <- withPG pg_search $ \c -> query c
                 [sql|
                  SELECT a.id::text

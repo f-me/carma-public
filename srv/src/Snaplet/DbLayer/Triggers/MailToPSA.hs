@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 module Snaplet.DbLayer.Triggers.MailToPSA
   ( sendMailToPSA
   ) where
@@ -7,10 +8,9 @@ import Control.Monad
 import Control.Monad.Writer.Strict
 import Control.Concurrent
 
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Read as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
@@ -28,13 +28,15 @@ import Network.Mail.Mime
 import Carma.HTTP
 
 import Snap.Snaplet (getSnapletUserConfig)
+import qualified Snap.Snaplet.PostgresqlSimple as PG
+import Database.PostgreSQL.Simple.SqlQQ
 
 import qualified Carma.Model.Engine as Engine
 import qualified Carma.Model.PaymentType as PT
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.TechType as TT
 
-import Snaplet.DbLayer.Types (getDict)
+import Snaplet.DbLayer.Types (ObjectId, getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
 import Snaplet.DbLayer.Triggers.Util
@@ -42,10 +44,10 @@ import DictionaryCache
 import Util as U
 
 
-sendMailToPSA :: MonadTrigger m b => ByteString -> m b ()
+sendMailToPSA :: MonadTrigger m b => ObjectId -> m b ()
 sendMailToPSA actionId = do
   svcId  <- get actionId "parentId"
-  isValidSvc <- case B.split ':' svcId of
+  isValidSvc <- case T.splitOn ":" svcId of
     "tech":_
       -> (`elem` map identFv [TT.charge, TT.starter, TT.ac])
       <$> get svcId "techType"
@@ -65,7 +67,7 @@ sendMailToPSA actionId = do
       sendMailActually actionId
 
 
-sendMailActually :: MonadTrigger m b => ByteString -> m b ()
+sendMailActually :: MonadTrigger m b => ObjectId -> m b ()
 sendMailActually actionId = do
     syslogJSON Info "trigger/mailToPSA/sendMailToPSA" ["actionId" .= actionId]
     dic <- liftDb $ getDict id
@@ -81,10 +83,9 @@ sendMailActually actionId = do
                            ("FRRM01R", "CIT")
                        | otherwise = error $
                                      "Invalid program: " ++ show program
-        get'Keyed key from field =
-            (T.decodeUtf8
-             . (fromMaybe "") . (flip getKeyedJsonValue key) . T.encodeUtf8)
-            <$> (get' from field)
+        get'Keyed key from field
+          = T.decodeUtf8 . fromMaybe "" . flip getKeyedJsonValue key . T.encodeUtf8
+          <$> get' from field
 
 
     let body = do
@@ -93,8 +94,8 @@ sendMailActually actionId = do
 
           fld 2   "Country Code" <=== "RU"
           fld 9   "Task Id"      <===
-            case B.readInt $ B.dropWhile (not.isDigit) caseId of
-              Just (n,"") -> T.pack $ printf "M%08d" n
+            case T.decimal $ T.dropWhile (not.isDigit) caseId of
+              Right (n,"") -> T.pack $ printf "M%08d" (n :: Int)
               _ -> error $ "Invalid case id: " ++ show caseId
 
           callDate <- fromMaybe (error "Invalid callDate") . toLocalTime tz
@@ -104,11 +105,17 @@ sendMailActually actionId = do
           fld 3   "Make"             <=== mcode
 
           fld 13  "Model"   $ do
-            mk <- get' caseId "car_make"
-            md <- get' caseId "car_model"
-            return $ Map.findWithDefault md md
-              $ Map.findWithDefault Map.empty mk
-              $ carModel dic
+            res <- liftDb $ PG.query
+                  [sql|
+                    select md.label
+                    from casetbl cs, "CarModel" md
+                    where cs.id = substring(?, ':(.*)') :: int
+                      and md.id = cs.car_model
+                      and md.parent = cs.car_make |]
+                  [caseId]
+            return $ case res of
+              [[modelName]] -> modelName
+              _ -> ""
           fld 1   "Energie" $ get caseId "car_engine" >>= \eng ->
                if eng == identFv Engine.diesel
                then return "D"
@@ -151,7 +158,7 @@ sendMailActually actionId = do
               "1" -> U.upCaseName <$> get' caseId "contact_name"
               _   -> U.upCaseName <$> get' caseId "contact_ownerName"
 
-          fld 4  "Job Type" <=== case B.split ':' svcId of
+          fld 4  "Job Type" <=== case T.splitOn ":" svcId of
             "tech":_ -> "DEPA"
             "towage":_ -> "REMO"
             "consultation":_ -> "TELE"
@@ -174,23 +181,22 @@ sendMailActually actionId = do
     cfgTo   <- liftIO $ require cfg "psa-smtp-recipients"
     cfgReply<- liftIO $ require cfg "psa-smtp-replyto"
 
-    -- FIXME: throws `error` if sendmail exits with error code
     void $ liftIO $ forkIO $ do
       syslogJSON Info "trigger/mailToPSA/sendMailToPSA" ["actionId" .= actionId]
       logExceptions "trigger/mailToPSA/sendMailToPSA"
         $ renderSendMailCustom "/usr/sbin/sendmail" ["-t", "-r", T.unpack cfgFrom]
-        $ (emptyMail $ Address Nothing cfgFrom)
-          {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
-          ,mailHeaders
-            = [ ("Reply-To", cfgReply)
-              , ("Subject"
-            ,T.concat ["RAMC ", T.decodeUtf8 svcId, " / ", T.decodeUtf8 actionId])]
-          ,mailParts = [[bodyPart]]
-          }
+          $ (emptyMail $ Address Nothing cfgFrom)
+            {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
+            ,mailHeaders
+              = [ ("Reply-To", cfgReply)
+                , ("Subject", T.concat ["RAMC ", svcId, " / ", actionId])
+                ]
+            ,mailParts = [[bodyPart]]
+            }
 
 
-get' :: MonadTrigger m b => ByteString -> ByteString -> m b Text
-get' = (fmap (unlines' . T.decodeUtf8) .) . get
+get' :: MonadTrigger m b => Text -> Text -> m b Text
+get' = (fmap unlines' .) . get
   where
     unlines' = T.replace "\r" "" . T.replace "\n" " "
 
@@ -208,15 +214,15 @@ f <=== v = f $ return v
 tmFormat :: FormatTime t => String -> t -> Text
 tmFormat = (T.pack .) . formatTime defaultTimeLocale
 
-toLocalTime :: TimeZone -> ByteString -> Maybe LocalTime
-toLocalTime tz tm = case B.readInt tm of
-  Just (s,"") -> Just $ utcToLocalTime tz
-    $ posixSecondsToUTCTime $ fromIntegral s
+toLocalTime :: TimeZone -> ObjectId -> Maybe LocalTime
+toLocalTime tz tm = case T.decimal tm of
+  Right (s,"") -> Just $ utcToLocalTime tz
+    $ posixSecondsToUTCTime (fromInteger s)
   _ -> Nothing
 
-readGregorian :: ByteString -> Maybe Day
+readGregorian :: Text -> Maybe Day
 readGregorian tm =
-    case map B.readInt $ B.split '-' tm of
-      [Just (y, _), Just (m, _), Just (d, _)] ->
+    case map T.decimal $ T.splitOn "-" tm of
+      [Right (y, _), Right (m, _), Right (d, _)] ->
           fromGregorianValid (fromIntegral y) m d
       _ -> Nothing

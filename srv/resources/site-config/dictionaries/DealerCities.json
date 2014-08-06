@@ -1429,6 +1429,14 @@
             "label": "Саратов"
         },
         {
+            "value": "Sevastopol",
+            "label": "Севастополь"
+        },
+        {
+            "value": "Simferopol",
+            "label": "Симферополь"
+        },        
+        {
             "value": "Svetlograd",
             "label": "Светлоград"
         },

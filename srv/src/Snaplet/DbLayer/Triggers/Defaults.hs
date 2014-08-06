@@ -8,16 +8,17 @@ import Control.Monad.IO.Class
 import Data.Functor
 import Data.Map (Map)
 import qualified Data.Map as Map
-import qualified Data.ByteString.Char8 as B
+import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Data.Time.Format (formatTime)
-import Data.Maybe
 import System.Locale (defaultTimeLocale)
 import Snap
 import Snap.Snaplet.Auth
 import Snaplet.Auth.Class
+import Snap.Snaplet.PostgresqlSimple
 
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
@@ -30,14 +31,13 @@ import qualified Carma.Model.TowType as TowType
 import Snaplet.DbLayer.Types
 
 import Util
-import Utils.RKCCalc
-import qualified Utils.Events as Evt
+
 
 -- | Populate a commit with default field values.
 applyDefaults :: HasAuth b
               => ModelName
-              -> Map FieldName B.ByteString
-              -> Handler b (DbLayer b) (Map FieldName B.ByteString)
+              -> Object
+              -> Handler b (DbLayer b) Object
 applyDefaults model obj = do
   ct <- liftIO $ round . utcTimeToPOSIXSeconds
               <$> getCurrentTime
@@ -47,7 +47,7 @@ applyDefaults model obj = do
       h  = 60 * m
       d  = 24 * h
       y  = 365 * d
-      cd = Map.insert "callDate" (B.pack $ show ct) obj
+      cd = Map.insert "callDate" (T.pack $ show ct) obj
   obj' <- case model of
     "partner" -> return
               $ Map.insertWith (flip const) "isActive" "0"
@@ -57,8 +57,9 @@ applyDefaults model obj = do
     "case" -> return cd
     "call" -> do
           Just u <- withAuth currentUser
-          let login = T.encodeUtf8 $ userLogin u
-          return $ Map.insert "callTaker" login cd
+          [[u']] <- query "SELECT id::text FROM usermetatbl WHERE uid::text = ?"
+             (Only $ return . unUid =<< userId u)
+          return $ Map.insert "callTaker" u' cd
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
     "contract" ->
       -- Store user id in owner field if it's not present
@@ -66,69 +67,45 @@ applyDefaults model obj = do
         Nothing -> do
           Just u <- withAuth currentUser
           let Just (UserId uid) = userId u
-          return $ Map.insert "owner" (T.encodeUtf8 uid) obj
+          return $ Map.insert "owner" uid obj
         _ -> return obj
 
     "taxi" -> do
-      let parentId = obj Map.! "parentId"
+      let parentId = T.encodeUtf8 $ obj Map.! "parentId"
       Right caseAddr <- Redis.runRedisDB redis
                 $ Redis.hget parentId "caseAddress_address"
-      return $ case caseAddr of
+      return $ case T.decodeUtf8 <$> caseAddr of
         Just addr -> Map.insert "taxiFrom_address" addr obj
         Nothing   -> obj
 
     "vin"  -> return $ Map.fromList
-              [ ("validFrom"  , B.pack $ show ct)
-              , ("validUntil" , B.pack $ show $ ct + y)
-              , ("makeYear"   , B.pack cy)
+              [ ("validFrom"  , T.pack $ show ct)
+              , ("validUntil" , T.pack $ show $ ct + y)
+              , ("makeYear"   , T.pack cy)
               ]
     _ -> return obj
-
-  dict <- gets rkcDict
-  kase <- Redis.runRedisDB redis $ Redis.hgetall $
-          fromMaybe "" $ Map.lookup "parentId" obj
-  let kase' = either (\_ -> Map.empty) Map.fromList kase
 
   obj'' <- if model `elem` services
       then do
         return $ Map.union obj' $ Map.fromList
-          [("times_expectedServiceStart",   B.pack $ show $ ct + h)
-          ,("times_factServiceStart",       B.pack $ show $ ct + h)
-          ,("times_expectedServiceEnd",     B.pack $ show $ ct + 2*h)
-          ,("times_expectedServiceClosure", B.pack $ show $ ct + 12*h)
-          ,("times_factServiceClosure",     B.pack $ show $ ct + 12*h)
-          ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
-          ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
-          ,("times_expectedDispatch",       B.pack $ show $ ct + 10 * m)
-          ,("createTime",                   B.pack $ show $ ct)
-          ,("marginalCost",                 setSrvMCost model obj' kase' dict)
+          [("times_expectedServiceStart",   T.pack $ show $ ct + h)
+          ,("times_factServiceStart",       T.pack $ show $ ct + h)
+          ,("times_expectedServiceEnd",     T.pack $ show $ ct + 2*h)
+          ,("times_expectedServiceClosure", T.pack $ show $ ct + 12*h)
+          ,("times_factServiceClosure",     T.pack $ show $ ct + 12*h)
+          ,("times_expectedDealerInfo",     T.pack $ show $ ct + 7*d)
+          ,("times_factDealerInfo",         T.pack $ show $ ct + 7*d)
+          ,("times_expectedDispatch",       T.pack $ show $ ct + 10 * m)
+          ,("createTime",                   T.pack $ show $ ct)
           ,("urgentService",                "notUrgent")
           ]
       else return obj'
 
-  obj''' <- do
-    case model of
-      "cost_serviceTarifOption" -> do
-        o <- liftM (Map.union obj'') (pricesFromOpt obj'')
-        let srvId = fromMaybe "" $ Map.lookup "parentId" o
-        srv <- Redis.runRedisDB redis $ Redis.hgetall srvId
-        case Map.fromList <$> srv of
-          Left _  -> return o
-          Right s -> return $ fromMaybe o $ do
-            ptype <- getCostField s
-            price <- lookupNE ptype   o >>= mbreadDouble
-            count <- lookupNE "count" o >>= mbreadDouble
-            return $ Map.union o $ Map.fromList
-              [ ("price", printBPrice price)
-              , ("cost",  printBPrice $ price*count)
-              ]
-
-      _ -> return obj''
-
-  return $ Map.union (Map.insert "ctime" (B.pack $ show ct) obj''')
+  return $ Map.union (Map.insert "ctime" (T.pack $ show ct) obj'')
          $ Map.findWithDefault Map.empty model defaults
 
-services :: [B.ByteString]
+
+services :: [Text]
 services =
   ["deliverCar"
   ,"deliverParts"
@@ -151,7 +128,7 @@ services =
   ,"consultation"
   ]
 
-serviceDefaults :: Map FieldName B.ByteString
+serviceDefaults :: Object
 serviceDefaults = Map.fromList
   [("status", identFv SS.creating)
   ,("payType", identFv PaymentType.ruamc)
@@ -209,19 +186,3 @@ defaults = Map.fromList
     [("isActive", "1")
     ])
   ]
-
--- | Copy price1 and price2 from tarifOption to new cost_serviceTarifOption
-pricesFromOpt :: Map B.ByteString B.ByteString -> Handler b (DbLayer b) (Map B.ByteString B.ByteString)
-pricesFromOpt obj = do
-  case Map.lookup "tarifOptionId" obj of
-    Nothing -> return Map.empty
-    Just id -> do
-      o <- Redis.runRedisDB redis $ Redis.hgetall id
-      case o of
-        Left _     -> return Map.empty
-        Right opt' -> do
-          let lp p = fromMaybe "" $ Map.lookup p $ Map.fromList opt'
-          return $ Map.fromList
-            [ ("price1", lp "price1")
-            , ("price2", lp "price2")
-            ]

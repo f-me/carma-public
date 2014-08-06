@@ -20,7 +20,9 @@ module AppHandlers.Users
 where
 
 import           Data.Maybe
+import           Data.Text (Text)
 import qualified Data.Text           as T
+import qualified Data.Text.Encoding  as T
 import qualified Data.HashMap.Strict as HM
 import           Data.String (fromString)
 import           Data.Time.Calendar (Day)
@@ -92,13 +94,13 @@ alwaysPass = const True
 hasAnyOfRoles :: [IdentI Role] -> RoleChecker
 hasAnyOfRoles authRoles =
     \userRoles -> any (flip elem ar) userRoles
-        where ar = map (\i -> Snap.Role $ identFv i) authRoles
+        where ar = map (\i -> Snap.Role $ T.encodeUtf8 $ identFv i) authRoles
 
 
 hasNoneOfRoles :: [IdentI Role] -> RoleChecker
 hasNoneOfRoles authRoles =
     \userRoles -> not $ any (flip elem ar) userRoles
-        where ar = map (\i -> Snap.Role $ identFv i) authRoles
+        where ar = map (\i -> Snap.Role $ T.encodeUtf8 $ identFv i) authRoles
 
 
 ------------------------------------------------------------------------------
@@ -147,7 +149,7 @@ serveUserCake
     Nothing -> handleError 401
     Just u'  -> do
       usr <- with db $ replaceMetaRolesFromPG u'
-      let homePage = case map (\(Snap.Role r) -> r) $ userRoles usr of
+      let homePage = case [T.decodeUtf8 r | Snap.Role r <- userRoles usr] of
             rs | (identFv Role.head)       `elem` rs -> "/#rkc"
                | (identFv Role.supervisor) `elem` rs -> "/#supervisor"
                | (identFv Role.call)       `elem` rs -> "/#call"
@@ -161,7 +163,7 @@ serveUserCake
 -- | Serve user states
 serveUserStates :: AppHandler ()
 serveUserStates = do
-  usrId <- readUsermeta <$> getParam "userId"
+  usrId <- readUsermeta <$> getParamT "userId"
   from  <- readDay <$> getParam "from"
   to    <- readDay <$> getParam "to"
   states <- withPG pg_search $ \c -> do
@@ -178,5 +180,5 @@ serveUserStates = do
   where
     readDay :: Maybe BS.ByteString -> Day
     readDay = read . BS.unpack . fromJust
-    readUsermeta :: Maybe BS.ByteString -> IdentI Usermeta
+    readUsermeta :: Maybe Text -> IdentI Usermeta
     readUsermeta = readIdent . fromJust

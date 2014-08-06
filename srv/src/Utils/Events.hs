@@ -13,8 +13,6 @@ import           Text.Printf
 import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T
-import           Data.ByteString.Char8 (ByteString)
-import qualified Data.ByteString.Char8 as B
 import           Data.Time.Clock (getCurrentTime)
 import           GHC.TypeLits
 
@@ -63,7 +61,7 @@ logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
                  , Model m, SingI n)
               => EventType
               -- ^ event type
-              -> ByteString
+              -> Text
               -- ^ Legacy object identifier `model:id`
               -> (m -> F t n d)
               -- ^ Changed field
@@ -137,7 +135,7 @@ create ev = withPG $ \c -> liftIO $ P.create ev c
 buildLegacy :: forall m t n d.(Model m, SingI n)
             => EventType
             -- ^ Type of the event
-            -> ByteString
+            -> Text
             -- ^ legacy id `model:id`
             -> (m -> F t n d)
             -- ^ Changed field
@@ -146,7 +144,7 @@ buildLegacy tpe objId fld =
   buildFull tpe idt (Just fld)
   where
     idt        = readIdent rawid :: IdentI m
-    (_:rawid:_) = B.split ':' objId
+    (_:rawid:_) = T.splitOn ":" objId
 
 data States = States { from :: [UserStateVal], to :: UserStateVal }
 (>>>) :: [UserStateVal] -> UserStateVal -> States
@@ -277,7 +275,7 @@ getRealUid = do
                 Only (unUid $ fromJust $ userId $ u)
   return uid
 
-mkActionId :: ByteString -> IdentI Action
+mkActionId :: Text -> IdentI Action
 mkActionId bs = readIdent bs
 
 addIdent :: forall m.Model m => IdentI m -> Patch Event -> Patch Event

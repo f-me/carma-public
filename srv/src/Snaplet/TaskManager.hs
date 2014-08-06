@@ -156,11 +156,12 @@ create :: TaskWorker
 create handler = do
   -- Generate a new token
   r <- gets rng
-  token <- liftIO $ atomically $ do
+  tokenStr <- liftIO $ atomically $ do
              gen <- readTVar r
              let (i, g) = next gen
              writeTVar r g
-             return $ B8.pack $ show $ md5 $ BL8.pack $ show i
+             return $ show $ md5 $ BL8.pack $ show i
+  let token = B8.pack tokenStr
 
   -- Start a new task
   ts' <- gets tasks
@@ -178,7 +179,7 @@ create handler = do
                  (Task $ Finished (msg, outPath))
 
   -- Serve token to client
-  writeJSON $ M.singleton ("token" :: String) token
+  writeJSON $ M.singleton ("token" :: String) tokenStr
 
 
 -- | Serve current task status in JSON.

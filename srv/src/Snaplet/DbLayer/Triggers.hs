@@ -10,7 +10,7 @@ import Control.Monad (foldM)
 import Control.Monad.Trans.State (execStateT)
 
 import qualified Data.Map as Map
-import qualified Data.ByteString.Char8 as B
+import qualified Data.Text as T
 
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import Snaplet.DbLayer.Types
@@ -28,11 +28,13 @@ triggerCreate model obj =
       _ -> return obj
 
 
-triggerUpdate :: (HasAuth b, HasMsg b)
-              => ModelName -> ObjectId -> Object -> DbHandler b ([DbHandler b ()], ObjectMap)
+triggerUpdate
+  :: (HasAuth b, HasMsg b)
+  => ModelName -> ObjectId -> Object
+  -> DbHandler b ([DbHandler b ()], ObjectMap)
 triggerUpdate model objId commit = do
-  let fullId = B.concat [model, ":", objId]
-  let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
+  let fullId = T.concat [model, ":", objId]
+  let stripUnchanged orig = Map.filterWithKey (\k v -> (Map.lookup k orig /= Just v) && (not $ ((k == "program") && (v == "") && (model == "case"))))
   commit' <- (`stripUnchanged` commit) <$> Redis.read' redis fullId
   commit'' <- case model of
                 "usermeta" -> updateUsermetaTrigger objId commit'
@@ -66,6 +68,6 @@ matchingTriggers cfg updates
       = concat $ Map.elems
       $ Map.intersectionWith applyTriggers modelTriggers obj
       where
-        model = fst $ B.break (==':') objId
+        model:_ = T.splitOn ":" objId
         modelTriggers = Map.findWithDefault Map.empty model cfg
         applyTriggers tgs val = map (\t -> t objId val) tgs
