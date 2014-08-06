@@ -29,7 +29,7 @@ Executable carma-mobile-server
     carma-http                  >= 0.3 && < 0.5,
     carma-models                >= 0.20 && < 0.21,
     configurator                == 0.2.*,
-    lens                        >= 3.8 && < 3.11,
+    lens                        >= 3.8 && < 4.3,
     HTTP                        == 4000.2.*,
     MonadCatchIO-transformers   >= 0.2.1 && < 0.4,
     mtl                         >= 2 && < 3,
