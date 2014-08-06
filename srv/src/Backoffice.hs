@@ -26,7 +26,7 @@ module Backoffice (
 where
 
 import           Prelude hiding ((>), (==), (||), (&&), const)
-import qualified Prelude ((>), (==), (||), (&&), const)
+import qualified Prelude as P ((>), (==), (||), (&&), const)
 
 import           Control.Monad.Trans.State
 import           Data.Functor
@@ -556,7 +556,7 @@ newtype TextE t = TextE (TCtx -> Text)
 
 -- | Simple TextE constructor which leaves the context unchanged.
 textE :: Text -> TextE t
-textE t = TextE (Prelude.const t)
+textE t = TextE (P.const t)
 
 
 -- | TextE constructor for trigger terms.
@@ -582,7 +582,7 @@ instance Show IBox where
 
 instance Eq IBox where
     (IBox b1@(Ident i1)) == (IBox b2@(Ident i2)) =
-        (typeOf b1, i1) Prelude.== (typeOf b2, i2)
+        (typeOf b1, i1) P.== (typeOf b2, i2)
 
 
 instance Ord IBox where
@@ -707,6 +707,11 @@ toText ctx (TextE f) = f ctx
 -- Chained effects and switch conditions are marked on edge labels
 -- with @*@ and @?@ symbols.
 --
+-- A switch condition results in (b+1) extra edges, where b is the
+-- amount of switch branches (counting the default branch). An extra
+-- node is included between source and target nodes when a switch
+-- construct occurs.
+--
 -- This embedding is basically a tagged one due to use of Maybe.
 -- There're several reasons for this.
 --
@@ -721,6 +726,11 @@ toText ctx (TextE f) = f ctx
 -- meta-language tags to distinguish terms embedded as node lists and
 -- those embedded as strings, it's impossible to write a well-typed
 -- combine function.
+--
+-- The embedding uses both a context and a monad to generate new
+-- switch nodes. The two are distinct because the context is not used
+-- after the term has been interpreted, while switch node counter is
+-- supposed to be used when multiple terms are processed.
 data EdgeE t = EdgeE (EdgeCtx -> NodeGenerator (Maybe [LEdge Text]))
 
 
@@ -734,6 +744,7 @@ data EdgeCtx = EdgeCtx { fromNode  :: Int
 type NodeGenerator a = State Node a
 
 
+-- | Yield new node index.
 mkNewNode :: NodeGenerator Node
 mkNewNode = do
   n <- get
@@ -746,7 +757,7 @@ fullEdgeLabel c = T.intercalate "," $ edgeLabel c
 
 
 nothing :: EdgeE t
-nothing = EdgeE $ Prelude.const $ return Nothing
+nothing = EdgeE $ P.const $ return Nothing
 
 
 instance Backoffice EdgeE where
@@ -777,11 +788,16 @@ instance Backoffice EdgeE where
     switch conds ow =
         EdgeE $ \c ->
             let
-                branches = ow:(map snd conds)
-                toGraph' = toGraph c{edgeLabel = (edgeLabel c) ++ ["?"]}
+                branches = map snd conds ++ [ow]
+                toGraph' swNode =
+                    toGraph c{edgeLabel = [switchLabel], fromNode = swNode}
             in do
-              brs <- mapM toGraph' branches
-              return $ Just $ concat $ catMaybes brs
+              swNode <- mkNewNode
+              -- Insert intermediate switch node between source node
+              -- and branch destinations
+              let toSwitch = (fromNode c, swNode, fullEdgeLabel c)
+              brs <- mapM (toGraph' swNode) branches
+              return $ Just $ toSwitch:(concat $ catMaybes brs)
 
     oneOf _ _ = nothing
 
@@ -802,7 +818,8 @@ instance Backoffice EdgeE where
             return $ Just [(fromNode c, finalNode c, fullEdgeLabel c)]
     proceed acts =
         EdgeE $ \c ->
-            return $ Just $ map (\(Ident ai) -> (fromNode c, ai, fullEdgeLabel c)) acts
+            return $ Just $
+            map (\(Ident ai) -> (fromNode c, ai, fullEdgeLabel c)) acts
 
     -- Mark presence of left-hand effects
     _ *> b = EdgeE $ \c -> toGraph c{edgeLabel = (edgeLabel c) ++ ["*"]} b
@@ -910,27 +927,55 @@ backofficeText iMap =
 -- when a back office graph is analyzed or printed. Actions of this
 -- type are never actually created. No ActionType ident must collide
 -- with any of these ids.
-startId :: Int
-finishId :: Int
-(startId, finishId) = (-1, 0)
+startNode :: LNode Text
+startNode = (-1, "START")
+
+finishNode :: LNode Text
+finishNode = (0, "FINISH")
+
+
+switchLabel :: Text
+switchLabel = "?"
 
 
 -- | FGL interface. Produce labeled nodes and edges from a back office
--- description.
+-- description. Also return a list of switch nodes.
 --
--- Node indices correspond to numeric values of corresponding
--- ActionType idents.
+-- Non-switch node indices correspond to numeric values of
+-- corresponding ActionType idents.
 --
--- Extra finish node is explicitly inserted into the graph. Node index
--- 'finishId' must not be used by any of other idents.
+-- Extra finish & start nodes are explicitly inserted into the graph.
+-- Node indices of 'finish' and 'start' must not be used by any of
+-- other idents.
+--
+-- Switch constructs also produce extra switch nodes, returned as the
+-- last value in the triple.
 backofficeNodesEdges :: Map IBox Text -> ([LNode Text], [LEdge Text])
 backofficeNodesEdges iMap =
-    ( (startId, "START"):
-      (finishId, "FINISH"):
-      (map mkNode $ snd carmaBackoffice)
-    , evalState mkEdges (100::Node)
+    ( stateNodes ++ switchNodes
+    , allEdges
     )
     where
+      -- First, build graph nodes for states (action types plus
+      -- start/finish states)
+      stateNodes :: [LNode Text]
+      stateNodes = startNode:
+                   finishNode:
+                   (map mkNode $ snd carmaBackoffice)
+      mkNode :: Action -> LNode Text
+      mkNode a = (i, lkp (IBox t) iMap)
+          where
+            t@(Ident i) = aType a
+      -- Find out first untaken node id and use it to produce switch
+      -- nodes
+      firstSwitchNode :: Node
+      firstSwitchNode = 1 + (maximum $ map fst stateNodes)
+      -- Generate all edges. Count and generate extra nodes produced
+      -- for switch constructs.
+      (allEdges, nextSwitchNode) = runState mkEdges firstSwitchNode
+      switchNodes :: [LNode Text]
+      switchNodes = zip [firstSwitchNode .. nextSwitchNode - 1] $
+                    repeat switchLabel
       mkEdges :: NodeGenerator [LEdge Text]
       mkEdges = do
         entries <- mapM mkEntryEdges $ fst carmaBackoffice
@@ -939,20 +984,16 @@ backofficeNodesEdges iMap =
       mkEntryEdges :: Entry -> NodeGenerator [LEdge Text]
       mkEntryEdges e =
           toEdge (EdgeCtx
-                  startId
-                  finishId
+                  (fst startNode)
+                  (fst finishNode)
                   ["T"]) $ result e
       mkResultEdges :: Action -> NodeGenerator [LEdge Text]
       mkResultEdges a = do
         let Ident i = aType a
         concat <$> (mapM
                     (\(r, o) ->
-                         toEdge (EdgeCtx i finishId [lkp (IBox r) iMap]) o) $
+                     toEdge (EdgeCtx i (fst finishNode) [lkp (IBox r) iMap]) o) $
                     outcomes a)
-      mkNode :: Action -> LNode Text
-      mkNode a = (i, lkp (IBox t) iMap)
-          where
-            t@(Ident i) = aType a
 
 
 backofficeGraph :: Map IBox Text -> Gr Text Text
@@ -963,9 +1004,18 @@ backofficeGraph iMap = uncurry mkGraph (backofficeNodesEdges iMap)
 backofficeDot :: Map IBox Text -> LT.Text
 backofficeDot iMap =
     printIt $
-    graphToDot nonClusteredParams{ fmtNode = \(_, l) -> [toLabel l]
+    graphToDot nonClusteredParams{ fmtNode = fmtN
                                  , fmtEdge = \(_, _, l) -> [toLabel l]} $
     backofficeGraph iMap
+    where
+      fmtN = \n@(_, l) -> [ toLabel l
+                          , shape $
+                            if (n P.== finishNode) P.|| (n P.== startNode)
+                            then DoubleCircle
+                            else if l P.== switchLabel
+                                 then DiamondShape
+                                 else Ellipse
+                          ]
 
 
 -- | A critical flaw in back office.
@@ -1014,6 +1064,8 @@ checkBackoffice iMap =
     -- Check unknown outcomes
     outs
     where
+      finishId = fst finishNode
+      startId = fst startNode
       origNodes = map aType $ snd carmaBackoffice
       uniqNodes = nub origNodes
       (_, edges') = backofficeNodesEdges iMap
@@ -1021,7 +1073,7 @@ checkBackoffice iMap =
       outs = map OutOfGraphTarget $
              mapMaybe (\(from, to, _) ->
                        if or [ Ident to `elem` origNodes
-                             , to Prelude.== finishId
+                             , to P.== finishId
                              ]
                        then Nothing
                        else Just (Ident from, Ident to)) edges'
