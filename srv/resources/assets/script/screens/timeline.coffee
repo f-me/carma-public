@@ -13,8 +13,10 @@ define ["text!tpl/screens/timeline.html"
     constructor: (bind) ->
       @margin = 25
 
-      @width = 720
+      @width = 1020
       @height = 240
+
+      @tlWidth = @width * 0.7
 
       @user = bind.user
       @elementId = "chart-#{@user.id()}"
@@ -45,6 +47,7 @@ define ["text!tpl/screens/timeline.html"
         if _.first(srects).begin <= @startDate
           _.first(srects).drawBegin = @startDate
         _.last(srects).drawEnd  = @endDate
+      return if _.isEmpty srects
       @data = d3.entries(srects)
       if @chart then @draw()
 
@@ -93,20 +96,20 @@ define ["text!tpl/screens/timeline.html"
       # main container
       @chart = d3.select($(element).find(".chart")[0])
         .append("svg")
-        .attr('widht', @width)
+        .attr('width', @width)
         .attr('height', @height)
 
       # container for rendered large scale chart
       @chart.append("defs").append("clipPath")
         .attr("id", "clip")
         .append("rect")
-        .attr("width", @width)
+        .attr("width", @tlWidth)
         .attr("height", 100)
 
       # describes types of data which shown on charts
       @legend = @chart.append("g")
         .attr("class", "chart-legend")
-        .attr("transform", => "translate(#{@width + @margin * 2}, #{@margin})")
+        .attr("transform", => "translate(#{@tlWidth + @margin * 2}, #{@margin})")
       @legend.selectAll("g").data(@legend_data)
         .enter()
         .append("g")
@@ -142,7 +145,7 @@ define ["text!tpl/screens/timeline.html"
         .attr("class", "mini")
         .attr("transform", => "translate(#{@margin}, 200)")
       @mini.append("text")
-        .attr("x", @width / 2 - 40)
+        .attr("x", @tlWidth / 2 - 40)
         .attr("y", 0)
         .attr("width", 40)
         .attr("height", 20)
@@ -153,7 +156,7 @@ define ["text!tpl/screens/timeline.html"
         xMain... - for large scale chart
         xMini... - for mini chart
       ###
-      @xMainScale = d3.time.scale().range([0, @width])
+      @xMainScale = d3.time.scale().range([0, @tlWidth])
 
       # custom time format
       # different from the default format by:
@@ -180,7 +183,7 @@ define ["text!tpl/screens/timeline.html"
         .call(@xMainAxis)
 
       @xMiniScale = d3.time.scale()
-        .range([0, @width])
+        .range([0, @tlWidth])
 
       @xMiniAxis = d3.svg.axis()
         .scale(@xMiniScale)
