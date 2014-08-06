@@ -224,6 +224,13 @@ toBack =
     )
 
 
+needMakerApproval :: Entry
+needMakerApproval =
+    Entry
+    (Service.status `onServiceField` (const SS.makerApproval))
+    (proceed [AType.makerApproval])
+
+
 needInfo :: Entry
 needInfo =
     Entry
@@ -236,6 +243,13 @@ complaint =
     Entry
     (Service.clientSatisfied `onServiceField'` (const Satisfaction.none))
     (proceed [AType.complaintResolution])
+
+
+mistake :: Entry
+mistake =
+    Entry
+    (Service.status `onServiceField` (const SS.mistake))
+    finish
 
 
 minutes :: Num i => i
@@ -890,7 +904,9 @@ carmaBackoffice :: BackofficeSpec
 carmaBackoffice =
     ( [ toBack
       , needInfo
+      , needMakerApproval
       , complaint
+      , mistake
       ]
     , [ orderService
       , orderServiceAnalyst
