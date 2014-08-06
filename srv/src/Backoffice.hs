@@ -28,6 +28,9 @@ where
 import           Prelude hiding ((>), (==), (||), (&&), const)
 import qualified Prelude ((>), (==), (||), (&&), const)
 
+import           Control.Monad.Trans.State
+import           Data.Functor
+
 import           Data.Graph.Inductive.Graph
 import           Data.Graph.Inductive.PatriciaTree
 import           Data.Graph.Inductive.Query.BFS
@@ -718,7 +721,7 @@ toText ctx (TextE f) = f ctx
 -- meta-language tags to distinguish terms embedded as node lists and
 -- those embedded as strings, it's impossible to write a well-typed
 -- combine function.
-data EdgeE t = EdgeE (EdgeCtx -> Maybe [LEdge Text])
+data EdgeE t = EdgeE (EdgeCtx -> NodeGenerator (Maybe [LEdge Text]))
 
 
 data EdgeCtx = EdgeCtx { fromNode  :: Int
@@ -728,12 +731,22 @@ data EdgeCtx = EdgeCtx { fromNode  :: Int
                        }
 
 
+type NodeGenerator a = State Node a
+
+
+mkNewNode :: NodeGenerator Node
+mkNewNode = do
+  n <- get
+  put (n + 1)
+  return n
+
+
 fullEdgeLabel :: EdgeCtx -> Text
 fullEdgeLabel c = T.intercalate "," $ edgeLabel c
 
 
 nothing :: EdgeE t
-nothing = EdgeE $ Prelude.const Nothing
+nothing = EdgeE $ Prelude.const $ return Nothing
 
 
 instance Backoffice EdgeE where
@@ -766,8 +779,9 @@ instance Backoffice EdgeE where
             let
                 branches = ow:(map snd conds)
                 toGraph' = toGraph c{edgeLabel = (edgeLabel c) ++ ["?"]}
-            in
-              Just $ concat $ catMaybes $ map toGraph' branches
+            in do
+              brs <- mapM toGraph' branches
+              return $ Just $ concat $ catMaybes brs
 
     oneOf _ _ = nothing
 
@@ -780,27 +794,28 @@ instance Backoffice EdgeE where
 
     closeWith _ _ = nothing
 
-    defer = EdgeE (\c -> Just [(fromNode c, fromNode c, fullEdgeLabel c)])
-    finish = EdgeE (\c -> Just [(fromNode c, finalNode c, fullEdgeLabel c)])
+    defer =
+        EdgeE $ \c ->
+            return $ Just [(fromNode c, fromNode c, fullEdgeLabel c)]
+    finish =
+        EdgeE $ \c ->
+            return $ Just [(fromNode c, finalNode c, fullEdgeLabel c)]
     proceed acts =
         EdgeE $ \c ->
-            Just $ map (\(Ident ai) -> (fromNode c, ai, fullEdgeLabel c)) acts
+            return $ Just $ map (\(Ident ai) -> (fromNode c, ai, fullEdgeLabel c)) acts
 
     -- Mark presence of left-hand effects
     _ *> b = EdgeE $ \c -> toGraph c{edgeLabel = (edgeLabel c) ++ ["*"]} b
 
 
 -- | Interpreter helper to recursively process terms.
-toGraph :: EdgeCtx -> EdgeE v -> Maybe [LEdge Text]
+toGraph :: EdgeCtx -> EdgeE v -> NodeGenerator (Maybe [LEdge Text])
 toGraph ctx (EdgeE f) = f ctx
 
 
 -- | Edge evaluator for DSL.
-toEdge :: EdgeCtx -> EdgeE ActionOutcome -> [LEdge Text]
-toEdge ctx g =
-    case toGraph ctx g of
-      Just v -> v
-      Nothing -> error "Interpreter broken"
+toEdge :: EdgeCtx -> EdgeE ActionOutcome -> NodeGenerator [LEdge Text]
+toEdge ctx g = fromJust <$> toGraph ctx g
 
 
 -- | Show non-zero days, hours, minutes and seconds of a time
@@ -913,27 +928,27 @@ backofficeNodesEdges iMap =
     ( (startId, "START"):
       (finishId, "FINISH"):
       (map mkNode $ snd carmaBackoffice)
-    , concat $
-      (map mkEntryEdges $ fst carmaBackoffice) ++
-      (map mkResultEdges $ snd carmaBackoffice)
+    , evalState mkEdges (100::Node)
     )
     where
-      mkEntryEdges :: Entry -> [LEdge Text]
+      mkEdges :: NodeGenerator [LEdge Text]
+      mkEdges = do
+        entries <- mapM mkEntryEdges $ fst carmaBackoffice
+        results <- mapM mkResultEdges $ snd carmaBackoffice
+        return $ concat $ entries ++ results
+      mkEntryEdges :: Entry -> NodeGenerator [LEdge Text]
       mkEntryEdges e =
           toEdge (EdgeCtx
                   startId
                   finishId
                   ["T"]) $ result e
-      mkResultEdges :: Action -> [LEdge Text]
-      mkResultEdges a =
-          concat $
-          map (\(r, o) ->
-               toEdge (EdgeCtx
-                       i
-                       finishId
-                       [lkp (IBox r) iMap]) o) $ outcomes a
-          where
-            Ident i = aType a
+      mkResultEdges :: Action -> NodeGenerator [LEdge Text]
+      mkResultEdges a = do
+        let Ident i = aType a
+        concat <$> (mapM
+                    (\(r, o) ->
+                         toEdge (EdgeCtx i finishId [lkp (IBox r) iMap]) o) $
+                    outcomes a)
       mkNode :: Action -> LNode Text
       mkNode a = (i, lkp (IBox t) iMap)
           where
