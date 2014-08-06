@@ -23,6 +23,7 @@ module Backoffice (
                   , backofficeDot
                   , IBox(..)
                   )
+
 where
 
 import           Prelude hiding ((>), (==), (||), (&&), const)
@@ -728,17 +729,22 @@ toText ctx (TextE f) = f ctx
 -- those embedded as strings, it's impossible to write a well-typed
 -- combine function.
 --
--- The embedding uses both a context and a monad to generate new
--- switch nodes. The two are distinct because the context is not used
--- after the term has been interpreted, while switch node counter is
--- supposed to be used when multiple terms are processed.
-data EdgeE t = EdgeE (EdgeCtx -> NodeGenerator (Maybe [LEdge Text]))
+-- The embedding uses both a context to set edge properties and a
+-- monad to generate new switch nodes. The two are distinct because
+-- the context is not used after the term has been interpreted, while
+-- switch node counter is supposed to be used when multiple terms are
+-- processed.
+data EdgeE t = EdgeE (EdgeCtx -> NodeGenerator (Maybe [LEdge ColoredLabel]))
+
+
+type ColoredLabel = (Text, Maybe X11Color)
 
 
 data EdgeCtx = EdgeCtx { fromNode  :: Int
                        , finalNode :: Int
-                       , edgeLabel :: [Text]
-                       -- ^ Text for edge label.
+                       -- ^ Final node of the whole state graph.
+                       , edgeText  :: [Text]
+                       , edgeColor :: Maybe X11Color
                        }
 
 
@@ -753,8 +759,8 @@ mkNewNode = do
   return n
 
 
-fullEdgeLabel :: EdgeCtx -> Text
-fullEdgeLabel c = T.intercalate "," $ edgeLabel c
+fullEdgeText :: EdgeCtx -> Text
+fullEdgeText c = T.intercalate "," $ edgeText c
 
 
 nothing :: EdgeE t
@@ -789,15 +795,31 @@ instance Backoffice EdgeE where
     switch conds ow =
         EdgeE $ \c ->
             let
+                branchColors :: [X11Color]
+                branchColors =
+                    cycle [ DeepSkyBlue4
+                          , DarkOliveGreen
+                          , Maroon4
+                          , Firebrick
+                          , DarkGreen
+                          , DarkOrange3
+                          , NavyBlue
+                          ]
                 branches = map snd conds ++ [ow]
-                toGraph' swNode =
-                    toGraph c{edgeLabel = [switchLabel], fromNode = swNode}
+                -- Recurse into a switch branch from switch node,
+                -- coloring and marking all child edges
+                branchToEdge swNode (br, i, col) =
+                    toEdge c{ edgeText =
+                              [T.append switchLabel $ T.pack $ show i]
+                            , edgeColor = Just col
+                            , fromNode = swNode} br
             in do
               swNode <- mkNewNode
               -- Insert intermediate switch node between source node
               -- and branch destinations
-              let toSwitch = (fromNode c, swNode, fullEdgeLabel c)
-              brs <- mapM (toGraph' swNode) branches
+              let toSwitch = (fromNode c, swNode, (fullEdgeText c, Nothing))
+              brs <- mapM (branchToEdge swNode) $
+                     zip3 branches [(1::Int)..] branchColors
               return $ Just $ toSwitch:(concat $ catMaybes brs)
 
     oneOf _ _ = nothing
@@ -813,27 +835,30 @@ instance Backoffice EdgeE where
 
     defer =
         EdgeE $ \c ->
-            return $ Just [(fromNode c, fromNode c, fullEdgeLabel c)]
+            return $
+            Just [(fromNode c, fromNode c, (fullEdgeText c, edgeColor c))]
     finish =
         EdgeE $ \c ->
-            return $ Just [(fromNode c, finalNode c, fullEdgeLabel c)]
+            return $
+            Just [(fromNode c, finalNode c, (fullEdgeText c, edgeColor c))]
     proceed acts =
         EdgeE $ \c ->
             return $ Just $
-            map (\(Ident ai) -> (fromNode c, ai, fullEdgeLabel c)) acts
+            map (\(Ident ai) ->
+                 (fromNode c, ai, (fullEdgeText c, edgeColor c))) acts
 
     -- Mark presence of left-hand effects
-    _ *> b = EdgeE $ \c -> toGraph c{edgeLabel = (edgeLabel c) ++ ["*"]} b
+    _ *> b = EdgeE $ \c -> toEdge c{edgeText = (edgeText c) ++ ["*"]} b
 
 
 -- | Interpreter helper to recursively process terms.
-toGraph :: EdgeCtx -> EdgeE v -> NodeGenerator (Maybe [LEdge Text])
-toGraph ctx (EdgeE f) = f ctx
+toEdge :: EdgeCtx -> EdgeE v -> NodeGenerator (Maybe [LEdge ColoredLabel])
+toEdge ctx (EdgeE f) = f ctx
 
 
 -- | Edge evaluator for DSL.
-toEdge :: EdgeCtx -> EdgeE ActionOutcome -> NodeGenerator [LEdge Text]
-toEdge ctx g = fromJust <$> toGraph ctx g
+toEdge' :: EdgeCtx -> EdgeE ActionOutcome -> NodeGenerator [LEdge ColoredLabel]
+toEdge' ctx g = fromJust <$> toEdge ctx g
 
 
 -- | Show non-zero days, hours, minutes and seconds of a time
@@ -951,7 +976,7 @@ switchLabel = "?"
 --
 -- Switch constructs also produce extra switch nodes, returned as the
 -- last value in the triple.
-backofficeNodesEdges :: Map IBox Text -> ([LNode Text], [LEdge Text])
+backofficeNodesEdges :: Map IBox Text -> ([LNode Text], [LEdge ColoredLabel])
 backofficeNodesEdges iMap =
     ( stateNodes ++ switchNodes
     , allEdges
@@ -977,27 +1002,32 @@ backofficeNodesEdges iMap =
       switchNodes :: [LNode Text]
       switchNodes = zip [firstSwitchNode .. nextSwitchNode - 1] $
                     repeat switchLabel
-      mkEdges :: NodeGenerator [LEdge Text]
+      mkEdges :: NodeGenerator [LEdge ColoredLabel]
       mkEdges = do
         entries <- mapM mkEntryEdges $ fst carmaBackoffice
         results <- mapM mkResultEdges $ snd carmaBackoffice
         return $ concat $ entries ++ results
-      mkEntryEdges :: Entry -> NodeGenerator [LEdge Text]
+      mkEntryEdges :: Entry -> NodeGenerator [LEdge ColoredLabel]
       mkEntryEdges e =
-          toEdge (EdgeCtx
-                  (fst startNode)
-                  (fst finishNode)
-                  ["T"]) $ result e
-      mkResultEdges :: Action -> NodeGenerator [LEdge Text]
+          toEdge' (EdgeCtx
+                   (fst startNode)
+                   (fst finishNode)
+                   ["T"]
+                   Nothing) $ result e
+      mkResultEdges :: Action -> NodeGenerator [LEdge ColoredLabel]
       mkResultEdges a = do
         let Ident i = aType a
         concat <$> (mapM
                     (\(r, o) ->
-                     toEdge (EdgeCtx i (fst finishNode) [lkp (IBox r) iMap]) o) $
+                     toEdge' (EdgeCtx
+                              i
+                              (fst finishNode)
+                              [lkp (IBox r) iMap]
+                              Nothing) o) $
                     outcomes a)
 
 
-backofficeGraph :: Map IBox Text -> Gr Text Text
+backofficeGraph :: Map IBox Text -> Gr Text ColoredLabel
 backofficeGraph iMap = uncurry mkGraph (backofficeNodesEdges iMap)
 
 
@@ -1006,17 +1036,21 @@ backofficeDot :: Map IBox Text -> LT.Text
 backofficeDot iMap =
     printIt $
     graphToDot nonClusteredParams{ fmtNode = fmtN
-                                 , fmtEdge = \(_, _, l) -> [toLabel l]} $
+                                 , fmtEdge = fmtE} $
     backofficeGraph iMap
     where
-      fmtN = \n@(_, l) -> [ toLabel l
-                          , shape $
-                            if (n P.== finishNode) P.|| (n P.== startNode)
-                            then DoubleCircle
-                            else if l P.== switchLabel
-                                 then DiamondShape
-                                 else Ellipse
-                          ]
+      fmtE = \(_, _, (l, c)) ->
+             [ toLabel l
+             , color $ fromMaybe Black c]
+      fmtN = \n@(_, l) ->
+             [ toLabel l
+             , shape $
+               if (n P.== finishNode) P.|| (n P.== startNode)
+               then DoubleCircle
+               else if l P.== switchLabel
+                    then DiamondShape
+                    else Ellipse
+             ]
 
 
 -- | A critical flaw in back office.
