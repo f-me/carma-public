@@ -208,7 +208,8 @@ toBack :: Entry
 toBack =
     Entry
     (Service.status `onServiceField` (const SS.backoffice))
-    (switch
+    (([AType.tellMeMore, AType.callMeMaybe] `closeWith` AResult.communicated) *>
+     switch
      [ ( serviceField svcType `oneOf` [ST.towage, ST.tech]
        , sendSMS SMS.create *> proceed [AType.orderService]
        )
