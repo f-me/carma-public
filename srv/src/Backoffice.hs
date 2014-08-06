@@ -980,6 +980,15 @@ switchLabel :: Text
 switchLabel = "?"
 
 
+-- | Back office graph parts.
+data BackofficeGraphData =
+    BGr { _allNodes :: [LNode Text]
+        , _allEdges :: [LEdge ColoredLabel]
+        , _switchNodes :: [LNode Text]
+        -- ^ Switch nodes (also included in 'allNodes').
+        }
+
+
 -- | FGL interface. Produce labeled nodes and edges from a back office
 -- description.
 --
@@ -991,11 +1000,11 @@ switchLabel = "?"
 -- other idents.
 --
 -- Switch nodes are also added for every switch construct on an edge.
-backofficeNodesEdges :: Map IBox Text -> ([LNode Text], [LEdge ColoredLabel])
+-- Switch nodes are third in the result triple (but also included in
+-- the first element).
+backofficeNodesEdges :: Map IBox Text -> BackofficeGraphData
 backofficeNodesEdges iMap =
-    ( stateNodes ++ switchNodes
-    , allEdges
-    )
+    BGr (stateNodes ++ switchNodes) allEdges switchNodes
     where
       -- First, build graph nodes for states (action types plus
       -- start/finish states)
@@ -1043,7 +1052,8 @@ backofficeNodesEdges iMap =
 
 
 backofficeGraph :: Map IBox Text -> Gr Text ColoredLabel
-backofficeGraph iMap = uncurry mkGraph (backofficeNodesEdges iMap)
+backofficeGraph iMap = mkGraph n e
+    where (BGr n e _) = backofficeNodesEdges iMap
 
 
 -- | Produce GraphViz .dot code.
@@ -1118,12 +1128,13 @@ checkBackoffice iMap =
       startId = fst startNode
       origNodes = map aType $ snd carmaBackoffice
       uniqNodes = nub origNodes
-      (_, edges') = backofficeNodesEdges iMap
+      BGr _ edges' switches = backofficeNodesEdges iMap
       graph = backofficeGraph iMap
       outs = map OutOfGraphTarget $
              mapMaybe (\(from, to, _) ->
                        if or [ Ident to `elem` origNodes
                              , to P.== finishId
+                             , to `elem` (map fst switches)
                              ]
                        then Nothing
                        else Just (Ident from, Ident to)) edges'
