@@ -981,7 +981,7 @@ switchLabel = "?"
 
 
 -- | FGL interface. Produce labeled nodes and edges from a back office
--- description. Also return a list of switch nodes.
+-- description.
 --
 -- Non-switch node indices correspond to numeric values of
 -- corresponding ActionType idents.
@@ -990,8 +990,7 @@ switchLabel = "?"
 -- Node indices of 'finish' and 'start' must not be used by any of
 -- other idents.
 --
--- Switch constructs also produce extra switch nodes, returned as the
--- last value in the triple.
+-- Switch nodes are also added for every switch construct on an edge.
 backofficeNodesEdges :: Map IBox Text -> ([LNode Text], [LEdge ColoredLabel])
 backofficeNodesEdges iMap =
     ( stateNodes ++ switchNodes
