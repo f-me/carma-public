@@ -1,0 +1,10 @@
+mixin table(hdrs)
+  table.table.table-bordered
+    thead
+      - each h in hdrs
+        th= h
+    tbody
+      - each r in [1,2,3]
+        tr
+          - each h in hdrs
+            td= h

@@ -7,7 +7,7 @@ SELECT
 calltbl.id,
 timezone('Europe/Moscow'::text, calldate) AS "Дата и время начала звонка" ,
 timezone('Europe/Moscow'::text, enddate) AS "Дата и время окончаня звонка" ,
-calltaker AS "Оператор, принимающий звонок",
+usermetatbl.login AS "Оператор, принимающий звонок",
 usermetatbl.realname as "Имя оператора,принимающего звонок",
 "Wazzup".label AS "Что случилось",
 calltbl.customerComment AS "Комментарий",
@@ -48,9 +48,9 @@ LEFT JOIN "City" ON calltbl.city = "City".value
 LEFT JOIN calltypes ON calltbl.calltype = calltypes.value
 LEFT JOIN "Program" ON calltbl.program = "Program".id
 LEFT JOIN "SubProgram" ON calltbl.subprogram = "SubProgram".id
-LEFT JOIN usermetatbl ON calltbl.calltaker = usermetatbl.login
-LEFT JOIN "CarMake" ON calltbl.carmake = "CarMake".value
-LEFT JOIN "CarModel" ON calltbl.carmodel = "CarModel".value
+LEFT JOIN usermetatbl ON calltbl.calltaker = usermetatbl.id
+LEFT JOIN "CarMake" ON calltbl.carmake = "CarMake".id
+LEFT JOIN "CarModel" ON calltbl.carmodel = "CarModel".id
 ORDER BY calldate ASC;
 
 GRANT SELECT ON "Звонки" TO reportgen;

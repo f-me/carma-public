@@ -4,7 +4,7 @@ module Snaplet.DbLayer.Triggers.Types where
 
 import Control.Monad.State
 import Control.Monad.CatchIO (MonadCatchIO)
-import Data.ByteString (ByteString)
+import qualified Data.Text.Encoding as T
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Aeson (Value, object)
@@ -44,12 +44,9 @@ class ( Functor (m b)
       , HasMsg  b
       )
       => MonadTrigger m b where
-    createObject :: ModelName -> Object -> m b ByteString
-    readObject :: ByteString -> m b (Map.Map ByteString ByteString)
-    redisLPush :: ByteString -> [ByteString] -> m b (Either Redis.Reply Integer)
-    redisHGet :: ByteString -> ByteString -> m b (Either Redis.Reply (Maybe ByteString))
-    redisHGetAll :: ByteString -> m b (Either Redis.Reply [(ByteString, ByteString)])
-    redisDel :: [ByteString] -> m b (Either Redis.Reply Integer)
+    createObject :: ModelName -> Object -> m b ObjectId
+    readObject :: ObjectId -> m b Object
+    redisDel :: [ObjectId] -> m b (Either Redis.Reply Integer)
     dateNow :: (Int -> Int) -> m b FieldValue
     liftDb :: Handler b (DbLayer b) r -> m b r
 
@@ -75,27 +72,8 @@ instance (HasAuth b, HasMsg b) => MonadTrigger TriggerMonad b where
             "key" .= key,
             "result" .= v]
         return v
-    redisLPush lst vals = logExceptions "trigger/lpush" $ liftDb $ do
-        logObject "lpush" $ object [
-            "list" .= lst,
-            "values" .= vals]
-        runRedisDB redis $ Redis.lpush lst vals
-    redisHGet key val = logExceptions "trigger/hget" $ liftDb $ do
-        result <- runRedisDB redis $ Redis.hget key val
-        logObject "hget" $ object [
-            "key" .= key,
-            "member" .= val,
-            "result" .= reply result]
-        return result
-    redisHGetAll key = logExceptions "trigger/hgetall" $ liftDb $ do
-        result <- runRedisDB redis $ Redis.hgetall key
-        logObject "hgetall" $ object [
-            "key" .= key,
-            "result" .= reply result]
-        return result
     redisDel keys = logExceptions "trigger/del" $ liftDb $ do
-        logObject "del" $ object [
-            "keys" .= keys]
-        runRedisDB redis $ Redis.del keys
+        logObject "del" $ object ["keys" .= keys]
+        runRedisDB redis $ Redis.del $ map T.encodeUtf8 keys
     dateNow fn = TriggerMonad $ liftIO $ projNow fn
     liftDb act = TriggerMonad $ lift act

@@ -3,9 +3,8 @@
 
 module Snaplet.DbLayer.Dictionary (
     Dictionary,
-    look, merge, lookAny, keys,
-    loadDictionary, loadDictionaries,
-    readRKCCalc
+    look, keys,
+    loadDictionary, loadDictionaries
     ) where
 
 import Control.Applicative
@@ -17,14 +16,9 @@ import qualified Data.Aeson as A (Result(..))
 import Data.Maybe
 import qualified Data.ByteString.Lazy.Char8 as LC8
 import qualified Data.Text           as T
-import qualified Data.Text.Encoding  as T
 import qualified Data.HashMap.Strict as HM
-import qualified Data.Map            as Map
-import qualified Data.Vector         as V
 import System.FilePath
 import System.Directory
-
-import Snaplet.DbLayer.Types
 
 import Util (readJSON,syslogTxt,Priority(..))
 
@@ -54,22 +48,6 @@ look (k:ks) (Dictionaries m) = do
     d <- lookup k m
     look ks d
 look _ _ = Nothing
-
--- | Merge sub-dictionaries
-merge :: Dictionary -> Dictionary
-merge = Dictionary . merge' where
-    merge' :: Dictionary -> [(T.Text, T.Text)]
-    merge' (Dictionary m) = m
-    merge' (Dictionaries m) = concat $ map merge' $ map snd m
-
--- | Try look in all subdictionaries
-lookAny :: [T.Text] -> Dictionary -> Maybe T.Text
-lookAny [] _ = Nothing
-lookAny [k] d = look [k] $ merge d
-lookAny (k:ks) (Dictionaries m) = do
-    d <- lookup k m
-    lookAny ks d
-lookAny _ _ = Nothing
 
 keys :: [T.Text] -> Dictionary -> Maybe [T.Text]
 keys [] (Dictionary m) = Just $ map fst m
@@ -104,30 +82,3 @@ loadDictionaries cfg = do
             when (not $ isJust r)
               $ syslogTxt Error "loadDictionaries" $ concat ["Unable to load dictionary ", f]
             return r
-
-readRKCCalc :: FilePath -> IO RKCCalc
-readRKCCalc cfgDir = do
-  c <- readJSON rkcDict
-  case fromJSON c :: A.Result RKCCalc of
-    A.Error e   -> fail $ "Reading of RKCCalc failed with: " ++ e
-    A.Success r -> return r
-    where
-      rkcDict = cfgDir </> "dictionaries" </> "RKCCalc.json"
-
-instance FromJSON RKCCalc where
-  parseJSON (Object o) = do
-    Object e <- o .: "entries"
-    HM.foldrWithKey f (return Map.empty) e
-    where
-      f k v m = Map.insert (T.encodeUtf8 k) <$> parseJSON v <*> m
-  parseJSON _ = empty
-
-instance FromJSON RKCEntry where
-  parseJSON (Array a) = V.foldl f (return Map.empty) a
-    where
-      f m (Object v) = do
-        name  <- v .: "name"
-        value <- v .: "value"
-        m >>= return  . Map.union (Map.singleton name value)
-      f _ _ = empty
-  parseJSON _ = empty

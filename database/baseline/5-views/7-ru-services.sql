@@ -22,18 +22,8 @@ WITH servicecounts AS (
     upper("Contract".vin) AS "VIN автомобиля(контракт)",
     "ContractCheckStatus".label AS "VIN проверен(Участие в программе)",
     casetbl.car_mileage AS "Пробег автомобиля",
-    --СПРАВОЧНИК "Марка" unbounded, ПОЛЬЗОВАТЕЛЬ МОЖЕТ НАПИСАТЬ В ПОЛЕ ЛЮБОЕ ЗНАЧЕНИЕ
-    CASE 
-	WHEN "CarMake".label IS NULL
-	THEN casetbl.car_make
-	ELSE "CarMake".label
-    END AS "Марка автомобиля",
-    --СПРАВОЧНИК "Модель" unbounded, ПОЛЬЗОВАТЕЛЬ МОЖЕТ НАПИСАТЬ В ПОЛЕ ЛЮБОЕ ЗНАЧЕНИЕ
-    CASE 
-	WHEN "CarModel".label IS NULL
-	THEN casetbl.car_model
-	ELSE "CarModel".label
-    END AS "Модель автомобиля",
+    "CarMake".label AS "Марка автомобиля",
+    "CarModel".label AS "Модель автомобиля",
     p3.name AS "Дилер, продавший автомобиль",
     "Wazzup".label AS "Что случилось",
     "System".label AS "Система, где произошла неиспр.",
@@ -122,14 +112,19 @@ WITH servicecounts AS (
     END AS "Гарантийный случай",
     allservicesview.repairenddate AS "Дата окончания ремонта",
     allservicesview.suburbanmilage AS "Пробег эвак-ра/техпом. за городом",
-    concat_ws(', '::text, casetbl.contact_phone1, casetbl.contact_phone2, casetbl.contact_phone3, casetbl.contact_phone4) AS "Телефоны клиента",
+      concat_ws(', '::text, 
+	SUBSTRING(casetbl.contact_phone1, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone1, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone1, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone1, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone1, 10, 2)::text || ' '::text, 
+	SUBSTRING(casetbl.contact_phone2, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone2, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone2, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone2, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone2, 10, 2)::text || ' '::text, 
+	SUBSTRING(casetbl.contact_phone3, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone3, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone3, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone3, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone3, 10, 2)::text || ' '::text, 
+	SUBSTRING(casetbl.contact_phone4, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone4, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone4, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone4, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone4, 10, 2)::text || ' '::text)
+	 AS "Телефоны клиента",
     servicetbl.payment_limitedcost AS "Стоимость для заказчика",
     allservicesview.providedfor AS "Дни(Срок предоставления)",
     servicetbl.contractor_partner AS "Субпод-к, оказ.усл.(как по дог-ру)",
     servicetbl.payment_partnercost AS "Стоимость у партнера (число)",
     servicetbl.payment_costtranscript AS "Расшифровка стоимости",
     servicetbl.payment_paidbyruamc AS "Стоимость со слов партнёра", --"Оплата РАМК",
-    casetbl.calltaker AS "Сотрудник, принявший звонок", --"Сотрудник РАМК"
+    usermetatbl.realname AS "Сотрудник, принявший звонок", --"Сотрудник РАМК"
     allservicesview.assignedto AS "Сотрудник, заказавший услугу", --"Ответственный",
     timezone('Europe/Moscow'::text, servicetbl.times_factservicestart) AS "Время погруз.(Факт. нач. ок. усл.)",
     timezone('Europe/Moscow'::text, servicetbl.times_factserviceend) AS "Время разгр.(Факт.оконч. ок. усл.)",
@@ -214,6 +209,7 @@ WITH servicecounts AS (
     casetbl.contact_name AS "ФИО звонящего"   
     
    FROM casetbl
+   LEFT JOIN usermetatbl ON casetbl.callTaker = usermetatbl.id
    LEFT JOIN "Program" ON casetbl.program = "Program".id
    LEFT JOIN "ProgramType" ON "Program".ptype = "ProgramType".id
    LEFT JOIN "SubProgram" ON casetbl.subprogram = "SubProgram".id
@@ -224,8 +220,8 @@ WITH servicecounts AS (
    LEFT JOIN partnertbl p4 ON casetbl.car_dealerto = p4.id::text
    LEFT JOIN "City" casecity ON casetbl.city = casecity.value
    LEFT JOIN "City" dealercity ON p4.city = dealercity.value
-   LEFT JOIN "CarMake" ON casetbl.car_make = "CarMake".value OR casetbl.car_make = "CarMake".label
-   LEFT JOIN "CarModel" ON casetbl.car_model = "CarModel".value OR casetbl.car_model = "CarModel".label
+   LEFT JOIN "CarMake" ON casetbl.car_make = "CarMake".id
+   LEFT JOIN "CarModel" ON casetbl.car_model = "CarModel".id
    LEFT JOIN "Contract" ON casetbl.contract = "Contract".id
    LEFT JOIN "Wazzup" ON casetbl.comment = "Wazzup".id
    LEFT JOIN "System" ON casetbl.diagnosis1 = "System".id

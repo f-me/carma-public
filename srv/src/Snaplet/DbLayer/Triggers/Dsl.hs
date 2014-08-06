@@ -1,15 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module Snaplet.DbLayer.Triggers.Dsl where 
+module Snaplet.DbLayer.Triggers.Dsl where
 
 import Control.Applicative
 import Control.Monad (when)
 import Control.Monad.Trans (liftIO)
 import qualified Control.Monad.State as ST
 
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
@@ -63,22 +60,22 @@ new :: MonadTrigger m b => ModelName -> Object -> m b ObjectId
 new model obj = do
   ct <- liftIO $ (round :: POSIXTime -> Int) . utcTimeToPOSIXSeconds
         <$> getCurrentTime
-  let obj' = Map.insert "ctime" (B.pack $ show ct) obj
+  let obj' = Map.insert "ctime" (T.pack $ show ct) obj
   intId <- createObject model obj'
-  let objId = B.concat [model, ":", intId]
+  let objId = T.concat [model, ":", intId]
   let obj''  = Map.insert "id" intId obj'
   ST.modify $ \st -> st{current = Map.insert objId obj'' $ current st}
   return objId
 
 
 addToList :: FieldValue -> FieldValue -> FieldValue
-addToList val = B.intercalate "," . (val:) . filter (/=val) . B.split ','
+addToList ""   v    = v
+addToList v    ""   = v
+addToList val1 val2 =
+  T.intercalate "," . (val1:) . filter (/=val1) . T.splitOn "," $ val2
 
 dropFromList :: FieldValue -> FieldValue -> FieldValue
-dropFromList val = B.intercalate "," . filter (/=val) . B.split ','
-
-utf8 :: String -> ByteString
-utf8 = T.encodeUtf8 . T.pack
+dropFromList val = T.intercalate "," . filter (/=val) . T.splitOn ","
 
 getCurrentUser :: (MonadTrigger m b, HasAuth b) => m b (Maybe AuthUser)
 getCurrentUser = liftDb (withAuth $ currentUser)

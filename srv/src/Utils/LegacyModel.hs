@@ -3,17 +3,17 @@ module Utils.LegacyModel where
 
 import           Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Read as T
 import           Data.Aeson
-import           Data.ByteString.Char8 (readInt)
 import           Data.Model
 
 import           Snaplet.DbLayer.Types (ObjectId)
 
 
 readIdent :: ObjectId -> IdentI m
-readIdent bs = case readInt bs of
-                 Just (n, _) -> Ident n
-                 Nothing     -> error "readIdent: no integer"
+readIdent s = case T.decimal s of
+                 Right (n, _) -> Ident n
+                 Left _err    -> error "readIdent: no integer"
 
 recode :: (FromJSON t, ToJSON f) => f -> t
 recode o = case decode $ encode o of

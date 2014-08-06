@@ -15,7 +15,6 @@ import Data.List (sortBy)
 import Data.Ord (comparing)
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
 import qualified Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
@@ -50,8 +49,8 @@ import qualified Carma.Model.ServiceNames as ServiceNames
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
-  Just name  <- fmap T.decodeUtf8 <$> getParam "name"
-  view  <- T.decodeUtf8 . fromMaybe "" <$> getParam "view"
+  Just name  <- getParamT "name"
+  view  <- fromMaybe "" <$> getParamT "view"
   model <- case T.splitOn ":" view of
       ["ctr",scr,pgm]
         | Just name' <- Map.lookup name Model.legacyModelNames
@@ -70,9 +69,10 @@ serveModel = do
         _ -> Map.lookup name <$> gets models
 
   mcu   <- withAuth currentUser
-  case return (,) `ap` mcu `ap` model of
-    Nothing -> finishWithError 401 ""
-    Just (cu, m) ->
+  case (mcu, model) of
+    (Nothing, _) -> finishWithError 401 ""
+    (_, Nothing) -> finishWithError 404 "Unknown model/view"
+    (Just cu, Just m) ->
       case view `elem` ["search", "portalSearch"] of
         True  -> writeModel m
         False -> stripModel cu m >>= writeModel
@@ -86,7 +86,7 @@ viewForModel name _
 
 
 setModelName :: Text -> Model -> Model
-setModelName n m = m {modelName = T.encodeUtf8 n}
+setModelName n m = m {modelName = n}
 
 constructModel
   :: Text -> Text -> Text -> Model
@@ -114,7 +114,7 @@ constructModel mdlName screen program model = do
               . Map.insert "infoText" (Aeson.String inf)
               . Map.insert "readonly" (Aeson.Bool $ not w)
               <$> meta f
-            , sortingOrder = Just o
+            , sortingOrder = o
             , canWrite = w}
           ]
   return $ model
@@ -131,10 +131,10 @@ writeModel model
     -- If sid parameter is specified for Contract model, serve model
     -- for portal screen table/form.
     "Contract" -> do
-      sid <- getParam "sid"
+      sid <- getParamT "sid"
       case sid of
         Just i -> do
-          field <- fromMaybe "showform" <$> getParam "field"
+          field <- fromMaybe "showform" <$> getParamT "field"
           case field of
             "showform"  -> stripContract model i Form
             "showtable" -> stripContract model i Table
@@ -175,7 +175,7 @@ stripModel u m = do
 -- parameter) as JSON object: @{"foo": 12, "bar": 28}@.
 serveIdents :: Handler b (SiteConfig b) ()
 serveIdents = do
-  nm <- getParam "name"
+  nm <- getParamT "name"
   case nm of
     Nothing -> error "Must provide model name"
     Just name ->
@@ -184,7 +184,7 @@ serveIdents = do
                    m
                 -> HM.HashMap String (Model.IdentI m)
             fun _ = Model.idents
-            idents' = Model.dispatch (T.decodeUtf8 name) (Aeson.encode . fun)
+            idents' = Model.dispatch name (Aeson.encode . fun)
         in
           case idents' of
             Just e -> (modifyResponse $ setContentType "application/json") >>

@@ -4,7 +4,7 @@
 module Snaplet.DbLayer.Types where
 
 import Data.Map (Map)
-import Data.ByteString (ByteString)
+import Data.Text (Text)
 
 import Control.Concurrent.STM
 import Control.Lens
@@ -21,18 +21,14 @@ import qualified WeatherApi as W
 
 import DictionaryCache
 
-type ObjectId = ByteString
-type FieldName = ByteString
-type FieldValue = ByteString
+type ObjectId = Text
+type FieldName = Text
+type FieldValue = Text
 type Object = Map FieldName FieldValue
 type ObjectMap = Map ObjectId Object
-type ModelName = ByteString
+type ModelName = Text
 
-type ProgramName = ByteString
-type RKCName     = ByteString
-type RKCValue    = Double
-type RKCEntry    = Map RKCName RKCValue
-type RKCCalc     = Map ProgramName RKCEntry
+type ProgramName = Text
 
 type DbHandler b r = Handler b (DbLayer b) r
 
@@ -45,7 +41,6 @@ data DbLayer b = DbLayer
     ,syncTables :: [TableDesc]
     ,dictCache :: TVar DictCache
     ,weather   :: W.Config
-    ,rkcDict   :: RKCCalc
     }
 
 makeLenses ''DbLayer

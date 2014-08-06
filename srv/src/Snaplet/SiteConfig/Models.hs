@@ -4,14 +4,12 @@ module Snaplet.SiteConfig.Models
 
 
 import Control.Applicative
-import Control.Lens hiding ((.=))
 import Control.Monad (filterM)
 import Data.Aeson as Aeson
 import Data.Maybe (fromMaybe)
 
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 
 import Data.List (foldl')
@@ -26,7 +24,7 @@ import Snaplet.SiteConfig.Types
 
 
 -- | Field permissions property.
-data Permissions = Roles [B.ByteString]
+data Permissions = Roles [Text]
                  | Everyone
                  | Nobody
                  deriving (Show)
@@ -39,11 +37,11 @@ type FieldMeta = Map FieldName Aeson.Value
 
 -- | Form field object.
 data Field = Field { name           :: FieldName
-                   , fieldType      :: B.ByteString
-                   , groupName      :: Maybe B.ByteString
+                   , fieldType      :: Text
+                   , groupName      :: Maybe Text
                    , meta           :: Maybe FieldMeta
                    , canWrite       :: Bool
-                   , sortingOrder   :: Maybe Int
+                   , sortingOrder   :: Int
                    } deriving (Show)
 
 -- | A list of properties to be applied to named fields.
@@ -58,7 +56,7 @@ data Application = Application { targets    :: [FieldName]
 -- Model) with further group splicing ('spliceGroups'), applications
 -- ('doApplications')
 data Model = Model { modelName      :: ModelName
-                   , title          :: B.ByteString
+                   , title          :: Text
                    , fields         :: [Field]
                    , applications   :: [Application]
                    , _canCreateM    :: Permissions
@@ -66,10 +64,9 @@ data Model = Model { modelName      :: ModelName
                    , _canUpdateM    :: Permissions
                    , _canDeleteM    :: Permissions
                    } deriving (Show)
-makeLenses ''Model
 
 -- | Used when field type is not specified in model description.
-defaultFieldType :: B.ByteString
+defaultFieldType :: Text
 defaultFieldType = "text"
 
 
@@ -117,7 +114,7 @@ instance FromJSON Field where
       v .:? "groupName"                 <*>
       v .:? "meta"                      <*>
       pure True                         <*>
-      pure Nothing
+      pure 0
     parseJSON _          = error "Could not parse field properties"
 
 instance ToJSON Field where
@@ -138,7 +135,7 @@ instance FromJSON Application where
 
 
 -- | A named group of fields.
-type Groups = M.Map B.ByteString [Field]
+type Groups = M.Map Text [Field]
 
 
 -- | Build new name `f_gK` for every field of group `g` to which field
@@ -148,7 +145,7 @@ groupFieldName :: FieldName
                -> FieldName
                -- ^ Name of group field
                -> FieldName
-groupFieldName parent field = B.concat [parent, "_", field]
+groupFieldName parent field = T.concat [parent, "_", field]
 
 
 -- | Replace all model fields having `groupName` annotation with
@@ -223,7 +220,7 @@ pathToModelName filepath = T.pack $ takeBaseName filepath
 -- TODO: Perhaps rely on special directory file which explicitly lists
 -- all models.
 loadModels :: FilePath -- ^ Models directory
-           -> IO (Map Text Model)
+           -> IO (Map ModelName Model)
 loadModels cfgDir =
       do
         let directory = cfgDir </> "models"

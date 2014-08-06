@@ -1,0 +1,74 @@
+<!-- Dictionaries screen template -->
+<div class="row-fluid">
+
+  <div class="span5" id="choose-dictionary">
+    <div class="well">
+      <div id="choose-dict">
+        <legend>Справочник</legend>
+          <select id="dict-select" data-bind="foreach: $data">
+            <option data-bind="value: id, text: name" />
+          </select>
+      </div>
+      <div id="dict-parent" data-bind="if: kvm">
+        <span class="lead" data-bind="text: kvm._meta.model.title"></span>
+        <div data-bind="foreach: kvm._meta.model.fields">
+          <div data-bind="renderField: $data"></div>
+        </div>
+        <p>
+          <a class="btn"
+             type="button"
+             data-bind="click: function() { kvm.find(); }">
+            <i class="icon-search"></i>
+            Найти
+          </a>
+        </p>
+      </div>
+    </div>
+    <table id="dict-table"
+           class="table table-striped table-bordered table-break-word">
+    </table>
+  </div>
+
+  <div class="span7">
+    <div id="button-panel" class="page-header" style="display: none;">
+      <a id="copy-options-btn" href="#ctr-copy-modal" data-toggle="modal" class="btn btn-action" style="display: none;">
+        <i class="icon icon-random"></i>&nbsp;Копировать настройки
+      </a>
+      <button id="add-new-item-btn" class="btn btn-action" type="button">
+        <i class="icon icon-plus"></i>&nbsp;Добавить
+      </button>
+      <button id="active-items-btn" type="button" class="btn" data-toggle="button">
+        <i class="icon icon-eye-close"></i>
+          Aктивные
+      </button>
+    </div>
+
+    <!-- copy constructor options -->
+    <div id="ctr-copy-modal" class="modal hide fade">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3>Копирование настроек конструктора</h3>
+      </div>
+      <div class="modal-body">
+        <div data-bind="foreach: kvm._meta.model.fields">
+          <div data-bind="renderField: $data"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Отменить</button>
+        <button
+            class="btn btn-primary"
+            data-bind="enable: kvm.canCopy, click: kvm.doCopy">
+            Копировать
+        </button>
+      </div>
+    </div>
+
+    <div id="dictionaries-view">
+    </div>
+
+    <div id="permissions">
+    </div>
+  </div>
+
+</div>

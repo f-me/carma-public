@@ -73,7 +73,8 @@ import qualified Data.HashMap.Strict as HM
 import Data.List
 import qualified Data.Map as M
 import Data.Maybe
-import Data.Text.Encoding
+import Data.Text (Text)
+import Data.Text.Encoding as T
 import Data.Text.ICU.Convert
 
 import Data.Time.Clock
@@ -362,7 +363,7 @@ serviceExpenseType s@(mn, _, d) = do
                 -- CaRMa HTTP method
                 rs <- simpleHTTP $ getRequest uri
                 rsb <- getResponseBody rs
-                case (decode' $ BSL.pack rsb :: Maybe [B8.ByteString]) of
+                case (decode' $ BSL.pack rsb :: Maybe [Text]) of
                   Just [] -> return Towage
                   Just _  -> return RepTowage
                   -- TODO It's actually an error
@@ -504,7 +505,7 @@ contractField1 fn = do
            return $ encodeUtf8 <$> case (decode' $ BSL.pack rsb) of
                                      Nothing -> Nothing
                                      Just d ->
-                                         case HM.lookup fn d of
+                                         case HM.lookup (T.decodeUtf8 fn) d of
                                            Just (String v) -> Just v
                                            _               -> Nothing
   case res of

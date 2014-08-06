@@ -36,3 +36,8 @@ cabal.sandbox.config
 
 srv/site_key.txt
 srv/resources/private
+srv/node_modules
+
+# static content built by grunt js
+srv/resources/static/css/
+srv/resources/static/tpl/

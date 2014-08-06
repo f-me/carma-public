@@ -4,7 +4,6 @@
 
 module AppHandlers.Bulk
     ( vinImport
-    , partnerImport
     )
 
 where
@@ -30,7 +29,6 @@ import           Snap.Util.FileServe (serveFileAs)
 
 import qualified Carma.Model.Role as Role
 
-import           Carma.Partner
 import           Carma.VIN
 
 import           Application
@@ -53,7 +51,6 @@ import           Util as U hiding (render)
 -- TODO Should VIN files really be stored permanently?
 vinImport :: AppHandler ()
 vinImport = logExceptions "Bulk/vinImport" $ do
-  prog <- getParam "program"
   subprog <- getParam "subprogram"
   format <- getParam "format"
 
@@ -71,11 +68,12 @@ vinImport = logExceptions "Bulk/vinImport" $ do
           userSpgms = map fst $
                      mapMaybe B.readInt $
                      B.split ',' $ T.encodeUtf8 userSpgms'
+      let tr = Role . T.encodeUtf8 . identFv
       when (not $
-            (elem (Role $ identFv Role.partner) (userRoles u') &&
+            (elem (tr Role.partner) (userRoles u') &&
              elem sid userSpgms) ||
-            (elem (Role $ identFv Role.vinAdmin) (userRoles u')) ||
-            (elem (Role $ identFv Role.psaanalyst) (userRoles u'))) $
+            (elem (tr Role.vinAdmin) (userRoles u')) ||
+            (elem (tr Role.psaanalyst) (userRoles u'))) $
             handleError 403
 
       (inName, inPath) <- with fileUpload $ oneUpload =<< doUploadTmp
@@ -119,33 +117,3 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       let err = "Subprogram/format not specified"
       syslogJSON Warning "Bulk/vinImport" ["err" .= err]
       error err
-
-
--- | Upload a CSV file and update the partner database, serving a
--- report back to the client.
---
--- (carma-partner-import package interface).
---
--- TODO Use TaskManager
-partnerImport :: AppHandler ()
-partnerImport = logExceptions "Bulk/partnerImport" $ do
-  sCfg <- liftIO $ commandLineConfig (emptyConfig :: S.Config Snap a)
-  let carmaPort = case getPort sCfg of
-                    Just n -> n
-                    Nothing -> error "No port"
-  tmpPath <- with fileUpload $ gets tmp
-  (tmpName, _) <- liftIO $ openTempFile tmpPath "last-pimp.csv"
-
-  syslogTxt Info "Bulk/partnerImport" "Uploading data"
-  inPath <- with fileUpload $ oneUpload =<< doUpload "partner-upload-data"
-
-  let outPath = tmpPath </> tmpName
-
-  syslogJSON Info "Bulk/partnerImport" ["inPath" .= inPath, "outPath" .= outPath]
-
-  syslogTxt Info "Bulk/partnerImport" "Loading dictionaries from CaRMa"
-  Just dicts <- liftIO $ loadIntegrationDicts carmaPort
-  syslogTxt Info "Bulk/partnerImport" "Processing data"
-  liftIO $ processData carmaPort inPath outPath dicts
-  syslogTxt Info "Bulk/partnerImport" "Serve processing report"
-  serveFileAs "text/csv" outPath
