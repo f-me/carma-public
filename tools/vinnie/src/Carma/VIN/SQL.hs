@@ -257,7 +257,7 @@ protoNullizeEmptyStrings cname =
     execute
     [sql|
      UPDATE vinnie_proto SET ? = null
-     WHERE vinnie_proto.? = "";
+     WHERE vinnie_proto.? = '';
      |] ( cname
         , cname
         )
