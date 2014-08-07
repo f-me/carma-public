@@ -39,8 +39,8 @@ q = [sql|
               when '4' then 'Клиент отказался от услуги'
               else '-' end)
             as svc_status,
-          coalesce(mk.label, c.car_make, '-') as car_make,
-          coalesce(mdl.label, c.car_model, '-') as car_model,
+          coalesce(mk.label, '-') as car_make,
+          coalesce(mdl.label, '-') as car_model,
           coalesce(upper(c.car_vin), 'N/A') as car_vin,
           coalesce(initcap(c.contact_name), '') as contact_name,
           coalesce(c.contact_phone1, '') as contact_phone,
@@ -60,8 +60,8 @@ q = [sql|
         from towagetbl t, partnertbl p, casetbl c
           left join "Contract" cntr on (cntr.id = c.contract)
           left join "Wazzup" diag on (diag.id = c.comment)
-          left join "CarMake" mk on (mk.value = c.car_make)
-          left join "CarModel" mdl on (mdl.value = c.car_model)
+          left join "CarMake" mk on (mk.id = c.car_make)
+          left join "CarModel" mdl on (mdl.id = c.car_model)
         where c.id = substring(t.parentId, ':(.*)') :: int
           and p.id = substring(t.towDealer_partnerId, ':(.*)') :: int
           and t.id = substring(?, ':(.*)')::int
