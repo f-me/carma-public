@@ -25,7 +25,8 @@ import Carma.Model.Role (Role)
 import Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 
-import Backoffice as BO
+import Carma.Backoffice
+import Carma.Backoffice.DSL as BO
 
 runUpdateTriggers
   :: forall m . Model m

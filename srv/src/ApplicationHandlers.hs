@@ -4,8 +4,6 @@
 module ApplicationHandlers where
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
 
-import Backoffice hiding (const, not, (==))
-
 import Data.Functor
 import Control.Monad
 import Control.Monad.Trans.Either
@@ -78,6 +76,12 @@ import Carma.Model.ServiceStatus (ServiceStatus)
 import Carma.Model.ServiceType (ServiceType)
 import Carma.Model.SmsTemplate (SmsTemplate)
 import Carma.Model.Program (Program)
+
+import Carma.Backoffice
+import Carma.Backoffice.Text
+import Carma.Backoffice.Graph
+import Carma.Backoffice.Validation
+
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
@@ -584,9 +588,9 @@ type IdentMap m = Map.Map (IdentI m) Text
 serveBackofficeSpec :: BORepr -> AppHandler ()
 serveBackofficeSpec repr =
     case repr of
-      Txt -> writeText $ backofficeText boxedIMap
-      Dot -> writeLazyText $ backofficeDot boxedIMap
-      Check -> writeJSON $ map show $ checkBackoffice boxedIMap
+      Txt -> writeText $ backofficeText carmaBackoffice boxedIMap
+      Dot -> writeLazyText $ backofficeDot carmaBackoffice boxedIMap
+      Check -> writeJSON $ map show $ checkBackoffice carmaBackoffice boxedIMap
     where
       -- Simple ident mapping
       iMap :: Model m => IdentMap m

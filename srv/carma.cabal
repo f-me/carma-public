@@ -20,7 +20,6 @@ Executable carma
   main-is: Main.hs
 
   Other-modules:
-    Backoffice,
     Application,
     ApplicationInit,
     ApplicationHandlers,
@@ -33,6 +32,11 @@ Executable carma
     AppHandlers.CustomSearches.Contract.Base,
     AppHandlers.PSA,
     AppHandlers.PSA.Base,
+    Carma.Backoffice,
+    Carma.Backoffice.DSL,
+    Carma.Backoffice.Text,
+    Carma.Backoffice.Graph,
+    Carma.Backoffice.Validation,
     Snaplet.DbLayer,
     Snaplet.DbLayer.RedisCRUD,
     Snaplet.DbLayer.PostgresCRUD,
