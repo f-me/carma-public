@@ -47,9 +47,8 @@ type ActionTypeI = IdentI ActionType
 type ActionResultI = IdentI ActionResult
 
 
--- | A node in a directed graph of back office actions. Type parameter
--- selects a back office implementation (which depends on how the
--- graph is used).
+-- | A node in a directed graph of back office actions. Various action
+-- aspects are described using 'Backoffice' DSL terms.
 data Action =
     Action { aType      :: ActionTypeI
            -- ^ Binds action definition to its name and
@@ -78,19 +77,33 @@ data Trigger
 
 -- | Back office language (typed tagless final representation).
 class Backoffice impl where
-    -- Time helpers (see also 'minutes', 'hours', 'days').
+    -- | Current time.
     now    :: impl UTCTime
-    since  :: NominalDiffTime -> impl UTCTime -> impl UTCTime
-    before :: NominalDiffTime -> impl UTCTime -> impl UTCTime
+
+    since  :: NominalDiffTime
+           -- ^ This long ..
+           -> impl UTCTime
+           -- ^ .. from this time.
+           -> impl UTCTime
+
+    before :: NominalDiffTime
+           -- ^ This long ..
+           -> impl UTCTime
+           -- ^ .. before this time.
+           -> impl UTCTime
     before diff time = (-diff) `since` time
 
-    -- Make an action assignable to users with the given role
+    -- | Make an action assignable to users with the given role.
     role :: IdentI Role -> impl ActionAssignment
-    -- Keep an action assigned to the current user, but also make it
-    -- available to a role
+
+    -- | Keep an action assigned to the current user, but also make it
+    -- available to the role.
     currentUserOr :: IdentI Role -> impl ActionAssignment
 
-    -- Source action which led to this one
+    -- | Source action which led to this one. If there was no previous
+    -- action (e.g. when the action was created from an 'Entry'), this
+    -- is guaranteed to return an action type not equal to any other
+    -- used action types.
     previousAction :: impl ActionTypeI
 
     -- Context access
@@ -129,15 +142,15 @@ class Backoffice impl where
     infixr 2 ||
     (||) :: impl Bool -> impl Bool -> impl Bool
 
-    -- Lift idents for use with comparison combinators
+    -- | Lift idents for use with comparison combinators.
     const :: Model v =>
              IdentI v -> impl (IdentI v)
 
-    -- List membership predicate
+    -- | List membership predicate.
     oneOf :: Model v =>
              impl (IdentI v) -> [IdentI v] -> impl Bool
 
-    -- Branching
+    -- | Branching operator.
     switch :: [(impl Bool, impl v)]
            -- ^ List of condition/value pair. The first condition to
            -- be true selects the value of the expression.
@@ -153,14 +166,28 @@ class Backoffice impl where
     sendPSAMail    :: impl ()
     sendSMS        :: IdentI SmsTemplate -> impl ()
 
-    closeWith :: [ActionTypeI] -> ActionResultI -> impl ()
+    -- | Close all previously created actions in the case.
+    closeWith :: [ActionTypeI]
+              -- ^ Matching action types.
+              -> ActionResultI
+              -- ^ A result used to close actions.
+              -> impl ()
 
-    -- Control flow combinators
+    -- | Close the action.
     finish  :: impl ActionOutcome
+
+    -- | Close the action and create new actions of given types.
     proceed :: [ActionTypeI] -> impl ActionOutcome
+
+    -- | Postpone the action.
     defer   :: impl ActionOutcome
 
-    -- Action chains
+    -- | Action chains.
+    --
+    -- A control flow combinator always ends the
+    -- chain:
+    --
+    -- > sendSMS *> doStuff *> finish
     infixr *>
     (*>) :: impl () -> impl ActionOutcome -> impl ActionOutcome
 
@@ -169,23 +196,38 @@ setServiceStatus :: Backoffice impl => IdentI ServiceStatus -> impl ()
 setServiceStatus = setServiceField Service.status
 
 
+-- | 60 seconds
+--
+-- Matches Num instance of 'NominalDiffTime', so that
+--
+-- > 2 * minutes :: NominalDiffTime
+--
+-- means two minutes of time difference.
 minutes :: Num i => i
 minutes = 60
 
 
+-- | 60 'minutes'.
 hours :: Num i => i
 hours = 60 * minutes
 
 
+-- | 24 'hours'.
 days :: Num i => i
 days = 24 * hours
 
 
+-- | An entry point in an action graph.
 data Entry =
     Entry { trigger :: forall impl. (Backoffice impl) => impl Trigger
           , result  :: forall impl. (Backoffice impl) => impl ActionOutcome
           }
 
 
--- | Formal description of how a back office operates.
+-- | Formal description of how a back office operates (entries and all
+-- graph nodes; indirect addressing is used).
+--
+-- Due to the indirect addressing it's easy to define an incomplete
+-- graph, so be sure to validate it using 'checkBackoffice' prior to
+-- use.
 type BackofficeSpec = ([Entry], [Action])

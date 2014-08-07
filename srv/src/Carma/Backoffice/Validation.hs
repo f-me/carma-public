@@ -1,4 +1,8 @@
 module Carma.Backoffice.Validation
+    (
+      checkBackoffice
+    , ValidityError
+    )
 
 where
 

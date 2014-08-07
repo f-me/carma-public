@@ -1,4 +1,17 @@
 module Carma.Backoffice.Graph
+    (
+      -- * FGL interface
+      backofficeNodesEdges
+    , backofficeGraph
+    , BackofficeGraphData(..)
+
+      -- * GraphViz formatter
+    , backofficeDot
+
+      -- * Misc
+    , startNode
+    , finishNode
+    )
 
 where
 
@@ -36,7 +49,7 @@ import           Carma.Backoffice.Text
 -- node is included between source and target nodes when a switch
 -- construct occurs.
 --
--- This embedding is basically a tagged one due to use of Maybe.
+-- This embedding is basically a tagged one due to the use of Maybe.
 -- There're several reasons for this.
 --
 -- It's unclear what should pure terms produce. One way would be to
@@ -183,14 +196,18 @@ toEdge' :: EdgeCtx -> EdgeE ActionOutcome -> NodeGenerator [LEdge ColoredLabel]
 toEdge' ctx g = fromJust <$> toEdge ctx g
 
 
--- Internal ActionType-like code for graph start and node. Used only
--- when a back office graph is analyzed or printed. Actions of this
--- type are never actually created. No ActionType ident must collide
--- with any of these ids.
+-- | Internal ActionType-like code for action graph initial state.
+-- Edges produced from 'Entry' structures start from this node.
+--
+-- Used only when a back office graph is analyzed or printed. Actions
+-- of this type are never actually created. No ActionType ident must
+-- collide with any of these ids.
 startNode :: LNode Text
 startNode = (-1, "START")
 
 
+-- | Like 'startNode', but for final state. Edges produced from
+-- 'close' terms end at this node.
 finishNode :: LNode Text
 finishNode = (0, "FINISH")
 

@@ -1,6 +1,19 @@
 {-# LANGUAGE ExistentialQuantification #-}
 
+{-|
+
+Text interpreter for Backoffice DSL terms.
+
+-}
+
 module Carma.Backoffice.Text
+    (
+      backofficeText
+      -- * Lookup tables for Ident DSL constants
+    , IBox(..)
+    , IMap
+    , lkp
+    )
 
 where
 
@@ -19,9 +32,8 @@ import           Data.Model
 import           Carma.Backoffice.DSL
 
 
--- | Context for text embedding (stores mappings from constants to
--- text).
-data TCtx = TCtx { identMap :: Map IBox Text
+-- | Text interpreter context.
+data TCtx = TCtx { identMap :: IMap
                  }
 
 
@@ -48,7 +60,8 @@ triggerText field value =
 -- | Existential container for model idents.
 --
 -- Used to store idents for multiple models in a single lookup table
--- ('IMap').
+-- ('IMap'). Eq and Ord instances use both numeric value and model
+-- 'TypeRep'.
 data IBox = forall m. Model m => IBox (IdentI m)
 
 

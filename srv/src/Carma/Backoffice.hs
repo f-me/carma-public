@@ -5,6 +5,14 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 
+{-|
+
+CaRMa back office definition.
+
+This module provides the concrete specification of our back office.
+
+-}
+
 module Carma.Backoffice (carmaBackoffice)
 
 where
@@ -61,6 +69,13 @@ needInfo =
     Entry
     (Case.caseStatus `onCaseField` const CS.needInfo)
     (proceed [AType.tellMeMore])
+
+
+mobileOrder :: Entry
+mobileOrder =
+    Entry
+    (Case.caseStatus `onCaseField` const CS.mobileOrder)
+    (proceed [AType.callMeMaybe])
 
 
 complaint :: Entry
@@ -372,7 +387,7 @@ callMeMaybe =
     AType.callMeMaybe
     (role bo_order)
     ((1 * minutes) `since` now)
-    [ (AResult.complaintManaged, finish)
+    [ (AResult.communicated, finish)
     , (AResult.okButNoService, finish)
     , (AResult.defer, defer)
     ]
@@ -383,6 +398,7 @@ carmaBackoffice =
     ( [ toBack
       , needInfo
       , needMakerApproval
+      , mobileOrder
       , complaint
       , mistake
       ]
