@@ -122,8 +122,9 @@ actions
                 ,("caseId", kazeId)
                 ,("closed", "0")
                 ]
-              upd kazeId "actions" $ addToList actionId])
-          ,("wazzup", [\caseId val ->
+              upd kazeId "actions" $ addToList actionId
+            else return ()])
+          ,("comment", [\caseId val ->
             case fvIdent val of
               Nothing -> return ()
               Just wi -> do

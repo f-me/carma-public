@@ -61,7 +61,10 @@ import           Util hiding (withPG)
 -- contracts into CaRMa database. Serve JSON list with single integer
 -- equal to number of contracts loaded this way.
 arcImport :: AppHandler ()
-arcImport = do
+arcImport = writeJSON [0::Int] >> return ()
+{-
+  -- DISABLE IMPORT #2047
+
   sid <- getIntParam "subprogram"
   vin <- fromMaybe "" <$> getParam "vin"
 
@@ -131,7 +134,7 @@ arcImport = do
       case res of
         Right (ImportResult (_, loaded, _)) -> writeJSON [loaded]
         _ -> error "Could not load VIN into database"
-
+-}
 
 apiUrl :: String
 apiUrl = "https://webservices.arceurope.com/vinretrieval/wsvinretrieval.svc/vinretrieval"

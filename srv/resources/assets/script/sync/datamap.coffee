@@ -15,10 +15,11 @@ define [], ->
   # How a Day is formatted on client
   guiDayFormat = "dd.MM.yyyy"
 
-  # How a UTCTime is formatted on client
-  guiUTCTimeFormat = "dd.MM.yyyy HH:mm"
+  # How a UTCTime is formatted on client (must match mask for datetime
+  # field templates)
+  guiUTCTimeFormat = "dd.MM.yyyy HH:mm:ss"
 
-  # Server format for Date (ISO 8601)
+  # Server format for Day (ISO 8601)
   serverDayFormat = "yyyy-MM-dd"
 
   # Parse a formatted string to ISO 8601 Date
@@ -76,6 +77,7 @@ define [], ->
     dictionary: (v) -> if _.isNull v then '' else v
     date      : c2sDate("dd.MM.yyyy")
     datetime  : c2sDate("dd.MM.yyyy HH:mm:ss")
+    coords    : (v) -> if v == "" then null else v
     JsonAsText: JSON.stringify
     JSON      : (v) -> v
     ident     : (v) -> parseInt v

@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module Snaplet.DbLayer.Triggers.Dsl where 
+module Snaplet.DbLayer.Triggers.Dsl where
 
 import Control.Applicative
 import Control.Monad (when)
@@ -69,7 +69,10 @@ new model obj = do
 
 
 addToList :: FieldValue -> FieldValue -> FieldValue
-addToList val = T.intercalate "," . (val:) . filter (/=val) . T.splitOn ","
+addToList ""   v    = v
+addToList v    ""   = v
+addToList val1 val2 =
+  T.intercalate "," . (val1:) . filter (/=val1) . T.splitOn "," $ val2
 
 dropFromList :: FieldValue -> FieldValue -> FieldValue
 dropFromList val = T.intercalate "," . filter (/=val) . T.splitOn ","

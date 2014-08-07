@@ -177,7 +177,7 @@ define [ "utils"
   # Key dictionary entries are available through {n}KeyDictionary
   # observable.
   jsonDictObjsHook: (model, kvm) ->
-    for f in model.fields when f.type == "json" &&
+    for f in model.fields when f.type?.match(/json/i) &&
                                f.meta?["jsonSchema"] == "dict-objects"
       do (f) ->
         n      = f.name
