@@ -9,7 +9,7 @@ Stability:           Do not touch anything
 Category:            Web
 Build-type:          Simple
 Cabal-version:       >=1.6
-Tested-with:         GHC == 7.6.3
+Tested-with:         GHC == 7.8.3
 
 Flag development
   Description: Whether to build the server in development (interpreted) mode
@@ -64,7 +64,6 @@ Executable carma
     Snaplet.Auth.PGUsers,
     ModelTriggers,
     Trigger.Dsl,
-    Trigger.Dsl.SendWsMessage,
     Utils.HttpErrors,
     Utils.NotDbLayer,
     Util
@@ -124,7 +123,7 @@ Executable carma
     transformers                >= 0.2 && < 0.4,
     unordered-containers,
     vector                      == 0.10.*,
-    vinnie                      == 0.3.*,
+    vinnie                      >= 0.3.1 && < 0.4,
     weather-api                 >= 0.4.3,
     xml-conduit                 == 1.2.*,
     xmlhtml                     == 0.2.*,

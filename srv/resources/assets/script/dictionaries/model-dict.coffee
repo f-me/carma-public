@@ -36,10 +36,11 @@ define ['dictionaries/local-dict',], (ld) ->
             @updateSource(_.filter @items, (e) => @fun(e[parentKey]) == val)
             # we need to gracefully handle cases when parent is not yet
             # initialised but child field should be rendered (see #2027)
-            @dictValueCache = _.reduce(
+            @allValuesMap   = _.reduce(
               @items,
               ((m,i) => m[@fun i[@key]] = i[@label]; m),
               {})
+            @dictValueCache = null
             @dictLabelCache = null
           @kvm[@parent].subscribe updateChildren
           updateChildren(@kvm[@parent]())
@@ -49,6 +50,6 @@ define ['dictionaries/local-dict',], (ld) ->
     updateSource: (items) ->
       @source = ({value: @fun(i[@key]), label: i[@label]} for i in items)
 
-    getLab: (val) -> @dictValues()[val]
+    getLab: (val) -> (@allValuesMap || @dictValues())[val]
 
   dict: ModelDict

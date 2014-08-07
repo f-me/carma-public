@@ -21,6 +21,9 @@ import Data.Model.Patch (Patch, untypedPatch)
 
 import Trigger.Dsl
 
+import qualified Carma.Model.Usermeta as Usermeta
+import qualified Carma.Model.Call as Call
+
 import Carma.Model.Role (Role)
 import Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
@@ -32,8 +35,11 @@ runUpdateTriggers
   :: forall m . Model m
   => IdentI m -> Patch m -> AppHandler (TriggerRes m)
 runUpdateTriggers = runTriggers $ Map.unionsWith (++)
-  ([ trigOn Usermeta.delayedState $ \_ -> sendWsMessage Usermeta.delayedState ] ++
+  ([trigOn Usermeta.delayedState $ \_ -> wsMessage >> logLegacy Usermeta.delayedState
+   ,trigOn Call.endDate $ \_ -> logLegacy Call.endDate
+   ] ++
    (map entryToTrigger $ fst carmaBackoffice))
+
 
 entryToTrigger e = toHaskell (trigger e)
 
