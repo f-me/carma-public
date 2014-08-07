@@ -21,6 +21,9 @@ library
     Data.Model.View,
 
     Carma.Model,
+    Carma.Model.ActionType,
+    Carma.Model.ActionResult,
+    Carma.Model.DeferTime,
     Carma.Model.Search,
     Carma.Model.Types,
     Carma.Model.PgTypes,
@@ -31,6 +34,7 @@ library
     Carma.Model.CarMake,
     Carma.Model.CarModel,
     Carma.Model.Engine,
+    Carma.Model.FalseCall,
     Carma.Model.Contract,
     Carma.Model.ContractCheckStatus,
     Carma.Model.FieldPermission,
@@ -46,7 +50,9 @@ library
     Carma.Model.PaymentType,
     Carma.Model.Program,
     Carma.Model.ProgramType,
+    Carma.Model.Satisfaction,
     Carma.Model.ServiceStatus,
+    Carma.Model.ServiceType,
     Carma.Model.SubProgram,
     Carma.Model.SubProgramContact,
     Carma.Model.SubProgramContractPermission,
@@ -92,7 +98,6 @@ library
     Carma.Model.Service.Towage,
 
     Carma.Model.ServiceInfo,
-    Carma.Model.ServiceNames,
     Carma.Model.Colors,
 
     Carma.Model.Sms,

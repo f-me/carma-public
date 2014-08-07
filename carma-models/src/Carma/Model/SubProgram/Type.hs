@@ -18,7 +18,7 @@ import Data.Model
 import Carma.Model.Types (TInt, IdentList)
 import Carma.Model.LegacyTypes (Reference)
 import Carma.Model.Program hiding (ident)
-import Carma.Model.ServiceNames hiding (ident)
+import Carma.Model.ServiceType hiding (ident)
 
 
 data SubProgram = SubProgram
@@ -93,7 +93,7 @@ data SubProgramService = SubProgramService
     -- TODO This is wrapped in Maybe only because the client first
     -- creates and empty instance, then rendering a form where the
     -- type may be selected.
-    , sType       :: F (Maybe (IdentI ServiceNames)) "type" "Услуга"
+    , sType       :: F (Maybe (IdentI ServiceType)) "type" "Услуга"
     , maxCost     :: F (Maybe Text)
                      "maxCost"
                      "Лимит стоимости"

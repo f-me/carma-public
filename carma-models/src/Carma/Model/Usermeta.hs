@@ -49,6 +49,9 @@ data Usermeta = Usermeta
   , isDealer :: F Bool
                 "isDealer"
                 "Дилер"
+  , isJack   :: F Bool
+                "isJack"
+                "Универсал"
   -- TODO String-wrapped list of Role ids (to be used until usermeta
   -- is fully migrated to new models)
   , roles    :: F (Maybe (Vector (IdentT Role)))

@@ -18,7 +18,7 @@ import Carma.Model.Engine       (Engine)
 import Carma.Model.CarClass     (CarClass)
 import Carma.Model.CarMake      (CarMake)
 import Carma.Model.CarModel     (CarModel)
-import Carma.Model.LegacyTypes hiding (CarClasses)
+import Carma.Model.LegacyTypes
 
 import Carma.Model.Diagnostics.Cause      (Cause)
 import Carma.Model.Diagnostics.Part       (Part)
@@ -135,7 +135,7 @@ data Case = Case
   , dealerCause
     :: F (Maybe Text) "dealerCause" "Неисправность со слов дилера/партнёра"
   , caseStatus
-    :: F (Maybe (IdentI CaseStatus)) "caseStatus" "Статус кейса"
+    :: F (IdentI CaseStatus) "caseStatus" "Статус кейса"
   , psaExportNeeded
     :: F (Maybe Checkbox) "psaExportNeeded" "Требуется выгрузка в PSA"
   , psaExported
