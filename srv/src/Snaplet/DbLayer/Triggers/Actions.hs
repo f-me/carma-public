@@ -123,7 +123,7 @@ actions
                 ,("closed", "0")
                 ]
               upd kazeId "actions" $ addToList actionId
-            else return ()])
+           ])
           ,("comment", [\caseId val ->
             case fvIdent val of
               Nothing -> return ()
