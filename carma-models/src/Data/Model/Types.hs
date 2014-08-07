@@ -74,7 +74,7 @@ type FieldI t (n :: Symbol) (d :: Symbol) =
   , DefaultFieldView t
   , FromJSON t, ToJSON t
   , FromField t, ToField t
-  , SingI n, SingI d)
+  , KnownSymbol n, KnownSymbol d)
 
 
 data ModelInfo m = ModelInfo
