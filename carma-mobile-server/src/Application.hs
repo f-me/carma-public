@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -26,8 +25,8 @@ import           Control.Monad.State hiding (ap)
 
 import           Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
+import           Data.Scientific (toRealFloat, toBoundedInteger)
 
-import           Data.Attoparsec.Number
 import           Data.Attoparsec.ByteString.Char8
 
 import           Data.ByteString.Char8 (ByteString)
@@ -35,8 +34,9 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.Dict
 import           Data.Maybe
+import           Data.Text (Text)
 import qualified Data.Text as T (pack)
-import           Data.Text.Encoding (encodeUtf8)
+import qualified Data.Text.Encoding as T
 
 import           Data.Configurator
 
@@ -110,14 +110,14 @@ revGeocode :: Double
            -> Handler b GeoApp (Maybe ByteString, Maybe ByteString)
 revGeocode lon lat = do
   uri <- runCarma $ methodURI ("geo/revSearch/" ++ coordsToString lon lat)
-  (addr :: Maybe (HM.HashMap ByteString (Maybe ByteString))) <- liftIO $ do
+  addr <- liftIO $ do
      resp <- H.simpleHTTP $ H.getRequest uri
      body <- H.getResponseBody resp
      return $ decode' $ BSL.pack body
-  case addr of
+  case addr :: Maybe (HM.HashMap Text (Maybe Text)) of
     Just m ->
-        return ( fromMaybe Nothing $ HM.lookup "city" m
-               , fromMaybe Nothing $ HM.lookup "address" m)
+        return ( T.encodeUtf8 <$> fromMaybe Nothing (HM.lookup "city" m)
+               , T.encodeUtf8 <$> fromMaybe Nothing (HM.lookup "address" m))
     Nothing -> return (Nothing, Nothing)
 
 
@@ -129,7 +129,7 @@ updatePosition = do
   lon' <- getParamWith double "lon"
   lat' <- getParamWith double "lat"
   free <- getParamWith bool "isFree"
-  (pid' :: Maybe Int) <- getParamWith decimal "pid"
+  pid' <- getParamWith decimal "pid"
   case (lon', lat', pid') of
     (Just lon, Just lat, Just pid) -> do
        addr <- snd <$> revGeocode lon lat
@@ -210,20 +210,18 @@ newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
   rqb <- readRequestBody 4096
-  let progField    = encodeUtf8 $ fieldName Case.program
-      subProgField = encodeUtf8 $ fieldName Case.subprogram
+  let progField    = fieldName Case.program
+      subProgField = fieldName Case.subprogram
       -- Do not enforce typing on values when reading JSON
-      Just jsonRq0 :: Maybe (HM.HashMap ByteString Value) =
-                      Aeson.decode rqb
+      Just (Object jsonRq0) = Aeson.decode rqb
       coords' = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
       program'    = HM.lookup progField jsonRq0
       subprogram' = HM.lookup subProgField jsonRq0
       -- Now read all values but coords and program into ByteStrings
-      jsonRq = HM.map (\(String s) -> encodeUtf8 s) $
-               HM.filter (\case
-                          String _ -> True
-                          _        -> False)
-               jsonRq0
+      jsonRq = HM.fromList
+        [(T.encodeUtf8 k, T.encodeUtf8 s)
+        |(k, String s) <- HM.toList jsonRq0
+        ]
       car_vin = HM.lookup "car_vin" jsonRq
       car_make = HM.lookup "car_make" jsonRq
 
@@ -235,22 +233,24 @@ newCase = do
 
   jsonRq' <- case coords' of
     -- Reverse geocode coordinates from lon/lat
-    Just (Number (D lon), Number (D lat)) -> revGeocode lon lat >>= \case
-      (city, addr) ->
-        return $
-        -- Translate input city name to corresponding dictionary key
-        (maybe id (HM.insert "city") $ city >>= (flip valueOfLabel dict)) $
-        -- Prepend street address with city name
-        (maybe id (\a -> HM.insert "caseAddress_address"
-                         (maybe a (\c -> BS.concat [c, ", ", a]) city))
-                         addr) $
-        HM.insert "caseAddress_coords" (BS.pack $ coordsToString lon lat) $
-        jsonRq
+    Just (Number lon', Number lat') ->
+      let (lon, lat) = (toRealFloat lon', toRealFloat lat')
+      in revGeocode lon lat >>= \case
+        (city, addr) ->
+          return $
+          -- Translate input city name to corresponding dictionary key
+          (maybe id (HM.insert "city") $ city >>= (flip valueOfLabel dict)) $
+          -- Prepend street address with city name
+          (maybe id (\a -> HM.insert "caseAddress_address"
+                           (maybe a (\c -> BS.concat [c, ", ", a]) city))
+                           addr) $
+          HM.insert "caseAddress_coords" (BS.pack $ coordsToString lon lat) $
+          jsonRq
     _ -> return jsonRq
 
   let numberToInt :: Maybe Value -> Maybe Int
-      numberToInt (Just (Number (I n))) = Just $ fromIntegral n
-      numberToInt _                     = Nothing
+      numberToInt (Just (Number n)) = toBoundedInteger n
+      numberToInt _                 = Nothing
 
       identToInt :: IdentI m -> Int
       identToInt i = n where (Ident n) = i
@@ -264,10 +264,10 @@ newCase = do
             (a, b) -> (numberToInt a, numberToInt b)
 
       -- Form a new case request to send to CaRMa
-      caseBody  = HM.insert progField
+      caseBody  = HM.insert (T.encodeUtf8 progField)
                   (BS.pack $ show $
                    fromMaybe (identToInt Program.ramc) progValue) $
-                  HM.insert subProgField
+                  HM.insert (T.encodeUtf8 subProgField)
                   (BS.pack $ show $
                    fromMaybe (identToInt SubProgram.ramc) subProgValue) $
                   HM.delete "lon" $
@@ -283,7 +283,7 @@ newCase = do
   let nowStr = BS.pack $ formatTime defaultTimeLocale "%s" (now :: UTCTime)
   -- Fetch id of the created case and create a new action for this id
   let caseId = fst caseResp
-      descr = encodeUtf8 $ T.pack
+      descr = T.encodeUtf8 $ T.pack
             $  "Клиент заказал услугу с помощью мобильного приложения. "
             ++ "Требуется перезвонить ему и уточнить детали"
       actBody = HM.fromList
@@ -311,7 +311,7 @@ newCase = do
 ------------------------------------------------------------------------------
 -- | Wrapper type for @/geo/partnersAround@ results.
 newtype Partner = Partner (Int, Double, Double, Maybe Bool, Maybe Bool,
-                           Maybe ByteString, Maybe ByteString, Maybe ByteString)
+                           Maybe Text, Maybe Text, Maybe Text)
                   deriving (FromRow)
 
 
@@ -374,7 +374,7 @@ partnersAround = do
   cds <- getParamWith coords "coords"
   limit <- getParam "limit"
   brand <- getParam "car_make"
-  (dist :: Maybe Int)  <- getParamWith decimal "dist"
+  dist  <- getParamWith decimal "dist"
   case cds of
     Just (lon, lat) -> do
       let qParams = ( lon
@@ -382,12 +382,12 @@ partnersAround = do
                     , isNothing brand
                     , fromMaybe "" brand
                     , isNothing dist
-                    , maybe 100000 (* 1000) dist
+                    , maybe 100000 (* 1000) dist :: Int
                     , fromMaybe "20" limit
                     )
-      results :: [Partner] <- query partnersAroundQuery qParams
+      results <- query partnersAroundQuery qParams
       modifyResponse $ setContentType "application/json"
-      writeLBS $ Aeson.encode results
+      writeLBS $ Aeson.encode (results :: [Partner])
     _ -> error "Bad request"
 
 
