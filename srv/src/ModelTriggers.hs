@@ -1,4 +1,6 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module ModelTriggers where
 
@@ -18,18 +20,57 @@ import Data.Model as Model
 import Data.Model.Patch (Patch, untypedPatch)
 
 import Trigger.Dsl
+
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Call as Call
 
+import Carma.Model.Role (Role)
+import Carma.Model.Usermeta (Usermeta)
+import qualified Carma.Model.Usermeta as Usermeta
 
+import Carma.Backoffice
+import Carma.Backoffice.DSL as BO
 
 runUpdateTriggers
   :: forall m . Model m
   => IdentI m -> Patch m -> AppHandler (TriggerRes m)
 runUpdateTriggers = runTriggers $ Map.unionsWith (++)
-  [trigOn Usermeta.delayedState $ \_ -> wsMessage >> logLegacy Usermeta.delayedState
-  ,trigOn Call.endDate $ \_ -> logLegacy Call.endDate
-  ]
+  ([trigOn Usermeta.delayedState $ \_ -> wsMessage >> logLegacy Usermeta.delayedState
+   ,trigOn Call.endDate $ \_ -> logLegacy Call.endDate
+   ] ++
+   (map entryToTrigger $ fst carmaBackoffice))
+
+
+entryToTrigger e = toHaskell (trigger e)
+
+newtype HaskellE t = HaskellE (HaskellType t)
+
+type family HaskellType t
+
+type instance HaskellType Trigger = Map (ModelName, FieldName) [Dynamic]
+
+type instance HaskellType Bool = Bool
+
+type instance HaskellType (IdentI m) = (IdentI m)
+
+type instance HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
+
+type instance HaskellType ActionOutcome = IO ()
+
+instance Backoffice HaskellE where
+    const = HaskellE
+
+    role r = HaskellE (Nothing, r)
+
+    not a = HaskellE $ Prelude.not $ toHaskell a
+
+    onServiceField' acc f =
+        HaskellE $ trigOn acc $ \_ -> undefined
+
+
+toHaskell :: HaskellE v -> HaskellType v
+toHaskell (HaskellE term) = term
+
 
 --  - runReadTriggers
 --    - ephemeral fields
@@ -75,4 +116,4 @@ runTriggers trMap ident patch
     matchingTriggers = concat $ catMaybes $ map (`Map.lookup` trMap) keys
     joinTriggers k tr = do
       let tr' = fromDyn tr $ tError 500 "dynamic BUG"
-      tr' >>= either (return . Left) (const k)
+      tr' >>= either (return . Left) (Prelude.const k)

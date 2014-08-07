@@ -127,7 +127,7 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
        casetbl c
      WHERE c.id::text = substring(a.caseId, ':(.*)')
      AND (? OR closed = ?)
-     AND (? OR assignedTo = ?)
+     AND (? OR a.assignedTo = ?)
      AND (? OR targetGroup IN ?)
      AND (? OR extract (epoch from duetime) >= ?)
      AND (? OR extract (epoch from duetime) <= ?);

@@ -18,7 +18,8 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
           Program  : 'program'
           Wazzup   : 'comment'
           CarMake  : 'car_make'
-          CarMode  : 'car_model'
+          CarModel : 'car_model'
+          Usermeta : 'callTaker'
           ContractCheckStatus : 'vinChecked'
       postProc arg.service,
         time: ['createTime', 'times_factServiceStart', 'times_factServiceEnd']
@@ -62,9 +63,14 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
                , "PartnerRefusalReason"
                , "ContractCheckStatus"
                , "ServiceStatus"
+               , "CarMake"
+               , "CarModel"
+               , "Usermeta"
                ]
     if _.contains newDicts, dict
-      (new D.dicts['ModelDict'](dict: dict)).getLab(val)
+      label = if dict == 'Usermeta' then 'realName' else 'label'
+      opts  = dict: dict, meta: {dictionaryLabel: label}
+      (new D.dicts.ModelDict(opts)).getLab val
     else
       global.dictValueCache[dict][val] || ''
 

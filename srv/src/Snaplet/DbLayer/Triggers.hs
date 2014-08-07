@@ -34,7 +34,7 @@ triggerUpdate
   -> DbHandler b ([DbHandler b ()], ObjectMap)
 triggerUpdate model objId commit = do
   let fullId = T.concat [model, ":", objId]
-  let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
+  let stripUnchanged orig = Map.filterWithKey (\k v -> (Map.lookup k orig /= Just v) && (not $ ((k == "program") && (v == "") && (model == "case"))))
   commit' <- (`stripUnchanged` commit) <$> Redis.read' redis fullId
   commit'' <- case model of
                 "usermeta" -> updateUsermetaTrigger objId commit'

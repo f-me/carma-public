@@ -19,6 +19,7 @@ import qualified Data.Aeson as Aeson
 import Data.Aeson
 import Data.List
 import qualified Data.Map as Map
+import qualified Data.HashMap.Strict as HM
 import Data.String
 
 import Data.Maybe
@@ -50,6 +51,7 @@ import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (FileUpload(cfg))
 
 import Carma.Model
+import Data.Model (idents)
 import Data.Model.CRUD
 import qualified Data.Model.Patch.Sql as Patch
 import           Data.Model.Patch (Patch(..))
@@ -64,6 +66,21 @@ import Carma.Model.Event (EventType(..))
 import Utils.Events (logLogin)
 
 import ModelTriggers (runUpdateTriggers)
+
+import Carma.Model.ActionResult (ActionResult)
+import Carma.Model.ActionType (ActionType)
+import Carma.Model.CaseStatus (CaseStatus)
+import qualified Carma.Model.Role as Role
+import Carma.Model.Satisfaction (Satisfaction)
+import Carma.Model.ServiceStatus (ServiceStatus)
+import Carma.Model.ServiceType (ServiceType)
+import Carma.Model.SmsTemplate (SmsTemplate)
+import Carma.Model.Program (Program)
+
+import Carma.Backoffice
+import Carma.Backoffice.Text
+import Carma.Backoffice.Graph
+import Carma.Backoffice.Validation
 
 
 ------------------------------------------------------------------------------
@@ -563,3 +580,32 @@ logResp act = logExceptions "handler/logResp" $ do
   r <- act
   syslogJSON Info "handler/logResp" ["response" .= r]
   writeJSON r
+
+data BORepr = Txt | Dot | Check
+
+type IdentMap m = Map.Map (IdentI m) Text
+
+serveBackofficeSpec :: BORepr -> AppHandler ()
+serveBackofficeSpec repr =
+    case repr of
+      Txt -> writeText $ backofficeText carmaBackoffice boxedIMap
+      Dot -> writeLazyText $ backofficeDot carmaBackoffice boxedIMap
+      Check -> writeJSON $ map show $ checkBackoffice carmaBackoffice boxedIMap
+    where
+      -- Simple ident mapping
+      iMap :: Model m => IdentMap m
+      iMap = Map.fromList $ map (\(k, v) -> (v, T.pack k)) $ HM.toList idents
+
+      boxMap :: Model m => IdentMap m -> Map.Map IBox Text
+      boxMap = Map.mapKeys IBox
+      -- Combine mappings for multiple models into one
+      boxedIMap = Map.unions [ boxMap (iMap :: IdentMap ActionResult)
+                             , boxMap (iMap :: IdentMap ActionType)
+                             , boxMap (iMap :: IdentMap CaseStatus)
+                             , boxMap (iMap :: IdentMap Role.Role)
+                             , boxMap (iMap :: IdentMap Satisfaction)
+                             , boxMap (iMap :: IdentMap ServiceStatus)
+                             , boxMap (iMap :: IdentMap ServiceType)
+                             , boxMap (iMap :: IdentMap SmsTemplate)
+                             , boxMap (iMap :: IdentMap Program)
+                             ]
