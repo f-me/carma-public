@@ -235,8 +235,8 @@ protoUpdateWithFun :: ContractFieldName
                    -> Text
                    -- ^ Function name.
                    -> [Text]
-                   -- ^ Function arguments, must refer only to columns
-                   -- of vinnie_pristine.
+                   -- ^ Function arguments, may only contain literals
+                   -- or references to columns of vinnie_pristine.
                    -> Import Int64
 protoUpdateWithFun cname fun args =
     execute
@@ -248,6 +248,18 @@ protoUpdateWithFun cname fun args =
         , PT $ T.concat [fun, "(", sqlCommas args, ")"]
         , tKid
         , tKid
+        )
+
+
+protoNullizeEmptyStrings :: ContractFieldName
+                         -> Import Int64
+protoNullizeEmptyStrings cname =
+    execute
+    [sql|
+     UPDATE vinnie_proto SET ? = null
+     WHERE vinnie_proto.? = "";
+     |] ( cname
+        , cname
         )
 
 
@@ -356,7 +368,7 @@ protoDictLookup iname cname dictTableName =
     [sql|
      WITH dict AS
      (SELECT DISTINCT ON (label) id AS did,
-      -- TODO name/code/synonyms field names
+      -- TODO label/synonyms field names
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms))))
        AS label
       FROM "?" ORDER BY label, did)
@@ -586,7 +598,7 @@ setSpecialDefaults :: Int
                    -> Bool
                    -- ^ Contracts are loaded from ARC.
                    -> Import Int64
-setSpecialDefaults cid sid fromArc =
+setSpecialDefaults cid sid fromArcVal =
     execute
     [sql|
      UPDATE vinnie_queue SET ? = ?;
@@ -596,7 +608,7 @@ setSpecialDefaults cid sid fromArc =
      |] (cfn C.committer, cid,
          cfn C.dixi,
          cfn C.subprogram, sid, cfn C.subprogram,
-         cfn C.fromArc, fromArc)
+         cfn C.fromArc, fromArcVal)
 
 
 -- | Transfer from proto table to queue table, casting text values
