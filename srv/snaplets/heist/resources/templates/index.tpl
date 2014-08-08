@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title><addLocalName>CaRMa</addLocalName></title>
-    <link rel="stylesheet" href="/s/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/s/3p/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/s/css/datepicker.css" />
     <link rel="stylesheet" href="/s/css/jquery.dataTables.css" />
 
@@ -19,7 +19,7 @@
     <script src="/s/3p/jquery.js" />
 
     <!-- Rich UI -->
-    <script src="/s/3p/bootstrap.min.js" />
+    <script src="/s/3p/bootstrap/js/bootstrap.min.js" />
     <script src="/s/3p/bootstrap-datepicker.js" />
     <script src="/s/3p/bootstrap-typeahead.js" />
     <script src="/s/3p/bootstrap-tagautocomplete.js" />

@@ -90,6 +90,10 @@ module.exports = (grunt) ->
     knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
     notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
     spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
+    bootstrap:
+      src: 'bootstrap'
+      dest: 'bootstrap'
+      file: ['css/**', 'img/**', 'js/**']
     openLayers:
       src: 'OpenLayers'
       dest: 'OpenLayers'
