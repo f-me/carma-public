@@ -28,6 +28,7 @@ where
 
 import Prelude hiding (read)
 
+import Control.Exception (SomeException)
 import Control.Monad.IO.Class
 import Data.Functor
 
@@ -112,20 +113,18 @@ update model objId commit =
       -- False if no objects matched.
       updateModel :: forall m b. Model m =>
                      m
-                  -> DbHandler b (Either String Int64)
+                  -> DbHandler b (Either SomeException Int64)
       updateModel _ = do
         let ident = readIdent objId :: IdentI m
             commit' = recode commit
         s <- PS.getPostgresState
-        res <- liftIO $
-               withResource (PS.pgPool s) (Patch.update ident commit')
-        return $ Right res
+        liftIO $ withResource (PS.pgPool s) (Patch.update ident commit')
   in
     case Carma.Model.dispatch model updateModel of
       Just fn -> fn >>= \case
                  Right 0  -> error "NDB.update: could not update model"
                  Right _  -> return $ HM.empty
-                 Left s   -> error s
+                 Left s   -> error $ show s
       Nothing -> recode <$> DB.update model objId (recode commit)
 
 

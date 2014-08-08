@@ -243,8 +243,9 @@ updateHandler = do
             res <- with db $
               liftIO $ withResource (PS.pgPool s) (Patch.update ident commit')
             case res of
-              0 -> return $ Left 404
-              _ -> case model of
+              Left ex -> error $ show ex
+              Right 0 -> return $ Left 404
+              Right _ -> case model of
                      -- TODO #1352 workaround for Contract triggers
                      "Contract" ->
                          do

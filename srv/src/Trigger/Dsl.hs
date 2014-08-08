@@ -80,7 +80,6 @@ liftFree = Free . fmap Pure
 -- will simplify DSL interpreter.
 
 -- create transaction
--- save patch to db
 
 data Dsl m k where
   GetPatch :: (Patch m -> k) -> Dsl m k
@@ -124,7 +123,7 @@ evalDsl = \case
     GetIdent k -> gets st_ident >>= evalDsl . k
     GetPatch k -> gets st_patch >>= evalDsl . k
     DbUpdate i p k -> do
-      res <- lift $ do
+      Right res <- lift $ do
         s <- PG.getPostgresState
         Pool.withResource (PG.pgPool s) (liftIO . Patch.update i p)
       evalDsl $ k res
