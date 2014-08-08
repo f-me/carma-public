@@ -72,7 +72,7 @@ define [ "utils"
         global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
           kvm["#{f.name}Id"]?("partner:#{val.id}")
-          addr = u.getKeyedJsonValue (JSON.parse val.addrs), "fact"
+          addr = val.addrDeFacto
           field_basename = f.name.split('_')[0]
           kvm["#{field_basename}_address"]?(addr || "")
           kvm["#{field_basename}_coords"]? val.coords
@@ -95,3 +95,9 @@ define [ "utils"
       localStorage[pSearch.storeKey] =
         JSON.stringify {case: kase, service: srv, field: field}
       pSearch.open('case')
+
+  serviceColor: (model, kvm) ->
+    kvm._svcColor = ko.computed ->
+      hash = md5(kvm._meta.model.name + ':' + kvm.id())
+      ix = parseInt(hash.slice(0,6), 16) % u.palette.length
+      u.palette[ix]

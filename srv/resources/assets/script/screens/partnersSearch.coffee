@@ -9,6 +9,7 @@ define [ "utils"
        , "sync/metaq"
        , "text!tpl/screens/partnersSearch.html"
        , "text!tpl/partials/partnersSearch.html"
+       , "text!tpl/fields/form.html"
        ], ( utils
           , map
           , m
@@ -19,7 +20,8 @@ define [ "utils"
           , models
           , metaq
           , tpl
-          , partials) ->
+          , partials
+          , Flds) ->
 
   model = models.PartnerSearch
 
@@ -41,8 +43,10 @@ define [ "utils"
 
   partialize = (ps) -> mkPartials(ps).join('')
 
+  flds =  $('<div/>').append($(Flds))
+
   md  = $(partials).html()
-  cb  = $("#checkbox-field-template").html()
+  cb  = flds.find("#checkbox-field-template").html()
   city = Mustache.render md,  fh['city']
   make = Mustache.render md,  fh['make']
   srvs = Mustache.render md,  fh['services']
@@ -114,6 +118,8 @@ define [ "utils"
         # Highlight partner blip on map
         $("#map").trigger "drawpartners"
         if kvm['field'].split('_')[0] == 'contractor'
+          # FIXME: There is no such field on partner anymore, but it's simplest
+          # hack to make it work
           partner['addrDeFacto'] utils.getKeyedJsonValue partner.addrs(), 'fact'
         else
           a = partner['addrDeFacto']

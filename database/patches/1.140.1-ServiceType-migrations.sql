@@ -1,9 +1,17 @@
+DROP VIEW "Услуги";
+DROP VIEW "Отказы партнеров";
+DROP VIEW servicesview;
+DROP VIEW allservicesview;
+
 ALTER TABLE servicetbl ADD COLUMN type_tmp int4;
 UPDATE servicetbl SET type_tmp = n.id
 FROM "ServiceNames" n WHERE n.value = type;
 ALTER TABLE servicetbl ALTER COLUMN type SET NOT NULL;
 
 ALTER TABLE servicetbl DROP COLUMN type;
+ALTER TABLE consultationtbl DROP COLUMN type;
+ALTER TABLE tech1tbl DROP COLUMN type;
+
 ALTER TABLE servicetbl ADD COLUMN type int4 REFERENCES "ServiceType";
 UPDATE servicetbl SET type = type_tmp;
 ALTER TABLE servicetbl DROP COLUMN type_tmp;

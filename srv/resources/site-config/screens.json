@@ -88,42 +88,35 @@
         }
       ]
     },
-    { "type"    : "dropdown",
-      "name"    : "more",
-      "label"   : "Ещё",
-      "permissions": ["reportManager", "billManager", "userAdmin", "userViewer", "parguy", "vinAdmin", "partner", "psaanalyst", "lovAdmin", "lovViewer", "core"],
-      "screens" : [
-        { "name"  : "vin",
-          "label" : "Обновление базы VIN",
-          "type"  : "li",
-          "permissions": ["vinAdmin", "partner", "psaanalyst"]
-        },
-        { "name"  : "partner",
-          "label" : "Редактирование партнёров",
-          "type"  : "li",
-          "permissions": ["parguy"]
-        },
-        { "name"  : "usermeta",
-          "label" : "Редактирование пользователей",
-          "type"  : "li",
-          "permissions": ["userAdmin", "userViewer"]
-        },
-        { "name"  : "uploads",
-          "label" : "Загрузка файлов",
-          "type"  : "li",
-          "permissions": ["billManager"]
-        },
-        { "name"  : "search/partners",
-          "label" : "Дилеры и партнеры",
-          "type"  : "li",
-          "permissions": ["dpViewer"]
-        },
-        { "name"  : "dict",
-          "label" : "Редактирование справочников",
-          "type"  : "li",
-          "permissions": ["lovAdmin", "lovViewer"]
-        }
-      ]
+    { "name"  : "vin",
+      "label" : "Обновление базы VIN",
+      "type"  : "li",
+      "permissions": ["vinAdmin", "partner", "psaanalyst"]
+    },
+    { "name"  : "partner",
+      "label" : "Редактирование партнёров",
+      "type"  : "li",
+      "permissions": ["parguy"]
+    },
+    { "name"  : "usermeta",
+      "label" : "Редактирование пользователей",
+      "type"  : "li",
+      "permissions": ["userAdmin", "userViewer"]
+    },
+    { "name"  : "uploads",
+      "label" : "Загрузка файлов",
+      "type"  : "li",
+      "permissions": ["billManager"]
+    },
+    { "name"  : "search/partners",
+      "label" : "Дилеры и партнеры",
+      "type"  : "li",
+      "permissions": ["dpViewer"]
+    },
+    { "name"  : "dict",
+      "label" : "Редактирование справочников",
+      "type"  : "li",
+      "permissions": ["lovAdmin", "lovViewer"]
     },
     { "name"  :"timeline",
       "label" : "Таймлайн",

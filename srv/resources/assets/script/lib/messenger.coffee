@@ -1,6 +1,9 @@
 define ["lib/ws"], (WS) ->
 
-  messengerUrl = "ws://#{location.hostname}:8000/wsmessenger"
+  if window.location.protocol == "https:"
+    messengerUrl = "wss://#{location.hostname}:8000/wsmessenger"
+  else
+    messengerUrl = "ws://#{location.hostname}:8000/wsmessenger"
 
   subscribe = (ws, topic) => ws.send JSON.stringify subscribe: topic
 

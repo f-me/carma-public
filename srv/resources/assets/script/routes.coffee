@@ -63,7 +63,7 @@ define ["render/screen"
         name : "partner"
         template: "partner-screen-template"
         views:
-          "partner-view": partner
+          "Partner-view": partner
       r.renderScreen partner, bind
 
   addRoute "usermeta/:id", (bind) ->

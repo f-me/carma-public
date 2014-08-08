@@ -27,10 +27,7 @@
         Новый кейс
       </button>
     </div>
-    <div class="control-group"
-          data-bind="visible: id()
-                     && !endDate()
-                     && (callTaker() == global.user.login)">
+    <div class="control-group" data-bind="visible: id">
       <button id="end-call" class="btn btn-danger">
         Закончить звонок
       </button>

@@ -82,6 +82,12 @@ define ["model/utils", "utils"], (mu, u) ->
       37.4053535461426, 55.1205749511719,
       37.494945526123, 55.1808853149414)
 
+  Oktyabrsky =
+    coords: new OpenLayers.LonLat(53.5168, 54.4839)
+    bounds: new OpenLayers.Bounds(
+      53.42842, 54.51437,
+      53.5817, 54.4495)
+
   # Build a place for city from geoQuery response (overrides
   # coordinates and boundaries for certain key cities)
   buildCityPlace = (res) ->
@@ -96,6 +102,8 @@ define ["model/utils", "utils"], (mu, u) ->
         Samara
       when "47656825"
         Chekhov
+      when "25108824"
+        Oktyabrsky
       else
         buildPlace res
 

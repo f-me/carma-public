@@ -1,90 +1,52 @@
-{-# OPTIONS_GHC -fno-warn-unused-binds #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
+
 module AppHandlers.Screens (getScreens) where
 
 import           Data.List (intersect)
-import           Data.Maybe
 import           Data.Aeson
+import           Data.Aeson.TH
 import           Data.Text (Text)
 import qualified Data.ByteString.Lazy  as L8
 
 import           Control.Applicative
-
 import           Database.PostgreSQL.Simple.SqlQQ
 
 import           Snap
-
 import           Snap.Snaplet.PostgresqlSimple
 import           Snap.Snaplet.Auth
 import           Snaplet.Auth.Class
 
 import           Application
-import           AppHandlers.Util
+import           AppHandlers.Util (writeJSON)
 
-import           Utils.HttpErrors
+type Roles = [Text]
+
+data Screen = Screen
+  { __name        :: Text
+  , s'type        :: Text
+  , __label       :: Maybe Text
+  , s'screens     :: Maybe [Screen]
+  , s'permissions :: [Text]
+  }
+$(deriveJSON (defaultOptions {fieldLabelModifier = drop 2}) ''Screen)
 
 
-type Permissions = [Text]
-type Screens = [Screen]
-
-data Screen = Sms { name        :: Text
-                  , permissions :: Permissions
-                  }
-            | Li  { name        :: Text
-                  , label       :: Text
-                  , permissions :: Permissions
-                  }
-            | Dropdown { name        :: Text
-                       , label       :: Text
-                       , permissions :: Permissions
-                       , screens     :: Screens
-                       }
-              deriving Show
-
-instance FromJSON Screen where
-  parseJSON (Object v) = do
-    t <- v .: "type"
-    case t :: String of
-      "sms" -> Sms <$> v .: "name" <*> v .: "permissions"
-      "li"  -> Li  <$> v .: "name" <*> v .: "label" <*> v .: "permissions"
-      "dropdown" -> Dropdown           <$>
-                    v .: "name"        <*>
-                    v .: "label"       <*>
-                    v .: "permissions" <*>
-                    v .: "screens"
-      _ -> fail $ "unknown screen type: " ++ t
-  parseJSON _ = fail "wrong object in screen list"
-
-instance ToJSON Screen where
-  toJSON (Sms name p) = object [ "name" .= name
-                               , "type" .= ("sms" :: Text)
-                               , "permissions" .= p]
-  toJSON (Li  n l p ) = object [ "name"        .= n
-                               , "label"       .= l
-                               , "type"        .= ("li" :: Text)
-                               , "permissions" .= p
-                               ]
-  toJSON (Dropdown n l p ss) = object  [ "name"        .= n
-                                       , "label"       .= l
-                                       , "type"        .= ("dropdown" :: Text)
-                                       , "permissions" .= p
-                                       , "screens"     .= ss
-                                       ]
-
-chkPerms :: Permissions -> Permissions -> Bool
-chkPerms perms roles = not $ null $ intersect perms roles
-
-processScreens :: Screens -> Permissions -> Screens
-processScreens ss rls = reverse $ foldl prcScr [] ss
+filterByPermissions :: Roles -> [Screen] -> [Screen]
+filterByPermissions roles = concatMap nestedCheck  . filter canAccess
   where
-    prcScr acc d
-      | chkPerms (permissions d) rls == True = process acc d
-      | otherwise                            = acc
-    process acc d@(Dropdown _ _ _ scrs) =
-      d{ screens = processScreens scrs rls } : acc
-    process acc d = d : acc
+    canAccess = not . null . intersect roles . s'permissions
 
-readScreens :: IO (Either String Screens)
+    nestedCheck :: Screen -> [Screen]
+    nestedCheck = \case
+      Screen{s'type = "dropdown", s'screens = Nothing} -> []
+      s@Screen{s'type = "dropdown", s'screens = Just ss}
+        -> case filterByPermissions roles ss of
+          [] -> [] -- skip empty dropdowns
+          ss' -> [s{s'screens = Just ss'}]
+      s -> [s]
+
+
+readScreens :: IO (Either String [Screen])
 readScreens = eitherDecode <$> L8.readFile "resources/site-config/screens.json"
 
 -- | Select user roles. User roles are converted to
@@ -102,9 +64,7 @@ SELECT DISTINCT s.roles FROM
 
 getScreens :: AppHandler ()
 getScreens = do
-  s  <- liftIO readScreens
-  (Just (UserId uid)) <- (userId . fromJust) <$> withAuth currentUser
+  Right screens <- liftIO readScreens
+  Just (UserId uid) <- (>>= userId) <$> withAuth currentUser
   [Only roles] <- with db $ query q (Only uid)
-  case s of
-    Right s' -> writeJSON $ processScreens s' roles
-    Left err -> finishWithError 403 err
+  writeJSON $ filterByPermissions roles screens

@@ -20,9 +20,6 @@ import Data.String (fromString)
 ------------------------------------------------------------------------------
 import WeatherApi (getWeather', tempC)
 -----------------------------------------------------------------------------
-import Data.Time.Format (parseTime, formatTime)
-import Data.Time.Clock (UTCTime, addUTCTime)
-import System.Locale (defaultTimeLocale)
 
 import Snap (gets, with)
 import Snap.Snaplet.Auth
@@ -39,8 +36,9 @@ import Snaplet.DbLayer.Triggers.MailToGenser
 
 import Carma.HTTP (read1Reference)
 
-
 import           Data.Model
+import qualified Data.Model.Patch as Patch (Patch, get)
+import qualified Data.Model.Patch.Sql as Patch (read)
 
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.CaseStatus as CaseStatus
@@ -56,10 +54,10 @@ import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Action as Act
 import qualified Carma.Model.Call   as Call
+import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
 import Util as U
 import qualified Utils.Events  as Evt
-import qualified Utils.RKCCalc as RKC
 
 
 services :: [ModelName]
@@ -94,11 +92,7 @@ add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (
 actions :: MonadTrigger m b => Map.Map ModelName (Map.Map FieldName [ObjectId -> FieldValue -> m b ()])
 -- actions :: TriggerMap a
 actions
-    = add "towage" "suburbanMilage" [\objId _ -> setSrvMCost objId]
-    $ add "tech"   "suburbanMilage" [\objId _ -> setSrvMCost objId]
-    $ add "rent"   "providedFor"    [\objId _ -> setSrvMCost objId]
-    $ add "hotel"  "providedFor"    [\objId _ -> setSrvMCost objId]
-    $ add "towage" "contractor_address" [
+    = add "towage" "contractor_address" [
       \objId val -> set objId "towerAddress_address" val
       ]
     $ add "towage" "towDealer_address" [
@@ -113,22 +107,9 @@ actions
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
       ++[("action", actionActions)
-        ,("cost_serviceTarifOption", Map.fromList
-          [("count",
-            [\objId val -> do
-                case mbreadDouble val of
-                  Nothing -> return ()
-                  Just v  -> do
-                    p <- get objId "price" >>= return . fromMaybe 0 . mbreadDouble
-                    set objId "cost" $ printBPrice $ v * p
-                    srvId <- get objId "parentId"
-                    set srvId "cost_counted" =<< srvCostCounted srvId
-            ])
-          ])
         ,("case", Map.fromList
           [("caseStatus", [\kazeId st ->
-            if st == identFv CaseStatus.needInfo
-            then do
+            when (st == identFv CaseStatus.needInfo) $ do
               now <- dateNow Prelude.id
               due <- dateNow (+ (1*60))
               actionId <- new "action" $ Map.fromList
@@ -142,14 +123,32 @@ actions
                 ,("closed", "0")
                 ]
               upd kazeId "actions" $ addToList actionId
-            else return ()])
+           ])
+          ,("comment", [\caseId val ->
+            case fvIdent val of
+              Nothing -> return ()
+              Just wi -> do
+                  res :: [Patch.Patch Wazzup.Wazzup] <-
+                         liftDb $ withPG $ \c -> Patch.read wi c
+                  case res of
+                    [] -> return ()
+                    (patch:_) ->
+                        let
+                            f acc = maybe "" identFv $
+                                    fromMaybe Nothing $
+                                    Patch.get patch acc
+                            s = f Wazzup.system
+                            p = f Wazzup.part
+                            c = f Wazzup.cause
+                            g = f Wazzup.suggestion
+                        in
+                          set caseId "diagnosis1" s >>
+                          set caseId "diagnosis2" p >>
+                          set caseId "diagnosis3" c >>
+                          set caseId "diagnosis4" g >>
+                          return ()
+            ])
           ,("services", [\caseId _ -> updateCaseStatus caseId])
-          ,("partner", [\objId _ -> do
-            mapM_ setSrvMCost =<< T.splitOn "," <$> get objId "services"
-            ])
-          ,("program", [\objId _ -> do
-            mapM_ setSrvMCost =<< T.splitOn "," <$> get objId "services"
-            ])
           -- ,("contact_name",
           --   [\objId val -> set objId "contact_name" $ upCaseStr val])
           -- ,("contact_ownerName",
@@ -159,25 +158,16 @@ actions
             when (T.length val > 5)
               $ set objId "car_plateNum" $ T.toUpper val])
           ,("contract", [\objId val ->
-                         if (not $ T.null val)
-                         then do
+                         unless (T.null val) $
                            fillFromContract val objId >>= \case
                              Loaded -> set objId "vinChecked" $
                                        identFv CCS.base
                              Expired -> set objId "vinChecked" $
                                         identFv CCS.vinExpired
                              None -> return ()
-                         else return ()
                         ])
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
-          ])
-        ,("contract", Map.fromList
-          [("carPlateNum",  [\o -> set o "carPlateNum" . T.toUpper])
-          ,("carVin",       [\o -> set o "carVin" . T.toUpper])
-          ,("carCheckPeriod", [setContractValidUntilMilage])
-          ,("milageTO",       [setContractValidUntilMilage])
-          ,("contractValidFromDate", [setContractValidUntilDate])
           ])
         ,("call", Map.fromList
           [("endDate", [\objId _ ->
@@ -186,9 +176,19 @@ actions
         ,("usermeta", Map.fromList
           [("delayedState", [\objId _ ->
              liftDb $ Evt.logLegacyCRUD Update objId Usermeta.delayedState])
+          ,("businessRole", [updateBusinessRole])
           ])
         ]
 
+updateBusinessRole :: MonadTrigger m b => ObjectId -> FieldValue -> m b ()
+updateBusinessRole _     ""  = return ()
+updateBusinessRole objId val =  do
+  rs <- liftDb $ PG.query (fromString $
+    "select array_to_string(roles, ',') from \"BusinessRole\"" ++
+    " where id :: text = ?;") (Only val)
+  case rs of
+    [Only r] -> set objId "roles" r
+    _        -> error $ "unknown BusinessRole id: " ++ show val
 
 -- | Mapping between contract and case fields.
 contractToCase :: [(FA Contract.Contract, FA Case.Case)]
@@ -235,7 +235,7 @@ fillFromContract contract objId = do
       subProgramTable = PT $ tableName $
                         (modelInfo :: ModelInfo SubProgram.SubProgram)
   res <- liftDb $ PG.query
-         (fromString $ intercalate " "
+         (fromString $ unwords
           [ "SELECT"
           -- 2 * M arguments, where M is the length of contractToCase
           , intercalate "," $ map (const "?.?::text") contractToCase
@@ -274,7 +274,7 @@ fillFromContract contract objId = do
       let setIfEmpty oid nm val = get oid nm >>= \case
               "" -> set objId nm val
               _  -> return ()
-      zipWithM_ (maybe (return ()) . (setIfEmpty objId))
+      zipWithM_ (maybe (return ()) . setIfEmpty objId)
                 (map (fieldNameE . snd) $
                  contractToCase ++ [(undefined, FA Case.program)])
                 row
@@ -293,7 +293,7 @@ fillFromContract contract objId = do
 
 -- | This is called when service status is changed in some trigger.
 onRecursiveServiceStatusChange
-  :: MonadTrigger m b => ObjectId -> (IdentI SS.ServiceStatus) -> m b ()
+  :: MonadTrigger m b => ObjectId -> IdentI SS.ServiceStatus -> m b ()
 onRecursiveServiceStatusChange svcId val = do
   caseId  <- get svcId "parentId"
 
@@ -334,7 +334,7 @@ updateCaseStatus caseId =
                (map identFv [ SS.clientCanceled
                             , SS.canceled])) statuses
           -> CaseStatus.canceled
-        | any (== (identFv SS.creating)) statuses
+        | identFv SS.creating `elem` statuses
           -> CaseStatus.front
         | otherwise -> CaseStatus.back
 
@@ -360,235 +360,7 @@ clearAssignee action = set action "assignedTo" "" >> set action "assignTime" ""
 serviceActions :: MonadTrigger m b
                => Map.Map FieldName [ObjectId -> FieldValue -> m b ()]
 serviceActions = Map.fromList
-  [("status", [\objId val ->
-    let
-     proceed s
-      | s == Just SS.backoffice = do
-          due <- dateNow (+ (1*60))
-          kazeId <- get objId "parentId"
-          -- Check if backoffice transfer is related to callMeMaybe action
-          relatedUser <- liftDb $ PG.query [sql|
-            SELECT coalesce(a.assignedTo, '') FROM actiontbl a, usermetatbl u
-              WHERE a.caseId = ?
-                AND u.login = a.assignedTo
-                AND (lastlogout IS NULL OR lastlogout < lastactivity)
-                AND now() - lastactivity < '30 min'
-                AND a.name IN ('tellMeMore', 'callMeMaybe')
-                AND coalesce(a.result, '') <> 'communicated'
-              LIMIT 1
-            |] [kazeId]
-          now <- dateNow id
-          let (assignee, assignTime) =
-                  case relatedUser of
-                    [[u]] -> (u, now)
-                    _     -> ("", "")
-          actionId <- new "action" $ Map.fromList
-            [("name", "orderService")
-            ,("ctime", now)
-            ,("duetime", due)
-            ,("description", "Заказать услугу")
-            ,("targetGroup", identFv Role.bo_order)
-            ,("priority", "1")
-            ,("parentId", objId)
-            ,("caseId", kazeId)
-            ,("closed", "0")
-            ,("assignTime", assignTime)
-            ,("assignedTo", assignee)
-            ]
-          upd kazeId "actions" $ addToList actionId
-          future $ sendSMS actionId SmsTemplate.create
-      | s == Just SS.recallClient = do
-          now <- dateNow id
-          due <- dateNow (+ (15*60))
-          kazeId <- get objId "parentId"
-          actionId <- new "action" $ Map.fromList
-            [("name", "tellMeMore")
-            ,("ctime", now)
-            ,("duetime", due)
-            ,("description",  "Заказ услуги (требуется дополнительная информация)")
-            ,("targetGroup", identFv Role.bo_order)
-            ,("priority", "1")
-            ,("parentId", objId)
-            ,("caseId", kazeId)
-            ,("closed", "0")
-            ]
-          upd kazeId "actions" $ addToList actionId
-          future $ sendSMS actionId SmsTemplate.create
-      | s == Just SS.ordered = do
-          due <- dateNow (+ (1*60))
-          kazeId <- get objId "parentId"
-          Just u <- liftDb $ with auth currentUser
-          now <- dateNow id
-          act1 <- new "action" $ Map.fromList
-            [("name", "tellClient")
-            ,("ctime", now)
-            ,("duetime", due)
-            ,("assignTime", now)
-            ,("description", "Сообщить клиенту о договорённости")
-            ,("targetGroup", identFv Role.bo_control)
-            ,("priority", "1")
-            ,("parentId", objId)
-            ,("caseId", kazeId)
-            ,("closed", "0")
-            ]
-          tryToPassChainToControl u act1
-
-          upd kazeId "actions" $ addToList act1
-          now2 <- dateNow id
-          due2 <- dateNow (+ (14*24*60*60))
-          act2 <- new "action" $ Map.fromList
-            [("name", "addBill")
-            ,("ctime", now2)
-            ,("duetime", due2)
-            ,("description", "Прикрепить счёт")
-            ,("targetGroup", identFv Role.bo_bill)
-            ,("priority", "1")
-            ,("parentId", objId)
-            ,("caseId", kazeId)
-            ,("assignedTo", "")
-            ,("closed", "0")
-            ]
-          upd kazeId "actions" $ addToList act2
-      | s == Just SS.mechanicConf = do
-          now <- dateNow id
-          due <- dateNow (+ (1*60))
-          kazeId <- get objId "parentId"
-          actionId <- new "action" $ Map.fromList
-            [("name", "mechanicConf")
-            ,("ctime", now)
-            ,("duetime", due)
-            ,("description", "Требуется конференция с механиком")
-            ,("targetGroup", identFv Role.bo_control)
-            ,("priority", "2")
-            ,("parentId", objId)
-            ,("caseId", kazeId)
-            ,("closed", "0")
-            ]
-          upd kazeId "actions" $ addToList actionId
-          future $ sendSMS actionId SmsTemplate.create
-      | s == Just SS.dealerConf = do
-          now <- dateNow id
-          due <- dateNow (+ (1*60))
-          kazeId <- get objId "parentId"
-          actionId <- new "action" $ Map.fromList
-            [("name", "dealerConf")
-            ,("ctime", now)
-            ,("duetime", due)
-            ,("description", "Требуется конференция с дилером")
-            ,("targetGroup", identFv Role.bo_control)
-            ,("priority", "2")
-            ,("parentId", objId)
-            ,("caseId", kazeId)
-            ,("closed", "0")
-            ]
-          upd kazeId "actions" $ addToList actionId
-          future $ sendSMS actionId SmsTemplate.create
-      | s == Just SS.checkNeeded = do
-          now <- dateNow id
-          due <- dateNow (+ (5*60))
-          kazeId <- get objId "parentId"
-          actionId <- new "action" $ Map.fromList
-            [("name", "checkStatus")
-            ,("ctime", now)
-            ,("duetime", due)
-            ,("description",
-                "Клиент попросил уточнить, когда начнётся оказание услуги")
-            ,("targetGroup", identFv Role.bo_control)
-            ,("priority", "3")
-            ,("parentId", objId)
-            ,("caseId", kazeId)
-            ,("closed", "0")
-            ]
-          upd kazeId "actions" $ addToList actionId
-      | s == Just SS.dealerConfirmation = do
-          now <- dateNow id
-          due <- dateNow (+ (1*60))
-          kazeId <- get objId "parentId"
-          actionId <- new "action" $ Map.fromList
-            [("name", "dealerApproval")
-            ,("ctime", now)
-            ,("duetime", due)
-            ,("description", "Требуется согласование с дилером")
-            ,("targetGroup", identFv Role.bo_control)
-            ,("priority", "2")
-            ,("parentId", objId)
-            ,("caseId", kazeId)
-            ,("closed", "0")
-            ]
-          upd kazeId "actions" $ addToList actionId
-      | s == Just SS.makerConfirmation = do
-          now <- dateNow id
-          due <- dateNow (+ (1*60))
-          kazeId <- get objId "parentId"
-          actionId <- new "action" $ Map.fromList
-            [("name", "carmakerApproval")
-            ,("ctime", now)
-            ,("duetime", due)
-            ,("description", "Требуется согласование с заказчиком программы")
-            ,("targetGroup", identFv Role.bo_control)
-            ,("priority", "2")
-            ,("parentId", objId)
-            ,("caseId", kazeId)
-            ,("closed", "0")
-            ]
-          upd kazeId "actions" $ addToList actionId
-      | s == Just SS.clientCanceled = do
-          now <- dateNow id
-          due <- dateNow (+ (1*60))
-          kazeId <- get objId "parentId"
-          actionId <- new "action" $ Map.fromList
-            [("name", "cancelService")
-            ,("ctime", now)
-            ,("duetime", due)
-            ,("description", "Клиент отказался от услуги (сообщил об этом оператору Front Office)")
-            ,("targetGroup", identFv Role.bo_control)
-            ,("priority", "1")
-            ,("parentId", objId)
-            ,("caseId", kazeId)
-            ,("closed", "0")
-            ]
-          upd kazeId "actions" $ addToList actionId
-      | otherwise = return ()
-    in
-      proceed (fvIdent val)
-    -- Another one service status trigger.
-    -- Sets corresponding case status.
-    ,\objId val -> do
-      set objId "status" val -- push change to the commit stack
-      onRecursiveServiceStatusChange objId $
-        fromMaybe (error "Unknown service status") (fvIdent val)
-    ]
-  )
-  ,("clientSatisfied",
-    [\objId val ->
-        case val of
-          "notSatis" -> do
-            now <- dateNow id
-            due <- dateNow (+ (1*60))
-            kazeId <- get objId "parentId"
-            actionId <- new "action" $ Map.fromList
-              [("name", "complaintResolution")
-              ,("ctime", now)
-              ,("duetime", due)
-              ,("description", "Клиент предъявил претензию")
-              ,("targetGroup", identFv Role.bo_qa)
-              ,("priority", "1")
-              ,("parentId", objId)
-              ,("caseId", kazeId)
-              ,("closed", "0")
-              ]
-            upd kazeId "actions" $ addToList actionId
-          _ -> return ()]
-  )
-  ,("contractor_partner",
-    [\objId _ -> do
-        opts <- get objId "cost_serviceTarifOptions"
-        let ids = T.splitOn "," opts
-        redisDel ids >> set objId "cost_serviceTarifOptions" ""
-    ])
-  ,("falseCall",
-    [\objId _ -> set objId "cost_counted" =<< srvCostCounted objId])
-  ,("contractor_partnerId",
+  [("contractor_partnerId",
     [\objId val -> do
         srvs <- T.splitOn "," <$> get val "services"
         let m = head $ T.splitOn ":" objId
@@ -597,25 +369,8 @@ serviceActions = Map.fromList
           []     -> set objId "falseCallPercent" ""
           (x:_) -> get x "falseCallPercent" >>= set objId "falseCallPercent"
     ])
-  ,("payType",
-    [\objId val -> do
-        case selectPrice val of
-          Nothing       -> set objId "cost_counted" ""
-          Just priceSel -> do
-            ids <- T.splitOn "," <$> get objId "cost_serviceTarifOptions"
-            forM_ ids $ \oid -> do
-              price <- get oid priceSel >>= return . fromMaybe 0 . mbreadDouble
-              set oid "price" $  printBPrice price
-              set oid "cost" =<< printBPrice <$> calcCost oid
-            srvCostCounted objId >>= set objId "cost_counted"
-        ])
-  ,("cost_serviceTarifOptions",
-    [\objId _ -> set objId "cost_counted" =<< srvCostCounted objId ])
-   -- RKC calc
-  ,("suburbanMilage", [\objId _ -> setSrvMCost objId])
-  ,("providedFor",    [\objId _ -> setSrvMCost objId])
   ,("times_expectedServiceStart",
-    [\objId val -> do
+    [\objId val ->
       case T.decimal val of
         Right (tm, _) -> do
           let h = 3600 :: Int -- seconds
@@ -663,7 +418,7 @@ actionActions = Map.fromList
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ,\objId _ ->
-      liftDb $ Evt.logLegacyCRUD Update (objId) Act.result
+      liftDb $ Evt.logLegacyCRUD Update objId Act.result
     ])
   ,("assignedTo",
     [\objId _val -> dateNow id >>= set objId "assignTime"
@@ -678,336 +433,14 @@ actionActions = Map.fromList
     ])
    ,("openTime",
      [\objId _ ->
-       liftDb $ Evt.logLegacyCRUD Update (objId) Act.openTime
+       liftDb $ Evt.logLegacyCRUD Update objId Act.openTime
      ])
    ]
 
 actionResultMap :: MonadTrigger m b
                 => Map.Map Text (ObjectId -> m b ())
-actionResultMap = Map.fromList
-  [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime" >> set objId "result" "")
-  ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime" >> set objId "result" "")
-  ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
-  ,("clientCanceledService", \objId -> do
-      closeAction objId
-      liftDb $ sendSMS objId SmsTemplate.cancel
-      sendMailToPSA objId
-   )
-  ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
-  -- Defer an action by an amount of time specified in deferBy field
-  -- in HH:MM format
-  ,("defer",           \objId -> do
-      deferBy <- get objId "deferBy"
-      -- Deferring is a phantom result which is not preserved
-      set objId "deferBy" "" >> set objId "result" ""  >> set objId "closeTime" ""
-      name <- get objId "name"
-      -- Clear assignee when deferring order-class actions
-      when (name `elem` [ "orderService"
-                        , "callMeMaybe"
-                        , "tellMeMore"
-                        , "orderServiceAnalyst"]) $
-           clearAssignee objId
-      case (map T.decimal $ T.splitOn ":" deferBy) of
-        (Right (hours, _):Right (minutes, _):_) ->
-            when (0 <= hours && 0 <= minutes && minutes <= 59) $
-                 dateNow (+ (60 * (hours * 60 + minutes)))
-                             >>= set objId "duetime"
-        _ -> return ()
-  )
-  ,("needPartner",     \objId -> do
-     setServiceStatus objId SS.needPartner
-     newAction <- replaceAction
-         "needPartner"
-         "Требуется найти партнёра для оказания услуги"
-         (identFv Role.bo_parguy) "1" (+60) objId
-     clearAssignee newAction
-  )
-  ,("serviceOrdered", \objId -> do
-    setServiceStatus objId SS.ordered
-    svcId    <- get objId "parentId"
-    assignee <- get objId "assignedTo"
-    set svcId "assignedTo" assignee
+actionResultMap = Map.empty
 
-    act <- replaceAction
-      "addBill"
-      "Прикрепить счёт"
-      (identFv Role.bo_bill) "1" (+14*24*60*60)
-      objId
-    clearAssignee act
-
-    sendMailToPSA objId
-    act' <- replaceAction
-      "tellClient"
-      "Сообщить клиенту о договорённости"
-      (identFv Role.bo_control) "1" (+60) objId
-    Just u <- liftDb $ with auth currentUser
-    tryToPassChainToControl u act'
-  )
-  ,("serviceOrderedSMS", \objId -> do
-    liftDb $ sendSMS objId SmsTemplate.order
-
-    setServiceStatus objId SS.ordered
-    svcId    <- get objId "parentId"
-    assignee <- get objId "assignedTo"
-    set svcId "assignedTo" assignee
-
-    sendMailToPSA objId
-    tm <- getService objId "times_expectedServiceStart"
-    act <- replaceAction
-      "checkStatus"
-      "Уточнить статус оказания услуги"
-      (identFv Role.bo_control) "3" (changeTime (+5*60) tm)
-      objId
-    Just u <- liftDb $ with auth currentUser
-    tryToPassChainToControl u act
-  )
-  ,("partnerNotOk", void .
-    replaceAction
-      "cancelService"
-      "Требуется отказаться от заказанной услуги"
-      (identFv Role.bo_control) "1" (+60)
-  )
-  ,("moveToAnalyst", \objId -> do
-    act <- replaceAction
-      "orderServiceAnalyst"
-      "Заказ вторичной услуги"
-      (identFv Role.bo_secondary) "1" (+60) objId
-    clearAssignee act
-  )
-  ,("moveToBack", \objId -> do
-    act <- replaceAction
-      "orderService"
-      "Заказ услуги оператором Back Office"
-      (identFv Role.bo_order) "1" (+60) objId
-    clearAssignee act
-  )
-  ,("needPartnerAnalyst",     \objId -> do
-     setServiceStatus objId SS.needPartner
-     newAction <- replaceAction
-         "needPartner"
-         "Требуется найти партнёра для оказания услуги"
-         (identFv Role.bo_parguy) "1" (+60) objId
-     clearAssignee newAction
-  )
-  ,("serviceOrderedAnalyst", \objId -> do
-    setServiceStatus objId SS.ordered
-    sendMailToPSA objId
-
-    act <- replaceAction
-      "tellClient"
-      "Сообщить клиенту о договорённости"
-      (identFv Role.bo_control) "1" (+60) objId
-    Just u <- liftDb $ with auth currentUser
-    tryToPassChainToControl u act
-  )
-  ,("dealerNotApproved", void .
-    replaceAction
-      "tellDealerDenied"
-      "Сообщить об отказе дилера"
-      (identFv Role.bo_control) "3" (+60)
-  )
-  ,("carmakerNotApproved", void .
-    replaceAction
-      "tellMakerDenied"
-      "Сообщить об отказе автопроизводителя"
-      (identFv Role.bo_control) "3" (+60)
-  )
-  ,("partnerNotOkCancel", \objId -> do
-      setServiceStatus objId SS.canceled
-      void $ replaceAction
-         "cancelService"
-         "Требуется отказаться от заказанной услуги"
-         (identFv Role.bo_control) "1" (+60) objId
-  )
-  ,("partnerOk", \objId -> do
-        tm <- getService objId "times_expectedServiceStart"
-        void $ replaceAction
-          "checkStatus"
-          "Уточнить статус оказания услуги"
-          (identFv Role.bo_control) "3" (changeTime (+5*60) tm)
-          objId
-  )
-  ,("serviceDelayed", \objId -> do
-    setServiceStatus objId SS.delayed
-    void $ replaceAction
-      "tellDelayClient"
-      "Сообщить клиенту о задержке начала оказания услуги"
-      (identFv Role.bo_control) "1" (+60)
-      objId
-  )
-  ,("serviceInProgress", \objId -> do
-    setServiceStatus objId SS.inProgress
-    tm <- getService objId "times_expectedServiceEnd"
-    void $ replaceAction
-      "checkEndOfService"
-      "Уточнить у клиента окончено ли оказание услуги"
-      (identFv Role.bo_control) "3" (changeTime (+5*60) tm)
-      objId
-  )
-  ,("prescheduleService", \objId -> do
-    setServiceStatus objId SS.inProgress
-    void $ replaceAction
-      "checkEndOfService"
-      "Уточнить у клиента окончено ли оказание услуги"
-      (identFv Role.bo_control) "3" (+60)
-      objId
-  )
-  ,("serviceStillInProgress", \objId -> do
-        tm <- getService objId "times_expectedServiceEnd"
-        dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
-        set objId "result" ""
-  )
-  ,("clientWaiting", \objId -> do
-    tm <- getService objId "times_expectedServiceStart"
-    void $ replaceAction
-      "checkStatus"
-      "Уточнить статус оказания услуги"
-      (identFv Role.bo_control) "3" (changeTime (+5*60) tm)
-      objId
-  )
-  ,("serviceFinished", \objId -> do
-    closeServiceAndSendInfoVW objId
-    liftDb $ sendSMS objId SmsTemplate.complete
-    sendMailToDealer objId
-  )
-  ,("complaint", \objId -> do
-    closeServiceAndSendInfoVW objId
-    setService objId "clientSatisfied" "notSatis"
-    act1 <- replaceAction
-      "complaintResolution"
-      "Клиент предъявил претензию"
-      (identFv Role.bo_qa) "1" (+60)
-      objId
-    clearAssignee act1
-  )
-  ,("billNotReady", \objId -> dateNow (+ (5*24*60*60))  >>= set objId "duetime")
-  ,("billAttached", \objId -> do
-    act <- replaceAction
-      "headCheck"
-      "Проверка РКЦ"
-      (identFv Role.head) "1" (+360) objId
-    clearAssignee act
-  )
-  ,("parguyToBack", \objId -> do
-    act <- replaceAction
-      "parguyNeedInfo"
-      "Менеджер по Партнёрам запросил доп. информацию"
-      (identFv Role.bo_control) "3" (+360) objId
-    clearAssignee act
-  )
-  ,("backToParyguy", \objId -> do
-    act <- replaceAction
-      "addBill"
-      "Прикрепить счёт"
-      (identFv Role.bo_bill) "1" (+360) objId
-    clearAssignee act
-  )
-  ,("headToParyguy", \objId -> do
-    act <- replaceAction
-      "addBill"
-      "На доработку МпП"
-      (identFv Role.bo_bill) "1" (+360) objId
-    clearAssignee act
-  )
-  ,("confirm", \objId -> do
-    act <- replaceAction
-      "directorCheck"
-      "Проверка директором"
-      (identFv Role.bo_director) "1" (+360) objId
-    clearAssignee act
-  )
-  ,("confirmWODirector", \objId -> do
-    act <- replaceAction
-      "accountCheck"
-      "Проверка бухгалтерией"
-      (identFv Role.bo_account) "1" (+360) objId
-    clearAssignee act
-  )
-  ,("confirmFinal", \objId -> do
-    act <- replaceAction
-      "analystCheck"
-      "Обработка аналитиком"
-      (identFv Role.bo_analyst) "1" (+360) objId
-    clearAssignee act
-  )
-  ,("directorToHead", \objId -> do
-    act <- replaceAction
-      "headCheck"
-      "Проверка РКЦ"
-      (identFv Role.head) "1" (+360) objId
-    clearAssignee act
-  )
-  ,("directorConfirm", \objId -> do
-    act <- replaceAction
-      "accountCheck"
-      "Проверка бухгалтерией"
-      (identFv Role.bo_account) "1" (+360) objId
-    clearAssignee act
-  )
-  ,("dirConfirmFinal", \objId -> do
-    act <- replaceAction
-      "analystCheck"
-      "Обработка аналитиком"
-      (identFv Role.bo_analyst) "1" (+360) objId
-    clearAssignee act
-  )
-  ,("vwclosed", \objId -> do
-    sendMailToPSA objId
-    closeAction objId
-  )
-  ,("complaintManaged", closeAction
-  )
-  ,("communicated", closeAction
-  )
-  ,("okButNoService", \objId -> do
-    caseId <- get objId "caseId"
-    get caseId "services" >>= \case
-      "" -> set caseId "caseStatus" (identFv CaseStatus.closed)
-      _  -> return ()
-    closeAction objId
-  )
-  ,("accountConfirm", \objId -> do
-    act <- replaceAction
-      "analystCheck"
-      "Обработка аналитиком"
-      (identFv Role.bo_analyst) "1" (+360) objId
-    clearAssignee act
-  )
-  ,("accountToDirector", \objId -> do
-    act <- replaceAction
-      "directorCheck"
-      "Проверка директором"
-      (identFv Role.bo_director) "1" (+360) objId
-    clearAssignee act
-  )
-  ,("analystChecked", closeAction)
-  ,("caseClosed", \objId -> do
-    setServiceStatus objId SS.closed
-    closeAction objId
-  )
-  ,("partnerGivenCloseTime", \objId -> do
-    tm <- getService objId "times_expectedServiceClosure"
-    dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
-    set objId "result" "")
-  ,("falseCallWBill", \objId -> do
-     setService objId "falseCall" "bill"
-     closeAction objId
-     liftDb $ sendSMS objId SmsTemplate.cancel
-  )
-  ,("falseCallWOBill", \objId -> do
-     setService objId "falseCall" "nobill"
-     closeAction objId
-     liftDb $ sendSMS objId SmsTemplate.cancel
-  )
-  ,("clientNotified", \objId -> do
-     setServiceStatus objId SS.closed
-     closeAction objId
-  )
-  ,("notNeedService", \objId -> do
-     setServiceStatus objId SS.closed
-     closeAction objId
-  )
-  ]
 
 changeTime :: (Int -> Int) -> Text -> Int -> Int
 changeTime fn x y = case T.decimal x of
@@ -1023,7 +456,7 @@ setService objId field val = do
 -- onRecursiveServiceStatusChange manually
 -- on each service.status change
 setServiceStatus :: MonadTrigger m b =>
-                    ObjectId -> (IdentI SS.ServiceStatus) -> m b ()
+                    ObjectId -> IdentI SS.ServiceStatus -> m b ()
 setServiceStatus actId val = do
   svcId <- get actId "parentId"
   set svcId "status" (identFv val)
@@ -1137,59 +570,3 @@ setWeather objId city = do
         , "city"  .= city
         , "error" .= show err
         ]
-
-srvCostCounted :: MonadTrigger m b => ObjectId -> m b FieldValue
-srvCostCounted srvId = do
-  falseCall        <- get srvId "falseCall"
-  falseCallPercent <- get srvId "falseCallPercent" >>=
-                      return . fromMaybe 100 . mbreadDouble
-  tarifIds <- T.splitOn "," <$> get srvId "cost_serviceTarifOptions"
-  cost <- sum <$> mapM calcCost tarifIds
-  case falseCall of
-    "bill" -> return $ printBPrice $ cost * (falseCallPercent / 100)
-    _      -> return $ printBPrice cost
-
-calcCost :: MonadTrigger m b => ObjectId -> m b Double
-calcCost objId = do
-  p <- get objId "price" >>= return . fromMaybe 0 . mbreadDouble
-  c <- get objId "count" >>= return . fromMaybe 0 . mbreadDouble
-  return $ p * c
-
-setSrvMCost :: MonadTrigger m b => ObjectId -> m b ()
-setSrvMCost objId = do
-  obj    <- readObject objId
-  parent <- readObject $ fromJust $ Map.lookup "parentId" obj
-  dict   <- liftDb $ gets rkcDict
-  set objId "marginalCost" $ RKC.setSrvMCost srvName obj parent dict
-    where
-      -- readR   = lift . RC.read' redis
-      srvName = head $ T.splitOn ":" objId
-
-setContractValidUntilMilage :: MonadTrigger m b =>
-                               ObjectId -> Text -> m b ()
-setContractValidUntilMilage obj _ = do
-  v      <- get obj "contractValidUntilMilage"
-  milage <- mbreadInt <$> get obj "milageTO"
-  p   <- get obj "program"
-  per <- mbreadInt <$> get (T.concat ["program:", p]) "carCheckPeriodDefault"
-  case (v, per, milage) of
-    ("", Just c, Just m) -> setMillage $ T.pack $ show $ c + m
-    _ -> return ()
-    where setMillage = set obj "contractValidUntilMilage"
-
-setContractValidUntilDate ::  MonadTrigger m b =>
-                              ObjectId -> Text -> m b ()
-setContractValidUntilDate obj val = do
-  let d = parseTime defaultTimeLocale "%s" $ T.unpack val :: Maybe UTCTime
-  v   <- get obj "contractValidUntilDate"
-  p   <- get obj "program"
-  due <- mbreadInt <$> get (T.concat ["program:", p]) "duedateDefault"
-  case (v, d, due) of
-    ("", Just d', Just due') -> setUntilDate $ addUTCTime (d2s due') d'
-    _ -> return ()
-  where
-    d2s d = (fromIntegral d) * 24 * 60 * 60
-    setUntilDate =
-      set obj "contractValidUntilDate" .
-      T.pack .
-      formatTime defaultTimeLocale "%s"

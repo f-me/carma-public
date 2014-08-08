@@ -36,4 +36,16 @@ VALUES ("Клиенту не дозвонились", 1050);
 INSERT INTO "ActionResult" (label, id)
 VALUES ("Ложный вызов", 1060);
 
+INSERT INTO "ActionResult" (label, id)
+VALUES ("Ложный вызов с выставлением счёта", 28);
+
+INSERT INTO "ActionResult" (label, id)
+VALUES ("Ложный вызов без выставления счёта", 29);
+
+INSERT INTO "ActionResult" (label, id)
+VALUES ("Коммуникация произведена", 30);
+
+INSERT INTO "ActionResult" (label, id)
+VALUES ("Коммуникация завершена, но услуга не требуется ", 31);
+
 SELECT setval(pg_get_serial_sequence('"ActionResult"', 'id'), max(id)) from "ActionResult";

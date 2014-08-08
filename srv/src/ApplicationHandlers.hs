@@ -4,8 +4,6 @@
 module ApplicationHandlers where
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
 
-import Backoffice
-
 import Data.Functor
 import Control.Monad
 import Control.Monad.Trans.Either
@@ -28,7 +26,6 @@ import Data.Maybe
 import Data.Ord (comparing)
 
 import Data.Time
-
 import System.Locale
 
 import Database.PostgreSQL.Simple ( Query, query_, query, execute)
@@ -52,8 +49,6 @@ import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (FileUpload(cfg))
-import           Snaplet.Messenger
-import           Snaplet.Messenger.Class
 
 import Carma.Model
 import Data.Model (idents)
@@ -68,16 +63,25 @@ import Util as U hiding (render, withPG)
 import Utils.NotDbLayer (readIdent)
 
 import Carma.Model.Event (EventType(..))
-import Utils.Events (logLogin, logLegacyCRUD)
+import Utils.Events (logLogin)
 
-import qualified Carma.Model.Usermeta as Usermeta
+import ModelTriggers (runUpdateTriggers)
 
 import Carma.Model.ActionResult (ActionResult)
 import Carma.Model.ActionType (ActionType)
+import Carma.Model.CaseStatus (CaseStatus)
+import qualified Carma.Model.Role as Role
+import Carma.Model.Satisfaction (Satisfaction)
 import Carma.Model.ServiceStatus (ServiceStatus)
 import Carma.Model.ServiceType (ServiceType)
 import Carma.Model.SmsTemplate (SmsTemplate)
 import Carma.Model.Program (Program)
+
+import Carma.Backoffice
+import Carma.Backoffice.Text
+import Carma.Backoffice.Graph
+import Carma.Backoffice.Validation
+
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
@@ -93,8 +97,7 @@ indexPage = ifTop $ do
                       Just s  -> T.concat [t, " [", s, "]"]
                       Nothing -> t
             return $ [X.TextNode r]
-        splices = do
-          "addLocalName" ## addLocalName
+        splices = "addLocalName" ## addLocalName
     renderWithSplices "index" splices
 
 
@@ -197,8 +200,8 @@ readHandler = do
 readManyHandler :: AppHandler ()
 readManyHandler = do
   Just model  <- getParamT "mdl" -- NB: this param can shadow query params
-  limit  <- fromMaybe 2000 . fmap readInt <$> getParam "limit"
-  offset <- fromMaybe    0 . fmap readInt <$> getParam "offset"
+  limit  <- maybe 2000 readInt <$> getParam "limit"
+  offset <- maybe    0 readInt <$> getParam "offset"
   params <- getQueryParams
   let queryFilter =
           [(T.decodeUtf8 k, T.decodeUtf8 v)
@@ -250,34 +253,27 @@ updateHandler = do
       updateModel _ = do
         let ident = readIdent objId :: IdentI m
         commit <- getJSONBody :: AppHandler (Patch m)
-        s   <- PS.getPostgresState
-        res <- with db $ do
-          liftIO $ withResource (PS.pgPool s) (Patch.update ident commit)
-        case res of
-          0 -> return $ Left 404
-          _ -> case model of
-                 -- TODO #1352 workaround for Contract triggers
-                 "Contract" ->
-                     do
-                       res' <- liftIO $
-                              withResource (PS.pgPool s) (Patch.read ident)
-                      -- TODO Cut out fields from original commit like
-                      -- DB.update does
-                       case (Aeson.decode $ Aeson.encode res') of
-                         Just [obj] -> return $ Right obj
-                         err        -> error $
-                                       "BUG in updateHandler: " ++ show err
-                 -- TODO: workaround to catch delayed state updates
-                 -- remove with new triggers
-                 "Usermeta" -> do
-                   let hmcommit = untypedPatch commit
-                       legacyId = T.concat ["Usermeta:", objId]
-                   when (HM.member "delayedState" hmcommit) $ void $ do
-                     withMsg $ sendMessage legacyId commit
-                     logLegacyCRUD Update legacyId Usermeta.delayedState
-                   return $ Right $ Aeson.object []
-
-                 _ -> return $ Right $ Aeson.object []
+        runUpdateTriggers  ident commit >>= \case
+          Left (code,_err) -> return $ Left code
+          Right commit' -> do
+            s   <- PS.getPostgresState
+            res <- with db $
+              liftIO $ withResource (PS.pgPool s) (Patch.update ident commit')
+            case res of
+              0 -> return $ Left 404
+              _ -> case model of
+                     -- TODO #1352 workaround for Contract triggers
+                     "Contract" ->
+                         do
+                           res' <- liftIO $
+                                  withResource (PS.pgPool s) (Patch.read ident)
+                          -- TODO Cut out fields from original commit like
+                          -- DB.update does
+                           case (Aeson.decode $ Aeson.encode res') of
+                             Just [obj] -> return $ Right obj
+                             err        -> error $
+                                           "BUG in updateHandler: " ++ show err
+                     _ -> return $ Right $ Aeson.object []
   -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch model updateModel of
     Just fn ->
@@ -409,30 +405,6 @@ findOrCreateHandler = do
 serveUsersList :: AppHandler ()
 serveUsersList = with db usersListPG >>= writeJSON
 
-getSrvTarifOptions :: AppHandler ()
-getSrvTarifOptions = do
-  Just objId <- getParamT "id"
-  Just model <- getParamT "model"
-  srv     <- with db $ DB.read model objId
-  partner <- with db $ getObj $ T.splitOn ":" $
-             fromMaybe "" $ Map.lookup "contractor_partnerId" srv
-  -- partner services with same serviceName as current service model
-  partnerSrvs <- with db $ mapM getObj $ getIds "services" partner
-  case filter (mSrv model) partnerSrvs of
-    []     -> return ()
-    (x:_) -> do
-      tarifOptions <- with db $ mapM getObj $ getIds "tarifOptions" x
-      writeJSON $ map rebuilOpt tarifOptions
-  where
-      getIds f m = map (T.splitOn ":") $ T.splitOn "," $
-                   fromMaybe "" $ Map.lookup f m
-      getObj [m, objId] = Map.insert "id" objId <$> DB.read m objId
-      getObj _       = return $ Map.empty
-      mSrv m = (m ==) . fromMaybe "" . Map.lookup "serviceName"
-      rebuilOpt o = Aeson.object
-                    ["id"         .= (fromMaybe "" $ Map.lookup "id" o)
-                    ,"optionName" .= (fromMaybe "" $ Map.lookup "optionName" o)]
-
 -- | Calculate average tower arrival time (in seconds) for today,
 -- parametrized by city (a value from DealerCities dictionary).
 towAvgTimeQuery :: Query
@@ -464,7 +436,7 @@ towAvgTime = do
 
 
 getRegionByCity :: AppHandler ()
-getRegionByCity = do
+getRegionByCity =
   getParam "city" >>= \case
     Just city -> do
       res <- withPG pg_search $ \c -> query c
@@ -609,15 +581,16 @@ logResp act = logExceptions "handler/logResp" $ do
   syslogJSON Info "handler/logResp" ["response" .= r]
   writeJSON r
 
-data BORepr = Txt | Dot
+data BORepr = Txt | Dot | Check
 
 type IdentMap m = Map.Map (IdentI m) Text
 
 serveBackofficeSpec :: BORepr -> AppHandler ()
 serveBackofficeSpec repr =
     case repr of
-      Txt -> writeText $ backofficeText boxedIMap
-      Dot -> writeLazyText $ backofficeDot boxedIMap
+      Txt -> writeText $ backofficeText carmaBackoffice boxedIMap
+      Dot -> writeLazyText $ backofficeDot carmaBackoffice boxedIMap
+      Check -> writeJSON $ map show $ checkBackoffice carmaBackoffice boxedIMap
     where
       -- Simple ident mapping
       iMap :: Model m => IdentMap m
@@ -628,6 +601,9 @@ serveBackofficeSpec repr =
       -- Combine mappings for multiple models into one
       boxedIMap = Map.unions [ boxMap (iMap :: IdentMap ActionResult)
                              , boxMap (iMap :: IdentMap ActionType)
+                             , boxMap (iMap :: IdentMap CaseStatus)
+                             , boxMap (iMap :: IdentMap Role.Role)
+                             , boxMap (iMap :: IdentMap Satisfaction)
                              , boxMap (iMap :: IdentMap ServiceStatus)
                              , boxMap (iMap :: IdentMap ServiceType)
                              , boxMap (iMap :: IdentMap SmsTemplate)

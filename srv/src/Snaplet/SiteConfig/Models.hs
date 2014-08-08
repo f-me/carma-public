@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 module Snaplet.SiteConfig.Models
   where
 
@@ -201,7 +200,7 @@ loadGroups = parseFile
 -- applications and filling index cache.
 loadModel :: FilePath
           -- ^ Path to model definition file
-          -> Groups 
+          -> Groups
           -- ^ Group definitions
           -> IO (Maybe Model)
 loadModel modelFile groups

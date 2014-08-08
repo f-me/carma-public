@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (u) ->
   nameLocal: (model, knockVM) ->
     knockVM["actionNameLocal"] =
       ko.computed
@@ -10,3 +10,9 @@ define [], ->
             svcName = global.model(modelName).title
             actName = actName + " (#{svcName})"
           actName
+
+  actionColor: (model, kvm) ->
+    kvm._actColor = ko.computed ->
+      hash = md5(kvm.parentId())
+      ix = parseInt(hash.slice(0,6), 16) % u.palette.length
+      u.palette[ix]

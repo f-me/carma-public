@@ -172,6 +172,5 @@ portalHandler :: ((Text -> Text) -> SearchHandler b t)
 portalHandler f = do
   u <- with auth currentUser
   case u of
-    Just au -> do
-        portalQuery au >>= f
+    Just au -> portalQuery au >>= f
     Nothing -> error "No user"

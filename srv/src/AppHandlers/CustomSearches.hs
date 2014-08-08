@@ -127,15 +127,15 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
        casetbl c
      WHERE c.id::text = substring(a.caseId, ':(.*)')
      AND (? OR closed = ?)
-     AND (? OR assignedTo = ?)
+     AND (? OR a.assignedTo = ?)
      AND (? OR targetGroup IN ?)
      AND (? OR extract (epoch from duetime) >= ?)
      AND (? OR extract (epoch from duetime) <= ?);
      |]
   rows <- withPG pg_search $ \c -> query c actQ $
           (sqlFlagPair False   (== "1") mClosed)               :.
-          (sqlFlagPair ("")    id       mAssignee)             :.
-          (sqlFlagPair (In []) (In)     mRoles)                :.
+          (sqlFlagPair ""      id       mAssignee)             :.
+          (sqlFlagPair (In []) In       mRoles)                :.
           (sqlFlagPair 0       fst      (mFrom >>= B.readInt)) :.
           (sqlFlagPair 0       fst      (mTo >>= B.readInt))
   let fields

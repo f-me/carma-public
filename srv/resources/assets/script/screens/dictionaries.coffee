@@ -162,7 +162,9 @@ define [ "utils"
           kvm = modelSetup dict, viewName, args
 
           $('#permissions').find('.btn-success').on 'click', ->
-            row = _.map majorFields, (field) -> kvm[field.name]?() || ''
+            row = _.map majorFields, (field) ->
+              kvm["#{field.name}Local"]?() or
+                kvm[field.name]?() or ''
             id = row[0]
             if _.every(table.dataTable.fnGetData(), (x) -> x[0] != id)
               table.dataTable.fnAddData [row]

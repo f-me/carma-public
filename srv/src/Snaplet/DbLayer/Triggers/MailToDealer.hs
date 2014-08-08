@@ -130,9 +130,9 @@ sendMailToDealer actionId = do
         when (dealerId /= "") $ do
           dms <- T.encodeUtf8 <$> get dealerId "emails"
           let mails = getAllKeyedJsonValues dms "close"
-          when (mails /= []) $ do
-            sendMailActually actionId caseId $
-              B.intercalate "," mails
+          when (mails /= []) $
+               sendMailActually actionId caseId $
+               B.intercalate "," mails
 
 sendMailActually
   :: MonadTrigger m b
@@ -177,7 +177,7 @@ tryRepTowageMail caseRef = do
   -- Check if a service is a towage
   forM_ serviceRefs $ \svcRef ->
     case T.splitOn ":" svcRef of
-      "towage":t:_ -> do
+      "towage":t:_ ->
           -- Extract corresponding case id.
           case T.splitOn ":" caseRef of
             "case":n:_ ->
