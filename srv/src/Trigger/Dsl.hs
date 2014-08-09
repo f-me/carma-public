@@ -53,8 +53,10 @@ tError httpCode msg = return $ Left (httpCode, msg)
 tOk :: Free (Dsl m) (TriggerRes m)
 tOk = Right <$> getPatch
 
+dbCreate :: Model m => Patch m -> Free (Dsl n) (IdentI m)
+dbCreate p = liftFree (DbCreate p id)
 
-dbUpdate :: Model m => IdentI m -> Patch m -> Free (Dsl m1) Int64
+dbUpdate :: Model m => IdentI m -> Patch m -> Free (Dsl n) Int64
 dbUpdate i p = liftFree (DbUpdate i p id)
 
 wsMessage :: Free (Dsl m) ()
@@ -78,13 +80,10 @@ liftFree = Free . fmap Pure
 -- Don't use them in triggers, use wrappers defined in the section above.
 -- Add more if required but try to keep list of core operations small, this
 -- will simplify DSL interpreter.
-
--- create transaction
--- save patch to db
-
 data Dsl m k where
   GetPatch :: (Patch m -> k) -> Dsl m k
   GetIdent :: (IdentI m -> k) -> Dsl m k
+  DbCreate :: Model m1 => Patch m1 -> (IdentI m1 -> k) -> Dsl m k
   DbUpdate :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
   WsMessage:: k -> Dsl m k
   LogLegacy
@@ -100,6 +99,7 @@ instance Functor (Dsl m) where
   fmap fn = \case
     GetPatch      k -> GetPatch      $ fn . k
     GetIdent      k -> GetIdent      $ fn . k
+    DbCreate  p   k -> DbCreate  p   $ fn . k
     DbUpdate  i p k -> DbUpdate  i p $ fn . k
     WsMessage     k -> WsMessage     $ fn k
     LogLegacy f   k -> LogLegacy f   $ fn k
@@ -115,6 +115,7 @@ data DslState m = DslState
 
 -- Our Dsl is evaluated in @AppHandler@ context, so it have access to IO and
 -- Snap's state.
+-- TODO: create transaction
 evalDsl
   :: forall m res . Model m
   => Free (Dsl m) res -> StateT (DslState m) AppHandler res
@@ -123,8 +124,13 @@ evalDsl = \case
   Free op  -> case op of
     GetIdent k -> gets st_ident >>= evalDsl . k
     GetPatch k -> gets st_patch >>= evalDsl . k
+    DbCreate p k -> do
+      Right res <- lift $ do
+        s <- PG.getPostgresState
+        Pool.withResource (PG.pgPool s) (liftIO . Patch.create p)
+      evalDsl $ k res
     DbUpdate i p k -> do
-      res <- lift $ do
+      Right res <- lift $ do
         s <- PG.getPostgresState
         Pool.withResource (PG.pgPool s) (liftIO . Patch.update i p)
       evalDsl $ k res
