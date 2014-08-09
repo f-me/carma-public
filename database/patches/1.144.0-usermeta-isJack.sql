@@ -1,9 +1,9 @@
-ALTER TABLE "Usermeta" ADD COLUMN isJack bool NOT NULL DEFAULT FALSE;
+ALTER TABLE usermetatbl ADD COLUMN isJack bool NOT NULL DEFAULT FALSE;
 
 INSERT INTO "FieldPermission" (role, model, field, r, w)
 VALUES
-('userAdmin', 'usermeta', 'isJack', 'true', 'true');
+('userAdmin', 'Usermeta', 'isJack', 'true', 'true');
 
 INSERT INTO "FieldPermission" (role, model, field, r, w)
 VALUES
-('userViewer', 'usermeta', 'isJack', 'true', 'false');
+('userViewer', 'Usermeta', 'isJack', 'true', 'false');
