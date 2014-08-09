@@ -23,8 +23,9 @@ define [ "model/render"
        , "lib/serialize"
        , "lib/idents"
        , "lib/config"
+       , "model/fields"
        ],
-       (render, dict, sync, S, Idents, Config) ->
+       (render, dict, sync, S, Idents, Config, Fs) ->
   mainSetup = (Finch
              , localDictionaries
              , hooks
@@ -229,7 +230,7 @@ define [ "model/render"
                 parentField : 'parent'
             addRef kvm, f.name, opts, (kvm) -> focusRef(kvm)
 
-    kvm["maybeId"] = ko.computed -> kvm['id']() or "—"
+    kvm["maybeId"] = ko.computed -> kvm['id']?() or "—"
 
     for f in fields when f.type == "nested-model"
       do (f) ->
@@ -273,27 +274,7 @@ define [ "model/render"
         kvm['dixiDisabled'](true)
 
     for f in fields when /interval/.test(f.type)
-      do (f) ->
-        proxy = { begin: null, end: null }
-        updateInterval = ->
-          if proxy.begin and proxy.end
-            kvm[f.name]([proxy.begin, proxy.end])
-          else
-            kvm[f.name](null)
-        kvm[f.name].subscribe (v) ->
-          proxy.begin = if v then v[0] else null
-          proxy.end =   if v then v[1] else null
-        kvm["#{f.name}Begin"] = ko.computed
-          read: -> kvm[f.name](); proxy.begin
-          write: (v) ->
-            proxy.begin = v
-            updateInterval()
-
-        kvm["#{f.name}End"] = ko.computed
-          read: -> kvm[f.name](); proxy.end
-          write: (v) ->
-            proxy.end = v
-            updateInterval()
+      do (f) -> Fs.interval(kvm, f)
 
     kvm.toJSON = ->
       r = {}

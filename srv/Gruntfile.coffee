@@ -72,7 +72,7 @@ module.exports = (grunt) ->
         tasks: "newer:copy:js"
       jade:
         files: ["#{content}/template/**/*.jade"]
-        tasks: "newer:jade"
+        tasks: "jade"
       html:
         files: ["#{content}/template/**/*.html"]
         tasks: "newer:copy:template"
