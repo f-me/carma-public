@@ -16,6 +16,7 @@ module Data.Model.View
   ,mapWidget
   ,mainToo
   ,mainOnly
+  ,regexp
   ,transform
   ,widget
   ,setType
@@ -232,6 +233,12 @@ widget
   => Text -> (m -> Field typ (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 widget nm = setMeta "widget" (Aeson.String nm)
+
+regexp
+  :: SingI name
+  => Text -> (m -> Field typ (FOpt name desc app))
+  -> (Text, FieldView -> FieldView) :@ m
+regexp nm = setMeta "regexp" (Aeson.String nm)
 
 mainToo
   :: SingI name

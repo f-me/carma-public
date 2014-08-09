@@ -187,10 +187,10 @@ instance Model Contract where
     ""       ->
         Just $ subDict "prefixedSubPrograms" $
         modifyView defaultView $
-        [ setMeta "regexp" "email" email
-        , setMeta "regexp" "phone" phone
-        , setMeta "regexp" "plateNum" plateNum
-        , setMeta "regexp" "vin" vin
+        [ regexp "email" email
+        , regexp "phone" phone
+        , regexp "plateNum" plateNum
+        , regexp "vin" vin
         , widget "checkbutton" dixi
         ] ++ commonMeta
     _ -> Nothing
