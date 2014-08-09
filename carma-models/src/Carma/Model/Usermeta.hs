@@ -39,7 +39,7 @@ data Usermeta = Usermeta
   -- TODO String-wrapped list of Role ids (to be used until usermeta
   -- is fully migrated to new models)
   , roles        :: F (Vector (IdentT Role)) "roles" "Роли в системе"
-  , businessRole :: F (IdentI BusinessRole)  "businessRole" "Бизнес-роль"
+  , businessRole :: F (Maybe (IdentI BusinessRole))  "businessRole" "Бизнес-роль"
   , programs     :: F (Vector Text)      "programs" "Подпрограммы"
   , bocities     :: F (Vector Text)      "bocities" "Города"
   , boprograms   :: F (Vector Text)      "boprograms" "Программы"
@@ -50,7 +50,7 @@ data Usermeta = Usermeta
   , mobilePhone  :: F Phone              "mobilePhone"     "Мобильный телефон"
   , homePhone    :: F Phone              "homePhone"       "Домашний телефон"
   , email        :: F Text               "email"           "E-mail"
-  , birthday     :: F LegacyDate         "birthday"        "День рождения"
+  , birthday     :: F (Maybe LegacyDate) "birthday"        "День рождения"
   , position     :: F Text               "position"        "Должность"
   , lastactivity :: F UTCTime            "lastactivity"    ""
   , lastlogout   :: F UTCTime            "lastlogout"      ""
