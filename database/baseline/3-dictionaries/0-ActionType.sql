@@ -1,7 +1,7 @@
 CREATE TABLE "ActionType"
   ( id    SERIAL PRIMARY KEY
   , label text NOT NULL CHECK (label <> '')
-  , "desc" text
+  , "desc" text NOT NULL DEFAULT ''
   , priority int4 NOT NULL
   );
 

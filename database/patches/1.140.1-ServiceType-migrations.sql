@@ -18,6 +18,8 @@ ALTER TABLE tech1tbl DROP COLUMN type;
 
 ALTER TABLE servicetbl ADD COLUMN type int4 REFERENCES "ServiceType";
 UPDATE servicetbl SET type = type_tmp;
+DELETE FROM servicetbl WHERE type IS NULL;
+ALTER TABLE servicetbl ALTER COLUMN type SET NOT NULL;
 ALTER TABLE servicetbl DROP COLUMN type_tmp;
 
 -- Rebind from ServiceNames to ServiceType dictionary
