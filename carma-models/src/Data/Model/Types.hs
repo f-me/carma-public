@@ -4,6 +4,7 @@
 module Data.Model.Types where
 
 import Control.Monad.Trans.Either (EitherT)
+import Control.Exception (SomeException)
 import Data.Text (Text, unpack)
 import Data.HashMap.Strict (HashMap)
 import Data.Aeson.Types as Aeson
@@ -130,7 +131,7 @@ data CrudError
   = NoSuchObject String
   | InconsistentDbState String
   | MalformedJSON String
-  | PgException String
+  | PgException SomeException
   deriving Show
 
 type CrudRes = EitherT CrudError IO Aeson.Value

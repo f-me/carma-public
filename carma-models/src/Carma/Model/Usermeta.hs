@@ -70,7 +70,7 @@ mkIdents [t|Usermeta|]
 
 instance Model Usermeta where
   type TableName Usermeta = "usermetatbl"
-  modelInfo = mkModelInfo Usermeta ident
+  modelInfo = mkModelInfo Usermeta ident `withLegacyName` "usermeta"
     `customizeRead`             fillCurrentState
     `replaceReadManyWithFilter` fillStatesForAll
   modelView = \case
