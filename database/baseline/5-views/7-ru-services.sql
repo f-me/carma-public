@@ -83,11 +83,11 @@ WITH servicecounts AS (
     servicetbl.contractor_partner AS "Субподрядчик, оказавший услугу",
     "ServiceStatus".label AS "Результат оказания помощи",
     CASE
-            WHEN servicetbl.falsecall = 'bill'::text OR servicetbl.falsecall = 'nobill'::text THEN 'Y'::text
+            WHEN servicetbl.falsecall = 2 OR servicetbl.falsecall = 3 THEN 'Y'::text
             ELSE 'N'::text
         END AS "Ложный вызов",
         CASE
-            WHEN servicetbl.falsecall = 'bill'::text THEN 'Y'::text
+            WHEN servicetbl.falsecall = 2 THEN 'Y'::text
             ELSE 'N'::text
         END AS "Выставлен счет за ложный вызов",
         'Обработано'::text AS "Статус обращения(: обработано)",
@@ -128,14 +128,7 @@ WITH servicecounts AS (
     allservicesview.assignedto AS "Сотрудник, заказавший услугу", --"Ответственный",
     timezone('Europe/Moscow'::text, servicetbl.times_factservicestart) AS "Время погруз.(Факт. нач. ок. усл.)",
     timezone('Europe/Moscow'::text, servicetbl.times_factserviceend) AS "Время разгр.(Факт.оконч. ок. усл.)",
-    CASE
-        WHEN
-                servicetbl.clientsatisfied = 'satis' THEN 'Доволен'
-        WHEN
-                servicetbl.clientsatisfied = 'notSatis' THEN 'Недоволен'
-        ELSE
-                servicetbl.clientsatisfied
-    END    AS "Комментарий (Клиент доволен/нет)",
+    "Satisfaction".label AS "Комментарий (Клиент доволен/нет)",
     casetbl.claim AS "Претензии / Благодарность",
     p4.name AS "Дилер прохождение ТО",
     "Contract".validsince AS "Дата прохождения ТО",
@@ -238,6 +231,7 @@ WITH servicecounts AS (
    LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id
    LEFT JOIN "PaymentType" ON servicetbl.paytype = "PaymentType".id
    LEFT JOIN "ServiceStatus" ON servicetbl.status = "ServiceStatus".id
+   LEFT JOIN "Satisfaction" ON servicetbl.clientsatisfied = "Satisfaction".id
 WHERE casetbl.id = split_part(servicetbl.parentid, ':'::text, 2)::integer;
 
 GRANT SELECT ON "Услуги" TO reportgen;

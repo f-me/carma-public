@@ -40,3 +40,21 @@ VALUES
 INSERT INTO "FieldPermission" (role, model, field, r, w)
 VALUES
 (7, 'DeferTime', 'label', 'true', 'false');
+
+
+INSERT INTO "FieldPermission" (role, model, field, r, w)
+VALUES
+(6, 'FalseCall', 'label', 'true', 'true');
+
+INSERT INTO "FieldPermission" (role, model, field, r, w)
+VALUES
+(7, 'FalseCall', 'label', 'true', 'false');
+
+
+INSERT INTO "FieldPermission" (role, model, field, r, w)
+VALUES
+(6, 'Satisfaction', 'label', 'true', 'true');
+
+INSERT INTO "FieldPermission" (role, model, field, r, w)
+VALUES
+(7, 'Satisfaction', 'label', 'true', 'false');
