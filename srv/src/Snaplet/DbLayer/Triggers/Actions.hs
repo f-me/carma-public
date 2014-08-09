@@ -269,7 +269,9 @@ serviceActions = Map.fromList
   [("contractor_partnerId",
     [\objId val -> do
         srvs <- T.splitOn "," <$> get val "services"
-        let m = head $ T.splitOn ":" objId
+        m <- get objId "type"
+        -- partner_service.serviceName now references ServiceType.id,
+        -- just like servicetbl.type
         s <- filterM (\s -> (m ==) <$> get s "serviceName") srvs
         case s of
           []     -> set objId "falseCallPercent" ""
