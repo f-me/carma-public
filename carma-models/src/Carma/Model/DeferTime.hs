@@ -13,7 +13,8 @@ import Carma.Model.PgTypes()
 
 data DeferTime = DeferTime
   { ident    :: PK Int DeferTime   "Интервал откладывания действия"
-  , time     :: F Text      "time" "Интервал"
+  , time     :: F Text "time" "Интервал"
+  , label    :: F Text "label" "Метка"
   } deriving Typeable
 
 instance Model DeferTime where

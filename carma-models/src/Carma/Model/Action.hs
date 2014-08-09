@@ -1,5 +1,6 @@
 module Carma.Model.Action where
 
+import Data.Aeson as A
 import Data.Text
 import Data.Time.Clock (UTCTime)
 import Data.Typeable
@@ -10,7 +11,7 @@ import Data.Model.View
 import Carma.Model.ActionResult (ActionResult)
 import Carma.Model.ActionType (ActionType)
 import Carma.Model.Case (Case)
-import Carma.Model.DeferTime (time)
+import Carma.Model.DeferTime (label, time)
 import Carma.Model.LegacyTypes
 import Carma.Model.Role (Role)
 import Carma.Model.Usermeta (Usermeta)
@@ -39,6 +40,8 @@ instance Model Action where
   modelView = \case
     "" -> Just $ modifyView defaultView $
           [ deferBy `completeWith` time
+          , setMeta "dictionaryLabel"
+            (A.String $ fieldName label) deferBy
           , infoText "defertime" deferBy
           ]
     _  -> Nothing

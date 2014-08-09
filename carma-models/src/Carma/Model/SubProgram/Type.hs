@@ -91,8 +91,8 @@ data SubProgramService = SubProgramService
     { sIdent      :: PK Int SubProgramService "Услуга по подпрограмме"
     , sParent     :: F (IdentI SubProgram) "parent" "Подпрограмма"
     -- TODO This is wrapped in Maybe only because the client first
-    -- creates and empty instance, then rendering a form where the
-    -- type may be selected.
+    -- creates an empty instance, then rendering a form where the type
+    -- may be selected.
     , sType       :: F (Maybe (IdentI ServiceType)) "type" "Услуга"
     , maxCost     :: F (Maybe Text)
                      "maxCost"
