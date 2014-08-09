@@ -1,4 +1,11 @@
-{-| Subprogram and subordinate models. -}
+{-|
+
+Subprogram and subordinate models.
+
+Model instances are declared in separate modules to prevent ident
+collisions.
+
+-}
 
 module Carma.Model.SubProgram.Type
     ( SubProgram(..)

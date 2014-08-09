@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Carma.Model.SubProgramContact
     (SubProgramContact(..))
 

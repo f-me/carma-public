@@ -67,7 +67,6 @@ library
     Carma.Model.Role,
     Carma.Model.BusinessRole,
     Carma.Model.Case,
-    Carma.Model.Case.Type,
     Carma.Model.Call,
 
     Carma.Model.Diagnostics.Cause,
@@ -113,6 +112,7 @@ library
   other-modules:
     Data.Model.TH,
 
+    Carma.Model.Case.Type
     Carma.Model.SubProgram.Type
 
   hs-source-dirs:    src
