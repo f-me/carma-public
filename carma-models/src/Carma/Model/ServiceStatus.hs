@@ -17,6 +17,8 @@ data ServiceStatus = ServiceStatus
     :: PK Int ServiceStatus "Статус услуги"
   , label
     :: F Text "label" "Тип"
+  , button
+    :: F Bool "button" "Кнопка"
   } deriving Typeable
 
 mkIdents [t|ServiceStatus|]
