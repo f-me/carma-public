@@ -55,10 +55,10 @@ data SubProgram = SubProgram
   , mailPass    :: F (Maybe Text)
                    "mailPass"
                    "Пароль для отправки писем"
-  , contacts    :: F (Maybe (IdentList SubProgramContact))
+  , contacts    :: F (IdentList SubProgramContact)
                    "contacts"
                    "Контактные лица"
-  , services    :: F (Maybe (IdentList SubProgramService))
+  , services    :: F (IdentList SubProgramService)
                    "services"
                    "Услуги, предоставляемые по программе"
   , checkPeriod :: F (Maybe TInt)
@@ -76,7 +76,7 @@ data SubProgram = SubProgram
   , smsProgram  :: F Text
                    "smsProgram"
                    "Название программы в SMS"
-  , contractPrs :: F (Maybe (IdentList SubProgramContractPermission))
+  , contractPrs :: F (IdentList SubProgramContractPermission)
                    "contractPermissions"
                    "Настройка партнёрского интерфейса"
   , template    :: F (Maybe Reference)
