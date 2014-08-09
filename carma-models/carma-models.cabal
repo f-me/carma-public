@@ -108,6 +108,8 @@ library
     Carma.Model.Event
     Carma.Model.UserState
 
+    Carma.Model.KPI
+
   other-modules:
     Data.Model.TH,
 
