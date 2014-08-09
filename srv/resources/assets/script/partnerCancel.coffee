@@ -8,9 +8,9 @@ define ["model/main"], (main) ->
 
     # Function to init modal dialog
     # @param partnerId : int
-    # @param serviceId : String - in format "#{serviceName}:#{serviceId}"
+    # @param serviceRef: String - in format "#{serviceName}:#{serviceId}"
     # @param caseId    : String - in format "case:#{caseId}"
-    setup: (partnerId, serviceId, caseId) ->
+    setup: (partnerId, serviceRef, caseId) ->
       modelName = "partnerCancel"
 
       $('body').append(
@@ -42,7 +42,10 @@ define ["model/main"], (main) ->
           saveBtnDisable true
 
           # fill hidden fields
+          serviceId = serviceRef.split(':')[0]
+          serviceType = serviceRef.split(':')[1]
           kvm.serviceId(serviceId)
+          kvm.serviceType(serviceType)
 
           kvm.caseId(caseId)
 
@@ -92,4 +95,3 @@ define ["model/main"], (main) ->
       @callbacks.save.push cb
 
   new CancelDialog
-

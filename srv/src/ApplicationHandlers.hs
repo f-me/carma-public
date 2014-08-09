@@ -472,6 +472,7 @@ lookupSrvQ = [sql|
        , (extract (epoch from c.ctime at time zone 'UTC')::int8)::text
        , c.partnercancelreason
        , p.name
+       , c.servicetype
        , c.serviceid
   FROM partnercanceltbl c
   LEFT JOIN partnertbl p
@@ -506,6 +507,7 @@ printServiceHandler = do
                              , "ctime"
                              , "partnerCancelReason"
                              , "partnerName"
+                             , "serviceType"
                              , "serviceid"
                              ] rows
 

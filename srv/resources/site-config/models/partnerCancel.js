@@ -29,6 +29,12 @@
       "meta": {
         "invisible": true
       },
+      "name": "serviceType"
+    },
+    {
+      "meta": {
+        "invisible": true
+      },
       "type": null,
       "groupName": null,
       "name": "serviceId"

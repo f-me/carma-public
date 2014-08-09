@@ -190,14 +190,14 @@ getCancelsForCase = do
   let caseId' = B.append "case:" caseId
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT extract (epoch from c.ctime at time zone 'UTC')::int8::text,"
-    ++ "       c.partnerId, c.serviceId, c.partnerCancelReason, c.comment,"
+    ++ "       c.partnerId, c.serviceType, c.serviceId, c.partnerCancelReason, c.comment,"
     ++ "       c.owner, p.name"
     ++ "  FROM partnercanceltbl c"
     ++ "  LEFT JOIN partnertbl p"
     ++ "  ON p.id = cast(split_part(c.partnerId, ':', 2) as integer)"
     ++ "  WHERE c.caseId = ?") [caseId']
   let fields =
-        [ "ctime", "partnerId", "serviceId", "partnerCancelReason"
+        [ "ctime", "partnerId", "serviceType", "serviceId", "partnerCancelReason"
         , "comment", "owner", "partnerName"
         ]
   writeJSON $ mkMap fields rows

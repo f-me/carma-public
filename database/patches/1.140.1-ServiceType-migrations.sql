@@ -2,6 +2,7 @@ DROP VIEW "Услуги";
 DROP VIEW "Отказы партнеров";
 DROP VIEW "Партнеры";
 DROP VIEW "Услуги с приоритетами";
+DROP VIEW partnercancelview;
 DROP VIEW servicesview;
 DROP VIEW allservicesview;
 
@@ -23,6 +24,9 @@ ALTER TABLE servicetbl DROP COLUMN type_tmp;
 ALTER TABLE "ServiceInfo" DROP CONSTRAINT "ServiceInfo_service_fkey";
 ALTER TABLE "ServiceInfo" ADD CONSTRAINT "ServiceInfo_service_fkey"
 FOREIGN KEY (service) REFERENCES "ServiceType" (id);
+
+ALTER TABLE servicetbl
+ADD CONSTRAINT "servicetbl_type_id_unique" UNIQUE (type,id);
 
 ALTER TABLE "SubProgramService" DROP CONSTRAINT "SubProgramService_type_fkey";
 ALTER TABLE "SubProgramService" ADD CONSTRAINT "SubProgramService_type_fkey"
@@ -50,3 +54,21 @@ FROM
 array_to_string(array_agg('partner_service:' || id::text), ',') as services
 FROM partner_servicetbl GROUP BY parentid) s
 WHERE id = s.partner;
+
+-- clean broken refusals (all prior July 2013)
+DELETE FROM partnercanceltbl WHERE serviceId IS NULL;
+
+-- remap partnerCancel service references
+ALTER TABLE partnercanceltbl ADD COLUMN sid_tmp int4;
+UPDATE partnercanceltbl SET sid_tmp = n.id
+FROM "ServiceNames" n WHERE n.value = split_part(serviceId,':',1);
+
+ALTER TABLE partnercanceltbl ADD COLUMN serviceType int4 REFERENCES "ServiceType";
+INSERT INTO "FieldPermission" (role, model, field, r, w)
+VALUES (1, 'partnerCancel', 'serviceType', 'true', 'true');
+UPDATE partnercanceltbl SET sid_tmp = split_part(serviceId,':',2)::int;
+
+ALTER TABLE partnercanceltbl DROP COLUMN serviceId;
+ALTER TABLE partnercanceltbl ADD COLUMN serviceId int4;
+UPDATE partnercanceltbl SET serviceId = sid_tmp;
+ALTER TABLE partnercanceltbl DROP COLUMN sid_tmp;
