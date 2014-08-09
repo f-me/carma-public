@@ -1,6 +1,7 @@
 CREATE TABLE "CaseStatus"
   ( id    SERIAL PRIMARY KEY
   , label text UNIQUE NOT NULL CHECK (label <> '')
+  , button NOT NULL DEFAULT false
   );
 
 COPY "CaseStatus" (id, label) FROM stdin;
@@ -9,6 +10,7 @@ COPY "CaseStatus" (id, label) FROM stdin;
 3	Back Office
 4	Закрыт
 5	Отмена
+6	Заказ услуги через мобильное приложение
 \.
 
 GRANT ALL ON "CaseStatus" TO carma_db_sync;

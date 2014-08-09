@@ -1,6 +1,7 @@
 CREATE TABLE "ServiceStatus"
   ( id    SERIAL PRIMARY KEY
   , label text UNIQUE NOT NULL CHECK (label <> '')
+  , button NOT NULL DEFAULT false
   );
 
 COPY "ServiceStatus" (id, label) FROM stdin;
