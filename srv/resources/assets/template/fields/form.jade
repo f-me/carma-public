@@ -34,7 +34,7 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
            {{/ meta.transform }}"
     data-bind="\n\
                value: {{ name }}#{nameMod},\n\
-               valueUpdate: '#{change}',\n\
+               valueUpdate: ['#{change}', 'afterpaste'],\n\
                readonly: {{ name }}Disabled,\n\
                {{# meta.regexp }}\n\
                css: { 're-failed': {{name}}Regexp }\n\
@@ -48,7 +48,7 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
       textarea.pane-span.focusable(name="{{ name }}" rows="7"
         data-bind="\n\
                    value: {{ name }}Text,\n\
-                   valueUpdate: 'afterkeydown',\n\
+                   valueUpdate: ['afterkeydown', 'afterpaste'],\n\
                    disabled: {{ name }}Disabled,\n\
                    {{# meta.regexp }}\n\
                    css: { warning: {{name}}Regexp }\n\
@@ -103,7 +103,7 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
             input.pane-span.focusable(type="text"
               autocomplete="off"
               name="{{ name }}Begin"
-              data-bind="value: {{ name }}Begin, valueUpdate: 'change'")
+              data-bind="value: {{ name }}Begin, valueUpdate: ['change', 'afterpaste'],",)
             span.add-on
               i.icon.icon-calendar
         .span4.offset1
@@ -114,7 +114,7 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
             input.pane-span.focusable(type="text"
               autocomplete="off"
               name="{{ name }}End"
-              data-bind="value: {{ name }}End, valueUpdate: 'change'")
+              data-bind="value: {{ name }}End, valueUpdate: ['change', 'afterpaste'],")
             span.add-on
               i.icon.icon-calendar
 
