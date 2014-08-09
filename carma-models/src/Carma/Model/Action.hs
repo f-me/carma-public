@@ -12,13 +12,15 @@ import Carma.Model.ActionResult (ActionResult)
 import Carma.Model.ActionType (ActionType)
 import Carma.Model.Case (Case)
 import Carma.Model.DeferTime (label, time)
-import Carma.Model.LegacyTypes
 import Carma.Model.Role (Role)
+import Carma.Model.Service (Service)
+import Carma.Model.ServiceType (ServiceType)
 import Carma.Model.Usermeta (Usermeta)
 
 data Action = Action
   { ident       :: PK Int Action                    "Действие"
-  , parent      :: F (Maybe Reference)              "parentId" ""
+  , parentId    :: F (IdentI Service)               "parentId" ""
+  , parentType  :: F (IdentI ServiceType)           "parentType" ""
   , caseId      :: F (IdentI Case)                  "caseId" ""
   , name        :: F (IdentI ActionType)            "name" ""
   , duetime     :: F UTCTime                        "duetime" "Ожидаемое время выполнения"
@@ -39,9 +41,14 @@ instance Model Action where
   modelInfo = mkModelInfo Action ident
   modelView = \case
     "" -> Just $ modifyView defaultView $
-          [ deferBy `completeWith` time
+          [ invisible parentType
+          , invisible parentId
+          , deferBy `completeWith` time
           , setMeta "dictionaryLabel"
             (A.String $ fieldName label) deferBy
           , infoText "defertime" deferBy
+          , regexp "timespan" deferBy
+          , setMeta "addClass" "redirectOnChange" result
+          , setMeta "dictionaryType" "BoUsersDict" assignedTo
           ]
     _  -> Nothing
