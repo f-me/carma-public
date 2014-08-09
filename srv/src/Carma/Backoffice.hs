@@ -22,7 +22,7 @@ import qualified Prelude as P ((>), (==), (||), (&&), const)
 
 import qualified Carma.Model.ActionResult as AResult
 import qualified Carma.Model.ActionType as AType
-import           Carma.Model.Case.Type as Case
+import           Carma.Model.Case as Case
 import qualified Carma.Model.CaseStatus as CS
 import           Carma.Model.FalseCall as FS
 import           Carma.Model.Program as Program

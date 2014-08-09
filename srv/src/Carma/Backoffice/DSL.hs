@@ -33,7 +33,7 @@ import           Data.Model.Types
 
 import           Carma.Model.ActionResult (ActionResult)
 import           Carma.Model.ActionType (ActionType)
-import           Carma.Model.Case.Type as Case
+import           Carma.Model.Case as Case
 import           Carma.Model.Role as Role
 import           Carma.Model.Service as Service
 import           Carma.Model.ServiceStatus (ServiceStatus)
