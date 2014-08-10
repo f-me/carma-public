@@ -61,16 +61,18 @@ WHERE id = s.partner;
 DELETE FROM partnercanceltbl WHERE serviceId IS NULL;
 
 -- remap partnerCancel service references
-ALTER TABLE partnercanceltbl ADD COLUMN sid_tmp int4;
-UPDATE partnercanceltbl SET sid_tmp = n.id
-FROM "ServiceNames" n WHERE n.value = split_part(serviceId,':',1);
-
 ALTER TABLE partnercanceltbl ADD COLUMN serviceType int4 REFERENCES "ServiceType";
 INSERT INTO "FieldPermission" (role, model, field, r, w)
 VALUES (1, 'partnerCancel', 'serviceType', 'true', 'true');
+UPDATE partnercanceltbl SET serviceType = n.id
+FROM "ServiceNames" n WHERE n.value = split_part(serviceId,':',1);
+ALTER TABLE partnercanceltbl ALTER COLUMN serviceType SET NOT NULL;
+
+ALTER TABLE partnercanceltbl ADD COLUMN sid_tmp int4;
 UPDATE partnercanceltbl SET sid_tmp = split_part(serviceId,':',2)::int;
 
 ALTER TABLE partnercanceltbl DROP COLUMN serviceId;
 ALTER TABLE partnercanceltbl ADD COLUMN serviceId int4;
 UPDATE partnercanceltbl SET serviceId = sid_tmp;
 ALTER TABLE partnercanceltbl DROP COLUMN sid_tmp;
+ALTER TABLE partnercanceltbl ALTER COLUMN serviceId SET NOT NULL;
