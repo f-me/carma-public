@@ -76,3 +76,22 @@ ALTER TABLE partnercanceltbl ADD COLUMN serviceId int4;
 UPDATE partnercanceltbl SET serviceId = sid_tmp;
 ALTER TABLE partnercanceltbl DROP COLUMN sid_tmp;
 ALTER TABLE partnercanceltbl ALTER COLUMN serviceId SET NOT NULL;
+
+-- split actiontbl parentId in two (serviceId + serviceType)
+ALTER TABLE actiontbl ADD COLUMN serviceType int4 REFERENCES "ServiceType";
+UPDATE "FieldPermission" SET field = 'serviceId' WHERE
+field = 'parentId' AND model = 'action';
+INSERT INTO "FieldPermission" (role, model, field, r, w)
+VALUES (12, 'action', 'serviceType', 'true', 'false');
+INSERT INTO "FieldPermission" (role, model, field, r, w)
+VALUES (14, 'action', 'serviceType', 'true', 'false');
+UPDATE actiontbl SET serviceType = n.id
+FROM "ServiceNames" n WHERE n.value = split_part(parentId,':',1);
+
+ALTER TABLE actiontbl ADD COLUMN pid_tmp int4;
+UPDATE actiontbl SET pid_tmp = split_part(parentId,':',2)::int;
+
+ALTER TABLE actiontbl DROP COLUMN parentId;
+ALTER TABLE actiontbl ADD COLUMN serviceId int4;
+UPDATE actiontbl SET serviceId = pid_tmp;
+ALTER TABLE actiontbl DROP COLUMN pid_tmp;
