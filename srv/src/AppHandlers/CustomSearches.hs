@@ -44,6 +44,8 @@ import Database.PostgreSQL.Simple.SqlQQ
 
 import Snap
 
+import Data.Model.Types
+
 import Application
 import AppHandlers.CustomSearches.Contract
 import AppHandlers.Util
@@ -51,6 +53,8 @@ import Utils.HttpErrors
 import Util hiding (withPG)
 
 import qualified Carma.Model.Role as Role
+import           Carma.Model.Usermeta as Usermeta
+
 
 type MBS = Maybe ByteString
 
@@ -93,7 +97,7 @@ allActionsHandler = do
           return $ B.split ',' <$> tg
   acts <- join (selectActions
           <$> getParam "closed"
-          <*> getParamT "assignedTo"
+          <*> (maybe Nothing (Just . Ident) <$> getIntParam "assignedTo")
           <*> getRoles
           <*> getParam "duetimeFrom"
           <*> getParam "duetimeTo")
@@ -104,10 +108,11 @@ allActionsHandler = do
 
 
 selectActions
-  :: MBS -> Maybe Text -> Maybe [ByteString] -> MBS -> MBS
+  :: MBS -> Maybe (IdentI Usermeta) -> Maybe [ByteString] -> MBS -> MBS
   -> AppHandler [Map Text Text]
 selectActions mClosed mAssignee mRoles mFrom mTo = do
-  let actQ = [sql|
+  let nid = Ident 0
+      actQ = [sql|
      SELECT a.id::text, a.caseId, a.parentId,
            (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,
            (extract (epoch from a.duetime at time zone 'UTC')::int8)::text,
@@ -134,7 +139,7 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
      |]
   rows <- withPG pg_search $ \c -> query c actQ $
           (sqlFlagPair False   (== "1") mClosed)               :.
-          (sqlFlagPair ""      id       mAssignee)             :.
+          (sqlFlagPair nid     id       mAssignee)             :.
           (sqlFlagPair (In []) In       mRoles)                :.
           (sqlFlagPair 0       fst      (mFrom >>= B.readInt)) :.
           (sqlFlagPair 0       fst      (mTo >>= B.readInt))

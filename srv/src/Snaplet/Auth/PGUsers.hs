@@ -24,7 +24,7 @@ Populating user roles and meta from PG:
 Obtain Usermeta id from Snap user:
 
 > Just u <- with auth currentUser
-> Just (i, _) <- with db $ userMetaPG u
+> Just i <- with db $ userMetaIdent u
 
 Usermeta ids are preferred over Snap user when a reference to a user
 is stored.
@@ -42,7 +42,8 @@ module Snaplet.Auth.PGUsers
     ( -- * User roles & meta
       userRolesPG
     , UserMeta
-    , userMetaPG
+--    , userMetaPG
+    , userMetaIdent
     , replaceMetaRolesFromPG
       -- * List of all users
     , UsersList(..)
@@ -69,6 +70,9 @@ import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.PostgresqlSimple
 
 import qualified Data.Vector as V
+
+import Data.Model.Types
+import Carma.Model.Usermeta as CMUsermeta
 
 import Snaplet.DbLayer as DB
 import Snaplet.DbLayer.Types
@@ -167,6 +171,19 @@ userMetaPG user =
             res <- DB.read "usermeta" $ T.pack $ show mid
             return $ Just (mid, UserMeta $ toSnapMeta res)
           _     -> return Nothing
+
+
+------------------------------------------------------------------------------
+-- | Get Usermeta ident for a user.
+userMetaIdent :: AuthUser -> DbHandler b (Maybe (IdentI CMUsermeta.Usermeta))
+userMetaIdent user =
+    case userId user of
+      Nothing -> return Nothing
+      Just (UserId uid) -> do
+        mid' <- query userMidQuery (Only uid)
+        return $ case mid' of
+                   ((mid:_):_) -> Just $ Ident mid
+                   _           -> Nothing
 
 
 ------------------------------------------------------------------------------
