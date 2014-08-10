@@ -19,10 +19,10 @@ import Carma.Model.Usermeta (Usermeta)
 
 data Action = Action
   { ident       :: PK Int Action                    "Действие"
-  , parentId    :: F (IdentI Service)               "parentId" ""
-  , parentType  :: F (IdentI ServiceType)           "parentType" ""
   , caseId      :: F (IdentI Case)                  "caseId" ""
-  , name        :: F (IdentI ActionType)            "name" ""
+  , serviceId   :: F (Maybe (IdentI Service))       "serviceId" ""
+  , serviceType :: F (Maybe (IdentI ServiceType))   "serviceType" ""
+  , aType       :: F (IdentI ActionType)            "type" ""
   , duetime     :: F UTCTime                        "duetime" "Ожидаемое время выполнения"
   , comment     :: F (Maybe Text)                   "comment" "Комментарий"
   , deferBy     :: F (Maybe Text)                   "deferBy" "Отложить на"
@@ -41,8 +41,10 @@ instance Model Action where
   modelInfo = mkModelInfo Action ident
   modelView = \case
     "" -> Just $ modifyView defaultView $
-          [ invisible parentType
-          , invisible parentId
+          [ invisible caseId
+          , invisible serviceId
+          , invisible serviceType
+          , invisible aType
           , deferBy `completeWith` time
           , setMeta "dictionaryLabel"
             (A.String $ fieldName label) deferBy
@@ -50,5 +52,12 @@ instance Model Action where
           , regexp "timespan" deferBy
           , setMeta "addClass" "redirectOnChange" result
           , setMeta "dictionaryType" "BoUsersDict" assignedTo
+          , invisible ctime
+          , invisible assignTime
+          , invisible openTime
+          , invisible closeTime
+          , invisible assignedTo
+          , invisible targetGroup
+          , invisible closed
           ]
     _  -> Nothing
