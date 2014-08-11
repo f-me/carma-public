@@ -13,6 +13,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy.Encoding as TL
 
+import qualified Data.HashMap.Strict as HM
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.Aeson as Aeson
@@ -63,7 +64,7 @@ import Utils.NotDbLayer (readIdent)
 import Carma.Model.Event (EventType(..))
 import Utils.Events (logLogin)
 
-import ModelTriggers (runUpdateTriggers)
+import ModelTriggers
 
 
 ------------------------------------------------------------------------------
@@ -141,14 +142,23 @@ createHandler = do
   Just model <- getParamT "model"
   let createModel :: forall m . Model m => m -> AppHandler Aeson.Value
       createModel _ = do
-        let crud = getModelCRUD :: CRUD m
-        commit <- getJSONBody :: AppHandler Aeson.Value
-        s <- PS.getPostgresState
-        res <- liftIO $ withResource (PS.pgPool s)
-                (runEitherT . crud_create crud commit)
-        case res of
-          Right obj -> return obj
-          Left err  -> error $ "in createHandler: " ++ show err
+        commit <- getJSONBody :: AppHandler (Patch m)
+        runCreateTriggers commit >>= \case
+          Left (_,err) -> error $ "in createHandler: " ++ show err
+          Right commit' -> do
+            s <- PS.getPostgresState
+            res <- liftIO $ withResource (PS.pgPool s) (Patch.create commit')
+            return $ case res of
+              Left err -> error $ "in createHandler:" ++ show err
+              Right (Ident i) ->
+                -- we really need to separate idents from models
+                -- (so we can @Patch.set ident i commit@)
+                case Aeson.toJSON commit' of
+                  Object obj
+                    -> Object
+                    $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
+                  obj -> error $ "impossible: " ++ show obj
+
   case Carma.Model.dispatch model createModel of
     Just fn -> logResp $ fn
     Nothing -> logResp $ do

@@ -169,10 +169,6 @@ actions
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
           ])
-        ,("call", Map.fromList
-          [("endDate", [\objId _ ->
-             liftDb $ Evt.logLegacyCRUD Update objId Call.endDate])
-          ])
         ,("usermeta", Map.fromList
           [("delayedState", [\objId _ ->
              liftDb $ Evt.logLegacyCRUD Update objId Usermeta.delayedState])

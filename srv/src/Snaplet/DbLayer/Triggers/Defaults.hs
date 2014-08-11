@@ -55,11 +55,6 @@ applyDefaults model obj = do
               $ Map.insertWith (flip const) "isMobile" "0"
               $ obj
     "case" -> return cd
-    "call" -> do
-          Just u <- withAuth currentUser
-          [[u']] <- query "SELECT id::text FROM usermetatbl WHERE uid::text = ?"
-             (Only $ return . unUid =<< userId u)
-          return $ Map.insert "callTaker" u' cd
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
     "contract" ->
       -- Store user id in owner field if it's not present
