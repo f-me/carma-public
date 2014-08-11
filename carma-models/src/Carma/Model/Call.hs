@@ -37,10 +37,10 @@ callSearchParams
 
 instance Model Call where
   type TableName Call = "calltbl"
-  modelInfo = mkModelInfo Call ident `withLegacyName` "call"
+  modelInfo = mkModelInfo Call ident
   modelView = \case
     "search" -> Just $ modifyView (searchView callSearchParams) dicts
-    _        -> Just $ modifyView defaultView (metas ++ dicts ++ callOldCRUDHacks)
+    _        -> Just $ modifyView defaultView (metas ++ dicts)
 
 dicts :: [(Text, FieldView -> FieldView) :@ Call]
 dicts =
@@ -48,8 +48,6 @@ dicts =
     {dictParent = Just $ Model.fieldName callerType}
   , dict carModel $ (dictOpt "CarModel")
     {dictParent = Just $ Model.fieldName carMake, dictBounded = True}
-  , setMeta "dictionaryStringify" (Aeson.Bool True) carMake
-  , setMeta "dictionaryStringify" (Aeson.Bool True) carModel
   , setMeta "dictionaryLabel" (Aeson.String "realName") callTaker
   , setMeta "dictionaryParent"
     (Aeson.String $ Model.fieldName program) subprogram
@@ -65,15 +63,6 @@ metas =
 
     , invisible coords
     , invisible address
-    ]
-
--- | Mark several new-style dictionaries to use dictionaryStringify,
--- to wrap integers in strings to be compatible with the old CRUD.
-callOldCRUDHacks :: [(Text, FieldView -> FieldView) :@ Call]
-callOldCRUDHacks =
-    [ setMeta "dictionaryStringify" (Aeson.Bool True) program
-    , setMeta "dictionaryStringify" (Aeson.Bool True) subprogram
-    , setMeta "dictionaryStringify" (Aeson.Bool True) wazzup
     ]
 
 data Call = Call
