@@ -65,10 +65,8 @@ define [ "model/main"
 
     usr.delayedStateLocal?.subscribeWithOld (n, o) =>
       return if usr.currentState?() == "Ready"
-      if _.isNull n
-        msg = "Переход в статус \"#{o}\" отменен."
-      else
-        msg = "Переход в статус \"#{n}\" после завершения текущего действия."
+      return if _.isNull n
+      msg = "Переход в статус \"#{n}\" после завершения текущего действия."
       $.notify msg, className: "info"
 
     ko.applyBindings(usr, $("#current-user")[0])
