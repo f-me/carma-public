@@ -87,24 +87,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
             bindRemove parent, field, cb
             cb(parent, field, i) if _.isFunction cb
 
-  # args: id - id of datatable element
-  # to: id of element where href will be set
-  window.dt2csv = (id, to) ->
-    h = $($("##{id}").dataTable().fnSettings().nTHead)
-          .find('th').map (i,e) -> $(e).text()
-    d = $("##{id}").dataTable()
-    m = d.$("tr", {filter: 'applied'})
-         .map (i,e) -> $(e).children()
-                           .map (i,e) -> $(e).text()
-    head = ($.makeArray(h).join ';') + "\n"
-    s = ($.map m, (e, i) -> $.makeArray(e).join(';')).join "\n"
-    $("##{to}").attr 'href',
-      " data:application/octet-stream
-      ; base64
-      , #{Base64.encode('\uFEFF' + head + s)}"
-    s
-
-  modelsFromUrl = -> location.hash.match(/#(\w+)/)[1];
+  modelsFromUrl = -> location.hash.match(/#(\w+)/)[1]
 
   # Generate a random password of given length (default 10)
   genPassword = (len) ->
@@ -167,7 +150,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   # function should belong to first dependency
   build_global_fn: (name, deps) ->
     window[name] = ->
-      args = arguments;
+      args = arguments
       require deps, (dep) -> dep[name].apply(this, args)
 
   mkDataTable: (t, opts) ->
