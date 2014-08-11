@@ -17,8 +17,6 @@ data CaseStatus = CaseStatus
     :: PK Int CaseStatus "Статус кейса"
   , label
     :: F Text "label" "Тип"
-  , button
-    :: F Bool "button" "Кнопка"
   } deriving Typeable
 
 mkIdents [t|CaseStatus|]
