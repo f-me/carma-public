@@ -356,19 +356,6 @@ define ["model/utils", "dictionaries"], (mu, d) ->
 
   bindRemove: bindRemove
 
-  bindDelete: (parent, field, cb) ->
-    bindRemove parent, field, (p, f, kvm) ->
-      deleteCb = (args...) -> cb(args) if _.isFunction cb
-      $.ajax
-        'type'     : 'DELETE'
-        'url'      : "/_/#{kvm._meta.model.name}/#{kvm.id()}"
-        'success'  : -> deleteCb
-        'error'    : (xhr) ->
-          if xhr.status == 404
-            deleteCb(d.acc())
-          else
-            alert 'error'
-
   toUnix: (d) -> Math.round(d.getTime() / 1000)
 
   # flip . setTimeout

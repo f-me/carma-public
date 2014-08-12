@@ -1,8 +1,48 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module ApplicationHandlers where
+module ApplicationHandlers
+    (
+      -- * Authentication
+      indexPage
+    , redirectToLogin
+    , authOrLogin
+    , loginForm
+    , doLogin
+    , doLogout
+
+      -- * CRUD
+    , createHandler
+    , readHandler
+    , readAllHandler
+    , readManyHandler
+    , updateHandler
+
+      -- * #rkc screens
+    , rkcHandler
+    , rkcWeatherHandler
+    , rkcFrontHandler
+    , rkcPartners
+
+      -- * Helper handlers
+    , getRegionByCity
+    , serveUsersList
+    , towAvgTime
+    , openAction
+    , printServiceHandler
+    , copyCtrOptions
+
+    -- * Misc. client support handlers
+    , clientConfig
+    , errorsHandler
+
+    -- * Back office analysis
+    , BORepr(..)
+    , serveBackofficeSpec
+    )
+
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
+where
 
 import Data.Functor
 import Control.Monad
@@ -20,7 +60,6 @@ import Data.Aeson
 import Data.List
 import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
-import Data.String
 
 import Data.Maybe
 import Data.Ord (comparing)
@@ -28,7 +67,7 @@ import Data.Ord (comparing)
 import Data.Time
 import System.Locale
 
-import Database.PostgreSQL.Simple ( Query, query_, query, execute)
+import Database.PostgreSQL.Simple (Query, query, execute)
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import Data.Pool (withResource)
@@ -291,14 +330,6 @@ updateHandler = do
                 -- Need this hack, or server won't return updated "cost_counted"
                 $ Map.delete "cost_counted" commit
 
-
-deleteHandler :: AppHandler ()
-deleteHandler = do
-  Just model <- getParamT "model"
-  Just objId <- getParamT "id"
-  res        <- with db $ DB.delete model objId
-  writeJSON res
-
 -- rkc helpers
 getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
 getFromTo = do
@@ -389,18 +420,6 @@ rkcPartners = logExceptions "handler/rkc/partners" $ do
       RKC.filterTo = fromMaybe (RKC.filterTo flt) to }
 
   res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
-  writeJSON res
-
--- | This action recieve model and id as parameters to lookup for
--- and json object with values to create new model with specified
--- id when it's not found
-findOrCreateHandler :: AppHandler ()
-findOrCreateHandler = do
-  Just model <- getParamT "model"
-  Just objId    <- getParamT "id"
-  commit <- getJSONBody
-  res <- with db $ DB.findOrCreate model objId commit
-  -- FIXME: try/catch & handle/log error
   writeJSON res
 
 serveUsersList :: AppHandler ()
@@ -553,17 +572,6 @@ copyCtrOptions = do
       |]
       [to, from]
   writeJSON ()
-
-
-unassignedActionsHandler :: AppHandler ()
-unassignedActionsHandler = do
-  r <- withPG pg_search
-       $ \c -> query_ c $ fromString
-               $  " SELECT count(1) FROM actiontbl"
-               ++ " WHERE name IN ('orderService', 'callMeMaybe', 'tellMeMore')"
-               ++ " AND (assignedTo = '' OR assignedTo is null)"
-               ++ " AND closed = false"
-  writeJSON $ join (r :: [[Integer]])
 
 logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do
