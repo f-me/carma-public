@@ -28,7 +28,7 @@ ALTER TABLE "ServiceInfo" ADD CONSTRAINT "ServiceInfo_service_fkey"
 FOREIGN KEY (service) REFERENCES "ServiceType" (id);
 
 ALTER TABLE servicetbl
-ADD CONSTRAINT "servicetbl_type_id_unique" UNIQUE (type,id);
+ADD CONSTRAINT PRIMARY KEY (type,id);
 
 ALTER TABLE "SubProgramService" DROP CONSTRAINT "SubProgramService_type_fkey";
 ALTER TABLE "SubProgramService" ADD CONSTRAINT "SubProgramService_type_fkey"
