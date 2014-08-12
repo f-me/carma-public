@@ -40,6 +40,7 @@ import AppHandlers.PSA
 import AppHandlers.ContractGenerator
 import AppHandlers.Users
 import AppHandlers.Screens
+import AppHandlers.KPI
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
@@ -109,6 +110,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/errors",        method POST errorsHandler)
          , ("/userStates/:userId/:from/:to",
             chkAuth . method GET $ serveUserStates)
+         , ("/kpi/stat/:from/:to", chkAuth . method GET $ getStat)
          ]
 
 dconf :: DirectoryConfig (Handler App App)

@@ -41,39 +41,4 @@
           | →
 
 .hidden
-  #search-wrap-template
-    .row-fluid
-      .span1(data-bind="click: function () { kvm.showFields.del(fld) }")
-        label
-          i.icon-remove
-      .content.span11(data-bind="with: kvm")
-
-  #group-ro-template
-    div(data-bind="foreach: fields")
-      div(data-bind="render: $data")
-
-  #dictionary-ro-template
-    span(data-bind="text: kvm[field.name + 'Local']")
-
-  #text-ro-template
-    span(data-bind="text: kvm[field.name]")
-
-  #checkbox-ro-template
-    span(data-bind="text: kvm[field.name]() ? '✓' : ''")
-
-  #ident-ro-template
-    a(data-bind="attr: { \
-                 href: urlFor(kvm, field.name) \
-                 }, \
-                 text: kvm[field.name]()\
-                 ")
-
-  #datetime-ro-template
-    span(data-bind="text: kvm[field.name]()")
-
-  #date-ro-template
-    span(data-bind="text: kvm[field.name]()")
-
-  #phone-ro-template
-    span(data-bind="text: kvm[field.name]()")
-
+  include /fields/ro.jade

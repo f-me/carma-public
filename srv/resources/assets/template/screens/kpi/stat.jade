@@ -4,46 +4,54 @@ include _table
   .span12.default-bs
     include _statNav
     .row-fluid#settings
-      .span12.bs-docs-less-margins#kpi-list
-        .bs-docs-example-after#settings-label
-          i.icon-plus
-          | Настройки
-        #kpi-list-inner.in(style="height: 20em; overflow-x: auto;")
-          .control-group
-            .controls
-              input#kpi-list-filter.focusable(type="text"
-                data-bind="value: filter, valueUpdate: 'afterkeydown'")
-          ul.unstyled(data-bind="foreach: fields")
-            li
-              label.checkbox
-                input(type="checkbox" data-bind="checked: show")
-                span(data-bind="text: label")
-
       .row-fluid
-        .span4#date-range(style="margin-top: 10px")
-          .span4
+        .span12.bs-docs-less-margins#kpi-list
+          .bs-docs-example-after#settings-label
+            i.icon-plus
+            | Настройки
+          #kpi-list-inner.in(style="height: 20em; overflow-x: auto;")
+            .control-group
+              .controls
+                input#kpi-list-filter.focusable(type="text"
+                  data-bind="value: settingsFilter, valueUpdate: 'afterkeydown'")
+            ul.unstyled(data-bind="foreach: fields")
+              li
+                label.checkbox
+                  input(type="checkbox" data-bind="checked: show")
+                  span(data-bind="text: label")
+
+      .row-fluid#filters(style="margin-top: 10px")
+        .span4#kvmsFilter
+          .input-append
+            input.focusable(
+              type="text"
+              name="kvmsFilter"
+              data-bind="value: kvmsFilter, valueUpdate: 'afterkeydown'")
+        .span2#date-range
             .input-append.date(data-provide="datepicker"
                                data-autoshow-datepicker="true"
                                data-date-format="dd.mm.yyyy"
                                data-date-weekstart="1")
               input.pane-span.focusable(type="text"
                 autocomplete="off"
-                name="{{ name }}Begin"
-                data-bind="value: {{ name }}Begin, valueUpdate: 'change'")
+                name="interval.begin"
+                data-bind="value: interval.begin")
               span.add-on
                 i.icon.icon-calendar
-          .span4.offset1
+          .span2
             .input-append.date(data-provide="datepicker"
                                data-autoshow-datepicker="true"
                                data-date-format="dd.mm.yyyy"
                                data-date-weekstart="1")
               input.pane-span.focusable(type="text"
                 autocomplete="off"
-                name="{{ name }}End"
-                data-bind="value: {{ name }}End, valueUpdate: 'change'")
+                name="interval.end"
+                data-bind="value: interval.end")
               span.add-on
                 i.icon.icon-calendar
 
     .row-fluid#results(style="overflow-y: auto")
       +table
 
+.hidden
+  include /fields/ro.jade

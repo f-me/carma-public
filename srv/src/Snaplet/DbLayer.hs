@@ -160,8 +160,7 @@ initDbLayer :: Snaplet (AuthManager b)
 initDbLayer sessionMgr adb cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     -- syslog Info "Server started"
-    rels <- liftIO $ Postgres.loadRelations "resources/site-config/syncs.json"
-    tbls <- liftIO $ MT.loadTables "resources/site-config/models" "resources/site-config/field-groups.json"
+    tbls <- liftIO $ MT.loadTables "resources/site-config/models"
     cfg <- getSnapletUserConfig
     wkey <- liftIO $ lookupDefault "" cfg "weather-key"
 
@@ -173,7 +172,6 @@ initDbLayer sessionMgr adb cfgDir = makeSnaplet "db-layer" "Storage abstraction"
       <$> nestSnaplet "redis" redis redisDBInitConf
       <*> nestSnaplet "pgsql" postgres pgsInit
       <*> pure sessionMgr
-      <*> (return rels)
       <*> (return tbls)
       <*> (return dc)
       <*> (return $ initApi wkey)
