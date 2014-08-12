@@ -77,6 +77,13 @@ UPDATE partnercanceltbl SET serviceId = sid_tmp;
 ALTER TABLE partnercanceltbl DROP COLUMN sid_tmp;
 ALTER TABLE partnercanceltbl ALTER COLUMN serviceId SET NOT NULL;
 
+-- basic cleanups
+DELETE FROM actiontbl WHERE duetime IS NULL;
+ALTER TABLE actiontbl ALTER COLUMN duetime SET NOT NULL;
+DELETE FROM actiontbl WHERE ctime IS NULL;
+ALTER TABLE actiontbl ALTER COLUMN ctime SET NOT NULL;
+ALTER TABLE actiontbl ALTER COLUMN id SET NOT NULL;
+
 -- split actiontbl parentId in two (serviceId + serviceType)
 ALTER TABLE actiontbl ADD COLUMN serviceType int4 REFERENCES "ServiceType";
 UPDATE "FieldPermission" SET field = 'serviceId' WHERE

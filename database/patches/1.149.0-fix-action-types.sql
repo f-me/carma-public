@@ -1,10 +1,3 @@
--- basic cleanups
-DELETE FROM actiontbl WHERE duetime IS NULL;
-ALTER TABLE actiontbl ALTER COLUMN duetime SET NOT NULL;
-DELETE FROM actiontbl WHERE ctime IS NULL;
-ALTER TABLE actiontbl ALTER COLUMN ctime SET NOT NULL;
-ALTER TABLE actiontbl ALTER COLUMN id SET NOT NULL;
-
 -- remap ActionNames to new ActionType idents
 ALTER TABLE actiontbl ADD COLUMN type_tmp int4;
 UPDATE actiontbl SET type_tmp = 16 WHERE name='accountCheck';
