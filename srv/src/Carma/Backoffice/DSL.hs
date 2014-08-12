@@ -18,6 +18,7 @@ module Carma.Backoffice.DSL
     , ActionOutcome
     , Trigger
     , Backoffice(..)
+    , ite
     , setServiceStatus
     , minutes
     , hours
@@ -150,7 +151,7 @@ class Backoffice impl where
     oneOf :: Model v =>
              impl (IdentI v) -> [IdentI v] -> impl Bool
 
-    -- | Branching operator.
+    -- | Branching.
     switch :: [(impl Bool, impl v)]
            -- ^ List of condition/value pair. The first condition to
            -- be true selects the value of the expression.
@@ -194,6 +195,18 @@ class Backoffice impl where
 
 setServiceStatus :: Backoffice impl => IdentI ServiceStatus -> impl ()
 setServiceStatus = setServiceField Service.status
+
+
+-- | If-then-else.
+ite :: Backoffice impl =>
+       impl Bool
+    -- ^ If condition.
+    -> impl v
+    -- ^ Then branch.
+    -> impl v
+    -- ^ Else branch.
+    -> impl v
+ite cond t e = switch [(cond, t)] e
 
 
 -- | 60 seconds
