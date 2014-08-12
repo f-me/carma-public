@@ -1,7 +1,6 @@
 CREATE TABLE "CaseStatus"
   ( id    SERIAL PRIMARY KEY
   , label text UNIQUE NOT NULL CHECK (label <> '')
-  , button NOT NULL DEFAULT false
   );
 
 COPY "CaseStatus" (id, label) FROM stdin;
