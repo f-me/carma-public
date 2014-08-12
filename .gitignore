@@ -1,4 +1,3 @@
-
 # vim swap files
 .*.sw[a-z]
 
@@ -37,6 +36,7 @@ cabal.sandbox.config
 srv/site_key.txt
 srv/resources/private
 srv/node_modules
+srv/bower_components
 
 # static content built by grunt js
 srv/resources/static/css/
