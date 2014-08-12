@@ -38,10 +38,10 @@ sendSMS actId tplId = do
             actiontbl act, servicetbl svc,
             "SubProgram" prog
           where true
-            and act.id   = substring(?, ':(.*)')::int
-            and svc.id   = substring(act.parentId, ':(.*)')::int
-            and svc.type = substring(act.parentId, '(.*):')
-            and cs.id    = substring(act.caseId, ':(.*)')::int
+            and act.id   = ?
+            and svc.id   = act.serviceId
+            and svc.type = act.serviceType
+            and cs.id    = act.caseId
             and prog.id  = cs.subprogram
         |]
         [actId]

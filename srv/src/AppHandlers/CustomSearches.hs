@@ -113,8 +113,8 @@ selectActions
 selectActions mClosed mAssignee mRoles mFrom mTo = do
   let nid = Ident 0
       actQ = [sql|
-     SELECT a.id::text, a.caseId, a.parentId,
-           (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,
+     SELECT a.id::text, a.caseId, a.serviceId, a.serviceType,
+           (a.closed::int)::text, a.type, a.assignedTo, a.targetGroup,
            (extract (epoch from a.duetime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.ctime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text,
@@ -127,10 +127,10 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
               at time zone 'UTC')::int8)::text
      FROM
        (actiontbl a LEFT JOIN servicetbl s
-         ON  s.id::text = substring(a.parentid, ':(.*)')
-         AND s.type::text = substring(a.parentId, '(.*):')),
+         ON  s.id = a.serviceId
+         AND s.type = a.serviceType),
        casetbl c
-     WHERE c.id::text = substring(a.caseId, ':(.*)')
+     WHERE c.id = a.caseId
      AND (? OR closed = ?)
      AND (? OR a.assignedTo = ?)
      AND (? OR targetGroup IN ?)
@@ -144,7 +144,7 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
           (sqlFlagPair 0       fst      (mFrom >>= B.readInt)) :.
           (sqlFlagPair 0       fst      (mTo >>= B.readInt))
   let fields
-        = [ "id", "caseId", "parentId", "closed", "name"
+        = [ "id", "caseId", "serviceId", "serviceType", "closed", "name"
           , "assignedTo", "targetGroup", "duetime"
           , "ctime", "assignTime", "openTime", "closeTime"
           , "result"
@@ -178,12 +178,11 @@ searchCallsByPhone = do
 getActionsForCase :: AppHandler ()
 getActionsForCase = do
   Just caseId <- getParam "id"
-  let caseId' = B.append "case:" caseId
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int8::text,"
-    ++ "       result, name, assignedTo, comment"
+    ++ "       result, type, assignedTo, comment"
     ++ "  FROM actiontbl"
-    ++ "  WHERE caseId = ?") [caseId']
+    ++ "  WHERE caseId = ?") [caseId]
   let fields =
         ["closeTime", "result", "name", "assignedTo", "comment"]
   writeJSON $ mkMap fields rows
