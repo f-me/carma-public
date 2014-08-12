@@ -1,8 +1,48 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module ApplicationHandlers where
+module ApplicationHandlers
+    (
+      -- * Authentication
+      indexPage
+    , redirectToLogin
+    , authOrLogin
+    , loginForm
+    , doLogin
+    , doLogout
+
+      -- * CRUD
+    , createHandler
+    , readHandler
+    , readAllHandler
+    , readManyHandler
+    , updateHandler
+
+      -- * #rkc screens
+    , rkcHandler
+    , rkcWeatherHandler
+    , rkcFrontHandler
+    , rkcPartners
+
+      -- * Helper handlers
+    , getRegionByCity
+    , serveUsersList
+    , towAvgTime
+    , openAction
+    , printServiceHandler
+    , copyCtrOptions
+
+    -- * Misc. client support handlers
+    , clientConfig
+    , errorsHandler
+
+    -- * Back office analysis
+    , BORepr(..)
+    , serveBackofficeSpec
+    )
+
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
+where
 
 import Data.Functor
 import Control.Monad
@@ -13,6 +53,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy.Encoding as TL
 
+import qualified Data.HashMap.Strict as HM
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.Aeson as Aeson
@@ -20,7 +61,6 @@ import Data.Aeson
 import Data.List
 import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
-import Data.String
 
 import Data.Maybe
 import Data.Ord (comparing)
@@ -28,7 +68,7 @@ import Data.Ord (comparing)
 import Data.Time
 import System.Locale
 
-import Database.PostgreSQL.Simple ( Query, query_, query, execute)
+import Database.PostgreSQL.Simple (Query, query, execute)
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import Data.Pool (withResource)
@@ -65,7 +105,7 @@ import Utils.NotDbLayer (readIdent)
 import Carma.Model.Event (EventType(..))
 import Utils.Events (logLogin)
 
-import ModelTriggers (runUpdateTriggers)
+import ModelTriggers
 
 import Carma.Model.ActionResult (ActionResult)
 import Carma.Model.ActionType (ActionType)
@@ -158,14 +198,23 @@ createHandler = do
   Just model <- getParamT "model"
   let createModel :: forall m . Model m => m -> AppHandler Aeson.Value
       createModel _ = do
-        let crud = getModelCRUD :: CRUD m
-        commit <- getJSONBody :: AppHandler Aeson.Value
-        s <- PS.getPostgresState
-        res <- liftIO $ withResource (PS.pgPool s)
-                (runEitherT . crud_create crud commit)
-        case res of
-          Right obj -> return obj
-          Left err  -> error $ "in createHandler: " ++ show err
+        commit <- getJSONBody :: AppHandler (Patch m)
+        runCreateTriggers commit >>= \case
+          Left (_,err) -> error $ "in createHandler: " ++ show err
+          Right commit' -> do
+            s <- PS.getPostgresState
+            res <- liftIO $ withResource (PS.pgPool s) (Patch.create commit')
+            return $ case res of
+              Left err -> error $ "in createHandler:" ++ show err
+              Right (Ident i) ->
+                -- we really need to separate idents from models
+                -- (so we can @Patch.set ident i commit@)
+                case Aeson.toJSON commit' of
+                  Object obj
+                    -> Object
+                    $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
+                  obj -> error $ "impossible: " ++ show obj
+
   case Carma.Model.dispatch model createModel of
     Just fn -> logResp $ fn
     Nothing -> logResp $ do
@@ -260,8 +309,9 @@ updateHandler = do
             res <- with db $
               liftIO $ withResource (PS.pgPool s) (Patch.update ident commit')
             case res of
-              0 -> return $ Left 404
-              _ -> case model of
+              Left ex -> error $ show ex
+              Right 0 -> return $ Left 404
+              Right _ -> case model of
                      -- TODO #1352 workaround for Contract triggers
                      "Contract" ->
                          do
@@ -289,14 +339,6 @@ updateHandler = do
                 $ DB.update model objId
                 -- Need this hack, or server won't return updated "cost_counted"
                 $ Map.delete "cost_counted" commit
-
-
-deleteHandler :: AppHandler ()
-deleteHandler = do
-  Just model <- getParamT "model"
-  Just objId <- getParamT "id"
-  res        <- with db $ DB.delete model objId
-  writeJSON res
 
 -- rkc helpers
 getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
@@ -390,18 +432,6 @@ rkcPartners = logExceptions "handler/rkc/partners" $ do
   res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
   writeJSON res
 
--- | This action recieve model and id as parameters to lookup for
--- and json object with values to create new model with specified
--- id when it's not found
-findOrCreateHandler :: AppHandler ()
-findOrCreateHandler = do
-  Just model <- getParamT "model"
-  Just objId    <- getParamT "id"
-  commit <- getJSONBody
-  res <- with db $ DB.findOrCreate model objId commit
-  -- FIXME: try/catch & handle/log error
-  writeJSON res
-
 serveUsersList :: AppHandler ()
 serveUsersList = with db usersListPG >>= writeJSON
 
@@ -412,12 +442,12 @@ towAvgTimeQuery = [sql|
 WITH towtimes AS (
  SELECT max(t.times_factServiceStart - a.ctime)
  FROM actiontbl a, casetbl c, towagetbl t
- WHERE cast(split_part(a.parentid, ':', 2) as integer)=t.id
- AND cast(split_part(a.caseid, ':', 2) as integer)=c.id
+ WHERE a.serviceId = t.id
+ AND a.caseid = c.id
  AND a.name='orderService'
  AND c.city=?
  AND (CURRENT_DATE, INTERVAL '1 day') OVERLAPS (c.callDate, c.callDate)
- GROUP BY a.parentid)
+ GROUP BY a.serviceId)
 SELECT extract(epoch from avg(max)) FROM towtimes;
 |]
 
@@ -472,6 +502,7 @@ lookupSrvQ = [sql|
        , (extract (epoch from c.ctime at time zone 'UTC')::int8)::text
        , c.partnercancelreason
        , p.name
+       , c.servicetype
        , c.serviceid
   FROM partnercanceltbl c
   LEFT JOIN partnertbl p
@@ -506,6 +537,7 @@ printServiceHandler = do
                              , "ctime"
                              , "partnerCancelReason"
                              , "partnerName"
+                             , "serviceType"
                              , "serviceid"
                              ] rows
 
@@ -550,17 +582,6 @@ copyCtrOptions = do
       |]
       [to, from]
   writeJSON ()
-
-
-unassignedActionsHandler :: AppHandler ()
-unassignedActionsHandler = do
-  r <- withPG pg_search
-       $ \c -> query_ c $ fromString
-               $  " SELECT count(1) FROM actiontbl"
-               ++ " WHERE name IN ('orderService', 'callMeMaybe', 'tellMeMore')"
-               ++ " AND (assignedTo = '' OR assignedTo is null)"
-               ++ " AND closed = false"
-  writeJSON $ join (r :: [[Integer]])
 
 logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do

@@ -34,7 +34,10 @@
     },
     {
       "meta": {
-        "dictionaryName": "Services",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
+        "dictionaryName": "ServiceType",
+        "bounded": true,
         "label": "Услуга"
       },
       "type": "dictionary",

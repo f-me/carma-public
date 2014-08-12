@@ -9,6 +9,7 @@ COPY "CaseStatus" (id, label) FROM stdin;
 3	Back Office
 4	Закрыт
 5	Отмена
+6	Заказ услуги через мобильное приложение
 \.
 
 GRANT ALL ON "CaseStatus" TO carma_db_sync;

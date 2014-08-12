@@ -44,6 +44,8 @@ import Database.PostgreSQL.Simple.SqlQQ
 
 import Snap
 
+import Data.Model.Types
+
 import Application
 import AppHandlers.CustomSearches.Contract
 import AppHandlers.Util
@@ -51,6 +53,8 @@ import Utils.HttpErrors
 import Util hiding (withPG)
 
 import qualified Carma.Model.Role as Role
+import           Carma.Model.Usermeta as Usermeta
+
 
 type MBS = Maybe ByteString
 
@@ -93,7 +97,7 @@ allActionsHandler = do
           return $ B.split ',' <$> tg
   acts <- join (selectActions
           <$> getParam "closed"
-          <*> getParamT "assignedTo"
+          <*> (maybe Nothing (Just . Ident) <$> getIntParam "assignedTo")
           <*> getRoles
           <*> getParam "duetimeFrom"
           <*> getParam "duetimeTo")
@@ -104,12 +108,13 @@ allActionsHandler = do
 
 
 selectActions
-  :: MBS -> Maybe Text -> Maybe [ByteString] -> MBS -> MBS
+  :: MBS -> Maybe (IdentI Usermeta) -> Maybe [ByteString] -> MBS -> MBS
   -> AppHandler [Map Text Text]
 selectActions mClosed mAssignee mRoles mFrom mTo = do
-  let actQ = [sql|
-     SELECT a.id::text, a.caseId, a.parentId,
-           (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,
+  let nid = Ident 0
+      actQ = [sql|
+     SELECT a.id::text, a.caseId, a.serviceId, a.serviceType,
+           (a.closed::int)::text, a.type, a.assignedTo, a.targetGroup,
            (extract (epoch from a.duetime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.ctime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text,
@@ -122,10 +127,10 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
               at time zone 'UTC')::int8)::text
      FROM
        (actiontbl a LEFT JOIN servicetbl s
-         ON  s.id::text = substring(a.parentid, ':(.*)')
-         AND s.type::text = substring(a.parentId, '(.*):')),
+         ON  s.id = a.serviceId
+         AND s.type = a.serviceType),
        casetbl c
-     WHERE c.id::text = substring(a.caseId, ':(.*)')
+     WHERE c.id = a.caseId
      AND (? OR closed = ?)
      AND (? OR a.assignedTo = ?)
      AND (? OR targetGroup IN ?)
@@ -134,12 +139,12 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
      |]
   rows <- withPG pg_search $ \c -> query c actQ $
           (sqlFlagPair False   (== "1") mClosed)               :.
-          (sqlFlagPair ""      id       mAssignee)             :.
+          (sqlFlagPair nid     id       mAssignee)             :.
           (sqlFlagPair (In []) In       mRoles)                :.
           (sqlFlagPair 0       fst      (mFrom >>= B.readInt)) :.
           (sqlFlagPair 0       fst      (mTo >>= B.readInt))
   let fields
-        = [ "id", "caseId", "parentId", "closed", "name"
+        = [ "id", "caseId", "serviceId", "serviceType", "closed", "name"
           , "assignedTo", "targetGroup", "duetime"
           , "ctime", "assignTime", "openTime", "closeTime"
           , "result"
@@ -173,12 +178,11 @@ searchCallsByPhone = do
 getActionsForCase :: AppHandler ()
 getActionsForCase = do
   Just caseId <- getParam "id"
-  let caseId' = B.append "case:" caseId
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int8::text,"
-    ++ "       result, name, assignedTo, comment"
+    ++ "       result, type, assignedTo, comment"
     ++ "  FROM actiontbl"
-    ++ "  WHERE caseId = ?") [caseId']
+    ++ "  WHERE caseId = ?") [caseId]
   let fields =
         ["closeTime", "result", "name", "assignedTo", "comment"]
   writeJSON $ mkMap fields rows
@@ -190,14 +194,14 @@ getCancelsForCase = do
   let caseId' = B.append "case:" caseId
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT extract (epoch from c.ctime at time zone 'UTC')::int8::text,"
-    ++ "       c.partnerId, c.serviceId, c.partnerCancelReason, c.comment,"
+    ++ "       c.partnerId, c.serviceType, c.serviceId, c.partnerCancelReason, c.comment,"
     ++ "       c.owner, p.name"
     ++ "  FROM partnercanceltbl c"
     ++ "  LEFT JOIN partnertbl p"
     ++ "  ON p.id = cast(split_part(c.partnerId, ':', 2) as integer)"
     ++ "  WHERE c.caseId = ?") [caseId']
   let fields =
-        [ "ctime", "partnerId", "serviceId", "partnerCancelReason"
+        [ "ctime", "partnerId", "serviceType", "serviceId", "partnerCancelReason"
         , "comment", "owner", "partnerName"
         ]
   writeJSON $ mkMap fields rows

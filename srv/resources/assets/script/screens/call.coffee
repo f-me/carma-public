@@ -15,7 +15,7 @@ define [ "utils"
     if unfinished and args.id isnt unfinished
         return Finch.navigate "call/#{unfinished}"
 
-    knockVM = main.modelSetup("call") viewName, args,
+    knockVM = main.modelSetup("Call") viewName, args,
                        permEl     : "case-permissions"
                        slotsee    : ["call-number", "right"]
                        focusClass : "focusable"

@@ -135,7 +135,8 @@ ko.bindingHandlers.renderGroup =
 ko.bindingHandlers.render =
   init: (el, acc, allBindigns, ctx) ->
     return unless acc().field
-    tplName = acc().field.meta?.widget || acc().field.type || 'text'
+    fld = acc().kvm[acc().field.name]
+    tplName = fld.field.meta?.widget || fld.field.type || 'text'
     tpl = $("##{tplName}-ro-template").html()
     console.error "Cant find template for #{tplName}" unless tpl
     ko.utils.setHtml el, tpl

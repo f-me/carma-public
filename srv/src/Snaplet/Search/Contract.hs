@@ -142,11 +142,11 @@ contractCSV t = do
 portalQuery :: AuthUser -> SearchHandler b (Text -> Text)
 portalQuery au = do
   let withDb = withLens db
-  Just (ui, _) <- withDb $ userMetaPG au
+  Just i@(Ident ui) <- withDb $ userMetaIdent au
   [Only isDealer :. ()] <-
       withDb $
-      selectDb (Usermeta.isDealer :. Usermeta.ident `eq` Ident ui)
-  let commPred = printf " AND committer = %i" ui
+      selectDb (Usermeta.isDealer :. Usermeta.ident `eq` i)
+  let commPred = printf " AND committer = %i" (show ui)
   return $ \s -> if isDealer
                  then T.append s $ T.pack commPred
                  else s

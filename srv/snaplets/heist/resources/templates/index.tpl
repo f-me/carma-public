@@ -3,81 +3,72 @@
   <head>
     <meta charset="utf-8" />
     <title><addLocalName>CaRMa</addLocalName></title>
-    <link rel="stylesheet" href="/s/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/s/3p/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/s/css/datepicker.css" />
-    <link rel="stylesheet" href="/s/css/jquery.dataTables.css" />
 
     <!-- Additional set of icons -->
     <link rel="stylesheet" href="/s/css/stolen-icons.css" />
 
     <link rel="stylesheet" href="/s/css/local.css" />
 
-    <!-- WYSIWYG -->
-    <link rel="stylesheet" href="/s/css/bootstrap-wysihtml5.css" />
-    <link rel="stylesheet" href="/s/css/wysiwyg-color.css" />
-
     <!-- Date Range Picker for Bootstrap -->
     <link rel="stylesheet" href="/s/css/daterangepicker-bs2.css" />
 
     <!-- DOM manipulation -->
-    <script src="/s/js/3p/jquery-1.7.1.min.js" />
+    <script src="/s/3p/jquery.js" />
 
     <!-- Rich UI -->
-    <script src="/s/js/3p/bootstrap.min.js" />
-    <script src="/s/js/3p/bootstrap-datepicker.js" />
-    <script src="/s/js/3p/bootstrap-typeahead.js" />
-    <script src="/s/js/3p/bootstrap-tagautocomplete.js" />
+    <script src="/s/3p/bootstrap/js/bootstrap.min.js" />
+    <script src="/s/3p/bootstrap-datepicker.js" />
+    <script src="/s/3p/bootstrap-tagautocomplete.js" />
 
     <!-- WYSIWYG -->
-    <script src="/s/js/3p/wysihtml5.min.js" />
-    <script src="/s/js/3p/bootstrap-wysihtml5.min.js" />
-    <script src="/s/js/3p/bootstrap-wysihtml5.ru-RU.js" />
+    <link rel="stylesheet" href="/s/3p/wysihtml5/bootstrap-wysihtml5.css" />
+    <link rel="stylesheet" href="/s/3p/wysihtml5/wysiwyg-color.css" />
+    <script src="/s/3p/wysihtml5/wysihtml5-0.3.0.min.js" />
+    <script src="/s/3p/wysihtml5/bootstrap-wysihtml5.js" />
+    <script src="/s/3p/wysihtml5/locales/bootstrap-wysihtml5.ru-RU.js" />
 
     <!-- Date Range Picker for Bootstrap -->
-    <script src="/s/js/3p/moment/moment.min.js" />
-    <script src="/s/js/3p/moment/ru.js" />
-    <script src="/s/js/3p/daterangepicker.js" />
+    <script src="/s/3p/moment/moment.min.js" />
+    <script src="/s/3p/moment/ru.js" />
+    <script src="/s/3p/daterangepicker.js" />
 
     <!-- Spinner -->
-    <script src="/s/js/3p/spin.min.js" />
-    <script src="/s/js/3p/jquery.spin.js" />
+    <script src="/s/3p/spin.js" />
+    <script src="/s/3p/jquery.spin.js" />
 
     <!-- Tabular display -->
-    <script src="/s/js/3p/jquery.dataTables.min.js" />
+    <link rel="stylesheet" href="/s/3p/datatables/css/jquery.dataTables.min.css" />
+    <script src="/s/3p/datatables/js/jquery.dataTables.min.js" />
 
     <!-- Responsive UI javascript library -->
-    <script src="/s/js/3p/knockout-3.1.0.js" />
+    <script src="/s/3p/knockout.js" />
 
     <!-- Utility library, Backbone dependency -->
-    <script src="/s/js/3p/underscore-1.6.0.min.js" />
+    <script src="/s/3p/underscore.js" />
 
     <!-- Simple templates -->
-    <script src="/s/js/3p/mustache.js" />
+    <script src="/s/3p/mustache.js" />
 
     <!-- OpenLayers library allows map rendering -->
-    <script src="/s/js/3p/OpenLayers-2.11/OpenLayers.js" />
+    <script src="/s/3p/OpenLayers/OpenLayers.js" />
 
     <!-- 25Kb of date parsing and formatting -->
-    <!-- <script src="/s/js/3p/date-ru-RU.js" /> -->
-    <script src="/s/js/3p/date/core.js" />
-    <script src="/s/js/3p/date/ru-RU.js" />
-    <!-- <script src="/s/js/3p/date/date.js" /> -->
-    <script src="/s/js/3p/date/extras.js" />
-    <script src="/s/js/3p/date/parser.js" />
-    <script src="/s/js/3p/date/sugarpak.js" />
+    <script src="/s/3p/date/core.js" />
+    <script src="/s/3p/date/ru-RU.js" />
+    <script src="/s/3p/date/extras.js" />
+    <script src="/s/3p/date/parser.js" />
+    <script src="/s/3p/date/sugarpak.js" />
 
     <!-- masked input for datetime fields -->
-    <script src="/s/js/3p/jquery.maskedinput-1.3.js" />
+    <script src="/s/3p/jquery.maskedinput.js" />
 
-    <!-- base 64 encode/decode library -->
-    <script src="/s/js/3p/b64.js" />
+    <script src="/s/3p/md5.min.js" />
 
-    <!-- Joseph Meyers md5 implementation -->
-    <script src="/s/js/3p/md5.js" />
+    <script src="/s/3p/d3.min.js" />
 
-    <script src="/s/js/3p/d3-3.4.6-min.js" />
-
-    <script src="/s/js/3p/notify.js" />
+    <script src="/s/3p/notify-combined.min.js" />
 
     <!-- global libs, that is not handled by require js -->
     <!-- typeahead menu -->
@@ -89,10 +80,9 @@
     <script src="/s/js/gen/globallibs/customKoHandlers.js" />
     <script src="/s/js/gen/globallibs/utils.js" />
 
-    <!-- Model processing -->
     <script src="/s/js/gen/avaya.js" />
 
-    <script src="/s/js/3p/require.js" />
+    <script src="/s/3p/require.js" />
     <script src="/s/js/gen/requireCfg.js" />
     <script src="/s/js/gen/local.js" />
 

@@ -24,7 +24,9 @@ define [], ->
       { name: "services"
       , type: "dictionary-many"
       , meta:
-          dictionaryName: "Services"
+          dictionaryName: "ServiceType"
+          dictionaryType: "ModelDict"
+          dictionaryStringify: true
           label: "Услуги"
       },
       { name: "priority2"
@@ -172,7 +174,9 @@ define [], ->
     fields: [
       {
         meta:
-          dictionaryName: "Services",
+          dictionaryName: "ServiceType"
+          dictionaryType: "ModelDict"
+          dictionaryStringify: true
           label: "Услуга"
         type: "dictionary",
         name: "servicename"

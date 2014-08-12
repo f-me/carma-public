@@ -16,7 +16,7 @@ partnertbl.name as "Партнёр",
         --"Region" AS "Регион".label,
 partnercanceltbl.comment as "Комментарий",
 "City".label as "Город",
-"ServiceNames".label AS "Услуга",
+"ServiceType".label AS "Услуга",
 partnercanceltbl.owner AS "Оператор",
 regionlist as "Регион"
 from partnercanceltbl
@@ -25,10 +25,10 @@ LEFT JOIN partnertbl ON partnertbl.id = "substring"(partnercanceltbl.partnerid, 
 LEFT JOIN "City" ON casetbl.city = "City".value
 --РЕАЛИЗАЦИЯ УНИКАЛЬНОЙ СВЯЗКИ В servicetbl(id, type):
         LEFT JOIN servicetbl ON
-                ((split_part(partnercanceltbl.serviceid, ':', 2)::Integer = servicetbl.id)
+                ((partnercanceltbl.serviceid = servicetbl.id)
                 AND
-                (split_part(partnercanceltbl.serviceid, ':', 1)::text = servicetbl.type))
-LEFT JOIN "ServiceNames" ON servicetbl.type = "ServiceNames".value
+                (partnercanceltbl.servicetype = servicetbl.type))
+LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id
 --ДЖОЙНИМ РЕЗУЛЬТАТ ПОДЗАПРОСА cities_regions ДЛЯ ВЫБОРА РЕГИОНОВ
         LEFT JOIN cities_regions ON "City".id = cities_regions.cities::Integer
 ORDER BY partnercanceltbl.ctime ASC, casetbl.id ASC;

@@ -162,7 +162,7 @@ instance Backoffice TextE where
 
     closeWith acts r =
         TextE $ \c ->
-            T.concat [ "Закрыть все ранее созданные действия {"
+            T.concat [ "Закрыть все ранее созданные по кейсу действия {"
                      , T.intercalate ", " $ map (toText c . const) acts
                      , "} с результатом "
                      , (toText c . const) r

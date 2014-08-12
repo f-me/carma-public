@@ -6,6 +6,7 @@ import           Prelude hiding (log)
 
 import           Control.Monad
 import           Control.Monad.RWS
+import           Control.Exception (SomeException)
 
 import           Data.String (fromString)
 import           Text.Printf
@@ -78,7 +79,7 @@ log p = do
   tgtUsr <- case (P.get p E.modelName, P.get p E.modelId, P.get p E.field) of
     (Just "Usermeta", Just i, Just (Just "delayedState")) -> return $ Ident i
     _                                                     -> return uid
-  id' <- create $ setUsr uid p
+  Right id' <- create $ setUsr uid p
   let p' = P.put E.ident id' p
   s <- checkUserState tgtUsr p'
   case s of
@@ -128,7 +129,7 @@ buildEmpty tpe = P.put E.eventType tpe $  P.empty
 -- | Create `Event` in `postgres` from `Patch Event`, return it's id
 create :: HasPostgres m
        => Patch Event
-       -> m (IdentI Event)
+       -> m (Either SomeException (IdentI Event))
 create ev = withPG $ \c -> liftIO $ P.create ev c
 
 -- | Build log event for legacy model crud

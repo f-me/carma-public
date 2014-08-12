@@ -8,14 +8,14 @@ CREATE TABLE "SubProgram"
   , value text UNIQUE NOT NULL
   , mailAddr text
   , mailPass text
-  , contacts int4[] -- ELEMENT REFERENCES SubProgramContact
-  , services int4[] -- ELEMENT REFERENCES SubProgramService
+  , contacts int4[] NOT NULL DEFAULT '{}' -- ELEMENT REFERENCES SubProgramContact
+  , services int4[] NOT NULL DEFAULT '{}' -- ELEMENT REFERENCES SubProgramService
   , checkPeriod integer
   , validFor integer
   , smsSender text NOT NULL DEFAULT 'RAMC' CHECK (smsSender <> '')
   , smsContact text NOT NULL DEFAULT '+78002507262' CHECK (smsContact <> '')
   , smsProgram text NOT NULL DEFAULT 'РАМК' CHECK (smsProgram <> '')
-  , contractPermissions int4[] -- ELEMENT REFERENCES SubProgramContractPermission
+  , contractPermissions int4[] NOT NULL DEFAULT '{}' -- ELEMENT REFERENCES SubProgramContractPermission
   , template text
   , logo text
   , help text

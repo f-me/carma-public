@@ -24,6 +24,7 @@ import           System.IO
 import           Snap
 import           Snap.Snaplet.Auth hiding (session)
 
+import           Data.Model.Types
 import qualified Carma.Model.Role as Role
 
 import           Carma.VIN
@@ -83,7 +84,8 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       connInfo <- with db $ with DB.postgres getConnectInfo
 
       -- Set current user as committer
-      uid <- maybe (error "No usermeta id") fst <$> with db (userMetaPG u)
+      (Ident uid) <-
+          fromMaybe (error "No usermeta id") <$> with db (userMetaIdent u)
 
       -- VIN import task handler
       with taskMgr $ TM.create $ do

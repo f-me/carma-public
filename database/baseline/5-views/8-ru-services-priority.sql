@@ -24,20 +24,12 @@ partner_servicetbl.priority2,
 partner_servicetbl.priority3,
 partner_servicetbl.falsecallpercent,
 partner_servicetbl.servicename,
-
-CASE
-        WHEN
-                "ServiceNames".label IS NULL
-        THEN
-                partner_servicetbl.servicename
-        ELSE
-                "ServiceNames".label
-END AS servicelabel,
+"ServiceType".label AS servicelabel,
 SPLIT_PART(regexp_split_to_table(partner_servicetbl.tarifoptions, ','), 'tarifOption:', 2) AS tarifoption
 --partner_servicetbl.tarifoptions
 FROM ps
 LEFT JOIN partner_servicetbl ON ps.service = partner_servicetbl.id::TEXT
-LEFT JOIN "ServiceNames" ON partner_servicetbl.servicename = "ServiceNames".value::TEXT OR partner_servicetbl.servicename = "ServiceNames".label::TEXT
+LEFT JOIN "ServiceType" ON partner_servicetbl.servicename = "ServiceType".id
 )
 
 SELECT

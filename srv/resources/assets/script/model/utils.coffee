@@ -52,6 +52,7 @@ define ["model/main", "render/screen"], (main, render) ->
       global.model(modelName).fields,
       (f) -> return f.name == fieldName)
 
+  # this will build sorter functions for model which can be used by ko.sorted
   buildSorters: (model) ->
     sorters = {}
     mkSortFns = (name, fn) ->

@@ -40,6 +40,7 @@ import AppHandlers.PSA
 import AppHandlers.ContractGenerator
 import AppHandlers.Users
 import AppHandlers.Screens
+import AppHandlers.KPI
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
@@ -63,8 +64,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
             chkAuthLocal . method PUT $ littleMoreActionsHandler)
          , ("/backoffice/openAction/:actionid",
             chkAuthLocal . method PUT $ openAction)
-         , ("/backoffice/unassigned",
-            chkAuthLocal . method GET $ unassignedActionsHandler)
          , ("/backoffice/allActions",
             chkAuthLocal . method GET $ allActionsHandler)
          , ("/supervisor/busyOps",  chkAuthLocal . method GET $ busyOps)
@@ -90,9 +89,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/:mdl",        chkAuth . method GET    $ readManyHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
-         , ("/_/:model/:id",  chkAuth . method DELETE $ deleteHandler)
-         , ("/_/findOrCreate/:model/:id",
-                              chkAuthLocal . method POST $ findOrCreateHandler)
          , ("/searchCases",   chkAuthLocal . method GET  $ searchCases)
          , ("/latestCases",   chkAuthLocal . method GET  $ getLatestCases)
          , ("/regionByCity/:city",
@@ -114,6 +110,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/errors",        method POST errorsHandler)
          , ("/userStates/:userId/:from/:to",
             chkAuth . method GET $ serveUserStates)
+         , ("/kpi/stat/:from/:to", chkAuth . method GET $ getStat)
          ]
 
 dconf :: DirectoryConfig (Handler App App)

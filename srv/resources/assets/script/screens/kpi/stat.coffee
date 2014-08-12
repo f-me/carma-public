@@ -1,6 +1,10 @@
 define ["text!tpl/screens/kpi/stat.html"
-        "json!/cfg/model/FrontKPI?view=kpi"
-  ], (Tpl, Model) ->
+        "json!/cfg/model/StatKPI?view=kpi"
+        "model/main"
+        "model/utils"
+        "model/fields"
+        "utils"
+  ], (Tpl, Model, Main, MU, Fs, U) ->
 
   template: Tpl
   constructor: (view, opts) ->
@@ -11,7 +15,7 @@ define ["text!tpl/screens/kpi/stat.html"
         $("#kpi-list-inner").addClass("in").slideDown()
 
     flds = ko.observable _.map Model.fields, (f) ->
-      {name: f.name, label: f.meta.label, show: ko.observable(false)}
+      {name: f.name, label: f.meta.label, show: ko.observable(true)}
 
     filter = ko.observable("")
 
@@ -21,8 +25,30 @@ define ["text!tpl/screens/kpi/stat.html"
       _.filter fs, (f) ->
         f.label.toLowerCase().indexOf(filter().toLowerCase()) >= 0
 
-    ctx = {fields: filted, kvms: [], filter: filter}
-    ko.applyBindings(ctx, $("#kpi-list-inner")[0])
-    ko.applyBindings(ctx, $("#tbl")[0])
+    interval = Fs.interval ko.observable null
+    kvms = ko.observableArray([])
+    flt = ko.observable ""
 
-    $("##{opts.model}-screen").addClass("active")
+    sorted = ko.sorted
+      kvms: kvms
+      sorters: MU.buildSorters Model
+      filters:
+        kvmFilter: (kvm) ->
+          return true if _.isEmpty flt()
+          U.kvmCheckMatch(flt(), kvm)
+
+    sorted.change_filters "kvmFilter"
+    tblCtx = {fields: filted, kvms: sorted }
+    settingsCtx =
+      fields: filted
+      settingsFilter: filter
+      kvmsFilter: flt
+      interval: interval
+    ko.applyBindings(settingsCtx, $("#settings")[0])
+    ko.applyBindings(tblCtx, $("#tbl")[0])
+
+    $("#stat-screen").addClass("active")
+    interval.subscribe (v) ->
+      return if _.isNull v
+      $.getJSON "/kpi/stat/#{v[0]}/#{v[1]}", (d) ->
+        kvms _.map d, (m) -> Main.buildKVM Model, { fetched: m }

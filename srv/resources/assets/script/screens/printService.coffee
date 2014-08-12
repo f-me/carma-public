@@ -29,7 +29,7 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
           FalseStatuses   : 'falseCall'
 
       for s in (arg.cancels || [])
-        s.service = s.serviceid.split(':')[0]
+        s.service = s.serviceid
         postProc s,
           lookup:
             users                : 'owner'

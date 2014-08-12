@@ -13,6 +13,8 @@ import Data.Int (Int64)
 import Data.Typeable
 import GHC.TypeLits
 
+import Snap.Snaplet.Auth
+import Snaplet.Auth.Class
 import qualified Snap.Snaplet.PostgresqlSimple as PG
 import qualified Data.Pool as Pool
 
@@ -28,6 +30,8 @@ import Utils.LegacyModel (mkLegacyIdent)
 import Utils.Events (logLegacyCRUD)
 import Carma.Model.Event (EventType(Update))
 
+import Carma.Model.Usermeta (Usermeta)
+
 
 type TriggerRes m = Either (Int,String) (Patch m)
 
@@ -38,6 +42,8 @@ type TriggerRes m = Either (Int,String) (Patch m)
 getPatch :: Free (Dsl m) (Patch m)
 getPatch = liftFree (GetPatch id)
 
+modifyPatch :: (Patch m -> Patch m) -> Free (Dsl m) ()
+modifyPatch f = liftFree (ModPatch f ())
 
 getPatchField
   :: (KnownSymbol name, Typeable typ)
@@ -53,8 +59,10 @@ tError httpCode msg = return $ Left (httpCode, msg)
 tOk :: Free (Dsl m) (TriggerRes m)
 tOk = Right <$> getPatch
 
+dbCreate :: Model m => Patch m -> Free (Dsl n) (IdentI m)
+dbCreate p = liftFree (DbCreate p id)
 
-dbUpdate :: Model m => IdentI m -> Patch m -> Free (Dsl m1) Int64
+dbUpdate :: Model m => IdentI m -> Patch m -> Free (Dsl n) Int64
 dbUpdate i p = liftFree (DbUpdate i p id)
 
 wsMessage :: Free (Dsl m) ()
@@ -65,6 +73,10 @@ logLegacy
   => (m -> F typ name opt)
   -> Free (Dsl m) ()
 logLegacy fld = liftFree (LogLegacy fld ())
+
+
+currentUserId :: Free (Dsl m) (IdentI Usermeta)
+currentUserId = liftFree (CurrentUserId id)
 
 
 liftFree :: Functor f => f a -> Free f a
@@ -78,14 +90,13 @@ liftFree = Free . fmap Pure
 -- Don't use them in triggers, use wrappers defined in the section above.
 -- Add more if required but try to keep list of core operations small, this
 -- will simplify DSL interpreter.
-
--- create transaction
--- save patch to db
-
 data Dsl m k where
   GetPatch :: (Patch m -> k) -> Dsl m k
+  ModPatch :: (Patch m -> Patch m) -> k -> Dsl m k
   GetIdent :: (IdentI m -> k) -> Dsl m k
+  DbCreate :: Model m1 => Patch m1 -> (IdentI m1 -> k) -> Dsl m k
   DbUpdate :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
+  CurrentUserId :: (IdentI Usermeta -> k) -> Dsl m k
   WsMessage:: k -> Dsl m k
   LogLegacy
     :: (Model m, KnownSymbol name, Typeable typ)
@@ -99,8 +110,11 @@ deriving instance Typeable Dsl
 instance Functor (Dsl m) where
   fmap fn = \case
     GetPatch      k -> GetPatch      $ fn . k
+    ModPatch  f   k -> ModPatch  f   $ fn k
     GetIdent      k -> GetIdent      $ fn . k
+    DbCreate  p   k -> DbCreate  p   $ fn . k
     DbUpdate  i p k -> DbUpdate  i p $ fn . k
+    CurrentUserId k -> CurrentUserId $ fn . k
     WsMessage     k -> WsMessage     $ fn k
     LogLegacy f   k -> LogLegacy f   $ fn k
 
@@ -115,6 +129,7 @@ data DslState m = DslState
 
 -- Our Dsl is evaluated in @AppHandler@ context, so it have access to IO and
 -- Snap's state.
+-- TODO: create transaction
 evalDsl
   :: forall m res . Model m
   => Free (Dsl m) res -> StateT (DslState m) AppHandler res
@@ -123,13 +138,27 @@ evalDsl = \case
   Free op  -> case op of
     GetIdent k -> gets st_ident >>= evalDsl . k
     GetPatch k -> gets st_patch >>= evalDsl . k
+    ModPatch f k -> do
+      modify $ \s -> s {st_patch = f (st_patch s)}
+      evalDsl k
+    DbCreate p k -> do
+      Right res <- lift $ do
+        s <- PG.getPostgresState
+        Pool.withResource (PG.pgPool s) (liftIO . Patch.create p)
+      evalDsl $ k res
     DbUpdate i p k -> do
-      res <- lift $ do
+      Right res <- lift $ do
         s <- PG.getPostgresState
         Pool.withResource (PG.pgPool s) (liftIO . Patch.update i p)
       evalDsl $ k res
+    CurrentUserId k -> do
+      [[uid]] <- lift $ do
+        Just u <- withAuth currentUser
+        PG.query
+          "SELECT id FROM usermetatbl WHERE uid::text = ?"
+          (PG.Only $ unUid <$> userId u)
+      evalDsl $ k (Ident uid)
     WsMessage k -> do
-      -- FIXME: Applicative style
       p <- gets st_patch
       i <- mkLegacyIdent <$> gets st_ident
       lift $ withMsg $ sendMessage i p

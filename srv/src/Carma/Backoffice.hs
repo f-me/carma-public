@@ -22,7 +22,7 @@ import qualified Prelude as P ((>), (==), (||), (&&), const)
 
 import qualified Carma.Model.ActionResult as AResult
 import qualified Carma.Model.ActionType as AType
-import           Carma.Model.Case.Type as Case
+import           Carma.Model.Case as Case
 import qualified Carma.Model.CaseStatus as CS
 import           Carma.Model.FalseCall as FS
 import           Carma.Model.Program as Program
@@ -96,17 +96,16 @@ orderService :: Action
 orderService =
     Action
     AType.orderService
-    (switch
-     [ (previousAction == const AType.needPartner, currentUserOr bo_order)
-     , (userField Usermeta.isJack, currentUserOr bo_order)
-     ]
+    (ite (previousAction == const AType.needPartner ||
+          userField Usermeta.isJack)
+     (currentUserOr bo_order)
      (role bo_order)
     )
     (let
         n = (1 * minutes) `since` now
         t = (1 * days) `before` serviceField' times_expectedServiceStart
      in
-       switch [(t > n, t)] ((5 * minutes) `since` now)
+       ite (t > n) t ((5 * minutes) `since` now)
     )
     [ (AResult.serviceOrdered,
        sendSMS SMS.order *>
@@ -140,7 +139,7 @@ orderServiceAnalyst =
         n = (1 * minutes) `since` now
         t = (1 * days) `before` serviceField' times_expectedServiceStart
      in
-       switch [(t > n, t)] ((5 * minutes) `since` now)
+       ite (t > n) t ((5 * minutes) `since` now)
     )
     [ (AResult.serviceOrderedAnalyst,
        switch
@@ -208,11 +207,10 @@ checkEndOfService =
        sendSMS SMS.complete *>
        sendDealerMail *>
        setServiceStatus SS.ok *>
-       switch [( caseField Case.program `oneOf`
-                 [Program.peugeot, Program.citroen, Program.vw]
-               , proceed [AType.closeCase, AType.getDealerInfo])
-              ]
-              (proceed [AType.closeCase]))
+       ite (caseField Case.program `oneOf`
+            [Program.peugeot, Program.citroen, Program.vw])
+       (proceed [AType.closeCase, AType.getDealerInfo])
+       (proceed [AType.closeCase]))
     , (AResult.defer, defer)
     ]
 
@@ -233,11 +231,10 @@ getDealerInfo =
     Action
     AType.getDealerInfo
     (role bo_dealer)
-    (switch
-       [ ( (serviceField svcType == const ST.rent) &&
-           caseField Case.program `oneOf` [Program.peugeot, Program.citroen]
-         , (5 * minutes) `since` serviceField' times_factServiceEnd)
-       ]
+    (ite
+     ((serviceField svcType == const ST.rent) &&
+      caseField Case.program `oneOf` [Program.peugeot, Program.citroen])
+     ((5 * minutes) `since` serviceField' times_factServiceEnd)
      ((14 * days) `since` serviceField' times_factServiceEnd))
     [ (AResult.gotInfo, sendPSAMail *> finish)
     , (AResult.defer, defer)
