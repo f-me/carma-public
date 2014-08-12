@@ -20,7 +20,7 @@ data ServiceType = ServiceType
   , icon
     :: F Text "icon"  "Иконка"
   , fdds
-    :: F (Maybe Text) "fdds"  "FDDS-код"
+    :: F Text "fdds"  "FDDS-код"
   } deriving Typeable
 
 mkIdents [t|ServiceType|]

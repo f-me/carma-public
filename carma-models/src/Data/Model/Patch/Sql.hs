@@ -11,6 +11,7 @@ module Data.Model.Patch.Sql
 import Prelude hiding (read)
 
 import Control.Applicative
+import Control.Exception (try, SomeException)
 import Data.Int (Int64)
 import Data.List (isPrefixOf)
 import Data.Monoid ((<>))
@@ -26,8 +27,12 @@ import Data.Model
 import Data.Model.Patch
 
 
-create :: forall m . Model m => Patch m -> Connection -> IO (IdentI m)
-create p c = head . head <$> query c (fromString q) p
+create
+  :: forall m . Model m
+  => Patch m -> Connection
+  -> IO (Either SomeException (IdentI m))
+create p c
+  = try $ head . head <$> query c (fromString q) p
   where
     mInfo = modelInfo :: ModelInfo m
     m = untypedPatch p
@@ -85,8 +90,11 @@ readManyWithFilter lim off params c = query c (fromString q) filterArgs
         ]
 
 
-update :: forall m . Model m => IdentI m -> Patch m -> Connection -> IO Int64
-update (Ident i) p c = execute c (fromString q) p
+update
+  :: forall m . Model m
+  => IdentI m -> Patch m -> Connection
+  -> IO (Either SomeException Int64)
+update (Ident i) p c = try $ execute c (fromString q) p
   where
     mInfo = modelInfo :: ModelInfo m
     realfs = map fd_name $ onlyDefaultFields $ modelFields mInfo

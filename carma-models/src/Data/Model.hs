@@ -50,7 +50,11 @@ mkModelInfo
   -> ModelInfo m
 mkModelInfo ctr pk =
   let parent        = (modelParent :: Maybe (ModelInfo (Parent m) :@ m))
-      parentFlds    = maybe [] (modelFields . unWrap) parent
+      parentFlds    =
+        case parent of
+          Nothing -> []
+          Just p  -> filter (\f -> fd_name f /= (primKeyName $ unWrap p)) $
+                     modelFields $ unWrap p
       modelOnlyFlds = unWrap (getModelFields ctr :: [FieldDesc] :@ m)
       modelFlds     = parentFlds ++ modelOnlyFlds
   in ModelInfo

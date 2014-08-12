@@ -10,6 +10,7 @@ module Data.Model.CRUD
 
 import Control.Error
 import Control.Applicative ((<$>))
+import Control.Monad.IO.Class (liftIO)
 import qualified Data.Aeson as Aeson
 import qualified Database.PostgreSQL.Simple as PG
 import Data.Text (Text)
@@ -28,9 +29,11 @@ defaultCRUD :: forall m . Model m => CRUD m
 defaultCRUD = CRUD
   { crud_create = \obj pg -> do
       p     <- hoistEither $ parseJSON obj
-      ident <- tryPg $ Sql.create p pg
-      res   <- tryPg $ Sql.read (ident :: IdentI m) pg
-      hoistEither $ unparseRes ident res
+      liftIO (Sql.create p pg) >>= \case
+        Left ex -> left $ PgException ex
+        Right ident -> do
+          res <- tryPg $ Sql.read (ident :: IdentI m) pg
+          hoistEither $ unparseRes ident res
 
   , crud_read = \ident pg
     -> tryPg (Sql.read ident pg)
@@ -38,10 +41,11 @@ defaultCRUD = CRUD
 
   , crud_update = \ident obj pg -> do
       p <- hoistEither $ parseJSON obj
-      tryPg (Sql.update ident p pg) >>= hoistEither . \case
-        1 -> Right $ Aeson.object []
-        0 -> Left  $ NoSuchObject $ show ident
-        _ -> Left  $ InconsistentDbState $ show ident
+      liftIO (Sql.update ident p pg) >>= \case
+        Right 1 -> right $ Aeson.object []
+        Right 0 -> left  $ NoSuchObject $ show ident
+        Right _ -> left  $ InconsistentDbState $ show ident
+        Left ex -> left  $ PgException ex
 
   , crud_delete = error "not implemented"
   , crud_readManyWithFilter = \lim off flt pg -> do
@@ -82,7 +86,7 @@ parseJSON jsn = case Aeson.fromJSON jsn of
 
 
 tryPg :: IO a -> EitherT CrudError IO a
-tryPg = fmapLT (PgException . show) . syncIO
+tryPg = fmapLT PgException . syncIO
 
 
 unparseRes :: Model m => IdentI m -> [Patch m] -> Either CrudError Aeson.Value

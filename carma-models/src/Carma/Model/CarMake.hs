@@ -32,5 +32,5 @@ instance Model CarMake where
   type TableName CarMake = "CarMake"
   modelInfo = mkModelInfo CarMake ident
   modelView = \case
-    "" -> Just defaultView
+    "" -> Just $ modifyView defaultView [required value, required label]
     _  -> Nothing

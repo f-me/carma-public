@@ -4,16 +4,29 @@ module Data.Model.Patch
   ( Patch(Patch), untypedPatch
   , get, get', put
   , empty
+  , W(..)
   )
 
 where
 
 import Control.Applicative ((<$>))
+import Control.Monad.Trans.Reader (ask)
+import Control.Monad (mplus)
+import Control.Monad.Trans.Class (lift)
+
+import Data.ByteString (ByteString)
+import Data.Maybe (catMaybes)
 import Data.Aeson.Types
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
-import Data.Text (Text)
-
+import Data.Text (Text, toLower)
+import Data.Text.Encoding (decodeUtf8)
+import Data.Text.Unsafe (unsafeDupablePerformIO)
+import qualified Database.PostgreSQL.LibPQ as PQ
+import Database.PostgreSQL.Simple.Internal ( Row(..)
+                                           , RowParser(..)
+                                           , conversionError)
+import Database.PostgreSQL.Simple.FromField (ResultError(..))
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToRow
 
@@ -86,3 +99,32 @@ instance Model m => ToRow (Patch m) where
       filterFields hm  = HashMap.filterWithKey isDefault hm
       isDefault _ FieldDesc{..} = True
       isDefault _ _             = False
+
+newtype W m = W { unW :: m }
+
+-- | Special instance which can build patch retrieving fields by their names
+instance Model m => FromRow (W (Patch m)) where
+  fromRow = do
+    n  <- numFieldsRemaining
+    fs <- map decodeUtf8 <$> catMaybes <$> mapM fname [0..n-1]
+    case filter (\(_, f) -> not $ hasField f) $ zip fs $ fields fs of
+      [] -> W . Patch . HashMap.fromList <$> sequence
+            [(fd_name f,) <$> fd_fromField f | f <- catMaybes $ fields fs]
+      errs -> RP $ lift $ lift $ conversionError $
+              ConversionFailed  "" Nothing "" "" $
+        "Can't find this fields in model: " ++ (show $ map fst errs)
+    where
+      fM = modelFieldsMap (modelInfo :: ModelInfo m)
+      fm = HashMap.foldl'
+           (\a f -> HashMap.insert (toLower $ fd_name f) f a) HashMap.empty fM
+      fields = map (\n -> HashMap.lookup n fM `mplus` HashMap.lookup n fm)
+      hasField (Just _) = True
+      hasField Nothing  = False
+
+fname :: Int -> RowParser (Maybe ByteString)
+fname n = RP $ do
+  Row{..} <- ask
+  return $ unsafeDupablePerformIO $ PQ.fname rowresult (PQ.toColumn n)
+
+instance Model m => ToJSON (W (Patch m)) where
+  toJSON (W p) = toJSON p

@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.21
+version:             0.22
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -67,7 +67,6 @@ library
     Carma.Model.Role,
     Carma.Model.BusinessRole,
     Carma.Model.Case,
-    Carma.Model.Case.Type,
     Carma.Model.Call,
 
     Carma.Model.Diagnostics.Cause,
@@ -113,6 +112,7 @@ library
   other-modules:
     Data.Model.TH,
 
+    Carma.Model.Case.Type
     Carma.Model.SubProgram.Type
 
   hs-source-dirs:    src
@@ -137,7 +137,8 @@ library
     blaze-textual        == 0.2.*,
     errors               == 1.4.*,
     old-locale           == 1.0.0.*,
-    parsec               == 3.1.*
+    parsec               == 3.1.*,
+    postgresql-libpq     == 0.9.0.0
 
   extensions:
     DataKinds, KindSignatures, TypeOperators,

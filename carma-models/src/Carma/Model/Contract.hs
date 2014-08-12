@@ -41,7 +41,7 @@ import Carma.Model.Partner      (Partner, partnerKey)
 import Carma.Model.Search
 import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
-import Carma.Model.Usermeta     (Usermeta, value)
+import Carma.Model.Usermeta     as Usermeta (Usermeta, realName)
 import Carma.Model.Engine       (Engine)
 
 
@@ -187,10 +187,10 @@ instance Model Contract where
     ""       ->
         Just $ subDict "prefixedSubPrograms" $
         modifyView defaultView $
-        [ setMeta "regexp" "email" email
-        , setMeta "regexp" "phone" phone
-        , setMeta "regexp" "plateNum" plateNum
-        , setMeta "regexp" "vin" vin
+        [ regexp "email" email
+        , regexp "phone" phone
+        , regexp "plateNum" plateNum
+        , regexp "vin" vin
         , widget "checkbutton" dixi
         ] ++ commonMeta
     _ -> Nothing
@@ -208,7 +208,7 @@ commonMeta :: [(Text, FieldView -> FieldView) :@ Contract]
 commonMeta =
     [ setMeta "dictionaryParent" "make" model
     , setMeta "dictionaryLabel"
-      (String $ DM.fieldName Carma.Model.Usermeta.value)
+      (String $ DM.fieldName Usermeta.realName)
       committer
     , color `completeWith` Color.label
     , partnerKey seller

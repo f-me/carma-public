@@ -119,9 +119,8 @@ instance ToField   (Interval Day) where
   toField (Interval begin end)
     = Plain $ inQuotes $ Builder.fromString
     $ printf "[%s,%s]"
-      (formatTime defaultTimeLocale "%0Y-%m-d" begin)
-      (formatTime defaultTimeLocale "%0Y-%m-d" end)
-
+      (formatTime defaultTimeLocale "%0Y-%m-%d" begin)
+      (formatTime defaultTimeLocale "%0Y-%m-%d" end)
 
 
 -- | Int wrapper which instructs CaRMa client to use JSON integers in

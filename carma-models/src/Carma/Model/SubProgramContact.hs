@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Carma.Model.SubProgramContact
     (SubProgramContact(..))
 
@@ -14,7 +16,7 @@ instance Model SubProgramContact where
   modelView = \case
     "" -> Just $ modifyView defaultView
                 [ invisible cParent
-                , setMeta "regexp" "email" email
-                , setMeta "regexp" "phone" phone
+                , regexp "email" email
+                , regexp "phone" phone
                 ]
     _  -> Nothing

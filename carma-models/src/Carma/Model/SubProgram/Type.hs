@@ -1,4 +1,11 @@
-{-| Subprogram and subordinate models. -}
+{-|
+
+Subprogram and subordinate models.
+
+Model instances are declared in separate modules to prevent ident
+collisions.
+
+-}
 
 module Carma.Model.SubProgram.Type
     ( SubProgram(..)
@@ -48,10 +55,10 @@ data SubProgram = SubProgram
   , mailPass    :: F (Maybe Text)
                    "mailPass"
                    "Пароль для отправки писем"
-  , contacts    :: F (Maybe (IdentList SubProgramContact))
+  , contacts    :: F (IdentList SubProgramContact)
                    "contacts"
                    "Контактные лица"
-  , services    :: F (Maybe (IdentList SubProgramService))
+  , services    :: F (IdentList SubProgramService)
                    "services"
                    "Услуги, предоставляемые по программе"
   , checkPeriod :: F (Maybe TInt)
@@ -69,7 +76,7 @@ data SubProgram = SubProgram
   , smsProgram  :: F Text
                    "smsProgram"
                    "Название программы в SMS"
-  , contractPrs :: F (Maybe (IdentList SubProgramContractPermission))
+  , contractPrs :: F (IdentList SubProgramContractPermission)
                    "contractPermissions"
                    "Настройка партнёрского интерфейса"
   , template    :: F (Maybe Reference)
@@ -91,8 +98,8 @@ data SubProgramService = SubProgramService
     { sIdent      :: PK Int SubProgramService "Услуга по подпрограмме"
     , sParent     :: F (IdentI SubProgram) "parent" "Подпрограмма"
     -- TODO This is wrapped in Maybe only because the client first
-    -- creates and empty instance, then rendering a form where the
-    -- type may be selected.
+    -- creates an empty instance, then rendering a form where the type
+    -- may be selected.
     , sType       :: F (Maybe (IdentI ServiceType)) "type" "Услуга"
     , maxCost     :: F (Maybe Text)
                      "maxCost"
