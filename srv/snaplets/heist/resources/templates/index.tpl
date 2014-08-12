@@ -5,7 +5,6 @@
     <title><addLocalName>CaRMa</addLocalName></title>
     <link rel="stylesheet" href="/s/3p/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/s/css/datepicker.css" />
-    <link rel="stylesheet" href="/s/css/jquery.dataTables.css" />
 
     <!-- Additional set of icons -->
     <link rel="stylesheet" href="/s/css/stolen-icons.css" />
@@ -21,7 +20,6 @@
     <!-- Rich UI -->
     <script src="/s/3p/bootstrap/js/bootstrap.min.js" />
     <script src="/s/3p/bootstrap-datepicker.js" />
-    <script src="/s/3p/bootstrap-typeahead.js" />
     <script src="/s/3p/bootstrap-tagautocomplete.js" />
 
     <!-- WYSIWYG -->
@@ -41,7 +39,8 @@
     <script src="/s/3p/jquery.spin.js" />
 
     <!-- Tabular display -->
-    <script src="/s/3p/jquery.dataTables.min.js" />
+    <link rel="stylesheet" href="/s/3p/datatables/css/jquery.dataTables.min.css" />
+    <script src="/s/3p/datatables/js/jquery.dataTables.min.js" />
 
     <!-- Responsive UI javascript library -->
     <script src="/s/3p/knockout.js" />
@@ -63,7 +62,7 @@
     <script src="/s/3p/date/sugarpak.js" />
 
     <!-- masked input for datetime fields -->
-    <script src="/s/3p/jquery.maskedinput-1.3.js" />
+    <script src="/s/3p/jquery.maskedinput.js" />
 
     <script src="/s/3p/md5.min.js" />
 

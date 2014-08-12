@@ -23,8 +23,8 @@ class ThMenu
       .on('keypress.typeahead', $.proxy(@.keypress, @))
       .on('keyup.typeahead',    $.proxy(@.keyup, @))
 
-    if $.browser.webkit or $.browser.msie
-      @$element.on('keydown.typeahead', $.proxy(@.keypress, @))
+    # if $.browser.webkit or $.browser.msie
+      # @$element.on('keydown.typeahead', $.proxy(@.keypress, @))
 
   destructor: =>
     if @$element

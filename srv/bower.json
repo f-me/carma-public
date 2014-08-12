@@ -24,6 +24,8 @@
     "OpenLayers": "http://openlayers.org/download/OpenLayers-2.13.1.zip",
     "bootstrap-wysihtml5": "*",
     "wysihtml5": "~0.3.0",
-    "bootstrap": "http://getbootstrap.com/2.3.2/assets/bootstrap.zip"
+    "bootstrap": "http://getbootstrap.com/2.3.2/assets/bootstrap.zip",
+    "jquery-maskedinput": "git://github.com/digitalBush/jquery.maskedinput.git",
+    "datatables": "~1.10.*"
   }
 }

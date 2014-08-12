@@ -90,6 +90,16 @@ module.exports = (grunt) ->
     knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
     notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
     spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
+    'jquery-maskedinput':
+      src: 'jquery-maskedinput/src'
+      file: 'jquery.maskedinput.js'
+    datatables:
+      src: 'datatables/media'
+      dest: 'datatables'
+      file: ['css/jquery.dataTables.min.css'
+             'js/jquery.dataTables.min.js'
+             'images/*'
+            ]
     bootstrap:
       src: 'bootstrap'
       dest: 'bootstrap'
