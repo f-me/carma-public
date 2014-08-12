@@ -41,3 +41,20 @@ srv/bower_components
 # static content built by grunt js
 srv/resources/static/css/
 srv/resources/static/tpl/
+
+# ignore all 3p after total bowerification
+srv/resources/static/3p/OpenLayers/
+srv/resources/static/3p/bootstrap/
+srv/resources/static/3p/d3.min.js
+srv/resources/static/3p/datatables/
+srv/resources/static/3p/finch.min.js
+srv/resources/static/3p/jquery.js
+srv/resources/static/3p/jquery.maskedinput.js
+srv/resources/static/3p/jquery.spin.js
+srv/resources/static/3p/knockout.js
+srv/resources/static/3p/md5.min.js
+srv/resources/static/3p/mustache.js
+srv/resources/static/3p/notify-combined.min.js
+srv/resources/static/3p/spin.js
+srv/resources/static/3p/underscore.js
+srv/resources/static/3p/wysihtml5/
