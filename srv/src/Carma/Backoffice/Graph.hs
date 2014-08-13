@@ -202,7 +202,9 @@ toEdge' ctx g = fromJust <$> toEdge ctx g
 --
 -- Used only when a back office graph is analyzed or printed. Actions
 -- of this type are never actually created. No ActionType ident must
--- collide with any of these ids.
+-- collide with any of these ids (this condition holds for a back
+-- office validated with
+-- 'Carma.Backoffice.Validation.checkBackoffice').
 startNode :: LNode Text
 startNode = (-1, "START")
 
@@ -237,8 +239,6 @@ data BackofficeGraphData =
 -- other idents.
 --
 -- Switch nodes are also added for every switch construct on an edge.
--- Switch nodes are third in the result triple (but also included in
--- the first element).
 backofficeNodesEdges :: BackofficeSpec -> Map IBox Text -> BackofficeGraphData
 backofficeNodesEdges spec iMap =
     BGr (stateNodes ++ switchNodes) allEdges switchNodes
