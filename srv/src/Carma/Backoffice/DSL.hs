@@ -114,8 +114,6 @@ class Backoffice impl where
                      (Case -> F t n d) -> impl t
     serviceField  :: FieldI t n d =>
                      (Service -> F t n d) -> impl t
-    serviceField' :: FieldI t n d =>
-                     (Service -> F (Maybe t) n d) -> impl t
 
     onCaseField :: FieldI t n d =>
                    (Case -> F t n d)
@@ -125,11 +123,6 @@ class Backoffice impl where
                       (Service -> F t n d)
                    -> impl t
                    -> impl Trigger
-    onServiceField' :: FieldI t n d =>
-                       (Service -> F (Maybe t) n d)
-                    -> impl t
-                    -> impl Trigger
-
 
     -- Boolean combinators (lifted to impl because we usually use
     -- terms from impl as arguments)
@@ -146,6 +139,13 @@ class Backoffice impl where
     -- | Lift idents for use with comparison combinators.
     const :: Model v =>
              IdentI v -> impl (IdentI v)
+
+    -- | 'const' for optional values.
+    just :: Model v =>
+            IdentI v -> impl (Maybe (IdentI v))
+
+    -- | Require a value.
+    req :: impl (Maybe v) -> impl v
 
     -- | List membership predicate.
     oneOf :: Model v =>

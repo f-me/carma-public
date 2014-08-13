@@ -81,7 +81,7 @@ mobileOrder =
 complaint :: Entry
 complaint =
     Entry
-    (Service.clientSatisfied `onServiceField'` const Satisfaction.none)
+    (Service.clientSatisfied `onServiceField` just Satisfaction.none)
     (proceed [AType.complaintResolution])
 
 
@@ -103,7 +103,7 @@ orderService =
     )
     (let
         n = (1 * minutes) `since` now
-        t = (1 * days) `before` serviceField' times_expectedServiceStart
+        t = (1 * days) `before` (req $ serviceField times_expectedServiceStart)
      in
        ite (t > n) t ((5 * minutes) `since` now)
     )
@@ -137,7 +137,7 @@ orderServiceAnalyst =
     (role bo_secondary)
     (let
         n = (1 * minutes) `since` now
-        t = (1 * days) `before` serviceField' times_expectedServiceStart
+        t = (1 * days) `before` (req $ serviceField times_expectedServiceStart)
      in
        ite (t > n) t ((5 * minutes) `since` now)
     )
@@ -179,7 +179,7 @@ checkStatus =
     Action
     AType.checkStatus
     (role bo_control)
-    ((5 * minutes) `since` serviceField' times_expectedServiceStart)
+    ((5 * minutes) `since` (req $ serviceField times_expectedServiceStart))
     [ (AResult.serviceInProgress,
        setServiceStatus SS.inProgress *> proceed [AType.checkEndOfService])
     , (AResult.defer, defer)
@@ -202,7 +202,7 @@ checkEndOfService =
     Action
     AType.checkEndOfService
     (role bo_control)
-    ((5 * minutes) `since` serviceField' times_expectedServiceEnd)
+    ((5 * minutes) `since` (req $ serviceField times_expectedServiceEnd))
     [ (AResult.serviceDone,
        sendSMS SMS.complete *>
        sendDealerMail *>
@@ -234,8 +234,8 @@ getDealerInfo =
     (ite
      ((serviceField svcType == const ST.rent) &&
       caseField Case.program `oneOf` [Program.peugeot, Program.citroen])
-     ((5 * minutes) `since` serviceField' times_factServiceEnd)
-     ((14 * days) `since` serviceField' times_factServiceEnd))
+     ((5 * minutes) `since` (req $ serviceField times_factServiceEnd))
+     ((14 * days) `since` (req $ serviceField times_factServiceEnd)))
     [ (AResult.gotInfo, sendPSAMail *> finish)
     , (AResult.defer, defer)
     ]

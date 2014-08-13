@@ -108,11 +108,9 @@ instance Backoffice TextE where
     userField     = textE . fieldDesc
     caseField     = textE . fieldDesc
     serviceField  = textE . fieldDesc
-    serviceField' = textE . fieldDesc
 
     onCaseField a = triggerText (caseField a)
     onServiceField a = triggerText (serviceField a)
-    onServiceField' a = triggerText (serviceField' a)
 
     not v =
         TextE (\c -> T.concat ["НЕ выполнено условие ", toText c v])
@@ -126,6 +124,10 @@ instance Backoffice TextE where
         TextE (\c -> T.concat ["(", toText c a, ") или (", toText c b, ")"])
 
     const v = TextE (lkp (IBox v) . identMap)
+
+    just v = TextE (lkp (IBox v) . identMap)
+
+    req v = TextE $ \c -> T.snoc (toText c v) '*'
 
     oneOf val set =
         TextE $ \c ->

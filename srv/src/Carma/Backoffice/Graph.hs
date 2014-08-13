@@ -115,11 +115,9 @@ instance Backoffice EdgeE where
     userField _ = nothing
     caseField _ = nothing
     serviceField _ = nothing
-    serviceField' _ = nothing
 
     onCaseField _ _ = nothing
     onServiceField _ _ = nothing
-    onServiceField' _ _ = nothing
 
     not _ = nothing
     _ > _ = nothing
@@ -160,6 +158,9 @@ instance Backoffice EdgeE where
     oneOf _ _ = nothing
 
     const _ = nothing
+    just _ = nothing
+    req _ = nothing
+
     setServiceField _ _ = nothing
     sendDealerMail = nothing
     sendGenserMail = nothing

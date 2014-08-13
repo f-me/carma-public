@@ -57,6 +57,8 @@ type instance HaskellType Bool = Bool
 
 type instance HaskellType (IdentI m) = (IdentI m)
 
+type instance HaskellType (Maybe v) = (Maybe (HaskellType v))
+
 type instance HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
 
 type instance HaskellType ActionOutcome = IO ()
@@ -64,12 +66,11 @@ type instance HaskellType ActionOutcome = IO ()
 instance Backoffice HaskellE where
     const = HaskellE
 
+    just = HaskellE . Just
+
     role r = HaskellE (Nothing, r)
 
     not a = HaskellE $ Prelude.not $ toHaskell a
-
-    onServiceField' acc f =
-        HaskellE $ trigOn acc $ \_ -> undefined
 
 
 toHaskell :: HaskellE v -> HaskellType v
