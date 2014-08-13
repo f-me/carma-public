@@ -61,6 +61,7 @@ import qualified Carma.Model.Case       as Case
 import qualified Carma.Model.Program    as Program
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role       as Role
+import qualified Carma.Model.Usermeta   as Usermeta
 
 import           Carma.HTTP hiding (runCarma)
 import qualified Carma.HTTP as CH (runCarma)
@@ -274,6 +275,8 @@ newCase = do
                   HM.delete "lat" $
                   HM.delete "car_vin" $ -- We insert it later to run the trigger
                   maybe id (HM.insert "car_make") carMakeId $
+                  HM.insert (T.encodeUtf8 $ fieldName Case.callTaker)
+                  (BS.pack $ show $ identToInt Usermeta.admin) $
                   jsonRq'
 
   modifyResponse $ setContentType "application/json"
