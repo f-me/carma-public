@@ -572,12 +572,16 @@ input.re-failed {
   border-right:1px solid #333333;
 }
 
-.navbar .nav>li>a{color:#999999;}
+.navbar .nav>li>a{
+  color:#999999;
+  text-shadow:0 0 0;
+  text-decoration:none;
+}
 .navbar .nav>li>a:focus,.navbar .nav>li>a:hover{
   background-color:transparent;
   color:#ffffff;
   text-decoration:none;
-  }
+}
 
 
 .navbar .btn-navbar{
@@ -639,4 +643,4 @@ input.re-failed {
   color:#ffffff;
   background-color:#040404;
   *background-color:#000000;
-  }
+}
