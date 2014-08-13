@@ -44,7 +44,6 @@ import Snap.Util.FileUploads (getMaximumFormInputSize)
 
 import WeatherApi (getWeather', tempC)
 
-import Snaplet.Auth.PGUsers
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.RKC as RKC
@@ -328,8 +327,7 @@ rkcHandler = logExceptions "handler/rkc" $ do
       RKC.filterCity = c,
       RKC.filterPartner = part }
 
-  usrs <- with db usersListPG
-  info <- with db $ RKC.rkc usrs flt'
+  info <- with db $ RKC.rkc flt'
   writeJSON info
 
 rkcWeatherHandler :: AppHandler ()
@@ -395,9 +393,6 @@ findOrCreateHandler = do
   res <- with db $ DB.findOrCreate model objId commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
-
-serveUsersList :: AppHandler ()
-serveUsersList = with db usersListPG >>= writeJSON
 
 -- | Calculate average tower arrival time (in seconds) for today,
 -- parametrized by city (a value from DealerCities dictionary).

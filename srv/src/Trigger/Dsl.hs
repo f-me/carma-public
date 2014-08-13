@@ -155,7 +155,7 @@ evalDsl = \case
       [[uid]] <- lift $ do
         Just u <- withAuth currentUser
         PG.query
-          "SELECT id FROM usermetatbl WHERE uid::text = ?"
+          "SELECT id FROM usermetatbl WHERE uid = ? :: int"
           (PG.Only $ unUid <$> userId u)
       evalDsl $ k (Ident uid)
     WsMessage k -> do

@@ -215,7 +215,7 @@ opStatsQ = [sql|
   usermetatbl u
   WHERE ca.row_number = 1
   AND u.login = ca.assignedTo
-  AND (? :: text = ANY (u.roles))
+  AND (? :: int = ANY (u.roles))
   ORDER BY closeTime;
   |]
 
@@ -321,7 +321,7 @@ boUsers = do
       FROM usermetatbl
       WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
         AND now() - lastactivity < '20 min'
-        AND roles && (?)::text[];
+        AND roles && (?)::int[];
     |] (Only $ V.fromList [Role.head, Role.back, Role.supervisor])
   writeJSON $ mkMap ["name", "login"] rows
 
