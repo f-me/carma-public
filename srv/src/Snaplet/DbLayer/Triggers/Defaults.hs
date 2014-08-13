@@ -24,7 +24,6 @@ import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
 
 import qualified Carma.Model.CaseStatus as CS
-import qualified Carma.Model.PaymentType as PaymentType
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.TowType as TowType
 
@@ -126,7 +125,6 @@ services =
 serviceDefaults :: Object
 serviceDefaults = Map.fromList
   [("status", identFv SS.creating)
-  ,("payType", identFv PaymentType.ruamc)
   ,("warrantyCase", "0")
   ,("overcosted", "0")
   ,("falseCall", "none")
