@@ -1,7 +1,36 @@
 {-# LANGUAGE GADTs, ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving, DeriveDataTypeable, DeriveFunctor #-}
 
-module Trigger.Dsl where
+module Trigger.Dsl
+    (
+      -- * DSL evaluator
+      TriggerRes
+    , Dsl
+    , DslState(..)
+    , evalDsl
+
+      -- * DSL terms
+      -- ** Context access
+    , getIdent
+    , getPatch
+    , modifyPatch
+    , getPatchField
+    , currentUserId
+
+    , tError
+    , tOk
+
+      -- ** Database access
+    , dbCreate
+    , dbRead
+    , dbUpdate
+
+      -- ** Miscellaneous
+    , wsMessage
+    , logLegacy
+    )
+
+where
 
 import Control.Applicative
 import Control.Monad.Free
