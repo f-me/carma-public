@@ -62,6 +62,9 @@ tOk = Right <$> getPatch
 dbCreate :: Model m => Patch m -> Free (Dsl n) (IdentI m)
 dbCreate p = liftFree (DbCreate p id)
 
+dbRead :: Model m => IdentI m -> Free (Dsl n) (Patch m)
+dbRead p = liftFree (DbRead p id)
+
 dbUpdate :: Model m => IdentI m -> Patch m -> Free (Dsl n) Int64
 dbUpdate i p = liftFree (DbUpdate i p id)
 
@@ -95,6 +98,7 @@ data Dsl m k where
   ModPatch :: (Patch m -> Patch m) -> k -> Dsl m k
   GetIdent :: (IdentI m -> k) -> Dsl m k
   DbCreate :: Model m1 => Patch m1 -> (IdentI m1 -> k) -> Dsl m k
+  DbRead   :: Model m1 => IdentI m1 -> (Patch m1 -> k) -> Dsl m k
   DbUpdate :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
   CurrentUserId :: (IdentI Usermeta -> k) -> Dsl m k
   WsMessage:: k -> Dsl m k
@@ -113,6 +117,7 @@ instance Functor (Dsl m) where
     ModPatch  f   k -> ModPatch  f   $ fn k
     GetIdent      k -> GetIdent      $ fn . k
     DbCreate  p   k -> DbCreate  p   $ fn . k
+    DbRead    i   k -> DbRead i      $ fn . k
     DbUpdate  i p k -> DbUpdate  i p $ fn . k
     CurrentUserId k -> CurrentUserId $ fn . k
     WsMessage     k -> WsMessage     $ fn k
@@ -145,6 +150,11 @@ evalDsl = \case
       Right res <- lift $ do
         s <- PG.getPostgresState
         Pool.withResource (PG.pgPool s) (liftIO . Patch.create p)
+      evalDsl $ k res
+    DbRead i k -> do
+      (res:_) <- lift $ do
+        s <- PG.getPostgresState
+        Pool.withResource (PG.pgPool s) (liftIO . Patch.read i)
       evalDsl $ k res
     DbUpdate i p k -> do
       Right res <- lift $ do
