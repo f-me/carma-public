@@ -64,6 +64,7 @@ data Usermeta = Usermeta
 mkIdents [t|Usermeta|]
  [ ("psa", 387)
  , ("arc", 728)
+ , ("admin", 90)
  ]
 
 
