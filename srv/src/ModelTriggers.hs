@@ -144,27 +144,6 @@ runFieldTriggers trMap ident patch
 newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
     deriving Typeable
 
---instance Eq (HaskellType t)
-
-type family HaskellType t
-
--- BO Trigger contains matching condition for a graph entry point.
-type instance HaskellType Trigger = (ModelName, FieldName, Dynamic)
-
-type instance HaskellType Bool = Bool
-
-type instance HaskellType (IdentI m) = IdentI m
-
-type instance HaskellType (Maybe v) = Maybe (HaskellType v)
-
-type instance HaskellType UTCTime = UTCTime
-
-type instance HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
-
-type instance HaskellType ActionOutcome = Dynamic
-
---type instance HaskellType t = t
-
 instance Backoffice HaskellE where
     now = HaskellE $ asks ModelTriggers.now
 
@@ -182,10 +161,35 @@ instance Backoffice HaskellE where
         HaskellE $
         fromMaybe (Ident $ fst startNode) <$> (asks prevAction)
 
---    userField acc =
---        HaskellE $ asks (flip Patch.get' acc . user)
+    userField acc =
+        HaskellE $ asks (flip Patch.get' acc . user)
+
+    serviceField acc =
+        HaskellE $
+        asks (flip Patch.get' acc . fromMaybe (error "No service") . service)
+
+    caseField acc =
+        HaskellE $
+        asks (flip Patch.get' acc . kase)
 
     const = HaskellE . return
+
+    just = HaskellE . return . Just
+
+    switch branches ow =
+      HaskellE $
+      case branches of
+        ((c, br):bs) ->
+          toHaskell c >>=
+          \case
+              True -> toHaskell br
+              False -> toHaskell $ switch bs ow
+        [] -> toHaskell ow
+
+    a == b = HaskellE $ do
+      a' <- toHaskell a
+      b' <- toHaskell b
+      return $ a' == b'
 
     onCaseField acc target = HaskellE $ return
         (modelName (modelInfo :: ModelInfo Case), fieldName acc, toDyn target)

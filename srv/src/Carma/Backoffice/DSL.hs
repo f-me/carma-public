@@ -23,10 +23,15 @@ module Carma.Backoffice.DSL
     , minutes
     , hours
     , days
+
+      -- * Misc
+    , HaskellType
     )
 
 where
 
+import           Data.Dynamic
+import           Data.Text
 import           Data.Time.Clock
 
 import           Data.Model
@@ -107,19 +112,21 @@ class Backoffice impl where
     -- used action types.
     previousAction :: impl ActionTypeI
 
-    -- Context access
-    userField     :: FieldI t n d =>
+    -- Context access. Note that @t@ type is not brought into DSL type
+    -- system, thus an extra hint is included in type constraints for
+    -- the meta-language interpreter.
+    userField     :: (FieldI t n d, HaskellType t ~ t) =>
                      (Usermeta -> F t n d) -> impl t
-    caseField     :: FieldI t n d =>
+    caseField     :: (FieldI t n d, HaskellType t ~ t) =>
                      (Case -> F t n d) -> impl t
-    serviceField  :: FieldI t n d =>
+    serviceField  :: (FieldI t n d, HaskellType t ~ t) =>
                      (Service -> F t n d) -> impl t
 
-    onCaseField :: FieldI t n d =>
+    onCaseField :: (FieldI t n d, HaskellType t ~ t) =>
                    (Case -> F t n d)
                 -> impl t
                 -> impl Trigger
-    onServiceField :: FieldI t n d =>
+    onServiceField :: (FieldI t n d, HaskellType t ~ t) =>
                       (Service -> F t n d)
                    -> impl t
                    -> impl Trigger
@@ -130,7 +137,8 @@ class Backoffice impl where
     infix 4 >
     (>)  :: Ord v => impl v -> impl v -> impl Bool
     infix 4 ==
-    (==) :: Eq v => impl v -> impl v -> impl Bool
+    (==) :: (Eq (HaskellType v)) =>
+            impl v -> impl v -> impl Bool
     infixr 3 &&
     (&&) :: impl Bool -> impl Bool -> impl Bool
     infixr 2 ||
@@ -244,3 +252,16 @@ data Entry =
 -- graph, so be sure to validate it using 'checkBackoffice' prior to
 -- use.
 type BackofficeSpec = ([Entry], [Action])
+
+
+-- | Haskell embeddings of DSL types.
+--
+-- Constraints on HaskellType-projections of DSL types included in
+-- Backoffice method signatures define relations between type systems
+-- of our DSL and the meta-language.
+type family HaskellType t where
+  HaskellType Trigger = (Text, Text, Dynamic)
+  HaskellType (Maybe v) = Maybe (HaskellType v)
+  HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
+  HaskellType ActionOutcome = Dynamic
+  HaskellType t = t
