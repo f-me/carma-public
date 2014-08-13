@@ -68,7 +68,7 @@ import           Carma.Backoffice.Text
 -- monad to generate new switch nodes. The two are distinct because
 -- the context is not used after the term has been interpreted, while
 -- switch node counter is supposed to be used when multiple terms are
--- processed.
+-- processed (to prevent collisions between node numbers).
 data EdgeE t = EdgeE (EdgeCtx -> NodeGenerator (Maybe [LEdge ColoredLabel]))
 
 
