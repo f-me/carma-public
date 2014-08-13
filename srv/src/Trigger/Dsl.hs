@@ -39,6 +39,9 @@ type TriggerRes m = Either (Int,String) (Patch m)
 -- DSL operations
 ----------------------------------------------------------------------
 
+getIdent :: Free (Dsl m) (IdentI m)
+getIdent = liftFree (GetIdent id)
+
 getPatch :: Free (Dsl m) (Patch m)
 getPatch = liftFree (GetPatch id)
 
