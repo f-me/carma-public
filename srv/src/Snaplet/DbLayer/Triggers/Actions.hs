@@ -43,7 +43,6 @@ import qualified Carma.Model.SubProgram as SubProgram
 import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Action as Act
-import qualified Carma.Model.Call   as Call
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
 import Util as U
@@ -303,25 +302,11 @@ actionActions = Map.fromList
   [("assignedTo",
     [\objId _val -> dateNow id >>= set objId "assignTime"
     ])
-  ,("closed",
-    [\objId -> \case
-      "1" -> closeAction objId
-      "0" -> do
-        kazeId <- get objId "caseId"
-        upd kazeId "actions" $ addToList objId
-      _ -> error "action.closed not 0 or 1"
-    ])
    ,("openTime",
      [\objId _ ->
        liftDb $ Evt.logLegacyCRUD Update objId Act.openTime
      ])
    ]
-
-closeAction :: MonadTrigger m b => ObjectId -> m b ()
-closeAction objId = do
-  kazeId <- get objId "caseId"
-  upd kazeId "actions" $ dropFromList objId
-  set objId "closed" "1"
 
 setWeather :: MonadTrigger m b => ObjectId -> Text -> m b ()
 setWeather objId city = do
