@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -8,33 +9,46 @@ module ModelTriggers
   ) where
 
 
+import Control.Applicative
 import Control.Monad.Free (Free)
+import Control.Monad.Trans
+import Control.Monad.Trans.Reader
+import Control.Monad.IO.Class
 import Control.Monad.Trans.State (evalStateT)
 
 import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
+import Data.Maybe
 import Data.Text (Text)
+import Data.Time.Clock
 import Data.Maybe (catMaybes)
 import Data.Dynamic
 import GHC.TypeLits
 
 import Application (AppHandler)
 import Data.Model as Model
-import Data.Model.Patch as Patch (Patch, put, untypedPatch)
+import Data.Model.Patch as Patch (Patch, get', put, untypedPatch)
 
 import Trigger.Dsl
 
-import qualified Carma.Model.Usermeta as Usermeta
+import qualified Carma.Model.Action as Action
 import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
+import           Carma.Model.Case (Case)
+import qualified Carma.Model.Case as Case
+import           Carma.Model.CaseStatus (CaseStatus)
+import           Carma.Model.Role (Role)
+import           Carma.Model.Service (Service)
 
-import Carma.Model.Role (Role)
-import Carma.Model.Usermeta (Usermeta)
+import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 
-import Carma.Backoffice
-import Carma.Backoffice.DSL as BO
+import           Carma.Backoffice
+import           Carma.Backoffice.Graph
+import           Carma.Backoffice.DSL as BO hiding ((==), const)
+import qualified Carma.Backoffice.DSL as BO
+
 
 runCreateTriggers
   :: forall m . Model m
@@ -44,37 +58,6 @@ runCreateTriggers = runModelTriggers $ Map.unionsWith (++)
     uid <- currentUserId
     modifyPatch $ Patch.put Call.callTaker uid
   ]
-
-entryToTrigger e = toHaskell (trigger e)
-
-newtype HaskellE t = HaskellE (HaskellType t)
-
-type family HaskellType t
-
-type instance HaskellType Trigger = Map (ModelName, FieldName) [Dynamic]
-
-type instance HaskellType Bool = Bool
-
-type instance HaskellType (IdentI m) = (IdentI m)
-
-type instance HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
-
-type instance HaskellType ActionOutcome = IO ()
-
-instance Backoffice HaskellE where
-    const = HaskellE
-
-    role r = HaskellE (Nothing, r)
-
-    not a = HaskellE $ Prelude.not $ toHaskell a
-
-    onServiceField' acc f =
-        HaskellE $ trigOn acc $ \_ -> undefined
-
-
-toHaskell :: HaskellE v -> HaskellType v
-toHaskell (HaskellE term) = term
-
 
 runUpdateTriggers
   :: forall m . Model m
@@ -154,3 +137,68 @@ runFieldTriggers trMap ident patch
     joinTriggers k tr = do
       let tr' = fromDyn tr $ tError 500 "dynamic BUG"
       tr' >>= either (return . Left) (Prelude.const k)
+
+
+--entryToTrigger e = toHaskell (trigger e)
+
+newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
+    deriving Typeable
+
+--instance Eq (HaskellType t)
+
+type family HaskellType t
+
+-- BO Trigger contains matching condition for a graph entry point.
+type instance HaskellType Trigger = (ModelName, FieldName, Dynamic)
+
+type instance HaskellType Bool = Bool
+
+type instance HaskellType (IdentI m) = IdentI m
+
+type instance HaskellType (Maybe v) = Maybe (HaskellType v)
+
+type instance HaskellType UTCTime = UTCTime
+
+type instance HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
+
+type instance HaskellType ActionOutcome = Dynamic
+
+--type instance HaskellType t = t
+
+instance Backoffice HaskellE where
+    now = HaskellE $ asks ModelTriggers.now
+
+    since nd t =
+        HaskellE $ addUTCTime nd <$> toHaskell t
+
+    role r = HaskellE $ return (Nothing, r)
+
+    currentUserOr r =
+        HaskellE $ do
+          i <- asks (flip Patch.get' Usermeta.ident . user)
+          return (Just i, r)
+
+    previousAction =
+        HaskellE $
+        fromMaybe (Ident $ fst startNode) <$> (asks prevAction)
+
+--    userField acc =
+--        HaskellE $ asks (flip Patch.get' acc . user)
+
+    const = HaskellE . return
+
+    onCaseField acc target = HaskellE $ return
+        (modelName (modelInfo :: ModelInfo Case), fieldName acc, toDyn target)
+
+
+evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty
+evalHaskell c t = runReader (toHaskell t) c
+
+data HCtx =
+    HCtx { kase       :: Patch Case
+         , user       :: Patch Usermeta
+         , service    :: Maybe (Patch Service)
+         , prevAction :: Maybe ActionTypeI
+         , now        :: UTCTime
+         -- ^ Frozen time.
+         }

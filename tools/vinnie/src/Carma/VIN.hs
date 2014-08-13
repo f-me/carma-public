@@ -54,7 +54,7 @@ import           Database.PostgreSQL.Simple.Copy
 import           System.IO
 
 import           Data.Model
-import           Data.Model.Patch as Patch
+import           Data.Model.Patch as Patch hiding (delete)
 import           Carma.Model.VinFormat
 
 import           Carma.VIN.Base

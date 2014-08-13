@@ -1,7 +1,7 @@
 module Carma.Backoffice.Validation
     (
       checkBackoffice
-    , ValidityError
+    , ValidityError(..)
     )
 
 where

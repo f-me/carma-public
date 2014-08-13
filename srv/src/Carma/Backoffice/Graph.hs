@@ -68,7 +68,7 @@ import           Carma.Backoffice.Text
 -- monad to generate new switch nodes. The two are distinct because
 -- the context is not used after the term has been interpreted, while
 -- switch node counter is supposed to be used when multiple terms are
--- processed.
+-- processed (to prevent collisions between node numbers).
 data EdgeE t = EdgeE (EdgeCtx -> NodeGenerator (Maybe [LEdge ColoredLabel]))
 
 
@@ -115,11 +115,9 @@ instance Backoffice EdgeE where
     userField _ = nothing
     caseField _ = nothing
     serviceField _ = nothing
-    serviceField' _ = nothing
 
     onCaseField _ _ = nothing
     onServiceField _ _ = nothing
-    onServiceField' _ _ = nothing
 
     not _ = nothing
     _ > _ = nothing
@@ -160,6 +158,9 @@ instance Backoffice EdgeE where
     oneOf _ _ = nothing
 
     const _ = nothing
+    just _ = nothing
+    req _ = nothing
+
     setServiceField _ _ = nothing
     sendDealerMail = nothing
     sendGenserMail = nothing
@@ -201,7 +202,9 @@ toEdge' ctx g = fromJust <$> toEdge ctx g
 --
 -- Used only when a back office graph is analyzed or printed. Actions
 -- of this type are never actually created. No ActionType ident must
--- collide with any of these ids.
+-- collide with any of these ids (this condition holds for a back
+-- office validated with
+-- 'Carma.Backoffice.Validation.checkBackoffice').
 startNode :: LNode Text
 startNode = (-1, "START")
 
@@ -236,8 +239,6 @@ data BackofficeGraphData =
 -- other idents.
 --
 -- Switch nodes are also added for every switch construct on an edge.
--- Switch nodes are third in the result triple (but also included in
--- the first element).
 backofficeNodesEdges :: BackofficeSpec -> Map IBox Text -> BackofficeGraphData
 backofficeNodesEdges spec iMap =
     BGr (stateNodes ++ switchNodes) allEdges switchNodes
