@@ -248,6 +248,9 @@ instance DefaultFieldView JsonAsText where
 instance DefaultFieldView Aeson.Value where
   defaultFieldView f = (defFieldView f) {fv_type = "JSON"}
 
+instance DefaultFieldView Password where
+  defaultFieldView f = (defFieldView f) {fv_type = "password"}
+
 instance DefaultFieldView Phone where
   defaultFieldView f = (defFieldView f)
     {fv_type = "phone"

@@ -9,7 +9,7 @@ import           Data.Text (Text, intercalate, unpack, append)
 import           Data.Typeable
 import           Data.Vector     (Vector)
 import           Data.Time.Clock (UTCTime)
-import qualified Data.Aeson as Aeson
+import           Data.Time.Calendar (Day)
 import           Data.String (fromString)
 import           Text.Printf
 
@@ -24,7 +24,7 @@ import           Data.Model.TH
 import           Data.Model.View
 import           Data.Model.CRUD
 
-import           Carma.Model.LegacyTypes (LegacyDate, Phone)
+import           Carma.Model.LegacyTypes (Phone, Password)
 import           Carma.Model.Types (UserStateVal)
 import           Carma.Model.Role (Role)
 import           Carma.Model.BusinessRole (BusinessRole)
@@ -35,10 +35,10 @@ data Usermeta = Usermeta
   , isActive     :: F Bool               "isActive" "Активен"
   , realName     :: F Text               "realName" "ФИО пользователя"
   , login        :: F Text               "login"    "Логин"
-  , password     :: EF Text              "password" "Пароль"
+  , password     :: EF Password          "password" "Пароль"
   -- TODO String-wrapped list of Role ids (to be used until usermeta
   -- is fully migrated to new models)
-  , roles        :: F (Vector (IdentT Role)) "roles" "Роли в системе"
+  , roles        :: F (Vector (IdentI Role)) "roles" "Роли в системе"
   , businessRole :: F (Maybe (IdentI BusinessRole))  "businessRole" "Бизнес-роль"
   , programs     :: F (Vector Text)      "programs" "Подпрограммы"
   , bocities     :: F (Vector Text)      "bocities" "Города"
@@ -50,7 +50,7 @@ data Usermeta = Usermeta
   , mobilePhone  :: F Phone              "mobilePhone"     "Мобильный телефон"
   , homePhone    :: F Phone              "homePhone"       "Домашний телефон"
   , email        :: F Text               "email"           "E-mail"
-  , birthday     :: F (Maybe LegacyDate) "birthday"        "День рождения"
+  , birthday     :: F (Maybe Day)        "birthday"        "День рождения"
   , position     :: F Text               "position"        "Должность"
   , lastactivity :: F UTCTime            "lastactivity"    ""
   , lastlogout   :: F UTCTime            "lastlogout"      ""
@@ -69,30 +69,29 @@ mkIdents [t|Usermeta|]
 
 instance Model Usermeta where
   type TableName Usermeta = "usermetatbl"
-  modelInfo = mkModelInfo Usermeta ident `withLegacyName` "usermeta"
+  modelInfo = mkModelInfo Usermeta ident
     `customizeRead`             fillCurrentState
     `replaceReadManyWithFilter` fillStatesForAll
   modelView = \case
     "" -> Just $ modifyView (defaultView)
-          [ setMeta "dictionaryStringify" (Aeson.Bool True) roles
-          , setMeta "dictionaryType"      "ModelDict"       roles
-          , setMeta "bounded"             (Aeson.Bool True) roles
-
-          , setMeta "dictionaryStringify" (Aeson.Bool True) programs
-          , setMeta "dictionaryStringify" (Aeson.Bool True) bocities
-          , setMeta "dictionaryStringify" (Aeson.Bool True) boprograms
-
-          , dict programs $ (dictOpt "prefixedSubPrograms")
-              {dictType = Just "ComputedDict"
-              ,dictBounded = True
-              }
-          , dict bocities $ (dictOpt "DealerCities")
-              {dictBounded = True}
-          , dict boprograms $ (dictOpt "Program")
-              {dictType = Just "ModelDict"
-              ,dictBounded = True
-              }
-          , widget "onlyServiceBreak" delayedState
+      [ invisible uid
+      , invisible lastactivity
+      , invisible lastlogout
+      , invisible currentStateCTime
+      , required realName
+      , required login
+      , required password
+      , dict programs $ (dictOpt "prefixedSubPrograms")
+          {dictType = Just "ComputedDict"
+          ,dictBounded = True
+          }
+      , dict bocities $ (dictOpt "DealerCities")
+          {dictBounded = True}
+      , dict boprograms $ (dictOpt "Program")
+          {dictType = Just "ModelDict"
+          ,dictBounded = True
+          }
+      , widget "onlyServiceBreak" delayedState
       ]
     _  -> Nothing
 

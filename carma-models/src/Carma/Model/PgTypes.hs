@@ -95,6 +95,7 @@ instance PgTypeable  CallerTypes         where pgTypeOf _ = PgType "text" True
 instance PgTypeable  CallTypes           where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Users               where pgTypeOf _ = PgType "text" True
 instance PgTypeable  JsonAsText          where pgTypeOf _ = PgType "text" True
+instance PgTypeable  Password            where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Phone               where pgTypeOf _ = PgType "text" True
 instance PgTypeable  PickerField         where pgTypeOf _ = PgType "text" True
 instance PgTypeable  MapField            where pgTypeOf _ = PgType "text" True
