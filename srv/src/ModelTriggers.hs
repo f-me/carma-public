@@ -10,6 +10,7 @@ module ModelTriggers
 
 
 import Control.Applicative
+import Control.Monad
 import Control.Monad.Free (Free)
 import Control.Monad.Trans
 import Control.Monad.Trans.Reader
@@ -65,6 +66,7 @@ runUpdateTriggers
 runUpdateTriggers = runFieldTriggers $ Map.unionsWith (++)
   [trigOn Usermeta.delayedState $ \_ -> wsMessage >> logLegacy Usermeta.delayedState
   ,trigOn Call.endDate $ \_ -> logLegacy Call.endDate
+--  ,entryToTrigger (head $ fst carmaBackoffice)
   ]
 
 --  - runReadTriggers
@@ -146,8 +148,6 @@ haskellBinary :: (HaskellType t1 -> HaskellType t2 -> HaskellType t)
               -> HaskellE t
 haskellBinary fun = \a b -> HaskellE $ fun <$> toHaskell a <*> toHaskell b
 
---entryToTrigger e = toHaskell (trigger e)
-
 newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
     deriving Typeable
 
@@ -210,8 +210,9 @@ instance Backoffice HaskellE where
 
     (||) = haskellBinary (Prelude.||)
 
-    onCaseField acc target = HaskellE $ return
-        (modelName (modelInfo :: ModelInfo Case), fieldName acc, toDyn target)
+    onCaseField acc target = HaskellE $ do
+      target' <- toHaskell target
+      return $ trigOn acc $ \t -> when (t == target') undefined
 
 
 evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty

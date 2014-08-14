@@ -36,6 +36,7 @@ import           Data.Dynamic
 import           Data.Text
 import           Data.Time.Clock
 
+import           Data.Map
 import           Data.Model
 import           Data.Model.Types
 
@@ -124,11 +125,11 @@ class Backoffice impl where
     serviceField  :: (FieldI t n d, HaskellType t ~ t) =>
                      (Service -> F t n d) -> impl t
 
-    onCaseField :: (FieldI t n d, HaskellType t ~ t) =>
+    onCaseField :: (Eq t, FieldI t n d, HaskellType t ~ t) =>
                    (Case -> F t n d)
                 -> impl t
                 -> impl Trigger
-    onServiceField :: (FieldI t n d, HaskellType t ~ t) =>
+    onServiceField :: (Eq t, FieldI t n d, HaskellType t ~ t) =>
                       (Service -> F t n d)
                    -> impl t
                    -> impl Trigger
@@ -263,7 +264,7 @@ type BackofficeSpec = ([Entry], [Action])
 -- Backoffice method signatures define relations between type systems
 -- of our DSL and the meta-language.
 type family HaskellType t where
-  HaskellType Trigger = (Text, Text, Dynamic)
+  HaskellType Trigger = Map (Text, Text) [Dynamic]
   HaskellType (Maybe v) = Maybe (HaskellType v)
   HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
   HaskellType ActionOutcome = Dynamic
