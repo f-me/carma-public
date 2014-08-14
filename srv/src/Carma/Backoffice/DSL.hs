@@ -137,9 +137,10 @@ class Backoffice impl where
     -- terms from impl as arguments)
     not  :: impl Bool -> impl Bool
     infix 4 >
-    (>)  :: Ord v => impl v -> impl v -> impl Bool
+    (>)  :: Ord (HaskellType v) =>
+            impl v -> impl v -> impl Bool
     infix 4 ==
-    (==) :: (Eq (HaskellType v)) =>
+    (==) :: Eq (HaskellType v) =>
             impl v -> impl v -> impl Bool
     infixr 3 &&
     (&&) :: impl Bool -> impl Bool -> impl Bool
