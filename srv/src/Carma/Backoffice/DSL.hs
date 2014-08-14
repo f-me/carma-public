@@ -15,7 +15,7 @@ module Carma.Backoffice.DSL
 
      -- * Back office language
     , ActionAssignment
-    , ActionOutcome
+    , Outcome
     , Trigger
     , Backoffice(..)
     , ite
@@ -42,6 +42,7 @@ import           Data.Model.Types
 
 import           Carma.Model.ActionResult (ActionResult)
 import           Carma.Model.ActionType (ActionType)
+import qualified Carma.Model.Action as CarmaAction
 import           Carma.Model.Case as Case
 import           Carma.Model.Role as Role
 import           Carma.Model.Service as Service
@@ -49,6 +50,8 @@ import           Carma.Model.ServiceStatus (ServiceStatus)
 import           Carma.Model.SmsTemplate (SmsTemplate)
 import           Carma.Model.Usermeta (Usermeta)
 
+import           Control.Monad.Free
+import           Trigger.Dsl
 
 type ActionTypeI = IdentI ActionType
 
@@ -70,7 +73,7 @@ data Action =
                            impl UTCTime
            -- ^ Default due time for new actions.
            , outcomes   :: forall impl. (Backoffice impl) =>
-                           [(ActionResultI, impl ActionOutcome)]
+                           [(ActionResultI, impl (Outcome CarmaAction.Action))]
            -- ^ All action results (outward node edges).
            }
 
@@ -78,7 +81,8 @@ data Action =
 data ActionAssignment
 
 
-data ActionOutcome
+-- | An outcome induced by changes in model @m@.
+data Outcome m
 
 
 data Trigger
@@ -128,12 +132,12 @@ class Backoffice impl where
     onCaseField :: (Eq t, FieldI t n d, HaskellType t ~ t) =>
                    (Case -> F t n d)
                 -> impl t
-                -> impl ActionOutcome
+                -> impl (Outcome Case)
                 -> impl Trigger
     onServiceField :: (Eq t, FieldI t n d, HaskellType t ~ t) =>
                       (Service -> F t n d)
                    -> impl t
-                   -> impl ActionOutcome
+                   -> impl (Outcome Service)
                    -> impl Trigger
 
     -- Boolean combinators (lifted to impl because we usually use
@@ -189,13 +193,13 @@ class Backoffice impl where
               -> impl ()
 
     -- | Close the action.
-    finish  :: impl ActionOutcome
+    finish  :: impl (Outcome m)
 
     -- | Close the action and create new actions of given types.
-    proceed :: [ActionTypeI] -> impl ActionOutcome
+    proceed :: [ActionTypeI] -> impl (Outcome m)
 
     -- | Postpone the action.
-    defer   :: impl ActionOutcome
+    defer   :: impl (Outcome CarmaAction.Action)
 
     -- | Action chains.
     --
@@ -204,7 +208,7 @@ class Backoffice impl where
     --
     -- > sendSMS *> doStuff *> finish
     infixr *>
-    (*>) :: impl () -> impl ActionOutcome -> impl ActionOutcome
+    (*>) :: impl () -> impl (Outcome m) -> impl (Outcome m)
 
 
 setServiceStatus :: Backoffice impl => IdentI ServiceStatus -> impl ()
@@ -268,5 +272,5 @@ type family HaskellType t where
   HaskellType Trigger = Map (Text, Text) [Dynamic]
   HaskellType (Maybe v) = Maybe (HaskellType v)
   HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
-  HaskellType ActionOutcome = Dynamic
+  HaskellType (Outcome m) = Free (Dsl m) ()
   HaskellType t = t

@@ -152,8 +152,7 @@ haskellTrigger acc target body = HaskellE $ do
   target' <- toHaskell target
   body' <- toHaskell body
   return $ trigOn acc $
-           \t -> when (t == target') $
-                 fromDyn body' (error "haskellTrigger: wrong body type")
+           \t -> when (t == target') body'
 
 
 newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
