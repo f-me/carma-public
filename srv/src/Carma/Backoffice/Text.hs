@@ -161,7 +161,7 @@ instance Backoffice TextE where
 
     setServiceField acc i =
         TextE $
-        (\c -> T.concat [fieldDesc acc, " ← ", c]) <$> toText (const i)
+        (\c -> T.concat [fieldDesc acc, " ← ", c]) <$> toText i
 
     sendSMS i =
         TextE $

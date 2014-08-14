@@ -250,12 +250,12 @@ cancelService =
     [ (AResult.falseCallUnbilled,
        sendSMS SMS.cancel *>
        setServiceStatus SS.canceled *>
-       setServiceField Service.falseCall FS.nobill *>
+       setServiceField Service.falseCall (const FS.nobill) *>
        finish)
     , (AResult.falseCallBilled,
        sendSMS SMS.cancel *>
        setServiceStatus SS.canceled *>
-       setServiceField Service.falseCall FS.bill *>
+       setServiceField Service.falseCall (const FS.bill) *>
        finish)
     , (AResult.defer, defer)
     ]

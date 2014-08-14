@@ -30,6 +30,8 @@ module Carma.Backoffice.DSL
 
 where
 
+import           Prelude hiding (const)
+
 import           Data.Dynamic
 import           Data.Text
 import           Data.Time.Clock
@@ -168,8 +170,8 @@ class Backoffice impl where
            -> impl v
 
     -- Verbs with side effects
-    setServiceField :: (Model m, t ~ (IdentI m), FieldI t n d) =>
-                       (Service -> F t n d) -> t -> impl ()
+    setServiceField :: FieldI t n d =>
+                       (Service -> F t n d) -> impl t -> impl ()
     sendDealerMail :: impl ()
     sendGenserMail :: impl ()
     sendPSAMail    :: impl ()
@@ -202,7 +204,7 @@ class Backoffice impl where
 
 
 setServiceStatus :: Backoffice impl => IdentI ServiceStatus -> impl ()
-setServiceStatus = setServiceField Service.status
+setServiceStatus s = setServiceField Service.status (const s)
 
 
 -- | If-then-else.
