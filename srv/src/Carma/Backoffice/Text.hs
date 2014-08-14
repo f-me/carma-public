@@ -129,8 +129,7 @@ instance Backoffice TextE where
     caseField     = textE . fieldDesc
     serviceField  = textE . fieldDesc
 
-    onCaseField f v body = TextE $ triggerText (caseField f) v body
-    onServiceField f v body = TextE $ triggerText (serviceField f) v body
+    onField f v body = TextE $ triggerText (textE $ fieldDesc f) v body
 
     not v = TextE $
             T.append "НЕ выполнено условие " <$> toText v

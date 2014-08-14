@@ -167,15 +167,10 @@ haskellBinary :: (HaskellType t1 -> HaskellType t2 -> HaskellType t)
               -> HaskellE t
 haskellBinary fun = \a b -> HaskellE $ fun <$> toHaskell a <*> toHaskell b
 
-haskellTrigger acc target body = HaskellE $ do
-  target' <- toHaskell target
-  body' <- toHaskell body
-  return $ trigOn acc $
-           \t -> when (t == target') body'
-
 
 newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
     deriving Typeable
+
 
 instance Backoffice HaskellE where
     now = HaskellE $ asks ModelTriggers.now
@@ -236,9 +231,10 @@ instance Backoffice HaskellE where
 
     (||) = haskellBinary (Prelude.||)
 
-    onCaseField = haskellTrigger
-
-    onServiceField = haskellTrigger
+    onField acc target body = HaskellE $ do
+      target' <- toHaskell target
+      body' <- toHaskell body
+      return $ trigOn acc $ \t -> when (t == target') body'
 
 evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty
 evalHaskell c t = runReader (toHaskell t) c

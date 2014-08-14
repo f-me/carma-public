@@ -117,8 +117,7 @@ instance Backoffice EdgeE where
     caseField _ = nothing
     serviceField _ = nothing
 
-    onCaseField _ _ body = EdgeE $ \c -> toEdge body c
-    onServiceField _ _ body =  EdgeE $ \c -> toEdge body c
+    onField _ _ body = EdgeE $ \c -> toEdge body c
 
     not _ = nothing
     _ > _ = nothing

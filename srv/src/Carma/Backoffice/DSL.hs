@@ -122,6 +122,10 @@ class Backoffice impl where
     -- Context access. Note that @t@ type is not brought into DSL type
     -- system, thus an extra hint is included in type constraints for
     -- the meta-language interpreter.
+    --
+    -- These functions are not total: if there's no corresponding
+    -- context during the run time, an error is raised. For instance,
+    -- service fields cannot be accessed in case triggers.
     userField     :: (FieldI t n d, HaskellType t ~ t) =>
                      (Usermeta -> F t n d) -> impl t
     caseField     :: (FieldI t n d, HaskellType t ~ t) =>
@@ -129,16 +133,11 @@ class Backoffice impl where
     serviceField  :: (FieldI t n d, HaskellType t ~ t) =>
                      (Service -> F t n d) -> impl t
 
-    onCaseField :: (Eq t, FieldI t n d, HaskellType t ~ t) =>
-                   (Case -> F t n d)
-                -> impl t
-                -> impl (Outcome Case)
-                -> impl Trigger
-    onServiceField :: (Eq t, FieldI t n d, HaskellType t ~ t) =>
-                      (Service -> F t n d)
-                   -> impl t
-                   -> impl (Outcome Service)
-                   -> impl Trigger
+    onField :: (Model m, Eq t, FieldI t n d, HaskellType t ~ t) =>
+               (m -> F t n d)
+            -> impl t
+            -> impl (Outcome m)
+            -> impl Trigger
 
     -- Boolean combinators (lifted to impl because we usually use
     -- terms from impl as arguments)
