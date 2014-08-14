@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, QuasiQuotes, FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables, QuasiQuotes, FlexibleContexts, DataKinds #-}
 
 module Utils.Events where
 
@@ -12,9 +12,13 @@ import           Data.String (fromString)
 import           Text.Printf
 
 import           Data.Maybe
+import           Data.List
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time.Clock (getCurrentTime)
+import qualified Data.Aeson as Aeson
+import qualified Data.HashMap.Strict as HM
+
 import           GHC.TypeLits
 
 import           Data.Model
@@ -31,7 +35,6 @@ import           Snap.Snaplet.PostgresqlSimple ( HasPostgres(..)
                                                )
 import           Database.PostgreSQL.Simple.SqlQQ
 
-import           Carma.Model
 import           Carma.Model.Event (Event, EventType(..))
 import qualified Carma.Model.Event     as E
 import           Carma.Model.UserState (UserState, UserStateVal(..))
@@ -41,7 +44,7 @@ import           Carma.Model.Action    (Action)
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.Call   as Call
 
-import           Snaplet.Search.Types
+import           Snaplet.Search.Types (mkSel)
 import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
 
@@ -66,22 +69,47 @@ logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
               -- ^ Legacy object identifier `model:id`
               -> (m -> F t n d)
               -- ^ Changed field
-              -> Handler b b1 ()
+              -> Handler b b1 (IdentI Event)
 logLegacyCRUD tpe mdl fld = log $ buildLegacy tpe mdl fld
 
--- | Create event from patch and change user state when needed
+logCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
+           , Model m)
+        => EventType
+        -> IdentI m
+        -- ^ Identifier of changed model
+        -> Patch m
+        -- ^ Changed fields
+        -> Handler b b1 (IdentI Event)
+logCRUD tpe idt p = do
+  log $ buildFull tpe idt (Nothing :: Maybe (m -> PK Int m "")) (Just p)
+
+-- | Create event from patch
 log :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
-    => Patch Event -> Handler b m ()
+    => Patch Event -> Handler b m (IdentI Event)
 log p = do
   uid <- getRealUid
+  idt <- create $ setUsr uid p
+  case idt of
+    Left err -> error $ "Can't create Event: " ++ show err
+    Right id' -> return id'
+
+updateUserState :: forall m b b1
+                 . (HasPostgres (Handler b b1), HasAuth b, HasMsg b , Model m)
+                => EventType
+                -> IdentI m
+                -- ^ Identifier of changed model
+                -> Patch m
+                -- ^ Changed fields
+                -> IdentI Event
+                -> Handler b b1 ()
+updateUserState evt idt p evidt = do
   -- Little hack to determine target user for state change in case if
   -- someone else changed @delayedState@ field of current user
-  tgtUsr <- case (P.get p E.modelName, P.get p E.modelId, P.get p E.field) of
-    (Just "Usermeta", Just i, Just (Just "delayedState")) -> return $ Ident i
-    _                                                     -> return uid
-  Right id' <- create $ setUsr uid p
-  let p' = P.put E.ident id' p
-  s <- checkUserState tgtUsr p'
+  tgtUsr <- case mname of
+               -- Rebuild ident so haskell won't complain about m ~ Usermeta
+    "Usermeta" -> return $ Ident $ identVal idt
+    _          -> getRealUid
+  s <- checkUserState tgtUsr evt evidt idt p
   case s of
     Nothing -> return ()
     Just st -> do
@@ -95,6 +123,8 @@ log p = do
          P.put delayedState      Nothing $
          P.empty)
   return ()
+  where
+    mname = modelName (modelInfo :: ModelInfo m)
 
 -- Implementation --------------------------------------------------------------
 
@@ -106,21 +136,20 @@ buildFull :: forall m t n d.(Model m, SingI n)
           -- ^ Identifier of model `m`, emitted event
           -> Maybe (m -> F t n d)
           -- ^ Changed field
-          -- -> Maybe (Patch m)
+          -> Maybe (Patch m)
           -- ^ The whole patch
-          -- FIXME: can't save patch, because current crud using bad types
           -> Patch Event
-buildFull tpe idt f =
+buildFull tpe idt f patch =
   P.put E.modelId   mid   $
   P.put E.modelName mname $
   P.put E.field     fname $
-  -- P.put E.patch     patch' $
+  P.put E.patch     p'    $
   buildEmpty tpe
    where
      mname = modelName $ (modelInfo :: ModelInfo m)
      mid   = identVal idt
-     fname = return . fieldName =<< f
-     -- patch' = Just $ toJSON patch
+     fname = fieldName <$> f
+     p'    = Aeson.toJSON <$> patch
 
 -- | Build `Patch Event` with just user and type
 buildEmpty :: EventType -> Patch Event
@@ -142,7 +171,7 @@ buildLegacy :: forall m t n d.(Model m, SingI n)
             -- ^ Changed field
             -> Patch Event
 buildLegacy tpe objId fld =
-  buildFull tpe idt (Just fld)
+  buildFull tpe idt (Just fld) Nothing
   where
     idt        = readIdent rawid :: IdentI m
     (_:rawid:_) = T.splitOn ":" objId
@@ -152,11 +181,14 @@ data States = States { from :: [UserStateVal], to :: UserStateVal }
 (>>>) f t = States f t
 
 -- | Check current state and maybe create new
-checkUserState :: HasPostgres (Handler b m)
+checkUserState :: forall b m m1 . (HasPostgres (Handler b m), Model m1)
                => IdentI Usermeta
-               -> Patch Event
+               -> EventType
+               -> IdentI Event
+               -> IdentI m1
+               -> Patch m1
                -> Handler b m (Maybe UserStateVal)
-checkUserState uid ev = do
+checkUserState uid evType evIdt _ p = do
   hist <- query
     (fromString (printf
     "SELECT %s FROM \"UserState\" WHERE userId = ? ORDER BY id DESC LIMIT 1"
@@ -170,30 +202,25 @@ checkUserState uid ev = do
                    (P.get' lastState State.state)
                    delayedSt
   where
-    nextState' s d = join $ dispatch (P.get' ev E.modelName) (nextState'' s d)
-
-    nextState'' :: forall m.Model m =>
-                   UserStateVal -> Maybe UserStateVal -> m -> Maybe UserStateVal
-    nextState'' s d _ =
-      let mname = modelName (modelInfo :: ModelInfo m)
-      in nextState s d (P.get' ev E.eventType) mname (join $ P.get ev E.field)
-
+    nextState' s d =
+      let mname = modelName (modelInfo :: ModelInfo m1)
+      in nextState s d evType mname (HM.keys $ P.untypedPatch p)
     setNext Nothing = return Nothing
     setNext (Just s) = withPG $ \c -> do
       void $ P.create (mkState s) c
       void $ P.update uid (P.put delayedState Nothing P.empty) c
       return $ Just s
 
-    mkState s = P.put State.eventId (P.get' ev E.ident) $
-                P.put State.userId uid                  $
-                P.put State.state  s                    $
+    mkState s = P.put State.eventId evIdt $
+                P.put State.userId uid    $
+                P.put State.state  s      $
                 P.empty
 
 data UserStateEnv = UserStateEnv { lastState :: UserStateVal
                                  , delayed   :: Maybe UserStateVal
                                  , evType    :: EventType
                                  , mdlName   :: Text
-                                 , mdlFld    :: Maybe Text
+                                 , mdlFlds   :: [Text]
                                  }
 type UserStateM   = RWS UserStateEnv [Bool] (Maybe UserStateVal) ()
 
@@ -210,8 +237,8 @@ nextState :: UserStateVal
           -> EventType
           -> Text
           -- ^ Model name
-          -> Maybe Text
-          -- ^ Field name
+          -> [Text]
+          -- ^ Field names
           -> Maybe UserStateVal
 nextState lastState delayed evt mname fld =
   execUserStateEnv (UserStateEnv lastState delayed evt mname fld) $ do
@@ -249,13 +276,13 @@ nextState lastState delayed evt mname fld =
 on :: EventType -> Matcher -> UserStateM
 on tpe matcher = do
   UserStateEnv{..} <- ask
-  let applicable = evType == tpe && isMatch mdlName mdlFld matcher
+  let applicable = evType == tpe && isMatch mdlName mdlFlds matcher
   tell [applicable]
   where
     isMatch _     _ NoModel         = True
     isMatch mname _ (Models mnames) = mname `elem` mnames
     isMatch mname fld (Fields fs)   =
-      maybe False (\f -> (mname,f) `elem` fs) fld
+      not $ null $ fs `intersect` map (mname,) fld
 
 change :: States -> UserStateM -> UserStateM
 change (States from to) onFn = do

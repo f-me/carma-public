@@ -69,9 +69,6 @@ create model commit = do
   --
   Postgres.insert tbls model obj'
 
-  when (model == "call") $
-    Evt.logLegacyCRUD Create (T.concat [model, ":", objId]) Call.ident
-
   let result = Map.insert "id" objId $ obj Map.\\ commit
   syslogJSON Debug "DbLayer/create/result" ["result" .= result]
   return result

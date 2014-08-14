@@ -56,9 +56,6 @@ import qualified Data.Model.Patch.Sql as Patch
 import Snaplet.Messenger (sendMessage)
 import Snaplet.Messenger.Class (withMsg)
 import Utils.LegacyModel (mkLegacyIdent)
-import Utils.Events (logLegacyCRUD)
-import Carma.Model.Event (EventType(Update))
-
 import Carma.Model.Usermeta (Usermeta)
 
 
@@ -103,13 +100,6 @@ dbUpdate i p = liftFree (DbUpdate i p id)
 wsMessage :: Free (Dsl m) ()
 wsMessage = liftFree (WsMessage ())
 
-logLegacy
-  :: (Model m, SingI name, Typeable typ)
-  => (m -> F typ name opt)
-  -> Free (Dsl m) ()
-logLegacy fld = liftFree (LogLegacy fld ())
-
-
 currentUserId :: Free (Dsl m) (IdentI Usermeta)
 currentUserId = liftFree (CurrentUserId id)
 
@@ -134,9 +124,6 @@ data Dsl m k where
   DbUpdate :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
   CurrentUserId :: (IdentI Usermeta -> k) -> Dsl m k
   WsMessage:: k -> Dsl m k
-  LogLegacy
-    :: (Model m, SingI name, Typeable typ)
-    => (m -> F typ name opt) -> k -> Dsl m k
 
 deriving instance Typeable2 Dsl
 
@@ -153,7 +140,6 @@ instance Functor (Dsl m) where
     DbUpdate  i p k -> DbUpdate  i p $ fn . k
     CurrentUserId k -> CurrentUserId $ fn . k
     WsMessage     k -> WsMessage     $ fn k
-    LogLegacy f   k -> LogLegacy f   $ fn k
 
 
 data DbUpdateArgs where
@@ -202,8 +188,4 @@ evalDsl = \case
       p <- gets st_patch
       i <- mkLegacyIdent <$> gets st_ident
       lift $ withMsg $ sendMessage i p
-      evalDsl k
-    LogLegacy fld k -> do
-      i <- mkLegacyIdent <$> gets st_ident
-      lift $ logLegacyCRUD Update i fld
       evalDsl k

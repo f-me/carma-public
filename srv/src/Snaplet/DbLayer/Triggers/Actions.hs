@@ -167,7 +167,7 @@ actions
           ])
         ,("usermeta", Map.fromList
           [("delayedState", [\objId _ ->
-             liftDb $ Evt.logLegacyCRUD Update objId Usermeta.delayedState])
+             void $ liftDb $ Evt.logLegacyCRUD Update objId Usermeta.delayedState])
           ,("businessRole", [updateBusinessRole])
           ])
         ]
@@ -630,7 +630,7 @@ actionActions = Map.fromList
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ,\objId _ ->
-      liftDb $ Evt.logLegacyCRUD Update objId Act.result
+      void $ liftDb $ Evt.logLegacyCRUD Update objId Act.result
     ])
   ,("assignedTo",
     [\objId _val -> dateNow id >>= set objId "assignTime"
@@ -645,7 +645,7 @@ actionActions = Map.fromList
     ])
    ,("openTime",
      [\objId _ ->
-       liftDb $ Evt.logLegacyCRUD Update objId Act.openTime
+       void $ liftDb $ Evt.logLegacyCRUD Update objId Act.openTime
      ])
    ]
 

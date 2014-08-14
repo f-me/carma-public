@@ -46,8 +46,7 @@ runUpdateTriggers
   :: forall m . Model m
   => IdentI m -> Patch m -> AppHandler (TriggerRes m)
 runUpdateTriggers = runFieldTriggers $ Map.unionsWith (++)
-  [trigOn Usermeta.delayedState $ \_ -> wsMessage >> logLegacy Usermeta.delayedState
-  ,trigOn Call.endDate $ \_ -> logLegacy Call.endDate
+  [trigOn Usermeta.delayedState $ \_ -> wsMessage
   ]
 
 --  - runReadTriggers
