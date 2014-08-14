@@ -110,6 +110,7 @@ import ModelTriggers
 import Carma.Model.ActionResult (ActionResult)
 import Carma.Model.ActionType (ActionType)
 import Carma.Model.CaseStatus (CaseStatus)
+import Carma.Model.FalseCall (FalseCall)
 import qualified Carma.Model.Role as Role
 import Carma.Model.Satisfaction (Satisfaction)
 import Carma.Model.ServiceStatus (ServiceStatus)
@@ -623,6 +624,7 @@ serveBackofficeSpec repr =
       boxedIMap = Map.unions [ boxMap (iMap :: IdentMap ActionResult)
                              , boxMap (iMap :: IdentMap ActionType)
                              , boxMap (iMap :: IdentMap CaseStatus)
+                             , boxMap (iMap :: IdentMap FalseCall)
                              , boxMap (iMap :: IdentMap Role.Role)
                              , boxMap (iMap :: IdentMap Satisfaction)
                              , boxMap (iMap :: IdentMap ServiceStatus)
