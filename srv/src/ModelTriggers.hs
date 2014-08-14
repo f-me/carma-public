@@ -139,6 +139,13 @@ runFieldTriggers trMap ident patch
       tr' >>= either (return . Left) (Prelude.const k)
 
 
+haskellBinary :: (HaskellType t1 -> HaskellType t2 -> HaskellType t)
+              -- ^ Non-lifted binary function.
+              -> HaskellE t1
+              -> HaskellE t2
+              -> HaskellE t
+haskellBinary fun = \a b -> HaskellE $ fun <$> toHaskell a <*> toHaskell b
+
 --entryToTrigger e = toHaskell (trigger e)
 
 newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
@@ -154,7 +161,7 @@ instance Backoffice HaskellE where
 
     currentUserOr r =
         HaskellE $ do
-          i <- asks (flip Patch.get' Usermeta.ident . user)
+          i <- toHaskell (userField Usermeta.ident)
           return (Just i, r)
 
     previousAction =
@@ -176,6 +183,13 @@ instance Backoffice HaskellE where
 
     just = HaskellE . return . Just
 
+    req v =
+      HaskellE $
+      fromMaybe (error "Required value not set") <$> toHaskell v
+
+    oneOf e lst =
+      HaskellE $ flip elem lst <$> toHaskell e
+
     switch branches ow =
       HaskellE $
       case branches of
@@ -186,10 +200,15 @@ instance Backoffice HaskellE where
               False -> toHaskell $ switch bs ow
         [] -> toHaskell ow
 
-    a == b = HaskellE $ do
-      a' <- toHaskell a
-      b' <- toHaskell b
-      return $ a' == b'
+    not a = HaskellE $ Prelude.not <$> toHaskell a
+
+    (==) = haskellBinary (==)
+
+    (>) = haskellBinary (Prelude.>)
+
+    (&&) = haskellBinary (Prelude.&&)
+
+    (||) = haskellBinary (Prelude.||)
 
     onCaseField acc target = HaskellE $ return
         (modelName (modelInfo :: ModelInfo Case), fieldName acc, toDyn target)
