@@ -33,6 +33,7 @@ module Trigger.Dsl
 where
 
 import Control.Applicative
+import Control.Exception (SomeException)
 import Control.Monad.Free
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.State
@@ -44,10 +45,9 @@ import GHC.TypeLits
 
 import Snap.Snaplet.Auth
 import Snaplet.Auth.Class
-import qualified Snap.Snaplet.PostgresqlSimple as PG
-import qualified Data.Pool as Pool
 
 import Application (AppHandler)
+import qualified Database.PostgreSQL.Simple as PG
 import Data.Model as Model
 import Data.Model.Patch (Patch)
 import qualified Data.Model.Patch as Patch
@@ -162,11 +162,20 @@ data DbUpdateArgs where
 data DslState m = DslState
   { st_ident :: IdentI m
   , st_patch :: Patch m
+  , st_pgcon :: PG.Connection
   }
+
+runDb
+  :: Model m
+  => (PG.Connection -> IO (Either SomeException res))
+  -> (res -> Free (Dsl m) res')
+  -> StateT (DslState m) AppHandler res'
+runDb f k = gets st_pgcon >>= liftIO . f >>= \case
+  Right res -> evalDsl $ k res
+  Left err  -> error $ show err -- FIXME: I don't know what to do
 
 -- Our Dsl is evaluated in @AppHandler@ context, so it have access to IO and
 -- Snap's state.
--- TODO: create transaction
 evalDsl
   :: forall m res . Model m
   => Free (Dsl m) res -> StateT (DslState m) AppHandler res
@@ -178,25 +187,14 @@ evalDsl = \case
     ModPatch f k -> do
       modify $ \s -> s {st_patch = f (st_patch s)}
       evalDsl k
-    DbCreate p k -> do
-      Right res <- lift $ do
-        s <- PG.getPostgresState
-        Pool.withResource (PG.pgPool s) (liftIO . Patch.create p)
-      evalDsl $ k res
-    DbRead i k -> do
-      (res:_) <- lift $ do
-        s <- PG.getPostgresState
-        Pool.withResource (PG.pgPool s) (liftIO . Patch.read i)
-      evalDsl $ k res
-    DbUpdate i p k -> do
-      Right res <- lift $ do
-        s <- PG.getPostgresState
-        Pool.withResource (PG.pgPool s) (liftIO . Patch.update i p)
-      evalDsl $ k res
+    DbCreate p k   -> runDb (Patch.create p)   k
+    DbRead i k     -> runDb (Patch.read i)     k
+    DbUpdate i p k -> runDb (Patch.update i p) k
     CurrentUserId k -> do
+      c <- gets st_pgcon
       [[uid]] <- lift $ do
         Just u <- withAuth currentUser
-        PG.query
+        liftIO $ PG.query c
           "SELECT id FROM usermetatbl WHERE uid = ? :: int"
           (PG.Only $ unUid <$> userId u)
       evalDsl $ k (Ident uid)

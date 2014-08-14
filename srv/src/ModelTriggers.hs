@@ -6,6 +6,7 @@ module ModelTriggers
   ) where
 
 
+import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Free (Free)
 import Control.Monad.Trans.State (evalStateT)
 
@@ -16,6 +17,10 @@ import Data.Text (Text)
 import Data.Maybe (catMaybes)
 import Data.Dynamic
 import GHC.TypeLits
+
+import qualified Data.Pool as Pool
+import qualified Database.PostgreSQL.Simple.Transaction as PG
+import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import Application (AppHandler)
 import Data.Model as Model
@@ -88,30 +93,39 @@ runModelTriggers
   :: forall m . Model m
   => Map ModelName [Dynamic] -> Patch m
   -> AppHandler (TriggerRes m)
-runModelTriggers trMap patch
-  = evalStateT
-    (evalDsl $ foldl joinTriggers tOk matchingTriggers)
-    (DslState undefined patch)
-  where
-    mName = modelName (modelInfo :: ModelInfo m)
-    matchingTriggers = Map.findWithDefault [] mName trMap
-    joinTriggers k tr = do
-      let tr' = fromDyn tr $ tError 500 "dynamic BUG"
-      tr' >>= either (return . Left) (const k)
+runModelTriggers trMap patch = do
+  let mName = modelName (modelInfo :: ModelInfo m)
+      matchingTriggers = Map.findWithDefault [] mName trMap
+      joinTriggers k tr = do
+        let tr' = fromDyn tr $ tError 500 "dynamic BUG"
+        tr' >>= either (return . Left) (const k)
+  s <- PS.getPostgresState
+  Pool.withResource (PS.pgPool s) $ \pgconn -> do
+    -- FIXME: we need to choose isolation level carefully
+    liftIO $ PG.beginLevel PG.Serializable pgconn
+    res <- evalStateT
+      (evalDsl $ foldl joinTriggers tOk matchingTriggers)
+      (DslState undefined patch pgconn)
+    liftIO $ PG.commit pgconn
+    return res
 
 
 runFieldTriggers
   :: forall m . Model m
   => TriggersMap -> IdentI m -> Patch m
   -> AppHandler (TriggerRes m)
-runFieldTriggers trMap ident patch
-  = evalStateT
-    (evalDsl $ foldl joinTriggers tOk matchingTriggers)
-    (DslState ident patch)
-  where
-    mName = modelName (modelInfo :: ModelInfo m)
-    keys = map (mName,) $ HM.keys $ untypedPatch patch
-    matchingTriggers = concat $ catMaybes $ map (`Map.lookup` trMap) keys
-    joinTriggers k tr = do
-      let tr' = fromDyn tr $ tError 500 "dynamic BUG"
-      tr' >>= either (return . Left) (const k)
+runFieldTriggers trMap ident patch = do
+  let mName = modelName (modelInfo :: ModelInfo m)
+      keys = map (mName,) $ HM.keys $ untypedPatch patch
+      matchingTriggers = concat $ catMaybes $ map (`Map.lookup` trMap) keys
+      joinTriggers k tr = do
+        let tr' = fromDyn tr $ tError 500 "dynamic BUG"
+        tr' >>= either (return . Left) (const k)
+  s <- PS.getPostgresState
+  Pool.withResource (PS.pgPool s) $ \pgconn -> do
+    liftIO $ PG.beginLevel PG.Serializable pgconn
+    res <- evalStateT
+      (evalDsl $ foldl joinTriggers tOk matchingTriggers)
+      (DslState ident patch pgconn)
+    liftIO $ PG.commit pgconn
+    return res
