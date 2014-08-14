@@ -95,7 +95,9 @@ runModelTriggers
   -> AppHandler (TriggerRes m)
 runModelTriggers trMap patch = do
   let mName = modelName (modelInfo :: ModelInfo m)
-      matchingTriggers = Map.findWithDefault [] mName trMap
+      pName = parentName (modelInfo :: ModelInfo m)
+      parentTriggers = maybe [] (\p -> Map.findWithDefault [] p trMap) pName
+      matchingTriggers = parentTriggers ++ Map.findWithDefault [] mName trMap
       joinTriggers k tr = do
         let tr' = fromDyn tr $ tError 500 "dynamic BUG"
         tr' >>= either (return . Left) (const k)
@@ -116,7 +118,10 @@ runFieldTriggers
   -> AppHandler (TriggerRes m)
 runFieldTriggers trMap ident patch = do
   let mName = modelName (modelInfo :: ModelInfo m)
-      keys = map (mName,) $ HM.keys $ untypedPatch patch
+      pName = parentName (modelInfo :: ModelInfo m)
+      fields = HM.keys $ untypedPatch patch
+      keys = maybe [] (\p -> map (p,) fields) pName ++ map (mName,) fields
+
       matchingTriggers = concat $ catMaybes $ map (`Map.lookup` trMap) keys
       joinTriggers k tr = do
         let tr' = fromDyn tr $ tError 500 "dynamic BUG"
