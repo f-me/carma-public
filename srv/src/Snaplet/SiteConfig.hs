@@ -158,7 +158,7 @@ stripModel u m = do
       where u.uid = ?::int
         and p.model = ?
         and p.r = true
-        and p.role::text = ANY (u.roles)
+        and p.role = ANY (u.roles)
       group by p.field
     |]
     (unUid uid, fixModelName $ modelName m)

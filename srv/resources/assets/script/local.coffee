@@ -6,7 +6,7 @@ require [ "domready"
         , "hooks/config"
         , "json!/cfg/dictionaries"
         , "json!/_whoami"
-        , "json!/allUsers"
+        , "json!/_/Usermeta"
         , "utils"
         , "sendSms"
         , "liveMenu"
@@ -60,18 +60,17 @@ require [ "domready"
     dicts.users =
       entries:
         for i in users
-          {value: i.value, label: "#{i.label} (#{i.value})"}
+          {value: i.login, label: "#{i.realName} (#{i.login})"}
     dicts.roles =
       entries:
         for i in users
-          {value: i.value, label: i.roles }
+          {value: i.login, label: i.roles }
 
     main.setup Finch,
               dicts,
               hooks,
               user,
               new pubSub
-    global.all_users = users
     global.keys = {}
     global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
 

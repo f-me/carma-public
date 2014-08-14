@@ -1,12 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeOperators #-}
 
 {-|
 
@@ -45,9 +39,6 @@ module Snaplet.Auth.PGUsers
 --    , userMetaPG
     , userMetaIdent
     , replaceMetaRolesFromPG
-      -- * List of all users
-    , UsersList(..)
-    , usersListPG
     )
 
 where
@@ -55,10 +46,8 @@ where
 import Control.Applicative
 
 import Data.Aeson
-import Data.Aeson.TH
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import Data.Maybe
 import Data.Map as M hiding (map)
 import Data.HashMap.Strict as HM (HashMap, fromList)
@@ -103,7 +92,7 @@ instance FromField [Text] where
 -- | Select meta for a user with uid given as a query parameter.
 userRolesQuery :: Query
 userRolesQuery = [sql|
-SELECT roles FROM usermetatbl WHERE uid=?;
+SELECT roles::text[] FROM usermetatbl WHERE uid=?;
 |]
 
 
@@ -196,53 +185,3 @@ replaceMetaRolesFromPG user = do
               Just (_, UserMeta um) -> um
               Nothing -> userMeta user
   return user{userRoles = ur, userMeta = um'}
-
-
-------------------------------------------------------------------------------
--- | List of entries for all users present in the database, used to
--- serve user DB to client.
---
--- Previously known as @UsersDict@.
-data UsersList = UsersList [HM.HashMap Text Text]
-
-$(deriveToJSON defaultOptions ''UsersList)
-
-
-------------------------------------------------------------------------------
--- | Select logins and metas for all users.
-allUsersQuery :: Query
-allUsersQuery = [sql|
-SELECT m.id, u.login, m.realName, m.roles, m.boCities, m.boPrograms
-FROM usermetatbl m, snap_auth_user u
-WHERE u.uid=m.uid;
-|]
-
-
-------------------------------------------------------------------------------
--- | Fetch list of all users from the database, return @(mid, value,
--- label)@ for every user as well as some extra meta values required
--- by client.
-usersListPG :: HasPostgres m => m UsersList
-usersListPG = do
-  rows <- query_ allUsersQuery
-  return $ UsersList $ map toEntry rows
-      where
-        toEntry :: (Int,
-                    Text,
-                    Maybe Text,
-                    Maybe [Role],
-                    Maybe [Text],
-                    Maybe [Text])
-                 -> HM.HashMap Text Text
-        toEntry (mid, login, rn, rls, boC, boP) =
-            HM.fromList
-                  [ ("mid", T.pack $ show $ mid)
-                  , ("value", login)
-                  , ("label", fromMaybe login rn)
-                  , ("roles",
-                     T.intercalate "," (map (\(Role r) -> T.decodeUtf8 r) $ fromMaybe [] rls))
-                  , ("boCities",
-                     T.intercalate "," $ fromMaybe [] boC)
-                  , ("boPrograms",
-                     T.intercalate "," $ fromMaybe [] boP)
-                  ]

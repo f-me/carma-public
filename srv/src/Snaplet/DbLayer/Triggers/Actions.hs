@@ -1,6 +1,5 @@
 {-# LANGUAGE DoAndIfThenElse #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Snaplet.DbLayer.Triggers.Actions (actions)
@@ -32,7 +31,7 @@ import Snaplet.DbLayer.Triggers.Dsl
 import Snaplet.DbLayer.Triggers.MailToDealer
 
 import           Data.Model
-import qualified Data.Model.Patch as Patch (Patch, get)
+import qualified Data.Model.Patch as Patch (get)
 import qualified Data.Model.Patch.Sql as Patch (read)
 
 import qualified Carma.Model.Case as Case
@@ -101,13 +100,10 @@ actions
             case fvIdent val of
               Nothing -> return ()
               Just wi -> do
-                  res :: [Patch.Patch Wazzup.Wazzup] <-
-                         liftDb $ withPG $ \c -> Patch.read wi c
+                  res  <- liftDb $ withPG $ \c -> Patch.read wi c
                   case res of
-                    [] -> return ()
-                    (patch:_) ->
-                        let
-                            f acc = maybe "" identFv $
+                    Right patch ->
+                        let f acc = maybe "" identFv $
                                     fromMaybe Nothing $
                                     Patch.get patch acc
                             s = f Wazzup.system
@@ -120,6 +116,7 @@ actions
                           set caseId "diagnosis3" c >>
                           set caseId "diagnosis4" g >>
                           return ()
+                    _ -> return ()
             ])
           -- ,("contact_name",
           --   [\objId val -> set objId "contact_name" $ upCaseStr val])

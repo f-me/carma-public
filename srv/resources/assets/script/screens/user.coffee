@@ -5,7 +5,7 @@ define [ "utils"
        ],
   (utils, tpl, mu, main) ->
     setupUsersForm = (viewName, args) ->
-      kvm = main.modelSetup("usermeta") viewName, args,
+      kvm = main.modelSetup("Usermeta") viewName, args,
                             permEl: "user-permissions"
                             focusClass: "focusable"
                             manual_save: true
@@ -13,7 +13,7 @@ define [ "utils"
       $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
       $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
 
-      t = $("#user-table");
+      t = $("#user-table")
       return if t.hasClass("dataTable")
       utils.mkDataTable(t)
 
@@ -24,21 +24,21 @@ define [ "utils"
       # Show user form when a table row is clicked
       t.on("click.datatable", "tr", ->
         id = this.children[0].innerText
-        kvm = main.modelSetup("usermeta") viewName, {"id": id},
+        kvm = main.modelSetup("Usermeta") viewName, {"id": id},
                               permEl: "user-permissions"
                               focusClass: "focusable"
                               manual_save: true
       )
 
       # Populate the table
-      $.getJSON("/allUsers",
+      $.getJSON("/_/Usermeta",
           (objs) ->
               dt = t.dataTable()
               dt.fnClearTable()
               rows = for obj in objs
-                  [ obj.mid
-                  , obj.value || ''
-                  , obj.label || ''
+                  [ obj.id
+                  , obj.login || ''
+                  , obj.realName || ''
                   ]
               dt.fnAddData(rows)
       )

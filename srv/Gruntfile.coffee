@@ -112,6 +112,10 @@ module.exports = (grunt) ->
       src:  'wysihtml5/dist'
       dest: 'wysihtml5'
       file: 'wysihtml5-0.3.0.min.js'
+    'wysihtml5-boot-colors':
+      src:  'bootstrap-wysihtml5/lib/css'
+      dest: 'wysihtml5'
+      file: 'wysiwyg-color.css'
     'wysihtml5-boot':
       src:  'bootstrap-wysihtml5/src'
       dest: 'wysihtml5'

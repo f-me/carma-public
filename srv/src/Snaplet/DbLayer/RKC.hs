@@ -18,7 +18,6 @@ import Data.Monoid
 import Data.List (intersect, sort, nub)
 import Data.String
 import qualified Data.List as L (groupBy)
-import qualified Data.HashMap.Strict as HM
 import Data.Time
 import Data.Function
 import qualified Data.Text as T
@@ -32,7 +31,6 @@ import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import qualified Carma.Model.ServiceStatus as SS
 
-import Snaplet.Auth.PGUsers
 import Snaplet.DbLayer.Dictionary
 
 import Util
@@ -358,8 +356,8 @@ rkcActions fromDate toDate constraints actions = logExceptions "rkc/rkcActions" 
     "actions" .= as]
 
 -- | Average time for each operator and action
-rkcEachActionOpAvg :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [(T.Text, T.Text)] -> [T.Text] -> m Value
-rkcEachActionOpAvg fromDate toDate constraints usrs acts = logExceptions "rkc/rkcEachActionOpAvg" $ do
+rkcEachActionOpAvg :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
+rkcEachActionOpAvg fromDate toDate constraints acts = logExceptions "rkc/rkcEachActionOpAvg" $ do
   r <- trace "result" $ runQuery_ $ mconcat [
     constraints,
     select "actiontbl" "assignedTo",
@@ -373,16 +371,15 @@ rkcEachActionOpAvg fromDate toDate constraints usrs acts = logExceptions "rkc/rk
     groupBy "actiontbl" "name",
     orderBy "actiontbl" "assignedTo",
     orderBy "actiontbl" "name"]
-  return $ toJSON $ mapMaybe (toInfo (groupResult r)) usrs
+  return $ toJSON $ toInfo (groupResult r)
   where
     groupResult :: [(T.Text, T.Text, Integer, Integer)] -> [(T.Text, [(T.Text, (Integer, Integer))])]
     groupResult = map (first head . unzip) . L.groupBy ((==) `on` fst) . map (\(aTo, nm, avgTm, cnt) -> (aTo, (nm, (avgTm, cnt))))
 
-    toInfo :: [(T.Text, [(T.Text, (Integer, Integer))])] -> (T.Text, T.Text) -> Maybe Value
-    toInfo stats (n, label) = fmap fromStat $ lookup n stats where
-      fromStat :: [(T.Text, (Integer, Integer))] -> Value
-      fromStat st = object [
-        "name" .= label,
+    toInfo :: [(T.Text, [(T.Text, (Integer, Integer))])] -> [Value]
+    toInfo = map fromStat where
+      fromStat (n,st) = object [
+        "name" .= n,
         "avg" .= avgSum st,
         "avgs" .= map (`lookup` st) acts]
         where
@@ -481,13 +478,13 @@ traceFilter tag (Filter from to prog city partner)
     ,"partner" .= partner
     ]
 
-rkc :: (PS.HasPostgres m, MonadCatchIO m) => UsersList -> Filter -> m Value
-rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = logExceptions "rkc/rkc" $ do
+rkc :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> m Value
+rkc filt@(Filter fromDate toDate program city partner) = logExceptions "rkc/rkc" $ do
   traceFilter "rkc/rkc" filt
   dicts <- loadDictionaries $ "resources/site-config/dictionaries"
   c <- rkcCase filt constraints (serviceNames dicts)
   a <- rkcActions fromDate toDate constraints (actionNames dicts)
-  ea <- rkcEachActionOpAvg fromDate toDate constraints usrs' (actionNames dicts)
+  ea <- rkcEachActionOpAvg fromDate toDate constraints (actionNames dicts)
   compls <- rkcComplaints fromDate toDate constraints
   s <- rkcStats filt
   return $ object [
@@ -501,13 +498,6 @@ rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = logExc
       ifNotNull program $ equals "casetbl" "program",
       ifNotNull city $ equals "casetbl" "city",
       ifNotNull partner $ equalsTo "servicetbl" "trim(servicetbl.contractor_partner)"]
-    usrs' = sort $ nub $ map toUsr usrs
-    -- Build value-label pair from UserMeta, used to map logins to
-    -- realNames
-    toUsr m = (k, v)
-        where
-          k = m HM.! "value"
-          v = m HM.! "label"
 
 
 rkcFront :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> m Value

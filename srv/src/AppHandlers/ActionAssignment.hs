@@ -36,7 +36,7 @@ assignQ pri (Ident umid) = fromString
   ++ "    AND c.id = act.caseId"
   ++ "    AND priority = '" ++ show pri ++ "'"
   ++ "    AND act.duetime at time zone 'UTC' - now() <= interval '5 minutes'"
-  ++ "    AND targetGroup = ANY (u.roles)"
+  ++ "    AND targetGroup::int = ANY (u.roles)"
   ++ "    AND (act.assignedTo IS NULL"
   ++ "         OR act.assignedTo NOT IN (SELECT id FROM activeUsers))"
   ++ "    AND (coalesce("

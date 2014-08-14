@@ -61,9 +61,10 @@ exists model objId =
       modelExists _ = do
         let ident = readIdent objId :: IdentI m
         s <- PS.getPostgresState
-        res <- liftIO $
-               withResource (PS.pgPool s) (Patch.read ident)
-        return $ not $ null res
+        liftIO (withResource (PS.pgPool s) (Patch.read ident))
+          >>= return . \case
+            Right _ -> True
+            Left  _ -> False
   in
     case Carma.Model.dispatch model modelExists of
       Just fn -> fn
@@ -81,9 +82,8 @@ read model objId = do
         res <- liftIO $
                withResource (PS.pgPool s) (Patch.read ident)
         return $ case res of
-          [obj] -> Right $ recode obj
-          []    -> Left  $ "NDB.read: could not read model"
-          _     -> Left  $ "NDB.read: " ++ show (Aeson.encode res)
+          Right obj -> Right $ recode obj
+          Left err  -> Left  $ "NDB.read: " ++ show err
   case Carma.Model.dispatch model readModel of
     Just fn -> fn >>= \case
                Right obj -> return $ recode obj
