@@ -210,10 +210,10 @@ instance Backoffice HaskellE where
 
     (||) = haskellBinary (Prelude.||)
 
-    onCaseField acc target = HaskellE $ do
+    onCaseField acc target body = HaskellE $ do
       target' <- toHaskell target
-      return $ trigOn acc $ \t -> when (t == target') undefined
-
+      body' <- toHaskell body
+      return $ trigOn acc $ \t -> when (t == target') $ fromDyn body' (error "Dynamic bug")
 
 evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty
 evalHaskell c t = runReader (toHaskell t) c

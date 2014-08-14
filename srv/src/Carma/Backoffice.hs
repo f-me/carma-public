@@ -41,7 +41,7 @@ import Carma.Backoffice.DSL
 toBack :: Entry
 toBack =
     Entry
-    (Service.status `onServiceField` const SS.backoffice)
+    (onServiceField Service.status (const SS.backoffice)
     (([AType.tellMeMore, AType.callMeMaybe] `closeWith` AResult.communicated) *>
      switch
      [ ( serviceField svcType `oneOf` [ST.towage, ST.tech]
@@ -54,42 +54,42 @@ toBack =
        )
      ]
      (proceed [AType.orderServiceAnalyst])
-    )
+    ))
 
 
 needMakerApproval :: Entry
 needMakerApproval =
     Entry
-    (Service.status `onServiceField` const SS.makerApproval)
-    (proceed [AType.makerApproval])
+    (onServiceField Service.status (const SS.makerApproval)
+     (proceed [AType.makerApproval]))
 
 
 needInfo :: Entry
 needInfo =
     Entry
-    (Case.caseStatus `onCaseField` const CS.needInfo)
-    (proceed [AType.tellMeMore])
+    (onCaseField Case.caseStatus (const CS.needInfo)
+     (proceed [AType.tellMeMore]))
 
 
 mobileOrder :: Entry
 mobileOrder =
     Entry
-    (Case.caseStatus `onCaseField` const CS.mobileOrder)
-    (proceed [AType.callMeMaybe])
+    (onCaseField Case.caseStatus (const CS.mobileOrder)
+     (proceed [AType.callMeMaybe]))
 
 
 complaint :: Entry
 complaint =
     Entry
-    (Service.clientSatisfied `onServiceField` just Satisfaction.none)
-    (proceed [AType.complaintResolution])
+    (onServiceField Service.clientSatisfied (just Satisfaction.none)
+     (proceed [AType.complaintResolution]))
 
 
 mistake :: Entry
 mistake =
     Entry
-    (Service.status `onServiceField` const SS.mistake)
-    finish
+    (onServiceField Service.status (const SS.mistake)
+     finish)
 
 
 orderService :: Action

@@ -128,10 +128,12 @@ class Backoffice impl where
     onCaseField :: (Eq t, FieldI t n d, HaskellType t ~ t) =>
                    (Case -> F t n d)
                 -> impl t
+                -> impl ActionOutcome
                 -> impl Trigger
     onServiceField :: (Eq t, FieldI t n d, HaskellType t ~ t) =>
                       (Service -> F t n d)
                    -> impl t
+                   -> impl ActionOutcome
                    -> impl Trigger
 
     -- Boolean combinators (lifted to impl because we usually use
@@ -245,7 +247,6 @@ days = 24 * hours
 -- | An entry point in an action graph.
 data Entry =
     Entry { trigger :: forall impl. (Backoffice impl) => impl Trigger
-          , result  :: forall impl. (Backoffice impl) => impl ActionOutcome
           }
 
 

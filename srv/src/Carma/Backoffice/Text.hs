@@ -18,7 +18,7 @@ module Carma.Backoffice.Text
 where
 
 import           Prelude hiding ((>), (==), (||), (&&), const)
-import qualified Prelude as P ((>), (==), (||), (&&), const)
+import qualified Prelude as P ((==))
 
 import           Control.Applicative
 import           Control.Monad.Trans.Reader
@@ -66,9 +66,14 @@ textBinary a b open between close = do
 
 
 -- | TextE constructor for trigger terms.
-triggerText :: TextE a -> TextE v -> Reader TCtx Text
-triggerText field value =
-    textBinary field value "Когда " " приобретает значение " ""
+triggerText :: TextE a
+            -> TextE v
+            -> TextE b
+            -> Reader TCtx Text
+triggerText field value body = do
+  trig' <- textBinary field value "Когда " " приобретает значение " ""
+  body' <- toText body
+  return $ T.concat $ [trig', ": "] ++ [body']
 
 
 -- | Existential container for model idents.
@@ -124,8 +129,8 @@ instance Backoffice TextE where
     caseField     = textE . fieldDesc
     serviceField  = textE . fieldDesc
 
-    onCaseField f v = TextE $ triggerText (caseField f) v
-    onServiceField f v = TextE $ triggerText (serviceField f) v
+    onCaseField f v body = TextE $ triggerText (caseField f) v body
+    onServiceField f v body = TextE $ triggerText (serviceField f) v body
 
     not v = TextE $
             T.append "НЕ выполнено условие " <$> toText v
@@ -192,9 +197,10 @@ instance Backoffice TextE where
         T.append "Создать действия: " <$>
         T.intercalate ", " <$> mapM (toText . const) acts
 
-    a *> b = TextE $ textBinary a b "" ", " ""
+    a *> b = TextE $ textBinary a b "" ", затем " ""
 
 
+-- | TextE evaluator for DSL terms.
 evalText :: TCtx -> TextE ty -> Text
 evalText c t = runReader (toText t) c
 
@@ -232,12 +238,9 @@ backofficeText spec iMap =
       ctx = TCtx iMap
       indent :: [Text] -> [Text]
       indent = map ('\t' `T.cons`)
-      fmtEntry e =
-          [T.snoc (evalText ctx $ trigger e) ':'] ++
-          indent [evalText ctx $ result e] ++
-          ["\n"]
+      fmtEntry e = [evalText ctx $ trigger e] ++ ["\n"]
       fmtAction a =
-          [lkp (IBox $ aType a) iMap] ++
+          [T.snoc (lkp (IBox $ aType a) iMap) ':'] ++
           indent
           ([ T.concat ["Время выполнения: ", evalText ctx $ due a]
            , T.concat ["Ответственность: ", evalText ctx $ assignment a]
