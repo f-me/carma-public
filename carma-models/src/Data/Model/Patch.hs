@@ -2,7 +2,7 @@
 
 module Data.Model.Patch
   ( Patch(Patch), untypedPatch
-  , get, get', put
+  , get, get', put, delete
   , empty
   , W(..)
   )
@@ -42,26 +42,31 @@ data Patch m
   = Patch { untypedPatch :: HashMap Text Dynamic }
   deriving Typeable
 
-get
-  :: (Typeable t, SingI name)
-  => Patch m -> (m -> Field t (FOpt name desc app)) -> Maybe t
+get :: (Typeable t, SingI name) =>
+       Patch m -> (m -> Field t (FOpt name desc app)) -> Maybe t
 get (Patch m) f
   = fromJust . fromDynamic
   <$> HashMap.lookup (fieldName f) m
 
-put :: (Typeable t, SingI name)
-    => (m -> Field t (FOpt name desc app)) -> t -> Patch m -> Patch m
+
+put :: (Typeable t, SingI name) =>
+       (m -> Field t (FOpt name desc app)) -> t -> Patch m -> Patch m
 put f v (Patch m) = Patch $ HashMap.insert (fieldName f) (toDyn v) m
+
 
 empty :: Patch m
 empty = Patch HashMap.empty
 
 
-get'
-  :: (Typeable t, SingI name)
-  => Patch m -> (m -> Field t (FOpt name desc app)) -> t
+get' :: (Typeable t, SingI name) =>
+        Patch m -> (m -> Field t (FOpt name desc app)) -> t
 get' p f
   = fromJust $ get p f
+
+
+delete :: (SingI name) =>
+          (m -> Field t (FOpt name desc app)) -> Patch m -> Patch m
+delete f (Patch m) = Patch $ HashMap.delete (fieldName f) m
 
 
 instance Model m => FromJSON (Patch m) where

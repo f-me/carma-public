@@ -87,8 +87,6 @@ instance Model Partner where
       ,setMeta "dictionaryName"   "EmailTypes"       emails
       ,setMeta "widget"           "dict-objects"     emails
 
-      ,setMeta "dictionaryStringify" (A.Bool True)   taxScheme
-      ,setMeta "dictionaryType"   "ModelDict"        taxScheme
       ,setMeta "reference-label"  "Добавить услугу"  services
       ,setMeta "reference-widget" "partner_services" services
       ,setMeta "model"            "partner_service"  services

@@ -10,7 +10,6 @@ module Data.Model.Patch.Sql
 
 import Prelude hiding (read)
 
-import Control.Applicative
 import Control.Exception (try, SomeException)
 import Data.Int (Int64)
 import Data.List (isPrefixOf)
@@ -31,29 +30,30 @@ create
   :: forall m . Model m
   => Patch m -> Connection
   -> IO (Either SomeException (IdentI m))
-create p c
-  = try $ head . head <$> query c (fromString q) p
-  where
-    mInfo = modelInfo :: ModelInfo m
-    m = untypedPatch p
-    -- we use `map fst . HashMap.toList` instead of `HashMap.keys`
-    -- just to be sure that `insFields` are in the same order as
-    -- `ToRow (Patch m)` expects
-    insFields = map fst $ HashMap.toList m
-    q = printf "INSERT INTO %s (%s) VALUES (%s) RETURNING id"
-      (show $ tableName mInfo)
-      (T.unpack $ T.intercalate ", " insFields)
-      (T.unpack $ T.intercalate ", " $ replicate (length insFields) "?")
+create p c = try $ do
+  let mInfo = modelInfo :: ModelInfo m
+      m = untypedPatch p
+      -- we use `map fst . HashMap.toList` instead of `HashMap.keys`
+      -- just to be sure that `insFields` are in the same order as
+      -- `ToRow (Patch m)` expects
+      insFields = map fst $ HashMap.toList m
+      q = printf "INSERT INTO %s (%s) VALUES (%s) RETURNING id"
+        (show $ tableName mInfo)
+        (T.unpack $ T.intercalate ", " insFields)
+        (T.unpack $ T.intercalate ", " $ replicate (length insFields) "?")
+  [[res]] <- query c (fromString q) p
+  return res
 
 
-read :: forall m . Model m => IdentI m -> Connection -> IO [Patch m]
-read (Ident i) c = query c (fromString q) [i]
-  where
-    mInfo = modelInfo :: ModelInfo m
-    fieldNames = map fd_name $ onlyDefaultFields $ modelFields mInfo
-    q = printf "SELECT %s FROM %s WHERE id = ? LIMIT 2"
-      (T.unpack $ T.intercalate ", " fieldNames)
-      (show $ tableName mInfo)
+read :: forall m . Model m => IdentI m -> Connection -> IO (Either SomeException (Patch m))
+read (Ident i) c = try $ do
+  let mInfo = modelInfo :: ModelInfo m
+      fieldNames = map fd_name $ onlyDefaultFields $ modelFields mInfo
+      q = printf "SELECT %s FROM %s WHERE id = ? LIMIT 2"
+        (T.unpack $ T.intercalate ", " fieldNames)
+        (show $ tableName mInfo)
+  [res] <- query c (fromString q) [i]
+  return res
 
 
 readMany :: forall m . Model m => Int64 -> Int64 -> Connection -> IO [Patch m]

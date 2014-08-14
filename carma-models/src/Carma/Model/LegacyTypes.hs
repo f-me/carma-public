@@ -38,6 +38,16 @@ instance ToField JsonAsText where
 instance FromField JsonAsText where
   fromField fld m = JsonAsText <$> fromField fld m
 
+data Password = Password Text deriving Typeable
+instance FromJSON Password where
+  parseJSON fld = Password <$> parseJSON fld
+instance ToJSON Password where
+  toJSON (Password txt) = toJSON txt
+instance ToField Password where
+  toField (Password txt) = toField txt
+instance FromField Password where
+  fromField fld m = Password <$> fromField fld m
+
 data Phone = Phone Text deriving Typeable
 instance FromJSON Phone where
   parseJSON fld = Phone <$> parseJSON fld
@@ -47,7 +57,6 @@ instance ToField Phone where
   toField (Phone txt) = toField txt
 instance FromField Phone where
   fromField fld m = Phone <$> fromField fld m
-
 
 data Reference = Reference Text deriving Typeable
 instance FromJSON Reference where

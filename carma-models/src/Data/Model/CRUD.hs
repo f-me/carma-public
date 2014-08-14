@@ -32,12 +32,13 @@ defaultCRUD = CRUD
       liftIO (Sql.create p pg) >>= \case
         Left ex -> left $ PgException ex
         Right ident -> do
-          res <- tryPg $ Sql.read (ident :: IdentI m) pg
-          hoistEither $ unparseRes ident res
+          Right res <- tryPg $ Sql.read (ident :: IdentI m) pg
+          hoistEither $ unparseRes ident [res]
 
   , crud_read = \ident pg
-    -> tryPg (Sql.read ident pg)
-    >>= hoistEither . unparseRes ident
+    -> tryPg (Sql.read ident pg) >>= \case
+      Right res -> hoistEither $ unparseRes ident [res]
+      Left err  -> left $ PgException err
 
   , crud_update = \ident obj pg -> do
       p <- hoistEither $ parseJSON obj
