@@ -119,13 +119,14 @@ class Backoffice impl where
     -- used action types.
     previousAction :: impl ActionTypeI
 
-    -- Context access. Note that @t@ type is not brought into DSL type
-    -- system, thus an extra hint is included in type constraints for
-    -- the meta-language interpreter.
+    -- | Context access. Note that @t@ type is not brought into DSL
+    -- type system, thus an extra hint is included in type constraints
+    -- for the meta-language interpreter.
     --
-    -- These functions are not total: if there's no corresponding
-    -- context during the run time, an error is raised. For instance,
-    -- service fields cannot be accessed in case triggers.
+    -- Context access functions ('caseField', 'serviceField') are not
+    -- total: if there's no corresponding context during the run time,
+    -- an error is raised. For instance, service fields cannot be
+    -- accessed in case triggers.
     userField     :: (FieldI t n d, HaskellType t ~ t) =>
                      (Usermeta -> F t n d) -> impl t
     caseField     :: (FieldI t n d, HaskellType t ~ t) =>
@@ -133,23 +134,41 @@ class Backoffice impl where
     serviceField  :: (FieldI t n d, HaskellType t ~ t) =>
                      (Service -> F t n d) -> impl t
 
+    -- | Trigger constructor.
+    --
+    -- 'Entry' serves as an existential container for terms of this
+    -- type. The reason for this is because we need to bind together a
+    -- model @m@ in the field accessor and the outcome.
     onField :: (Model m, Eq t, FieldI t n d, HaskellType t ~ t) =>
                (m -> F t n d)
             -> impl t
             -> impl (Outcome m)
             -> impl Trigger
 
-    -- Boolean combinators (lifted to impl because we usually use
-    -- terms from impl as arguments)
+    -- | Negation.
+    --
+    -- Boolean combinators are lifted to impl because we usually use
+    -- terms from impl as arguments).
     not  :: impl Bool -> impl Bool
-    infix 4 >
-    (>)  :: Ord (HaskellType v) =>
-            impl v -> impl v -> impl Bool
+
+    -- | Equality.
+    --
+    -- Another example of meta-language type hints included in DSL
+    -- types. Our type system is fully transparent here: for instance,
+    -- we can compare two service fields with types completely unknown
+    -- to our DSL while still being able to interpret them in text or
+    -- in Haskell.
     infix 4 ==
     (==) :: Eq (HaskellType v) =>
             impl v -> impl v -> impl Bool
+    -- | Greater-than.
+    infix 4 >
+    (>)  :: Ord (HaskellType v) =>
+            impl v -> impl v -> impl Bool
+    -- | Boolean AND.
     infixr 3 &&
     (&&) :: impl Bool -> impl Bool -> impl Bool
+    -- | Boolean OR.
     infixr 2 ||
     (||) :: impl Bool -> impl Bool -> impl Bool
 
@@ -195,6 +214,8 @@ class Backoffice impl where
     finish  :: impl (Outcome m)
 
     -- | Close the action and create new actions of given types.
+    --
+    -- Duplicate types are ignored.
     proceed :: [ActionTypeI] -> impl (Outcome m)
 
     -- | Postpone the action.
