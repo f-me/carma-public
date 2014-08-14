@@ -258,13 +258,13 @@ updateHandler = do
                      -- TODO #1352 workaround for Contract triggers
                      "Contract" ->
                          do
-                           res' <- liftIO $
+                           Right res' <- liftIO $
                                   withResource (PS.pgPool s) (Patch.read ident)
                           -- TODO Cut out fields from original commit like
                           -- DB.update does
                            case (Aeson.decode $ Aeson.encode res') of
-                             Just [obj] -> return $ Right obj
-                             err        -> error $
+                             Just obj -> return $ Right obj
+                             err      -> error $
                                            "BUG in updateHandler: " ++ show err
                      _ -> return $ Right $ Aeson.object []
   -- See also Utils.NotDbLayer.update

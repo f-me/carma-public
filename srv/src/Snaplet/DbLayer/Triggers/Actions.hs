@@ -1,6 +1,5 @@
 {-# LANGUAGE DoAndIfThenElse #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Snaplet.DbLayer.Triggers.Actions where
@@ -37,7 +36,7 @@ import Snaplet.DbLayer.Triggers.MailToGenser
 import Carma.HTTP (read1Reference)
 
 import           Data.Model
-import qualified Data.Model.Patch as Patch (Patch, get)
+import qualified Data.Model.Patch as Patch (get)
 import qualified Data.Model.Patch.Sql as Patch (read)
 
 import qualified Carma.Model.Case as Case
@@ -53,7 +52,6 @@ import qualified Carma.Model.SmsTemplate as SmsTemplate
 import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Action as Act
-import qualified Carma.Model.Call   as Call
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
 import Util as U
@@ -128,13 +126,10 @@ actions
             case fvIdent val of
               Nothing -> return ()
               Just wi -> do
-                  res :: [Patch.Patch Wazzup.Wazzup] <-
-                         liftDb $ withPG $ \c -> Patch.read wi c
+                  res  <- liftDb $ withPG $ \c -> Patch.read wi c
                   case res of
-                    [] -> return ()
-                    (patch:_) ->
-                        let
-                            f acc = maybe "" identFv $
+                    Right patch ->
+                        let f acc = maybe "" identFv $
                                     fromMaybe Nothing $
                                     Patch.get patch acc
                             s = f Wazzup.system
@@ -147,6 +142,7 @@ actions
                           set caseId "diagnosis3" c >>
                           set caseId "diagnosis4" g >>
                           return ()
+                    _ -> return ()
             ])
           ,("services", [\caseId _ -> updateCaseStatus caseId])
           -- ,("contact_name",
