@@ -157,7 +157,7 @@ initDbLayer :: Snaplet (AuthManager b)
             -- authorization.
             -> FilePath
             -> SnapletInit b (DbLayer b)
-initDbLayer sessionMgr adb cfgDir = makeSnaplet "db-layer" "Storage abstraction"
+initDbLayer sessionMgr adb _ = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     -- syslog Info "Server started"
     tbls <- liftIO $ MT.loadTables "resources/site-config/models"

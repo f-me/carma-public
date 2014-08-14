@@ -18,7 +18,6 @@ import System.Locale (defaultTimeLocale)
 import Snap
 import Snap.Snaplet.Auth
 import Snaplet.Auth.Class
-import Snap.Snaplet.PostgresqlSimple
 
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis

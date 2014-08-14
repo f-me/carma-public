@@ -58,11 +58,10 @@ extraContractFieldNames = map fieldNameE extraContractFields
 --
 -- 'FromRow'/'ToJSON' instance uses field instances from carma-models.
 data SearchResult =
-    SearchResult { cid         :: (IdentI Contract)
-                 , expired     :: Maybe Bool
-                 -- ^ Name of a field which matched.
-                 , identifiers :: $(fieldTypesQ C.identifiers)
-                 , extras      :: $(fieldTypesQ extraContractFields)
+    SearchResult { _cid         :: (IdentI Contract)
+                 , _expired     :: Maybe Bool
+                 , _identifiers :: $(fieldTypesQ C.identifiers)
+                 , _extras      :: $(fieldTypesQ extraContractFields)
                  }
 
 instance FromRow SearchResult where

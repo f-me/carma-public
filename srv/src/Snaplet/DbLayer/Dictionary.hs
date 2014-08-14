@@ -12,7 +12,6 @@ import Control.Arrow
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Aeson hiding (Result(..))
-import qualified Data.Aeson as A (Result(..))
 import Data.Maybe
 import qualified Data.ByteString.Lazy.Char8 as LC8
 import qualified Data.Text           as T
@@ -20,7 +19,7 @@ import qualified Data.HashMap.Strict as HM
 import System.FilePath
 import System.Directory
 
-import Util (readJSON,syslogTxt,Priority(..))
+import Util (syslogTxt, Priority(..))
 
 data KeyValue = KeyValue {
     key :: T.Text,

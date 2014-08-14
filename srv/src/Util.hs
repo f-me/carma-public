@@ -3,30 +3,37 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Util
-  (readJSON
-  ,readJSONfromLBS
-  ,selectParse
-  ,mbreadInt
-  ,mbreadDouble
-  ,readDouble
-  ,lookupNE
-  ,selectPrice
-  ,printBPrice
-  ,getCostField
-  ,upCaseName
-  ,bToString
-  ,stringToB
-  , formatTimestamp
+  (
+    -- * Request processing
+    readJSON
+  , readJSONfromLBS
+  , selectParse
+  , mbreadInt
+  , mbreadDouble
+  , readDouble
+
+   -- * String helpers
+  , upCaseName
+  , bToString
+  , stringToB
   , render
+
+    -- * Time and date
+  , formatTimestamp
   , projNow
+
+    -- * Legacy interoperability for Idents
   , identFv
   , fvIdent
-  -- Postgres ToRow/ToField helpers
+
+    -- * Postgres helpers
   , PlainText(..)
   , (:*)(..)
   , ToRowList(..)
   , sqlFlagPair
   , withPG
+
+    -- * Logging
   , syslogJSON, syslogTxt, Syslog.Priority(..)
   , hushExceptions, logExceptions
   , (Aeson..=)
@@ -70,13 +77,10 @@ import Database.PostgreSQL.Simple.ToField
 import Database.PostgreSQL.Simple.ToRow
 import Database.PostgreSQL.Simple.Types
 
-import Text.Printf (printf)
-
 import Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
 import qualified Database.PostgreSQL.Simple as P
 
 import qualified Data.Model as Model
-import qualified Carma.Model.PaymentType as PT
 import qualified System.Posix.Syslog as Syslog
 
 import Data.Pool
@@ -149,26 +153,6 @@ mbreadDouble s =  case T.double s of
 readDouble :: Text -> Double
 readDouble = fromMaybe 0 . mbreadDouble
 
--- | Like Map.lookup but treat Just "" as Nothing
-lookupNE :: Ord k => k -> Map k Text -> Maybe Text
-lookupNE key obj = Map.lookup key obj >>= lp
-  where lp "" = Nothing
-        lp v  = return v
-
-getCostField :: Map Text Text -> Maybe Text
-getCostField srv = lookupNE "payType" srv >>= selectPrice
-
-selectPrice :: Text -> Maybe Text
-selectPrice v
-          | v == identFv PT.ruamc  = Just "price2"
-          | elem v $ map identFv [PT.client, PT.mixed, PT.refund]
-              = Just "price1"
-          | otherwise              = Nothing
-
-printPrice :: Double -> String
-printPrice p = printf "%.2f" p
-printBPrice :: Double -> Text
-printBPrice p = T.pack $ printPrice p
 
 -- | Convert UTF-8 encoded BS to Haskell string.
 bToString :: ByteString -> String
@@ -202,7 +186,7 @@ render varMap = T.concat . loop
     evalVar v = Map.findWithDefault v v varMap
 
 
--- | Format timestamp as "DD/MM/YYYY".
+-- | Format timestamp as @DD/MM/YYYY@.
 formatTimestamp :: MonadIO m => Text -> m Text
 formatTimestamp tm = case T.decimal tm of
   Right (s :: Int, "") -> do

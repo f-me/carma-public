@@ -60,7 +60,6 @@ import qualified Data.Aeson as Aeson
 import Data.Aeson
 import Data.List
 import qualified Data.Map as Map
-import qualified Data.HashMap.Strict as HM
 
 import Data.Maybe
 import Data.Ord (comparing)
