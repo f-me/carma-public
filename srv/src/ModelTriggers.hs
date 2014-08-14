@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -30,10 +31,13 @@ import GHC.TypeLits
 
 import qualified Data.Pool as Pool
 import qualified Database.PostgreSQL.Simple.Transaction as PG
+import           Snap.Snaplet.PostgresqlSimple as PS ((:.)(..))
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import Application (AppHandler)
 import Data.Model as Model
+import Data.Model.Sql as Sql
+import Data.Model.Types
 import Data.Model.Patch as Patch (Patch, get', put, untypedPatch)
 
 import Trigger.Dsl
@@ -46,6 +50,7 @@ import qualified Carma.Model.Case as Case
 import           Carma.Model.CaseStatus (CaseStatus)
 import           Carma.Model.Role (Role)
 import           Carma.Model.Service (Service)
+import qualified Carma.Model.Service as Service
 
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
@@ -247,3 +252,30 @@ data HCtx =
          , now        :: UTCTime
          -- ^ Frozen time.
          }
+
+
+-- | Helper class to provide back office context depending on trigger
+-- models (@m@ in @Dsl m@).
+--
+-- Methods are purposefully partial.
+class PreContextAccess m where
+    getService :: Free (Dsl m) (Patch Service)
+
+
+instance PreContextAccess Case where
+    getService = error "No service for case"
+
+
+instance PreContextAccess Service where
+    getService = dbRead =<< getIdent
+
+
+instance PreContextAccess Action.Action where
+    getService = do
+      i <- getIdent
+      p <- dbRead i
+      let sId   = Patch.get' p Action.serviceId
+          sType = Patch.get' p Action.serviceType
+      case (sId, sType) of
+        (Just sId', Just sType') -> getSrv sId' sType'
+        _ -> error "No service for action"
