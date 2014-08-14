@@ -66,7 +66,7 @@ runUpdateTriggers
 runUpdateTriggers = runFieldTriggers $ Map.unionsWith (++)
   [trigOn Usermeta.delayedState $ \_ -> wsMessage >> logLegacy Usermeta.delayedState
   ,trigOn Call.endDate $ \_ -> logLegacy Call.endDate
---  ,entryToTrigger (head $ fst carmaBackoffice)
+  ,evalHaskell undefined (trigger $ head $ fst carmaBackoffice)
   ]
 
 --  - runReadTriggers
@@ -148,6 +148,14 @@ haskellBinary :: (HaskellType t1 -> HaskellType t2 -> HaskellType t)
               -> HaskellE t
 haskellBinary fun = \a b -> HaskellE $ fun <$> toHaskell a <*> toHaskell b
 
+haskellTrigger acc target body = HaskellE $ do
+  target' <- toHaskell target
+  body' <- toHaskell body
+  return $ trigOn acc $
+           \t -> when (t == target') $
+                 fromDyn body' (error "haskellTrigger: wrong body type")
+
+
 newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
     deriving Typeable
 
@@ -210,10 +218,9 @@ instance Backoffice HaskellE where
 
     (||) = haskellBinary (Prelude.||)
 
-    onCaseField acc target body = HaskellE $ do
-      target' <- toHaskell target
-      body' <- toHaskell body
-      return $ trigOn acc $ \t -> when (t == target') $ fromDyn body' (error "Dynamic bug")
+    onCaseField = haskellTrigger
+
+    onServiceField = haskellTrigger
 
 evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty
 evalHaskell c t = runReader (toHaskell t) c
