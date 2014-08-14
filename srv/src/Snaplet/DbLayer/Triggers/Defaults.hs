@@ -56,15 +56,6 @@ applyDefaults model obj = do
               $ obj
     "case" -> return cd
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
-    "contract" ->
-      -- Store user id in owner field if it's not present
-      case Map.lookup "owner" obj of
-        Nothing -> do
-          Just u <- withAuth currentUser
-          let Just (UserId uid) = userId u
-          return $ Map.insert "owner" uid obj
-        _ -> return obj
-
     "taxi" -> do
       let parentId = T.encodeUtf8 $ obj Map.! "parentId"
       Right caseAddr <- Redis.runRedisDB redis
@@ -72,12 +63,6 @@ applyDefaults model obj = do
       return $ case T.decodeUtf8 <$> caseAddr of
         Just addr -> Map.insert "taxiFrom_address" addr obj
         Nothing   -> obj
-
-    "vin"  -> return $ Map.fromList
-              [ ("validFrom"  , T.pack $ show ct)
-              , ("validUntil" , T.pack $ show $ ct + y)
-              , ("makeYear"   , T.pack cy)
-              ]
     _ -> return obj
 
   obj'' <- if model `elem` services
