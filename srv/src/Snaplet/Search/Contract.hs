@@ -63,7 +63,7 @@ mkQuery _ predicate lim offset ord
   = fromString $ printf
       (  "    select %s"
       ++ "     from \"Contract\""
-      ++ "     where (%s) %s limit %i offset %i;"
+      ++ "     where (%s and dixi) %s limit %i offset %i;"
       )
       (T.unpack $ mkSel (undefined :: t))
       (T.unpack predicate) ord lim offset
