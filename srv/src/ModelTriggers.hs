@@ -76,7 +76,7 @@ runUpdateTriggers
 runUpdateTriggers = runFieldTriggers $ Map.unionsWith (++)
   [trigOn Usermeta.delayedState $ \_ -> wsMessage >> logLegacy Usermeta.delayedState
   ,trigOn Call.endDate $ \_ -> logLegacy Call.endDate
-  ,evalHaskell undefined (trigger $ head $ fst carmaBackoffice)
+  ,evalHaskell noContext (trigger $ head $ fst carmaBackoffice)
   ]
 
 --  - runReadTriggers
@@ -236,13 +236,22 @@ instance Backoffice HaskellE where
 
     (||) = haskellBinary (Prelude.||)
 
-    onField acc target body = HaskellE $ do
-      target' <- toHaskell target
-      body' <- toHaskell body
-      return $ trigOn acc $ \t -> when (t == target') body'
+    onField acc target body =
+        HaskellE $
+        return $
+        trigOn acc $
+        \newVal -> do
+          srv <- getService
+          kase' <- getKase
+          let hctx = HCtx{service = srv, kase = kase'}
+          when (newVal == (evalHaskell hctx target)) (evalHaskell hctx body)
 
 evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty
 evalHaskell c t = runReader (toHaskell t) c
+
+
+noContext = error "HaskellE broken -- no context at this point"
+
 
 data HCtx =
     HCtx { kase       :: Patch Case
@@ -252,30 +261,3 @@ data HCtx =
          , now        :: UTCTime
          -- ^ Frozen time.
          }
-
-
--- | Helper class to provide back office context depending on trigger
--- models (@m@ in @Dsl m@).
---
--- Methods are purposefully partial.
-class PreContextAccess m where
-    getService :: Free (Dsl m) (Patch Service)
-
-
-instance PreContextAccess Case where
-    getService = error "No service for case"
-
-
-instance PreContextAccess Service where
-    getService = dbRead =<< getIdent
-
-
-instance PreContextAccess Action.Action where
-    getService = do
-      i <- getIdent
-      p <- dbRead i
-      let sId   = Patch.get' p Action.serviceId
-          sType = Patch.get' p Action.serviceType
-      case (sId, sType) of
-        (Just sId', Just sType') -> getSrv sId' sType'
-        _ -> error "No service for action"

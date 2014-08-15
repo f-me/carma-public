@@ -24,20 +24,23 @@ module Carma.Backoffice.DSL
     , hours
     , days
 
-      -- * Misc
+      -- * Meta-language interface
     , HaskellType
+    , PreContextAccess(..)
     )
 
 where
 
 import           Prelude hiding (const)
 
+import           Data.Functor
 import           Data.Dynamic
 import           Data.Text
 import           Data.Time.Clock
 
 import           Data.Map
 import           Data.Model
+import           Data.Model.Patch
 import           Data.Model.Types
 
 import           Carma.Model.ActionResult (ActionResult)
@@ -139,7 +142,8 @@ class Backoffice impl where
     -- 'Entry' serves as an existential container for terms of this
     -- type. The reason for this is because we need to bind together a
     -- model @m@ in the field accessor and the outcome.
-    onField :: (Model m, Eq t, FieldI t n d, HaskellType t ~ t) =>
+    onField :: (PreContextAccess m, Model m,
+                Eq t, FieldI t n d, HaskellType t ~ t) =>
                (m -> F t n d)
             -> impl t
             -> impl (Outcome m)
@@ -294,3 +298,30 @@ type family HaskellType t where
   HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
   HaskellType (Outcome m) = Free (Dsl m) ()
   HaskellType t = t
+
+
+-- | Helper class to provide back office context depending on trigger
+-- models (@m@ in @Dsl m@).
+class PreContextAccess m where
+    getKase    :: Free (Dsl m) (Patch Case)
+    getService :: Free (Dsl m) (Maybe (Patch Service))
+
+
+instance PreContextAccess Case where
+    getKase    = dbRead =<< getIdent
+    getService = return Nothing
+
+
+instance PreContextAccess Service where
+    getService = Just <$> (dbRead =<< getIdent)
+
+
+instance PreContextAccess CarmaAction.Action where
+    getService = do
+      i <- getIdent
+      p <- dbRead i
+      let sId   = get' p CarmaAction.serviceId
+          sType = get' p CarmaAction.serviceType
+      case (sId, sType) of
+        (Just sId', Just sType') -> Just <$> getSrv sId' sType'
+        _                        -> return Nothing
