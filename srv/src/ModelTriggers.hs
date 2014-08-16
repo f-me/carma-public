@@ -28,6 +28,7 @@ import Data.Model.Patch as Patch (Patch, put, untypedPatch)
 import qualified Data.Model.Patch.Sql as Patch
 
 import Trigger.Dsl
+import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
@@ -40,14 +41,23 @@ import qualified Carma.Model.Call as Call
 
 beforeCreate :: Map ModelName [Dynamic]
 beforeCreate = Map.unionsWith (++)
-  [trigOnModel ([]::[Call]) $ do
-    uid <- currentUserId
-    modifyPatch $ Patch.put Call.callTaker uid
+  [trigOnModel ([]::[Call])
+    $ getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
+  ,trigOnModel ([]::[Usermeta]) $ do
+    Just login <- getPatchField Usermeta.login -- TODO: check if valid?
+    -- NB!
+    -- Hope that Snap does not cache users and, in case of error during some
+    -- further steps of Usermeta, this will be automatically rolled back.
+    -- Otherwise we need some kind of finalisers for "Real world actions that
+    -- could not be deferred".
+    createSnapUser login
   ]
+
 
 afterCreate :: Map ModelName [Dynamic]
 afterCreate = Map.unionsWith (++)
-  []
+  [trigOnModel ([]::[Usermeta]) updateSnapUserFromUsermeta
+  ]
 
 
 runUpdateTriggers
@@ -55,6 +65,9 @@ runUpdateTriggers
   => IdentI m -> Patch m -> AppHandler (TriggerRes m)
 runUpdateTriggers = runFieldTriggers $ Map.unionsWith (++)
   [trigOn Usermeta.delayedState $ \_ -> wsMessage
+  ,trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
+  ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
+  ,trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
   ]
 
 --  - runReadTriggers
