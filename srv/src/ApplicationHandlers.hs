@@ -388,17 +388,6 @@ rkcPartners = logExceptions "handler/rkc/partners" $ do
   res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
   writeJSON res
 
--- | This action recieve model and id as parameters to lookup for
--- and json object with values to create new model with specified
--- id when it's not found
-findOrCreateHandler :: AppHandler ()
-findOrCreateHandler = do
-  Just model <- getParamT "model"
-  Just objId    <- getParamT "id"
-  commit <- getJSONBody
-  res <- with db $ DB.findOrCreate model objId commit
-  -- FIXME: try/catch & handle/log error
-  writeJSON res
 
 -- | Calculate average tower arrival time (in seconds) for today,
 -- parametrized by city (a value from DealerCities dictionary).

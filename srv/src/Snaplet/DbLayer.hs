@@ -12,7 +12,6 @@ module Snaplet.DbLayer
   ,submitTask
   ,readAll
   ,initDbLayer
-  ,findOrCreate
   ) where
 
 import Prelude hiding (read)
@@ -48,9 +47,6 @@ import Snaplet.Messenger (sendMessage)
 import Snaplet.Messenger.Class
 import DictionaryCache
 
-import qualified Carma.Model.Call as Call
-import           Carma.Model.Event (EventType(..))
-import qualified Utils.Events as Evt
 import Util
 
 
@@ -73,16 +69,6 @@ create model commit = do
   syslogJSON Debug "DbLayer/create/result" ["result" .= result]
   return result
 
-findOrCreate :: (HasAuth b, HasMsg b)
-             => ModelName -> ObjectId -> Object
-             -> Handler b (DbLayer b) Object
-findOrCreate model objId commit = do
-  r <- read model objId
-  case Map.toList r of
-    [] -> do
-      obj <- triggerCreate model =<< applyDefaults model commit
-      Redis.create' redis model objId obj
-    _  -> return r
 
 read :: ModelName -> ObjectId
      -> Handler b (DbLayer b) Object

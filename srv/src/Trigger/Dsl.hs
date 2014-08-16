@@ -27,7 +27,6 @@ module Trigger.Dsl
 
       -- ** Miscellaneous
     , wsMessage
-    , logLegacy
     )
 
 where
