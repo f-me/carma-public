@@ -1,8 +1,14 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
+
+{-|
+
+All you need to define a back office logic: high-level types and DSL
+terms.
+
+-}
 
 module Carma.Backoffice.DSL
     (
@@ -23,24 +29,15 @@ module Carma.Backoffice.DSL
     , minutes
     , hours
     , days
-
-      -- * Meta-language interface
-    , HaskellType
-    , PreContextAccess(..)
     )
 
 where
 
 import           Prelude hiding (const)
 
-import           Data.Functor
-import           Data.Dynamic
-import           Data.Text
 import           Data.Time.Clock
 
-import           Data.Map
 import           Data.Model
-import           Data.Model.Patch
 import           Data.Model.Types
 
 import           Carma.Model.ActionResult (ActionResult)
@@ -53,8 +50,8 @@ import           Carma.Model.ServiceStatus (ServiceStatus)
 import           Carma.Model.SmsTemplate (SmsTemplate)
 import           Carma.Model.Usermeta (Usermeta)
 
-import           Control.Monad.Free
-import           Trigger.Dsl
+import           Carma.Backoffice.DSL.Types
+
 
 type ActionTypeI = IdentI ActionType
 
@@ -79,16 +76,6 @@ data Action =
                            [(ActionResultI, impl (Outcome CarmaAction.Action))]
            -- ^ All action results (outward node edges).
            }
-
-
-data ActionAssignment
-
-
--- | An outcome induced by changes in model @m@.
-data Outcome m
-
-
-data Trigger
 
 
 -- | Back office language (typed tagless final representation).
@@ -215,12 +202,14 @@ class Backoffice impl where
               -> impl ()
 
     -- | Close the action.
-    finish  :: impl (Outcome m)
+    finish  :: PreContextAccess m =>
+               impl (Outcome m)
 
     -- | Close the action and create new actions of given types.
     --
     -- Duplicate types are ignored.
-    proceed :: [ActionTypeI] -> impl (Outcome m)
+    proceed :: PreContextAccess m =>
+               [ActionTypeI] -> impl (Outcome m)
 
     -- | Postpone the action.
     defer   :: impl (Outcome CarmaAction.Action)
@@ -232,7 +221,8 @@ class Backoffice impl where
     --
     -- > sendSMS *> doStuff *> finish
     infixr *>
-    (*>) :: impl () -> impl (Outcome m) -> impl (Outcome m)
+    (*>) :: PreContextAccess m =>
+            impl () -> impl (Outcome m) -> impl (Outcome m)
 
 
 setServiceStatus :: Backoffice impl => IdentI ServiceStatus -> impl ()
@@ -285,43 +275,3 @@ data Entry =
 -- graph, so be sure to validate it using 'checkBackoffice' prior to
 -- use.
 type BackofficeSpec = ([Entry], [Action])
-
-
--- | Haskell embeddings of DSL types.
---
--- Constraints on HaskellType-projections of DSL types included in
--- Backoffice method signatures define relations between type systems
--- of our DSL and the meta-language.
-type family HaskellType t where
-  HaskellType Trigger = Map (Text, Text) [Dynamic]
-  HaskellType (Maybe v) = Maybe (HaskellType v)
-  HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
-  HaskellType (Outcome m) = Free (Dsl m) ()
-  HaskellType t = t
-
-
--- | Helper class to provide back office context depending on trigger
--- models (@m@ in @Dsl m@).
-class PreContextAccess m where
-    getKase    :: Free (Dsl m) (Patch Case)
-    getService :: Free (Dsl m) (Maybe (Patch Service))
-
-
-instance PreContextAccess Case where
-    getKase    = dbRead =<< getIdent
-    getService = return Nothing
-
-
-instance PreContextAccess Service where
-    getService = Just <$> (dbRead =<< getIdent)
-
-
-instance PreContextAccess CarmaAction.Action where
-    getService = do
-      i <- getIdent
-      p <- dbRead i
-      let sId   = get' p CarmaAction.serviceId
-          sType = get' p CarmaAction.serviceType
-      case (sId, sType) of
-        (Just sId', Just sType') -> Just <$> getSrv sId' sType'
-        _                        -> return Nothing

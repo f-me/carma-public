@@ -56,9 +56,10 @@ import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 
 import           Carma.Backoffice
-import           Carma.Backoffice.Graph
+import           Carma.Backoffice.Graph (startNode)
 import           Carma.Backoffice.DSL as BO hiding ((==), const)
 import qualified Carma.Backoffice.DSL as BO
+import           Carma.Backoffice.DSL.Types
 
 
 runCreateTriggers

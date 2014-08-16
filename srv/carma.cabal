@@ -34,6 +34,7 @@ Executable carma
     AppHandlers.PSA.Base,
     Carma.Backoffice,
     Carma.Backoffice.DSL,
+    Carma.Backoffice.DSL.Types,
     Carma.Backoffice.Text,
     Carma.Backoffice.Graph,
     Carma.Backoffice.Validation,
