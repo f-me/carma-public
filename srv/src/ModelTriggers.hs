@@ -8,7 +8,7 @@ module ModelTriggers
 
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Free (Free)
-import Control.Monad.Trans.State (evalStateT)
+import Control.Monad.Trans.State
 
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -25,6 +25,7 @@ import qualified Snap.Snaplet.PostgresqlSimple as PS
 import Application (AppHandler)
 import Data.Model as Model
 import Data.Model.Patch as Patch (Patch, put, untypedPatch)
+import qualified Data.Model.Patch.Sql as Patch
 
 import Trigger.Dsl
 import qualified Carma.Model.Usermeta as Usermeta
@@ -32,14 +33,21 @@ import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
 
 
-runCreateTriggers
-  :: forall m . Model m
-  => Patch m -> AppHandler (TriggerRes m)
-runCreateTriggers = runModelTriggers $ Map.unionsWith (++)
+-- TODO: rename
+--   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
+--   - trigOnField -> onField
+
+
+beforeCreate :: Map ModelName [Dynamic]
+beforeCreate = Map.unionsWith (++)
   [trigOnModel ([]::[Call]) $ do
     uid <- currentUserId
     modifyPatch $ Patch.put Call.callTaker uid
   ]
+
+afterCreate :: Map ModelName [Dynamic]
+afterCreate = Map.unionsWith (++)
+  []
 
 
 runUpdateTriggers
@@ -88,27 +96,34 @@ trigOnModel _ fun
 
 
 -- | This is how we run triggers on a patch
-runModelTriggers
+
+runCreateTriggers
   :: forall m . Model m
-  => Map ModelName [Dynamic] -> Patch m
-  -> AppHandler (TriggerRes m)
-runModelTriggers trMap patch = do
+  => Patch m -> AppHandler (Either String (IdentI m, Patch m))
+runCreateTriggers patch = do
   let mName = modelName (modelInfo :: ModelInfo m)
       pName = parentName (modelInfo :: ModelInfo m)
-      parentTriggers = maybe [] (\p -> Map.findWithDefault [] p trMap) pName
-      matchingTriggers = parentTriggers ++ Map.findWithDefault [] mName trMap
+
+      matchingTriggers m
+        = let ts = Map.findWithDefault [] mName m
+          in maybe [] (\p -> Map.findWithDefault [] p m) pName ++ ts
+
       joinTriggers k tr = do
         let tr' = fromDyn tr $ tError 500 "dynamic BUG"
         tr' >>= either (return . Left) (const k)
+
+      before = foldl joinTriggers tOk $ matchingTriggers beforeCreate
+      after  = foldl joinTriggers tOk $ matchingTriggers afterCreate
+
   s <- PS.getPostgresState
   Pool.withResource (PS.pgPool s) $ \pgconn -> do
     -- FIXME: we need to choose isolation level carefully
     liftIO $ PG.beginLevel PG.Serializable pgconn
-    res <- evalStateT
-      (evalDsl $ foldl joinTriggers tOk matchingTriggers)
-      (DslState undefined patch pgconn)
+    (Right _, st1) <- runStateT (evalDsl before) (DslState undefined patch pgconn)
+    Right ident    <- liftIO $ Patch.create patch pgconn
+    (Right _, st2) <- runStateT (evalDsl after) (st1{st_ident = ident})
     liftIO $ PG.commit pgconn
-    return res
+    return $ Right (st_ident st2, st_patch st2)
 
 
 runFieldTriggers

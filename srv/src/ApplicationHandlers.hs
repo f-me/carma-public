@@ -143,23 +143,18 @@ createHandler = do
       createModel _ = do
         commit <- getJSONBody :: AppHandler (Patch m)
         runCreateTriggers commit >>= \case
-          Left (_,err) -> error $ "in createHandler: " ++ show err
-          Right commit' -> do
-            s <- PS.getPostgresState
-            res <- liftIO $ withResource (PS.pgPool s) (Patch.create commit')
-            case res of
-              Left err -> error $ "in createHandler:" ++ show err
-              Right idt@(Ident i) -> do
-                -- Can't do this in trigger because it need ident
-                evIdt <- logCRUD Create idt commit
-                updateUserState Create idt commit evIdt
-                -- we really need to separate idents from models
-                -- (so we can @Patch.set ident i commit@)
-                return $ case Aeson.toJSON commit' of
-                  Object obj
-                    -> Object
-                    $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
-                  obj -> error $ "impossible: " ++ show obj
+          Left err -> error $ "in createHandler: " ++ show err
+          Right (idt@(Ident i), commit') -> do
+            -- Can't do this in trigger because it need ident
+            evIdt <- logCRUD Create idt commit
+            updateUserState Create idt commit evIdt
+            -- we really need to separate idents from models
+            -- (so we can @Patch.set ident i commit@)
+            return $ case Aeson.toJSON commit' of
+              Object obj
+                -> Object
+                $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
+              obj -> error $ "impossible: " ++ show obj
 
   case Carma.Model.dispatch model createModel of
     Just fn -> logResp $ fn
