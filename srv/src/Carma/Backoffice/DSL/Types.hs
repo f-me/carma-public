@@ -80,6 +80,11 @@ instance PreContextAccess Service where
 
 
 instance PreContextAccess CarmaAction.Action where
+    getKase = do
+      i <- getIdent
+      p <- dbRead i
+      dbRead $ get' p CarmaAction.caseId
+
     getService = do
       i <- getIdent
       p <- dbRead i
