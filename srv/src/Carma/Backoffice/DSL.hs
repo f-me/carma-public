@@ -188,18 +188,18 @@ class Backoffice impl where
 
     -- Verbs with side effects
     setServiceField :: FieldI t n d =>
-                       (Service -> F t n d) -> impl t -> impl ()
-    sendDealerMail :: impl ()
-    sendGenserMail :: impl ()
-    sendPSAMail    :: impl ()
-    sendSMS        :: IdentI SmsTemplate -> impl ()
+                       (Service -> F t n d) -> impl t -> impl (Eff m)
+    sendDealerMail :: impl (Eff m)
+    sendGenserMail :: impl (Eff m)
+    sendPSAMail    :: impl (Eff m)
+    sendSMS        :: IdentI SmsTemplate -> impl (Eff m)
 
     -- | Close all previously created actions in the case.
     closeWith :: [ActionTypeI]
               -- ^ Matching action types.
               -> ActionResultI
               -- ^ A result used to close actions.
-              -> impl ()
+              -> impl (Eff m)
 
     -- | Close the action.
     finish  :: PreContextAccess m =>
@@ -222,10 +222,10 @@ class Backoffice impl where
     -- > sendSMS *> doStuff *> finish
     infixr *>
     (*>) :: PreContextAccess m =>
-            impl () -> impl (Outcome m) -> impl (Outcome m)
+            impl (Eff m) -> impl (Outcome m) -> impl (Outcome m)
 
 
-setServiceStatus :: Backoffice impl => IdentI ServiceStatus -> impl ()
+setServiceStatus :: Backoffice impl => IdentI ServiceStatus -> impl (Eff m)
 setServiceStatus s = setServiceField Service.status (const s)
 
 

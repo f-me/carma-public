@@ -10,6 +10,7 @@ Type system of Backoffice DSL.
 module Carma.Backoffice.DSL.Types
     (
       ActionAssignment
+    , Eff
     , Outcome
     , Trigger
 
@@ -43,6 +44,10 @@ import           Trigger.Dsl
 data ActionAssignment
 
 
+-- | An effect induced by changes in model @m@.
+data Eff m
+
+
 -- | An outcome induced by changes in model @m@.
 data Outcome m
 
@@ -60,6 +65,7 @@ type family HaskellType t where
   HaskellType (Maybe v) = Maybe (HaskellType v)
   HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
   HaskellType (Outcome m) = Free (Dsl m) ()
+  HaskellType (Eff m) = Free (Dsl m) ()
   HaskellType t = t
 
 
