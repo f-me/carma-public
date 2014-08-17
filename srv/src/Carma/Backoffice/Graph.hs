@@ -70,7 +70,7 @@ import           Carma.Backoffice.Text
 -- switch node counter is supposed to be used when multiple terms are
 -- processed (to prevent collisions between node numbers).
 newtype EdgeE t =
-  EdgeE { toEdge :: EdgeCtx -> NodeGenerator ([LEdge ColoredLabel]) }
+  EdgeE { toEdge :: EdgeCtx -> NodeGenerator [LEdge ColoredLabel] }
 
 
 type ColoredLabel = (Text, Maybe X11Color)
@@ -172,11 +172,11 @@ instance Backoffice EdgeE where
 
     defer =
         EdgeE $ \c ->
-            return $
+            return
             [(fromNode c, fromNode c, (fullEdgeText c, edgeColor c))]
     finish =
         EdgeE $ \c ->
-            return $
+            return
             [(fromNode c, finalNode c, (fullEdgeText c, edgeColor c))]
     proceed acts =
         EdgeE $ \c ->
@@ -189,7 +189,7 @@ instance Backoffice EdgeE where
 
 
 -- | EdgeE evaluator for DSL terms.
-evalEdge :: EdgeCtx -> EdgeE v -> NodeGenerator ([LEdge ColoredLabel])
+evalEdge :: EdgeCtx -> EdgeE v -> NodeGenerator [LEdge ColoredLabel]
 evalEdge ctx (EdgeE f) = f ctx
 
 

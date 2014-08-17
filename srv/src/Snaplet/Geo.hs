@@ -64,7 +64,7 @@ makeLenses ''Geo
 
 
 instance HasPostgres (Handler b Geo) where
-    getPostgresState = with postgres $ get
+    getPostgresState = with postgres get
 
 
 routes :: [(ByteString, Handler b Geo ())]
@@ -191,7 +191,7 @@ withinPartners = do
     _ -> error "Bad request"
     where
       recode :: [[BSL.ByteString]] -> [A.Object]
-      recode = Maybe.mapMaybe (A.decode) . Prelude.concat
+      recode = Maybe.mapMaybe A.decode . Prelude.concat
 
 
 ------------------------------------------------------------------------------
@@ -277,8 +277,8 @@ revSearch = do
         let fullUrl = nom ++
                       "reverse.php?format=json" ++
                       "&accept-language=" ++ lang ++
-                      "&lon=" ++ (show lon) ++
-                      "&lat=" ++ (show lat)
+                      "&lon=" ++ show lon ++
+                      "&lat=" ++ show lat
         addr' <- liftIO $ do
             rsb <- simpleHTTP (H.getRequest fullUrl) >>= getResponseBody
             return $ eitherDecode' $ BSL.pack rsb

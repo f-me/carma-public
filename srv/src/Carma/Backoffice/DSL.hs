@@ -238,7 +238,7 @@ ite :: Backoffice impl =>
     -> impl v
     -- ^ Else branch.
     -> impl v
-ite cond t e = switch [(cond, t)] e
+ite cond t = switch [(cond, t)]
 
 
 -- | 60 seconds

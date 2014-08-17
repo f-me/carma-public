@@ -164,7 +164,7 @@ runFieldTriggers trMap ident patch = do
       fields = HM.keys $ untypedPatch patch
       keys = maybe [] (\p -> map (p,) fields) pName ++ map (mName,) fields
 
-      matchingTriggers = concat $ catMaybes $ map (`Map.lookup` trMap) keys
+      matchingTriggers = concat $ mapMaybe (`Map.lookup` trMap) keys
       joinTriggers k tr = do
         let tr' = fromDyn tr $ tError 500 "dynamic BUG"
         tr' >>= either (return . Left) (const k)
@@ -183,7 +183,7 @@ haskellBinary :: (HaskellType t1 -> HaskellType t2 -> HaskellType t)
               -> HaskellE t1
               -> HaskellE t2
               -> HaskellE t
-haskellBinary fun = \a b -> HaskellE $ fun <$> toHaskell a <*> toHaskell b
+haskellBinary fun a b = HaskellE $ fun <$> toHaskell a <*> toHaskell b
 
 
 newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
@@ -205,7 +205,7 @@ instance Backoffice HaskellE where
 
     previousAction =
         HaskellE $
-        fromMaybe (Ident $ fst startNode) <$> (asks prevAction)
+        fromMaybe (Ident $ fst startNode) <$> asks prevAction
 
     userField acc =
         HaskellE $ asks (flip Patch.get' acc . user)
@@ -255,7 +255,7 @@ instance Backoffice HaskellE where
         trigOn acc $
         \newVal -> do
           hctx <- mkContext Nothing
-          when (newVal == (evalHaskell hctx target)) (evalHaskell hctx body)
+          when (newVal == evalHaskell hctx target) (evalHaskell hctx body)
 
     finish = HaskellE $ return $ return ()
 

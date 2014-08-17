@@ -113,15 +113,15 @@ lkp k@(IBox k'@(Ident i)) env =
 instance Backoffice TextE where
     now = textE "Текущее время"
     since dt t =
-        TextE $ (\c -> T.concat [c, " + ", formatDiff dt]) <$> (toText t)
+        TextE $ (\ c -> T.concat [c, " + ", formatDiff dt]) <$> toText t
     before dt t =
-        TextE $ (\c -> T.concat [c, " - ", formatDiff dt]) <$> (toText t)
+        TextE $ (\ c -> T.concat [c, " - ", formatDiff dt]) <$> toText t
 
     role r =
-        TextE $ T.append "Пользователи с ролью " <$> (toText $ const r)
+        TextE $ T.append "Пользователи с ролью " <$> toText (const r)
     currentUserOr r =
         TextE $
-        T.append "Текущий пользователь и другие с ролью " <$> (toText $ const r)
+        T.append "Текущий пользователь и другие с ролью " <$> toText (const r)
 
     previousAction = textE "Предыдущее действие"
 
@@ -237,7 +237,7 @@ backofficeText spec iMap =
       ctx = TCtx iMap
       indent :: [Text] -> [Text]
       indent = map ('\t' `T.cons`)
-      fmtEntry e = [evalText ctx $ trigger e] ++ ["\n"]
+      fmtEntry e = evalText ctx (trigger e) : ["\n"]
       fmtAction a =
           [T.snoc (lkp (IBox $ aType a) iMap) ':'] ++
           indent

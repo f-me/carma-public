@@ -40,5 +40,5 @@ mkQuery _ pred lim offset ord
       ++ "       on servicetbl.id = towagetbl.id"
       ++ "     where (%s) %s limit %i offset %i;"
       )
-      (T.unpack $ (mkSel (undefined :: t)))
+      (T.unpack (mkSel (undefined :: t)))
       (T.unpack pred) ord lim offset

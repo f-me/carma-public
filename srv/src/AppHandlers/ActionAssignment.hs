@@ -70,7 +70,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
                  []  -> withPG pg_actass (`query_` assignQ 3 cid)
                  _   -> return actIds''
 
-  when (not $ null (actIds''' :: [Only Int]))
+  unless (null (actIds''' :: [Only Int]))
     $ syslogJSON Info "littleMoreActions" [ "login" .= show cid
                                           , "actions" .= show actIds''']
 

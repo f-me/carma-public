@@ -1,5 +1,5 @@
 {-# LANGUAGE GADTs, ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving, DeriveDataTypeable, DeriveFunctor #-}
+{-# LANGUAGE StandaloneDeriving, DeriveDataTypeable #-}
 
 module Trigger.Dsl
     (

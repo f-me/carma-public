@@ -112,11 +112,11 @@ readJSONfromLBS' src s
 -- param parser for select
 sParse :: Text -> [Text]
 sParse prm =
-  let A.Done _ r = A.feed (A.parse (c) prm) T.empty
+  let A.Done _ r = A.feed (A.parse c prm) T.empty
   in r
     where
-      n = return . T.pack =<< (trim $ many1 $ A.satisfy $ A.notInClass "<>=")
-      p = trim $ choice $ map (A.string) ["<=", "<", ">=", ">", "=="]
+      n = return . T.pack =<< trim (many1 $ A.satisfy $ A.notInClass "<>=")
+      p = trim $ choice $ map A.string ["<=", "<", ">=", ">", "=="]
       c = do
         v    <- n
         pred' <- p
@@ -237,14 +237,14 @@ data a :* b = a :* b deriving (Eq, Ord, Show, Read)
 infixl 3 :*
 
 instance (ToRow a, ToField b) => ToRow (a :* b) where
-    toRow (a :* b) = toRow $ a :. (Only b)
+    toRow (a :* b) = toRow $ a :. Only b
 
 
 -- | A list of 'ToRow' values with concatenating behavour of 'ToRow'.
 data ToRowList a = ToRowList [a]
 
 instance (ToRow a) => ToRow (ToRowList a) where
-    toRow (ToRowList l) = concat $ map toRow l
+    toRow (ToRowList l) = concatMap toRow l
 
 
 -- | Apply a function to a 'Maybe' value, producing a pair with True
@@ -299,7 +299,7 @@ hushExceptions tag act = IOEx.catch act $ \(e :: Ex.SomeException) ->
 logExceptions :: MonadCatchIO m => String -> m a -> m a
 logExceptions tag act = IOEx.catch act $ \(e :: Ex.SomeException) -> do
   syslogJSON Syslog.Error tag
-    ["msg" .= (Aeson.String "rethrowed exception")
+    ["msg" .= Aeson.String "rethrowed exception"
     ,"exn" .= Aeson.String (T.pack $ show e)
     ]
   IOEx.throw e

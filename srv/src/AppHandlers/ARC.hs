@@ -191,7 +191,7 @@ parseArc :: [Text]
          -> Maybe Text
 parseArc colNames doc = if Prelude.null csvContents
                         then Nothing
-                        else Just $ T.unlines $ [csvHeader] ++ csvContents
+                        else Just $ T.unlines $ csvHeader:csvContents
     where
       root = fromDocument doc
       -- Name with namespace
@@ -207,7 +207,7 @@ parseArc colNames doc = if Prelude.null csvContents
       -- From every <Record> element...
       records = root $| (descendant >=> element (myName "Record"))
       -- Select only known children elements
-      columns = map (child >=> checkName (flip elem colNames')) records
+      columns = map (child >=> checkName (`elem` colNames')) records
       -- Extract element names and text contents
       getName n = nameLocalName $ elementName e where
           NodeElement e = node n
