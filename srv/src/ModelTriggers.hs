@@ -40,10 +40,12 @@ import           Trigger.Dsl
 import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
 import           Carma.Model.Case (Case)
+import qualified Carma.Model.Service as Service
 import           Carma.Model.Service (Service)
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 
+import           Carma.Backoffice
 import           Carma.Backoffice.DSL as BO hiding ((==), before, const)
 import qualified Carma.Backoffice.DSL as BO
 import           Carma.Backoffice.DSL.Types
@@ -78,12 +80,13 @@ afterCreate = Map.unionsWith (++)
 runUpdateTriggers
   :: forall m . Model m
   => IdentI m -> Patch m -> AppHandler (TriggerRes m)
-runUpdateTriggers = runFieldTriggers $ Map.unionsWith (++)
+runUpdateTriggers = runFieldTriggers $ Map.unionsWith (++) $
   [trigOn Usermeta.delayedState $ \_ -> wsMessage
   ,trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
-  ]
+  ] ++
+  map (evalHaskell noContext . trigger) (fst carmaBackoffice)
 
 --  - runReadTriggers
 --    - ephemeral fields
@@ -259,6 +262,14 @@ instance Backoffice HaskellE where
 
     finish = HaskellE $ return $ return ()
 
+    a *> b =
+        HaskellE $ do
+          ctx <- ask
+          -- Freezing the context at the beginning of the chain we
+          -- make all context-changing effects invisible to subsequent
+          -- chain operators
+          return $ evalHaskell ctx a >> evalHaskell ctx b
+
 
 mkContext :: PreContextAccess m => Maybe ActionTypeI -> Free (Dsl m) HCtx
 mkContext act = do
@@ -276,6 +287,11 @@ mkContext act = do
 
 evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty
 evalHaskell c t = runReader (toHaskell t) c
+
+
+-- | Bootstrapping HaskellE context.
+noContext :: HCtx
+noContext = error "Empty context accessed (HaskellE interpreter bug)"
 
 
 data HCtx =
