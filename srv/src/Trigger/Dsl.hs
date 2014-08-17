@@ -15,6 +15,7 @@ module Trigger.Dsl
     , getPatch
     , modifyPatch
     , getPatchField
+    , currentUserId
 
       -- ** Snap auth access
     , getCurrentUser
@@ -32,6 +33,7 @@ module Trigger.Dsl
 
       -- ** Miscellaneous
     , wsMessage
+    , getNow
     )
 
 where
@@ -140,6 +142,9 @@ wsMessage = liftFree (WsMessage ())
 currentUserId :: Free (Dsl m) (IdentI Usermeta)
 currentUserId = liftFree (CurrentUser id)
 
+getNow :: Free (Dsl m) UTCTime
+getNow = liftFree (GetNow id)
+
 liftFree :: Functor f => f a -> Free f a
 liftFree = Free . fmap Pure
 
@@ -158,10 +163,12 @@ data Dsl m k where
   DbCreate    :: Model m1 => Patch m1 -> (IdentI m1 -> k) -> Dsl m k
   DbRead      :: Model m1 => IdentI m1 -> (Patch m1 -> k) -> Dsl m k
   DbUpdate    :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
-  GetSrv   :: IdentI Service -> IdentI ServiceType -> (Patch Service -> k) -> Dsl m k
+  GetSrv      :: IdentI Service -> IdentI ServiceType
+              -> (Patch Service -> k) -> Dsl m k
   CurrentUser :: (IdentI Usermeta -> k) -> Dsl m k
   CreateUser  :: Text -> (Int -> k) -> Dsl m k
   UpdateUser  :: Patch Usermeta -> k -> Dsl m k
+  GetNow      :: (UTCTime -> k) -> Dsl m k
   WsMessage   :: k -> Dsl m k
 
 deriving instance Typeable Dsl
@@ -181,6 +188,7 @@ instance Functor (Dsl m) where
     CurrentUser   k -> CurrentUser   $ fn . k
     CreateUser l  k -> CreateUser l  $ fn . k
     UpdateUser p  k -> UpdateUser p  $ fn   k
+    GetNow        k -> GetNow        $ fn . k
     WsMessage     k -> WsMessage     $ fn   k
 
 
@@ -264,6 +272,8 @@ evalDsl = \case
         void $ withAuth $ withBackend -- FIXME: can fail
           $ \bk -> liftIO $ save bk user''
       evalDsl k
+
+    GetNow k -> evalDsl =<< k <$> liftIO getCurrentTime
 
     WsMessage k -> do
       p <- gets st_patch

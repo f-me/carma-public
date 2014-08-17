@@ -254,16 +254,28 @@ instance Backoffice HaskellE where
         return $
         trigOn acc $
         \newVal -> do
-          srv <- getService
-          kase' <- getKase
-          let hctx = HCtx{service = srv, kase = kase'}
+          hctx <- mkContext Nothing
           when (newVal == (evalHaskell hctx target)) (evalHaskell hctx body)
+
+    finish = HaskellE $ return $ return ()
+
+
+mkContext :: PreContextAccess m => Maybe ActionTypeI -> Free (Dsl m) HCtx
+mkContext act = do
+  srv <- getService
+  kase' <- getKase
+  usr <- dbRead =<< currentUserId
+  t <- getNow
+  return HCtx{ kase = kase'
+             , service = srv
+             , user = usr
+             , prevAction = act
+             , now = t
+             }
+
 
 evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty
 evalHaskell c t = runReader (toHaskell t) c
-
-
-noContext = error "HaskellE broken -- no context at this point"
 
 
 data HCtx =
