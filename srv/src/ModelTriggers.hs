@@ -12,11 +12,9 @@ module ModelTriggers
 
 import Control.Applicative
 import Control.Monad
-import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Free (Free)
 import Control.Monad.Trans
 import Control.Monad.Trans.Reader
-import Control.Monad.IO.Class
 import Control.Monad.Trans.State
 
 import Data.Map (Map)
@@ -25,13 +23,11 @@ import qualified Data.HashMap.Strict as HM
 import Data.Maybe
 import Data.Text (Text)
 import Data.Time.Clock
-import Data.Maybe (catMaybes)
 import Data.Dynamic
 import GHC.TypeLits
 
 import qualified Data.Pool as Pool
 import qualified Database.PostgreSQL.Simple.Transaction as PG
-import           Snap.Snaplet.PostgresqlSimple as PS ((:.)(..))
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import Application (AppHandler)
@@ -41,25 +37,17 @@ import qualified Data.Model.Patch.Sql as Patch
 
 import           Trigger.Dsl
 
-import           Carma.Model.Usermeta (Usermeta)
-import qualified Carma.Model.Usermeta as Usermeta
 import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
 import           Carma.Model.Case (Case)
-import qualified Carma.Model.Case as Case
-import           Carma.Model.CaseStatus (CaseStatus)
-import           Carma.Model.Role (Role)
 import           Carma.Model.Service (Service)
-import qualified Carma.Model.Service as Service
-
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 
-import           Carma.Backoffice
-import           Carma.Backoffice.Graph (startNode)
-import           Carma.Backoffice.DSL as BO hiding ((==), const)
+import           Carma.Backoffice.DSL as BO hiding ((==), before, const)
 import qualified Carma.Backoffice.DSL as BO
 import           Carma.Backoffice.DSL.Types
+import           Carma.Backoffice.Graph (startNode)
 
 
 -- TODO: rename
