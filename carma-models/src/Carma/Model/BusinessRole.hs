@@ -15,7 +15,7 @@ import Carma.Model.PgTypes()
 data BusinessRole = BusinessRole
   {ident  :: PK Int BusinessRole ""
   ,label  :: F Text "label"  "Название бизнес-роли"
-  ,roles  :: F (Maybe (Vector (IdentI Role))) "roles" "Роли"
+  ,roles  :: F (Vector (IdentI Role)) "roles" "Роли"
   } deriving Typeable
 
 mkIdents [t|BusinessRole|]
