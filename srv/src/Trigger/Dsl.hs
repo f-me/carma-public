@@ -143,7 +143,7 @@ currentUserId :: Free (Dsl m) (IdentI Usermeta)
 currentUserId = liftFree (CurrentUser id)
 
 getNow :: Free (Dsl m) UTCTime
-getNow = liftFree (GetNow id)
+getNow = liftFree (DoIO getCurrentTime id)
 
 liftFree :: Functor f => f a -> Free f a
 liftFree = Free . fmap Pure
@@ -168,8 +168,8 @@ data Dsl m k where
   CurrentUser :: (IdentI Usermeta -> k) -> Dsl m k
   CreateUser  :: Text -> (Int -> k) -> Dsl m k
   UpdateUser  :: Patch Usermeta -> k -> Dsl m k
-  GetNow      :: (UTCTime -> k) -> Dsl m k
   WsMessage   :: k -> Dsl m k
+  DoIO        :: IO r -> (r -> r') -> Dsl m r'
 
 deriving instance Typeable Dsl
 
@@ -188,8 +188,8 @@ instance Functor (Dsl m) where
     CurrentUser   k -> CurrentUser   $ fn . k
     CreateUser l  k -> CreateUser l  $ fn . k
     UpdateUser p  k -> UpdateUser p  $ fn   k
-    GetNow        k -> GetNow        $ fn . k
     WsMessage     k -> WsMessage     $ fn   k
+    DoIO       a  k -> DoIO       a  $ fn . k
 
 
 data DslState m = DslState
@@ -273,10 +273,10 @@ evalDsl = \case
           $ \bk -> liftIO $ save bk user''
       evalDsl k
 
-    GetNow k -> evalDsl =<< k <$> liftIO getCurrentTime
-
     WsMessage k -> do
       p <- gets st_patch
       i <- mkLegacyIdent <$> gets st_ident
       lift $ withMsg $ sendMessage i p
       evalDsl k
+
+    DoIO a k -> evalDsl =<< k <$> liftIO a
