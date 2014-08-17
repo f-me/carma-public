@@ -4,7 +4,8 @@ define ["text!tpl/screens/kpi/stat.html"
         "model/utils"
         "model/fields"
         "utils"
-  ], (Tpl, Model, Main, MU, Fs, U) ->
+        "sync/datamap"
+  ], (Tpl, Model, Main, MU, Fs, U, DMap) ->
 
   template: Tpl
   constructor: (view, opts) ->
@@ -25,10 +26,12 @@ define ["text!tpl/screens/kpi/stat.html"
       _.filter fs, (f) ->
         f.label.toLowerCase().indexOf(filter().toLowerCase()) >= 0
 
-    interval = Fs.interval ko.observable null
+    interval = Fs.interval ko.observable(
+      [ (new Date).toString("dd.MM.yyyy 00:00:00")
+      , (new Date).toString("dd.MM.yyyy HH:mm:ss")
+      ])
     kvms = ko.observableArray([])
     flt = ko.observable ""
-
     sorted = ko.sorted
       kvms: kvms
       sorters: MU.buildSorters Model
@@ -48,7 +51,15 @@ define ["text!tpl/screens/kpi/stat.html"
     ko.applyBindings(tblCtx, $("#tbl")[0])
 
     $("#stat-screen").addClass("active")
-    interval.subscribe (v) ->
-      return if _.isNull v
-      $.getJSON "/kpi/stat/#{v[0]}/#{v[1]}", (d) ->
+    updateTbl = (int) ->
+      return if _.isNull int
+      sint = _.map int, (v) -> DMap.c2s(v, 'UTCTime')
+      $('body').spin 'huge', '#777'
+      $.getJSON "/kpi/stat/#{sint[0]}/#{sint[1]}", (d) ->
         kvms _.map d, (m) -> Main.buildKVM Model, { fetched: m }
+        $('body').spin false
+
+    interval.subscribe updateTbl
+    updateTbl interval()
+
+

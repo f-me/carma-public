@@ -62,14 +62,19 @@ ko.bindingHandlers.bindDict =
     if search
       $(search).on 'click', th.drawAllForce unless fld?.readonly
 
+funToggle = (fns...) ->
+  i = 0
+  l = fns.length
+  -> fns[i++ % l]()
 
 ko.bindingHandlers.sort =
+  init: => return
   update: (el, name, allBindings, viewModel, ctx) ->
     # add icon to show sorting direction
     defaultClass = 'icon-resize-vertical'
     $(el).prepend("<i class=#{defaultClass}></i>")
     # toggle sorting direction when user clicks on column header
-    $(el).toggle(
+    $(el).click funToggle(
       ->
         # reset icon for others columns
         resetSort el, defaultClass
