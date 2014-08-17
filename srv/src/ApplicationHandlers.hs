@@ -92,6 +92,7 @@ import Data.Model (idents)
 import Data.Model.CRUD
 import qualified Data.Model.Patch.Sql as Patch
 import           Data.Model.Patch (Patch(..))
+import Carma.Model.Event (EventType(..))
 
 import Application
 import AppHandlers.Util
@@ -99,8 +100,7 @@ import AppHandlers.Users
 import Util as U hiding (render, withPG)
 import Utils.NotDbLayer (readIdent)
 
-import Carma.Model.Event (EventType(..))
-import Utils.Events (logLogin)
+import Utils.Events (logLogin, logCRUD, updateUserState)
 
 import ModelTriggers
 
@@ -198,20 +198,18 @@ createHandler = do
       createModel _ = do
         commit <- getJSONBody :: AppHandler (Patch m)
         runCreateTriggers commit >>= \case
-          Left (_,err) -> error $ "in createHandler: " ++ show err
-          Right commit' -> do
-            s <- PS.getPostgresState
-            res <- liftIO $ withResource (PS.pgPool s) (Patch.create commit')
-            return $ case res of
-              Left err -> error $ "in createHandler:" ++ show err
-              Right (Ident i) ->
-                -- we really need to separate idents from models
-                -- (so we can @Patch.set ident i commit@)
-                case Aeson.toJSON commit' of
-                  Object obj
-                    -> Object
-                    $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
-                  obj -> error $ "impossible: " ++ show obj
+          Left err -> error $ "in createHandler: " ++ show err
+          Right (idt@(Ident i), commit') -> do
+            -- Can't do this in trigger because it need ident
+            evIdt <- logCRUD Create idt commit
+            updateUserState Create idt commit evIdt
+            -- we really need to separate idents from models
+            -- (so we can @Patch.set ident i commit@)
+            return $ case Aeson.toJSON commit' of
+              Object obj
+                -> Object
+                $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
+              obj -> error $ "impossible: " ++ show obj
 
   case Carma.Model.dispatch model createModel of
     Just fn -> logResp $ fn
@@ -309,19 +307,22 @@ updateHandler = do
             case res of
               Left ex -> error $ show ex
               Right 0 -> return $ Left 404
-              Right _ -> case model of
-                     -- TODO #1352 workaround for Contract triggers
-                     "Contract" ->
-                         do
-                           Right res' <- liftIO $
-                                  withResource (PS.pgPool s) (Patch.read ident)
-                          -- TODO Cut out fields from original commit like
-                          -- DB.update does
-                           case (Aeson.decode $ Aeson.encode res') of
-                             Just obj -> return $ Right obj
-                             err      -> error $
-                                           "BUG in updateHandler: " ++ show err
-                     _ -> return $ Right $ Aeson.object []
+              Right _ -> do
+                evIdt <- logCRUD Update ident commit'
+                updateUserState Update ident commit evIdt
+                case model of
+                   -- TODO #1352 workaround for Contract triggers
+                   "Contract" ->
+                       do
+                         Right res' <- liftIO $
+                                withResource (PS.pgPool s) (Patch.read ident)
+                        -- TODO Cut out fields from original commit like
+                        -- DB.update does
+                         case (Aeson.decode $ Aeson.encode res') of
+                           Just obj -> return $ Right obj
+                           err      -> error $
+                                         "BUG in updateHandler: " ++ show err
+                   _ -> return $ Right $ Aeson.object []
   -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch model updateModel of
     Just fn ->

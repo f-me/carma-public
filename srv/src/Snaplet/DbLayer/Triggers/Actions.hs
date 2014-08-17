@@ -140,7 +140,7 @@ actions
           ])
         ,("usermeta", Map.fromList
           [("delayedState", [\objId _ ->
-             liftDb $ Evt.logLegacyCRUD Update objId Usermeta.delayedState])
+             void $ liftDb $ Evt.logLegacyCRUD Update objId Usermeta.delayedState])
           ,("businessRole", [updateBusinessRole])
           ])
         ]
@@ -301,7 +301,7 @@ actionActions = Map.fromList
     ])
    ,("openTime",
      [\objId _ ->
-       liftDb $ Evt.logLegacyCRUD Update objId Act.openTime
+       void $ liftDb $ Evt.logLegacyCRUD Update objId Act.openTime
      ])
    ]
 

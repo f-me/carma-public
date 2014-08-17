@@ -17,7 +17,7 @@ import Control.Monad.Free (Free)
 import Control.Monad.Trans
 import Control.Monad.Trans.Reader
 import Control.Monad.IO.Class
-import Control.Monad.Trans.State (evalStateT)
+import Control.Monad.Trans.State
 
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -36,13 +36,13 @@ import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import Application (AppHandler)
 import Data.Model as Model
-import Data.Model.Sql as Sql
-import Data.Model.Types
 import Data.Model.Patch as Patch (Patch, get', put, untypedPatch)
+import qualified Data.Model.Patch.Sql as Patch
 
-import Trigger.Dsl
+import           Trigger.Dsl
 
-import qualified Carma.Model.Action as Action
+import           Carma.Model.Usermeta (Usermeta)
+import qualified Carma.Model.Usermeta as Usermeta
 import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
 import           Carma.Model.Case (Case)
@@ -62,22 +62,39 @@ import qualified Carma.Backoffice.DSL as BO
 import           Carma.Backoffice.DSL.Types
 
 
-runCreateTriggers
-  :: forall m . Model m
-  => Patch m -> AppHandler (TriggerRes m)
-runCreateTriggers = runModelTriggers $ Map.unionsWith (++)
-  [trigOnModel ([]::[Call]) $ do
-    uid <- currentUserId
-    modifyPatch $ Patch.put Call.callTaker uid
+-- TODO: rename
+--   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
+--   - trigOnField -> onField
+
+
+beforeCreate :: Map ModelName [Dynamic]
+beforeCreate = Map.unionsWith (++)
+  [trigOnModel ([]::[Call])
+    $ getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
+  ,trigOnModel ([]::[Usermeta]) $ do
+    Just login <- getPatchField Usermeta.login -- TODO: check if valid?
+    -- NB!
+    -- Hope that Snap does not cache users and, in case of error during some
+    -- further steps of Usermeta, this will be automatically rolled back.
+    -- Otherwise we need some kind of finalisers for "Real world actions that
+    -- could not be deferred".
+    createSnapUser login
+  ]
+
+
+afterCreate :: Map ModelName [Dynamic]
+afterCreate = Map.unionsWith (++)
+  [trigOnModel ([]::[Usermeta]) updateSnapUserFromUsermeta
   ]
 
 runUpdateTriggers
   :: forall m . Model m
   => IdentI m -> Patch m -> AppHandler (TriggerRes m)
 runUpdateTriggers = runFieldTriggers $ Map.unionsWith (++)
-  [trigOn Usermeta.delayedState $ \_ -> wsMessage >> logLegacy Usermeta.delayedState
-  ,trigOn Call.endDate $ \_ -> logLegacy Call.endDate
-  ,evalHaskell noContext (trigger $ head $ fst carmaBackoffice)
+  [trigOn Usermeta.delayedState $ \_ -> wsMessage
+  ,trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
+  ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
+  ,trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
   ]
 
 --  - runReadTriggers
@@ -119,27 +136,34 @@ trigOnModel _ fun
 
 
 -- | This is how we run triggers on a patch
-runModelTriggers
+
+runCreateTriggers
   :: forall m . Model m
-  => Map ModelName [Dynamic] -> Patch m
-  -> AppHandler (TriggerRes m)
-runModelTriggers trMap patch = do
+  => Patch m -> AppHandler (Either String (IdentI m, Patch m))
+runCreateTriggers patch = do
   let mName = modelName (modelInfo :: ModelInfo m)
       pName = parentName (modelInfo :: ModelInfo m)
-      parentTriggers = maybe [] (\p -> Map.findWithDefault [] p trMap) pName
-      matchingTriggers = parentTriggers ++ Map.findWithDefault [] mName trMap
+
+      matchingTriggers m
+        = let ts = Map.findWithDefault [] mName m
+          in maybe [] (\p -> Map.findWithDefault [] p m) pName ++ ts
+
       joinTriggers k tr = do
         let tr' = fromDyn tr $ tError 500 "dynamic BUG"
         tr' >>= either (return . Left) (const k)
+
+      before = foldl joinTriggers tOk $ matchingTriggers beforeCreate
+      after  = foldl joinTriggers tOk $ matchingTriggers afterCreate
+
   s <- PS.getPostgresState
   Pool.withResource (PS.pgPool s) $ \pgconn -> do
     -- FIXME: we need to choose isolation level carefully
     liftIO $ PG.beginLevel PG.Serializable pgconn
-    res <- evalStateT
-      (evalDsl $ foldl joinTriggers tOk matchingTriggers)
-      (DslState undefined patch pgconn)
+    (Right _, st1) <- runStateT (evalDsl before) (DslState undefined patch pgconn)
+    Right ident    <- liftIO $ Patch.create patch pgconn
+    (Right _, st2) <- runStateT (evalDsl after) (st1{st_ident = ident})
     liftIO $ PG.commit pgconn
-    return res
+    return $ Right (st_ident st2, st_patch st2)
 
 
 runFieldTriggers
