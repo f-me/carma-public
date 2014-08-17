@@ -13,11 +13,6 @@
       "type"  : "li",
       "permissions": ["call"]
     },
-    { "name"  :"case",
-      "label" : "Кейс",
-      "type"  : "li",
-      "permissions": ["core"]
-    },
     { "name"  : "back",
       "label" : "Бэкофис",
       "type"  : "li",
@@ -65,6 +60,23 @@
           "permissions": ["head"]
         }
       ]
+    },
+    { "type"    : "dropdown",
+       "name"    : "kpi",
+       "label"   : "KPI",
+       "permissions": ["supervisor"],
+       "screens" : [
+       { "name"  :"timeline",
+         "label" : "Таймлайн",
+         "type"  : "li",
+         "permissions": ["supervisor"]
+       },
+       { "name"  :"kpi/stat",
+         "label" : "Статистические показатели",
+         "type"  : "li",
+         "permissions": ["supervisor"]
+       }
+     ]
     },
     { "type"    : "dropdown",
       "name"    : "search",
@@ -117,10 +129,5 @@
       "label" : "Редактирование справочников",
       "type"  : "li",
       "permissions": ["lovAdmin", "lovViewer"]
-    },
-    { "name"  :"timeline",
-      "label" : "Таймлайн",
-      "type"  : "li",
-      "permissions": ["supervisor"]
     }
 ]
