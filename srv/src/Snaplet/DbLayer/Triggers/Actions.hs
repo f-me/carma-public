@@ -50,7 +50,6 @@ import qualified Carma.Model.Role as Role
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.SmsTemplate as SmsTemplate
 import           Carma.Model.Event (EventType(..))
-import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Action as Act
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
@@ -165,22 +164,7 @@ actions
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
           ])
-        ,("usermeta", Map.fromList
-          [("delayedState", [\objId _ ->
-             void $ liftDb $ Evt.logLegacyCRUD Update objId Usermeta.delayedState])
-          ,("businessRole", [updateBusinessRole])
-          ])
         ]
-
-updateBusinessRole :: MonadTrigger m b => ObjectId -> FieldValue -> m b ()
-updateBusinessRole _     ""  = return ()
-updateBusinessRole objId val =  do
-  rs <- liftDb $ PG.query (fromString $
-    "select array_to_string(roles, ',') from \"BusinessRole\"" ++
-    " where id :: text = ?;") (Only val)
-  case rs of
-    [Only r] -> set objId "roles" r
-    _        -> error $ "unknown BusinessRole id: " ++ show val
 
 -- | Mapping between contract and case fields.
 contractToCase :: [(FA Contract.Contract, FA Case.Case)]

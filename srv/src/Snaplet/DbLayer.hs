@@ -57,7 +57,7 @@ create model commit = do
   tbls <- gets syncTables
   syslogJSON Debug "DbLayer/create" ["model" .= model, "commit" .= commit]
   --
-  obj <- triggerCreate model =<< applyDefaults model commit
+  obj <- applyDefaults model commit
   objId <- Redis.create redis model obj
   --
   let obj' = Map.insert "id" objId obj
