@@ -11,6 +11,7 @@ import Data.Model.Types ((:@))
 import Data.Model.View
 
 import qualified Carma.Model.ClientRefusalReason as CRR
+import           Carma.Model.Case.Type           (Case)
 import           Carma.Model.FalseCall           (FalseCall)
 import           Carma.Model.LegacyTypes
 import           Carma.Model.PaymentType         (PaymentType)
@@ -25,7 +26,7 @@ data Service = Service
   { ident                        :: PK Int Service ""
   , svcType                      :: F (IdentI ServiceType) "type"
                                  "Услуга"
-  , parentId                     :: F Text "parentId"
+  , parentId                     :: F (IdentI Case) "parentId"
                                  ""
   , createTime                   :: F (Maybe LegacyDatetime) "createTime"
                                  "Дата создания услуги"
