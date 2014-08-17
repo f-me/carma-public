@@ -6,6 +6,7 @@ module ModelTriggers
   ) where
 
 
+import Control.Applicative
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Free (Free)
 import Control.Monad.Trans.State
@@ -24,12 +25,13 @@ import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import Application (AppHandler)
 import Data.Model as Model
-import Data.Model.Patch as Patch (Patch, put, untypedPatch)
+import Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as Patch
 
 import Trigger.Dsl
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
+import qualified Carma.Model.BusinessRole as BusinessRole
 import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
 
@@ -62,7 +64,11 @@ afterCreate = Map.unionsWith (++)
 
 beforeUpdate :: Map (ModelName, FieldName) [Dynamic]
 beforeUpdate = Map.unionsWith (++)
-  [
+  [trigOn Usermeta.businessRole $ \case
+    Nothing -> return ()
+    Just bRole -> do
+      Just roles <- (`Patch.get` BusinessRole.roles) <$> dbRead bRole
+      modifyPatch $ Patch.put Usermeta.roles roles
   ]
 
 afterUpdate :: Map (ModelName, FieldName) [Dynamic]
