@@ -28,7 +28,7 @@ ALTER TABLE "ServiceInfo" ADD CONSTRAINT "ServiceInfo_service_fkey"
 FOREIGN KEY (service) REFERENCES "ServiceType" (id);
 
 ALTER TABLE servicetbl
-ADD CONSTRAINT PRIMARY KEY (type,id);
+ADD PRIMARY KEY (type,id);
 
 ALTER TABLE "SubProgramService" DROP CONSTRAINT "SubProgramService_type_fkey";
 ALTER TABLE "SubProgramService" ADD CONSTRAINT "SubProgramService_type_fkey"
@@ -68,13 +68,8 @@ UPDATE partnercanceltbl SET serviceType = n.id
 FROM "ServiceNames" n WHERE n.value = split_part(serviceId,':',1);
 ALTER TABLE partnercanceltbl ALTER COLUMN serviceType SET NOT NULL;
 
-ALTER TABLE partnercanceltbl ADD COLUMN sid_tmp int4;
-UPDATE partnercanceltbl SET sid_tmp = split_part(serviceId,':',2)::int;
-
-ALTER TABLE partnercanceltbl DROP COLUMN serviceId;
-ALTER TABLE partnercanceltbl ADD COLUMN serviceId int4;
-UPDATE partnercanceltbl SET serviceId = sid_tmp;
-ALTER TABLE partnercanceltbl DROP COLUMN sid_tmp;
+ALTER TABLE partnercanceltbl ALTER COLUMN serviceId
+TYPE int4 USING split_part(serviceId,':',2)::int;
 ALTER TABLE partnercanceltbl ALTER COLUMN serviceId SET NOT NULL;
 
 -- basic cleanups

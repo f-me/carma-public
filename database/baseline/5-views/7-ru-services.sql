@@ -7,7 +7,7 @@ WITH servicecounts AS (
         )
  SELECT
     "PaymentType".label AS "Тип оплаты",
-        "substring"(servicetbl.parentid, 6) || COALESCE(('/'::text || rank() OVER (PARTITION BY servicetbl.parentid ORDER BY servicetbl.createtime ASC)) ||
+        servicetbl.parentid || COALESCE(('/'::text || rank() OVER (PARTITION BY servicetbl.parentid ORDER BY servicetbl.createtime ASC)) ||
         CASE
             WHEN servicecounts.amount < 2 THEN NULL::text
             ELSE ''::text
@@ -232,7 +232,7 @@ WITH servicecounts AS (
    LEFT JOIN "PaymentType" ON servicetbl.paytype = "PaymentType".id
    LEFT JOIN "ServiceStatus" ON servicetbl.status = "ServiceStatus".id
    LEFT JOIN "Satisfaction" ON servicetbl.clientsatisfied = "Satisfaction".id
-WHERE casetbl.id = split_part(servicetbl.parentid, ':'::text, 2)::integer;
+WHERE casetbl.id = servicetbl.parentid;
 
 GRANT SELECT ON "Услуги" TO reportgen;
 GRANT ALL ON "Услуги" TO analyst;
