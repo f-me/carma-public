@@ -683,7 +683,8 @@ actionResultMap = Map.fromList
       when (name `elem` [ "orderService"
                         , "callMeMaybe"
                         , "tellMeMore"
-                        , "orderServiceAnalyst"]) $
+                        , "orderServiceAnalyst"]) $ do
+           void $ liftDb $ PG.execute [sql|UPDATE actiontbl SET assignedTo=null, assignTime=null WHERE id=?|] [last $ T.splitOn ":" objId]
            clearAssignee objId
       case (map T.decimal $ T.splitOn ":" deferBy) of
         (Right (hours, _):Right (minutes, _):_) ->
