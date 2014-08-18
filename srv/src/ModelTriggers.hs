@@ -141,7 +141,7 @@ runCreateTriggers patch = do
     -- FIXME: we need to choose isolation level carefully
     liftIO $ PG.beginLevel PG.Serializable pgconn
     (Right _, st1) <- runStateT (evalDsl before) (DslState undefined patch pgconn)
-    Right ident    <- liftIO $ Patch.create patch pgconn
+    Right ident    <- liftIO $ Patch.create (st_patch st1) pgconn
     (Right _, st2) <- runStateT (evalDsl after) (st1{st_ident = ident})
     liftIO $ PG.commit pgconn
     return $ Right (st_ident st2, st_patch st2)
