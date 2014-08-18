@@ -36,7 +36,11 @@ create p c = try $ do
       -- we use `map fst . HashMap.toList` instead of `HashMap.keys`
       -- just to be sure that `insFields` are in the same order as
       -- `ToRow (Patch m)` expects
-      insFields = map fst $ HashMap.toList m
+      insFields
+        = [name
+          | (name, _) <- HashMap.toList m
+          , Just FieldDesc{} <- [HashMap.lookup name (modelFieldsMap mInfo)]
+          ]
       q = printf "INSERT INTO %s (%s) VALUES (%s) RETURNING id"
         (show $ tableName mInfo)
         (T.unpack $ T.intercalate ", " insFields)
