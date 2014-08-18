@@ -32,7 +32,8 @@ import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import Application (AppHandler)
 import Data.Model as Model
-import Data.Model.Patch as Patch (Patch, get', put, untypedPatch)
+import Data.Model.Types
+import Data.Model.Patch as Patch (Patch, delete, get', put, untypedPatch)
 import qualified Data.Model.Patch.Sql as Patch
 
 import           Trigger.Dsl
@@ -86,7 +87,7 @@ runUpdateTriggers = runFieldTriggers $ Map.unionsWith (++) $
   ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
   ] ++
-  map (evalHaskell noContext . trigger) (fst carmaBackoffice)
+  map (evalHaskell emptyContext . trigger) (fst carmaBackoffice)
 
 --  - runReadTriggers
 --    - ephemeral fields
@@ -253,12 +254,11 @@ instance Backoffice HaskellE where
     (||) = haskellBinary (Prelude.||)
 
     onField acc target body =
-        HaskellE $
-        return $
-        trigOn acc $
-        \newVal -> do
-          hctx <- mkContext Nothing
-          when (newVal == evalHaskell hctx target) (evalHaskell hctx body)
+      mkTrigger acc target (`evalHaskell` body)
+
+    insteadOf acc target body =
+      mkTrigger acc target $
+      \h -> modifyPatch (Patch.delete acc) >> (evalHaskell h body)
 
     finish = HaskellE $ return $ return ()
 
@@ -269,6 +269,21 @@ instance Backoffice HaskellE where
           -- make all context-changing effects invisible to subsequent
           -- chain operators
           return $ evalHaskell ctx a >> evalHaskell ctx b
+
+mkTrigger :: (Eq (HaskellType t),
+              FieldI (HaskellType t) n d, Model m,
+              PreContextAccess m) =>
+             (m -> F (HaskellType t) n d)
+          -> HaskellE t
+          -> (HCtx -> Free (Dsl m) ())
+          -> HaskellE Trigger
+mkTrigger acc target act =
+  HaskellE $
+  return $
+  trigOn acc $
+  \newVal -> do
+    hctx <- mkContext Nothing
+    when (newVal == evalHaskell hctx target) (act hctx)
 
 
 mkContext :: PreContextAccess m => Maybe ActionTypeI -> Free (Dsl m) HCtx
@@ -290,8 +305,8 @@ evalHaskell c t = runReader (toHaskell t) c
 
 
 -- | Bootstrapping HaskellE context.
-noContext :: HCtx
-noContext = error "Empty context accessed (HaskellE interpreter bug)"
+emptyContext :: HCtx
+emptyContext = error "Empty context accessed (HaskellE interpreter bug)"
 
 
 data HCtx =

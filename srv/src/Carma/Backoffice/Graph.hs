@@ -118,6 +118,7 @@ instance Backoffice EdgeE where
     serviceField _ = nothing
 
     onField _ _ body = EdgeE $ \c -> toEdge body c
+    insteadOf f v body = onField f v body
 
     not _ = nothing
     _ > _ = nothing

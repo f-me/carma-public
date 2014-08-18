@@ -69,9 +69,11 @@ textBinary a b open between close = do
 triggerText :: TextE a
             -> TextE v
             -> TextE b
+            -> Text
+            -> Text
             -> Reader TCtx Text
-triggerText field value body = do
-  trig' <- textBinary field value "Когда " " приобретает значение " ""
+triggerText field value body open between = do
+  trig' <- textBinary field value open between ""
   body' <- toText body
   return $ T.concat $ [trig', ": "] ++ [body']
 
@@ -129,7 +131,15 @@ instance Backoffice TextE where
     caseField     = textE . fieldDesc
     serviceField  = textE . fieldDesc
 
-    onField f v body = TextE $ triggerText (textE $ fieldDesc f) v body
+    onField f v body =
+      TextE $
+      triggerText (textE $ fieldDesc f) v body
+      "Когда " " приобретает значение "
+
+    insteadOf f v body =
+      TextE $
+      triggerText (textE $ fieldDesc f) v body
+      "Вместо того, чтобы " " приобрело значение "
 
     not v = TextE $
             T.append "НЕ выполнено условие " <$> toText v

@@ -109,9 +109,16 @@ class Backoffice impl where
     -- used action types.
     previousAction :: impl ActionTypeI
 
-    -- | Context access. Note that @t@ type is not brought into DSL
-    -- type system, thus an extra hint is included in type constraints
-    -- for the meta-language interpreter.
+    -- | Context access.
+    --
+    -- Our DSL is stateless (more accurately, there's a read-only
+    -- state accessed by these getters; it's not tied with mutators
+    -- like 'setServiceField'). Data available through these getters
+    -- must be thought of as «old» (in terms of Postgres triggers).
+    --
+    -- Note that @t@ type is not brought into DSL type system, thus an
+    -- extra hint is included in type constraints for the
+    -- meta-language interpreter.
     --
     -- Context access functions ('caseField', 'serviceField') are not
     -- total: if there's no corresponding context during the run time,
@@ -126,15 +133,25 @@ class Backoffice impl where
 
     -- | Trigger constructor.
     --
-    -- 'Entry' serves as an existential container for terms of this
-    -- type. The reason for this is because we need to bind together a
-    -- model @m@ in the field accessor and the outcome.
+    -- It's implemented as a single term because we need to bind
+    -- together a model @m@ in the field accessor and the outcome.
+    -- 'PreContextAccess' constraint indicates the ability to
+    -- bootstrap a context required for the meta-language interpreter.
     onField :: (PreContextAccess m, Model m,
                 Eq t, FieldI t n d, HaskellType t ~ t) =>
                (m -> F t n d)
             -> impl t
             -> impl (Outcome m)
             -> impl Trigger
+
+    -- | Like 'onField', but prevents actual changes to the triggered
+    -- field.
+    insteadOf :: (PreContextAccess m, Model m,
+                  Eq t, FieldI t n d, HaskellType t ~ t) =>
+                 (m -> F t n d)
+              -> impl t
+              -> impl (Outcome m)
+              -> impl Trigger
 
     -- | Negation.
     --
@@ -202,14 +219,12 @@ class Backoffice impl where
               -> impl (Eff m)
 
     -- | Close the action.
-    finish  :: PreContextAccess m =>
-               impl (Outcome m)
+    finish  :: impl (Outcome m)
 
     -- | Close the action and create new actions of given types.
     --
     -- Duplicate types are ignored.
-    proceed :: PreContextAccess m =>
-               [ActionTypeI] -> impl (Outcome m)
+    proceed :: [ActionTypeI] -> impl (Outcome m)
 
     -- | Postpone the action.
     defer   :: impl (Outcome CarmaAction.Action)
@@ -221,8 +236,7 @@ class Backoffice impl where
     --
     -- > sendSMS *> doStuff *> finish
     infixr *>
-    (*>) :: PreContextAccess m =>
-            impl (Eff m) -> impl (Outcome m) -> impl (Outcome m)
+    (*>) :: impl (Eff m) -> impl (Outcome m) -> impl (Outcome m)
 
 
 setServiceStatus :: Backoffice impl => IdentI ServiceStatus -> impl (Eff m)
