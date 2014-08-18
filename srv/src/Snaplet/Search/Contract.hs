@@ -82,7 +82,7 @@ contractCSV t = do
       csvQuery :: Query
       csvQuery
           = [sql|
-             COPY (SELECT ? FROM "Contract_csv" WHERE (?) ?)
+             COPY (SELECT ? FROM "Contract_csv" WHERE (? and dixi) ?)
              TO STDOUT (FORMAT CSV, FORCE_QUOTE *, DELIMITER ';')
              |]
       -- Convert list [foo, bar, ..] of fields to [fooExternal,
