@@ -25,9 +25,9 @@ data BaseKPI = BaseKPI
   , inRest       :: F (Maybe DiffTime) "Rest"    "Перерыв"
   , inServiceBreak
                  :: F (Maybe DiffTime) "ServiceBreak" "Служебный перерыв"
-  , inLoggedOut  :: F (Maybe DiffTime) "LoggedOut" "Разлогинен"
-  -- , allRest      :: F DiffTime "inRest"         "Всего в перерывах"
-  -- , loggedIn     :: F DiffTime "inRest"         "Всего в системе"
+  , inLoggedOut  :: F (Maybe DiffTime) "LoggedOut"    "Разлогинен"
+  , totalRest      :: F (Maybe DiffTime) "totalRest"     "Всего в перерывах"
+  , totalLoggedIn  :: F (Maybe DiffTime) "totalLoggedIn" "Всего в системе"
   } deriving Typeable
 
 instance Model BaseKPI where
