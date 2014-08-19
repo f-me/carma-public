@@ -138,8 +138,7 @@ runCreateTriggers patch = do
 
   s <- PS.getPostgresState
   Pool.withResource (PS.pgPool s) $ \pgconn -> do
-    -- FIXME: we need to choose isolation level carefully
-    liftIO $ PG.beginLevel PG.Serializable pgconn
+    liftIO $ PG.beginLevel PG.ReadCommited pgconn
     (Right _, st1) <- runStateT (evalDsl before) (DslState undefined patch pgconn)
     Right ident    <- liftIO $ Patch.create (st_patch st1) pgconn
     (Right _, st2) <- runStateT (evalDsl after) (st1{st_ident = ident})
@@ -168,7 +167,7 @@ runUpdateTriggers ident patch = do
 
   s <- PS.getPostgresState
   Pool.withResource (PS.pgPool s) $ \pgconn -> do
-    liftIO $ PG.beginLevel PG.Serializable pgconn
+    liftIO $ PG.beginLevel PG.ReadCommited pgconn
     (Right _, st1) <- runStateT (evalDsl before) (DslState ident patch pgconn)
     Right count    <- liftIO $ Patch.update ident (st_patch st1) pgconn
     case count of
