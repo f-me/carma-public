@@ -17,6 +17,13 @@ define [ "model/main"
     else
       oldNav.apply(@, args)
 
+  checkStuff = ->
+    um = window.global.Usermeta
+    if _.isUndefined um
+      throw error("current user is undefined, initialize it first")
+    if _.isUndefined um.stuff
+      throw error("need permission to read 'usermeta.stuff'")
+
   initialize: =>
     user = window.global.user
 
@@ -77,3 +84,14 @@ define [ "model/main"
     if window.location.hash == "" and user.meta.homepage
       Finch.navigate user.meta.homepage.replace '/', ''
 
+  readStuff: (key) ->
+    checkStuff()
+    window.global.Usermeta.stuff()[key]
+
+  writeStuff: (key, val) ->
+    checkStuff()
+    s = window.global.Usermeta.stuff
+    newVal = {}; newVal[key] = val;
+    # write deep copy of previous value, otherwise we can change values that was
+    # read by somebody else
+    s($.extend(true, {}, s(), newVal))
