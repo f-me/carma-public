@@ -13,10 +13,8 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
-import Data.Time.Format (formatTime)
-import System.Locale (defaultTimeLocale)
+
 import Snap
-import Snap.Snaplet.Auth
 import Snaplet.Auth.Class
 
 import qualified Database.Redis       as Redis
@@ -40,19 +38,11 @@ applyDefaults :: HasAuth b
 applyDefaults model obj = do
   ct <- liftIO $ round . utcTimeToPOSIXSeconds
               <$> getCurrentTime
-  cy <- liftIO $ formatTime defaultTimeLocale "%Y"
-              <$> getCurrentTime
   let m  = 60 :: Int
       h  = 60 * m
       d  = 24 * h
-      y  = 365 * d
       cd = Map.insert "callDate" (T.pack $ show ct) obj
   obj' <- case model of
-    "partner" -> return
-              $ Map.insertWith (flip const) "isActive" "0"
-              $ Map.insertWith (flip const) "isDealer" "0"
-              $ Map.insertWith (flip const) "isMobile" "0"
-              $ obj
     "case" -> return cd
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
     "taxi" -> do
@@ -155,12 +145,5 @@ defaults = Map.fromList
     ])
   ,("transportation", Map.union serviceDefaults $ Map.fromList
     [("transportType", "continue")
-    ])
-  ,("programPermissions", Map.fromList
-    [ ("showTable", "1")
-    , ("showForm",  "1")
-    ])
-  ,("contract", Map.fromList
-    [("isActive", "1")
     ])
   ]
