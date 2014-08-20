@@ -4,7 +4,11 @@ define ["text!tpl/screens/kpi/stat.html"
         "model/utils"
         "model/fields"
         "utils"
-  ], (Tpl, Model, Main, MU, Fs, U) ->
+        "sync/datamap"
+        "lib/current-user"
+  ], (Tpl, Model, Main, MU, Fs, U, DMap, Usr) ->
+
+  stuffKey = "kpi-stat"
 
   template: Tpl
   constructor: (view, opts) ->
@@ -14,8 +18,11 @@ define ["text!tpl/screens/kpi/stat.html"
       else
         $("#kpi-list-inner").addClass("in").slideDown()
 
-    flds = ko.observable _.map Model.fields, (f) ->
-      {name: f.name, label: f.meta.label, show: ko.observable(true)}
+    settings = Usr.readStuff stuffKey
+
+    flds = _.map Model.fields, (f) ->
+      show = settings?.fields?[f.name] || false
+      {name: f.name, label: f.meta.label, show: ko.observable(show)}
 
     filter = ko.observable("")
 
@@ -25,10 +32,14 @@ define ["text!tpl/screens/kpi/stat.html"
       _.filter fs, (f) ->
         f.label.toLowerCase().indexOf(filter().toLowerCase()) >= 0
 
-    interval = Fs.interval ko.observable null
+    int = settings?.interval or
+     [ (new Date).toString("dd.MM.yyyy 00:00:00")
+     , (new Date).toString("dd.MM.yyyy HH:mm:ss")
+     ]
+    interval = Fs.interval ko.observable(int)
+
     kvms = ko.observableArray([])
     flt = ko.observable ""
-
     sorted = ko.sorted
       kvms: kvms
       sorters: MU.buildSorters Model
@@ -48,7 +59,22 @@ define ["text!tpl/screens/kpi/stat.html"
     ko.applyBindings(tblCtx, $("#tbl")[0])
 
     $("#stat-screen").addClass("active")
-    interval.subscribe (v) ->
-      return if _.isNull v
-      $.getJSON "/kpi/stat/#{v[0]}/#{v[1]}", (d) ->
+    updateTbl = (int) ->
+      return if _.isNull int
+      sint = _.map int, (v) -> DMap.c2s(v, 'UTCTime')
+      $('body').spin 'huge', '#777'
+      $.getJSON "/kpi/stat/#{sint[0]}/#{sint[1]}", (d) ->
         kvms _.map d, (m) -> Main.buildKVM Model, { fetched: m }
+        $('body').spin false
+
+    dumpSettings = ->
+      s = {}
+      s.interval = interval()
+      s.fields = {}
+      _.map flds, (v) -> s.fields[v.name] = v.show()
+      Usr.writeStuff stuffKey, s
+
+    interval.subscribe (v) -> updateTbl(v); dumpSettings()
+    _.map flds, (v) -> v.show.subscribe dumpSettings
+    updateTbl interval()
+

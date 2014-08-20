@@ -4,6 +4,9 @@ define [], ->
   # object into obs when it is ready
   interval: (obs) ->
     proxy = { begin: null, end: null }
+    if !_.isEmpty(obs()) and obs().length == 2
+      proxy.begin = obs()[0]
+      proxy.end   = obs()[1]
     updateInterval = ->
       if proxy.begin and proxy.end
         obs([proxy.begin, proxy.end])

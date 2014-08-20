@@ -25,7 +25,6 @@ selectStat :: ByteString -> ByteString -> AppHandler [W (Patch StatKPI)]
 selectStat from to = do
   query [sql|
   SELECT * FROM
-    get_KPI_sumcalls(ARRAY(select id from usermetatbl where isActive = true),
-                     ?::timestamp with time zone,
-                     ?::timestamp with time zone);
+    get_KPI_timeinstate(ARRAY(select id from usermetatbl where isActive = true),
+                     tstzrange(?, ?));
   |] (from, to)

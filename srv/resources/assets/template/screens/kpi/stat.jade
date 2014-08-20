@@ -25,28 +25,23 @@ include _table
           .input-append
             input.focusable(
               type="text"
+              placeholder="Поиск"
               name="kvmsFilter"
               data-bind="value: kvmsFilter, valueUpdate: 'afterkeydown'")
         .span2#date-range
-            .input-append.date(data-provide="datepicker"
-                               data-autoshow-datepicker="true"
-                               data-date-format="dd.mm.yyyy"
-                               data-date-weekstart="1")
+            .input-append
               input.pane-span.focusable(type="text"
                 autocomplete="off"
                 name="interval.begin"
-                data-bind="value: interval.begin")
+                data-bind="value: interval.begin, addMask: 'datetime'")
               span.add-on
                 i.icon.icon-calendar
           .span2
-            .input-append.date(data-provide="datepicker"
-                               data-autoshow-datepicker="true"
-                               data-date-format="dd.mm.yyyy"
-                               data-date-weekstart="1")
+            .input-append
               input.pane-span.focusable(type="text"
                 autocomplete="off"
                 name="interval.end"
-                data-bind="value: interval.end")
+                data-bind="value: interval.end, addMask: 'datetime'")
               span.add-on
                 i.icon.icon-calendar
 

@@ -49,6 +49,7 @@ import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
 
 import           Util
+import Control.Monad
 import           Utils.LegacyModel
 
 

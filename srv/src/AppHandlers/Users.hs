@@ -99,7 +99,7 @@ hasAnyOfRoles authRoles =
 
 hasNoneOfRoles :: [IdentI Role] -> RoleChecker
 hasNoneOfRoles authRoles =
-    any (`elem` ar)
+    all (not. (`elem` ar))
         where ar = map (Snap.Role . T.encodeUtf8 . identFv) authRoles
 
 

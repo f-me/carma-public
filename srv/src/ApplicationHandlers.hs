@@ -301,28 +301,21 @@ updateHandler = do
         runUpdateTriggers  ident commit >>= \case
           Left (code,_err) -> return $ Left code
           Right commit' -> do
-            s   <- PS.getPostgresState
-            res <- with db $
-              liftIO $ withResource (PS.pgPool s) (Patch.update ident commit')
-            case res of
-              Left ex -> error $ show ex
-              Right 0 -> return $ Left 404
-              Right _ -> do
-                evIdt <- logCRUD Update ident commit'
-                updateUserState Update ident commit evIdt
-                case model of
-                   -- TODO #1352 workaround for Contract triggers
-                   "Contract" ->
-                       do
-                         Right res' <- liftIO $
-                                withResource (PS.pgPool s) (Patch.read ident)
-                        -- TODO Cut out fields from original commit like
-                        -- DB.update does
-                         case (Aeson.decode $ Aeson.encode res') of
-                           Just obj -> return $ Right obj
-                           err      -> error $
-                                         "BUG in updateHandler: " ++ show err
-                   _ -> return $ Right $ Aeson.object []
+            evIdt <- logCRUD Update ident commit'
+            updateUserState Update ident commit evIdt
+            case model of
+              -- TODO #1352 workaround for Contract triggers
+              "Contract" -> do
+                s   <- PS.getPostgresState
+                Right res' <- liftIO $
+                       withResource (PS.pgPool s) (Patch.read ident)
+                -- TODO Cut out fields from original commit like
+                -- DB.update does
+                case (Aeson.decode $ Aeson.encode res') of
+                  Just obj -> return $ Right obj
+                  err      -> error $
+                                "BUG in updateHandler: " ++ show err
+              _ -> return $ Right $ Aeson.object []
   -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch model updateModel of
     Just fn ->

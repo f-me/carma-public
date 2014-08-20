@@ -32,12 +32,13 @@ import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import Application (AppHandler)
 import Data.Model as Model
-import Data.Model.Types
-import Data.Model.Patch as Patch (Patch, delete, get', put, untypedPatch)
+import Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as Patch
+import Data.Model.Types
 
 import           Trigger.Dsl
 
+import qualified Carma.Model.BusinessRole as BusinessRole
 import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
 import           Carma.Model.Case (Case)
@@ -78,10 +79,17 @@ afterCreate = Map.unionsWith (++)
   [trigOnModel ([]::[Usermeta]) updateSnapUserFromUsermeta
   ]
 
-runUpdateTriggers
-  :: forall m . Model m
-  => IdentI m -> Patch m -> AppHandler (TriggerRes m)
-runUpdateTriggers = runFieldTriggers $ Map.unionsWith (++) $
+beforeUpdate :: Map (ModelName, FieldName) [Dynamic]
+beforeUpdate = Map.unionsWith (++)
+  [trigOn Usermeta.businessRole $ \case
+    Nothing -> return ()
+    Just bRole -> do
+      Just roles <- (`Patch.get` BusinessRole.roles) <$> dbRead bRole
+      modifyPatch $ Patch.put Usermeta.roles roles
+  ]
+
+afterUpdate :: Map (ModelName, FieldName) [Dynamic]
+afterUpdate = Map.unionsWith (++) $
   [trigOn Usermeta.delayedState $ \_ -> wsMessage
   ,trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
@@ -99,7 +107,6 @@ runUpdateTriggers = runFieldTriggers $ Map.unionsWith (++) $
 
 type ModelName = Text
 type FieldName = Text
-type TriggersMap = Map (ModelName, FieldName) [Dynamic]
 
 
 -- | This is how we make new trigger
@@ -108,7 +115,7 @@ trigOn
   . (Model m, KnownSymbol name, Typeable typ)
   => (m -> Field typ (FOpt name desc app)) -- ^ watch this field
   -> (typ -> Free (Dsl m) res)             -- ^ run this if field changed
-  -> TriggersMap
+  -> Map (ModelName, FieldName) [Dynamic]
 trigOn fld fun = Map.singleton (mName, fName) [toDyn fun']
   where
     mName = modelName (modelInfo :: ModelInfo m)
@@ -149,37 +156,44 @@ runCreateTriggers patch = do
 
   s <- PS.getPostgresState
   Pool.withResource (PS.pgPool s) $ \pgconn -> do
-    -- FIXME: we need to choose isolation level carefully
-    liftIO $ PG.beginLevel PG.Serializable pgconn
+    liftIO $ PG.beginLevel PG.ReadCommitted pgconn
     (Right _, st1) <- runStateT (evalDsl before) (DslState undefined patch pgconn)
-    Right ident    <- liftIO $ Patch.create patch pgconn
+    Right ident    <- liftIO $ Patch.create (st_patch st1) pgconn
     (Right _, st2) <- runStateT (evalDsl after) (st1{st_ident = ident})
     liftIO $ PG.commit pgconn
     return $ Right (st_ident st2, st_patch st2)
 
 
-runFieldTriggers
+runUpdateTriggers
   :: forall m . Model m
-  => TriggersMap -> IdentI m -> Patch m
+  => IdentI m -> Patch m
   -> AppHandler (TriggerRes m)
-runFieldTriggers trMap ident patch = do
+runUpdateTriggers ident patch = do
   let mName = modelName (modelInfo :: ModelInfo m)
       pName = parentName (modelInfo :: ModelInfo m)
       fields = HM.keys $ untypedPatch patch
       keys = maybe [] (\p -> map (p,) fields) pName ++ map (mName,) fields
 
-      matchingTriggers = concat $ mapMaybe (`Map.lookup` trMap) keys
+      matchingTriggers m = concat $ mapMaybe (`Map.lookup` m) keys
+
       joinTriggers k tr = do
         let tr' = fromDyn tr $ tError 500 "dynamic BUG"
         tr' >>= either (return . Left) (const k)
+
+      before = foldl joinTriggers tOk $ matchingTriggers beforeUpdate
+      after  = foldl joinTriggers tOk $ matchingTriggers afterUpdate
+
   s <- PS.getPostgresState
   Pool.withResource (PS.pgPool s) $ \pgconn -> do
-    liftIO $ PG.beginLevel PG.Serializable pgconn
-    res <- evalStateT
-      (evalDsl $ foldl joinTriggers tOk matchingTriggers)
-      (DslState ident patch pgconn)
-    liftIO $ PG.commit pgconn
-    return res
+    liftIO $ PG.beginLevel PG.ReadCommitted pgconn
+    (Right _, st1) <- runStateT (evalDsl before) (DslState ident patch pgconn)
+    Right count    <- liftIO $ Patch.update ident (st_patch st1) pgconn
+    case count of
+      0 -> return $ Left (404, "no such object " ++ show ident)
+      _ -> do
+        (Right _, st2) <- runStateT (evalDsl after)  st1
+        liftIO $ PG.commit pgconn
+        return $ Right $ st_patch st2
 
 
 haskellBinary :: (HaskellType t1 -> HaskellType t2 -> HaskellType t)
