@@ -460,7 +460,6 @@ defFieldView f = FieldView
   ,fv_meta = Map.fromList
     [("label",    Aeson.String $ fieldDesc f)
     ,("app",      Aeson.String fieldKind)
-    ,("readonly", Aeson.Bool $ fieldKind == "ephemeral")
     ]
   }
   where
