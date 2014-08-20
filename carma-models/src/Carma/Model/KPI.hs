@@ -19,14 +19,15 @@ data BaseKPI = BaseKPI
   -- , currentState :: F UserStateVal      "currentState"  "Текущий статус"
 
   -- , inCurrent    :: F DiffTime "inCurrent" "Время"
-  -- , inReady      :: F DiffTime "inReady"   "Готов"
-  -- , inBusy       :: F DiffTime "inBusy"    "Занят"
-  -- , inDinner     :: F DiffTime "inDinner"  "Обед"
-  -- , inRest       :: F DiffTime "inRest"    "Перерыв"
-  -- , inServiceBreak
-                 -- :: F DiffTime "inServiceBreak" "Служебный перерыв"
-  -- , allRest      :: F DiffTime "inRest"         "Всего в перерывах"
-  -- , loggedIn     :: F DiffTime "inRest"         "Всего в системе"
+  , inReady      :: F (Maybe DiffTime) "Ready"   "Готов"
+  , inBusy       :: F (Maybe DiffTime) "Busy"    "Занят"
+  , inDinner     :: F (Maybe DiffTime) "Dinner"  "Обед"
+  , inRest       :: F (Maybe DiffTime) "Rest"    "Перерыв"
+  , inServiceBreak
+                 :: F (Maybe DiffTime) "ServiceBreak" "Служебный перерыв"
+  , inLoggedOut  :: F (Maybe DiffTime) "LoggedOut"    "Разлогинен"
+  , totalRest      :: F (Maybe DiffTime) "totalRest"     "Всего в перерывах"
+  , totalLoggedIn  :: F (Maybe DiffTime) "totalLoggedIn" "Всего в системе"
   } deriving Typeable
 
 instance Model BaseKPI where

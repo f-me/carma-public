@@ -461,7 +461,6 @@ defFieldView f = FieldView
   ,fv_meta = Map.fromList
     [("label",    Aeson.String $ fieldDesc f)
     ,("app",      Aeson.String fieldKind)
-    ,("readonly", Aeson.Bool $ fieldKind == "ephemeral")
     ]
   }
   where
@@ -482,8 +481,8 @@ diffTimeTohms :: DiffTime -> (Int, Int, Int)
 diffTimeTohms t =
   let ss :: Int = floor $ toRational t
       sec = ss `rem` 60
-      mis = (sec `div` 60) `rem` 60
-      hrs = (sec `div` 60) `div` 60
+      mis = (ss `div` 60) `rem` 60
+      hrs = (ss `div` 60) `div` 60
   in (hrs, mis, sec)
 
 printDiffTime :: DiffTime -> String

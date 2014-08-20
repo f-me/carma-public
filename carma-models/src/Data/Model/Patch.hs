@@ -95,15 +95,15 @@ instance Model m => FromRow (Patch m) where
     ]
 
 instance Model m => ToRow (Patch m) where
-  toRow (Patch m) = map fieldToRow $ HashMap.toList m
+  toRow (Patch m) = concatMap fieldToRow $ HashMap.toList m
     where
-      fields = filterFields $ modelFieldsMap (modelInfo :: ModelInfo m)
+      -- NB. Please note that field order is significant
+      -- it MUST match with the one in Patch.Sql.insert
+      fields = modelFieldsMap (modelInfo :: ModelInfo m)
       fieldToRow (nm, val) = case HashMap.lookup nm fields of
-        Nothing -> error $ "BUG: unexpected field " ++ show nm
-        Just f  -> fd_toField f val
-      filterFields hm  = HashMap.filterWithKey isDefault hm
-      isDefault _ FieldDesc{..} = True
-      isDefault _ _             = False
+        Just f@(FieldDesc{}) -> [fd_toField f val]
+        Just _  -> [] -- skip ephemeral field
+        Nothing -> [] -- skip unknown fields to allow upcasting child models
 
 newtype W m = W { unW :: m }
 

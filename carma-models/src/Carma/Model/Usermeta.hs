@@ -11,6 +11,7 @@ import           Data.Vector     (Vector)
 import           Data.Time.Clock (UTCTime)
 import           Data.Time.Calendar (Day)
 import           Data.String (fromString)
+import qualified Data.Aeson as Aeson
 import           Text.Printf
 
 import qualified Database.PostgreSQL.Simple as PG
@@ -59,6 +60,8 @@ data Usermeta = Usermeta
   , delayedState :: F (Maybe UserStateVal) "delayedState" "Отложенный статус"
   , currentState      :: EF UserStateVal "currentState"      "Текущий статус"
   , currentStateCTime :: EF UTCTime      "currentStateCTime" ""
+  -- Some stuff for internal use on client, can be used instead of localStorage
+  , stuff        :: F Aeson.Value "stuff" ""
   } deriving Typeable
 
 
@@ -80,6 +83,7 @@ instance Model Usermeta where
       , invisible lastactivity
       , invisible lastlogout
       , invisible currentStateCTime
+      , invisible stuff
       , required realName
       , required login
       , required password

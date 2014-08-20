@@ -36,7 +36,11 @@ create p c = try $ do
       -- we use `map fst . HashMap.toList` instead of `HashMap.keys`
       -- just to be sure that `insFields` are in the same order as
       -- `ToRow (Patch m)` expects
-      insFields = map fst $ HashMap.toList m
+      insFields
+        = [name
+          | (name, _) <- HashMap.toList m
+          , Just FieldDesc{} <- [HashMap.lookup name (modelFieldsMap mInfo)]
+          ]
       q = printf "INSERT INTO %s (%s) VALUES (%s) RETURNING id"
         (show $ tableName mInfo)
         (T.unpack $ T.intercalate ", " insFields)
@@ -94,7 +98,10 @@ update
   :: forall m . Model m
   => IdentI m -> Patch m -> Connection
   -> IO (Either SomeException Int64)
-update (Ident i) p c = try $ execute c (fromString q) p
+update (Ident i) p c
+  = case updFields of
+    [] -> return $ Right 1 -- do nothing if we have nothing to update
+    _  -> try $ execute c (fromString q) p
   where
     mInfo = modelInfo :: ModelInfo m
     realfs = map fd_name $ onlyDefaultFields $ modelFields mInfo
