@@ -98,7 +98,10 @@ update
   :: forall m . Model m
   => IdentI m -> Patch m -> Connection
   -> IO (Either SomeException Int64)
-update (Ident i) p c = try $ execute c (fromString q) p
+update (Ident i) p c
+  = case updFields of
+    [] -> return $ Right 1 -- do nothing if we have nothing to update
+    _  -> try $ execute c (fromString q) p
   where
     mInfo = modelInfo :: ModelInfo m
     realfs = map fd_name $ onlyDefaultFields $ modelFields mInfo
