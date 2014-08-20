@@ -74,8 +74,6 @@ require [ "domready"
     global.keys = {}
     global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
 
-    liveMenu.setup(document.getElementById 'nav')
-
     avayaCred = document.cookie.match /avaya=([^;]*)/
     if avayaCred?[1]
       extPwd = unescape(avayaCred[1]).match /(.*)\|(.*)/
@@ -94,6 +92,11 @@ require [ "domready"
                           trigger: 'hover')
 
     CurrentUser.initialize()
+
+    # render menu only after everything else in menu bar is done
+    # FIXME: but we can't be sure that AVAYA widget is initialised
+    liveMenu.setup(document.getElementById 'nav')
+
 
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']
