@@ -14,14 +14,12 @@ import Carma.Model.Case (Case)
 import Carma.Model.DeferTime (label, time)
 import Carma.Model.Role (Role)
 import Carma.Model.Service (Service)
-import Carma.Model.ServiceType (ServiceType)
 import Carma.Model.Usermeta (Usermeta)
 
 data Action = Action
   { ident       :: PK Int Action                    "Действие"
   , caseId      :: F (IdentI Case)                  "caseId" ""
   , serviceId   :: F (Maybe (IdentI Service))       "serviceId" ""
-  , serviceType :: F (Maybe (IdentI ServiceType))   "serviceType" ""
   , aType       :: F (IdentI ActionType)            "type" ""
   , duetime     :: F UTCTime                        "duetime" "Ожидаемое время выполнения"
   , comment     :: F (Maybe Text)                   "comment" "Комментарий"
@@ -43,7 +41,6 @@ instance Model Action where
     "" -> Just $ modifyView defaultView $
           [ invisible caseId
           , invisible serviceId
-          , invisible serviceType
           , invisible aType
           , deferBy `completeWith` time
           , setMeta "dictionaryLabel"
