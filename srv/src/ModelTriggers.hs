@@ -274,6 +274,14 @@ instance Backoffice HaskellE where
       mkTrigger acc target $
       \h -> modifyPatch (Patch.delete acc) >> (evalHaskell h body)
 
+    sendDealerMail = HaskellE $ return $ return ()
+
+    sendGenserMail = HaskellE $ return $ return ()
+
+    sendPSAMail = HaskellE $ return $ return ()
+
+    sendSMS _ = HaskellE $ return $ return ()
+
     finish = HaskellE $ return $ return ()
 
     a *> b =
