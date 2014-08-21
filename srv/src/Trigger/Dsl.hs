@@ -250,7 +250,7 @@ evalDsl = \case
             lock = if isActive then Nothing else Just zabriskiePoint
             user' = user {userLogin = login, userLockedOutUntil = lock}
         user'' <- maybe
-          (return user)
+          (return user')
           (\(Password pwd) -> liftIO $ setPassword user' (T.encodeUtf8 pwd))
           maybePwd
         void $ withAuth $ withBackend -- FIXME: can fail
