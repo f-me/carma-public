@@ -95,5 +95,5 @@ instance PreContextAccess CarmaAction.Action where
       i <- getIdent
       p <- dbRead i
       case get' p CarmaAction.serviceId of
-        Just i' -> Just <$>  i'
+        Just i' -> Just <$> dbRead i'
         Nothing -> return Nothing
