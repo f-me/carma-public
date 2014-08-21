@@ -561,28 +561,37 @@ mixin simpleRefHdr(name, bindName)
 #default-case-group-template.group-template
   fieldset#default-case.complex-field.default-complex-field
     p
-      b Кто звонил:
+      b Кто звонил:&nbsp;
       span(data-bind='text: safelyGet(\'contact_name\')')
-      span(data-bind='text: safelyGet(\'contact_phone1\')')
+      span(data-bind='text: " " + safelyGet("contact_phone1")')
+      span(data-bind='\
+        visible: contact_phone2,\
+        text: ", " + safelyGet("contact_phone2")')
+      span(data-bind='\
+        visible: contact_phone3,\
+        text: ", " + safelyGet("contact_phone3")')
+      span(data-bind='\
+        visible: contact_phone4,\
+        text: ", " + safelyGet("contact_phone4")')
     p(data-bind='visible: safelyGet(\'car_make\')')
-      b Автомобиль:
+      b Автомобиль:&nbsp;
       span(data-bind='text: safelyGet(\'car_makeLocal\')')
       span(data-bind='text: safelyGet(\'car_modelLocal\')')
       span(data-bind='text: safelyGet(\'car_plateNum\')')
     p(data-bind='visible: safelyGet(\'caseAddress_address\')')
-      b Адрес кейса:
+      b Адрес кейса:&nbsp;
       span(data-bind='text: safelyGet(\'caseAddress_address\')')
       br
       span(data-bind='text: safelyGet(\'caseAddress_comment\')')
     p(data-bind='visible: safelyGet(\'cityLocal\')')
-      b Регион:
+      b Регион:&nbsp;
       span(data-bind='text: safelyGet(\'region\')')
     p(data-bind='visible: safelyGet(\'cityLocal\')')
       b
         | Расчётное значение ожидания эвакуатора в
         | г.
         span(data-bind='text: safelyGet(\'cityLocal\')')
-        | :
+        | :&nbsp;
       span#city-towage-average-time
     #contract
     .program
