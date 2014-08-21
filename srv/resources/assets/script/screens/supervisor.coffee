@@ -61,6 +61,8 @@ define ["utils"
       if obj.parentId
         svcName = obj.parentId.split(':')[0]
         svcName = global.model(svcName).title
+      else
+        svcName = null
       cid = obj.caseId.split(':')[1]
       closed = if obj.closed == "1"
           'Закрыто'
@@ -78,7 +80,7 @@ define ["utils"
             utils.timeFrom obj.assignTime, res.reqTime
           else
             utils.timeFrom obj.openTime, obj.closeTime
-      [ "#{cid}/#{obj.id} (#{svcName or ''})"
+      [ "#{cid}/#{obj.id} #{('(' + svcName + ')') or ''}"
       , closed
       , n[obj.name] || ''
       , u[obj.assignedTo] || ''
