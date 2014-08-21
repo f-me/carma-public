@@ -56,8 +56,9 @@ DROP VIEW IF EXISTS allservicesview;
 
 CREATE OR REPLACE FUNCTION serviceid_fk() RETURNS TRIGGER AS $$
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM servicetbl WHERE id = new.service_id) then
-        RAISE EXCEPTION 'No such service: %', new.service_id;
+    IF (new.serviceId IS NOT NULL AND
+        NOT EXISTS(SELECT 1 FROM servicetbl WHERE id = new.serviceId)) THEN
+        RAISE EXCEPTION 'No such service: %', new.serviceId;
     END IF;
     RETURN new;
 end;
