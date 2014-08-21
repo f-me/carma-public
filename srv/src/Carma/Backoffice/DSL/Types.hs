@@ -94,8 +94,6 @@ instance PreContextAccess CarmaAction.Action where
     getService = do
       i <- getIdent
       p <- dbRead i
-      let sId   = get' p CarmaAction.serviceId
-          sType = get' p CarmaAction.serviceType
-      case (sId, sType) of
-        (Just sId', Just sType') -> Just <$> getSrv sId' sType'
-        _                        -> return Nothing
+      case get' p CarmaAction.serviceId of
+        Just i' -> Just <$>  i'
+        Nothing -> return Nothing

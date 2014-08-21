@@ -119,7 +119,7 @@ SELECT c.id AS caseid,
    LEFT JOIN usermetatbl u ON c.calltaker = u.id
    LEFT JOIN "Wazzup" wazzup ON c.comment = wazzup.id,
    servicetbl s
-   LEFT JOIN allservicesview t ON t.id = s.id AND t.type = s.type AND s.parentid = t.parentid
+   LEFT JOIN allservicesview t ON t.id = s.id AND s.parentid = t.parentid
    LEFT JOIN partnertbl p1 ON s.contractor_partnerid = ('partner:'::text || p1.id)
    LEFT JOIN partnertbl p2 ON t.towdealer_partnerid = ('partner:'::text || p2.id)
    WHERE c.id = s.parentid;

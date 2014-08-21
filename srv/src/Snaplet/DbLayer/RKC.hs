@@ -589,7 +589,7 @@ WITH actiontimes AS (
  AND (a2.result='serviceOrdered'
       OR a2.result='serviceOrderedSMS')
  AND a1.name='orderService'
- AND a1.parentid=concat(s.type, ':', s.id)
+ AND a1.parentid=s.id
  AND cast(split_part(a1.caseid, ':', 2) as integer)=c.id
  AND s.times_expectedServiceStart <= (a1.ctime + INTERVAL '01:00:00')
  AND (? or c.program = ?)
@@ -617,7 +617,7 @@ WITH
     FROM towagetbl)
 SELECT extract(epoch from avg(s.times_factServiceStart - s.times_expectedDispatch))
 FROM casetbl c, services s
-WHERE cast(split_part(s.parentid, ':', 2) as integer)=c.id
+WHERE s.parentid = c.id
 AND (s.times_factServiceStart > s.times_expectedDispatch)
 AND (s.type='towage' OR s.type='tech')
 AND (? or c.program = ?)

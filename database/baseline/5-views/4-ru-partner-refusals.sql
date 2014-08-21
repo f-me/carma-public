@@ -25,9 +25,7 @@ LEFT JOIN partnertbl ON partnertbl.id = "substring"(partnercanceltbl.partnerid, 
 LEFT JOIN "City" ON casetbl.city = "City".value
 --РЕАЛИЗАЦИЯ УНИКАЛЬНОЙ СВЯЗКИ В servicetbl(id, type):
         LEFT JOIN servicetbl ON
-                ((partnercanceltbl.serviceid = servicetbl.id)
-                AND
-                (partnercanceltbl.servicetype = servicetbl.type))
+                (partnercanceltbl.serviceid = servicetbl.id)
 LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id
 --ДЖОЙНИМ РЕЗУЛЬТАТ ПОДЗАПРОСА cities_regions ДЛЯ ВЫБОРА РЕГИОНОВ
         LEFT JOIN cities_regions ON "City".id = cities_regions.cities::Integer

@@ -29,7 +29,6 @@ module Trigger.Dsl
     , dbCreate
     , dbRead
     , dbUpdate
-    , getSrv
 
       -- ** Miscellaneous
     , wsMessage
@@ -128,11 +127,6 @@ dbCreate p = liftFree (DbCreate p id)
 dbRead :: Model m => IdentI m -> Free (Dsl n) (Patch m)
 dbRead i = liftFree (DbRead i id)
 
-getSrv :: IdentI Service
-       -> IdentI ServiceType
-       -> Free (Dsl m) (Patch Service)
-getSrv i t = liftFree (GetSrv i t id)
-
 dbUpdate :: Model m => IdentI m -> Patch m -> Free (Dsl n) Int64
 dbUpdate i p = liftFree (DbUpdate i p id)
 
@@ -163,8 +157,6 @@ data Dsl m k where
   DbCreate    :: Model m1 => Patch m1 -> (IdentI m1 -> k) -> Dsl m k
   DbRead      :: Model m1 => IdentI m1 -> (Patch m1 -> k) -> Dsl m k
   DbUpdate    :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
-  GetSrv      :: IdentI Service -> IdentI ServiceType
-              -> (Patch Service -> k) -> Dsl m k
   CurrentUser :: (IdentI Usermeta -> k) -> Dsl m k
   CreateUser  :: Text -> (Int -> k) -> Dsl m k
   UpdateUser  :: Patch Usermeta -> k -> Dsl m k
@@ -183,7 +175,6 @@ instance Functor (Dsl m) where
     GetIdent      k -> GetIdent      $ fn . k
     DbCreate  p   k -> DbCreate  p   $ fn . k
     DbRead    i   k -> DbRead i      $ fn . k
-    GetSrv    i t k -> GetSrv    i t $ fn . k
     DbUpdate  i p k -> DbUpdate  i p $ fn . k
     CurrentUser   k -> CurrentUser   $ fn . k
     CreateUser l  k -> CreateUser l  $ fn . k
@@ -225,13 +216,6 @@ evalDsl = \case
     DbCreate p k   -> runDb (Patch.create p)   k
     DbRead i k     -> runDb (Patch.read i)     k
     DbUpdate i p k -> runDb (Patch.update i p) k
-
-    GetSrv i t k -> do
-      c <- gets st_pgcon
-      [res] <- lift $ liftIO $ PG.query c
-               "SELECT * FROM servicetbl WHERE id = ? AND type = ?"
-               (i, t)
-      evalDsl $ k res
 
     CurrentUser k -> do
       c <- gets st_pgcon

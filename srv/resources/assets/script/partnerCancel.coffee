@@ -43,9 +43,7 @@ define ["model/main"], (main) ->
 
           # fill hidden fields
           serviceId = serviceRef.split(':')[0]
-          serviceType = serviceRef.split(':')[1]
           kvm.serviceId(serviceId)
-          kvm.serviceType(serviceType)
 
           kvm.caseId(caseId)
 
