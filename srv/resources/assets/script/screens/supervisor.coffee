@@ -61,6 +61,7 @@ define ["utils"
       if obj.parentId
         svcName = obj.parentId.split(':')[0]
         svcName = global.model(svcName).title
+        svcName = "(#{svcName})"
       else
         svcName = null
       cid = obj.caseId.split(':')[1]
@@ -80,7 +81,7 @@ define ["utils"
             utils.timeFrom obj.assignTime, res.reqTime
           else
             utils.timeFrom obj.openTime, obj.closeTime
-      [ "#{cid}/#{obj.id} #{('(' + svcName + ')') or ''}"
+      [ "#{cid}/#{obj.id} #{svcName or ''}"
       , closed
       , n[obj.name] || ''
       , u[obj.assignedTo] || ''
