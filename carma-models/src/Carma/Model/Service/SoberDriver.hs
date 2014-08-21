@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.SoberDriver where
 
 import Data.Text
@@ -28,7 +27,7 @@ data SoberDriver = SoberDriver
 instance Model SoberDriver where
   type TableName SoberDriver = "sobertbl"
   type Parent SoberDriver = Service
-  modelInfo = mkModelInfo SoberDriver ident `withLegacyName` "sober"
+  modelInfo = mkModelInfo SoberDriver ident `withLegacyName` "soberDriver"
   modelView v = case parentView v :: Maybe (ModelView SoberDriver) of
     Nothing -> Nothing
     Just mv -> Just
