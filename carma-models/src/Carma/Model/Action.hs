@@ -31,7 +31,6 @@ data Action = Action
   , closeTime   :: F (Maybe UTCTime)                "closeTime" ""
   , assignedTo  :: F (Maybe (IdentI Usermeta))      "assignedTo" "Ответственный"
   , targetGroup :: F (IdentI Role)                  "targetGroup" "Роль"
-  , closed      :: F Bool                           "closed" "Закрыто"
   } deriving Typeable
 
 instance Model Action where
@@ -55,6 +54,5 @@ instance Model Action where
           , invisible closeTime
           , invisible assignedTo
           , invisible targetGroup
-          , invisible closed
           ]
     _  -> Nothing
