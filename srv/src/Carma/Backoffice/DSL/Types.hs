@@ -82,6 +82,9 @@ instance PreContextAccess Case where
 
 
 instance PreContextAccess Service where
+    getKase =
+      dbRead =<< (`get'` Service.parentId) <$> (dbRead =<< getIdent)
+
     getService = Just <$> (dbRead =<< getIdent)
 
 
