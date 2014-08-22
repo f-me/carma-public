@@ -17,6 +17,7 @@ import Control.Monad.Trans
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 
+import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
@@ -36,19 +37,24 @@ import Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as Patch
 import Data.Model.Types
 
+
 import           Trigger.Dsl
 
+import           Carma.Model.Types (HMDiffTime(..))
+
+import qualified Carma.Model.Action as Action
 import qualified Carma.Model.BusinessRole as BusinessRole
 import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
 import           Carma.Model.Case (Case)
+import qualified Carma.Model.Case as Case
 import qualified Carma.Model.Service as Service
 import           Carma.Model.Service (Service)
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 
 import           Carma.Backoffice
-import           Carma.Backoffice.DSL as BO hiding ((==), before, const)
+import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
@@ -95,7 +101,7 @@ afterUpdate = Map.unionsWith (++) $
   ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
   ] ++
-  map (evalHaskell emptyContext . trigger) (fst carmaBackoffice)
+  map (evalHaskell emptyContext . BO.trigger) (fst carmaBackoffice)
 
 --  - runReadTriggers
 --    - ephemeral fields
@@ -218,7 +224,7 @@ instance Backoffice HaskellE where
 
     currentUserOr r =
         HaskellE $ do
-          i <- toHaskell (userField Usermeta.ident)
+          i <- toHaskell (BO.userField Usermeta.ident)
           return (Just i, r)
 
     previousAction =
@@ -226,15 +232,15 @@ instance Backoffice HaskellE where
         fromMaybe (Ident $ fst startNode) <$> asks prevAction
 
     userField acc =
-        HaskellE $ asks (flip Patch.get' acc . user)
+        HaskellE $ asks (flip get' acc . user)
 
     serviceField acc =
         HaskellE $
-        asks (flip Patch.get' acc . fromMaybe (error "No service") . service)
+        asks (flip get' acc . fromMaybe (error "No service") . service)
 
     caseField acc =
         HaskellE $
-        asks (flip Patch.get' acc . kase)
+        asks (flip get' acc . kase)
 
     const = HaskellE . return
 
@@ -254,7 +260,7 @@ instance Backoffice HaskellE where
           toHaskell c >>=
           \case
               True -> toHaskell br
-              False -> toHaskell $ switch bs ow
+              False -> toHaskell $ BO.switch bs ow
         [] -> toHaskell ow
 
     not a = HaskellE $ Prelude.not <$> toHaskell a
@@ -272,7 +278,7 @@ instance Backoffice HaskellE where
 
     insteadOf acc target body =
       mkTrigger acc target $
-      \h -> modifyPatch (Patch.delete acc) >> (evalHaskell h body)
+      \h -> modifyPatch (Patch.delete acc) >> evalHaskell h body
 
     sendDealerMail = HaskellE $ return $ return ()
 
@@ -291,6 +297,35 @@ instance Backoffice HaskellE where
           -- make all context-changing effects invisible to subsequent
           -- chain operators
           return $ evalHaskell ctx a >> evalHaskell ctx b
+
+    defer =
+        HaskellE $ do
+          ctx <- ask
+          return $ do
+            this <- dbRead =<< getIdent
+            let aT = this `get'` Action.aType
+                cid = kase ctx `get'` Case.ident
+                sid = (`get'` Service.ident) <$> service ctx
+                e = fromMaybe (error "Current action unknown") $
+                    find ((== aT) . BO.aType) $
+                    snd carmaBackoffice
+                grp = snd $ evalHaskell ctx $ BO.assignment e
+                HMDiffTime deferBy =
+                  fromMaybe (error "No deferBy") $
+                  this `get'` Action.deferBy
+                -- Truncate everything below seconds, disregard leap
+                -- seconds
+                deferBy' = realToFrac deferBy
+                due = addUTCTime deferBy' (now ctx)
+                p = Patch.put Action.ctime (now ctx) $
+                    Patch.put Action.duetime due $
+                    Patch.put Action.targetGroup grp $
+                    Patch.put Action.aType aT $
+                    Patch.put Action.caseId cid $
+                    Patch.put Action.serviceId sid
+                    Patch.empty
+            void $ dbCreate p
+
 
 mkTrigger :: (Eq (HaskellType t),
               FieldI (HaskellType t) n d, Model m,
