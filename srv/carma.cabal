@@ -103,7 +103,7 @@ Executable carma
     mime-mail                   == 0.4.1.2,
     network                     >= 2.4 && < 2.6,
     old-locale                  == 1.0.*,
-    postgresql-simple           == 0.3.*,
+    postgresql-simple           == 0.4.*,
     postgresql-sync-map         >= 0.6 && < 0.7,
     pureMD5                     == 2.1.*,
     random                      == 1.0.*,
@@ -158,7 +158,7 @@ Executable carma-db-checker
   hs-source-dirs: tools
   main-is: Main.hs
   Build-depends:
-      postgresql-simple           == 0.3.*,
+      postgresql-simple           == 0.4.*,
       carma-models                >= 0.24 && < 0.25,
       unordered-containers        == 0.2.*,
       cmdlib                      == 0.3.*,
