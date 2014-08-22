@@ -102,3 +102,6 @@ instance PgTypeable  Coords where
 
 instance PgTypeable  DiffTime where
   pgTypeOf _ = PgType "interval" True
+
+instance PgTypeable  HMDiffTime where
+  pgTypeOf _ = PgType "interval" True

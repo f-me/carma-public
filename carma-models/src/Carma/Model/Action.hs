@@ -8,6 +8,8 @@ import Data.Typeable
 import Data.Model
 import Data.Model.View
 
+import Carma.Model.Types (HMDiffTime)
+
 import Carma.Model.ActionResult (ActionResult)
 import Carma.Model.ActionType (ActionType)
 import Carma.Model.Case (Case)
@@ -23,7 +25,7 @@ data Action = Action
   , aType       :: F (IdentI ActionType)            "type" ""
   , duetime     :: F UTCTime                        "duetime" "Ожидаемое время выполнения"
   , comment     :: F (Maybe Text)                   "comment" "Комментарий"
-  , deferBy     :: F (Maybe Text)                   "deferBy" "Отложить на"
+  , deferBy     :: F (Maybe HMDiffTime)             "deferBy" "Отложить на"
   , result      :: F (Maybe (IdentI ActionResult))  "result" "Результат"
   , ctime       :: F UTCTime                        "ctime" ""
   , assignTime  :: F (Maybe UTCTime)                "assignTime" ""
@@ -45,7 +47,6 @@ instance Model Action where
           , setMeta "dictionaryLabel"
             (A.String $ fieldName label) deferBy
           , infoText "defertime" deferBy
-          , regexp "timespan" deferBy
           , setMeta "addClass" "redirectOnChange" result
           , setMeta "dictionaryType" "BoUsersDict" assignedTo
           , invisible ctime
