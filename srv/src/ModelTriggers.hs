@@ -296,8 +296,6 @@ instance Backoffice HaskellE where
             aids <- prevClosedActions cid types
             forM_ aids (\(PS.Only i) -> dbUpdate i p)
 
-    finish = HaskellE $ return $ return ()
-
     a *> b =
         HaskellE $ do
           ctx <- ask

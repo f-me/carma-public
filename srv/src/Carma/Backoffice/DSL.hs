@@ -23,8 +23,9 @@ module Carma.Backoffice.DSL
     , Outcome
     , Trigger
     , Backoffice(..)
-    , ite
+    , finish
     , setServiceStatus
+    , ite
     , minutes
     , hours
     , days
@@ -228,12 +229,10 @@ class Backoffice impl where
               -- ^ A result used to close the matched actions.
               -> impl (Eff m)
 
-    -- | Do nothing.
-    finish  :: impl (Outcome m)
-
-    -- | Close the action and create new actions of given types.
+    -- | Create new actions of given types.
     --
-    -- Duplicate types are ignored.
+    -- Duplicate types are ignored. When the list is is empty, no
+    -- further processing is performed ('finish').
     proceed :: [ActionTypeI] -> impl (Outcome m)
 
     -- | Postpone the action.
@@ -247,6 +246,11 @@ class Backoffice impl where
     -- > sendSMS *> doStuff *> finish
     infixr *>
     (*>) :: impl (Eff m) -> impl (Outcome m) -> impl (Outcome m)
+
+
+-- | Do nothing.
+finish :: Backoffice impl => impl (Outcome m)
+finish = proceed []
 
 
 setServiceStatus :: Backoffice impl => IdentI ServiceStatus -> impl (Eff m)

@@ -176,7 +176,7 @@ instance Backoffice EdgeE where
         EdgeE $ \c ->
             return
             [(fromNode c, fromNode c, (fullEdgeText c, edgeColor c))]
-    finish =
+    proceed [] =
         EdgeE $ \c ->
             return
             [(fromNode c, finalNode c, (fullEdgeText c, edgeColor c))]

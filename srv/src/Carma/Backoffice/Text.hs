@@ -207,8 +207,7 @@ instance Backoffice TextE where
 
     defer = textE "Отложить действие"
 
-    finish = textE "Завершить обработку"
-
+    proceed [] = textE "Завершить обработку"
     proceed acts =
         TextE $
         T.append "Создать действия: " <$>
