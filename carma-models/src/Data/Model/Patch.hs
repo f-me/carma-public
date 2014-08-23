@@ -15,11 +15,11 @@ import Control.Monad (mplus)
 import Control.Monad.Trans.Class (lift)
 
 import Data.ByteString (ByteString)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromMaybe)
 import Data.Aeson.Types
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
-import Data.Text (Text, toLower)
+import Data.Text (Text, toLower, unpack)
 import Data.Text.Encoding (decodeUtf8)
 import Data.Text.Unsafe (unsafeDupablePerformIO)
 import qualified Database.PostgreSQL.LibPQ as PQ
@@ -30,7 +30,6 @@ import Database.PostgreSQL.Simple.FromField (ResultError(..))
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToRow
 
-import Data.Maybe (fromJust)
 import Data.Dynamic
 
 import Data.Singletons
@@ -45,7 +44,7 @@ data Patch m
 get :: (Typeable t, SingI name) =>
        Patch m -> (m -> Field t (FOpt name desc app)) -> Maybe t
 get (Patch m) f
-  = fromJust . fromDynamic
+  = (`fromDyn` (error "Dynamic error in patch"))
   <$> HashMap.lookup (fieldName f) m
 
 
@@ -61,7 +60,8 @@ empty = Patch HashMap.empty
 get' :: (Typeable t, SingI name) =>
         Patch m -> (m -> Field t (FOpt name desc app)) -> t
 get' p f
-  = fromJust $ get p f
+  = fromMaybe (error $ "Patch field " ++ unpack (fieldName f) ++ " missing") $
+    get p f
 
 
 delete :: (SingI name) =>

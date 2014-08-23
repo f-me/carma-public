@@ -15,7 +15,7 @@ module Data.Model.Sql
 
 import Text.Printf (printf)
 import Data.String (fromString)
-import Data.List (intersperse)
+import Data.List (intercalate)
 import Data.Int (Int64)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -50,7 +50,7 @@ mkUpdate :: (SqlQ how, SqlQ which, QMod how ~ QMod which) =>
 mkUpdate how which =
     let
         predChunks :: String -> [String] -> String
-        predChunks glue ps = concat (intersperse glue ps)
+        predChunks glue ps = intercalate glue ps
     in
       case queryPredicate how of
         [] -> error "No new field values provided"
@@ -89,7 +89,7 @@ selectJSON q c = select q c >>= return
 selectPatch
   :: (ToValueList (QRes q), SqlQ q, FromRow (QRes q), Model m)
   => q -> Connection -> IO (Result [Patch m])
-selectPatch q c = selectJSON q c >>= return . sequence . map fromJSON
+selectPatch q c = selectJSON q c >>= return . mapM fromJSON
 
 mkSelect :: SqlQ q => q -> (Query, QArg q)
 mkSelect q =
@@ -99,7 +99,7 @@ mkSelect q =
       (show $ queryTbl q)
     ++ case queryPredicate q of
       [] -> ""
-      ps -> " WHERE " ++ concat (intersperse " AND " ps)
+      ps -> " WHERE " ++ intercalate " AND " ps
   ,queryArgs q
   )
 

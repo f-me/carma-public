@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Carma.Model.TaxScheme where
 
 import Data.Text
