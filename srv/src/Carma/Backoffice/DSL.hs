@@ -123,7 +123,10 @@ class Backoffice impl where
     -- Context access functions ('caseField', 'serviceField') are not
     -- total: if there's no corresponding context during the run time,
     -- an error is raised. For instance, service fields cannot be
-    -- accessed in case triggers.
+    -- accessed in case triggers or handlers for actions which are not
+    -- attached to any service. Fixing the latter problem would
+    -- involve tying ActionType and availability of a service for it
+    -- (on the type level).
     userField     :: (FieldI t n d, HaskellType t ~ t) =>
                      (Usermeta -> F t n d) -> impl t
     caseField     :: (FieldI t n d, HaskellType t ~ t) =>
@@ -218,7 +221,7 @@ class Backoffice impl where
               -- ^ A result used to close actions.
               -> impl (Eff m)
 
-    -- | Close the action.
+    -- | Do nothing.
     finish  :: impl (Outcome m)
 
     -- | Close the action and create new actions of given types.

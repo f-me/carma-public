@@ -107,14 +107,20 @@ allActionsHandler = do
                        ]
 
 
-selectActions
-  :: MBS -> Maybe (IdentI Usermeta) -> Maybe [ByteString] -> MBS -> MBS
-  -> AppHandler [Map Text Text]
+selectActions :: MBS
+              -- ^ If @Just "1"@, only actions with non-null results
+              -- will be selected. @Just "0"@ selects actions with no
+              -- results. @Nothing@ ignores action results.
+              -> Maybe (IdentI Usermeta) -> Maybe [ByteString] -> MBS -> MBS
+              -> AppHandler [Map Text Text]
 selectActions mClosed mAssignee mRoles mFrom mTo = do
   let nid = Ident 0
+      clToRes :: ByteString -> PlainText
+      clToRes "1" = PT "NOT"
+      clToRes _   = PT ""
       actQ = [sql|
      SELECT a.id::text, a.caseId, a.serviceId, a.serviceType,
-           (a.closed::int)::text, a.type, a.assignedTo, a.targetGroup,
+           a.type, a.assignedTo, a.targetGroup,
            (extract (epoch from a.duetime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.ctime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text,
@@ -133,20 +139,20 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
        "ActionType" at
      WHERE c.id = a.caseId
      AND at.id = actiontbl.type
-     AND (? OR closed = ?)
+     AND (? OR result IS ? NULL)
      AND (? OR a.assignedTo = ?)
      AND (? OR targetGroup IN ?)
      AND (? OR extract (epoch from duetime) >= ?)
      AND (? OR extract (epoch from duetime) <= ?);
      |]
   rows <- withPG pg_search $ \c -> query c actQ $
-          (sqlFlagPair False   (== "1") mClosed)               :.
+          (sqlFlagPair (PT "") clToRes  mClosed)               :.
           (sqlFlagPair nid     id       mAssignee)             :.
           (sqlFlagPair (In []) In       mRoles)                :.
           (sqlFlagPair 0       fst      (mFrom >>= B.readInt)) :.
           (sqlFlagPair 0       fst      (mTo >>= B.readInt))
   let fields
-        = [ "id", "caseId", "serviceId", "serviceType", "closed", "name"
+        = [ "id", "caseId", "serviceId", "serviceType", "name"
           , "assignedTo", "targetGroup", "duetime"
           , "ctime", "assignTime", "openTime", "closeTime"
           , "result"
@@ -256,7 +262,7 @@ busyOpsQ :: Query
 busyOpsQ = [sql|
   SELECT assignedTo, count(1)::text
   FROM   actiontbl
-  WHERE  closed = 'f'
+  WHERE  result IS NOT NULL
   GROUP BY assignedTo
   HAVING   assignedTo is not null AND assignedTo != ''
   |]
@@ -272,7 +278,7 @@ actStatsQ :: Query
 actStatsQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
-  WHERE (assignedTo IS NULL OR assignedTo = '') AND closed = 'f'
+  WHERE (assignedTo IS NULL OR assignedTo = '') AND result IS NOT NULL
   AND name = ANY (?)
   AND (? OR extract (epoch from duetime) >= ?)
   AND (? OR extract (epoch from duetime) <= ?);

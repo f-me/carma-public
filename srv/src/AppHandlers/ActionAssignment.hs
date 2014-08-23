@@ -28,7 +28,7 @@ assignQ pri (Ident umid) = fromString
   ++ "    AND now() - lastactivity < '30 min') "
   ++ "UPDATE actiontbl SET assignedTo = '" ++ show umid ++ "'"
   ++ "  WHERE id = (SELECT act.id"
-  ++ "    FROM ((SELECT * FROM actiontbl WHERE closed = false) act"
+  ++ "    FROM ((SELECT * FROM actiontbl WHERE result IS NOT NULL) act"
   ++ "      LEFT JOIN servicetbl svc"
   ++ "      ON svc.type = act.serviceType and svc.id = act.serviceId),"
   ++ "      casetbl c, usermetatbl u, \"ActionType\" at"
