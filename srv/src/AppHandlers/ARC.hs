@@ -80,15 +80,14 @@ arcImport = writeJSON [0::Int] >> return ()
                 -- with leader=true
                 withPG pg_search $ \c -> query c
                 [sql|
-                 SELECT ? FROM "?" WHERE ?=? ORDER BY ? DESC, ? ASC LIMIT 1;
+                 SELECT ? FROM ? WHERE ?=? ORDER BY ? DESC, ? ASC LIMIT 1;
                  |]
-                ( PT $ fieldName SubProgram.ident
-                , PT $ tableName $
-                  (modelInfo :: ModelInfo SubProgram.SubProgram)
-                , PT $ fieldName SubProgram.parent
+                ( fieldPT SubProgram.ident
+                , tableQT SubProgram.ident
+                , fieldPT SubProgram.parent
                 , pid
-                , PT $ fieldName SubProgram.leader
-                , PT $ fieldName SubProgram.ident
+                , fieldPT SubProgram.leader
+                , fieldPT SubProgram.ident
                 )
             case res of
               (Only i:_) -> return i

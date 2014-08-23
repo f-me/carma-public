@@ -178,11 +178,9 @@ fillFromContract contract objId = do
       cid = case T.decimal contract of
           Right (i,_) -> Ident i
           _           -> error "Could not read contract id"
-      contractTable = PT $ tableName (modelInfo :: ModelInfo Contract.Contract)
-      programTable = PT $ tableName $
-                     (modelInfo :: ModelInfo Program.Program)
-      subProgramTable = PT $ tableName $
-                        (modelInfo :: ModelInfo SubProgram.SubProgram)
+      contractTable = tableQT Contract.ident
+      programTable = tableQT Program.ident
+      subProgramTable = tableQT SubProgram.ident
   res <- liftDb $ PG.query
          (fromString $ unwords
           [ "SELECT"
@@ -191,13 +189,13 @@ fillFromContract contract objId = do
           -- 1: program id field
           , ", p.?::text"
             -- 1 argument: Contract table name
-          , "FROM \"?\" c"
+          , "FROM ? c"
           -- 3 more parameters: SubProgram table name, Contract
           -- subprogram field, subprogram id field.
-          , "JOIN \"?\" s ON c.? = s.?"
+          , "JOIN ? s ON c.? = s.?"
           -- 3 more parameters: Program table name, SubProgram parent
           -- field, program id field.
-          , "JOIN \"?\" p ON s.? = p.?"
+          , "JOIN ? p ON s.? = p.?"
             -- 2 more arguments: contract id field, contract id value
           , "WHERE c.? = ?;"
           ]) $
@@ -205,17 +203,17 @@ fillFromContract contract objId = do
          ToRowList
          (map (\f -> (PT "c", PT $ fieldNameE $ fst f)) contractToCase)
          -- 2
-         :. (Only $ PT $ fieldName Program.ident)
+         :. (Only $ fieldPT Program.ident)
          :. (Only contractTable)
          -- 3
          :. (Only subProgramTable)
-         :. (PT $ fieldName Contract.subprogram,
-             PT $ fieldName SubProgram.ident)
+         :. (fieldPT Contract.subprogram,
+             fieldPT SubProgram.ident)
          -- 3
          :. Only programTable
-         :. (PT $ fieldName SubProgram.parent, PT $ fieldName Program.ident)
+         :. (fieldPT SubProgram.parent, fieldPT Program.ident)
          -- 2
-         :. (PT $ fieldName Contract.ident, cid)
+         :. (fieldPT Contract.ident, cid)
   case res of
     [] -> return None
     [row] -> do
@@ -228,11 +226,11 @@ fillFromContract contract objId = do
                  contractToCase ++ [(undefined, FA Case.program)])
                 row
       resExp <- liftDb $ PG.query
-                [sql|SELECT ((now() < ?) or (? < now())) FROM "?" WHERE ? = ?;|]
-                ( PT $ fieldName Contract.validSince
-                , PT $ fieldName Contract.validUntil
+                [sql|SELECT ((now() < ?) or (? < now())) FROM ? WHERE ? = ?;|]
+                ( fieldPT Contract.validSince
+                , fieldPT Contract.validUntil
                 , contractTable
-                , PT $ fieldName Contract.ident
+                , fieldPT Contract.ident
                 , cid)
       return $ case resExp of
                  [Only (Just True)] -> Expired

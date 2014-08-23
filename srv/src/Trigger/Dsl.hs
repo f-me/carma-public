@@ -79,7 +79,7 @@ import Carma.Model.Usermeta    (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import Carma.Model.LegacyTypes (Password(..))
 
-import Util (PlainText(..))
+import Util
 
 type TriggerRes m = Either (Int,String) (Patch m)
 
@@ -153,18 +153,20 @@ prevClosedActions cid types =
     liftFree (DbQuery (\c -> PG.query c q params) id)
     where
       q = [sql|
-           SELECT id FROM actiontbl
+           SELECT ? FROM ?
            WHERE ? = ?
            AND ? IN ?
            AND ? IS NOT NULL
            ORDER BY ? DESC;
            |]
-      params = ( PT $ fieldName Action.caseId
+      params = ( fieldPT Action.ident
+               , tableQT Action.ident
+               , fieldPT Action.caseId
                , cid
-               , PT $ fieldName Action.aType
+               , fieldPT Action.aType
                , PG.In types
-               , PT $ fieldName Action.result
-               , PT $ fieldName Action.closeTime
+               , fieldPT Action.result
+               , fieldPT Action.closeTime
                )
 
 liftFree :: Functor f => f a -> Free f a

@@ -28,6 +28,8 @@ module Util
 
     -- * Postgres helpers
   , PlainText(..)
+  , fieldPT
+  , tableQT
   , (:*)(..)
   , ToRowList(..)
   , sqlFlagPair
@@ -76,6 +78,8 @@ import qualified Data.Attoparsec.Text as A
 import Database.PostgreSQL.Simple.ToField
 import Database.PostgreSQL.Simple.ToRow
 import Database.PostgreSQL.Simple.Types
+
+import GHC.TypeLits
 
 import Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
 import qualified Database.PostgreSQL.Simple as P
@@ -224,6 +228,20 @@ newtype PlainText = PT Text
 
 instance ToField PlainText where
     toField (PT i) = Plain $ BZ.fromText i
+
+
+-- | Field name, unquoted.
+fieldPT :: KnownSymbol n => (m -> Model.Field t (Model.FOpt n d a)) -> PlainText
+fieldPT = PT . Model.fieldName
+
+
+-- | Table name, in double quotes.
+tableQT :: forall m t d. Model.Model m => (m -> Model.PK t m d) -> PlainText
+tableQT _ =
+    PT $ T.concat [ "\""
+                  , Model.tableName (Model.modelInfo :: Model.ModelInfo m)
+                  , "\""
+                  ]
 
 
 -- | Works almost like '(:.)' for 'ToField' instances. Start with `()`

@@ -135,16 +135,16 @@ searchContracts = do
           , intercalate "," $
             map (const "c.?") selectedFieldsParam
           -- 1 parameter: Contract table name
-          , "FROM \"?\" c"
+          , "FROM ? c"
           -- 3 parameters: Case table name, Case ident field name,
           -- Case id.
-          , "JOIN \"?\" cs ON cs.? = ?"
+          , "JOIN ? cs ON cs.? = ?"
           -- 3 more parameters: SubProgram table name, Contract
           -- subprogram field, subprogram id field.
-          , "JOIN \"?\" s ON c.? = s.?"
+          , "JOIN ? s ON c.? = s.?"
           -- 3 more parameters: Program table name, SubProgram parent
           -- field, program id field.
-          , "JOIN \"?\" p ON s.? = p.?"
+          , "JOIN ? p ON s.? = p.?"
           , "WHERE"
           , "("
           -- 2*M parameters: identifier fields and query
@@ -165,46 +165,43 @@ searchContracts = do
       -- Fields selected from matching rows
       selectedFieldsParam =
           map PT $ C.identifierNames ++ extraContractFieldNames
-      contractTable = PT $ tableName $
-                      (modelInfo :: ModelInfo C.Contract)
-      programTable = PT $ tableName $
-                     (modelInfo :: ModelInfo P.Program)
-      subProgramTable = PT $ tableName $
-                        (modelInfo :: ModelInfo S.SubProgram)
+      contractTable   = tableQT C.ident
+      programTable    = tableQT P.ident
+      subProgramTable = tableQT S.ident
 
   res <- withPG pg_search $ \c -> query c (fromString totalQuery)
          (()
           -- 4
-          :. ( PT $ fieldName Case.callDate
-             , PT $ fieldName C.validSince
-             , PT $ fieldName C.validUntil
-             , PT $ fieldName Case.callDate
+          :. ( fieldPT Case.callDate
+             , fieldPT C.validSince
+             , fieldPT C.validUntil
+             , fieldPT Case.callDate
              )
           -- M + N
           :. (selectedFieldsParam)
           -- 1
           :. (Only contractTable)
           -- 3
-          :. ( PT $ tableName (modelInfo :: ModelInfo Case.Case)
-             , PT $ fieldName Case.ident
+          :. ( tableQT Case.ident
+             , fieldPT Case.ident
              , caseId
              )
           -- 3
           :. Only subProgramTable
-          :. (PT $ fieldName C.subprogram, PT $ fieldName S.ident)
+          :. (fieldPT C.subprogram, fieldPT S.ident)
           -- 3
           :. Only programTable
-          :. (PT $ fieldName S.parent, PT $ fieldName P.ident)
+          :. (fieldPT S.parent, fieldPT P.ident)
           -- 2*M
           :. (ToRowList fieldParams)
           -- 3
           :. (sqlFlagPair (0::Int) id sid)
-          :. (Only $ PT $ fieldName C.subprogram)
+          :. (Only $ fieldPT C.subprogram)
           -- 3
           :. (sqlFlagPair (0::Int) id pid)
-          :. (Only $ PT $ fieldName P.ident)
+          :. (Only $ fieldPT P.ident)
           -- 2
-          :. (PT $ fieldName C.dixi, PT $ fieldName C.isActive)
+          :. (fieldPT C.dixi, fieldPT C.isActive)
           -- 1
           :. Only limit)
 
