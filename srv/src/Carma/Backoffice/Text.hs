@@ -27,7 +27,6 @@ import           Data.Map (Map)
 import qualified Data.Map as Map
 import           Data.Text (Text)
 import qualified Data.Text as T
-import           Data.Time.Clock
 import           Data.Typeable
 
 import           Data.Model
@@ -225,7 +224,7 @@ evalText c t = runReader (toText t) c
 
 -- | Show non-zero days, hours, minutes and seconds of a time
 -- difference.
-formatDiff :: NominalDiffTime -> Text
+formatDiff :: RealFrac a => a -> Text
 formatDiff nd' =
     let
         nd :: Int

@@ -97,10 +97,9 @@ class Backoffice impl where
            -> impl UTCTime
     before diff time = (-diff) `since` time
 
+    -- | No user.
     nobody :: impl (Maybe (IdentI Usermeta))
 
-    -- | Keep an action assigned to the current user, but also make it
-    -- available to the role.
     currentUser :: impl (Maybe (IdentI Usermeta))
 
     -- | Assign to the last user who closed a matching action in the
@@ -128,19 +127,19 @@ class Backoffice impl where
     -- extra hint is included in type constraints for the
     -- meta-language interpreter.
     --
-    -- Context access functions ('caseField', 'serviceField') are not
-    -- total: if there's no corresponding context during the run time,
-    -- an error is raised. For instance, service fields cannot be
-    -- accessed in case triggers or handlers for actions which are not
-    -- attached to any service. Fixing the latter problem would
-    -- involve tying ActionType and availability of a service for it
-    -- (on the type level).
-    userField     :: (FieldI t n d, HaskellType t ~ t) =>
-                     (Usermeta -> F t n d) -> impl t
+    -- Context access functions are not total: if there's no
+    -- corresponding context during the run time, an error is raised.
+    -- For instance, 'serviceField's cannot be accessed in case
+    -- triggers or handlers for actions which are not attached to any
+    -- service. Fixing the latter problem would involve tying
+    -- ActionType and availability of a service for it (on the type
+    -- level).
     caseField     :: (FieldI t n d, HaskellType t ~ t) =>
                      (Case -> F t n d) -> impl t
     serviceField  :: (FieldI t n d, HaskellType t ~ t) =>
                      (Service -> F t n d) -> impl t
+    userField     :: (FieldI t n d, HaskellType t ~ t) =>
+                     (Usermeta -> F t n d) -> impl t
 
     -- | Trigger constructor.
     --
