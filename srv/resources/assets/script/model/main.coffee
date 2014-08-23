@@ -110,7 +110,8 @@ define [ "model/render"
 
     # Build kvm with fetched data if have one
     kvm = {}
-    kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
+    kvm._parent = options.parent
+    kvm._meta   = { model: model, cid: _.uniqueId("#{model.name}_") }
     kvm.safelyGet = (prop) -> kvm[prop]?() || ''
 
     # build observables for real model fields
@@ -172,9 +173,9 @@ define [ "model/render"
                   buildKVM global.model(m[0], queueOptions?.modelArg),
                     fetched: {id: m[1]}
                     queue:   queue
+                    parent:  kvm
                 refKVM = k.peek()
                 k.dispose()
-                refKVM.parent = kvm
                 refKVM
             write: (v) ->
               ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
@@ -209,11 +210,10 @@ define [ "model/render"
               ids = kvm[f.name]()
               return [] unless ids
               for i in ids
-                k = buildKVM global.model(f.meta.model, queueOptions?.modelArg),
+                buildKVM global.model(f.meta.model, queueOptions?.modelArg),
                   fetched: {id: i}
                   queue:   queue
-                k.parent = kvm
-                k
+                  parent:  kvm
             write: (v) ->
               ks = _.map v, (k) -> k.id()
               kvm[f.name](ks)

@@ -89,8 +89,8 @@ define [ "utils"
         id: srvId
         data: kvm._meta.q.toRawObj()
       kase =
-        id: "case:#{kvm.parent.id()}"
-        data: kvm.parent._meta.q.toRawObj()
+        id: "case:#{kvm._parent.id()}"
+        data: kvm._parent._meta.q.toRawObj()
 
       localStorage[pSearch.storeKey] =
         JSON.stringify {case: kase, service: srv, field: field}
