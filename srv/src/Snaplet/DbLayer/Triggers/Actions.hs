@@ -40,29 +40,6 @@ import qualified Carma.Model.SubProgram as SubProgram
 import Util as U
 
 
-services :: [ModelName]
-services =
-  ["deliverCar"
-  ,"deliverParts"
-  ,"hotel"
-  ,"information"
-  ,"rent"
-  ,"sober"
-  ,"taxi"
-  ,"tech"
-  ,"tech1"
-  ,"towage"
-  ,"transportation"
-  ,"ken"
-  ,"bank"
-  ,"tickets"
-  ,"continue"
-  ,"deliverClient"
-  ,"averageCommissioner"
-  ,"insurance"
-  ,"consultation"
-  ]
-
 add :: (Ord k1, Ord k2) =>
        k1 -> k2 -> [a]
     -> Map.Map k1 (Map.Map k2 [a])
@@ -85,8 +62,7 @@ actions
       \objId val -> set objId "towAddress_coords" val
       ]
     $ Map.fromList
-      $ [(s,serviceActions) | s <- services]
-      ++[("case", Map.fromList
+      [("case", Map.fromList
           [("city", [setWeather])
           ,("contract", [\objId val ->
                          unless (T.null val) $
@@ -199,22 +175,6 @@ fillFromContract contract objId = do
                  [Only (Just True)] -> Expired
                  _                  -> Loaded
     _ -> error "fillFromContract: Contract primary key is broken"
-
-serviceActions :: MonadTrigger m b
-               => Map.Map FieldName [ObjectId -> FieldValue -> m b ()]
-serviceActions = Map.fromList
-  [("contractor_partnerId",
-    [\objId val -> do
-        srvs <- T.splitOn "," <$> get val "services"
-        m <- get objId "type"
-        -- partner_service.serviceName now references ServiceType.id,
-        -- just like servicetbl.type
-        s <- filterM (\s -> (m ==) <$> get s "serviceName") srvs
-        case s of
-          []     -> set objId "falseCallPercent" ""
-          (x:_) -> get x "falseCallPercent" >>= set objId "falseCallPercent"
-    ])
-  ]
 
 
 setWeather :: MonadTrigger m b => ObjectId -> Text -> m b ()
