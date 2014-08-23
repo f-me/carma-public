@@ -28,7 +28,6 @@ triggerUpdate model objId commit = do
   let fullId = T.concat [model, ":", objId]
   let stripUnchanged orig = Map.filterWithKey $ \k v
         -> Map.lookup k orig /= Just v
-        && (not $ k == "program" && v == "" && model == "case")
   commit' <- (`stripUnchanged` commit) <$> Redis.read' redis fullId
   -- Seems that we don't need recursive triggers actually.
   -- There is only one place where they are used intentionally: filling car

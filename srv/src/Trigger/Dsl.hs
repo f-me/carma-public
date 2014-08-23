@@ -144,7 +144,7 @@ currentUserId = liftFree (CurrentUser id)
 getNow :: Free (Dsl m) UTCTime
 getNow = liftFree (DoIO getCurrentTime id)
 
--- | List of closed actions in a case.
+-- | List of closed actions in a case. Last closed actions come first.
 prevClosedActions :: IdentI Case
                   -> [IdentI ActionType]
                   -- ^ Select only actions of this type.

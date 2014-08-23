@@ -23,6 +23,7 @@ import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
 import Data.Maybe
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Clock
 import Data.Dynamic
 import GHC.TypeLits
@@ -52,6 +53,7 @@ import qualified Carma.Model.Service as Service
 import           Carma.Model.Service (Service)
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
+import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
 import           Carma.Backoffice
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
@@ -92,6 +94,45 @@ beforeUpdate = Map.unionsWith (++)
     Just bRole -> do
       Just roles <- (`Patch.get` BusinessRole.roles) <$> dbRead bRole
       modifyPatch $ Patch.put Usermeta.roles roles
+  , trigOn Action.result $ \case
+      Nothing -> return ()
+      Just _ -> getNow >>=
+                (modifyPatch . Patch.put Action.closeTime . Just)
+  , trigOn Action.assignedTo $ \case
+      Nothing -> return ()
+      Just _ -> getNow >>=
+                (modifyPatch . Patch.put Action.assignTime . Just)
+  , trigOn Case.car_plateNum $ \case
+      Nothing -> return ()
+      Just val ->
+        when (T.length val > 5) $
+        modifyPatch (Patch.put Case.car_plateNum (Just $ T.toUpper val))
+  , trigOn Case.comment $ \case
+      Nothing -> return ()
+      Just wi -> do
+        wazz <- dbRead wi
+        let f :: (FieldI t n d) => (Wazzup.Wazzup -> F t n d) -> t
+            f = Patch.get' wazz
+            p = Patch.put Case.diagnosis1 (f Wazzup.system) .
+                Patch.put Case.diagnosis2 (f Wazzup.part) .
+                Patch.put Case.diagnosis3 (f Wazzup.cause) .
+                Patch.put Case.diagnosis4 (f Wazzup.suggestion)
+        modifyPatch p
+  , trigOn Service.times_expectedServiceStart $ \case
+      Nothing -> return ()
+      Just tm ->
+        modifyPatch $
+        (Patch.put Service.times_expectedServiceEnd
+         (Just $ addUTCTime (1 * BO.hours) tm)) .
+        (Patch.put Service.times_expectedServiceClosure
+         (Just $ addUTCTime (11 * BO.hours) tm)) .
+        (Patch.put Service.times_factServiceStart Nothing)
+  , trigOn Service.times_expectedDispatch $ const $
+    modifyPatch (Patch.put Service.times_factServiceStart Nothing)
+  , trigOn Service.times_expectedServiceEnd $ const $
+    modifyPatch (Patch.put Service.times_factServiceEnd Nothing)
+  , trigOn Service.times_expectedServiceClosure $ const $
+    modifyPatch (Patch.put Service.times_factServiceClosure Nothing)
   ]
 
 afterUpdate :: Map (ModelName, FieldName) [Dynamic]
@@ -330,10 +371,14 @@ instance Backoffice HaskellE where
                 grp = evalHaskell ctx' $ BO.targetRole e
                 who = evalHaskell ctx' $ BO.assignment e
                 due = evalHaskell ctx' $ BO.due e
-                p = Patch.put Action.ctime (now ctx) $
+                -- Set assignTime if a user is picked
+                ctime = now ctx
+                assTime = maybe Nothing (const $ Just ctime) who
+                p = Patch.put Action.ctime ctime $
                     Patch.put Action.duetime due $
                     Patch.put Action.targetGroup grp $
                     Patch.put Action.assignedTo who $
+                    Patch.put Action.assignTime assTime $
                     Patch.put Action.aType aT $
                     Patch.put Action.caseId cid $
                     Patch.put Action.serviceId sid

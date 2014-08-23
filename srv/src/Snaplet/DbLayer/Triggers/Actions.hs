@@ -14,7 +14,6 @@ import qualified Data.Text          as T
 import qualified Data.Text.Read as T
 import qualified Data.Map as Map
 import Data.List (intercalate)
-import Data.Maybe
 import Data.String (fromString)
 
 ------------------------------------------------------------------------------
@@ -31,20 +30,14 @@ import Snaplet.DbLayer.Triggers.Dsl
 import Snaplet.DbLayer.Triggers.MailToDealer
 
 import           Data.Model
-import qualified Data.Model.Patch as Patch (get)
-import qualified Data.Model.Patch.Sql as Patch (read)
 
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.ContractCheckStatus as CCS
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.SubProgram as SubProgram
-import           Carma.Model.Event (EventType(..))
-import qualified Carma.Model.Action as Act
-import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
 import Util as U
-import qualified Utils.Events  as Evt
 
 
 services :: [ModelName]
@@ -93,38 +86,8 @@ actions
       ]
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
-      ++[("action", actionActions)
-        ,("case", Map.fromList
-          [("comment", [\caseId val ->
-            case fvIdent val of
-              Nothing -> return ()
-              Just wi -> do
-                  res  <- liftDb $ withPG $ \c -> Patch.read wi c
-                  case res of
-                    Right patch ->
-                        let f acc = maybe "" identFv $
-                                    fromMaybe Nothing $
-                                    Patch.get patch acc
-                            s = f Wazzup.system
-                            p = f Wazzup.part
-                            c = f Wazzup.cause
-                            g = f Wazzup.suggestion
-                        in
-                          set caseId "diagnosis1" s >>
-                          set caseId "diagnosis2" p >>
-                          set caseId "diagnosis3" c >>
-                          set caseId "diagnosis4" g >>
-                          return ()
-                    _ -> return ()
-            ])
-          -- ,("contact_name",
-          --   [\objId val -> set objId "contact_name" $ upCaseStr val])
-          -- ,("contact_ownerName",
-          --   [\objId val -> set objId "contact_ownerName" $ upCaseStr val])
-          ,("city", [setWeather])
-          ,("car_plateNum", [\objId val ->
-            when (T.length val > 5)
-              $ set objId "car_plateNum" $ T.toUpper val])
+      ++[("case", Map.fromList
+          [("city", [setWeather])
           ,("contract", [\objId val ->
                          unless (T.null val) $
                            fillFromContract val objId >>= \case
@@ -251,41 +214,8 @@ serviceActions = Map.fromList
           []     -> set objId "falseCallPercent" ""
           (x:_) -> get x "falseCallPercent" >>= set objId "falseCallPercent"
     ])
-  ,("times_expectedServiceStart",
-    [\objId val ->
-      case T.decimal val of
-        Right (tm, _) -> do
-          let h = 3600 :: Int -- seconds
-          set objId "times_expectedServiceEnd"     $ T.pack $ show $ tm + 1*h
-          set objId "times_expectedServiceClosure" $ T.pack $ show $ tm + 11*h
-          set objId "times_factServiceStart" ""
-        _ -> return ()
-    ])
-  ,("times_expectedDispatch",
-    [\objId _ -> set objId "times_factServiceStart" ""
-    ])
-  ,("times_expectedServiceEnd",
-    [\objId _ -> set objId "times_factServiceEnd" ""
-    ])
-  ,("times_expectedDealerInfo",
-    [\objId _ -> set objId "times_factDealerInfo" ""
-    ])
-  ,("times_expectedServiceClosure",
-    [\objId _ -> set objId "times_factServiceClosure" ""
-    ])
   ]
 
-actionActions :: (MonadTrigger m b)
-              => Map.Map Text [ObjectId -> FieldValue -> m b ()]
-actionActions = Map.fromList
-  [("assignedTo",
-    [\objId _val -> dateNow id >>= set objId "assignTime"
-    ])
-   ,("openTime",
-     [\objId _ ->
-       void $ liftDb $ Evt.logLegacyCRUD Update objId Act.openTime
-     ])
-   ]
 
 setWeather :: MonadTrigger m b => ObjectId -> Text -> m b ()
 setWeather objId city = do
