@@ -98,6 +98,6 @@ define [ "utils"
 
   serviceColor: (model, kvm) ->
     kvm._svcColor = ko.computed ->
-      hash = md5(kvm._meta.model.name + ':' + kvm.id())
-      ix = parseInt(hash.slice(0,6), 16) % u.palette.length
-      u.palette[ix]
+      svcId = kvm._meta.model.name + ':' + kvm.id()
+      svcs  = kvm._parent.services().split(',')
+      u.palette[svcs.indexOf(svcId) % u.palette.length]
