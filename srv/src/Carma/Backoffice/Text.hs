@@ -119,23 +119,19 @@ instance Backoffice TextE where
     before dt t =
         TextE $ (\ c -> T.concat [c, " - ", formatDiff dt]) <$> toText t
 
-    role r =
-        TextE $ T.append "Пользователи с ролью " <$> toText (const r)
-    currentUserOr r =
-        TextE $
-        T.append "Текущий пользователь и другие с ролью " <$> toText (const r)
-    whoClosedWith acts res t =
+    nobody = textE "Без ответственного"
+
+    currentUser = textE "Текущий пользователь"
+
+    whoClosedWith acts res =
         TextE $ do
           acts' <- mapM (toText . const) acts
           res' <- toText $ const res
-          tr <- toText (const t)
           return $ T.concat
                      [ "Пользователь, последним закрывший в кейсе действие {"
                      , T.intercalate ", " acts'
                      , "} с результатом "
                      , res'
-                     , ", и другие с ролью "
-                     , tr
                      ]
 
     previousAction = textE "Предыдущее действие"
@@ -265,6 +261,7 @@ backofficeText spec iMap =
           [T.snoc (lkp (IBox $ aType a) iMap) ':'] ++
           indent
           ([ T.concat ["Время выполнения: ", evalText ctx $ due a]
+           , T.concat ["Для роли: ", evalText ctx $ targetRole a]
            , T.concat ["Ответственность: ", evalText ctx $ assignment a]
            , "Результаты:" ] ++
            indent

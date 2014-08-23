@@ -20,7 +20,6 @@ module Carma.Backoffice.DSL
     , BackofficeSpec
 
      -- * Back office language
-    , ActionAssignment
     , Outcome
     , Trigger
     , Backoffice(..)
@@ -65,8 +64,10 @@ data Action =
     Action { aType      :: ActionTypeI
            -- ^ Binds action definition to its name and
            -- description as stored in the database.
+           , targetRole :: forall impl. (Backoffice impl) =>
+                           impl (IdentI Role)
            , assignment :: forall impl. (Backoffice impl) =>
-                           impl ActionAssignment
+                           impl (Maybe (IdentI Usermeta))
            -- ^ Default target role/user for newly created actions of
            -- this type.
            , due        :: forall impl. (Backoffice impl) =>
@@ -96,12 +97,11 @@ class Backoffice impl where
            -> impl UTCTime
     before diff time = (-diff) `since` time
 
-    -- | Make an action assignable to users with the given role.
-    role :: IdentI Role -> impl ActionAssignment
+    nobody :: impl (Maybe (IdentI Usermeta))
 
     -- | Keep an action assigned to the current user, but also make it
     -- available to the role.
-    currentUserOr :: IdentI Role -> impl ActionAssignment
+    currentUser :: impl (Maybe (IdentI Usermeta))
 
     -- | Assign to the last user who closed a matching action in the
     -- case with some result.
@@ -109,9 +109,7 @@ class Backoffice impl where
                   -- ^ Matching action types.
                   -> ActionResultI
                   -- ^ A result used to close the matched actions.
-                  -> IdentI Role
-                  -- ^ Target role in addition to the user.
-                  -> impl ActionAssignment
+                  -> impl (Maybe (IdentI Usermeta))
 
     -- | Source action which led to this one. If there was no previous
     -- action (e.g. when the action was created from an 'Entry'), this

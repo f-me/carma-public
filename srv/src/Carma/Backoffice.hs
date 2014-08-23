@@ -95,10 +95,11 @@ orderService :: Action
 orderService =
     Action
     AType.orderService
+    (const bo_order)
     (ite (previousAction == const AType.needPartner ||
           userField Usermeta.isJack)
-     (currentUserOr bo_order)
-     (role bo_order)
+     currentUser
+     nobody
     )
     (let
         n = (1 * minutes) `since` now
@@ -133,7 +134,8 @@ orderServiceAnalyst :: Action
 orderServiceAnalyst =
     Action
     AType.orderServiceAnalyst
-    (role bo_secondary)
+    (const bo_secondary)
+    nobody
     (let
         n = (1 * minutes) `since` now
         t = (1 * days) `before` req (serviceField times_expectedServiceStart)
@@ -166,7 +168,8 @@ tellClient :: Action
 tellClient =
     Action
     AType.tellClient
-    (role bo_control)
+    (const bo_control)
+    nobody
     ((5 * minutes) `since` now)
     [ (AResult.clientOk, proceed [AType.checkStatus])
     , (AResult.defer, defer)
@@ -177,7 +180,8 @@ checkStatus :: Action
 checkStatus =
     Action
     AType.checkStatus
-    (role bo_control)
+    (const bo_control)
+    nobody
     ((5 * minutes) `since` req (serviceField times_expectedServiceStart))
     [ (AResult.serviceInProgress,
        setServiceStatus SS.inProgress *> proceed [AType.checkEndOfService])
@@ -189,7 +193,8 @@ needPartner :: Action
 needPartner =
     Action
     AType.needPartner
-    (currentUserOr bo_order)
+    (const bo_order)
+    currentUser
     ((15 * minutes) `since` now)
     [ (AResult.partnerFound,
        setServiceStatus SS.order *> proceed [AType.orderService])
@@ -200,7 +205,8 @@ checkEndOfService :: Action
 checkEndOfService =
     Action
     AType.checkEndOfService
-    (role bo_control)
+    (const bo_control)
+    nobody
     ((5 * minutes) `since` req (serviceField times_expectedServiceEnd))
     [ (AResult.serviceDone,
        sendSMS SMS.complete *>
@@ -218,7 +224,8 @@ closeCase :: Action
 closeCase =
     Action
     AType.closeCase
-    (role Role.head)
+    (const Role.head)
+    nobody
     ((5 * minutes) `since` now)
     [ (AResult.caseClosed, setServiceStatus SS.closed *> finish)
     , (AResult.defer, defer)
@@ -229,7 +236,8 @@ getDealerInfo :: Action
 getDealerInfo =
     Action
     AType.getDealerInfo
-    (role bo_dealer)
+    (const bo_dealer)
+    nobody
     (ite
      ((serviceField svcType == const ST.rent) &&
       caseField Case.program `oneOf` [Program.peugeot, Program.citroen])
@@ -244,7 +252,8 @@ cancelService :: Action
 cancelService =
     Action
     AType.cancelService
-    (role bo_control)
+    (const bo_control)
+    nobody
     ((1 * minutes) `since` now)
     [ (AResult.falseCallUnbilled,
        sendSMS SMS.cancel *>
@@ -263,7 +272,8 @@ makerApproval :: Action
 makerApproval =
     Action
     AType.makerApproval
-    (role bo_control)
+    (const bo_control)
+    nobody
     ((1 * minutes) `since` now)
     [ (AResult.makerApproved, proceed [AType.orderService])
     , (AResult.makerDeclined, proceed [AType.tellMakerDeclined])
@@ -274,7 +284,8 @@ tellMakerDeclined :: Action
 tellMakerDeclined =
     Action
     AType.tellMakerDeclined
-    (role bo_control)
+    (const bo_control)
+    nobody
     ((5 * minutes) `since` now)
     [ (AResult.clientNotified,
        setServiceStatus SS.closed *> finish)
@@ -285,7 +296,8 @@ addBill :: Action
 addBill =
     Action
     AType.addBill
-    (role bo_bill)
+    (const bo_bill)
+    nobody
     ((14 * days) `since` now)
     [ (AResult.billAttached, proceed [AType.headCheck])
     , (AResult.returnToBack, proceed [AType.billmanNeedInfo])
@@ -297,7 +309,8 @@ billmanNeedInfo :: Action
 billmanNeedInfo =
     Action
     AType.billmanNeedInfo
-    (role bo_qa)
+    (const bo_qa)
+    nobody
     ((5 * minutes) `since` now)
     [ (AResult.returnToBillman, proceed [AType.addBill])
     , (AResult.defer, defer)
@@ -308,7 +321,8 @@ headCheck :: Action
 headCheck =
     Action
     AType.headCheck
-    (role Role.head)
+    (const Role.head)
+    nobody
     ((5 * minutes) `since` now)
     [ (AResult.confirmedFinal, proceed [AType.analystCheck])
     , (AResult.confirmedWODirector, proceed [AType.accountCheck])
@@ -322,7 +336,8 @@ directorCheck :: Action
 directorCheck =
     Action
     AType.directorCheck
-    (role bo_director)
+    (const bo_director)
+    nobody
     ((5 * minutes) `since` now)
     [ (AResult.directorToHead, proceed [AType.headCheck])
     , (AResult.confirmedDirector, proceed [AType.accountCheck])
@@ -335,7 +350,8 @@ accountCheck :: Action
 accountCheck =
     Action
     AType.accountCheck
-    (role bo_account)
+    (const bo_account)
+    nobody
     ((5 * minutes) `since` now)
     [ (AResult.accountToDirector, proceed [AType.directorCheck])
     , (AResult.confirmedAccount, proceed [AType.analystCheck])
@@ -347,7 +363,8 @@ analystCheck :: Action
 analystCheck =
     Action
     AType.analystCheck
-    (role bo_analyst)
+    (const bo_analyst)
+    nobody
     ((5 * minutes) `since` now)
     [ (AResult.confirmedAnalyst, finish)
     , (AResult.defer, defer)
@@ -358,7 +375,8 @@ complaintResolution :: Action
 complaintResolution =
     Action
     AType.complaintResolution
-    (role bo_qa)
+    (const bo_qa)
+    nobody
     ((1 * minutes) `since` now)
     [ (AResult.complaintManaged, finish)
     , (AResult.defer, defer)
@@ -369,7 +387,8 @@ tellMeMore :: Action
 tellMeMore =
     Action
     AType.tellMeMore
-    (role bo_order)
+    (const bo_order)
+    nobody
     ((1 * minutes) `since` now)
     [ (AResult.communicated, finish)
     , (AResult.okButNoService, finish)
@@ -381,7 +400,8 @@ callMeMaybe :: Action
 callMeMaybe =
     Action
     AType.callMeMaybe
-    (role bo_order)
+    (const bo_order)
+    nobody
     ((1 * minutes) `since` now)
     [ (AResult.communicated, finish)
     , (AResult.okButNoService, finish)

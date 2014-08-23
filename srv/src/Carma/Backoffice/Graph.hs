@@ -108,9 +108,9 @@ instance Backoffice EdgeE where
     since _ _ = nothing
     before _ _ = nothing
 
-    role _ = nothing
-    currentUserOr _ = nothing
-    whoClosedWith _ _ _ = nothing
+    nobody = nothing
+    currentUser = nothing
+    whoClosedWith _ _ = nothing
 
     previousAction = nothing
 

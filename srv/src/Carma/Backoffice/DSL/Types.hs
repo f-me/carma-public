@@ -9,8 +9,7 @@ Type system of Backoffice DSL.
 
 module Carma.Backoffice.DSL.Types
     (
-      ActionAssignment
-    , Eff
+      Eff
     , Outcome
     , Trigger
 
@@ -28,20 +27,14 @@ import           Data.Dynamic
 import           Data.Text
 
 import           Data.Map
-import           Data.Model
 import           Data.Model.Patch
 
 import qualified Carma.Model.Action as CarmaAction
 import           Carma.Model.Case as Case
-import           Carma.Model.Role as Role
 import           Carma.Model.Service as Service
-import           Carma.Model.Usermeta (Usermeta)
 
 import           Control.Monad.Free
 import           Trigger.Dsl
-
-
-data ActionAssignment
 
 
 -- | An effect induced by changes in model @m@.
@@ -63,7 +56,6 @@ data Trigger
 type family HaskellType t where
   HaskellType Trigger = Map (Text, Text) [Dynamic]
   HaskellType (Maybe v) = Maybe (HaskellType v)
-  HaskellType ActionAssignment = (Maybe (IdentI Usermeta), IdentI Role)
   HaskellType (Outcome m) = Free (Dsl m) ()
   HaskellType (Eff m) = Free (Dsl m) ()
   HaskellType t = t

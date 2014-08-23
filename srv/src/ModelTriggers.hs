@@ -220,12 +220,11 @@ instance Backoffice HaskellE where
     since nd t =
         HaskellE $ addUTCTime nd <$> toHaskell t
 
-    role r = HaskellE $ return (Nothing, r)
+    nobody = HaskellE $ return Nothing
 
-    currentUserOr r =
-        HaskellE $ do
-          i <- toHaskell (BO.userField Usermeta.ident)
-          return (Just i, r)
+    currentUser =
+        HaskellE $
+        Just <$> toHaskell (BO.userField Usermeta.ident)
 
     previousAction =
         HaskellE $
@@ -306,12 +305,16 @@ instance Backoffice HaskellE where
             let aT = this `get'` Action.aType
                 cid = kase ctx `get'` Case.ident
                 sid = (`get'` Service.ident) <$> service ctx
+                -- Never breaks for a valid back office
                 e = fromMaybe (error "Current action unknown") $
                     find ((== aT) . BO.aType) $
                     snd carmaBackoffice
-                grp = snd $ evalHaskell ctx $ BO.assignment e
+                -- Set current action as a source in the nested
+                -- evaluator context
+                ctx' = ctx{prevAction = Just aT}
+                grp = evalHaskell ctx' $ BO.targetRole e
                 HMDiffTime deferBy =
-                  fromMaybe (error "No deferBy") $
+                  fromMaybe (error "No deferBy in action") $
                   this `get'` Action.deferBy
                 -- Truncate everything below seconds, disregard leap
                 -- seconds
