@@ -277,7 +277,16 @@ instance Backoffice HaskellE where
 
     insteadOf acc target body =
       mkTrigger acc target $
-      \h -> modifyPatch (Patch.delete acc) >> evalHaskell h body
+      \ctx -> modifyPatch (Patch.delete acc) >> evalHaskell ctx body
+
+    setServiceField acc v =
+        HaskellE $ do
+          ctx <- ask
+          return $ do
+            let sid = fromMaybe (error "No service in context") $
+                      (`get'` Service.ident) <$> service ctx
+                p = Patch.put acc (evalHaskell ctx v) Patch.empty
+            void $ dbUpdate sid p
 
     sendDealerMail = HaskellE $ return $ return ()
 

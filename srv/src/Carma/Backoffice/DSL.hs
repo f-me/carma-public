@@ -215,7 +215,7 @@ class Backoffice impl where
            -> impl v
 
     -- Verbs with side effects
-    setServiceField :: FieldI t n d =>
+    setServiceField :: (FieldI t n d, HaskellType t ~ t) =>
                        (Service -> F t n d) -> impl t -> impl (Eff m)
     sendDealerMail :: impl (Eff m)
     sendGenserMail :: impl (Eff m)
