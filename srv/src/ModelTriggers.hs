@@ -304,6 +304,33 @@ instance Backoffice HaskellE where
           -- chain operators
           return $ evalHaskell ctx a >> evalHaskell ctx b
 
+    proceed [] = HaskellE $ return $ return ()
+    proceed (aT:ts) =
+        HaskellE $ do
+          ctx <- ask
+          return $ do
+            let cid = kase ctx `get'` Case.ident
+                sid = (`get'` Service.ident) <$> service ctx
+                -- Never breaks for a valid back office
+                e = fromMaybe (error "Target action unknown") $
+                    find ((== aT) . BO.aType) $
+                    snd carmaBackoffice
+                -- Set current action as a source in the nested
+                -- evaluator context
+                ctx' = ctx{prevAction = Just aT}
+                grp = evalHaskell ctx' $ BO.targetRole e
+                who = evalHaskell ctx' $ BO.assignment e
+                due = evalHaskell ctx' $ BO.due e
+                p = Patch.put Action.ctime (now ctx) $
+                    Patch.put Action.duetime due $
+                    Patch.put Action.targetGroup grp $
+                    Patch.put Action.assignedTo who $
+                    Patch.put Action.aType aT $
+                    Patch.put Action.caseId cid $
+                    Patch.put Action.serviceId sid
+                    Patch.empty
+            dbCreate p >> evalHaskell ctx (BO.proceed ts)
+
     defer =
         HaskellE $ do
           ctx <- ask
