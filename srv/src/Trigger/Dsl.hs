@@ -1,5 +1,6 @@
 {-# LANGUAGE GADTs, ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving, DeriveDataTypeable #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Trigger.Dsl
     (
@@ -29,6 +30,7 @@ module Trigger.Dsl
     , dbCreate
     , dbRead
     , dbUpdate
+    , prevClosedActions
 
       -- ** Miscellaneous
     , wsMessage
@@ -60,6 +62,7 @@ import Snaplet.Auth.Class
 
 import Application (AppHandler)
 import qualified Database.PostgreSQL.Simple as PG
+import Database.PostgreSQL.Simple.SqlQQ
 import Data.Model as Model
 import Data.Model.Patch (Patch)
 import qualified Data.Model.Patch as Patch
@@ -69,12 +72,14 @@ import Snaplet.Messenger (sendMessage)
 import Snaplet.Messenger.Class (withMsg)
 import Utils.LegacyModel (mkLegacyIdent)
 
-import Carma.Model.Service     (Service)
-import Carma.Model.ServiceType (ServiceType)
+import qualified Carma.Model.Action as Action
+import Carma.Model.ActionType  (ActionType)
+import Carma.Model.Case        (Case)
 import Carma.Model.Usermeta    (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import Carma.Model.LegacyTypes (Password(..))
 
+import Util (PlainText(..))
 
 type TriggerRes m = Either (Int,String) (Patch m)
 
@@ -139,6 +144,29 @@ currentUserId = liftFree (CurrentUser id)
 getNow :: Free (Dsl m) UTCTime
 getNow = liftFree (DoIO getCurrentTime id)
 
+-- | List of closed actions in a case.
+prevClosedActions :: IdentI Case
+                  -> [IdentI ActionType]
+                  -- ^ Select only actions of this type.
+                  -> Free (Dsl m) [PG.Only (IdentI Action.Action)]
+prevClosedActions cid types =
+    liftFree (DbQuery (\c -> PG.query c q params) id)
+    where
+      q = [sql|
+           SELECT id FROM actiontbl
+           WHERE ? = ?
+           AND ? IN ?
+           AND ? IS NOT NULL
+           ORDER BY ? DESC;
+           |]
+      params = ( PT $ fieldName Action.caseId
+               , cid
+               , PT $ fieldName Action.aType
+               , PG.In types
+               , PT $ fieldName Action.result
+               , PT $ fieldName Action.closeTime
+               )
+
 liftFree :: Functor f => f a -> Free f a
 liftFree = Free . fmap Pure
 
@@ -157,6 +185,7 @@ data Dsl m k where
   DbCreate    :: Model m1 => Patch m1 -> (IdentI m1 -> k) -> Dsl m k
   DbRead      :: Model m1 => IdentI m1 -> (Patch m1 -> k) -> Dsl m k
   DbUpdate    :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
+  DbQuery     :: (PG.Connection -> IO [res]) -> ([res] -> k) -> Dsl m k
   CurrentUser :: (IdentI Usermeta -> k) -> Dsl m k
   CreateUser  :: Text -> (Int -> k) -> Dsl m k
   UpdateUser  :: Patch Usermeta -> k -> Dsl m k
@@ -176,6 +205,7 @@ instance Functor (Dsl m) where
     DbCreate  p   k -> DbCreate  p   $ fn . k
     DbRead    i   k -> DbRead i      $ fn . k
     DbUpdate  i p k -> DbUpdate  i p $ fn . k
+    DbQuery   q   k -> DbQuery q     $ fn . k
     CurrentUser   k -> CurrentUser   $ fn . k
     CreateUser l  k -> CreateUser l  $ fn . k
     UpdateUser p  k -> UpdateUser p  $ fn   k
@@ -216,6 +246,10 @@ evalDsl = \case
     DbCreate p k   -> runDb (Patch.create p)   k
     DbRead i k     -> runDb (Patch.read i)     k
     DbUpdate i p k -> runDb (Patch.update i p) k
+    DbQuery q k    -> do
+      c <- gets st_pgcon
+      res <- liftIO $ q c
+      evalDsl $ k res
 
     CurrentUser k -> do
       c <- gets st_pgcon

@@ -287,6 +287,15 @@ instance Backoffice HaskellE where
 
     sendSMS _ = HaskellE $ return $ return ()
 
+    closeWith types res =
+        HaskellE $ do
+          ctx <- ask
+          return $ do
+            let cid = kase ctx `get'` Case.ident
+                p = Patch.put Action.result (Just res) Patch.empty
+            aids <- prevClosedActions cid types
+            forM_ aids (\(PS.Only i) -> dbUpdate i p)
+
     finish = HaskellE $ return $ return ()
 
     a *> b =
