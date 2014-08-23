@@ -120,7 +120,7 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
            (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.opentime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.closetime at time zone 'UTC')::int8)::text,
-           a.result, a.priority, a.description, a.comment,
+           a.result, at.priority, a.description, a.comment,
            c.city, c.program::text,
            (extract (epoch from
              coalesce(s.times_expectedServiceStart, a.duetime)
@@ -129,8 +129,10 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
        (actiontbl a LEFT JOIN servicetbl s
          ON  s.id = a.serviceId
          AND s.type = a.serviceType),
-       casetbl c
+       casetbl c,
+       "ActionType" at
      WHERE c.id = a.caseId
+     AND at.id = actiontbl.type
      AND (? OR closed = ?)
      AND (? OR a.assignedTo = ?)
      AND (? OR targetGroup IN ?)

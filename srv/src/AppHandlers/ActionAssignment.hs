@@ -31,10 +31,11 @@ assignQ pri (Ident umid) = fromString
   ++ "    FROM ((SELECT * FROM actiontbl WHERE closed = false) act"
   ++ "      LEFT JOIN servicetbl svc"
   ++ "      ON svc.type = act.serviceType and svc.id = act.serviceId),"
-  ++ "      casetbl c, usermetatbl u"
+  ++ "      casetbl c, usermetatbl u, \"ActionType\" at"
   ++ "    WHERE u.id = '" ++ show umid ++ "'"
   ++ "    AND c.id = act.caseId"
-  ++ "    AND priority = '" ++ show pri ++ "'"
+  ++ "    AND at.id = act.type"
+  ++ "    AND at.priority = " ++ show pri
   ++ "    AND act.duetime at time zone 'UTC' - now() <= interval '5 minutes'"
   ++ "    AND targetGroup::int = ANY (u.roles)"
   ++ "    AND (act.assignedTo IS NULL"
