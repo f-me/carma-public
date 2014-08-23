@@ -124,6 +124,19 @@ instance Backoffice TextE where
     currentUserOr r =
         TextE $
         T.append "Текущий пользователь и другие с ролью " <$> toText (const r)
+    whoClosedWith acts res t =
+        TextE $ do
+          acts' <- mapM (toText . const) acts
+          res' <- toText $ const res
+          tr <- toText (const t)
+          return $ T.concat
+                     [ "Пользователь, последним закрывший в кейсе действие {"
+                     , T.intercalate ", " acts'
+                     , "} с результатом "
+                     , res'
+                     , ", и другие с ролью "
+                     , tr
+                     ]
 
     previousAction = textE "Предыдущее действие"
 

@@ -110,6 +110,7 @@ instance Backoffice EdgeE where
 
     role _ = nothing
     currentUserOr _ = nothing
+    whoClosedWith _ _ _ = nothing
 
     previousAction = nothing
 

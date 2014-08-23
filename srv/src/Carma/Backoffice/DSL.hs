@@ -103,6 +103,16 @@ class Backoffice impl where
     -- available to the role.
     currentUserOr :: IdentI Role -> impl ActionAssignment
 
+    -- | Assign to the last user who closed a matching action in the
+    -- case with some result.
+    whoClosedWith :: [ActionTypeI]
+                  -- ^ Matching action types.
+                  -> ActionResultI
+                  -- ^ A result used to close the matched actions.
+                  -> IdentI Role
+                  -- ^ Target role in addition to the user.
+                  -> impl ActionAssignment
+
     -- | Source action which led to this one. If there was no previous
     -- action (e.g. when the action was created from an 'Entry'), this
     -- is guaranteed to return an action type not equal to any other
@@ -218,7 +228,7 @@ class Backoffice impl where
     closeWith :: [ActionTypeI]
               -- ^ Matching action types.
               -> ActionResultI
-              -- ^ A result used to close actions.
+              -- ^ A result used to close the matched actions.
               -> impl (Eff m)
 
     -- | Do nothing.
