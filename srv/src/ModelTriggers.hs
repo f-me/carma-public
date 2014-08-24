@@ -143,7 +143,8 @@ afterUpdate = Map.unionsWith (++) $
   ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
   ] ++
-  map (evalHaskell emptyContext . BO.trigger) (fst carmaBackoffice)
+  map entryToTrigger (fst carmaBackoffice) ++
+  map actionToTrigger (snd carmaBackoffice)
 
 --  - runReadTriggers
 --    - ephemeral fields
@@ -402,6 +403,7 @@ instance Backoffice HaskellE where
                 -- evaluator context
                 ctx' = ctx{prevAction = Just aT}
                 grp = evalHaskell ctx' $ BO.targetRole e
+                -- TODO Check current patch too
                 HMDiffTime deferBy =
                   fromMaybe (error "No deferBy in action") $
                   this `get'` Action.deferBy
@@ -466,3 +468,24 @@ data HCtx =
          , now        :: UTCTime
          -- ^ Frozen time.
          }
+
+
+entryToTrigger :: BO.Entry -> Map (ModelName, FieldName) [Dynamic]
+entryToTrigger = evalHaskell emptyContext . BO.trigger
+
+
+actionToTrigger :: BO.Action -> Map (ModelName, FieldName) [Dynamic]
+actionToTrigger a =
+  trigOn Action.result $
+  \newVal -> do
+    this <- dbRead =<< getIdent
+    case newVal of
+      Nothing -> return ()
+      Just newRes -> do
+        -- Skip changes for actions of different types
+        when (this `get'` Action.aType == BO.aType a) $ do
+          case lookup newRes (BO.outcomes a) of
+            Just o -> do
+              hctx <- mkContext $ Just $ BO.aType a
+              evalHaskell hctx o
+            Nothing -> error "Invalid action result"
