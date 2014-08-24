@@ -23,7 +23,7 @@ define [ "hooks/common"
 
       "bank" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "case" : [ k.descsKbHook
+      "Case" : [ k.descsKbHook
                , k.eventsHistoryKbHook
                , k.cityStatsHook
                , k.regionHook

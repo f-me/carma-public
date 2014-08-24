@@ -14,9 +14,9 @@ define [ "utils"
     setupCaseModel = (viewName, args) ->
       kaze = {}
       if args.id
-        $.bgetJSON "/_/case/#{args.id}", (rsp) -> kaze = rsp
+        $.bgetJSON "/_/Case/#{args.id}", (rsp) -> kaze = rsp
 
-      kvm = main.modelSetup("case") viewName, args,
+      kvm = main.modelSetup("Case") viewName, args,
                          permEl       : "case-permissions"
                          focusClass   : "focusable"
                          slotsee      : ["case-number",
