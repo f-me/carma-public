@@ -48,6 +48,7 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Class (lift)
 
+import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -257,7 +258,7 @@ evalDsl = \case
     CurrentUser k -> do
       c <- gets st_pgcon
       [[uid]] <- lift $ do
-        Just u <- withAuth currentUser
+        u <- fromMaybe (error "No current user") <$> withAuth currentUser
         liftIO $ PG.query c
           "SELECT id FROM usermetatbl WHERE uid = ? :: int"
           (PG.Only $ unUid <$> userId u)
