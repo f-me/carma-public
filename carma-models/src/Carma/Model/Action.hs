@@ -33,6 +33,7 @@ data Action = Action
   , closeTime   :: F (Maybe UTCTime)                "closeTime" ""
   , assignedTo  :: F (Maybe (IdentI Usermeta))      "assignedTo" "Ответственный"
   , targetGroup :: F (IdentI Role)                  "targetGroup" "Роль"
+  , parent      :: F (Maybe (IdentI Action))        "parent" "Предыдущее действие"
   } deriving Typeable
 
 instance Model Action where
