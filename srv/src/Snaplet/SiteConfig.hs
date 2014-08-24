@@ -51,13 +51,11 @@ serveModel = do
   Just name  <- getParamT "name"
   view  <- fromMaybe "" <$> getParamT "view"
   model <- case T.splitOn ":" view of
-      ["ctr",scr,pgm]
-        | Just name' <- Map.lookup name Model.legacyModelNames
-          -> case Model.dispatch name' $ viewForModel scr of
+      ["ctr",scr,pgm] ->
+        case Model.dispatch name $ viewForModel scr of
             Just (Just res)
-              -> Just . setModelName name
-              <$> constructModel name' scr pgm res
-            _ -> error $ "Unexpected model name" ++ show name'
+              -> Just <$> constructModel name scr pgm res
+            _ -> error $ "Unexpected model name" ++ show name
       _ -> case Model.dispatch name $ viewForModel view of
         Just res -> return res
         Nothing
