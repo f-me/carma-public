@@ -144,8 +144,6 @@ data Case = Case
     :: F (Maybe Text) "claim" "Претензия / Благодарность"
   , services
     :: F (Maybe Reference) "services" "Услуги"
-  , actions
-    :: F (Maybe Reference) "actions" "Действия"
   , comments
     :: F (Maybe JsonAsText) "comments" "Комментарии"
   , files
