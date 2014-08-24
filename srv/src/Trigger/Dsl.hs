@@ -1,4 +1,5 @@
-{-# LANGUAGE GADTs, ScopedTypeVariables #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE StandaloneDeriving, DeriveDataTypeable #-}
 {-# LANGUAGE QuasiQuotes #-}
 

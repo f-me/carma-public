@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -222,8 +221,8 @@ data FullAddress = FullAddress (Maybe Text) (Maybe Text)
 
 instance FromJSON FullAddress where
     parseJSON (Object v) = do
-        (err::Maybe Text) <- v .:? "error"
-        case err of
+        err <- v .:? "error"
+        case (err :: Maybe Text) of
           Just _ -> fail "Geocoding failed"
           Nothing -> do
             addr <- v .: "address"

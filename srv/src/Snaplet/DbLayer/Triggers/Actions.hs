@@ -8,7 +8,6 @@ where
 
 import Control.Monad
 import Control.Monad.Trans
-import Control.Applicative
 import Data.Text (Text)
 import qualified Data.Text          as T
 import qualified Data.Text.Read as T
