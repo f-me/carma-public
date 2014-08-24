@@ -46,25 +46,32 @@ import qualified Carma.Model as Model
 import qualified Carma.Model.ServiceInfo as ServiceInfo
 
 
+getModel :: ModelName -> Text -> Handler b (SiteConfig b) (Maybe Model)
+getModel name view =
+  case T.splitOn ":" view of
+    ["ctr",scr,pgm] ->
+      case Model.dispatch name $ viewForModel scr of
+        Just (Just res) -> Just <$> constructModel name scr pgm res
+        -- Try to fetch a plain model if constructor failed
+        _               -> getModel name ""
+    _ -> case Model.dispatch name $ viewForModel view of
+           Just res -> return res
+           -- Try to obtain a new-style model using legacy model names
+           -- if the supplied name is unknown
+           Nothing
+             | Just name' <- Map.lookup name Model.legacyModelNames ->
+                 case Model.dispatch name' $ viewForModel view of
+                   Just res -> return $ setModelName name <$> res
+                   Nothing  -> Map.lookup name <$> gets models
+           -- Serve an old-style model
+           _ -> Map.lookup name <$> gets models
+
+
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
   Just name  <- getParamT "name"
   view  <- fromMaybe "" <$> getParamT "view"
-  model <- case T.splitOn ":" view of
-      ["ctr",scr,pgm] ->
-        case Model.dispatch name $ viewForModel scr of
-            Just (Just res)
-              -> Just <$> constructModel name scr pgm res
-            _ -> error $ "Unexpected model name" ++ show name
-      _ -> case Model.dispatch name $ viewForModel view of
-        Just res -> return res
-        Nothing
-          | Just name' <- Map.lookup name Model.legacyModelNames
-          -> case Model.dispatch name' $ viewForModel view of
-            Just res -> return $ setModelName name <$> res
-            Nothing  -> Map.lookup name <$> gets models
-        _ -> Map.lookup name <$> gets models
-
+  model <- getModel name view
   mcu   <- withAuth currentUser
   case (mcu, model) of
     (Nothing, _) -> finishWithError 401 ""
