@@ -88,7 +88,7 @@ afterCreate = Map.unionsWith (++)
   ]
 
 beforeUpdate :: Map (ModelName, FieldName) [Dynamic]
-beforeUpdate = Map.unionsWith (++)
+beforeUpdate = Map.unionsWith (++) $
   [trigOn Usermeta.businessRole $ \case
     Nothing -> return ()
     Just bRole -> do
@@ -96,8 +96,9 @@ beforeUpdate = Map.unionsWith (++)
       modifyPatch $ Patch.put Usermeta.roles roles
   , trigOn Action.result $ \case
       Nothing -> return ()
-      Just _ -> getNow >>=
-                (modifyPatch . Patch.put Action.closeTime . Just)
+      Just _ -> do
+        getNow >>= (modifyPatch . Patch.put Action.closeTime . Just)
+        getCurrentUser >>= (modifyPatch . Patch.put Action.assignedTo . Just)
   , trigOn Action.assignedTo $ \case
       Nothing -> return ()
       Just _ -> getNow >>=
