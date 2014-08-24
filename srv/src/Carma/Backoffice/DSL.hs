@@ -233,7 +233,7 @@ class Backoffice impl where
     --
     -- Duplicate types are ignored. When the list is is empty, no
     -- further processing is performed ('finish').
-    proceed :: [ActionTypeI] -> impl (Outcome m)
+    proceed :: PreContextAccess m => [ActionTypeI] -> impl (Outcome m)
 
     -- | Postpone the action.
     defer   :: impl (Outcome CarmaAction.Action)
@@ -249,7 +249,7 @@ class Backoffice impl where
 
 
 -- | Do nothing.
-finish :: Backoffice impl => impl (Outcome m)
+finish :: (Backoffice impl, PreContextAccess m) => impl (Outcome m)
 finish = proceed []
 
 

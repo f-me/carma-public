@@ -361,6 +361,7 @@ instance Backoffice HaskellE where
         HaskellE $ do
           ctx <- ask
           return $ do
+            this <- getAction
             let cid = kase ctx `get'` Case.ident
                 sid = (`get'` Service.ident) <$> service ctx
                 -- Never breaks for a valid back office
@@ -369,7 +370,7 @@ instance Backoffice HaskellE where
                     snd carmaBackoffice
                 -- Set current action as a source in the nested
                 -- evaluator context
-                ctx' = ctx{prevAction = Just aT}
+                ctx' = ctx{prevAction = (`get'` Action.aType) <$> this}
                 grp = evalHaskell ctx' $ BO.targetRole e
                 who = evalHaskell ctx' $ BO.assignment e
                 due = evalHaskell ctx' $ BO.due e
@@ -383,6 +384,7 @@ instance Backoffice HaskellE where
                     Patch.put Action.assignTime assTime $
                     Patch.put Action.aType aT $
                     Patch.put Action.caseId cid $
+                    Patch.put Action.parent ((`get'` Action.ident) <$> this) $
                     Patch.put Action.serviceId sid
                     Patch.empty
             dbCreate p >> evalHaskell ctx (BO.proceed ts)
@@ -391,7 +393,8 @@ instance Backoffice HaskellE where
         HaskellE $ do
           ctx <- ask
           return $ do
-            this <- dbRead =<< getIdent
+            aid <- getIdent
+            this <- dbRead aid
             let aT = this `get'` Action.aType
                 cid = kase ctx `get'` Case.ident
                 sid = (`get'` Service.ident) <$> service ctx
@@ -416,7 +419,8 @@ instance Backoffice HaskellE where
                     Patch.put Action.targetGroup grp $
                     Patch.put Action.aType aT $
                     Patch.put Action.caseId cid $
-                    Patch.put Action.serviceId sid
+                    Patch.put Action.serviceId sid $
+                    Patch.put Action.parent (Just aid)
                     Patch.empty
             void $ dbCreate p
 
@@ -460,6 +464,9 @@ emptyContext :: HCtx
 emptyContext = error "Empty context accessed (HaskellE interpreter bug)"
 
 
+-- | Haskell evaluator context.
+--
+-- Enables data access via pure terms.
 data HCtx =
     HCtx { kase       :: Patch Case
          , user       :: Patch Usermeta
@@ -486,6 +493,11 @@ actionToTrigger a =
         when (this `get'` Action.aType == BO.aType a) $ do
           case lookup newRes (BO.outcomes a) of
             Just o -> do
-              hctx <- mkContext $ Just $ BO.aType a
+              hctx <-
+                case this `get'` Action.parent of
+                  Nothing -> mkContext Nothing
+                  Just pid -> do
+                    parent <- dbRead pid
+                    mkContext $ Just $ parent `get'` Action.aType
               evalHaskell hctx o
             Nothing -> error "Invalid action result"

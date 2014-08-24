@@ -64,31 +64,36 @@ type family HaskellType t where
 -- | Helper class to provide back office context depending on trigger
 -- models (@m@ in @Dsl m@).
 class PreContextAccess m where
-    getKase    :: Free (Dsl m) (Patch Case)
-    getService :: Free (Dsl m) (Maybe (Patch Service))
+  getKase    :: Free (Dsl m) (Patch Case)
+  getService :: Free (Dsl m) (Maybe (Patch Service))
+  getAction  :: Free (Dsl m) (Maybe (Patch CarmaAction.Action))
 
 
 instance PreContextAccess Case where
-    getKase    = dbRead =<< getIdent
-    getService = return Nothing
+  getKase    = dbRead =<< getIdent
+  getService = return Nothing
+  getAction  = return Nothing
 
 
 instance PreContextAccess Service where
-    getKase =
-      dbRead =<< (`get'` Service.parentId) <$> (dbRead =<< getIdent)
+  getKase =
+    dbRead =<< (`get'` Service.parentId) <$> (dbRead =<< getIdent)
 
-    getService = Just <$> (dbRead =<< getIdent)
+  getService = Just <$> (dbRead =<< getIdent)
+  getAction  = return Nothing
 
 
 instance PreContextAccess CarmaAction.Action where
-    getKase = do
-      i <- getIdent
-      p <- dbRead i
-      dbRead $ get' p CarmaAction.caseId
+  getKase = do
+    i <- getIdent
+    p <- dbRead i
+    dbRead $ get' p CarmaAction.caseId
 
-    getService = do
-      i <- getIdent
-      p <- dbRead i
-      case get' p CarmaAction.serviceId of
-        Just i' -> Just <$> dbRead i'
-        Nothing -> return Nothing
+  getService = do
+    i <- getIdent
+    p <- dbRead i
+    case get' p CarmaAction.serviceId of
+      Just i' -> Just <$> dbRead i'
+      Nothing -> return Nothing
+
+  getAction = Just <$> (dbRead =<< getIdent)
