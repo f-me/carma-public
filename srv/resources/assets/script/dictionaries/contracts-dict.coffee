@@ -133,7 +133,7 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
     id2val: (i) ->
       return unless @found[i]
       # notify @kvm what contract was changed
-      @kvm.contract(String(@found[i].id))
+      @kvm.contract(@found[i].id)
       _.chain(@found[i].matched).values().first().value()
 
   dict: ContractsDict
