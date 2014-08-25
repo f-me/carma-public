@@ -121,7 +121,10 @@ define [ "model/render"
         kvm[f.name].field = f
 
     # set id only when it wasn't set from from prefetched data
-    kvm['id'] = ko.observable(fetched?['id'])
+    # FIXME: remove this, id should be created from fields of model
+    # when we have it there
+    unless _.isFunction kvm['id']
+      kvm['id'] = ko.observable(fetched?['id'])
 
     # set queue if have one, and sync it with backend
     kvm._meta.q = new queue(kvm, model, queueOptions) if queue
