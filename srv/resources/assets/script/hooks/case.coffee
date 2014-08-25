@@ -107,9 +107,7 @@ define ["utils", "dictionaries"], (u, d) ->
 
   descsKbHook: (model, knockVM) ->
     srvDict = new d.dicts.ModelDict
-      dict: 'ServiceNames'
-      meta:
-        dictionaryLabel: 'value'
+      dict: 'ServiceType'
     mkServicesDescs = (p, s) ->
       description: u.getServiceDesc(p , srvDict.getVal s._meta.model.name)
       title:       s._meta.model.title

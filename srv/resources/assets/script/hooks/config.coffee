@@ -17,11 +17,11 @@ define [ "hooks/common"
                , c.jsonDictObjsHook
                ]
 
-      "action" : [a.actionColor, a.nameLocal]
+      "Action" : [a.actionColor, a.nameLocal]
 
-      "averageCommissioner" : [ s.serviceColor, s.openPartnerSearch ]
+      "AverageCommissioner" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "bank" : [ s.serviceColor, s.openPartnerSearch ]
+      "Bank" : [ s.serviceColor, s.openPartnerSearch ]
 
       "Case" : [ k.descsKbHook
                , k.eventsHistoryKbHook
@@ -31,24 +31,24 @@ define [ "hooks/common"
                , k.carModelInfoHook
                ]
 
-      "consultation" : [ s.serviceColor, s.openPartnerSearch ]
+      "Consultation" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "continue" : [ s.serviceColor, s.openPartnerSearch ]
+      "Continue" : [ s.serviceColor, s.openPartnerSearch ]
 
       "cost_serviceTarifOption" : [c.tarifOptNameDef]
 
-      "deliverClient" : [ s.serviceColor, s.openPartnerSearch ]
+      "DeliverClient" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "hotel" : [ s.serviceColor
+      "Hotel" : [ s.serviceColor
                 , s.partnerOptsHook
                 , s.srvOptUpd
                 , s.costsMark
                 , s.openPartnerSearch
                 ]
 
-      "insurance" : [ s.serviceColor, s.openPartnerSearch ]
+      "Insurance" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "ken" : [ s.serviceColor, s.openPartnerSearch ]
+      "LegalAssistance" : [ s.serviceColor, s.openPartnerSearch ]
 
       "Partner" : [ (c.bindRemoveHook 'services')
                   , p.serviceRepeat
@@ -59,14 +59,14 @@ define [ "hooks/common"
                           , p.partnerServiceRepeat
                           ]
 
-      "rent" : [ s.serviceColor
+      "Rent" : [ s.serviceColor
                , s.partnerOptsHook
                , s.srvOptUpd
                , s.costsMark
                , s.openPartnerSearch
                ]
 
-      "sober" : [ s.serviceColor
+      "SoberDriver" : [ s.serviceColor
                 , s.partnerOptsHook
                 , s.srvOptUpd
                 , s.openPartnerSearch
@@ -74,46 +74,46 @@ define [ "hooks/common"
 
       "tarifOption" : [c.tarifOptNameDef]
 
-      "taxi" : [ s.serviceColor
+      "Taxi" : [ s.serviceColor
                , s.partnerOptsHook
                , s.srvOptUpd
                , s.costsMark
                , s.openPartnerSearch
                ]
 
-      "tech" : [ s.serviceColor
+      "Tech" : [ s.serviceColor
                , s.partnerOptsHook
                , s.srvOptUpd
                , s.costsMark
                , s.openPartnerSearch
                ]
 
-      "transportation" : [ s.serviceColor
+      "Transportation" : [ s.serviceColor
                          , s.partnerOptsHook
                          , s.srvOptUpd
                          , s.costsMark
                          , s.openPartnerSearch
                          ]
 
-      "deliverParts" : [ s.serviceColor
+      "DeliverParts" : [ s.serviceColor
                        , s.partnerOptsHook
                        , s.srvOptUpd
                        , s.costsMark
                        , s.openPartnerSearch
                        ]
 
-      "deliverCar" : [ s.serviceColor
+      "DeliverCar" : [ s.serviceColor
                      , s.partnerOptsHook
                      , s.srvOptUpd
                      , s.costsMark
                      , s.openPartnerSearch
                      ]
 
-      "tech1" : [ s.serviceColor, s.openPartnerSearch ]
+      "TechInspect" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "tickets" : [ s.serviceColor, s.openPartnerSearch ]
+      "Tickets" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "towage" : [ s.serviceColor
+      "Towage" : [ s.serviceColor
                  , s.partnerOptsHook
                  , s.srvOptUpd
                  , s.costsMark
