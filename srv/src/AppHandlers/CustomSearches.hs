@@ -51,6 +51,7 @@ import AppHandlers.Util
 import Utils.HttpErrors
 import Util hiding (withPG)
 
+import qualified Carma.Model.ActionType as AType
 import qualified Carma.Model.Role as Role
 import           Carma.Model.Usermeta as Usermeta
 
@@ -169,7 +170,7 @@ searchCallsByPhone = do
   let phone = last $ B.split '/' uri
 
   rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT w.label, callerName_name, city, program::text, make, model,"
+    $  "SELECT w.label, callerName_name, city, program::text, carMake::text, carModel::text,"
     ++ "       u.login, callType,"
     ++ "       extract (epoch from callDate at time zone 'UTC')::int8::text"
     ++ "  FROM calltbl c"
@@ -187,7 +188,7 @@ getActionsForCase = do
   Just caseId <- getParam "id"
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int8::text,"
-    ++ "       result, type, assignedTo, comment"
+    ++ "       result::text, type::text, assignedTo::text, comment"
     ++ "  FROM actiontbl"
     ++ "  WHERE caseId = ?") [caseId]
   let fields =
@@ -201,7 +202,7 @@ getCancelsForCase = do
   let caseId' = B.append "case:" caseId
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT extract (epoch from c.ctime at time zone 'UTC')::int8::text,"
-    ++ "       c.partnerId, c.serviceId, c.partnerCancelReason, c.comment,"
+    ++ "       c.partnerId, c.serviceId::text, c.partnerCancelReason, c.comment,"
     ++ "       c.owner, p.name"
     ++ "  FROM partnercanceltbl c"
     ++ "  LEFT JOIN partnertbl p"
@@ -216,7 +217,7 @@ getCancelsForCase = do
 
 opStatsQ :: Query
 opStatsQ = [sql|
-  SELECT u.login, ca.name, ca.caseId,
+  SELECT u.login, ca.type, ca.caseId,
          (extract (epoch from ca.openTime)::int8)::text,
          (extract (epoch from ca.closeTime)::int8)::text
   FROM (SELECT a.*, row_number() OVER
@@ -278,7 +279,7 @@ actStatsQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
   WHERE (assignedTo IS NULL OR assignedTo = '') AND result IS NOT NULL
-  AND name = ANY (?)
+  AND type IN ?
   AND (? OR extract (epoch from duetime) >= ?)
   AND (? OR extract (epoch from duetime) <= ?);
   |]
@@ -300,24 +301,24 @@ actStats = do
           Just val -> (False, val)
           Nothing -> (True, "0")
   let flags = (fromF, fromDate, toF, toDate)
-      orderNames :: [ByteString]
-      orderNames = [ "orderService"
-                   , "orderServiceAnalyst"
-                   , "tellMeMore"
-                   , "callMeMaybe"
+      orderNames = [ AType.orderService
+                   , AType.orderServiceAnalyst
+                   , AType.tellMeMore
+                   , AType.callMeMaybe
                    ]
-      controlNames :: [ByteString]
-      controlNames = [ "tellClient"
-                     , "checkStatus"
-                     , "tellDelayClient"
-                     , "checkEndOfService"
+      controlNames = [ AType.tellClient
+                     , AType.checkStatus
+                     , AType.cancelService
+                     , AType.checkEndOfService
+                     , AType.makerApproval
+                     , AType.tellMakerDeclined
                      ]
   (Only orders:_) <-
       withPG pg_search $
-      \c -> query c actStatsQ ((Only $ V.fromList orderNames) :. flags)
+      \c -> query c actStatsQ $ (Only $ In orderNames) :. flags
   (Only controls:_) <-
       withPG pg_search $
-      \c -> query c actStatsQ ((Only $ V.fromList controlNames) :. flags)
+      \c -> query c actStatsQ $ (Only $ In controlNames) :. flags
   writeJSON $ M.fromList
                 ([ ("order", orders)
                  , ("control", controls)] :: [(Text, Text)])

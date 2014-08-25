@@ -433,7 +433,7 @@ WITH towtimes AS (
  FROM actiontbl a, casetbl c, towagetbl t
  WHERE a.serviceId = t.id
  AND a.caseid = c.id
- AND a.name='orderService'
+ AND a.type=1
  AND c.city=?
  AND (CURRENT_DATE, INTERVAL '1 day') OVERLAPS (c.callDate, c.callDate)
  GROUP BY a.serviceId)
