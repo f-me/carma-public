@@ -214,10 +214,10 @@ averageActionTime :: PreQuery
 averageActionTime = averageTime ("actiontbl", "closeTime") ("actiontbl", "openTime")
 
 actionServiceRel :: PreQuery
-actionServiceRel = cond ["servicetbl", "actiontbl"] "servicetbl.type || ':' || servicetbl.id = actiontbl.parentid"
+actionServiceRel = cond ["servicetbl", "actiontbl"] "servicetbl.id = actiontbl.serviceid"
 
 actionCaseRel :: PreQuery
-actionCaseRel = cond ["casetbl", "actiontbl"] "'case:' || casetbl.id = actiontbl.caseId"
+actionCaseRel = cond ["casetbl", "actiontbl"] "casetbl.id = actiontbl.caseId"
 
 -- | Add relations on tables
 relations :: PreQuery -> PreQuery
@@ -585,11 +585,11 @@ procAvgTimeQuery = [sql|
 WITH actiontimes AS (
  SELECT (max(a2.closeTime - a1.ctime))
  FROM casetbl c, servicetbl s, actiontbl a1, actiontbl a2
- WHERE a1.parentid=a2.parentid
+ WHERE a1.serviceid=a2.serviceid
  AND (a2.result='serviceOrdered'
       OR a2.result='serviceOrderedSMS')
  AND a1.name='orderService'
- AND a1.parentid=s.id
+ AND a1.serviceid=s.id
  AND cast(split_part(a1.caseid, ':', 2) as integer)=c.id
  AND s.times_expectedServiceStart <= (a1.ctime + INTERVAL '01:00:00')
  AND (? or c.program = ?)
@@ -597,7 +597,7 @@ WITH actiontimes AS (
  AND (? or s.contractor_partner = ?)
  AND c.calldate >= ?
  AND c.calldate < ?
- GROUP BY a1.parentid)
+ GROUP BY a1.serviceid)
 SELECT extract(epoch from avg(max)) FROM actiontimes;
 |]
 
@@ -619,7 +619,6 @@ SELECT extract(epoch from avg(s.times_factServiceStart - s.times_expectedDispatc
 FROM casetbl c, services s
 WHERE s.parentid = c.id
 AND (s.times_factServiceStart > s.times_expectedDispatch)
-AND (s.type='towage' OR s.type='tech')
 AND (? or c.program = ?)
 AND (? or c.city = ?)
 AND (? or s.contractor_partner = ?)
