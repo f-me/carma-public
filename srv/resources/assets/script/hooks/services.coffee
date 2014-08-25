@@ -99,5 +99,8 @@ define [ "utils"
   serviceColor: (model, kvm) ->
     kvm._svcColor = ko.computed ->
       svcId = kvm._meta.model.name + ':' + kvm.id()
-      svcs  = kvm._parent.services().split(',')
-      u.palette[svcs.indexOf(svcId) % u.palette.length]
+      if kvm._parent
+        svcs  = kvm._parent.services().split(',')
+        u.palette[svcs.indexOf(svcId) % u.palette.length]
+      else
+        u.palette[0]

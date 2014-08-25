@@ -14,5 +14,8 @@ define ["utils"], (u) ->
   actionColor: (model, kvm) ->
     kvm._actColor = ko.computed ->
       svcId = kvm.parentId()
-      svcs  = kvm._parent.services().split(',')
-      u.palette[svcs.indexOf(svcId) % u.palette.length]
+      if kvm._parent
+        svcs  = kvm._parent.services().split(',')
+        u.palette[svcs.indexOf(svcId) % u.palette.length]
+      else
+        u.palette[0]
