@@ -296,6 +296,10 @@ updateHandler = do
                      m -> AppHandler (Either Int Aeson.Value)
       updateModel _ = do
         let ident = readIdent objId :: IdentI m
+            recode x = case (Aeson.decode $ Aeson.encode x) of
+                         Just obj -> Right obj
+                         err      -> error $
+                                     "BUG in updateHandler: " ++ show err
         commit <- getJSONBody :: AppHandler (Patch m)
         runUpdateTriggers  ident commit >>= \case
           Left (code,_err) -> return $ Left code
@@ -310,11 +314,8 @@ updateHandler = do
                        withResource (PS.pgPool s) (Patch.read ident)
                 -- TODO Cut out fields from original commit like
                 -- DB.update does
-                case (Aeson.decode $ Aeson.encode res') of
-                  Just obj -> return $ Right obj
-                  err      -> error $
-                                "BUG in updateHandler: " ++ show err
-              _ -> return $ Right $ Aeson.object []
+                return $ recode res'
+              _ -> return $ recode commit'
   -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch model updateModel of
     Just fn ->
