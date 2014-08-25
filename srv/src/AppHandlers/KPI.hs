@@ -52,7 +52,7 @@ selectStat from to = do
   where
     smap :: [Patch StatKPI] -> M.Map (IdentI Usermeta) (Patch StatKPI)
     smap = foldl (\a v -> maybe a (\mu -> M.insert mu v a) (get v user)) M.empty
-    fillCalls :: [(IdentI Usermeta, Text, DiffTime, Int)]
+    fillCalls :: [(IdentI Usermeta, Text, Maybe DiffTime, Maybe Int)]
               -> ST.StateT (M.Map (IdentI Usermeta) (Patch StatKPI)) AppHandler [()]
     fillCalls calls =
       forM calls $ \(uid, tpe, time, amount) ->
