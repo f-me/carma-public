@@ -28,14 +28,14 @@ data StatKPI = StatKPI
   , totalRest      :: F (Maybe DiffTime) "totalRest"     "Всего в перерывах"
   , totalLoggedIn  :: F (Maybe DiffTime) "totalLoggedIn" "Всего в системе"
 
-  , infoTime     :: F DiffTime "infoTime"  "В разговоре: информационные"
-  , infoCount    :: F Int      "infoCount" "Количество: информационные"
+  , infoTime     :: F (Maybe DiffTime) "infoTime"  "В разговоре: информационные"
+  , infoCount    :: F (Maybe Int)      "infoCount" "Количество: информационные"
 
-  , procTime  :: F DiffTime "procTime"  "В разговоре: Обработка кейса"
-  , procCount :: F Int      "procCount" "Количество: Обработка кейса"
+  , procTime  :: F (Maybe DiffTime) "procTime"  "В разговоре: Обработка кейса"
+  , procCount :: F (Maybe Int)      "procCount" "Количество: Обработка кейса"
 
-  , newTime  :: F DiffTime "newTime"  "В разговоре: Создание кейса"
-  , newCount :: F Int      "newCount" "Количество: Создание кейса"
+  , newTime  :: F (Maybe DiffTime) "newTime"  "В разговоре: Создание кейса"
+  , newCount :: F (Maybe Int)      "newCount" "Количество: Создание кейса"
 
   -- , callTime :: F DiffTime "callTime" "Итого: Время в разговоре"
   -- , amount   :: F Int      "amount"   "Итого: Количество звонков"
