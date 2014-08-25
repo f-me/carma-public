@@ -40,9 +40,6 @@ define [ "hooks/common"
       "DeliverClient" : [ s.serviceColor, s.openPartnerSearch ]
 
       "Hotel" : [ s.serviceColor
-                , s.partnerOptsHook
-                , s.srvOptUpd
-                , s.costsMark
                 , s.openPartnerSearch
                 ]
 
@@ -60,52 +57,32 @@ define [ "hooks/common"
                           ]
 
       "Rent" : [ s.serviceColor
-               , s.partnerOptsHook
-               , s.srvOptUpd
-               , s.costsMark
                , s.openPartnerSearch
                ]
 
       "SoberDriver" : [ s.serviceColor
-                , s.partnerOptsHook
-                , s.srvOptUpd
                 , s.openPartnerSearch
                 ]
 
       "tarifOption" : [c.tarifOptNameDef]
 
       "Taxi" : [ s.serviceColor
-               , s.partnerOptsHook
-               , s.srvOptUpd
-               , s.costsMark
                , s.openPartnerSearch
                ]
 
       "Tech" : [ s.serviceColor
-               , s.partnerOptsHook
-               , s.srvOptUpd
-               , s.costsMark
                , s.openPartnerSearch
                ]
 
       "Transportation" : [ s.serviceColor
-                         , s.partnerOptsHook
-                         , s.srvOptUpd
-                         , s.costsMark
                          , s.openPartnerSearch
                          ]
 
       "DeliverParts" : [ s.serviceColor
-                       , s.partnerOptsHook
-                       , s.srvOptUpd
-                       , s.costsMark
                        , s.openPartnerSearch
                        ]
 
       "DeliverCar" : [ s.serviceColor
-                     , s.partnerOptsHook
-                     , s.srvOptUpd
-                     , s.costsMark
                      , s.openPartnerSearch
                      ]
 
@@ -114,9 +91,6 @@ define [ "hooks/common"
       "Tickets" : [ s.serviceColor, s.openPartnerSearch ]
 
       "Towage" : [ s.serviceColor
-                 , s.partnerOptsHook
-                 , s.srvOptUpd
-                 , s.costsMark
                  , s.openPartnerSearch
                  ]
 
