@@ -74,6 +74,19 @@ define [ "utils"
           kvm["#{f.name}Id"]?("partner:#{val.id}")
           addr = val.addrDeFacto
           field_basename = f.name.split('_')[0]
+          # Replace group names:
+          #
+          # contractor -> towerAddress, towDealer -> towAddress
+          #
+          # for subfields _coords and _address. If such fields exist,
+          # copy data to them too.
+          field_subname =
+            switch field_basename
+              when "contractor" then "towerAddress"
+              when "towDealer"  then "towAddress"
+              else field_basename
+          kvm["#{field_subname}_address"]?(addr || "")
+          kvm["#{field_subname}_coords"]? val.coords
           kvm["#{field_basename}_address"]?(addr || "")
           kvm["#{field_basename}_coords"]? val.coords
           if (field_basename == "towDealer") && val.distanceFormatted?

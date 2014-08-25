@@ -48,19 +48,7 @@ add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (
 actions :: MonadTrigger m b => Map.Map ModelName (Map.Map FieldName [ObjectId -> FieldValue -> m b ()])
 -- actions :: TriggerMap a
 actions
-    = add "towage" "contractor_address" [
-      \objId val -> set objId "towerAddress_address" val
-      ]
-    $ add "towage" "towDealer_address" [
-      \objId val -> set objId "towAddress_address" val
-      ]
-    $ add "towage" "contractor_coords" [
-      \objId val -> set objId "towerAddress_coords" val
-      ]
-    $ add "towage" "towDealer_coords" [
-      \objId val -> set objId "towAddress_coords" val
-      ]
-    $ Map.fromList
+    = Map.fromList
       [("case", Map.fromList
           [("city", [setWeather])
           ,("contract", [\objId val ->
