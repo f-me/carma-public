@@ -102,8 +102,8 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
                              data-date-weekstart="1")
             input.pane-span.focusable(type="text"
               autocomplete="off"
-              name="{{ name }}Begin"
-              data-bind="value: {{ name }}Begin, valueUpdate: ['change', 'afterpaste'],",)
+              name="{{ name }}.begin"
+              data-bind="value: {{ name }}.begin, valueUpdate: ['change', 'afterpaste'],",)
             span.add-on
               i.icon.icon-calendar
         .span4.offset1
@@ -113,8 +113,8 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
                              data-date-weekstart="1")
             input.pane-span.focusable(type="text"
               autocomplete="off"
-              name="{{ name }}End"
-              data-bind="value: {{ name }}End, valueUpdate: ['change', 'afterpaste'],")
+              name="{{ name }}.end"
+              data-bind="value: {{ name }}.end, valueUpdate: ['change', 'afterpaste'],")
             span.add-on
               i.icon.icon-calendar
 
