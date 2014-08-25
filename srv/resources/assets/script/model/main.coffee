@@ -274,7 +274,7 @@ define [ "model/render"
         kvm['dixiDisabled'](true)
 
     for f in fields when /interval/.test(f.type)
-      do (f) -> Fs.interval(kvm, f)
+      do (f) -> Fs.interval(kvm[f.name])
 
     kvm.toJSON = ->
       r = {}
