@@ -127,6 +127,7 @@ orderService =
        setServiceStatus SS.canceled *>
        finish)
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -161,6 +162,7 @@ orderServiceAnalyst =
        (setServiceStatus SS.ordered *>
         proceed [AType.closeCase, AType.addBill]))
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -173,6 +175,7 @@ tellClient =
     ((5 * minutes) `since` now)
     [ (AResult.clientOk, proceed [AType.checkStatus])
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -186,6 +189,7 @@ checkStatus =
     [ (AResult.serviceInProgress,
        setServiceStatus SS.inProgress *> proceed [AType.checkEndOfService])
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -199,6 +203,7 @@ needPartner =
     [ (AResult.partnerFound,
        setServiceStatus SS.order *> proceed [AType.orderService])
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 checkEndOfService :: Action
@@ -217,6 +222,7 @@ checkEndOfService =
        (proceed [AType.closeCase, AType.getDealerInfo])
        (proceed [AType.closeCase]))
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -229,6 +235,7 @@ closeCase =
     ((5 * minutes) `since` now)
     [ (AResult.caseClosed, setServiceStatus SS.closed *> finish)
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -245,6 +252,7 @@ getDealerInfo =
      ((14 * days) `since` req (serviceField times_factServiceEnd)))
     [ (AResult.gotInfo, sendPSAMail *> finish)
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -266,6 +274,7 @@ cancelService =
        setServiceField Service.falseCall (const FS.bill) *>
        finish)
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 makerApproval :: Action
@@ -275,8 +284,11 @@ makerApproval =
     (const bo_control)
     nobody
     ((1 * minutes) `since` now)
-    [ (AResult.makerApproved, proceed [AType.orderService])
+    [ (AResult.makerApproved,
+       setServiceStatus SS.order *> proceed [AType.orderService])
     , (AResult.makerDeclined, proceed [AType.tellMakerDeclined])
+    , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -289,6 +301,7 @@ tellMakerDeclined =
     ((5 * minutes) `since` now)
     [ (AResult.clientNotified,
        setServiceStatus SS.closed *> finish)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -302,6 +315,7 @@ addBill =
     [ (AResult.billAttached, proceed [AType.headCheck])
     , (AResult.returnToBack, proceed [AType.billmanNeedInfo])
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -314,6 +328,7 @@ billmanNeedInfo =
     ((5 * minutes) `since` now)
     [ (AResult.returnToBillman, proceed [AType.addBill])
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -329,6 +344,7 @@ headCheck =
     , (AResult.confirmedHead, proceed [AType.directorCheck])
     , (AResult.returnToBillman, proceed [AType.addBill])
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -343,6 +359,7 @@ directorCheck =
     , (AResult.confirmedDirector, proceed [AType.accountCheck])
     , (AResult.confirmedFinal, proceed [AType.analystCheck])
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -356,6 +373,7 @@ accountCheck =
     [ (AResult.accountToDirector, proceed [AType.directorCheck])
     , (AResult.confirmedAccount, proceed [AType.analystCheck])
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -368,6 +386,7 @@ analystCheck =
     ((5 * minutes) `since` now)
     [ (AResult.confirmedAnalyst, finish)
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -380,6 +399,7 @@ complaintResolution =
     ((1 * minutes) `since` now)
     [ (AResult.complaintManaged, finish)
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -393,6 +413,7 @@ tellMeMore =
     [ (AResult.communicated, finish)
     , (AResult.okButNoService, finish)
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -406,6 +427,7 @@ callMeMaybe =
     [ (AResult.communicated, finish)
     , (AResult.okButNoService, finish)
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
