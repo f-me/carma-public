@@ -61,11 +61,10 @@ instance Model Case where
       "full" -> Just
         $ modifyView
           ((defaultView :: ModelView Case) {mv_title = "Кейс"})
-          $ caseMod ++ caseDicts ++ caseRo ++ caseOldCRUDHacks
+          $ caseMod ++ caseDicts ++ caseRo
       "new"
         ->  setMainOnly . (`modifyView` [invisible services])
         <$> (modelView "full" :: Maybe (ModelView Case))
-      "" -> modelView "full" :: Maybe (ModelView Case)
       _ -> Nothing
       where
         setMainOnly mv = mv
@@ -98,28 +97,6 @@ caseDicts = [
   ,setMeta "dictionaryLabel" (Aeson.String "realName") callTaker
   ]
 
--- | Mark several new-style dictionaries to use dictionaryStringify,
--- to wrap integers in strings to be compatible with the old CRUD.
-caseOldCRUDHacks :: [(Text, FieldView -> FieldView) :@ Case]
-caseOldCRUDHacks =
-    [ setMeta "dictionaryStringify" (Aeson.Bool True) car_class
-    , setMeta "dictionaryStringify" (Aeson.Bool True) car_engine
-    , setMeta "dictionaryStringify" (Aeson.Bool True) car_transmission
-    , setMeta "dictionaryStringify" (Aeson.Bool True) car_make
-    , setMeta "dictionaryStringify" (Aeson.Bool True) car_model
-    , setType "text" car_mileage
-    , setType "text" car_makeYear
-    , setMeta "dictionaryStringify" (Aeson.Bool True) program
-    , setMeta "dictionaryStringify" (Aeson.Bool True) subprogram
-    , setMeta "dictionaryStringify" (Aeson.Bool True) comment
-    , setMeta "dictionaryStringify" (Aeson.Bool True) diagnosis1
-    , setMeta "dictionaryStringify" (Aeson.Bool True) diagnosis2
-    , setMeta "dictionaryStringify" (Aeson.Bool True) diagnosis3
-    , setMeta "dictionaryStringify" (Aeson.Bool True) diagnosis4
-    , setMeta "dictionaryStringify" (Aeson.Bool True) vinChecked
-    , setMeta "dictionaryStringify" (Aeson.Bool True) caseStatus
-    ]
-
 caseRo :: [(Text, FieldView -> FieldView) :@ Case]
 caseRo = [
    readonly callDate
@@ -138,7 +115,7 @@ caseMod = [
   ,regexp "year" car_makeYear
 
   ,invisible contract
-  ,setType "text" contract
+  ,setType "ident" contract
 
   ,widget "force-find-dictionary" contractIdentifier
 
@@ -183,7 +160,6 @@ caseMod = [
   ,textarea dealerCause
   ,textarea claim
   ,invisible comments
-  ,invisible actions
 
   ,infoText "carVin" car_vin
   ,infoText "comment" comment
