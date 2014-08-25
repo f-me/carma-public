@@ -7,19 +7,12 @@ module Snaplet.DbLayer.Triggers.Actions (actions)
 where
 
 import Control.Monad
-import Control.Monad.Trans
-import Data.Text (Text)
 import qualified Data.Text          as T
 import qualified Data.Text.Read as T
 import qualified Data.Map as Map
 import Data.List (intercalate)
 import Data.String (fromString)
 
-------------------------------------------------------------------------------
-import WeatherApi (getWeather', tempC)
------------------------------------------------------------------------------
-
-import Snap (gets)
 import qualified Snap.Snaplet.PostgresqlSimple as PG
 import Snap.Snaplet.PostgresqlSimple ((:.)(..), Only(..))
 import Database.PostgreSQL.Simple.SqlQQ
@@ -50,8 +43,7 @@ actions :: MonadTrigger m b => Map.Map ModelName (Map.Map FieldName [ObjectId ->
 actions
     = Map.fromList
       [("case", Map.fromList
-          [("city", [setWeather])
-          ,("contract", [\objId val ->
+          [("contract", [\objId val ->
                          unless (T.null val) $
                            fillFromContract val objId >>= \case
                              Loaded -> set objId "vinChecked" $
@@ -162,24 +154,3 @@ fillFromContract contract objId = do
                  [Only (Just True)] -> Expired
                  _                  -> Loaded
     _ -> error "fillFromContract: Contract primary key is broken"
-
-
-setWeather :: MonadTrigger m b => ObjectId -> Text -> m b ()
-setWeather objId city = do
-  conf    <- liftDb $ gets weather
-  weather <- liftIO $ getWeather' conf $ T.unpack $ T.filter (/= '\'') city
-  case weather of
-    Right w   -> do
-      syslogJSON Debug "trigger/weather"
-        [ "objId" .= objId
-        , "city"  .=  city
-        , "res"   .= show w
-        ]
-      set objId "temperature" $ T.pack $ show $ tempC w
-    Left  err -> do
-      set objId "temperature" ""
-      syslogJSON Debug "trigger/weather"
-        [ "objId" .= objId
-        , "city"  .= city
-        , "error" .= show err
-        ]

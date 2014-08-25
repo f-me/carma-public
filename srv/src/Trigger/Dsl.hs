@@ -36,6 +36,7 @@ module Trigger.Dsl
       -- ** Miscellaneous
     , wsMessage
     , getNow
+    , getCityWeather
     )
 
 where
@@ -59,10 +60,13 @@ import Data.Int (Int64)
 import Data.Typeable
 import GHC.TypeLits
 
+import qualified Snap (gets)
 import Snap.Snaplet.Auth
 import Snaplet.Auth.Class
 
-import Application (AppHandler)
+import WeatherApi (Weather, getWeather')
+
+import Application (AppHandler, weatherCfg)
 import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SqlQQ
 import Data.Model as Model
@@ -144,7 +148,7 @@ currentUserId :: Free (Dsl m) (IdentI Usermeta)
 currentUserId = liftFree (CurrentUser id)
 
 getNow :: Free (Dsl m) UTCTime
-getNow = liftFree (DoIO getCurrentTime id)
+getNow = liftFree (DoApp (liftIO getCurrentTime) id)
 
 -- | List of closed actions in a case. Last closed actions come first.
 prevClosedActions :: IdentI Case
@@ -171,6 +175,18 @@ prevClosedActions cid types =
                , fieldPT Action.closeTime
                )
 
+getCityWeather :: Text -> Free (Dsl m) (Either String Weather)
+getCityWeather city = liftFree (DoApp action id)
+  where
+    action :: AppHandler (Either String Weather)
+    action = do
+      conf <- Snap.gets weatherCfg
+      weather <- liftIO $ getWeather' conf $
+                 T.unpack $ T.filter (/= '\'') city
+      return $ case weather of
+                 Right w -> Right w
+                 Left e  -> Left $ show e
+
 liftFree :: Functor f => f a -> Free f a
 liftFree = Free . fmap Pure
 
@@ -194,7 +210,7 @@ data Dsl m k where
   CreateUser  :: Text -> (Int -> k) -> Dsl m k
   UpdateUser  :: Patch Usermeta -> k -> Dsl m k
   WsMessage   :: k -> Dsl m k
-  DoIO        :: IO r -> (r -> r') -> Dsl m r'
+  DoApp       :: AppHandler r -> (r -> r') -> Dsl m r'
 
 deriving instance Typeable Dsl
 
@@ -214,7 +230,7 @@ instance Functor (Dsl m) where
     CreateUser l  k -> CreateUser l  $ fn . k
     UpdateUser p  k -> UpdateUser p  $ fn   k
     WsMessage     k -> WsMessage     $ fn   k
-    DoIO       a  k -> DoIO       a  $ fn . k
+    DoApp      a  k -> DoApp      a  $ fn . k
 
 
 data DslState m = DslState
@@ -301,4 +317,4 @@ evalDsl = \case
       lift $ withMsg $ sendMessage i p
       evalDsl k
 
-    DoIO a k -> evalDsl =<< k <$> liftIO a
+    DoApp a k -> evalDsl =<< k <$> lift a

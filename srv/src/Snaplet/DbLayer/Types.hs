@@ -15,8 +15,6 @@ import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
 import Carma.ModelTables (TableDesc)
 
-import qualified WeatherApi as W
-
 import DictionaryCache
 
 type ObjectId = Text
@@ -37,7 +35,7 @@ data DbLayer b = DbLayer
     ,_auth     :: Snaplet (AuthManager b)
     ,syncTables :: [TableDesc]
     ,dictCache :: TVar DictCache
-    ,weather   :: W.Config
+
     }
 
 makeLenses ''DbLayer

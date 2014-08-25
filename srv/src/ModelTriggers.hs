@@ -32,13 +32,13 @@ import qualified Data.Pool as Pool
 import qualified Database.PostgreSQL.Simple.Transaction as PG
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
+import WeatherApi (tempC)
+
 import Application (AppHandler)
 import Data.Model as Model
 import Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as Patch
 import Data.Model.Types
-
-
 import           Trigger.Dsl
 
 import           Carma.Model.Types (HMDiffTime(..))
@@ -134,6 +134,13 @@ beforeUpdate = Map.unionsWith (++) $
     modifyPatch (Patch.put Service.times_factServiceEnd Nothing)
   , trigOn Service.times_expectedServiceClosure $ const $
     modifyPatch (Patch.put Service.times_factServiceClosure Nothing)
+  , trigOn Case.city $ \case
+      Nothing -> return ()
+      Just (Ident city) ->
+        do
+          w <- getCityWeather city
+          let temp = either (const $ Just "") (Just . T.pack . show . tempC) w
+          modifyPatch (Patch.put Case.temperature temp)
   ]
 
 afterUpdate :: Map (ModelName, FieldName) [Dynamic]

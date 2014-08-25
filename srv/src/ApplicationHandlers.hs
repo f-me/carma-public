@@ -83,7 +83,6 @@ import Snap.Util.FileUploads (getMaximumFormInputSize)
 import WeatherApi (getWeather', tempC)
 
 import qualified Snaplet.DbLayer as DB
-import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (FileUpload(cfg))
 
@@ -379,7 +378,7 @@ rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
 
   syslogJSON Info "handler/rkc/weather" ["cities" .= intercalate ", " cities]
 
-  conf <- with db $ gets DB.weather
+  conf <- gets weatherCfg
   let weatherForCity = liftIO . getWeather' conf . filter (/= '\'')
   let toTemp t city = Aeson.object [
         "city" .= city,

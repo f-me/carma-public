@@ -24,10 +24,6 @@ import Data.Maybe (fromJust, isJust)
 import Data.ByteString (ByteString)
 import qualified Data.Text          as T
 
-import Data.Configurator
-
-import WeatherApi.WWOnline (initApi)
-
 import Snap.Snaplet
 import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (Postgres, pgsInit)
@@ -144,9 +140,6 @@ initDbLayer sessionMgr adb _ = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     -- syslog Info "Server started"
     tbls <- liftIO $ MT.loadTables "resources/site-config/models"
-    cfg <- getSnapletUserConfig
-    wkey <- liftIO $ lookupDefault "" cfg "weather-key"
-
     dc <- liftIO
           $ loadDictionaries "resources/site-config/dictionaries"
           >>= newTVarIO
@@ -157,4 +150,3 @@ initDbLayer sessionMgr adb _ = makeSnaplet "db-layer" "Storage abstraction"
       <*> pure sessionMgr
       <*> (return tbls)
       <*> (return dc)
-      <*> (return $ initApi wkey)

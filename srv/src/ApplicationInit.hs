@@ -21,6 +21,9 @@ import Snap.Util.FileServe ( serveFile
                            , serveDirectoryWith
                            , DirectoryConfig(..)
                            )
+
+import WeatherApi.WWOnline (initApi)
+
 ------------------------------------------------------------------------------
 import Snaplet.SiteConfig
 import Snaplet.DbLayer
@@ -128,6 +131,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                 <$> Cfg.lookup cfg "local-name"
                 <*> Cfg.lookupDefault 4 cfg "search-min-length"
 
+  wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
+
   h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
   addAuthSplices h auth
 
@@ -165,11 +170,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   g <- nestSnaplet "geo" geo geoInit
-
   search' <- nestSnaplet "search" search $ searchInit pgs authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 
   addRoutes routes
   wrapSite (claimUserActivity>>)
-  return $ App h s authMgr c d pgs pga tm fu g ad search' opts msgr
+  return $ App h s authMgr c d pgs pga tm fu g ad search' opts msgr (initApi wkey)
