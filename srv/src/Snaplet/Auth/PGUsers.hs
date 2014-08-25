@@ -36,7 +36,6 @@ module Snaplet.Auth.PGUsers
     ( -- * User roles & meta
       userRolesPG
     , UserMeta
---    , userMetaPG
     , userMetaIdent
     , replaceMetaRolesFromPG
     )
