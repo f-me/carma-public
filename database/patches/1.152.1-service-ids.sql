@@ -86,9 +86,9 @@ ALTER TABLE servicetbl DROP COLUMN sid;
 
 -- setup FK triggers (servicetbl has children thus no native FKs)
 CREATE CONSTRAINT TRIGGER actiontbl_serviceid_fk
-AFTER INSERT OR UPDATE ON actiontbl
+AFTER INSERT OR UPDATE OF serviceId ON actiontbl
 FOR EACH ROW EXECUTE PROCEDURE serviceid_fk();
 
 CREATE CONSTRAINT TRIGGER partnercanceltbl_serviceid_fk
-AFTER INSERT OR UPDATE ON partnercanceltbl
+AFTER INSERT OR UPDATE OF serviceId ON partnercanceltbl
 FOR EACH ROW EXECUTE PROCEDURE serviceid_fk();
