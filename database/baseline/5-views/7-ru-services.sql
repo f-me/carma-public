@@ -161,7 +161,6 @@ WITH servicecounts AS (
     timezone('Europe/Moscow'::text, servicetbl.times_expecteddispatch) AS "Время выезда партнёра",
      timezone('Europe/Moscow'::text, servicetbl.bill_billingdate) AS "Дата выставления счёта",
     casetbl.repair AS "Дата починки",
-    casetbl.actions AS "Действия",
     concat_ws(', '::text, casetbl.contact_ownerphone1, casetbl.contact_ownerphone2, casetbl.contact_ownerphone3, casetbl.contact_ownerphone4) AS "Контактные телефоны владельца",
     casetbl.id AS "Номер кейса",
     servicetbl.bill_billnumber AS "Номер счёта",
