@@ -40,7 +40,23 @@ data StatKPI = StatKPI
   -- , callTime :: F DiffTime "callTime" "Итого: Время в разговоре"
   -- , amount   :: F Int      "amount"   "Итого: Количество звонков"
   -- , avgTime  :: F DiffTime "avgTime"  "Итого: Количество звонков"
- } deriving Typeable
+  , controlT :: F (Maybe DiffTime)
+                "controlT" "Ср. время \"Контроль услуги\""
+  , controlC :: F (Maybe Int)
+                "controlC" "Действий \"Контроль услуги\""
+  , orderServiceT :: F (Maybe DiffTime)
+                "orderServiceT" "Ср. время \"Заказ услуги\""
+  , orderServiceC :: F (Maybe Int)
+                "orderServiceC" "Действий \"Заказ услуги\""
+  , tellMeMoreT :: F (Maybe DiffTime)
+                "tellMeMoreT" "Ср. время \"Заказ услуги - доп. инф.\""
+  , tellMeMoreC :: F (Maybe Int)
+                "tellMeMoreC" "Действий \"Заказ услуги - доп. инф.\""
+  , callMeMaybeT :: F (Maybe DiffTime)
+                "callMeMaybeT" "Ср. время \"Заказ услуги - моб. прил.\""
+  , callMeMaybeC :: F (Maybe Int)
+                "callMeMaybeC" "Действий \"Заказ услуги - моб. прил.\""
+} deriving Typeable
 
 instance Model StatKPI where
   type TableName StatKPI = "StatKPI"
