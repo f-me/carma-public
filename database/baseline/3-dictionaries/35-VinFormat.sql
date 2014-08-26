@@ -66,7 +66,7 @@ CREATE TABLE "VinFormat"
 
   , makeYearLoad             bool NOT NULL DEFAULT TRUE
   , makeYearTitle            text NOT NULL DEFAULT 'Год производства автомобиля'
-  , makeYearDefault          int2
+  , makeYearDefault          int4
   , makeYearRequired         bool NOT NULL DEFAULT TRUE
 
   , carClassLoad             bool NOT NULL DEFAULT TRUE
