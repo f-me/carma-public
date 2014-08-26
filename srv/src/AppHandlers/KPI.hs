@@ -1,12 +1,11 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
 
 module AppHandlers.KPI (getStat) where
 
--- import           Control.Applicative
-import           Control.Monad
 import           Control.Monad.Trans.Class
-import qualified Control.Monad.Trans.State.Strict as ST
+import qualified Control.Monad.Trans.RWS.Strict as RWS
 
+import           Data.String     (fromString)
 import           Data.ByteString (ByteString)
 import qualified Data.Map.Strict as M
 import           Data.Vector (Vector)
@@ -32,6 +31,18 @@ getStat = do
   Just t <- getParam "to"
   writeJSON =<< selectStat f t
 
+selectStat :: ByteString -> ByteString -> AppHandler [Patch StatKPI]
+selectStat from to = do
+  [Only usrs] <- query_ activeUsersQ
+  states <- query [sql|
+    SELECT * FROM get_KPI_timeinstate(?, tstzrange(?, ?)) |] (usrs, from, to)
+  (states', _) <-
+    RWS.execRWST fillKPIs (usrs, from, to) (smap $ map unW states)
+  return $ M.elems states'
+  where
+    smap :: [Patch StatKPI] -> M.Map (IdentI Usermeta) (Patch StatKPI)
+    smap = foldl (\a v -> maybe a (\mu -> M.insert mu v a) (get v user)) M.empty
+
 activeUsersQ :: Query
 activeUsersQ = [sql|
 SELECT coalesce(array_agg(id), ARRAY[]::int[])
@@ -39,30 +50,40 @@ SELECT coalesce(array_agg(id), ARRAY[]::int[])
   WHERE isActive = 't'
  |]
 
-selectStat :: ByteString -> ByteString -> AppHandler [Patch StatKPI]
-selectStat from to = do
-  [Only usrs] :: [Only (Vector (IdentI Usermeta))] <- query_ activeUsersQ
-  states <- query [sql|
-    SELECT * FROM get_KPI_timeinstate(?, tstzrange(?, ?)) |] (usrs, from, to)
-  states' <- (flip ST.execStateT) (smap $ map unW states) $ do
-    fillCalls =<<
-      (lift $ query [sql| SELECT * FROM get_KPI_calls(?, ?, ?) |] (usrs, from, to))
+type RawResult = (IdentI Usermeta, Text, Maybe DiffTime, Maybe Int)
+type State     = M.Map (IdentI Usermeta) (Patch StatKPI)
+type Params    = (Vector (IdentI Usermeta), ByteString, ByteString)
+type HandlerSt = RWS.RWST Params () State AppHandler ()
 
-  return $ M.elems states'
+fillKPIs :: HandlerSt
+fillKPIs = do
+  fill calls   =<< qry "get_KPI_calls"
+  fill actions =<< qry "get_KPI_actions"
   where
-    smap :: [Patch StatKPI] -> M.Map (IdentI Usermeta) (Patch StatKPI)
-    smap = foldl (\a v -> maybe a (\mu -> M.insert mu v a) (get v user)) M.empty
-    fillCalls :: [(IdentI Usermeta, Text, Maybe DiffTime, Maybe Int)]
-              -> ST.StateT (M.Map (IdentI Usermeta) (Patch StatKPI)) AppHandler [()]
-    fillCalls calls =
-      forM calls $ \(uid, tpe, time, amount) ->
-        case tpe of
-          "info"           -> putInSt uid (infoTime, time) (infoCount, amount)
-          "newCase"        -> putInSt uid (newTime, time)  (newCount, amount)
-          "processingCase" -> putInSt uid (procTime, time) (procCount, amount)
-          errVal -> error $ "Check get_KPI_calls," ++ (show errVal) ++
-                          " type should not be there."
+  fill :: (RawResult -> HandlerSt) -> [RawResult] -> HandlerSt
+  fill disp d = mapM_ disp d
 
-    putInSt u (f1, v1) (f2, v2) = ST.modify $
-      M.adjust (\a -> put f1 v1 $ put f2 v2 a) u
+  calls (u, tpe, t, a) =
+    case tpe of
+      "info"           -> putInSt u (infoTime, t) (infoCount, a)
+      "newCase"        -> putInSt u (newTime, t)  (newCount, a)
+      "processingCase" -> putInSt u (procTime, t) (procCount, a)
+      errVal -> error $ "Check get_KPI_calls," ++ (show errVal) ++
+                        " type should not be there."
+  actions (u, tpe, t, a) =
+    case tpe of
+      "control"      -> putInSt u (controlT, t)      (controlC, a)
+      "orderService" -> putInSt u (orderServiceT, t) (orderServiceC, a)
+      "tellMeMore"   -> putInSt u (tellMeMoreT,   t) (tellMeMoreC,   a)
+      "callMeMaybe"  -> putInSt u (callMeMaybeT,  t) (callMeMaybeC,  a)
+      errVal -> error $ "Check get_KPI_actions," ++ (show errVal) ++
+                        " type should not be there."
+  putInSt u (f1, v1) (f2, v2) =
+    RWS.modify $ M.adjust (\a -> put f1 v1 $ put f2 v2 a) u
+
+  qry pgfn = do
+    prms <- RWS.ask
+    lift $ query (fromString $
+      "SELECT userid, type, avgtime, amount FROM " ++ pgfn ++ "(?, ?, ?)") prms
+
 
