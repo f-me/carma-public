@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -49,6 +50,8 @@ import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
 import           Carma.Model.Case (Case)
 import qualified Carma.Model.Case as Case
+import qualified Carma.Model.Contract as Contract
+import qualified Carma.Model.ContractCheckStatus as CCS
 import qualified Carma.Model.Service as Service
 import           Carma.Model.Service (Service)
 import           Carma.Model.Usermeta (Usermeta)
@@ -141,6 +144,38 @@ beforeUpdate = Map.unionsWith (++) $
           w <- getCityWeather city
           let temp = either (const $ Just "") (Just . T.pack . show . tempC) w
           modifyPatch (Patch.put Case.temperature temp)
+  , trigOn Case.contract $ \case
+      Nothing -> return ()
+      Just cid ->
+        do
+          kase <- dbRead =<< getIdent
+          contract <- dbRead cid
+          n <- getNow
+          let sinceExceeded =
+                case contract `get'` Contract.validSince of
+                  Just s  -> n < UTCTime (Contract.unWDay s) 0
+                  Nothing -> False
+              untilExceeded =
+                case contract `get'` Contract.validUntil of
+                  Just u  -> n > UTCTime (Contract.unWDay u) 0
+                  Nothing -> False
+              checkStatus = if sinceExceeded || untilExceeded
+                            then CCS.vinExpired
+                            else CCS.base
+              p = map
+                  (\(C2C conField f caseField) ->
+                     let
+                       new = f $ contract `Patch.get'` conField
+                       old = kase `get'` caseField
+                     in
+                       case old of
+                         Nothing -> Patch.put caseField new
+                         Just sth -> if show sth == show ("" :: String)
+                                     then Patch.put caseField new
+                                     else id)
+                  contractToCase
+          modifyPatch $ foldl (flip (.)) id p
+          modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
   ]
 
 afterUpdate :: Map (ModelName, FieldName) [Dynamic]
@@ -251,6 +286,33 @@ runUpdateTriggers ident patch = do
         liftIO $ PG.commit pgconn
         return $ Right $ st_patch st2
 
+-- | Mapping between a contract field and a  case field.
+data Con2Case = forall t1 t2 n1 d1 n2 d2.
+                (Eq t2, Show t2, FieldI t1 n1 d1, FieldI t2 n2 d2) =>
+                C2C
+                (Contract.Contract -> F (Maybe t1) n1 d1)
+                (Maybe t1 -> Maybe t2)
+                (Case.Case -> F (Maybe t2) n2 d2)
+
+-- | Mapping between contract and case fields.
+contractToCase :: [Con2Case]
+contractToCase =
+    [ C2C Contract.name id Case.contact_name
+    , C2C Contract.vin id Case.car_vin
+    , C2C Contract.make id Case.car_make
+    , C2C Contract.model id Case.car_model
+    , C2C Contract.seller id Case.car_seller
+    , C2C Contract.plateNum id Case.car_plateNum
+    , C2C Contract.makeYear id Case.car_makeYear
+    , C2C Contract.color id Case.car_color
+    , C2C Contract.buyDate (fmap Contract.unWDay) Case.car_buyDate
+    , C2C Contract.lastCheckDealer id Case.car_dealerTO
+    , C2C Contract.transmission id Case.car_transmission
+    , C2C Contract.engineType id Case.car_engine
+    , C2C Contract.engineVolume id Case.car_liters
+    , C2C Contract.carClass id Case.car_class
+    , C2C Contract.subprogram id Case.subprogram
+    ]
 
 haskellBinary :: (HaskellType t1 -> HaskellType t2 -> HaskellType t)
               -- ^ Non-lifted binary function.

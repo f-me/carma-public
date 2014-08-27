@@ -20,7 +20,7 @@ define ["dictionaries/local-dict", ], (ld) ->
       updateSource(carMake()) if carMake?
 
     getLab: (val) ->
-      if val?.match /^\d+$/
+      if val?
         res = @dictValues()[val]
         unless res
           $.bgetJSON "/_/Partner/#{val}", (rsp) -> res = rsp['name']
