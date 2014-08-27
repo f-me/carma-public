@@ -88,7 +88,7 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
         if _.isNull c._expired
           ""
         if c._expired
-          "<span class='label label-important'>Просрочен</span>"
+          "<span class='label label-important'>Не действует</span>"
         else
           "<span class='label label-success'>Действует</span>"
 

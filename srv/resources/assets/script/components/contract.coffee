@@ -12,7 +12,7 @@ define [
         expired = ""
         unless contract.isExpired() is undefined
           expired = if contract.isExpired()
-              "<span class='label label-important'>Просрочен</span>"
+              "<span class='label label-important'>Не действует</span>"
             else
               "<span class='label label-success'>Действует</span>"
         close = "<button class='close'>&times;</button>"
