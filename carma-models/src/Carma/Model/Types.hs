@@ -155,7 +155,8 @@ instance ToJSON HMDiffTime where
 --
 -- This is the preferred integer type for use with new models until
 -- string-wrapped integers are no more used anywhere on the client.
-newtype TInt = TInt Int deriving (FromField, ToField,
+newtype TInt = TInt Int deriving (Eq, Show,
+                                  FromField, ToField,
                                   FromJSON, ToJSON, Typeable)
 
 

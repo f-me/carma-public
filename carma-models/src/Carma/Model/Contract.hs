@@ -47,7 +47,7 @@ import Carma.Model.Engine       (Engine)
 
 -- | Transparent 'Day' wrapper so that @typeOf WDay@ points to this
 -- module (original name is hidden: @Data.Time.Calendar.Days.Day@).
-newtype WDay = WDay { unWDay :: Day } deriving (FromField, ToField,
+newtype WDay = WDay { unWDay :: Day } deriving (Eq, FromField, ToField,
                                                 FromJSON, ToJSON,
                                                 Show, Typeable)
 
