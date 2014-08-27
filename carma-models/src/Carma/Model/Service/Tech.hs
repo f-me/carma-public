@@ -1,7 +1,5 @@
 module Carma.Model.Service.Tech where
 
-import qualified Data.Aeson as Aeson
-
 import Data.Text
 import Data.Typeable
 
@@ -21,9 +19,8 @@ data Tech = Tech
 instance Model Tech where
   type TableName Tech = "techtbl"
   type Parent Tech = Service
-  modelInfo = mkModelInfo Tech ident `withLegacyName` "tech"
+  modelInfo = mkModelInfo Tech ident
   modelView v = case parentView v :: Maybe (ModelView Tech) of
     Nothing -> Nothing
     Just mv ->
-      Just $ modifyView (mv {mv_title = "Техпомощь"})
-             [ setMeta "dictionaryStringify" (Aeson.Bool True) techType ]
+      Just $ modifyView (mv {mv_title = "Техпомощь"}) []

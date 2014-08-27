@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.Insurance where
 
 import Data.Text
@@ -26,7 +25,7 @@ data Insurance = Insurance
 instance Model Insurance where
   type TableName Insurance = "insurancetbl"
   type Parent Insurance = Service
-  modelInfo = mkModelInfo Insurance ident `withLegacyName` "insurance"
+  modelInfo = mkModelInfo Insurance ident
   modelView v = case parentView v :: Maybe (ModelView Insurance) of
     Nothing -> Nothing
     Just mv -> Just

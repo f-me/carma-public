@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.Continue where
 
 import Data.Text
@@ -30,7 +29,7 @@ data Continue = Continue
 instance Model Continue where
   type TableName Continue = "continuetbl"
   type Parent Continue = Service
-  modelInfo = mkModelInfo Continue ident `withLegacyName` "continue"
+  modelInfo = mkModelInfo Continue ident
   modelView v = case parentView v :: Maybe (ModelView Continue) of
     Nothing -> Nothing
     Just mv -> Just

@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.AverageCommissioner where
 
 import Data.Text
@@ -39,7 +38,7 @@ data AverageCommissioner = AverageCommissioner
 instance Model AverageCommissioner where
   type TableName AverageCommissioner = "averagecommissionertbl"
   type Parent AverageCommissioner = Service
-  modelInfo = mkModelInfo AverageCommissioner ident `withLegacyName` "averageCommissioner"
+  modelInfo = mkModelInfo AverageCommissioner ident
   modelView v = case parentView v :: Maybe (ModelView AverageCommissioner) of
     Nothing -> Nothing
     Just mv -> Just

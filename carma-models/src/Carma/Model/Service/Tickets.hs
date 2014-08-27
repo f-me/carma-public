@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.Tickets where
 
 import Data.Text
@@ -29,7 +28,7 @@ data Tickets = Tickets
 instance Model Tickets where
   type TableName Tickets = "ticketstbl"
   type Parent Tickets = Service
-  modelInfo = mkModelInfo Tickets ident `withLegacyName` "tickets"
+  modelInfo = mkModelInfo Tickets ident
   modelView v = case parentView v :: Maybe (ModelView Tickets) of
     Nothing -> Nothing
     Just mv -> Just

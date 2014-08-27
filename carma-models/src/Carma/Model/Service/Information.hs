@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.Information where
 
 import Data.Text
@@ -27,7 +26,7 @@ data Information = Information
 instance Model Information where
   type TableName Information = "informationtbl"
   type Parent Information = Service
-  modelInfo = mkModelInfo Information ident `withLegacyName` "information"
+  modelInfo = mkModelInfo Information ident
   modelView v = case parentView v :: Maybe (ModelView Information) of
     Nothing -> Nothing
     Just mv -> Just $ mv {mv_title = "Информирование о происшествии"}

@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.Hotel where
 
 import Data.Text
@@ -24,7 +23,7 @@ data Hotel = Hotel
 instance Model Hotel where
   type TableName Hotel = "hoteltbl"
   type Parent Hotel = Service
-  modelInfo = mkModelInfo Hotel ident `withLegacyName` "hotel"
+  modelInfo = mkModelInfo Hotel ident
   modelView v = case parentView v :: Maybe (ModelView Hotel) of
     Nothing -> Nothing
     Just mv -> Just

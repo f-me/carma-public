@@ -110,7 +110,7 @@ data Service = Service
 
 instance Model Service where
   type TableName Service = "servicetbl"
-  modelInfo = mkModelInfo Service ident `withLegacyName` "service"
+  modelInfo = mkModelInfo Service ident
   modelView = \case
     "search" -> Just $ modifyView (searchView serviceSearchParams) svcMod
     "full"   -> Just $ modifyView defaultView svcMod

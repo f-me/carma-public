@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.DeliverClient where
 
 import Data.Text
@@ -30,7 +29,7 @@ data DeliverClient = DeliverClient
 instance Model DeliverClient where
   type TableName DeliverClient = "deliverclienttbl"
   type Parent DeliverClient = Service
-  modelInfo = mkModelInfo DeliverClient ident `withLegacyName` "deliverClient"
+  modelInfo = mkModelInfo DeliverClient ident
   modelView v = case parentView v :: Maybe (ModelView DeliverClient) of
     Nothing -> Nothing
     Just mv -> Just

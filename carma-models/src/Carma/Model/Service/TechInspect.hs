@@ -20,7 +20,7 @@ data TechInspect = TechInspect
 instance Model TechInspect where
   type TableName TechInspect = "tech1tbl"
   type Parent TechInspect = Service
-  modelInfo = mkModelInfo TechInspect ident `withLegacyName` "techInspect"
+  modelInfo = mkModelInfo TechInspect ident
   modelView v = case parentView v :: Maybe (ModelView TechInspect) of
     Nothing -> Nothing
     Just mv -> Just $ modifyView (mv {mv_title = "TO"}) [textarea whatToSay1]

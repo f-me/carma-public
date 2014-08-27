@@ -1,7 +1,5 @@
 module Carma.Model.Service.Towage where
 
-import qualified Data.Aeson as Aeson
-
 import Data.Text
 import Data.Typeable
 
@@ -79,7 +77,7 @@ data Towage = Towage
 instance Model Towage where
   type TableName Towage = "towagetbl"
   type Parent Towage = Service
-  modelInfo = mkModelInfo Towage ident `withLegacyName` "towage"
+  modelInfo = mkModelInfo Towage ident
   modelView = \case
     "search" -> Just
       $ modifyView (searchView towageSearchParams)
@@ -100,7 +98,6 @@ viewModifier'
   : invisible towDealer_coords
   : setMeta "distanceTo1" "case-form/caseAddress_coords" dealerDistance
   : setMeta "distanceTo2" "towAddress_coords" dealerDistance
-  : setMeta "dictionaryStringify" (Aeson.Bool True) towType
   : viewModifier
 
 

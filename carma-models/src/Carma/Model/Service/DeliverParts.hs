@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.DeliverParts where
 
 import Data.Text
@@ -23,7 +22,7 @@ data DeliverParts = DeliverParts
 instance Model DeliverParts where
   type TableName DeliverParts = "deliverpartstbl"
   type Parent DeliverParts = Service
-  modelInfo = mkModelInfo DeliverParts ident `withLegacyName` "deliverParts"
+  modelInfo = mkModelInfo DeliverParts ident
   modelView v = case parentView v :: Maybe (ModelView DeliverParts) of
     Nothing -> Nothing
     Just mv -> Just
