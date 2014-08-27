@@ -154,8 +154,9 @@ caseMod = [
   ,setMeta "dictionaryParent"
    (Aeson.String $ Model.fieldName program) subprogram
 
-  ,widget "radio" car_transmission
-  ,widget "radio" car_engine
+   -- FIXME Workaround for #2145
+--  ,widget "radio" car_transmission
+--  ,widget "radio" car_engine
 
   ,textarea dealerCause
   ,textarea claim
