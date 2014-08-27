@@ -1,7 +1,5 @@
 module Carma.Model.Service where
 
-import qualified Data.Aeson as Aeson
-
 import Data.Text
 import Data.Time.Clock
 import Data.Typeable

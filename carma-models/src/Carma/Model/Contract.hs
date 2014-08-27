@@ -8,7 +8,7 @@ module Carma.Model.Contract
     ( Contract(..)
     , identifiers
     , identifierNames
-    , WDay
+    , WDay(unWDay)
     , contractSearchParams
     )
 
@@ -47,9 +47,9 @@ import Carma.Model.Engine       (Engine)
 
 -- | Transparent 'Day' wrapper so that @typeOf WDay@ points to this
 -- module (original name is hidden: @Data.Time.Calendar.Days.Day@).
-newtype WDay = WDay Day deriving (FromField, ToField,
-                                  FromJSON, ToJSON,
-                                  Show, Typeable)
+newtype WDay = WDay { unWDay :: Day } deriving (FromField, ToField,
+                                                FromJSON, ToJSON,
+                                                Show, Typeable)
 
 instance DefaultFieldView WDay where
   defaultFieldView (_ :: m -> FF WDay n d a) =
