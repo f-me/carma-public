@@ -389,7 +389,6 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   # subset of d3.scale.category20 with dark colors removed
   palette:
     ['#aec7e8' # 1
-    ,'#ff7f0e' # 2
     ,'#ffbb78' # 3
     ,'#98df8a' # 5
     ,'#ff9896' # 7
@@ -401,4 +400,5 @@ define ["model/utils", "dictionaries"], (mu, d) ->
     ,'#bcbd22' # 16
     ,'#dbdb8d' # 17
     ,'#9edae5' # 19
+    ,'#ff7f0e' # 2
     ]

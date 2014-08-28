@@ -58,8 +58,9 @@ logLogin :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
          => EventType -> Handler b m ()
 logLogin tpe = do
   uid <- getRealUid
-  _   <- log $ addIdent uid $ buildEmpty tpe
-  return ()
+  case uid of
+    Nothing -> return ()
+    Just uid' -> void $ log $ addIdent uid' $ buildEmpty tpe
 
 -- | Interface for events from legacy CRUD
 logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
@@ -107,23 +108,25 @@ updateUserState evt idt p evidt = do
   -- Little hack to determine target user for state change in case if
   -- someone else changed @delayedState@ field of current user
   tgtUsr <- case mname of
-               -- Rebuild ident so haskell won't complain about m ~ Usermeta
-    "Usermeta" -> return $ Ident $ identVal idt
+    -- Rebuild ident so haskell won't complain about m ~ Usermeta
+    "Usermeta" -> return $ Just $ Ident $ identVal idt
     _          -> getRealUid
-  s <- checkUserState tgtUsr evt evidt idt p
-  case s of
+  case tgtUsr of
     Nothing -> return ()
-    Just st -> do
-      -- well it's hack of course, current time will be little differene
-      -- from real ctime of new state
-      time <- liftIO $ getCurrentTime
-      withMsg $ sendMessage
-        (mkLegacyIdent tgtUsr)
-        (P.put currentState      st      $
-         P.put currentStateCTime time    $
-         P.put delayedState      Nothing $
-         P.empty)
-  return ()
+    Just tgtUsr' -> do
+      s <- checkUserState tgtUsr' evt evidt idt p
+      void $ case s of
+        Nothing -> return ()
+        Just st -> do
+        -- well it's hack of course, current time will be little differene
+        -- from real ctime of new state
+        time <- liftIO $ getCurrentTime
+        withMsg $ sendMessage
+          (mkLegacyIdent tgtUsr')
+          (P.put currentState      st      $
+           P.put currentStateCTime time    $
+           P.put delayedState      Nothing $
+           P.empty)
   where
     mname = modelName (modelInfo :: ModelInfo m)
 
@@ -296,13 +299,16 @@ change (States from to) onFn = do
 -- Utils -----------------------------------------------------------------------
 
 getRealUid :: (HasPostgres (Handler b m), HasAuth b)
-           => Handler b m (IdentI Usermeta)
+           => Handler b m (Maybe (IdentI Usermeta))
 getRealUid = do
-  Just u <- withAuth currentUser
-  [Only uid] <- query
+  mbu <- withAuth currentUser
+  case mbu of
+    Just u -> do
+      [Only uid] <- query
                 [sql| SELECT id from usermetatbl where uid::text = ?|] $
                 Only (unUid $ fromJust $ userId $ u)
-  return uid
+      return uid
+    Nothing -> return Nothing
 
 mkActionId :: Text -> IdentI Action
 mkActionId bs = readIdent bs
@@ -313,5 +319,5 @@ addIdent idt p =
   where
     mname = modelName $ (modelInfo :: ModelInfo m)
 
-setUsr :: IdentI Usermeta -> Patch Event -> Patch Event
+setUsr :: Maybe (IdentI Usermeta) -> Patch Event -> Patch Event
 setUsr usr p = P.put E.userid usr p
