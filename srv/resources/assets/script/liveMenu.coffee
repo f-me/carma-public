@@ -44,5 +44,5 @@ define ['json!/screens'], (screens) ->
   setup: (domEl) ->
     menuItems = ko.observableArray [moreItem.screens(screens)]
     ko.applyBindings menuItems, domEl
-    window.onresize = reset
+    window.onresize = _.debounce reset, 500
     do expand
