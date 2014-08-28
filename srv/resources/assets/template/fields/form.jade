@@ -136,8 +136,8 @@ mixin dict(nameMod, iconClass)
         //- Note the difference between readonly attribute and
         //- disabled class from Bootstrap.
 
-        input.pane-span( type="text"
-           focusable
+        input.pane-span.focusable( type="text"
+           class="{{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}"
            autocomplete="off"
            name="{{ name }}"
            data-bind="\n\
