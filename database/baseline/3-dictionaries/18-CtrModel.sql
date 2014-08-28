@@ -1,4 +1,3 @@
-
 create table "CtrModel" (
   id       SERIAL PRIMARY KEY,
   value    text NOT NULL,
@@ -20,7 +19,7 @@ insert into "CtrModel" (id, value, label) values
 ,(12, 'SoberDriver', 'Трезвый водитель')
 ,(13, 'Taxi', 'Такси')
 ,(14, 'Tech', 'Техпомощь')
-,(15, 'TechInspect', 'TO')
+,(15, 'TechInspect', 'ТО')
 ,(16, 'Tickets', 'Заказ билетов')
 ,(17, 'Towage', 'Эвакуация')
 ,(18, 'Transportation', 'Транспортировка')
@@ -28,5 +27,3 @@ insert into "CtrModel" (id, value, label) values
 
 GRANT ALL ON "CtrModel" TO carma_db_sync;
 GRANT ALL ON "CtrModel" TO carma_search;
-GRANT ALL ON "CtrModel_id_seq" TO carma_db_sync;
-GRANT ALL ON "CtrModel_id_seq" TO carma_search;
