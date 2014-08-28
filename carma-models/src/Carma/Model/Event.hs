@@ -14,7 +14,7 @@ import Carma.Model.Types
 
 data Event = Event
   { ident     :: PK Int Event                    "Событие"
-  , userid    :: F (IdentI Usermeta) "userid"    "Пользователь"
+  , userid    :: F (Maybe (IdentI Usermeta)) "userid"    "Пользователь"
   , ctime     :: F UTCTime           "ctime"     "Дата создания"
   , eventType :: F EventType         "type"      "Тип события"
   , modelId   :: F Int               "modelId"   ""

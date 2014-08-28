@@ -563,7 +563,7 @@ parseDiffTime = parse diffTime "DiffTime"
       void $ optional $ char 's'
       case readMaybe ds of
         Just d -> return $ mi * d * 60 * 60 * 24
-        _           -> fail "no days found"
+        _      -> fail "no days found"
     time = do
       mi <- minus
       ds <- many1 digit `sepBy` char ':' >>= return . map (readMaybe)

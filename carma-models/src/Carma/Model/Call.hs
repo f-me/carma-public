@@ -7,6 +7,7 @@ import Data.Model as Model
 import Data.Model.Types ((:@))
 import Data.Model.View
 
+import Carma.Model.Types           (Coords)
 import Carma.Model.Program         (Program)
 import Carma.Model.SubProgram.Type (SubProgram)
 import Carma.Model.CarMake         (CarMake)
@@ -112,7 +113,7 @@ data Call = Call
   , city
     :: F (Maybe (IdentT DealerCities)) "city" "Город"
   , coords
-    :: F (Maybe Text) "coords" "Координаты места поломки"
+    :: F (Maybe Coords) "coords" "Координаты места поломки"
   , address
     :: F (Maybe Text) "address" "Адрес места поломки"
   , carMake
