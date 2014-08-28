@@ -154,7 +154,6 @@ orderServiceAnalyst =
            [ ST.taxi
            , ST.sober
            , ST.adjuster
-           , ST.insurance
            ]
          , setServiceStatus SS.ordered *>
            proceed [AType.checkStatus, AType.addBill])
