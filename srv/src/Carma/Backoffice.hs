@@ -66,14 +66,14 @@ needMakerApproval =
 needInfo :: Entry
 needInfo =
     Entry
-    (onField Case.caseStatus (const CS.needInfo)
+    (insteadOf Case.caseStatus (const CS.needInfo)
      (proceed [AType.tellMeMore]))
 
 
 mobileOrder :: Entry
 mobileOrder =
     Entry
-    (onField Case.caseStatus (const CS.mobileOrder)
+    (insteadOf Case.caseStatus (const CS.mobileOrder)
      (proceed [AType.callMeMaybe]))
 
 
