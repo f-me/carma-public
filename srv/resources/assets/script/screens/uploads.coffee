@@ -27,7 +27,7 @@ define [ "text!tpl/screens/uploads.html"
   # Remove an attachment reference from case, provided file's bvm and
   # case number.
   @detachFromCase = (bvm, caseId) ->
-    caseUrl = "/_/case/" + caseId
+    caseUrl = "/_/Case/" + caseId
     attId = bvm.aid()
     ref = "attachment:" + attId
 
@@ -42,7 +42,7 @@ define [ "text!tpl/screens/uploads.html"
   # validity in case of error. Push new case id to bvm.cases.
   @attachToCase = (bvm, af) ->
     caseId = af.val()
-    caseUrl = "/_/case/" + caseId
+    caseUrl = "/_/Case/" + caseId
     attId = bvm.aid()
 
     if caseId.length == 0
