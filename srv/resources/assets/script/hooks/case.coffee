@@ -58,9 +58,11 @@ define ["utils", "dictionaries"], (u, d) ->
 
     $.getJSON( "/actionsFor/#{knockVM.id()}" )
     .done( (actions) ->
+      arDict = u.newModelDict "ActionResult", true
+      atDict = u.newModelDict "ActionType", true
       rows = for r in actions
-        result = dict.ActionResults[r.result] or ''
-        name = dict.ActionNames[r.name] or ''
+        result = arDict.getLab r.result
+        name = atDict.getLab r.name
         aTo  = global.dictValueCache['users'][r.assignedTo] or
                r.assignedTo or ''
         time = if r.closeTime

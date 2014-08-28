@@ -44,7 +44,7 @@ define [ "utils"
       $("#service-picker-container").html(
         Mustache.render(
           $("#service-picker-template").html(),
-            {dictionary: global.dictionaries["Services"]
+            {dictionary: utils.newModelDict("ServiceType")
             ,drop: 'up'
             }))
 

@@ -50,8 +50,8 @@ define ["utils"
         set violet
 
   objsToRows = (res) ->
-    n = global.dictValueCache['ActionNames']
-    r = global.dictValueCache['ActionResults']
+    n = utils.newModelDict "ActionResult"
+    r = utils.newModelDict "ActionType"
     u = global.dictValueCache['users']
 
     roles = utils.newModelDict "Role", true
