@@ -59,6 +59,7 @@ import qualified Carma.Model.Service as Service
 import           Carma.Model.Service (Service)
 import qualified Carma.Model.Service.Hotel as Hotel
 import qualified Carma.Model.Service.Rent as Rent
+import qualified Carma.Model.Service.Taxi as Taxi
 import qualified Carma.Model.Service.Towage as Towage
 
 import qualified Carma.Model.ServiceStatus as SS
@@ -126,6 +127,14 @@ beforeCreate = Map.unionsWith (++)
 
   , trigOnModel ([]::[Rent.Rent]) $
     modPut Rent.providedFor $ Just "0"
+
+  , trigOnModel ([]::[Taxi.Taxi]) $ do
+    p <- getPatch
+    let p' = Patch $ untypedPatch p
+        parId = fromMaybe (error "No parent case") $
+                p' `Patch.get` Service.parentId
+    c <- dbRead parId
+    modPut Taxi.taxiFrom_address $ c `Patch.get'` Case.caseAddress_address
 
   , trigOnModel ([]::[Towage.Towage]) $ do
     modPut Towage.accident            $ Just off
