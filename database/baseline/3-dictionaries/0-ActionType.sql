@@ -1,7 +1,7 @@
 CREATE TABLE "ActionType"
   ( id    SERIAL PRIMARY KEY
   , label text NOT NULL CHECK (label <> '')
-  , "desc" text NOT NULL DEFAULT ''
+  , description text NOT NULL DEFAULT ''
   , priority int4 NOT NULL
   );
 
@@ -69,3 +69,6 @@ INSERT INTO "ActionType" (label, id, priority)
 VALUES ('Действие не актуально (архив)', 9000, 10);
 
 SELECT setval(pg_get_serial_sequence('"ActionType"', 'id'), max(id)) from "ActionType";
+
+GRANT ALL ON "ActionType" TO carma_db_sync;
+GRANT ALL ON "ActionType" TO carma_search;
