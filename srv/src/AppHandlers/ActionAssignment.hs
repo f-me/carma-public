@@ -33,7 +33,7 @@ assignQ = [sql|
         FROM usermetatbl
         WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
           AND now() - lastactivity < '30 min')
-      UPDATE actiontbl SET assignedTo = ?
+      UPDATE actiontbl SET assignTime = now(), assignedTo = ?
         WHERE id = (SELECT act.id
           FROM ((SELECT * FROM actiontbl WHERE result IS NOT NULL) act
             LEFT JOIN servicetbl svc
