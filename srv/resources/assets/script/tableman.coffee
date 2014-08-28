@@ -24,6 +24,7 @@ define "tableman", ["utils"], (utils) ->
         $.getJSON objURL, (objs) =>
           @dataTable.fnClearTable()
           rows = @objsToRows? objs
+          return if _.isEmpty rows
           @dataTable.fnAddData rows
       @
 
