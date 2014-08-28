@@ -142,7 +142,9 @@ define [ "utils"
           selectPartner(kvm, partner)
           $("#map").trigger "drawpartners"
 
-    kvm['showPartnerCancelDialog'] = (partner, ev) -> kvm['selectPartner'](null)
+    kvm['showPartnerCancelDialog'] = (partner, ev) ->
+      console.log 'showPartnerCancelDialog'
+      kvm['selectPartner'](null)
 
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
