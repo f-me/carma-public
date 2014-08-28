@@ -84,6 +84,6 @@ fillKPIs = do
   qry pgfn = do
     prms <- RWS.ask
     lift $ query (fromString $
-      "SELECT userid, type, avgtime, amount FROM " ++ pgfn ++ "(?, ?, ?)") prms
+      "SELECT * FROM " ++ pgfn ++ "(?, ?, ?)") prms
 
 
