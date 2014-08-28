@@ -119,13 +119,13 @@ data Case = Case
   , city
     :: F (Maybe (IdentT DealerCities)) "city" "Город"
   , caseAddress_address
-    :: F (Maybe PickerField) "caseAddress_address" "Адрес места поломки"
+    :: F PickerField "caseAddress_address" "Адрес места поломки"
   , caseAddress_comment
     :: F (Maybe Text) "caseAddress_comment" "Примечания"
   , caseAddress_notRussia
     :: F (Maybe Checkbox) "caseAddress_notRussia" "Не по РФ"
   , caseAddress_coords
-    :: F (Maybe PickerField) "caseAddress_coords" "Координаты"
+    :: F PickerField "caseAddress_coords" "Координаты"
   , caseAddress_map
     :: F (Maybe MapField) "caseAddress_map" ""
   , temperature

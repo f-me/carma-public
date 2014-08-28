@@ -32,11 +32,11 @@ data Towage = Towage
                              "Координаты"
   , dealerDistance           :: F (Maybe Text) "dealerDistance"
                              "Расстояние до дилера"
-  , towAddress_address       :: F (Maybe PickerField)
+  , towAddress_address       :: F PickerField
                              "towAddress_address" "Адрес доставки"
   , towAddress_comment       :: F (Maybe Text) "towAddress_comment"
                              "Примечания"
-  , towAddress_coords        :: F (Maybe PickerField) "towAddress_coords"
+  , towAddress_coords        :: F PickerField "towAddress_coords"
                              "Координаты"
   , towAddress_map           :: F (Maybe MapField) "towAddress_map"
                              ""
