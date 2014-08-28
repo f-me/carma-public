@@ -3,6 +3,7 @@ define ["utils", "dictionaries"], (u, d) ->
 
     # FIXME: hack to disable hook on newCase screen #1985
     return if /^newCase/.test(Finch.navigate())
+    return if /^search/.test(Finch.navigate())
 
     t = $("#call-searchtable")
     st = t.dataTable()

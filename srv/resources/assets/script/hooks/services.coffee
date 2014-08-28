@@ -4,6 +4,9 @@ define [ "utils"
        ], (u, mu, pSearch) ->
   # sync with partner search screen
   openPartnerSearch: (model, kvm) ->
+    # do not run this hook on search screen
+    return if /^search/.test(Finch.navigate())
+
     # subscibe partner fields to partnersSearch screen events
     for f in model.fields when f.meta?.widget == "partner"
       do (f) ->
@@ -49,6 +52,9 @@ define [ "utils"
       pSearch.open('case')
 
   serviceColor: (model, kvm) ->
+    # do not run this hook on search screen
+    return if /^search/.test(Finch.navigate())
+
     kvm._svcColor = ko.computed ->
       svcId = kvm._meta.model.name + ':' + kvm.id()
       if kvm._parent

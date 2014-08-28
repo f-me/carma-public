@@ -35,7 +35,7 @@ mkQuery _ pred lim offset ord
   = fromString $ printf
       (  "    select %s "
       ++ "     from casetbl left join servicetbl"
-      ++ "       on split_part(servicetbl.parentId, ':', 2)::int = casetbl.id"
+      ++ "       on servicetbl.parentId = casetbl.id"
       ++ "     left join towagetbl"
       ++ "       on servicetbl.id = towagetbl.id"
       ++ "     where (%s) %s limit %i offset %i;"
