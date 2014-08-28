@@ -14,6 +14,8 @@ module Carma.Model.Types ( Dict(..)
                          , EventType(..)
                          , UserStateVal(..)
                          , Coords
+                         , on
+                         , off
                          ) where
 
 import Control.Applicative ((<$>), (<*>), (*>))

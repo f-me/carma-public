@@ -103,6 +103,9 @@ instance ToField Checkbox where
 instance FromField Checkbox where
   fromField fld m = Checkbox <$> fromField fld m
 
+on = Checkbox True
+off = Checkbox False
+
 
 data LegacyDate = LegacyDate UTCTime deriving Typeable
 instance FromJSON LegacyDate where
