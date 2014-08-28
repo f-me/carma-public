@@ -115,8 +115,7 @@ caseMod = [
   ,regexp "vin" car_vin
   ,regexp "year" car_makeYear
 
-  ,invisible contract
-  ,setType "ident" contract
+  ,hiddenIdent contract
 
   ,widget "force-find-dictionary" contractIdentifier
 

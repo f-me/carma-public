@@ -103,6 +103,7 @@ data Service = Service
                                  "Прикрепленные файлы"
   -- , service_tarifOptions         :: F (Maybe Reference) "service_tarifOptions"
   --                                ""
+    -- TODO Remove this field #1929
   , assignedTo                   :: F (Maybe Text) "assignedTo" ""
   }
   deriving Typeable
@@ -113,7 +114,7 @@ instance Model Service where
   modelInfo = mkModelInfo Service ident
   modelView = \case
     "search" -> Just $ modifyView (searchView serviceSearchParams) svcMod
-    "full"   -> Just $ modifyView defaultView svcMod
+    "full"   -> Just $ modifyView defaultView usualSvcMod
     "new"    -> Just $ modifyView defaultView
       $ usualSvcMod
       ++ [mainOnly times_expectedServiceStart
@@ -133,7 +134,7 @@ svcMod =
     ,setType "dictionary" contractor_partnerId
     ,setMeta "widget" "partner" contractor_partner
     ,invisible contractor_coords
-    ,invisible parentId
+    ,hiddenIdent parentId
     ,invisible assignedTo
     , readonly status
     , setType "text" payment_partnerCost

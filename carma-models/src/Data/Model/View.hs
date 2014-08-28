@@ -19,6 +19,7 @@ module Data.Model.View
   ,regexp
   ,transform
   ,widget
+  ,hiddenIdent
   ,setType
   ,infoText
   ,setMeta
@@ -134,6 +135,17 @@ invisible
   :: SingI name => (m -> Field typ (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 invisible = setMeta "invisible" (Aeson.Bool True)
+
+
+-- | Mark as @ident@ type and hide (hidden foreign keys).
+hiddenIdent
+  :: SingI name => (m -> Field typ (FOpt name desc app))
+  -> (Text, FieldView -> FieldView) :@ m
+hiddenIdent fld = Wrap
+  (fieldName fld
+  ,\v -> v {fv_meta = Map.insert "invisible" (Aeson.Bool True) $ fv_meta v
+           ,fv_type = "ident"}
+  )
 
 
 data DictOpt = DictOpt

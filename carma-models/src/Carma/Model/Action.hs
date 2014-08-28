@@ -20,17 +20,17 @@ import Carma.Model.Usermeta (Usermeta)
 
 data Action = Action
   { ident       :: PK Int Action                    "Действие"
-  , caseId      :: F (IdentI Case)                  "caseId" ""
-  , serviceId   :: F (Maybe (IdentI Service))       "serviceId" ""
-  , aType       :: F (IdentI ActionType)            "type" ""
+  , caseId      :: F (IdentI Case)                  "caseId" "Кейс"
+  , serviceId   :: F (Maybe (IdentI Service))       "serviceId" "Услуга"
+  , aType       :: F (IdentI ActionType)            "type" "Тип действия"
   , duetime     :: F UTCTime                        "duetime" "Ожидаемое время выполнения"
   , comment     :: F (Maybe Text)                   "comment" "Комментарий"
   , deferBy     :: F (Maybe HMDiffTime)             "deferBy" "Отложить на"
   , result      :: F (Maybe (IdentI ActionResult))  "result" "Результат"
-  , ctime       :: F UTCTime                        "ctime" ""
-  , assignTime  :: F (Maybe UTCTime)                "assignTime" ""
-  , openTime    :: F (Maybe UTCTime)                "openTime" ""
-  , closeTime   :: F (Maybe UTCTime)                "closeTime" ""
+  , ctime       :: F UTCTime                        "ctime" "Время создания"
+  , assignTime  :: F (Maybe UTCTime)                "assignTime" "Время назначения"
+  , openTime    :: F (Maybe UTCTime)                "openTime" "Время начала работы"
+  , closeTime   :: F (Maybe UTCTime)                "closeTime" "Время закрытия"
   , assignedTo  :: F (Maybe (IdentI Usermeta))      "assignedTo" "Ответственный"
   , targetGroup :: F (IdentI Role)                  "targetGroup" "Роль"
   , parent      :: F (Maybe (IdentI Action))        "parent" "Предыдущее действие"
@@ -41,9 +41,9 @@ instance Model Action where
   modelInfo = mkModelInfo Action ident
   modelView = \case
     "" -> Just $ modifyView defaultView $
-          [ invisible caseId
-          , invisible serviceId
-          , invisible aType
+          [ hiddenIdent caseId
+          , hiddenIdent serviceId
+          , hiddenIdent parent
           , deferBy `completeWith` time
           , setMeta "dictionaryLabel"
             (A.String $ fieldName label) deferBy
