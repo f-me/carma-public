@@ -12,7 +12,7 @@ import Carma.Model.Service (Service)
 data DeliverCar = DeliverCar
   { ident :: PK Int DeliverCar ""
   , toAddress_address :: F PickerField "toAddress_address" "Куда везти"
-  , toAddress_comment :: F Text        "toAddress_comment" "Примечания"
+  , toAddress_comment :: F (Maybe Text)"toAddress_comment" "Примечания"
   , toAddress_coords  :: F PickerField "toAddress_coords"  "Координаты"
   , toAddress_map     :: F MapField    "toAddress_map"     ""
   }

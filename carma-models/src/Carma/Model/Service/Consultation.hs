@@ -11,8 +11,8 @@ import Carma.Model.Service (Service)
 
 data Consultation = Consultation
   { ident       :: PK Int Consultation ""
-  , consType    :: F (IdentT ConsultationType) "consType" "Тип консультации"
-  , whatToSay1  :: F Text "whatToSay1" "Описание проблемы"
+  , consType    :: F (Maybe (IdentT ConsultationType)) "consType" "Тип консультации"
+  , whatToSay1  :: F (Maybe Text) "whatToSay1" "Описание проблемы"
   , orderNumber :: F (Maybe Text) "orderNumber" "Номер заказ-наряда"
   }
   deriving Typeable

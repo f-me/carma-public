@@ -12,7 +12,7 @@ import Carma.Model.LegacyTypes
 data TechInspect = TechInspect
   { ident       :: PK Int TechInspect ""
   , requestType :: F (Maybe (IdentT RequestType)) "requestType" "Тип запроса"
-  , whatToSay1  :: F Text "whatToSay1" "Описание проблемы"
+  , whatToSay1  :: F (Maybe Text) "whatToSay1" "Описание проблемы"
   , activity    :: F (Maybe (IdentT Activity)) "activity" "Тип действия"
   }
   deriving Typeable

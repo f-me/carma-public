@@ -13,7 +13,7 @@ import Carma.Model.Service (Service)
 data Bank = Bank
   { ident :: PK Int Bank ""
   , bill_billNumber
-                :: F (Maybe Text) "bill_billNumer" "Номер счёта"
+                :: F (Maybe Text) "bill_billNumber" "Номер счёта"
   , bill_billingCost
                 :: F (Maybe Int)  "bill_billingCost" "Сумма по счёту"
   , bill_billingDate

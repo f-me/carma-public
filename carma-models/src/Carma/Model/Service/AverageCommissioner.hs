@@ -22,7 +22,7 @@ data AverageCommissioner = AverageCommissioner
                 :: F PickerField
                    "commAddress_address" "Адрес выезда аваркома"
   , commAddress_comment
-                :: F Text
+                :: F (Maybe Text)
                    "commAddress_comment" "Примечания"
   , commAddress_coords
                 :: F PickerField

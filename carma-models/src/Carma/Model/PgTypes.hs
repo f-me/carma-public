@@ -94,8 +94,8 @@ instance PgTypeable  Users               where pgTypeOf _ = PgType "text" True
 instance PgTypeable  JsonAsText          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Password            where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Phone               where pgTypeOf _ = PgType "text" True
-instance PgTypeable  PickerField         where pgTypeOf _ = PgType "text" True
-instance PgTypeable  MapField            where pgTypeOf _ = PgType "text" True
+instance PgTypeable  PickerField         where pgTypeOf _ = PgType "text" False
+instance PgTypeable  MapField            where pgTypeOf _ = PgType "text" False
 instance PgTypeable  Checkbox where pgTypeOf _ = PgType "boolean" True
 instance PgTypeable  Coords where
   pgTypeOf _ = PgType "geometry(Point,4326)" True
