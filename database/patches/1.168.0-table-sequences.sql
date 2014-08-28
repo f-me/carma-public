@@ -1,6 +1,7 @@
 CREATE SEQUENCE servicetbl_id_seq;
 SELECT setval('servicetbl_id_seq', max(id)) FROM servicetbl;
-ALTER TABLE servicetbl ALTER COLUMN id SET DEFAULT nextval('servicetbl_id_seq');
+ALTER TABLE servicetbl ALTER COLUMN id SET NOT NULL,
+ALTER COLUMN id SET DEFAULT nextval('servicetbl_id_seq');
 GRANT ALL ON "servicetbl_id_seq" TO carma_db_sync;
 GRANT ALL ON "servicetbl_id_seq" TO carma_search;
 
