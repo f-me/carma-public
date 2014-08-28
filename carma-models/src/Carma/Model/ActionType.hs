@@ -18,7 +18,7 @@ data ActionType = ActionType
   , label
     :: F Text "label" "Тип действия"
   , desc
-    :: F Text "desc" "Описание"
+    :: F Text "description" "Описание"
   , priority
     :: F TInt "priority" "Приоритет"
   } deriving Typeable
