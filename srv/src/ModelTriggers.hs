@@ -42,7 +42,7 @@ import qualified Data.Model.Patch.Sql as Patch
 import Data.Model.Types
 import           Trigger.Dsl
 
-import           Carma.Model.Types (HMDiffTime(..))
+import           Carma.Model.Types (HMDiffTime(..), on, off)
 
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.BusinessRole as BusinessRole
@@ -50,10 +50,19 @@ import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
 import           Carma.Model.Case (Case)
 import qualified Carma.Model.Case as Case
+import qualified Carma.Model.CaseStatus as CS
 import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.ContractCheckStatus as CCS
+import qualified Carma.Model.FalseCall as FC
+
 import qualified Carma.Model.Service as Service
 import           Carma.Model.Service (Service)
+import qualified Carma.Model.Service.Hotel as Hotel
+import qualified Carma.Model.Service.Rent as Rent
+import qualified Carma.Model.Service.Towage as Towage
+
+import qualified Carma.Model.ServiceStatus as SS
+import qualified Carma.Model.TowType as TowType
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
@@ -82,7 +91,37 @@ beforeCreate = Map.unionsWith (++)
     -- Otherwise we need some kind of finalisers for "Real world actions that
     -- could not be deferred".
     createSnapUser login
+  , trigOnModel ([]::[Case]) $ do
+    modPut Case.caseStatus             CS.front
+    modPut Case.contact_contactOwner $ Just on
+  , trigOnModel ([]::[Service]) $ do
+    modPut Service.falseCall FC.none
+    modPut Service.payment_overcosted $ Just off
+    modPut Service.status               SS.creating
+    modPut Service.warrantyCase       $ Just off
+  , trigOnModel ([]::[Hotel.Hotel]) $
+    modPut Hotel.providedFor $ Just "0"
+  , trigOnModel ([]::[Rent.Rent]) $
+    modPut Rent.providedFor $ Just "0"
+  , trigOnModel ([]::[Towage.Towage]) $ do
+    modPut Towage.accident            $ Just off
+    modPut Towage.canNeutral          $ Just off
+    modPut Towage.manipulatorPossible $ Just off
+    modPut Towage.suburbanMilage      $ Just "0"
+    modPut Towage.towType             $ Just TowType.dealer
+    modPut Towage.towerType           $ Just $ Ident "evac"
+    modPut Towage.towingPointPresent  $ Just off
+    modPut Towage.vandalism           $ Just off
+    modPut Towage.wheelsUnblocked     $ Just $ Ident "w0"
   ]
+
+
+-- | Change a field in the patch.
+modPut :: (KnownSymbol name, Typeable typ) =>
+          (m -> Field typ (FOpt name desc app))
+       -> typ
+       -> Free (Dsl m) ()
+modPut acc val = modifyPatch $ Patch.put acc val
 
 
 afterCreate :: Map ModelName [Dynamic]
@@ -96,7 +135,7 @@ beforeUpdate = Map.unionsWith (++) $
     Nothing -> return ()
     Just bRole -> do
       Just roles <- (`Patch.get` BusinessRole.roles) <$> dbRead bRole
-      modifyPatch $ Patch.put Usermeta.roles roles
+      modPut Usermeta.roles roles
   , trigOn Action.result $ \case
       Nothing -> return ()
       Just _ -> do

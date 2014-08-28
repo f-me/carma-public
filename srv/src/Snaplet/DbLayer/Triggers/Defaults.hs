@@ -20,14 +20,7 @@ import Snaplet.Auth.Class
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
 
-import qualified Carma.Model.CaseStatus as CS
-import qualified Carma.Model.ServiceStatus as SS
-import qualified Carma.Model.FalseCall as FC
-import qualified Carma.Model.TowType as TowType
-
 import Snaplet.DbLayer.Types
-
-import Util
 
 
 -- | Populate a commit with default field values.
@@ -91,59 +84,14 @@ services =
   ,"bank"
   ,"tickets"
   ,"continue"
-  ,"deliverClient"
   ,"averageCommissioner"
-  ,"insurance"
   ,"consultation"
-  ]
-
-serviceDefaults :: Object
-serviceDefaults = Map.fromList
-  [("status", identFv SS.creating)
-  ,("warrantyCase", "0")
-  ,("overcosted", "0")
-  ,("falseCall", identFv FC.none)
   ]
 
 
 defaults :: Map ModelName Object
 defaults = Map.fromList
   [("case", Map.fromList
-    [("caseStatus", identFv CS.front)
-    ,("callerOwner", "1")
-    ,("services", "")
-    ,("actions", "")
-    ])
-  ,("towage", Map.union serviceDefaults $ Map.fromList
-    [("towerType", "evac")
-    ,("towType", identFv TowType.dealer)
-    ,("vandalism", "0")
-    ,("accident", "0")
-    ,("wheelsUnblocked", "w0")
-    ,("canNeutral", "0")
-    ,("towingPointPresent", "0")
-    ,("manipulatorPossible", "0")
-    ,("suburbanMilage", "0")
-    ])
-  ,("deliverCar", serviceDefaults)
-  ,("deliverParts", serviceDefaults)
-  ,("hotel", Map.union serviceDefaults $ Map.fromList
-    [("hotelProvidedFor", "0")
-    ])
-  ,("information", serviceDefaults)
-  ,("tech1", serviceDefaults)
-  ,("consultation", serviceDefaults)
-  ,("rent", Map.union serviceDefaults $ Map.fromList
-    [("providedFor", "0")
-    ])
-  ,("sober", Map.union serviceDefaults $ Map.fromList
-    [("multidrive", "0")
-    ])
-  ,("taxi", serviceDefaults)
-  ,("tech", Map.union serviceDefaults $ Map.fromList
-    [("suburbanMilage", "0")
-    ])
-  ,("transportation", Map.union serviceDefaults $ Map.fromList
-    [("transportType", "continue")
+    [("services", "")
     ])
   ]
