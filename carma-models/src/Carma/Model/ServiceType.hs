@@ -40,9 +40,7 @@ mkIdents [t|ServiceType|]
  , ("tickets", 14)
  , ("tripOn", 15)
  , ("bank", 16)
- , ("deliverClient", 17)
  , ("adjuster", 18)
- , ("insurance", 19)
  ]
 
 instance Model ServiceType where
