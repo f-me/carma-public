@@ -43,10 +43,10 @@ define ["utils", "dictionaries"], (u, d) ->
 
           program = progs.getLab obj.program
           comment.push("Программа: #{program}") if program
-
-          comment.push("Сотрудник РАМК: #{obj.callTaker}") if obj.callTaker
+          callTaker = dict['users'][obj.callTaker] or ''
+          comment.push("Сотрудник РАМК: #{callTaker}") if obj.callTaker
           row = [ callDate
-                , obj.callTaker || ''
+                , callTaker
                 , "звонок"
                 , comment.join("<br/>")
                 , ''
@@ -99,7 +99,7 @@ define ["utils", "dictionaries"], (u, d) ->
     return if _.isEmpty knockVM['comments']()
     rows = for c in knockVM['comments']()
        [ c.date
-       , global.dictValueCache['users'][c.user] || ''
+       , c.user || ''
        , "Комментарий"
        , c.comment
        , ""

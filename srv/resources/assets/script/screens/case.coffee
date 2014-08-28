@@ -13,6 +13,8 @@ define [ "utils"
 
     setupCaseModel = (viewName, args) ->
       kaze = {}
+      # Bootstrap case data to load proper view for Case model
+      # depending on the program
       if args.id
         $.bgetJSON "/_/Case/#{args.id}", (rsp) -> kaze = rsp
 

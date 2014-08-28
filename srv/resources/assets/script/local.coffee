@@ -57,10 +57,11 @@ require [ "domready"
   dom ->
     bugReport.setElement $('#send-bug-report')
 
+    # Cached mapping between from userid to "name (login)"
     dicts.users =
       entries:
         for i in users
-          {value: i.login, label: "#{i.realName} (#{i.login})"}
+          {value: String(i.id), label: "#{i.realName} (#{i.login})"}
     dicts.roles =
       entries:
         for i in users
