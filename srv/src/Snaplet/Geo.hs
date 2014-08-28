@@ -208,7 +208,7 @@ distance = twoPointHandler distanceQuery (head . head :: [[Double]] -> Double)
 -- | True only for names of Russian cities which are federal subjects
 -- (in UTF-8, ru-RU).
 isFederal :: Text -> Bool
-isFederal s = s == "Москва" || s == "Санкт-Петербург"
+isFederal s = s == "Москва" || s == "Санкт-Петербург" || s == "Севастополь"
 
 
 ------------------------------------------------------------------------------

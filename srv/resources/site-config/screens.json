@@ -3,42 +3,10 @@
       "type"  : "sms",
       "permissions" : ["sms"]
     },
-    { "name" : "contract",
-      "label": "Контракты",
-      "type" : "li",
-      "permissions": ["partner", "contract_admin"]
-    },
-    { "name"  : "call",
-      "label" : "Звонок",
-      "type"  : "li",
-      "permissions": ["call"]
-    },
-    { "name"  : "back",
-      "label" : "Бэкофис",
-      "type"  : "li",
-      "permissions": ["back"]
-    },
-    { "type": "dropdown",
-      "name": "supervisorList",
-      "label": "Супервизор",
-      "permissions": ["supervisor"],
-      "screens": [
-        { "name"  : "supervisor",
-          "label" : "Действия",
-          "type"  : "li",
-          "permissions": ["supervisor"]
-        },
-        { "name"  : "supervisorOps",
-          "label" : "Операторы",
-          "type"  : "li",
-          "permissions": ["supervisor"]
-        }
-      ]
-    },
     {
       "type": "dropdown",
       "name": "rkcList",
-      "label": "Экран РКЦ",
+      "label": "РКЦ",
       "permissions": ["head"],
       "screens": [
         {
@@ -58,6 +26,23 @@
           "label": "Front Office",
           "type": "li",
           "permissions": ["head"]
+        }
+      ]
+    },
+    { "type": "dropdown",
+      "name": "supervisorList",
+      "label": "Супервизор",
+      "permissions": ["supervisor"],
+      "screens": [
+        { "name"  : "supervisor",
+          "label" : "Действия",
+          "type"  : "li",
+          "permissions": ["supervisor"]
+        },
+        { "name"  : "supervisorOps",
+          "label" : "Операторы",
+          "type"  : "li",
+          "permissions": ["supervisor"]
         }
       ]
     },
@@ -99,6 +84,21 @@
           "permissions": ["searchContract"]
         }
       ]
+    },
+    { "name" : "contract",
+      "label": "Контракты",
+      "type" : "li",
+      "permissions": ["partner", "contract_admin"]
+    },
+    { "name"  : "call",
+      "label" : "Звонок",
+      "type"  : "li",
+      "permissions": ["call"]
+    },
+    { "name"  : "back",
+      "label" : "Бэкофис",
+      "type"  : "li",
+      "permissions": ["back"]
     },
     { "name"  : "vin",
       "label" : "Обновление базы VIN",
