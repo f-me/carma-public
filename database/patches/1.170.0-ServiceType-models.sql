@@ -12,6 +12,11 @@ ORDER BY id) remap
 WHERE s.id=remap.id;
 DELETE FROM "ServiceType" WHERE id IN (17, 19);
 
+DELETE FROM "FieldPermission"
+WHERE model='DeliverClient';
+DELETE FROM "FieldPermission"
+WHERE model='Insurance';
+
 ALTER TABLE "ServiceType"
 ADD COLUMN model int4;
 
