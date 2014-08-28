@@ -522,7 +522,7 @@ rkcFront filt@(Filter fromDate toDate program city _) = logExceptions "rkc/rkcFr
       "select u.realName, count(*) from casetbl c, usermetatbl u where",
       " u.id = c.calltaker and",
       " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
-      " group by calltaker order by calltaker"]
+      " group by u.realName order by u.realName"]
 
     dateArgs = map PS.toField [asLocal fromDate, asLocal toDate]
     progCityArgs = map PS.toField $ filter (not . T.null) [program, city]
