@@ -91,18 +91,42 @@ beforeCreate = Map.unionsWith (++)
     -- Otherwise we need some kind of finalisers for "Real world actions that
     -- could not be deferred".
     createSnapUser login
+
   , trigOnModel ([]::[Case]) $ do
+    n <- getNow
+    modPut Case.callDate             $ Just n
     modPut Case.caseStatus             CS.front
     modPut Case.contact_contactOwner $ Just on
+
   , trigOnModel ([]::[Service]) $ do
-    modPut Service.falseCall FC.none
+    n <- getNow
+    modPut Service.createTime         $ Just n
+    modPut Service.times_expectedServiceStart $
+      Just (addUTCTime (1 * BO.hours) n)
+    modPut Service.times_factServiceStart $
+      Just (addUTCTime (1 * BO.hours) n)
+    modPut Service.times_expectedServiceEnd $
+      Just (addUTCTime (2 * BO.hours) n)
+    modPut Service.times_expectedServiceClosure $
+      Just (addUTCTime (12 * BO.hours) n)
+    modPut Service.times_factServiceClosure $
+      Just (addUTCTime (12 * BO.hours) n)
+    modPut Service.times_expectedDispatch $
+      Just (addUTCTime (10 * BO.minutes) n)
+
+    modPut Service.createTime         $ Just n
+    modPut Service.falseCall            FC.none
     modPut Service.payment_overcosted $ Just off
     modPut Service.status               SS.creating
+    modPut Service.urgentService      $ Just $ Ident "notUrgent"
     modPut Service.warrantyCase       $ Just off
+
   , trigOnModel ([]::[Hotel.Hotel]) $
     modPut Hotel.providedFor $ Just "0"
+
   , trigOnModel ([]::[Rent.Rent]) $
     modPut Rent.providedFor $ Just "0"
+
   , trigOnModel ([]::[Towage.Towage]) $ do
     modPut Towage.accident            $ Just off
     modPut Towage.canNeutral          $ Just off
@@ -136,20 +160,24 @@ beforeUpdate = Map.unionsWith (++) $
     Just bRole -> do
       Just roles <- (`Patch.get` BusinessRole.roles) <$> dbRead bRole
       modPut Usermeta.roles roles
+
   , trigOn Action.result $ \case
       Nothing -> return ()
       Just _ -> do
         getNow >>= (modifyPatch . Patch.put Action.closeTime . Just)
         getCurrentUser >>= (modifyPatch . Patch.put Action.assignedTo . Just)
+
   , trigOn Action.assignedTo $ \case
       Nothing -> return ()
       Just _ -> getNow >>=
                 (modifyPatch . Patch.put Action.assignTime . Just)
+
   , trigOn Case.car_plateNum $ \case
       Nothing -> return ()
       Just val ->
         when (T.length val > 5) $
         modifyPatch (Patch.put Case.car_plateNum (Just $ T.toUpper val))
+
   , trigOn Case.comment $ \case
       Nothing -> return ()
       Just wi -> do
@@ -161,6 +189,7 @@ beforeUpdate = Map.unionsWith (++) $
                 Patch.put Case.diagnosis3 (f Wazzup.cause) .
                 Patch.put Case.diagnosis4 (f Wazzup.suggestion)
         modifyPatch p
+
   , trigOn Service.times_expectedServiceStart $ \case
       Nothing -> return ()
       Just tm ->
@@ -176,6 +205,7 @@ beforeUpdate = Map.unionsWith (++) $
     modifyPatch (Patch.put Service.times_factServiceEnd Nothing)
   , trigOn Service.times_expectedServiceClosure $ const $
     modifyPatch (Patch.put Service.times_factServiceClosure Nothing)
+
   , trigOn Case.city $ \case
       Nothing -> return ()
       Just (Ident city) ->
@@ -183,6 +213,7 @@ beforeUpdate = Map.unionsWith (++) $
           w <- getCityWeather city
           let temp = either (const $ Just "") (Just . T.pack . show . tempC) w
           modifyPatch (Patch.put Case.temperature temp)
+
   , trigOn Case.contract $ \case
       Nothing -> return ()
       Just cid ->
