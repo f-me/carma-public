@@ -176,7 +176,9 @@ beforeUpdate = Map.unionsWith (++) $
                   contractToCase
           modifyPatch $ foldl (flip (.)) id p
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
-  ]
+  ]  ++
+  map entryToTrigger (fst carmaBackoffice) ++
+  map actionToTrigger (snd carmaBackoffice)
 
 afterUpdate :: Map (ModelName, FieldName) [Dynamic]
 afterUpdate = Map.unionsWith (++) $
@@ -184,9 +186,7 @@ afterUpdate = Map.unionsWith (++) $
   ,trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
-  ] ++
-  map entryToTrigger (fst carmaBackoffice) ++
-  map actionToTrigger (snd carmaBackoffice)
+  ]
 
 --  - runReadTriggers
 --    - ephemeral fields
@@ -389,7 +389,11 @@ instance Backoffice HaskellE where
 
     insteadOf acc target body =
       mkTrigger acc target $
-      \ctx -> modifyPatch (Patch.delete acc) >> evalHaskell ctx body
+      \ctx -> do
+        -- Reset to old value
+        old <- dbRead =<< getIdent
+        modifyPatch (Patch.put acc (old `get'` acc))
+        evalHaskell ctx body
 
     setServiceField acc v =
         HaskellE $ do
