@@ -9,6 +9,15 @@ define ["dictionaries/local-dict"], (ld) ->
 
     getLab: (val) -> @dictValues()[val]
 
+    # ServiceType dictionary including icon field
+    iconizedServiceTypes: =>
+      @bgetJSON "/_/CtrModel", (mdls) =>
+        @bgetJSON "/_/ServiceType", (styps) =>
+          @source = for st in styps
+            label: st.label || '',
+            icon: st.icon,
+            value: (_.find mdls, (ctr) -> st.model == ctr.id).value
+
     # List of Role instances with isBack=true (used on #supervisor)
     backofficeRoles: =>
       @bgetJSON "/_/Role", (objs) =>

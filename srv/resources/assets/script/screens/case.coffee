@@ -46,7 +46,7 @@ define [ "utils"
       $("#service-picker-container").html(
         Mustache.render(
           $("#service-picker-template").html(),
-            {dictionary: utils.newModelDict("ServiceType")
+            {dictionary: utils.newComputedDict("iconizedServiceTypes")
             ,drop: 'up'
             }))
 
@@ -91,7 +91,8 @@ define [ "utils"
       modelArg = "ctr:full:#{kvm.program()}"
       mu.addReference kvm,
         'services',
-        {modelName : name, options: {modelArg: modelArg, hooks: ['*']}},
+        {modelName : name, options:
+         {newStyle: true, parentField: 'parentId', modelArg: modelArg, hooks: ['*']}},
         (k) ->
           e = $('#' + k['view'])
           e.parent().prev()[0]?.scrollIntoView()

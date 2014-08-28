@@ -299,7 +299,7 @@
             <i class="icon icon-plus" />Добавить услугу
           </button>
           <ul class="dropdown-menu">
-            {{# dictionary.entries }}
+            {{# dictionary.source }}
             <li>
               <a href="#"
                  onclick="addService('{{value}}'); return false;">
@@ -307,7 +307,7 @@
                 {{ label }}
               </a>
             </li>
-            {{/ dictionary.entries }}
+            {{/ dictionary.source }}
           </ul>
         </li>
       </ul>
