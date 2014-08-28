@@ -15,6 +15,10 @@ DELETE FROM "ServiceType" WHERE id IN (17, 19);
 ALTER TABLE "ServiceType"
 ADD COLUMN model int4;
 
+INSERT INTO "FieldPermission" (role, model, field, r, w)
+select role, model, 'model', r, w from "FieldPermission"
+where field='fdds' AND model='ServiceType';
+
 UPDATE "CtrModel" SET label='ТО' WHERE id=15;
 
 UPDATE "ServiceType" SET model = c.id
