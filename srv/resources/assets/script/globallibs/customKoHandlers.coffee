@@ -162,7 +162,7 @@ ko.bindingHandlers.expand =
   init: (el, acc, allBindigns, ctx, koctx) ->
     $(el).append("<label><i class='icon-plus-sign'></i></label>")
     $(el).click ->
-      $(el).parent().next().toggleClass('hidden')
+      $(el).parent().next().toggleClass('hide')
       $(el).toggleClass('expanded')
       $(el).find('i').toggleClass('icon-plus-sign').toggleClass('icon-minus-sign')
 
