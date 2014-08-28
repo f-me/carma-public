@@ -165,7 +165,7 @@ mixin dict(nameMod, iconClass)
     ul(data-bind="foreach: {{ name }}Locals")
       li
         span(data-bind="text: $data.label")
-          a(href="" data-bind="click: $parent.{{ name }}Remove") x
+        a(href="" data-bind="click: $parent.{{ name }}Remove") &nbsp x
     // /ko
 
 //- Picker which fills fields with stored data
