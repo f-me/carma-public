@@ -26,7 +26,7 @@ data Service = Service
                                  "Услуга"
   , parentId                     :: F (IdentI Case) "parentId"
                                  ""
-  , createTime                   :: F (Maybe LegacyDatetime) "createTime"
+  , createTime                   :: F (Maybe UTCTime) "createTime"
                                  "Дата создания услуги"
   , payType                      :: F (Maybe (IdentI PaymentType)) "payType"
                                  "Тип оплаты"

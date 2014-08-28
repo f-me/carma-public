@@ -2,6 +2,7 @@ module Carma.Model.Case.Type where
 
 import Data.Text
 import Data.Time.Calendar
+import Data.Time.Clock
 import Data.Typeable
 
 import Data.Model
@@ -32,7 +33,7 @@ import Carma.Model.Usermeta (Usermeta)
 data Case = Case
   { ident :: PK Int Case "Номер кейса"
   , callDate
-    :: F (Maybe LegacyDatetime) "callDate" "Дата звонка"
+    :: F (Maybe UTCTime) "callDate" "Дата звонка"
   , vwcreatedate
     :: F (Maybe LegacyDatetime) "vwcreatedate" "Дата звонка"
   , callTaker
