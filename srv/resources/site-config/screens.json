@@ -85,11 +85,6 @@
         }
       ]
     },
-    { "name" : "contract",
-      "label": "Контракты",
-      "type" : "li",
-      "permissions": ["partner", "contract_admin"]
-    },
     { "name"  : "call",
       "label" : "Звонок",
       "type"  : "li",
@@ -99,6 +94,11 @@
       "label" : "Бэкофис",
       "type"  : "li",
       "permissions": ["back"]
+    },
+    { "name" : "contract",
+      "label": "Контракты",
+      "type" : "li",
+      "permissions": ["partner", "contract_admin"]
     },
     { "name"  : "vin",
       "label" : "Обновление базы VIN",
