@@ -12,6 +12,8 @@ import Data.Model.TH
 import Carma.Model.Types()
 import Carma.Model.PgTypes()
 
+import Carma.Model.CtrModel (CtrModel)
+
 data ServiceType = ServiceType
   { ident
     :: PK Int ServiceType "Тип услуги"
@@ -21,6 +23,8 @@ data ServiceType = ServiceType
     :: F Text "icon"  "Иконка"
   , fdds
     :: F Text "fdds"  "FDDS-код"
+  , model
+    :: F (IdentI CtrModel) "model"  "Модель данных"
   } deriving Typeable
 
 mkIdents [t|ServiceType|]
