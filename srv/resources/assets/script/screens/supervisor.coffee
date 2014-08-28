@@ -3,12 +3,16 @@ define ["utils"
       , "text!tpl/screens/supervisor.html"
       , "screenman"
       , "hooks/common"
-      ], (utils, main, tpl, screenman, hook) ->
+      , "text!tpl/fields/form.html"
+      ], (utils, main, tpl, screenman, hook, Flds) ->
+
+  flds =  $('<div/>').append($(Flds))
 
   dataTableOptions = ->
     aoColumns: utils.repeat(11, null).concat utils.repeat(2, { bVisible: false})
     bPaginate: true
     fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
+      return if _.isEmpty aData
       caseId = aData[0].split('/')[0]
       caseLnk = "<a style='color: black' href='/#case/#{caseId}'> #{aData[0]} </a>"
       duetime  = Date.parse aData[5]
@@ -138,7 +142,7 @@ define ["utils"
 
     roleKVM = main.buildKVM roleModel, {}
     hook.dictManyHook roleModel, roleKVM
-    tpl = $('#dictionary-many-field-template').html()
+    tpl = $(flds).find('#dictionary-many-field-template').html()
     $('#roles').html(Mustache.render tpl, roleModel.fields[0])
     ko.applyBindings roleKVM, $('#roles')[0]
     roleKVM.roles [global.idents("Role").bo_order]

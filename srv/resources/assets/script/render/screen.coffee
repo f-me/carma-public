@@ -29,6 +29,7 @@ define [], ->
   renderScreen: (screenObj, args) ->
     forgetScreen()
     screen = screenObj.screen
+    screen.reload = => @renderScreen(screenObj, args)
     global.activeScreen = screen
 
     # Highlight the new item in navbar

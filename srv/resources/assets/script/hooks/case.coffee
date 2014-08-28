@@ -23,6 +23,7 @@ define ["utils", "dictionaries"], (u, d) ->
     if phone
       $.getJSON( "/callsByPhone/#{phone}" )
       .done( (calls) ->
+        return if _.isEmpty calls
         rows = for i of calls
           obj = calls[i]
           callDate = if obj.callDate
@@ -58,6 +59,7 @@ define ["utils", "dictionaries"], (u, d) ->
 
     $.getJSON( "/actionsFor/#{knockVM.id()}" )
     .done( (actions) ->
+      return if _.isEmpty actions
       arDict = u.newModelDict "ActionResult", true
       atDict = u.newModelDict "ActionType", true
       rows = for r in actions
@@ -71,7 +73,7 @@ define ["utils", "dictionaries"], (u, d) ->
               , aTo
               , name
               , r.comment or ''
-              , result ]
+              , result or '']
       st.fnAddData rows
     ).fail( (jqXHR, status, error) ->
       console.log "[#{status}] Can't load actions for '#{knockVM.id()}' (#{error})"
@@ -79,6 +81,7 @@ define ["utils", "dictionaries"], (u, d) ->
 
     $.getJSON( "/cancelsFor/#{knockVM.id()}" )
     .done( (cancels) ->
+      return if _.isEmpty cancels
       rows = for r in cancels
         ctime = new Date(r.ctime * 1000).toString("dd.MM.yyyy HH:mm")
         pname = r.partnerName
@@ -86,7 +89,7 @@ define ["utils", "dictionaries"], (u, d) ->
         owner  = dict['users'][r.owner] || r.owner
         comment = r.comment
         row = [ ctime
-              , owner
+              , owner or ''
               , 'Отказ партнера'
               , pname + ': ' + comment
               , reason
@@ -101,7 +104,7 @@ define ["utils", "dictionaries"], (u, d) ->
        [ c.date
        , c.user || ''
        , "Комментарий"
-       , c.comment
+       , c.comment or ''
        , ""
        ]
     st.fnAddData rows

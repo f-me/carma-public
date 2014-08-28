@@ -348,7 +348,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
 
   modelsFromUrl: modelsFromUrl
 
-  reloadScreen: -> Finch.navigate modelsFromUrl()
+  reloadScreen: -> window.global.activeScreen.reload()
 
   checkMatch: checkMatch
   kvmCheckMatch: kvmCheckMatch

@@ -123,7 +123,10 @@ define [ "utils"
     localStorage.removeItem "#{storeKey}.id"
 
     saveInstance viewName, ->
-      reloadScreen()
+      # check if we have id in url, then goto call; else just reload
+      if location.hash.match(/[0-9]+$/)
+      then Finch.navigate 'call'
+      else reloadScreen()
 
   setModalVisible = (visible) ->
     if visible then showModal() else hideModal()
