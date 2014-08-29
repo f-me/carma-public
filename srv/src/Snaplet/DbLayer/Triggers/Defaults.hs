@@ -22,6 +22,7 @@ applyDefaults :: HasAuth b
               => Object
               -> Handler b (DbLayer b) Object
 applyDefaults obj = do
+  -- Now actually used only by attachments
   ct <- liftIO $ round . utcTimeToPOSIXSeconds
               <$> getCurrentTime
   return $ Map.insert "ctime" (T.pack $ show ct) obj

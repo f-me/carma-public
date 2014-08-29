@@ -147,15 +147,6 @@ beforeCreate = Map.unionsWith (++)
     modPut Towage.wheelsUnblocked     $ Just $ Ident "w0"
   ]
 
-
--- | Change a field in the patch.
-modPut :: (KnownSymbol name, Typeable typ) =>
-          (m -> Field typ (FOpt name desc app))
-       -> typ
-       -> Free (Dsl m) ()
-modPut acc val = modifyPatch $ Patch.put acc val
-
-
 afterCreate :: Map ModelName [Dynamic]
 afterCreate = Map.unionsWith (++)
   [trigOnModel ([]::[Usermeta]) updateSnapUserFromUsermeta
@@ -393,6 +384,14 @@ contractToCase =
     , C2C Contract.carClass id Case.car_class
     , C2C Contract.subprogram id Case.subprogram
     ]
+
+
+-- | Change a field in the patch.
+modPut :: (KnownSymbol name, Typeable typ) =>
+          (m -> Field typ (FOpt name desc app))
+       -> typ
+       -> Free (Dsl m) ()
+modPut acc val = modifyPatch $ Patch.put acc val
 
 
 haskellBinary :: (HaskellType t1 -> HaskellType t2 -> HaskellType t)

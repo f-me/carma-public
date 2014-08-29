@@ -34,10 +34,6 @@ module ApplicationHandlers
     -- * Misc. client support handlers
     , clientConfig
     , errorsHandler
-
-    -- * Back office analysis
-    , BORepr(..)
-    , serveBackofficeSpec
     )
 
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
@@ -87,7 +83,6 @@ import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (FileUpload(cfg))
 
 import Carma.Model
-import Data.Model (idents)
 import Data.Model.CRUD
 import qualified Data.Model.Patch.Sql as Patch
 import           Data.Model.Patch (Patch(..))
@@ -103,22 +98,6 @@ import Utils.Events (logLogin, logCRUD, updateUserState)
 
 import ModelTriggers
 
-import Carma.Model.ActionResult (ActionResult)
-import Carma.Model.ActionType (ActionType)
-import Carma.Model.CaseStatus (CaseStatus)
-import Carma.Model.FalseCall (FalseCall)
-import qualified Carma.Model.Role as Role
-import Carma.Model.Satisfaction (Satisfaction)
-import Carma.Model.ServiceStatus (ServiceStatus)
-import Carma.Model.ServiceType (ServiceType)
-import Carma.Model.SmsTemplate (SmsTemplate)
-import Carma.Model.Program (Program)
-
-import Carma.Backoffice
-import Carma.Backoffice.Text
-import Carma.Backoffice.Graph
-import Carma.Backoffice.Validation
-
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
@@ -133,7 +112,7 @@ indexPage = ifTop $ do
             let r = case ln of
                       Just s  -> T.concat [t, " [", s, "]"]
                       Nothing -> t
-            return $ [X.TextNode r]
+            return [X.TextNode r]
         splices = "addLocalName" ## addLocalName
     renderWithSplices "index" splices
 
@@ -352,22 +331,25 @@ getFromTo = do
 getParamOrEmpty :: ByteString -> AppHandler T.Text
 getParamOrEmpty = liftM (maybe T.empty T.decodeUtf8) . getParam
 
-rkcHandler :: AppHandler ()
-rkcHandler = logExceptions "handler/rkc" $ do
+mkRkcFilter :: AppHandler RKC.Filter
+mkRkcFilter = do
   p <- getParamOrEmpty "program"
   c <- getParamOrEmpty "city"
   part <- getParamOrEmpty "partner"
   (from, to) <- getFromTo
 
   flt <- liftIO RKC.todayFilter
-  let
-    flt' = flt {
+  return $
+    flt {
       RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
       RKC.filterTo = fromMaybe (RKC.filterTo flt) to,
       RKC.filterProgram = p,
       RKC.filterCity = c,
       RKC.filterPartner = part }
 
+rkcHandler :: AppHandler ()
+rkcHandler = logExceptions "handler/rkc" $ do
+  flt' <- mkRkcFilter
   info <- with db $ RKC.rkc flt'
   writeJSON info
 
@@ -389,24 +371,9 @@ rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
   writeJSON $ Aeson.object [
     "weather" .= zipWith toTemp temps cities]
 
-
-
 rkcFrontHandler :: AppHandler ()
 rkcFrontHandler = logExceptions "handler/rkc/front" $ do
-  p <- getParamOrEmpty "program"
-  c <- getParamOrEmpty "city"
-  part <- getParamOrEmpty "partner"
-  (from, to) <- getFromTo
-
-  flt <- liftIO RKC.todayFilter
-  let
-    flt' = flt {
-      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
-      RKC.filterTo = fromMaybe (RKC.filterTo flt) to,
-      RKC.filterProgram = p,
-      RKC.filterCity = c,
-      RKC.filterPartner = part }
-
+  flt' <- mkRkcFilter
   res <- with db $ RKC.rkcFront flt'
   writeJSON res
 
@@ -588,33 +555,3 @@ logResp act = logExceptions "handler/logResp" $ do
   r <- act
   syslogJSON Info "handler/logResp" ["response" .= r]
   writeJSON r
-
-data BORepr = Txt | Dot | Check
-
-type IdentMap m = Map.Map (IdentI m) Text
-
-serveBackofficeSpec :: BORepr -> AppHandler ()
-serveBackofficeSpec repr =
-    case repr of
-      Txt -> writeText $ backofficeText carmaBackoffice boxedIMap
-      Dot -> writeLazyText $ backofficeDot carmaBackoffice boxedIMap
-      Check -> writeJSON $ map show $ checkBackoffice carmaBackoffice boxedIMap
-    where
-      -- Simple ident mapping
-      iMap :: Model m => IdentMap m
-      iMap = Map.fromList $ map (\(k, v) -> (v, T.pack k)) $ HM.toList idents
-
-      boxMap :: Model m => IdentMap m -> Map.Map IBox Text
-      boxMap = Map.mapKeys IBox
-      -- Combine mappings for multiple models into one
-      boxedIMap = Map.unions [ boxMap (iMap :: IdentMap ActionResult)
-                             , boxMap (iMap :: IdentMap ActionType)
-                             , boxMap (iMap :: IdentMap CaseStatus)
-                             , boxMap (iMap :: IdentMap FalseCall)
-                             , boxMap (iMap :: IdentMap Role.Role)
-                             , boxMap (iMap :: IdentMap Satisfaction)
-                             , boxMap (iMap :: IdentMap ServiceStatus)
-                             , boxMap (iMap :: IdentMap ServiceType)
-                             , boxMap (iMap :: IdentMap SmsTemplate)
-                             , boxMap (iMap :: IdentMap Program)
-                             ]

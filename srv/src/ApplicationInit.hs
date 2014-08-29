@@ -37,6 +37,7 @@ import Application
 import ApplicationHandlers
 import AppHandlers.ActionAssignment
 import AppHandlers.ARC
+import AppHandlers.Backoffice
 import AppHandlers.Bulk
 import AppHandlers.CustomSearches
 import AppHandlers.PSA

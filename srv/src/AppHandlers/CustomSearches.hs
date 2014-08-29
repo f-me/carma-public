@@ -2,26 +2,30 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 module AppHandlers.CustomSearches
-    ( allPartnersHandler
-
-    , allActionsHandler
+    (
+      -- * Back office data
+      allActionsHandler
     , selectActions
-
-    , searchCallsByPhone
-    , getActionsForCase
-    , getCancelsForCase
-
     , opStats
     , busyOps
     , actStats
     , boUsers
 
+      -- * Case screen
+    , searchContracts
+      -- ** History
+    , searchCallsByPhone
+    , getActionsForCase
+    , getCancelsForCase
+
+      -- ** Helpers
     , allDealersForMake
     , getLatestCases
     , searchCases
     , findSameContract
 
-    , searchContracts
+      -- * Miscellaneous
+    , allPartnersHandler
     )
 
 where
