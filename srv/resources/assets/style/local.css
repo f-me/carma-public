@@ -562,6 +562,7 @@ input.re-failed {
   background-image:linear-gradient(to bottom, #333333, #222222);
   filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff333333', endColorstr='#ff222222', GradientType=0);
   border:1px solid #d4d4d4;
+  font-size:13px;
   }
 .navbar .brand {
   color:#ffffff;
