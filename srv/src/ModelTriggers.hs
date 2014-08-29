@@ -40,7 +40,7 @@ import Data.Model as Model
 import Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as Patch
 import Data.Model.Types
-import           Trigger.Dsl
+import           Trigger.Dsl as Dsl
 
 import           Carma.Model.Types (HMDiffTime(..), on, off)
 
@@ -365,6 +365,7 @@ runUpdateTriggers ident patch = do
         liftIO $ PG.commit pgconn
         return $ Right $ st_patch st2
 
+
 -- | Mapping between a contract field and a  case field.
 data Con2Case = forall t1 t2 n1 d1 n2 d2.
                 (Eq t2, Show t2, FieldI t1 n1 d1, FieldI t2 n2 d2) =>
@@ -372,6 +373,7 @@ data Con2Case = forall t1 t2 n1 d1 n2 d2.
                 (Contract.Contract -> F (Maybe t1) n1 d1)
                 (Maybe t1 -> Maybe t2)
                 (Case.Case -> F (Maybe t2) n2 d2)
+
 
 -- | Mapping between contract and case fields.
 contractToCase :: [Con2Case]
@@ -392,6 +394,7 @@ contractToCase =
     , C2C Contract.carClass id Case.car_class
     , C2C Contract.subprogram id Case.subprogram
     ]
+
 
 haskellBinary :: (HaskellType t1 -> HaskellType t2 -> HaskellType t)
               -- ^ Non-lifted binary function.
@@ -477,11 +480,9 @@ instance Backoffice HaskellE where
     setServiceField acc v =
         HaskellE $ do
           ctx <- ask
-          return $ do
-            let sid = fromMaybe (error "No service in context") $
-                      (`get'` Service.ident) <$> service ctx
-                p = Patch.put acc (evalHaskell ctx v) Patch.empty
-            void $ dbUpdate sid p
+          sid <- srvId'
+          return $ void $
+            dbUpdate sid $ Patch.put acc (evalHaskell ctx v) Patch.empty
 
     sendDealerMail = HaskellE $ return $ return ()
 
@@ -489,7 +490,10 @@ instance Backoffice HaskellE where
 
     sendPSAMail = HaskellE $ return $ return ()
 
-    sendSMS _ = HaskellE $ return $ return ()
+    sendSMS tpl =
+      HaskellE $ do
+        sid <- srvId'
+        return $ Dsl.sendSMS sid tpl
 
     closeWith types res =
         HaskellE $ do
@@ -577,6 +581,11 @@ instance Backoffice HaskellE where
             void $ dbCreate p
 
 
+-- | Trigger evaluator helper.
+--
+-- Upon entering the trigger, bootstrap available context for further
+-- use in the trigger body. The trigger term itself does not use the
+-- context.
 mkTrigger :: (Eq (HaskellType t),
               FieldI (HaskellType t) n d, Model m,
               PreContextAccess m) =>
@@ -593,7 +602,11 @@ mkTrigger acc target act =
     when (newVal == evalHaskell hctx target) (act hctx)
 
 
-mkContext :: PreContextAccess m => Maybe ActionTypeI -> Free (Dsl m) HCtx
+-- | Produce a new context for nested Haskell evaluator call.
+mkContext :: PreContextAccess m =>
+             Maybe ActionTypeI
+             -- ^ Previous action type.
+          -> Free (Dsl m) HCtx
 mkContext act = do
   srv <- getService
   kase' <- getKase
@@ -605,6 +618,15 @@ mkContext act = do
              , prevAction = act
              , now = t
              }
+
+
+-- | Obtain service id from the context or fail.
+srvId' :: Reader HCtx (IdentI Service)
+srvId' = do
+  ctx <- ask
+  return $
+    fromMaybe (error "No service id in context") $
+    service ctx >>= (`Patch.get` Service.ident)
 
 
 evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty

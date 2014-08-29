@@ -37,6 +37,7 @@ module Trigger.Dsl
     , wsMessage
     , getNow
     , getCityWeather
+    , sendSMS
     )
 
 where
@@ -49,6 +50,7 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Class (lift)
 
+import qualified Data.Map as Map
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -67,10 +69,12 @@ import Snaplet.Auth.Class
 import WeatherApi (Weather, getWeather')
 
 import Application (AppHandler, weatherCfg)
+import           Database.PostgreSQL.Simple ((:.) (..))
 import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SqlQQ
 import Data.Model as Model
 import Data.Model.Patch (Patch)
+import qualified Data.Model.Sql as Sql
 import qualified Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as Patch
 
@@ -81,6 +85,8 @@ import Utils.LegacyModel (mkLegacyIdent)
 import qualified Carma.Model.Action as Action
 import Carma.Model.ActionType  (ActionType)
 import Carma.Model.Case        (Case)
+import Carma.Model.Service     (Service)
+import Carma.Model.SmsTemplate as SmsTemplate
 import Carma.Model.Usermeta    (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import Carma.Model.LegacyTypes (Password(..))
@@ -150,13 +156,15 @@ currentUserId = liftFree (CurrentUser id)
 getNow :: Free (Dsl m) UTCTime
 getNow = liftFree (DoApp (liftIO getCurrentTime) id)
 
+dbQuery :: (PG.FromRow r, PG.ToRow q) => PG.Query -> q -> Free (Dsl m) [r]
+dbQuery q params = liftFree $ DbIO (\c -> PG.query c q params) id
+
 -- | List of closed actions in a case. Last closed actions come first.
 prevClosedActions :: IdentI Case
                   -> [IdentI ActionType]
                   -- ^ Select only actions of this type.
                   -> Free (Dsl m) [PG.Only (IdentI Action.Action)]
-prevClosedActions cid types =
-    liftFree (DbQuery (\c -> PG.query c q params) id)
+prevClosedActions cid types = dbQuery q params
     where
       q = [sql|
            SELECT ? FROM ?
@@ -187,6 +195,56 @@ getCityWeather city = liftFree (DoApp action id)
                  Right w -> Right w
                  Left e  -> Left $ show e
 
+sendSMS :: Model.IdentI Service -> Model.IdentI SmsTemplate -> Free (Dsl m) ()
+sendSMS svcId tplId =
+  dbQuery q [svcId] >>=
+    \case
+      [[caseId, city, phone, eSvcStart, fSvcStart, sender, pInfo, pCInfo]] -> do
+        let varMap = Map.fromList
+              [("program_info", pInfo)
+              ,("program_contact_info", pCInfo)
+              ,("case.city", city)
+              ,("case.id", caseId)
+              ,("service.times_factServiceStart", fSvcStart)
+              ,("service.times_expectedServiceStart", eSvcStart)
+              ]
+        liftFree (DbIO
+                  (Sql.select (SmsTemplate.text :.
+                               SmsTemplate.ident `Sql.eq` tplId)) id) >>=
+          \case
+            [PG.Only templateText :. ()] ->
+              let
+                msg = T.encodeUtf8 $ render varMap templateText
+                prms = (caseId, phone, sender, tplId, msg)
+              in
+                void $ liftFree (DbIO (\c -> PG.execute c qInsert prms) id)
+            _ -> return ()
+      _ -> return ()
+  where
+    qInsert =
+      [sql|
+       insert into "Sms" (caseRef, phone, sender, template, msgText, status)
+       values (?, ?, ?, ?, ?, 'please-send')
+          |]
+    q = [sql|
+          select
+            cs.id::text,
+            coalesce("City".label, ''),
+            coalesce(cs.contact_phone1, ''),
+            coalesce(to_char(svc.times_expectedServiceStart, 'HH24:MI MM-DD-YYYY'), ''),
+            coalesce(to_char(svc.times_factServiceStart, 'HH24:MI MM-DD-YYYY'), ''),
+            sprog.smsSender, sprog.smsProgram, sprog.smsContact
+          from
+            casetbl cs left join "City" on ("City".value = cs.city),
+            servicetbl svc,
+            "SubProgram" sprog
+          where true
+            and svc.id   = ?
+            and cs.id    = svc.parentId
+            and sprog.id = cs.subprogram
+        |]
+
+
 liftFree :: Functor f => f a -> Free f a
 liftFree = Free . fmap Pure
 
@@ -205,7 +263,7 @@ data Dsl m k where
   DbCreate    :: Model m1 => Patch m1 -> (IdentI m1 -> k) -> Dsl m k
   DbRead      :: Model m1 => IdentI m1 -> (Patch m1 -> k) -> Dsl m k
   DbUpdate    :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
-  DbQuery     :: (PG.Connection -> IO [res]) -> ([res] -> k) -> Dsl m k
+  DbIO        :: (PG.Connection -> IO res) -> (res -> k) -> Dsl m k
   CurrentUser :: (IdentI Usermeta -> k) -> Dsl m k
   CreateUser  :: Text -> (Int -> k) -> Dsl m k
   UpdateUser  :: Patch Usermeta -> k -> Dsl m k
@@ -225,7 +283,7 @@ instance Functor (Dsl m) where
     DbCreate  p   k -> DbCreate  p   $ fn . k
     DbRead    i   k -> DbRead i      $ fn . k
     DbUpdate  i p k -> DbUpdate  i p $ fn . k
-    DbQuery   q   k -> DbQuery q     $ fn . k
+    DbIO      q   k -> DbIO q        $ fn . k
     CurrentUser   k -> CurrentUser   $ fn . k
     CreateUser l  k -> CreateUser l  $ fn . k
     UpdateUser p  k -> UpdateUser p  $ fn   k
@@ -266,7 +324,7 @@ evalDsl = \case
     DbCreate p k   -> runDb (Patch.create p)   k
     DbRead i k     -> runDb (Patch.read i)     k
     DbUpdate i p k -> runDb (Patch.update i p) k
-    DbQuery q k    -> do
+    DbIO q k -> do
       c <- gets st_pgcon
       res <- liftIO $ q c
       evalDsl $ k res
