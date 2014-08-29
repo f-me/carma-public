@@ -91,8 +91,7 @@
     <!-- Navigation bar on top -->
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
-        <div class="container">
-          <ul class="nav" id="nav">
+          <ul class="nav pull-left" id="nav">
             <a class="brand" href="/">
               <addLocalName>CaRMa</addLocalName>
             </a>
@@ -175,7 +174,6 @@
               </li>
             </ul>
           </ifLoggedIn>
-        </div>
       </div>
     </div>
 
