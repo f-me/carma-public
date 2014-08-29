@@ -95,6 +95,11 @@
       "type"  : "li",
       "permissions": ["back"]
     },
+    { "name"  : "search/partners",
+      "label" : "Дилеры и партнеры",
+      "type"  : "li",
+      "permissions": ["dpViewer"]
+    },
     { "name" : "contract",
       "label": "Контракты",
       "type" : "li",
@@ -105,6 +110,11 @@
       "type"  : "li",
       "permissions": ["vinAdmin", "partner", "psaanalyst"]
     },
+    { "name"  : "uploads",
+      "label" : "Загрузка файлов",
+      "type"  : "li",
+      "permissions": ["billManager"]
+    },
     { "name"  : "partner",
       "label" : "Редактирование партнёров",
       "type"  : "li",
@@ -114,16 +124,6 @@
       "label" : "Редактирование пользователей",
       "type"  : "li",
       "permissions": ["userAdmin", "userViewer"]
-    },
-    { "name"  : "uploads",
-      "label" : "Загрузка файлов",
-      "type"  : "li",
-      "permissions": ["billManager"]
-    },
-    { "name"  : "search/partners",
-      "label" : "Дилеры и партнеры",
-      "type"  : "li",
-      "permissions": ["dpViewer"]
     },
     { "name"  : "dict",
       "label" : "Редактирование справочников",
