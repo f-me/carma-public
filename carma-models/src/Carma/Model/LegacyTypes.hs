@@ -103,7 +103,10 @@ instance ToField Checkbox where
 instance FromField Checkbox where
   fromField fld m = Checkbox <$> fromField fld m
 
+on :: Checkbox
 on = Checkbox True
+
+off :: Checkbox
 off = Checkbox False
 
 

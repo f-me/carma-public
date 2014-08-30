@@ -86,12 +86,9 @@ data ModelInfo m = ModelInfo
   , primKeyName    :: Text
   , modelFields    :: [FieldDesc]
   , modelOnlyFields:: [FieldDesc]
-  , modelFieldsMap :: HashMap Text (FieldDesc)
+  , modelFieldsMap :: HashMap Text FieldDesc
   , modelCRUD      :: Maybe (CRUD m) -- ^ `Nothing` means `defaultCRUD`
   }
-
-withLegacyName :: ModelInfo m -> Text -> ModelInfo m
-withLegacyName m n = m {legacyModelName = Just n}
 
 
 data FieldDesc = FieldDesc

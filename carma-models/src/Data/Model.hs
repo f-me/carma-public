@@ -17,7 +17,6 @@ module Data.Model
   -- from Data.Model.View.Types
   , ModelView(..)
   , GetModelFields(..)
-  , withLegacyName -- imported from Data.Model.Types
   , onlyDefaultFields
   ) where
 
@@ -123,7 +122,7 @@ fieldNameE :: FA m -> Text
 fieldNameE (FA f) = fieldName f
 
 onlyDefaultFields :: [FieldDesc] -> [FieldDesc]
-onlyDefaultFields fs = filter isDefault fs
+onlyDefaultFields = filter isDefault
   where
     isDefault FieldDesc{..} = True
     isDefault _             = False
