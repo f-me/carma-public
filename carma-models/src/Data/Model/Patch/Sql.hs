@@ -12,7 +12,6 @@ import Prelude hiding (read)
 
 import Control.Exception (try, SomeException)
 import Data.Int (Int64)
-import Data.List (isPrefixOf)
 import Data.Monoid ((<>))
 import Data.String
 import Text.Printf
@@ -23,6 +22,7 @@ import qualified Data.HashMap.Strict as HashMap
 import Database.PostgreSQL.Simple
 
 import Data.Model
+import Data.Model.Types
 import Data.Model.Patch
 
 
@@ -87,10 +87,10 @@ readManyWithFilter lim off params c = query c (fromString q) filterArgs
     filterArgs = [val | (key,val) <- params, HashMap.member key (modelFieldsMap mInfo)]
     filterPred = T.unpack $ T.intercalate " AND "
       $ "TRUE"
-      : [key <> " = ? " <> typ
+      : [key <> " = ? :: " <> typ
         | (key,_) <- params
         , let Just fDesc = HashMap.lookup key (modelFieldsMap mInfo)
-        , let typ = if "Ident Int" `isPrefixOf` show (fd_type fDesc) then ":: int" else ""
+        , let typ = pgTypeName $ fd_pgType fDesc
         ]
 
 
