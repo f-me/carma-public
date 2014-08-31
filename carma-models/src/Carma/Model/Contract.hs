@@ -213,6 +213,7 @@ commonMeta =
     , color `completeWith` Color.label
     , partnerKey seller
     , setType "Integer" ident
+    , setType "ident" committer
     , widget "text" ident
     , partnerKey lastCheckDealer
     ]
