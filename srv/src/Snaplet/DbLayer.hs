@@ -10,7 +10,6 @@ module Snaplet.DbLayer
   ,delete
   ,exists
   ,submitTask
-  ,readAll
   ,initDbLayer
   ) where
 
@@ -127,10 +126,6 @@ submitTask :: ByteString -> ByteString -> Handler b (DbLayer b) (Either Redis.Re
 submitTask queueName taskId
   = runRedisDB redis
   $ Redis.lpush queueName [taskId]
-
-
-readAll :: ModelName -> Handler b (DbLayer b) [Object]
-readAll = Redis.readAll redis
 
 
 -- TODO Use lens to an external AuthManager
