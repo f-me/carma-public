@@ -54,22 +54,23 @@ define ["utils"
         set violet
 
   objsToRows = (res) ->
-    n = utils.newModelDict "ActionResult"
-    r = utils.newModelDict "ActionType"
+    ar = utils.newModelDict "ActionResult"
+    at = utils.newModelDict "ActionType"
     u = global.dictValueCache['users']
 
     roles = utils.newModelDict "Role", true
     progs = utils.newModelDict "Program", true
+    svcTypes = utils.newModelDict "ServiceType", true
 
     rows = for obj in res.actions
-      if obj.parentId
-        svcName = obj.parentId.split(':')[0]
-        svcName = global.model(svcName).title
+      if obj.serviceId
+        svcName = svcTypes.getLab obj.serviceType
         svcName = "(#{svcName})"
       else
         svcName = null
-      cid = obj.caseId.split(':')[1]
-      closed = if obj.closed == "1"
+      cid = obj.caseId
+      closed = !(_.isEmpty obj.result)
+      closedLab = if closed
           'Закрыто'
          else
           'Открыто'
@@ -81,18 +82,18 @@ define ["utils"
         if _.isEmpty obj.assignedTo
           utils.timeFrom obj.ctime, res.reqTime
         else
-          if obj.closed == "0"
+          if !closed
             utils.timeFrom obj.assignTime, res.reqTime
           else
             utils.timeFrom obj.openTime, obj.closeTime
       [ "#{cid}/#{obj.id} #{svcName or ''}"
-      , closed
-      , n[obj.name] || ''
+      , closedLab
+      , (at.getLab obj.name) || ''
       , u[obj.assignedTo] || ''
       , roles.getLab(obj.targetGroup) || obj.targetGroup || ''
       , duetime || ''
       , timeLabel?[0] || ''
-      , r[obj.result] || ''
+      , (ar.getLab obj.result) || ''
       , obj.priority || ''
       , global.dictValueCache['DealerCities'][obj.city] || ''
       , progs.getLab(obj.program) || ''
@@ -176,7 +177,7 @@ define ["utils"
       tableName: "supervisor"
       objURL: objURL
 
-    modelName = "action"
+    modelName = "Action"
 
     table = screenman.addScreen(modelName, ->)
       .addTable(tableParams)
@@ -185,7 +186,7 @@ define ["utils"
       .on("click.datatable", "tr", ->
         id = @children[0].innerText.split('/')[1].replace(/\D/g,'')
         modelSetup modelName, viewName, {id}
-        global.viewsWare["#{modelName}-form"].knockVM)
+        global.viewsWare["action-form"].knockVM)
 
     screenman.showScreen modelName
 

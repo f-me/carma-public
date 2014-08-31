@@ -71,7 +71,7 @@ allActionsHandler = do
           return $ B.split ',' <$> tg
   acts <- join (selectActions
           <$> getParam "closed"
-          <*> (maybe Nothing (Just . Ident) <$> getIntParam "assignedTo")
+          <*> (fmap Ident <$> getIntParam "assignedTo")
           <*> getRoles
           <*> getParam "duetimeFrom"
           <*> getParam "duetimeTo")
@@ -93,26 +93,25 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
       clToRes "1" = PT "NOT"
       clToRes _   = PT ""
       actQ = [sql|
-     SELECT a.id::text, a.caseId, a.serviceId, a.serviceType,
-           a.type, a.assignedTo, a.targetGroup,
+     SELECT a.id::text, a.caseId::text, a.serviceId::text, s.type::text,
+           a.type::text, a.assignedTo::text, a.targetGroup::text,
            (extract (epoch from a.duetime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.ctime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.opentime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.closetime at time zone 'UTC')::int8)::text,
-           a.result, at.priority, a.description, a.comment,
+           a.result::text, at.priority::text, a.comment,
            c.city, c.program::text,
            (extract (epoch from
              coalesce(s.times_expectedServiceStart, a.duetime)
               at time zone 'UTC')::int8)::text
      FROM
        (actiontbl a LEFT JOIN servicetbl s
-         ON  s.id = a.serviceId
-         AND s.type = a.serviceType),
+         ON  s.id = a.serviceId),
        casetbl c,
        "ActionType" at
      WHERE c.id = a.caseId
-     AND at.id = actiontbl.type
+     AND at.id = a.type
      AND (? OR result IS ? NULL)
      AND (? OR a.assignedTo = ?)
      AND (? OR targetGroup IN ?)
@@ -130,7 +129,7 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
           , "assignedTo", "targetGroup", "duetime"
           , "ctime", "assignTime", "openTime", "closeTime"
           , "result"
-          , "priority", "description", "comment","city", "program"
+          , "priority", "comment","city", "program"
           , "times_expectedServiceStart"]
   return $ mkMap fields rows
 
@@ -199,7 +198,7 @@ opStatsQ = [sql|
         WHERE openTime IS NOT NULL) ca,
   usermetatbl u
   WHERE ca.row_number = 1
-  AND u.login = ca.assignedTo
+  AND u.id = ca.assignedTo
   AND (? :: int = ANY (u.roles))
   ORDER BY closeTime;
   |]
@@ -237,7 +236,7 @@ busyOpsQ = [sql|
   FROM   actiontbl
   WHERE  result IS NOT NULL
   GROUP BY assignedTo
-  HAVING   assignedTo is not null AND assignedTo != ''
+  HAVING   assignedTo is not null
   |]
 
 
@@ -251,7 +250,7 @@ actStatsQ :: Query
 actStatsQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
-  WHERE (assignedTo IS NULL OR assignedTo = '') AND result IS NOT NULL
+  WHERE (assignedTo IS NULL) AND result IS NOT NULL
   AND type IN ?
   AND (? OR extract (epoch from duetime) >= ?)
   AND (? OR extract (epoch from duetime) <= ?);
