@@ -130,9 +130,8 @@ beforeCreate = Map.unionsWith (++)
 
   , trigOnModel ([]::[Taxi.Taxi]) $ do
     p <- getPatch
-    let p' = Patch $ untypedPatch p
-        parId = fromMaybe (error "No parent case") $
-                p' `Patch.get` Service.parentId
+    let parId = fromMaybe (error "No parent case") $
+                p `Patch.get` parentField Service.parentId
     c <- dbRead parId
     modPut Taxi.taxiFrom_address $ c `Patch.get'` Case.caseAddress_address
 
