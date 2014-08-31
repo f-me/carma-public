@@ -8,7 +8,7 @@ module Carma.Model.Contract
     ( Contract(..)
     , identifiers
     , identifierNames
-    , WDay
+    , WDay(unWDay)
     , contractSearchParams
     )
 
@@ -20,7 +20,7 @@ import Data.Time.Clock (UTCTime)
 import Data.Text (Text)
 import Data.Typeable
 
-import GHC.TypeLits
+import Data.Singletons
 
 import Database.PostgreSQL.Simple.FromField (FromField)
 import Database.PostgreSQL.Simple.ToField
@@ -47,9 +47,9 @@ import Carma.Model.Engine       (Engine)
 
 -- | Transparent 'Day' wrapper so that @typeOf WDay@ points to this
 -- module (original name is hidden: @Data.Time.Calendar.Days.Day@).
-newtype WDay = WDay Day deriving (FromField, ToField,
-                                  FromJSON, ToJSON,
-                                  Show, Typeable)
+newtype WDay = WDay { unWDay :: Day } deriving (Eq, FromField, ToField,
+                                                FromJSON, ToJSON,
+                                                Show, Typeable)
 
 instance DefaultFieldView WDay where
   defaultFieldView (_ :: m -> FF WDay n d a) =
@@ -187,10 +187,10 @@ instance Model Contract where
     ""       ->
         Just $ subDict "portalSubPrograms" $
         modifyView defaultView $
-        [ setMeta "regexp" "email" email
-        , setMeta "regexp" "phone" phone
-        , setMeta "regexp" "plateNum" plateNum
-        , setMeta "regexp" "vin" vin
+        [ regexp "email" email
+        , regexp "phone" phone
+        , regexp "plateNum" plateNum
+        , regexp "vin" vin
         , widget "checkbutton" dixi
         ] ++ commonMeta
     _ -> Nothing

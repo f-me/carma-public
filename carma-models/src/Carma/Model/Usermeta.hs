@@ -34,6 +34,7 @@ data Usermeta = Usermeta
   { ident        :: PK Int Usermeta      "Данные о пользователе"
   , uid          :: F Int                "uid"     "Snap-идентификатор"
   , isActive     :: F Bool               "isActive" "Активен"
+  , isJack       :: F Bool               "isJack"   "Универсал"
   , realName     :: F Text               "realName" "ФИО пользователя"
   , login        :: F Text               "login"    "Логин"
   , password     :: EF Password          "password" "Пароль"

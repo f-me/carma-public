@@ -24,7 +24,7 @@ data Rent = Rent
   , rentAddress_coords  :: F PickerField "rentAddress_coords" "Координаты"
   , rentAddress_map     :: F MapField "rentAddress_map" ""
   , vinRent             :: F (Maybe Text) "vinRent" "VIN подменного автомобиля"
-  , carClass            :: F (Maybe (IdentT CarClass)) "carClass" "Класс автомобиля"
+  , carClass            :: F (Maybe (IdentI CarClass)) "carClass" "Класс автомобиля"
   , providedFor         :: F (Maybe Text) "providedFor"
                            "Срок, на который предоставлен автомобиль (дней)"
   , rentedMake          :: F (Maybe (IdentI CarMake)) "rentedMake"
@@ -39,16 +39,12 @@ data Rent = Rent
 instance Model Rent where
   type TableName Rent = "renttbl"
   type Parent Rent = Service
-  modelInfo = mkModelInfo Rent ident `withLegacyName` "rent"
+  modelInfo = mkModelInfo Rent ident
   modelView v = case parentView v :: Maybe (ModelView Rent) of
     Nothing -> Nothing
     Just mv -> Just
       $ modifyView (mv {mv_title = "Подменный автомобиль"})
       $ setType "dictionary" towDealer_partnerId
-      : setMeta "dictionaryType" (Aeson.String "ModelDict") carClass
-      : setMeta "dictionaryStringify" (Aeson.Bool True) carClass
-      : setMeta "dictionaryStringify" (Aeson.Bool True) rentedMake
-      : setMeta "dictionaryStringify" (Aeson.Bool True) rentedModel
       : setMeta "dictionaryParent"
         (Aeson.String $ fieldName rentedMake) rentedModel
       : setMeta "widget" "partner" towDealer_partner

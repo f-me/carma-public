@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.22.0
+version:             0.24.0
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -21,6 +21,9 @@ library
     Data.Model.View,
 
     Carma.Model,
+    Carma.Model.ActionType,
+    Carma.Model.ActionResult,
+    Carma.Model.DeferTime,
     Carma.Model.Search,
     Carma.Model.Types,
     Carma.Model.PgTypes,
@@ -31,6 +34,7 @@ library
     Carma.Model.CarMake,
     Carma.Model.CarModel,
     Carma.Model.Engine,
+    Carma.Model.FalseCall,
     Carma.Model.Contract,
     Carma.Model.ContractCheckStatus,
     Carma.Model.FieldPermission,
@@ -46,7 +50,9 @@ library
     Carma.Model.PaymentType,
     Carma.Model.Program,
     Carma.Model.ProgramType,
+    Carma.Model.Satisfaction,
     Carma.Model.ServiceStatus,
+    Carma.Model.ServiceType,
     Carma.Model.SubProgram,
     Carma.Model.SubProgramContact,
     Carma.Model.SubProgramContractPermission,
@@ -61,7 +67,6 @@ library
     Carma.Model.Role,
     Carma.Model.BusinessRole,
     Carma.Model.Case,
-    Carma.Model.Case.Type,
     Carma.Model.Call,
 
     Carma.Model.Diagnostics.Cause,
@@ -76,11 +81,9 @@ library
     Carma.Model.Service.Consultation,
     Carma.Model.Service.Continue,
     Carma.Model.Service.DeliverCar,
-    Carma.Model.Service.DeliverClient,
     Carma.Model.Service.DeliverParts,
     Carma.Model.Service.Hotel,
     Carma.Model.Service.Information,
-    Carma.Model.Service.Insurance,
     Carma.Model.Service.LegalAssistance,
     Carma.Model.Service.Rent,
     Carma.Model.Service.SoberDriver,
@@ -92,7 +95,6 @@ library
     Carma.Model.Service.Towage,
 
     Carma.Model.ServiceInfo,
-    Carma.Model.ServiceNames,
     Carma.Model.Colors,
 
     Carma.Model.Sms,
@@ -108,32 +110,32 @@ library
   other-modules:
     Data.Model.TH,
 
+    Carma.Model.Case.Type
     Carma.Model.SubProgram.Type
 
   hs-source-dirs:    src
   build-depends:
     aeson                >= 0.7 && < 0.8,
-    base                 == 4.6.*,
+    base                 == 4.7.*,
     base16-bytestring    == 0.1.*,
-    cereal               == 0.4.*,
-    containers           == 0.5.*,
-    unordered-containers == 0.2.*,
-    errors               == 1.4.*,
-    either               == 4.3.*,
-    postgresql-simple    == 0.3.*,
-    singletons           == 0.9.*,
-    text                 >= 0.11 && < 1.1,
-    template-haskell,
-    time                 == 1.4.*,
-    transformers         == 0.3.*,
-    vector               == 0.10.*,
-    bytestring           == 0.10.*,
     blaze-builder        == 0.3.*,
     blaze-textual        == 0.2.*,
+    bytestring           == 0.10.*,
+    cereal               == 0.4.*,
+    containers           == 0.5.*,
+    either               == 4.3.*,
     errors               == 1.4.*,
     old-locale           == 1.0.0.*,
     parsec               == 3.1.*,
-    postgresql-libpq     == 0.9.*
+    postgresql-libpq     == 0.9.*,
+    postgresql-simple    == 0.4.*,
+    singletons           == 1.0.*,
+    template-haskell,
+    text                 >= 0.11 && < 1.2,
+    time                 == 1.4.*,
+    transformers         >= 0.3 && < 0.5,
+    unordered-containers == 0.2.*,
+    vector               == 0.10.*
 
   extensions:
     DataKinds, KindSignatures, TypeOperators,
@@ -144,4 +146,4 @@ library
     NamedFieldPuns, RecordWildCards,
     LambdaCase
 
-  ghc-options: -Wall
+  ghc-options: -Wall -fcontext-stack=200

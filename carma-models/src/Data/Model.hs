@@ -17,7 +17,6 @@ module Data.Model
   -- from Data.Model.View.Types
   , ModelView(..)
   , GetModelFields(..)
-  , withLegacyName -- imported from Data.Model.Types
   , onlyDefaultFields
   ) where
 
@@ -33,7 +32,9 @@ import Database.PostgreSQL.Simple.FromRow   (RowParser,field)
 import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Data.Dynamic
-import GHC.TypeLits
+
+import Data.Singletons
+import Data.Singletons.TypeLits
 
 import Language.Haskell.TH
 
@@ -121,7 +122,7 @@ fieldNameE :: FA m -> Text
 fieldNameE (FA f) = fieldName f
 
 onlyDefaultFields :: [FieldDesc] -> [FieldDesc]
-onlyDefaultFields fs = filter isDefault fs
+onlyDefaultFields = filter isDefault
   where
     isDefault FieldDesc{..} = True
     isDefault _             = False

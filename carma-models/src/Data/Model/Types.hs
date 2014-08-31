@@ -17,7 +17,9 @@ import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.ToField   (ToField(..), Action)
 
 import Data.Dynamic
-import GHC.TypeLits
+
+import Data.Singletons
+import Data.Singletons.TypeLits
 
 
 data Wrap t a = Wrap {unWrap :: a}
@@ -73,7 +75,7 @@ type FieldI t (n :: Symbol) (d :: Symbol) =
   , DefaultFieldView t
   , FromJSON t, ToJSON t
   , FromField t, ToField t
-  , SingI n, SingI d)
+  , KnownSymbol n, KnownSymbol d)
 
 
 data ModelInfo m = ModelInfo
@@ -84,12 +86,9 @@ data ModelInfo m = ModelInfo
   , primKeyName    :: Text
   , modelFields    :: [FieldDesc]
   , modelOnlyFields:: [FieldDesc]
-  , modelFieldsMap :: HashMap Text (FieldDesc)
+  , modelFieldsMap :: HashMap Text FieldDesc
   , modelCRUD      :: Maybe (CRUD m) -- ^ `Nothing` means `defaultCRUD`
   }
-
-withLegacyName :: ModelInfo m -> Text -> ModelInfo m
-withLegacyName m n = m {legacyModelName = Just n}
 
 
 data FieldDesc = FieldDesc

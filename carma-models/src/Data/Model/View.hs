@@ -16,8 +16,10 @@ module Data.Model.View
   ,mapWidget
   ,mainToo
   ,mainOnly
+  ,regexp
   ,transform
   ,widget
+  ,hiddenIdent
   ,setType
   ,infoText
   ,setMeta
@@ -32,7 +34,8 @@ import Data.Text (Text)
 import qualified Data.Map as Map
 import Data.Aeson as Aeson
 
-import GHC.TypeLits
+import Data.Singletons
+import Data.Singletons.TypeLits
 
 import Data.Model.Types
 import Data.Model as Model
@@ -134,6 +137,17 @@ invisible
 invisible = setMeta "invisible" (Aeson.Bool True)
 
 
+-- | Mark as @ident@ type and hide (hidden foreign keys).
+hiddenIdent
+  :: SingI name => (m -> Field typ (FOpt name desc app))
+  -> (Text, FieldView -> FieldView) :@ m
+hiddenIdent fld = Wrap
+  (fieldName fld
+  ,\v -> v {fv_meta = Map.insert "invisible" (Aeson.Bool True) $ fv_meta v
+           ,fv_type = "ident"}
+  )
+
+
 data DictOpt = DictOpt
   {dictName    :: Text
   ,dictType    :: Maybe Text
@@ -208,7 +222,7 @@ completeWith fld ann =
 
 
 mapWidget
-  :: (SingI n1, SingI n2, SingI n3)
+  :: (KnownSymbol n1, KnownSymbol n2, KnownSymbol n3)
   => (m -> Field pickerField (FOpt n1 d1 app))
   -> (m -> Field pickerField (FOpt n2 d2 app))
   -> (m -> Field mapField    (FOpt n3 d3 app))
@@ -232,6 +246,12 @@ widget
   => Text -> (m -> Field typ (FOpt name desc app))
   -> (Text, FieldView -> FieldView) :@ m
 widget nm = setMeta "widget" (Aeson.String nm)
+
+regexp
+  :: SingI name
+  => Text -> (m -> Field typ (FOpt name desc app))
+  -> (Text, FieldView -> FieldView) :@ m
+regexp nm = setMeta "regexp" (Aeson.String nm)
 
 mainToo
   :: SingI name

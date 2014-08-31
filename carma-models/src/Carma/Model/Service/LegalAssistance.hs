@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.LegalAssistance where
 
 import Data.Text
@@ -12,9 +11,9 @@ import Carma.Model.Service (Service)
 
 data LegalAssistance = LegalAssistance
   { ident :: PK Int LegalAssistance ""
-  , requestType :: F (IdentT RequestType) "requestType" "Тип запроса"
-  , whatToSay1  :: F Text "whatToSay1" "Описание проблемы"
-  , activity    :: F (IdentT Activity) "activity" "Тип действия"
+  , requestType :: F (Maybe (IdentT RequestType)) "requestType" "Тип запроса"
+  , whatToSay1  :: F (Maybe Text) "whatToSay1" "Описание проблемы"
+  , activity    :: F (Maybe (IdentT Activity)) "activity" "Тип действия"
   }
   deriving Typeable
 
@@ -22,7 +21,7 @@ data LegalAssistance = LegalAssistance
 instance Model LegalAssistance where
   type TableName LegalAssistance = "kentbl"
   type Parent LegalAssistance = Service
-  modelInfo = mkModelInfo LegalAssistance ident `withLegacyName` "ken"
+  modelInfo = mkModelInfo LegalAssistance ident
   modelView v = case parentView v :: Maybe (ModelView LegalAssistance) of
     Nothing -> Nothing
     Just mv -> Just $ mv {mv_title = "Юридическая помощь"}

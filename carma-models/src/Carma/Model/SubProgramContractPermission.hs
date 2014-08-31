@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 {-| Proxy model for Contract field permissions used in portal code. -}
 
 module Carma.Model.SubProgramContractPermission

@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.DeliverCar where
 
 import Data.Text
@@ -13,7 +12,7 @@ import Carma.Model.Service (Service)
 data DeliverCar = DeliverCar
   { ident :: PK Int DeliverCar ""
   , toAddress_address :: F PickerField "toAddress_address" "Куда везти"
-  , toAddress_comment :: F Text        "toAddress_comment" "Примечания"
+  , toAddress_comment :: F (Maybe Text)"toAddress_comment" "Примечания"
   , toAddress_coords  :: F PickerField "toAddress_coords"  "Координаты"
   , toAddress_map     :: F MapField    "toAddress_map"     ""
   }
@@ -22,7 +21,7 @@ data DeliverCar = DeliverCar
 instance Model DeliverCar where
   type TableName DeliverCar = "delivercartbl"
   type Parent DeliverCar = Service
-  modelInfo = mkModelInfo DeliverCar ident `withLegacyName` "deliverCar"
+  modelInfo = mkModelInfo DeliverCar ident
   modelView v = case parentView v :: Maybe (ModelView DeliverCar) of
     Nothing -> Nothing
     Just mv -> Just

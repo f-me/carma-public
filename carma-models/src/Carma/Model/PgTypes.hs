@@ -83,25 +83,25 @@ instance PgTypeable  Activity            where pgTypeOf _ = PgType "text" True
 instance PgTypeable  RequestType         where pgTypeOf _ = PgType "text" True
 instance PgTypeable  ConsultationType    where pgTypeOf _ = PgType "text" True
 instance PgTypeable  DeliveryType        where pgTypeOf _ = PgType "text" True
-instance PgTypeable  CarClasses          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  DealerCities        where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Partner             where pgTypeOf _ = PgType "text" True
 instance PgTypeable  TowerTypes          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  WheelsBlockedCount  where pgTypeOf _ = PgType "text" True
 instance PgTypeable  UrgentServiceReason where pgTypeOf _ = PgType "text" True
-instance PgTypeable  Satisfaction        where pgTypeOf _ = PgType "text" True
-instance PgTypeable  FalseStatuses       where pgTypeOf _ = PgType "text" True
 instance PgTypeable  CallerTypes         where pgTypeOf _ = PgType "text" True
 instance PgTypeable  CallTypes           where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Users               where pgTypeOf _ = PgType "text" True
 instance PgTypeable  JsonAsText          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Password            where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Phone               where pgTypeOf _ = PgType "text" True
-instance PgTypeable  PickerField         where pgTypeOf _ = PgType "text" True
-instance PgTypeable  MapField            where pgTypeOf _ = PgType "text" True
+instance PgTypeable  PickerField         where pgTypeOf _ = PgType "text" False
+instance PgTypeable  MapField            where pgTypeOf _ = PgType "text" False
 instance PgTypeable  Checkbox where pgTypeOf _ = PgType "boolean" True
 instance PgTypeable  Coords where
   pgTypeOf _ = PgType "geometry(Point,4326)" True
 
 instance PgTypeable  DiffTime where
+  pgTypeOf _ = PgType "interval" True
+
+instance PgTypeable  HMDiffTime where
   pgTypeOf _ = PgType "interval" True

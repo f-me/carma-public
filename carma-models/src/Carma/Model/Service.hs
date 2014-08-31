@@ -1,8 +1,7 @@
 module Carma.Model.Service where
 
-import qualified Data.Aeson as Aeson
-
 import Data.Text
+import Data.Time.Clock
 import Data.Typeable
 
 import Data.Model
@@ -10,21 +9,24 @@ import Data.Model.Types ((:@))
 import Data.Model.View
 
 import qualified Carma.Model.ClientRefusalReason as CRR
+import           Carma.Model.Case.Type           (Case)
+import           Carma.Model.FalseCall           (FalseCall)
 import           Carma.Model.LegacyTypes
 import           Carma.Model.PaymentType         (PaymentType)
+import           Carma.Model.Satisfaction        (Satisfaction)
 import           Carma.Model.Search as S
-import           Carma.Model.ServiceNames        (ServiceNames)
 import           Carma.Model.ServiceStatus       (ServiceStatus)
+import           Carma.Model.ServiceType         (ServiceType)
 import           Carma.Model.Types (TInt)
 
 data Service = Service
   -- FIXME: ident can be null in pg
   { ident                        :: PK Int Service ""
-  , svcType                      :: F (Maybe (IdentT ServiceNames)) "type"
+  , svcType                      :: F (IdentI ServiceType) "type"
                                  "Услуга"
-  , parentId                     :: F Text "parentId"
+  , parentId                     :: F (IdentI Case) "parentId"
                                  ""
-  , createTime                   :: F (Maybe LegacyDatetime) "createTime"
+  , createTime                   :: F (Maybe UTCTime) "createTime"
                                  "Дата создания услуги"
   , payType                      :: F (Maybe (IdentI PaymentType)) "payType"
                                  "Тип оплаты"
@@ -42,21 +44,21 @@ data Service = Service
                                  "Оплата РАМК"
   , payment_paidByClient         :: F (Maybe Text) "payment_paidByClient"
                                  "Оплата Клиент"
-  , times_expectedServiceStart   :: F (Maybe LegacyDatetime) "times_expectedServiceStart"
+  , times_expectedServiceStart   :: F (Maybe UTCTime) "times_expectedServiceStart"
                                  "Ожидаемое время начала оказания услуги"
-  , times_expectedDispatch       :: F (Maybe LegacyDatetime) "times_expectedDispatch"
+  , times_expectedDispatch       :: F (Maybe UTCTime) "times_expectedDispatch"
                                  "Время выезда партнёра"
-  , times_factServiceStart       :: F (Maybe LegacyDatetime) "times_factServiceStart"
+  , times_factServiceStart       :: F (Maybe UTCTime) "times_factServiceStart"
                                  "Фактическое время начала оказания услуги"
-  , times_expectedServiceEnd     :: F (Maybe LegacyDatetime) "times_expectedServiceEnd"
+  , times_expectedServiceEnd     :: F (Maybe UTCTime) "times_expectedServiceEnd"
                                  "Ожидаемое время окончания оказания услуги"
-  , times_factServiceEnd         :: F (Maybe LegacyDatetime) "times_factServiceEnd"
+  , times_factServiceEnd         :: F (Maybe UTCTime) "times_factServiceEnd"
                                  "Фактическое время окончания оказания услуги"
-  , times_expectedServiceClosure :: F (Maybe LegacyDatetime) "times_expectedServiceClosure"
+  , times_expectedServiceClosure :: F (Maybe UTCTime) "times_expectedServiceClosure"
                                  "Ожидаемое время закрытия услуги"
-  , times_factServiceClosure     :: F (Maybe LegacyDatetime) "times_factServiceClosure"
+  , times_factServiceClosure     :: F (Maybe UTCTime) "times_factServiceClosure"
                                  "Фактическое время закрытия услуги"
-  , falseCall                    :: F (Maybe (IdentT FalseStatuses)) "falseCall"
+  , falseCall                    :: F (IdentI FalseCall) "falseCall"
                                  "Ложный вызов"
   , clientCancelReason           :: F (Maybe Text) "clientCancelReason"
                                  "Причина отказа клиента"
@@ -91,9 +93,9 @@ data Service = Service
                                  "Оригинал получен"
   , urgentService                :: F (Maybe (IdentT UrgentServiceReason)) "urgentService"
                                  "Приоритетная услуга"
-  , status                       :: F (Maybe (IdentI ServiceStatus)) "status"
+  , status                       :: F (IdentI ServiceStatus) "status"
                                  "Статус услуги"
-  , clientSatisfied              :: F (Maybe (IdentT Satisfaction)) "clientSatisfied"
+  , clientSatisfied              :: F (Maybe (IdentI Satisfaction)) "clientSatisfied"
                                  "Клиент доволен"
   , warrantyCase                 :: F (Maybe Checkbox) "warrantyCase"
                                  "Гарантийный случай"
@@ -101,6 +103,7 @@ data Service = Service
                                  "Прикрепленные файлы"
   -- , service_tarifOptions         :: F (Maybe Reference) "service_tarifOptions"
   --                                ""
+    -- TODO Remove this field #1929
   , assignedTo                   :: F (Maybe Text) "assignedTo" ""
   }
   deriving Typeable
@@ -108,10 +111,10 @@ data Service = Service
 
 instance Model Service where
   type TableName Service = "servicetbl"
-  modelInfo = mkModelInfo Service ident `withLegacyName` "service"
+  modelInfo = mkModelInfo Service ident
   modelView = \case
     "search" -> Just $ modifyView (searchView serviceSearchParams) svcMod
-    "full"   -> Just $ modifyView defaultView svcMod
+    "full"   -> Just $ modifyView defaultView usualSvcMod
     "new"    -> Just $ modifyView defaultView
       $ usualSvcMod
       ++ [mainOnly times_expectedServiceStart
@@ -131,14 +134,13 @@ svcMod =
     ,setType "dictionary" contractor_partnerId
     ,setMeta "widget" "partner" contractor_partner
     ,invisible contractor_coords
-    ,invisible parentId
+    ,hiddenIdent parentId
     ,invisible assignedTo
+    , readonly status
     , setType "text" payment_partnerCost
     , setType "text" payment_calculatedCost
     , setType "text" payment_limitedCost
     , setType "text" bill_billingCost
-    , setMeta "dictionaryStringify" (Aeson.Bool True) payType
-    , setMeta "dictionaryStringify" (Aeson.Bool True) status
     , clientCancelReason `completeWith` CRR.label
     ]
 

@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.SoberDriver where
 
 import Data.Text
@@ -13,12 +12,12 @@ import Carma.Model.Service (Service)
 data SoberDriver = SoberDriver
   { ident :: PK Int SoberDriver ""
   , fromAddress_address :: F PickerField "fromAddress_address" "Откуда везти"
-  , fromAddress_comment :: F Text        "fromAddress_comment" "Примечания"
+  , fromAddress_comment :: F (Maybe Text)"fromAddress_comment" "Примечания"
   , fromAddress_coords  :: F PickerField "fromAddress_coords" "Координаты"
   , fromAddress_map     :: F MapField    "fromAddress_map" ""
 
   , toAddress_address :: F PickerField "toAddress_address" "Куда везти"
-  , toAddress_comment :: F Text        "toAddress_comment" "Примечания"
+  , toAddress_comment :: F (Maybe Text)"toAddress_comment" "Примечания"
   , toAddress_coords  :: F PickerField "toAddress_coords" "Координаты"
   , toAddress_map     :: F MapField    "toAddress_map" ""
   }
@@ -28,7 +27,7 @@ data SoberDriver = SoberDriver
 instance Model SoberDriver where
   type TableName SoberDriver = "sobertbl"
   type Parent SoberDriver = Service
-  modelInfo = mkModelInfo SoberDriver ident `withLegacyName` "sober"
+  modelInfo = mkModelInfo SoberDriver ident
   modelView v = case parentView v :: Maybe (ModelView SoberDriver) of
     Nothing -> Nothing
     Just mv -> Just

@@ -27,10 +27,8 @@ module Carma.Model.VinFormat.Meta
 where
 
 import Data.Data
-import Data.Singletons.List
 import Data.Singletons.TH
 import Language.Haskell.TH hiding (Name)
-
 
 import Data.Text as T (Text, unpack)
 import Text.Printf
@@ -70,8 +68,9 @@ class Typeable (ParamType a) => FormatFieldParameter a where
     -- for this family).
     type ParamType a
     -- | Reified type of the parameter value. This exists because it's
-    -- not possible to statically encode value type to parameter
-    -- annotation. This matches 'ParamType' by default, though.
+    -- not always possible to statically encode value type to a
+    -- parameter annotation. This matches 'ParamType' by default,
+    -- though.
     paramTypeRep :: a -> ContractField -> TypeRep
 
     -- | 'printf'-compatible format used to produce a parameter name
@@ -158,7 +157,7 @@ mkAcc a cf =
 --
 -- Pattern-matching on these may be used to both define field
 -- processing behavour in a VIN processing tool and refine some of
--- extra parameter types.
+-- extra parameter types (see 'FormatFieldAccessor').
 --
 -- TODO Regexps for Raw fields?
 data FormatFieldType = Raw

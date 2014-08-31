@@ -14,7 +14,7 @@ import Carma.Model.PgTypes()
 
 data ServiceStatus = ServiceStatus
   { ident
-    :: PK Int ServiceStatus "Статус кейса"
+    :: PK Int ServiceStatus "Статус услуги"
   , label
     :: F Text "label" "Тип"
   } deriving Typeable
@@ -29,8 +29,7 @@ mkIdents [t|ServiceStatus|]
  , ("checkNeeded", 7)
  , ("checking", 8)
  , ("mistake", 9)
- , ("dealerConfirmation", 10)
- , ("makerConfirmation", 11)
+ , ("makerApproval", 11)
  , ("order", 12)
  , ("needPartner", 13)
  , ("canceled", 14)

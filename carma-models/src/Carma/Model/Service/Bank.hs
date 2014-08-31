@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.Bank where
 
 import Data.Text
@@ -14,7 +13,7 @@ import Carma.Model.Service (Service)
 data Bank = Bank
   { ident :: PK Int Bank ""
   , bill_billNumber
-                :: F (Maybe Text) "bill_billNumer" "Номер счёта"
+                :: F (Maybe Text) "bill_billNumber" "Номер счёта"
   , bill_billingCost
                 :: F (Maybe Int)  "bill_billingCost" "Сумма по счёту"
   , bill_billingDate
@@ -33,7 +32,7 @@ data Bank = Bank
 instance Model Bank where
   type TableName Bank = "banktbl"
   type Parent Bank = Service
-  modelInfo = mkModelInfo Bank ident `withLegacyName` "bank"
+  modelInfo = mkModelInfo Bank ident
   modelView v = case parentView v :: Maybe (ModelView Bank) of
     Nothing -> Nothing
     Just mv -> Just $ mv {mv_title = "Банковская поддержка"}
