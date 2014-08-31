@@ -84,6 +84,7 @@ define [ 'utils'
         v['callerType']('client')
         v['callType']('newCase')
 
+      s = (x) -> if x then String(x) else ''
       args =
         contact_name:         v['callerName_name']()
         contact_phone1:       v['callerName_phone1']()
@@ -98,16 +99,16 @@ define [ 'utils'
         contact_ownerPhone3:  v['callerName_ownerPhone3']()
         contact_ownerPhone4:  v['callerName_ownerPhone4']()
         contact_ownerEmail:   v['callerName_ownerEmail']()
-        program:              v['program']()
-        subprogram:           v['subprogram']()
+        program:              s v['program']()
+        subprogram:           s v['subprogram']()
         city:                 v['city']()
-        car_make:             v['carMake']()
-        car_model:            v['carModel']()
+        car_make:             s v['carMake']()
+        car_model:            s v['carModel']()
         caseAddress_coords:   v['coords']()
         caseAddress_address:  v['address']()
-        comment:              v['wazzup']()
+        comment:              s v['wazzup']()
         customerComment:      v['customerComment']()
-        callTaker:            global.user.meta.mid
+        callTaker:            s global.user.id
       main.buildNewModel 'case', args, {modelArg: "ctr:full:#{v.program()}"},
         (m, k) -> Finch.navigate "newCase/#{k.id()}"
 

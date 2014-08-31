@@ -13,6 +13,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy.Encoding as TL
 
+import qualified Data.HashMap.Strict as HM
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.Aeson as Aeson
@@ -43,7 +44,6 @@ import Snap.Util.FileUploads (getMaximumFormInputSize)
 
 import WeatherApi (getWeather', tempC)
 
-import Snaplet.Auth.PGUsers
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.RKC as RKC
@@ -53,6 +53,7 @@ import Carma.Model
 import Data.Model.CRUD
 import qualified Data.Model.Patch.Sql as Patch
 import           Data.Model.Patch (Patch(..))
+import Carma.Model.Event (EventType(..))
 
 import Application
 import AppHandlers.Util
@@ -60,10 +61,9 @@ import AppHandlers.Users
 import Util as U hiding (render, withPG)
 import Utils.NotDbLayer (readIdent)
 
-import Carma.Model.Event (EventType(..))
-import Utils.Events (logLogin)
+import Utils.Events (logLogin, logCRUD, updateUserState)
 
-import ModelTriggers (runUpdateTriggers)
+import ModelTriggers
 
 
 ------------------------------------------------------------------------------
@@ -141,14 +141,21 @@ createHandler = do
   Just model <- getParamT "model"
   let createModel :: forall m . Model m => m -> AppHandler Aeson.Value
       createModel _ = do
-        let crud = getModelCRUD :: CRUD m
-        commit <- getJSONBody :: AppHandler Aeson.Value
-        s <- PS.getPostgresState
-        res <- liftIO $ withResource (PS.pgPool s)
-                (runEitherT . crud_create crud commit)
-        case res of
-          Right obj -> return obj
-          Left err  -> error $ "in createHandler: " ++ show err
+        commit <- getJSONBody :: AppHandler (Patch m)
+        runCreateTriggers commit >>= \case
+          Left err -> error $ "in createHandler: " ++ show err
+          Right (idt@(Ident i), commit') -> do
+            -- Can't do this in trigger because it need ident
+            evIdt <- logCRUD Create idt commit
+            updateUserState Create idt commit evIdt
+            -- we really need to separate idents from models
+            -- (so we can @Patch.set ident i commit@)
+            return $ case Aeson.toJSON commit' of
+              Object obj
+                -> Object
+                $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
+              obj -> error $ "impossible: " ++ show obj
+
   case Carma.Model.dispatch model createModel of
     Just fn -> logResp $ fn
     Nothing -> logResp $ do
@@ -207,26 +214,6 @@ readManyHandler = do
     _       -> handleError 404
 
 
-readAllHandler :: AppHandler ()
-readAllHandler = do
-  Just model <- getParamT "model"
-  (with db $ DB.readAll model)
-    >>= apply "orderby" sortBy (flip . comparing . Map.lookup)
-    >>= apply "limit"   take   (read . T.unpack)
-    >>= apply "select"  filter flt
-    >>= apply "fields"  map    proj
-    >>= writeJSON
-  where
-    apply name f g = \xs
-      -> maybe xs (\p -> f (g p) xs)
-      <$> getParamT name
-    proj fs = \obj -> Map.fromList
-      [(k, Map.findWithDefault "" k obj)
-      | k <- T.splitOn "," fs
-      ]
-    flt prm = \obj -> all (selectParse obj) $ T.splitOn "," prm
-
-
 updateHandler :: AppHandler ()
 updateHandler = do
   Just model <- getParamT "model"
@@ -239,24 +226,21 @@ updateHandler = do
         runUpdateTriggers  ident commit >>= \case
           Left (code,_err) -> return $ Left code
           Right commit' -> do
-            s   <- PS.getPostgresState
-            res <- with db $
-              liftIO $ withResource (PS.pgPool s) (Patch.update ident commit')
-            case res of
-              0 -> return $ Left 404
-              _ -> case model of
-                     -- TODO #1352 workaround for Contract triggers
-                     "Contract" ->
-                         do
-                           res' <- liftIO $
-                                  withResource (PS.pgPool s) (Patch.read ident)
-                          -- TODO Cut out fields from original commit like
-                          -- DB.update does
-                           case (Aeson.decode $ Aeson.encode res') of
-                             Just [obj] -> return $ Right obj
-                             err        -> error $
-                                           "BUG in updateHandler: " ++ show err
-                     _ -> return $ Right $ Aeson.object []
+            evIdt <- logCRUD Update ident commit'
+            updateUserState Update ident commit evIdt
+            case model of
+              -- TODO #1352 workaround for Contract triggers
+              "Contract" -> do
+                s   <- PS.getPostgresState
+                Right res' <- liftIO $
+                       withResource (PS.pgPool s) (Patch.read ident)
+                -- TODO Cut out fields from original commit like
+                -- DB.update does
+                case (Aeson.decode $ Aeson.encode res') of
+                  Just obj -> return $ Right obj
+                  err      -> error $
+                                "BUG in updateHandler: " ++ show err
+              _ -> return $ Right $ Aeson.object []
   -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch model updateModel of
     Just fn ->
@@ -317,8 +301,7 @@ rkcHandler = logExceptions "handler/rkc" $ do
       RKC.filterCity = c,
       RKC.filterPartner = part }
 
-  usrs <- with db usersListPG
-  info <- with db $ RKC.rkc usrs flt'
+  info <- with db $ RKC.rkc flt'
   writeJSON info
 
 rkcWeatherHandler :: AppHandler ()
@@ -373,20 +356,6 @@ rkcPartners = logExceptions "handler/rkc/partners" $ do
   res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
   writeJSON res
 
--- | This action recieve model and id as parameters to lookup for
--- and json object with values to create new model with specified
--- id when it's not found
-findOrCreateHandler :: AppHandler ()
-findOrCreateHandler = do
-  Just model <- getParamT "model"
-  Just objId    <- getParamT "id"
-  commit <- getJSONBody
-  res <- with db $ DB.findOrCreate model objId commit
-  -- FIXME: try/catch & handle/log error
-  writeJSON res
-
-serveUsersList :: AppHandler ()
-serveUsersList = with db usersListPG >>= writeJSON
 
 -- | Calculate average tower arrival time (in seconds) for today,
 -- parametrized by city (a value from DealerCities dictionary).

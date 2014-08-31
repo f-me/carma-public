@@ -217,7 +217,7 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
   # TODO Cache this
   getTemplates = (cls) ->
     templates = {}
-    for tmp in FS.find(".#{cls}")
+    for tmp in _.union FS.find(".#{cls}").toArray(), $(".#{cls}").toArray()
       templates[tmp.id.replace("-#{cls}", "")] = $(tmp).html()
     return templates
 

@@ -24,7 +24,6 @@ import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
 
 import qualified Carma.Model.CaseStatus as CS
-import qualified Carma.Model.PaymentType as PaymentType
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.TowType as TowType
 
@@ -55,11 +54,6 @@ applyDefaults model obj = do
               $ Map.insertWith (flip const) "isMobile" "0"
               $ obj
     "case" -> return cd
-    "call" -> do
-          Just u <- withAuth currentUser
-          [[u']] <- query "SELECT id::text FROM usermetatbl WHERE uid::text = ?"
-             (Only $ return . unUid =<< userId u)
-          return $ Map.insert "callTaker" u' cd
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
     "contract" ->
       -- Store user id in owner field if it's not present
@@ -131,7 +125,6 @@ services =
 serviceDefaults :: Object
 serviceDefaults = Map.fromList
   [("status", identFv SS.creating)
-  ,("payType", identFv PaymentType.ruamc)
   ,("warrantyCase", "0")
   ,("overcosted", "0")
   ,("falseCall", "none")

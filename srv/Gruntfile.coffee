@@ -10,7 +10,7 @@ module.exports = (grunt) ->
   tpl     = "#{pub}/tpl"
   css     = "#{pub}/css"
 
-  grunt.initConfig
+  config =
     pkg: grunt.file.readJSON('package.json')
     coffee:
       all:
@@ -61,7 +61,6 @@ module.exports = (grunt) ->
     clean:
       all:
         src: ["#{js}/**/*", tpl, css]
-        filter: (f) -> not /js\/3p/.test(f)
 
     watch:
       coffee:
@@ -72,7 +71,7 @@ module.exports = (grunt) ->
         tasks: "newer:copy:js"
       jade:
         files: ["#{content}/template/**/*.jade"]
-        tasks: "newer:jade"
+        tasks: "jade"
       html:
         files: ["#{content}/template/**/*.html"]
         tasks: "newer:copy:template"
@@ -80,11 +79,70 @@ module.exports = (grunt) ->
         files: ["#{content}/style/**/*"]
         tasks: "newer:copy:css"
 
+
+  thirdParty =
+    md5:        {src: 'js-md5/js',       file: 'md5.min.js'}
+    d3:         {src: 'd3',              file: 'd3.min.js'}
+    mustache:   {src: 'mustache',        file: 'mustache.js'}
+    underscore: {src: 'underscore',      file: 'underscore.js'}
+    finch:      {src: 'finchjs',         file: 'finch.min.js'}
+    jquery:     {src: 'jquery',          file: 'jquery.js'}
+    knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
+    notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
+    spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
+    'jquery-maskedinput':
+      src: 'jquery-maskedinput/src'
+      file: 'jquery.maskedinput.js'
+    datatables:
+      src: 'datatables/media'
+      dest: 'datatables'
+      file: ['css/jquery.dataTables.min.css'
+             'js/jquery.dataTables.min.js'
+             'images/*'
+            ]
+    bootstrap:
+      src: 'bootstrap'
+      dest: 'bootstrap'
+      file: ['css/**', 'img/**', 'js/**']
+    openLayers:
+      src: 'OpenLayers'
+      dest: 'OpenLayers'
+      file: ['OpenLayers.js', 'img/**', 'theme/**']
+    wysihtml5:
+      src:  'wysihtml5/dist'
+      dest: 'wysihtml5'
+      file: 'wysihtml5-0.3.0.min.js'
+    'wysihtml5-boot-colors':
+      src:  'bootstrap-wysihtml5/lib/css'
+      dest: 'wysihtml5'
+      file: 'wysiwyg-color.css'
+    'wysihtml5-boot':
+      src:  'bootstrap-wysihtml5/src'
+      dest: 'wysihtml5'
+      file: [
+        'bootstrap-wysihtml5.js',
+        'bootstrap-wysihtml5.css',
+        'locales/bootstrap-wysihtml5.ru-RU.js']
+
+
+  mkCopyAndClean = (libs, cfg) ->
+    for lib, libCfg of libs
+      cfg.copy[lib] =
+        expand: true
+        cwd:  "bower_components/#{libCfg.src}"
+        src:  libCfg.file
+        dest: "#{pub}/3p/#{libCfg.dest ? ''}"
+      cfg.clean[lib] =
+        expand: true
+        cwd: "#{pub}/3p/#{libCfg.dest ? ''}"
+        src: libCfg.file
+
+  mkCopyAndClean thirdParty, config
+  grunt.initConfig config
+
   newerify = (ts) -> "newer:#{t}" for t in ts
 
   grunt.registerTask("build", newerify ['coffee', 'copy', 'jade'])
   grunt.registerTask("rebuild", ['clean', 'build'])
-
   grunt.registerTask("bwatch", ['build', 'watch'])
-
-  grunt.registerTask("default", "rebuild");
+  grunt.registerTask("default", "rebuild")

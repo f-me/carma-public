@@ -13,6 +13,9 @@ define ["utils"], (u) ->
 
   actionColor: (model, kvm) ->
     kvm._actColor = ko.computed ->
-      hash = md5(kvm.parentId())
-      ix = parseInt(hash.slice(0,6), 16) % u.palette.length
-      u.palette[ix]
+      svcId = kvm.parentId()
+      if kvm._parent
+        svcs  = kvm._parent.services().split(',')
+        u.palette[svcs.indexOf(svcId) % u.palette.length]
+      else
+        u.palette[0]

@@ -42,7 +42,6 @@ Executable carma
     Snaplet.DbLayer.Triggers.Defaults,
     Snaplet.DbLayer.Triggers.Dsl,
     Snaplet.DbLayer.Triggers.Types,
-    Snaplet.DbLayer.Triggers.Users,
     Snaplet.DbLayer.Triggers.Util,
     Snaplet.DbLayer.Types,
     Snaplet.DbLayer.Util,
@@ -69,9 +68,9 @@ Executable carma
     base                        >= 4 && < 5,
     blaze-builder               == 0.3.*,
     bytestring                  >= 0.9.1 && < 0.11,
-    carma-models                >= 0.20.7 && < 0.21,
+    carma-models                >= 0.22 && < 0.23,
     carma-http                  == 0.4.*,
-    carma-sync                  >= 0.4 && < 0.5,
+    carma-sync                  >= 0.5 && < 0.6,
     conduit                     == 1.1.*,
     configurator                == 0.2.*,
     connection                  == 0.2.*,
@@ -151,7 +150,7 @@ Executable tools
   main-is: Main.hs
   Build-depends:
       postgresql-simple           == 0.3.*,
-      carma-models                >= 0.20 && < 0.21,
+      carma-models                >= 0.22 && < 0.23,
       unordered-containers        == 0.2.*,
       cmdlib                      == 0.3.*,
       boxes                       == 0.1.*

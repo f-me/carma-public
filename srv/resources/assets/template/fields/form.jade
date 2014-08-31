@@ -34,7 +34,7 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
            {{/ meta.transform }}"
     data-bind="\n\
                value: {{ name }}#{nameMod},\n\
-               valueUpdate: '#{change}',\n\
+               valueUpdate: ['#{change}', 'afterpaste'],\n\
                readonly: {{ name }}Disabled,\n\
                {{# meta.regexp }}\n\
                css: { 're-failed': {{name}}Regexp }\n\
@@ -48,7 +48,7 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
       textarea.pane-span.focusable(name="{{ name }}" rows="7"
         data-bind="\n\
                    value: {{ name }}Text,\n\
-                   valueUpdate: 'afterkeydown',\n\
+                   valueUpdate: ['afterkeydown', 'afterpaste'],\n\
                    disabled: {{ name }}Disabled,\n\
                    {{# meta.regexp }}\n\
                    css: { warning: {{name}}Regexp }\n\
@@ -70,7 +70,8 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
       .text-right
         button.btn.btn-info(type="button"
           onclick="doPick('passwordPicker', '{{ name }}', event.target);")
-          i.icon-refresh Создать пароль
+          i.icon-refresh
+          | Создать пароль
 
 .field-template#datetime-field-template
   +fieldControlGroup
@@ -102,8 +103,8 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
                              data-date-weekstart="1")
             input.pane-span.focusable(type="text"
               autocomplete="off"
-              name="{{ name }}Begin"
-              data-bind="value: {{ name }}Begin, valueUpdate: 'change'")
+              name="{{ name }}.begin"
+              data-bind="value: {{ name }}.begin, valueUpdate: ['change', 'afterpaste'],",)
             span.add-on
               i.icon.icon-calendar
         .span4.offset1
@@ -113,8 +114,8 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
                              data-date-weekstart="1")
             input.pane-span.focusable(type="text"
               autocomplete="off"
-              name="{{ name }}End"
-              data-bind="value: {{ name }}End, valueUpdate: 'change'")
+              name="{{ name }}.end"
+              data-bind="value: {{ name }}.end, valueUpdate: ['change', 'afterpaste'],")
             span.add-on
               i.icon.icon-calendar
 
@@ -136,8 +137,8 @@ mixin dict(nameMod, iconClass)
         //- Note the difference between readonly attribute and
         //- disabled class from Bootstrap.
 
-        input.pane-span( type="text"
-           focusable
+        input.pane-span.focusable( type="text"
+           class="{{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}"
            autocomplete="off"
            name="{{ name }}"
            data-bind="\n\
@@ -165,7 +166,7 @@ mixin dict(nameMod, iconClass)
     ul(data-bind="foreach: {{ name }}Locals")
       li
         span(data-bind="text: $data.label")
-          a(href="" data-bind="click: $parent.{{ name }}Remove") x
+        a(href="" data-bind="click: $parent.{{ name }}Remove") &nbsp x
     // /ko
 
 //- Picker which fills fields with stored data
@@ -387,7 +388,7 @@ mixin dict(nameMod, iconClass)
           .control-label
             label
               span(data-bind="text: keyLocal")
-                a.text-error(href="#"
+              a.text-error(href="#"
                   data-bind="click: $parent.{{name}}DeleteObj")
                   | ×
           .controls
@@ -411,16 +412,15 @@ mixin dict(nameMod, iconClass)
               data-bind="value: note, valueUpdate: 'afterkeydown'")
         | {{/ meta.showNote }}
 
-        ul.nav.nav-pills
-          li.dropup
-            button.dropdown-toggle.btn.btn-action(type="button"
-              data-toggle="dropdown")
-              i.icon.icon-plus
-                | &nbsp;{{ meta.addLabel }}
-            ul.dropdown-menu(data-bind="foreach: {{name}}KeyDictionary")
-              li
-                a(data-bind="text: label, click: $parent.{{name}}AddObj"
-                  href="#")
+    .dropup
+      button.dropdown-toggle.btn.btn-action(type="button"
+        data-toggle="dropdown")
+        i.icon.icon-plus
+        | &nbsp;{{ meta.addLabel }}
+      ul.dropdown-menu(data-bind="foreach: {{name}}KeyDictionary")
+        li
+          a(data-bind="text: label, click: $parent.{{name}}AddObj"
+            href="#")
 
 #partner-field-template.field-template
   +fieldControlGroup
@@ -561,28 +561,37 @@ mixin simpleRefHdr(name, bindName)
 #default-case-group-template.group-template
   fieldset#default-case.complex-field.default-complex-field
     p
-      b Кто звонил:
+      b Кто звонил:&nbsp;
       span(data-bind='text: safelyGet(\'contact_name\')')
-      span(data-bind='text: safelyGet(\'contact_phone1\')')
+      span(data-bind='text: " " + safelyGet("contact_phone1")')
+      span(data-bind='\
+        visible: contact_phone2,\
+        text: ", " + safelyGet("contact_phone2")')
+      span(data-bind='\
+        visible: contact_phone3,\
+        text: ", " + safelyGet("contact_phone3")')
+      span(data-bind='\
+        visible: contact_phone4,\
+        text: ", " + safelyGet("contact_phone4")')
     p(data-bind='visible: safelyGet(\'car_make\')')
-      b Автомобиль:
+      b Автомобиль:&nbsp;
       span(data-bind='text: safelyGet(\'car_makeLocal\')')
       span(data-bind='text: safelyGet(\'car_modelLocal\')')
       span(data-bind='text: safelyGet(\'car_plateNum\')')
     p(data-bind='visible: safelyGet(\'caseAddress_address\')')
-      b Адрес кейса:
+      b Адрес кейса:&nbsp;
       span(data-bind='text: safelyGet(\'caseAddress_address\')')
       br
       span(data-bind='text: safelyGet(\'caseAddress_comment\')')
     p(data-bind='visible: safelyGet(\'cityLocal\')')
-      b Регион:
+      b Регион:&nbsp;
       span(data-bind='text: safelyGet(\'region\')')
     p(data-bind='visible: safelyGet(\'cityLocal\')')
       b
         | Расчётное значение ожидания эвакуатора в
         | г.
         span(data-bind='text: safelyGet(\'cityLocal\')')
-        | :
+        | :&nbsp;
       span#city-towage-average-time
     #contract
     .program

@@ -62,14 +62,19 @@ ko.bindingHandlers.bindDict =
     if search
       $(search).on 'click', th.drawAllForce unless fld?.readonly
 
+funToggle = (fns...) ->
+  i = 0
+  l = fns.length
+  -> fns[i++ % l]()
 
 ko.bindingHandlers.sort =
+  init: => return
   update: (el, name, allBindings, viewModel, ctx) ->
     # add icon to show sorting direction
     defaultClass = 'icon-resize-vertical'
     $(el).prepend("<i class=#{defaultClass}></i>")
     # toggle sorting direction when user clicks on column header
-    $(el).toggle(
+    $(el).click funToggle(
       ->
         # reset icon for others columns
         resetSort el, defaultClass
@@ -135,7 +140,8 @@ ko.bindingHandlers.renderGroup =
 ko.bindingHandlers.render =
   init: (el, acc, allBindigns, ctx) ->
     return unless acc().field
-    tplName = acc().field.meta?.widget || acc().field.type || 'text'
+    fld = acc().kvm[acc().field.name]
+    tplName = fld.field.meta?.widget || fld.field.type || 'text'
     tpl = $("##{tplName}-ro-template").html()
     console.error "Cant find template for #{tplName}" unless tpl
     ko.utils.setHtml el, tpl
@@ -156,7 +162,7 @@ ko.bindingHandlers.expand =
   init: (el, acc, allBindigns, ctx, koctx) ->
     $(el).append("<label><i class='icon-plus-sign'></i></label>")
     $(el).click ->
-      $(el).parent().next().toggleClass('hidden')
+      $(el).parent().next().toggleClass('hide')
       $(el).toggleClass('expanded')
       $(el).find('i').toggleClass('icon-plus-sign').toggleClass('icon-minus-sign')
 

@@ -1,6 +1,5 @@
 {-# LANGUAGE DoAndIfThenElse #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Snaplet.DbLayer.Triggers.Actions where
@@ -37,7 +36,7 @@ import Snaplet.DbLayer.Triggers.MailToGenser
 import Carma.HTTP (read1Reference)
 
 import           Data.Model
-import qualified Data.Model.Patch as Patch (Patch, get)
+import qualified Data.Model.Patch as Patch (get)
 import qualified Data.Model.Patch.Sql as Patch (read)
 
 import qualified Carma.Model.Case as Case
@@ -51,9 +50,7 @@ import qualified Carma.Model.Role as Role
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.SmsTemplate as SmsTemplate
 import           Carma.Model.Event (EventType(..))
-import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Action as Act
-import qualified Carma.Model.Call   as Call
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
 import Util as U
@@ -128,13 +125,10 @@ actions
             case fvIdent val of
               Nothing -> return ()
               Just wi -> do
-                  res :: [Patch.Patch Wazzup.Wazzup] <-
-                         liftDb $ withPG $ \c -> Patch.read wi c
+                  res  <- liftDb $ withPG $ \c -> Patch.read wi c
                   case res of
-                    [] -> return ()
-                    (patch:_) ->
-                        let
-                            f acc = maybe "" identFv $
+                    Right patch ->
+                        let f acc = maybe "" identFv $
                                     fromMaybe Nothing $
                                     Patch.get patch acc
                             s = f Wazzup.system
@@ -147,6 +141,7 @@ actions
                           set caseId "diagnosis3" c >>
                           set caseId "diagnosis4" g >>
                           return ()
+                    _ -> return ()
             ])
           ,("services", [\caseId _ -> updateCaseStatus caseId])
           -- ,("contact_name",
@@ -169,26 +164,7 @@ actions
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
           ])
-        ,("call", Map.fromList
-          [("endDate", [\objId _ ->
-             liftDb $ Evt.logLegacyCRUD Update objId Call.endDate])
-          ])
-        ,("usermeta", Map.fromList
-          [("delayedState", [\objId _ ->
-             liftDb $ Evt.logLegacyCRUD Update objId Usermeta.delayedState])
-          ,("businessRole", [updateBusinessRole])
-          ])
         ]
-
-updateBusinessRole :: MonadTrigger m b => ObjectId -> FieldValue -> m b ()
-updateBusinessRole _     ""  = return ()
-updateBusinessRole objId val =  do
-  rs <- liftDb $ PG.query (fromString $
-    "select array_to_string(roles, ',') from \"BusinessRole\"" ++
-    " where id :: text = ?;") (Only val)
-  case rs of
-    [Only r] -> set objId "roles" r
-    _        -> error $ "unknown BusinessRole id: " ++ show val
 
 -- | Mapping between contract and case fields.
 contractToCase :: [(FA Contract.Contract, FA Case.Case)]
@@ -638,7 +614,7 @@ actionActions = Map.fromList
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ,\objId _ ->
-      liftDb $ Evt.logLegacyCRUD Update objId Act.result
+      void $ liftDb $ Evt.logLegacyCRUD Update objId Act.result
     ])
   ,("assignedTo",
     [\objId _val -> dateNow id >>= set objId "assignTime"
@@ -653,7 +629,7 @@ actionActions = Map.fromList
     ])
    ,("openTime",
      [\objId _ ->
-       liftDb $ Evt.logLegacyCRUD Update objId Act.openTime
+       void $ liftDb $ Evt.logLegacyCRUD Update objId Act.openTime
      ])
    ]
 

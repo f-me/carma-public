@@ -69,6 +69,9 @@ instance HasAuth App where
 instance HasSiteConfig App where
   siteConfigLens = subSnaplet siteConfig
 
+instance WithCurrentUser (Handler App App) where
+  withCurrentUser = with auth currentUser
+
 instance HasPostgres (Handler b App) where
   getPostgresState = with authDb get
 

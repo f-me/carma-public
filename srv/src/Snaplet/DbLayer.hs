@@ -10,9 +10,7 @@ module Snaplet.DbLayer
   ,delete
   ,exists
   ,submitTask
-  ,readAll
   ,initDbLayer
-  ,findOrCreate
   ) where
 
 import Prelude hiding (read)
@@ -48,9 +46,6 @@ import Snaplet.Messenger (sendMessage)
 import Snaplet.Messenger.Class
 import DictionaryCache
 
-import qualified Carma.Model.Call as Call
-import           Carma.Model.Event (EventType(..))
-import qualified Utils.Events as Evt
 import Util
 
 
@@ -61,7 +56,7 @@ create model commit = do
   tbls <- gets syncTables
   syslogJSON Debug "DbLayer/create" ["model" .= model, "commit" .= commit]
   --
-  obj <- triggerCreate model =<< applyDefaults model commit
+  obj <- applyDefaults model commit
   objId <- Redis.create redis model obj
   --
   let obj' = Map.insert "id" objId obj
@@ -69,23 +64,10 @@ create model commit = do
   --
   Postgres.insert tbls model obj'
 
-  when (model == "call") $
-    Evt.logLegacyCRUD Create (T.concat [model, ":", objId]) Call.ident
-
   let result = Map.insert "id" objId $ obj Map.\\ commit
   syslogJSON Debug "DbLayer/create/result" ["result" .= result]
   return result
 
-findOrCreate :: (HasAuth b, HasMsg b)
-             => ModelName -> ObjectId -> Object
-             -> Handler b (DbLayer b) Object
-findOrCreate model objId commit = do
-  r <- read model objId
-  case Map.toList r of
-    [] -> do
-      obj <- triggerCreate model =<< applyDefaults model commit
-      Redis.create' redis model objId obj
-    _  -> return r
 
 read :: ModelName -> ObjectId
      -> Handler b (DbLayer b) Object
@@ -146,10 +128,6 @@ submitTask queueName taskId
   $ Redis.lpush queueName [taskId]
 
 
-readAll :: ModelName -> Handler b (DbLayer b) [Object]
-readAll = Redis.readAll redis
-
-
 -- TODO Use lens to an external AuthManager
 initDbLayer :: Snaplet (AuthManager b)
             -> Lens' b (Snaplet Postgres)
@@ -160,8 +138,7 @@ initDbLayer :: Snaplet (AuthManager b)
 initDbLayer sessionMgr adb cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     -- syslog Info "Server started"
-    rels <- liftIO $ Postgres.loadRelations "resources/site-config/syncs.json"
-    tbls <- liftIO $ MT.loadTables "resources/site-config/models" "resources/site-config/field-groups.json"
+    tbls <- liftIO $ MT.loadTables "resources/site-config/models"
     cfg <- getSnapletUserConfig
     wkey <- liftIO $ lookupDefault "" cfg "weather-key"
 
@@ -173,7 +150,6 @@ initDbLayer sessionMgr adb cfgDir = makeSnaplet "db-layer" "Storage abstraction"
       <$> nestSnaplet "redis" redis redisDBInitConf
       <*> nestSnaplet "pgsql" postgres pgsInit
       <*> pure sessionMgr
-      <*> (return rels)
       <*> (return tbls)
       <*> (return dc)
       <*> (return $ initApi wkey)

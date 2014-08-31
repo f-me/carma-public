@@ -3,9 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module AppHandlers.CustomSearches
-    ( allPartnersHandler
-
-    , allActionsHandler
+    ( allActionsHandler
     , selectActions
 
     , searchCallsByPhone
@@ -54,33 +52,6 @@ import qualified Carma.Model.Role as Role
 
 type MBS = Maybe ByteString
 
-
-allPartnersHandler :: AppHandler ()
-allPartnersHandler
-  = join (selectPartners
-    <$> getParam "city"
-    <*> getParam "isActive"
-    <*> getParam "isDealer"
-    <*> getParam "makes")
-  >>= writeJSON
-
-
-selectPartners :: MBS -> MBS -> MBS -> MBS -> AppHandler [Map Text Text]
-selectPartners city isActive isDealer makes = do
-  rows <- withPG pg_search $ \c -> query_ c $ fromString
-    $  "SELECT id::text, name, city,"
-    ++ "       comment,"
-    ++ "       (isDealer::int)::text, (isMobile::int)::text"
-    ++ "  FROM partnertbl"
-    ++ " WHERE true"
-    ++ (maybe "" (\x -> "  AND city = " ++ quote x) city)
-    ++ (maybe "" (\x -> "  AND isActive = " ++ toBool x) isActive)
-    ++ (maybe "" (\x -> "  AND isDealer = " ++ toBool x) isDealer)
-    ++ (maybe "" (\x -> "  AND ("
-      ++ quote x ++ " = 'null' OR "
-      ++ quote x ++ " = ANY (makes))")) makes
-  let fields = ["id", "name", "city", "comment", "isDealer", "isMobile"]
-  return $ mkMap fields rows
 
 
 -- | Read @closed@, @assignedTo@, @targetGroup@ (comma-separated),
@@ -215,7 +186,7 @@ opStatsQ = [sql|
   usermetatbl u
   WHERE ca.row_number = 1
   AND u.login = ca.assignedTo
-  AND (? :: text = ANY (u.roles))
+  AND (? :: int = ANY (u.roles))
   ORDER BY closeTime;
   |]
 
@@ -321,7 +292,7 @@ boUsers = do
       FROM usermetatbl
       WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
         AND now() - lastactivity < '20 min'
-        AND roles && (?)::text[];
+        AND roles && (?)::int[];
     |] (Only $ V.fromList [Role.head, Role.back, Role.supervisor])
   writeJSON $ mkMap ["name", "login"] rows
 

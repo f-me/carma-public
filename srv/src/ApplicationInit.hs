@@ -40,6 +40,7 @@ import AppHandlers.PSA
 import AppHandlers.ContractGenerator
 import AppHandlers.Users
 import AppHandlers.Screens
+import AppHandlers.KPI
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
@@ -51,7 +52,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/s/",            serveDirectoryWith dconf "resources/static")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/screens",       method GET $ getScreens)
-         , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
          , ("/callsByPhone/:phone",
                               chkAuthLocal . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
@@ -67,7 +67,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/supervisor/busyOps",  chkAuthLocal . method GET $ busyOps)
          , ("/supervisor/opStats",  chkAuthLocal . method GET $ opStats)
          , ("/supervisor/actStats", chkAuthLocal . method GET $ actStats)
-         , ("/allPartners",   chkAuthLocal . method GET  $ allPartnersHandler)
          , ("/psaCases",
                               chkAuthLocal . method GET $ psaCasesHandler)
          , ("/psaCases/:program",
@@ -88,8 +87,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
          , ("/_/:model/:id",  chkAuth . method DELETE $ deleteHandler)
-         , ("/_/findOrCreate/:model/:id",
-                              chkAuthLocal . method POST $ findOrCreateHandler)
          , ("/searchCases",   chkAuthLocal . method GET  $ searchCases)
          , ("/latestCases",   chkAuthLocal . method GET  $ getLatestCases)
          , ("/regionByCity/:city",
@@ -100,7 +97,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/rkc/weather",   chkAuthLocal . method GET $ rkcWeatherHandler)
          , ("/rkc/front",     chkAuthLocal . method GET $ rkcFrontHandler)
          , ("/rkc/partners",  chkAuthLocal . method GET $ rkcPartners)
-         , ("/allUsers",      chkAuth . method GET  $ serveUsersList)
          , ("/boUsers",       chkAuth . method GET  $ boUsers)
          , ("/dealers/:make", chkAuth . method GET  $ allDealersForMake)
          , ("/vin/upload",    chkAuth . method POST $ vinImport)
@@ -111,6 +107,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/errors",        method POST errorsHandler)
          , ("/userStates/:userId/:from/:to",
             chkAuth . method GET $ serveUserStates)
+         , ("/kpi/stat/:from/:to", chkAuth . method GET $ getStat)
          ]
 
 dconf :: DirectoryConfig (Handler App App)

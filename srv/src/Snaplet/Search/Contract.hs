@@ -30,24 +30,16 @@ import           Database.PostgreSQL.Simple as PG
 import           Database.PostgreSQL.Simple.Copy as PG
 import           Database.PostgreSQL.Simple.SqlQQ
 
-import           Snap.Core
-import           Snap.Snaplet
-import           Snap.Snaplet.Auth
-
 import           Data.Model
-import           Data.Model.Patch (Patch)
-import           Data.Model.Sql
+import           Data.Model.Patch as Patch
 
 import           Carma.Model.Contract
 import qualified Carma.Model.Usermeta as Usermeta
 
+import           Snap.Core
 import           Snaplet.Auth.PGUsers
-import           Snaplet.DbLayer
-
 import           Snaplet.Search.Types
 import           Snaplet.Search.Utils
-
-import           AppHandlers.Util hiding (withPG)
 import           Util
 
 
@@ -63,7 +55,7 @@ mkQuery _ predicate lim offset ord
   = fromString $ printf
       (  "    select %s"
       ++ "     from \"Contract\""
-      ++ "     where (%s) %s limit %i offset %i;"
+      ++ "     where (%s and dixi) %s limit %i offset %i;"
       )
       (T.unpack $ mkSel (undefined :: t))
       (T.unpack predicate) ord lim offset
@@ -82,7 +74,7 @@ contractCSV t = do
       csvQuery :: Query
       csvQuery
           = [sql|
-             COPY (SELECT ? FROM "Contract_csv" WHERE (?) ?)
+             COPY (SELECT ? FROM "Contract_csv" WHERE (? and dixi) ?)
              TO STDOUT (FORMAT CSV, FORCE_QUOTE *, DELIMITER ';')
              |]
       -- Convert list [foo, bar, ..] of fields to [fooExternal,
@@ -137,21 +129,6 @@ contractCSV t = do
       sendFile fp
 
 
--- | Return function which adds an SQL predicate to select only
--- contracts created by current user if isDealer flag is set.
-portalQuery :: AuthUser -> SearchHandler b (Text -> Text)
-portalQuery au = do
-  let withDb = withLens db
-  Just (ui, _) <- withDb $ userMetaPG au
-  [Only isDealer :. ()] <-
-      withDb $
-      selectDb (Usermeta.isDealer :. Usermeta.ident `eq` Ident ui)
-  let commPred = printf " AND committer = %i" ui
-  return $ \s -> if isDealer
-                 then T.append s $ T.pack commPred
-                 else s
-
-
 -- | Identical to 'contractSearch' but with 'portalQuery' applied.
 portalSearch :: SearchHandler b
                 (Either String
@@ -170,7 +147,12 @@ portalSearch =
 portalHandler :: ((Text -> Text) -> SearchHandler b t)
               -> SearchHandler b t
 portalHandler f = do
-  u <- with auth currentUser
-  case u of
-    Just au -> portalQuery au >>= f
-    Nothing -> error "No user"
+  Just user <- currentUserMeta
+  let Just (Ident uid) = Patch.get user Usermeta.ident
+  let Just isDealer = Patch.get user Usermeta.isDealer
+  let commPred = printf " AND committer = %i" uid
+  -- Build function which adds an SQL predicate to select only
+  -- contracts created by current user if isDealer flag is set.
+  f $ \s -> if isDealer
+            then T.append s $ T.pack commPred
+            else s

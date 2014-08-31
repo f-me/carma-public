@@ -113,10 +113,10 @@ WITH servicecounts AS (
     allservicesview.repairenddate AS "Дата окончания ремонта",
     allservicesview.suburbanmilage AS "Пробег эвак-ра/техпом. за городом",
       concat_ws(', '::text, 
-	SUBSTRING(casetbl.contact_phone1, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone1, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone1, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone1, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone1, 10, 2)::text || ' '::text, 
-	SUBSTRING(casetbl.contact_phone2, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone2, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone2, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone2, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone2, 10, 2)::text || ' '::text, 
-	SUBSTRING(casetbl.contact_phone3, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone3, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone3, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone3, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone3, 10, 2)::text || ' '::text, 
-	SUBSTRING(casetbl.contact_phone4, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone4, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone4, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone4, 8, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone4, 10, 2)::text || ' '::text)
+	SUBSTRING(casetbl.contact_phone1, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone1, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone1, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone1, 9, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone1, 11, 2)::text || ' '::text, 
+	SUBSTRING(casetbl.contact_phone2, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone2, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone2, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone2, 9, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone2, 11, 2)::text || ' '::text, 
+	SUBSTRING(casetbl.contact_phone3, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone3, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone3, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone3, 9, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone3, 11, 2)::text || ' '::text, 
+	SUBSTRING(casetbl.contact_phone4, 1, 2)::text || ' ('::text || SUBSTRING(casetbl.contact_phone4, 3, 3)::text || ') '::text ||  SUBSTRING(casetbl.contact_phone4, 6, 3)::text || ' '::text || SUBSTRING(casetbl.contact_phone4, 9, 2)::text || ' '::text || SUBSTRING(casetbl.contact_phone4, 11, 2)::text || ' '::text)
 	 AS "Телефоны клиента",
     servicetbl.payment_limitedcost AS "Стоимость для заказчика",
     allservicesview.providedfor AS "Дни(Срок предоставления)",

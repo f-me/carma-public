@@ -1,22 +1,63 @@
 {-# LANGUAGE GADTs, ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving, DeriveDataTypeable, DeriveFunctor #-}
 
-module Trigger.Dsl where
+module Trigger.Dsl
+    (
+      -- * DSL evaluator
+      TriggerRes
+    , Dsl
+    , DslState(..)
+    , evalDsl
+
+      -- * DSL terms
+      -- ** Context access
+    , getIdent
+    , getPatch
+    , modifyPatch
+    , getPatchField
+
+      -- ** Snap auth access
+    , getCurrentUser
+    , createSnapUser
+    , updateSnapUserFromUsermeta
+
+    , tError
+    , tOk
+
+      -- ** Database access
+    , dbCreate
+    , dbRead
+    , dbUpdate
+
+      -- ** Miscellaneous
+    , wsMessage
+    )
+
+where
 
 import Control.Applicative
+import Control.Monad
+import Control.Exception (SomeException)
 import Control.Monad.Free
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Class (lift)
 
+import Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Read as T
+import Data.Time.Calendar.Julian
+import Data.Time.Clock
 import Data.Int (Int64)
 import Data.Typeable
 import GHC.TypeLits
 
-import qualified Snap.Snaplet.PostgresqlSimple as PG
-import qualified Data.Pool as Pool
+import Snap.Snaplet.Auth
+import Snaplet.Auth.Class
 
 import Application (AppHandler)
+import qualified Database.PostgreSQL.Simple as PG
 import Data.Model as Model
 import Data.Model.Patch (Patch)
 import qualified Data.Model.Patch as Patch
@@ -25,8 +66,9 @@ import qualified Data.Model.Patch.Sql as Patch
 import Snaplet.Messenger (sendMessage)
 import Snaplet.Messenger.Class (withMsg)
 import Utils.LegacyModel (mkLegacyIdent)
-import Utils.Events (logLegacyCRUD)
-import Carma.Model.Event (EventType(Update))
+import Carma.Model.Usermeta (Usermeta)
+import qualified Carma.Model.Usermeta as Usermeta
+import Carma.Model.LegacyTypes (Password(..))
 
 
 type TriggerRes m = Either (Int,String) (Patch m)
@@ -35,9 +77,14 @@ type TriggerRes m = Either (Int,String) (Patch m)
 -- DSL operations
 ----------------------------------------------------------------------
 
+getIdent :: Free (Dsl m) (IdentI m)
+getIdent = liftFree (GetIdent id)
+
 getPatch :: Free (Dsl m) (Patch m)
 getPatch = liftFree (GetPatch id)
 
+modifyPatch :: (Patch m -> Patch m) -> Free (Dsl m) ()
+modifyPatch f = liftFree (ModPatch f ())
 
 getPatchField
   :: (SingI name, Typeable typ)
@@ -46,25 +93,40 @@ getPatchField
 getPatchField fld = (`Patch.get` fld) <$> getPatch
 
 
+getCurrentUser :: Free (Dsl m) (IdentI Usermeta)
+getCurrentUser = liftFree (CurrentUser id)
+
+createSnapUser :: Text -> Free (Dsl Usermeta) ()
+createSnapUser login = do
+  uid <- liftFree (CreateUser login id)
+  modifyPatch (Patch.put Usermeta.uid uid)
+
+updateSnapUserFromUsermeta :: Free (Dsl Usermeta) ()
+updateSnapUserFromUsermeta = do
+  maybePass <- getPatchField Usermeta.password
+  u <- getIdent >>= dbRead
+  let u' = maybe u (\p -> Patch.put Usermeta.password p u) maybePass
+  liftFree (UpdateUser u' ())
+
+
 tError :: Int -> String -> Free (Dsl m) (TriggerRes m)
 tError httpCode msg = return $ Left (httpCode, msg)
-
 
 tOk :: Free (Dsl m) (TriggerRes m)
 tOk = Right <$> getPatch
 
 
-dbUpdate :: Model m => IdentI m -> Patch m -> Free (Dsl m1) Int64
+dbCreate :: Model m => Patch m -> Free (Dsl n) (IdentI m)
+dbCreate p = liftFree (DbCreate p id)
+
+dbRead :: Model m => IdentI m -> Free (Dsl n) (Patch m)
+dbRead i = liftFree (DbRead i id)
+
+dbUpdate :: Model m => IdentI m -> Patch m -> Free (Dsl n) Int64
 dbUpdate i p = liftFree (DbUpdate i p id)
 
 wsMessage :: Free (Dsl m) ()
 wsMessage = liftFree (WsMessage ())
-
-logLegacy
-  :: (Model m, SingI name, Typeable typ)
-  => (m -> F typ name opt)
-  -> Free (Dsl m) ()
-logLegacy fld = liftFree (LogLegacy fld ())
 
 
 liftFree :: Functor f => f a -> Free f a
@@ -78,18 +140,17 @@ liftFree = Free . fmap Pure
 -- Don't use them in triggers, use wrappers defined in the section above.
 -- Add more if required but try to keep list of core operations small, this
 -- will simplify DSL interpreter.
-
--- create transaction
--- save patch to db
-
 data Dsl m k where
-  GetPatch :: (Patch m -> k) -> Dsl m k
-  GetIdent :: (IdentI m -> k) -> Dsl m k
-  DbUpdate :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
-  WsMessage:: k -> Dsl m k
-  LogLegacy
-    :: (Model m, SingI name, Typeable typ)
-    => (m -> F typ name opt) -> k -> Dsl m k
+  GetPatch    :: (Patch m -> k) -> Dsl m k
+  ModPatch    :: (Patch m -> Patch m) -> k -> Dsl m k
+  GetIdent    :: (IdentI m -> k) -> Dsl m k
+  DbCreate    :: Model m1 => Patch m1 -> (IdentI m1 -> k) -> Dsl m k
+  DbRead      :: Model m1 => IdentI m1 -> (Patch m1 -> k) -> Dsl m k
+  DbUpdate    :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
+  CurrentUser :: (IdentI Usermeta -> k) -> Dsl m k
+  CreateUser  :: Text -> (Int -> k) -> Dsl m k
+  UpdateUser  :: Patch Usermeta -> k -> Dsl m k
+  WsMessage   :: k -> Dsl m k
 
 deriving instance Typeable2 Dsl
 
@@ -99,19 +160,33 @@ deriving instance Typeable2 Dsl
 instance Functor (Dsl m) where
   fmap fn = \case
     GetPatch      k -> GetPatch      $ fn . k
+    ModPatch  f   k -> ModPatch  f   $ fn   k
     GetIdent      k -> GetIdent      $ fn . k
+    DbCreate  p   k -> DbCreate  p   $ fn . k
+    DbRead    i   k -> DbRead i      $ fn . k
     DbUpdate  i p k -> DbUpdate  i p $ fn . k
-    WsMessage     k -> WsMessage     $ fn k
-    LogLegacy f   k -> LogLegacy f   $ fn k
+    CurrentUser   k -> CurrentUser   $ fn . k
+    CreateUser l  k -> CreateUser l  $ fn . k
+    UpdateUser p  k -> UpdateUser p  $ fn   k
+    WsMessage     k -> WsMessage     $ fn   k
 
-
-data DbUpdateArgs where
-  DbUpdateArgs :: Model m => IdentI m -> Patch m -> DbUpdateArgs
 
 data DslState m = DslState
   { st_ident :: IdentI m
   , st_patch :: Patch m
+  , st_pgcon :: PG.Connection
   }
+
+
+runDb
+  :: Model m
+  => (PG.Connection -> IO (Either SomeException res))
+  -> (res -> Free (Dsl m) res')
+  -> StateT (DslState m) AppHandler res'
+runDb f k = gets st_pgcon >>= liftIO . f >>= \case
+  Right res -> evalDsl $ k res
+  Left err  -> error $ show err -- FIXME: I don't know what to do
+
 
 -- Our Dsl is evaluated in @AppHandler@ context, so it have access to IO and
 -- Snap's state.
@@ -123,18 +198,55 @@ evalDsl = \case
   Free op  -> case op of
     GetIdent k -> gets st_ident >>= evalDsl . k
     GetPatch k -> gets st_patch >>= evalDsl . k
-    DbUpdate i p k -> do
-      res <- lift $ do
-        s <- PG.getPostgresState
-        Pool.withResource (PG.pgPool s) (liftIO . Patch.update i p)
-      evalDsl $ k res
+    ModPatch f k -> do
+      modify $ \s -> s {st_patch = f (st_patch s)}
+      evalDsl k
+    DbCreate p k   -> runDb (Patch.create p)   k
+    DbRead i k     -> runDb (Patch.read i)     k
+    DbUpdate i p k -> runDb (Patch.update i p) k
+
+    CurrentUser k -> do
+      c <- gets st_pgcon
+      [[uid]] <- lift $ do
+        Just u <- withAuth currentUser
+        liftIO $ PG.query c
+          "SELECT id FROM usermetatbl WHERE uid = ? :: int"
+          (PG.Only $ unUid <$> userId u)
+      evalDsl $ k (Ident uid)
+
+    CreateUser l k -> do
+      let user = defAuthUser {userLogin = l}
+      res <- lift $ withAuth $ withBackend $ \bk -> liftIO $ save bk user
+      case res of
+        Left e -> error $ "Could not create new user: " ++ show e
+        Right newUser -> do
+          let Just (UserId uid) = userId newUser
+          case T.decimal uid of
+            Right (uidNum,"") -> evalDsl $ k uidNum
+            _ -> error "Impossible in CreateUser"
+
+    UpdateUser u k -> do
+      let Just login    = Patch.get u Usermeta.login
+          Just isActive = Patch.get u Usermeta.isActive
+          Just uid      = Patch.get u Usermeta.uid
+          maybePwd      = Patch.get u Usermeta.password
+      lift $ do
+        let uid' = UserId $ T.pack $ show uid -- FIXME: Usermeta.uid :: F Text
+        Just user <- withAuth $ withBackend
+          $ \bk -> liftIO $ lookupByUserId bk uid'
+        let zabriskiePoint = UTCTime (fromJulian 3001 0 0) 0
+            lock = if isActive then Nothing else Just zabriskiePoint
+            user' = user {userLogin = login, userLockedOutUntil = lock}
+        user'' <- maybe
+          (return user')
+          (\(Password pwd) -> liftIO $ setPassword user' (T.encodeUtf8 pwd))
+          maybePwd
+        void $ withAuth $ withBackend -- FIXME: can fail
+          $ \bk -> liftIO $ save bk user''
+      evalDsl k
+
     WsMessage k -> do
-      -- FIXME: Applicative style
       p <- gets st_patch
       i <- mkLegacyIdent <$> gets st_ident
       lift $ withMsg $ sendMessage i p
-      evalDsl k
-    LogLegacy fld k -> do
-      i <- mkLegacyIdent <$> gets st_ident
-      lift $ logLegacyCRUD Update i fld
       evalDsl k

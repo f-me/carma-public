@@ -37,7 +37,7 @@ define [ "utils"
 
       tableParams =
         tableName: "partner"
-        objURL: "/allPartners"
+        objURL: "/_/Partner"
 
       table = screenman.addScreen(modelName, -> )
         .addTable(tableParams)

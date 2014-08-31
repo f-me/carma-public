@@ -142,7 +142,9 @@ define [ "utils"
           selectPartner(kvm, partner)
           $("#map").trigger "drawpartners"
 
-    kvm['showPartnerCancelDialog'] = (partner, ev) -> kvm['selectPartner'](null)
+    kvm['showPartnerCancelDialog'] = (partner, ev) ->
+      console.log 'showPartnerCancelDialog'
+      kvm['selectPartner'](null)
 
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
@@ -318,7 +320,7 @@ define [ "utils"
             partner_popup = $ $("#partner-" + p.id() + "-info").clone().html()
             partner_popup.find(".full-info-link").hide()
             popup = new OpenLayers.Popup.FramedCloud(
-              p.id(), mark.lonlat,
+              String(p.id()), mark.lonlat,
               new OpenLayers.Size(200, 200),
               partner_popup.html(),
               null, true)
