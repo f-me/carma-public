@@ -68,7 +68,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/supervisor/busyOps",  chkAuthLocal . method GET $ busyOps)
          , ("/supervisor/opStats",  chkAuthLocal . method GET $ opStats)
          , ("/supervisor/actStats", chkAuthLocal . method GET $ actStats)
-         , ("/allPartners",   chkAuthLocal . method GET  $ allPartnersHandler)
          , ("/psaCases",
                               chkAuthLocal . method GET $ psaCasesHandler)
          , ("/psaCases/:program",
