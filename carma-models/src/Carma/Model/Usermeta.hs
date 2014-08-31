@@ -30,6 +30,8 @@ import           Carma.Model.Types (UserStateVal)
 import           Carma.Model.Role (Role)
 import           Carma.Model.BusinessRole (BusinessRole)
 
+import {-#SOURCE#-} Carma.Model.Program (Program)
+
 data Usermeta = Usermeta
   { ident        :: PK Int Usermeta      "Данные о пользователе"
   , uid          :: F Int                "uid"     "Snap-идентификатор"
@@ -42,7 +44,7 @@ data Usermeta = Usermeta
   -- is fully migrated to new models)
   , roles        :: F (Vector (IdentI Role)) "roles" "Роли в системе"
   , businessRole :: F (Maybe (IdentI BusinessRole))  "businessRole" "Бизнес-роль"
-  , programs     :: F (Vector Text)      "programs" "Подпрограммы"
+  , programs     :: F (Vector (IdentI Program)) "programs" "Подпрограммы"
   , bocities     :: F (Vector Text)      "bocities" "Города"
   , boprograms   :: F (Vector Text)      "boprograms" "Программы"
   , isDealer     :: F Bool               "isDealer" "Дилер"
