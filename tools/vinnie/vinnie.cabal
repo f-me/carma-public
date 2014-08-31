@@ -34,7 +34,7 @@ library
     monad-control     == 0.3.*,
     postgresql-simple == 0.4.*,
     text              >= 0.11 && < 1.2,
-    text-icu          == 0.6.*,
+    text-icu          >= 0.6 && < 0.8,
     transformers      >= 0.3 && < 0.5,
     vector            == 0.10.*
 
@@ -66,7 +66,7 @@ executable vinnie
     monad-control     == 0.3.*,
     postgresql-simple == 0.4.*,
     text              >= 0.11 && < 1.2,
-    text-icu          == 0.6.*,
+    text-icu          >= 0.6 && < 0.8,
     transformers      >= 0.3 && < 0.5,
     vector            == 0.10.*
 

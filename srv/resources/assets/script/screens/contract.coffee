@@ -97,7 +97,7 @@ define [ "search/screen"
       else
         main.modelSetup(contractModel) contractForm,
           # TODO Set committer on server
-          {subprogram: subprogram, committer: parseInt global.user.meta.mid}, {}
+          {subprogram: subprogram, committer: global.user.id}, {}
 
       kvm = global.viewsWare[contractForm].knockVM
 

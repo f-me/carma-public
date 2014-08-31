@@ -247,26 +247,6 @@ readManyHandler = do
     _       -> handleError 404
 
 
-readAllHandler :: AppHandler ()
-readAllHandler = do
-  Just model <- getParamT "model"
-  (with db $ DB.readAll model)
-    >>= apply "orderby" sortBy (flip . comparing . Map.lookup)
-    >>= apply "limit"   take   (read . T.unpack)
-    >>= apply "select"  filter flt
-    >>= apply "fields"  map    proj
-    >>= writeJSON
-  where
-    apply name f g = \xs
-      -> maybe xs (\p -> f (g p) xs)
-      <$> getParamT name
-    proj fs = \obj -> Map.fromList
-      [(k, Map.findWithDefault "" k obj)
-      | k <- T.splitOn "," fs
-      ]
-    flt prm = \obj -> all (selectParse obj) $ T.splitOn "," prm
-
-
 updateHandler :: AppHandler ()
 updateHandler = do
   Just model <- getParamT "model"

@@ -14,10 +14,10 @@
       tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
         tr
           td.expand-contoller(data-bind='expand: kvm')
-          // ko foreach: $root.showFields.fields 
+          // ko foreach: $root.showFields.fields
           td(data-bind='renderGroup: $parent')
           // /ko
-        tr.hidden
+        tr.hide
           td(data-bind='attr: {colspan: $root.showFields.fields().length + 1}')
             dl(data-bind='eachNonEmpty: $root.showFields.hidden')
               dt(data-bind='text: $root.showFields.labels[$data]')

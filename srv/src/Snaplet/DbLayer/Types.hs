@@ -10,6 +10,7 @@ import Control.Concurrent.STM
 import Control.Lens
 
 import Snap
+import Snaplet.Auth.Class
 import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
@@ -43,6 +44,8 @@ makeLenses ''DbLayer
 instance HasPostgres (Handler b (DbLayer b)) where
     getPostgresState = with postgres get
 
+instance WithCurrentUser (Handler b (DbLayer b)) where
+    withCurrentUser = with auth currentUser
 
 getDict :: (DictCache -> dict) -> Handler b (DbLayer b) dict
 getDict dict

@@ -85,11 +85,6 @@
         }
       ]
     },
-    { "name" : "contract",
-      "label": "Контракты",
-      "type" : "li",
-      "permissions": ["partner", "contract_admin"]
-    },
     { "name"  : "call",
       "label" : "Звонок",
       "type"  : "li",
@@ -100,10 +95,25 @@
       "type"  : "li",
       "permissions": ["back"]
     },
+    { "name"  : "search/partners",
+      "label" : "Дилеры и партнеры",
+      "type"  : "li",
+      "permissions": ["dpViewer"]
+    },
+    { "name" : "contract",
+      "label": "Контракты",
+      "type" : "li",
+      "permissions": ["partner", "contract_admin"]
+    },
     { "name"  : "vin",
       "label" : "Обновление базы VIN",
       "type"  : "li",
       "permissions": ["vinAdmin", "partner", "psaanalyst"]
+    },
+    { "name"  : "uploads",
+      "label" : "Загрузка файлов",
+      "type"  : "li",
+      "permissions": ["billManager"]
     },
     { "name"  : "partner",
       "label" : "Редактирование партнёров",
@@ -114,16 +124,6 @@
       "label" : "Редактирование пользователей",
       "type"  : "li",
       "permissions": ["userAdmin", "userViewer"]
-    },
-    { "name"  : "uploads",
-      "label" : "Загрузка файлов",
-      "type"  : "li",
-      "permissions": ["billManager"]
-    },
-    { "name"  : "search/partners",
-      "label" : "Дилеры и партнеры",
-      "type"  : "li",
-      "permissions": ["dpViewer"]
     },
     { "name"  : "dict",
       "label" : "Редактирование справочников",
