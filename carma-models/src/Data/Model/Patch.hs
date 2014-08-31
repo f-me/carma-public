@@ -2,6 +2,7 @@
 
 module Data.Model.Patch
   ( Patch(Patch), untypedPatch
+  , parentField
   , get, get', put, delete
   , empty
   , W(..)
@@ -67,6 +68,12 @@ get' p f
 delete :: (SingI name) =>
           (m -> Field t (FOpt name desc app)) -> Patch m -> Patch m
 delete f (Patch m) = Patch $ HashMap.delete (fieldName f) m
+
+
+parentField :: Model m =>
+               (Parent m -> Field t (FOpt name desc app))
+            -> (m -> Field t (FOpt name desc app))
+parentField _ _ = Field
 
 
 instance Model m => FromJSON (Patch m) where
