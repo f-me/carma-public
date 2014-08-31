@@ -14,7 +14,6 @@ module ApplicationHandlers
       -- * CRUD
     , createHandler
     , readHandler
-    , readAllHandler
     , readManyHandler
     , updateHandler
 
@@ -57,7 +56,6 @@ import Data.List
 import qualified Data.Map as Map
 
 import Data.Maybe
-import Data.Ord (comparing)
 
 import Data.Time
 import System.Locale

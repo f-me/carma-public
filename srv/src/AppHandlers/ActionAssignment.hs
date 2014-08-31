@@ -4,12 +4,12 @@ Action assignment for back office screen.
 
 -}
 
-module AppHandlers.ActionAssignment where
+module AppHandlers.ActionAssignment (littleMoreActionsHandler)
+
+where
 
 import Control.Monad
 
-import Snap
-import Snap.Snaplet.Auth
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.SqlQQ
 
@@ -67,8 +67,7 @@ assignQ = [sql|
 
 littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
-  Just cUsr' <- with auth currentUser
-  Just cid <- with db $ userMetaIdent cUsr'
+  Just cid <- currentUserMetaId
   let params :: Int -> (IdentI Usermeta, IdentI Usermeta, Int)
       params n = (cid, cid, n)
 
@@ -82,7 +81,8 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
 
   unless (null (actIds''' :: [Only Int]))
     $ syslogJSON Info "littleMoreActions" [ "login" .= show cid
-                                          , "actions" .= show actIds''']
+                                          , "actions" .= show actIds'''
+                                          ]
 
   selectActions (Just "0") (Just cid) Nothing Nothing Nothing
     >>= writeJSON

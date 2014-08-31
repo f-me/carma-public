@@ -23,9 +23,6 @@ module AppHandlers.CustomSearches
     , getLatestCases
     , searchCases
     , findSameContract
-
-      -- * Miscellaneous
-    , allPartnersHandler
     )
 
 where
