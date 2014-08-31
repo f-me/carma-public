@@ -1,12 +1,12 @@
 ./
 ./../tools/vinnie/
-https://github.com/f-me/carma-models ghc-7.8
-https://github.com/f-me/carma-dict ghc-7.8
-https://github.com/f-me/carma-http ghc-7.8
-https://github.com/f-me/carma-sync ghc-7.8
-https://github.com/f-me/hs-weather-api ghc-7.8
-https://github.com/f-me/postgresql-sync-map ghc-7.8
-https://github.com/f-me/snap-extras ghc-7.8
+https://github.com/f-me/carma-models
+https://github.com/f-me/carma-dict
+https://github.com/f-me/carma-http
+https://github.com/f-me/carma-sync
+https://github.com/f-me/hs-weather-api
+https://github.com/f-me/postgresql-sync-map
+https://github.com/f-me/snap-extras
 
 https://github.com/f-me/hformat
 
