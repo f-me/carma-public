@@ -56,8 +56,6 @@ define [ "utils"
   mbp  = Mustache.render cb,  fh['mobilePartner']
   wn   = Mustache.render cb,  fh['workNow']
 
-  srvLab = (val) -> window.global.dictValueCache.Services[val] || val
-
   # Add some of case data to screen kvm
   setupCase = (kvm, ctx) ->
     kase = ctx['case'].data
@@ -410,7 +408,7 @@ define [ "utils"
           do (nested) ->
             nested['showStr'] = ko.computed ->
               show  = "<span class='label label-info'>
-                       #{srvLab nested.servicenameLocal()}
+                       #{nested.servicenameLocal()}
                        </span>"
               if nested.priority2()
                 show += " <span class='label label-important'>
