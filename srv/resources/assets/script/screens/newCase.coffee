@@ -108,7 +108,7 @@ define [ 'utils'
         caseAddress_address:  v['address']()
         comment:              s v['wazzup']()
         customerComment:      v['customerComment']()
-        callTaker:            s global.user.meta.mid
+        callTaker:            s global.user.id
       main.buildNewModel 'case', args, {modelArg: "ctr:full:#{v.program()}"},
         (m, k) -> Finch.navigate "newCase/#{k.id()}"
 

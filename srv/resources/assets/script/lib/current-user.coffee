@@ -27,9 +27,18 @@ define [ "model/main"
   initialize: =>
     user = window.global.user
 
+    Role = global.idents 'Role'
+    homepage = ""
+    homepage = "/#partner"    if _.contains user.roles, Role.parguy
+    homepage = "/#back"       if _.contains user.roles, Role.back
+    homepage = "/#call"       if _.contains user.roles, Role.call
+    homepage = "/#supervisor" if _.contains user.roles, Role.supervisor
+    homepage = "/#rkc"        if _.contains user.roles, Role.head
+
+
     usr = Main.buildKVM global.model('Usermeta'),
       queue: Crud.CrudQueue
-      fetched: { id: user.meta.mid }
+      fetched: {id: user.id}
 
     # keep current user kvm inside global, can't do this in 'model/main'
     # due to dependencies
@@ -43,7 +52,7 @@ define [ "model/main"
       # is false, and 'Finch.navigate()' may change current route
       if (_.contains ['rest', 'serviceBreak'], Finch.navigate()) and
           v == 'Ready'
-        window.location.href = user.meta.homepage
+        window.location.href = homepage
 
     usr.timeInCurrentState = ko.observable()
 
@@ -81,8 +90,8 @@ define [ "model/main"
     # change next state
     # $('#current-user .dropdown-menu').click (event) -> event.stopPropagation()
 
-    if window.location.hash == "" and user.meta.homepage
-      Finch.navigate user.meta.homepage.replace '/', ''
+    if window.location.hash == "" and homepage
+      Finch.navigate homepage.replace '/', ''
 
   readStuff: (key) ->
     checkStuff()
@@ -91,7 +100,7 @@ define [ "model/main"
   writeStuff: (key, val) ->
     checkStuff()
     s = window.global.Usermeta.stuff
-    newVal = {}; newVal[key] = val;
+    newVal = {}; newVal[key] = val
     # write deep copy of previous value, otherwise we can change values that was
     # read by somebody else
     s($.extend(true, {}, s(), newVal))

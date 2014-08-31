@@ -36,9 +36,6 @@ define [ "model/render"
     imgr = new Idents
     configmgr = new Config
 
-    # Convert user.roles to use integer ids
-    user.roles = _.map user.roles, (v) -> parseInt v
-
     window.global =
         topElement: $el("layout")
         router: Finch

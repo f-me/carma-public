@@ -43,6 +43,7 @@ import           Carma.Model.Role
 import           Carma.Model.FieldPermission hiding (field)
 
 import           Snaplet.DbLayer.Types (DbLayer)
+import           Snaplet.Auth.Class
 
 data Search b = Search
   { pg        :: Pool Connection
@@ -55,6 +56,9 @@ makeLenses ''Search
 
 instance HasPostgres (Handler b (Search b)) where
     getPostgresState = with postgres get
+
+instance WithCurrentUser (Handler b (Search b)) where
+    withCurrentUser = with auth currentUser
 
 type SearchHandler b t = Handler b (Search b) t
 

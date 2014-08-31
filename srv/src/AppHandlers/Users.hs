@@ -22,8 +22,6 @@ where
 import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text           as T
-import qualified Data.Text.Encoding  as T
-import qualified Data.HashMap.Strict as HM
 import           Data.String (fromString)
 import           Data.Time.Calendar (Day)
 import qualified Data.ByteString.Char8 as BS
@@ -33,8 +31,6 @@ import           Text.Printf
 import           Database.PostgreSQL.Simple (query)
 
 import Snap
-import Snap.Snaplet.Auth hiding (Role, session)
-import qualified Snap.Snaplet.Auth as Snap (Role(..))
 import Snap.Snaplet.PostgresqlSimple hiding (query)
 
 import Data.Model
@@ -49,7 +45,6 @@ import AppHandlers.Util
 import Snaplet.Auth.PGUsers
 import Snaplet.Search.Types (mkSel)
 
-import Util (identFv)
 import Utils.LegacyModel (readIdent)
 
 
@@ -82,7 +77,7 @@ chkAuthPartner f =
 
 ------------------------------------------------------------------------------
 -- | A predicate for a list of user roles.
-type RoleChecker = [Snap.Role] -> Bool
+type RoleChecker = [IdentI Role] -> Bool
 
 
 ------------------------------------------------------------------------------
@@ -92,15 +87,11 @@ alwaysPass = const True
 
 
 hasAnyOfRoles :: [IdentI Role] -> RoleChecker
-hasAnyOfRoles authRoles =
-    any (`elem` ar)
-        where ar = map (Snap.Role . T.encodeUtf8 . identFv) authRoles
+hasAnyOfRoles authRoles = any (`elem` authRoles)
 
 
 hasNoneOfRoles :: [IdentI Role] -> RoleChecker
-hasNoneOfRoles authRoles =
-    all (not. (`elem` ar))
-        where ar = map (Snap.Role . T.encodeUtf8 . identFv) authRoles
+hasNoneOfRoles authRoles = all (not . (`elem` authRoles))
 
 
 ------------------------------------------------------------------------------
@@ -113,52 +104,41 @@ chkAuthRoles :: RoleChecker
 chkAuthRoles roleCheck handler = do
   ipHeaderFilter
   req <- getRequest
-  if rqRemoteAddr req /= rqLocalAddr req
-  then with auth currentUser >>= maybe
-       (handleError 401)
-       (\u -> do
-          uRoles <- with db $ userRolesPG u
-          if roleCheck uRoles
-          then handler
-          else handleError 401)
-  -- No checks for requests from localhost
-  else handler
+  case rqRemoteAddr req /= rqLocalAddr req of
+    False -> handler -- No checks for requests from localhost
+    True  -> currentUserRoles >>= \case
+      Nothing -> handleError 401
+      Just roles ->
+        if roleCheck roles
+        then handler
+        else handleError 401
 
 
 claimUserActivity :: AppHandler ()
-claimUserActivity = with auth currentUser >>= \case
-  Nothing -> return ()
-  Just u  -> void $ execute
-    "UPDATE usermetatbl SET lastactivity = NOW() WHERE login = ?"
-    [userLogin u]
+claimUserActivity = currentUserMetaId >>= \case
+  Nothing        -> return ()
+  Just (Ident u) -> void $ execute
+    "UPDATE usermetatbl SET lastactivity = NOW() WHERE id = ?" [u]
 
 claimUserLogout :: AppHandler ()
-claimUserLogout = with auth currentUser >>= \case
-  Nothing -> return ()
-  Just u  -> void $ execute
-    "UPDATE usermetatbl SET lastlogout = NOW() WHERE login = ?"
-    [userLogin u]
+claimUserLogout = currentUserMetaId >>= \case
+  Nothing        -> return ()
+  Just (Ident u) -> void $ execute
+    "UPDATE usermetatbl SET lastlogout = NOW() WHERE id = ?" [u]
 
 
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
 serveUserCake :: AppHandler ()
-serveUserCake
-  = ifTop $ with auth currentUser
-  >>= \case
-    Nothing -> handleError 401
-    Just u'  -> do
-      usr <- with db $ replaceMetaRolesFromPG u'
-      let homePage = case [T.decodeUtf8 r | Snap.Role r <- userRoles usr] of
-            rs | identFv Role.head       `elem` rs -> "/#rkc"
-               | identFv Role.supervisor `elem` rs -> "/#supervisor"
-               | identFv Role.call       `elem` rs -> "/#call"
-               | identFv Role.back       `elem` rs -> "/#back"
-               | identFv Role.parguy     `elem` rs -> "/#partner"
-               | otherwise                   -> ""
-      writeJSON $ usr
-        {userMeta = HM.insert "homepage" homePage $ userMeta usr
-        }
+serveUserCake = currentUserMeta >>= maybe (handleError 401) writeJSON
+
+--    let homePage = case [T.decodeUtf8 r | Snap.Role r <- userRoles usr] of
+--          rs | identFv Role.head       `elem` rs -> "/#rkc"
+--             | identFv Role.supervisor `elem` rs -> "/#supervisor"
+--             | identFv Role.call       `elem` rs -> "/#call"
+--             | identFv Role.back       `elem` rs -> "/#back"
+--             | identFv Role.parguy     `elem` rs -> "/#partner"
+--             | otherwise                   -> ""
 
 -- | Serve user states
 serveUserStates :: AppHandler ()

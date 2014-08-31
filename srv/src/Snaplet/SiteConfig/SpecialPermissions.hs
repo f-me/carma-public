@@ -16,7 +16,6 @@ import           Data.Aeson as Aeson
 import           Data.Maybe
 import qualified Data.Map as M
 import           Data.Text (Text)
-import qualified Data.Text.Encoding as T
 import           Data.Pool
 
 import           Control.Applicative
@@ -25,14 +24,11 @@ import           Database.PostgreSQL.Simple (Query, query)
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.ToField
 
-import           Snap
-import           Snap.Snaplet.Auth hiding (Role)
-import qualified Snap.Snaplet.Auth as Snap (Role(..))
-
 import           Carma.Model.Role as Role
 
+import           Snap
 import           Snaplet.Auth.Class
-import           Snaplet.Auth.PGUsers
+import           Snaplet.Auth.PGUsers (currentUserRoles)
 import           Snaplet.SiteConfig.Models
 import           Snaplet.SiteConfig.Config
 
@@ -62,10 +58,8 @@ stripContract :: HasAuth b =>
 stripContract model sid flt = do
   pg    <- gets pg_search
   perms <- liftIO $ withResource pg $ getPerms sid
-  Just mcu <- withAuth currentUser
-  mcu'     <- withLens db $ replaceMetaRolesFromPG mcu
-  let role = Snap.Role $ T.encodeUtf8 $ identFv Role.partner
-  let procField = if role `elem` userRoles mcu'
+  Just userRoles <- withLens db $ currentUserRoles
+  let procField = if Role.partner `elem` userRoles
                   then reqField
                   else id
   return model{fields = map procField $ filterFields perms (fields model)}
