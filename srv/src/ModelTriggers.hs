@@ -93,6 +93,10 @@ beforeCreate = Map.unionsWith (++)
     -- could not be deferred".
     createSnapUser login
 
+  , trigOnModel ([]::[Contract.Contract]) $ do
+    getCurrentUser >>= modPut Contract.committer
+    getNow >>= modPut Contract.ctime
+
   , trigOnModel ([]::[Case]) $ do
     n <- getNow
     modPut Case.callDate             $ Just n

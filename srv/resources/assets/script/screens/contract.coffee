@@ -96,8 +96,8 @@ define [ "search/screen"
         main.modelSetup(contractModel) contractForm, {id: cid}, {}
       else
         main.modelSetup(contractModel) contractForm,
-          # TODO Set committer on server
-          {subprogram: subprogram, committer: global.user.id}, {}
+          # TODO Check for permission to write in a subprogram
+          {subprogram: subprogram}, {}
 
       kvm = global.viewsWare[contractForm].knockVM
 
