@@ -35,6 +35,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   window.hasL = (lst, e) -> _.find(lst, (x) -> x == e)
 
   window.successfulSave = ->
+    return if this.hasAttribute("disabled")
     $span = $(this).siblings(".save-result")
     setTimeout((->
       $span.text("Сохранено успешно")
