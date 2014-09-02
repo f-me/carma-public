@@ -1,6 +1,6 @@
 CREATE TABLE "VinFormat"
   ( id    SERIAL PRIMARY KEY
-  , label text UNIQUE NOT NULL
+  , label text UNIQUE NOT NULL CHECK (label <> '')
 
   , nameLoad                 bool NOT NULL DEFAULT TRUE
   , nameTitles               text[] NOT NULL DEFAULT ARRAY['ФИО клиента']
