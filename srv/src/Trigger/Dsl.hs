@@ -9,11 +9,14 @@ module Trigger.Dsl
       TriggerRes
     , Dsl
     , DslState(..)
+    , emptyDslState
+    , DslM, runDslM
     , evalDsl
 
       -- * DSL terms
       -- ** Context access
     , getIdent
+    , putIdentUnsafe
     , getPatch
     , modifyPatch
     , getPatchField
@@ -100,13 +103,17 @@ type TriggerRes m = Either (Int,String) (Patch m)
 ----------------------------------------------------------------------
 
 getIdent :: Free (Dsl m) (IdentI m)
-getIdent = liftFree (GetIdent id)
+getIdent = liftFree $ ModState (\st -> (st, st_ident st)) id
+
+putIdentUnsafe :: IdentI m -> DslM m ()
+putIdentUnsafe i = liftFree $ ModState (\st -> (st{st_ident = i}, ())) id
 
 getPatch :: Free (Dsl m) (Patch m)
-getPatch = liftFree (GetPatch id)
+getPatch = liftFree $ ModState (\st -> (st, st_patch st)) id
 
 modifyPatch :: (Patch m -> Patch m) -> Free (Dsl m) ()
-modifyPatch f = liftFree (ModPatch f ())
+modifyPatch f = liftFree
+  $ ModState (\st -> (st{st_patch = f (st_patch st)}, ())) id
 
 getPatchField
   :: (KnownSymbol name, Typeable typ)
@@ -257,9 +264,7 @@ liftFree = Free . fmap Pure
 -- Add more if required but try to keep list of core operations small, this
 -- will simplify DSL interpreter.
 data Dsl m k where
-  GetPatch    :: (Patch m -> k) -> Dsl m k
-  ModPatch    :: (Patch m -> Patch m) -> k -> Dsl m k
-  GetIdent    :: (IdentI m -> k) -> Dsl m k
+  ModState    :: (DslState m -> (DslState m, res)) -> (res -> k) -> Dsl m k
   DbCreate    :: Model m1 => Patch m1 -> (IdentI m1 -> k) -> Dsl m k
   DbRead      :: Model m1 => IdentI m1 -> (Patch m1 -> k) -> Dsl m k
   DbUpdate    :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
@@ -277,9 +282,7 @@ deriving instance Typeable Dsl
 -- https://ghc.haskell.org/trac/ghc/ticket/8678
 instance Functor (Dsl m) where
   fmap fn = \case
-    GetPatch      k -> GetPatch      $ fn . k
-    ModPatch  f   k -> ModPatch  f   $ fn   k
-    GetIdent      k -> GetIdent      $ fn . k
+    ModState  f   k -> ModState  f   $ fn . k
     DbCreate  p   k -> DbCreate  p   $ fn . k
     DbRead    i   k -> DbRead i      $ fn . k
     DbUpdate  i p k -> DbUpdate  i p $ fn . k
@@ -296,6 +299,14 @@ data DslState m = DslState
   , st_patch :: Patch m
   , st_pgcon :: PG.Connection
   }
+
+emptyDslState :: IdentI m -> Patch m -> PG.Connection -> DslState m
+emptyDslState = DslState
+
+type DslM m res = Free (Dsl m) res
+
+runDslM :: Model m => DslState m -> DslM m a -> AppHandler (Either String (DslState m))
+runDslM st f = Right <$> execStateT (evalDsl f) st
 
 
 runDb
@@ -316,11 +327,8 @@ evalDsl
 evalDsl = \case
   Pure res -> return res
   Free op  -> case op of
-    GetIdent k -> gets st_ident >>= evalDsl . k
-    GetPatch k -> gets st_patch >>= evalDsl . k
-    ModPatch f k -> do
-      modify $ \s -> s {st_patch = f (st_patch s)}
-      evalDsl k
+    ModState f k
+      -> get >>= \st -> let (st',res) = f st in put st' >> evalDsl (k res)
     DbCreate p k   -> runDb (Patch.create p)   k
     DbRead i k     -> runDb (Patch.read i)     k
     DbUpdate i p k -> runDb (Patch.update i p) k

@@ -16,7 +16,6 @@ import Control.Monad
 import Control.Monad.Free (Free)
 import Control.Monad.Trans
 import Control.Monad.Trans.Reader
-import Control.Monad.Trans.State
 
 import Data.List
 import Data.Map (Map)
@@ -25,6 +24,7 @@ import qualified Data.HashMap.Strict as HM
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
+import Text.Printf
 import Data.Time.Clock
 import Data.Dynamic
 import GHC.TypeLits
@@ -38,7 +38,6 @@ import WeatherApi (tempC)
 import Application (AppHandler)
 import Data.Model as Model
 import Data.Model.Patch as Patch
-import qualified Data.Model.Patch.Sql as Patch
 import Data.Model.Types
 import           Trigger.Dsl as Dsl
 
@@ -80,7 +79,7 @@ import           Carma.Backoffice.Graph (startNode)
 --   - trigOnField -> onField
 
 
-beforeCreate :: Map ModelName [Dynamic]
+beforeCreate :: TriggerMap
 beforeCreate = Map.unionsWith (++)
   [trigOnModel ([]::[Call])
     $ getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
@@ -151,12 +150,12 @@ beforeCreate = Map.unionsWith (++)
     modPut Towage.wheelsUnblocked     $ Just $ Ident "w0"
   ]
 
-afterCreate :: Map ModelName [Dynamic]
+afterCreate :: TriggerMap
 afterCreate = Map.unionsWith (++)
   [trigOnModel ([]::[Usermeta]) updateSnapUserFromUsermeta
   ]
 
-beforeUpdate :: Map (ModelName, FieldName) [Dynamic]
+beforeUpdate :: TriggerMap
 beforeUpdate = Map.unionsWith (++) $
   [trigOn Usermeta.businessRole $ \case
     Nothing -> return ()
@@ -253,7 +252,7 @@ beforeUpdate = Map.unionsWith (++) $
   map entryToTrigger (fst carmaBackoffice) ++
   map actionToTrigger (snd carmaBackoffice)
 
-afterUpdate :: Map (ModelName, FieldName) [Dynamic]
+afterUpdate :: TriggerMap
 afterUpdate = Map.unionsWith (++) $
   [trigOn Usermeta.delayedState $ \_ -> wsMessage
   ,trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
@@ -271,6 +270,7 @@ afterUpdate = Map.unionsWith (++) $
 
 type ModelName = Text
 type FieldName = Text
+type TriggerMap = Map (ModelName, FieldName) [Dynamic]
 
 
 -- | This is how we make new trigger
@@ -279,85 +279,89 @@ trigOn
   . (Model m, KnownSymbol name, Typeable typ)
   => (m -> Field typ (FOpt name desc app)) -- ^ watch this field
   -> (typ -> Free (Dsl m) res)             -- ^ run this if field changed
-  -> Map (ModelName, FieldName) [Dynamic]
+  -> TriggerMap
 trigOn fld fun = Map.singleton (mName, fName) [toDyn fun']
   where
     mName = modelName (modelInfo :: ModelInfo m)
     fName = Model.fieldName fld
     fun'  = getPatchField fld >>= \case
       Nothing  -> error "BUG! We just triggered on this field. It MUST be there."
-      Just val -> fun val >> tOk
+      Just val -> void $ fun val
 
 
 trigOnModel
   :: forall m res . Model m
-  => [m] -> Free (Dsl m) res -> Map ModelName [Dynamic]
+  => [m] -> Free (Dsl m) res -> TriggerMap
 trigOnModel _ fun
   = Map.singleton
-    (modelName (modelInfo :: ModelInfo m))
-    [toDyn $ fun >> tOk]
+    (modelName (modelInfo :: ModelInfo m), "") -- dummy field name
+    [toDyn $ void fun]
 
 
 -- | This is how we run triggers on a patch
 
 runCreateTriggers
-  :: forall m . Model m
+  :: Model m
   => Patch m -> AppHandler (Either String (IdentI m, Patch m))
 runCreateTriggers patch = do
-  let mName = modelName (modelInfo :: ModelInfo m)
-      pName = parentName (modelInfo :: ModelInfo m)
-
-      matchingTriggers m
-        = let ts = Map.findWithDefault [] mName m
-          in maybe [] (\p -> Map.findWithDefault [] p m) pName ++ ts
-
-      joinTriggers k tr = do
-        let tr' = fromDyn tr $ tError 500 "dynamic BUG"
-        tr' >>= either (return . Left) (const k)
-
-      before = foldl joinTriggers tOk $ matchingTriggers beforeCreate
-      after  = foldl joinTriggers tOk $ matchingTriggers afterCreate
-
   s <- PS.getPostgresState
-  Pool.withResource (PS.pgPool s) $ \pgconn -> do
-    liftIO $ PG.beginLevel PG.ReadCommitted pgconn
-    (Right _, st1) <- runStateT (evalDsl before) (DslState undefined patch pgconn)
-    Right ident    <- liftIO $ Patch.create (st_patch st1) pgconn
-    (Right _, st2) <- runStateT (evalDsl after) (st1{st_ident = ident})
-    liftIO $ PG.commit pgconn
-    return $ Right (st_ident st2, st_patch st2)
+  Pool.withResource (PS.pgPool s) $ \pg ->
+    fmap (\st -> (st_ident st, st_patch st))
+      <$> runTriggers beforeCreate afterCreate
+        (getPatch >>= dbCreate >>= putIdentUnsafe)
+        [""] -- pass dummy field name
+        (emptyDslState undefined patch pg)
 
 
 runUpdateTriggers
-  :: forall m . Model m
+  :: Model m
   => IdentI m -> Patch m
-  -> AppHandler (TriggerRes m)
+  -> AppHandler (Either String (Patch m))
 runUpdateTriggers ident patch = do
-  let mName = modelName (modelInfo :: ModelInfo m)
-      pName = parentName (modelInfo :: ModelInfo m)
-      fields = HM.keys $ untypedPatch patch
-      keys = maybe [] (\p -> map (p,) fields) pName ++ map (mName,) fields
-
-      matchingTriggers m = concat $ mapMaybe (`Map.lookup` m) keys
-
-      joinTriggers k tr = do
-        let tr' = fromDyn tr $ tError 500 "dynamic BUG"
-        tr' >>= either (return . Left) (const k)
-
-      before = foldl joinTriggers tOk $ matchingTriggers beforeUpdate
-      after  = foldl joinTriggers tOk $ matchingTriggers afterUpdate
-
   s <- PS.getPostgresState
-  Pool.withResource (PS.pgPool s) $ \pgconn -> do
-    liftIO $ PG.beginLevel PG.ReadCommitted pgconn
-    (Right _, st1) <- runStateT (evalDsl before) (DslState ident patch pgconn)
-    Right count    <- liftIO $ Patch.update ident (st_patch st1) pgconn
-    case count of
-      0 -> return $ Left (404, "no such object " ++ show ident)
-      _ -> do
-        (Right _, st2) <- runStateT (evalDsl after)  st1
-        liftIO $ PG.commit pgconn
-        return $ Right $ st_patch st2
+  Pool.withResource (PS.pgPool s) $ \pg ->
+    fmap st_patch
+      <$> runTriggers beforeUpdate afterUpdate
+        (getPatch >>= dbUpdate ident >> return ())
+        (HM.keys $ untypedPatch patch)
+        (emptyDslState ident patch pg)
+
+
+runTriggers
+  :: forall m .Model m
+  => TriggerMap -> TriggerMap -> DslM m () -> [FieldName]
+  -> DslState m
+  -> AppHandler (Either String (DslState m))
+runTriggers before after dbAction fields state = do
+  let mInfo = modelInfo :: ModelInfo m
+
+  let matchingTriggers :: Text -> TriggerMap -> [DslM m ()]
+      matchingTriggers model trigMap = do
+        field <- fields
+        Just triggers <- [Map.lookup (model,field) trigMap]
+        trigger <- triggers
+        fromMaybe -- FIXME: fail early
+          (fail $ printf "BUG! while casting tigger (%s,%s)"
+            (show model) (show field))
+          (fromDynamic trigger)
+
+  let pg = st_pgcon state
+  liftIO $ PG.beginLevel PG.ReadCommitted pg
+
+  -- FIXME: try/finally
+  runDslM state $ do
+--    inParentContext $ case parentName mInfo of
+--      Just pName -> sequence $ matchingTriggers pName before
+--      Noting     -> return ()
+    sequence_ $ matchingTriggers (modelName mInfo) before
+
+    dbAction
+
+--    inParentContext $ case parentName mInfo of
+--      Just pName -> sequence $ matchingTriggers pName after
+--      Nothing    -> return ()
+    sequence_ $ matchingTriggers (modelName mInfo) after
+
 
 
 -- | Mapping between a contract field and a  case field.

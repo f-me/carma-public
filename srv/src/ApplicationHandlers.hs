@@ -259,7 +259,7 @@ updateHandler = do
                                      "BUG in updateHandler: " ++ show err
         commit <- getJSONBody :: AppHandler (Patch m)
         runUpdateTriggers  ident commit >>= \case
-          Left (code,_err) -> return $ Left code
+          Left err -> error $ "in updateHandler: " ++ show err
           Right commit' -> do
             evIdt <- logCRUD Update ident commit'
             updateUserState Update ident commit evIdt
