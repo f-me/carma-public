@@ -51,6 +51,7 @@ import qualified Data.Text.ICU.Convert as ICU
 import           Database.PostgreSQL.Simple (Only(..))
 import           Database.PostgreSQL.Simple.Copy
 
+import           System.FilePath
 import           System.IO
 
 import           Data.Model
@@ -308,12 +309,12 @@ process psid enc mapping = do
                  void $ execute setQueueDefaults (PT fn, dv, PT fn))
 
   arcVal <- getOption fromArc
-  -- Set committer and subprogram. If the subprogram is loadable and
+  -- Set service field values. If the subprogram is loadable and
   -- was not recognized in a file row, it will be set to the
   -- subprogram specified in import options. However, if it is
   -- required, the corresponding file row has already been marked as
   -- erroneous on the previous step.
-  setSpecialDefaults uid (snd psid) arcVal
+  setSpecialDefaults uid (snd psid) arcVal (takeFileName input)
 
   markMissingIdentifiers
 

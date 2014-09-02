@@ -597,18 +597,22 @@ setSpecialDefaults :: Int
                    -- ^ Subprogram.
                    -> Bool
                    -- ^ Contracts are loaded from ARC.
+                   -> String
+                   -- ^ Source file name.
                    -> Import Int64
-setSpecialDefaults cid sid fromArcVal =
+setSpecialDefaults cid sid fromArcVal filename =
     execute
     [sql|
      UPDATE vinnie_queue SET ? = ?;
      UPDATE vinnie_queue SET ? = 't';
      UPDATE vinnie_queue SET ? = ? WHERE ? IS NULL;
      UPDATE vinnie_queue SET ? = ?;
+     UPDATE vinnie_queue SET ? = ?;
      |] (cfn C.committer, cid,
          cfn C.dixi,
          cfn C.subprogram, sid, cfn C.subprogram,
-         cfn C.fromArc, fromArcVal)
+         cfn C.fromArc, fromArcVal,
+         cfn C.sourceFile, filename)
 
 
 -- | Transfer from proto table to queue table, casting text values
@@ -698,11 +702,13 @@ transferContracts =
           (fieldName C.fromArc):
           (fieldName C.committer):
           (fieldName C.dixi):
+          (fieldName C.sourceFile):
           contractFields
         , PT $ sqlCommas $
           (fieldName C.fromArc):
           (fieldName C.committer):
           (fieldName C.dixi):
+          (fieldName C.sourceFile):
           contractFields)
 
 

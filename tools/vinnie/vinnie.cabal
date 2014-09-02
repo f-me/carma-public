@@ -1,5 +1,5 @@
 name:                vinnie
-version:             0.3.1
+version:             0.3.2
 synopsis:            VINNIE Is a New Nice Importer Engine
 license:             BSD3
 license-file:        LICENSE
@@ -25,11 +25,12 @@ library
     base              >= 4.6 && < 4.8,
     blaze-builder     == 0.3.*,
     bytestring        == 0.10.*,
-    carma-models      >= 0.24 && < 0.25,
+    carma-models      >= 0.24.2 && < 0.25,
     conduit           >= 1.0 && < 1.2,
     conduit-extra     == 1.1.*,
     containers        == 0.5.*,
     csv-conduit       == 0.6.*,
+    filepath          == 1.3.*,
     lifted-base       == 0.2.*,
     monad-control     == 0.3.*,
     postgresql-simple == 0.4.*,
@@ -56,12 +57,13 @@ executable vinnie
     base              >= 4.6 && < 4.8,
     blaze-builder     == 0.3.*,
     bytestring        == 0.10.*,
-    carma-models      >= 0.24 && < 0.25,
+    carma-models      >= 0.24.2 && < 0.25,
     cmdargs           == 0.10.*,
     conduit           >= 1.0 && < 1.2,
     conduit-extra     == 1.1.*,
     containers        == 0.5.*,
     csv-conduit       == 0.6.*,
+    filepath          == 1.3.*,
     lifted-base       == 0.2.*,
     monad-control     == 0.3.*,
     postgresql-simple == 0.4.*,
