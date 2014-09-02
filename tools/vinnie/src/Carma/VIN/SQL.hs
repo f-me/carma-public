@@ -682,8 +682,9 @@ deleteDupes =
      (SELECT 1 FROM "?" c WHERE ?);
      |] ( contractTable
         , PT $ T.intercalate " AND " $
-          map (\f -> T.concat [ "coalesce(q.", f, "::text,'') "
-                              , "= coalesce(c.", f, "::text,'')"])
+          map (\f -> T.concat [ "((q.", f, " = ","c.", f
+                              , ") OR ("
+                              , "q.", f, " IS NULL AND c.", f, " IS NULL))"]) $
           contractFields
         )
 
