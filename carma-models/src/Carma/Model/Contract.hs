@@ -80,6 +80,9 @@ data Contract = Contract
   , fromArc          :: F Bool
                         "fromArc"
                         "Подгружен из ARC"
+  , sourceFile       :: F Text
+                        "sourceFile"
+                        "Название файла-источника"
   , vin              :: F (Maybe Text)
                         "vin"
                         "VIN"
