@@ -27,13 +27,13 @@ define [ "text!tpl/screens/vin.html"
       permEl: null,
       manual_save: true
     kvm = Main.modelSetup("vinUpload", models.VinUpload) "new-form", {}, options
-    global.vu = kvm
     $("#vin-send").click (e) ->
       vinFile = $("#vin-upload-file")[0].files[0]
       sid = kvm.subprogram()
       fid = kvm.format()
       if sid? && fid? && vinFile?
         sendVin sid, fid, vinFile
+        $("#vin-upload-file")[0].value = null
       false
 
   # Send VIN file, set up a new box element to track task progress
