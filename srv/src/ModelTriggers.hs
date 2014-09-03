@@ -366,6 +366,8 @@ runTriggers before after dbAction fields state = do
         $ sequence_ $ matchingTriggers (modelName p) after
     sequence_ $ matchingTriggers (modelName mInfo) after
 
+  liftIO $ PG.commit pg
+
 
 
 
