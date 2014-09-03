@@ -15,6 +15,7 @@ import Database.PostgreSQL.Simple.SqlQQ
 
 import Data.Model.Types
 
+import Carma.Model.ActionType as ActionType
 import Carma.Model.Usermeta as Usermeta
 
 import Snaplet.Auth.PGUsers
@@ -37,8 +38,8 @@ assignQ = [sql|
         WHERE id = (SELECT act.id
           FROM ((SELECT * FROM actiontbl WHERE result IS NOT NULL) act
             LEFT JOIN servicetbl svc
-            ON svc.type = act.serviceType and svc.id = act.serviceId),
-            casetbl c, usermetatbl u, \"ActionType\" at
+            ON svc.id = act.serviceId),
+            casetbl c, usermetatbl u, "ActionType" at
           WHERE u.id = ?
           AND c.id = act.caseId
           AND at.id = act.type
@@ -54,9 +55,9 @@ assignQ = [sql|
           ORDER BY
             (u.boPrograms IS NOT NULL AND c.program::text = ANY (u.boPrograms)) DESC,
             (u.boCities   IS NOT NULL AND c.city          = ANY (u.boCities)) DESC,
-            (act.name IN ('orderService', 'orderServiceAnalyst')
+            (act.type IN ?
               AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,
-            (CASE WHEN act.name IN ('orderService', 'orderServiceAnalyst')
+            (CASE WHEN act.type IN ?
               THEN coalesce(svc.times_expectedServiceStart,act.duetime)
               ELSE act.duetime
               END) ASC
@@ -68,8 +69,9 @@ assignQ = [sql|
 littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   Just cid <- currentUserMetaId
-  let params :: Int -> (IdentI Usermeta, IdentI Usermeta, Int)
-      params n = (cid, cid, n)
+  let orders = In [ActionType.orderService, ActionType.orderServiceAnalyst]
+      -- Parameters for assignQ query
+      params n = (cid, cid, n :: Int, orders, orders)
 
   actIds'   <- withPG pg_actass (\c -> query c assignQ (params 1))
   actIds''  <- case actIds' of
