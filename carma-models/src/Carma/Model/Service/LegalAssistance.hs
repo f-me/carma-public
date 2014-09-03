@@ -21,6 +21,7 @@ data LegalAssistance = LegalAssistance
 instance Model LegalAssistance where
   type TableName LegalAssistance = "kentbl"
   type Parent LegalAssistance = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo LegalAssistance ident
   modelView v = case parentView v :: Maybe (ModelView LegalAssistance) of
     Nothing -> Nothing

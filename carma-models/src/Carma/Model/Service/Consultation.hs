@@ -20,6 +20,7 @@ data Consultation = Consultation
 instance Model Consultation where
   type TableName Consultation = "consultationtbl"
   type Parent Consultation = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo Consultation ident
   modelView v = case parentView v :: Maybe (ModelView Consultation) of
     Nothing -> Nothing

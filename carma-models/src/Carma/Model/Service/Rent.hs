@@ -39,6 +39,8 @@ data Rent = Rent
 instance Model Rent where
   type TableName Rent = "renttbl"
   type Parent Rent = Service
+  parentInfo = ExParent modelInfo
+
   modelInfo = mkModelInfo Rent ident
   modelView v = case parentView v :: Maybe (ModelView Rent) of
     Nothing -> Nothing

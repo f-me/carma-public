@@ -22,6 +22,7 @@ data Transportation = Transportation
 instance Model Transportation where
   type TableName Transportation = "transportationtbl"
   type Parent Transportation = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo Transportation ident
   modelView v = case parentView v :: Maybe (ModelView Transportation) of
     Nothing -> Nothing

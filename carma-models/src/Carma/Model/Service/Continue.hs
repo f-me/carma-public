@@ -29,6 +29,7 @@ data Continue = Continue
 instance Model Continue where
   type TableName Continue = "continuetbl"
   type Parent Continue = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo Continue ident
   modelView v = case parentView v :: Maybe (ModelView Continue) of
     Nothing -> Nothing

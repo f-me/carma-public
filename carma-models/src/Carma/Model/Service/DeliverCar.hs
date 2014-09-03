@@ -21,6 +21,7 @@ data DeliverCar = DeliverCar
 instance Model DeliverCar where
   type TableName DeliverCar = "delivercartbl"
   type Parent DeliverCar = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo DeliverCar ident
   modelView v = case parentView v :: Maybe (ModelView DeliverCar) of
     Nothing -> Nothing

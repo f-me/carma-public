@@ -77,6 +77,7 @@ data Towage = Towage
 instance Model Towage where
   type TableName Towage = "towagetbl"
   type Parent Towage = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo Towage ident
   modelView = \case
     "search" -> Just

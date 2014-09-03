@@ -28,6 +28,7 @@ data Tickets = Tickets
 instance Model Tickets where
   type TableName Tickets = "ticketstbl"
   type Parent Tickets = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo Tickets ident
   modelView v = case parentView v :: Maybe (ModelView Tickets) of
     Nothing -> Nothing

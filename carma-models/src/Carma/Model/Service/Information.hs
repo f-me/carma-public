@@ -35,6 +35,7 @@ data Information = Information
 instance Model Information where
   type TableName Information = "informationtbl"
   type Parent Information = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo Information ident
   modelView v = case parentView v :: Maybe (ModelView Information) of
     Nothing -> Nothing

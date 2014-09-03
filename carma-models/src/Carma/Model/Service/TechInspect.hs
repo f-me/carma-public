@@ -20,6 +20,7 @@ data TechInspect = TechInspect
 instance Model TechInspect where
   type TableName TechInspect = "tech1tbl"
   type Parent TechInspect = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo TechInspect ident
   modelView v = case parentView v :: Maybe (ModelView TechInspect) of
     Nothing -> Nothing

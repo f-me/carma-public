@@ -32,6 +32,7 @@ data Bank = Bank
 instance Model Bank where
   type TableName Bank = "banktbl"
   type Parent Bank = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo Bank ident
   modelView v = case parentView v :: Maybe (ModelView Bank) of
     Nothing -> Nothing

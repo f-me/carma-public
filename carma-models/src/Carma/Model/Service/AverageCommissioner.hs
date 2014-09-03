@@ -38,6 +38,7 @@ data AverageCommissioner = AverageCommissioner
 instance Model AverageCommissioner where
   type TableName AverageCommissioner = "averagecommissionertbl"
   type Parent AverageCommissioner = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo AverageCommissioner ident
   modelView v = case parentView v :: Maybe (ModelView AverageCommissioner) of
     Nothing -> Nothing

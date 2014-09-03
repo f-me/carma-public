@@ -19,6 +19,7 @@ data Tech = Tech
 instance Model Tech where
   type TableName Tech = "techtbl"
   type Parent Tech = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo Tech ident
   modelView v = case parentView v :: Maybe (ModelView Tech) of
     Nothing -> Nothing
