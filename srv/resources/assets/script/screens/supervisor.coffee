@@ -126,7 +126,8 @@ define ["utils"
     focusClass = "focusable"
     refs = []
     forceRender = ["assignedTo", "priority", "closed", "targetGroup"]
-    options = {permEl, focusClass, refs, forceRender}
+    manual_save = true
+    options = {permEl, focusClass, refs, forceRender, manual_save}
     main.modelSetup(modelName) viewName, args, options
 
   roleFieldSetup = ->
