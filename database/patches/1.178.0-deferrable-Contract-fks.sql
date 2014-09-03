@@ -24,3 +24,7 @@ ADD CONSTRAINT "Contract_model_fkey" FOREIGN KEY (model) REFERENCES "CarModel"(i
 ADD CONSTRAINT "Contract_seller_fkey" FOREIGN KEY (seller) REFERENCES partnertbl(id) DEFERRABLE,
 ADD CONSTRAINT "Contract_subprogram_fkey" FOREIGN KEY (subprogram) REFERENCES "SubProgram"(id) DEFERRABLE,
 ADD CONSTRAINT "Contract_transmission_fkey" FOREIGN KEY (transmission) REFERENCES "Transmission"(id) DEFERRABLE;
+
+DROP TRIGGER "Contract_checkPeriod" ON "Contract";
+DROP TRIGGER "Contract_validUntil_insert" ON "Contract";
+DROP TRIGGER "Contract_validUntil_update" ON "Contract";
