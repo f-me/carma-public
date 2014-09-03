@@ -102,12 +102,7 @@ class (SingI (TableName m), Typeable m, Typeable (Parent m)) => Model m where
   idents    =  HashMap.empty
 
 
-instance (Model m, Show t) => Show (Ident t m) where
-  show (Ident x :: Ident t m) = "Ident " ++ modelName ++ " " ++ show x
-    where
-      modelName = show $ typeOf (undefined :: m)
-
--- FIXME: type NoParent = ()
+-- FIXME: we can replace NoParent with ()
 data NoParent deriving Typeable
 instance Model NoParent where
   type TableName NoParent = "(undefined)"

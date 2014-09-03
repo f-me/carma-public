@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds, GADTs #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model.Types where
 
@@ -28,6 +29,11 @@ type a :@ t = Wrap t a
 
 data Ident t model = Ident {identVal :: t}
   deriving (Ord, Typeable, Eq)
+
+instance (Typeable m, Show t) => Show (Ident t m) where
+  show (Ident x) = "Ident " ++ modelName ++ " " ++ show x
+    where
+      modelName = show $ typeOf (undefined :: m)
 
 type IdentI m = Ident Int m
 type IdentT m = Ident Text m
