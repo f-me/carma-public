@@ -328,14 +328,14 @@ runUpdateTriggers ident patch = do
 
 
 runTriggers
-  :: forall m .Model m
+  :: forall m . Model m
   => TriggerMap -> TriggerMap -> DslM m () -> [FieldName]
   -> DslState m
   -> AppHandler (Either String (DslState m))
 runTriggers before after dbAction fields state = do
   let mInfo = modelInfo :: ModelInfo m
 
-  let matchingTriggers :: Text -> TriggerMap -> [DslM m ()]
+  let matchingTriggers :: Model m' => Text -> TriggerMap -> [DslM m' ()]
       matchingTriggers model trigMap = do
         field <- fields
         Just triggers <- [Map.lookup (model,field) trigMap]
@@ -350,17 +350,22 @@ runTriggers before after dbAction fields state = do
 
   -- FIXME: try/finally
   runDslM state $ do
---    inParentContext $ case parentName mInfo of
---      Just pName -> sequence $ matchingTriggers pName before
---      Noting     -> return ()
+    case parentInfo :: ParentInfo m of
+      NoParent -> return ()
+      ExParent p
+        -> inParentContext
+        $ sequence_ $ matchingTriggers (modelName p) before
     sequence_ $ matchingTriggers (modelName mInfo) before
 
     dbAction
 
---    inParentContext $ case parentName mInfo of
---      Just pName -> sequence $ matchingTriggers pName after
---      Nothing    -> return ()
+    case parentInfo :: ParentInfo m of
+      NoParent -> return ()
+      ExParent p
+        -> inParentContext
+        $ sequence_ $ matchingTriggers (modelName p) after
     sequence_ $ matchingTriggers (modelName mInfo) after
+
 
 
 

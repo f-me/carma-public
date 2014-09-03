@@ -12,6 +12,7 @@ module Trigger.Dsl
     , emptyDslState
     , DslM, runDslM
     , evalDsl
+    , inParentContext
 
       -- * DSL terms
       -- ** Context access
@@ -165,6 +166,26 @@ getNow = liftFree (DoApp (liftIO getCurrentTime) id)
 
 dbQuery :: (PG.FromRow r, PG.ToRow q) => PG.Query -> q -> Free (Dsl m) [r]
 dbQuery q params = liftFree $ DbIO (\c -> PG.query c q params) id
+
+
+inParentContext
+  :: (Model m, p ~ Parent m, Model p)
+  => DslM p () -> DslM m ()
+inParentContext act = do
+  let getState = liftFree $ ModState (\st -> (st, st)) id
+  let setState s = liftFree $ ModState (const (s, ())) id
+  let doApp f = liftFree (DoApp f id)
+  st <- getState
+  let st_p = st
+        {st_ident = Patch.toParentIdent $ st_ident st
+        ,st_patch = Patch.toParentPatch $ st_patch st
+        }
+  Right st_p' <- doApp $ runDslM st_p act
+  let patch' = Patch.mergeParentPatch (st_patch st) (st_patch st_p')
+  setState $ st {st_patch = patch'}
+
+
+
 
 -- | List of closed actions in a case. Last closed actions come first.
 prevClosedActions :: IdentI Case
