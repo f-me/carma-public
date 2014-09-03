@@ -3,6 +3,9 @@
 module Data.Model.Patch
   ( Patch(Patch), untypedPatch
   , parentField
+  , toParentIdent
+  , toParentPatch
+  , mergeParentPatch
   , get, get', put, delete
   , empty
   , W(..)
@@ -38,7 +41,7 @@ import Data.Singletons
 import Data.Model
 
 
-data Patch m
+data Patch m -- FIXME: why HashMap, not good old Data.Map?
   = Patch { untypedPatch :: HashMap Text Dynamic }
   deriving Typeable
 
@@ -74,6 +77,31 @@ parentField :: Model m =>
                (Parent m -> Field t (FOpt name desc app))
             -> (m -> Field t (FOpt name desc app))
 parentField _ _ = Field
+
+
+toParentIdent
+  :: Model m
+  => Ident t m -> Ident t (Parent m)
+toParentIdent = Ident . identVal
+
+
+toParentPatch
+  :: Model m
+  => Patch m -> Patch (Parent m)
+toParentPatch = Patch . untypedPatch
+
+
+mergeParentPatch
+  :: forall m . Model m
+  => Patch m -> Patch (Parent m) -> Patch m
+mergeParentPatch a b = case parentInfo :: ParentInfo m of
+  NoParent   -> a
+  ExParent p ->
+    let ua = untypedPatch a
+        ub = untypedPatch b
+        fs = modelFieldsMap p
+        ub'= HashMap.filterWithKey (\k _ -> HashMap.member k fs) ub
+    in Patch $ HashMap.union ub' ua
 
 
 instance Model m => FromJSON (Patch m) where
