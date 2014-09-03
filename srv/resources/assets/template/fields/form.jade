@@ -176,9 +176,9 @@ mixin dict(nameMod, iconClass)
       .input-append
           +defaultInput("", "", "afterkeydown")(
             onkeyDown="kdoPick('{{ meta.picker }}', '{{ name }}', 66, event);")
-        span.add-on
-          i.icon.icon-search(onclick="doPick('{{ meta.picker }}',\
-                                             '{{ name }}', event.target);")
+          span.add-on
+            i.icon.icon-search(onclick="doPick('{{ meta.picker }}',\
+                                               '{{ name }}', event.target);")
 
 //- radio widget for flat dictionary fields -->
 .field-template#radio-field-template
