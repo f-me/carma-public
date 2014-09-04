@@ -88,14 +88,15 @@ define [ "search/screen"
     # contract form.
     openContract = (cid) ->
       $('a[href="#contract-tab"]').tab("show")
+      formContractModel = contractModel + "&view=portalForm"
       if cid?
         $('#render-contract').attr(
           "href",
           "/renderContract?contract=#{cid}")
         $('#render-contract').attr "onclick", null
-        main.modelSetup(contractModel) contractForm, {id: cid}, {}
+        main.modelSetup(formContractModel) contractForm, {id: cid}, {}
       else
-        main.modelSetup(contractModel) contractForm,
+        main.modelSetup(formContractModel) contractForm,
           # TODO Check for permission to write in a subprogram
           {subprogram: subprogram}, {}
 
