@@ -8,6 +8,9 @@ define [ "utils"
   # Poll server every n seconds
   poll_every = 5
 
+  pleaseStandby = ->
+    $("#standby-msg").fadeOut('fast').fadeIn('fast')
+
   setupBackOffice = ->
     onBackofficeScreen = true
     $("#zardoz").knob()
@@ -18,16 +21,15 @@ define [ "utils"
     # Time since last cycle start, in seconds
     current_cycle = 0
     worker = ->
-      percent
-      percent = current_cycle / poll_every * 100.0
-      $("#zardoz").val(percent).trigger('change')
-
       if onBackofficeScreen
         current_cycle += cycle_resolution
+        percent = current_cycle / poll_every * 100.0
+        $("#zardoz").val(percent).trigger('change')
         if current_cycle >= poll_every
           pullActions()
           current_cycle = 0
-        setTimeout worker, (cycle_resolution * 1000)
+        else
+          setTimeout worker, (cycle_resolution * 1000)
     worker()
 
   # Given /littleMoreActions response, try to redirect to the first
@@ -35,6 +37,9 @@ define [ "utils"
   myActionsHandler = (actions) ->
     if !_.isEmpty actions
       openCaseAction act.id, act.caseId
+    else
+      pleaseStandby()
+      setupPoller()
 
   # Pull new actions for user
   pullActions = ->
