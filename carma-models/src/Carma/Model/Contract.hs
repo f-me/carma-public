@@ -180,7 +180,7 @@ instance Model Contract where
   modelInfo = mkModelInfo Contract ident
   modelView = \case
     "search" ->
-        Just $ subDict "portalSubPrograms" $
+        Just $ subDict "prefixedSubPrograms" $
         flip modifyView commonMeta $
         searchView (contractSearchParams)
     "portalSearch" ->
@@ -188,7 +188,7 @@ instance Model Contract where
         flip modifyView commonMeta $
         searchView (contractSearchParams)
     ""       ->
-        Just $ subDict "portalSubPrograms" $
+        Just $ subDict "prefixedSubPrograms" $
         modifyView defaultView $
         [ regexp "email" email
         , regexp "phone" phone
@@ -216,7 +216,6 @@ commonMeta =
     , color `completeWith` Color.label
     , partnerKey seller
     , setType "Integer" ident
-    , setType "ident" committer
     , widget "text" ident
     , partnerKey lastCheckDealer
     ]
