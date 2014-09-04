@@ -13,10 +13,7 @@ import Control.Monad
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.SqlQQ
 
-import Data.Model.Types
-
 import Carma.Model.ActionType as ActionType
-import Carma.Model.Usermeta as Usermeta
 
 import Snaplet.Auth.PGUsers
 
@@ -26,7 +23,10 @@ import AppHandlers.Util
 import Util hiding (withPG)
 
 
--- 3 parameters: usermeta ident (2), action priority class
+-- | Assign a single action to a user.
+--
+-- 5 parameters: usermeta ident (2), action priority class, order
+-- action types (2)
 assignQ :: Query
 assignQ = [sql|
       WITH activeUsers AS (
@@ -66,6 +66,9 @@ assignQ = [sql|
         RETURNING id;
     |]
 
+
+-- | Pull new actions and serve JSON with all actions currently
+-- assigned to the user.
 littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   Just cid <- currentUserMetaId
