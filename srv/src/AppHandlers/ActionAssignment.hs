@@ -36,7 +36,7 @@ assignQ = [sql|
           AND now() - lastactivity < '30 min')
       UPDATE actiontbl SET assignTime = now(), assignedTo = ?
         WHERE id = (SELECT act.id
-          FROM ((SELECT * FROM actiontbl WHERE result IS NOT NULL) act
+          FROM ((SELECT * FROM actiontbl WHERE result IS NULL) act
             LEFT JOIN servicetbl svc
             ON svc.id = act.serviceId),
             casetbl c, usermetatbl u, "ActionType" at
