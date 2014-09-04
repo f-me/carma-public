@@ -44,12 +44,15 @@ instance Model Action where
           [ hiddenIdent caseId
           , hiddenIdent serviceId
           , hiddenIdent parent
+          , readonly aType
+          , readonly duetime
           , deferBy `completeWith` time
           , setMeta "dictionaryLabel"
             (A.String $ fieldName label) deferBy
           , infoText "defertime" deferBy
           , setMeta "addClass" "redirectOnChange" result
           , setMeta "dictionaryType" "BoUsersDict" assignedTo
+          , setType "textarea" comment
           , invisible ctime
           , invisible assignTime
           , invisible openTime
