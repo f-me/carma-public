@@ -146,9 +146,8 @@ instance FromJSON HMDiffTime where
 
 instance ToJSON HMDiffTime where
   toJSON (HMDiffTime dt) =
-    Aeson.String $ T.concat [ts h, ":", ts m]
+    Aeson.String $ T.pack $ printf "%.2d:%.2d" h m
     where
-      ts = T.pack . show
       (h, m, _) = diffTimeTohms dt
 
 
