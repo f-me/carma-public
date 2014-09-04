@@ -36,6 +36,7 @@ define [ "utils"
   # action
   myActionsHandler = (actions) ->
     if !_.isEmpty actions
+      act = _.first actions
       openCaseAction act.id, act.caseId
     else
       pleaseStandby()

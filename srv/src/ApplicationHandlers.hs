@@ -26,7 +26,6 @@ module ApplicationHandlers
       -- * Helper handlers
     , getRegionByCity
     , towAvgTime
-    , openAction
     , printServiceHandler
     , copyCtrOptions
 
@@ -413,19 +412,6 @@ getRegionByCity =
       writeJSON (res :: [[Text]])
     _ -> error "Could not read city from request"
 
-
--- | Read @actionid@ request parameter and set @openTime@ of that
--- action to current time.
-openAction :: AppHandler ()
-openAction = do
-  aid <- getParamT "actionid"
-  case aid of
-    Nothing -> error "Could not read actionid parameter"
-    Just i -> do
-      dn <- liftIO $ projNow id
-      res <- with db $ DB.update "action" i $
-                       Map.singleton "openTime" dn
-      writeJSON res
 
 lookupSrvQ :: Query
 lookupSrvQ = [sql|
