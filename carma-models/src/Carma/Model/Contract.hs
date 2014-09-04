@@ -187,15 +187,12 @@ instance Model Contract where
         Just $ subDict "portalSubPrograms" $
         flip modifyView commonMeta $
         searchView (contractSearchParams)
+    "portalForm" ->
+        Just $ subDict "portalSubPrograms" $
+        defaultView `modifyView` commonMeta
     ""       ->
         Just $ subDict "prefixedSubPrograms" $
-        modifyView defaultView $
-        [ regexp "email" email
-        , regexp "phone" phone
-        , regexp "plateNum" plateNum
-        , regexp "vin" vin
-        , widget "checkbutton" dixi
-        ] ++ commonMeta
+        defaultView `modifyView` commonMeta
     _ -> Nothing
     where
       -- Make subprogram field more usable on client
@@ -213,11 +210,17 @@ commonMeta =
     , setMeta "dictionaryLabel"
       (String $ DM.fieldName Usermeta.realName)
       committer
+    , readonly committer
     , color `completeWith` Color.label
     , partnerKey seller
     , setType "Integer" ident
     , widget "text" ident
     , partnerKey lastCheckDealer
+    , regexp "email" email
+    , regexp "phone" phone
+    , regexp "plateNum" plateNum
+    , regexp "vin" vin
+    , widget "checkbutton" dixi
     ]
 
 
