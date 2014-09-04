@@ -170,7 +170,11 @@ stripModel u m = do
   let fieldsMap = Map.fromList readableFields
   let fieldFilter f fs = case Map.lookup (name f) fieldsMap of
         Nothing -> fs
-        Just wr -> f {canWrite = canWrite f && wr} : fs
+        Just wr ->
+          let w = canWrite f && wr
+          in f {meta = Map.insert "readonly" (Aeson.Bool $ not w) <$> meta f
+               ,canWrite = w
+               } : fs
   return $ m {fields = foldr fieldFilter [] $ fields m}
 
 -- | Serve available idents for a model (given in @name@ request
