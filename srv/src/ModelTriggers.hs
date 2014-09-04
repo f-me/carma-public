@@ -340,7 +340,7 @@ runTriggers before after dbAction fields state = do
         field <- fields
         Just triggers <- [Map.lookup (model,field) trigMap]
         trigger <- triggers
-        fromMaybe -- FIXME: fail early
+        return $ fromMaybe -- FIXME: fail early
           (fail $ printf "BUG! while casting tigger (%s,%s)"
             (show model) (show field))
           (fromDynamic trigger)
