@@ -44,7 +44,7 @@ assignQ = [sql|
           AND c.id = act.caseId
           AND at.id = act.type
           AND at.priority = ?
-          AND act.duetime at time zone 'UTC' - now() <= interval '5 minutes'
+          AND act.duetime - now() <= interval '5 minutes'
           AND targetGroup::int = ANY (u.roles)
           AND (act.assignedTo IS NULL
                OR act.assignedTo NOT IN (SELECT id FROM activeUsers))
