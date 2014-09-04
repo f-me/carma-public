@@ -21,6 +21,7 @@
     "knockoutjs": "3.1.0",
     "finchjs": "~0.5.14",
     "jquery": ">=1.8.0 <2.1.0",
+    "jquery-knob": "~1.2.11",
     "OpenLayers": "http://openlayers.org/download/OpenLayers-2.13.1.zip",
     "bootstrap-wysihtml5": "*",
     "wysihtml5": "~0.3.0",

@@ -64,6 +64,8 @@
     <!-- masked input for datetime fields -->
     <script src="/s/3p/jquery.maskedinput.js" />
 
+    <script src="/s/3p/jquery.knob.min.js" />
+
     <script src="/s/3p/md5.min.js" />
 
     <script src="/s/3p/d3.min.js" />

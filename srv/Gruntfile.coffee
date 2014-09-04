@@ -93,6 +93,9 @@ module.exports = (grunt) ->
     'jquery-maskedinput':
       src: 'jquery-maskedinput/src'
       file: 'jquery.maskedinput.js'
+    'jquery-knob':
+      src: 'jquery-knob/dist'
+      file: 'jquery.knob.min.js'
     datatables:
       src: 'datatables/media'
       dest: 'datatables'
