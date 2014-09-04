@@ -349,7 +349,7 @@ runTriggers before after dbAction fields state = do
   liftIO $ PG.beginLevel PG.ReadCommitted pg
 
   -- FIXME: try/finally
-  runDslM state $ do
+  res <- runDslM state $ do
     case parentInfo :: ParentInfo m of
       NoParent -> return ()
       ExParent p
@@ -367,6 +367,7 @@ runTriggers before after dbAction fields state = do
     sequence_ $ matchingTriggers (modelName mInfo) after
 
   liftIO $ PG.commit pg
+  return res
 
 
 
