@@ -132,5 +132,5 @@ runImport act opts =
                   \c -> do
                     vf <- liftIO $ Patch.read (Ident fid) c
                     case vf of
-                      (vf':_) -> runReaderT act $ ImportContext c vf'
-                      _       -> throwError UnknownVinFormat
+                      Right vf' -> runReaderT act $ ImportContext c vf'
+                      _         -> throwError UnknownVinFormat

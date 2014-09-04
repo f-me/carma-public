@@ -1,5 +1,6 @@
-define ["model/main"], (main) ->
+define ["model/main", "text!tpl/fields/form.html"], (main, Fs) ->
 
+  flds =  $('<div/>').append($(Fs))
   class CancelDialog
 
     constructor: ->
@@ -14,7 +15,7 @@ define ["model/main"], (main) ->
       modelName = "partnerCancel"
 
       $('body').append(
-        Mustache.render $("#modalDialog-field-template").html(),
+        Mustache.render $(flds).find("#modalDialog-field-template").html(),
                 title: "Отказ партнёра"
                 id: modelName
                 saveLabel: "Сохранить"

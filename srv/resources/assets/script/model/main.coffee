@@ -23,8 +23,9 @@ define [ "model/render"
        , "lib/serialize"
        , "lib/idents"
        , "lib/config"
+       , "model/fields"
        ],
-       (render, dict, sync, S, Idents, Config) ->
+       (render, dict, sync, S, Idents, Config, Fs) ->
   mainSetup = (Finch
              , localDictionaries
              , hooks
@@ -34,9 +35,6 @@ define [ "model/render"
     dictCache = dict.buildCache(localDictionaries)
     imgr = new Idents
     configmgr = new Config
-
-    # Convert user.roles to use integer ids
-    user.roles = _.map user.roles, (v) -> parseInt v
 
     window.global =
         topElement: $el("layout")
@@ -109,7 +107,8 @@ define [ "model/render"
 
     # Build kvm with fetched data if have one
     kvm = {}
-    kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
+    kvm._parent = options.parent
+    kvm._meta   = { model: model, cid: _.uniqueId("#{model.name}_") }
     kvm.safelyGet = (prop) -> kvm[prop]?() || ''
 
     # build observables for real model fields
@@ -119,7 +118,11 @@ define [ "model/render"
         kvm[f.name].field = f
 
     # set id only when it wasn't set from from prefetched data
-    kvm['id'] = ko.observable(fetched?['id'])
+    # FIXME: remove this, id should be created from fields of model
+    # when we have it there
+    unless _.isFunction kvm['id']
+      kvm['id'] = ko.observable()
+    kvm.id(fetched['id']) unless _.isUndefined fetched?['id']
 
     # set queue if have one, and sync it with backend
     kvm._meta.q = new queue(kvm, model, queueOptions) if queue
@@ -139,6 +142,8 @@ define [ "model/render"
 
     # special observable for text, so it won't be saved on update null -> ""
     # #1221
+    # make this for all types, because it can't break anything, but will
+    # help if some non text field will require text template
     for f in fields
       do (f) ->
         kvm["#{f.name}Text"] = ko.computed
@@ -169,9 +174,9 @@ define [ "model/render"
                   buildKVM global.model(m[0], queueOptions?.modelArg),
                     fetched: {id: m[1]}
                     queue:   queue
+                    parent:  kvm
                 refKVM = k.peek()
                 k.dispose()
-                refKVM.parent = kvm
                 refKVM
             write: (v) ->
               ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
@@ -206,11 +211,10 @@ define [ "model/render"
               ids = kvm[f.name]()
               return [] unless ids
               for i in ids
-                k = buildKVM global.model(f.meta.model, queueOptions?.modelArg),
+                buildKVM global.model(f.meta.model, queueOptions?.modelArg),
                   fetched: {id: i}
                   queue:   queue
-                k.parent = kvm
-                k
+                  parent:  kvm
             write: (v) ->
               ks = _.map v, (k) -> k.id()
               kvm[f.name](ks)
@@ -227,7 +231,7 @@ define [ "model/render"
                 parentField : 'parent'
             addRef kvm, f.name, opts, (kvm) -> focusRef(kvm)
 
-    kvm["maybeId"] = ko.computed -> kvm['id']() or "—"
+    kvm["maybeId"] = ko.computed -> kvm['id']?() or "—"
 
     for f in fields when f.type == "nested-model"
       do (f) ->
@@ -271,27 +275,7 @@ define [ "model/render"
         kvm['dixiDisabled'](true)
 
     for f in fields when /interval/.test(f.type)
-      do (f) ->
-        proxy = { begin: null, end: null }
-        updateInterval = ->
-          if proxy.begin and proxy.end
-            kvm[f.name]([proxy.begin, proxy.end])
-          else
-            kvm[f.name](null)
-        kvm[f.name].subscribe (v) ->
-          proxy.begin = if v then v[0] else null
-          proxy.end =   if v then v[1] else null
-        kvm["#{f.name}Begin"] = ko.computed
-          read: -> kvm[f.name](); proxy.begin
-          write: (v) ->
-            proxy.begin = v
-            updateInterval()
-
-        kvm["#{f.name}End"] = ko.computed
-          read: -> kvm[f.name](); proxy.end
-          write: (v) ->
-            proxy.end = v
-            updateInterval()
+      do (f) -> Fs.interval(kvm[f.name])
 
     kvm.toJSON = ->
       r = {}

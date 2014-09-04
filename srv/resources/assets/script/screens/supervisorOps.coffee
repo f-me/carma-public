@@ -23,10 +23,7 @@ define  [ "utils"
             Mustache.render tpl, userModel.fieldHash.boPrograms)
           ko.applyBindings aData[7], nRow
 
-      # FIXME: change `allUsers` so it will send arrays for dict values
-      fixdict = (s) -> _.compact _.invoke s.split(','), 'trim'
-
-      $.getJSON "/allUsers", (us) ->
+      $.getJSON "/_/Usermeta", (us) ->
        $.getJSON "/supervisor/opStats", (os) ->
         dt.fnClearTable()
         backRe = new RegExp(String(global.idents("Role").back))
@@ -34,16 +31,16 @@ define  [ "utils"
         rows = for u in us when (backRe.test u.roles)
           do (u) ->
             koUser =
-              boCities: ko.observable fixdict u.boCities
+              boCities: ko.observable u.boCities
               boCitiesDisabled: ko.observable false
               boCitiesSync: ko.observable false
-              boPrograms: ko.observable fixdict u.boPrograms
+              boPrograms: ko.observable u.boPrograms
               boProgramsDisabled: ko.observable false
               boProgramsSync: ko.observable false
 
             koUser._meta = { model: { fields: [] }}
             hook.dictManyHook userModel, koUser
-            login = u.value
+            login = u.login
 
             stats = os.stats[login]
             if stats
@@ -71,7 +68,7 @@ define  [ "utils"
               rowStats = [null, null, null]
 
             row =
-              [ u.value, u.label
+              [ u.login, u.realName
               , arrStr(koUser.boCitiesLocals())
               , arrStr(koUser.boProgramsLocals())
               ].concat(rowStats).concat([koUser])
@@ -79,7 +76,7 @@ define  [ "utils"
             update = (fName) -> (val) ->
               $.ajax
                 type: "PUT"
-                url: "/_/usermeta/#{u.mid}"
+                url: "/_/Usermeta/#{u.id}"
                 data: "{\"#{fName}\": \"#{val}\"}"
               row[2] = arrStr(koUser.boCitiesLocals())
               row[3] = arrStr(koUser.boProgramsLocals())

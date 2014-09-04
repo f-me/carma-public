@@ -7,6 +7,7 @@ define [ "utils"
        , "search/pager"
        , "sync/search"
        , "lib/state-url"
+       , "text!tpl/fields/form.html"
        ], ( utils
           , main
           , mutils
@@ -15,7 +16,8 @@ define [ "utils"
           , SUtils
           , SPager
           , sync
-          , State) ->
+          , State
+          , Tpl) ->
 
   filterModels = (allowed, models) ->
     mdls = for m in  models
@@ -32,6 +34,9 @@ define [ "utils"
 
 
   constructor: (opts)->
+
+    # need this hack because renderField can't work with require js
+    $("#layout").append $("<div style='display: none;'/>").html(Tpl)
 
     allModels = filterModels opts.allowedResultFields, opts.resultModels
 

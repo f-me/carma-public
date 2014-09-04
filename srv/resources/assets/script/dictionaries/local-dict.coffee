@@ -60,17 +60,10 @@ define ["dictionaries/meta-dict"], (m) ->
 
     _retrieve: (name) ->
       dict = {entries: []}
-      @ajax
-        url: "/all/#{name}?fields=id,name&select=isActive==1"
-        dataType: "json"
-        async: false
-        success: (rsp) ->
-          dict.entries = for e in rsp
-            {value: e.id, label: e.name}
-          res = mkCache dict
-          window.global.dictLabelCache[name] = res.labelCache
-          window.global.dictValueCache[name] = res.valueCache
-          window.global.dictionaries[name] = dict
+      res = mkCache dict
+      window.global.dictLabelCache[name] = res.labelCache
+      window.global.dictValueCache[name] = res.valueCache
+      window.global.dictionaries[name] = dict
       return dict
 
   buildGlobalDict = (name, dict) ->

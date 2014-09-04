@@ -8,9 +8,6 @@ https://github.com/f-me/hs-weather-api
 https://github.com/f-me/postgresql-sync-map
 https://github.com/f-me/snap-extras
 
-https://github.com/f-me/simple-log
-https://github.com/f-me/snaplet-simple-log
-https://github.com/mvoidex/simple-log-syslog
-https://github.com/mvoidex/hformat
+https://github.com/f-me/hformat
 
 https://github.com/f-me/snap-core nonascii-filenames

@@ -54,7 +54,7 @@ import           Database.PostgreSQL.Simple.Copy
 import           System.IO
 
 import           Data.Model
-import           Data.Model.Patch as Patch
+import           Data.Model.Patch as Patch hiding (delete)
 import           Carma.Model.VinFormat
 
 import           Carma.VIN.Base
@@ -182,7 +182,7 @@ data FFMapper =
     FM { internal :: InternalName
        , ffa      :: FFA
        -- ^ Format smart accessor.
-       , concats  :: (Maybe [InternalName])
+       , _concats  :: (Maybe [InternalName])
        -- ^ Columns to be concatenated to this field.
        }
 
@@ -307,13 +307,13 @@ process psid enc mapping = do
                  -- Set default values.
                  void $ execute setQueueDefaults (PT fn, dv, PT fn))
 
-  arc <- getOption fromArc
+  arcVal <- getOption fromArc
   -- Set committer and subprogram. If the subprogram is loadable and
   -- was not recognized in a file row, it will be set to the
   -- subprogram specified in import options. However, if it is
   -- required, the corresponding file row has already been marked as
   -- erroneous on the previous step.
-  setSpecialDefaults uid (snd psid) arc
+  setSpecialDefaults uid (snd psid) arcVal
 
   markMissingIdentifiers
 
@@ -358,8 +358,12 @@ processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
     case stag of
       SRaw -> (pass, (sqlCast cn "text"))
       SNumber ->
-          ( void $ protoUpdateWithFun cn
-            "regexp_replace" [iname, "'\\D'", "''", "'g'"]
+          ( protoUpdateWithFun cn
+            "regexp_replace" [iname, "'\\D'", "''", "'g'"] >>
+            -- If no characters left, replace it with NULL, as an
+            -- empty string cannot be cast to int
+            protoNullizeEmptyStrings cn >>
+            pass
           , (sqlCast cn "int"))
       SVIN ->
           -- We don't use protoUpdateWithFun here because it breaks

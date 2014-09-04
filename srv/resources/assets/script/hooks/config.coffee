@@ -17,11 +17,11 @@ define [ "hooks/common"
                , c.jsonDictObjsHook
                ]
 
-      "action" : [a.nameLocal]
+      "action" : [a.actionColor, a.nameLocal]
 
-      "averageCommissioner" : [ s.openPartnerSearch ]
+      "averageCommissioner" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "bank" : [ s.openPartnerSearch ]
+      "bank" : [ s.serviceColor, s.openPartnerSearch ]
 
       "case" : [ k.descsKbHook
                , k.eventsHistoryKbHook
@@ -31,23 +31,21 @@ define [ "hooks/common"
                , k.carModelInfoHook
                ]
 
-      "consultation" : [ s.openPartnerSearch ]
+      "consultation" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "continue" : [ s.openPartnerSearch ]
+      "continue" : [ s.serviceColor, s.openPartnerSearch ]
 
       "cost_serviceTarifOption" : [c.tarifOptNameDef]
 
-      "deliverClient" : [ s.openPartnerSearch ]
+      "deliverClient" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "hotel" : [ s.partnerOptsHook
-                , s.srvOptUpd
-                , s.costsMark
+      "hotel" : [ s.serviceColor
                 , s.openPartnerSearch
                 ]
 
-      "insurance" : [ s.openPartnerSearch ]
+      "insurance" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "ken" : [ s.openPartnerSearch ]
+      "ken" : [ s.serviceColor, s.openPartnerSearch ]
 
       "Partner" : [ (c.bindRemoveHook 'services')
                   , p.serviceRepeat
@@ -58,56 +56,41 @@ define [ "hooks/common"
                           , p.partnerServiceRepeat
                           ]
 
-      "rent" : [ s.partnerOptsHook
-               , s.srvOptUpd
-               , s.costsMark
+      "rent" : [ s.serviceColor
                , s.openPartnerSearch
                ]
 
-      "sober" : [ s.partnerOptsHook
-                , s.srvOptUpd
+      "sober" : [ s.serviceColor
                 , s.openPartnerSearch
                 ]
 
       "tarifOption" : [c.tarifOptNameDef]
 
-      "taxi" : [ s.partnerOptsHook
-               , s.srvOptUpd
-               , s.costsMark
+      "taxi" : [ s.serviceColor
                , s.openPartnerSearch
                ]
 
-      "tech" : [ s.partnerOptsHook
-               , s.srvOptUpd
-               , s.costsMark
+      "tech" : [ s.serviceColor
                , s.openPartnerSearch
                ]
 
-      "transportation" : [ s.partnerOptsHook
-                         , s.srvOptUpd
-                         , s.costsMark
+      "transportation" : [ s.serviceColor
                          , s.openPartnerSearch
                          ]
 
-      "deliverParts" : [ s.partnerOptsHook
-                       , s.srvOptUpd
-                       , s.costsMark
+      "deliverParts" : [ s.serviceColor
                        , s.openPartnerSearch
                        ]
 
-      "deliverCar" : [ s.partnerOptsHook
-                     , s.srvOptUpd
-                     , s.costsMark
+      "deliverCar" : [ s.serviceColor
                      , s.openPartnerSearch
                      ]
 
-      "tech1" : [ s.openPartnerSearch ]
+      "tech1" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "tickets" : [ s.openPartnerSearch ]
+      "tickets" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "towage" : [ s.partnerOptsHook
-                 , s.srvOptUpd
-                 , s.costsMark
+      "towage" : [ s.serviceColor
                  , s.openPartnerSearch
                  ]
 

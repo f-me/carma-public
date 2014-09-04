@@ -24,7 +24,7 @@ define ["render/screen"
   addRoute "call/:id", (bind) ->
     require ["screens/call"], (call) ->
       call.screen =
-        name : "call"
+        name : "Call"
         template: "call-screen-template"
         views:
           "call-form": call

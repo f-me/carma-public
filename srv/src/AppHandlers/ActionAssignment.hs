@@ -34,7 +34,7 @@ assignQ pri usr = fromString
   ++ "    AND c.id::text = substring(act.caseId, ':(.*)')"
   ++ "    AND priority = '" ++ show pri ++ "'"
   ++ "    AND (act.duetime at time zone 'UTC') - (now() at time zone 'UTC') <= interval '5 minutes'"
-  ++ "    AND targetGroup = ANY (u.roles)"
+  ++ "    AND targetGroup::int = ANY (u.roles)"
   ++ "    AND (act.assignedTo IS NULL"
   ++ "         OR act.assignedTo NOT IN (SELECT login FROM activeUsers))"
   ++ "    AND (coalesce("

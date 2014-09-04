@@ -73,7 +73,7 @@ serveModel = do
     (Nothing, _) -> finishWithError 401 ""
     (_, Nothing) -> finishWithError 404 "Unknown model/view"
     (Just cu, Just m) ->
-      case view `elem` ["search", "portalSearch"] of
+      case view `elem` ["search", "portalSearch", "kpi"] of
         True  -> writeModel m
         False -> stripModel cu m >>= writeModel
 
@@ -148,12 +148,10 @@ writeModel model
 stripModel :: AuthUser -> Model -> Handler b (SiteConfig b) Model
 stripModel u m = do
   let Just uid = userId u
-      -- Use Case permissions even when faked to serve Case model
-      -- while being asked for case (see oldCRUD branch in
-      -- serveModel).
-      fixCaseModelName "case" = "Case"
-      fixCaseModelName "call" = "Call"
-      fixCaseModelName v      = v
+      -- When requesting an old-style model (@case@), use permissions
+      -- defined for new-style model (@Case@).
+      fixModelName v =
+          fromMaybe v $ Map.lookup v Model.legacyModelNames
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
   readableFields <- withPG $ \c -> query c [sql|
     select p.field, max(p.w::int)::bool
@@ -161,10 +159,10 @@ stripModel u m = do
       where u.uid = ?::int
         and p.model = ?
         and p.r = true
-        and p.role::text = ANY (u.roles)
+        and p.role = ANY (u.roles)
       group by p.field
     |]
-    (unUid uid, fixCaseModelName $ modelName m)
+    (unUid uid, fixModelName $ modelName m)
   let fieldsMap = Map.fromList readableFields
   let fieldFilter f fs = case Map.lookup (name f) fieldsMap of
         Nothing -> fs

@@ -7,8 +7,6 @@
 
 module Snaplet.Search.Utils where
 
-import           Control.Applicative ((<$>))
-
 import           Data.Maybe
 import           Data.Either
 
@@ -21,14 +19,11 @@ import           Database.PostgreSQL.Simple as PG
 
 import           Data.Model       as M
 
-import           Snap.Core
-import           Snap.Snaplet
-import           Snap.Snaplet.Auth hiding (Role)
-
 import           Text.Printf
 import           Util
-import           Utils.Roles
 
+import           Snap
+import           Snaplet.Auth.PGUsers (currentUserRoles)
 import           Snaplet.Search.Types
 import           Carma.Model.Search
 
@@ -112,7 +107,7 @@ writeJSON v = do
 stripResults :: StripRead t
              => SearchResult t -> SearchHandler b (SearchResult t)
 stripResults s@SearchResult{..} = do
-  roles <- with auth currentUser >>= userRolesIds . fromJust
+  Just roles <- currentUserRoles
   withPG $ \c -> do
     vals <- mapM (stripRead c roles) values
     return $ s{ values = vals }

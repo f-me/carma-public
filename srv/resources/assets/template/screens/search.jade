@@ -1,0 +1,44 @@
+.row-fluid
+  #search-results.span9(style='min-height: 480px;'
+      data-bind='spinner: $root.searchKVM.searchResultsSpinner')
+    table#tbl.table.table-striped.table-bordered
+      thead
+        tr
+          th(data-bind='expandAll: $data')
+          // ko foreach: showFields.fields
+          th
+            button.btn.btn-link(
+              style='white-space: nowrap;'
+              data-bind='text: $root.showFields.labels[$data], sort: $data')
+          // /ko
+      tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
+        tr
+          td.expand-contoller(data-bind='expand: kvm')
+          // ko foreach: $root.showFields.fields
+          td(data-bind='renderGroup: $parent')
+          // /ko
+        tr.hide
+          td(data-bind='attr: {colspan: $root.showFields.fields().length + 1}')
+            dl(data-bind='eachNonEmpty: $root.showFields.hidden')
+              dt(data-bind='text: $root.showFields.labels[$data]')
+              dd(style='font-size: 16.25px; font-weight: 300; line-height: 1.25;'
+                 data-bind='renderGroup: $parent')
+  .span3
+    #search-conditions(data-bind='foreach: kvm.showFields')
+      div(data-bind='renderField: $data')
+    #show-field(data-bind='renderField: f')
+
+.row-fluid
+  .pager.span9
+    ul
+      li(style='cursor: pointer;', data-bind='css: {fade: !_.isNumber(prev())}')
+        a(data-bind='click: prevPage')
+          | ←
+      li
+        a(data-bind='text: page')
+      li(style='cursor: pointer;', data-bind='css: {fade: !next()}')
+        a(data-bind='click: nextPage')
+          | →
+
+.hidden
+  include /fields/ro.jade

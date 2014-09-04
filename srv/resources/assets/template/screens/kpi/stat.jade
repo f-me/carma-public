@@ -3,11 +3,50 @@ include _table
 .row-fluid
   .span12.default-bs
     include _statNav
+    .row-fluid#settings
+      .row-fluid
+        .span12.bs-docs-less-margins#kpi-list
+          .bs-docs-example-after#settings-label
+            i.icon-plus
+            | Настройки
+          #kpi-list-inner.in(style="height: 20em; overflow-x: auto;")
+            .control-group
+              .controls
+                input#kpi-list-filter.focusable(type="text"
+                  data-bind="value: settingsFilter, valueUpdate: 'afterkeydown'")
+            ul.unstyled(data-bind="foreach: fields")
+              li
+                label.checkbox
+                  input(type="checkbox" data-bind="checked: show")
+                  span(data-bind="text: label")
 
-    +table(["Оператор",
-            "Текущий статус",
-            "Время",
-            "Готов",
-            "Занят",
-            "Обед",
-            "Перерыв"])
+      .row-fluid#filters(style="margin-top: 10px")
+        .span4#kvmsFilter
+          .input-append
+            input.focusable(
+              type="text"
+              placeholder="Поиск"
+              name="kvmsFilter"
+              data-bind="value: kvmsFilter, valueUpdate: 'afterkeydown'")
+        .span2#date-range
+            .input-append
+              input.pane-span.focusable(type="text"
+                autocomplete="off"
+                name="interval.begin"
+                data-bind="value: interval.begin, addMask: 'datetime'")
+              span.add-on
+                i.icon.icon-calendar
+          .span2
+            .input-append
+              input.pane-span.focusable(type="text"
+                autocomplete="off"
+                name="interval.end"
+                data-bind="value: interval.end, addMask: 'datetime'")
+              span.add-on
+                i.icon.icon-calendar
+
+    .row-fluid#results(style="overflow-y: auto")
+      +table
+
+.hidden
+  include /fields/ro.jade
