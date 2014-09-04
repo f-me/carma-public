@@ -1,5 +1,7 @@
+{-# OPTIONS_GHC -fno-warn-missing-methods #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -29,6 +31,9 @@ module Carma.Backoffice.DSL
     , minutes
     , hours
     , days
+
+    -- * Misc
+    , actionResults
     )
 
 where
@@ -303,3 +308,22 @@ data Entry =
 -- graph, so be sure to validate it using 'checkBackoffice' prior to
 -- use.
 type BackofficeSpec = ([Entry], [Action])
+
+
+-- | Extract a list of possible results from an action.
+--
+-- We cannot apply 'outcomes' without interpreting the result (@impl@
+-- type variable would be ambiguous). Perhaps this may be implemented
+-- differently if we make the type of 'outcomes' impredicative,
+-- burying Backoffice class constraint deeper in the tuple. Wrapping
+-- the right part of the tuple in an existential would require more
+-- typing (pun intended).
+actionResults :: Action -> [ActionResultI]
+actionResults (Action _ _ _ _ outs) =
+  map fst (outs :: [(ActionResultI, Any (Outcome CarmaAction.Action))])
+
+
+data Any k
+
+
+instance Backoffice Any

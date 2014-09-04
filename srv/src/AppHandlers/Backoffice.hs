@@ -1,8 +1,11 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module AppHandlers.Backoffice
     (
-      openAction
+      allActionResults
+    , openAction
 
       -- * Back office analysis
     , BORepr(..)
@@ -15,6 +18,7 @@ import           Control.Exception
 import           Control.Monad.Trans.Except
 import qualified Data.HashMap.Strict         as HM
 import qualified Data.Map                    as Map
+import           Data.Maybe
 import           Data.Text                   (Text)
 import qualified Data.Text                   as T
 import           Data.Time
@@ -28,7 +32,7 @@ import qualified Data.Model.Patch            as Patch
 import qualified Data.Model.Patch.Sql        as Patch
 
 import qualified Carma.Model.Action          as Action
-import           Carma.Model.ActionResult    (ActionResult)
+import           Carma.Model.ActionResult    as ActionResult hiding (idents)
 import           Carma.Model.ActionType      (ActionType)
 import           Carma.Model.CaseStatus      (CaseStatus)
 import           Carma.Model.FalseCall       (FalseCall)
@@ -40,6 +44,7 @@ import           Carma.Model.ServiceType     (ServiceType)
 import           Carma.Model.SmsTemplate     (SmsTemplate)
 
 import           Carma.Backoffice
+import qualified Carma.Backoffice.DSL        as DSL
 import           Carma.Backoffice.Graph
 import           Carma.Backoffice.Text
 import           Carma.Backoffice.Validation
@@ -50,12 +55,18 @@ import           Snaplet.Auth.PGUsers
 import           Util
 
 
-data BORepr = Txt | Dot | Check
+-- | Back office representation.
+data BORepr = Txt
+            | Dot
+            -- ^
+            | Check
+            -- ^ Validation report.
 
 
 type IdentMap m = Map.Map (IdentI m) Text
 
 
+-- | Serve a pretty-printed back office processing report.
 serveBackofficeSpec :: BORepr -> AppHandler ()
 serveBackofficeSpec repr =
     case repr of
@@ -82,11 +93,28 @@ serveBackofficeSpec repr =
                              , boxMap (iMap :: IdentMap Program)
                              ]
 
---actionResults :: AppHandler (
+
+-- | Serve JSON list of available results for all action types as list
+-- of pairs @[ActionTypeI, ActionResultI]@.
+--
+-- @supervisorClosed@ results are stripped out if the user has no
+-- supervisor role.
+allActionResults :: AppHandler ()
+allActionResults = do
+  rls <- fromMaybe [] <$> currentUserRoles
+  let isSupervisor = Role.supervisor `elem` rls
+  writeJSON $
+    filter (\(_, r) ->
+              isSupervisor || r /= ActionResult.supervisorClosed) $
+    concatMap (\a -> map (DSL.aType a,) $ DSL.actionResults a) $
+    snd carmaBackoffice
 
 
 data BackofficeError = NotYourAction
+                       -- ^ A handler attempted to change an action
+                       -- not assigned to the user.
                        deriving (Typeable, Show)
+
 
 instance Exception BackofficeError
 
@@ -100,12 +128,12 @@ openAction = do
     Nothing -> error "Could not read actionid parameter"
     Just i -> do
       uid <- currentUserMetaId
-      now <- liftIO $ getCurrentTime
+      now <- liftIO getCurrentTime
       let act = ExceptT (withPG (Patch.read (Ident i)))
-          checkAuth a = if a `Patch.get'` Action.assignedTo == uid
-                        then return ()
-                        else throwE $ SomeException NotYourAction
-          p = Patch.put Action.openTime (Just now) $ Patch.empty
+          checkAuth a =
+            unless (a `Patch.get'` Action.assignedTo == uid) $
+            throwE $ SomeException NotYourAction
+          p = Patch.put Action.openTime (Just now) Patch.empty
           upd = ExceptT (withPG (Patch.update (Ident i) p))
       runExceptT (act >>= checkAuth >> upd) >>=
         \case

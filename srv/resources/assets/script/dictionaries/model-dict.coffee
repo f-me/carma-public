@@ -7,7 +7,7 @@ define ['dictionaries/local-dict',], (ld) ->
   # - dictionaryKey
   # - dictionaryLabel
   # - dictionaryParentKey
-  # 
+  #
   # - dictionaryStringify (true when ModelDict is used in a field of
   #   an old-style model)
   class ModelDict extends ld.dict
