@@ -1,6 +1,5 @@
 {-# LANGUAGE DoAndIfThenElse #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Snaplet.DbLayer.Triggers.Actions where
@@ -37,7 +36,7 @@ import Snaplet.DbLayer.Triggers.MailToGenser
 import Carma.HTTP (read1Reference)
 
 import           Data.Model
-import qualified Data.Model.Patch as Patch (Patch, get)
+import qualified Data.Model.Patch as Patch (get)
 import qualified Data.Model.Patch.Sql as Patch (read)
 
 import qualified Carma.Model.Case as Case
@@ -51,9 +50,7 @@ import qualified Carma.Model.Role as Role
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.SmsTemplate as SmsTemplate
 import           Carma.Model.Event (EventType(..))
-import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Action as Act
-import qualified Carma.Model.Call   as Call
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
 import Util as U
@@ -109,8 +106,7 @@ actions
       ++[("action", actionActions)
         ,("case", Map.fromList
           [("caseStatus", [\kazeId st ->
-            if st == identFv CaseStatus.needInfo
-            then do
+            when (st == identFv CaseStatus.needInfo) $ do
               now <- dateNow Prelude.id
               due <- dateNow (+ (1*60))
               actionId <- new "action" $ Map.fromList
@@ -124,18 +120,15 @@ actions
                 ,("closed", "0")
                 ]
               upd kazeId "actions" $ addToList actionId
-            else return ()])
+           ])
           ,("comment", [\caseId val ->
             case fvIdent val of
               Nothing -> return ()
               Just wi -> do
-                  res :: [Patch.Patch Wazzup.Wazzup] <-
-                         liftDb $ withPG $ \c -> Patch.read wi c
+                  res  <- liftDb $ withPG $ \c -> Patch.read wi c
                   case res of
-                    [] -> return ()
-                    (patch:_) ->
-                        let
-                            f acc = maybe "" identFv $
+                    Right patch ->
+                        let f acc = maybe "" identFv $
                                     fromMaybe Nothing $
                                     Patch.get patch acc
                             s = f Wazzup.system
@@ -148,6 +141,7 @@ actions
                           set caseId "diagnosis3" c >>
                           set caseId "diagnosis4" g >>
                           return ()
+                    _ -> return ()
             ])
           ,("services", [\caseId _ -> updateCaseStatus caseId])
           -- ,("contact_name",
@@ -159,39 +153,18 @@ actions
             when (T.length val > 5)
               $ set objId "car_plateNum" $ T.toUpper val])
           ,("contract", [\objId val ->
-                         if (not $ T.null val)
-                         then do
+                         unless (T.null val) $
                            fillFromContract val objId >>= \case
                              Loaded -> set objId "vinChecked" $
                                        identFv CCS.base
                              Expired -> set objId "vinChecked" $
                                         identFv CCS.vinExpired
                              None -> return ()
-                         else return ()
                         ])
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
           ])
-        ,("call", Map.fromList
-          [("endDate", [\objId _ ->
-             liftDb $ Evt.logLegacyCRUD Update objId Call.endDate])
-          ])
-        ,("usermeta", Map.fromList
-          [("delayedState", [\objId _ ->
-             liftDb $ Evt.logLegacyCRUD Update objId Usermeta.delayedState])
-          ,("businessRole", [updateBusinessRole])
-          ])
         ]
-
-updateBusinessRole :: MonadTrigger m b => ObjectId -> FieldValue -> m b ()
-updateBusinessRole _     ""  = return ()
-updateBusinessRole objId val =  do
-  rs <- liftDb $ PG.query (fromString $
-    "select array_to_string(roles, ',') from \"BusinessRole\"" ++
-    " where id :: text = ?;") (Only val)
-  case rs of
-    [Only r] -> set objId "roles" r
-    _        -> error $ "unknown BusinessRole id: " ++ (show val)
 
 -- | Mapping between contract and case fields.
 contractToCase :: [(FA Contract.Contract, FA Case.Case)]
@@ -238,7 +211,7 @@ fillFromContract contract objId = do
       subProgramTable = PT $ tableName $
                         (modelInfo :: ModelInfo SubProgram.SubProgram)
   res <- liftDb $ PG.query
-         (fromString $ intercalate " "
+         (fromString $ unwords
           [ "SELECT"
           -- 2 * M arguments, where M is the length of contractToCase
           , intercalate "," $ map (const "?.?::text") contractToCase
@@ -277,7 +250,7 @@ fillFromContract contract objId = do
       let setIfEmpty oid nm val = get oid nm >>= \case
               "" -> set objId nm val
               _  -> return ()
-      zipWithM_ (maybe (return ()) . (setIfEmpty objId))
+      zipWithM_ (maybe (return ()) . setIfEmpty objId)
                 (map (fieldNameE . snd) $
                  contractToCase ++ [(undefined, FA Case.program)])
                 row
@@ -296,7 +269,7 @@ fillFromContract contract objId = do
 
 -- | This is called when service status is changed in some trigger.
 onRecursiveServiceStatusChange
-  :: MonadTrigger m b => ObjectId -> (IdentI SS.ServiceStatus) -> m b ()
+  :: MonadTrigger m b => ObjectId -> IdentI SS.ServiceStatus -> m b ()
 onRecursiveServiceStatusChange svcId val = do
   caseId  <- get svcId "parentId"
 
@@ -337,7 +310,7 @@ updateCaseStatus caseId =
                (map identFv [ SS.clientCanceled
                             , SS.canceled])) statuses
           -> CaseStatus.canceled
-        | any (== (identFv SS.creating)) statuses
+        | identFv SS.creating `elem` statuses
           -> CaseStatus.front
         | otherwise -> CaseStatus.back
 
@@ -593,7 +566,7 @@ serviceActions = Map.fromList
           (x:_) -> get x "falseCallPercent" >>= set objId "falseCallPercent"
     ])
   ,("times_expectedServiceStart",
-    [\objId val -> do
+    [\objId val ->
       case T.decimal val of
         Right (tm, _) -> do
           let h = 3600 :: Int -- seconds
@@ -641,7 +614,7 @@ actionActions = Map.fromList
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ,\objId _ ->
-      liftDb $ Evt.logLegacyCRUD Update (objId) Act.result
+      void $ liftDb $ Evt.logLegacyCRUD Update objId Act.result
     ])
   ,("assignedTo",
     [\objId _val -> dateNow id >>= set objId "assignTime"
@@ -656,7 +629,7 @@ actionActions = Map.fromList
     ])
    ,("openTime",
      [\objId _ ->
-       liftDb $ Evt.logLegacyCRUD Update (objId) Act.openTime
+       void $ liftDb $ Evt.logLegacyCRUD Update objId Act.openTime
      ])
    ]
 
@@ -1001,7 +974,7 @@ setService objId field val = do
 -- onRecursiveServiceStatusChange manually
 -- on each service.status change
 setServiceStatus :: MonadTrigger m b =>
-                    ObjectId -> (IdentI SS.ServiceStatus) -> m b ()
+                    ObjectId -> IdentI SS.ServiceStatus -> m b ()
 setServiceStatus actId val = do
   svcId <- get actId "parentId"
   set svcId "status" (identFv val)

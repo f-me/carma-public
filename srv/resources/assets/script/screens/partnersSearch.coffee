@@ -9,6 +9,7 @@ define [ "utils"
        , "sync/metaq"
        , "text!tpl/screens/partnersSearch.html"
        , "text!tpl/partials/partnersSearch.html"
+       , "text!tpl/fields/form.html"
        ], ( utils
           , map
           , m
@@ -19,7 +20,8 @@ define [ "utils"
           , models
           , metaq
           , tpl
-          , partials) ->
+          , partials
+          , Flds) ->
 
   model = models.PartnerSearch
 
@@ -41,8 +43,10 @@ define [ "utils"
 
   partialize = (ps) -> mkPartials(ps).join('')
 
+  flds =  $('<div/>').append($(Flds))
+
   md  = $(partials).html()
-  cb  = $("#checkbox-field-template").html()
+  cb  = flds.find("#checkbox-field-template").html()
   city = Mustache.render md,  fh['city']
   make = Mustache.render md,  fh['make']
   srvs = Mustache.render md,  fh['services']
@@ -138,7 +142,9 @@ define [ "utils"
           selectPartner(kvm, partner)
           $("#map").trigger "drawpartners"
 
-    kvm['showPartnerCancelDialog'] = (partner, ev) -> kvm['selectPartner'](null)
+    kvm['showPartnerCancelDialog'] = (partner, ev) ->
+      console.log 'showPartnerCancelDialog'
+      kvm['selectPartner'](null)
 
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
@@ -314,7 +320,7 @@ define [ "utils"
             partner_popup = $ $("#partner-" + p.id() + "-info").clone().html()
             partner_popup.find(".full-info-link").hide()
             popup = new OpenLayers.Popup.FramedCloud(
-              p.id(), mark.lonlat,
+              String(p.id()), mark.lonlat,
               new OpenLayers.Size(200, 200),
               partner_popup.html(),
               null, true)

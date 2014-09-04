@@ -161,7 +161,7 @@ getCostField srv = lookupNE "payType" srv >>= selectPrice
 selectPrice :: Text -> Maybe Text
 selectPrice v
           | v == identFv PT.ruamc  = Just "price2"
-          | any (== v) $ map identFv [PT.client, PT.mixed, PT.refund]
+          | elem v $ map identFv [PT.client, PT.mixed, PT.refund]
               = Just "price1"
           | otherwise              = Nothing
 

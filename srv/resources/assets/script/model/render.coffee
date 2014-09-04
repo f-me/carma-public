@@ -1,4 +1,7 @@
-define ["dictionaries"], (d) ->
+define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
+
+  FS = $('<div/>').append($(Flds))
+
   renderKnockVm = (elName, knockVM, options) ->
     model     = knockVM._meta.model
     cid       = knockVM._meta.cid
@@ -195,7 +198,7 @@ define ["dictionaries"], (d) ->
       widget_tpl = field.meta.widget
 
     tpl = pickTemplate(templates,
-                             [named_tpl, widget_tpl, typed_tpl, "unknown"])
+                       [named_tpl, widget_tpl, typed_tpl, "unknown"])
     return tpl
 
   # Render permissions controls for form holding an instance in given
@@ -214,7 +217,8 @@ define ["dictionaries"], (d) ->
   # TODO Cache this
   getTemplates = (cls) ->
     templates = {}
-    templates[tmp.id.replace("-" + cls, "")] = tmp.text for tmp in $("." + cls)
+    for tmp in _.union FS.find(".#{cls}").toArray(), $(".#{cls}").toArray()
+      templates[tmp.id.replace("-#{cls}", "")] = $(tmp).html()
     return templates
 
   # Generate HTML contents for view which will be populated by
@@ -256,7 +260,7 @@ define ["dictionaries"], (d) ->
   pickTemplate = (templates, names) ->
     for n in names when _.has(templates, n)
       return templates[n]
-    return Mustache.render $("#unknown-template").html(), {names:names}
+    Mustache.render FS.find("#unknown-field-template").html(), {names:names}
 
   { kvm: renderKnockVm
   , getTemplates: getTemplates

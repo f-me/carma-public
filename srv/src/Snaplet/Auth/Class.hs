@@ -9,3 +9,6 @@ class HasAuth b where
 
 withAuth :: HasAuth b => Handler b (AuthManager b) a -> Handler b v a
 withAuth = withTop' authLens
+
+class WithCurrentUser m where
+  withCurrentUser :: m (Maybe AuthUser)

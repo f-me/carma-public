@@ -22,7 +22,9 @@ update partnertbl set isfree = false where isfree is null;
 alter table partnertbl alter isfree set not null;
 alter table partnertbl alter isfree set default false;
 
-update partnertbl set name = id :: text where name is null or name ~ '^\s*$';
+update partnertbl
+  set isactive = false, name = id :: text
+  where name is null or name ~ '^\s*$';
 alter table partnertbl alter name set not null;
 alter table partnertbl add constraint name_is_valid check (name !~ '^\s*$');
 

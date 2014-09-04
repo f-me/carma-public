@@ -13,20 +13,19 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy.Encoding as TL
 
+import qualified Data.HashMap.Strict as HM
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.Aeson as Aeson
 import Data.Aeson
 import Data.List
 import qualified Data.Map as Map
-import qualified Data.HashMap.Strict as HM
 import Data.String
 
 import Data.Maybe
 import Data.Ord (comparing)
 
 import Data.Time
-
 import System.Locale
 
 import Database.PostgreSQL.Simple ( Query, query_, query, execute)
@@ -45,18 +44,16 @@ import Snap.Util.FileUploads (getMaximumFormInputSize)
 
 import WeatherApi (getWeather', tempC)
 
-import Snaplet.Auth.PGUsers
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (FileUpload(cfg))
-import           Snaplet.Messenger
-import           Snaplet.Messenger.Class
 
 import Carma.Model
 import Data.Model.CRUD
 import qualified Data.Model.Patch.Sql as Patch
 import           Data.Model.Patch (Patch(..))
+import Carma.Model.Event (EventType(..))
 
 import Application
 import AppHandlers.Util
@@ -64,10 +61,9 @@ import AppHandlers.Users
 import Util as U hiding (render, withPG)
 import Utils.NotDbLayer (readIdent)
 
-import Carma.Model.Event (EventType(..))
-import Utils.Events (logLogin, logLegacyCRUD)
+import Utils.Events (logLogin, logCRUD, updateUserState)
 
-import qualified Carma.Model.Usermeta as Usermeta
+import ModelTriggers
 
 
 ------------------------------------------------------------------------------
@@ -84,8 +80,7 @@ indexPage = ifTop $ do
                       Just s  -> T.concat [t, " [", s, "]"]
                       Nothing -> t
             return $ [X.TextNode r]
-        splices = do
-          "addLocalName" ## addLocalName
+        splices = "addLocalName" ## addLocalName
     renderWithSplices "index" splices
 
 
@@ -146,14 +141,21 @@ createHandler = do
   Just model <- getParamT "model"
   let createModel :: forall m . Model m => m -> AppHandler Aeson.Value
       createModel _ = do
-        let crud = getModelCRUD :: CRUD m
-        commit <- getJSONBody :: AppHandler Aeson.Value
-        s <- PS.getPostgresState
-        res <- liftIO $ withResource (PS.pgPool s)
-                (runEitherT . crud_create crud commit)
-        case res of
-          Right obj -> return obj
-          Left err  -> error $ "in createHandler: " ++ show err
+        commit <- getJSONBody :: AppHandler (Patch m)
+        runCreateTriggers commit >>= \case
+          Left err -> error $ "in createHandler: " ++ show err
+          Right (idt@(Ident i), commit') -> do
+            -- Can't do this in trigger because it need ident
+            evIdt <- logCRUD Create idt commit
+            updateUserState Create idt commit evIdt
+            -- we really need to separate idents from models
+            -- (so we can @Patch.set ident i commit@)
+            return $ case Aeson.toJSON commit' of
+              Object obj
+                -> Object
+                $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
+              obj -> error $ "impossible: " ++ show obj
+
   case Carma.Model.dispatch model createModel of
     Just fn -> logResp $ fn
     Nothing -> logResp $ do
@@ -188,8 +190,8 @@ readHandler = do
 readManyHandler :: AppHandler ()
 readManyHandler = do
   Just model  <- getParamT "mdl" -- NB: this param can shadow query params
-  limit  <- fromMaybe 2000 . fmap readInt <$> getParam "limit"
-  offset <- fromMaybe    0 . fmap readInt <$> getParam "offset"
+  limit  <- maybe 2000 readInt <$> getParam "limit"
+  offset <- maybe    0 readInt <$> getParam "offset"
   params <- getQueryParams
   let queryFilter =
           [(T.decodeUtf8 k, T.decodeUtf8 v)
@@ -212,26 +214,6 @@ readManyHandler = do
     _       -> handleError 404
 
 
-readAllHandler :: AppHandler ()
-readAllHandler = do
-  Just model <- getParamT "model"
-  (with db $ DB.readAll model)
-    >>= apply "orderby" sortBy (flip . comparing . Map.lookup)
-    >>= apply "limit"   take   (read . T.unpack)
-    >>= apply "select"  filter flt
-    >>= apply "fields"  map    proj
-    >>= writeJSON
-  where
-    apply name f g = \xs
-      -> maybe xs (\p -> f (g p) xs)
-      <$> getParamT name
-    proj fs = \obj -> Map.fromList
-      [(k, Map.findWithDefault "" k obj)
-      | k <- T.splitOn "," fs
-      ]
-    flt prm = \obj -> all (selectParse obj) $ T.splitOn "," prm
-
-
 updateHandler :: AppHandler ()
 updateHandler = do
   Just model <- getParamT "model"
@@ -241,34 +223,24 @@ updateHandler = do
       updateModel _ = do
         let ident = readIdent objId :: IdentI m
         commit <- getJSONBody :: AppHandler (Patch m)
-        s   <- PS.getPostgresState
-        res <- with db $ do
-          liftIO $ withResource (PS.pgPool s) (Patch.update ident commit)
-        case res of
-          0 -> return $ Left 404
-          _ -> case model of
-                 -- TODO #1352 workaround for Contract triggers
-                 "Contract" ->
-                     do
-                       res' <- liftIO $
-                              withResource (PS.pgPool s) (Patch.read ident)
-                      -- TODO Cut out fields from original commit like
-                      -- DB.update does
-                       case (Aeson.decode $ Aeson.encode res') of
-                         Just [obj] -> return $ Right obj
-                         err        -> error $
-                                       "BUG in updateHandler: " ++ show err
-                 -- TODO: workaround to catch delayed state updates
-                 -- remove with new triggers
-                 "Usermeta" -> do
-                   let hmcommit = untypedPatch commit
-                       legacyId = T.concat ["Usermeta:", objId]
-                   when (HM.member "delayedState" hmcommit) $ void $ do
-                     withMsg $ sendMessage legacyId commit
-                     logLegacyCRUD Update legacyId Usermeta.delayedState
-                   return $ Right $ Aeson.object []
-
-                 _ -> return $ Right $ Aeson.object []
+        runUpdateTriggers  ident commit >>= \case
+          Left (code,_err) -> return $ Left code
+          Right commit' -> do
+            evIdt <- logCRUD Update ident commit'
+            updateUserState Update ident commit evIdt
+            case model of
+              -- TODO #1352 workaround for Contract triggers
+              "Contract" -> do
+                s   <- PS.getPostgresState
+                Right res' <- liftIO $
+                       withResource (PS.pgPool s) (Patch.read ident)
+                -- TODO Cut out fields from original commit like
+                -- DB.update does
+                case (Aeson.decode $ Aeson.encode res') of
+                  Just obj -> return $ Right obj
+                  err      -> error $
+                                "BUG in updateHandler: " ++ show err
+              _ -> return $ Right $ Aeson.object []
   -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch model updateModel of
     Just fn ->
@@ -329,8 +301,7 @@ rkcHandler = logExceptions "handler/rkc" $ do
       RKC.filterCity = c,
       RKC.filterPartner = part }
 
-  usrs <- with db usersListPG
-  info <- with db $ RKC.rkc usrs flt'
+  info <- with db $ RKC.rkc flt'
   writeJSON info
 
 rkcWeatherHandler :: AppHandler ()
@@ -385,20 +356,6 @@ rkcPartners = logExceptions "handler/rkc/partners" $ do
   res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
   writeJSON res
 
--- | This action recieve model and id as parameters to lookup for
--- and json object with values to create new model with specified
--- id when it's not found
-findOrCreateHandler :: AppHandler ()
-findOrCreateHandler = do
-  Just model <- getParamT "model"
-  Just objId    <- getParamT "id"
-  commit <- getJSONBody
-  res <- with db $ DB.findOrCreate model objId commit
-  -- FIXME: try/catch & handle/log error
-  writeJSON res
-
-serveUsersList :: AppHandler ()
-serveUsersList = with db usersListPG >>= writeJSON
 
 -- | Calculate average tower arrival time (in seconds) for today,
 -- parametrized by city (a value from DealerCities dictionary).
@@ -431,7 +388,7 @@ towAvgTime = do
 
 
 getRegionByCity :: AppHandler ()
-getRegionByCity = do
+getRegionByCity =
   getParam "city" >>= \case
     Just city -> do
       res <- withPG pg_search $ \c -> query c

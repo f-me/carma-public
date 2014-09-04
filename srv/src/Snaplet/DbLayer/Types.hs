@@ -10,12 +10,11 @@ import Control.Concurrent.STM
 import Control.Lens
 
 import Snap
+import Snaplet.Auth.Class
 import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
 import Carma.ModelTables (TableDesc)
-
-import qualified Database.PostgreSQL.Sync.Base as SM
 
 import qualified WeatherApi as W
 
@@ -37,7 +36,6 @@ data DbLayer b = DbLayer
     ,_redis    :: Snaplet RedisDB
     ,_postgres :: Snaplet Postgres
     ,_auth     :: Snaplet (AuthManager b)
-    ,syncRelations :: SM.Relations
     ,syncTables :: [TableDesc]
     ,dictCache :: TVar DictCache
     ,weather   :: W.Config
@@ -48,6 +46,8 @@ makeLenses ''DbLayer
 instance HasPostgres (Handler b (DbLayer b)) where
     getPostgresState = with postgres get
 
+instance WithCurrentUser (Handler b (DbLayer b)) where
+    withCurrentUser = with auth currentUser
 
 getDict :: (DictCache -> dict) -> Handler b (DbLayer b) dict
 getDict dict

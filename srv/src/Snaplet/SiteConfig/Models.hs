@@ -1,7 +1,10 @@
-{-# LANGUAGE TemplateHaskell #-}
 module Snaplet.SiteConfig.Models
-  where
+    ( Field(..)
+    , Model(..)
+    , loadModels
+    )
 
+where
 
 import Control.Applicative
 import Control.Monad (filterM)
@@ -134,35 +137,6 @@ instance FromJSON Application where
     parseJSON _          = error "Could not parse application entry"
 
 
--- | A named group of fields.
-type Groups = M.Map Text [Field]
-
-
--- | Build new name `f_gK` for every field of group `g` to which field
--- `f` is spliced into.
-groupFieldName :: FieldName
-               -- ^ Name of field which is spliced into group
-               -> FieldName
-               -- ^ Name of group field
-               -> FieldName
-groupFieldName parent field = T.concat [parent, "_", field]
-
-
--- | Replace all model fields having `groupName` annotation with
--- actual group fields.
-spliceGroups :: Groups -> Model -> Model
-spliceGroups groups model =
-    let
-        updateNames f = fromMaybe [f] $ do
-            n <- groupName f
-            grp <- M.lookup n groups
-            return $ map (\gf -> gf{ groupName = Just n
-                                   , name = groupFieldName (name f) (name gf)
-                                   }) grp
-    in
-        model{fields = concatMap updateNames $ fields model}
-
-
 -- | Perform all applications in model.
 doApplications :: Model -> Model
 doApplications model
@@ -192,21 +166,13 @@ parseFile :: FromJSON a => FilePath -> IO (Maybe a)
 parseFile filename = Aeson.decode <$> LB.readFile filename
 
 
--- | Load groups from definitions file.
-loadGroups :: FilePath -> IO (Maybe Groups)
-loadGroups = parseFile
-
-
 -- | Load model from specified location, performing group splicing,
 -- applications and filling index cache.
 loadModel :: FilePath
           -- ^ Path to model definition file
-          -> Groups 
-          -- ^ Group definitions
           -> IO (Maybe Model)
-loadModel modelFile groups
-    =  (fmap $ doApplications
-             . spliceGroups groups)
+loadModel modelFile
+    =  (fmap $ doApplications)
     <$> parseFile modelFile
 
 
@@ -224,21 +190,16 @@ loadModels :: FilePath -- ^ Models directory
 loadModels cfgDir =
       do
         let directory = cfgDir </> "models"
-        let groupsFile = cfgDir </> "field-groups.json"
         dirEntries <- getDirectoryContents directory
         -- Leave out non-files
         mdlFiles <- filterM doesFileExist
                  (map (directory </>) dirEntries)
-        gs <- loadGroups groupsFile
-        case gs of
-          Just groups -> do
-                  mdls <- mapM (\m -> do
-                                  mres <- loadModel m groups
-                                  return $! case mres of
-                                    Just mdl -> mdl
-                                    Nothing -> error $ "Could not parse " ++ m
-                               ) mdlFiles
-                  -- Splice groups & cache indices for served models
-                  return $ M.fromList $
-                         zip (map pathToModelName mdlFiles) mdls
-          Nothing -> error $ "Bad groups file " ++ groupsFile
+        mdls <- mapM (\m -> do
+                        mres <- loadModel m
+                        return $! case mres of
+                          Just mdl -> mdl
+                          Nothing -> error $ "Could not parse " ++ m
+                     ) mdlFiles
+        -- Splice groups & cache indices for served models
+        return $ M.fromList $
+               zip (map pathToModelName mdlFiles) mdls
