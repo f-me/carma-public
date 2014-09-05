@@ -14,7 +14,11 @@ define [ "utils"
   setupBackOffice = ->
     onBackofficeScreen = true
     $("#zardoz").knob()
-    setTimeout (-> setupPoller()), 200
+    params = "assignedTo=#{global.user.id}&closed=0"
+    $.getJSON("/backoffice/allActions?#{params}",
+      (r) ->
+        myActionsHandler r.actions
+        setupPoller)
 
   # Install automatic actions poller
   setupPoller = ->
