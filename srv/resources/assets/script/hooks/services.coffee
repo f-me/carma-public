@@ -32,7 +32,7 @@ define [ "utils"
           kvm["#{field_basename}_address"]?(addr || "")
           kvm["#{field_basename}_coords"]? val.coords
           if (field_basename == "towDealer") && val.distanceFormatted?
-            kvm["dealerDistance"](val.distanceFormatted)
+            kvm["dealerDistance"]?(val.distanceFormatted)
           kvm['_parent']['fillEventHistory']()
 
     # this fn should be called from click event, in other case

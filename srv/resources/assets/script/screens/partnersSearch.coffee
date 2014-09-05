@@ -68,7 +68,7 @@ define [ "utils"
     kvm['make'](if kaseKVM.car_make() then [kaseKVM.car_make()] else [])
     kvm['field'] = ctx['field']
 
-    pid = parseInt srvKVM["#{ctx['field']}Id"]()?.split(":")[1]
+    pid = parseInt srvKVM["#{ctx['field']}Id"]()
     if _.isNumber(pid) && !_.isNaN(pid)
       kvm['selectedPartner'] pid
     else
