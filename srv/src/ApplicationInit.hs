@@ -162,7 +162,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             <*> lookupCfg "pg_search_pass"
             <*> lookupCfg "pg_db_name"
   -- FIXME: force cInfo evaluation
-  pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
+  pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 5 5 20
   cInfoActass <- liftIO $ (\u p -> cInfo {connectUser = u, connectPassword = p})
             <$> lookupCfg "pg_actass_user"
             <*> lookupCfg "pg_actass_pass"
