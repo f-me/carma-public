@@ -98,6 +98,7 @@ require [ "domready"
     # FIXME: but we can't be sure that AVAYA widget is initialised
     liveMenu.setup(document.getElementById 'nav')
 
+  $.fn.wysihtml5.defaultOptions.stylesheets = '/s/3p/wysihtml5/wysiwyg-color.css'
 
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']
