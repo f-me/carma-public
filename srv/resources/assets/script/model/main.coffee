@@ -99,15 +99,13 @@ define [ "model/render"
   #
   # - modelTitle;
   buildKVM = (model, options) ->
-
-    {elName, fetched, queue, queueOptions, models} = options
-
     fields    = model.fields
     required  = (f for f in fields when f.meta?.required)
 
     # Build kvm with fetched data if have one
     kvm = {}
     kvm._parent = options.parent
+    {elName, fetched, queue, queueOptions, models} = options
     kvm._meta   = { model: model, cid: _.uniqueId("#{model.name}_") }
     kvm.safelyGet = (prop) -> kvm[prop]?() || ''
 
@@ -393,6 +391,7 @@ define [ "model/render"
         elName: elName
         queue: sync.CrudQueue
         queueOptions: options
+        parent: options.parent
         fetched: args
       return [kvm, kvm._meta.q]
 
