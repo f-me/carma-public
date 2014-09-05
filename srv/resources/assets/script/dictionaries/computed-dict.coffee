@@ -65,7 +65,7 @@ define ["dictionaries/local-dict"], (ld) ->
           if _.contains(global.user.roles, global.idents("Role").partner) or
              _.contains(global.user.roles, global.idents("Role").psaanalyst)
             user_pgms = global.user.programs || []
-            _.filter(all_pgms, (e) -> _.contains user_pgms, String(e.value))
+            _.filter(all_pgms, (e) -> _.contains user_pgms, e.value)
           else
             []
 
