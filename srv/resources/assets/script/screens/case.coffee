@@ -66,7 +66,7 @@ define [ "utils"
           disable = _.any nots, (e) -> kvm[e]()
           disable
 
-      kvm['renderActions'] = (-> renderActions(kvm))
+      kvm['renderActions'] = (-> _.throttle(renderActions(kvm), 1000))
       kvm.caseStatus.subscribe kvm['renderActions']
       kvm['renderActions']()
 
@@ -91,7 +91,6 @@ define [ "utils"
     # Manually re-render a list of case actions
     renderActions = (kvm) ->
       caseId = kvm.id()
-
       refCounter = 0
 
       mkSubname = -> "case-#{caseId}-actions-view-#{refCounter++}"
@@ -110,7 +109,7 @@ define [ "utils"
       flds =  $('<div/>').append($(Flds))
       tpl = flds.find("#actions-reference-template").html()
 
-      $.getJSON "/backoffice/caseActions/#{caseId}", (aids) ->
+      $.bgetJSON "/backoffice/caseActions/#{caseId}", (aids) ->
         for aid in aids
           # Generate reference container
           view = mkSubname()
