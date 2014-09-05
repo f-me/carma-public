@@ -1,8 +1,7 @@
 define ["utils", "dictionaries"], (u, d) ->
   fillEventsHistory = (knockVM) -> ->
 
-    # FIXME: hack to disable hook on newCase screen #1985
-    return if /^newCase/.test(Finch.navigate())
+    # Disable hooks on search screen #1985
     return if /^search/.test(Finch.navigate())
 
     t = $("#call-searchtable")

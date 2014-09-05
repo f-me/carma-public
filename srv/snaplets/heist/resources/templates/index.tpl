@@ -314,30 +314,6 @@
     </script>
 
     <script type="text/template"
-            id="newService-picker-template">
-      <ul class="nav nav-pills">
-        <li class="drop{{drop}}">
-          <button class="dropdown-toggle btn btn-action"
-                  type="button"
-                  data-toggle="dropdown">
-            <i class="icon icon-plus" />Добавить услугу
-          </button>
-          <ul class="dropdown-menu">
-            {{# dictionary.entries }}
-            <li>
-              <a href="#"
-                 onclick="addNewService('{{value}}'); return false;">
-                <i class="icon-{{icon}} icon-black" />
-                {{ label }}
-              </a>
-            </li>
-            {{/ dictionary.entries }}
-          </ul>
-        </li>
-      </ul>
-    </script>
-
-    <script type="text/template"
             id="check-list-item-template">
       <li><input type="checkbox" /> {{ label }}</li>
     </script>
