@@ -74,11 +74,13 @@ require [ "domready"
     global.keys = {}
     global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
 
-    avayaCred = document.cookie.match /avaya=([^;]*)/
-    if avayaCred?[1]
-      extPwd = unescape(avayaCred[1]).match /(.*)\|(.*)/
-      if extPwd
-        global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
+    # disable everytnig websocket-related for portal
+    if window.location.origin.match(/portal\.ruamc\.ru/)
+      avayaCred = document.cookie.match /avaya=([^;]*)/
+      if avayaCred?[1]
+        extPwd = unescape(avayaCred[1]).match /(.*)\|(.*)/
+        if extPwd
+          global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
 
     sendSms.setup()
 
@@ -91,7 +93,9 @@ require [ "domready"
                           selector: '[data-provide="popover"]',
                           trigger: 'hover')
 
-    CurrentUser.initialize()
+    # disable everytnig websocket-related for portal
+    if window.location.origin.match(/portal\.ruamc\.ru/)
+      CurrentUser.initialize()
 
     # render menu only after everything else in menu bar is done
     # FIXME: but we can't be sure that AVAYA widget is initialised

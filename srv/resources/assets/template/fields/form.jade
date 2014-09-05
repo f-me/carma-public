@@ -575,9 +575,9 @@ mixin simpleRefHdr(name, bindName)
         text: ", " + safelyGet("contact_phone4")')
     p(data-bind='visible: safelyGet(\'car_make\')')
       b Автомобиль:&nbsp;
-      span(data-bind='text: safelyGet(\'car_makeLocal\')')&nbsp;
-      span(data-bind='text: safelyGet(\'car_modelLocal\')')&nbsp;
-      span(data-bind='text: safelyGet(\'car_plateNum\')')&nbsp;
+      span(data-bind='text: safelyGet(\'car_makeLocal\')') &nbsp;
+      span(data-bind='text: safelyGet(\'car_modelLocal\')') &nbsp;
+      span(data-bind='text: safelyGet(\'car_plateNum\')') &nbsp;
     p(data-bind='visible: safelyGet(\'caseAddress_address\')')
       b Адрес кейса:&nbsp;
       span(data-bind='text: safelyGet(\'caseAddress_address\')')
