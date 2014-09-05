@@ -27,7 +27,7 @@ define [ "utils"
                                          "case-car-description"]
                          groupsForest : "center"
                          defaultGroup : "default-case"
-                         modelArg     : "ctr:full:#{kaze.program}"
+                         modelArg     : "ctr:#{kaze.program}"
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
       setCommentsHandler()
@@ -129,7 +129,7 @@ define [ "utils"
     # Top-level wrapper for storeService
     addService = (name) ->
       kvm = global.viewsWare["case-form"].knockVM
-      modelArg = "ctr:full:#{kvm.program()}"
+      modelArg = "ctr:#{kvm.program()}"
       mu.addReference kvm,
         'services',
         {modelName : name, options:
@@ -186,7 +186,7 @@ define [ "utils"
         comment:              v['wazzup']()
         customerComment:      v['customerComment']()
         callTaker:            global.user.id
-      main.buildNewModel 'Case', args, {modelArg: "ctr:full:#{v.program()}"},
+      main.buildNewModel 'Case', args, {modelArg: "ctr:#{v.program()}"},
         (m, k) -> Finch.navigate "case/#{k.id()}"
 
     makeCase = _.throttle makeCaseAux, 2000, {trailing: false}

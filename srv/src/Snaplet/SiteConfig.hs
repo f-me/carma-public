@@ -49,9 +49,9 @@ import qualified Carma.Model.ServiceInfo as ServiceInfo
 getModel :: ModelName -> Text -> Handler b (SiteConfig b) (Maybe Model)
 getModel name view =
   case T.splitOn ":" view of
-    ["ctr",scr,pgm] ->
-      case Model.dispatch name $ viewForModel scr of
-        Just (Just res) -> Just <$> constructModel name scr pgm res
+    ["ctr",pgm] ->
+      case Model.dispatch name $ viewForModel "" of
+        Just (Just res) -> Just <$> constructModel name pgm res
         -- Try to fetch a plain model if constructor failed
         _               -> getModel name ""
     _ -> case Model.dispatch name $ viewForModel view of
@@ -93,20 +93,19 @@ setModelName :: Text -> Model -> Model
 setModelName n m = m {modelName = n}
 
 constructModel
-  :: Text -> Text -> Text -> Model
+  :: Text -> Text -> Model
   -> Handler b (SiteConfig b) Model
-constructModel mdlName screen program model = do
+constructModel mdlName program model = do
   let q = [sql|
       select c.field, c.label, c.r, c.w, c.required, c.info, c.ord
-        from "ConstructorFieldOption" c, "CtrModel" m, "CtrScreen" s
-        where m.id = c.model and s.id = c.screen
+        from "ConstructorFieldOption" c, "CtrModel" m
+        where m.id = c.model
           and m.value = ?
-          and s.value = ?
           and program = ? :: int
         order by ord asc
       |]
   pg <- gets pg_search
-  res <- liftIO (withResource pg $ \c -> query c q [mdlName,screen,program])
+  res <- liftIO (withResource pg $ \c -> query c q [mdlName,program])
   let optMap = Map.fromList [(nm,(l,r,w,rq,inf,o)) | (nm,l,r,w,rq,inf,o) <- res]
   let adjustField f = case Map.lookup (name f) optMap of
         Nothing -> [f] -- NB: field is not modified if no options found
