@@ -3,11 +3,8 @@ module Carma.Model.Case
        ,caseSearchParams
        ) where
 
-import Control.Applicative
 import Data.Text (Text)
 import Data.Aeson as Aeson
-import qualified Data.Map as Map
-import Data.Monoid ((<>))
 
 import Data.Model as Model
 import Data.Model.View as View
@@ -63,22 +60,7 @@ instance Model Case where
         $ modifyView
           ((defaultView :: ModelView Case) {mv_title = "Кейс"})
           $ caseMod ++ caseDicts ++ caseRo
-      "new"
-        ->  setMainOnly . (`modifyView` [invisible services])
-        <$> (modelView "full" :: Maybe (ModelView Case))
       _ -> Nothing
-      where
-        setMainOnly mv = mv
-          {mv_fields =
-            [if fv_name fv `elem` addrFields
-              then fv
-              else fv{fv_meta = Map.insert "mainOnly" (Aeson.Bool True) $ fv_meta fv}
-            |fv <- mv_fields mv
-            ,let addrFields = map
-                  ("caseAddress_" <>)
-                  ["address","map","notRussia","comment","coords"]
-            ]
-          }
 
 caseDicts :: [(Text, FieldView -> FieldView) :@ Case]
 caseDicts = [

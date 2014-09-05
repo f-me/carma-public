@@ -115,12 +115,6 @@ instance Model Service where
   modelView = \case
     "search" -> Just $ modifyView (searchView serviceSearchParams) svcMod
     "full"   -> Just $ modifyView defaultView usualSvcMod
-    "new"    -> Just $ modifyView defaultView
-      $ usualSvcMod
-      ++ [mainOnly times_expectedServiceStart
-         ,mainOnly times_expectedServiceEnd
-         ,mainOnly times_expectedDispatch
-         ]
     "" -> Just $ modifyView defaultView usualSvcMod
     _  -> Nothing
 
