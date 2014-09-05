@@ -66,7 +66,9 @@ define [ "utils"
           disable = _.any nots, (e) -> kvm[e]()
           disable
 
-      renderActions()
+      kvm['renderActions'] = (-> renderActions(kvm))
+      kvm.caseStatus.subscribe kvm['renderActions']
+      kvm['renderActions']()
 
       # make colored services and actions a little bit nicer
       $('.accordion-toggle:has(> .alert)').css 'padding', 0
@@ -87,17 +89,24 @@ define [ "utils"
         i.val("")
 
     # Manually re-render a list of case actions
-    renderActions = ->
-      kvm = global.viewsWare["case-form"].knockVM
+    renderActions = (kvm) ->
       caseId = kvm.id()
 
       refCounter = 0
-      # TODO Add garbage collection
+
       mkSubname = -> "case-#{caseId}-actions-view-#{refCounter++}"
       subclass = "case-#{caseId}-actions-views"
 
-      # Pick reference template
+      # Top-level container for action elements
       cont = $("#case-actions-list")
+
+      # TODO Add garbage collection
+      # $(".#{subclass}").each((i, e) ->
+      #   main.cleanupKVM global.viewsWare[e.id].knockVM)
+      cont.children().remove()
+      cont.spin('large')
+
+      # Pick reference template
       flds =  $('<div/>').append($(Flds))
       tpl = flds.find("#actions-reference-template").html()
 
@@ -116,6 +125,7 @@ define [ "utils"
           # not set
           kvm['hasMissingRequireds'].subscribe (dis) ->
             avm.resultDisabled?(dis)
+        cont.spin false
 
     # Top-level wrapper for storeService
     addService = (name) ->
