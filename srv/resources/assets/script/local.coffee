@@ -106,4 +106,5 @@ require [ "domready"
   u.build_global_fn 'inlineDetachFile', ['lib/upload']
   u.build_global_fn 'doPick', ['utils']
   u.build_global_fn 'kdoPick', ['utils']
+  u.build_global_fn 'edoPick', ['utils']
   u.build_global_fn 'focusField', ['utils']

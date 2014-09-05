@@ -284,6 +284,9 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   kdoPick: (pickType, args, k, e) ->
     doPick pickType, args, e.srcElement if e.ctrlKey and e.keyCode == k
 
+  edoPick: (pickType, args, k, e) ->
+    doPick pickType, args, e.srcElement if e.keyCode == k
+
 
   # FIXME: This could be a callback for main.js:saveInstance
   successfulSave: successfulSave
