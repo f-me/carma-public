@@ -55,8 +55,7 @@ instance Model Case where
                       }
           ]
           ++ caseMod ++ caseDicts
-      "" -> modelView "full"
-      "full" -> Just
+      "" -> Just
         $ modifyView
           ((defaultView :: ModelView Case) {mv_title = "Кейс"})
           $ caseMod ++ caseDicts ++ caseRo
