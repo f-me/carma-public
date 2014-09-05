@@ -24,9 +24,7 @@ define ['dictionaries/local-dict',], (ld) ->
         # Fetch [(type, result)] mapping
         @bgetJSON "/backoffice/allActionResults/", (@resultPairs) =>
           aType = @kvm[@parent]()
-          console.log aType
           @updateSource(_.filter @resultPairs, (e) => e[0] == aType)
-          console.log @source
           @dictValueCache = null
           @dictLabelCache = null
 

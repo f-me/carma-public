@@ -53,7 +53,7 @@ define [ "utils"
 
       # Redirect to backoffice when an action result changes
       $("body").on("change.input", ".redirectOnChange", () ->
-          window.location.hash = "back"
+          window.location.hash = "back")
 
       utils.mkDataTable $('#call-searchtable')
       hotkeys.setup()
@@ -105,9 +105,12 @@ define [ "utils"
         for aid in aids
           # Generate reference container
           view = mkSubname()
-          tpl = Mustache.render tpl, {refView: view, refClass: subclass}
-          cont.append tpl
-          avm = main.modelSetup("Action") view, {id: aid}, {}
+          box = Mustache.render tpl,
+            refView: view
+            refClass: subclass
+          cont.append box
+          avm = main.modelSetup("Action") view, {id: aid},
+            slotsee: [view + "-link"]
           # Disable action results if any of required case fields is
           # not set
           kvm['hasMissingRequireds'].subscribe (dis) ->
@@ -120,7 +123,10 @@ define [ "utils"
       mu.addReference kvm,
         'services',
         {modelName : name, options:
-         {newStyle: true, parentField: 'parentId', modelArg: modelArg, hooks: ['*']}},
+          newStyle: true
+          parentField: 'parentId'
+          modelArg: modelArg
+          hooks: ['*']},
         (k) ->
           e = $('#' + k['view'])
           e.parent().prev()[0]?.scrollIntoView()
