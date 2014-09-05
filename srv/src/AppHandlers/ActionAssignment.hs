@@ -33,10 +33,12 @@ assignQ = [sql|
         SELECT id
         FROM usermetatbl
         WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
-          AND now() - lastactivity < '30 min')
+          AND now() - lastactivity < '30 min'),
+      act AS (
+        (SELECT * FROM actiontbl WHERE result IS NULL FOR UPDATE of actiontbl))
       UPDATE actiontbl SET assignTime = now(), assignedTo = ?
         WHERE id = (SELECT act.id
-          FROM ((SELECT * FROM actiontbl WHERE result IS NULL) act
+          FROM (act
             LEFT JOIN servicetbl svc
             ON svc.id = act.serviceId),
             casetbl c, usermetatbl u, "ActionType" at
@@ -61,8 +63,7 @@ assignQ = [sql|
               THEN coalesce(svc.times_expectedServiceStart,act.duetime)
               ELSE act.duetime
               END) ASC
-          LIMIT 1
-          FOR UPDATE OF act)
+          LIMIT 1)
         RETURNING id;
     |]
 
