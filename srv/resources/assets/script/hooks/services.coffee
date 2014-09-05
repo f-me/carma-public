@@ -62,3 +62,6 @@ define [ "utils"
         u.palette[svcs.indexOf(svcId) % u.palette.length]
       else
         u.palette[0]
+
+  updateCaseActions: (model, kvm) ->
+    kvm['status']?.subscribe (-> kvm._parent?['renderActions']?())
