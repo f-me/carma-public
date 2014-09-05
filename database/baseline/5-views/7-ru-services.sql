@@ -224,8 +224,8 @@ WITH servicecounts AS (
    LEFT JOIN "ContractCheckStatus" ON casetbl.vinchecked = "ContractCheckStatus".id,
    servicetbl
    LEFT JOIN allservicesview ON allservicesview.id = servicetbl.id AND servicetbl.parentid = allservicesview.parentid
-   LEFT JOIN partnertbl p1 ON servicetbl.contractor_partnerid = ('partner:'::text || p1.id)
-   LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = ('partner:'::text || p2.id)
+   LEFT JOIN partnertbl p1 ON servicetbl.contractor_partnerid = p1.id
+   LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = p2.id
    LEFT JOIN servicecounts ON servicetbl.parentid = servicecounts.parentid
    LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id
    LEFT JOIN "PaymentType" ON servicetbl.paytype = "PaymentType".id

@@ -144,7 +144,7 @@ UNION ALL
             techtbl.techtype,
             NULL::int4 AS towtype,
             NULL::text AS towaddress_address,
-            NULL::text AS towdealer_partnerid,
+            NULL::int4 AS towdealer_partnerid,
             techtbl.assignedto,
             techtbl.parentid
            FROM techtbl;

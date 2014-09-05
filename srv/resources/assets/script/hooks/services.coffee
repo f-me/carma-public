@@ -13,7 +13,7 @@ define [ "utils"
         n = pSearch.subName f.name, model.name, kvm.id()
         global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
-          kvm["#{f.name}Id"]?("partner:#{val.id}")
+          kvm["#{f.name}Id"]?(parseInt val.id)
           addr = val.addrDeFacto
           field_basename = f.name.split('_')[0]
           # Replace group names:
