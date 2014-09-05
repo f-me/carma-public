@@ -302,7 +302,7 @@
             {{# dictionary.source }}
             <li>
               <a href="#"
-                 onclick="addService('{{value}}'); return false;">
+                 onclick="addService('{{model}}'); return false;">
                 <i class="icon-{{icon}} icon-black" />
                 {{ label }}
               </a>

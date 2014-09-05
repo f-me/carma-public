@@ -54,7 +54,8 @@ define [ "utils"
   serviceColor: (model, kvm) ->
     # do not run this hook on search screen
     return if /^search/.test(Finch.navigate())
-
+    ist = u.newComputedDict("iconizedServiceTypes")
+    kvm._meta.model.title = ist.getLab kvm.type()
     kvm._svcColor = ko.computed ->
       svcId = kvm._meta.model.name + ':' + kvm.id()
       if kvm._parent
