@@ -105,6 +105,7 @@ define [ "model/render"
     # Build kvm with fetched data if have one
     kvm = {}
     kvm._parent = options.parent
+    kvm._saveSuccessCb = options.saveSuccessCb
     {elName, fetched, queue, queueOptions, models} = options
     kvm._meta   = { model: model, cid: _.uniqueId("#{model.name}_") }
     kvm.safelyGet = (prop) -> kvm[prop]?() || ''
@@ -392,6 +393,7 @@ define [ "model/render"
         queue: sync.CrudQueue
         queueOptions: options
         parent: options.parent
+        saveSuccessCb: options.saveSuccessCb
         fetched: args
       return [kvm, kvm._meta.q]
 

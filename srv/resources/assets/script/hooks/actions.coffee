@@ -17,8 +17,8 @@ define ["utils"], (u) ->
       svcId = kvm.serviceId()
       if kvm._parent
         svcs  =
-          _.map kvm._parent.services().split(','),
-            (s) -> parseInt s.split(':')[1]
+          _.map kvm._parent.services()?.split(','),
+            (s) -> parseInt s.split(':')?[1]
         u.palette[svcs.indexOf(svcId) % u.palette.length]
       else
         u.palette[0]

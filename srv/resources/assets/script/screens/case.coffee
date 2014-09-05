@@ -51,10 +51,6 @@ define [ "utils"
             ,drop: 'up'
             }))
 
-      # Redirect to backoffice when an action result changes
-      $("body").on("change.input", ".redirectOnChange", () ->
-          window.location.hash = "back")
-
       utils.mkDataTable $('#call-searchtable')
       hotkeys.setup()
       kvm = global.viewsWare[viewName].knockVM
@@ -120,6 +116,10 @@ define [ "utils"
           avm = main.modelSetup("Action") view, {id: aid},
             slotsee: [view + "-link"]
             parent: kvm
+            saveSuccessCb: (k, m, j) ->
+              if j.result?
+                # Redirect to backoffice when an action result changes
+                window.location.hash = "back"
           # Disable action results if any of required case fields is
           # not set
           kvm['hasMissingRequireds'].subscribe (dis) ->
