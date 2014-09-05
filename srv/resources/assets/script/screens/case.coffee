@@ -111,6 +111,7 @@ define [ "utils"
           cont.append box
           avm = main.modelSetup("Action") view, {id: aid},
             slotsee: [view + "-link"]
+            parent: kvm
           # Disable action results if any of required case fields is
           # not set
           kvm['hasMissingRequireds'].subscribe (dis) ->

@@ -16,7 +16,9 @@ define ["utils"], (u) ->
     kvm._actColor = ko.computed ->
       svcId = kvm.serviceId()
       if kvm._parent
-        svcs  = kvm._parent.services().split(',')
+        svcs  =
+          _.map kvm._parent.services().split(','),
+            (s) -> parseInt s.split(':')[1]
         u.palette[svcs.indexOf(svcId) % u.palette.length]
       else
         u.palette[0]
