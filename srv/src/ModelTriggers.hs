@@ -564,6 +564,7 @@ instance Backoffice HaskellE where
           ctx <- ask
           return $ do
             aid <- getIdent
+            curPatch <- getPatch
             this <- dbRead aid
             let aT = this `get'` Action.aType
                 cid = kase ctx `get'` Case.ident
@@ -576,10 +577,19 @@ instance Backoffice HaskellE where
                 -- evaluator context
                 ctx' = ctx{prevAction = Just aT}
                 grp = evalHaskell ctx' $ BO.targetRole e
-                -- TODO Check current patch too
+
+                dbDefer = fromMaybe (error "No deferBy in action") $
+                          this `get'` Action.deferBy
+                -- If there's no deferBy field in current patch, try
+                -- to read it from DB for this action
                 HMDiffTime deferBy =
-                  fromMaybe (error "No deferBy in action") $
-                  this `get'` Action.deferBy
+                  case curPatch `get` Action.deferBy of
+                    Just sth ->
+                      case sth of
+                        Just dt -> dt
+                        Nothing -> dbDefer
+                    Nothing -> dbDefer
+
                 -- Truncate everything below seconds, disregard leap
                 -- seconds
                 deferBy' = realToFrac deferBy
