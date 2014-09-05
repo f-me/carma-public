@@ -62,7 +62,7 @@ class @AvayaWidget
       info = lineInfo[line]
       if info
         panel.find("#avaya-info").text(info.greeting)
-        vm.program(String(global.idents("Program")[info.program] || ''))
+        vm.program(global.idents("Program")[info.program] || '')
 
   call: (number) ->
     @__phone.call(number)
