@@ -10,7 +10,7 @@ define [ "utils"
 
     textarea2wysiwyg = ->
       # transform all textarea elements to wisiwyg
-      $("textarea").each (index) ->
+      $("#dictionaries-view textarea").each (index) ->
         id = "wisyhtml5-" + index
         $(@).attr("id", id).wysihtml5
           image: false,
