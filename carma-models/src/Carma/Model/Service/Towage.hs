@@ -84,7 +84,7 @@ instance Model Towage where
       $ modifyView (searchView towageSearchParams)
       $ (setType "dictionary-set-text" towDealer_partnerId) : viewModifier
     ""
-      -> case parentView v :: Maybe (ModelView Towage) of
+      -> case parentView "" :: Maybe (ModelView Towage) of
         Nothing -> Nothing
         Just mv -> Just $ modifyView (mv {mv_title = "Эвакуация"}) viewModifier'
     _ -> Nothing
