@@ -8,6 +8,7 @@ import Data.Model.Types
 import Data.Model.View
 import Carma.Model.Types()
 import Carma.Model.LegacyTypes
+import Carma.Model.Partner (Partner)
 import Carma.Model.Service (Service)
 import Carma.Model.Search as S
 import Carma.Model.TowType (TowType)
@@ -24,7 +25,7 @@ data Towage = Towage
                              "ДТП"
   , towDealer_partner        :: F (Maybe Text) "towDealer_partner"
                              "Дилер (куда эвакуируют автомобиль)"
-  , towDealer_partnerId      :: F (Maybe Text) "towDealer_partnerId"
+  , towDealer_partnerId      :: F (Maybe (IdentI Partner)) "towDealer_partnerId"
                              "Дилер (куда эвакуируют автомобиль)"
   , towDealer_address        :: F (Maybe Text) "towDealer_address"
                              "Адрес"

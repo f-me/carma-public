@@ -10,13 +10,14 @@ import Carma.Model.LegacyTypes
 import Carma.Model.CarClass (CarClass)
 import Carma.Model.CarMake  (CarMake)
 import Carma.Model.CarModel (CarModel)
+import Carma.Model.Partner (Partner)
 import Carma.Model.Service (Service)
 
 
 data Rent = Rent
   { ident :: PK Int Rent ""
   , towDealer_partner   :: F (Maybe Text) "towDealer_partner" "Дилер"
-  , towDealer_partnerId :: F (Maybe Text) "towDealer_partnerId" ""
+  , towDealer_partnerId :: F (Maybe (IdentI Partner)) "towDealer_partnerId" ""
   , towDealer_address   :: F (Maybe Text) "towDealer_address" "Адрес"
   , towDealer_coords    :: F (Maybe Text) "towDealer_coords" "Координаты"
   , rentAddress_address :: F PickerField "rentAddress_address" "Адрес доставки"

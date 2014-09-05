@@ -12,6 +12,7 @@ import qualified Carma.Model.ClientRefusalReason as CRR
 import           Carma.Model.Case.Type           (Case)
 import           Carma.Model.FalseCall           (FalseCall)
 import           Carma.Model.LegacyTypes
+import           Carma.Model.Partner             (Partner)
 import           Carma.Model.PaymentType         (PaymentType)
 import           Carma.Model.Satisfaction        (Satisfaction)
 import           Carma.Model.Search as S
@@ -72,7 +73,7 @@ data Service = Service
 
   , contractor_partner           :: F (Maybe Text) "contractor_partner"
                                  "Партнёр"
-  , contractor_partnerId         :: F (Maybe Text) "contractor_partnerId"
+  , contractor_partnerId         :: F (Maybe (IdentI Partner)) "contractor_partnerId"
                                  "Партнёр"
   , contractor_address           :: F (Maybe Text) "contractor_address"
                                  "Адрес"
