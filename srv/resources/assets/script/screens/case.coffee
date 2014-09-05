@@ -28,6 +28,10 @@ define [ "utils"
                          groupsForest : "center"
                          defaultGroup : "default-case"
                          modelArg     : "ctr:#{kaze.program}"
+                         saveSuccessCb: (k, m, j) ->
+                           if j.caseStatus?
+                             k['renderActions']?()
+
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
       setCommentsHandler()
@@ -62,8 +66,7 @@ define [ "utils"
           disable = _.any nots, (e) -> kvm[e]()
           disable
 
-      kvm['renderActions'] = (-> _.throttle(renderActions(kvm), 1000))
-      kvm.caseStatus.subscribe kvm['renderActions']
+      kvm['renderActions'] = -> renderActions(kvm)
       kvm['renderActions']()
 
       # make colored services and actions a little bit nicer

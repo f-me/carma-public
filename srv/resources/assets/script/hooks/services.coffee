@@ -64,4 +64,6 @@ define [ "utils"
         u.palette[0]
 
   updateCaseActions: (model, kvm) ->
-    kvm['status']?.subscribe (-> kvm._parent?['renderActions']?())
+    kvm._saveSuccessCb = (k, m, j) ->
+      if j.status?
+        k._parent?['renderActions']?()
