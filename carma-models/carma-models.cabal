@@ -43,7 +43,6 @@ library
     Carma.Model.ClientRefusalReason,
     Carma.Model.ConstructorFieldOption,
     Carma.Model.CtrModel,
-    Carma.Model.CtrScreen,
     Carma.Model.CheckType,
     Carma.Model.Partner,
     Carma.Model.PartnerRefusalReason,
