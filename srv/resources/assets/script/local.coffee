@@ -75,7 +75,7 @@ require [ "domready"
     global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
 
     # disable everytnig websocket-related for portal
-    if window.location.origin.match(/portal\.ruamc\.ru/)
+    if not window.location.origin.match(/portal\.ruamc\.ru/)
       avayaCred = document.cookie.match /avaya=([^;]*)/
       if avayaCred?[1]
         extPwd = unescape(avayaCred[1]).match /(.*)\|(.*)/
@@ -94,7 +94,7 @@ require [ "domready"
                           trigger: 'hover')
 
     # disable everytnig websocket-related for portal
-    if window.location.origin.match(/portal\.ruamc\.ru/)
+    if not window.location.origin.match(/portal\.ruamc\.ru/)
       CurrentUser.initialize()
 
     # render menu only after everything else in menu bar is done
