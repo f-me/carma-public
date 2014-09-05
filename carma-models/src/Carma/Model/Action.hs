@@ -52,6 +52,9 @@ instance Model Action where
           , infoText "defertime" deferBy
           , setMeta "addClass" "redirectOnChange" result
           , setMeta "dictionaryType" "BoUsersDict" assignedTo
+          , setMeta "dictionaryType" "ResultsDict" result
+          , setMeta "dictionaryParent"
+            (A.String $ fieldName aType) result
           , setType "textarea" comment
           , invisible ctime
           , invisible assignTime
