@@ -1,11 +1,12 @@
 define [ "utils"
        , "hotkeys"
        , "text!tpl/screens/case.html"
+       , "text!tpl/fields/form.html"
        , "model/utils"
        , "model/main"
        , "components/contract"
        ],
-  (utils, hotkeys, tpl, mu, main, Contract) ->
+  (utils, hotkeys, tpl, Flds, mu, main, Contract) ->
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
     # Case view (renders to #left, #center and #right as well)
@@ -50,21 +51,22 @@ define [ "utils"
             ,drop: 'up'
             }))
 
+      # Redirect to backoffice when an action result changes
       $("body").on("change.input", ".redirectOnChange", () ->
-          setTimeout(( -> window.location.hash = "back"), 500))
+          window.location.hash = "back"
 
       utils.mkDataTable $('#call-searchtable')
       hotkeys.setup()
       kvm = global.viewsWare[viewName].knockVM
 
-      if _.has kvm, 'actions'
-        # Disable action results if any of required case fields is not
-        # set
-        do (kvm) ->
-          ko.computed ->
-            nots = (i for i of kvm when /.*Not$/.test i)
-            disable = _.any nots, (e) -> kvm[e]()
-            k.resultDisabled?(disable) for k in kvm.actionsReference?()
+      # True if any of of required fields are missing a value
+      do (kvm) ->
+        kvm['hasMissingRequireds'] = ko.computed ->
+          nots = (i for i of kvm when /.*Not$/.test i)
+          disable = _.any nots, (e) -> kvm[e]()
+          disable
+
+      renderActions()
 
       # make colored services and actions a little bit nicer
       $('.accordion-toggle:has(> .alert)').css 'padding', 0
@@ -84,6 +86,32 @@ define [ "utils"
           k['comments'] k['comments']().concat comment
         i.val("")
 
+    # Manually re-render a list of case actions
+    renderActions = ->
+      kvm = global.viewsWare["case-form"].knockVM
+      caseId = kvm.id()
+
+      refCounter = 0
+      # TODO Add garbage collection
+      mkSubname = -> "case-#{caseId}-actions-view-#{refCounter++}"
+      subclass = "case-#{caseId}-actions-views"
+
+      # Pick reference template
+      cont = $("#case-actions-list")
+      flds =  $('<div/>').append($(Flds))
+      tpl = flds.find("#actions-reference-template").html()
+
+      $.getJSON "/backoffice/caseActions/#{caseId}", (aids) ->
+        for aid in aids
+          # Generate reference container
+          view = mkSubname()
+          tpl = Mustache.render tpl, {refView: view, refClass: subclass}
+          cont.append tpl
+          avm = main.modelSetup("Action") view, {id: aid}, {}
+          # Disable action results if any of required case fields is
+          # not set
+          kvm['hasMissingRequireds'].subscribe (dis) ->
+            avm.resultDisabled?(dis)
 
     # Top-level wrapper for storeService
     addService = (name) ->
