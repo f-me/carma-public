@@ -4,10 +4,12 @@
 
 module AppHandlers.Backoffice
     (
-      allActionResults
-    , openAction
+      -- * Back office operation
+      openAction
+    , dueCaseActions
 
       -- * Back office analysis
+    , allActionResults
     , BORepr(..)
     , serveBackofficeSpec
     )
@@ -24,6 +26,7 @@ import qualified Data.Text                   as T
 import           Data.Time
 import           Data.Typeable
 
+import           Database.PostgreSQL.Simple  (query)
 import           Snap
 
 import           Carma.Model
@@ -123,19 +126,36 @@ instance Exception BackofficeError
 -- action to current time.
 openAction :: AppHandler ()
 openAction = do
-  aid <- getIntParam "actionid"
-  case aid of
-    Nothing -> error "Could not read actionid parameter"
-    Just i -> do
-      uid <- currentUserMetaId
-      now <- liftIO getCurrentTime
-      let act = ExceptT (withPG (Patch.read (Ident i)))
-          checkAuth a =
-            unless (a `Patch.get'` Action.assignedTo == uid) $
-            throwE $ SomeException NotYourAction
-          p = Patch.put Action.openTime (Just now) Patch.empty
-          upd = ExceptT (withPG (Patch.update (Ident i) p))
-      runExceptT (act >>= checkAuth >> upd) >>=
-        \case
-          Right r -> writeJSON r
-          Left  e -> error $ show e
+  aid <- fromMaybe (error "Could not read actionid parameter") <$>
+         getIntParam "actionid"
+  uid <- currentUserMetaId
+  now <- liftIO getCurrentTime
+  let act = ExceptT (withPG (Patch.read (Ident aid)))
+      checkAuth a =
+        unless (a `Patch.get'` Action.assignedTo == uid) $
+        throwE $ SomeException NotYourAction
+      p = Patch.put Action.openTime (Just now) Patch.empty
+      upd = ExceptT (withPG (Patch.update (Ident aid) p))
+  runExceptT (act >>= checkAuth >> upd) >>=
+    \case
+      Right r -> writeJSON r
+      Left  e -> error $ show e
+
+
+-- | Read @caseid@ request parameter and serve JSON list of ids of
+-- open actions in that case.
+dueCaseActions :: AppHandler ()
+dueCaseActions = do
+  cid <- fromMaybe (error "Could not read caseid parameter") <$>
+         getIntParam "caseid"
+  res <- withPG $
+         \c ->
+           query c "SELECT ? FROM ? WHERE ? = ? AND ? IS NULL ORDER BY ? ASC"
+           ( fieldPT Action.ident
+           , tableQT Action.ident
+           , fieldPT Action.caseId
+           , cid
+           , fieldPT Action.result
+           , fieldPT Action.ident
+           )
+  writeJSON $ concat (res :: [[IdentI Action.Action]])
