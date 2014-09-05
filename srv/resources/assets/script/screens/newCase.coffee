@@ -10,7 +10,7 @@ define [ 'utils'
     setupCaseMain = (viewName, args) ->
       kaze = {}
       if args.id
-        $.bgetJSON "/_/case/#{args.id}", (rsp) -> kaze = rsp
+        $.bgetJSON "/_/Case/#{args.id}", (rsp) -> kaze = rsp
 
       kvm = main.modelSetup('case') viewName, args,
                          permEl       : 'case-permissions'
@@ -84,7 +84,6 @@ define [ 'utils'
         v['callerType']('client')
         v['callType']('newCase')
 
-      s = (x) -> if x then String(x) else ''
       args =
         contact_name:         v['callerName_name']()
         contact_phone1:       v['callerName_phone1']()
@@ -99,17 +98,17 @@ define [ 'utils'
         contact_ownerPhone3:  v['callerName_ownerPhone3']()
         contact_ownerPhone4:  v['callerName_ownerPhone4']()
         contact_ownerEmail:   v['callerName_ownerEmail']()
-        program:              s v['program']()
-        subprogram:           s v['subprogram']()
+        program:              v['program']()
+        subprogram:           v['subprogram']()
         city:                 v['city']()
-        car_make:             s v['carMake']()
-        car_model:            s v['carModel']()
+        car_make:             v['carMake']()
+        car_model:            v['carModel']()
         caseAddress_coords:   v['coords']()
         caseAddress_address:  v['address']()
-        comment:              s v['wazzup']()
+        comment:              v['wazzup']()
         customerComment:      v['customerComment']()
-        callTaker:            s global.user.id
-      main.buildNewModel 'case', args, {modelArg: "ctr:full:#{v.program()}"},
+        callTaker:            global.user.id
+      main.buildNewModel 'Case', args, {modelArg: "ctr:full:#{v.program()}"},
         (m, k) -> Finch.navigate "newCase/#{k.id()}"
 
     makeCase = _.throttle makeCaseAux, 2000, {trailing: false}
