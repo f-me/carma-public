@@ -12,6 +12,7 @@ import Carma.Model.Program         (Program)
 import Carma.Model.SubProgram.Type (SubProgram)
 import Carma.Model.CarMake         (CarMake)
 import Carma.Model.CarModel        (CarModel)
+import Carma.Model.City            (City)
 import Carma.Model.Usermeta        (Usermeta)
 import Carma.Model.LegacyTypes
 
@@ -111,7 +112,7 @@ data Call = Call
   , callerType
     :: F (Maybe (IdentT CallerTypes)) "callerType" "Кто звонит?"
   , city
-    :: F (Maybe (IdentT DealerCities)) "city" "Город"
+    :: F (Maybe (IdentI City)) "city" "Город"
   , coords
     :: F (Maybe Coords) "coords" "Координаты места поломки"
   , address

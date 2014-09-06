@@ -18,8 +18,9 @@ import Data.Model.View
 import Data.Model.Types
 
 import Carma.Model.Types (Coords)
-import Carma.Model.LegacyTypes (DealerCities, Reference)
+import Carma.Model.LegacyTypes (Reference)
 import Carma.Model.CarMake (CarMake)
+import Carma.Model.City (City)
 import Carma.Model.TaxScheme (TaxScheme)
 
 
@@ -32,7 +33,7 @@ data Partner = Partner
   , name     :: F Text         "name"     "Название"
   , synonyms :: F (Vector Text)"synonyms" "Синонимы"
   , code     :: F (Maybe Text) "code"     "Код"
-  , city     :: F (Maybe (IdentT DealerCities)) "city" "Город"
+  , city     :: F (Maybe (IdentI City)) "city" "Город"
   , makes    :: F (Vector (IdentI CarMake)) "makes" "Обслуживаемые марки"
   , phones   :: F A.Value      "phones"   "Телефоны"
   , coords   :: F (Maybe Coords)"coords"  "Координаты фактического адреса"

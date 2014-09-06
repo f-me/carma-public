@@ -41,9 +41,6 @@ data Towage = Towage
                              "Координаты"
   , towAddress_map           :: F (Maybe MapField) "towAddress_map"
                              ""
-
-  -- insert [contractor_*, marginalCost] here
-
   , towerAddress_address     :: F (Maybe PickerField)
                              "towerAddress_address" "Адрес выезда эвакуатора"
   , towerAddress_comment     :: F (Maybe Text) "towerAddress_comment"
@@ -69,8 +66,6 @@ data Towage = Towage
                              "Номер заказ-наряда"
   , repairEndDate            :: F (Maybe LegacyDate) {-FIXME: day-} "repairEndDate"
                              "Дата окончания ремонта"
-
-  -- insert {paid,scan,..} here
   }
   deriving Typeable
 
@@ -97,8 +92,6 @@ viewModifier'
   : setMeta "widget" "partner" towDealer_partner
   : invisible towDealer_partnerId
   : invisible towDealer_coords
-  : setMeta "distanceTo1" "case-form/caseAddress_coords" dealerDistance
-  : setMeta "distanceTo2" "towAddress_coords" dealerDistance
   : viewModifier
 
 

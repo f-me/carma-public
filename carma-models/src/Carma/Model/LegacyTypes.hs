@@ -17,7 +17,6 @@ data Activity = Activity deriving Typeable
 data RequestType = RequestType deriving Typeable
 data ConsultationType = ConsultationType deriving Typeable
 data DeliveryType = DeliveryType deriving Typeable
-data DealerCities = DealerCities deriving Typeable
 data TowerTypes = TowerTypes deriving Typeable
 data WheelsBlockedCount = WheelsBlockedCount deriving Typeable
 data UrgentServiceReason = UrgentServiceReason deriving Typeable

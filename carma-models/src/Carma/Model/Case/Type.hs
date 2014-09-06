@@ -10,6 +10,7 @@ import Data.Model
 import Carma.Model.Types
 
 import Carma.Model.CaseStatus
+import Carma.Model.City         (City)
 import Carma.Model.Contract     (Contract)
 import Carma.Model.ContractCheckStatus
 import Carma.Model.Partner      (Partner)
@@ -20,7 +21,7 @@ import Carma.Model.Engine       (Engine)
 import Carma.Model.CarClass     (CarClass)
 import Carma.Model.CarMake      (CarMake)
 import Carma.Model.CarModel     (CarModel)
-import Carma.Model.LegacyTypes hiding (Partner)
+import Carma.Model.LegacyTypes
 
 import Carma.Model.Diagnostics.Cause      (Cause)
 import Carma.Model.Diagnostics.Part       (Part)
@@ -117,7 +118,7 @@ data Case = Case
   , vinChecked
     :: F (Maybe (IdentI ContractCheckStatus)) "vinChecked" "Участие в программе"
   , city
-    :: F (Maybe (IdentT DealerCities)) "city" "Город"
+    :: F (Maybe (IdentI City)) "city" "Город"
   , caseAddress_address
     :: F PickerField "caseAddress_address" "Адрес места поломки"
   , caseAddress_comment

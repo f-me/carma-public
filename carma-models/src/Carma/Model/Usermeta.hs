@@ -27,6 +27,7 @@ import           Data.Model.CRUD
 
 import           Carma.Model.LegacyTypes (Phone, Password)
 import           Carma.Model.Types (UserStateVal)
+import           Carma.Model.City (City)
 import           Carma.Model.Role (Role)
 import           Carma.Model.BusinessRole (BusinessRole)
 
@@ -45,7 +46,7 @@ data Usermeta = Usermeta
   , roles        :: F (Vector (IdentI Role)) "roles" "Роли в системе"
   , businessRole :: F (Maybe (IdentI BusinessRole))  "businessRole" "Бизнес-роль"
   , programs     :: F (Vector (IdentI Program)) "programs" "Подпрограммы"
-  , bocities     :: F (Vector Text)      "bocities" "Города"
+  , bocities     :: F (Vector (IdentI City)) "bocities" "Города"
   , boprograms   :: F (Vector Text)      "boprograms" "Программы"
   , isDealer     :: F Bool               "isDealer" "Дилер"
   , workPhone    :: F Phone              "workPhone" "Рабочий телефон"
@@ -93,8 +94,6 @@ instance Model Usermeta where
           {dictType = Just "ComputedDict"
           ,dictBounded = True
           }
-      , dict bocities $ (dictOpt "DealerCities")
-          {dictBounded = True}
       , dict boprograms $ (dictOpt "Program")
           {dictType = Just "ModelDict"
           ,dictBounded = True
