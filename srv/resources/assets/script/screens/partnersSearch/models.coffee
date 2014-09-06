@@ -22,7 +22,7 @@ define [], ->
           label: "Марка"
       },
       { name: "services"
-      , type: "dictionary-many"
+      , type: "dictionary-set-int"
       , meta:
           dictionaryName: "ServiceType"
           dictionaryType: "ModelDict"

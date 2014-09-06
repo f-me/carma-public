@@ -161,7 +161,7 @@ withinPartners = do
 
   city <- fromMaybe ""  <$> getParam "city"
   make <- fromMaybe ""  <$> getParam "make[]"
-  srv  <- fromMaybe ""  <$> getParam "services"
+  srv  <- fromMaybe ""  <$> getParam "services[]"
   pr2  <- fromMaybe ""  <$> getParam "priority2"
   pr3  <- fromMaybe ""  <$> getParam "priority3"
   dlr  <- fromMaybe "0" <$> getParam "isDealer"

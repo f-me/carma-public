@@ -29,7 +29,7 @@ $$
   declare
     ca  text[] = string_to_array(city, ',');
     ma  int[]  = string_to_array(makes, ' ');
-    sa  int[] = string_to_array(services, ',');
+    sa  int[] = string_to_array(services, ' ');
     p2a text[] = string_to_array(priority2, ',');
     p3a text[] = string_to_array(priority3, ',');
     se  boolean = array_dims(sa)  IS NULL;
