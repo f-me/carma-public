@@ -189,7 +189,7 @@ getCancelsForCase = do
 
 opStatsQ :: Query
 opStatsQ = [sql|
-  SELECT u.login, ca.type, ca.caseId,
+  SELECT u.login, ca.type::text, ca.caseId::text,
          (extract (epoch from ca.openTime)::int8)::text,
          (extract (epoch from ca.closeTime)::int8)::text
   FROM (SELECT a.*, row_number() OVER
@@ -232,7 +232,7 @@ opStats = do
 
 busyOpsQ :: Query
 busyOpsQ = [sql|
-  SELECT assignedTo, count(1)::text
+  SELECT assignedTo::text, count(1)::text
   FROM   actiontbl
   WHERE  result IS NOT NULL
   GROUP BY assignedTo
