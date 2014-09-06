@@ -19,7 +19,7 @@ Select
                 ELSE
                         '-'
                 END)
-        AS "Патрнер активен",
+        AS "Партнер активен",
 --ФУНКЦИЯ YESNO
         (CASE
                 WHEN
@@ -63,7 +63,7 @@ partnertbl.comment AS "Комментарий",
 servicelabel.label AS "Услуги",
 --ЧТО ЭТО?
         --partnertbl.garbage,
-coords AS "Координаты",
+partnertbl.coords AS "Координаты",
 --ЧТО ЭТО? Чем отличается от makes?
         --makers, --СТАРОЕ ПОЛЕ
 --ЧТО ЭТО?
@@ -78,7 +78,7 @@ emails AS "Электронная почта",
 foreignident AS "Интеграционный код",
 synonyms AS "Синонимы"
 FROM partnertbl
-LEFT JOIN "City" ON partnertbl.city = "City".value
+LEFT JOIN "City" ON partnertbl.city = "City".id
 LEFT JOIN "TaxScheme" ON partnertbl.taxScheme::Integer = "TaxScheme".id
 LEFT JOIN servicelabel ON partnertbl.id = servicelabel.id;
 

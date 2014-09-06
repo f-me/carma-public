@@ -159,7 +159,7 @@ withinPartners = do
   c2 <- getCoordsParam "coords2"
   c <- getCoordsParam "from"
 
-  city <- fromMaybe ""  <$> getParam "city"
+  city <- fromMaybe ""  <$> getParam "city[]"
   make <- fromMaybe ""  <$> getParam "make[]"
   srv  <- fromMaybe ""  <$> getParam "services[]"
   pr2  <- fromMaybe ""  <$> getParam "priority2"

@@ -1,8 +1,9 @@
 CREATE TABLE "City"
   (id    SERIAL PRIMARY KEY
-  ,value text UNIQUE NOT NULL
-  ,label text UNIQUE NOT NULL
-  ,timezone text
+  ,label text UNIQUE NOT NULL CHECK (label <> '')
+  ,value text NOT NULL DEFAULT ''
+  ,timezone text NOT NULL DEFAULT ''
+  ,coords geometry(Point,4326)
   );
 
 INSERT INTO "City" (value, label) VALUES

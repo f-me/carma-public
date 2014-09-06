@@ -49,7 +49,7 @@ tfs.tarifoption "tarifoption.id"
 FROM
 tfs
 LEFT JOIN tarifoptiontbl ON  tfs.tarifoption::TEXT = tarifoptiontbl.id::TEXT
-LEFT JOIN "City" ON tfs.city::TEXT = "City".value
+LEFT JOIN "City" ON tfs.city = "City".id
 ORDER BY tfs.name;
 
 GRANT SELECT ON "Услуги с приоритетами" TO reportgen;

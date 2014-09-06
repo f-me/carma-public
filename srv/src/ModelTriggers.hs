@@ -49,6 +49,7 @@ import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
 import           Carma.Model.Case (Case)
 import qualified Carma.Model.Case as Case
+import qualified Carma.Model.City as City
 import qualified Carma.Model.CaseStatus as CS
 import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.ContractCheckStatus as CCS
@@ -210,9 +211,10 @@ beforeUpdate = Map.unionsWith (++) $
 
   , trigOn Case.city $ \case
       Nothing -> return ()
-      Just (Ident city) ->
+      Just city ->
         do
-          w <- getCityWeather city
+          cp <- dbRead city
+          w <- getCityWeather (cp `get'` City.label)
           let temp = either (const $ Just "") (Just . T.pack . show . tempC) w
           modifyPatch (Patch.put Case.temperature temp)
 

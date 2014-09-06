@@ -22,7 +22,7 @@ regionlist as "Регион"
 from partnercanceltbl
 LEFT JOIN casetbl ON split_part(partnercanceltbl.caseid, 'case:', 2)::Integer = casetbl.id
 LEFT JOIN partnertbl ON partnertbl.id = "substring"(partnercanceltbl.partnerid, ':(.*)')::Integer
-LEFT JOIN "City" ON casetbl.city = "City".value
+LEFT JOIN "City" ON casetbl.city = "City".id
 --РЕАЛИЗАЦИЯ УНИКАЛЬНОЙ СВЯЗКИ В servicetbl(id, type):
         LEFT JOIN servicetbl ON
                 (partnercanceltbl.serviceid = servicetbl.id)

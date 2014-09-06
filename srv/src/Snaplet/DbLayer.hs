@@ -40,7 +40,6 @@ import Snaplet.DbLayer.Triggers
 import Snaplet.Auth.Class
 import Snaplet.Messenger (sendMessage)
 import Snaplet.Messenger.Class
-import DictionaryCache
 
 import Util
 
@@ -135,13 +134,9 @@ initDbLayer sessionMgr adb _ = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     -- syslog Info "Server started"
     tbls <- liftIO $ MT.loadTables "resources/site-config/models"
-    dc <- liftIO
-          $ loadDictionaries "resources/site-config/dictionaries"
-          >>= newTVarIO
 
     DbLayer adb
       <$> nestSnaplet "redis" redis redisDBInitConf
       <*> nestSnaplet "pgsql" postgres pgsInit
       <*> pure sessionMgr
       <*> (return tbls)
-      <*> (return dc)

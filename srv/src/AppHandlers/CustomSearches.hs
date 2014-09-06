@@ -101,7 +101,7 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
            (extract (epoch from a.opentime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.closetime at time zone 'UTC')::int8)::text,
            a.result::text, at.priority::text, a.comment,
-           c.city, c.program::text,
+           c.city::text, c.program::text,
            (extract (epoch from
              coalesce(s.times_expectedServiceStart, a.duetime)
               at time zone 'UTC')::int8)::text
@@ -143,7 +143,7 @@ searchCallsByPhone = do
   let phone = last $ B.split '/' uri
 
   rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT w.label, callerName_name, city, program::text, carMake::text, carModel::text,"
+    $  "SELECT w.label, callerName_name, city::text, program::text, carMake::text, carModel::text,"
     ++ "       c.callTaker::text, callType,"
     ++ "       extract (epoch from callDate at time zone 'UTC')::int8::text"
     ++ "  FROM calltbl c"

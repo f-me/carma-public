@@ -6,7 +6,6 @@ module Snaplet.DbLayer.Types where
 import Data.Map (Map)
 import Data.Text (Text)
 
-import Control.Concurrent.STM
 import Control.Lens
 
 import Snap
@@ -15,8 +14,6 @@ import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
 import Carma.ModelTables (TableDesc)
-
-import DictionaryCache
 
 type ObjectId = Text
 type FieldName = Text
@@ -35,8 +32,6 @@ data DbLayer b = DbLayer
     ,_postgres :: Snaplet Postgres
     ,_auth     :: Snaplet (AuthManager b)
     ,syncTables :: [TableDesc]
-    ,dictCache :: TVar DictCache
-
     }
 
 makeLenses ''DbLayer
@@ -46,8 +41,3 @@ instance HasPostgres (Handler b (DbLayer b)) where
 
 instance WithCurrentUser (Handler b (DbLayer b)) where
     withCurrentUser = with auth currentUser
-
-getDict :: (DictCache -> dict) -> Handler b (DbLayer b) dict
-getDict dict
-  = gets dictCache
-  >>= fmap dict . liftIO . readTVarIO

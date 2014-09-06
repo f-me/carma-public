@@ -27,7 +27,7 @@ create or replace function GeoWithin ( x1 float
 returns table (res text) as
 $$
   declare
-    ca  text[] = string_to_array(city, ',');
+    ca  int[] = string_to_array(city, ' ');
     ma  int[]  = string_to_array(makes, ' ');
     sa  int[] = string_to_array(services, ' ');
     p2a text[] = string_to_array(priority2, ',');

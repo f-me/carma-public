@@ -369,7 +369,7 @@ rkcPartners = logExceptions "handler/rkc/partners" $ do
 
 
 -- | Calculate average tower arrival time (in seconds) for today,
--- parametrized by city (a value from DealerCities dictionary).
+-- parametrized by city (a key from City dictionary).
 towAvgTimeQuery :: Query
 towAvgTimeQuery = [sql|
 WITH towtimes AS (
@@ -389,7 +389,7 @@ SELECT extract(epoch from avg(max)) FROM towtimes;
 -- (possibly containing @null@ if the time cannot be calculated).
 towAvgTime :: AppHandler ()
 towAvgTime = do
-  city <- getParam "city"
+  city <- getIntParam "city"
   case city of
     Just c -> do
           rows <- withPG pg_search $

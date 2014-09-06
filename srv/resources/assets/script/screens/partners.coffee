@@ -17,11 +17,11 @@ define [ "utils"
       main.modelSetup(modelName) viewName, args, options
 
     objsToRows = (objs) ->
-      dict = global.dictValueCache['DealerCities']
+      cities = utils.newModelDict "City", true
       rows = for obj in objs
         [obj.id
         ,obj.name       || ''
-        ,dict[obj.city] || obj.city || ''
+        ,(cities.getLab obj.city) || ''
         ,obj.comment    || ''
         ]
 

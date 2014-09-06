@@ -19,6 +19,7 @@ define ["utils", "dictionaries"], (u, d) ->
     dict = global.dictValueCache
     progs = u.newModelDict "Program", true
     waz = u.newModelDict "Wazzup", true
+    cities = u.newModelDict "City", true
 
     if phone
       $.getJSON( "/callsByPhone/#{phone}" )
@@ -39,7 +40,7 @@ define ["utils", "dictionaries"], (u, d) ->
 
           comment.push("ФИО: #{obj.callerName_name}") if obj.callerName_name
 
-          city = dict['DealerCities'][obj.city]
+          city = cities.getLab obj.city
           comment.push("Город: #{city}") if city
 
           program = progs.getLab obj.program

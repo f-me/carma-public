@@ -54,8 +54,9 @@ define ["utils"
         set violet
 
   objsToRows = (res) ->
-    ar = utils.newModelDict "ActionResult"
-    at = utils.newModelDict "ActionType"
+    ar = utils.newModelDict "ActionResult", true
+    at = utils.newModelDict "ActionType", true
+    cities = utils.newModelDict "City", true
     u = global.dictValueCache['users']
 
     roles = utils.newModelDict "Role", true
@@ -95,7 +96,7 @@ define ["utils"
       , timeLabel?[0] || ''
       , (ar.getLab obj.result) || ''
       , obj.priority || ''
-      , global.dictValueCache['DealerCities'][obj.city] || ''
+      , (cities.getLab obj.city) || ''
       , progs.getLab(obj.program) || ''
       , srvStart || ''
       , obj.name || ''
