@@ -8,7 +8,7 @@ module Carma.Model.Contract
     ( Contract(..)
     , identifiers
     , identifierNames
-    , WDay(unWDay)
+    , WDay(..)
     , contractSearchParams
     )
 
