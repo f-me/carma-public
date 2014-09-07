@@ -99,6 +99,7 @@ beforeCreate = Map.unionsWith (++)
 
   , trigOnModel ([]::[Case]) $ do
     n <- getNow
+    getCurrentUser >>= modPut Case.callTaker
     modPut Case.callDate             $ Just n
     modPut Case.caseStatus             CS.front
     modPut Case.contact_contactOwner $ Just on

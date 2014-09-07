@@ -188,7 +188,6 @@ define [ "utils"
         caseAddress_address:  v['address']()
         comment:              v['wazzup']()
         customerComment:      v['customerComment']()
-        callTaker:            global.user.id
       main.buildNewModel 'Case', args, {modelArg: "ctr:#{v.program()}"},
         (m, k) -> Finch.navigate "case/#{k.id()}"
 
