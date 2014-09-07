@@ -31,18 +31,15 @@ import           Data.Scientific (toRealFloat, toBoundedInteger)
 import           Data.Attoparsec.ByteString.Char8
 
 import           Data.ByteString.Char8 (ByteString)
-import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.Dict.New
 import           Data.Maybe
 import           Data.Text (Text)
-import qualified Data.Text as T (pack, unpack)
-import qualified Data.Text.Encoding as T
+import qualified Data.Text as T (concat, pack, unpack)
 
 import           Data.Configurator
 
 import           Data.Time.Clock
-import           Data.Time.Format
 
 import           Database.PostgreSQL.Simple.FromRow
 import           Database.PostgreSQL.Simple.SqlQQ
@@ -52,22 +49,20 @@ import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)
 
 import qualified Network.HTTP as H
 
-import           System.Locale
-
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.PostgresqlSimple
 
-import           Carma.Model.Types      (Coords(..))
-import           Data.Model             as Model
-import qualified Data.Model.Patch       as Patch
-import qualified Carma.Model.Case       as Case
-import qualified Carma.Model.City       as City
-import qualified Carma.Model.Partner    as Partner
-import qualified Carma.Model.Program    as Program
-import qualified Carma.Model.SubProgram as SubProgram
-import qualified Carma.Model.Role       as Role
-import qualified Carma.Model.Usermeta   as Usermeta
+import           Carma.Model.Types       (Coords(..))
+import           Carma.Model.LegacyTypes (PickerField(..), Phone(..))
+import           Data.Model              as Model
+import qualified Data.Model.Patch        as Patch
+import qualified Carma.Model.Case        as Case
+import qualified Carma.Model.City        as City
+import qualified Carma.Model.Partner     as Partner
+import qualified Carma.Model.Program     as Program
+import qualified Carma.Model.SubProgram  as SubProgram
+import qualified Carma.Model.Usermeta    as Usermeta
 
 import           Carma.HTTP.Base hiding (runCarma)
 import qualified Carma.HTTP.Base as CH (runCarma)
@@ -193,80 +188,86 @@ updatePartnerData pid lon lat free addr mtime =
 -- Response body is a JSON of form @{"caseId":<n>}@, where @n@ is the
 -- new case id.
 newCase :: Handler b GeoApp ()
-newCase = undefined -- do
-  -- -- New case parameters
-  -- rqb <- readRequestBody 4096
-  -- let progField    = fieldName Case.program
-  --     subProgField = fieldName Case.subprogram
-  --     -- Do not enforce typing on values when reading JSON
-  --     Just (Object jsonRq0) = Aeson.decode rqb
-  --     coords' = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
-  --     program'    = HM.lookup progField jsonRq0
-  --     subprogram' = HM.lookup subProgField jsonRq0
-  --     -- Now read all values but coords and program into ByteStrings
-  --     jsonRq = HM.fromList
-  --       [(T.encodeUtf8 k, T.encodeUtf8 s)
-  --       |(k, String s) <- HM.toList jsonRq0
-  --       ]
-  --     car_vin = HM.lookup "car_vin" jsonRq
-  --     car_make = HM.lookup "car_make" jsonRq
+newCase = do
+  -- New case parameters
+  rqb <- readRequestBody 4096
+  let -- Do not enforce typing on values when reading JSON
+      Just (Object jsonRq0) = Aeson.decode rqb
+      coords' = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
+      program'    = HM.lookup (fieldName Case.program) jsonRq0
+      subprogram' = HM.lookup (fieldName Case.subprogram) jsonRq0
 
-  -- carMakeId
-  --   <- (\case { [[makeId]] -> Just makeId; _ -> Nothing })
-  --   <$> query [sql|select id::text from "CarMake" where value = ?|] [car_make]
+      -- Now read all values but coords and program as Texts
+      jsonRq = HM.fromList
+               [(k, s) | (k, String s) <- HM.toList jsonRq0]
+      car_make = HM.lookup "car_make" jsonRq
+      -- Add a text field from the request to a patch
+      putFromRequest acc =
+        Patch.put acc (HM.lookup (fieldName acc) jsonRq)
 
-  -- dict <- gets cityDict
+  carMakeId
+    <- (\case { [[makeId]] -> Just makeId; _ -> Nothing })
+    <$> query [sql|select id::text from "CarMake" where value = ?|] [car_make]
 
-  -- jsonRq' <- case coords' of
-  --   -- Reverse geocode coordinates from lon/lat
-  --   Just (Number lon', Number lat') ->
-  --     let (lon, lat) = (toRealFloat lon', toRealFloat lat')
-  --     in revGeocode lon lat >>= \case
-  --       (city, addr) ->
-  --         return $
-  --         -- Translate input city name to corresponding dictionary key
-  --         (maybe id (HM.insert "city") $ city >>= (flip valueOfLabel dict)) $
-  --         -- Prepend street address with city name
-  --         (maybe id (\a -> HM.insert "caseAddress_address"
-  --                          (maybe a (\c -> T.concat [c, ", ", a]) city))
-  --                          addr) $
-  --         HM.insert "caseAddress_coords" (BS.pack $ coordsToString lon lat) $
-  --         jsonRq
-  --   _ -> return jsonRq
+  -- Start building a JSON for CaRMa
+  let caseBody = Patch.put Case.car_make carMakeId $
+                 putFromRequest Case.car_plateNum $
+                 putFromRequest Case.car_vin $
+                 Patch.put Case.contact_phone1
+                 (Phone <$> HM.lookup (fieldName Case.contact_phone1) jsonRq) $
+                 putFromRequest Case.contact_name $
+                 Patch.put Case.contractIdentifier
+                 (HM.lookup "cardNumber_cardNumber" jsonRq) $
+                 Patch.put Case.contractIdentifier
+                 (HM.lookup "cardNumber_cardNumber" jsonRq) $
+                 Patch.put Case.callTaker Usermeta.admin $
+                 Patch.empty
 
-  -- let numberToInt :: Maybe Value -> Maybe Int
-  --     numberToInt (Just (Number n)) = toBoundedInteger n
-  --     numberToInt _                 = Nothing
+  dict <- gets cityDict
 
-  --     identToInt :: IdentI m -> Int
-  --     identToInt i = n where (Ident n) = i
+  caseBody' <- case coords' of
+    -- Reverse geocode coordinates from lon/lat
+    Just (Number lon', Number lat') ->
+      let (lon, lat) = (toRealFloat lon', toRealFloat lat')
+      in revGeocode lon lat >>= \case
+        (city, addr) ->
+          return $
+          -- Translate input city name to corresponding dictionary key
+          maybe id (Patch.put Case.city . Just . Ident)
+          (city >>= (flip valueOfLabel dict)) $
+          -- Prepend street address with city name
+          maybe id
+          (\a ->
+             Patch.put Case.caseAddress_address $
+             (PickerField $ Just $
+              (maybe a (\c -> T.concat [c, ", ", a]) city))) addr $
+          (Patch.put Case.caseAddress_coords $
+           (PickerField $ Just $ T.pack $ coordsToString lon lat)) $
+          caseBody
+    _ -> return caseBody
 
-  --     -- Set default program/subprogram (if not provided by client)
-  --     (progValue, subProgValue) =
-  --         case (program', subprogram') of
-  --           (Just (Aeson.String "Cadillac"), _) ->
-  --               (Just $ identToInt Program.gm,
-  --                Just $ identToInt SubProgram.cad2012)
-  --           (a, b) -> (numberToInt a, numberToInt b)
+  let numberToIdent :: Maybe Value -> Maybe (IdentI n)
+      numberToIdent (Just (Number n)) = Ident <$> toBoundedInteger n
+      numberToIdent _                 = Nothing
 
-  --     -- Form a new case request to send to CaRMa
-  --     caseBody  = HM.insert (T.encodeUtf8 progField)
-  --                 (BS.pack $ show $
-  --                  fromMaybe (identToInt Program.ramc) progValue) $
-  --                 HM.insert (T.encodeUtf8 subProgField)
-  --                 (BS.pack $ show $
-  --                  fromMaybe (identToInt SubProgram.ramc) subProgValue) $
-  --                 HM.delete "lon" $
-  --                 HM.delete "lat" $
-  --                 maybe id (HM.insert "car_make") carMakeId $
-  --                 HM.insert (T.encodeUtf8 $ fieldName Case.callTaker)
-  --                 (BS.pack $ show $ identToInt Usermeta.admin) $
-  --                 jsonRq'
+      -- Set default program/subprogram (if not provided by client)
+      (progValue, subProgValue) =
+          case (program', subprogram') of
+            (Just (Aeson.String "Cadillac"), _) ->
+                (Just Program.gm, Just SubProgram.cad2012)
+            (a, b) -> (numberToIdent a, numberToIdent b)
 
-  -- modifyResponse $ setContentType "application/json"
-  -- caseResp <- runCarma $ createInstance "case" caseBody
+      caseBody'' = Patch.put Case.program
+                   (fromMaybe Program.ramc progValue) $
+                   Patch.put Case.subprogram
+                   (Just
+                    (fromMaybe SubProgram.ramc subProgValue)) $
+                   caseBody'
 
-  -- writeLBS . encode $ object $ [ "caseId" .= fst caseResp ]
+  caseResp <- runCarma $ createInstance caseBody''
+
+  modifyResponse $ setContentType "application/json"
+  writeLBS . encode $ object $ [ "caseId" .= fst caseResp ]
 
 
 ------------------------------------------------------------------------------
