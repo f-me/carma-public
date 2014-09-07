@@ -17,7 +17,6 @@ import Prelude hiding (read)
 import Control.Applicative
 import Control.Lens (Lens')
 import Control.Monad.State
-import Control.Concurrent.STM
 import qualified Data.Map as Map
 import Data.Maybe (fromJust, isJust)
 import Data.ByteString (ByteString)

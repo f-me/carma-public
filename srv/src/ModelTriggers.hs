@@ -636,7 +636,7 @@ mkContext :: PreContextAccess m =>
 mkContext act = do
   srv <- getService
   kase' <- getKase
-  usr <- dbRead =<< currentUserId
+  usr <- dbRead =<< getCurrentUser
   t <- getNow
   return HCtx{ kase = kase'
              , service = srv

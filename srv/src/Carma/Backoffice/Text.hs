@@ -30,7 +30,6 @@ import qualified Data.Text as T
 import           Data.Typeable
 
 import           Data.Model
-import qualified Carma.Model.Action as CarmaAction
 
 import           Carma.Backoffice.DSL
 

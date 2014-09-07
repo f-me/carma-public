@@ -21,7 +21,6 @@ module Trigger.Dsl
     , getPatch
     , modifyPatch
     , getPatchField
-    , currentUserId
 
       -- ** Snap auth access
     , getCurrentUser
@@ -157,9 +156,6 @@ dbUpdate i p = liftFree (DbUpdate i p id)
 
 wsMessage :: Free (Dsl m) ()
 wsMessage = liftFree (WsMessage ())
-
-currentUserId :: Free (Dsl m) (IdentI Usermeta)
-currentUserId = liftFree (CurrentUser id)
 
 getNow :: Free (Dsl m) UTCTime
 getNow = liftFree (DoApp (liftIO getCurrentTime) id)
