@@ -41,7 +41,6 @@ import           Carma.Model.Case as Case
 import           Carma.Model.Contract as C
 import           Carma.Model.Program as P
 import           Carma.Model.SubProgram as S hiding (field)
-import           Carma.Model.Types (TInt)
 
 import           Application
 import           AppHandlers.Util

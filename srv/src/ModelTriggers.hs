@@ -11,6 +11,8 @@ module ModelTriggers
   ) where
 
 
+import Prelude hiding (until)
+
 import Control.Applicative
 import Control.Monad
 import Control.Monad.Free (Free)
@@ -25,6 +27,7 @@ import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Printf
+import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Dynamic
 import GHC.TypeLits
@@ -51,7 +54,7 @@ import           Carma.Model.Case (Case)
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.City as City
 import qualified Carma.Model.CaseStatus as CS
-import qualified Carma.Model.Contract as Contract
+import           Carma.Model.Contract as Contract hiding (ident)
 import qualified Carma.Model.ContractCheckStatus as CCS
 import qualified Carma.Model.FalseCall as FC
 
@@ -61,6 +64,7 @@ import qualified Carma.Model.Service.Hotel as Hotel
 import qualified Carma.Model.Service.Rent as Rent
 import qualified Carma.Model.Service.Taxi as Taxi
 import qualified Carma.Model.Service.Towage as Towage
+import           Carma.Model.SubProgram as SubProgram hiding (ident)
 
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.TowType as TowType
@@ -96,6 +100,21 @@ beforeCreate = Map.unionsWith (++)
   , trigOnModel ([]::[Contract.Contract]) $ do
     getCurrentUser >>= modPut Contract.committer
     getNow >>= modPut Contract.ctime
+    -- Set checkPeriod and validUntil from the subprogram. Remember to
+    -- update vinnie_queue triggers when changing these!
+    s <- getPatchField Contract.subprogram
+    cp <- getPatchField Contract.checkPeriod
+    case (s, cp) of
+      (Just (Just s'), Nothing) -> do
+        sp <- dbRead s'
+        modPut Contract.checkPeriod (sp `get'` SubProgram.checkPeriod)
+      _ -> return ()
+    since <- getPatchField Contract.validSince
+    until <- getPatchField Contract.validUntil
+    case (s, since, until) of
+      (Just (Just s'), Just (Just newSince), Nothing) ->
+        fillValidUntil s' newSince
+      _ -> return ()
 
   , trigOnModel ([]::[Case]) $ do
     n <- getNow
@@ -175,6 +194,31 @@ beforeUpdate = Map.unionsWith (++) $
       Nothing -> return ()
       Just _ -> getNow >>=
                 (modifyPatch . Patch.put Action.assignTime . Just)
+
+  -- Set validUntil from the subprogram. Remember to update
+  -- vinnie_queue triggers when changing this!
+  , trigOn Contract.validSince $ \case
+       Nothing -> return ()
+       ns@(Just newSince) -> do
+         cp <- getIdent >>= dbRead
+         let oldSince = cp `get'` Contract.validSince
+         do
+           s  <- getPatchField Contract.subprogram
+           vu <- getPatchField Contract.validUntil
+           -- Prefer fields from the patch, but check DB as well
+           let  nize (Just Nothing) = Nothing
+                nize v              = v
+                sub   =
+                  (nize s)  <|> (Just $ cp `get'` Contract.subprogram)
+                -- We need to check if validUntil field is *missing*
+                -- from both patch and DB, thus Just Nothing from DB
+                -- is converted to Nothing
+                until =
+                  (nize vu) <|> (nize $ Just $ cp `get'` Contract.validUntil)
+           case (sub, until) of
+             (Just (Just s'), Nothing) ->
+               fillValidUntil s' newSince
+             _ -> return ()
 
   , trigOn Case.car_plateNum $ \case
       Nothing -> return ()
@@ -373,8 +417,6 @@ runTriggers before after dbAction fields state = do
   return res
 
 
-
-
 -- | Mapping between a contract field and a  case field.
 data Con2Case = forall t1 t2 n1 d1 n2 d2.
                 (Eq t2, Show t2, FieldI t1 n1 d1, FieldI t2 n2 d2) =>
@@ -403,6 +445,20 @@ contractToCase =
     , C2C Contract.carClass id Case.car_class
     , C2C Contract.subprogram id Case.subprogram
     ]
+
+
+-- | Set @validUntil@ field from a subprogram and a new @validSince@
+-- value.
+fillValidUntil :: IdentI SubProgram -> WDay -> Free (Dsl Contract) ()
+fillValidUntil subprogram newSince = do
+  sp <- dbRead subprogram
+  let vf = sp `get'` SubProgram.validFor
+      vs = unWDay newSince
+  case vf of
+    Just vf' ->
+      modPut Contract.validUntil
+      (Just $ WDay{unWDay = addDays (toInteger vf') vs})
+    Nothing -> return ()
 
 
 -- | Change a field in the patch.

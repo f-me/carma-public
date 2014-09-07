@@ -81,8 +81,7 @@ import Snaplet.FileUpload (FileUpload(cfg))
 
 import Carma.Model
 import Data.Model.CRUD
-import qualified Data.Model.Patch.Sql as Patch
-import           Data.Model.Patch (Patch(..))
+import Data.Model.Patch (Patch(..))
 import Carma.Model.Event (EventType(..))
 
 import Application
@@ -262,16 +261,7 @@ updateHandler = do
           Right commit' -> do
             evIdt <- logCRUD Update ident commit'
             updateUserState Update ident commit evIdt
-            case model of
-              -- TODO #1352 workaround for Contract triggers
-              "Contract" -> do
-                s   <- PS.getPostgresState
-                Right res' <- liftIO $
-                       withResource (PS.pgPool s) (Patch.read ident)
-                -- TODO Cut out fields from original commit like
-                -- DB.update does
-                return $ recode res'
-              _ -> return $ recode commit'
+            return $ recode commit'
   -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch model updateModel of
     Just fn ->
