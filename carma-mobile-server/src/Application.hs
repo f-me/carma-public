@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -24,6 +24,7 @@ import           Control.Monad
 import           Control.Monad.State hiding (ap)
 
 import           Data.Aeson as Aeson
+import           Data.Aeson.Types (emptyArray)
 import qualified Data.HashMap.Strict as HM
 import           Data.Scientific (toRealFloat, toBoundedInteger)
 
@@ -32,10 +33,10 @@ import           Data.Attoparsec.ByteString.Char8
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import           Data.Dict
+import           Data.Dict.New
 import           Data.Maybe
 import           Data.Text (Text)
-import qualified Data.Text as T (pack)
+import qualified Data.Text as T (pack, unpack)
 import qualified Data.Text.Encoding as T
 
 import           Data.Configurator
@@ -43,6 +44,7 @@ import           Data.Configurator
 import           Data.Time.Clock
 import           Data.Time.Format
 
+import           Database.PostgreSQL.Simple.FromRow
 import           Database.PostgreSQL.Simple.SqlQQ
 
 import qualified Data.Vector as V
@@ -56,22 +58,27 @@ import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.PostgresqlSimple
 
+import           Carma.Model.Types      (Coords(..))
 import           Data.Model             as Model
+import qualified Data.Model.Patch       as Patch
 import qualified Carma.Model.Case       as Case
+import qualified Carma.Model.City       as City
+import qualified Carma.Model.Partner    as Partner
 import qualified Carma.Model.Program    as Program
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role       as Role
 import qualified Carma.Model.Usermeta   as Usermeta
 
-import           Carma.HTTP hiding (runCarma)
-import qualified Carma.HTTP as CH (runCarma)
+import           Carma.HTTP.Base hiding (runCarma)
+import qualified Carma.HTTP.Base as CH (runCarma)
+import           Carma.HTTP.New
 
 
 data GeoApp = GeoApp
     { _postgres :: Snaplet Postgres
     , carmaOptions :: CarmaOptions
     -- ^ Options of CaRMa running on localhost.
-    , cityDict :: Dict
+    , cityDict :: NewDict
     -- ^ Dictionary used to map city names to internal values.
     }
 
@@ -108,7 +115,7 @@ revGeocode :: Double
            -- ^ Longitude.
            -> Double
            -- ^ Latitude.
-           -> Handler b GeoApp (Maybe ByteString, Maybe ByteString)
+           -> Handler b GeoApp (Maybe Text, Maybe Text)
 revGeocode lon lat = do
   uri <- runCarma $ methodURI ("geo/revSearch/" ++ coordsToString lon lat)
   addr <- liftIO $ do
@@ -117,8 +124,8 @@ revGeocode lon lat = do
      return $ decode' $ BSL.pack body
   case addr :: Maybe (HM.HashMap Text (Maybe Text)) of
     Just m ->
-        return ( T.encodeUtf8 <$> fromMaybe Nothing (HM.lookup "city" m)
-               , T.encodeUtf8 <$> fromMaybe Nothing (HM.lookup "address" m))
+        return ( fromMaybe Nothing (HM.lookup "city" m)
+               , fromMaybe Nothing (HM.lookup "address" m))
     Nothing -> return (Nothing, Nothing)
 
 
@@ -135,7 +142,7 @@ updatePosition = do
     (Just lon, Just lat, Just pid) -> do
        addr <- snd <$> revGeocode lon lat
        mtime <- liftIO $ getCurrentTime
-       updatePartnerData pid lon lat (fromMaybe True free) addr mtime
+       updatePartnerData (Ident pid) lon lat (fromMaybe True free) addr mtime
     _ -> error "Bad request"
 
 
@@ -143,7 +150,7 @@ updatePosition = do
 -- | Send HTTP PUT request to CaRMa API to update partner data,
 -- setting new values for fields @coords@, @isFree@, @addrs/fact@ and
 -- @mtime@. Note that city value is not updated.
-updatePartnerData :: Int
+updatePartnerData :: IdentI Partner.Partner
                   -- ^ Partner id.
                   -> Double
                   -- ^ Longitude.
@@ -151,50 +158,28 @@ updatePartnerData :: Int
                   -- ^ Latitude.
                   -> Bool
                   -- ^ Partner status.
-                  -> (Maybe ByteString)
-                  -- ^ New address if available.
+                  -> (Maybe Text)
+                  -- ^ New address if available (unchanged otherwise).
                   -> UTCTime
                   -- ^ New partner mtime.
                   -> Handler b GeoApp ()
 updatePartnerData pid lon lat free addr mtime =
     let
-        -- Name of address field in partner model (must contain JSON
-        -- data with dict-objects schema).
-        partnerAddress = "addrs"
-        coordString = concat [show lon, ",", show lat]
-        isFree = if free then "1" else "0"
-        body = HM.fromList $
-               [ ("coords", BS.pack coordString)
-               , ("isFree", BS.pack isFree)
-               , ("mtime",
-                  BS.pack $ formatTime defaultTimeLocale "%s" mtime)] ++
-               (maybe [] (\a -> [(partnerAddress, a)]) addr)
+        body = Patch.put Partner.coords (Just $ Coords (lon, lat)) $
+               Patch.put Partner.isFree free $
+               Patch.put Partner.mtime mtime $
+               Patch.empty
     in do
       -- Update addrs with new "fact" address. Not thread-safe.
       body' <- case addr of
         Nothing -> return body
         Just newFactAddr -> do
-          pData <- runCarma $ readInstance "partner" pid
-          let oldAddrs = fromMaybe "" $ HM.lookup partnerAddress pData
-              newAddrs = setKeyedJsonValue oldAddrs (Right "fact") newFactAddr
-          return $ HM.insert partnerAddress newAddrs body
-      runCarma $ updateInstance "partner" pid body' >> return ()
-
-
-------------------------------------------------------------------------------
--- | Build a reference to a case.
-caseIdReference :: Int -> ByteString
-caseIdReference n = BS.pack $ "case:" ++ (show n)
-
-
-------------------------------------------------------------------------------
--- | Build a reference to an action for use in @actions@ of case.
-actionIdReference :: Int -> ByteString
-actionIdReference n = BS.pack $ "action:" ++ (show n)
-
-
-roleIdent :: IdentI Role.Role -> ByteString
-roleIdent (Ident v) = BS.pack $ show v
+          pData <- runCarma $ readInstance pid
+          let oldAddrs = fromMaybe emptyArray $
+                         Patch.get pData Partner.addrs
+              newAddrs = setKeyedJsonValue oldAddrs "fact" (String newFactAddr)
+          return $ Patch.put Partner.addrs newAddrs body
+      runCarma $ updateInstance pid body' >> return ()
 
 
 ------------------------------------------------------------------------------
@@ -208,114 +193,90 @@ roleIdent (Ident v) = BS.pack $ show v
 -- Response body is a JSON of form @{"caseId":<n>}@, where @n@ is the
 -- new case id.
 newCase :: Handler b GeoApp ()
-newCase = do
-  -- New case parameters
-  rqb <- readRequestBody 4096
-  let progField    = fieldName Case.program
-      subProgField = fieldName Case.subprogram
-      -- Do not enforce typing on values when reading JSON
-      Just (Object jsonRq0) = Aeson.decode rqb
-      coords' = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
-      program'    = HM.lookup progField jsonRq0
-      subprogram' = HM.lookup subProgField jsonRq0
-      -- Now read all values but coords and program into ByteStrings
-      jsonRq = HM.fromList
-        [(T.encodeUtf8 k, T.encodeUtf8 s)
-        |(k, String s) <- HM.toList jsonRq0
-        ]
-      car_vin = HM.lookup "car_vin" jsonRq
-      car_make = HM.lookup "car_make" jsonRq
+newCase = undefined -- do
+  -- -- New case parameters
+  -- rqb <- readRequestBody 4096
+  -- let progField    = fieldName Case.program
+  --     subProgField = fieldName Case.subprogram
+  --     -- Do not enforce typing on values when reading JSON
+  --     Just (Object jsonRq0) = Aeson.decode rqb
+  --     coords' = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
+  --     program'    = HM.lookup progField jsonRq0
+  --     subprogram' = HM.lookup subProgField jsonRq0
+  --     -- Now read all values but coords and program into ByteStrings
+  --     jsonRq = HM.fromList
+  --       [(T.encodeUtf8 k, T.encodeUtf8 s)
+  --       |(k, String s) <- HM.toList jsonRq0
+  --       ]
+  --     car_vin = HM.lookup "car_vin" jsonRq
+  --     car_make = HM.lookup "car_make" jsonRq
 
-  carMakeId
-    <- (\case { [[makeId]] -> Just makeId; _ -> Nothing })
-    <$> query [sql|select id::text from "CarMake" where value = ?|] [car_make]
+  -- carMakeId
+  --   <- (\case { [[makeId]] -> Just makeId; _ -> Nothing })
+  --   <$> query [sql|select id::text from "CarMake" where value = ?|] [car_make]
 
-  dict <- gets cityDict
+  -- dict <- gets cityDict
 
-  jsonRq' <- case coords' of
-    -- Reverse geocode coordinates from lon/lat
-    Just (Number lon', Number lat') ->
-      let (lon, lat) = (toRealFloat lon', toRealFloat lat')
-      in revGeocode lon lat >>= \case
-        (city, addr) ->
-          return $
-          -- Translate input city name to corresponding dictionary key
-          (maybe id (HM.insert "city") $ city >>= (flip valueOfLabel dict)) $
-          -- Prepend street address with city name
-          (maybe id (\a -> HM.insert "caseAddress_address"
-                           (maybe a (\c -> BS.concat [c, ", ", a]) city))
-                           addr) $
-          HM.insert "caseAddress_coords" (BS.pack $ coordsToString lon lat) $
-          jsonRq
-    _ -> return jsonRq
+  -- jsonRq' <- case coords' of
+  --   -- Reverse geocode coordinates from lon/lat
+  --   Just (Number lon', Number lat') ->
+  --     let (lon, lat) = (toRealFloat lon', toRealFloat lat')
+  --     in revGeocode lon lat >>= \case
+  --       (city, addr) ->
+  --         return $
+  --         -- Translate input city name to corresponding dictionary key
+  --         (maybe id (HM.insert "city") $ city >>= (flip valueOfLabel dict)) $
+  --         -- Prepend street address with city name
+  --         (maybe id (\a -> HM.insert "caseAddress_address"
+  --                          (maybe a (\c -> T.concat [c, ", ", a]) city))
+  --                          addr) $
+  --         HM.insert "caseAddress_coords" (BS.pack $ coordsToString lon lat) $
+  --         jsonRq
+  --   _ -> return jsonRq
 
-  let numberToInt :: Maybe Value -> Maybe Int
-      numberToInt (Just (Number n)) = toBoundedInteger n
-      numberToInt _                 = Nothing
+  -- let numberToInt :: Maybe Value -> Maybe Int
+  --     numberToInt (Just (Number n)) = toBoundedInteger n
+  --     numberToInt _                 = Nothing
 
-      identToInt :: IdentI m -> Int
-      identToInt i = n where (Ident n) = i
+  --     identToInt :: IdentI m -> Int
+  --     identToInt i = n where (Ident n) = i
 
-      -- Set default program/subprogram (if not provided by client)
-      (progValue, subProgValue) =
-          case (program', subprogram') of
-            (Just (Aeson.String "Cadillac"), _) ->
-                (Just $ identToInt Program.gm,
-                 Just $ identToInt SubProgram.cad2012)
-            (a, b) -> (numberToInt a, numberToInt b)
+  --     -- Set default program/subprogram (if not provided by client)
+  --     (progValue, subProgValue) =
+  --         case (program', subprogram') of
+  --           (Just (Aeson.String "Cadillac"), _) ->
+  --               (Just $ identToInt Program.gm,
+  --                Just $ identToInt SubProgram.cad2012)
+  --           (a, b) -> (numberToInt a, numberToInt b)
 
-      -- Form a new case request to send to CaRMa
-      caseBody  = HM.insert (T.encodeUtf8 progField)
-                  (BS.pack $ show $
-                   fromMaybe (identToInt Program.ramc) progValue) $
-                  HM.insert (T.encodeUtf8 subProgField)
-                  (BS.pack $ show $
-                   fromMaybe (identToInt SubProgram.ramc) subProgValue) $
-                  HM.delete "lon" $
-                  HM.delete "lat" $
-                  HM.delete "car_vin" $ -- We insert it later to run the trigger
-                  maybe id (HM.insert "car_make") carMakeId $
-                  HM.insert (T.encodeUtf8 $ fieldName Case.callTaker)
-                  (BS.pack $ show $ identToInt Usermeta.admin) $
-                  jsonRq'
+  --     -- Form a new case request to send to CaRMa
+  --     caseBody  = HM.insert (T.encodeUtf8 progField)
+  --                 (BS.pack $ show $
+  --                  fromMaybe (identToInt Program.ramc) progValue) $
+  --                 HM.insert (T.encodeUtf8 subProgField)
+  --                 (BS.pack $ show $
+  --                  fromMaybe (identToInt SubProgram.ramc) subProgValue) $
+  --                 HM.delete "lon" $
+  --                 HM.delete "lat" $
+  --                 maybe id (HM.insert "car_make") carMakeId $
+  --                 HM.insert (T.encodeUtf8 $ fieldName Case.callTaker)
+  --                 (BS.pack $ show $ identToInt Usermeta.admin) $
+  --                 jsonRq'
 
-  modifyResponse $ setContentType "application/json"
-  caseResp <- runCarma $ createInstance "case" caseBody
+  -- modifyResponse $ setContentType "application/json"
+  -- caseResp <- runCarma $ createInstance "case" caseBody
 
-  now <- liftIO $ getCurrentTime
-  let nowStr = BS.pack $ formatTime defaultTimeLocale "%s" (now :: UTCTime)
-  -- Fetch id of the created case and create a new action for this id
-  let caseId = fst caseResp
-      descr = T.encodeUtf8 $ T.pack
-            $  "Клиент заказал услугу с помощью мобильного приложения. "
-            ++ "Требуется перезвонить ему и уточнить детали"
-      actBody = HM.fromList
-                [ ("caseId", caseIdReference caseId)
-                , ("name", "callMeMaybe")
-                , ("targetGroup", roleIdent Role.bo_order)
-                , ("duetime", nowStr)
-                , ("priority", "1")
-                , ("closed", "0")
-                , ("description", descr)
-                ]
-  actResp <- runCarma $ createInstance "action" actBody
-
-  -- Fetch id of the created action and update the reverse reference
-  -- in the case.
-  let actId = fst actResp
-  runCarma $ updateInstance "case" caseId $ HM.fromList $
-          [ ("actions", actionIdReference actId) ]
-          -- We update contractIdentifier here to trigger contract search
-          ++ maybe [] (\vin -> [("contractIdentifier", vin)]) car_vin
-
-  writeLBS . encode $ object $ [ "caseId" .= caseId ]
+  -- writeLBS . encode $ object $ [ "caseId" .= fst caseResp ]
 
 
 ------------------------------------------------------------------------------
 -- | Wrapper type for @/geo/partnersAround@ results.
 newtype Partner = Partner (Int, Double, Double, Maybe Bool, Maybe Bool,
                            Maybe Text, Maybe Text, Maybe Text)
-                  deriving (FromRow)
+
+
+instance FromRow Partner where
+  fromRow = Partner <$> fromRow
 
 
 instance ToJSON Partner where
@@ -401,12 +362,13 @@ geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
 
     cp <- liftIO $ lookupDefault 8000 cfg "carma_port"
     let cOpts = defaultCarmaOptions{carmaPort = cp}
-    dName <- liftIO $ lookupDefault "DealerCities" cfg "cities-dictionary"
+        defDict = T.unpack $ modelName (modelInfo :: ModelInfo City.City)
+    dName <- liftIO $ lookupDefault defDict cfg "cities-dictionary"
 
     addRoutes routes
     cDict' <- liftIO $ CH.runCarma cOpts $ readDictionary dName
     case cDict' of
-      Just cDict -> return $ GeoApp db cOpts cDict
+      Just cDict -> return $ GeoApp db cOpts (loadNewDict' cDict)
       Nothing -> error "Could not load cities dictionary from CaRMa"
 
 
