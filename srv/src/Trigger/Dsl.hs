@@ -259,7 +259,7 @@ sendSMS svcId tplId =
             coalesce(to_char(svc.times_factServiceStart, 'HH24:MI MM-DD-YYYY'), ''),
             sprog.smsSender, sprog.smsProgram, sprog.smsContact
           from
-            casetbl cs left join "City" on ("City".value = cs.city),
+            casetbl cs left join "City" on ("City".id = cs.city),
             servicetbl svc,
             "SubProgram" sprog
           where true
