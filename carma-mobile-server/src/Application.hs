@@ -58,6 +58,7 @@ import           Carma.Model.LegacyTypes (PickerField(..), Phone(..))
 import           Data.Model              as Model
 import qualified Data.Model.Patch        as Patch
 import qualified Carma.Model.Case        as Case
+import qualified Carma.Model.CaseStatus  as CS
 import qualified Carma.Model.City        as City
 import qualified Carma.Model.Partner     as Partner
 import qualified Carma.Model.Program     as Program
@@ -257,6 +258,7 @@ newCase = do
                 (Just Program.gm, Just SubProgram.cad2012)
             (a, b) -> (numberToIdent a, numberToIdent b)
 
+      -- TODO Check that subprogram.parent = program
       caseBody'' = Patch.put Case.program
                    (fromMaybe Program.ramc progValue) $
                    Patch.put Case.subprogram
@@ -264,10 +266,13 @@ newCase = do
                     (fromMaybe SubProgram.ramc subProgValue)) $
                    caseBody'
 
-  caseResp <- runCarma $ createInstance caseBody''
+  caseId <- runCarma $ do
+    (caseId, _) <- createInstance caseBody''
+    updateInstance caseId (Patch.put Case.caseStatus CS.mobileOrder Patch.empty)
+    return caseId
 
   modifyResponse $ setContentType "application/json"
-  writeLBS . encode $ object $ [ "caseId" .= fst caseResp ]
+  writeLBS . encode $ object $ [ "caseId" .= caseId ]
 
 
 ------------------------------------------------------------------------------
