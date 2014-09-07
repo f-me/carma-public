@@ -38,13 +38,11 @@ instance Model SubProgram where
                 [ regexp "email" mailAddr
                 , required parent
                 , required label
-                , required value
                 , regexp "smsSender" smsSender
                 , regexp "phone" smsContact
                 , required smsSender
                 , required smsContact
                 , required smsProgram
-                , infoText "subProgramValue" value
                 , infoText "subProgramLeader" leader
                 , infoText "programHelp" help
                 , infoText "programDealerHelp" dealerHelp

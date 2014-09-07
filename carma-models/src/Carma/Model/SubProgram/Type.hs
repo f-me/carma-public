@@ -46,9 +46,6 @@ data SubProgram = SubProgram
   , synonyms    :: F (Maybe (Vector Text))
                    "synonyms"
                    "Синонимы"
-  , value       :: F Text
-                   "value"
-                   "Внутренняя метка"
   , mailAddr    :: F (Maybe Text)
                    "mailAddr"
                    "Mail для отправки писем"
