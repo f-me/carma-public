@@ -13,7 +13,7 @@ module Carma.Model.Types ( Dict(..)
                          , IdentList
                          , EventType(..)
                          , UserStateVal(..)
-                         , Coords
+                         , Coords(..)
                          , on
                          , off
                          ) where
