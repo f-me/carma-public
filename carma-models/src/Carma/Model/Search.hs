@@ -35,7 +35,7 @@ import           Data.Model hiding (fieldName, modelName, fieldDesc)
 import qualified Data.Model as Model
 import           Data.Model.Types hiding (modelName)
 import           Carma.Model.Types
-import           Carma.Model.LegacyTypes (LegacyDatetime, Reference)
+import           Carma.Model.LegacyTypes (Reference)
 import           Carma.Model.PgTypes()
 
 data Predicate m
@@ -101,11 +101,6 @@ matchAny = concat
 
 class IntervalPred t m where
   interval :: t -> [Predicate m]
-
-instance forall m nm desc . (SingI nm, SingI desc, Model m)
-         => IntervalPred (m -> F LegacyDatetime nm desc) m  where
-  interval _ = map (\p -> p {matchType = MatchInterval})
-               $ one (undefined :: m -> F (Interval UTCTime) nm desc)
 
 instance forall m nm desc . (SingI nm, SingI desc, Model m)
          => IntervalPred (m -> F UTCTime nm desc) m  where
@@ -193,7 +188,6 @@ hs2pgtype :: TypeRep -> Text
 hs2pgtype t
   | t == typeOf (undefined :: Interval UTCTime) = "tstzrange"
   | t == typeOf (undefined :: Interval (Maybe UTCTime)) = "tstzrange"
-  | t == typeOf (undefined :: Interval LegacyDatetime) = "tstzrange"
   | t == typeOf (undefined :: Interval Day) = "daterange"
   | otherwise  = error $ "Unknown type in hs2pgtype: " ++ show t
 

@@ -34,7 +34,7 @@ data Case = Case
   , callDate
     :: F (Maybe UTCTime) "callDate" "Дата звонка"
   , vwcreatedate
-    :: F (Maybe LegacyDatetime) "vwcreatedate" "Дата звонка"
+    :: F (Maybe UTCTime) "vwcreatedate" "Дата звонка"
   , callTaker
     :: F (IdentI Usermeta)      "callTaker" "Сотрудник РАМК"
   , customerComment

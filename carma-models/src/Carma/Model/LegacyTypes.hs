@@ -120,19 +120,3 @@ instance ToField LegacyDate where
   toField (LegacyDate utc) = toField utc
 instance FromField LegacyDate where
   fromField fld m = LegacyDate <$> fromField fld m
-
-data LegacyDatetime = LegacyDatetime UTCTime deriving Typeable
-instance FromJSON LegacyDatetime where
-  parseJSON fld = do
-    txt <- T.unpack <$> parseJSON fld
-    let res = parseTime undefined "%s" txt
-          <|> hush (parseUTCTime $ B8.pack txt)
-    case res of
-      Just v  -> return $ LegacyDatetime v
-      Nothing -> fail $ "LegacyDatetime.parseJSON: invalid date " ++ txt
-instance ToJSON LegacyDatetime where
-  toJSON (LegacyDatetime utc) = toJSON $ formatTime undefined "%s" utc
-instance ToField LegacyDatetime where
-  toField (LegacyDatetime utc) = toField utc
-instance FromField LegacyDatetime where
-  fromField fld m = LegacyDatetime <$> fromField fld m

@@ -2,6 +2,7 @@ module Carma.Model.Call where
 
 import Data.Aeson as Aeson
 import Data.Text
+import Data.Time
 import Data.Typeable
 import Data.Model as Model
 import Data.Model.Types ((:@))
@@ -70,9 +71,9 @@ metas =
 data Call = Call
   { ident :: PK Int Call "Номер звонка"
   , callDate
-    :: F LegacyDatetime "callDate" "Дата звонка"
+    :: F UTCTime "callDate" "Дата звонка"
   , endDate
-    :: F (Maybe LegacyDatetime) "endDate"  "Время окончания звонка"
+    :: F (Maybe UTCTime) "endDate"  "Время окончания звонка"
   , callTaker
     :: F (IdentI Usermeta) "callTaker" "Сотрудник РАМК"
   , program

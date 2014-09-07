@@ -259,9 +259,6 @@ instance DefaultFieldView Checkbox where
 instance DefaultFieldView LegacyDate where
   defaultFieldView f = (defFieldView f) {fv_type = "date"}
 
-instance DefaultFieldView LegacyDatetime where
-  defaultFieldView f = (defFieldView f) {fv_type = "datetime"}
-
 instance DefaultFieldView JsonAsText where
   defaultFieldView f = (defFieldView f) {fv_type = "JsonAsText"}
 
