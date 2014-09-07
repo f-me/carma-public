@@ -30,9 +30,8 @@ define [], ->
     else
       if v != ""
         console.error("datamap: could not parse date '#{v}' with '#{fmt}'")
-        null
-      else
-        ""
+      null
+
   s2cDate = (fmt) -> (v) ->
     return null if _.isEmpty v
     d = undefined
@@ -76,7 +75,6 @@ define [], ->
     IdentList : (v) -> v
     dictionary: (v) -> if _.isNull v then '' else v
     date      : c2sDate("dd.MM.yyyy")
-    datetime  : c2sDate("dd.MM.yyyy HH:mm:ss")
     coords    : (v) -> if v == "" then null else v
     JsonAsText: JSON.stringify
     JSON      : (v) -> v
@@ -98,7 +96,6 @@ define [], ->
     UTCTime   : s2cISO guiUTCTimeFormat
     dictionary: (v) -> v
     date      : s2cDate("dd.MM.yyyy")
-    datetime  : s2cDate("dd.MM.yyyy HH:mm:ss")
     JsonAsText: s2cJson
     JSON      : (v) -> v
 
