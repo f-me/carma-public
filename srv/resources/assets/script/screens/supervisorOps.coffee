@@ -109,7 +109,8 @@ define  [ "utils"
     dictManyFields: ['boCities', 'boPrograms']
     fields: [
       { name: 'boCities'
-      , meta: {dictionaryName: 'DealerCities'}
+      , meta: {dictionaryName: 'City'
+              ,dictionaryType: 'ModelDict'}
       , type: "dictionary-many" },
       { name: 'boPrograms'
       , meta: { dictionaryName: 'Program'
