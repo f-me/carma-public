@@ -10,8 +10,9 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
 
     find: (q, cb, opt) ->
       return cb({}) if q.length < 4 and not opt?.force
+      qr = q.replace(/\+/g, "%2B")
       params = "program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}"
-      query = "/searchContracts/?query=#{q}&case=#{@kvm.id?()}&#{params}#{if opt?.force then '&type=exact' else ''}"
+      query = "/searchContracts/?query=#{qr}&case=#{@kvm.id?()}&#{params}#{if opt?.force then '&type=exact' else ''}"
 
       @needArc = false
       @orig = null
