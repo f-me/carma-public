@@ -43,6 +43,7 @@ define [ "utils"
       srv  =
         id: srvId
         data: kvm._meta.q.toRawObj()
+        sType: kvm.type()
       kase =
         id: "case:#{kvm._parent.id()}"
         data: kvm._parent._meta.q.toRawObj()
