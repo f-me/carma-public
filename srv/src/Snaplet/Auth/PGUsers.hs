@@ -18,7 +18,6 @@ import           Snap
 import           Snaplet.Auth.Class
 import           Snap.Snaplet.Auth hiding (Role)
 import           Snap.Snaplet.PostgresqlSimple as PG
-import qualified Data.Pool as Pool
 
 import qualified Data.Vector as V
 
@@ -30,32 +29,42 @@ import           Carma.Model.Role (Role)
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 
+import           Util (withPG)
 
 -- FIXME: should return Object not a Patch
 currentUserMeta
-  :: (WithCurrentUser h, HasPostgres h, Functor h, Monad h)
+  :: (WithCurrentUser h, HasPostgres h, Functor h, MonadSnap h)
   => h (Maybe (Patch Usermeta))
 currentUserMeta = withCurrentUser >>= \case
-  Nothing  -> return Nothing
+  Nothing  -> do
+    req <- getRequest
+    -- Consider current user to be admin when accessing from localhost
+    -- (HTTP API)
+    case rqRemoteAddr req == rqLocalAddr req of
+      True ->
+        withPG (liftIO . Patch.read Usermeta.admin) >>=
+          \case
+            Left e -> error $ show e
+            Right r -> return $ Just r
+      False -> return Nothing
   Just usr -> case userId usr of
     Nothing  -> error $ "BUG! currentUser without id: " ++ show usr
     Just (UserId uid) -> do
-      s <- PG.getPostgresState
-      res <- Pool.withResource (PG.pgPool s)
-        (liftIO . Patch.readManyWithFilter 1 0 [(fieldName Usermeta.uid, uid)])
+      res <- withPG $
+             (liftIO . Patch.readManyWithFilter 1 0 [(fieldName Usermeta.uid, uid)])
       case res of
         [obj] -> return $ Just obj
         _     -> error $ "BUG! select Usermeta.uid " ++ show uid
 
 
 currentUserMetaId
-  :: (WithCurrentUser h, HasPostgres h, Functor h, Monad h)
+  :: (WithCurrentUser h, HasPostgres h, Functor h, MonadSnap h)
   => h (Maybe (IdentI Usermeta))
 currentUserMetaId = (>>= flip Patch.get Usermeta.ident) <$> currentUserMeta
 
 
 currentUserRoles
-  :: (WithCurrentUser h, HasPostgres h, Functor h, Monad h)
+  :: (WithCurrentUser h, HasPostgres h, Functor h, MonadSnap h)
   => h (Maybe [IdentI Role])
 currentUserRoles = do
   meta <- currentUserMeta

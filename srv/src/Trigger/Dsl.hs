@@ -54,7 +54,6 @@ import Control.Monad.Trans.State
 import Control.Monad.Trans.Class (lift)
 
 import qualified Data.Map as Map
-import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -68,6 +67,7 @@ import GHC.TypeLits
 import qualified Snap (gets)
 import Snap.Snaplet.Auth
 import Snaplet.Auth.Class
+import Snaplet.Auth.PGUsers
 
 import WeatherApi (Weather, getWeather')
 
@@ -355,13 +355,8 @@ evalDsl = \case
       evalDsl $ k res
 
     CurrentUser k -> do
-      c <- gets st_pgcon
-      [[uid]] <- lift $ do
-        u <- fromMaybe (error "No current user") <$> withAuth currentUser
-        liftIO $ PG.query c
-          "SELECT id FROM usermetatbl WHERE uid = ? :: int"
-          (PG.Only $ unUid <$> userId u)
-      evalDsl $ k (Ident uid)
+      Just uid <- lift $ currentUserMetaId
+      evalDsl $ k uid
 
     CreateUser l k -> do
       let user = defAuthUser {userLogin = l}
