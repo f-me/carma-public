@@ -1,5 +1,6 @@
 module Carma.HTTP.Util
-    ( mkRequestWithBody 
+    (
+      mkRequestWithBody
     )
 
 where

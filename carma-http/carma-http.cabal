@@ -1,8 +1,8 @@
 name:                carma-http
-version:             0.4.2.1
+version:             0.5
 synopsis:            Access local CaRMa using HTTP API
 description:         Interface to create/read/update/delete
-                     operations of legacy (untyped) CaRMa HTTP API.
+                     operations of CaRMa HTTP API.
 license:             BSD3
 license-file:        LICENSE
 author:              Dmitry Dzhus
@@ -16,7 +16,9 @@ library
   hs-source-dirs: src
 
   exposed-modules:
-    Carma.HTTP
+    Carma.HTTP,
+    Carma.HTTP.Base,
+    Carma.HTTP.New
 
   other-modules:
     Carma.HTTP.Util
@@ -26,6 +28,8 @@ library
     base                   >= 4.6 && < 4.8,
     bytestring             == 0.10.*,
     carma-dict             >= 0.1.1 && < 0.2,
+    carma-models           >= 0.24 && < 0.25,
+    containers             == 0.5.*,
     HTTP                   == 4000.2.*,
     lens                   >= 3.8 && < 4.4,
     network                >= 2.4 && < 2.6,

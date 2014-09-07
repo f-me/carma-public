@@ -1,17 +1,18 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 {-|
 
-Interface to HTTP API provided by a CaRMa server.
+HTTP API using DbLayer legacy types.
 
 TODO: Port InstanceData to use Text.
 
 -}
 
 module Carma.HTTP
-    ( FieldName
+    (
+      FieldName
     , FieldValue
     , InstanceData
 
@@ -36,37 +37,33 @@ module Carma.HTTP
     -- * Auxiliary methods
     , methodURI
     , readDictionary
-    , readNewDictionary
     , manyFieldDivisor
     -- ** Dict-objects JSON helpers
     , getKeyedJsonValue
     , getAllKeyedJsonValues
-    , setKeyedJsonValue
     )
 
 where
 
-import Control.Exception
-import Control.Lens hiding (createInstance)
-import Control.Monad.IO.Class
-import Control.Monad.Trans.Reader
+import           Control.Lens               hiding (createInstance)
+import           Control.Monad.IO.Class
+import           Control.Monad.Trans.Reader
 
-import Data.Aeson hiding (Result)
-import Data.Dict
-import Data.Functor
-import Data.HashMap.Strict as M hiding (filter)
-import Data.List
-import Data.Maybe
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as B8
+import           Data.Aeson                 hiding (Result)
+import qualified Data.ByteString            as BS
+import qualified Data.ByteString.Char8      as B8
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import qualified Data.Text.Encoding as T
+import           Data.Dict
+import           Data.Functor
+import           Data.HashMap.Strict        as M hiding (filter)
+import           Data.List
+import           Data.Maybe
+import qualified Data.Text.Encoding         as T
 
-import Network.HTTP
-import Network.Stream (Result)
+import           Network.HTTP
 
-import Data.Dict.New
-import Carma.HTTP.Util
+import           Carma.HTTP.Base
+import           Carma.HTTP.Util
 
 
 type FieldValue = BS.ByteString
@@ -84,56 +81,6 @@ instance FromJSON InstanceData where
     parseJSON = fmap (mapKeyVal T.encodeUtf8 T.encodeUtf8) . parseJSON
 
 mapKeyVal fk kv = M.foldrWithKey (\k v -> M.insert (fk k) (kv v)) M.empty
-
-mapKey fk = mapKeyVal fk id
-
-
--- | Options used to connect to a running CaRMa instance.
-data CarmaOptions = CarmaOptions { carmaPort :: Int }
-
-
-defaultCarmaOptions :: CarmaOptions
-defaultCarmaOptions = CarmaOptions 8000
-
-
--- | A monad which keeps a single open connection for a sequence of
--- CaRMa requests.
-type CarmaIO = ReaderT (CarmaOptions, HandleStream String) IO
-
-
-getPort :: CarmaIO Int
-getPort = asks (carmaPort . fst)
-
-
-sendRequest :: Request String -> CarmaIO (Result (Response String))
-sendRequest req = do
-  s <- asks snd
-  liftIO $ sendHTTP s req
-
-
-localhost :: String
-localhost = "127.0.0.1"
-
-
--- | Model API endpoint.
-modelURI :: Int
-           -- ^ CaRMa port.
-         -> String
-         -- ^ Model name.
-         -> String
-modelURI cp model = concat ["http://", localhost, ":", show cp, "/_/", model, "/"]
-
-
--- | Model read/update/delete API endpoint.
-modelPidURI :: Int -> String -> Int -> String
-modelPidURI cp model pid = (modelURI cp model) ++ (show pid)
-
-
-runCarma :: CarmaOptions -> CarmaIO a -> IO a
-runCarma opts action =
-    bracket (openStream localhost (carmaPort opts))
-            (close)
-            (\s -> runReaderT action (opts, s))
 
 
 -- | Send request to c/r/u/d an instance of model, possibly using new
@@ -209,7 +156,7 @@ updateInstance model rid row =
 
 deleteInstance :: String -> Int -> CarmaIO ()
 deleteInstance model rid =
-    instanceRequest model (Just rid) DELETE Nothing >> return ()
+    void $ instanceRequest model (Just rid) DELETE Nothing
 
 
 -- | Check if instance exists in the CaRMa database.
@@ -251,28 +198,7 @@ read1Reference val =
 -- ids. Invalid references are ignored.
 readReferences :: FieldValue -> [(String, Int)]
 readReferences refs =
-    (flip mapMaybe) (B8.split manyFieldDivisor refs) read1Reference
-
-
--- | Build URI used to call a method of local CaRMa.
-methodURI :: String
-          -- ^ Method name/call, like @repTowages/5003@ or @psaCases@,
-          -- no trailing or leading slashes.
-          -> CarmaIO String
-methodURI meth =
-    getPort >>= \cp ->
-        return $ concat ["http://", localhost, ":", show cp, "/", meth]
-
-
--- | Load a new-style dictionary with given name from CaRMa.
-readNewDictionary :: String
-                  -- ^ Dictionary name.
-                  -> CarmaIO (Maybe PreDict)
-readNewDictionary name = do
-  uri <- methodURI $ "_/" ++ name
-  rs <- sendRequest $ getRequest uri
-  rsb <- liftIO $ getResponseBody rs
-  return $ decode' $ BSL.pack rsb
+    mapMaybe read1Reference (B8.split manyFieldDivisor refs)
 
 
 -- | Load a dictionary with given name from CaRMa.
@@ -285,7 +211,7 @@ readDictionary name = do
   rsb <- liftIO $ getResponseBody rs
   -- Read server response into @HashMap String Value@, since
   -- carma-dict does not support multi-level dictionaries yet
-  let dicts = decode' $ BSL.pack $ rsb :: Maybe (M.HashMap String Value)
+  let dicts = decode' $ BSL.pack rsb :: Maybe (M.HashMap String Value)
   return $ case M.lookup name <$> dicts of
     Just (Just v) -> decode' $ encode v
     _             -> Nothing
@@ -316,39 +242,5 @@ getAllKeyedJsonValues :: FieldValue
                       -> [FieldValue]
 getAllKeyedJsonValues field key =
   mapMaybe (M.lookup "value") $
-  filter (\o -> (fromMaybe "" $ M.lookup "key" o) == key) $
+  filter (\o -> fromMaybe "" (M.lookup "key" o) == key)
   (fromMaybe [] $ decode' $ BSL.fromStrict field :: JsonDictObjects)
-
-
--- | Set value of the first object from "dict-objects"-field JSON
--- contents with matching "key" (create it if no object matches key),
--- return new JSON string.
-setKeyedJsonValue :: FieldValue
-                  -- ^ Contents of JSON field using dict-objects
-                  -- schema.
-                  -> Either FieldValue FieldValue
-                  -- ^ Key. When Right, the value is written to key
-                  -- itself, otherwise key's note is used.
-                  -> FieldValue
-                  -- ^ Value.
-                  -> FieldValue
-setKeyedJsonValue field selector value =
-  let
-    parsed :: Maybe [M.HashMap FieldName FieldValue]
-    parsed = decode' $ BSL.fromStrict field
-    (key, subField) = case selector of
-                    Right s -> (s, "value")
-                    Left s  -> (s, "note")
-    newEntry = M.fromList $
-               [ ("key", key)
-               , (subField, value)
-               ]
-    keyPred o = fromMaybe "" (M.lookup "key" o) == key
-  in
-    BSL.toStrict $ encode $
-    case parsed of
-      Nothing -> [newEntry]
-      Just objs ->
-        case findIndex keyPred objs of
-          Just iMatch -> objs & element iMatch .~ newEntry
-          Nothing -> objs ++ [newEntry]
