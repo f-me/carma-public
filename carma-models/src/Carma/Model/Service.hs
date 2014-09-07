@@ -18,7 +18,6 @@ import           Carma.Model.Satisfaction        (Satisfaction)
 import           Carma.Model.Search as S
 import           Carma.Model.ServiceStatus       (ServiceStatus)
 import           Carma.Model.ServiceType         (ServiceType)
-import           Carma.Model.Types (TInt)
 
 data Service = Service
   -- FIXME: ident can be null in pg
@@ -33,11 +32,11 @@ data Service = Service
                                  "Тип оплаты"
   , payment_costTranscript       :: F (Maybe Text) "payment_costTranscript"
                                  "Расшифровка стоимости"
-  , payment_partnerCost          :: F (Maybe TInt) "payment_partnerCost"
+  , payment_partnerCost          :: F (Maybe Int) "payment_partnerCost"
                                  "Стоимость со слов партнёра (число)"
-  , payment_calculatedCost       :: F (Maybe TInt) "payment_calculatedCost"
+  , payment_calculatedCost       :: F (Maybe Int) "payment_calculatedCost"
                                  "Расчётная стоимость"
-  , payment_limitedCost          :: F (Maybe TInt) "payment_limitedCost"
+  , payment_limitedCost          :: F (Maybe Int) "payment_limitedCost"
                                  "Предельная стоимость"
   , payment_overcosted           :: F (Maybe Checkbox) "payment_overcosted"
                                  "Стоимость превышена?"
@@ -66,7 +65,7 @@ data Service = Service
   -- , falseCallPercent             :: F (Maybe Text) "falseCallPercent" ""
   , bill_billNumber              :: F (Maybe Text) "bill_billNumber"
                                  "Номер счёта"
-  , bill_billingCost             :: F (Maybe TInt) "bill_billingCost"
+  , bill_billingCost             :: F (Maybe Int) "bill_billingCost"
                                  "Сумма по счёту"
   , bill_billingDate             :: F (Maybe LegacyDate) {-FIXME: day-} "bill_billingDate"
                                  "Дата выставления счёта"

@@ -4,7 +4,6 @@ import Data.Text
 import Data.Typeable
 import Data.Model
 import Data.Model.View as View
-import Carma.Model.Types (TInt)
 import Carma.Model.Search (searchView, one)
 import Carma.Model.Program (Program)
 import Carma.Model.CtrModel  (CtrModel)
@@ -16,7 +15,7 @@ data ConstructorFieldOption = ConstructorFieldOption
                        "model"    "Модель, к которой относится поле"
   ,program  :: F (IdentI Program)
                        "program"  "Программа"
-  ,ord      :: F TInt  "ord"      "Порядок сортировки"
+  ,ord      :: F Int   "ord"      "Порядок сортировки"
   ,field    :: F Text  "field"    "Внутреннее название поля"
   ,label    :: F Text  "label"    "Подпись к полю"
   ,info     :: F Text  "info"     "Текст для всплывающей подсказки"

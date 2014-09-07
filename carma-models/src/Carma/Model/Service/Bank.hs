@@ -12,13 +12,6 @@ import Carma.Model.Service (Service)
 
 data Bank = Bank
   { ident :: PK Int Bank ""
-  , bill_billNumber
-                :: F (Maybe Text) "bill_billNumber" "Номер счёта"
-  , bill_billingCost
-                :: F (Maybe Int)  "bill_billingCost" "Сумма по счёту"
-  , bill_billingDate
-                :: F (Maybe LegacyDate)
-                   "bill_billingDate" "Дата выставления счёта"
   , requestType :: F (Maybe (IdentT RequestType))
                    "requestType" "Тип запроса"
   , whatToSay1  :: F (Maybe Text)

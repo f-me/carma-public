@@ -9,7 +9,6 @@ import Data.Model
 import Data.Model.View
 import Data.Model.TH
 
-import Carma.Model.Types (TInt)
 import Carma.Model.PgTypes()
 
 data ActionType = ActionType
@@ -20,7 +19,7 @@ data ActionType = ActionType
   , desc
     :: F Text "description" "Описание"
   , priority
-    :: F TInt "priority" "Приоритет"
+    :: F Int "priority" "Приоритет"
   } deriving Typeable
 
 mkIdents [t|ActionType|]

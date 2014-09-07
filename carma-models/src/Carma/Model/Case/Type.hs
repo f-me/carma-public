@@ -7,8 +7,6 @@ import Data.Typeable
 
 import Data.Model
 
-import Carma.Model.Types
-
 import Carma.Model.CaseStatus
 import Carma.Model.City         (City)
 import Carma.Model.Contract     (Contract)
@@ -97,7 +95,7 @@ data Case = Case
   , car_plateNum
     :: F (Maybe Text) "car_plateNum" "Госномер"
   , car_makeYear
-    :: F (Maybe TInt) "car_makeYear" "Год производства автомобиля"
+    :: F (Maybe Int) "car_makeYear" "Год производства автомобиля"
   , car_color
     :: F (Maybe Text) "car_color" "Цвет"
   , car_buyDate
@@ -105,7 +103,7 @@ data Case = Case
   , car_dealerTO
     :: F (Maybe (IdentI Partner)) "car_dealerTO" "Дилер, у которого проходило последнее ТО"
   , car_mileage
-    :: F (Maybe TInt) "car_mileage" "Текущий пробег"
+    :: F (Maybe Int) "car_mileage" "Текущий пробег"
   , car_transmission
     :: F (Maybe (IdentI Transmission)) "car_transmission" "Коробка передач"
   , car_engine

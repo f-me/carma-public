@@ -43,9 +43,6 @@ instance PgTypeable Text where
 instance PgTypeable Bool where
   pgTypeOf _ = PgType "boolean" True
 
-instance PgTypeable TInt where
-  pgTypeOf _ = PgType "integer" True
-
 instance PgTypeable (IdentList m) where
   pgTypeOf _ = pgTypeOf (undefined :: Vector (IdentI m))
 

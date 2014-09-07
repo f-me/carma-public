@@ -22,7 +22,7 @@ import Data.Vector
 
 import Data.Model
 
-import Carma.Model.Types (TInt, IdentList)
+import Carma.Model.Types (IdentList)
 import Carma.Model.LegacyTypes (Reference)
 import Carma.Model.Program hiding (ident)
 import Carma.Model.ServiceType hiding (ident)
@@ -61,10 +61,10 @@ data SubProgram = SubProgram
   , services    :: F (IdentList SubProgramService)
                    "services"
                    "Услуги, предоставляемые по программе"
-  , checkPeriod :: F (Maybe TInt)
+  , checkPeriod :: F (Maybe Int)
                    "checkPeriod"
                    "Межсервисный интервал по умолчанию"
-  , validFor    :: F (Maybe TInt)
+  , validFor    :: F (Maybe Int)
                    "validFor"
                    "Срок действия программы по умолчанию"
   , smsSender   :: F Text
@@ -104,13 +104,13 @@ data SubProgramService = SubProgramService
     , maxCost     :: F (Maybe Text)
                      "maxCost"
                      "Лимит стоимости"
-    , maxDistance :: F (Maybe TInt)
+    , maxDistance :: F (Maybe Int)
                      "maxDistance"
                      "Лимит расстояния"
-    , maxPeriod   :: F (Maybe TInt)
+    , maxPeriod   :: F (Maybe Int)
                      "maxPeriod"
                      "Лимит продолжительности (в днях)"
-    , maxCount    :: F (Maybe TInt)
+    , maxCount    :: F (Maybe Int)
                      "maxCount"
                      "Лимит количества предоставления услуги"
     } deriving Typeable

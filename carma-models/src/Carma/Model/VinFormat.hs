@@ -25,8 +25,6 @@ import Data.Model.Patch as Patch
 import Data.Model.TH
 import Data.Model.View
 
-import Carma.Model.Types (TInt)
-
 import Carma.Model.VinFormat.Meta
 
 import qualified Carma.Model.Contract as Contract

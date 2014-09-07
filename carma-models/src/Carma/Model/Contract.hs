@@ -29,8 +29,6 @@ import Data.Model as DM
 import Data.Model.Types
 import Data.Model.View
 
-import Carma.Model.Types (TInt)
-
 import Carma.Model.CarClass     (CarClass)
 import Carma.Model.CarMake      (CarMake)
 import Carma.Model.CarModel     (CarModel)
@@ -104,7 +102,7 @@ data Contract = Contract
   , validUntil       :: F (Maybe WDay)
                         "validUntil"
                         "Программа действует до (Дата)"
-  , startMileage     :: F (Maybe TInt)
+  , startMileage     :: F (Maybe Int)
                         "startMileage"
                         "Пробег при регистрации в программе"
   -- This is not redundant as car model may be unknown/unrecognized.
@@ -115,7 +113,7 @@ data Contract = Contract
                         "model"
                         "Модель"
   -- TODO New Year (pun intended) field type
-  , makeYear         :: F (Maybe TInt)
+  , makeYear         :: F (Maybe Int)
                         "makeYear"
                         "Год производства автомобиля"
   , carClass         :: F (Maybe (IdentI CarClass))
@@ -142,7 +140,7 @@ data Contract = Contract
   , lastCheckDealer  :: F (Maybe (IdentI Partner))
                         "lastCheckDealer"
                         "Дилер, у которого проходило последнее ТО"
-  , checkPeriod      :: F (Maybe TInt)
+  , checkPeriod      :: F (Maybe Int)
                         "checkPeriod"
                         "Межсервисный интервал"
   , checkType        :: F (Maybe (IdentI CheckType))

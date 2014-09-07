@@ -9,7 +9,6 @@
 module Carma.Model.Types ( Dict(..)
                          , Interval(..)
                          , HMDiffTime(..)
-                         , TInt
                          , IdentList
                          , EventType(..)
                          , UserStateVal(..)
@@ -151,16 +150,6 @@ instance ToJSON HMDiffTime where
       (h, m, _) = diffTimeTohms dt
 
 
--- | Int wrapper which instructs CaRMa client to use JSON integers in
--- commits.
---
--- This is the preferred integer type for use with new models until
--- string-wrapped integers are no more used anywhere on the client.
-newtype TInt = TInt Int deriving (Eq, Show,
-                                  FromField, ToField,
-                                  FromJSON, ToJSON, Typeable)
-
-
 -- | List of model instance identifiers. Used to accomodate client
 -- pull-children behaviour.
 data IdentList m = RL (Vector (IdentI m))
@@ -210,8 +199,7 @@ instance DefaultFieldView Bool where
       $ fv_meta $ defFieldView f
     }
 
-
-instance DefaultFieldView TInt where
+instance DefaultFieldView Int where
   defaultFieldView f = (defFieldView f)
     { fv_type = "Integer"
     , fv_meta
@@ -237,13 +225,6 @@ instance DefaultFieldView Double where
       $ fv_meta $ defFieldView f
     }
 
-instance DefaultFieldView Int where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "int"
-    ,fv_meta
-      = Map.insert "sqltype" (Aeson.String "integer")
-      $ fv_meta $ defFieldView f
-    }
 
 instance DefaultFieldView Int16 where
   defaultFieldView f = (defFieldView f) {fv_type = "int"}
