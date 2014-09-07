@@ -63,7 +63,6 @@ import qualified Carma.Model.City        as City
 import qualified Carma.Model.Partner     as Partner
 import qualified Carma.Model.Program     as Program
 import qualified Carma.Model.SubProgram  as SubProgram
-import qualified Carma.Model.Usermeta    as Usermeta
 
 import           Carma.HTTP.Base hiding (runCarma)
 import qualified Carma.HTTP.Base as CH (runCarma)
@@ -221,7 +220,6 @@ newCase = do
                  (HM.lookup "cardNumber_cardNumber" jsonRq) $
                  Patch.put Case.contractIdentifier
                  (HM.lookup "cardNumber_cardNumber" jsonRq) $
-                 Patch.put Case.callTaker Usermeta.admin $
                  Patch.empty
 
   dict <- gets cityDict
@@ -268,6 +266,7 @@ newCase = do
 
   caseId <- runCarma $ do
     (caseId, _) <- createInstance caseBody''
+    -- Trigger an avalanche
     updateInstance caseId (Patch.put Case.caseStatus CS.mobileOrder Patch.empty)
     return caseId
 
