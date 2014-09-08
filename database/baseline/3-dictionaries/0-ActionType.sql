@@ -9,7 +9,7 @@ INSERT INTO "ActionType" (label, id, priority)
 VALUES ('Заказ услуги', 1, 1);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Заказ услуги аналитиком', 2, 1);
+VALUES ('Заказ вторичной услуги', 2, 1);
 
 INSERT INTO "ActionType" (label, id, priority)
 VALUES ('Сообщить клиенту о договорённости', 3, 1);
