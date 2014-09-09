@@ -44,7 +44,6 @@ instance Model Action where
           [ hiddenIdent caseId
           , hiddenIdent serviceId
           , hiddenIdent parent
-          , readonly aType
           , readonly duetime
           , deferBy `completeWith` time
           , setMeta "dictionaryLabel"
@@ -56,6 +55,7 @@ instance Model Action where
           , setMeta "dictionaryParent"
             (A.String $ fieldName aType) result
           , setType "textarea" comment
+          , invisible aType
           , invisible ctime
           , invisible assignTime
           , invisible openTime
