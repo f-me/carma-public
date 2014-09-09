@@ -114,7 +114,7 @@ instance Model Service where
   modelInfo = mkModelInfo Service ident
   modelView = \case
     "search" -> Just $ modifyView (searchView serviceSearchParams) svcMod
-    ""       -> Just $ modifyView defaultView usualSvcMod
+    ""       -> Just $ modifyView defaultView $ usualSvcMod ++ [widget "svcStatus" status]
     _  -> Nothing
 
 

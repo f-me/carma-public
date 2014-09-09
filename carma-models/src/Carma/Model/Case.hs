@@ -124,6 +124,7 @@ caseMod = [
   ,required car_transmission
   ,required vinChecked
   ,required caseStatus
+  ,readonly caseStatus
 
   ,regexp "email" contact_email
   ,regexp "email" contact_ownerEmail
