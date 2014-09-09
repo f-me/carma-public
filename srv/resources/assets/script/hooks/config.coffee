@@ -56,11 +56,13 @@ define [ "hooks/common"
                 ]
 
       "Information" : [ s.serviceColor
-                    , s.updateCaseActions
-                    , s.openPartnerSearch
-                    ]
+                      , s.updateCaseActions
+                      , s.openPartnerSearch
+                      ]
 
-      "LegalAssistance" : [ s.serviceColor, s.updateCaseActions, s.openPartnerSearch ]
+      "LegalAssistance" : [ s.serviceColor
+                          , s.updateCaseActions
+                          , s.openPartnerSearch ]
 
       "Partner" : [ (c.bindRemoveHook 'services')
                   , p.serviceRepeat
@@ -108,9 +110,13 @@ define [ "hooks/common"
                      , s.openPartnerSearch
                      ]
 
-      "TechInspect" : [ s.serviceColor, s.updateCaseActions, s.openPartnerSearch ]
+      "TechInspect" : [ s.serviceColor
+                      , s.updateCaseActions
+                      , s.openPartnerSearch ]
 
-      "Tickets" : [ s.serviceColor, s.updateCaseActions, s.openPartnerSearch ]
+      "Tickets" : [ s.serviceColor
+                  , s.updateCaseActions
+                  , s.openPartnerSearch ]
 
       "Towage" : [ s.serviceColor
                  , s.updateCaseActions
