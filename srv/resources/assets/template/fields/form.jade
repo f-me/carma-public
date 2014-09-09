@@ -272,32 +272,6 @@ mixin dict(nameMod, iconClass)
     .controls
       div.osMap(name='{{ name }}' id="{{ viewName }}-{{ name }}")
 
-#table-field-template.field-template(type='text/template')
-  .control-group
-    .controls
-      table.dataTable.table.table-striped.table-bordered(id="{{ name }}")
-        thead
-          tr
-            | {{# meta.columns }}
-            th {{ label }}
-            | {{/ meta.columns }}
-        tbody
-
-#partnerTable-field-template.field-template(type='text/template')
-  table.table.table-striped.table-bordered(id="{{name}}")
-    thead
-      tr
-        th
-        th Название
-        th Город
-        th Адрес
-        th Телефоны
-        th Время работы
-        th ПБГ
-        th ПБЗ
-        th ПН
-    tbody
-
 // NOP here — references are rendered after model has loaded
 #reference-field-template.field-template(type='text/template')
   .control-group
@@ -390,7 +364,7 @@ mixin dict(nameMod, iconClass)
               span(data-bind="text: keyLocal")
               a.text-error(href="#"
                   data-bind="click: $parent.{{name}}DeleteObj")
-                  | ×
+                  | &nbsp;×
           .controls
             input.pane-span.focusable(type="text"
               autocomplete="off"
