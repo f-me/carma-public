@@ -92,6 +92,15 @@ viewForModel name _
 setModelName :: Text -> Model -> Model
 setModelName n m = m {modelName = n}
 
+
+-- | Combine field data and writable flag to a new readonly meta value.
+ro :: Field -> Bool -> Bool
+ro fld wr =
+  case Map.lookup "readonly" $ fromMaybe Map.empty $ meta fld of
+    Just (Aeson.Bool True) -> True
+    _                      -> not wr
+
+
 constructModel
   :: Text -> Text -> Model
   -> Handler b (SiteConfig b) Model
@@ -115,7 +124,7 @@ constructModel mdlName program model = do
               = Map.insert "label"    (Aeson.String l)
               . Map.insert "required" (Aeson.Bool rq)
               . Map.insert "infoText" (Aeson.String inf)
-              . Map.insert "readonly" (Aeson.Bool $ not w)
+              . Map.insert "readonly" (Aeson.Bool $ ro f w)
               <$> meta f
             , sortingOrder = o
             , canWrite = w}
@@ -171,7 +180,7 @@ stripModel u m = do
         Nothing -> fs
         Just wr ->
           let w = canWrite f && wr
-          in f {meta = Map.insert "readonly" (Aeson.Bool $ not w) <$> meta f
+          in f {meta = Map.insert "readonly" (Aeson.Bool $ ro f w) <$> meta f
                ,canWrite = w
                } : fs
   return $ m {fields = foldr fieldFilter [] $ fields m}
