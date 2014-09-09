@@ -1,8 +1,9 @@
-{-# LANGUAGE DoAndIfThenElse, ScopedTypeVariables #-}
+{-# LANGUAGE DoAndIfThenElse #-}
 
 {-|
 
-Combinators and helpers for user permission checking.
+Combinators and helpers for user permission checking and serving user
+data/states.
 
 -}
 

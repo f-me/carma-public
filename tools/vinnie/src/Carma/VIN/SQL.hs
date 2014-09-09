@@ -597,18 +597,22 @@ setSpecialDefaults :: Int
                    -- ^ Subprogram.
                    -> Bool
                    -- ^ Contracts are loaded from ARC.
+                   -> String
+                   -- ^ Source file name.
                    -> Import Int64
-setSpecialDefaults cid sid fromArcVal =
+setSpecialDefaults cid sid fromArcVal filename =
     execute
     [sql|
      UPDATE vinnie_queue SET ? = ?;
      UPDATE vinnie_queue SET ? = 't';
      UPDATE vinnie_queue SET ? = ? WHERE ? IS NULL;
      UPDATE vinnie_queue SET ? = ?;
+     UPDATE vinnie_queue SET ? = ?;
      |] (cfn C.committer, cid,
          cfn C.dixi,
          cfn C.subprogram, sid, cfn C.subprogram,
-         cfn C.fromArc, fromArcVal)
+         cfn C.fromArc, fromArcVal,
+         cfn C.sourceFile, filename)
 
 
 -- | Transfer from proto table to queue table, casting text values
@@ -667,28 +671,41 @@ countErrors = do
   return bad
 
 
+deferConstraints :: Connection -> IO Int64
+deferConstraints conn =
+  PG.execute_ conn
+  [sql|
+   SET CONSTRAINTS ALL DEFERRED;
+   |]
+
+
 -- | Delete all rows from the queue which are already present in
 -- Contract table.
-deleteDupes :: Import Int64
-deleteDupes =
-    execute
+--
+-- IO monad to be try-friendly.
+deleteDupes :: Connection -> IO Int64
+deleteDupes conn =
+    PG.execute conn
     [sql|
      DELETE FROM vinnie_queue q
      WHERE EXISTS
      (SELECT 1 FROM "?" c WHERE ?);
      |] ( contractTable
         , PT $ T.intercalate " AND " $
-          map (\f -> T.concat [ "coalesce(q.", f, "::text,'') "
-                              , "= coalesce(c.", f, "::text,'')"])
+          map (\f -> T.concat [ "((q.", f, " = ","c.", f
+                              , ") OR ("
+                              , "q.", f, " IS NULL AND c.", f, " IS NULL))"]) $
           contractFields
         )
 
 
 -- | Transfer all contracts w/o errors from queue to live Contract
 -- table.
-transferContracts :: Import Int64
-transferContracts =
-    execute
+--
+-- IO monad to be try-friendly.
+transferContracts :: Connection -> IO Int64
+transferContracts conn =
+    PG.execute conn
     [sql|
      INSERT INTO "?" (?)
      SELECT DISTINCT ?
@@ -698,11 +715,13 @@ transferContracts =
           (fieldName C.fromArc):
           (fieldName C.committer):
           (fieldName C.dixi):
+          (fieldName C.sourceFile):
           contractFields
         , PT $ sqlCommas $
           (fieldName C.fromArc):
           (fieldName C.committer):
           (fieldName C.dixi):
+          (fieldName C.sourceFile):
           contractFields)
 
 

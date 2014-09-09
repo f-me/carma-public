@@ -45,7 +45,8 @@ q =  [sql|
              pg_catalog.format_type(a.atttypid, a.atttypmod),
              attnotnull
       FROM pg_attribute a, pg_class c
-      WHERE a.attrelid = c.oid AND c.relname = ? AND attnum > 0;
+      WHERE a.attrelid = c.oid AND c.relname = ? AND attnum > 0
+      AND attname NOT LIKE '%.pg.dropped.%';
      |]
 
 typesForModel :: Connection -> Text -> IO (HashMap Text PgType)

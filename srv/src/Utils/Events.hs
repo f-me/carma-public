@@ -64,7 +64,7 @@ logLogin tpe = do
 
 -- | Interface for events from legacy CRUD
 logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
-                 , Model m, SingI n)
+                 , Model m, KnownSymbol n)
               => EventType
               -- ^ event type
               -> Text
@@ -133,7 +133,7 @@ updateUserState evt idt p evidt = do
 -- Implementation --------------------------------------------------------------
 
 -- | Build `Path Event`
-buildFull :: forall m t n d.(Model m, SingI n)
+buildFull :: forall m t n d.(Model m, KnownSymbol n)
           => EventType
           -- ^ Type of the event
           -> IdentI m
@@ -166,7 +166,7 @@ create :: HasPostgres m
 create ev = withPG $ \c -> liftIO $ P.create ev c
 
 -- | Build log event for legacy model crud
-buildLegacy :: forall m t n d.(Model m, SingI n)
+buildLegacy :: forall m t n d.(Model m, KnownSymbol n)
             => EventType
             -- ^ Type of the event
             -> Text
@@ -264,10 +264,10 @@ nextState lastState delayed evt mname fld =
     -- Check if we can switch user into delayed state
     checkDelayed
   where
-    field :: forall t n d m1.(Model m1, SingI n)
+    field :: forall t n d m1.(Model m1, KnownSymbol n)
           => (m1 -> F t n d) -> (Text, Text)
     field f = (modelName (modelInfo :: ModelInfo m1), fieldName f)
-    model :: forall t n d m1.(Model m1, SingI n) => (m1 -> F t n d) -> Text
+    model :: forall t n d m1.(Model m1, KnownSymbol n) => (m1 -> F t n d) -> Text
     model _ = modelName (modelInfo :: ModelInfo m1)
     allStates = [minBound .. ]
     checkDelayed = do

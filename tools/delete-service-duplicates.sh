@@ -29,9 +29,8 @@ delete_duplicates () {
         from servicetbl s
         where not exists
           (select 1 from svcs p
-            where 'case:' || p.case_id = s.parentId
-              and p.svc[2] :: int = s.id
-              and p.svc[1] = s.type)
+            where p.case_id = s.parentId
+              and p.svc[2] :: int = s.id)
        returning s.id, s.type, s.parentId;
 EOF
 }
@@ -43,4 +42,3 @@ if [[ "$COUNT" == 'DELETE 1' ]] ; then
 elif [[ "$COUNT" != 'DELETE 0' ]] ; then
   send_message "$COUNT service duplicates" "$RESULT"
 fi
-

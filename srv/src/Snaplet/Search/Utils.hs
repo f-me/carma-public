@@ -117,7 +117,7 @@ defaultSearch :: (RenderPrms p, FromRow t, MkSelect t, StripRead t)
               -> (t -> Text -> Int -> Int -> String -> Query)
               -> SearchHandler b (Either String (SearchResult t))
 defaultSearch searchParams mkq = do
-  r <- mkSearch (searchParams) mkq
+  r <- mkSearch searchParams mkq
   case r of
     Left  e -> return $ Left e
     Right v -> Right <$> stripResults v

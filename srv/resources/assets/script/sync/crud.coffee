@@ -88,6 +88,7 @@ define [ "sync/metaq"
       @updadeKvm(m.s2cObj(json, @ftypes))
       @hideSyncAnim()
       @qbackup = {}
+      @kvm._saveSuccessCb?(@kvm, @model, json)
       cb(@kvm, @model)
 
     saveErrorCb: (x, status) =>

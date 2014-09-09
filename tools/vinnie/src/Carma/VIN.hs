@@ -26,7 +26,7 @@ import           Control.Monad
 import           Control.Monad.Fix
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
-import qualified Control.Monad.Trans.Error as E
+import qualified Control.Monad.Trans.Except as E
 import           Control.Monad.Trans.Reader
 
 import qualified Data.ByteString as BS
@@ -50,7 +50,9 @@ import qualified Data.Text.ICU.Convert as ICU
 
 import           Database.PostgreSQL.Simple (Only(..))
 import           Database.PostgreSQL.Simple.Copy
+import           Database.PostgreSQL.Simple.Transaction
 
+import           System.FilePath
 import           System.IO
 
 import           Data.Model
@@ -71,7 +73,7 @@ getOption proj = lift $ lift $ asks proj
 
 
 throwError :: ImportError -> Import a
-throwError err = lift $ E.throwError err
+throwError err = lift $ E.throwE err
 
 
 -- | Main VIN file import action.
@@ -308,17 +310,34 @@ process psid enc mapping = do
                  void $ execute setQueueDefaults (PT fn, dv, PT fn))
 
   arcVal <- getOption fromArc
-  -- Set committer and subprogram. If the subprogram is loadable and
+  -- Set service field values. If the subprogram is loadable and
   -- was not recognized in a file row, it will be set to the
   -- subprogram specified in import options. However, if it is
   -- required, the corresponding file row has already been marked as
   -- erroneous on the previous step.
-  setSpecialDefaults uid (snd psid) arcVal
+  setSpecialDefaults uid (snd psid) arcVal (takeFileName input)
 
   markMissingIdentifiers
 
-  -- Finally, write new contracts to live table
-  loaded <- deleteDupes >> transferContracts
+  -- Finally, write new contracts to live table, omitting those
+  -- already present and duplicate contracts in the queue
+  let finalTransfer tries = do
+        -- Prevent phantom reads when deleting duplicate contracts
+        -- from the queue
+        liftIO $ beginLevel Serializable conn
+        ser <- liftIO $ try $
+               deleteDupes conn >>
+               deferConstraints conn >>
+               transferContracts conn
+        case ser of
+          Right n -> (liftIO $ commit conn) >> return n
+          Left e -> if isSerializationError e
+                    then if tries > 0
+                         then (liftIO $ rollback conn) >>
+                              finalTransfer (tries - 1 :: Int)
+                         else throwError SerializationFailed
+                    else throw e
+  loaded <- finalTransfer 10
 
   -- Count errors and write error report if there're any
   errors <- countErrors

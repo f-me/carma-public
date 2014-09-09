@@ -3,30 +3,39 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Util
-  (readJSON
-  ,readJSONfromLBS
-  ,selectParse
-  ,mbreadInt
-  ,mbreadDouble
-  ,readDouble
-  ,lookupNE
-  ,selectPrice
-  ,printBPrice
-  ,getCostField
-  ,upCaseName
-  ,bToString
-  ,stringToB
-  , formatTimestamp
+  (
+    -- * Request processing
+    readJSON
+  , readJSONfromLBS
+  , selectParse
+  , mbreadInt
+  , mbreadDouble
+  , readDouble
+
+   -- * String helpers
+  , upCaseName
+  , bToString
+  , stringToB
   , render
+
+    -- * Time and date
+  , formatTimestamp
   , projNow
+
+    -- * Legacy interoperability for Idents
   , identFv
   , fvIdent
-  -- Postgres ToRow/ToField helpers
+
+    -- * Postgres helpers
   , PlainText(..)
+  , fieldPT
+  , tableQT
   , (:*)(..)
   , ToRowList(..)
   , sqlFlagPair
   , withPG
+
+    -- * Logging
   , syslogJSON, syslogTxt, Syslog.Priority(..)
   , hushExceptions, logExceptions
   , (Aeson..=)
@@ -70,13 +79,12 @@ import Database.PostgreSQL.Simple.ToField
 import Database.PostgreSQL.Simple.ToRow
 import Database.PostgreSQL.Simple.Types
 
-import Text.Printf (printf)
+import GHC.TypeLits
 
 import Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
 import qualified Database.PostgreSQL.Simple as P
 
 import qualified Data.Model as Model
-import qualified Carma.Model.PaymentType as PT
 import qualified System.Posix.Syslog as Syslog
 
 import Data.Pool
@@ -108,11 +116,11 @@ readJSONfromLBS' src s
 -- param parser for select
 sParse :: Text -> [Text]
 sParse prm =
-  let A.Done _ r = A.feed (A.parse (c) prm) T.empty
+  let A.Done _ r = A.feed (A.parse c prm) T.empty
   in r
     where
-      n = return . T.pack =<< (trim $ many1 $ A.satisfy $ A.notInClass "<>=")
-      p = trim $ choice $ map (A.string) ["<=", "<", ">=", ">", "=="]
+      n = return . T.pack =<< trim (many1 $ A.satisfy $ A.notInClass "<>=")
+      p = trim $ choice $ map A.string ["<=", "<", ">=", ">", "=="]
       c = do
         v    <- n
         pred' <- p
@@ -149,26 +157,6 @@ mbreadDouble s =  case T.double s of
 readDouble :: Text -> Double
 readDouble = fromMaybe 0 . mbreadDouble
 
--- | Like Map.lookup but treat Just "" as Nothing
-lookupNE :: Ord k => k -> Map k Text -> Maybe Text
-lookupNE key obj = Map.lookup key obj >>= lp
-  where lp "" = Nothing
-        lp v  = return v
-
-getCostField :: Map Text Text -> Maybe Text
-getCostField srv = lookupNE "payType" srv >>= selectPrice
-
-selectPrice :: Text -> Maybe Text
-selectPrice v
-          | v == identFv PT.ruamc  = Just "price2"
-          | elem v $ map identFv [PT.client, PT.mixed, PT.refund]
-              = Just "price1"
-          | otherwise              = Nothing
-
-printPrice :: Double -> String
-printPrice p = printf "%.2f" p
-printBPrice :: Double -> Text
-printBPrice p = T.pack $ printPrice p
 
 -- | Convert UTF-8 encoded BS to Haskell string.
 bToString :: ByteString -> String
@@ -202,7 +190,7 @@ render varMap = T.concat . loop
     evalVar v = Map.findWithDefault v v varMap
 
 
--- | Format timestamp as "DD/MM/YYYY".
+-- | Format timestamp as @DD/MM/YYYY@.
 formatTimestamp :: MonadIO m => Text -> m Text
 formatTimestamp tm = case T.decimal tm of
   Right (s :: Int, "") -> do
@@ -242,6 +230,20 @@ instance ToField PlainText where
     toField (PT i) = Plain $ BZ.fromText i
 
 
+-- | Field name, unquoted.
+fieldPT :: KnownSymbol n => (m -> Model.Field t (Model.FOpt n d a)) -> PlainText
+fieldPT = PT . Model.fieldName
+
+
+-- | Table name, in double quotes.
+tableQT :: forall m t d. Model.Model m => (m -> Model.PK t m d) -> PlainText
+tableQT _ =
+    PT $ T.concat [ "\""
+                  , Model.tableName (Model.modelInfo :: Model.ModelInfo m)
+                  , "\""
+                  ]
+
+
 -- | Works almost like '(:.)' for 'ToField' instances. Start with `()`
 -- and append as many fields as needed:
 --
@@ -253,14 +255,14 @@ data a :* b = a :* b deriving (Eq, Ord, Show, Read)
 infixl 3 :*
 
 instance (ToRow a, ToField b) => ToRow (a :* b) where
-    toRow (a :* b) = toRow $ a :. (Only b)
+    toRow (a :* b) = toRow $ a :. Only b
 
 
 -- | A list of 'ToRow' values with concatenating behavour of 'ToRow'.
 data ToRowList a = ToRowList [a]
 
 instance (ToRow a) => ToRow (ToRowList a) where
-    toRow (ToRowList l) = concat $ map toRow l
+    toRow (ToRowList l) = concatMap toRow l
 
 
 -- | Apply a function to a 'Maybe' value, producing a pair with True
@@ -315,7 +317,7 @@ hushExceptions tag act = IOEx.catch act $ \(e :: Ex.SomeException) ->
 logExceptions :: MonadCatchIO m => String -> m a -> m a
 logExceptions tag act = IOEx.catch act $ \(e :: Ex.SomeException) -> do
   syslogJSON Syslog.Error tag
-    ["msg" .= (Aeson.String "rethrowed exception")
+    ["msg" .= Aeson.String "rethrowed exception"
     ,"exn" .= Aeson.String (T.pack $ show e)
     ]
   IOEx.throw e

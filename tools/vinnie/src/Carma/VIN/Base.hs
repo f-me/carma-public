@@ -26,7 +26,7 @@ import Control.Exception.Lifted
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Control
-import Control.Monad.Trans.Error
+import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
 
 import Data.Aeson as A
@@ -90,7 +90,10 @@ data ImportError = NoTarget
                  -- the file.
                  | NoTitle Text
                  -- ^ Loadable required field has empty column title.
+                 | SerializationFailed
+                 -- ^ Failed to obtain a write lock on contract table.
                  deriving Show
+
 
 instance ToJSON ImportError where
     toJSON t = A.String $ case t of
@@ -108,22 +111,23 @@ instance ToJSON ImportError where
             T.concat ["Повторяющаяся колонка «", v, "»"]
         NoTitle v ->
             T.concat ["Не задан заголовок обязательного поля «", v, "»"]
-
-
-instance Error ImportError
+        SerializationFailed ->
+            T.concat [ "Не удалось заблокировать таблицу контрактов "
+                     , "(кто-то одновременно в неё пишет)"
+                     ]
 
 
 -- | Base monad.
 type Import =
     ReaderT ImportContext
-    (ErrorT ImportError
+    (ExceptT ImportError
      (ReaderT Options IO))
 
 
 -- | Perform VIN import action using the provided options.
 runImport :: Import a -> Options -> IO (Either ImportError a)
 runImport act opts =
-    flip runReaderT opts $ runErrorT $ do
+    flip runReaderT opts $ runExceptT $ do
       fid <- lift $ asks format
       -- Close connection when short-circuiting Import monad
       liftBaseOp (bracket
@@ -133,4 +137,4 @@ runImport act opts =
                     vf <- liftIO $ Patch.read (Ident fid) c
                     case vf of
                       Right vf' -> runReaderT act $ ImportContext c vf'
-                      _         -> throwError UnknownVinFormat
+                      _         -> throwE UnknownVinFormat

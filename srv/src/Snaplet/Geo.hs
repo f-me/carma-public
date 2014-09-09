@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -64,7 +63,7 @@ makeLenses ''Geo
 
 
 instance HasPostgres (Handler b Geo) where
-    getPostgresState = with postgres $ get
+    getPostgresState = with postgres get
 
 
 routes :: [(ByteString, Handler b Geo ())]
@@ -160,9 +159,9 @@ withinPartners = do
   c2 <- getCoordsParam "coords2"
   c <- getCoordsParam "from"
 
-  city <- fromMaybe ""  <$> getParam "city"
+  city <- fromMaybe ""  <$> getParam "city[]"
   make <- fromMaybe ""  <$> getParam "make[]"
-  srv  <- fromMaybe ""  <$> getParam "services"
+  srv  <- fromMaybe ""  <$> getParam "services[]"
   pr2  <- fromMaybe ""  <$> getParam "priority2"
   pr3  <- fromMaybe ""  <$> getParam "priority3"
   dlr  <- fromMaybe "0" <$> getParam "isDealer"
@@ -191,7 +190,7 @@ withinPartners = do
     _ -> error "Bad request"
     where
       recode :: [[BSL.ByteString]] -> [A.Object]
-      recode = Maybe.mapMaybe (A.decode) . Prelude.concat
+      recode = Maybe.mapMaybe A.decode . Prelude.concat
 
 
 ------------------------------------------------------------------------------
@@ -222,8 +221,8 @@ data FullAddress = FullAddress (Maybe Text) (Maybe Text)
 
 instance FromJSON FullAddress where
     parseJSON (Object v) = do
-        (err::Maybe Text) <- v .:? "error"
-        case err of
+        err <- v .:? "error"
+        case (err :: Maybe Text) of
           Just _ -> fail "Geocoding failed"
           Nothing -> do
             addr <- v .: "address"
@@ -277,8 +276,8 @@ revSearch = do
         let fullUrl = nom ++
                       "reverse.php?format=json" ++
                       "&accept-language=" ++ lang ++
-                      "&lon=" ++ (show lon) ++
-                      "&lat=" ++ (show lat)
+                      "&lon=" ++ show lon ++
+                      "&lat=" ++ show lat
         addr' <- liftIO $ do
             rsb <- simpleHTTP (H.getRequest fullUrl) >>= getResponseBody
             return $ eitherDecode' $ BSL.pack rsb

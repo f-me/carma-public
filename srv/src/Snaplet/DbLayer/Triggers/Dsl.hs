@@ -1,4 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 module Snaplet.DbLayer.Triggers.Dsl where
 
 import Control.Applicative

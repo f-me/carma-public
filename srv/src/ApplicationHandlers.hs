@@ -1,8 +1,41 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module ApplicationHandlers where
+module ApplicationHandlers
+    (
+      -- * Authentication
+      indexPage
+    , redirectToLogin
+    , authOrLogin
+    , loginForm
+    , doLogin
+    , doLogout
+
+      -- * CRUD
+    , createHandler
+    , readHandler
+    , readManyHandler
+    , updateHandler
+
+      -- * #rkc screens
+    , rkcHandler
+    , rkcWeatherHandler
+    , rkcFrontHandler
+    , rkcPartners
+
+      -- * Helper handlers
+    , getRegionByCity
+    , towAvgTime
+    , printServiceHandler
+    , copyCtrOptions
+
+    -- * Misc. client support handlers
+    , clientConfig
+    , errorsHandler
+    )
+
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
+where
 
 import Data.Functor
 import Control.Monad
@@ -20,15 +53,13 @@ import qualified Data.Aeson as Aeson
 import Data.Aeson
 import Data.List
 import qualified Data.Map as Map
-import Data.String
 
 import Data.Maybe
-import Data.Ord (comparing)
 
 import Data.Time
 import System.Locale
 
-import Database.PostgreSQL.Simple ( Query, query_, query, execute)
+import Database.PostgreSQL.Simple (Query, query, execute)
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import Data.Pool (withResource)
@@ -45,14 +76,12 @@ import Snap.Util.FileUploads (getMaximumFormInputSize)
 import WeatherApi (getWeather', tempC)
 
 import qualified Snaplet.DbLayer as DB
-import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (FileUpload(cfg))
 
 import Carma.Model
 import Data.Model.CRUD
-import qualified Data.Model.Patch.Sql as Patch
-import           Data.Model.Patch (Patch(..))
+import Data.Model.Patch (Patch(..))
 import Carma.Model.Event (EventType(..))
 
 import Application
@@ -79,7 +108,7 @@ indexPage = ifTop $ do
             let r = case ln of
                       Just s  -> T.concat [t, " [", s, "]"]
                       Nothing -> t
-            return $ [X.TextNode r]
+            return [X.TextNode r]
         splices = "addLocalName" ## addLocalName
     renderWithSplices "index" splices
 
@@ -222,25 +251,17 @@ updateHandler = do
                      m -> AppHandler (Either Int Aeson.Value)
       updateModel _ = do
         let ident = readIdent objId :: IdentI m
+            recode x = case (Aeson.decode $ Aeson.encode x) of
+                         Just obj -> Right obj
+                         err      -> error $
+                                     "BUG in updateHandler: " ++ show err
         commit <- getJSONBody :: AppHandler (Patch m)
         runUpdateTriggers  ident commit >>= \case
-          Left (code,_err) -> return $ Left code
+          Left err -> error $ "in updateHandler: " ++ show err
           Right commit' -> do
             evIdt <- logCRUD Update ident commit'
             updateUserState Update ident commit evIdt
-            case model of
-              -- TODO #1352 workaround for Contract triggers
-              "Contract" -> do
-                s   <- PS.getPostgresState
-                Right res' <- liftIO $
-                       withResource (PS.pgPool s) (Patch.read ident)
-                -- TODO Cut out fields from original commit like
-                -- DB.update does
-                case (Aeson.decode $ Aeson.encode res') of
-                  Just obj -> return $ Right obj
-                  err      -> error $
-                                "BUG in updateHandler: " ++ show err
-              _ -> return $ Right $ Aeson.object []
+            return $ recode commit'
   -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch model updateModel of
     Just fn ->
@@ -256,14 +277,6 @@ updateHandler = do
                 $ DB.update model objId
                 -- Need this hack, or server won't return updated "cost_counted"
                 $ Map.delete "cost_counted" commit
-
-
-deleteHandler :: AppHandler ()
-deleteHandler = do
-  Just model <- getParamT "model"
-  Just objId <- getParamT "id"
-  res        <- with db $ DB.delete model objId
-  writeJSON res
 
 -- rkc helpers
 getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
@@ -285,22 +298,25 @@ getFromTo = do
 getParamOrEmpty :: ByteString -> AppHandler T.Text
 getParamOrEmpty = liftM (maybe T.empty T.decodeUtf8) . getParam
 
-rkcHandler :: AppHandler ()
-rkcHandler = logExceptions "handler/rkc" $ do
+mkRkcFilter :: AppHandler RKC.Filter
+mkRkcFilter = do
   p <- getParamOrEmpty "program"
   c <- getParamOrEmpty "city"
   part <- getParamOrEmpty "partner"
   (from, to) <- getFromTo
 
   flt <- liftIO RKC.todayFilter
-  let
-    flt' = flt {
+  return $
+    flt {
       RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
       RKC.filterTo = fromMaybe (RKC.filterTo flt) to,
       RKC.filterProgram = p,
       RKC.filterCity = c,
       RKC.filterPartner = part }
 
+rkcHandler :: AppHandler ()
+rkcHandler = logExceptions "handler/rkc" $ do
+  flt' <- mkRkcFilter
   info <- with db $ RKC.rkc flt'
   writeJSON info
 
@@ -312,7 +328,7 @@ rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
 
   syslogJSON Info "handler/rkc/weather" ["cities" .= intercalate ", " cities]
 
-  conf <- with db $ gets DB.weather
+  conf <- gets weatherCfg
   let weatherForCity = liftIO . getWeather' conf . filter (/= '\'')
   let toTemp t city = Aeson.object [
         "city" .= city,
@@ -322,24 +338,9 @@ rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
   writeJSON $ Aeson.object [
     "weather" .= zipWith toTemp temps cities]
 
-
-
 rkcFrontHandler :: AppHandler ()
 rkcFrontHandler = logExceptions "handler/rkc/front" $ do
-  p <- getParamOrEmpty "program"
-  c <- getParamOrEmpty "city"
-  part <- getParamOrEmpty "partner"
-  (from, to) <- getFromTo
-
-  flt <- liftIO RKC.todayFilter
-  let
-    flt' = flt {
-      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
-      RKC.filterTo = fromMaybe (RKC.filterTo flt) to,
-      RKC.filterProgram = p,
-      RKC.filterCity = c,
-      RKC.filterPartner = part }
-
+  flt' <- mkRkcFilter
   res <- with db $ RKC.rkcFront flt'
   writeJSON res
 
@@ -358,18 +359,18 @@ rkcPartners = logExceptions "handler/rkc/partners" $ do
 
 
 -- | Calculate average tower arrival time (in seconds) for today,
--- parametrized by city (a value from DealerCities dictionary).
+-- parametrized by city (a key from City dictionary).
 towAvgTimeQuery :: Query
 towAvgTimeQuery = [sql|
 WITH towtimes AS (
  SELECT max(t.times_factServiceStart - a.ctime)
  FROM actiontbl a, casetbl c, towagetbl t
- WHERE cast(split_part(a.parentid, ':', 2) as integer)=t.id
- AND cast(split_part(a.caseid, ':', 2) as integer)=c.id
- AND a.name='orderService'
+ WHERE a.serviceId = t.id
+ AND a.caseid = c.id
+ AND a.type=1
  AND c.city=?
  AND (CURRENT_DATE, INTERVAL '1 day') OVERLAPS (c.callDate, c.callDate)
- GROUP BY a.parentid)
+ GROUP BY a.serviceId)
 SELECT extract(epoch from avg(max)) FROM towtimes;
 |]
 
@@ -378,7 +379,7 @@ SELECT extract(epoch from avg(max)) FROM towtimes;
 -- (possibly containing @null@ if the time cannot be calculated).
 towAvgTime :: AppHandler ()
 towAvgTime = do
-  city <- getParam "city"
+  city <- getIntParam "city"
   case city of
     Just c -> do
           rows <- withPG pg_search $
@@ -395,25 +396,12 @@ getRegionByCity =
         [sql|
           SELECT r.label
           FROM "Region" r, "City" c
-          WHERE c.id = ANY(r.cities) AND c.value = ?
+          WHERE c.id = ANY(r.cities) AND c.id = ?
         |]
         [city]
       writeJSON (res :: [[Text]])
     _ -> error "Could not read city from request"
 
-
--- | Read @actionid@ request parameter and set @openTime@ of that
--- action to current time.
-openAction :: AppHandler ()
-openAction = do
-  aid <- getParamT "actionid"
-  case aid of
-    Nothing -> error "Could not read actionid parameter"
-    Just i -> do
-      dn <- liftIO $ projNow id
-      res <- with db $ DB.update "action" i $
-                       Map.singleton "openTime" dn
-      writeJSON res
 
 lookupSrvQ :: Query
 lookupSrvQ = [sql|
@@ -502,17 +490,6 @@ copyCtrOptions = do
       |]
       [to, from]
   writeJSON ()
-
-
-unassignedActionsHandler :: AppHandler ()
-unassignedActionsHandler = do
-  r <- withPG pg_search
-       $ \c -> query_ c $ fromString
-               $  " SELECT count(1) FROM actiontbl"
-               ++ " WHERE name IN ('orderService', 'callMeMaybe', 'tellMeMore')"
-               ++ " AND (assignedTo = '' OR assignedTo is null)"
-               ++ " AND closed = false"
-  writeJSON $ join (r :: [[Integer]])
 
 logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do

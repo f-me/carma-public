@@ -9,6 +9,16 @@ define ["dictionaries/local-dict"], (ld) ->
 
     getLab: (val) -> @dictValues()[val]
 
+    # ServiceType dictionary including icon field and model names
+    iconizedServiceTypes: =>
+      @bgetJSON "/_/CtrModel", (mdls) =>
+        @bgetJSON "/_/ServiceType", (styps) =>
+          @source = for st in styps
+            label: st.label || '',
+            icon: st.icon,
+            value: st.id,
+            model: (_.find mdls, (ctr) -> st.model == ctr.id).value
+
     # List of Role instances with isBack=true (used on #supervisor)
     backofficeRoles: =>
       @bgetJSON "/_/Role", (objs) =>
@@ -27,7 +37,7 @@ define ["dictionaries/local-dict"], (ld) ->
             }
 
     # Dictionary of all subprograms, with labels including parent
-    # program name (used to assign users to subprograms)
+    # program name
     prefixedSubPrograms: =>
       @bgetJSON "/_/Program", (parentObjs) =>
         @bgetJSON "/_/SubProgram", (objs) =>
@@ -55,7 +65,7 @@ define ["dictionaries/local-dict"], (ld) ->
           if _.contains(global.user.roles, global.idents("Role").partner) or
              _.contains(global.user.roles, global.idents("Role").psaanalyst)
             user_pgms = global.user.programs || []
-            _.filter(all_pgms, (e) -> _.contains user_pgms, String(e.value))
+            _.filter(all_pgms, (e) -> _.contains user_pgms, e.value)
           else
             []
 

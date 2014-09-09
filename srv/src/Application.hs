@@ -14,6 +14,8 @@ import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.Session
 
+import qualified WeatherApi as W
+
 import Snaplet.Auth.Class
 import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
@@ -53,6 +55,7 @@ data App = App
     , _search     :: Snaplet (Search App)
     , options     :: AppOptions
     , _messenger  :: Snaplet Messenger
+    , weatherCfg  :: W.Config
     }
 
 

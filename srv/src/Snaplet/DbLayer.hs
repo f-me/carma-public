@@ -17,15 +17,10 @@ import Prelude hiding (read)
 import Control.Applicative
 import Control.Lens (Lens')
 import Control.Monad.State
-import Control.Concurrent.STM
 import qualified Data.Map as Map
 import Data.Maybe (fromJust, isJust)
 import Data.ByteString (ByteString)
 import qualified Data.Text          as T
-
-import Data.Configurator
-
-import WeatherApi.WWOnline (initApi)
 
 import Snap.Snaplet
 import Snap.Snaplet.Auth
@@ -44,7 +39,6 @@ import Snaplet.DbLayer.Triggers
 import Snaplet.Auth.Class
 import Snaplet.Messenger (sendMessage)
 import Snaplet.Messenger.Class
-import DictionaryCache
 
 import Util
 
@@ -56,7 +50,7 @@ create model commit = do
   tbls <- gets syncTables
   syslogJSON Debug "DbLayer/create" ["model" .= model, "commit" .= commit]
   --
-  obj <- applyDefaults model commit
+  obj <- applyDefaults commit
   objId <- Redis.create redis model obj
   --
   let obj' = Map.insert "id" objId obj
@@ -135,21 +129,13 @@ initDbLayer :: Snaplet (AuthManager b)
             -- authorization.
             -> FilePath
             -> SnapletInit b (DbLayer b)
-initDbLayer sessionMgr adb cfgDir = makeSnaplet "db-layer" "Storage abstraction"
+initDbLayer sessionMgr adb _ = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     -- syslog Info "Server started"
     tbls <- liftIO $ MT.loadTables "resources/site-config/models"
-    cfg <- getSnapletUserConfig
-    wkey <- liftIO $ lookupDefault "" cfg "weather-key"
-
-    dc <- liftIO
-          $ loadDictionaries "resources/site-config/dictionaries"
-          >>= newTVarIO
 
     DbLayer adb
       <$> nestSnaplet "redis" redis redisDBInitConf
       <*> nestSnaplet "pgsql" postgres pgsInit
       <*> pure sessionMgr
       <*> (return tbls)
-      <*> (return dc)
-      <*> (return $ initApi wkey)

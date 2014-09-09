@@ -1,12 +1,12 @@
 define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
   (utils, tpl, partials) ->
     rkcFillWeather = (result, cities) ->
-      dict = global.dictValueCache
+      dict = utils.newModelDict "City"
       cities.removeAll()
       for r in result.weather
         cities.push
           city: r.city
-          cityname: dict.DealerCities[r.city] || r.city
+          cityname: dict.getLab r.city
           temp: r.temp
           delCity: rkcWeatherRemoveCity r.city
       cities.sort((l, r) -> l.cityname > r.cityname)
@@ -83,7 +83,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         ko.applyBindings(programs, el("program-select"))
 
         # Fill cities
-        cities = for v in global.dictionaries.DealerCities.entries
+        cities = for v in utils.newModelDict("City").source
           c =
             id: v.value
             name: v.label
@@ -161,7 +161,8 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         totalIncompleteActions = $('#total-incomplete-actions')
 
         # Fill weather cities
-        cities = for v in global.dictionaries.DealerCities.entries
+        cityDict = utils.newModelDict("City")
+        cities = for v in cityDict.source
           c =
             id: v.value
             name: v.label
@@ -261,7 +262,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
                         new Date(minfo.mtime).toString('dd.MM.yyyy HH:mm')
                       else
                         ""
-                    , dict.DealerCities[minfo.city] || minfo.city
+                    , cityDict.getLab minfo.city
                     , if minfo.addrs.length > 0
                         (utils.getKeyedJsonValue minfo.addrs, "fact") || ""
                       else

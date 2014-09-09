@@ -32,7 +32,7 @@ define ["model/utils", "utils"], (mu, u) ->
     if (res.error)
       null
     else
-      global.dictLabelCache.DealerCities[res.city] || null
+      u.newModelDict("City").getVal res.city || null
 
   wsgProj = new OpenLayers.Projection("EPSG:4326")
   osmProj = new OpenLayers.Projection("EPSG:900913")
@@ -159,11 +159,10 @@ define ["model/utils", "utils"], (mu, u) ->
   # Center map on place bounds or coordinates
   setPlace = (osmap, place) -> fitPlaces osmap, [place]
 
-  # Center an OSM on a city. City is a value from DealerCities
-  # dictionary.
+  # Center an OSM on a city. City is a city dictionary key.
   centerMapOnCity = (osmap, city) ->
-    if city?.length > 0
-      fixed_city = global.dictValueCache.DealerCities[city]
+    if city?
+      fixed_city = u.newModelDict("City").getLab city
       $.getJSON geoQuery(fixed_city), (res) ->
         if res.length > 0
           setPlace osmap, buildCityPlace res
@@ -288,8 +287,8 @@ define ["model/utils", "utils"], (mu, u) ->
       else
         vm = kvm
       city = vm[city_meta.field]()
-      if city?.length > 0
-        fixed_city = global.dictValueCache.DealerCities[city]
+      if city?
+        fixed_city = u.newModelDict("City").getLab city
         $.getJSON geoQuery(fixed_city), (res) ->
           if res.length > 0
             if _.isEmpty places
@@ -491,8 +490,8 @@ define ["model/utils", "utils"], (mu, u) ->
     # Initialize search field with city if factAddr is empty
     if city_field? && _.isEmpty kvm[addr_field]()
       city = kvm[city_field]()
-      if city?.length > 0
-        fixed_city = global.dictValueCache.DealerCities[city]
+      if city? > 0
+        fixed_city = u.newModelDict("City").getLab city
         search.val(fixed_city)
 
     coord_field = mu.modelField(model_name, field_name).meta['targetCoords']

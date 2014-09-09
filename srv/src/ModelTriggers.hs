@@ -1,4 +1,9 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module ModelTriggers
   (runCreateTriggers
@@ -6,16 +11,24 @@ module ModelTriggers
   ) where
 
 
-import Control.Applicative
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Free (Free)
-import Control.Monad.Trans.State
+import Prelude hiding (until)
 
+import Control.Applicative
+import Control.Monad
+import Control.Monad.Free (Free)
+import Control.Monad.Trans
+import Control.Monad.Trans.Reader
+
+import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
+import Data.Maybe
 import Data.Text (Text)
-import Data.Maybe (catMaybes)
+import qualified Data.Text as T
+import Text.Printf
+import Data.Time.Calendar
+import Data.Time.Clock
 import Data.Dynamic
 import GHC.TypeLits
 
@@ -23,17 +36,47 @@ import qualified Data.Pool as Pool
 import qualified Database.PostgreSQL.Simple.Transaction as PG
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
+import WeatherApi (tempC)
+
 import Application (AppHandler)
 import Data.Model as Model
 import Data.Model.Patch as Patch
-import qualified Data.Model.Patch.Sql as Patch
+import Data.Model.Types
+import           Trigger.Dsl as Dsl
 
-import Trigger.Dsl
-import           Carma.Model.Usermeta (Usermeta)
-import qualified Carma.Model.Usermeta as Usermeta
+import           Carma.Model.Types (HMDiffTime(..), on, off)
+
+import qualified Carma.Model.Action as Action
 import qualified Carma.Model.BusinessRole as BusinessRole
 import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
+import           Carma.Model.Case (Case)
+import qualified Carma.Model.Case as Case
+import qualified Carma.Model.City as City
+import qualified Carma.Model.CaseStatus as CS
+import           Carma.Model.Contract as Contract hiding (ident)
+import qualified Carma.Model.ContractCheckStatus as CCS
+import qualified Carma.Model.FalseCall as FC
+
+import qualified Carma.Model.Service as Service
+import           Carma.Model.Service (Service)
+import qualified Carma.Model.Service.Hotel as Hotel
+import qualified Carma.Model.Service.Rent as Rent
+import qualified Carma.Model.Service.Taxi as Taxi
+import qualified Carma.Model.Service.Towage as Towage
+import           Carma.Model.SubProgram as SubProgram hiding (ident)
+
+import qualified Carma.Model.ServiceStatus as SS
+import qualified Carma.Model.TowType as TowType
+import           Carma.Model.Usermeta (Usermeta)
+import qualified Carma.Model.Usermeta as Usermeta
+import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
+
+import           Carma.Backoffice
+import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
+import qualified Carma.Backoffice.DSL as BO
+import           Carma.Backoffice.DSL.Types
+import           Carma.Backoffice.Graph (startNode)
 
 
 -- TODO: rename
@@ -41,7 +84,7 @@ import qualified Carma.Model.Call as Call
 --   - trigOnField -> onField
 
 
-beforeCreate :: Map ModelName [Dynamic]
+beforeCreate :: TriggerMap
 beforeCreate = Map.unionsWith (++)
   [trigOnModel ([]::[Call])
     $ getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
@@ -53,26 +96,211 @@ beforeCreate = Map.unionsWith (++)
     -- Otherwise we need some kind of finalisers for "Real world actions that
     -- could not be deferred".
     createSnapUser login
+
+  , trigOnModel ([]::[Contract.Contract]) $ do
+    getCurrentUser >>= modPut Contract.committer
+    getNow >>= modPut Contract.ctime
+    -- Set checkPeriod and validUntil from the subprogram. Remember to
+    -- update vinnie_queue triggers when changing these!
+    s <- getPatchField Contract.subprogram
+    cp <- getPatchField Contract.checkPeriod
+    case (s, cp) of
+      (Just (Just s'), Nothing) -> do
+        sp <- dbRead s'
+        modPut Contract.checkPeriod (sp `get'` SubProgram.checkPeriod)
+      _ -> return ()
+    since <- getPatchField Contract.validSince
+    until <- getPatchField Contract.validUntil
+    case (s, since, until) of
+      (Just (Just s'), Just (Just newSince), Nothing) ->
+        fillValidUntil s' newSince
+      _ -> return ()
+
+  , trigOnModel ([]::[Case]) $ do
+    n <- getNow
+    getCurrentUser >>= modPut Case.callTaker
+    modPut Case.callDate             $ Just n
+    modPut Case.caseStatus             CS.front
+    modPut Case.contact_contactOwner $ Just on
+
+  , trigOnModel ([]::[Service]) $ do
+    n <- getNow
+    modPut Service.createTime         $ Just n
+    modPut Service.times_expectedServiceStart $
+      Just (addUTCTime (1 * BO.hours) n)
+    modPut Service.times_factServiceStart $
+      Just (addUTCTime (1 * BO.hours) n)
+    modPut Service.times_expectedServiceEnd $
+      Just (addUTCTime (2 * BO.hours) n)
+    modPut Service.times_expectedServiceClosure $
+      Just (addUTCTime (12 * BO.hours) n)
+    modPut Service.times_factServiceClosure $
+      Just (addUTCTime (12 * BO.hours) n)
+    modPut Service.times_expectedDispatch $
+      Just (addUTCTime (10 * BO.minutes) n)
+
+    modPut Service.createTime         $ Just n
+    modPut Service.falseCall            FC.none
+    modPut Service.payment_overcosted $ Just off
+    modPut Service.status               SS.creating
+    modPut Service.urgentService      $ Just $ Ident "notUrgent"
+    modPut Service.warrantyCase       $ Just off
+
+  , trigOnModel ([]::[Hotel.Hotel]) $
+    modPut Hotel.providedFor $ Just "0"
+
+  , trigOnModel ([]::[Rent.Rent]) $
+    modPut Rent.providedFor $ Just "0"
+
+  , trigOnModel ([]::[Taxi.Taxi]) $ do
+    p <- getPatch
+    let parId = fromMaybe (error "No parent case") $
+                p `Patch.get` parentField Service.parentId
+    c <- dbRead parId
+    modPut Taxi.taxiFrom_address $ c `Patch.get'` Case.caseAddress_address
+
+  , trigOnModel ([]::[Towage.Towage]) $ do
+    modPut Towage.accident            $ Just off
+    modPut Towage.canNeutral          $ Just off
+    modPut Towage.manipulatorPossible $ Just off
+    modPut Towage.suburbanMilage      $ Just "0"
+    modPut Towage.towType             $ Just TowType.dealer
+    modPut Towage.towerType           $ Just $ Ident "evac"
+    modPut Towage.towingPointPresent  $ Just off
+    modPut Towage.vandalism           $ Just off
+    modPut Towage.wheelsUnblocked     $ Just $ Ident "w0"
   ]
 
-
-afterCreate :: Map ModelName [Dynamic]
+afterCreate :: TriggerMap
 afterCreate = Map.unionsWith (++)
   [trigOnModel ([]::[Usermeta]) updateSnapUserFromUsermeta
   ]
 
-
-beforeUpdate :: Map (ModelName, FieldName) [Dynamic]
-beforeUpdate = Map.unionsWith (++)
+beforeUpdate :: TriggerMap
+beforeUpdate = Map.unionsWith (++) $
   [trigOn Usermeta.businessRole $ \case
     Nothing -> return ()
     Just bRole -> do
       Just roles <- (`Patch.get` BusinessRole.roles) <$> dbRead bRole
-      modifyPatch $ Patch.put Usermeta.roles roles
-  ]
+      modPut Usermeta.roles roles
 
-afterUpdate :: Map (ModelName, FieldName) [Dynamic]
-afterUpdate = Map.unionsWith (++)
+  , trigOn Action.result $ \case
+      Nothing -> return ()
+      Just _ -> do
+        getNow >>= (modifyPatch . Patch.put Action.closeTime . Just)
+        getCurrentUser >>= (modifyPatch . Patch.put Action.assignedTo . Just)
+
+  , trigOn Action.assignedTo $ \case
+      Nothing -> return ()
+      Just _ -> getNow >>=
+                (modifyPatch . Patch.put Action.assignTime . Just)
+
+  -- Set validUntil from the subprogram. Remember to update
+  -- vinnie_queue triggers when changing this!
+  , trigOn Contract.validSince $ \case
+       Nothing -> return ()
+       Just newSince -> do
+         cp <- getIdent >>= dbRead
+         let oldSince = cp `get'` Contract.validSince
+         do
+           s  <- getPatchField Contract.subprogram
+           vu <- getPatchField Contract.validUntil
+           -- Prefer fields from the patch, but check DB as well
+           let  nize (Just Nothing) = Nothing
+                nize v              = v
+                sub   =
+                  (nize s)  <|> (Just $ cp `get'` Contract.subprogram)
+                -- We need to check if validUntil field is *missing*
+                -- from both patch and DB, thus Just Nothing from DB
+                -- is converted to Nothing
+                until =
+                  (nize vu) <|> (nize $ Just $ cp `get'` Contract.validUntil)
+           case (sub, until) of
+             (Just (Just s'), Nothing) ->
+               fillValidUntil s' newSince
+             _ -> return ()
+
+  , trigOn Case.car_plateNum $ \case
+      Nothing -> return ()
+      Just val ->
+        when (T.length val > 5) $
+        modifyPatch (Patch.put Case.car_plateNum (Just $ T.toUpper val))
+
+  , trigOn Case.comment $ \case
+      Nothing -> return ()
+      Just wi -> do
+        wazz <- dbRead wi
+        let f :: (FieldI t n d) => (Wazzup.Wazzup -> F t n d) -> t
+            f = Patch.get' wazz
+            p = Patch.put Case.diagnosis1 (f Wazzup.system) .
+                Patch.put Case.diagnosis2 (f Wazzup.part) .
+                Patch.put Case.diagnosis3 (f Wazzup.cause) .
+                Patch.put Case.diagnosis4 (f Wazzup.suggestion)
+        modifyPatch p
+
+  , trigOn Service.times_expectedServiceStart $ \case
+      Nothing -> return ()
+      Just tm ->
+        modifyPatch $
+        (Patch.put Service.times_expectedServiceEnd
+         (Just $ addUTCTime (1 * BO.hours) tm)) .
+        (Patch.put Service.times_expectedServiceClosure
+         (Just $ addUTCTime (11 * BO.hours) tm)) .
+        (Patch.put Service.times_factServiceStart Nothing)
+  , trigOn Service.times_expectedDispatch $ const $
+    modifyPatch (Patch.put Service.times_factServiceStart Nothing)
+  , trigOn Service.times_expectedServiceEnd $ const $
+    modifyPatch (Patch.put Service.times_factServiceEnd Nothing)
+  , trigOn Service.times_expectedServiceClosure $ const $
+    modifyPatch (Patch.put Service.times_factServiceClosure Nothing)
+
+  , trigOn Case.city $ \case
+      Nothing -> return ()
+      Just city ->
+        do
+          cp <- dbRead city
+          w <- getCityWeather (cp `get'` City.label)
+          let temp = either (const $ Just "") (Just . T.pack . show . tempC) w
+          modifyPatch (Patch.put Case.temperature temp)
+
+  , trigOn Case.contract $ \case
+      Nothing -> return ()
+      Just cid ->
+        do
+          kase <- dbRead =<< getIdent
+          contract <- dbRead cid
+          n <- getNow
+          let sinceExceeded =
+                case contract `get'` Contract.validSince of
+                  Just s  -> n < UTCTime (Contract.unWDay s) 0
+                  Nothing -> False
+              untilExceeded =
+                case contract `get'` Contract.validUntil of
+                  Just u  -> n > UTCTime (Contract.unWDay u) 0
+                  Nothing -> False
+              checkStatus = if sinceExceeded || untilExceeded
+                            then CCS.vinExpired
+                            else CCS.base
+              p = map
+                  (\(C2C conField f caseField) ->
+                     let
+                       new = f $ contract `Patch.get'` conField
+                       old = kase `get'` caseField
+                     in
+                       case old of
+                         Nothing -> Patch.put caseField new
+                         Just sth -> if show sth == show ("" :: String)
+                                     then Patch.put caseField new
+                                     else id)
+                  contractToCase
+          modifyPatch $ foldl (flip (.)) id p
+          modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
+  ]  ++
+  map entryToTrigger (fst carmaBackoffice) ++
+  map actionToTrigger (snd carmaBackoffice)
+
+afterUpdate :: TriggerMap
+afterUpdate = Map.unionsWith (++) $
   [trigOn Usermeta.delayedState $ \_ -> wsMessage
   ,trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
@@ -89,90 +317,444 @@ afterUpdate = Map.unionsWith (++)
 
 type ModelName = Text
 type FieldName = Text
+type TriggerMap = Map (ModelName, FieldName) [Dynamic]
 
 
 -- | This is how we make new trigger
 trigOn
   :: forall m name typ desc app res
-  . (Model m, SingI name, Typeable typ)
+  . (Model m, KnownSymbol name, Typeable typ)
   => (m -> Field typ (FOpt name desc app)) -- ^ watch this field
   -> (typ -> Free (Dsl m) res)             -- ^ run this if field changed
-  -> Map (ModelName, FieldName) [Dynamic]
+  -> TriggerMap
 trigOn fld fun = Map.singleton (mName, fName) [toDyn fun']
   where
     mName = modelName (modelInfo :: ModelInfo m)
     fName = Model.fieldName fld
     fun'  = getPatchField fld >>= \case
       Nothing  -> error "BUG! We just triggered on this field. It MUST be there."
-      Just val -> fun val >> tOk
+      Just val -> void $ fun val
 
 
 trigOnModel
   :: forall m res . Model m
-  => [m] -> Free (Dsl m) res -> Map ModelName [Dynamic]
+  => [m] -> Free (Dsl m) res -> TriggerMap
 trigOnModel _ fun
   = Map.singleton
-    (modelName (modelInfo :: ModelInfo m))
-    [toDyn $ fun >> tOk]
+    (modelName (modelInfo :: ModelInfo m), "") -- dummy field name
+    [toDyn $ void fun]
 
 
 -- | This is how we run triggers on a patch
 
 runCreateTriggers
-  :: forall m . Model m
+  :: Model m
   => Patch m -> AppHandler (Either String (IdentI m, Patch m))
 runCreateTriggers patch = do
-  let mName = modelName (modelInfo :: ModelInfo m)
-      pName = parentName (modelInfo :: ModelInfo m)
-
-      matchingTriggers m
-        = let ts = Map.findWithDefault [] mName m
-          in maybe [] (\p -> Map.findWithDefault [] p m) pName ++ ts
-
-      joinTriggers k tr = do
-        let tr' = fromDyn tr $ tError 500 "dynamic BUG"
-        tr' >>= either (return . Left) (const k)
-
-      before = foldl joinTriggers tOk $ matchingTriggers beforeCreate
-      after  = foldl joinTriggers tOk $ matchingTriggers afterCreate
-
   s <- PS.getPostgresState
-  Pool.withResource (PS.pgPool s) $ \pgconn -> do
-    liftIO $ PG.beginLevel PG.ReadCommitted pgconn
-    (Right _, st1) <- runStateT (evalDsl before) (DslState undefined patch pgconn)
-    Right ident    <- liftIO $ Patch.create (st_patch st1) pgconn
-    (Right _, st2) <- runStateT (evalDsl after) (st1{st_ident = ident})
-    liftIO $ PG.commit pgconn
-    return $ Right (st_ident st2, st_patch st2)
+  Pool.withResource (PS.pgPool s) $ \pg ->
+    fmap (\st -> (st_ident st, st_patch st))
+      <$> runTriggers beforeCreate afterCreate
+        (getPatch >>= dbCreate >>= putIdentUnsafe)
+        [""] -- pass dummy field name
+        (emptyDslState undefined patch pg)
 
 
 runUpdateTriggers
-  :: forall m . Model m
+  :: Model m
   => IdentI m -> Patch m
-  -> AppHandler (TriggerRes m)
+  -> AppHandler (Either String (Patch m))
 runUpdateTriggers ident patch = do
-  let mName = modelName (modelInfo :: ModelInfo m)
-      pName = parentName (modelInfo :: ModelInfo m)
-      fields = HM.keys $ untypedPatch patch
-      keys = maybe [] (\p -> map (p,) fields) pName ++ map (mName,) fields
-
-      matchingTriggers m = concat $ catMaybes $ map (`Map.lookup` m) keys
-
-      joinTriggers k tr = do
-        let tr' = fromDyn tr $ tError 500 "dynamic BUG"
-        tr' >>= either (return . Left) (const k)
-
-      before = foldl joinTriggers tOk $ matchingTriggers beforeUpdate
-      after  = foldl joinTriggers tOk $ matchingTriggers afterUpdate
-
   s <- PS.getPostgresState
-  Pool.withResource (PS.pgPool s) $ \pgconn -> do
-    liftIO $ PG.beginLevel PG.ReadCommitted pgconn
-    (Right _, st1) <- runStateT (evalDsl before) (DslState ident patch pgconn)
-    Right count    <- liftIO $ Patch.update ident (st_patch st1) pgconn
-    case count of
-      0 -> return $ Left (404, "no such object " ++ show ident)
-      _ -> do
-        (Right _, st2) <- runStateT (evalDsl after)  st1
-        liftIO $ PG.commit pgconn
-        return $ Right $ st_patch st2
+  Pool.withResource (PS.pgPool s) $ \pg ->
+    fmap st_patch
+      <$> runTriggers beforeUpdate afterUpdate
+        (getPatch >>= dbUpdate ident >> return ())
+        (HM.keys $ untypedPatch patch)
+        (emptyDslState ident patch pg)
+
+
+runTriggers
+  :: forall m . Model m
+  => TriggerMap -> TriggerMap -> DslM m () -> [FieldName]
+  -> DslState m
+  -> AppHandler (Either String (DslState m))
+runTriggers before after dbAction fields state = do
+  let mInfo = modelInfo :: ModelInfo m
+
+  let matchingTriggers :: Model m' => Text -> TriggerMap -> [DslM m' ()]
+      matchingTriggers model trigMap = do
+        field <- fields
+        Just triggers <- [Map.lookup (model,field) trigMap]
+        trigger <- triggers
+        return $ fromMaybe -- FIXME: fail early
+          (fail $ printf "BUG! while casting tigger (%s,%s)"
+            (show model) (show field))
+          (fromDynamic trigger)
+
+  let pg = st_pgcon state
+  liftIO $ PG.beginLevel PG.ReadCommitted pg
+
+  -- FIXME: try/finally
+  res <- runDslM state $ do
+    case parentInfo :: ParentInfo m of
+      NoParent -> return ()
+      ExParent p
+        -> inParentContext
+        $ sequence_ $ matchingTriggers (modelName p) before
+    sequence_ $ matchingTriggers (modelName mInfo) before
+
+    dbAction
+
+    case parentInfo :: ParentInfo m of
+      NoParent -> return ()
+      ExParent p
+        -> inParentContext
+        $ sequence_ $ matchingTriggers (modelName p) after
+    sequence_ $ matchingTriggers (modelName mInfo) after
+
+  liftIO $ PG.commit pg
+  return res
+
+
+-- | Mapping between a contract field and a  case field.
+data Con2Case = forall t1 t2 n1 d1 n2 d2.
+                (Eq t2, Show t2, FieldI t1 n1 d1, FieldI t2 n2 d2) =>
+                C2C
+                (Contract.Contract -> F (Maybe t1) n1 d1)
+                (Maybe t1 -> Maybe t2)
+                (Case.Case -> F (Maybe t2) n2 d2)
+
+
+-- | Mapping between contract and case fields.
+contractToCase :: [Con2Case]
+contractToCase =
+    [ C2C Contract.name id Case.contact_name
+    , C2C Contract.vin id Case.car_vin
+    , C2C Contract.make id Case.car_make
+    , C2C Contract.model id Case.car_model
+    , C2C Contract.seller id Case.car_seller
+    , C2C Contract.plateNum id Case.car_plateNum
+    , C2C Contract.makeYear id Case.car_makeYear
+    , C2C Contract.color id Case.car_color
+    , C2C Contract.buyDate (fmap Contract.unWDay) Case.car_buyDate
+    , C2C Contract.lastCheckDealer id Case.car_dealerTO
+    , C2C Contract.transmission id Case.car_transmission
+    , C2C Contract.engineType id Case.car_engine
+    , C2C Contract.engineVolume id Case.car_liters
+    , C2C Contract.carClass id Case.car_class
+    , C2C Contract.subprogram id Case.subprogram
+    ]
+
+
+-- | Set @validUntil@ field from a subprogram and a new @validSince@
+-- value.
+fillValidUntil :: IdentI SubProgram -> WDay -> Free (Dsl Contract) ()
+fillValidUntil subprogram newSince = do
+  sp <- dbRead subprogram
+  let vf = sp `get'` SubProgram.validFor
+      vs = unWDay newSince
+  case vf of
+    Just vf' ->
+      modPut Contract.validUntil
+      (Just $ WDay{unWDay = addDays (toInteger vf') vs})
+    Nothing -> return ()
+
+
+-- | Change a field in the patch.
+modPut :: (KnownSymbol name, Typeable typ) =>
+          (m -> Field typ (FOpt name desc app))
+       -> typ
+       -> Free (Dsl m) ()
+modPut acc val = modifyPatch $ Patch.put acc val
+
+
+haskellBinary :: (HaskellType t1 -> HaskellType t2 -> HaskellType t)
+              -- ^ Non-lifted binary function.
+              -> HaskellE t1
+              -> HaskellE t2
+              -> HaskellE t
+haskellBinary fun a b = HaskellE $ fun <$> toHaskell a <*> toHaskell b
+
+
+newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
+    deriving Typeable
+
+
+instance Backoffice HaskellE where
+    now = HaskellE $ asks ModelTriggers.now
+
+    since nd t =
+        HaskellE $ addUTCTime nd <$> toHaskell t
+
+    nobody = HaskellE $ return Nothing
+
+    currentUser =
+        HaskellE $
+        Just <$> toHaskell (BO.userField Usermeta.ident)
+
+    previousAction =
+        HaskellE $
+        fromMaybe (Ident $ fst startNode) <$> asks prevAction
+
+    userField acc =
+        HaskellE $ asks (flip get' acc . user)
+
+    serviceField acc =
+        HaskellE $
+        asks (flip get' acc . fromMaybe (error "No service") . service)
+
+    caseField acc =
+        HaskellE $
+        asks (flip get' acc . kase)
+
+    const = HaskellE . return
+
+    just = HaskellE . return . Just
+
+    req v =
+      HaskellE $
+      fromMaybe (error "Required value not set") <$> toHaskell v
+
+    oneOf e lst =
+      HaskellE $ flip elem lst <$> toHaskell e
+
+    switch branches ow =
+      HaskellE $
+      case branches of
+        ((c, br):bs) ->
+          toHaskell c >>=
+          \case
+              True -> toHaskell br
+              False -> toHaskell $ BO.switch bs ow
+        [] -> toHaskell ow
+
+    not a = HaskellE $ Prelude.not <$> toHaskell a
+
+    (==) = haskellBinary (==)
+
+    (>) = haskellBinary (Prelude.>)
+
+    (&&) = haskellBinary (Prelude.&&)
+
+    (||) = haskellBinary (Prelude.||)
+
+    onField acc target body =
+      mkTrigger acc target (`evalHaskell` body)
+
+    insteadOf acc target body =
+      mkTrigger acc target $
+      \ctx -> do
+        -- Reset to old value
+        old <- dbRead =<< getIdent
+        modifyPatch (Patch.put acc (old `get'` acc))
+        evalHaskell ctx body
+
+    setServiceField acc v =
+        HaskellE $ do
+          ctx <- ask
+          sid <- srvId'
+          return $ void $
+            dbUpdate sid $ Patch.put acc (evalHaskell ctx v) Patch.empty
+
+    sendDealerMail = HaskellE $ return $ return ()
+
+    sendGenserMail = HaskellE $ return $ return ()
+
+    sendPSAMail = HaskellE $ return $ return ()
+
+    sendSMS tpl =
+      HaskellE $ do
+        sid <- srvId'
+        return $ Dsl.sendSMS sid tpl
+
+    closeWith types res =
+        HaskellE $ do
+          ctx <- ask
+          return $ do
+            let cid = kase ctx `get'` Case.ident
+                p = Patch.put Action.result (Just res) Patch.empty
+            aids <- prevClosedActions cid types
+            forM_ aids (\(PS.Only i) -> dbUpdate i p)
+
+    a *> b =
+        HaskellE $ do
+          ctx <- ask
+          -- Freezing the context at the beginning of the chain we
+          -- make all context-changing effects invisible to subsequent
+          -- chain operators
+          return $ evalHaskell ctx a >> evalHaskell ctx b
+
+    proceed [] = HaskellE $ return $ return ()
+    proceed (aT:ts) =
+        HaskellE $ do
+          ctx <- ask
+          return $ do
+            this <- getAction
+            let cid = kase ctx `get'` Case.ident
+                sid = (`get'` Service.ident) <$> service ctx
+                -- Never breaks for a valid back office
+                e = fromMaybe (error "Target action unknown") $
+                    find ((== aT) . BO.aType) $
+                    snd carmaBackoffice
+                -- Set current action as a source in the nested
+                -- evaluator context
+                ctx' = ctx{prevAction = (`get'` Action.aType) <$> this}
+                grp = evalHaskell ctx' $ BO.targetRole e
+                who = evalHaskell ctx' $ BO.assignment e
+                due = evalHaskell ctx' $ BO.due e
+                -- Set assignTime if a user is picked
+                ctime = now ctx
+                assTime = maybe Nothing (const $ Just ctime) who
+                p = Patch.put Action.ctime ctime $
+                    Patch.put Action.duetime due $
+                    Patch.put Action.targetGroup grp $
+                    Patch.put Action.assignedTo who $
+                    Patch.put Action.assignTime assTime $
+                    Patch.put Action.aType aT $
+                    Patch.put Action.caseId cid $
+                    Patch.put Action.parent ((`get'` Action.ident) <$> this) $
+                    Patch.put Action.serviceId sid
+                    Patch.empty
+            dbCreate p >> evalHaskell ctx (BO.proceed ts)
+
+    defer =
+        HaskellE $ do
+          ctx <- ask
+          return $ do
+            aid <- getIdent
+            curPatch <- getPatch
+            this <- dbRead aid
+            let aT = this `get'` Action.aType
+                cid = kase ctx `get'` Case.ident
+                sid = (`get'` Service.ident) <$> service ctx
+                -- Never breaks for a valid back office
+                e = fromMaybe (error "Current action unknown") $
+                    find ((== aT) . BO.aType) $
+                    snd carmaBackoffice
+                -- Set current action as a source in the nested
+                -- evaluator context
+                ctx' = ctx{prevAction = Just aT}
+                grp = evalHaskell ctx' $ BO.targetRole e
+
+                dbDefer = fromMaybe (error "No deferBy in action") $
+                          this `get'` Action.deferBy
+                -- If there's no deferBy field in current patch, try
+                -- to read it from DB for this action
+                HMDiffTime deferBy =
+                  case curPatch `get` Action.deferBy of
+                    Just sth ->
+                      case sth of
+                        Just dt -> dt
+                        Nothing -> dbDefer
+                    Nothing -> dbDefer
+
+                -- Truncate everything below seconds, disregard leap
+                -- seconds
+                deferBy' = realToFrac deferBy
+                due = addUTCTime deferBy' (now ctx)
+                p = Patch.put Action.ctime (now ctx) $
+                    Patch.put Action.duetime due $
+                    Patch.put Action.targetGroup grp $
+                    Patch.put Action.aType aT $
+                    Patch.put Action.caseId cid $
+                    Patch.put Action.serviceId sid $
+                    Patch.put Action.parent (Just aid)
+                    Patch.empty
+            void $ dbCreate p
+
+
+-- | Trigger evaluator helper.
+--
+-- Upon entering the trigger, bootstrap available context for further
+-- use in the trigger body. The trigger term itself does not use the
+-- context.
+mkTrigger :: (Eq (HaskellType t),
+              FieldI (HaskellType t) n d, Model m,
+              PreContextAccess m) =>
+             (m -> F (HaskellType t) n d)
+          -> HaskellE t
+          -> (HCtx -> Free (Dsl m) ())
+          -> HaskellE Trigger
+mkTrigger acc target act =
+  HaskellE $
+  return $
+  trigOn acc $
+  \newVal -> do
+    hctx <- mkContext Nothing
+    when (newVal == evalHaskell hctx target) (act hctx)
+
+
+-- | Produce a new context for nested Haskell evaluator call.
+mkContext :: PreContextAccess m =>
+             Maybe ActionTypeI
+             -- ^ Previous action type.
+          -> Free (Dsl m) HCtx
+mkContext act = do
+  srv <- getService
+  kase' <- getKase
+  usr <- dbRead =<< getCurrentUser
+  t <- getNow
+  return HCtx{ kase = kase'
+             , service = srv
+             , user = usr
+             , prevAction = act
+             , now = t
+             }
+
+
+-- | Obtain service id from the context or fail.
+srvId' :: Reader HCtx (IdentI Service)
+srvId' = do
+  ctx <- ask
+  return $
+    fromMaybe (error "No service id in context") $
+    service ctx >>= (`Patch.get` Service.ident)
+
+
+evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty
+evalHaskell c t = runReader (toHaskell t) c
+
+
+-- | Bootstrapping HaskellE context.
+emptyContext :: HCtx
+emptyContext = error "Empty context accessed (HaskellE interpreter bug)"
+
+
+-- | Haskell evaluator context.
+--
+-- Enables data access via pure terms.
+data HCtx =
+    HCtx { kase       :: Patch Case
+         , user       :: Patch Usermeta
+         , service    :: Maybe (Patch Service)
+         , prevAction :: Maybe ActionTypeI
+         , now        :: UTCTime
+         -- ^ Frozen time.
+         }
+
+
+entryToTrigger :: BO.Entry -> Map (ModelName, FieldName) [Dynamic]
+entryToTrigger = evalHaskell emptyContext . BO.trigger
+
+
+actionToTrigger :: BO.Action -> Map (ModelName, FieldName) [Dynamic]
+actionToTrigger a =
+  trigOn Action.result $
+  \newVal -> do
+    this <- dbRead =<< getIdent
+    case newVal of
+      Nothing -> return ()
+      Just newRes -> do
+        -- Skip changes for actions of different types
+        when (this `get'` Action.aType == BO.aType a) $ do
+          case lookup newRes (BO.outcomes a) of
+            Just o -> do
+              hctx <-
+                case this `get'` Action.parent of
+                  Nothing -> mkContext Nothing
+                  Just pid -> do
+                    parent <- dbRead pid
+                    mkContext $ Just $ parent `get'` Action.aType
+              evalHaskell hctx o
+            Nothing -> error "Invalid action result"

@@ -1,9 +1,6 @@
 define [ "utils"
        , "dictionaries"
        ], (u, d) ->
-  distanceQuery = (coord1, coord2) ->
-    u.stripWs "/geo/distance/#{coord1}/#{coord2}/"
-
   thmenuInit = (k, fname, dict, setter) ->
     thmenu = []
     k["#{fname}TypeaheadBuilder"] = ->

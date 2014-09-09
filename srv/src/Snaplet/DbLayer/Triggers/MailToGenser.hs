@@ -63,7 +63,7 @@ q = [sql|
           left join "CarMake" mk on (mk.id = c.car_make)
           left join "CarModel" mdl on (mdl.id = c.car_model)
         where c.id = substring(t.parentId, ':(.*)') :: int
-          and p.id = substring(t.towDealer_partnerId, ':(.*)') :: int
+          and p.id = t.towDealer_partnerId
           and t.id = substring(?, ':(.*)')::int
       )
     insert into "MessageToGenser" (msgData, email, status)

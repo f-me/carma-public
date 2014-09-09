@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW allservicesview AS
-        (        (        (        (        (        (        (        (        (        (         SELECT averagecommissionertbl.id,
+                (        (        (        (        (        (        (        (         SELECT averagecommissionertbl.id,
 
                                                                                             averagecommissionertbl.type,
                                                                                             averagecommissionertbl.contractor_partner AS towdealer_partner,
@@ -43,21 +43,6 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                                                     consultationtbl.assignedto,
                                                                                     consultationtbl.parentid
                                                                                    FROM consultationtbl)
-                                                                UNION ALL
-                                                                         SELECT deliverclienttbl.id,
-
-                                                                            deliverclienttbl.type,
-                                                                            deliverclienttbl.contractor_partner AS towdealer_partner,
-                                                                            deliverclienttbl.suburbanmilage,
-                                                                            NULL::text AS providedfor,
-                                                                            NULL::timestamp with time zone AS repairenddate,
-                                                                            NULL::int4 AS techtype,
-                                                                            NULL::int4 AS towtype,
-                                                                            deliverclienttbl.contractor_address AS towaddress_address,
-                                                                            deliverclienttbl.contractor_partnerid AS towdealer_partnerid,
-                                                                            deliverclienttbl.assignedto,
-                                                                            deliverclienttbl.parentid
-                                                                           FROM deliverclienttbl)
                                                         UNION ALL
                                                                  SELECT informationtbl.id,
 
@@ -103,21 +88,6 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                     hoteltbl.assignedto,
                                                     hoteltbl.parentid
                                                    FROM hoteltbl)
-                                UNION ALL
-                                         SELECT insurancetbl.id,
-
-                                            insurancetbl.type,
-                                            insurancetbl.contractor_partner AS towdealer_partner,
-                                            insurancetbl.suburbanmilage,
-                                            NULL::text AS providedfor,
-                                            NULL::timestamp with time zone AS repairenddate,
-                                            NULL::int4 AS techtype,
-                                            NULL::int4 AS towtype,
-                                            insurancetbl.contractor_address AS towaddress_address,
-                                            insurancetbl.contractor_partnerid AS towdealer_partnerid,
-                                            insurancetbl.assignedto,
-                                            insurancetbl.parentid
-                                           FROM insurancetbl)
                         UNION ALL
                                  SELECT sobertbl.id,
 
@@ -174,7 +144,7 @@ UNION ALL
             techtbl.techtype,
             NULL::int4 AS towtype,
             NULL::text AS towaddress_address,
-            NULL::text AS towdealer_partnerid,
+            NULL::int4 AS towdealer_partnerid,
             techtbl.assignedto,
             techtbl.parentid
            FROM techtbl;

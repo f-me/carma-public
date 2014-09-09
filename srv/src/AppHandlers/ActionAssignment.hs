@@ -1,84 +1,94 @@
-module AppHandlers.ActionAssignment where
+{-|
+
+Action assignment for back office screen.
+
+-}
+
+module AppHandlers.ActionAssignment (littleMoreActionsHandler)
+
+where
 
 import Control.Monad
-import Data.String (fromString)
 
-import qualified Data.Map as Map
-import qualified Data.Text as T
-
-import Snap
-import Snap.Snaplet.Auth
-import qualified Snaplet.DbLayer as DB
 import Database.PostgreSQL.Simple
-----------------------------------------------------------------------
+import Database.PostgreSQL.Simple.SqlQQ
+
+import Carma.Model.ActionType as ActionType
+
+import Snaplet.Auth.PGUsers
+
 import Application
 import AppHandlers.CustomSearches
 import AppHandlers.Util
 import Util hiding (withPG)
 
 
-assignQ :: Int -> AuthUser -> Query
-assignQ pri usr = fromString
-  $  "WITH activeUsers AS ("
-  ++ "  SELECT login"
-  ++ "  FROM usermetatbl"
-  ++ "  WHERE (lastlogout IS NULL OR lastlogout < lastactivity)"
-  ++ "    AND now() - lastactivity < '30 min') "
-  ++ "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
-  ++ "  WHERE id = (SELECT act.id"
-  ++ "    FROM ((SELECT * FROM actiontbl WHERE closed = false) act"
-  ++ "      LEFT JOIN servicetbl svc"
-  ++ "      ON svc.type || ':' || svc.id = act.parentId),"
-  ++ "      casetbl c, usermetatbl u"
-  ++ "    WHERE u.login = '" ++ uLogin ++ "'"
-  ++ "    AND c.id::text = substring(act.caseId, ':(.*)')"
-  ++ "    AND priority = '" ++ show pri ++ "'"
-  ++ "    AND (act.duetime at time zone 'UTC') - (now() at time zone 'UTC') <= interval '5 minutes'"
-  ++ "    AND targetGroup::int = ANY (u.roles)"
-  ++ "    AND (act.assignedTo IS NULL"
-  ++ "         OR act.assignedTo NOT IN (SELECT login FROM activeUsers))"
-  ++ "    AND (coalesce("
-  ++ "            array_length(u.boPrograms, 1),"
-  ++ "            array_length(u.boCities, 1)) is null"
-  ++ "         OR (c.program::text = ANY (u.boPrograms) OR c.city = ANY (u.boCities)))"
-  ++ "    ORDER BY"
-  ++ "      (u.boPrograms IS NOT NULL AND c.program::text = ANY (u.boPrograms)) DESC,"
-  ++ "      (u.boCities   IS NOT NULL AND c.city          = ANY (u.boCities)) DESC,"
-  ++ "      (act.name IN ('orderService', 'orderServiceAnalyst')"
-  ++ "        AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,"
-  ++ "      (CASE WHEN act.name IN ('orderService', 'orderServiceAnalyst')"
-  ++ "        THEN coalesce(svc.times_expectedServiceStart,act.duetime)"
-  ++ "        ELSE act.duetime"
-  ++ "        END) ASC"
-  ++ "    LIMIT 1"
-  ++ "    FOR UPDATE OF act)"
-  ++ "  RETURNING id::text;"
-  where
-    uLogin = T.unpack $ userLogin usr
+-- | Assign a single action to a user.
+--
+-- 5 parameters: usermeta ident (2), action priority class, order
+-- action types (2)
+assignQ :: Query
+assignQ = [sql|
+      WITH activeUsers AS (
+        SELECT id
+        FROM usermetatbl
+        WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
+          AND now() - lastactivity < '30 min'),
+      act AS (
+        (SELECT * FROM actiontbl WHERE result IS NULL FOR UPDATE of actiontbl))
+      UPDATE actiontbl SET assignTime = now(), assignedTo = ?
+        WHERE id = (SELECT act.id
+          FROM (act
+            LEFT JOIN servicetbl svc
+            ON svc.id = act.serviceId),
+            casetbl c, usermetatbl u, "ActionType" at
+          WHERE u.id = ?
+          AND c.id = act.caseId
+          AND at.id = act.type
+          AND at.priority = ?
+          AND act.duetime - now() <= interval '5 minutes'
+          AND targetGroup::int = ANY (u.roles)
+          AND (act.assignedTo IS NULL
+               OR act.assignedTo NOT IN (SELECT id FROM activeUsers))
+          AND (coalesce(
+                  array_length(u.boPrograms, 1),
+                  array_length(u.boCities, 1)) is null
+               OR (c.program::text = ANY (u.boPrograms) OR c.city = ANY (u.boCities)))
+          ORDER BY
+            (u.boPrograms IS NOT NULL AND c.program::text = ANY (u.boPrograms)) DESC,
+            (u.boCities   IS NOT NULL AND c.city          = ANY (u.boCities)) DESC,
+            (act.type IN ?
+              AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,
+            (CASE WHEN act.type IN ?
+              THEN coalesce(svc.times_expectedServiceStart,act.duetime)
+              ELSE act.duetime
+              END) ASC
+          LIMIT 1)
+        RETURNING id;
+    |]
 
 
+-- | Pull new actions and serve JSON with all actions currently
+-- assigned to the user.
 littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
-  Just cUsr' <- with auth currentUser
+  Just cid <- currentUserMetaId
+  let orders = In [ActionType.orderService, ActionType.orderServiceAnalyst]
+      -- Parameters for assignQ query
+      params n = (cid, cid, n :: Int, orders, orders)
 
-  actIds'   <- withPG pg_actass (`query_` assignQ 1 cUsr')
+  actIds'   <- withPG pg_actass (\c -> query c assignQ (params 1))
   actIds''  <- case actIds' of
-                 []  -> withPG pg_actass (`query_` assignQ 2 cUsr')
+                 []  -> withPG pg_actass (\c -> query c assignQ (params 2))
                  _   -> return actIds'
   actIds''' <- case actIds'' of
-                 []  -> withPG pg_actass (`query_` assignQ 3 cUsr')
+                 []  -> withPG pg_actass (\c -> query c assignQ (params 3))
                  _   -> return actIds''
 
-  let uLogin = userLogin cUsr'
-  now <- liftIO $ projNow id
-  with db $ forM_ actIds''' $ \[actId] ->
-      DB.update "action" actId
-        $ Map.fromList [("assignedTo", uLogin)
-                       ,("assignTime", now)
-                       ]
+  unless (null (actIds''' :: [Only Int]))
+    $ syslogJSON Info "littleMoreActions" [ "login" .= show cid
+                                          , "actions" .= show actIds'''
+                                          ]
 
-  when (not $ null actIds''')
-    $ syslogJSON Info "littleMoreActions" ["login" .= uLogin, "actions" .= show actIds''']
-
-  selectActions (Just "0") (Just uLogin) Nothing Nothing Nothing
+  selectActions (Just "0") (Just cid) Nothing Nothing Nothing
     >>= writeJSON

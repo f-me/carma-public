@@ -22,7 +22,7 @@ define  [ "utils"
           $('td:eq(3)', nRow).html(
             Mustache.render tpl, userModel.fieldHash.boPrograms)
           ko.applyBindings aData[7], nRow
-
+      at = utils.newModelDict "ActionType", true
       $.getJSON "/_/Usermeta", (us) ->
        $.getJSON "/supervisor/opStats", (os) ->
         dt.fnClearTable()
@@ -54,9 +54,9 @@ define  [ "utils"
                 if idle
                   ["нет", null]
                 else
-                  cid = stats.caseId.split(':')[1]
+                  cid = stats.caseId
                   [ "<a href=\"/#case/#{cid}\" target=\"_blank\">#{cid}</a>"
-                  , global.dictValueCache['ActionNames'][stats.aName]
+                  , at.getLab stats.aName
                   ]
 
               rowStats =
@@ -109,7 +109,8 @@ define  [ "utils"
     dictManyFields: ['boCities', 'boPrograms']
     fields: [
       { name: 'boCities'
-      , meta: {dictionaryName: 'DealerCities'}
+      , meta: {dictionaryName: 'City'
+              ,dictionaryType: 'ModelDict'}
       , type: "dictionary-many" },
       { name: 'boPrograms'
       , meta: { dictionaryName: 'Program'

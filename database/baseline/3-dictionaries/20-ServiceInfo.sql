@@ -1,7 +1,7 @@
 CREATE TABLE "ServiceInfo"
   ( id      SERIAL PRIMARY KEY
   , program int4 REFERENCES "Program"
-  , service int4 REFERENCES "ServiceNames"
+  , service int4 REFERENCES "ServiceType"
   , info    text NOT NULL DEFAULT ''
   );
 

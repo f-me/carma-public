@@ -35,6 +35,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   window.hasL = (lst, e) -> _.find(lst, (x) -> x == e)
 
   window.successfulSave = ->
+    return if this.hasAttribute("disabled")
     $span = $(this).siblings(".save-result")
     setTimeout((->
       $span.text("Сохранено успешно")
@@ -283,6 +284,9 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   kdoPick: (pickType, args, k, e) ->
     doPick pickType, args, e.srcElement if e.ctrlKey and e.keyCode == k
 
+  edoPick: (pickType, args, k, e) ->
+    doPick pickType, args, e.srcElement if e.keyCode == k
+
 
   # FIXME: This could be a callback for main.js:saveInstance
   successfulSave: successfulSave
@@ -338,19 +342,6 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   focusRef: mu.focusReference
 
   bindRemove: bindRemove
-
-  bindDelete: (parent, field, cb) ->
-    bindRemove parent, field, (p, f, kvm) ->
-      deleteCb = (args...) -> cb(args) if _.isFunction cb
-      $.ajax
-        'type'     : 'DELETE'
-        'url'      : "/_/#{kvm._meta.model.name}/#{kvm.id()}"
-        'success'  : -> deleteCb
-        'error'    : (xhr) ->
-          if xhr.status == 404
-            deleteCb(d.acc())
-          else
-            alert 'error'
 
   toUnix: (d) -> Math.round(d.getTime() / 1000)
 

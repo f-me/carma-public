@@ -83,7 +83,7 @@ instance ToJSON   Subscription where
 
 instance  FromJSON a => FromJSON (Payload a) where
   parseJSON (Object o) =
-    (Payload     <$> o .: "topic" <*> (parseJSON =<< o .: "payload"))
+    Payload     <$> o .: "topic" <*> (parseJSON =<< o .: "payload")
   parseJSON _ = mzero
 
 instance ToJSON a => ToJSON (Payload a) where

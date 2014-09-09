@@ -21,6 +21,9 @@ import Snap.Util.FileServe ( serveFile
                            , serveDirectoryWith
                            , DirectoryConfig(..)
                            )
+
+import WeatherApi.WWOnline (initApi)
+
 ------------------------------------------------------------------------------
 import Snaplet.SiteConfig
 import Snaplet.DbLayer
@@ -34,6 +37,7 @@ import Application
 import ApplicationHandlers
 import AppHandlers.ActionAssignment
 import AppHandlers.ARC
+import AppHandlers.Backoffice
 import AppHandlers.Bulk
 import AppHandlers.CustomSearches
 import AppHandlers.PSA
@@ -56,12 +60,17 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
          , ("/cancelsFor/:id",chkAuthLocal . method GET    $ getCancelsForCase)
+         , ("/backoffice/errors", method GET $ serveBackofficeSpec Check)
+         , ("/backoffice/spec.txt", method GET $ serveBackofficeSpec Txt)
+         , ("/backoffice/spec.dot", method GET $ serveBackofficeSpec Dot)
          , ("/backoffice/littleMoreActions",
             chkAuthLocal . method PUT $ littleMoreActionsHandler)
          , ("/backoffice/openAction/:actionid",
             chkAuthLocal . method PUT $ openAction)
-         , ("/backoffice/unassigned",
-            chkAuthLocal . method GET $ unassignedActionsHandler)
+         , ("/backoffice/caseActions/:caseid",
+            chkAuthLocal . method GET $ dueCaseActions)
+         , ("/backoffice/allActionResults",
+            chkAuthLocal . method GET $ allActionResults)
          , ("/backoffice/allActions",
             chkAuthLocal . method GET $ allActionsHandler)
          , ("/supervisor/busyOps",  chkAuthLocal . method GET $ busyOps)
@@ -86,7 +95,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/:mdl",        chkAuth . method GET    $ readManyHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
-         , ("/_/:model/:id",  chkAuth . method DELETE $ deleteHandler)
          , ("/searchCases",   chkAuthLocal . method GET  $ searchCases)
          , ("/latestCases",   chkAuthLocal . method GET  $ getLatestCases)
          , ("/regionByCity/:city",
@@ -126,6 +134,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                 <$> Cfg.lookup cfg "local-name"
                 <*> Cfg.lookupDefault 4 cfg "search-min-length"
 
+  wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
+
   h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
   addAuthSplices h auth
 
@@ -152,7 +162,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             <*> lookupCfg "pg_search_pass"
             <*> lookupCfg "pg_db_name"
   -- FIXME: force cInfo evaluation
-  pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
+  pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 5 5 20
   cInfoActass <- liftIO $ (\u p -> cInfo {connectUser = u, connectPassword = p})
             <$> lookupCfg "pg_actass_user"
             <*> lookupCfg "pg_actass_pass"
@@ -163,11 +173,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   g <- nestSnaplet "geo" geo geoInit
-
   search' <- nestSnaplet "search" search $ searchInit pgs authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 
   addRoutes routes
   wrapSite (claimUserActivity>>)
-  return $ App h s authMgr c d pgs pga tm fu g ad search' opts msgr
+  return $ App h s authMgr c d pgs pga tm fu g ad search' opts msgr (initApi wkey)

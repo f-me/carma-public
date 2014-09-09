@@ -56,21 +56,19 @@ define [ "utils"
   mbp  = Mustache.render cb,  fh['mobilePartner']
   wn   = Mustache.render cb,  fh['workNow']
 
-  srvLab = (val) -> window.global.dictValueCache.Services[val] || val
-
   # Add some of case data to screen kvm
   setupCase = (kvm, ctx) ->
     kase = ctx['case'].data
-    {id, data} = ctx['service']
+    {id, data, sType} = ctx['service']
     srvName = id.split(':')[0]
-    kaseKVM = m.buildKVM global.model('case'),  {fetched: kase}
+    kaseKVM = m.buildKVM global.model('Case'),  {fetched: kase}
     srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
     kvm['fromCase'] = true
     kvm['city'](if kaseKVM.city() then [kaseKVM.city()] else [])
     kvm['make'](if kaseKVM.car_make() then [kaseKVM.car_make()] else [])
     kvm['field'] = ctx['field']
 
-    pid = parseInt srvKVM["#{ctx['field']}Id"]()?.split(":")[1]
+    pid = parseInt srvKVM["#{ctx['field']}Id"]()
     if _.isNumber(pid) && !_.isNaN(pid)
       kvm['selectedPartner'] pid
     else
@@ -80,7 +78,7 @@ define [ "utils"
     unless ctx['field'].split('_')[0] == 'contractor'
       kvm['isDealer'](true)
     else
-      kvm['services']([srvName])
+      kvm['services']([sType])
     kvm['isDealerDisabled'](true)
     kvm['caseInfo'] = """
     <ul class='unstyled'>
@@ -205,6 +203,7 @@ define [ "utils"
   # array), which can be displayed on the map (centered on coords with
   # some zoom level, or simply zoomed to fit bounds).
   bindCityPlaces = (kvm) ->
+    dict = utils.newModelDict "City", true
     kvm["city"].subscribe (newCities) ->
       return unless newCities?
       chunks = _.reject newCities, _.isEmpty
@@ -212,7 +211,7 @@ define [ "utils"
       kvm["cityPlaces"].removeAll()
       for c in chunks
         do (c) ->
-          fixed_city = global.dictValueCache.DealerCities[c]
+          fixed_city = dict.getLab c
           $.getJSON map.geoQuery(fixed_city), (res) ->
             if res.length > 0
               place = map.buildCityPlace res
@@ -410,7 +409,7 @@ define [ "utils"
           do (nested) ->
             nested['showStr'] = ko.computed ->
               show  = "<span class='label label-info'>
-                       #{srvLab nested.servicenameLocal()}
+                       #{nested.servicenameLocal()}
                        </span>"
               if nested.priority2()
                 show += " <span class='label label-important'>

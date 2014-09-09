@@ -17,35 +17,60 @@ define [ "hooks/common"
                , c.jsonDictObjsHook
                ]
 
-      "action" : [a.actionColor, a.nameLocal]
+      "Action" : [a.actionColor, a.nameLocal]
 
-      "averageCommissioner" : [ s.serviceColor, s.openPartnerSearch ]
+      "AverageCommissioner" : [ s.serviceColor
+                              , s.updateCaseActions
+                              , s.buttons
+                              , s.openPartnerSearch
+                              ]
 
-      "bank" : [ s.serviceColor, s.openPartnerSearch ]
+      "Bank" : [ s.serviceColor
+               , s.updateCaseActions
+               , s.buttons
+               , s.openPartnerSearch
+               ]
 
-      "case" : [ k.descsKbHook
+      "Case" : [ k.descsKbHook
                , k.eventsHistoryKbHook
                , k.cityStatsHook
                , k.regionHook
                , k.vwfakeHook
                , k.carModelInfoHook
+               , k.buttons
                ]
 
-      "consultation" : [ s.serviceColor, s.openPartnerSearch ]
+      "Consultation" : [ s.serviceColor
+                       , s.updateCaseActions
+                       , s.buttons
+                       , s.openPartnerSearch
+                       ]
 
-      "continue" : [ s.serviceColor, s.openPartnerSearch ]
+      "Continue" : [ s.serviceColor
+                   , s.updateCaseActions
+                   , s.buttons
+                   , s.openPartnerSearch
+                   ]
 
       "cost_serviceTarifOption" : [c.tarifOptNameDef]
 
-      "deliverClient" : [ s.serviceColor, s.openPartnerSearch ]
 
-      "hotel" : [ s.serviceColor
+      "Hotel" : [ s.serviceColor
+                , s.updateCaseActions
+                , s.buttons
                 , s.openPartnerSearch
                 ]
 
-      "insurance" : [ s.serviceColor, s.openPartnerSearch ]
+      "Information" : [ s.serviceColor
+                      , s.updateCaseActions
+                      , s.buttons
+                      , s.openPartnerSearch
+                      ]
 
-      "ken" : [ s.serviceColor, s.openPartnerSearch ]
+      "LegalAssistance" : [ s.serviceColor
+                          , s.updateCaseActions
+                          , s.buttons
+                          , s.openPartnerSearch ]
 
       "Partner" : [ (c.bindRemoveHook 'services')
                   , p.serviceRepeat
@@ -56,41 +81,63 @@ define [ "hooks/common"
                           , p.partnerServiceRepeat
                           ]
 
-      "rent" : [ s.serviceColor
+      "Rent" : [ s.serviceColor
+               , s.updateCaseActions
+               , s.buttons
                , s.openPartnerSearch
                ]
 
-      "sober" : [ s.serviceColor
-                , s.openPartnerSearch
-                ]
+      "SoberDriver" : [ s.serviceColor
+                      , s.updateCaseActions
+                      , s.buttons
+                      , s.openPartnerSearch
+                      ]
 
       "tarifOption" : [c.tarifOptNameDef]
 
-      "taxi" : [ s.serviceColor
+      "Taxi" : [ s.serviceColor
+               , s.updateCaseActions
+               , s.buttons
                , s.openPartnerSearch
                ]
 
-      "tech" : [ s.serviceColor
+      "Tech" : [ s.serviceColor
+               , s.updateCaseActions
+               , s.buttons
                , s.openPartnerSearch
                ]
 
-      "transportation" : [ s.serviceColor
+      "Transportation" : [ s.serviceColor
+                         , s.updateCaseActions
+                         , s.buttons
                          , s.openPartnerSearch
                          ]
 
-      "deliverParts" : [ s.serviceColor
+      "DeliverParts" : [ s.serviceColor
+                       , s.updateCaseActions
+                       , s.buttons
                        , s.openPartnerSearch
                        ]
 
-      "deliverCar" : [ s.serviceColor
+      "DeliverCar" : [ s.serviceColor
+                     , s.updateCaseActions
+                     , s.buttons
                      , s.openPartnerSearch
                      ]
 
-      "tech1" : [ s.serviceColor, s.openPartnerSearch ]
+      "TechInspect" : [ s.serviceColor
+                      , s.updateCaseActions
+                      , s.buttons
+                      , s.openPartnerSearch ]
 
-      "tickets" : [ s.serviceColor, s.openPartnerSearch ]
+      "Tickets" : [ s.serviceColor
+                  , s.updateCaseActions
+                  , s.buttons
+                  , s.openPartnerSearch ]
 
-      "towage" : [ s.serviceColor
+      "Towage" : [ s.serviceColor
+                 , s.updateCaseActions
+                 , s.buttons
                  , s.openPartnerSearch
                  ]
 

@@ -64,6 +64,8 @@
     <!-- masked input for datetime fields -->
     <script src="/s/3p/jquery.maskedinput.js" />
 
+    <script src="/s/3p/jquery.knob.min.js" />
+
     <script src="/s/3p/md5.min.js" />
 
     <script src="/s/3p/d3.min.js" />
@@ -297,39 +299,15 @@
             <i class="icon icon-plus" />Добавить услугу
           </button>
           <ul class="dropdown-menu">
-            {{# dictionary.entries }}
+            {{# dictionary.source }}
             <li>
               <a href="#"
-                 onclick="addService('{{value}}'); return false;">
+                 onclick="addService('{{model}}'); return false;">
                 <i class="icon-{{icon}} icon-black" />
                 {{ label }}
               </a>
             </li>
-            {{/ dictionary.entries }}
-          </ul>
-        </li>
-      </ul>
-    </script>
-
-    <script type="text/template"
-            id="newService-picker-template">
-      <ul class="nav nav-pills">
-        <li class="drop{{drop}}">
-          <button class="dropdown-toggle btn btn-action"
-                  type="button"
-                  data-toggle="dropdown">
-            <i class="icon icon-plus" />Добавить услугу
-          </button>
-          <ul class="dropdown-menu">
-            {{# dictionary.entries }}
-            <li>
-              <a href="#"
-                 onclick="addNewService('{{value}}'); return false;">
-                <i class="icon-{{icon}} icon-black" />
-                {{ label }}
-              </a>
-            </li>
-            {{/ dictionary.entries }}
+            {{/ dictionary.source }}
           </ul>
         </li>
       </ul>
