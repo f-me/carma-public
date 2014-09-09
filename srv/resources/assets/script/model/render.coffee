@@ -189,16 +189,20 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
     "#{parentModelName}-#{parentId}-#{refField}-views"
 
   # Pick first template element with id which matches:
-  # <field.name>-<field.type>, <field.meta.widget>, <field.type>
+  # <model.name>-<field.name>, <field.name>-<field.type>,
+  # <field.meta.widget>, <field.type>
   chooseFieldTemplate = (field, templates) ->
     typed_tpl = field.type
     named_tpl = field.name + "-" + field.type
+    mdl_named_tpl = "#{field.modelName}-#{field.name}"
     widget_tpl = ""
     if field.meta? and _.has(field.meta, "widget")
       widget_tpl = field.meta.widget
 
     tpl = pickTemplate(templates,
-                       [named_tpl, widget_tpl, typed_tpl, "unknown"])
+                       [ mdl_named_tpl, named_tpl
+                       , widget_tpl, typed_tpl
+                       , "unknown"])
     return tpl
 
   # Render permissions controls for form holding an instance in given
