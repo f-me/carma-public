@@ -52,10 +52,42 @@ define [ "utils"
         JSON.stringify {case: kase, service: srv, field: field}
       pSearch.open('case')
 
-  buttonVisibility: (model, kvm) ->
-    kvm['buttonVisibility'] = {}
-    kvm['buttonVisibility'].cancel = ko.computed ->
+  buttons: (model, kvm) ->
+    return if /^search/.test(Finch.navigate())
+    kvm.buttons = {}
+
+    kvm.buttons.cancel = {}
+    kvm.buttons.cancel.visible = ko.computed ->
       kvm['status']() == global.idents("ServiceStatus").creating
+    kvm.buttons.cancel.click = ->
+      kvm['status'] global.idents("ServiceStatus").mistake
+
+    kvm.buttons.backoffice = {}
+    kvm.buttons.backoffice.visible = ko.computed ->
+      kvm['status']() == global.idents("ServiceStatus").creating
+    kvm.buttons.backoffice.click = ->
+      kvm['status'] global.idents("ServiceStatus").backoffice
+
+    kvm.buttons.needMakerApproval = {}
+    kvm.buttons.needMakerApproval.visible = ko.computed ->
+      tgtStatuses = [ global.idents("ServiceStatus").creating
+                    , global.idents("ServiceStatus").backoffice
+                    , global.idents("ServiceStatus").needPartner
+                    ]
+      _.contains tgtStatuses, kvm['status']()
+    kvm.buttons.needMakerApproval.click = ->
+      kvm['status'] global.idents("ServiceStatus").makerApproval
+
+    kvm.buttons.recallClient = {}
+    kvm.buttons.recallClient.visible = ko.computed ->
+      tgtStatuses = [ global.idents("ServiceStatus").ordered
+                    , global.idents("ServiceStatus").inProgress
+                    , global.idents("ServiceStatus").needPartner
+                    , global.idents("ServiceStatus").makerApproval
+                    ]
+      _.contains tgtStatuses, kvm['status']()
+    kvm.buttons.recallClient.click = ->
+      kvm['status'] global.idents("ServiceStatus").recallClient
 
   serviceColor: (model, kvm) ->
     # do not run this hook on search screen

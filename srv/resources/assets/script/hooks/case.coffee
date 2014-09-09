@@ -166,7 +166,10 @@ define ["utils", "dictionaries"], (u, d) ->
   buttons: (model, kvm) ->
     return if /^search/.test(Finch.navigate())
     kvm.buttons = {}
+
     kvm.buttons.needInfo = {}
+    kvm.buttons.needInfo.click = ->
+      kvm['caseStatus'] global.idents("CaseStatus").needInfo
     kvm.buttons.needInfo.disabled = ko.computed ->
       flds = [ kvm['program']?()
              , kvm['contact_name']?()

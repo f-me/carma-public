@@ -401,19 +401,27 @@ mixin dict(nameMod, iconClass)
     button.btn.btn-small.btn-info(
       type='button'
       id="{{name}}-needInfo"
-      data-bind='disabled: buttons.needInfo.disabled')
+      data-bind='disabled: buttons.needInfo.disabled,\
+                 click: buttons.needInfo.click')
       | Требуется дополнительная информация
 
 #svcStatus-field-template.field-template
   +dict("Local", "icon-chevron-down")
-    button.btn.btn-small.btn-action
+    button.btn.btn-small.btn-info(
+      data-bind='visible: buttons.backoffice.visible,\
+                 click: buttons.backoffice.click')
       | В back office
       &nbsp;
       i.icon-white.icon-arrow-right
-    button.btn.btn-small.btn-action
+    button.btn.btn-small.btn-info(
+      data-bind='visible: buttons.needMakerApproval.visible,\
+                 click: buttons.needMakerApproval.click')
       | Согласование с производителем
-    button.btn.btn-small.btn-action
-      | Сообщить клиенту время оказания услуги
+    button.btn.btn-small.btn-info(
+      data-bind='visible: buttons.recallClient.visible,\
+                 click: buttons.recallClient.click')
+      | Сообщить клиенту время оказания услуги &nbsp;
+      i.icon-white.icon-time
 
 #partner-field-template.field-template
   +fieldControlGroup
@@ -511,7 +519,8 @@ mixin simpleRefHdr(name, bindName)
         | [Печать]
       span &nbsp;
       button.btn.btn-mini.btn-danger(
-        data-bind='visible: buttonVisibility.cancel')
+        data-bind='visible: buttons.cancel.visible,\
+                   click: buttons.cancel.click')
         | Отмена
 
 
