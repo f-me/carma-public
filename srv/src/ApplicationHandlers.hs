@@ -396,7 +396,7 @@ getRegionByCity =
         [sql|
           SELECT r.label
           FROM "Region" r, "City" c
-          WHERE c.id = ANY(r.cities) AND c.value = ?
+          WHERE c.id = ANY(r.cities) AND c.id = ?
         |]
         [city]
       writeJSON (res :: [[Text]])
