@@ -199,7 +199,7 @@ beforeUpdate = Map.unionsWith (++) $
   -- vinnie_queue triggers when changing this!
   , trigOn Contract.validSince $ \case
        Nothing -> return ()
-       ns@(Just newSince) -> do
+       Just newSince -> do
          cp <- getIdent >>= dbRead
          let oldSince = cp `get'` Contract.validSince
          do

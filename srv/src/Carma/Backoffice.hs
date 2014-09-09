@@ -77,6 +77,13 @@ mobileOrder =
      (proceed [AType.callMeMaybe]))
 
 
+recallClient :: Entry
+recallClient =
+    Entry
+    (insteadOf Service.status (const SS.recallClient)
+     (proceed [AType.checkStatus]))
+
+
 complaint :: Entry
 complaint =
     Entry
@@ -436,6 +443,7 @@ carmaBackoffice =
       , needInfo
       , needMakerApproval
       , mobileOrder
+      , recallClient
       , complaint
       , mistake
       ]
