@@ -396,6 +396,14 @@ mixin dict(nameMod, iconClass)
           a(data-bind="text: label, click: $parent.{{name}}AddObj"
             href="#")
 
+#Case-caseStatus-field-template.field-template
+  +dict("Local", "icon-chevron-down")
+    .controls.checkbutton
+      label.inline
+        button.btn.btn-small.btn-primary(type='button'
+          id="{{name}}-needInfo")
+          | Требуется дополнительная информация
+
 #partner-field-template.field-template
   +fieldControlGroup
     .controls.input-append
