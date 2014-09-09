@@ -337,6 +337,12 @@
               <a data-bind="attr: { href: '#' + name}, text: label"/>
             </li>
           <!-- /ko -->
+          <!-- ko if: type == 'link' -->
+            <li data-bind="if: type == 'link',
+                           attr: { id: name + '-screen-nav' }">
+              <a target="_blank" data-bind="attr: { href: name}, text: label"/>
+            </li>
+          <!-- /ko -->
           <!-- ko if: type == 'sms' -->
             <li>
               <a href="#sms-send-modal" data-toggle="modal">
