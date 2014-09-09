@@ -22,5 +22,11 @@ instance Model City where
   type TableName City = "City"
   modelInfo = mkModelInfo City ident
   modelView = \case
-    "" -> Just defaultView
+    "" -> Just $ modifyView defaultView
+          [ setMeta "widget"           "picker"    coords
+          , setMeta "infoText"         "coords"    coords
+          , setMeta "targetCoords"     "coords"    coords
+          , setMeta "picker"           "mapPicker" coords
+          , setMeta "currentBlipType"  "city"      coords
+          ]
     _  -> Nothing
