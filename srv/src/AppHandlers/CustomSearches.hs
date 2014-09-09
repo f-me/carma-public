@@ -301,13 +301,13 @@ actStats = do
 boUsers :: AppHandler ()
 boUsers = do
   rows <- withPG pg_search $ \c -> query c [sql|
-    SELECT realname, login
+    SELECT realname, login, id::text
       FROM usermetatbl
       WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
         AND now() - lastactivity < '20 min'
         AND roles && (?)::int[];
     |] (Only $ V.fromList [Role.head, Role.back, Role.supervisor])
-  writeJSON $ mkMap ["name", "login"] rows
+  writeJSON $ mkMap ["name", "login", "id"] rows
 
 
 allDealersForMake :: AppHandler ()

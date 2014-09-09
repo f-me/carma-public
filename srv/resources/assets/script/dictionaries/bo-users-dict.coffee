@@ -1,3 +1,5 @@
+# Active users which are valid targets for manual action assignment
+# from supervisor screen
 define ["dictionaries/local-dict"], (ld) ->
   class BoUsersDict extends ld.dict
     constructor: (@opts) ->
@@ -5,10 +7,9 @@ define ["dictionaries/local-dict"], (ld) ->
       super
 
     find: (q, cb) ->
-      console.log 'bofind', @, @source
       $.bgetJSON "/boUsers", (users) =>
         @source = for u in users
-          { value: u.login, label: "#{u.name} (#{u.login})" }
+          { value: parseInt(u.id), label: "#{u.name} (#{u.login})" }
       super
 
   dict: BoUsersDict
