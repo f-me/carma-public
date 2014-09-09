@@ -108,7 +108,7 @@ define [ "utils"
       flds =  $('<div/>').append($(Flds))
       tpl = flds.find("#actions-reference-template").html()
 
-      $.bgetJSON "/backoffice/caseActions/#{caseId}", (aids) ->
+      $.getJSON "/backoffice/caseActions/#{caseId}", (aids) ->
         for aid in aids
           # Generate reference container
           view = mkSubname()
