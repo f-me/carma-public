@@ -104,5 +104,5 @@ define [ "utils"
 
   updateCaseActions: (model, kvm) ->
     kvm._saveSuccessCb = (k, m, j) ->
-      if j.status?
+      if j.status? || j.clientSatisfied?
         k._parent?['renderActions']?()
