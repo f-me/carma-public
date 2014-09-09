@@ -52,6 +52,11 @@ define [ "utils"
         JSON.stringify {case: kase, service: srv, field: field}
       pSearch.open('case')
 
+  buttonVisibility: (model, kvm) ->
+    kvm['buttonVisibility'] = {}
+    kvm['buttonVisibility'].cancel = ko.computed ->
+      kvm['status']() == global.idents("ServiceStatus").creating
+
   serviceColor: (model, kvm) ->
     # do not run this hook on search screen
     return if /^search/.test(Finch.navigate())

@@ -21,11 +21,13 @@ define [ "hooks/common"
 
       "AverageCommissioner" : [ s.serviceColor
                               , s.updateCaseActions
+                              , s.buttonVisibility
                               , s.openPartnerSearch
                               ]
 
       "Bank" : [ s.serviceColor
                , s.updateCaseActions
+               , s.buttonVisibility
                , s.openPartnerSearch
                ]
 
@@ -39,11 +41,13 @@ define [ "hooks/common"
 
       "Consultation" : [ s.serviceColor
                        , s.updateCaseActions
+                       , s.buttonVisibility
                        , s.openPartnerSearch
                        ]
 
       "Continue" : [ s.serviceColor
                    , s.updateCaseActions
+                   , s.buttonVisibility
                    , s.openPartnerSearch
                    ]
 
@@ -52,16 +56,19 @@ define [ "hooks/common"
 
       "Hotel" : [ s.serviceColor
                 , s.updateCaseActions
+                , s.buttonVisibility
                 , s.openPartnerSearch
                 ]
 
       "Information" : [ s.serviceColor
                       , s.updateCaseActions
+                      , s.buttonVisibility
                       , s.openPartnerSearch
                       ]
 
       "LegalAssistance" : [ s.serviceColor
                           , s.updateCaseActions
+                          , s.buttonVisibility
                           , s.openPartnerSearch ]
 
       "Partner" : [ (c.bindRemoveHook 'services')
@@ -75,11 +82,13 @@ define [ "hooks/common"
 
       "Rent" : [ s.serviceColor
                , s.updateCaseActions
+               , s.buttonVisibility
                , s.openPartnerSearch
                ]
 
       "SoberDriver" : [ s.serviceColor
                       , s.updateCaseActions
+                      , s.buttonVisibility
                       , s.openPartnerSearch
                       ]
 
@@ -87,39 +96,47 @@ define [ "hooks/common"
 
       "Taxi" : [ s.serviceColor
                , s.updateCaseActions
+               , s.buttonVisibility
                , s.openPartnerSearch
                ]
 
       "Tech" : [ s.serviceColor
                , s.updateCaseActions
+               , s.buttonVisibility
                , s.openPartnerSearch
                ]
 
       "Transportation" : [ s.serviceColor
                          , s.updateCaseActions
+                         , s.buttonVisibility
                          , s.openPartnerSearch
                          ]
 
       "DeliverParts" : [ s.serviceColor
                        , s.updateCaseActions
+                       , s.buttonVisibility
                        , s.openPartnerSearch
                        ]
 
       "DeliverCar" : [ s.serviceColor
                      , s.updateCaseActions
+                     , s.buttonVisibility
                      , s.openPartnerSearch
                      ]
 
       "TechInspect" : [ s.serviceColor
                       , s.updateCaseActions
+                      , s.buttonVisibility
                       , s.openPartnerSearch ]
 
       "Tickets" : [ s.serviceColor
                   , s.updateCaseActions
+                  , s.buttonVisibility
                   , s.openPartnerSearch ]
 
       "Towage" : [ s.serviceColor
                  , s.updateCaseActions
+                 , s.buttonVisibility
                  , s.openPartnerSearch
                  ]
 
