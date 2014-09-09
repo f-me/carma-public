@@ -13,7 +13,11 @@ define [ "utils"
 
   setupBackOffice = ->
     onBackofficeScreen = true
-    $("#zardoz").knob()
+
+    $("#zardoz").spin
+      width: 50,
+      lines: 15,
+      radius: 175
     params = "assignedTo=#{global.user.id}&closed=0"
     $.getJSON("/backoffice/allActions?#{params}",
       (r) ->
@@ -28,7 +32,6 @@ define [ "utils"
       if onBackofficeScreen
         current_cycle += cycle_resolution
         percent = current_cycle / poll_every * 100.0
-        $("#zardoz").val(percent).trigger('change')
         if current_cycle >= poll_every
           pullActions()
           current_cycle = 0
