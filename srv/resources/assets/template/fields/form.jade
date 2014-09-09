@@ -398,7 +398,10 @@ mixin dict(nameMod, iconClass)
 
 #Case-caseStatus-field-template.field-template
   +dict("Local", "icon-chevron-down")
-    button.btn.btn-small.btn-action(type='button', id="{{name}}-needInfo")
+    button.btn.btn-small.btn-info(
+      type='button'
+      id="{{name}}-needInfo"
+      data-bind='disabled: buttons.needInfo.disabled')
       | Требуется дополнительная информация
 
 #svcStatus-field-template.field-template

@@ -162,3 +162,17 @@ define ["utils", "dictionaries"], (u, d) ->
         dictionaryLabel: 'info'
     knockVM['car_modelInfo'] = ko.computed ->
       dict.getLab knockVM['car_model']?()
+
+  buttons: (model, kvm) ->
+    return if /^search/.test(Finch.navigate())
+    kvm.buttons = {}
+    kvm.buttons.needInfo = {}
+    kvm.buttons.needInfo.disabled = ko.computed ->
+      flds = [ kvm['program']?()
+             , kvm['contact_name']?()
+             , kvm['contact_phone1']?()
+             , kvm['city']?()
+             , kvm['customerComment']?()
+             ]
+      empties = _.map flds, (e) -> e == "" || _.isNull e
+      _.some empties

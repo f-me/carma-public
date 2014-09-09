@@ -37,6 +37,7 @@ define [ "hooks/common"
                , k.regionHook
                , k.vwfakeHook
                , k.carModelInfoHook
+               , k.buttons
                ]
 
       "Consultation" : [ s.serviceColor
