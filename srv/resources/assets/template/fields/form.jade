@@ -398,11 +398,19 @@ mixin dict(nameMod, iconClass)
 
 #Case-caseStatus-field-template.field-template
   +dict("Local", "icon-chevron-down")
-    .controls.checkbutton
-      label.inline
-        button.btn.btn-small.btn-primary(type='button'
-          id="{{name}}-needInfo")
-          | Требуется дополнительная информация
+    button.btn.btn-small.btn-action(type='button', id="{{name}}-needInfo")
+      | Требуется дополнительная информация
+
+#svcStatus-field-template.field-template
+  +dict("Local", "icon-chevron-down")
+    button.btn.btn-small.btn-action
+      | В back office
+      &nbsp;
+      i.icon-white.icon-arrow-right
+    button.btn.btn-small.btn-action
+      | Согласование с производителем
+    button.btn.btn-small.btn-action
+      | Сообщить клиенту время оказания услуги
 
 #partner-field-template.field-template
   +fieldControlGroup
@@ -491,7 +499,6 @@ mixin simpleRefHdr(name, bindName)
 #services-reference-template.reference-template
   +refCommon
     div.alert(data-bind='style: {"background-color": _svcColor}')
-      a.icon.icon-remove
       span &nbsp;
       a(data-bind='text: _meta.model.title')
         | Услуга…
@@ -499,6 +506,10 @@ mixin simpleRefHdr(name, bindName)
       a(data-bind='attr: { href: \'#printSrv/\'+_meta.model.name+\'/\'+id() }'
         target='_blank')
         | [Печать]
+      span &nbsp;
+      button.btn.btn-mini.btn-danger(
+        data-bind='visible: buttonVisibility.cancel')
+        | Отмена
 
 
 #partner_services-reference-template.reference-template
