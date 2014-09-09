@@ -43,7 +43,7 @@ define ["model/main", "text!tpl/fields/form.html"], (main, Fs) ->
           saveBtnDisable true
 
           # fill hidden fields
-          serviceId = serviceRef.split(':')[0]
+          serviceId = serviceRef.split(':')[1]
           kvm.serviceId(serviceId)
 
           kvm.caseId(caseId)
