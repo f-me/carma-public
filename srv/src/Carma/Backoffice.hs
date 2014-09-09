@@ -204,7 +204,7 @@ needPartner =
     Action
     AType.needPartner
     (const bo_order)
-    currentUser
+    nobody
     ((15 * minutes) `since` now)
     [ (AResult.partnerFound,
        setServiceStatus SS.order *> proceed [AType.orderService])
