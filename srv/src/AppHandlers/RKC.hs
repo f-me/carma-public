@@ -1,39 +1,136 @@
+{-|
+
+Rukovoditel Koll Centra screen.
+
+-}
+
 {-# LANGUAGE QuasiQuotes #-}
 
-module Snaplet.DbLayer.RKC (
-  Filter(..), todayFilter,
-  rkc,
-  rkcFront,
-  partners
-  ) where
+module AppHandlers.RKC
+    (
+      rkcHandler
+    , rkcWeatherHandler
+    , rkcFrontHandler
+    , rkcPartners
+    )
 
-import Control.Arrow
-import Control.Monad
+where
 
-import Data.Aeson
-import Data.Maybe
-import Control.Monad.IO.Class
-import Control.Monad.CatchIO (MonadCatchIO)
-import Data.Monoid
-import Data.List (intersect, sort, nub)
-import Data.String
-import qualified Data.List as L (groupBy)
-import Data.Time
-import Data.Function
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.Text.Read as T
-import Text.Format
+import           Control.Arrow
+import           Control.Monad
+import           Control.Monad.CatchIO              (MonadCatchIO)
+import           Data.Functor
 
+import           Data.Aeson
+import qualified Data.Aeson                         as Aeson
+import           Data.ByteString                    (ByteString)
+import qualified Data.ByteString.Lazy               as LB
+import           Data.Function
+import           Data.List                          (intersect, nub, sort)
+import qualified Data.List                          as L (groupBy, intercalate)
+import           Data.Maybe
+import           Data.Monoid
+import           Data.String
+import qualified Data.Text                          as T
+import qualified Data.Text.Encoding                 as T
+import qualified Data.Text.Read                     as T
+import           Text.Format
+
+import           Data.Time
+import           System.Locale
+
+import           Database.PostgreSQL.Simple.SqlQQ
 import qualified Database.PostgreSQL.Simple.ToField as PS
-import Database.PostgreSQL.Simple.SqlQQ
-import qualified Snap.Snaplet.PostgresqlSimple as PS
+import qualified Snap.Snaplet.PostgresqlSimple      as PS
 
-import qualified Carma.Model.ServiceStatus as SS
+import           Snap
 
-import Snaplet.DbLayer.Dictionary
+import           WeatherApi                         (getWeather', tempC)
 
-import Util
+import qualified Carma.Model.ServiceStatus          as SS
+
+import           AppHandlers.Util
+import           Application
+import           Util                               as U
+
+-- rkc helpers
+getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
+getFromTo = do
+  fromTime <- getParam "from"
+  toTime <- getParam "to"
+
+  tz <- liftIO getCurrentTimeZone
+
+  let
+    parseLocalTime :: ByteString -> Maybe LocalTime
+    parseLocalTime = parseTime defaultTimeLocale "%d.%m.%Y" . U.bToString
+
+    fromTime' = fmap (localTimeToUTC tz) (fromTime >>= parseLocalTime)
+    toTime' = fmap (localTimeToUTC tz) (toTime >>= parseLocalTime)
+
+  return (fromTime', toTime')
+
+getParamOrEmpty :: ByteString -> AppHandler T.Text
+getParamOrEmpty = liftM (maybe T.empty T.decodeUtf8) . getParam
+
+mkRkcFilter :: AppHandler Filter
+mkRkcFilter = do
+  p <- getParamOrEmpty "program"
+  c <- getParamOrEmpty "city"
+  part <- getParamOrEmpty "partner"
+  (from, to) <- getFromTo
+
+  flt <- liftIO todayFilter
+  return $
+    flt {
+      filterFrom = fromMaybe (filterFrom flt) from,
+      filterTo = fromMaybe (filterTo flt) to,
+      filterProgram = p,
+      filterCity = c,
+      filterPartner = part }
+
+rkcHandler :: AppHandler ()
+rkcHandler = logExceptions "handler/rkc" $ do
+  flt' <- mkRkcFilter
+  info <- with db $ rkc flt'
+  writeJSON info
+
+rkcWeatherHandler :: AppHandler ()
+rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
+  let defaults = ["Moskva", "Sankt-Peterburg"]
+  cities <- (fromMaybe defaults . (>>= (Aeson.decode . LB.fromStrict)))
+    <$> getParam "cities"
+
+  syslogJSON Info "handler/rkc/weather" ["cities" .= L.intercalate ", " cities]
+
+  conf <- gets weatherCfg
+  let weatherForCity = liftIO . getWeather' conf . filter (/= '\'')
+  let toTemp t city = Aeson.object [
+        "city" .= city,
+        "temp" .= either (const "-") (show.tempC) t]
+
+  temps <- mapM weatherForCity cities
+  writeJSON $ Aeson.object [
+    "weather" .= zipWith toTemp temps cities]
+
+rkcFrontHandler :: AppHandler ()
+rkcFrontHandler = logExceptions "handler/rkc/front" $ do
+  flt' <- mkRkcFilter
+  res <- with db $ rkcFront flt'
+  writeJSON res
+
+rkcPartners :: AppHandler ()
+rkcPartners = logExceptions "handler/rkc/partners" $ do
+  flt <- liftIO todayFilter
+  (from, to) <- getFromTo
+
+  let
+    flt' = flt {
+      filterFrom = fromMaybe (filterFrom flt) from,
+      filterTo = fromMaybe (filterTo flt) to }
+
+  res <- with db $ partners (filterFrom flt') (filterTo flt')
+  writeJSON res
 
 trace :: (Show a, MonadIO m) => T.Text -> m a -> m a
 trace name fn = do
@@ -52,12 +149,12 @@ query s v = do
 
 -- pre-query, holds fields, table names and conditions in separate list to edit
 data PreQuery = PreQuery {
-    _preFields :: [T.Text],
-    preTables :: [T.Text],
+    _preFields     :: [T.Text],
+    preTables      :: [T.Text],
     _preConditions :: [T.Text],
-    _preGroups :: [T.Text],
-    _preOrders :: [T.Text],
-    _preArgs :: [PS.Action] }
+    _preGroups     :: [T.Text],
+    _preOrders     :: [T.Text],
+    _preArgs       :: [PS.Action] }
 
 preQuery :: (PS.ToRow q) => [T.Text] -> [T.Text] -> [T.Text] -> [T.Text] -> [T.Text] -> q -> PreQuery
 preQuery fs ts cs gs os as = PreQuery fs ts cs gs os (PS.toRow as)
@@ -433,23 +530,20 @@ rkcStats (Filter from to program city partner) = logExceptions "rkc/rkcStats" $ 
                   , "towStartAvgTime" .= towStartAvgTime
                   ]
 
-dictKeys :: T.Text -> Dictionary -> [T.Text]
-dictKeys d = fromMaybe [] . keys [d]
+--serviceNames :: Dictionary -> [T.Text]
+serviceNames = undefined
 
-serviceNames :: Dictionary -> [T.Text]
-serviceNames = dictKeys "Services"
-
-actionNames :: Dictionary -> [T.Text]
-actionNames = dictKeys "ActionNames"
+--actionNames :: Dictionary -> [T.Text]
+actionNames = undefined
 
 ifNotNull :: T.Text -> (T.Text -> PreQuery) -> PreQuery
 ifNotNull value f = if T.null value then mempty else f value
 
 data Filter = Filter {
-  filterFrom :: UTCTime,
-  filterTo :: UTCTime,
+  filterFrom    :: UTCTime,
+  filterTo      :: UTCTime,
   filterProgram :: T.Text,
-  filterCity :: T.Text,
+  filterCity    :: T.Text,
   filterPartner :: T.Text }
     deriving (Eq, Show)
 
@@ -481,10 +575,9 @@ traceFilter tag (Filter from to prog city partner)
 rkc :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> m Value
 rkc filt@(Filter fromDate toDate program city partner) = logExceptions "rkc/rkc" $ do
   traceFilter "rkc/rkc" filt
-  dicts <- loadDictionaries $ "resources/site-config/dictionaries"
-  c <- rkcCase filt constraints (serviceNames dicts)
-  a <- rkcActions fromDate toDate constraints (actionNames dicts)
-  ea <- rkcEachActionOpAvg fromDate toDate constraints (actionNames dicts)
+  c <- rkcCase filt constraints serviceNames
+  a <- rkcActions fromDate toDate constraints actionNames
+  ea <- rkcEachActionOpAvg fromDate toDate constraints actionNames
   compls <- rkcComplaints fromDate toDate constraints
   s <- rkcStats filt
   return $ object [

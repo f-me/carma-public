@@ -41,6 +41,7 @@ import AppHandlers.Backoffice
 import AppHandlers.Bulk
 import AppHandlers.CustomSearches
 import AppHandlers.PSA
+import AppHandlers.RKC
 import AppHandlers.ContractGenerator
 import AppHandlers.Users
 import AppHandlers.Screens

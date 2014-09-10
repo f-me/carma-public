@@ -17,12 +17,6 @@ module ApplicationHandlers
     , readManyHandler
     , updateHandler
 
-      -- * #rkc screens
-    , rkcHandler
-    , rkcWeatherHandler
-    , rkcFrontHandler
-    , rkcPartners
-
       -- * Helper handlers
     , getRegionByCity
     , towAvgTime
@@ -76,7 +70,6 @@ import Snap.Util.FileUploads (getMaximumFormInputSize)
 import WeatherApi (getWeather', tempC)
 
 import qualified Snaplet.DbLayer as DB
-import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (FileUpload(cfg))
 
 import Carma.Model
@@ -277,85 +270,6 @@ updateHandler = do
                 $ DB.update model objId
                 -- Need this hack, or server won't return updated "cost_counted"
                 $ Map.delete "cost_counted" commit
-
--- rkc helpers
-getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
-getFromTo = do
-  fromTime <- getParam "from"
-  toTime <- getParam "to"
-
-  tz <- liftIO getCurrentTimeZone
-
-  let
-    parseLocalTime :: ByteString -> Maybe LocalTime
-    parseLocalTime = parseTime defaultTimeLocale "%d.%m.%Y" . U.bToString
-
-    fromTime' = fmap (localTimeToUTC tz) (fromTime >>= parseLocalTime)
-    toTime' = fmap (localTimeToUTC tz) (toTime >>= parseLocalTime)
-
-  return (fromTime', toTime')
-
-getParamOrEmpty :: ByteString -> AppHandler T.Text
-getParamOrEmpty = liftM (maybe T.empty T.decodeUtf8) . getParam
-
-mkRkcFilter :: AppHandler RKC.Filter
-mkRkcFilter = do
-  p <- getParamOrEmpty "program"
-  c <- getParamOrEmpty "city"
-  part <- getParamOrEmpty "partner"
-  (from, to) <- getFromTo
-
-  flt <- liftIO RKC.todayFilter
-  return $
-    flt {
-      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
-      RKC.filterTo = fromMaybe (RKC.filterTo flt) to,
-      RKC.filterProgram = p,
-      RKC.filterCity = c,
-      RKC.filterPartner = part }
-
-rkcHandler :: AppHandler ()
-rkcHandler = logExceptions "handler/rkc" $ do
-  flt' <- mkRkcFilter
-  info <- with db $ RKC.rkc flt'
-  writeJSON info
-
-rkcWeatherHandler :: AppHandler ()
-rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
-  let defaults = ["Moskva", "Sankt-Peterburg"]
-  cities <- (fromMaybe defaults . (>>= (Aeson.decode . LB.fromStrict)))
-    <$> getParam "cities"
-
-  syslogJSON Info "handler/rkc/weather" ["cities" .= intercalate ", " cities]
-
-  conf <- gets weatherCfg
-  let weatherForCity = liftIO . getWeather' conf . filter (/= '\'')
-  let toTemp t city = Aeson.object [
-        "city" .= city,
-        "temp" .= either (const "-") (show.tempC) t]
-
-  temps <- mapM weatherForCity cities
-  writeJSON $ Aeson.object [
-    "weather" .= zipWith toTemp temps cities]
-
-rkcFrontHandler :: AppHandler ()
-rkcFrontHandler = logExceptions "handler/rkc/front" $ do
-  flt' <- mkRkcFilter
-  res <- with db $ RKC.rkcFront flt'
-  writeJSON res
-
-rkcPartners :: AppHandler ()
-rkcPartners = logExceptions "handler/rkc/partners" $ do
-  flt <- liftIO RKC.todayFilter
-  (from, to) <- getFromTo
-
-  let
-    flt' = flt {
-      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
-      RKC.filterTo = fromMaybe (RKC.filterTo flt) to }
-
-  res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
-  writeJSON res
 
 
 -- | Calculate average tower arrival time (in seconds) for today,
