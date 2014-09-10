@@ -1,12 +1,13 @@
 define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
   (utils, tpl, partials) ->
+    weatherCityDict =
+      utils.newModelDict "City", true, {dictionaryKey: "value"}
     rkcFillWeather = (result, cities) ->
-      dict = utils.newModelDict "City"
       cities.removeAll()
       for r in result.weather
         cities.push
           city: r.city
-          cityname: dict.getLab r.city
+          cityname: weatherCityDict.getLab r.city
           temp: r.temp
           delCity: rkcWeatherRemoveCity r.city
       cities.sort((l, r) -> l.cityname > r.cityname)
@@ -160,14 +161,10 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         totalActions = $('#total-actions')
         totalIncompleteActions = $('#total-incomplete-actions')
 
-        # Fill weather cities
         cityDict = utils.newModelDict("City")
-        cities = for v in cityDict.source
-          c =
-            id: v.value
-            name: v.label
 
-        ko.applyBindings(cities, el "rkc-weather-city-select")
+        ko.applyBindings(weatherCityDict.source,
+                el "rkc-weather-city-select")
 
         # Complaints
         complaints = ko.observableArray([])
