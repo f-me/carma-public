@@ -59,10 +59,7 @@ assignQ = [sql|
             (u.boCities   IS NOT NULL AND c.city          = ANY (u.boCities)) DESC,
             (act.type IN ?
               AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,
-            (CASE WHEN act.type IN ?
-              THEN coalesce(svc.times_expectedServiceStart,act.duetime)
-              ELSE act.duetime
-              END) ASC
+            act.duetime ASC
           LIMIT 1)
         RETURNING id;
     |]
@@ -75,7 +72,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   Just cid <- currentUserMetaId
   let orders = In [ActionType.orderService, ActionType.orderServiceAnalyst]
       -- Parameters for assignQ query
-      params n = (cid, cid, n :: Int, orders, orders)
+      params n = (cid, cid, n :: Int, orders)
 
   actIds'   <- withPG pg_actass (\c -> query c assignQ (params 1))
   actIds''  <- case actIds' of
