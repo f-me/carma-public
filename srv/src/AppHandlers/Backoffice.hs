@@ -72,6 +72,7 @@ type IdentMap m = Map.Map (IdentI m) Text
 -- | Serve a pretty-printed back office processing report.
 serveBackofficeSpec :: BORepr -> AppHandler ()
 serveBackofficeSpec repr =
+    (modifyResponse $ setContentType "text/plain; charset=UTF-8") >>
     case repr of
       Txt -> writeText $ backofficeText carmaBackoffice boxedIMap
       Dot -> writeLazyText $ backofficeDot carmaBackoffice boxedIMap
