@@ -32,14 +32,6 @@ define [], ->
         console.error("datamap: could not parse date '#{v}' with '#{fmt}'")
       null
 
-  s2cDate = (fmt) -> (v) ->
-    return null if _.isEmpty v
-    d = undefined
-    d = new Date(v * 1000)
-    return d.toString(fmt) if isFinite d
-    d = Date.parseExact(v, "yyyy-MM-dd HH:mm:ssz")
-    return d.toString(fmt) if not _.isNull(d) && isFinite d
-
   # Convert ISO 8601 date/time object to a formatted string
   s2cISO = (fmt) -> (v) ->
     return null if _.isEmpty v
@@ -74,7 +66,6 @@ define [], ->
     UTCTime   : (v) -> ((parseISO guiUTCTimeFormat) v)?.toISOString()
     IdentList : (v) -> v
     dictionary: (v) -> if _.isNull v then '' else v
-    date      : c2sDate("dd.MM.yyyy")
     coords    : (v) -> if v == "" then null else v
     JsonAsText: JSON.stringify
     JSON      : (v) -> v
@@ -95,7 +86,6 @@ define [], ->
     Day       : s2cISO guiDayFormat
     UTCTime   : s2cISO guiUTCTimeFormat
     dictionary: (v) -> v
-    date      : s2cDate("dd.MM.yyyy")
     JsonAsText: s2cJson
     JSON      : (v) -> v
 
