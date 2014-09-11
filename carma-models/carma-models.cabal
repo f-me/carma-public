@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.24.9
+version:             0.24.10
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -80,6 +80,7 @@ library
     Carma.Model.Service.Consultation,
     Carma.Model.Service.Continue,
     Carma.Model.Service.DeliverCar,
+    Carma.Model.Service.DeliverClient,
     Carma.Model.Service.DeliverParts,
     Carma.Model.Service.Hotel,
     Carma.Model.Service.Information,
