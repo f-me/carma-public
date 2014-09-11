@@ -47,6 +47,7 @@ import           Snap
 import           WeatherApi                         (getWeather', tempC)
 
 import           Data.Model
+import qualified Data.Model.Sql                     as Sql
 
 import qualified Carma.Model.ActionResult           as AResult
 import qualified Carma.Model.ActionType             as AType
@@ -398,25 +399,34 @@ caseSummary (Filter fromDate toDate program city partner) constraints = logExcep
         oneInt :: [PS.Only Integer] -> Integer
         oneInt = maybe 0 PS.fromOnly . listToMaybe
 
-caseServices :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
+caseServices :: (PS.HasPostgres m, MonadCatchIO m) =>
+                UTCTime
+             -> UTCTime
+             -> PreQuery
+             -> [IdentI ST.ServiceType]
+             -> m Value
 caseServices fromDate toDate constraints names = logExceptions "rkc/caseServices" $ do
   [totals, startAvgs, endAvgs, calcs, lims] <- mapM todayAndGroup [count, averageStart, averageEnd, calculatedCost, limitedCost]
   let
-    makeServiceInfo n = object [
-      "name" .= n,
+    makeServiceInfo n@(Ident m) = object [
+      "name" .= m,
       "total" .= lookAt totals,
       "delay" .= lookAt startAvgs,
       "duration" .= lookAt endAvgs,
       "calculated" .= lookAt calcs,
       "limited" .= lookAt lims]
       where
-        lookAt :: [(T.Text, Integer)] -> Integer
+        lookAt :: [(IdentI ST.ServiceType, Integer)] -> Integer
         lookAt = fromMaybe 0 . lookup n
   return $ toJSON $ map makeServiceInfo names
   where
-    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type::text", p, constraints, betweenTime fromDate toDate "servicetbl" "createTime", groupBy "servicetbl" "type"]
+    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type", p, constraints, betweenTime fromDate toDate "servicetbl" "createTime", groupBy "servicetbl" "type"]
 
-rkcCase :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> PreQuery -> [T.Text] -> m Value
+rkcCase :: (PS.HasPostgres m, MonadCatchIO m) =>
+           Filter
+        -> PreQuery
+        -> [IdentI ST.ServiceType]
+        -> m Value
 rkcCase filt@(Filter fromDate toDate _ _ _) constraints services = logExceptions "rkc/rkcCase" $ do
   s <- caseSummary filt (mconcat [doneServices, constraints])
   ss <- caseServices fromDate toDate (mconcat [constraints, doneServices]) services
@@ -435,26 +445,31 @@ actionsSummary fromDate toDate constraints = logExceptions "rkc/actionsSummary" 
   where
     run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, betweenTime fromDate toDate "actiontbl" "duetime"]
 
-actionsActions :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
+actionsActions :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [IdentI AType.ActionType] -> m Value
 actionsActions fromDate toDate constraints actions = logExceptions "rkc/actionsActions" $ do
   [totals, undones, avgs] <- mapM todayAndGroup [
     (count, "duetime"),
     (mconcat [count, undoneAction], "duetime"),
     (averageActionTime, "closeTime")]
   let
-    makeActionInfo n = object [
-      "name" .= n,
+    makeActionInfo n@(Ident m) = object [
+      "name" .= m,
       "total" .= lookAt totals,
       "undone" .= lookAt undones,
       "average" .= lookAt avgs]
       where
-        lookAt :: [(T.Text, Integer)] -> Integer
+        lookAt :: [(IdentI AType.ActionType, Integer)] -> Integer
         lookAt = fromMaybe 0 . lookup n
   return $ toJSON $ map makeActionInfo actions
   where
-    todayAndGroup (p, tm) = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "type::text", p, constraints, betweenTime fromDate toDate "actiontbl" tm, groupBy "actiontbl" "type"]
+    todayAndGroup (p, tm) = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "type", p, constraints, betweenTime fromDate toDate "actiontbl" tm, groupBy "actiontbl" "type"]
 
-rkcActions :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
+rkcActions :: (PS.HasPostgres m, MonadCatchIO m) =>
+              UTCTime
+           -> UTCTime
+           -> PreQuery
+           -> [IdentI AType.ActionType]
+           -> m Value
 rkcActions fromDate toDate constraints actions = logExceptions "rkc/rkcActions" $ do
   s <- actionsSummary fromDate toDate constraints
   as <- actionsActions fromDate toDate constraints actions
@@ -463,12 +478,12 @@ rkcActions fromDate toDate constraints actions = logExceptions "rkc/rkcActions" 
     "actions" .= as]
 
 -- | Average time for each operator and action
-rkcEachActionOpAvg :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
+rkcEachActionOpAvg :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [IdentI AType.ActionType] -> m Value
 rkcEachActionOpAvg fromDate toDate constraints acts = logExceptions "rkc/rkcEachActionOpAvg" $ do
   r <- trace "result" $ runQuery_ $ mconcat [
     constraints,
     select "actiontbl" "assignedTo::text",
-    select "actiontbl" "type::text",
+    select "actiontbl" "type",
     averageActionTime,
     count,
     notNull "actiontbl" "assignedTo",
@@ -479,10 +494,11 @@ rkcEachActionOpAvg fromDate toDate constraints acts = logExceptions "rkc/rkcEach
     orderBy "actiontbl" "type"]
   return $ toJSON $ toInfo (groupResult r)
   where
-    groupResult :: [(T.Text, T.Text, Integer, Integer)] -> [(T.Text, [(T.Text, (Integer, Integer))])]
+    groupResult :: [(T.Text, IdentI AType.ActionType, Integer, Integer)]
+                -> [(T.Text, [(IdentI AType.ActionType, (Integer, Integer))])]
     groupResult = map (first head . unzip) . L.groupBy ((==) `on` fst) . map (\(aTo, nm, avgTm, cnt) -> (aTo, (nm, (avgTm, cnt))))
 
-    toInfo :: [(T.Text, [(T.Text, (Integer, Integer))])] -> [Value]
+    toInfo :: [(T.Text, [(IdentI AType.ActionType, (Integer, Integer))])] -> [Value]
     toInfo = map fromStat where
       fromStat (n,st) = object [
         "name" .= n,
@@ -538,12 +554,6 @@ rkcStats (Filter from to program city partner) = logExceptions "rkc/rkcStats" $ 
                   , "towStartAvgTime" .= towStartAvgTime
                   ]
 
---serviceNames :: Dictionary -> [T.Text]
-serviceNames = undefined
-
---actionNames :: Dictionary -> [T.Text]
-actionNames = undefined
-
 ifNotNull :: T.Text -> (T.Text -> PreQuery) -> PreQuery
 ifNotNull value f = if T.null value then mempty else f value
 
@@ -583,9 +593,12 @@ traceFilter tag (Filter from to prog city partner)
 rkc :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> m Value
 rkc filt@(Filter fromDate toDate program city partner) = logExceptions "rkc/rkc" $ do
   traceFilter "rkc/rkc" filt
-  c <- rkcCase filt constraints serviceNames
-  a <- rkcActions fromDate toDate constraints actionNames
-  ea <- rkcEachActionOpAvg fromDate toDate constraints actionNames
+  serviceNames <- U.withPG $ \c -> Sql.select ST.ident c
+  actionNames <- U.withPG $ \c -> Sql.select AType.ident c
+  let unOnly (PS.Only n) = n
+  c <- rkcCase filt constraints $ map unOnly serviceNames
+  a <- rkcActions fromDate toDate constraints $ map unOnly actionNames
+  ea <- rkcEachActionOpAvg fromDate toDate constraints $ map unOnly actionNames
   compls <- rkcComplaints fromDate toDate constraints
   s <- rkcStats filt
   return $ object [

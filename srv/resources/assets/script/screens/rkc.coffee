@@ -71,8 +71,6 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
     fillRKCFilters = (updater, partners) ->
       setTimeout ->
-        dict = global.dictValueCache
-
         # Fill programs
         programs = for v in (utils.newModelDict "Program", true).source
           p =
@@ -161,10 +159,12 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         totalActions = $('#total-actions')
         totalIncompleteActions = $('#total-incomplete-actions')
 
-        cityDict = utils.newModelDict("City")
-
         ko.applyBindings(weatherCityDict.source,
                 el "rkc-weather-city-select")
+
+        cityDict = utils.newModelDict("City")
+        actDict = utils.newModelDict "ActionType"
+        srvDict = utils.newModelDict "ServiceType"
 
         # Complaints
         complaints = ko.observableArray([])
@@ -183,7 +183,6 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
             from = Date.parseExact($('#rkc-date-from').val(), "dd.MM.yyyy")
             to   = Date.parseExact($('#rkc-date-to').val(), "dd.MM.yyyy")
 
-            dict = global.dictValueCache
             ct.fnClearTable()
             bt.fnClearTable()
 
@@ -201,13 +200,12 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
             # Update services table
             crows = for cinfo in result.case.services
               crow = [
-                dict.Services[cinfo.name] || cinfo.name,
+                srvDict.getLab(cinfo.name),
                 cinfo.total,
                 utils.formatSecToMin(cinfo.delay),
                 utils.formatSecToMin(cinfo.duration),
                 cinfo.calculated,
                 cinfo.limited]
-
             ct.fnAddData(crows)
 
             totalActions.val(result.back.summary.total)
@@ -216,7 +214,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
             # Update actions table
             brows = for binfo in result.back.actions
               brow = [
-                dict.ActionNames[binfo.name] || binfo.name,
+                actDict.getLab(binfo.name),
                 binfo.total,
                 binfo.undone,
                 fmttime(binfo.average)]
@@ -234,7 +232,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
                         new Date(minfo.mtime).toString('dd.MM.yyyy HH:mm')
                       else
                         ""
-                    , cityDict.getLab minfo.city
+                    , cityDict.getLab(minfo.city) || ''
                     , if minfo.addrs.length > 0
                         (utils.getKeyedJsonValue minfo.addrs, "fact") || ""
                       else
@@ -249,7 +247,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
                 caseid: comp.caseid,
                 url: "/#case/" + comp.caseid,
                 services: for s in comp.services
-                  srvname = dict.Services[s] || s
+                  srvname = srvDict.getLab s
               }))
 
         partners = ko.observableArray([])
