@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW allservicesview AS
-                (        (        (        (        (        (        (        (         SELECT averagecommissionertbl.id,
+                ((        (        (        (        (        (        (        (         SELECT averagecommissionertbl.id,
 
                                                                                             averagecommissionertbl.type,
                                                                                             averagecommissionertbl.contractor_partner AS towdealer_partner,
@@ -147,4 +147,18 @@ UNION ALL
             NULL::int4 AS towdealer_partnerid,
             techtbl.assignedto,
             techtbl.parentid
-           FROM techtbl;
+           FROM techtbl)
+UNION ALL
+SELECT taxitbl.id,
+       taxitbl.type,
+       taxitbl.contractor_partner AS towdealer_partner,
+       NULL::text AS suburbanmilage,
+       NULL::text AS providedfor,
+       NULL::TIMESTAMP WITH time ZONE AS repairenddate,
+       NULL::integer AS techtype,
+       NULL::integer AS towtype,
+       taxitbl.taxito_address AS towaddress_address,
+       taxitbl.contractor_partnerid AS towdealer_partnerid,
+       taxitbl.assignedto,
+       taxitbl.parentid
+FROM taxitbl;
