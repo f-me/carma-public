@@ -1,10 +1,10 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 {-|
 
 Rukovoditel Koll Centra screen.
 
 -}
-
-{-# LANGUAGE QuasiQuotes #-}
 
 module AppHandlers.RKC
     (
@@ -62,21 +62,18 @@ import           Application
 import           Util                               as U
 
 -- rkc helpers
-getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
+getFromTo :: AppHandler (Maybe Day, Maybe Day)
 getFromTo = do
-  fromTime <- getParam "from"
-  toTime <- getParam "to"
-
-  tz <- liftIO getCurrentTimeZone
-
+  fromDate <- getParam "from"
+  toDate <- getParam "to"
   let
-    parseLocalTime :: ByteString -> Maybe LocalTime
-    parseLocalTime = parseTime defaultTimeLocale "%d.%m.%Y" . U.bToString
+    parseDate :: ByteString -> Maybe Day
+    parseDate = parseTime defaultTimeLocale "%d.%m.%Y" . U.bToString
 
-    fromTime' = fmap (localTimeToUTC tz) (fromTime >>= parseLocalTime)
-    toTime' = fmap (localTimeToUTC tz) (toTime >>= parseLocalTime)
+    fromDate' = parseDate =<< fromDate
+    toDate' = parseDate =<< toDate
 
-  return (fromTime', toTime')
+  return (fromDate', toDate')
 
 getParamOrEmpty :: ByteString -> AppHandler T.Text
 getParamOrEmpty = liftM (maybe T.empty T.decodeUtf8) . getParam
@@ -208,14 +205,11 @@ equals tbl col val = preQuery [] [tbl] [T.concat [tbl, ".", col, " = ?"]] [] [] 
 equalsTo :: T.Text -> T.Text -> T.Text -> PreQuery
 equalsTo tbl expr val = preQuery [] [tbl] [T.concat [expr, " = ?"]] [] [] [val]
 
-betweenTime :: UTCTime -> UTCTime -> T.Text -> T.Text -> PreQuery
+betweenTime :: Day -> Day -> T.Text -> T.Text -> PreQuery
 betweenTime from to tbl col = mconcat [
   notNull tbl col,
-  preQuery [] [tbl] [T.concat [tbl, ".", col, " >= ?"]] [] [] [asLocal from],
-  preQuery [] [tbl] [T.concat [tbl, ".", col, " < ?"]] [] [] [asLocal to]]
-
-asLocal :: UTCTime -> LocalTime
-asLocal = utcToLocalTime utc
+  preQuery [] [tbl] [T.concat [tbl, ".", col, " >= ?"]] [] [] [from],
+  preQuery [] [tbl] [T.concat [tbl, ".", col, " < ?"]] [] [] [to]]
 
 count :: PreQuery
 count = preQuery_ ["count(*)"] [] [] [] []
@@ -400,8 +394,8 @@ caseSummary (Filter fromDate toDate program city partner) constraints = logExcep
         oneInt = maybe 0 PS.fromOnly . listToMaybe
 
 caseServices :: (PS.HasPostgres m, MonadCatchIO m) =>
-                UTCTime
-             -> UTCTime
+                Day
+             -> Day
              -> PreQuery
              -> [IdentI ST.ServiceType]
              -> m Value
@@ -434,7 +428,7 @@ rkcCase filt@(Filter fromDate toDate _ _ _) constraints services = logExceptions
     "summary" .= s,
     "services" .= ss]
 
-actionsSummary :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> m Value
+actionsSummary :: (PS.HasPostgres m, MonadCatchIO m) => Day -> Day -> PreQuery -> m Value
 actionsSummary fromDate toDate constraints = logExceptions "rkc/actionsSummary" $ do
   syslogTxt Info "rkc/actionsSummary" "Loading summary"
   t <- trace "total" (run count)
@@ -445,7 +439,7 @@ actionsSummary fromDate toDate constraints = logExceptions "rkc/actionsSummary" 
   where
     run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, betweenTime fromDate toDate "actiontbl" "duetime"]
 
-actionsActions :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [IdentI AType.ActionType] -> m Value
+actionsActions :: (PS.HasPostgres m, MonadCatchIO m) => Day -> Day -> PreQuery -> [IdentI AType.ActionType] -> m Value
 actionsActions fromDate toDate constraints actions = logExceptions "rkc/actionsActions" $ do
   [totals, undones, avgs] <- mapM todayAndGroup [
     (count, "duetime"),
@@ -465,8 +459,8 @@ actionsActions fromDate toDate constraints actions = logExceptions "rkc/actionsA
     todayAndGroup (p, tm) = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "type", p, constraints, betweenTime fromDate toDate "actiontbl" tm, groupBy "actiontbl" "type"]
 
 rkcActions :: (PS.HasPostgres m, MonadCatchIO m) =>
-              UTCTime
-           -> UTCTime
+              Day
+           -> Day
            -> PreQuery
            -> [IdentI AType.ActionType]
            -> m Value
@@ -478,7 +472,7 @@ rkcActions fromDate toDate constraints actions = logExceptions "rkc/rkcActions" 
     "actions" .= as]
 
 -- | Average time for each operator and action
-rkcEachActionOpAvg :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [IdentI AType.ActionType] -> m Value
+rkcEachActionOpAvg :: (PS.HasPostgres m, MonadCatchIO m) => Day -> Day -> PreQuery -> [IdentI AType.ActionType] -> m Value
 rkcEachActionOpAvg fromDate toDate constraints acts = logExceptions "rkc/rkcEachActionOpAvg" $ do
   r <- trace "result" $ runQuery_ $ mconcat [
     constraints,
@@ -509,7 +503,7 @@ rkcEachActionOpAvg fromDate toDate constraints acts = logExceptions "rkc/rkcEach
           avgSum st' = (average *** sum) $ unzip $ map snd st'
           average l = sum l `div` fromIntegral (length l)
 
-rkcComplaints :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> m Value
+rkcComplaints :: (PS.HasPostgres m, MonadCatchIO m) => Day -> Day -> PreQuery -> m Value
 rkcComplaints fromDate toDate constraints = logExceptions "rkc/rkcComplaints" $ do
   compls <- trace "result" $ runQuery_ $ mconcat [
     constraints,
@@ -558,8 +552,8 @@ ifNotNull :: T.Text -> (T.Text -> PreQuery) -> PreQuery
 ifNotNull value f = if T.null value then mempty else f value
 
 data Filter = Filter {
-  filterFrom    :: UTCTime,
-  filterTo      :: UTCTime,
+  filterFrom    :: Day,
+  filterTo      :: Day,
   filterProgram :: T.Text,
   filterCity    :: T.Text,
   filterPartner :: T.Text }
@@ -567,15 +561,14 @@ data Filter = Filter {
 
 todayFilter :: IO Filter
 todayFilter = do
-  tz <- getCurrentTimeZone
-  now <- fmap zonedTimeToLocalTime getZonedTime
+  now <- getCurrentTime
   let
-    startOfToday = now { localTimeOfDay = midnight }
-    startOfTomorrow = startOfToday { localDay = addDays 1 (localDay startOfToday) }
+    startOfToday = utctDay now
+    startOfTomorrow = addDays 1 startOfToday
 
   return Filter {
-    filterFrom = localTimeToUTC tz startOfToday,
-    filterTo = localTimeToUTC tz startOfTomorrow,
+    filterFrom = startOfToday,
+    filterTo = startOfTomorrow,
     filterProgram = "",
     filterCity = "",
     filterPartner = "" }
@@ -638,7 +631,7 @@ rkcFront filt@(Filter fromDate toDate program city _) = logExceptions "rkc/rkcFr
       " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
       " group by u.realName order by u.realName"]
 
-    dateArgs = map PS.toField [asLocal fromDate, asLocal toDate]
+    dateArgs = map PS.toField [fromDate, toDate]
     progCityArgs = map PS.toField $ filter (not . T.null) [program, city]
 
   calls <- trace "result" $ fquery callq args (dateArgs ++ progCityArgs)
@@ -673,7 +666,7 @@ rkcFront filt@(Filter fromDate toDate program city _) = logExceptions "rkc/rkcFr
       "cases" .= cases]
 
 -- | All partners on services within time interval
-partners :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> m Value
+partners :: (PS.HasPostgres m, MonadCatchIO m) => Day -> Day -> m Value
 partners fromDate toDate = logExceptions "rkc/partners" $ do
   syslogJSON Info "rkc/partners" ["from" .= show fromDate, "to" .= show toDate]
 
@@ -682,7 +675,7 @@ partners fromDate toDate = logExceptions "rkc/partners" $ do
       "select trim(contractor_partner) c from servicetbl where",
       " (createTime >= ?) and (createTime < ?) and (createTime is not null) group by c order by c"]
 
-  ps <- trace "result" $ queryFmt q [] [asLocal fromDate, asLocal toDate]
+  ps <- trace "result" $ queryFmt q [] [fromDate, toDate]
   return $ toJSON (mapMaybe PS.fromOnly ps :: [T.Text])
 
 queryFmt :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => [String] -> FormatArgs -> q -> m [r]
