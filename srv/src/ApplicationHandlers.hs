@@ -32,7 +32,6 @@ module ApplicationHandlers
 where
 
 import Data.Functor
-import Control.Monad
 import Control.Monad.Trans.Either
 
 import Data.Text (Text)
@@ -42,16 +41,11 @@ import qualified Data.Text.Lazy.Encoding as TL
 
 import qualified Data.HashMap.Strict as HM
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Lazy as LB
 import qualified Data.Aeson as Aeson
 import Data.Aeson
-import Data.List
 import qualified Data.Map as Map
 
 import Data.Maybe
-
-import Data.Time
-import System.Locale
 
 import Database.PostgreSQL.Simple (Query, query, execute)
 import Database.PostgreSQL.Simple.SqlQQ
@@ -66,8 +60,6 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Util.FileServe (serveFile)
 import Snap.Util.FileUploads (getMaximumFormInputSize)
-
-import WeatherApi (getWeather', tempC)
 
 import qualified Snaplet.DbLayer as DB
 import Snaplet.FileUpload (FileUpload(cfg))

@@ -7,7 +7,6 @@ module Util
     -- * Request processing
     readJSON
   , readJSONfromLBS
-  , selectParse
   , mbreadInt
   , mbreadDouble
   , readDouble
@@ -110,39 +109,6 @@ readJSONfromLBS' src s
       Success t -> t
       Error err -> Ex.throw $ FromJSONError src err
     err -> Ex.throw $ AttoparsecError src (show err)
-
-
---------------------------------------------------------------------------------
--- param parser for select
-sParse :: Text -> [Text]
-sParse prm =
-  let A.Done _ r = A.feed (A.parse c prm) T.empty
-  in r
-    where
-      n = return . T.pack =<< trim (many1 $ A.satisfy $ A.notInClass "<>=")
-      p = trim $ choice $ map A.string ["<=", "<", ">=", ">", "=="]
-      c = do
-        v    <- n
-        pred' <- p
-        l    <- n
-        return [v, pred', l]
-      trim pars = A.skipSpace *> pars <* A.skipSpace
-
-s2p :: (Eq s, IsString s, Ord a) => s -> (a -> a -> Bool)
-s2p "<=" = (<=)
-s2p "<"  = (<)
-s2p ">"  = (>)
-s2p ">=" = (>=)
-s2p "==" = (==)
-s2p _    = error "Invalid argument of s2p"
-
-selectParse :: Map Text Text -> Text -> Bool
-selectParse obj prm =
-  let [l,p,r] = sParse prm
-      p' = s2p p
-  in case Map.lookup l obj of
-    Nothing -> False
-    Just v  -> p' v r
 
 mbreadInt :: Text -> Maybe Int
 mbreadInt s = case T.decimal s of
