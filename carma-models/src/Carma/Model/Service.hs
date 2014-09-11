@@ -1,7 +1,7 @@
 module Carma.Model.Service where
 
 import Data.Text
-import Data.Time.Clock
+import Data.Time
 import Data.Typeable
 
 import Data.Model
@@ -67,7 +67,7 @@ data Service = Service
                                  "Номер счёта"
   , bill_billingCost             :: F (Maybe Int) "bill_billingCost"
                                  "Сумма по счёту"
-  , bill_billingDate             :: F (Maybe LegacyDate) {-FIXME: day-} "bill_billingDate"
+  , bill_billingDate             :: F (Maybe Day) "bill_billingDate"
                                  "Дата выставления счёта"
 
   , contractor_partner           :: F (Maybe Text) "contractor_partner"

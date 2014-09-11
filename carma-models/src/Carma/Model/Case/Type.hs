@@ -130,7 +130,7 @@ data Case = Case
   , temperature
     :: F (Maybe Text) "temperature" "Температура"
   , repair
-    :: F (Maybe LegacyDate) "repair" "Дата починки"
+    :: F (Maybe Day) "repair" "Дата починки"
   , accord
     :: F (Maybe Text) "accord" "Номер согласования"
   , dealerCause

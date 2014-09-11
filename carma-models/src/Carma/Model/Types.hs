@@ -256,9 +256,6 @@ instance DefaultFieldView Reference where
 instance DefaultFieldView Checkbox where
   defaultFieldView f = (defFieldView f) {fv_type = "checkbox"}
 
-instance DefaultFieldView LegacyDate where
-  defaultFieldView f = (defFieldView f) {fv_type = "date"}
-
 instance DefaultFieldView JsonAsText where
   defaultFieldView f = (defFieldView f) {fv_type = "JsonAsText"}
 

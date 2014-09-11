@@ -1,6 +1,7 @@
 module Carma.Model.Service.Towage where
 
 import Data.Text
+import Data.Time
 import Data.Typeable
 
 import Data.Model
@@ -64,7 +65,7 @@ data Towage = Towage
                              "Пробег эвакуатора за городом"
   , orderNumber              :: F (Maybe Text) "orderNumber"
                              "Номер заказ-наряда"
-  , repairEndDate            :: F (Maybe LegacyDate) {-FIXME: day-} "repairEndDate"
+  , repairEndDate            :: F (Maybe Day) "repairEndDate"
                              "Дата окончания ремонта"
   }
   deriving Typeable

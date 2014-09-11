@@ -61,6 +61,8 @@ instance forall m nm desc . (SingI nm, SingI desc, Model m)
   interval _ = interval (undefined :: (m -> F Day nm desc)) :: [Predicate m]
 
 
+-- REMEMBER to update "Contract_csv" view and probably VinFormat
+-- fields when changing this model!
 data Contract = Contract
   { ident            :: PK Int Contract "№ контракта"
   , ctime            :: F UTCTime

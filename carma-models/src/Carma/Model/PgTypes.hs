@@ -55,9 +55,6 @@ instance PgTypeable UTCTime where
 instance PgTypeable Day where
   pgTypeOf _ = PgType "date" True
 
-instance PgTypeable LegacyDate where
-  pgTypeOf _ = PgType "timestamp with time zone" True
-
 instance PgTypeable (Interval UTCTime) where
   pgTypeOf _ = PgType "tstzrange" True
 

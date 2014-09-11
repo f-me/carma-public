@@ -1,17 +1,11 @@
 module Carma.Model.LegacyTypes where
 
 import Control.Applicative
-import Control.Error.Util
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.ByteString.Char8 as B8
 import Data.Typeable
 import Data.Aeson
 import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Database.PostgreSQL.Simple.FromField (FromField(..))
-import Database.PostgreSQL.Simple.Time (parseUTCTime)
-import Data.Time.Clock (UTCTime)
-import Data.Time.Format (parseTime, formatTime)
 
 data Activity = Activity deriving Typeable
 data RequestType = RequestType deriving Typeable
@@ -103,20 +97,3 @@ on = Checkbox True
 
 off :: Checkbox
 off = Checkbox False
-
-
-data LegacyDate = LegacyDate UTCTime deriving Typeable
-instance FromJSON LegacyDate where
-  parseJSON fld = do
-    txt <- T.unpack <$> parseJSON fld
-    let res = parseTime undefined "%s" txt
-          <|> hush (parseUTCTime $ B8.pack txt)
-    case res of
-      Just v  -> return $ LegacyDate v
-      Nothing -> fail $ "LegacyDate.parseJSON: invalid date " ++ txt
-instance ToJSON LegacyDate where
-  toJSON (LegacyDate utc) = toJSON $ formatTime undefined "%s" utc
-instance ToField LegacyDate where
-  toField (LegacyDate utc) = toField utc
-instance FromField LegacyDate where
-  fromField fld m = LegacyDate <$> fromField fld m
