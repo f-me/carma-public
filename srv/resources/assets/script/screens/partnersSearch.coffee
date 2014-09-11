@@ -378,8 +378,9 @@ define [ "utils"
   constructor: (view, args) ->
     # remove padding so blank space after removing navbar can be used
     if args?.model?
-      $('body').css('padding-top', '0px')
-      $(".navbar").hide()
+      unless args.model == "mobile"
+        $('body').css('padding-top', '0px')
+        $(".navbar").hide()
 
     kvm = m.buildKVM(model, "partnersSearch-content")
     q = new sync.DipQueue(kvm, model)
