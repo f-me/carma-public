@@ -55,6 +55,8 @@ define [ "utils"
       type: "PUT"
       url: "/backoffice/littleMoreActions"
       success: myActionsHandler
+      error: () ->
+        $("#standby-msg").text "Что-то пошло не так!"
 
   removeBackOffice = ->
     # Stop auto-polling backoffice-related server handlers when we
@@ -66,7 +68,9 @@ define [ "utils"
     $.ajax
       type: "PUT"
       url: "/backoffice/openAction/#{actId}"
-      success: () -> window.location.hash = "case/#{caseId}"
+      success: () ->
+        $("#standby-msg").text "Перенаправляю на кейс…"
+        window.location.hash = "case/#{caseId}"
 
   { constructor: setupBackOffice
   , destructor: removeBackOffice
