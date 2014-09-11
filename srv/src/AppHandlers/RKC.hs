@@ -33,7 +33,6 @@ import           Data.Monoid
 import           Data.String
 import qualified Data.Text                          as T
 import qualified Data.Text.Encoding                 as T
-import qualified Data.Text.Read                     as T
 import           Text.Format
 
 import           Data.Time
@@ -47,7 +46,15 @@ import           Snap
 
 import           WeatherApi                         (getWeather', tempC)
 
+import           Data.Model
+
+import qualified Carma.Model.ActionResult           as AResult
+import qualified Carma.Model.ActionType             as AType
+import           Carma.Model.City                   (City)
+import           Carma.Model.Program                (Program)
+import qualified Carma.Model.Satisfaction           as Satis
 import qualified Carma.Model.ServiceStatus          as SS
+import qualified Carma.Model.ServiceType            as ST
 
 import           AppHandlers.Util
 import           Application
@@ -221,6 +228,9 @@ sumOf tbl col = preQuery_ [T.concat ["sum(", tbl, ".", col, ")"]] [tbl] [] [] []
 notNull :: T.Text -> T.Text -> PreQuery
 notNull tbl col = preQuery_ [] [tbl] [T.concat [tbl, ".", col, " is not null"]] [] []
 
+isNull :: T.Text -> T.Text -> PreQuery
+isNull tbl col = preQuery_ [] [tbl] [T.concat [tbl, ".", col, " is null"]] [] []
+
 cond :: [T.Text] -> T.Text -> PreQuery
 cond tbls c = preQuery_ [] tbls [c] [] []
 
@@ -242,13 +252,13 @@ doneServices = inList "servicetbl" "status" $ map identFv
                , SS.closed]
 
 serviceCaseRel :: PreQuery
-serviceCaseRel = cond ["casetbl", "servicetbl"] "'case:' || casetbl.id = servicetbl.parentId"
+serviceCaseRel = cond ["casetbl", "servicetbl"] "casetbl.id = servicetbl.parentId"
 
 consultationCaseRel :: PreQuery
-consultationCaseRel = cond ["casetbl", "consultationtbl"] "'case:' || casetbl.id = consultationtbl.parentId"
+consultationCaseRel = cond ["casetbl", "consultationtbl"] "casetbl.id = consultationtbl.parentId"
 
 towageTech :: PreQuery
-towageTech = inList "servicetbl" "type" ["towage", "tech"]
+towageTech = inList "servicetbl" "type" $ map identFv [ST.tech, ST.towage]
 
 averageTowageTechStart :: PreQuery
 averageTowageTechStart = averageStart `mappend` towageTech
@@ -270,7 +280,7 @@ averageEnd = mconcat [
 satisfaction :: PreQuery
 satisfaction = mconcat [
   count,
-  equals "servicetbl" "clientSatisfied" "satis"]
+  equals "servicetbl" "clientSatisfied" (identFv Satis.ok)]
 
 satisfactionCount :: PreQuery
 satisfactionCount = mconcat [
@@ -298,7 +308,7 @@ selectExp tbls ex = preQuery_ [ex] tbls [] [] []
 --
 
 undoneAction :: PreQuery
-undoneAction = equals "actiontbl" "closed" "f"
+undoneAction = isNull "actiontbl" "result"
 
 averageTime :: (T.Text, T.Text) -> (T.Text, T.Text) -> PreQuery
 averageTime (tbl1, col1) (tbl2, col2) = mconcat [
@@ -404,7 +414,7 @@ caseServices fromDate toDate constraints names = logExceptions "rkc/caseServices
         lookAt = fromMaybe 0 . lookup n
   return $ toJSON $ map makeServiceInfo names
   where
-    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type", p, constraints, betweenTime fromDate toDate "servicetbl" "createTime", groupBy "servicetbl" "type"]
+    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type::text", p, constraints, betweenTime fromDate toDate "servicetbl" "createTime", groupBy "servicetbl" "type"]
 
 rkcCase :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> PreQuery -> [T.Text] -> m Value
 rkcCase filt@(Filter fromDate toDate _ _ _) constraints services = logExceptions "rkc/rkcCase" $ do
@@ -442,7 +452,7 @@ actionsActions fromDate toDate constraints actions = logExceptions "rkc/actionsA
         lookAt = fromMaybe 0 . lookup n
   return $ toJSON $ map makeActionInfo actions
   where
-    todayAndGroup (p, tm) = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, betweenTime fromDate toDate "actiontbl" tm, groupBy "actiontbl" "name"]
+    todayAndGroup (p, tm) = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "type::text", p, constraints, betweenTime fromDate toDate "actiontbl" tm, groupBy "actiontbl" "type"]
 
 rkcActions :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
 rkcActions fromDate toDate constraints actions = logExceptions "rkc/rkcActions" $ do
@@ -457,17 +467,16 @@ rkcEachActionOpAvg :: (PS.HasPostgres m, MonadCatchIO m) => UTCTime -> UTCTime -
 rkcEachActionOpAvg fromDate toDate constraints acts = logExceptions "rkc/rkcEachActionOpAvg" $ do
   r <- trace "result" $ runQuery_ $ mconcat [
     constraints,
-    select "actiontbl" "assignedTo",
-    select "actiontbl" "name",
+    select "actiontbl" "assignedTo::text",
+    select "actiontbl" "type::text",
     averageActionTime,
     count,
-    notNull "actiontbl" "name",
     notNull "actiontbl" "assignedTo",
     betweenTime fromDate toDate "actiontbl" "duetime",
     groupBy "actiontbl" "assignedTo",
-    groupBy "actiontbl" "name",
+    groupBy "actiontbl" "type",
     orderBy "actiontbl" "assignedTo",
-    orderBy "actiontbl" "name"]
+    orderBy "actiontbl" "type"]
   return $ toJSON $ toInfo (groupResult r)
   where
     groupResult :: [(T.Text, T.Text, Integer, Integer)] -> [(T.Text, [(T.Text, (Integer, Integer))])]
@@ -491,9 +500,9 @@ rkcComplaints fromDate toDate constraints = logExceptions "rkc/rkcComplaints" $ 
     select "casetbl" "id",
     notNull "casetbl" "id",
     notNull "servicetbl" "type",
-    selectExp ["servicetbl"] "string_agg(servicetbl.type, ' ')",
+    selectExp ["servicetbl"] "string_agg(servicetbl.type::text, ' ')",
     betweenTime fromDate toDate "servicetbl" "createTime",
-    equals "servicetbl" "clientSatisfied" "notSatis",
+    equals "servicetbl" "clientSatisfied" (identFv Satis.none),
     groupBy "casetbl" "id",
     orderBy "casetbl" "id"]
   return $ toJSON $ map toCaseId compls
@@ -507,20 +516,19 @@ rkcComplaints fromDate toDate constraints = logExceptions "rkc/rkcComplaints" $ 
 -- times).
 rkcStats :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> m Value
 rkcStats (Filter from to program city partner) = logExceptions "rkc/rkcStats" $ do
-  let qParams = sqlFlagPair (0 :: Int) id program'
-                PS.:. ( T.null city
-                      , city
-                      , T.null partner
-                      , partner
-                      , from
-                      , to
-                      )
-      program' = if T.null program
-                 then Nothing
-                 else case (T.decimal program) of
-                        Right (n, _) -> Just n
-                        _            -> Nothing
-  rsp1 <- PS.query procAvgTimeQuery qParams
+  let qParams = sqlFlagPair (Ident 0) id program' PS.:.
+                sqlFlagPair (Ident 0) id city' PS.:.
+                (T.null partner, partner, from, to)
+      orders       = PS.In $ map identFv [AType.orderService]
+      orderResults = PS.In $ map identFv [ AResult.serviceOrdered
+                                        , AResult.serviceOrderedSMS
+                                        ]
+      city' :: Maybe (IdentI City)
+      city' = fvIdent city
+      program' :: Maybe (IdentI Program)
+      program' = fvIdent program
+  rsp1 <- PS.query procAvgTimeQuery $
+          (orders, orderResults) PS.:. qParams
   rsp2 <- PS.query towStartAvgTimeQuery qParams
   let procAvgTime :: Maybe Double
       procAvgTime = head $ head rsp1
@@ -669,21 +677,22 @@ queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)
 
 -- | Calculate average service processing time (in seconds).
 --
--- Parametrized by: program (boolean flag & value for this parameter,
--- where flag is *false* if filtering by that parameter should be
--- active), city (flag & value), partner name (flag & value), from
--- (value, always active), to (always active).
+-- Parametrized by: orderService types (IN value with ActionType
+-- keys), serviceOrdered results (IN value with ActionResult keys),
+-- the rest of arguments are the same as for 'towStartAvgTimeQuery'.
+--
+-- The query uses timespan between the earliest order action and the
+-- latest action which resulted in an ordered service.
 procAvgTimeQuery :: PS.Query
 procAvgTimeQuery = [sql|
 WITH actiontimes AS (
  SELECT (max(a2.closeTime - a1.ctime))
  FROM casetbl c, servicetbl s, actiontbl a1, actiontbl a2
  WHERE a1.serviceid=a2.serviceid
- AND (a2.result='serviceOrdered'
-      OR a2.result='serviceOrderedSMS')
- AND a1.name='orderService'
+ AND (a1.type IN ?)
+ AND (a2.result IN ?)
  AND a1.serviceid=s.id
- AND cast(split_part(a1.caseid, ':', 2) as integer)=c.id
+ AND a1.caseid = c.id
  AND s.times_expectedServiceStart <= (a1.ctime + INTERVAL '01:00:00')
  AND (? or c.program = ?)
  AND (? or c.city = ?)
@@ -696,7 +705,10 @@ SELECT extract(epoch from avg(max)) FROM actiontimes;
 
 -- | Calculate average tower arrival time (in seconds).
 --
--- Parametrized in the same way as 'procAvgTimeQuery'.
+-- Parametrized by: program (boolean flag & value for this parameter,
+-- where flag is *false* if filtering by that parameter should be
+-- active), city (flag & value), partner name (flag & value), from
+-- (value, always active), to (always active).
 towStartAvgTimeQuery :: PS.Query
 towStartAvgTimeQuery = [sql|
 WITH
