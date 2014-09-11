@@ -143,7 +143,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
         ct = utils.mkDataTable caset, { bFilter: false, bInfo: false }
         bt = utils.mkDataTable actionst, { bFilter: false, bInfo: false }
-        mt = utils.mkDataTable mobit, { bFilter: false, bInfo: false }
+        mt = utils.mkDataTable mobit, { bFilter: true, bInfo: false }
 
         # Fill general info
         totalServices = $('#total-services')
