@@ -65,8 +65,7 @@ Executable carma
     ModelTriggers,
     Trigger.Dsl,
     Util,
-    Utils.HttpErrors,
-    Utils.NotDbLayer
+    Utils.HttpErrors
 
   Build-depends:
     aeson                       >= 0.7 && < 0.8,

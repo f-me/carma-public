@@ -562,6 +562,12 @@ mixin simpleRefHdr(name, bindName)
   +refCommon
     +simpleRefHdr("Тарифная опция…", "nameOrDef")
 
+mixin caseFilesList
+  ul.unstyled(data-bind="foreach: filesReference")
+    li
+      i.icon.icon-file
+      a.file-name(data-bind="attr: { href: filenameUrl }, text: filename")
+
 // Default case group view template
 #default-case-group-template.group-template
   fieldset#default-case.complex-field.default-complex-field
@@ -602,6 +608,13 @@ mixin simpleRefHdr(name, bindName)
       span#city-towage-average-time
     #contract
     .program
+      #case-files(data-bind="visible: filesReference().length")
+        legend Прикреплённые файлы
+        +caseFilesList
+        dl(data-bind="foreach: servicesReference")
+          dt(data-bind="visible: filesReference().length, text: _meta.model.title")
+            dd
+              +caseFilesList
       #case-comments
         legend  Комментарий
         textarea#case-comments-i(rows='2')

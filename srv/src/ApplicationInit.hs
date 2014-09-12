@@ -172,7 +172,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   c <- nestSnaplet "cfg" siteConfig $
        initSiteConfig "resources/site-config" pgs db
 
-  fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
+  fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit authDb
   g <- nestSnaplet "geo" geo geoInit
   search' <- nestSnaplet "search" search $ searchInit pgs authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit

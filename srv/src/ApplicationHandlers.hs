@@ -73,7 +73,7 @@ import Application
 import AppHandlers.Util
 import AppHandlers.Users
 import Util as U hiding (render, withPG)
-import Utils.NotDbLayer (readIdent)
+import Utils.LegacyModel (readIdent)
 
 import Utils.Events (logLogin, logCRUD, updateUserState)
 

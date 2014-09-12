@@ -21,7 +21,7 @@ import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
 import Snaplet.DbLayer.Types (DbLayer)
 import Snaplet.TaskManager
-import Snaplet.FileUpload hiding (db)
+import Snaplet.FileUpload
 import Snaplet.Geo
 import Snaplet.Search
 import Snaplet.Messenger
