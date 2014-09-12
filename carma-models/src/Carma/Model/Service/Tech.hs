@@ -10,9 +10,11 @@ import Carma.Model.TechType (TechType)
 
 
 data Tech = Tech
-  { ident       :: PK Int Tech ""
-  , techType    :: F (Maybe (IdentI TechType)) "techType" "Услуга"
-  , orderNumber :: F (Maybe Text) "orderNumber" "Номер заказ-наряда"
+  { ident          :: PK Int Tech ""
+  , techType       :: F (Maybe (IdentI TechType)) "techType" "Услуга"
+  , suburbanMilage :: F (Maybe Text) "suburbanMilage"
+                      "Пробег техпомощи за городом"
+  , orderNumber    :: F (Maybe Text) "orderNumber" "Номер заказ-наряда"
   }
   deriving Typeable
 
