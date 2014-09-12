@@ -16,6 +16,7 @@ import           Data.Text                               (Text)
 import qualified Data.Text                               as T
 import           Data.Typeable
 
+import           Carma.Model.Attachment                  (Attachment)
 import           Carma.Model.Call                        (Call)
 import           Carma.Model.CarMake                     (CarMake)
 import           Carma.Model.CarModel                    (CarModel)
@@ -117,6 +118,7 @@ modelMap fn = modelMap'
     add m = (T.pack $ show $ typeOf m, fn m)
     modelMap' = Map.fromList
       [add (undefined :: Dictionary)
+      ,add (undefined :: Attachment)
       ,add (undefined :: CaseStatus)
       ,add (undefined :: CarMake)
       ,add (undefined :: CarModel)

@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.24.10
+version:             0.24.11
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -23,6 +23,7 @@ library
     Carma.Model,
     Carma.Model.ActionType,
     Carma.Model.ActionResult,
+    Carma.Model.Attachment,
     Carma.Model.DeferTime,
     Carma.Model.Search,
     Carma.Model.Types,
