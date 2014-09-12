@@ -23,6 +23,7 @@ insert into "CtrModel" (id, value, label) values
 ,(16, 'Tickets', 'Заказ билетов')
 ,(17, 'Towage', 'Эвакуация')
 ,(18, 'Transportation', 'Транспортировка')
+,(19, 'DeliverClient', 'Доставка клиента к отремонтированному автомобилю')
 ;
 
 GRANT ALL ON "CtrModel" TO carma_db_sync;
