@@ -24,5 +24,7 @@ instance Model Attachment where
   type TableName Attachment = "attachmenttbl"
   modelInfo = mkModelInfo Attachment ident
   modelView = \case
-    "" -> Just defaultView
+    "" -> Just $ modifyView defaultView $
+          [ setType "file" filename
+          ]
     _  -> Nothing

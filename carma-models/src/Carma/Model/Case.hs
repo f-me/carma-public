@@ -58,7 +58,10 @@ instance Model Case where
       "" -> Just
         $ modifyView
           ((defaultView :: ModelView Case) {mv_title = "Кейс"})
-          $ caseMod ++ caseDicts ++ caseRo
+          $ caseMod ++ caseDicts ++ caseRo ++
+          [ widget "inline-uploader" files
+          , setMeta "reference-widget" "files" files
+          ]
       _ -> Nothing
 
 caseDicts :: [(Text, FieldView -> FieldView) :@ Case]
@@ -99,9 +102,6 @@ caseMod = [
   ,hiddenIdent contract
 
   ,widget "force-find-dictionary" contractIdentifier
-
-  ,widget "inline-uploader" files
-  ,setMeta "reference-widget" "files" files
 
   ,setMeta "visibility" (Aeson.Bool True) callDate
 

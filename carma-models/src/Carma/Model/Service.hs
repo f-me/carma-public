@@ -142,6 +142,8 @@ usualSvcMod :: [(Text, FieldView -> FieldView) :@ Service]
 usualSvcMod = svcMod ++
             [ invisible contractor_partnerId
             , invisible svcType
+            , widget "inline-uploader" files
+            , setMeta "reference-widget" "files" files
             ]
 
 serviceSearchParams :: [(Text, [Predicate Service])]
