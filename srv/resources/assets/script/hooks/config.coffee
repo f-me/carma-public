@@ -52,6 +52,12 @@ define [ "hooks/common"
                    , s.openPartnerSearch
                    ]
 
+      "DeliverClient" : [ s.serviceColor
+                        , s.updateCaseActions
+                        , s.buttons
+                        , s.openPartnerSearch
+                        ]
+
       "cost_serviceTarifOption" : [c.tarifOptNameDef]
 
 
