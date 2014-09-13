@@ -11,15 +11,15 @@ import Carma.Model.Service (Service)
 
 data DeliverClient = DeliverClient
   { ident :: PK Int DeliverClient ""
-  , deliveryType :: F (IdentT DeliveryType) "deliveryType" "Тип доставки"
+  , deliveryType :: F (Maybe (IdentT DeliveryType)) "deliveryType" "Тип доставки"
 
   , deliverFrom_address :: F PickerField "deliverFrom_address" "Откуда везти"
-  , deliverFrom_comment :: F Text        "deliverFrom_comment" "Примечания"
+  , deliverFrom_comment :: F (Maybe Text)"deliverFrom_comment" "Примечания"
   , deliverFrom_coords  :: F PickerField "deliverFrom_coords" "Координаты"
   , deliverFrom_map     :: F MapField    "deliverFrom_map" ""
 
   , deliverTo_address :: F PickerField "deliverTo_address" "Куда везти"
-  , deliverTo_comment :: F Text        "deliverTo_comment" "Примечания"
+  , deliverTo_comment :: F (Maybe Text)"deliverTo_comment" "Примечания"
   , deliverTo_coords  :: F PickerField "deliverTo_coords" "Координаты"
   , deliverTo_map     :: F MapField    "deliverTo_map" ""
   }
@@ -29,6 +29,7 @@ data DeliverClient = DeliverClient
 instance Model DeliverClient where
   type TableName DeliverClient = "deliverclienttbl"
   type Parent DeliverClient = Service
+  parentInfo = ExParent modelInfo
   modelInfo = mkModelInfo DeliverClient ident
   modelView v = case parentView v :: Maybe (ModelView DeliverClient) of
     Nothing -> Nothing
