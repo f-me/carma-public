@@ -220,7 +220,7 @@ class Backoffice impl where
            -> impl v
 
     -- Verbs with side effects
-    setServiceField :: (FieldI t n d, HaskellType t ~ t) =>
+    setServiceField :: (SvcAccess m, FieldI t n d, HaskellType t ~ t) =>
                        (Service -> F t n d) -> impl t -> impl (Eff m)
     sendDealerMail :: impl (Eff m)
     sendGenserMail :: impl (Eff m)
@@ -258,7 +258,8 @@ finish :: (Backoffice impl, PreContextAccess m) => impl (Outcome m)
 finish = proceed []
 
 
-setServiceStatus :: Backoffice impl => IdentI ServiceStatus -> impl (Eff m)
+setServiceStatus :: (SvcAccess m, Backoffice impl) =>
+                    IdentI ServiceStatus -> impl (Eff m)
 setServiceStatus s = setServiceField Service.status (const s)
 
 

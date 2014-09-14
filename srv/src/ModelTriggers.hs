@@ -161,7 +161,7 @@ beforeCreate = Map.unionsWith (++)
     modPut Taxi.taxiFrom_address $ c `Patch.get'` Case.caseAddress_address
 
   , trigOnModel ([]::[Tech.Tech]) $
-    modPut Towage.suburbanMilage $ Just "0"
+    modPut Tech.suburbanMilage $ Just "0"
 
   , trigOnModel ([]::[Towage.Towage]) $ do
     modPut Towage.accident            $ Just off
@@ -558,8 +558,7 @@ instance Backoffice HaskellE where
         HaskellE $ do
           ctx <- ask
           sid <- srvId'
-          return $ void $
-            dbUpdate sid $ Patch.put acc (evalHaskell ctx v) Patch.empty
+          return $ void $ setService sid acc (evalHaskell ctx v)
 
     sendDealerMail = HaskellE $ return $ return ()
 
