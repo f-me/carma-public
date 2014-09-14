@@ -72,6 +72,8 @@ define [ "utils"
       # make colored services and actions a little bit nicer
       $('.accordion-toggle:has(> .alert)').css 'padding', 0
 
+      $(".status-btn-tooltip").tooltip()
+
     setCommentsHandler = ->
       $("#case-comments-b").on 'click', ->
         i = $("#case-comments-i")
@@ -146,6 +148,7 @@ define [ "utils"
           e.find('input')[0]?.focus()
           # make colored service a little bit nicer even if it is just created
           $('.accordion-toggle:has(> .alert)').css 'padding', 0
+          $(".status-btn-tooltip").tooltip()
           e.parent().collapse 'show'
 
     utils.build_global_fn 'addService', ['screens/case']

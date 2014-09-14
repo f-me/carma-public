@@ -315,10 +315,10 @@ mixin dict(nameMod, iconClass)
           a.btn(data-bind='disabled: {{ name }}Disabled'
                 onclick="$(this).siblings('.upload-dialog').click();")
             i.icon.icon-folder-open
-            | Обзор
+            | &nbsp;Обзор
           a.btn.btn-primary(data-bind='disabled: {{ name }}Disabled', onclick='inlineUploadFile($(this).closest(\'form\'));')
             i.icon.icon-upload.icon-white
-            | Загрузить
+            | &nbsp;Загрузить
 
 //- Special template used to render first field of group in parent view.
 #group-field-template.field-template(type='text/template')
@@ -398,30 +398,46 @@ mixin dict(nameMod, iconClass)
 
 #Case-caseStatus-field-template.field-template
   +dict("Local", "icon-chevron-down")
-    button.btn.btn-small.btn-info(
-      type='button'
+    button.btn.btn-small.btn-info.status-btn-tooltip(
       id="{{name}}-needInfo"
+      title="Требуется дополнительная информация"
+      data-toggle="tooltip"
+      data-placement="right"
       data-bind='disabled: buttons.needInfo.disabled,\
                  click: buttons.needInfo.click')
-      | Требуется дополнительная информация
+      i.icon-white.icon-info-sign
 
 #svcStatus-field-template.field-template
   +dict("Local", "icon-chevron-down")
     button.btn.btn-small.btn-info(
       data-bind='visible: buttons.backoffice.visible,\
                  click: buttons.backoffice.click')
-      | В back office
-      &nbsp;
-      i.icon-white.icon-arrow-right
-    button.btn.btn-small.btn-info(
+      i.icon-white.icon-play
+      | &nbsp;В back office
+    button.btn.btn-small.btn-info.status-btn-tooltip(
+      title="Согласование с производителем"
+      data-toggle="tooltip"
+      data-placement="right"
       data-bind='visible: buttons.needMakerApproval.visible,\
                  click: buttons.needMakerApproval.click')
-      | Согласование с производителем
-    button.btn.btn-small.btn-info(
+      i.icon-white.icon-briefcase
+    button.btn.btn-small.btn-info.status-btn-tooltip(
+      title="Сообщить клиенту время оказания услуги"
+      data-toggle="tooltip"
+      data-placement="right"
       data-bind='visible: buttons.recallClient.visible,\
                  click: buttons.recallClient.click')
-      | Сообщить клиенту время оказания услуги &nbsp;
       i.icon-white.icon-time
+    button.btn.btn-small.btn-info(
+      title="Отказ от услуги"
+      data-toggle="tooltip"
+      data-placement="right"
+      data-bind='visible: buttons.cancel.visible,\
+                 disabled: buttons.cancel.disabled,\
+                 click: buttons.cancel.click')
+      i.icon-white.icon-fast-backward
+      | &nbsp;Отказ от услуги
+
 
 #partner-field-template.field-template
   +fieldControlGroup
@@ -514,14 +530,17 @@ mixin simpleRefHdr(name, bindName)
       a(data-bind='text: _meta.model.title')
         | Услуга…
       span &nbsp;
-      a(data-bind='attr: { href: \'#printSrv/\'+_meta.model.name+\'/\'+id() }'
+      button.btn.btn-mini(
+        data-bind='attr: { href: \'#printSrv/\'+_meta.model.name+\'/\'+id() }'
         target='_blank')
-        | [Печать]
+        i.icon.icon-print
+        | &nbsp;Печать
       span &nbsp;
       button.btn.btn-mini.btn-danger(
-        data-bind='visible: buttons.cancel.visible,\
-                   click: buttons.cancel.click')
-        | Ошибка
+        data-bind='visible: buttons.mistake.visible,\
+                   click: buttons.mistake.click')
+        i.icon.icon-white.icon-remove
+        | &nbsp;Ошибка
 
 
 #partner_services-reference-template.reference-template

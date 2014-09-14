@@ -56,11 +56,12 @@ define [ "utils"
     return if /^search/.test(Finch.navigate())
     kvm.buttons = {}
 
-    kvm.buttons.cancel = {}
-    kvm.buttons.cancel.visible = ko.computed ->
+    kvm.buttons.mistake = {}
+    kvm.buttons.mistake.visible = ko.computed ->
       kvm['status']() == global.idents("ServiceStatus").creating
-    kvm.buttons.cancel.click = ->
-      kvm['status'] global.idents("ServiceStatus").mistake
+    kvm.buttons.mistake.click = ->
+      if confirm "Закрыть услугу как ошибочную?"
+        kvm['status'] global.idents("ServiceStatus").mistake
 
     kvm.buttons.backoffice = {}
     kvm.buttons.backoffice.visible = ko.computed ->
@@ -76,7 +77,8 @@ define [ "utils"
                     ]
       _.contains tgtStatuses, kvm['status']()
     kvm.buttons.needMakerApproval.click = ->
-      kvm['status'] global.idents("ServiceStatus").makerApproval
+      if confirm "Согласовать оказание услуги с производителем?"
+        kvm['status'] global.idents("ServiceStatus").makerApproval
 
     kvm.buttons.recallClient = {}
     kvm.buttons.recallClient.visible = ko.computed ->
@@ -87,7 +89,24 @@ define [ "utils"
                     ]
       _.contains tgtStatuses, kvm['status']()
     kvm.buttons.recallClient.click = ->
-      kvm['status'] global.idents("ServiceStatus").recallClient
+      if confirm "Сообщить клиенту время оказания услуги?"
+        kvm['status'] global.idents("ServiceStatus").recallClient
+
+    kvm.buttons.cancel = {}
+    kvm.buttons.cancel.visible = ko.computed ->
+      tgtStatuses = [ global.idents("ServiceStatus").creating
+                    , global.idents("ServiceStatus").backoffice
+                    , global.idents("ServiceStatus").ordered
+                    , global.idents("ServiceStatus").inProgress
+                    , global.idents("ServiceStatus").needPartner
+                    , global.idents("ServiceStatus").makerApproval
+                    ]
+      _.contains tgtStatuses, kvm['status']()
+    kvm.buttons.cancel.disabled = ko.computed ->
+      _.isEmpty kvm['clientCancelReason']?()
+    kvm.buttons.cancel.click = ->
+      if confirm "Убедиться в том, что кнопка не работает?"
+        kvm['status'] global.idents("ServiceStatus").canceled
 
   serviceColor: (model, kvm) ->
     # do not run this hook on search screen
