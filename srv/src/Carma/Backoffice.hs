@@ -128,11 +128,6 @@ orderService =
        sendSMS SMS.parguy *>
        setServiceStatus SS.needPartner *>
        proceed [AType.needPartner])
-    , (AResult.clientCanceledService,
-       sendSMS SMS.cancel *>
-       sendPSAMail *>
-       setServiceStatus SS.canceled *>
-       finish)
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]
