@@ -63,6 +63,7 @@ import           Carma.Model.Service (Service)
 import qualified Carma.Model.Service.Hotel as Hotel
 import qualified Carma.Model.Service.Rent as Rent
 import qualified Carma.Model.Service.Taxi as Taxi
+import qualified Carma.Model.Service.Tech as Tech
 import qualified Carma.Model.Service.Towage as Towage
 import           Carma.Model.SubProgram as SubProgram hiding (ident)
 
@@ -158,6 +159,9 @@ beforeCreate = Map.unionsWith (++)
                 p `Patch.get` parentField Service.parentId
     c <- dbRead parId
     modPut Taxi.taxiFrom_address $ c `Patch.get'` Case.caseAddress_address
+
+  , trigOnModel ([]::[Tech.Tech]) $
+    modPut Towage.suburbanMilage $ Just "0"
 
   , trigOnModel ([]::[Towage.Towage]) $ do
     modPut Towage.accident            $ Just off
