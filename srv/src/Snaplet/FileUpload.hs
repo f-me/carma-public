@@ -313,6 +313,7 @@ attachToField instanceId field ref = do
   return ()
     where
       addRef Nothing                r = Just $ Reference r
+      addRef (Just (Reference ""))  r = Just $ Reference r
       addRef (Just (Reference val)) r =
         Just $ Reference $ T.concat [val, ",", r]
       lockName = T.concat [ modelName (modelInfo :: ModelInfo m)
