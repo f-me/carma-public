@@ -6,7 +6,7 @@ ADD COLUMN sid int4 DEFAULT nextval('servicetbl_sid_seq');
 
 ALTER TABLE servicetbl ADD CONSTRAINT "servicetbl_ukey" UNIQUE (sid);
 
--- Delete duplicates (keep earliest service)
+-- Delete duplicates (keep earliest service) (this deletion is small, 12 svcs)
 DELETE FROM servicetbl
 WHERE sid IN (SELECT sid
               FROM (SELECT sid,
@@ -64,9 +64,15 @@ BEGIN
 end;
 $$ language plpgsql;
 
--- migrate servicetbl refs
+-- migrate servicetbl refs, cleaning orphaned refs
+DELETE FROM actiontbl WHERE
+serviceId IS NOT NULL and serviceType IS NOT NULL
+AND NOT EXISTS
+(SELECT 1 FROM servicetbl
+ WHERE serviceId = servicetbl.id AND serviceType = servicetbl.type);
 UPDATE actiontbl p SET serviceId = q.sid
-FROM servicetbl q WHERE serviceId = q.id AND serviceType = q.type;
+FROM servicetbl q WHERE serviceId = q.id AND serviceType = q.type AND
+serviceId IS NOT NULL and serviceType IS NOT NULL;
 ALTER TABLE actiontbl DROP COLUMN serviceType;
 
 UPDATE partnercanceltbl p SET serviceId = q.sid
