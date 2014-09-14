@@ -529,10 +529,10 @@ rkcStats (Filter from to program city partner) = logExceptions "rkc/rkcStats" $ 
   let qParams = sqlFlagPair (Ident 0) id program' PS.:.
                 sqlFlagPair (Ident 0) id city' PS.:.
                 (T.null partner, partner, from, to)
-      orders       = PS.In $ map identFv [AType.orderService]
-      orderResults = PS.In $ map identFv [ AResult.serviceOrdered
-                                        , AResult.serviceOrderedSMS
-                                        ]
+      orders       = PS.In [AType.orderService]
+      orderResults = PS.In [ AResult.serviceOrdered
+                           , AResult.serviceOrderedSMS
+                           ]
       city' :: Maybe (IdentI City)
       city' = fvIdent city
       program' :: Maybe (IdentI Program)
@@ -733,7 +733,7 @@ AND (s.times_factServiceStart > s.times_expectedDispatch)
 AND (? or c.program = ?)
 AND (? or c.city = ?)
 AND (? or s.contractor_partner = ?)
-AND s.suburbanmilage = '0'
+AND coalesce(s.suburbanmilage, '0') = '0'
 AND c.calldate >= ?
 AND c.calldate < ?;
 |]
