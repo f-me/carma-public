@@ -213,6 +213,10 @@ textarea.pane-span,
   display: none;
 }
 
+button > i.icon {
+  vertical-align: middle;
+}
+
 #partnerMapModal {
   left: 35%;
   width: 65%;

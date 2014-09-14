@@ -296,7 +296,8 @@
           <button class="dropdown-toggle btn btn-action"
                   type="button"
                   data-toggle="dropdown">
-            <i class="icon icon-plus" />Добавить услугу
+            <i style="vertical-align:baseline" class="icon icon-plus" />
+            Добавить услугу
           </button>
           <ul class="dropdown-menu">
             {{# dictionary.source }}
