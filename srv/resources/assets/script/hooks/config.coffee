@@ -38,6 +38,7 @@ define [ "hooks/common"
                , k.vwfakeHook
                , k.carModelInfoHook
                , k.buttons
+               , k.hasFiles
                ]
 
       "Consultation" : [ s.serviceColor

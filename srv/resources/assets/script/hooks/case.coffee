@@ -179,3 +179,9 @@ define ["utils", "dictionaries"], (u, d) ->
              ]
       empties = _.map flds, (e) -> e == "" || _.isNull e
       _.some empties
+
+  hasFiles: (model, knockVM) ->
+    knockVM['hasFiles'] = ko.computed ->
+      knockVM['filesReference']?().length ||
+      _.any(_.map(knockVM['servicesReference']?(),
+        (srv) -> (srv['filesReference']?().length > 0)))

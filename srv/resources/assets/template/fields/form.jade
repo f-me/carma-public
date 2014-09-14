@@ -563,7 +563,7 @@ mixin simpleRefHdr(name, bindName)
     +simpleRefHdr("Тарифная опция…", "nameOrDef")
 
 mixin caseFilesList
-  ul.unstyled(data-bind="foreach: filesReference")
+  ul.unstyled(data-bind="foreach: safelyGet(\'filesReference\')")
     li
       i.icon.icon-file
       a.file-name(data-bind="attr: { href: filenameUrl }, text: filename")
@@ -608,11 +608,11 @@ mixin caseFilesList
       span#city-towage-average-time
     #contract
     .program
-      #case-files(data-bind="visible: filesReference().length")
+      #case-files(data-bind="visible: hasFiles")
         legend Прикреплённые файлы
         +caseFilesList
         dl(data-bind="foreach: servicesReference")
-          dt(data-bind="visible: filesReference().length, text: _meta.model.title")
+          dt(data-bind="visible: safelyGet(\'filesReference\').length, text: _meta.model.title")
             dd
               +caseFilesList
       #case-comments
