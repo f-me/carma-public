@@ -49,7 +49,6 @@ import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
 
 import           Util
-import Control.Monad
 import           Utils.LegacyModel
 
 
@@ -60,7 +59,9 @@ logLogin tpe = do
   uid <- getRealUid
   case uid of
     Nothing -> return ()
-    Just uid' -> void $ log $ addIdent uid' $ buildEmpty tpe
+    Just uid' -> do
+      ev <- log $ addIdent uid' $ buildEmpty tpe
+      updateUserState tpe uid' P.empty ev
 
 -- | Interface for events from legacy CRUD
 logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
