@@ -7,6 +7,7 @@ module Data.Model.Sql
   , selectPatch
   , update
   , eq
+  , isNull
   , sql_in
 
   , SqlQ(..)
@@ -174,6 +175,14 @@ eq
   => (m -> Field t (FOpt nm desc app)) -> t
   -> SqlP m t
 eq f v = SqlP (T.unpack $ fieldName f) v "="
+
+
+isNull
+  :: (Model m, SingI nm)
+  => (m -> Field (Maybe t) (FOpt nm desc app))
+  -> SqlP m (Maybe t)
+isNull f = SqlP (T.unpack $ fieldName f) Nothing "IS"
+
 
 sql_in :: (Model m, SingI nm)
        => (m -> Field t (FOpt nm desc app)) -> [t]
