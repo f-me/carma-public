@@ -71,7 +71,6 @@ import Carma.Model.Event (EventType(..))
 
 import Application
 import AppHandlers.Util
-import AppHandlers.Users
 import Util as U hiding (render, withPG)
 import Utils.LegacyModel (readIdent)
 
@@ -136,7 +135,6 @@ doLogin = ifTop $ do
 
 doLogout :: AppHandler ()
 doLogout = ifTop $ do
-  claimUserLogout
   logLogin Logout
   with auth logout
   redirectToLogin

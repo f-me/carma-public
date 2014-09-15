@@ -12,10 +12,10 @@ module AppHandlers.Users
     , chkAuthLocal
     , chkAuthAdmin
     , chkAuthPartner
-    , claimUserActivity
-    , claimUserLogout
     , serveUserCake
     , serveUserStates
+    , userIsInState
+    , userIsReady
     )
 
 where
@@ -32,10 +32,10 @@ import           Text.Printf
 import           Database.PostgreSQL.Simple (query)
 
 import Snap
-import Snap.Snaplet.PostgresqlSimple hiding (query)
 
 import Data.Model
-import Data.Model.Patch
+import Data.Model.Patch     as Patch
+import qualified Data.Model.Patch.Sql as Patch
 
 import Carma.Model.Role      as Role
 import Carma.Model.Usermeta  as Usermeta
@@ -115,33 +115,32 @@ chkAuthRoles roleCheck handler = do
         else handleError 401
 
 
-claimUserActivity :: AppHandler ()
-claimUserActivity = currentUserMetaId >>= \case
-  Nothing        -> return ()
-  Just (Ident u) -> void $ execute
-    "UPDATE usermetatbl SET lastactivity = NOW() WHERE id = ?" [u]
+-- | True if a user is in any of given states.
+userIsInState :: IdentI Usermeta -> [UserStateVal] -> AppHandler Bool
+userIsInState uid uStates =
+  withPG pg_search $ \conn -> Patch.read uid conn >>=
+  \case
+    Left e -> error $
+              "Could not fetch usermeta for user " ++ show uid ++
+              ", error " ++ show e
+    Right p -> do
+      p' <- liftIO $ fillCurrentState p uid conn
+      case p' `Patch.get` Usermeta.currentState of
+        Just v  -> return $ v `elem` uStates
+        Nothing -> error $ "Could not obtain a state for user " ++ show uid
 
-claimUserLogout :: AppHandler ()
-claimUserLogout = currentUserMetaId >>= \case
-  Nothing        -> return ()
-  Just (Ident u) -> void $ execute
-    "UPDATE usermetatbl SET lastlogout = NOW() WHERE id = ?" [u]
+
+-- | True if a user is in @Ready@ state.
+userIsReady :: IdentI Usermeta -> AppHandler Bool
+userIsReady uid = uid `userIsInState` [Ready]
 
 
-------------------------------------------------------------------------------
 -- | Serve user account data back to client.
 serveUserCake :: AppHandler ()
 serveUserCake = currentUserMeta >>= maybe (handleError 401) writeJSON
 
---    let homePage = case [T.decodeUtf8 r | Snap.Role r <- userRoles usr] of
---          rs | identFv Role.head       `elem` rs -> "/#rkc"
---             | identFv Role.supervisor `elem` rs -> "/#supervisor"
---             | identFv Role.call       `elem` rs -> "/#call"
---             | identFv Role.back       `elem` rs -> "/#back"
---             | identFv Role.parguy     `elem` rs -> "/#partner"
---             | otherwise                   -> ""
 
--- | Serve user states
+-- | Serve states for a user within a time interval.
 serveUserStates :: AppHandler ()
 serveUserStates = do
   usrId <- readUsermeta <$> getParamT "userId"

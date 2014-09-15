@@ -46,15 +46,16 @@ import Snap
 
 import Data.Model.Types
 
-import Application
-import AppHandlers.CustomSearches.Contract
-import AppHandlers.Util
-import Utils.HttpErrors
-import Util hiding (withPG)
+import qualified Carma.Model.ActionType              as AType
+import qualified Carma.Model.Role                    as Role
+import           Carma.Model.Usermeta                as Usermeta
+import           Carma.Model.UserState               as UserState
 
-import qualified Carma.Model.ActionType as AType
-import qualified Carma.Model.Role as Role
-import           Carma.Model.Usermeta as Usermeta
+import           AppHandlers.CustomSearches.Contract
+import           AppHandlers.Util
+import           Application
+import           Util                                hiding (withPG)
+import           Utils.HttpErrors
 
 
 type MBS = Maybe ByteString
@@ -296,17 +297,42 @@ actStats = do
                  , ("control", controls)] :: [(Text, Text)])
 
 
--- | Serve users to which actions can be assigned (head, back or
--- supervisor roles, active within last 20 minutes).
 boUsers :: AppHandler ()
-boUsers = do
+boUsers = readyUsers [Role.head, Role.back, Role.supervisor]
+
+
+-- | Serve users in @Ready@ status with any of given roles.
+readyUsers :: [IdentI Role.Role] -> AppHandler ()
+readyUsers roles = do
   rows <- withPG pg_search $ \c -> query c [sql|
-    SELECT realname, login, id::text
-      FROM usermetatbl
-      WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
-        AND now() - lastactivity < '20 min'
-        AND roles && (?)::int[];
-    |] (Only $ V.fromList [Role.head, Role.back, Role.supervisor])
+   SELECT u.?::text, u.?::text, u.?::text
+   FROM ? u
+   LEFT JOIN (SELECT DISTINCT ON (?) ?, ?
+              FROM ? ORDER BY ?, ? DESC) s
+   ON u.? = s.?
+   WHERE s.? = ?
+   AND u.? && (?)::int[];
+   |]
+   (()
+    -- SELECT
+    :. (fieldPT Usermeta.realName,
+        fieldPT Usermeta.login,
+        fieldPT Usermeta.ident,
+        tableQT Usermeta.ident)
+    -- Inner SELECT
+    :. (fieldPT UserState.userId,
+        fieldPT UserState.state,
+        fieldPT UserState.userId,
+        tableQT UserState.ident,
+        fieldPT UserState.userId,
+        fieldPT UserState.ident)
+    -- ON
+    :. (fieldPT Usermeta.ident,
+        fieldPT UserState.userId)
+    -- WHERE
+    :. (fieldPT UserState.state, Ready,
+        fieldPT Usermeta.roles,
+        V.fromList roles))
   writeJSON $ mkMap ["name", "login", "id"] rows
 
 

@@ -19,6 +19,7 @@ import Snaplet.Auth.PGUsers
 
 import Application
 import AppHandlers.CustomSearches
+import AppHandlers.Users
 import AppHandlers.Util
 import Util hiding (withPG)
 
@@ -30,10 +31,12 @@ import Util hiding (withPG)
 assignQ :: Query
 assignQ = [sql|
       WITH activeUsers AS (
-        SELECT id
-        FROM usermetatbl
-        WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
-          AND now() - lastactivity < '30 min'),
+        SELECT u.id
+        FROM "usermetatbl" u
+        LEFT JOIN (SELECT DISTINCT ON (userId) state, userId
+                   FROM "UserState" ORDER BY userId, id DESC) s
+        ON u.id = s.userId
+        WHERE s.state <> 'LoggedOut'),
       act AS (
         (SELECT * FROM actiontbl WHERE result IS NULL FOR UPDATE of actiontbl))
       UPDATE actiontbl SET assignTime = now(), assignedTo = ?
@@ -73,6 +76,11 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   let orders = In [ActionType.orderService, ActionType.orderServiceAnalyst]
       -- Parameters for assignQ query
       params n = (cid, cid, n :: Int, orders)
+
+  userIsReady cid >>= \v ->
+    when (not v) $ error $
+    "More actions requested by user " ++ show cid ++
+    " in non-Ready state"
 
   actIds'   <- withPG pg_actass (\c -> query c assignQ (params 1))
   actIds''  <- case actIds' of

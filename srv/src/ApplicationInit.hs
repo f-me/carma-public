@@ -179,5 +179,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 
   addRoutes routes
-  wrapSite (claimUserActivity>>)
   return $ App h s authMgr c d pgs pga tm fu g ad search' opts msgr (initApi wkey)
