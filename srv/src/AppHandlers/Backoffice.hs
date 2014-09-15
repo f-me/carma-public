@@ -27,6 +27,7 @@ import           Data.Time
 import           Data.Typeable
 
 import           Database.PostgreSQL.Simple  (query)
+import           Database.PostgreSQL.Simple.SqlQQ.Alt
 import           Snap
 
 import           Carma.Model
@@ -151,12 +152,11 @@ dueCaseActions = do
          getIntParam "caseid"
   res <- withPG $
          \c ->
-           query c "SELECT ? FROM ? WHERE ? = ? AND ? IS NULL ORDER BY ? ASC"
-           ( fieldPT Action.ident
-           , tableQT Action.ident
-           , fieldPT Action.caseId
-           , cid
-           , fieldPT Action.result
-           , fieldPT Action.ident
-           )
+           uncurry (query c)
+           [sql|
+            SELECT $(fieldPT Action.ident)$ FROM $(tableQT Action.ident)$
+            WHERE $(fieldPT Action.caseId)$ = $(cid)$
+            AND $(fieldPT Action.result)$ IS NULL
+            ORDER BY $(fieldPT Action.ident)$ ASC
+            |]
   writeJSON $ concat (res :: [[IdentI Action.Action]])
