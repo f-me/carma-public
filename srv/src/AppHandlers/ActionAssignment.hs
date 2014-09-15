@@ -13,6 +13,10 @@ import Control.Monad
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.SqlQQ
 
+import Data.Model.Types (Ident(..))
+import Data.Model.Sql as Sql
+
+import Carma.Model.Action as Action
 import Carma.Model.ActionType as ActionType
 
 import Snaplet.Auth.PGUsers
@@ -76,11 +80,25 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   let orders = In [ActionType.orderService, ActionType.orderServiceAnalyst]
       -- Parameters for assignQ query
       params n = (cid, cid, n :: Int, orders)
+      Ident cid' = cid
+      errStart = "More actions requested by user " ++ show cid'
 
+  -- Reject busy users (should not be on back office screen)
   userIsReady cid >>= \v ->
-    when (not v) $ error $
-    "More actions requested by user " ++ show cid ++
-    " in non-Ready state"
+    when (not v) $ error $ errStart ++ " in non-Ready state"
+
+  -- Prevent auto-assigning of more than 1 action per user (should not
+  -- be requesting actions)
+  myActs <- withPG pg_actass $
+    Sql.select $
+    Action.ident :.
+    Action.assignedTo `eq` (Just cid) :.
+    (isNull Action.result)
+  let myActs' = (\((Only (Ident aid)) :. ()) -> aid) `map` myActs
+
+  when (not $ null myActs) $ error $
+    errStart ++
+    " despite already having some: " ++ show myActs'
 
   actIds'   <- withPG pg_actass (\c -> query c assignQ (params 1))
   actIds''  <- case actIds' of

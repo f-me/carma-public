@@ -586,8 +586,8 @@ traceFilter tag (Filter from to prog city partner)
 rkc :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> m Value
 rkc filt@(Filter fromDate toDate program city partner) = logExceptions "rkc/rkc" $ do
   traceFilter "rkc/rkc" filt
-  serviceNames <- U.withPG $ \c -> Sql.select ST.ident c
-  actionNames <- U.withPG $ \c -> Sql.select AType.ident c
+  serviceNames <- U.withPG $ Sql.select ST.ident
+  actionNames <- U.withPG $ Sql.select AType.ident
   let unOnly (PS.Only n) = n
   c <- rkcCase filt constraints $ map unOnly serviceNames
   a <- rkcActions fromDate toDate constraints $ map unOnly actionNames
