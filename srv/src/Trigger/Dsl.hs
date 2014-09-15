@@ -37,6 +37,7 @@ module Trigger.Dsl
     , prevClosedActions
 
       -- ** Miscellaneous
+    , userIsReady
     , wsMessage
     , getNow
     , getCityWeather
@@ -94,6 +95,7 @@ import Carma.Model.Usermeta    (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import Carma.Model.LegacyTypes (Password(..))
 
+import qualified AppHandlers.Users as Users
 import Util
 
 type TriggerRes m = Either (Int,String) (Patch m)
@@ -159,6 +161,9 @@ wsMessage = liftFree (WsMessage ())
 
 getNow :: Free (Dsl m) UTCTime
 getNow = liftFree (DoApp (liftIO getCurrentTime) id)
+
+userIsReady :: IdentI Usermeta -> Free (Dsl m) Bool
+userIsReady uid = liftFree (DoApp (Users.userIsReady uid) id)
 
 dbQuery :: (PG.FromRow r, PG.ToRow q) => PG.Query -> q -> Free (Dsl m) [r]
 dbQuery q params = liftFree $ DbIO (\c -> PG.query c q params) id

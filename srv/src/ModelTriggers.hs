@@ -605,14 +605,21 @@ instance Backoffice HaskellE where
                 ctx' = ctx{prevAction = (`get'` Action.aType) <$> this}
                 grp = evalHaskell ctx' $ BO.targetRole e
                 who = evalHaskell ctx' $ BO.assignment e
-                due = evalHaskell ctx' $ BO.due e
+            whoIfActive <-
+              case who of
+                Just u -> userIsReady u >>= \case
+                  True -> return who
+                  -- Ignore assignment if target user is not active
+                  False -> return Nothing
+                Nothing -> return Nothing
+            let due = evalHaskell ctx' $ BO.due e
                 -- Set assignTime if a user is picked
                 ctime = now ctx
                 assTime = maybe Nothing (const $ Just ctime) who
                 p = Patch.put Action.ctime ctime $
                     Patch.put Action.duetime due $
                     Patch.put Action.targetGroup grp $
-                    Patch.put Action.assignedTo who $
+                    Patch.put Action.assignedTo whoIfActive $
                     Patch.put Action.assignTime assTime $
                     Patch.put Action.aType aT $
                     Patch.put Action.caseId cid $
