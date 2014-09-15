@@ -38,6 +38,7 @@ module Trigger.Dsl
 
       -- ** Miscellaneous
     , userIsReady
+    , logCRUD
     , wsMessage
     , getNow
     , getCityWeather
@@ -89,6 +90,7 @@ import Utils.LegacyModel (mkLegacyIdent)
 import qualified Carma.Model.Action as Action
 import Carma.Model.ActionType  (ActionType)
 import Carma.Model.Case        (Case)
+import Carma.Model.Event       (Event, EventType)
 import Carma.Model.Service     (Service)
 import Carma.Model.SmsTemplate as SmsTemplate
 import Carma.Model.Usermeta    (Usermeta)
@@ -97,6 +99,7 @@ import Carma.Model.LegacyTypes (Password(..))
 
 import qualified AppHandlers.Users as Users
 import Util
+import qualified Utils.Events as Evt (logCRUD)
 
 type TriggerRes m = Either (Int,String) (Patch m)
 
@@ -164,6 +167,13 @@ getNow = liftFree (DoApp (liftIO getCurrentTime) id)
 
 userIsReady :: IdentI Usermeta -> Free (Dsl m) Bool
 userIsReady uid = liftFree (DoApp (Users.userIsReady uid) id)
+
+logCRUD :: Model m =>
+           EventType
+        -> IdentI m
+        -> Patch m
+        -> Free (Dsl m) (IdentI Event)
+logCRUD m i p = liftFree (DoApp (Evt.logCRUD m i p) id)
 
 dbQuery :: (PG.FromRow r, PG.ToRow q) => PG.Query -> q -> Free (Dsl m) [r]
 dbQuery q params = liftFree $ DbIO (\c -> PG.query c q params) id

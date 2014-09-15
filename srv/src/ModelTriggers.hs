@@ -56,6 +56,7 @@ import qualified Carma.Model.City as City
 import qualified Carma.Model.CaseStatus as CS
 import           Carma.Model.Contract as Contract hiding (ident)
 import qualified Carma.Model.ContractCheckStatus as CCS
+import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.FalseCall as FC
 
 import qualified Carma.Model.Service as Service
@@ -78,7 +79,6 @@ import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
-
 
 -- TODO: rename
 --   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
@@ -309,6 +309,10 @@ afterUpdate = Map.unionsWith (++) $
   ,trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
+  ,trigOn Action.result $ const $ do
+   i <- getIdent
+   p <- getPatch
+   logCRUD Update i p
   ]
 
 --  - runReadTriggers

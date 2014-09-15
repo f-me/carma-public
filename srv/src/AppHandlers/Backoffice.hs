@@ -39,6 +39,7 @@ import qualified Carma.Model.Action          as Action
 import           Carma.Model.ActionResult    as ActionResult hiding (idents)
 import           Carma.Model.ActionType      (ActionType)
 import           Carma.Model.CaseStatus      (CaseStatus)
+import           Carma.Model.Event           (EventType(..))
 import           Carma.Model.FalseCall       (FalseCall)
 import           Carma.Model.Program         (Program)
 import qualified Carma.Model.Role            as Role
@@ -57,6 +58,7 @@ import           AppHandlers.Util hiding (withPG)
 import           Application
 import           Snaplet.Auth.PGUsers
 import           Util
+import           Utils.Events
 
 
 -- | Back office representation.
@@ -132,15 +134,16 @@ openAction = do
          getIntParam "actionid"
   uid <- currentUserMetaId
   now <- liftIO getCurrentTime
-  let act = ExceptT (withPG (Patch.read (Ident aid)))
+  let act = ExceptT (withPG (Patch.read aid'))
+      aid' = Ident aid
       checkAuth a =
         unless (a `Patch.get'` Action.assignedTo == uid) $
         throwE $ SomeException NotYourAction
       p = Patch.put Action.openTime (Just now) Patch.empty
-      upd = ExceptT (withPG (Patch.update (Ident aid) p))
+      upd = ExceptT (withPG (Patch.update aid' p))
   runExceptT (act >>= checkAuth >> upd) >>=
     \case
-      Right r -> writeJSON r
+      Right r -> logCRUD Update aid' p >> writeJSON r
       Left  e -> error $ show e
 
 
