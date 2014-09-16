@@ -101,7 +101,10 @@ define [ "utils"
       if confirm "Сообщить клиенту время оказания услуги?"
         kvm['status'] global.idents("ServiceStatus").recallClient
 
+    # Required fields for the cancel button to be enabled
+    cnFields = ['clientCancelReason']
     kvm.buttons.cancel = {}
+    kvm.buttons.cancel.tooltip = u.reqFieldsTooltip kvm, cnFields
     kvm.buttons.cancel.text =
       sDict.getLab global.idents("ServiceStatus").canceled
     kvm.buttons.cancel.visible = ko.computed ->

@@ -287,6 +287,11 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   edoPick: (pickType, args, k, e) ->
     doPick pickType, args, e.srcElement if e.keyCode == k
 
+  # Format a list of fields in a model to a tooltip with a list of
+  # field labels
+  reqFieldsTooltip: (kvm, fieldNames) ->
+    labels = _.map fieldNames, (n) -> "#{mu.fieldNameToLabel(kvm)(n)}"
+    "Доступно при заполнении полей: #{labels.join(', ')}"
 
   # FIXME: This could be a callback for main.js:saveInstance
   successfulSave: successfulSave

@@ -1,4 +1,4 @@
-define ["utils", "dictionaries"], (u, d) ->
+define ["utils", "model/utils", "dictionaries"], (u, mu, d) ->
   fillEventsHistory = (knockVM) -> ->
 
     # Disable hooks on search screen #1985
@@ -167,20 +167,24 @@ define ["utils", "dictionaries"], (u, d) ->
     return if /^search/.test(Finch.navigate())
     kvm.buttons = {}
 
+    # Required fields for the needInfo button to be enabled
+    niFlds = [ 'city'
+             , 'contact_name'
+             , 'contact_phone1'
+             , 'customerComment'
+             , 'program'
+             ]
+
     kvm.buttons.needInfo = {}
+    kvm.buttons.needInfo.tooltip = u.reqFieldsTooltip kvm, niFlds
     kvm.buttons.needInfo.text =
       u.newModelDict("CaseStatus").getLab(
               global.idents("CaseStatus").needInfo)
     kvm.buttons.needInfo.click = ->
       kvm['caseStatus'] global.idents("CaseStatus").needInfo
     kvm.buttons.needInfo.disabled = ko.computed ->
-      flds = [ kvm['program']?()
-             , kvm['contact_name']?()
-             , kvm['contact_phone1']?()
-             , kvm['city']?()
-             , kvm['customerComment']?()
-             ]
-      empties = _.map flds, (e) -> e == "" || _.isNull e
+      vals = _.map niFlds, (n) -> kvm[n]?()
+      empties = _.map vals, (e) -> e == "" || _.isNull e
       _.some empties
 
   hasFiles: (model, knockVM) ->

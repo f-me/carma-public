@@ -148,6 +148,10 @@ textarea.pane-span,
   color: red;
 }
 
+.tooltip li {
+  text-align: left;
+}
+
 .nice-scrollbar::-webkit-scrollbar {width:.8em;}
 .nice-scrollbar::-webkit-scrollbar-button:vertical,
 .nice-scrollbar::-webkit-scrollbar-button:start:decrement,

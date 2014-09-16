@@ -52,6 +52,9 @@ define ["model/main", "render/screen"], (main, render) ->
       global.model(modelName).fields,
       (f) -> return f.name == fieldName)
 
+  fieldNameToLabel: (kvm) -> (fieldName) ->
+    _.find(kvm._meta.model.fields, (f) -> f.name == fieldName)?.meta?.label
+
   # this will build sorter functions for model which can be used by ko.sorted
   buildSorters: (model) ->
     sorters = {}
