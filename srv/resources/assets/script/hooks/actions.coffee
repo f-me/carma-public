@@ -1,16 +1,23 @@
 define ["utils"], (u) ->
   nameLocal: (model, knockVM) ->
+    sDict = u.newModelDict "ServiceType"
+    uDict = u.newModelDict "Usermeta", false, dictionaryLabel: 'login'
     knockVM["actionNameLocal"] =
       ko.computed
         read: ->
           actName = (u.newModelDict "ActionType").getLab knockVM.type()
           svcId   = knockVM.serviceId()
+          uid     = knockVM.assignedTo()
           # TODO Speed this up for cases when kvm._parent is present
           if svcId
             $.bgetJSON "/_/Service/#{svcId}", (res) ->
-              svcName = (u.newModelDict "ServiceType").getLab res.type
+              svcName = sDict.getLab res.type
               actName = actName + " (#{svcName})"
-          actName
+          if uid?
+            login = uDict.getLab uid
+            actName + " @#{login}"
+          else
+            actName
 
   actionColor: (model, kvm) ->
     kvm._actColor = ko.computed ->
