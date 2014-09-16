@@ -418,7 +418,7 @@ mixin dict(nameMod, iconClass)
   +dict("Local", "icon-chevron-down")
     div.row-fluid
       div(
-        class="span6"
+        class="svc-status-button"
         data-bind="visible: buttons.backoffice.visible")
         button.btn.btn-small.btn-info(
           style="width:100%"
@@ -427,7 +427,7 @@ mixin dict(nameMod, iconClass)
           |&nbsp;
           span(data-bind='text: buttons.backoffice.text')
       div(
-        class="span6"
+        class="svc-status-button"
         data-bind="visible: buttons.recallClient.visible")
         button.btn.btn-small.btn-info(
           style="width:100%"
@@ -436,7 +436,7 @@ mixin dict(nameMod, iconClass)
           | &nbsp;
           span(data-bind='text: buttons.recallClient.text')
       div(
-        class="span6"
+        class="svc-status-button"
         data-toggle="tooltip"
         data-html="true"
         data-placement="bottom"

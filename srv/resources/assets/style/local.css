@@ -221,6 +221,17 @@ button > i.icon {
   vertical-align: middle;
 }
 
+.svc-status-button {
+  margin-left: 0%;
+  margin-right: 0%;
+  width: 50%;
+  float:left;
+}
+
+.svc-status-button > button {
+  width: 100%;
+}
+
 #partnerMapModal {
   left: 35%;
   width: 65%;
