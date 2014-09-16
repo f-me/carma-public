@@ -6,7 +6,7 @@ module Data.Model.Patch
   , toParentIdent
   , toParentPatch
   , mergeParentPatch
-  , get, get', put, delete
+  , get, get', put, delete, union
   , empty
   , W(..)
   )
@@ -72,6 +72,8 @@ delete :: (SingI name) =>
           (m -> Field t (FOpt name desc app)) -> Patch m -> Patch m
 delete f (Patch m) = Patch $ HashMap.delete (fieldName f) m
 
+union :: Patch m -> Patch m -> Patch m
+union p1 p2 = Patch $ HashMap.union (untypedPatch p1) (untypedPatch p2)
 
 parentField :: Model m =>
                (Parent m -> Field t (FOpt name desc app))
