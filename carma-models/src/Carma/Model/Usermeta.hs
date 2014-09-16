@@ -57,8 +57,6 @@ data Usermeta = Usermeta
   , email        :: F Text               "email"           "E-mail"
   , birthday     :: F (Maybe Day)        "birthday"        "День рождения"
   , position     :: F Text               "position"        "Должность"
-  , lastactivity :: F UTCTime            "lastactivity"    ""
-  , lastlogout   :: F UTCTime            "lastlogout"      ""
 
   , delayedState :: F (Maybe UserStateVal) "delayedState" "Отложенный статус"
   , currentState      :: EF UserStateVal "currentState"      "Текущий статус"
@@ -83,8 +81,6 @@ instance Model Usermeta where
   modelView = \case
     "" -> Just $ modifyView (defaultView)
       [ invisible uid
-      , invisible lastactivity
-      , invisible lastlogout
       , invisible currentStateCTime
       , invisible stuff
       , required realName
