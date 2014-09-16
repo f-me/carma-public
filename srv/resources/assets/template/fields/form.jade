@@ -398,38 +398,47 @@ mixin dict(nameMod, iconClass)
 
 #Case-caseStatus-field-template.field-template
   +dict("Local", "icon-chevron-down")
-    button.btn.btn-small.btn-info.status-btn-tooltip(
-      id="{{name}}-needInfo"
-      title="Требуется дополнительная информация"
-      data-toggle="tooltip"
-      data-placement="right"
-      data-bind='disabled: buttons.needInfo.disabled,\
-                 click: buttons.needInfo.click')
-      i.icon-white.icon-info-sign
+    div.row-fluid
+      button.btn.btn-small.btn-info.status-btn-tooltip(
+        id="{{name}}-needInfo"
+        data-toggle="tooltip"
+        data-placement="down"
+        class="span12"
+        data-bind='disabled: buttons.needInfo.disabled,\
+                   click: buttons.needInfo.click')
+        i.icon-white.icon-info-sign
+        |&nbsp;
+        span(data-bind='text: buttons.needInfo.text')
 
 #svcStatus-field-template.field-template
   +dict("Local", "icon-chevron-down")
-    button.btn.btn-small.btn-info(
-      data-bind='visible: buttons.backoffice.visible,\
-                 click: buttons.backoffice.click')
-      i.icon-white.icon-play
-      | &nbsp;В back office
-    button.btn.btn-small.btn-info.status-btn-tooltip(
-      title="Сообщить клиенту время оказания услуги"
-      data-toggle="tooltip"
-      data-placement="right"
-      data-bind='visible: buttons.recallClient.visible,\
-                 click: buttons.recallClient.click')
-      i.icon-white.icon-time
-    button.btn.btn-small.btn-info(
-      title="Отказ от услуги"
-      data-toggle="tooltip"
-      data-placement="right"
-      data-bind='visible: buttons.cancel.visible,\
-                 disabled: buttons.cancel.disabled,\
-                 click: buttons.cancel.click')
-      i.icon-white.icon-fast-backward
-      | &nbsp;Отказ от услуги
+    div.row-fluid
+      button.btn.btn-small.btn-info(
+        style="width:49%"
+        data-bind='visible: buttons.backoffice.visible,\
+                   click: buttons.backoffice.click')
+        i.icon-white.icon-play
+        |&nbsp;
+        span(data-bind='text: buttons.backoffice.text')
+
+      button.btn.btn-small.btn-info(
+        style="width:49%"
+        data-bind='visible: buttons.recallClient.visible,\
+                   click: buttons.recallClient.click')
+        i.icon-white.icon-time
+        | &nbsp;
+        span(data-bind='text: buttons.recallClient.text')
+
+      button.btn.btn-small.btn-info(
+        style="width:49%"
+        data-toggle="tooltip"
+        data-placement="right"
+        data-bind='visible: buttons.cancel.visible,\
+                   disabled: buttons.cancel.disabled,\
+                   click: buttons.cancel.click')
+        i.icon-white.icon-fast-backward
+        |&nbsp;
+        span(data-bind='text: buttons.cancel.text')
 
 
 #partner-field-template.field-template
@@ -533,7 +542,8 @@ mixin simpleRefHdr(name, bindName)
         data-bind='visible: buttons.mistake.visible,\
                    click: buttons.mistake.click')
         i.icon.icon-white.icon-remove
-        | &nbsp;Ошибка
+        | &nbsp;
+        span(data-bind='text: buttons.mistake.text')
 
 
 #partner_services-reference-template.reference-template

@@ -4,9 +4,9 @@ CREATE TABLE "ServiceStatus"
   );
 
 COPY "ServiceStatus" (id, label) FROM stdin;
-1	Передача в Back Office
+1	В Back Office
 2	Создание
-3	Перезвонить клиенту позже
+3	Время выезда
 4	Отказ от услуги
 5	Требуется конференция с механиком
 6	Требуется конференция с дилером

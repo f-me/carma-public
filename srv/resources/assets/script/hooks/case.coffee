@@ -168,6 +168,9 @@ define ["utils", "dictionaries"], (u, d) ->
     kvm.buttons = {}
 
     kvm.buttons.needInfo = {}
+    kvm.buttons.needInfo.text =
+      u.newModelDict("CaseStatus").getLab(
+              global.idents("CaseStatus").needInfo)
     kvm.buttons.needInfo.click = ->
       kvm['caseStatus'] global.idents("CaseStatus").needInfo
     kvm.buttons.needInfo.disabled = ko.computed ->

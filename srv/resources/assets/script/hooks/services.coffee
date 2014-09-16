@@ -55,8 +55,11 @@ define [ "utils"
   buttons: (model, kvm) ->
     return if /^search/.test(Finch.navigate())
     kvm.buttons = {}
+    sDict = u.newModelDict("ServiceStatus")
 
     kvm.buttons.mistake = {}
+    kvm.buttons.mistake.text =
+      sDict.getLab global.idents("ServiceStatus").mistake
     kvm.buttons.mistake.visible = ko.computed ->
       kvm['status']() == global.idents("ServiceStatus").creating
     kvm.buttons.mistake.click = ->
@@ -64,12 +67,16 @@ define [ "utils"
         kvm['status'] global.idents("ServiceStatus").mistake
 
     kvm.buttons.backoffice = {}
+    kvm.buttons.backoffice.text =
+      sDict.getLab global.idents("ServiceStatus").backoffice
     kvm.buttons.backoffice.visible = ko.computed ->
       kvm['status']() == global.idents("ServiceStatus").creating
     kvm.buttons.backoffice.click = ->
       kvm['status'] global.idents("ServiceStatus").backoffice
 
     kvm.buttons.needMakerApproval = {}
+    kvm.buttons.needMakerApproval.text =
+      sDict.getLab global.idents("ServiceStatus").makerApproval
     kvm.buttons.needMakerApproval.visible = ko.computed ->
       tgtStatuses = [ global.idents("ServiceStatus").creating
                     , global.idents("ServiceStatus").backoffice
@@ -81,6 +88,8 @@ define [ "utils"
         kvm['status'] global.idents("ServiceStatus").makerApproval
 
     kvm.buttons.recallClient = {}
+    kvm.buttons.recallClient.text =
+      sDict.getLab global.idents("ServiceStatus").recallClient
     kvm.buttons.recallClient.visible = ko.computed ->
       tgtStatuses = [ global.idents("ServiceStatus").ordered
                     , global.idents("ServiceStatus").inProgress
@@ -93,6 +102,8 @@ define [ "utils"
         kvm['status'] global.idents("ServiceStatus").recallClient
 
     kvm.buttons.cancel = {}
+    kvm.buttons.cancel.text =
+      sDict.getLab global.idents("ServiceStatus").canceled
     kvm.buttons.cancel.visible = ko.computed ->
       tgtStatuses = [ global.idents("ServiceStatus").creating
                     , global.idents("ServiceStatus").backoffice
