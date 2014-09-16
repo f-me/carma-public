@@ -18,11 +18,7 @@ define [ "utils"
       width: 50,
       lines: 15,
       radius: 175
-    params = "assignedTo=#{global.user.id}&closed=0"
-    $.getJSON("/backoffice/allActions?#{params}",
-      (r) ->
-        myActionsHandler r.actions
-        setupPoller)
+    pullActions()
 
   # Install automatic actions poller
   setupPoller = ->

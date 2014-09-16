@@ -72,8 +72,9 @@ assignQ = [sql|
     |]
 
 
--- | Pull new actions and serve JSON with all actions currently
--- assigned to the user.
+-- | Try to pull a new action and serve JSON with all actions
+-- currently assigned to the user. No action is pulled if the
+-- user is not Ready or has older due actions.
 littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   Just cid <- currentUserMetaId
@@ -87,8 +88,14 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   userIsReady cid >>= \v ->
     when (not v) $ error $ errStart ++ " in non-Ready state"
 
-  -- Prevent auto-assigning of more than 1 action per user (should not
-  -- be requesting actions)
+  -- Do not pull more actions if the user already has some
+  --
+  -- This is not a critical error: supervisor may assign the user to
+  -- actions between two polling cycles of the back office screen.
+  --
+  -- Note that a supervisor still may manually assign the user to
+  -- actions *after* this check has fired but before serving the list
+  -- of all user's actions in response.
   myActs <- withPG pg_actass $
     Sql.select $
     Action.ident :.
@@ -96,22 +103,21 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
     (isNull Action.result)
   let myActs' = (\((Only (Ident aid)) :. ()) -> aid) `map` myActs
 
-  when (not $ null myActs) $ error $
-    errStart ++
-    " despite already having some: " ++ show myActs'
+  when (not $ null myActs) $ do
+    actIds'   <- withPG pg_actass (\c -> query c assignQ (params 1))
+    actIds''  <- case actIds' of
+                   []  -> withPG pg_actass (\c -> query c assignQ (params 2))
+                   _   -> return actIds'
+    actIds''' <- case actIds'' of
+                   []  -> withPG pg_actass (\c -> query c assignQ (params 3))
+                   _   -> return actIds''
 
-  actIds'   <- withPG pg_actass (\c -> query c assignQ (params 1))
-  actIds''  <- case actIds' of
-                 []  -> withPG pg_actass (\c -> query c assignQ (params 2))
-                 _   -> return actIds'
-  actIds''' <- case actIds'' of
-                 []  -> withPG pg_actass (\c -> query c assignQ (params 3))
-                 _   -> return actIds''
+    unless (null (actIds''' :: [Only Int]))
+      $ syslogJSON Info "littleMoreActions" [ "login" .= show cid
+                                            , "actions" .= show actIds'''
+                                            ]
 
-  unless (null (actIds''' :: [Only Int]))
-    $ syslogJSON Info "littleMoreActions" [ "login" .= show cid
-                                          , "actions" .= show actIds'''
-                                          ]
-
+  -- Serve all due actions to client. This may include older actions
+  -- or those we've just pulled.
   selectActions (Just "0") (Just cid) Nothing Nothing Nothing
     >>= writeJSON
