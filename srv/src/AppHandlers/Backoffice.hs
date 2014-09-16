@@ -26,7 +26,7 @@ import qualified Data.Text                   as T
 import           Data.Time
 import           Data.Typeable
 
-import           Database.PostgreSQL.Simple  (query)
+import           Database.PostgreSQL.Simple  ((:.)(..), Only(..), query)
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
 import           Snap
 

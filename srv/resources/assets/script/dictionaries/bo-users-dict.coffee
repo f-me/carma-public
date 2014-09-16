@@ -9,7 +9,8 @@ define ["dictionaries/local-dict"], (ld) ->
     find: (q, cb) ->
       $.bgetJSON "/boUsers", (users) =>
         @source = for u in users
-          { value: parseInt(u.id), label: "#{u.name} (#{u.login})" }
+          console.log u
+          { value: u[2], label: "#{u[0]} (#{u[1]})" }
       super
 
   dict: BoUsersDict

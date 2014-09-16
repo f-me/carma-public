@@ -101,8 +101,6 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
     Action.ident :.
     Action.assignedTo `eq` (Just cid) :.
     (isNull Action.result)
-  let myActs' = (\((Only (Ident aid)) :. ()) -> aid) `map` myActs
-
   when (not $ null myActs) $ do
     actIds'   <- withPG pg_actass (\c -> query c assignQ (params 1))
     actIds''  <- case actIds' of

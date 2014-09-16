@@ -37,7 +37,6 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import Data.Map as M (Map, (!), delete, fromList)
 import Data.String (fromString)
-import qualified Data.Vector as V
 
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.SqlQQ
@@ -52,6 +51,7 @@ import           Carma.Model.Usermeta                as Usermeta
 import           Carma.Model.UserState               as UserState
 
 import           AppHandlers.CustomSearches.Contract
+import           AppHandlers.Users
 import           AppHandlers.Util
 import           Application
 import           Util                                hiding (withPG)
@@ -298,42 +298,7 @@ actStats = do
 
 
 boUsers :: AppHandler ()
-boUsers = readyUsers [Role.head, Role.back, Role.supervisor]
-
-
--- | Serve users in @Ready@ status with any of given roles.
-readyUsers :: [IdentI Role.Role] -> AppHandler ()
-readyUsers roles = do
-  rows <- withPG pg_search $ \c -> query c [sql|
-   SELECT u.?::text, u.?::text, u.?::text
-   FROM ? u
-   LEFT JOIN (SELECT DISTINCT ON (?) ?, ?
-              FROM ? ORDER BY ?, ? DESC) s
-   ON u.? = s.?
-   WHERE s.? = ?
-   AND u.? && (?)::int[];
-   |]
-   (()
-    -- SELECT
-    :. (fieldPT Usermeta.realName,
-        fieldPT Usermeta.login,
-        fieldPT Usermeta.ident,
-        tableQT Usermeta.ident)
-    -- Inner SELECT
-    :. (fieldPT UserState.userId,
-        fieldPT UserState.state,
-        fieldPT UserState.userId,
-        tableQT UserState.ident,
-        fieldPT UserState.userId,
-        fieldPT UserState.ident)
-    -- ON
-    :. (fieldPT Usermeta.ident,
-        fieldPT UserState.userId)
-    -- WHERE
-    :. (fieldPT UserState.state, Ready,
-        fieldPT Usermeta.roles,
-        V.fromList roles))
-  writeJSON $ mkMap ["name", "login", "id"] rows
+boUsers = [Role.head, Role.back, Role.supervisor] `usersInStates` [Ready]
 
 
 allDealersForMake :: AppHandler ()

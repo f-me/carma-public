@@ -1,4 +1,5 @@
 {-# LANGUAGE DoAndIfThenElse #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 {-|
 
@@ -16,6 +17,7 @@ module AppHandlers.Users
     , serveUserStates
     , userIsInState
     , userIsReady
+    , usersInStates
     )
 
 where
@@ -26,10 +28,12 @@ import qualified Data.Text           as T
 import           Data.String (fromString)
 import           Data.Time.Calendar (Day)
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.Vector as V
 
 import           Text.Printf
 
-import           Database.PostgreSQL.Simple (query)
+import           Database.PostgreSQL.Simple ((:.)(..), In(..), Only(..), query)
+import           Database.PostgreSQL.Simple.SqlQQ.Alt
 
 import Snap
 
@@ -46,6 +50,7 @@ import AppHandlers.Util
 import Snaplet.Auth.PGUsers
 import Snaplet.Search.Types (mkSel)
 
+import Util hiding (withPG)
 import Utils.LegacyModel (readIdent)
 
 
@@ -133,6 +138,30 @@ userIsInState uid uStates =
 -- | True if a user is in @Ready@ state.
 userIsReady :: IdentI Usermeta -> AppHandler Bool
 userIsReady uid = uid `userIsInState` [Ready]
+
+
+-- | Serve users with any of given roles in any of given states.
+--
+-- Response is a list of triples: @[["realName", "login", <id>],...]@
+usersInStates :: [IdentI Role.Role] -> [UserStateVal] -> AppHandler ()
+usersInStates roles uStates = do
+  rows <- withPG pg_search $ \c -> uncurry (query c) [sql|
+   SELECT
+   u.$(fieldPT Usermeta.realName)$,
+   u.$(fieldPT Usermeta.login)$,
+   u.$(fieldPT Usermeta.ident)$
+   FROM $(tableQT Usermeta.ident)$ u
+   LEFT JOIN (SELECT DISTINCT ON ($(fieldPT UserState.userId)$)
+              $(fieldPT UserState.state)$, $(fieldPT UserState.userId)$
+              FROM $(tableQT UserState.ident)$
+              ORDER BY
+              $(fieldPT UserState.userId)$,
+              $(fieldPT UserState.ident)$ DESC) s
+   ON u.$(fieldPT Usermeta.ident)$ = s.$(fieldPT UserState.userId)$
+   WHERE s.$(fieldPT UserState.state)$ IN $(In uStates)$
+   AND u.$(fieldPT Usermeta.roles)$ && ($(V.fromList roles)$)::int[];
+   |]
+  writeJSON (rows :: [(Text, Text, Int)])
 
 
 -- | Serve user account data back to client.
