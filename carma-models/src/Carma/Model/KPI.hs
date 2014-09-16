@@ -9,7 +9,7 @@ import           Data.Model
 import           Data.Model.View
 
 import           Carma.Model.Usermeta (Usermeta)
-import           Carma.Model.Case     (Case)
+-- import           Carma.Model.Case     (Case)
 -- import           Carma.Model.Types    (UserStateVal)
 
 data StatKPI = StatKPI
@@ -37,9 +37,6 @@ data StatKPI = StatKPI
   , newTime  :: F (Maybe DiffTime) "newTime"  "В разговоре: Создание кейса"
   , newCount :: F (Maybe Int)      "newCount" "Количество: Создание кейса"
 
-  -- , callTime :: F DiffTime "callTime" "Итого: Время в разговоре"
-  -- , amount   :: F Int      "amount"   "Итого: Количество звонков"
-  -- , avgTime  :: F DiffTime "avgTime"  "Итого: Количество звонков"
   , controlT :: F (Maybe DiffTime)
                 "controlT" "Ср. время \"Контроль услуги\""
   , controlC :: F (Maybe Int)
@@ -56,6 +53,24 @@ data StatKPI = StatKPI
                 "callMeMaybeT" "Ср. время \"Заказ услуги - моб. прил.\""
   , callMeMaybeC :: F (Maybe Int)
                 "callMeMaybeC" "Действий \"Заказ услуги - моб. прил.\""
+
+  , assigned :: F (Maybe Int) "assigned" "Назначено"
+  , assignedOverdue :: F (Maybe Int) "assigned_overdue" "Просрочено"
+  , closed :: F (Maybe Int) "closed" "Выполнено"
+  , closedOverdue :: F (Maybe Int) "closed_overdue" "Выполнено"
+  , unclosed :: F (Maybe Int) "unclosed" "Не выполнено"
+  , unclosedOverdue :: F (Maybe Int) "unclosed_overdue" "Просрочено"
+
+  , calltime    :: F (Maybe DiffTime) "calltime"    "Итого: Время в разговоре"
+  , callAmount  :: F (Maybe Int)      "callAmount"  "Итого: Количество звонков"
+  , callAvgtime :: F (Maybe DiffTime) "callAvgTime" "Среднее время разговора"
+
+  , utilization :: F (Maybe Double) "utilization" "Утилизация"
+  , avgActOverdue
+    :: F (Maybe DiffTime) "avgActionOverdue" "Ср. время просроч. действия"
+
+  , actionsRelation :: F (Maybe Double) "actionsRelation" "Отношение: Действия"
+  , timeRelation    :: F (Maybe Double) "timeRelation" "Отношение: Время"
 } deriving Typeable
 
 instance Model StatKPI where

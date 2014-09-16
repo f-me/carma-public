@@ -37,6 +37,9 @@ instance PgTypeable Int16 where
 instance PgTypeable Int32 where
   pgTypeOf _ = PgType "integer" True
 
+instance PgTypeable Double where
+  pgTypeOf _ = PgType "double precision" True
+
 instance PgTypeable Text where
   pgTypeOf _ = PgType "text" True
 
