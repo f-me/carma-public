@@ -9,7 +9,7 @@ import           Data.String     (fromString)
 import           Data.ByteString (ByteString)
 import qualified Data.Map.Strict as M
 import           Data.Vector (Vector)
-import           Data.Time.Clock (DiffTime)
+-- import           Data.Time.Clock (DiffTime)
 import           Data.Text       (Text)
 
 import           Snap (getParam)
@@ -34,8 +34,8 @@ getStat = do
 selectStat :: ByteString -> ByteString -> AppHandler [Patch StatKPI]
 selectStat from to = do
   [Only usrs] <- query_ activeUsersQ
-  states <- query [sql|
-    SELECT * FROM get_KPI_timeinstate(?, tstzrange(?, ?)) |] (usrs, from, to)
+  states <- query [sql| SELECT * FROM get_KPI_timeinstate(?, tstzrange(?, ?))
+    |] (usrs, from, to)
   (states', _) <-
     RWS.execRWST fillKPIs (usrs, from, to) (smap $ map unW states)
   return $ M.elems states'
@@ -50,7 +50,6 @@ SELECT coalesce(array_agg(id), ARRAY[]::int[])
   WHERE isActive = 't'
  |]
 
-type RawResult = (IdentI Usermeta, Text, Maybe DiffTime, Maybe Int)
 type State     = M.Map (IdentI Usermeta) (Patch StatKPI)
 type Params    = (Vector (IdentI Usermeta), ByteString, ByteString)
 type HandlerSt = RWS.RWST Params () State AppHandler ()
@@ -59,19 +58,25 @@ fillKPIs :: HandlerSt
 fillKPIs = do
   fill calls   =<< qry "get_KPI_calls"
   fill actions =<< qry "get_KPI_actions"
+  fill mergeKPI =<< qry "get_KPI_sumcalls"
+  fill mergeKPI =<< qry "get_KPI_controll_actions"
+  fill mergeKPI =<< qry "get_KPI_utilization"
+  fill mergeKPI =<< qry "get_KPI_avg_actdo"
+  fill mergeKPI =<< qry "get_KPI_actions_relation"
+  fill mergeKPI =<< qry "get_KPI_time_relation"
   where
-  fill :: (RawResult -> HandlerSt) -> [RawResult] -> HandlerSt
+  fill :: (a -> HandlerSt) -> [a] -> HandlerSt
   fill disp d = mapM_ disp d
 
   calls (u, tpe, t, a) =
-    case tpe of
+    case tpe :: Text of
       "info"           -> putInSt u (infoTime, t) (infoCount, a)
       "newCase"        -> putInSt u (newTime, t)  (newCount, a)
       "processingCase" -> putInSt u (procTime, t) (procCount, a)
       errVal -> error $ "Check get_KPI_calls," ++ (show errVal) ++
                         " type should not be there."
   actions (u, tpe, t, a) =
-    case tpe of
+    case tpe :: Text of
       "control"      -> putInSt u (controlT, t)      (controlC, a)
       "orderService" -> putInSt u (orderServiceT, t) (orderServiceC, a)
       "tellMeMore"   -> putInSt u (tellMeMoreT,   t) (tellMeMoreC,   a)
@@ -81,6 +86,7 @@ fillKPIs = do
   putInSt u (f1, v1) (f2, v2) =
     RWS.modify $ M.adjust (\a -> put f1 v1 $ put f2 v2 a) u
 
+  mergeKPI (W p) = RWS.modify $ M.adjust (union p) $ get' p user
   qry pgfn = do
     prms <- RWS.ask
     lift $ query (fromString $
