@@ -587,6 +587,8 @@ mixin simpleRefHdr(name, bindName)
 #actions-reference-template.reference-template
   +refCommon
     div.alert(data-bind='style: {"background-color": _actColor}')
+      i.icon.icon-flag(data-bind='visible: myAction')
+      | &nbsp;
       a(data-bind='text: actionNameLocal')
         | Действие…
 
