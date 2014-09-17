@@ -9,7 +9,7 @@
     <!-- Additional set of icons -->
     <link rel="stylesheet" href="/s/css/stolen-icons.css" />
 
-    <link rel="stylesheet" href="/s/css/local.css" />
+    <link rel="stylesheet" href="/s/css/local.css" title="local" />
 
     <!-- Date Range Picker for Bootstrap -->
     <link rel="stylesheet" href="/s/css/daterangepicker-bs2.css" />
@@ -340,10 +340,16 @@
           <!-- /ko -->
           <!-- ko if: type == 'link' -->
             <li data-bind="if: type == 'link',
-                           attr: { id: name + '-screen-nav' }">
+                           attr: { id: name + '-screen-nav-link' }">
               <a target="_blank" data-bind="attr: { href: name}, text: label"/>
             </li>
           <!-- /ko -->
+          <li data-bind="if: type == 'hack',
+                         attr: { id: name + '-hack-link' }">
+            <a onClick="switchHack(this);"
+               data-bind="attr: { 'data-hack': name },
+                          text: label"/>
+          </li>
           <!-- ko if: type == 'sms' -->
             <li>
               <a href="#sms-send-modal" data-toggle="modal">
@@ -353,7 +359,8 @@
           <!-- /ko -->
           <!-- ko if: type == 'dropdown' -->
             <li class="dropdown"
-                data-bind="if: type == 'dropdown'">
+                data-bind="if: type == 'dropdown',
+                           attr: { id: name + '-screen-nav-menu' }">
               <a href="#"
                  class="dropdown-toggle"
                  data-toggle="dropdown"

@@ -606,6 +606,9 @@ input.re-failed {
   text-decoration:none;
 }
 
+.navbar .nav li>a {
+  cursor: pointer;
+}
 
 .navbar .btn-navbar{
   color:#ffffff;
