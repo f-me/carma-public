@@ -1,5 +1,6 @@
 -- Speed up /actionsFor and /backoffice/caseActions queries
 CREATE INDEX ON "actiontbl" (caseid);
+CREATE INDEX ON "actiontbl" (result);
 
 -- Speed up <>LoggedOut user selection in assignQ
 CREATE INDEX ON "UserState" (userid, id DESC);

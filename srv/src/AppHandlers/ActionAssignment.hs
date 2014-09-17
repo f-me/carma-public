@@ -41,22 +41,23 @@ assignQ = [sql|
                    FROM "UserState" ORDER BY userId, id DESC) s
         ON u.id = s.userId
         WHERE s.state <> 'LoggedOut'),
-      act AS (
-        (SELECT * FROM actiontbl WHERE result IS NULL FOR UPDATE of actiontbl))
+      pullableActions AS (
+        SELECT * FROM actiontbl
+        WHERE result IS NULL
+        AND (assignedTo IS NULL
+             OR assignedTo NOT IN (SELECT id FROM activeUsers))
+        AND duetime - now() <= interval '5 minutes'
+        FOR UPDATE of actiontbl)
       UPDATE actiontbl SET assignTime = now(), assignedTo = ?
         WHERE id = (SELECT act.id
-          FROM (act
-            LEFT JOIN servicetbl svc
-            ON svc.id = act.serviceId),
-            casetbl c, usermetatbl u, "ActionType" at
+          FROM (pullableActions act
+            LEFT JOIN "ActionType" t ON   t.id = act.type
+            LEFT JOIN servicetbl svc ON svc.id = act.serviceId
+            LEFT JOIN casetbl      c ON   c.id = act.caseId),
+            usermetatbl u
           WHERE u.id = ?
-          AND c.id = act.caseId
-          AND at.id = act.type
-          AND at.priority = ?
-          AND act.duetime - now() <= interval '5 minutes'
-          AND targetGroup::int = ANY (u.roles)
-          AND (act.assignedTo IS NULL
-               OR act.assignedTo NOT IN (SELECT id FROM activeUsers))
+          AND t.priority = ?
+          AND targetGroup = ANY (u.roles)
           AND (coalesce(
                   array_length(u.boPrograms, 1),
                   array_length(u.boCities, 1)) is null
