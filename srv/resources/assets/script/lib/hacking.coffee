@@ -48,7 +48,7 @@ define [], ->
 
   # Activate hacks previously enabled by the user
   reenableHacks: ->
-    for h in global.user.stuff?.hacks
+    for h in global.user.stuff?.hacks || []
       console.log "Re-enabling hack #{h}"
       hackMap[h]?()
 
