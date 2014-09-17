@@ -184,14 +184,6 @@
       <div class="row-fluid" id="layout" />
     </div>
 
-    <!-- Search screen -->
-    <script type="text/template"
-            id="search-screen-template"
-            class="screen-template">
-      <!-- Can't use offsetN class here due to fluid layout. -->
-      <div id="tableView" />
-    </script>
-
     <!-- SMS send form -->
     <div id="sms-send-modal" class="modal hide fade">
       <div class="modal-header">
@@ -203,64 +195,6 @@
         <button id="do-send-sms" class="btn btn-primary">Отправить</button>
       </div>
     </div>
-
-    <script type="text/template"
-            id="search-table-template"
-            class="view-template">
-      <div style="text-align:center;">
-      <fieldset style="width:50%; margin-left:25%;">
-        <legend>Поиск</legend>
-        <form onsubmit="gotoCase(); return false;">
-          <div data-date-format="dd.mm.yyyy"
-               id="search-datepicker"
-               data-provide="datepicker"
-               data-date-weekstart="1"
-               class="input-append date">
-            <input type="text"
-                   style="width: 90%;"
-                   id="table-query"
-                   size="16" class="span2" id="acpro_inp2">
-            <span class="add-on"><i class="icon-calendar"></i></span>
-          </div>
-          <button class="btn btn-success" type="submit">
-            Поиск
-          </button>
-        </form>
-      </fieldset>
-      </div>
-      <table id="searchtable" class="table table-striped table-bordered">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>ФИО</th>
-            <th>Дата звонка</th>
-            <th>Телефон</th>
-            <th>Номер машины</th>
-            <th>Программа</th>
-          </tr>
-        </thead>
-        <tbody/>
-      </table>
-    </script>
-
-    <script type="text/template"
-            id="partner-form-template"
-            class="view-template">
-      <div style="text-align:center;">
-      <fieldset>
-        <legend>Обновление базы партнёров</legend>
-        <form id="partner-import-form" method="post" action="/partner/upload.csv">
-          <p>
-            <input type="file" name="file" accept="text/csv" />
-          </p>
-          <input formenctype="multipart/form-data"
-                 type="submit"
-                 class="btn btn-success">
-          </input>
-        </form>
-      </fieldset>
-      </div>
-    </script>
 
     <!-- Form controls wrt user permissions -->
     <script type="text/template"
@@ -277,7 +211,7 @@
         {{/ readonly }}
     </script>
 
-    <!-- List of empty required fields -->
+    <!-- List of empty required fields on case screen -->
     <script type="text/template"
             id="empty-fields-template">
       <ul id="empty-fields">
@@ -333,23 +267,22 @@
       <!-- ko if: $data -->
         <!-- ko foreach: $data -->
           <!-- ko if: type == 'li' -->
-            <li data-bind="if: type == 'li',
-                           attr: { id: name + '-screen-nav' }">
+            <li data-bind="attr: { id: name + '-screen-nav' }">
               <a data-bind="attr: { href: '#' + name}, text: label"/>
             </li>
           <!-- /ko -->
           <!-- ko if: type == 'link' -->
-            <li data-bind="if: type == 'link',
-                           attr: { id: name + '-screen-nav-link' }">
+            <li data-bind="attr: { id: name + '-screen-nav-link' }">
               <a target="_blank" data-bind="attr: { href: name}, text: label"/>
             </li>
           <!-- /ko -->
-          <li data-bind="if: type == 'hack',
-                         attr: { id: name + '-hack-link' }">
+          <!-- ko if: type == 'hack' -->
+          <li data-bind="attr: { id: name + '-hack-link' }">
             <a onClick="switchHack(this);"
                data-bind="attr: { 'data-hack': name },
                           text: label"/>
           </li>
+          <!-- /ko -->
           <!-- ko if: type == 'sms' -->
             <li>
               <a href="#sms-send-modal" data-toggle="modal">
@@ -359,8 +292,7 @@
           <!-- /ko -->
           <!-- ko if: type == 'dropdown' -->
             <li class="dropdown"
-                data-bind="if: type == 'dropdown',
-                           attr: { id: name + '-screen-nav-menu' }">
+                data-bind="attr: { id: name + '-screen-nav-menu' }">
               <a href="#"
                  class="dropdown-toggle"
                  data-toggle="dropdown"
@@ -371,28 +303,9 @@
                   data-bind="template: { name: 'nav-li-template', data: screens }">
               </ul>
             </li>
-
           <!-- /ko -->
         <!-- /ko -->
       <!-- /ko -->
-    </script>
-
-    <script type="text/html" id="tarif-opts-template">
-      <div class="add-opt-btn" id="{{ modelName }}-{{ cid }}-tarif-select">
-        <input type="button" class="btn" value="Добавить">
-      </div>
-    </script>
-
-    <script type="text/html" id="tarif-opt-sel-template">
-      <div class="add-opt-btn">
-        <input type="button" class="btn add" value="Добавить">
-        <select>
-          {{# opts }}
-          <option value="{{ id }}"> {{ optionName }} </option>
-          {{/ opts }}
-        </select>
-        <input type="button" class="btn reload" value="Обновить стоимость" />
-      </div>
     </script>
 
     <script type="text/html" id="alert-template">
@@ -403,6 +316,7 @@
       </div>
     </script>
 
+    <!-- Case screen contract pane container -->
     <script type="text/html" id="contract-content-template">
       <div id="contract-content"
            data-bind="renderContract: '{{ title }}'">
