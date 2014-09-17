@@ -33,6 +33,7 @@ define [], ->
       if not _.contains hacks, h
         hacks.push h
         stuff.hacks = hacks
+        global.user.stuff.hacks = hacks
         $.putJSON(usermetaUrl(), {stuff: stuff}).
           done(-> hackMap[h]?())
 
@@ -41,6 +42,7 @@ define [], ->
       stuff = res.stuff
       hacks = _.without (stuff?.hacks || []), h
       stuff.hacks = hacks
+      global.user.stuff.hacks = hacks
       $.putJSON(usermetaUrl(), {stuff: stuff}).
         done(-> location.reload())
 
