@@ -212,8 +212,7 @@ beforeUpdate = Map.unionsWith (++) $
            -- Prefer fields from the patch, but check DB as well
            let  nize (Just Nothing) = Nothing
                 nize v              = v
-                sub   =
-                  (nize s)  <|> (Just $ cp `get'` Contract.subprogram)
+                sub = (nize s) <|> (Just $ cp `get'` Contract.subprogram)
                 -- We need to check if validUntil field is *missing*
                 -- from both patch and DB, thus Just Nothing from DB
                 -- is converted to Nothing
@@ -221,7 +220,7 @@ beforeUpdate = Map.unionsWith (++) $
                   (nize vu) <|> (nize $ Just $ cp `get'` Contract.validUntil)
            case (sub, until) of
              (Just (Just s'), Nothing) ->
-               fillValidUntil s' newSince
+               when (oldSince /= Just newSince) $ fillValidUntil s' newSince
              _ -> return ()
 
   , trigOn Case.car_plateNum $ \case
