@@ -593,10 +593,6 @@ mixin simpleRefHdr(name, bindName)
       a(data-bind='text: actionNameLocal')
         | Действие…
 
-#tarifOptions-reference-template.reference-template
-  +refCommon
-    +simpleRefHdr("Тарифная опция…", "nameOrDef")
-
 mixin caseFilesList
   ul.unstyled(data-bind="foreach: safelyGet(\'filesReference\')")
     li
@@ -701,19 +697,6 @@ mixin caseFilesList
             i.icon-black(class="icon-{{icon}}")
             | {{ label }}
         | {{/ dictionary.source }}
-
-#tarif-opts-template(type='text/html')
-  .add-opt-btn(id="{{ modelName }}-{{ cid }}-tarif-select")
-    input(type="button" class="btn" value="Добавить")
-
-#tarif-opt-sel-template(type='text/html')
-  .add-opt-btn
-    input(type="button" class="btn add" value="Добавить")
-    select
-      | {{# opts }}
-      option(value="{{ id }}") {{ optionName }}
-      | {{/ opts }}
-      input(type="button" class="btn reload" value="Обновить стоимость")
 
 #alert-template(type='text/html')
   .alert

@@ -22,7 +22,7 @@ define [], ->
     'permute-case-panes': ->
       addLocalCSSRule "#right", "left: 0; width: 20%;"
       addLocalCSSRule "#left", "left: 22%; width: 30%;"
-      addLocalCSSRule "#center", "left: 54%; width: 42%;"
+      addLocalCSSRule "#center", "left: 54%; width: 44%;"
 
   usermetaUrl = -> "/_/Usermeta/#{global.user.id}"
 
