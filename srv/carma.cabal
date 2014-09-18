@@ -73,7 +73,7 @@ Executable carma
     base                        >= 4 && < 5,
     blaze-builder               == 0.3.*,
     bytestring                  >= 0.9.1 && < 0.11,
-    carma-models                >= 0.24.6 && < 0.25,
+    carma-models                >= 0.24.13 && < 0.25,
     carma-http                  >= 0.4 && < 0.6,
     carma-sync                  >= 0.5 && < 0.6,
     conduit                     == 1.1.*,
@@ -159,7 +159,7 @@ Executable carma-db-checker
   main-is: Main.hs
   Build-depends:
       postgresql-simple           >= 0.4.4.1 && < 0.5,
-      carma-models                >= 0.24.6 && < 0.25,
+      carma-models                >= 0.24.13 && < 0.25,
       unordered-containers        == 0.2.*,
       cmdlib                      == 0.3.*,
       boxes                       == 0.1.*

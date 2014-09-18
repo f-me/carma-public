@@ -26,12 +26,12 @@ import qualified Data.Text                   as T
 import           Data.Time
 import           Data.Typeable
 
-import           Database.PostgreSQL.Simple  ((:.)(..), Only(..), query)
-import           Database.PostgreSQL.Simple.SqlQQ.Alt
+import           Database.PostgreSQL.Simple  ((:.)(..), Only(..))
 import           Snap
 
 import           Carma.Model
 import           Data.Model                  (idents)
+import qualified Data.Model.Sql              as Sql
 import qualified Data.Model.Patch            as Patch
 import qualified Data.Model.Patch.Sql        as Patch
 
@@ -156,12 +156,10 @@ dueCaseActions = do
   cid <- fromMaybe (error "Could not read caseid parameter") <$>
          getIntParam "caseid"
   res <- withPG $
-         \c ->
-           uncurry (query c)
-           [sql|
-            SELECT $(fieldPT Action.ident)$ FROM $(tableQT Action.ident)$
-            WHERE $(fieldPT Action.caseId)$ = $(cid)$
-            AND $(fieldPT Action.result)$ IS NULL
-            ORDER BY $(fieldPT Action.ident)$ ASC
-            |]
-  writeJSON $ concat (res :: [[IdentI Action.Action]])
+         \conn ->
+           Sql.select
+           (Action.ident :.
+            Action.caseId `Sql.eq` (Ident cid) :.
+            Sql.ascBy Action.ident :. Sql.descBy Action.closeTime)
+           conn
+  writeJSON $ map (\(Only aid :. ()) -> aid) res
