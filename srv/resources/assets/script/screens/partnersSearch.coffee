@@ -203,13 +203,12 @@ define [ "utils"
   # array), which can be displayed on the map (centered on coords with
   # some zoom level, or simply zoomed to fit bounds).
   bindCityPlaces = (kvm) ->
-    dict = utils.newModelDict "City", true
+    dict = utils.newModelDict "City"
     kvm["city"].subscribe (newCities) ->
       return unless newCities?
-      chunks = _.reject newCities, _.isEmpty
-      kvm["cityPlacesExpected"] = chunks.length
+      kvm["cityPlacesExpected"] = newCities.length
       kvm["cityPlaces"].removeAll()
-      for c in chunks
+      for c in newCities
         do (c) ->
           fixed_city = dict.getLab c
           $.getJSON map.geoQuery(fixed_city), (res) ->

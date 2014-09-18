@@ -11,7 +11,6 @@ define [], ->
       , meta:
           dictionaryName: "City"
           dictionaryType: "ModelDict"
-          dictionaryStringify: true
           label: "Город"
       },
       { name: "make"
