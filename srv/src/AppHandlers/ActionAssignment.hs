@@ -85,10 +85,6 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
       Ident cid' = cid
       errStart = "More actions requested by user " ++ show cid'
 
-  -- Reject busy users (should not be on back office screen)
-  userIsReady cid >>= \v ->
-    when (not v) $ error $ errStart ++ " in non-Ready state"
-
   -- Do not pull more actions if the user already has some
   --
   -- This is not a critical error: supervisor may assign the user to
@@ -103,6 +99,10 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
     Action.assignedTo `eq` (Just cid) :.
     (isNull Action.result)
   when (null myActs) $ do
+    -- Reject busy users (should not be on back office screen)
+    userIsReady cid >>= \v ->
+      when (not v) $ error $ errStart ++ " in non-Ready state"
+
     actIds'   <- withPG pg_actass (\c -> query c assignQ (params 1))
     actIds''  <- case actIds' of
                    []  -> withPG pg_actass (\c -> query c assignQ (params 2))

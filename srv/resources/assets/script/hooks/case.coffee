@@ -126,7 +126,7 @@ define ["utils", "model/utils", "dictionaries"], (u, mu, d) ->
         u.getProgramDesc (parseInt knockVM['program']()), (parseInt knockVM['subprogram']?())
 
   eventsHistoryKbHook: (model, knockVM) ->
-    fillEventsHistory(knockVM)()
+    # History rendering is called from renderActions on caseScreen
     knockVM['fillEventHistory'] = fillEventsHistory(knockVM)
     knockVM['contact_phone1']?.subscribe fillEventsHistory(knockVM)
     knockVM['comments']?.subscribe fillEventsHistory(knockVM)

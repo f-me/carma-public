@@ -16,7 +16,8 @@ define [
               "<span class='label label-important'>Не действует</span>"
             else
               "<span class='label label-success'>Действует</span>"
-        close = "<button class='close'>&times;</button>"
+        close = "<button title='Стереть ссылку на контракт из кейса'
+                         class='close'><i class='icon-trash'/></button>"
         $(el).append("<legend>#{title} ##{contract.id()} #{expired} #{close}</legend>")
         $(el).find('.close').on 'click', -> contract.close()
         $dl = $("<table class='table table-condensed table-striped'></table>")

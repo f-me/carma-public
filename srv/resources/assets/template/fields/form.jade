@@ -588,7 +588,8 @@ mixin simpleRefHdr(name, bindName)
   +refCommon
     div.alert(data-bind='style: {"background-color": _actColor}')
       i.icon.icon-flag(data-bind='visible: myAction')
-      | &nbsp;
+      span(data-bind='visible: myAction')
+        | &nbsp;
       a(data-bind='text: actionNameLocal')
         | Действие…
 

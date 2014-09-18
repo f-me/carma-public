@@ -598,17 +598,12 @@ instance Backoffice HaskellE where
           ctx <- ask
           return $ do
             this <- getAction
-            let cid = kase ctx `get'` Case.ident
-                sid = (`get'` Service.ident) <$> service ctx
-                -- Never breaks for a valid back office
-                e = fromMaybe (error "Target action unknown") $
-                    find ((== aT) . BO.aType) $
-                    snd carmaBackoffice
-                -- Set current action as a source in the nested
+            let -- Set current action as a source in the nested
                 -- evaluator context
                 ctx' = ctx{prevAction = (`get'` Action.aType) <$> this}
-                grp = evalHaskell ctx' $ BO.targetRole e
+                (e, basePatch) = newActionData ctx' aT
                 who = evalHaskell ctx' $ BO.assignment e
+
             whoIfActive <-
               case who of
                 Just u -> userIsReady u >>= \case
@@ -616,20 +611,16 @@ instance Backoffice HaskellE where
                   -- Ignore assignment if target user is not active
                   False -> return Nothing
                 Nothing -> return Nothing
+
             let due = evalHaskell ctx' $ BO.due e
                 -- Set assignTime if a user is picked
                 ctime = now ctx
-                assTime = maybe Nothing (const $ Just ctime) who
-                p = Patch.put Action.ctime ctime $
-                    Patch.put Action.duetime due $
-                    Patch.put Action.targetGroup grp $
+                assTime = maybe Nothing (const $ Just ctime) whoIfActive
+                p = Patch.put Action.duetime due $
                     Patch.put Action.assignedTo whoIfActive $
                     Patch.put Action.assignTime assTime $
-                    Patch.put Action.aType aT $
-                    Patch.put Action.caseId cid $
                     Patch.put Action.parent ((`get'` Action.ident) <$> this) $
-                    Patch.put Action.serviceId sid
-                    Patch.empty
+                    basePatch
             dbCreate p >> evalHaskell ctx (BO.proceed ts)
 
     defer =
@@ -640,16 +631,10 @@ instance Backoffice HaskellE where
             curPatch <- getPatch
             this <- dbRead aid
             let aT = this `get'` Action.aType
-                cid = kase ctx `get'` Case.ident
-                sid = (`get'` Service.ident) <$> service ctx
-                -- Never breaks for a valid back office
-                e = fromMaybe (error "Current action unknown") $
-                    find ((== aT) . BO.aType) $
-                    snd carmaBackoffice
                 -- Set current action as a source in the nested
                 -- evaluator context
                 ctx' = ctx{prevAction = Just aT}
-                grp = evalHaskell ctx' $ BO.targetRole e
+                (_, basePatch) = newActionData ctx' aT
 
                 dbDefer = fromMaybe (error "No deferBy in action") $
                           this `get'` Action.deferBy
@@ -667,14 +652,9 @@ instance Backoffice HaskellE where
                 -- seconds
                 deferBy' = realToFrac deferBy
                 due = addUTCTime deferBy' (now ctx)
-                p = Patch.put Action.ctime (now ctx) $
-                    Patch.put Action.duetime due $
-                    Patch.put Action.targetGroup grp $
-                    Patch.put Action.aType aT $
-                    Patch.put Action.caseId cid $
-                    Patch.put Action.serviceId sid $
-                    Patch.put Action.parent (Just aid)
-                    Patch.empty
+                p = Patch.put Action.duetime due $
+                    Patch.put Action.parent (Just aid) $
+                    basePatch
             void $ dbCreate p
 
 
@@ -715,6 +695,23 @@ mkContext act = do
              , prevAction = act
              , now = t
              }
+
+
+-- | Graph entry and common data for new actions produced by 'proceed'
+-- or 'defer'.
+newActionData :: HCtx-> ActionTypeI -> (BO.Action, Patch Action.Action)
+newActionData ctx aType = (e, p)
+  where
+    -- Never breaks for a valid back office
+    e = fromMaybe (error "Current action unknown") $
+        find ((== aType) . BO.aType) $
+        snd carmaBackoffice
+    p = Patch.put Action.ctime (now ctx) $
+        Patch.put Action.targetGroup (evalHaskell ctx $ BO.targetRole e) $
+        Patch.put Action.aType aType $
+        Patch.put Action.caseId (kase ctx `get'` Case.ident) $
+        Patch.put Action.serviceId ((`get'` Service.ident) <$> service ctx) $
+        Patch.empty
 
 
 -- | Obtain service id from the context or fail.
