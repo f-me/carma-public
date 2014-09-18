@@ -2,6 +2,10 @@
   li(data-bind="attr: { id: name + '-screen-nav' }")
     a(data-bind="attr: { href: '#' + name}, text: label")
 
+.menu-el-tpl#link
+  li(data-bind="attr: { id: name + '-screen-nav-link' }")
+    a(target="_blank" data-bind="attr: { href: name}, text: label")
+
 .menu-el-plt#sms
   li
     a(href='#sms-send-modal', data-toggle='modal')
