@@ -188,6 +188,13 @@ beforeUpdate = Map.unionsWith (++) $
       Just roles <- (`Patch.get` BusinessRole.roles) <$> dbRead bRole
       modPut Usermeta.roles roles
 
+  , trigOn ActionType.priority $
+    \n -> modPut ActionType.priority $
+          case n of
+            _ | n < topPriority   -> topPriority
+              | n > leastPriority -> leastPriority
+              | otherwise         -> n
+
   , trigOn Action.result $ \case
       Nothing -> return ()
       Just _ -> do

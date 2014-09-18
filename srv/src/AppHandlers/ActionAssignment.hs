@@ -4,7 +4,14 @@ Action assignment for back office screen.
 
 -}
 
-module AppHandlers.ActionAssignment (littleMoreActionsHandler)
+module AppHandlers.ActionAssignment
+    (
+      littleMoreActionsHandler
+
+      -- * Assignment options
+    , topPriority
+    , leastPriority
+    )
 
 where
 
@@ -28,6 +35,14 @@ import Application
 import AppHandlers.Users
 import AppHandlers.Util
 import Util hiding (withPG)
+
+
+topPriority :: Int
+topPriority = 1
+
+
+leastPriority :: Int
+leastPriority = 5
 
 
 -- | Assign a single action to a user, yield action id and case id.
@@ -124,7 +139,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
       newActions <- pullFurther
                     (\p ->
                        withPG pg_actass (\c -> query c assignQ (params p)))
-                    [1..5]
+                    [topPriority..leastPriority]
 
       unless (null newActions) $
         syslogJSON Info "littleMoreActions"
