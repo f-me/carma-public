@@ -130,6 +130,7 @@ define [ "utils"
           kvm['hasMissingRequireds'].subscribe (dis) ->
             avm.resultDisabled?(dis)
         cont.spin false
+      kvm['fillEventHistory']?()
 
     # Top-level wrapper for storeService
     addService = (name) ->
