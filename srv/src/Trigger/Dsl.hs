@@ -238,12 +238,16 @@ sendSMS :: Model.IdentI Service -> Model.IdentI SmsTemplate -> Free (Dsl m) ()
 sendSMS svcId tplId =
   dbQuery q [svcId] >>=
     \case
-      [[caseId, city, phone, eSvcStart, fSvcStart, sender, pInfo, pCInfo]] -> do
+      [[ caseId, city, phone
+       , svcType, eSvcStart, fSvcStart
+       , sender, pInfo, pCInfo
+       ]] -> do
         let varMap = Map.fromList
               [("program_info", pInfo)
               ,("program_contact_info", pCInfo)
               ,("case.city", city)
               ,("case.id", caseId)
+              ,("service.type", svcType)
               ,("service.times_factServiceStart", fSvcStart)
               ,("service.times_expectedServiceStart", eSvcStart)
               ]
@@ -270,15 +274,18 @@ sendSMS svcId tplId =
             cs.id::text,
             coalesce("City".label, ''),
             coalesce(cs.contact_phone1, ''),
+            "ServiceType".label,
             coalesce(to_char(svc.times_expectedServiceStart, 'HH24:MI MM-DD-YYYY'), ''),
             coalesce(to_char(svc.times_factServiceStart, 'HH24:MI MM-DD-YYYY'), ''),
             sprog.smsSender, sprog.smsProgram, sprog.smsContact
           from
             casetbl cs left join "City" on ("City".id = cs.city),
             servicetbl svc,
+            "ServiceType",
             "SubProgram" sprog
           where true
             and svc.id   = ?
+            and svc.type = "ServiceType".id
             and cs.id    = svc.parentId
             and sprog.id = cs.subprogram
         |]
