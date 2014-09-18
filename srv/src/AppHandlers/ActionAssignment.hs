@@ -21,7 +21,6 @@ import Data.Model.Sql as Sql
 
 import Carma.Model.Action as Action
 import Carma.Model.ActionType as ActionType
-import Carma.Model.Case as Case
 
 import Snaplet.Auth.PGUsers
 
@@ -89,11 +88,11 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
 
   -- Actions already assigned to the user
   oldActions <- map (\(Only i :. Only caseId :. ()) -> (i, caseId)) <$>
-                withPG pg_actass $
-                Sql.select $
-                Action.ident :. Action.caseId :.
-                Action.assignedTo `eq` Just uid :.
-                isNull Action.result
+                (withPG pg_actass $
+                 Sql.select $
+                 Action.ident :. Action.caseId :.
+                 Action.assignedTo `eq` Just uid :.
+                 isNull Action.result)
 
   actions <- ((,) <$> userIsReady uid <*> return oldActions) >>= \case
     -- Do not pull more actions if the user already has some.
@@ -127,11 +126,11 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
                        withPG pg_actass (\c -> query c assignQ (params p)))
                     [1..5]
 
-      unless (null (newActions :: [(IdentI Action, IdentI Case)])) $
-       syslogJSON Info "littleMoreActions"
-       [ "user" .= show uid'
-       , "newActions" .= map fst newActions
-       ]
+      unless (null newActions) $
+        syslogJSON Info "littleMoreActions"
+        [ "user" .= show uid'
+        , "newActions" .= map fst newActions
+        ]
 
       return newActions
 
