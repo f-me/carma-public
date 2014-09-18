@@ -563,11 +563,7 @@ instance Backoffice HaskellE where
           sid <- srvId'
           return $ void $ setService sid acc (evalHaskell ctx v)
 
-    sendDealerMail = HaskellE $ return $ return ()
-
-    sendGenserMail = HaskellE $ return $ return ()
-
-    sendPSAMail = HaskellE $ return $ return ()
+    sendMail _ = HaskellE $ return $ return ()
 
     sendSMS tpl =
       HaskellE $ do

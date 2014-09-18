@@ -25,6 +25,7 @@ module Carma.Backoffice.DSL
     , Outcome
     , Trigger
     , Backoffice(..)
+    , MailType(..)
     , finish
     , setServiceStatus
     , ite
@@ -122,7 +123,7 @@ class Backoffice impl where
     -- used action types.
     previousAction :: impl ActionTypeI
 
-    -- | Context access.
+    -- | Service context access.
     --
     -- Our DSL is stateless (more accurately, there's a read-only
     -- state accessed by these getters; it's not tied with mutators
@@ -140,10 +141,14 @@ class Backoffice impl where
     -- service. Fixing the latter problem would involve tying
     -- ActionType and availability of a service for it (on the type
     -- level).
-    caseField     :: (FieldI t n d, HaskellType t ~ t) =>
-                     (Case -> F t n d) -> impl t
     serviceField  :: (FieldI t n d, HaskellType t ~ t) =>
                      (Service -> F t n d) -> impl t
+
+    -- | Case access (always available).
+    caseField     :: (FieldI t n d, HaskellType t ~ t) =>
+                     (Case -> F t n d) -> impl t
+
+    -- | Current user access (always available).
     userField     :: (FieldI t n d, HaskellType t ~ t) =>
                      (Usermeta -> F t n d) -> impl t
 
@@ -219,14 +224,15 @@ class Backoffice impl where
            -- ^ Default branch (used when no true conditions occured).
            -> impl v
 
-    -- Verbs with side effects
+    -- | Change a field in the service (if there's one).
+    --
+    -- See also docs for 'serviceField'.
     setServiceField :: (SvcAccess m, FieldI t n d, HaskellType t ~ t) =>
                        (Service -> F t n d) -> impl t -> impl (Eff m)
-    sendDealerMail :: impl (Eff m)
-    sendGenserMail :: impl (Eff m)
-    sendPSAMail    :: impl (Eff m)
-    sendSMS        :: IdentI SmsTemplate -> impl (Eff m)
 
+    sendMail :: MailType -> impl (Eff m)
+
+    sendSMS  :: IdentI SmsTemplate -> impl (Eff m)
     -- | Close all previously created actions in the case.
     closeWith :: [ActionTypeI]
               -- ^ Matching action types.

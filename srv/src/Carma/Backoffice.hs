@@ -116,12 +116,12 @@ orderService =
     )
     [ (AResult.serviceOrdered,
        sendSMS SMS.order *>
-       sendPSAMail *>
+       sendMail PSA *>
        setServiceStatus SS.ordered *>
        proceed [AType.tellClient, AType.addBill])
     , (AResult.serviceOrderedSMS,
        sendSMS SMS.order *>
-       sendPSAMail *>
+       sendMail PSA *>
        setServiceStatus SS.ordered *>
        proceed [AType.checkStatus, AType.addBill])
     , (AResult.needPartner,
@@ -216,7 +216,7 @@ checkEndOfService =
     ((5 * minutes) `since` req (serviceField times_expectedServiceEnd))
     [ (AResult.serviceDone,
        sendSMS SMS.complete *>
-       sendDealerMail *>
+       sendMail Dealer *>
        setServiceStatus SS.ok *>
        ite (caseField Case.program `oneOf`
             [Program.peugeot, Program.citroen, Program.vw])
@@ -251,7 +251,7 @@ getDealerInfo =
       caseField Case.program `oneOf` [Program.peugeot, Program.citroen])
      ((5 * minutes) `since` req (serviceField times_factServiceEnd))
      ((14 * days) `since` req (serviceField times_factServiceEnd)))
-    [ (AResult.gotInfo, sendPSAMail *> finish)
+    [ (AResult.gotInfo, sendMail PSA *> finish)
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]

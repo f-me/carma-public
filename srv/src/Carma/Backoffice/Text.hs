@@ -189,11 +189,12 @@ instance Backoffice TextE where
         TextE $
         T.append "Отправить SMS по шаблону " <$> toText (const i)
 
-    sendPSAMail = textE "Отправить письмо в PSA"
+    sendMail to =
+      textE $ T.append "Отправить письмо " $ case to of
+                                               PSA -> "в PSA"
+                                               Dealer -> "дилеру"
+                                               Genser -> "в Genser"
 
-    sendDealerMail = textE "Отправить письмо дилеру"
-
-    sendGenserMail = textE "Отправить письмо в Genser"
 
     closeWith acts r =
         TextE $ do

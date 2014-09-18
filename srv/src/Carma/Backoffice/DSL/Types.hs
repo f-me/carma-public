@@ -13,6 +13,7 @@ module Carma.Backoffice.DSL.Types
       Eff
     , Outcome
     , Trigger
+    , MailType(..)
 
       -- * Haskell interface for Backoffice DSL
     , HaskellType
@@ -54,6 +55,10 @@ data Outcome m
 
 
 data Trigger
+
+
+-- | Mail type/destination.
+data MailType = Dealer | PSA | Genser
 
 
 -- | Haskell embeddings of DSL types.
