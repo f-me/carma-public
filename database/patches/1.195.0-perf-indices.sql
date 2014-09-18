@@ -2,6 +2,12 @@
 CREATE INDEX ON "actiontbl" (caseid);
 CREATE INDEX ON "actiontbl" (result);
 
+-- Speed up #rkc screen
+CREATE INDEX ON actiontbl (duetime);
+CREATE INDEX ON towagetbl (createTime);
+CREATE INDEX ON techtbl (createTime);
+CREATE INDEX ON renttbl (createTime);
+
 -- Speed up <>LoggedOut user selection in assignQ
 CREATE INDEX ON "UserState" (userid, id DESC);
 
