@@ -675,9 +675,9 @@ mixin caseFilesList
   | {{^ readonly }}
   button.btn.btn-success(type="button"
           onClick="saveInstance('{{ viewName }}');successfulSave.call(this);")
-    i.icon-pencil.icon-whit
-      | Сохранить
-    span.save-result
+    i.icon-pencil.icon-white
+    | Сохранить
+  span.save-result
   | {{/ readonly }}
 
 #empty-fields-template
@@ -695,26 +695,12 @@ mixin caseFilesList
         i.icon.icon-plus
         | Добавить услугу
       ul.dropdown-menu
-        | {{# dictionary.entries }}
+        | {{# dictionary.source }}
         li
-          a(href="#" onclick="addService('{{value}}'); return false;")
+          a(href="#" onclick="addService('{{model}}'); return false;")
             i.icon-black(class="icon-{{icon}}")
             | {{ label }}
-        | {{/ dictionary.entries }}
-
-#newService-picker-template
-  ul.nav.nav-pills
-    li.drop{{drop}}
-        button.dropdown-toggle.btn.btn-action(type='button', data-toggle='dropdown')
-          i.icon.icon-plus
-          | Добавить услугу
-        ul.dropdown-menu
-          | {{# dictionary.entries }}
-          li
-            a(href='#', onclick='addNewService(\'{{value}}\'); return false;')
-              i.icon-black(class="icon-{{icon}}")
-              | {{ label }}
-          | {{/ dictionary.entries }}
+        | {{/ dictionary.source }}
 
 #tarif-opts-template(type='text/html')
   .add-opt-btn(id="{{ modelName }}-{{ cid }}-tarif-select")

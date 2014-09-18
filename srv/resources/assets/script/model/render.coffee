@@ -212,7 +212,7 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
   renderPermissions = (model, viewName) ->
     modelRo = not model.canUpdate and not model.canCreate and not model.canDelete
     # Add HTML to contents for non-false permissions
-    Mustache.render($("#permission-template").text(),
+    Mustache.render($(FS).find("#permission-template").html(),
                     _.extend(model, {viewName: viewName, readonly: modelRo}))
 
   # Get all templates with given class, stripping "-<class>" from id of
