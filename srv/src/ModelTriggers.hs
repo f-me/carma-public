@@ -603,20 +603,27 @@ instance Backoffice HaskellE where
                 (e, basePatch) = newActionData ctx' aT
                 who = evalHaskell ctx' $ BO.assignment e
 
-            whoIfActive <-
+            -- Ignore insta-assignment for non-current users if
+            -- target user is not Ready
+            whoIfReady <-
               case who of
                 Just u -> userIsReady u >>= \case
                   True -> return who
-                  -- Ignore assignment if target user is not active
-                  False -> return Nothing
+                  False ->
+                    return $
+                    if Just currentUser == who
+                    then Just currentUser
+                    else Nothing
+                    where
+                      currentUser = user ctx `get'` Usermeta.ident
                 Nothing -> return Nothing
 
             let due = evalHaskell ctx' $ BO.due e
                 -- Set assignTime if a user is picked
                 ctime = now ctx
-                assTime = maybe Nothing (const $ Just ctime) whoIfActive
+                assTime = maybe Nothing (const $ Just ctime) whoIfReady
                 p = Patch.put Action.duetime due $
-                    Patch.put Action.assignedTo whoIfActive $
+                    Patch.put Action.assignedTo whoIfReady $
                     Patch.put Action.assignTime assTime $
                     Patch.put Action.parent ((`get'` Action.ident) <$> this) $
                     basePatch
