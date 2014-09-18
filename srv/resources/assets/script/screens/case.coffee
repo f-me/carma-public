@@ -9,6 +9,7 @@ define [ "utils"
   (utils, hotkeys, tpl, Flds, mu, main, Contract) ->
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
+    flds =  $('<div/>').append($(Flds))
     # Case view (renders to #left, #center and #right as well)
     setupCaseMain = (viewName, args) -> setupCaseModel viewName, args
 
@@ -39,7 +40,7 @@ define [ "utils"
       Contract.setup "contract", kvm
 
       $("#empty-fields-placeholder").html(
-          Mustache.render($("#empty-fields-template").html(), ctx))
+          Mustache.render($(flds).find("#empty-fields-template").html(), ctx))
 
       ko.applyBindings(kvm, el("empty-fields"))
 
@@ -50,7 +51,7 @@ define [ "utils"
       # entry.
       $("#service-picker-container").html(
         Mustache.render(
-          $("#service-picker-template").html(),
+          $(flds).find("#service-picker-template").html(),
             {dictionary: utils.newComputedDict("iconizedServiceTypes")
             ,drop: 'up'
             }))
@@ -107,7 +108,6 @@ define [ "utils"
       cont.spin('large')
 
       # Pick reference template
-      flds =  $('<div/>').append($(Flds))
       tpl = flds.find("#actions-reference-template").html()
 
       $.getJSON "/backoffice/caseActions/#{caseId}", (aids) ->

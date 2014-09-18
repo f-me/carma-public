@@ -1,0 +1,144 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    title
+      addLocalName CaRMa
+    link(rel='stylesheet', href='/s/3p/bootstrap/css/bootstrap.min.css')
+    link(rel='stylesheet', href='/s/css/datepicker.css')
+    // Additional set of icons
+    link(rel='stylesheet', href='/s/css/stolen-icons.css')
+    link(rel='stylesheet', href='/s/css/local.css')
+    // Date Range Picker for Bootstrap
+    link(rel='stylesheet', href='/s/css/daterangepicker-bs2.css')
+    // DOM manipulation
+    script(src='/s/3p/jquery.js')
+    // Rich UI
+    script(src='/s/3p/bootstrap/js/bootstrap.min.js')
+    script(src='/s/3p/bootstrap-datepicker.js')
+    script(src='/s/3p/bootstrap-tagautocomplete.js')
+    // WYSIWYG
+    link(rel='stylesheet', href='/s/3p/wysihtml5/bootstrap-wysihtml5.css')
+    link(rel='stylesheet', href='/s/3p/wysihtml5/wysiwyg-color.css')
+    script(src='/s/3p/wysihtml5/wysihtml5-0.3.0.min.js')
+    script(src='/s/3p/wysihtml5/bootstrap-wysihtml5.js')
+    script(src='/s/3p/wysihtml5/locales/bootstrap-wysihtml5.ru-RU.js')
+    // Date Range Picker for Bootstrap
+    script(src='/s/3p/moment/moment.min.js')
+    script(src='/s/3p/moment/ru.js')
+    script(src='/s/3p/daterangepicker.js')
+    // Spinner
+    script(src='/s/3p/spin.js')
+    script(src='/s/3p/jquery.spin.js')
+    // Tabular display
+    link(rel='stylesheet', href='/s/3p/datatables/css/jquery.dataTables.min.css')
+    script(src='/s/3p/datatables/js/jquery.dataTables.min.js')
+    // Responsive UI javascript library
+    script(src='/s/3p/knockout.js')
+    // Utility library, Backbone dependency
+    script(src='/s/3p/underscore.js')
+    // Simple templates
+    script(src='/s/3p/mustache.js')
+    // OpenLayers library allows map rendering
+    script(src='/s/3p/OpenLayers/OpenLayers.js')
+    // 25Kb of date parsing and formatting
+    script(src='/s/3p/date/core.js')
+    script(src='/s/3p/date/ru-RU.js')
+    script(src='/s/3p/date/extras.js')
+    script(src='/s/3p/date/parser.js')
+    script(src='/s/3p/date/sugarpak.js')
+    // masked input for datetime fields
+    script(src='/s/3p/jquery.maskedinput.js')
+    script(src='/s/3p/jquery.knob.min.js')
+    script(src='/s/3p/md5.min.js')
+    script(src='/s/3p/d3.min.js')
+    script(src='/s/3p/notify-combined.min.js')
+    // global libs, that is not handled by require js
+    // typeahead menu
+    script(src='/s/js/gen/globallibs/th-menu.js')
+    script(src='/s/js/gen/globallibs/observableSet.js')
+    script(src='/s/js/gen/globallibs/sorted.js')
+    script(src='/s/js/gen/globallibs/customKoHandlers.js')
+    script(src='/s/js/gen/globallibs/utils.js')
+    script(src='/s/js/gen/avaya.js')
+    script(src='/s/3p/require.js')
+    script(src='/s/js/gen/requireCfg.js')
+    script(src='/s/js/gen/local.js')
+  body
+    // Navigation bar on top
+    .navbar.navbar-fixed-top
+      .navbar-inner
+        .container
+          ul#nav.nav
+            a.brand(href='/')
+              addlocalname CaRMa
+            li.divider-vertical
+            li#avaya-panel.dropdown(style='display: none;')
+              form.navbar-search.pull-left
+                input.search-query(type='text', placeholder='Avaya')
+                button#avaya-call.btn
+                  i.icon.stolen-icon-phone
+              ul.dropdown-menu
+                li#avaya-info.nav-header
+                li
+                  a#avaya-accept(href='#') Принять звонок
+
+            // ko foreach: $data
+
+            // ko renderMenuEl: $data
+            // /ko
+
+            // /ko
+            li
+              a#send-bug-report
+                i.icon.icon-fire.icon-white
+          ul#current-user.nav.pull-right
+            li.divider-vertical
+            li.dropdown
+              a.dropdown-toggle(href='#', data-toggle='dropdown')
+                i#icon-user.icon-user.icon-white
+                span(data-bind='text: safelyGet(\'login\')')
+                b.caret
+              ul.dropdown-menu
+                li
+                  a(href='/logout/')
+                    i.icon-off.icon-black
+                    | Выход
+            li.dropdown
+              a.nav-block.dropdown-toggle(data-toggle='dropdown',
+                data-bind="text: safelyGet('currentStateLocal')")
+              ul.dropdown-menu
+                li.current-user-menu
+                  | Текущий статус:
+                  span(data-bind="text: safelyGet('currentStateLocal')")
+                  span(data-bind="text: safelyGet('timeInCurrentState')")
+                  #user-state-btngroup.btn-group.btn-group-xs
+                    button.btn.btn-default.btn-small(type='button',
+                      data-bind="css: {\n\
+                        'btn-success': safelyGet('delayedState') == 'Rest'\n\
+                        },\n\
+                        disable: inSBreak(),\n\
+                        click: function () {\n\
+                        toggleDelayed('Rest')\n\
+                        }")
+                      | Перерыв
+                    button.btn.btn-default.btn-small(type='button',
+                      data-bind="css: {\n\
+                        'btn-success': safelyGet('delayedState') == 'Dinner'\n\
+                        },\n\
+                        disable: inSBreak(),\n\
+                        click: function () { toggleDelayed('Dinner')}")
+                      | Обед
+
+    // Main container for dynamically rendered layouts
+    #main-container.container-fluid
+      #layout.row-fluid
+    // SMS send form
+    #sms-send-modal.modal.hide.fade
+      .modal-header
+        button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
+        h3 Отправка СМС
+      #sms-send-form.modal-body
+      .modal-footer
+        button#do-send-sms.btn.btn-primary Отправить
+

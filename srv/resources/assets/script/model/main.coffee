@@ -115,12 +115,14 @@ define [ "model/render"
       do (f) ->
         kvm[f.name] = ko.observable(null)
         kvm[f.name].field = f
+        kvm[f.name].kvm   = kvm
 
     # set id only when it wasn't set from from prefetched data
     # FIXME: remove this, id should be created from fields of model
     # when we have it there
     unless _.isFunction kvm['id']
       kvm['id'] = ko.observable()
+      kvm['id'].kvm = kvm
     kvm.id(fetched['id']) unless _.isUndefined fetched?['id']
 
     # set queue if have one, and sync it with backend
@@ -260,6 +262,8 @@ define [ "model/render"
             kvm['disableDixi']()
           write: (a) ->
             disabled(not not a)
+        kvm[name].disableDixi = kvm["#{name}DisableDixi"]
+        kvm[name].disabled    = kvm["#{name}Disabled"]
 
     # make dixi button disabled
     # until all editable required fields are filled

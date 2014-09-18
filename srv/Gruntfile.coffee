@@ -48,14 +48,18 @@ module.exports = (grunt) ->
           pretty: true
           basedir: "#{content}/template"
         files: [
-          cwd: "#{content}/template"
-          src: "**/*.jade"
-          filter: (f) ->
-            # ignore lib dir and files, that begin with "_"
-            (not /\/lib/.test(f)) and (not /.*?\/?_[^\/]+\.jade/.test(f))
-          dest: tpl
-          expand: true
-          ext: ".html"
+          { cwd: "#{content}/template"
+          , src: "**/*.jade"
+          , filter: (f) ->
+              # ignore lib dir and files, that begin with "_"
+              (f != "index.jade") and (not /.*?\/?_[^\/]+\.jade/.test(f))
+          , dest: tpl
+          , expand: true
+          , ext: ".html"
+          },
+          { src: "#{content}/template/index.jade"
+          , dest: "snaplets/heist/resources/templates/index.tpl"
+          }
           ]
 
     clean:

@@ -4,9 +4,9 @@ ko.subscribable.fn.subscribeWithOld = (callback) ->
 
     @subscribe (newValue) -> callback(newValue, oldValue)
 
-window.urlFor = (kvm, name) ->
-  switch kvm._meta.model.name
+window.urlFor = (field) ->
+  switch field.kvm._meta.model.name
     when "Case"
-      "/#case/#{kvm[name]()}"
+      "/#case/#{field()}"
     else
-      "/##{kvm._meta.model.name}/#{kvm[name]()}"
+      "/##{kvm._meta.model.name}/#{field()}"

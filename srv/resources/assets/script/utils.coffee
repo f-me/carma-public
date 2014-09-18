@@ -1,4 +1,6 @@
-define ["model/utils", "dictionaries"], (mu, d) ->
+define [ "model/utils"
+       , "dictionaries"
+       , "text!tpl/fields/form.html"], (mu, d, Ftpls) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -44,7 +46,8 @@ define ["model/utils", "dictionaries"], (mu, d) ->
     , 500)
 
   window.alertUser = (message, delay = 5000) ->
-    $alert = $(Mustache.render $("#alert-template").html(), {message})
+    tpls = $("<div />").append($(Ftpls))
+    $alert = $(Mustache.render $(tpls).find("#alert-template").html(), {message})
     $('.container-fluid').prepend $alert
     setTimeout ->
         $alert.fadeOut 'slow', -> $(@).remove()

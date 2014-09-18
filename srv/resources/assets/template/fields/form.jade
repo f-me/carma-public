@@ -664,3 +664,75 @@ mixin caseFilesList
             th Комментарий
             th Результат действия
         tbody
+
+#permission-template
+  | {{# readonly }}
+  button.btn.disabled(type="button")
+    i.icon-ban-circle
+      | Только для чтения
+  | {{/ readonly }}
+  | {{^ readonly }}
+  button.btn.btn-success(type="button"
+          onClick="saveInstance('{{ viewName }}');successfulSave.call(this);")
+    i.icon-pencil.icon-whit
+      | Сохранить
+    span.save-result
+  | {{/ readonly }}
+
+#empty-fields-template
+  ul#empty-fields
+    | {{# fields }}
+    li(onclick="focusField('{{name}}'); return false;"
+      data-bind="css: { lierror: {{name}}Not }, visible: {{name}}Not")
+      | {{meta.label}}
+    | {{/ fields }}
+
+#service-picker-template
+  ul.nav.nav-pills
+    li(class="drop{{drop}}")
+      button.dropdown-toggle.btn.btn-action(type="button" data-toggle="dropdown")
+        i.icon.icon-plus
+        | Добавить услугу
+      ul.dropdown-menu
+        | {{# dictionary.entries }}
+        li
+          a(href="#" onclick="addService('{{value}}'); return false;")
+            i.icon-black(class="icon-{{icon}}")
+            | {{ label }}
+        | {{/ dictionary.entries }}
+
+#newService-picker-template
+  ul.nav.nav-pills
+    li.drop{{drop}}
+        button.dropdown-toggle.btn.btn-action(type='button', data-toggle='dropdown')
+          i.icon.icon-plus
+          | Добавить услугу
+        ul.dropdown-menu
+          | {{# dictionary.entries }}
+          li
+            a(href='#', onclick='addNewService(\'{{value}}\'); return false;')
+              i.icon-black(class="icon-{{icon}}")
+              | {{ label }}
+          | {{/ dictionary.entries }}
+
+#tarif-opts-template(type='text/html')
+  .add-opt-btn(id="{{ modelName }}-{{ cid }}-tarif-select")
+    input(type="button" class="btn" value="Добавить")
+
+#tarif-opt-sel-template(type='text/html')
+  .add-opt-btn
+    input(type="button" class="btn add" value="Добавить")
+    select
+      | {{# opts }}
+      option(value="{{ id }}") {{ optionName }}
+      | {{/ opts }}
+      input(type="button" class="btn reload" value="Обновить стоимость")
+
+#alert-template(type='text/html')
+  .alert
+    button(type="button" class="close" data-dismiss="alert") ×
+    strong Внимание!
+    | {{message}}
+
+#contract-content-template(type='text/html')
+  #contract-content(data-bind="renderContract: '{{ title }}'")

@@ -1,0 +1,23 @@
+.menu-el-tpl#li
+  li(data-bind="attr: { id: name + '-screen-nav' }")
+    a(data-bind="attr: { href: '#' + name}, text: label")
+
+.menu-el-plt#sms
+  li
+    a(href='#sms-send-modal', data-toggle='modal')
+      i.icon.icon-envelope.icon-white
+
+.menu-el-tpl#dropdown
+  li.dropdown
+    a.dropdown-toggle(href='#' data-toggle='dropdown')
+      // ko text: label
+      // /ko
+      b.caret
+    ul.dropdown-menu(data-bind='foreach: screens')
+      // ko renderMenuEl: $data
+      // /ko
+
+.menu-el-tpl#hack
+  li(data-bind="attr: { id: name + '-hack-link' }")
+    a(onClick="switchHack(this);"
+      data-bind="attr: { 'data-hack': name }, text: label")

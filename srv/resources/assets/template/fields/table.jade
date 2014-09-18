@@ -1,0 +1,38 @@
+mixin dictInput(nameMod)
+  .input-append
+    input.focusable(type='text'
+                    autocomplete='off'
+                    name='{{ name }}'
+                    data-bind='value: $rawData#{nameMod ? "." + nameMod : ""},\
+                      valueUpdate: "change",\
+                      disabled: $rawData.disabled,\
+                      pickerDisable: $rawData.disabled,\
+                      bindDict: $rawData')
+    span.add-on(style='padding: 4px;')
+      i.icon.icon-chevron-down
+
+#dictionary-many-table-template(type='text/template')
+  span
+    +dictInput("many")
+    // ko if: $rawData.locals().length
+    ul.unstyled(data-bind='foreach: $rawData.locals')
+      li
+        span(data-bind='text: label')
+        a.close(href=''
+                style='float: none;'
+                data-bind='click: $parent.remove')
+          | ×
+    // /ko
+
+#dictionary-table-template.field-template(type='text/template')
+  span
+    +dictInput
+
+#text-table-template.field-template(type='text/template')
+  span(data-bind='text: $data')
+
+#onlyServiceBreak-table-template.field-template(type='text/template')
+  button.btn.btn-default.btn-small(type='button'
+    data-bind='css: { "btn-success": $rawData.kvm.inSBreak }, \
+               click: $rawData.kvm.toggleServiceBreak')
+    | Служебный перерыв

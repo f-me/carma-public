@@ -3,9 +3,10 @@ define [
     , "utils"
     , "sync/datamap"
     , "dictionaries"
+    , "text!tpl/fields/form.html"
     ],
-  (Main, Utils, DataMap, Dict) ->
-
+  (Main, Utils, DataMap, Dict, Flds) ->
+    flds =  $('<div/>').append($(Flds))
     ko.bindingHandlers.renderContract =
       update: (el, acc, allBindigns, contract, ctx) ->
         title = ko.utils.unwrapObservable acc()
@@ -50,7 +51,8 @@ define [
         knockVM.contract("");
 
       $("##{el}").html(
-        Mustache.render($("#contract-content-template").html(), {title: "Контракт"}))
+        Mustache.render($(flds).find("#contract-content-template").html(),
+                       {title: "Контракт"}))
       ko.applyBindings(kvm, $("#contract-content")[0])
 
     hideContract = (el) ->

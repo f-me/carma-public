@@ -11,7 +11,7 @@ define [ "utils"
     k["#{fname}TypeaheadBuilder"].destroy = ->
       _.map thmenu, (v) -> v.destructor()
       thmenu = []
-
+    k[fname].typeaheadBuilder = k["#{fname}TypeaheadBuilder"]
 
   # - <field>Local for dictionary fields: reads as label, writes real
   #   value back to Backbone model;
@@ -42,6 +42,7 @@ define [ "utils"
               then  kvm[fieldName]("")
               else  kvm[fieldName](val || lab)
 
+        kvm[fieldName].local = kvm["#{fieldName}Local"]
         # Use builder here, because same field can be in group
         # and in the main section, and we need to have
         # different instances og thMenu for them
@@ -149,6 +150,10 @@ define [ "utils"
           return if k["#{n}Disabled"]()
           v = k[n]()
           k[n] _.without v, el.value
+
+        k[n].many = k["#{n}Many"]
+        k[n].locals = k["#{n}Locals"]
+        k[n].remove = k["#{n}Remove"]
 
         thmenuInit k, n, dict, (v) ->
           # FIXME: find more appropriate way to set values here
