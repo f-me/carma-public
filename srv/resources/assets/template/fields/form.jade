@@ -337,7 +337,9 @@ mixin dict(nameMod, iconClass)
         input.pane-span(type='text'
                         name='name'
                         autocomplete='off'
-                        meta.transform='meta.transform'
+                        style="{{# meta.transform }}\n\
+                               text-transform:{{meta.transform}};\n\
+                               {{/ meta.transform }}"
                         onfocus="showComplex('{{ viewName }}', '{{ name }}');"
                         data-bind="value: {{ name }},\
                                    valueUpdate: 'afterkeydown',\
