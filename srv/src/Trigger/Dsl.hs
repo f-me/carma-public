@@ -34,7 +34,7 @@ module Trigger.Dsl
     , dbCreate
     , dbRead
     , dbUpdate
-    , prevClosedActions
+    , caseActions
 
       -- ** Miscellaneous
     , userIsReady
@@ -88,6 +88,7 @@ import Snaplet.Messenger.Class (withMsg)
 import Utils.LegacyModel (mkLegacyIdent)
 
 import qualified Carma.Model.Action as Action
+import Carma.Model.ActionResult(ActionResult)
 import Carma.Model.ActionType  (ActionType)
 import Carma.Model.Case        (Case)
 import Carma.Model.Event       (Event, EventType)
@@ -196,31 +197,25 @@ inParentContext act = do
   setState $ st {st_patch = patch'}
 
 
+-- | List of actions in a case, ordered by 'Action.closeTime' in
+-- descending order.
+caseActions :: IdentI Case
+            -> Free (Dsl m) [( IdentI Action.Action
+                             , IdentI ActionType
+                             , Maybe (IdentI Usermeta)
+                             , Maybe (IdentI Service)
+                             , Maybe (IdentI ActionResult))]
+caseActions cid =
+  liftFree $
+  DbIO (Sql.select (Action.ident :. Action.aType :. Action.assignedTo :.
+                    Action.serviceId :. Action.result :.
+                    Action.caseId `Sql.eq` cid :.
+                    Sql.descBy Action.closeTime)) (map proj)
+  where
+    proj ((PG.Only aid) :. (PG.Only aType) :. (PG.Only uid) :.
+          (PG.Only sid) :. (PG.Only res) :. ()) =
+      (aid, aType, uid, sid, res)
 
-
--- | List of closed actions in a case. Last closed actions come first.
-prevClosedActions :: IdentI Case
-                  -> [IdentI ActionType]
-                  -- ^ Select only actions of this type.
-                  -> Free (Dsl m) [PG.Only (IdentI Action.Action)]
-prevClosedActions cid types = dbQuery q params
-    where
-      q = [sql|
-           SELECT ? FROM ?
-           WHERE ? = ?
-           AND ? IN ?
-           AND ? IS NOT NULL
-           ORDER BY ? DESC;
-           |]
-      params = ( fieldPT Action.ident
-               , tableQT Action.ident
-               , fieldPT Action.caseId
-               , cid
-               , fieldPT Action.aType
-               , PG.In types
-               , fieldPT Action.result
-               , fieldPT Action.closeTime
-               )
 
 getCityWeather :: Text -> Free (Dsl m) (Either String Weather)
 getCityWeather city = liftFree (DoApp action id)

@@ -25,6 +25,7 @@ module Carma.Backoffice.DSL
     , Outcome
     , Trigger
     , Backoffice(..)
+    , Scope(..)
     , MailType(..)
     , finish
     , setServiceStatus
@@ -109,13 +110,15 @@ class Backoffice impl where
 
     currentUser :: impl (Maybe (IdentI Usermeta))
 
-    -- | Assign to the last user who closed a matching action in the
-    -- case with some result.
-    whoClosedWith :: [ActionTypeI]
-                  -- ^ Matching action types.
-                  -> ActionResultI
-                  -- ^ A result used to close the matched actions.
-                  -> impl (Maybe (IdentI Usermeta))
+    -- | Assign to the last user who closed a matching action with
+    -- given result.
+    whoClosed :: Scope
+              -- ^ Where to look for actions.
+              -> [ActionTypeI]
+              -- ^ Matching action types.
+              -> ActionResultI
+              -- ^ A result used to close the matched actions.
+              -> impl (Maybe (IdentI Usermeta))
 
     -- | Source action which led to this one. If there was no previous
     -- action (e.g. when the action was created from an 'Entry'), this
@@ -218,7 +221,7 @@ class Backoffice impl where
 
     -- | Branching.
     switch :: [(impl Bool, impl v)]
-           -- ^ List of condition/value pair. The first condition to
+           -- ^ List of condition/value pairs. The first condition to
            -- be true selects the value of the expression.
            -> impl v
            -- ^ Default branch (used when no true conditions occured).
@@ -233,12 +236,15 @@ class Backoffice impl where
     sendMail :: MailType -> impl (Eff m)
 
     sendSMS  :: IdentI SmsTemplate -> impl (Eff m)
-    -- | Close all previously created actions in the case.
-    closeWith :: [ActionTypeI]
-              -- ^ Matching action types.
-              -> ActionResultI
-              -- ^ A result used to close the matched actions.
-              -> impl (Eff m)
+
+    -- | Close due actions of matching type.
+    closePrevious :: Scope
+                  -- ^ Where to look for actions.
+                  -> [ActionTypeI]
+                  -- ^ Matching action types.
+                  -> ActionResultI
+                  -- ^ A result used to close the matched actions.
+                  -> impl (Eff m)
 
     -- | Create new actions of given types.
     --

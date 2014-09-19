@@ -13,6 +13,7 @@ module Carma.Backoffice.DSL.Types
       Eff
     , Outcome
     , Trigger
+    , Scope(..)
     , MailType(..)
 
       -- * Haskell interface for Backoffice DSL
@@ -55,6 +56,10 @@ data Outcome m
 
 
 data Trigger
+
+
+-- | Scope for selection terms.
+data Scope = InCase | InService
 
 
 -- | Mail type/destination.

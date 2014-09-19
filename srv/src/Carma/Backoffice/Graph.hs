@@ -110,7 +110,7 @@ instance Backoffice EdgeE where
 
     nobody = nothing
     currentUser = nothing
-    whoClosedWith _ _ = nothing
+    whoClosed _ _ _ = nothing
 
     previousAction = nothing
 
@@ -168,7 +168,7 @@ instance Backoffice EdgeE where
     sendMail _ = nothing
     sendSMS _ = nothing
 
-    closeWith _ _ = nothing
+    closePrevious _ _ _ = nothing
 
     defer =
         EdgeE $ \c ->

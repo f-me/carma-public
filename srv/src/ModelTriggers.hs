@@ -581,14 +581,27 @@ instance Backoffice HaskellE where
         sid <- srvId'
         return $ Dsl.sendSMS sid tpl
 
-    closeWith types res =
-        HaskellE $ do
-          ctx <- ask
-          return $ do
-            let cid = kase ctx `get'` Case.ident
-                p = Patch.put Action.result (Just res) Patch.empty
-            aids <- prevClosedActions cid types
-            forM_ aids (\(PS.Only i) -> dbUpdate i p)
+    closePrevious scope types res =
+      HaskellE $ do
+        ctx <- ask
+        return $ do
+          let cid = kase ctx `get'` Case.ident
+              sid = (`get'` Service.ident) <$> service ctx
+              p   = Patch.put Action.result (Just res) Patch.empty
+          allActs <- caseActions cid
+          forM_ allActs $
+            \case
+              -- Ignore closed actions
+              (  _,  _,  _,      _,  Just _) -> return ()
+              (aid, aT,  _, actSid, Nothing) ->
+                case (scope, actSid == sid, aT `elem` types) of
+                  -- Filter actions by service if needed. Note that
+                  -- *no* error is raised when called with InService
+                  -- from service-less action effect
+                  (InService, False,    _) -> return ()
+                  (        _,     _, True) -> void $ dbUpdate aid p
+                  -- Ignore actions of other types
+                  _                        -> return ()
 
     a *> b =
         HaskellE $ do
