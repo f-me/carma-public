@@ -587,7 +587,18 @@ instance Backoffice HaskellE where
         return $ do
           let cid = kase ctx `get'` Case.ident
               sid = (`get'` Service.ident) <$> service ctx
-              p   = Patch.put Action.result (Just res) Patch.empty
+              -- Patch for closing actions
+              p   =
+                Patch.put Action.result (Just res) $
+                -- Set current user as assignee if closing unassigned
+                -- action
+                --
+                -- TODO this is identical to basic Action.result
+                -- trigger, which we can't call programmatically
+                Patch.put Action.assignedTo
+                (Just $ user ctx `get'` Usermeta.ident) $
+                Patch.put Action.closeTime (Just $ now ctx) Patch.empty
+
           allActs <- caseActions cid
           forM_ allActs $
             \case
