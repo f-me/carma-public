@@ -303,6 +303,7 @@ tellMakerDeclined =
     ((5 * minutes) `since` now)
     [ (AResult.clientNotified,
        setServiceStatus SS.closed *> finish)
+    , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]
 
