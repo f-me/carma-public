@@ -151,6 +151,8 @@ openAction = do
 
 -- | Read @caseid@ request parameter and serve JSON list of ids of
 -- open actions in that case.
+--
+-- TODO Convert this to a read-trigger for Case.actions EF.
 dueCaseActions :: AppHandler ()
 dueCaseActions = do
   cid <- fromMaybe (error "Could not read caseid parameter") <$>
@@ -160,6 +162,7 @@ dueCaseActions = do
            Sql.select
            (Action.ident :.
             Action.caseId `Sql.eq` (Ident cid) :.
+            Sql.isNull Action.result :.
             Sql.ascBy Action.ident :. Sql.descBy Action.closeTime)
            conn
   writeJSON $ map (\(Only aid :. ()) -> aid) res
