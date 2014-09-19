@@ -35,7 +35,7 @@ define [ "text!tpl/screens/uploads.html"
       done((res) ->
         newFiles = _.without(res.files.split(","), ref).join(",")
         $.putJSON(caseUrl, {files: newFiles}).
-          done(() -> bvm.cases.remove caseId.toString()))
+          done(() -> bvm.cases.remove caseId))
 
   # Attach a file to a case, provided file's bvm and a field
   # containing case number. Check for dupes/unknown cases. Set af's
