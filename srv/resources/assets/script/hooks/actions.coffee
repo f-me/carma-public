@@ -17,7 +17,7 @@ define ["utils"], (u) ->
               actName = actName + " (#{svcName})"
           if uid?
             login = uDict.getLab uid
-            "@#{login}: #{actName}"
+            "@#{login}<br /> #{actName}"
           else
             actName
     knockVM["myAction"] = ko.computed ->

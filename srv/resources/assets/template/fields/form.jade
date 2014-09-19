@@ -592,7 +592,7 @@ mixin simpleRefHdr(name, bindName)
       i.icon.icon-flag(data-bind='visible: myAction')
       span(data-bind='visible: myAction')
         | &nbsp;
-      a(data-bind='text: actionNameLocal')
+      a(data-bind='html: actionNameLocal')
         | Действие…
 
 mixin caseFilesList
