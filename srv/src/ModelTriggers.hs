@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -47,6 +48,7 @@ import           Trigger.Dsl as Dsl
 import           Carma.Model.Types (HMDiffTime(..), on, off)
 
 import qualified Carma.Model.Action as Action
+import qualified Carma.Model.ActionType as ActionType
 import qualified Carma.Model.BusinessRole as BusinessRole
 import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
@@ -79,6 +81,8 @@ import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
+
+import           AppHandlers.ActionAssignment
 
 -- TODO: rename
 --   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
@@ -190,10 +194,10 @@ beforeUpdate = Map.unionsWith (++) $
 
   , trigOn ActionType.priority $
     \n -> modPut ActionType.priority $
-          case n of
-            _ | n < topPriority   -> topPriority
-              | n > leastPriority -> leastPriority
-              | otherwise         -> n
+          if
+            | n < topPriority   -> topPriority
+            | n > leastPriority -> leastPriority
+            | otherwise         -> n
 
   , trigOn Action.result $ \case
       Nothing -> return ()
