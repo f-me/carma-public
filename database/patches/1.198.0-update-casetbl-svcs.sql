@@ -27,6 +27,6 @@ FROM servicetbl GROUP BY parentid;
 
 UPDATE casetbl SET services = null;
 
-explain UPDATE casetbl c SET services = q.services
+UPDATE casetbl c SET services = q.services
 FROM casetbl_services q WHERE q.caseId = id;
 ALTER TABLE servicetbl DROP COLUMN modelName;
