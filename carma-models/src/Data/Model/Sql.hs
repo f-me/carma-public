@@ -7,6 +7,7 @@ module Data.Model.Sql
   , selectPatch
   , update
   , eq
+  , fullPatch
   , isNull
   , sql_in
   , descBy
@@ -118,6 +119,37 @@ class (ToRow (QArg q), Model (QMod q)) => SqlQ q where
   queryOrdering   :: q -> [Text]
   queryTbl       :: q -> Text
   queryArgs       :: q -> QArg q
+
+
+data FullProj m = FullProj
+
+
+-- | Obtain 'FullPatch' using 'select'.
+fullPatch :: (m -> PK t m d) -> FullProj m
+fullPatch _ = FullProj
+
+
+instance (Model m) => SqlQ (FullProj m) where
+  type QRes (FullProj m) = FullPatch m
+  type QArg (FullProj m) = ()
+  type QMod (FullProj m) = m
+  queryProjection _ = map fd_name $ onlyDefaultFields $
+                      modelFields (modelInfo :: ModelInfo m)
+  queryPredicate  _ = []
+  queryOrdering   _ = []
+  queryTbl        _ = tableName (modelInfo :: ModelInfo m)
+  queryArgs       _ = ()
+
+
+instance (Model m, SqlQ q, QMod q ~ m) => SqlQ ((FullProj m) :. q) where
+  type QRes ((FullProj m) :. q) = FullPatch m :. QRes q
+  type QArg ((FullProj m) :. q) = QArg q
+  type QMod ((FullProj m) :. q) = m
+  queryProjection (f :. q) = queryProjection f ++ queryProjection q
+  queryPredicate  (_ :. q) = queryPredicate q
+  queryOrdering   (_ :. q) = queryOrdering q
+  queryTbl         _       = tableName (modelInfo :: ModelInfo m)
+  queryArgs       (_ :. q) = queryArgs q
 
 
 instance (Model m, SingI nm, FromField t)

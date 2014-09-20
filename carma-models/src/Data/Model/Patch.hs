@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model.Patch
@@ -6,6 +7,8 @@ module Data.Model.Patch
   , toParentIdent
   , toParentPatch
   , mergeParentPatch
+  , IPatch
+  , FullPatch, Data.Model.Patch.Object
   , get, get', put, delete, union
   , empty
   , W(..)
@@ -20,7 +23,7 @@ import Control.Monad.Trans.Class (lift)
 
 import Data.ByteString (ByteString)
 import Data.Maybe (catMaybes, fromMaybe)
-import Data.Aeson.Types
+import Data.Aeson.Types as Aeson
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Data.Text (Text, toLower, unpack)
@@ -45,32 +48,49 @@ data Patch m -- FIXME: why HashMap, not good old Data.Map?
   = Patch { untypedPatch :: HashMap Text Dynamic }
   deriving Typeable
 
-get :: (Typeable t, SingI name) =>
-       Patch m -> (m -> Field t (FOpt name desc app)) -> Maybe t
-get (Patch m) f
-  = (`fromDyn` (error "Dynamic error in patch"))
-  <$> HashMap.lookup (fieldName f) m
+
+-- | A version of 'Patch' guaranteed to have all fields.
+newtype FullPatch m =
+  FullPatch (Patch m) deriving (IPatch, ToJSON, ToRow, Typeable)
 
 
-put :: (Typeable t, SingI name) =>
-       (m -> Field t (FOpt name desc app)) -> t -> Patch m -> Patch m
-put f v (Patch m) = Patch $ HashMap.insert (fieldName f) (toDyn v) m
+type Object m = FullPatch m
+
+
+class IPatch p where
+  -- | Look up a field in a patch.
+  get :: (Typeable t, SingI name) =>
+         p m -> (m -> Field t (FOpt name desc app)) -> Maybe t
+
+  -- | Add a field to a patch.
+  put :: (Typeable t, SingI name) =>
+         (m -> Field t (FOpt name desc app)) -> t -> p m -> p m
+
+  -- | Delete a field from a patch.
+  delete :: (SingI name) =>
+            (m -> Field t (FOpt name desc app)) -> p m -> Patch m
 
 
 empty :: Patch m
 empty = Patch HashMap.empty
 
 
+instance IPatch Patch where
+  get (Patch m) f = (`fromDyn` (error "Dynamic error in patch")) <$>
+                    HashMap.lookup (fieldName f) m
+
+  put f v (Patch m) = Patch $ HashMap.insert (fieldName f) (toDyn v) m
+
+  delete f (Patch m) = Patch $ HashMap.delete (fieldName f) m
+
+
+-- | Type-safe total version of 'get'.
 get' :: (Typeable t, SingI name) =>
-        Patch m -> (m -> Field t (FOpt name desc app)) -> t
+        FullPatch m -> (m -> Field t (FOpt name desc app)) -> t
 get' p f
   = fromMaybe (error $ "Patch field " ++ unpack (fieldName f) ++ " missing") $
     get p f
 
-
-delete :: (SingI name) =>
-          (m -> Field t (FOpt name desc app)) -> Patch m -> Patch m
-delete f (Patch m) = Patch $ HashMap.delete (fieldName f) m
 
 union :: Patch m -> Patch m -> Patch m
 union p1 p2 = Patch $ HashMap.union (untypedPatch p1) (untypedPatch p2)
@@ -107,7 +127,7 @@ mergeParentPatch a b = case parentInfo :: ParentInfo m of
 
 
 instance Model m => FromJSON (Patch m) where
-  parseJSON (Object o)
+  parseJSON (Aeson.Object o)
     = Patch . HashMap.fromList
     <$> mapM parseField (HashMap.toList o)
     where
@@ -170,3 +190,11 @@ fname n = RP $ do
 
 instance Model m => ToJSON (W (Patch m)) where
   toJSON (W p) = toJSON p
+
+
+instance Model m => FromRow (FullPatch m) where
+  fromRow = do
+    let rowP :: RowParser (W (Patch m))
+        rowP = fromRow
+    p <- rowP
+    return $ FullPatch $ unW p

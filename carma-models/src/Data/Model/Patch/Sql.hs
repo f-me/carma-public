@@ -2,7 +2,7 @@
 
 module Data.Model.Patch.Sql
   (create
-  ,read
+  ,read, readPatch
   ,readMany, readManyWithFilter
   ,update
   ) where
@@ -48,8 +48,9 @@ create p c = try $ do
   return res
 
 
-read :: forall m . Model m => IdentI m -> Connection -> IO (Either SomeException (Patch m))
-read (Ident i) c = try $ do
+read :: forall m p. (FromRow (p m), Model m) =>
+        IdentI m -> Connection -> IO (Either SomeException (p m))
+read i c = try $ do
   let mInfo = modelInfo :: ModelInfo m
       fieldNames = map fd_name $ onlyDefaultFields $ modelFields mInfo
       q = printf "SELECT %s FROM %s WHERE id = ? LIMIT 2"
@@ -57,6 +58,13 @@ read (Ident i) c = try $ do
         (show $ tableName mInfo)
   [res] <- query c (fromString q) [i]
   return res
+
+
+{-# DEPRECATED readPatch "Add more types and use read instead" #-}
+-- | Convenience wrapper for 'read' with legacy type.
+readPatch :: forall m. Model m =>
+             IdentI m -> Connection -> IO (Either SomeException (Patch m))
+readPatch = read
 
 
 readMany :: forall m . Model m => Int64 -> Int64 -> Connection -> IO [Patch m]

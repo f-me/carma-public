@@ -96,7 +96,7 @@ instance Model VinFormat where
 --
 -- TODO Refactor this so that we can match on TitleParameter singleton
 -- (requires type witness that TitleParameter (SFFT a) ~ SFFL v).
-ffaTitles :: FormatFieldAccessor VinFormat -> Patch.Patch VinFormat -> [Text]
+ffaTitles :: FormatFieldAccessor VinFormat -> Patch.Object VinFormat -> [Text]
 ffaTitles (FFAcc _ sTag _ _ _ tAcc) vf =
     let
         textProj "" = []
