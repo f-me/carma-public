@@ -41,8 +41,9 @@ toBack :: Entry
 toBack =
     Entry
     (onField Service.status (const SS.backoffice)
-    ((closePrevious InCase
-      [AType.tellMeMore, AType.callMeMaybe] AResult.communicated) *>
+    (closePrevious InCase
+     [AType.tellMeMore, AType.callMeMaybe]
+     AResult.communicated *>
      switch
      [ ( serviceField svcType `oneOf` [ST.towage, ST.tech]
        , sendSMS SMS.create *> proceed [AType.orderService]
@@ -78,6 +79,52 @@ mobileOrder =
      (proceed [AType.callMeMaybe]))
 
 
+cancel :: Entry
+cancel =
+    Entry
+    (onField Service.status (const SS.canceled) $
+     switch
+      [ ( serviceField status == const SS.creating ||
+          (serviceField status == const SS.backoffice &&
+           assigneeOfLast InService
+           [AType.orderService, AType.orderServiceAnalyst]
+           [noResult] == nobody) ||
+          (serviceField status == const SS.makerApproval &&
+           assigneeOfLast InService [AType.makerApproval]
+           [noResult] == nobody)
+        , setServiceField falseCall (const FS.nobill) *>
+          closePrevious InService
+          [AType.orderService, AType.orderServiceAnalyst, AType.makerApproval]
+          AResult.clientCanceledService *>
+          closePrevious InCase
+          [AType.tellMeMore, AType.callMeMaybe]
+          AResult.okButNoService *>
+          sendMail PSA *>
+          finish
+        )
+      , ( serviceField status == const SS.backoffice &&
+          currentUser ==
+          assigneeOfLast InService
+          [AType.orderService, AType.orderServiceAnalyst]
+          [noResult]
+        , closePrevious InService
+          [AType.orderService, AType.orderServiceAnalyst]
+          AResult.clientCanceledService *>
+          sendMail PSA *>
+          finish
+        )
+      ] $
+      closePrevious InService
+      [ AType.orderService, AType.orderServiceAnalyst
+      , AType.tellClient, AType.makerApproval
+      , AType.checkStatus, AType.checkEndOfService
+      ]
+      AResult.clientCanceledService *>
+      sendMail PSA *>
+      proceed [AType.cancelService]
+    )
+
+
 recallClient :: Entry
 recallClient =
     Entry
@@ -107,7 +154,8 @@ orderService =
     (ite (previousAction == const AType.needPartner ||
           userField Usermeta.isJack)
      currentUser
-     nobody
+     (assigneeOfLast InCase
+      [AType.tellMeMore, AType.callMeMaybe] [just AResult.communicated])
     )
     (let
         n = (1 * minutes) `since` now
@@ -441,6 +489,7 @@ carmaBackoffice =
       , needMakerApproval
       , mobileOrder
       , recallClient
+      , cancel
       , complaint
       , mistake
       ]

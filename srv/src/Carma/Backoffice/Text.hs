@@ -128,19 +128,21 @@ instance Backoffice TextE where
 
     currentUser = textE "Текущий пользователь"
 
-    whoClosed scope acts res =
+    assigneeOfLast scope acts res =
         TextE $ do
           acts' <- mapM (toText . const) acts
-          res' <- toText $ const res
+          res' <- mapM toText res
           return $ T.concat
-                     [ "Пользователь, последним закрывший "
+                     [ "Пользователь, ответственный за последнее "
                      , scopeText scope
                      , " действие с типом {"
                      , T.intercalate " или " acts'
-                     , "} с результатом "
-                     , res'
-                     , " (если есть)"
+                     , "} в состоянии {"
+                     , T.intercalate " или " res'
+                     , "}"
                      ]
+
+    noResult = textE "Открыто"
 
     previousAction = textE "Предыдущее действие"
 

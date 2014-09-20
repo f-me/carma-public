@@ -110,15 +110,17 @@ class Backoffice impl where
 
     currentUser :: impl (Maybe (IdentI Usermeta))
 
-    -- | Assign to the last user who closed a matching action with
-    -- given result.
-    whoClosed :: Scope
-              -- ^ Where to look for actions.
-              -> [ActionTypeI]
-              -- ^ Matching action types.
-              -> ActionResultI
-              -- ^ A result used to close the matched actions.
-              -> impl (Maybe (IdentI Usermeta))
+    -- | Assignee of the last matching action.
+    assigneeOfLast :: Scope
+                      -- ^ Where to look for actions.
+                   -> [ActionTypeI]
+                   -- ^ Matching action types.
+                   -> [impl (Maybe ActionResultI)]
+                   -- ^ A result used to close the matched actions.
+                   -> impl (Maybe (IdentI Usermeta))
+
+    -- | Empty result of open actions.
+    noResult :: impl (Maybe ActionResultI)
 
     -- | Source action which led to this one. If there was no previous
     -- action (e.g. when the action was created from an 'Entry'), this

@@ -110,8 +110,9 @@ instance Backoffice EdgeE where
 
     nobody = nothing
     currentUser = nothing
-    whoClosed _ _ _ = nothing
+    assigneeOfLast _ _ _ = nothing
 
+    noResult = nothing
     previousAction = nothing
 
     userField _ = nothing

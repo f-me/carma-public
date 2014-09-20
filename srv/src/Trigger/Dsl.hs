@@ -195,15 +195,16 @@ inParentContext act = do
   setState $ st {st_patch = patch'}
 
 
--- | List of actions in a case, ordered by 'Action.closeTime' in
--- descending order.
+-- | List of actions in a case, ordered by 'Action.closeTime' and
+-- 'Action.ctime' in descending order (latest come first).
 caseActions :: IdentI Case
             -> Free (Dsl m) [(Object Action.Action)]
 caseActions cid =
   liftFree $
   DbIO (Sql.select ((Sql.fullPatch Action.ident) :.
                     Action.caseId `Sql.eq` cid :.
-                    Sql.descBy Action.closeTime)) (map (\(x :. ()) -> x))
+                    Sql.descBy Action.closeTime :.
+                    Sql.descBy Action.ctime)) (map (\(x :. ()) -> x))
 
 
 getCityWeather :: Text -> Free (Dsl m) (Either String Weather)

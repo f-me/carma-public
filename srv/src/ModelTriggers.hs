@@ -505,11 +505,21 @@ instance Backoffice HaskellE where
     since nd t =
         HaskellE $ addUTCTime nd <$> toHaskell t
 
-    nobody = HaskellE $ return Nothing
+    nobody = nothing
 
     currentUser =
         HaskellE $
         Just <$> toHaskell (BO.userField Usermeta.ident)
+
+    assigneeOfLast scope types res =
+      HaskellE $ do
+        res' <- mapM toHaskell res
+        ids <- filteredActions scope types (res' :: [Maybe BO.ActionResultI])
+        case ids of
+          (l:_) -> return $ l `get'` Action.assignedTo
+          []    -> return Nothing
+
+    noResult = nothing
 
     previousAction =
         HaskellE $
@@ -584,10 +594,9 @@ instance Backoffice HaskellE where
     closePrevious scope types res =
       HaskellE $ do
         ctx <- ask
+        targetActs <- filteredActions scope types [Nothing]
         return $ do
-          let cid = kase ctx `get'` Case.ident
-              sid = (`get'` Service.ident) <$> service ctx
-              -- Patch for closing actions
+          let -- Patch for closing actions
               p   =
                 Patch.put Action.result (Just res) $
                 -- Set current user as assignee if closing unassigned
@@ -598,27 +607,7 @@ instance Backoffice HaskellE where
                 Patch.put Action.assignedTo
                 (Just $ user ctx `get'` Usermeta.ident) $
                 Patch.put Action.closeTime (Just $ now ctx) Patch.empty
-
-          allActs <- caseActions cid
-          forM_ allActs $
-            \act ->
-              case act `get'` Action.result of
-                -- Ignore closed actions
-                Just _ -> return ()
-                Nothing ->
-                  let
-                    aT = act `get'` Action.aType
-                    actSid = act `get'` Action.serviceId
-                  in
-                    case (scope, actSid == sid, aT `elem` types) of
-                      -- Filter actions by service if needed. Note that
-                      -- *no* error is raised when called with InService
-                      -- from service-less action effect
-                      (InService, False,    _) -> return ()
-                      (        _,     _, True) ->
-                        void $ dbUpdate (act `get'` Action.ident) p
-                      -- Ignore actions of other types
-                      _                        -> return ()
+          forM_ targetActs (\act -> dbUpdate (act `get'` Action.ident) p)
 
     a *> b =
         HaskellE $ do
@@ -731,10 +720,12 @@ mkContext act = do
   srv <- getService
   kase' <- getKase
   usr <- dbRead =<< getCurrentUser
+  acts <- caseActions $ kase' `get'` Case.ident
   t <- getNow
   return HCtx{ kase = kase'
              , service = srv
              , user = usr
+             , actions = acts
              , prevAction = act
              , now = t
              }
@@ -757,6 +748,10 @@ newActionData ctx aType = (e, p)
         Patch.empty
 
 
+nothing :: HaskellE (Maybe t)
+nothing = HaskellE $ return Nothing
+
+
 -- | Obtain service id from the context or fail.
 srvId' :: Reader HCtx (IdentI Service)
 srvId' = do
@@ -764,6 +759,32 @@ srvId' = do
   return $
     fromMaybe (error "No service id in context") $
     service ctx >>= (`Patch.get` Service.ident)
+
+
+-- | Select some actions from the context.
+filteredActions :: Scope
+                -> [BO.ActionTypeI]
+                -- ^ Matching action types.
+                -> [Maybe BO.ActionResultI]
+                -- ^ Matching action results.
+                -> Reader HCtx [Object Action.Action]
+filteredActions scope types resList = do
+  ctx <- ask
+  return $ do
+    let sid =  service ctx >>= (`get` Service.ident)
+    (`filter` (actions ctx)) $
+      \act ->
+        let
+          typeOk   = (act `get'` Action.aType) `elem` types
+          resultOk = (act `get'` Action.result) `elem` resList
+          srvOk    = case scope of
+                       InCase -> True
+                       -- Filter actions by service if needed. Note that
+                       -- *no* error is raised when called with InService
+                       -- from service-less action effect
+                       InService -> act `get'` Action.serviceId == sid
+        in
+          typeOk && resultOk && srvOk
 
 
 evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty
@@ -782,6 +803,7 @@ data HCtx =
     HCtx { kase       :: Object Case
          , user       :: Object Usermeta
          , service    :: Maybe (Object Service)
+         , actions    :: [Object Action.Action]
          , prevAction :: Maybe ActionTypeI
          , now        :: UTCTime
          -- ^ Frozen time.

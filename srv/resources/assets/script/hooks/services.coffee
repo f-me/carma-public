@@ -119,7 +119,7 @@ define [ "utils"
     kvm.buttons.cancel.disabled = ko.computed ->
       _.isEmpty kvm['clientCancelReason']?()
     kvm.buttons.cancel.click = ->
-      if confirm "Убедиться в том, что кнопка не работает?"
+      if confirm "Выполнить отказ от услуги?"
         kvm['status'] global.idents("ServiceStatus").canceled
 
   serviceColor: (model, kvm) ->
