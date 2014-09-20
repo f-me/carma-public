@@ -82,9 +82,9 @@ type family HaskellType t where
 -- | Provides back office context depending on trigger models (@m@ in
 -- @Dsl m@).
 class PreContextAccess m where
-  getKase    :: Free (Dsl m) (Patch Case)
-  getService :: Free (Dsl m) (Maybe (Patch Service))
-  getAction  :: Free (Dsl m) (Maybe (Patch CarmaAction.Action))
+  getKase    :: Free (Dsl m) (Object Case)
+  getService :: Free (Dsl m) (Maybe (Object Service))
+  getAction  :: Free (Dsl m) (Maybe (Object CarmaAction.Action))
 
 
 instance PreContextAccess Case where

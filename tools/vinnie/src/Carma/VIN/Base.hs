@@ -66,7 +66,7 @@ data Options = Options
 
 data ImportContext = ImportContext
     { connection :: Connection
-    , vinFormat  :: Patch VinFormat
+    , vinFormat  :: FullPatch VinFormat
     }
 
 

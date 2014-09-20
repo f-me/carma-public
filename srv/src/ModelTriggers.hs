@@ -189,7 +189,7 @@ beforeUpdate = Map.unionsWith (++) $
   [trigOn Usermeta.businessRole $ \case
     Nothing -> return ()
     Just bRole -> do
-      Just roles <- (`Patch.get` BusinessRole.roles) <$> dbRead bRole
+      roles <- (`get'` BusinessRole.roles) <$> dbRead bRole
       modPut Usermeta.roles roles
 
   , trigOn ActionType.priority $
@@ -601,18 +601,24 @@ instance Backoffice HaskellE where
 
           allActs <- caseActions cid
           forM_ allActs $
-            \case
-              -- Ignore closed actions
-              (  _,  _,  _,      _,  Just _) -> return ()
-              (aid, aT,  _, actSid, Nothing) ->
-                case (scope, actSid == sid, aT `elem` types) of
-                  -- Filter actions by service if needed. Note that
-                  -- *no* error is raised when called with InService
-                  -- from service-less action effect
-                  (InService, False,    _) -> return ()
-                  (        _,     _, True) -> void $ dbUpdate aid p
-                  -- Ignore actions of other types
-                  _                        -> return ()
+            \act ->
+              case act `get'` Action.result of
+                -- Ignore closed actions
+                Just _ -> return ()
+                Nothing ->
+                  let
+                    aT = act `get'` Action.aType
+                    actSid = act `get'` Action.serviceId
+                  in
+                    case (scope, actSid == sid, aT `elem` types) of
+                      -- Filter actions by service if needed. Note that
+                      -- *no* error is raised when called with InService
+                      -- from service-less action effect
+                      (InService, False,    _) -> return ()
+                      (        _,     _, True) ->
+                        void $ dbUpdate (act `get'` Action.ident) p
+                      -- Ignore actions of other types
+                      _                        -> return ()
 
     a *> b =
         HaskellE $ do
@@ -773,9 +779,9 @@ emptyContext = error "Empty context accessed (HaskellE interpreter bug)"
 --
 -- Enables data access via pure terms.
 data HCtx =
-    HCtx { kase       :: Patch Case
-         , user       :: Patch Usermeta
-         , service    :: Maybe (Patch Service)
+    HCtx { kase       :: Object Case
+         , user       :: Object Usermeta
+         , service    :: Maybe (Object Service)
          , prevAction :: Maybe ActionTypeI
          , now        :: UTCTime
          -- ^ Frozen time.

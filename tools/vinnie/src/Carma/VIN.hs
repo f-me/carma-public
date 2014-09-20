@@ -113,7 +113,7 @@ vinImport = do
 
 
 type FFA = FormatFieldAccessor VinFormat
-type C a = Patch a
+type C a = FullPatch a
 
 
 -- | Default settings for VIN list CSV files: semicolon-separated

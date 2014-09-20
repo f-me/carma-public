@@ -7,6 +7,7 @@ import qualified Control.Monad.Trans.RWS.Strict as RWS
 
 import           Data.String     (fromString)
 import           Data.ByteString (ByteString)
+import           Data.Maybe
 import qualified Data.Map.Strict as M
 import           Data.Vector (Vector)
 -- import           Data.Time.Clock (DiffTime)
@@ -86,10 +87,9 @@ fillKPIs = do
   putInSt u (f1, v1) (f2, v2) =
     RWS.modify $ M.adjust (\a -> put f1 v1 $ put f2 v2 a) u
 
-  mergeKPI (W p) = RWS.modify $ M.adjust (union p) $ get' p user
+  mergeKPI (W p) = RWS.modify $ M.adjust (union p) $
+                   fromMaybe (error "No KPI field in user") $ get p user
   qry pgfn = do
     prms <- RWS.ask
     lift $ query (fromString $
       "SELECT * FROM " ++ pgfn ++ "(?, ?, ?)") prms
-
-

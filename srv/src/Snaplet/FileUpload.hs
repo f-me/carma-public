@@ -126,7 +126,7 @@ uploadInManyFields :: HasPG b =>
                    -> Maybe (FilePath -> FilePath)
                    -- ^ Change source file name when saving.
                    -> Handler b (FileUpload b)
-                      (Patch.Patch Attachment, [ATarget], [ATarget], Bool)
+                      (Patch.Object Attachment, [ATarget], [ATarget], Bool)
 uploadInManyFields flds nameFun = do
   -- Store the file
   fPath <- oneUpload =<< doUpload =<< gets tmp
@@ -175,16 +175,16 @@ uploadInManyFields flds nameFun = do
           let
             mIdent = Ident objId :: IdentI m
           in
-            (withPG $ DB.read mIdent) >>=
+            (withPG $ DB.exists mIdent) >>=
             \case
-              Left _ -> return $ Left t
-              Right _ -> do
+              Right True -> do
                 attachToField mIdent field $
                   T.concat $ [ modelName (modelInfo :: ModelInfo Attachment)
                              , ":"
                              , T.pack $ show aid
                              ]
                 return $ Right t
+              _ -> return $ Left t
       in
         case dispatch model attachToModel of
           Just t' -> t'

@@ -78,7 +78,7 @@ import           Database.PostgreSQL.Simple ((:.) (..))
 import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SqlQQ
 import Data.Model as Model
-import Data.Model.Patch (Patch)
+import Data.Model.Patch (Object, Patch)
 import qualified Data.Model.Sql as Sql
 import qualified Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as Patch
@@ -88,8 +88,6 @@ import Snaplet.Messenger.Class (withMsg)
 import Utils.LegacyModel (mkLegacyIdent)
 
 import qualified Carma.Model.Action as Action
-import Carma.Model.ActionResult(ActionResult)
-import Carma.Model.ActionType  (ActionType)
 import Carma.Model.Case        (Case)
 import Carma.Model.Event       (Event, EventType)
 import Carma.Model.Service     (Service)
@@ -154,7 +152,7 @@ tOk = Right <$> getPatch
 dbCreate :: Model m => Patch m -> Free (Dsl n) (IdentI m)
 dbCreate p = liftFree (DbCreate p id)
 
-dbRead :: Model m => IdentI m -> Free (Dsl n) (Patch m)
+dbRead :: (PG.FromRow (p m), Model m) => IdentI m -> Free (Dsl n) (p m)
 dbRead i = liftFree (DbRead i id)
 
 dbUpdate :: Model m => IdentI m -> Patch m -> Free (Dsl n) Int64
@@ -200,21 +198,12 @@ inParentContext act = do
 -- | List of actions in a case, ordered by 'Action.closeTime' in
 -- descending order.
 caseActions :: IdentI Case
-            -> Free (Dsl m) [( IdentI Action.Action
-                             , IdentI ActionType
-                             , Maybe (IdentI Usermeta)
-                             , Maybe (IdentI Service)
-                             , Maybe (IdentI ActionResult))]
+            -> Free (Dsl m) [(Object Action.Action)]
 caseActions cid =
   liftFree $
-  DbIO (Sql.select (Action.ident :. Action.aType :. Action.assignedTo :.
-                    Action.serviceId :. Action.result :.
+  DbIO (Sql.select ((Sql.fullPatch Action.ident) :.
                     Action.caseId `Sql.eq` cid :.
-                    Sql.descBy Action.closeTime)) (map proj)
-  where
-    proj ((PG.Only aid) :. (PG.Only aType) :. (PG.Only uid) :.
-          (PG.Only sid) :. (PG.Only res) :. ()) =
-      (aid, aType, uid, sid, res)
+                    Sql.descBy Action.closeTime)) (map (\(x :. ()) -> x))
 
 
 getCityWeather :: Text -> Free (Dsl m) (Either String Weather)
@@ -300,7 +289,8 @@ liftFree = Free . fmap Pure
 data Dsl m k where
   ModState    :: (DslState m -> (DslState m, res)) -> (res -> k) -> Dsl m k
   DbCreate    :: Model m1 => Patch m1 -> (IdentI m1 -> k) -> Dsl m k
-  DbRead      :: Model m1 => IdentI m1 -> (Patch m1 -> k) -> Dsl m k
+  DbRead      :: (PG.FromRow (p m1), Model m1) =>
+                 IdentI m1 -> (p m1 -> k) -> Dsl m k
   DbUpdate    :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
   DbIO        :: (PG.Connection -> IO res) -> (res -> k) -> Dsl m k
   CurrentUser :: (IdentI Usermeta -> k) -> Dsl m k
