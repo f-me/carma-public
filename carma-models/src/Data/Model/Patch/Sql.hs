@@ -4,6 +4,7 @@ module Data.Model.Patch.Sql
   (create
   ,read, readPatch
   ,readMany, readManyWithFilter
+  ,exists
   ,update
   ) where
 
@@ -65,6 +66,19 @@ read i c = try $ do
 readPatch :: forall m. Model m =>
              IdentI m -> Connection -> IO (Either SomeException (Patch m))
 readPatch = read
+
+
+exists :: forall m. Model m =>
+          IdentI m -> Connection -> IO (Either SomeException Bool)
+exists i c = try $ do
+  let mInfo = modelInfo :: ModelInfo m
+      q = printf "SELECT 1 FROM %s WHERE id = ?;"
+          (show $ tableName mInfo)
+  query c (fromString q) [i] >>=
+    \case
+      []         -> return False
+      (Only e:_) -> return True
+        where _ = e :: Int
 
 
 readMany :: forall m . Model m => Int64 -> Int64 -> Connection -> IO [Patch m]
