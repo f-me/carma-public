@@ -10,11 +10,18 @@ define ["utils"], (u) ->
         read: ->
           actName = (u.newModelDict "ActionType").getLab knockVM.type()
           svcId   = knockVM.serviceId()
-          # TODO Speed this up for cases when kvm._parent is present
-          if svcId
+          # Try to look into parent model for services list
+          if knockVM._parent?
+            svc = _.find knockVM._parent['servicesReference']?(),
+              (s) -> s.id() == svcId
+            svcName = sDict.getLab svc?.type()
+          # If not, fetch parent service manually
+          if svcId && !svcName?
             $.bgetJSON "/_/Service/#{svcId}", (res) ->
               svcName = sDict.getLab res.type
-              actName = actName + " (#{svcName})"
+          # Add service name suffix if managed to find it out
+          if svcName?
+            actName = actName + " (#{svcName})"
           if uid?
             login = uDict.getLab uid
             "@#{login}<br /> #{actName}"
