@@ -31,23 +31,21 @@ import           Carma.Model.City (City)
 import           Carma.Model.Role (Role)
 import           Carma.Model.BusinessRole (BusinessRole)
 
-import {-#SOURCE#-} Carma.Model.Program (Program)
+import {-#SOURCE#-} Carma.Model.SubProgram.Type (SubProgram)
 
 data Usermeta = Usermeta
   { ident        :: PK Int Usermeta      "Данные о пользователе"
   , uid          :: F Int                "uid"     "Snap-идентификатор"
   , isActive     :: F Bool               "isActive" "Активен"
-  , isJack       :: F Bool               "isJack"   "Универсал"
   , realName     :: F Text               "realName" "ФИО пользователя"
   , login        :: F Text               "login"    "Логин"
   , password     :: EF Password          "password" "Пароль"
-  -- TODO String-wrapped list of Role ids (to be used until usermeta
-  -- is fully migrated to new models)
   , roles        :: F (Vector (IdentI Role)) "roles" "Роли в системе"
   , businessRole :: F (Maybe (IdentI BusinessRole))  "businessRole" "Бизнес-роль"
-  , programs     :: F (Vector (IdentI Program)) "programs" "Подпрограммы"
+  , isJack       :: F Bool               "isJack"   "Универсал"
   , bocities     :: F (Vector (IdentI City)) "bocities" "Города"
   , boprograms   :: F (Vector Text)      "boprograms" "Программы"
+  , subPrograms  :: F (Vector (IdentI SubProgram)) "subPrograms" "Подпрограммы"
   , isDealer     :: F Bool               "isDealer" "Дилер"
   , workPhone    :: F Phone              "workPhone" "Рабочий телефон"
   , workPhoneSuffix
@@ -86,7 +84,7 @@ instance Model Usermeta where
       , required realName
       , required login
       , required password
-      , dict programs $ (dictOpt "prefixedSubPrograms")
+      , dict subPrograms $ (dictOpt "prefixedSubPrograms")
           {dictType = Just "ComputedDict"
           ,dictBounded = True
           }
@@ -95,6 +93,11 @@ instance Model Usermeta where
           ,dictBounded = True
           }
       , widget "onlyServiceBreak" delayedState
+      , infoText "isDealer" isDealer
+      , infoText "isJack" isJack
+      , infoText "userSubprograms" subPrograms
+      , infoText "boPrograms" boprograms
+      , infoText "boCities" bocities
       ]
     _  -> Nothing
 
