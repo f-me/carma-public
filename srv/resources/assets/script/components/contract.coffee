@@ -49,6 +49,7 @@ define [
         callDate < validSince or callDate > validUntil
 
       kvm.close = ->
+        return unless confirm "Стереть из кейса ссылку на контракт?"
         knockVM.contract("");
 
       $("##{el}").html(
