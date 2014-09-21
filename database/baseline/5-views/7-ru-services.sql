@@ -9,7 +9,7 @@ WITH servicecounts AS (
          SELECT DISTINCT ON (serviceId) serviceId, assignedTo
           FROM actiontbl
          WHERE result IN (1, 2)
-         ORDER BY serviceId, closeTime ASC)
+         ORDER BY serviceId, closeTime DESC)
  SELECT
     "PaymentType".label AS "Тип оплаты",
         servicetbl.parentid || COALESCE(('/'::text || rank() OVER (PARTITION BY servicetbl.parentid ORDER BY servicetbl.createtime ASC)) ||
