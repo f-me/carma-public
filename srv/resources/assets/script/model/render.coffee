@@ -146,9 +146,10 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
         # We temprorarily change field type when rendering
         # first field of group, so store real type here.
         realType = f.type
+        realWidget = f.meta?.widget
 
         # Put first field in group in main section, too.
-        # Render it as if it had `group` type.
+        # Render it as if it had `group` type and no widget.
         if group != currentGroup
           currentGroup = group
           if currentGroup == mainGroup
@@ -160,9 +161,11 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
 
             if f.meta and (not f.meta.mainOnly)
               f.type = "group"
+              f.meta?.widget = null
               tpl = chooseFieldTemplate(f, templates)
               contents[mainGroup] += Mustache.render(tpl, ctx)
               f.type = realType
+              f.meta?.widget = realWidget
 
         # Initialiaze new section contents
         if not _.has(contents, currentSection)
