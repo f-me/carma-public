@@ -4,7 +4,12 @@ WITH servicecounts AS (
             count(*) AS amount
            FROM servicetbl servicetbl_1
           GROUP BY servicetbl_1.parentid
-        )
+        ),
+     orderActions AS (
+         SELECT DISTINCT ON (serviceId) serviceId, assignedTo
+          FROM actiontbl
+         WHERE result IN (1, 2)
+         ORDER BY serviceId, closeTime ASC)
  SELECT
     "PaymentType".label AS "Тип оплаты",
         servicetbl.parentid || COALESCE(('/'::text || rank() OVER (PARTITION BY servicetbl.parentid ORDER BY servicetbl.createtime ASC)) ||
@@ -125,7 +130,7 @@ WITH servicecounts AS (
     servicetbl.payment_costtranscript AS "Расшифровка стоимости",
     servicetbl.payment_paidbyruamc AS "Стоимость со слов партнёра", --"Оплата РАМК",
     usermetatbl.realname AS "Сотрудник, принявший звонок", --"Сотрудник РАМК"
-    allservicesview.assignedto AS "Сотрудник, заказавший услугу", --"Ответственный",
+    u2.realName AS "Сотрудник, заказавший услугу", --"Ответственный",
     timezone('Europe/Moscow'::text, servicetbl.times_factservicestart) AS "Время погруз.(Факт. нач. ок. усл.)",
     timezone('Europe/Moscow'::text, servicetbl.times_factserviceend) AS "Время разгр.(Факт.оконч. ок. усл.)",
     "Satisfaction".label AS "Комментарий (Клиент доволен/нет)",
@@ -231,6 +236,8 @@ WITH servicecounts AS (
    LEFT JOIN "PaymentType" ON servicetbl.paytype = "PaymentType".id
    LEFT JOIN "ServiceStatus" ON servicetbl.status = "ServiceStatus".id
    LEFT JOIN "Satisfaction" ON servicetbl.clientsatisfied = "Satisfaction".id
+   LEFT JOIN orderActions ON servicetbl.id = orderActions.serviceId
+   LEFT JOIN usermetatbl u2 ON u2.id = orderActions.assignedTo
 WHERE casetbl.id = servicetbl.parentid;
 
 GRANT SELECT ON "Услуги" TO reportgen;

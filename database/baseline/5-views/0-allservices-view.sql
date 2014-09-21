@@ -10,7 +10,6 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                                                             NULL::int4 AS towtype,
                                                                                             averagecommissionertbl.contractor_address AS towaddress_address,
                                                                                             averagecommissionertbl.contractor_partnerid AS towdealer_partnerid,
-                                                                                            averagecommissionertbl.assignedto,
                                                                                             averagecommissionertbl.parentid
                                                                                            FROM averagecommissionertbl
                                                                                 UNION ALL
@@ -25,7 +24,6 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                                                             NULL::int4 AS towtype,
                                                                                             NULL::text AS towaddress_address,
                                                                                             banktbl.contractor_partnerid AS towdealer_partnerid,
-                                                                                            banktbl.assignedto,
                                                                                             banktbl.parentid
                                                                                            FROM banktbl)
                                                                         UNION ALL
@@ -40,7 +38,6 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                                                     NULL::int4 AS towtype,
                                                                                     NULL::text AS towaddress_address,
                                                                                     consultationtbl.contractor_partnerid AS towdealer_partnerid,
-                                                                                    consultationtbl.assignedto,
                                                                                     consultationtbl.parentid
                                                                                    FROM consultationtbl)
                                                                 UNION ALL
@@ -55,7 +52,6 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                                             NULL::int4 AS towtype,
                                                                             deliverclienttbl.contractor_address AS towaddress_address,
                                                                             deliverclienttbl.contractor_partnerid AS towdealer_partnerid,
-                                                                            deliverclienttbl.assignedto,
                                                                             deliverclienttbl.parentid
                                                                            FROM deliverclienttbl)
                                                         UNION ALL
@@ -70,7 +66,6 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                                     NULL::int4 AS towtype,
                                                                     informationtbl.contractor_address AS towaddress_address,
                                                                     informationtbl.contractor_partnerid AS towdealer_partnerid,
-                                                                    informationtbl.assignedto,
                                                                     informationtbl.parentid
                                                                    FROM informationtbl)
                                                 UNION ALL
@@ -85,7 +80,6 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                             NULL::int4 AS towtype,
                                                             deliverpartstbl.contractor_address AS towaddress_address,
                                                             deliverpartstbl.contractor_partnerid AS towdealer_partnerid,
-                                                            deliverpartstbl.assignedto,
                                                             deliverpartstbl.parentid
                                                            FROM deliverpartstbl)
                                         UNION ALL
@@ -100,7 +94,6 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                     NULL::int4 AS towtype,
                                                     hoteltbl.contractor_address AS towaddress_address,
                                                     hoteltbl.contractor_partnerid AS towdealer_partnerid,
-                                                    hoteltbl.assignedto,
                                                     hoteltbl.parentid
                                                    FROM hoteltbl)
                         UNION ALL
@@ -115,7 +108,6 @@ CREATE OR REPLACE VIEW allservicesview AS
                                     NULL::int4 AS towtype,
                                     sobertbl.contractor_address AS towaddress_address,
                                     sobertbl.contractor_partnerid AS towdealer_partnerid,
-                                    sobertbl.assignedto,
                                     sobertbl.parentid
                                    FROM sobertbl)
                 UNION ALL
@@ -130,7 +122,6 @@ CREATE OR REPLACE VIEW allservicesview AS
                             NULL::int4 AS towtype,
                             NULL::text AS towaddress_address,
                             renttbl.towdealer_partnerid,
-                            renttbl.assignedto,
                             renttbl.parentid
                            FROM renttbl)
         UNION ALL
@@ -145,7 +136,6 @@ CREATE OR REPLACE VIEW allservicesview AS
                     towagetbl.towtype,
                     towagetbl.towaddress_address,
                     towagetbl.towdealer_partnerid,
-                    towagetbl.assignedto,
                     towagetbl.parentid
                    FROM towagetbl)
 UNION ALL
@@ -160,7 +150,6 @@ UNION ALL
             NULL::int4 AS towtype,
             NULL::text AS towaddress_address,
             NULL::int4 AS towdealer_partnerid,
-            techtbl.assignedto,
             techtbl.parentid
            FROM techtbl)
 UNION ALL
@@ -174,6 +163,5 @@ SELECT taxitbl.id,
        NULL::integer AS towtype,
        taxitbl.taxito_address AS towaddress_address,
        taxitbl.contractor_partnerid AS towdealer_partnerid,
-       taxitbl.assignedto,
        taxitbl.parentid
 FROM taxitbl;
