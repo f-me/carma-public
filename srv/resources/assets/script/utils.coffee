@@ -296,6 +296,12 @@ define [ "model/utils"
     labels = _.map fieldNames, (n) -> "#{mu.fieldNameToLabel(kvm)(n)}"
     "Доступно при заполнении полей: #{labels.join(', ')}"
 
+  # Select case actions with matching types and which are created for
+  # this service
+  svcActions: (kase, svc, types) ->
+    _.filter (kase['actionsList']?() || []),
+      (a) -> (a.serviceId() == svc.id()) && (_.contains types, a.type())
+
   # FIXME: This could be a callback for main.js:saveInstance
   successfulSave: successfulSave
 

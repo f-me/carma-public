@@ -55,6 +55,7 @@ define [ "utils"
   buttons: (model, kvm) ->
     return if /^search/.test(Finch.navigate())
     kvm.buttons = {}
+    kase = kvm._parent
     sDict = u.newModelDict("ServiceStatus")
 
     kvm.buttons.mistake = {}
@@ -101,6 +102,12 @@ define [ "utils"
       if confirm "Сообщить клиенту время оказания услуги?"
         kvm['status'] global.idents("ServiceStatus").recallClient
 
+
+    # There's no guarantee who renders first (services or actions),
+    # try to set up an observable from here
+    if not kase['actionsList']?
+      kase['actionsList'] = ko.observableArray()
+
     # Required fields for the cancel button to be enabled
     cnFields = ['clientCancelReason']
     kvm.buttons.cancel = {}
@@ -108,14 +115,29 @@ define [ "utils"
     kvm.buttons.cancel.text =
       sDict.getLab global.idents("ServiceStatus").canceled
     kvm.buttons.cancel.visible = ko.computed ->
+      # Always show in one of these statuses
       tgtStatuses = [ global.idents("ServiceStatus").creating
-                    , global.idents("ServiceStatus").backoffice
                     , global.idents("ServiceStatus").ordered
                     , global.idents("ServiceStatus").inProgress
                     , global.idents("ServiceStatus").needPartner
                     , global.idents("ServiceStatus").makerApproval
                     ]
-      _.contains tgtStatuses, kvm['status']()
+      statusOk = (_.contains tgtStatuses, kvm['status']())
+
+      # Show actions for a service in backoffice status only if its
+      # order actions are unassigned or assigned to the current user
+      ordersUnassigned = false
+      myOrder = false
+      if kvm['status']() == global.idents("ServiceStatus").backoffice
+        myOrder = false
+        svcActs = u.svcActions kase, kvm,
+          [ global.idents("ActionType").orderService
+          , global.idents("ActionType").orderServiceAnalyst
+          ]
+        ordersUnassigned = !_.isEmpty(svcActs) &&
+          _.every svcActs, (a) -> _.isNull a.assignedTo()
+        myOrder = _.some svcActs, (a) -> a.assignedTo() == global.user.id
+      statusOk || myOrder || ordersUnassigned
     kvm.buttons.cancel.disabled = ko.computed ->
       _.isEmpty kvm['clientCancelReason']?()
     kvm.buttons.cancel.click = ->
@@ -137,5 +159,19 @@ define [ "utils"
 
   updateCaseActions: (model, kvm) ->
     kvm._saveSuccessCb = (k, m, j) ->
+      # Redirect to back when a service with a self-assigned order
+      # action is canceled
+      if j.status == global.idents("ServiceStatus").canceled
+        svcActs = u.svcActions kvm._parent, kvm,
+          [ global.idents("ActionType").orderService
+          , global.idents("ActionType").orderServiceAnalyst
+          ]
+        myOrder = _.some svcActs, (a) -> a.assignedTo() == global.user.id
+        if myOrder
+          window.location.hash = "back"
+      # Update actions list when new actions might appear
+      #
+      # TODO The server should notify the client about new actions
+      # appearing in the case instead of explicit subscription
       if j.status? || j.clientSatisfied?
         k._parent?['renderActions']?()

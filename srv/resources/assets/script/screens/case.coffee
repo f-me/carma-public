@@ -30,6 +30,9 @@ define [ "utils"
                          defaultGroup : "default-case"
                          modelArg     : "ctr:#{kaze.program}"
                          saveSuccessCb: (k, m, j) ->
+                           # TODO The server should notify the client
+                           # about new actions appearing in the case
+                           # instead of explicit subscription
                            if j.caseStatus?
                              k['renderActions']?()
 
@@ -91,6 +94,9 @@ define [ "utils"
         i.val("")
 
     # Manually re-render a list of case actions
+    #
+    # TODO Implement this as a read trigger for Case.actions EF with
+    # WS subscription to action list updates
     renderActions = (kvm) ->
       caseId = kvm.id()
       refCounter = 0
@@ -110,6 +116,10 @@ define [ "utils"
       # Pick reference template
       tpl = flds.find("#actions-reference-template").html()
 
+      # Flush old actionsList
+      if kvm['actionsList']?
+        kvm['actionsList'].removeAll()
+
       $.getJSON "/backoffice/caseActions/#{caseId}", (aids) ->
         for aid in aids
           # Generate reference container
@@ -125,6 +135,11 @@ define [ "utils"
               if j.result?
                 # Redirect to backoffice when an action result changes
                 window.location.hash = "back"
+          # There's no guarantee who renders first (services or
+          # actions), try to set up an observable from here
+          if not kvm['actionsList']?
+            kvm['actionsList'] = ko.observableArray()
+          kvm['actionsList'].push avm
           # Disable action results if any of required case fields is
           # not set
           kvm['hasMissingRequireds'].subscribe (dis) ->
