@@ -127,6 +127,10 @@ beforeCreate = Map.unionsWith (++)
     modPut Case.callDate             $ Just n
     modPut Case.caseStatus             CS.front
     modPut Case.contact_contactOwner $ Just on
+    getPatchField Case.comment >>=
+      \case
+        Just (Just wi) -> fillWazzup wi
+        _              -> return ()
 
   , trigOnModel ([]::[Service]) $ do
     n <- getNow
@@ -242,15 +246,7 @@ beforeUpdate = Map.unionsWith (++) $
 
   , trigOn Case.comment $ \case
       Nothing -> return ()
-      Just wi -> do
-        wazz <- dbRead wi
-        let f :: (FieldI t n d) => (Wazzup.Wazzup -> F t n d) -> t
-            f = Patch.get' wazz
-            p = Patch.put Case.diagnosis1 (f Wazzup.system) .
-                Patch.put Case.diagnosis2 (f Wazzup.part) .
-                Patch.put Case.diagnosis3 (f Wazzup.cause) .
-                Patch.put Case.diagnosis4 (f Wazzup.suggestion)
-        modifyPatch p
+      Just wi -> fillWazzup wi
 
   , trigOn Service.times_expectedServiceStart $ \case
       Nothing -> return ()
@@ -477,6 +473,19 @@ fillValidUntil subprogram newSince = do
       modPut Contract.validUntil
       (Just $ WDay{unWDay = addDays (toInteger vf') vs})
     Nothing -> return ()
+
+
+-- | Fill @diagnosisN@ fields.
+fillWazzup :: IdentI Wazzup.Wazzup -> Free (Dsl Case) ()
+fillWazzup wi = do
+  wazz <- dbRead wi
+  let f :: (FieldI t n d) => (Wazzup.Wazzup -> F t n d) -> t
+      f = Patch.get' wazz
+      p = Patch.put Case.diagnosis1 (f Wazzup.system) .
+          Patch.put Case.diagnosis2 (f Wazzup.part) .
+          Patch.put Case.diagnosis3 (f Wazzup.cause) .
+          Patch.put Case.diagnosis4 (f Wazzup.suggestion)
+  modifyPatch p
 
 
 -- | Change a field in the patch.
