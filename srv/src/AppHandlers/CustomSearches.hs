@@ -16,7 +16,6 @@ module AppHandlers.CustomSearches
       -- ** History
     , searchCallsByPhone
     , getActionsForCase
-    , getCancelsForCase
 
       -- ** Helpers
     , allDealersForMake
@@ -166,25 +165,6 @@ getActionsForCase = do
     ++ "  WHERE caseId = ?") [caseId]
   let fields =
         ["closeTime", "result", "name", "assignedTo", "comment"]
-  writeJSON $ mkMap fields rows
-
-
-getCancelsForCase :: AppHandler ()
-getCancelsForCase = do
-  Just caseId <- getParam "id"
-  let caseId' = B.append "case:" caseId
-  rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT extract (epoch from c.ctime at time zone 'UTC')::int8::text,"
-    ++ "       c.partnerId, c.serviceId::text, c.partnerCancelReason, c.comment,"
-    ++ "       c.owner, p.name"
-    ++ "  FROM partnercanceltbl c"
-    ++ "  LEFT JOIN partnertbl p"
-    ++ "  ON p.id = cast(split_part(c.partnerId, ':', 2) as integer)"
-    ++ "  WHERE c.caseId = ?") [caseId']
-  let fields =
-        [ "ctime", "partnerId", "serviceId", "partnerCancelReason"
-        , "comment", "owner", "partnerName"
-        ]
   writeJSON $ mkMap fields rows
 
 

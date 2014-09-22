@@ -135,13 +135,16 @@ define [ "utils"
       if _.isNull selected
         selectPartner(kvm, partner)
       else
-        partnerCancel.setup "partner:#{selected}", ctx.service.id, ctx.case.id
+        partnerCancel.setup(
+          selected,
+          Number.parseInt(ctx.service.id.replace(/\D*/, '')),
+          Number.parseInt(ctx.case.id.replace(/\D*/, ''))
+        )
         partnerCancel.onSave ->
           selectPartner(kvm, partner)
           $("#map").trigger "drawpartners"
 
     kvm['showPartnerCancelDialog'] = (partner, ev) ->
-      console.log 'showPartnerCancelDialog'
       kvm['selectPartner'](null)
 
   loadContext = (kvm, args) ->

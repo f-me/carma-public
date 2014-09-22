@@ -48,10 +48,6 @@ define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
   destroyPrintSrv = () ->
     $(".navbar").show()
 
-  openPrintAction = (kvm) ->
-    return unless kvm.id()
-    window.location.hash = "printAction/#{kvm.id()}"
-
   time = (time) ->
     return "" if _.isEmpty(time)
     new Date(time * 1000).toString("dd.MM.yyyy HH:mm")

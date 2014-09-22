@@ -1,4 +1,8 @@
-define ["utils", "model/utils", "dictionaries"], (u, mu, d) ->
+define [ "utils"
+       , "model/utils"
+       , "model/main"
+       , "sync/crud"
+       , "dictionaries"], (u, mu, main, sync, d) ->
   fillEventsHistory = (knockVM) -> ->
 
     # Disable hooks on search screen #1985
@@ -80,20 +84,25 @@ define ["utils", "model/utils", "dictionaries"], (u, mu, d) ->
       console.log "[#{status}] Can't load actions for '#{knockVM.id()}' (#{error})"
     )
 
-    $.getJSON( "/cancelsFor/#{knockVM.id()}" )
+    $.getJSON( "/_/PartnerCancel?caseId=#{knockVM.id()}" )
     .done( (cancels) ->
       return if _.isEmpty cancels
-      rows = for r in cancels
-        ctime = new Date(r.ctime * 1000).toString("dd.MM.yyyy HH:mm")
-        pname = r.partnerName
-        reason = r.partnerCancelReason || ''
-        owner  = dict['users'][r.owner] || r.owner
-        comment = r.comment
-        row = [ ctime
-              , owner or ''
+      rows = for obj in cancels
+        cancel = main.buildKVM global.model('PartnerCancel'),
+              fetched: obj
+              queue:   null
+        owner = main.buildKVM global.model('Usermeta'),
+              fetched: {id: cancel.owner()}
+              queue: sync.CrudQueue
+        partner = main.buildKVM global.model('Partner'),
+              fetched: {id: cancel.partnerId()}
+              queue: sync.CrudQueue
+        comment = cancel.comment()
+        row = [ new Date(cancel.ctime()).toString("dd.MM.yyyy HH:mm")
+              , owner.realName()
               , 'Отказ партнера'
-              , pname + ': ' + comment
-              , reason
+              , partner.name() + (if comment then ': ' + comment else '')
+              , cancel.partnerCancelReasonLocal()
               ]
       st.fnAddData rows
     ).fail( (jqXHR, status, error) ->
