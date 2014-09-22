@@ -5,6 +5,7 @@ module Utils.Events
       logCRUD
     , updateUserState
     , logLogin
+    , logCRUDState
     )
 
 where
@@ -80,6 +81,17 @@ logCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
         -> Handler b b1 (IdentI Event)
 logCRUD tpe idt p = do
   log $ buildFull tpe idt (Nothing :: Maybe (m -> PK Int m "")) (Just p)
+
+-- | Create event *and* update user state.
+logCRUDState :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
+                , Model m)
+             => EventType
+             -> IdentI m
+             -> Patch m
+             -> Handler b b1 (IdentI Event)
+logCRUDState tpe idt p =
+  logCRUD tpe idt p >>=
+  \e -> updateUserState tpe idt p e >> return e
 
 -- | Create event from patch
 log :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)

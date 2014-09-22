@@ -48,6 +48,7 @@ import           Trigger.Dsl as Dsl
 import           Carma.Model.Types (HMDiffTime(..), on, off)
 
 import qualified Carma.Model.Action as Action
+import qualified Carma.Model.ActionResult as ActionResult
 import qualified Carma.Model.ActionType as ActionType
 import qualified Carma.Model.BusinessRole as BusinessRole
 import           Carma.Model.Call (Call)
@@ -315,10 +316,6 @@ afterUpdate = Map.unionsWith (++) $
   ,trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
-  ,trigOn Action.result $ const $ do
-   i <- getIdent
-   p <- getPatch
-   logCRUD Update i p
   ]
 
 --  - runReadTriggers
@@ -605,7 +602,8 @@ instance Backoffice HaskellE where
         ctx <- ask
         targetActs <- filteredActions scope types [Nothing]
         return $ do
-          let -- Patch for closing actions
+          let currentUser = user ctx `get'` Usermeta.ident
+              -- Patch for closing actions
               p   =
                 Patch.put Action.result (Just res) $
                 -- Set current user as assignee if closing unassigned
@@ -613,10 +611,19 @@ instance Backoffice HaskellE where
                 --
                 -- TODO this is identical to basic Action.result
                 -- trigger, which we can't call programmatically
-                Patch.put Action.assignedTo
-                (Just $ user ctx `get'` Usermeta.ident) $
+                Patch.put Action.assignedTo (Just currentUser) $
                 Patch.put Action.closeTime (Just $ now ctx) Patch.empty
-          forM_ targetActs (\act -> dbUpdate (act `get'` Action.ident) p)
+              -- Cause an action-closing event if we're canceling one
+              -- of our own actions
+              fakeClosing act =
+                when (myAction && res == ActionResult.clientCanceledService) $
+                void $ logCRUDState Update aid p
+                  where
+                    aid = act `get'` Action.ident
+                    myAction = act `get'` Action.assignedTo == Just currentUser
+          forM_ targetActs (\act ->
+                              dbUpdate (act `get'` Action.ident) p >>
+                              fakeClosing act)
 
     a *> b =
         HaskellE $ do

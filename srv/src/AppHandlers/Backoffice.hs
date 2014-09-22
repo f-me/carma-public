@@ -143,8 +143,7 @@ openAction = do
       upd = ExceptT (withPG (Patch.update aid' p))
   runExceptT (act >>= checkAuth >> upd) >>=
     \case
-      Right r -> logCRUD Update aid' p >>=
-                 updateUserState Update aid' p >>
+      Right r -> logCRUDState Update aid' p >>
                  writeJSON r
       Left  e -> error $ show e
 
