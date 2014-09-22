@@ -101,10 +101,6 @@ data Service = Service
                                  "Гарантийный случай"
   , files                        :: F (Maybe Reference) "files"
                                  "Прикрепленные файлы"
-  -- , service_tarifOptions         :: F (Maybe Reference) "service_tarifOptions"
-  --                                ""
-    -- TODO Remove this field #1929
-  , assignedTo                   :: F (Maybe Text) "assignedTo" ""
   }
   deriving Typeable
 
@@ -128,7 +124,6 @@ svcMod =
     ,setMeta "widget" "partner" contractor_partner
     ,invisible contractor_coords
     ,hiddenIdent parentId
-    ,invisible assignedTo
     , readonly status
     , setType "text" payment_partnerCost
     , setType "text" payment_calculatedCost
