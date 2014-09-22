@@ -13,7 +13,6 @@ ALTER TABLE kentbl DROP COLUMN assignedTo;
 ALTER TABLE renttbl DROP COLUMN assignedTo;
 ALTER TABLE sobertbl DROP COLUMN assignedTo;
 ALTER TABLE taxitbl DROP COLUMN assignedTo;
-ALTER TABLE tech1tbl DROP COLUMN assignedTo;
 ALTER TABLE techtbl DROP COLUMN assignedTo;
 ALTER TABLE ticketstbl DROP COLUMN assignedTo;
 ALTER TABLE towagetbl DROP COLUMN assignedTo;
