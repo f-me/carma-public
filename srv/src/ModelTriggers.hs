@@ -654,12 +654,13 @@ instance Backoffice HaskellE where
                 Nothing -> return Nothing
 
             let due = evalHaskell ctx' $ BO.due e
-                -- Set assignTime if a user is picked
+                -- Set assignTime + openTime if a user is picked
                 ctime = now ctx
-                assTime = maybe Nothing (const $ Just ctime) whoIfReady
+                nowIfWho = maybe Nothing (const $ Just ctime) whoIfReady
                 p = Patch.put Action.duetime due $
+                    Patch.put Action.openTime nowIfWho $
                     Patch.put Action.assignedTo whoIfReady $
-                    Patch.put Action.assignTime assTime $
+                    Patch.put Action.assignTime nowIfWho $
                     Patch.put Action.parent ((`get'` Action.ident) <$> this) $
                     basePatch
             dbCreate p >> evalHaskell ctx (BO.proceed ts)
