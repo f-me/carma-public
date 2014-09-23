@@ -19,7 +19,7 @@
   span(data-bind="text: $data ? '✓' : ''")
 
 #ident-ro-template
-  a(data-bind="attr: {href: $rawData}, text: $data ")
+  a(data-bind="attr: {href: urlFor($rawData)}, text: $data ")
 
 #datetime-ro-template
   span(data-bind="text: $data")

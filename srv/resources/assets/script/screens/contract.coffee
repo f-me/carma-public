@@ -24,6 +24,7 @@ define [ "search/screen"
         defaultSort: { fields: [{ model: "Contract", name: "id" }], order: "desc" }
         allowedResultFields:
           Contract: _.pluck Table.fields, 'name'
+        predFieldWrap: 'contract-wrap'
 
   # Given subprogram id and its title, setup logo, title and dealer
   # help on page header
