@@ -42,11 +42,10 @@ import Util
 create :: (HasAuth b, HasMsg b)
        => ModelName -> Object
        -> Handler b (DbLayer b) Object
-create model commit = do
+create model obj = do
   tbls <- gets syncTables
-  syslogJSON Debug "DbLayer/create" ["model" .= model, "commit" .= commit]
+  syslogJSON Debug "DbLayer/create" ["model" .= model, "commit" .= obj]
   --
-  obj <- applyDefaults commit
   objId <- Redis.create redis model obj
   --
   let obj' = Map.insert "id" objId obj
@@ -54,7 +53,7 @@ create model commit = do
   --
   Postgres.insert tbls model obj'
 
-  let result = Map.insert "id" objId $ obj Map.\\ commit
+  let result = Map.insert "id" objId obj
   syslogJSON Debug "DbLayer/create/result" ["result" .= result]
   return result
 
