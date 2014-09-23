@@ -110,8 +110,9 @@ instance Backoffice EdgeE where
 
     nobody = nothing
     currentUser = nothing
-    whoClosedWith _ _ = nothing
+    assigneeOfLast _ _ _ = nothing
 
+    noResult = nothing
     previousAction = nothing
 
     userField _ = nothing
@@ -165,12 +166,10 @@ instance Backoffice EdgeE where
     req _ = nothing
 
     setServiceField _ _ = nothing
-    sendDealerMail = nothing
-    sendGenserMail = nothing
-    sendPSAMail = nothing
+    sendMail _ = nothing
     sendSMS _ = nothing
 
-    closeWith _ _ = nothing
+    closePrevious _ _ _ = nothing
 
     defer =
         EdgeE $ \c ->

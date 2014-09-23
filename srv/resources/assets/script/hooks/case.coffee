@@ -1,4 +1,8 @@
-define ["utils", "dictionaries"], (u, d) ->
+define [ "utils"
+       , "model/utils"
+       , "model/main"
+       , "sync/crud"
+       , "dictionaries"], (u, mu, main, sync, d) ->
   fillEventsHistory = (knockVM) -> ->
 
     # Disable hooks on search screen #1985
@@ -80,20 +84,25 @@ define ["utils", "dictionaries"], (u, d) ->
       console.log "[#{status}] Can't load actions for '#{knockVM.id()}' (#{error})"
     )
 
-    $.getJSON( "/cancelsFor/#{knockVM.id()}" )
+    $.getJSON( "/_/PartnerCancel?caseId=#{knockVM.id()}" )
     .done( (cancels) ->
       return if _.isEmpty cancels
-      rows = for r in cancels
-        ctime = new Date(r.ctime * 1000).toString("dd.MM.yyyy HH:mm")
-        pname = r.partnerName
-        reason = r.partnerCancelReason || ''
-        owner  = dict['users'][r.owner] || r.owner
-        comment = r.comment
-        row = [ ctime
-              , owner or ''
+      rows = for obj in cancels
+        cancel = main.buildKVM global.model('PartnerCancel'),
+              fetched: obj
+              queue:   null
+        owner = main.buildKVM global.model('Usermeta'),
+              fetched: {id: cancel.owner()}
+              queue: sync.CrudQueue
+        partner = main.buildKVM global.model('Partner'),
+              fetched: {id: cancel.partnerId()}
+              queue: sync.CrudQueue
+        comment = cancel.comment()
+        row = [ new Date(cancel.ctime()).toString("dd.MM.yyyy HH:mm")
+              , owner.realName()
               , 'Отказ партнера'
-              , pname + ': ' + comment
-              , reason
+              , partner.name() + (if comment then ': ' + comment else '')
+              , cancel.partnerCancelReasonLocal()
               ]
       st.fnAddData rows
     ).fail( (jqXHR, status, error) ->
@@ -126,7 +135,7 @@ define ["utils", "dictionaries"], (u, d) ->
         u.getProgramDesc (parseInt knockVM['program']()), (parseInt knockVM['subprogram']?())
 
   eventsHistoryKbHook: (model, knockVM) ->
-    fillEventsHistory(knockVM)()
+    # History rendering is called from renderActions on caseScreen
     knockVM['fillEventHistory'] = fillEventsHistory(knockVM)
     knockVM['contact_phone1']?.subscribe fillEventsHistory(knockVM)
     knockVM['comments']?.subscribe fillEventsHistory(knockVM)
@@ -167,15 +176,28 @@ define ["utils", "dictionaries"], (u, d) ->
     return if /^search/.test(Finch.navigate())
     kvm.buttons = {}
 
+    # Required fields for the needInfo button to be enabled
+    niFlds = [ 'city'
+             , 'contact_name'
+             , 'contact_phone1'
+             , 'customerComment'
+             , 'program'
+             ]
+
     kvm.buttons.needInfo = {}
+    kvm.buttons.needInfo.tooltip = u.reqFieldsTooltip kvm, niFlds
+    kvm.buttons.needInfo.text =
+      u.newModelDict("CaseStatus").getLab(
+              global.idents("CaseStatus").needInfo)
     kvm.buttons.needInfo.click = ->
       kvm['caseStatus'] global.idents("CaseStatus").needInfo
     kvm.buttons.needInfo.disabled = ko.computed ->
-      flds = [ kvm['program']?()
-             , kvm['contact_name']?()
-             , kvm['contact_phone1']?()
-             , kvm['city']?()
-             , kvm['customerComment']?()
-             ]
-      empties = _.map flds, (e) -> e == "" || _.isNull e
+      vals = _.map niFlds, (n) -> kvm[n]?()
+      empties = _.map vals, (e) -> e == "" || _.isNull e
       _.some empties
+
+  hasFiles: (model, knockVM) ->
+    knockVM['hasFiles'] = ko.computed ->
+      knockVM['filesReference']?().length ||
+      _.any(_.map(knockVM['servicesReference']?(),
+        (srv) -> (srv['filesReference']?().length > 0)))

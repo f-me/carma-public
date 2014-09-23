@@ -34,9 +34,11 @@ module Trigger.Dsl
     , dbCreate
     , dbRead
     , dbUpdate
-    , prevClosedActions
+    , caseActions
 
       -- ** Miscellaneous
+    , userIsReady
+    , logCRUDState
     , wsMessage
     , getNow
     , getCityWeather
@@ -76,7 +78,7 @@ import           Database.PostgreSQL.Simple ((:.) (..))
 import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SqlQQ
 import Data.Model as Model
-import Data.Model.Patch (Patch)
+import Data.Model.Patch (Object, Patch)
 import qualified Data.Model.Sql as Sql
 import qualified Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as Patch
@@ -86,15 +88,17 @@ import Snaplet.Messenger.Class (withMsg)
 import Utils.LegacyModel (mkLegacyIdent)
 
 import qualified Carma.Model.Action as Action
-import Carma.Model.ActionType  (ActionType)
 import Carma.Model.Case        (Case)
+import Carma.Model.Event       (Event, EventType)
 import Carma.Model.Service     (Service)
 import Carma.Model.SmsTemplate as SmsTemplate
 import Carma.Model.Usermeta    (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import Carma.Model.LegacyTypes (Password(..))
 
+import qualified AppHandlers.Users as Users
 import Util
+import qualified Utils.Events as Evt (logCRUDState)
 
 type TriggerRes m = Either (Int,String) (Patch m)
 
@@ -148,7 +152,7 @@ tOk = Right <$> getPatch
 dbCreate :: Model m => Patch m -> Free (Dsl n) (IdentI m)
 dbCreate p = liftFree (DbCreate p id)
 
-dbRead :: Model m => IdentI m -> Free (Dsl n) (Patch m)
+dbRead :: (PG.FromRow (p m), Model m) => IdentI m -> Free (Dsl n) (p m)
 dbRead i = liftFree (DbRead i id)
 
 dbUpdate :: Model m => IdentI m -> Patch m -> Free (Dsl n) Int64
@@ -159,6 +163,17 @@ wsMessage = liftFree (WsMessage ())
 
 getNow :: Free (Dsl m) UTCTime
 getNow = liftFree (DoApp (liftIO getCurrentTime) id)
+
+userIsReady :: IdentI Usermeta -> Free (Dsl m) Bool
+userIsReady uid = liftFree (DoApp (Users.userIsReady uid) id)
+
+logCRUDState :: Model m =>
+                EventType
+             -> IdentI m
+             -> Patch m
+             -> Free (Dsl m1) (IdentI Event)
+logCRUDState m i p =
+  liftFree (DoApp (Evt.logCRUDState m i p) id)
 
 dbQuery :: (PG.FromRow r, PG.ToRow q) => PG.Query -> q -> Free (Dsl m) [r]
 dbQuery q params = liftFree $ DbIO (\c -> PG.query c q params) id
@@ -181,31 +196,17 @@ inParentContext act = do
   setState $ st {st_patch = patch'}
 
 
+-- | List of actions in a case, ordered by 'Action.closeTime' and
+-- 'Action.ctime' in descending order (latest come first).
+caseActions :: IdentI Case
+            -> Free (Dsl m) [(Object Action.Action)]
+caseActions cid =
+  liftFree $
+  DbIO (Sql.select ((Sql.fullPatch Action.ident) :.
+                    Action.caseId `Sql.eq` cid :.
+                    Sql.descBy Action.closeTime :.
+                    Sql.descBy Action.ctime)) (map (\(x :. ()) -> x))
 
-
--- | List of closed actions in a case. Last closed actions come first.
-prevClosedActions :: IdentI Case
-                  -> [IdentI ActionType]
-                  -- ^ Select only actions of this type.
-                  -> Free (Dsl m) [PG.Only (IdentI Action.Action)]
-prevClosedActions cid types = dbQuery q params
-    where
-      q = [sql|
-           SELECT ? FROM ?
-           WHERE ? = ?
-           AND ? IN ?
-           AND ? IS NOT NULL
-           ORDER BY ? DESC;
-           |]
-      params = ( fieldPT Action.ident
-               , tableQT Action.ident
-               , fieldPT Action.caseId
-               , cid
-               , fieldPT Action.aType
-               , PG.In types
-               , fieldPT Action.result
-               , fieldPT Action.closeTime
-               )
 
 getCityWeather :: Text -> Free (Dsl m) (Either String Weather)
 getCityWeather city = liftFree (DoApp action id)
@@ -223,12 +224,16 @@ sendSMS :: Model.IdentI Service -> Model.IdentI SmsTemplate -> Free (Dsl m) ()
 sendSMS svcId tplId =
   dbQuery q [svcId] >>=
     \case
-      [[caseId, city, phone, eSvcStart, fSvcStart, sender, pInfo, pCInfo]] -> do
+      [[ caseId, city, phone
+       , svcType, eSvcStart, fSvcStart
+       , sender, pInfo, pCInfo
+       ]] -> do
         let varMap = Map.fromList
               [("program_info", pInfo)
               ,("program_contact_info", pCInfo)
               ,("case.city", city)
               ,("case.id", caseId)
+              ,("service.type", svcType)
               ,("service.times_factServiceStart", fSvcStart)
               ,("service.times_expectedServiceStart", eSvcStart)
               ]
@@ -255,15 +260,18 @@ sendSMS svcId tplId =
             cs.id::text,
             coalesce("City".label, ''),
             coalesce(cs.contact_phone1, ''),
+            "ServiceType".label,
             coalesce(to_char(svc.times_expectedServiceStart, 'HH24:MI MM-DD-YYYY'), ''),
             coalesce(to_char(svc.times_factServiceStart, 'HH24:MI MM-DD-YYYY'), ''),
             sprog.smsSender, sprog.smsProgram, sprog.smsContact
           from
             casetbl cs left join "City" on ("City".id = cs.city),
             servicetbl svc,
+            "ServiceType",
             "SubProgram" sprog
           where true
             and svc.id   = ?
+            and svc.type = "ServiceType".id
             and cs.id    = svc.parentId
             and sprog.id = cs.subprogram
         |]
@@ -283,7 +291,8 @@ liftFree = Free . fmap Pure
 data Dsl m k where
   ModState    :: (DslState m -> (DslState m, res)) -> (res -> k) -> Dsl m k
   DbCreate    :: Model m1 => Patch m1 -> (IdentI m1 -> k) -> Dsl m k
-  DbRead      :: Model m1 => IdentI m1 -> (Patch m1 -> k) -> Dsl m k
+  DbRead      :: (PG.FromRow (p m1), Model m1) =>
+                 IdentI m1 -> (p m1 -> k) -> Dsl m k
   DbUpdate    :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
   DbIO        :: (PG.Connection -> IO res) -> (res -> k) -> Dsl m k
   CurrentUser :: (IdentI Usermeta -> k) -> Dsl m k

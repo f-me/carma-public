@@ -26,11 +26,12 @@ import qualified Data.Text                   as T
 import           Data.Time
 import           Data.Typeable
 
-import           Database.PostgreSQL.Simple  (query)
+import           Database.PostgreSQL.Simple  ((:.)(..), Only(..))
 import           Snap
 
 import           Carma.Model
 import           Data.Model                  (idents)
+import qualified Data.Model.Sql              as Sql
 import qualified Data.Model.Patch            as Patch
 import qualified Data.Model.Patch.Sql        as Patch
 
@@ -38,6 +39,7 @@ import qualified Carma.Model.Action          as Action
 import           Carma.Model.ActionResult    as ActionResult hiding (idents)
 import           Carma.Model.ActionType      (ActionType)
 import           Carma.Model.CaseStatus      (CaseStatus)
+import           Carma.Model.Event           (EventType(..))
 import           Carma.Model.FalseCall       (FalseCall)
 import           Carma.Model.Program         (Program)
 import qualified Carma.Model.Role            as Role
@@ -56,6 +58,7 @@ import           AppHandlers.Util hiding (withPG)
 import           Application
 import           Snaplet.Auth.PGUsers
 import           Util
+import           Utils.Events
 
 
 -- | Back office representation.
@@ -72,6 +75,7 @@ type IdentMap m = Map.Map (IdentI m) Text
 -- | Serve a pretty-printed back office processing report.
 serveBackofficeSpec :: BORepr -> AppHandler ()
 serveBackofficeSpec repr =
+    (modifyResponse $ setContentType "text/plain; charset=UTF-8") >>
     case repr of
       Txt -> writeText $ backofficeText carmaBackoffice boxedIMap
       Dot -> writeLazyText $ backofficeDot carmaBackoffice boxedIMap
@@ -130,32 +134,34 @@ openAction = do
          getIntParam "actionid"
   uid <- currentUserMetaId
   now <- liftIO getCurrentTime
-  let act = ExceptT (withPG (Patch.read (Ident aid)))
+  let act = ExceptT (withPG (Patch.read aid'))
+      aid' = Ident aid
       checkAuth a =
         unless (a `Patch.get'` Action.assignedTo == uid) $
         throwE $ SomeException NotYourAction
       p = Patch.put Action.openTime (Just now) Patch.empty
-      upd = ExceptT (withPG (Patch.update (Ident aid) p))
+      upd = ExceptT (withPG (Patch.update aid' p))
   runExceptT (act >>= checkAuth >> upd) >>=
     \case
-      Right r -> writeJSON r
+      Right r -> logCRUDState Update aid' p >>
+                 writeJSON r
       Left  e -> error $ show e
 
 
 -- | Read @caseid@ request parameter and serve JSON list of ids of
 -- open actions in that case.
+--
+-- TODO Convert this to a read-trigger for Case.actions EF.
 dueCaseActions :: AppHandler ()
 dueCaseActions = do
   cid <- fromMaybe (error "Could not read caseid parameter") <$>
          getIntParam "caseid"
   res <- withPG $
-         \c ->
-           query c "SELECT ? FROM ? WHERE ? = ? AND ? IS NULL ORDER BY ? ASC"
-           ( fieldPT Action.ident
-           , tableQT Action.ident
-           , fieldPT Action.caseId
-           , cid
-           , fieldPT Action.result
-           , fieldPT Action.ident
-           )
-  writeJSON $ concat (res :: [[IdentI Action.Action]])
+         \conn ->
+           Sql.select
+           (Action.ident :.
+            Action.caseId `Sql.eq` (Ident cid) :.
+            Sql.isNull Action.result :.
+            Sql.ascBy Action.ident :. Sql.descBy Action.closeTime)
+           conn
+  writeJSON $ map (\(Only aid :. ()) -> aid) res

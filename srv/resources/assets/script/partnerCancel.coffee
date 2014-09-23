@@ -9,10 +9,10 @@ define ["model/main", "text!tpl/fields/form.html"], (main, Fs) ->
 
     # Function to init modal dialog
     # @param partnerId : int
-    # @param serviceRef: String - in format "#{serviceName}:#{serviceId}"
-    # @param caseId    : String - in format "case:#{caseId}"
-    setup: (partnerId, serviceRef, caseId) ->
-      modelName = "partnerCancel"
+    # @param serviceId : int
+    # @param caseId    : int
+    setup: (partnerId, serviceId, caseId) ->
+      modelName = "PartnerCancel"
 
       $('body').append(
         Mustache.render $(flds).find("#modalDialog-field-template").html(),
@@ -43,13 +43,8 @@ define ["model/main", "text!tpl/fields/form.html"], (main, Fs) ->
           saveBtnDisable true
 
           # fill hidden fields
-          serviceId = serviceRef.split(':')[1]
           kvm.serviceId(serviceId)
-
           kvm.caseId(caseId)
-
-          ctime = Math.round((new Date).getTime() / 1000)
-          kvm.ctime("#{ctime}")
 
           showAlert = (needShow) ->
             $alert = $("##{modelName}-alert-container")
@@ -72,7 +67,7 @@ define ["model/main", "text!tpl/fields/form.html"], (main, Fs) ->
             # warn user about needed choose partner from table
             showAlert true
 
-          kvm.owner(global.user.login)
+          kvm.owner(global.user.id)
 
           $("##{modelName}-save")
             .off('click')

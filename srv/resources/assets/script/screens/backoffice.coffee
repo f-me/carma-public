@@ -13,12 +13,12 @@ define [ "utils"
 
   setupBackOffice = ->
     onBackofficeScreen = true
-    $("#zardoz").knob()
-    params = "assignedTo=#{global.user.id}&closed=0"
-    $.getJSON("/backoffice/allActions?#{params}",
-      (r) ->
-        myActionsHandler r.actions
-        setupPoller)
+
+    $("#zardoz").spin
+      width: 50,
+      lines: 15,
+      radius: 175
+    pullActions()
 
   # Install automatic actions poller
   setupPoller = ->
@@ -28,7 +28,6 @@ define [ "utils"
       if onBackofficeScreen
         current_cycle += cycle_resolution
         percent = current_cycle / poll_every * 100.0
-        $("#zardoz").val(percent).trigger('change')
         if current_cycle >= poll_every
           pullActions()
           current_cycle = 0
@@ -52,6 +51,8 @@ define [ "utils"
       type: "PUT"
       url: "/backoffice/littleMoreActions"
       success: myActionsHandler
+      error: () ->
+        $("#standby-msg").text "Что-то пошло не так!"
 
   removeBackOffice = ->
     # Stop auto-polling backoffice-related server handlers when we
@@ -63,7 +64,9 @@ define [ "utils"
     $.ajax
       type: "PUT"
       url: "/backoffice/openAction/#{actId}"
-      success: () -> window.location.hash = "case/#{caseId}"
+      success: () ->
+        $("#standby-msg").text "Перенаправляю на кейс…"
+        window.location.hash = "case/#{caseId}"
 
   { constructor: setupBackOffice
   , destructor: removeBackOffice

@@ -50,7 +50,6 @@ import qualified Data.Text.ICU.Convert as ICU
 
 import           Database.PostgreSQL.Simple (Only(..))
 import           Database.PostgreSQL.Simple.Copy
-import           Database.PostgreSQL.Simple.Transaction
 
 import           System.FilePath
 import           System.IO
@@ -114,7 +113,7 @@ vinImport = do
 
 
 type FFA = FormatFieldAccessor VinFormat
-type C a = Patch a
+type C a = FullPatch a
 
 
 -- | Default settings for VIN list CSV files: semicolon-separated
@@ -319,25 +318,8 @@ process psid enc mapping = do
 
   markMissingIdentifiers
 
-  -- Finally, write new contracts to live table, omitting those
-  -- already present and duplicate contracts in the queue
-  let finalTransfer tries = do
-        -- Prevent phantom reads when deleting duplicate contracts
-        -- from the queue
-        liftIO $ beginLevel Serializable conn
-        ser <- liftIO $ try $
-               deleteDupes conn >>
-               deferConstraints conn >>
-               transferContracts conn
-        case ser of
-          Right n -> (liftIO $ commit conn) >> return n
-          Left e -> if isSerializationError e
-                    then if tries > 0
-                         then (liftIO $ rollback conn) >>
-                              finalTransfer (tries - 1 :: Int)
-                         else throwError SerializationFailed
-                    else throw e
-  loaded <- finalTransfer 10
+  -- Finally, write new contracts to live table
+  loaded <- deleteDupes >> transferContracts
 
   -- Count errors and write error report if there're any
   errors <- countErrors

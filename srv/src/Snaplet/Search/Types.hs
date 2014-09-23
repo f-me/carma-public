@@ -17,7 +17,6 @@ import           Control.Lens (Lens', makeLenses)
 import           Control.Monad.State
 
 import           Prelude hiding (null)
-import           Data.Maybe
 import           Data.Text as T hiding (map, null, length)
 import           Data.Pool
 import           Data.Aeson
@@ -32,7 +31,6 @@ import           Snap.Snaplet
 import           Snap.Snaplet.Auth hiding (Role)
 import           Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
 
-import qualified Data.Vector           as V
 import qualified Data.HashMap.Strict   as HM
 
 import           Data.Model       as M
@@ -152,7 +150,7 @@ instance (Model m, Model (M.Parent m)) => StripRead (Patch m) where
   stripRead = stripReadPatch
 
 instance (Model m, Model (M.Parent m)) => StripRead (Maybe (Patch m)) where
-  stripRead c rs Nothing  = return Nothing
+  stripRead _ _  Nothing  = return Nothing
   stripRead c rs (Just p) = Just <$> stripReadPatch c rs p
 
 instance StripRead a => StripRead (a :. ()) where

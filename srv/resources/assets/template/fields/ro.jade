@@ -10,29 +10,25 @@
     div(data-bind="render: $data")
 
 #dictionary-ro-template
-  span(data-bind="text: kvm[field.name + 'Local']")
+  span(data-bind="text: $rawData.local")
 
 #text-ro-template
-  span(data-bind="text: kvm[field.name]")
+  span(data-bind="text: $data")
 
 #checkbox-ro-template
-  span(data-bind="text: kvm[field.name]() ? '✓' : ''")
+  span(data-bind="text: $data ? '✓' : ''")
 
 #ident-ro-template
-  a(data-bind="attr: { \
-               href: urlFor(kvm, field.name) \
-               }, \
-               text: kvm[field.name]()\
-               ")
+  a(data-bind="attr: {href: $rawData}, text: $data ")
 
 #datetime-ro-template
-  span(data-bind="text: kvm[field.name]()")
+  span(data-bind="text: $data")
 
 #date-ro-template
-  span(data-bind="text: kvm[field.name]()")
+  span(data-bind="text: $data")
 
 #phone-ro-template
-  span(data-bind="text: kvm[field.name]()")
+  span(data-bind="text: $data")
 
 #int-ro-template
-  span(data-bind="text: kvm[field.name]()")
+  span(data-bind="text: $data")

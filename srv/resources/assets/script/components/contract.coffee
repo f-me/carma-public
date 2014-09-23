@@ -3,9 +3,10 @@ define [
     , "utils"
     , "sync/datamap"
     , "dictionaries"
+    , "text!tpl/fields/form.html"
     ],
-  (Main, Utils, DataMap, Dict) ->
-
+  (Main, Utils, DataMap, Dict, Flds) ->
+    flds =  $('<div/>').append($(Flds))
     ko.bindingHandlers.renderContract =
       update: (el, acc, allBindigns, contract, ctx) ->
         title = ko.utils.unwrapObservable acc()
@@ -15,7 +16,8 @@ define [
               "<span class='label label-important'>Не действует</span>"
             else
               "<span class='label label-success'>Действует</span>"
-        close = "<button class='close'>&times;</button>"
+        close = "<button title='Стереть из кейса ссылку на контракт'
+                         class='close'><i class='icon-trash'/></button>"
         $(el).append("<legend>#{title} ##{contract.id()} #{expired} #{close}</legend>")
         $(el).find('.close').on 'click', -> contract.close()
         $dl = $("<table class='table table-condensed table-striped'></table>")
@@ -47,10 +49,12 @@ define [
         callDate < validSince or callDate > validUntil
 
       kvm.close = ->
+        return unless confirm "Стереть из кейса ссылку на контракт?"
         knockVM.contract("");
 
       $("##{el}").html(
-        Mustache.render($("#contract-content-template").html(), {title: "Контракт"}))
+        Mustache.render($(flds).find("#contract-content-template").html(),
+                       {title: "Контракт"}))
       ko.applyBindings(kvm, $("#contract-content")[0])
 
     hideContract = (el) ->

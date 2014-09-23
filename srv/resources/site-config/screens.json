@@ -4,6 +4,34 @@
       "permissions" : ["sms"]
     },
     {
+      "type"    : "dropdown",
+      "name"    : "dev",
+      "label"   : "Разработка",
+      "permissions": ["hacker"],
+      "screens" : [
+        { "name"  : "/backoffice/spec.txt",
+          "label" : "Спецификация БО (.txt)",
+          "type"  : "link",
+          "permissions": ["hacker"]
+        },
+        { "name"  : "/backoffice/spec.dot",
+          "label" : "Спецификация БО (.dot)",
+          "type"  : "link",
+          "permissions": ["hacker"]
+        },
+        { "name"  : "bright-new-world",
+          "label" : "Перейти на светлую сторону",
+          "type"  : "hack",
+          "permissions": ["hacker"]
+        },
+        { "name"  : "permute-case-panes",
+          "label" : "Переставить панели кейса",
+          "type"  : "hack",
+          "permissions": ["hacker"]
+        }
+      ]
+    },
+    {
       "type": "dropdown",
       "name": "rkcList",
       "label": "РКЦ",

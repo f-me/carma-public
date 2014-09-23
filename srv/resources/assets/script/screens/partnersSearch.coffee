@@ -135,13 +135,16 @@ define [ "utils"
       if _.isNull selected
         selectPartner(kvm, partner)
       else
-        partnerCancel.setup "partner:#{selected}", ctx.service.id, ctx.case.id
+        partnerCancel.setup(
+          selected,
+          Number.parseInt(ctx.service.id.replace(/\D*/, '')),
+          Number.parseInt(ctx.case.id.replace(/\D*/, ''))
+        )
         partnerCancel.onSave ->
           selectPartner(kvm, partner)
           $("#map").trigger "drawpartners"
 
     kvm['showPartnerCancelDialog'] = (partner, ev) ->
-      console.log 'showPartnerCancelDialog'
       kvm['selectPartner'](null)
 
   loadContext = (kvm, args) ->
@@ -203,13 +206,12 @@ define [ "utils"
   # array), which can be displayed on the map (centered on coords with
   # some zoom level, or simply zoomed to fit bounds).
   bindCityPlaces = (kvm) ->
-    dict = utils.newModelDict "City", true
+    dict = utils.newModelDict "City"
     kvm["city"].subscribe (newCities) ->
       return unless newCities?
-      chunks = _.reject newCities, _.isEmpty
-      kvm["cityPlacesExpected"] = chunks.length
+      kvm["cityPlacesExpected"] = newCities.length
       kvm["cityPlaces"].removeAll()
-      for c in chunks
+      for c in newCities
         do (c) ->
           fixed_city = dict.getLab c
           $.getJSON map.geoQuery(fixed_city), (res) ->
@@ -378,8 +380,9 @@ define [ "utils"
   constructor: (view, args) ->
     # remove padding so blank space after removing navbar can be used
     if args?.model?
-      $('body').css('padding-top', '0px')
-      $(".navbar").hide()
+      unless args.model == "mobile"
+        $('body').css('padding-top', '0px')
+        $(".navbar").hide()
 
     kvm = m.buildKVM(model, "partnersSearch-content")
     q = new sync.DipQueue(kvm, model)

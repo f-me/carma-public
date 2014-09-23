@@ -16,7 +16,6 @@ module AppHandlers.CustomSearches
       -- ** History
     , searchCallsByPhone
     , getActionsForCase
-    , getCancelsForCase
 
       -- ** Helpers
     , allDealersForMake
@@ -37,7 +36,6 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import Data.Map as M (Map, (!), delete, fromList)
 import Data.String (fromString)
-import qualified Data.Vector as V
 
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.SqlQQ
@@ -46,15 +44,17 @@ import Snap
 
 import Data.Model.Types
 
-import Application
-import AppHandlers.CustomSearches.Contract
-import AppHandlers.Util
-import Utils.HttpErrors
-import Util hiding (withPG)
+import qualified Carma.Model.ActionType              as AType
+import qualified Carma.Model.Role                    as Role
+import           Carma.Model.Usermeta                as Usermeta
+import           Carma.Model.UserState               as UserState
 
-import qualified Carma.Model.ActionType as AType
-import qualified Carma.Model.Role as Role
-import           Carma.Model.Usermeta as Usermeta
+import           AppHandlers.CustomSearches.Contract
+import           AppHandlers.Users
+import           AppHandlers.Util
+import           Application
+import           Util                                hiding (withPG)
+import           Utils.HttpErrors
 
 
 type MBS = Maybe ByteString
@@ -168,25 +168,6 @@ getActionsForCase = do
   writeJSON $ mkMap fields rows
 
 
-getCancelsForCase :: AppHandler ()
-getCancelsForCase = do
-  Just caseId <- getParam "id"
-  let caseId' = B.append "case:" caseId
-  rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT extract (epoch from c.ctime at time zone 'UTC')::int8::text,"
-    ++ "       c.partnerId, c.serviceId::text, c.partnerCancelReason, c.comment,"
-    ++ "       c.owner, p.name"
-    ++ "  FROM partnercanceltbl c"
-    ++ "  LEFT JOIN partnertbl p"
-    ++ "  ON p.id = cast(split_part(c.partnerId, ':', 2) as integer)"
-    ++ "  WHERE c.caseId = ?") [caseId']
-  let fields =
-        [ "ctime", "partnerId", "serviceId", "partnerCancelReason"
-        , "comment", "owner", "partnerName"
-        ]
-  writeJSON $ mkMap fields rows
-
-
 opStatsQ :: Query
 opStatsQ = [sql|
   SELECT u.login, ca.type::text, ca.caseId::text,
@@ -296,18 +277,8 @@ actStats = do
                  , ("control", controls)] :: [(Text, Text)])
 
 
--- | Serve users to which actions can be assigned (head, back or
--- supervisor roles, active within last 20 minutes).
 boUsers :: AppHandler ()
-boUsers = do
-  rows <- withPG pg_search $ \c -> query c [sql|
-    SELECT realname, login, id::text
-      FROM usermetatbl
-      WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
-        AND now() - lastactivity < '20 min'
-        AND roles && (?)::int[];
-    |] (Only $ V.fromList [Role.head, Role.back, Role.supervisor])
-  writeJSON $ mkMap ["name", "login", "id"] rows
+boUsers = [Role.head, Role.back, Role.supervisor] `usersInStates` [Ready]
 
 
 allDealersForMake :: AppHandler ()

@@ -31,7 +31,7 @@ define [ "search/screen"
     $.getJSON "/_/SubProgram/#{sid}", (instance) ->
       if instance.logo
         attachmentId = instance.logo.split(':')?[1]
-        main.modelSetup("attachment") "logo", {id: attachmentId}, {}
+        main.modelSetup("Attachment") "logo", {id: attachmentId}, {}
       else
         $("#logo").attr "src", null
       $("#help-program").text(title)

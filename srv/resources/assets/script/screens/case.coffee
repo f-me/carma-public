@@ -9,6 +9,7 @@ define [ "utils"
   (utils, hotkeys, tpl, Flds, mu, main, Contract) ->
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
+    flds =  $('<div/>').append($(Flds))
     # Case view (renders to #left, #center and #right as well)
     setupCaseMain = (viewName, args) -> setupCaseModel viewName, args
 
@@ -29,6 +30,9 @@ define [ "utils"
                          defaultGroup : "default-case"
                          modelArg     : "ctr:#{kaze.program}"
                          saveSuccessCb: (k, m, j) ->
+                           # TODO The server should notify the client
+                           # about new actions appearing in the case
+                           # instead of explicit subscription
                            if j.caseStatus?
                              k['renderActions']?()
 
@@ -39,7 +43,7 @@ define [ "utils"
       Contract.setup "contract", kvm
 
       $("#empty-fields-placeholder").html(
-          Mustache.render($("#empty-fields-template").html(), ctx))
+          Mustache.render($(flds).find("#empty-fields-template").html(), ctx))
 
       ko.applyBindings(kvm, el("empty-fields"))
 
@@ -50,7 +54,7 @@ define [ "utils"
       # entry.
       $("#service-picker-container").html(
         Mustache.render(
-          $("#service-picker-template").html(),
+          $(flds).find("#service-picker-template").html(),
             {dictionary: utils.newComputedDict("iconizedServiceTypes")
             ,drop: 'up'
             }))
@@ -72,6 +76,8 @@ define [ "utils"
       # make colored services and actions a little bit nicer
       $('.accordion-toggle:has(> .alert)').css 'padding', 0
 
+      $(".status-btn-tooltip").tooltip()
+
     setCommentsHandler = ->
       $("#case-comments-b").on 'click', ->
         i = $("#case-comments-i")
@@ -88,6 +94,9 @@ define [ "utils"
         i.val("")
 
     # Manually re-render a list of case actions
+    #
+    # TODO Implement this as a read trigger for Case.actions EF with
+    # WS subscription to action list updates
     renderActions = (kvm) ->
       caseId = kvm.id()
       refCounter = 0
@@ -105,8 +114,11 @@ define [ "utils"
       cont.spin('large')
 
       # Pick reference template
-      flds =  $('<div/>').append($(Flds))
       tpl = flds.find("#actions-reference-template").html()
+
+      # Flush old actionsList
+      if kvm['actionsList']?
+        kvm['actionsList'].removeAll()
 
       $.getJSON "/backoffice/caseActions/#{caseId}", (aids) ->
         for aid in aids
@@ -123,11 +135,17 @@ define [ "utils"
               if j.result?
                 # Redirect to backoffice when an action result changes
                 window.location.hash = "back"
+          # There's no guarantee who renders first (services or
+          # actions), try to set up an observable from here
+          if not kvm['actionsList']?
+            kvm['actionsList'] = ko.observableArray()
+          kvm['actionsList'].push avm
           # Disable action results if any of required case fields is
           # not set
           kvm['hasMissingRequireds'].subscribe (dis) ->
             avm.resultDisabled?(dis)
         cont.spin false
+      kvm['fillEventHistory']?()
 
     # Top-level wrapper for storeService
     addService = (name) ->
@@ -146,6 +164,7 @@ define [ "utils"
           e.find('input')[0]?.focus()
           # make colored service a little bit nicer even if it is just created
           $('.accordion-toggle:has(> .alert)').css 'padding', 0
+          $(".status-btn-tooltip").tooltip()
           e.parent().collapse 'show'
 
     utils.build_global_fn 'addService', ['screens/case']

@@ -9,7 +9,6 @@ module Snaplet.DbLayer
   ,update
   ,delete
   ,exists
-  ,submitTask
   ,initDbLayer
   ) where
 
@@ -19,15 +18,12 @@ import Control.Lens (Lens')
 import Control.Monad.State
 import qualified Data.Map as Map
 import Data.Maybe (fromJust, isJust)
-import Data.ByteString (ByteString)
 import qualified Data.Text          as T
 
 import Snap.Snaplet
 import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (Postgres, pgsInit)
-import Snap.Snaplet.RedisDB (redisDBInitConf, runRedisDB)
-
-import qualified Database.Redis as Redis hiding (exists)
+import Snap.Snaplet.RedisDB (redisDBInitConf)
 
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
@@ -114,12 +110,6 @@ delete model objId = Redis.delete redis model objId
 
 exists :: ModelName -> ObjectId -> Handler b (DbLayer b) Bool
 exists model objId = Redis.exists redis model objId
-
-
-submitTask :: ByteString -> ByteString -> Handler b (DbLayer b) (Either Redis.Reply Integer)
-submitTask queueName taskId
-  = runRedisDB redis
-  $ Redis.lpush queueName [taskId]
 
 
 -- TODO Use lens to an external AuthManager

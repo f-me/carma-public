@@ -1,4 +1,6 @@
-define ["model/utils", "dictionaries"], (mu, d) ->
+define [ "model/utils"
+       , "dictionaries"
+       , "text!tpl/fields/form.html"], (mu, d, Ftpls) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -44,7 +46,8 @@ define ["model/utils", "dictionaries"], (mu, d) ->
     , 500)
 
   window.alertUser = (message, delay = 5000) ->
-    $alert = $(Mustache.render $("#alert-template").html(), {message})
+    tpls = $("<div />").append($(Ftpls))
+    $alert = $(Mustache.render $(tpls).find("#alert-template").html(), {message})
     $('.container-fluid').prepend $alert
     setTimeout ->
         $alert.fadeOut 'slow', -> $(@).remove()
@@ -287,6 +290,17 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   edoPick: (pickType, args, k, e) ->
     doPick pickType, args, e.srcElement if e.keyCode == k
 
+  # Format a list of fields in a model to a tooltip with a list of
+  # field labels
+  reqFieldsTooltip: (kvm, fieldNames) ->
+    labels = _.map fieldNames, (n) -> "#{mu.fieldNameToLabel(kvm)(n)}"
+    "Доступно при заполнении полей: #{labels.join(', ')}"
+
+  # Select case actions with matching types and which are created for
+  # this service
+  svcActions: (kase, svc, types) ->
+    _.filter (kase['actionsList']?() || []),
+      (a) -> (a.serviceId() == svc.id()) && (_.contains types, a.type())
 
   # FIXME: This could be a callback for main.js:saveInstance
   successfulSave: successfulSave

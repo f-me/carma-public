@@ -1,4 +1,6 @@
-define ['json!/screens'], (screens) ->
+define [ 'knockout'
+       , 'text!tpl/lib/navbar.html'
+       , 'json!/screens'], (ko, Tpls, screens) ->
 
   menuItems = null
   moreItem =
@@ -36,6 +38,14 @@ define ['json!/screens'], (screens) ->
     while menuItems().length > 1
       do shrink
     do expand
+
+  tpls = $('<div/>').append($(Tpls))
+  ko.virtualElements.allowedBindings.renderMenuEl = true
+  ko.bindingHandlers.renderMenuEl =
+    init: (el, acc) ->
+      scr = ko.utils.unwrapObservable acc()
+      tpl = tpls.find("##{scr.type}").html()
+      ko.virtualElements.prepend(el, $(tpl)[0])
 
   expand: expand
   shrink: shrink

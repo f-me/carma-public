@@ -17,16 +17,9 @@ module ApplicationHandlers
     , readManyHandler
     , updateHandler
 
-      -- * #rkc screens
-    , rkcHandler
-    , rkcWeatherHandler
-    , rkcFrontHandler
-    , rkcPartners
-
       -- * Helper handlers
     , getRegionByCity
     , towAvgTime
-    , printServiceHandler
     , copyCtrOptions
 
     -- * Misc. client support handlers
@@ -38,7 +31,6 @@ module ApplicationHandlers
 where
 
 import Data.Functor
-import Control.Monad
 import Control.Monad.Trans.Either
 
 import Data.Text (Text)
@@ -48,16 +40,11 @@ import qualified Data.Text.Lazy.Encoding as TL
 
 import qualified Data.HashMap.Strict as HM
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Lazy as LB
 import qualified Data.Aeson as Aeson
 import Data.Aeson
-import Data.List
 import qualified Data.Map as Map
 
 import Data.Maybe
-
-import Data.Time
-import System.Locale
 
 import Database.PostgreSQL.Simple (Query, query, execute)
 import Database.PostgreSQL.Simple.SqlQQ
@@ -73,10 +60,7 @@ import Snap.Snaplet.Auth hiding (session)
 import Snap.Util.FileServe (serveFile)
 import Snap.Util.FileUploads (getMaximumFormInputSize)
 
-import WeatherApi (getWeather', tempC)
-
 import qualified Snaplet.DbLayer as DB
-import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (FileUpload(cfg))
 
 import Carma.Model
@@ -86,9 +70,8 @@ import Carma.Model.Event (EventType(..))
 
 import Application
 import AppHandlers.Util
-import AppHandlers.Users
 import Util as U hiding (render, withPG)
-import Utils.NotDbLayer (readIdent)
+import Utils.LegacyModel (readIdent)
 
 import Utils.Events (logLogin, logCRUD, updateUserState)
 
@@ -151,7 +134,6 @@ doLogin = ifTop $ do
 
 doLogout :: AppHandler ()
 doLogout = ifTop $ do
-  claimUserLogout
   logLogin Logout
   with auth logout
   redirectToLogin
@@ -278,85 +260,6 @@ updateHandler = do
                 -- Need this hack, or server won't return updated "cost_counted"
                 $ Map.delete "cost_counted" commit
 
--- rkc helpers
-getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
-getFromTo = do
-  fromTime <- getParam "from"
-  toTime <- getParam "to"
-
-  tz <- liftIO getCurrentTimeZone
-
-  let
-    parseLocalTime :: ByteString -> Maybe LocalTime
-    parseLocalTime = parseTime defaultTimeLocale "%d.%m.%Y" . U.bToString
-
-    fromTime' = fmap (localTimeToUTC tz) (fromTime >>= parseLocalTime)
-    toTime' = fmap (localTimeToUTC tz) (toTime >>= parseLocalTime)
-
-  return (fromTime', toTime')
-
-getParamOrEmpty :: ByteString -> AppHandler T.Text
-getParamOrEmpty = liftM (maybe T.empty T.decodeUtf8) . getParam
-
-mkRkcFilter :: AppHandler RKC.Filter
-mkRkcFilter = do
-  p <- getParamOrEmpty "program"
-  c <- getParamOrEmpty "city"
-  part <- getParamOrEmpty "partner"
-  (from, to) <- getFromTo
-
-  flt <- liftIO RKC.todayFilter
-  return $
-    flt {
-      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
-      RKC.filterTo = fromMaybe (RKC.filterTo flt) to,
-      RKC.filterProgram = p,
-      RKC.filterCity = c,
-      RKC.filterPartner = part }
-
-rkcHandler :: AppHandler ()
-rkcHandler = logExceptions "handler/rkc" $ do
-  flt' <- mkRkcFilter
-  info <- with db $ RKC.rkc flt'
-  writeJSON info
-
-rkcWeatherHandler :: AppHandler ()
-rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
-  let defaults = ["Moskva", "Sankt-Peterburg"]
-  cities <- (fromMaybe defaults . (>>= (Aeson.decode . LB.fromStrict)))
-    <$> getParam "cities"
-
-  syslogJSON Info "handler/rkc/weather" ["cities" .= intercalate ", " cities]
-
-  conf <- gets weatherCfg
-  let weatherForCity = liftIO . getWeather' conf . filter (/= '\'')
-  let toTemp t city = Aeson.object [
-        "city" .= city,
-        "temp" .= either (const "-") (show.tempC) t]
-
-  temps <- mapM weatherForCity cities
-  writeJSON $ Aeson.object [
-    "weather" .= zipWith toTemp temps cities]
-
-rkcFrontHandler :: AppHandler ()
-rkcFrontHandler = logExceptions "handler/rkc/front" $ do
-  flt' <- mkRkcFilter
-  res <- with db $ RKC.rkcFront flt'
-  writeJSON res
-
-rkcPartners :: AppHandler ()
-rkcPartners = logExceptions "handler/rkc/partners" $ do
-  flt <- liftIO RKC.todayFilter
-  (from, to) <- getFromTo
-
-  let
-    flt' = flt {
-      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
-      RKC.filterTo = fromMaybe (RKC.filterTo flt) to }
-
-  res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
-  writeJSON res
-
 
 -- | Calculate average tower arrival time (in seconds) for today,
 -- parametrized by city (a key from City dictionary).
@@ -401,53 +304,6 @@ getRegionByCity =
         [city]
       writeJSON (res :: [[Text]])
     _ -> error "Could not read city from request"
-
-
-lookupSrvQ :: Query
-lookupSrvQ = [sql|
-  SELECT c.id::text
-       , c.comment
-       , c.owner
-       , c.partnerid
-       , (extract (epoch from c.ctime at time zone 'UTC')::int8)::text
-       , c.partnercancelreason
-       , p.name
-       , c.serviceid
-  FROM partnercanceltbl c
-  LEFT JOIN partnertbl p
-  ON p.id::text = substring(c.partnerid, ':(.*)')
-  WHERE c.serviceid = ?
-|]
-
-printServiceHandler :: AppHandler ()
-printServiceHandler = do
-  Just model <- getParamT "model"
-  Just objId <- getParamT "id"
-  srv     <- with db $ DB.read model objId
-  kase    <- with db $ DB.read' $ fromMaybe "" $ Map.lookup "parentId" srv
-  actions <- with db $ mapM DB.read' $
-             T.splitOn "," $ Map.findWithDefault "" "actions" kase
-  let modelId = T.concat [model, ":", objId]
-      action  = head' $ filter ((Just modelId ==) . Map.lookup "parentId")
-                      $ actions
-  rows <- withPG pg_search $ \conn -> query conn lookupSrvQ [modelId]
-  writeJSON $ Aeson.object [ "action"  .= [action]
-                           , "kase"    .=  [kase]
-                           , "service" .=  [srv]
-                           , "cancels" .=  cancelMap rows
-                           ]
-    where
-      head' []     = Map.empty
-      head' (x:_)  = x
-      cancelMap rows = mkMap [ "id"
-                             , "comment"
-                             , "owner"
-                             , "partnerid"
-                             , "ctime"
-                             , "partnerCancelReason"
-                             , "partnerName"
-                             , "serviceid"
-                             ] rows
 
 
 -- | Serve parts of the application config to client in JSON.

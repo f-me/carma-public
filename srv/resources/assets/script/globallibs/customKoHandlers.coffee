@@ -48,10 +48,17 @@ ko.bindingHandlers.pickerDisable =
 
 ko.bindingHandlers.bindDict =
   init: (el, acc, allBindigns, kvm) ->
-    th = kvm["#{acc()}TypeaheadBuilder"]()
+    # FIXME: This is hack to support legacy kvm field
+    if _.isString acc()
+      th = kvm["#{acc()}TypeaheadBuilder"]()
+    else
+      th = acc().typeaheadBuilder()
     th.setElement(el)
     # Do not open TH menu if the field is non-writable
-    fld = _.find kvm._meta.model.fields, (f) -> f.name == acc()
+    if _.isString acc()
+      fld = _.find kvm._meta.model.fields, (f) -> f.name == acc()
+    else
+      fld = _.find acc().kvm._meta.model.fields, (f) -> f.name == acc()
     # bind th.draw here, because we don't have ready th
     # during binding any more, see bug #1148
     chevron = $(el).siblings().find('.icon-chevron-down')[0]
@@ -68,8 +75,7 @@ funToggle = (fns...) ->
   -> fns[i++ % l]()
 
 ko.bindingHandlers.sort =
-  init: => return
-  update: (el, name, allBindings, viewModel, ctx) ->
+  init: (el, name, allBindings, viewModel, ctx) ->
     # add icon to show sorting direction
     defaultClass = 'icon-resize-vertical'
     $(el).prepend("<i class=#{defaultClass}></i>")
@@ -82,7 +88,7 @@ ko.bindingHandlers.sort =
         $(el).find('i').removeClass()
         $(el).find('i').addClass 'icon-arrow-up'
         # launch sorting
-        ctx.$parent.kvms.set_sorter name(), "asc"
+        ctx.$root.kvms.set_sorter name(), "asc"
       ->
         # reset icon for others columns
         resetSort el, defaultClass
@@ -90,7 +96,7 @@ ko.bindingHandlers.sort =
         $(el).find('i').removeClass()
         $(el).find('i').addClass 'icon-arrow-down'
         # launch sorting
-        ctx.$parent.kvms.set_sorter name(), "desc"
+        ctx.$root.kvms.set_sorter name(), "desc"
     )
     # reset icon to default (without sorting) for all column headers
     resetSort = (el, defaultClass) ->
@@ -138,14 +144,14 @@ ko.bindingHandlers.renderGroup =
     return { controlsDescendantBindings: true }
 
 ko.bindingHandlers.render =
-  init: (el, acc, allBindigns, ctx) ->
+  init: (el, acc, allBindigns, ctx, koctx) ->
     return unless acc().field
     fld = acc().kvm[acc().field.name]
     tplName = fld.field.meta?.widget || fld.field.type || 'text'
     tpl = $("##{tplName}-ro-template").html()
     console.error "Cant find template for #{tplName}" unless tpl
     ko.utils.setHtml el, tpl
-    ko.applyBindingsToDescendants({kvm: acc().kvm, field: acc().field}, el)
+    ko.applyBindingsToDescendants(acc().kvm[acc().field.name], el)
     return { controlsDescendantBindings: true }
 
 ko.bindingHandlers.expandAll =

@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -47,6 +48,8 @@ import           Trigger.Dsl as Dsl
 import           Carma.Model.Types (HMDiffTime(..), on, off)
 
 import qualified Carma.Model.Action as Action
+import qualified Carma.Model.ActionResult as ActionResult
+import qualified Carma.Model.ActionType as ActionType
 import qualified Carma.Model.BusinessRole as BusinessRole
 import           Carma.Model.Call (Call)
 import qualified Carma.Model.Call as Call
@@ -56,6 +59,7 @@ import qualified Carma.Model.City as City
 import qualified Carma.Model.CaseStatus as CS
 import           Carma.Model.Contract as Contract hiding (ident)
 import qualified Carma.Model.ContractCheckStatus as CCS
+import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.FalseCall as FC
 
 import qualified Carma.Model.Service as Service
@@ -63,6 +67,7 @@ import           Carma.Model.Service (Service)
 import qualified Carma.Model.Service.Hotel as Hotel
 import qualified Carma.Model.Service.Rent as Rent
 import qualified Carma.Model.Service.Taxi as Taxi
+import qualified Carma.Model.Service.Tech as Tech
 import qualified Carma.Model.Service.Towage as Towage
 import           Carma.Model.SubProgram as SubProgram hiding (ident)
 
@@ -78,6 +83,7 @@ import qualified Carma.Backoffice.DSL as BO
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
 
+import           AppHandlers.ActionAssignment
 
 -- TODO: rename
 --   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
@@ -122,6 +128,10 @@ beforeCreate = Map.unionsWith (++)
     modPut Case.callDate             $ Just n
     modPut Case.caseStatus             CS.front
     modPut Case.contact_contactOwner $ Just on
+    getPatchField Case.comment >>=
+      \case
+        Just (Just wi) -> fillWazzup wi
+        _              -> return ()
 
   , trigOnModel ([]::[Service]) $ do
     n <- getNow
@@ -159,6 +169,9 @@ beforeCreate = Map.unionsWith (++)
     c <- dbRead parId
     modPut Taxi.taxiFrom_address $ c `Patch.get'` Case.caseAddress_address
 
+  , trigOnModel ([]::[Tech.Tech]) $
+    modPut Tech.suburbanMilage $ Just "0"
+
   , trigOnModel ([]::[Towage.Towage]) $ do
     modPut Towage.accident            $ Just off
     modPut Towage.canNeutral          $ Just off
@@ -181,8 +194,15 @@ beforeUpdate = Map.unionsWith (++) $
   [trigOn Usermeta.businessRole $ \case
     Nothing -> return ()
     Just bRole -> do
-      Just roles <- (`Patch.get` BusinessRole.roles) <$> dbRead bRole
+      roles <- (`get'` BusinessRole.roles) <$> dbRead bRole
       modPut Usermeta.roles roles
+
+  , trigOn ActionType.priority $
+    \n -> modPut ActionType.priority $
+          if
+            | n < topPriority   -> topPriority
+            | n > leastPriority -> leastPriority
+            | otherwise         -> n
 
   , trigOn Action.result $ \case
       Nothing -> return ()
@@ -208,8 +228,7 @@ beforeUpdate = Map.unionsWith (++) $
            -- Prefer fields from the patch, but check DB as well
            let  nize (Just Nothing) = Nothing
                 nize v              = v
-                sub   =
-                  (nize s)  <|> (Just $ cp `get'` Contract.subprogram)
+                sub = (nize s) <|> (Just $ cp `get'` Contract.subprogram)
                 -- We need to check if validUntil field is *missing*
                 -- from both patch and DB, thus Just Nothing from DB
                 -- is converted to Nothing
@@ -217,7 +236,7 @@ beforeUpdate = Map.unionsWith (++) $
                   (nize vu) <|> (nize $ Just $ cp `get'` Contract.validUntil)
            case (sub, until) of
              (Just (Just s'), Nothing) ->
-               fillValidUntil s' newSince
+               when (oldSince /= Just newSince) $ fillValidUntil s' newSince
              _ -> return ()
 
   , trigOn Case.car_plateNum $ \case
@@ -228,15 +247,7 @@ beforeUpdate = Map.unionsWith (++) $
 
   , trigOn Case.comment $ \case
       Nothing -> return ()
-      Just wi -> do
-        wazz <- dbRead wi
-        let f :: (FieldI t n d) => (Wazzup.Wazzup -> F t n d) -> t
-            f = Patch.get' wazz
-            p = Patch.put Case.diagnosis1 (f Wazzup.system) .
-                Patch.put Case.diagnosis2 (f Wazzup.part) .
-                Patch.put Case.diagnosis3 (f Wazzup.cause) .
-                Patch.put Case.diagnosis4 (f Wazzup.suggestion)
-        modifyPatch p
+      Just wi -> fillWazzup wi
 
   , trigOn Service.times_expectedServiceStart $ \case
       Nothing -> return ()
@@ -461,6 +472,19 @@ fillValidUntil subprogram newSince = do
     Nothing -> return ()
 
 
+-- | Fill @diagnosisN@ fields.
+fillWazzup :: IdentI Wazzup.Wazzup -> Free (Dsl Case) ()
+fillWazzup wi = do
+  wazz <- dbRead wi
+  let f :: (FieldI t n d) => (Wazzup.Wazzup -> F t n d) -> t
+      f = Patch.get' wazz
+      p = Patch.put Case.diagnosis1 (f Wazzup.system) .
+          Patch.put Case.diagnosis2 (f Wazzup.part) .
+          Patch.put Case.diagnosis3 (f Wazzup.cause) .
+          Patch.put Case.diagnosis4 (f Wazzup.suggestion)
+  modifyPatch p
+
+
 -- | Change a field in the patch.
 modPut :: (KnownSymbol name, Typeable typ) =>
           (m -> Field typ (FOpt name desc app))
@@ -487,11 +511,21 @@ instance Backoffice HaskellE where
     since nd t =
         HaskellE $ addUTCTime nd <$> toHaskell t
 
-    nobody = HaskellE $ return Nothing
+    nobody = nothing
 
     currentUser =
         HaskellE $
         Just <$> toHaskell (BO.userField Usermeta.ident)
+
+    assigneeOfLast scope types res =
+      HaskellE $ do
+        res' <- mapM toHaskell res
+        ids <- filteredActions scope types (res' :: [Maybe BO.ActionResultI])
+        case ids of
+          (l:_) -> return $ l `get'` Action.assignedTo
+          []    -> return Nothing
+
+    noResult = nothing
 
     previousAction =
         HaskellE $
@@ -554,28 +588,42 @@ instance Backoffice HaskellE where
         HaskellE $ do
           ctx <- ask
           sid <- srvId'
-          return $ void $
-            dbUpdate sid $ Patch.put acc (evalHaskell ctx v) Patch.empty
+          return $ void $ setService sid acc (evalHaskell ctx v)
 
-    sendDealerMail = HaskellE $ return $ return ()
-
-    sendGenserMail = HaskellE $ return $ return ()
-
-    sendPSAMail = HaskellE $ return $ return ()
+    sendMail _ = HaskellE $ return $ return ()
 
     sendSMS tpl =
       HaskellE $ do
         sid <- srvId'
         return $ Dsl.sendSMS sid tpl
 
-    closeWith types res =
-        HaskellE $ do
-          ctx <- ask
-          return $ do
-            let cid = kase ctx `get'` Case.ident
-                p = Patch.put Action.result (Just res) Patch.empty
-            aids <- prevClosedActions cid types
-            forM_ aids (\(PS.Only i) -> dbUpdate i p)
+    closePrevious scope types res =
+      HaskellE $ do
+        ctx <- ask
+        targetActs <- filteredActions scope types [Nothing]
+        return $ do
+          let currentUser = user ctx `get'` Usermeta.ident
+              -- Patch for closing actions
+              p   =
+                Patch.put Action.result (Just res) $
+                -- Set current user as assignee if closing unassigned
+                -- action
+                --
+                -- TODO this is identical to basic Action.result
+                -- trigger, which we can't call programmatically
+                Patch.put Action.assignedTo (Just currentUser) $
+                Patch.put Action.closeTime (Just $ now ctx) Patch.empty
+              -- Cause an action-closing event if we're canceling one
+              -- of our own actions
+              fakeClosing act =
+                when (myAction && res == ActionResult.clientCanceledService) $
+                void $ logCRUDState Update aid p
+                  where
+                    aid = act `get'` Action.ident
+                    myAction = act `get'` Action.assignedTo == Just currentUser
+          forM_ targetActs (\act ->
+                              dbUpdate (act `get'` Action.ident) p >>
+                              fakeClosing act)
 
     a *> b =
         HaskellE $ do
@@ -591,31 +639,37 @@ instance Backoffice HaskellE where
           ctx <- ask
           return $ do
             this <- getAction
-            let cid = kase ctx `get'` Case.ident
-                sid = (`get'` Service.ident) <$> service ctx
-                -- Never breaks for a valid back office
-                e = fromMaybe (error "Target action unknown") $
-                    find ((== aT) . BO.aType) $
-                    snd carmaBackoffice
-                -- Set current action as a source in the nested
+            let -- Set current action as a source in the nested
                 -- evaluator context
                 ctx' = ctx{prevAction = (`get'` Action.aType) <$> this}
-                grp = evalHaskell ctx' $ BO.targetRole e
+                (e, basePatch) = newActionData ctx' aT
                 who = evalHaskell ctx' $ BO.assignment e
-                due = evalHaskell ctx' $ BO.due e
-                -- Set assignTime if a user is picked
+
+            -- Ignore insta-assignment for non-current users if
+            -- target user is not Ready
+            whoIfReady <-
+              case who of
+                Just u -> userIsReady u >>= \case
+                  True -> return who
+                  False ->
+                    return $
+                    if Just currentUser == who
+                    then Just currentUser
+                    else Nothing
+                    where
+                      currentUser = user ctx `get'` Usermeta.ident
+                Nothing -> return Nothing
+
+            let due = evalHaskell ctx' $ BO.due e
+                -- Set assignTime + openTime if a user is picked
                 ctime = now ctx
-                assTime = maybe Nothing (const $ Just ctime) who
-                p = Patch.put Action.ctime ctime $
-                    Patch.put Action.duetime due $
-                    Patch.put Action.targetGroup grp $
-                    Patch.put Action.assignedTo who $
-                    Patch.put Action.assignTime assTime $
-                    Patch.put Action.aType aT $
-                    Patch.put Action.caseId cid $
+                nowIfWho = maybe Nothing (const $ Just ctime) whoIfReady
+                p = Patch.put Action.duetime due $
+                    Patch.put Action.openTime nowIfWho $
+                    Patch.put Action.assignedTo whoIfReady $
+                    Patch.put Action.assignTime nowIfWho $
                     Patch.put Action.parent ((`get'` Action.ident) <$> this) $
-                    Patch.put Action.serviceId sid
-                    Patch.empty
+                    basePatch
             dbCreate p >> evalHaskell ctx (BO.proceed ts)
 
     defer =
@@ -626,16 +680,10 @@ instance Backoffice HaskellE where
             curPatch <- getPatch
             this <- dbRead aid
             let aT = this `get'` Action.aType
-                cid = kase ctx `get'` Case.ident
-                sid = (`get'` Service.ident) <$> service ctx
-                -- Never breaks for a valid back office
-                e = fromMaybe (error "Current action unknown") $
-                    find ((== aT) . BO.aType) $
-                    snd carmaBackoffice
                 -- Set current action as a source in the nested
                 -- evaluator context
                 ctx' = ctx{prevAction = Just aT}
-                grp = evalHaskell ctx' $ BO.targetRole e
+                (_, basePatch) = newActionData ctx' aT
 
                 dbDefer = fromMaybe (error "No deferBy in action") $
                           this `get'` Action.deferBy
@@ -653,14 +701,9 @@ instance Backoffice HaskellE where
                 -- seconds
                 deferBy' = realToFrac deferBy
                 due = addUTCTime deferBy' (now ctx)
-                p = Patch.put Action.ctime (now ctx) $
-                    Patch.put Action.duetime due $
-                    Patch.put Action.targetGroup grp $
-                    Patch.put Action.aType aT $
-                    Patch.put Action.caseId cid $
-                    Patch.put Action.serviceId sid $
-                    Patch.put Action.parent (Just aid)
-                    Patch.empty
+                p = Patch.put Action.duetime due $
+                    Patch.put Action.parent (Just aid) $
+                    basePatch
             void $ dbCreate p
 
 
@@ -694,13 +737,36 @@ mkContext act = do
   srv <- getService
   kase' <- getKase
   usr <- dbRead =<< getCurrentUser
+  acts <- caseActions $ kase' `get'` Case.ident
   t <- getNow
   return HCtx{ kase = kase'
              , service = srv
              , user = usr
+             , actions = acts
              , prevAction = act
              , now = t
              }
+
+
+-- | Graph entry and common data for new actions produced by 'proceed'
+-- or 'defer'.
+newActionData :: HCtx-> ActionTypeI -> (BO.Action, Patch Action.Action)
+newActionData ctx aType = (e, p)
+  where
+    -- Never breaks for a valid back office
+    e = fromMaybe (error "Current action unknown") $
+        find ((== aType) . BO.aType) $
+        snd carmaBackoffice
+    p = Patch.put Action.ctime (now ctx) $
+        Patch.put Action.targetGroup (evalHaskell ctx $ BO.targetRole e) $
+        Patch.put Action.aType aType $
+        Patch.put Action.caseId (kase ctx `get'` Case.ident) $
+        Patch.put Action.serviceId ((`get'` Service.ident) <$> service ctx) $
+        Patch.empty
+
+
+nothing :: HaskellE (Maybe t)
+nothing = HaskellE $ return Nothing
 
 
 -- | Obtain service id from the context or fail.
@@ -710,6 +776,32 @@ srvId' = do
   return $
     fromMaybe (error "No service id in context") $
     service ctx >>= (`Patch.get` Service.ident)
+
+
+-- | Select some actions from the context.
+filteredActions :: Scope
+                -> [BO.ActionTypeI]
+                -- ^ Matching action types.
+                -> [Maybe BO.ActionResultI]
+                -- ^ Matching action results.
+                -> Reader HCtx [Object Action.Action]
+filteredActions scope types resList = do
+  ctx <- ask
+  return $ do
+    let sid =  service ctx >>= (`get` Service.ident)
+    (`filter` (actions ctx)) $
+      \act ->
+        let
+          typeOk   = (act `get'` Action.aType) `elem` types
+          resultOk = (act `get'` Action.result) `elem` resList
+          srvOk    = case scope of
+                       InCase -> True
+                       -- Filter actions by service if needed. Note that
+                       -- *no* error is raised when called with InService
+                       -- from service-less action effect
+                       InService -> act `get'` Action.serviceId == sid
+        in
+          typeOk && resultOk && srvOk
 
 
 evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty
@@ -725,9 +817,10 @@ emptyContext = error "Empty context accessed (HaskellE interpreter bug)"
 --
 -- Enables data access via pure terms.
 data HCtx =
-    HCtx { kase       :: Patch Case
-         , user       :: Patch Usermeta
-         , service    :: Maybe (Patch Service)
+    HCtx { kase       :: Object Case
+         , user       :: Object Usermeta
+         , service    :: Maybe (Object Service)
+         , actions    :: [Object Action.Action]
          , prevAction :: Maybe ActionTypeI
          , now        :: UTCTime
          -- ^ Frozen time.

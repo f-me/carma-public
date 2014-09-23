@@ -41,7 +41,9 @@ toBack :: Entry
 toBack =
     Entry
     (onField Service.status (const SS.backoffice)
-    (([AType.tellMeMore, AType.callMeMaybe] `closeWith` AResult.communicated) *>
+    (closePrevious InCase
+     [AType.tellMeMore, AType.callMeMaybe]
+     AResult.communicated *>
      switch
      [ ( serviceField svcType `oneOf` [ST.towage, ST.tech]
        , sendSMS SMS.create *> proceed [AType.orderService]
@@ -77,6 +79,52 @@ mobileOrder =
      (proceed [AType.callMeMaybe]))
 
 
+cancel :: Entry
+cancel =
+    Entry
+    (onField Service.status (const SS.canceled) $
+     switch
+      [ ( serviceField status == const SS.creating ||
+          (serviceField status == const SS.backoffice &&
+           assigneeOfLast InService
+           [AType.orderService, AType.orderServiceAnalyst]
+           [noResult] == nobody) ||
+          (serviceField status == const SS.makerApproval &&
+           assigneeOfLast InService [AType.makerApproval]
+           [noResult] == nobody)
+        , setServiceField falseCall (const FS.nobill) *>
+          closePrevious InService
+          [AType.orderService, AType.orderServiceAnalyst, AType.makerApproval]
+          AResult.clientCanceledService *>
+          closePrevious InCase
+          [AType.tellMeMore, AType.callMeMaybe]
+          AResult.okButNoService *>
+          sendMail PSA *>
+          finish
+        )
+      , ( serviceField status == const SS.backoffice &&
+          currentUser ==
+          assigneeOfLast InService
+          [AType.orderService, AType.orderServiceAnalyst]
+          [noResult]
+        , closePrevious InService
+          [AType.orderService, AType.orderServiceAnalyst]
+          AResult.clientCanceledService *>
+          sendMail PSA *>
+          finish
+        )
+      ] $
+      closePrevious InService
+      [ AType.orderService, AType.orderServiceAnalyst
+      , AType.tellClient, AType.makerApproval
+      , AType.checkStatus, AType.checkEndOfService
+      ]
+      AResult.clientCanceledService *>
+      sendMail PSA *>
+      proceed [AType.cancelService]
+    )
+
+
 recallClient :: Entry
 recallClient =
     Entry
@@ -106,7 +154,8 @@ orderService =
     (ite (previousAction == const AType.needPartner ||
           userField Usermeta.isJack)
      currentUser
-     nobody
+     (assigneeOfLast InCase
+      [AType.tellMeMore, AType.callMeMaybe] [just AResult.communicated])
     )
     (let
         n = (1 * minutes) `since` now
@@ -116,23 +165,18 @@ orderService =
     )
     [ (AResult.serviceOrdered,
        sendSMS SMS.order *>
-       sendPSAMail *>
+       sendMail PSA *>
        setServiceStatus SS.ordered *>
        proceed [AType.tellClient, AType.addBill])
     , (AResult.serviceOrderedSMS,
        sendSMS SMS.order *>
-       sendPSAMail *>
+       sendMail PSA *>
        setServiceStatus SS.ordered *>
        proceed [AType.checkStatus, AType.addBill])
     , (AResult.needPartner,
        sendSMS SMS.parguy *>
        setServiceStatus SS.needPartner *>
        proceed [AType.needPartner])
-    , (AResult.clientCanceledService,
-       sendSMS SMS.cancel *>
-       sendPSAMail *>
-       setServiceStatus SS.canceled *>
-       finish)
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]
@@ -221,7 +265,7 @@ checkEndOfService =
     ((5 * minutes) `since` req (serviceField times_expectedServiceEnd))
     [ (AResult.serviceDone,
        sendSMS SMS.complete *>
-       sendDealerMail *>
+       sendMail Dealer *>
        setServiceStatus SS.ok *>
        ite (caseField Case.program `oneOf`
             [Program.peugeot, Program.citroen, Program.vw])
@@ -256,7 +300,7 @@ getDealerInfo =
       caseField Case.program `oneOf` [Program.peugeot, Program.citroen])
      ((5 * minutes) `since` req (serviceField times_factServiceEnd))
      ((14 * days) `since` req (serviceField times_factServiceEnd)))
-    [ (AResult.gotInfo, sendPSAMail *> finish)
+    [ (AResult.gotInfo, sendMail PSA *> finish)
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]
@@ -307,6 +351,7 @@ tellMakerDeclined =
     ((5 * minutes) `since` now)
     [ (AResult.clientNotified,
        setServiceStatus SS.closed *> finish)
+    , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]
 
@@ -444,6 +489,7 @@ carmaBackoffice =
       , needMakerApproval
       , mobileOrder
       , recallClient
+      , cancel
       , complaint
       , mistake
       ]

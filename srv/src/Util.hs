@@ -7,7 +7,6 @@ module Util
     -- * Request processing
     readJSON
   , readJSONfromLBS
-  , selectParse
   , mbreadInt
   , mbreadDouble
   , readDouble
@@ -57,7 +56,6 @@ import qualified Data.ByteString.Lazy  as L
 import qualified Data.ByteString.Lazy.Char8  as L8
 import qualified Data.ByteString.Char8 as B
 
-import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -71,9 +69,6 @@ import Data.Aeson as Aeson
 import qualified Data.Aeson.Types as Aeson
 import Data.Attoparsec.ByteString.Lazy (Result(..))
 import qualified Data.Attoparsec.ByteString.Lazy as Atto
-
-import Data.Attoparsec.Combinator (many1, choice)
-import qualified Data.Attoparsec.Text as A
 
 import Database.PostgreSQL.Simple.ToField
 import Database.PostgreSQL.Simple.ToRow
@@ -110,39 +105,6 @@ readJSONfromLBS' src s
       Success t -> t
       Error err -> Ex.throw $ FromJSONError src err
     err -> Ex.throw $ AttoparsecError src (show err)
-
-
---------------------------------------------------------------------------------
--- param parser for select
-sParse :: Text -> [Text]
-sParse prm =
-  let A.Done _ r = A.feed (A.parse c prm) T.empty
-  in r
-    where
-      n = return . T.pack =<< trim (many1 $ A.satisfy $ A.notInClass "<>=")
-      p = trim $ choice $ map A.string ["<=", "<", ">=", ">", "=="]
-      c = do
-        v    <- n
-        pred' <- p
-        l    <- n
-        return [v, pred', l]
-      trim pars = A.skipSpace *> pars <* A.skipSpace
-
-s2p :: (Eq s, IsString s, Ord a) => s -> (a -> a -> Bool)
-s2p "<=" = (<=)
-s2p "<"  = (<)
-s2p ">"  = (>)
-s2p ">=" = (>=)
-s2p "==" = (==)
-s2p _    = error "Invalid argument of s2p"
-
-selectParse :: Map Text Text -> Text -> Bool
-selectParse obj prm =
-  let [l,p,r] = sParse prm
-      p' = s2p p
-  in case Map.lookup l obj of
-    Nothing -> False
-    Just v  -> p' v r
 
 mbreadInt :: Text -> Maybe Int
 mbreadInt s = case T.decimal s of

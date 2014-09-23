@@ -38,6 +38,7 @@ define [ "hooks/common"
                , k.vwfakeHook
                , k.carModelInfoHook
                , k.buttons
+               , k.hasFiles
                ]
 
       "Consultation" : [ s.serviceColor
@@ -51,6 +52,12 @@ define [ "hooks/common"
                    , s.buttons
                    , s.openPartnerSearch
                    ]
+
+      "DeliverClient" : [ s.serviceColor
+                        , s.updateCaseActions
+                        , s.buttons
+                        , s.openPartnerSearch
+                        ]
 
       "cost_serviceTarifOption" : [c.tarifOptNameDef]
 

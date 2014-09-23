@@ -1,6 +1,6 @@
 # Bulk uploads screen handlers, inline-uploader widget handlers.
 #
-# Uses "attachment" model and /upload/case/[bulk|<n>]/files server
+# Uses "Attachment" model and /upload/Case/[bulk|<n>]/files server
 # handlers.
 define [ "text!tpl/screens/uploads.html"
        , "lib/upload"
@@ -12,7 +12,7 @@ define [ "text!tpl/screens/uploads.html"
   #
   # TODO This might be replaced by a regular reference-adding routine
   @addAttIdToCaseObj = (attId, caseObj) ->
-    ref = "attachment:" + attId
+    ref = "Attachment:" + attId
     if caseObj.files? && caseObj.files.length > 0
       # No dupe references
       if caseObj.files.search(ref) == -1
@@ -29,13 +29,13 @@ define [ "text!tpl/screens/uploads.html"
   @detachFromCase = (bvm, caseId) ->
     caseUrl = "/_/Case/" + caseId
     attId = bvm.aid()
-    ref = "attachment:" + attId
+    ref = "Attachment:" + attId
 
     $.getJSON(caseUrl).
       done((res) ->
         newFiles = _.without(res.files.split(","), ref).join(",")
         $.putJSON(caseUrl, {files: newFiles}).
-          done(() -> bvm.cases.remove caseId.toString()))
+          done(() -> bvm.cases.remove caseId))
 
   # Attach a file to a case, provided file's bvm and a field
   # containing case number. Check for dupes/unknown cases. Set af's
@@ -97,7 +97,7 @@ define [ "text!tpl/screens/uploads.html"
     ko.applyBindings bvm, $(box)[0]
 
     # Upload the file asynchronously
-    upl.ajaxUpload("/upload/case/bulk/files/", file,
+    upl.ajaxUpload("/upload/Case/bulk/files/", file,
       xhr: upl.progressXHR box.find ".progress"
       ).
       always(() ->

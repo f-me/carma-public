@@ -1,0 +1,55 @@
+mixin rows(columns)
+  thead
+    tr
+      each c in columns
+        th
+          button.btn.btn-link(
+            data-bind="{ text: $root.fieldsDict['#{c.name}'].meta.label \
+                       , sort: '#{c.name}' }")
+
+  tbody(data-bind="foreach: kvms")
+    tr(data-bind="event: {dblclick: function () {$root.select($data)}}")
+      each c in columns
+        td(data-bind="renderTpl: {field: $data['#{c.name}'], tpl: '#{c.tpl}' }")
+
+.row-fluid#timeline-view
+  .row-fluid
+    #users.bs-docs-example.span12
+      .row-fluid
+          .bs-docs-example-after
+              | Пользователи
+            .row-fluid
+              p
+                input.input-large.search-query(type='text'
+                  placeholder='Поиск'
+                  data-bind='value: kvms.typeahead, valueUpdate: "afterkeydown"')
+            .row-fluid(style="height: 70vh; overflow-y: auto;")
+              table.table.table-hover.table-bordered.table-striped.table-condensed
+                +rows([ { name: 'login',        tpl: 'text-ro' }
+                      , { name: 'realName',     tpl: 'text-ro'               }
+                      , { name: 'businessRole', tpl: 'dictionary-table' }
+                      , { name: 'bocities',     tpl: 'dictionary-many-table' }
+                      , { name: 'boprograms',   tpl: 'dictionary-many-table' }
+                      , { name: 'currentState', tpl: 'dictionary-ro'         }
+                      , { name: 'delayedState', tpl: 'onlyServiceBreak-table'}
+                      ])
+
+  // ko foreach: timelines
+  #timelines(data-bind="attr: {id: elementId}")
+    .row-fluid.timeline(data-bind="applyFn: showTimeline")
+      .bs-docs-example.span10.offset1
+          .bs-docs-example-after(data-bind='text: $data.title')
+          .bs-docs-example-close
+            button.close(type='button', data-bind='click: $data.closeClick') ×
+          .row-fluid.form-horizontal
+            .form-horizontal
+              .control-group
+                label.control-label За период
+                .controls
+                  .input-prepend
+                    span.add-on
+                      i.icon-calendar
+                    input.rangepicker(type='text')
+          .row-fluid
+            .chart
+  // /ko

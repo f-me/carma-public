@@ -56,15 +56,14 @@ vinImport = logExceptions "Bulk/vinImport" $ do
 
       -- Check user permissions
       -- Allow users with partner role to upload files only to their
-      -- assigned subprograms. Note that usermeta field is still
-      -- called "programs" despite storing a list of subprogram ids.
+      -- assigned subprograms.
       Just user <- currentUserMeta
       let Just (Ident uid) = Patch.get user Usermeta.ident
       let Just roles       = Patch.get user Usermeta.roles
-      let Just programs    = Patch.get user Usermeta.programs
+      let Just subPrograms = Patch.get user Usermeta.subPrograms
 
       when (not
-            $  (V.elem Role.partner roles && V.elem (Ident sid) programs)
+            $  (V.elem Role.partner roles && V.elem (Ident sid) subPrograms)
             || (V.elem Role.vinAdmin roles)
             || (V.elem Role.psaanalyst roles)) $
             handleError 403

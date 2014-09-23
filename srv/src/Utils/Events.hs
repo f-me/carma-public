@@ -1,6 +1,14 @@
 {-# LANGUAGE ScopedTypeVariables, QuasiQuotes, FlexibleContexts, DataKinds #-}
 
-module Utils.Events where
+module Utils.Events
+    (
+      logCRUD
+    , updateUserState
+    , logLogin
+    , logCRUDState
+    )
+
+where
 
 import           Prelude hiding (log)
 
@@ -40,7 +48,6 @@ import qualified Carma.Model.Event     as E
 import           Carma.Model.UserState (UserState, UserStateVal(..))
 import qualified Carma.Model.UserState as State
 import           Carma.Model.Usermeta  (Usermeta(..))
-import           Carma.Model.Action    (Action)
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.Call   as Call
 
@@ -49,7 +56,6 @@ import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
 
 import           Util
-import Control.Monad
 import           Utils.LegacyModel
 
 
@@ -60,20 +66,11 @@ logLogin tpe = do
   uid <- getRealUid
   case uid of
     Nothing -> return ()
-    Just uid' -> void $ log $ addIdent uid' $ buildEmpty tpe
+    Just uid' -> do
+      ev <- log $ addIdent uid' $ buildEmpty tpe
+      updateUserState tpe uid' P.empty ev
 
--- | Interface for events from legacy CRUD
-logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
-                 , Model m, KnownSymbol n)
-              => EventType
-              -- ^ event type
-              -> Text
-              -- ^ Legacy object identifier `model:id`
-              -> (m -> F t n d)
-              -- ^ Changed field
-              -> Handler b b1 (IdentI Event)
-logLegacyCRUD tpe mdl fld = log $ buildLegacy tpe mdl fld
-
+-- | Create 'Event' from changes in a model.
 logCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
            , Model m)
         => EventType
@@ -84,6 +81,17 @@ logCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
         -> Handler b b1 (IdentI Event)
 logCRUD tpe idt p = do
   log $ buildFull tpe idt (Nothing :: Maybe (m -> PK Int m "")) (Just p)
+
+-- | Create event *and* update user state.
+logCRUDState :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
+                , Model m)
+             => EventType
+             -> IdentI m
+             -> Patch m
+             -> Handler b b1 (IdentI Event)
+logCRUDState tpe idt p =
+  logCRUD tpe idt p >>=
+  \e -> updateUserState tpe idt p e >> return e
 
 -- | Create event from patch
 log :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
@@ -130,6 +138,7 @@ updateUserState evt idt p evidt = do
   where
     mname = modelName (modelInfo :: ModelInfo m)
 
+
 -- Implementation --------------------------------------------------------------
 
 -- | Build `Path Event`
@@ -165,22 +174,8 @@ create :: HasPostgres m
        -> m (Either SomeException (IdentI Event))
 create ev = withPG $ \c -> liftIO $ P.create ev c
 
--- | Build log event for legacy model crud
-buildLegacy :: forall m t n d.(Model m, KnownSymbol n)
-            => EventType
-            -- ^ Type of the event
-            -> Text
-            -- ^ legacy id `model:id`
-            -> (m -> F t n d)
-            -- ^ Changed field
-            -> Patch Event
-buildLegacy tpe objId fld =
-  buildFull tpe idt (Just fld) Nothing
-  where
-    idt        = readIdent rawid :: IdentI m
-    (_:rawid:_) = T.splitOn ":" objId
 
-data States = States { from :: [UserStateVal], to :: UserStateVal }
+data States = States { _from :: [UserStateVal], _to :: UserStateVal }
 (>>>) :: [UserStateVal] -> UserStateVal -> States
 (>>>) f t = States f t
 
@@ -309,9 +304,6 @@ getRealUid = do
                 Only (unUid $ fromJust $ userId $ u)
       return uid
     Nothing -> return Nothing
-
-mkActionId :: Text -> IdentI Action
-mkActionId bs = readIdent bs
 
 addIdent :: forall m.Model m => IdentI m -> Patch Event -> Patch Event
 addIdent idt p =

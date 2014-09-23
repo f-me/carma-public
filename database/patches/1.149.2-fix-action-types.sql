@@ -1,5 +1,6 @@
 -- remap ActionNames to new ActionType idents
 ALTER TABLE actiontbl ADD COLUMN type_tmp int4;
+CREATE INDEX ON actiontbl (name);
 UPDATE actiontbl SET type_tmp = 16 WHERE name='accountCheck';
 UPDATE actiontbl SET type_tmp = 12 WHERE name='addBill';
 UPDATE actiontbl SET type_tmp = 17 WHERE name='analystCheck';
@@ -61,6 +62,7 @@ ALTER TABLE actiontbl DROP COLUMN caseId_tmp;
 
 -- Remap result to ActionResult idents
 ALTER TABLE actiontbl ADD COLUMN result_tmp int4;
+CREATE INDEX ON actiontbl (result);
 UPDATE actiontbl SET result_tmp = 1 WHERE result = 'serviceOrdered';
 UPDATE actiontbl SET result_tmp = 10 WHERE result = 'prescheduleService';
 UPDATE actiontbl SET result_tmp = 10 WHERE result = 'serviceFinished';

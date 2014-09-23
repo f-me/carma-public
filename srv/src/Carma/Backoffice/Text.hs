@@ -25,6 +25,7 @@ import           Control.Monad.Trans.Reader
 
 import           Data.Map (Map)
 import qualified Data.Map as Map
+import           Data.String
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Typeable
@@ -77,6 +78,11 @@ triggerText field value body open between = do
   return $ T.concat $ [trig', ": "] ++ [body']
 
 
+scopeText :: IsString a => Scope -> a
+scopeText InCase = "в кейсе"
+scopeText InService = "в услуге"
+
+
 -- | Existential container for model idents.
 --
 -- Used to store idents for multiple models in a single lookup table
@@ -122,16 +128,21 @@ instance Backoffice TextE where
 
     currentUser = textE "Текущий пользователь"
 
-    whoClosedWith acts res =
+    assigneeOfLast scope acts res =
         TextE $ do
           acts' <- mapM (toText . const) acts
-          res' <- toText $ const res
+          res' <- mapM toText res
           return $ T.concat
-                     [ "Пользователь, последним закрывший в кейсе действие {"
-                     , T.intercalate ", " acts'
-                     , "} с результатом "
-                     , res'
+                     [ "Пользователь, ответственный за последнее "
+                     , scopeText scope
+                     , " действие с типом {"
+                     , T.intercalate " или " acts'
+                     , "} в состоянии {"
+                     , T.intercalate " или " res'
+                     , "}"
                      ]
+
+    noResult = textE "Открыто"
 
     previousAction = textE "Предыдущее действие"
 
@@ -189,17 +200,19 @@ instance Backoffice TextE where
         TextE $
         T.append "Отправить SMS по шаблону " <$> toText (const i)
 
-    sendPSAMail = textE "Отправить письмо в PSA"
+    sendMail to =
+      textE $ T.append "Отправить письмо " $ case to of
+                                               PSA -> "в PSA"
+                                               Dealer -> "дилеру"
+                                               Genser -> "в Genser"
 
-    sendDealerMail = textE "Отправить письмо дилеру"
-
-    sendGenserMail = textE "Отправить письмо в Genser"
-
-    closeWith acts r =
+    closePrevious scope acts r =
         TextE $ do
           acts' <- mapM (toText . const) acts
           r' <- toText $ const r
-          return $ T.concat [ "Закрыть все ранее созданные по кейсу действия {"
+          return $ T.concat [ "Закрыть все ранее созданные "
+                            , scopeText scope
+                            , " действия {"
                             , T.intercalate ", " acts'
                             , "} с результатом "
                             , r'

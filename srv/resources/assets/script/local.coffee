@@ -13,6 +13,7 @@ require [ "domready"
         , "lib/bug-report"
         , "lstorePubSub"
         , "lib/current-user"
+        , "lib/hacking"
         ], ( dom
            , main
            , Finch
@@ -26,6 +27,7 @@ require [ "domready"
            , bug
            , pubSub
            , CurrentUser
+           , hacking
            ) ->
 
   bugReport = new bug.BugReport
@@ -84,6 +86,7 @@ require [ "domready"
           global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
 
     sendSms.setup()
+    hacking.reenableHacks()
 
     if user.login == "darya"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')
@@ -104,6 +107,7 @@ require [ "domready"
 
   $.fn.wysihtml5.defaultOptions.stylesheets = '/s/3p/wysihtml5/wysiwyg-color.css'
 
+  u.build_global_fn 'switchHack', ['lib/hacking']
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']
   u.build_global_fn 'inlineUploadFile', ['lib/upload']
