@@ -297,10 +297,10 @@ define [ "model/utils"
     "Доступно при заполнении полей: #{labels.join(', ')}"
 
   # Select case actions with matching types and which are created for
-  # this service
+  # this service. If types list is empty, match all action types.
   svcActions: (kase, svc, types) ->
     _.filter (kase['actionsList']?() || []),
-      (a) -> (a.serviceId() == svc.id()) && (_.contains types, a.type())
+      (a) -> (a.serviceId() == svc.id()) && (_.isEmpty(types) || _.contains types, a.type())
 
   # FIXME: This could be a callback for main.js:saveInstance
   successfulSave: successfulSave
