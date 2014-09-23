@@ -37,7 +37,7 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
                valueUpdate: ['#{change}', 'afterpaste'],\n\
                readonly: {{ name }}Disabled,\n\
                {{# meta.regexp }}\n\
-               css: { 're-failed': {{name}}Regexp }\n\
+               css: { 're-failed': {{name}}Regexp },\n\
                {{/ meta.regexp}}\n\
                #{dataBinds}"
     )&attributes(attributes)
