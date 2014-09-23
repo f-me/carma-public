@@ -108,8 +108,8 @@ module.exports = (grunt) ->
              'images/*'
             ]
     bootstrap:
-      src: 'bootstrap'
-      dest: 'bootstrap'
+      src: 'bootstrap/dest'
+      dist: 'bootstrap'
       file: ['css/**', 'img/**', 'js/**']
     openLayers:
       src: 'OpenLayers'
@@ -130,7 +130,10 @@ module.exports = (grunt) ->
         'bootstrap-wysihtml5.js',
         'bootstrap-wysihtml5.css',
         'locales/bootstrap-wysihtml5.ru-RU.js']
-
+    'normalize-css':
+      src: 'normalize-css'
+      dest: 'normalize-css'
+      file: 'normalize.css'
 
   mkCopyAndClean = (libs, cfg) ->
     for lib, libCfg of libs
