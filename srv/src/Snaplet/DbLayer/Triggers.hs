@@ -1,6 +1,5 @@
 module Snaplet.DbLayer.Triggers
   (triggerUpdate
-  , applyDefaults
   ) where
 
 import Data.Functor ((<$>))
@@ -13,7 +12,6 @@ import qualified Data.Text as T
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
-import Snaplet.DbLayer.Triggers.Defaults
 import Snaplet.DbLayer.Triggers.Actions
 import Snaplet.Auth.Class
 import Snaplet.Messenger.Class
