@@ -1,0 +1,50 @@
+#call-screen.screen.container-fluid
+  .row
+    #left.form-inline.col-md-4.col
+      .form-group
+        label Номер
+      input#call-number.form-control(type='text'
+                                     disabled='disabled'
+                                     data-bind='value: maybeId')
+      #call-form
+
+    #center.col-md-4.col
+    #right.col-md-4.col
+      .control-group
+        button#search-partner.btn.btn-success
+          i.icon.icon-white.icon-search
+          | Дилеры и партнеры
+      .control-group
+        button#new-case.btn.btn-success(type='submit', onclick='makeCase()')
+          | Новый кейс
+      .control-group(data-bind='visible: id')
+        button#end-call.btn.btn-danger
+          | Закончить звонок
+
+  .row
+    .control-group
+      .control-label
+        label
+          | Поиск
+          i#search-help.icon.icon-question-sign(data-trigger='hover')
+      .controls
+        input#search-query.input-xlarge(type='text')
+    table#call-scrn-searchtable.table.table-striped.table-bordered
+      thead
+        tr
+          th ID
+          th ФИО
+          th Дата звонка
+          th Телефон
+          th Номер машины
+          th VIN
+          th Программа
+          th Комментарий
+      tbody
+  #new-call-modal.modal.fade.modal-dont-block
+    .modal-body
+      form.form-inline.text-center
+        span.lead
+          | Начать новый звонок
+        img#make-new-call.img-circle(src='/s/img/phone_pickup.png'
+            style='width: 256px; height: 256px; cursor: pointer;')

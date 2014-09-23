@@ -1,0 +1,23 @@
+/* 70px is height os navbar according to bs styles */
+#main-container {
+  height: calc(100vh - 70px);
+  overflow-x: hidden;
+}
+
+#layout {
+  height: 100%;
+}
+
+#layout > .screen {
+  height: 100%;
+}
+
+#call-screen > .row {
+  height: 50%;
+  overflow-y: auto;
+}
+
+#call-screen > .row > .col {
+  height: 100%;
+  overflow-y: auto;
+}
