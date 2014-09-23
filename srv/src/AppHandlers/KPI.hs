@@ -49,6 +49,7 @@ activeUsersQ = [sql|
 SELECT coalesce(array_agg(id), ARRAY[]::int[])
   FROM usermetatbl
   WHERE isActive = 't'
+  AND   showKPI  = 't'
  |]
 
 type State     = M.Map (IdentI Usermeta) (Patch StatKPI)

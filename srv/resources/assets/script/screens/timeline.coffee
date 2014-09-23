@@ -332,7 +332,7 @@ define ["text!tpl/screens/timeline.html"
 
     $.getJSON "/_/Usermeta", (data) =>
       model = global.model('Usermeta')
-      a = _.map _.filter(data, (v) -> v.isActive), (d) =>
+      a = _.map _.filter(data, (v) -> v.isActive and v.showKPI), (d) =>
         mapper = new DataMap.Mapper(model)
         k = Main.buildKVM model, {fetched: mapper.s2cObj d}
         k._meta.q = new Crud.CrudQueue(k, k._meta.model, {dontFetch: true})
