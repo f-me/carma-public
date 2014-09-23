@@ -81,7 +81,6 @@ define [ "utils"
       searchHook: opts.searchHook
     searchKVM._meta.q = q
 
-    console.log opts.predFieldWrap
     ko.applyBindings { kvm: searchKVM
                      , wrapFields: (opts.predFieldWrap || "search-wrap")
                      },
