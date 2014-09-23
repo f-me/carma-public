@@ -61,6 +61,7 @@ data Usermeta = Usermeta
   , currentStateCTime :: EF UTCTime      "currentStateCTime" ""
   -- Some stuff for internal use on client, can be used instead of localStorage
   , stuff        :: F Aeson.Value "stuff" ""
+  , showKPI      :: F Bool "showKPI" "Отслеживать KPI"
   } deriving Typeable
 
 
