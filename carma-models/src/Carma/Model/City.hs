@@ -28,5 +28,6 @@ instance Model City where
           , setMeta "targetCoords"     "coords"    coords
           , setMeta "picker"           "mapPicker" coords
           , setMeta "currentBlipType"  "city"      coords
+          , infoText "cityValue"                   value
           ]
     _  -> Nothing
