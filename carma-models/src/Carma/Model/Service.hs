@@ -121,7 +121,7 @@ svcMod =
           , dictBounded = True
           }
     ,setType "dictionary" contractor_partnerId
-    ,setMeta "widget" "partner" contractor_partner
+    ,setMeta "group-widget" "partner" contractor_partner
     ,invisible contractor_coords
     ,hiddenIdent parentId
     , readonly status

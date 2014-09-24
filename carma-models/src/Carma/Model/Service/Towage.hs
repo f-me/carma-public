@@ -90,7 +90,7 @@ instance Model Towage where
 viewModifier' :: [(Text, FieldView -> FieldView) :@ Towage]
 viewModifier'
   = setType "dictionary" towDealer_partnerId
-  : setMeta "widget" "partner" towDealer_partner
+  : setMeta "group-widget" "partner" towDealer_partner
   : invisible towDealer_partnerId
   : invisible towDealer_coords
   : viewModifier

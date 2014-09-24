@@ -50,7 +50,7 @@ instance Model Rent where
       $ setType "dictionary" towDealer_partnerId
       : setMeta "dictionaryParent"
         (Aeson.String $ fieldName rentedMake) rentedModel
-      : setMeta "widget" "partner" towDealer_partner
+      : setMeta "group-widget" "partner" towDealer_partner
       : invisible towDealer_partnerId
       : invisible towDealer_coords
       : mapWidget rentAddress_address rentAddress_coords rentAddress_map
