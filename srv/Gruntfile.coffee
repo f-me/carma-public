@@ -108,9 +108,9 @@ module.exports = (grunt) ->
              'images/*'
             ]
     bootstrap:
-      src: 'bootstrap/dest'
-      dist: 'bootstrap'
-      file: ['css/**', 'img/**', 'js/**']
+      src: 'bootstrap/dist'
+      dest: 'bootstrap'
+      file: ['css/**', 'fonts/**', 'js/**']
     openLayers:
       src: 'OpenLayers'
       dest: 'OpenLayers'
