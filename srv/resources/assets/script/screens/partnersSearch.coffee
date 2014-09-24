@@ -216,7 +216,7 @@ define [ "utils"
           fixed_city = dict.getLab c
           $.getJSON map.geoQuery(fixed_city), (res) ->
             if res.length > 0
-              place = map.buildCityPlace res
+              place = map.buildCityPlace res, c
               kvm["cityPlaces"].push place
 
   # Format addrs field for partner info template

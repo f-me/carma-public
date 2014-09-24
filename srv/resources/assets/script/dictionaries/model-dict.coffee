@@ -37,7 +37,7 @@ define ['dictionaries/local-dict',], (ld) ->
           @updateSource @items
 
     updateSource: (items) ->
-      @source = ({value: i[@key], label: i[@label]} for i in items)
+      @source = ({value: i[@key], label: i[@label], _e: i} for i in items)
 
     getLab: (val) -> (@allValuesMap || @dictValues())[val]
 
