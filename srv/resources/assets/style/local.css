@@ -21,3 +21,52 @@
   height: 100%;
   overflow-y: auto;
 }
+
+.icon-refresh-animate {
+  animation-name: infinite-spining;
+  animation-duration: .7s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  -webkit-animation-name: infinite-spining;
+  -webkit-animation-duration: .7s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: linear;
+  -moz-animation-name: infinite-spining;
+  -moz-animation-duration: .7s;
+  -moz-animation-iteration-count: infinite;
+  -moz-animation-timing-function: linear;
+}
+
+@keyframes infinite-spining {
+  from { transform: rotate( 0deg );   }
+  to   { transform: rotate( 360deg ); }
+}
+@-webkit-keyframes infinite-spining {
+  from { -webkit-transform: rotate( 0deg );   }
+  to   { -webkit-transform: rotate( 360deg ); }
+}
+@-moz-keyframes infinite-spining {
+  from { -moz-transform: rotate( 0deg );   }
+  to   { -moz-transform: rotate( 360deg ); }
+}
+
+/* hack to make feedback left of addon */
+.input-group-addon ~ .form-control-feedback {
+  right: 40px !important;
+}
+
+/* hack to fix misaligned addon for small inputs */
+.input-group-sm .input-group-addon {
+    padding-bottom: 4px;
+}
+
+.form-group .input-group {
+  width: 100%;
+}
+
+#call-screen > .bottom-part {
+  border-top: 1px #aaa;
+  border-top-style: dotted;
+  padding-top: 5px;
+  margin-top: 5px;
+}
