@@ -290,6 +290,7 @@ instance Typeable tag => DefaultFieldView (Ident Text tag) where
     ,fv_meta
       = Map.insert "dictionaryName" (Aeson.String $ typeName (undefined :: tag))
       $ Map.insert "bounded" (Aeson.Bool True)
+      $ Map.insert "datamap-type" (Aeson.String "dictionary-string-null")
       $ fv_meta $ defFieldView f
     }
 
