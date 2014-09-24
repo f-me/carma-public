@@ -388,7 +388,7 @@ define [ "model/render"
         Finch.navigate "#{screenName}/#{kvm.id()}", true
 
       hooks = options.hooks or ['*', model.name]
-      applyHooks global.hooks.model, hooks, elName
+      applyHooks global.hooks.model, hooks, elName, kvm
       return kvm
 
   buildModel = (model, args, options, elName) ->

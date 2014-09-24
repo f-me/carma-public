@@ -41,3 +41,8 @@ define ["utils"], (u) ->
         u.palette[svcs.indexOf(svcId) % u.palette.length]
       else
         u.palette[0]
+
+  # Prevent scrolling via stdElCb (observable hooks are called before
+  # model hooks, thus it works)
+  suppressScroll: (model, kvm) ->
+    kvm._meta._noscroll = true

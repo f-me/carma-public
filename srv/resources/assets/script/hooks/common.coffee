@@ -285,7 +285,9 @@ define [ "utils"
 
   # Standard element callback which will scroll model into view and
   # focus on first field
-  stdElCb: (elName) ->
+  stdElCb: (elName, kvm) ->
+    if kvm._meta?._noscroll
+      return
     e = $el(elName)
     # Scroll group to the top of the screen
     if e.hasClass("accordion-inner")
