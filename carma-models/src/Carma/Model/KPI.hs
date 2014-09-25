@@ -54,12 +54,18 @@ data StatKPI = StatKPI
   , callMeMaybeC :: F (Maybe Int)
                 "callMeMaybeC" "Действий \"Заказ услуги - моб. прил.\""
 
-  , assigned :: F (Maybe Int) "assigned" "Назначено"
-  , assignedOverdue :: F (Maybe Int) "assigned_overdue" "Просрочено"
-  , closed :: F (Maybe Int) "closed" "Выполнено"
-  , closedOverdue :: F (Maybe Int) "closed_overdue" "Выполнено"
-  , unclosed :: F (Maybe Int) "unclosed" "Не выполнено"
-  , unclosedOverdue :: F (Maybe Int) "unclosed_overdue" "Просрочено"
+  , assigned
+    :: F (Maybe Int) "assigned" "Назначено"
+  , assignedOverdue
+    :: F (Maybe Int) "assigned_overdue" "Просрочено из назначенных"
+  , closed
+    :: F (Maybe Int) "closed" "Выполнено"
+  , closedOverdue
+    :: F (Maybe Int) "closed_overdue" "Просрочено из выполненных"
+  , unclosed
+    :: F (Maybe Int) "unclosed" "Не выполнено"
+  , unclosedOverdue
+    :: F (Maybe Int) "unclosed_overdue" "Просрочено из не выполненных"
 
   , calltime    :: F (Maybe DiffTime) "calltime"    "Итого: Время в разговоре"
   , callAmount  :: F (Maybe Int)      "callAmount"  "Итого: Количество звонков"
@@ -71,6 +77,11 @@ data StatKPI = StatKPI
 
   , actionsRelation :: F (Maybe Double) "actionsRelation" "Отношение: Действия"
   , timeRelation    :: F (Maybe Double) "timeRelation" "Отношение: Время"
+
+  , actionsAmount
+    :: F (Maybe Int) "actionsAmount" "Итого действий"
+  , actionsAvgtime
+    :: F (Maybe DiffTime) "actionsAvgtime" "Ср. время обработки действия"
 } deriving Typeable
 
 instance Model StatKPI where
