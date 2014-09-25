@@ -66,6 +66,7 @@ fillKPIs = do
   fill mergeKPI =<< qry "get_KPI_avg_actdo"
   fill mergeKPI =<< qry "get_KPI_actions_relation"
   fill mergeKPI =<< qry "get_KPI_time_relation"
+  fill mergeKPI =<< qry "get_KPI_sum_orderactions"
   where
   fill :: (a -> HandlerSt) -> [a] -> HandlerSt
   fill disp d = mapM_ disp d
