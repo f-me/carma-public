@@ -13,6 +13,7 @@ import Carma.Model.Program         (Program)
 import Carma.Model.SubProgram.Type (SubProgram)
 import Carma.Model.CarMake         (CarMake)
 import Carma.Model.CarModel        (CarModel)
+import Carma.Model.Case            (Case)
 import Carma.Model.City            (City)
 import Carma.Model.Usermeta        (Usermeta)
 import Carma.Model.LegacyTypes
@@ -66,6 +67,8 @@ metas =
 
     , invisible coords
     , invisible address
+
+    , hiddenIdent caseId
     ]
 
 data Call = Call
@@ -124,4 +127,6 @@ data Call = Call
     :: F (Maybe (IdentI CarModel)) "carModel" "Модель"
   , callType
     :: F (Maybe (IdentT CallTypes)) "callType" "Тип звонка"
+  , caseId
+    :: F (Maybe (IdentI Case)) "caseId" "Связанный кейс"
   } deriving Typeable
