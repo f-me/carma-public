@@ -14,6 +14,8 @@ define [ "utils"
   setupBackOffice = ->
     onBackofficeScreen = true
 
+    $("#zardoz").height($(window).height() - $("#zardoz").offset().top*2)
+
     $("#zardoz").spin
       width: 50,
       lines: 15,
@@ -52,7 +54,10 @@ define [ "utils"
       url: "/backoffice/littleMoreActions"
       success: myActionsHandler
       error: () ->
-        $("#standby-msg").text "Что-то пошло не так!"
+        if global.Usermeta.currentState() == "Busy"
+          $("#standby-msg").text "Нельзя получить новое действие в статусе «Занят»!"
+        else
+          $("#standby-msg").text "Что-то пошло не так!"
 
   removeBackOffice = ->
     # Stop auto-polling backoffice-related server handlers when we
@@ -65,7 +70,7 @@ define [ "utils"
       type: "PUT"
       url: "/backoffice/openAction/#{actId}"
       success: () ->
-        $("#standby-msg").text "Перенаправляю на кейс…"
+        $("#standby-msg").text "Перенаправляю на кейс #{caseId}…"
         window.location.hash = "case/#{caseId}"
 
   { constructor: setupBackOffice
