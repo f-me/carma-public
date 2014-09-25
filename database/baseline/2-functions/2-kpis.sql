@@ -247,16 +247,15 @@ BEGIN
   --"tellMeMore" - "Заказ услуги (требуется дополнительная информация)"
   --"callMeMaybe" - "Заказ услуги через мобильное приложение"
 SELECT
-usermetatbl.id,
+actiontbl.assignedto,
 COUNT(actiontbl.id) as amount,
 sum(actiontbl.closetime - actiontbl.assigntime) / COUNT(actiontbl.id) as avgtime
-FROM actiontbl LEFT JOIN usermetatbl
-     ON actiontbl.assignedto = usermetatbl.login
-WHERE usermetatbl.id = any(u_id)
-AND actiontbl.closed = true
+FROM actiontbl
+WHERE actiontbl.assignedto = any(u_id)
+AND actiontbl.result IS NOT NULL
 AND actiontbl.assigntime BETWEEN c_time AND end_time
 AND actiontbl.type IN  (1, 19, 20)
-GROUP BY usermetatbl.id;
+GROUP BY actiontbl.assignedto;
 END;
 $func$
 LANGUAGE plpgsql;

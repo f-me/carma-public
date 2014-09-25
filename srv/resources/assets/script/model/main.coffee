@@ -147,11 +147,18 @@ define [ "model/render"
     # help if some non text field will require text template
     for f in fields
       do (f) ->
+        if f.type == "Double"
+          fn = ->
+            return kvm[f.name]() unless _.isNumber kvm[f.name]()
+            kvm[f.name]().toFixed(3)
+        else
+          fn = -> kvm[f.name]()
         kvm["#{f.name}Text"] = ko.computed
-          read: -> kvm[f.name]()
+          read: fn
           write: (v) ->
             return if _.isEmpty(kvm[f.name]()) and v == ""
             kvm[f.name](v)
+        kvm[f.name].text = kvm["#{f.name}Text"]
 
     # Setup reference fields: they will be stored in <name>Reference as array
     # of kvm models
