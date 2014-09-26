@@ -8,7 +8,7 @@ define [ "utils"
     return if /^search/.test(Finch.navigate())
 
     # subscibe partner fields to partnersSearch screen events
-    for f in model.fields when f.meta?.widget == "partner"
+    for f in model.fields when f.meta?['group-widget'] == "partner"
       do (f) ->
         n = pSearch.subName f.name, model.name, kvm.id()
         global.pubSub.sub n, (val) ->
