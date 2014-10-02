@@ -137,8 +137,8 @@ define [ "utils"
       else
         partnerCancel.setup(
           selected,
-          Number.parseInt(ctx.service.id.replace(/\D*/, '')),
-          Number.parseInt(ctx.case.id.replace(/\D*/, ''))
+          parseInt(ctx.service.id.replace(/\D*/, '')),
+          parseInt(ctx.case.id.replace(/\D*/, ''))
         )
         partnerCancel.onSave ->
           selectPartner(kvm, partner)
