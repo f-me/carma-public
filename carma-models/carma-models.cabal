@@ -108,6 +108,8 @@ library
     Carma.Model.UserState
 
     Carma.Model.KPI
+    Carma.Model.KPI.Stat
+    Carma.Model.KPI.Oper
 
   other-modules:
     Data.Model.TH,
@@ -137,7 +139,8 @@ library
     time                 == 1.4.*,
     transformers         >= 0.3 && < 0.5,
     unordered-containers == 0.2.*,
-    vector               == 0.10.*
+    vector               == 0.10.*,
+    scientific           == 0.3.*
 
   extensions:
     DataKinds, KindSignatures, TypeOperators,

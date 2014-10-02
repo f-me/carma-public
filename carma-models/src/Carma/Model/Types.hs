@@ -26,7 +26,6 @@ import Data.String
 import Data.Text (Text)
 import qualified Data.Text          as T
 import qualified Data.Text.Read     as T
-import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Base16 as B16
 
@@ -45,6 +44,7 @@ import qualified Data.Map as Map
 
 import Data.Either (rights)
 import Data.Time
+import Data.Scientific (toRealFloat)
 import System.Locale (defaultTimeLocale)
 
 import Text.Read (readMaybe)
@@ -504,13 +504,11 @@ printDiffTime t = let (hrs, mis, sec) = diffTimeTohms t
                   in printf "%d:%.2d:%.2d" hrs mis sec
 
 instance ToJSON DiffTime where
-  toJSON t = Aeson.String $ T.pack $ printDiffTime t
+  toJSON t = toJSON (floor $ toRational t :: Integer)
 
 instance FromJSON DiffTime where
-  parseJSON (Aeson.String s) =
-    case parseDiffTime $ T.encodeUtf8 s of
-      Left err -> fail $ show err
-      Right d  -> return d
+  parseJSON (Aeson.Number s) =
+    return $ secondsToDiffTime $ floor (toRealFloat s :: Double)
   parseJSON o = fail $ "DiffTime parser: expecting string, but got" ++ show o
 
 instance ToField DiffTime where
