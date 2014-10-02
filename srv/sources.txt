@@ -12,4 +12,3 @@ https://github.com/f-me/snap-extras
 https://github.com/f-me/hformat
 
 https://github.com/f-me/snap-core nonascii-filenames
-https://github.com/f-me/postgresql-simple
