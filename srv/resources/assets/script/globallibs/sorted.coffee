@@ -21,6 +21,7 @@ ko.sorted = ({kvms, filters, sorters}) ->
 
     deferEvaluation: true
 
+  result.extend({rateLimit: {timeout: 200, method: "notifyWhenChangesStop"}})
   result.sorters = sorters
   result.filters = filters
   result.active_sorter  = active_sorter
