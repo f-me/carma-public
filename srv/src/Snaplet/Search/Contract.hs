@@ -82,7 +82,7 @@ contractCSV t = do
       -- with commas
       fieldList :: [Text] -> Text
       fieldList fs = T.intercalate "," $
-                     Prelude.map (flip T.append "External") fs
+                     Prelude.map (`T.append` "External") fs
       cmi :: ModelInfo Contract
       cmi = modelInfo
       -- Non-standard view is used while predicates are provided for

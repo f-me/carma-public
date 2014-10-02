@@ -39,15 +39,6 @@ define ["render/screen"
           "case-form": kase
       r.renderScreen kase, bind
 
-  addRoute "newCase/:id", (bind) ->
-    require ["screens/newCase"], (newCase) ->
-      newCase.screen =
-        name : "newCase"
-        template: "case-screen-template"
-        views:
-          "case-form": newCase
-      r.renderScreen newCase, bind
-
   addRoute "dict/:dict/:id", (bind) ->
     require ["screens/dictionaries"], (dictionaries) ->
       dictionaries.screen =
@@ -82,7 +73,7 @@ define ["render/screen"
           "uploads-view": uploads
       r.renderScreen uploads, bind
 
-  addRoute "printSrv/:model/:id", (bind) ->
+  addRoute "printSrv/:id", (bind) ->
     require ["screens/printService"], (print) ->
       print.screen =
         name : "printSrv"

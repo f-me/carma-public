@@ -1,0 +1,5 @@
+ALTER TABLE servicetbl
+ALTER COLUMN status DROP DEFAULT;
+
+ALTER TABLE servicetbl
+ALTER COLUMN falseCall DROP DEFAULT;

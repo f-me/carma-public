@@ -12,7 +12,7 @@ CREATE TABLE "Contract"
   , startMileage int4
   , make int4 REFERENCES "CarMake"
   , model int4 REFERENCES "CarModel"
-  , makeYear int2
+  , makeYear int4
   , carClass int4 REFERENCES "CarClass"
   , color text
   , transmission int4 REFERENCES "Transmission"

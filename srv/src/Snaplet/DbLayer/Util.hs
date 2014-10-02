@@ -9,8 +9,7 @@ import Data.Pool
 import Database.PostgreSQL.Simple.FromRow
 
 import Snap
-import Snap.Snaplet.PostgresqlSimple ( Postgres
-                                     , getPostgresState
+import Snap.Snaplet.PostgresqlSimple ( getPostgresState
                                      , pgPool)
 
 import Data.Model.Sql (SqlQ(..), select)

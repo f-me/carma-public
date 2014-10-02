@@ -27,9 +27,9 @@ create or replace function GeoWithin ( x1 float
 returns table (res text) as
 $$
   declare
-    ca  text[] = string_to_array(city, ',');
+    ca  int[] = string_to_array(city, ' ');
     ma  int[]  = string_to_array(makes, ' ');
-    sa  text[] = string_to_array(services, ',');
+    sa  int[] = string_to_array(services, ' ');
     p2a text[] = string_to_array(priority2, ',');
     p3a text[] = string_to_array(priority3, ',');
     se  boolean = array_dims(sa)  IS NULL;
@@ -55,7 +55,7 @@ $$
                                                , ST_Point(x2, y2))
                                  , 4326)
         AND   p.isActive = 't'
-        AND   ((p.isMobile <> 't') OR (p.isMobile is NULL) OR 
+        AND   ((p.isMobile <> 't') OR (p.isMobile is NULL) OR
                (now() at time zone 'UTC' <= ('01:00' + p.mtime)))
         AND   (ce  OR p.city        = ANY(ca))
         AND   (se  OR s.servicename = ANY(sa))

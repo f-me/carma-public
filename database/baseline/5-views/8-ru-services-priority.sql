@@ -24,20 +24,12 @@ partner_servicetbl.priority2,
 partner_servicetbl.priority3,
 partner_servicetbl.falsecallpercent,
 partner_servicetbl.servicename,
-
-CASE
-        WHEN
-                "ServiceNames".label IS NULL
-        THEN
-                partner_servicetbl.servicename
-        ELSE
-                "ServiceNames".label
-END AS servicelabel,
+"ServiceType".label AS servicelabel,
 SPLIT_PART(regexp_split_to_table(partner_servicetbl.tarifoptions, ','), 'tarifOption:', 2) AS tarifoption
 --partner_servicetbl.tarifoptions
 FROM ps
 LEFT JOIN partner_servicetbl ON ps.service = partner_servicetbl.id::TEXT
-LEFT JOIN "ServiceNames" ON partner_servicetbl.servicename = "ServiceNames".value::TEXT OR partner_servicetbl.servicename = "ServiceNames".label::TEXT
+LEFT JOIN "ServiceType" ON partner_servicetbl.servicename = "ServiceType".id
 )
 
 SELECT
@@ -57,7 +49,7 @@ tfs.tarifoption "tarifoption.id"
 FROM
 tfs
 LEFT JOIN tarifoptiontbl ON  tfs.tarifoption::TEXT = tarifoptiontbl.id::TEXT
-LEFT JOIN "City" ON tfs.city::TEXT = "City".value
+LEFT JOIN "City" ON tfs.city = "City".id
 ORDER BY tfs.name;
 
 GRANT SELECT ON "Услуги с приоритетами" TO reportgen;

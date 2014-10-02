@@ -1,9 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DoAndIfThenElse #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
 
 {-|
 
@@ -55,7 +54,7 @@ where
 
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
-import Control.Monad.Trans.Error
+import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Writer
@@ -88,6 +87,7 @@ import Text.Printf
 import Carma.HTTP
 
 import qualified Carma.Model.Program as Program
+import qualified Carma.Model.FalseCall as FC
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.TechType as TT
@@ -144,7 +144,7 @@ instance ExportMonad CaseExport where
 
     getConverter = lift $ asks $ utfConv . snd
 
-    exportError e = lift $ lift $ lift $ throwError $ CaseError e
+    exportError e = lift $ lift $ lift $ throwE $ CaseError e
 
     getState = get
 
@@ -179,7 +179,7 @@ instance ExportMonad CaseExport where
                   exportable s ||
                   -- Canceled non-billed services are considered
                   -- exportable for this field
-                  (dataField0 "falseCall" d == "nobill" &&
+                  (fvIdent (dataField0 "falseCall" d) == Just FC.nobill &&
                    fvIdent (dataField0 "status" d) == Just SS.clientCanceled)) <$>
           getAllServices
       let twgPred = \(mn, _, _) -> mn == "towage"
@@ -209,7 +209,7 @@ instance ExportMonad ServiceExport where
 
     exportError e = do
       (m, i, _) <- getService
-      lift $ lift $ lift $ lift $ throwError $ ServiceError m i e
+      lift $ lift $ lift $ lift $ throwE $ ServiceError m i e
 
     expenseType = asks snd
 
@@ -423,7 +423,7 @@ caseField1 fn = dataField1 fn =<< getCase
 -- @none@ or @status@ is a @mistake@).
 falseService :: Service -> Bool
 falseService (_, _, d) =
-  dataField0 "falseCall" d /= "none" ||
+  fvIdent (dataField0 "falseCall" d) /= Just FC.none ||
   fvIdent (dataField0 "status" d) == Just SS.mistake
 
 
@@ -441,9 +441,9 @@ exportable (mn, _, d) = statusOk && typeOk
                                   map Just [TT.charge, TT.ac, TT.starter, TT.lights]
                 _        -> False
           -- Check status and falseCall fields
-          statusOk = (falseCall == "none" &&
+          statusOk = (fvIdent falseCall == Just FC.none &&
                       fvIdent status == Just SS.closed) ||
-                     (falseCall == "bill" &&
+                     (fvIdent falseCall == Just FC.bill &&
                       fvIdent status == Just SS.clientCanceled)
               where
                 falseCall = dataField0 "falseCall" d

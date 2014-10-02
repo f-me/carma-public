@@ -9,7 +9,6 @@ module Snaplet.DbLayer
   ,update
   ,delete
   ,exists
-  ,submitTask
   ,initDbLayer
   ) where
 
@@ -17,22 +16,14 @@ import Prelude hiding (read)
 import Control.Applicative
 import Control.Lens (Lens')
 import Control.Monad.State
-import Control.Concurrent.STM
 import qualified Data.Map as Map
 import Data.Maybe (fromJust, isJust)
-import Data.ByteString (ByteString)
 import qualified Data.Text          as T
-
-import Data.Configurator
-
-import WeatherApi.WWOnline (initApi)
 
 import Snap.Snaplet
 import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (Postgres, pgsInit)
-import Snap.Snaplet.RedisDB (redisDBInitConf, runRedisDB)
-
-import qualified Database.Redis as Redis hiding (exists)
+import Snap.Snaplet.RedisDB (redisDBInitConf)
 
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
@@ -44,7 +35,6 @@ import Snaplet.DbLayer.Triggers
 import Snaplet.Auth.Class
 import Snaplet.Messenger (sendMessage)
 import Snaplet.Messenger.Class
-import DictionaryCache
 
 import Util
 
@@ -52,11 +42,10 @@ import Util
 create :: (HasAuth b, HasMsg b)
        => ModelName -> Object
        -> Handler b (DbLayer b) Object
-create model commit = do
+create model obj = do
   tbls <- gets syncTables
-  syslogJSON Debug "DbLayer/create" ["model" .= model, "commit" .= commit]
+  syslogJSON Debug "DbLayer/create" ["model" .= model, "commit" .= obj]
   --
-  obj <- applyDefaults model commit
   objId <- Redis.create redis model obj
   --
   let obj' = Map.insert "id" objId obj
@@ -64,7 +53,7 @@ create model commit = do
   --
   Postgres.insert tbls model obj'
 
-  let result = Map.insert "id" objId $ obj Map.\\ commit
+  let result = Map.insert "id" objId obj
   syslogJSON Debug "DbLayer/create/result" ["result" .= result]
   return result
 
@@ -122,12 +111,6 @@ exists :: ModelName -> ObjectId -> Handler b (DbLayer b) Bool
 exists model objId = Redis.exists redis model objId
 
 
-submitTask :: ByteString -> ByteString -> Handler b (DbLayer b) (Either Redis.Reply Integer)
-submitTask queueName taskId
-  = runRedisDB redis
-  $ Redis.lpush queueName [taskId]
-
-
 -- TODO Use lens to an external AuthManager
 initDbLayer :: Snaplet (AuthManager b)
             -> Lens' b (Snaplet Postgres)
@@ -135,21 +118,13 @@ initDbLayer :: Snaplet (AuthManager b)
             -- authorization.
             -> FilePath
             -> SnapletInit b (DbLayer b)
-initDbLayer sessionMgr adb cfgDir = makeSnaplet "db-layer" "Storage abstraction"
+initDbLayer sessionMgr adb _ = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     -- syslog Info "Server started"
     tbls <- liftIO $ MT.loadTables "resources/site-config/models"
-    cfg <- getSnapletUserConfig
-    wkey <- liftIO $ lookupDefault "" cfg "weather-key"
-
-    dc <- liftIO
-          $ loadDictionaries "resources/site-config/dictionaries"
-          >>= newTVarIO
 
     DbLayer adb
       <$> nestSnaplet "redis" redis redisDBInitConf
       <*> nestSnaplet "pgsql" postgres pgsInit
       <*> pure sessionMgr
       <*> (return tbls)
-      <*> (return dc)
-      <*> (return $ initApi wkey)

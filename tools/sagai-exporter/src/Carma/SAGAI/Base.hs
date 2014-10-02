@@ -23,7 +23,7 @@ module Carma.SAGAI.Base
 where
 
 import Control.Monad.IO.Class
-import Control.Monad.Trans.Error
+import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Writer
@@ -85,7 +85,7 @@ type CaseExport =
     (StateT ExportState
      (ReaderT (ExportData, ExportOptions)
       (WriterT [String]
-       (ErrorT ExportError CarmaIO))))
+       (ExceptT ExportError CarmaIO))))
 
 
 -- | A sub-monad used when forming a part of a SAGAI entry
@@ -120,9 +120,6 @@ data ErrorType = NoField FieldName
                  deriving Show
 
 
-instance Error ExportError
-
-
 -- | Perform export action using the provided case and services data
 -- and export options. If no errors occured, then return action
 -- result, final state of export monad and log of operations for this
@@ -141,5 +138,5 @@ runExport act sepStart input ds eName = do
     let options = ExportOptions ds e
         inner = runReaderT (runStateT act $ ExportState sepStart BS.empty) $
                 (input, options)
-    res <- runErrorT $ runWriterT inner
+    res <- runExceptT $ runWriterT inner
     return res

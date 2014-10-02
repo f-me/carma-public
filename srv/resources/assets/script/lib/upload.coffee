@@ -70,7 +70,7 @@ define ->
   @inlineDetachFile = (e) ->
     attId = e.data("attachment")
     field = e.data("field")
-    ref = "attachment:#{attId}"
+    ref = "Attachment:#{attId}"
 
     return unless confirm "Вы уверены, что хотите открепить этот файл?"
 

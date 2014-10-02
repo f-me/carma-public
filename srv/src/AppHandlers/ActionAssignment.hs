@@ -1,84 +1,153 @@
-module AppHandlers.ActionAssignment where
+{-|
 
+Action assignment for back office screen.
+
+-}
+
+module AppHandlers.ActionAssignment
+    (
+      littleMoreActionsHandler
+
+      -- * Assignment options
+    , topPriority
+    , leastPriority
+    )
+
+where
+
+import Control.Applicative hiding (some)
 import Control.Monad
-import Data.String (fromString)
+import Data.Aeson as A
+import Data.Maybe
 
-import qualified Data.Map as Map
-import qualified Data.Text as T
-
-import Snap
-import Snap.Snaplet.Auth
-import qualified Snaplet.DbLayer as DB
 import Database.PostgreSQL.Simple
-----------------------------------------------------------------------
+import Database.PostgreSQL.Simple.SqlQQ
+
+import Data.Model.Types
+import Data.Model.Sql as Sql
+
+import Carma.Model.Action as Action
+import Carma.Model.ActionType as ActionType
+
+import Snaplet.Auth.PGUsers
+
 import Application
-import AppHandlers.CustomSearches
+import AppHandlers.Users
 import AppHandlers.Util
 import Util hiding (withPG)
 
 
-assignQ :: Int -> AuthUser -> Query
-assignQ pri usr = fromString
-  $  "WITH activeUsers AS ("
-  ++ "  SELECT login"
-  ++ "  FROM usermetatbl"
-  ++ "  WHERE (lastlogout IS NULL OR lastlogout < lastactivity)"
-  ++ "    AND now() - lastactivity < '30 min') "
-  ++ "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
-  ++ "  WHERE id = (SELECT act.id"
-  ++ "    FROM ((SELECT * FROM actiontbl WHERE closed = false) act"
-  ++ "      LEFT JOIN servicetbl svc"
-  ++ "      ON svc.type || ':' || svc.id = act.parentId),"
-  ++ "      casetbl c, usermetatbl u"
-  ++ "    WHERE u.login = '" ++ uLogin ++ "'"
-  ++ "    AND c.id::text = substring(act.caseId, ':(.*)')"
-  ++ "    AND priority = '" ++ show pri ++ "'"
-  ++ "    AND (act.duetime at time zone 'UTC') - (now() at time zone 'UTC') <= interval '5 minutes'"
-  ++ "    AND targetGroup::int = ANY (u.roles)"
-  ++ "    AND (act.assignedTo IS NULL"
-  ++ "         OR act.assignedTo NOT IN (SELECT login FROM activeUsers))"
-  ++ "    AND (coalesce("
-  ++ "            array_length(u.boPrograms, 1),"
-  ++ "            array_length(u.boCities, 1)) is null"
-  ++ "         OR (c.program::text = ANY (u.boPrograms) OR c.city = ANY (u.boCities)))"
-  ++ "    ORDER BY"
-  ++ "      (u.boPrograms IS NOT NULL AND c.program::text = ANY (u.boPrograms)) DESC,"
-  ++ "      (u.boCities   IS NOT NULL AND c.city          = ANY (u.boCities)) DESC,"
-  ++ "      (act.name IN ('orderService', 'orderServiceAnalyst')"
-  ++ "        AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,"
-  ++ "      (CASE WHEN act.name IN ('orderService', 'orderServiceAnalyst')"
-  ++ "        THEN coalesce(svc.times_expectedServiceStart,act.duetime)"
-  ++ "        ELSE act.duetime"
-  ++ "        END) ASC"
-  ++ "    LIMIT 1"
-  ++ "    FOR UPDATE OF act)"
-  ++ "  RETURNING id::text;"
-  where
-    uLogin = T.unpack $ userLogin usr
+topPriority :: Int
+topPriority = 1
 
 
+leastPriority :: Int
+leastPriority = 5
+
+
+-- | Assign a single action to a user, yield action id and case id.
+--
+-- 5 parameters: usermeta ident (2), action priority class, order
+-- action types (2)
+assignQ :: Query
+assignQ = [sql|
+      WITH activeUsers AS (
+        SELECT u.id
+        FROM "usermetatbl" u
+        LEFT JOIN (SELECT DISTINCT ON (userId) state, userId
+                   FROM "UserState" ORDER BY userId, id DESC) s
+        ON u.id = s.userId
+        WHERE s.state <> 'LoggedOut'),
+      pullableActions AS (
+        SELECT * FROM actiontbl
+        WHERE result IS NULL
+        AND (assignedTo IS NULL
+             OR assignedTo NOT IN (SELECT id FROM activeUsers))
+        AND duetime - now() <= interval '5 minutes'
+        FOR UPDATE of actiontbl)
+      UPDATE actiontbl SET assignTime = now(), assignedTo = ?
+        WHERE id = (SELECT act.id
+          FROM (pullableActions act
+            LEFT JOIN "ActionType" t ON   t.id = act.type
+            LEFT JOIN servicetbl svc ON svc.id = act.serviceId
+            LEFT JOIN casetbl      c ON   c.id = act.caseId),
+            usermetatbl u
+          WHERE u.id = ?
+          AND t.priority = ?
+          AND targetGroup = ANY (u.roles)
+          AND (coalesce(
+                  array_length(u.boPrograms, 1),
+                  array_length(u.boCities, 1)) is null
+               OR (c.program::text = ANY (u.boPrograms) OR c.city = ANY (u.boCities)))
+          ORDER BY
+            (u.boPrograms IS NOT NULL AND c.program::text = ANY (u.boPrograms)) DESC,
+            (u.boCities   IS NOT NULL AND c.city          = ANY (u.boCities)) DESC,
+            (act.type IN ?
+              AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,
+            act.duetime ASC
+          LIMIT 1)
+        RETURNING id, caseId;
+    |]
+
+
+-- | Try to pull a new action and serve JSON with all actions
+-- currently assigned to the user. No action is pulled if the
+-- user is not Ready or has older due actions.
 littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
-  Just cUsr' <- with auth currentUser
+  uid <- fromMaybe (error "No current user") <$> currentUserMetaId
+  let orders = In [ActionType.orderService, ActionType.orderServiceAnalyst]
+      -- Parameters for assignQ query
+      params n = (uid, uid, n :: Int, orders)
+      Ident uid' = uid
 
-  actIds'   <- withPG pg_actass (`query_` assignQ 1 cUsr')
-  actIds''  <- case actIds' of
-                 []  -> withPG pg_actass (`query_` assignQ 2 cUsr')
-                 _   -> return actIds'
-  actIds''' <- case actIds'' of
-                 []  -> withPG pg_actass (`query_` assignQ 3 cUsr')
-                 _   -> return actIds''
+  -- Actions already assigned to the user
+  oldActions <- map (\(Only i :. Only caseId :. ()) -> (i, caseId)) <$>
+                (withPG pg_actass $
+                 Sql.select $
+                 Action.ident :. Action.caseId :.
+                 Action.assignedTo `eq` Just uid :.
+                 isNull Action.result)
 
-  let uLogin = userLogin cUsr'
-  now <- liftIO $ projNow id
-  with db $ forM_ actIds''' $ \[actId] ->
-      DB.update "action" actId
-        $ Map.fromList [("assignedTo", uLogin)
-                       ,("assignTime", now)
-                       ]
+  actions <- ((,) <$> userIsReady uid <*> return oldActions) >>= \case
+    -- Do not pull more actions if the user already has some.
+    --
+    -- This is not a critical error: supervisor may assign the user to
+    -- actions between two polling cycles of the back office screen.
+    --
+    -- Note that a supervisor still may manually assign the user to
+    -- actions *after* this check has fired but before the list of all
+    -- user's actions is served in the response, which means that in
+    -- theory more than one action may end up being assigned to one
+    -- user.
+    (_   , _:_) -> return oldActions
+    -- Reject busy users with no actions. The business process has
+    -- already been violated (should not be on back office screen).
+    (False, []) -> error $
+                   "More actions requested by user " ++ show uid' ++
+                   " in non-Ready state"
+    (True, []) -> do
+      -- Pull new actions starting from top priority until something is
+      -- pulled (or we run out of priorities to check). This is the
+      -- opposite of Maybe monad behavior.
+      let pullFurther _       []      = return []
+          pullFurther puller (pr:prs) =
+            puller pr >>= \case
+              []  -> pullFurther puller prs
+              sth -> return sth
 
-  when (not $ null actIds''')
-    $ syslogJSON Info "littleMoreActions" ["login" .= uLogin, "actions" .= show actIds''']
+      newActions <- pullFurther
+                    (\p ->
+                       withPG pg_actass (\c -> query c assignQ (params p)))
+                    [topPriority..leastPriority]
 
-  selectActions (Just "0") (Just uLogin) Nothing Nothing Nothing
-    >>= writeJSON
+      unless (null newActions) $
+        syslogJSON Info "littleMoreActions"
+        [ "user" .= show uid'
+        , "newActions" .= map fst newActions
+        ]
+
+      return newActions
+
+  writeJSON $ map (\(aid, caseId) ->
+                     A.object ["id" .= aid, "caseId" .= caseId]) actions

@@ -26,7 +26,7 @@ import Control.Exception.Lifted
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Control
-import Control.Monad.Trans.Error
+import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
 
 import Data.Aeson as A
@@ -66,7 +66,7 @@ data Options = Options
 
 data ImportContext = ImportContext
     { connection :: Connection
-    , vinFormat  :: Patch VinFormat
+    , vinFormat  :: FullPatch VinFormat
     }
 
 
@@ -110,20 +110,17 @@ instance ToJSON ImportError where
             T.concat ["Не задан заголовок обязательного поля «", v, "»"]
 
 
-instance Error ImportError
-
-
 -- | Base monad.
 type Import =
     ReaderT ImportContext
-    (ErrorT ImportError
+    (ExceptT ImportError
      (ReaderT Options IO))
 
 
 -- | Perform VIN import action using the provided options.
 runImport :: Import a -> Options -> IO (Either ImportError a)
 runImport act opts =
-    flip runReaderT opts $ runErrorT $ do
+    flip runReaderT opts $ runExceptT $ do
       fid <- lift $ asks format
       -- Close connection when short-circuiting Import monad
       liftBaseOp (bracket
@@ -133,4 +130,4 @@ runImport act opts =
                     vf <- liftIO $ Patch.read (Ident fid) c
                     case vf of
                       Right vf' -> runReaderT act $ ImportContext c vf'
-                      _         -> throwError UnknownVinFormat
+                      _         -> throwE UnknownVinFormat

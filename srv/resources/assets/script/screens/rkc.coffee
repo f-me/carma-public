@@ -1,12 +1,13 @@
 define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
   (utils, tpl, partials) ->
+    weatherCityDict =
+      utils.newModelDict "City", true, {dictionaryKey: "value"}
     rkcFillWeather = (result, cities) ->
-      dict = global.dictValueCache
       cities.removeAll()
       for r in result.weather
         cities.push
           city: r.city
-          cityname: dict.DealerCities[r.city] || r.city
+          cityname: weatherCityDict.getLab r.city
           temp: r.temp
           delCity: rkcWeatherRemoveCity r.city
       cities.sort((l, r) -> l.cityname > r.cityname)
@@ -70,8 +71,6 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
     fillRKCFilters = (updater, partners) ->
       setTimeout ->
-        dict = global.dictValueCache
-
         # Fill programs
         programs = for v in (utils.newModelDict "Program", true).source
           p =
@@ -83,7 +82,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         ko.applyBindings(programs, el("program-select"))
 
         # Fill cities
-        cities = for v in global.dictionaries.DealerCities.entries
+        cities = for v in utils.newModelDict("City").source
           c =
             id: v.value
             name: v.label
@@ -144,7 +143,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
         ct = utils.mkDataTable caset, { bFilter: false, bInfo: false }
         bt = utils.mkDataTable actionst, { bFilter: false, bInfo: false }
-        mt = utils.mkDataTable mobit, { bFilter: false, bInfo: false }
+        mt = utils.mkDataTable mobit, { bFilter: true, bInfo: false }
 
         # Fill general info
         totalServices = $('#total-services')
@@ -160,13 +159,12 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         totalActions = $('#total-actions')
         totalIncompleteActions = $('#total-incomplete-actions')
 
-        # Fill weather cities
-        cities = for v in global.dictionaries.DealerCities.entries
-          c =
-            id: v.value
-            name: v.label
+        ko.applyBindings(weatherCityDict.source,
+                el "rkc-weather-city-select")
 
-        ko.applyBindings(cities, el "rkc-weather-city-select")
+        cityDict = utils.newModelDict("City")
+        actDict = utils.newModelDict "ActionType"
+        srvDict = utils.newModelDict "ServiceType"
 
         # Complaints
         complaints = ko.observableArray([])
@@ -182,35 +180,9 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
           args = getArgs()
 
           $.getJSON("/rkc" + args, (result) ->
-            minPatchDate = Date.parseExact "01.01.2012", "dd.MM.yyyy"
-            maxPatchDate = Date.parseExact "01.06.2013", "dd.MM.yyyy"
             from = Date.parseExact($('#rkc-date-from').val(), "dd.MM.yyyy")
             to   = Date.parseExact($('#rkc-date-to').val(), "dd.MM.yyyy")
-            if from >= minPatchDate and to < maxPatchDate
-              calc = (xs) ->
-                Math.round((xs[from.getMonth()] + xs[to.getMonth()]) / 2)
-              calcM = (xs) -> 60 * calc xs
-              result.stats.procAvgTime =
-                calcM [6,9,8,8,7,6,8,8,7,6,7,8,7,8,6,4,5]
-              result.stats.towStartAvgTime =
-                calcM [75,79,62,59,51,52,54,56,55,58,59,72,58,50,53,52,50]
-              result.case.summary.satisfied =
-                calc [92,89,91,95,93,98,97,94,96,95,93,91,95,96,98,97,98]
-              result.back.actions = result.back.actions.filter (o) ->
-                o.name != 'orderService' and o.name != 'complaintResolution'
-              result.back.actions.push
-                name:    "orderService"
-                total:   calc [2835,3621,2088,2243,2127,2129,2246
-                              ,2835,3621,2088,2243,2127,2129,2246,2226,2175,2277]
-                undone:  0
-                average: calcM [6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6]
-              result.back.actions.push
-                name:    "complaintResolution"
-                total:   calc [3,10,12,8,6,3,4,5,3,5,4,13,4,3,1,0,0]
-                undone:  0
-                average: 0
 
-            dict = global.dictValueCache
             ct.fnClearTable()
             bt.fnClearTable()
 
@@ -228,13 +200,12 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
             # Update services table
             crows = for cinfo in result.case.services
               crow = [
-                dict.Services[cinfo.name] || cinfo.name,
+                srvDict.getLab(cinfo.name),
                 cinfo.total,
                 utils.formatSecToMin(cinfo.delay),
                 utils.formatSecToMin(cinfo.duration),
                 cinfo.calculated,
                 cinfo.limited]
-
             ct.fnAddData(crows)
 
             totalActions.val(result.back.summary.total)
@@ -243,7 +214,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
             # Update actions table
             brows = for binfo in result.back.actions
               brow = [
-                dict.ActionNames[binfo.name] || binfo.name,
+                actDict.getLab(binfo.name),
                 binfo.total,
                 binfo.undone,
                 fmttime(binfo.average)]
@@ -261,7 +232,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
                         new Date(minfo.mtime).toString('dd.MM.yyyy HH:mm')
                       else
                         ""
-                    , dict.DealerCities[minfo.city] || minfo.city
+                    , cityDict.getLab(minfo.city) || ''
                     , if minfo.addrs.length > 0
                         (utils.getKeyedJsonValue minfo.addrs, "fact") || ""
                       else
@@ -276,7 +247,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
                 caseid: comp.caseid,
                 url: "/#case/" + comp.caseid,
                 services: for s in comp.services
-                  srvname = dict.Services[s] || s
+                  srvname = srvDict.getLab s
               }))
 
         partners = ko.observableArray([])

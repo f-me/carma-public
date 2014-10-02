@@ -1,19 +1,18 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Utils.LegacyModel where
 
+import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Read as T
 import           Data.Aeson
 import           Data.Model
 
 import           Snaplet.DbLayer.Types (ObjectId)
+import           Util
 
 
-readIdent :: ObjectId -> IdentI m
-readIdent s = case T.decimal s of
-                 Right (n, _) -> Ident n
-                 Left _err    -> error "readIdent: no integer"
+readIdent :: Model m => ObjectId -> IdentI m
+readIdent s = fromMaybe (error "readIdent: no integer") $ fvIdent s
 
 recode :: (FromJSON t, ToJSON f) => f -> t
 recode o = case decode $ encode o of

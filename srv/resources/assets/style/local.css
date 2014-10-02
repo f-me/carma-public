@@ -148,6 +148,10 @@ textarea.pane-span,
   color: red;
 }
 
+.tooltip li {
+  text-align: left;
+}
+
 .nice-scrollbar::-webkit-scrollbar {width:.8em;}
 .nice-scrollbar::-webkit-scrollbar-button:vertical,
 .nice-scrollbar::-webkit-scrollbar-button:start:decrement,
@@ -211,6 +215,21 @@ textarea.pane-span,
 
 .checkbutton label input {
   display: none;
+}
+
+button > i.icon {
+  vertical-align: middle;
+}
+
+.svc-status-button {
+  margin-left: 0%;
+  margin-right: 0%;
+  width: 50%;
+  float:left;
+}
+
+.svc-status-button > button {
+  width: 100%;
 }
 
 #partnerMapModal {
@@ -587,6 +606,9 @@ input.re-failed {
   text-decoration:none;
 }
 
+.navbar .nav li>a {
+  cursor: pointer;
+}
 
 .navbar .btn-navbar{
   color:#ffffff;

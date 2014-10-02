@@ -14,15 +14,10 @@ define  [ "utils"
 
       dt = utils.mkDataTable t,
         bPaginate: false
-        aoColumns: utils.repeat(7,null).concat [{bVisible: false}]
-        fnCreatedRow: (nRow, aData) ->
-          tpl = $('#dictionary-many-field-template').html()
-          $('td:eq(2)', nRow).html(
-            Mustache.render tpl, userModel.fieldHash.boCities)
-          $('td:eq(3)', nRow).html(
-            Mustache.render tpl, userModel.fieldHash.boPrograms)
-          ko.applyBindings aData[7], nRow
-
+        aoColumns: utils.repeat(5,null)
+#        fnCreatedRow: (nRow, aData) ->
+#          ko.applyBindings aData[5], nRow
+      at = utils.newModelDict "ActionType", true
       $.getJSON "/_/Usermeta", (us) ->
        $.getJSON "/supervisor/opStats", (os) ->
         dt.fnClearTable()
@@ -30,16 +25,6 @@ define  [ "utils"
 
         rows = for u in us when (backRe.test u.roles)
           do (u) ->
-            koUser =
-              boCities: ko.observable u.boCities
-              boCitiesDisabled: ko.observable false
-              boCitiesSync: ko.observable false
-              boPrograms: ko.observable u.boPrograms
-              boProgramsDisabled: ko.observable false
-              boProgramsSync: ko.observable false
-
-            koUser._meta = { model: { fields: [] }}
-            hook.dictManyHook userModel, koUser
             login = u.login
 
             stats = os.stats[login]
@@ -54,9 +39,9 @@ define  [ "utils"
                 if idle
                   ["нет", null]
                 else
-                  cid = stats.caseId.split(':')[1]
+                  cid = stats.caseId
                   [ "<a href=\"/#case/#{cid}\" target=\"_blank\">#{cid}</a>"
-                  , global.dictValueCache['ActionNames'][stats.aName]
+                  , at.getLab stats.aName
                   ]
 
               rowStats =
@@ -69,23 +54,7 @@ define  [ "utils"
 
             row =
               [ u.login, u.realName
-              , arrStr(koUser.boCitiesLocals())
-              , arrStr(koUser.boProgramsLocals())
-              ].concat(rowStats).concat([koUser])
-
-            update = (fName) -> (val) ->
-              $.ajax
-                type: "PUT"
-                url: "/_/Usermeta/#{u.id}"
-                data: "{\"#{fName}\": \"#{val}\"}"
-              row[2] = arrStr(koUser.boCitiesLocals())
-              row[3] = arrStr(koUser.boProgramsLocals())
-              # i'm so ugly just to fliter out nonmatching rows
-              dt.fnClearTable()
-              dt.fnAddData rows
-
-            koUser.boCities.subscribe (update 'boCities')
-            koUser.boPrograms.subscribe (update 'boPrograms')
+              ].concat(rowStats)
             row
 
         dt.fnAddData rows
@@ -103,26 +72,6 @@ define  [ "utils"
       setTimeout updateBusy, 5000 if tick
 
   arrStr = (arr) -> (a.label for a in arr).join (" ")
-
-
-  userModel =
-    dictManyFields: ['boCities', 'boPrograms']
-    fields: [
-      { name: 'boCities'
-      , meta: {dictionaryName: 'DealerCities'}
-      , type: "dictionary-many" },
-      { name: 'boPrograms'
-      , meta: { dictionaryName: 'Program'
-              , dictionaryType: 'ModelDict'
-              , dictionaryStringify: true
-              }
-      , type: "dictionary-many"
-      } ]
-
-  userModel['fieldHash'] = {}
-  for f in userModel.fields
-    userModel['fieldHash'][f.name] = f
-
   removeSupervisorOpsScreen = -> tick = false
 
   constructor: setupSupervisorOpsScreen

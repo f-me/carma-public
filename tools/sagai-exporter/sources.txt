@@ -1,4 +1,4 @@
 ./
-https://github.com/f-me/carma-dict
-https://github.com/f-me/carma-http
-https://github.com/f-me/carma-models
+https://github.com/f-me/carma-dict ghc-7.8
+https://github.com/f-me/carma-http ghc-7.8
+https://github.com/f-me/carma-models ghc-7.8

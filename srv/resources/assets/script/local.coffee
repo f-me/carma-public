@@ -13,6 +13,7 @@ require [ "domready"
         , "lib/bug-report"
         , "lstorePubSub"
         , "lib/current-user"
+        , "lib/hacking"
         ], ( dom
            , main
            , Finch
@@ -26,6 +27,7 @@ require [ "domready"
            , bug
            , pubSub
            , CurrentUser
+           , hacking
            ) ->
 
   bugReport = new bug.BugReport
@@ -57,10 +59,11 @@ require [ "domready"
   dom ->
     bugReport.setElement $('#send-bug-report')
 
+    # Cached mapping between from userid to "name (login)"
     dicts.users =
       entries:
         for i in users
-          {value: i.login, label: "#{i.realName} (#{i.login})"}
+          {value: String(i.id), label: "#{i.realName} (#{i.login})"}
     dicts.roles =
       entries:
         for i in users
@@ -83,6 +86,7 @@ require [ "domready"
           global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
 
     sendSms.setup()
+    hacking.reenableHacks()
 
     if user.login == "darya"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')
@@ -103,10 +107,12 @@ require [ "domready"
 
   $.fn.wysihtml5.defaultOptions.stylesheets = '/s/3p/wysihtml5/wysiwyg-color.css'
 
+  u.build_global_fn 'switchHack', ['lib/hacking']
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']
   u.build_global_fn 'inlineUploadFile', ['lib/upload']
   u.build_global_fn 'inlineDetachFile', ['lib/upload']
   u.build_global_fn 'doPick', ['utils']
   u.build_global_fn 'kdoPick', ['utils']
+  u.build_global_fn 'edoPick', ['utils']
   u.build_global_fn 'focusField', ['utils']
