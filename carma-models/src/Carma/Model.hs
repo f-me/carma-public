@@ -97,6 +97,7 @@ import           Carma.Model.Sms                         (Sms)
 import           Carma.Model.SmsTemplate                 (SmsTemplate)
 
 import           Carma.Model.KPI                         (StatKPI)
+import           Carma.Model.KPI.Oper                    (OperKPI)
 
 dispatch :: forall a . Text -> (forall m . Model m => m -> a) -> Maybe a
 dispatch model fn = Map.lookup model $ modelMap fn
@@ -195,4 +196,5 @@ modelMap fn = modelMap'
       ,add (undefined :: Sms)
       ,add (undefined :: SmsTemplate)
       ,add (undefined :: StatKPI)
+      ,add (undefined :: OperKPI)
       ]
