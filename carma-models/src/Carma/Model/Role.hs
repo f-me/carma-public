@@ -55,6 +55,7 @@ mkIdents [t|Role|]
   , ("programManager", 35) -- Менеджер по программе
   , ("sms",            40) -- Отправка SMS
   , ("bo_secondary",   41) -- БО: Заказ вторичных услуг
+  , ("hacker",         42) -- Разработчик
   ]
 
 instance Model Role where

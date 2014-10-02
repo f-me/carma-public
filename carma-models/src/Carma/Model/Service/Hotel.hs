@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.Hotel where
 
 import Data.Text
@@ -13,10 +12,10 @@ import Carma.Model.Service (Service)
 data Hotel = Hotel
   { ident :: PK Int Hotel ""
   , caseAddress_address :: F PickerField "caseAddress_address" "Адрес кейса"
-  , caseAddress_comment :: F Text        "caseAddress_comment" "Примечания"
+  , caseAddress_comment :: F (Maybe Text)"caseAddress_comment" "Примечания"
   , caseAddress_coords  :: F PickerField "caseAddress_coords"  "Координаты"
   , caseAddress_map     :: F MapField    "caseAddress_map"     ""
-  , providedFor         :: F Text        "providedFor"
+  , providedFor         :: F (Maybe Text)"providedFor"
                            "Срок, на который предоставлена гостиница (дней)"
   }
   deriving Typeable
@@ -24,7 +23,8 @@ data Hotel = Hotel
 instance Model Hotel where
   type TableName Hotel = "hoteltbl"
   type Parent Hotel = Service
-  modelInfo = mkModelInfo Hotel ident `withLegacyName` "hotel"
+  parentInfo = ExParent modelInfo
+  modelInfo = mkModelInfo Hotel ident
   modelView v = case parentView v :: Maybe (ModelView Hotel) of
     Nothing -> Nothing
     Just mv -> Just

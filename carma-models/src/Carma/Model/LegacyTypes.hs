@@ -1,36 +1,21 @@
 module Carma.Model.LegacyTypes where
 
 import Control.Applicative
-import Control.Error.Util
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.ByteString.Char8 as B8
 import Data.Typeable
 import Data.Aeson
 import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Database.PostgreSQL.Simple.FromField (FromField(..))
-import Database.PostgreSQL.Simple.Time (parseUTCTime)
-import Data.Time.Clock (UTCTime)
-import Data.Time.Format (parseTime, formatTime)
 
 data Activity = Activity deriving Typeable
 data RequestType = RequestType deriving Typeable
 data ConsultationType = ConsultationType deriving Typeable
 data DeliveryType = DeliveryType deriving Typeable
-data CarClasses = CarClasses deriving Typeable
-data DealerCities = DealerCities deriving Typeable
-data Partner = Partner deriving Typeable
 data TowerTypes = TowerTypes deriving Typeable
 data WheelsBlockedCount = WheelsBlockedCount deriving Typeable
 data UrgentServiceReason = UrgentServiceReason deriving Typeable
-data Satisfaction = Satisfaction deriving Typeable
-data FalseStatuses = FalseStatuses deriving Typeable
 data CallerTypes = CallerTypes deriving Typeable
 data CallTypes   = CallTypes   deriving Typeable
-data Users = Users deriving Typeable
-data ActionNames = ActionNames deriving Typeable
-data DeferTimes  = DeferTimes deriving Typeable
-data ActionResults = ActionResults deriving Typeable
 
 data JsonAsText = JsonAsText Text deriving Typeable
 instance FromJSON JsonAsText where
@@ -107,35 +92,8 @@ instance ToField Checkbox where
 instance FromField Checkbox where
   fromField fld m = Checkbox <$> fromField fld m
 
+on :: Checkbox
+on = Checkbox True
 
-data LegacyDate = LegacyDate UTCTime deriving Typeable
-instance FromJSON LegacyDate where
-  parseJSON fld = do
-    txt <- T.unpack <$> parseJSON fld
-    let res = parseTime undefined "%s" txt
-          <|> hush (parseUTCTime $ B8.pack txt)
-    case res of
-      Just v  -> return $ LegacyDate v
-      Nothing -> fail $ "LegacyDate.parseJSON: invalid date " ++ txt
-instance ToJSON LegacyDate where
-  toJSON (LegacyDate utc) = toJSON $ formatTime undefined "%s" utc
-instance ToField LegacyDate where
-  toField (LegacyDate utc) = toField utc
-instance FromField LegacyDate where
-  fromField fld m = LegacyDate <$> fromField fld m
-
-data LegacyDatetime = LegacyDatetime UTCTime deriving Typeable
-instance FromJSON LegacyDatetime where
-  parseJSON fld = do
-    txt <- T.unpack <$> parseJSON fld
-    let res = parseTime undefined "%s" txt
-          <|> hush (parseUTCTime $ B8.pack txt)
-    case res of
-      Just v  -> return $ LegacyDatetime v
-      Nothing -> fail $ "LegacyDatetime.parseJSON: invalid date " ++ txt
-instance ToJSON LegacyDatetime where
-  toJSON (LegacyDatetime utc) = toJSON $ formatTime undefined "%s" utc
-instance ToField LegacyDatetime where
-  toField (LegacyDatetime utc) = toField utc
-instance FromField LegacyDatetime where
-  fromField fld m = LegacyDatetime <$> fromField fld m
+off :: Checkbox
+off = Checkbox False

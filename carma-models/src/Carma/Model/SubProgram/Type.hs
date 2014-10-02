@@ -1,4 +1,11 @@
-{-| Subprogram and subordinate models. -}
+{-|
+
+Subprogram and subordinate models.
+
+Model instances are declared in separate modules to prevent ident
+collisions.
+
+-}
 
 module Carma.Model.SubProgram.Type
     ( SubProgram(..)
@@ -15,10 +22,10 @@ import Data.Vector
 
 import Data.Model
 
-import Carma.Model.Types (TInt, IdentList)
+import Carma.Model.Types (IdentList)
 import Carma.Model.LegacyTypes (Reference)
 import Carma.Model.Program hiding (ident)
-import Carma.Model.ServiceNames hiding (ident)
+import Carma.Model.ServiceType hiding (ident)
 
 
 data SubProgram = SubProgram
@@ -39,25 +46,22 @@ data SubProgram = SubProgram
   , synonyms    :: F (Maybe (Vector Text))
                    "synonyms"
                    "Синонимы"
-  , value       :: F Text
-                   "value"
-                   "Внутренняя метка"
   , mailAddr    :: F (Maybe Text)
                    "mailAddr"
                    "Mail для отправки писем"
   , mailPass    :: F (Maybe Text)
                    "mailPass"
                    "Пароль для отправки писем"
-  , contacts    :: F (Maybe (IdentList SubProgramContact))
+  , contacts    :: F (IdentList SubProgramContact)
                    "contacts"
                    "Контактные лица"
-  , services    :: F (Maybe (IdentList SubProgramService))
+  , services    :: F (IdentList SubProgramService)
                    "services"
                    "Услуги, предоставляемые по программе"
-  , checkPeriod :: F (Maybe TInt)
+  , checkPeriod :: F (Maybe Int)
                    "checkPeriod"
                    "Межсервисный интервал по умолчанию"
-  , validFor    :: F (Maybe TInt)
+  , validFor    :: F (Maybe Int)
                    "validFor"
                    "Срок действия программы по умолчанию"
   , smsSender   :: F Text
@@ -69,7 +73,7 @@ data SubProgram = SubProgram
   , smsProgram  :: F Text
                    "smsProgram"
                    "Название программы в SMS"
-  , contractPrs :: F (Maybe (IdentList SubProgramContractPermission))
+  , contractPrs :: F (IdentList SubProgramContractPermission)
                    "contractPermissions"
                    "Настройка партнёрского интерфейса"
   , template    :: F (Maybe Reference)
@@ -91,19 +95,19 @@ data SubProgramService = SubProgramService
     { sIdent      :: PK Int SubProgramService "Услуга по подпрограмме"
     , sParent     :: F (IdentI SubProgram) "parent" "Подпрограмма"
     -- TODO This is wrapped in Maybe only because the client first
-    -- creates and empty instance, then rendering a form where the
-    -- type may be selected.
-    , sType       :: F (Maybe (IdentI ServiceNames)) "type" "Услуга"
+    -- creates an empty instance, then rendering a form where the type
+    -- may be selected.
+    , sType       :: F (Maybe (IdentI ServiceType)) "type" "Услуга"
     , maxCost     :: F (Maybe Text)
                      "maxCost"
                      "Лимит стоимости"
-    , maxDistance :: F (Maybe TInt)
+    , maxDistance :: F (Maybe Int)
                      "maxDistance"
                      "Лимит расстояния"
-    , maxPeriod   :: F (Maybe TInt)
+    , maxPeriod   :: F (Maybe Int)
                      "maxPeriod"
                      "Лимит продолжительности (в днях)"
-    , maxCount    :: F (Maybe TInt)
+    , maxCount    :: F (Maybe Int)
                      "maxCount"
                      "Лимит количества предоставления услуги"
     } deriving Typeable

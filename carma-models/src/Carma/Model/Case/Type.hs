@@ -2,15 +2,16 @@ module Carma.Model.Case.Type where
 
 import Data.Text
 import Data.Time.Calendar
+import Data.Time.Clock
 import Data.Typeable
 
 import Data.Model
 
-import Carma.Model.Types
-
 import Carma.Model.CaseStatus
+import Carma.Model.City         (City)
 import Carma.Model.Contract     (Contract)
 import Carma.Model.ContractCheckStatus
+import Carma.Model.Partner      (Partner)
 import Carma.Model.Program      (Program)
 import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
@@ -18,7 +19,7 @@ import Carma.Model.Engine       (Engine)
 import Carma.Model.CarClass     (CarClass)
 import Carma.Model.CarMake      (CarMake)
 import Carma.Model.CarModel     (CarModel)
-import Carma.Model.LegacyTypes hiding (CarClasses)
+import Carma.Model.LegacyTypes
 
 import Carma.Model.Diagnostics.Cause      (Cause)
 import Carma.Model.Diagnostics.Part       (Part)
@@ -31,9 +32,9 @@ import Carma.Model.Usermeta (Usermeta)
 data Case = Case
   { ident :: PK Int Case "Номер кейса"
   , callDate
-    :: F (Maybe LegacyDatetime) "callDate" "Дата звонка"
+    :: F (Maybe UTCTime) "callDate" "Дата звонка"
   , vwcreatedate
-    :: F (Maybe LegacyDatetime) "vwcreatedate" "Дата звонка"
+    :: F (Maybe UTCTime) "vwcreatedate" "Дата звонка"
   , callTaker
     :: F (IdentI Usermeta)      "callTaker" "Сотрудник РАМК"
   , customerComment
@@ -90,19 +91,19 @@ data Case = Case
   , car_model
     :: F (Maybe (IdentI CarModel)) "car_model" "Модель"
   , car_seller
-    :: F (Maybe (IdentT Partner)) "car_seller" "Дилер, продавший автомобиль"
+    :: F (Maybe (IdentI Partner)) "car_seller" "Дилер, продавший автомобиль"
   , car_plateNum
     :: F (Maybe Text) "car_plateNum" "Госномер"
   , car_makeYear
-    :: F (Maybe TInt) "car_makeYear" "Год производства автомобиля"
+    :: F (Maybe Int) "car_makeYear" "Год производства автомобиля"
   , car_color
     :: F (Maybe Text) "car_color" "Цвет"
   , car_buyDate
     :: F (Maybe Day) "car_buyDate" "Дата покупки"
   , car_dealerTO
-    :: F (Maybe (IdentT Partner)) "car_dealerTO" "Дилер, у которого проходило последнее ТО"
+    :: F (Maybe (IdentI Partner)) "car_dealerTO" "Дилер, у которого проходило последнее ТО"
   , car_mileage
-    :: F (Maybe TInt) "car_mileage" "Текущий пробег"
+    :: F (Maybe Int) "car_mileage" "Текущий пробег"
   , car_transmission
     :: F (Maybe (IdentI Transmission)) "car_transmission" "Коробка передач"
   , car_engine
@@ -115,27 +116,27 @@ data Case = Case
   , vinChecked
     :: F (Maybe (IdentI ContractCheckStatus)) "vinChecked" "Участие в программе"
   , city
-    :: F (Maybe (IdentT DealerCities)) "city" "Город"
+    :: F (Maybe (IdentI City)) "city" "Город"
   , caseAddress_address
-    :: F (Maybe PickerField) "caseAddress_address" "Адрес места поломки"
+    :: F PickerField "caseAddress_address" "Адрес места поломки"
   , caseAddress_comment
     :: F (Maybe Text) "caseAddress_comment" "Примечания"
   , caseAddress_notRussia
     :: F (Maybe Checkbox) "caseAddress_notRussia" "Не по РФ"
   , caseAddress_coords
-    :: F (Maybe PickerField) "caseAddress_coords" "Координаты"
+    :: F PickerField "caseAddress_coords" "Координаты"
   , caseAddress_map
     :: F (Maybe MapField) "caseAddress_map" ""
   , temperature
     :: F (Maybe Text) "temperature" "Температура"
   , repair
-    :: F (Maybe LegacyDate) "repair" "Дата починки"
+    :: F (Maybe Day) "repair" "Дата починки"
   , accord
     :: F (Maybe Text) "accord" "Номер согласования"
   , dealerCause
     :: F (Maybe Text) "dealerCause" "Неисправность со слов дилера/партнёра"
   , caseStatus
-    :: F (Maybe (IdentI CaseStatus)) "caseStatus" "Статус кейса"
+    :: F (IdentI CaseStatus) "caseStatus" "Статус кейса"
   , psaExportNeeded
     :: F (Maybe Checkbox) "psaExportNeeded" "Требуется выгрузка в PSA"
   , psaExported
@@ -144,8 +145,6 @@ data Case = Case
     :: F (Maybe Text) "claim" "Претензия / Благодарность"
   , services
     :: F (Maybe Reference) "services" "Услуги"
-  , actions
-    :: F (Maybe Reference) "actions" "Действия"
   , comments
     :: F (Maybe JsonAsText) "comments" "Комментарии"
   , files

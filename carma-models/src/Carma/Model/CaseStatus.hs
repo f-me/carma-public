@@ -25,6 +25,7 @@ mkIdents [t|CaseStatus|]
  , ("back", 3)
  , ("closed", 4)
  , ("canceled", 5)
+ , ("mobileOrder", 6)
  ]
 
 instance Model CaseStatus where

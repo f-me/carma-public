@@ -7,7 +7,11 @@ module Data.Model.Sql
   , selectPatch
   , update
   , eq
+  , fullPatch
+  , isNull
   , sql_in
+  , descBy
+  , ascBy
 
   , SqlQ(..)
   , SqlP
@@ -15,7 +19,7 @@ module Data.Model.Sql
 
 import Text.Printf (printf)
 import Data.String (fromString)
-import Data.List (intersperse)
+import Data.List (intercalate)
 import Data.Int (Int64)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -26,7 +30,8 @@ import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToField
 import Data.Aeson (ToJSON(..), fromJSON, Result)
 import qualified Data.Aeson as Aeson
-import GHC.TypeLits
+
+import Data.Singletons
 
 import Data.Model
 import Data.Model.Patch
@@ -49,7 +54,7 @@ mkUpdate :: (SqlQ how, SqlQ which, QMod how ~ QMod which) =>
 mkUpdate how which =
     let
         predChunks :: String -> [String] -> String
-        predChunks glue ps = concat (intersperse glue ps)
+        predChunks glue ps = intercalate glue ps
     in
       case queryPredicate how of
         [] -> error "No new field values provided"
@@ -88,7 +93,7 @@ selectJSON q c = select q c >>= return
 selectPatch
   :: (ToValueList (QRes q), SqlQ q, FromRow (QRes q), Model m)
   => q -> Connection -> IO (Result [Patch m])
-selectPatch q c = selectJSON q c >>= return . sequence . map fromJSON
+selectPatch q c = selectJSON q c >>= return . mapM fromJSON
 
 mkSelect :: SqlQ q => q -> (Query, QArg q)
 mkSelect q =
@@ -98,7 +103,10 @@ mkSelect q =
       (show $ queryTbl q)
     ++ case queryPredicate q of
       [] -> ""
-      ps -> " WHERE " ++ concat (intersperse " AND " ps)
+      ps -> " WHERE " ++ intercalate " AND " ps ++
+            (case queryOrdering q of
+               [] -> ""
+               chunks -> " ORDER BY " ++ (T.unpack $ T.intercalate ", " chunks))
   ,queryArgs q
   )
 
@@ -108,8 +116,40 @@ class (ToRow (QArg q), Model (QMod q)) => SqlQ q where
   type QMod q
   queryProjection :: q -> [Text]
   queryPredicate  :: q -> [String]
+  queryOrdering   :: q -> [Text]
   queryTbl       :: q -> Text
   queryArgs       :: q -> QArg q
+
+
+data FullProj m = FullProj
+
+
+-- | Obtain 'FullPatch' using 'select'.
+fullPatch :: (m -> PK t m d) -> FullProj m
+fullPatch _ = FullProj
+
+
+instance (Model m) => SqlQ (FullProj m) where
+  type QRes (FullProj m) = FullPatch m
+  type QArg (FullProj m) = ()
+  type QMod (FullProj m) = m
+  queryProjection _ = map fd_name $ onlyDefaultFields $
+                      modelFields (modelInfo :: ModelInfo m)
+  queryPredicate  _ = []
+  queryOrdering   _ = []
+  queryTbl        _ = tableName (modelInfo :: ModelInfo m)
+  queryArgs       _ = ()
+
+
+instance (Model m, SqlQ q, QMod q ~ m) => SqlQ ((FullProj m) :. q) where
+  type QRes ((FullProj m) :. q) = FullPatch m :. QRes q
+  type QArg ((FullProj m) :. q) = QArg q
+  type QMod ((FullProj m) :. q) = m
+  queryProjection (f :. q) = queryProjection f ++ queryProjection q
+  queryPredicate  (_ :. q) = queryPredicate q
+  queryOrdering   (_ :. q) = queryOrdering q
+  queryTbl         _       = tableName (modelInfo :: ModelInfo m)
+  queryArgs       (_ :. q) = queryArgs q
 
 
 instance (Model m, SingI nm, FromField t)
@@ -120,6 +160,7 @@ instance (Model m, SingI nm, FromField t)
     type QMod (m -> Field t (FOpt nm desc app)) = m
     queryProjection f = [fieldName f]
     queryPredicate  _ = []
+    queryOrdering   _ = []
     queryTbl       _  = tableName (modelInfo :: ModelInfo m)
     queryArgs       _ = ()
 
@@ -131,6 +172,7 @@ instance (Model m, SingI nm, FromField t, SqlQ q, QMod q ~ m)
     type QMod ((m -> Field t (FOpt nm desc app)) :. q) = m
     queryProjection (f :. q) = fieldName f : queryProjection q
     queryPredicate  (_ :. q) = queryPredicate q
+    queryOrdering   (_ :. q) = queryOrdering q
     queryTbl       _        = tableName (modelInfo :: ModelInfo m)
     queryArgs       (_ :. q) = queryArgs q
 
@@ -151,6 +193,7 @@ instance (Model m, ToField t) => SqlQ (SqlP m t) where
   type QMod (SqlP m t) = m
   queryProjection _ = []
   queryPredicate  p = [printf "%s %s ?" (sqlP_fieldName p) (sqlP_op p)]
+  queryOrdering   _ = []
   queryTbl       _ = tableName (modelInfo :: ModelInfo m)
   queryArgs       p = Only $ sqlP_argValue p
 
@@ -164,6 +207,7 @@ instance (Model m, ToField t, SqlQ q, QMod q ~ m)
     queryPredicate   (p :. q)
       = printf "%s %s ?" (sqlP_fieldName p) (sqlP_op p)
       : queryPredicate q
+    queryOrdering    (_ :. q) = queryOrdering q
     queryTbl        _        = tableName (modelInfo :: ModelInfo m)
     queryArgs        (p :. q) = Only (sqlP_argValue p) :. queryArgs q
 
@@ -174,7 +218,59 @@ eq
   -> SqlP m t
 eq f v = SqlP (T.unpack $ fieldName f) v "="
 
+
+isNull
+  :: (Model m, SingI nm)
+  => (m -> Field (Maybe t) (FOpt nm desc app))
+  -> SqlP m (Maybe t)
+isNull f = SqlP (T.unpack $ fieldName f) Nothing "IS"
+
+
 sql_in :: (Model m, SingI nm)
        => (m -> Field t (FOpt nm desc app)) -> [t]
        -> SqlP m (In [t])
 sql_in f v = SqlP (T.unpack $ fieldName f) (In v) "IN"
+
+
+-- | SQL @ORDER BY@ predicate.
+data SqlO m = SqlO
+  {sqlO_fieldName :: Text
+  ,sqlO_order     :: Text
+  }
+
+
+descBy
+  :: (Model m, SingI nm)
+  => (m -> Field t (FOpt nm desc app))
+  -> SqlO m
+descBy f = SqlO (fieldName f) "DESC"
+
+
+ascBy
+  :: (Model m, SingI nm)
+  => (m -> Field t (FOpt nm desc app))
+  -> SqlO m
+ascBy f = SqlO (fieldName f) "ASC"
+
+
+instance (Model m) => SqlQ (SqlO m) where
+  type QRes (SqlO m) = ()
+  type QArg (SqlO m) = ()
+  type QMod (SqlO m) = m
+  queryProjection _ = []
+  queryPredicate  _ = []
+  queryOrdering   p = [T.concat [sqlO_fieldName p, " ", sqlO_order p]]
+  queryTbl        _ = tableName (modelInfo :: ModelInfo m)
+  queryArgs       _ = ()
+
+
+instance (Model m) => SqlQ (SqlO m :. SqlO m) where
+  type QRes (SqlO m :. SqlO m) = ()
+  type QArg (SqlO m :. SqlO m) = ()
+  type QMod (SqlO m :. SqlO m) = m
+  queryProjection _ = []
+  queryPredicate  _ = []
+  queryOrdering (p :. q) =
+    queryOrdering p ++ queryOrdering q
+  queryTbl        _ = tableName (modelInfo :: ModelInfo m)
+  queryArgs       _ = ()

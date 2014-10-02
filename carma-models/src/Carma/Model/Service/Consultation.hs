@@ -11,8 +11,8 @@ import Carma.Model.Service (Service)
 
 data Consultation = Consultation
   { ident       :: PK Int Consultation ""
-  , consType    :: F (IdentT ConsultationType) "consType" "Тип консультации"
-  , whatToSay1  :: F Text "whatToSay1" "Описание проблемы"
+  , consType    :: F (Maybe (IdentT ConsultationType)) "consType" "Тип консультации"
+  , whatToSay1  :: F (Maybe Text) "whatToSay1" "Описание проблемы"
   , orderNumber :: F (Maybe Text) "orderNumber" "Номер заказ-наряда"
   }
   deriving Typeable
@@ -20,7 +20,8 @@ data Consultation = Consultation
 instance Model Consultation where
   type TableName Consultation = "consultationtbl"
   type Parent Consultation = Service
-  modelInfo = mkModelInfo Consultation ident `withLegacyName` "consultation"
+  parentInfo = ExParent modelInfo
+  modelInfo = mkModelInfo Consultation ident
   modelView v = case parentView v :: Maybe (ModelView Consultation) of
     Nothing -> Nothing
     Just mv -> Just $ mv {mv_title = "Консультация"}

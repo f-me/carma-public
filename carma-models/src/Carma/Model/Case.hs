@@ -3,11 +3,8 @@ module Carma.Model.Case
        ,caseSearchParams
        ) where
 
-import Control.Applicative
 import Data.Text (Text)
 import Data.Aeson as Aeson
-import qualified Data.Map as Map
-import Data.Monoid ((<>))
 
 import Data.Model as Model
 import Data.Model.View as View
@@ -46,7 +43,7 @@ caseSearchParams
 
 instance Model Case where
   type TableName Case = "casetbl"
-  modelInfo = mkModelInfo Case Case.ident `withLegacyName` "case"
+  modelInfo = mkModelInfo Case Case.ident
   modelView = \case
       "search" -> Just
         $ modifyView (searchView caseSearchParams)
@@ -58,27 +55,14 @@ instance Model Case where
                       }
           ]
           ++ caseMod ++ caseDicts
-      "full" -> Just
+      "" -> Just
         $ modifyView
           ((defaultView :: ModelView Case) {mv_title = "Кейс"})
-          $ caseMod ++ caseDicts ++ caseRo ++ caseOldCRUDHacks
-      "new"
-        ->  setMainOnly . (`modifyView` [invisible services])
-        <$> (modelView "full" :: Maybe (ModelView Case))
-      "" -> modelView "full" :: Maybe (ModelView Case)
+          $ caseMod ++ caseDicts ++ caseRo ++
+          [ widget "inline-uploader" files
+          , setMeta "reference-widget" "files" files
+          ]
       _ -> Nothing
-      where
-        setMainOnly mv = mv
-          {mv_fields =
-            [if fv_name fv `elem` addrFields
-              then fv
-              else fv{fv_meta = Map.insert "mainOnly" (Aeson.Bool True) $ fv_meta fv}
-            |fv <- mv_fields mv
-            ,let addrFields = map
-                  ("caseAddress_" <>)
-                  ["address","map","notRussia","comment","coords"]
-            ]
-          }
 
 caseDicts :: [(Text, FieldView -> FieldView) :@ Case]
 caseDicts = [
@@ -98,28 +82,6 @@ caseDicts = [
   ,setMeta "dictionaryLabel" (Aeson.String "realName") callTaker
   ]
 
--- | Mark several new-style dictionaries to use dictionaryStringify,
--- to wrap integers in strings to be compatible with the old CRUD.
-caseOldCRUDHacks :: [(Text, FieldView -> FieldView) :@ Case]
-caseOldCRUDHacks =
-    [ setMeta "dictionaryStringify" (Aeson.Bool True) car_class
-    , setMeta "dictionaryStringify" (Aeson.Bool True) car_engine
-    , setMeta "dictionaryStringify" (Aeson.Bool True) car_transmission
-    , setMeta "dictionaryStringify" (Aeson.Bool True) car_make
-    , setMeta "dictionaryStringify" (Aeson.Bool True) car_model
-    , setType "text" car_mileage
-    , setType "text" car_makeYear
-    , setMeta "dictionaryStringify" (Aeson.Bool True) program
-    , setMeta "dictionaryStringify" (Aeson.Bool True) subprogram
-    , setMeta "dictionaryStringify" (Aeson.Bool True) comment
-    , setMeta "dictionaryStringify" (Aeson.Bool True) diagnosis1
-    , setMeta "dictionaryStringify" (Aeson.Bool True) diagnosis2
-    , setMeta "dictionaryStringify" (Aeson.Bool True) diagnosis3
-    , setMeta "dictionaryStringify" (Aeson.Bool True) diagnosis4
-    , setMeta "dictionaryStringify" (Aeson.Bool True) vinChecked
-    , setMeta "dictionaryStringify" (Aeson.Bool True) caseStatus
-    ]
-
 caseRo :: [(Text, FieldView -> FieldView) :@ Case]
 caseRo = [
    readonly callDate
@@ -133,17 +95,13 @@ caseMod = [
   ,transform "capitalize" contact_ownerName
   ,transform "uppercase"  car_vin
   ,transform "uppercase"  car_plateNum
-  ,setMeta "regexp" "plateNum" car_plateNum
-  ,setMeta "regexp" "vin" car_vin
-  ,setMeta "regexp" "year" car_makeYear
+  ,regexp "plateNum" car_plateNum
+  ,regexp "vin" car_vin
+  ,regexp "year" car_makeYear
 
-  ,invisible contract
-  ,setType "text" contract
+  ,hiddenIdent contract
 
   ,widget "force-find-dictionary" contractIdentifier
-
-  ,widget "inline-uploader" files
-  ,setMeta "reference-widget" "files" files
 
   ,setMeta "visibility" (Aeson.Bool True) callDate
 
@@ -166,10 +124,11 @@ caseMod = [
   ,required car_transmission
   ,required vinChecked
   ,required caseStatus
+  ,readonly caseStatus
 
-  ,setMeta "regexp" "email" contact_email
-  ,setMeta "regexp" "email" contact_ownerEmail
-  ,setMeta "regexp" "date" car_buyDate
+  ,regexp "email" contact_email
+  ,regexp "email" contact_ownerEmail
+  ,regexp "date" car_buyDate
 
   ,mainToo contact_contactOwner
   ,mainToo car_plateNum
@@ -177,13 +136,13 @@ caseMod = [
   ,setMeta "dictionaryParent"
    (Aeson.String $ Model.fieldName program) subprogram
 
-  ,widget "radio" car_transmission
-  ,widget "radio" car_engine
+   -- FIXME Workaround for #2145
+--  ,widget "radio" car_transmission
+--  ,widget "radio" car_engine
 
   ,textarea dealerCause
   ,textarea claim
   ,invisible comments
-  ,invisible actions
 
   ,infoText "carVin" car_vin
   ,infoText "comment" comment

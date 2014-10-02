@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving
-           , ViewPatterns
            , ScopedTypeVariables
            , RankNTypes
            , DeriveGeneric
@@ -9,11 +8,13 @@
 
 module Carma.Model.Types ( Dict(..)
                          , Interval(..)
-                         , TInt
+                         , HMDiffTime(..)
                          , IdentList
                          , EventType(..)
                          , UserStateVal(..)
-                         , Coords
+                         , Coords(..)
+                         , on
+                         , off
                          ) where
 
 import Control.Applicative ((<$>), (<*>), (*>))
@@ -60,7 +61,8 @@ import Database.PostgreSQL.Simple.TypeInfo.Static (interval, typoid)
 
 import qualified Blaze.ByteString.Builder.Char8 as Builder
 
-import GHC.TypeLits
+import Data.Singletons
+
 import GHC.Generics
 import Data.Typeable
 
@@ -122,13 +124,31 @@ instance ToField   (Interval Day) where
       (formatTime defaultTimeLocale "%0Y-%m-%d" end)
 
 
--- | Int wrapper which instructs CaRMa client to use JSON integers in
--- commits.
+-- | Time difference with minute precision.
 --
--- This is the preferred integer type for use with new models until
--- string-wrapped integers are no more used anywhere on the client.
-newtype TInt = TInt Int deriving (FromField, ToField,
-                                  FromJSON, ToJSON, Typeable)
+-- To/FromJSON instances use @"HH:MM"@ string format.
+newtype HMDiffTime = HMDiffTime DiffTime deriving (FromField, ToField,
+                                                   Typeable)
+
+instance FromJSON HMDiffTime where
+  parseJSON (Aeson.String hm) =
+     case (map T.decimal $ T.splitOn ":" hm) of
+        [Right (hours, _), Right (minutes, _)] ->
+            if (0 <= hours && 0 <= minutes && minutes <= 59)
+            then return $ HMDiffTime $
+                 fromInteger (hours * 60 + minutes) * 60
+            else err
+        _ -> err
+     where
+       err = fail $ "Invalid HMDiffTime format: " ++ show hm
+  parseJSON _ = fail $ "HMDiffTime JSON must be a string"
+
+instance ToJSON HMDiffTime where
+  toJSON (HMDiffTime dt) =
+    Aeson.String $ T.pack $ printf "%.2d:%.2d" h m
+    where
+      (h, m, _) = diffTimeTohms dt
+
 
 -- | List of model instance identifiers. Used to accomodate client
 -- pull-children behaviour.
@@ -163,6 +183,14 @@ instance DefaultFieldView UTCTime where
       $ fv_meta $ defFieldView f
     }
 
+instance DefaultFieldView HMDiffTime where
+  defaultFieldView f = (defFieldView f)
+    { fv_type = "text"
+    , fv_meta
+      = Map.insert "regexp" "timespan"
+      $ fv_meta $ defFieldView f
+    }
+
 instance DefaultFieldView Bool where
   defaultFieldView f = (defFieldView f)
     { fv_type = "Bool"
@@ -171,8 +199,7 @@ instance DefaultFieldView Bool where
       $ fv_meta $ defFieldView f
     }
 
-
-instance DefaultFieldView TInt where
+instance DefaultFieldView Int where
   defaultFieldView f = (defFieldView f)
     { fv_type = "Integer"
     , fv_meta
@@ -198,13 +225,6 @@ instance DefaultFieldView Double where
       $ fv_meta $ defFieldView f
     }
 
-instance DefaultFieldView Int where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "int"
-    ,fv_meta
-      = Map.insert "sqltype" (Aeson.String "integer")
-      $ fv_meta $ defFieldView f
-    }
 
 instance DefaultFieldView Int16 where
   defaultFieldView f = (defFieldView f) {fv_type = "int"}
@@ -235,12 +255,6 @@ instance DefaultFieldView Reference where
 
 instance DefaultFieldView Checkbox where
   defaultFieldView f = (defFieldView f) {fv_type = "checkbox"}
-
-instance DefaultFieldView LegacyDate where
-  defaultFieldView f = (defFieldView f) {fv_type = "date"}
-
-instance DefaultFieldView LegacyDatetime where
-  defaultFieldView f = (defFieldView f) {fv_type = "datetime"}
 
 instance DefaultFieldView JsonAsText where
   defaultFieldView f = (defFieldView f) {fv_type = "JsonAsText"}
@@ -276,6 +290,7 @@ instance Typeable tag => DefaultFieldView (Ident Text tag) where
     ,fv_meta
       = Map.insert "dictionaryName" (Aeson.String $ typeName (undefined :: tag))
       $ Map.insert "bounded" (Aeson.Bool True)
+      $ Map.insert "datamap-type" (Aeson.String "dictionary-string-null")
       $ fv_meta $ defFieldView f
     }
 
@@ -357,7 +372,7 @@ instance ToJSON   UserStateVal
 -- Need this because client send "" instead of null in case of empty
 -- which can'd be parsed to 'UserStateVal'
 instance FromJSON (Maybe UserStateVal) where
-  parseJSON o = do
+  parseJSON o =
     case fromJSON o of
       Success v -> return $ Just v
       _err      -> return Nothing
@@ -476,7 +491,7 @@ instance DefaultFieldView DiffTime where
       $ fv_meta $ defFieldView f
     }
 
-diffTimeTohms :: DiffTime -> (Int, Int, Int)
+diffTimeTohms :: Real a => a -> (Int, Int, Int)
 diffTimeTohms t =
   let ss :: Int = floor $ toRational t
       sec = ss `rem` 60

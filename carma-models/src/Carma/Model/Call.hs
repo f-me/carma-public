@@ -2,6 +2,7 @@ module Carma.Model.Call where
 
 import Data.Aeson as Aeson
 import Data.Text
+import Data.Time
 import Data.Typeable
 import Data.Model as Model
 import Data.Model.Types ((:@))
@@ -12,6 +13,8 @@ import Carma.Model.Program         (Program)
 import Carma.Model.SubProgram.Type (SubProgram)
 import Carma.Model.CarMake         (CarMake)
 import Carma.Model.CarModel        (CarModel)
+import Carma.Model.Case            (Case)
+import Carma.Model.City            (City)
 import Carma.Model.Usermeta        (Usermeta)
 import Carma.Model.LegacyTypes
 
@@ -64,14 +67,16 @@ metas =
 
     , invisible coords
     , invisible address
+
+    , hiddenIdent caseId
     ]
 
 data Call = Call
   { ident :: PK Int Call "Номер звонка"
   , callDate
-    :: F LegacyDatetime "callDate" "Дата звонка"
+    :: F UTCTime "callDate" "Дата звонка"
   , endDate
-    :: F (Maybe LegacyDatetime) "endDate"  "Время окончания звонка"
+    :: F (Maybe UTCTime) "endDate"  "Время окончания звонка"
   , callTaker
     :: F (IdentI Usermeta) "callTaker" "Сотрудник РАМК"
   , program
@@ -111,7 +116,7 @@ data Call = Call
   , callerType
     :: F (Maybe (IdentT CallerTypes)) "callerType" "Кто звонит?"
   , city
-    :: F (Maybe (IdentT DealerCities)) "city" "Город"
+    :: F (Maybe (IdentI City)) "city" "Город"
   , coords
     :: F (Maybe Coords) "coords" "Координаты места поломки"
   , address
@@ -122,4 +127,6 @@ data Call = Call
     :: F (Maybe (IdentI CarModel)) "carModel" "Модель"
   , callType
     :: F (Maybe (IdentT CallTypes)) "callType" "Тип звонка"
+  , caseId
+    :: F (Maybe (IdentI Case)) "caseId" "Связанный кейс"
   } deriving Typeable

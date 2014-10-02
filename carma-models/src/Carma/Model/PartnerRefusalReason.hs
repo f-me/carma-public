@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Carma.Model.PartnerRefusalReason where
 
 import Data.Text

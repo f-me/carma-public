@@ -1,4 +1,3 @@
-
 module Carma.Model.Service.Tickets where
 
 import Data.Text
@@ -12,12 +11,12 @@ import Carma.Model.Service (Service)
 data Tickets = Tickets
   { ident :: PK Int Tickets ""
   , ticketsFrom_address :: F PickerField "ticketsFrom_address" "Откуда"
-  , ticketsFrom_comment :: F Text        "ticketsFrom_comment" "Примечания"
+  , ticketsFrom_comment :: F (Maybe Text)"ticketsFrom_comment" "Примечания"
   , ticketsFrom_coords  :: F PickerField "ticketsFrom_coords" "Координаты"
   , ticketsFrom_map     :: F MapField    "ticketsFrom_map" ""
 
   , ticketsTo_address   :: F PickerField "ticketsTo_address" "Куда"
-  , ticketsTo_comment   :: F Text        "ticketsTo_comment" "Примечания"
+  , ticketsTo_comment   :: F (Maybe Text)"ticketsTo_comment" "Примечания"
   , ticketsTo_coords    :: F PickerField "ticketsTo_coords" "Координаты"
   , ticketsTo_map       :: F MapField    "ticketsTo_map" ""
 
@@ -29,7 +28,8 @@ data Tickets = Tickets
 instance Model Tickets where
   type TableName Tickets = "ticketstbl"
   type Parent Tickets = Service
-  modelInfo = mkModelInfo Tickets ident `withLegacyName` "tickets"
+  parentInfo = ExParent modelInfo
+  modelInfo = mkModelInfo Tickets ident
   modelView v = case parentView v :: Maybe (ModelView Tickets) of
     Nothing -> Nothing
     Just mv -> Just

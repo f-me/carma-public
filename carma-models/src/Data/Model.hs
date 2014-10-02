@@ -1,11 +1,12 @@
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model
   ( Ident(..), IdentI, IdentT
   , Model(..)
-  , NoParent
+  , ParentInfo(..)
   , ModelInfo(..), mkModelInfo
   , Field(..), FF, F, EF, PK
   , FOpt
@@ -17,7 +18,6 @@ module Data.Model
   -- from Data.Model.View.Types
   , ModelView(..)
   , GetModelFields(..)
-  , withLegacyName -- imported from Data.Model.Types
   , onlyDefaultFields
   ) where
 
@@ -33,7 +33,9 @@ import Database.PostgreSQL.Simple.FromRow   (RowParser,field)
 import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Data.Dynamic
-import GHC.TypeLits
+
+import Data.Singletons
+import Data.Singletons.TypeLits
 
 import Language.Haskell.TH
 
@@ -43,29 +45,44 @@ import Data.Model.Types
 
 mkModelInfo
   :: forall m ctr pkTy pkNm pkDesc
-  . (Model m, Model (Parent m), GetModelFields m ctr, SingI pkNm)
+  . (Model m, GetModelFields m ctr, SingI pkNm)
   => ctr -> (m -> F (Ident pkTy m) pkNm pkDesc)
   -> ModelInfo m
-mkModelInfo ctr pk =
-  let parent        = (modelParent :: Maybe (ModelInfo (Parent m) :@ m))
-      parentFlds    =
-        case parent of
-          Nothing -> []
-          Just p  -> filter (\f -> fd_name f /= (primKeyName $ unWrap p)) $
-                     modelFields $ unWrap p
-      modelOnlyFlds = unWrap (getModelFields ctr :: [FieldDesc] :@ m)
-      modelFlds     = parentFlds ++ modelOnlyFlds
-  in ModelInfo
-    { modelName      = T.pack $ show $ typeOf (undefined :: m)
-    , parentName     = modelName . unWrap <$> parent
-    , legacyModelName= Nothing
-    , tableName      = T.pack $ fromSing (sing :: Sing (TableName m))
-    , primKeyName    = fieldName pk
-    , modelFields    = modelFlds
-    , modelOnlyFields= modelOnlyFlds
-    , modelFieldsMap = HashMap.fromList [(fd_name f, f) | f <- modelFlds]
-    , modelCRUD      = Nothing
-    }
+mkModelInfo ctr pk = case parentInfo :: ParentInfo m of
+  NoParent      -> mInf
+  ExParent pInf ->
+    let pFields
+          = filter ((/= primKeyName pInf) . fd_name) (modelFields pInf)
+          ++ modelFields mInf
+    in mInf
+      {parentName     = Just $ modelName pInf
+      ,modelFields    = pFields
+      ,modelFieldsMap = HashMap.fromList [(fd_name f, f) | f <- pFields]
+      }
+  where
+    mFields = unWrap (getModelFields ctr :: [FieldDesc] :@ m)
+    mInf = ModelInfo
+      { modelName       = T.pack $ show $ typeOf (undefined :: m)
+      , parentName      = Nothing
+      , legacyModelName = Nothing
+      , tableName       = T.pack $ fromSing (sing :: Sing (TableName m))
+      , primKeyName     = fieldName pk
+      , modelFields     = mFields
+      , modelOnlyFields = mFields
+      , modelFieldsMap  = HashMap.fromList [(fd_name f, f) | f <- mFields]
+      , modelCRUD       = Nothing
+      }
+
+-- This existential type allows to decide in runtime wether model has parent
+-- or not. It is also allows to use this parent: after pattern-matching on
+-- ExParnent the `Model p` instance is brought into the current context.
+data ParentInfo m where
+-- TODO: it is possible to constrain NoParent to be used only in classes with
+-- `type Parent m = NoParent` but this will require to explicitly state
+-- `type Parent` and `parentInfo` even for not inherited models.
+--  NoParent :: (Model m, p ~ Parent m, p ~ NoParent) => [p] -> ParentInfo m
+  NoParent :: ParentInfo m
+  ExParent :: (Model m, p ~ Parent m, Model p) => ModelInfo p -> ParentInfo m
 
 
 class (SingI (TableName m), Typeable m, Typeable (Parent m)) => Model m where
@@ -74,11 +91,8 @@ class (SingI (TableName m), Typeable m, Typeable (Parent m)) => Model m where
   type Parent m
   type Parent m = NoParent
 
-  modelParent :: Model (Parent m) => Maybe (ModelInfo (Parent m) :@ m)
-  modelParent
-    = if typeOf (undefined :: Parent m) == typeOf (undefined :: NoParent)
-      then Nothing
-      else Just (Wrap modelInfo)
+  parentInfo :: ParentInfo m
+  parentInfo = NoParent
 
   modelInfo   :: ModelInfo m
   modelView   :: Text -> Maybe (ModelView m)
@@ -88,18 +102,12 @@ class (SingI (TableName m), Typeable m, Typeable (Parent m)) => Model m where
   idents    =  HashMap.empty
 
 
-instance (Model m, Show t) => Show (Ident t m) where
-  show (Ident x :: Ident t m) = "Ident " ++ modelName ++ " " ++ show x
-    where
-      modelName = show $ typeOf (undefined :: m)
-
-
+-- FIXME: we can replace NoParent with ()
 data NoParent deriving Typeable
 instance Model NoParent where
   type TableName NoParent = "(undefined)"
   modelInfo = error "ModelInfo NoParent"
   modelView = error "ModelView NoParent"
-
 
 fieldName
   :: forall m t name desc app
@@ -121,7 +129,7 @@ fieldNameE :: FA m -> Text
 fieldNameE (FA f) = fieldName f
 
 onlyDefaultFields :: [FieldDesc] -> [FieldDesc]
-onlyDefaultFields fs = filter isDefault fs
+onlyDefaultFields = filter isDefault
   where
     isDefault FieldDesc{..} = True
     isDefault _             = False

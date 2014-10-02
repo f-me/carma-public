@@ -8,7 +8,7 @@ module Carma.Model.Contract
     ( Contract(..)
     , identifiers
     , identifierNames
-    , WDay
+    , WDay(..)
     , contractSearchParams
     )
 
@@ -20,7 +20,7 @@ import Data.Time.Clock (UTCTime)
 import Data.Text (Text)
 import Data.Typeable
 
-import GHC.TypeLits
+import Data.Singletons
 
 import Database.PostgreSQL.Simple.FromField (FromField)
 import Database.PostgreSQL.Simple.ToField
@@ -28,8 +28,6 @@ import Database.PostgreSQL.Simple.ToField
 import Data.Model as DM
 import Data.Model.Types
 import Data.Model.View
-
-import Carma.Model.Types (TInt)
 
 import Carma.Model.CarClass     (CarClass)
 import Carma.Model.CarMake      (CarMake)
@@ -47,9 +45,9 @@ import Carma.Model.Engine       (Engine)
 
 -- | Transparent 'Day' wrapper so that @typeOf WDay@ points to this
 -- module (original name is hidden: @Data.Time.Calendar.Days.Day@).
-newtype WDay = WDay Day deriving (FromField, ToField,
-                                  FromJSON, ToJSON,
-                                  Show, Typeable)
+newtype WDay = WDay { unWDay :: Day } deriving (Eq, FromField, ToField,
+                                                FromJSON, ToJSON,
+                                                Show, Typeable)
 
 instance DefaultFieldView WDay where
   defaultFieldView (_ :: m -> FF WDay n d a) =
@@ -63,6 +61,8 @@ instance forall m nm desc . (SingI nm, SingI desc, Model m)
   interval _ = interval (undefined :: (m -> F Day nm desc)) :: [Predicate m]
 
 
+-- REMEMBER to update "Contract_csv" view and probably VinFormat
+-- fields when changing this model!
 data Contract = Contract
   { ident            :: PK Int Contract "№ контракта"
   , ctime            :: F UTCTime
@@ -80,6 +80,9 @@ data Contract = Contract
   , fromArc          :: F Bool
                         "fromArc"
                         "Подгружен из ARC"
+  , sourceFile       :: F Text
+                        "sourceFile"
+                        "Название файла-источника"
   , vin              :: F (Maybe Text)
                         "vin"
                         "VIN"
@@ -101,7 +104,7 @@ data Contract = Contract
   , validUntil       :: F (Maybe WDay)
                         "validUntil"
                         "Программа действует до (Дата)"
-  , startMileage     :: F (Maybe TInt)
+  , startMileage     :: F (Maybe Int)
                         "startMileage"
                         "Пробег при регистрации в программе"
   -- This is not redundant as car model may be unknown/unrecognized.
@@ -112,7 +115,7 @@ data Contract = Contract
                         "model"
                         "Модель"
   -- TODO New Year (pun intended) field type
-  , makeYear         :: F (Maybe TInt)
+  , makeYear         :: F (Maybe Int)
                         "makeYear"
                         "Год производства автомобиля"
   , carClass         :: F (Maybe (IdentI CarClass))
@@ -139,7 +142,7 @@ data Contract = Contract
   , lastCheckDealer  :: F (Maybe (IdentI Partner))
                         "lastCheckDealer"
                         "Дилер, у которого проходило последнее ТО"
-  , checkPeriod      :: F (Maybe TInt)
+  , checkPeriod      :: F (Maybe Int)
                         "checkPeriod"
                         "Межсервисный интервал"
   , checkType        :: F (Maybe (IdentI CheckType))
@@ -177,22 +180,19 @@ instance Model Contract where
   modelInfo = mkModelInfo Contract ident
   modelView = \case
     "search" ->
-        Just $ subDict "portalSubPrograms" $
+        Just $ subDict "prefixedSubPrograms" $
         flip modifyView commonMeta $
         searchView (contractSearchParams)
     "portalSearch" ->
         Just $ subDict "portalSubPrograms" $
         flip modifyView commonMeta $
         searchView (contractSearchParams)
-    ""       ->
+    "portalForm" ->
         Just $ subDict "portalSubPrograms" $
-        modifyView defaultView $
-        [ setMeta "regexp" "email" email
-        , setMeta "regexp" "phone" phone
-        , setMeta "regexp" "plateNum" plateNum
-        , setMeta "regexp" "vin" vin
-        , widget "checkbutton" dixi
-        ] ++ commonMeta
+        defaultView `modifyView` commonMeta
+    ""       ->
+        Just $ subDict "prefixedSubPrograms" $
+        defaultView `modifyView` commonMeta
     _ -> Nothing
     where
       -- Make subprogram field more usable on client
@@ -210,11 +210,17 @@ commonMeta =
     , setMeta "dictionaryLabel"
       (String $ DM.fieldName Usermeta.realName)
       committer
+    , readonly committer
     , color `completeWith` Color.label
     , partnerKey seller
     , setType "Integer" ident
     , widget "text" ident
     , partnerKey lastCheckDealer
+    , regexp "email" email
+    , regexp "phone" phone
+    , regexp "plateNum" plateNum
+    , regexp "vin" vin
+    , widget "checkbutton" dixi
     ]
 
 

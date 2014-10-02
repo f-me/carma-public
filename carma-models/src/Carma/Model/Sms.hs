@@ -1,4 +1,3 @@
-
 module Carma.Model.Sms where
 
 import Data.Text (Text)
@@ -31,11 +30,11 @@ instance Model Sms where
   modelInfo = mkModelInfo Sms ident
   modelView = \case
     "" -> Just $ modifyView defaultView
-      [invisible ctime
-      ,invisible mtime
-      ,invisible status
-      ,invisible sender
-      ,textarea  msgText
-      ,setMeta "regexp" "phone" phone
+      [ invisible ctime
+      , invisible mtime
+      , invisible status
+      , invisible sender
+      , textarea  msgText
+      , regexp "phone" phone
       ]
     _  -> Nothing
