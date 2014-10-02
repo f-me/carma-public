@@ -10,8 +10,9 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
 
     find: (q, cb, opt) ->
       return cb({}) if q.length < 4 and not opt?.force
+      qr = q.replace(/\+/g, "%2B")
       params = "program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}"
-      query = "/searchContracts/?query=#{q}&case=#{@kvm.id?()}&#{params}#{if opt?.force then '&type=exact' else ''}"
+      query = "/searchContracts/?query=#{qr}&case=#{@kvm.id?()}&#{params}#{if opt?.force then '&type=exact' else ''}"
 
       @needArc = false
       @orig = null
@@ -19,7 +20,7 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
 
       if q.length == 17
         arcQuery = "/arcImport/#{q}?#{params}"
-        @needArc = true
+        #@needArc = true
 
       processResponse = (r) =>
         @found = []
@@ -88,7 +89,7 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
         if _.isNull c._expired
           ""
         if c._expired
-          "<span class='label label-important'>Просрочен</span>"
+          "<span class='label label-important'>Не действует</span>"
         else
           "<span class='label label-success'>Действует</span>"
 
@@ -133,7 +134,7 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
     id2val: (i) ->
       return unless @found[i]
       # notify @kvm what contract was changed
-      @kvm.contract(String(@found[i].id))
+      @kvm.contract(@found[i].id)
       _.chain(@found[i].matched).values().first().value()
 
   dict: ContractsDict

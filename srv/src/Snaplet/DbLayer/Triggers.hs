@@ -1,7 +1,5 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 module Snaplet.DbLayer.Triggers
   (triggerUpdate
-  , applyDefaults
   ) where
 
 import Data.Functor ((<$>))
@@ -14,7 +12,6 @@ import qualified Data.Text as T
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
-import Snaplet.DbLayer.Triggers.Defaults
 import Snaplet.DbLayer.Triggers.Actions
 import Snaplet.Auth.Class
 import Snaplet.Messenger.Class
@@ -28,7 +25,6 @@ triggerUpdate model objId commit = do
   let fullId = T.concat [model, ":", objId]
   let stripUnchanged orig = Map.filterWithKey $ \k v
         -> Map.lookup k orig /= Just v
-        && (not $ k == "program" && v == "" && model == "case")
   commit' <- (`stripUnchanged` commit) <$> Redis.read' redis fullId
   -- Seems that we don't need recursive triggers actually.
   -- There is only one place where they are used intentionally: filling car

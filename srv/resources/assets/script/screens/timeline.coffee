@@ -1,13 +1,33 @@
 define ["text!tpl/screens/timeline.html"
       , "d3"
       , "model/main"
-      , "components/table"
       , "dictionaries/computed-dict"
       , "lib/messenger"
       , "sync/crud"
       , "sync/datamap"
+      , "json!/cfg/model/Usermeta"
+      , "model/utils"
+      , "utils"
+      , "text!tpl/fields/table.html"
+      , "text!tpl/fields/ro.html"
       ]
-    , (tpl, d3, Main, Table, D, WS, Crud, DataMap) ->
+    , (tpl, d3, Main, D, WS, Crud, DataMap, Um, MUtils, Utils
+      , Ttpl, ROtpl) ->
+
+  fieldsDict = arrToObj 'name', Um.fields
+
+  flds = $("<div />").append($(Ttpl + ROtpl))
+  ko.bindingHandlers.renderTpl =
+    init: (el, acc) ->
+      f = acc().field
+      tplHtml = $(flds).find("##{acc().tpl}-template").html()
+      tpl = Mustache.render tplHtml, f.field
+      ko.utils.setHtml(el, tpl)
+      ko.applyBindingsToDescendants(f, el)
+      return { controlsDescendantBindings: true }
+
+  ko.bindingHandlers.applyFn =
+    init: (el, acc) -> acc()(el)
 
   class Timeline
     constructor: (bind) ->
@@ -280,26 +300,29 @@ define ["text!tpl/screens/timeline.html"
       _.each @closeCbs, (cb) ->
         cb(data)
 
-  tbl = null
-  ws  = null
+  kvms = null
+  ws   = null
 
   setupScreen = (viewName, args) ->
-    table = new Table
-      dataModel: 'Usermeta'
-      columns: [ 'login'
-               , 'realName'
-               , 'businessRole'
-               , 'bocities'
-               , 'boprograms'
-               , 'currentState'
-               , 'delayedState'
-               ]
-
-    tbl = table
 
     timelines = ko.observableArray()
+    ks   = ko.observableArray []
+    th   = ko.observable('')
 
-    table.onClick (user) ->
+    lookup = (v) =>
+      Utils.kvmCheckMatch (th() || ''), v
+
+    kvms = ko.sorted
+      kvms: ks
+      sorters: MUtils.buildSorters Um
+      filters:
+        typeahead: (v) => Utils.kvmCheckMatch th(), v
+
+
+    kvms.change_filters ['typeahead']
+    kvms.typeahead = th
+
+    select = (user) ->
       unless _.find(timelines(), (t) -> t.user.id is user.id)
         $("html, body").animate({ scrollTop: $(document).height() }, "slow")
         timeline = new Timeline({user: user})
@@ -309,23 +332,21 @@ define ["text!tpl/screens/timeline.html"
 
     $.getJSON "/_/Usermeta", (data) =>
       model = global.model('Usermeta')
-      kvms = _.map _.filter(data, (v) -> v.isActive), (d) =>
+      a = _.map _.filter(data, (v) -> v.isActive and v.showKPI), (d) =>
         mapper = new DataMap.Mapper(model)
         k = Main.buildKVM model, {fetched: mapper.s2cObj d}
         k._meta.q = new Crud.CrudQueue(k, k._meta.model, {dontFetch: true})
         k
-      table.setData kvms
-      ws = WS.multisubKVM(kvms)
+      ks a
+      ws = WS.multisubKVM(ks)
 
-    kvm = {table, timelines}
-    ko.applyBindings(kvm, el(viewName))
+    ko.applyBindings({kvms, timelines, fieldsDict, select}, el(viewName))
 
   constructor: setupScreen
   destructor:  (viewName) =>
     $('#timeline-view').off()
     ko.removeNode $('#timeline-view')[0]
-    tbl.destructor()
-    _.map tbl.items(), (k) -> k.cleanupKVM()
+    kvms.clean()
     ws?.close()
     ws   = null
     kvms = null

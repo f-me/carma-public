@@ -118,7 +118,7 @@
     <div class="span6">
       <h2>Погода</h2>
       <select id="rkc-weather-city-select" data-bind="foreach: $data">
-        <option data-bind="value: id, text: name" />
+        <option data-bind="value: value, text: label" />
       </select>
       <button class="btn" id="add-weather">
         Добавить
@@ -149,7 +149,7 @@
   <div class="row-fluid">
     <div class="span6">
       <h2>
-        <a href="#partnersSearch/mobile"
+        <a href="#search/partners/mobile"
            target="_blank"
            title="Перейти на экран ДиП с мобильными партнёрами">
           Мобильные партнёры

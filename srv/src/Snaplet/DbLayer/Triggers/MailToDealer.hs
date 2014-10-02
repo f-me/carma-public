@@ -126,7 +126,7 @@ sendMailToDealer actionId = do
     when (program `elem` (map identFv [Program.peugeot, Program.citroen])) $ do
       payType <- get svcId "payType"
       when (payType `elem` (map identFv [PT.ruamc, PT.mixed, PT.refund])) $ do
-        dealerId <- get svcId "towDealer_partnerId"
+        dealerId <- get svcId "towDealer_partnerId" -- FIXME partnerId is int now!
         when (dealerId /= "") $ do
           dms <- T.encodeUtf8 <$> get dealerId "emails"
           let mails = getAllKeyedJsonValues dms "close"

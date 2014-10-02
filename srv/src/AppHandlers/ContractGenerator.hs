@@ -37,7 +37,7 @@ import           Database.PostgreSQL.Simple.SqlQQ
 
 import           Application
 import           AppHandlers.Util
-import           Snaplet.FileUpload hiding (db)
+import           Snaplet.FileUpload
 
 q :: Query
 q = [sql|

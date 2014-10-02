@@ -1,9 +1,14 @@
-{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DoAndIfThenElse #-}
+{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-|
 
 File upload helpers and @attachment@ model handling.
+
+File are attached using old-style references (@Attachment:231@).
 
 TODO Use @attachment@ model permissions in upload handlers.
 
@@ -30,69 +35,77 @@ import Data.Attoparsec.Text as P
 
 import Data.Either
 import Data.Functor
-import qualified Data.Map as M
 import Data.Maybe
 import Data.Configurator
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as BL
 import Data.Digest.Pure.MD5 (md5)
 import qualified Data.HashSet as HS
+import qualified Database.PostgreSQL.Simple as PS
 import Database.PostgreSQL.Simple.SqlQQ
 import Data.Char
+import Data.Time.Clock
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import Data.Typeable
+
+import GHC.TypeLits
 
 import System.Directory
 import System.FilePath
 import System.IO
 
-import Snap (gets, liftIO)
+import Snap (get, gets, liftIO)
 import Snap.Core hiding (path)
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple hiding (field)
 import Snap.Util.FileUploads
 
-import Snaplet.Auth.Class
-import Snaplet.Messenger.Class
+import Carma.Model
+import Data.Model
+import Carma.Model.LegacyTypes
+import qualified Data.Model.Patch as Patch
+import qualified Data.Model.Patch.Sql as DB
 
-import qualified Snaplet.DbLayer as DB
-import qualified Utils.NotDbLayer as NDB
-import Snaplet.DbLayer.Types
+import Carma.Model.Attachment as Attachment
 
-import AppHandlers.Util as U
+import AppHandlers.Util as U hiding (withPG)
+import Util
 
 
 data FileUpload b = FU { cfg      :: UploadPolicy
                        , tmp      :: FilePath
                        , finished :: FilePath
                        -- ^ Root directory of finished uploads.
-                       , db       :: Lens' b (Snaplet (DbLayer b))
                        , locks    :: TVar (HS.HashSet Text)
                        -- ^ Set of references to currently locked
                        -- instances.
+                       , pg       :: Lens' b (Snaplet Postgres)
                        }
 
 
-routes :: (HasAuth b, HasMsg b) => [(ByteString, Handler b (FileUpload b) ())]
+type HasPG b = HasPostgres (Handler b (FileUpload b))
+
+
+instance HasPostgres (Handler b (FileUpload b)) where
+  getPostgresState = withLens pg get
+
+
+routes :: HasPG b => [(ByteString, Handler b (FileUpload b) ())]
 routes = [ (":model/bulk/:field",      method POST uploadBulk)
          , (":model/:id/:field",       method POST uploadInField)
          ]
 
 
--- | Lift a DbLayer handler action to FileUpload handler.
-withDb :: Handler b (DbLayer b) a -> Handler b (FileUpload b) a
-withDb = withLens db
-
-
 -- | SQL query used to select attachment id by hash. Parametrized by
 -- hash value.
 hashToAid :: Query
-hashToAid = [sql|SELECT id::text FROM attachmenttbl WHERE hash=?;|]
+hashToAid = [sql|SELECT id FROM attachmenttbl WHERE hash=?;|]
 
 
--- | A field of an instance to attach an attachment to.
-type AttachmentTarget = (ModelName, ObjectId, FieldName)
+-- | Attachment target: a model name, id and a field attach a file to.
+type ATarget = (Text, Int, Text)
 
 
 -- | Upload a file, create a new attachment (an instance of
@@ -106,58 +119,82 @@ type AttachmentTarget = (ModelName, ObjectId, FieldName)
 --
 -- The file is stored under @attachment/<newid>@ directory hierarchy
 -- of finished uploads dir.
-uploadInManyFields :: (HasAuth b, HasMsg b)
-                   => (FilePath -> [AttachmentTarget])
+uploadInManyFields :: HasPG b =>
+                      (FilePath -> [ATarget])
                    -- ^ Convert the uploaded file name to a list of
                    -- fields in instances to attach the file to.
                    -> Maybe (FilePath -> FilePath)
                    -- ^ Change source file name when saving.
                    -> Handler b (FileUpload b)
-                      (Object, [AttachmentTarget], [AttachmentTarget], Bool)
+                      (Patch.Object Attachment, [ATarget], [ATarget], Bool)
 uploadInManyFields flds nameFun = do
   -- Store the file
   fPath <- oneUpload =<< doUpload =<< gets tmp
   let (_, fName) = splitFileName fPath
 
   hash <- liftIO $ md5 <$> BL.readFile fPath
+  now <- liftIO $ getCurrentTime
 
-  -- Check for duplicate files
-  res <- withDb $ query hashToAid (Only $ show hash)
-  (aid, dupe) <- case res of
-    [] -> do
-      -- Create empty attachment instance
-      attach <- withDb $ DB.create "attachment" M.empty
-
-      root <- gets finished
-      let aid        = attach M.! "id"
-          newDir     = root </> "attachment" </> T.unpack aid
-          newName    = (fromMaybe id nameFun) fName
-      -- Move file to attachment/<aid>
-      liftIO $ createDirectoryIfMissing True newDir >>
-               copyFile fPath (newDir </> newName) >>
-               removeFile fPath
-      _ <- withDb $ DB.update "attachment" aid $
-                    M.insert "hash" (T.pack $ show hash) $
-                    M.singleton "filename" (T.pack newName)
-      return (aid, False)
-    (Only aid:_) -> return (aid, True)
+  root <- gets finished
+  (attach@(Ident aid), dupe) <- withPG $ \conn -> do
+    -- Check for duplicate files
+    res <- PS.query conn hashToAid (Only $ show hash)
+    case res of
+      (Only aid:_) -> return (aid, True)
+      [] ->
+        let
+          newName = (fromMaybe id nameFun) fName
+          patch   = Patch.put Attachment.ctime now $
+                    Patch.put Attachment.filename (T.pack newName) $
+                    Patch.put Attachment.hash (T.pack $ show hash) $
+                    Patch.empty
+        in
+          -- Create empty attachment instance
+          DB.create patch conn >>=
+          \case
+            Left e -> error $ show e
+            Right attach@(Ident aid) -> do
+              -- Move file to attachment/<aid>
+              let newDir = root </> "attachment" </> show aid
+              createDirectoryIfMissing True newDir >>
+                copyFile fPath (newDir </> newName) >>
+                removeFile fPath
+              return (attach, False)
 
   -- Attach to target field for existing instances, using the original
   -- filename
   let targets = flds fName
   results <-
-      forM targets $ \t@(model, objId, field) -> do
-          e <- withDb $ NDB.exists model objId
-          if e
-          then do
-              attachToField model objId field $ T.append "attachment:" aid
-              return $ Right t
-          else
-              return $ Left t
+    forM targets $
+    \t@(model, objId, field) ->
+      let
+        attachToModel :: forall m b. (HasPG b, Model m) =>
+                         m
+                      -> Handler b (FileUpload b) (Either ATarget ATarget)
+        attachToModel _ =
+          let
+            mIdent = Ident objId :: IdentI m
+          in
+            (withPG $ DB.exists mIdent) >>=
+            \case
+              Right True -> do
+                attachToField mIdent field $
+                  T.concat $ [ modelName (modelInfo :: ModelInfo Attachment)
+                             , ":"
+                             , T.pack $ show aid
+                             ]
+                return $ Right t
+              _ -> return $ Left t
+      in
+        case dispatch model attachToModel of
+          Just t' -> t'
+          Nothing -> return $ Left t
   let (failedTargets, succTargets) = partitionEithers results
 
   -- Serve back full attachment instance
-  obj <- withDb $ DB.read "attachment" aid
+  obj <- either (\e ->
+                   error $ "Could not read attachment back: " ++ show e) id <$>
+         (withPG $ DB.read attach)
 
   return (obj, failedTargets, succTargets, dupe)
 
@@ -172,7 +209,7 @@ uploadInManyFields flds nameFun = do
 -- contains an attachment object, @targets@ contains a list of triples
 -- with attachment targets used, @unknown@ is a failed attachment
 -- target list, @dupe@ is true if the file was a duplicate.
-uploadBulk :: (HasAuth b, HasMsg b) => Handler b (FileUpload b) ()
+uploadBulk :: HasPG b => Handler b (FileUpload b) ()
 uploadBulk = do
   -- 'Just' here, for these have already been matched by Snap router
   Just model <- getParamT "model"
@@ -189,9 +226,9 @@ uploadBulk = do
       where
         -- Read a list of decimal instance ids from a file name,
         -- skipping everything else.
-        readIds :: FilePath -> [ObjectId]
+        readIds :: FilePath -> [Int]
         readIds fn =
-            either (const []) (map $ T.pack . (show :: Int -> String)) $
+            either (const []) id $
             parseOnly (manyTill
                        (skipWhile (not . isDigit) >> decimal)
                        (char '-'))
@@ -205,12 +242,14 @@ uploadBulk = do
 
 -- | Upload and attach a file (as in 'uploadInManyFields') to a single
 -- instance, given by @model@, @id@ and @field@ request parameters.
-uploadInField :: (HasAuth b, HasMsg b) => Handler b (FileUpload b) ()
+uploadInField :: (HasPG b) => Handler b (FileUpload b) ()
 uploadInField = do
+  -- 'Just' here, for these have already been matched by Snap router
   Just model <- getParamT "model"
-  Just objId <- getParamT "id"
+  Just objId <- getIntParam "id"
   Just field <- getParamT "field"
-  (res, fails, _, _) <- uploadInManyFields (const [(model, objId, field)]) Nothing
+  (res, fails, _, _) <-
+    uploadInManyFields (const [(model, objId, field)]) Nothing
   if null fails
   then writeLBS $ A.encode $ res
   else error $ "Failed to upload in field: " ++ (show fails)
@@ -218,33 +257,32 @@ uploadInField = do
 
 -- | Return path to an attached file (prepended by finished uploads
 -- dir).
-getAttachmentPath :: ObjectId
+getAttachmentPath :: HasPG b =>
+                     IdentI Attachment
                   -- ^ Attachment ID.
                   -> Handler b (FileUpload b) FilePath
 getAttachmentPath aid = do
-  obj <- withDb $ DB.read "attachment" aid
+  obj <- either (error $ "No attachment " ++ show aid) id <$>
+         (withPG $ DB.read aid)
   fPath <- gets finished
-  case M.lookup "filename" obj of
-    Just fName -> return $
-                  fPath </> "attachment" </>
-                  T.unpack aid </> T.unpack fName
-    _ -> error $ "Broken attachment" ++ T.unpack aid
+  let fName = obj `Patch.get'` Attachment.filename
+  return $
+    fPath </> "attachment" </>
+    (T.unpack $ identFv aid) </> T.unpack fName
 
 
 -- | Append a reference of form @attachment:213@ to a field of another
 -- instance, which must exist. This handler is thread-safe.
-attachToField :: (HasAuth b, HasMsg b)
-              => ModelName
-              -- ^ Name of target instance model.
-              -> ObjectId
-              -- ^ Id of target instance.
-              -> FieldName
+attachToField :: forall m b. (HasPG b, Model m, Typeable m) =>
+                 IdentI m
+              -- ^ Target object.
+              -> Text
               -- ^ Field name in target instance.
               -> Text
               -- ^ A reference to an attachment instance to be added
               -- in a field of target instance.
               -> Handler b (FileUpload b) ()
-attachToField modelName instanceId field ref = do
+attachToField instanceId field ref = do
   l <- gets locks
   -- Lock the field or wait for lock release
   liftIO $ atomically $ do
@@ -252,20 +290,38 @@ attachToField modelName instanceId field ref = do
     if HS.member lockName hs
     then retry
     else writeTVar l (HS.insert lockName hs)
-  -- Append new ref to the target field
-  oldRefs <- NDB.fieldProj field <$> (withDb $ NDB.read modelName instanceId)
-  let newRefs = addRef oldRefs ref
-  _  <- withDb $ NDB.update modelName instanceId
-        (NDB.fieldPatch field (A.String newRefs))
+
+  -- NB: If an error happens, the lock is never released
+  let fName = someSymbolVal $ T.unpack field
+  case fName of
+    SomeSymbol (Proxy :: Proxy n) ->
+      let
+        -- Build field accessor on the fly
+        acc = const Field :: m -> F (Maybe Reference) n ""
+      in do
+        -- Append new ref to the target field
+        oldRefs <- (`Patch.get'` acc) <$>
+                   (either (error $ "No object " ++ show instanceId) id <$>
+                    (withPG $ DB.read instanceId))
+        let newRefs = addRef oldRefs ref
+        void $ withPG $
+          DB.update instanceId (Patch.put acc newRefs $ Patch.empty)
   -- Unlock the field
   liftIO $ atomically $ do
     hs <- readTVar l
     writeTVar l (HS.delete lockName hs)
   return ()
     where
-      addRef ""    r = r
-      addRef val   r = T.concat [val, ",", r]
-      lockName = T.concat [modelName, ":", instanceId, "/", field]
+      addRef Nothing                r = Just $ Reference r
+      addRef (Just (Reference ""))  r = Just $ Reference r
+      addRef (Just (Reference val)) r =
+        Just $ Reference $ T.concat [val, ",", r]
+      lockName = T.concat [ modelName (modelInfo :: ModelInfo m)
+                          , ":"
+                          , identFv instanceId
+                          , "/"
+                          , field
+                          ]
 
 
 -- | Error which occured when processing an uploaded part.
@@ -336,10 +392,10 @@ partPol :: UploadPolicy -> PartUploadPolicy
 partPol = allowWithMaximumSize . getMaximumFormInputSize
 
 
-fileUploadInit :: (HasAuth b, HasMsg b) =>
-                  Lens' b (Snaplet (DbLayer b))
+fileUploadInit :: HasPG b =>
+                  Lens' b (Snaplet Postgres)
                -> SnapletInit b (FileUpload b)
-fileUploadInit db =
+fileUploadInit pg =
     makeSnaplet "fileupload" "fileupload" Nothing $ do
       cfg      <- getSnapletUserConfig
       maxFile  <- liftIO $ lookupDefault 100  cfg "max-file-size"
@@ -362,4 +418,4 @@ fileUploadInit db =
                        defaultUploadPolicy
       addRoutes routes
       l <- liftIO $ newTVarIO HS.empty
-      return $ FU pol tmp finished db l
+      return $ FU pol tmp finished l pg

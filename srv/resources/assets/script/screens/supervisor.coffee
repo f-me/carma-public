@@ -54,22 +54,24 @@ define ["utils"
         set violet
 
   objsToRows = (res) ->
-    n = global.dictValueCache['ActionNames']
-    r = global.dictValueCache['ActionResults']
+    ar = utils.newModelDict "ActionResult", true
+    at = utils.newModelDict "ActionType", true
+    cities = utils.newModelDict "City", true
     u = global.dictValueCache['users']
 
     roles = utils.newModelDict "Role", true
     progs = utils.newModelDict "Program", true
+    svcTypes = utils.newModelDict "ServiceType", true
 
     rows = for obj in res.actions
-      if obj.parentId
-        svcName = obj.parentId.split(':')[0]
-        svcName = global.model(svcName).title
+      if obj.serviceId
+        svcName = svcTypes.getLab obj.serviceType
         svcName = "(#{svcName})"
       else
         svcName = null
-      cid = obj.caseId.split(':')[1]
-      closed = if obj.closed == "1"
+      cid = obj.caseId
+      closed = !(_.isEmpty obj.result)
+      closedLab = if closed
           'Закрыто'
          else
           'Открыто'
@@ -81,20 +83,20 @@ define ["utils"
         if _.isEmpty obj.assignedTo
           utils.timeFrom obj.ctime, res.reqTime
         else
-          if obj.closed == "0"
+          if !closed
             utils.timeFrom obj.assignTime, res.reqTime
           else
             utils.timeFrom obj.openTime, obj.closeTime
       [ "#{cid}/#{obj.id} #{svcName or ''}"
-      , closed
-      , n[obj.name] || ''
+      , closedLab
+      , (at.getLab obj.name) || ''
       , u[obj.assignedTo] || ''
       , roles.getLab(obj.targetGroup) || obj.targetGroup || ''
       , duetime || ''
       , timeLabel?[0] || ''
-      , r[obj.result] || ''
+      , (ar.getLab obj.result) || ''
       , obj.priority || ''
-      , global.dictValueCache['DealerCities'][obj.city] || ''
+      , (cities.getLab obj.city) || ''
       , progs.getLab(obj.program) || ''
       , srvStart || ''
       , obj.name || ''
@@ -125,7 +127,8 @@ define ["utils"
     focusClass = "focusable"
     refs = []
     forceRender = ["assignedTo", "priority", "closed", "targetGroup"]
-    options = {permEl, focusClass, refs, forceRender}
+    manual_save = true
+    options = {permEl, focusClass, refs, forceRender, manual_save}
     main.modelSetup(modelName) viewName, args, options
 
   roleFieldSetup = ->
@@ -176,7 +179,7 @@ define ["utils"
       tableName: "supervisor"
       objURL: objURL
 
-    modelName = "action"
+    modelName = "Action"
 
     table = screenman.addScreen(modelName, ->)
       .addTable(tableParams)
@@ -185,7 +188,7 @@ define ["utils"
       .on("click.datatable", "tr", ->
         id = @children[0].innerText.split('/')[1].replace(/\D/g,'')
         modelSetup modelName, viewName, {id}
-        global.viewsWare["#{modelName}-form"].knockVM)
+        global.viewsWare["action-form"].knockVM)
 
     screenman.showScreen modelName
 

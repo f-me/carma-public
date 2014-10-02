@@ -21,6 +21,9 @@ import Snap.Util.FileServe ( serveFile
                            , serveDirectoryWith
                            , DirectoryConfig(..)
                            )
+
+import WeatherApi.WWOnline (initApi)
+
 ------------------------------------------------------------------------------
 import Snaplet.SiteConfig
 import Snaplet.DbLayer
@@ -33,10 +36,12 @@ import Snaplet.Messenger
 import Application
 import ApplicationHandlers
 import AppHandlers.ActionAssignment
-import AppHandlers.ARC
+--import AppHandlers.ARC
+import AppHandlers.Backoffice
 import AppHandlers.Bulk
 import AppHandlers.CustomSearches
 import AppHandlers.PSA
+import AppHandlers.RKC
 import AppHandlers.ContractGenerator
 import AppHandlers.Users
 import AppHandlers.Screens
@@ -55,13 +60,17 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/callsByPhone/:phone",
                               chkAuthLocal . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
-         , ("/cancelsFor/:id",chkAuthLocal . method GET    $ getCancelsForCase)
+         , ("/backoffice/errors", method GET $ serveBackofficeSpec Check)
+         , ("/backoffice/spec.txt", method GET $ serveBackofficeSpec Txt)
+         , ("/backoffice/spec.dot", method GET $ serveBackofficeSpec Dot)
          , ("/backoffice/littleMoreActions",
             chkAuthLocal . method PUT $ littleMoreActionsHandler)
          , ("/backoffice/openAction/:actionid",
             chkAuthLocal . method PUT $ openAction)
-         , ("/backoffice/unassigned",
-            chkAuthLocal . method GET $ unassignedActionsHandler)
+         , ("/backoffice/caseActions/:caseid",
+            chkAuthLocal . method GET $ dueCaseActions)
+         , ("/backoffice/allActionResults",
+            chkAuthLocal . method GET $ allActionResults)
          , ("/backoffice/allActions",
             chkAuthLocal . method GET $ allActionsHandler)
          , ("/supervisor/busyOps",  chkAuthLocal . method GET $ busyOps)
@@ -79,14 +88,13 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuth . method GET    $ findSameContract)
          , ("/searchContracts",
                               chkAuthLocal . method GET $ searchContracts)
-         , ("/arcImport/:vin",
-                              chkAuthLocal . method GET $ arcImport)
+--         , ("/arcImport/:vin",
+--                              chkAuthLocal . method GET $ arcImport)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:mdl",        chkAuth . method GET    $ readManyHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
-         , ("/_/:model/:id",  chkAuth . method DELETE $ deleteHandler)
          , ("/searchCases",   chkAuthLocal . method GET  $ searchCases)
          , ("/latestCases",   chkAuthLocal . method GET  $ getLatestCases)
          , ("/regionByCity/:city",
@@ -101,8 +109,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/dealers/:make", chkAuth . method GET  $ allDealersForMake)
          , ("/vin/upload",    chkAuth . method POST $ vinImport)
          , ("copyCtrOptions", chkAuth . method POST $ copyCtrOptions)
-         , ("/printSrv/:model/:id",
-            chkAuthLocal . method GET $ printServiceHandler)
          , ("/clientConfig",       chkAuth . method GET  $ clientConfig)
          , ("/errors",        method POST errorsHandler)
          , ("/userStates/:userId/:from/:to",
@@ -125,6 +131,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   opts <- liftIO $ AppOptions
                 <$> Cfg.lookup cfg "local-name"
                 <*> Cfg.lookupDefault 4 cfg "search-min-length"
+
+  wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
 
   h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
   addAuthSplices h auth
@@ -152,7 +160,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             <*> lookupCfg "pg_search_pass"
             <*> lookupCfg "pg_db_name"
   -- FIXME: force cInfo evaluation
-  pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
+  pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 5 5 20
   cInfoActass <- liftIO $ (\u p -> cInfo {connectUser = u, connectPassword = p})
             <$> lookupCfg "pg_actass_user"
             <*> lookupCfg "pg_actass_pass"
@@ -161,13 +169,11 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   c <- nestSnaplet "cfg" siteConfig $
        initSiteConfig "resources/site-config" pgs db
 
-  fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
+  fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit authDb
   g <- nestSnaplet "geo" geo geoInit
-
   search' <- nestSnaplet "search" search $ searchInit pgs authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 
   addRoutes routes
-  wrapSite (claimUserActivity>>)
-  return $ App h s authMgr c d pgs pga tm fu g ad search' opts msgr
+  return $ App h s authMgr c d pgs pga tm fu g ad search' opts msgr (initApi wkey)

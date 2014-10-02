@@ -1,6 +1,6 @@
 CREATE TABLE "VinFormat"
   ( id    SERIAL PRIMARY KEY
-  , label text UNIQUE NOT NULL
+  , label text UNIQUE NOT NULL CHECK (label <> '')
 
   , nameLoad                 bool NOT NULL DEFAULT TRUE
   , nameTitles               text[] NOT NULL DEFAULT ARRAY['ФИО клиента']
@@ -66,7 +66,7 @@ CREATE TABLE "VinFormat"
 
   , makeYearLoad             bool NOT NULL DEFAULT TRUE
   , makeYearTitle            text NOT NULL DEFAULT 'Год производства автомобиля'
-  , makeYearDefault          int2
+  , makeYearDefault          int4
   , makeYearRequired         bool NOT NULL DEFAULT TRUE
 
   , carClassLoad             bool NOT NULL DEFAULT TRUE

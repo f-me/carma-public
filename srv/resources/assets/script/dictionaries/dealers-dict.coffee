@@ -10,9 +10,9 @@ define ["dictionaries/local-dict", ], (ld) ->
       carMake = (@kvm.car_make || @kvm.carMake)
 
       updateSource = (v) =>
-        return if _.isEmpty v
+        return if not _.isNumber v
         $.getJSON "/dealers/#{v}", (@dealers) =>
-          @source = ({value: i.id, label: i.name} for i in @dealers)
+          @source = ({value: parseInt(i.id), label: i.name} for i in @dealers)
           @dictValueCache = null
           @dictLabelCache = null
 
@@ -20,7 +20,7 @@ define ["dictionaries/local-dict", ], (ld) ->
       updateSource(carMake()) if carMake?
 
     getLab: (val) ->
-      if val?.match /^\d+$/
+      if val?
         res = @dictValues()[val]
         unless res
           $.bgetJSON "/_/Partner/#{val}", (rsp) -> res = rsp['name']

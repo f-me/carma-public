@@ -1,8 +1,12 @@
-define ["utils", "dictionaries"], (u, d) ->
+define [ "utils"
+       , "model/utils"
+       , "model/main"
+       , "sync/crud"
+       , "dictionaries"], (u, mu, main, sync, d) ->
   fillEventsHistory = (knockVM) -> ->
 
-    # FIXME: hack to disable hook on newCase screen #1985
-    return if /^newCase/.test(Finch.navigate())
+    # Disable hooks on search screen #1985
+    return if /^search/.test(Finch.navigate())
 
     t = $("#call-searchtable")
     st = t.dataTable()
@@ -19,6 +23,7 @@ define ["utils", "dictionaries"], (u, d) ->
     dict = global.dictValueCache
     progs = u.newModelDict "Program", true
     waz = u.newModelDict "Wazzup", true
+    cities = u.newModelDict "City", true
 
     if phone
       $.getJSON( "/callsByPhone/#{phone}" )
@@ -39,15 +44,15 @@ define ["utils", "dictionaries"], (u, d) ->
 
           comment.push("ФИО: #{obj.callerName_name}") if obj.callerName_name
 
-          city = dict['DealerCities'][obj.city]
+          city = cities.getLab obj.city
           comment.push("Город: #{city}") if city
 
           program = progs.getLab obj.program
           comment.push("Программа: #{program}") if program
-
-          comment.push("Сотрудник РАМК: #{obj.callTaker}") if obj.callTaker
+          callTaker = dict['users'][obj.callTaker] or ''
+          comment.push("Сотрудник РАМК: #{callTaker}") if obj.callTaker
           row = [ callDate
-                , obj.callTaker || ''
+                , callTaker
                 , "звонок"
                 , comment.join("<br/>")
                 , ''
@@ -60,9 +65,11 @@ define ["utils", "dictionaries"], (u, d) ->
     $.getJSON( "/actionsFor/#{knockVM.id()}" )
     .done( (actions) ->
       return if _.isEmpty actions
+      arDict = u.newModelDict "ActionResult", true
+      atDict = u.newModelDict "ActionType", true
       rows = for r in actions
-        result = dict.ActionResults[r.result] or ''
-        name = dict.ActionNames[r.name] or ''
+        result = arDict.getLab r.result
+        name = atDict.getLab r.name
         aTo  = global.dictValueCache['users'][r.assignedTo] or
                r.assignedTo or ''
         time = if r.closeTime
@@ -77,20 +84,25 @@ define ["utils", "dictionaries"], (u, d) ->
       console.log "[#{status}] Can't load actions for '#{knockVM.id()}' (#{error})"
     )
 
-    $.getJSON( "/cancelsFor/#{knockVM.id()}" )
+    $.getJSON( "/_/PartnerCancel?caseId=#{knockVM.id()}" )
     .done( (cancels) ->
       return if _.isEmpty cancels
-      rows = for r in cancels
-        ctime = new Date(r.ctime * 1000).toString("dd.MM.yyyy HH:mm")
-        pname = r.partnerName
-        reason = r.partnerCancelReason || ''
-        owner  = dict['users'][r.owner] || r.owner
-        comment = r.comment
-        row = [ ctime
-              , owner or ''
+      rows = for obj in cancels
+        cancel = main.buildKVM global.model('PartnerCancel'),
+              fetched: obj
+              queue:   null
+        owner = main.buildKVM global.model('Usermeta'),
+              fetched: {id: cancel.owner()}
+              queue: sync.CrudQueue
+        partner = main.buildKVM global.model('Partner'),
+              fetched: {id: cancel.partnerId()}
+              queue: sync.CrudQueue
+        comment = cancel.comment()
+        row = [ new Date(cancel.ctime()).toString("dd.MM.yyyy HH:mm")
+              , owner.realName()
               , 'Отказ партнера'
-              , pname + ': ' + comment
-              , reason
+              , partner.name() + (if comment then ': ' + comment else '')
+              , cancel.partnerCancelReasonLocal()
               ]
       st.fnAddData rows
     ).fail( (jqXHR, status, error) ->
@@ -100,7 +112,7 @@ define ["utils", "dictionaries"], (u, d) ->
     return if _.isEmpty knockVM['comments']()
     rows = for c in knockVM['comments']()
        [ c.date
-       , global.dictValueCache['users'][c.user] || ''
+       , c.user || ''
        , "Комментарий"
        , c.comment or ''
        , ""
@@ -109,12 +121,8 @@ define ["utils", "dictionaries"], (u, d) ->
 
 
   descsKbHook: (model, knockVM) ->
-    srvDict = new d.dicts.ModelDict
-      dict: 'ServiceNames'
-      meta:
-        dictionaryLabel: 'value'
     mkServicesDescs = (p, s) ->
-      description: u.getServiceDesc(p , srvDict.getVal s._meta.model.name)
+      description: u.getServiceDesc(p, s.type())
       title:       s._meta.model.title
     knockVM['servicesDescs'] = ko.computed
       read: ->
@@ -127,10 +135,9 @@ define ["utils", "dictionaries"], (u, d) ->
         u.getProgramDesc (parseInt knockVM['program']()), (parseInt knockVM['subprogram']?())
 
   eventsHistoryKbHook: (model, knockVM) ->
-    fillEventsHistory(knockVM)()
+    # History rendering is called from renderActions on caseScreen
     knockVM['fillEventHistory'] = fillEventsHistory(knockVM)
     knockVM['contact_phone1']?.subscribe fillEventsHistory(knockVM)
-    knockVM['actions']?.subscribe fillEventsHistory(knockVM)
     knockVM['comments']?.subscribe fillEventsHistory(knockVM)
 
   # Display daily service stats in central pane when `city` field of
@@ -164,3 +171,33 @@ define ["utils", "dictionaries"], (u, d) ->
         dictionaryLabel: 'info'
     knockVM['car_modelInfo'] = ko.computed ->
       dict.getLab knockVM['car_model']?()
+
+  buttons: (model, kvm) ->
+    return if /^search/.test(Finch.navigate())
+    kvm.buttons = {}
+
+    # Required fields for the needInfo button to be enabled
+    niFlds = [ 'city'
+             , 'contact_name'
+             , 'contact_phone1'
+             , 'customerComment'
+             , 'program'
+             ]
+
+    kvm.buttons.needInfo = {}
+    kvm.buttons.needInfo.tooltip = u.reqFieldsTooltip kvm, niFlds
+    kvm.buttons.needInfo.text =
+      u.newModelDict("CaseStatus").getLab(
+              global.idents("CaseStatus").needInfo)
+    kvm.buttons.needInfo.click = ->
+      kvm['caseStatus'] global.idents("CaseStatus").needInfo
+    kvm.buttons.needInfo.disabled = ko.computed ->
+      vals = _.map niFlds, (n) -> kvm[n]?()
+      empties = _.map vals, (e) -> e == "" || _.isNull e
+      _.some empties
+
+  hasFiles: (model, knockVM) ->
+    knockVM['hasFiles'] = ko.computed ->
+      knockVM['filesReference']?().length ||
+      _.any(_.map(knockVM['servicesReference']?(),
+        (srv) -> (srv['filesReference']?().length > 0)))

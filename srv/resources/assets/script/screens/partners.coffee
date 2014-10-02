@@ -17,11 +17,11 @@ define [ "utils"
       main.modelSetup(modelName) viewName, args, options
 
     objsToRows = (objs) ->
-      dict = global.dictValueCache['DealerCities']
+      cities = utils.newModelDict "City", true
       rows = for obj in objs
         [obj.id
         ,obj.name       || ''
-        ,dict[obj.city] || obj.city || ''
+        ,(cities.getLab obj.city) || ''
         ,obj.comment    || ''
         ]
 
@@ -37,7 +37,7 @@ define [ "utils"
 
       tableParams =
         tableName: "partner"
-        objURL: "/_/Partner"
+        objURL: "/_/Partner?limit=5000"
 
       table = screenman.addScreen(modelName, -> )
         .addTable(tableParams)

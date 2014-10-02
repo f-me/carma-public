@@ -4,6 +4,7 @@ define [ "dictionaries/local-dict"
        , "dictionaries/computed-dict"
        , "dictionaries/dealers-dict"
        , "dictionaries/model-dict"
+       , "dictionaries/results-dict"
        , "dictionaries/hiddenFields"
        ], ->
 

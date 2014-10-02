@@ -99,15 +99,14 @@ define [ "model/render"
   #
   # - modelTitle;
   buildKVM = (model, options) ->
-
-    {elName, fetched, queue, queueOptions, models} = options
-
     fields    = model.fields
     required  = (f for f in fields when f.meta?.required)
 
     # Build kvm with fetched data if have one
     kvm = {}
     kvm._parent = options.parent
+    kvm._saveSuccessCb = options.saveSuccessCb
+    {elName, fetched, queue, queueOptions, models} = options
     kvm._meta   = { model: model, cid: _.uniqueId("#{model.name}_") }
     kvm.safelyGet = (prop) -> kvm[prop]?() || ''
 
@@ -116,12 +115,14 @@ define [ "model/render"
       do (f) ->
         kvm[f.name] = ko.observable(null)
         kvm[f.name].field = f
+        kvm[f.name].kvm   = kvm
 
     # set id only when it wasn't set from from prefetched data
     # FIXME: remove this, id should be created from fields of model
     # when we have it there
     unless _.isFunction kvm['id']
       kvm['id'] = ko.observable()
+      kvm['id'].kvm = kvm
     kvm.id(fetched['id']) unless _.isUndefined fetched?['id']
 
     # set queue if have one, and sync it with backend
@@ -146,11 +147,18 @@ define [ "model/render"
     # help if some non text field will require text template
     for f in fields
       do (f) ->
+        if f.type == "Double"
+          fn = ->
+            return kvm[f.name]() unless _.isNumber kvm[f.name]()
+            kvm[f.name]().toFixed(3)
+        else
+          fn = -> kvm[f.name]()
         kvm["#{f.name}Text"] = ko.computed
-          read: -> kvm[f.name]()
+          read: fn
           write: (v) ->
             return if _.isEmpty(kvm[f.name]()) and v == ""
             kvm[f.name](v)
+        kvm[f.name].text = kvm["#{f.name}Text"]
 
     # Setup reference fields: they will be stored in <name>Reference as array
     # of kvm models
@@ -261,6 +269,8 @@ define [ "model/render"
             kvm['disableDixi']()
           write: (a) ->
             disabled(not not a)
+        kvm[name].disableDixi = kvm["#{name}DisableDixi"]
+        kvm[name].disabled    = kvm["#{name}Disabled"]
 
     # make dixi button disabled
     # until all editable required fields are filled
@@ -385,7 +395,7 @@ define [ "model/render"
         Finch.navigate "#{screenName}/#{kvm.id()}", true
 
       hooks = options.hooks or ['*', model.name]
-      applyHooks global.hooks.model, hooks, elName
+      applyHooks global.hooks.model, hooks, elName, kvm
       return kvm
 
   buildModel = (model, args, options, elName) ->
@@ -393,6 +403,8 @@ define [ "model/render"
         elName: elName
         queue: sync.CrudQueue
         queueOptions: options
+        parent: options.parent
+        saveSuccessCb: options.saveSuccessCb
         fetched: args
       return [kvm, kvm._meta.q]
 

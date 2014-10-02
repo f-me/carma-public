@@ -44,30 +44,34 @@ import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
 import qualified Carma.Model.ServiceInfo as ServiceInfo
-import qualified Carma.Model.ServiceNames as ServiceNames
+
+
+getModel :: ModelName -> Text -> Handler b (SiteConfig b) (Maybe Model)
+getModel name view =
+  case T.splitOn ":" view of
+    ["ctr",pgm] ->
+      case Model.dispatch name $ viewForModel "" of
+        Just (Just res) -> Just <$> constructModel name pgm res
+        -- Try to fetch a plain model if constructor failed
+        _               -> getModel name ""
+    _ -> case Model.dispatch name $ viewForModel view of
+           Just res -> return res
+           -- Try to obtain a new-style model using legacy model names
+           -- if the supplied name is unknown
+           Nothing
+             | Just name' <- Map.lookup name Model.legacyModelNames ->
+                 case Model.dispatch name' $ viewForModel view of
+                   Just res -> return $ setModelName name <$> res
+                   Nothing  -> Map.lookup name <$> gets models
+           -- Serve an old-style model
+           _ -> Map.lookup name <$> gets models
 
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
   Just name  <- getParamT "name"
   view  <- fromMaybe "" <$> getParamT "view"
-  model <- case T.splitOn ":" view of
-      ["ctr",scr,pgm]
-        | Just name' <- Map.lookup name Model.legacyModelNames
-          -> case Model.dispatch name' $ viewForModel scr of
-            Just (Just res)
-              -> Just . setModelName name
-              <$> constructModel name' scr pgm res
-            _ -> error $ "Unexpected model name" ++ show name'
-      _ -> case Model.dispatch name $ viewForModel view of
-        Just res -> return res
-        Nothing
-          | Just name' <- Map.lookup name Model.legacyModelNames
-          -> case Model.dispatch name' $ viewForModel view of
-            Just res -> return $ setModelName name <$> res
-            Nothing  -> Map.lookup name <$> gets models
-        _ -> Map.lookup name <$> gets models
-
+  model <- getModel name view
   mcu   <- withAuth currentUser
   case (mcu, model) of
     (Nothing, _) -> finishWithError 401 ""
@@ -88,21 +92,29 @@ viewForModel name _
 setModelName :: Text -> Model -> Model
 setModelName n m = m {modelName = n}
 
+
+-- | Combine field data and writable flag to a new readonly meta value.
+ro :: Field -> Bool -> Bool
+ro fld wr =
+  case Map.lookup "readonly" $ fromMaybe Map.empty $ meta fld of
+    Just (Aeson.Bool True) -> True
+    _                      -> not wr
+
+
 constructModel
-  :: Text -> Text -> Text -> Model
+  :: Text -> Text -> Model
   -> Handler b (SiteConfig b) Model
-constructModel mdlName screen program model = do
+constructModel mdlName program model = do
   let q = [sql|
       select c.field, c.label, c.r, c.w, c.required, c.info, c.ord
-        from "ConstructorFieldOption" c, "CtrModel" m, "CtrScreen" s
-        where m.id = c.model and s.id = c.screen
+        from "ConstructorFieldOption" c, "CtrModel" m
+        where m.id = c.model
           and m.value = ?
-          and s.value = ?
           and program = ? :: int
         order by ord asc
       |]
   pg <- gets pg_search
-  res <- liftIO (withResource pg $ \c -> query c q [mdlName,screen,program])
+  res <- liftIO (withResource pg $ \c -> query c q [mdlName,program])
   let optMap = Map.fromList [(nm,(l,r,w,rq,inf,o)) | (nm,l,r,w,rq,inf,o) <- res]
   let adjustField f = case Map.lookup (name f) optMap of
         Nothing -> [f] -- NB: field is not modified if no options found
@@ -112,7 +124,7 @@ constructModel mdlName screen program model = do
               = Map.insert "label"    (Aeson.String l)
               . Map.insert "required" (Aeson.Bool rq)
               . Map.insert "infoText" (Aeson.String inf)
-              . Map.insert "readonly" (Aeson.Bool $ not w)
+              . Map.insert "readonly" (Aeson.Bool $ ro f w)
               <$> meta f
             , sortingOrder = o
             , canWrite = w}
@@ -166,7 +178,11 @@ stripModel u m = do
   let fieldsMap = Map.fromList readableFields
   let fieldFilter f fs = case Map.lookup (name f) fieldsMap of
         Nothing -> fs
-        Just wr -> f {canWrite = canWrite f && wr} : fs
+        Just wr ->
+          let w = canWrite f && wr
+          in f {meta = Map.insert "readonly" (Aeson.Bool $ ro f w) <$> meta f
+               ,canWrite = w
+               } : fs
   return $ m {fields = foldr fieldFilter [] $ fields m}
 
 -- | Serve available idents for a model (given in @name@ request
@@ -195,16 +211,12 @@ serveDictionaries = do
 
   serviceInfos <- withPG
     $ selectJSON (ServiceInfo.program :. ServiceInfo.service :. ServiceInfo.info)
-  serviceNames <- withPG
-    $ selectJSON (ServiceNames.ident :. ServiceNames.value :. ServiceNames.label :. ServiceNames.icon)
 
   Aeson.Object dictMap <- gets dictionaries
   -- Support legacy client interface for some dictionaries
   writeJSON $ Aeson.Object
     $ HM.insert "ServiceInfo"
       (Aeson.object [("entries", Aeson.Array $ V.fromList serviceInfos)])
-    $ HM.insert "ServiceNames"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList serviceNames)])
       dictMap
 
 

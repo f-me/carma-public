@@ -7,6 +7,7 @@ require.config
     tpl     : "/s/tpl"
     finch   : "/s/3p/finch.min"
     d3      : "/s/3p/d3.min"
+    knockout: "/s/3p/knockout"
   shim:
     finch:
       exports: "Finch"

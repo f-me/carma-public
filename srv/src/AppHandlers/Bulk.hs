@@ -53,19 +53,17 @@ vinImport = logExceptions "Bulk/vinImport" $ do
   case (B.readInt =<< subprog, B.readInt =<< format) of
     (Just (sid, _), Just (fid, _)) -> do
       syslogJSON Info "Bulk/vinImport" ["subprogram" .= sid, "format" .= fid]
-      let sidTxt = T.pack $ show sid
 
       -- Check user permissions
       -- Allow users with partner role to upload files only to their
-      -- assigned subprograms. Note that usermeta field is still
-      -- called "programs" despite storing a list of subprogram ids.
+      -- assigned subprograms.
       Just user <- currentUserMeta
       let Just (Ident uid) = Patch.get user Usermeta.ident
       let Just roles       = Patch.get user Usermeta.roles
-      let Just programs    = Patch.get user Usermeta.programs
+      let Just subPrograms = Patch.get user Usermeta.subPrograms
 
       when (not
-            $  (V.elem Role.partner roles && V.elem sidTxt programs)
+            $  (V.elem Role.partner roles && V.elem (Ident sid) subPrograms)
             || (V.elem Role.vinAdmin roles)
             || (V.elem Role.psaanalyst roles)) $
             handleError 403
@@ -82,8 +80,8 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       -- VIN import task handler
       with taskMgr $ TM.create $ do
         let opts = Options connInfo inPath outPath
-              uid -- ^ Set current user as committer
-              fid Nothing (Just sid) False
+                   uid -- ^ Set current user as committer
+                   fid Nothing (Just sid) False
         res <- doImport opts
 
         removeFile inPath

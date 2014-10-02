@@ -1,5 +1,5 @@
 * Prerequisites
-  - we aim at GHC 7.6.3 compatibility;
+  - we aim at GHC 7.8.3 compatibility;
 
   - snap-0.13 is required;
 
