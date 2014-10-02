@@ -231,7 +231,7 @@ actStatsQ :: Query
 actStatsQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
-  WHERE (assignedTo IS NULL) AND result IS NOT NULL
+  WHERE (assignedTo IS NULL) AND result IS NULL
   AND type IN ?
   AND (? OR extract (epoch from duetime) >= ?)
   AND (? OR extract (epoch from duetime) <= ?);

@@ -128,8 +128,8 @@ Executable carma
     xml-conduit                 == 1.2.*,
     xmlhtml                     == 0.2.*,
     process-extras              == 0.2.*,
-    websockets                  == 0.8.*,
-    websockets-snap             == 0.8.*,
+    websockets                  == 0.9.*,
+    websockets-snap             == 0.9.*,
     BoundedChan                 == 1.0.3.*,
     timers                      == 0.2.*,
     suspend                     >= 0.1 && < 0.3
