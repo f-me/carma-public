@@ -1,0 +1,28 @@
+mixin settingsContainer
+  .row-fluid
+    .span12
+      .bs-docs-less-margins#kpi-list
+        .bs-docs-example-after#settings-label
+          i.icon-plus
+          | Настройки
+        block
+
+mixin settings
+    #kpi-list-inner.in(style="height: 20em; overflow-x: auto;")
+      .control-group
+        .controls
+          input#kpi-list-filter.focusable(type="text"
+            data-bind="value: settingsFilter, valueUpdate: 'afterkeydown'")
+      ul.unstyled(data-bind="foreach: fields")
+        li
+          label.checkbox
+            input(type="checkbox" data-bind="checked: show")
+            span(data-bind="text: label")
+
+mixin kvmFilter
+  .input-append
+    input.focusable(
+      type="text"
+      placeholder="Поиск"
+      name="kvmsFilter"
+      data-bind="value: kvmsFilter, valueUpdate: 'afterkeydown'")

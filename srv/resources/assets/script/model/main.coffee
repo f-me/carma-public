@@ -143,21 +143,37 @@ define [ "model/render"
 
     # special observable for text, so it won't be saved on update null -> ""
     # #1221
-    # make this for all types, because it can't break anything, but will
-    # help if some non text field will require text template
+    # This cycle build presentation computed, which can be safely binded
+    # to ui elements
     for f in fields
       do (f) ->
-        if f.type == "Double"
-          fn = ->
-            return kvm[f.name]() unless _.isNumber kvm[f.name]()
-            kvm[f.name]().toFixed(3)
-        else
-          fn = -> kvm[f.name]()
-        kvm["#{f.name}Text"] = ko.computed
-          read: fn
+        fn = { read: null, write: null }
+        switch f.type
+          when "Double"
+            fn =
+              read: ->
+                return kvm[f.name]() unless _.isNumber kvm[f.name]()
+                kvm[f.name]().toFixed(3)
+          when "DiffTime"
+            fn =
+              read: ->
+                d = kvm[f.name]()
+                s = d % 60
+                m = Math.floor(d / 60) % 60
+                h = Math.floor(d / 60 / 60)
+                "#{h}:#{m}:#{s}"
+              write: (v) ->
+                [h, m, s] = map v.split(":"), parseInt
+                kvm[f.name](s + m*60 + h*3600)
+        defaults =
+          read:      -> kvm[f.name]()
           write: (v) ->
             return if _.isEmpty(kvm[f.name]()) and v == ""
             kvm[f.name](v)
+
+        kvm["#{f.name}Text"] = ko.computed
+          read: fn.read   || defaults.read
+          write: fn.write || defaults.write
         kvm[f.name].text = kvm["#{f.name}Text"]
 
     # Setup reference fields: they will be stored in <name>Reference as array
