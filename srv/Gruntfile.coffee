@@ -94,6 +94,7 @@ module.exports = (grunt) ->
     knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
     notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
     spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
+    'js-base64': {src: 'js-base64',          file: 'base64.min.js'}
     'jquery-maskedinput':
       src: 'jquery-maskedinput/src'
       file: 'jquery.maskedinput.js'

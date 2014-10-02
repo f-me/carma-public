@@ -26,3 +26,8 @@ mixin kvmFilter
       placeholder="Поиск"
       name="kvmsFilter"
       data-bind="value: kvmsFilter, valueUpdate: 'afterkeydown'")
+
+mixin downloadTbl
+  #download(style="float: right")
+    a.btn(data-bind="attr: { href: csv }" download="oper-kpi.csv")
+      | Выгрузить данные

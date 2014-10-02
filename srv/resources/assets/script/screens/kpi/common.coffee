@@ -1,7 +1,8 @@
 define ["lib/current-user"
         "model/utils"
         "utils"
-  ], (Usr, MU, U) ->
+        "base64"
+  ], (Usr, MU, U, B64) ->
 
   initCtx: (key, model, customInit) ->
     $("#settings-label").on "click", ->
@@ -35,11 +36,24 @@ define ["lib/current-user"
           U.kvmCheckMatch(flt(), kvm)
 
     sorted.change_filters "kvmFilter"
+
+    csv = ko.computed ->
+      r = ""
+      for f in flds when f.show()
+        r += "#{f.label};"
+      r += "\n"
+      for s in sorted()
+        for f in flds when f.show()
+          r += "#{s[f.name].text()};"
+        r += "\n"
+      "data:application/octet-stream; base64, #{B64.encode('\uFEFF' + r)}"
+
     tblCtx = {fields: filted, kvms: sorted }
     settingsCtx =
       fields: filted
       settingsFilter: filter
       kvmsFilter: flt
+      csv: csv
 
 
     {tblCtx, settingsCtx, dumpSettings} =
