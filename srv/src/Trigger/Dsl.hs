@@ -261,8 +261,8 @@ sendSMS svcId tplId =
             coalesce("City".label, ''),
             coalesce(cs.contact_phone1, ''),
             "ServiceType".label,
-            coalesce(to_char(svc.times_expectedServiceStart, 'HH24:MI MM-DD-YYYY'), ''),
-            coalesce(to_char(svc.times_factServiceStart, 'HH24:MI MM-DD-YYYY'), ''),
+            coalesce(to_char(svc.times_expectedServiceStart, 'HH24:MI DD-MM-YYYY'), ''),
+            coalesce(to_char(svc.times_factServiceStart, 'HH24:MI DD-MM-YYYY'), ''),
             sprog.smsSender, sprog.smsProgram, sprog.smsContact
           from
             casetbl cs left join "City" on ("City".id = cs.city),
