@@ -16,6 +16,7 @@ define ["text!tpl/screens/kpi/oper.html"
         kvm = kvmsh[a.userid]
         for k, v of a
           do (k, v) -> kvm[k](v)
+
   template: Tpl
   constructor: (view, opts) ->
     $("#oper-screen").addClass("active")
@@ -43,4 +44,6 @@ define ["text!tpl/screens/kpi/oper.html"
     ko.applyBindings(settingsCtx, $("#settings")[0])
     ko.applyBindings(tblCtx, $("#tbl")[0])
 
-
+  # FIXME: find better way to cleanup (why the hell we have to do this by hand?)
+  destructor: ->
+    ko.dataFor($("#tbl")[0]).kvms.clean()

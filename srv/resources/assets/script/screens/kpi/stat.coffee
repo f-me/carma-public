@@ -36,3 +36,6 @@ define ["text!tpl/screens/kpi/stat.html"
 
     ko.applyBindings(settingsCtx, $("#settings")[0])
     ko.applyBindings(tblCtx, $("#tbl")[0])
+
+  destructor: ->
+    ko.dataFor($("#tbl")[0]).kvms.clean()
