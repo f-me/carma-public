@@ -1,7 +1,7 @@
 define ["text!tpl/screens/kpi/oper.html"
         "json!/cfg/model/OperKPI?view=kpi"
         "model/main"
-        "sync/dataMap"
+        "sync/datamap"
         "lib/messenger"
         "screens/kpi/common"
   ], (Tpl, Model, Main, Map, WS, Common) ->
