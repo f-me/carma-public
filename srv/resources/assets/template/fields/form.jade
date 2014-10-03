@@ -544,8 +544,8 @@ mixin simpleRefHdr(name, bindName)
       a(data-bind='text: _meta.model.title')
         | Услуга…
       span &nbsp;
-      button.btn.btn-mini(
-        data-bind='attr: { href: \'#printSrv/\'+_meta.model.name+\'/\'+id() }'
+      a.btn.btn-mini(
+        data-bind="attr: { href: '#printSrv/' + id() }"
         target='_blank')
         i.icon.icon-print
         | &nbsp;Печать
