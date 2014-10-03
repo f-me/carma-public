@@ -125,10 +125,6 @@ svcMod =
     ,invisible contractor_coords
     ,hiddenIdent parentId
     , readonly status
-    , setType "text" payment_partnerCost
-    , setType "text" payment_calculatedCost
-    , setType "text" payment_limitedCost
-    , setType "text" bill_billingCost
     , clientCancelReason `completeWith` CRR.label
     ]
 
