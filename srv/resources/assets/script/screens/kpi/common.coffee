@@ -11,7 +11,7 @@ define ["lib/current-user"
       else
         $("#kpi-list-inner").addClass("in").slideDown()
 
-    settings = Usr.readStuff key
+    settings = (Usr.readStuff key) || {}
 
     flds = _.map _.filter(model.fields, (f) -> not f.meta.invisible), (f) ->
       show = settings?.fields?[f.name] || false
