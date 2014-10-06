@@ -58,10 +58,6 @@ type Object m = FullPatch m
 
 
 class IPatch p where
-  -- | Look up a field in a patch.
-  get :: (Typeable t, SingI name) =>
-         p m -> (m -> Field t (FOpt name desc app)) -> Maybe t
-
   -- | Add a field to a patch.
   put :: (Typeable t, SingI name) =>
          (m -> Field t (FOpt name desc app)) -> t -> p m -> p m
@@ -76,18 +72,21 @@ empty = Patch HashMap.empty
 
 
 instance IPatch Patch where
-  get (Patch m) f = (`fromDyn` (error "Dynamic error in patch")) <$>
-                    HashMap.lookup (fieldName f) m
-
   put f v (Patch m) = Patch $ HashMap.insert (fieldName f) (toDyn v) m
 
   delete f (Patch m) = Patch $ HashMap.delete (fieldName f) m
 
 
+get :: (Typeable t, SingI name) =>
+       Patch m -> (m -> Field t (FOpt name desc app)) -> Maybe t
+get (Patch m) f = (`fromDyn` (error "Dynamic error in patch")) <$>
+                  HashMap.lookup (fieldName f) m
+
+
 -- | Type-safe total version of 'get'.
 get' :: (Typeable t, SingI name) =>
         FullPatch m -> (m -> Field t (FOpt name desc app)) -> t
-get' p f
+get' (FullPatch p) f
   = fromMaybe (error $ "Patch field " ++ unpack (fieldName f) ++ " missing") $
     get p f
 
