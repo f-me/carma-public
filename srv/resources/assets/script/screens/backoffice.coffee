@@ -20,7 +20,9 @@ define [ "utils"
       width: 50,
       lines: 15,
       radius: 175
-    pullActions()
+    # Skip first polling cycle to allow jacks to click on #call screen
+    # link
+    setTimeout pullActions, (poll_every * 1000)
 
   # Install automatic actions poller
   setupPoller = ->
