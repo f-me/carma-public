@@ -68,7 +68,7 @@ needMakerApproval =
 needInfo :: Entry
 needInfo =
     Entry
-    (insteadOf Case.caseStatus (const CS.needInfo)
+    (onField Case.caseStatus (const CS.needInfo)
      (proceed [AType.tellMeMore]))
 
 
