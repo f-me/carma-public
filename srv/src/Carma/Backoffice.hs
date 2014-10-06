@@ -461,8 +461,10 @@ tellMeMore =
     (const bo_order)
     nobody
     ((1 * minutes) `since` now)
-    [ (AResult.communicated, finish)
-    , (AResult.okButNoService, finish)
+    [ (AResult.communicated,
+       setCaseField caseStatus (const CS.back) *> finish)
+    , (AResult.okButNoService,
+       setCaseField caseStatus (const CS.back) *> finish)
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]
