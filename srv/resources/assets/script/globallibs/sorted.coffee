@@ -38,7 +38,7 @@ ko.sorted = ({kvms, filters, sorters}) ->
     if _.isObject name
       _.extend filter, name
     else
-      filters['name'] = filters
+      filters[name] = filters
     active_filters.truncate()
 
   result.change_filters = (filter, del) ->

@@ -17,6 +17,14 @@ define ["text!tpl/screens/kpi/oper.html"
         for k, v of a
           do (k, v) -> kvm[k](v)
 
+  tick = (kvms) -> ->
+    for k in kvms()
+      k.inCurrent(k.inCurrent() + 1)
+      k[k.currentState()] k[k.currentState()]() + 1
+    return null
+
+  ticker = null
+
   template: Tpl
   constructor: (view, opts) ->
     $("#oper-screen").addClass("active")
@@ -26,7 +34,7 @@ define ["text!tpl/screens/kpi/oper.html"
         tCtx.overdue = sCtx.overdue
         sCtx.overdue.text = ko.computed
           read:      -> Math.floor(sCtx.overdue() / 60)
-          write: (v) -> 60 * parseInt(v)
+          write: (v) -> sCtx.overdue 60 * parseInt(v)
 
         sCtx.hideOffline = ko.observable(s.hideOffline)
         tCtx.hideOffline = sCtx.hideOffline
@@ -36,6 +44,7 @@ define ["text!tpl/screens/kpi/oper.html"
           $('body').spin false
           kvmsh = arrToObj ((k) -> k.userid()), kvms()
           WS.subscribe "oper-kpi", update(kvmsh)
+          ticker = setInterval tick(kvms), 1000
 
         settingsCtx: sCtx
         tblCtx:      tCtx
@@ -46,4 +55,5 @@ define ["text!tpl/screens/kpi/oper.html"
 
   # FIXME: find better way to cleanup (why the hell we have to do this by hand?)
   destructor: ->
+    clearInterval(ticker)
     ko.dataFor($("#tbl")[0]).kvms.clean()

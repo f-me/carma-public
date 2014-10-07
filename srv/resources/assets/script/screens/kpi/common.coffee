@@ -33,20 +33,25 @@ define ["lib/current-user"
       filters:
         kvmFilter: (kvm) ->
           return true if _.isEmpty flt()
-          U.kvmCheckMatch(flt(), kvm)
+          U.kvmCheckMatch(flt(), kvm,
+            if model.name == 'OperKPI'
+              {allowed: ['userid', 'currentState']})
 
     sorted.change_filters "kvmFilter"
 
-    csv = ko.computed ->
-      r = ""
-      for f in flds when f.show()
-        r += "#{f.label};"
-      r += "\n"
-      for s in sorted()
+    csv = ko.computed
+      read: ->
+        r = ""
         for f in flds when f.show()
-          r += "#{s[f.name].text()};"
+          r += "#{f.label};"
         r += "\n"
-      "data:application/octet-stream; base64, #{B64.encode('\uFEFF' + r)}"
+        for s in sorted()
+          for f in flds when f.show()
+            r += "#{s[f.name].text()};"
+          r += "\n"
+        "data:application/octet-stream; base64, #{B64.encode('\uFEFF' + r)}"
+
+      deferEvaluation: true
 
     tblCtx = {fields: filted, kvms: sorted }
     settingsCtx =

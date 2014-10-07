@@ -155,13 +155,14 @@ define [ "model/render"
                 return kvm[f.name]() unless _.isNumber kvm[f.name]()
                 kvm[f.name]().toFixed(3)
           when "DiffTime"
+            twoDig = (v) -> if v < 10 then "0#{v}" else "#{v}"
             fn =
               read: ->
                 d = kvm[f.name]()
                 s = d % 60
                 m = Math.floor(d / 60) % 60
                 h = Math.floor(d / 60 / 60)
-                "#{h}:#{m}:#{s}"
+                "#{h}:#{twoDig(m)}:#{twoDig(s)}"
               write: (v) ->
                 [h, m, s] = map v.split(":"), parseInt
                 kvm[f.name](s + m*60 + h*3600)

@@ -13,7 +13,7 @@ include _settings
             span.inverse-red Выделять красным
             | , если занят &ge;
             input.tiny-input(type="text"
-                data-bind="value: overdue, update: 'afterkeydown'")
+                data-bind="value: overdue.text, update: 'afterkeydown'")
             | минут
             br
             span.inverse-orange Выделять оранжевым
@@ -26,7 +26,7 @@ include _settings
       .row-fluid#filters(style="margin-top: 10px")
         .span4#kvmsFilter
           +kvmFilter
-        +downloadTbl
+        // +downloadTbl
 
     .row-fluid#results(style="overflow-y: auto")
       table#tbl.table.table-striped.table-bordered
@@ -47,7 +47,7 @@ include _settings
                          css: { 'inverse-orange': kvm.lastState() == 'Bysy' &&  \
                                            kvm.currentState() == 'LoggedOut', \n\
                                 'inverse-red': kvm.currentState() == 'Busy' && \
-                                               kvm.inCurrent() > $root.overdue()}")
+                                           kvm.inCurrent() > $root.overdue()}")
            // /ko
 
 .hidden
