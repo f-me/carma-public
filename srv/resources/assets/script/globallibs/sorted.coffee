@@ -21,6 +21,7 @@ ko.sorted = ({kvms, filters, sorters}) ->
 
     deferEvaluation: true
 
+  result.extend({rateLimit: {timeout: 200, method: "notifyWhenChangesStop"}})
   result.sorters = sorters
   result.filters = filters
   result.active_sorter  = active_sorter
@@ -37,7 +38,7 @@ ko.sorted = ({kvms, filters, sorters}) ->
     if _.isObject name
       _.extend filter, name
     else
-      filters['name'] = filters
+      filters[name] = filters
     active_filters.truncate()
 
   result.change_filters = (filter, del) ->

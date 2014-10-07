@@ -114,6 +114,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/userStates/:userId/:from/:to",
             chkAuth . method GET $ serveUserStates)
          , ("/kpi/stat/:from/:to", chkAuth . method GET $ getStat)
+         , ("/kpi/oper",           chkAuth . method GET $ getOper)
          ]
 
 dconf :: DirectoryConfig (Handler App App)
@@ -134,7 +135,9 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
 
-  h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
+  h <- nestSnaplet "heist" heist $ heistInit ""
+  addTemplatesAt h "/" "resources/static/tpl"
+
   addAuthSplices h auth
 
   sesKey <- liftIO $

@@ -27,6 +27,7 @@
     "wysihtml5": "~0.3.0",
     "bootstrap": "http://getbootstrap.com/2.3.2/assets/bootstrap.zip",
     "jquery-maskedinput": "git://github.com/digitalBush/jquery.maskedinput.git",
-    "datatables": "~1.10.*"
+    "datatables": "~1.10.*",
+    "js-base64": "~2.1.*"
   }
 }
