@@ -406,8 +406,7 @@ mixin dict(nameMod, iconClass)
        data-toggle="tooltip"
        data-html="true"
        data-placement="bottom"
-       data-bind='attr: { title: buttons.needInfo.tooltip },\
-                  visible: buttons.needInfo.visible')
+       data-bind='attr: { title: buttons.needInfo.tooltip }')
        button.btn.btn-small.btn-info(
          style="width: 100%"
          id="{{name}}-needInfo"
