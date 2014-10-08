@@ -44,7 +44,7 @@ include _settings
            // ko foreach: $root.fields
            td(data-bind="visible: show, \n\
                          render: {kvm: kvm, field: $data}, \n\
-                         css: { 'inverse-orange': kvm.lastState() == 'Bysy' &&  \
+                         css: { 'inverse-orange': kvm.lastState() == 'Busy' &&  \
                                            kvm.currentState() == 'LoggedOut', \n\
                                 'inverse-red': kvm.currentState() == 'Busy' && \
                                            kvm.inCurrent() > $root.overdue()}")
