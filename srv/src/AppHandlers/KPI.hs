@@ -131,8 +131,12 @@ WITH
     SELECT u.id, u.userid
          , u.state, now() - u.ctime as inCurrent
          , e.modelName, e.modelId
+         , c.id as caseId
     FROM "UserState" u
     INNER JOIN "Event" e ON u.eventid = e.id
+    LEFT  JOIN "actiontbl" a
+      ON a.id = e.modelId AND e.modelName = 'Action' AND u.state = 'Busy'
+    LEFT  JOIN casetbl c     ON a.caseId = c.id
     WHERE u.id IN (
       SELECT max(id) FROM "UserState"
       GROUP BY userid HAVING userid = ANY(?))),
@@ -151,12 +155,12 @@ WITH
     FROM "Event" WHERE type = 'Login' AND userid = ANY(?)
     GROUP BY userid)
 
-SELECT l.userid     as userid
-     , l.state      as currentState
+SELECT l.userid     AS userid
+     , l.state      AS currentState
      , l.inCurrent
-     , CASE WHEN l.modelName = 'Case' THEN l.modelId END AS currentCase
-     , p.state      as lastState
-     , ll.lastLogin as loginTime
+     , l.caseId     AS currentCase
+     , p.state      AS lastState
+     , ll.lastLogin AS loginTime
 FROM lastStates l
 LEFT JOIN preLast p ON l.userid = p.userid
 INNER JOIN lastLogin ll ON ll.userid = l.userid
