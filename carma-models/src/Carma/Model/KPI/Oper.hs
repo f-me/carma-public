@@ -43,6 +43,7 @@ instance Model OperKPI where
     "kpi" -> Just $ modifyView (stripId $ defaultView)
       [ setMeta "dictionaryLabel" (Aeson.String "realName") user
       , invisible lastState
+      , widget "case-ident" currentCase
       ]
     _     -> Nothing
 
