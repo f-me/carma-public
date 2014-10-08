@@ -20,9 +20,9 @@ define [ "model/main"
   checkStuff = ->
     um = window.global.Usermeta
     if _.isUndefined um
-      throw error("current user is undefined, initialize it first")
+      throw Error("current user is undefined, initialize it first")
     if _.isUndefined um.stuff
-      throw error("need permission to read 'usermeta.stuff'")
+      throw Error("need permission to read 'usermeta.stuff'")
 
   initialize: =>
     user = window.global.user
