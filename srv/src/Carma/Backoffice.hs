@@ -30,6 +30,7 @@ import           Carma.Model.Satisfaction as Satisfaction
 import           Carma.Model.Service as Service
 import qualified Carma.Model.ServiceStatus as SS
 import           Carma.Model.ServiceType as ST
+import           Carma.Model.PaymentType as PT
 import qualified Carma.Model.SmsTemplate as SMS
 import qualified Carma.Model.Usermeta as Usermeta
 
@@ -56,6 +57,24 @@ toBack =
      ]
      (proceed [AType.orderServiceAnalyst])
     ))
+
+messageToGenser :: [Entry]
+messageToGenser
+  = map mkEntry [SS.ordered, SS.ok, SS.canceled]
+  where
+    mkEntry st =
+      Entry
+      (onField Service.status (const st)
+      (switch
+       [ ( (caseField Case.program `oneOf` [Program.peugeot, Program.citroen]) &&
+           (serviceField svcType == const ST.towage) &&
+           (serviceField Service.payType == just PT.ruamc)
+           -- FIXME: lift check for Towage.towType from sendMail
+         , sendMail Genser *> proceed []
+         )
+       ]
+       (proceed [])
+      ))
 
 
 needMakerApproval :: Entry
@@ -494,7 +513,8 @@ carmaBackoffice =
       , cancel
       , complaint
       , mistake
-      ]
+      ] ++
+      messageToGenser
     , [ orderService
       , orderServiceAnalyst
       , tellClient
