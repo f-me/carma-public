@@ -40,6 +40,7 @@ include _settings
            // /ko
        tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
          tr(data-bind="visible: !(kvm.currentState() == 'LoggedOut' && \
+                                  kvm.lastState()    != 'Busy'      && \
                                   $root.hideOffline())")
            // ko foreach: $root.fields
            td(data-bind="visible: show, \n\
