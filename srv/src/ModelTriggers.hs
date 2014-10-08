@@ -87,6 +87,8 @@ import           Carma.Backoffice.Graph (startNode)
 
 import           AppHandlers.ActionAssignment
 
+import Util (hushExceptions)
+
 -- TODO: rename
 --   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
 --   - trigOnField -> onField
@@ -430,9 +432,9 @@ runTriggers before after dbAction fields state = do
 
   case res of
     Left _   -> return ()
-    Right st ->
-      let fc = FutureContext $ st_pgcon st
-      in liftIO $ sequence_ $ map ($ fc) $ st_futur st
+    Right st -> liftIO
+      $ hushExceptions "triggers/future"
+      $ sequence_ $ map ($ FutureContext (st_pgcon st)) $ st_futur st
 
   return res
 
