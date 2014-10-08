@@ -688,3 +688,7 @@ input.re-failed {
   margin-bottom: 0px !important;
   padding: 0px !important;
 }
+
+.grey-bg {
+  background-color: #bbb;
+}

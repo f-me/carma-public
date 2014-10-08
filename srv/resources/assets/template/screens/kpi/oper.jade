@@ -29,7 +29,7 @@ include _settings
         // +downloadTbl
 
     .row-fluid#results(style="overflow-y: auto")
-      table#tbl.table.table-striped.table-bordered
+      table#tbl.table.table-condensed.table-bordered
        thead
          tr
            // ko foreach: fields
@@ -47,7 +47,9 @@ include _settings
                          css: { 'inverse-orange': kvm.lastState() == 'Busy' &&  \
                                            kvm.currentState() == 'LoggedOut', \n\
                                 'inverse-red': kvm.currentState() == 'Busy' && \
-                                           kvm.inCurrent() > $root.overdue()}")
+                                           kvm.inCurrent() > $root.overdue(), \n\
+                                'grey-bg': kvm.currentState() == 'LoggedOut' \n\
+                              }")
            // /ko
 
 .hidden
