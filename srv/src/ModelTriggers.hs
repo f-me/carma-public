@@ -80,7 +80,8 @@ import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 import           Carma.Backoffice
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
-import qualified Carma.Backoffice.Action.SMS as Action (sendSMS)
+import qualified Carma.Backoffice.Action.SMS as BOAction (sendSMS)
+import qualified Carma.Backoffice.Action.MailToGenser as BOAction (sendMailToGenser)
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
 
@@ -605,9 +606,13 @@ instance Backoffice HaskellE where
           sid <- srvId'
           return $ void $ setService sid acc (evalHaskell ctx v)
 
-    sendMail _ = HaskellE $ return $ return ()
+    sendMail = \case
+      Genser -> run $ BOAction.sendMailToGenser <$> srvId'
+      _ -> HaskellE $ return $ return ()
+      where
+        run = HaskellE . fmap inFuture
 
-    sendSMS tpl = HaskellE $ inFuture . Action.sendSMS tpl <$> srvId'
+    sendSMS tpl = HaskellE $ inFuture . BOAction.sendSMS tpl <$> srvId'
 
     closePrevious scope types res =
       HaskellE $ do
