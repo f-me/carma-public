@@ -80,6 +80,7 @@ import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 import           Carma.Backoffice
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
+import qualified Carma.Backoffice.Action.SMS as Action (sendSMS)
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
 
@@ -425,6 +426,13 @@ runTriggers before after dbAction fields state = do
     sequence_ $ matchingTriggers (modelName mInfo) after
 
   liftIO $ PG.commit pg
+
+  case res of
+    Left _   -> return ()
+    Right st ->
+      let fc = FutureContext $ st_pgcon st
+      in liftIO $ sequence_ $ map ($ fc) $ st_futur st
+
   return res
 
 
@@ -599,10 +607,7 @@ instance Backoffice HaskellE where
 
     sendMail _ = HaskellE $ return $ return ()
 
-    sendSMS tpl =
-      HaskellE $ do
-        sid <- srvId'
-        return $ Dsl.sendSMS sid tpl
+    sendSMS tpl = HaskellE $ inFuture . Action.sendSMS tpl <$> srvId'
 
     closePrevious scope types res =
       HaskellE $ do
