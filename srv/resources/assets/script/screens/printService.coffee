@@ -9,45 +9,56 @@ define [ "text!tpl/screens/printSrv.html"
     svc = main.buildKVM global.model('Service'),
           fetched: {id: id}
           queue: sync.CrudQueue
-    kase = main.buildKVM global.model('Case'),
-          fetched: {id: svc.parentId()}
-          queue: sync.CrudQueue
-    callTaker = main.buildKVM global.model('Usermeta'),
-          fetched: {id: kase.callTaker()}
-          queue: sync.CrudQueue
-    cancels = ko.observableArray()
-    $.getJSON( "/_/PartnerCancel?caseId=#{kase.id()}" )
-      .done((objs) ->
-        for obj in objs
-          cancel = main.buildKVM global.model('PartnerCancel'),
-                fetched: obj
-                queue:   null
-          owner = main.buildKVM global.model('Usermeta'),
-                fetched: {id: cancel.owner()}
-                queue: sync.CrudQueue
-          partner = main.buildKVM global.model('Partner'),
-                fetched: {id: cancel.partnerId()}
-                queue: sync.CrudQueue
-          service = main.buildKVM global.model('Service'),
-                fetched: {id: cancel.serviceId()}
-                queue: sync.CrudQueue
-          cancels.push(
-            ctime:   new Date(cancel.ctime()).toString("dd.MM.yyyy HH:mm")
-            owner:   owner.realName()
-            partner: partner.name()
-            reason:  cancel.partnerCancelReasonLocal()
-            comment: cancel.comment() || ''
-            service: service.typeLocal()
-          )
-      )
 
-    kvm =
-      kase: kase
-      service: svc
-      callTaker: callTaker
-      comments: kase.comments() || []
-      cancels: cancels
-    ko.applyBindings kvm, el("print-table")
+    $.getJSON( "/_/Action?serviceId=#{id}&type=1" )
+      .done((objs) ->
+        if objs
+          ass  = _.last(_.sortBy objs, (o) -> o.closeTime).assignedTo
+          if ass
+            svc.assignedTo = main.buildKVM global.model('Usermeta'),
+                fetched: {id: ass}
+                queue: sync.CrudQueue
+
+        kase = main.buildKVM global.model('Case'),
+              fetched: {id: svc.parentId()}
+              queue: sync.CrudQueue
+        callTaker = main.buildKVM global.model('Usermeta'),
+              fetched: {id: kase.callTaker()}
+              queue: sync.CrudQueue
+        cancels = ko.observableArray()
+        $.getJSON( "/_/PartnerCancel?caseId=#{kase.id()}" )
+          .done((objs) ->
+            for obj in objs
+              cancel = main.buildKVM global.model('PartnerCancel'),
+                    fetched: obj
+                    queue:   null
+              owner = main.buildKVM global.model('Usermeta'),
+                    fetched: {id: cancel.owner()}
+                    queue: sync.CrudQueue
+              partner = main.buildKVM global.model('Partner'),
+                    fetched: {id: cancel.partnerId()}
+                    queue: sync.CrudQueue
+              service = main.buildKVM global.model('Service'),
+                    fetched: {id: cancel.serviceId()}
+                    queue: sync.CrudQueue
+              cancels.push(
+                ctime:   new Date(cancel.ctime()).toString("dd.MM.yyyy HH:mm")
+                owner:   owner.realName()
+                partner: partner.name()
+                reason:  cancel.partnerCancelReasonLocal()
+                comment: cancel.comment() || ''
+                service: service.typeLocal()
+              )
+          )
+
+        kvm =
+          kase: kase
+          service: svc
+          callTaker: callTaker
+          comments: kase.comments() || []
+          cancels: cancels
+        ko.applyBindings kvm, el("print-table")
+    )
 
   destroyPrintSrv = () ->
     $(".navbar").show()
