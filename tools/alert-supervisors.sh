@@ -8,7 +8,7 @@ EMAIL_FROM="carma@carma.ruamc.ru"
 EMAIL_SENDER="psa@carma.ruamc.ru"
 
 run_query () {
-  psql -c "$1" \
+  psql \
     -t \
     --no-align \
     --field-separator ';' \
@@ -28,30 +28,14 @@ build_table () {
       cellpadding="2" cellspacing="2">
       <thead>
         <tr>
-          <th>
-            URL
-          </th>
-          <th>
-            Номер кейса
-          </th>
-          <th>
-            Оператор
-          </th>
-          <th>
-            Просрочено
-          </th>
-          <th>
-            Тип действия
-          </th>
-          <th>
-            Запланировано
-          </th>
-          <th>
-            Город
-          </th>
-          <th>
-            Программа
-          </th>
+          <th> URL </th>
+          <th> Номер кейса </th>
+          <th> Оператор </th>
+          <th> Просрочено </th>
+          <th> Тип действия </th>
+          <th> Запланировано </th>
+          <th> Город </th>
+          <th> Программа </th>
         </tr>
       </thead>
       <tbody>
@@ -75,58 +59,64 @@ $1
 EOF
 }
 
-UNASSIGNED="
+unassigned () {
+run_query <<EOF
   SELECT
-    replace(caseid, 'case:', 'http://carma:8000/#case/'),
-    split_part(caseid, ':', 2),
-    assignedto,
+    'http://carma:8000/#case/' || caseid,
+    caseid,
+    u.realName,
     date_trunc('seconds', now() - ctime),
-    \"ActionName\".label,
+    "ActionType".label,
     duetime,
-    \"City\".label,
-    \"Program\".label
+    "City".label,
+    "Program".label
   FROM
     actiontbl
-  LEFT JOIN \"ActionName\" ON actiontbl.name = \"ActionName\".value
-  INNER JOIN casetbl ON split_part(actiontbl.caseid, ':', 2)::int = casetbl.id
-  LEFT JOIN \"City\" ON casetbl.city = \"City\".value
-  LEFT JOIN \"Program\" ON casetbl.program = \"Program\".id
-  WHERE
-    NOT closed
+  LEFT JOIN "ActionType" ON actiontbl.type = "ActionType".id
+  INNER JOIN casetbl ON actiontbl.caseid = casetbl.id
+  LEFT JOIN "City" ON casetbl.city = "City".id
+  LEFT JOIN "Program" ON casetbl.program = "Program".id
+  LEFT JOIN usermetatbl u ON assignedto = u.id
+  WHERE TRUE
+    AND result IS NULL
     AND ctime > now()::date - 7
     AND now() > duetime
-    AND name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst, tellMeMore}')
+    AND type = ANY ('{1, 20, 17, 19}')
     AND assigntime IS NULL
-    AND now() > ('5 minutes'::interval + ctime)
-"
+    AND now() > ('5 minutes'::interval + ctime);
+EOF
+}
 
-OUTSTANDING="
+
+outstanding () {
+run_query <<EOF
   SELECT
-    replace(caseid, 'case:', 'http://carma:8000/#case/'),
-    split_part(caseid, ':', 2),
-    assignedto,
+    'http://carma:8000/#case/' || caseid,
+    caseid,
+    u.realName,
     date_trunc('seconds', now() - assigntime),
-    \"ActionName\".label,
+    "ActionType".label,
     duetime,
-    \"City\".label,
-    \"Program\".label
+    "City".label,
+    "Program".label
   FROM
     actiontbl
-  LEFT JOIN \"ActionName\" ON actiontbl.name = \"ActionName\".value
-  INNER JOIN casetbl ON split_part(actiontbl.caseid, ':', 2)::int = casetbl.id
-  LEFT JOIN \"City\" ON casetbl.city = \"City\".value
-  LEFT JOIN \"Program\" ON casetbl.program = \"Program\".id
-  WHERE
-    NOT closed
+  LEFT JOIN "ActionType" ON actiontbl.type = "ActionType".id
+  INNER JOIN casetbl ON actiontbl.caseid = casetbl.id
+  LEFT JOIN "City" ON casetbl.city = "City".id
+  LEFT JOIN "Program" ON casetbl.program = "Program".id
+  LEFT JOIN usermetatbl u ON assignedto = u.id
+  WHERE TRUE
+    AND result IS NULL
     AND ctime > now()::date - 7
     AND now() > ('10 minutes'::interval + duetime)
-    AND name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst, tellMeMore}')
     AND (assigntime IS NOT NULL AND closetime IS NULL)
-    AND now() > ('15 minutes'::interval + assigntime)
-"
+    AND now() > ('15 minutes'::interval + assigntime);
+EOF
+}
 
-UNASSIGNED_RESULT=$(run_query "$UNASSIGNED")
-OUTSTANDING_RESULT=$(run_query "$OUTSTANDING")
+UNASSIGNED_RESULT=$(unassigned)
+OUTSTANDING_RESULT=$(outstanding)
 MESSAGE=""
 
 if [[ ! -z "$UNASSIGNED_RESULT" ]]
@@ -143,5 +133,5 @@ fi
 
 if [[ ! -z "$MESSAGE" ]]
 then
-  send_message "$MESSAGE"
+  echo send_message "$MESSAGE"
 fi
