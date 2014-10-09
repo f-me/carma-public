@@ -128,7 +128,7 @@ class Backoffice impl where
     -- used action types.
     previousAction :: impl ActionTypeI
 
-    -- | Service context access.
+    -- | Case access (always available).
     --
     -- Our DSL is stateless (more accurately, there's a read-only
     -- state accessed by these getters; it's not tied with mutators
@@ -138,9 +138,13 @@ class Backoffice impl where
     -- Note that @t@ type is not brought into DSL type system, thus an
     -- extra hint is included in type constraints for the
     -- meta-language interpreter.
+    caseField     :: (FieldI t n d, HaskellType t ~ t) =>
+                     (Case -> F t n d) -> impl t
+
+    -- | Service access (if possible).
     --
-    -- Context access functions are not total: if there's no
-    -- corresponding context during the run time, an error is raised.
+    -- Service access functions are not total: if there's no
+    -- corresponding service during the run time, an error is raised.
     -- For instance, 'serviceField's cannot be accessed in case
     -- triggers or handlers for actions which are not attached to any
     -- service. Fixing the latter problem would involve tying
@@ -148,10 +152,6 @@ class Backoffice impl where
     -- level).
     serviceField  :: (FieldI t n d, HaskellType t ~ t) =>
                      (Service -> F t n d) -> impl t
-
-    -- | Case access (always available).
-    caseField     :: (FieldI t n d, HaskellType t ~ t) =>
-                     (Case -> F t n d) -> impl t
 
     -- | Current user access (always available).
     userField     :: (FieldI t n d, HaskellType t ~ t) =>
@@ -229,7 +229,11 @@ class Backoffice impl where
            -- ^ Default branch (used when no true conditions occured).
            -> impl v
 
-    -- | Change a field in the service (if there's one).
+    -- | Change a field in the case.
+    setCaseField :: (FieldI t n d, HaskellType t ~ t) =>
+                    (Case -> F t n d) -> impl t -> impl (Eff m)
+
+    -- | Change a field in the service (fail if there's none).
     --
     -- See also docs for 'serviceField'.
     setServiceField :: (SvcAccess m, FieldI t n d, HaskellType t ~ t) =>

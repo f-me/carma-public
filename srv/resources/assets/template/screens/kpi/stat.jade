@@ -1,33 +1,16 @@
 include _table
+include _settings
 
 .row-fluid
   .span12.default-bs
     include _statNav
     .row-fluid#settings
-      .row-fluid
-        .span12.bs-docs-less-margins#kpi-list
-          .bs-docs-example-after#settings-label
-            i.icon-plus
-            | Настройки
-          #kpi-list-inner.in(style="height: 20em; overflow-x: auto;")
-            .control-group
-              .controls
-                input#kpi-list-filter.focusable(type="text"
-                  data-bind="value: settingsFilter, valueUpdate: 'afterkeydown'")
-            ul.unstyled(data-bind="foreach: fields")
-              li
-                label.checkbox
-                  input(type="checkbox" data-bind="checked: show")
-                  span(data-bind="text: label")
+      +settingsContainer
+        +settings
 
       .row-fluid#filters(style="margin-top: 10px")
         .span4#kvmsFilter
-          .input-append
-            input.focusable(
-              type="text"
-              placeholder="Поиск"
-              name="kvmsFilter"
-              data-bind="value: kvmsFilter, valueUpdate: 'afterkeydown'")
+          +kvmFilter
         .span2#date-range
             .input-append
               input.pane-span.focusable(type="text"
@@ -44,6 +27,7 @@ include _table
                 data-bind="value: interval.end, addMask: 'datetime'")
               span.add-on
                 i.icon.icon-calendar
+          +downloadTbl
 
     .row-fluid#results(style="overflow-y: auto")
       +table

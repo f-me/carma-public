@@ -253,11 +253,11 @@ beforeUpdate = Map.unionsWith (++) $
       Nothing -> return ()
       Just tm ->
         modifyPatch $
-        (Patch.put Service.times_expectedServiceEnd
-         (Just $ addUTCTime (1 * BO.hours) tm)) .
-        (Patch.put Service.times_expectedServiceClosure
-         (Just $ addUTCTime (11 * BO.hours) tm)) .
-        (Patch.put Service.times_factServiceStart Nothing)
+        Patch.put Service.times_expectedServiceEnd
+        (Just $ addUTCTime (1 * BO.hours) tm) .
+        Patch.put Service.times_expectedServiceClosure
+        (Just $ addUTCTime (11 * BO.hours) tm) .
+        Patch.put Service.times_factServiceStart Nothing
   , trigOn Service.times_expectedDispatch $ const $
     modifyPatch (Patch.put Service.times_factServiceStart Nothing)
   , trigOn Service.times_expectedServiceEnd $ const $
@@ -468,7 +468,7 @@ fillValidUntil subprogram newSince = do
   case vf of
     Just vf' ->
       modPut Contract.validUntil
-      (Just $ WDay{unWDay = addDays (toInteger vf') vs})
+      (Just WDay{unWDay = addDays (toInteger vf') vs})
     Nothing -> return ()
 
 
@@ -584,6 +584,13 @@ instance Backoffice HaskellE where
         modifyPatch (Patch.put acc (old `get'` acc))
         evalHaskell ctx body
 
+    setCaseField acc v =
+        HaskellE $ do
+          ctx <- ask
+          let cid = kase ctx `Patch.get'` Case.ident
+              val = evalHaskell ctx v
+          return $ void $ dbUpdate cid $ put acc val Patch.empty
+
     setServiceField acc v =
         HaskellE $ do
           ctx <- ask
@@ -668,7 +675,7 @@ instance Backoffice HaskellE where
                     Patch.put Action.openTime nowIfWho $
                     Patch.put Action.assignedTo whoIfReady $
                     Patch.put Action.assignTime nowIfWho $
-                    Patch.put Action.parent ((`get'` Action.ident) <$> this) $
+                    Patch.put Action.parent ((`get'` Action.ident) <$> this)
                     basePatch
             dbCreate p >> evalHaskell ctx (BO.proceed ts)
 
@@ -691,10 +698,7 @@ instance Backoffice HaskellE where
                 -- to read it from DB for this action
                 HMDiffTime deferBy =
                   case curPatch `get` Action.deferBy of
-                    Just sth ->
-                      case sth of
-                        Just dt -> dt
-                        Nothing -> dbDefer
+                    Just sth -> fromMaybe dbDefer sth
                     Nothing -> dbDefer
 
                 -- Truncate everything below seconds, disregard leap
@@ -702,7 +706,7 @@ instance Backoffice HaskellE where
                 deferBy' = realToFrac deferBy
                 due = addUTCTime deferBy' (now ctx)
                 p = Patch.put Action.duetime due $
-                    Patch.put Action.parent (Just aid) $
+                    Patch.put Action.parent (Just aid)
                     basePatch
             void $ dbCreate p
 
@@ -761,7 +765,7 @@ newActionData ctx aType = (e, p)
         Patch.put Action.targetGroup (evalHaskell ctx $ BO.targetRole e) $
         Patch.put Action.aType aType $
         Patch.put Action.caseId (kase ctx `get'` Case.ident) $
-        Patch.put Action.serviceId ((`get'` Service.ident) <$> service ctx) $
+        Patch.put Action.serviceId ((`get'` Service.ident) <$> service ctx)
         Patch.empty
 
 
@@ -775,7 +779,7 @@ srvId' = do
   ctx <- ask
   return $
     fromMaybe (error "No service id in context") $
-    service ctx >>= (`Patch.get` Service.ident)
+    (`get'` Service.ident) <$> service ctx
 
 
 -- | Select some actions from the context.
@@ -788,8 +792,8 @@ filteredActions :: Scope
 filteredActions scope types resList = do
   ctx <- ask
   return $ do
-    let sid =  service ctx >>= (`get` Service.ident)
-    (`filter` (actions ctx)) $
+    let sid = (`get'` Service.ident) <$> service ctx
+    (`filter` actions ctx) $
       \act ->
         let
           typeOk   = (act `get'` Action.aType) `elem` types
@@ -840,7 +844,7 @@ actionToTrigger a =
       Nothing -> return ()
       Just newRes -> do
         -- Skip changes for actions of different types
-        when (this `get'` Action.aType == BO.aType a) $ do
+        when (this `get'` Action.aType == BO.aType a) $
           case lookup newRes (BO.outcomes a) of
             Just o -> do
               hctx <-

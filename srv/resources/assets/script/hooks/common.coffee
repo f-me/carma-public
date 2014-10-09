@@ -43,6 +43,9 @@ define [ "utils"
               else  kvm[fieldName](val || lab)
 
         kvm[fieldName].local = kvm["#{fieldName}Local"]
+        # FIXME: this shouldn't rewrite existing observable
+        # should be removed after refactoring of models
+        kvm[fieldName].text = kvm[fieldName].local
         # Use builder here, because same field can be in group
         # and in the main section, and we need to have
         # different instances og thMenu for them

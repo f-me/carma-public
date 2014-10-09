@@ -96,9 +96,9 @@ renderContractHandler = do
   Just contractId <- getParamT "contract"
   aids <- withPG pg_search $ \c -> query c
                 [sql|
-                 SELECT a.id::text
+                 SELECT a.id
                  FROM attachmenttbl a, "SubProgram" s, "Contract" c
-                 WHERE s.template=concat('attachment:', a.id)
+                 WHERE s.template=concat('Attachment:', a.id)
                  AND c.subprogram = s.id
                  AND c.id = ?
                  |]

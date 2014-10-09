@@ -114,7 +114,7 @@ authOrLogin = requireUser auth redirectToLogin
 ------------------------------------------------------------------------------
 -- | Render empty login form.
 loginForm :: AppHandler ()
-loginForm = serveFile "snaplets/heist/resources/templates/login.html"
+loginForm = serveFile "resources/static/tpl/login.html"
 
 
 ------------------------------------------------------------------------------

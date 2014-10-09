@@ -192,6 +192,10 @@ instance Backoffice TextE where
                             , ow'
                             ]
 
+    setCaseField acc i =
+        TextE $
+        (\c -> T.concat [fieldDesc acc, " ← ", c]) <$> toText i
+
     setServiceField acc i =
         TextE $
         (\c -> T.concat [fieldDesc acc, " ← ", c]) <$> toText i
