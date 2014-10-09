@@ -29,7 +29,7 @@ include _settings
         // +downloadTbl
 
     .row-fluid#results(style="overflow-y: auto")
-      table#tbl.table.table-striped.table-bordered
+      table#tbl.table.table-condensed.table-bordered
        thead
          tr
            // ko foreach: fields
@@ -40,14 +40,17 @@ include _settings
            // /ko
        tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
          tr(data-bind="visible: !(kvm.currentState() == 'LoggedOut' && \
+                                  kvm.lastState()    != 'Busy'      && \
                                   $root.hideOffline())")
            // ko foreach: $root.fields
            td(data-bind="visible: show, \n\
                          render: {kvm: kvm, field: $data}, \n\
-                         css: { 'inverse-orange': kvm.lastState() == 'Bysy' &&  \
+                         css: { 'inverse-orange': kvm.lastState() == 'Busy' &&  \
                                            kvm.currentState() == 'LoggedOut', \n\
                                 'inverse-red': kvm.currentState() == 'Busy' && \
-                                           kvm.inCurrent() > $root.overdue()}")
+                                           kvm.inCurrent() > $root.overdue(), \n\
+                                'grey-bg': kvm.currentState() == 'LoggedOut' \n\
+                              }")
            // /ko
 
 .hidden

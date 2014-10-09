@@ -1,6 +1,8 @@
 define ["utils"], (u) ->
   # Pretty action name for accordion header
   nameLocal: (model, knockVM) ->
+    knockVM["myAction"] = ko.computed ->
+      uid == global.user.id
     return if not /^case/.test(Finch.navigate())
     sDict = u.newModelDict "ServiceType"
     uDict = u.newModelDict "Usermeta", false, dictionaryLabel: 'login'
@@ -27,9 +29,6 @@ define ["utils"], (u) ->
             "@#{login}<br /> #{actName}"
           else
             actName
-    knockVM["myAction"] = ko.computed ->
-      uid == global.user.id
-
 
   actionColor: (model, kvm) ->
     kvm._actColor = ko.computed ->

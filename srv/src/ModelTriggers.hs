@@ -584,6 +584,13 @@ instance Backoffice HaskellE where
         modifyPatch (Patch.put acc (old `get'` acc))
         evalHaskell ctx body
 
+    setCaseField acc v =
+        HaskellE $ do
+          ctx <- ask
+          let cid = kase ctx `Patch.get'` Case.ident
+              val = evalHaskell ctx v
+          return $ void $ dbUpdate cid $ put acc val Patch.empty
+
     setServiceField acc v =
         HaskellE $ do
           ctx <- ask
