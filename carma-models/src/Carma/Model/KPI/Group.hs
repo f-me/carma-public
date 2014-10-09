@@ -1,29 +1,17 @@
-module Carma.Model.KPI.Stat where
-
+module Carma.Model.KPI.Group where
 
 import           Data.Typeable
 
 import           Data.Time.Clock (DiffTime)
-import qualified Data.Aeson as Aeson
 
 import           Data.Model
 import           Data.Model.View
 
-import           Carma.Model.Usermeta (Usermeta)
+import           Carma.Model.Types
+import           Carma.Model.PgTypes
 
-data StatKPI = StatKPI
-  { frontIdent   :: PK Int StatKPI     "KPI пользователя"
-  , user         :: F (IdentI Usermeta) "userid"          "Оператор"
-
-  , inReady      :: F (Maybe DiffTime) "Ready"   "Готов"
-  , inBusy       :: F (Maybe DiffTime) "Busy"    "Занят"
-  , inDinner     :: F (Maybe DiffTime) "Dinner"  "Обед"
-  , inRest       :: F (Maybe DiffTime) "Rest"    "Перерыв"
-  , inServiceBreak
-                 :: F (Maybe DiffTime) "ServiceBreak" "Служебный перерыв"
-  , inLoggedOut  :: F (Maybe DiffTime) "LoggedOut"    "Разлогинен"
-  , totalRest      :: F (Maybe DiffTime) "totalRest"     "Всего в перерывах"
-  , totalLoggedIn  :: F (Maybe DiffTime) "totalLoggedIn" "Всего в системе"
+data GroupKPI = GroupKPI
+  { ident       :: PK Int GroupKPI     "KPI пользователя"
 
   , infoTime     :: F (Maybe DiffTime) "infoTime"  "В разговоре: информационные"
   , infoCount    :: F (Maybe Int)      "infoCount" "Количество: информационные"
@@ -33,6 +21,10 @@ data StatKPI = StatKPI
 
   , newTime  :: F (Maybe DiffTime) "newTime"  "В разговоре: Создание кейса"
   , newCount :: F (Maybe Int)      "newCount" "Количество: Создание кейса"
+
+  , calltime    :: F (Maybe DiffTime) "calltime"    "Итого: Время в разговоре"
+  , callAmount  :: F (Maybe Int)      "callAmount"  "Итого: Количество звонков"
+  , callAvgtime :: F (Maybe DiffTime) "callAvgTime" "Среднее время разговора"
 
   , controlT :: F (Maybe DiffTime)
                 "controlT" "Ср. время \"Контроль услуги\""
@@ -51,6 +43,21 @@ data StatKPI = StatKPI
   , callMeMaybeC :: F (Maybe Int)
                 "callMeMaybeC" "Действий \"Заказ услуги - моб. прил.\""
 
+  , totalActionsAmount :: F (Maybe Int)
+                "totalActionsAmount" "Итого: Выполненных действий"
+  , totalActionsAvgTime :: F (Maybe DiffTime)
+                "totalActionsAvgTime" "Итого: Среднее время обработки действия"
+
+  , doneServices :: F (Maybe Int)
+                 "doneServices" "Количество оказанных услуг всего"
+
+  , allServicesAmount
+    :: F (Maybe Int) "allServicesAmount" "Количество созданных услуг"
+  , allServicesAvgAwaitingTime
+    :: F (Maybe DiffTime) "allServicesAvgAwaitingTime" "Среднее время ожидания"
+  , allServicesAvgRenderTime
+    :: F (Maybe DiffTime) "allServicesAvgRenderTime" "Среднее время оказания"
+
   , assigned
     :: F (Maybe Int) "assigned" "Назначено"
   , assignedOverdue
@@ -64,28 +71,12 @@ data StatKPI = StatKPI
   , unclosedOverdue
     :: F (Maybe Int) "unclosed_overdue" "Просрочено из не выполненных"
 
-  , calltime    :: F (Maybe DiffTime) "calltime"    "Итого: Время в разговоре"
-  , callAmount  :: F (Maybe Int)      "callAmount"  "Итого: Количество звонков"
-  , callAvgtime :: F (Maybe DiffTime) "callAvgTime" "Среднее время разговора"
-
   , utilization :: F (Maybe Double) "utilization" "Утилизация"
-  , avgActOverdue
-    :: F (Maybe DiffTime) "avgActionOverdue" "Ср. время просроч. действия"
+  } deriving Typeable
 
-  , actionsRelation :: F (Maybe Double) "actionsRelation" "Отношение: Действия"
-  , timeRelation    :: F (Maybe Double) "timeRelation" "Отношение: Время"
-
-  , actionsAmount
-    :: F (Maybe Int) "actionsAmount" "Итого действий"
-  , actionsAvgtime
-    :: F (Maybe DiffTime) "actionsAvgtime" "Ср. время обработки действия"
-} deriving Typeable
-
-instance Model StatKPI where
-  type TableName StatKPI = "StatKPI"
-  modelInfo = mkModelInfo StatKPI frontIdent
+instance Model GroupKPI where
+  type TableName GroupKPI = "GroupKPI"
+  modelInfo = mkModelInfo GroupKPI ident
   modelView = \case
-    "kpi" -> Just $ modifyView (stripId $ defaultView)
-      [setMeta "dictionaryLabel" (Aeson.String "realName") user]
+    "kpi" -> Just $ stripId defaultView
     _     -> Nothing
-
