@@ -88,7 +88,13 @@
          "label" : "Статистические показатели",
          "type"  : "li",
          "permissions": ["supervisor"]
+       },
+       { "name"  :"kpi/oper",
+         "label" : "Оперативные показатели",
+         "type"  : "li",
+         "permissions": ["supervisor"]
        }
+
      ]
     },
     { "type"    : "dropdown",

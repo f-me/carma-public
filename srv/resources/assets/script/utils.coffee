@@ -104,8 +104,15 @@ define [ "model/utils"
 
   isMatch = (q, str) -> !!~String(str).toLowerCase().indexOf(q.toLowerCase())
 
-  kvmCheckMatch = (q, kvm) ->
-    v = for f in kvm._meta.model.fields
+  allowedField = (r, f) ->
+    return true unless r
+    if r.allowed?
+      _.contains(r.allowed, f.name) and not _.contains(r.forbidden, f.name)
+    else
+      not _.contains(r.forbidden, f.name)
+
+  kvmCheckMatch = (q, kvm, fieldsRestriction) ->
+    v = for f in kvm._meta.model.fields when allowedField fieldsRestriction, f
       if f.type == "dictionary"
         isMatch(q, kvm["#{f.name}Local"]())
       else if f.type == "dictionary-many"

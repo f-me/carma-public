@@ -165,6 +165,7 @@ instance Backoffice EdgeE where
     just _ = nothing
     req _ = nothing
 
+    setCaseField _ _ = nothing
     setServiceField _ _ = nothing
     sendMail _ = nothing
     sendSMS _ = nothing

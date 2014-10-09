@@ -26,6 +26,7 @@ import qualified Data.Text as T
 import           Data.Time.Clock (getCurrentTime)
 import qualified Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
+import           Data.Vector (singleton)
 
 import           GHC.TypeLits
 
@@ -54,6 +55,8 @@ import qualified Carma.Model.Call   as Call
 import           Snaplet.Search.Types (mkSel)
 import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
+
+import           AppHandlers.KPI (updateOperKPI)
 
 import           Util
 import           Utils.LegacyModel
@@ -135,6 +138,8 @@ updateUserState evt idt p evidt = do
            P.put currentStateCTime time    $
            P.put delayedState      Nothing $
            P.empty)
+        kpis <- updateOperKPI (singleton tgtUsr')
+        withMsg $ sendMessage "oper-kpi" kpis
   where
     mname = modelName (modelInfo :: ModelInfo m)
 

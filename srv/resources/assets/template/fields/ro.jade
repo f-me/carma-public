@@ -32,3 +32,8 @@
 
 #int-ro-template
   span(data-bind="text: $rawData.text")
+
+#case-ident-ro-template
+  // ko if: $data
+  a(data-bind="attr: { href: '/#case/' + $data }, text: $data")
+  // /ko

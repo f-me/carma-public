@@ -670,3 +670,25 @@ input.re-failed {
   background-color:#040404;
   *background-color:#000000;
 }
+
+.inverse-red {
+  color: #fff !important;
+  background-color: #f44 !important;
+}
+
+.inverse-orange {
+  background-color: #fa7700 !important;
+  color: #fff !important;
+}
+
+.tiny-input {
+  width: 50px;
+  padding: 0px;
+  margin-right: 10px;
+  margin-bottom: 0px !important;
+  padding: 0px !important;
+}
+
+.grey-bg {
+  background-color: #bbb;
+}

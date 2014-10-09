@@ -51,14 +51,14 @@ module.exports = (grunt) ->
           { cwd: "#{content}/template"
           , src: "**/*.jade"
           , filter: (f) ->
-              # ignore lib dir and files, that begin with "_"
+              # ignore index.jade and files, that begin with "_"
               (f != "index.jade") and (not /.*?\/?_[^\/]+\.jade/.test(f))
           , dest: tpl
           , expand: true
           , ext: ".html"
           },
           { src: "#{content}/template/index.jade"
-          , dest: "snaplets/heist/resources/templates/index.tpl"
+          , dest: "#{tpl}/index.tpl"
           }
           ]
 
@@ -94,6 +94,7 @@ module.exports = (grunt) ->
     knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
     notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
     spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
+    'js-base64': {src: 'js-base64',          file: 'base64.min.js'}
     'jquery-maskedinput':
       src: 'jquery-maskedinput/src'
       file: 'jquery.maskedinput.js'
