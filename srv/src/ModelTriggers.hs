@@ -80,10 +80,14 @@ import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 import           Carma.Backoffice
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
+import qualified Carma.Backoffice.Action.SMS as BOAction (sendSMS)
+import qualified Carma.Backoffice.Action.MailToGenser as BOAction (sendMailToGenser)
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
 
 import           AppHandlers.ActionAssignment
+
+import Util (hushExceptions)
 
 -- TODO: rename
 --   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
@@ -425,6 +429,13 @@ runTriggers before after dbAction fields state = do
     sequence_ $ matchingTriggers (modelName mInfo) after
 
   liftIO $ PG.commit pg
+
+  case res of
+    Left _   -> return ()
+    Right st -> liftIO
+      $ hushExceptions "triggers/future"
+      $ sequence_ $ map ($ FutureContext (st_pgcon st)) $ st_futur st
+
   return res
 
 
@@ -597,12 +608,13 @@ instance Backoffice HaskellE where
           sid <- srvId'
           return $ void $ setService sid acc (evalHaskell ctx v)
 
-    sendMail _ = HaskellE $ return $ return ()
+    sendMail = \case
+      Genser -> run $ BOAction.sendMailToGenser <$> srvId'
+      _ -> HaskellE $ return $ return ()
+      where
+        run = HaskellE . fmap inFuture
 
-    sendSMS tpl =
-      HaskellE $ do
-        sid <- srvId'
-        return $ Dsl.sendSMS sid tpl
+    sendSMS tpl = HaskellE $ inFuture . BOAction.sendSMS tpl <$> srvId'
 
     closePrevious scope types res =
       HaskellE $ do
