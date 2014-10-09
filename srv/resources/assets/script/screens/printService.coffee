@@ -12,7 +12,8 @@ define [ "text!tpl/screens/printSrv.html"
 
     $.getJSON( "/_/Action?serviceId=#{id}&type=1" )
       .done((objs) ->
-        if objs
+        svc.assignedTo = {realName: '-'}
+        if objs?.length > 0
           ass  = _.last(_.sortBy objs, (o) -> o.closeTime).assignedTo
           if ass
             svc.assignedTo = main.buildKVM global.model('Usermeta'),
