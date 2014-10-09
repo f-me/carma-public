@@ -130,8 +130,8 @@ define [ "utils"
     kvm['selectPartner'] = (partner, ev) ->
       selected = kvm['selectedPartner']()
       # don't select same partner twice
-      return if selected == partner?.id
-      return if partner?.isfree == false
+      return if selected == partner?.id()
+      return if partner?.isfree() == false
       if _.isNull selected
         selectPartner(kvm, partner)
       else
