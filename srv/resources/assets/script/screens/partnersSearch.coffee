@@ -86,7 +86,7 @@ define [ "utils"
         <b>Кто звонил:</b>
         #{kaseKVM.contact_name() || ''} #{kaseKVM.contact_phone1() || ''}
       </li>
-      <li> <b>Номер кеса:</b> #{kaseKVM.id() || ''} </li>
+      <li> <b>Номер кейса:</b> #{kaseKVM.id() || ''} </li>
       <li> <b>Адрес кейса:</b> #{kaseKVM.caseAddress_address() || ''}</li>
       <li> <b>Название программы: </b> #{kaseKVM.programLocal() || ''} </li>
       <li> <b> Марка: </b> #{kaseKVM.car_makeLocal?() || ''}</li>
