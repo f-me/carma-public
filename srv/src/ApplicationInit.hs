@@ -114,6 +114,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/userStates/:userId/:from/:to",
             chkAuth . method GET $ serveUserStates)
          , ("/kpi/stat/:from/:to", chkAuth . method GET $ getStat)
+         , ("/kpi/group/:from/:to", chkAuth . method GET $ getGroup)
          , ("/kpi/oper",           chkAuth . method GET $ getOper)
          ]
 

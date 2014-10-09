@@ -1,10 +1,10 @@
-mixin settingsContainer
+mixin settingsContainer(header)
   .row-fluid
     .span12
       .bs-docs-less-margins#kpi-list
         .bs-docs-example-after#settings-label
           i.icon-plus
-          | Настройки
+          = header || "Настройки"
         block
 
 mixin settings

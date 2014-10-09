@@ -98,7 +98,7 @@ define [ "model/render"
   # - maybeId; («—» if Backbone id is not available yet)
   #
   # - modelTitle;
-  buildKVM = (model, options) ->
+  buildKVM = (model, options = {}) ->
     fields    = model.fields
     required  = (f for f in fields when f.meta?.required)
 

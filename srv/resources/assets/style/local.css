@@ -692,3 +692,7 @@ input.re-failed {
 .grey-bg {
   background-color: #bbb;
 }
+
+.hidden {
+  display: none;
+}

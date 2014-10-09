@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
 
-module AppHandlers.KPI (getStat, getOper, updateOperKPI) where
+module AppHandlers.KPI (getStat, getOper, getGroup, updateOperKPI) where
 
 import           Control.Monad (forM)
 import           Control.Monad.Trans.Class
@@ -18,12 +18,14 @@ import           Snap (getParam, Handler)
 
 import           Application
 import           Database.PostgreSQL.Simple.SqlQQ
+import qualified Database.PostgreSQL.Simple.SqlQQ.Alt as SQ
 import           Snap.Snaplet.PostgresqlSimple
 
 import           Data.Model (IdentI)
 import           Data.Model.Patch
-import qualified Carma.Model.KPI.Stat as S
-import qualified Carma.Model.KPI.Oper as O
+import qualified Carma.Model.KPI.Stat  as S
+import qualified Carma.Model.KPI.Oper  as O
+import qualified Carma.Model.KPI.Group as G
 import           Carma.Model.Usermeta (Usermeta)
 
 import           AppHandlers.Util
@@ -165,3 +167,62 @@ FROM lastStates l
 LEFT JOIN preLast p ON l.userid = p.userid
 INNER JOIN lastLogin ll ON ll.userid = l.userid
 |]
+
+-------- Group KPIs ------------------------------------------------------------
+
+getGroup :: AppHandler ()
+getGroup = do
+  Just f <- getParam "from"
+  Just t <- getParam "to"
+  writeJSON =<< selectGroup f t
+
+selectGroup :: ByteString -> ByteString -> AppHandler (Patch G.GroupKPI)
+selectGroup from to = do
+  p <- uncurry query $ [SQ.sql|
+    SELECT sumcall.*
+         , all_actions.*
+         , services_done.*
+         , allservices.*
+         , controll_actions.*
+         , utilization.*
+    FROM      group_kpi_sumcalls($(from)$, $(to)$)         as sumcall
+    LEFT JOIN group_kpi_all_actions($(from)$, $(to)$)      as all_actions
+    ON true
+    LEFT JOIN group_kpi_services_done($(from)$, $(to)$)    as services_done
+    ON true
+    LEFT JOIN group_kpi_allservices($(from)$, $(to)$)      as allservices
+    ON true
+    LEFT JOIN group_kpi_controll_actions($(from)$, $(to)$) as controll_actions
+    ON true
+    LEFT JOIN group_kpi_utilization($(from)$, $(to)$)      as utilization
+    ON true
+    |]
+
+  let p' =
+        case p of
+          []  -> empty
+          [p] -> unW p
+          _   -> error "imposible happen, more than 1 record in query results"
+
+  rawCalls   <- query [sql| select * from group_kpi_calls(?, ?)  |] (from, to)
+  rawActions <- query [sql| select * from group_kpi_actions(?, ?)|] (from, to)
+  return $ foldl actions (foldl calls p' rawCalls) rawActions
+
+  where
+    calls p (tpe, t, a) =
+      case tpe :: Text of
+        "info"           -> putTuple p (G.infoTime, t) (G.infoCount, a)
+        "newCase"        -> putTuple p (G.newTime, t)  (G.newCount, a)
+        "processingCase" -> putTuple p (G.procTime, t) (G.procCount, a)
+        errVal -> error $ "Check group_kpi_calls," ++ (show errVal) ++
+                          " type should not be there."
+    actions p (tpe, t, a) =
+      case tpe :: Text of
+        "control"      -> putTuple p (G.controlT, t)      (G.controlC, a)
+        "orderService" -> putTuple p (G.orderServiceT, t) (G.orderServiceC, a)
+        "tellMeMore"   -> putTuple p (G.tellMeMoreT,   t) (G.tellMeMoreC,   a)
+        "callMeMaybe"  -> putTuple p (G.callMeMaybeT,  t) (G.callMeMaybeC,  a)
+        errVal -> error $ "Check group_kpi_actions," ++ (show errVal) ++
+                          " type should not be there."
+
+    putTuple p (f1, v1) (f2, v2) = put f1 v1 $ put f2 v2 p

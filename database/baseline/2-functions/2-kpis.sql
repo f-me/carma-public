@@ -369,3 +369,263 @@ GROUP BY a.assignedto;
 END;
 $func$
 LANGUAGE plpgsql;
+
+-------- group kpis -------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION group_kpi_calls(
+    fromTime timestamptz,
+    toTime   timestamptz)
+ RETURNS TABLE (
+ callType text,
+ callTime  interval,
+ amount   bigint
+) AS
+$func$
+BEGIN
+  RETURN QUERY
+  --"newCase" -"Кейс/Создание нового кейса"
+  --"processingCase" - "Кейс/Обработка кейса"(Вторичное обращение)
+  --"info" - все прочие звонки (информационные звонки)
+SELECT
+  (CASE
+    WHEN c.calltype NOT IN ('newCase', 'processingCase') OR c.callType IS NULL
+    THEN 'info'
+    ELSE c.calltype
+  END),
+  SUM(enddate - calldate) AS callTime,
+  COUNT(id) as amount
+FROM calltbl c
+  WHERE calldate > fromTime
+    AND calldate < toTime
+GROUP BY (CASE
+    WHEN c.calltype NOT IN ('newCase', 'processingCase') OR c.callType IS NULL
+    THEN 'info'
+    ELSE c.calltype
+  END);
+END;
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION group_kpi_sumcalls(c_time timestamp with time zone,
+                                              e_time timestamp with time zone)
+ RETURNS TABLE (
+  "callAmount" bigint,
+  calltime interval,
+  "callAvgTime" interval
+ ) AS
+$func$
+BEGIN
+  RETURN QUERY
+SELECT
+COUNT(calltbl.id) as "callAmount",
+SUM(coalesce(calltbl.enddate, NOW()) - calltbl.calldate) as "calltime",
+SUM(coalesce(calltbl.enddate, NOW()) - calltbl.calldate) / COUNT(calltbl.id)
+AS "callAvgTime"
+FROM calltbl
+WHERE calltbl.calldate IS NOT NULL
+AND calltbl.calldate BETWEEN c_time AND e_time;
+END;
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION group_kpi_actions(
+   c_time timestamp with time zone,
+   end_time timestamp with time zone)
+ RETURNS TABLE (
+ actiontype text,
+ avgtime interval,
+ amount bigint
+ ) AS
+$func$
+BEGIN
+  RETURN QUERY
+--ЗАКАЗ
+  --"orderService" - "Заказ услуги"
+  --"tellMeMore" - "Заказ услуги (требуется дополнительная информация)"
+  --"callMeMaybe" - "Заказ услуги через мобильное приложение"
+--КОНТРОЛЬ
+ --"control":
+  --"tellClient" - "Сообщение клиенту о договорённости"
+  --"checkStatus" - "Уточнить статус оказания услуги у партнёра"
+  --"checkEndOfService" - "Уточнения после оказания услуги"
+  --"cancelService" - "Отказ от услуги"
+  --"carmakerApproval" - "Согласование с автопроизводителем"
+  --"tellMakerDenied" - "Оповещение об отказе автопроизводителя"
+SELECT
+  CASE
+  WHEN (actiontbl.type IN (3, 4, 6, 9, 10, 11))
+  THEN 'control'
+  WHEN (actiontbl.type = 1)
+  THEN 'orderService'
+  WHEN (actiontbl.type = 19)
+  THEN 'tellMeMore'
+  WHEN (actiontbl.type = 20)
+  THEN 'callMeMaybe'
+  ELSE actiontbl.type::text
+  END AS actiontype,
+
+  sum(actiontbl.closetime-actiontbl.opentime)/COUNT(actiontbl.id) as avgtime,
+
+  COUNT(actiontbl.id) as amount
+
+FROM actiontbl
+WHERE actiontbl.closetime IS NOT NULL
+  AND actiontbl.opentime IS NOT NULL
+  AND actiontbl.assigntime BETWEEN c_time AND end_time
+  AND actiontbl.closetime IS NOT NULL
+  AND actiontbl.assigntime IS NOT NULL
+  AND actiontbl.type IN (3, 4, 6, 9, 10, 11, 1, 19, 20)
+GROUP BY (CASE
+    WHEN (actiontbl.type IN (3, 4, 6, 9, 10, 11))
+    THEN 'control'
+    WHEN (actiontbl.type = 1)
+    THEN 'orderService'
+    WHEN (actiontbl.type = 19)
+    THEN 'tellMeMore'
+    WHEN (actiontbl.type = 20)
+    THEN 'callMeMaybe'
+    ELSE actiontbl.type::text
+  END);
+END;
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION group_kpi_all_actions(
+       c_time timestamp with time zone,
+       e_time timestamp with time zone)
+ RETURNS TABLE (
+ totalActionsAmount  bigint,
+ totalActionsAvgTime interval
+ ) AS
+$func$
+BEGIN
+  RETURN QUERY
+SELECT
+  COUNT(id) as totalActionsAmount,
+  sum(closetime - opentime) / COUNT(id) as totalActionsAvgTime
+FROM actiontbl
+WHERE closetime IS NOT NULL
+AND assigntime BETWEEN c_time AND e_time
+AND closetime  IS NOT NULL
+AND opentime   IS NOT NULL;
+END;
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION group_kpi_services_done(
+       c_time timestamp with time zone,
+       e_time timestamp with time zone)
+ RETURNS TABLE (
+ doneServices bigint
+ ) AS
+$func$
+BEGIN
+  RETURN QUERY
+  SELECT COUNT(CASE WHEN (servicetbl.status IN (
+    10, --'Услуга оказана'
+    15, --"Услуга заказана"
+    16, --"Оказание услуги задерживается"
+    17, --"Услуга оказывается"
+    20 --'Услуга закрыта'
+  )) THEN servicetbl.id
+	END) as done_services
+FROM servicetbl
+WHERE servicetbl.createtime IS NOT NULL
+AND servicetbl.createtime BETWEEN c_time AND e_time;
+END;
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION group_kpi_allservices(
+       c_time timestamp with time zone,
+       e_time timestamp with time zone)
+ RETURNS TABLE (
+ allServicesAmount bigint,
+ allServicesAvgAwaitingTime interval,
+ allServicesAvgRenderTime interval
+ ) AS
+$func$
+BEGIN
+  RETURN QUERY
+  SELECT
+    COUNT((s.status != 9) OR NULL) as amount, --"Ошибка оператора"
+
+    AVG(
+      CASE
+        WHEN (s.times_factservicestart IS NOT NULL
+         AND c.calldate IS NOT NULL)
+        THEN s.times_factservicestart - c.calldate END
+        ) as avgAwaitingTime,
+
+    AVG(s.times_factserviceend - s.times_factservicestart) as avgRenderTime
+
+  FROM servicetbl s INNER JOIN casetbl c
+  ON s.parentid = c.id
+  WHERE s.createtime IS NOT NULL
+    AND s.createtime BETWEEN c_time AND e_time;
+END;
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION group_kpi_controll_actions(
+    c_time timestamp with time zone,
+    end_time timestamp with time zone)
+ RETURNS TABLE (
+ assigned bigint,
+ assigned_overdue bigint,
+ closed bigint,
+ closed_overdue bigint,
+ unclosed bigint,
+ unclosed_overdue bigint
+ ) AS
+$func$
+BEGIN
+  RETURN QUERY
+--КОНТРОЛЬ
+ --"controll":
+  --"tellClient" - "Сообщение клиенту о договорённости"
+  --"checkStatus" - "Уточнить статус оказания услуги у партнёра"
+  --"checkEndOfService" - "Уточнения после оказания услуги"
+  --"cancelService" - "Отказ от услуги"
+  --"carmakerApproval" - "Согласование с автопроизводителем"
+  --"tellMakerDenied" - "Оповещение об отказе автопроизводителя"
+SELECT
+COUNT(1) as assigned,
+COUNT(COALESCE(closetime, NOW()) > duetime OR NULL)
+  as assigned_overdue,
+COUNT(result) as closed,
+COUNT((result IS NOT NULL AND
+       COALESCE(closetime, NOW()) > duetime)
+      OR NULL)
+  as closed_overdue,
+COUNT((result IS NULL) OR NULL) as unclosed,
+COUNT((result IS NULL AND
+       COALESCE(closetime, NOW()) > duetime)
+      OR NULL)
+  as unclosed_overdue
+FROM actiontbl
+WHERE type IN (3, 4, 6, 9, 10, 11)
+AND duetime IS NOT NULL
+AND assigntime BETWEEN c_time AND end_time;
+END;
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION group_kpi_utilization(
+       c_time timestamp with time zone,
+       e_time timestamp with time zone)
+ RETURNS TABLE (
+ utilization double precision)
+ AS
+$func$
+BEGIN
+  RETURN QUERY
+SELECT
+       SUM(EXTRACT(EPOCH FROM "Busy")) / SUM(EXTRACT(EPOCH FROM "totalLoggedIn"))
+       AS utilization
+FROM get_KPI_timeinstate(
+       (SELECT array_agg(id) FROM usermetatbl where showKPI = 't'),
+       tstzrange(c_time, e_time)) t;
+END;
+$func$
+LANGUAGE plpgsql;

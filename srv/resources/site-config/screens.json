@@ -93,6 +93,11 @@
          "label" : "Оперативные показатели",
          "type"  : "li",
          "permissions": ["supervisor"]
+       },
+       { "name"  :"kpi/group",
+         "label" : "Групповые показатели",
+         "type"  : "li",
+         "permissions": ["supervisor"]
        }
 
      ]
