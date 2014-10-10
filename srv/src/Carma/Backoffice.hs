@@ -66,7 +66,7 @@ messageToGenser
       Entry
       (onField Service.status (const st)
       (switch
-       [ ( (caseField Case.program `oneOf` [Program.peugeot, Program.citroen]) &&
+       [ ( (caseField Case.program == const Program.genser) &&
            (serviceField svcType == const ST.towage) &&
            (serviceField Service.payType == just PT.ruamc)
            -- FIXME: lift check for Towage.towType from sendMail
