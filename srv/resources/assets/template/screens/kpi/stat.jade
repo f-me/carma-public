@@ -4,14 +4,15 @@ include _settings
 .row-fluid
   .span12.default-bs
     include _statNav
-    .row-fluid#settings
-      +settingsContainer
-        +settings
+    #stat-kpi-content(data-bind="spinner: spinner")
+      .row-fluid#settings(data-bind="with: settingsCtx")
+        +settingsContainer
+          +settings
 
-      .row-fluid#filters(style="margin-top: 10px")
-        .span4#kvmsFilter
-          +kvmFilter
-        .span2#date-range
+        .row-fluid#filters(style="margin-top: 10px")
+          .span4#kvmsFilter
+            +kvmFilter
+          .span2#date-range
             .input-append
               input.pane-span.focusable(type="text"
                 autocomplete="off"
@@ -27,10 +28,13 @@ include _settings
                 data-bind="value: interval.end, addMask: 'datetime'")
               span.add-on
                 i.icon.icon-calendar
+          .span2
+            button.btn(data-bind="click: fetchData"
+                       style="padding-bottom: 2px; padding-top:2px") OK
           +downloadTbl
 
-    .row-fluid#results(style="overflow-y: auto")
-      +table
+      .row-fluid#results(style="overflow-y: auto" data-bind="with: tblCtx")
+        +table
 
 .hidden
   include /fields/ro.jade
