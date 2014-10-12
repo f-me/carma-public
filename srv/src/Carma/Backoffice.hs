@@ -35,6 +35,7 @@ import qualified Carma.Model.Usermeta as Usermeta
 
 
 import Carma.Backoffice.DSL
+import Carma.Backoffice.DSL.Types (Eff)
 
 
 toBack :: Entry
@@ -50,12 +51,24 @@ toBack =
        )
      , ( serviceField svcType `oneOf` [ST.ken, ST.consultation]
        , sendSMS SMS.complete *>
+         messageToGenser *>
          setServiceStatus SS.ok *>
          proceed [AType.closeCase, AType.addBill]
        )
      ]
      (proceed [AType.orderServiceAnalyst])
     ))
+
+
+messageToGenser :: Backoffice bk => bk (Eff m)
+messageToGenser =
+    ite
+    ((caseField Case.program == const Program.genser) &&
+     (serviceField svcType == const ST.towage) &&
+     (serviceField Service.payType == just PT.ruamc)
+    )
+    (sendMail Genser) -- FIXME: lift check for Towage.towType from sendMail
+    nop
 
 
 needMakerApproval :: Entry
@@ -121,6 +134,7 @@ cancel =
       ]
       AResult.clientCanceledService *>
       sendMail PSA *>
+      messageToGenser *>
       proceed [AType.cancelService]
     )
 
@@ -166,11 +180,13 @@ orderService =
     [ (AResult.serviceOrdered,
        sendSMS SMS.order *>
        sendMail PSA *>
+       messageToGenser *>
        setServiceStatus SS.ordered *>
        proceed [AType.tellClient, AType.addBill])
     , (AResult.serviceOrderedSMS,
        sendSMS SMS.order *>
        sendMail PSA *>
+       messageToGenser *>
        setServiceStatus SS.ordered *>
        proceed [AType.checkStatus, AType.addBill])
     , (AResult.needPartner,
@@ -207,9 +223,11 @@ orderServiceAnalyst =
            , ST.adjuster
            ]
          , setServiceStatus SS.ordered *>
+           messageToGenser *>
            proceed [AType.checkStatus, AType.addBill])
        ]
        (setServiceStatus SS.ordered *>
+        messageToGenser *>
         proceed [AType.closeCase, AType.addBill]))
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
@@ -266,6 +284,7 @@ checkEndOfService =
     [ (AResult.serviceDone,
        sendSMS SMS.complete *>
        sendMail Dealer *>
+       messageToGenser *>
        setServiceStatus SS.ok *>
        ite (caseField Case.program `oneOf`
             [Program.peugeot, Program.citroen, Program.vw])
@@ -315,11 +334,13 @@ cancelService =
     ((1 * minutes) `since` now)
     [ (AResult.falseCallUnbilled,
        sendSMS SMS.cancel *>
+       messageToGenser *>
        setServiceStatus SS.canceled *>
        setServiceField Service.falseCall (const FS.nobill) *>
        finish)
     , (AResult.falseCallBilled,
        sendSMS SMS.cancel *>
+       messageToGenser *>
        setServiceStatus SS.canceled *>
        setServiceField Service.falseCall (const FS.bill) *>
        finish)

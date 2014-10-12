@@ -604,6 +604,8 @@ instance Backoffice HaskellE where
         sid <- srvId'
         return $ Dsl.sendSMS sid tpl
 
+    nop = HaskellE $ return $ return ()
+
     closePrevious scope types res =
       HaskellE $ do
         ctx <- ask

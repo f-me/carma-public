@@ -243,6 +243,9 @@ class Backoffice impl where
 
     sendSMS  :: IdentI SmsTemplate -> impl (Eff m)
 
+    -- | Effectfully do nothing
+    nop ::impl (Eff m)
+
     -- | Close due actions of matching type.
     closePrevious :: Scope
                   -- ^ Where to look for actions.

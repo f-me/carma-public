@@ -210,6 +210,8 @@ instance Backoffice TextE where
                                                Dealer -> "дилеру"
                                                Genser -> "в Genser"
 
+    nop = textE "Ничего не делать"
+
     closePrevious scope acts r =
         TextE $ do
           acts' <- mapM (toText . const) acts
