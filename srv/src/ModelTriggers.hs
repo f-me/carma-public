@@ -616,6 +616,8 @@ instance Backoffice HaskellE where
 
     sendSMS tpl = HaskellE $ inFuture . BOAction.sendSMS tpl <$> srvId'
 
+    nop = HaskellE $ return $ return ()
+
     closePrevious scope types res =
       HaskellE $ do
         ctx <- ask
