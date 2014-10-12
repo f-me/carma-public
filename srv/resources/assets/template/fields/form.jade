@@ -84,12 +84,13 @@ mixin labelAnnotations
 
 .field-template#date-field-template
   +fieldControlGroup
-    .input-append.date(data-provide="datepicker"
+    .input-group.date(data-provide="datepicker"
                        data-autoshow-datepicker="true"
                        data-date-format="dd.mm.yyyy"
                        data-date-weekstart="1"
                        data-bind="pickerDisable: {{ name }}Disabled")
       +defaultInput("", "", "afterkeydown")
+
       span.input-group-addon.glyphicon.glyphicon-calendar
         i.icon.icon-calendar
       +savingSpinner
@@ -129,25 +130,26 @@ mixin labelAnnotations
       i.icon.stolen-icon-phone(onclick="doPick('{{ meta.picker }}',\
                                                     '{{ name }}');")
 
+mixin dictInput(nameMod)
+  input.form-control( type="text"
+     class="{{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}"
+     autocomplete="off"
+     name="{{ name }}"
+     data-bind="\n\
+                value: {{ name }}#{nameMod},\n\
+                valueUpdate: 'change',\n\
+                disabled: {{ name }}Disabled,\n\
+                pickerDisable: {{ name }}Disabled,\n\
+                bindDict: '{{ name }}',\n\
+                {{# meta.regexp   }}\n\
+                css: { 're-failed': {{name}}Regexp }\n\
+                {{/ meta.regexp   }}")
+
 mixin dict(nameMod, iconClass)
   +fieldControlGroup
 
-    //- Note the difference between readonly attribute and
-    //- disabled class from Bootstrap.
+    +dictInput(nameMod)
 
-    input.form-control( type="text"
-       class="{{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}"
-       autocomplete="off"
-       name="{{ name }}"
-       data-bind="\n\
-                  value: {{ name }}#{nameMod},\n\
-                  valueUpdate: 'change',\n\
-                  disabled: {{ name }}Disabled,\n\
-                  pickerDisable: {{ name }}Disabled,\n\
-                  bindDict: '{{ name }}',\n\
-                  {{# meta.regexp   }}\n\
-                  css: { 're-failed': {{name}}Regexp }\n\
-                  {{/ meta.regexp   }}")
     span.input-group-addon
       span.glyphicon.glyphicon-chevron-down
     +savingSpinner
@@ -268,33 +270,36 @@ mixin checkboxTpl
 // Container field template for attachment reference list, with upload
 // form. See also files-reference-template for each item template.
 #inline-uploader-field-template.field-template(type='text/template')
-  .controls
-    .accordion.accordion-group
-      label {{ meta.label }}
-      div(id="{{ modelName }}-{{ cid }}-{{ name }}-references")
-      form(data-bind="\n\
-        attr: { action: '/upload/{{ modelName }}/'+maybeId()+'/{{ name }}'},\
-        {{#meta.single-uploader}} \n\
-        visible: _.isEmpty({{name}}()),\n\
-        {{/meta.single-uploader}}\n\
-        setdata: {{ name }}"
-        style='margin-bottom: 0;')
+  +fieldControlGroup
+    div(id="{{ modelName }}-{{ cid }}-{{ name }}-references")
+    form.form(data-bind="\n\
+      attr: { action: '/upload/{{ modelName }}/'+maybeId()+'/{{ name }}'},\
+      {{#meta.single-uploader}} \n\
+      visible: _.isEmpty({{name}}()),\n\
+      {{/meta.single-uploader}}\n\
+      setdata: {{ name }}"
+      style='margin-bottom: 0;')
 
-        // File chooser widget
-        .input-append(style='width: 100%;')
+      // File chooser widget
+      .row
+        .col-md-12
           input.upload-dialog(type='file'
             onchange='$(this).siblings(\'.upload-names\').val($(this).val());'
             data-bind='disabled: {{ name }}Disabled'
             style='display: none;')
-          input.upload-names(type='text'
-                             style='width: 50%;'
+          input.form-control.upload-names(type='text'
+                             style=''
                              disabled='disabled')
-          a.btn(data-bind='disabled: {{ name }}Disabled'
+      .row
+        .col-md-6
+          a.btn.btn-default.btn-block(data-bind='disabled: {{ name }}Disabled'
                 onclick="$(this).siblings('.upload-dialog').click();")
-            i.icon.icon-folder-open
+            span.glyphicon.glyphicon-folder-open
             | &nbsp;Обзор
-          a.btn.btn-primary(data-bind='disabled: {{ name }}Disabled', onclick='inlineUploadFile($(this).closest(\'form\'));')
-            i.icon.icon-upload.icon-white
+        .col-md-6
+          a.btn.btn-primary.btn-block(data-bind='disabled: {{ name }}Disabled'
+                            onclick='inlineUploadFile($(this).closest(\'form\'));')
+            span.glyphicon.glyphicon-upload
             | &nbsp;Загрузить
 
 //- Special template used to render first field of group in parent view.
@@ -367,28 +372,30 @@ mixin checkboxTpl
             href="#")
 
 #Case-caseStatus-field-template.field-template
-  +dict("Local", "icon-chevron-down")
-     div.row-fluid
-      div(
-       class="span12"
-       data-toggle="tooltip"
-       data-html="true"
-       data-placement="bottom"
-       data-bind='attr: { title: buttons.needInfo.tooltip }')
-       button.btn.btn-small.btn-info(
-         style="width: 100%"
-         id="{{name}}-needInfo"
-         data-bind='disabled: buttons.needInfo.disabled,\
-                    click: buttons.needInfo.click')
-         i.icon-white.icon-info-sign
-         |&nbsp;
-         span(data-bind='text: buttons.needInfo.text')
+  +fieldControlGroup
+    .row
+      +dictInput("Local")
+    .row
+      .span12(
+        data-toggle="tooltip"
+        data-html="true"
+        data-placement="bottom"
+        data-bind='attr: { title: buttons.needInfo.tooltip }')
+        button.btn.btn-small.btn-info(
+          style="width: 100%"
+          id="{{name}}-needInfo"
+          data-bind='disabled: buttons.needInfo.disabled,\
+                     click: buttons.needInfo.click')
+          i.icon-white.icon-info-sign
+          |&nbsp;
+          span(data-bind='text: buttons.needInfo.text')
 
 #svcStatus-field-template.field-template
-  +dict("Local", "icon-chevron-down")
-    div.row-fluid
-      div(
-        class="svc-status-button"
+  +fieldControlGroup
+    .row
+      +dictInput("Local")
+    .row
+      .svc-status-button(
         data-bind="visible: buttons.backoffice.visible")
         button.btn.btn-small.btn-info(
           style="width:100%"
@@ -396,8 +403,7 @@ mixin checkboxTpl
           i.icon-white.icon-play
           |&nbsp;
           span(data-bind='text: buttons.backoffice.text')
-      div(
-        class="svc-status-button"
+      .svc-status-button(
         data-bind="visible: buttons.recallClient.visible")
         button.btn.btn-small.btn-info(
           style="width:100%"
@@ -405,8 +411,7 @@ mixin checkboxTpl
           i.icon-white.icon-time
           | &nbsp;
           span(data-bind='text: buttons.recallClient.text')
-      div(
-        class="svc-status-button"
+      .svc-status-button(
         data-toggle="tooltip"
         data-html="true"
         data-placement="bottom"
@@ -458,7 +463,7 @@ mixin checkboxTpl
 
 // File upload template
 #file-field-template.field-template(type='text/template')
-  i.icon.icon-file
+  span.glyphicon.glyphicon-folder-open
   a.file-name(data-bind='attr: { href: {{ name }}Url }, text: {{ name }}')
 
 // Modal dialog template
@@ -496,14 +501,16 @@ mixin checkboxTpl
   May setup on-demand loading function.
 
 mixin refCommon
-  .accordion-group
-    .accordion-heading
-      .accordion-toggle.collapsed(id="{{ refView }}-link"
-          data-target='#{{ refView }}-head'
-          data-toggle='collapse')
-        block
-    .accordion-body.collapse(id="{{ refView }}-head")
-      .accordion-inner(class="{{ refClass }}" id="{{ refView }}")
+  .panel-group(id="{{ refView }}-group")
+    .panel.panel-default
+      .panel-heading
+        h4.panel-title(id="{{ refView }}-link"
+                       data-parent="{{ refView }}-group"
+                       data-target="#{{ refView }}-head"
+                       data-toggle="collapse")
+          block
+      .panel-collapse.collapse(id="{{ refView }}-head")
+        .panel-body(class="{{ refClass }}" id="{{ refView }}")
         // Instance contents are rendered here
 
 mixin simpleRefHdr(name, bindName)
@@ -512,7 +519,7 @@ mixin simpleRefHdr(name, bindName)
 
 #services-reference-template.reference-template
   +refCommon
-    div.alert(data-bind='style: {"background-color": _svcColor}')
+    div(data-bind='style: {"background-color": _svcColor}')
       span &nbsp;
       a(data-bind='text: _meta.model.title')
         | Услуга…
@@ -571,7 +578,7 @@ mixin simpleRefHdr(name, bindName)
 mixin caseFilesList
   ul.unstyled(data-bind="foreach: safelyGet(\'filesReference\')")
     li
-      i.icon.icon-file
+      span.glyphicon.glyphicon-folder-open
       a.file-name(data-bind="attr: { href: filenameUrl }, text: filename")
 
 // Default case group view template

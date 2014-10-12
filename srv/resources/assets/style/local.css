@@ -12,6 +12,16 @@
   height: 100%;
 }
 
+/* suppress row margins, so we won't get off the screen */
+.screen.row, .screen > .row {
+  margin-left: 0px;
+  margin-right: 0px;
+}
+.screen > .col {
+  height: 100%;
+  overflow-y: auto;
+}
+
 #call-screen > .row {
   height: 50%;
   overflow-y: auto;
