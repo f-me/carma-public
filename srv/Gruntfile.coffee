@@ -62,6 +62,10 @@ module.exports = (grunt) ->
           }
           ]
 
+    shell:
+      bower:
+        command: "bower install"
+
     clean:
       all:
         src: ["#{js}/**/*", tpl, css]
@@ -151,6 +155,6 @@ module.exports = (grunt) ->
   newerify = (ts) -> "newer:#{t}" for t in ts
 
   grunt.registerTask("build", newerify ['coffee', 'copy', 'jade'])
-  grunt.registerTask("rebuild", ['clean', 'build'])
-  grunt.registerTask("bwatch", ['build', 'watch'])
+  grunt.registerTask("rebuild", ['shell:bower', 'clean', 'build'])
+  grunt.registerTask("bwatch", ['rebuild', 'watch'])
   grunt.registerTask("default", "rebuild")
