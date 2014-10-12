@@ -12,6 +12,6 @@ mixin table
     tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
       tr
         // td.expand-contoller
-        // ko foreach: $root.fields
+        // ko foreach: $parent.fields
         td(data-bind="visible: show, render: {kvm: kvm, field: $data}")
         // /ko

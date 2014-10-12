@@ -9,4 +9,4 @@ window.urlFor = (field) ->
     when "Case"
       "/#case/#{field()}"
     else
-      "/##{kvm._meta.model.name}/#{field()}"
+      "/##{field.kvm._meta.model.name}/#{field()}"

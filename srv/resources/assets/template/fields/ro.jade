@@ -13,22 +13,27 @@
   span(data-bind="text: $rawData.local")
 
 #text-ro-template
-  span(data-bind="text: $data")
+  span(data-bind="text: $rawData.text")
 
 #checkbox-ro-template
   span(data-bind="text: $data ? '✓' : ''")
 
 #ident-ro-template
-  a(data-bind="attr: {href: $rawData}, text: $data ")
+  a(data-bind="attr: {href: urlFor($rawData)}, text: $rawData.text ")
 
 #datetime-ro-template
-  span(data-bind="text: $data")
+  span(data-bind="text: $rawData.text")
 
 #date-ro-template
-  span(data-bind="text: $data")
+  span(data-bind="text: $rawData.text")
 
 #phone-ro-template
-  span(data-bind="text: $data")
+  span(data-bind="text: $rawData.text")
 
 #int-ro-template
-  span(data-bind="text: $data")
+  span(data-bind="text: $rawData.text")
+
+#case-ident-ro-template
+  // ko if: $data
+  a(data-bind="attr: { href: '/#case/' + $data }, text: $data")
+  // /ko

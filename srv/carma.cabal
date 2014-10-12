@@ -45,7 +45,6 @@ Executable carma
     Snaplet.DbLayer.PostgresCRUD,
     Snaplet.DbLayer.Triggers,
     Snaplet.DbLayer.Triggers.Actions,
-    Snaplet.DbLayer.Triggers.Defaults,
     Snaplet.DbLayer.Triggers.Dsl,
     Snaplet.DbLayer.Triggers.Types,
     Snaplet.DbLayer.Triggers.Util,
@@ -73,7 +72,7 @@ Executable carma
     base                        >= 4 && < 5,
     blaze-builder               == 0.3.*,
     bytestring                  >= 0.9.1 && < 0.11,
-    carma-models                >= 0.25.1 && < 0.26,
+    carma-models                >= 0.26 && < 0.27,
     carma-http                  >= 0.4 && < 0.6,
     carma-sync                  >= 0.5 && < 0.6,
     conduit                     == 1.1.*,
@@ -129,8 +128,8 @@ Executable carma
     xml-conduit                 == 1.2.*,
     xmlhtml                     == 0.2.*,
     process-extras              == 0.2.*,
-    websockets                  == 0.8.*,
-    websockets-snap             == 0.8.*,
+    websockets                  == 0.9.*,
+    websockets-snap             == 0.9.*,
     BoundedChan                 == 1.0.3.*,
     timers                      == 0.2.*,
     suspend                     >= 0.1 && < 0.3
@@ -159,7 +158,7 @@ Executable carma-db-checker
   main-is: Main.hs
   Build-depends:
       postgresql-simple           >= 0.4.4.1 && < 0.5,
-      carma-models                >= 0.25 && < 0.26,
+      carma-models                >= 0.26 && < 0.27,
       unordered-containers        == 0.2.*,
       cmdlib                      == 0.3.*,
       boxes                       == 0.1.*

@@ -17,7 +17,7 @@ define [ "hooks/common"
                , c.jsonDictObjsHook
                ]
 
-      "Action" : [a.actionColor, a.nameLocal]
+      "Action" : [a.actionColor, a.nameLocal, a.suppressScroll]
 
       "AverageCommissioner" : [ s.serviceColor
                               , s.updateCaseActions

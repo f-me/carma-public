@@ -22,18 +22,17 @@ module.exports = (grunt) ->
         dest:    built
         ext:     '.js'
 
+    concat_css:
+      all:
+        src: "#{content}/style/**/*.css"
+        dest: "#{css}/local.css"
+
     copy:
       js:
         expand: true
         cwd: scripts
         src: ["**/*.js"]
         dest: js
-        filter: 'isFile'
-      css:
-        expand: true
-        cwd: "#{content}/style"
-        src: ["**/*.css"]
-        dest: css
         filter: 'isFile'
       template:
         expand: true
@@ -51,16 +50,20 @@ module.exports = (grunt) ->
           { cwd: "#{content}/template"
           , src: "**/*.jade"
           , filter: (f) ->
-              # ignore lib dir and files, that begin with "_"
+              # ignore index.jade and files, that begin with "_"
               (f != "index.jade") and (not /.*?\/?_[^\/]+\.jade/.test(f))
           , dest: tpl
           , expand: true
           , ext: ".html"
           },
           { src: "#{content}/template/index.jade"
-          , dest: "snaplets/heist/resources/templates/index.tpl"
+          , dest: "#{tpl}/index.tpl"
           }
           ]
+
+    shell:
+      bower:
+        command: "bower install"
 
     clean:
       all:
@@ -81,7 +84,7 @@ module.exports = (grunt) ->
         tasks: "newer:copy:template"
       style:
         files: ["#{content}/style/**/*"]
-        tasks: "newer:copy:css"
+        tasks: "newer:concat_css"
 
 
   thirdParty =
@@ -94,6 +97,7 @@ module.exports = (grunt) ->
     knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
     notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
     spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
+    'js-base64': {src: 'js-base64',          file: 'base64.min.js'}
     'jquery-maskedinput':
       src: 'jquery-maskedinput/src'
       file: 'jquery.maskedinput.js'
@@ -152,7 +156,7 @@ module.exports = (grunt) ->
 
   newerify = (ts) -> "newer:#{t}" for t in ts
 
-  grunt.registerTask("build", newerify ['coffee', 'copy', 'jade'])
-  grunt.registerTask("rebuild", ['clean', 'build'])
-  grunt.registerTask("bwatch", ['build', 'watch'])
+  grunt.registerTask("build", newerify ['coffee', 'copy', 'jade', 'concat_css'])
+  grunt.registerTask("rebuild", ['shell:bower', 'clean', 'build'])
+  grunt.registerTask("bwatch", ['rebuild', 'watch'])
   grunt.registerTask("default", "rebuild")

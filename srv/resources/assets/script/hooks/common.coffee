@@ -43,6 +43,9 @@ define [ "utils"
               else  kvm[fieldName](val || lab)
 
         kvm[fieldName].local = kvm["#{fieldName}Local"]
+        # FIXME: this shouldn't rewrite existing observable
+        # should be removed after refactoring of models
+        kvm[fieldName].text = kvm[fieldName].local
         # Use builder here, because same field can be in group
         # and in the main section, and we need to have
         # different instances og thMenu for them
@@ -285,7 +288,9 @@ define [ "utils"
 
   # Standard element callback which will scroll model into view and
   # focus on first field
-  stdElCb: (elName) ->
+  stdElCb: (elName, kvm) ->
+    if kvm._meta?._noscroll
+      return
     e = $el(elName)
     # Scroll group to the top of the screen
     if e.hasClass("accordion-inner")

@@ -160,7 +160,7 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
             currentSection = f.name
 
             if f.meta and (not f.meta.mainOnly)
-              f.type = "group"
+              f.type = f.meta?['group-widget'] || "group"
               f.meta?.widget = null
               tpl = chooseFieldTemplate(f, templates)
               contents[mainGroup] += Mustache.render(tpl, ctx)

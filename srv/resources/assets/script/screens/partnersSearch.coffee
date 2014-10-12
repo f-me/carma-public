@@ -86,7 +86,7 @@ define [ "utils"
         <b>Кто звонил:</b>
         #{kaseKVM.contact_name() || ''} #{kaseKVM.contact_phone1() || ''}
       </li>
-      <li> <b>Номер кеса:</b> #{kaseKVM.id() || ''} </li>
+      <li> <b>Номер кейса:</b> #{kaseKVM.id() || ''} </li>
       <li> <b>Адрес кейса:</b> #{kaseKVM.caseAddress_address() || ''}</li>
       <li> <b>Название программы: </b> #{kaseKVM.programLocal() || ''} </li>
       <li> <b> Марка: </b> #{kaseKVM.car_makeLocal?() || ''}</li>
@@ -130,15 +130,15 @@ define [ "utils"
     kvm['selectPartner'] = (partner, ev) ->
       selected = kvm['selectedPartner']()
       # don't select same partner twice
-      return if selected == partner?.id
-      return if partner?.isfree == false
+      return if selected == partner?.id()
+      return if partner?.isfree() == false
       if _.isNull selected
         selectPartner(kvm, partner)
       else
         partnerCancel.setup(
           selected,
-          Number.parseInt(ctx.service.id.replace(/\D*/, '')),
-          Number.parseInt(ctx.case.id.replace(/\D*/, ''))
+          parseInt(ctx.service.id.replace(/\D*/, '')),
+          parseInt(ctx.case.id.replace(/\D*/, ''))
         )
         partnerCancel.onSave ->
           selectPartner(kvm, partner)
@@ -216,7 +216,7 @@ define [ "utils"
           fixed_city = dict.getLab c
           $.getJSON map.geoQuery(fixed_city), (res) ->
             if res.length > 0
-              place = map.buildCityPlace res
+              place = map.buildCityPlace res, c
               kvm["cityPlaces"].push place
 
   # Format addrs field for partner info template

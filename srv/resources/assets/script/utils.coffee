@@ -104,8 +104,15 @@ define [ "model/utils"
 
   isMatch = (q, str) -> !!~String(str).toLowerCase().indexOf(q.toLowerCase())
 
-  kvmCheckMatch = (q, kvm) ->
-    v = for f in kvm._meta.model.fields
+  allowedField = (r, f) ->
+    return true unless r
+    if r.allowed?
+      _.contains(r.allowed, f.name) and not _.contains(r.forbidden, f.name)
+    else
+      not _.contains(r.forbidden, f.name)
+
+  kvmCheckMatch = (q, kvm, fieldsRestriction) ->
+    v = for f in kvm._meta.model.fields when allowedField fieldsRestriction, f
       if f.type == "dictionary"
         isMatch(q, kvm["#{f.name}Local"]())
       else if f.type == "dictionary-many"
@@ -297,10 +304,10 @@ define [ "model/utils"
     "Доступно при заполнении полей: #{labels.join(', ')}"
 
   # Select case actions with matching types and which are created for
-  # this service
+  # this service. If types list is empty, match all action types.
   svcActions: (kase, svc, types) ->
     _.filter (kase['actionsList']?() || []),
-      (a) -> (a.serviceId() == svc.id()) && (_.contains types, a.type())
+      (a) -> (a.serviceId() == svc.id()) && (_.isEmpty(types) || _.contains types, a.type())
 
   # FIXME: This could be a callback for main.js:saveInstance
   successfulSave: successfulSave

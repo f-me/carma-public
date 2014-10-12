@@ -1,0 +1,63 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    title Вход в систему
+    link(rel='stylesheet', href='/s/3p/bootstrap/css/bootstrap.min.css')
+    link(rel='stylesheet', href='/s/css/local.css')
+    script(src='/s/3p/jquery.js')
+    script(src='/s/3p/jquery.browser.js')
+    script.
+      $(function() {
+      $(".field").first().focus();
+      var msg = "<div class='span6 offset2'>                             \\
+      Для использования системы необходим браузер Google chrome          \\
+      версии не ниже 10, установить его можно по следующей ссылке:       \\
+      <a href='http://www.google.com/chrome'> www.google.com/chrome </a> \\
+      </div>";
+      if (!$.browser.mozilla && !$.browser.webkit) {
+      $("body").html(msg);
+      }
+      $("form").submit(function() {
+      var ext = $("input[name=avayaExt]")
+      var pwd = $("input[name=avayaPwd]")
+      document.cookie
+      = "avaya=" + escape(ext.val() + "|" + pwd.val())
+      + "; path=/;"
+      ext.val('')
+      pwd.val('')
+      return true
+      })
+      })
+  body
+    .row-fluid
+      .span4
+      #loginblock.box.span4
+        #loginlogo
+          img(src='/s/img/logo.png')
+        form.form-horizontal(action='/login/', method='POST')
+          fieldset
+            legend Вход в систему
+            .control-group
+              .control-label
+                label Имя пользователя
+              .controls
+                input.field(type='text', name='login')
+            .control-group
+              .control-label
+                label Пароль
+              .controls
+                input.field(type='password', name='password')
+            .control-group
+              .control-label
+                label Avaya
+              .controls
+                input.field.input-mini(type='text', name='avayaExt')
+                input.field.input-mini(type='text', name='avayaPwd')
+            .control-group
+              .controls
+                label.checkbox.inline
+                  input.field(type='checkbox', name='remember')
+                  | Запомнить меня
+            .form-actions
+              button.btn.btn-large.btn-success(type='submit') Войти

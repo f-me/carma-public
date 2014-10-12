@@ -300,8 +300,8 @@ define ["text!tpl/screens/timeline.html"
       _.each @closeCbs, (cb) ->
         cb(data)
 
-  tbl = null
-  ws  = null
+  kvms = null
+  ws   = null
 
   setupScreen = (viewName, args) ->
 
@@ -323,7 +323,6 @@ define ["text!tpl/screens/timeline.html"
     kvms.typeahead = th
 
     select = (user) ->
-      console.log 'select'
       unless _.find(timelines(), (t) -> t.user.id is user.id)
         $("html, body").animate({ scrollTop: $(document).height() }, "slow")
         timeline = new Timeline({user: user})
@@ -333,7 +332,7 @@ define ["text!tpl/screens/timeline.html"
 
     $.getJSON "/_/Usermeta", (data) =>
       model = global.model('Usermeta')
-      a = _.map _.filter(data, (v) -> v.isActive), (d) =>
+      a = _.map _.filter(data, (v) -> v.isActive and v.showKPI), (d) =>
         mapper = new DataMap.Mapper(model)
         k = Main.buildKVM model, {fetched: mapper.s2cObj d}
         k._meta.q = new Crud.CrudQueue(k, k._meta.model, {dontFetch: true})
@@ -347,8 +346,7 @@ define ["text!tpl/screens/timeline.html"
   destructor:  (viewName) =>
     $('#timeline-view').off()
     ko.removeNode $('#timeline-view')[0]
-    tbl.destructor()
-    _.map tbl.items(), (k) -> k.cleanupKVM()
+    kvms.clean()
     ws?.close()
     ws   = null
     kvms = null

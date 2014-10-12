@@ -58,6 +58,7 @@ define [], ->
     'dictionary-set-int':  c2sDictSetInt
     'dictionary-set-text': c2sDictSetText
     'dictionary-many': (v) -> (v?.join ',') || ''
+    'dictionary-string-null': (v) -> if _.isNull v then '' else v
     checkbox  : (v) -> if v then "1" else "0"
     Bool      : (v) -> v
     Integer   : (v) -> parseInt v
@@ -65,7 +66,7 @@ define [], ->
     Day       : c2sDay
     UTCTime   : (v) -> ((parseISO guiUTCTimeFormat) v)?.toISOString()
     IdentList : (v) -> v
-    dictionary: (v) -> if _.isNull v then '' else v
+    dictionary: (v) -> if v == "" then null else v
     coords    : (v) -> if v == "" then null else v
     JsonAsText: JSON.stringify
     JSON      : (v) -> v
@@ -78,6 +79,7 @@ define [], ->
     'dictionary-set-int':  _.identity
     'dictionary-set-text': _.identity
     'dictionary-many': (v) -> if _.isEmpty v then [] else v.split(',')
+    'dictionary-string-null': (v) -> v
     checkbox  : (v) -> v == "1"
     Bool      : (v) -> v
     Integer   : (v) -> v
@@ -99,7 +101,7 @@ define [], ->
     r
 
   modelTypes = (model) ->
-    _.foldl model.fields, ((m, f) -> m[f.name] = f.type; m), {}
+    _.foldl model.fields, ((m, f) -> m[f.name] = f.meta?['datamap-type'] || f.type; m), {}
 
   class Mapper
     constructor: (model) ->

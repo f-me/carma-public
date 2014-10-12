@@ -109,13 +109,13 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/dealers/:make", chkAuth . method GET  $ allDealersForMake)
          , ("/vin/upload",    chkAuth . method POST $ vinImport)
          , ("copyCtrOptions", chkAuth . method POST $ copyCtrOptions)
-         , ("/printSrv/:model/:id",
-            chkAuthLocal . method GET $ printServiceHandler)
          , ("/clientConfig",       chkAuth . method GET  $ clientConfig)
          , ("/errors",        method POST errorsHandler)
          , ("/userStates/:userId/:from/:to",
             chkAuth . method GET $ serveUserStates)
          , ("/kpi/stat/:from/:to", chkAuth . method GET $ getStat)
+         , ("/kpi/group/:from/:to", chkAuth . method GET $ getGroup)
+         , ("/kpi/oper",           chkAuth . method GET $ getOper)
          ]
 
 dconf :: DirectoryConfig (Handler App App)
@@ -136,7 +136,9 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
 
-  h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
+  h <- nestSnaplet "heist" heist $ heistInit ""
+  addTemplatesAt h "/" "resources/static/tpl"
+
   addAuthSplices h auth
 
   sesKey <- liftIO $

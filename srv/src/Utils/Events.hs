@@ -5,6 +5,7 @@ module Utils.Events
       logCRUD
     , updateUserState
     , logLogin
+    , logCRUDState
     )
 
 where
@@ -25,6 +26,7 @@ import qualified Data.Text as T
 import           Data.Time.Clock (getCurrentTime)
 import qualified Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
+import           Data.Vector (singleton)
 
 import           GHC.TypeLits
 
@@ -54,6 +56,8 @@ import           Snaplet.Search.Types (mkSel)
 import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
 
+import           AppHandlers.KPI (updateOperKPI)
+
 import           Util
 import           Utils.LegacyModel
 
@@ -80,6 +84,17 @@ logCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
         -> Handler b b1 (IdentI Event)
 logCRUD tpe idt p = do
   log $ buildFull tpe idt (Nothing :: Maybe (m -> PK Int m "")) (Just p)
+
+-- | Create event *and* update user state.
+logCRUDState :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
+                , Model m)
+             => EventType
+             -> IdentI m
+             -> Patch m
+             -> Handler b b1 (IdentI Event)
+logCRUDState tpe idt p =
+  logCRUD tpe idt p >>=
+  \e -> updateUserState tpe idt p e >> return e
 
 -- | Create event from patch
 log :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
@@ -123,6 +138,8 @@ updateUserState evt idt p evidt = do
            P.put currentStateCTime time    $
            P.put delayedState      Nothing $
            P.empty)
+        kpis <- updateOperKPI (singleton tgtUsr')
+        withMsg $ sendMessage "oper-kpi" kpis
   where
     mname = modelName (modelInfo :: ModelInfo m)
 

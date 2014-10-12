@@ -1,34 +1,18 @@
 include _table
+include _settings
 
 .row-fluid
   .span12.default-bs
     include _statNav
-    .row-fluid#settings
-      .row-fluid
-        .span12.bs-docs-less-margins#kpi-list
-          .bs-docs-example-after#settings-label
-            i.icon-plus
-            | Настройки
-          #kpi-list-inner.in(style="height: 20em; overflow-x: auto;")
-            .control-group
-              .controls
-                input#kpi-list-filter.focusable(type="text"
-                  data-bind="value: settingsFilter, valueUpdate: 'afterkeydown'")
-            ul.unstyled(data-bind="foreach: fields")
-              li
-                label.checkbox
-                  input(type="checkbox" data-bind="checked: show")
-                  span(data-bind="text: label")
+    #stat-kpi-content(data-bind="spinner: spinner")
+      .row-fluid#settings(data-bind="with: settingsCtx")
+        +settingsContainer
+          +settings
 
-      .row-fluid#filters(style="margin-top: 10px")
-        .span4#kvmsFilter
-          .input-append
-            input.focusable(
-              type="text"
-              placeholder="Поиск"
-              name="kvmsFilter"
-              data-bind="value: kvmsFilter, valueUpdate: 'afterkeydown'")
-        .span2#date-range
+        .row-fluid#filters(style="margin-top: 10px")
+          .span4#kvmsFilter
+            +kvmFilter
+          .span2#date-range
             .input-append
               input.pane-span.focusable(type="text"
                 autocomplete="off"
@@ -44,9 +28,13 @@ include _table
                 data-bind="value: interval.end, addMask: 'datetime'")
               span.add-on
                 i.icon.icon-calendar
+          .span2
+            button.btn(data-bind="click: fetchData"
+                       style="padding-bottom: 2px; padding-top:2px") OK
+          +downloadTbl
 
-    .row-fluid#results(style="overflow-y: auto")
-      +table
+      .row-fluid#results(style="overflow-y: auto" data-bind="with: tblCtx")
+        +table
 
 .hidden
   include /fields/ro.jade

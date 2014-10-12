@@ -8,7 +8,7 @@ define [ "utils"
     return if /^search/.test(Finch.navigate())
 
     # subscibe partner fields to partnersSearch screen events
-    for f in model.fields when f.meta?.widget == "partner"
+    for f in model.fields when f.meta?['group-widget'] == "partner"
       do (f) ->
         n = pSearch.subName f.name, model.name, kvm.id()
         global.pubSub.sub n, (val) ->
@@ -162,12 +162,8 @@ define [ "utils"
       # Redirect to back when a service with a self-assigned order
       # action is canceled
       if j.status == global.idents("ServiceStatus").canceled
-        svcActs = u.svcActions kvm._parent, kvm,
-          [ global.idents("ActionType").orderService
-          , global.idents("ActionType").orderServiceAnalyst
-          ]
-        myOrder = _.some svcActs, (a) -> a.assignedTo() == global.user.id
-        if myOrder
+        svcActs = u.svcActions kvm._parent, kvm, null
+        if _.some(svcActs, (a) -> a.assignedTo() == global.user.id)
           window.location.hash = "back"
       # Update actions list when new actions might appear
       #

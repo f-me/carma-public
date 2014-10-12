@@ -73,7 +73,7 @@ define ["render/screen"
           "uploads-view": uploads
       r.renderScreen uploads, bind
 
-  addRoute "printSrv/:model/:id", (bind) ->
+  addRoute "printSrv/:id", (bind) ->
     require ["screens/printService"], (print) ->
       print.screen =
         name : "printSrv"

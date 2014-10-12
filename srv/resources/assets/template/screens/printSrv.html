@@ -18,7 +18,7 @@
   <table class="table table-condensed">
     <tr>
       <td width="30%"> Клиент </td>
-      <td width="70%" data-bind="text: kase.program"> </td>
+      <td width="70%" data-bind="text: kase.programLocal"> </td>
     </tr>
     <tr>
       <td> Номер происшествия </td>
@@ -34,7 +34,7 @@
     </tr>
     <tr>
       <td> Услуга </td>
-      <td data-bind="text: service.type"> </td>
+      <td data-bind="text: service.typeLocal"> </td>
     </tr>
     <tr>
       <td> ФИО звонящего </td>
@@ -48,15 +48,15 @@
     </tr>
     <tr>
       <td> Что случилось </td>
-      <td data-bind="text: kase.comment"> </td>
+      <td data-bind="text: kase.commentLocal"> </td>
     </tr>
     <tr>
       <td> Марка автомобиля </td>
-      <td data-bind="text: kase.car_make"> </td>
+      <td data-bind="text: kase.car_makeLocal"> </td>
     </tr>
     <tr>
       <td> Модель автомобиля </td>
-      <td data-bind="text: kase.car_model"> </td>
+      <td data-bind="text: kase.car_modelLocal"> </td>
     </tr>
     <tr>
       <td> Регистрационный номер автомобиля </td>
@@ -70,7 +70,7 @@
     </tr>
     <tr>
       <td> VIN проверен </td>
-      <td data-bind="text: kase.vinChecked"> </td>
+      <td data-bind="text: kase.vinCheckedLocal"> </td>
     </tr>
     <tr>
       <td> Адрес места поломки </td>
@@ -102,19 +102,19 @@
     </tr>
     <tr>
       <td> Статус услуги </td>
-      <td data-bind="text: service.status"> </td>
+      <td data-bind="text: service.statusLocal"> </td>
     </tr>
     <tr>
       <td> Сотрудник принявший звонок </td>
-      <td data-bind="text: kase.callTaker"> </td>
+      <td data-bind="text: callTaker.realName"> </td>
     </tr>
     <tr>
       <td> Сотрудник заказавший услугу </td>
-      <td data-bind="text: service.assignedTo"> </td>
+      <td data-bind="text: service.assignedTo.realName"> </td>
     </tr>
     <tr>
       <td> Ложный вызов </td>
-      <td data-bind="text: service.falseCall"> </td>
+      <td data-bind="text: service.falseCallLocal"> </td>
     </tr>
   </table>
 
@@ -134,8 +134,8 @@
       <tr>
         <td data-bind="text: $data.ctime"></td>
         <td data-bind="text: $data.owner"></td>
-        <td data-bind="text: $data.partnerName"></td>
-        <td data-bind="text: $data.partnerCancelReason"></td>
+        <td data-bind="text: $data.partner"></td>
+        <td data-bind="text: $data.reason"></td>
         <td data-bind="text: $data.comment"></td>
         <td data-bind="text: $data.service"></td>
       </tr>

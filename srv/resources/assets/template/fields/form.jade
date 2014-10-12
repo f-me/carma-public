@@ -34,7 +34,7 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
                valueUpdate: ['#{change}', 'afterpaste'],\n\
                readonly: {{ name }}Disabled,\n\
                {{# meta.regexp }}\n\
-               css: { 're-failed': {{name}}Regexp }\n\
+               css: { 're-failed': {{name}}Regexp },\n\
                {{/ meta.regexp}}\n\
                #{dataBinds}"
     )&attributes(attributes)
@@ -517,8 +517,8 @@ mixin simpleRefHdr(name, bindName)
       a(data-bind='text: _meta.model.title')
         | Услуга…
       span &nbsp;
-      button.btn.btn-mini(
-        data-bind='attr: { href: \'#printSrv/\'+_meta.model.name+\'/\'+id() }'
+      a.btn.btn-mini(
+        data-bind="attr: { href: '#printSrv/' + id() }"
         target='_blank')
         i.icon.icon-print
         | &nbsp;Печать
