@@ -1,6 +1,11 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+{- Need to find out your type representation, valid for pg, use
+  format_type, like in this query
+    SELECT oid, format_type(oid, -1), typname, typarray FROM pg_type;
+-}
+
 module Carma.Model.PgTypes where
 
 import           Data.Int
@@ -65,10 +70,10 @@ instance PgTypeable (Interval Day) where
   pgTypeOf _ = PgType "daterange" True
 
 instance PgTypeable EventType where
-  pgTypeOf _ = PgType "EventType" True
+  pgTypeOf _ = PgType "\"EventType\"" True
 
 instance PgTypeable UserStateVal where
-  pgTypeOf _ = PgType "UserStateVal" True
+  pgTypeOf _ = PgType "\"UserStateVal\"" True
 
 instance PgTypeable Value where
   pgTypeOf _ = PgType "json" True
