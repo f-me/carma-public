@@ -77,7 +77,7 @@ serveModel = do
     (Nothing, _) -> finishWithError 401 ""
     (_, Nothing) -> finishWithError 404 "Unknown model/view"
     (Just cu, Just m) ->
-      case view `elem` ["search", "portalSearch", "kpi"] of
+      case view `elem` ["search", "portalSearch", "kpi", "searchCase"] of
         True  -> writeModel m
         False -> stripModel cu m >>= writeModel
 
