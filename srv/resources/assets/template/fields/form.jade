@@ -8,47 +8,7 @@
   this template. Client code must prefer named templates to
   only-typed ones.
 
-mixin fieldControlGroup
-  .form-group.has-feedback(data-bind="\n\
-                            {{# meta.required }}\n\
-                            css: { error: {{name}}Not }\n\
-                            {{/ meta.required}}\n\
-                            {{# meta.visibility }}\n\
-                            visible: {{name}}Visible\n\
-                            {{/ meta.visibility}}")
-    label.col-sm-4.control-label
-      | {{ meta.label }}
-      +labelAnnotations
-    .col-sm-8
-      .input-group.input-group-sm
-        block
-
-mixin defaultInput(nameMod, dataBinds, change, attrs)
-  input.form-control(type="text" autocomplete="off"
-    name="{{ name }}"
-    style="{{# meta.transform }}\n\
-           text-transform:{{meta.transform}};\n\
-           {{/ meta.transform }}"
-    data-bind="\n\
-               value: {{ name }}#{nameMod},\n\
-               valueUpdate: ['#{change}', 'afterpaste'],\n\
-               readonly: {{ name }}Disabled,\n\
-               {{# meta.regexp }}\n\
-               css: { 're-failed': {{name}}Regexp },\n\
-               {{/ meta.regexp}}\n\
-               #{dataBinds}"
-    )&attributes(attributes)
-  +savingSpinner
-
-mixin savingSpinner
-  span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate.form-control-feedback(
-    data-bind='sync: {{ name }}Sync' style='display: none;')
-
-mixin labelAnnotations
-  | {{# meta.infoText1 }}
-  span.glyphicon.glyphicon-question-sign(data-provide="popover"
-                            data-content="{{ meta.infoText1 }}")
-  | {{/ meta.infoText1 }}
+include _form_utils
 
 .field-template#textarea-field-template
   +fieldControlGroup
@@ -130,31 +90,6 @@ mixin labelAnnotations
       i.icon.stolen-icon-phone(onclick="doPick('{{ meta.picker }}',\
                                                     '{{ name }}');")
 
-mixin dictInput(nameMod)
-  input.form-control( type="text"
-     class="{{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}"
-     autocomplete="off"
-     name="{{ name }}"
-     data-bind="\n\
-                value: {{ name }}#{nameMod},\n\
-                valueUpdate: 'change',\n\
-                disabled: {{ name }}Disabled,\n\
-                pickerDisable: {{ name }}Disabled,\n\
-                bindDict: '{{ name }}',\n\
-                {{# meta.regexp   }}\n\
-                css: { 're-failed': {{name}}Regexp }\n\
-                {{/ meta.regexp   }}")
-
-mixin dict(nameMod, iconClass)
-  +fieldControlGroup
-
-    +dictInput(nameMod)
-
-    span.input-group-addon
-      span.glyphicon.glyphicon-chevron-down
-    +savingSpinner
-    block
-
 .field-template#force-find-dictionary-field-template
   +dict("Local", "icon-search")
 
@@ -209,22 +144,9 @@ mixin dict(nameMod, iconClass)
 
 ///////////////////////////////////////////////////////////
 
-mixin checkboxTpl
-  .form-group
-    label.col-sm-4.control-label
-      | {{ meta.label }}
-      +labelAnnotations
-
-    .col-sm-8
-      input(type="checkbox"
-            name="{{ name }}"
-            data-bind="checked: {{ name }},\
-                       valueUpdate: 'change',\
-                       disabled: {{ name }}Disabled")
-
 // type=Bool field
 #Bool-field-template.field-template(type='text/template')
-  +checkboxTpl
+  +checkboxTpl("{{ name }}")
 
 // type=checkbox field
 #checkbox-field-template.field-template(type='text/template')
