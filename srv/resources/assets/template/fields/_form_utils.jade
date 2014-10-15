@@ -8,7 +8,7 @@ mixin fieldControlGroup
                             {{/ meta.visibility}}")
     label.col-sm-4.control-label
       | {{ meta.label }}
-      +labelAnnotations
+      +labelAnnotations("{{name}}")
     .col-sm-8
       .input-group.input-group-sm
         block
