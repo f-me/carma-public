@@ -73,7 +73,7 @@ mixin checkboxInput(name)
 
 mixin checkboxLabel(name)
   span(data-bind="text: #{name}.field.meta.label")&attributes(attributes)
-  +labelAnnotations(name)
+  +labelAnnotations(name)(style="position: absolute; right: -5px;")
 
 mixin checkboxTpl(name)
   .form-group

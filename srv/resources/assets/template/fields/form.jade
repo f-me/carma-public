@@ -84,10 +84,11 @@ include _form_utils
 
 .field-template#phone-field-template
   +fieldControlGroup
-    +defaultInput("","","afterkeydown")(
-      onkeyDown="kdoPick('{{ meta.picker }}', '{{ name }}', 73, event);")
-    span.add-on
-      i.icon.stolen-icon-phone(onclick="doPick('{{ meta.picker }}',\
+    .input-group.input-group-sm
+      +defaultInput("","","afterkeydown")(
+        onkeyDown="kdoPick('{{ meta.picker }}', '{{ name }}', 73, event);")
+      span.input-group-addon
+        span.glyphicon.stolen-icon-phone(onclick="doPick('{{ meta.picker }}',\
                                                     '{{ name }}');")
 
 .field-template#force-find-dictionary-field-template
