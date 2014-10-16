@@ -1,4 +1,3 @@
-include _table
 include _settings
 
 .row-fluid
@@ -30,7 +29,22 @@ include _settings
           +downloadTbl
 
     .row-fluid#results(style="overflow-y: auto")
-      +table
+      table#tbl.table.table-striped.table-bordered
+        thead
+          tr
+            // th(data-bind='expandAll: $data')
+            // ko foreach: fields
+            th(data-bind="visible: show")
+              button.btn.btn-link(
+                style='white-space: nowrap;'
+                data-bind='text: label, sort: name')
+            // /ko
+        tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
+          tr
+            // td.expand-contoller
+            // ko foreach: $root.fields
+            td(data-bind="visible: show, render: {kvm: kvm, field: $data}")
+            // /ko
 
 .hidden
   include /fields/ro.jade
