@@ -108,12 +108,11 @@ include _form_utils
 //- Picker which fills fields with stored data
 .field-template#picker-field-template
   +fieldControlGroup
-    .controls
-      .input-append
-          +defaultInput("", "", "afterkeydown")(
-            onkeyDown="edoPick('{{ meta.picker }}', '{{ name }}', 13, event);")
-          span.input-group-addon
-            i.icon.icon-search(onclick="doPick('{{ meta.picker }}',\
+    .input-group
+      +defaultInput("", "", "afterkeydown")(
+        onkeyDown="edoPick('{{ meta.picker }}', '{{ name }}', 13, event);")
+      span.input-group-addon
+        span.glyphicon.glyphicon-search(onclick="doPick('{{ meta.picker }}',\
                                                '{{ name }}', event.target);")
 
 //- radio widget for flat dictionary fields -->
