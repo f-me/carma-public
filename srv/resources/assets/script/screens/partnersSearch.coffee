@@ -8,7 +8,6 @@ define [ "utils"
        , "screens/partnersSearch/models"
        , "sync/metaq"
        , "text!tpl/screens/partnersSearch.html"
-       , "text!tpl/partials/partnersSearch.html"
        ], ( utils
           , map
           , m
