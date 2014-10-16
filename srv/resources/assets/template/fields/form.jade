@@ -108,7 +108,7 @@ include _form_utils
 //- Picker which fills fields with stored data
 .field-template#picker-field-template
   +fieldControlGroup
-    .input-group
+    .input-group.input-group-sm
       +defaultInput("", "", "afterkeydown")(
         onkeyDown="edoPick('{{ meta.picker }}', '{{ name }}', 13, event);")
       span.input-group-addon
