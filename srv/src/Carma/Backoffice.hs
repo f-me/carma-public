@@ -58,23 +58,28 @@ toBack =
      (proceed [AType.orderServiceAnalyst])
     ))
 
-messageToGenser :: [Entry]
-messageToGenser
-  = map mkEntry [SS.ordered, SS.ok, SS.canceled]
-  where
-    mkEntry st =
-      Entry
-      (onField Service.status (const st)
-      (switch
-       [ ( (caseField Case.program == const Program.genser) &&
-           (serviceField svcType == const ST.towage) &&
-           (serviceField Service.payType == just PT.ruamc)
-           -- FIXME: lift check for Towage.towType from sendMail
-         , sendMail Genser *> proceed []
-         )
-       ]
-       (proceed [])
-      ))
+
+messageToGenser :: Backoffice bk => bk (Eff m)
+messageToGenser =
+    ite
+    ((caseField Case.program == const Program.genser) &&
+     (serviceField Service.svcType == const ST.towage) &&
+     (serviceField Service.payType == just PT.ruamc)
+    )
+    (sendMail Genser) -- FIXME: lift check for Towage.towType from sendMail
+    nop
+
+
+messageToPSA :: Backoffice bk => bk (Eff m)
+messageToPSA =
+    ite
+    ((caseField Case.program `oneOf` [Program.peugeot, Program.citroen]) &&
+     (serviceField Service.svcType `oneOf` [ST.towage, ST.tech, ST.consultation]) &&
+     (serviceField Service.payType == just PT.ruamc ||
+      serviceField Service.payType == just PT.mixed)
+    )
+    (sendMail PSA) -- FIXME: lift checks for Towage.techType & consultation.result
+    nop
 
 
 needMakerApproval :: Entry
@@ -118,7 +123,7 @@ cancel =
           closePrevious InCase
           [AType.tellMeMore, AType.callMeMaybe]
           AResult.okButNoService *>
-          sendMail PSA *>
+          messageToPSA *>
           finish
         )
       , ( serviceField status == const SS.backoffice &&
@@ -129,7 +134,7 @@ cancel =
         , closePrevious InService
           [AType.orderService, AType.orderServiceAnalyst]
           AResult.clientCanceledService *>
-          sendMail PSA *>
+          messageToPSA *>
           finish
         )
       ] $
@@ -139,7 +144,8 @@ cancel =
       , AType.checkStatus, AType.checkEndOfService
       ]
       AResult.clientCanceledService *>
-      sendMail PSA *>
+      messageToPSA *>
+      messageToGenser *>
       proceed [AType.cancelService]
     )
 
@@ -184,12 +190,14 @@ orderService =
     )
     [ (AResult.serviceOrdered,
        sendSMS SMS.order *>
-       sendMail PSA *>
+       messageToPSA *>
+       messageToGenser *>
        setServiceStatus SS.ordered *>
        proceed [AType.tellClient, AType.addBill])
     , (AResult.serviceOrderedSMS,
        sendSMS SMS.order *>
-       sendMail PSA *>
+       messageToPSA *>
+       messageToGenser *>
        setServiceStatus SS.ordered *>
        proceed [AType.checkStatus, AType.addBill])
     , (AResult.needPartner,
@@ -319,7 +327,7 @@ getDealerInfo =
       caseField Case.program `oneOf` [Program.peugeot, Program.citroen])
      ((5 * minutes) `since` req (serviceField times_factServiceEnd))
      ((14 * days) `since` req (serviceField times_factServiceEnd)))
-    [ (AResult.gotInfo, sendMail PSA *> finish)
+    [ (AResult.gotInfo, messageToPSA *> finish)
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]

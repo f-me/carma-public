@@ -45,6 +45,7 @@ module Trigger.Dsl
 
     , FutureContext(..)
     , inFuture
+    , doApp
     )
 
 where
@@ -77,6 +78,7 @@ import WeatherApi (Weather, getWeather')
 import Application (AppHandler, weatherCfg)
 import           Database.PostgreSQL.Simple ((:.) (..))
 import qualified Database.PostgreSQL.Simple as PG
+import Data.Pool
 import Data.Model as Model
 import Data.Model.Patch (Object, Patch)
 import qualified Data.Model.Sql as Sql
@@ -173,13 +175,15 @@ logCRUDState m i p =
   liftFree (DoApp (Evt.logCRUDState m i p) id)
 
 
+doApp :: AppHandler a -> Free (Dsl m) a
+doApp f = liftFree (DoApp f id)
+
 inParentContext
   :: (Model m, p ~ Parent m, Model p)
   => DslM p () -> DslM m ()
 inParentContext act = do
   let getState = liftFree $ ModState (\st -> (st, st)) id
   let setState s = liftFree $ ModState (const (s, ())) id
-  let doApp f = liftFree (DoApp f id)
   st <- getState
   let st_p = st
         {st_ident = Patch.toParentIdent $ st_ident st
@@ -215,7 +219,7 @@ getCityWeather city = liftFree (DoApp action id)
                  Left e  -> Left $ show e
 
 
-inFuture :: (FutureContext -> IO ()) -> Free (Dsl m) ()
+inFuture :: (FutureContext -> AppHandler (IO ())) -> Free (Dsl m) ()
 inFuture f
   = liftFree
   $ ModState (\st -> (st{st_futur = f : st_futur st}, ())) id
@@ -264,10 +268,10 @@ instance Functor (Dsl m) where
     DoApp      a  k -> DoApp      a  $ fn . k
 
 
-data FutureContext = FutureContext { fc_pgcon :: PG.Connection }
+data FutureContext = FutureContext { fc_pgpool :: Pool PG.Connection }
 
 data DslState m = DslState
-  { st_futur :: [FutureContext -> IO ()]
+  { st_futur :: [FutureContext -> AppHandler (IO ())]
   , st_ident :: IdentI m
   , st_patch :: Patch m
   , st_pgcon :: PG.Connection
