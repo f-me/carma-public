@@ -15,6 +15,7 @@ module ModelTriggers
 import Prelude hiding (until)
 
 import Control.Applicative
+import Control.Concurrent
 import Control.Monad
 import Control.Monad.Free (Free)
 import Control.Monad.Trans
@@ -82,12 +83,11 @@ import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
 import qualified Carma.Backoffice.Action.SMS as BOAction (sendSMS)
 import qualified Carma.Backoffice.Action.MailToGenser as BOAction (sendMailToGenser)
+import qualified Carma.Backoffice.Action.MailToPSA as BOAction (sendMailToPSA)
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
 
 import           AppHandlers.ActionAssignment
-
-import Util (hushExceptions)
 
 -- TODO: rename
 --   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
@@ -429,13 +429,6 @@ runTriggers before after dbAction fields state = do
     sequence_ $ matchingTriggers (modelName mInfo) after
 
   liftIO $ PG.commit pg
-
-  case res of
-    Left _   -> return ()
-    Right st -> liftIO
-      $ hushExceptions "triggers/future"
-      $ sequence_ $ map ($ FutureContext (st_pgcon st)) $ st_futur st
-
   return res
 
 
@@ -610,9 +603,14 @@ instance Backoffice HaskellE where
 
     sendMail = \case
       Genser -> run $ BOAction.sendMailToGenser <$> srvId'
-      _ -> HaskellE $ return $ return ()
+      PSA    -> run $ BOAction.sendMailToPSA    <$> srvId'
+      Dealer -> run $ return $ const $ return $ return ()
       where
         run = HaskellE . fmap inFuture
+        inFuture :: (FutureContext -> AppHandler (IO ())) -> Free (Dsl m) ()
+        inFuture f = Dsl.doApp $ do
+          io <- PS.getPostgresState >>= f . FutureContext . PS.pgPool
+          liftIO $ threadDelay 1500000 >> io
 
     sendSMS tpl = HaskellE $ inFuture . BOAction.sendSMS tpl <$> srvId'
 
