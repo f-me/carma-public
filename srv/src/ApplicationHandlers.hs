@@ -25,6 +25,7 @@ module ApplicationHandlers
     -- * Misc. client support handlers
     , clientConfig
     , errorsHandler
+    , msgToPSA
     )
 
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
@@ -76,7 +77,18 @@ import Utils.LegacyModel (readIdent)
 import Utils.Events (logLogin, logCRUD, updateUserState)
 
 import ModelTriggers
+import Trigger.Dsl (FutureContext(..))
+import Carma.Backoffice.Action.MailToPSA
 
+-- FIXME: temporary kludge for manual spamming
+msgToPSA :: AppHandler ()
+msgToPSA = do
+  Just svcIdTxt <-  getParamT "svcId"
+  let svcId = readIdent svcIdTxt
+  pool <- PS.getPostgresState
+  io   <- sendMailToPSA svcId $ FutureContext $ PS.pgPool pool
+  liftIO io
+  writeJSON ()
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
