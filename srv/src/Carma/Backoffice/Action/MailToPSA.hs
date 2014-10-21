@@ -1,6 +1,9 @@
 
 module Carma.Backoffice.Action.MailToPSA (sendMailToPSA) where
 
+import Control.Applicative
+import Control.Monad.IO.Class (liftIO)
+
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Read as T (decimal)
@@ -11,7 +14,6 @@ import Data.ByteString (ByteString)
 
 import Data.Aeson ((.=))
 import Data.Monoid ((<>))
-import Control.Monad.IO.Class (liftIO)
 
 import Database.PostgreSQL.Simple.SqlQQ.Alt
 import Database.PostgreSQL.Simple as PG
@@ -37,9 +39,12 @@ import Util (syslogJSON, logExceptions, Priority(..))
 sendMailToPSA :: IdentI Service -> FutureContext -> AppHandler (IO ())
 sendMailToPSA svcId fc = do
   cfg      <- getSnapletUserConfig
-  cfgFrom  <- liftIO $ require cfg "psa-smtp-from"
-  cfgTo    <- liftIO $ require cfg "psa-smtp-recipients"
-  cfgReply <- liftIO $ require cfg "psa-smtp-replyto"
+  let addr = Address Nothing . T.strip
+  let addrList = map addr . T.splitOn ","
+  cfgFrom  <- liftIO $ addr     <$> require cfg "psa-smtp-from"
+  cfgReply <- liftIO $ addr     <$> require cfg "psa-smtp-reply"
+  cfgTo    <- liftIO $ addrList <$> require cfg "psa-smtp-to"
+  cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy"
 
   return $ do
     syslogJSON Info "trigger/mailToPSA" ["svcId" .= svcId]
@@ -50,22 +55,28 @@ sendMailToPSA svcId fc = do
       getMsgData pg svcId >>= \case
         [res] -> case render $ map (fmap T.decodeUtf8) res of
           Left msg  -> err msg
-          Right msg -> sendMailActually cfgFrom cfgTo cfgReply msg
+          Right msg -> sendMailActually cfgFrom cfgTo cfgReply cfgCopy msg
         []    -> err "empty query result"
         _     -> err "ambiguous query result"
 
 
-sendMailActually :: Text -> Text -> Text -> Text -> IO ()
-sendMailActually from to reply msg = do
+sendMailActually
+  :: Address -> [Address] -> Address -> [Address] -> Text
+  -> IO ()
+sendMailActually from to reply copy msg = do
   let bodyPart = Part "text/plain; charset=utf-8"
         QuotedPrintableText Nothing [] (TL.encodeUtf8 $ TL.fromChunks [msg])
-  logExceptions "trigger/mailToPSA/sendMailToPSA"
-    $ renderSendMailCustom "/usr/sbin/sendmail" ["-t", "-r", T.unpack from]
-      $ (emptyMail $ Address Nothing from)
-        {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," to
-        ,mailHeaders = [("Reply-To", reply) , ("Subject", "RAMC")]
-        ,mailParts = [[bodyPart]]
+  let email = (emptyMail from)
+        {mailTo      = to
+        ,mailCc      = copy
+        ,mailHeaders = [("Reply-To", addressEmail reply) , ("Subject", "RAMC")]
+        ,mailParts   = [[bodyPart]]
         }
+  logExceptions "trigger/mailToPSA/sendMailToPSA"
+    $ renderSendMailCustom
+      "/usr/sbin/sendmail"
+      ["-t", "-r", T.unpack $ addressEmail from]
+      email
 
 
 render :: [Maybe Text] -> Either Text Text
