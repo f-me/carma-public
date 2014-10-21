@@ -115,6 +115,7 @@ getMsgData con svcId = uncurry (PG.query con)
         case c.car_engine
           when $(Engine.petrol)$ then 'E'
           when $(Engine.diesel)$ then 'D'
+          else 'E'
         end,
       'Date put on road'::text,    '10'::text, to_char(c.car_buyDate, 'DD/MM/YYYY'),
       'VIN number'::text,          '17'::text, c.car_vin,
