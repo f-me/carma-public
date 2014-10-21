@@ -528,8 +528,7 @@ carmaBackoffice =
       , cancel
       , complaint
       , mistake
-      ] ++
-      messageToGenser
+      ]
     , [ orderService
       , orderServiceAnalyst
       , tellClient
