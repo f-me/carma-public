@@ -32,7 +32,7 @@ import qualified Carma.Model.ServiceStatus as SS
 import           Carma.Model.ServiceType as ST
 import qualified Carma.Model.SmsTemplate as SMS
 import qualified Carma.Model.Usermeta as Usermeta
-
+import qualified Carma.Model.PaymentType as PT
 
 import Carma.Backoffice.DSL
 import Carma.Backoffice.DSL.Types (Eff)
