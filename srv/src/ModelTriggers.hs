@@ -15,6 +15,7 @@ module ModelTriggers
 import Prelude hiding (until)
 
 import Control.Applicative
+import Control.Concurrent
 import Control.Monad
 import Control.Monad.Free (Free)
 import Control.Monad.Trans
@@ -80,6 +81,9 @@ import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 import           Carma.Backoffice
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
+import qualified Carma.Backoffice.Action.SMS as BOAction (sendSMS)
+import qualified Carma.Backoffice.Action.MailToGenser as BOAction (sendMailToGenser)
+import qualified Carma.Backoffice.Action.MailToPSA as BOAction (sendMailToPSA)
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
 
@@ -597,12 +601,18 @@ instance Backoffice HaskellE where
           sid <- srvId'
           return $ void $ setService sid acc (evalHaskell ctx v)
 
-    sendMail _ = HaskellE $ return $ return ()
+    sendMail = \case
+      Genser -> run $ BOAction.sendMailToGenser <$> srvId'
+      PSA    -> run $ BOAction.sendMailToPSA    <$> srvId'
+      Dealer -> run $ return $ const $ return $ return ()
+      where
+        run = HaskellE . fmap inFuture
+        inFuture :: (FutureContext -> AppHandler (IO ())) -> Free (Dsl m) ()
+        inFuture f = Dsl.doApp $ do
+          io <- PS.getPostgresState >>= f . FutureContext . PS.pgPool
+          liftIO $ threadDelay 1500000 >> io
 
-    sendSMS tpl =
-      HaskellE $ do
-        sid <- srvId'
-        return $ Dsl.sendSMS sid tpl
+    sendSMS tpl = HaskellE $ inFuture . BOAction.sendSMS tpl <$> srvId'
 
     nop = HaskellE $ return $ return ()
 

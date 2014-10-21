@@ -20,13 +20,13 @@ mixin dictInput(nameMod)
         span(data-bind='text: label')
         a.close(href=''
                 style='float: none;'
-                data-bind='click: $parent.remove')
+                data-bind='click: remove')
           | ×
     // /ko
 
 #dictionary-table-template.field-template(type='text/template')
   span
-    +dictInput
+    +dictInput("local")
 
 #text-table-template.field-template(type='text/template')
   span(data-bind='text: $data')

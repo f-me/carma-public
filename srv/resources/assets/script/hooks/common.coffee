@@ -147,9 +147,17 @@ define [ "utils"
             for val in (k[n]() || [])
               do (val) ->
                 lab = dict.getLab(val)
-                {label: lab || val, value: val}
+                { label: lab || val
+                , value: val
+                , remove: ->
+                  return if k["#{n}Disabled"]();
+                  k[n] _.without k[n](), val
+                }
 
+        # remove this after refactoring, we shouldn't count on template for
+        # getting value
         k["#{n}Remove"] = (el) ->
+          return false
           return if k["#{n}Disabled"]()
           v = k[n]()
           k[n] _.without v, el.value

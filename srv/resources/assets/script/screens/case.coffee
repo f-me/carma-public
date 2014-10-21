@@ -142,8 +142,10 @@ define [ "utils"
           kvm['actionsList'].push avm
           # Disable action results if any of required case fields is
           # not set
-          kvm['hasMissingRequireds'].subscribe (dis) ->
-            avm.resultDisabled?(dis)
+          do (avm) ->
+            avm.resultDisabled kvm['hasMissingRequireds']()
+            kvm['hasMissingRequireds'].subscribe (dis) ->
+              avm.resultDisabled?(dis)
         cont.spin false
       kvm['fillEventHistory']?()
 

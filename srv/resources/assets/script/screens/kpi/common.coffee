@@ -53,7 +53,7 @@ define ["lib/current-user"
 
       deferEvaluation: true
 
-    tblCtx = {fields: filted, kvms: sorted }
+    tblCtx = {fields: flds, kvms: sorted }
     settingsCtx =
       fields: filted
       settingsFilter: filter

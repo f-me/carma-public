@@ -167,7 +167,9 @@ define [ "model/render"
                 [h, m, s] = map v.split(":"), parseInt
                 kvm[f.name](s + m*60 + h*3600)
         defaults =
-          read:      -> kvm[f.name]()
+          read:      ->
+            v = kvm[f.name]()
+            if _.isNull(v) or _.isUndefined(v) then "" else v
           write: (v) ->
             return if _.isEmpty(kvm[f.name]()) and v == ""
             kvm[f.name](v)
