@@ -1,4 +1,4 @@
-﻿CREATE VIEW "Услуги" AS
+CREATE VIEW "Услуги" AS
 WITH servicecounts AS (
          SELECT servicetbl_1.parentid,
             count(*) AS amount
