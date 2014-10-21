@@ -10,6 +10,7 @@ module Carma.Model.Contract
     , identifierNames
     , WDay(..)
     , contractSearchParams
+    , contractCaseSearchParams
     )
 
 where
@@ -183,6 +184,11 @@ instance Model Contract where
         Just $ subDict "prefixedSubPrograms" $
         flip modifyView commonMeta $
         searchView (contractSearchParams)
+    "searchCase" ->
+        Just $ subDict "prefixedSubPrograms" $
+        flip modifyView commonMeta $
+        searchView (contractCaseSearchParams)
+
     "portalSearch" ->
         Just $ subDict "portalSubPrograms" $
         flip modifyView commonMeta $
@@ -241,6 +247,10 @@ identifiers = [ FA vin
 identifierNames :: [Text]
 identifierNames = map fieldNameE identifiers
 
+
+-- | List of searchable Contract fields available on case search.
+contractCaseSearchParams :: [(Text, [Predicate Contract])]
+contractCaseSearchParams = [("cardNumber", fuzzy $ one cardNumber)]
 
 -- | List of searchable Contract fields.
 --

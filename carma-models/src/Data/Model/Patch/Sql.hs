@@ -32,19 +32,12 @@ create
   -> IO (Either SomeException (IdentI m))
 create p c = try $ do
   let mInfo = modelInfo :: ModelInfo m
-      m = untypedPatch p
-      -- we use `map fst . HashMap.toList` instead of `HashMap.keys`
-      -- just to be sure that `insFields` are in the same order as
-      -- `ToRow (Patch m)` expects
-      insFields
-        = [name
-          | (name, _) <- HashMap.toList m
-          , Just FieldDesc{} <- [HashMap.lookup name (modelFieldsMap mInfo)]
-          ]
+      (insFields, insTypes) = unzip $ getFieldsWTypes p
       q = printf "INSERT INTO %s (%s) VALUES (%s) RETURNING id"
         (show $ tableName mInfo)
         (T.unpack $ T.intercalate ", " insFields)
-        (T.unpack $ T.intercalate ", " $ replicate (length insFields) "?")
+        (T.unpack $ T.intercalate ", " $ map ("?::" `T.append`) insTypes)
+
   [[res]] <- query c (fromString q) p
   return res
 
@@ -124,16 +117,25 @@ update (Ident i) p c
     [] -> return $ Right 1 -- do nothing if we have nothing to update
     _  -> try $ execute c (fromString q) p
   where
+    updFields = map (\(n, t) -> T.concat [n, " = ?::", t]) $ getFieldsWTypes p
     mInfo = modelInfo :: ModelInfo m
-    realfs = map fd_name $ onlyDefaultFields $ modelFields mInfo
-    m = untypedPatch p
-    -- we use `map fst . HashMap.toList` instead of `HashMap.keys`
-    -- just to be sure that `insFields` are in the same order as
-    -- `ToRow (Patch m)` expects
-    updFields = map (T.concat . (:["=?"]) . fst)           $
-                filter (\(fname, _) -> fname `elem` realfs) $
-                HashMap.toList m
     q = printf "UPDATE %s SET %s WHERE id = %d"
       (show $ tableName mInfo)
       (T.unpack $ T.intercalate ", " updFields)
       i
+
+type Name = Text
+type Type = Text
+
+getFieldsWTypes :: forall m . Model m => Patch m -> [(Name, Type)]
+getFieldsWTypes p =
+  -- we use `map fst . HashMap.toList` instead of `HashMap.keys`
+  -- just to be sure that `insFields` are in the same order as
+  -- `ToRow (Patch m)` expects
+  [(name, pgTypeName $ fd_pgType fd)
+  | (name, _) <- HashMap.toList m
+  , Just fd@FieldDesc{} <- [HashMap.lookup name (modelFieldsMap mInfo)]
+  ]
+  where
+    m = untypedPatch p
+    mInfo = modelInfo :: ModelInfo m
