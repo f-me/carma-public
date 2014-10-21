@@ -4,8 +4,10 @@ module Carma.Backoffice.Action.MailToPSA (sendMailToPSA) where
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Read as T (decimal)
+import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
+import Data.ByteString (ByteString)
 
 import Data.Aeson ((.=))
 import Data.Monoid ((<>))
@@ -46,7 +48,7 @@ sendMailToPSA svcId fc = do
           ["svcId" .= svcId, "error" .= (e :: Text)]
     Pool.withResource (fc_pgpool fc) $ \pg ->
       getMsgData pg svcId >>= \case
-        [res] -> case render res of
+        [res] -> case render $ map (fmap T.decodeUtf8) res of
           Left msg  -> err msg
           Right msg -> sendMailActually cfgFrom cfgTo cfgReply msg
         []    -> err "empty query result"
@@ -55,9 +57,8 @@ sendMailToPSA svcId fc = do
 
 sendMailActually :: Text -> Text -> Text -> Text -> IO ()
 sendMailActually from to reply msg = do
-  let bodyText = TL.encodeUtf8 $ TL.fromChunks [msg]
   let bodyPart = Part "text/plain; charset=utf-8"
-        QuotedPrintableText Nothing [] bodyText
+        QuotedPrintableText Nothing [] (TL.encodeUtf8 $ TL.fromChunks [msg])
   logExceptions "trigger/mailToPSA/sendMailToPSA"
     $ renderSendMailCustom "/usr/sbin/sendmail" ["-t", "-r", T.unpack from]
       $ (emptyMail $ Address Nothing from)
@@ -75,7 +76,7 @@ render = loop ""
         Right (len,_)
           -> loop (res <> fld <> " : " <> T.take (len::Int) val <> "\n") xs
         _ -> Left $ "Bug: invalid field length: " <> fld <> "=" <> lenTxt
-    loop _ [Just fld, _, Nothing]
+    loop _ (Just fld : _ : Nothing : _)
       = Left $ "Required field is empty: " <> fld
     loop res [] = Right res
     loop _ _  = Left "BUG: misaligned query result"
@@ -86,7 +87,12 @@ render = loop ""
 --  - Ok:    invalid tech type
 -- nulls in result
 --  - some required field is missing
-getMsgData :: PG.Connection -> IdentI Service -> IO [[Maybe Text]]
+
+-- NB: Why 'ByteString' instead of 'Text'?
+-- PostgreSQL inferes 'unknown' type for string literals and
+-- postgresql-simple does not allow values of 'unknown' type to be
+-- converted to 'Text'.
+getMsgData :: PG.Connection -> IdentI Service -> IO [[Maybe ByteString]]
 getMsgData con svcId = uncurry (PG.query con)
   [sql|
     select
