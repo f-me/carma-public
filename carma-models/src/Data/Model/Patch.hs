@@ -9,7 +9,7 @@ module Data.Model.Patch
   , mergeParentPatch
   , IPatch
   , FullPatch, Data.Model.Patch.Object
-  , get, get', put, delete, union
+  , get, get', put, delete, union, singleton
   , empty
   , W(..)
   )
@@ -93,6 +93,10 @@ get' (FullPatch p) f
 
 union :: Patch m -> Patch m -> Patch m
 union p1 p2 = Patch $ HashMap.union (untypedPatch p1) (untypedPatch p2)
+
+singleton :: (Typeable t, SingI name)
+          => (m -> Field t (FOpt name desc app)) -> t -> Patch m
+singleton f v = put f v empty
 
 parentField :: Model m =>
                (Parent m -> Field t (FOpt name desc app))

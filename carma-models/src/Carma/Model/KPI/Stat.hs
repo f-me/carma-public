@@ -4,6 +4,7 @@ module Carma.Model.KPI.Stat where
 import           Data.Typeable
 
 import           Data.Time.Clock (DiffTime)
+import           Data.Time.Calendar (Day)
 import qualified Data.Aeson as Aeson
 
 import           Data.Model
@@ -14,6 +15,7 @@ import           Carma.Model.Usermeta (Usermeta)
 data StatKPI = StatKPI
   { frontIdent   :: PK Int StatKPI     "KPI пользователя"
   , user         :: F (IdentI Usermeta) "userid"          "Оператор"
+  , day          :: F Day              "day"     "Дата"
 
   , inReady      :: F (Maybe DiffTime) "Ready"   "Готов"
   , inBusy       :: F (Maybe DiffTime) "Busy"    "Занят"
