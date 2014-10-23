@@ -13,7 +13,12 @@ define ["lib/current-user"
 
     settings = (Usr.readStuff key) || {}
 
-    flds = _.map _.filter(model.fields, (f) -> not f.meta.invisible), (f) ->
+    interesting = (f) ->
+      not (f.meta.invisible or _.contains ["userid", "day"], f.name)
+
+    # fields without userid and day, they will be always rendered
+    # by custom code
+    flds = _.map _.filter(model.fields, (f) -> interesting(f)), (f) ->
       show = settings?.fields?[f.name] || false
       {name: f.name, label: f.meta.label, show: ko.observable(show)}
 

@@ -32,22 +32,48 @@ include _settings
                        style="padding-bottom: 2px; padding-top:2px") OK
           +downloadTbl
 
-    .row-fluid#results(style="overflow-y: auto" data-bind="with: tblCtx")
-      table#tbl.table.table-striped.table-bordered
-        thead
-          tr
-            // th(data-bind='expandAll: $data')
-            // ko foreach: fields
-            th(data-bind="visible: show")
-              button.btn.btn-link(
-                style='white-space: nowrap;'
-                data-bind='text: label, sort: name')
+      .row-fluid#results(style="overflow-y: auto" data-bind="with: tblCtx")
+        table#tbl.table.table-condensed.table-bordered
+          thead
+            tr
+              th
+              th
+                button.btn.btn-link(
+                  style='white-space: nowrap;'
+                  data-bind='text: "Оператор", sort: "userid"')
+
+              // ko foreach: fields
+              th(data-bind="visible: show")
+                button.btn.btn-link(
+                  style='white-space: nowrap;'
+                  data-bind='text: label, sort: name')
+              // /ko
+          tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
+            tr
+              td
+                a(data-bind="click: showDetails.toggle")
+                  i(data-bind="attr: { \
+                    class: showDetails() ? 'icon-minus' : 'icon-plus' }")
+                i.icon-refresh.icon-refresh-animate(
+                  data-bind="visible: showDetails.loading")
+              td(data-bind="fieldRender: kvm['userid']")
+              // ko foreach: $root.tblCtx.fields
+              // ko if: show
+              td(data-bind="render: {kvm: kvm, field: $data}")
+              // /ko
+              // /ko
+
+            // ko if: kvm['showDetails']()
+            // ko foreach: kvm.days
+            tr.details
+              td
+              td(data-bind="fieldRender: $data['day']")
+              // ko foreach: $root.tblCtx.fields
+              // ko if: show
+              td(data-bind="render: {kvm: $parent, field: $data}")
+              // /ko
+              // /ko
             // /ko
-        tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
-          tr
-            // td.expand-contoller
-            // ko foreach: $root.fields
-            td(data-bind="visible: show, render: {kvm: kvm, field: $data}")
             // /ko
 
 .hidden
