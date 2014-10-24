@@ -131,12 +131,12 @@ getMsgData con svcId = uncurry (PG.query con)
       'Date put on road',    '10', to_char(c.car_buyDate, 'DD/MM/YYYY'),
       'VIN number',          '17', c.car_vin,
       'Reg No',              '10', c.car_plateNum,
-      'Customer effet',     '150',
+      'Customer effet',     '150', coalesce(c.customerComment, ''),
+      'Component fault',    '150',
         case svc.status
-          when $(ServiceStatus.canceled)$ then coalesce(svc.clientCancelReason)
-          else coalesce(c.customerComment, '')
-        end,
-      'Component fault',    '150', coalesce(c.dealerCause, ''),
+          when $(ServiceStatus.canceled)$ then coalesce(svc.clientCancelReason, '')
+          else coalesce(c.dealerCause, '')
+          end,
       'Date of Opening',     '10', to_char(c.callDate, 'DD/MM/YYYY'),
       'Date of Response',    '10',
         to_char(svc.times_factServiceStart at time zone 'MSK', 'DD/MM/YYYY'),
