@@ -22,18 +22,17 @@ module.exports = (grunt) ->
         dest:    built
         ext:     '.js'
 
+    concat_css:
+      all:
+        src: "#{content}/style/**/*.css"
+        dest: "#{css}/local.css"
+
     copy:
       js:
         expand: true
         cwd: scripts
         src: ["**/*.js"]
         dest: js
-        filter: 'isFile'
-      css:
-        expand: true
-        cwd: "#{content}/style"
-        src: ["**/*.css"]
-        dest: css
         filter: 'isFile'
       template:
         expand: true
@@ -85,7 +84,7 @@ module.exports = (grunt) ->
         tasks: "newer:copy:template"
       style:
         files: ["#{content}/style/**/*"]
-        tasks: "newer:copy:css"
+        tasks: "newer:concat_css"
 
 
   thirdParty =
@@ -113,9 +112,9 @@ module.exports = (grunt) ->
              'images/*'
             ]
     bootstrap:
-      src: 'bootstrap'
+      src: 'bootstrap/dist'
       dest: 'bootstrap'
-      file: ['css/**', 'img/**', 'js/**']
+      file: ['css/**', 'fonts/**', 'js/**']
     openLayers:
       src: 'OpenLayers'
       dest: 'OpenLayers'
@@ -135,7 +134,10 @@ module.exports = (grunt) ->
         'bootstrap-wysihtml5.js',
         'bootstrap-wysihtml5.css',
         'locales/bootstrap-wysihtml5.ru-RU.js']
-
+    'normalize-css':
+      src: 'normalize-css'
+      dest: 'normalize-css'
+      file: 'normalize.css'
 
   mkCopyAndClean = (libs, cfg) ->
     for lib, libCfg of libs
@@ -154,7 +156,7 @@ module.exports = (grunt) ->
 
   newerify = (ts) -> "newer:#{t}" for t in ts
 
-  grunt.registerTask("build", newerify ['coffee', 'copy', 'jade'])
+  grunt.registerTask("build", newerify ['coffee', 'copy', 'jade', 'concat_css'])
   grunt.registerTask("rebuild", ['shell:bower', 'clean', 'build'])
   grunt.registerTask("bwatch", ['rebuild', 'watch'])
   grunt.registerTask("default", "rebuild")

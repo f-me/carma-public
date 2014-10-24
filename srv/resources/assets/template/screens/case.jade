@@ -1,0 +1,59 @@
+.row.screen
+  #left.col.col-md-4
+    .form-horizontal
+      .form-group
+        label.control-label.col-sm-4 Номер
+        .col-sm-8
+          input#case-number.form-control.input-sm(type='text'
+                                                  disabled='disabled'
+                                                  data-bind='value: maybeId')
+      #case-form
+      .form-group
+        label.control-label.col-sm-4 Услуги
+        .col-sm-8
+          span#service-picker-container
+
+      #case-permissions
+
+  // Central pane with subform
+  // TODO Should be spanN when fluid containers are fixed in Bootstrap upstream.
+  #center.col.col-md-6
+
+  // Rightmost pane with list of empty fields and action notes
+  #right.col.col-md-2
+    #case-actions-list
+    #case-car-description.panel-group(data-bind='visible: car_modelInfo()')
+      .panel.panel-default
+        .panel-heading
+          a(data-toggle='collapse'
+            data-parent='#case-car-description'
+            href='#case-car-model-info')
+            | Справка об автомобиле
+        #case-car-model-info.panel-collapse.collapse
+          .panel-body(data-bind='html: car_modelInfo')
+
+    #case-program-description.panel-group
+      .panel.panel-default
+        .panel-heading
+          h4.panel-title
+            a(data-toggle='collapse'
+              data-parent='#case-program-description'
+              href='#case-program-description-body'
+              data-bind='text: programLocal')
+        .panel-collapse.collapse.in#case-program-description-body
+          .panel-body
+            address(data-bind='html:programDesc')
+            div(data-bind='foreach: servicesDescs')
+              .panel-group#case-program-services
+                .panel.panel-default
+                  .panel-heading
+                    h4.panel-title
+                      a(data-toggle='collapse'
+                        data-parent='#case-program-services'
+                        data-bind="text: title, \
+                                   attr: {href: '#case-desc-' + $index()}")
+                  .panel-collapse.collapse.in(
+                    data-bind="attr: {id: 'case-desc-' + $index()}")
+                    .panel-body(data-bind='html: description')
+
+    #empty-fields-placeholder

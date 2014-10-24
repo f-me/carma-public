@@ -43,9 +43,9 @@ define [ "utils"
       content: "Справка по поиску"
 
     sq = $('#search-query')
-    sq.tagautocomplete
-      character: '!'
-      source:    {entries: ['!Кейс:', '!VIN:', '!Госномер:', '!Тел:']}
+    # sq.tagautocomplete
+    #   character: '!'
+    #   source:    {entries: ['!Кейс:', '!VIN:', '!Госномер:', '!Тел:']}
 
     e = jQuery.Event 'keypress'
     e.which = 61

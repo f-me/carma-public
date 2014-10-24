@@ -4,19 +4,18 @@ html
     meta(charset='utf-8')
     title
       addLocalName CaRMa
+    link(rel='stylesheet', href='/s/3p/normalize-css/normalize.css')
     link(rel='stylesheet', href='/s/3p/bootstrap/css/bootstrap.min.css')
-    link(rel='stylesheet', href='/s/css/datepicker.css')
-    // Additional set of icons
-    link(rel='stylesheet', href='/s/css/stolen-icons.css')
+
+    // Everything is concatenated in this
     link(rel='stylesheet', href='/s/css/local.css', title='local')
-    // Date Range Picker for Bootstrap
-    link(rel='stylesheet', href='/s/css/daterangepicker-bs2.css')
+
     // DOM manipulation
     script(src='/s/3p/jquery.js')
     // Rich UI
     script(src='/s/3p/bootstrap/js/bootstrap.min.js')
     script(src='/s/3p/bootstrap-datepicker.js')
-    script(src='/s/3p/bootstrap-tagautocomplete.js')
+    // script(src='/s/3p/bootstrap-tagautocomplete.js')
     // WYSIWYG
     link(rel='stylesheet', href='/s/3p/wysihtml5/bootstrap-wysihtml5.css')
     link(rel='stylesheet', href='/s/3p/wysihtml5/wysiwyg-color.css')
@@ -66,12 +65,13 @@ html
     script(src='/s/js/gen/local.js')
   body
     // Navigation bar on top
-    .navbar.navbar-fixed-top
-      .navbar-inner
-          ul#nav.nav.pull-left
-            a.brand(href='/')
-              addLocalName CaRMa
-            li.divider-vertical
+    nav.navbar.navbar-inverse(role="navigation")
+      .container-fluid
+        .navbar-header
+          a.navbar-brand(href='/')
+            addLocalName CaRMa
+        .collapse.navbar-collapse
+          ul.nav.navbar-nav#nav
             li#avaya-panel.dropdown(style='display: none;')
               form.navbar-search.pull-left
                 input.search-query(type='text', placeholder='Avaya')
@@ -91,7 +91,7 @@ html
             li
               a#send-bug-report
                 i.icon.icon-fire.icon-white
-          ul#current-user.nav.pull-right
+          ul#current-user.nav.navbar-nav.navbar-right
             li.divider-vertical
             li.dropdown
               a.dropdown-toggle(href='#', data-toggle='dropdown')
@@ -130,8 +130,8 @@ html
                       | Обед
 
     // Main container for dynamically rendered layouts
-    #main-container.container-fluid
-      #layout.row-fluid
+    #main-container
+      #layout
     // SMS send form
     #sms-send-modal.modal.hide.fade
       .modal-header

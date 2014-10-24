@@ -1,0 +1,52 @@
+#call-screen.screen.container-fluid
+  .row
+    #left.form-horizontal.col-md-5.col
+      .form-group
+        label.control-label.col-sm-4 Номер
+        .col-sm-8
+          input#call-number.form-control.input-sm(type='text'
+                                         disabled='disabled'
+                                         data-bind='value: maybeId')
+      #call-form
+
+    #center.col-md-5.col
+    #right.col-md-2.col
+      .btn-group-vertical
+        button#search-partner.btn.btn-success
+          i.icon.icon-white.icon-search
+          | Дилеры и партнеры
+        button#new-case.btn.btn-success(type='submit', onclick='makeCase()')
+          | Новый кейс
+        button#end-call.btn.btn-danger(data-bind='visible: id')
+          | Закончить звонок
+
+  .row.bottom-part
+    .form-inline
+      .form-group
+        label.sr-only
+          | Поиск
+        .input-group
+          input#search-query.form-control.input-xlarge(
+              type='text' placeholder="Поиск")
+          .input-group-addon
+            span#search-help.glyphicon.glyphicon-question-sign(
+                data-trigger='hover')
+    table#call-scrn-searchtable.table.table-striped.table-bordered.table-condensed
+      thead
+        tr
+          th ID
+          th ФИО
+          th Дата звонка
+          th Телефон
+          th Номер машины
+          th VIN
+          th Программа
+          th Комментарий
+      tbody
+  #new-call-modal.modal.fade.modal-dont-block
+    .modal-body
+      form.form-inline.text-center
+        span.lead
+          | Начать новый звонок
+        img#make-new-call.img-circle(src='/s/img/phone_pickup.png'
+            style='width: 256px; height: 256px; cursor: pointer;')
