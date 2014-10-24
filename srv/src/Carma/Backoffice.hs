@@ -33,7 +33,6 @@ import           Carma.Model.ServiceType as ST
 import           Carma.Model.PaymentType as PT
 import qualified Carma.Model.SmsTemplate as SMS
 import qualified Carma.Model.Usermeta as Usermeta
-import qualified Carma.Model.PaymentType as PT
 
 import Carma.Backoffice.DSL
 import Carma.Backoffice.DSL.Types (Eff)
@@ -83,6 +82,17 @@ messageToPSA =
     (sendMail PSA) -- FIXME: lift checks for Towage.techType & consultation.result
     nop
 
+messageToDealer :: Backoffice bk => bk (Eff m)
+messageToDealer =
+    ite
+    ((caseField Case.program `oneOf` [Program.peugeot, Program.citroen]) &&
+     (serviceField Service.svcType == const ST.towage) &&
+     (serviceField Service.payType == just PT.ruamc ||
+      serviceField Service.payType == just PT.refund ||
+      serviceField Service.payType == just PT.mixed)
+    )
+    (sendMail Dealer)
+    nop
 
 needMakerApproval :: Entry
 needMakerApproval =
@@ -296,7 +306,7 @@ checkEndOfService =
     ((5 * minutes) `since` req (serviceField times_expectedServiceEnd))
     [ (AResult.serviceDone,
        sendSMS SMS.complete *>
-       sendMail Dealer *>
+       messageToDealer *>
        messageToGenser *>
        setServiceStatus SS.ok *>
        ite (caseField Case.program `oneOf`
