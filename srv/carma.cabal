@@ -43,6 +43,7 @@ Executable carma
     Carma.Backoffice.Action.SMS,
     Carma.Backoffice.Action.MailToGenser,
     Carma.Backoffice.Action.MailToPSA,
+    Carma.Backoffice.Action.MailToDealer,
     Snaplet.DbLayer,
     Snaplet.DbLayer.RedisCRUD,
     Snaplet.DbLayer.PostgresCRUD,

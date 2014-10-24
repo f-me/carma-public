@@ -1,15 +1,19 @@
 
 module Carma.Backoffice.Action.MailToPSA (sendMailToPSA) where
 
+import Control.Applicative
+import Control.Monad.IO.Class (liftIO)
+
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Read as T (decimal)
+import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
+import Data.ByteString (ByteString)
 
 import Data.Aeson ((.=))
 import Data.Monoid ((<>))
-import Control.Monad.IO.Class (liftIO)
 
 import Database.PostgreSQL.Simple.SqlQQ.Alt
 import Database.PostgreSQL.Simple as PG
@@ -35,9 +39,12 @@ import Util (syslogJSON, logExceptions, Priority(..))
 sendMailToPSA :: IdentI Service -> FutureContext -> AppHandler (IO ())
 sendMailToPSA svcId fc = do
   cfg      <- getSnapletUserConfig
-  cfgFrom  <- liftIO $ require cfg "psa-smtp-from"
-  cfgTo    <- liftIO $ require cfg "psa-smtp-recipients"
-  cfgReply <- liftIO $ require cfg "psa-smtp-replyto"
+  let addr = Address Nothing . T.strip
+  let addrList = map addr . T.splitOn ","
+  cfgFrom  <- liftIO $ addr     <$> require cfg "psa-smtp-from"
+  cfgReply <- liftIO $ addr     <$> require cfg "psa-smtp-reply"
+  cfgTo    <- liftIO $ addrList <$> require cfg "psa-smtp-to"
+  cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy"
 
   return $ do
     syslogJSON Info "trigger/mailToPSA" ["svcId" .= svcId]
@@ -46,25 +53,30 @@ sendMailToPSA svcId fc = do
           ["svcId" .= svcId, "error" .= (e :: Text)]
     Pool.withResource (fc_pgpool fc) $ \pg ->
       getMsgData pg svcId >>= \case
-        [res] -> case render res of
+        [res] -> case render $ map (fmap T.decodeUtf8) res of
           Left msg  -> err msg
-          Right msg -> sendMailActually cfgFrom cfgTo cfgReply msg
+          Right msg -> sendMailActually cfgFrom cfgTo cfgReply cfgCopy msg
         []    -> err "empty query result"
         _     -> err "ambiguous query result"
 
 
-sendMailActually :: Text -> Text -> Text -> Text -> IO ()
-sendMailActually from to reply msg = do
-  let bodyText = TL.encodeUtf8 $ TL.fromChunks [msg]
+sendMailActually
+  :: Address -> [Address] -> Address -> [Address] -> Text
+  -> IO ()
+sendMailActually from to reply copy msg = do
   let bodyPart = Part "text/plain; charset=utf-8"
-        QuotedPrintableText Nothing [] bodyText
-  logExceptions "trigger/mailToPSA/sendMailToPSA"
-    $ renderSendMailCustom "/usr/sbin/sendmail" ["-t", "-r", T.unpack from]
-      $ (emptyMail $ Address Nothing from)
-        {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," to
-        ,mailHeaders = [("Reply-To", reply) , ("Subject", "RAMC")]
-        ,mailParts = [[bodyPart]]
+        QuotedPrintableText Nothing [] (TL.encodeUtf8 $ TL.fromChunks [msg])
+  let email = (emptyMail from)
+        {mailTo      = to
+        ,mailCc      = copy
+        ,mailHeaders = [("Reply-To", addressEmail reply) , ("Subject", "RAMC")]
+        ,mailParts   = [[bodyPart]]
         }
+  logExceptions "trigger/mailToPSA/sendMailToPSA"
+    $ renderSendMailCustom
+      "/usr/sbin/sendmail"
+      ["-t", "-r", T.unpack $ addressEmail from]
+      email
 
 
 render :: [Maybe Text] -> Either Text Text
@@ -75,7 +87,7 @@ render = loop ""
         Right (len,_)
           -> loop (res <> fld <> " : " <> T.take (len::Int) val <> "\n") xs
         _ -> Left $ "Bug: invalid field length: " <> fld <> "=" <> lenTxt
-    loop _ [Just fld, _, Nothing]
+    loop _ (Just fld : _ : Nothing : _)
       = Left $ "Required field is empty: " <> fld
     loop res [] = Right res
     loop _ _  = Left "BUG: misaligned query result"
@@ -86,7 +98,12 @@ render = loop ""
 --  - Ok:    invalid tech type
 -- nulls in result
 --  - some required field is missing
-getMsgData :: PG.Connection -> IdentI Service -> IO [[Maybe Text]]
+
+-- NB: Why 'ByteString' instead of 'Text'?
+-- PostgreSQL inferes 'unknown' type for string literals and
+-- postgresql-simple does not allow values of 'unknown' type to be
+-- converted to 'Text'.
+getMsgData :: PG.Connection -> IdentI Service -> IO [[Maybe ByteString]]
 getMsgData con svcId = uncurry (PG.query con)
   [sql|
     select
@@ -109,6 +126,7 @@ getMsgData con svcId = uncurry (PG.query con)
         case c.car_engine
           when $(Engine.petrol)$ then 'E'
           when $(Engine.diesel)$ then 'D'
+          else 'E'
         end,
       'Date put on road'::text,    '10'::text, to_char(c.car_buyDate, 'DD/MM/YYYY'),
       'VIN number'::text,          '17'::text, c.car_vin,

@@ -1,0 +1,161 @@
+
+module Carma.Backoffice.Action.MailToDealer (sendMailToDealer) where
+
+import Control.Applicative
+import Control.Monad.IO.Class (liftIO)
+
+import Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TL
+import Data.Monoid ((<>))
+import qualified Data.Aeson as Aeson
+import qualified Data.HashMap.Strict as HM
+import Data.List (foldl')
+
+import qualified Database.PostgreSQL.Simple as PG
+import Database.PostgreSQL.Simple.SqlQQ
+import Data.Pool as Pool
+
+import Data.Configurator (require)
+import Network.Mail.Mime
+
+import Data.Model as Model
+import Carma.Model.Service (Service)
+import Trigger.Dsl (FutureContext(..))
+
+import Snap.Snaplet (getSnapletUserConfig)
+import Application (AppHandler)
+import Util hiding (render)
+
+
+
+sendMailToDealer :: IdentI Service -> FutureContext -> AppHandler (IO ())
+sendMailToDealer svcId fc = do
+  cfg      <- getSnapletUserConfig
+  let addr = Address Nothing . T.strip
+  let addrList = map addr . T.splitOn ","
+  cfgFrom  <- liftIO $ addr     <$> require cfg "psa-smtp-from"
+  cfgReply <- liftIO $ addr     <$> require cfg "psa-smtp-reply"
+  cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy"
+
+  return $ do
+    syslogJSON Info "trigger/mailToDealer" ["svcId" .= svcId]
+    let txt = T.pack . show
+    let err e = syslogJSON Error
+          "trigger/mailToDealer"
+          ["svcId" .= svcId, "error" .= (e :: Text)]
+    Pool.withResource (fc_pgpool fc) $ \pg ->
+      PG.query pg q [svcId] >>= \case
+        [[vals]] -> sendMailActually
+          cfgFrom
+          (addrList $ render "$emails$" vals)
+          cfgReply cfgCopy
+          ("Доставлена машина на ремонт / " <> txt svcId)
+          (render msgTemplate vals)
+        []    -> err "empty query result"
+        _     -> err "ambiguous query result"
+
+
+render :: Text -> Aeson.Value -> Text
+render tpl (Aeson.Object vals)
+  = foldl' (\txt (key, Aeson.String val) -> T.replace key val txt) tpl
+  $ HM.toList vals
+render _ v = error $ "BUG! invalid JSON in MailToDealer.render: " ++ show v
+
+
+sendMailActually
+  :: Address -> [Address] -> Address -> [Address] -> Text -> Text
+  -> IO ()
+sendMailActually from to reply copy subj msg = do
+  let bodyPart = Part "text/html; charset=utf-8"
+        QuotedPrintableText Nothing [] (TL.encodeUtf8 $ TL.fromChunks [msg])
+  let email = (emptyMail from)
+        {mailTo      = to
+        ,mailCc      = copy
+        ,mailHeaders = [("Reply-To", addressEmail reply) , ("Subject", subj)]
+        ,mailParts   = [[bodyPart]]
+        }
+  logExceptions "trigger/mailToPSA/sendMailToPSA"
+    $ renderSendMailCustom
+      "/usr/sbin/sendmail"
+      ["-t", "-r", T.unpack $ addressEmail from]
+      email
+
+
+q :: PG.Query
+q = [sql|
+    with
+      partnerEmails as
+        (select p.id as pid, string_agg(m.value->>'value', ',') as addrs
+          from partnertbl p, json_array_elements(p.emails) m
+          where m.value->>'key' = 'close'
+          group by p.id),
+      msgValues as
+        (select
+            c.id as "$case_id$",
+            c.callDate as "$case_date$",
+            coalesce(c.car_vin, '-') as "$car_vin$",
+            coalesce(c.car_plateNum, '-') as "$car_plate$",
+            coalesce(c.customerComment, '-') as "$wazzup$",
+            make.label as "$car_make$",
+            model.label as "$car_model$",
+            email.addrs as "$emails$"
+          from
+            towagetbl t, casetbl c,
+            "CarMake" make, "CarModel" model,
+            partnertbl p, partnerEmails email
+          where true
+            and make.id = c.car_make
+            and model.id = c.car_model
+            and t.parentId = c.id
+            and t.towDealer_partnerId = p.id
+            and email.pid = p.id
+            and t.id = ?)
+    select row_to_json(msg.*) from msgValues msg
+  |]
+
+
+
+msgTemplate :: Text
+msgTemplate
+  = "<p>На территорию Вашего ДЦ был доставлен а/м по программе Assistance.</p> \
+    \<br /> \
+    \Кейс в РАМК: $case_id$<br /> \
+    \VIN номер: $car_vin$<br /> \
+    \Госномер: $car_plate$<br /> \
+    \Дата доставки а/м: $case_date$<br /> \
+    \Марка: $car_make$<br /> \
+    \Модель: $car_model$<br /> \
+    \Неисправность со слов Клиента: $wazzup$<br /> \
+    \<p> Просим Вас предоставить дополнительную информацию, после диагностики  \
+    \а/м в виде таблицы на электронный адрес psa@ruamc.ru :</p> \
+    \<table border=\"1\"> \
+    \  <tr bgcolor=\"SkyBlue\"> \
+    \    <th>Код дилера</th> \
+    \    <th>VIN номер автомобиля</th> \
+    \    <th>Пробег а/м на момент поломки</th> \
+    \    <th>Номер заказа-наряда ремонта у дилера</th> \
+    \    <th>Время/Дата поступления автомобиля</th> \
+    \    <th>Время/дата диагностики</th> \
+    \    <th>Запланированное время/дата окончания работ</th> \
+    \    <th>Реальное время/дата окончания работ</th> \
+    \    <th>Гарантия / негарантия</th> \
+    \    <th>Описание причины неисправности</th> \
+    \    <th>Система автомобиля, в которой произошла неисправность</th> \
+    \    <th>Неисправная деталь</th> \
+    \  </tr> \
+    \  <tr align=\"center\"> \
+    \    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td> \
+    \    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td> \
+    \  </tr> \
+    \  <tr align=\"center\"> \
+    \    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td> \
+    \    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td> \
+    \  </tr> \
+    \  <tr align=\"center\"> \
+    \    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td> \
+    \    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td> \
+    \  </tr> \
+    \</table> \
+    \<p>Заранее благодарим за своевременный ответ в течение 24 часов.</p>"
