@@ -84,6 +84,7 @@ import qualified Carma.Backoffice.DSL as BO
 import qualified Carma.Backoffice.Action.SMS as BOAction (sendSMS)
 import qualified Carma.Backoffice.Action.MailToGenser as BOAction (sendMailToGenser)
 import qualified Carma.Backoffice.Action.MailToPSA as BOAction (sendMailToPSA)
+import qualified Carma.Backoffice.Action.MailToDealer as BOAction (sendMailToDealer)
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
 
@@ -604,7 +605,7 @@ instance Backoffice HaskellE where
     sendMail = \case
       Genser -> run $ BOAction.sendMailToGenser <$> srvId'
       PSA    -> run $ BOAction.sendMailToPSA    <$> srvId'
-      Dealer -> run $ return $ const $ return $ return ()
+      Dealer -> run $ BOAction.sendMailToDealer <$> srvId'
       where
         run = HaskellE . fmap inFuture
         inFuture :: (FutureContext -> AppHandler (IO ())) -> Free (Dsl m) ()
