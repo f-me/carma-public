@@ -93,14 +93,14 @@ q = [sql|
           group by p.id),
       msgValues as
         (select
-            c.id as "$case_id$",
-            c.callDate as "$case_date$",
-            coalesce(c.car_vin, '-') as "$car_vin$",
-            coalesce(c.car_plateNum, '-') as "$car_plate$",
-            coalesce(c.customerComment, '-') as "$wazzup$",
-            make.label as "$car_make$",
-            model.label as "$car_model$",
-            email.addrs as "$emails$"
+            c.id                             :: text as "$case_id$",
+            c.callDate                       :: text as "$case_date$",
+            coalesce(c.car_vin, '-')         :: text as "$car_vin$",
+            coalesce(c.car_plateNum, '-')    :: text as "$car_plate$",
+            coalesce(c.customerComment, '-') :: text as "$wazzup$",
+            make.label                       :: text as "$car_make$",
+            model.label                      :: text as "$car_model$",
+            email.addrs                      :: text as "$emails$"
           from
             towagetbl t, casetbl c,
             "CarMake" make, "CarModel" model,
