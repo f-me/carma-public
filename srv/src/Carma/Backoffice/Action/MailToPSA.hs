@@ -107,68 +107,68 @@ getMsgData :: PG.Connection -> IdentI Service -> IO [[Maybe ByteString]]
 getMsgData con svcId = uncurry (PG.query con)
   [sql|
     select
-      'BeginOfFile'::text,          '4'::text, 'True'::text,
-      'Assistance Code'::text,     '50'::text,
+      'BeginOfFile',          '4', 'True',
+      'Assistance Code',     '50',
         case c.program
           when $(Program.peugeot)$ then 'RUMC01R'
           when $(Program.citroen)$ then 'FRRM01R'
         end,
-      'Country Code'::text,         '2'::text, 'RU'::text,
-      'Task Id'::text,              '9'::text, 'M' || lpad(c.id::text, 8, '0'),
-      'Time of Incident'::text,     '5'::text, to_char(c.callDate at time zone 'MSK'::text, 'HH24:MI'),
-      'Make'::text,                 '3'::text,
+      'Country Code',         '2', 'RU',
+      'Task Id',              '9', 'M' || lpad(c.id::text, 8, '0'),
+      'Time of Incident',     '5', to_char(c.callDate at time zone 'MSK', 'HH24:MI'),
+      'Make',                 '3', 
         case c.program
           when $(Program.peugeot)$ then 'PEU'
           when $(Program.citroen)$ then 'CIT'
         end,
-      'Model'::text,               '13'::text, car_model.label,
-      'Energie'::text,              '1'::text,
+      'Model',               '13', car_model.label,
+      'Energie',              '1',
         case c.car_engine
           when $(Engine.petrol)$ then 'E'
           when $(Engine.diesel)$ then 'D'
           else 'E'
         end,
-      'Date put on road'::text,    '10'::text, to_char(c.car_buyDate, 'DD/MM/YYYY'),
-      'VIN number'::text,          '17'::text, c.car_vin,
-      'Reg No'::text,              '10'::text, c.car_plateNum,
-      'Customer effet'::text,     '150'::text,
+      'Date put on road',    '10', to_char(c.car_buyDate, 'DD/MM/YYYY'),
+      'VIN number',          '17', c.car_vin,
+      'Reg No',              '10', c.car_plateNum,
+      'Customer effet',     '150', coalesce(c.customerComment, ''),
+      'Component fault',    '150',
         case svc.status
-          when $(ServiceStatus.canceled)$ then coalesce(svc.clientCancelReason)
-          else coalesce(c.customerComment, '')
-        end,
-      'Component fault'::text,    '150'::text, coalesce(c.dealerCause, ''),
-      'Date of Opening'::text,     '10'::text, to_char(c.callDate, 'DD/MM/YYYY'),
-      'Date of Response'::text,    '10'::text,
-        to_char(svc.times_factServiceStart at time zone 'MSK'::text, 'DD/MM/YYYY'),
-      'Time of Response'::text,     '5'::text,
-        to_char(svc.times_factServiceStart at time zone 'MSK'::text, 'HH24:MI'),
-      'Breakdown Location'::text,  '100'::text, c.caseAddress_address,
-      'Breakdown Area'::text,       '20'::text, city.label,
-      'Breakdown Service'::text,   '100'::text, coalesce(ctr.name, ''),
-      'Service Tel Number 1'::text, '20'::text, coalesce((ctr_phone_disp.value->'value')::text, ''),
-      'Service Tel Number 2'::text, '20'::text, coalesce((ctr_phone_close.value->'value')::text, ''),
-      'Patrol Address 1'::text,    '100'::text, coalesce((ctr_addr_fact.value->'value')::text, ''),
-      'Patrol Address 2'::text,    '100'::text, ''::text,
-      'Patrol Address V'::text,    '100'::text, ''::text,
-      'User Name'::text,            '50'::text, upper(c.contact_name),
-      'User Tel Number'::text,      '20'::text, c.contact_phone1,
-      'User Name P'::text,          '50'::text,
+          when $(ServiceStatus.canceled)$ then coalesce(svc.clientCancelReason, '')
+          else coalesce(c.dealerCause, '')
+          end,
+      'Date of Opening',     '10', to_char(c.callDate, 'DD/MM/YYYY'),
+      'Date of Response',    '10',
+        to_char(svc.times_factServiceStart at time zone 'MSK', 'DD/MM/YYYY'),
+      'Time of Response',     '5',
+        to_char(svc.times_factServiceStart at time zone 'MSK', 'HH24:MI'),
+      'Breakdown Location',  '100', c.caseAddress_address,
+      'Breakdown Area',       '20', city.label,
+      'Breakdown Service',   '100', coalesce(ctr.name, ''),
+      'Service Tel Number 1', '20', coalesce((ctr_phone_disp.value->'value')::text, ''),
+      'Service Tel Number 2', '20', coalesce((ctr_phone_close.value->'value')::text, ''),
+      'Patrol Address 1',    '100', coalesce((ctr_addr_fact.value->'value')::text, ''),
+      'Patrol Address 2',    '100', '',
+      'Patrol Address V',    '100', '',
+      'User Name',            '50', upper(c.contact_name),
+      'User Tel Number',      '20', c.contact_phone1,
+      'User Name P',          '50',
         case c.contact_contactOwner
           when true then upper(c.contact_name)
           else coalesce(upper(c.contact_ownerName), '')
         end,
-      'Job Type'::text,              '4'::text,
+      'Job Type',              '4',
         case svc.type
           when $(ServiceType.tech)$         then 'DEPA'
           when $(ServiceType.towage)$       then 'REMO'
           when $(ServiceType.consultation)$ then 'TELE'
         end,
-      'Dealer Address G'::text,    '200'::text, coalesce(tow.towAddress_address, ''),
-      'Dealer Address 1'::text,    '200'::text, ''::text,
-      'Dealer Address 2'::text,    '200'::text, ''::text,
-      'Dealer Address V'::text,    '200'::text, ''::text,
-      'Dealer Tel Number'::text,    '20'::text, coalesce((tow_dealer.phones->0->'value')::text, ''),
-      'End Of File'::text,           '4'::text, 'True'::text
+      'Dealer Address G',    '200', coalesce(tow.towAddress_address, ''),
+      'Dealer Address 1',    '200', '',
+      'Dealer Address 2',    '200', '',
+      'Dealer Address V',    '200', '',
+      'Dealer Tel Number',    '20', coalesce((tow_dealer.phones->0->'value')::text, ''),
+      'End Of File',           '4', 'True'
     from
       servicetbl svc
       left join towagetbl tow on svc.id = tow.id

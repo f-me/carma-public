@@ -115,7 +115,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
             chkAuth . method GET $ serveUserStates)
          , ("/kpi/stat/:from/:to", chkAuth . method GET $ getStat)
          , ("/kpi/oper",           chkAuth . method GET $ getOper)
-         , ("/_msgToPSA/:svcId",   chkAuthLocal . method GET $ msgToPSA)
          ]
 
 dconf :: DirectoryConfig (Handler App App)
