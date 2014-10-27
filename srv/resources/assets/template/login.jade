@@ -7,13 +7,13 @@ html
     link(rel='stylesheet', href='/s/css/local.css')
     script(src='/s/3p/jquery.js')
     script(src='/s/3p/jquery.browser.js')
-    script.
+    script(type='text/javascript').
       $(function() {
       $(".field").first().focus();
-      var msg = "<div class='span6 offset2'>                             \\
-      Для использования системы необходим браузер Google chrome          \\
-      версии не ниже 10, установить его можно по следующей ссылке:       \\
-      <a href='http://www.google.com/chrome'> www.google.com/chrome </a> \\
+      var msg = "<div class='span6 offset2'>                             \
+      Для использования системы необходим браузер Google chrome          \
+      версии не ниже 10, установить его можно по следующей ссылке:       \
+      <a href='http://www.google.com/chrome'> www.google.com/chrome </a> \
       </div>";
       if (!$.browser.mozilla && !$.browser.webkit) {
       $("body").html(msg);
