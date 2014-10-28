@@ -1,7 +1,6 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, ConstraintKinds #-}
 
 module AppHandlers.KPI ( getStat
-                       , getStatDays
                        , getOper
                        , getGroup
                        , updateOperKPI
@@ -18,7 +17,7 @@ import qualified Data.Map.Strict as M
 import           Data.Vector (Vector)
 import qualified Data.Vector as V
 import           Data.Time.Calendar (Day)
-import           Data.Text       (Text, pack)
+import           Data.Text (Text)
 
 import           Snap (getParam, Handler)
 
@@ -29,7 +28,6 @@ import           Snap.Snaplet.PostgresqlSimple
 
 import           Data.Model (IdentI)
 import           Data.Model.Patch
-import           Data.Model.Types (Ident(identVal))
 import qualified Carma.Model.KPI.Stat  as S
 import qualified Carma.Model.KPI.Oper  as O
 import qualified Carma.Model.KPI.Group as G
@@ -42,37 +40,25 @@ import           Util (fvIdentBs)
 
 getStat :: AppHandler ()
 getStat = do
+  u      <- getParam "uid"
   Just f <- getParam "from"
   Just t <- getParam "to"
-  writeJSON =<< selectStat f t
-
-getStatDays :: AppHandler ()
-getStatDays = do
-  Just u <- getParam "uid"
-  Just f <- getParam "from"
-  Just t <- getParam "to"
-  writeJSON =<< selectStatDays u f t
+  case u of
+   Just u' -> writeJSON =<< selectStatDays u' f t
+   Nothing -> writeJSON =<< selectStat f t
 
 selectStat :: ByteString -> ByteString
-           -> AppHandler [Patch S.StatKPI] -- (M.Map Text [Patch S.StatKPI])
+           -> AppHandler [Patch S.StatKPI]
 selectStat from to = do
   [Only usrs] <- query_ activeUsersQ
-  -- states <- query [sql| SELECT * FROM get_KPI_timeinstate(?, tstzrange(?, ?))
-  --   |] (usrs, from, to)
-  (states, _) <- RWS.execRWST fillKPIs1 (usrs, from, to) M.empty
-  -- return $ M.foldrWithKey (\(idt, _) a b -> M.insertWith (++) (pack $ show $ identVal idt) [a] b) M.empty states
+  (states, _) <- RWS.execRWST fillKPIs (usrs, from, to) M.empty
   return $ M.elems states
-  -- where
-  --   smap :: [Patch S.StatKPI] -> M.Map (IdentI Usermeta) (Patch S.StatKPI)
-  --   smap =
-  --     foldl (\a v -> maybe a (\mu -> M.insert mu v a) (ks p)) M.empty
-  --   ks p = (,) <$> get p S.user <*> get p S.day
 
 selectStatDays :: ByteString -> ByteString -> ByteString
                -> AppHandler [Patch S.StatKPI]
 selectStatDays rawuid from to = do
   (states, _) <-
-    RWS.execRWST fillKPIs (V.singleton(raw2uid rawuid), from, to) M.empty
+    RWS.execRWST fillKPIsDays (V.singleton(raw2uid rawuid), from, to) M.empty
   return $ M.elems states
   where
     raw2uid bs = fromMaybe (error "Can't parse ident") (fvIdentBs bs)
@@ -93,8 +79,8 @@ type HandlerKPI     = HandlerSt (IdentI Usermeta)
 type HandlerKPIDays = HandlerSt (IdentI Usermeta, Day)
 
 
-fillKPIs :: HandlerKPIDays
-fillKPIs = do
+fillKPIsDays :: HandlerKPIDays
+fillKPIsDays = do
   fill states   =<< qry "get_KPI_userstates_days"
   fillTotalStates
   fill calls    =<< qry "get_KPI_calls_days"
@@ -150,15 +136,8 @@ fillKPIs = do
   addState k@(u, d) f v = RWS.modify $ M.insertWith union k $
     put f v $ put S.day d $ put S.user u empty
 
-  fillTotalStates = RWS.modify $ M.map $ \p ->
-    put S.totalLoggedIn (Just $ sum $ catMaybes $ map join
-      [get p S.inReady, get p S.inBusy, get p S.totalRest]) $
-    put S.totalRest (Just $ sum $ catMaybes $ map join
-      [get p S.inDinner, get p S.inRest, get p S.inServiceBreak])
-    p
-
-fillKPIs1 :: HandlerKPI
-fillKPIs1 = do
+fillKPIs :: HandlerKPI
+fillKPIs = do
   fill states   =<< qry "get_KPI_userstates"
   fillTotalStates
   fill calls    =<< qry "get_KPI_calls"
@@ -183,20 +162,14 @@ fillKPIs1 = do
      ServiceBreak -> addState u S.inServiceBreak v
      LoggedOut    -> addState u S.inLoggedOut v
 
-  fillTotalStates = RWS.modify $ M.map $ \p ->
-    put S.totalLoggedIn (Just $ sum $ catMaybes $ map join
-      [get p S.inReady, get p S.inBusy, get p S.totalRest]) $
-    put S.totalRest (Just $ sum $ catMaybes $ map join
-      [get p S.inDinner, get p S.inRest, get p S.inServiceBreak])
-    p
-
   calls (u, tpe, t, a) =
     case tpe :: Text of
       "info"           -> putInSt u (S.infoTime, t) (S.infoCount, a)
-      "newCase"        -> putInSt u (S.newTime, t)  (S.newCount, a)
+      "newCase"        -> putInSt u (S.newTime,  t)  (S.newCount, a)
       "processingCase" -> putInSt u (S.procTime, t) (S.procCount, a)
       errVal -> error $ "Check get_KPI_calls," ++ (show errVal) ++
                         " type should not be there."
+
   actions (u, tpe, t, a) =
     case tpe :: Text of
       "control"      -> putInSt u (S.controlT, t)      (S.controlC, a)
@@ -205,6 +178,7 @@ fillKPIs1 = do
       "callMeMaybe"  -> putInSt u (S.callMeMaybeT,  t) (S.callMeMaybeC,  a)
       errVal -> error $ "Check get_KPI_actions," ++ (show errVal) ++
                         " type should not be there."
+
   putInSt u (f1, v1) (f2, v2) =
     RWS.modify $ M.adjust (\a -> put f1 v1 $ put f2 v2 a) u
 
@@ -217,6 +191,14 @@ fillKPIs1 = do
 
   addState k f v = RWS.modify $ M.insertWith union k $
     put f v $ put S.user k empty
+
+fillTotalStates :: HandlerSt k
+fillTotalStates = RWS.modify $ M.map $ \p ->
+  put S.totalLoggedIn (Just $ sum $ catMaybes $ map join
+    [get p S.inReady, get p S.inBusy, get p S.totalRest]) $
+  put S.totalRest (Just $ sum $ catMaybes $ map join
+    [get p S.inDinner, get p S.inRest, get p S.inServiceBreak])
+  p
 
 
 --------------------------------------------------------------------------------
