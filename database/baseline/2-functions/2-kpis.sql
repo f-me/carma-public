@@ -17,7 +17,7 @@ BEGIN
     lower(tstzrange(b, e) * coalesce(us.range, tstzrange(us.ctime, now())))
     ) as "timeInState"
    FROM "UserState" us
-   WHERE us.userid = any(u_id)
+   WHERE u_id = '{}' OR us.userid = any(u_id)
   GROUP BY us.userid, us.state;
 END;
 $func$
@@ -1014,14 +1014,23 @@ CREATE OR REPLACE FUNCTION group_kpi_utilization(
  utilization double precision)
  AS
 $func$
+DECLARE
+  inSystem interval;
+  busy     interval;
 BEGIN
+
+  SELECT sum(us.timeInState) INTO inSystem
+    FROM get_KPI_userstates('{}', c_time, e_time) us
+    WHERE us.state in ('Ready', 'Busy', 'Rest', 'Dinner', 'ServiceBreak');
+
+  SELECT SUM(us.timeInState) INTO busy
+    FROM get_KPI_userstates('{}', c_time, e_time) us
+    WHERE us.state = 'Busy';
+
   RETURN QUERY
-SELECT
-       SUM(EXTRACT(EPOCH FROM "Busy")) / SUM(EXTRACT(EPOCH FROM "totalLoggedIn"))
-       AS utilization
-FROM get_KPI_timeinstate(
-       (SELECT array_agg(id) FROM usermetatbl where showKPI = 't'),
-       tstzrange(c_time, e_time)) t;
+  SELECT (EXTRACT(EPOCH FROM inSystem) / EXTRACT(EPOCH FROM busy))
+         AS utilization;
+
 END;
 $func$
 LANGUAGE plpgsql;
