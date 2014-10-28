@@ -19,6 +19,7 @@ import qualified Data.Map.Strict as M
 import           Data.Vector (Vector)
 import qualified Data.Vector as V
 import           Data.Time.Calendar (Day)
+import           Data.Time.Clock    (DiffTime)
 import           Data.Text (Text)
 
 import           Snap (getParam, Handler)
@@ -212,6 +213,14 @@ fillTotalStates = RWS.modify $ M.map $ \p ->
     [get p S.inDinner, get p S.inRest, get p S.inServiceBreak])
   p
 
+fillTotalStates' :: Patch O.OperKPI -> Patch O.OperKPI
+fillTotalStates' p =
+  put O.totalLoggedIn (Just $ sum $ catMaybes $ map join
+    [get p O.inReady, get p O.inBusy, get p O.totalRest]) $
+  put O.totalRest (Just $ sum $ catMaybes $ map join
+    [get p O.inDinner, get p O.inRest, get p O.inServiceBreak])
+  p
+
 
 --------------------------------------------------------------------------------
 -- Oper kpis
@@ -226,16 +235,28 @@ updateOperKPI :: HasPostgres (Handler b b1)
 updateOperKPI usrs = do
   opers <- query operTotalQ (usrs, usrs)
   forM opers $ \(W o) -> do
-    let l = fromMaybe (error "OperKPI: here is no logintTime field") $
+    let l = fromMaybe (error "OperKPI: there is no logintTime field") $
             get o O.loginTime
-        u = fromMaybe (error "OperKPI: here is no user field") $ get o O.user
-    kpis <- query "SELECT * FROM get_KPI_timeinstate(?, tstzrange(?, now()));"
+        u = fromMaybe (error "OperKPI: there is no user field") $ get o O.user
+    kpis <- query "SELECT * FROM get_KPI_userstates(?, ?, now())"
             (V.singleton u, l)
-    case kpis of
-      -- It's something strange, we have login event with no state, bug?
-      []      -> return o
-      [kpis'] -> return $ union o (unW kpis')
-      _       -> error "There is something terribly wrong with damn states"
+
+    return $ fillTotalStates' $ union o (foldl state2kpi empty kpis)
+
+  where
+    state2kpi :: Patch O.OperKPI
+              -> (IdentI Usermeta, UserStateVal, Maybe DiffTime)
+              -> Patch O.OperKPI
+    state2kpi p (_, s, v) =
+      case s of
+       Ready        -> put O.inReady v p
+       Busy         -> put O.inBusy v p
+       Dinner       -> put O.inDinner v p
+       Rest         -> put O.inRest v p
+       ServiceBreak -> put O.inServiceBreak v p
+       LoggedOut    -> put O.inLoggedOut v p
+
+
 
 operTotalQ :: Query
 operTotalQ = [sql|
