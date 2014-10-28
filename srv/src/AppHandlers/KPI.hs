@@ -1,11 +1,13 @@
 {-# LANGUAGE TemplateHaskell, QuasiQuotes, ConstraintKinds #-}
 
 module AppHandlers.KPI ( getStat
+                       , getStatFiles
                        , getOper
                        , getGroup
                        , updateOperKPI
                        ) where
 
+import           Control.Applicative ((<$>))
 import           Control.Monad (forM, join)
 import           Control.Monad.Trans.Class
 import qualified Control.Monad.Trans.RWS.Strict as RWS
@@ -37,6 +39,16 @@ import           Carma.Model.Types (UserStateVal(..))
 import           AppHandlers.Util
 import           Util (fvIdentBs)
 
+
+getStatFiles :: AppHandler ()
+getStatFiles = do
+  Just f <- getParam "from"
+  Just t <- getParam "to"
+  writeJSON =<< selectStatFiles f t
+  where
+    selectStatFiles :: ByteString -> ByteString -> AppHandler (Int, Int)
+    selectStatFiles f t =
+      head <$>  query [sql| SELECT * FROM get_KPI_attachments(?, ?) |] (f, t)
 
 getStat :: AppHandler ()
 getStat = do

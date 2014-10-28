@@ -924,7 +924,7 @@ BEGIN
     17, --"Услуга оказывается"
     20 --'Услуга закрыта'
   )) THEN servicetbl.id
-	END) as done_services
+  END) as done_services
 FROM servicetbl
 WHERE servicetbl.createtime IS NOT NULL
 AND servicetbl.createtime BETWEEN c_time AND e_time;
@@ -1031,6 +1031,36 @@ BEGIN
   SELECT (EXTRACT(EPOCH FROM inSystem) / EXTRACT(EPOCH FROM busy))
          AS utilization;
 
+END;
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_KPI_attachments(
+       fromTime timestamptz,
+       toTime   timestamptz)
+ RETURNS TABLE (
+ cases_amount bigint,
+ files_attached bigint
+ ) AS
+$func$
+BEGIN
+  RETURN QUERY
+  WITH case_files AS (--РАЗБИВАЕМ casetbl.files на отдельные элементы: (attachment1, attachment2)->(attachment1); (attachment2)
+    SELECT id,
+           split_part(regexp_split_to_table(files, ','),
+                      'Attachment:',
+                      2)::integer as attachment
+  FROM casetbl
+  WHERE calldate BETWEEN fromTime AND toTime
+    AND files is not null and files != '')
+
+SELECT COUNT(DISTINCT c.id) as cases_amount
+     , COUNT(c.id) as files_attached
+  FROM case_files c
+  JOIN attachmenttbl a
+  ON c.attachment = a.id
+WHERE a.filename = 'з-н.pdf'
+  AND a.ctime BETWEEN fromTime AND toTime;
 END;
 $func$
 LANGUAGE plpgsql;

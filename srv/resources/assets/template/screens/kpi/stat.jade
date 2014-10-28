@@ -6,7 +6,18 @@ include _settings
     #stat-kpi-content(data-bind="spinner: spinner")
       .row-fluid#settings(data-bind="with: settingsCtx")
         +settingsContainer
-          +settings
+          .row-fluid
+            .span6
+              +settings
+            .span6
+              .row-fluid
+                .span5
+                  | Всего кейсов с заказ-нарядом
+                .span3(data-bind="text: cases_amount")
+              .row-fluid
+                .span5
+                  | Прикрепено файлов "Заказ-Наряд"
+                .span3(data-bind="text: files_attached")
 
         .row-fluid#filters(style="margin-top: 10px")
           .span4#kvmsFilter
