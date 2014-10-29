@@ -1,6 +1,6 @@
 // Portal screen template. Derived from search screen template
-.row-fluid
-  #main-content.span9
+.row
+  #main-content.col-md-9
     // Page header: logo and subprogram description.
     #logo-help.form-inline.well
       .media(style='text-align: center;')
@@ -11,41 +11,17 @@
           h4#help-program
           p#help-text
     // Table
-    #search-results(style='min-height: 50%; overflow-x: scroll;',
-                    data-bind='spinner: $root.searchKVM.searchResultsSpinner')
-      table#tbl.table.table-hover.table-striped.table-bordered
-        thead
-          tr
-            // ko foreach: showFields.fields
-            th
-              button.btn.btn-link(style='white-space: nowrap;',
-                  data-bind='text: $root.showFields.labels[$data], sort: $data')
-            // /ko
-        tbody(data-bind='foreach: {data: kvms, as: \'kvm\'}')
-          tr(data-bind='attr: { \'data-source\': $data.Contract.id }')
-            // ko foreach: $root.showFields.fields
-            td(data-bind='renderGroup: $parent')
-            // /ko
-          tr.hidden
-    // Table controls
-    .pager
-      ul
-        li(style='cursor: pointer;', data-bind='css: {fade: !_.isNumber(prev())}')
-          a(data-bind='click: prevPage')
-            | ←
-        li
-          a(data-bind='text: page')
-        li(style='cursor: pointer;', data-bind='css: {fade: !next()}')
-          a(data-bind='click: nextPage')
-            | →
+    .row(style="overflow: auto")
+      include /lib/_searchTable.jade
+
   // Sidebar header
-  .span3
+  .col-md-3
     ul.nav.nav-tabs
       li.active
         a(href='#search-tab', data-toggle='tab') Поиск
       li
         a(href='#contract-tab', data-toggle='tab') Редактирование
-  #sidebar-content.span3.tab-content(style='overflow-y: scroll;')
+  #sidebar-content.col-md-3.tab-content(style='overflow-y: scroll;')
     // Search tab
     #search-tab.tab-pane.active(style='width: 95%;')
       #search-conditions(data-bind='foreach: kvm.showFields')
@@ -68,10 +44,7 @@
             | Договор.pdf
       #contract-form
 
-.hidden(style="display: none;")
-
-  include /fields/ro.jade
-
+.hidden
   #contract-wrap-template
     .row-fluid
       .content.span11(data-bind="with: kvm")
