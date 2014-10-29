@@ -44,43 +44,17 @@ include _form_utils
 
 .field-template#date-field-template
   +fieldControlGroup
-    .input-group.date(data-provide="datepicker"
-                       data-autoshow-datepicker="true"
-                       data-date-format="dd.mm.yyyy"
-                       data-date-weekstart="1"
-                       data-bind="pickerDisable: {{ name }}Disabled")
-      +defaultInput("", "", "afterkeydown")
-
-      span.input-group-addon.glyphicon.glyphicon-calendar
-        i.icon.icon-calendar
-      +savingSpinner
+    +dateInput("", "", "afterkeydown")
 
 .field-template#interval-datetime-field-template
-  .form-group
-    label {{ meta.label }} (Диапазон)
-    .row-fluid
-      .span4
-        .input-append.date(data-provide="datepicker"
-                           data-autoshow-datepicker="true"
-                           data-date-format="dd.mm.yyyy"
-                           data-date-weekstart="1")
-          input.pane-span.focusable(type="text"
-            autocomplete="off"
-            name="{{ name }}.begin"
-            data-bind="value: {{ name }}.begin, valueUpdate: ['change', 'afterpaste'],",)
-          span.add-on
-            i.icon.icon-calendar
-      .span4.offset1
-        .input-append.date(data-provide="datepicker"
-                           data-autoshow-datepicker="true"
-                           data-date-format="dd.mm.yyyy"
-                           data-date-weekstart="1")
-          input.pane-span.focusable(type="text"
-            autocomplete="off"
-            name="{{ name }}.end"
-            data-bind="value: {{ name }}.end, valueUpdate: ['change', 'afterpaste'],")
-          span.add-on
-            i.icon.icon-calendar
+  .form-group.col-md-12
+    .row
+      label.col-md-12 {{ meta.label }} (Диапазон)
+    .row
+      .col-md-6
+        +dateInput(".begin", "", 'change')
+      .col-md-6
+        +dateInput(".end", "", 'change')
 
 .field-template#phone-field-template
   +fieldControlGroup

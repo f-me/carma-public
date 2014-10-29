@@ -15,7 +15,7 @@ mixin fieldControlGroup
 
 mixin defaultInput(nameMod, dataBinds, change, attrs)
   input.form-control(type="text" autocomplete="off"
-    name="{{ name }}"
+    name="{{ name }}#{nameMod}"
     style="{{# meta.transform }}\n\
            text-transform:{{meta.transform}};\n\
            {{/ meta.transform }}"
@@ -29,6 +29,18 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
                #{dataBinds}"
     )&attributes(attributes)
   +savingSpinner
+
+mixin dateInput(nameMod, dataBinds, change, attrs)
+  .input-group.input-group-sm.date(data-provide="datepicker"
+                     data-autoshow-datepicker="true"
+                     data-date-format="dd.mm.yyyy"
+                     data-date-weekstart="1"
+                     data-bind="pickerDisable: {{ name }}.disabled")
+    +defaultInput(nameMod, dataBinds, change, attrs)
+
+    span.input-group-addon.glyphicon.glyphicon-calendar
+      i.icon.icon-calendar
+
 
 mixin savingSpinner
   span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate.form-control-feedback(
