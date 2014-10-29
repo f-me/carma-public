@@ -44,7 +44,7 @@ sendMailToPSA svcId fc = do
   cfgFrom  <- liftIO $ addr     <$> require cfg "psa-smtp-from"
   cfgReply <- liftIO $ addr     <$> require cfg "psa-smtp-reply"
   cfgTo    <- liftIO $ addrList <$> require cfg "psa-smtp-to"
-  cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy"
+  cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy1"
 
   return $ do
     syslogJSON Info "trigger/mailToPSA" ["svcId" .= svcId]

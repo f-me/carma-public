@@ -37,7 +37,7 @@ sendMailToDealer svcId fc = do
   let addrList = map addr . T.splitOn ","
   cfgFrom  <- liftIO $ addr     <$> require cfg "psa-smtp-from"
   cfgReply <- liftIO $ addr     <$> require cfg "psa-smtp-reply"
-  cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy"
+  cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy2"
 
   return $ do
     syslogJSON Info "trigger/mailToDealer" ["svcId" .= svcId]
@@ -94,7 +94,8 @@ q = [sql|
       msgValues as
         (select
             c.id                             :: text as "$case_id$",
-            c.callDate                       :: text as "$case_date$",
+            to_char(c.callDate at time zone 'MSK', 'DD.MM.YYYY')
+                                             :: text as "$case_date$",
             coalesce(c.car_vin, '-')         :: text as "$car_vin$",
             coalesce(c.car_plateNum, '-')    :: text as "$car_plate$",
             coalesce(c.customerComment, '-') :: text as "$wazzup$",
