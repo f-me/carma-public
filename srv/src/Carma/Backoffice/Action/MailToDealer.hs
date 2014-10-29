@@ -94,7 +94,8 @@ q = [sql|
       msgValues as
         (select
             c.id                             :: text as "$case_id$",
-            c.callDate                       :: text as "$case_date$",
+            to_char(c.callDate at time zone 'MSK', 'DD.MM.YYYY')
+                                             :: text as "$case_date$",
             coalesce(c.car_vin, '-')         :: text as "$car_vin$",
             coalesce(c.car_plateNum, '-')    :: text as "$car_plate$",
             coalesce(c.customerComment, '-') :: text as "$wazzup$",
