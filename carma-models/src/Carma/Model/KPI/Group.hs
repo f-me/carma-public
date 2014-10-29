@@ -72,6 +72,16 @@ data GroupKPI = GroupKPI
     :: F (Maybe Int) "unclosed_overdue" "Просрочено из не выполненных"
 
   , utilization :: F (Maybe Double) "utilization" "Утилизация"
+  , avgSrvProcessing :: F (Maybe DiffTime)
+    "avgSrvProcessing" "Среднее время первичной обработки услуги"
+  , avgSrvFinish :: F (Maybe DiffTime)
+    "avgSrvFinish"
+    "Среднее время разгрузки/окончания услуги по эвакуации/техпомощи"
+  , satisfiedClients :: F (Maybe Int)
+    "satisfiedClients" "Процент довольных клиентов"
+  , claimsCount :: F (Maybe Int) "claimsCount" "Количество услуг с претензиями"
+  , towStartAvgTime :: F (Maybe Double)
+    "towStartAvgTime" "Среднее время прибытия эвакуатора/техпомощи"
   } deriving Typeable
 
 instance Model GroupKPI where
