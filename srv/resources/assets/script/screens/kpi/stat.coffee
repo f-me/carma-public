@@ -25,7 +25,6 @@ define ["text!tpl/screens/kpi/stat.html"
           return if _.isNull int
           sint = _.map int, (v) -> Map.c2s(v, 'UTCTime')
           spinner true
-          window.aaa = []
           $.getJSON "/kpi/stat/#{sint[0]}/#{sint[1]}", (data) ->
             ks = for m in data
               do (m) ->
@@ -54,6 +53,11 @@ define ["text!tpl/screens/kpi/stat.html"
 
             kvms ks
             spinner false
+          sCtx.cases_amount = ko.observable()
+          sCtx.files_attached = ko.observable()
+          $.getJSON "kpi/statFiles/#{sint[0]}/#{sint[1]}", ([c, f]) ->
+            sCtx.cases_amount c
+            sCtx.files_attached f
 
         updateTbl sCtx.interval()
         sCtx.fetchData = -> updateTbl(sCtx.interval())

@@ -21,6 +21,10 @@ define ["text!tpl/screens/kpi/group.html"
       ]
     interval = Fs.interval ko.observable(int)
 
+    interval.subscribe (v) ->
+      return unless interval.begin or interval.end
+      Usr.writeStuff key, { interval: interval() }
+
     kvm = Main.buildKVM Model
     flt = ko.observable ""
     sorted = ko.sorted

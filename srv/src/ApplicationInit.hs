@@ -113,8 +113,9 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/errors",        method POST errorsHandler)
          , ("/userStates/:userId/:from/:to",
             chkAuth . method GET $ serveUserStates)
-         , ("/kpi/stat/:from/:to", chkAuth . method GET $ getStat)
-         , ("/kpi/stat/:uid/:from/:to", chkAuth . method GET $ getStatDays)
+         , ("/kpi/stat/:from/:to",      chkAuth . method GET $ getStat)
+         , ("/kpi/stat/:uid/:from/:to", chkAuth . method GET $ getStat)
+         , ("/kpi/statFiles/:from/:to", chkAuth . method GET $ getStatFiles)
          , ("/kpi/group/:from/:to", chkAuth . method GET $ getGroup)
          , ("/kpi/oper",           chkAuth . method GET $ getOper)
          ]

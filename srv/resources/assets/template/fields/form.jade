@@ -302,7 +302,8 @@ include _form_utils
         data-toggle="tooltip"
         data-html="true"
         data-placement="bottom"
-        data-bind='attr: { title: buttons.needInfo.tooltip }')
+        data-bind='attr: { title: buttons.needInfo.tooltip } \
+                   visible: buttons.needInfo.visible')
         button.btn.btn-small.btn-info(
           style="width: 100%"
           id="{{name}}-needInfo"

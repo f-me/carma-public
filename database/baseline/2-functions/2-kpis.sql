@@ -17,7 +17,7 @@ BEGIN
     lower(tstzrange(b, e) * coalesce(us.range, tstzrange(us.ctime, now())))
     ) as "timeInState"
    FROM "UserState" us
-   WHERE us.userid = any(u_id)
+   WHERE u_id = '{}' OR us.userid = any(u_id)
   GROUP BY us.userid, us.state;
 END;
 $func$
@@ -924,7 +924,7 @@ BEGIN
     17, --"Услуга оказывается"
     20 --'Услуга закрыта'
   )) THEN servicetbl.id
-	END) as done_services
+  END) as done_services
 FROM servicetbl
 WHERE servicetbl.createtime IS NOT NULL
 AND servicetbl.createtime BETWEEN c_time AND e_time;
@@ -1014,14 +1014,174 @@ CREATE OR REPLACE FUNCTION group_kpi_utilization(
  utilization double precision)
  AS
 $func$
+DECLARE
+  inSystem interval;
+  busy     interval;
 BEGIN
+
+  SELECT sum(us.timeInState) INTO inSystem
+    FROM get_KPI_userstates('{}', c_time, e_time) us
+    WHERE us.state in ('Ready', 'Busy', 'Rest', 'Dinner', 'ServiceBreak');
+
+  SELECT SUM(us.timeInState) INTO busy
+    FROM get_KPI_userstates('{}', c_time, e_time) us
+    WHERE us.state = 'Busy';
+
   RETURN QUERY
-SELECT
-       SUM(EXTRACT(EPOCH FROM "Busy")) / SUM(EXTRACT(EPOCH FROM "totalLoggedIn"))
-       AS utilization
-FROM get_KPI_timeinstate(
-       (SELECT array_agg(id) FROM usermetatbl where showKPI = 't'),
-       tstzrange(c_time, e_time)) t;
+  SELECT (EXTRACT(EPOCH FROM inSystem) / EXTRACT(EPOCH FROM busy))
+         AS utilization;
+
 END;
 $func$
 LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION group_kpi_avgSrvProcessing(
+       fromTime timestamp with time zone,
+       toTime   timestamp with time zone)
+ RETURNS TABLE (
+ avgSrvProcessing interval)
+ AS
+$func$
+BEGIN
+
+  RETURN QUERY
+  SELECT avg(a.closetime - e.ctime)
+  FROM servicetbl s
+    JOIN "Event" e
+    ON s.id = e.modelId AND e.modelName IN (
+       SELECT value FROM "CtrModel" m JOIN "ServiceType" t
+         on m.id = t.model)
+    JOIN actiontbl a
+    ON a.serviceid = s.id
+    WHERE s.createTime BETWEEN fromTime AND toTime
+      AND a.result IN (2, 1)
+      AND patch->>'status' = '1'
+      AND absinterval(s.times_expectedServiceStart - e.ctime) <= '1:0:0';
+END;
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION group_kpi_avgSrvFinish(
+       fromTime timestamp with time zone,
+       toTime   timestamp with time zone)
+ RETURNS TABLE (
+ avgSrvFinish interval)
+ AS
+$func$
+BEGIN
+
+RETURN QUERY
+SELECT avg(s.times_factServiceEnd - s.times_factServiceStart)
+FROM servicetbl s
+WHERE s.createTime BETWEEN fromTime AND toTime
+  AND s.times_factServiceStart IS NOT NULL
+  AND s.times_factServiceEnd   IS NOT NULL;
+
+END;
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION group_kpi_satisfiedClients(
+       fromTime timestamp with time zone,
+       toTime   timestamp with time zone)
+ RETURNS TABLE (
+ satisfiedClients bigint)
+ AS
+$func$
+BEGIN
+
+RETURN QUERY
+
+SELECT count(clientSatisfied = 1 or null) / count(1)
+FROM servicetbl
+WHERE createTime BETWEEN fromTime AND toTime;
+
+END;
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION group_kpi_claims(
+       fromTime timestamp with time zone,
+       toTime   timestamp with time zone)
+ RETURNS TABLE (
+ claimsCount bigint)
+ AS
+$func$
+BEGIN
+
+RETURN QUERY
+
+SELECT count(1)
+FROM servicetbl s
+JOIN actiontbl a
+ON s.id = a.serviceid
+WHERE s.createTime BETWEEN fromTime AND toTime
+  AND a.type = 18; -- претензия;
+
+END;
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION group_kpi_towStartAvg(
+       fromTime timestamp with time zone,
+       toTime   timestamp with time zone)
+ RETURNS TABLE (
+ towStartAvgTime double precision)
+ AS
+$func$
+BEGIN
+
+RETURN QUERY
+
+WITH
+ services AS (
+  SELECT type, id, parentid, times_factServiceStart, times_expectedDispatch,
+         contractor_partner, suburbanmilage
+    FROM techtbl
+  UNION ALL
+  SELECT type, id, parentid, times_factServiceStart, times_expectedDispatch,
+         contractor_partner, suburbanmilage
+    FROM towagetbl)
+SELECT
+  extract(epoch from avg(s.times_factServiceStart - s.times_expectedDispatch))
+FROM casetbl c, services s
+WHERE s.parentid = c.id
+AND s.times_factServiceStart > s.times_expectedDispatch
+AND coalesce(s.suburbanmilage, '0') = '0'
+AND c.calldate BETWEEN fromTime AND toTime;
+
+END;
+$func$
+LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION get_KPI_attachments(
+       fromTime timestamptz,
+       toTime   timestamptz)
+ RETURNS TABLE (
+ cases_amount bigint,
+ files_attached bigint
+ ) AS
+$func$
+BEGIN
+  RETURN QUERY
+  WITH case_files AS (
+    SELECT id,
+           split_part(regexp_split_to_table(files, ','),
+                      'Attachment:',
+                      2)::integer as attachment
+  FROM casetbl
+  WHERE calldate BETWEEN fromTime AND toTime
+    AND files is not null and files != '')
+
+SELECT COUNT(DISTINCT c.id) as cases_amount
+     , COUNT(c.id) as files_attached
+  FROM case_files c
+  JOIN attachmenttbl a
+  ON c.attachment = a.id
+WHERE a.filename = 'з-н.pdf'
+  AND a.ctime BETWEEN fromTime AND toTime;
+END;
+$func$
+LANGUAGE plpgsql;
+

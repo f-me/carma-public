@@ -1,12 +1,13 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, ConstraintKinds #-}
 
 module AppHandlers.KPI ( getStat
-                       , getStatDays
+                       , getStatFiles
                        , getOper
                        , getGroup
                        , updateOperKPI
                        ) where
 
+import           Control.Applicative ((<$>))
 import           Control.Monad (forM, join)
 import           Control.Monad.Trans.Class
 import qualified Control.Monad.Trans.RWS.Strict as RWS
@@ -18,7 +19,8 @@ import qualified Data.Map.Strict as M
 import           Data.Vector (Vector)
 import qualified Data.Vector as V
 import           Data.Time.Calendar (Day)
-import           Data.Text       (Text, pack)
+import           Data.Time.Clock    (DiffTime)
+import           Data.Text (Text)
 
 import           Snap (getParam, Handler)
 
@@ -29,7 +31,6 @@ import           Snap.Snaplet.PostgresqlSimple
 
 import           Data.Model (IdentI)
 import           Data.Model.Patch
-import           Data.Model.Types (Ident(identVal))
 import qualified Carma.Model.KPI.Stat  as S
 import qualified Carma.Model.KPI.Oper  as O
 import qualified Carma.Model.KPI.Group as G
@@ -40,39 +41,37 @@ import           AppHandlers.Util
 import           Util (fvIdentBs)
 
 
+getStatFiles :: AppHandler ()
+getStatFiles = do
+  Just f <- getParam "from"
+  Just t <- getParam "to"
+  writeJSON =<< selectStatFiles f t
+  where
+    selectStatFiles :: ByteString -> ByteString -> AppHandler (Int, Int)
+    selectStatFiles f t =
+      head <$>  query [sql| SELECT * FROM get_KPI_attachments(?, ?) |] (f, t)
+
 getStat :: AppHandler ()
 getStat = do
+  u      <- getParam "uid"
   Just f <- getParam "from"
   Just t <- getParam "to"
-  writeJSON =<< selectStat f t
-
-getStatDays :: AppHandler ()
-getStatDays = do
-  Just u <- getParam "uid"
-  Just f <- getParam "from"
-  Just t <- getParam "to"
-  writeJSON =<< selectStatDays u f t
+  case u of
+   Just u' -> writeJSON =<< selectStatDays u' f t
+   Nothing -> writeJSON =<< selectStat f t
 
 selectStat :: ByteString -> ByteString
-           -> AppHandler [Patch S.StatKPI] -- (M.Map Text [Patch S.StatKPI])
+           -> AppHandler [Patch S.StatKPI]
 selectStat from to = do
   [Only usrs] <- query_ activeUsersQ
-  -- states <- query [sql| SELECT * FROM get_KPI_timeinstate(?, tstzrange(?, ?))
-  --   |] (usrs, from, to)
-  (states, _) <- RWS.execRWST fillKPIs1 (usrs, from, to) M.empty
-  -- return $ M.foldrWithKey (\(idt, _) a b -> M.insertWith (++) (pack $ show $ identVal idt) [a] b) M.empty states
+  (states, _) <- RWS.execRWST fillKPIs (usrs, from, to) M.empty
   return $ M.elems states
-  -- where
-  --   smap :: [Patch S.StatKPI] -> M.Map (IdentI Usermeta) (Patch S.StatKPI)
-  --   smap =
-  --     foldl (\a v -> maybe a (\mu -> M.insert mu v a) (ks p)) M.empty
-  --   ks p = (,) <$> get p S.user <*> get p S.day
 
 selectStatDays :: ByteString -> ByteString -> ByteString
                -> AppHandler [Patch S.StatKPI]
 selectStatDays rawuid from to = do
   (states, _) <-
-    RWS.execRWST fillKPIs (V.singleton(raw2uid rawuid), from, to) M.empty
+    RWS.execRWST fillKPIsDays (V.singleton(raw2uid rawuid), from, to) M.empty
   return $ M.elems states
   where
     raw2uid bs = fromMaybe (error "Can't parse ident") (fvIdentBs bs)
@@ -93,8 +92,8 @@ type HandlerKPI     = HandlerSt (IdentI Usermeta)
 type HandlerKPIDays = HandlerSt (IdentI Usermeta, Day)
 
 
-fillKPIs :: HandlerKPIDays
-fillKPIs = do
+fillKPIsDays :: HandlerKPIDays
+fillKPIsDays = do
   fill states   =<< qry "get_KPI_userstates_days"
   fillTotalStates
   fill calls    =<< qry "get_KPI_calls_days"
@@ -150,15 +149,8 @@ fillKPIs = do
   addState k@(u, d) f v = RWS.modify $ M.insertWith union k $
     put f v $ put S.day d $ put S.user u empty
 
-  fillTotalStates = RWS.modify $ M.map $ \p ->
-    put S.totalLoggedIn (Just $ sum $ catMaybes $ map join
-      [get p S.inReady, get p S.inBusy, get p S.totalRest]) $
-    put S.totalRest (Just $ sum $ catMaybes $ map join
-      [get p S.inDinner, get p S.inRest, get p S.inServiceBreak])
-    p
-
-fillKPIs1 :: HandlerKPI
-fillKPIs1 = do
+fillKPIs :: HandlerKPI
+fillKPIs = do
   fill states   =<< qry "get_KPI_userstates"
   fillTotalStates
   fill calls    =<< qry "get_KPI_calls"
@@ -183,20 +175,14 @@ fillKPIs1 = do
      ServiceBreak -> addState u S.inServiceBreak v
      LoggedOut    -> addState u S.inLoggedOut v
 
-  fillTotalStates = RWS.modify $ M.map $ \p ->
-    put S.totalLoggedIn (Just $ sum $ catMaybes $ map join
-      [get p S.inReady, get p S.inBusy, get p S.totalRest]) $
-    put S.totalRest (Just $ sum $ catMaybes $ map join
-      [get p S.inDinner, get p S.inRest, get p S.inServiceBreak])
-    p
-
   calls (u, tpe, t, a) =
     case tpe :: Text of
       "info"           -> putInSt u (S.infoTime, t) (S.infoCount, a)
-      "newCase"        -> putInSt u (S.newTime, t)  (S.newCount, a)
+      "newCase"        -> putInSt u (S.newTime,  t)  (S.newCount, a)
       "processingCase" -> putInSt u (S.procTime, t) (S.procCount, a)
       errVal -> error $ "Check get_KPI_calls," ++ (show errVal) ++
                         " type should not be there."
+
   actions (u, tpe, t, a) =
     case tpe :: Text of
       "control"      -> putInSt u (S.controlT, t)      (S.controlC, a)
@@ -205,6 +191,7 @@ fillKPIs1 = do
       "callMeMaybe"  -> putInSt u (S.callMeMaybeT,  t) (S.callMeMaybeC,  a)
       errVal -> error $ "Check get_KPI_actions," ++ (show errVal) ++
                         " type should not be there."
+
   putInSt u (f1, v1) (f2, v2) =
     RWS.modify $ M.adjust (\a -> put f1 v1 $ put f2 v2 a) u
 
@@ -217,6 +204,22 @@ fillKPIs1 = do
 
   addState k f v = RWS.modify $ M.insertWith union k $
     put f v $ put S.user k empty
+
+fillTotalStates :: HandlerSt k
+fillTotalStates = RWS.modify $ M.map $ \p ->
+  put S.totalLoggedIn (Just $ sum $ catMaybes $ map join
+    [get p S.inReady, get p S.inBusy, get p S.totalRest]) $
+  put S.totalRest (Just $ sum $ catMaybes $ map join
+    [get p S.inDinner, get p S.inRest, get p S.inServiceBreak])
+  p
+
+fillTotalStates' :: Patch O.OperKPI -> Patch O.OperKPI
+fillTotalStates' p =
+  put O.totalLoggedIn (Just $ sum $ catMaybes $ map join
+    [get p O.inReady, get p O.inBusy, get p O.totalRest]) $
+  put O.totalRest (Just $ sum $ catMaybes $ map join
+    [get p O.inDinner, get p O.inRest, get p O.inServiceBreak])
+  p
 
 
 --------------------------------------------------------------------------------
@@ -232,16 +235,28 @@ updateOperKPI :: HasPostgres (Handler b b1)
 updateOperKPI usrs = do
   opers <- query operTotalQ (usrs, usrs)
   forM opers $ \(W o) -> do
-    let l = fromMaybe (error "OperKPI: here is no logintTime field") $
+    let l = fromMaybe (error "OperKPI: there is no logintTime field") $
             get o O.loginTime
-        u = fromMaybe (error "OperKPI: here is no user field") $ get o O.user
-    kpis <- query "SELECT * FROM get_KPI_timeinstate(?, tstzrange(?, now()));"
+        u = fromMaybe (error "OperKPI: there is no user field") $ get o O.user
+    kpis <- query "SELECT * FROM get_KPI_userstates(?, ?, now())"
             (V.singleton u, l)
-    case kpis of
-      -- It's something strange, we have login event with no state, bug?
-      []      -> return o
-      [kpis'] -> return $ union o (unW kpis')
-      _       -> error "There is something terribly wrong with damn states"
+
+    return $ fillTotalStates' $ union o (foldl state2kpi empty kpis)
+
+  where
+    state2kpi :: Patch O.OperKPI
+              -> (IdentI Usermeta, UserStateVal, Maybe DiffTime)
+              -> Patch O.OperKPI
+    state2kpi p (_, s, v) =
+      case s of
+       Ready        -> put O.inReady v p
+       Busy         -> put O.inBusy v p
+       Dinner       -> put O.inDinner v p
+       Rest         -> put O.inRest v p
+       ServiceBreak -> put O.inServiceBreak v p
+       LoggedOut    -> put O.inLoggedOut v p
+
+
 
 operTotalQ :: Query
 operTotalQ = [sql|
@@ -302,6 +317,12 @@ selectGroup from to = do
          , allservices.*
          , controll_actions.*
          , utilization.*
+         , avgSrvProcesssing.*
+         , avgSrvFinish.*
+         , satisfiedClients.*
+         , claims.*
+         , towStartAvg.*
+
     FROM      group_kpi_sumcalls($(from)$, $(to)$)         as sumcall
     LEFT JOIN group_kpi_all_actions($(from)$, $(to)$)      as all_actions
     ON true
@@ -313,12 +334,23 @@ selectGroup from to = do
     ON true
     LEFT JOIN group_kpi_utilization($(from)$, $(to)$)      as utilization
     ON true
+    LEFT JOIN group_kpi_avgSrvProcesssing($(from)$, $(to)$) as avgSrvProcesssing
+    ON true
+    LEFT JOIN group_kpi_avgSrvFinish($(from)$, $(to)$)      as avgSrvFinish
+    ON true
+    LEFT JOIN group_kpi_satisfiedClients($(from)$, $(to)$)  as satisfiedClients
+    ON true
+    LEFT JOIN group_kpi_claims($(from)$, $(to)$)            as claims
+    ON true
+    LEFT JOIN group_kpi_towStartAvg($(from)$, $(to)$)       as towStartAvg
+    ON true
+
     |]
 
   let p' =
         case p of
           []  -> empty
-          [p] -> unW p
+          [p'] -> unW p'
           _   -> error "imposible happen, more than 1 record in query results"
 
   rawCalls   <- query [sql| select * from group_kpi_calls(?, ?)  |] (from, to)
