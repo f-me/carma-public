@@ -317,6 +317,12 @@ selectGroup from to = do
          , allservices.*
          , controll_actions.*
          , utilization.*
+         , avgSrvProcesssing.*
+         , avgSrvFinish.*
+         , satisfiedClients.*
+         , claims.*
+         , towStartAvg.*
+
     FROM      group_kpi_sumcalls($(from)$, $(to)$)         as sumcall
     LEFT JOIN group_kpi_all_actions($(from)$, $(to)$)      as all_actions
     ON true
@@ -328,12 +334,23 @@ selectGroup from to = do
     ON true
     LEFT JOIN group_kpi_utilization($(from)$, $(to)$)      as utilization
     ON true
+    LEFT JOIN group_kpi_avgSrvProcesssing($(from)$, $(to)$) as avgSrvProcesssing
+    ON true
+    LEFT JOIN group_kpi_avgSrvFinish($(from)$, $(to)$)      as avgSrvFinish
+    ON true
+    LEFT JOIN group_kpi_satisfiedClients($(from)$, $(to)$)  as satisfiedClients
+    ON true
+    LEFT JOIN group_kpi_claims($(from)$, $(to)$)            as claims
+    ON true
+    LEFT JOIN group_kpi_towStartAvg($(from)$, $(to)$)       as towStartAvg
+    ON true
+
     |]
 
   let p' =
         case p of
           []  -> empty
-          [p] -> unW p
+          [p'] -> unW p'
           _   -> error "imposible happen, more than 1 record in query results"
 
   rawCalls   <- query [sql| select * from group_kpi_calls(?, ?)  |] (from, to)
