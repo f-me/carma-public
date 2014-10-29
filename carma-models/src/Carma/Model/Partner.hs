@@ -90,7 +90,7 @@ instance Model Partner where
 
       ,setMeta "reference-label"  "Добавить услугу"  services
       ,setMeta "reference-widget" "partner_services" services
-      ,setMeta "model"            "partner_service"  services
+      ,setMeta "model"            "PartnerService"   services
       ,textarea comment
       ,invisible mtime
       ]

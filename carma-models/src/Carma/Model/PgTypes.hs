@@ -11,6 +11,7 @@ module Carma.Model.PgTypes where
 import           Data.Int
 import           Data.Maybe              ()
 import           Data.Text
+import           Data.Scientific
 import           Data.Time               (Day, UTCTime)
 import           Data.Time.Calendar      ()
 import           Data.Time.Clock         (DiffTime)
@@ -44,6 +45,9 @@ instance PgTypeable Int32 where
 
 instance PgTypeable Double where
   pgTypeOf _ = PgType "double precision" True
+
+instance PgTypeable Scientific where
+  pgTypeOf _ = PgType "numeric" True
 
 instance PgTypeable Text where
   pgTypeOf _ = PgType "text" True

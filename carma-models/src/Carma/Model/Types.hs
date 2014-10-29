@@ -24,6 +24,7 @@ import Data.Maybe
 import Data.Aeson as Aeson
 import Data.String
 import Data.Text (Text)
+import Data.Scientific
 import qualified Data.Text          as T
 import qualified Data.Text.Read     as T
 import qualified Data.ByteString.Char8 as B
@@ -204,6 +205,15 @@ instance DefaultFieldView Int where
     { fv_type = "Integer"
     , fv_meta
       = Map.insert "regexp" "number"
+      $ Map.insert "widget" "text"
+      $ fv_meta $ defFieldView f
+    }
+
+instance DefaultFieldView Scientific where
+  defaultFieldView f = (defFieldView f)
+    { fv_type = "Double"
+    , fv_meta
+      = Map.insert "regexp" "double"
       $ Map.insert "widget" "text"
       $ fv_meta $ defFieldView f
     }
