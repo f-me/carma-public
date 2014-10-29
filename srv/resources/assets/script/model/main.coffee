@@ -217,6 +217,7 @@ define [ "model/render"
               modelName: f.meta.model
               options:
                 modelArg: queueOptions?.modelArg
+                parentField: 'parentId'
                 newStyle: false
             addRef kvm, f.name, opts, (kvm) -> focusRef(kvm)
 
@@ -488,18 +489,8 @@ define [ "model/render"
 
   addRef = (knockVM, field, ref, cb) ->
     field = "#{field}Reference" unless /Reference$/.test(field)
-    # For new-style references (IdentList type), store parent id as a
-    # number in a field of the reference set by
-    # ref.options.parentField
-    #
-    # For old-style references (reference type), store parent id in
-    # "model:<id>" form in "parentId" field
-    if ref.options?.newStyle
-      parentField = ref.options.parentField
-      thisId = knockVM.id()
-    else
-      parentField = 'parentId'
-      thisId = knockVM._meta.model.name + ":" + knockVM.id()
+    parentField = ref.options.parentField
+    thisId = knockVM.id()
     patch = {}
     patch[parentField] = thisId
     ref.args = _.extend(patch, ref.args)
