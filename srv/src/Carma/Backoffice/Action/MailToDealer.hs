@@ -37,7 +37,7 @@ sendMailToDealer svcId fc = do
   let addrList = map addr . T.splitOn ","
   cfgFrom  <- liftIO $ addr     <$> require cfg "psa-smtp-from"
   cfgReply <- liftIO $ addr     <$> require cfg "psa-smtp-reply"
-  cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy"
+  cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy2"
 
   return $ do
     syslogJSON Info "trigger/mailToDealer" ["svcId" .= svcId]
