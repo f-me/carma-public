@@ -392,14 +392,14 @@ include _form_utils
   "{{ refView }}-perms" will be used for instance permissions.
   May setup on-demand loading function.
 
-mixin refCommon
+mixin refCommon(headingDataBind)
   .panel-group(id="{{ refView }}-group")
     .panel.panel-default
-      .panel-heading
-        h4.panel-title(id="{{ refView }}-link"
+      .panel-heading.panel-title(id="{{ refView }}-link"
                        data-parent="{{ refView }}-group"
                        data-target="#{{ refView }}-head"
-                       data-toggle="collapse")
+                       data-toggle="collapse"
+                       data-bind=headingDataBind)
           block
       .panel-collapse.collapse(id="{{ refView }}-head")
         .panel-body(class="{{ refClass }}" id="{{ refView }}")
@@ -410,8 +410,7 @@ mixin simpleRefHdr(name, bindName)
   a(data-bind="text: #{bindName}")= name
 
 #services-reference-template.reference-template
-  +refCommon
-    div(data-bind='style: {"background-color": _svcColor}')
+  +refCommon('style: {"background-color": _svcColor}')
       span &nbsp;
       a(data-bind='text: _meta.model.title')
         | Услуга…
@@ -459,8 +458,7 @@ mixin simpleRefHdr(name, bindName)
     // Attachment contents are rendered here
 
 #actions-reference-template.reference-template
-  +refCommon
-    div.alert(data-bind='style: {"background-color": _actColor}')
+  +refCommon('style: {"background-color": _actColor}')
       i.icon.icon-flag(data-bind='visible: myAction')
       span(data-bind='visible: myAction')
         | &nbsp;
