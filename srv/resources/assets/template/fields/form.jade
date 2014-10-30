@@ -47,14 +47,9 @@ include _form_utils
     +dateInput("", "", "afterkeydown")
 
 .field-template#interval-datetime-field-template
-  .form-group.col-md-12
-    .row
-      label.col-md-12 {{ meta.label }} (Диапазон)
-    .row
-      .col-md-6
-        +dateInput(".begin", "", 'change')
-      .col-md-6
-        +dateInput(".end", "", 'change')
+  +fieldControlGroup
+    +dateInput(".begin", "", 'change')
+    +dateInput(".end", "", 'change')
 
 .field-template#phone-field-template
   +fieldControlGroup

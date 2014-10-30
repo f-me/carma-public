@@ -2,10 +2,7 @@ mixin fieldControlGroup
   .form-group.has-feedback(data-bind="\n\
                             {{# meta.required }}\n\
                             css: { error: {{name}}Not }\n\
-                            {{/ meta.required}}\n\
-                            {{# meta.visibility }}\n\
-                            visible: {{name}}Visible\n\
-                            {{/ meta.visibility}}")
+                            {{/ meta.required}}")
     label.col-sm-4.control-label
       | {{ meta.label }}
       +labelAnnotations("{{name}}")(style="position: absolute; right: -5px;")

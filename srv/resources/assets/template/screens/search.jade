@@ -3,6 +3,15 @@
     include /lib/_searchTable.jade
 
   .col-md-3
-    #search-conditions(data-bind='foreach: kvm.showFields')
-      div(data-bind='renderField: $data')
-    #show-field(data-bind='renderField: f')
+    .row.col-md-12
+        #search-conditions.form-horizontal(data-bind='foreach: kvm.showFields')
+          div(data-bind='renderField: $data')
+    .row.col-md-12.form-horizontal
+        #show-field(data-bind='renderField: f')
+
+#search-wrap-template.hidden
+  div(style="position: absolute;")
+    span.glyphicon.glyphicon-remove(
+      style="position: relative; top: 2px; left: -10px; z-index: 1000;"
+      data-bind="click: function () { kvm.showFields.del(fld) }")
+  .content(data-bind="with: kvm")
