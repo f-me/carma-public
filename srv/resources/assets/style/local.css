@@ -5,9 +5,8 @@
    * After preprocessing with less it is converted to `height: 30vh;`
    * */
   height: 100vh;
-  margin-top: -72px;
-  padding-top: 72px;
-  border: 0;
+  margin-top: -38px;
+  padding-top: 38px;
   overflow-x: hidden;
 }
 
@@ -25,6 +24,7 @@
   margin-right: 0px;
 }
 .col {
+  padding-top: 20px;
   height: 100%;
   overflow-y: auto;
 }
