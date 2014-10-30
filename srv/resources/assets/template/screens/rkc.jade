@@ -1,0 +1,124 @@
+include /fields/_form_utils.jade
+
+mixin smallInput(label, id)
+  .form-group
+    label.col-md-8= label
+    .col-md-4
+      input.form-control(type="text" id="#{id}")
+
+.col-md-12.pane.nice-scrollbar
+  .row
+    .col-md-6
+      .row
+        h3 Фильтрация
+      .row.col-md-6.form-horizontal
+        each v, i in { 'city-select': "Город:", 'program-select': "Программа:", 'partner-select': "Партнёр:" }
+          .form-group
+            label.col-md-4= v
+            .col-md-8
+              select.form-control(id="#{i}" data-bind='foreach: $data')
+                option(data-bind='value: id, text: name')
+    .col-md-6
+      .row
+        h3 Интервал
+      .row.col-md-6.form-horizontal
+        .form-group
+          +dateInput("", "", "")#rkc-date-from
+        .form-group
+          +dateInput("", "", "")#rkc-date-to
+        .form-group
+          button#reload.btn Обновить
+
+  .row
+    .col-md-6
+      h2 Кейсы
+      .row
+        .col-md-6.form-horizontal
+          +smallInput( "Количество оказанных услуг всего", "total-services")
+          +smallInput( "Среднее время прибытия эвакуатора/техпомощи", "average-towage-tech-start")
+          +smallInput( "Среднее время первичной обработки услуги", "processing-average-time")
+          +smallInput( "Заказ услуги не назначен", "assignAvgTime")
+          +smallInput( "Заказ услуги назначен на оператора", "realprocAvgTime")
+        .col-md-6.form-horizontal
+          +smallInput( "Количество конференций с механиком", "mechanic")
+          +smallInput("Среднее время разгрузки/окончания услуги по эвакуации/техпомощи", "average-towage-tech-end")
+          +smallInput( "Общая стоимость услуг для заказчиков", "limited-cost")
+          +smallInput( "Общая стоимость услуг у партнёров", "calculated-cost")
+
+    .col-md-6
+      h2 Действия
+      .form-horizontal
+        +smallInput( "Общее количество действий на сегодня", "total-actions")
+        +smallInput( "Общее количество невыполненных действий", "total-incomplete-actions")
+  .row
+    // <h2>Услуги</h2>
+    .col-md-6
+      table#rkc-services-table.table.table-striped.table-bordered
+        thead
+          tr
+            th(width='20%') Услуга
+            th(width='10%') Кол-во
+            th(width='10%') Среднее время ожидания
+            th(width='20%') Среднее время оказания
+            th(width='20%') Стоимость у партнёров
+            th(width='20%') Стоимость для заказчиков
+        tbody
+    .col-md-6
+      table#rkc-actions-table.table.table-stripped.table-bordered
+        thead
+          tr
+            th(width='50%') Действие
+            th(width='15%') Общее количество действий
+            th(width='15%') Невыполненные действия
+            th(width='20%') Среднее время выполнения действия
+        tbody
+  .row
+    .col-md-6
+      h2 Удовлетворённость клиентов
+      | Процент довольных клиентов:
+      input#satisfied-percentage.col-md-1(disabled='true')
+      h2 Претензии
+      table#rkc-complaints-table.table.table-stripped.table-bordered
+        thead
+          tr
+            th(width='30%') Кейс
+            th(width='70%') Услуги
+        tbody(data-bind='foreach: $data')
+          td
+            a(data-bind='text: caseid, attr: { href: url }')
+          td(data-bind='text: services')
+    .col-md-6
+      h2 Погода
+      .form-inline(style="margin-bottom: 10px")
+        .form-group
+          select#rkc-weather-city-select.form-control(data-bind='foreach: $data')
+            option(data-bind='value: value, text: label')
+        .form-group
+          button#add-weather.btn.form-control
+            | Добавить
+      table#rkc-weather-table.table.table-striped.table-bordered
+        thead
+          tr
+            th(width='60%') Город
+            th(width='20%') Погода
+            th(width='20%')
+        tbody(data-bind='foreach: $data')
+          tr(data-bind='attr: { id: city }')
+            td(data-bind='text: cityname')
+            td(data-bind='text: temp')
+            td
+              button.btn(data-bind='click: delCity')
+                | Удалить
+  .row
+    .col-md-6
+      h2
+        a(href='#search/partners/mobile', target='_blank', title='Перейти на экран ДиП с мобильными партнёрами')
+          | Мобильные партнёры
+      table#rkc-mobile-partners-table.table.table-striped.table-bordered
+        thead
+          tr
+            th(width='25%') Название
+            th(width='20%') Время обновления
+            th(width='15%') Город
+            th(width='40%') Адрес
+        tbody

@@ -27,13 +27,13 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
     )&attributes(attributes)
   +savingSpinner
 
-mixin dateInput(nameMod, dataBinds, change, attrs)
+mixin dateInput(nameMod, dataBinds, change)
   .input-group.input-group-sm.date(data-provide="datepicker"
                      data-autoshow-datepicker="true"
                      data-date-format="dd.mm.yyyy"
                      data-date-weekstart="1"
                      data-bind="pickerDisable: {{ name }}.disabled")
-    +defaultInput(nameMod, dataBinds, change, attrs)
+    +defaultInput(nameMod, dataBinds, change)&attributes(attributes)
 
     span.input-group-addon.glyphicon.glyphicon-calendar
       i.icon.icon-calendar

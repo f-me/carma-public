@@ -1,5 +1,5 @@
-define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
-  (utils, tpl, partials) ->
+define ["utils", "text!tpl/screens/rkc.html"],
+  (utils, tpl) ->
     weatherCityDict =
       utils.newModelDict "City", true, {dictionaryKey: "value"}
     rkcFillWeather = (result, cities) ->
@@ -266,17 +266,10 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
 
     # function which return object with functions returning functions
-    wraps = (partials) ->
-      smallinp: -> (cont) ->
-        Mustache.render partials["rkc/smallinput"],
-          label: $(cont).siblings("label").html()
-          id:    $(cont).siblings("input").attr("id")
 
 
     { constructor : setupRKCScreen
     , template    : tpl
-    , partials    : partials
-    , wrappers    : wraps
     , initRKCDate          : initRKCDate
     , fillRKCFilters       : fillRKCFilters
     , rkcWeatherRemoveCity : rkcWeatherRemoveCity
