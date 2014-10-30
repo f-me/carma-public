@@ -58,11 +58,14 @@ define ["render/screen"
       r.renderScreen partner, bind
 
   addRoute "usermeta/:id", (bind) ->
-    require ["screens/user"], (user) ->
+    require ["screens/dictionaries"], (user) ->
       user.screen =
-        name : "user"
+        name : "dictionaries"
+        template: "dictionaries-screen-template"
         views:
-          "user-view": user
+          "dictionaries-view": user
+
+      bind.dict = 45
       r.renderScreen user, bind
 
   addRoute "uploads", (bind) ->
