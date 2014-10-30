@@ -22,11 +22,6 @@ module.exports = (grunt) ->
         dest:    built
         ext:     '.js'
 
-    concat_css:
-      all:
-        src: "#{content}/style/**/*.css"
-        dest: "#{css}/local.css"
-
     copy:
       js:
         expand: true
@@ -40,6 +35,15 @@ module.exports = (grunt) ->
         src: ["**/*.html"]
         dest: tpl
         filter: 'isFile'
+
+    less:
+      production:
+        options:
+          paths: ["#{content}/style", "bower_components"]
+          cleancss: true
+        files:
+          "resources/static/css/style.css": ["#{content}/style/style.less","#{content}/style/*.css"]
+
 
     jade:
       compile:
@@ -84,7 +88,7 @@ module.exports = (grunt) ->
         tasks: "newer:copy:template"
       style:
         files: ["#{content}/style/**/*"]
-        tasks: "newer:concat_css"
+        tasks: "newer:less"
 
 
   thirdParty =
@@ -97,7 +101,7 @@ module.exports = (grunt) ->
     knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
     notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
     spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
-    'js-base64': {src: 'js-base64',          file: 'base64.min.js'}
+    'js-base64':{src: 'js-base64',       file: 'base64.min.js'}
     'jquery-maskedinput':
       src: 'jquery-maskedinput/src'
       file: 'jquery.maskedinput.js'
@@ -114,7 +118,7 @@ module.exports = (grunt) ->
     bootstrap:
       src: 'bootstrap/dist'
       dest: 'bootstrap'
-      file: ['css/**', 'fonts/**', 'js/**']
+      file: ['fonts/**', 'js/**']
     openLayers:
       src: 'OpenLayers'
       dest: 'OpenLayers'
@@ -156,7 +160,7 @@ module.exports = (grunt) ->
 
   newerify = (ts) -> "newer:#{t}" for t in ts
 
-  grunt.registerTask("build", newerify ['coffee', 'copy', 'jade', 'concat_css'])
+  grunt.registerTask("build", newerify ['copy', 'coffee', 'less', 'jade'])
   grunt.registerTask("rebuild", ['shell:bower', 'clean', 'build'])
   grunt.registerTask("bwatch", ['rebuild', 'watch'])
   grunt.registerTask("default", "rebuild")

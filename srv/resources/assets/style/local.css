@@ -1,6 +1,13 @@
 /* 70px is height os navbar according to bs styles */
 #main-container {
-  height: calc(100vh - 70px);
+  /* FIXME:
+   * Somehow `height: calc(100vh - 70px);` does not work.
+   * After preprocessing with less it is converted to `height: 30vh;`
+   * */
+  height: 100vh;
+  margin-top: -72px;
+  padding-top: 72px;
+  border: 0;
   overflow-x: hidden;
 }
 
