@@ -43,17 +43,17 @@
         .panel-collapse.collapse.in#case-program-description-body
           .panel-body
             address(data-bind='html:programDesc')
-            div(data-bind='foreach: servicesDescs')
-              .panel-group#case-program-services
-                .panel.panel-default
-                  .panel-heading
-                    h4.panel-title
-                      a(data-toggle='collapse'
-                        data-parent='#case-program-services'
-                        data-bind="text: title, \
-                                   attr: {href: '#case-desc-' + $index()}")
-                  .panel-collapse.collapse.in(
-                    data-bind="attr: {id: 'case-desc-' + $index()}")
-                    .panel-body(data-bind='html: description')
+      div(data-bind='foreach: servicesDescs')
+        .panel-group#case-program-services
+          .panel.panel-default
+            .panel-heading
+              h4.panel-title
+                a(data-toggle='collapse'
+                  data-parent='#case-program-services'
+                  data-bind="text: title, \
+                             attr: {href: '#case-desc-' + $index()}")
+            .panel-collapse.collapse.in(
+              data-bind="attr: {id: 'case-desc-' + $index()}")
+              .panel-body(data-bind='html: description')
 
     #empty-fields-placeholder
