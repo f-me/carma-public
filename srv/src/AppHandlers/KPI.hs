@@ -317,7 +317,7 @@ selectGroup from to = do
          , allservices.*
          , controll_actions.*
          , utilization.*
-         , avgSrvProcesssing.*
+         , avgSrvProcessing.*
          , avgSrvFinish.*
          , satisfiedClients.*
          , claims.*
@@ -334,7 +334,7 @@ selectGroup from to = do
     ON true
     LEFT JOIN group_kpi_utilization($(from)$, $(to)$)      as utilization
     ON true
-    LEFT JOIN group_kpi_avgSrvProcesssing($(from)$, $(to)$) as avgSrvProcesssing
+    LEFT JOIN group_kpi_avgSrvProcessing($(from)$, $(to)$) as avgSrvProcessing
     ON true
     LEFT JOIN group_kpi_avgSrvFinish($(from)$, $(to)$)      as avgSrvFinish
     ON true
