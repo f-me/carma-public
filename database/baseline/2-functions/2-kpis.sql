@@ -1035,7 +1035,7 @@ END;
 $func$
 LANGUAGE plpgsql;
 
-CREATE FUNCTION absinterval(interval) RETURNS interval
+CREATE OR REPLACE FUNCTION absinterval(interval) RETURNS interval
     IMMUTABLE LANGUAGE sql AS 'SELECT greatest($1,-$1)';
 
 CREATE OR REPLACE FUNCTION group_kpi_avgSrvProcessing(
@@ -1095,7 +1095,10 @@ BEGIN
 
 RETURN QUERY
 
-SELECT count(clientSatisfied = 1 or null) / count(1)
+SELECT CASE
+  WHEN (count(1) > 0) THEN (count(clientSatisfied = 1 or null) / count(1))
+  ELSE 0
+  END
 FROM servicetbl
 WHERE createTime BETWEEN fromTime AND toTime;
 
