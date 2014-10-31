@@ -1035,6 +1035,9 @@ END;
 $func$
 LANGUAGE plpgsql;
 
+CREATE FUNCTION absinterval(interval) RETURNS interval
+    IMMUTABLE LANGUAGE sql AS 'SELECT greatest($1,-$1)';
+
 CREATE OR REPLACE FUNCTION group_kpi_avgSrvProcessing(
        fromTime timestamp with time zone,
        toTime   timestamp with time zone)
