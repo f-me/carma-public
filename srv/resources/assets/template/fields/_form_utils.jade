@@ -81,13 +81,14 @@ mixin checkboxInput(name)
                    disabled: #{name}.disabled")&attributes(attributes)
 
 mixin checkboxLabel(name)
+  +labelAnnotations(name)
   span(data-bind="text: #{name}.field.meta.label")&attributes(attributes)
-  +labelAnnotations(name)(style="position: absolute; right: -5px;")
 
 mixin checkboxTpl(name)
   .form-group
-    label.col-sm-4.control-label
+    .col-sm-4
+    label.col-sm-8.control-label(style="text-align: left")
+      +checkboxInput(name)
+      | &nbsp;
       +checkboxLabel(name)
 
-    .col-sm-8
-      +checkboxInput(name)
