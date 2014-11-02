@@ -1,11 +1,5 @@
 include /fields/_form_utils
 
-mixin checkboxField(name)
-  .checkbox
-    label
-      +checkboxInput(name)
-      +checkboxLabel(name)
-
 mixin dictInput(name)
   input.form-control( type="text"
      autocomplete="off"
