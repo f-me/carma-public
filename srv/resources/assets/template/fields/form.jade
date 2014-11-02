@@ -318,12 +318,11 @@ include _form_utils
 
 #partner-field-template.field-template
   +fieldControlGroup
-    .controls.input-append
-      input.pane-span.focusable(type='text'
+      input.form-control(type='text'
         name='{{ name }}'
         data-bind='value: {{ name }}')
-      span.add-on
-        i.icon.icon-search(
+      span.input-group-addon
+        i.glyphicon.glyphicon-search(
           data-bind='click: openPartnerSearch.bind($data, \'{{ name }}\')')
 
 // Modal dialog launch button
