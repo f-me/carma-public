@@ -4,9 +4,9 @@ mixin labelWithInfo(name)
       data-container="body"
       data-placement="top"
       data-bind="\
+        text: #{name}.field.meta.label,\
         attr: {'data-content': #{name}.field.meta.infoText1},\
         css: {fieldInfo: #{name}.field.meta.infoText1}")
-    | {{meta.label}}
 
 mixin fieldControlGroup
   .form-group.has-feedback(data-bind="\n\
