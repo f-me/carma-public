@@ -241,7 +241,7 @@ updateHandler = do
         runUpdateTriggers  ident commit >>= \case
           Left err -> error $ "in updateHandler: " ++ show err
           Right commit' -> do
-            evIdt <- logCRUD Update ident commit'
+            evIdt <- logCRUD Update ident commit
             updateUserState Update ident commit evIdt
             return $ recode commit'
   -- See also Utils.NotDbLayer.update
