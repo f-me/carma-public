@@ -238,6 +238,7 @@ updateHandler = do
                          err      -> error $
                                      "BUG in updateHandler: " ++ show err
         commit <- getJSONBody :: AppHandler (Patch m)
+        logReq commit
         runUpdateTriggers  ident commit >>= \case
           Left err -> error $ "in updateHandler: " ++ show err
           Right commit' -> do
