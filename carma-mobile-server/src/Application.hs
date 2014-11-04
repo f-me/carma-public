@@ -216,6 +216,7 @@ newCase = do
                  Patch.put Case.contact_phone1
                  (Phone <$> HM.lookup (fieldName Case.contact_phone1) jsonRq) $
                  putFromRequest Case.contact_name $
+                 putFromRequest Case.contact_email $
                  Patch.put Case.contractIdentifier
                  (HM.lookup "cardNumber_cardNumber" jsonRq) $
                  Patch.put Case.contractIdentifier
