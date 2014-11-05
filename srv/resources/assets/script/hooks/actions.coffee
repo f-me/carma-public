@@ -1,12 +1,12 @@
 define ["utils"], (u) ->
   # Pretty action name for accordion header
   nameLocal: (model, knockVM) ->
+    uid   = knockVM.assignedTo()
     knockVM["myAction"] = ko.computed ->
       uid == global.user.id
     return if not /^case/.test(Finch.navigate())
     sDict = u.newModelDict "ServiceType"
     uDict = u.newModelDict "Usermeta", false, dictionaryLabel: 'login'
-    uid   = knockVM.assignedTo()
     knockVM["actionNameLocal"] =
       ko.computed
         read: ->
