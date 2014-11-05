@@ -2,6 +2,7 @@
 module Carma.Backoffice.Action.SMS (sendSMS) where
 
 import Control.Monad (void)
+import Control.Monad.IO.Class (liftIO)
 
 import Data.Map ((!))
 import qualified Data.Map as Map
@@ -23,20 +24,23 @@ sendSMS
   :: Model.IdentI SmsTemplate -> Model.IdentI Service
   -> FutureContext -> AppHandler (IO ())
 sendSMS tplId svcId fc
-  = return
-  $ Pool.withResource (fc_pgpool fc) $ \pg ->
-    PG.query pg messageInfo (tplId, svcId) >>= \case
-      [fields] -> do
-        let msgInfo = Map.map T.tail $ Map.fromList $ map (T.breakOn "=") fields
-        let msg = render msgInfo (msgInfo ! "tpl")
-        let params = (msgInfo ! "case.id", msgInfo ! "phone", msgInfo ! "sender", tplId, msg)
-        void $ PG.execute pg insertSms params
-      res -> syslogJSON Error "backoffice/sendSMS"
-        ["err" .= ("unexpected query result" :: T.Text)
-        ,"res" .= T.pack (show res)
-        ,"tpl" .= T.pack (show tplId)
-        ,"svc" .= T.pack (show svcId)
-        ]
+  = do
+    liftIO $ putStrLn $ "sendSMS.outer " ++ show tplId
+    return $ do
+      putStrLn $ "sendSMS.inner " ++ show tplId
+      Pool.withResource (fc_pgpool fc) $ \pg ->
+        PG.query pg messageInfo (tplId, svcId) >>= \case
+          [fields] -> do
+            let msgInfo = Map.map T.tail $ Map.fromList $ map (T.breakOn "=") fields
+            let msg = render msgInfo (msgInfo ! "tpl")
+            let params = (msgInfo ! "case.id", msgInfo ! "phone", msgInfo ! "sender", tplId, msg)
+            void $ PG.execute pg insertSms params
+          res -> syslogJSON Error "backoffice/sendSMS"
+            ["err" .= ("unexpected query result" :: T.Text)
+            ,"res" .= T.pack (show res)
+            ,"tpl" .= T.pack (show tplId)
+            ,"svc" .= T.pack (show svcId)
+            ]
 
 
 insertSms :: PG.Query

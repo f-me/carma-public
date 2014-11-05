@@ -37,6 +37,8 @@ import qualified Carma.Model.Usermeta as Usermeta
 import Carma.Backoffice.DSL
 import Carma.Backoffice.DSL.Types (Eff)
 
+import Debug.Trace
+
 
 toBack :: Entry
 toBack =
@@ -305,9 +307,9 @@ checkEndOfService =
     nobody
     ((5 * minutes) `since` req (serviceField times_expectedServiceEnd))
     [ (AResult.serviceDone,
-       sendSMS SMS.complete *>
-       messageToDealer *>
-       messageToGenser *>
+       trace "BO.sendSMS" sendSMS SMS.complete *>
+       trace "BO.messageToDealer" messageToDealer *>
+       trace "BO.messageToGenser" messageToGenser *>
        setServiceStatus SS.ok *>
        ite (caseField Case.program `oneOf`
             [Program.peugeot, Program.citroen, Program.vw])

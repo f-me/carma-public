@@ -610,8 +610,9 @@ instance Backoffice HaskellE where
         run = HaskellE . fmap inFuture
         inFuture :: (FutureContext -> AppHandler (IO ())) -> Free (Dsl m) ()
         inFuture f = Dsl.doApp $ do
+          liftIO $ putStrLn "Prepare future"
           io <- PS.getPostgresState >>= f . FutureContext . PS.pgPool
-          liftIO $ threadDelay 1500000 >> io
+          liftIO $ threadDelay 1500000 >> putStrLn "Bang!" >> io
 
     sendSMS tpl = HaskellE $ inFuture . BOAction.sendSMS tpl <$> srvId'
 

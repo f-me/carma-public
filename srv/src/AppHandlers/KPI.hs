@@ -10,7 +10,8 @@ import           Data.String     (fromString)
 import           Data.ByteString (ByteString)
 import           Data.Maybe
 import qualified Data.Map.Strict as M
-import           Data.Vector (Vector, singleton)
+import           Data.Vector (Vector)
+import qualified Data.Vector as V
 -- import           Data.Time.Clock (DiffTime)
 import           Data.Text       (Text)
 
@@ -117,7 +118,7 @@ updateOperKPI usrs = do
             get o O.loginTime
         u = fromMaybe (error "OperKPI: here is no user field") $ get o O.user
     kpis <- query "SELECT * FROM get_KPI_timeinstate(?, tstzrange(?, now()));"
-            (singleton u, l)
+            (V.singleton u, l)
     case kpis of
       -- It's something strange, we have login event with no state, bug?
       []      -> return o

@@ -32,6 +32,7 @@ import Util hiding (render)
 
 sendMailToDealer :: IdentI Service -> FutureContext -> AppHandler (IO ())
 sendMailToDealer svcId fc = do
+  liftIO $ putStrLn $ "sendMailToDealer.outer " ++ show svcId
   cfg      <- getSnapletUserConfig
   let addr = Address Nothing . T.strip
   let addrList = map addr . T.splitOn ","
@@ -40,6 +41,7 @@ sendMailToDealer svcId fc = do
   cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy2"
 
   return $ do
+    putStrLn $ "sendMailToDealer.inner " ++ show svcId
     syslogJSON Info "trigger/mailToDealer" ["svcId" .= svcId]
     let txt = T.pack . show
     let err e = syslogJSON Error

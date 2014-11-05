@@ -1,6 +1,7 @@
 
 module Carma.Backoffice.Action.MailToGenser (sendMailToGenser) where
 
+import Control.Monad.IO.Class (liftIO)
 
 import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SqlQQ
@@ -16,11 +17,14 @@ import Util
 
 sendMailToGenser :: Model.IdentI Service -> FutureContext -> AppHandler (IO ())
 sendMailToGenser svcId fc
-  = return
-  $ Pool.withResource (fc_pgpool fc) $ \pg -> do
-    syslogJSON Info "trigger/mailToGenser" ["svcId" .= svcId]
-    res <- PG.query pg q [svcId]
-    syslogJSON Info "trigger/mailToGenser" ["svcId" .= svcId, "res" .= show (res::[[Int]])]
+  = do
+    liftIO $ putStrLn $ "sendMailToGenser.outer " ++ show svcId
+    return $ do
+      putStrLn $ "sendMailToGenser.inner " ++ show svcId
+      Pool.withResource (fc_pgpool fc) $ \pg -> do
+        syslogJSON Info "trigger/mailToGenser" ["svcId" .= svcId]
+        res <- PG.query pg q [svcId]
+        syslogJSON Info "trigger/mailToGenser" ["svcId" .= svcId, "res" .= show (res::[[Int]])]
 
 
 q :: PG.Query
