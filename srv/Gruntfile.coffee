@@ -160,7 +160,7 @@ module.exports = (grunt) ->
 
   newerify = (ts) -> "newer:#{t}" for t in ts
 
-  grunt.registerTask("build", newerify ['copy', 'coffee', 'less', 'jade'])
+  grunt.registerTask("build", ['copy', 'coffee', 'less', 'jade'])
   grunt.registerTask("rebuild", ['shell:bower', 'clean', 'build'])
   grunt.registerTask("bwatch", ['rebuild', 'watch'])
   grunt.registerTask("default", "rebuild")
