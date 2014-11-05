@@ -20,6 +20,5 @@
                 LEFT JOIN "Event" e ON s.id = e.modelid AND e.modelname = 'Sms' AND e.type = 'Create'
                 LEFT JOIN usermetatbl u on e.userid = u.id;
 
-ALTER TABLE "SMS" OWNER TO carma;
 GRANT SELECT ON TABLE "SMS" TO reportgen;
 GRANT ALL ON TABLE "SMS" TO analyst;
