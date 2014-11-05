@@ -56,6 +56,7 @@ mkIdents [t|Role|]
   , ("sms",            40) -- Отправка SMS
   , ("bo_secondary",   41) -- БО: Заказ вторичных услуг
   , ("hacker",         42) -- Разработчик
+  , ("bo_info",        43) -- БО: Заказ услуги (ТДИ)
   ]
 
 instance Model Role where
