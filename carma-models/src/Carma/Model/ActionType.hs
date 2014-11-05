@@ -43,6 +43,7 @@ mkIdents [t|ActionType|]
  , ("complaintResolution", 18)
  , ("tellMeMore", 19)
  , ("callMeMaybe", 20)
+ , ("checkDispatchTime", 21)
  ]
 
 instance Model ActionType where
