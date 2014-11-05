@@ -57,22 +57,10 @@
         }
       ]
     },
-    { "type": "dropdown",
-      "name": "supervisorList",
+    { "type": "li",
+      "name": "supervisor",
       "label": "Супервизор",
-      "permissions": ["supervisor"],
-      "screens": [
-        { "name"  : "supervisor",
-          "label" : "Действия",
-          "type"  : "li",
-          "permissions": ["supervisor"]
-        },
-        { "name"  : "supervisorOps",
-          "label" : "Операторы",
-          "type"  : "li",
-          "permissions": ["supervisor"]
-        }
-      ]
+      "permissions": ["supervisor"]
     },
     { "type"    : "dropdown",
        "name"    : "kpi",
