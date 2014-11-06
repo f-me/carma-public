@@ -195,9 +195,7 @@ define [ "utils"
     kvm.buttons.needInfo.click = ->
       kvm['caseStatus'] global.idents("CaseStatus").needInfo
     kvm.buttons.needInfo.disabled = ko.computed ->
-      vals = _.map niFlds, (n) -> kvm[n]?()
-      empties = _.map vals, (e) -> e == "" || _.isNull e
-      _.some empties
+      u.someEmpty kvm, niFlds
 
   hasFiles: (model, knockVM) ->
     knockVM['hasFiles'] = ko.computed ->

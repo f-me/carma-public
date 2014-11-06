@@ -303,6 +303,13 @@ define [ "model/utils"
     labels = _.map fieldNames, (n) -> "#{mu.fieldNameToLabel(kvm)(n)}"
     "Доступно при заполнении полей: #{labels.join(', ')}"
 
+  # True if some of named model fields are empty (not filled by the
+  # user)
+  someEmpty: (kvm, fieldNames) ->
+    vals = _.map fieldNames, (n) -> kvm[n]?()
+    empties = _.map vals, (e) -> e == "" || _.isNull e
+    _.some empties
+
   # Select case actions with matching types and which are created for
   # this service. If types list is empty, match all action types.
   svcActions: (kase, svc, types) ->

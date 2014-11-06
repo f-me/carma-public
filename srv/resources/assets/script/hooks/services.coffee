@@ -67,11 +67,21 @@ define [ "utils"
       if confirm "Закрыть услугу как ошибочную?"
         kvm['status'] global.idents("ServiceStatus").mistake
 
+    # Required *case* fields for the backoffice button to be enabled
+    boFlds = [ 'city'
+             , 'contact_name'
+             , 'contact_phone1'
+             , 'customerComment'
+             , 'program'
+             ]
     kvm.buttons.backoffice = {}
+    kvm.buttons.backoffice.tooltip = u.reqFieldsTooltip kase, boFlds
     kvm.buttons.backoffice.text =
       sDict.getLab global.idents("ServiceStatus").backoffice
     kvm.buttons.backoffice.visible = ko.computed ->
       kvm['status']() == global.idents("ServiceStatus").creating
+    kvm.buttons.backoffice.disabled = ko.computed ->
+      u.someEmpty kase, boFlds
     kvm.buttons.backoffice.click = ->
       kvm['status'] global.idents("ServiceStatus").backoffice
 
