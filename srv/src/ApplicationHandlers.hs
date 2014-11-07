@@ -165,7 +165,7 @@ createHandler = do
                 -> Object
                 $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
               obj -> error $ "impossible: " ++ show obj
-  void $
+  void $ logResp $
     fromMaybe (error "Unknown model") $ Carma.Model.dispatch model createModel
 
 
