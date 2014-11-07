@@ -36,7 +36,7 @@ psaCasesHandler = do
                Just "peugeot" -> [Program.peugeot]
                Just _         -> error "Program must be citroen or peugeot"
                Nothing        -> [Program.citroen, Program.peugeot]
-  rows <- with db $ query psaQuery (Only $ V.fromList pids)
+  rows <- query psaQuery (Only $ V.fromList pids)
   writeJSON (map head rows :: [Int])
 
 
@@ -49,6 +49,6 @@ repTowagesHandler = do
  case cid of
    Just (Just (n, _)) ->
        do
-         ids <- with db $ repTowages n
+         ids <- repTowages n
          writeJSON ids
    _ -> error "Could not read case id from request"

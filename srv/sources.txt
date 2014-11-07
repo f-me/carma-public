@@ -3,10 +3,8 @@
 https://github.com/f-me/carma-models %CURRENT%
 https://github.com/f-me/carma-dict
 https://github.com/f-me/carma-http
-https://github.com/f-me/carma-sync
 https://github.com/f-me/hs-weather-api
 https://github.com/f-me/pg-simple-alt-qq
-https://github.com/f-me/postgresql-sync-map
 https://github.com/f-me/snap-extras
 
 https://github.com/f-me/hformat

@@ -97,7 +97,7 @@ mkRkcFilter = do
 rkcHandler :: AppHandler ()
 rkcHandler = logExceptions "handler/rkc" $ do
   flt' <- mkRkcFilter
-  info <- with db $ rkc flt'
+  info <- rkc flt'
   writeJSON info
 
 rkcWeatherHandler :: AppHandler ()
@@ -121,7 +121,7 @@ rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
 rkcFrontHandler :: AppHandler ()
 rkcFrontHandler = logExceptions "handler/rkc/front" $ do
   flt' <- mkRkcFilter
-  res <- with db $ rkcFront flt'
+  res <- rkcFront flt'
   writeJSON res
 
 rkcPartners :: AppHandler ()
@@ -134,7 +134,7 @@ rkcPartners = logExceptions "handler/rkc/partners" $ do
       filterFrom = fromMaybe (filterFrom flt) from,
       filterTo = fromMaybe (filterTo flt) to }
 
-  res <- with db $ partners (filterFrom flt') (filterTo flt')
+  res <- partners (filterFrom flt') (filterTo flt')
   writeJSON res
 
 trace :: (Show a, MonadIO m) => T.Text -> m a -> m a

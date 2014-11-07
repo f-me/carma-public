@@ -182,7 +182,7 @@ define [ "model/utils"
   modelMethod: (modelName, method) -> "/_/#{modelName}/#{method}"
 
   getServiceDesc: (pid, service) ->
-    si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
+    si = _.find newModelDict('ServiceInfo').source, (info) ->
       info.program == pid and info.service == service
     si?.info or ""
 
