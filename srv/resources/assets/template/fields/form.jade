@@ -286,10 +286,12 @@ include _form_utils
       +dictInput("Local")
     .row
       .svc-status-button(
-        data-bind="visible: buttons.backoffice.visible")
+        data-bind="attr: { title: buttons.backoffice.tooltip },\
+                   visible: buttons.backoffice.visible")
         button.btn.btn-small.btn-info(
           style="width:100%"
-          data-bind='click: buttons.backoffice.click')
+          data-bind='disabled: buttons.backoffice.disabled,\
+                     click: buttons.backoffice.click')
           i.icon-white.icon-play
           |&nbsp;
           span(data-bind='text: buttons.backoffice.text')

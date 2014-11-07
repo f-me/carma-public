@@ -31,7 +31,6 @@ import qualified Carma.Model.Role as Role
 import qualified Carma.Model.Usermeta as Usermeta
 
 import           Snaplet.Auth.PGUsers
-import qualified Snaplet.DbLayer.Types as DB
 import           Snaplet.FileUpload (tmp, doUploadTmp, oneUpload)
 import           Snaplet.TaskManager as TM
 import           Util as U hiding (render)
@@ -75,7 +74,7 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       (outPath, _) <- liftIO $ openTempFile tmpDir inName
 
       -- Use connection information from DbLayer
-      connInfo <- with db $ with DB.postgres getConnectInfo
+      connInfo <- getConnectInfo
 
       -- VIN import task handler
       with taskMgr $ TM.create $ do

@@ -182,7 +182,7 @@ define [ "model/utils"
   modelMethod: (modelName, method) -> "/_/#{modelName}/#{method}"
 
   getServiceDesc: (pid, service) ->
-    si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
+    si = _.find newModelDict('ServiceInfo').source, (info) ->
       info.program == pid and info.service == service
     si?.info or ""
 
@@ -302,6 +302,13 @@ define [ "model/utils"
   reqFieldsTooltip: (kvm, fieldNames) ->
     labels = _.map fieldNames, (n) -> "#{mu.fieldNameToLabel(kvm)(n)}"
     "Доступно при заполнении полей: #{labels.join(', ')}"
+
+  # True if some of named model fields are empty (not filled by the
+  # user)
+  someEmpty: (kvm, fieldNames) ->
+    vals = _.map fieldNames, (n) -> kvm[n]?()
+    empties = _.map vals, (e) -> e == "" || _.isNull e
+    _.some empties
 
   # Select case actions with matching types and which are created for
   # this service. If types list is empty, match all action types.

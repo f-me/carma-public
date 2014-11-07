@@ -60,7 +60,6 @@ import Snap.Snaplet.Auth hiding (session)
 import Snap.Util.FileServe (serveFile)
 import Snap.Util.FileUploads (getMaximumFormInputSize)
 
-import qualified Snaplet.DbLayer as DB
 import Snaplet.FileUpload (FileUpload(cfg))
 
 import Carma.Model
@@ -166,13 +165,8 @@ createHandler = do
                 -> Object
                 $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
               obj -> error $ "impossible: " ++ show obj
-
-  case Carma.Model.dispatch model createModel of
-    Just fn -> logResp $ fn
-    Nothing -> logResp $ do
-      commit <- getJSONBody
-      logReq commit
-      with db $ DB.create model commit
+  void $
+    fromMaybe (error "Unknown model") $ Carma.Model.dispatch model createModel
 
 
 readHandler :: AppHandler ()
@@ -181,7 +175,7 @@ readHandler = do
   Just objId <- getParamT "id"
   let readModel :: forall m . Model m => m -> AppHandler ()
       readModel _ = do
-        res <- with db $ do
+        res <- do
           let ident = readIdent objId :: IdentI m
           s <- PS.getPostgresState
           liftIO $ withResource (PS.pgPool s)
@@ -190,12 +184,7 @@ readHandler = do
           Right obj              -> writeJSON obj
           Left (NoSuchObject _)  -> handleError 404
           Left err               -> error $ "in readHandler: " ++ show err
-  -- See also Utils.NotDbLayer.read
-  case Carma.Model.dispatch model readModel of
-    Just fn -> fn
-    _ -> with db (DB.read model objId) >>= \case
-      obj | Map.null obj -> handleError 404
-          | otherwise    -> writeJSON obj
+  fromMaybe (error "Unknown model") $ Carma.Model.dispatch model readModel
 
 
 readManyHandler :: AppHandler ()
@@ -211,7 +200,7 @@ readManyHandler = do
           ]
   let readModel :: forall m . Model m => m -> AppHandler ()
       readModel _ = do
-        res <- with db $ do
+        res <- do
           s   <- PS.getPostgresState
           liftIO $ withResource
             (PS.pgPool s)
@@ -220,9 +209,7 @@ readManyHandler = do
         case res of
           Right obj -> writeJSON obj
           Left err  -> error $ "in readHandler: " ++ show err
-  case Carma.Model.dispatch model readModel of
-    Just fn -> fn
-    _       -> handleError 404
+  fromMaybe (error "Unknown model") $ Carma.Model.dispatch model readModel
 
 
 updateHandler :: AppHandler ()
@@ -246,20 +233,10 @@ updateHandler = do
             updateUserState Update ident commit evIdt
             return $ recode commit'
   -- See also Utils.NotDbLayer.update
-  case Carma.Model.dispatch model updateModel of
-    Just fn ->
-        fn >>= \case
-           Left n -> handleError n
-           Right o -> logResp $ return o
-    Nothing -> do
-      commit <- getJSONBody
-      logReq commit
-      with db (DB.read model objId) >>= \case
-        obj | Map.null obj -> handleError 404
-            | otherwise    -> logResp $ with db
-                $ DB.update model objId
-                -- Need this hack, or server won't return updated "cost_counted"
-                $ Map.delete "cost_counted" commit
+  fromMaybe (error "Unknown model") (Carma.Model.dispatch model updateModel) >>=
+    \case
+      Left n -> handleError n
+      Right o -> logResp $ return o
 
 
 -- | Calculate average tower arrival time (in seconds) for today,
