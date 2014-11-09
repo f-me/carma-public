@@ -122,9 +122,9 @@ include _form_utils
   +checkboxTpl("{{ name }}")
 
 #checkbutton-field-template.field-template(type='text/template')
-  .control-group
-    .controls.checkbutton
-      label.checkbox.inline(style='padding-left: 0;')
+  .form-group
+    .checkbox.checkbutton
+      label
         input(type='checkbox'
               name='{{ name }}'
               data-bind="checked: {{ name }},\

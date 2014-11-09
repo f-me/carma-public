@@ -35,16 +35,18 @@
             b Выгрузить в CSV
     // Contract tab
     #contract-tab.tab-pane(style='width: 95%;')
-      form.form-vertical
+      .row.col-md-12
         a#new-contract-btn.btn.btn-action(type='button')
           i.icon.icon-plus
           | Добавить контракт
+      .row.col-md-12
         p(style='margin-top: 2em;')
           i.icon.icon-print
           b Распечатать:
           a#render-contract(onclick='return false;', href='#', target='_blank')
             | Договор.pdf
-      #contract-form
+      .row-col-md-12
+        #contract-form.form-horizontal
 
 .hidden
   #contract-wrap-template
