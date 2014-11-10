@@ -18,20 +18,17 @@ import qualified Data.Text as T
 import qualified Data.Map as Map
 import qualified Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
-import qualified Data.Vector as V
 
-import Data.Pool
-import Database.PostgreSQL.Simple as Pg
 import Database.PostgreSQL.Simple.SqlQQ
 
+import Snap.Snaplet.Auth
+import Snap.Snaplet.PostgresqlSimple hiding (field)
 import Snap.Core
 import Snap.Snaplet
-import Snap.Snaplet.Auth
 
 ----------------------------------------------------------------------
 import Snaplet.Auth.Class
 
-import Snaplet.DbLayer.Types
 import Snaplet.SiteConfig.Config
 import Snaplet.SiteConfig.SpecialPermissions
 import Snaplet.SiteConfig.Models
@@ -40,13 +37,11 @@ import Snaplet.SiteConfig.Dictionaries
 import AppHandlers.Util hiding (withPG)
 import Utils.HttpErrors
 
-import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
-import qualified Carma.Model.ServiceInfo as ServiceInfo
 
 
-getModel :: ModelName -> Text -> Handler b (SiteConfig b) (Maybe Model)
+getModel :: Text -> Text -> Handler b (SiteConfig b) (Maybe Model)
 getModel name view =
   case T.splitOn ":" view of
     ["ctr",pgm] ->
@@ -77,7 +72,7 @@ serveModel = do
     (Nothing, _) -> finishWithError 401 ""
     (_, Nothing) -> finishWithError 404 "Unknown model/view"
     (Just cu, Just m) ->
-      case view `elem` ["search", "portalSearch", "kpi"] of
+      case view `elem` ["search", "portalSearch", "kpi", "searchCase"] of
         True  -> writeModel m
         False -> stripModel cu m >>= writeModel
 
@@ -113,8 +108,7 @@ constructModel mdlName program model = do
           and program = ? :: int
         order by ord asc
       |]
-  pg <- gets pg_search
-  res <- liftIO (withResource pg $ \c -> query c q [mdlName,program])
+  res <- query q [mdlName,program]
   let optMap = Map.fromList [(nm,(l,r,w,rq,inf,o)) | (nm,l,r,w,rq,inf,o) <- res]
   let adjustField f = case Map.lookup (name f) optMap of
         Nothing -> [f] -- NB: field is not modified if no options found
@@ -164,8 +158,7 @@ stripModel u m = do
       -- defined for new-style model (@Case@).
       fixModelName v =
           fromMaybe v $ Map.lookup v Model.legacyModelNames
-  let withPG f = gets pg_search >>= liftIO . (`withResource` f)
-  readableFields <- withPG $ \c -> query c [sql|
+  readableFields <- query [sql|
     select p.field, max(p.w::int)::bool
       from "FieldPermission" p, usermetatbl u
       where u.uid = ?::int
@@ -207,25 +200,16 @@ serveIdents = do
 
 serveDictionaries :: Handler b (SiteConfig b) ()
 serveDictionaries = do
-  let withPG f = gets pg_search >>= liftIO . (`withResource` f)
-
-  serviceInfos <- withPG
-    $ selectJSON (ServiceInfo.program :. ServiceInfo.service :. ServiceInfo.info)
-
   Aeson.Object dictMap <- gets dictionaries
-  -- Support legacy client interface for some dictionaries
-  writeJSON $ Aeson.Object
-    $ HM.insert "ServiceInfo"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList serviceInfos)])
-      dictMap
+  writeJSON $ Aeson.Object dictMap
 
 
 initSiteConfig :: HasAuth b
                   => FilePath
-                  -> Pool Pg.Connection
-                  -> Lens' b (Snaplet (DbLayer b))
+                  -> Lens' b (Snaplet (AuthManager b))
+                  -> Lens' b (Snaplet Postgres)
                   -> SnapletInit b (SiteConfig b)
-initSiteConfig cfgDir pg_pool db = makeSnaplet
+initSiteConfig cfgDir a p = makeSnaplet
   "site-config" "Site configuration storage"
   Nothing $ do
     addRoutes
@@ -235,4 +219,4 @@ initSiteConfig cfgDir pg_pool db = makeSnaplet
       ]
     mdls <- liftIO $ loadModels cfgDir
     dicts <- liftIO $ loadDictionaries cfgDir
-    return $ SiteConfig mdls dicts pg_pool db
+    return $ SiteConfig mdls dicts a p

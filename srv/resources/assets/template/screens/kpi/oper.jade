@@ -1,4 +1,3 @@
-include _table
 include _settings
 
 .row-fluid
@@ -32,6 +31,11 @@ include _settings
       table#tbl.table.table-condensed.table-bordered
        thead
          tr
+           th
+             button.btn.btn-link(
+               style='white-space: nowrap;'
+               data-bind='text: "Оператор", sort: "userid"')
+
            // ko foreach: fields
            th(data-bind="visible: show")
              button.btn.btn-link(
@@ -39,16 +43,13 @@ include _settings
                data-bind='text: label, sort: name')
            // /ko
        tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
-         tr(data-bind="visible: !(kvm.currentState() == 'LoggedOut' && \
-                                  kvm.lastState()    != 'Busy'      && \
-                                  $root.hideOffline())")
+         tr(data-bind="visible: kvm._meta.visible")
+           td(data-bind="fieldRender: kvm['userid']")
            // ko foreach: $root.fields
            td(data-bind="visible: show, \n\
                          render: {kvm: kvm, field: $data}, \n\
-                         css: { 'inverse-orange': kvm.lastState() == 'Busy' &&  \
-                                           kvm.currentState() == 'LoggedOut', \n\
-                                'inverse-red': kvm.currentState() == 'Busy' && \
-                                           kvm.inCurrent() > $root.overdue(), \n\
+                         css: { 'inverse-orange': kvm._meta.logoutFromBusy, \n\
+                                'inverse-red': kvm._meta.overdue, \n\
                                 'grey-bg': kvm.currentState() == 'LoggedOut' \n\
                               }")
            // /ko

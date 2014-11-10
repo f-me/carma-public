@@ -97,7 +97,7 @@ mkRkcFilter = do
 rkcHandler :: AppHandler ()
 rkcHandler = logExceptions "handler/rkc" $ do
   flt' <- mkRkcFilter
-  info <- with db $ rkc flt'
+  info <- rkc flt'
   writeJSON info
 
 rkcWeatherHandler :: AppHandler ()
@@ -121,7 +121,7 @@ rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
 rkcFrontHandler :: AppHandler ()
 rkcFrontHandler = logExceptions "handler/rkc/front" $ do
   flt' <- mkRkcFilter
-  res <- with db $ rkcFront flt'
+  res <- rkcFront flt'
   writeJSON res
 
 rkcPartners :: AppHandler ()
@@ -134,7 +134,7 @@ rkcPartners = logExceptions "handler/rkc/partners" $ do
       filterFrom = fromMaybe (filterFrom flt) from,
       filterTo = fromMaybe (filterTo flt) to }
 
-  res <- with db $ partners (filterFrom flt') (filterTo flt')
+  res <- partners (filterFrom flt') (filterTo flt')
   writeJSON res
 
 trace :: (Show a, MonadIO m) => T.Text -> m a -> m a
@@ -540,12 +540,21 @@ rkcStats (Filter from to program city partner) = logExceptions "rkc/rkcStats" $ 
   rsp1 <- PS.query procAvgTimeQuery $
           (orders, orderResults) PS.:. qParams
   rsp2 <- PS.query towStartAvgTimeQuery qParams
+  rsp3 <- PS.query assignAvgTimeQuery $ (PS.Only orders) PS.:. qParams
+  rsp4 <- PS.query realprocAvgTimeQuery $
+          (orders, orderResults) PS.:. qParams
   let procAvgTime :: Maybe Double
       procAvgTime = head $ head rsp1
+      assignAvgTime :: Maybe Double
+      assignAvgTime        = head $ head rsp3
+      realprocAvgTime :: Maybe Double
+      realprocAvgTime = head $ head rsp4
       towStartAvgTime :: Maybe Double
       towStartAvgTime = head $ head rsp2
   return $ object [ "procAvgTime" .= procAvgTime
                   , "towStartAvgTime" .= towStartAvgTime
+                  , "assignAvgTime"   .= assignAvgTime
+                  , "realprocAvgTime" .= realprocAvgTime
                   ]
 
 ifNotNull :: T.Text -> (T.Text -> PreQuery) -> PreQuery
@@ -693,6 +702,57 @@ procAvgTimeQuery :: PS.Query
 procAvgTimeQuery = [sql|
 WITH actiontimes AS (
  SELECT (max(a2.closeTime - a1.ctime))
+ FROM casetbl c, servicetbl s, actiontbl a1, actiontbl a2
+ WHERE a1.serviceid=a2.serviceid
+ AND (a1.type IN ?)
+ AND (a2.result IN ?)
+ AND a1.serviceid=s.id
+ AND a1.caseid = c.id
+ AND s.times_expectedServiceStart <= (a1.ctime + INTERVAL '01:00:00')
+ AND (? or c.program = ?)
+ AND (? or c.city = ?)
+ AND (? or s.contractor_partner = ?)
+ AND c.calldate >= ?
+ AND c.calldate < ?
+ GROUP BY a1.serviceid)
+SELECT extract(epoch from avg(max)) FROM actiontimes;
+|]
+
+-- | Calculate average service assigning time (in seconds).
+
+-- Almost same as previous
+--
+-- Parametrized by: orderService types (IN value with ActionType
+-- keys) the rest of arguments are the same as for 'towStartAvgTimeQuery'.
+assignAvgTimeQuery :: PS.Query
+assignAvgTimeQuery = [sql|
+WITH actiontimes AS (
+ SELECT (max(a.assignTime - a.ctime))
+ FROM casetbl c, servicetbl s, actiontbl a
+ WHERE (a.type IN ?)
+ AND a.serviceid=s.id
+ AND a.caseid = c.id
+ AND s.times_expectedServiceStart <= (a.ctime + INTERVAL '01:00:00')
+ AND (? or c.program = ?)
+ AND (? or c.city = ?)
+ AND (? or s.contractor_partner = ?)
+ AND c.calldate >= ?
+ AND c.calldate < ?
+ GROUP BY a.serviceid)
+SELECT extract(epoch from avg(max)) FROM actiontimes;
+|]
+
+-- | Calculate average service processing time (in seconds).
+
+-- Almost same as previous
+--
+-- Parametrized by: orderService types (IN value with ActionType
+-- keys), serviceOrdered results (IN value with ActionResult keys),
+-- the rest of arguments are the same as for 'towStartAvgTimeQuery'.
+realprocAvgTimeQuery :: PS.Query
+realprocAvgTimeQuery = [sql|
+WITH actiontimes AS (
+ SELECT (max(a2.closeTime - a1.assignTime))
  FROM casetbl c, servicetbl s, actiontbl a1, actiontbl a2
  WHERE a1.serviceid=a2.serviceid
  AND (a1.type IN ?)

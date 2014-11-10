@@ -15,4 +15,11 @@ define ["render/screen"], (r) ->
           views: { "kpi-view": scr }
         r.renderScreen scr, bind
 
+    Finch.route "[#{parentUrl}]/group", (bind) ->
+      require ["screens/kpi/group"], (scr) ->
+        scr.screen =
+          name : "kpi-group"
+          views: { "kpi-view": scr }
+        r.renderScreen scr, bind
+
   attachTo: attachTo

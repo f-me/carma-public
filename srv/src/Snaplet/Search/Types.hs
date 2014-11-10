@@ -12,13 +12,11 @@
 
 module Snaplet.Search.Types where
 
-import           Control.Applicative ((<$>), (<*>), (<|>), (*>),  pure)
 import           Control.Lens (Lens', makeLenses)
 import           Control.Monad.State
 
 import           Prelude hiding (null)
 import           Data.Text as T hiding (map, null, length)
-import           Data.Pool
 import           Data.Aeson
 
 import           GHC.Generics
@@ -27,7 +25,7 @@ import           Database.PostgreSQL.Simple as PG
 import           Database.PostgreSQL.Simple.Types
 import           Database.PostgreSQL.Simple.FromRow
 
-import           Snap.Snaplet
+import           Snap
 import           Snap.Snaplet.Auth hiding (Role)
 import           Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
 
@@ -40,20 +38,19 @@ import           Carma.Model
 import           Carma.Model.Role
 import           Carma.Model.FieldPermission hiding (field)
 
-import           Snaplet.DbLayer.Types (DbLayer)
 import           Snaplet.Auth.Class
 
+import           AppHandlers.Util
+
 data Search b = Search
-  { pg        :: Pool Connection
-  , _postgres :: Snaplet Postgres
-  , _auth     :: Snaplet (AuthManager b)
-  , db        :: Lens' b (Snaplet (DbLayer b))
+  { _auth     :: Snaplet (AuthManager b)
+  , db        :: Lens' b (Snaplet Postgres)
   }
 
 makeLenses ''Search
 
 instance HasPostgres (Handler b (Search b)) where
-    getPostgresState = with postgres get
+    getPostgresState = withLens db get
 
 instance WithCurrentUser (Handler b (Search b)) where
     withCurrentUser = with auth currentUser

@@ -16,23 +16,22 @@ import           Data.Aeson as Aeson
 import           Data.Maybe
 import qualified Data.Map as M
 import           Data.Text (Text)
-import           Data.Pool
 
 import           Control.Applicative
 
-import           Database.PostgreSQL.Simple (Query, query)
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.ToField
 
 import           Carma.Model.Role as Role
 
 import           Snap
+import           Snap.Snaplet.PostgresqlSimple
+
 import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers (currentUserRoles)
 import           Snaplet.SiteConfig.Models
 import           Snaplet.SiteConfig.Config
 
-import           AppHandlers.Util
 import           Util
 
 q :: Query
@@ -50,15 +49,14 @@ instance ToField FilterType where
   toField Form = toField $ PT "showform"
   toField Table = toField $ PT "showtable"
 
-stripContract :: HasAuth b =>
+stripContract :: (HasAuth b) =>
                  Model
               -> Text -- ^ SubProgram id.
               -> FilterType
               -> Handler b (SiteConfig b) Model
 stripContract model sid flt = do
-  pg    <- gets pg_search
-  perms <- liftIO $ withResource pg $ getPerms sid
-  Just userRoles <- withLens db $ currentUserRoles
+  perms <- getPerms sid
+  Just userRoles <- currentUserRoles
   let procField = if Role.partner `elem` userRoles
                   then reqField
                   else id
@@ -69,8 +67,8 @@ stripContract model sid flt = do
           then f{meta = Just $ M.insert "required" (Aeson.Bool True) $
                  fromMaybe M.empty $ meta f}
           else f
-      getPerms progid conn = M.fromList <$>
-        (query conn q (flt, progid) :: IO [(Text, Text)])
+      getPerms progid = M.fromList <$>
+        (query q (flt, progid) :: Handler b (SiteConfig b) [(Text, Text)])
       filterFields perms flds = filter (isCanShow perms) flds
       isCanShow perms f  = fromMaybe False $ check flt perms (name f)
       check Form _ "dixi"        = return True

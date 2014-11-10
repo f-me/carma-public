@@ -98,7 +98,7 @@ define [ "model/render"
   # - maybeId; («—» if Backbone id is not available yet)
   #
   # - modelTitle;
-  buildKVM = (model, options) ->
+  buildKVM = (model, options = {}) ->
     fields    = model.fields
     required  = (f for f in fields when f.meta?.required)
 
@@ -167,7 +167,9 @@ define [ "model/render"
                 [h, m, s] = map v.split(":"), parseInt
                 kvm[f.name](s + m*60 + h*3600)
         defaults =
-          read:      -> kvm[f.name]()
+          read:      ->
+            v = kvm[f.name]()
+            if _.isNull(v) or _.isUndefined(v) then "" else v
           write: (v) ->
             return if _.isEmpty(kvm[f.name]()) and v == ""
             kvm[f.name](v)
@@ -215,6 +217,7 @@ define [ "model/render"
               modelName: f.meta.model
               options:
                 modelArg: queueOptions?.modelArg
+                parentField: 'parentId'
                 newStyle: false
             addRef kvm, f.name, opts, (kvm) -> focusRef(kvm)
 
@@ -486,18 +489,8 @@ define [ "model/render"
 
   addRef = (knockVM, field, ref, cb) ->
     field = "#{field}Reference" unless /Reference$/.test(field)
-    # For new-style references (IdentList type), store parent id as a
-    # number in a field of the reference set by
-    # ref.options.parentField
-    #
-    # For old-style references (reference type), store parent id in
-    # "model:<id>" form in "parentId" field
-    if ref.options?.newStyle
-      parentField = ref.options.parentField
-      thisId = knockVM.id()
-    else
-      parentField = 'parentId'
-      thisId = knockVM._meta.model.name + ":" + knockVM.id()
+    parentField = ref.options.parentField
+    thisId = knockVM.id()
     patch = {}
     patch[parentField] = thisId
     ref.args = _.extend(patch, ref.args)

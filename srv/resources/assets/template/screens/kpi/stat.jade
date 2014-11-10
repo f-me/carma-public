@@ -1,17 +1,28 @@
-include _table
 include _settings
 
 .row-fluid
   .span12.default-bs
     include _statNav
-    .row-fluid#settings
-      +settingsContainer
-        +settings
+    #stat-kpi-content(data-bind="spinner: spinner")
+      .row-fluid#settings(data-bind="with: settingsCtx")
+        +settingsContainer
+          .row-fluid
+            .span6
+              +settings
+            .span6
+              .row-fluid
+                .span5
+                  | Всего кейсов с заказ-нарядом
+                .span3(data-bind="text: cases_amount")
+              .row-fluid
+                .span5
+                  | Прикрепено файлов "Заказ-Наряд"
+                .span3(data-bind="text: files_attached")
 
-      .row-fluid#filters(style="margin-top: 10px")
-        .span4#kvmsFilter
-          +kvmFilter
-        .span2#date-range
+        .row-fluid#filters(style="margin-top: 10px")
+          .span4#kvmsFilter
+            +kvmFilter
+          .span2#date-range
             .input-append
               input.pane-span.focusable(type="text"
                 autocomplete="off"
@@ -27,10 +38,54 @@ include _settings
                 data-bind="value: interval.end, addMask: 'datetime'")
               span.add-on
                 i.icon.icon-calendar
+          .span2
+            button.btn(data-bind="click: fetchData"
+                       style="padding-bottom: 2px; padding-top:2px") OK
           +downloadTbl
 
-    .row-fluid#results(style="overflow-y: auto")
-      +table
+      .row-fluid#results(style="overflow-y: auto" data-bind="with: tblCtx")
+        table#tbl.table.table-condensed.table-bordered
+          thead
+            tr
+              th
+              th
+                button.btn.btn-link(
+                  style='white-space: nowrap;'
+                  data-bind='text: "Оператор", sort: "userid"')
+
+              // ko foreach: fields
+              th(data-bind="visible: show")
+                button.btn.btn-link(
+                  style='white-space: nowrap;'
+                  data-bind='text: label, sort: name')
+              // /ko
+          tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
+            tr
+              td
+                a(data-bind="click: showDetails.toggle")
+                  i(data-bind="attr: { \
+                    class: showDetails() ? 'icon-minus' : 'icon-plus' }")
+                i.icon-refresh.icon-refresh-animate(
+                  data-bind="visible: showDetails.loading")
+              td(data-bind="fieldRender: kvm['userid']")
+              // ko foreach: $root.tblCtx.fields
+              // ko if: show
+              td(data-bind="render: {kvm: kvm, field: $data}")
+              // /ko
+              // /ko
+
+            // ko if: kvm['showDetails']()
+            // ko foreach: kvm.days
+            tr.details
+              td
+              td(data-bind="fieldRender: $data['day']")
+              // ko foreach: $root.tblCtx.fields
+              // ko if: show
+              td(data-bind="render: {kvm: $parent, field: $data}")
+              // /ko
+              // /ko
+            // /ko
+            // /ko
 
 .hidden
   include /fields/ro.jade

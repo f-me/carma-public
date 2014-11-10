@@ -24,6 +24,7 @@ module Util
     -- * Legacy interoperability for Idents
   , identFv
   , fvIdent
+  , fvIdentBs
 
     -- * Postgres helpers
   , PlainText(..)
@@ -182,6 +183,9 @@ fvIdent s = case T.decimal s of
   Right (i,_) -> Just $ Model.Ident i
   _           -> Nothing
 
+-- | Same as `fvIdent` but for `ByteString`
+fvIdentBs :: Model.Model m => ByteString -> Maybe (Model.IdentI m)
+fvIdentBs = fvIdent . T.decodeUtf8
 
 -- | Text wrapper with a non-quoting 'ToField' instance.
 --

@@ -41,13 +41,7 @@ q = [sql|
             as svc_create_time,
           to_char(t.times_expectedServiceStart at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
             as svc_start_time,
-          (case t.status
-              when 19 then 'Услуга оказана'
-              when 15 then 'Услуга заказана'
-              when 14 then 'Отказ от услуги'
-              when 4  then 'Клиент отказался от услуги'
-              else '-' end)
-            as svc_status,
+          s.label as svc_status,
           coalesce(mk.label, '-') as car_make,
           coalesce(mdl.label, '-') as car_model,
           coalesce(upper(c.car_vin), 'N/A') as car_vin,
@@ -66,7 +60,7 @@ q = [sql|
               else false end)
             as isOrganisation
 
-        from towagetbl t, partnertbl p, casetbl c
+        from towagetbl t, partnertbl p, "ServiceStatus" s, casetbl c
           left join "Contract" cntr on (cntr.id = c.contract)
           left join "Wazzup" diag on (diag.id = c.comment)
           left join "CarMake" mk on (mk.id = c.car_make)
@@ -75,6 +69,7 @@ q = [sql|
           and t.towType = 1
           and c.id = t.parentId
           and p.id = t.towDealer_partnerId
+          and s.id = t.status
           and t.id = ?
       )
     insert into "MessageToGenser" (msgData, email, status)

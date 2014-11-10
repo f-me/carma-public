@@ -7,16 +7,27 @@ import           Control.Lens
 import           Data.Map (Map)
 import           Data.Text (Text)
 import qualified Data.Aeson as Aeson
-import           Data.Pool
-import           Database.PostgreSQL.Simple as Pg
-import           Snap.Snaplet
 
-import           Snaplet.DbLayer.Types
+import           Snap
+import           Snap.Snaplet.Auth
+import           Snap.Snaplet.PostgresqlSimple
+
+import           Snaplet.Auth.Class
 import           Snaplet.SiteConfig.Models
+import           AppHandlers.Util
+
 
 data SiteConfig b = SiteConfig
   { models       :: Map Text Model
   , dictionaries :: Aeson.Value
-  , pg_search    :: Pool Pg.Connection
-  , db           :: Lens' b (Snaplet (DbLayer b))
+  , auth         :: Lens' b (Snaplet (AuthManager b))
+  , db           :: Lens' b (Snaplet Postgres)
   }
+
+
+instance HasPostgres (Handler b (SiteConfig b)) where
+  getPostgresState = withLens db get
+
+
+instance WithCurrentUser (Handler b (SiteConfig b)) where
+  withCurrentUser = withLens auth currentUser

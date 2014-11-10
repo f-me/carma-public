@@ -692,3 +692,11 @@ input.re-failed {
 .grey-bg {
   background-color: #bbb;
 }
+
+.hidden {
+  display: none;
+}
+
+tr.details > td {
+  background-color: #f9f9f9;
+}

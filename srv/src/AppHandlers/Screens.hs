@@ -67,5 +67,5 @@ getScreens :: AppHandler ()
 getScreens = do
   Right screens <- liftIO readScreens
   Just (UserId uid) <- (>>= userId) <$> withAuth currentUser
-  [Only roles] <- with db $ query q (Only uid)
+  [Only roles] <- query q (Only uid)
   writeJSON $ filterByPermissions (V.toList roles) screens
