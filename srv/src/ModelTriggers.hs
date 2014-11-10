@@ -615,7 +615,7 @@ instance Backoffice HaskellE where
         inFuture :: (FutureContext -> AppHandler (IO ())) -> Free (Dsl m) ()
         inFuture f = Dsl.doApp $ do
           io <- PS.getPostgresState >>= f . FutureContext . PS.pgPool
-          liftIO $ threadDelay 1500000 >> io
+          void $ liftIO $ forkIO $ threadDelay 1500000 >> io
 
     sendSMS tpl = run $ BOAction.sendSMS tpl <$> srvId'
       where
@@ -623,7 +623,7 @@ instance Backoffice HaskellE where
         inFuture :: (FutureContext -> AppHandler (IO ())) -> Free (Dsl m) ()
         inFuture f = Dsl.doApp $ do
           io <- PS.getPostgresState >>= f . FutureContext . PS.pgPool
-          liftIO io
+          void $ liftIO $ forkIO io
 
     nop = HaskellE $ return $ return ()
 

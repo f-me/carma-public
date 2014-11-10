@@ -134,5 +134,5 @@ fi
 
 if [[ ! -z "$MESSAGE" ]]
 then
-  send_message "$MESSAGE"
+  echo send_message "$MESSAGE"
 fi

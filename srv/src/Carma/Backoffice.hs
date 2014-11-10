@@ -104,7 +104,7 @@ needMakerApproval =
 needInfo :: Entry
 needInfo =
     Entry
-    (onField Case.caseStatus (const CS.needInfo)
+    (insteadOf Case.caseStatus (const CS.needInfo)
      (proceed [AType.tellMeMore]))
 
 
@@ -166,7 +166,7 @@ recallClient :: Entry
 recallClient =
     Entry
     (insteadOf Service.status (const SS.recallClient)
-     (proceed [AType.checkDispatchTime]))
+     (proceed [AType.checkStatus]))
 
 
 complaint :: Entry
@@ -269,18 +269,6 @@ tellClient =
     , (AResult.supervisorClosed, finish)
     ]
 
-
-checkDispatchTime :: Action
-checkDispatchTime =
-    Action
-    AType.checkDispatchTime
-    (const bo_control)
-    nobody
-    ((1 * minutes) `since` now)
-    [ (AResult.clientNotified, finish)
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
 
 checkStatus :: Action
 checkStatus =
@@ -514,7 +502,7 @@ tellMeMore :: Action
 tellMeMore =
     Action
     AType.tellMeMore
-    (const bo_info)
+    (const bo_order)
     nobody
     ((1 * minutes) `since` now)
     [ (AResult.communicated,
@@ -530,7 +518,7 @@ callMeMaybe :: Action
 callMeMaybe =
     Action
     AType.callMeMaybe
-    (const bo_info)
+    (const bo_order)
     nobody
     ((1 * minutes) `since` now)
     [ (AResult.communicated, finish)
@@ -555,7 +543,6 @@ carmaBackoffice =
       , orderServiceAnalyst
       , tellClient
       , checkStatus
-      , checkDispatchTime
       , needPartner
       , checkEndOfService
       , closeCase
