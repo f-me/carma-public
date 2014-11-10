@@ -16,6 +16,7 @@ import Prelude hiding (until)
 
 import Control.Applicative
 import Control.Concurrent
+import Control.Monad.CatchIO (finally)
 import Control.Monad
 import Control.Monad.Free (Free)
 import Control.Monad.Trans
@@ -89,6 +90,7 @@ import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
 
 import           AppHandlers.ActionAssignment
+import           Util (Priority(..), syslogJSON, (.=))
 
 -- TODO: rename
 --   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
@@ -409,28 +411,30 @@ runTriggers before after dbAction fields state = do
           (fromDynamic trigger)
 
   let pg = st_pgcon state
+
+  let run = runDslM state $ do
+        case parentInfo :: ParentInfo m of
+          NoParent -> return ()
+          ExParent p
+            -> inParentContext
+            $ sequence_ $ matchingTriggers (modelName p) before
+        sequence_ $ matchingTriggers (modelName mInfo) before
+
+        dbAction
+
+        case parentInfo :: ParentInfo m of
+          NoParent -> return ()
+          ExParent p
+            -> inParentContext
+            $ sequence_ $ matchingTriggers (modelName p) after
+        sequence_ $ matchingTriggers (modelName mInfo) after
+
+  start <- liftIO getCurrentTime
   liftIO $ PG.beginLevel PG.ReadCommitted pg
-
-  -- FIXME: try/finally
-  res <- runDslM state $ do
-    case parentInfo :: ParentInfo m of
-      NoParent -> return ()
-      ExParent p
-        -> inParentContext
-        $ sequence_ $ matchingTriggers (modelName p) before
-    sequence_ $ matchingTriggers (modelName mInfo) before
-
-    dbAction
-
-    case parentInfo :: ParentInfo m of
-      NoParent -> return ()
-      ExParent p
-        -> inParentContext
-        $ sequence_ $ matchingTriggers (modelName p) after
-    sequence_ $ matchingTriggers (modelName mInfo) after
-
-  liftIO $ PG.commit pg
-  return res
+  finally run $ liftIO $ do
+    PG.commit pg
+    end <- getCurrentTime
+    syslogJSON Info "runTriggers" ["time" .= show (diffUTCTime end start)]
 
 
 -- | Mapping between a contract field and a  case field.
@@ -665,9 +669,12 @@ instance Backoffice HaskellE where
           ctx <- ask
           return $ do
             this <- getAction
+            acts <- caseActions $ kase ctx `get'` Case.ident
             let -- Set current action as a source in the nested
                 -- evaluator context
-                ctx' = ctx{prevAction = (`get'` Action.aType) <$> this}
+                ctx' = ctx{ prevAction = (`get'` Action.aType) <$> this
+                          , actions = acts
+                          }
                 (e, basePatch) = newActionData ctx' aT
                 who = evalHaskell ctx' $ BO.assignment e
 
