@@ -1,4 +1,4 @@
-﻿CREATE VIEW "Услуги" AS
+CREATE VIEW "Услуги" AS
 WITH servicecounts AS (
          SELECT servicetbl_1.parentid,
             count(*) AS amount
@@ -98,6 +98,7 @@ WITH servicecounts AS (
         'Обработано'::text AS "Статус обращения(: обработано)",
 
             "ServiceType".label as "Тип обращения",--"Услуга"
+   servicetbl.clientcancelreason AS "Причина отказа клиента",
    allservicesview.towdealer_partner AS "Назначение эвакуации-назв. дилера",
    p2.code AS "Код дилера",
    casecity.label AS "Город места поломки",

@@ -1,14 +1,14 @@
-mixin settingsContainer
+mixin settingsContainer(header)
   .row-fluid
     .span12
       .bs-docs-less-margins#kpi-list
         .bs-docs-example-after#settings-label
           i.icon-plus
-          | Настройки
+          = header || "Настройки"
         block
 
 mixin settings
-    #kpi-list-inner.in(style="height: 20em; overflow-x: auto;")
+    #kpi-list-inner.in(style="height: 10em; overflow-x: auto;")
       .control-group
         .controls
           input#kpi-list-filter.focusable(type="text"

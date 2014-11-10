@@ -61,8 +61,8 @@ mkSearch prms mkq = do
     prms' <- renderPrms c (predicates args) prms
     case prms' of
       Right p -> do
-        -- retrieving onw more elements than limit, so we know
-        -- is there is next page
+        -- retrieving one more elements than limit, so we know
+        -- if there is next page
         s  <- query_ c (mkq (undefined :: t) p (lim + 1) offset
                         (renderOrder $ sorts args))
         return $ Right $ buildResult s lim offset

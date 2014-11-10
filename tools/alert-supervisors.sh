@@ -110,6 +110,7 @@ run_query <<EOF
     AND result IS NULL
     AND ctime > now()::date - 7
     AND now() > ('10 minutes'::interval + duetime)
+    AND type = ANY ('{1, 20, 17, 19}')
     AND (assigntime IS NOT NULL AND closetime IS NULL)
     AND now() > ('15 minutes'::interval + assigntime);
 EOF

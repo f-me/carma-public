@@ -62,6 +62,10 @@ module.exports = (grunt) ->
           }
           ]
 
+    shell:
+      bower:
+        command: "bower install"
+
     clean:
       all:
         src: ["#{js}/**/*", tpl, css]
@@ -90,7 +94,7 @@ module.exports = (grunt) ->
     mustache:   {src: 'mustache',        file: 'mustache.js'}
     underscore: {src: 'underscore',      file: 'underscore.js'}
     finch:      {src: 'finchjs',         file: 'finch.min.js'}
-    jquery:     {src: 'jquery',          file: 'jquery.js'}
+    jquery:     {src: 'jquery/dist',     file: 'jquery.js'}
     knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
     notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
     spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
@@ -151,6 +155,6 @@ module.exports = (grunt) ->
   newerify = (ts) -> "newer:#{t}" for t in ts
 
   grunt.registerTask("build", newerify ['coffee', 'copy', 'jade'])
-  grunt.registerTask("rebuild", ['clean', 'build'])
-  grunt.registerTask("bwatch", ['build', 'watch'])
+  grunt.registerTask("rebuild", ['shell:bower', 'clean', 'build'])
+  grunt.registerTask("bwatch", ['rebuild', 'watch'])
   grunt.registerTask("default", "rebuild")

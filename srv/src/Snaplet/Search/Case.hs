@@ -17,6 +17,7 @@ import           Data.Model.Patch (Patch)
 import           Carma.Model.Case
 import           Carma.Model.Service
 import           Carma.Model.Service.Towage
+import           Carma.Model.Contract
 
 import           Snaplet.Search.Types
 import           Snaplet.Search.Utils
@@ -25,9 +26,17 @@ import           Snaplet.Search.Utils
 caseSearch :: SearchHandler b
               (Either String
                (SearchResult
-                (Patch Case :. Maybe (Patch Service) :. Maybe (Patch Towage) :. ())))
+                (  Patch Case
+                :. Maybe (Patch Service)
+                :. Maybe (Patch Towage)
+                :. Maybe (Patch Contract)
+                :. ())))
 caseSearch = defaultSearch
-    (caseSearchParams :. serviceSearchParams :. towageSearchParams)
+    (  caseSearchParams
+    :. serviceSearchParams
+    :. towageSearchParams
+    :. contractCaseSearchParams
+    )
     mkQuery
 
 mkQuery :: forall t.MkSelect t => t -> Text -> Int -> Int -> String -> Query
@@ -38,6 +47,8 @@ mkQuery _ pred lim offset ord
       ++ "       on servicetbl.parentId = casetbl.id"
       ++ "     left join towagetbl"
       ++ "       on servicetbl.id = towagetbl.id"
+      ++ "     left join \"Contract\""
+      ++ "       on \"Contract\".id = casetbl.contract"
       ++ "     where (%s) %s limit %i offset %i;"
       )
       (T.unpack (mkSel (undefined :: t)))

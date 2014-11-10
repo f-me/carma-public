@@ -26,7 +26,6 @@ import WeatherApi.WWOnline (initApi)
 
 ------------------------------------------------------------------------------
 import Snaplet.SiteConfig
-import Snaplet.DbLayer
 import qualified Snaplet.FileUpload as FU
 import Snaplet.Geo
 import Snaplet.Search
@@ -113,7 +112,10 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/errors",        method POST errorsHandler)
          , ("/userStates/:userId/:from/:to",
             chkAuth . method GET $ serveUserStates)
-         , ("/kpi/stat/:from/:to", chkAuth . method GET $ getStat)
+         , ("/kpi/stat/:from/:to",      chkAuth . method GET $ getStat)
+         , ("/kpi/stat/:uid/:from/:to", chkAuth . method GET $ getStat)
+         , ("/kpi/statFiles/:from/:to", chkAuth . method GET $ getStatFiles)
+         , ("/kpi/group/:from/:to", chkAuth . method GET $ getGroup)
          , ("/kpi/oper",           chkAuth . method GET $ getOper)
          ]
 
@@ -147,12 +149,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   s <- nestSnaplet "session" session $
        initCookieSessionManager sesKey "_session" Nothing
 
-  -- Authentication DB
-  ad <- nestSnaplet "auth_db" authDb pgsInit
+  -- DB
+  ad <- nestSnaplet "auth_db" db pgsInit
 
   authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
-
-  d <- nestSnaplet "db" db $ initDbLayer authMgr authDb "resources/site-config"
 
   -- init PostgreSQL connection pool that will be used for searching only
   let lookupCfg nm = lookupDefault (error $ show nm) cfg nm
@@ -170,13 +170,13 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   pga <- liftIO $ createPool (Pg.connect cInfoActass) Pg.close 1 5 20
 
   c <- nestSnaplet "cfg" siteConfig $
-       initSiteConfig "resources/site-config" pgs db
+       initSiteConfig "resources/site-config" auth db
 
-  fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit authDb
+  fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   g <- nestSnaplet "geo" geo geoInit
-  search' <- nestSnaplet "search" search $ searchInit pgs authMgr db
+  search' <- nestSnaplet "search" search $ searchInit authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 
   addRoutes routes
-  return $ App h s authMgr c d pgs pga tm fu g ad search' opts msgr (initApi wkey)
+  return $ App h s authMgr c pgs pga tm fu g ad search' opts msgr (initApi wkey)

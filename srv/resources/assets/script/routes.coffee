@@ -118,15 +118,6 @@ define ["render/screen"
           "action-form": supervisor
       r.renderScreen supervisor, bind
 
-  addRoute "supervisorOps", (bind) ->
-    require ["screens/supervisorOps"], (supervisorOps) ->
-      supervisorOps.screen =
-        name : "supervisorOps"
-        template: "supervisorOps-screen-template"
-        views:
-          "supervisorOps-table": supervisorOps
-      r.renderScreen supervisorOps, bind
-
   addRoute "vin", (bind) ->
     require ["screens/vin"], (vin) ->
       vin.screen =

@@ -66,6 +66,9 @@ INSERT INTO "ActionType" (label, id, priority)
 VALUES ('Заказ услуги через мобильное приложение', 20, 1);
 
 INSERT INTO "ActionType" (label, id, priority)
+VALUES ('Уточнить время выезда', 21, 1);
+
+INSERT INTO "ActionType" (label, id, priority)
 VALUES ('Действие не актуально (архив)', 9000, 10);
 
 SELECT setval(pg_get_serial_sequence('"ActionType"', 'id'), max(id)) from "ActionType";

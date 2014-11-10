@@ -21,9 +21,27 @@ define ["text!tpl/screens/kpi/oper.html"
     for k in kvms()
       k.inCurrent(k.inCurrent() + 1)
       k[k.currentState()] k[k.currentState()]() + 1
+      if k.currentState() != "LoggedOut"
+        k.totalLoggedIn k.totalLoggedIn() + 1
+      if _.contains ["Dinner", "Rest", "ServiceBreak"], k.currentState()
+        k.totalRest k.totalRest() + 1
     return null
 
   ticker = null
+
+  mkLogoutFromBusy = (k) -> ko.computed ->
+    k.lastState() == 'Busy' &&
+    k.currentState() == 'LoggedOut' &&
+    k.inCurrent() <= 15 * 60
+
+  mkOverDue = (k, overdue) -> ko.computed ->
+    k.currentState() == 'Busy' && k.inCurrent() > overdue()
+
+  mkVisible = (k, hideOffline,outFromBusy) -> ko.computed ->
+    if hideOffline()
+      outFromBusy() or k.currentState() != "LoggedOut"
+    else
+      true
 
   template: Tpl
   constructor: (view, opts) ->
@@ -40,7 +58,13 @@ define ["text!tpl/screens/kpi/oper.html"
         tCtx.hideOffline = sCtx.hideOffline
 
         $.getJSON "/kpi/oper", (d) ->
-          kvms _.map d, (m) -> Main.buildKVM Model, { fetched: mp.s2cObj m }
+          kvms _.map d, (m) ->
+            k = Main.buildKVM Model, { fetched: mp.s2cObj m }
+            k._meta.logoutFromBusy = mkLogoutFromBusy(k)
+            k._meta.overdue        = mkOverDue(k, sCtx.overdue)
+            k._meta.visible        =
+              mkVisible(k, sCtx.hideOffline, k._meta.logoutFromBusy)
+            k
           $('body').spin false
           kvmsh = arrToObj ((k) -> k.userid()), kvms()
           WS.subscribe "oper-kpi", update(kvmsh)
