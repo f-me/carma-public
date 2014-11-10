@@ -17,7 +17,9 @@ BEGIN
     lower(tstzrange(b, e) * coalesce(us.range, tstzrange(us.ctime, now())))
     ) as "timeInState"
    FROM "UserState" us
-   WHERE u_id = '{}' OR us.userid = any(u_id)
+   WHERE (u_id = '{}' OR us.userid = any(u_id))
+     AND tstzrange(b, e) * coalesce(us.range, tstzrange(us.ctime, now()))
+     IS NOT NULL
   GROUP BY us.userid, us.state;
 END;
 $func$
@@ -918,7 +920,7 @@ $func$
 BEGIN
   RETURN QUERY
   SELECT COUNT(CASE WHEN (servicetbl.status IN (
-    10, --'Услуга оказана'
+    19, --'Услуга оказана'
     15, --"Услуга заказана"
     16, --"Оказание услуги задерживается"
     17, --"Услуга оказывается"
@@ -1028,7 +1030,7 @@ BEGIN
     WHERE us.state = 'Busy';
 
   RETURN QUERY
-  SELECT (EXTRACT(EPOCH FROM inSystem) / EXTRACT(EPOCH FROM busy))
+  SELECT (EXTRACT(EPOCH FROM busy) / EXTRACT(EPOCH FROM inSystem))
          AS utilization;
 
 END;
