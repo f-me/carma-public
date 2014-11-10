@@ -668,9 +668,12 @@ instance Backoffice HaskellE where
           ctx <- ask
           return $ do
             this <- getAction
+            acts <- caseActions $ kase ctx `get'` Case.ident
             let -- Set current action as a source in the nested
                 -- evaluator context
-                ctx' = ctx{prevAction = (`get'` Action.aType) <$> this}
+                ctx' = ctx{ prevAction = (`get'` Action.aType) <$> this
+                          , actions = acts
+                          }
                 (e, basePatch) = newActionData ctx' aT
                 who = evalHaskell ctx' $ BO.assignment e
 
