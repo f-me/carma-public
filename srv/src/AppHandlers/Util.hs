@@ -75,13 +75,3 @@ withLens :: MonadState s (Handler b v')
          => (s -> SnapletLens b v) -> Handler b v res
          -> Handler b v' res
 withLens x = (gets x >>=) . flip withTop
-
-getConnectInfo :: Handler b v ConnectInfo
-getConnectInfo = do
-    dbCfg <- getSnapletUserConfig
-    liftIO $ ConnectInfo
-               <$> require dbCfg "host"
-               <*> require dbCfg "port"
-               <*> require dbCfg "user"
-               <*> require dbCfg "pass"
-               <*> require dbCfg "db"
