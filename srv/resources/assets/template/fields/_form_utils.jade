@@ -80,7 +80,29 @@ mixin dict(nameMod, iconClass)
     span.input-group-addon
       span.glyphicon.glyphicon-chevron-down
     +savingSpinner
-    block
+
+mixin dictMany(nameMod, iconClass)
+  .form-group.has-feedback(data-bind="\n\
+                            {{# meta.required }}\n\
+                            css: { error: {{name}}Not }\n\
+                            {{/ meta.required}}")
+    label.col-sm-4.control-label
+      +labelWithInfo("{{name}}")
+    .col-sm-8
+      div
+        .input-group.input-group-sm
+          +dictInput(nameMod)
+          span.input-group-addon
+            span.glyphicon.glyphicon-chevron-down
+          +savingSpinner
+
+      div
+        // ko if: {{ name }}Locals().length
+        ul(data-bind="foreach: {{ name }}Locals")
+          li
+            span(data-bind="text: label")
+            a(href="" data-bind="click: remove") &nbsp ×
+        // /ko
 
 mixin checkboxField(name)
   .checkbox

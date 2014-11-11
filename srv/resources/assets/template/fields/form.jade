@@ -67,13 +67,7 @@ include _form_utils
   +dict("Local", "icon-chevron-down")
 
 .field-template#dictionary-many-field-template
-  +dict("Many", "icon-chevron-down")
-    // ko if: {{ name }}Locals().length
-    ul(data-bind="foreach: {{ name }}Locals")
-      li
-        span(data-bind="text: label")
-        a(href="" data-bind="click: remove") &nbsp ×
-    // /ko
+  +dictMany("Many", "icon-chevron-down")
 
 //- Picker which fills fields with stored data
 .field-template#picker-field-template
