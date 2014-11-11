@@ -105,6 +105,14 @@ require [ "domready"
     # FIXME: but we can't be sure that AVAYA widget is initialised
     liveMenu.setup(document.getElementById 'nav')
 
+    # file field selection (currenlty only on vin screen)
+    $(document).on 'change', '.btn-file :file', ->
+      input = $(this)
+      numFiles = if input.get(0).files then input.get(0).files.length else 1
+      label = input.val().replace(/\\/g, '/').replace(/.*\//, '')
+      textInput = $(this).parents('.input-group').find(':text')
+      textInput.val(label)
+
   $.fn.wysihtml5.defaultOptions.stylesheets = '/s/3p/wysihtml5/wysiwyg-color.css'
 
   u.build_global_fn 'switchHack', ['lib/hacking']
