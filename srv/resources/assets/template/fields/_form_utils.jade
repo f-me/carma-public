@@ -70,13 +70,15 @@ mixin dictInput(nameMod)
                 css: { 're-failed': {{name}}Regexp }\n\
                 {{/ meta.regexp   }}")
 
+mixin dictInputChevron(nameMod)
+  +dictInput(nameMod)
+  span.input-group-addon
+    span.glyphicon.glyphicon-chevron-down
+
 mixin dict(nameMod, iconClass)
   +fieldControlGroup
 
-    +dictInput(nameMod)
-
-    span.input-group-addon
-      span.glyphicon.glyphicon-chevron-down
+    +dictInputChevron(nameMod)
     +savingSpinner
 
 mixin dictMany(nameMod, iconClass)
@@ -89,9 +91,7 @@ mixin dictMany(nameMod, iconClass)
     .col-sm-8
       div
         .input-group.input-group-sm
-          +dictInput(nameMod)
-          span.input-group-addon
-            span.glyphicon.glyphicon-chevron-down
+          +dictInputChevron(nameMod)
           +savingSpinner
 
       div

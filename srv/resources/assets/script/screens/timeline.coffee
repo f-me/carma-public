@@ -324,7 +324,7 @@ define ["text!tpl/screens/timeline.html"
 
     select = (user) ->
       unless _.find(timelines(), (t) -> t.user.id is user.id)
-        $("html, body").animate({ scrollTop: $(document).height() }, "slow")
+        $(".screen").animate({ scrollTop: $(".screen")[0].scrollHeight }, "slow")
         timeline = new Timeline({user: user})
         timeline.onClose -> timelines.remove timeline
         timelines.push timeline
