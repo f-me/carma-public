@@ -1,6 +1,6 @@
 mixin settingsContainer(header)
-  .row-fluid
-    .span12
+  .row
+    .col-md-12
       .bs-docs-less-margins#kpi-list
         .bs-docs-example-after#settings-label
           i.icon-plus
@@ -9,10 +9,9 @@ mixin settingsContainer(header)
 
 mixin settings
     #kpi-list-inner.in(style="height: 10em; overflow-x: auto;")
-      .control-group
-        .controls
-          input#kpi-list-filter.focusable(type="text"
-            data-bind="value: settingsFilter, valueUpdate: 'afterkeydown'")
+      .input-group-sm
+        input.form-control#kpi-list-filter(type="text"
+          data-bind="value: settingsFilter, valueUpdate: 'afterkeydown'")
       ul.unstyled(data-bind="foreach: fields")
         li
           label.checkbox
@@ -20,8 +19,8 @@ mixin settings
             span(data-bind="text: label")
 
 mixin kvmFilter
-  .input-append
-    input.focusable(
+  .input-group-sm
+    input.form-control(
       type="text"
       placeholder="Поиск"
       name="kvmsFilter"

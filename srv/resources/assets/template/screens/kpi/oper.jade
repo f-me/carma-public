@@ -1,33 +1,35 @@
 include _settings
 
-.row-fluid
-  .span12.default-bs
-    include _statNav
-    .row-fluid#settings
-      +settingsContainer
-        .row-fluid
-          .span6
-            +settings
-          .span6
-            span.inverse-red Выделять красным
-            | , если занят &ge;
-            input.tiny-input(type="text"
-                data-bind="value: overdue.text, update: 'afterkeydown'")
-            | минут
-            br
-            span.inverse-orange Выделять оранжевым
-            | , если разлогинился из статуса занят
+.container-fluid.screen
+  .row
+    .col-md-12.default-bs
+      include _statNav
+      .row#settings
+        +settingsContainer
+          .row
+            .col-md-4
+              +settings
+            .col-md-2
+            .col-md-6
+              span.inverse-red Выделять красным
+              | , если занят &ge;
+              input.tiny-input(type="text"
+                  data-bind="value: overdue.text, update: 'afterkeydown'")
+              | минут
+              br
+              span.inverse-orange Выделять оранжевым
+              | , если разлогинился из статуса занят
+  
+              br
+              label.checkbox
+                input(type="checkbox" data-bind="checked: hideOffline")
+                | Скрывать в статусе "Разлогинен"
+        .row.col-md-4#filters(style="margin-top: 10px; margin-bottom: 10px;")
+          #kvmsFilter
+            +kvmFilter
+          // +downloadTbl
 
-            br
-            label.checkbox
-              input(type="checkbox" data-bind="checked: hideOffline")
-              | Скрывать в статусе "Разлогинен"
-      .row-fluid#filters(style="margin-top: 10px")
-        .span4#kvmsFilter
-          +kvmFilter
-        // +downloadTbl
-
-    .row-fluid#results(style="overflow-y: auto")
+    .row.col-md-12#results(style="overflow-y: auto")
       table#tbl.table.table-condensed.table-bordered
        thead
          tr

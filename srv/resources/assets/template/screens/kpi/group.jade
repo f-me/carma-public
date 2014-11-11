@@ -1,41 +1,44 @@
 include _settings
 
-.row-fluid
-  .span12.default-bs
+.row.screen.col
+  .col-md-12.labeled-pane
     include _statNav
-    .row-fluid#settings.spinner(data-bind="spinner: spinner")
+    .row#settings.spinner(data-bind="spinner: spinner")
       #fader.blur(style="position: absolute; width: 100%; height: 100%")
       +settingsContainer("Показатели")
-        .row-fluid
-          .span6
-            .row-fluid#date-range
-              .span5
-                .input-append
-                  input.pane-span.focusable(type="text"
+        .row
+          .col-md-6
+            .row#date-range(style="margin-bottom: 10px")
+              .col-md-5
+                .input-group-sm
+                  input.form-control.pane-span.focusable(type="text"
                     autocomplete="off"
                     name="interval.begin"
                     data-bind="value: interval.begin, addMask: 'datetime'")
-              .span5
-                .input-append
-                  input.pane-span.focusable(type="text"
+              .col-md-5
+                .input-group-sm
+                  input.form-control.pane-span.focusable(type="text"
                     autocomplete="off"
                     name="interval.end"
                     data-bind="value: interval.end, addMask: 'datetime'")
-              .span2
+              .col-md-2
                 button.btn(data-bind="click: fetchData"
                            style="padding-bottom: 2px; padding-top:2px") OK
-            .row-fluid#search
-              .span12.form-inline
-                input.focusable(
+            .row#search(style="margin-bottom: 10px")
+              .col-md-12.form-inline.input-group-sm
+                input.form-control.focusable(
                   style="width: 90%;"
                   type="text"
                   placeholder="Поиск"
                   name="filter"
                   data-bind="value: filter, valueUpdate: 'afterkeydown'")
-            .row-fluid#kpis(data-bind="foreach: fields")
-              .row-fluid
-                .span8(data-bind="text: meta.label")
-                .span4(data-bind="render: {kvm: $root.kvm, field: $data}")
+            .row.col-md-8#kpis
+              table.table.table-condensed.table-striped.table-bordered
+                tbody(data-bind="foreach: fields")
+                  tr
+                    td(data-bind="text: meta.label")
+                    td(width="25%"
+                       data-bind="render: {kvm: $root.kvm, field: $data}")
 
 .hidden
   include /fields/ro.jade
