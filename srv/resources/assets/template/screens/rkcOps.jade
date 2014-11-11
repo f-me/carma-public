@@ -1,0 +1,10 @@
+.col-md-12
+  include _rkc_header.jade
+
+  .row
+    h2 Операторы Back Office
+    table#rkc-ops-back-operators-table.table.table-stripped.table-bordered
+      thead
+        tr(data-bind="foreach: cols")
+          th(data-bind="text: name")
+      tbody/

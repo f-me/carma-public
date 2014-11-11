@@ -1,4 +1,4 @@
-include /fields/_form_utils.jade
+
 
 mixin smallInput(label, id)
   .form-group
@@ -7,27 +7,8 @@ mixin smallInput(label, id)
       input.form-control(type="text" id="#{id}")
 
 .col-md-12.pane.nice-scrollbar
-  .row
-    .col-md-6
-      .row
-        h3 Фильтрация
-      .row.col-md-6.form-horizontal
-        each v, i in { 'city-select': "Город:", 'program-select': "Программа:", 'partner-select': "Партнёр:" }
-          .form-group
-            label.col-md-4= v
-            .col-md-8
-              select.form-control(id="#{i}" data-bind='foreach: $data')
-                option(data-bind='value: id, text: name')
-    .col-md-6
-      .row
-        h3 Интервал
-      .row.col-md-6.form-horizontal
-        .form-group
-          +dateInput("", "", "")#rkc-date-from
-        .form-group
-          +dateInput("", "", "")#rkc-date-to
-        .form-group
-          button#reload.btn Обновить
+
+  include _rkc_header.jade
 
   .row
     .col-md-6

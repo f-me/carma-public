@@ -1,8 +1,7 @@
 define [ "utils"
        , "screens/rkc"
        , "text!tpl/screens/rkcFront.html"
-       , "text!tpl/partials/rkc.html"
-       ], (utils, rkc, tpl, partials) ->
+       ], (utils, rkc, tpl) ->
   setupRKCFrontScreen = (viewName, args) ->
     setTimeout ->
 
@@ -61,5 +60,4 @@ define [ "utils"
   { constructor: setupRKCFrontScreen
   , destructor: removeRKCFrontScreen
   , template: tpl
-  , partials: partials
   }

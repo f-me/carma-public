@@ -1,8 +1,8 @@
 define [ "utils"
        , "screens/rkc"
        , "text!tpl/screens/rkcOps.html"
-       , "text!tpl/partials/rkc.html"
-       ], (utils, rkc, tpl, partials) ->
+       ], (utils, rkc, tpl) ->
+
   setupRKCOpsScreen = (viewName, args) ->
     eachao = $('#rkc-ops-back-operators-table')
     return if eachao.hasClass("dataTable")
@@ -74,5 +74,4 @@ define [ "utils"
   { constructor: setupRKCOpsScreen
   , destructor: removeRKCOpsScreen
   , template: tpl
-  , partials: partials
   }
