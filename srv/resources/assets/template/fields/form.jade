@@ -504,9 +504,11 @@ mixin caseFilesList
               +caseFilesList
       #case-comments
         legend  Комментарий
-        textarea#case-comments-i(rows='2')
-        button#case-comments-b.btn
-          | Добавить комментарий
+        .form-group
+          textarea.form-control#case-comments-i(rows='2', style="width: 100%;")
+        .form-group
+          button#case-comments-b.btn
+            | Добавить комментарий
       legend История звонков
       table#call-searchtable.table.table-striped.table-bordered
         thead
