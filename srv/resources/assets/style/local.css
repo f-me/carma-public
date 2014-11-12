@@ -5,8 +5,7 @@
    * After preprocessing with less it is converted to `height: 30vh;`
    * */
   height: 100vh;
-  margin-top: -38px;
-  padding-top: 38px;
+  padding-top: 40px;
   overflow-x: hidden;
 }
 
@@ -15,7 +14,6 @@
 }
 
 #layout > .screen {
-  padding-top: 20px;
   height: 100%;
 }
 
@@ -30,6 +28,8 @@
 }
 
 #call-screen > .row {
+  /* this will count width including paddings, so there is no more scroll */
+  box-sizing: border-box;
   height: 50%;
   overflow-y: auto;
 }
@@ -39,32 +39,11 @@
   overflow-y: auto;
 }
 
-.icon-refresh-animate {
-  animation-name: infinite-spining;
-  animation-duration: .7s;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
-  -webkit-animation-name: infinite-spining;
-  -webkit-animation-duration: .7s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-timing-function: linear;
-  -moz-animation-name: infinite-spining;
-  -moz-animation-duration: .7s;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-timing-function: linear;
-}
-
-@keyframes infinite-spining {
-  from { transform: rotate( 0deg );   }
-  to   { transform: rotate( 360deg ); }
-}
-@-webkit-keyframes infinite-spining {
-  from { -webkit-transform: rotate( 0deg );   }
-  to   { -webkit-transform: rotate( 360deg ); }
-}
-@-moz-keyframes infinite-spining {
-  from { -moz-transform: rotate( 0deg );   }
-  to   { -moz-transform: rotate( 360deg ); }
+#call-screen > .bottom-part {
+  border-top: 1px #aaa;
+  border-top-style: dotted;
+  padding-top: 5px;
+  /* margin-top: 5px; */
 }
 
 /* hack to make feedback left of addon */
@@ -81,12 +60,6 @@
   width: 100%;
 }
 
-#call-screen > .bottom-part {
-  border-top: 1px #aaa;
-  border-top-style: dotted;
-  padding-top: 5px;
-  margin-top: 5px;
-}
 
 tr.details > td {
   background-color: #f9f9f9;
