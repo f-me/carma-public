@@ -243,10 +243,10 @@ include _form_utils
 
 #Case-caseStatus-field-template.field-template
   +fieldControlGroup
-    .row
-      +dictInput("Local")
-    .row
-      .span12(
+    +dictInput("Local")
+    .input-group.input-group-sm.btn-vert-block
+      .btn-block.hidden
+      .btn-block(
         data-toggle="tooltip"
         data-html="true"
         data-placement="bottom"
@@ -257,34 +257,35 @@ include _form_utils
           id="{{name}}-needInfo"
           data-bind='disabled: buttons.needInfo.disabled,\
                      click: buttons.needInfo.click')
-          i.icon-white.icon-info-sign
+          span.glyphicon.glyphicon-info-sign
           |&nbsp;
           span(data-bind='text: buttons.needInfo.text')
 
 #svcStatus-field-template.field-template
   +fieldControlGroup
-    .row
-      +dictInput("Local")
-    .row
-      .svc-status-button(
+    +dictInput("Local")
+    .input-group.input-group-sm.btn-vert-block
+      // invisible block to keep top margin when changing visibility
+      .btn-block.hidden
+      .svc-status-button.btn-block(
         data-bind="attr: { title: buttons.backoffice.tooltip },\
                    visible: buttons.backoffice.visible")
         button.btn.btn-small.btn-info(
           style="width:100%"
           data-bind='disabled: buttons.backoffice.disabled,\
                      click: buttons.backoffice.click')
-          i.icon-white.icon-play
+          span.glyphicon.glyphicon-play
           |&nbsp;
           span(data-bind='text: buttons.backoffice.text')
-      .svc-status-button(
+      .svc-status-button.btn-block(
         data-bind="visible: buttons.recallClient.visible")
         button.btn.btn-small.btn-info(
           style="width:100%"
           data-bind='click: buttons.recallClient.click')
-          i.icon-white.icon-time
+          span.glyphicon.glyphicon-time
           | &nbsp;
           span(data-bind='text: buttons.recallClient.text')
-      .svc-status-button(
+      .svc-status-button.btn-block(
         data-toggle="tooltip"
         data-html="true"
         data-placement="bottom"
@@ -294,7 +295,7 @@ include _form_utils
           style="width:100%"
           data-bind='disabled: buttons.cancel.disabled,\
                      click: buttons.cancel.click')
-          i.icon-white.icon-fast-backward
+          span.glyphicon.glyphicon-fast-backward
           |&nbsp;
           span(data-bind='text: buttons.cancel.text')
 
@@ -392,22 +393,22 @@ mixin simpleRefHdr(name, bindName)
 
 #services-reference-template.reference-template
   +refCommon('style: {"background-color": _svcColor}')
-      span &nbsp;
-      a(data-bind='text: _meta.model.title')
-        | Услуга…
-      span &nbsp;
-      a.btn.btn-mini(
-        data-bind="attr: { href: '#printSrv/' + id() }"
-        target='_blank')
-        i.icon.icon-print
-        | &nbsp;Печать
-      span &nbsp;
-      button.btn.btn-mini.btn-danger(
-        data-bind='visible: buttons.mistake.visible,\
-                   click: buttons.mistake.click')
-        i.icon.icon-white.icon-remove
-        | &nbsp;
-        span(data-bind='text: buttons.mistake.text')
+    span &nbsp;
+    a(data-bind='text: _meta.model.title')
+      | Услуга…
+    span &nbsp;
+    a.btn.btn-mini(
+      data-bind="attr: { href: '#printSrv/' + id() }"
+      target='_blank')
+      i.icon.icon-print
+      | &nbsp;Печать
+    span &nbsp;
+    button.btn.btn-mini.btn-danger(
+      data-bind='visible: buttons.mistake.visible,\
+                 click: buttons.mistake.click')
+      i.icon.icon-white.icon-remove
+      | &nbsp;
+      span(data-bind='text: buttons.mistake.text')
 
 
 #partner_services-reference-template.reference-template
