@@ -116,3 +116,7 @@ tr.details > td {
     cursor: inherit;
     display: block;
 }
+
+.osMap {
+  height: 600px;
+}

@@ -137,19 +137,18 @@ include _form_utils
 
 // NOP here — references are rendered after model has loaded
 #reference-field-template.field-template(type='text/template')
-  .control-group
-    .control-label
-      label
-    .controls
+  .form-group
+    label.control-label.invisible.col-md-4
+    .col-sm-8
       span.accordion(id="{{ modelName }}-{{ cid }}-{{ name }}-references")
-    | {{# meta.model}}
-    #add-reference-button.controls
-      button.dropdown-toggle.btn.btn-action(
-        data-bind='bindClick: add{{ name }}'
-        type='button')
-        i.icon.icon-plus
-        | {{ meta.reference-label }}
-    | {{/ meta.model}}
+      | {{# meta.model}}
+      #add-reference-button
+        button.dropdown-toggle.btn.btn-action(
+          data-bind='bindClick: add{{ name }}'
+          type='button')
+          span.glyphicon.glyphicon-plus
+          | {{ meta.reference-label }}
+      | {{/ meta.model}}
 
 // Container field template for attachment reference list, with upload
 // form. See also files-reference-template for each item template.
@@ -218,15 +217,15 @@ include _form_utils
 // Template for fields with unknown type
 .field-template#dict-objects-field-template
   +fieldControlGroup
-    ul(data-bind="foreach: {{ name }}Objects")
-      li
+    div(data-bind="foreach: {{ name }}Objects")
+      .form-group
         label.control-label.col-sm-4
           span(data-bind="text: keyLocal")
           a.text-error(href="#"
               data-bind="click: $parent.{{name}}DeleteObj")
               | &nbsp;×
         .col-sm-8
-          input.pane-span.focusable(type="text"
+          input.form-control(type="text"
             autocomplete="off"
             style="{{# meta.transform }}\n\
                    text-transform:{{meta.transform}};\n\
@@ -237,7 +236,7 @@ include _form_utils
                        css: { 're-failed': regexp }\n\
                        {{/ meta.regexp }}")
     | {{# meta.showNote }}
-    label.control-label.col-sm-4 {{ meta.noteLabel }}
+    label.control-label.col-sm-4 {{ meta.noteLabel }} {{ name }}
     .col-sm-8
       input.pane-span.focusable(type="text"
           autocomplete="off"
@@ -528,18 +527,20 @@ mixin caseFilesList
         tbody
 
 #permission-template
-  | {{# readonly }}
-  button.btn.disabled(type="button")
-    i.icon-ban-circle
-      | Только для чтения
-  | {{/ readonly }}
-  | {{^ readonly }}
-  button.btn.btn-success(type="button"
-          onClick="saveInstance('{{ viewName }}');successfulSave.call(this);")
-    i.icon-pencil.icon-white
-    | Сохранить
-  span.save-result
-  | {{/ readonly }}
+  .form-group
+    .col-md-offset-4.col-md-8
+      | {{# readonly }}
+      button.btn.disabled(type="button")
+        i.icon-ban-circle
+          | Только для чтения
+      | {{/ readonly }}
+      | {{^ readonly }}
+      button.btn.btn-success(type="button"
+              onClick="saveInstance('{{ viewName }}');successfulSave.call(this);")
+        i.icon-pencil.icon-white
+        | Сохранить
+      span.save-result
+      | {{/ readonly }}
 
 #empty-fields-template
   ul#empty-fields
