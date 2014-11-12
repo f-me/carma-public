@@ -192,10 +192,10 @@ include _form_utils
                         data-bind="value: {{ name }},\
                                    valueUpdate: 'afterkeydown',\
                                    disabled: {{ name }}Disabled")
+        +savingSpinner
         span.input-group-addon
           span.glyphicon.glyphicon-share(
             onclick="showComplex('{{ viewName }}', '{{ name }}');")
-        +savingSpinner
 
 // Template for fields with unknown type
 .field-template#unknown-field-template
