@@ -154,7 +154,6 @@ include _form_utils
 // form. See also files-reference-template for each item template.
 #inline-uploader-field-template.field-template(type='text/template')
   +fieldControlGroup
-    div(id="{{ modelName }}-{{ cid }}-{{ name }}-references")
     form.form(data-bind="\n\
       attr: { action: '/upload/{{ modelName }}/'+maybeId()+'/{{ name }}'},\
       {{#meta.single-uploader}} \n\
@@ -164,26 +163,16 @@ include _form_utils
       style='margin-bottom: 0;')
 
       // File chooser widget
-      .row
-        .col-md-12
-          input.upload-dialog(type='file'
-            onchange='$(this).siblings(\'.upload-names\').val($(this).val());'
-            data-bind='disabled: {{ name }}Disabled'
-            style='display: none;')
-          input.form-control.upload-names(type='text'
-                             style=''
-                             disabled='disabled')
-      .row
-        .col-md-6
-          a.btn.btn-default.btn-block(data-bind='disabled: {{ name }}Disabled'
-                onclick="$(this).siblings('.upload-dialog').click();")
+      .input-group.input-group-sm
+        input.form-control(type="text" readonly)
+        .input-group-btn
+          span.btn.btn-default.btn-file
             span.glyphicon.glyphicon-folder-open
-            | &nbsp;Обзор
-        .col-md-6
-          a.btn.btn-primary.btn-block(data-bind='disabled: {{ name }}Disabled'
-                            onclick='inlineUploadFile($(this).closest(\'form\'));')
+            input.upload-dialog(type="file")
+          a.btn.btn-primary#upload-send(
+              onclick="inlineUploadFile($(this).closest('form'), event);")
             span.glyphicon.glyphicon-upload
-            | &nbsp;Загрузить
+    div(id="{{ modelName }}-{{ cid }}-{{ name }}-references")
 
 //- Special template used to render first field of group in parent view.
 #group-field-template.field-template(type='text/template')
@@ -348,6 +337,7 @@ include _form_utils
 // File upload template
 #file-field-template.field-template(type='text/template')
   span.glyphicon.glyphicon-folder-open
+  | &nbsp;
   a.file-name(data-bind='attr: { href: {{ name }}Url }, text: {{ name }}')
 
 // Modal dialog template
@@ -445,7 +435,7 @@ mixin simpleRefHdr(name, bindName)
        onclick='inlineDetachFile($(this)); return false'
        data-attachment='{{ refId }}'
        data-field='{{ refField }}')
-      | ×
+      | × &nbsp;
     span(id="{{ refView }}" class="{{ refClass }}")
     // Attachment contents are rendered here
 
@@ -461,6 +451,7 @@ mixin caseFilesList
   ul.unstyled(data-bind="foreach: safelyGet(\'filesReference\')")
     li
       span.glyphicon.glyphicon-folder-open
+      | &nbsp;
       a.file-name(data-bind="attr: { href: filenameUrl }, text: filename")
 
 // Default case group view template
