@@ -72,6 +72,7 @@ mixin dictInput(nameMod)
 
 mixin dictInputChevron(nameMod)
   +dictInput(nameMod)
+  +savingSpinner
   span.input-group-addon
     span.glyphicon.glyphicon-chevron-down
 
@@ -79,7 +80,7 @@ mixin dict(nameMod, iconClass)
   +fieldControlGroup
 
     +dictInputChevron(nameMod)
-    +savingSpinner
+
 
 mixin dictMany(nameMod, iconClass)
   .form-group.has-feedback(data-bind="\n\
@@ -92,7 +93,6 @@ mixin dictMany(nameMod, iconClass)
       div
         .input-group.input-group-sm
           +dictInputChevron(nameMod)
-          +savingSpinner
 
       div
         // ko if: {{ name }}Locals().length
