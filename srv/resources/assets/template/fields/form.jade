@@ -384,8 +384,9 @@ mixin refCommon(headingDataBind)
                        data-bind=headingDataBind)
           block
       .panel-collapse.collapse(id="{{ refView }}-head")
-        .panel-body(class="{{ refClass }}" id="{{ refView }}")
-        // Instance contents are rendered here
+        .panel-body
+          .form-horizontal(class="{{ refClass }}" id="{{ refView }}")
+          // Instance contents are rendered here
 
 mixin simpleRefHdr(name, bindName)
   a.icon.icon-remove
@@ -441,11 +442,11 @@ mixin simpleRefHdr(name, bindName)
 
 #actions-reference-template.reference-template
   +refCommon('style: {"background-color": _actColor}')
-      i.icon.icon-flag(data-bind='visible: myAction')
-      span(data-bind='visible: myAction')
-        | &nbsp;
-      a(data-bind='html: actionNameLocal')
-        | Действие…
+    span.glyphicon.glyphicon-flag(data-bind='visible: myAction')
+    span(data-bind='visible: myAction')
+      | &nbsp;
+    a(data-bind='html: actionNameLocal')
+      | Действие…
 
 mixin caseFilesList
   ul.unstyled(data-bind="foreach: safelyGet(\'filesReference\')")
