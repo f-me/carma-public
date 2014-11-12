@@ -15,7 +15,6 @@
 }
 
 #layout > .screen {
-  overflow-y: auto;
   padding-top: 20px;
   height: 100%;
 }

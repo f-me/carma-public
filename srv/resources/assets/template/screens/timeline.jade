@@ -12,7 +12,7 @@ mixin rows(columns)
       each c in columns
         td(data-bind="renderTpl: {field: $data['#{c.name}'], tpl: '#{c.tpl}' }")
 
-#timeline-view.screen.container-fluid
+#timeline-view.screen.container-fluid.col
   .row
     #users.bs-docs-example.col-md-12
       .row
