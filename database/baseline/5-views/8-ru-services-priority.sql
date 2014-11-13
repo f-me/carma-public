@@ -1,4 +1,5 @@
-﻿CREATE VIEW "Услуги с приоритетами" AS
+﻿DROP VIEW IF EXISTS "Услуги с приоритетами";
+CREATE VIEW "Услуги с приоритетами" AS
 --ТАРИФНЫЕ ОПЦИИ ИЗ УСЛУГ ПАРТНЕРОВ
 WITH tfs AS
 (
@@ -8,7 +9,7 @@ ps AS
 (SELECT partnertbl.id,
 partnertbl.name,
 partnertbl.city,
-SPLIT_PART(regexp_split_to_table(partnertbl.services, ','), 'partner_service:', 2) AS service
+SPLIT_PART(regexp_split_to_table(partnertbl.services, ','), 'PartnerService:', 2) AS service
 from partnertbl
 )
 
@@ -17,19 +18,19 @@ ps.id as partnerid,
 ps.name,
 ps.city,
 ps.service,
-partner_servicetbl.id as partnerserviceid,
-partner_servicetbl.parentid,
-partner_servicetbl.priority1,
-partner_servicetbl.priority2,
-partner_servicetbl.priority3,
-partner_servicetbl.falsecallpercent,
-partner_servicetbl.servicename,
+"PartnerService".id as partnerserviceid,
+"PartnerService".parentid,
+"PartnerService".priority1,
+"PartnerService".priority2,
+"PartnerService".priority3,
+"PartnerService".falsecallpercent,
+"PartnerService".servicename,
 "ServiceType".label AS servicelabel,
-SPLIT_PART(regexp_split_to_table(partner_servicetbl.tarifoptions, ','), 'tarifOption:', 2) AS tarifoption
---partner_servicetbl.tarifoptions
+SPLIT_PART(regexp_split_to_table("PartnerService".tarifoptions, ','), 'tarifOption:', 2) AS tarifoption
+-- partner_servicetbl.tarifoptions
 FROM ps
-LEFT JOIN partner_servicetbl ON ps.service = partner_servicetbl.id::TEXT
-LEFT JOIN "ServiceType" ON partner_servicetbl.servicename = "ServiceType".id
+LEFT JOIN "PartnerService" ON ps.service = "PartnerService".id::TEXT
+LEFT JOIN "ServiceType" ON "PartnerService".servicename = "ServiceType".id
 )
 
 SELECT
@@ -45,7 +46,7 @@ tarifoptiontbl.optionname AS "Тарифная опция",
 price1 AS "Стоимость за единицу за нал",
 price2 AS "Стоимость за единицу по безналу",
 tfs.partnerserviceid AS "partner_servicetbl.id",
-tfs.tarifoption "tarifoption.id"
+tfs.tarifoption AS "tarifoption.id"
 FROM
 tfs
 LEFT JOIN tarifoptiontbl ON  tfs.tarifoption::TEXT = tarifoptiontbl.id::TEXT

@@ -1,12 +1,14 @@
-﻿CREATE VIEW "Партнеры" AS
+﻿DROP VIEW IF EXISTS "Партнеры";
+
+CREATE VIEW "Партнеры" AS
 --ВЫБИРАЕМ НОРМАЛЬНЫЕ НАЗВАНИЯ УСЛУГ У ПАРТНЕРА
 WITH servicelabel AS
 (
 WITH A AS (SELECT id, regexp_split_to_table(services, ',') as service
 FROM partnertbl)
 SELECT A.id, string_agg("ServiceType".label, ',') as label from A
-LEFT JOIN partner_servicetbl ON SPLIT_PART(A.service, ':', 2) = partner_servicetbl.id::text
-LEFT JOIN "ServiceType" ON partner_servicetbl.servicename = "ServiceType".id
+LEFT JOIN "PartnerService" ON SPLIT_PART(A.service, ':', 2) = "PartnerService".id::text
+LEFT JOIN "ServiceType" ON "PartnerService".servicename = "ServiceType".id
 GROUP BY A.id
 )
 Select
