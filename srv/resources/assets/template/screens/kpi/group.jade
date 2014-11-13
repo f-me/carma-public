@@ -8,6 +8,8 @@ include _settings
       +settingsContainer("Показатели")
         .row-fluid
           .span6
+            .row-fluid(data-bind="visible: !interval.correct()")
+              small.text-errorНачало диапазона должно быть меньше чем конец
             .row-fluid#date-range
               .span5
                 .input-append

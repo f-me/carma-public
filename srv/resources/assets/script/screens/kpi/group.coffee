@@ -20,6 +20,9 @@ define ["text!tpl/screens/kpi/group.html"
       , (new Date).toString("dd.MM.yyyy HH:mm:ss")
       ]
     interval = Fs.interval ko.observable(int)
+    interval.correct = ko.computed ->
+      sint = _.map interval(), (v) -> Map.c2s(v, 'UTCTime')
+      sint[0] < sint[1]
 
     interval.subscribe (v) ->
       return unless interval.begin or interval.end
@@ -40,6 +43,8 @@ define ["text!tpl/screens/kpi/group.html"
     fetchData = ->
       return unless interval.begin() or interval.end()
       sint = _.map interval(), (v) -> Map.c2s(v, 'UTCTime')
+      return unless interval.correct()
+
       spinner(true)
       $.getJSON "/kpi/group/#{sint[0]}/#{sint[1]}", (d) ->
         for k, v of mp.s2cObj d
