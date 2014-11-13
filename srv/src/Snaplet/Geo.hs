@@ -20,7 +20,7 @@ in WSG84 in @longitude,latitude@ format, as @33.77,52.128@.
 -}
 
 module Snaplet.Geo
-    ( Geo
+    ( Geo(..)
     , geoInit
     )
 

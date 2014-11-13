@@ -60,6 +60,7 @@ import Snap.Snaplet.Auth hiding (session)
 import Snap.Util.FileServe (serveFile)
 import Snap.Util.FileUploads (getMaximumFormInputSize)
 
+import Snaplet.Geo
 import Snaplet.FileUpload (FileUpload(cfg))
 
 import Carma.Model
@@ -288,8 +289,11 @@ getRegionByCity =
 clientConfig :: AppHandler ()
 clientConfig = do
   mus <- with fileUpload $ gets (fromIntegral . getMaximumFormInputSize . cfg)
+  nom <- with geo $ gets nominatimUrl
   let config :: Map.Map T.Text Aeson.Value
-      config = Map.fromList [("max-file-size", Aeson.Number mus)]
+      config = Map.fromList [ ("max-file-size", Aeson.Number mus)
+                            , ("nominatim-url", Aeson.String $ T.pack nom)
+                            ]
   writeJSON config
 
 
