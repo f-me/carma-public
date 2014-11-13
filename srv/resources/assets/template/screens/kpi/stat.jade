@@ -19,6 +19,10 @@ include _settings
                   | Прикрепено файлов "Заказ-Наряд"
                 .span3(data-bind="text: files_attached")
 
+        .row-fluid(data-bind="visible: !interval.correct()")
+          .offset4
+            small.text-errorНачало диапазона должно быть меньше чем конец
+
         .row-fluid#filters(style="margin-top: 10px")
           .span4#kvmsFilter
             +kvmFilter
