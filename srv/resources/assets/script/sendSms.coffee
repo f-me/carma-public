@@ -1,6 +1,6 @@
 define ["model/main"], (main) ->
   setup: -> setTimeout(->
-    $('#sms-send-modal').on('show', () ->
+    $('#sms-send-modal').on('show.bs.modal', () ->
       refs = []
       main.modelSetup("Sms") "sms-send-form", {id:null},
                             focusClass: "focusable"
