@@ -10,6 +10,10 @@ define [ "utils"
   storeKey = "call"
 
   setupCallForm = (viewName, args) ->
+
+    # this will prevent modal from hiding on click behind modal borders
+    $("#new-call-modal").modal { backdrop: 'static' }
+
     # if user have unfinished call redirect him to close it
     unfinished = localStorage["#{storeKey}.id"]
     if unfinished and args.id isnt unfinished
