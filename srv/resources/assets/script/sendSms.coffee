@@ -28,6 +28,7 @@ define ["model/main"], (main) ->
       if vCase
         smsVM.caseRef(vCase.knockVM.id())
 
+      # FIXME: now we can do this with shiny new triggers
       # we really need this because triggers do not trigger on `POST`
       # so, if {template:"xxx"} comes with POST (not with PUT), then
       # our template substitution trigger is not fired
