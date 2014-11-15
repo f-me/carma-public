@@ -192,10 +192,10 @@ define [ "utils"
       u.newModelDict("CaseStatus").getLab(
               global.idents("CaseStatus").needInfo)
     kvm.buttons.needInfo.visible = ko.computed ->
-      statusOk = kvm['caseStatus']() != global.idents("CaseStatus").needInfo
+      statusOk = kvm['caseStatus']?() != global.idents("CaseStatus").needInfo
       statusOk && _.isEmpty(kvm['servicesReference']())
     kvm.buttons.needInfo.click = ->
-      kvm['caseStatus'] global.idents("CaseStatus").needInfo
+      kvm['caseStatus']? global.idents("CaseStatus").needInfo
     kvm.buttons.needInfo.disabled = ko.computed ->
       u.someEmpty kvm, niFlds
 
