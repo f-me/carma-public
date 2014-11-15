@@ -11,9 +11,6 @@ define [ "utils"
 
   setupCallForm = (viewName, args) ->
 
-    # this will prevent modal from hiding on click behind modal borders
-    $("#new-call-modal").modal { backdrop: 'static' }
-
     # if user have unfinished call redirect him to close it
     unfinished = localStorage["#{storeKey}.id"]
     if unfinished and args.id isnt unfinished
@@ -63,6 +60,9 @@ define [ "utils"
     $("#search-partner").on 'click', partnerSearchClick
     $("#make-new-call").on 'click', -> makeCallClick viewName
     $("#end-call").on 'click', -> endCallClick viewName
+
+    # this will prevent modal from hiding on click behind modal borders
+    $("#new-call-modal").modal { backdrop: 'static', show: false }
     setModalVisible not args.id?
 
     searchQuery = localStorage["#{storeKey}.search-query"]
@@ -138,16 +138,10 @@ define [ "utils"
 
   showModal = ->
     $("#new-call-modal").modal('show')
-    $("#left").hide()
-    $("#center").hide()
-    $("#right").hide()
-    $("#bottom").hide()
+    $("#call-screen").hide()
 
   hideModal = ->
-    $("#left").show()
-    $("#center").show()
-    $("#right").show()
-    $("#bottom").show()
+    $("#call-screen").show()
     $("#new-call-modal").modal('hide')
 
 
