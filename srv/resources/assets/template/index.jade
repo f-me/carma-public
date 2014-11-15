@@ -75,7 +75,7 @@ html
               form.navbar-search.pull-left
                 input.search-query(type='text', placeholder='Avaya')
                 button#avaya-call.btn
-                  i.icon.stolen-icon-phone
+                  span.glyphicon.stolen-icon-phone
               ul.dropdown-menu
                 li#avaya-info.nav-header
                 li
@@ -89,7 +89,7 @@ html
             // /ko
             li
               a#send-bug-report
-                i.icon.icon-fire.icon-white
+                span.glyphicon.glyphicon-fire
           ul#current-user.nav.navbar-nav.navbar-right
             li.divider-vertical
             li.dropdown
@@ -132,10 +132,12 @@ html
     #main-container
       #layout
     // SMS send form
-    #sms-send-modal.modal.hide.fade
-      .modal-header
-        button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
-        h3 Отправка СМС
-      #sms-send-form.modal-body
-      .modal-footer
-        button#do-send-sms.btn.btn-primary Отправить
+    #sms-send-modal.modal.fade
+      .modal-dialog
+        .modal-content
+          .modal-header
+            button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
+            h4.modal-title Отправка СМС
+          #sms-send-form.modal-body.form-horizontal
+          .modal-footer
+            button#do-send-sms.btn.btn-primary Отправить
