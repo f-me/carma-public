@@ -10,6 +10,7 @@ define [ "utils"
   storeKey = "call"
 
   setupCallForm = (viewName, args) ->
+
     # if user have unfinished call redirect him to close it
     unfinished = localStorage["#{storeKey}.id"]
     if unfinished and args.id isnt unfinished
@@ -59,6 +60,9 @@ define [ "utils"
     $("#search-partner").on 'click', partnerSearchClick
     $("#make-new-call").on 'click', -> makeCallClick viewName
     $("#end-call").on 'click', -> endCallClick viewName
+
+    # this will prevent modal from hiding on click behind modal borders
+    $("#new-call-modal").modal { backdrop: 'static', show: false }
     setModalVisible not args.id?
 
     searchQuery = localStorage["#{storeKey}.search-query"]
@@ -83,6 +87,7 @@ define [ "utils"
             ,progs.getLab(obj.program) || obj.program || ''
             ,wazzup.getLab(obj.comment) || obj.comment || ''
             ]
+    return if _.isEmpty rows
     st.fnAddData(rows)
 
   dtSearch = (st) ->
@@ -132,22 +137,12 @@ define [ "utils"
     if visible then showModal() else hideModal()
 
   showModal = ->
-    $("#new-call-modal")
-      .removeClass("out")
-      .addClass("in")
-    $("#left").hide()
-    $("#center").hide()
-    $("#right").hide()
-    $("#bottom").hide()
+    $("#new-call-modal").modal('show')
+    $("#call-screen").hide()
 
   hideModal = ->
-    $("#left").show()
-    $("#center").show()
-    $("#right").show()
-    $("#bottom").show()
-    $("#new-call-modal")
-      .removeClass("in")
-      .addClass("out")
+    $("#call-screen").show()
+    $("#new-call-modal").modal('hide')
 
 
   { constructor: setupCallForm

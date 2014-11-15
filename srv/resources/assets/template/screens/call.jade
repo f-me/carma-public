@@ -42,10 +42,13 @@
           th Программа
           th Комментарий
       tbody
-  #new-call-modal.modal.fade.modal-dont-block
-    .modal-body
-      form.form-inline.text-center
-        span.lead
-          | Начать новый звонок
-        img#make-new-call.img-circle(src='/s/img/phone_pickup.png'
-            style='width: 256px; height: 256px; cursor: pointer;')
+
+#new-call-modal.modal.fade.modal-dont-block
+  .modal-dialog
+    .modal-content
+      .modal-body
+        form.form-inline.text-center
+          span.lead
+            | Начать новый звонок
+          img#make-new-call.img-circle(src='/s/img/phone_pickup.png'
+              style='width: 256px; height: 256px; cursor: pointer;')
