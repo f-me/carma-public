@@ -463,13 +463,13 @@ mixin caseFilesList
       span(data-bind='text: safelyGet(\'contact_name\')')
       span(data-bind='text: " " + safelyGet("contact_phone1")')
       span(data-bind='\
-        visible: contact_phone2,\
+        visible: safelyGet("contact_phone2"),\
         text: ", " + safelyGet("contact_phone2")')
       span(data-bind='\
-        visible: contact_phone3,\
+        visible: safelyGet("contact_phone3"),\
         text: ", " + safelyGet("contact_phone3")')
       span(data-bind='\
-        visible: contact_phone4,\
+        visible: safelyGet("contact_phone4"),\
         text: ", " + safelyGet("contact_phone4")')
     p(data-bind='visible: safelyGet(\'car_make\')')
       b Автомобиль:&nbsp;
