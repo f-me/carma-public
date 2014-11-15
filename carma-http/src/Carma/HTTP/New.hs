@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-|
@@ -167,9 +166,11 @@ setKeyedJsonValue parsed key value =
   in
     toJSON $
     case parsed of
-      Array [] -> [newEntry]
       Array objs ->
-        case V.findIndex keyPred objs of
-          Just iMatch -> objs & element iMatch .~ newEntry
-          Nothing -> V.snoc objs newEntry
-      _ -> [newEntry]
+        if V.null objs
+        then (V.singleton newEntry)
+        else
+          case V.findIndex keyPred objs of
+            Just iMatch -> objs & element iMatch .~ newEntry
+            Nothing -> V.snoc objs newEntry
+      _ -> V.singleton newEntry
