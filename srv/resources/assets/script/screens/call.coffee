@@ -83,6 +83,7 @@ define [ "utils"
             ,progs.getLab(obj.program) || obj.program || ''
             ,wazzup.getLab(obj.comment) || obj.comment || ''
             ]
+    return if _.isEmpty rows
     st.fnAddData(rows)
 
   dtSearch = (st) ->
@@ -132,9 +133,7 @@ define [ "utils"
     if visible then showModal() else hideModal()
 
   showModal = ->
-    $("#new-call-modal")
-      .removeClass("out")
-      .addClass("in")
+    $("#new-call-modal").modal('show')
     $("#left").hide()
     $("#center").hide()
     $("#right").hide()
@@ -145,9 +144,7 @@ define [ "utils"
     $("#center").show()
     $("#right").show()
     $("#bottom").show()
-    $("#new-call-modal")
-      .removeClass("in")
-      .addClass("out")
+    $("#new-call-modal").modal('hide')
 
 
   { constructor: setupCallForm
