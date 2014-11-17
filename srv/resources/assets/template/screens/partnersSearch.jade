@@ -23,11 +23,14 @@ mixin dictInput(name)
     .popover(style='max-width: 1000px;')
       .arrow
       .popover-content
-  #map-search-overlay(style='position: absolute; width: 25%; display: none; z-index: 9000;')
-    .input-append
-      input#map-search-field.span12(type='text', placeholder='Адрес', data-bind='value: address')
-      span#map-search-button.add-on
-        i.icon.icon-search
+  #map-search-overlay(
+      style='position: absolute; width: 25%; display: none; z-index: 9000;')
+    .input-group.input-group-sm
+      input.form-control#map-search-field(type='text'
+                                          placeholder='Адрес'
+                                          data-bind='value: address')
+      span#map-search-button.input-group-addon
+        span.glyphicon.glyphicon-search
   .row
     .col-md-10
       .row

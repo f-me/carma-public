@@ -48,8 +48,11 @@ include _form_utils
 
 .field-template#interval-datetime-field-template
   +fieldControlGroup
-    +dateInput(".begin", "", 'change')
-    +dateInput(".end", "", 'change')
+    .row
+      .col-sm-6
+        +rawDateInput(".begin", "", 'change')
+      .col-sm-6
+        +rawDateInput(".end", "", 'change')
 
 .field-template#phone-field-template
   +fieldControlGroup
@@ -377,11 +380,12 @@ include _form_utils
 mixin refCommon(headingDataBind)
   .panel-group(id="{{ refView }}-group")
     .panel.panel-default
-      .panel-heading.panel-title(id="{{ refView }}-link"
+      .panel-heading(id="{{ refView }}-link"
                        data-parent="{{ refView }}-group"
                        data-target="#{{ refView }}-head"
                        data-toggle="collapse"
                        data-bind=headingDataBind)
+        h4.panel-title
           block
       .panel-collapse.collapse(id="{{ refView }}-head")
         .panel-body
@@ -395,19 +399,18 @@ mixin simpleRefHdr(name, bindName)
 #services-reference-template.reference-template
   +refCommon('style: {"background-color": _svcColor}')
     span &nbsp;
-    a(data-bind='text: _meta.model.title')
-      | Услуга…
+    a(data-bind='text: _meta.model.title') Услуга…
     span &nbsp;
-    a.btn.btn-mini(
+    a.btn.btn-mini.btn-default(
       data-bind="attr: { href: '#printSrv/' + id() }"
       target='_blank')
-      i.icon.icon-print
+      span.glyphicon.glyphicon-print
       | &nbsp;Печать
     span &nbsp;
     button.btn.btn-mini.btn-danger(
       data-bind='visible: buttons.mistake.visible,\
                  click: buttons.mistake.click')
-      i.icon.icon-white.icon-remove
+      span.glyphicon.glyphicon-remove
       | &nbsp;
       span(data-bind='text: buttons.mistake.text')
 

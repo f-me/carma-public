@@ -361,7 +361,7 @@ define [ "utils"
     # remove padding so blank space after removing navbar can be used
     if args?.model?
       unless args.model == "mobile"
-        $('body').css('padding-top', '0px')
+        $('#main-container').css('padding-top', '5px')
         $(".navbar").hide()
 
     kvm = m.buildKVM(model, "partnersSearch-content")
@@ -395,7 +395,7 @@ define [ "utils"
                        #{nested.servicenameLocal()}
                        </span>"
               if nested.priority2()
-                show += " <span class='label label-important'>
+                show += " <span class='label label-danger'>
                           ПБГ: #{nested.priority2()}
                           </span>"
               if nested.priority3()
