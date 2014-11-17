@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Carma.Model.LegalForm where
 
 import Data.Text
@@ -6,6 +8,7 @@ import Data.Vector
 
 import Data.Model
 import Data.Model.View
+import Data.Model.TH
 
 import Carma.Model.Types()
 import Carma.Model.PgTypes()
@@ -22,3 +25,8 @@ instance Model LegalForm where
   modelView = \case
     "" -> Just defaultView
     _  -> Nothing
+
+mkIdents [t|LegalForm|]
+ [ ("person", 1)
+ , ("company", 2)
+ ]
