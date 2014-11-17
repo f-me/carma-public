@@ -1,3 +1,13 @@
+$.fn.typeahead = {}
+$.fn.typeahead.defaults =
+  source: []
+  items: 8
+  menu: '<ul class="typeahead dropdown-menu"></ul>'
+  item: '<li><a href="#"></a></li>'
+  minLength: 1
+  scrollHeight: 0
+  autoSelect: true
+
 class ThMenu
   constructor: (options) ->
     @options     = $.extend({}, $.fn.typeahead.defaults, options)
@@ -23,12 +33,13 @@ class ThMenu
       .on('keypress.typeahead', $.proxy(@.keypress, @))
       .on('keyup.typeahead',    $.proxy(@.keyup, @))
 
-    if $.browser.webkit or $.browser.msie
-      @$element.on('keydown.typeahead', $.proxy(@.keypress, @))
+    # if $.browser.webkit or $.browser.msie
+    # FIXME: test this on ff, in case of failure find way to detect browser
+    # $.browser is deprecated
+    @$element.on('keydown.typeahead', $.proxy(@.keypress, @))
 
   destructor: =>
     if @$element
-      # console.log 'el exist, destroying'
       @$element
         .off('blur.typeahead')
         .off('keypress.typeahead')

@@ -16,7 +16,7 @@ module Carma.Backoffice.Graph
 where
 
 import           Prelude hiding ((>), (==), (||), (&&), const)
-import qualified Prelude as P ((>), (==), (||), (&&), const)
+import qualified Prelude as P ((==), (||), const)
 
 import           Control.Monad.Trans.State
 import           Data.Functor
@@ -40,17 +40,17 @@ import           Carma.Backoffice.Text
 
 -- | FGL graph edge embedding. A DSL term is converted to a list of
 -- edges depending on all possible outcomes. Only terms with semantic
--- type 'ActionOutcome' are interpreted into non-Nothing values.
--- Chained effects and switch conditions are marked on edge labels
--- with @*@ and @?@ symbols.
+-- type 'ActionOutcome' are interpreted into non-null lists. Chained
+-- effects and switch conditions are marked on edge labels with @*@
+-- and @?@ symbols.
 --
 -- A switch condition results in (b+1) extra edges, where b is the
 -- amount of switch branches (counting the default branch). An extra
 -- node is included between source and target nodes when a switch
 -- construct occurs.
 --
--- This embedding is basically a tagged one due to the use of Maybe.
--- There're several reasons for this.
+-- This embedding is not total because a term may not produce any
+-- edges. There're several reasons for this.
 --
 -- It's unclear what should pure terms produce. One way would be to
 -- reinterpret them using text embedding, but by the time an
@@ -68,8 +68,9 @@ import           Carma.Backoffice.Text
 -- monad to generate new switch nodes. The two are distinct because
 -- the context is not used after the term has been interpreted, while
 -- switch node counter is supposed to be used when multiple terms are
--- processed.
-data EdgeE t = EdgeE (EdgeCtx -> NodeGenerator (Maybe [LEdge ColoredLabel]))
+-- processed (to prevent collisions between node numbers).
+newtype EdgeE t =
+  EdgeE { toEdge :: EdgeCtx -> NodeGenerator [LEdge ColoredLabel] }
 
 
 type ColoredLabel = (Text, Maybe X11Color)
@@ -99,7 +100,7 @@ fullEdgeText c = T.intercalate "," $ edgeText c
 
 
 nothing :: EdgeE t
-nothing = EdgeE $ P.const $ return Nothing
+nothing = EdgeE $ P.const $ return []
 
 
 instance Backoffice EdgeE where
@@ -107,19 +108,19 @@ instance Backoffice EdgeE where
     since _ _ = nothing
     before _ _ = nothing
 
-    role _ = nothing
-    currentUserOr _ = nothing
+    nobody = nothing
+    currentUser = nothing
+    assigneeOfLast _ _ _ = nothing
 
+    noResult = nothing
     previousAction = nothing
 
     userField _ = nothing
     caseField _ = nothing
     serviceField _ = nothing
-    serviceField' _ = nothing
 
-    onCaseField _ _ = nothing
-    onServiceField _ _ = nothing
-    onServiceField' _ _ = nothing
+    onField _ _ body = EdgeE $ \c -> toEdge body c
+    insteadOf f v body = onField f v body
 
     not _ = nothing
     _ > _ = nothing
@@ -144,10 +145,11 @@ instance Backoffice EdgeE where
                 -- Recurse into a switch branch from switch node,
                 -- coloring and marking all child edges
                 branchToEdge swNode (br, i, col) =
-                    toEdge c{ edgeText =
-                              [T.append switchLabel $ T.pack $ show i]
-                            , edgeColor = Just col
-                            , fromNode = swNode} br
+                    evalEdge c{ edgeText =
+                                [T.append switchLabel $ T.pack $ show i]
+                              , edgeColor = Just col
+                              , fromNode = swNode
+                              } br
             in do
               swNode <- mkNewNode
               -- Insert intermediate switch node between source node
@@ -155,45 +157,43 @@ instance Backoffice EdgeE where
               let toSwitch = (fromNode c, swNode, (fullEdgeText c, Nothing))
               brs <- mapM (branchToEdge swNode) $
                      zip3 branches [(1::Int)..] branchColors
-              return $ Just $ toSwitch:concat (catMaybes brs)
+              return $ toSwitch:concat brs
 
     oneOf _ _ = nothing
 
     const _ = nothing
-    setServiceField _ _ = nothing
-    sendDealerMail = nothing
-    sendGenserMail = nothing
-    sendPSAMail = nothing
-    sendSMS _ = nothing
+    just _ = nothing
+    req _ = nothing
 
-    closeWith _ _ = nothing
+    setCaseField _ _ = nothing
+    setServiceField _ _ = nothing
+    sendMail _ = nothing
+    sendSMS _ = nothing
+    nop = nothing
+
+    closePrevious _ _ _ = nothing
 
     defer =
         EdgeE $ \c ->
-            return $
-            Just [(fromNode c, fromNode c, (fullEdgeText c, edgeColor c))]
-    finish =
+            return
+            [(fromNode c, fromNode c, (fullEdgeText c, edgeColor c))]
+    proceed [] =
         EdgeE $ \c ->
-            return $
-            Just [(fromNode c, finalNode c, (fullEdgeText c, edgeColor c))]
+            return
+            [(fromNode c, finalNode c, (fullEdgeText c, edgeColor c))]
     proceed acts =
         EdgeE $ \c ->
-            return $ Just $
+            return $
             map (\(Ident ai) ->
                  (fromNode c, ai, (fullEdgeText c, edgeColor c))) acts
 
     -- Mark presence of left-hand effects
-    _ *> b = EdgeE $ \c -> toEdge c{edgeText = edgeText c ++ ["*"]} b
+    _ *> b = EdgeE $ \c -> evalEdge c{edgeText = edgeText c ++ ["*"]} b
 
 
--- | Interpreter helper to recursively process terms.
-toEdge :: EdgeCtx -> EdgeE v -> NodeGenerator (Maybe [LEdge ColoredLabel])
-toEdge ctx (EdgeE f) = f ctx
-
-
--- | Edge evaluator for DSL.
-toEdge' :: EdgeCtx -> EdgeE ActionOutcome -> NodeGenerator [LEdge ColoredLabel]
-toEdge' ctx g = fromJust <$> toEdge ctx g
+-- | EdgeE evaluator for DSL terms.
+evalEdge :: EdgeCtx -> EdgeE v -> NodeGenerator [LEdge ColoredLabel]
+evalEdge ctx (EdgeE f) = f ctx
 
 
 -- | Internal ActionType-like code for action graph initial state.
@@ -201,7 +201,9 @@ toEdge' ctx g = fromJust <$> toEdge ctx g
 --
 -- Used only when a back office graph is analyzed or printed. Actions
 -- of this type are never actually created. No ActionType ident must
--- collide with any of these ids.
+-- collide with any of these ids (this condition holds for a back
+-- office validated with
+-- 'Carma.Backoffice.Validation.checkBackoffice').
 startNode :: LNode Text
 startNode = (-1, "START")
 
@@ -236,8 +238,6 @@ data BackofficeGraphData =
 -- other idents.
 --
 -- Switch nodes are also added for every switch construct on an edge.
--- Switch nodes are third in the result triple (but also included in
--- the first element).
 backofficeNodesEdges :: BackofficeSpec -> Map IBox Text -> BackofficeGraphData
 backofficeNodesEdges spec iMap =
     BGr (stateNodes ++ switchNodes) allEdges switchNodes
@@ -269,21 +269,21 @@ backofficeNodesEdges spec iMap =
         return $ concat $ entries ++ results
       mkEntryEdges :: Entry -> NodeGenerator [LEdge ColoredLabel]
       mkEntryEdges e =
-          toEdge' (EdgeCtx
-                   (fst startNode)
-                   (fst finishNode)
-                   ["T"]
-                   Nothing) $ result e
+          evalEdge (EdgeCtx
+                    (fst startNode)
+                    (fst finishNode)
+                    ["T"]
+                    Nothing) $ trigger e
       mkResultEdges :: Action -> NodeGenerator [LEdge ColoredLabel]
       mkResultEdges a = do
         let Ident i = aType a
         concat <$> mapM
                    (\(r, o) ->
-                    toEdge' (EdgeCtx
-                             i
-                             (fst finishNode)
-                             [lkp (IBox r) iMap]
-                             Nothing) o)
+                    evalEdge (EdgeCtx
+                              i
+                              (fst finishNode)
+                              [lkp (IBox r) iMap]
+                              Nothing) o)
                    (outcomes a)
 
 

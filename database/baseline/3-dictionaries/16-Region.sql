@@ -2,7 +2,7 @@
 CREATE TABLE "Region"
   (id     SERIAL PRIMARY KEY
   ,label  text UNIQUE NOT NULL
-  ,cities int4[] DEFAULT array[]::int4[] -- ELEMENT REFERENCES "City"
+  ,cities int4[] NOT NULL DEFAULT array[]::int4[] -- ELEMENT REFERENCES "City"
   );
 
 GRANT ALL ON "Region" TO carma_db_sync;

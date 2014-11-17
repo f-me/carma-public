@@ -2,16 +2,16 @@ mixin table
   table#tbl.table.table-striped.table-bordered
     thead
       tr
-        th(data-bind='expandAll: $data')
+        // th(data-bind='expandAll: $data')
         // ko foreach: fields
-        th(data-bind='visible: show')
+        th(data-bind="visible: show")
           button.btn.btn-link(
             style='white-space: nowrap;'
-            data-bind='text: label, sort: $data')
+            data-bind='text: label, sort: name')
         // /ko
     tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
       tr
-        td.expand-contoller
-        // ko foreach: fields
-        td(data-bind='visible: show')
+        // td.expand-contoller
+        // ko foreach: $parent.fields
+        td(data-bind="visible: show, render: {kvm: kvm, field: $data}")
         // /ko

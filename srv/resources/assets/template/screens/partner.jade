@@ -1,0 +1,47 @@
+.screen.container-fluid.row
+  #partner-left.col.col-md-6
+    #partner-errors.alert.alert-error(
+        data-bind="visible: kvm().serviceRepeat().length > 0")
+      | Следующие сервисы присутствуют в количестве более одного,
+      | при работе с кейсом будет использован только первый!
+      ul(data-bind='foreach: kvm().serviceRepeat')
+        li(data-bind='text: $data')
+    form.form-vertical
+      button.btn.btn-action(type='button'
+          onclick="location.hash='partner';location.reload(true);")
+        span.glyphicon.glyphicon-plus
+        | Добавить партнёра
+      br
+      br
+      table#partner-table.table.table-striped.table-bordered
+        thead
+          tr
+            th #
+            th Название
+            th Город
+            th Комментарии
+        tbody
+
+  #partner-center.col.col-md-6
+    form.form-horizontal
+      #Partner-view
+      #partnerMapModal.modal.fade(tabindex='-1', role='dialog')
+        .modal-dialog
+          .modal-content
+            .modal-header
+              button.close(data-dismiss='modal' type='button')
+                span(aria-hidden="true") &times
+                span(class="sr-only") Закрыть
+              h4.modal-title#myModalLabel Выбор координат
+            .modal-map-bound
+              .modal-body
+                #map-address.form-group(style='margin-bottom: 10px;')
+                  .input-group.input-group-sm
+                    input#map-search-field.form-control(type='text'
+                      data-bind='value: factAddr')
+                    span#map-search-button.input-group-addon
+                      span.glyphicon.glyphicon-search
+                #partnerMap.osMap(name='coords')
+            .modal-footer
+              a.btn.btn-primary(data-dismiss='modal') Сохранить
+      #Partner-permissions

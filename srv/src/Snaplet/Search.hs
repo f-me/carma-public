@@ -3,7 +3,6 @@
 module Snaplet.Search (Search, searchInit)  where
 
 import           Control.Lens
-import           Data.Pool
 
 import           Data.Aeson
 
@@ -11,9 +10,6 @@ import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Auth hiding (Role)
 import           Snap.Snaplet.PostgresqlSimple (Postgres(..))
-import           Database.PostgreSQL.Simple as PG
-
-import           Snaplet.DbLayer.Types (DbLayer)
 
 import           Utils.HttpErrors
 
@@ -28,17 +24,14 @@ search :: ToJSON t
 search = (>>= either (finishWithError 500) writeJSON)
 
 searchInit
-  :: Pool Connection
-  -> Snaplet (AuthManager b)
-  -> Lens' b (Snaplet (DbLayer b))
+  :: Snaplet (AuthManager b)
+  -> Lens' b (Snaplet Postgres)
   -> SnapletInit b (Search b)
-searchInit conn sessionMgr dbl = makeSnaplet "search" "Search snaplet" Nothing $ do
-  pg <- nestSnaplet "db" postgres $ makeSnaplet "postgresql-simple" "" Nothing $
-        return $ Postgres conn
+searchInit sessionMgr dbl = makeSnaplet "search" "Search snaplet" Nothing $ do
   addRoutes [ ("case",     method POST $ search caseSearch)
             , ("call",     method POST $ search callSearch)
             , ("contract", method POST $ search contractSearch)
             , (":q/contract.csv", method GET $ portalHandler contractCSV)
             , ("portal", method POST $ search portalSearch)
             ]
-  return $ Search conn pg sessionMgr dbl
+  return $ Search sessionMgr dbl

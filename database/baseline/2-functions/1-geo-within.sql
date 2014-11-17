@@ -27,11 +27,11 @@ create or replace function GeoWithin ( x1 float
 returns table (res text) as
 $$
   declare
-    ca  text[] = string_to_array(city, ',');
-    ma  int[]  = string_to_array(makes, ' ');
-    sa  text[] = string_to_array(services, ',');
-    p2a text[] = string_to_array(priority2, ',');
-    p3a text[] = string_to_array(priority3, ',');
+    ca  int[] = string_to_array(city, ' ');
+    ma  int[] = string_to_array(makes, ' ');
+    sa  int[] = string_to_array(services, ' ');
+    p2a int[] = string_to_array(priority2, ',');
+    p3a int[] = string_to_array(priority3, ',');
     se  boolean = array_dims(sa)  IS NULL;
     ce  boolean = array_dims(ca)  IS NULL;
     me  boolean = array_dims(ma)  IS NULL;
@@ -45,17 +45,14 @@ $$
              , st_y(p.coords)
              , now() at time zone 'UTC' > ('01:00' + p.mtime)      as stale
              , ST_Distance_Sphere(p.coords, ST_Point(xc, yc))      as distance
-             , array_to_json(array_agg(s.* :: partner_servicetbl)) as services
+             , array_to_json(array_agg(s.* :: "PartnerService"))   as services
         FROM partnertbl p
-        LEFT JOIN partner_servicetbl s
-        ON  p.id = cast(split_part(s.parentid, ':', 2) as integer)
-        AND s.parentid is not null
-        AND s.parentid != ''
+        LEFT JOIN "PartnerService" s ON p.id = s.parentid
         WHERE coords && ST_SetSRID( ST_MakeBox2D( ST_Point(x1, y1)
                                                , ST_Point(x2, y2))
                                  , 4326)
         AND   p.isActive = 't'
-        AND   ((p.isMobile <> 't') OR (p.isMobile is NULL) OR 
+        AND   ((p.isMobile <> 't') OR (p.isMobile is NULL) OR
                (now() at time zone 'UTC' <= ('01:00' + p.mtime)))
         AND   (ce  OR p.city        = ANY(ca))
         AND   (se  OR s.servicename = ANY(sa))

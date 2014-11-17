@@ -146,9 +146,10 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
         # We temprorarily change field type when rendering
         # first field of group, so store real type here.
         realType = f.type
+        realWidget = f.meta?.widget
 
         # Put first field in group in main section, too.
-        # Render it as if it had `group` type.
+        # Render it as if it had `group` type and no widget.
         if group != currentGroup
           currentGroup = group
           if currentGroup == mainGroup
@@ -159,10 +160,12 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
             currentSection = f.name
 
             if f.meta and (not f.meta.mainOnly)
-              f.type = "group"
+              f.type = f.meta?['group-widget'] || "group"
+              f.meta?.widget = null
               tpl = chooseFieldTemplate(f, templates)
               contents[mainGroup] += Mustache.render(tpl, ctx)
               f.type = realType
+              f.meta?.widget = realWidget
 
         # Initialiaze new section contents
         if not _.has(contents, currentSection)
@@ -189,16 +192,20 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
     "#{parentModelName}-#{parentId}-#{refField}-views"
 
   # Pick first template element with id which matches:
-  # <field.name>-<field.type>, <field.meta.widget>, <field.type>
+  # <model.name>-<field.name>, <field.name>-<field.type>,
+  # <field.meta.widget>, <field.type>
   chooseFieldTemplate = (field, templates) ->
     typed_tpl = field.type
     named_tpl = field.name + "-" + field.type
+    mdl_named_tpl = "#{field.modelName}-#{field.name}"
     widget_tpl = ""
     if field.meta? and _.has(field.meta, "widget")
       widget_tpl = field.meta.widget
 
     tpl = pickTemplate(templates,
-                       [named_tpl, widget_tpl, typed_tpl, "unknown"])
+                       [ mdl_named_tpl, named_tpl
+                       , widget_tpl, typed_tpl
+                       , "unknown"])
     return tpl
 
   # Render permissions controls for form holding an instance in given
@@ -208,7 +215,7 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
   renderPermissions = (model, viewName) ->
     modelRo = not model.canUpdate and not model.canCreate and not model.canDelete
     # Add HTML to contents for non-false permissions
-    Mustache.render($("#permission-template").text(),
+    Mustache.render($(FS).find("#permission-template").html(),
                     _.extend(model, {viewName: viewName, readonly: modelRo}))
 
   # Get all templates with given class, stripping "-<class>" from id of
@@ -217,7 +224,7 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
   # TODO Cache this
   getTemplates = (cls) ->
     templates = {}
-    for tmp in FS.find(".#{cls}")
+    for tmp in _.union FS.find(".#{cls}").toArray(), $(".#{cls}").toArray()
       templates[tmp.id.replace("-#{cls}", "")] = $(tmp).html()
     return templates
 

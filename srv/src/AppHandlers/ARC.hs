@@ -80,15 +80,14 @@ arcImport = writeJSON [0::Int] >> return ()
                 -- with leader=true
                 withPG pg_search $ \c -> query c
                 [sql|
-                 SELECT ? FROM "?" WHERE ?=? ORDER BY ? DESC, ? ASC LIMIT 1;
+                 SELECT ? FROM ? WHERE ?=? ORDER BY ? DESC, ? ASC LIMIT 1;
                  |]
-                ( PT $ fieldName SubProgram.ident
-                , PT $ tableName $
-                  (modelInfo :: ModelInfo SubProgram.SubProgram)
-                , PT $ fieldName SubProgram.parent
+                ( fieldPT SubProgram.ident
+                , tableQT SubProgram.ident
+                , fieldPT SubProgram.parent
                 , pid
-                , PT $ fieldName SubProgram.leader
-                , PT $ fieldName SubProgram.ident
+                , fieldPT SubProgram.leader
+                , fieldPT SubProgram.ident
                 )
             case res of
               (Only i:_) -> return i
@@ -191,7 +190,7 @@ parseArc :: [Text]
          -> Maybe Text
 parseArc colNames doc = if Prelude.null csvContents
                         then Nothing
-                        else Just $ T.unlines $ [csvHeader] ++ csvContents
+                        else Just $ T.unlines $ csvHeader:csvContents
     where
       root = fromDocument doc
       -- Name with namespace
@@ -207,7 +206,7 @@ parseArc colNames doc = if Prelude.null csvContents
       -- From every <Record> element...
       records = root $| (descendant >=> element (myName "Record"))
       -- Select only known children elements
-      columns = map (child >=> checkName (flip elem colNames')) records
+      columns = map (child >=> checkName (`elem` colNames')) records
       -- Extract element names and text contents
       getName n = nameLocalName $ elementName e where
           NodeElement e = node n

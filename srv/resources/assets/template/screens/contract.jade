@@ -1,0 +1,54 @@
+// Portal screen template. Derived from search screen template
+.row
+  #main-content.col-md-9
+    // Page header: logo and subprogram description.
+    #logo-help.form-inline.well
+      .media(style='text-align: center;')
+        .pull-left
+          img#logo.media-object(data-bind='attr: { src: filenameUrl }',
+                                style='width: 260px; height: 180px;')
+        .media-body
+          h4#help-program
+          p#help-text
+    // Table
+    .row(style="overflow: auto")
+      include /lib/_searchTable.jade
+
+  // Sidebar header
+  .col-md-3
+    ul.nav.nav-tabs
+      li.active
+        a(href='#search-tab', data-toggle='tab') Поиск
+      li
+        a(href='#contract-tab', data-toggle='tab') Редактирование
+  #sidebar-content.col-md-3.tab-content(style='overflow-y: scroll;')
+    // Search tab
+    #search-tab.tab-pane.active(style='width: 95%;')
+      .row.col-md-12.form-horizontal
+        #search-conditions(data-bind='foreach: kvm.showFields')
+          div(data-bind='renderField: $data')
+      .row.col-md-12
+        #show-field(data-bind='renderField: f')
+        p(style='margin-top: 2em;')
+          a#download-csv-btn.btn.btn-action(type='button')
+            i.icon.icon-download-alt
+            b Выгрузить в CSV
+    // Contract tab
+    #contract-tab.tab-pane(style='width: 95%;')
+      .row.col-md-12
+        a#new-contract-btn.btn.btn-action(type='button')
+          i.icon.icon-plus
+          | Добавить контракт
+      .row.col-md-12
+        p(style='margin-top: 2em;')
+          i.icon.icon-print
+          b Распечатать:
+          a#render-contract(onclick='return false;', href='#', target='_blank')
+            | Договор.pdf
+      .row-col-md-12
+        #contract-form.form-horizontal
+
+.hidden
+  #contract-wrap-template
+    .row
+      .content.col-md-11(data-bind="with: kvm")

@@ -1,15 +1,18 @@
 define [ "utils"
        , "screens/rkc"
        , "text!tpl/screens/rkcOps.html"
-       , "text!tpl/partials/rkc.html"
-       ], (utils, rkc, tpl, partials) ->
+       ], (utils, rkc, tpl) ->
+
   setupRKCOpsScreen = (viewName, args) ->
     eachao = $('#rkc-ops-back-operators-table')
     return if eachao.hasClass("dataTable")
 
     actstbl = {}
+    # This implies that action type ordering in `eachoptions` field of
+    # /rkc query response is the same as in `ActionType` dictionary
+    # source. Any correct behaviour is circumstantial!
     actstbl.cols =
-      { name: v.label } for v in global.dictionaries.ActionNames.entries
+      { name: v.label } for v in utils.newModelDict("ActionType").source
 
     actstbl.cols.unshift { name: "Среднее время обработки действия" }
     actstbl.cols.unshift { name: "Оператор" }
@@ -45,13 +48,13 @@ define [ "utils"
                     eavision[i + 2] = true
                 if val then fmtavg(val) else "-"
             r.unshift fmtavg(eainfo.avg)
-            r.unshift eainfo.name
+            r.unshift global.dictValueCache['users'][eainfo.name]
             earow = r
 
         for c, i in eavision
             eat.fnSetColumnVis(i, if c then true else false)
-
-        eat.fnAddData(earows))
+        unless _.isEmpty earows
+          eat.fnAddData(earows))
 
     partners = ko.observableArray([])
     rkc.initRKCDate update, partners
@@ -71,5 +74,4 @@ define [ "utils"
   { constructor: setupRKCOpsScreen
   , destructor: removeRKCOpsScreen
   , template: tpl
-  , partials: partials
   }

@@ -24,7 +24,7 @@ define ["render/screen"
   addRoute "call/:id", (bind) ->
     require ["screens/call"], (call) ->
       call.screen =
-        name : "call"
+        name : "Call"
         template: "call-screen-template"
         views:
           "call-form": call
@@ -38,15 +38,6 @@ define ["render/screen"
         views:
           "case-form": kase
       r.renderScreen kase, bind
-
-  addRoute "newCase/:id", (bind) ->
-    require ["screens/newCase"], (newCase) ->
-      newCase.screen =
-        name : "newCase"
-        template: "case-screen-template"
-        views:
-          "case-form": newCase
-      r.renderScreen newCase, bind
 
   addRoute "dict/:dict/:id", (bind) ->
     require ["screens/dictionaries"], (dictionaries) ->
@@ -67,11 +58,14 @@ define ["render/screen"
       r.renderScreen partner, bind
 
   addRoute "usermeta/:id", (bind) ->
-    require ["screens/user"], (user) ->
+    require ["screens/dictionaries"], (user) ->
       user.screen =
-        name : "user"
+        name : "dictionaries"
+        template: "dictionaries-screen-template"
         views:
-          "user-view": user
+          "dictionaries-view": user
+
+      bind.dict = 45
       r.renderScreen user, bind
 
   addRoute "uploads", (bind) ->
@@ -82,7 +76,7 @@ define ["render/screen"
           "uploads-view": uploads
       r.renderScreen uploads, bind
 
-  addRoute "printSrv/:model/:id", (bind) ->
+  addRoute "printSrv/:id", (bind) ->
     require ["screens/printService"], (print) ->
       print.screen =
         name : "printSrv"
@@ -126,15 +120,6 @@ define ["render/screen"
         views:
           "action-form": supervisor
       r.renderScreen supervisor, bind
-
-  addRoute "supervisorOps", (bind) ->
-    require ["screens/supervisorOps"], (supervisorOps) ->
-      supervisorOps.screen =
-        name : "supervisorOps"
-        template: "supervisorOps-screen-template"
-        views:
-          "supervisorOps-table": supervisorOps
-      r.renderScreen supervisorOps, bind
 
   addRoute "vin", (bind) ->
     require ["screens/vin"], (vin) ->

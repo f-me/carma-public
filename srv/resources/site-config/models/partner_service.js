@@ -34,7 +34,10 @@
     },
     {
       "meta": {
-        "dictionaryName": "Services",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
+        "dictionaryName": "ServiceType",
+        "bounded": true,
         "label": "Услуга"
       },
       "type": "dictionary",
@@ -48,16 +51,6 @@
       "type": null,
       "groupName": null,
       "name": "falseCallPercent"
-    },
-    {
-      "meta": {
-        "label": "Добавить опцию",
-        "model": "tarifOption",
-        "reference-label": "Добавить тарифную опцию"
-      },
-      "type": "reference",
-      "groupName": null,
-      "name": "tarifOptions"
     }
   ],
   "applications": [],

@@ -1,9 +1,6 @@
 define [ "utils"
        , "dictionaries"
        ], (u, d) ->
-  distanceQuery = (coord1, coord2) ->
-    u.stripWs "/geo/distance/#{coord1}/#{coord2}/"
-
   thmenuInit = (k, fname, dict, setter) ->
     thmenu = []
     k["#{fname}TypeaheadBuilder"] = ->
@@ -14,7 +11,7 @@ define [ "utils"
     k["#{fname}TypeaheadBuilder"].destroy = ->
       _.map thmenu, (v) -> v.destructor()
       thmenu = []
-
+    k[fname].typeaheadBuilder = k["#{fname}TypeaheadBuilder"]
 
   # - <field>Local for dictionary fields: reads as label, writes real
   #   value back to Backbone model;
@@ -45,6 +42,10 @@ define [ "utils"
               then  kvm[fieldName]("")
               else  kvm[fieldName](val || lab)
 
+        kvm[fieldName].local = kvm["#{fieldName}Local"]
+        # FIXME: this shouldn't rewrite existing observable
+        # should be removed after refactoring of models
+        kvm[fieldName].text = kvm[fieldName].local
         # Use builder here, because same field can be in group
         # and in the main section, and we need to have
         # different instances og thMenu for them
@@ -146,12 +147,24 @@ define [ "utils"
             for val in (k[n]() || [])
               do (val) ->
                 lab = dict.getLab(val)
-                {label: lab || val, value: val}
+                { label: lab || val
+                , value: val
+                , remove: ->
+                  return if k["#{n}Disabled"]();
+                  k[n] _.without k[n](), val
+                }
 
+        # remove this after refactoring, we shouldn't count on template for
+        # getting value
         k["#{n}Remove"] = (el) ->
+          return false
           return if k["#{n}Disabled"]()
           v = k[n]()
           k[n] _.without v, el.value
+
+        k[n].many = k["#{n}Many"]
+        k[n].locals = k["#{n}Locals"]
+        k[n].remove = k["#{n}Remove"]
 
         thmenuInit k, n, dict, (v) ->
           # FIXME: find more appropriate way to set values here
@@ -283,7 +296,9 @@ define [ "utils"
 
   # Standard element callback which will scroll model into view and
   # focus on first field
-  stdElCb: (elName) ->
+  stdElCb: (elName, kvm) ->
+    if kvm._meta?._noscroll
+      return
     e = $el(elName)
     # Scroll group to the top of the screen
     if e.hasClass("accordion-inner")

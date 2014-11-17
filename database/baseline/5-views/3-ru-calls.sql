@@ -33,7 +33,7 @@ callername_owneremail  AS "Email владельца",
         calltypes.label AS "Тип звонка",
 "CarMake".label AS "Марка",
 "CarModel".label AS "Модель",
-coords AS "Координаты",
+calltbl.coords AS "Координаты",
 address AS "Адрес",
 --programm,
 "Program".label AS "Программа",
@@ -43,7 +43,7 @@ FROM
 calltbl
 LEFT JOIN "Wazzup" ON calltbl.wazzup = "Wazzup".id
 LEFT JOIN "CallerType" ON calltbl.callertype = "CallerType".value
-LEFT JOIN "City" ON calltbl.city = "City".value
+LEFT JOIN "City" ON calltbl.city = "City".id
 --LEFT JOIN "CallType" ON calltbl.calltype = "CallType".value AND calltbl.callertype = "CallerType".value --НЕ У ВСЕХ ЗВОНКОВ УСТАНОВЛЕН CALLERTYPE
 LEFT JOIN calltypes ON calltbl.calltype = calltypes.value
 LEFT JOIN "Program" ON calltbl.program = "Program".id

@@ -7,11 +7,10 @@ import qualified Data.Text as T
 import           Data.Aeson
 import           Data.Model
 
-import           Snaplet.DbLayer.Types (ObjectId)
 import           Util
 
 
-readIdent :: Model m => ObjectId -> IdentI m
+readIdent :: Model m => Text -> IdentI m
 readIdent s = fromMaybe (error "readIdent: no integer") $ fvIdent s
 
 recode :: (FromJSON t, ToJSON f) => f -> t

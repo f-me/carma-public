@@ -14,12 +14,13 @@ import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.Session
 
+import qualified WeatherApi as W
+
 import Snaplet.Auth.Class
 import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
-import Snaplet.DbLayer.Types (DbLayer)
 import Snaplet.TaskManager
-import Snaplet.FileUpload hiding (db)
+import Snaplet.FileUpload
 import Snaplet.Geo
 import Snaplet.Search
 import Snaplet.Messenger
@@ -43,16 +44,16 @@ data App = App
     , _session    :: Snaplet SessionManager
     , _auth       :: Snaplet (AuthManager App)
     , _siteConfig :: Snaplet (SiteConfig App)
-    , _db         :: Snaplet (DbLayer App)
     , pg_search   :: Pool Pg.Connection
     , pg_actass   :: Pool Pg.Connection
     , _taskMgr    :: Snaplet (TaskManager App)
     , _fileUpload :: Snaplet (FileUpload App)
     , _geo        :: Snaplet Geo
-    , _authDb     :: Snaplet Postgres
+    , _db         :: Snaplet Postgres
     , _search     :: Snaplet (Search App)
     , options     :: AppOptions
     , _messenger  :: Snaplet Messenger
+    , weatherCfg  :: W.Config
     }
 
 
@@ -69,8 +70,11 @@ instance HasAuth App where
 instance HasSiteConfig App where
   siteConfigLens = subSnaplet siteConfig
 
+instance WithCurrentUser (Handler App App) where
+  withCurrentUser = with auth currentUser
+
 instance HasPostgres (Handler b App) where
-  getPostgresState = with authDb get
+  getPostgresState = with db get
 
 instance HasMsg App where
   messengerLens = subSnaplet messenger

@@ -30,16 +30,7 @@ define [], ->
     else
       if v != ""
         console.error("datamap: could not parse date '#{v}' with '#{fmt}'")
-        null
-      else
-        ""
-  s2cDate = (fmt) -> (v) ->
-    return null if _.isEmpty v
-    d = undefined
-    d = new Date(v * 1000)
-    return d.toString(fmt) if isFinite d
-    d = Date.parseExact(v, "yyyy-MM-dd HH:mm:ssz")
-    return d.toString(fmt) if not _.isNull(d) && isFinite d
+      null
 
   # Convert ISO 8601 date/time object to a formatted string
   s2cISO = (fmt) -> (v) ->
@@ -52,11 +43,11 @@ define [], ->
 
   c2sDay = (v) -> ((parseISO guiDayFormat) v)?.toString serverDayFormat
 
-  c2sDictSetInt = (vals) -> nullOnEmpty _.map vals, (v) -> parseInt v
+  c2sDictSetInt = (vals) -> _.map vals, (v) -> parseInt v
 
   c2sDictSetText = (vals) ->
     # Force stringifying of ints, anyway we can't save int[] in such field
-    nullOnEmpty _.map vals, (v) -> if _.isNumber v then String v else v
+    _.map vals, (v) -> if _.isNumber v then String v else v
 
   nullOnEmpty = (v) ->
     # Convert empty arrays to null (otherwise the server gets confused
@@ -67,6 +58,7 @@ define [], ->
     'dictionary-set-int':  c2sDictSetInt
     'dictionary-set-text': c2sDictSetText
     'dictionary-many': (v) -> (v?.join ',') || ''
+    'dictionary-string-null': (v) -> if _.isNull v then '' else v
     checkbox  : (v) -> if v then "1" else "0"
     Bool      : (v) -> v
     Integer   : (v) -> parseInt v
@@ -74,9 +66,7 @@ define [], ->
     Day       : c2sDay
     UTCTime   : (v) -> ((parseISO guiUTCTimeFormat) v)?.toISOString()
     IdentList : (v) -> v
-    dictionary: (v) -> if _.isNull v then '' else v
-    date      : c2sDate("dd.MM.yyyy")
-    datetime  : c2sDate("dd.MM.yyyy HH:mm:ss")
+    dictionary: (v) -> if v == "" then null else v
     coords    : (v) -> if v == "" then null else v
     JsonAsText: JSON.stringify
     JSON      : (v) -> v
@@ -89,6 +79,7 @@ define [], ->
     'dictionary-set-int':  _.identity
     'dictionary-set-text': _.identity
     'dictionary-many': (v) -> if _.isEmpty v then [] else v.split(',')
+    'dictionary-string-null': (v) -> v
     checkbox  : (v) -> v == "1"
     Bool      : (v) -> v
     Integer   : (v) -> v
@@ -97,8 +88,6 @@ define [], ->
     Day       : s2cISO guiDayFormat
     UTCTime   : s2cISO guiUTCTimeFormat
     dictionary: (v) -> v
-    date      : s2cDate("dd.MM.yyyy")
-    datetime  : s2cDate("dd.MM.yyyy HH:mm:ss")
     JsonAsText: s2cJson
     JSON      : (v) -> v
 
@@ -112,7 +101,7 @@ define [], ->
     r
 
   modelTypes = (model) ->
-    _.foldl model.fields, ((m, f) -> m[f.name] = f.type; m), {}
+    _.foldl model.fields, ((m, f) -> m[f.name] = f.meta?['datamap-type'] || f.type; m), {}
 
   class Mapper
     constructor: (model) ->

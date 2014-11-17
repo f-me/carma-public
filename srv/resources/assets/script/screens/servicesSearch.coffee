@@ -3,24 +3,28 @@ define [ "search/screen"
        , "json!/cfg/model/Case?view=search"
        , "json!/cfg/model/Service?view=search"
        , "json!/cfg/model/Towage?view=search"
+       , "json!/cfg/model/Contract?view=searchCase"
        , "json!/cfg/model/Case"
        , "json!/cfg/model/Service"
        , "json!/cfg/model/Towage"
+       , "json!/cfg/model/Contract"
 
        ], ( Screen
           , tpl
           , CaseSearch
           , ServiceSearch
           , TowageSearch
+          , ContractSearch
           , Case
           , Service
-          , Towage) ->
+          , Towage
+          , Contract) ->
 
   template: tpl
   constructor: -> Screen.constructor
     apiUrl: "/search/case"
-    searchModels: [CaseSearch, ServiceSearch, TowageSearch]
-    resultModels: [Case, Service, Towage]
+    searchModels: [CaseSearch, ServiceSearch, TowageSearch, ContractSearch]
+    resultModels: [Case, Service, Towage, Contract]
     resultTable: [ { name: 'Case_id', fixed: true }
                  , { name: 'contact'              }
                  , { name: 'callDate'             }
@@ -59,7 +63,6 @@ define [ "search/screen"
         "city"
         "car_make"
         "car_model"
-        "cardNumber_cardNumber"
         "comment"
         "callTaker"
         "customerComment"
@@ -71,4 +74,7 @@ define [ "search/screen"
         ]
       Towage: [
         "towDealer_partnerId"
+        ]
+      Contract: [
+        "cardNumber"
         ]

@@ -10,7 +10,7 @@ define ["model/utils", "utils"], (mu, u) ->
   geoRevQuery = (lon, lat) -> "/geo/revSearch/#{lon},#{lat}/"
 
   geoQuery = (addr) ->
-    nominatimHost = "https://nominatim.openstreetmap.org/"
+    nominatimHost = global.config("nominatim-url")
     return nominatimHost +
       "search?format=json&accept-language=ru-RU,ru&q=#{addr}"
 
@@ -32,7 +32,7 @@ define ["model/utils", "utils"], (mu, u) ->
     if (res.error)
       null
     else
-      global.dictLabelCache.DealerCities[res.city] || null
+      u.newModelDict("City").getVal res.city || null
 
   wsgProj = new OpenLayers.Projection("EPSG:4326")
   osmProj = new OpenLayers.Projection("EPSG:900913")
@@ -41,16 +41,32 @@ define ["model/utils", "utils"], (mu, u) ->
   # containing OpenLayers LonLat and Bounds, respectively) from
   # geoQuery response.
   #
+  # Second argument is a key in City dictionary for which the place is
+  # built.
+  #
   # Places use WSG projection for coordinates and bounds.
-  buildPlace = (res) ->
+  buildPlace = (res, city) ->
     if res.error
       null
     else
       if res.length > 0
+        if city?
+          city_el = _.find u.newModelDict("City").source,
+                           (e) -> e.value == city
+          city_coords = lonlatFromShortString city_el?._e?.coords
         # If possible, pick first result with osm_type = "relation",
         # because "node" results usually have no suitable bondingbox
-        # property.
-        el = _.find res, (r) -> r.osm_type == "relation"
+        # property. Select relations with bounding box encompassing
+        # target city.
+        el = _.find res,
+          (r) ->
+            if city_coords?
+              bb = r.boundingbox
+              bounds = new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
+              cityOk = bounds.containsLonLat city_coords
+            else
+              cityOk = true
+            cityOk && (r.osm_type == "relation")
         if not el?
           el = res[0]
         bb = el.boundingbox
@@ -70,42 +86,17 @@ define ["model/utils", "utils"], (mu, u) ->
       29.4298095703125, 59.6337814331055,
       30.7591361999512, 60.2427024841309)
 
-  Samara =
-    coords: new OpenLayers.LonLat(50.19039, 53.200568)
-    bounds: new OpenLayers.Bounds(
-      49.959505, 53.198916,
-      50.44771, 53.416821)
-
-  Chekhov =
-    coords: new OpenLayers.LonLat(37.4545328, 55.1426603)
-    bounds: new OpenLayers.Bounds(
-      37.4053535461426, 55.1205749511719,
-      37.494945526123, 55.1808853149414)
-
-  Oktyabrsky =
-    coords: new OpenLayers.LonLat(53.5168, 54.4839)
-    bounds: new OpenLayers.Bounds(
-      53.42842, 54.51437,
-      53.5817, 54.4495)
-
   # Build a place for city from geoQuery response (overrides
-  # coordinates and boundaries for certain key cities)
-  buildCityPlace = (res) ->
-    # TODO Remove this hack (#837) after Cities dict is implemented
-    # properly
+  # coordinates and boundaries for certain key cities). Second
+  # argument is a key in City dictionary.
+  buildCityPlace = (res, city) ->
     switch res[0]?.osm_id
       when "102269"
         Moscow
       when "337422"
         Petersburg
-      when "74728345"
-        Samara
-      when "47656825"
-        Chekhov
-      when "25108824"
-        Oktyabrsky
       else
-        buildPlace res
+        buildPlace res, city
 
   # Read "32.54,56.21" (the way coordinates are stored in model
   # fields) into LonLat object (WSG projection)
@@ -159,14 +150,13 @@ define ["model/utils", "utils"], (mu, u) ->
   # Center map on place bounds or coordinates
   setPlace = (osmap, place) -> fitPlaces osmap, [place]
 
-  # Center an OSM on a city. City is a value from DealerCities
-  # dictionary.
+  # Center an OSM on a city. City is a city dictionary key.
   centerMapOnCity = (osmap, city) ->
-    if city?.length > 0
-      fixed_city = global.dictValueCache.DealerCities[city]
+    if city?
+      fixed_city = u.newModelDict("City").getLab city
       $.getJSON geoQuery(fixed_city), (res) ->
         if res.length > 0
-          setPlace osmap, buildCityPlace res
+          setPlace osmap, (buildCityPlace res, city)
 
   # Reposition and rezoom a map so that all places (see `buildPlace`)
   # fit. Set default place (Moscow) if places array is empty.
@@ -288,12 +278,12 @@ define ["model/utils", "utils"], (mu, u) ->
       else
         vm = kvm
       city = vm[city_meta.field]()
-      if city?.length > 0
-        fixed_city = global.dictValueCache.DealerCities[city]
+      if city?
+        fixed_city = u.newModelDict("City").getLab city
         $.getJSON geoQuery(fixed_city), (res) ->
           if res.length > 0
             if _.isEmpty places
-              fitPlaces osmap, [buildCityPlace res]
+              fitPlaces osmap, [(buildCityPlace res, city)]
 
     # If the map already exists, stop here
     return if only_reposition
@@ -491,8 +481,8 @@ define ["model/utils", "utils"], (mu, u) ->
     # Initialize search field with city if factAddr is empty
     if city_field? && _.isEmpty kvm[addr_field]()
       city = kvm[city_field]()
-      if city?.length > 0
-        fixed_city = global.dictValueCache.DealerCities[city]
+      if city? > 0
+        fixed_city = u.newModelDict("City").getLab city
         search.val(fixed_city)
 
     coord_field = mu.modelField(model_name, field_name).meta['targetCoords']
@@ -529,7 +519,6 @@ define ["model/utils", "utils"], (mu, u) ->
   { iconSize              : iconSize
   , defaultZoomLevel      : defaultZoomLevel
   , geoQuery              : geoQuery
-  , buildPlace            : buildPlace
   , buildCityPlace        : buildCityPlace
   , Moscow                : Moscow
   , Petersburg            : Petersburg

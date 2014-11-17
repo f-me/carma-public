@@ -1,4 +1,6 @@
-define ["model/utils", "dictionaries"], (mu, d) ->
+define [ "model/utils"
+       , "dictionaries"
+       , "text!tpl/fields/form.html"], (mu, d, Ftpls) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -35,6 +37,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   window.hasL = (lst, e) -> _.find(lst, (x) -> x == e)
 
   window.successfulSave = ->
+    return if this.hasAttribute("disabled")
     $span = $(this).siblings(".save-result")
     setTimeout((->
       $span.text("Сохранено успешно")
@@ -43,7 +46,8 @@ define ["model/utils", "dictionaries"], (mu, d) ->
     , 500)
 
   window.alertUser = (message, delay = 5000) ->
-    $alert = $(Mustache.render $("#alert-template").html(), {message})
+    tpls = $("<div />").append($(Ftpls))
+    $alert = $(Mustache.render $(tpls).find("#alert-template").html(), {message})
     $('.container-fluid').prepend $alert
     setTimeout ->
         $alert.fadeOut 'slow', -> $(@).remove()
@@ -87,24 +91,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
             bindRemove parent, field, cb
             cb(parent, field, i) if _.isFunction cb
 
-  # args: id - id of datatable element
-  # to: id of element where href will be set
-  window.dt2csv = (id, to) ->
-    h = $($("##{id}").dataTable().fnSettings().nTHead)
-          .find('th').map (i,e) -> $(e).text()
-    d = $("##{id}").dataTable()
-    m = d.$("tr", {filter: 'applied'})
-         .map (i,e) -> $(e).children()
-                           .map (i,e) -> $(e).text()
-    head = ($.makeArray(h).join ';') + "\n"
-    s = ($.map m, (e, i) -> $.makeArray(e).join(';')).join "\n"
-    $("##{to}").attr 'href',
-      " data:application/octet-stream
-      ; base64
-      , #{Base64.encode('\uFEFF' + head + s)}"
-    s
-
-  modelsFromUrl = -> location.hash.match(/#(\w+)/)[1];
+  modelsFromUrl = -> location.hash.match(/#(\w+)/)[1]
 
   # Generate a random password of given length (default 10)
   genPassword = (len) ->
@@ -117,8 +104,15 @@ define ["model/utils", "dictionaries"], (mu, d) ->
 
   isMatch = (q, str) -> !!~String(str).toLowerCase().indexOf(q.toLowerCase())
 
-  kvmCheckMatch = (q, kvm) ->
-    v = for f in kvm._meta.model.fields
+  allowedField = (r, f) ->
+    return true unless r
+    if r.allowed?
+      _.contains(r.allowed, f.name) and not _.contains(r.forbidden, f.name)
+    else
+      not _.contains(r.forbidden, f.name)
+
+  kvmCheckMatch = (q, kvm, fieldsRestriction) ->
+    v = for f in kvm._meta.model.fields when allowedField fieldsRestriction, f
       if f.type == "dictionary"
         isMatch(q, kvm["#{f.name}Local"]())
       else if f.type == "dictionary-many"
@@ -167,7 +161,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   # function should belong to first dependency
   build_global_fn: (name, deps) ->
     window[name] = ->
-      args = arguments;
+      args = arguments
       require deps, (dep) -> dep[name].apply(this, args)
 
   mkDataTable: (t, opts) ->
@@ -188,7 +182,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   modelMethod: (modelName, method) -> "/_/#{modelName}/#{method}"
 
   getServiceDesc: (pid, service) ->
-    si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
+    si = _.find newModelDict('ServiceInfo').source, (info) ->
       info.program == pid and info.service == service
     si?.info or ""
 
@@ -300,6 +294,27 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   kdoPick: (pickType, args, k, e) ->
     doPick pickType, args, e.srcElement if e.ctrlKey and e.keyCode == k
 
+  edoPick: (pickType, args, k, e) ->
+    doPick pickType, args, e.srcElement if e.keyCode == k
+
+  # Format a list of fields in a model to a tooltip with a list of
+  # field labels
+  reqFieldsTooltip: (kvm, fieldNames) ->
+    labels = _.map fieldNames, (n) -> "#{mu.fieldNameToLabel(kvm)(n)}"
+    "Доступно при заполнении полей: #{labels.join(', ')}"
+
+  # True if some of named model fields are empty (not filled by the
+  # user)
+  someEmpty: (kvm, fieldNames) ->
+    vals = _.map fieldNames, (n) -> kvm[n]?()
+    empties = _.map vals, (e) -> e == "" || _.isNull e
+    _.some empties
+
+  # Select case actions with matching types and which are created for
+  # this service. If types list is empty, match all action types.
+  svcActions: (kase, svc, types) ->
+    _.filter (kase['actionsList']?() || []),
+      (a) -> (a.serviceId() == svc.id()) && (_.isEmpty(types) || _.contains types, a.type())
 
   # FIXME: This could be a callback for main.js:saveInstance
   successfulSave: successfulSave
@@ -356,19 +371,6 @@ define ["model/utils", "dictionaries"], (mu, d) ->
 
   bindRemove: bindRemove
 
-  bindDelete: (parent, field, cb) ->
-    bindRemove parent, field, (p, f, kvm) ->
-      deleteCb = (args...) -> cb(args) if _.isFunction cb
-      $.ajax
-        'type'     : 'DELETE'
-        'url'      : "/_/#{kvm._meta.model.name}/#{kvm.id()}"
-        'success'  : -> deleteCb
-        'error'    : (xhr) ->
-          if xhr.status == 404
-            deleteCb(d.acc())
-          else
-            alert 'error'
-
   toUnix: (d) -> Math.round(d.getTime() / 1000)
 
   # flip . setTimeout
@@ -378,7 +380,7 @@ define ["model/utils", "dictionaries"], (mu, d) ->
 
   modelsFromUrl: modelsFromUrl
 
-  reloadScreen: -> Finch.navigate modelsFromUrl()
+  reloadScreen: -> window.global.activeScreen.reload()
 
   checkMatch: checkMatch
   kvmCheckMatch: kvmCheckMatch
@@ -419,7 +421,6 @@ define ["model/utils", "dictionaries"], (mu, d) ->
   # subset of d3.scale.category20 with dark colors removed
   palette:
     ['#aec7e8' # 1
-    ,'#ff7f0e' # 2
     ,'#ffbb78' # 3
     ,'#98df8a' # 5
     ,'#ff9896' # 7
@@ -431,4 +432,5 @@ define ["model/utils", "dictionaries"], (mu, d) ->
     ,'#bcbd22' # 16
     ,'#dbdb8d' # 17
     ,'#9edae5' # 19
+    ,'#ff7f0e' # 2
     ]

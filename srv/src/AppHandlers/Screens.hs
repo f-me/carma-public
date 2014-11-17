@@ -3,6 +3,7 @@
 module AppHandlers.Screens (getScreens) where
 
 import           Data.List (intersect)
+import qualified Data.Vector as V
 import           Data.Aeson
 import           Data.Aeson.TH
 import           Data.Text (Text)
@@ -66,5 +67,5 @@ getScreens :: AppHandler ()
 getScreens = do
   Right screens <- liftIO readScreens
   Just (UserId uid) <- (>>= userId) <$> withAuth currentUser
-  [Only roles] <- with db $ query q (Only uid)
-  writeJSON $ filterByPermissions roles screens
+  [Only roles] <- query q (Only uid)
+  writeJSON $ filterByPermissions (V.toList roles) screens

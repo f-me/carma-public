@@ -24,6 +24,7 @@ define [ "search/screen"
         defaultSort: { fields: [{ model: "Contract", name: "id" }], order: "desc" }
         allowedResultFields:
           Contract: _.pluck Table.fields, 'name'
+        predFieldWrap: 'contract-wrap'
 
   # Given subprogram id and its title, setup logo, title and dealer
   # help on page header
@@ -31,7 +32,7 @@ define [ "search/screen"
     $.getJSON "/_/SubProgram/#{sid}", (instance) ->
       if instance.logo
         attachmentId = instance.logo.split(':')?[1]
-        main.modelSetup("attachment") "logo", {id: attachmentId}, {}
+        main.modelSetup("Attachment") "logo", {id: attachmentId}, {}
       else
         $("#logo").attr "src", null
       $("#help-program").text(title)
@@ -88,16 +89,17 @@ define [ "search/screen"
     # contract form.
     openContract = (cid) ->
       $('a[href="#contract-tab"]').tab("show")
+      formContractModel = contractModel + "&view=portalForm"
       if cid?
         $('#render-contract').attr(
           "href",
           "/renderContract?contract=#{cid}")
         $('#render-contract').attr "onclick", null
-        main.modelSetup(contractModel) contractForm, {id: cid}, {}
+        main.modelSetup(formContractModel) contractForm, {id: cid}, {}
       else
-        main.modelSetup(contractModel) contractForm,
-          # TODO Set committer on server
-          {subprogram: subprogram, committer: parseInt global.user.meta.mid}, {}
+        main.modelSetup(formContractModel) contractForm,
+          # TODO Check for permission to write in a subprogram
+          {subprogram: subprogram}, {}
 
       kvm = global.viewsWare[contractForm].knockVM
 

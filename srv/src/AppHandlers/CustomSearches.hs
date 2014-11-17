@@ -1,28 +1,27 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 module AppHandlers.CustomSearches
-    ( allPartnersHandler
-
-    , allActionsHandler
+    (
+      -- * Back office data
+      allActionsHandler
     , selectActions
-
-    , searchCallsByPhone
-    , getActionsForCase
-    , getCancelsForCase
-
     , opStats
     , busyOps
     , actStats
     , boUsers
 
+      -- * Case screen
+    , searchContracts
+      -- ** History
+    , searchCallsByPhone
+    , getActionsForCase
+
+      -- ** Helpers
     , allDealersForMake
     , getLatestCases
     , searchCases
     , findSameContract
-
-    , searchContracts
     )
 
 where
@@ -37,50 +36,29 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import Data.Map as M (Map, (!), delete, fromList)
 import Data.String (fromString)
-import qualified Data.Vector as V
 
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.SqlQQ
 
 import Snap
 
-import Application
-import AppHandlers.CustomSearches.Contract
-import AppHandlers.Util
-import Utils.HttpErrors
-import Util hiding (withPG)
+import Data.Model.Types
 
-import qualified Carma.Model.Role as Role
+import qualified Carma.Model.ActionType              as AType
+import qualified Carma.Model.Role                    as Role
+import           Carma.Model.Usermeta                as Usermeta
+import           Carma.Model.UserState               as UserState
+
+import           AppHandlers.CustomSearches.Contract
+import           AppHandlers.Users
+import           AppHandlers.Util
+import           Application
+import           Util                                hiding (withPG)
+import           Utils.HttpErrors
+
 
 type MBS = Maybe ByteString
 
-
-allPartnersHandler :: AppHandler ()
-allPartnersHandler
-  = join (selectPartners
-    <$> getParam "city"
-    <*> getParam "isActive"
-    <*> getParam "isDealer"
-    <*> getParam "makes")
-  >>= writeJSON
-
-
-selectPartners :: MBS -> MBS -> MBS -> MBS -> AppHandler [Map Text Text]
-selectPartners city isActive isDealer makes = do
-  rows <- withPG pg_search $ \c -> query_ c $ fromString
-    $  "SELECT id::text, name, city,"
-    ++ "       comment,"
-    ++ "       (isDealer::int)::text, (isMobile::int)::text"
-    ++ "  FROM partnertbl"
-    ++ " WHERE true"
-    ++ (maybe "" (\x -> "  AND city = " ++ quote x) city)
-    ++ (maybe "" (\x -> "  AND isActive = " ++ toBool x) isActive)
-    ++ (maybe "" (\x -> "  AND isDealer = " ++ toBool x) isDealer)
-    ++ (maybe "" (\x -> "  AND ("
-      ++ quote x ++ " = 'null' OR "
-      ++ quote x ++ " = ANY (makes))")) makes
-  let fields = ["id", "name", "city", "comment", "isDealer", "isMobile"]
-  return $ mkMap fields rows
 
 
 -- | Read @closed@, @assignedTo@, @targetGroup@ (comma-separated),
@@ -93,7 +71,7 @@ allActionsHandler = do
           return $ B.split ',' <$> tg
   acts <- join (selectActions
           <$> getParam "closed"
-          <*> getParamT "assignedTo"
+          <*> (fmap Ident <$> getIntParam "assignedTo")
           <*> getRoles
           <*> getParam "duetimeFrom"
           <*> getParam "duetimeTo")
@@ -103,47 +81,55 @@ allActionsHandler = do
                        ]
 
 
-selectActions
-  :: MBS -> Maybe Text -> Maybe [ByteString] -> MBS -> MBS
-  -> AppHandler [Map Text Text]
+selectActions :: MBS
+              -- ^ If @Just "1"@, only actions with non-null results
+              -- will be selected. @Just "0"@ selects actions with no
+              -- results. @Nothing@ ignores action results.
+              -> Maybe (IdentI Usermeta) -> Maybe [ByteString] -> MBS -> MBS
+              -> AppHandler [Map Text Text]
 selectActions mClosed mAssignee mRoles mFrom mTo = do
-  let actQ = [sql|
-     SELECT a.id::text, a.caseId, a.parentId,
-           (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,
+  let nid = Ident 0
+      clToRes :: ByteString -> PlainText
+      clToRes "1" = PT "NOT"
+      clToRes _   = PT ""
+      actQ = [sql|
+     SELECT a.id::text, a.caseId::text, a.serviceId::text, s.type::text,
+           a.type::text, a.assignedTo::text, a.targetGroup::text,
            (extract (epoch from a.duetime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.ctime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.opentime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.closetime at time zone 'UTC')::int8)::text,
-           a.result, a.priority, a.description, a.comment,
-           c.city, c.program::text,
+           a.result::text, at.priority::text, a.comment,
+           c.city::text, c.program::text,
            (extract (epoch from
              coalesce(s.times_expectedServiceStart, a.duetime)
               at time zone 'UTC')::int8)::text
      FROM
        (actiontbl a LEFT JOIN servicetbl s
-         ON  s.id::text = substring(a.parentid, ':(.*)')
-         AND s.type::text = substring(a.parentId, '(.*):')),
-       casetbl c
-     WHERE c.id::text = substring(a.caseId, ':(.*)')
-     AND (? OR closed = ?)
+         ON  s.id = a.serviceId),
+       casetbl c,
+       "ActionType" at
+     WHERE c.id = a.caseId
+     AND at.id = a.type
+     AND (? OR result IS ? NULL)
      AND (? OR a.assignedTo = ?)
      AND (? OR targetGroup IN ?)
      AND (? OR extract (epoch from duetime) >= ?)
      AND (? OR extract (epoch from duetime) <= ?);
      |]
   rows <- withPG pg_search $ \c -> query c actQ $
-          (sqlFlagPair False   (== "1") mClosed)               :.
-          (sqlFlagPair ""      id       mAssignee)             :.
+          (sqlFlagPair (PT "") clToRes  mClosed)               :.
+          (sqlFlagPair nid     id       mAssignee)             :.
           (sqlFlagPair (In []) In       mRoles)                :.
           (sqlFlagPair 0       fst      (mFrom >>= B.readInt)) :.
           (sqlFlagPair 0       fst      (mTo >>= B.readInt))
   let fields
-        = [ "id", "caseId", "parentId", "closed", "name"
+        = [ "id", "caseId", "serviceId", "serviceType", "name"
           , "assignedTo", "targetGroup", "duetime"
           , "ctime", "assignTime", "openTime", "closeTime"
           , "result"
-          , "priority", "description", "comment","city", "program"
+          , "priority", "comment","city", "program"
           , "times_expectedServiceStart"]
   return $ mkMap fields rows
 
@@ -157,12 +143,11 @@ searchCallsByPhone = do
   let phone = last $ B.split '/' uri
 
   rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT w.label, callerName_name, city, program::text, make, model,"
-    ++ "       u.login, callType,"
+    $  "SELECT w.label, callerName_name, city::text, program::text, carMake::text, carModel::text,"
+    ++ "       c.callTaker::text, callType,"
     ++ "       extract (epoch from callDate at time zone 'UTC')::int8::text"
     ++ "  FROM calltbl c"
     ++ "  LEFT OUTER JOIN \"Wazzup\" w ON w.id = wazzup"
-    ++ "  LEFT OUTER JOIN usermetatbl u ON u.id = c.calltaker"
     ++ "  WHERE callerName_phone1 = ?") [phone]
   let fields =
         ["wazzup","callerName_name", "city", "program"
@@ -173,39 +158,19 @@ searchCallsByPhone = do
 getActionsForCase :: AppHandler ()
 getActionsForCase = do
   Just caseId <- getParam "id"
-  let caseId' = B.append "case:" caseId
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int8::text,"
-    ++ "       result, name, assignedTo, comment"
+    ++ "       result::text, type::text, assignedTo::text, comment"
     ++ "  FROM actiontbl"
-    ++ "  WHERE caseId = ?") [caseId']
+    ++ "  WHERE caseId = ?") [caseId]
   let fields =
         ["closeTime", "result", "name", "assignedTo", "comment"]
   writeJSON $ mkMap fields rows
 
 
-getCancelsForCase :: AppHandler ()
-getCancelsForCase = do
-  Just caseId <- getParam "id"
-  let caseId' = B.append "case:" caseId
-  rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT extract (epoch from c.ctime at time zone 'UTC')::int8::text,"
-    ++ "       c.partnerId, c.serviceId, c.partnerCancelReason, c.comment,"
-    ++ "       c.owner, p.name"
-    ++ "  FROM partnercanceltbl c"
-    ++ "  LEFT JOIN partnertbl p"
-    ++ "  ON p.id = cast(split_part(c.partnerId, ':', 2) as integer)"
-    ++ "  WHERE c.caseId = ?") [caseId']
-  let fields =
-        [ "ctime", "partnerId", "serviceId", "partnerCancelReason"
-        , "comment", "owner", "partnerName"
-        ]
-  writeJSON $ mkMap fields rows
-
-
 opStatsQ :: Query
 opStatsQ = [sql|
-  SELECT u.login, ca.name, ca.caseId,
+  SELECT u.login, ca.type::text, ca.caseId::text,
          (extract (epoch from ca.openTime)::int8)::text,
          (extract (epoch from ca.closeTime)::int8)::text
   FROM (SELECT a.*, row_number() OVER
@@ -214,8 +179,8 @@ opStatsQ = [sql|
         WHERE openTime IS NOT NULL) ca,
   usermetatbl u
   WHERE ca.row_number = 1
-  AND u.login = ca.assignedTo
-  AND (? :: text = ANY (u.roles))
+  AND u.id = ca.assignedTo
+  AND (? :: int = ANY (u.roles))
   ORDER BY closeTime;
   |]
 
@@ -248,11 +213,11 @@ opStats = do
 
 busyOpsQ :: Query
 busyOpsQ = [sql|
-  SELECT assignedTo, count(1)::text
+  SELECT assignedTo::text, count(1)::text
   FROM   actiontbl
-  WHERE  closed = 'f'
+  WHERE  result IS NOT NULL
   GROUP BY assignedTo
-  HAVING   assignedTo is not null AND assignedTo != ''
+  HAVING   assignedTo is not null
   |]
 
 
@@ -266,8 +231,8 @@ actStatsQ :: Query
 actStatsQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
-  WHERE (assignedTo IS NULL OR assignedTo = '') AND closed = 'f'
-  AND name = ANY (?)
+  WHERE (assignedTo IS NULL) AND result IS NULL
+  AND type IN ?
   AND (? OR extract (epoch from duetime) >= ?)
   AND (? OR extract (epoch from duetime) <= ?);
   |]
@@ -289,41 +254,31 @@ actStats = do
           Just val -> (False, val)
           Nothing -> (True, "0")
   let flags = (fromF, fromDate, toF, toDate)
-      orderNames :: [ByteString]
-      orderNames = [ "orderService"
-                   , "orderServiceAnalyst"
-                   , "tellMeMore"
-                   , "callMeMaybe"
+      orderNames = [ AType.orderService
+                   , AType.orderServiceAnalyst
+                   , AType.tellMeMore
+                   , AType.callMeMaybe
                    ]
-      controlNames :: [ByteString]
-      controlNames = [ "tellClient"
-                     , "checkStatus"
-                     , "tellDelayClient"
-                     , "checkEndOfService"
+      controlNames = [ AType.tellClient
+                     , AType.checkStatus
+                     , AType.cancelService
+                     , AType.checkEndOfService
+                     , AType.makerApproval
+                     , AType.tellMakerDeclined
                      ]
   (Only orders:_) <-
       withPG pg_search $
-      \c -> query c actStatsQ ((Only $ V.fromList orderNames) :. flags)
+      \c -> query c actStatsQ $ (Only $ In orderNames) :. flags
   (Only controls:_) <-
       withPG pg_search $
-      \c -> query c actStatsQ ((Only $ V.fromList controlNames) :. flags)
+      \c -> query c actStatsQ $ (Only $ In controlNames) :. flags
   writeJSON $ M.fromList
                 ([ ("order", orders)
                  , ("control", controls)] :: [(Text, Text)])
 
 
--- | Serve users to which actions can be assigned (head, back or
--- supervisor roles, active within last 20 minutes).
 boUsers :: AppHandler ()
-boUsers = do
-  rows <- withPG pg_search $ \c -> query c [sql|
-    SELECT realname, login
-      FROM usermetatbl
-      WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
-        AND now() - lastactivity < '20 min'
-        AND roles && (?)::text[];
-    |] (Only $ V.fromList [Role.head, Role.back, Role.supervisor])
-  writeJSON $ mkMap ["name", "login"] rows
+boUsers = [Role.head, Role.back, Role.supervisor] `usersInStates` [Ready]
 
 
 allDealersForMake :: AppHandler ()

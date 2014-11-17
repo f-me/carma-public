@@ -2,83 +2,38 @@ define [ "utils"
        , "model/utils"
        , "screens/partnersSearch"
        ], (u, mu, pSearch) ->
-  partnerOptsHook: (model, knockVM) ->
-    return
-    knockVM['contractor_partner']?.subscribe (n) ->
-      return unless knockVM['view']
-      v = global.viewsWare[knockVM['view']].depViews['cost_counted'][0]
-      $("##{v}").find(".add-opt-btn").remove()
-      model = knockVM._meta.model.name
-      u.sTout 1000, ->
-        $.getJSON "/opts/#{model}/#{knockVM.id()}", (opts)->
-          return if _.isEmpty opts
-          tr = Mustache.render(
-                $('#tarif-opt-sel-template').html(),
-                opts:
-                  for i in opts
-                    { id: i.id
-                    , optionName: (i.optionName || "Тарифная опция")}
-          )
-          $("##{v}").children().last().after(tr)
-          $("##{v}").find('.reload').on 'click.reloadCountedCost', ->
-            r = global.viewsWare['case-form'].knockVM['servicesReference']()
-            o.model().fetch() for o in r
-          $("##{v}").find('.add').on 'click.addTarif', ->
-            s = $("##{v}").find("select")
-            return if _.isEmpty s
-            o = _.find opts, (opt) -> "#{opt.id}" == s.val()
-            mu.addReference knockVM, 'cost_serviceTarifOptions',
-              modelName: "cost_serviceTarifOption"
-              args     :
-                optionName   : o.optionName
-                tarifOptionId: "tarifOption:#{o.id}"
-              ->
-                u.bindDelete knockVM, 'cost_serviceTarifOptions'
-                r = knockVM['cost_serviceTarifOptionsReference']()
-                $("##{(_.last r)['view']}").parent().collapse("show")
-          u.bindDelete knockVM, 'cost_serviceTarifOptions'
-
-  srvOptUpd: (model, knockVM) ->
-    knockVM['payType']?.subscribe (n) ->
-      u.sTout 500, ->
-        for o in knockVM['cost_serviceTarifOptionsReference']()
-          do (o) ->
-            o.model().fetch()
-
-  costsMark: (model, knockVM) ->
-    knockVM['marginalCost']?.subscribe -> mbMark()
-
-    knockVM['cost_counted']?.subscribe -> mbMark()
-    mbMark = ->
-      v = knockVM.view
-      # FIXME: change this to observables
-      mc = $("##{v}").find('[name=marginalCost]').parents('.control-group')
-      cc = $("##{v}").find('[name=cost_counted]').parents('.control-group')
-      mf = parseFloat(knockVM['marginalCost']())
-      cf = parseFloat(knockVM['cost_counted']())
-      if mf < cf
-        mc.addClass('error')
-        cc.addClass('error')
-      else
-        mc.removeClass('error')
-        cc.removeClass('error')
-
   # sync with partner search screen
   openPartnerSearch: (model, kvm) ->
+    # do not run this hook on search screen
+    return if /^search/.test(Finch.navigate())
+
     # subscibe partner fields to partnersSearch screen events
-    for f in model.fields when f.meta?.widget == "partner"
+    for f in model.fields when f.meta?['group-widget'] == "partner"
       do (f) ->
         n = pSearch.subName f.name, model.name, kvm.id()
         global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
-          kvm["#{f.name}Id"]?("partner:#{val.id}")
+          kvm["#{f.name}Id"]?(parseInt val.id)
           addr = val.addrDeFacto
           field_basename = f.name.split('_')[0]
+          # Replace group names:
+          #
+          # contractor -> towerAddress, towDealer -> towAddress
+          #
+          # for subfields _coords and _address. If such fields exist,
+          # copy data to them too.
+          field_subname =
+            switch field_basename
+              when "contractor" then "towerAddress"
+              when "towDealer"  then "towAddress"
+              else field_basename
+          kvm["#{field_subname}_address"]?(addr || "")
+          kvm["#{field_subname}_coords"]? val.coords
           kvm["#{field_basename}_address"]?(addr || "")
           kvm["#{field_basename}_coords"]? val.coords
           if (field_basename == "towDealer") && val.distanceFormatted?
-            kvm["dealerDistance"](val.distanceFormatted)
-          kvm['parent']['fillEventHistory']()
+            kvm["dealerDistance"]?(val.distanceFormatted)
+          kvm['_parent']['fillEventHistory']()
 
     # this fn should be called from click event, in other case
     # it will be blocked by chrome policies
@@ -88,16 +43,141 @@ define [ "utils"
       srv  =
         id: srvId
         data: kvm._meta.q.toRawObj()
+        sType: kvm.type()
       kase =
-        id: "case:#{kvm.parent.id()}"
-        data: kvm.parent._meta.q.toRawObj()
+        id: "case:#{kvm._parent.id()}"
+        data: kvm._parent._meta.q.toRawObj()
 
       localStorage[pSearch.storeKey] =
         JSON.stringify {case: kase, service: srv, field: field}
       pSearch.open('case')
 
+  buttons: (model, kvm) ->
+    return if /^search/.test(Finch.navigate())
+    kvm.buttons = {}
+    kase = kvm._parent
+    sDict = u.newModelDict("ServiceStatus")
+
+    kvm.buttons.mistake = {}
+    kvm.buttons.mistake.text =
+      sDict.getLab global.idents("ServiceStatus").mistake
+    kvm.buttons.mistake.visible = ko.computed ->
+      kvm['status']() == global.idents("ServiceStatus").creating
+    kvm.buttons.mistake.click = ->
+      if confirm "Закрыть услугу как ошибочную?"
+        kvm['status'] global.idents("ServiceStatus").mistake
+
+    # Required *case* fields for the backoffice button to be enabled
+    boFlds = [ 'city'
+             , 'contact_name'
+             , 'contact_phone1'
+             , 'customerComment'
+             , 'program'
+             ]
+    kvm.buttons.backoffice = {}
+    kvm.buttons.backoffice.tooltip = u.reqFieldsTooltip kase, boFlds
+    kvm.buttons.backoffice.text =
+      sDict.getLab global.idents("ServiceStatus").backoffice
+    kvm.buttons.backoffice.visible = ko.computed ->
+      kvm['status']() == global.idents("ServiceStatus").creating
+    kvm.buttons.backoffice.disabled = ko.computed ->
+      u.someEmpty kase, boFlds
+    kvm.buttons.backoffice.click = ->
+      kvm['status'] global.idents("ServiceStatus").backoffice
+
+    kvm.buttons.needMakerApproval = {}
+    kvm.buttons.needMakerApproval.text =
+      sDict.getLab global.idents("ServiceStatus").makerApproval
+    kvm.buttons.needMakerApproval.visible = ko.computed ->
+      tgtStatuses = [ global.idents("ServiceStatus").creating
+                    , global.idents("ServiceStatus").backoffice
+                    , global.idents("ServiceStatus").needPartner
+                    ]
+      _.contains tgtStatuses, kvm['status']()
+    kvm.buttons.needMakerApproval.click = ->
+      if confirm "Согласовать оказание услуги с производителем?"
+        kvm['status'] global.idents("ServiceStatus").makerApproval
+
+    kvm.buttons.recallClient = {}
+    kvm.buttons.recallClient.text =
+      sDict.getLab global.idents("ServiceStatus").recallClient
+    kvm.buttons.recallClient.visible = ko.computed ->
+      tgtStatuses = [ global.idents("ServiceStatus").ordered
+                    , global.idents("ServiceStatus").inProgress
+                    , global.idents("ServiceStatus").needPartner
+                    , global.idents("ServiceStatus").makerApproval
+                    ]
+      _.contains tgtStatuses, kvm['status']()
+    kvm.buttons.recallClient.click = ->
+      if confirm "Сообщить клиенту время оказания услуги?"
+        kvm['status'] global.idents("ServiceStatus").recallClient
+
+
+    # There's no guarantee who renders first (services or actions),
+    # try to set up an observable from here
+    if not kase['actionsList']?
+      kase['actionsList'] = ko.observableArray()
+
+    # Required fields for the cancel button to be enabled
+    cnFields = ['clientCancelReason']
+    kvm.buttons.cancel = {}
+    kvm.buttons.cancel.tooltip = u.reqFieldsTooltip kvm, cnFields
+    kvm.buttons.cancel.text =
+      sDict.getLab global.idents("ServiceStatus").canceled
+    kvm.buttons.cancel.visible = ko.computed ->
+      # Always show in one of these statuses
+      tgtStatuses = [ global.idents("ServiceStatus").creating
+                    , global.idents("ServiceStatus").ordered
+                    , global.idents("ServiceStatus").inProgress
+                    , global.idents("ServiceStatus").needPartner
+                    , global.idents("ServiceStatus").makerApproval
+                    ]
+      statusOk = (_.contains tgtStatuses, kvm['status']())
+
+      # Show actions for a service in backoffice status only if its
+      # order actions are unassigned or assigned to the current user
+      ordersUnassigned = false
+      myOrder = false
+      if kvm['status']() == global.idents("ServiceStatus").backoffice
+        myOrder = false
+        svcActs = u.svcActions kase, kvm,
+          [ global.idents("ActionType").orderService
+          , global.idents("ActionType").orderServiceAnalyst
+          ]
+        ordersUnassigned = !_.isEmpty(svcActs) &&
+          _.every svcActs, (a) -> _.isNull a.assignedTo()
+        myOrder = _.some svcActs, (a) -> a.assignedTo() == global.user.id
+      statusOk || myOrder || ordersUnassigned
+    kvm.buttons.cancel.disabled = ko.computed ->
+      _.isEmpty kvm['clientCancelReason']?()
+    kvm.buttons.cancel.click = ->
+      if confirm "Выполнить отказ от услуги?"
+        kvm['status'] global.idents("ServiceStatus").canceled
+
   serviceColor: (model, kvm) ->
+    # do not run this hook on search screen
+    return if /^search/.test(Finch.navigate())
+    ist = u.newComputedDict("iconizedServiceTypes")
+    kvm._meta.model.title = ist.getLab kvm.type()
     kvm._svcColor = ko.computed ->
-      hash = md5(kvm._meta.model.name + ':' + kvm.id())
-      ix = parseInt(hash.slice(0,6), 16) % u.palette.length
-      u.palette[ix]
+      svcId = kvm._meta.model.name + ':' + kvm.id()
+      if kvm._parent
+        svcs  = kvm._parent.services().split(',')
+        u.palette[svcs.indexOf(svcId) % u.palette.length]
+      else
+        u.palette[0]
+
+  updateCaseActions: (model, kvm) ->
+    kvm._saveSuccessCb = (k, m, j) ->
+      # Redirect to back when a service with a self-assigned order
+      # action is canceled
+      if j.status == global.idents("ServiceStatus").canceled
+        svcActs = u.svcActions kvm._parent, kvm, null
+        if _.some(svcActs, (a) -> a.assignedTo() == global.user.id)
+          window.location.hash = "back"
+      # Update actions list when new actions might appear
+      #
+      # TODO The server should notify the client about new actions
+      # appearing in the case instead of explicit subscription
+      if j.status? || j.clientSatisfied?
+        k._parent?['renderActions']?()

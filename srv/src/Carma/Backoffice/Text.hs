@@ -2,7 +2,7 @@
 
 {-|
 
-Text interpreter for Backoffice DSL terms.
+Text interpreter for 'Backoffice' DSL terms.
 
 -}
 
@@ -18,13 +18,16 @@ module Carma.Backoffice.Text
 where
 
 import           Prelude hiding ((>), (==), (||), (&&), const)
-import qualified Prelude as P ((>), (==), (||), (&&), const)
+import qualified Prelude as P ((==))
+
+import           Control.Applicative
+import           Control.Monad.Trans.Reader
 
 import           Data.Map (Map)
 import qualified Data.Map as Map
+import           Data.String
 import           Data.Text (Text)
 import qualified Data.Text as T
-import           Data.Time.Clock
 import           Data.Typeable
 
 import           Data.Model
@@ -38,23 +41,46 @@ data TCtx = TCtx { identMap :: IMap
 
 
 -- | Text embedding for Backoffice DSL types.
-newtype TextE t = TextE (TCtx -> Text)
+newtype TextE t = TextE { toText :: Reader TCtx Text }
 
 
--- | Simple TextE constructor which leaves the context unchanged.
+-- | Simple TextE constructor which does not use the context.
 textE :: Text -> TextE t
-textE t = TextE (P.const t)
+textE t = TextE (return t)
+
+
+-- | Format binary function arguments.
+textBinary :: TextE a
+           -> TextE b
+           -> Text
+           -- ^ Opening bracket.
+           -> Text
+           -- ^ Argument separator.
+           -> Text
+           -- ^ Closing bracket.
+           -> Reader TCtx Text
+textBinary a b open between close = do
+  a' <- toText a
+  b' <- toText b
+  return $ T.concat [open, a', between, b', close]
 
 
 -- | TextE constructor for trigger terms.
-triggerText :: TextE a -> TextE v -> TextE t
-triggerText field value =
-    TextE $ \c ->
-        T.concat [ "Когда "
-                 , toText c field
-                 , " приобретает значение "
-                 , toText c value
-                 ]
+triggerText :: TextE a
+            -> TextE v
+            -> TextE b
+            -> Text
+            -> Text
+            -> Reader TCtx Text
+triggerText field value body open between = do
+  trig' <- textBinary field value open between ""
+  body' <- toText body
+  return $ T.concat $ [trig', ": "] ++ [body']
+
+
+scopeText :: IsString a => Scope -> a
+scopeText InCase = "в кейсе"
+scopeText InService = "в услуге"
 
 
 -- | Existential container for model idents.
@@ -94,102 +120,129 @@ lkp k@(IBox k'@(Ident i)) env =
 instance Backoffice TextE where
     now = textE "Текущее время"
     since dt t =
-        TextE (\c -> T.concat [toText c t, " + ", formatDiff dt])
+        TextE $ (\ c -> T.concat [c, " + ", formatDiff dt]) <$> toText t
     before dt t =
-        TextE (\c -> T.concat [toText c t, " - ", formatDiff dt])
+        TextE $ (\ c -> T.concat [c, " - ", formatDiff dt]) <$> toText t
 
-    role r = TextE (\c -> T.append "Пользователи с ролью " $ toText c (const r))
-    currentUserOr r =
-        TextE $ \c ->
-            T.append "Текущий пользователь и другие с ролью " $ toText c (const r)
+    nobody = textE "Без ответственного"
+
+    currentUser = textE "Текущий пользователь"
+
+    assigneeOfLast scope acts res =
+        TextE $ do
+          acts' <- mapM (toText . const) acts
+          res' <- mapM toText res
+          return $ T.concat
+                     [ "Пользователь, ответственный за последнее "
+                     , scopeText scope
+                     , " действие с типом {"
+                     , T.intercalate " или " acts'
+                     , "} в состоянии {"
+                     , T.intercalate " или " res'
+                     , "}"
+                     ]
+
+    noResult = textE "Открыто"
 
     previousAction = textE "Предыдущее действие"
 
     userField     = textE . fieldDesc
     caseField     = textE . fieldDesc
     serviceField  = textE . fieldDesc
-    serviceField' = textE . fieldDesc
 
-    onCaseField a = triggerText (caseField a)
-    onServiceField a = triggerText (serviceField a)
-    onServiceField' a = triggerText (serviceField' a)
+    onField f v body =
+      TextE $
+      triggerText (textE $ fieldDesc f) v body
+      "Когда " " приобретает значение "
 
-    not v =
-        TextE (\c -> T.concat ["НЕ выполнено условие ", toText c v])
-    a > b =
-        TextE (\c -> T.concat [toText c a, " > ", toText c b])
-    a == b =
-        TextE (\c -> T.concat [toText c a, " равно ", toText c b])
-    a && b =
-        TextE (\c -> T.concat ["(", toText c a, ") и (", toText c b, ")"])
-    a || b =
-        TextE (\c -> T.concat ["(", toText c a, ") или (", toText c b, ")"])
+    insteadOf f v body =
+      TextE $
+      triggerText (textE $ fieldDesc f) v body
+      "Вместо того, чтобы " " приобрело значение "
 
-    const v = TextE (lkp (IBox v) . identMap)
+    not v = TextE $
+            T.append "НЕ выполнено условие " <$> toText v
+
+    a > b = TextE $ textBinary a b "" " > " ""
+
+    a == b = TextE $ textBinary a b "" " равно " ""
+    a && b = TextE $ textBinary a b "(" ") и (" ")"
+    a || b = TextE $ textBinary a b "(" ") или (" ")"
+
+    const v = TextE $ lkp (IBox v) . identMap <$> ask
+
+    just v = TextE $ lkp (IBox v) . identMap <$> ask
+
+    req v = TextE $ flip T.snoc '*' <$> toText v
 
     oneOf val set =
-        TextE $ \c ->
-            T.concat [ toText c val
-                     , " ∈ {"
-                     , T.intercalate "," (map (toText c . const) set)
-                     , "}"
-                     ]
+        TextE $ do
+          val' <- toText val
+          set' <- mapM (toText . const) set
+          return $ T.concat [val', " ∈ {", T.intercalate ", " set', "}"]
 
     switch conds ow =
-        TextE $ \c ->
-            let
-                ppc (cond, act) =
-                    T.concat ["Если ", toText c cond, ", то ", toText c act]
-            in
-              T.concat [ T.intercalate "; " $ Prelude.map ppc conds
-                       , "; во всех других случаях — "
-                       , toText c ow
-                       ]
+        TextE $ do
+          let ppc (cond, act) =
+                  textBinary cond act "Если " ", то " ""
+          ow' <- toText ow
+          conds' <- mapM ppc conds
+          return $ T.concat [ T.intercalate "; " conds'
+                            , "; во всех других случаях — "
+                            , ow'
+                            ]
+
+    setCaseField acc i =
+        TextE $
+        (\c -> T.concat [fieldDesc acc, " ← ", c]) <$> toText i
 
     setServiceField acc i =
-        TextE $ \c ->
-            T.concat [fieldDesc acc, " ← ", (toText c . const) i]
+        TextE $
+        (\c -> T.concat [fieldDesc acc, " ← ", c]) <$> toText i
 
     sendSMS i =
-        TextE $ \c ->
-            T.concat ["Отправить SMS по шаблону ", (toText c . const) i]
+        TextE $
+        T.append "Отправить SMS по шаблону " <$> toText (const i)
 
-    sendPSAMail = textE "Отправить письмо в PSA"
+    sendMail to =
+      textE $ T.append "Отправить письмо " $ case to of
+                                               PSA -> "в PSA"
+                                               Dealer -> "дилеру"
+                                               Genser -> "в Genser"
 
-    sendDealerMail = textE "Отправить письмо дилеру"
+    nop = textE "Ничего не делать"
 
-    sendGenserMail = textE "Отправить письмо в Genser"
-
-    closeWith acts r =
-        TextE $ \c ->
-            T.concat [ "Закрыть все ранее созданные действия {"
-                     , T.intercalate ", " $ map (toText c . const) acts
-                     , "} с результатом "
-                     , (toText c . const) r
-                     ]
+    closePrevious scope acts r =
+        TextE $ do
+          acts' <- mapM (toText . const) acts
+          r' <- toText $ const r
+          return $ T.concat [ "Закрыть все ранее созданные "
+                            , scopeText scope
+                            , " действия {"
+                            , T.intercalate ", " acts'
+                            , "} с результатом "
+                            , r'
+                            ]
 
     defer = textE "Отложить действие"
 
-    finish = textE "Завершить обработку"
-
+    proceed [] = textE "Завершить обработку"
     proceed acts =
-        TextE $ \c ->
-            T.append "Создать действия: " $
-            T.intercalate ", " (map (toText c . const) acts)
+        TextE $
+        T.append "Создать действия: " <$>
+        T.intercalate ", " <$> mapM (toText . const) acts
 
-    a *> b =
-        TextE $ \c ->
-        T.concat [toText c a, ", ", toText c b]
+    a *> b = TextE $ textBinary a b "" ", затем " ""
 
 
--- | Text evaluator for Backoffice DSL.
-toText :: TCtx -> TextE v -> Text
-toText ctx (TextE f) = f ctx
+-- | TextE evaluator for DSL terms.
+evalText :: TCtx -> TextE ty -> Text
+evalText c t = runReader (toText t) c
 
 
 -- | Show non-zero days, hours, minutes and seconds of a time
 -- difference.
-formatDiff :: NominalDiffTime -> Text
+formatDiff :: RealFrac a => a -> Text
 formatDiff nd' =
     let
         nd :: Int
@@ -220,21 +273,19 @@ backofficeText spec iMap =
       ctx = TCtx iMap
       indent :: [Text] -> [Text]
       indent = map ('\t' `T.cons`)
-      fmtEntry e =
-          [T.snoc (toText ctx $ trigger e) ':'] ++
-          indent [toText ctx $ result e] ++
-          ["\n"]
+      fmtEntry e = evalText ctx (trigger e) : ["\n"]
       fmtAction a =
-          [lkp (IBox $ aType a) iMap] ++
+          [T.snoc (lkp (IBox $ aType a) iMap) ':'] ++
           indent
-          ([ T.concat ["Время выполнения: ", toText ctx $ due a]
-           , T.concat ["Ответственность: ", toText ctx $ assignment a]
+          ([ T.concat ["Время выполнения: ", evalText ctx $ due a]
+           , T.concat ["Для роли: ", evalText ctx $ targetRole a]
+           , T.concat ["Ответственность: ", evalText ctx $ assignment a]
            , "Результаты:" ] ++
            indent
            (Prelude.map (\(r, eff) ->
                          T.concat [ lkp (IBox r) iMap
                                   , ": "
-                                  , toText ctx eff
+                                  , evalText ctx eff
                                   ]) $
            outcomes a)) ++
           ["\n"]

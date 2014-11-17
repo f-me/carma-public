@@ -1,6 +1,0 @@
-{
-	"relations": [
-		"'case:' || casetbl.id = servicetbl.parentId",
-		"'case:' || casetbl.id = actiontbl.caseId",
-		"servicetbl.type || ':' || servicetbl.id = actiontbl.parentId"]
-}

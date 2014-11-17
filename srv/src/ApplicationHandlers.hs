@@ -1,11 +1,36 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module ApplicationHandlers where
+module ApplicationHandlers
+    (
+      -- * Authentication
+      indexPage
+    , redirectToLogin
+    , authOrLogin
+    , loginForm
+    , doLogin
+    , doLogout
+
+      -- * CRUD
+    , createHandler
+    , readHandler
+    , readManyHandler
+    , updateHandler
+
+      -- * Helper handlers
+    , getRegionByCity
+    , towAvgTime
+    , copyCtrOptions
+
+    -- * Misc. client support handlers
+    , clientConfig
+    , errorsHandler
+    )
+
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
+where
 
 import Data.Functor
-import Control.Monad
 import Control.Monad.Trans.Either
 
 import Data.Text (Text)
@@ -13,22 +38,15 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy.Encoding as TL
 
+import qualified Data.HashMap.Strict as HM
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Lazy as LB
 import qualified Data.Aeson as Aeson
 import Data.Aeson
-import Data.List
 import qualified Data.Map as Map
-import qualified Data.HashMap.Strict as HM
-import Data.String
 
 import Data.Maybe
-import Data.Ord (comparing)
 
-import Data.Time
-import System.Locale
-
-import Database.PostgreSQL.Simple ( Query, query_, query, execute)
+import Database.PostgreSQL.Simple (Query, query, execute)
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import Data.Pool (withResource)
@@ -42,45 +60,22 @@ import Snap.Snaplet.Auth hiding (session)
 import Snap.Util.FileServe (serveFile)
 import Snap.Util.FileUploads (getMaximumFormInputSize)
 
-import WeatherApi (getWeather', tempC)
-
-import Snaplet.Auth.PGUsers
-import qualified Snaplet.DbLayer as DB
-import qualified Snaplet.DbLayer.Types as DB
-import qualified Snaplet.DbLayer.RKC as RKC
+import Snaplet.Geo
 import Snaplet.FileUpload (FileUpload(cfg))
 
 import Carma.Model
-import Data.Model (idents)
 import Data.Model.CRUD
-import qualified Data.Model.Patch.Sql as Patch
-import           Data.Model.Patch (Patch(..))
+import Data.Model.Patch (Patch(..))
+import Carma.Model.Event (EventType(..))
 
 import Application
 import AppHandlers.Util
-import AppHandlers.Users
 import Util as U hiding (render, withPG)
-import Utils.NotDbLayer (readIdent)
+import Utils.LegacyModel (readIdent)
 
-import Carma.Model.Event (EventType(..))
-import Utils.Events (logLogin)
+import Utils.Events (logLogin, logCRUD, updateUserState)
 
-import ModelTriggers (runUpdateTriggers)
-
-import Carma.Model.ActionResult (ActionResult)
-import Carma.Model.ActionType (ActionType)
-import Carma.Model.CaseStatus (CaseStatus)
-import qualified Carma.Model.Role as Role
-import Carma.Model.Satisfaction (Satisfaction)
-import Carma.Model.ServiceStatus (ServiceStatus)
-import Carma.Model.ServiceType (ServiceType)
-import Carma.Model.SmsTemplate (SmsTemplate)
-import Carma.Model.Program (Program)
-
-import Carma.Backoffice
-import Carma.Backoffice.Text
-import Carma.Backoffice.Graph
-import Carma.Backoffice.Validation
+import ModelTriggers
 
 
 ------------------------------------------------------------------------------
@@ -96,7 +91,7 @@ indexPage = ifTop $ do
             let r = case ln of
                       Just s  -> T.concat [t, " [", s, "]"]
                       Nothing -> t
-            return $ [X.TextNode r]
+            return [X.TextNode r]
         splices = "addLocalName" ## addLocalName
     renderWithSplices "index" splices
 
@@ -119,7 +114,7 @@ authOrLogin = requireUser auth redirectToLogin
 ------------------------------------------------------------------------------
 -- | Render empty login form.
 loginForm :: AppHandler ()
-loginForm = serveFile "snaplets/heist/resources/templates/login.html"
+loginForm = serveFile "resources/static/tpl/login.html"
 
 
 ------------------------------------------------------------------------------
@@ -139,7 +134,6 @@ doLogin = ifTop $ do
 
 doLogout :: AppHandler ()
 doLogout = ifTop $ do
-  claimUserLogout
   logLogin Logout
   with auth logout
   redirectToLogin
@@ -158,20 +152,22 @@ createHandler = do
   Just model <- getParamT "model"
   let createModel :: forall m . Model m => m -> AppHandler Aeson.Value
       createModel _ = do
-        let crud = getModelCRUD :: CRUD m
-        commit <- getJSONBody :: AppHandler Aeson.Value
-        s <- PS.getPostgresState
-        res <- liftIO $ withResource (PS.pgPool s)
-                (runEitherT . crud_create crud commit)
-        case res of
-          Right obj -> return obj
-          Left err  -> error $ "in createHandler: " ++ show err
-  case Carma.Model.dispatch model createModel of
-    Just fn -> logResp $ fn
-    Nothing -> logResp $ do
-      commit <- getJSONBody
-      logReq commit
-      with db $ DB.create model commit
+        commit <- getJSONBody :: AppHandler (Patch m)
+        runCreateTriggers commit >>= \case
+          Left err -> error $ "in createHandler: " ++ show err
+          Right (idt@(Ident i), commit') -> do
+            -- Can't do this in trigger because it need ident
+            evIdt <- logCRUD Create idt commit
+            updateUserState Create idt commit evIdt
+            -- we really need to separate idents from models
+            -- (so we can @Patch.set ident i commit@)
+            return $ case Aeson.toJSON commit' of
+              Object obj
+                -> Object
+                $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
+              obj -> error $ "impossible: " ++ show obj
+  void $ logResp $
+    fromMaybe (error "Unknown model") $ Carma.Model.dispatch model createModel
 
 
 readHandler :: AppHandler ()
@@ -180,7 +176,7 @@ readHandler = do
   Just objId <- getParamT "id"
   let readModel :: forall m . Model m => m -> AppHandler ()
       readModel _ = do
-        res <- with db $ do
+        res <- do
           let ident = readIdent objId :: IdentI m
           s <- PS.getPostgresState
           liftIO $ withResource (PS.pgPool s)
@@ -189,12 +185,7 @@ readHandler = do
           Right obj              -> writeJSON obj
           Left (NoSuchObject _)  -> handleError 404
           Left err               -> error $ "in readHandler: " ++ show err
-  -- See also Utils.NotDbLayer.read
-  case Carma.Model.dispatch model readModel of
-    Just fn -> fn
-    _ -> with db (DB.read model objId) >>= \case
-      obj | Map.null obj -> handleError 404
-          | otherwise    -> writeJSON obj
+  fromMaybe (error "Unknown model") $ Carma.Model.dispatch model readModel
 
 
 readManyHandler :: AppHandler ()
@@ -210,7 +201,7 @@ readManyHandler = do
           ]
   let readModel :: forall m . Model m => m -> AppHandler ()
       readModel _ = do
-        res <- with db $ do
+        res <- do
           s   <- PS.getPostgresState
           liftIO $ withResource
             (PS.pgPool s)
@@ -219,29 +210,7 @@ readManyHandler = do
         case res of
           Right obj -> writeJSON obj
           Left err  -> error $ "in readHandler: " ++ show err
-  case Carma.Model.dispatch model readModel of
-    Just fn -> fn
-    _       -> handleError 404
-
-
-readAllHandler :: AppHandler ()
-readAllHandler = do
-  Just model <- getParamT "model"
-  (with db $ DB.readAll model)
-    >>= apply "orderby" sortBy (flip . comparing . Map.lookup)
-    >>= apply "limit"   take   (read . T.unpack)
-    >>= apply "select"  filter flt
-    >>= apply "fields"  map    proj
-    >>= writeJSON
-  where
-    apply name f g = \xs
-      -> maybe xs (\p -> f (g p) xs)
-      <$> getParamT name
-    proj fs = \obj -> Map.fromList
-      [(k, Map.findWithDefault "" k obj)
-      | k <- T.splitOn "," fs
-      ]
-    flt prm = \obj -> all (selectParse obj) $ T.splitOn "," prm
+  fromMaybe (error "Unknown model") $ Carma.Model.dispatch model readModel
 
 
 updateHandler :: AppHandler ()
@@ -252,172 +221,38 @@ updateHandler = do
                      m -> AppHandler (Either Int Aeson.Value)
       updateModel _ = do
         let ident = readIdent objId :: IdentI m
+            recode x = case (Aeson.decode $ Aeson.encode x) of
+                         Just obj -> Right obj
+                         err      -> error $
+                                     "BUG in updateHandler: " ++ show err
         commit <- getJSONBody :: AppHandler (Patch m)
+        logReq commit
         runUpdateTriggers  ident commit >>= \case
-          Left (code,_err) -> return $ Left code
+          Left err -> error $ "in updateHandler: " ++ show err
           Right commit' -> do
-            s   <- PS.getPostgresState
-            res <- with db $
-              liftIO $ withResource (PS.pgPool s) (Patch.update ident commit')
-            case res of
-              0 -> return $ Left 404
-              _ -> case model of
-                     -- TODO #1352 workaround for Contract triggers
-                     "Contract" ->
-                         do
-                           res' <- liftIO $
-                                  withResource (PS.pgPool s) (Patch.read ident)
-                          -- TODO Cut out fields from original commit like
-                          -- DB.update does
-                           case (Aeson.decode $ Aeson.encode res') of
-                             Just [obj] -> return $ Right obj
-                             err        -> error $
-                                           "BUG in updateHandler: " ++ show err
-                     _ -> return $ Right $ Aeson.object []
+            evIdt <- logCRUD Update ident commit
+            updateUserState Update ident commit evIdt
+            return $ recode commit'
   -- See also Utils.NotDbLayer.update
-  case Carma.Model.dispatch model updateModel of
-    Just fn ->
-        fn >>= \case
-           Left n -> handleError n
-           Right o -> logResp $ return o
-    Nothing -> do
-      commit <- getJSONBody
-      logReq commit
-      with db (DB.read model objId) >>= \case
-        obj | Map.null obj -> handleError 404
-            | otherwise    -> logResp $ with db
-                $ DB.update model objId
-                -- Need this hack, or server won't return updated "cost_counted"
-                $ Map.delete "cost_counted" commit
+  fromMaybe (error "Unknown model") (Carma.Model.dispatch model updateModel) >>=
+    \case
+      Left n -> handleError n
+      Right o -> logResp $ return o
 
-
-deleteHandler :: AppHandler ()
-deleteHandler = do
-  Just model <- getParamT "model"
-  Just objId <- getParamT "id"
-  res        <- with db $ DB.delete model objId
-  writeJSON res
-
--- rkc helpers
-getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
-getFromTo = do
-  fromTime <- getParam "from"
-  toTime <- getParam "to"
-
-  tz <- liftIO getCurrentTimeZone
-
-  let
-    parseLocalTime :: ByteString -> Maybe LocalTime
-    parseLocalTime = parseTime defaultTimeLocale "%d.%m.%Y" . U.bToString
-
-    fromTime' = fmap (localTimeToUTC tz) (fromTime >>= parseLocalTime)
-    toTime' = fmap (localTimeToUTC tz) (toTime >>= parseLocalTime)
-
-  return (fromTime', toTime')
-
-getParamOrEmpty :: ByteString -> AppHandler T.Text
-getParamOrEmpty = liftM (maybe T.empty T.decodeUtf8) . getParam
-
-rkcHandler :: AppHandler ()
-rkcHandler = logExceptions "handler/rkc" $ do
-  p <- getParamOrEmpty "program"
-  c <- getParamOrEmpty "city"
-  part <- getParamOrEmpty "partner"
-  (from, to) <- getFromTo
-
-  flt <- liftIO RKC.todayFilter
-  let
-    flt' = flt {
-      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
-      RKC.filterTo = fromMaybe (RKC.filterTo flt) to,
-      RKC.filterProgram = p,
-      RKC.filterCity = c,
-      RKC.filterPartner = part }
-
-  usrs <- with db usersListPG
-  info <- with db $ RKC.rkc usrs flt'
-  writeJSON info
-
-rkcWeatherHandler :: AppHandler ()
-rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
-  let defaults = ["Moskva", "Sankt-Peterburg"]
-  cities <- (fromMaybe defaults . (>>= (Aeson.decode . LB.fromStrict)))
-    <$> getParam "cities"
-
-  syslogJSON Info "handler/rkc/weather" ["cities" .= intercalate ", " cities]
-
-  conf <- with db $ gets DB.weather
-  let weatherForCity = liftIO . getWeather' conf . filter (/= '\'')
-  let toTemp t city = Aeson.object [
-        "city" .= city,
-        "temp" .= either (const "-") (show.tempC) t]
-
-  temps <- mapM weatherForCity cities
-  writeJSON $ Aeson.object [
-    "weather" .= zipWith toTemp temps cities]
-
-
-
-rkcFrontHandler :: AppHandler ()
-rkcFrontHandler = logExceptions "handler/rkc/front" $ do
-  p <- getParamOrEmpty "program"
-  c <- getParamOrEmpty "city"
-  part <- getParamOrEmpty "partner"
-  (from, to) <- getFromTo
-
-  flt <- liftIO RKC.todayFilter
-  let
-    flt' = flt {
-      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
-      RKC.filterTo = fromMaybe (RKC.filterTo flt) to,
-      RKC.filterProgram = p,
-      RKC.filterCity = c,
-      RKC.filterPartner = part }
-
-  res <- with db $ RKC.rkcFront flt'
-  writeJSON res
-
-rkcPartners :: AppHandler ()
-rkcPartners = logExceptions "handler/rkc/partners" $ do
-  flt <- liftIO RKC.todayFilter
-  (from, to) <- getFromTo
-
-  let
-    flt' = flt {
-      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
-      RKC.filterTo = fromMaybe (RKC.filterTo flt) to }
-
-  res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
-  writeJSON res
-
--- | This action recieve model and id as parameters to lookup for
--- and json object with values to create new model with specified
--- id when it's not found
-findOrCreateHandler :: AppHandler ()
-findOrCreateHandler = do
-  Just model <- getParamT "model"
-  Just objId    <- getParamT "id"
-  commit <- getJSONBody
-  res <- with db $ DB.findOrCreate model objId commit
-  -- FIXME: try/catch & handle/log error
-  writeJSON res
-
-serveUsersList :: AppHandler ()
-serveUsersList = with db usersListPG >>= writeJSON
 
 -- | Calculate average tower arrival time (in seconds) for today,
--- parametrized by city (a value from DealerCities dictionary).
+-- parametrized by city (a key from City dictionary).
 towAvgTimeQuery :: Query
 towAvgTimeQuery = [sql|
 WITH towtimes AS (
  SELECT max(t.times_factServiceStart - a.ctime)
  FROM actiontbl a, casetbl c, towagetbl t
- WHERE cast(split_part(a.parentid, ':', 2) as integer)=t.id
- AND cast(split_part(a.caseid, ':', 2) as integer)=c.id
- AND a.name='orderService'
+ WHERE a.serviceId = t.id
+ AND a.caseid = c.id
+ AND a.type=1
  AND c.city=?
  AND (CURRENT_DATE, INTERVAL '1 day') OVERLAPS (c.callDate, c.callDate)
- GROUP BY a.parentid)
+ GROUP BY a.serviceId)
 SELECT extract(epoch from avg(max)) FROM towtimes;
 |]
 
@@ -426,7 +261,7 @@ SELECT extract(epoch from avg(max)) FROM towtimes;
 -- (possibly containing @null@ if the time cannot be calculated).
 towAvgTime :: AppHandler ()
 towAvgTime = do
-  city <- getParam "city"
+  city <- getIntParam "city"
   case city of
     Just c -> do
           rows <- withPG pg_search $
@@ -443,79 +278,22 @@ getRegionByCity =
         [sql|
           SELECT r.label
           FROM "Region" r, "City" c
-          WHERE c.id = ANY(r.cities) AND c.value = ?
+          WHERE c.id = ANY(r.cities) AND c.id = ?
         |]
         [city]
       writeJSON (res :: [[Text]])
     _ -> error "Could not read city from request"
 
 
--- | Read @actionid@ request parameter and set @openTime@ of that
--- action to current time.
-openAction :: AppHandler ()
-openAction = do
-  aid <- getParamT "actionid"
-  case aid of
-    Nothing -> error "Could not read actionid parameter"
-    Just i -> do
-      dn <- liftIO $ projNow id
-      res <- with db $ DB.update "action" i $
-                       Map.singleton "openTime" dn
-      writeJSON res
-
-lookupSrvQ :: Query
-lookupSrvQ = [sql|
-  SELECT c.id::text
-       , c.comment
-       , c.owner
-       , c.partnerid
-       , (extract (epoch from c.ctime at time zone 'UTC')::int8)::text
-       , c.partnercancelreason
-       , p.name
-       , c.serviceid
-  FROM partnercanceltbl c
-  LEFT JOIN partnertbl p
-  ON p.id::text = substring(c.partnerid, ':(.*)')
-  WHERE c.serviceid = ?
-|]
-
-printServiceHandler :: AppHandler ()
-printServiceHandler = do
-  Just model <- getParamT "model"
-  Just objId <- getParamT "id"
-  srv     <- with db $ DB.read model objId
-  kase    <- with db $ DB.read' $ fromMaybe "" $ Map.lookup "parentId" srv
-  actions <- with db $ mapM DB.read' $
-             T.splitOn "," $ Map.findWithDefault "" "actions" kase
-  let modelId = T.concat [model, ":", objId]
-      action  = head' $ filter ((Just modelId ==) . Map.lookup "parentId")
-                      $ actions
-  rows <- withPG pg_search $ \conn -> query conn lookupSrvQ [modelId]
-  writeJSON $ Aeson.object [ "action"  .= [action]
-                           , "kase"    .=  [kase]
-                           , "service" .=  [srv]
-                           , "cancels" .=  cancelMap rows
-                           ]
-    where
-      head' []     = Map.empty
-      head' (x:_)  = x
-      cancelMap rows = mkMap [ "id"
-                             , "comment"
-                             , "owner"
-                             , "partnerid"
-                             , "ctime"
-                             , "partnerCancelReason"
-                             , "partnerName"
-                             , "serviceid"
-                             ] rows
-
-
 -- | Serve parts of the application config to client in JSON.
 clientConfig :: AppHandler ()
 clientConfig = do
   mus <- with fileUpload $ gets (fromIntegral . getMaximumFormInputSize . cfg)
+  nom <- with geo $ gets nominatimUrl
   let config :: Map.Map T.Text Aeson.Value
-      config = Map.fromList [("max-file-size", Aeson.Number mus)]
+      config = Map.fromList [ ("max-file-size", Aeson.Number mus)
+                            , ("nominatim-url", Aeson.String $ T.pack nom)
+                            ]
   writeJSON config
 
 
@@ -551,17 +329,6 @@ copyCtrOptions = do
       [to, from]
   writeJSON ()
 
-
-unassignedActionsHandler :: AppHandler ()
-unassignedActionsHandler = do
-  r <- withPG pg_search
-       $ \c -> query_ c $ fromString
-               $  " SELECT count(1) FROM actiontbl"
-               ++ " WHERE name IN ('orderService', 'callMeMaybe', 'tellMeMore')"
-               ++ " AND (assignedTo = '' OR assignedTo is null)"
-               ++ " AND closed = false"
-  writeJSON $ join (r :: [[Integer]])
-
 logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do
   user <- fmap userLogin <$> with auth currentUser
@@ -580,32 +347,3 @@ logResp act = logExceptions "handler/logResp" $ do
   r <- act
   syslogJSON Info "handler/logResp" ["response" .= r]
   writeJSON r
-
-data BORepr = Txt | Dot | Check
-
-type IdentMap m = Map.Map (IdentI m) Text
-
-serveBackofficeSpec :: BORepr -> AppHandler ()
-serveBackofficeSpec repr =
-    case repr of
-      Txt -> writeText $ backofficeText carmaBackoffice boxedIMap
-      Dot -> writeLazyText $ backofficeDot carmaBackoffice boxedIMap
-      Check -> writeJSON $ map show $ checkBackoffice carmaBackoffice boxedIMap
-    where
-      -- Simple ident mapping
-      iMap :: Model m => IdentMap m
-      iMap = Map.fromList $ map (\(k, v) -> (v, T.pack k)) $ HM.toList idents
-
-      boxMap :: Model m => IdentMap m -> Map.Map IBox Text
-      boxMap = Map.mapKeys IBox
-      -- Combine mappings for multiple models into one
-      boxedIMap = Map.unions [ boxMap (iMap :: IdentMap ActionResult)
-                             , boxMap (iMap :: IdentMap ActionType)
-                             , boxMap (iMap :: IdentMap CaseStatus)
-                             , boxMap (iMap :: IdentMap Role.Role)
-                             , boxMap (iMap :: IdentMap Satisfaction)
-                             , boxMap (iMap :: IdentMap ServiceStatus)
-                             , boxMap (iMap :: IdentMap ServiceType)
-                             , boxMap (iMap :: IdentMap SmsTemplate)
-                             , boxMap (iMap :: IdentMap Program)
-                             ]

@@ -6,13 +6,14 @@ require [ "domready"
         , "hooks/config"
         , "json!/cfg/dictionaries"
         , "json!/_whoami"
-        , "json!/allUsers"
+        , "json!/_/Usermeta"
         , "utils"
         , "sendSms"
         , "liveMenu"
         , "lib/bug-report"
         , "lstorePubSub"
         , "lib/current-user"
+        , "lib/hacking"
         ], ( dom
            , main
            , Finch
@@ -26,6 +27,7 @@ require [ "domready"
            , bug
            , pubSub
            , CurrentUser
+           , hacking
            ) ->
 
   bugReport = new bug.BugReport
@@ -57,33 +59,34 @@ require [ "domready"
   dom ->
     bugReport.setElement $('#send-bug-report')
 
+    # Cached mapping between from userid to "name (login)"
     dicts.users =
       entries:
         for i in users
-          {value: i.value, label: "#{i.label} (#{i.value})"}
+          {value: String(i.id), label: "#{i.realName} (#{i.login})"}
     dicts.roles =
       entries:
         for i in users
-          {value: i.value, label: i.roles }
+          {value: i.login, label: i.roles }
 
     main.setup Finch,
               dicts,
               hooks,
               user,
               new pubSub
-    global.all_users = users
     global.keys = {}
     global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
 
-    liveMenu.setup(document.getElementById 'nav')
-
-    avayaCred = document.cookie.match /avaya=([^;]*)/
-    if avayaCred?[1]
-      extPwd = unescape(avayaCred[1]).match /(.*)\|(.*)/
-      if extPwd
-        global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
+    # disable everytnig websocket-related for portal
+    if not window.location.origin.match(/portal\.ruamc\.ru/)
+      avayaCred = document.cookie.match /avaya=([^;]*)/
+      if avayaCred?[1]
+        extPwd = unescape(avayaCred[1]).match /(.*)\|(.*)/
+        if extPwd
+          global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
 
     sendSms.setup()
+    hacking.reenableHacks()
 
     if user.login == "darya"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')
@@ -94,12 +97,30 @@ require [ "domready"
                           selector: '[data-provide="popover"]',
                           trigger: 'hover')
 
-    CurrentUser.initialize()
+    # disable everytnig websocket-related for portal
+    if not window.location.origin.match(/portal\.ruamc\.ru/)
+      CurrentUser.initialize()
 
+    # render menu only after everything else in menu bar is done
+    # FIXME: but we can't be sure that AVAYA widget is initialised
+    liveMenu.setup(document.getElementById 'nav')
+
+    # file field selection (currenlty only on vin screen)
+    $(document).on 'change', '.btn-file :file', ->
+      input = $(this)
+      numFiles = if input.get(0).files then input.get(0).files.length else 1
+      label = input.val().replace(/\\/g, '/').replace(/.*\//, '')
+      textInput = $(this).parents('.input-group').find(':text')
+      textInput.val(label)
+
+  $.fn.wysihtml5.defaultOptions.stylesheets = '/s/3p/wysihtml5/wysiwyg-color.css'
+
+  u.build_global_fn 'switchHack', ['lib/hacking']
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']
   u.build_global_fn 'inlineUploadFile', ['lib/upload']
   u.build_global_fn 'inlineDetachFile', ['lib/upload']
   u.build_global_fn 'doPick', ['utils']
   u.build_global_fn 'kdoPick', ['utils']
+  u.build_global_fn 'edoPick', ['utils']
   u.build_global_fn 'focusField', ['utils']

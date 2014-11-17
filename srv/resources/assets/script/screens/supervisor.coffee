@@ -3,12 +3,16 @@ define ["utils"
       , "text!tpl/screens/supervisor.html"
       , "screenman"
       , "hooks/common"
-      ], (utils, main, tpl, screenman, hook) ->
+      , "text!tpl/fields/form.html"
+      ], (utils, main, tpl, screenman, hook, Flds) ->
+
+  flds =  $('<div/>').append($(Flds))
 
   dataTableOptions = ->
     aoColumns: utils.repeat(11, null).concat utils.repeat(2, { bVisible: false})
     bPaginate: true
     fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
+      return if _.isEmpty aData
       caseId = aData[0].split('/')[0]
       caseLnk = "<a style='color: black' href='/#case/#{caseId}'> #{aData[0]} </a>"
       duetime  = Date.parse aData[5]
@@ -50,19 +54,24 @@ define ["utils"
         set violet
 
   objsToRows = (res) ->
-    n = global.dictValueCache['ActionNames']
-    r = global.dictValueCache['ActionResults']
+    ar = utils.newModelDict "ActionResult", true
+    at = utils.newModelDict "ActionType", true
+    cities = utils.newModelDict "City", true
     u = global.dictValueCache['users']
 
     roles = utils.newModelDict "Role", true
     progs = utils.newModelDict "Program", true
+    svcTypes = utils.newModelDict "ServiceType", true
 
     rows = for obj in res.actions
-      if obj.parentId
-        svcName = obj.parentId.split(':')[0]
-        svcName = global.model(svcName).title
-      cid = obj.caseId.split(':')[1]
-      closed = if obj.closed == "1"
+      if obj.serviceId
+        svcName = svcTypes.getLab obj.serviceType
+        svcName = "(#{svcName})"
+      else
+        svcName = null
+      cid = obj.caseId
+      closed = !(_.isEmpty obj.result)
+      closedLab = if closed
           'Закрыто'
          else
           'Открыто'
@@ -74,20 +83,20 @@ define ["utils"
         if _.isEmpty obj.assignedTo
           utils.timeFrom obj.ctime, res.reqTime
         else
-          if obj.closed == "0"
+          if !closed
             utils.timeFrom obj.assignTime, res.reqTime
           else
             utils.timeFrom obj.openTime, obj.closeTime
-      [ "#{cid}/#{obj.id} (#{svcName or ''})"
-      , closed
-      , n[obj.name] || ''
+      [ "#{cid}/#{obj.id} #{svcName or ''}"
+      , closedLab
+      , (at.getLab obj.name) || ''
       , u[obj.assignedTo] || ''
       , roles.getLab(obj.targetGroup) || obj.targetGroup || ''
       , duetime || ''
       , timeLabel?[0] || ''
-      , r[obj.result] || ''
+      , (ar.getLab obj.result) || ''
       , obj.priority || ''
-      , global.dictValueCache['DealerCities'][obj.city] || ''
+      , (cities.getLab obj.city) || ''
       , progs.getLab(obj.program) || ''
       , srvStart || ''
       , obj.name || ''
@@ -118,7 +127,8 @@ define ["utils"
     focusClass = "focusable"
     refs = []
     forceRender = ["assignedTo", "priority", "closed", "targetGroup"]
-    options = {permEl, focusClass, refs, forceRender}
+    manual_save = true
+    options = {permEl, focusClass, refs, forceRender, manual_save}
     main.modelSetup(modelName) viewName, args, options
 
   roleFieldSetup = ->
@@ -135,10 +145,10 @@ define ["utils"
 
     roleKVM = main.buildKVM roleModel, {}
     hook.dictManyHook roleModel, roleKVM
-    tpl = $('#dictionary-many-field-template').html()
+    tpl = $(flds).find('#dictionary-many-field-template').html()
     $('#roles').html(Mustache.render tpl, roleModel.fields[0])
     ko.applyBindings roleKVM, $('#roles')[0]
-    roleKVM.roles [global.idents("Role").bo_order]
+    roleKVM.roles [global.idents("Role").bo_order, global.idents("Role").bo_info]
     roleKVM
 
   # Update unassigned action counts using currently selected duetime
@@ -169,7 +179,7 @@ define ["utils"
       tableName: "supervisor"
       objURL: objURL
 
-    modelName = "action"
+    modelName = "Action"
 
     table = screenman.addScreen(modelName, ->)
       .addTable(tableParams)
@@ -178,7 +188,7 @@ define ["utils"
       .on("click.datatable", "tr", ->
         id = @children[0].innerText.split('/')[1].replace(/\D/g,'')
         modelSetup modelName, viewName, {id}
-        global.viewsWare["#{modelName}-form"].knockVM)
+        global.viewsWare["action-form"].knockVM)
 
     screenman.showScreen modelName
 

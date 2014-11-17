@@ -28,7 +28,7 @@ define [ "sync/metaq"
       @
 
     subscribe: =>
-      for f in @model.fields when not (f.meta?.app == "ephemeral")
+      for f in @model.fields
         do (f) =>
           @kvm[f.name].subscribe (v) =>
             @q[f.name] = v
@@ -88,6 +88,7 @@ define [ "sync/metaq"
       @updadeKvm(m.s2cObj(json, @ftypes))
       @hideSyncAnim()
       @qbackup = {}
+      @kvm._saveSuccessCb?(@kvm, @model, json)
       cb(@kvm, @model)
 
     saveErrorCb: (x, status) =>

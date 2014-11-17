@@ -1,0 +1,20 @@
+ALTER TABLE servicetbl ADD COLUMN falsecall_tmp int4;
+UPDATE servicetbl SET falsecall_tmp = 1 WHERE falsecall='none';
+UPDATE servicetbl SET falsecall_tmp = 2 WHERE falsecall='bill';
+UPDATE servicetbl SET falsecall_tmp = 3 WHERE falsecall='nobill';
+ALTER TABLE servicetbl DROP COLUMN falsecall;
+ALTER TABLE consultationtbl DROP COLUMN falsecall;
+ALTER TABLE tech1tbl DROP COLUMN falsecall;
+ALTER TABLE servicetbl ADD COLUMN falseCall int4 NOT NULL DEFAULT 1 REFERENCES "FalseCall";
+UPDATE servicetbl SET falseCall = falsecall_tmp WHERE falsecall_tmp IS NOT NULL;
+ALTER TABLE servicetbl DROP COLUMN falseCall_tmp;
+
+ALTER TABLE servicetbl ADD COLUMN clientsatisfied_tmp int4;
+UPDATE servicetbl SET clientsatisfied_tmp = 1 WHERE clientsatisfied='satis';
+UPDATE servicetbl SET clientsatisfied_tmp = 2 WHERE clientsatisfied='notSatis';
+ALTER TABLE servicetbl DROP COLUMN clientsatisfied;
+ALTER TABLE consultationtbl DROP COLUMN clientsatisfied;
+ALTER TABLE tech1tbl DROP COLUMN clientsatisfied;
+ALTER TABLE servicetbl ADD COLUMN clientSatisfied int4 REFERENCES "Satisfaction";
+UPDATE servicetbl SET clientsatisfied = clientsatisfied_tmp;
+ALTER TABLE servicetbl DROP COLUMN clientsatisfied_tmp;

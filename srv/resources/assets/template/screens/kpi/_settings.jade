@@ -1,0 +1,32 @@
+mixin settingsContainer(header)
+  .row
+    .col-md-12
+      .bs-docs-less-margins#kpi-list
+        .bs-docs-example-after#settings-label
+          i.icon-plus
+          = header || "Настройки"
+        block
+
+mixin settings
+    #kpi-list-inner.in(style="height: 10em; overflow-x: auto;")
+      .input-group-sm
+        input.form-control#kpi-list-filter(type="text"
+          data-bind="value: settingsFilter, valueUpdate: 'afterkeydown'")
+      ul.unstyled(data-bind="foreach: fields")
+        li
+          label.checkbox
+            input(type="checkbox" data-bind="checked: show")
+            span(data-bind="text: label")
+
+mixin kvmFilter
+  .input-group-sm
+    input.form-control(
+      type="text"
+      placeholder="Поиск"
+      name="kvmsFilter"
+      data-bind="value: kvmsFilter, valueUpdate: 'afterkeydown'")
+
+mixin downloadTbl
+  #download(style="float: right")
+    a.btn(data-bind="attr: { href: csv }" download="oper-kpi.csv")
+      | Выгрузить данные

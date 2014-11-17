@@ -4,12 +4,13 @@ define [ "utils"
        , "model/main"
        , "screenman"
        , "dictionaries/model-dict"
+       , "text!tpl/fields/form.html"
        ],
-  (utils, tpl, mu, main, screenman, modelDict) ->
+  (utils, tpl, mu, main, screenman, modelDict, Flds) ->
 
     textarea2wysiwyg = ->
       # transform all textarea elements to wisiwyg
-      $("textarea").each (index) ->
+      $("#dictionaries-view textarea").each (index) ->
         id = "wisyhtml5-" + index
         $(@).attr("id", id).wysihtml5
           image: false,
@@ -131,6 +132,8 @@ define [ "utils"
 
 
     screenSetup = (viewName, args) ->
+      # FIXME: remove this hack when custom ko handler will be made with rjs
+      $("#hidden-fields-container").append($(Flds))
       # show choose dict controls
       dicts = [{id: null, name: 'Выберите справочник' }]
       $.bgetJSON '/_/Dictionary', (ds) =>

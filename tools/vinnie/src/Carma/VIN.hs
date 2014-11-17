@@ -26,7 +26,7 @@ import           Control.Monad
 import           Control.Monad.Fix
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
-import qualified Control.Monad.Trans.Error as E
+import qualified Control.Monad.Trans.Except as E
 import           Control.Monad.Trans.Reader
 
 import qualified Data.ByteString as BS
@@ -51,10 +51,11 @@ import qualified Data.Text.ICU.Convert as ICU
 import           Database.PostgreSQL.Simple (Only(..))
 import           Database.PostgreSQL.Simple.Copy
 
+import           System.FilePath
 import           System.IO
 
 import           Data.Model
-import           Data.Model.Patch as Patch
+import           Data.Model.Patch as Patch hiding (delete)
 import           Carma.Model.VinFormat
 
 import           Carma.VIN.Base
@@ -71,7 +72,7 @@ getOption proj = lift $ lift $ asks proj
 
 
 throwError :: ImportError -> Import a
-throwError err = lift $ E.throwError err
+throwError err = lift $ E.throwE err
 
 
 -- | Main VIN file import action.
@@ -112,7 +113,7 @@ vinImport = do
 
 
 type FFA = FormatFieldAccessor VinFormat
-type C a = Patch a
+type C a = FullPatch a
 
 
 -- | Default settings for VIN list CSV files: semicolon-separated
@@ -308,12 +309,12 @@ process psid enc mapping = do
                  void $ execute setQueueDefaults (PT fn, dv, PT fn))
 
   arcVal <- getOption fromArc
-  -- Set committer and subprogram. If the subprogram is loadable and
+  -- Set service field values. If the subprogram is loadable and
   -- was not recognized in a file row, it will be set to the
   -- subprogram specified in import options. However, if it is
   -- required, the corresponding file row has already been marked as
   -- erroneous on the previous step.
-  setSpecialDefaults uid (snd psid) arcVal
+  setSpecialDefaults uid (snd psid) arcVal (takeFileName input)
 
   markMissingIdentifiers
 

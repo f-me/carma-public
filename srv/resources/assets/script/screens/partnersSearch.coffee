@@ -8,8 +8,6 @@ define [ "utils"
        , "screens/partnersSearch/models"
        , "sync/metaq"
        , "text!tpl/screens/partnersSearch.html"
-       , "text!tpl/partials/partnersSearch.html"
-       , "text!tpl/fields/form.html"
        ], ( utils
           , map
           , m
@@ -20,8 +18,7 @@ define [ "utils"
           , models
           , metaq
           , tpl
-          , partials
-          , Flds) ->
+          ) ->
 
   model = models.PartnerSearch
 
@@ -38,39 +35,20 @@ define [ "utils"
   fh = {}
   fh[f.name] = f for f in model.fields
 
-  mkPartials = (ps) ->
-    $("<script class='partial' id='#{k}'>").html(v)[0].outerHTML for k,v of ps
-
-  partialize = (ps) -> mkPartials(ps).join('')
-
-  flds =  $('<div/>').append($(Flds))
-
-  md  = $(partials).html()
-  cb  = flds.find("#checkbox-field-template").html()
-  city = Mustache.render md,  fh['city']
-  make = Mustache.render md,  fh['make']
-  srvs = Mustache.render md,  fh['services']
-  pr2  = Mustache.render md,  fh['priority2']
-  pr3  = Mustache.render md,  fh['priority3']
-  dlr  = Mustache.render cb,  fh['isDealer']
-  mbp  = Mustache.render cb,  fh['mobilePartner']
-  wn   = Mustache.render cb,  fh['workNow']
-
-  srvLab = (val) -> window.global.dictValueCache.Services[val] || val
 
   # Add some of case data to screen kvm
   setupCase = (kvm, ctx) ->
     kase = ctx['case'].data
-    {id, data} = ctx['service']
+    {id, data, sType} = ctx['service']
     srvName = id.split(':')[0]
-    kaseKVM = m.buildKVM global.model('case'),  {fetched: kase}
+    kaseKVM = m.buildKVM global.model('Case'),  {fetched: kase}
     srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
     kvm['fromCase'] = true
     kvm['city'](if kaseKVM.city() then [kaseKVM.city()] else [])
     kvm['make'](if kaseKVM.car_make() then [kaseKVM.car_make()] else [])
     kvm['field'] = ctx['field']
 
-    pid = parseInt srvKVM["#{ctx['field']}Id"]()?.split(":")[1]
+    pid = parseInt srvKVM["#{ctx['field']}Id"]()
     if _.isNumber(pid) && !_.isNaN(pid)
       kvm['selectedPartner'] pid
     else
@@ -80,7 +58,7 @@ define [ "utils"
     unless ctx['field'].split('_')[0] == 'contractor'
       kvm['isDealer'](true)
     else
-      kvm['services']([srvName])
+      kvm['services']([sType])
     kvm['isDealerDisabled'](true)
     kvm['caseInfo'] = """
     <ul class='unstyled'>
@@ -88,7 +66,7 @@ define [ "utils"
         <b>Кто звонил:</b>
         #{kaseKVM.contact_name() || ''} #{kaseKVM.contact_phone1() || ''}
       </li>
-      <li> <b>Номер кеса:</b> #{kaseKVM.id() || ''} </li>
+      <li> <b>Номер кейса:</b> #{kaseKVM.id() || ''} </li>
       <li> <b>Адрес кейса:</b> #{kaseKVM.caseAddress_address() || ''}</li>
       <li> <b>Название программы: </b> #{kaseKVM.programLocal() || ''} </li>
       <li> <b> Марка: </b> #{kaseKVM.car_makeLocal?() || ''}</li>
@@ -132,17 +110,22 @@ define [ "utils"
     kvm['selectPartner'] = (partner, ev) ->
       selected = kvm['selectedPartner']()
       # don't select same partner twice
-      return if selected == partner?.id
-      return if partner?.isfree == false
+      return if selected == partner?.id()
+      return if partner?.isfree() == false
       if _.isNull selected
         selectPartner(kvm, partner)
       else
-        partnerCancel.setup "partner:#{selected}", ctx.service.id, ctx.case.id
+        partnerCancel.setup(
+          selected,
+          parseInt(ctx.service.id.replace(/\D*/, '')),
+          parseInt(ctx.case.id.replace(/\D*/, ''))
+        )
         partnerCancel.onSave ->
           selectPartner(kvm, partner)
           $("#map").trigger "drawpartners"
 
-    kvm['showPartnerCancelDialog'] = (partner, ev) -> kvm['selectPartner'](null)
+    kvm['showPartnerCancelDialog'] = (partner, ev) ->
+      kvm['selectPartner'](null)
 
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
@@ -185,7 +168,7 @@ define [ "utils"
   resizeResults = ->
     t = $("#search-result").offset().top
     w = $(window).height()
-    $("#search-result").height(w-t-10)
+    $("#search-result").height(w-t-26)
 
     t = $("#map").offset().top
     $("#map").height(w-t-5)
@@ -203,17 +186,17 @@ define [ "utils"
   # array), which can be displayed on the map (centered on coords with
   # some zoom level, or simply zoomed to fit bounds).
   bindCityPlaces = (kvm) ->
+    dict = utils.newModelDict "City"
     kvm["city"].subscribe (newCities) ->
       return unless newCities?
-      chunks = _.reject newCities, _.isEmpty
-      kvm["cityPlacesExpected"] = chunks.length
+      kvm["cityPlacesExpected"] = newCities.length
       kvm["cityPlaces"].removeAll()
-      for c in chunks
+      for c in newCities
         do (c) ->
-          fixed_city = global.dictValueCache.DealerCities[c]
+          fixed_city = dict.getLab c
           $.getJSON map.geoQuery(fixed_city), (res) ->
             if res.length > 0
-              place = map.buildCityPlace res
+              place = map.buildCityPlace res, c
               kvm["cityPlaces"].push place
 
   # Format addrs field for partner info template
@@ -318,7 +301,7 @@ define [ "utils"
             partner_popup = $ $("#partner-" + p.id() + "-info").clone().html()
             partner_popup.find(".full-info-link").hide()
             popup = new OpenLayers.Popup.FramedCloud(
-              p.id(), mark.lonlat,
+              String(p.id()), mark.lonlat,
               new OpenLayers.Size(200, 200),
               partner_popup.html(),
               null, true)
@@ -377,8 +360,9 @@ define [ "utils"
   constructor: (view, args) ->
     # remove padding so blank space after removing navbar can be used
     if args?.model?
-      $('body').css('padding-top', '0px')
-      $(".navbar").hide()
+      unless args.model == "mobile"
+        $('body').css('padding-top', '0px')
+        $(".navbar").hide()
 
     kvm = m.buildKVM(model, "partnersSearch-content")
     q = new sync.DipQueue(kvm, model)
@@ -408,7 +392,7 @@ define [ "utils"
           do (nested) ->
             nested['showStr'] = ko.computed ->
               show  = "<span class='label label-info'>
-                       #{srvLab nested.servicenameLocal()}
+                       #{nested.servicenameLocal()}
                        </span>"
               if nested.priority2()
                 show += " <span class='label label-important'>
@@ -487,12 +471,3 @@ define [ "utils"
   subName: subName
   open: open
   template: tpl
-  partials: partialize
-    city          : city
-    make          : make
-    dealer        : dlr
-    mobilePartner : mbp
-    workNow       : wn
-    services      : srvs
-    priority2     : pr2
-    priority3     : pr3

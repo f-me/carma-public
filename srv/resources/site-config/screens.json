@@ -3,47 +3,38 @@
       "type"  : "sms",
       "permissions" : ["sms"]
     },
-    { "name" : "contract",
-      "label": "Контракты",
-      "type" : "li",
-      "permissions": ["partner", "contract_admin"]
-    },
-    { "name"  : "call",
-      "label" : "Звонок",
-      "type"  : "li",
-      "permissions": ["call"]
-    },
-    { "name"  :"case",
-      "label" : "Кейс",
-      "type"  : "li",
-      "permissions": ["core"]
-    },
-    { "name"  : "back",
-      "label" : "Бэкофис",
-      "type"  : "li",
-      "permissions": ["back"]
-    },
-    { "type": "dropdown",
-      "name": "supervisorList",
-      "label": "Супервизор",
-      "permissions": ["supervisor"],
-      "screens": [
-        { "name"  : "supervisor",
-          "label" : "Действия",
-          "type"  : "li",
-          "permissions": ["supervisor"]
+    {
+      "type"    : "dropdown",
+      "name"    : "dev",
+      "label"   : "Разработка",
+      "permissions": ["hacker"],
+      "screens" : [
+        { "name"  : "/backoffice/spec.txt",
+          "label" : "Спецификация БО (.txt)",
+          "type"  : "link",
+          "permissions": ["hacker"]
         },
-        { "name"  : "supervisorOps",
-          "label" : "Операторы",
-          "type"  : "li",
-          "permissions": ["supervisor"]
+        { "name"  : "/backoffice/spec.dot",
+          "label" : "Спецификация БО (.dot)",
+          "type"  : "link",
+          "permissions": ["hacker"]
+        },
+        { "name"  : "bright-new-world",
+          "label" : "Перейти на светлую сторону",
+          "type"  : "hack",
+          "permissions": ["hacker"]
+        },
+        { "name"  : "permute-case-panes",
+          "label" : "Переставить панели кейса",
+          "type"  : "hack",
+          "permissions": ["hacker"]
         }
       ]
     },
     {
       "type": "dropdown",
       "name": "rkcList",
-      "label": "Экран РКЦ",
+      "label": "РКЦ",
       "permissions": ["head"],
       "screens": [
         {
@@ -65,6 +56,39 @@
           "permissions": ["head"]
         }
       ]
+    },
+    { "type": "li",
+      "name": "supervisor",
+      "label": "Супервизор",
+      "permissions": ["supervisor"]
+    },
+    { "type"    : "dropdown",
+       "name"    : "kpi",
+       "label"   : "KPI",
+       "permissions": ["supervisor"],
+       "screens" : [
+       { "name"  :"timeline",
+         "label" : "Таймлайн",
+         "type"  : "li",
+         "permissions": ["supervisor"]
+       },
+       { "name"  :"kpi/stat",
+         "label" : "Статистические показатели",
+         "type"  : "li",
+         "permissions": ["supervisor"]
+       },
+       { "name"  :"kpi/oper",
+         "label" : "Оперативные показатели",
+         "type"  : "li",
+         "permissions": ["supervisor"]
+       },
+       { "name"  :"kpi/group",
+         "label" : "Групповые показатели",
+         "type"  : "li",
+         "permissions": ["supervisor"]
+       }
+
+     ]
     },
     { "type"    : "dropdown",
       "name"    : "search",
@@ -88,10 +112,35 @@
         }
       ]
     },
+    { "name"  : "call",
+      "label" : "Звонок",
+      "type"  : "li",
+      "permissions": ["call"]
+    },
+    { "name"  : "back",
+      "label" : "Бэкофис",
+      "type"  : "li",
+      "permissions": ["back"]
+    },
+    { "name"  : "search/partners",
+      "label" : "Дилеры и партнеры",
+      "type"  : "li",
+      "permissions": ["dpViewer"]
+    },
+    { "name" : "contract",
+      "label": "Контракты",
+      "type" : "li",
+      "permissions": ["partner", "contract_admin"]
+    },
     { "name"  : "vin",
       "label" : "Обновление базы VIN",
       "type"  : "li",
       "permissions": ["vinAdmin", "partner", "psaanalyst"]
+    },
+    { "name"  : "uploads",
+      "label" : "Загрузка файлов",
+      "type"  : "li",
+      "permissions": ["billManager"]
     },
     { "name"  : "partner",
       "label" : "Редактирование партнёров",
@@ -103,24 +152,9 @@
       "type"  : "li",
       "permissions": ["userAdmin", "userViewer"]
     },
-    { "name"  : "uploads",
-      "label" : "Загрузка файлов",
-      "type"  : "li",
-      "permissions": ["billManager"]
-    },
-    { "name"  : "search/partners",
-      "label" : "Дилеры и партнеры",
-      "type"  : "li",
-      "permissions": ["dpViewer"]
-    },
     { "name"  : "dict",
       "label" : "Редактирование справочников",
       "type"  : "li",
       "permissions": ["lovAdmin", "lovViewer"]
-    },
-    { "name"  :"timeline",
-      "label" : "Таймлайн",
-      "type"  : "li",
-      "permissions": ["supervisor"]
     }
 ]

@@ -1,0 +1,55 @@
+mixin rows(columns)
+  thead
+    tr
+      each c in columns
+        th(width="#{c.w}%")
+          button.btn.btn-link(
+            data-bind="{ text: $root.fieldsDict['#{c.name}'].meta.label \
+                       , sort: '#{c.name}' }")
+
+  tbody(data-bind="foreach: kvms")
+    tr(data-bind="event: {dblclick: function () {$root.select($data)}}")
+      each c in columns
+        td(data-bind="renderTpl: {field: $data['#{c.name}'], tpl: '#{c.tpl}' }")
+
+#timeline-view.screen.container-fluid.col
+  .row
+    #users.bs-docs-example.col-md-12
+      .row
+          .bs-docs-example-after
+              | Пользователи
+            .row
+              p
+                input.input-large.search-query(type='text'
+                  placeholder='Поиск'
+                  data-bind='value: kvms.typeahead, valueUpdate: "afterkeydown"')
+            .row(style="height: 70vh; overflow-y: auto;")
+              table.table.table-hover.table-bordered.table-striped.table-condensed
+                +rows([ { name: 'login',        tpl: 'text-ro',              w: 10 }
+                      , { name: 'realName',     tpl: 'text-ro',              w: 20 }
+                      , { name: 'businessRole', tpl: 'dictionary-table',     w: 15 }
+                      , { name: 'bocities',     tpl: 'dictionary-many-table',w: 20 }
+                      , { name: 'boprograms',   tpl: 'dictionary-many-table',w: 20 }
+                      , { name: 'currentState', tpl: 'dictionary-ro'        ,w: 10 }
+                      , { name: 'delayedState', tpl: 'onlyServiceBreak-table',w: 5}
+                      ])
+
+  // ko foreach: timelines
+  #timelines(data-bind="attr: {id: elementId}")
+    .row.timeline(data-bind="applyFn: showTimeline")
+      .bs-docs-example.col-md-10.offset1
+          .bs-docs-example-after(data-bind='text: $data.title')
+          .bs-docs-example-close
+            button.close(type='button', data-bind='click: $data.closeClick') ×
+          .row.form-horizontal
+            .form-horizontal
+              .control-group
+                label.control-label За период
+                .controls
+                  .input-prepend
+                    span.add-on
+                      i.icon-calendar
+                    input.rangepicker(type='text')
+          .row
+            .chart
+  // /ko

@@ -1,86 +1,73 @@
-define ["dictionaries", "text!tpl/screens/printSrv.html"], (D, tpl) ->
+define [ "text!tpl/screens/printSrv.html"
+       , "model/main"
+       , "sync/crud"
+       ], (tpl, main, sync) ->
 
-  # FIXME: rewrite this screen with models and all dat cool stuff
-
-  setupPrintSrv = (viewName, {model: model, id: id}) ->
+  setupPrintSrv = (viewName, {id: id}) ->
     $(".navbar").hide()
 
-    $.getJSON "/printSrv/#{model}/#{id}", (arg) ->
+    svc = main.buildKVM global.model('Service'),
+          fetched: {id: id}
+          queue: sync.CrudQueue
+    if svc.type() == 2 # global.idents("ServiceType").towage
+      svc = main.buildKVM global.model('Towage'),
+            fetched: {id: id}
+            queueOptions: {hooks: ['Service']} # disable case-secreen related hooks
+            queue: sync.CrudQueue
 
-      arg.service = arg.service[0]
-      arg.kase    = arg.kase[0]
+    $.getJSON( "/_/Action?serviceId=#{id}&type=1" )
+      .done((objs) ->
+        svc.assignedTo = {realName: '-'}
+        if objs?.length > 0
+          ass  = _.last(_.sortBy objs, (o) -> o.closeTime).assignedTo
+          if ass
+            svc.assignedTo = main.buildKVM global.model('Usermeta'),
+                fetched: {id: ass}
+                queue: sync.CrudQueue
 
-      arg.service.assignedTo = lookup('users', arg.service.assignedTo)
-      arg.service.type = model
-      postProc arg.kase,
-        time: ['callDate']
-        lookup:
-          Program  : 'program'
-          Wazzup   : 'comment'
-          CarMake  : 'car_make'
-          CarModel : 'car_model'
-          Usermeta : 'callTaker'
-          ContractCheckStatus : 'vinChecked'
-      postProc arg.service,
-        time: ['createTime', 'times_factServiceStart', 'times_factServiceEnd']
-        lookup:
-          Services        : 'type'
-          ServiceStatus   : 'status'
-          FalseStatuses   : 'falseCall'
+        kase = main.buildKVM global.model('Case'),
+              fetched: {id: svc.parentId()}
+              queue: sync.CrudQueue
+        callTaker = main.buildKVM global.model('Usermeta'),
+              fetched: {id: kase.callTaker()}
+              queue: sync.CrudQueue
+        cancels = ko.observableArray()
+        $.getJSON( "/_/PartnerCancel?caseId=#{kase.id()}" )
+          .done((objs) ->
+            for obj in objs
+              cancel = main.buildKVM global.model('PartnerCancel'),
+                    fetched: obj
+                    queue:   null
+              owner = main.buildKVM global.model('Usermeta'),
+                    fetched: {id: cancel.owner()}
+                    queue: sync.CrudQueue
+              partner = main.buildKVM global.model('Partner'),
+                    fetched: {id: cancel.partnerId()}
+                    queue: sync.CrudQueue
+              service = main.buildKVM global.model('Service'),
+                    fetched: {id: cancel.serviceId()}
+                    queue: sync.CrudQueue
+              cancels.push(
+                ctime:   new Date(cancel.ctime()).toString("dd.MM.yyyy HH:mm")
+                owner:   owner.realName()
+                partner: partner.name()
+                reason:  cancel.partnerCancelReasonLocal()
+                comment: cancel.comment() || ''
+                service: service.typeLocal()
+              )
+          )
 
-      for s in (arg.cancels || [])
-        s.service = s.serviceid.split(':')[0]
-        postProc s,
-          lookup:
-            users                : 'owner'
-            PartnerRefusalReason : 'partnerCancelReason'
-            Services             : 'service'
-          time: ['ctime']
-
-      arg.kase.comments = $.parseJSON arg.kase.comments
-      for s in (arg.kase.comments || [])
-        postProc s,
-          lookup:
-            users: 'user'
-
-      ko.applyBindings arg, el("print-table")
+        kvm =
+          kase: kase
+          service: svc
+          callTaker: callTaker
+          comments: kase.comments() || []
+          cancels: cancels
+        ko.applyBindings kvm, el("print-table")
+    )
 
   destroyPrintSrv = () ->
     $(".navbar").show()
-
-  openPrintAction = (kvm) ->
-    return unless kvm.id()
-    window.location.hash = "printAction/#{kvm.id()}"
-
-  time = (time) ->
-    return "" if _.isEmpty(time)
-    new Date(time * 1000).toString("dd.MM.yyyy HH:mm")
-
-  lookup = (dict, val) ->
-    # little hack to make it work
-    newDicts = [ "Program"
-               , "Wazzup"
-               , "PartnerRefusalReason"
-               , "ContractCheckStatus"
-               , "ServiceStatus"
-               , "CarMake"
-               , "CarModel"
-               , "Usermeta"
-               ]
-    if _.contains newDicts, dict
-      label = if dict == 'Usermeta' then 'realName' else 'label'
-      opts  = dict: dict, meta: {dictionaryLabel: label}
-      (new D.dicts.ModelDict(opts)).getLab val
-    else
-      global.dictValueCache[dict][val] || ''
-
-  postProc = (obj, procs) ->
-    if procs.time
-      for t in procs.time
-        obj[t] = time(obj[t])
-    if procs.lookup
-      for d, f of procs.lookup
-        obj[f] = lookup(d, (obj[f] || '')) || obj[f] || ''
 
   { constructor: setupPrintSrv
   , destructor: destroyPrintSrv

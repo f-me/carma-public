@@ -18,11 +18,10 @@ module Carma.Backoffice (carmaBackoffice)
 where
 
 import           Prelude hiding ((>), (==), (||), (&&), const)
-import qualified Prelude as P ((>), (==), (||), (&&), const)
 
 import qualified Carma.Model.ActionResult as AResult
 import qualified Carma.Model.ActionType as AType
-import           Carma.Model.Case.Type as Case
+import           Carma.Model.Case as Case
 import qualified Carma.Model.CaseStatus as CS
 import           Carma.Model.FalseCall as FS
 import           Carma.Model.Program as Program
@@ -30,11 +29,12 @@ import           Carma.Model.Role as Role
 import           Carma.Model.Service as Service
 import qualified Carma.Model.ServiceStatus as SS
 import           Carma.Model.ServiceType as ST
+import           Carma.Model.PaymentType as PT
 import qualified Carma.Model.SmsTemplate as SMS
 import qualified Carma.Model.Usermeta as Usermeta
 
-
 import Carma.Backoffice.DSL
+import Carma.Backoffice.DSL.Types (Eff)
 
 
 toBack :: Entry
@@ -47,8 +47,8 @@ toBack =
 needInfo :: Entry
 needInfo =
     Entry
-    (Case.caseStatus `onCaseField` const CS.needInfo)
-    (proceed [AType.tellMeMore])
+    (insteadOf Case.caseStatus (const CS.needInfo)
+     (proceed [AType.tellMeMore]))
 
 
 orderService :: Action
@@ -58,9 +58,9 @@ orderService =
     (role bo_order)
     (let
         n = (1 * minutes) `since` now
-        t = (1 * days) `before` serviceField' times_expectedServiceStart
+        t = (1 * days) `before` req (serviceField times_expectedServiceStart)
      in
-       switch [(t > n, t)] ((5 * minutes) `since` now)
+       ite (t > n) t ((5 * minutes) `since` now)
     )
     [ (AResult.serviceOrdered,
        sendSMS SMS.order *>
@@ -75,6 +75,7 @@ orderService =
        setServiceStatus SS.canceled *>
        finish)
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -82,13 +83,15 @@ tellClient :: Action
 tellClient =
     Action
     AType.tellClient
-    (role bo_control)
+    (const bo_control)
+    nobody
     ((5 * minutes) `since` now)
     [ (AResult.clientOk,
        proceed [AType.checkStatus])
     , (AResult.clientCanceledService,
        proceed [AType.cancelService])
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -96,13 +99,15 @@ checkStatus :: Action
 checkStatus =
     Action
     AType.checkStatus
-    (role bo_control)
-    ((5 * minutes) `since` serviceField' times_expectedServiceStart)
+    (const bo_control)
+    nobody
+    ((5 * minutes) `since` req (serviceField times_expectedServiceStart))
     [ (AResult.serviceInProgress,
        setServiceStatus SS.inProgress *> proceed [AType.checkEndOfService])
     , (AResult.clientCanceledService,
        proceed [AType.cancelService])
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -110,13 +115,15 @@ checkEndOfService :: Action
 checkEndOfService =
     Action
     AType.checkEndOfService
-    (role bo_control)
-    ((5 * minutes) `since` serviceField' times_expectedServiceEnd)
+    (const bo_control)
+    nobody
+    ((5 * minutes) `since` req (serviceField times_expectedServiceEnd))
     [ (AResult.serviceDone,
        proceed [AType.closeCase])
     , (AResult.clientComplained,
        (proceed [AType.closeCase]))
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -124,10 +131,12 @@ closeCase :: Action
 closeCase =
     Action
     AType.closeCase
-    (role Role.head)
+    (const Role.head)
+    nobody
     ((5 * minutes) `since` now)
     [ (AResult.caseClosed, setServiceStatus SS.closed *> finish)
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -135,13 +144,15 @@ cancelService :: Action
 cancelService =
     Action
     AType.cancelService
-    (role bo_control)
+    (const bo_control)
+    nobody
     ((1 * minutes) `since` now)
     [ (AResult.falseCall,
        setServiceStatus SS.canceled *>
-       setServiceField Service.falseCall FS.bill *>
+       setServiceField Service.falseCall (const FS.bill) *>
        finish)
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 
@@ -149,7 +160,8 @@ tellMeMore :: Action
 tellMeMore =
     Action
     AType.tellMeMore
-    (role bo_order)
+    (const bo_order)
+    nobody
     ((1 * minutes) `since` now)
     [ (AResult.serviceOrderedSMS,
        proceed [AType.checkStatus])
@@ -160,6 +172,7 @@ tellMeMore =
     , (AResult.couldNotReach,
        proceed [AType.tellClient])
     , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
     ]
 
 

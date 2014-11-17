@@ -1,7 +1,7 @@
 module Carma.Backoffice.Validation
     (
       checkBackoffice
-    , ValidityError
+    , ValidityError(..)
     )
 
 where
@@ -22,9 +22,9 @@ import           Carma.Backoffice.Text
 data ValidityError = OutOfGraphTarget (ActionTypeI, ActionTypeI)
                    -- ^ The edge leads to a node not described in the
                    -- graph.
-                   | Trap (ActionTypeI)
+                   | Trap ActionTypeI
                    -- ^ The node has no path to finish node.
-                   | Unreachable (ActionTypeI)
+                   | Unreachable ActionTypeI
                    -- ^ The node has no path from start node.
                    | DuplicateNode ActionTypeI
                    -- ^ A node is described more than once.

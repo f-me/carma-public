@@ -1,0 +1,55 @@
+.row.screen
+  .col.col-md-8
+    .row.col-md-12
+      p.lead
+        | Нераспределённых действий на заказ услуги:
+        col-md-#unassigned-orders —
+      p.lead
+        | Нераспределённых действий на контроль услуги:
+        col-md-#unassigned-controls —
+
+    .row.col-md-12
+      .well#table-filter
+        .form-horizontal
+          .form-group
+            label.col-md-4.control-label Диапазон
+            .col-md-4
+              input.form-control#date-min(type='text')
+            .col-md-4
+              input.form-control#date-max(type='text')
+          #roles
+          .form-group
+            label.col-md-4.control-label Действия
+            .col-md-8
+              select.form-control#closed
+                option(value='0') Открытые
+                option(value='1') Закрытые
+                option(value='') Открытые и закрытые
+          .form-group
+            .col-md-offset-4.col-sm-8
+             button#reload.btn Обновить
+
+    .row.col-md-12
+      table#supervisor-table.table.table-striped.table-bordered
+        thead
+          tr
+            th(width='1%') №кейса/ действия
+            th(width='1%') Закрыто?
+            th(width='1%') Тип действия
+            th(width='1%') Ответственный
+            th(width='5%') Роль
+            th(width='10%') Время выполнения
+            th(width='3%') Простой/ работа/ затраты
+            th(width='10%') Результат
+            th(width='2%') Пр
+            th Город
+            th Программа
+            th Ожидаемое время начала оказания услуги
+            th Название услуги
+        tbody
+
+  .col.col-md-4
+    #supervisor-right
+      form.form-horizontal
+        #action-form
+        #Action-permissions

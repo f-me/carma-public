@@ -1,0 +1,48 @@
+.row.screen
+    #choose-dictionary.col-md-5
+        .well
+          #choose-dict
+            legend Справочник
+            select#dict-select(data-bind='foreach: $data')
+              option(data-bind='value: id, text: name')
+          #dict-parent(data-bind='if: kvm')
+            span.lead(data-bind='text: kvm._meta.model.title')
+            div(data-bind='foreach: kvm._meta.model.fields')
+              div(data-bind='renderField: $data')
+            p
+              a.btn(type='button', data-bind='click: function() { kvm.find(); }')
+                i.icon-search
+                | Найти
+        table#dict-table.table.table-striped.table-bordered.table-break-word
+      .col-md-7
+        #button-panel.page-header(style='display: none;')
+          a#copy-options-btn.btn.btn-action(href='#ctr-copy-modal'
+                                            data-toggle='modal'
+                                            style='display: none;')
+            i.icon.icon-random
+            | Копировать настройки
+          button#add-new-item-btn.btn.btn-action(type='button')
+            i.icon.icon-plus
+            | Добавить
+          button#active-items-btn.btn(type='button', data-toggle='button')
+            i.icon.icon-eye-close
+            | Aктивные
+        // copy constructor options
+        #ctr-copy-modal.modal.hide.fade
+          .modal-header
+            button.close(type='button'
+                         data-dismiss='modal'
+                         aria-hidden='true')
+              | ×
+            h3 Копирование настроек конструктора
+          .modal-body
+            div(data-bind='foreach: kvm._meta.model.fields')
+              div(data-bind='renderField: $data')
+          .modal-footer
+            button.btn(data-dismiss='modal', aria-hidden='true') Отменить
+            button.btn.btn-primary(
+                data-bind='enable: kvm.canCopy, click: kvm.doCopy')
+              | Копировать
+        #dictionaries-view.form-horizontal
+        #permissions.pull-right
+      #hidden-fields-container(style='display: none;')

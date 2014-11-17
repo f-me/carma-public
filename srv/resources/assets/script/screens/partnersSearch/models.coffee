@@ -7,9 +7,10 @@ define [], ->
       , meta: { label: "Поиск", nosearch: true }
       },
       { name: "city"
-      , type: "dictionary-many"
+      , type: "dictionary-set-int"
       , meta:
-          dictionaryName: "DealerCities"
+          dictionaryName: "City"
+          dictionaryType: "ModelDict"
           label: "Город"
       },
       { name: "make"
@@ -22,9 +23,11 @@ define [], ->
           label: "Марка"
       },
       { name: "services"
-      , type: "dictionary-many"
+      , type: "dictionary-set-int"
       , meta:
-          dictionaryName: "Services"
+          dictionaryName: "ServiceType"
+          dictionaryType: "ModelDict"
+          dictionaryStringify: true
           label: "Услуги"
       },
       { name: "priority2"
@@ -77,7 +80,8 @@ define [], ->
       , type: "dictionary"
       , meta: {
           label: "Город"
-          dictionaryName: "DealerCities"
+          dictionaryName: "City"
+          dictionaryType: "ModelDict"
         }
       },
       { name: "isfree"
@@ -172,7 +176,9 @@ define [], ->
     fields: [
       {
         meta:
-          dictionaryName: "Services",
+          dictionaryName: "ServiceType"
+          dictionaryType: "ModelDict"
+          dictionaryStringify: true
           label: "Услуга"
         type: "dictionary",
         name: "servicename"

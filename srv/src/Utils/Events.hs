@@ -1,19 +1,33 @@
-{-# LANGUAGE ScopedTypeVariables, QuasiQuotes, FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables, QuasiQuotes, FlexibleContexts, DataKinds #-}
 
-module Utils.Events where
+module Utils.Events
+    (
+      logCRUD
+    , updateUserState
+    , logLogin
+    , logCRUDState
+    )
+
+where
 
 import           Prelude hiding (log)
 
 import           Control.Monad
 import           Control.Monad.RWS
+import           Control.Exception (SomeException)
 
 import           Data.String (fromString)
 import           Text.Printf
 
 import           Data.Maybe
+import           Data.List
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time.Clock (getCurrentTime)
+import qualified Data.Aeson as Aeson
+import qualified Data.HashMap.Strict as HM
+import           Data.Vector (singleton)
+
 import           GHC.TypeLits
 
 import           Data.Model
@@ -30,19 +44,19 @@ import           Snap.Snaplet.PostgresqlSimple ( HasPostgres(..)
                                                )
 import           Database.PostgreSQL.Simple.SqlQQ
 
-import           Carma.Model
 import           Carma.Model.Event (Event, EventType(..))
 import qualified Carma.Model.Event     as E
 import           Carma.Model.UserState (UserState, UserStateVal(..))
 import qualified Carma.Model.UserState as State
 import           Carma.Model.Usermeta  (Usermeta(..))
-import           Carma.Model.Action    (Action)
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.Call   as Call
 
-import           Snaplet.Search.Types
+import           Snaplet.Search.Types (mkSel)
 import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
+
+import           AppHandlers.KPI (updateOperKPI)
 
 import           Util
 import           Utils.LegacyModel
@@ -53,73 +67,107 @@ logLogin :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
          => EventType -> Handler b m ()
 logLogin tpe = do
   uid <- getRealUid
-  _   <- log $ addIdent uid $ buildEmpty tpe
-  return ()
+  case uid of
+    Nothing -> return ()
+    Just uid' -> do
+      ev <- log $ addIdent uid' $ buildEmpty tpe
+      updateUserState tpe uid' P.empty ev
 
--- | Interface for events from legacy CRUD
-logLegacyCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
-                 , Model m, SingI n)
-              => EventType
-              -- ^ event type
-              -> Text
-              -- ^ Legacy object identifier `model:id`
-              -> (m -> F t n d)
-              -- ^ Changed field
-              -> Handler b b1 ()
-logLegacyCRUD tpe mdl fld = log $ buildLegacy tpe mdl fld
+-- | Create 'Event' from changes in a model.
+logCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
+           , Model m)
+        => EventType
+        -> IdentI m
+        -- ^ Identifier of changed model
+        -> Patch m
+        -- ^ Changed fields
+        -> Handler b b1 (IdentI Event)
+logCRUD tpe idt p = do
+  log $ buildFull tpe idt (Nothing :: Maybe (m -> PK Int m "")) (Just p)
 
--- | Create event from patch and change user state when needed
+-- | Create event *and* update user state.
+logCRUDState :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
+                , Model m)
+             => EventType
+             -> IdentI m
+             -> Patch m
+             -> Handler b b1 (IdentI Event)
+logCRUDState tpe idt p =
+  logCRUD tpe idt p >>=
+  \e -> updateUserState tpe idt p e >> return e
+
+-- | Create event from patch
 log :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
-    => Patch Event -> Handler b m ()
+    => Patch Event -> Handler b m (IdentI Event)
 log p = do
   uid <- getRealUid
+  idt <- create $ setUsr uid p
+  case idt of
+    Left err -> error $ "Can't create Event: " ++ show err
+    Right id' -> return id'
+
+updateUserState :: forall m b b1
+                 . (HasPostgres (Handler b b1), HasAuth b, HasMsg b , Model m)
+                => EventType
+                -> IdentI m
+                -- ^ Identifier of changed model
+                -> Patch m
+                -- ^ Changed fields
+                -> IdentI Event
+                -> Handler b b1 ()
+updateUserState evt idt p evidt = do
   -- Little hack to determine target user for state change in case if
   -- someone else changed @delayedState@ field of current user
-  tgtUsr <- case (P.get p E.modelName, P.get p E.modelId, P.get p E.field) of
-    (Just "Usermeta", Just i, Just (Just "delayedState")) -> return $ Ident i
-    _                                                     -> return uid
-  id' <- create $ setUsr uid p
-  let p' = P.put E.ident id' p
-  s <- checkUserState tgtUsr p'
-  case s of
+  tgtUsr <- case mname of
+    -- Rebuild ident so haskell won't complain about m ~ Usermeta
+    "Usermeta" -> return $ Just $ Ident $ identVal idt
+    _          -> getRealUid
+  case tgtUsr of
     Nothing -> return ()
-    Just st -> do
-      -- well it's hack of course, current time will be little differene
-      -- from real ctime of new state
-      time <- liftIO $ getCurrentTime
-      withMsg $ sendMessage
-        (mkLegacyIdent tgtUsr)
-        (P.put currentState      st      $
-         P.put currentStateCTime time    $
-         P.put delayedState      Nothing $
-         P.empty)
-  return ()
+    Just tgtUsr' -> do
+      s <- checkUserState tgtUsr' evt evidt idt p
+      void $ case s of
+        Nothing -> return ()
+        Just st -> do
+        -- well it's hack of course, current time will be little differene
+        -- from real ctime of new state
+        time <- liftIO $ getCurrentTime
+        withMsg $ sendMessage
+          (mkLegacyIdent tgtUsr')
+          (P.put currentState      st      $
+           P.put currentStateCTime time    $
+           P.put delayedState      Nothing $
+           P.empty)
+        kpis <- updateOperKPI (singleton tgtUsr')
+        withMsg $ sendMessage "oper-kpi" kpis
+  where
+    mname = modelName (modelInfo :: ModelInfo m)
+
 
 -- Implementation --------------------------------------------------------------
 
 -- | Build `Path Event`
-buildFull :: forall m t n d.(Model m, SingI n)
+buildFull :: forall m t n d.(Model m, KnownSymbol n)
           => EventType
           -- ^ Type of the event
           -> IdentI m
           -- ^ Identifier of model `m`, emitted event
           -> Maybe (m -> F t n d)
           -- ^ Changed field
-          -- -> Maybe (Patch m)
+          -> Maybe (Patch m)
           -- ^ The whole patch
-          -- FIXME: can't save patch, because current crud using bad types
           -> Patch Event
-buildFull tpe idt f =
+buildFull tpe idt f patch =
   P.put E.modelId   mid   $
   P.put E.modelName mname $
   P.put E.field     fname $
-  -- P.put E.patch     patch' $
+  P.put E.patch     p'    $
   buildEmpty tpe
    where
      mname = modelName $ (modelInfo :: ModelInfo m)
      mid   = identVal idt
-     fname = return . fieldName =<< f
-     -- patch' = Just $ toJSON patch
+     fname = fieldName <$> f
+     p'    = Aeson.toJSON <$> patch
 
 -- | Build `Patch Event` with just user and type
 buildEmpty :: EventType -> Patch Event
@@ -128,34 +176,23 @@ buildEmpty tpe = P.put E.eventType tpe $  P.empty
 -- | Create `Event` in `postgres` from `Patch Event`, return it's id
 create :: HasPostgres m
        => Patch Event
-       -> m (IdentI Event)
+       -> m (Either SomeException (IdentI Event))
 create ev = withPG $ \c -> liftIO $ P.create ev c
 
--- | Build log event for legacy model crud
-buildLegacy :: forall m t n d.(Model m, SingI n)
-            => EventType
-            -- ^ Type of the event
-            -> Text
-            -- ^ legacy id `model:id`
-            -> (m -> F t n d)
-            -- ^ Changed field
-            -> Patch Event
-buildLegacy tpe objId fld =
-  buildFull tpe idt (Just fld)
-  where
-    idt        = readIdent rawid :: IdentI m
-    (_:rawid:_) = T.splitOn ":" objId
 
-data States = States { from :: [UserStateVal], to :: UserStateVal }
+data States = States { _from :: [UserStateVal], _to :: UserStateVal }
 (>>>) :: [UserStateVal] -> UserStateVal -> States
 (>>>) f t = States f t
 
 -- | Check current state and maybe create new
-checkUserState :: HasPostgres (Handler b m)
+checkUserState :: forall b m m1 . (HasPostgres (Handler b m), Model m1)
                => IdentI Usermeta
-               -> Patch Event
+               -> EventType
+               -> IdentI Event
+               -> IdentI m1
+               -> Patch m1
                -> Handler b m (Maybe UserStateVal)
-checkUserState uid ev = do
+checkUserState uid evType evIdt _ p = do
   hist <- query
     (fromString (printf
     "SELECT %s FROM \"UserState\" WHERE userId = ? ORDER BY id DESC LIMIT 1"
@@ -169,30 +206,25 @@ checkUserState uid ev = do
                    (P.get' lastState State.state)
                    delayedSt
   where
-    nextState' s d = join $ dispatch (P.get' ev E.modelName) (nextState'' s d)
-
-    nextState'' :: forall m.Model m =>
-                   UserStateVal -> Maybe UserStateVal -> m -> Maybe UserStateVal
-    nextState'' s d _ =
-      let mname = modelName (modelInfo :: ModelInfo m)
-      in nextState s d (P.get' ev E.eventType) mname (join $ P.get ev E.field)
-
+    nextState' s d =
+      let mname = modelName (modelInfo :: ModelInfo m1)
+      in nextState s d evType mname (HM.keys $ P.untypedPatch p)
     setNext Nothing = return Nothing
     setNext (Just s) = withPG $ \c -> do
       void $ P.create (mkState s) c
       void $ P.update uid (P.put delayedState Nothing P.empty) c
       return $ Just s
 
-    mkState s = P.put State.eventId (P.get' ev E.ident) $
-                P.put State.userId uid                  $
-                P.put State.state  s                    $
+    mkState s = P.put State.eventId evIdt $
+                P.put State.userId uid    $
+                P.put State.state  s      $
                 P.empty
 
 data UserStateEnv = UserStateEnv { lastState :: UserStateVal
                                  , delayed   :: Maybe UserStateVal
                                  , evType    :: EventType
                                  , mdlName   :: Text
-                                 , mdlFld    :: Maybe Text
+                                 , mdlFlds   :: [Text]
                                  }
 type UserStateM   = RWS UserStateEnv [Bool] (Maybe UserStateVal) ()
 
@@ -209,8 +241,8 @@ nextState :: UserStateVal
           -> EventType
           -> Text
           -- ^ Model name
-          -> Maybe Text
-          -- ^ Field name
+          -> [Text]
+          -- ^ Field names
           -> Maybe UserStateVal
 nextState lastState delayed evt mname fld =
   execUserStateEnv (UserStateEnv lastState delayed evt mname fld) $ do
@@ -232,10 +264,10 @@ nextState lastState delayed evt mname fld =
     -- Check if we can switch user into delayed state
     checkDelayed
   where
-    field :: forall t n d m1.(Model m1, SingI n)
+    field :: forall t n d m1.(Model m1, KnownSymbol n)
           => (m1 -> F t n d) -> (Text, Text)
     field f = (modelName (modelInfo :: ModelInfo m1), fieldName f)
-    model :: forall t n d m1.(Model m1, SingI n) => (m1 -> F t n d) -> Text
+    model :: forall t n d m1.(Model m1, KnownSymbol n) => (m1 -> F t n d) -> Text
     model _ = modelName (modelInfo :: ModelInfo m1)
     allStates = [minBound .. ]
     checkDelayed = do
@@ -248,13 +280,13 @@ nextState lastState delayed evt mname fld =
 on :: EventType -> Matcher -> UserStateM
 on tpe matcher = do
   UserStateEnv{..} <- ask
-  let applicable = evType == tpe && isMatch mdlName mdlFld matcher
+  let applicable = evType == tpe && isMatch mdlName mdlFlds matcher
   tell [applicable]
   where
     isMatch _     _ NoModel         = True
     isMatch mname _ (Models mnames) = mname `elem` mnames
     isMatch mname fld (Fields fs)   =
-      maybe False (\f -> (mname,f) `elem` fs) fld
+      not $ null $ fs `intersect` map (mname,) fld
 
 change :: States -> UserStateM -> UserStateM
 change (States from to) onFn = do
@@ -267,16 +299,16 @@ change (States from to) onFn = do
 -- Utils -----------------------------------------------------------------------
 
 getRealUid :: (HasPostgres (Handler b m), HasAuth b)
-           => Handler b m (IdentI Usermeta)
+           => Handler b m (Maybe (IdentI Usermeta))
 getRealUid = do
-  Just u <- withAuth currentUser
-  [Only uid] <- query
+  mbu <- withAuth currentUser
+  case mbu of
+    Just u -> do
+      [Only uid] <- query
                 [sql| SELECT id from usermetatbl where uid::text = ?|] $
                 Only (unUid $ fromJust $ userId $ u)
-  return uid
-
-mkActionId :: Text -> IdentI Action
-mkActionId bs = readIdent bs
+      return uid
+    Nothing -> return Nothing
 
 addIdent :: forall m.Model m => IdentI m -> Patch Event -> Patch Event
 addIdent idt p =
@@ -284,5 +316,5 @@ addIdent idt p =
   where
     mname = modelName $ (modelInfo :: ModelInfo m)
 
-setUsr :: IdentI Usermeta -> Patch Event -> Patch Event
+setUsr :: Maybe (IdentI Usermeta) -> Patch Event -> Patch Event
 setUsr usr p = P.put E.userid usr p

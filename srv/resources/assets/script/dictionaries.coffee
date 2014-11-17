@@ -3,8 +3,8 @@ define [ "dictionaries/local-dict"
        , "dictionaries/bo-users-dict"
        , "dictionaries/computed-dict"
        , "dictionaries/dealers-dict"
-       , "dictionaries/region-dict"
        , "dictionaries/model-dict"
+       , "dictionaries/results-dict"
        , "dictionaries/hiddenFields"
        ], ->
 

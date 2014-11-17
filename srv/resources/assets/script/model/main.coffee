@@ -23,8 +23,9 @@ define [ "model/render"
        , "lib/serialize"
        , "lib/idents"
        , "lib/config"
+       , "model/fields"
        ],
-       (render, dict, sync, S, Idents, Config) ->
+       (render, dict, sync, S, Idents, Config, Fs) ->
   mainSetup = (Finch
              , localDictionaries
              , hooks
@@ -34,9 +35,6 @@ define [ "model/render"
     dictCache = dict.buildCache(localDictionaries)
     imgr = new Idents
     configmgr = new Config
-
-    # Convert user.roles to use integer ids
-    user.roles = _.map user.roles, (v) -> parseInt v
 
     window.global =
         topElement: $el("layout")
@@ -100,16 +98,16 @@ define [ "model/render"
   # - maybeId; («—» if Backbone id is not available yet)
   #
   # - modelTitle;
-  buildKVM = (model, options) ->
-
-    {elName, fetched, queue, queueOptions, models} = options
-
+  buildKVM = (model, options = {}) ->
     fields    = model.fields
     required  = (f for f in fields when f.meta?.required)
 
     # Build kvm with fetched data if have one
     kvm = {}
-    kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
+    kvm._parent = options.parent
+    kvm._saveSuccessCb = options.saveSuccessCb
+    {elName, fetched, queue, queueOptions, models} = options
+    kvm._meta   = { model: model, cid: _.uniqueId("#{model.name}_") }
     kvm.safelyGet = (prop) -> kvm[prop]?() || ''
 
     # build observables for real model fields
@@ -117,9 +115,15 @@ define [ "model/render"
       do (f) ->
         kvm[f.name] = ko.observable(null)
         kvm[f.name].field = f
+        kvm[f.name].kvm   = kvm
 
     # set id only when it wasn't set from from prefetched data
-    kvm['id'] = ko.observable(fetched?['id'])
+    # FIXME: remove this, id should be created from fields of model
+    # when we have it there
+    unless _.isFunction kvm['id']
+      kvm['id'] = ko.observable()
+      kvm['id'].kvm = kvm
+    kvm.id(fetched['id']) unless _.isUndefined fetched?['id']
 
     # set queue if have one, and sync it with backend
     kvm._meta.q = new queue(kvm, model, queueOptions) if queue
@@ -139,15 +143,41 @@ define [ "model/render"
 
     # special observable for text, so it won't be saved on update null -> ""
     # #1221
-    # make this for all types, because it can't break anything, but will
-    # help if some non text field will require text template
+    # This cycle build presentation computed, which can be safely binded
+    # to ui elements
     for f in fields
       do (f) ->
-        kvm["#{f.name}Text"] = ko.computed
-          read: -> kvm[f.name]()
+        fn = { read: null, write: null }
+        switch f.type
+          when "Double"
+            fn =
+              read: ->
+                return kvm[f.name]() unless _.isNumber kvm[f.name]()
+                kvm[f.name]().toFixed(3)
+          when "DiffTime"
+            twoDig = (v) -> if v < 10 then "0#{v}" else "#{v}"
+            fn =
+              read: ->
+                d = kvm[f.name]()
+                s = d % 60
+                m = Math.floor(d / 60) % 60
+                h = Math.floor(d / 60 / 60)
+                "#{h}:#{twoDig(m)}:#{twoDig(s)}"
+              write: (v) ->
+                [h, m, s] = map v.split(":"), parseInt
+                kvm[f.name](s + m*60 + h*3600)
+        defaults =
+          read:      ->
+            v = kvm[f.name]()
+            if _.isNull(v) or _.isUndefined(v) then "" else v
           write: (v) ->
             return if _.isEmpty(kvm[f.name]()) and v == ""
             kvm[f.name](v)
+
+        kvm["#{f.name}Text"] = ko.computed
+          read: fn.read   || defaults.read
+          write: fn.write || defaults.write
+        kvm[f.name].text = kvm["#{f.name}Text"]
 
     # Setup reference fields: they will be stored in <name>Reference as array
     # of kvm models
@@ -171,9 +201,9 @@ define [ "model/render"
                   buildKVM global.model(m[0], queueOptions?.modelArg),
                     fetched: {id: m[1]}
                     queue:   queue
+                    parent:  kvm
                 refKVM = k.peek()
                 k.dispose()
-                refKVM.parent = kvm
                 refKVM
             write: (v) ->
               ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
@@ -187,6 +217,7 @@ define [ "model/render"
               modelName: f.meta.model
               options:
                 modelArg: queueOptions?.modelArg
+                parentField: 'parentId'
                 newStyle: false
             addRef kvm, f.name, opts, (kvm) -> focusRef(kvm)
 
@@ -208,11 +239,10 @@ define [ "model/render"
               ids = kvm[f.name]()
               return [] unless ids
               for i in ids
-                k = buildKVM global.model(f.meta.model, queueOptions?.modelArg),
+                buildKVM global.model(f.meta.model, queueOptions?.modelArg),
                   fetched: {id: i}
                   queue:   queue
-                k.parent = kvm
-                k
+                  parent:  kvm
             write: (v) ->
               ks = _.map v, (k) -> k.id()
               kvm[f.name](ks)
@@ -229,7 +259,7 @@ define [ "model/render"
                 parentField : 'parent'
             addRef kvm, f.name, opts, (kvm) -> focusRef(kvm)
 
-    kvm["maybeId"] = ko.computed -> kvm['id']() or "—"
+    kvm["maybeId"] = ko.computed -> kvm['id']?() or "—"
 
     for f in fields when f.type == "nested-model"
       do (f) ->
@@ -259,6 +289,8 @@ define [ "model/render"
             kvm['disableDixi']()
           write: (a) ->
             disabled(not not a)
+        kvm[name].disableDixi = kvm["#{name}DisableDixi"]
+        kvm[name].disabled    = kvm["#{name}Disabled"]
 
     # make dixi button disabled
     # until all editable required fields are filled
@@ -273,27 +305,7 @@ define [ "model/render"
         kvm['dixiDisabled'](true)
 
     for f in fields when /interval/.test(f.type)
-      do (f) ->
-        proxy = { begin: null, end: null }
-        updateInterval = ->
-          if proxy.begin and proxy.end
-            kvm[f.name]([proxy.begin, proxy.end])
-          else
-            kvm[f.name](null)
-        kvm[f.name].subscribe (v) ->
-          proxy.begin = if v then v[0] else null
-          proxy.end =   if v then v[1] else null
-        kvm["#{f.name}Begin"] = ko.computed
-          read: -> kvm[f.name](); proxy.begin
-          write: (v) ->
-            proxy.begin = v
-            updateInterval()
-
-        kvm["#{f.name}End"] = ko.computed
-          read: -> kvm[f.name](); proxy.end
-          write: (v) ->
-            proxy.end = v
-            updateInterval()
+      do (f) -> Fs.interval(kvm[f.name])
 
     kvm.toJSON = ->
       r = {}
@@ -403,7 +415,7 @@ define [ "model/render"
         Finch.navigate "#{screenName}/#{kvm.id()}", true
 
       hooks = options.hooks or ['*', model.name]
-      applyHooks global.hooks.model, hooks, elName
+      applyHooks global.hooks.model, hooks, elName, kvm
       return kvm
 
   buildModel = (model, args, options, elName) ->
@@ -411,6 +423,8 @@ define [ "model/render"
         elName: elName
         queue: sync.CrudQueue
         queueOptions: options
+        parent: options.parent
+        saveSuccessCb: options.saveSuccessCb
         fetched: args
       return [kvm, kvm._meta.q]
 
@@ -475,18 +489,8 @@ define [ "model/render"
 
   addRef = (knockVM, field, ref, cb) ->
     field = "#{field}Reference" unless /Reference$/.test(field)
-    # For new-style references (IdentList type), store parent id as a
-    # number in a field of the reference set by
-    # ref.options.parentField
-    #
-    # For old-style references (reference type), store parent id in
-    # "model:<id>" form in "parentId" field
-    if ref.options?.newStyle
-      parentField = ref.options.parentField
-      thisId = knockVM.id()
-    else
-      parentField = 'parentId'
-      thisId = knockVM._meta.model.name + ":" + knockVM.id()
+    parentField = ref.options.parentField
+    thisId = knockVM.id()
     patch = {}
     patch[parentField] = thisId
     ref.args = _.extend(patch, ref.args)

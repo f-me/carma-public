@@ -17,12 +17,28 @@ define [ "model/main"
     else
       oldNav.apply(@, args)
 
+  checkStuff = ->
+    um = window.global.Usermeta
+    if _.isUndefined um
+      throw Error("current user is undefined, initialize it first")
+    if _.isUndefined um.stuff
+      throw Error("need permission to read 'usermeta.stuff'")
+
   initialize: =>
     user = window.global.user
 
+    Role = global.idents 'Role'
+    homepage = ""
+    homepage = "/#partner"    if _.contains user.roles, Role.parguy
+    homepage = "/#back"       if _.contains user.roles, Role.back
+    homepage = "/#call"       if _.contains user.roles, Role.call
+    homepage = "/#supervisor" if _.contains user.roles, Role.supervisor
+    homepage = "/#rkc"        if _.contains user.roles, Role.head
+
+
     usr = Main.buildKVM global.model('Usermeta'),
       queue: Crud.CrudQueue
-      fetched: { id: user.meta.mid }
+      fetched: {id: user.id}
 
     # keep current user kvm inside global, can't do this in 'model/main'
     # due to dependencies
@@ -36,7 +52,7 @@ define [ "model/main"
       # is false, and 'Finch.navigate()' may change current route
       if (_.contains ['rest', 'serviceBreak'], Finch.navigate()) and
           v == 'Ready'
-        window.location.href = user.meta.homepage
+        window.location.href = homepage
 
     usr.timeInCurrentState = ko.observable()
 
@@ -65,10 +81,8 @@ define [ "model/main"
 
     usr.delayedStateLocal?.subscribeWithOld (n, o) =>
       return if usr.currentState?() == "Ready"
-      if _.isNull n
-        msg = "Переход в статус \"#{o}\" отменен."
-      else
-        msg = "Переход в статус \"#{n}\" после завершения текущего действия."
+      return if _.isNull n
+      msg = "Переход в статус \"#{n}\" после завершения текущего действия."
       $.notify msg, className: "info"
 
     ko.applyBindings(usr, $("#current-user")[0])
@@ -76,6 +90,17 @@ define [ "model/main"
     # change next state
     # $('#current-user .dropdown-menu').click (event) -> event.stopPropagation()
 
-    if window.location.hash == "" and user.meta.homepage
-      Finch.navigate user.meta.homepage.replace '/', ''
+    if window.location.hash == "" and homepage
+      Finch.navigate homepage.replace '/', ''
 
+  readStuff: (key) ->
+    checkStuff()
+    window.global.Usermeta.stuff()[key]
+
+  writeStuff: (key, val) ->
+    checkStuff()
+    s = window.global.Usermeta.stuff
+    newVal = {}; newVal[key] = val
+    # write deep copy of previous value, otherwise we can change values that was
+    # read by somebody else
+    s($.extend(true, {}, s(), newVal))

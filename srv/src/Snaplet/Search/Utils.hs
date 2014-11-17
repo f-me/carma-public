@@ -7,8 +7,6 @@
 
 module Snaplet.Search.Utils where
 
-import           Control.Applicative ((<$>))
-
 import           Data.Maybe
 import           Data.Either
 
@@ -21,14 +19,11 @@ import           Database.PostgreSQL.Simple as PG
 
 import           Data.Model       as M
 
-import           Snap.Core
-import           Snap.Snaplet
-import           Snap.Snaplet.Auth hiding (Role)
-
 import           Text.Printf
 import           Util
-import           Utils.Roles
 
+import           Snap
+import           Snaplet.Auth.PGUsers (currentUserRoles)
 import           Snaplet.Search.Types
 import           Carma.Model.Search
 
@@ -66,8 +61,8 @@ mkSearch prms mkq = do
     prms' <- renderPrms c (predicates args) prms
     case prms' of
       Right p -> do
-        -- retrieving onw more elements than limit, so we know
-        -- is there is next page
+        -- retrieving one more elements than limit, so we know
+        -- if there is next page
         s  <- query_ c (mkq (undefined :: t) p (lim + 1) offset
                         (renderOrder $ sorts args))
         return $ Right $ buildResult s lim offset
@@ -112,7 +107,7 @@ writeJSON v = do
 stripResults :: StripRead t
              => SearchResult t -> SearchHandler b (SearchResult t)
 stripResults s@SearchResult{..} = do
-  roles <- with auth currentUser >>= userRolesIds . fromJust
+  Just roles <- currentUserRoles
   withPG $ \c -> do
     vals <- mapM (stripRead c roles) values
     return $ s{ values = vals }
@@ -122,7 +117,7 @@ defaultSearch :: (RenderPrms p, FromRow t, MkSelect t, StripRead t)
               -> (t -> Text -> Int -> Int -> String -> Query)
               -> SearchHandler b (Either String (SearchResult t))
 defaultSearch searchParams mkq = do
-  r <- mkSearch (searchParams) mkq
+  r <- mkSearch searchParams mkq
   case r of
     Left  e -> return $ Left e
     Right v -> Right <$> stripResults v

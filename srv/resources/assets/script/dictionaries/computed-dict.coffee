@@ -9,6 +9,16 @@ define ["dictionaries/local-dict"], (ld) ->
 
     getLab: (val) -> @dictValues()[val]
 
+    # ServiceType dictionary including icon field and model names
+    iconizedServiceTypes: =>
+      @bgetJSON "/_/CtrModel", (mdls) =>
+        @bgetJSON "/_/ServiceType", (styps) =>
+          @source = for st in styps
+            label: st.label || '',
+            icon: st.icon,
+            value: st.id,
+            model: (_.find mdls, (ctr) -> st.model == ctr.id).value
+
     # List of Role instances with isBack=true (used on #supervisor)
     backofficeRoles: =>
       @bgetJSON "/_/Role", (objs) =>
@@ -20,14 +30,14 @@ define ["dictionaries/local-dict"], (ld) ->
     programManagers: =>
       @bgetJSON "/_/Usermeta", (objs) =>
         pms = _.filter objs, (o) ->
-          _.contains o.roles, String(global.idents("Role").programManager)
+          _.contains o.roles, global.idents("Role").programManager
         @source = for p in pms
             { value: p.id
             , label: (p.realName + ' — ' + p.login) || ''
             }
 
     # Dictionary of all subprograms, with labels including parent
-    # program name (used to assign users to subprograms)
+    # program name
     prefixedSubPrograms: =>
       @bgetJSON "/_/Program", (parentObjs) =>
         @bgetJSON "/_/SubProgram", (objs) =>
@@ -38,15 +48,15 @@ define ["dictionaries/local-dict"], (ld) ->
             }
 
     # Dictionary of all subprograms available to user from VIN/portal screen.
-    # - partner/psaanalyst may see only his own programs
-    # - contractAdmin/vinAdmin role may access all programs
-    # - all other users see no programs
+    # - partner/psaanalyst may see only his own subprograms
+    # - contractAdmin/vinAdmin role may access all subprograms
+    # - all other users see no subprograms
     #
     # TODO Compute this on server.
     portalSubPrograms: =>
       all_pgms = new ComputedDict(dict: "prefixedSubPrograms").source
       # Requires user to reload the page to update list of available
-      # programs
+      # subprograms
       @source =
         if _.contains(global.user.roles, global.idents("Role").vinAdmin) or
            _.contains(global.user.roles, global.idents("Role").contract_admin)
@@ -54,13 +64,8 @@ define ["dictionaries/local-dict"], (ld) ->
         else
           if _.contains(global.user.roles, global.idents("Role").partner) or
              _.contains(global.user.roles, global.idents("Role").psaanalyst)
-            user_pgms =
-              if global.user.meta.programs
-                _.map (global.user.meta.programs.split ','), (s) -> parseInt s
-              else
-                []
-            _.filter(all_pgms,
-                    (e) -> _.contains user_pgms, e.value)
+            user_pgms = global.user.subPrograms || []
+            _.filter(all_pgms, (e) -> _.contains user_pgms, e.value)
           else
             []
 

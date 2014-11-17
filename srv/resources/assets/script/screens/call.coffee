@@ -5,17 +5,18 @@ define [ "utils"
        , "text!tpl/screens/call.html"
        ], (utils, hotkeys, main, pSearch, tpl) ->
 
-  utils.build_global_fn 'makeCase', ['screens/newCase']
+  utils.build_global_fn 'makeCase', ['screens/case']
   utils.build_global_fn 'reloadScreen', ['utils']
   storeKey = "call"
 
   setupCallForm = (viewName, args) ->
+
     # if user have unfinished call redirect him to close it
     unfinished = localStorage["#{storeKey}.id"]
     if unfinished and args.id isnt unfinished
         return Finch.navigate "call/#{unfinished}"
 
-    knockVM = main.modelSetup("call") viewName, args,
+    knockVM = main.modelSetup("Call") viewName, args,
                        permEl     : "case-permissions"
                        slotsee    : ["call-number", "right"]
                        focusClass : "focusable"
@@ -43,9 +44,9 @@ define [ "utils"
       content: "Справка по поиску"
 
     sq = $('#search-query')
-    sq.tagautocomplete
-      character: '!'
-      source:    {entries: ['!Кейс:', '!VIN:', '!Госномер:', '!Тел:']}
+    # sq.tagautocomplete
+    #   character: '!'
+    #   source:    {entries: ['!Кейс:', '!VIN:', '!Госномер:', '!Тел:']}
 
     e = jQuery.Event 'keypress'
     e.which = 61
@@ -59,6 +60,9 @@ define [ "utils"
     $("#search-partner").on 'click', partnerSearchClick
     $("#make-new-call").on 'click', -> makeCallClick viewName
     $("#end-call").on 'click', -> endCallClick viewName
+
+    # this will prevent modal from hiding on click behind modal borders
+    $("#new-call-modal").modal { backdrop: 'static', show: false }
     setModalVisible not args.id?
 
     searchQuery = localStorage["#{storeKey}.search-query"]
@@ -83,6 +87,7 @@ define [ "utils"
             ,progs.getLab(obj.program) || obj.program || ''
             ,wazzup.getLab(obj.comment) || obj.comment || ''
             ]
+    return if _.isEmpty rows
     st.fnAddData(rows)
 
   dtSearch = (st) ->
@@ -123,28 +128,21 @@ define [ "utils"
     localStorage.removeItem "#{storeKey}.id"
 
     saveInstance viewName, ->
-      reloadScreen()
+      # check if we have id in url, then goto call; else just reload
+      if location.hash.match(/[0-9]+$/)
+      then Finch.navigate 'call'
+      else reloadScreen()
 
   setModalVisible = (visible) ->
     if visible then showModal() else hideModal()
 
   showModal = ->
-    $("#new-call-modal")
-      .removeClass("out")
-      .addClass("in")
-    $("#left").hide()
-    $("#center").hide()
-    $("#right").hide()
-    $("#bottom").hide()
+    $("#new-call-modal").modal('show')
+    $("#call-screen").hide()
 
   hideModal = ->
-    $("#left").show()
-    $("#center").show()
-    $("#right").show()
-    $("#bottom").show()
-    $("#new-call-modal")
-      .removeClass("in")
-      .addClass("out")
+    $("#call-screen").show()
+    $("#new-call-modal").modal('hide')
 
 
   { constructor: setupCallForm
