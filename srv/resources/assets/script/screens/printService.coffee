@@ -12,7 +12,7 @@ define [ "text!tpl/screens/printSrv.html"
     if svc.type() == 2 # global.idents("ServiceType").towage
       svc = main.buildKVM global.model('Towage'),
             fetched: {id: id}
-            queueOptions: {hooks: ['Service']} # disable case-secreen related hooks
+            queueOptions: {hooks: ['*','Service']} # disable case-screen related hooks
             queue: sync.CrudQueue
 
     $.getJSON( "/_/Action?serviceId=#{id}&type=1" )
