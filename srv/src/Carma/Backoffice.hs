@@ -26,7 +26,6 @@ import qualified Carma.Model.CaseStatus as CS
 import           Carma.Model.FalseCall as FS
 import           Carma.Model.Program as Program
 import           Carma.Model.Role as Role
-import           Carma.Model.Satisfaction as Satisfaction
 import           Carma.Model.Service as Service
 import qualified Carma.Model.ServiceStatus as SS
 import           Carma.Model.ServiceType as ST
@@ -41,64 +40,8 @@ import Carma.Backoffice.DSL.Types (Eff)
 toBack :: Entry
 toBack =
     Entry
-    (onField Service.status (const SS.backoffice)
-    (closePrevious InCase
-     [AType.tellMeMore, AType.callMeMaybe]
-     AResult.communicated *>
-     switch
-     [ ( serviceField svcType `oneOf` [ST.towage, ST.tech]
-       , sendSMS SMS.create *> proceed [AType.orderService]
-       )
-     , ( serviceField svcType `oneOf` [ST.ken, ST.consultation]
-       , sendSMS SMS.complete *>
-         messageToGenser *>
-         setServiceStatus SS.ok *>
-         proceed [AType.closeCase, AType.addBill]
-       )
-     ]
-     (proceed [AType.orderServiceAnalyst])
-    ))
-
-
-messageToGenser :: Backoffice bk => bk (Eff m)
-messageToGenser =
-    ite
-    ((caseField Case.program == const Program.genser) &&
-     (serviceField Service.svcType == const ST.towage) &&
-     (serviceField Service.payType == just PT.ruamc)
-    )
-    (sendMail Genser) -- FIXME: lift check for Towage.towType from sendMail
-    nop
-
-
-messageToPSA :: Backoffice bk => bk (Eff m)
-messageToPSA =
-    ite
-    ((caseField Case.program `oneOf` [Program.peugeot, Program.citroen]) &&
-     (serviceField Service.svcType `oneOf` [ST.towage, ST.tech, ST.consultation]) &&
-     (serviceField Service.payType == just PT.ruamc ||
-      serviceField Service.payType == just PT.mixed)
-    )
-    (sendMail PSA) -- FIXME: lift checks for Towage.techType & consultation.result
-    nop
-
-messageToDealer :: Backoffice bk => bk (Eff m)
-messageToDealer =
-    ite
-    ((caseField Case.program `oneOf` [Program.peugeot, Program.citroen]) &&
-     (serviceField Service.svcType == const ST.towage) &&
-     (serviceField Service.payType == just PT.ruamc ||
-      serviceField Service.payType == just PT.refund ||
-      serviceField Service.payType == just PT.mixed)
-    )
-    (sendMail Dealer)
-    nop
-
-needMakerApproval :: Entry
-needMakerApproval =
-    Entry
-    (onField Service.status (const SS.makerApproval)
-     (proceed [AType.makerApproval]))
+    (Service.status `onServiceField` const SS.backoffice)
+    (proceed [AType.orderService])
 
 
 needInfo :: Entry
@@ -108,92 +51,11 @@ needInfo =
      (proceed [AType.tellMeMore]))
 
 
-mobileOrder :: Entry
-mobileOrder =
-    Entry
-    (insteadOf Case.caseStatus (const CS.mobileOrder)
-     (proceed [AType.callMeMaybe]))
-
-
-cancel :: Entry
-cancel =
-    Entry
-    (onField Service.status (const SS.canceled) $
-     switch
-      [ ( serviceField status == const SS.creating ||
-          (serviceField status == const SS.backoffice &&
-           assigneeOfLast InService
-           [AType.orderService, AType.orderServiceAnalyst]
-           [noResult] == nobody) ||
-          (serviceField status == const SS.makerApproval &&
-           assigneeOfLast InService [AType.makerApproval]
-           [noResult] == nobody)
-        , setServiceField falseCall (const FS.nobill) *>
-          closePrevious InService
-          [AType.orderService, AType.orderServiceAnalyst, AType.makerApproval]
-          AResult.clientCanceledService *>
-          closePrevious InCase
-          [AType.tellMeMore, AType.callMeMaybe]
-          AResult.okButNoService *>
-          messageToPSA *>
-          finish
-        )
-      , ( serviceField status == const SS.backoffice &&
-          currentUser ==
-          assigneeOfLast InService
-          [AType.orderService, AType.orderServiceAnalyst]
-          [noResult]
-        , closePrevious InService
-          [AType.orderService, AType.orderServiceAnalyst]
-          AResult.clientCanceledService *>
-          messageToPSA *>
-          finish
-        )
-      ] $
-      closePrevious InService
-      [ AType.orderService, AType.orderServiceAnalyst
-      , AType.tellClient, AType.makerApproval
-      , AType.checkStatus, AType.checkEndOfService
-      ]
-      AResult.clientCanceledService *>
-      messageToPSA *>
-      messageToGenser *>
-      proceed [AType.cancelService]
-    )
-
-
-recallClient :: Entry
-recallClient =
-    Entry
-    (insteadOf Service.status (const SS.recallClient)
-     (proceed [AType.checkStatus]))
-
-
-complaint :: Entry
-complaint =
-    Entry
-    (onField Service.clientSatisfied (just Satisfaction.none)
-     (proceed [AType.complaintResolution]))
-
-
-mistake :: Entry
-mistake =
-    Entry
-    (onField Service.status (const SS.mistake)
-     finish)
-
-
 orderService :: Action
 orderService =
     Action
     AType.orderService
-    (const bo_order)
-    (ite (previousAction == const AType.needPartner ||
-          userField Usermeta.isJack)
-     currentUser
-     (assigneeOfLast InCase
-      [AType.tellMeMore, AType.callMeMaybe] [just AResult.communicated])
-    )
+    (role bo_order)
     (let
         n = (1 * minutes) `since` now
         t = (1 * days) `before` req (serviceField times_expectedServiceStart)
@@ -202,56 +64,16 @@ orderService =
     )
     [ (AResult.serviceOrdered,
        sendSMS SMS.order *>
-       messageToPSA *>
-       messageToGenser *>
        setServiceStatus SS.ordered *>
-       proceed [AType.tellClient, AType.addBill])
+       proceed [AType.tellClient])
     , (AResult.serviceOrderedSMS,
        sendSMS SMS.order *>
-       messageToPSA *>
-       messageToGenser *>
        setServiceStatus SS.ordered *>
-       proceed [AType.checkStatus, AType.addBill])
-    , (AResult.needPartner,
-       sendSMS SMS.parguy *>
-       setServiceStatus SS.needPartner *>
-       proceed [AType.needPartner])
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
-
-
-orderServiceAnalyst :: Action
-orderServiceAnalyst =
-    Action
-    AType.orderServiceAnalyst
-    (const bo_secondary)
-    nobody
-    (let
-        n = (1 * minutes) `since` now
-        t = (1 * days) `before` req (serviceField times_expectedServiceStart)
-     in
-       ite (t > n) t ((5 * minutes) `since` now)
-    )
-    [ (AResult.serviceOrderedAnalyst,
-       switch
-       [ ( (serviceField svcType == const ST.rent) &&
-           caseField Case.program `oneOf` [Program.peugeot, Program.citroen]
-         , setServiceStatus SS.inProgress *>
-           proceed [AType.checkEndOfService, AType.addBill]
-         )
-       , ( serviceField svcType `oneOf`
-           [ ST.taxi
-           , ST.sober
-           , ST.adjuster
-           ]
-         , setServiceStatus SS.ordered *>
-           messageToGenser *>
-           proceed [AType.checkStatus, AType.addBill])
-       ]
-       (setServiceStatus SS.ordered *>
-        messageToGenser *>
-        proceed [AType.closeCase, AType.addBill]))
+       proceed [AType.checkStatus])
+    , (AResult.clientCanceledService,
+       sendSMS SMS.cancel *>
+       setServiceStatus SS.canceled *>
+       finish)
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]
@@ -264,7 +86,10 @@ tellClient =
     (const bo_control)
     nobody
     ((5 * minutes) `since` now)
-    [ (AResult.clientOk, proceed [AType.checkStatus])
+    [ (AResult.clientOk,
+       proceed [AType.checkStatus])
+    , (AResult.clientCanceledService,
+       proceed [AType.cancelService])
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]
@@ -279,23 +104,12 @@ checkStatus =
     ((5 * minutes) `since` req (serviceField times_expectedServiceStart))
     [ (AResult.serviceInProgress,
        setServiceStatus SS.inProgress *> proceed [AType.checkEndOfService])
+    , (AResult.clientCanceledService,
+       proceed [AType.cancelService])
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]
 
-
-needPartner :: Action
-needPartner =
-    Action
-    AType.needPartner
-    (const bo_order)
-    nobody
-    ((15 * minutes) `since` now)
-    [ (AResult.partnerFound,
-       setServiceStatus SS.order *> proceed [AType.orderService])
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
 
 checkEndOfService :: Action
 checkEndOfService =
@@ -305,13 +119,8 @@ checkEndOfService =
     nobody
     ((5 * minutes) `since` req (serviceField times_expectedServiceEnd))
     [ (AResult.serviceDone,
-       sendSMS SMS.complete *>
-       messageToDealer *>
-       messageToGenser *>
-       setServiceStatus SS.ok *>
-       ite (caseField Case.program `oneOf`
-            [Program.peugeot, Program.citroen, Program.vw])
-       (proceed [AType.closeCase, AType.getDealerInfo])
+       proceed [AType.closeCase])
+    , (AResult.clientComplained,
        (proceed [AType.closeCase]))
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
@@ -331,23 +140,6 @@ closeCase =
     ]
 
 
-getDealerInfo :: Action
-getDealerInfo =
-    Action
-    AType.getDealerInfo
-    (const bo_dealer)
-    nobody
-    (ite
-     ((serviceField svcType == const ST.rent) &&
-      caseField Case.program `oneOf` [Program.peugeot, Program.citroen])
-     ((5 * minutes) `since` req (serviceField times_factServiceEnd))
-     ((14 * days) `since` req (serviceField times_factServiceEnd)))
-    [ (AResult.gotInfo, messageToPSA *> finish)
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
-
-
 cancelService :: Action
 cancelService =
     Action
@@ -355,144 +147,10 @@ cancelService =
     (const bo_control)
     nobody
     ((1 * minutes) `since` now)
-    [ (AResult.falseCallUnbilled,
-       sendSMS SMS.cancel *>
-       messageToGenser *>
-       setServiceStatus SS.canceled *>
-       setServiceField Service.falseCall (const FS.nobill) *>
-       finish)
-    , (AResult.falseCallBilled,
-       sendSMS SMS.cancel *>
-       messageToGenser *>
+    [ (AResult.falseCall,
        setServiceStatus SS.canceled *>
        setServiceField Service.falseCall (const FS.bill) *>
        finish)
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
-
-makerApproval :: Action
-makerApproval =
-    Action
-    AType.makerApproval
-    (const bo_control)
-    nobody
-    ((1 * minutes) `since` now)
-    [ (AResult.makerApproved,
-       setServiceStatus SS.order *> proceed [AType.orderService])
-    , (AResult.makerDeclined, proceed [AType.tellMakerDeclined])
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
-
-
-tellMakerDeclined :: Action
-tellMakerDeclined =
-    Action
-    AType.tellMakerDeclined
-    (const bo_control)
-    nobody
-    ((5 * minutes) `since` now)
-    [ (AResult.clientNotified,
-       setServiceStatus SS.closed *> finish)
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
-
-
-addBill :: Action
-addBill =
-    Action
-    AType.addBill
-    (const bo_bill)
-    nobody
-    ((14 * days) `since` now)
-    [ (AResult.billAttached, proceed [AType.headCheck])
-    , (AResult.returnToBack, proceed [AType.billmanNeedInfo])
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
-
-
-billmanNeedInfo :: Action
-billmanNeedInfo =
-    Action
-    AType.billmanNeedInfo
-    (const bo_qa)
-    nobody
-    ((5 * minutes) `since` now)
-    [ (AResult.returnToBillman, proceed [AType.addBill])
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
-
-
-headCheck :: Action
-headCheck =
-    Action
-    AType.headCheck
-    (const Role.head)
-    nobody
-    ((5 * minutes) `since` now)
-    [ (AResult.confirmedFinal, proceed [AType.analystCheck])
-    , (AResult.confirmedWODirector, proceed [AType.accountCheck])
-    , (AResult.confirmedHead, proceed [AType.directorCheck])
-    , (AResult.returnToBillman, proceed [AType.addBill])
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
-
-
-directorCheck :: Action
-directorCheck =
-    Action
-    AType.directorCheck
-    (const bo_director)
-    nobody
-    ((5 * minutes) `since` now)
-    [ (AResult.directorToHead, proceed [AType.headCheck])
-    , (AResult.confirmedDirector, proceed [AType.accountCheck])
-    , (AResult.confirmedFinal, proceed [AType.analystCheck])
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
-
-
-accountCheck :: Action
-accountCheck =
-    Action
-    AType.accountCheck
-    (const bo_account)
-    nobody
-    ((5 * minutes) `since` now)
-    [ (AResult.accountToDirector, proceed [AType.directorCheck])
-    , (AResult.confirmedAccount, proceed [AType.analystCheck])
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
-
-
-analystCheck :: Action
-analystCheck =
-    Action
-    AType.analystCheck
-    (const bo_analyst)
-    nobody
-    ((5 * minutes) `since` now)
-    [ (AResult.confirmedAnalyst, finish)
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
-
-
-complaintResolution :: Action
-complaintResolution =
-    Action
-    AType.complaintResolution
-    (const bo_qa)
-    nobody
-    ((1 * minutes) `since` now)
-    [ (AResult.complaintManaged, finish)
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]
@@ -505,24 +163,14 @@ tellMeMore =
     (const bo_order)
     nobody
     ((1 * minutes) `since` now)
-    [ (AResult.communicated,
-       setCaseField caseStatus (const CS.back) *> finish)
-    , (AResult.okButNoService,
-       setCaseField caseStatus (const CS.back) *> finish)
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
-
-
-callMeMaybe :: Action
-callMeMaybe =
-    Action
-    AType.callMeMaybe
-    (const bo_order)
-    nobody
-    ((1 * minutes) `since` now)
-    [ (AResult.communicated, finish)
-    , (AResult.okButNoService, finish)
+    [ (AResult.serviceOrderedSMS,
+       proceed [AType.checkStatus])
+    , (AResult.clientCanceledService,
+       setServiceStatus SS.canceled *>
+       setServiceField Service.falseCall FS.bill *>
+       finish)
+    , (AResult.couldNotReach,
+       proceed [AType.tellClient])
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]
@@ -532,32 +180,13 @@ carmaBackoffice :: BackofficeSpec
 carmaBackoffice =
     ( [ toBack
       , needInfo
-      , needMakerApproval
-      , mobileOrder
-      , recallClient
-      , cancel
-      , complaint
-      , mistake
       ]
     , [ orderService
-      , orderServiceAnalyst
       , tellClient
       , checkStatus
-      , needPartner
       , checkEndOfService
       , closeCase
-      , getDealerInfo
       , cancelService
-      , makerApproval
-      , tellMakerDeclined
-      , addBill
-      , billmanNeedInfo
-      , headCheck
-      , directorCheck
-      , accountCheck
-      , analystCheck
-      , complaintResolution
-      , callMeMaybe
       , tellMeMore
       ]
     )
