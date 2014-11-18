@@ -128,7 +128,7 @@ define [ "utils"
       kvm['selectPartner'](null)
 
   loadContext = (kvm, args) ->
-    s = localStorage['partnersSearch']
+    s = localStorage[storeKey]
     ctx = JSON.parse s if s
     # By default, map is unclickable
     kvm['mapClickable'] = false
@@ -163,7 +163,7 @@ define [ "utils"
         kvm['mobilePartner'](true)
 
     # cleanup localstore
-    localStorage.removeItem 'partnersSearch'
+    localStorage.removeItem storeKey
 
   resizeResults = ->
     t = $("#search-result").offset().top

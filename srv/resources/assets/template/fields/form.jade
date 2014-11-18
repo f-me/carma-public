@@ -348,17 +348,18 @@ include _form_utils
 
 // Modal dialog template
 #modalDialog-field-template.field-template(type='text/template')
-  .modal.hide.fade(id="{{ id }}-modal")
-    .modal-header
-      button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
-      h3 {{ title }}
-    .alert(id="{{ id }}-alert-container")
-      button.close(type='button') ×
-      .alert-message
-    .modal-body(id="{{ id }}-form")
-    .modal-footer
-      button.btn.btn-primary(id="{{ id }}-save") {{ saveLabel }}
-      button.btn(data-dismiss='modal', aria-hidden='true') {{ cancelLabel}}
+  .modal.fade(id="{{ id }}-modal")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          .alert(id="{{ id }}-alert-container")
+            button.close(type='button') ×
+            .alert-message
+          h4.modal-title {{ title }}
+        .modal-body.form-horizontal(id="{{ id }}-form")
+        .modal-footer
+          button.btn.btn-primary(id="{{ id }}-save") {{ saveLabel }}
+          button.btn(data-dismiss='modal', aria-hidden='true') {{ cancelLabel}}
 
 // Group view container
 .group-template(id="-group-template" type='text/template')

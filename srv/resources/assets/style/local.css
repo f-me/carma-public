@@ -100,3 +100,8 @@ tr.details > td {
 .vmargined-2 > .row {
   margin-top: 10px;
 }
+
+/* so dropdowns won't hide behind modal windows */
+.typeahead.dropdown-menu {
+  z-index: 1051;
+}
