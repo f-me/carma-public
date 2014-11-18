@@ -166,7 +166,7 @@ define [ "utils"
           # make colored service a little bit nicer even if it is just created
           $('.accordion-toggle:has(> .alert)').css 'padding', 0
           $(".status-btn-tooltip").tooltip()
-          e.parent().collapse 'show'
+          $("##{k['view']}-head").collapse 'show'
 
     utils.build_global_fn 'addService', ['screens/case']
 

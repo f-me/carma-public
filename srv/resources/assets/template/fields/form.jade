@@ -196,14 +196,14 @@ include _form_utils
                                    valueUpdate: 'afterkeydown',\
                                    disabled: {{ name }}Disabled")
         +savingSpinner
-        span.input-group-addon
-          span.glyphicon.glyphicon-share(
+        span.input-group-addon(
             onclick="showComplex('{{ viewName }}', '{{ name }}');")
+          span.glyphicon.glyphicon-share
 
 // Template for fields with unknown type
 .field-template#unknown-field-template
   .form-control
-    span.label.label-important
+    span.label.label-danger
       | (Ошибка — поле {{ names }} неизвестного типа)
 
 // Template for fields with unknown type
@@ -311,9 +311,9 @@ include _form_utils
       input.form-control(type='text'
         name='{{ name }}'
         data-bind='value: {{ name }}')
-      span.input-group-addon
-        i.glyphicon.glyphicon-search(
+      span.input-group-addon(
           data-bind='click: openPartnerSearch.bind($data, \'{{ name }}\')')
+        span.glyphicon.glyphicon-search
 
 // Modal dialog launch button
 #modalDialogButton-field-template.field-template
@@ -532,13 +532,13 @@ mixin caseFilesList
     .col-md-offset-4.col-md-8
       | {{# readonly }}
       button.btn.disabled(type="button")
-        i.icon-ban-circle
+        span.glyphicon.glyphicon-circle
           | Только для чтения
       | {{/ readonly }}
       | {{^ readonly }}
       button.btn.btn-success(type="button"
               onClick="saveInstance('{{ viewName }}');successfulSave.call(this);")
-        i.icon-pencil.icon-white
+        span.glyphicon.glyphicon-pencil
         | Сохранить
       span.save-result
       | {{/ readonly }}
@@ -555,13 +555,13 @@ mixin caseFilesList
   ul.nav.nav-pills
     li(class="drop{{drop}}")
       button.dropdown-toggle.btn.btn-action(type="button" data-toggle="dropdown")
-        i.icon.icon-plus
+        span.glyphicon.glyphicon-plus
         | Добавить услугу
       ul.dropdown-menu
         | {{# dictionary.source }}
         li
           a(href="#" onclick="addService('{{model}}'); return false;")
-            i.icon-black(class="icon-{{icon}}")
+            span.glyphicon(class="glyphicon-{{icon}}")
             | {{ label }}
         | {{/ dictionary.source }}
 

@@ -11,6 +11,13 @@ define [ "utils"
 
   setupCallForm = (viewName, args) ->
 
+    # change z-index, so menu wil be shown even with active modal
+    $("#new-call-modal").on "shown.bs.modal", ->
+      $(".modal-backdrop").css "z-index", 1029
+      console.log $(".modal-backdrop").css "z-index"
+    $("#new-call-modal").on "hide.bs.modal", ->
+      $(".modal-backdrop").css "z-index", "1040"
+
     # if user have unfinished call redirect him to close it
     unfinished = localStorage["#{storeKey}.id"]
     if unfinished and args.id isnt unfinished
