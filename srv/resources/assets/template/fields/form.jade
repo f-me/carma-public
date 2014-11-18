@@ -141,8 +141,9 @@ include _form_utils
 // NOP here — references are rendered after model has loaded
 #reference-field-template.field-template(type='text/template')
   .form-group
-    .col-sm-8.col-sm-offset-4
+    .row.col-sm-11.col-sm-offset-1
       span.accordion(id="{{ modelName }}-{{ cid }}-{{ name }}-references")
+    .row.col-sm-offset-4.col-sm-8
       | {{# meta.model}}
       #add-reference-button
         button.dropdown-toggle.btn.btn-action(
