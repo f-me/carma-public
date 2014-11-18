@@ -141,7 +141,7 @@ include _form_utils
 // NOP here — references are rendered after model has loaded
 #reference-field-template.field-template(type='text/template')
   .form-group
-    .col-sm-12
+    .col-sm-8.col-sm-offset-4
       span.accordion(id="{{ modelName }}-{{ cid }}-{{ name }}-references")
       | {{# meta.model}}
       #add-reference-button
@@ -208,7 +208,7 @@ include _form_utils
 // Template for fields with unknown type
 .field-template#dict-objects-field-template
   +fieldControlGroup
-    div(data-bind="foreach: {{ name }}Objects")
+    .form-horizontal(data-bind="foreach: {{ name }}Objects")
       .form-group
         label.control-label.col-sm-4
           span(data-bind="text: keyLocal")
@@ -216,28 +216,30 @@ include _form_utils
               data-bind="click: $parent.{{name}}DeleteObj")
               | &nbsp;×
         .col-sm-8
-          input.form-control(type="text"
-            autocomplete="off"
-            style="{{# meta.transform }}\n\
-                   text-transform:{{meta.transform}};\n\
-                   {{/ meta.transform }}"
-            data-bind="value: value,\n\
-                       valueUpdate: 'afterkeydown',\n\
-                       {{# meta.regexp }}\n\
-                       css: { 're-failed': regexp }\n\
-                       {{/ meta.regexp }}")
-    | {{# meta.showNote }}
-    label.control-label.col-sm-4 {{ meta.noteLabel }} {{ name }}
-    .col-sm-8
-      input.pane-span.focusable(type="text"
-          autocomplete="off"
-          data-bind="value: note, valueUpdate: 'afterkeydown'")
-    | {{/ meta.showNote }}
+          .input-group.input-group-sm
+            input.form-control(type="text"
+              autocomplete="off"
+              style="{{# meta.transform }}\n\
+                     text-transform:{{meta.transform}};\n\
+                     {{/ meta.transform }}"
+              data-bind="value: value,\n\
+                         valueUpdate: 'afterkeydown',\n\
+                         {{# meta.regexp }}\n\
+                         css: { 're-failed': regexp }\n\
+                         {{/ meta.regexp }}")
+      | {{# meta.showNote }}
+      .form-group
+        label.control-label.col-sm-4 {{ meta.noteLabel }} {{ name }}
+        .col-sm-8.input-group.input-group-sm
+          input.form-control.pane-span.focusable(type="text"
+              autocomplete="off"
+              data-bind="value: note, valueUpdate: 'afterkeydown'")
+      | {{/ meta.showNote }}
 
     .dropup
       button.dropdown-toggle.btn.btn-action(type="button"
         data-toggle="dropdown")
-        i.icon.icon-plus
+        span.glyphicon.glyphicon-plus
         | &nbsp;{{ meta.addLabel }}
       ul.dropdown-menu(data-bind="foreach: {{name}}KeyDictionary")
         li
