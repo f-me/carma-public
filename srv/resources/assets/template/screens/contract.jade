@@ -23,7 +23,7 @@
         a(href='#contract-tab', data-toggle='tab') Редактирование
   #sidebar-content.col-md-3.tab-content(style='overflow-y: scroll;')
     // Search tab
-    #search-tab.tab-pane.active(style='width: 95%;')
+    #search-tab.tab-pane.active.vmargined-2(style='width: 95%;')
       .row.col-md-12.form-horizontal
         #search-conditions(data-bind='foreach: kvm.showFields')
           div(data-bind='renderField: $data')
@@ -31,21 +31,20 @@
         #show-field(data-bind='renderField: f')
         p(style='margin-top: 2em;')
           a#download-csv-btn.btn.btn-action(type='button')
-            i.icon.icon-download-alt
+            span.glyphicon.glyphicon-download-alt
             b Выгрузить в CSV
     // Contract tab
-    #contract-tab.tab-pane(style='width: 95%;')
+    #contract-tab.tab-pane.vmargined-2(style='width: 95%;')
       .row.col-md-12
-        a#new-contract-btn.btn.btn-action(type='button')
-          i.icon.icon-plus
+        a#new-contract-btn.btn.btn-default(type='button')
+          span.glyphicon.glyphicon-plus
           | Добавить контракт
       .row.col-md-12
-        p(style='margin-top: 2em;')
-          i.icon.icon-print
-          b Распечатать:
-          a#render-contract(onclick='return false;', href='#', target='_blank')
-            | Договор.pdf
-      .row-col-md-12
+        span.glyphicon.glyphicon-print
+        b Распечатать: &nbsp;
+        a#render-contract(onclick='return false;', href='#', target='_blank')
+          | Договор.pdf
+      .row.col-md-12
         #contract-form.form-horizontal
 
 .hidden

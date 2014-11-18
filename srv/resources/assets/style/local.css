@@ -92,3 +92,11 @@ tr.details > td {
 .osMap {
   height: 600px;
 }
+
+.vmargined-1 > .row {
+  margin-top: 5px;
+}
+
+.vmargined-2 > .row {
+  margin-top: 10px;
+}
