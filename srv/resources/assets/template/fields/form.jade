@@ -13,6 +13,7 @@ include _form_utils
 .field-template#textarea-field-template
   +fieldControlGroup
     textarea.form-control(name="{{ name }}" rows="7"
+      style="height: 10em;"
       data-bind="\n\
                  value: {{ name }}Text,\n\
                  valueUpdate: ['afterkeydown', 'afterpaste'],\n\
