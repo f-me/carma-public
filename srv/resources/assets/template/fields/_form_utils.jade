@@ -51,7 +51,8 @@ mixin dateInput(nameMod, dataBinds, change)
   span.input-group-addon.glyphicon.glyphicon-calendar
 
 mixin savingSpinner
-  span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate.form-control-feedback(
+  span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
+    class="form-control-feedback saving-spinner"
     data-bind='sync: {{ name }}Sync' style='display: none;')
 
 mixin labelAnnotations(name)

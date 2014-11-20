@@ -45,14 +45,6 @@ define [ "model/utils"
       $span.fadeOut(2000))
     , 500)
 
-  window.alertUser = (message, delay = 5000) ->
-    tpls = $("<div />").append($(Ftpls))
-    $alert = $(Mustache.render $(tpls).find("#alert-template").html(), {message})
-    $('.container-fluid').prepend $alert
-    setTimeout ->
-        $alert.fadeOut 'slow', -> $(@).remove()
-      , delay
-
   window.inlineSpinner = (el) ->
     $(el).addClass("inline-spinner").append("<div class='bounce1'></div><div class='bounce2'></div><div class='bounce3'></div>")
 

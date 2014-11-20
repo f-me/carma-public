@@ -105,3 +105,7 @@ tr.details > td {
 .typeahead.dropdown-menu {
   z-index: 1051;
 }
+
+.saving-spinner {
+  right: 30px !important;
+}
