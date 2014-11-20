@@ -28,7 +28,7 @@ library
     base                   >= 4.6 && < 4.8,
     bytestring             == 0.10.*,
     carma-dict             >= 0.1.1 && < 0.2,
-    carma-models           >= 0.24 && < 0.27,
+    carma-models           >= 0.24 && < 0.28,
     containers             == 0.5.*,
     HTTP                   == 4000.2.*,
     lens                   >= 3.8 && < 4.4,
