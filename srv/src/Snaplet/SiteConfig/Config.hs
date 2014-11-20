@@ -13,13 +13,11 @@ import           Snap.Snaplet.Auth
 import           Snap.Snaplet.PostgresqlSimple
 
 import           Snaplet.Auth.Class
-import           Snaplet.SiteConfig.Models
 import           AppHandlers.Util
 
 
 data SiteConfig b = SiteConfig
-  { models       :: Map Text Model
-  , dictionaries :: Aeson.Value
+  { dictionaries :: Aeson.Value
   , auth         :: Lens' b (Snaplet (AuthManager b))
   , db           :: Lens' b (Snaplet Postgres)
   }

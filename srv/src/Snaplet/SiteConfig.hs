@@ -51,15 +51,7 @@ getModel name view =
         _               -> getModel name ""
     _ -> case Model.dispatch name $ viewForModel view of
            Just res -> return res
-           -- Try to obtain a new-style model using legacy model names
-           -- if the supplied name is unknown
-           Nothing
-             | Just name' <- Map.lookup name Model.legacyModelNames ->
-                 case Model.dispatch name' $ viewForModel view of
-                   Just res -> return $ setModelName name <$> res
-                   Nothing  -> Map.lookup name <$> gets models
-           -- Serve an old-style model
-           _ -> Map.lookup name <$> gets models
+           Nothing -> finishWithError 404 "Unknown model/view"
 
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
@@ -154,10 +146,6 @@ writeModel model
 stripModel :: AuthUser -> Model -> Handler b (SiteConfig b) Model
 stripModel u m = do
   let Just uid = userId u
-      -- When requesting an old-style model (@case@), use permissions
-      -- defined for new-style model (@Case@).
-      fixModelName v =
-          fromMaybe v $ Map.lookup v Model.legacyModelNames
   readableFields <- query [sql|
     select p.field, max(p.w::int)::bool
       from "FieldPermission" p, usermetatbl u
@@ -167,7 +155,7 @@ stripModel u m = do
         and p.role = ANY (u.roles)
       group by p.field
     |]
-    (unUid uid, fixModelName $ modelName m)
+    (unUid uid, modelName m)
   let fieldsMap = Map.fromList readableFields
   let fieldFilter f fs = case Map.lookup (name f) fieldsMap of
         Nothing -> fs
@@ -217,6 +205,5 @@ initSiteConfig cfgDir a p = makeSnaplet
       , ("idents/:name", method GET serveIdents)
       , ("dictionaries", method GET serveDictionaries)
       ]
-    mdls <- liftIO $ loadModels cfgDir
     dicts <- liftIO $ loadDictionaries cfgDir
-    return $ SiteConfig mdls dicts a p
+    return $ SiteConfig dicts a p
