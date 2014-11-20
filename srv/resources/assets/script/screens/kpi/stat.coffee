@@ -20,10 +20,17 @@ define ["text!tpl/screens/kpi/stat.html"
          , (new Date).toString("dd.MM.yyyy HH:mm:ss")
          ]
         sCtx.interval = Fs.interval ko.observable(int)
+        sCtx.interval.correct = ko.computed ->
+          sint = _.map sCtx.interval(), (v) -> Map.c2s(v, 'UTCTime')
+          sint[0] < sint[1]
+
+        sCtx.cases_amount = ko.observable()
+        sCtx.files_attached = ko.observable()
 
         updateTbl = (int) ->
           return if _.isNull int
           sint = _.map int, (v) -> Map.c2s(v, 'UTCTime')
+          return unless sCtx.interval.correct()
           spinner true
           $.getJSON "/kpi/stat/#{sint[0]}/#{sint[1]}", (data) ->
             ks = for m in data
@@ -53,8 +60,6 @@ define ["text!tpl/screens/kpi/stat.html"
 
             kvms ks
             spinner false
-          sCtx.cases_amount = ko.observable()
-          sCtx.files_attached = ko.observable()
           $.getJSON "kpi/statFiles/#{sint[0]}/#{sint[1]}", ([c, f]) ->
             sCtx.cases_amount c
             sCtx.files_attached f
