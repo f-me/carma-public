@@ -4,8 +4,6 @@ module Snaplet.SiteConfig.Config (SiteConfig(..)) where
 
 import           Control.Lens
 
-import           Data.Map (Map)
-import           Data.Text (Text)
 import qualified Data.Aeson as Aeson
 
 import           Snap

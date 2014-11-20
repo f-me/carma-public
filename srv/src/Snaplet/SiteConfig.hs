@@ -76,10 +76,6 @@ viewForModel name _
   $ (Model.modelView name :: Maybe (Model.ModelView m))
 
 
-setModelName :: Text -> Model -> Model
-setModelName n m = m {modelName = n}
-
-
 -- | Combine field data and writable flag to a new readonly meta value.
 ro :: Field -> Bool -> Bool
 ro fld wr =
