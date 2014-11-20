@@ -9,7 +9,7 @@ module Data.Model.Patch
   , mergeParentPatch
   , IPatch
   , FullPatch, Data.Model.Patch.Object
-  , get, get', put, delete, union, difference, singleton
+  , get, get', put, delete, union, differenceFrom, singleton
   , empty
   , W(..)
   )
@@ -100,8 +100,27 @@ singleton :: (Typeable t, SingI name)
 singleton f v = put f v empty
 
 
-difference :: Patch m -> Patch m -> Patch m
-difference p1 p2 = Patch $ HashMap.difference (untypedPatch p1) (untypedPatch p2)
+-- | Delete key-value pairs from the first argument if they exist in
+-- the second. If only values differ for a key, the value from the
+-- first argument is used.
+differenceFrom :: forall m. Model m => Patch m -> Patch m -> Patch m
+differenceFrom p1 p2 =
+  Patch p
+  where
+    p1' = untypedPatch p1
+    p2' = untypedPatch p2
+    newKeys = HashMap.difference p1' p2'
+
+    -- Filter intersection, leaving only fields with changed JSON
+    -- values
+    fields = modelFieldsMap (modelInfo :: ModelInfo m)
+    toJS k = fd_toJSON $ fields HashMap.! k
+    newVals =
+      HashMap.filterWithKey
+      (\k v -> (Just $ toJS k v) /= (toJS k <$> HashMap.lookup k p2')) $
+      HashMap.intersection p1' p2'
+
+    p = HashMap.union newKeys newVals
 
 
 parentField :: Model m =>
