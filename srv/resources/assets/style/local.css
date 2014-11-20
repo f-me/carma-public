@@ -109,3 +109,7 @@ tr.details > td {
 .saving-spinner {
   right: 30px !important;
 }
+
+input.re-failed {
+  background-color: #FEE793;
+}

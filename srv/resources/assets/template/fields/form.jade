@@ -548,7 +548,7 @@ mixin caseFilesList
   ul#empty-fields
     | {{# fields }}
     li(onclick="focusField('{{name}}'); return false;"
-      data-bind="css: { lierror: {{name}}Not }, visible: {{name}}Not")
+      data-bind="css: { 'text-danger': {{name}}Not }, visible: {{name}}Not")
       | {{meta.label}}
     | {{/ fields }}
 

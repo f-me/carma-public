@@ -11,7 +11,7 @@ mixin labelWithInfo(name)
 mixin fieldControlGroup
   .form-group.has-feedback(data-bind="\n\
                             {{# meta.required }}\n\
-                            css: { error: {{name}}Not }\n\
+                            css: { 'has-error': {{name}}Not }\n\
                             {{/ meta.required}}")
     label.col-sm-4.control-label
       +labelWithInfo("{{name}}")
@@ -90,7 +90,7 @@ mixin dict(nameMod, iconClass)
 mixin dictMany(nameMod, iconClass)
   .form-group.has-feedback(data-bind="\n\
                             {{# meta.required }}\n\
-                            css: { error: {{name}}Not }\n\
+                            css: { 'has-error': {{name}}Not }\n\
                             {{/ meta.required}}")
     label.col-sm-4.control-label
       +labelWithInfo("{{name}}")
