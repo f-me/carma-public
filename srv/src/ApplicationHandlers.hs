@@ -65,7 +65,7 @@ import Snaplet.FileUpload (FileUpload(cfg))
 
 import Carma.Model
 import Data.Model.CRUD
-import Data.Model.Patch (Patch(..))
+import Data.Model.Patch as Patch (Patch(..), differenceFrom)
 import Carma.Model.Event (EventType(..))
 
 import Application
@@ -161,7 +161,7 @@ createHandler = do
             updateUserState Create idt commit evIdt
             -- we really need to separate idents from models
             -- (so we can @Patch.set ident i commit@)
-            return $ case Aeson.toJSON commit' of
+            return $ case Aeson.toJSON (commit' `Patch.differenceFrom` commit) of
               Object obj
                 -> Object
                 $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
@@ -232,8 +232,7 @@ updateHandler = do
           Right commit' -> do
             evIdt <- logCRUD Update ident commit
             updateUserState Update ident commit evIdt
-            return $ recode commit'
-  -- See also Utils.NotDbLayer.update
+            return $ recode (commit' `Patch.differenceFrom` commit)
   fromMaybe (error "Unknown model") (Carma.Model.dispatch model updateModel) >>=
     \case
       Left n -> handleError n
