@@ -144,12 +144,12 @@ define [ "utils"
     if visible then showModal() else hideModal()
 
   showModal = ->
-    $("#new-call-modal").modal('show')
+    $("#new-call-modal").show().removeClass("out").addClass("in")
     $("#call-screen").hide()
 
   hideModal = ->
+    $("#new-call-modal").hide().removeClass("in").addClass("out")
     $("#call-screen").show()
-    $("#new-call-modal").modal('hide')
 
 
   { constructor: setupCallForm
