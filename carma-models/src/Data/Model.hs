@@ -64,7 +64,6 @@ mkModelInfo ctr pk = case parentInfo :: ParentInfo m of
     mInf = ModelInfo
       { modelName       = T.pack $ show $ typeOf (undefined :: m)
       , parentName      = Nothing
-      , legacyModelName = Nothing
       , tableName       = T.pack $ fromSing (sing :: Sing (TableName m))
       , primKeyName     = fieldName pk
       , modelFields     = mFields

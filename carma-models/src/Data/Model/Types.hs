@@ -87,7 +87,6 @@ type FieldI t (n :: Symbol) (d :: Symbol) =
 data ModelInfo m = ModelInfo
   { modelName      :: Text
   , parentName     :: Maybe Text
-  , legacyModelName:: Maybe Text
   , tableName      :: Text
   , primKeyName    :: Text
   , modelFields    :: [FieldDesc]
