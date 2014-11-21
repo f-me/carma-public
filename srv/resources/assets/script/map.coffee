@@ -489,7 +489,7 @@ define ["model/utils", "utils"], (mu, u) ->
     current_blip_type =
       mu.modelField(model_name, field_name).meta["currentBlipType"] or "default"
 
-    $("#partnerMapModal").one "shown", ->
+    $("#partnerMapModal").one "shown.bs.modal", ->
       # Resize map container to fit the modal window container
       w = $(window).height()
       modal.find(".modal-body").css('max-height', w * 0.80)
@@ -510,7 +510,7 @@ define ["model/utils", "utils"], (mu, u) ->
 
     # Unbind handlers to avoid multiple handler calls when the map
     # popup is shown again
-    $("#partnerMapModal").one "hidden", ->
+    $("#partnerMapModal").one "hidden.bs.modal", ->
       search.off "keypress"
       search_button.off "click"
 
