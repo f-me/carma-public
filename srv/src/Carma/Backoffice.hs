@@ -29,19 +29,17 @@ import           Carma.Model.Role as Role
 import           Carma.Model.Service as Service
 import qualified Carma.Model.ServiceStatus as SS
 import           Carma.Model.ServiceType as ST
-import           Carma.Model.PaymentType as PT
 import qualified Carma.Model.SmsTemplate as SMS
 import qualified Carma.Model.Usermeta as Usermeta
 
 import Carma.Backoffice.DSL
-import Carma.Backoffice.DSL.Types (Eff)
 
 
 toBack :: Entry
 toBack =
     Entry
-    (Service.status `onServiceField` const SS.backoffice)
-    (proceed [AType.orderService])
+    (onField Service.status (const SS.backoffice)
+     (proceed [AType.orderService]))
 
 
 needInfo :: Entry
@@ -55,7 +53,8 @@ orderService :: Action
 orderService =
     Action
     AType.orderService
-    (role bo_order)
+    (const bo_order)
+    nobody
     (let
         n = (1 * minutes) `since` now
         t = (1 * days) `before` req (serviceField times_expectedServiceStart)
@@ -120,8 +119,6 @@ checkEndOfService =
     ((5 * minutes) `since` req (serviceField times_expectedServiceEnd))
     [ (AResult.serviceDone,
        proceed [AType.closeCase])
-    , (AResult.clientComplained,
-       (proceed [AType.closeCase]))
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]
@@ -167,7 +164,7 @@ tellMeMore =
        proceed [AType.checkStatus])
     , (AResult.clientCanceledService,
        setServiceStatus SS.canceled *>
-       setServiceField Service.falseCall FS.bill *>
+       setServiceField Service.falseCall (const FS.bill) *>
        finish)
     , (AResult.couldNotReach,
        proceed [AType.tellClient])
