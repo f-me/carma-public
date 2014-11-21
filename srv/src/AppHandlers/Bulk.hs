@@ -10,6 +10,7 @@ where
 
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as B
+import           Data.Configurator
 import           Data.Int
 import           Data.Map (Map)
 import qualified Data.Map as Map
@@ -24,6 +25,7 @@ import           Carma.VIN
 
 import           Application
 import           AppHandlers.Util
+import           Database.PostgreSQL.Simple as Pg
 
 import           Data.Model (Ident(..))
 import qualified Data.Model.Patch as Patch
@@ -74,7 +76,14 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       (outPath, _) <- liftIO $ openTempFile tmpDir inName
 
       -- Use connection information from DbLayer
-      connInfo <- getConnectInfo
+      appCfg <- getSnapletUserConfig
+      connInfo <- liftIO $ ConnectInfo
+                  <$> require appCfg "vinnie_host"
+                  <*> require appCfg "vinnie_port"
+                  <*> require appCfg "vinnie_user"
+                  <*> require appCfg "vinnie_pass"
+                  <*> require appCfg "vinnie_db"
+
 
       -- VIN import task handler
       with taskMgr $ TM.create $ do

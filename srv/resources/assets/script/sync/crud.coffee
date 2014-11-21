@@ -65,7 +65,7 @@ define [ "sync/metaq"
 
     hideSyncAnim: (jqXHR, status) =>
       if status
-        alertUser "Данные не были сохранены. Попробуйте сохранить изменения
+        $.notify "Данные не были сохранены. Попробуйте сохранить изменения
          ещё раз."
       else
         _.each (_.keys @qbackup), (fname) =>

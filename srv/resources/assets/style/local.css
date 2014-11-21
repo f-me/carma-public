@@ -92,3 +92,30 @@ tr.details > td {
 .osMap {
   height: 600px;
 }
+
+.vmargined-1 > .row {
+  margin-top: 5px;
+}
+
+.vmargined-2 > .row {
+  margin-top: 10px;
+}
+
+/* so dropdowns won't hide behind modal windows */
+.typeahead.dropdown-menu {
+  z-index: 1051;
+}
+
+.saving-spinner {
+  right: 30px !important;
+}
+
+input.re-failed {
+  background-color: #FEE793;
+}
+
+.typeahead {
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}

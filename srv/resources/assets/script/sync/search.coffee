@@ -55,7 +55,7 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
 
     hideSpinner: (jqXHR, error) =>
       if error
-        alertUser "Данные не были получены. Повторите поиск."
+        $.notify "Данные не были получены. Повторите поиск."
       else
         @kvm['searchResultsSpinner'] false
 

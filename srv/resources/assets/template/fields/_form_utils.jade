@@ -11,7 +11,7 @@ mixin labelWithInfo(name)
 mixin fieldControlGroup
   .form-group.has-feedback(data-bind="\n\
                             {{# meta.required }}\n\
-                            css: { error: {{name}}Not }\n\
+                            css: { 'has-error': {{name}}Not }\n\
                             {{/ meta.required}}")
     label.col-sm-4.control-label
       +labelWithInfo("{{name}}")
@@ -36,18 +36,24 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
     )&attributes(attributes)
   +savingSpinner
 
-mixin dateInput(nameMod, dataBinds, change)
+
+mixin rawDateInput(nameMod, dataBinds, change)
   .input-group.input-group-sm.date(data-provide="datepicker"
                      data-autoshow-datepicker="true"
                      data-date-format="dd.mm.yyyy"
                      data-date-weekstart="1"
                      data-bind="pickerDisable: {{ name }}.disabled")
     +defaultInput(nameMod, dataBinds, change)&attributes(attributes)
+    block
 
-    span.input-group-addon.glyphicon.glyphicon-calendar
+mixin dateInput(nameMod, dataBinds, change)
+  +rawDateInput(nameMod, dataBinds, change)&attributes(attributes)
+    span.input-group-addon
+      span.glyphicon.glyphicon-calendar
 
 mixin savingSpinner
-  span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate.form-control-feedback(
+  span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
+    class="form-control-feedback saving-spinner"
     data-bind='sync: {{ name }}Sync' style='display: none;')
 
 mixin labelAnnotations(name)
@@ -85,7 +91,7 @@ mixin dict(nameMod, iconClass)
 mixin dictMany(nameMod, iconClass)
   .form-group.has-feedback(data-bind="\n\
                             {{# meta.required }}\n\
-                            css: { error: {{name}}Not }\n\
+                            css: { 'has-error': {{name}}Not }\n\
                             {{/ meta.required}}")
     label.col-sm-4.control-label
       +labelWithInfo("{{name}}")

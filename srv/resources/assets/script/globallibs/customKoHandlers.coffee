@@ -61,7 +61,7 @@ ko.bindingHandlers.bindDict =
       fld = _.find acc().kvm._meta.model.fields, (f) -> f.name == acc()
     # bind th.draw here, because we don't have ready th
     # during binding any more, see bug #1148
-    chevron = $(el).siblings().find('.glyphicon-chevron-down')[0]
+    chevron = $(el).siblings().find('.glyphicon-chevron-down').parent()[0]
     if chevron
       $(chevron).on 'click', th.drawAll unless fld?.readonly
 

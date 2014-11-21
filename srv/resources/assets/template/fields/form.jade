@@ -13,6 +13,7 @@ include _form_utils
 .field-template#textarea-field-template
   +fieldControlGroup
     textarea.form-control(name="{{ name }}" rows="7"
+      style="height: 10em;"
       data-bind="\n\
                  value: {{ name }}Text,\n\
                  valueUpdate: ['afterkeydown', 'afterpaste'],\n\
@@ -48,8 +49,11 @@ include _form_utils
 
 .field-template#interval-datetime-field-template
   +fieldControlGroup
-    +dateInput(".begin", "", 'change')
-    +dateInput(".end", "", 'change')
+    .row
+      .col-sm-6
+        +rawDateInput(".begin", "", 'change')
+      .col-sm-6
+        +rawDateInput(".end", "", 'change')
 
 .field-template#phone-field-template
   +fieldControlGroup
@@ -138,8 +142,9 @@ include _form_utils
 // NOP here — references are rendered after model has loaded
 #reference-field-template.field-template(type='text/template')
   .form-group
-    .col-sm-12
+    .row.col-sm-11.col-sm-offset-1
       span.accordion(id="{{ modelName }}-{{ cid }}-{{ name }}-references")
+    .row.col-sm-offset-4.col-sm-8
       | {{# meta.model}}
       #add-reference-button
         button.dropdown-toggle.btn.btn-action(
@@ -192,20 +197,20 @@ include _form_utils
                                    valueUpdate: 'afterkeydown',\
                                    disabled: {{ name }}Disabled")
         +savingSpinner
-        span.input-group-addon
-          span.glyphicon.glyphicon-share(
+        span.input-group-addon(
             onclick="showComplex('{{ viewName }}', '{{ name }}');")
+          span.glyphicon.glyphicon-share
 
 // Template for fields with unknown type
 .field-template#unknown-field-template
   .form-control
-    span.label.label-important
+    span.label.label-danger
       | (Ошибка — поле {{ names }} неизвестного типа)
 
 // Template for fields with unknown type
 .field-template#dict-objects-field-template
   +fieldControlGroup
-    div(data-bind="foreach: {{ name }}Objects")
+    .form-horizontal(data-bind="foreach: {{ name }}Objects")
       .form-group
         label.control-label.col-sm-4
           span(data-bind="text: keyLocal")
@@ -213,28 +218,30 @@ include _form_utils
               data-bind="click: $parent.{{name}}DeleteObj")
               | &nbsp;×
         .col-sm-8
-          input.form-control(type="text"
-            autocomplete="off"
-            style="{{# meta.transform }}\n\
-                   text-transform:{{meta.transform}};\n\
-                   {{/ meta.transform }}"
-            data-bind="value: value,\n\
-                       valueUpdate: 'afterkeydown',\n\
-                       {{# meta.regexp }}\n\
-                       css: { 're-failed': regexp }\n\
-                       {{/ meta.regexp }}")
-    | {{# meta.showNote }}
-    label.control-label.col-sm-4 {{ meta.noteLabel }} {{ name }}
-    .col-sm-8
-      input.pane-span.focusable(type="text"
-          autocomplete="off"
-          data-bind="value: note, valueUpdate: 'afterkeydown'")
-    | {{/ meta.showNote }}
+          .input-group.input-group-sm
+            input.form-control(type="text"
+              autocomplete="off"
+              style="{{# meta.transform }}\n\
+                     text-transform:{{meta.transform}};\n\
+                     {{/ meta.transform }}"
+              data-bind="value: value,\n\
+                         valueUpdate: 'afterkeydown',\n\
+                         {{# meta.regexp }}\n\
+                         css: { 're-failed': regexp }\n\
+                         {{/ meta.regexp }}")
+      | {{# meta.showNote }}
+      .form-group
+        label.control-label.col-sm-4 {{ meta.noteLabel }}
+        .col-sm-8.input-group.input-group-sm
+          input.form-control.pane-span.focusable(type="text"
+              autocomplete="off"
+              data-bind="value: note, valueUpdate: 'afterkeydown'")
+      | {{/ meta.showNote }}
 
     .dropup
       button.dropdown-toggle.btn.btn-action(type="button"
         data-toggle="dropdown")
-        i.icon.icon-plus
+        span.glyphicon.glyphicon-plus
         | &nbsp;{{ meta.addLabel }}
       ul.dropdown-menu(data-bind="foreach: {{name}}KeyDictionary")
         li
@@ -305,9 +312,9 @@ include _form_utils
       input.form-control(type='text'
         name='{{ name }}'
         data-bind='value: {{ name }}')
-      span.input-group-addon
-        i.glyphicon.glyphicon-search(
+      span.input-group-addon(
           data-bind='click: openPartnerSearch.bind($data, \'{{ name }}\')')
+        span.glyphicon.glyphicon-search
 
 // Modal dialog launch button
 #modalDialogButton-field-template.field-template
@@ -342,17 +349,18 @@ include _form_utils
 
 // Modal dialog template
 #modalDialog-field-template.field-template(type='text/template')
-  .modal.hide.fade(id="{{ id }}-modal")
-    .modal-header
-      button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
-      h3 {{ title }}
-    .alert(id="{{ id }}-alert-container")
-      button.close(type='button') ×
-      .alert-message
-    .modal-body(id="{{ id }}-form")
-    .modal-footer
-      button.btn.btn-primary(id="{{ id }}-save") {{ saveLabel }}
-      button.btn(data-dismiss='modal', aria-hidden='true') {{ cancelLabel}}
+  .modal.fade(id="{{ id }}-modal")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          .alert(id="{{ id }}-alert-container")
+            button.close(type='button') ×
+            .alert-message
+          h4.modal-title {{ title }}
+        .modal-body.form-horizontal(id="{{ id }}-form")
+        .modal-footer
+          button.btn.btn-primary(id="{{ id }}-save") {{ saveLabel }}
+          button.btn(data-dismiss='modal', aria-hidden='true') {{ cancelLabel}}
 
 // Group view container
 .group-template(id="-group-template" type='text/template')
@@ -377,11 +385,12 @@ include _form_utils
 mixin refCommon(headingDataBind)
   .panel-group(id="{{ refView }}-group")
     .panel.panel-default
-      .panel-heading.panel-title(id="{{ refView }}-link"
+      .panel-heading(id="{{ refView }}-link"
                        data-parent="{{ refView }}-group"
                        data-target="#{{ refView }}-head"
                        data-toggle="collapse"
                        data-bind=headingDataBind)
+        h4.panel-title
           block
       .panel-collapse.collapse(id="{{ refView }}-head")
         .panel-body
@@ -395,19 +404,18 @@ mixin simpleRefHdr(name, bindName)
 #services-reference-template.reference-template
   +refCommon('style: {"background-color": _svcColor}')
     span &nbsp;
-    a(data-bind='text: _meta.model.title')
-      | Услуга…
+    a(data-bind='text: _meta.model.title') Услуга…
     span &nbsp;
-    a.btn.btn-mini(
+    a.btn.btn-mini.btn-default(
       data-bind="attr: { href: '#printSrv/' + id() }"
       target='_blank')
-      i.icon.icon-print
+      span.glyphicon.glyphicon-print
       | &nbsp;Печать
     span &nbsp;
     button.btn.btn-mini.btn-danger(
       data-bind='visible: buttons.mistake.visible,\
                  click: buttons.mistake.click')
-      i.icon.icon-white.icon-remove
+      span.glyphicon.glyphicon-remove
       | &nbsp;
       span(data-bind='text: buttons.mistake.text')
 
@@ -525,13 +533,13 @@ mixin caseFilesList
     .col-md-offset-4.col-md-8
       | {{# readonly }}
       button.btn.disabled(type="button")
-        i.icon-ban-circle
+        span.glyphicon.glyphicon-circle
           | Только для чтения
       | {{/ readonly }}
       | {{^ readonly }}
       button.btn.btn-success(type="button"
               onClick="saveInstance('{{ viewName }}');successfulSave.call(this);")
-        i.icon-pencil.icon-white
+        span.glyphicon.glyphicon-pencil
         | Сохранить
       span.save-result
       | {{/ readonly }}
@@ -540,7 +548,7 @@ mixin caseFilesList
   ul#empty-fields
     | {{# fields }}
     li(onclick="focusField('{{name}}'); return false;"
-      data-bind="css: { lierror: {{name}}Not }, visible: {{name}}Not")
+      data-bind="css: { 'text-danger': {{name}}Not }, visible: {{name}}Not")
       | {{meta.label}}
     | {{/ fields }}
 
@@ -548,13 +556,13 @@ mixin caseFilesList
   ul.nav.nav-pills
     li(class="drop{{drop}}")
       button.dropdown-toggle.btn.btn-action(type="button" data-toggle="dropdown")
-        i.icon.icon-plus
+        span.glyphicon.glyphicon-plus
         | Добавить услугу
       ul.dropdown-menu
         | {{# dictionary.source }}
         li
           a(href="#" onclick="addService('{{model}}'); return false;")
-            i.icon-black(class="icon-{{icon}}")
+            span.glyphicon(class="glyphicon-{{icon}}")
             | {{ label }}
         | {{/ dictionary.source }}
 

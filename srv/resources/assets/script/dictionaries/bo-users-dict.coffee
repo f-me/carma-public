@@ -9,7 +9,6 @@ define ["dictionaries/local-dict"], (ld) ->
     find: (q, cb) ->
       $.bgetJSON "/boUsers", (users) =>
         @source = for u in users
-          console.log u
           { value: u[2], label: "#{u[0]} (#{u[1]})" }
       super
 

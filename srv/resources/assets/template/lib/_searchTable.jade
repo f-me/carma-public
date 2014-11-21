@@ -16,7 +16,8 @@
           tr
             td.expand-contoller(data-bind='expand: kvm')
             // ko foreach: $root.showFields.fields
-            td(data-bind='renderGroup: $parent')
+            td(data-bind='renderGroup: $parent, \
+                          click: $root.trClickAction.bind(kvm)')
             // /ko
           tr.hide
             td(data-bind='attr: {colspan: $root.showFields.fields().length + 1}')
