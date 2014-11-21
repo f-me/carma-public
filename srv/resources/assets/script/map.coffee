@@ -401,7 +401,7 @@ define ["model/utils", "utils"], (mu, u) ->
   #
   # Arguments are picker field name and picker element.
   geoPicker = (fieldName, el) ->
-    addr = $(el).parents('.input-append')
+    addr = $(el).parents('.input-group')
                 .children("input[name=#{fieldName}]")
                 .val()
 
@@ -435,7 +435,7 @@ define ["model/utils", "utils"], (mu, u) ->
   reverseGeoPicker = (fieldName, el) ->
     coords =
       lonlatFromShortString(
-        $(el).parents('.input-append')
+        $(el).parents('.input-group')
              .children("input[name=#{fieldName}]")
              .val())
 
