@@ -105,7 +105,8 @@ define [ "utils"
 
   partnerSearchClick = ->
     kvm = global.viewsWare['call-form'].knockVM
-    if kvm.callerType() == "client" or _.isEmpty kvm.callerType()
+    if kvm.callerType and
+       (kvm.callerType() == "client" or _.isEmpty kvm.callerType())
       kvm.callerType("client")
       kvm.callType("switchDealer")
 
