@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -18,6 +19,7 @@ where
 
 import           Control.Exception
 import           Control.Monad.Trans.Except
+import           Data.Attoparsec.Text
 import qualified Data.HashMap.Strict         as HM
 import qualified Data.Map                    as Map
 import           Data.Maybe
@@ -98,6 +100,9 @@ labelMap identField labelField = do
 
 
 -- | Serve a pretty-printed back office processing report.
+--
+-- Ignore action results listed as comma-separated list of integer
+-- codes in @skipResults@ request parameter.
 serveBackofficeSpec :: BORepr -> AppHandler ()
 serveBackofficeSpec repr = do
   -- Combine mappings for multiple models into one
@@ -114,10 +119,18 @@ serveBackofficeSpec repr = do
              , boxMap <$> labelMap Program.ident Program.label
              ]
   boxedIMap <- Map.unions <$> sequence maps
+  skipParam <- liftM (parseOnly (decimal `sepBy1` (char ','))) <$>
+               getParamT "skipResults"
+  let skippedResults =
+        case skipParam of
+          Just (Right l) -> map Ident l
+          Just (Left e) -> error e
+          Nothing -> []
   (modifyResponse $ setContentType "text/plain; charset=UTF-8") >>
     case repr of
       Txt -> writeText $ backofficeText carmaBackoffice boxedIMap
-      Dot -> writeLazyText $ backofficeDot carmaBackoffice boxedIMap
+      Dot -> writeLazyText $
+             backofficeDot skippedResults carmaBackoffice boxedIMap
       Check -> writeJSON $ map show $ checkBackoffice carmaBackoffice boxedIMap
     where
       boxMap :: Model m => IdentMap m -> Map.Map IBox Text
