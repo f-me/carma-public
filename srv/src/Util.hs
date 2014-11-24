@@ -39,11 +39,16 @@ module Util
   , syslogJSON, syslogTxt, Syslog.Priority(..)
   , hushExceptions, logExceptions
   , (Aeson..=)
+
+    -- * Spam
+  , newTextMail
+  , newHtmlMail
   ) where
 
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Maybe
+import qualified Data.Vector as Vector
 
 import Control.Applicative
 import Control.Monad.IO.Class
@@ -78,7 +83,8 @@ import Database.PostgreSQL.Simple.Types
 import GHC.TypeLits
 
 import Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
-import qualified Database.PostgreSQL.Simple as P
+import qualified Database.PostgreSQL.Simple as PG
+import Database.PostgreSQL.Simple.SqlQQ.Alt
 
 import qualified Data.Model as Model
 import qualified System.Posix.Syslog as Syslog
@@ -253,7 +259,7 @@ sqlFlagPair def _ Nothing  = (True,  def)
 sqlFlagPair _   f (Just v) = (False, f v)
 
 withPG :: (HasPostgres m)
-       => (P.Connection -> IO b) -> m b
+       => (PG.Connection -> IO b) -> m b
 withPG f = do
     s <- getPostgresState
     let pool = pgPool s
@@ -287,3 +293,42 @@ logExceptions tag act = IOEx.catch act $ \(e :: Ex.SomeException) -> do
     ,"exn" .= Aeson.String (T.pack $ show e)
     ]
   IOEx.throw e
+
+
+
+newTextMail
+  :: PG.Connection
+  -> Text -> [Text] -> [Text] -> Text -> Text -> Text -> [Aeson.Pair]
+  -> IO ()
+newTextMail pg = newMail pg "text/plain; charset=utf-8"
+
+
+newHtmlMail
+  :: PG.Connection
+  -> Text -> [Text] -> [Text] -> Text -> Text -> Text -> [Aeson.Pair]
+  -> IO ()
+newHtmlMail pg = newMail pg "text/html; charset=utf-8"
+
+
+newMail
+  :: PG.Connection
+  -> Text -> Text -> [Text] -> [Text] -> Text -> Text -> Text -> [Aeson.Pair]
+  -> IO ()
+newMail pg mime from to cc reply subj body why
+  = do
+    res <- uncurry (PG.query pg)
+        [sql|
+          insert into "Email"
+            ("from", "to", cc, reply, mime, subject, body, status, why)
+            values
+              ($(from)$, $(Vector.fromList to)$ :: text[]
+              ,$(Vector.fromList cc)$ :: text[], $(reply)$
+              ,$(mime)$
+              ,$(subj)$, $(body)$
+              ,'please-send'
+              ,$(Aeson.object why)$ ::json
+              )
+          returning id
+        |]
+
+    syslogJSON Syslog.Info "newMail" ["msgId" .= (res::[[Int]]), "why" .= why]
