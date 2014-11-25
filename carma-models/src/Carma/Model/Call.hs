@@ -90,13 +90,13 @@ data Call = Call
   , callerName_name
     :: F (Maybe Text) "callerName_name" "Звонящий"
   , callerName_phone1
-    :: F (Maybe Text) "callerName_phone1" "Контактные телефоны"
+    :: F (Maybe Phone) "callerName_phone1" "Контактные телефоны"
   , callerName_phone2
-    :: F (Maybe Text) "callerName_phone2" ""
+    :: F (Maybe Phone) "callerName_phone2" ""
   , callerName_phone3
-    :: F (Maybe Text) "callerName_phone3" ""
+    :: F (Maybe Phone) "callerName_phone3" ""
   , callerName_phone4
-    :: F (Maybe Text) "callerName_phone4" ""
+    :: F (Maybe Phone) "callerName_phone4" ""
   , callerName_email
     :: F (Maybe Text) "callerName_email" "Email"
   , callerName_contactOwner
@@ -104,13 +104,13 @@ data Call = Call
   , callerName_ownerName
     :: F (Maybe Text) "callerName_ownerName" "Владелец"
   , callerName_ownerPhone1
-    :: F (Maybe Text) "callerName_ownerPhone1" "Контактные телефоны"
+    :: F (Maybe Phone) "callerName_ownerPhone1" "Контактные телефоны"
   , callerName_ownerPhone2
-    :: F (Maybe Text) "callerName_ownerPhone2" ""
+    :: F (Maybe Phone) "callerName_ownerPhone2" ""
   , callerName_ownerPhone3
-    :: F (Maybe Text) "callerName_ownerPhone3" ""
+    :: F (Maybe Phone) "callerName_ownerPhone3" ""
   , callerName_ownerPhone4
-    :: F (Maybe Text) "callerName_ownerPhone4" ""
+    :: F (Maybe Phone) "callerName_ownerPhone4" ""
   , callerName_ownerEmail
     :: F (Maybe Text) "callerName_ownerEmail" "Email"
   , callerType
