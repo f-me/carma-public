@@ -69,6 +69,9 @@ metas =
     , invisible address
 
     , hiddenIdent caseId
+
+    , transform "capitalize" callerName_name
+    , transform "capitalize" callerName_ownerName
     ]
 
 data Call = Call
