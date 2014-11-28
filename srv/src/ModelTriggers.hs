@@ -64,6 +64,8 @@ import qualified Carma.Model.ContractCheckStatus as CCS
 import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.FalseCall as FC
 
+import           Carma.Model.LegacyTypes
+
 import qualified Carma.Model.Service as Service
 import           Carma.Model.Service (Service)
 import qualified Carma.Model.Service.Hotel as Hotel
@@ -450,6 +452,7 @@ data Con2Case = forall t1 t2 n1 d1 n2 d2.
 contractToCase :: [Con2Case]
 contractToCase =
     [ C2C Contract.name id Case.contact_name
+    , C2C Contract.phone (fmap Phone) Case.contact_phone1
     , C2C Contract.vin id Case.car_vin
     , C2C Contract.make id Case.car_make
     , C2C Contract.model id Case.car_model
