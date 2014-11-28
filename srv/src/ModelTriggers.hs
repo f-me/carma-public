@@ -151,6 +151,8 @@ beforeCreate = Map.unionsWith (++)
       Just (addUTCTime (1 * BO.hours) n)
     modPut Service.times_expectedServiceEnd $
       Just (addUTCTime (2 * BO.hours) n)
+    modPut Service.times_factServiceEnd $
+      Just (addUTCTime (2 * BO.hours) n)
     modPut Service.times_expectedServiceClosure $
       Just (addUTCTime (12 * BO.hours) n)
     modPut Service.times_factServiceClosure $
