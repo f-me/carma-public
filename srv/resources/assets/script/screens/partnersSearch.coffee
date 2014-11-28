@@ -44,8 +44,8 @@ define [ "utils"
     kaseKVM = m.buildKVM global.model('Case'),  {fetched: kase}
     srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
     kvm['fromCase'] = true
-    kvm['city'](if kaseKVM.city() then [kaseKVM.city()] else [])
-    kvm['make'](if kaseKVM.car_make() then [kaseKVM.car_make()] else [])
+    kvm['city'](if kaseKVM.city?() then [kaseKVM.city()] else [])
+    kvm['make'](if kaseKVM.car_make?() then [kaseKVM.car_make()] else [])
     kvm['field'] = ctx['field']
 
     pid = parseInt srvKVM["#{ctx['field']}Id"]()
@@ -74,13 +74,13 @@ define [ "utils"
       <li> <b> Госномер: </b> #{kaseKVM.car_plateNum?() || ''}</li>
       <li> <b> Цвет: </b> #{kaseKVM.car_colorLocal?() || ''}</li>
       <li> <b> VIN:</b> #{kaseKVM.car_vin?() || ''}</li>
-      <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal() || ''}</li>
+      <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal?() || ''}</li>
       <li> <b> Клиент/Доверенное лицо будет сопровождать автомобиль:</b>
       #{if srvKVM.companion?() then '✓' else '' }</li>
     </ul>
     """
-    kvm['coords'] kaseKVM.caseAddress_coords()
-    kvm['address'] kaseKVM.caseAddress_address()
+    kvm['coords'] kaseKVM.caseAddress_coords?()
+    kvm['address'] kaseKVM.caseAddress_address?()
 
     selectPartner = (kvm, partner) ->
       if _.isNull partner
