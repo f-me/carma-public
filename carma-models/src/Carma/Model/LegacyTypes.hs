@@ -37,7 +37,7 @@ instance ToField Password where
 instance FromField Password where
   fromField fld m = Password <$> fromField fld m
 
-data Phone = Phone Text deriving Typeable
+data Phone = Phone Text deriving (Eq, Typeable)
 instance Show Phone where
   show (Phone t) = show t
 instance FromJSON Phone where
