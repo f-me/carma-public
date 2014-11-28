@@ -38,6 +38,8 @@ instance FromField Password where
   fromField fld m = Password <$> fromField fld m
 
 data Phone = Phone Text deriving Typeable
+instance Show Phone where
+  show (Phone t) = show t
 instance FromJSON Phone where
   parseJSON fld = Phone <$> parseJSON fld
 instance ToJSON Phone where
