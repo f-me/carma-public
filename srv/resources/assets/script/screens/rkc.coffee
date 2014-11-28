@@ -242,6 +242,8 @@ define ["utils", "text!tpl/screens/rkc.html"],
                       else
                         ""
                     ]
+                # this will susppress datables alerts about missing rows #2415
+                return if _.isEmpty(mrows)
                 mt.fnAddData(mrows)
 
             # Update complaints
