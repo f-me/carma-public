@@ -34,6 +34,8 @@ import qualified Data.Text.Lazy as LT (Text)
 
 import           Data.Model
 
+import           Carma.Model.ActionResult as ActionResult
+
 import           Carma.Backoffice.DSL
 import           Carma.Backoffice.Text
 
@@ -238,8 +240,12 @@ data BackofficeGraphData =
 -- other idents.
 --
 -- Switch nodes are also added for every switch construct on an edge.
-backofficeNodesEdges :: BackofficeSpec -> Map IBox Text -> BackofficeGraphData
-backofficeNodesEdges spec iMap =
+backofficeNodesEdges :: [IdentI ActionResult]
+                     -- ^ Ignored action results.
+                     -> BackofficeSpec
+                     -> Map IBox Text
+                     -> BackofficeGraphData
+backofficeNodesEdges skipResults spec iMap =
     BGr (stateNodes ++ switchNodes) allEdges switchNodes
     where
       -- First, build graph nodes for states (action types plus
@@ -284,21 +290,23 @@ backofficeNodesEdges spec iMap =
                               (fst finishNode)
                               [lkp (IBox r) iMap]
                               Nothing) o)
-                   (outcomes a)
+                   (filter (\o -> fst o `notElem` skipResults) $ outcomes a)
 
 
-backofficeGraph :: BackofficeSpec -> Map IBox Text -> Gr Text ColoredLabel
-backofficeGraph spec iMap = mkGraph n e
-    where (BGr n e _) = backofficeNodesEdges spec iMap
+backofficeGraph :: [IdentI ActionResult]
+                -> BackofficeSpec -> Map IBox Text -> Gr Text ColoredLabel
+backofficeGraph skipResults spec iMap = mkGraph n e
+    where (BGr n e _) = backofficeNodesEdges skipResults spec iMap
 
 
 -- | Produce GraphViz .dot code.
-backofficeDot :: BackofficeSpec -> Map IBox Text -> LT.Text
-backofficeDot spec iMap =
+backofficeDot :: [IdentI ActionResult]
+              -> BackofficeSpec -> Map IBox Text -> LT.Text
+backofficeDot skipResults spec iMap =
     printIt $
     graphToDot nonClusteredParams{ fmtNode = fmtN
                                  , fmtEdge = fmtE} $
-    backofficeGraph spec iMap
+    backofficeGraph skipResults spec iMap
     where
       fmtE (_, _, (l, c)) =
           [ toLabel l

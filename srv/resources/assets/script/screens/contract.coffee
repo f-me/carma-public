@@ -6,7 +6,7 @@ define [ "search/screen"
        ], (Screen, tpl, main, u) ->
   # Initialize portal search screen from portal-stripped Contract
   # model
-  screenConstructor = (Search, Table) ->
+  screenConstructor = (Search, Table, onClick) ->
     # All portal fields marked with showtable option in subprogram
     # dictionary are searchable and shown in the table
     resultFields = _.map Table.fields, (f) ->
@@ -25,6 +25,7 @@ define [ "search/screen"
         allowedResultFields:
           Contract: _.pluck Table.fields, 'name'
         predFieldWrap: 'contract-wrap'
+        trClickAction: onClick
 
   # Given subprogram id and its title, setup logo, title and dealer
   # help on page header
@@ -163,10 +164,6 @@ define [ "search/screen"
     # Open contract from URL
     openContract contract() if contract()?
 
-    # Open contracts upon table row click
-    $("#tbl").on "click", "tr", ->
-      contract $(this).data("source")
-
     # Create new contracts
     $("#new-contract-btn").click () ->
       contract null
@@ -175,7 +172,9 @@ define [ "search/screen"
     $.getJSON "/cfg/model/#{contractModel}&field=showtable&view=portalSearch", (Search) ->
       $.getJSON "/cfg/model/#{contractModel}&field=showtable", (Table) ->
           # Search subscreen
-          searchVM = screenConstructor Search, Table
+          searchVM = screenConstructor Search, Table, ->
+            # Open contracts upon table row click
+            contract @Contract.id()
           global.searchVM = searchVM
           searchVM.subprogram subprogram
 

@@ -4,25 +4,28 @@ html
     meta(charset='utf-8')
     title
       addLocalName CaRMa
-    link(rel='stylesheet', href='/s/3p/bootstrap/css/bootstrap.min.css')
-    link(rel='stylesheet', href='/s/css/datepicker.css')
-    // Additional set of icons
-    link(rel='stylesheet', href='/s/css/stolen-icons.css')
-    link(rel='stylesheet', href='/s/css/local.css', title='local')
-    // Date Range Picker for Bootstrap
-    link(rel='stylesheet', href='/s/css/daterangepicker-bs2.css')
+    link(rel='stylesheet', href='/s/3p/normalize-css/normalize.css')
+
+    // Everything is concatenated in this
+    link(rel='stylesheet', href='/s/css/style.css', title='local')
+
     // DOM manipulation
     script(src='/s/3p/jquery.js')
     // Rich UI
     script(src='/s/3p/bootstrap/js/bootstrap.min.js')
-    script(src='/s/3p/bootstrap-datepicker.js')
-    script(src='/s/3p/bootstrap-tagautocomplete.js')
+
+    // datepicker
+    link(rel='stylesheet' href='/s/3p/bootstrap-datepicker/css/datepicker3.css')
+    script(src='/s/3p/bootstrap-datepicker/js/bootstrap-datepicker.js')
+    script(src='/s/3p/bootstrap-datepicker/js/locales/bootstrap-datepicker.ru.js')
+
     // WYSIWYG
-    link(rel='stylesheet', href='/s/3p/wysihtml5/bootstrap-wysihtml5.css')
-    link(rel='stylesheet', href='/s/3p/wysihtml5/wysiwyg-color.css')
-    script(src='/s/3p/wysihtml5/wysihtml5-0.3.0.min.js')
-    script(src='/s/3p/wysihtml5/bootstrap-wysihtml5.js')
-    script(src='/s/3p/wysihtml5/locales/bootstrap-wysihtml5.ru-RU.js')
+    link(rel='stylesheet', href='/s/3p/wysihtml5/bootstrap3-wysihtml5.css')
+    script(src='/s/3p/wysihtml5x/wysihtml5x.min.js')
+    script(src='/s/3p/wysihtml5x/wysihtml5x-toolbar.min.js')
+    script(src="/s/3p/wysihtml5/bootstrap3-wysihtml5.all.min.js")
+    script(src="/s/3p/wysihtml5/locales/bootstrap-wysihtml5.ru-RU.js")
+
     // Date Range Picker for Bootstrap
     script(src='/s/3p/moment/moment.min.js')
     script(src='/s/3p/moment/ru.js')
@@ -66,17 +69,18 @@ html
     script(src='/s/js/gen/local.js')
   body
     // Navigation bar on top
-    .navbar.navbar-fixed-top
-      .navbar-inner
-          ul#nav.nav.pull-left
-            a.brand(href='/')
-              addLocalName CaRMa
-            li.divider-vertical
+    nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
+      .container-fluid
+        .navbar-header
+          a.navbar-brand(href='/')
+            addLocalName CaRMa
+        .collapse.navbar-collapse
+          ul.nav.navbar-nav#nav
             li#avaya-panel.dropdown(style='display: none;')
               form.navbar-search.pull-left
                 input.search-query(type='text', placeholder='Avaya')
                 button#avaya-call.btn
-                  i.icon.stolen-icon-phone
+                  span.glyphicon.stolen-icon-phone
               ul.dropdown-menu
                 li#avaya-info.nav-header
                 li
@@ -90,8 +94,8 @@ html
             // /ko
             li
               a#send-bug-report
-                i.icon.icon-fire.icon-white
-          ul#current-user.nav.pull-right
+                span.glyphicon.glyphicon-fire
+          ul#current-user.nav.navbar-nav.navbar-right
             li.divider-vertical
             li.dropdown
               a.dropdown-toggle(href='#', data-toggle='dropdown')
@@ -130,13 +134,15 @@ html
                       | Обед
 
     // Main container for dynamically rendered layouts
-    #main-container.container-fluid
-      #layout.row-fluid
+    #main-container
+      #layout
     // SMS send form
-    #sms-send-modal.modal.hide.fade
-      .modal-header
-        button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
-        h3 Отправка СМС
-      #sms-send-form.modal-body
-      .modal-footer
-        button#do-send-sms.btn.btn-primary Отправить
+    #sms-send-modal.modal.fade
+      .modal-dialog
+        .modal-content
+          .modal-header
+            button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
+            h4.modal-title Отправка СМС
+          #sms-send-form.modal-body.form-horizontal
+          .modal-footer
+            button#do-send-sms.btn.btn-primary Отправить

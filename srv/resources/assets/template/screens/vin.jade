@@ -1,0 +1,56 @@
+#vin-form.container(style="margin-top: 20px")
+  .page-header
+    h3 Загрузка VIN
+  form#vin-import-form.form-horizontal(style="width: 80%;")
+    #new-form
+    .form-group
+      label.col-md-4.control-label(for='vin-upload-file') Файл
+      .col-md-8
+        .input-group.input-group-sm
+          input.form-control(type="text" readonly)
+          .input-group-btn
+            span.btn.btn-default.btn-file
+              span.glyphicon.glyphicon-folder-open
+              input#vin-upload-file(type="file" accept='text/csv')
+    .form-group
+      // TODO Find out how to use button here without causing weird shit
+      .col-md-offset-4.col-md-8
+        a#vin-send.btn.btn-primary
+          i.icon.icon-upload.icon-white
+          | Загрузить
+  fieldset
+    #vin-box-container
+
+.hidden#vin-box-template
+  .alert.alert-info.vin-box
+    button.close(data-dismiss='alert', data-bind='click: cleanup')
+        | ×
+      div
+        i.icon.icon-file
+        b(data-bind='text: filename')
+        | :
+        span(data-bind='visible: !uploaded()')
+          | загружается
+        span(data-bind='visible: uploaded()')
+          span(data-bind='visible: !done()')
+            | обрабатывается
+            i.icon-refresh.icon-refresh-animate
+        span(data-bind='visible: resultMsg')
+          span(data-bind='visible: fileUrls().length == 0')
+            | обработан без ошибок
+          span(data-bind="visible: fileUrls().length > 0")
+            | обработан, имеются ошибки
+            | (всего
+            span(data-bind='text: bad')
+            span(data-bind='foreach: fileUrls')
+              | :
+              a(target='_blank', data-bind='attr: { href: $data }')
+                i.icon.icon-download-alt
+                b отчёт
+            | )
+        span(data-bind='visible: errorMsg')
+          | критическая ошибка (
+          span(data-bind='text: errorMsg')
+          | )
+        .progress.progress-striped.active
+          .bar(style='width: 0%;')

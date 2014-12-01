@@ -68,8 +68,8 @@ checkBackoffice spec iMap =
       startId = fst startNode
       origNodes = map aType $ snd spec
       uniqNodes = nub origNodes
-      BGr _ edges' switches = backofficeNodesEdges spec iMap
-      graph = backofficeGraph spec iMap
+      BGr _ edges' switches = backofficeNodesEdges [] spec iMap
+      graph = backofficeGraph [] spec iMap
       outs = map OutOfGraphTarget $
              mapMaybe (\(from, to, _) ->
                        if (Ident to `elem` origNodes) ||

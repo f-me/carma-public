@@ -60,11 +60,12 @@ import Snap.Snaplet.Auth hiding (session)
 import Snap.Util.FileServe (serveFile)
 import Snap.Util.FileUploads (getMaximumFormInputSize)
 
+import Snaplet.Geo
 import Snaplet.FileUpload (FileUpload(cfg))
 
 import Carma.Model
 import Data.Model.CRUD
-import Data.Model.Patch (Patch(..))
+import Data.Model.Patch as Patch (Patch(..), differenceFrom)
 import Carma.Model.Event (EventType(..))
 
 import Application
@@ -160,7 +161,7 @@ createHandler = do
             updateUserState Create idt commit evIdt
             -- we really need to separate idents from models
             -- (so we can @Patch.set ident i commit@)
-            return $ case Aeson.toJSON commit' of
+            return $ case Aeson.toJSON (commit' `Patch.differenceFrom` commit) of
               Object obj
                 -> Object
                 $ HM.insert "id" (Aeson.Number $ fromIntegral i) obj
@@ -231,8 +232,7 @@ updateHandler = do
           Right commit' -> do
             evIdt <- logCRUD Update ident commit
             updateUserState Update ident commit evIdt
-            return $ recode commit'
-  -- See also Utils.NotDbLayer.update
+            return $ recode (commit' `Patch.differenceFrom` commit)
   fromMaybe (error "Unknown model") (Carma.Model.dispatch model updateModel) >>=
     \case
       Left n -> handleError n
@@ -288,8 +288,11 @@ getRegionByCity =
 clientConfig :: AppHandler ()
 clientConfig = do
   mus <- with fileUpload $ gets (fromIntegral . getMaximumFormInputSize . cfg)
+  nom <- with geo $ gets nominatimUrl
   let config :: Map.Map T.Text Aeson.Value
-      config = Map.fromList [("max-file-size", Aeson.Number mus)]
+      config = Map.fromList [ ("max-file-size", Aeson.Number mus)
+                            , ("nominatim-url", Aeson.String $ T.pack nom)
+                            ]
   writeJSON config
 
 

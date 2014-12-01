@@ -118,7 +118,7 @@ getMsgData con svcId = uncurry (PG.query con)
           when $(ServiceStatus.canceled)$ then coalesce(svc.clientCancelReason, '')
           else coalesce(c.dealerCause, '')
           end,
-      'Date of Opening',     '10', to_char(c.callDate, 'DD/MM/YYYY'),
+      'Date of Opening',     '10', to_char(svc.times_expectedServiceStart, 'DD/MM/YYYY'),
       'Date of Response',    '10',
         to_char(svc.times_factServiceStart at time zone 'MSK', 'DD/MM/YYYY'),
       'Time of Response',     '5',
@@ -142,7 +142,6 @@ getMsgData con svcId = uncurry (PG.query con)
         case svc.type
           when $(ServiceType.tech)$         then 'DEPA'
           when $(ServiceType.towage)$       then 'REMO'
-          when $(ServiceType.consultation)$ then 'TELE'
         end,
       'Dealer Address G',    '200', coalesce(tow.towAddress_address, ''),
       'Dealer Address 1',    '200', '',
@@ -165,7 +164,7 @@ getMsgData con svcId = uncurry (PG.query con)
         on (ctr_phone_close.value->'key')::text = 'close'
       left join json_array_elements(ctr.addrs) ctr_addr_fact
         on (ctr_addr_fact.value->'key')::text = 'fact'
-      left join partnertbl tow_dealer on tow_dealer.id = tow.towDealer_partnerId
+      inner join partnertbl tow_dealer on tow_dealer.id = tow.towDealer_partnerId
     where svc.id = $(svcId)$
       and (tech.id is null or tech.techType in ($(TT.charge)$, $(TT.starter)$, $(TT.ac)$))
   |]

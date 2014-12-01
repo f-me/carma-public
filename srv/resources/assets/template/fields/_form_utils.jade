@@ -1,0 +1,126 @@
+mixin labelWithInfo(name)
+  span(
+      data-provide="popover"
+      data-container="body"
+      data-placement="top"
+      data-bind="\
+        text: #{name}.field.meta.label,\
+        attr: {'data-content': #{name}.field.meta.infoText1},\
+        css: {fieldInfo: #{name}.field.meta.infoText1}")
+
+mixin fieldControlGroup
+  .form-group.has-feedback(data-bind="\n\
+                            {{# meta.required }}\n\
+                            css: { 'has-error': {{name}}Not }\n\
+                            {{/ meta.required}}")
+    label.col-sm-4.control-label
+      +labelWithInfo("{{name}}")
+    .col-sm-8
+      .input-group.input-group-sm
+        block
+
+mixin defaultInput(nameMod, dataBinds, change, attrs)
+  input.form-control(type="text" autocomplete="off"
+    name="{{ name }}#{nameMod}"
+    style="{{# meta.transform }}\n\
+           text-transform:{{meta.transform}};\n\
+           {{/ meta.transform }}"
+    data-bind="\n\
+               value: {{ name }}#{nameMod},\n\
+               valueUpdate: ['#{change}', 'afterpaste'],\n\
+               readonly: {{ name }}Disabled,\n\
+               {{# meta.regexp }}\n\
+               css: { 're-failed': {{name}}Regexp },\n\
+               {{/ meta.regexp}}\n\
+               #{dataBinds}"
+    )&attributes(attributes)
+  +savingSpinner
+
+
+mixin rawDateInput(nameMod, dataBinds, change)
+  .input-group.input-group-sm.date(data-provide="datepicker"
+                     data-autoshow-datepicker="true"
+                     data-date-format="dd.mm.yyyy"
+                     data-date-weekstart="1"
+                     data-bind="pickerDisable: {{ name }}.disabled")
+    +defaultInput(nameMod, dataBinds, change)&attributes(attributes)
+    block
+
+mixin dateInput(nameMod, dataBinds, change)
+  +rawDateInput(nameMod, dataBinds, change)&attributes(attributes)
+    span.input-group-addon
+      span.glyphicon.glyphicon-calendar
+
+mixin savingSpinner
+  span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
+    class="form-control-feedback saving-spinner"
+    data-bind='sync: {{ name }}Sync' style='display: none;')
+
+mixin labelAnnotations(name)
+  span(data-bind="visible: #{name}.field.meta.infoText1")&attributes(attributes)
+    span.glyphicon.glyphicon-question-sign(data-provide="popover"
+      data-bind="attr: { 'data-content': #{name}.field.meta.infoText1")
+
+mixin dictInput(nameMod)
+  input.form-control( type="text"
+     class="{{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}"
+     autocomplete="off"
+     name="{{ name }}"
+     data-bind="\n\
+                value: {{ name }}#{nameMod},\n\
+                valueUpdate: 'change',\n\
+                disabled: {{ name }}Disabled,\n\
+                pickerDisable: {{ name }}Disabled,\n\
+                bindDict: '{{ name }}',\n\
+                {{# meta.regexp   }}\n\
+                css: { 're-failed': {{name}}Regexp }\n\
+                {{/ meta.regexp   }}")
+
+mixin dictInputChevron(nameMod)
+  +dictInput(nameMod)
+  +savingSpinner
+  span.input-group-addon
+    span.glyphicon.glyphicon-chevron-down
+
+mixin dict(nameMod, iconClass)
+  +fieldControlGroup
+
+    +dictInputChevron(nameMod)
+
+
+mixin dictMany(nameMod, iconClass)
+  .form-group.has-feedback(data-bind="\n\
+                            {{# meta.required }}\n\
+                            css: { 'has-error': {{name}}Not }\n\
+                            {{/ meta.required}}")
+    label.col-sm-4.control-label
+      +labelWithInfo("{{name}}")
+    .col-sm-8
+      div
+        .input-group.input-group-sm
+          +dictInputChevron(nameMod)
+
+      div
+        // ko if: {{ name }}Locals().length
+        ul(data-bind="foreach: {{ name }}Locals")
+          li
+            span(data-bind="text: label")
+            a(href="" data-bind="click: remove") &nbsp ×
+        // /ko
+
+mixin checkboxField(name)
+  .checkbox
+    label
+      input(type="checkbox"
+            data-bind="attr: { name: #{name} }, \
+                       checked: #{name},        \
+                       valueUpdate: 'change',   \
+                       disabled: #{name}.disabled")&attributes(attributes)
+      +labelWithInfo(name)
+
+mixin checkboxTpl(name)
+  .form-group
+    .col-sm-4
+    label.col-sm-8.control-label(style="text-align: left")
+      +checkboxField(name)
+

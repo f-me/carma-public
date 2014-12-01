@@ -24,7 +24,7 @@ define ["model/main", "text!tpl/fields/form.html"], (main, Fs) ->
       $modalDialog = $("##{modelName}-modal")
 
       $modalDialog
-        .on('show', () =>
+        .on('show.bs.modal', () =>
           refs = []
           kvm = main.modelSetup("#{modelName}") "#{modelName}-form", {id:null},
             focusClass: "focusable"

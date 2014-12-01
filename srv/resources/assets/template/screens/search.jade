@@ -1,44 +1,17 @@
-.row-fluid
-  #search-results.span9(style='min-height: 480px;'
-      data-bind='spinner: $root.searchKVM.searchResultsSpinner')
-    table#tbl.table.table-striped.table-bordered
-      thead
-        tr
-          th(data-bind='expandAll: $data')
-          // ko foreach: showFields.fields
-          th
-            button.btn.btn-link(
-              style='white-space: nowrap;'
-              data-bind='text: $root.showFields.labels[$data], sort: $data')
-          // /ko
-      tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
-        tr
-          td.expand-contoller(data-bind='expand: kvm')
-          // ko foreach: $root.showFields.fields
-          td(data-bind='renderGroup: $parent')
-          // /ko
-        tr.hide
-          td(data-bind='attr: {colspan: $root.showFields.fields().length + 1}')
-            dl(data-bind='eachNonEmpty: $root.showFields.hidden')
-              dt(data-bind='text: $root.showFields.labels[$data]')
-              dd(style='font-size: 16.25px; font-weight: 300; line-height: 1.25;'
-                 data-bind='renderGroup: $parent')
-  .span3
-    #search-conditions(data-bind='foreach: kvm.showFields')
-      div(data-bind='renderField: $data')
-    #show-field(data-bind='renderField: f')
+.row
+  .col-md-9(style="overflow: auto")
+    include /lib/_searchTable.jade
 
-.row-fluid
-  .pager.span9
-    ul
-      li(style='cursor: pointer;', data-bind='css: {fade: !_.isNumber(prev())}')
-        a(data-bind='click: prevPage')
-          | ←
-      li
-        a(data-bind='text: page')
-      li(style='cursor: pointer;', data-bind='css: {fade: !next()}')
-        a(data-bind='click: nextPage')
-          | →
+  .col-md-3
+    .row.col-md-12
+        #search-conditions.form-horizontal(data-bind='foreach: kvm.showFields')
+          div(data-bind='renderField: $data')
+    .row.col-md-12.form-horizontal
+        #show-field(data-bind='renderField: f')
 
-.hidden
-  include /fields/ro.jade
+#search-wrap-template.hidden
+  div(style="position: absolute;")
+    span.glyphicon.glyphicon-remove(
+      style="position: relative; top: 2px; left: -10px; z-index: 1000;"
+      data-bind="click: function () { kvm.showFields.del(fld) }")
+  .content(data-bind="with: kvm")

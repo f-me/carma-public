@@ -99,6 +99,7 @@ define [ "utils"
       kvms: searchKVM.searchResults
       showFields: rfields
       searchKVM: searchKVM
+      trClickAction: opts.trClickAction || -> true
 
     searchKVM.searchResults.set_sorter = (name, ord) ->
       searchKVM.sort(name, ord)
