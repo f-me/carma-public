@@ -10,7 +10,7 @@ define ["model/utils", "utils"], (mu, u) ->
   geoRevQuery = (lon, lat) -> "/geo/revSearch/#{lon},#{lat}/"
 
   geoQuery = (addr) ->
-    nominatimHost = "https://nominatim.openstreetmap.org/"
+    nominatimHost = "http://nominatim.openstreetmap.org/"
     return nominatimHost +
       "search?format=json&accept-language=ru-RU,ru&q=#{addr}"
 
