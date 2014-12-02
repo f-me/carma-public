@@ -2,8 +2,8 @@
         SELECT
                 e.ctime::date as "Дата Создания",
                 e.ctime::time as "Время Создания",
-                e.mtime::date as "Дата Отправки/Последнего изменения",
-                e.mtime::time as "Время Отправки/Последнего изменения",
+                e.mtime::date as "Дата Отправки",
+                e.mtime::time as "Время Отправки",
                 CASE
                         WHEN e.status = 'done'::text THEN 'Отправлено'::text
                         WHEN e.status = 'please-send'::text THEN 'В очереди на отправку'::text
