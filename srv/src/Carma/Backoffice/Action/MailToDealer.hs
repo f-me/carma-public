@@ -6,8 +6,6 @@ import Control.Monad.IO.Class (liftIO)
 
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Encoding as TL
 import Data.Monoid ((<>))
 import qualified Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
@@ -18,7 +16,6 @@ import Database.PostgreSQL.Simple.SqlQQ
 import Data.Pool as Pool
 
 import Data.Configurator (require)
-import Network.Mail.Mime
 
 import Data.Model as Model
 import Carma.Model.Service (Service)
@@ -32,9 +29,9 @@ import Util hiding (render)
 
 sendMailToDealer :: IdentI Service -> FutureContext -> AppHandler (IO ())
 sendMailToDealer svcId fc = do
-  cfg      <- getSnapletUserConfig
-  let addr = Address Nothing . T.strip
+  let addr = T.strip
   let addrList = map addr . T.splitOn ","
+  cfg      <- getSnapletUserConfig
   cfgFrom  <- liftIO $ addr     <$> require cfg "psa-smtp-from"
   cfgReply <- liftIO $ addr     <$> require cfg "psa-smtp-reply"
   cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy2"
@@ -47,12 +44,14 @@ sendMailToDealer svcId fc = do
           ["svcId" .= svcId, "error" .= (e :: Text)]
     Pool.withResource (fc_pgpool fc) $ \pg ->
       PG.query pg q [svcId] >>= \case
-        [[vals]] -> sendMailActually
-          cfgFrom
-          (addrList $ render "$emails$" vals)
-          cfgReply cfgCopy
+        [[vals]] -> newHtmlMail pg
+          cfgFrom (T.splitOn "," $ render "$emails$" vals)
+          cfgCopy cfgReply
           ("Доставлена машина на ремонт / " <> txt svcId)
           (render msgTemplate vals)
+          ["foo" .= ("dealer"::Text)
+          ,"svc" .= txt svcId
+          ]
         []    -> err "empty query result"
         _     -> err "ambiguous query result"
 
@@ -62,25 +61,6 @@ render tpl (Aeson.Object vals)
   = foldl' (\txt (key, Aeson.String val) -> T.replace key val txt) tpl
   $ HM.toList vals
 render _ v = error $ "BUG! invalid JSON in MailToDealer.render: " ++ show v
-
-
-sendMailActually
-  :: Address -> [Address] -> Address -> [Address] -> Text -> Text
-  -> IO ()
-sendMailActually from to reply copy subj msg = do
-  let bodyPart = Part "text/html; charset=utf-8"
-        QuotedPrintableText Nothing [] (TL.encodeUtf8 $ TL.fromChunks [msg])
-  let email = (emptyMail from)
-        {mailTo      = to
-        ,mailCc      = copy
-        ,mailHeaders = [("Reply-To", addressEmail reply) , ("Subject", subj)]
-        ,mailParts   = [[bodyPart]]
-        }
-  logExceptions "trigger/mailToPSA/sendMailToPSA"
-    $ renderSendMailCustom
-      "/usr/sbin/sendmail"
-      ["-t", "-r", T.unpack $ addressEmail from]
-      email
 
 
 q :: PG.Query
