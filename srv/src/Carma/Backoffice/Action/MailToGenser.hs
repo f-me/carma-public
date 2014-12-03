@@ -1,6 +1,7 @@
 
 module Carma.Backoffice.Action.MailToGenser (sendMailToGenser) where
 
+import Control.Applicative
 import Control.Monad.IO.Class (liftIO)
 
 import Data.Text (Text)
@@ -27,6 +28,7 @@ sendMailToGenser svcId fc = do
   cfg      <- getSnapletUserConfig
   cfgFrom  <- liftIO (require cfg "genser-mail-from"  :: IO Text)
   cfgReply <- liftIO (require cfg "genser-mail-reply" :: IO Text)
+  cfgCopy  <- T.splitOn "," <$> liftIO (require cfg "genser-mail-reply")
 
   return $ Pool.withResource (fc_pgpool fc) $ \pg -> do
     syslogJSON Info "trigger/mailToGenser" ["svcId" .= svcId]
@@ -91,7 +93,7 @@ sendMailToGenser svcId fc = do
                \В случае вопросов обратитесь на genser@ruamc.ru."
              ]
 
-    newTextMail pg cfgFrom [partnerAddr] [] cfgReply subj body
+    newTextMail pg cfgFrom [partnerAddr] cfgCopy cfgReply subj body
       ["foo" .= ("genser"::Text)
       ,"svc" .= show svcId
       ]
