@@ -28,7 +28,7 @@ sendMailToGenser svcId fc = do
   cfg      <- getSnapletUserConfig
   cfgFrom  <- liftIO (require cfg "genser-mail-from"  :: IO Text)
   cfgReply <- liftIO (require cfg "genser-mail-reply" :: IO Text)
-  cfgCopy  <- T.splitOn "," <$> liftIO (require cfg "genser-mail-reply")
+  cfgCopy  <- T.splitOn "," <$> liftIO (require cfg "genser-mail-copy")
 
   return $ Pool.withResource (fc_pgpool fc) $ \pg -> do
     syslogJSON Info "trigger/mailToGenser" ["svcId" .= svcId]
