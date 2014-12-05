@@ -352,8 +352,8 @@ getDealerInfo =
     (ite
      ((serviceField svcType == const ST.rent) &&
       caseField Case.program `oneOf` [Program.peugeot, Program.citroen])
-     ((5 * minutes) `since` req (serviceField times_factServiceEnd))
-     ((14 * days) `since` req (serviceField times_factServiceEnd)))
+     ((5 * minutes) `since` req (serviceField times_expectedServiceEnd))
+     ((14 * days) `since` req (serviceField times_expectedServiceEnd)))
     [ (AResult.gotInfo, messageToPSA *> finish)
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
