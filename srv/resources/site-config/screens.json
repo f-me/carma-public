@@ -38,12 +38,6 @@
       "permissions": ["head"],
       "screens": [
         {
-          "name": "rkc",
-          "label": "Услуги",
-          "type": "li",
-          "permissions": ["head"]
-        },
-        {
           "name": "rkcOps",
           "label": "Операторы",
           "type": "li",
@@ -141,6 +135,12 @@
       "label" : "Загрузка файлов",
       "type"  : "li",
       "permissions": ["billManager"]
+    },
+    {
+      "name": "rkc",
+      "label": "Мобильные партнёры",
+      "type": "li",
+      "permissions": ["head"]
     },
     { "name"  : "partner",
       "label" : "Редактирование партнёров",

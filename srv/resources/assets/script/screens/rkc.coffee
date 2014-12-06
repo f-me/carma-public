@@ -121,110 +121,16 @@ define ["utils", "text!tpl/screens/rkc.html"],
       args.push "partner=#{partner}" if partner != "*"
       return "?" + args.join "&"
 
+    # Mini #rkc only shows mobile partners
     setupRKCScreen = (viewName, args) ->
       setTimeout ->
-        $('#add-weather').on 'click', ->
-          rkcWeatherAddCity($('#rkc-weather-city-select').val())
-
-        caset = $("#rkc-services-table")
-        actionst = $("#rkc-actions-table")
-        weathert = $('#rkc-weather-table')
-        complt = $('#rkc-complaints-table')
         mobit = $('#rkc-mobile-partners-table')
 
-        return if caset.hasClass("dataTable")
-        return if actionst.hasClass("dataTable")
-        return if weathert.hasClass("dataTable")
-        return if complt.hasClass("dataTable")
-
-        this.wcities = ko.observableArray([])
-
-        ko.applyBindings(this.wcities, el "rkc-weather-table")
-
-        ct = utils.mkDataTable caset, { bFilter: false, bInfo: false }
-        bt = utils.mkDataTable actionst, { bFilter: false, bInfo: false }
         mt = utils.mkDataTable mobit, { bFilter: true, bInfo: false }
 
-        # Fill general info
-        totalServices = $('#total-services')
-        averageStart = $('#average-towage-tech-start')
-        procAvgTime = $('#processing-average-time')
-        assignAvgTime = $('#assignAvgTime')
-        realprocAvgTime = $('#realprocAvgTime')
-        calculated = $('#calculated-cost')
-        mechanic = $('#mechanic')
-        averageEnd = $('#average-towage-tech-end')
-        limited = $('#limited-cost')
-
-        satisfied = $('#satisfied-percentage')
-
-        totalActions = $('#total-actions')
-        totalIncompleteActions = $('#total-incomplete-actions')
-
-        ko.applyBindings(weatherCityDict.source,
-                el "rkc-weather-city-select")
-
         cityDict = utils.newModelDict("City")
-        actDict = utils.newModelDict "ActionType"
-        srvDict = utils.newModelDict "ServiceType"
-
-        # Complaints
-        complaints = ko.observableArray([])
-        ko.applyBindings(complaints, el "rkc-complaints-table")
-
-        fmttime = (tm) ->
-            fmt = (x) -> if x < 10 then "0" + x else "" + x
-            Math.floor(tm / 60) + ":" + fmt(tm % 60)
-
-        getArgs = () -> this.filterRKCArgs()
 
         update = () ->
-          args = getArgs()
-
-          $.getJSON("/rkc" + args, (result) ->
-            from = Date.parseExact($('#rkc-date-from').val(), "dd.MM.yyyy")
-            to   = Date.parseExact($('#rkc-date-to').val(), "dd.MM.yyyy")
-
-            ct.fnClearTable()
-            bt.fnClearTable()
-
-            # Update general statistics fields from JSON response data
-            totalServices.val(result.case.summary.total)
-            averageStart.val(utils.formatSecToMin(result.stats.towStartAvgTime))
-            procAvgTime.val(utils.formatSecToMin(result.stats.procAvgTime))
-            assignAvgTime.val(utils.formatSecToMin(result.stats.assignAvgTime))
-            realprocAvgTime.val(utils.formatSecToMin(result.stats.realprocAvgTime))
-            calculated.val(result.case.summary.calculated)
-            mechanic.val(result.case.summary.mech)
-            averageEnd.val(utils.formatSecToMin(result.case.summary.duration))
-            limited.val(result.case.summary.limited)
-
-            satisfied.val(result.case.summary.satisfied)
-
-            # Update services table
-            crows = for cinfo in result.case.services
-              crow = [
-                srvDict.getLab(cinfo.name),
-                cinfo.total,
-                utils.formatSecToMin(cinfo.delay),
-                utils.formatSecToMin(cinfo.duration),
-                cinfo.calculated,
-                cinfo.limited]
-            ct.fnAddData(crows)
-
-            totalActions.val(result.back.summary.total)
-            totalIncompleteActions.val(result.back.summary.undone)
-
-            # Update actions table
-            brows = for binfo in result.back.actions
-              brow = [
-                actDict.getLab(binfo.name),
-                binfo.total,
-                binfo.undone,
-                fmttime(binfo.average)]
-
-            bt.fnAddData(brows)
-
             # Fill mobile partners table
             $.getJSON "/_/Partner/?isMobile=true&isActive=true",
               (result) ->
@@ -246,25 +152,7 @@ define ["utils", "text!tpl/screens/rkc.html"],
                 return if _.isEmpty(mrows)
                 mt.fnAddData(mrows)
 
-            # Update complaints
-            complaints.removeAll()
-            for comp in result.complaints
-              complaints.push({
-                caseid: comp.caseid,
-                url: "/#case/" + comp.caseid,
-                services: for s in comp.services
-                  srvname = srvDict.getLab s
-              }))
-
-        partners = ko.observableArray([])
-        initRKCDate update, partners
-        fillRKCFilters update, partners
-
-        global.rkcData = {}
-
         update()
-        updatePartners(partners)
-        updateWeather()
 
 
     # function which return object with functions returning functions

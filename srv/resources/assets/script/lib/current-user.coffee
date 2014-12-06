@@ -33,7 +33,7 @@ define [ "model/main"
     homepage = "/#back"       if _.contains user.roles, Role.back
     homepage = "/#call"       if _.contains user.roles, Role.call
     homepage = "/#supervisor" if _.contains user.roles, Role.supervisor
-    homepage = "/#rkc"        if _.contains user.roles, Role.head
+    homepage = "/#timeline"   if _.contains user.roles, Role.head
 
 
     usr = Main.buildKVM global.model('Usermeta'),
