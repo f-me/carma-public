@@ -209,6 +209,11 @@ beforeUpdate = Map.unionsWith (++) $
       roles <- (`get'` BusinessRole.roles) <$> dbRead bRole
       modPut Usermeta.roles roles
 
+  , trigOn Call.endDate $ \case
+      Nothing -> return ()
+      Just _ -> do
+        getNow >>= (modifyPatch . Patch.put Call.endDate . Just)
+
   , trigOn ActionType.priority $
     \n -> modPut ActionType.priority $
           if
