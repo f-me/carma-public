@@ -53,11 +53,9 @@
       div(data-bind='visible: dupe')
         | Такой же файл уже загружался ранее
       div(data-bind='text: msg')
-      div(data-bind='data-bind', visible:='visible:')
-        | 0"
+      div(data-bind='visible: cases().length > 0')
         | Прикреплён к кейсам
-        span(data-bind='data-bind', visible:='visible:')
-          | 3"
+        span(data-bind='visible: cases().length > 3')
           | (всего
           span(data-bind='text: cases().length')
           | )
