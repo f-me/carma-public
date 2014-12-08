@@ -7,13 +7,14 @@
         .form-group
           label.control-label(for='upload-files')
             | Выберите файлы для загрузки
+            &nbsp;
             span#upload-files-tip(data-html='true'
               data-placement='right'
               title="Каждый файл будет прикреплён к кейсам, номера которых \
                      перечислены  в начале его имени до первого дефиса, \
                      например: <i>75521,78214-Акт315.pdf</i> → кейсы 75521 \
                      и 78214")
-              i.icon.icon-question-sign
+              i.glyphicon.glyphicon-question-sign
           // File chooser widget
           .input-group.input-group-sm
             input.form-control(type="text" readonly)
@@ -47,7 +48,7 @@
             data-bind="attr: { \
                 href: 's/fileupload/attachment/' + aid() + '/' + filename() \
               }")
-            i.icon.icon-download-alt
+            i.glyphicon.glyphicon-download-alt
             b(data-bind='text: filename')
         div(data-bind='visible: dupe')
           | Такой же файл уже загружался ранее

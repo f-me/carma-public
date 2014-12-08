@@ -16,8 +16,8 @@
       // TODO Find out how to use button here without causing weird shit
       .col-md-offset-4.col-md-8
         a#vin-send.btn.btn-primary
-          i.icon.icon-upload.icon-white
-          | Загрузить
+          i.glyphicon.glyphicon-upload.glyphicon-white
+          | &nbsp;Загрузить
   fieldset
     #vin-box-container
 
@@ -26,26 +26,26 @@
     button.close(data-dismiss='alert', data-bind='click: cleanup')
         | ×
       div
-        i.icon.icon-file
+        i.glyphicon.glyphicon-file
         b(data-bind='text: filename')
-        | :
+        | :&nbsp;
         span(data-bind='visible: !uploaded()')
           | загружается
         span(data-bind='visible: uploaded()')
           span(data-bind='visible: !done()')
-            | обрабатывается
-            i.icon-refresh.icon-refresh-animate
+            | обрабатывается&nbsp;
+            i.glyphicon.glyphicon-refresh.glyphicon-refresh-animate
         span(data-bind='visible: resultMsg')
           span(data-bind='visible: fileUrls().length == 0')
             | обработан без ошибок
           span(data-bind="visible: fileUrls().length > 0")
             | обработан, имеются ошибки
-            | (всего
+            | (всего&nbsp;
             span(data-bind='text: bad')
             span(data-bind='foreach: fileUrls')
-              | :
+              | :&nbsp;
               a(target='_blank', data-bind='attr: { href: $data }')
-                i.icon.icon-download-alt
+                i.glyphicon.glyphicon-download-alt
                 b отчёт
             | )
         span(data-bind='visible: errorMsg')
