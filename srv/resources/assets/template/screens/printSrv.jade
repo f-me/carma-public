@@ -1,119 +1,118 @@
 style(type="text/css" media="print")
-  |  #print-table {
-  |    overflow-y: hidden;
-  |    position: relative;
-  |    font-size: 10px;
-  |    top: 0;
-  |    padding: 0;
-  |  }
   |  .table {
   |    margin-bottom: 8px;
+  |    page-break-inside: avoid;
   |  }
 
-#print-table.row
-    .col-md-12
-        table.table.table-condensed
+.container
+  #print-table
+    .row.col-md-12
+      table.table.table-condensed
+        tr
+          td(width='30%')  Клиент
+          td(width='70%', data-bind='text: kase.programLocal')
+        tr
+          td  Номер происшествия
+          td(data-bind='text:kase.id')
+        tr
+          td  Дата и время звонка
+          td(data-bind='text: kase.callDate')
+        tr
+          td  Дата и время создания услуги
+          td(data-bind='text: service.createTime')
+        tr
+          td  Услуга
+          td(data-bind='text: service.typeLocal')
+        tr
+          td  ФИО звонящего
+          td(style='text-transform: capitalize;', data-bind='text: kase.contact_name')
+        tr
+          td  Владелец
+          td(data-bind='text: kase.contact_ownerName')
+        tr
+          td  Что случилось
+          td(data-bind='text: kase.commentLocal')
+        tr
+          td  Марка автомобиля
+          td(data-bind='text: kase.car_makeLocal')
+        tr
+          td  Модель автомобиля
+          td(data-bind='text: kase.car_modelLocal')
+        tr
+          td  Регистрационный номер автомобиля
+          td(style='text-transform: uppercase;', data-bind='text: kase.car_plateNum')
+        tr
+          td  VIN автомобиля
+          td(style='text-transform: uppercase;', data-bind='text: kase.car_vin')
+        tr
+          td  VIN проверен
+          td(data-bind='text: kase.vinCheckedLocal')
+        tr
+          td  Адрес места поломки
+          td(data-bind='text: kase.caseAddress_address')
+        tr
+          td  Адрес, куда эвакуируют автомобиль
+          td(data-bind='text: service.towAddress_address')
+        tr
+          td  Фактическое время начала оказания услуги
+          td(data-bind='text: service.times_factServiceStart')
+        tr
+          td  Фактическое время окончания оказания услуги
+          td(data-bind='text: service.times_factServiceEnd')
+        tr
+          td  Название партнёра
+          td(data-bind='text: service.contractor_partner')
+        tr
+          td  Стоимость услуги у партнёра
+          td(data-bind='text: service.payment_partnerCost')
+        tr
+          td  Расшифровка стоимости
+          td(data-bind='text: service.payment_costTranscript')
+        tr
+          td  Статус услуги
+          td(data-bind='text: service.statusLocal')
+        tr
+          td  Сотрудник принявший звонок
+          td(data-bind='text: callTaker.realName')
+        tr
+          td  Сотрудник заказавший услугу
+          td(data-bind='text: service.assignedTo.realName')
+        tr
+          td  Ложный вызов
+          td(data-bind='text: service.falseCallLocal')
+
+    .row.col-md-12
+      table.table.table-condensed
+        caption
+          strong Отказы партнёров
+        thead
           tr
-            td(width='30%')  Клиент
-            td(width='70%', data-bind='text: kase.programLocal')
+            th Дата и время
+            th Оператор
+            th Партнёр
+            th Причина отказа
+            th Комментарий
+            th Услуга
+        tbody(data-bind='foreach: cancels')
           tr
-            td  Номер происшествия
-            td(data-bind='text:kase.id')
+            td(data-bind='text: $data.ctime')
+            td(data-bind='text: $data.owner')
+            td(data-bind='text: $data.partner')
+            td(data-bind='text: $data.reason')
+            td(data-bind='text: $data.comment')
+            td(data-bind='text: $data.service')
+
+    .row.col-md-12
+      table.table.table-condensed
+        caption
+          strong Комментарии
+        thead
           tr
-            td  Дата и время звонка
-            td(data-bind='text: kase.callDate')
+            th Дата и время
+            th Оператор
+            th Текст
+        tbody(data-bind='foreach: kase.comments')
           tr
-            td  Дата и время создания услуги
-            td(data-bind='text: service.createTime')
-          tr
-            td  Услуга
-            td(data-bind='text: service.typeLocal')
-          tr
-            td  ФИО звонящего
-            td(style='text-transform: capitalize;', data-bind='text: kase.contact_name')
-          tr
-            td  Владелец
-            td(data-bind='text: kase.contact_ownerName')
-          tr
-            td  Что случилось
-            td(data-bind='text: kase.commentLocal')
-          tr
-            td  Марка автомобиля
-            td(data-bind='text: kase.car_makeLocal')
-          tr
-            td  Модель автомобиля
-            td(data-bind='text: kase.car_modelLocal')
-          tr
-            td  Регистрационный номер автомобиля
-            td(style='text-transform: uppercase;', data-bind='text: kase.car_plateNum')
-          tr
-            td  VIN автомобиля
-            td(style='text-transform: uppercase;', data-bind='text: kase.car_vin')
-          tr
-            td  VIN проверен
-            td(data-bind='text: kase.vinCheckedLocal')
-          tr
-            td  Адрес места поломки
-            td(data-bind='text: kase.caseAddress_address')
-          tr
-            td  Адрес, куда эвакуируют автомобиль
-            td(data-bind='text: service.towAddress_address')
-          tr
-            td  Фактическое время начала оказания услуги
-            td(data-bind='text: service.times_factServiceStart')
-          tr
-            td  Фактическое время окончания оказания услуги
-            td(data-bind='text: service.times_factServiceEnd')
-          tr
-            td  Название партнёра
-            td(data-bind='text: service.contractor_partner')
-          tr
-            td  Стоимость услуги у партнёра
-            td(data-bind='text: service.payment_partnerCost')
-          tr
-            td  Расшифровка стоимости
-            td(data-bind='text: service.payment_costTranscript')
-          tr
-            td  Статус услуги
-            td(data-bind='text: service.statusLocal')
-          tr
-            td  Сотрудник принявший звонок
-            td(data-bind='text: callTaker.realName')
-          tr
-            td  Сотрудник заказавший услугу
-            td(data-bind='text: service.assignedTo.realName')
-          tr
-            td  Ложный вызов
-            td(data-bind='text: service.falseCallLocal')
-        table.table.table-condensed
-          caption
-            strong Отказы партнёров
-          thead
-            tr
-              th Дата и время
-              th Оператор
-              th Партнёр
-              th Причина отказа
-              th Комментарий
-              th Услуга
-          tbody(data-bind='foreach: cancels')
-            tr
-              td(data-bind='text: $data.ctime')
-              td(data-bind='text: $data.owner')
-              td(data-bind='text: $data.partner')
-              td(data-bind='text: $data.reason')
-              td(data-bind='text: $data.comment')
-              td(data-bind='text: $data.service')
-        table.table.table-condensed
-          caption
-            strong Комментарии
-          thead
-            tr
-              th Дата и время
-              th Оператор
-              th Текст
-          tbody(data-bind='foreach: kase.comments')
-            tr
-              td(data-bind='text: $data.date')
-              td(data-bind='text: $data.user')
-              td(data-bind='text: $data.comment')
+            td(data-bind='text: $data.date')
+            td(data-bind='text: $data.user')
+            td(data-bind='text: $data.comment')

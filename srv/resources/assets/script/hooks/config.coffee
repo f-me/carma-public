@@ -31,7 +31,10 @@ define [ "hooks/common"
                , s.openPartnerSearch
                ]
 
+      "Call" : [ k.programDesc ]
+
       "Case" : [ k.descsKbHook
+               , k.programDesc
                , k.eventsHistoryKbHook
                , k.cityStatsHook
                , k.regionHook

@@ -184,7 +184,9 @@ define [ "utils"
         program:              v['program']?()
         customerComment:      v['customerComment']?()
       main.buildNewModel 'Case', args, {modelArg: "ctr:#{v.program()}"},
-        (m, k) -> Finch.navigate "case/#{k.id()}"
+        (m, k) ->
+          v['caseId']?(k.id())
+          Finch.navigate "case/#{k.id()}"
 
     makeCase = _.throttle makeCaseAux, 2000, {trailing: false}
 
