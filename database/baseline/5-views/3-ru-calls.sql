@@ -38,7 +38,8 @@ address AS "Адрес",
 --programm,
 "Program".label AS "Программа",
 --subprogram,
-"SubProgram".label AS "Подпрограмма"
+"SubProgram".label AS "Подпрограмма",
+calltbl.caseid AS "Номер кейса"
 FROM
 calltbl
 LEFT JOIN "Wazzup" ON calltbl.wazzup = "Wazzup".id
