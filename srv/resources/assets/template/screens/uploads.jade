@@ -64,7 +64,7 @@
         | :
         span.case-numbers(data-bind='foreach: cases')
           a(data-bind='attr: { href: \'/#case/\' + $data }', target='_blank')
-            i.icon.icon-file
+            i.glyphicon.glyphicon-file
             b(data-bind='text: $data')
           a.detach-button.text-error(href='#'
             data-bind="attr: { 'data-target': $data }") ×
@@ -74,7 +74,7 @@
                            placeholder='Введите номер кейса и Enter')
       div(style='text-size: smaller;', data-bind='visible: attach')
         a.attach-button(href='#')
-          i.icon.icon-plus
+          i.glyphicon.glyphicon-plus
           | Добавить кейс
       div(data-bind="visible: unknown().length > 0")
         | Следующие кейсы не найдены
@@ -84,7 +84,7 @@
           | )
         | :
         span(data-bind='foreach: unknown')
-          i.icon.icon-trash
+          i.glyphicon.glyphicon-trash
           b(data-bind='text: $data')
       .progress.progress-striped.active
         .progress-bar(style='width: 0%;')
