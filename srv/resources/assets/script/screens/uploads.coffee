@@ -104,7 +104,7 @@ define [ "text!tpl/screens/uploads.html"
         box.find(".progress").fadeOut()
         box.removeClass "alert-info").
       fail(() ->
-        box.addClass "alert-error"
+        box.addClass "alert-danger"
         bvm.msg "Во время загрузки произошла критическая ошибка").
       done((res) ->
         bvm.aid(res.attachment.id)
@@ -117,7 +117,7 @@ define [ "text!tpl/screens/uploads.html"
           bvm.unknown.push t[1]
 
         if bvm.cases().length == 0
-          box.addClass "alert-error"
+          box.addClass "alert-danger"
           bvm.msg "Файл загружен, но номера кейсов не распознаны"
         else
           if bvm.unknown().length > 0

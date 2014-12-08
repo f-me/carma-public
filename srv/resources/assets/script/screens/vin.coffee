@@ -60,7 +60,7 @@ define [ "text!tpl/screens/vin.html"
 
     bvm.errorMsg.subscribe (msg) ->
       box.removeClass("alert-info")
-      box.addClass("alert-error")
+      box.addClass("alert-danger")
 
     bvm.resultMsg.subscribe (msg) ->
       box.removeClass("alert-info")
