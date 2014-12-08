@@ -34,6 +34,7 @@ define [ "text!tpl/screens/vin.html"
       if sid? && fid? && vinFile?
         sendVin sid, fid, vinFile
         $("#vin-upload-file")[0].value = null
+        $("#vin-upload-file").change()
       false
 
   # Send VIN file, set up a new box element to track task progress
