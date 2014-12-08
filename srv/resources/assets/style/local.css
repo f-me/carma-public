@@ -1,3 +1,4 @@
+@media screen { /* don't mess with print layout */
 /* 70px is height os navbar according to bs styles */
 #main-container {
   /* FIXME:
@@ -119,3 +120,5 @@ input.re-failed {
   overflow-y: auto;
   overflow-x: hidden;
 }
+
+} /* end @media screen */
