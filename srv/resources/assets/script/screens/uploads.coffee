@@ -41,7 +41,7 @@ define [ "text!tpl/screens/uploads.html"
   # containing case number. Check for dupes/unknown cases. Set af's
   # validity in case of error. Push new case id to bvm.cases.
   @attachToCase = (bvm, af) ->
-    caseId = af.val()
+    caseId = parseInt af.val()
     caseUrl = "/_/Case/" + caseId
     attId = bvm.aid()
 
