@@ -3,16 +3,19 @@
         .well
           #choose-dict
             legend Справочник
-            select#dict-select(data-bind='foreach: $data')
+            select.form-control#dict-select(data-bind='foreach: $data')
               option(data-bind='value: id, text: name')
           #dict-parent(data-bind='if: kvm')
             span.lead(data-bind='text: kvm._meta.model.title')
-            div(data-bind='foreach: kvm._meta.model.fields')
-              div(data-bind='renderField: $data')
-            p
-              a.btn(type='button', data-bind='click: function() { kvm.find(); }')
-                i.icon-search
-                | Найти
+            div.form-horizontal
+              div(data-bind='foreach: kvm._meta.model.fields')
+                div(data-bind='renderField: $data')
+              .form-group
+                .col-md-offset-4.col-md-8
+                  a.btn.btn-default(type='button'
+                          data-bind='click: function() { kvm.find(); }')
+                    i.icon-search
+                    | Найти
         table#dict-table.table.table-striped.table-bordered.table-break-word
       .col-md-7
         #button-panel.page-header(style='display: none;')
@@ -28,21 +31,23 @@
             i.icon.icon-eye-close
             | Aктивные
         // copy constructor options
-        #ctr-copy-modal.modal.hide.fade
-          .modal-header
-            button.close(type='button'
-                         data-dismiss='modal'
-                         aria-hidden='true')
-              | ×
-            h3 Копирование настроек конструктора
-          .modal-body
-            div(data-bind='foreach: kvm._meta.model.fields')
-              div(data-bind='renderField: $data')
-          .modal-footer
-            button.btn(data-dismiss='modal', aria-hidden='true') Отменить
-            button.btn.btn-primary(
-                data-bind='enable: kvm.canCopy, click: kvm.doCopy')
-              | Копировать
+        #ctr-copy-modal.modal.fade
+          .modal-dialog
+            .modal-content
+              .modal-header
+                button.close(type='button'
+                             data-dismiss='modal'
+                             aria-hidden='true')
+                  | ×
+                h4.modal-title Копирование настроек конструктора
+              .modal-body
+                div.form-horizontal(data-bind='foreach: kvm._meta.model.fields')
+                  div(data-bind='renderField: $data')
+              .modal-footer
+                button.btn(data-dismiss='modal', aria-hidden='true') Отменить
+                button.btn.btn-primary(
+                    data-bind='enable: kvm.canCopy, click: kvm.doCopy')
+                  | Копировать
         #dictionaries-view.form-horizontal
         #permissions
       #hidden-fields-container(style='display: none;')
