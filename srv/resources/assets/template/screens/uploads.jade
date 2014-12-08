@@ -43,48 +43,48 @@
     .alert.alert-info.upload-box
       button.close(data-dismiss='alert')
           | ×
-        div
-          a(target='_blank'
-            data-bind="attr: { \
-                href: 's/fileupload/attachment/' + aid() + '/' + filename() \
-              }")
-            i.glyphicon.glyphicon-download-alt
-            b(data-bind='text: filename')
-        div(data-bind='visible: dupe')
-          | Такой же файл уже загружался ранее
-        div(data-bind='text: msg')
-        div(data-bind='data-bind', visible:='visible:')
-          | 0"
-          | Прикреплён к кейсам
-          span(data-bind='data-bind', visible:='visible:')
-            | 3"
-            | (всего
-            span(data-bind='text: cases().length')
-            | )
-          | :
-          span.case-numbers(data-bind='foreach: cases')
-            a(data-bind='attr: { href: \'/#case/\' + $data }', target='_blank')
-              i.icon.icon-file
-              b(data-bind='text: $data')
-            a.detach-button.text-error(href='#'
-              data-bind="attr: { 'data-target': $data }") ×
-        form.attach-form(style='display: none; height: 15px;')
-          input.attach-field(type='text'
-                             pattern='\d+'
-                             placeholder='Введите номер кейса и Enter')
-        div(style='text-size: smaller;', data-bind='visible: attach')
-          a.attach-button(href='#')
-            i.icon.icon-plus
-            | Добавить кейс
-        div(data-bind="visible: unknown().length > 0")
-          | Следующие кейсы не найдены
-          span(data-bind="visible: unknown().length > 3")
-            | (всего
-            span(data-bind='text: unknown().length')
-            | )
-          | :
-          span(data-bind='foreach: unknown')
-            i.icon.icon-trash
+      div
+        a(target='_blank'
+          data-bind="attr: { \
+              href: 's/fileupload/attachment/' + aid() + '/' + filename() \
+            }")
+          i.glyphicon.glyphicon-download-alt
+          b(data-bind='text: filename')
+      div(data-bind='visible: dupe')
+        | Такой же файл уже загружался ранее
+      div(data-bind='text: msg')
+      div(data-bind='data-bind', visible:='visible:')
+        | 0"
+        | Прикреплён к кейсам
+        span(data-bind='data-bind', visible:='visible:')
+          | 3"
+          | (всего
+          span(data-bind='text: cases().length')
+          | )
+        | :
+        span.case-numbers(data-bind='foreach: cases')
+          a(data-bind='attr: { href: \'/#case/\' + $data }', target='_blank')
+            i.icon.icon-file
             b(data-bind='text: $data')
-        .progress.progress-striped.active
-          .bar(style='width: 0%;')
+          a.detach-button.text-error(href='#'
+            data-bind="attr: { 'data-target': $data }") ×
+      form.attach-form(style='display: none; height: 15px;')
+        input.attach-field(type='text'
+                           pattern='\d+'
+                           placeholder='Введите номер кейса и Enter')
+      div(style='text-size: smaller;', data-bind='visible: attach')
+        a.attach-button(href='#')
+          i.icon.icon-plus
+          | Добавить кейс
+      div(data-bind="visible: unknown().length > 0")
+        | Следующие кейсы не найдены
+        span(data-bind="visible: unknown().length > 3")
+          | (всего
+          span(data-bind='text: unknown().length')
+          | )
+        | :
+        span(data-bind='foreach: unknown')
+          i.icon.icon-trash
+          b(data-bind='text: $data')
+      .progress.progress-striped.active
+        .bar(style='width: 0%;')
