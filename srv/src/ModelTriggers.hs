@@ -23,6 +23,7 @@ import Control.Monad.Trans
 import Control.Monad.Trans.Reader
 
 import Data.List
+import qualified Data.List as L
 import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
@@ -208,6 +209,11 @@ beforeUpdate = Map.unionsWith (++) $
       roles <- (`get'` BusinessRole.roles) <$> dbRead bRole
       modPut Usermeta.roles roles
 
+  , trigOn Call.endDate $ \case
+      Nothing -> return ()
+      Just _ -> do
+        getNow >>= (modifyPatch . Patch.put Call.endDate . Just)
+
   , trigOn ActionType.priority $
     \n -> modPut ActionType.priority $
           if
@@ -259,6 +265,12 @@ beforeUpdate = Map.unionsWith (++) $
   , trigOn Case.comment $ \case
       Nothing -> return ()
       Just wi -> fillWazzup wi
+
+  , trigOn Case.services $ \ss -> do
+      idt <- getIdent
+      beforeP <- dbRead idt
+      modifyPatch $ Patch.put Case.services $
+        concatLegacyIds ss (join $ Patch.get beforeP Case.services)
 
   , trigOn Service.times_expectedServiceStart $ \case
       Nothing -> return ()
@@ -471,6 +483,13 @@ contractToCase =
     , C2C Contract.subprogram id Case.subprogram
     ]
 
+-- | Concat legacy text reference lists
+concatLegacyIds :: Maybe Reference -> Maybe Reference -> Maybe Reference
+concatLegacyIds r1 r2 = Just $ Reference $
+    T.intercalate "," $ parseRefs r1 `L.union` parseRefs r2
+  where
+    parseRefs Nothing              = []
+    parseRefs (Just (Reference r)) = map (T.strip) $ T.splitOn "," r
 
 -- | Set @validUntil@ field from a subprogram and a new @validSince@
 -- value.

@@ -132,9 +132,12 @@ define [ "utils"
         s = knockVM['servicesReference']?()
         return [] unless p?
         _.chain(s).map((x) -> mkServicesDescs(p,x)).compact().uniq().value()
+
+  programDesc: (model, knockVM) ->
     knockVM['programDesc'] = ko.computed
       read: ->
-        u.getProgramDesc (parseInt knockVM['program']()), (parseInt knockVM['subprogram']?())
+        u.getProgramDesc (parseInt knockVM['program']()),
+                         (parseInt knockVM['subprogram']?())
 
   eventsHistoryKbHook: (model, knockVM) ->
     # History rendering is called from renderActions on caseScreen
