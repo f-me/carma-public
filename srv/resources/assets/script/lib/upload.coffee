@@ -14,7 +14,7 @@ define ->
         if e.lengthComputable
           fraction = e.loaded / e.total
           percent = fraction * 100.0
-          progress.find(".bar").css "width", percent + "%"
+          progress.find(".progress-bar").css "width", percent + "%"
       , false)
     xhr.upload.addEventListener "load", hideProgress, false
     xhr.upload.addEventListener "error", hideProgress, false
