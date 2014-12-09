@@ -1,5 +1,18 @@
 define [], ->
   # Client-side hacker extensions and hidden features
+  #
+  # To add a new hack, insert an entry in `hackMap` below and add a
+  # link of type `hack` in screens.json:
+  #
+  #         { "name"  : "permute-case-panes",
+  #           "label" : "Переставить панели кейса",
+  #           "type"  : "hack",
+  #           "permissions": ["hacker"]
+  #         }
+  #
+  # Hack state (on/off) is stored per user. Once activated, hacks are
+  # re-enabled on every page load. Disabling a hack means turning this
+  # re-activation off.
 
   addLocalCSSRule = (selector, rule) ->
     styles = document.styleSheets
@@ -13,12 +26,6 @@ define [], ->
   # A hack cannot be explicitly disabled (we reload the page without
   # re-enabling the hack instead).
   hackMap =
-    'bright-new-world': ->
-      addLocalCSSRule "body", "background-color: #f7f7f7;"
-      addLocalCSSRule(
-        ".nice-scrollbar::-webkit-scrollbar-thumb:vertical",
-        "background-color: #eaeaea;")
-
     'permute-case-panes': ->
       addLocalCSSRule "#right", "left: 0; width: 20%;"
       addLocalCSSRule "#left", "left: 22%; width: 30%;"
