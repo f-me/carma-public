@@ -1,6 +1,8 @@
-define [ "model/utils"
+define [ "model/main"
+       , "model/utils"
        , "dictionaries"
-       , "text!tpl/fields/form.html"], (mu, d, Ftpls) ->
+       , "sync/crud"
+       , "text!tpl/fields/form.html"], (main, mu, d, sync, Ftpls) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -141,6 +143,12 @@ define [ "model/utils"
     else
       "#{hours}ч #{mins}м"
 
+  # Build a KnockVM for a model instance using standard queue
+  buildInstance = (modelName, id) ->
+    main.buildKVM global.model(modelName),
+      fetched: {id: id}
+      queue: sync.CrudQueue
+
   newModelDict = (name, stringify, meta) ->
     new d.dicts.ModelDict
       dict: name
@@ -180,11 +188,17 @@ define [ "model/utils"
 
   getProgramDesc: (pid, sid) ->
     meta = {dictionaryLabel: 'help'}
-    pi = _.find newModelDict('Program', false, meta).source, (p) ->
-      p.value == pid
-    si = _.find newModelDict('SubProgram', false, meta).source, (s) ->
-      s.value == sid
-    _.compact([pi?.label, si?.label]).join '<br />'
+    pvm = buildInstance('Program', pid)
+    svm = buildInstance('SubProgram', sid)
+    if pvm?.pTypeLocal()
+      pType = "<span class=\"label label-info\">#{pvm.pTypeLocal()}</span>"
+    else
+      pType = null
+    managers = _.pluck(pvm?.managersLocals(), 'label')
+    if managers?
+      manList = "<b>Менеджеры:</b> " + managers.join(', ')
+    _.compact([pType, manList, pvm?.help(), svm?.help()]).
+      join '<br />'
 
   # Scroll case field into view and focus
   focusField: (name) ->
@@ -402,6 +416,8 @@ define [ "model/utils"
     window.history.replaceState null, null, "/##{scr}?#{q}"
 
   inject: (dest, src) -> dest[k] = v for k, v of src when not dest[k]
+
+  buildInstance: buildInstance
 
   newModelDict: newModelDict
 

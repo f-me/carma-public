@@ -33,7 +33,7 @@ define ["dictionaries/local-dict"], (ld) ->
           _.contains o.roles, global.idents("Role").programManager
         @source = for p in pms
             { value: p.id
-            , label: (p.realName + ' — ' + p.login) || ''
+            , label: p.realName || p.login
             }
 
     # Dictionary of all subprograms, with labels including parent
