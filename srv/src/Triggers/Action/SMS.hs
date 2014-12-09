@@ -1,5 +1,4 @@
-
-module Carma.Backoffice.Action.SMS (sendSMS) where
+module Triggers.Action.SMS (sendSMS) where
 
 import Control.Monad (void)
 
@@ -14,7 +13,7 @@ import Data.Model as Model
 import Carma.Model.Service     (Service)
 import Carma.Model.SmsTemplate as SmsTemplate
 
-import Trigger.Dsl (FutureContext(..))
+import Triggers.DSL (FutureContext(..))
 import Application (AppHandler)
 import Util
 

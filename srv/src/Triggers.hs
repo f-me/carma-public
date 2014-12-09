@@ -6,7 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module ModelTriggers
+module Triggers
   (runCreateTriggers
   ,runUpdateTriggers
   ) where
@@ -46,7 +46,6 @@ import Application (AppHandler)
 import Data.Model as Model
 import Data.Model.Patch as Patch
 import Data.Model.Types
-import           Trigger.Dsl as Dsl
 
 import           Carma.Model.Types (HMDiffTime(..))
 
@@ -85,14 +84,17 @@ import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 import           Carma.Backoffice
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
-import qualified Carma.Backoffice.Action.SMS as BOAction (sendSMS)
-import qualified Carma.Backoffice.Action.MailToGenser as BOAction (sendMailToGenser)
-import qualified Carma.Backoffice.Action.MailToPSA as BOAction (sendMailToPSA)
-import qualified Carma.Backoffice.Action.MailToDealer as BOAction (sendMailToDealer)
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
 
-import           AppHandlers.ActionAssignment
+import           AppHandlers.ActionAssignment (topPriority, leastPriority)
+
+import qualified Triggers.Action.SMS as BOAction (sendSMS)
+import qualified Triggers.Action.MailToGenser as BOAction (sendMailToGenser)
+import qualified Triggers.Action.MailToPSA as BOAction (sendMailToPSA)
+import qualified Triggers.Action.MailToDealer as BOAction (sendMailToDealer)
+import           Triggers.DSL as Dsl
+
 import           Util (Priority(..), syslogJSON, (.=))
 
 -- TODO: rename
@@ -211,8 +213,7 @@ beforeUpdate = Map.unionsWith (++) $
 
   , trigOn Call.endDate $ \case
       Nothing -> return ()
-      Just _ -> do
-        getNow >>= (modifyPatch . Patch.put Call.endDate . Just)
+      Just _ -> getNow >>= (modifyPatch . Patch.put Call.endDate . Just)
 
   , trigOn ActionType.priority $
     \n -> modPut ActionType.priority $
@@ -534,12 +535,13 @@ haskellBinary :: (HaskellType t1 -> HaskellType t2 -> HaskellType t)
 haskellBinary fun a b = HaskellE $ fun <$> toHaskell a <*> toHaskell b
 
 
+-- | Haskell embedding for Backoffice DSL.
 newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
     deriving Typeable
 
 
 instance Backoffice HaskellE where
-    now = HaskellE $ asks ModelTriggers.now
+    now = HaskellE $ asks Triggers.now
 
     since nd t =
         HaskellE $ addUTCTime nd <$> toHaskell t
@@ -886,10 +888,12 @@ data HCtx =
          }
 
 
+-- | Convert Backoffice entries to update triggers.
 entryToTrigger :: BO.Entry -> Map (ModelName, FieldName) [Dynamic]
 entryToTrigger = evalHaskell emptyContext . BO.trigger
 
 
+-- | Convert Backoffice entries to action result triggers.
 actionToTrigger :: BO.Action -> Map (ModelName, FieldName) [Dynamic]
 actionToTrigger a =
   trigOn Action.result $
@@ -897,7 +901,7 @@ actionToTrigger a =
     this <- dbRead =<< getIdent
     case newVal of
       Nothing -> return ()
-      Just newRes -> do
+      Just newRes ->
         -- Skip changes for actions of different types
         when (this `get'` Action.aType == BO.aType a) $
           case lookup newRes (BO.outcomes a) of

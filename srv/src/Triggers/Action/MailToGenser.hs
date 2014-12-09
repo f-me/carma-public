@@ -1,5 +1,4 @@
-
-module Carma.Backoffice.Action.MailToGenser (sendMailToGenser) where
+module Triggers.Action.MailToGenser (sendMailToGenser) where
 
 import Control.Applicative
 import Control.Monad.IO.Class (liftIO)
@@ -16,7 +15,7 @@ import Data.Model as Model
 import Carma.Model.Service (Service)
 import qualified Carma.Model.TowType as TowType
 import qualified Carma.Model.LegalForm as LegalForm
-import Trigger.Dsl (FutureContext(..))
+import Triggers.DSL (FutureContext(..))
 
 import Snap.Snaplet (getSnapletUserConfig)
 import Application (AppHandler)

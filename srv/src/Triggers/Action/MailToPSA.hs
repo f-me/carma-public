@@ -1,5 +1,4 @@
-
-module Carma.Backoffice.Action.MailToPSA (sendMailToPSA) where
+module Triggers.Action.MailToPSA (sendMailToPSA) where
 
 import Control.Applicative
 import Control.Monad.IO.Class (liftIO)
@@ -23,13 +22,12 @@ import qualified Carma.Model.ServiceStatus as ServiceStatus
 import qualified Carma.Model.Engine as Engine
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.TechType as TT
-import Trigger.Dsl (FutureContext(..))
+import Triggers.DSL (FutureContext(..))
 
 import Snap.Snaplet
 import Application (AppHandler)
 import Data.Configurator (require)
 import Util hiding (render)
-
 
 
 sendMailToPSA :: IdentI Service -> FutureContext -> AppHandler (IO ())
@@ -97,7 +95,7 @@ getMsgData con svcId = uncurry (PG.query con)
       'Country Code',         '2', 'RU',
       'Task Id',              '9', 'M' || lpad(c.id::text, 8, '0'),
       'Time of Incident',     '5', to_char(c.callDate at time zone 'MSK', 'HH24:MI'),
-      'Make',                 '3', 
+      'Make',                 '3',
         case c.program
           when $(Program.peugeot)$ then 'PEU'
           when $(Program.citroen)$ then 'CIT'

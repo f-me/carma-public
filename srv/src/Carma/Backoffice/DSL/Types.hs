@@ -39,7 +39,7 @@ import           Carma.Model.Case as Case
 import           Carma.Model.Service as Service
 
 import           Control.Monad.Free
-import           Trigger.Dsl
+import           Triggers.DSL
 
 
 -- | An effect induced by changes in model @m@.

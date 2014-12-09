@@ -37,6 +37,7 @@ import           Data.Model
 import           Carma.Backoffice.DSL
 
 
+-- | Structured text with indentation blocks.
 data IndentedChunk = T Text
                    | NL
                    | IND IndentedText
@@ -44,6 +45,42 @@ data IndentedChunk = T Text
 
 
 type IndentedText = [IndentedChunk]
+
+
+formatIndentedText :: Text
+                   -- ^ Newline text.
+                   -> Text
+                   -- ^ Line prefix per indentation level.
+                   -> IndentedText
+                   -- ^ Source text.
+                   -> Text
+formatIndentedText newline indent = formatText1 0 ""
+  where
+    formatText1 _ acc [] = acc
+    formatText1 l acc (c:cont) =
+      case c of
+        T t -> formatText1 l (acc `T.append` t) cont
+        NL -> formatText1 l
+              (T.concat [acc, newline, T.concat (l `replicate` indent)]) cont
+        IND i ->
+          formatText1 l
+          (acc `T.append` formatText1 (l + 1) "" (NL:i)) (maybeNL cont)
+          where
+            -- Add newlines at start/end of indentation block if
+            -- there's extra content on this indentation level
+            -- (prevents superfluous newlines when a block body ends
+            -- with deeper nesting, as in @IND [.., IND [..]]@)
+            maybeNL [] = []
+            maybeNL ls = NL:ls
+
+
+-- | Format text, ignoring all indentation and newlines.
+formatOneline :: IndentedText -> Text
+formatOneline = foldl combine ""
+  where
+    combine acc NL = acc
+    combine acc (T t) = acc `T.append` t
+    combine acc (IND i) = acc `T.append` formatOneline i
 
 
 -- | Convert an ident to text.
@@ -289,35 +326,6 @@ formatDiff nd' =
         nonZeros = filter (\(v, _) -> v /= 0) labels
     in
       T.pack $ concatMap (\(v, l) -> show v ++ l) nonZeros
-
-
-formatIndentedText :: Text -> Text -> IndentedText -> Text
-formatIndentedText newline indent = formatText1 0 ""
-  where
-    formatText1 _ acc [] = acc
-    formatText1 l acc (c:cont) =
-      case c of
-        T t -> formatText1 l (acc `T.append` t) cont
-        NL -> formatText1 l
-              (T.concat [acc, newline, T.concat (l `replicate` indent)]) cont
-        IND i ->
-          formatText1 l
-          (acc `T.append` formatText1 (l + 1) "" (NL:i)) (maybeNL cont)
-          where
-            -- Add newlines at start/end of indentation block if
-            -- there's extra content on this indentation level
-            -- (prevents superfluous newlines when a block body ends
-            -- with deeper nesting, as in @IND [.., IND [..]]@)
-            maybeNL [] = []
-            maybeNL ls = NL:ls
-
-
-formatOneline :: IndentedText -> Text
-formatOneline = foldl combine ""
-  where
-    combine acc NL = acc
-    combine acc (T t) = acc `T.append` t
-    combine acc (IND i) = acc `T.append` formatOneline i
 
 
 -- | Produce a textual spec from a back office description.

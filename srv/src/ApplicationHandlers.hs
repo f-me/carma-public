@@ -75,7 +75,7 @@ import Utils.LegacyModel (readIdent)
 
 import Utils.Events (logLogin, logCRUD, updateUserState)
 
-import ModelTriggers
+import Triggers
 
 
 ------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 {-# LANGUAGE StandaloneDeriving, DeriveDataTypeable #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Trigger.Dsl
+module Triggers.DSL
     (
       -- * DSL evaluator
       TriggerRes

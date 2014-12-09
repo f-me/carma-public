@@ -1,5 +1,4 @@
-
-module Carma.Backoffice.Action.MailToDealer (sendMailToDealer) where
+module Triggers.Action.MailToDealer (sendMailToDealer) where
 
 import Control.Applicative
 import Control.Monad.IO.Class (liftIO)
@@ -19,12 +18,11 @@ import Data.Configurator (require)
 
 import Data.Model as Model
 import Carma.Model.Service (Service)
-import Trigger.Dsl (FutureContext(..))
+import Triggers.DSL (FutureContext(..))
 
 import Snap.Snaplet (getSnapletUserConfig)
 import Application (AppHandler)
 import Util hiding (render)
-
 
 
 sendMailToDealer :: IdentI Service -> FutureContext -> AppHandler (IO ())
