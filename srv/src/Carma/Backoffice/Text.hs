@@ -227,7 +227,11 @@ instance Backoffice TextE where
                                                Dealer -> "дилеру"
                                                Genser -> "в Genser"
 
-    nop = textE "Ничего не делать"
+    when cond act =
+        TextE $ do
+          cond' <- toText cond
+          act' <- toText act
+          return $ [T "Если "] ++ cond' ++ [T ", то "] ++ act'
 
     closePrevious scope acts r =
         TextE $ do

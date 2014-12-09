@@ -62,29 +62,28 @@ toBack =
 
 messageToGenser :: Backoffice bk => bk (Eff m)
 messageToGenser =
-    ite
+    when
     ((caseField Case.program == const Program.genser) &&
      (serviceField Service.svcType == const ST.towage) &&
      (serviceField Service.payType == just PT.ruamc)
     )
     (sendMail Genser) -- FIXME: lift check for Towage.towType from sendMail
-    nop
 
 
 messageToPSA :: Backoffice bk => bk (Eff m)
 messageToPSA =
-    ite
+    when
     ((caseField Case.program `oneOf` [Program.peugeot, Program.citroen]) &&
      (serviceField Service.svcType `oneOf` [ST.towage, ST.tech, ST.consultation]) &&
      (serviceField Service.payType == just PT.ruamc ||
       serviceField Service.payType == just PT.mixed)
     )
     (sendMail PSA) -- FIXME: lift checks for Towage.techType & consultation.result
-    nop
+
 
 messageToDealer :: Backoffice bk => bk (Eff m)
 messageToDealer =
-    ite
+    when
     ((caseField Case.program `oneOf` [Program.peugeot, Program.citroen]) &&
      (serviceField Service.svcType == const ST.towage) &&
      (serviceField Service.payType == just PT.ruamc ||
@@ -92,7 +91,7 @@ messageToDealer =
       serviceField Service.payType == just PT.mixed)
     )
     (sendMail Dealer)
-    nop
+
 
 needMakerApproval :: Entry
 needMakerApproval =

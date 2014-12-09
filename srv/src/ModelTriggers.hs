@@ -649,7 +649,12 @@ instance Backoffice HaskellE where
           io <- PS.getPostgresState >>= f . FutureContext . PS.pgPool
           void $ liftIO $ forkIO io
 
-    nop = HaskellE $ return $ return ()
+    when cond act =
+      HaskellE $
+      toHaskell cond >>=
+      \case
+        True -> toHaskell act
+        False -> return $ return ()
 
     closePrevious scope types res =
       HaskellE $ do
