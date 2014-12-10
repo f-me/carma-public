@@ -9,10 +9,7 @@ define ["model/utils", "utils"], (mu, u) ->
 
   geoRevQuery = (lon, lat) -> "/geo/revSearch/#{lon},#{lat}/"
 
-  geoQuery = (addr) ->
-    nominatimHost = global.config("nominatim-url")
-    return nominatimHost +
-      "search?format=json&accept-language=ru-RU,ru&q=#{addr}"
+  geoQuery = (addr) -> "/geo/search/#{addr}/"
 
   # Build readable address from reverse Nominatim JSON response
   buildReverseAddress = (res) ->
