@@ -195,7 +195,7 @@ define [ "model/main"
     else
       pType = null
     managers = _.pluck(pvm?.managersLocals(), 'label')
-    if managers?
+    if managers? && !_.isEmpty(managers)
       manList = "<b>Менеджеры:</b> " + managers.join(', ')
     _.compact([pType, manList, pvm?.help(), svm?.help()]).
       join '<br />'
