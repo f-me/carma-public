@@ -8,8 +8,7 @@
 #
 # Must be run from ~carma directory.
 #
-# curl(1) with SFTP support, unzip(1) and sshpass(1) must be
-# available.
+# sftp(1), unzip(1) and sshpass(1) must be available.
 #
 # .netrc file must contain SFTP credentials for ARC host in one line.
 
