@@ -48,7 +48,7 @@ import Data.Model.Patch as Patch
 import Data.Model.Types
 import           Trigger.Dsl as Dsl
 
-import           Carma.Model.Types (HMDiffTime(..), on, off)
+import           Carma.Model.Types (HMDiffTime(..))
 
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.ActionResult as ActionResult
@@ -649,7 +649,12 @@ instance Backoffice HaskellE where
           io <- PS.getPostgresState >>= f . FutureContext . PS.pgPool
           void $ liftIO $ forkIO io
 
-    nop = HaskellE $ return $ return ()
+    when cond act =
+      HaskellE $
+      toHaskell cond >>=
+      \case
+        True -> toHaskell act
+        False -> return $ return ()
 
     closePrevious scope types res =
       HaskellE $ do

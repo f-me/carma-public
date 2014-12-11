@@ -7,13 +7,14 @@
         .form-group
           label.control-label(for='upload-files')
             | Выберите файлы для загрузки
+            &nbsp;
             span#upload-files-tip(data-html='true'
               data-placement='right'
               title="Каждый файл будет прикреплён к кейсам, номера которых \
                      перечислены  в начале его имени до первого дефиса, \
                      например: <i>75521,78214-Акт315.pdf</i> → кейсы 75521 \
                      и 78214")
-              i.icon.icon-question-sign
+              i.glyphicon.glyphicon-question-sign
           // File chooser widget
           .input-group.input-group-sm
             input.form-control(type="text" readonly)
@@ -42,48 +43,49 @@
     .alert.alert-info.upload-box
       button.close(data-dismiss='alert')
           | ×
-        div
-          a(target='_blank'
-            data-bind="attr: { \
-                href: 's/fileupload/attachment/' + aid() + '/' + filename() \
-              }")
-            i.icon.icon-download-alt
-            b(data-bind='text: filename')
-        div(data-bind='visible: dupe')
-          | Такой же файл уже загружался ранее
-        div(data-bind='text: msg')
-        div(data-bind='data-bind', visible:='visible:')
-          | 0"
-          | Прикреплён к кейсам
-          span(data-bind='data-bind', visible:='visible:')
-            | 3"
-            | (всего
-            span(data-bind='text: cases().length')
-            | )
-          | :
-          span.case-numbers(data-bind='foreach: cases')
-            a(data-bind='attr: { href: \'/#case/\' + $data }', target='_blank')
-              i.icon.icon-file
-              b(data-bind='text: $data')
-            a.detach-button.text-error(href='#'
-              data-bind="attr: { 'data-target': $data }") ×
-        form.attach-form(style='display: none; height: 15px;')
-          input.attach-field(type='text'
-                             pattern='\d+'
-                             placeholder='Введите номер кейса и Enter')
-        div(style='text-size: smaller;', data-bind='visible: attach')
-          a.attach-button(href='#')
-            i.icon.icon-plus
-            | Добавить кейс
-        div(data-bind="visible: unknown().length > 0")
-          | Следующие кейсы не найдены
-          span(data-bind="visible: unknown().length > 3")
-            | (всего
-            span(data-bind='text: unknown().length')
-            | )
-          | :
-          span(data-bind='foreach: unknown')
-            i.icon.icon-trash
+      div
+        a(target='_blank'
+          data-bind="attr: { \
+              href: 's/fileupload/attachment/' + aid() + '/' + filename() \
+            }")
+          i.glyphicon.glyphicon-download-alt
+          b(data-bind='text: filename')
+      div(data-bind='visible: dupe')
+        | Такой же файл уже загружался ранее
+      div(data-bind='text: msg')
+      div(data-bind='visible: cases().length > 0')
+        | Прикреплён к кейсам
+        span(data-bind='visible: cases().length > 3')
+          | &nbsp;(всего&nbsp;
+          span(data-bind='text: cases().length')
+          | )
+        | :&nbsp;
+        span.case-numbers(data-bind='foreach: cases')
+          a(data-bind='attr: { href: \'/#case/\' + $data }', target='_blank')
+            i.glyphicon.glyphicon-file
             b(data-bind='text: $data')
-        .progress.progress-striped.active
-          .bar(style='width: 0%;')
+          a.detach-button.text-danger(href='#'
+            data-bind="attr: { 'data-target': $data }")
+            | ×
+          |&nbsp;
+      form.attach-form(style='display: none;')
+        input.attach-field(type='text'
+                           pattern='\\d+'
+                           placeholder='Введите номер кейса и Enter')
+      div(style='text-size: smaller;', data-bind='visible: attach')
+        a.attach-button(href='#')
+          i.glyphicon.glyphicon-plus
+          | Добавить кейс
+      div(data-bind="visible: unknown().length > 0")
+        | Следующие кейсы не найдены
+        span(data-bind="visible: unknown().length > 3")
+          | &nbsp;(всего&nbsp;
+          span(data-bind='text: unknown().length')
+          | )
+        | :&nbsp;
+        span(data-bind='foreach: unknown')
+          i.glyphicon.glyphicon-trash
+          b(data-bind='text: $data')
+          |&nbsp;
+      .progress.progress-striped.active
+        .progress-bar(style='width: 0%;')
