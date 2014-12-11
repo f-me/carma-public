@@ -42,7 +42,7 @@ define [ "utils"
           callType = dict.CallTypes[obj.callType] || obj.callType || ''
           comment.push("Тип звонка: #{callType}") if callType
 
-          comment.push("ФИО: #{obj.callerName_name}") if obj.callerName_name
+          comment.push("ФИО: #{obj.callerName}") if obj.callerName
 
           city = cities.getLab obj.city
           comment.push("Город: #{city}") if city

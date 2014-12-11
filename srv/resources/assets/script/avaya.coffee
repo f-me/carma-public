@@ -56,7 +56,7 @@ class @AvayaWidget
 
       vm = global.viewsWare['call-form'].knockVM
       vm.callDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
-      vm.callerName_phone1(number)
+      vm.callerPhone(number)
       info = lineInfo[line]
       if info
         panel.find("#avaya-info").text(info.greeting)
