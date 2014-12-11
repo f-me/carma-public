@@ -1,0 +1,51 @@
+.chart path, .chart line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.chart text {
+    font: 10px sans-serif;
+}
+
+.chart .grid-line {
+    stroke: black;
+    shape-rendering: crispEdges;
+    stroke-opacity: .2;
+}
+
+.chart .Ready {
+    fill: #ef2929;
+}
+
+.chart .Busy {
+    fill: #8ae234;
+}
+
+.chart .LoggedOut {
+    fill: #888a85;
+}
+
+.chart .Rest {
+    fill: #fcaf3e;
+}
+
+.chart .Dinner {
+    fill: #e9b96e;
+}
+
+.chart .ServiceBreak {
+    fill: #729fcf;
+}
+
+.chart .line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 2;
+}
+
+.chart .brush .extent {
+  stroke: #fff;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}

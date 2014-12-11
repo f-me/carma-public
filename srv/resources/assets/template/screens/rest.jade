@@ -1,0 +1,10 @@
+.row#display-current-user(
+     style="margin-top: 100px"
+     data-bind="spinner: delayedState() == 'Ready' ")
+  .col-md-offset-5.col-md-4
+    button.btn.btn-default(
+            data-bind="css: { 'btn-success': delayedState() == 'Ready', \
+                              'btn-danger':  delayedState() != 'Ready' \
+                       }, \
+                       click: function () { delayedState('Ready') }")
+      | Вернуться из перерыва

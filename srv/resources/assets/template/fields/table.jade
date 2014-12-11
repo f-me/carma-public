@@ -1,6 +1,5 @@
 mixin dictInput(nameMod)
-  .input-append
-    input.focusable(type='text'
+  input.form-control(type='text'
                     autocomplete='off'
                     name='{{ name }}'
                     data-bind='value: $rawData#{nameMod ? "." + nameMod : ""},\
@@ -8,24 +7,25 @@ mixin dictInput(nameMod)
                       disabled: $rawData.disabled,\
                       pickerDisable: $rawData.disabled,\
                       bindDict: $rawData')
-    span.add-on(style='padding: 4px;')
-      i.icon.icon-chevron-down
+  span.input-group-addon
+    span.glyphicon.glyphicon-chevron-down
+
 
 #dictionary-many-table-template(type='text/template')
-  span
+  .input-group.input-group-sm
     +dictInput("many")
-    // ko if: $rawData.locals().length
-    ul.unstyled(data-bind='foreach: $rawData.locals')
-      li
-        span(data-bind='text: label')
-        a.close(href=''
-                style='float: none;'
-                data-bind='click: remove')
-          | ×
-    // /ko
+  // ko if: $rawData.locals().length
+  ul.unstyled(data-bind='foreach: $rawData.locals')
+    li
+      span(data-bind='text: label')
+      a.close(href=''
+              style='float: none;'
+              data-bind='click: remove')
+        | ×
+  // /ko
 
 #dictionary-table-template.field-template(type='text/template')
-  span
+  .input-group.input-group-sm
     +dictInput("local")
 
 #text-table-template.field-template(type='text/template')

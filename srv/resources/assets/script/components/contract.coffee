@@ -11,15 +11,19 @@ define [
       update: (el, acc, allBindigns, contract, ctx) ->
         title = ko.utils.unwrapObservable acc()
         expired = ""
+        # FIXME: move markup in templates
         unless contract.isExpired() is undefined
           expired = if contract.isExpired()
-              "<span class='label label-important'>Не действует</span>"
+              "<span class='label label-danger'>Не действует</span>"
             else
               "<span class='label label-success'>Действует</span>"
-        close = "<button title='Стереть из кейса ссылку на контракт'
-                         class='close'><i class='icon-trash'/></button>"
-        $(el).append("<legend>#{title} ##{contract.id()} #{expired} #{close}</legend>")
-        $(el).find('.close').on 'click', -> contract.close()
+        close = "<button id='remove-contract'
+                         title='Стереть из кейса ссылку на контракт'>
+                   <span class='glyphicon glyphicon-trash'/></button>"
+        $(el).append("<h4>#{title} ##{contract.id()}
+                       <small>#{expired} #{close}</small>
+                     </h4>")
+        $(el).find('#remove-contract').on 'click', -> contract.close()
         $dl = $("<table class='table table-condensed table-striped'></table>")
         $(el).append $dl
         _.each contract._meta.model.fields, (f) ->

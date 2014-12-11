@@ -20,7 +20,7 @@ in WSG84 in @longitude,latitude@ format, as @33.77,52.128@.
 -}
 
 module Snaplet.Geo
-    ( Geo
+    ( Geo(..)
     , geoInit
     )
 
@@ -34,7 +34,7 @@ import Control.Monad.State hiding (state)
 import Data.Aeson as A
 
 import Data.Attoparsec.ByteString.Char8
-import Data.ByteString.Char8 as BS (ByteString)
+import Data.ByteString.Char8 as BS (ByteString, unpack)
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Map as M
 import Data.HashMap.Strict as HM (delete)
@@ -45,13 +45,14 @@ import Database.PostgreSQL.Simple.SqlQQ
 import Data.Text (Text)
 import qualified Data.Text as T
 
-import Network.HTTP as H (simpleHTTP, getRequest, getResponseBody)
+import Network.HTTP as H (simpleHTTP, getRequest, getResponseBody, urlEncode)
 
 import Snap.Core
 import Snap.Extras.JSON
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
 
+import AppHandlers.Util (getParamT)
 import Util
 
 
@@ -76,6 +77,7 @@ routes :: [(ByteString, Handler b Geo ())]
 routes = [ ("/partners/:coords1/:coords2", method GET withinPartners)
          , ("/distance/:coords1/:coords2", method GET distance)
          , ("/revSearch/:coords", method GET revSearch)
+         , ("/search/:query", method GET search)
          ]
 
 
@@ -291,6 +293,25 @@ revSearch = do
         case addr' of
           Right addr -> writeJSON (addr :: FullAddress)
           Left msg -> writeJSON (M.singleton ("error" :: String) msg)
+
+
+-- | Use Nominatim to perform a search for objects at an address
+-- provided in @query@ request parameter. Response body is identical
+-- to Nominatim's original response.
+search :: Handler b Geo ()
+search = do
+  nom <- gets nominatimUrl
+  lang <- gets nominatimLang
+  q <- getParamT "query"
+  case q of
+    Nothing -> error "Empty query"
+    Just q' -> do
+      let --qD = fromMaybe (error "Bad query encoding") $ urlDecode q'
+          fullUrl = nom ++ "search?format=json" ++
+                    "&accept-language=" ++ lang ++
+                    "&q=" ++ (H.urlEncode $ T.unpack q')
+      rsb <- liftIO $ simpleHTTP (H.getRequest fullUrl) >>= getResponseBody
+      writeLBS $ BSL.pack rsb
 
 
 geoInit :: SnapletInit b Geo

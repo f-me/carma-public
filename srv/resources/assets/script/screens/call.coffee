@@ -10,6 +10,14 @@ define [ "utils"
   storeKey = "call"
 
   setupCallForm = (viewName, args) ->
+
+    # change z-index, so menu wil be shown even with active modal
+    $("#new-call-modal").on "shown.bs.modal", ->
+      $(".modal-backdrop").css "z-index", 1029
+      console.log $(".modal-backdrop").css "z-index"
+    $("#new-call-modal").on "hide.bs.modal", ->
+      $(".modal-backdrop").css "z-index", "1040"
+
     # if user have unfinished call redirect him to close it
     unfinished = localStorage["#{storeKey}.id"]
     if unfinished and args.id isnt unfinished
@@ -43,9 +51,9 @@ define [ "utils"
       content: "Справка по поиску"
 
     sq = $('#search-query')
-    sq.tagautocomplete
-      character: '!'
-      source:    {entries: ['!Кейс:', '!VIN:', '!Госномер:', '!Тел:']}
+    # sq.tagautocomplete
+    #   character: '!'
+    #   source:    {entries: ['!Кейс:', '!VIN:', '!Госномер:', '!Тел:']}
 
     e = jQuery.Event 'keypress'
     e.which = 61
@@ -59,6 +67,9 @@ define [ "utils"
     $("#search-partner").on 'click', partnerSearchClick
     $("#make-new-call").on 'click', -> makeCallClick viewName
     $("#end-call").on 'click', -> endCallClick viewName
+
+    # this will prevent modal from hiding on click behind modal borders
+    $("#new-call-modal").modal { backdrop: 'static', show: false }
     setModalVisible not args.id?
 
     searchQuery = localStorage["#{storeKey}.search-query"]
@@ -83,6 +94,7 @@ define [ "utils"
             ,progs.getLab(obj.program) || obj.program || ''
             ,wazzup.getLab(obj.comment) || obj.comment || ''
             ]
+    return if _.isEmpty rows
     st.fnAddData(rows)
 
   dtSearch = (st) ->
@@ -132,22 +144,12 @@ define [ "utils"
     if visible then showModal() else hideModal()
 
   showModal = ->
-    $("#new-call-modal")
-      .removeClass("out")
-      .addClass("in")
-    $("#left").hide()
-    $("#center").hide()
-    $("#right").hide()
-    $("#bottom").hide()
+    $("#new-call-modal").show().removeClass("out").addClass("in")
+    $("#call-screen").css('visibility', 'hidden')
 
   hideModal = ->
-    $("#left").show()
-    $("#center").show()
-    $("#right").show()
-    $("#bottom").show()
-    $("#new-call-modal")
-      .removeClass("in")
-      .addClass("out")
+    $("#new-call-modal").hide().removeClass("in").addClass("out")
+    $("#call-screen").css('visibility', 'visible')
 
 
   { constructor: setupCallForm

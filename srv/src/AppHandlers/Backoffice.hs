@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -18,6 +19,7 @@ where
 
 import           Control.Exception
 import           Control.Monad.Trans.Except
+import           Data.Attoparsec.Text
 import qualified Data.HashMap.Strict         as HM
 import qualified Data.Map                    as Map
 import           Data.Maybe
@@ -26,27 +28,30 @@ import qualified Data.Text                   as T
 import           Data.Time
 import           Data.Typeable
 
+import           GHC.TypeLits
+
 import           Database.PostgreSQL.Simple  ((:.)(..), Only(..))
 import           Snap
 
 import           Carma.Model
-import           Data.Model                  (idents)
+import           Data.Model                  (F, PK, idents)
 import qualified Data.Model.Sql              as Sql
 import qualified Data.Model.Patch            as Patch
 import qualified Data.Model.Patch.Sql        as Patch
 
 import qualified Carma.Model.Action          as Action
-import           Carma.Model.ActionResult    as ActionResult hiding (idents)
-import           Carma.Model.ActionType      (ActionType)
-import           Carma.Model.CaseStatus      (CaseStatus)
+import qualified Carma.Model.ActionResult    as ActionResult
+import qualified Carma.Model.ActionType      as ActionType
+import qualified Carma.Model.CaseStatus      as CaseStatus
 import           Carma.Model.Event           (EventType(..))
-import           Carma.Model.FalseCall       (FalseCall)
-import           Carma.Model.Program         (Program)
+import qualified Carma.Model.FalseCall       as FalseCall
+import qualified Carma.Model.PaymentType     as PaymentType
+import qualified Carma.Model.Program         as Program
 import qualified Carma.Model.Role            as Role
-import           Carma.Model.Satisfaction    (Satisfaction)
-import           Carma.Model.ServiceStatus   (ServiceStatus)
-import           Carma.Model.ServiceType     (ServiceType)
-import           Carma.Model.SmsTemplate     (SmsTemplate)
+import qualified Carma.Model.Satisfaction    as Satisfaction
+import qualified Carma.Model.ServiceStatus   as ServiceStatus
+import qualified Carma.Model.ServiceType     as ServiceType
+import qualified Carma.Model.SmsTemplate     as SmsTemplate
 
 import           Carma.Backoffice
 import qualified Carma.Backoffice.DSL        as DSL
@@ -69,36 +74,67 @@ data BORepr = Txt
             -- ^ Validation report.
 
 
+-- | Translation tables to print constants in human-readable form.
 type IdentMap m = Map.Map (IdentI m) Text
 
 
+-- | Simple ident mapping
+iMap :: Model m => IdentMap m
+iMap = Map.fromList $ map (\(k, v) -> (v, T.pack k)) $ HM.toList idents
+
+
+-- | Use labels set in database to pretty-print constants.
+labelMap :: forall m n d d1. (KnownSymbol n, Model m) =>
+            (m -> PK Int m d)
+         -> (m -> F Text n d1)
+         -> AppHandler (IdentMap m)
+labelMap identField labelField = do
+  let vals = HM.elems (idents :: HM.HashMap String (IdentI m))
+  res <- withPG $
+         \conn ->
+           Sql.select
+           (identField :. labelField :. (identField `Sql.sql_in` vals))
+           conn
+  return $ Map.fromList $
+    map (\(Only aid :. Only label :. ()) -> (aid, label)) res
+
+
 -- | Serve a pretty-printed back office processing report.
+--
+-- Ignore action results listed as comma-separated list of integer
+-- codes in @skipResults@ request parameter.
 serveBackofficeSpec :: BORepr -> AppHandler ()
-serveBackofficeSpec repr =
-    (modifyResponse $ setContentType "text/plain; charset=UTF-8") >>
+serveBackofficeSpec repr = do
+  -- Combine mappings for multiple models into one
+  let maps = [ boxMap <$> labelMap ActionResult.ident ActionResult.label
+             , boxMap <$> labelMap ActionType.ident ActionType.label
+             , boxMap <$> labelMap CaseStatus.ident CaseStatus.label
+             , boxMap <$> labelMap FalseCall.ident FalseCall.label
+             , boxMap <$> labelMap PaymentType.ident PaymentType.label
+             , boxMap <$> labelMap Role.ident Role.label
+             , boxMap <$> labelMap Satisfaction.ident Satisfaction.label
+             , boxMap <$> labelMap ServiceStatus.ident ServiceStatus.label
+             , boxMap <$> labelMap ServiceType.ident ServiceType.label
+             , boxMap <$> labelMap SmsTemplate.ident SmsTemplate.label
+             , boxMap <$> labelMap Program.ident Program.label
+             ]
+  boxedIMap <- Map.unions <$> sequence maps
+  skipParam <- liftM (parseOnly (decimal `sepBy1` (char ','))) <$>
+               getParamT "skipResults"
+  let skippedResults =
+        case skipParam of
+          Just (Right l) -> map Ident l
+          Just (Left e) -> error e
+          Nothing -> []
+  (modifyResponse $ setContentType "text/plain; charset=UTF-8") >>
     case repr of
       Txt -> writeText $ backofficeText carmaBackoffice boxedIMap
-      Dot -> writeLazyText $ backofficeDot carmaBackoffice boxedIMap
+      Dot -> writeLazyText $
+             backofficeDot skippedResults carmaBackoffice boxedIMap
       Check -> writeJSON $ map show $ checkBackoffice carmaBackoffice boxedIMap
     where
-      -- Simple ident mapping
-      iMap :: Model m => IdentMap m
-      iMap = Map.fromList $ map (\(k, v) -> (v, T.pack k)) $ HM.toList idents
-
       boxMap :: Model m => IdentMap m -> Map.Map IBox Text
       boxMap = Map.mapKeys IBox
-      -- Combine mappings for multiple models into one
-      boxedIMap = Map.unions [ boxMap (iMap :: IdentMap ActionResult)
-                             , boxMap (iMap :: IdentMap ActionType)
-                             , boxMap (iMap :: IdentMap CaseStatus)
-                             , boxMap (iMap :: IdentMap FalseCall)
-                             , boxMap (iMap :: IdentMap Role.Role)
-                             , boxMap (iMap :: IdentMap Satisfaction)
-                             , boxMap (iMap :: IdentMap ServiceStatus)
-                             , boxMap (iMap :: IdentMap ServiceType)
-                             , boxMap (iMap :: IdentMap SmsTemplate)
-                             , boxMap (iMap :: IdentMap Program)
-                             ]
 
 
 -- | Serve JSON list of available results for all action types as list
