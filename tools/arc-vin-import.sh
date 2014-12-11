@@ -38,7 +38,7 @@ DIR="Production/Vehicle_info/Common"
 # Absolute path to vinnie executable
 VINNIE="${HOME}/carma/srv/.cabal-sandbox/bin/vinnie"
 
-TMPDIR=$(mktemp -d /tmp/arcXXXXXX)
+TMPDIR=$(mktemp -d /tmp/arc.`date +%F`.XXXXXX)
 TMP="${TMPDIR}/${NAME}"
 
 # Download VIN database
@@ -46,20 +46,20 @@ echo "get ${DIR}/${NAME} ${TMP}" | sshpass -p $(grep ${HOST} ~/.netrc | cut -d' 
 
 # Unpack single file from the archive
 NAME="${TMPDIR}/$(unzip -Z -1 ${TMP})"
-unzip ${TMP} -d ${TMPDIR}
+unzip "${TMP}" -d ${TMPDIR}
 
-IN=${NAME%csv}RU.csv
-OUT=${IN%csv}OUT.csv
+IN="${NAME%csv}RU.csv"
+OUT="${IN%csv}OUT.csv"
 
 # Header row
-head -n 1 ${NAME} > ${IN}
+head -n 1 "${NAME}" > "${IN}"
 # Filter out non-RU rows
-grep -E '^([^;]*;){12}RU' ${NAME} >> ${IN}
+grep -E '^([^;]*;){12}RU' "${NAME}" >> "${IN}"
 
 # Run vinnie
 ${VINNIE} -c ${PG} \
           -s ${SUBPROGRAM} \
-          ${IN} ${OUT} ${COMMITTER} ${FORMAT}
+          "${IN}" "${OUT}" ${COMMITTER} ${FORMAT}
 
 # Dump output and result file name
-echo ${OUT}
+echo "${OUT}"
