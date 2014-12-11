@@ -21,8 +21,15 @@ define ["dictionaries/local-dict"], (ld) ->
 
     # List of Role instances with isBack=true (used on #supervisor)
     backofficeRoles: =>
-      @bgetJSON "/_/Role", (objs) =>
-        @source = for obj in (_.filter objs, (o) -> o.isBack)
+      @bgetJSON "/_/Role?isBack=t&hidden=f", (objs) =>
+        @source = for obj in objs
+          { value: obj.id, label: obj.label || '' }
+
+    # List of Role instances with hidden=false (used on BusinessRole &
+    # users dict)
+    visibleRoles: =>
+      @bgetJSON "/_/Role?hidden=f", (objs) =>
+        @source = for obj in objs
           { value: obj.id, label: obj.label || '' }
 
     # Dictionary of all usermetas with programManager role (used on
