@@ -29,18 +29,21 @@ module.exports = (grunt) ->
         src: ["**/*.js"]
         dest: js
         filter: 'isFile'
-      css:
-        expand: true
-        cwd: "#{content}/style"
-        src: ["**/*.css"]
-        dest: css
-        filter: 'isFile'
       template:
         expand: true
         cwd: "#{content}/template"
         src: ["**/*.html"]
         dest: tpl
         filter: 'isFile'
+
+    less:
+      production:
+        options:
+          paths: ["#{content}/style", "bower_components"]
+          cleancss: true
+        files:
+          "resources/static/css/style.css": ["#{content}/style/style.less","#{content}/style/*.css"]
+
 
     jade:
       compile:
@@ -85,7 +88,7 @@ module.exports = (grunt) ->
         tasks: "newer:copy:template"
       style:
         files: ["#{content}/style/**/*"]
-        tasks: "newer:copy:css"
+        tasks: "newer:less"
 
 
   thirdParty =
@@ -98,10 +101,7 @@ module.exports = (grunt) ->
     knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
     notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
     spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
-    'js-base64': {src: 'js-base64',          file: 'base64.min.js'}
-    'jquery-maskedinput':
-      src: 'jquery-maskedinput/src'
-      file: 'jquery.maskedinput.js'
+    'js-base64':{src: 'js-base64',       file: 'base64.min.js'}
     'jquery-knob':
       src: 'jquery-knob/dist'
       file: 'jquery.knob.min.js'
@@ -113,29 +113,36 @@ module.exports = (grunt) ->
              'images/*'
             ]
     bootstrap:
-      src: 'bootstrap'
+      src: 'bootstrap/dist'
       dest: 'bootstrap'
-      file: ['css/**', 'img/**', 'js/**']
+      file: ['fonts/**', 'js/**']
     openLayers:
       src: 'OpenLayers'
       dest: 'OpenLayers'
       file: ['OpenLayers.js', 'img/**', 'theme/**']
-    wysihtml5:
-      src:  'wysihtml5/dist'
+    'bootstrap3-wysihtml5':
+      src:  'bootstrap3-wysihtml5-bower/dist'
       dest: 'wysihtml5'
-      file: 'wysihtml5-0.3.0.min.js'
-    'wysihtml5-boot-colors':
-      src:  'bootstrap-wysihtml5/lib/css'
-      dest: 'wysihtml5'
-      file: 'wysiwyg-color.css'
-    'wysihtml5-boot':
-      src:  'bootstrap-wysihtml5/src'
-      dest: 'wysihtml5'
-      file: [
-        'bootstrap-wysihtml5.js',
-        'bootstrap-wysihtml5.css',
-        'locales/bootstrap-wysihtml5.ru-RU.js']
-
+      file: [ 'bootstrap3-wysihtml5.all.min.js'
+            , 'bootstrap3-wysihtml5.css'
+            , 'locales/bootstrap-wysihtml5.ru-RU.js'
+            ]
+    wysihtml5x:
+      src: 'wysihtml5x/dist'
+      dest: 'wysihtml5x'
+      file: [ 'wysihtml5x.min.js', 'wysihtml5x.min.map'
+            , 'wysihtml5x-toolbar.min.js', 'wysihtml5x-toolbar.min.map']
+    'bootstrap-datepicker':
+      src:  'bootstrap-datepicker'
+      dest: 'bootstrap-datepicker'
+      file: [ 'css/datepicker3.css'
+            , 'js/bootstrap-datepicker.js'
+            , 'js/locales/bootstrap-datepicker.ru.js'
+            ]
+    'normalize-css':
+      src: 'normalize-css'
+      dest: 'normalize-css'
+      file: 'normalize.css'
 
   mkCopyAndClean = (libs, cfg) ->
     for lib, libCfg of libs
@@ -154,7 +161,7 @@ module.exports = (grunt) ->
 
   newerify = (ts) -> "newer:#{t}" for t in ts
 
-  grunt.registerTask("build", newerify ['coffee', 'copy', 'jade'])
+  grunt.registerTask("build", ['copy', 'coffee', 'less', 'jade'])
   grunt.registerTask("rebuild", ['shell:bower', 'clean', 'build'])
   grunt.registerTask("bwatch", ['rebuild', 'watch'])
   grunt.registerTask("default", "rebuild")

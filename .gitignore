@@ -60,5 +60,5 @@ srv/resources/static/3p/spin.js
 srv/resources/static/3p/underscore.js
 srv/resources/static/3p/wysihtml5/
 
-# generated from index.jade
-srv/snaplets/heist/resources/templates/index.tpl
+# no more configs in gir repo anymore
+srv/snaplets/*

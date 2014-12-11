@@ -29,13 +29,12 @@ define [ "utils"
                          groupsForest : "center"
                          defaultGroup : "default-case"
                          modelArg     : "ctr:#{kaze.program}"
-                         saveSuccessCb: (k, m, j) ->
-                           # TODO The server should notify the client
-                           # about new actions appearing in the case
-                           # instead of explicit subscription
-                           if j.caseStatus?
-                             k['renderActions']?()
 
+      # TODO The server should notify the client about new actions
+      # appearing in the case instead of explicit subscription
+      kvm["caseStatusSync"]?.subscribe (nv) ->
+        if !nv
+          kvm['renderActions']?()
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
       setCommentsHandler()
@@ -131,10 +130,10 @@ define [ "utils"
           avm = main.modelSetup("Action") view, {id: aid},
             slotsee: [view + "-link"]
             parent: kvm
-            saveSuccessCb: (k, m, j) ->
-              if j.result?
-                # Redirect to backoffice when an action result changes
-                window.location.hash = "back"
+          # Redirect to backoffice when an action result changes
+          avm["resultSync"]?.subscribe (nv) ->
+            if !nv
+              window.location.hash = "back"
           # There's no guarantee who renders first (services or
           # actions), try to set up an observable from here
           if not kvm['actionsList']?
@@ -167,7 +166,7 @@ define [ "utils"
           # make colored service a little bit nicer even if it is just created
           $('.accordion-toggle:has(> .alert)').css 'padding', 0
           $(".status-btn-tooltip").tooltip()
-          e.parent().collapse 'show'
+          $("##{k['view']}-head").collapse 'show'
 
     utils.build_global_fn 'addService', ['screens/case']
 
@@ -210,7 +209,9 @@ define [ "utils"
         comment:              v['wazzup']()
         customerComment:      v['customerComment']()
       main.buildNewModel 'Case', args, {modelArg: "ctr:#{v.program()}"},
-        (m, k) -> Finch.navigate "case/#{k.id()}"
+        (m, k) ->
+          v['caseId']?(k.id())
+          Finch.navigate "case/#{k.id()}"
 
     makeCase = _.throttle makeCaseAux, 2000, {trailing: false}
 

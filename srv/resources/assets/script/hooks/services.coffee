@@ -54,6 +54,7 @@ define [ "utils"
 
   buttons: (model, kvm) ->
     return if /^search/.test(Finch.navigate())
+
     kvm.buttons = {}
     kase = kvm._parent
     sDict = u.newModelDict("ServiceStatus")
@@ -171,13 +172,17 @@ define [ "utils"
     kvm._saveSuccessCb = (k, m, j) ->
       # Redirect to back when a service with a self-assigned order
       # action is canceled
-      if j.status == global.idents("ServiceStatus").canceled
+      if kvm.status?() == global.idents("ServiceStatus").canceled
         svcActs = u.svcActions kvm._parent, kvm, null
         if _.some(svcActs, (a) -> a.assignedTo() == global.user.id)
           window.location.hash = "back"
-      # Update actions list when new actions might appear
-      #
-      # TODO The server should notify the client about new actions
-      # appearing in the case instead of explicit subscription
-      if j.status? || j.clientSatisfied?
-        k._parent?['renderActions']?()
+    # Update actions list when new actions might appear
+    #
+    # TODO The server should notify the client about new actions
+    # appearing in the case instead of explicit subscription
+    kvm["statusSync"]?.subscribe (nv) ->
+      if !nv
+        kvm._parent?['renderActions']?()
+    kvm["clientSatisfiedSync"]?.subscribe (nv) ->
+      if !nv
+        kvm._parent?['renderActions']?()

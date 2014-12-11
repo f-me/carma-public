@@ -8,8 +8,6 @@ define [ "utils"
        , "screens/partnersSearch/models"
        , "sync/metaq"
        , "text!tpl/screens/partnersSearch.html"
-       , "text!tpl/partials/partnersSearch.html"
-       , "text!tpl/fields/form.html"
        ], ( utils
           , map
           , m
@@ -20,8 +18,7 @@ define [ "utils"
           , models
           , metaq
           , tpl
-          , partials
-          , Flds) ->
+          ) ->
 
   model = models.PartnerSearch
 
@@ -38,23 +35,6 @@ define [ "utils"
   fh = {}
   fh[f.name] = f for f in model.fields
 
-  mkPartials = (ps) ->
-    $("<script class='partial' id='#{k}'>").html(v)[0].outerHTML for k,v of ps
-
-  partialize = (ps) -> mkPartials(ps).join('')
-
-  flds =  $('<div/>').append($(Flds))
-
-  md  = $(partials).html()
-  cb  = flds.find("#checkbox-field-template").html()
-  city = Mustache.render md,  fh['city']
-  make = Mustache.render md,  fh['make']
-  srvs = Mustache.render md,  fh['services']
-  pr2  = Mustache.render md,  fh['priority2']
-  pr3  = Mustache.render md,  fh['priority3']
-  dlr  = Mustache.render cb,  fh['isDealer']
-  mbp  = Mustache.render cb,  fh['mobilePartner']
-  wn   = Mustache.render cb,  fh['workNow']
 
   # Add some of case data to screen kvm
   setupCase = (kvm, ctx) ->
@@ -64,8 +44,8 @@ define [ "utils"
     kaseKVM = m.buildKVM global.model('Case'),  {fetched: kase}
     srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
     kvm['fromCase'] = true
-    kvm['city'](if kaseKVM.city() then [kaseKVM.city()] else [])
-    kvm['make'](if kaseKVM.car_make() then [kaseKVM.car_make()] else [])
+    kvm['city'](if kaseKVM.city?() then [kaseKVM.city()] else [])
+    kvm['make'](if kaseKVM.car_make?() then [kaseKVM.car_make()] else [])
     kvm['field'] = ctx['field']
 
     pid = parseInt srvKVM["#{ctx['field']}Id"]()
@@ -94,13 +74,13 @@ define [ "utils"
       <li> <b> Госномер: </b> #{kaseKVM.car_plateNum?() || ''}</li>
       <li> <b> Цвет: </b> #{kaseKVM.car_colorLocal?() || ''}</li>
       <li> <b> VIN:</b> #{kaseKVM.car_vin?() || ''}</li>
-      <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal() || ''}</li>
+      <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal?() || ''}</li>
       <li> <b> Клиент/Доверенное лицо будет сопровождать автомобиль:</b>
       #{if srvKVM.companion?() then '✓' else '' }</li>
     </ul>
     """
-    kvm['coords'] kaseKVM.caseAddress_coords()
-    kvm['address'] kaseKVM.caseAddress_address()
+    kvm['coords'] kaseKVM.caseAddress_coords?()
+    kvm['address'] kaseKVM.caseAddress_address?()
 
     selectPartner = (kvm, partner) ->
       if _.isNull partner
@@ -148,7 +128,7 @@ define [ "utils"
       kvm['selectPartner'](null)
 
   loadContext = (kvm, args) ->
-    s = localStorage['partnersSearch']
+    s = localStorage[storeKey]
     ctx = JSON.parse s if s
     # By default, map is unclickable
     kvm['mapClickable'] = false
@@ -183,12 +163,12 @@ define [ "utils"
         kvm['mobilePartner'](true)
 
     # cleanup localstore
-    localStorage.removeItem 'partnersSearch'
+    localStorage.removeItem storeKey
 
   resizeResults = ->
     t = $("#search-result").offset().top
     w = $(window).height()
-    $("#search-result").height(w-t-10)
+    $("#search-result").height(w-t-26)
 
     t = $("#map").offset().top
     $("#map").height(w-t-5)
@@ -381,7 +361,7 @@ define [ "utils"
     # remove padding so blank space after removing navbar can be used
     if args?.model?
       unless args.model == "mobile"
-        $('body').css('padding-top', '0px')
+        $('#main-container').css('padding-top', '5px')
         $(".navbar").hide()
 
     kvm = m.buildKVM(model, "partnersSearch-content")
@@ -415,7 +395,7 @@ define [ "utils"
                        #{nested.servicenameLocal()}
                        </span>"
               if nested.priority2()
-                show += " <span class='label label-important'>
+                show += " <span class='label label-danger'>
                           ПБГ: #{nested.priority2()}
                           </span>"
               if nested.priority3()
@@ -491,12 +471,3 @@ define [ "utils"
   subName: subName
   open: open
   template: tpl
-  partials: partialize
-    city          : city
-    make          : make
-    dealer        : dlr
-    mobilePartner : mbp
-    workNow       : wn
-    services      : srvs
-    priority2     : pr2
-    priority3     : pr3

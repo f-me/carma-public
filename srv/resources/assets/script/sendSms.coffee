@@ -1,6 +1,6 @@
 define ["model/main"], (main) ->
   setup: -> setTimeout(->
-    $('#sms-send-modal').on('show', () ->
+    $('#sms-send-modal').on('show.bs.modal', () ->
       refs = []
       main.modelSetup("Sms") "sms-send-form", {id:null},
                             focusClass: "focusable"
@@ -28,6 +28,7 @@ define ["model/main"], (main) ->
       if vCase
         smsVM.caseRef(vCase.knockVM.id())
 
+      # FIXME: now we can do this with shiny new triggers
       # we really need this because triggers do not trigger on `POST`
       # so, if {template:"xxx"} comes with POST (not with PUT), then
       # our template substitution trigger is not fired

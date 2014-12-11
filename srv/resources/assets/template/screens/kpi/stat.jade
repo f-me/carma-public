@@ -1,53 +1,51 @@
 include _settings
 
-.row-fluid
-  .span12.default-bs
+.container-fluid.screen
+  .col-md-12.default-bs
     include _statNav
     #stat-kpi-content(data-bind="spinner: spinner")
-      .row-fluid#settings(data-bind="with: settingsCtx")
+      .row#settings(data-bind="with: settingsCtx")
         +settingsContainer
-          .row-fluid
-            .span6
+          .row
+            .col-md-6
               +settings
-            .span6
-              .row-fluid
-                .span5
+            .col-md-6
+              .row
+                .col-md-5
                   | Всего кейсов с заказ-нарядом
-                .span3(data-bind="text: cases_amount")
-              .row-fluid
-                .span5
+                .col-md-3(data-bind="text: cases_amount")
+              .row
+                .col-md-5
                   | Прикрепено файлов "Заказ-Наряд"
-                .span3(data-bind="text: files_attached")
+                .col-md-3(data-bind="text: files_attached")
 
-        .row-fluid(data-bind="visible: !interval.correct()")
-          .offset4
+        .row(data-bind="visible: !interval.correct()")
+          .col-md-offset-4
             small.text-errorНачало диапазона должно быть меньше чем конец
 
-        .row-fluid#filters(style="margin-top: 10px")
-          .span4#kvmsFilter
+        .row#filters(style="margin-top: 10px; margin-bottom: 10px;")
+          .col-md-4#kvmsFilter
             +kvmFilter
-          .span2#date-range
-            .input-append
-              input.pane-span.focusable(type="text"
+          .col-md-2#date-range
+            .input-group.input-group-sm
+              input.form-control(type="text"
                 autocomplete="off"
                 name="interval.begin"
                 data-bind="value: interval.begin, addMask: 'datetime'")
-              span.add-on
-                i.icon.icon-calendar
-          .span2
-            .input-append
-              input.pane-span.focusable(type="text"
+              span.input-group-addon.glyphicon.glyphicon-calendar
+          .col-md-2
+            .input-group.input-group-sm
+              input.form-control(type="text"
                 autocomplete="off"
                 name="interval.end"
                 data-bind="value: interval.end, addMask: 'datetime'")
-              span.add-on
-                i.icon.icon-calendar
-          .span2
+              span.input-group-addon.glyphicon.glyphicon-calendar
+          .col-md-2
             button.btn(data-bind="click: fetchData"
                        style="padding-bottom: 2px; padding-top:2px") OK
           +downloadTbl
 
-      .row-fluid#results(style="overflow-y: auto" data-bind="with: tblCtx")
+      .row#results(style="overflow-y: auto" data-bind="with: tblCtx")
         table#tbl.table.table-condensed.table-bordered
           thead
             tr
@@ -66,10 +64,14 @@ include _settings
           tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
             tr
               td
-                a(data-bind="click: showDetails.toggle")
-                  i(data-bind="attr: { \
-                    class: showDetails() ? 'icon-minus' : 'icon-plus' }")
-                i.icon-refresh.icon-refresh-animate(
+                strong
+                  span.glyphicon(data-bind=" \
+                    visible: !showDetails.loading(), \
+                     click: showDetails.toggle, \
+                    attr: { \
+                    class: 'glyphicon-' + (showDetails() ? 'minus' : 'plus') \
+                    }")
+                span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
                   data-bind="visible: showDetails.loading")
               td(data-bind="fieldRender: kvm['userid']")
               // ko foreach: $root.tblCtx.fields
@@ -93,3 +95,4 @@ include _settings
 
 .hidden
   include /fields/ro.jade
+
