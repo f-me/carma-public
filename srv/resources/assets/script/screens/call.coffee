@@ -14,7 +14,6 @@ define [ "utils"
     # change z-index, so menu wil be shown even with active modal
     $("#new-call-modal").on "shown.bs.modal", ->
       $(".modal-backdrop").css "z-index", 1029
-      console.log $(".modal-backdrop").css "z-index"
     $("#new-call-modal").on "hide.bs.modal", ->
       $(".modal-backdrop").css "z-index", "1040"
 
@@ -25,10 +24,12 @@ define [ "utils"
 
     knockVM = main.modelSetup("Call") viewName, args,
                        permEl     : "case-permissions"
-                       slotsee    : ["call-number", "right"]
+                       slotsee    : ["call-number", "center"]
                        focusClass : "focusable"
                        groupsForest : "center"
 
+    callTypes = window.global.idents('CallType')
+    callerTypes = window.global.idents('CallerType')
     reasons = window.global.idents('CallReason')
     complaints = _.compact [ reasons.client_complaint
                            , reasons.partner_complaint
@@ -47,8 +48,68 @@ define [ "utils"
         _.contains complaints, knockVM['callReason']()
 
       knockVM['customerComment']?.customRequired ->
-        console.log others, knockVM['callReason']()
         _.contains others, knockVM['callReason']()
+
+      knockVM['partner']?.customVisible ->
+        knockVM['callReason']() == reasons["client_contactDealer"]
+
+    window.k = knockVM
+    makeNewCase = ->
+      knockVM['callType'](callTypes['newCase'])
+      v = knockVM
+
+      args =
+        contact_name:         v['callerName']?()
+        contact_phone1:       v['callerPhone']?()
+        program:              v['program']()
+        subprogram:           v['subprogram']?()
+        car_make:             v['carMake']?()
+        car_model:            v['carModel']?()
+        customerComment:      v['customerComment']?()
+      main.buildNewModel 'Case', args, {modelArg: "ctr:#{v.program()}"},
+        (m, k) ->
+          v['caseId']?(k.id())
+          Finch.navigate "case/#{k.id()}"
+
+    btnsCtx =
+      makeNewCase:
+        fn:    _.throttle makeNewCase, 2000, {trailing: false}
+        avail: ko.computed -> knockVM['program']()?
+
+      openDip:
+        fn:  ->
+          knockVM['callTypes'](callTypes['info'])
+          knockVM['callerType'](callerTypes['client'])
+          Finch.navigate ""
+
+      endCall:
+        fn: ->
+          if _.isNull knockVM.endDate()
+            knockVM.endDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
+
+          localStorage.removeItem "#{storeKey}.id"
+
+          knockVM._meta.q.save ->
+            # check if we have id in url, then goto call; else just reload
+            if location.hash.match(/[0-9]+$/)
+            then Finch.navigate 'call'
+            else reloadScreen()
+
+      servicesSearch:
+        fn: ->
+          knockVM.callType(callTypes['secondCall'])
+          Finch.navigate 'search/services'
+
+      callsSearch:
+        fn: -> Finch.navigate 'search/calls'
+
+      contractsSearch:
+        fn: ->
+          knockVM.callType(callTypes['info'])
+          knockVM['callerType'](callerTypes['client'])
+          Finch.navigate 'search/contracts'
+
+    ko.applyBindings(btnsCtx, $("#right")[0])
 
     searchTable = $("#call-scrn-searchtable")
     st = utils.mkDataTable searchTable,
@@ -56,6 +117,7 @@ define [ "utils"
       fnRowCallback: (nRow) -> $($(nRow).children()[1]).addClass("capitalize")
     searchTable.on("click.datatable", "tr", ->
       if (searchTable.fnGetPosition this) != null
+        knockVM.callType(callTypes['secondCall'])
         id = this.children[0].innerText
         window.location.hash = "case/" + id
     )

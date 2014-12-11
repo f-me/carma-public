@@ -17,6 +17,8 @@ ALTER TABLE calltbl RENAME callerName_name   TO callerName;
 ALTER TABLE calltbl RENAME callerName_phone1 TO callerPhone;
 
 ALTER TABLE calltbl ALTER COLUMN callType SET DATA TYPE int4 USING NULL;
+ALTER TABLE calltbl ALTER COLUMN callType SET DEFAULT 1; -- info
+
 ALTER TABLE calltbl ADD CONSTRAINT callTypefk
   FOREIGN KEY (callType) REFERENCES "CallType";
 
