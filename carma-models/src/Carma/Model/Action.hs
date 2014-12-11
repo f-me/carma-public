@@ -60,7 +60,15 @@ instance Model Action where
           , invisible assignTime
           , invisible openTime
           , invisible closeTime
+
+            -- These two are overrided by client code on #supervisor
+            -- screen
           , invisible assignedTo
           , invisible targetGroup
+
+          , dict targetGroup $ (dictOpt "backofficeRoles")
+            { dictType = Just "ComputedDict"
+            , dictBounded = True
+            }
           ]
     _  -> Nothing

@@ -17,6 +17,7 @@ data Role = Role
   ,value  :: F Text "value"  "Внутреннее название роли"
   -- ^ Internal label is only used to set screen permissions.
   ,isBack :: F Bool "isBack" "Роль бэкофиса"
+  ,hidden :: F Bool "hidden" "Скрытая"
   } deriving Typeable
 
 mkIdents [t|Role|]

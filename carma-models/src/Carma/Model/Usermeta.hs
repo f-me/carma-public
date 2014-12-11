@@ -85,6 +85,10 @@ instance Model Usermeta where
       , required realName
       , required login
       , required password
+      , dict roles $ (dictOpt "visibleRoles")
+          {dictType = Just "ComputedDict"
+          ,dictBounded = True
+          }
       , dict subPrograms $ (dictOpt "prefixedSubPrograms")
           {dictType = Just "ComputedDict"
           ,dictBounded = True

@@ -29,5 +29,10 @@ instance Model BusinessRole where
   type TableName BusinessRole = "BusinessRole"
   modelInfo = mkModelInfo BusinessRole ident
   modelView = \case
-    "" -> Just defaultView
+    "" -> Just $ modifyView (defaultView)
+          [ dict roles $ (dictOpt "visibleRoles")
+            { dictType = Just "ComputedDict"
+            , dictBounded = True
+            }
+          ]
     _  -> Nothing
