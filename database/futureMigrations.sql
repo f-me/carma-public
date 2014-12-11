@@ -18,7 +18,7 @@ DELETE FROM "ServiceType" WHERE id NOT IN (1, 2);
 
 -- Поля кейса
 UPDATE "FieldPermission" SET r = 'f' WHERE model='Case' AND field NOT IN
-('id', 'callDate', 'callTaker', 'customerComment', 'contact_name', 'contact_phone1', 'program', 'subprogram', 'contractIdentifier', 'contract', 'caseAddress_address', 'services', 'comments', 'files');
+('id', 'callDate', 'callTaker', 'customerComment', 'contact_name', 'contact_phone1', 'program', 'subprogram', 'contractIdentifier', 'contract', 'caseAddress_coords', 'caseAddress_map', 'caseAddress_address', 'services', 'comments', 'files');
 
 -- В postgresql.conf надо ставить datestyle = 'iso, dmy'
 
