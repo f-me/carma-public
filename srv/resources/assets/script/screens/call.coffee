@@ -28,8 +28,28 @@ define [ "utils"
                        slotsee    : ["call-number", "right"]
                        focusClass : "focusable"
                        groupsForest : "center"
-    $('input[name="callDate"]').parents('.control-group').hide()
-    $('input[name="callTaker"]').parents('.control-group').hide()
+
+    reasons = window.global.idents('CallReason')
+    complaints = _.compact [ reasons.client_complaint
+                           , reasons.partner_complaint
+                           , reasons.dealer_complaint
+                           ]
+
+    others = _.compact [ reasons.client_other
+                       , reasons.partner_other
+                       , reasons.dealer_other
+                       , reasons.employee_other
+                       , reasons.other_other
+                       ]
+
+    if knockVM['callReason']
+      knockVM['abuseTarget']?.customVisible ->
+        _.contains complaints, knockVM['callReason']()
+
+      knockVM['customerComment']?.customRequired ->
+        console.log others, knockVM['callReason']()
+        _.contains others, knockVM['callReason']()
+
     searchTable = $("#call-scrn-searchtable")
     st = utils.mkDataTable searchTable,
       bFilter : false
@@ -64,9 +84,9 @@ define [ "utils"
     st.fnSort [[2, "desc"]]
     dtSearch st
     hotkeys.setup()
-    $("#search-partner").on 'click', partnerSearchClick
-    $("#make-new-call").on 'click', -> makeCallClick viewName
-    $("#end-call").on 'click', -> endCallClick viewName
+    # $("#search-partner").on 'click', partnerSearchClick
+    # $("#make-new-call").on 'click', -> makeCallClick viewName
+    # $("#end-call").on 'click', -> endCallClick viewName
 
     # this will prevent modal from hiding on click behind modal borders
     $("#new-call-modal").modal { backdrop: 'static', show: false }
@@ -104,19 +124,19 @@ define [ "utils"
     $.getJSON url, (objs) -> fillTable st, objs
 
   partnerSearchClick = ->
-    kvm = global.viewsWare['call-form'].knockVM
-    if kvm.callerType() == "client" or _.isEmpty kvm.callerType()
-      kvm.callerType("client")
-      kvm.callType("switchDealer")
+    # kvm = global.viewsWare['call-form'].knockVM
+    # if kvm.callerType() == "client" or _.isEmpty kvm.callerType()
+    #   kvm.callerType("client")
+    #   kvm.callType("switchDealer")
 
-    # Subscribe call model to updates to coords & address fields
-    for f in ["coords", "address"]
-      do (f) ->
-        n = pSearch.subName f, "call", kvm.id()
-        global.pubSub.sub n, kvm[f]
+    # # Subscribe call model to updates to coords & address fields
+    # for f in ["coords", "address"]
+    #   do (f) ->
+    #     n = pSearch.subName f, "call", kvm.id()
+    #     global.pubSub.sub n, kvm[f]
 
-    localStorage[pSearch.storeKey] = JSON.stringify kvm._meta.q.toRawObj()
-    pSearch.open('call')
+    # localStorage[pSearch.storeKey] = JSON.stringify kvm._meta.q.toRawObj()
+    # pSearch.open('call')
 
 
   makeCallClick = (viewName) ->
@@ -150,6 +170,28 @@ define [ "utils"
   hideModal = ->
     $("#new-call-modal").hide().removeClass("in").addClass("out")
     $("#call-screen").show()
+
+    makeCaseAux = () ->
+
+      args =
+        contact_name:         v['callerName']()
+        contact_phone1:       v['callerPhone']()
+        program:              v['program']()
+        subprogram:           v['subprogram']()
+        city:                 v['city']()
+        car_make:             v['carMake']()
+        car_model:            v['carModel']()
+        # caseAddress_coords:   v['coords']()
+        # caseAddress_address:  v['address']()
+        # comment:              v['wazzup']()
+        customerComment:      v['customerComment']()
+      main.buildNewModel 'Case', args, {modelArg: "ctr:#{v.program()}"},
+        (m, k) ->
+          v['caseId']?(k.id())
+          Finch.navigate "case/#{k.id()}"
+
+    makeCase = _.throttle makeCaseAux, 2000, {trailing: false}
+
 
 
   { constructor: setupCallForm
