@@ -65,7 +65,7 @@ ko.bindingHandlers.bindDict =
     if chevron
       $(chevron).on 'click', th.drawAll unless fld?.readonly
 
-    search = $(el).siblings().find('.glyphicon-search')[0]
+    search = $(el).siblings().find('.glyphicon-search').parent()[0]
     if search
       $(search).on 'click', th.drawAllForce unless fld?.readonly
 
