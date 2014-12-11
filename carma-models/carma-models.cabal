@@ -99,6 +99,10 @@ library
 
     Carma.Model.ServiceInfo,
     Carma.Model.Colors,
+    Carma.Model.CallType,
+    Carma.Model.CallerType,
+    Carma.Model.CallReason,
+    Carma.Model.AbuseTarget,
 
     Carma.Model.Sms,
     Carma.Model.SmsTemplate,

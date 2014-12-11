@@ -62,6 +62,10 @@ import           Carma.Model.Partner
 import           Carma.Model.LegalForm
 import           Carma.Model.VinFormat
 import           Carma.Model.ProgramType
+import           Carma.Model.CallType        (CallType)
+import           Carma.Model.CallerType      (CallerType)
+import           Carma.Model.CallReason      (CallReason)
+import           Carma.Model.AbuseTarget     (AbuseTarget)
 
 import           Data.Model
 
@@ -191,4 +195,8 @@ modelMap fn = modelMap'
       ,add (undefined :: StatKPI)
       ,add (undefined :: OperKPI)
       ,add (undefined :: GroupKPI)
+      ,add (undefined :: CallType)
+      ,add (undefined :: CallerType)
+      ,add (undefined :: CallReason)
+      ,add (undefined :: AbuseTarget)
       ]
