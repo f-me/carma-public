@@ -307,7 +307,7 @@ define [ "model/main"
   # field labels
   reqFieldsTooltip: (kvm, fieldNames) ->
     labels = _.map fieldNames, (n) -> "#{mu.fieldNameToLabel(kvm)(n)}"
-    labelsF = _.without labels, undefined
+    labelsF = _.without labels, "undefined"
     "Доступно при заполнении полей: #{labelsF.join(', ')}"
 
   # True if some of named model fields are empty (not filled by the
