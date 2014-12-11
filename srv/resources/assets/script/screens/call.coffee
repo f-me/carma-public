@@ -3,7 +3,8 @@ define [ "utils"
        , "model/main"
        , "screens/partnersSearch"
        , "text!tpl/screens/call.html"
-       ], (utils, hotkeys, main, pSearch, tpl) ->
+       , "lib/messenger"
+       ], (utils, hotkeys, main, pSearch, tpl, Msg) ->
 
   utils.build_global_fn 'makeCase', ['screens/case']
   utils.build_global_fn 'reloadScreen', ['utils']
@@ -23,10 +24,11 @@ define [ "utils"
         return Finch.navigate "call/#{unfinished}"
 
     knockVM = main.modelSetup("Call") viewName, args,
-                       permEl     : "case-permissions"
-                       slotsee    : ["call-number", "center"]
-                       focusClass : "focusable"
-                       groupsForest : "center"
+                       permEl      : "case-permissions"
+                       slotsee     : ["call-number", "center"]
+                       focusClass  : "focusable"
+                       groupsForest: "center"
+                       useWS       : true
 
     callTypes = window.global.idents('CallType')
     callerTypes = window.global.idents('CallerType')
@@ -80,7 +82,7 @@ define [ "utils"
         fn:  ->
           knockVM['callTypes'](callTypes['info'])
           knockVM['callerType'](callerTypes['client'])
-          Finch.navigate ""
+          Finch.navigate "search/partners/Call/#{knockVM.id()}"
 
       endCall:
         fn: ->
@@ -146,9 +148,6 @@ define [ "utils"
     st.fnSort [[2, "desc"]]
     dtSearch st
     hotkeys.setup()
-    # $("#search-partner").on 'click', partnerSearchClick
-    # $("#make-new-call").on 'click', -> makeCallClick viewName
-    # $("#end-call").on 'click', -> endCallClick viewName
 
     # this will prevent modal from hiding on click behind modal borders
     $("#new-call-modal").modal { backdrop: 'static', show: false }
@@ -185,22 +184,6 @@ define [ "utils"
     url = if q.length == 0 then "/latestCases" else "/searchCases?q=#{q}"
     $.getJSON url, (objs) -> fillTable st, objs
 
-  partnerSearchClick = ->
-    # kvm = global.viewsWare['call-form'].knockVM
-    # if kvm.callerType() == "client" or _.isEmpty kvm.callerType()
-    #   kvm.callerType("client")
-    #   kvm.callType("switchDealer")
-
-    # # Subscribe call model to updates to coords & address fields
-    # for f in ["coords", "address"]
-    #   do (f) ->
-    #     n = pSearch.subName f, "call", kvm.id()
-    #     global.pubSub.sub n, kvm[f]
-
-    # localStorage[pSearch.storeKey] = JSON.stringify kvm._meta.q.toRawObj()
-    # pSearch.open('call')
-
-
   makeCallClick = (viewName) ->
     cb = ->
       hideModal()
@@ -208,19 +191,6 @@ define [ "utils"
       localStorage["#{storeKey}.id"] = kvm.id()
     saveInstance viewName, cb, true
 
-
-  endCallClick = (viewName) ->
-    kvm = global.viewsWare[viewName].knockVM
-    if _.isNull kvm.endDate()
-      kvm.endDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
-
-    localStorage.removeItem "#{storeKey}.id"
-
-    saveInstance viewName, ->
-      # check if we have id in url, then goto call; else just reload
-      if location.hash.match(/[0-9]+$/)
-      then Finch.navigate 'call'
-      else reloadScreen()
 
   setModalVisible = (visible) ->
     if visible then showModal() else hideModal()
@@ -257,5 +227,6 @@ define [ "utils"
 
 
   { constructor: setupCallForm
+  , destructor: -> main.cleanupKVM window.global.viewsWare['call-form'].knockVM
   , template: tpl
   }

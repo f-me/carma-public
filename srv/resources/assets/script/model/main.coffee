@@ -339,6 +339,7 @@ define [ "model/render"
 
   # Cleanup stuff that can prevent remove by gc
   cleanupKVM = (kvm) =>
+    kvm._meta.q?.destructor?()
     for k in kvms.items()
       for n, f of k when ko.isComputed f
         f.dispose()
