@@ -3,6 +3,7 @@ CREATE TABLE "Role"
   ,value text UNIQUE NOT NULL
   ,label text UNIQUE NOT NULL
   ,isBack bool NOT NULL
+  ,hidden bool NOT NULL DEFAULT 'f'
   );
 
 GRANT SELECT ON "Role" TO carma_search;
