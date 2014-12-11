@@ -129,12 +129,27 @@ define [ "model/render"
     kvm._meta.q = new queue(kvm, model, queueOptions) if queue
     kvm[f.name](fetched[f.name]) for f in fields when fetched?[f.name]
 
-    # Set extra observable for inverse of every required
-    # parameters, with name <fieldName>Not
-    for f in required
+    for f in fields
       do (f) ->
         n = f.name
-        kvm["#{n}Not"] = ko.computed -> kvm["#{n}Regexp"]?() or not kvm[n]()
+        # Set extra observable for inverse of every required
+        # parameters, with name <fieldName>Not
+        # required can be customized with function put into
+        # kvm[<fieldName>].customRequired
+        kvm[n].customRequired = ko.observable()
+        kvm["#{n}Not"] = ko.computed ->
+          deflt = f.meta.required? and (kvm["#{n}Regexp"]?() or not kvm[n]())
+          custom = kvm[n].customRequired()
+          if _.isFunction custom then custom(deflt) else deflt
+
+        # Extra observable to control visibility of the field,
+        # customizations work same as required
+        kvm[n].customVisible = ko.observable()
+        kvm["#{n}Visible"] = ko.computed ->
+          if _.isFunction kvm[n].customVisible()
+            kvm[n].customVisible()()
+          else
+            true
 
     # Determines the sync state with the server
     for f in fields
