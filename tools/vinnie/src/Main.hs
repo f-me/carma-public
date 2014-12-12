@@ -3,6 +3,7 @@
 import Database.PostgreSQL.Simple
 
 import System.Console.CmdArgs.Implicit
+import System.Exit
 
 import Carma.VIN hiding           (program)
 import qualified Carma.VIN as VIN (program)
@@ -48,4 +49,6 @@ main = do
             putStrLn $ concat [show total, " total"]
             putStrLn $ concat [show good, " loaded"]
             putStrLn $ concat [show bad,  " errors"]
-        Left e -> print e
+        Left e -> do
+            putStrLn $ "Critical error: " ++ show e
+            exitFailure

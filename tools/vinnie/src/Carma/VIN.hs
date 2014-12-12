@@ -88,13 +88,13 @@ vinImport = do
   -- Figure out program id if only subprogram is provided.
   (pid', sid') <-
       case (pid, sid) of
-        (Nothing, Nothing) -> throwError NoTarget
+        (Nothing, Nothing) -> throwError NoTargetSubprogram
         (Just p,  Nothing) -> return (p, sid)
         (_     ,  Just s)  -> do
             res <- getProgram s
             case res of
               [Only p] -> return (p, Just s)
-              _        -> throwError NoTarget
+              _        -> throwError NoTargetSubprogram
 
   -- Read head row to find out original column order
   (hr, enc) <- readHeaderAndEncoding input
@@ -109,7 +109,7 @@ vinImport = do
         -- columns, not the format.
         when (not $ (isJust sid') ||
               (hasSubprogram vf $ map ffa $ snd mapping)) $
-             throwError NoTarget
+             throwError NoTargetSubprogram
         process (pid', sid') enc mapping
 
 
@@ -157,7 +157,7 @@ readHeaderAndEncoding fileName = do
                 yield (topText `snoc` '\n') $=
                 CSV.intoCSV csvSettings $$ CL.head
           return (header, enc)
-    Left e -> throwError $ NoData e
+    Left e -> throwError $ NotEnoughData e
 
 
 -- | Get loadable fields of a format.
@@ -270,7 +270,7 @@ process psid enc mapping = do
            putCopyEnd conn
   total <- case res of
              Right r                 -> return r
-             Left (_ :: IOException) -> throwError LoadingFailed
+             Left (_ :: IOException) -> throwError PGLoadingFailed
 
   -- Load pristine data to proto table, which matches loadable subset
   -- of Contract
