@@ -453,7 +453,7 @@ mixin simpleRefHdr(name, bindName)
     span.glyphicon.glyphicon-flag(data-bind='visible: myAction')
     span(data-bind='visible: myAction')
       | &nbsp;
-    a(data-bind='html: actionNameLocal')
+    a(style='padding-left: 0', data-bind='html: actionNameLocal')
       | Действие…
 
 mixin caseFilesList
