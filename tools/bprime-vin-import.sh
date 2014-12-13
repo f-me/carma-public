@@ -36,7 +36,7 @@ PG="localhost,5432,carma_db_sync,pass,carma"
 
 # Report mail parameters
 MAIL_FROM="carma@carma.ruamc.ru"
-MAIL_TO="robots@formalmethods.ru"
+MAIL_TO=("robots@formalmethods.ru")
 MAIL_SUBJECT="Отчёт о загрузке контрактов B-Prime `date +%F`"
 
 # END OF CONFIGURATION
@@ -90,7 +90,7 @@ do
 done
 
 sendemail -f "${MAIL_FROM}" \
-          -t "${MAIL_TO}" \
+          -t "${MAIL_TO[@]}" \
           -u "${MAIL_SUBJECT}" \
           -o message-file="${MESSAGE}" \
           -a "${ATTACHMENTS[@]}"
