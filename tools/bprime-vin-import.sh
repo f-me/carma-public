@@ -43,7 +43,7 @@ MAIL_SUBJECT="Отчёт о загрузке контрактов B-Prime"
 
 
 # Absolute path to vinnie executable
-VINNIE="${HOME}/projects/carma/srv/.cabal-sandbox/bin/vinnie"
+VINNIE="${HOME}/carma/srv/.cabal-sandbox/bin/vinnie"
 
 TMPDIR=$(mktemp -d /tmp/bprime.`date +%F`.XXXXXX)
 
