@@ -37,7 +37,7 @@ PG="localhost,5432,carma_db_sync,pass,carma"
 
 # Report mail parameters
 MAIL_FROM="carma@carma.ruamc.ru"
-MAIL_TO="robots@formalmethods.ru"
+MAIL_TO=("robots@formalmethods.ru")
 MAIL_SUBJECT="Отчёт о загрузке контрактов PSA `date +%F`"
 
 # END OF CONFIGURATION
@@ -80,7 +80,7 @@ set +e
 # Run vinnie
 ${VINNIE} -c ${PG} \
           -s ${SUBPROGRAM} \
-          "${IN}" "${OUT}" ${COMMITTER} ${FORMAT}
+          "${IN}" "${OUT}" ${COMMITTER} ${FORMAT} >> "${MESSAGE}"
 vinerr=$?
 set -e
 
@@ -96,7 +96,7 @@ then
 fi
 
 sendemail -f "${MAIL_FROM}" \
-          -t "${MAIL_TO}" \
+          -t "${MAIL_TO[@]}" \
           -u "${MAIL_SUBJECT}" \
           -o message-file="${MESSAGE}" \
           -a "${ATTACHMENTS[@]}"
