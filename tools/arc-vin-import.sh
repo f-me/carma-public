@@ -38,7 +38,7 @@ PG="localhost,5432,carma_db_sync,pass,carma"
 # Report mail parameters
 MAIL_FROM="carma@carma.ruamc.ru"
 MAIL_TO="robots@formalmethods.ru"
-MAIL_SUBJECT="Отчёт о загрузке контрактов PSA"
+MAIL_SUBJECT="Отчёт о загрузке контрактов PSA `date +%F`"
 
 # END OF CONFIGURATION
 
