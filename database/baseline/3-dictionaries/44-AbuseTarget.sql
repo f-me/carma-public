@@ -6,3 +6,6 @@ CREATE TABLE "AbuseTarget"
 INSERT INTO "AbuseTarget" (label) VALUES
   ('Дилер'), ('РАМК'), ('Партнёр'), ('Другое');
 
+
+GRANT ALL ON "AbuseTarget" TO carma_db_sync;
+GRANT ALL ON "AbuseTarget" TO carma_search;

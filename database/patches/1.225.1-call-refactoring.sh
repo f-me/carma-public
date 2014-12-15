@@ -81,3 +81,4 @@ INSERT INTO "FieldPermission" (role, model, field, r, w) VALUES
 END;
 
 EOF
+

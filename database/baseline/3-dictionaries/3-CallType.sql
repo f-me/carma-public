@@ -9,3 +9,6 @@ INSERT INTO "CallType" (id, label) VALUES
   (1, 'Информационный звонок'),
   (2, 'Новый кейс'),
   (3, 'Вторичное обращение');
+
+GRANT ALL ON "CallType" TO carma_db_sync;
+GRANT ALL ON "CallType" TO carma_search;

@@ -27,3 +27,6 @@ INSERT INTO "CallReason" (id, parent, label) VALUES
 (15, 4, 'Другое'),
 
 (16, 5, 'Другое');
+
+GRANT ALL ON "CallReason" TO carma_db_sync;
+GRANT ALL ON "CallReason" TO carma_search;
