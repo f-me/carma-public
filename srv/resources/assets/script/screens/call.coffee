@@ -227,6 +227,7 @@ define [ "utils"
 
 
   { constructor: setupCallForm
-  , destructor: -> main.cleanupKVM window.global.viewsWare['call-form'].knockVM
+  , destructor: ->
+      main.cleanupKVM window.global.viewsWare['call-form'].knockVM
   , template: tpl
   }
