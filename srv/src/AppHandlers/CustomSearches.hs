@@ -143,15 +143,12 @@ searchCallsByPhone = do
   let phone = last $ B.split '/' uri
 
   rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT w.label, callerName_name, city::text, program::text, carMake::text, carModel::text,"
-    ++ "       c.callTaker::text, callType,"
+    $  "SELECT callerName, program::text, c.callTaker::text, callType::text,"
     ++ "       extract (epoch from callDate at time zone 'UTC')::int8::text"
     ++ "  FROM calltbl c"
-    ++ "  LEFT OUTER JOIN \"Wazzup\" w ON w.id = wazzup"
-    ++ "  WHERE callerName_phone1 = ?") [phone]
+    ++ "  WHERE callerPhone = ?") [phone]
   let fields =
-        ["wazzup","callerName_name", "city", "program"
-        ,"make", "model", "callTaker", "callType", "callDate"]
+        ["callerName", "program", "callTaker", "callType", "callDate"]
   writeJSON $ mkMap fields rows
 
 

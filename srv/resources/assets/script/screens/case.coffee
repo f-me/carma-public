@@ -175,49 +175,9 @@ define [ "utils"
       $("body").off "change.input"
       $('.navbar').css "-webkit-transform", ""
 
-    makeCaseAux = () ->
-      v = global.viewsWare['call-form'].knockVM
-
-      callerType = v['callerType']()
-      if callerType == 'client' or callerType == 'partner'
-        v['callType']('newCase')
-      else if not callerType
-        v['callerType']('client')
-        v['callType']('newCase')
-
-      args =
-        contact_name:         v['callerName_name']()
-        contact_phone1:       v['callerName_phone1']()
-        contact_phone2:       v['callerName_phone2']()
-        contact_phone3:       v['callerName_phone3']()
-        contact_phone4:       v['callerName_phone4']()
-        contact_email:        v['callerName_email']()
-        contact_contactOwner: v['callerName_contactOwner']()
-        contact_ownerName:    v['callerName_ownerName']()
-        contact_ownerPhone1:  v['callerName_ownerPhone1']()
-        contact_ownerPhone2:  v['callerName_ownerPhone2']()
-        contact_ownerPhone3:  v['callerName_ownerPhone3']()
-        contact_ownerPhone4:  v['callerName_ownerPhone4']()
-        contact_ownerEmail:   v['callerName_ownerEmail']()
-        program:              v['program']()
-        subprogram:           v['subprogram']()
-        city:                 v['city']()
-        car_make:             v['carMake']()
-        car_model:            v['carModel']()
-        caseAddress_coords:   v['coords']()
-        caseAddress_address:  v['address']()
-        comment:              v['wazzup']()
-        customerComment:      v['customerComment']()
-      main.buildNewModel 'Case', args, {modelArg: "ctr:#{v.program()}"},
-        (m, k) ->
-          v['caseId']?(k.id())
-          Finch.navigate "case/#{k.id()}"
-
-    makeCase = _.throttle makeCaseAux, 2000, {trailing: false}
 
     { constructor       : setupCaseMain
     , destructor        : removeCaseMain
     , template          : tpl
     , addService        : addService
-    , makeCase          : makeCase
     }
