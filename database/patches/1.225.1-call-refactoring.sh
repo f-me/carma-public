@@ -48,7 +48,7 @@ UPDATE calltbl SET callType = 3
 
 ALTER TABLE calltbl DROP COLUMN callTypeOld;
 
-ALTER TABLE calltbl RENAME COLUMN callerType TO callTypeOld;
+ALTER TABLE calltbl RENAME COLUMN callerType TO callerTypeOld;
 
 ALTER TABLE calltbl ADD COLUMN callerType int4 REFERENCES "CallerType";
 
