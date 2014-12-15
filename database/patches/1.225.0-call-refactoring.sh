@@ -16,15 +16,49 @@ DROP TABLE "CallerType";
 ALTER TABLE calltbl RENAME callerName_name   TO callerName;
 ALTER TABLE calltbl RENAME callerName_phone1 TO callerPhone;
 
-ALTER TABLE calltbl ALTER COLUMN callType SET DATA TYPE int4 USING NULL;
-ALTER TABLE calltbl ALTER COLUMN callType SET DEFAULT 1; -- info
+ALTER TABLE calltbl DROP COLUMN callerName_phone2;
+ALTER TABLE calltbl DROP COLUMN callerName_phone3;
+ALTER TABLE calltbl DROP COLUMN callerName_phone4;
 
-ALTER TABLE calltbl ADD CONSTRAINT callTypefk
-  FOREIGN KEY (callType) REFERENCES "CallType";
+ALTER TABLE calltbl DROP COLUMN callername_email;
 
-ALTER TABLE calltbl ALTER COLUMN callerType SET DATA TYPE int4 USING NULL;
-ALTER TABLE calltbl ADD CONSTRAINT callerTypefk
-  FOREIGN KEY (callerType) REFERENCES "CallerType";
+ALTER TABLE calltbl DROP COLUMN callername_contactowner;
+ALTER TABLE calltbl DROP COLUMN callername_ownername;
+ALTER TABLE calltbl DROP COLUMN callername_ownerphone1;
+ALTER TABLE calltbl DROP COLUMN callername_ownerphone2;
+ALTER TABLE calltbl DROP COLUMN callername_ownerphone3;
+ALTER TABLE calltbl DROP COLUMN callername_ownerphone4;
+
+ALTER TABLE calltbl DROP COLUMN callername_owneremail;
+
+ALTER TABLE calltbl DROP COLUMN subprogram;
+ALTER TABLE calltbl DROP COLUMN wazzup;
+
+ALTER TABLE calltbl DROP COLUMN city;
+ALTER TABLE calltbl DROP COLUMN carmake;
+ALTER TABLE calltbl DROP COLUMN carmodel;
+
+ALTER TABLE calltbl RENAME COLUMN callType TO callTypeOld;
+ALTER TABLE calltbl ADD COLUMN callType
+  int4 REFERENCES "CallType" NOT NULL DEFAULT 1;
+
+UPDATE calltbl SET callType = 2 where callTypeOld = 'newCase';
+UPDATE calltbl SET callType = 3
+  WHERE callTypeOld IN ('processingCase', 'infoCase');
+
+ALTER TABLE calltbl DROP COLUMN callTypeOld;
+
+ALTER TABLE calltbl RENAME COLUMN callerType TO callTypeOld;
+
+ALTER TABLE calltbl ADD COLUMN callerType int4 REFERENCES "CallerType";
+
+UPDATE calltbl SET callerType = 1 WHERE callerTypeOld = 'client';
+UPDATE calltbl SET callerType = 2 WHERE callerTypeOld = 'partner';
+UPDATE calltbl SET callerType = 3 WHERE callerTypeOld = 'dealer';
+UPDATE calltbl SET callerType = 4 WHERE callerTypeOld = 'staff';
+UPDATE calltbl SET callerType = 5 WHERE callerTypeOld = 'other';
+
+ALTER TABLE calltbl DROP COLUMN callerTypeOld;
 
 ALTER TABLE calltbl ADD COLUMN callReason int4 REFERENCES "CallReason";
 ALTER TABLE calltbl ADD COLUMN abuseTarget int4 REFERENCES "AbuseTarget";
