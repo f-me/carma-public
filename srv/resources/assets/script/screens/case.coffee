@@ -180,5 +180,4 @@ define [ "utils"
     , destructor        : removeCaseMain
     , template          : tpl
     , addService        : addService
-    , makeCase          : makeCase
     }

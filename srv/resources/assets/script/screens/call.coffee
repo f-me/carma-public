@@ -6,7 +6,6 @@ define [ "utils"
        , "lib/messenger"
        ], (utils, hotkeys, main, pSearch, tpl, Msg) ->
 
-  utils.build_global_fn 'makeCase', ['screens/case']
   utils.build_global_fn 'reloadScreen', ['utils']
   storeKey = "call"
 
@@ -18,6 +17,8 @@ define [ "utils"
     $("#new-call-modal").on "hide.bs.modal", ->
       $(".modal-backdrop").css "z-index", "1040"
 
+    $("#make-new-call").on 'click', -> makeCallClick viewName
+
     # if user have unfinished call redirect him to close it
     unfinished = localStorage["#{storeKey}.id"]
     if unfinished and args.id isnt unfinished
@@ -28,7 +29,6 @@ define [ "utils"
                        slotsee     : ["call-number", "center"]
                        focusClass  : "focusable"
                        groupsForest: "center"
-                       useWS       : true
 
     callTypes = window.global.idents('CallType')
     callerTypes = window.global.idents('CallerType')
@@ -64,10 +64,10 @@ define [ "utils"
         contact_name:         v['callerName']?()
         contact_phone1:       v['callerPhone']?()
         program:              v['program']()
-        subprogram:           v['subprogram']?()
-        car_make:             v['carMake']?()
-        car_model:            v['carModel']?()
+        caseAddress_coords:   v['coords']()
+        caseAddress_address:  v['address']()
         customerComment:      v['customerComment']?()
+
       main.buildNewModel 'Case', args, {modelArg: "ctr:#{v.program()}"},
         (m, k) ->
           v['caseId']?(k.id())
@@ -80,9 +80,17 @@ define [ "utils"
 
       openDip:
         fn:  ->
-          knockVM['callTypes'](callTypes['info'])
+          knockVM['callType'](callTypes['info'])
           knockVM['callerType'](callerTypes['client'])
-          Finch.navigate "search/partners/Call/#{knockVM.id()}"
+          # Subscribe call model to updates to coords & address fields
+          for f in ["coords", "address", "partner"]
+            do (f) ->
+              n = pSearch.subName f, "call", knockVM.id()
+              global.pubSub.sub n, knockVM[f]
+
+          localStorage[pSearch.storeKey] =
+            JSON.stringify knockVM._meta.q.toRawObj()
+          pSearch.open('call')
 
       endCall:
         fn: ->
@@ -123,13 +131,6 @@ define [ "utils"
         id = this.children[0].innerText
         window.location.hash = "case/" + id
     )
-
-    isProgramDefined = ->
-      p = knockVM.program()
-      p && p != ''
-    $('#new-case').prop 'disabled', not isProgramDefined()
-    knockVM.program.subscribe (pgm) ->
-      $('#new-case').prop 'disabled', not isProgramDefined()
 
     $('#search-help').popover
       content: "Справка по поиску"
@@ -203,31 +204,7 @@ define [ "utils"
     $("#new-call-modal").hide().removeClass("in").addClass("out")
     $("#call-screen").show()
 
-    makeCaseAux = () ->
-
-      args =
-        contact_name:         v['callerName']()
-        contact_phone1:       v['callerPhone']()
-        program:              v['program']()
-        subprogram:           v['subprogram']()
-        city:                 v['city']()
-        car_make:             v['carMake']()
-        car_model:            v['carModel']()
-        # caseAddress_coords:   v['coords']()
-        # caseAddress_address:  v['address']()
-        # comment:              v['wazzup']()
-        customerComment:      v['customerComment']()
-      main.buildNewModel 'Case', args, {modelArg: "ctr:#{v.program()}"},
-        (m, k) ->
-          v['caseId']?(k.id())
-          Finch.navigate "case/#{k.id()}"
-
-    makeCase = _.throttle makeCaseAux, 2000, {trailing: false}
-
-
 
   { constructor: setupCallForm
-  , destructor: ->
-      main.cleanupKVM window.global.viewsWare['call-form'].knockVM
   , template: tpl
   }
