@@ -14,8 +14,6 @@ data DeliveryType = DeliveryType deriving Typeable
 data TowerTypes = TowerTypes deriving Typeable
 data WheelsBlockedCount = WheelsBlockedCount deriving Typeable
 data UrgentServiceReason = UrgentServiceReason deriving Typeable
-data CallerTypes = CallerTypes deriving Typeable
-data CallTypes   = CallTypes   deriving Typeable
 
 data JsonAsText = JsonAsText Text deriving Typeable
 instance FromJSON JsonAsText where
