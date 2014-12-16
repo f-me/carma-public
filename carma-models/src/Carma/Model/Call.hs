@@ -60,6 +60,8 @@ metas =
 
     , invisible coords
     , invisible address
+    , invisible endDate
+    , invisible callDate
 
     , hiddenIdent caseId
 
