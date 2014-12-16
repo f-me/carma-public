@@ -44,16 +44,33 @@ define [ "utils"
                        , reasons.employee_other
                        , reasons.other_other
                        ]
+    batchSet = (obs, fields, fn) ->
+      _.map fields, (f) -> knockVM[f]?[obs] (def, realNot) -> fn(f, realNot)
 
     if knockVM['callReason']
       knockVM['abuseTarget']?.customVisible ->
         _.contains complaints, knockVM['callReason']()
 
       knockVM['customerComment']?.customRequired ->
-        _.contains others, knockVM['callReason']()
+        (_.contains others, knockVM['callReason']()) and
+        not knockVM['customerComment']()
+
+      required =
+        ['program', 'callerName', 'callerPhone', 'callerType', 'callReason']
+      batchSet 'customRequired', required, (f, realNot) ->
+        knockVM['callType']() == callTypes['info'] and realNot
+
+      knockVM['callType']?.customRequired ->
+        callerTypes['info']
 
       knockVM['partner']?.customVisible ->
         knockVM['callReason']() == reasons["client_contactDealer"]
+
+      knockVM['partner']?.customRequired ->
+        knockVM['callReason']() == reasons["client_contactDealer"] and
+        not _.isNumber knockVM['partner']()
+
+
 
     window.k = knockVM
     makeNewCase = ->
@@ -76,8 +93,7 @@ define [ "utils"
     btnsCtx =
       makeNewCase:
         fn:    _.throttle makeNewCase, 2000, {trailing: false}
-        avail: ko.computed -> knockVM['program']()?
-
+        avail: ko.computed -> knockVM['program']()
       openDip:
         fn:  ->
           knockVM['callType'](callTypes['info'])
@@ -106,10 +122,8 @@ define [ "utils"
             then Finch.navigate 'call'
             else reloadScreen()
         avail: ko.computed ->
-          if knockVM['callReason']() == reasons['client_contactDealer']
-            _.isNumber knockVM['partner']()
-          else
-            true
+          _.all _.map knockVM._meta.model.fields, (f) ->
+            ! knockVM["#{f.name}Not"]()
 
       servicesSearch:
         fn: ->
