@@ -105,8 +105,10 @@ define [ "utils"
             then Finch.navigate 'call'
             else reloadScreen()
         avail: ko.computed ->
-          (knockVM['callReason']() == reasons['client_contactDealer']) and
-          (_.isNumber knockVM['partner']())
+          if knockVM['callReason']() == reasons['client_contactDealer']
+            _.isNumber knockVM['partner']()
+          else
+            true
 
       servicesSearch:
         fn: ->
