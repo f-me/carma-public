@@ -64,6 +64,7 @@ import           Carma.Model.Contract as Contract hiding (ident)
 import qualified Carma.Model.ContractCheckStatus as CCS
 import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.FalseCall as FC
+import qualified Carma.Model.CallType as CT
 
 import           Carma.Model.LegacyTypes
 
@@ -102,8 +103,9 @@ import           Util (Priority(..), syslogJSON, (.=))
 
 beforeCreate :: TriggerMap
 beforeCreate = Map.unionsWith (++)
-  [trigOnModel ([]::[Call])
-    $ getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
+  [trigOnModel ([]::[Call]) $ do
+    getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
+    modPut Call.callType (Just CT.info)
   ,trigOnModel ([]::[Usermeta]) $ do
     Just login <- getPatchField Usermeta.login -- TODO: check if valid?
     -- NB!
