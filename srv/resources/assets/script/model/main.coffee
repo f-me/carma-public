@@ -138,7 +138,7 @@ define [ "model/render"
         # kvm[<fieldName>].customRequired
         kvm[n].customRequired = ko.observable()
         kvm["#{n}Not"] = ko.computed ->
-          deflt = f.meta.required? and (kvm["#{n}Regexp"]?() or not kvm[n]())
+          deflt = f.meta.required and (kvm["#{n}Regexp"]?() or not kvm[n]())
           custom = kvm[n].customRequired()
           if _.isFunction custom then custom(deflt) else deflt
 
