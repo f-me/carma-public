@@ -82,6 +82,7 @@ define [ "utils"
         fn:  ->
           knockVM['callType'](callTypes['info'])
           knockVM['callerType'](callerTypes['client'])
+          knockVM['callReason'](reasons['client_contactDealer'])
           # Subscribe call model to updates to coords & address fields
           for f in ["coords", "address", "partner"]
             do (f) ->
