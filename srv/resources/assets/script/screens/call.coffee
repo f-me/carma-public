@@ -104,6 +104,9 @@ define [ "utils"
             if location.hash.match(/[0-9]+$/)
             then Finch.navigate 'call'
             else reloadScreen()
+        avail: ko.computed ->
+          (knockVM['callReason']() == reasons['client_contactDealer']) and
+          (_.isNumber knockVM['partner']())
 
       servicesSearch:
         fn: ->

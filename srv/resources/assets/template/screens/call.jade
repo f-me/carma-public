@@ -36,7 +36,8 @@
           span.glyphicon.glyphicon-search
           | &nbsp; Дилеры и партнеры
 
-        button.btn.btn-danger.btn-block(data-bind="click: endCall.fn")
+        button.btn.btn-danger.btn-block(
+            data-bind="click: endCall.fn, enable: endCall.avail")
           | Закончить звонок
 
         button.btn.btn-default.btn-block(data-bind="click: servicesSearch.fn")
