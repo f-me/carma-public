@@ -22,7 +22,7 @@ class CTI
   makeCall: (number) ->
     @ws.send JSON.stringify
       action: "MakeCall"
-      number: number
+      number: parseInt number
 
   endCall: (callId) ->
     @ws.send JSON.stringify
