@@ -50,6 +50,7 @@ import qualified Data.Text.ICU.Convert as ICU
 
 import           Database.PostgreSQL.Simple (Only(..))
 import           Database.PostgreSQL.Simple.Copy
+import           Database.PostgreSQL.Simple.Transaction
 
 import           System.FilePath
 import           System.IO
@@ -87,13 +88,13 @@ vinImport = do
   -- Figure out program id if only subprogram is provided.
   (pid', sid') <-
       case (pid, sid) of
-        (Nothing, Nothing) -> throwError NoTarget
+        (Nothing, Nothing) -> throwError NoTargetSubprogram
         (Just p,  Nothing) -> return (p, sid)
         (_     ,  Just s)  -> do
             res <- getProgram s
             case res of
               [Only p] -> return (p, Just s)
-              _        -> throwError NoTarget
+              _        -> throwError NoTargetSubprogram
 
   -- Read head row to find out original column order
   (hr, enc) <- readHeaderAndEncoding input
@@ -108,7 +109,7 @@ vinImport = do
         -- columns, not the format.
         when (not $ (isJust sid') ||
               (hasSubprogram vf $ map ffa $ snd mapping)) $
-             throwError NoTarget
+             throwError NoTargetSubprogram
         process (pid', sid') enc mapping
 
 
@@ -156,7 +157,7 @@ readHeaderAndEncoding fileName = do
                 yield (topText `snoc` '\n') $=
                 CSV.intoCSV csvSettings $$ CL.head
           return (header, enc)
-    Left e -> throwError $ NoData e
+    Left e -> throwError $ NotEnoughData e
 
 
 -- | Get loadable fields of a format.
@@ -269,7 +270,7 @@ process psid enc mapping = do
            putCopyEnd conn
   total <- case res of
              Right r                 -> return r
-             Left (_ :: IOException) -> throwError LoadingFailed
+             Left (_ :: IOException) -> throwError PGLoadingFailed
 
   -- Load pristine data to proto table, which matches loadable subset
   -- of Contract
@@ -318,8 +319,25 @@ process psid enc mapping = do
 
   markMissingIdentifiers
 
-  -- Finally, write new contracts to live table
-  loaded <- deleteDupes >> transferContracts
+  -- Finally, write new contracts to live table, omitting those
+  -- already present and duplicate contracts in the queue
+  let finalTransfer tries = do
+        -- Prevent phantom reads when deleting duplicate contracts
+        -- from the queue
+        liftIO $ beginLevel Serializable conn
+        ser <- liftIO $ try $
+               deleteDupes conn >>
+               deferConstraints conn >>
+               transferContracts conn
+        case ser of
+          Right n -> (liftIO $ commit conn) >> return n
+          Left e -> if isSerializationError e
+                    then if tries > 0
+                         then (liftIO $ rollback conn) >>
+                              finalTransfer (tries - 1 :: Int)
+                         else throwError SerializationFailed
+                    else throw e
+  loaded <- finalTransfer 10
 
   -- Count errors and write error report if there're any
   errors <- countErrors

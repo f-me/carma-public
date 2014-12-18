@@ -3,9 +3,9 @@ define [ "utils"
        , "model/main"
        , "screens/partnersSearch"
        , "text!tpl/screens/call.html"
-       ], (utils, hotkeys, main, pSearch, tpl) ->
+       , "lib/messenger"
+       ], (utils, hotkeys, main, pSearch, tpl, Msg) ->
 
-  utils.build_global_fn 'makeCase', ['screens/case']
   utils.build_global_fn 'reloadScreen', ['utils']
   storeKey = "call"
 
@@ -14,9 +14,10 @@ define [ "utils"
     # change z-index, so menu wil be shown even with active modal
     $("#new-call-modal").on "shown.bs.modal", ->
       $(".modal-backdrop").css "z-index", 1029
-      console.log $(".modal-backdrop").css "z-index"
     $("#new-call-modal").on "hide.bs.modal", ->
       $(".modal-backdrop").css "z-index", "1040"
+
+    $("#make-new-call").on 'click', -> makeCallClick viewName
 
     # if user have unfinished call redirect him to close it
     unfinished = localStorage["#{storeKey}.id"]
@@ -24,28 +25,132 @@ define [ "utils"
         return Finch.navigate "call/#{unfinished}"
 
     knockVM = main.modelSetup("Call") viewName, args,
-                       permEl     : "case-permissions"
-                       slotsee    : ["call-number", "right"]
-                       focusClass : "focusable"
-                       groupsForest : "center"
-    $('input[name="callDate"]').parents('.control-group').hide()
-    $('input[name="callTaker"]').parents('.control-group').hide()
+                       permEl      : "case-permissions"
+                       slotsee     : ["call-number", "center"]
+                       focusClass  : "focusable"
+                       groupsForest: "center"
+
+    callTypes = window.global.idents('CallType')
+    callerTypes = window.global.idents('CallerType')
+    reasons = window.global.idents('CallReason')
+    complaints = _.compact [ reasons.client_complaint
+                           , reasons.partner_complaint
+                           , reasons.dealer_complaint
+                           ]
+
+    others = _.compact [ reasons.client_other
+                       , reasons.partner_other
+                       , reasons.dealer_other
+                       , reasons.employee_other
+                       , reasons.other_other
+                       ]
+    batchSet = (obs, fields, fn) ->
+      _.map fields, (f) -> knockVM[f]?[obs] (def, realNot) -> fn(f, realNot)
+
+    if knockVM['callReason']
+      knockVM['abuseTarget']?.customVisible ->
+        _.contains complaints, knockVM['callReason']()
+
+      knockVM['customerComment']?.customRequired ->
+        (_.contains others, knockVM['callReason']()) and
+        not knockVM['customerComment']()
+
+      required =
+        ['program', 'callerName', 'callerPhone', 'callerType', 'callReason']
+      batchSet 'customRequired', required, (f, realNot) ->
+        knockVM['callType']() == callTypes['info'] and realNot
+
+      knockVM['callType']?.customRequired ->
+        callerTypes['info']
+
+      knockVM['partner']?.customVisible ->
+        knockVM['callReason']() == reasons["client_contactDealer"]
+
+      knockVM['partner']?.customRequired ->
+        knockVM['callReason']() == reasons["client_contactDealer"] and
+        not _.isNumber knockVM['partner']()
+
+
+
+    window.k = knockVM
+    makeNewCase = ->
+      knockVM['callType'](callTypes['newCase'])
+      v = knockVM
+
+      args =
+        contact_name:         v['callerName']?()
+        contact_phone1:       v['callerPhone']?()
+        program:              v['program']()
+        caseAddress_coords:   v['coords']()
+        caseAddress_address:  v['address']()
+        customerComment:      v['customerComment']?()
+
+      main.buildNewModel 'Case', args, {modelArg: "ctr:#{v.program()}"},
+        (m, k) ->
+          v['caseId']?(k.id())
+          Finch.navigate "case/#{k.id()}"
+
+    btnsCtx =
+      makeNewCase:
+        fn:    _.throttle makeNewCase, 2000, {trailing: false}
+        avail: ko.computed -> knockVM['program']()
+      openDip:
+        fn:  ->
+          knockVM['callType'](callTypes['info'])
+          knockVM['callerType'](callerTypes['client'])
+          knockVM['callReason'](reasons['client_contactDealer'])
+          # Subscribe call model to updates to coords & address fields
+          for f in ["coords", "address", "partner"]
+            do (f) ->
+              n = pSearch.subName f, "call", knockVM.id()
+              global.pubSub.sub n, knockVM[f]
+
+          localStorage[pSearch.storeKey] =
+            JSON.stringify knockVM._meta.q.toRawObj()
+          pSearch.open('call')
+
+      endCall:
+        fn: ->
+          if _.isNull knockVM.endDate()
+            knockVM.endDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
+
+          localStorage.removeItem "#{storeKey}.id"
+
+          knockVM._meta.q.save ->
+            # check if we have id in url, then goto call; else just reload
+            if location.hash.match(/[0-9]+$/)
+            then Finch.navigate 'call'
+            else reloadScreen()
+        avail: ko.computed ->
+          _.all _.map knockVM._meta.model.fields, (f) ->
+            ! knockVM["#{f.name}Not"]()
+
+      servicesSearch:
+        fn: ->
+          knockVM.callType(callTypes['secondCall'])
+          Finch.navigate 'search/services'
+
+      callsSearch:
+        fn: -> Finch.navigate 'search/calls'
+
+      contractsSearch:
+        fn: ->
+          knockVM.callType(callTypes['info'])
+          knockVM['callerType'](callerTypes['client'])
+          Finch.navigate 'search/contracts'
+
+    ko.applyBindings(btnsCtx, $("#right")[0])
+
     searchTable = $("#call-scrn-searchtable")
     st = utils.mkDataTable searchTable,
       bFilter : false
       fnRowCallback: (nRow) -> $($(nRow).children()[1]).addClass("capitalize")
     searchTable.on("click.datatable", "tr", ->
       if (searchTable.fnGetPosition this) != null
+        knockVM.callType(callTypes['secondCall'])
         id = this.children[0].innerText
         window.location.hash = "case/" + id
     )
-
-    isProgramDefined = ->
-      p = knockVM.program()
-      p && p != ''
-    $('#new-case').prop 'disabled', not isProgramDefined()
-    knockVM.program.subscribe (pgm) ->
-      $('#new-case').prop 'disabled', not isProgramDefined()
 
     $('#search-help').popover
       content: "Справка по поиску"
@@ -64,9 +169,6 @@ define [ "utils"
     st.fnSort [[2, "desc"]]
     dtSearch st
     hotkeys.setup()
-    $("#search-partner").on 'click', partnerSearchClick
-    $("#make-new-call").on 'click', -> makeCallClick viewName
-    $("#end-call").on 'click', -> endCallClick viewName
 
     # this will prevent modal from hiding on click behind modal borders
     $("#new-call-modal").modal { backdrop: 'static', show: false }
@@ -103,22 +205,6 @@ define [ "utils"
     url = if q.length == 0 then "/latestCases" else "/searchCases?q=#{q}"
     $.getJSON url, (objs) -> fillTable st, objs
 
-  partnerSearchClick = ->
-    kvm = global.viewsWare['call-form'].knockVM
-    if kvm.callerType() == "client" or _.isEmpty kvm.callerType()
-      kvm.callerType("client")
-      kvm.callType("switchDealer")
-
-    # Subscribe call model to updates to coords & address fields
-    for f in ["coords", "address"]
-      do (f) ->
-        n = pSearch.subName f, "call", kvm.id()
-        global.pubSub.sub n, kvm[f]
-
-    localStorage[pSearch.storeKey] = JSON.stringify kvm._meta.q.toRawObj()
-    pSearch.open('call')
-
-
   makeCallClick = (viewName) ->
     cb = ->
       hideModal()
@@ -126,19 +212,6 @@ define [ "utils"
       localStorage["#{storeKey}.id"] = kvm.id()
     saveInstance viewName, cb, true
 
-
-  endCallClick = (viewName) ->
-    kvm = global.viewsWare[viewName].knockVM
-    if _.isNull kvm.endDate()
-      kvm.endDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
-
-    localStorage.removeItem "#{storeKey}.id"
-
-    saveInstance viewName, ->
-      # check if we have id in url, then goto call; else just reload
-      if location.hash.match(/[0-9]+$/)
-      then Finch.navigate 'call'
-      else reloadScreen()
 
   setModalVisible = (visible) ->
     if visible then showModal() else hideModal()

@@ -143,15 +143,12 @@ searchCallsByPhone = do
   let phone = last $ B.split '/' uri
 
   rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT w.label, callerName_name, city::text, program::text, carMake::text, carModel::text,"
-    ++ "       c.callTaker::text, callType,"
+    $  "SELECT callerName, program::text, c.callTaker::text, callType::text,"
     ++ "       extract (epoch from callDate at time zone 'UTC')::int8::text"
     ++ "  FROM calltbl c"
-    ++ "  LEFT OUTER JOIN \"Wazzup\" w ON w.id = wazzup"
-    ++ "  WHERE callerName_phone1 = ?") [phone]
+    ++ "  WHERE callerPhone = ?") [phone]
   let fields =
-        ["wazzup","callerName_name", "city", "program"
-        ,"make", "model", "callTaker", "callType", "callDate"]
+        ["callerName", "program", "callTaker", "callType", "callDate"]
   writeJSON $ mkMap fields rows
 
 
@@ -339,12 +336,14 @@ findSameContract = do
     Nothing  -> finishWithError 403 "need id param"
     Just id' -> do
       rows <- withPG pg_search $ \c -> query_ c $ fromString
-        $  " SELECT id::text, to_char(ctime, 'YYYY-MM-DD HH24:MI')"
-        ++ " FROM \"Contract\""
-        ++ " WHERE ctime > now() - interval '30 days'"
-        ++ " AND id != " ++ quote id'
-        ++ "AND (false "
-        ++ (maybe "" (\x -> " OR vin = "        ++ quote x) cvin)
-        ++ (maybe "" (\x -> " OR cardNumber = " ++ quote x) num)
+        $  " SELECT c.id::text, to_char(c.ctime, 'YYYY-MM-DD HH24:MI')"
+        ++ " FROM \"Contract\" c, \"Contract\" same"
+        ++ " WHERE c.dixi AND c.ctime > now() - interval '30 days'"
+        ++ " AND c.id != " ++ quote id'
+        ++ " AND same.id = " ++ quote id'
+        ++ " AND c.subprogram = same.subprogram"
+        ++ " AND (false "
+        ++ (maybe "" (\x -> " OR c.vin = "        ++ quote x) cvin)
+        ++ (maybe "" (\x -> " OR c.cardNumber = " ++ quote x) num)
         ++ ")"
       writeJSON $ mkMap ["id", "ctime"] rows

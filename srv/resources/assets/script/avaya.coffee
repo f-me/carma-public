@@ -56,7 +56,7 @@ class @AvayaWidget
 
       vm = global.viewsWare['call-form'].knockVM
       vm.callDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
-      vm.callerName_phone1(number)
+      vm.callerPhone(number)
       info = lineInfo[line]
       if info
         panel.find("#avaya-info").text(info.greeting)
@@ -119,9 +119,6 @@ lineInfo =
   "VTB 24":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
     program: "vtb24"
-  "RAMC 1/2+B":
-    greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
-    program: ""
   "RAMC 1/2+B":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
     program: ""

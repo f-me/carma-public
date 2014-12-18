@@ -43,7 +43,7 @@ define [ "utils"
     srvName = id.split(':')[0]
     kaseKVM = m.buildKVM global.model('Case'),  {fetched: kase}
     srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
-    kvm['fromCase'] = true
+    kvm['canSelectPartner'] = true
     kvm['city'](if kaseKVM.city?() then [kaseKVM.city()] else [])
     kvm['make'](if kaseKVM.car_make?() then [kaseKVM.car_make()] else [])
     kvm['field'] = ctx['field']
@@ -146,6 +146,7 @@ define [ "utils"
 
         kvm['coords'] ctx.coords
         kvm['address'] ctx.address
+        kvm['selectedPartner'] ctx.partner
         # Allow resetting address & city of case
         kvm['mapClickable'] = true
 
@@ -157,8 +158,25 @@ define [ "utils"
           kvm[field].subscribe (val) ->
             n = subName field, 'call', ctx.id
             global.pubSub.pub n, kvm[field]()
+
         setupPusher 'coords'
         setupPusher 'address'
+        kvm['selectedPartner'].subscribe (v) ->
+          global.pubSub.pub (subName "partner", "call", ctx.id), v
+
+        kvm["canSelectPartner"] = true
+
+
+        kvm['selectPartner'] = (partner, ev) ->
+          selected = kvm['selectedPartner']()
+          # don't select same partner twice
+          return if selected == partner?.id()
+          return if partner?.isfree() == false
+          if _.isNull partner
+            kvm['selectedPartner'](null)
+          else
+            kvm['selectedPartner'](partner.id())
+
       when "mobile"
         kvm['mobilePartner'](true)
 
@@ -308,7 +326,7 @@ define [ "utils"
             osmap.addPopup popup
 
             # Provide select button if came from case
-            if kvm["fromCase"]
+            if kvm["canSelectPartner"]
               $(popup.div).find(".btn-div").show()
               $(popup.div).find(".select-btn").click (e) ->
                 kvm["selectPartner"](p, e)

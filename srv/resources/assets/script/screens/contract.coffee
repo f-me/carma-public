@@ -134,8 +134,6 @@ define [ "search/screen"
         # When creating new contracts, check contract duplicates upon
         # contract saving, ignoring first dixi update (when default
         # fields are first fetched)
-        t = kvm["dixi"].subscribe (o) ->
-          t.dispose()
           check = kvm["dixi"].subscribe (v) ->
             return if !v
             findSame kvm, (r) ->

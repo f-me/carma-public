@@ -3,7 +3,7 @@ define [ "sync/metaq"
        , "lib/messenger"
        ], (metaq, m, Messenger) ->
   class CrudQueue extends metaq
-    constructor: (@kvm, @model, @options) ->
+    constructor: (@kvm, @model, @options = {}) ->
       @url = "/_/#{@model.name}"
       @q       = {}
       @qbackup = {}
@@ -21,10 +21,13 @@ define [ "sync/metaq"
       @fetch() if @persisted and not @options?.dontFetch
       @subscribe()
 
-      # Example of ws crud updates listener
-      # if @persisted
-      #   Messenger.subscribe "#{model.name}:#{@kvm.id()}",
-      #                       @saveSuccessCb(_.identity)
+      # use ws crud notifications
+      if @options.useWS?
+        if @persisted
+          @ws = Messenger.subscribeKVM @kvm, @saveSuccessCb(_.identity)
+        else
+          @kvm.id.subscribe =>
+            @ws = Messenger.subscribeKVM @kvm, @saveSuccessCb(_.identity)
       @
 
     subscribe: =>
@@ -110,5 +113,8 @@ define [ "sync/metaq"
         @safeKvm
         return @save(cb)
       @save => @fetch(); cb(@kvm, @model)
+
+    destructor: =>
+      @ws.close
 
   CrudQueue: CrudQueue
