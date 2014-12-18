@@ -1,9 +1,16 @@
 class CTI
   constructor: (extension) ->
-    if window.location.protocol == "https:"
-      url = "wss://#{location.hostname}:8333/#{extension}"
+    if global.config("csta-ws-host")?
+      host = global.config("csta-ws-host")
     else
-      url = "ws://#{location.hostname}:8333/#{extension}"
+      host = location.hostname
+
+    port = global.config("csta-ws-port")
+
+    if window.location.protocol == "https:"
+      url = "wss://#{host}:#{port}/#{extension}"
+    else
+      url = "ws://#{host}:#{port}/#{extension}"
 
     @wsHandler = () ->
 

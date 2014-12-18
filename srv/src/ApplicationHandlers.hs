@@ -289,11 +289,13 @@ clientConfig = do
   mus <- with fileUpload $ gets (fromIntegral . getMaximumFormInputSize . cfg)
   opts <- gets options
   let config :: Map.Map T.Text Aeson.Value
-      config = Map.fromList [ ("max-file-size", Aeson.Number mus)
-                            , ("csta-ws-host", Aeson.String $ cstaWsHost opts)
-                            , ("csta-ws-port",
-                               Aeson.Number $ fromIntegral $ cstaWsPort opts)
-                            ]
+      config =
+        Map.fromList
+        [ ("max-file-size", Aeson.Number mus)
+        , ("csta-ws-host", maybe Aeson.Null Aeson.String $ cstaWsHost opts)
+        , ("csta-ws-port",
+           Aeson.Number $ fromIntegral $ cstaWsPort opts)
+        ]
   writeJSON config
 
 

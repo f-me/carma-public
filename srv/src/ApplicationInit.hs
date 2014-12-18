@@ -134,7 +134,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   opts <- liftIO $ AppOptions
                 <$> Cfg.lookup cfg "local-name"
                 <*> Cfg.lookupDefault 4 cfg "search-min-length"
-                <*> Cfg.lookupDefault "localhost" cfg "csta-ws-host"
+                <*> Cfg.lookup cfg "csta-ws-host"
                 <*> Cfg.lookupDefault 8333 cfg "csta-ws-port"
 
   wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
