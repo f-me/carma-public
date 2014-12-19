@@ -55,7 +55,8 @@ define [ "utils"
         _.contains complaints, knockVM['callReason']()
 
       knockVM['customerComment']?.customRequired ->
-        (_.contains others, knockVM['callReason']()) and
+        ((_.contains others, knockVM['callReason']()) or
+        (knockVM.partner.text()?.toLowerCase() == "дилер не найден")) and
         not knockVM['customerComment']()
 
       required =
