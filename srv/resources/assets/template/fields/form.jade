@@ -574,3 +574,13 @@ mixin caseFilesList
 
 #contract-content-template(type='text/html')
   #contract-content(data-bind="renderContract: '{{ title }}'")
+
+#callType-special-field-template.field-template
+  .form-group
+    .col-sm-4(data-bind="with: callType.btn")
+      button.btn.btn-danger.btn-sm(
+        data-bind="click: click, visible: visible")
+        span(data-bind="text: text")
+    .col-sm-8
+      p.form-control-static
+        strong(data-bind="text: callType.local")
