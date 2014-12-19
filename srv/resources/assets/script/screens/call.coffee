@@ -51,6 +51,9 @@ define [ "utils"
       knockVM['abuseTarget']?.customVisible ->
         _.contains complaints, knockVM['callReason']()
 
+      knockVM['abuseTarget']?.customRequired ->
+        _.contains complaints, knockVM['callReason']()
+
       knockVM['customerComment']?.customRequired ->
         (_.contains others, knockVM['callReason']()) and
         not knockVM['customerComment']()
