@@ -20,8 +20,6 @@ import Carma.Model.Partner         (Partner)
 
 import Carma.Model.LegacyTypes
 
-import Carma.Model.Diagnostics.Wazzup (Wazzup)
-
 import Carma.Model.Search as S
 
 callSearchParams :: [(Text, [Predicate Call])]
@@ -72,6 +70,8 @@ metas =
           { dictType    = Just "ComputedDict"
           , dictBounded = True
           }
+
+    , widget "callType-special" callType
     ]
 
 data Call = Call
