@@ -5,7 +5,7 @@ alter table "Sms" alter column sender set default 'Scramble CRM';
 --  Права на звонок (снять r на все поля не из списка)
 
 UPDATE "FieldPermission" SET r = 'f' WHERE model='Call' AND field NOT IN
-('callDate', 'endDate', 'program', 'callerName_name', 'callerName_phone1', 'customerComment');
+('callDate', 'endDate', 'program', 'callerName', 'callerPhone', 'callType', 'callerType', 'callReason', 'abuseTarget', 'customerComment');
 
 
 -- ServiceType (удалить всё кроме двух)
