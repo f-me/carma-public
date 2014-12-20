@@ -175,24 +175,8 @@ define [ "utils"
       $("body").off "change.input"
       $('.navbar').css "-webkit-transform", ""
 
-    makeCaseAux = () ->
-      v = global.viewsWare['call-form'].knockVM
-
-      args =
-        contact_name:         v['callerName_name']?()
-        contact_phone1:       v['callerName_phone1']?()
-        program:              v['program']?()
-        customerComment:      v['customerComment']?()
-      main.buildNewModel 'Case', args, {modelArg: "ctr:#{v.program()}"},
-        (m, k) ->
-          v['caseId']?(k.id())
-          Finch.navigate "case/#{k.id()}"
-
-    makeCase = _.throttle makeCaseAux, 2000, {trailing: false}
-
     { constructor       : setupCaseMain
     , destructor        : removeCaseMain
     , template          : tpl
     , addService        : addService
-    , makeCase          : makeCase
     }

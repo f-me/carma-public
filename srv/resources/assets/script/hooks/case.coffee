@@ -21,6 +21,7 @@ define [ "utils"
     # FIXME: refactor all this, use sync/datamap at least for time
     st.fnClearTable()
     dict = global.dictValueCache
+    calltypes = u.newModelDict "CallType", true
     progs = u.newModelDict "Program", true
     waz = u.newModelDict "Wazzup", true
     cities = u.newModelDict "City", true
@@ -36,16 +37,11 @@ define [ "utils"
             else
               ''
           comment = []
-          wazzup  = waz.getLab obj.wazzup
-          comment.push("Что случилось: #{wazzup}") if wazzup
 
-          callType = dict.CallTypes[obj.callType] || obj.callType || ''
+          callType = calltypes[obj.callType] || obj.callType || ''
           comment.push("Тип звонка: #{callType}") if callType
 
-          comment.push("ФИО: #{obj.callerName_name}") if obj.callerName_name
-
-          city = cities.getLab obj.city
-          comment.push("Город: #{city}") if city
+          comment.push("ФИО: #{obj.callerName}") if obj.callerName
 
           program = progs.getLab obj.program
           comment.push("Программа: #{program}") if program

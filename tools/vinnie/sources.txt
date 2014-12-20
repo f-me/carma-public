@@ -1,3 +1,2 @@
 ./
 https://github.com/f-me/carma-models
-https://github.com/f-me/postgresql-simple

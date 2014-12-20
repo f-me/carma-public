@@ -64,6 +64,7 @@ html
     script(src='/s/js/gen/globallibs/customKoHandlers.js')
     script(src='/s/js/gen/globallibs/utils.js')
     script(src='/s/js/gen/avaya.js')
+    script(src='/s/js/gen/cti.js')
     script(src='/s/3p/require.js')
     script(src='/s/js/gen/requireCfg.js')
     script(src='/s/js/gen/local.js')
@@ -135,6 +136,24 @@ html
 
     // Main container for dynamically rendered layouts
     #main-container
+      .well#cti(style='display: none')
+        .container-fluid
+            form.form-inline#cti-form
+              input.form-control(placeholder='--:--', disabled)
+              input.form-control(placeholder='Номер телефона',
+                data-bind='value: number, disable: callStart')
+              button.btn.btn-sm.btn-success.call-button(type='button',
+                data-bind='visible: canCall')
+                i.glyphicon.glyphicon-earphone&nbsp;
+                | Позвонить
+              button.btn.btn-sm.btn-success.answer-button(type='button',
+                data-bind='visible: canAnswer')
+                i.glyphicon.glyphicon-phone-alt&nbsp;
+                | Принять звонок
+              button.btn.btn-sm.btn-danger.end-button(type='button',
+                data-bind='visible: canEnd')
+                i.glyphicon.glyphicon-remove-circle&nbsp;
+                | Завершить звонок
       #layout
     // SMS send form
     #sms-send-modal.modal.fade

@@ -187,9 +187,10 @@ define [ "model/main"
     si?.info or ""
 
   getProgramDesc: (pid, sid) ->
+    return unless pid
     meta = {dictionaryLabel: 'help'}
     pvm = buildInstance('Program', pid)
-    svm = buildInstance('SubProgram', sid)
+    svm = buildInstance('SubProgram', sid) if sid
     if pvm?.pTypeLocal()
       pType = "<span class=\"label label-info\">#{pvm.pTypeLocal()}</span>"
     else
@@ -321,7 +322,8 @@ define [ "model/main"
   # this service. If types list is empty, match all action types.
   svcActions: (kase, svc, types) ->
     _.filter (kase['actionsList']?() || []),
-      (a) -> (a.serviceId() == svc.id()) && (_.isEmpty(types) || _.contains types, a.type())
+      (a) -> (a.serviceId() == parseInt(svc.id())) &&
+              (_.isEmpty(types) || _.contains types, a.type())
 
   # FIXME: This could be a callback for main.js:saveInstance
   successfulSave: successfulSave

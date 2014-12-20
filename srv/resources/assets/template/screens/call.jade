@@ -10,16 +10,6 @@
       #call-form
 
     #center.col-md-5.col
-    #right.col-md-2.col
-      .btn-vert-block
-        button#search-partner.btn.btn-success.btn-block
-          i.icon.icon-white.icon-search
-          | Дилеры и партнеры
-        button#new-case.btn.btn-success.btn-block(type='submit', onclick='makeCase()')
-          | Новый кейс
-        button#end-call.btn.btn-danger.btn-block(data-bind='visible: id')
-          | Закончить звонок
-
       #call-program-description.panel-group(
           style="margin-top: 5px;"
           data-bind="visible: programLocal")
@@ -33,6 +23,34 @@
           .panel-collapse.collapse.in#call-program-description-body
             .panel-body
               address(data-bind='html:programDesc')
+
+    #right.col-md-2.col
+      .btn-vert-block
+        button.btn.btn-success.btn-block(
+            type='submit'
+            data-bind="click: makeNewCase.fn,\
+                       enable: makeNewCase.avail")
+          | Новый кейс
+
+        button.btn.btn-default.btn-block(data-bind="click: openDip.fn")
+          span.glyphicon.glyphicon-search
+          | &nbsp; Дилеры и партнеры
+
+        button.btn.btn-danger.btn-block(
+            data-bind="click: endCall.fn, enable: endCall.avail")
+          | Закончить звонок
+
+        button.btn.btn-default.btn-block(data-bind="click: servicesSearch.fn")
+          span.glyphicon.glyphicon-search
+          | &nbsp; Поиск услуг
+
+        button.btn.btn-default.btn-block(data-bind="click: callsSearch.fn")
+          span.glyphicon.glyphicon-search
+          | &nbsp; Поиск звонков
+
+        button.btn.btn-default.btn-block(data-bind="click: contractsSearch.fn")
+          span.glyphicon.glyphicon-search
+          | &nbsp; Поиск контрактов
 
 
   .row.bottom-part

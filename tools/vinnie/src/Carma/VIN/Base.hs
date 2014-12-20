@@ -77,10 +77,11 @@ newtype ImportResult = ImportResult (Int64, Int64, Int64)
 
 -- | Critical VIN import errors which result in the whole process
 -- being interrupted.
-data ImportError = NoTarget
+data ImportError = NoTargetSubprogram
                  | NoHeader
-                 | NoData IOException
-                 | LoadingFailed
+                 | NotEnoughData IOException
+                 | PGLoadingFailed
+                 -- ^ COPY command failed.
                  | UnknownVinFormat
                  | NoColumn Text [ColumnTitle]
                  -- ^ The file misses one or several columns for a
@@ -97,13 +98,13 @@ data ImportError = NoTarget
 
 instance ToJSON ImportError where
     toJSON t = A.String $ case t of
-        NoTarget -> "Невозможно определить подпрограмму"
+        NoTargetSubprogram -> "Невозможно определить подпрограмму"
         NoHeader -> "В файле отсутствует корректный заголовок"
-        NoData e -> T.concat ["Не удалось прочитать данные из файла ("
-                             , (T.pack $ show e)
-                             , ")"
-                             ]
-        LoadingFailed -> "Не удалось загрузить данные в PostgreSQL"
+        NotEnoughData e -> T.concat ["В файле недостаточно данных ("
+                                    , (T.pack $ show e)
+                                    , ")"
+                                    ]
+        PGLoadingFailed -> "Не удалось загрузить данные в PostgreSQL"
         UnknownVinFormat -> "Неизвестный формат"
         NoColumn v _ ->
             T.concat ["Отсутствует колонка обязательного поля «", v, "»"]
