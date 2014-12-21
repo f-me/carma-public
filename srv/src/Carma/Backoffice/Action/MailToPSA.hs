@@ -126,9 +126,9 @@ getMsgData con svcId = uncurry (PG.query con)
       'Breakdown Location',  '100', c.caseAddress_address,
       'Breakdown Area',       '20', city.label,
       'Breakdown Service',   '100', coalesce(ctr.name, ''),
-      'Service Tel Number 1', '20', coalesce((ctr_phone_disp.value->'value')::text, ''),
-      'Service Tel Number 2', '20', coalesce((ctr_phone_close.value->'value')::text, ''),
-      'Patrol Address 1',    '100', coalesce((ctr_addr_fact.value->'value')::text, ''),
+      'Service Tel Number 1', '20', coalesce(ctr_phone_disp.value->>'value', ''),
+      'Service Tel Number 2', '20', coalesce(ctr_phone_close.value->>'value', ''),
+      'Patrol Address 1',    '100', coalesce(ctr_addr_fact.value->>'value', ''),
       'Patrol Address 2',    '100', '',
       'Patrol Address V',    '100', '',
       'User Name',            '50', upper(c.contact_name),
@@ -140,14 +140,14 @@ getMsgData con svcId = uncurry (PG.query con)
         end,
       'Job Type',              '4',
         case svc.type
-          when $(ServiceType.tech)$         then 'DEPA'
-          when $(ServiceType.towage)$       then 'REMO'
+          when $(ServiceType.tech)$   then 'DEPA'
+          when $(ServiceType.towage)$ then 'REMO'
         end,
       'Dealer Address G',    '200', coalesce(tow.towAddress_address, ''),
       'Dealer Address 1',    '200', '',
       'Dealer Address 2',    '200', '',
       'Dealer Address V',    '200', '',
-      'Dealer Tel Number',    '20', coalesce((tow_dealer.phones->0->'value')::text, ''),
+      'Dealer Tel Number',    '20', coalesce(tow_dealer.phones->0->>'value', ''),
       'End Of File',           '4', 'True'
     from
       servicetbl svc
@@ -159,11 +159,11 @@ getMsgData con svcId = uncurry (PG.query con)
       join "City" city on city.id = c.city
       left join partnertbl ctr on ctr.id = svc.contractor_partnerId
       left join json_array_elements(ctr.phones) ctr_phone_disp
-        on (ctr_phone_disp.value->'key')::text = 'disp'
+        on ctr_phone_disp.value->>'key' = 'disp'
       left join json_array_elements(ctr.phones) ctr_phone_close
-        on (ctr_phone_close.value->'key')::text = 'close'
+        on ctr_phone_close.value->>'key' = 'close'
       left join json_array_elements(ctr.addrs) ctr_addr_fact
-        on (ctr_addr_fact.value->'key')::text = 'fact'
+        on ctr_addr_fact.value->>'key' = 'fact'
       inner join partnertbl tow_dealer on tow_dealer.id = tow.towDealer_partnerId
     where svc.id = $(svcId)$
       and (tech.id is null or tech.techType in ($(TT.charge)$, $(TT.starter)$, $(TT.ac)$))
