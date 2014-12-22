@@ -191,14 +191,14 @@ define [ "model/main"
     meta = {dictionaryLabel: 'help'}
     pvm = buildInstance('Program', pid)
     svm = buildInstance('SubProgram', sid) if sid
-    if pvm?.pTypeLocal()
+    if pvm?.pTypeLocal?()
       pType = "<span class=\"label label-info\">#{pvm.pTypeLocal()}</span>"
     else
       pType = null
-    managers = _.pluck(pvm?.managersLocals(), 'label')
+    managers = _.pluck(pvm?.managersLocals?(), 'label')
     if managers? && !_.isEmpty(managers)
       manList = "<b>Менеджеры:</b> " + managers.join(', ')
-    _.compact([pType, manList, pvm?.help(), svm?.help()]).
+    _.compact([pType, manList, pvm?.help?(), svm?.help?()]).
       join '<br />'
 
   # Scroll case field into view and focus
