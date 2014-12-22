@@ -15,7 +15,6 @@ define [ "search/screen"
     resultTable: [ { name: 'phone',    fixed: true }
                  , { name: 'callDate', fixed: true }
                  , { name: 'program'               }
-                 , { name: 'wazzup'                }
                  , { name: 'callTaker'             }
                  ]
     searchFields: [ "phone",
@@ -23,7 +22,6 @@ define [ "search/screen"
                     "callTaker"
                     "callType"
                     "program"
-                    "wazzup"
                     "caller"
                   ]
     defaultSort: { fields: [{ model: "Call", name: "id" }], order: "desc" }
@@ -32,7 +30,6 @@ define [ "search/screen"
               "callerPhone"
               "callerName"
               "program"
-              "wazzup"
               "callTaker"
               "callType"
             ]
