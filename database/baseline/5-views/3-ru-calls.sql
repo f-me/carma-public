@@ -3,7 +3,7 @@ CREATE VIEW "Звонки" AS
 SELECT
 calltbl.id,
 timezone('Europe/Moscow'::text, calldate) AS "Дата и время начала звонка" ,
-timezone('Europe/Moscow'::text, enddate)  AS "Дата и время окончаня звонка" ,
+timezone('Europe/Moscow'::text, enddate)  AS "Дата и время окончания звонка" ,
 usermetatbl.login       AS "Оператор, принимающий звонок",
 usermetatbl.realname    as "Имя оператора,принимающего звонок",
 calltbl.customerComment AS "Комментарий",
