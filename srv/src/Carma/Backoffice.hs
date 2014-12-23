@@ -47,11 +47,10 @@ toBack =
      AResult.communicated *>
      switch
      [ ( serviceField svcType `oneOf` [ST.towage, ST.tech]
-       , sendSMS SMS.create *> proceed [AType.orderService]
+       , sendSMS SMS.create *> messageToGenser *> proceed [AType.orderService]
        )
      , ( serviceField svcType `oneOf` [ST.ken, ST.consultation]
        , sendSMS SMS.complete *>
-         messageToGenser *>
          setServiceStatus SS.ok *>
          proceed [AType.closeCase, AType.addBill]
        )
