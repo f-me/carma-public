@@ -97,6 +97,9 @@ class CTIPanel
     el.find(".end-button").click () ->
       cti.endCall kvm.lastCallId()
 
+    el.submit (e) ->
+      e.preventDefault()
+
     el.show()
     ko.applyBindings kvm, el[0]
 
