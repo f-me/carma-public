@@ -110,7 +110,7 @@ getMsgData con svcId = uncurry (PG.query con)
           else 'E'
         end,
       'Date put on road',    '10', to_char(c.car_buyDate, 'DD/MM/YYYY'),
-      'VIN number',          '17', c.car_vin,
+      'VIN number',          '17', upper(c.car_vin),
       'Reg No',              '10', c.car_plateNum,
       'Customer effet',     '150', coalesce(c.customerComment, ''),
       'Component fault',    '150',
