@@ -57,11 +57,13 @@ class CTIPanel
     @kvm = kvm
 
     wsHandler = (msg) ->
-      if msg.event?
-        if msg.callId?
-          kvm.lastCallId msg.callId
+      if msg.cstaEvent?
+        ev = msg.cstaEvent
 
-        switch msg.event
+        if ev.callId?
+          kvm.lastCallId ev.callId
+
+        switch ev.event
           when "DeliveredEvent"
             kvm.callStart true
             kvm.canCall false
@@ -70,11 +72,11 @@ class CTIPanel
             # list through WS
             #
             # Inbound call?
-            if not (RegExp("^#{cti.extension}\:").test(msg.callingDevice))
+            if not (RegExp("^#{cti.extension}\:").test(ev.callingDevice))
               kvm.canAnswer true
-              kvm.number msg.callingDevice.match(/\d+/)?[0]
+              kvm.number ev.callingDevice.match(/\d+/)?[0]
             else
-              kvm.number msg.calledDevice.match(/\d+/)?[0]
+              kvm.number ev.calledDevice.match(/\d+/)?[0]
 
           when "EstablishedEvent"
             kvm.canAnswer false
