@@ -285,7 +285,8 @@ define [ "model/main"
     require ["map"], (map) ->
       pickers =
         callPlease: (modelName) ->
-          kvm = global.viewsWare["call-form"].knockVM
+          kvm = global.viewsWare["call-form"]?.knockVM
+          return unless kvm
           number = kvm[modelName]?()
           global.avayaPhone && global.avayaPhone.call(number)
         # Set a field to a new randomly generated password
