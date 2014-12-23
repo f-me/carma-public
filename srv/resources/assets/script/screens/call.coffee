@@ -51,8 +51,8 @@ define [ "utils"
       knockVM['abuseTarget']?.customVisible ->
         _.contains complaints, knockVM['callReason']()
 
-      knockVM['abuseTarget']?.customRequired ->
-        _.contains complaints, knockVM['callReason']()
+      knockVM['abuseTarget']?.customRequired (def, realNot) ->
+        (_.contains complaints, knockVM['callReason']()) and realNot
 
       knockVM['customerComment']?.customRequired ->
         ((_.contains others, knockVM['callReason']()) or
@@ -63,9 +63,6 @@ define [ "utils"
         ['program', 'callerName', 'callerPhone', 'callerType', 'callReason']
       batchSet 'customRequired', required, (f, realNot) ->
         knockVM['callType']() == callTypes['info'] and realNot
-
-      knockVM['callType']?.customRequired ->
-        callerTypes['info']
 
       knockVM['partner']?.customVisible ->
         knockVM['callReason']() == reasons["client_contactDealer"]
