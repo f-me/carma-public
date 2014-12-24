@@ -47,8 +47,8 @@ leastPriority = 5
 
 -- | Assign a single action to a user, yield action id and case id.
 --
--- 5 parameters: usermeta ident (2), action priority class, order
--- action types (2)
+-- 4 parameters: usermeta ident (2), action priority class, order
+-- action types (as array for IN clause)
 assignQ :: Query
 assignQ = [sql|
       WITH activeUsers AS (
