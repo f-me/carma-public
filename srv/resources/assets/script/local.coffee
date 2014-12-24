@@ -91,7 +91,8 @@ require [ "domready"
       # New CTI panel
       if _.contains user.roles, global.idents("Role").cti
         if user.workPhoneSuffix.match(/^\d+$/)
-          global.cti = new CTIPanel user.workPhoneSuffix, $("#cti")
+          global.cti = new CTI(user.workPhoneSuffix)
+          new CTIPanel global.cti, $("#cti")
         else
           console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 

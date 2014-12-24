@@ -1,5 +1,7 @@
 class CTI
-  constructor: (extension) ->
+  constructor: (@extension) ->
+    console.log "Enabling CTI for extension #{extension}"
+
     if global.config("csta-ws-host")?
       host = global.config("csta-ws-host")
     else
@@ -12,12 +14,17 @@ class CTI
     else
       url = "ws://#{host}:#{port}/#{extension}"
 
-    @wsHandler = () ->
+    # List of WS message subscribers
+    @subscribers = []
 
     @ws = new WebSocket(url)
+    @ws.onconnect =
     @ws.onmessage = (raw) =>
       msg = JSON.parse raw.data
-      @wsHandler msg
+      _.each @subscribers, (h) -> h msg
+
+  subscribe: (handler) ->
+    @subscribers.push handler
 
   makeCall: (number) ->
     @ws.send JSON.stringify
@@ -36,9 +43,7 @@ class CTI
 
 
 class CTIPanel
-  constructor: (extension, el) ->
-    console.log "Enabling CTI for extension #{extension}"
-    cti = new CTI(extension)
+  constructor: (cti, el) ->
     @cti = cti
 
     # Panel widget interaction data
@@ -51,12 +56,14 @@ class CTIPanel
       canEnd      : ko.observable false
     @kvm = kvm
 
-    @cti.wsHandler = (msg) ->
-      if msg.event?
-        if msg.callId?
-          kvm.lastCallId msg.callId
+    wsHandler = (msg) ->
+      if msg.cstaEvent?
+        ev = msg.cstaEvent
 
-        switch msg.event
+        if ev.callId?
+          kvm.lastCallId ev.callId
+
+        switch ev.event
           when "DeliveredEvent"
             kvm.callStart true
             kvm.canCall false
@@ -65,9 +72,11 @@ class CTIPanel
             # list through WS
             #
             # Inbound call?
-            if not (RegExp("^#{extension}\:").test(msg.callingDevice))
+            if not (RegExp("^#{cti.extension}\:").test(ev.callingDevice))
               kvm.canAnswer true
-              kvm.number msg.callingDevice.match(/\d+/)?[0]
+              kvm.number ev.callingDevice.match(/\d+/)?[0]
+            else
+              kvm.number ev.calledDevice.match(/\d+/)?[0]
 
           when "EstablishedEvent"
             kvm.canAnswer false
@@ -78,7 +87,10 @@ class CTIPanel
             kvm.canEnd false
             kvm.callStart null
 
+    @cti.subscribe wsHandler
+
     el.find(".call-button").click () ->
+      kvm.callStart new Date
       cti.makeCall kvm.number()
 
     el.find(".answer-button").click () ->
@@ -86,6 +98,9 @@ class CTIPanel
 
     el.find(".end-button").click () ->
       cti.endCall kvm.lastCallId()
+
+    el.submit (e) ->
+      e.preventDefault()
 
     el.show()
     ko.applyBindings kvm, el[0]
