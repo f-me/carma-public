@@ -182,7 +182,8 @@ define [ "model/main"
   modelMethod: (modelName, method) -> "/_/#{modelName}/#{method}"
 
   getServiceDesc: (pid, service) ->
-    si = _.find newModelDict('ServiceInfo').source, (info) ->
+    md = newModelDict('ServiceInfo').source
+    si = _.find (_.pluck md, '_e'), (info) ->
       info.program == pid and info.service == service
     si?.info or ""
 
