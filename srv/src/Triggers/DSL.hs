@@ -1,7 +1,6 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE StandaloneDeriving, DeriveDataTypeable #-}
-{-# LANGUAGE QuasiQuotes #-}
 
 module Triggers.DSL
     (
@@ -197,10 +196,10 @@ inParentContext act = do
 -- | List of actions in a case, ordered by 'Action.closeTime' and
 -- 'Action.ctime' in descending order (latest come first).
 caseActions :: IdentI Case
-            -> Free (Dsl m) [(Object Action.Action)]
+            -> Free (Dsl m) [Object Action.Action]
 caseActions cid =
   liftFree $
-  DbIO (Sql.select ((Sql.fullPatch Action.ident) :.
+  DbIO (Sql.select (Sql.fullPatch Action.ident :.
                     Action.caseId `Sql.eq` cid :.
                     Sql.descBy Action.closeTime :.
                     Sql.descBy Action.ctime)) (map (\(x :. ()) -> x))
@@ -315,7 +314,7 @@ evalDsl = \case
       evalDsl $ k res
 
     CurrentUser k -> do
-      Just uid <- lift $ currentUserMetaId
+      Just uid <- lift currentUserMetaId
       evalDsl $ k uid
 
     CreateUser l k -> do

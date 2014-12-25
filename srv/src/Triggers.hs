@@ -12,46 +12,45 @@ module Triggers
   ) where
 
 
-import Prelude hiding (until)
+import           Prelude hiding (until)
 
-import Control.Applicative
-import Control.Concurrent
-import Control.Monad.CatchIO (finally)
-import Control.Monad
-import Control.Monad.Free (Free)
-import Control.Monad.Trans
-import Control.Monad.Trans.Reader
+import           Control.Applicative
+import           Control.Concurrent
+import           Control.Monad.CatchIO (finally)
+import           Control.Monad
+import           Control.Monad.Free (Free)
+import           Control.Monad.Trans
+import           Control.Monad.Trans.Reader
 
-import Data.List
-import qualified Data.List as L
-import qualified Data.Vector as V
 import qualified Data.Aeson as Aeson
-import Data.Map (Map)
+import qualified Data.ByteString.Lazy as LBS
+import           Data.Dynamic
+import           Data.List
+import qualified Data.List as L
+import           Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
-import Data.Maybe
-import Data.Text (Text)
+import           Data.Maybe
+import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import qualified Data.ByteString.Lazy as LBS
-import Text.Printf
-import Data.Time.Calendar
-import Data.Time.Clock
-import Data.Dynamic
-import GHC.TypeLits
+import           Data.Time.Calendar
+import           Data.Time.Clock
+import qualified Data.Vector as V
+import           Text.Printf
+
+import           GHC.TypeLits
 
 import qualified Data.Pool as Pool
 import qualified Database.PostgreSQL.Simple.Transaction as PG
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
-import WeatherApi (tempC)
-
-import Application (AppHandler)
-import Data.Model as Model
-import Data.Model.Patch as Patch
-import Data.Model.Types
+import           WeatherApi (tempC)
 
 import           Carma.Model.Types (HMDiffTime(..))
+import           Data.Model as Model
+import           Data.Model.Patch as Patch
+import           Data.Model.Types
 
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.ActionResult as ActionResult
@@ -92,6 +91,7 @@ import qualified Carma.Backoffice.DSL as BO
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
 
+import           Application (AppHandler)
 import           AppHandlers.ActionAssignment (topPriority, leastPriority)
 
 import qualified Triggers.Action.SMS as BOAction (sendSMS)
@@ -101,6 +101,7 @@ import qualified Triggers.Action.MailToDealer as BOAction (sendMailToDealer)
 import           Triggers.DSL as Dsl
 
 import           Util (Priority(..), syslogJSON, (.=))
+
 
 -- TODO: rename
 --   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
@@ -276,7 +277,7 @@ beforeUpdate = Map.unionsWith (++) $
             JsonAsText txt <- val
             Aeson.Array arr <- Aeson.decodeStrict' $ T.encodeUtf8 txt
             return $ V.toList arr
-      let comments = nub $ concat $ catMaybes $ map parseObjList [old, new]
+      let comments = nub $ concat $ mapMaybe parseObjList [old, new]
       let jsonToText = T.decodeUtf8 . LBS.toStrict . Aeson.encode
       let merged = JsonAsText $ jsonToText $ Aeson.Array $ V.fromList comments
       modifyPatch $ Patch.put Case.comments $ Just merged
@@ -472,7 +473,7 @@ runTriggers before after dbAction fields state = do
     syslogJSON Info "runTriggers" ["time" .= show (diffUTCTime end start)]
 
 
--- | Mapping between a contract field and a  case field.
+-- | Mapping between a contract field and a case field.
 data Con2Case = forall t1 t2 n1 d1 n2 d2.
                 (Eq t2, Show t2, FieldI t1 n1 d1, FieldI t2 n2 d2) =>
                 C2C
@@ -502,13 +503,15 @@ contractToCase =
     , C2C Contract.subprogram id Case.subprogram
     ]
 
+
 -- | Concat legacy text reference lists
 concatLegacyIds :: Maybe Reference -> Maybe Reference -> Maybe Reference
 concatLegacyIds r1 r2 = Just $ Reference $
     T.intercalate "," $ parseRefs r1 `L.union` parseRefs r2
   where
     parseRefs Nothing              = []
-    parseRefs (Just (Reference r)) = map (T.strip) $ T.splitOn "," r
+    parseRefs (Just (Reference r)) = map T.strip $ T.splitOn "," r
+
 
 -- | Set @validUntil@ field from a subprogram and a new @validSince@
 -- value.

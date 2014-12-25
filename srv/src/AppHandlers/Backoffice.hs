@@ -119,14 +119,14 @@ serveBackofficeSpec repr = do
              , boxMap <$> labelMap Program.ident Program.label
              ]
   boxedIMap <- Map.unions <$> sequence maps
-  skipParam <- liftM (parseOnly (decimal `sepBy1` (char ','))) <$>
+  skipParam <- liftM (parseOnly (decimal `sepBy1` char ',')) <$>
                getParamT "skipResults"
   let skippedResults =
         case skipParam of
           Just (Right l) -> map Ident l
           Just (Left e) -> error e
           Nothing -> []
-  (modifyResponse $ setContentType "text/plain; charset=UTF-8") >>
+  modifyResponse (setContentType "text/plain; charset=UTF-8") >>
     case repr of
       Txt -> writeText $ backofficeText carmaBackoffice boxedIMap
       Dot -> writeLazyText $
@@ -196,7 +196,7 @@ dueCaseActions = do
          \conn ->
            Sql.select
            (Action.ident :.
-            Action.caseId `Sql.eq` (Ident cid) :.
+            Action.caseId `Sql.eq` Ident cid :.
             Sql.isNull Action.result :.
             Sql.ascBy Action.ident :. Sql.descBy Action.closeTime)
            conn
