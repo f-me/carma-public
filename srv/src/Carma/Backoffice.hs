@@ -45,9 +45,16 @@ toBack =
     (closePrevious InCase
      [AType.tellMeMore, AType.callMeMaybe]
      AResult.communicated *>
-     ite
-     (serviceField svcType `oneOf` [ST.towage, ST.tech, ST.ken, ST.consultation])
-     (sendSMS SMS.create *> messageToGenser *> proceed [AType.orderService])
+     switch
+     [ ( serviceField svcType `oneOf` [ST.towage, ST.tech]
+       , sendSMS SMS.create *> messageToGenser *> proceed [AType.orderService]
+       )
+     , ( serviceField svcType `oneOf` [ST.ken, ST.consultation]
+       , sendSMS SMS.complete *>
+         setServiceStatus SS.ok *>
+         proceed [AType.closeCase, AType.addBill]
+       )
+     ]
      (proceed [AType.orderServiceAnalyst])
     ))
 
