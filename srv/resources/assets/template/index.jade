@@ -137,22 +137,24 @@ html
     // Main container for dynamically rendered layouts
     #main-container
       .well#cti(style='display: none')
-        .container-fluid
-            form.form-inline#cti-form
+        .container-fluid#cti-form
+            // ko foreach: calls
+            form.form-inline
               input.form-control(placeholder='Номер телефона',
                 data-bind='value: number, disable: callStart')
-              button.btn.btn-sm.btn-success.call-button(type='button',
-                data-bind='visible: canCall')
+              button.btn.btn-sm.btn-success(type='button',
+                data-bind='visible: canCall, click: makeThis')
                 i.glyphicon.glyphicon-earphone&nbsp;
                 | Позвонить
-              button.btn.btn-sm.btn-success.answer-button(type='button',
-                data-bind='visible: canAnswer')
+              button.btn.btn-sm.btn-success(type='button',
+                data-bind='visible: canAnswer, click: answerThis')
                 i.glyphicon.glyphicon-phone-alt&nbsp;
                 | Принять звонок
-              button.btn.btn-sm.btn-danger.end-button(type='button',
-                data-bind='visible: canEnd')
+              button.btn.btn-sm.btn-danger(type='button',
+                data-bind='visible: canEnd, click: endThis')
                 i.glyphicon.glyphicon-remove-circle&nbsp;
                 | Завершить звонок
+            // /ko
       #layout
     // SMS send form
     #sms-send-modal.modal.fade
