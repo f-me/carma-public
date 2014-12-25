@@ -52,7 +52,7 @@ import Data.Model.Patch as Patch
 import Data.Model.Types
 import           Trigger.Dsl as Dsl
 
-import           Carma.Model.Types (HMDiffTime(..), on, off)
+import           Carma.Model.Types (HMDiffTime(..))
 
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.ActionResult as ActionResult
@@ -68,6 +68,7 @@ import           Carma.Model.Contract as Contract hiding (ident)
 import qualified Carma.Model.ContractCheckStatus as CCS
 import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.FalseCall as FC
+import qualified Carma.Model.CallType as CT
 
 import           Carma.Model.LegacyTypes
 
@@ -106,8 +107,9 @@ import           Util (Priority(..), syslogJSON, (.=))
 
 beforeCreate :: TriggerMap
 beforeCreate = Map.unionsWith (++)
-  [trigOnModel ([]::[Call])
-    $ getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
+  [trigOnModel ([]::[Call]) $ do
+    getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
+    modPut Call.callType (Just CT.info)
   ,trigOnModel ([]::[Usermeta]) $ do
     Just login <- getPatchField Usermeta.login -- TODO: check if valid?
     -- NB!
@@ -665,7 +667,12 @@ instance Backoffice HaskellE where
           io <- PS.getPostgresState >>= f . FutureContext . PS.pgPool
           void $ liftIO $ forkIO io
 
-    nop = HaskellE $ return $ return ()
+    when cond act =
+      HaskellE $
+      toHaskell cond >>=
+      \case
+        True -> toHaskell act
+        False -> return $ return ()
 
     closePrevious scope types res =
       HaskellE $ do

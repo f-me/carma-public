@@ -19,11 +19,6 @@
           "type"  : "link",
           "permissions": ["hacker"]
         },
-        { "name"  : "bright-new-world",
-          "label" : "Перейти на светлую сторону",
-          "type"  : "hack",
-          "permissions": ["hacker"]
-        },
         { "name"  : "permute-case-panes",
           "label" : "Переставить панели кейса",
           "type"  : "hack",

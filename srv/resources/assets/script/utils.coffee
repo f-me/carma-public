@@ -1,6 +1,8 @@
-define [ "model/utils"
+define [ "model/main"
+       , "model/utils"
        , "dictionaries"
-       , "text!tpl/fields/form.html"], (mu, d, Ftpls) ->
+       , "sync/crud"
+       , "text!tpl/fields/form.html"], (main, mu, d, sync, Ftpls) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -141,6 +143,12 @@ define [ "model/utils"
     else
       "#{hours}ч #{mins}м"
 
+  # Build a KnockVM for a model instance using standard queue
+  buildInstance = (modelName, id) ->
+    main.buildKVM global.model(modelName),
+      fetched: {id: id}
+      queue: sync.CrudQueue
+
   newModelDict = (name, stringify, meta) ->
     new d.dicts.ModelDict
       dict: name
@@ -174,17 +182,25 @@ define [ "model/utils"
   modelMethod: (modelName, method) -> "/_/#{modelName}/#{method}"
 
   getServiceDesc: (pid, service) ->
-    si = _.find newModelDict('ServiceInfo').source, (info) ->
+    md = newModelDict('ServiceInfo').source
+    si = _.find (_.pluck md, '_e'), (info) ->
       info.program == pid and info.service == service
     si?.info or ""
 
   getProgramDesc: (pid, sid) ->
+    return unless pid
     meta = {dictionaryLabel: 'help'}
-    pi = _.find newModelDict('Program', false, meta).source, (p) ->
-      p.value == pid
-    si = _.find newModelDict('SubProgram', false, meta).source, (s) ->
-      s.value == sid
-    _.compact([pi?.label, si?.label]).join '<br />'
+    pvm = buildInstance('Program', pid)
+    svm = buildInstance('SubProgram', sid) if sid
+    if pvm?.pTypeLocal?()
+      pType = "<span class=\"label label-info\">#{pvm.pTypeLocal()}</span>"
+    else
+      pType = null
+    managers = _.pluck(pvm?.managersLocals?(), 'label')
+    if managers? && !_.isEmpty(managers)
+      manList = "<b>Менеджеры:</b> " + managers.join(', ')
+    _.compact([pType, manList, pvm?.help?(), svm?.help?()]).
+      join '<br />'
 
   # Scroll case field into view and focus
   focusField: (name) ->
@@ -270,7 +286,8 @@ define [ "model/utils"
     require ["map"], (map) ->
       pickers =
         callPlease: (modelName) ->
-          kvm = global.viewsWare["call-form"].knockVM
+          kvm = global.viewsWare["call-form"]?.knockVM
+          return unless kvm
           number = kvm[modelName]?()
           global.avayaPhone && global.avayaPhone.call(number)
         # Set a field to a new randomly generated password
@@ -293,7 +310,8 @@ define [ "model/utils"
   # field labels
   reqFieldsTooltip: (kvm, fieldNames) ->
     labels = _.map fieldNames, (n) -> "#{mu.fieldNameToLabel(kvm)(n)}"
-    "Доступно при заполнении полей: #{labels.join(', ')}"
+    labelsF = _.without labels, "undefined"
+    "Доступно при заполнении полей: #{labelsF.join(', ')}"
 
   # True if some of named model fields are empty (not filled by the
   # user)
@@ -403,6 +421,8 @@ define [ "model/utils"
     window.history.replaceState null, null, "/##{scr}?#{q}"
 
   inject: (dest, src) -> dest[k] = v for k, v of src when not dest[k]
+
+  buildInstance: buildInstance
 
   newModelDict: newModelDict
 

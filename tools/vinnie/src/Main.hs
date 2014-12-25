@@ -2,6 +2,9 @@
 
 import Database.PostgreSQL.Simple
 
+import Data.Version (showVersion)
+import Paths_vinnie
+
 import System.Console.CmdArgs.Implicit
 import System.Exit
 
@@ -40,7 +43,9 @@ main = do
                    &= name "arc"
                    &= help "Set the flag indicating ARC is the source"
                  }
+                 &= verbosity &= verbosityArgs [] [ignore]
                  &= program programName
+                 &= summary (programName ++ " " ++ showVersion version)
     in do
       clArgs <- cmdArgs sample
       res <- doImport clArgs

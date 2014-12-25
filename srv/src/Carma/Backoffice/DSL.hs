@@ -243,8 +243,8 @@ class Backoffice impl where
 
     sendSMS  :: IdentI SmsTemplate -> impl (Eff m)
 
-    -- | Effectfully do nothing
-    nop ::impl (Eff m)
+    -- | Use an effect only if a condition is met.
+    when :: impl Bool -> impl (Eff m) -> impl (Eff m)
 
     -- | Close due actions of matching type.
     closePrevious :: Scope

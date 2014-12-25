@@ -4,7 +4,7 @@
     div(data-bind="render: $data")
 
 #dictionary-ro-template
-  span(data-bind="text: $rawData.local")
+  span(data-bind="text: $rawData.text")
 
 #text-ro-template
   span(data-bind="text: $rawData.text")
@@ -31,3 +31,6 @@
   // ko if: $data
   a(data-bind="attr: { href: '/#case/' + $data }, text: $data")
   // /ko
+
+#callType-special-ro-template
+  span(data-bind="text: $rawData.text")

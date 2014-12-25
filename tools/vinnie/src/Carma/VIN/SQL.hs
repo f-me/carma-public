@@ -671,11 +671,21 @@ countErrors = do
   return bad
 
 
+deferConstraints :: Connection -> IO Int64
+deferConstraints conn =
+  PG.execute_ conn
+  [sql|
+   SET CONSTRAINTS ALL DEFERRED;
+   |]
+
+
 -- | Delete all rows from the queue which are already present in
 -- Contract table.
-deleteDupes :: Import Int64
-deleteDupes =
-    execute
+--
+-- IO monad to be try-friendly.
+deleteDupes :: Connection -> IO Int64
+deleteDupes conn =
+    PG.execute conn
     [sql|
      DELETE FROM vinnie_queue q
      WHERE EXISTS
@@ -691,9 +701,11 @@ deleteDupes =
 
 -- | Transfer all contracts w/o errors from queue to live Contract
 -- table.
-transferContracts :: Import Int64
-transferContracts =
-    execute
+--
+-- IO monad to be try-friendly.
+transferContracts :: Connection -> IO Int64
+transferContracts conn =
+    PG.execute conn
     [sql|
      INSERT INTO "?" (?)
      SELECT DISTINCT ?

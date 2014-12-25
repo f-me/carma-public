@@ -1,25 +1,14 @@
 CREATE TABLE "CallerType"
   (id    SERIAL PRIMARY KEY
-  ,value text
   ,label text UNIQUE NOT NULL
   );
 
-INSERT INTO "CallerType" (value, label) VALUES
- ('client'
- ,'Клиент');
-INSERT INTO "CallerType" (value, label) VALUES
- ('contr'
- ,'Подрядчик');
-INSERT INTO "CallerType" (value, label) VALUES
- ('dealer'
- ,'Дилерский центр');
-INSERT INTO "CallerType" (value, label) VALUES
- ('partner'
- ,'Заказчик программы');
-INSERT INTO "CallerType" (value, label) VALUES
- ('staff'
- ,'Сотрудник');
-INSERT INTO "CallerType" (value, label) VALUES
- ('other'
- ,'Другое');
+INSERT INTO "CallerType" (id, label) VALUES
+  (1, 'Клиент'),
+  (2, 'Партнёр'),
+  (3, 'Дилер'),
+  (4, 'Сотрудник'),
+  (5, 'Другое');
 
+GRANT ALL ON "CallerType" TO carma_db_sync;
+GRANT ALL ON "CallerType" TO carma_search;

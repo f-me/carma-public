@@ -65,7 +65,7 @@ ko.bindingHandlers.bindDict =
     if chevron
       $(chevron).on 'click', th.drawAll unless fld?.readonly
 
-    search = $(el).siblings().find('.glyphicon-search')[0]
+    search = $(el).siblings().find('.glyphicon-search').parent()[0]
     if search
       $(search).on 'click', th.drawAllForce unless fld?.readonly
 
@@ -163,21 +163,21 @@ ko.bindingHandlers.fieldRender =
 
 ko.bindingHandlers.expandAll =
   init: (el, acc, allBindigns, ctx, koctx) ->
-    $(el).append("<label><i class='icon-plus-sign'></i></label>")
+    $(el).append("<label><span class='glyphicon glyphicon-plus'></span></label>")
     $(el).click ->
-      expanded = $(el).find('i').hasClass('icon-minus-sign')
+      expanded = $(el).find('span').hasClass('glyphicon-minus')
       $(el).closest('table').find('.expand-contoller').each (key, tr) ->
         if expanded is $(tr).hasClass('expanded')
           $(tr).trigger 'click'
-      $(el).find('i').toggleClass('icon-plus-sign').toggleClass('icon-minus-sign')
+      $(el).find('span').toggleClass('glyphicon-plus').toggleClass('glyphicon-minus')
 
 ko.bindingHandlers.expand =
   init: (el, acc, allBindigns, ctx, koctx) ->
-    $(el).append("<label><i class='icon-plus-sign'></i></label>")
+    $(el).append("<label><span class='glyphicon glyphicon-plus'></span></label>")
     $(el).click ->
       $(el).parent().next().toggleClass('hide')
       $(el).toggleClass('expanded')
-      $(el).find('i').toggleClass('icon-plus-sign').toggleClass('icon-minus-sign')
+      $(el).find('span').toggleClass('glyphicon-plus').toggleClass('glyphicon-minus')
 
 ko.bindingHandlers.eachNonEmpty =
   nonEmpty: (fnames, ctx, koctx) ->

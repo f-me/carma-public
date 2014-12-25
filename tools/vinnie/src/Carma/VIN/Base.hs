@@ -91,7 +91,10 @@ data ImportError = NoTargetSubprogram
                  -- the file.
                  | NoTitle Text
                  -- ^ Loadable required field has empty column title.
+                 | SerializationFailed
+                 -- ^ Failed to obtain a write lock on contract table.
                  deriving Show
+
 
 instance ToJSON ImportError where
     toJSON t = A.String $ case t of
@@ -109,6 +112,10 @@ instance ToJSON ImportError where
             T.concat ["Повторяющаяся колонка «", v, "»"]
         NoTitle v ->
             T.concat ["Не задан заголовок обязательного поля «", v, "»"]
+        SerializationFailed ->
+            T.concat [ "Не удалось заблокировать таблицу контрактов "
+                     , "(кто-то одновременно в неё пишет)"
+                     ]
 
 
 -- | Base monad.
