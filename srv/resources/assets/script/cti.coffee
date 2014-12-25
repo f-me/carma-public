@@ -67,7 +67,6 @@ class CTIPanel
           when "DeliveredEvent"
             kvm.callStart true
             kvm.canCall false
-            kvm.canEnd true
             # FIXME Workaround until we have access to agent calls
             # list through WS
             #
@@ -76,10 +75,12 @@ class CTIPanel
               kvm.canAnswer true
               kvm.number ev.callingDevice.match(/\d+/)?[0]
             else
+              kvm.canEnd true
               kvm.number ev.calledDevice.match(/\d+/)?[0]
 
           when "EstablishedEvent"
             kvm.canAnswer false
+            kvm.canEnd true
 
           when "ConnectionClearedEvent"
             kvm.number ""
