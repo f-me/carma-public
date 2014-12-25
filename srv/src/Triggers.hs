@@ -24,12 +24,16 @@ import Control.Monad.Trans.Reader
 
 import Data.List
 import qualified Data.List as L
+import qualified Data.Vector as V
+import qualified Data.Aeson as Aeson
 import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Data.ByteString.Lazy as LBS
 import Text.Printf
 import Data.Time.Calendar
 import Data.Time.Clock
@@ -63,6 +67,7 @@ import           Carma.Model.Contract as Contract hiding (ident)
 import qualified Carma.Model.ContractCheckStatus as CCS
 import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.FalseCall as FC
+import qualified Carma.Model.CallType as CT
 
 import           Carma.Model.LegacyTypes
 
@@ -104,8 +109,9 @@ import           Util (Priority(..), syslogJSON, (.=))
 
 beforeCreate :: TriggerMap
 beforeCreate = Map.unionsWith (++)
-  [trigOnModel ([]::[Call])
-    $ getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
+  [trigOnModel ([]::[Call]) $ do
+    getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
+    modPut Call.callType (Just CT.info)
   ,trigOnModel ([]::[Usermeta]) $ do
     Just login <- getPatchField Usermeta.login -- TODO: check if valid?
     -- NB!
@@ -262,6 +268,18 @@ beforeUpdate = Map.unionsWith (++) $
       Just val ->
         when (T.length val > 5) $
         modifyPatch (Patch.put Case.car_plateNum (Just $ T.toUpper val))
+
+  , trigOn Case.comments $ \new -> do -- merge comments
+      p <- getIdent >>= dbRead
+      let old = Patch.get' p Case.comments
+      let parseObjList val = do
+            JsonAsText txt <- val
+            Aeson.Array arr <- Aeson.decodeStrict' $ T.encodeUtf8 txt
+            return $ V.toList arr
+      let comments = nub $ concat $ catMaybes $ map parseObjList [old, new]
+      let jsonToText = T.decodeUtf8 . LBS.toStrict . Aeson.encode
+      let merged = JsonAsText $ jsonToText $ Aeson.Array $ V.fromList comments
+      modifyPatch $ Patch.put Case.comments $ Just merged
 
   , trigOn Case.comment $ \case
       Nothing -> return ()

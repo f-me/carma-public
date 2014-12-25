@@ -74,7 +74,7 @@ q = [sql|
             c.id                             :: text as "$case_id$",
             to_char(c.callDate at time zone 'MSK', 'DD.MM.YYYY')
                                              :: text as "$case_date$",
-            coalesce(c.car_vin, '-')         :: text as "$car_vin$",
+            upper(coalesce(c.car_vin, '-'))  :: text as "$car_vin$",
             coalesce(c.car_plateNum, '-')    :: text as "$car_plate$",
             coalesce(c.customerComment, '-') :: text as "$wazzup$",
             make.label                       :: text as "$car_make$",
@@ -107,8 +107,10 @@ msgTemplate
     \Марка: $car_make$<br /> \
     \Модель: $car_model$<br /> \
     \Неисправность со слов Клиента: $wazzup$<br /> \
-    \<p> Просим Вас предоставить дополнительную информацию, после диагностики  \
-    \а/м в виде таблицы на электронный адрес psa@ruamc.ru :</p> \
+    \<p>Просим Вас, \
+    \<u>используя функцию <font color=\"red\">«ОТВЕТИТЬ ВСЕМ»</font></u>, \
+    \предоставить дополнительную информацию, после диагностики а/м \
+    \в виде таблицы.</p>\
     \<table border=\"1\"> \
     \  <tr bgcolor=\"SkyBlue\"> \
     \    <th>Код дилера</th> \

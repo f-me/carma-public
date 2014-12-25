@@ -13,6 +13,7 @@ require [ "domready"
         , "lib/bug-report"
         , "lstorePubSub"
         , "lib/current-user"
+        , "lib/hacking"
         ], ( dom
            , main
            , Finch
@@ -26,6 +27,7 @@ require [ "domready"
            , bug
            , pubSub
            , CurrentUser
+           , hacking
            ) ->
 
   bugReport = new bug.BugReport
@@ -75,16 +77,26 @@ require [ "domready"
     global.keys = {}
     global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
 
+    hacking.reenableHacks()
+
     # disable everytnig websocket-related for portal
     if not window.location.origin.match(/portal\.ruamc\.ru/)
+      # Legacy CTI panel
       avayaCred = document.cookie.match /avaya=([^;]*)/
       if avayaCred?[1]
         extPwd = unescape(avayaCred[1]).match /(.*)\|(.*)/
         if extPwd
           global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
 
+      # New CTI panel
+      if _.contains user.roles, global.idents("Role").cti
+        if user.workPhoneSuffix.match(/^\d+$/)
+          global.cti = new CTI(user.workPhoneSuffix)
+          new CTIPanel global.cti, $("#cti")
+        else
+          console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
+
     sendSms.setup()
-    # hacking.reenableHacks()
 
     if user.login == "darya"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')

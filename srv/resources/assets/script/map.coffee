@@ -9,10 +9,7 @@ define ["model/utils", "utils"], (mu, u) ->
 
   geoRevQuery = (lon, lat) -> "/geo/revSearch/#{lon},#{lat}/"
 
-  geoQuery = (addr) ->
-    nominatimHost = global.config("nominatim-url")
-    return nominatimHost +
-      "search?format=json&accept-language=ru-RU,ru&q=#{addr}"
+  geoQuery = (addr) -> "/geo/search/#{addr}/"
 
   # Build readable address from reverse Nominatim JSON response
   buildReverseAddress = (res) ->
@@ -260,7 +257,7 @@ define ["model/utils", "utils"], (mu, u) ->
     places = []
     clearBlip osmap
     if coord_field?
-      coords_string = kvm[coord_field]()
+      coords_string = kvm[coord_field]?()
       if coords_string?.length > 0
         coords = lonlatFromShortString coords_string
         places = [coords: coords]
@@ -277,7 +274,7 @@ define ["model/utils", "utils"], (mu, u) ->
         vm = u.findVM city_meta.view
       else
         vm = kvm
-      city = vm[city_meta.field]()
+      city = vm[city_meta.field]?()
       if city?
         fixed_city = u.newModelDict("City").getLab city
         $.getJSON geoQuery(fixed_city), (res) ->
@@ -340,7 +337,7 @@ define ["model/utils", "utils"], (mu, u) ->
         lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
 
         if options.coord_field?
-          kvm[options.coord_field] shortStringFromLonlat lonlat
+          kvm[options.coord_field]? shortStringFromLonlat lonlat
 
         if options.osmap?
           setPlace options.osmap, buildPlace res
@@ -364,7 +361,7 @@ define ["model/utils", "utils"], (mu, u) ->
     osmCoords = coords.clone().transform wsgProj, osmProj
 
     if options.coord_field?
-      kvm[options.coord_field] shortStringFromLonlat coords
+      kvm[options.coord_field]? shortStringFromLonlat coords
 
     if options.osmap?
       currentBlip options.osmap, osmCoords, options.current_blip_type
@@ -375,14 +372,14 @@ define ["model/utils", "utils"], (mu, u) ->
         addr = buildReverseAddress res
 
         if options.addr_field?
-          kvm[options.addr_field](addr)
+          kvm[options.addr_field]?(addr)
 
         if options.city_field?
           city = buildReverseCity(res)
           # Do not overwrite current city if new city is not
           # recognized
           if city?
-            kvm[options.city_field](city)
+            kvm[options.city_field]?(city)
       )
 
   # Forward geocoding picker (address -> coordinates)
@@ -479,8 +476,8 @@ define ["model/utils", "utils"], (mu, u) ->
     city_field = mu.modelField(model_name, field_name).meta["cityField"]
 
     # Initialize search field with city if factAddr is empty
-    if city_field? && _.isEmpty kvm[addr_field]()
-      city = kvm[city_field]()
+    if city_field? && _.isEmpty kvm[addr_field]?()
+      city = kvm[city_field]?()
       if city? > 0
         fixed_city = u.newModelDict("City").getLab city
         search.val(fixed_city)

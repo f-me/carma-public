@@ -21,8 +21,15 @@ define ["dictionaries/local-dict"], (ld) ->
 
     # List of Role instances with isBack=true (used on #supervisor)
     backofficeRoles: =>
-      @bgetJSON "/_/Role", (objs) =>
-        @source = for obj in (_.filter objs, (o) -> o.isBack)
+      @bgetJSON "/_/Role?isBack=t&hidden=f", (objs) =>
+        @source = for obj in objs
+          { value: obj.id, label: obj.label || '' }
+
+    # List of Role instances with hidden=false (used on BusinessRole &
+    # users dict)
+    visibleRoles: =>
+      @bgetJSON "/_/Role?hidden=f", (objs) =>
+        @source = for obj in objs
           { value: obj.id, label: obj.label || '' }
 
     # Dictionary of all usermetas with programManager role (used on
@@ -33,7 +40,7 @@ define ["dictionaries/local-dict"], (ld) ->
           _.contains o.roles, global.idents("Role").programManager
         @source = for p in pms
             { value: p.id
-            , label: (p.realName + ' — ' + p.login) || ''
+            , label: p.realName || p.login
             }
 
     # Dictionary of all subprograms, with labels including parent
@@ -71,7 +78,7 @@ define ["dictionaries/local-dict"], (ld) ->
 
     # FIXME: maybe we can drop this and use `ModelDict:Partner` instead
     allPartners: =>
-      @bgetJSON "/_/Partner", (objs) =>
+      @bgetJSON "/_/Partner?limit=5000", (objs) =>
         @source = for o in objs when o.name
           { value: o.id, label: o.name }
 

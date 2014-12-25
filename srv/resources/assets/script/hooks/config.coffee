@@ -4,8 +4,9 @@ define [ "hooks/common"
        , "hooks/partner"
        , "hooks/actions"
        , "hooks/Usermeta"
+       , "hooks/Call"
        ],
-       (c, k, s, p, a, Um) ->
+       (c, k, s, p, a, Um, Call) ->
   model:
       "*"    : [c.stdElCb]
   observable:
@@ -31,7 +32,7 @@ define [ "hooks/common"
                , s.openPartnerSearch
                ]
 
-      "Call" : [ k.programDesc ]
+      "Call" : [ k.programDesc, Call.callTypeBtn ]
 
       "Case" : [ k.descsKbHook
                , k.programDesc

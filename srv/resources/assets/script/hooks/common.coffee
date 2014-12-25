@@ -173,7 +173,7 @@ define [ "utils"
         dict.disabled = k["#{n}Disabled"]()
         k["#{n}Disabled"].subscribe (v) -> dict.disabled = v
 
-  # For every field {n} with type=json and json-schema=dict-objects,
+  # For every field {n} with type=json and jsonSchema=dict-objects,
   # create a new observable {n}Objects, which is an observable array
   # of submodels bound to JSON objects stored in this field in an
   # array.

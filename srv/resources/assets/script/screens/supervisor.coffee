@@ -148,7 +148,10 @@ define ["utils"
     tpl = $(flds).find('#dictionary-many-field-template').html()
     $('#roles').html(Mustache.render tpl, roleModel.fields[0])
     ko.applyBindings roleKVM, $('#roles')[0]
-    roleKVM.roles [global.idents("Role").bo_order, global.idents("Role").bo_info]
+    roleKVM.roles [ global.idents("Role").bo_order
+                  , global.idents("Role").bo_info
+                  , global.idents("Role").bo_secondary
+                  ]
     roleKVM
 
   # Update unassigned action counts using currently selected duetime
