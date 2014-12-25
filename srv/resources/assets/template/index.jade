@@ -150,6 +150,14 @@ html
                 data-bind='visible: canAnswer, click: answerThis')
                 i.glyphicon.glyphicon-phone-alt&nbsp;
                 | Принять звонок
+              button.btn.btn-sm.btn-info(type='button',
+                data-bind='visible: canHold, click: holdThis')
+                i.glyphicon.glyphicon-pause&nbsp;
+                | Удерживать
+              button.btn.btn-sm.btn-warning(type='button',
+                data-bind='visible: canRetrieve, click: retrieveThis')
+                i.glyphicon.glyphicon-play&nbsp;
+                | Возобновить
               button.btn.btn-sm.btn-danger(type='button',
                 data-bind='visible: canEnd, click: endThis')
                 i.glyphicon.glyphicon-remove-circle&nbsp;

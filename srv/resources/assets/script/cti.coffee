@@ -36,6 +36,16 @@ class CTI
       action: "EndCall"
       callId: callId
 
+  holdCall: (callId) ->
+    @ws.send JSON.stringify
+      action: "HoldCall"
+      callId: callId
+
+  retrieveCall: (callId) ->
+    @ws.send JSON.stringify
+      action: "RetrieveCall"
+      callId: callId
+
   answerCall: (callId) ->
     @ws.send JSON.stringify
       action: "AnswerCall"
@@ -54,26 +64,36 @@ class CTIPanel
       # VM for a call. If callId is null, return fresh VM for empty
       # CTI panel
       callToVM = (call, callId) ->
-        number    : ko.observable call.interlocutor?.match(/\d+/)?[0]
-        callStart : ko.observable call.start?
-        callId    : callId
+        number     : ko.observable call.interlocutor?.match(/\d+/)?[0]
+        callStart  : ko.observable call.start?
+        callId     : callId
+
         # canX are observable, because we want to hide buttons from
         # the panel even before the service reports new call
         # state/event
-        canCall   : ko.observable !(callId?)
-        canAnswer : ko.observable (!(call.answered?) && (call.direction == "In"))
-        canEnd    : ko.observable (call.answered? || (call.direction == "Out"))
+        canCall    : ko.observable !(callId?)
+        canAnswer  : ko.observable (!(call.answered?) && (call.direction == "In"))
+        canHold    : ko.observable (call.answered? && !call.held)
+        canRetrieve: ko.observable call.held
+        canEnd     : ko.observable (!call.held &&
+          (call.answered? || (call.direction == "Out")))
+
         # Button click handlers
-        makeThis  : ->
+        makeThis: ->
           cti.makeCall @number()
           @canCall false
           @callStart new Date().toISOString()
         answerThis: ->
           cti.answerCall callId
           @canAnswer false
-        endThis   : ->
+        endThis: ->
           cti.endCall callId
           @canEnd false
+        holdThis: ->
+          cti.holdCall callId
+        retrieveThis: ->
+          cti.retrieveCall callId
+
 
       newCalls = if _.isEmpty state.calls
         [callToVM {}, null]
