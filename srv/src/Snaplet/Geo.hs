@@ -34,7 +34,7 @@ import Control.Monad.State hiding (state)
 import Data.Aeson as A
 
 import Data.Attoparsec.ByteString.Char8
-import Data.ByteString.Char8 as BS (ByteString, unpack)
+import Data.ByteString.Char8 as BS (ByteString)
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Map as M
 import Data.HashMap.Strict as HM (delete)

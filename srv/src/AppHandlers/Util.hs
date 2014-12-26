@@ -5,7 +5,6 @@ module AppHandlers.Util where
 import Data.Aeson as Aeson
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
-import           Data.Configurator
 import Data.Map (Map)
 import Data.Maybe
 import qualified Data.Map as Map

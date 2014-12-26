@@ -120,6 +120,12 @@ module.exports = (grunt) ->
       src: 'OpenLayers'
       dest: 'OpenLayers'
       file: ['OpenLayers.js', 'img/**', 'theme/**']
+    'jasny-bootstrap':
+      src:  'jasny-bootstrap/dist'
+      dest: 'jasny-bootstrap'
+      file: [ 'js/jasny-bootstrap.min.js'
+            , 'css/jasny-bootstrap.min.css'
+            ]
     'bootstrap3-wysihtml5':
       src:  'bootstrap3-wysihtml5-bower/dist'
       dest: 'wysihtml5'
