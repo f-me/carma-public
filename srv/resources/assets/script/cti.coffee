@@ -101,6 +101,7 @@ class CTIPanel
 
         # Button click handlers
         makeThis: ->
+          return if _.isEmpty @number()
           cti.makeCall @number()
           @canCall false
           @callStart new Date().toISOString()
@@ -139,9 +140,6 @@ class CTIPanel
         stateToVM msg.newState
 
     cti.subscribe wsHandler
-
-    el.submit (e) ->
-      e.preventDefault()
 
     el.show()
     ko.applyBindings kvm, el[0]
