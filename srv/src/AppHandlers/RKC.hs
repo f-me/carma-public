@@ -365,11 +365,13 @@ caseSummary (Filter fromDate toDate program city partner) constraints = logExcep
 
     (mechanicL, mechanicLActions) = strQuery $ mconcat [
       count' "cnt",
-      equals "calltbl" "callerType" "client",
-      inList "calltbl" "callType" ["mechanicConsOk", "mechanicConsNotOk"],
+      equals "calltbl" "callerType::text" "1",
+      -- FIXME: callType have new values
+      -- inList "calltbl" "callType" ["mechanicConsOk", "mechanicConsNotOk"],
       betweenTime fromDate toDate "calltbl" "callDate",
-      ifNotNull program $ equals "calltbl" "program",
-      ifNotNull city $ equals "calltbl" "city"]
+      ifNotNull program $ equals "calltbl" "program"
+      -- ifNotNull city $ equals "calltbl" "city"
+      ]
       -- TODO: partner?
     (mechanicR, mechanicRActions) = strQuery $ mconcat [
       count' "cnt",
