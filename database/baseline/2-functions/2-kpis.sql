@@ -64,36 +64,23 @@ CREATE OR REPLACE FUNCTION get_KPI_calls(u_id integer [],
     toTime   timestamptz)
  RETURNS TABLE (
  userid   integer,
- callType text,
+ callType integer,
  avgTime  interval,
  amount   bigint
 ) AS
 $func$
 BEGIN
   RETURN QUERY
-  --"newCase" -"Кейс/Создание нового кейса"
-  --"processingCase" - "Кейс/Обработка кейса"(Вторичное обращение)
-  --"info" - все прочие звонки (информационные звонки)
 SELECT
   calltbl.calltaker,
-  (CASE
-    WHEN calltbl.calltype NOT IN ('newCase', 'processingCase')
-        OR calltbl.callType is null
-    THEN 'info'
-    ELSE calltbl.calltype
-  END),
+  calltbl.calltype,
   SUM(calltbl.enddate-calltbl.calldate)/COUNT(id) AS avgtime,
   COUNT(calltbl.id) as amount
 FROM calltbl
   WHERE calltbl.calltaker = any(u_id)
   AND calltbl.calldate > fromTime
   AND calltbl.calldate < toTime
-GROUP BY calltaker, (CASE
-  WHEN calltbl.calltype NOT IN ('newCase', 'processingCase')
-      OR calltbl.callType is null
-  THEN 'info'
-  ELSE calltbl.calltype
-END);
+GROUP BY calltaker, calltbl.callType;
 END;
 $func$
 LANGUAGE plpgsql;
@@ -104,24 +91,15 @@ CREATE OR REPLACE FUNCTION get_KPI_calls_days(u_id integer [],
  RETURNS TABLE (
  userid   integer,
  day      date,
- callType text,
+ callType integer,
  avgTime  interval,
  amount   bigint
 ) AS
 $func$
 BEGIN
   RETURN QUERY
-  --"newCase" -"Кейс/Создание нового кейса"
-  --"processingCase" - "Кейс/Обработка кейса"(Вторичное обращение)
-  --"info" - все прочие звонки (информационные звонки)
 SELECT
-  c.calltaker, date(g),
-  (CASE
-    WHEN c.calltype NOT IN ('newCase', 'processingCase')
-        OR c.callType is null
-    THEN 'info'
-    ELSE c.calltype
-  END),
+  c.calltaker, date(g), c.calltype,
   SUM(c.enddate-c.calldate)/COUNT(id) AS avgtime,
   COUNT(c.id) as amount
 FROM calltbl c
@@ -129,12 +107,8 @@ JOIN generate_series(fromTime, toTime, '1 day') g
 ON tstzrange(g, g + '1day') @> c.calldate
   WHERE c.calltaker = any(u_id)
   AND c.calldate BETWEEN fromTime AND toTime
-GROUP BY calltaker, date(g), (CASE
-  WHEN c.calltype NOT IN ('newCase', 'processingCase')
-      OR c.callType is null
-  THEN 'info'
-  ELSE c.calltype
-END);
+GROUP BY calltaker, date(g), c.calltype;
+
 END;
 $func$
 LANGUAGE plpgsql;
@@ -774,32 +748,20 @@ CREATE OR REPLACE FUNCTION group_kpi_calls(
     fromTime timestamptz,
     toTime   timestamptz)
  RETURNS TABLE (
- callType text,
+ callType integer,
  callTime  interval,
  amount   bigint
 ) AS
 $func$
 BEGIN
   RETURN QUERY
-  --"newCase" -"Кейс/Создание нового кейса"
-  --"processingCase" - "Кейс/Обработка кейса"(Вторичное обращение)
-  --"info" - все прочие звонки (информационные звонки)
-SELECT
-  (CASE
-    WHEN c.calltype NOT IN ('newCase', 'processingCase') OR c.callType IS NULL
-    THEN 'info'
-    ELSE c.calltype
-  END),
+SELECT c.callType,
   SUM(enddate - calldate) AS callTime,
   COUNT(id) as amount
 FROM calltbl c
   WHERE calldate > fromTime
     AND calldate < toTime
-GROUP BY (CASE
-    WHEN c.calltype NOT IN ('newCase', 'processingCase') OR c.callType IS NULL
-    THEN 'info'
-    ELSE c.calltype
-  END);
+GROUP BY c.calltype;
 END;
 $func$
 LANGUAGE plpgsql;

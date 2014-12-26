@@ -36,6 +36,7 @@ import qualified Carma.Model.KPI.Oper  as O
 import qualified Carma.Model.KPI.Group as G
 import           Carma.Model.Usermeta (Usermeta)
 import           Carma.Model.Types (UserStateVal(..))
+import qualified Carma.Model.CallType as CT
 
 import           AppHandlers.Util
 import           Util (fvIdentBs)
@@ -118,13 +119,12 @@ fillKPIsDays = do
      ServiceBreak -> addState (u, day) S.inServiceBreak v
      LoggedOut    -> addState (u, day) S.inLoggedOut v
 
-  calls (u, day, tpe, t, a) =
-    case tpe :: Text of
-      "info"           -> putInSt (u, day) (S.infoTime, t) (S.infoCount, a)
-      "newCase"        -> putInSt (u, day) (S.newTime, t)  (S.newCount, a)
-      "processingCase" -> putInSt (u, day) (S.procTime, t) (S.procCount, a)
-      errVal -> error $ "Check get_KPI_calls," ++ (show errVal) ++
-                        " type should not be there."
+  calls (u, day, tpe, t, a)
+    | tpe == CT.info       = putInSt (u, day) (S.infoTime, t) (S.infoCount, a)
+    | tpe == CT.newCase    = putInSt (u, day) (S.newTime, t)  (S.newCount, a)
+    | tpe == CT.secondCall = putInSt (u, day) (S.procTime, t) (S.procCount, a)
+    | otherwise            = error $ "Check get_KPI_calls," ++ (show tpe) ++
+                                     " type should not be there."
   actions (u, day, tpe, t, a) =
     case tpe :: Text of
       "control"      -> putInSt (u, day) (S.controlT, t)      (S.controlC, a)
@@ -175,13 +175,12 @@ fillKPIs = do
      ServiceBreak -> addState u S.inServiceBreak v
      LoggedOut    -> addState u S.inLoggedOut v
 
-  calls (u, tpe, t, a) =
-    case tpe :: Text of
-      "info"           -> putInSt u (S.infoTime, t) (S.infoCount, a)
-      "newCase"        -> putInSt u (S.newTime,  t)  (S.newCount, a)
-      "processingCase" -> putInSt u (S.procTime, t) (S.procCount, a)
-      errVal -> error $ "Check get_KPI_calls," ++ (show errVal) ++
-                        " type should not be there."
+  calls (u, tpe, t, a)
+    | tpe == CT.info       = putInSt u (S.infoTime, t) (S.infoCount, a)
+    | tpe == CT.newCase    = putInSt u (S.newTime,  t)  (S.newCount, a)
+    | tpe == CT.secondCall = putInSt u (S.procTime, t) (S.procCount, a)
+    | otherwise         =  error $ "Check get_KPI_calls," ++ (show tpe) ++
+                                   " type should not be there."
 
   actions (u, tpe, t, a) =
     case tpe :: Text of
@@ -358,13 +357,12 @@ selectGroup from to = do
   return $ foldl actions (foldl calls p' rawCalls) rawActions
 
   where
-    calls p (tpe, t, a) =
-      case tpe :: Text of
-        "info"           -> putTuple p (G.infoTime, t) (G.infoCount, a)
-        "newCase"        -> putTuple p (G.newTime, t)  (G.newCount, a)
-        "processingCase" -> putTuple p (G.procTime, t) (G.procCount, a)
-        errVal -> error $ "Check group_kpi_calls," ++ (show errVal) ++
-                          " type should not be there."
+    calls p (tpe, t, a)
+      | tpe == CT.info       = putTuple p (G.infoTime, t) (G.infoCount, a)
+      | tpe == CT.newCase    = putTuple p (G.newTime, t)  (G.newCount, a)
+      | tpe == CT.secondCall = putTuple p (G.procTime, t) (G.procCount, a)
+      | otherwise         = error $ "Check group_kpi_calls," ++ (show tpe) ++
+                                    " type should not be there."
     actions p (tpe, t, a) =
       case tpe :: Text of
         "control"      -> putTuple p (G.controlT, t)      (G.controlC, a)
