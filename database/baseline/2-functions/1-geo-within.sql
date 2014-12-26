@@ -43,7 +43,7 @@ $$
         SELECT p.*
              , st_x(p.coords)
              , st_y(p.coords)
-             , now() at time zone 'UTC' > ('01:00' + p.mtime)      as stale
+             , now() > ('01:00' + p.mtime)      as stale
              , ST_Distance_Sphere(p.coords, ST_Point(xc, yc))      as distance
              , array_to_json(array_agg(s.* :: "PartnerService"))   as services
         FROM partnertbl p
@@ -53,7 +53,7 @@ $$
                                  , 4326)
         AND   p.isActive = 't'
         AND   ((p.isMobile <> 't') OR (p.isMobile is NULL) OR
-               (now() at time zone 'UTC' <= ('01:00' + p.mtime)))
+               (now() <= ('01:00' + p.mtime)))
         AND   (ce  OR p.city        = ANY(ca))
         AND   (se  OR s.servicename = ANY(sa))
         AND   (p2e OR s.priority2   = ANY(p2a))
