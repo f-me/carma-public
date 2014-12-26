@@ -51,6 +51,11 @@ class CTI
       action: "AnswerCall"
       callId: callId
 
+  sendDigits: (callId, digits) ->
+    @ws.send JSON.stringify
+      action: "SendDigits"
+      callId: callId
+      digits: digits
 
 class CTIPanel
   constructor: (cti, el) ->
@@ -58,6 +63,9 @@ class CTIPanel
     # lib to make interface coding easier)
     kvm =
       calls: ko.observableArray []
+      # CallId to extension mapping (used to keep extension number
+      # values between state changes)
+      extensions: {}
 
     # Update kvm from state reported by the service
     stateToVM = (state) ->
@@ -67,16 +75,29 @@ class CTIPanel
         number     : ko.observable call.interlocutor?.match(/\d+/)?[0]
         callStart  : ko.observable call.start?
         callId     : callId
+        extension  : ko.computed
+          write:
+            (v) ->
+              # Send only new digits to csta-ws
+              old = kvm.extensions[callId] || ""
+              kvm.extensions[callId] = v
+              if v.length > old.length
+                diff = v.length - old.length
+                cti.sendDigits callId, v.substr(old.length, diff)
+          read:
+            -> kvm.extensions[callId] || ""
 
         # canX are observable, because we want to hide buttons from
         # the panel even before the service reports new call
         # state/event
+        canExtend  : ko.observable(
+          call.answered? && call.direction == "Out" && !call.held)
         canCall    : ko.observable !(callId?)
         canAnswer  : ko.observable (!(call.answered?) && (call.direction == "In"))
         canHold    : ko.observable (call.answered? && !call.held)
         canRetrieve: ko.observable call.held
-        canEnd     : ko.observable (!call.held &&
-          (call.answered? || (call.direction == "Out")))
+        canEnd     : ko.observable(
+          !call.held && (call.answered? || (call.direction == "Out")))
 
         # Button click handlers
         makeThis: ->
@@ -101,6 +122,11 @@ class CTIPanel
         for callId, call of state.calls
           callToVM call, callId
 
+      # Delete unknown extension digits
+      for k in _.keys kvm.extensions
+        if !_.contains(_.keys(state.calls), k)
+          delete kvm.extensions[k]
+
       kvm.calls.removeAll()
       for c in newCalls
         kvm.calls.push c
@@ -119,6 +145,13 @@ class CTIPanel
 
     el.show()
     ko.applyBindings kvm, el[0]
+
+    # Allow only 0-9, * and # in extension number field
+    $(el).on "keydown", ".extension-mask", (e) ->
+      unless ((e.which >= 48 && e.which <= 57) ||
+        (e.which >= 96 && e.which <= 105) ||
+          e.which == 106 || e.which == 56 || e.which == 51)
+        e.preventDefault()
 
     $(document).keydown (e) ->
       if e.which == 192

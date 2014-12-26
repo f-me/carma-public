@@ -144,6 +144,12 @@ html
             form.form-inline
               input.form-control(placeholder='Номер телефона',
                 data-bind='value: number, disable: callStart')
+              input.form-control.extension-mask(
+                placeholder='Добавочный',
+                size="10"
+                data-bind='valueUpdate: "keyup",\
+                           value: extension,\
+                           visible: canExtend')
               button.btn.btn-sm.btn-success(type='button',
                 data-bind='visible: canCall, click: makeThis')
                 i.glyphicon.glyphicon-earphone&nbsp;
