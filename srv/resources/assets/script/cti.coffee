@@ -67,12 +67,18 @@ class CTIPanel
       # values between state changes)
       extensions: {}
 
+    displayedToInternal = (number) ->
+      number.replace("+7", "98").replace("+", "9810")
+
+    internalToDisplayed = (number) ->
+      number?.match(/\d+/)?[0]?.replace(/^(98|8|)(\d{10})$/, "\+7$2")
+
     # Update kvm from state reported by the service
     stateToVM = (state) ->
       # VM for a call. If callId is null, return fresh VM for empty
       # CTI panel
       callToVM = (call, callId) ->
-        number     : ko.observable call.interlocutor?.match(/\d+/)?[0]
+        number     : ko.observable internalToDisplayed call.interlocutor
         callStart  : ko.observable call.start?
         callId     : callId
         extension  : ko.computed
@@ -102,7 +108,7 @@ class CTIPanel
         # Button click handlers
         makeThis: ->
           return if _.isEmpty @number()
-          cti.makeCall @number()
+          cti.makeCall displayedToInternal @number()
           @canCall false
           @callStart new Date().toISOString()
         answerThis: ->
