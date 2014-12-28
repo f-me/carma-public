@@ -51,6 +51,18 @@ class CTI
       action: "AnswerCall"
       callId: callId
 
+  conferenceCall: (activeCall, heldCall) ->
+    @ws.send JSON.stringify
+      action: "ConferenceCall"
+      activeCall: activeCall
+      heldCall:   heldCall
+
+  transferCall: (activeCall, heldCall) ->
+    @ws.send JSON.stringify
+      action: "TransferCall"
+      activeCall: activeCall
+      heldCall:   heldCall
+
   sendDigits: (callId, digits) ->
     @ws.send JSON.stringify
       action: "SendDigits"
@@ -79,69 +91,83 @@ class CTIPanel
     stateToVM = (state) ->
       # VM for a call. If callId is null, return fresh VM for empty
       # CTI panel
-      callToVM = (call, callId) ->
-        number     : ko.observable internalToDisplayed call.interlocutor
-        callStart  : ko.observable call.start?
-        callId     : callId
-        # Extension number typed so far
-        extension  : ko.computed
-          write:
-            (v) ->
-              # Send only new digits to csta-ws
-              old = kvm.extensions[callId] || ""
-              kvm.extensions[callId] = v
-              if v.length > old.length
-                diff = v.length - old.length
-                cti.sendDigits callId, v.substr(old.length, diff)
-          read:
-            -> kvm.extensions[callId] || ""
-        # Work in progress indicator
-        wip: ko.observable false
+      class CallVM
+        constructor: (call, callId) ->
+          @prev       = ko.observable null
+          @number     = ko.observable internalToDisplayed call.interlocutor
+          @callStart  = ko.observable call.start?
+          @callId     = callId
+          # Extension number typed so far
+          @extension  = ko.computed
+            write:
+              (v) ->
+                # Send only new digits to csta-ws
+                old = kvm.extensions[callId] || ""
+                kvm.extensions[callId] = v
+                if v.length > old.length
+                  diff = v.length - old.length
+                  cti.sendDigits callId, v.substr(old.length, diff)
+            read:
+              -> kvm.extensions[callId] || ""
+          # Work in progress indicator
+          @wip= ko.observable false
 
-        # canX are observable, because we want to hide buttons from
-        # the panel even before the service reports new call
-        # state/event
-        canExtend  : ko.observable(
-          call.answered? && call.direction == "Out" && !call.held)
-        canCall    : ko.observable !(callId?)
-        canAnswer  : ko.observable (!(call.answered?) && (call.direction == "In"))
-        canHold    : ko.observable (call.answered? && !call.held)
-        canRetrieve: ko.observable call.held
-        canEnd     : ko.observable(
-          !call.held && (call.answered? || (call.direction == "Out")))
+          # canX are observable, because we want to hide buttons from
+          # the panel even before the service reports new call
+          # state/event
+          @canExtend  = ko.observable(
+            call.answered? && call.direction == "Out" && !call.held)
+          @canCall    = ko.observable !(callId?)
+          @canAnswer  = ko.observable(
+            !(call.answered?) && (call.direction == "In"))
+          @canHold    = ko.observable (call.answered? && !call.held)
+          @canRetrieve= ko.observable call.held
+          @canConf    = ko.computed =>
+            @prev?() && call.answered? && !call.held
+          @canTransfer= ko.computed =>
+            @prev?() && call.answered? && !call.held
+          @canEnd     = ko.observable(
+            !call.held && (call.answered? || (call.direction == "Out")))
 
-        addBlankCall: -> kvm.showBlankCall true
+          @addBlankCall= -> kvm.showBlankCall true
 
-        # Button click handlers
-        makeThis: ->
-          return if _.isEmpty @number()
-          cti.makeCall displayedToInternal @number()
-          @canCall false
-          @wip true
-          @callStart new Date().toISOString()
-        answerThis: ->
-          cti.answerCall callId
-          @canAnswer false
-        endThis: ->
-          cti.endCall callId
-          @canEnd false
-        holdThis: ->
-          cti.holdCall callId
-        retrieveThis: ->
-          cti.retrieveCall callId
-
+          # Button click handlers
+          @makeThis= ->
+            return if _.isEmpty @number()
+            cti.makeCall displayedToInternal @number()
+            @canCall false
+            @wip true
+            @callStart new Date().toISOString()
+          @answerThis= ->
+            cti.answerCall callId
+            @canAnswer false
+          @endThis= ->
+            cti.endCall callId
+            @canEnd false
+          @holdThis= ->
+            cti.holdCall callId
+          @retrieveThis= ->
+            cti.retrieveCall callId
+          @confThis= ->
+            cti.conferenceCall callId, @prev().callId
+          @transferThis= ->
+            cti.transferCall callId, @prev().callId
 
       newCalls = for callId, call of state.calls
-        callToVM call, callId
+        new CallVM call, callId
       if _.isEmpty state.calls
         kvm.showBlankCall false
       # Always add a "blank line" for a new call
-      newCalls.push callToVM {}, null
+      newCalls.push new CallVM {}, null
 
       # Delete unknown extension digits
       for k in _.keys kvm.extensions
         if !_.contains(_.keys(state.calls), k)
           delete kvm.extensions[k]
+
+      for i of newCalls
+        if i > 0
+          newCalls[i].prev newCalls[i - 1]
 
       kvm.calls.removeAll()
       for c in newCalls

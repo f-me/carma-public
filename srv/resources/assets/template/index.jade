@@ -168,6 +168,14 @@ html
                 data-bind='visible: canHold, click: holdThis')
                 i.glyphicon.glyphicon-pause&nbsp;
                 | Удерживать
+              button.btn.btn-sm.btn-info(type='button',
+                data-bind='visible: canConf, click: confThis')
+                i.glyphicon.glyphicon-plus-sign&nbsp;
+                | Конференция
+              button.btn.btn-sm.btn-info(type='button',
+                data-bind='visible: canTransfer, click: transferThis')
+                i.glyphicon.glyphicon-arrow-up&nbsp;
+                | Соединить
               button.btn.btn-sm.btn-warning(type='button',
                 data-bind='visible: canRetrieve, click: retrieveThis')
                 i.glyphicon.glyphicon-play&nbsp;
