@@ -66,6 +66,8 @@ class CTIPanel
       # CallId to extension mapping (used to keep extension number
       # values between state changes)
       extensions: {}
+      # Show an extra line for a new call
+      showBlankCall: ko.observable false
 
     displayedToInternal = (number) ->
       number.replace("+7", "98").replace("+", "9810")
@@ -81,6 +83,7 @@ class CTIPanel
         number     : ko.observable internalToDisplayed call.interlocutor
         callStart  : ko.observable call.start?
         callId     : callId
+        # Extension number typed so far
         extension  : ko.computed
           write:
             (v) ->
@@ -105,6 +108,8 @@ class CTIPanel
         canEnd     : ko.observable(
           !call.held && (call.answered? || (call.direction == "Out")))
 
+        addBlankCall: -> kvm.showBlankCall true
+
         # Button click handlers
         makeThis: ->
           return if _.isEmpty @number()
@@ -123,11 +128,12 @@ class CTIPanel
           cti.retrieveCall callId
 
 
-      newCalls = if _.isEmpty state.calls
-        [callToVM {}, null]
-      else
-        for callId, call of state.calls
-          callToVM call, callId
+      newCalls = for callId, call of state.calls
+        callToVM call, callId
+      if _.isEmpty state.calls
+        kvm.showBlankCall false
+      # Always add a "blank line" for a new call
+      newCalls.push callToVM {}, null
 
       # Delete unknown extension digits
       for k in _.keys kvm.extensions

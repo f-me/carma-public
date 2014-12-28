@@ -141,8 +141,12 @@ html
       .well#cti(style='display: none')
         .container-fluid#cti-form
             // ko foreach: calls
-            form.form-inline(data-bind='submit: makeThis')
-              input.form-control(placeholder='Номер телефона',
+            form.form-inline(
+              data-bind='submit: makeThis,\
+                         visible: $index() == 0 ||\
+                                  $parent.showBlankCall() ||\
+                                  $index() < ($parent.calls().length - 1)')
+              input.form-control.number(placeholder='Номер телефона',
                 data-bind='value: number, disable: callStart')
               input.form-control.extension-mask(
                 placeholder='Добавочный',
@@ -170,6 +174,13 @@ html
                 data-bind='visible: canEnd, click: endThis')
                 i.glyphicon.glyphicon-remove-circle&nbsp;
                 | Завершить звонок
+              .pull-right(
+                data-bind='visible: !$parent.showBlankCall() &&\
+                                    $index() < ($parent.calls().length - 1)')
+                button.btn.btn-sm(type='button',
+                  data-bind='click: addBlankCall')
+                  i.glyphicon.glyphicon-plus&nbsp;
+                  | Ещё звонок
             // /ko
       #layout
     // SMS send form
