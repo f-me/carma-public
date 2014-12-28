@@ -154,6 +154,8 @@ html
                 data-bind='valueUpdate: "keyup",\
                            value: extension,\
                            visible: canExtend')
+              span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
+                data-bind='visible: wip')
               button.btn.btn-sm.btn-success(type='submit',
                 data-bind='visible: canCall, click: makeThis')
                 i.glyphicon.glyphicon-earphone&nbsp;

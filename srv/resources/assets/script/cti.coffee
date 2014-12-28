@@ -95,6 +95,8 @@ class CTIPanel
                 cti.sendDigits callId, v.substr(old.length, diff)
           read:
             -> kvm.extensions[callId] || ""
+        # Work in progress indicator
+        wip: ko.observable false
 
         # canX are observable, because we want to hide buttons from
         # the panel even before the service reports new call
@@ -115,6 +117,7 @@ class CTIPanel
           return if _.isEmpty @number()
           cti.makeCall displayedToInternal @number()
           @canCall false
+          @wip true
           @callStart new Date().toISOString()
         answerThis: ->
           cti.answerCall callId
