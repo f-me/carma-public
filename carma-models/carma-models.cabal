@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.28
+version:             0.28.1
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -63,6 +63,7 @@ library
     Carma.Model.TechType,
     Carma.Model.TowType,
     Carma.Model.Transmission,
+    Carma.Model.TarifOption,
     Carma.Model.VinFormat,
     Carma.Model.VinFormat.Meta,
     Carma.Model.Region,
