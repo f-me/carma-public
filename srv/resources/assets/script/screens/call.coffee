@@ -82,8 +82,8 @@ define [ "utils"
         contact_name:         v['callerName']?()
         contact_phone1:       v['callerPhone']?()
         program:              v['program']()
-        caseAddress_coords:   v['coords']()
-        caseAddress_address:  v['address']()
+        caseAddress_coords:   v['coords']?()
+        caseAddress_address:  v['address']?()
         customerComment:      v['customerComment']?()
 
       main.buildNewModel 'Case', args, {modelArg: "ctr:#{v.program()}"},
