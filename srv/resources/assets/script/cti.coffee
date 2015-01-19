@@ -142,6 +142,8 @@ class CTIPanel
           # Button click handlers
           @makeThis= ->
             return if _.isEmpty @number()
+            if @prev()?
+              cti.holdCall @prev().callId
             cti.makeCall displayedToInternal @number()
             @canCall false
             @wip true
@@ -165,8 +167,7 @@ class CTIPanel
 
       newCalls = for callId, call of state.calls
         new CallVM call, callId
-      if _.isEmpty state.calls
-        kvm.showBlankCall false
+      kvm.showBlankCall false
       # Always add a "blank line" for a new call
       newCalls.push new CallVM {}, null
 
