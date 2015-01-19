@@ -141,13 +141,16 @@ html
       .well#cti(style='display: none')
         .container-fluid#cti-form
             // ko foreach: calls
-            form.form-inline(
+            form.call-form.form-inline(
               data-bind='submit: makeThis,\
                          visible: $index() == 0 ||\
                                   $parent.showBlankCall() ||\
                                   $index() < ($parent.calls().length - 1)')
-              input.form-control.number(placeholder='Номер телефона',
-                data-bind='value: number, disable: callStart')
+              textarea.form-control.number(placeholder='Номер телефона',
+                style='resize: none',
+                data-bind="textInput: number,\
+                           attr: { rows : numberRows },\
+                           disable: callStart")
               input.form-control.extension-mask(
                 placeholder='Добавочный',
                 size="10"
@@ -156,7 +159,7 @@ html
                            visible: canExtend')
               span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
                 data-bind='visible: wip')
-              button.btn.btn-sm.btn-success(type='submit',
+              button.call-button.btn.btn-sm.btn-success(type='submit',
                 data-bind='visible: canCall, click: makeThis')
                 i.glyphicon.glyphicon-earphone&nbsp;
                 | Позвонить

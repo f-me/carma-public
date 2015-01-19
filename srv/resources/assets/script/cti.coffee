@@ -94,7 +94,9 @@ class CTIPanel
       class CallVM
         constructor: (call, callId) ->
           @prev       = ko.observable null
-          @number     = ko.observable internalToDisplayed call.interlocutor
+          @number     =
+            ko.observable(
+              _.map(call.interlocutors, internalToDisplayed).join("\n"))
           @callStart  = ko.observable call.start?
           @callId     = callId
           # Extension number typed so far
@@ -109,8 +111,14 @@ class CTIPanel
                   cti.sendDigits callId, v.substr(old.length, diff)
             read:
               -> kvm.extensions[callId] || ""
+          # How many rows are in number field
+          @numberRows =
+            if _.isEmpty call.interlocutors
+              1
+            else
+              call.interlocutors.length
           # Work in progress indicator
-          @wip= ko.observable false
+          @wip = ko.observable false
 
           # canX are observable, because we want to hide buttons from
           # the panel even before the service reports new call
@@ -139,6 +147,8 @@ class CTIPanel
             @wip true
             @callStart new Date().toISOString()
           @answerThis= ->
+            if @prev()?
+              cti.holdCall @prev().callId
             cti.answerCall callId
             @canAnswer false
           @endThis= ->
@@ -190,6 +200,12 @@ class CTIPanel
       unless ((e.which >= 48 && e.which <= 57) ||
         (e.which >= 96 && e.which <= 105) ||
           e.which == 106 || e.which == 56 || e.which == 51)
+        e.preventDefault()
+
+    # Make call upon <Enter> in number field
+    $(el).on "keydown", ".number", (e) ->
+      if e.which == 13
+        $(e.target).parent(".call-form").submit()
         e.preventDefault()
 
     $(document).keydown (e) ->

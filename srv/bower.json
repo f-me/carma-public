@@ -18,7 +18,7 @@
     "underscore": "~1.6.0",
     "notifyjs": "~0.3.2",
     "spin.js": "2.0.1",
-    "knockoutjs": "3.1.0",
+    "knockoutjs": "3.2.0",
     "finchjs": "~0.5.14",
     "jquery": "~2.1.1",
     "jquery-knob": "~1.2.11",
