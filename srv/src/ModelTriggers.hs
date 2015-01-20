@@ -316,7 +316,13 @@ beforeUpdate = Map.unionsWith (++) $
           modifyPatch (Patch.put Case.temperature temp)
 
   , trigOn Case.contract $ \case
-      Nothing -> return ()
+      Nothing -> do
+        -- Clear all contract-related fields.
+        -- NB. we assume they are all nullable
+        modifyPatch $ foldl'
+          (\fn (C2C _ _ caseFld) -> Patch.put caseFld Nothing . fn)
+          id contractToCase
+        modifyPatch $ Patch.put Case.vinChecked Nothing
       Just cid ->
         do
           contract <- dbRead cid
