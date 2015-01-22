@@ -138,6 +138,7 @@ class CTIPanel
             @prev?() && call.answered? && !call.held
           @canTransfer= ko.computed =>
             @prev?() && call.answered? && !call.held
+          @canInsta   = ko.computed => !@wip()
           @canEnd     = ko.observable(
             !call.held && (call.answered? || (call.direction == "Out")))
 
@@ -153,6 +154,15 @@ class CTIPanel
             @wip true
             kvm.wipCall = this
             @callStart new Date().toISOString()
+          @instaDial = (number) -> () ->
+            if callId?
+              cti.holdCall callId
+              kvm.showBlankCall true
+              targetVM = _.last kvm.calls()
+            else
+              targetVM = this
+            targetVM.number number
+            targetVM.makeThis()
           @answerThis= ->
             if @prev()?
               cti.holdCall @prev().callId

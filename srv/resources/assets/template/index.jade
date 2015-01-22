@@ -187,6 +187,12 @@ html
                 data-bind='visible: canEnd, click: endThis')
                 i.glyphicon.glyphicon-remove-circle&nbsp;
                 | Завершить звонок
+              button.btn.btn-sm(type='button',
+                data-bind='visible: canInsta, click: instaDial(\'665\')')
+                | HELP
+              button.btn.btn-sm(type='button',
+                data-bind='visible: canInsta, click: instaDial(\'146\')')
+                | TECH HELP
               .pull-right(
                 data-bind='visible: !$parent.showBlankCall() &&\
                                     $index() < ($parent.calls().length - 1)')
