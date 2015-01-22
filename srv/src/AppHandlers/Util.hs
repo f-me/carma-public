@@ -36,17 +36,8 @@ handleError err = do
     getResponse >>= finishWith
 
 
-toBool :: ByteString -> String
-toBool "1" = "true"
-toBool _   = "false"
-
-
 quote :: ByteString -> String
 quote x = "'" ++ (T.unpack $ T.replace "'" "''" $ T.decodeUtf8 x) ++ "'"
-
-
-int :: ByteString -> String
-int = T.unpack . T.decodeUtf8
 
 
 mkMap :: [Text] -> [[Maybe Text]] -> [Map Text Text]
@@ -55,6 +46,7 @@ mkMap fields = map $ Map.fromList . zip fields . map (fromMaybe "")
 
 getParamT :: ByteString -> Handler a b (Maybe Text)
 getParamT = fmap (fmap T.decodeUtf8) . getParam
+
 
 getIntParam :: ByteString -> Handler a b (Maybe Int)
 getIntParam name = do
