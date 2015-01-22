@@ -74,10 +74,14 @@ class CTIPanel
     # CTI panel state (it's a bit different from agent state in CSTA
     # lib to make interface coding easier)
     kvm =
+      # Rows in CTI panel (array of CallVM's)
       calls: ko.observableArray []
       # CallId to extension mapping (used to keep extension number
       # values between state changes)
       extensions: {}
+      # A call in progress (unknown to server yet). Shown instead of
+      # the blank call line.
+      wipCall: null
       # Show an extra line for a new call
       showBlankCall: ko.observable false
 
@@ -147,6 +151,7 @@ class CTIPanel
             cti.makeCall displayedToInternal @number()
             @canCall false
             @wip true
+            kvm.wipCall = this
             @callStart new Date().toISOString()
           @answerThis= ->
             if @prev()?
@@ -167,15 +172,24 @@ class CTIPanel
 
       newCalls = for callId, call of state.calls
         new CallVM call, callId
-      kvm.showBlankCall false
-      # Always add a "blank line" for a new call
-      newCalls.push new CallVM {}, null
+      # Hide call in progress if the server finally knows about it.
+      # state.calls contains only calls from the server, but kvm.calls
+      # always has an extra CallVM (blank line/call in progress)
+      if _.keys(state.calls).length == kvm.calls().length
+        kvm.wipCall = false
+        kvm.showBlankCall false
+      # Always add a "blank line"/"call in progress" for a new call
+      if kvm.wipCall
+        newCalls.push kvm.wipCall
+      else
+        newCalls.push new CallVM {}, null
 
       # Delete unknown extension digits
       for k in _.keys kvm.extensions
         if !_.contains(_.keys(state.calls), k)
           delete kvm.extensions[k]
 
+      # Set links to "previous row" in every call
       for i of newCalls
         if i > 0
           newCalls[i].prev newCalls[i - 1]
