@@ -136,11 +136,19 @@ define ["model/utils", "utils"], (mu, u) ->
 
   # Erase existing marker layer and install a new one of the same name
   reinstallMarkers = (osmap, layerName) ->
-    layers = osmap.getLayersByName(layerName)
-    if (!_.isEmpty(layers))
-      osmap.removeLayer(layers[0])
-    new_layer = new OpenLayers.Layer.Markers(layerName)
-    osmap.addLayer(new_layer)
+    osmap.popups.forEach (p) -> osmap.removePopup p
+    for l in osmap.getLayersByName layerName
+      if l.CLASS_NAME == 'OpenLayers.Layer.Markers'
+        for m in l.markers
+          m.events.remove 'click'
+        l.clearMarkers()
+      # see comment at
+      # http://dev.openlayers.org/docs/files/OpenLayers/Map-js.html#OpenLayers.Map.removeLayer
+      # "removing a layer from a map will not cause the removal of any popups
+      # which may have been created by the layer"
+      l.destroy()
+    new_layer = new OpenLayers.Layer.Markers layerName
+    osmap.addLayer new_layer
 
     return new_layer
 
