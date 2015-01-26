@@ -82,7 +82,7 @@ mixin dictInput(name)
         div(data-bind='visible: searchProcessed().length == 0'
             style='text-align: center;')
           em Не найдено партнёров, удовлетворяющих условиям поиска
-        ol(data-bind='foreach: searchProcessed')
+        ol(data-bind='foreach: searchProcessed().splice(0,50)')
           li(data-bind='css: { \
                      \'selected-partner\': id() == $parent.selectedPartner(), \
                      \'disabled-partner\': isfree() == false \

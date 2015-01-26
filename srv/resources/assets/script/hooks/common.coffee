@@ -56,6 +56,12 @@ define [ "utils"
         # dict.disabled = kvm["#{fieldName}Disabled"]()
         kvm["#{fieldName}Disabled"].subscribe (v) -> dict.disabled = v
 
+    for f in m.fields when f.type == "dictionary"
+      do (f) ->
+        parent = f.meta.dictionaryParent
+        if parent
+          kvm["#{parent}Local"].subscribe (v) -> kvm[f.name]('')
+
   regexpKbHook: (model, kvm) ->
     # Set observable with name <fieldName>Regexp for inverse of
     # result of regexp checking for every field with meta.regexp
@@ -80,18 +86,6 @@ define [ "utils"
             p  = "/s/fileupload/attachment/" + kvm.id()
             fs = encodeURIComponent kvm[n]()
             p + "/" + fs
-
-  # Clear dependant dictionary fields when parent is changed
-  # this.dictionaryHook = (elName) ->
-  #   instance = global.viewsWare[elName].bbInstance
-  #   for n of instance.dictionaryFields
-  #     fieldName = instance.dictionaryFields[n]
-  #     parent    = instance.fieldHash[fieldName].meta.dictionaryParent
-
-  #     if parent
-  #       ((f) ->
-  #         instance.bind("change:" + parent, (v) -> instance.set(f, ""))
-  #       )(fieldName)
 
   dateTimeHook: (m, k) ->
     for f in m.fields when _.contains ["datetime", "Day", "UTCTime"], f.type

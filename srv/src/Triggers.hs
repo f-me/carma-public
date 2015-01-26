@@ -318,10 +318,15 @@ beforeUpdate = Map.unionsWith (++) $
           modifyPatch (Patch.put Case.temperature temp)
 
   , trigOn Case.contract $ \case
-      Nothing -> return ()
+      Nothing -> do
+        -- Clear all contract-related fields.
+        -- NB. we assume they are all nullable
+        modifyPatch $ foldl'
+          (\fn (C2C _ _ caseFld) -> Patch.put caseFld Nothing . fn)
+          id contractToCase
+        modifyPatch $ Patch.put Case.vinChecked Nothing
       Just cid ->
         do
-          kase <- dbRead =<< getIdent
           contract <- dbRead cid
           n <- getNow
           let sinceExceeded =
@@ -337,15 +342,8 @@ beforeUpdate = Map.unionsWith (++) $
                             else CCS.base
               p = map
                   (\(C2C conField f caseField) ->
-                     let
-                       new = f $ contract `Patch.get'` conField
-                       old = kase `get'` caseField
-                     in
-                       case old of
-                         Nothing -> Patch.put caseField new
-                         Just sth -> if show sth == show ("" :: String)
-                                     then Patch.put caseField new
-                                     else id)
+                     let new = f $ contract `Patch.get'` conField
+                     in Patch.put caseField new)
                   contractToCase
           modifyPatch $ foldl (flip (.)) id p
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
