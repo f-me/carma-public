@@ -24,7 +24,8 @@ define [ "utils"
       permEl = "permissions"
       focusClass = "focusable"
       refs = []
-      options = {permEl, focusClass, refs}
+      manual_save = true if dict.name == "Usermeta"
+      options = {permEl, focusClass, refs, manual_save}
       kvm = main.modelSetup(dict.name) viewName, args, options
       kvm['updateUrl'] = ->
         # FIXME: Drop this, because it makes filters unusable

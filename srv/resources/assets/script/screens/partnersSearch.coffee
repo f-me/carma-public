@@ -480,9 +480,6 @@ define [ "utils"
 
     setupMap kvm
 
-    # Store a hook to KVM for debugging
-    $("#partnersSearch-content").data "kvm", kvm
-
   # key to retrieve data for partnerSearch screen from localstore
   storeKey: storeKey
   # key that service should subscribe to get data back

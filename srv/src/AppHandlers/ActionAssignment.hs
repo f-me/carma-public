@@ -47,8 +47,8 @@ leastPriority = 5
 
 -- | Assign a single action to a user, yield action id and case id.
 --
--- 5 parameters: usermeta ident (2), action priority class, order
--- action types (2)
+-- 5 parameters: usermeta ident (3), action priority class, order
+-- action types (as array for IN clause)
 assignQ :: Query
 assignQ = [sql|
       WITH activeUsers AS (
@@ -59,8 +59,10 @@ assignQ = [sql|
         ON u.id = s.userId
         WHERE s.state <> 'LoggedOut'),
       pullableActions AS (
-        SELECT * FROM actiontbl
+        SELECT actiontbl.* FROM actiontbl, usermetatbl u
         WHERE result IS NULL
+        AND u.id = ?
+        AND targetGroup = ANY (u.roles)
         AND (assignedTo IS NULL
              OR assignedTo NOT IN (SELECT id FROM activeUsers))
         AND duetime - now() <= interval '5 minutes'
@@ -74,7 +76,6 @@ assignQ = [sql|
             usermetatbl u
           WHERE u.id = ?
           AND t.priority = ?
-          AND targetGroup = ANY (u.roles)
           AND (coalesce(
                   array_length(u.boPrograms, 1),
                   array_length(u.boCities, 1)) is null
@@ -98,7 +99,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   uid <- fromMaybe (error "No current user") <$> currentUserMetaId
   let orders = In [ActionType.orderService, ActionType.orderServiceAnalyst]
       -- Parameters for assignQ query
-      params n = (uid, uid, n :: Int, orders)
+      params n = (uid, uid, uid, n :: Int, orders)
       Ident uid' = uid
 
   -- Actions already assigned to the user
