@@ -138,7 +138,6 @@ define [ "utils"
   eventsHistoryKbHook: (model, knockVM) ->
     # History rendering is called from renderActions on caseScreen
     knockVM['fillEventHistory'] = fillEventsHistory(knockVM)
-    knockVM['contact_phone1']?.subscribe fillEventsHistory(knockVM)
     knockVM['comments']?.subscribe fillEventsHistory(knockVM)
 
   # Display daily service stats in central pane when `city` field of
