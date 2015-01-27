@@ -189,10 +189,10 @@ html
                 | Завершить звонок
               button.btn.btn-sm(type='button',
                 data-bind='visible: canInsta, click: instaDial(\'665\')')
-                | HELP
+                | Супервизор
               button.btn.btn-sm(type='button',
                 data-bind='visible: canInsta, click: instaDial(\'146\')')
-                | TECH HELP
+                | Механик
               .pull-right(
                 data-bind='visible: !$parent.showBlankCall() &&\
                                     $index() < ($parent.calls().length - 1)')
