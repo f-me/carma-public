@@ -142,11 +142,8 @@ define ["model/utils", "utils"], (mu, u) ->
         for m in l.markers
           m.events.remove 'click'
         l.clearMarkers()
-      # see comment at
-      # http://dev.openlayers.org/docs/files/OpenLayers/Map-js.html#OpenLayers.Map.removeLayer
-      # "removing a layer from a map will not cause the removal of any popups
-      # which may have been created by the layer"
-      l.destroy()
+      osmap.removeLayer l
+
     new_layer = new OpenLayers.Layer.Markers layerName
     osmap.addLayer new_layer
 
