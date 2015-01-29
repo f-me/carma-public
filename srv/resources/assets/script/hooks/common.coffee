@@ -60,7 +60,7 @@ define [ "utils"
       do (f) ->
         parent = f.meta.dictionaryParent
         if parent
-          kvm["#{parent}Local"].subscribe (v) -> kvm[f.name]('')
+          kvm["#{parent}Local"]?.subscribe (v) -> kvm[f.name]('')
 
   regexpKbHook: (model, kvm) ->
     # Set observable with name <fieldName>Regexp for inverse of

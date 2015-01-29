@@ -147,8 +147,11 @@ define [ "utils"
     cityField = "city"
     u.hideComplex
     knockVM[cityField]?.subscribe (new_city) ->
-      $.getJSON "/stats/towAvgTime/" + new_city,
-        (r) -> $("#city-towage-average-time").text(u.formatSecToMin(r[0]))
+      if new_city
+        $.getJSON "/stats/towAvgTime/" + new_city,
+          (r) -> $("#city-towage-average-time").text(u.formatSecToMin(r[0]))
+      else
+        $("#city-towage-average-time").text ''
 
   regionHook: (model, knockVM) ->
     knockVM['region'] = ko.computed
