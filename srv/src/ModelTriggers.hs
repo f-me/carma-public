@@ -320,7 +320,11 @@ beforeUpdate = Map.unionsWith (++) $
         -- Clear all contract-related fields.
         -- NB. we assume they are all nullable
         modifyPatch $ foldl'
-          (\fn (C2C _ _ caseFld) -> Patch.put caseFld Nothing . fn)
+          (\fn (C2C _ _ caseFld) -> case Model.fieldName caseFld of
+            nm |  nm == Model.fieldName Case.contact_name
+               || nm == Model.fieldName Case.contact_phone1
+               -> fn
+            _ -> Patch.put caseFld Nothing . fn)
           id contractToCase
         modifyPatch $ Patch.put Case.vinChecked Nothing
       Just cid ->
