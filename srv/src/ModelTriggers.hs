@@ -343,9 +343,12 @@ beforeUpdate = Map.unionsWith (++) $
                             then CCS.vinExpired
                             else CCS.base
               p = map
-                  (\(C2C conField f caseField) ->
-                     let new = f $ contract `Patch.get'` conField
-                     in Patch.put caseField new)
+                  (\(C2C conField f caseField) -> case Model.fieldName caseField of
+                    nm |  nm == Model.fieldName Case.contact_name
+                       || nm == Model.fieldName Case.contact_phone1
+                       -> id
+                    _ -> let new = f $ contract `Patch.get'` conField
+                         in Patch.put caseField new)
                   contractToCase
           modifyPatch $ foldl (flip (.)) id p
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
