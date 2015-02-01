@@ -48,6 +48,7 @@ Executable carma
     Snaplet.SiteConfig.Types,
     Snaplet.Auth.Class,
     Snaplet.Auth.PGUsers,
+    Snaplet.Avaya,
     Snaplet.FileUpload,
     Snaplet.Geo,
     Snaplet.TaskManager,
