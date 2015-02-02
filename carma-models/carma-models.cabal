@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.28
+version:             0.29
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -27,6 +27,8 @@ library
     Carma.Model.ActionResult,
     Carma.Model.ActionType,
     Carma.Model.Attachment,
+    Carma.Model.AvayaEvent,
+    Carma.Model.AvayaEventType,
     Carma.Model.BusinessRole,
     Carma.Model.Call,
     Carma.Model.CallReason,
