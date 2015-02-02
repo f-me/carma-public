@@ -2,17 +2,10 @@ class CTI
   constructor: (@extension) ->
     console.log "Enabling CTI for extension #{extension}"
 
-    if global.config("csta-ws-host")?
-      host = global.config("csta-ws-host")
-    else
-      host = location.hostname
-
-    port = global.config("csta-ws-port")
-
     if window.location.protocol == "https:"
-      url = "wss://#{host}:#{port}/#{extension}"
+      url = "wss://#{location.host}/avaya/ws/#{extension}"
     else
-      url = "ws://#{host}:#{port}/#{extension}"
+      url = "ws://#{location.host}/avaya/ws/#{extension}"
 
     # List of WS message subscribers
     @subscribers = []

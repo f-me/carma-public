@@ -135,8 +135,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   opts <- liftIO $ AppOptions
                 <$> Cfg.lookup cfg "local-name"
                 <*> Cfg.lookupDefault 4 cfg "search-min-length"
-                <*> Cfg.lookup cfg "csta-ws-host"
-                <*> Cfg.lookupDefault 8333 cfg "csta-ws-port"
+                <*> Cfg.lookup cfg "dmcc-ws-host"
+                <*> Cfg.lookupDefault 8333 cfg "dmcc-ws-port"
 
   wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
 
@@ -176,7 +176,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        initSiteConfig "resources/site-config" auth db
 
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
-  av <- nestSnaplet "avaya" avaya avayaInit
+  av <- nestSnaplet "avaya" avaya $
+        avayaInit (dmccWsHost opts) (dmccWsPort opts)
   g <- nestSnaplet "geo" geo geoInit
   search' <- nestSnaplet "search" search $ searchInit authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit

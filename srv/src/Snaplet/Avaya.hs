@@ -20,13 +20,12 @@ where
 
 import           Control.Concurrent
 import           Control.Concurrent.STM
-import           Control.Exception (finally, onException)
+import           Control.Exception (finally)
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.Functor
 import           Data.Maybe
 
-import           Data.ByteString as BS
 import qualified Data.Map as Map
 import           Data.Text as Text
 
@@ -47,25 +46,20 @@ data Avaya = Avaya
     }
 
 
-routes :: [(ByteString, Handler b Avaya ())]
-routes = [ ("/ws/:ext", method GET avayaWsProxy)
-         , ("/hook/", method POST hook)
-         ]
-
-
 -- | Proxy requests to/from dmcc-ws Web Socket.
-avayaWsProxy :: Handler a Avaya ()
-avayaWsProxy = do
+avayaWsProxy :: Maybe Text -> Int -> Handler a Avaya ()
+avayaWsProxy dmccHost dmccPort = do
   ext <- fromMaybe (error "No extension specified") <$> getIntParam "ext"
   avayaConn <- liftIO $ newEmptyTMVarIO
-  let -- Client <-> CaRMa
+  let dmccPort' = Text.unpack $ fromMaybe "localhost" dmccHost
+      -- Client <-> CaRMa
       serverApp pending = do
         conn <- acceptRequest pending
         srvThread <- forkIO $ do
           avayaConn' <- liftIO $ atomically $ takeTMVar avayaConn
           forever $ receive conn >>= send avayaConn'
         (flip finally) (killThread srvThread) $
-          runClient "127.0.0.1" 8333 ("/" ++ show ext) (proxyApp conn)
+          runClient dmccPort' dmccPort ("/" ++ show ext) (proxyApp conn)
       -- CaRMa <-> dmcc-ws
       proxyApp serverConn conn = do
         liftIO $ atomically $ putTMVar avayaConn conn
@@ -77,7 +71,10 @@ hook :: Handler a Avaya ()
 hook = error "Not implemented yet"
 
 
-avayaInit :: SnapletInit b Avaya
-avayaInit = makeSnaplet "avaya" "AVAYA" Nothing $ do
-    addRoutes routes
+avayaInit :: Maybe Text -> Int -> SnapletInit b Avaya
+avayaInit dmccHost dmccPort = makeSnaplet "avaya" "AVAYA" Nothing $ do
+    addRoutes
+      [ ("/ws/:ext", method GET $ avayaWsProxy dmccHost dmccPort)
+      , ("/hook/", method POST hook)
+      ]
     Avaya <$> (liftIO $ newTVarIO $ Map.empty)

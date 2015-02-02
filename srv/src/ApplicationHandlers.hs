@@ -292,9 +292,6 @@ clientConfig = do
       config =
         Map.fromList
         [ ("max-file-size", Aeson.Number mus)
-        , ("csta-ws-host", maybe Aeson.Null Aeson.String $ cstaWsHost opts)
-        , ("csta-ws-port",
-           Aeson.Number $ fromIntegral $ cstaWsPort opts)
         ]
   writeJSON config
 
