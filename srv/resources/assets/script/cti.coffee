@@ -202,6 +202,10 @@ class CTIPanel
         kvm.calls.push c
 
     wsHandler = (msg) ->
+      if msg.errorText?
+        console.log "CTI: #{msg.errorText}"
+        $.notify "Ошибка CTI: #{msg.errorText}"
+
       if msg.calls?
         stateToVM msg
 
