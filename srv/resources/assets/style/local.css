@@ -1,5 +1,4 @@
 @media screen { /* don't mess with print layout */
-/* 70px is height os navbar according to bs styles */
 #main-container {
   /* FIXME:
    * Somehow `height: calc(100vh - 70px);` does not work.
@@ -26,6 +25,15 @@
 .col {
   height: 100%;
   overflow-y: auto;
+}
+
+#cti {
+  z-index: 1010;
+  position: fixed;
+  width: 100%;
+  /* 36px is our navbar height */
+  top: 36px;
+  padding: 10px;
 }
 
 #call-screen > .row {

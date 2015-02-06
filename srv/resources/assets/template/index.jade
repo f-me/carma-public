@@ -134,76 +134,75 @@ html
                         disable: inSBreak(),\n\
                         click: function () { toggleDelayed('Dinner')}")
                       | Обед
-
+    #cti.well(style='display: none')
+      .container-fluid#cti-form
+          // ko foreach: calls
+          form.call-form.form-inline(
+            data-bind='submit: makeThis,\
+                       visible: $index() == 0 ||\
+                                $parent.showBlankCall() ||\
+                                $index() < ($parent.calls().length - 1)')
+            span.label.label-danger(data-bind='visible: vip')
+              i.glyphicon.glyphicon-star
+              | VIP
+            textarea.form-control.number(placeholder='Номер телефона',
+              style='resize: none',
+              data-bind="textInput: number,\
+                         attr: { rows : numberRows },\
+                         disable: callStart")
+            input.form-control.extension-mask(
+              placeholder='Добавочный',
+              size="10"
+              data-bind='valueUpdate: "keyup",\
+                         value: extension,\
+                         visible: canExtend')
+            span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
+              data-bind='visible: wip')
+            button.call-button.btn.btn-sm.btn-success(type='submit',
+              data-bind='visible: canCall, click: makeThis')
+              i.glyphicon.glyphicon-earphone&nbsp;
+              | Позвонить
+            button.btn.btn-sm.btn-success(type='button',
+              data-bind='visible: canAnswer, click: answerThis')
+              i.glyphicon.glyphicon-phone-alt&nbsp;
+              | Принять звонок
+            button.btn.btn-sm.btn-info(type='button',
+              data-bind='visible: canHold, click: holdThis')
+              i.glyphicon.glyphicon-pause&nbsp;
+              | Удерживать
+            button.btn.btn-sm.btn-info(type='button',
+              data-bind='visible: canConf, click: confThis')
+              i.glyphicon.glyphicon-plus-sign&nbsp;
+              | Конференция
+            button.btn.btn-sm.btn-info(type='button',
+              data-bind='visible: canTransfer, click: transferThis')
+              i.glyphicon.glyphicon-arrow-up&nbsp;
+              | Соединить
+            button.btn.btn-sm.btn-warning(type='button',
+              data-bind='visible: canRetrieve, click: retrieveThis')
+              i.glyphicon.glyphicon-play&nbsp;
+              | Возобновить
+            button.btn.btn-sm.btn-danger(type='button',
+              data-bind='visible: canEnd, click: endThis')
+              i.glyphicon.glyphicon-remove-circle&nbsp;
+              | Завершить звонок
+            span(data-bind='visible: $index() == 0')
+              button.btn.btn-sm(type='button',
+                data-bind='visible: canInsta, click: instaDial(\'665\')')
+                | Супервизор
+              button.btn.btn-sm(type='button',
+                data-bind='visible: canInsta, click: instaDial(\'146\')')
+                | Механик
+            .pull-right(
+              data-bind='visible: !$parent.showBlankCall() &&\
+                                  $index() == ($parent.calls().length - 2)')
+              button.btn.btn-sm(type='button',
+                data-bind='click: addBlankCall')
+                i.glyphicon.glyphicon-plus&nbsp;
+                | Ещё звонок
+          // /ko
     // Main container for dynamically rendered layouts
     #main-container
-      .well#cti(style='display: none')
-        .container-fluid#cti-form
-            // ko foreach: calls
-            form.call-form.form-inline(
-              data-bind='submit: makeThis,\
-                         visible: $index() == 0 ||\
-                                  $parent.showBlankCall() ||\
-                                  $index() < ($parent.calls().length - 1)')
-              span.label.label-danger(data-bind='visible: vip')
-                i.glyphicon.glyphicon-star
-                | VIP
-              textarea.form-control.number(placeholder='Номер телефона',
-                style='resize: none',
-                data-bind="textInput: number,\
-                           attr: { rows : numberRows },\
-                           disable: callStart")
-              input.form-control.extension-mask(
-                placeholder='Добавочный',
-                size="10"
-                data-bind='valueUpdate: "keyup",\
-                           value: extension,\
-                           visible: canExtend')
-              span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
-                data-bind='visible: wip')
-              button.call-button.btn.btn-sm.btn-success(type='submit',
-                data-bind='visible: canCall, click: makeThis')
-                i.glyphicon.glyphicon-earphone&nbsp;
-                | Позвонить
-              button.btn.btn-sm.btn-success(type='button',
-                data-bind='visible: canAnswer, click: answerThis')
-                i.glyphicon.glyphicon-phone-alt&nbsp;
-                | Принять звонок
-              button.btn.btn-sm.btn-info(type='button',
-                data-bind='visible: canHold, click: holdThis')
-                i.glyphicon.glyphicon-pause&nbsp;
-                | Удерживать
-              button.btn.btn-sm.btn-info(type='button',
-                data-bind='visible: canConf, click: confThis')
-                i.glyphicon.glyphicon-plus-sign&nbsp;
-                | Конференция
-              button.btn.btn-sm.btn-info(type='button',
-                data-bind='visible: canTransfer, click: transferThis')
-                i.glyphicon.glyphicon-arrow-up&nbsp;
-                | Соединить
-              button.btn.btn-sm.btn-warning(type='button',
-                data-bind='visible: canRetrieve, click: retrieveThis')
-                i.glyphicon.glyphicon-play&nbsp;
-                | Возобновить
-              button.btn.btn-sm.btn-danger(type='button',
-                data-bind='visible: canEnd, click: endThis')
-                i.glyphicon.glyphicon-remove-circle&nbsp;
-                | Завершить звонок
-              span(data-bind='visible: $index() == 0')
-                button.btn.btn-sm(type='button',
-                  data-bind='visible: canInsta, click: instaDial(\'665\')')
-                  | Супервизор
-                button.btn.btn-sm(type='button',
-                  data-bind='visible: canInsta, click: instaDial(\'146\')')
-                  | Механик
-              .pull-right(
-                data-bind='visible: !$parent.showBlankCall() &&\
-                                    $index() == ($parent.calls().length - 2)')
-                button.btn.btn-sm(type='button',
-                  data-bind='click: addBlankCall')
-                  i.glyphicon.glyphicon-plus&nbsp;
-                  | Ещё звонок
-            // /ko
       #layout
     // SMS send form
     #sms-send-modal.modal.fade
