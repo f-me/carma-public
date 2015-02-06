@@ -1,7 +1,7 @@
 define ["utils"], (utils) ->
   # CTI panel interface
   class CTIPanel
-    constructor: (cti, el) ->
+    constructor: (cti, el, isVipCb) ->
       # CTI panel state (it's a bit different from agent state in CSTA
       # lib to make interface coding easier)
       kvm =
@@ -19,8 +19,6 @@ define ["utils"], (utils) ->
       # Simply call a number in +7921... form using the CTI panel
       @instaDial = (number) ->
         _.last(kvm.calls()).instaDial(number)()
-
-      vips = utils.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
 
       displayedToInternal = (number) ->
         number.replace("+7", "98").replace("+", "9810")
@@ -63,10 +61,10 @@ define ["utils"], (utils) ->
 
             # VIP number is on the line
             @vip = ko.computed =>
-              _.some(
-                _.map(call.interlocutors, internalToDisplayed),
-                (n) -> vips.getVal(n)) ||
-              vips.getVal(this.number())
+              _.isFunction(isVipCb) &&
+                (_.some(
+                   _.map(call.interlocutors, internalToDisplayed), isVipCb) ||
+                 isVipCb(this.number()))
 
             # canX are observable, because we want to hide buttons from
             # the panel even before the service reports new call

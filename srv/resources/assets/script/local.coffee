@@ -96,7 +96,8 @@ require [ "domready"
       if _.contains user.roles, global.idents("Role").cti
         if user.workPhoneSuffix.match(/^\d+$/)
           cti = new CTI user.workPhoneSuffix
-          global.CTIPanel = new CTIPanel cti, $("#cti")
+          vips = u.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
+          global.CTIPanel = new CTIPanel cti, $("#cti"), (n) -> vips.getVal(n)
         else
           console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 
