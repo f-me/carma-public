@@ -69,6 +69,14 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (44, 'Satisfaction', 'Клиент доволен',
        ARRAY[]::int4[], ARRAY['id', 'label'])
+, (45, 'Usermeta', 'Пользователи',
+       ARRAY[]::int4[], ARRAY['id', 'login', 'realName'])
+, (46, 'AvayaEventType', 'Типы событий AVAYA',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (47, 'VDN', 'Телефонные линии (VDN)',
+       ARRAY[]::int4[], ARRAY['number', 'label'])
+, (48, 'VipNumber', 'VIP-номера',
+       ARRAY[]::int4[], ARRAY['number'])
 ;
 
 GRANT SELECT ON "Dictionary" TO carma_db_sync;
