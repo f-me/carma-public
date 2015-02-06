@@ -65,7 +65,7 @@ include _form_utils
         | VIP
       span.input-group-addon
         span.glyphicon.stolen-icon-phone(onclick="doPick('{{ meta.picker }}',\
-                                                    '{{ name }}');")
+                                                    '{{ name }}', event.target);")
 
 .field-template#force-find-dictionary-field-template
   +dict("Local", "glyphicon-search")

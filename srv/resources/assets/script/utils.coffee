@@ -285,11 +285,15 @@ define [ "model/main"
   doPick: (pickType, args, elt) ->
     require ["map"], (map) ->
       pickers =
-        callPlease: (modelName) ->
-          kvm = global.viewsWare["call-form"]?.knockVM
+        callPlease: (fieldName, el) ->
+          viewName = mu.elementView($(el)).id
+          kvm = global.viewsWare[viewName].knockVM
           return unless kvm
-          number = kvm[modelName]?()
+          number = kvm[fieldName]?()
           global.avayaPhone && global.avayaPhone.call(number)
+          global.CTIPanel &&
+            $("#cti").show() &&
+            global.CTIPanel.instaDial(number)
         # Set a field to a new randomly generated password
         passwordPicker   : (fieldName, el) ->
           viewName = mu.elementView($(el)).id

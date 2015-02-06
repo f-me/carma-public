@@ -16,6 +16,10 @@ define ["utils"], (utils) ->
         # Show an extra line for a new call
         showBlankCall: ko.observable false
 
+      # Simply call a number in +7921... form using the CTI panel
+      @instaDial = (number) ->
+        _.last(kvm.calls()).instaDial(number)()
+
       vips = utils.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
 
       displayedToInternal = (number) ->
@@ -94,13 +98,13 @@ define ["utils"], (utils) ->
               @wip true
               kvm.wipCall = this
               @callStart new Date().toISOString()
-            @instaDial = (number) -> () ->
+            @instaDial = (number) => () =>
               if callId?
                 cti.holdCall callId
                 kvm.showBlankCall true
                 targetVM = _.last kvm.calls()
               else
-                targetVM = this
+                targetVM = @
               targetVM.number number
               targetVM.makeThis()
             @answerThis= ->
