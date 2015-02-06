@@ -201,5 +201,5 @@ ko.bindingHandlers.eachNonEmpty =
 ko.bindingHandlers.addMask =
   init: (el, acc) ->
     switch acc()
-      when "datetime" then $(el).mask("99.99.9999 99:99:99")
+      when "datetime" then $(el).inputmask({mask: "99.99.9999 99:99:99"})
       else console.error("unknown mask")
