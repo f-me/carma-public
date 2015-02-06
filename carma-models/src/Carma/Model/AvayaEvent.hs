@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Carma.Model.AvayaEvent where
 
 import Data.Text

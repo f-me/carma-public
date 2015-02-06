@@ -104,7 +104,9 @@ import           Carma.Model.TowType                     (TowType)
 import           Carma.Model.Transmission                (Transmission)
 import           Carma.Model.UserState                   (UserState)
 import           Carma.Model.Usermeta                    (Usermeta)
+import           Carma.Model.VDN                         (VDN)
 import           Carma.Model.VinFormat
+import           Carma.Model.VipNumber                   (VipNumber)
 
 import           Data.Model
 
@@ -124,10 +126,10 @@ modelMap fn = modelMap'
       ,add (undefined :: Action)
       ,add (undefined :: ActionResult)
       ,add (undefined :: ActionType)
+      ,add (undefined :: Attachment)
       ,add (undefined :: AvayaEvent)
       ,add (undefined :: AvayaEventType)
       ,add (undefined :: AverageCommissioner)
-      ,add (undefined :: Attachment)
       ,add (undefined :: Bank)
       ,add (undefined :: BusinessRole)
       ,add (undefined :: Call)
@@ -201,6 +203,8 @@ modelMap fn = modelMap'
       ,add (undefined :: Transportation)
       ,add (undefined :: UserState)
       ,add (undefined :: Usermeta)
+      ,add (undefined :: VDN)
       ,add (undefined :: VinFormat)
+      ,add (undefined :: VipNumber)
       ,add (undefined :: Wazzup)
       ]
