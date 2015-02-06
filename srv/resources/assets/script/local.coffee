@@ -14,6 +14,8 @@ require [ "domready"
         , "lstorePubSub"
         , "lib/current-user"
         , "lib/hacking"
+        , "lib/cti"
+        , "lib/cti-panel"
         ], ( dom
            , main
            , Finch
@@ -28,6 +30,8 @@ require [ "domready"
            , pubSub
            , CurrentUser
            , hacking
+           , CTI
+           , CTIPanel
            ) ->
 
   bugReport = new bug.BugReport
