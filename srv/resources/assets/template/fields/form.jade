@@ -60,6 +60,9 @@ include _form_utils
     .input-group.input-group-sm
       +defaultInput("","","afterkeydown")(
         onkeyDown="kdoPick('{{ meta.picker }}', '{{ name }}', 73, event);")
+      span.field-vip-label.label.label-danger(data-bind="visible: {{name}}Vip")
+        i.glyphicon.glyphicon-star
+        | VIP
       span.input-group-addon
         span.glyphicon.stolen-icon-phone(onclick="doPick('{{ meta.picker }}',\
                                                     '{{ name }}');")
@@ -470,6 +473,11 @@ mixin caseFilesList
       b Кто звонил:&nbsp;
       span(data-bind='text: safelyGet(\'contact_name\')')
       span(data-bind='text: " " + safelyGet("contact_phone1")')
+      span(data-bind='visible: vip')
+        &nbsp;
+        span.label.label-danger
+          i.glyphicon.glyphicon-star
+          | VIP
       span(data-bind='\
         visible: contact_phone2,\
         text: ", " + safelyGet("contact_phone2")')

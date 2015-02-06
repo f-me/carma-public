@@ -1,4 +1,4 @@
-define [], () ->
+define ["utils"], (utils) ->
   # CTI panel interface
   class CTIPanel
     constructor: (cti, el) ->
@@ -15,6 +15,8 @@ define [], () ->
         wipCall: null
         # Show an extra line for a new call
         showBlankCall: ko.observable false
+
+      vips = utils.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
 
       displayedToInternal = (number) ->
         number.replace("+7", "98").replace("+", "9810")
@@ -54,6 +56,13 @@ define [], () ->
                 call.interlocutors.length
             # Work in progress indicator
             @wip = ko.observable false
+
+            # VIP number is on the line
+            @vip = ko.computed =>
+              _.some(
+                _.map(call.interlocutors, internalToDisplayed),
+                (n) -> vips.getVal(n)) ||
+              vips.getVal(this.number())
 
             # canX are observable, because we want to hide buttons from
             # the panel even before the service reports new call

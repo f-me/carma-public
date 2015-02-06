@@ -303,3 +303,11 @@ define [ "utils"
   bindRemoveHook: (fieldName) ->
     (model, kvm) ->
       kvm[fieldName].subscribe -> u.bindRemove kvm, fieldName
+
+  vipPhones: (model, kvm) ->
+    vips = u.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
+    for f in model.fields when f.type == "phone"
+      do(f) ->
+        n = f.name
+        kvm["#{n}Vip"] = ko.computed ->
+          vips.getVal(kvm["#{n}"]())

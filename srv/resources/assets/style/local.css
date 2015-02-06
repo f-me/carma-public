@@ -61,6 +61,13 @@
   width: 100%;
 }
 
+/* inline labels for "VIP phone" fields */
+.field-vip-label {
+  position: absolute;
+  right: 5em;
+  top: 0.5em;
+  z-index: 1000;
+}
 
 tr.details > td {
   background-color: #f9f9f9;

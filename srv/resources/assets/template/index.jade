@@ -145,6 +145,9 @@ html
                          visible: $index() == 0 ||\
                                   $parent.showBlankCall() ||\
                                   $index() < ($parent.calls().length - 1)')
+              span.label.label-danger(data-bind='visible: vip')
+                i.glyphicon.glyphicon-star
+                | VIP
               textarea.form-control.number(placeholder='Номер телефона',
                 style='resize: none',
                 data-bind="textInput: number,\

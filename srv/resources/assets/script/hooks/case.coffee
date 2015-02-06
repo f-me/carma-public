@@ -206,3 +206,12 @@ define [ "utils"
       knockVM['filesReference']?().length ||
       _.any(_.map(knockVM['servicesReference']?(),
         (srv) -> (srv['filesReference']?().length > 0)))
+
+  vip: (model, kvm) ->
+    kvm['vip'] = ko.computed ->
+      _.some [
+        kvm['contact_phone1Vip']?() ||
+        kvm['contact_phone2Vip']?(),
+        kvm['contact_phone3Vip']?(),
+        kvm['contact_phone4Vip']?()
+        ]

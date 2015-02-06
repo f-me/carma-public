@@ -16,6 +16,7 @@ define [ "hooks/common"
                , c.fileKbHook
                , c.dateTimeHook
                , c.jsonDictObjsHook
+               , c.vipPhones
                ]
 
       "Action" : [a.actionColor, a.nameLocal, a.suppressScroll]
@@ -32,7 +33,10 @@ define [ "hooks/common"
                , s.openPartnerSearch
                ]
 
-      "Call" : [ k.programDesc, Call.callTypeBtn ]
+      "Call" : [ k.programDesc
+               , Call.callTypeBtn
+               , c.vipPhones
+               ]
 
       "Case" : [ k.descsKbHook
                , k.programDesc
@@ -43,6 +47,7 @@ define [ "hooks/common"
                , k.carModelInfoHook
                , k.buttons
                , k.hasFiles
+               , k.vip
                ]
 
       "Consultation" : [ s.serviceColor
