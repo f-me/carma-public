@@ -54,7 +54,7 @@ class @AvayaWidget
 
       localStorage["call.search-query"] = "!Тел:" + number
 
-      vm = global.viewsWare['call-form'].knockVM
+      vm = global.viewsWare['call-view'].knockVM
       vm.callDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
       vm.callerPhone(number)
       info = lineInfo[line]

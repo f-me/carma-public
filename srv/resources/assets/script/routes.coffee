@@ -27,7 +27,7 @@ define ["render/screen"
         name : "Call"
         template: "call-screen-template"
         views:
-          "call-form": call
+          "call-view": call
       r.renderScreen call, bind
 
   addRoute "case/:id", (bind) ->
