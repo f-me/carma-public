@@ -31,6 +31,20 @@ define [ "model/main"
     else
       _.find kase.servicesReference(), (svc) -> svc.view is view
 
+  # Find VM of a view, properly handling reference views or views of
+  # field groups. If the view name is "case-form", then return knockVM
+  # for case.
+  findVM = (view) ->
+    if global.viewsWare["case-form"]
+      vw = global.viewsWare[view]
+      if vw and vw.parentView?
+        # Find VM of a group rendered in a view.
+        findCaseOrReferenceVM(vw.parentView)
+      else
+        findCaseOrReferenceVM(view)
+    else
+      global.viewsWare[view].knockVM
+
   # make this global, still need to use this module as dependency
   # to make sure that this functions will be loaded
   window.el  = (id) -> document.getElementById(id)
@@ -155,8 +169,6 @@ define [ "model/main"
       meta:
         _.extend (meta || {}), {dictionaryStringify: stringify}
 
-  findCaseOrReferenceVM: findCaseOrReferenceVM
-
   # build global function from local to module one
   # function should belong to first dependency
   build_global_fn: (name, deps) ->
@@ -208,19 +220,7 @@ define [ "model/main"
     e.scrollIntoView()
     e.focus()
 
-  # Find VM of a view, properly handling reference views or views of
-  # field groups. If the view name is "case-form", then return knockVM
-  # for case.
-  findVM: (view) ->
-    if global.viewsWare["case-form"]
-      vw = global.viewsWare[view]
-      if vw and vw.parentView?
-        # Find VM of a group rendered in a view.
-        findCaseOrReferenceVM(vw.parentView)
-      else
-        findCaseOrReferenceVM(view)
-    else
-      global.viewsWare[view].knockVM
+  findVM: findVM
 
   # Strip whitespace from string
   stripWs: (s) -> do (s) -> s.replace(/\s+/g, '')
@@ -287,7 +287,7 @@ define [ "model/main"
       pickers =
         callPlease: (fieldName, el) ->
           viewName = mu.elementView($(el)).id
-          kvm = global.viewsWare[viewName].knockVM
+          kvm = findVM viewName
           return unless kvm
           number = kvm[fieldName]?()
           global.CTIPanel &&
