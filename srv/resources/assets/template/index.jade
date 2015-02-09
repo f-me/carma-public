@@ -142,7 +142,8 @@ html
                        visible: $index() == 0 ||\
                                 $parent.showBlankCall() ||\
                                 $index() < ($parent.calls().length - 1)')
-            i.glyphicon.glyphicon-alert(data-bind='visible: failed')
+            span(data-bind='visible: failed')
+              i.glyphicon.glyphicon-alert&nbsp;
             span.label.label-danger(data-bind='visible: vip')
               i.glyphicon.glyphicon-star
               | VIP

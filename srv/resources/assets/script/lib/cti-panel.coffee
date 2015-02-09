@@ -156,8 +156,7 @@ define ["utils"], (utils) ->
         if msg.dmccEvent? && msg.dmccEvent.event == "FailedEvent"
           failedCall =
             _.find kvm.calls(), (c) -> c.callId == msg.dmccEvent.callId
-          $.notify
-            "Телефонное соединение с номером #{failedCall.number()} прервано"
+          $.notify "Не удалось соединиться с номером #{failedCall.number()}"
 
         if msg.errorText?
           console.log "CTI: #{msg.errorText}"
