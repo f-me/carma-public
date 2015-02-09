@@ -59,6 +59,8 @@ define ["utils"], (utils) ->
             # Work in progress indicator
             @wip = ko.observable false
 
+            @failed = call.failed
+
             # VIP number is on the line
             @vip = ko.computed =>
               _.isFunction(isVipCb) &&
@@ -151,6 +153,12 @@ define ["utils"], (utils) ->
           kvm.calls.push c
 
       wsHandler = (msg) ->
+        if msg.dmccEvent? && msg.dmccEvent.event == "FailedEvent"
+          failedCall =
+            _.find kvm.calls(), (c) -> c.callId == msg.dmccEvent.callId
+          $.notify
+            "Телефонное соединение с номером #{failedCall.number()} прервано"
+
         if msg.errorText?
           console.log "CTI: #{msg.errorText}"
           $.notify "Ошибка CTI: #{msg.errorText}"

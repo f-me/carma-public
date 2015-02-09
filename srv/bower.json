@@ -24,7 +24,7 @@
     "jquery-knob": "~1.2.11",
     "OpenLayers": "http://github.com/openlayers/openlayers/releases/download/release-2.13.1/OpenLayers-2.13.1.zip",
     "bootstrap3-wysihtml5-bower": "~0.3.3",
-    "bootstrap": "~3.2.0",
+    "bootstrap": "~3.3.0",
     "jasny-bootstrap": "~3.1.0",
     "datatables": "~1.10.*",
     "normalize-css": "~3.0.0",
