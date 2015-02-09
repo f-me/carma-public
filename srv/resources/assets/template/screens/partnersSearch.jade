@@ -107,9 +107,15 @@ mixin dictInput(name)
                 li(data-bind="visible: phonesObjects().length > 0")
                   b Телефоны:
                   ul(data-bind='foreach: phonesObjects')
-                    li(data-bind="html:  keyLocal() + '<br/>' + \
-                                  ' Телефон:' + (value() || '')+ \
-                                  ' Время работы:' + (note() || '')")
+                    li
+                      span(data-bind="text: keyLocal()")
+                      br
+                      | Телефон:&nbsp;
+                      span(data-bind="text: (value() || '')")
+                      span(data-bind="visible: note()")
+                        br
+                        | Время работы:&nbsp;
+                        span(data-bind="text: (note() || '')")
                 li(data-bind="visible: cityLocal, \
                                  html: '<b>Город: </b>' + cityLocal()")
                 li(data-bind="visible: factAddr, \
