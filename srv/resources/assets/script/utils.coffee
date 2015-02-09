@@ -169,12 +169,18 @@ define [ "model/main"
       meta:
         _.extend (meta || {}), {dictionaryStringify: stringify}
 
+  # Call a number if the CTI panel is available
+  ctiDial = (number) ->
+    global.CTIPanel && $("#cti").show() && global.CTIPanel.instaDial(number)
+
   # build global function from local to module one
   # function should belong to first dependency
   build_global_fn: (name, deps) ->
     window[name] = ->
       args = arguments
       require deps, (dep) -> dep[name].apply(this, args)
+
+  ctiDial: ctiDial
 
   mkDataTable: (t, opts) ->
     defaults =
@@ -290,9 +296,7 @@ define [ "model/main"
           kvm = findVM viewName
           return unless kvm
           number = kvm[fieldName]?()
-          global.CTIPanel &&
-            $("#cti").show() &&
-            global.CTIPanel.instaDial(number)
+          ctiDial number
           global.avayaPhone && global.avayaPhone.call(number)
         # Set a field to a new randomly generated password
         passwordPicker   : (fieldName, el) ->

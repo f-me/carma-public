@@ -109,13 +109,18 @@ mixin dictInput(name)
                   ul(data-bind='foreach: phonesObjects')
                     li
                       span(data-bind="text: keyLocal()")
-                      br
-                      | Телефон:&nbsp;
-                      span(data-bind="text: (value() || '')")
+                      span(data-bind="visible: value()")
+                        br
+                        | Телефон:&nbsp;
+                        span(data-bind="text: value()")
+                        | &nbsp;
+                        span.glyphicon.stolen-icon-phone(
+                          data-bind="attr: \
+                                     {onclick: 'ctiDial(\"' + value() + '\")'}")
                       span(data-bind="visible: note()")
                         br
                         | Время работы:&nbsp;
-                        span(data-bind="text: (note() || '')")
+                        span(data-bind="text: note()")
                 li(data-bind="visible: cityLocal, \
                                  html: '<b>Город: </b>' + cityLocal()")
                 li(data-bind="visible: factAddr, \

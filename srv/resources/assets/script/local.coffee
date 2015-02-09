@@ -137,3 +137,4 @@ require [ "domready"
   u.build_global_fn 'kdoPick', ['utils']
   u.build_global_fn 'edoPick', ['utils']
   u.build_global_fn 'focusField', ['utils']
+  u.build_global_fn 'ctiDial', ['utils']
