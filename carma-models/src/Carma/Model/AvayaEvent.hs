@@ -27,9 +27,9 @@ data AvayaEvent = AvayaEvent
   , currentAction
     :: F (IdentI Action) "currentAction" "Действие"
   , interlocutor
-    :: F (IdentI Text) "interlocutor" "Второй абонент"
+    :: F Text "interlocutor" "Второй абонент"
   , callId
-    :: F (IdentI Text) "callId" "Идентификатор звонка"
+    :: F Text "callId" "Идентификатор звонка"
   } deriving Typeable
 
 
