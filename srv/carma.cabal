@@ -88,7 +88,7 @@ Executable carma
     hedis                       == 0.6.*,
     heist                       >= 0.13 && < 0.15,
     hformat                     == 0.1.*,
-    hsyslog                     == 1.6.*,
+    hsyslog                     == 2.0.*,
     http-conduit                == 2.1.*,
     http-types                  == 0.8.*,
     lens                        >= 3.8 && < 4.8,
