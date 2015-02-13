@@ -49,7 +49,7 @@ data App = App
     , pg_actass   :: Pool Pg.Connection
     , _taskMgr    :: Snaplet (TaskManager App)
     , _fileUpload :: Snaplet (FileUpload App)
-    , _avaya      :: Snaplet Avaya
+    , _avaya      :: Snaplet (Avaya App)
     , _geo        :: Snaplet Geo
     , _db         :: Snaplet Postgres
     , _search     :: Snaplet (Search App)

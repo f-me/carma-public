@@ -174,7 +174,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        initSiteConfig "resources/site-config" auth db
 
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
-  av <- nestSnaplet "avaya" avaya avayaInit
+  av <- nestSnaplet "avaya" avaya $ avayaInit auth db
   g <- nestSnaplet "geo" geo geoInit
   search' <- nestSnaplet "search" search $ searchInit authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
