@@ -373,7 +373,7 @@ instance ToField EventType where
 instance DefaultFieldView EventType where
   defaultFieldView f = (defFieldView f)
 
-data UserStateVal = LoggedOut | Ready | Rest | Busy | Dinner | ServiceBreak
+data UserStateVal = LoggedOut | Ready | Rest | Busy | Dinner | ServiceBreak | NA
                   deriving (Eq, Enum, Bounded, Show, Read, Typeable, Generic)
 
 instance FromJSON UserStateVal
