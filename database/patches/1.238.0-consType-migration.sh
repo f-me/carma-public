@@ -3,6 +3,7 @@ ${PSQL} <<EOF
 `cat baseline/3-dictionaries/66-ConsultationType.sql`
 
 DROP VIEW "Услуги";
+DROP VIEW allservicesview;
 
 ALTER TABLE consultationtbl ADD COLUMN consType_tmp int4;
 
@@ -15,6 +16,7 @@ ALTER TABLE consultationtbl ADD COLUMN consType int4 REFERENCES "ConsultationTyp
 UPDATE consultationtbl SET consType = consType_tmp;
 ALTER TABLE consultationtbl DROP COLUMN consType_tmp;
 
+`cat baseline/5-views/0-allservices-view.sql`
 `cat baseline/5-views/7-ru-services.sql`
 
 EOF

@@ -100,6 +100,8 @@ WITH servicecounts AS (
             "ServiceType".label as "Тип обращения",--"Услуга"
    servicetbl.clientcancelreason AS "Причина отказа клиента",
    allservicesview.towdealer_partner AS "Назначение эвакуации-назв. дилера",
+   allservicesview.whatToSay1 AS "Описание проблемы",
+   "ConsultationType".label AS "Тип консультации",
    p2.code AS "Код дилера",
    casecity.label AS "Город места поломки",
    dealercity.label AS "Город дилера (куда эвакуируют)",
@@ -232,6 +234,7 @@ WITH servicecounts AS (
    LEFT JOIN allservicesview ON allservicesview.id = servicetbl.id AND servicetbl.parentid = allservicesview.parentid
    LEFT JOIN partnertbl p1 ON servicetbl.contractor_partnerid = p1.id
    LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = p2.id
+   LEFT JOIN "ConsultationType" ON allservicesview.consType = "ConsultationType".id
    LEFT JOIN servicecounts ON servicetbl.parentid = servicecounts.parentid
    LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id
    LEFT JOIN "PaymentType" ON servicetbl.paytype = "PaymentType".id
