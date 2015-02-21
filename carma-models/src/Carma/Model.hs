@@ -43,6 +43,7 @@ import           Carma.Model.City                        (City)
 import           Carma.Model.ClientRefusalReason         (ClientRefusalReason)
 import           Carma.Model.Colors                      (Colors)
 import           Carma.Model.ConstructorFieldOption      (ConstructorFieldOption)
+import           Carma.Model.ConsultationType            (ConsultationType)
 import           Carma.Model.Contract
 import           Carma.Model.ContractCheckStatus
 import           Carma.Model.CtrModel                    (CtrModel)
@@ -149,6 +150,7 @@ modelMap fn = modelMap'
       ,add (undefined :: Colors)
       ,add (undefined :: ConstructorFieldOption)
       ,add (undefined :: Consultation)
+      ,add (undefined :: ConsultationType)
       ,add (undefined :: Continue)
       ,add (undefined :: Contract)
       ,add (undefined :: ContractCheckStatus)
