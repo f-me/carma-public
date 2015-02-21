@@ -5,7 +5,7 @@ import Data.Typeable
 
 import Data.Model
 import Data.Model.View
-import Carma.Model.ConsultationType
+import Carma.Model.ConsultationType (ConsultationType)
 import Carma.Model.LegacyTypes
 import Carma.Model.Service (Service)
 
