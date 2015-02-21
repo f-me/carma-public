@@ -65,7 +65,7 @@ data Service = Service
   -- , falseCallPercent             :: F (Maybe Text) "falseCallPercent" ""
   , bill_billNumber              :: F (Maybe Text) "bill_billNumber"
                                  "Номер счёта"
-  , bill_billingCost             :: F (Maybe Int) "bill_billingCost"
+  , bill_billingCost             :: F (Maybe Double) "bill_billingCost"
                                  "Сумма по счёту"
   , bill_billingDate             :: F (Maybe Day) "bill_billingDate"
                                  "Дата выставления счёта"
