@@ -32,7 +32,7 @@ instance Model FieldPermission where
   type TableName FieldPermission = "FieldPermission"
   modelInfo = mkModelInfo FieldPermission ident
   modelView = \case
-    "" -> Just $ modifyView defaultView [readonly field, readonly model]
+    "" -> Just defaultView
     _  -> Nothing
 
 stripReadPatch :: (Model m, Model (Parent m))
