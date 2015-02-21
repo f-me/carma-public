@@ -79,7 +79,6 @@ library
     Carma.Model.Region,
     Carma.Model.Role,
     Carma.Model.Satisfaction,
-    Carma.Model.Satisfaction,
     Carma.Model.Search,
     Carma.Model.ServiceStatus,
     Carma.Model.ServiceType,
