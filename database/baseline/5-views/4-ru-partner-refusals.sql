@@ -18,13 +18,17 @@ SELECT "PartnerCancel".id,
 
                           "PartnerRefusalReason".label AS "Причина отказа",
                           --ЗАЧЕМ ДЖОЙН С РЕГИОНОМ?
-				--"Region" AS "Регион".label,
+                                --"Region" AS "Регион".label,
 
                           "PartnerCancel".comment AS "Комментарий",
                           "City".label AS "Город",
                           "ServiceType".label AS "Услуга",
                           usermetatbl.login AS "Оператор",
                           regionlist AS "Регион",
+                          CASE
+                              WHEN partnertbl.isDealer THEN 'Да'::text
+                              ELSE 'Нет'::text
+                          END AS "Отказ дилера?",
                           "Program".label AS "Программа",
                           "SubProgram".label AS "Подпрограмма"
 FROM "PartnerCancel"
