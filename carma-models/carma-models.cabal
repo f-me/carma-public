@@ -80,21 +80,6 @@ library
     Carma.Model.Role,
     Carma.Model.Satisfaction,
     Carma.Model.Search,
-    Carma.Model.ServiceStatus,
-    Carma.Model.ServiceType,
-
-    Carma.Model.SubProgram,
-    Carma.Model.SubProgramContact,
-    Carma.Model.SubProgramContractPermission,
-    Carma.Model.SubProgramService,
-
-    Carma.Model.TarifOption,
-    Carma.Model.TaxScheme,
-    Carma.Model.TechType,
-    Carma.Model.TowType,
-    Carma.Model.Transmission,
-    Carma.Model.VinFormat,
-    Carma.Model.VinFormat.Meta,
 
     Carma.Model.Service,
     Carma.Model.Service.AverageCommissioner,
@@ -115,16 +100,19 @@ library
     Carma.Model.Service.Tickets,
     Carma.Model.Service.Towage,
     Carma.Model.Service.Transportation,
-
     Carma.Model.ServiceInfo,
     Carma.Model.ServiceStatus,
     Carma.Model.ServiceType,
+
     Carma.Model.Sms,
     Carma.Model.SmsTemplate,
+
     Carma.Model.SubProgram,
     Carma.Model.SubProgramContact,
     Carma.Model.SubProgramContractPermission,
     Carma.Model.SubProgramService,
+
+    Carma.Model.TarifOption,
     Carma.Model.TaxScheme,
     Carma.Model.TechType,
     Carma.Model.TowType,
