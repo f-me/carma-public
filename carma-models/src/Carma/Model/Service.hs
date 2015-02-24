@@ -20,7 +20,6 @@ import           Carma.Model.ServiceStatus       (ServiceStatus)
 import           Carma.Model.ServiceType         (ServiceType)
 
 data Service = Service
-  -- FIXME: ident can be null in pg
   { ident                        :: PK Int Service ""
   , svcType                      :: F (IdentI ServiceType) "type"
                                  "Услуга"
