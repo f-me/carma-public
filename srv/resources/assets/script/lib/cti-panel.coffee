@@ -1,7 +1,11 @@
 define ["utils"], (utils) ->
   # CTI panel interface
   class CTIPanel
-    constructor: (cti, el, isVipCb) ->
+    constructor: (cti, el, isVipCb, onexagentPort) ->
+      isVipCb ?= _.constant(false)
+
+      onexagentPort ?= 60000
+
       # CTI panel state (it's a bit different from agent state in CSTA
       # lib to make interface coding easier)
       kvm =
@@ -15,6 +19,20 @@ define ["utils"], (utils) ->
         wipCall: null
         # Show an extra line for a new call
         showBlankCall: ko.observable false
+        # Can mute local softphone
+        canMute: ko.observable false
+
+      onexagentClient = null
+
+      mkName = () -> (Math.random() * 1000000 | 0).toString(16)
+
+      onexagentApi = "http://localhost:#{onexagentPort}/onexagent/api"
+
+      $.get "#{onexagentApi}/registerclient?name=#{mkName()}", (res) ->
+        xml = $.parseXML res
+        onexagentClient =
+          $(xml).find("RegisterClientResponse").attr("ClientId")
+        kvm.canMute !_.isEmpty(onexagentClient)
 
       # Simply call a number in +7921... form using the CTI panel
       @instaDial = (number) ->
@@ -123,6 +141,12 @@ define ["utils"], (utils) ->
               cti.conferenceCall callId, @prev().callId
             @transferThis= ->
               cti.transferCall callId, @prev().callId
+            @mute= ->
+              $.get("#{onexagentApi}/voice/mute/?clientid=#{onexagentClient}",
+                () -> kvm.canMute false)
+            @unmute= ->
+              $.get("#{onexagentApi}/voice/unmute/?clientid=#{onexagentClient}",
+                () -> kvm.canMute true)
 
         newCalls = for callId, call of state.calls
           new CallVM call, callId

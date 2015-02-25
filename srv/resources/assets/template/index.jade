@@ -190,6 +190,12 @@ html
               | Завершить звонок
             span(data-bind='visible: $index() == 0')
               button.btn.btn-sm(type='button',
+                data-bind='visible: $parent.canMute(), click: mute')
+                i.glyphicon.glyphicon-volume-off
+              button.btn.btn-sm(type='button',
+                data-bind='visible: !$parent.canMute(), click: unmute')
+                i.glyphicon.glyphicon-volume-up
+              button.btn.btn-sm(type='button',
                 data-bind='visible: canInsta, click: instaDial(\'665\')')
                 | Супервизор
               button.btn.btn-sm(type='button',
