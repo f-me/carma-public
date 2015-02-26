@@ -1,0 +1,5 @@
+netsh http add urlacl url=http://127.0.0.1:60000/ sddl=D:(A;;GX;;;WD)
+netsh http add urlacl url=http://127.0.0.1:60000/onexagent/api/registerclient/ sddl=D:(A;;GX;;;WD)
+netsh http add urlacl url=http://127.0.0.1:60000/onexagent/api/unregisterclient/ sddl=D:(A;;GX;;;WD)
+netsh http add urlacl url=http://127.0.0.1:60000/onexagent/api/mute/  sddl=D:(A;;GX;;;WD)
+netsh http add urlacl url=http://127.0.0.1:60000/onexagent/api/unmute/  sddl=D:(A;;GX;;;WD)
