@@ -53,6 +53,7 @@ srv/resources/static/3p/daterangepicker/
 srv/resources/static/3p/finch.min.js
 srv/resources/static/3p/jasny-bootstrap/
 srv/resources/static/3p/jquery.js
+srv/resources/static/3p/jquery.browser.min.js
 srv/resources/static/3p/jquery.knob.min.js
 srv/resources/static/3p/jquery.spin.js
 srv/resources/static/3p/knockout.js

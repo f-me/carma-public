@@ -107,6 +107,9 @@ module.exports = (grunt) ->
       dest: 'daterangepicker'
       file: ['daterangepicker.js', 'daterangepicker-bs3.css']
     'js-base64':{src: 'js-base64',       file: 'base64.min.js'}
+    'jquery.browser':
+      src: 'jquery.browser/dist'
+      file: 'jquery.browser.min.js'
     'jquery-knob':
       src: 'jquery-knob/dist'
       file: 'jquery.knob.min.js'
