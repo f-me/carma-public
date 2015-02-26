@@ -72,7 +72,7 @@ define ["text!tpl/screens/timeline.html"
       if @chart then @draw()
 
     showRangePicker: (element) =>
-      moment().lang("ru")
+      moment().locale("ru")
       $picker = $(element).find(".rangepicker")
       cb = (start, end) =>
         @startDate = start.toDate()
@@ -81,7 +81,7 @@ define ["text!tpl/screens/timeline.html"
         e = end.format("YYYY-MM-DD")
         $.getJSON "/userStates/#{@user.id()}/#{s}/#{e}", @setData
 
-      startDate = moment().subtract('days', 1).format('DD MMM, YYYY')
+      startDate = moment().subtract(1, 'days').format('DD MMM, YYYY')
       endDate = moment().format('DD MMM, YYYY')
       $picker.val("#{startDate} - #{endDate}")
       $picker.daterangepicker(
@@ -98,17 +98,17 @@ define ["text!tpl/screens/timeline.html"
             customRangeLabel: 'Календарь...',
           },
           ranges: {
-            'Сегодня': [moment().subtract('days', 1), moment()],
-            'Вчера': [ moment().subtract('days', 2)
-                     , moment().subtract('days', 1)
+            'Сегодня': [moment().subtract(1, 'days'), moment()],
+            'Вчера': [ moment().subtract(2, 'days')
+                     , moment().subtract(1, 'days')
                      ],
-            'Последние 7 дней': [moment().subtract('days', 6), moment()],
+            'Последние 7 дней': [moment().subtract(6, 'days'), moment()],
           }
         },
         cb
       )
       # put init data to timeline
-      cb(moment().subtract('days', 1), moment())
+      cb(moment().subtract(1, 'days'), moment())
 
     showTimeline: (element) =>
       @showRangePicker(element)

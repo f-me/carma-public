@@ -94,6 +94,7 @@ module.exports = (grunt) ->
   thirdParty =
     md5:        {src: 'js-md5/js',       file: 'md5.min.js'}
     d3:         {src: 'd3',              file: 'd3.min.js'}
+    moment:     {src: 'moment/min',      file: 'moment-with-locales.min.js'}
     mustache:   {src: 'mustache',        file: 'mustache.js'}
     underscore: {src: 'underscore',      file: 'underscore.js'}
     finch:      {src: 'finchjs',         file: 'finch.min.js'}
@@ -101,6 +102,10 @@ module.exports = (grunt) ->
     knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
     notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
     spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
+    'bootstrap-daterangepicker':
+      src: 'bootstrap-daterangepicker'
+      dest: 'daterangepicker'
+      file: ['daterangepicker.js', 'daterangepicker-bs3.css']
     'js-base64':{src: 'js-base64',       file: 'base64.min.js'}
     'jquery-knob':
       src: 'jquery-knob/dist'
