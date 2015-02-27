@@ -19,7 +19,7 @@ include _settings
               br
               span.inverse-orange Выделять оранжевым
               | , если разлогинился из статуса занят
-  
+
               br
               label.checkbox
                 input(type="checkbox" data-bind="checked: hideOffline")
@@ -46,7 +46,7 @@ include _settings
            // /ko
        tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
          tr(data-bind="visible: kvm._meta.visible")
-           td(data-bind="fieldRender: kvm['userid']")
+           td(data-bind="text: kvm['useridGrp']")
            // ko foreach: $root.fields
            td(data-bind="visible: show, \n\
                          render: {kvm: kvm, field: $data}, \n\

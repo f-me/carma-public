@@ -4,13 +4,16 @@ define ["text!tpl/screens/kpi/stat.html"
         "model/fields"
         "sync/datamap"
         "screens/kpi/common"
-  ], (Tpl, Model, Main, Fs, Map, Common) ->
+        "utils"
+  ], (Tpl, Model, Main, Fs, Map, Common, Utils) ->
 
   stuffKey = "kpi-stat"
   mp = new Map.Mapper(Model)
   template: Tpl
   constructor: (view, opts) ->
     $("#stat-screen").addClass("active")
+
+    uDict = Utils.newModelDict "Usermeta", false, dictionaryLabel: 'grp'
 
     spinner = ko.observable(false)
     {tblCtx, settingsCtx} = Common.initCtx "kpi-stat", Model,
@@ -36,6 +39,11 @@ define ["text!tpl/screens/kpi/stat.html"
             ks = for m in data
               do (m) ->
                 kvm = Main.buildKVM Model, {fetched: mp.s2cObj m}
+                kvm.grp = uDict.getLab kvm.userid()
+                if !_.isEmpty(kvm.grp)
+                  kvm.useridGrp = "#{kvm.useridLocal()} (#{kvm.grp})"
+                else
+                  kvm.useridGrp = kvm.useridLocal()
                 kvm.showDetails = ko.observable(false)
                 kvm.showDetails.toggle = do (kvm) -> ->
                   kvm.showDetails !kvm.showDetails()

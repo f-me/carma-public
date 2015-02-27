@@ -38,7 +38,7 @@ define ["lib/current-user"
       filters:
         kvmFilter: (kvm) ->
           return true if _.isEmpty flt()
-          U.kvmCheckMatch(flt(), kvm,
+          U.checkMatch(flt(), kvm.grp) || U.kvmCheckMatch(flt(), kvm,
             if model.name == 'OperKPI'
               {allowed: ['userid', 'currentState']})
 

@@ -4,7 +4,8 @@ define ["text!tpl/screens/kpi/oper.html"
         "sync/datamap"
         "lib/messenger"
         "screens/kpi/common"
-  ], (Tpl, Model, Main, Map, WS, Common) ->
+        "utils"
+  ], (Tpl, Model, Main, Map, WS, Common, Utils) ->
 
   stuffKey = "kpi-oper"
 
@@ -45,6 +46,8 @@ define ["text!tpl/screens/kpi/oper.html"
 
   template: Tpl
   constructor: (view, opts) ->
+    uDict = Utils.newModelDict "Usermeta", false, dictionaryLabel: 'grp'
+
     $("#oper-screen").addClass("active")
     {tblCtx, settingsCtx} = Common.initCtx "kpi-stat", Model,
       (s, sCtx, tCtx, d, kvms) ->
@@ -60,6 +63,11 @@ define ["text!tpl/screens/kpi/oper.html"
         $.getJSON "/kpi/oper", (d) ->
           kvms _.map d, (m) ->
             k = Main.buildKVM Model, { fetched: mp.s2cObj m }
+            k.grp = uDict.getLab k.userid()
+            if !_.isEmpty(k.grp)
+              k.useridGrp = "#{k.useridLocal()} (#{k.grp})"
+            else
+              k.useridGrp = k.useridLocal()
             k._meta.logoutFromBusy = mkLogoutFromBusy(k)
             k._meta.overdue        = mkOverDue(k, sCtx.overdue)
             k._meta.visible        =
