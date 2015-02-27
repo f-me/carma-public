@@ -74,6 +74,7 @@ library
     Carma.Model.PartnerService,
     Carma.Model.PaymentType,
     Carma.Model.PgTypes,
+    Carma.Model.ProcessingConfig,
     Carma.Model.Program,
     Carma.Model.ProgramType,
     Carma.Model.Region,
