@@ -3,9 +3,9 @@ module Carma.Model.KPI.Stat where
 
 import           Data.Typeable
 
+import qualified Data.Aeson as Aeson
 import           Data.Time.Clock (DiffTime)
 import           Data.Time.Calendar (Day)
-import qualified Data.Aeson as Aeson
 
 import           Data.Model
 import           Data.Model.View
@@ -20,6 +20,7 @@ data StatKPI = StatKPI
   , inReady      :: F (Maybe DiffTime) "Ready"   "Готов"
   , inBusy       :: F (Maybe DiffTime) "Busy"    "Занят"
   , inDinner     :: F (Maybe DiffTime) "Dinner"  "Обед"
+  , inNA         :: F (Maybe DiffTime) "NA"      "NA"
   , inRest       :: F (Maybe DiffTime) "Rest"    "Перерыв"
   , inServiceBreak
                  :: F (Maybe DiffTime) "ServiceBreak" "Служебный перерыв"
@@ -90,4 +91,3 @@ instance Model StatKPI where
     "kpi" -> Just $ modifyView (stripId $ defaultView)
       [setMeta "dictionaryLabel" (Aeson.String "realName") user]
     _     -> Nothing
-
