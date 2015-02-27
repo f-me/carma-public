@@ -151,5 +151,10 @@
       "label" : "Редактирование справочников",
       "type"  : "li",
       "permissions": ["lovAdmin", "lovViewer"]
+    },
+    { "name"  : "processingConfig",
+      "label" : "Управление параметрами КЦ",
+      "type"  : "li",
+      "permissions": ["head"]
     }
 ]
