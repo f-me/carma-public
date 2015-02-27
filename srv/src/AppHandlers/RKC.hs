@@ -52,6 +52,7 @@ import qualified Data.Model.Sql                     as Sql
 import qualified Carma.Model.ActionResult           as AResult
 import qualified Carma.Model.ActionType             as AType
 import           Carma.Model.City                   (City)
+import qualified Carma.Model.ConsultationType       as CT
 import           Carma.Model.Program                (Program)
 import qualified Carma.Model.Satisfaction           as Satis
 import qualified Carma.Model.ServiceStatus          as SS
@@ -375,7 +376,7 @@ caseSummary (Filter fromDate toDate program city partner) constraints = logExcep
       -- TODO: partner?
     (mechanicR, mechanicRActions) = strQuery $ mconcat [
       count' "cnt",
-      equals "consultationtbl" "constype" "mech",
+      equals "consultationtbl" "constype" (identFv CT.mech),
       inList "consultationtbl" "status" $
              map identFv [ SS.inProgress
                          , SS.ok
