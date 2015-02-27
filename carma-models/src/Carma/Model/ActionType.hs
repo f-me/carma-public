@@ -44,6 +44,7 @@ mkIdents [t|ActionType|]
  , ("tellMeMore", 19)
  , ("callMeMaybe", 20)
  , ("checkDispatchTime", 21)
+ , ("call", 100)
  ]
 
 instance Model ActionType where
