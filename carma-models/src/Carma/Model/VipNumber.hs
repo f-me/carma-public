@@ -1,7 +1,6 @@
 module Carma.Model.VipNumber where
 
 import Data.Text
-import Data.Time.Clock
 import Data.Typeable
 
 import Data.Model
@@ -9,8 +8,6 @@ import Data.Model.View
 
 import Carma.Model.Types ()
 import Carma.Model.PgTypes ()
-
-import Carma.Model.Program
 
 
 data VipNumber = VipNumber

@@ -15,12 +15,6 @@ import           Data.Text                               (Text)
 import qualified Data.Text                               as T
 import           Data.Typeable
 
-
-
-
-
-
-
 import           Carma.Model.AbuseTarget                 (AbuseTarget)
 import           Carma.Model.Action                      (Action)
 import           Carma.Model.ActionResult                (ActionResult)
@@ -48,18 +42,22 @@ import           Carma.Model.Contract
 import           Carma.Model.ContractCheckStatus
 import           Carma.Model.CtrModel                    (CtrModel)
 import           Carma.Model.DeferTime                   (DeferTime)
+
 import           Carma.Model.Diagnostics.Cause           (Cause)
 import           Carma.Model.Diagnostics.Part            (Part)
 import           Carma.Model.Diagnostics.Suggestion      (Suggestion)
 import           Carma.Model.Diagnostics.System          (System)
 import           Carma.Model.Diagnostics.Wazzup          (Wazzup)
+
 import           Carma.Model.Dictionary                  (Dictionary)
 import           Carma.Model.Engine                      (Engine)
 import           Carma.Model.FalseCall                   (FalseCall)
 import           Carma.Model.FieldPermission             (FieldPermission)
+
 import           Carma.Model.KPI.Group                   (GroupKPI)
 import           Carma.Model.KPI.Oper                    (OperKPI)
 import           Carma.Model.KPI.Stat                    (StatKPI)
+
 import           Carma.Model.LegalForm
 import           Carma.Model.Partner
 import           Carma.Model.PartnerCancel               (PartnerCancel)
@@ -71,6 +69,7 @@ import           Carma.Model.ProgramType
 import           Carma.Model.Region                      (Region)
 import           Carma.Model.Role                        (Role)
 import           Carma.Model.Satisfaction                (Satisfaction)
+
 import           Carma.Model.Service                     (Service)
 import           Carma.Model.Service.AverageCommissioner (AverageCommissioner)
 import           Carma.Model.Service.Bank                (Bank)
@@ -93,12 +92,15 @@ import           Carma.Model.Service.Transportation      (Transportation)
 import           Carma.Model.ServiceInfo                 (ServiceInfo)
 import           Carma.Model.ServiceStatus               (ServiceStatus)
 import           Carma.Model.ServiceType                 (ServiceType)
+
 import           Carma.Model.Sms                         (Sms)
 import           Carma.Model.SmsTemplate                 (SmsTemplate)
+
 import           Carma.Model.SubProgram                  (SubProgram)
 import           Carma.Model.SubProgramContact
 import           Carma.Model.SubProgramContractPermission
 import           Carma.Model.SubProgramService           (SubProgramService)
+
 import           Carma.Model.TarifOption                 (TarifOption)
 import           Carma.Model.TaxScheme                   (TaxScheme)
 import           Carma.Model.TechType                    (TechType)

@@ -1,7 +1,6 @@
 module Carma.Model.VDN where
 
 import Data.Text
-import Data.Time.Clock
 import Data.Typeable
 
 import Data.Model
