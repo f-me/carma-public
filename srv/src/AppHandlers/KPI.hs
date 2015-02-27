@@ -115,6 +115,7 @@ fillKPIsDays = do
      Ready        -> addState (u, day) S.inReady v
      Busy         -> addState (u, day) S.inBusy v
      Dinner       -> addState (u, day) S.inDinner v
+     NA           -> addState (u, day) S.inNA v
      Rest         -> addState (u, day) S.inRest v
      ServiceBreak -> addState (u, day) S.inServiceBreak v
      LoggedOut    -> addState (u, day) S.inLoggedOut v
@@ -171,6 +172,7 @@ fillKPIs = do
      Ready        -> addState u S.inReady v
      Busy         -> addState u S.inBusy v
      Dinner       -> addState u S.inDinner v
+     NA           -> addState u S.inNA v
      Rest         -> addState u S.inRest v
      ServiceBreak -> addState u S.inServiceBreak v
      LoggedOut    -> addState u S.inLoggedOut v
@@ -251,10 +253,10 @@ updateOperKPI usrs = do
        Ready        -> put O.inReady v p
        Busy         -> put O.inBusy v p
        Dinner       -> put O.inDinner v p
+       NA           -> put O.inNA v p
        Rest         -> put O.inRest v p
        ServiceBreak -> put O.inServiceBreak v p
        LoggedOut    -> put O.inLoggedOut v p
-
 
 
 operTotalQ :: Query
