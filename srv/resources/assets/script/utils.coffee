@@ -208,7 +208,7 @@ define [ "model/main"
   getProgramDesc: (pid, sid) ->
     return unless pid
     meta = {dictionaryLabel: 'help'}
-    pvm = buildInstance('Program', pid)
+    pvm = buildInstance('Program', pid) unless sid
     svm = buildInstance('SubProgram', sid) if sid
     if pvm?.pTypeLocal?()
       pType = "<span class=\"label label-info\">#{pvm.pTypeLocal()}</span>"
