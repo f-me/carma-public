@@ -320,8 +320,8 @@ copyCtrOptions = do
     void $ execute c
       [sql|
         insert into "ConstructorFieldOption"
-            (model,screen,program,ord,field,label,info,required,r,w)
-          select model,screen,?::int,ord,field,label,info,required,r,w
+            (model,program,ord,field,label,info,required,r,w)
+          select model,?::int,ord,field,label,info,required,r,w
             from "ConstructorFieldOption"
             where program = ?
       |]
