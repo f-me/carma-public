@@ -20,7 +20,6 @@ import           Carma.Model.ServiceStatus       (ServiceStatus)
 import           Carma.Model.ServiceType         (ServiceType)
 
 data Service = Service
-  -- FIXME: ident can be null in pg
   { ident                        :: PK Int Service ""
   , svcType                      :: F (IdentI ServiceType) "type"
                                  "Услуга"
@@ -32,7 +31,7 @@ data Service = Service
                                  "Тип оплаты"
   , payment_costTranscript       :: F (Maybe Text) "payment_costTranscript"
                                  "Расшифровка стоимости"
-  , payment_partnerCost          :: F (Maybe Int) "payment_partnerCost"
+  , payment_partnerCost          :: F (Maybe Double) "payment_partnerCost"
                                  "Стоимость со слов партнёра (число)"
   , payment_calculatedCost       :: F (Maybe Int) "payment_calculatedCost"
                                  "Расчётная стоимость"

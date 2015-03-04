@@ -12,6 +12,7 @@ import Carma.Model.Types (HMDiffTime)
 
 import Carma.Model.ActionResult (ActionResult)
 import Carma.Model.ActionType (ActionType)
+import Carma.Model.Call (Call)
 import Carma.Model.Case (Case)
 import Carma.Model.DeferTime (label, time)
 import Carma.Model.Role (Role)
@@ -20,6 +21,9 @@ import Carma.Model.Usermeta (Usermeta)
 
 data Action = Action
   { ident       :: PK Int Action                    "Действие"
+  , callId      :: F (Maybe (IdentI Call))          "callId" "Звонок"
+  -- TODO Now that call-actions exist, some actions have no case
+  -- (changing this type will require fixing Backoffice DSL)
   , caseId      :: F (IdentI Case)                  "caseId" "Кейс"
   , serviceId   :: F (Maybe (IdentI Service))       "serviceId" "Услуга"
   , aType       :: F (IdentI ActionType)            "type" "Тип действия"
@@ -41,7 +45,8 @@ instance Model Action where
   modelInfo = mkModelInfo Action ident
   modelView = \case
     "" -> Just $ modifyView defaultView $
-          [ hiddenIdent caseId
+          [ hiddenIdent callId
+          , hiddenIdent caseId
           , hiddenIdent serviceId
           , hiddenIdent parent
           , readonly duetime

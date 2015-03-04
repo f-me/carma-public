@@ -54,6 +54,7 @@ data Usermeta = Usermeta
   , homePhone    :: F Phone              "homePhone"       "Домашний телефон"
   , email        :: F Text               "email"           "E-mail"
   , birthday     :: F (Maybe Day)        "birthday"        "День рождения"
+  , group        :: F Text               "grp"             "Группа"
   , position     :: F Text               "position"        "Должность"
 
   , delayedState :: F (Maybe UserStateVal) "delayedState" "Отложенный статус"

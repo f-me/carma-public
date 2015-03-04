@@ -1,7 +1,5 @@
 {-# LANGUAGE ConstraintKinds #-}
 
--- TODO JSON & coords Haskell types.
-
 module Carma.Model.Partner
     ( Partner(..)
     , partnerKey
