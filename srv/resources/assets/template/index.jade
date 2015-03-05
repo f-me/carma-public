@@ -155,8 +155,7 @@ html
             input.form-control.extension-mask(
               placeholder='Добавочный',
               size="10"
-              data-bind='valueUpdate: "keyup",\
-                         value: extension,\
+              data-bind='textInput: extension,\
                          visible: canExtend')
             span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
               data-bind='visible: wip')
