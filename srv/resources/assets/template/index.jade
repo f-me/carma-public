@@ -193,7 +193,7 @@ html
                 data-bind='visible: $parent.canMute(), click: mute')
                 i.glyphicon.glyphicon-volume-off
               button.btn.btn-sm(type='button',
-                data-bind='visible: !$parent.canMute(), click: unmute')
+                data-bind='visible: $parent.canUnmute(), click: unmute')
                 i.glyphicon.glyphicon-volume-up
               button.btn.btn-sm(type='button',
                 data-bind='visible: canInsta, click: instaDial(\'665\')')

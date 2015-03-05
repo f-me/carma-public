@@ -20,8 +20,11 @@ define [], () ->
         wipCall: null
         # Show an extra line for a new call
         showBlankCall: ko.observable false
-        # Can mute local softphone
+        # Can mute/unmute local softphone (when both are false,
+        # mute/unmute is unaccessible due to lack of connection to
+        # local softphone)
         canMute: ko.observable false
+        canUnmute: ko.observable false
 
       onexagentClient = null
 
@@ -138,10 +141,14 @@ define [], () ->
               cti.transferCall callId, @prev().callId
             @mute= ->
               $.get("#{onexagentApi}/voice/mute/?clientid=#{onexagentClient}",
-                () -> kvm.canMute false)
+                () ->
+                  kvm.canMute false
+                  kvm.canUnmute true)
             @unmute= ->
               $.get("#{onexagentApi}/voice/unmute/?clientid=#{onexagentClient}",
-                () -> kvm.canMute true)
+                () ->
+                  kvm.canMute true
+                  kvm.canUnmute false)
 
         newCalls = for callId, call of state.calls
           new CallVM call, callId
