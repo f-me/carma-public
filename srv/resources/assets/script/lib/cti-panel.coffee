@@ -26,6 +26,8 @@ define [], () ->
         canMute: ko.observable false
         canUnmute: ko.observable false
 
+      # Initialize One-X Agent softphone connection (MUTE button
+      # control)
       onexagentClient = null
 
       mkName = () -> (Math.random() * 1000000 | 0).toString(16)
@@ -42,6 +44,10 @@ define [], () ->
       @instaDial = (number) ->
         _.last(kvm.calls()).instaDial(number)()
 
+      # Pretty-print list of interlocutors
+      interlocutorsToNumber = (interlocutors) ->
+        _.map(interlocutors, internalToDisplayed).join("\n")
+
       # Update kvm from state reported by the service
       stateToVM = (state) ->
         # VM for a call. If callId is null, return fresh VM for empty
@@ -50,8 +56,7 @@ define [], () ->
           constructor: (call, callId) ->
             @prev       = ko.observable null
             @number     =
-              ko.observable(
-                _.map(call.interlocutors, internalToDisplayed).join("\n"))
+              ko.observable interlocutorsToNumber call.interlocutors
             @callStart  = ko.observable call.start?
             @callId     = callId
             # Extension number typed so far
@@ -182,9 +187,9 @@ define [], () ->
 
       wsHandler = (msg) ->
         if msg.dmccEvent? && msg.dmccEvent.event == "FailedEvent"
-          failedCall =
-            _.find kvm.calls(), (c) -> c.callId == msg.dmccEvent.callId
-          $.notify "Не удалось соединиться с номером #{failedCall.number()}"
+          failedCall = msg.newState.calls[msg.dmccEvent.callId]
+          failedNumber = interlocutorsToNumber failedCall?.interlocutors
+          $.notify "Не удалось соединиться с номером #{failedNumber}"
 
         if msg.errorText?
           console.log "CTI: #{msg.errorText}"
