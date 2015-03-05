@@ -107,6 +107,7 @@ define [], () ->
             # Button click handlers
             @makeThis= ->
               return if _.isEmpty @number()
+              return if _.contains options.bannedNumbers, @number()
               if @prev()?
                 cti.holdCall @prev().callId
               cti.makeCall displayedToInternal @number()
@@ -115,6 +116,7 @@ define [], () ->
               kvm.wipCall = this
               @callStart new Date().toISOString()
             @instaDial = (number) => () =>
+              return if _.contains options.bannedNumbers, number
               if callId?
                 cti.holdCall callId
                 kvm.showBlankCall true

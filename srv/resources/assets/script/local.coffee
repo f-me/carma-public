@@ -98,6 +98,8 @@ require [ "domready"
           cti = new CTI user.workPhoneSuffix
           vips = u.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
           opts =
+            # AVAYA halts when this is dialed
+            bannedNumbers: ["8"]
             displayedToInternal:
               (number) ->
                 number.replace("+7", "98").replace("+", "9810")
