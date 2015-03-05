@@ -1,10 +1,11 @@
-define ["utils"], (utils) ->
+define [], () ->
   # CTI panel interface
   class CTIPanel
-    constructor: (cti, el, isVipCb, onexagentPort) ->
-      isVipCb ?= _.constant(false)
-
-      onexagentPort ?= 60000
+    constructor: (cti, el, options) ->
+      displayedToInternal = options.displayedToInternal ? _.identity
+      internalToDisplayed = options.internalToDisplayed ? _.identity
+      isVipCb             = options.isVipCb ? _.constant(false)
+      onexagentPort       = options.onexagentPort ? 60000
 
       # CTI panel state (it's a bit different from agent state in CSTA
       # lib to make interface coding easier)
@@ -37,12 +38,6 @@ define ["utils"], (utils) ->
       # Simply call a number in +7921... form using the CTI panel
       @instaDial = (number) ->
         _.last(kvm.calls()).instaDial(number)()
-
-      displayedToInternal = (number) ->
-        number.replace("+7", "98").replace("+", "9810")
-
-      internalToDisplayed = (number) ->
-        number?.match(/\d+/)?[0]?.replace(/^(98|8|)(\d{10})$/, "\+7$2")
 
       # Update kvm from state reported by the service
       stateToVM = (state) ->

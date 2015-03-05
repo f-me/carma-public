@@ -97,7 +97,15 @@ require [ "domready"
         if user.workPhoneSuffix.match(/^\d+$/)
           cti = new CTI user.workPhoneSuffix
           vips = u.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
-          global.CTIPanel = new CTIPanel cti, $("#cti"), (n) -> vips.getVal(n)
+          opts =
+            displayedToInternal:
+              (number) ->
+                number.replace("+7", "98").replace("+", "9810")
+            internalToDisplayed:
+              (number) ->
+                number?.match(/\d+/)?[0]?.replace(/^(98|8|)(\d{10})$/, "\+7$2")
+            isVipCb: (n) -> vips.getVal(n)
+          global.CTIPanel = new CTIPanel cti, $("#cti"), opts
         else
           console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 
