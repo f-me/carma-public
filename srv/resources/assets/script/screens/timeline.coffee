@@ -10,9 +10,10 @@ define ["text!tpl/screens/timeline.html"
       , "utils"
       , "text!tpl/fields/table.html"
       , "text!tpl/fields/ro.html"
+      , "screens/timeline/models"
       ]
     , (tpl, d3, Main, D, WS, Crud, DataMap, Um, MUtils, Utils
-      , Ttpl, ROtpl) ->
+      , Ttpl, ROtpl, models) ->
 
   fieldsDict = arrToObj 'name', Um.fields
 
@@ -304,6 +305,11 @@ define ["text!tpl/screens/timeline.html"
   ws   = null
 
   setupScreen = (viewName, args) ->
+    options =
+      permEl: null,
+      manual_save: true
+    massVM = Main.modelSetup("massUpdate", models.MassUpdate)(
+      "mass-form", {}, options)
 
     timelines = ko.observableArray()
     ks   = ko.observableArray []
@@ -318,6 +324,14 @@ define ["text!tpl/screens/timeline.html"
       filters:
         typeahead: (v) => Utils.kvmCheckMatch th(), v
 
+    global.kvms = kvms
+    # Mass-update to all shown users upon button click
+    $("#mass-apply").click () ->
+      _.map kvms(), (k) ->
+        if massVM.businessRole()?
+          k.businessRole massVM.businessRole()
+        k.bocities massVM.bocities()
+        k.boprograms massVM.boprograms()
 
     kvms.change_filters ['typeahead']
     kvms.typeahead = th
