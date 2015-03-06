@@ -20,6 +20,8 @@ data ActionType = ActionType
     :: F Text "description" "Описание"
   , priority
     :: F Int "priority" "Приоритет"
+  , maxSeconds
+    :: F Int "maxSeconds" "Регламентное время выполнения, с"
   } deriving Typeable
 
 mkIdents [t|ActionType|]

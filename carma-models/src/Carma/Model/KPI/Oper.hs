@@ -8,8 +8,9 @@ import           Data.Time.Clock (DiffTime, UTCTime)
 import           Data.Model
 import           Data.Model.View
 
-import           Carma.Model.Usermeta (Usermeta)
+import           Carma.Model.ActionType(ActionType)
 import           Carma.Model.Case     (Case)
+import           Carma.Model.Usermeta (Usermeta)
 import           Carma.Model.Types    (UserStateVal)
 
 
@@ -18,6 +19,7 @@ data OperKPI = OperKPI
   , user         :: F (IdentI Usermeta) "userid"          "Оператор"
 
   , currentCase  :: F (Maybe (IdentI Case))   "currentCase" "Текущий кейс"
+  , currentAType :: F (Maybe (IdentI ActionType)) "currentAType" "Текущий тип действия"
   , loginTime    :: F (Maybe UTCTime) "loginTime" "Время входа"
   , currentState :: F UserStateVal         "currentState"  "Текущий статус"
   , lastState    :: F (Maybe UserStateVal) "lastState"  "Последний статус"
