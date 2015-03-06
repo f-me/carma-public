@@ -3,6 +3,7 @@ CREATE TABLE "ActionType"
   , label text NOT NULL CHECK (label <> '')
   , description text NOT NULL DEFAULT ''
   , priority int4 NOT NULL
+  , limSeconds int4 NOT NULL DEFAULT 300
   );
 
 INSERT INTO "ActionType" (label, id, priority)

@@ -267,6 +267,7 @@ WITH
          , u.state, now() - u.ctime as inCurrent
          , e.modelName, e.modelId
          , c.id as caseId
+         , a.type as actionType
     FROM "UserState" u
     INNER JOIN "Event" e ON u.eventid = e.id
     LEFT  JOIN "actiontbl" a
@@ -294,6 +295,7 @@ SELECT l.userid     AS userid
      , l.state      AS currentState
      , l.inCurrent
      , l.caseId     AS currentCase
+     , l.actionType AS currentAType
      , p.state      AS lastState
      , ll.lastLogin AS loginTime
 FROM lastStates l

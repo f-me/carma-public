@@ -35,8 +35,12 @@ define ["text!tpl/screens/kpi/oper.html"
     k.currentState() == 'LoggedOut' &&
     k.inCurrent() <= 15 * 60
 
+  aDict = Utils.newModelDict "ActionType", false, dictionaryLabel: 'maxSeconds'
+
   mkOverDue = (k, overdue) -> ko.computed ->
-    k.currentState() == 'Busy' && k.inCurrent() > overdue()
+    secs = parseInt aDict.getLab k.currentAType()
+    k.currentState() == 'Busy' && (
+      (k.inCurrent() > overdue()) || (k.inCurrent() > secs))
 
   mkVisible = (k, hideOffline,outFromBusy) -> ko.computed ->
     if hideOffline()

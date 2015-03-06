@@ -11,13 +11,13 @@ include _settings
               +settings
             .col-md-2
             .col-md-6
-              span.inverse-red Выделять красным
+              span.inverse-red Выделяется красным
               | , если занят &ge;
               input.tiny-input(type="text"
                   data-bind="value: overdue.text, update: 'afterkeydown'")
-              | минут
+              | минут или превысил регламентное время выполнения действия
               br
-              span.inverse-orange Выделять оранжевым
+              span.inverse-orange Выделяется оранжевым
               | , если разлогинился из статуса занят
 
               br
