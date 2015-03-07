@@ -319,15 +319,23 @@ beforeUpdate = Map.unionsWith (++) $
 
   , trigOn Case.contract $ \case
       Nothing -> do
-        -- Clear all contract-related fields.
-        -- NB. we assume they are all nullable
-        modifyPatch $ foldl'
-          (\fn (C2C _ _ caseFld) -> case Model.fieldName caseFld of
-            nm |  nm == Model.fieldName Case.contact_name
-               || nm == Model.fieldName Case.contact_phone1
-               -> fn
-            _ -> Patch.put caseFld Nothing . fn)
-          id contractToCase
+        old <- getIdent >>= dbRead
+        case Patch.get' old Case.contract of
+          Nothing -> return ()
+          Just ctrId -> do
+            contract <- dbRead ctrId
+
+            -- Clear all contract-related fields.
+            -- NB. we assume they are all nullable
+            modifyPatch $ foldl'
+              (\fn (C2C ctrFld _ caseFld) -> case Model.fieldName caseFld of
+                nm |  nm == Model.fieldName Case.contact_name
+                   || nm == Model.fieldName Case.contact_phone1
+                   -> fn
+                _ -> case Patch.get' contract ctrFld of
+                      Nothing -> fn
+                      _  -> Patch.put caseFld Nothing . fn)
+              id contractToCase
         modifyPatch $ Patch.put Case.vinChecked Nothing
       Just cid ->
         do
@@ -349,8 +357,10 @@ beforeUpdate = Map.unionsWith (++) $
                     nm |  nm == Model.fieldName Case.contact_name
                        || nm == Model.fieldName Case.contact_phone1
                        -> id
-                    _ -> let new = f $ contract `Patch.get'` conField
-                         in Patch.put caseField new)
+                    _ -> let new = f $ Patch.get' contract conField
+                         in case new of
+                              Nothing -> id
+                              _  -> Patch.put caseField new)
                   contractToCase
           modifyPatch $ foldl (flip (.)) id p
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
