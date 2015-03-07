@@ -317,28 +317,24 @@ beforeUpdate = Map.unionsWith (++) $
           let temp = either (const $ Just "") (Just . T.pack . show . tempC) w
           modifyPatch (Patch.put Case.temperature temp)
 
-  , trigOn Case.contract $ \case
-      Nothing -> do
-        old <- getIdent >>= dbRead
-        case Patch.get' old Case.contract of
-          Nothing -> return ()
-          Just ctrId -> do
-            contract <- dbRead ctrId
-
-            -- Clear all contract-related fields.
-            -- NB. we assume they are all nullable
-            modifyPatch $ foldl'
-              (\fn (C2C ctrFld _ caseFld) -> case Model.fieldName caseFld of
-                nm |  nm == Model.fieldName Case.contact_name
-                   || nm == Model.fieldName Case.contact_phone1
-                   -> fn
-                _ -> case Patch.get' contract ctrFld of
-                      Nothing -> fn
-                      _  -> Patch.put caseFld Nothing . fn)
-              id contractToCase
-        modifyPatch $ Patch.put Case.vinChecked Nothing
-      Just cid ->
-        do
+  , trigOn Case.contract $ \val -> do
+      old <- getIdent >>= dbRead
+      case Patch.get' old Case.contract of
+        Nothing -> return ()
+        -- Clear all fields from old contract.
+        -- NB. we assume they are all nullable
+        Just ctrId -> do
+          contract <- dbRead ctrId
+          modifyPatch $ foldl'
+            (\fn (C2C ctrFld _ caseFld) ->
+              case Patch.get' contract ctrFld of
+                Nothing -> fn
+                _  -> Patch.put caseFld Nothing . fn)
+            id contractToCase
+      modifyPatch $ Patch.put Case.vinChecked Nothing
+      case val of
+        Nothing -> return ()
+        Just cid -> do
           contract <- dbRead cid
           n <- getNow
           let sinceExceeded =
@@ -352,17 +348,13 @@ beforeUpdate = Map.unionsWith (++) $
               checkStatus = if sinceExceeded || untilExceeded
                             then CCS.vinExpired
                             else CCS.base
-              p = map
-                  (\(C2C conField f caseField) -> case Model.fieldName caseField of
-                    nm |  nm == Model.fieldName Case.contact_name
-                       || nm == Model.fieldName Case.contact_phone1
-                       -> id
-                    _ -> let new = f $ Patch.get' contract conField
-                         in case new of
-                              Nothing -> id
-                              _  -> Patch.put caseField new)
-                  contractToCase
-          modifyPatch $ foldl (flip (.)) id p
+          modifyPatch $ foldl'
+            (\fn (C2C ctrFld f caseFld) ->
+              let new = f $ Patch.get' contract ctrFld
+              in case new of
+                Nothing -> fn
+                _  -> Patch.put caseFld new . fn)
+            id contractToCase
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
   ]  ++
   map entryToTrigger (fst carmaBackoffice) ++
