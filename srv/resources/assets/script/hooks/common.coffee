@@ -56,12 +56,6 @@ define [ "utils"
         # dict.disabled = kvm["#{fieldName}Disabled"]()
         kvm["#{fieldName}Disabled"].subscribe (v) -> dict.disabled = v
 
-    for f in m.fields when f.type == "dictionary"
-      do (f) ->
-        parent = f.meta.dictionaryParent
-        if parent
-          kvm["#{parent}Local"]?.subscribe (v) -> kvm[f.name]('')
-
   regexpKbHook: (model, kvm) ->
     # Set observable with name <fieldName>Regexp for inverse of
     # result of regexp checking for every field with meta.regexp
