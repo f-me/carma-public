@@ -21,7 +21,6 @@ define [], ->
           dictionaryName: "City"
           dictionaryType: "ModelDict"
           label: "Города"
-          infoText: "Если ничего не выбрано, текущий набор будет стёрт"
       },
       {
         type: "dictionary-many"
@@ -32,6 +31,5 @@ define [], ->
           dictionaryStringify: true
           dictionaryType: "ModelDict"
           label: "Программы"
-          infoText: "Если ничего не выбрано, текущий набор будет стёрт"
       },
     ]

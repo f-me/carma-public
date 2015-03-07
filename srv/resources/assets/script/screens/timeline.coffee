@@ -330,8 +330,16 @@ define ["text!tpl/screens/timeline.html"
       _.map kvms(), (k) ->
         if massVM.businessRole()?
           k.businessRole massVM.businessRole()
-        k.bocities massVM.bocities()
-        k.boprograms massVM.boprograms()
+        if massVM.bocities()?
+          k.bocities massVM.bocities()
+        if massVM.boprograms()?
+          k.boprograms massVM.boprograms()
+
+    $("#mass-clear-bocities").click () ->
+      _.map kvms(), (k) -> k.bocities []
+
+    $("#mass-clear-boprograms").click () ->
+      _.map kvms(), (k) -> k.boprograms []
 
     kvms.change_filters ['typeahead']
     kvms.typeahead = th
