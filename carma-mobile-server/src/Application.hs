@@ -311,7 +311,7 @@ instance ToJSON Partner where
 partnersAroundQuery :: Query
 partnersAroundQuery = [sql|
 WITH subquery AS (
-  SELECT partnertbl.*,
+  SELECT DISTINCT ON (partnertbl.id) partnertbl.*,
          addr->>'value' as addrDeFacto,
          phone->>'value' as phone1,
          ST_Distance_Sphere(coords, ST_PointFromText('POINT(? ?)', 4326)) dist
