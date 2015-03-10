@@ -46,11 +46,12 @@ define ["lib/current-user"
 
     csv = ko.computed
       read: ->
-        r = ""
+        r = "Оператор;"
         for f in flds when f.show()
           r += "#{f.label};"
         r += "\n"
         for s in sorted()
+          r += "\"#{s.userid.text()}\";"
           for f in flds when f.show()
             r += "#{s[f.name].text()};"
           r += "\n"
