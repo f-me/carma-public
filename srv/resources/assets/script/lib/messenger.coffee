@@ -1,5 +1,7 @@
 define ["lib/ws"], (WS) ->
 
+  # WebSocket model synchronization backbone
+
   if window.location.protocol == "https:"
     messengerUrl = "wss://#{location.hostname}:#{location.port}/wsmessenger"
   else
