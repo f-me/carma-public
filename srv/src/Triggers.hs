@@ -42,6 +42,7 @@ import           Text.Printf
 import           GHC.TypeLits
 
 import qualified Data.Pool as Pool
+import qualified Database.PostgreSQL.Simple as PG
 import qualified Database.PostgreSQL.Simple.Transaction as PG
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
@@ -62,7 +63,8 @@ import           Carma.Model.Case (Case)
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.City as City
 import qualified Carma.Model.CaseStatus as CS
-import           Carma.Model.Contract as Contract hiding (ident)
+import           Carma.Model.Contract (Contract, WDay(..))
+import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.ContractCheckStatus as CCS
 import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.FalseCall as FC
@@ -321,17 +323,11 @@ beforeUpdate = Map.unionsWith (++) $
       old <- getIdent >>= dbRead
       case Patch.get' old Case.contract of
         Nothing -> return ()
-        -- Clear all fields from old contract.
-        -- NB. we assume they are all nullable
-        Just ctrId -> do
+        Just ctrId -> do -- Erase data copied form old contract
           contract <- dbRead ctrId
-          modifyPatch $ foldl'
-            (\fn (C2C ctrFld _ caseFld) ->
-              case Patch.get' contract ctrFld of
-                Nothing -> fn
-                _  -> Patch.put caseFld Nothing . fn)
-            id contractToCase
-      modifyPatch $ Patch.put Case.vinChecked Nothing
+          let Just subProgId = Patch.get' contract Contract.subprogram
+          copyContractToCase subProgId Patch.empty
+          modifyPatch $ Patch.put Case.vinChecked Nothing
       case val of
         Nothing -> return ()
         Just cid -> do
@@ -348,13 +344,10 @@ beforeUpdate = Map.unionsWith (++) $
               checkStatus = if sinceExceeded || untilExceeded
                             then CCS.vinExpired
                             else CCS.base
-          modifyPatch $ foldl'
-            (\fn (C2C ctrFld f caseFld) ->
-              let new = f $ Patch.get' contract ctrFld
-              in case new of
-                Nothing -> fn
-                _  -> Patch.put caseFld new . fn)
-            id contractToCase
+          let Just subProgId = Patch.get' contract Contract.subprogram
+          -- The line below is just to convert a FullPatch to a Patch
+          let contract' = Patch.delete Contract.ident contract
+          copyContractToCase subProgId contract'
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
   ]  ++
   map entryToTrigger (fst carmaBackoffice) ++
@@ -509,6 +502,28 @@ contractToCase =
     , C2C Contract.carClass id Case.car_class
     , C2C Contract.subprogram id Case.subprogram
     ]
+
+
+copyContractToCase :: IdentI SubProgram -> Patch Contract -> Free (Dsl Case) ()
+copyContractToCase subProgId contract = do
+  ctrFields <- doApp $ do
+      s <- PS.getPostgresState
+      liftIO $ Pool.withResource (PS.pgPool s) $ \pg ->
+        concat <$> PG.query pg
+          "SELECT contractfield \
+          \  FROM \"SubProgramContractPermission\" \
+          \  WHERE showform AND parent = ?"
+          [subProgId]
+
+  modifyPatch $ foldl'
+    (\fn (C2C ctrFld f caseFld) ->
+      let new = f
+              $ fromMaybe Nothing -- (join :: Maybe (Maybe a) -> Maybe a)
+              $ Patch.get contract ctrFld
+      in if fieldName ctrFld `elem` ctrFields
+          then Patch.put caseFld new . fn
+          else fn)
+    id contractToCase
 
 
 -- | Concat legacy text reference lists
