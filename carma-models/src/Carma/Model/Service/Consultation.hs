@@ -7,11 +7,13 @@ import Data.Model
 import Data.Model.View
 import Carma.Model.ConsultationType (ConsultationType)
 import Carma.Model.Service (Service)
+import Carma.Model.Usermeta (Usermeta)
 
 
 data Consultation = Consultation
   { ident       :: PK Int Consultation ""
   , consType    :: F (Maybe (IdentI ConsultationType)) "consType" "Тип консультации"
+  , consultant  :: F (Maybe (IdentI Usermeta)) "consultant" "Консультант"
   , whatToSay1  :: F (Maybe Text) "whatToSay1" "Описание проблемы"
   , orderNumber :: F (Maybe Text) "orderNumber" "Номер заказ-наряда"
   }
@@ -24,4 +26,9 @@ instance Model Consultation where
   modelInfo = mkModelInfo Consultation ident
   modelView v = case parentView v :: Maybe (ModelView Consultation) of
     Nothing -> Nothing
-    Just mv -> Just $ mv {mv_title = "Консультация"}
+    Just mv -> Just $ modifyView (mv {mv_title = "Консультация"})
+               [ dict consultant $ (dictOpt "activeConsultants")
+                 { dictType    = Just "ComputedDict"
+                 , dictBounded = True
+                 }
+               ]
