@@ -87,6 +87,7 @@ WITH servicecounts AS (
     casetbl.caseaddress_comment AS "Адрес места поломки/примечания",
     servicetbl.contractor_partner AS "Субподрядчик, оказавший услугу",
     "ServiceStatus".label AS "Результат оказания помощи",
+    "Complication".label AS "Сложный случай",
     CASE
             WHEN servicetbl.falsecall = 2 OR servicetbl.falsecall = 3 THEN 'Y'::text
             ELSE 'N'::text
@@ -236,6 +237,7 @@ WITH servicecounts AS (
    LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = p2.id
    LEFT JOIN "ConsultationType" ON allservicesview.consType = "ConsultationType".id
    LEFT JOIN servicecounts ON servicetbl.parentid = servicecounts.parentid
+   LEFT JOIN "Complication" ON servicetbl.complication = "Complication".id
    LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id
    LEFT JOIN "PaymentType" ON servicetbl.paytype = "PaymentType".id
    LEFT JOIN "ServiceStatus" ON servicetbl.status = "ServiceStatus".id
