@@ -7,7 +7,9 @@ define ["dictionaries/local-dict"], (ld) ->
       args  = a.split(',').map((e) -> e.trim()) unless _.isEmpty args
       fn.call(@, args)
 
-    getLab: (val) -> @dictValues()[val]
+    # Use @allValuesMap to provide id-label mapping for non-selectable
+    # items
+    getLab: (val) -> (@allValuesMap || @dictValues())[val]
 
     # ServiceType dictionary including icon field and model names
     iconizedServiceTypes: =>
@@ -41,6 +43,19 @@ define ["dictionaries/local-dict"], (ld) ->
         @source = for p in pms
             { value: p.id
             , label: p.realName || p.login
+            }
+
+    # Dictionary of all active usermetas with mechanic role (used on
+    # Consultation)
+    activeConsultants: =>
+      @bgetJSON "/_/Usermeta", (objs) =>
+        @allValuesMap =
+          _.reduce objs, ((m,i) => m[i.id] = i.realName || i.login; m), {}
+        cs = _.filter objs, (o) ->
+          (o.isActive && _.contains o.roles, global.idents("Role").consultant)
+        @source = for c in cs
+            { value: c.id
+            , label: c.realName || c.login
             }
 
     # Dictionary of all subprograms, with labels including parent
