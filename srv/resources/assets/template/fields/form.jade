@@ -52,8 +52,12 @@ include _form_utils
     .row
       .col-sm-6
         +rawDateInput(".begin", "", 'change')
+          span.input-group-addon
+            span.glyphicon.glyphicon-calendar
       .col-sm-6
         +rawDateInput(".end", "", 'change')
+          span.input-group-addon
+            span.glyphicon.glyphicon-calendar
 
 .field-template#phone-field-template
   +fieldControlGroup
