@@ -520,7 +520,8 @@ copyContractToCase subProgId contract = do
       let new = f
               $ fromMaybe Nothing -- (join :: Maybe (Maybe a) -> Maybe a)
               $ Patch.get contract ctrFld
-      in if fieldName ctrFld `elem` ctrFields
+          fld = fieldName ctrFld
+      in if fld `elem` ctrFields || fld == fieldName Contract.subprogram
           then Patch.put caseFld new . fn
           else fn)
     id contractToCase
