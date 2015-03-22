@@ -18,6 +18,7 @@ import Carma.Model.PgTypes()
 
 data Program = Program
   { ident                 :: PK Int Program             "Программа"
+  , active                :: F Bool            "active" "Активна"
   , label                 :: F Text            "label"  "Название"
   , client                :: F (Maybe Text)    "client" "Заказчик"
   , clientAddress         :: F (Maybe Text)    "clientAddress" "Адрес заказчика"
