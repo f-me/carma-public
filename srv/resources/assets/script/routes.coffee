@@ -27,7 +27,7 @@ define ["render/screen"
         name : "Call"
         template: "call-screen-template"
         views:
-          "call-form": call
+          "call-view": call
       r.renderScreen call, bind
 
   addRoute "case/:id", (bind) ->
@@ -56,6 +56,14 @@ define ["render/screen"
         views:
           "Partner-view": partner
       r.renderScreen partner, bind
+
+  addRoute "processingConfig", (bind) ->
+    require ["screens/processingConfig"], (procCfg) ->
+      procCfg.screen =
+        name : "processingConfig"
+        views:
+          "config-view": procCfg
+      r.renderScreen procCfg, bind
 
   addRoute "usermeta/:id", (bind) ->
     require ["screens/dictionaries"], (user) ->

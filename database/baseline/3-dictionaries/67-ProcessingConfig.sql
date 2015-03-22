@@ -1,0 +1,14 @@
+CREATE TABLE "ProcessingConfig"
+  ( id    SERIAL PRIMARY KEY
+  , actionsFirst bool NOT NULL DEFAULT 't'
+  , afterCallSeconds int4 NOT NULL DEFAULT 30
+  );
+
+COPY "ProcessingConfig" (id, actionsFirst, afterCallSeconds) FROM stdin;
+1	t	30
+\.
+
+GRANT ALL ON "ProcessingConfig" TO carma_db_sync;
+GRANT ALL ON "ProcessingConfig" TO carma_search;
+
+SELECT setval(pg_get_serial_sequence('"ProcessingConfig"', 'id'), max(id)) from "ProcessingConfig";

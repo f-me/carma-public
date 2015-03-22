@@ -14,6 +14,8 @@ require [ "domready"
         , "lstorePubSub"
         , "lib/current-user"
         , "lib/hacking"
+        , "lib/cti"
+        , "lib/cti-panel"
         ], ( dom
            , main
            , Finch
@@ -28,6 +30,8 @@ require [ "domready"
            , pubSub
            , CurrentUser
            , hacking
+           , CTI
+           , CTIPanel
            ) ->
 
   bugReport = new bug.BugReport
@@ -91,8 +95,19 @@ require [ "domready"
       # New CTI panel
       if _.contains user.roles, global.idents("Role").cti
         if user.workPhoneSuffix.match(/^\d+$/)
-          global.cti = new CTI(user.workPhoneSuffix)
-          new CTIPanel global.cti, $("#cti")
+          cti = new CTI user.workPhoneSuffix
+          vips = u.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
+          opts =
+            # AVAYA halts when this is dialed
+            bannedNumbers: ["8"]
+            displayedToInternal:
+              (number) ->
+                number.replace("+7", "98").replace("+", "9810")
+            internalToDisplayed:
+              (number) ->
+                number?.match(/\d+/)?[0]?.replace(/^(98|8|)(\d{10})$/, "\+7$2")
+            isVipCb: (n) -> vips.getVal(n)
+          global.CTIPanel = new CTIPanel cti, $("#cti"), opts
         else
           console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 
@@ -132,3 +147,4 @@ require [ "domready"
   u.build_global_fn 'kdoPick', ['utils']
   u.build_global_fn 'edoPick', ['utils']
   u.build_global_fn 'focusField', ['utils']
+  u.build_global_fn 'ctiDial', ['utils']

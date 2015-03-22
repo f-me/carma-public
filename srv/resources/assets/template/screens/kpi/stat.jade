@@ -73,7 +73,7 @@ include _settings
                     }")
                 span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
                   data-bind="visible: showDetails.loading")
-              td(data-bind="fieldRender: kvm['userid']")
+              td(data-bind="text: kvm['useridGrp']")
               // ko foreach: $root.tblCtx.fields
               // ko if: show
               td(data-bind="render: {kvm: kvm, field: $data}")
@@ -95,4 +95,3 @@ include _settings
 
 .hidden
   include /fields/ro.jade
-

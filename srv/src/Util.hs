@@ -18,7 +18,6 @@ module Util
   , render
 
     -- * Time and date
-  , formatTimestamp
   , projNow
 
     -- * Legacy interoperability for Idents
@@ -69,7 +68,6 @@ import qualified Data.Text.Read as T
 
 import Data.Time
 import Data.Time.Clock.POSIX
-import System.Locale (defaultTimeLocale)
 
 import Data.Aeson as Aeson
 import qualified Data.Aeson.Types as Aeson
@@ -157,17 +155,6 @@ render varMap = T.concat . loop
         (expr, tpl'') -> txt : evalVar expr : loop (T.tail tpl'')
 
     evalVar v = Map.findWithDefault v v varMap
-
-
--- | Format timestamp as @DD/MM/YYYY@.
-formatTimestamp :: MonadIO m => Text -> m Text
-formatTimestamp tm = case T.decimal tm of
-  Right (s :: Int, "") -> do
-    tz <- liftIO getCurrentTimeZone
-    return $ T.pack $ formatTime defaultTimeLocale "%d/%m/%Y"
-      $ utcToLocalTime tz
-      $ posixSecondsToUTCTime $ fromIntegral s
-  _ -> return "???"
 
 
 -- | Get current UNIX timestamp, round and apply a function to it,

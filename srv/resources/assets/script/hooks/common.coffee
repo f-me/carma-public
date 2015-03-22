@@ -56,12 +56,6 @@ define [ "utils"
         # dict.disabled = kvm["#{fieldName}Disabled"]()
         kvm["#{fieldName}Disabled"].subscribe (v) -> dict.disabled = v
 
-    for f in m.fields when f.type == "dictionary"
-      do (f) ->
-        parent = f.meta.dictionaryParent
-        if parent
-          kvm["#{parent}Local"]?.subscribe (v) -> kvm[f.name]('')
-
   regexpKbHook: (model, kvm) ->
     # Set observable with name <fieldName>Regexp for inverse of
     # result of regexp checking for every field with meta.regexp
@@ -167,7 +161,7 @@ define [ "utils"
         dict.disabled = k["#{n}Disabled"]()
         k["#{n}Disabled"].subscribe (v) -> dict.disabled = v
 
-  # For every field {n} with type=json and json-schema=dict-objects,
+  # For every field {n} with type=json and jsonSchema=dict-objects,
   # create a new observable {n}Objects, which is an observable array
   # of submodels bound to JSON objects stored in this field in an
   # array.
@@ -303,3 +297,11 @@ define [ "utils"
   bindRemoveHook: (fieldName) ->
     (model, kvm) ->
       kvm[fieldName].subscribe -> u.bindRemove kvm, fieldName
+
+  vipPhones: (model, kvm) ->
+    vips = u.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
+    for f in model.fields when f.type == "phone"
+      do(f) ->
+        n = f.name
+        kvm["#{n}Vip"] = ko.computed ->
+          vips.getVal(kvm["#{n}"]())

@@ -6,10 +6,37 @@ WITH servicelabel AS
 (
 WITH A AS (SELECT id, regexp_split_to_table(services, ',') as service
 FROM partnertbl)
-SELECT A.id, string_agg("ServiceType".label, ',') as label from A
+SELECT A.id, string_agg("ServiceType".label, ', ') as label from A
 LEFT JOIN "PartnerService" ON SPLIT_PART(A.service, ':', 2) = "PartnerService".id::text
 LEFT JOIN "ServiceType" ON "PartnerService".servicename = "ServiceType".id
 GROUP BY A.id
+),
+makelabels AS
+(
+ SELECT MK.id, string_agg("CarMake".label, ', ') as makes
+ FROM (SELECT id, unnest(makes) as mk FROM partnertbl) MK
+ LEFT JOIN "CarMake" ON "CarMake".id = MK.mk
+ GROUP BY MK.id
+),
+addrs AS
+(
+ SELECT DISTINCT id, addrs_value as text FROM
+ (SELECT id,
+         json_array_elements(addrs)->>'value' as addrs_value,
+         json_array_elements(addrs)->>'key' as addrs_key
+         FROM partnertbl) s WHERE addrs_key = 'fact'
+),
+phones AS
+(
+ SELECT id, string_agg(phones_value, ', ') as text FROM
+ (SELECT id, json_array_elements(phones)->>'value' as phones_value
+  FROM partnertbl) s GROUP BY id
+),
+emails AS
+(
+ SELECT id, string_agg(emails_value, ', ') as text FROM
+ (SELECT id, json_array_elements(emails)->>'value' as emails_value
+  FROM partnertbl) s GROUP BY id
 )
 Select
 --ФУНКЦИЯ YESNO
@@ -46,7 +73,7 @@ partnertbl.name AS "Название партнёра",
 partnertbl.code AS "Код",
 --LOOKUP(DealerCities, partnertbl.city) вместо dictionaries/DealerCities.json
         "City".label AS "Город",
-makes AS "Обслуживаемые марки",
+makelabels.makes AS "Обслуживаемые марки",
 partnertbl.personInCharge AS "Ответственное лицо",
 --partnertbl.taxScheme AS "Форма налогообложения",
         "TaxScheme".label AS "Форма налогообложения",
@@ -65,24 +92,25 @@ partnertbl.comment AS "Комментарий",
 servicelabel.label AS "Услуги",
 --ЧТО ЭТО?
         --partnertbl.garbage,
-partnertbl.coords AS "Координаты",
 --ЧТО ЭТО? Чем отличается от makes?
         --makers, --СТАРОЕ ПОЛЕ
 --ЧТО ЭТО?
         --mtime, -- время последнего обновления данных о партнёре через партнёрское приложение
---JSON
-addrs AS "Адреса",
---JSON
-phones AS "Телефоны",
-emails AS "Электронная почта",
+addrs.text AS "Адрес",
+phones.text AS "Телефоны",
+emails.text AS "Электронная почта",
 --ЧТО ЭТО?
         --isfree, -- свободен ли партнёр (используется для мобильных партнёров, у них кнопочка в приложении есть)
 foreignident AS "Интеграционный код",
-synonyms AS "Синонимы"
+array_to_string(synonyms, ', ') AS "Синонимы"
 FROM partnertbl
 LEFT JOIN "City" ON partnertbl.city = "City".id
 LEFT JOIN "TaxScheme" ON partnertbl.taxScheme::Integer = "TaxScheme".id
-LEFT JOIN servicelabel ON partnertbl.id = servicelabel.id;
+LEFT JOIN servicelabel ON partnertbl.id = servicelabel.id
+LEFT JOIN makelabels ON partnertbl.id = makelabels.id
+LEFT JOIN addrs ON partnertbl.id = addrs.id
+LEFT JOIN phones ON partnertbl.id = phones.id
+LEFT JOIN emails ON partnertbl.id = emails.id;
 
 GRANT SELECT ON "Партнеры" TO reportgen;
 GRANT ALL ON "Партнеры" TO analyst;

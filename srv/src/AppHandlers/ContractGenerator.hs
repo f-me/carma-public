@@ -59,6 +59,8 @@ q = [sql|
         , to_char(c.validSince, 'DD/MM/YYYY')
         , client, clientCode, clientAddress
         , u.realName
+        , spgm.label
+        , pgm.label
      FROM "Contract" c
      INNER JOIN "SubProgram" spgm ON c.subprogram = spgm.id
      INNER JOIN "Program" pgm ON spgm.parent = pgm.id
@@ -89,6 +91,8 @@ fields = [ "car_vin"
          , "clientCode"
          , "clientAddress"
          , "owner"
+         , "subprogram"
+         , "program"
          ]
 
 renderContractHandler :: AppHandler ()

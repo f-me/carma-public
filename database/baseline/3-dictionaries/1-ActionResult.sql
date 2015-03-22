@@ -100,6 +100,9 @@ INSERT INTO "ActionResult" (label, id)
 VALUES ('Закрыто супервизором', 32);
 
 INSERT INTO "ActionResult" (label, id)
+VALUES ('Звонок завершён', 100);
+
+INSERT INTO "ActionResult" (label, id)
 VALUES ('Закрыто (архив)', 9000);
 
 SELECT setval(pg_get_serial_sequence('"ActionResult"', 'id'), max(id)) from "ActionResult";

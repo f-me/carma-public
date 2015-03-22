@@ -1,0 +1,1 @@
+ALTER TYPE "UserStateVal" ADD VALUE 'NA';

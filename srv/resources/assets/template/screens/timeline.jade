@@ -12,9 +12,27 @@ mixin rows(columns)
       each c in columns
         td(data-bind="renderTpl: {field: $data['#{c.name}'], tpl: '#{c.tpl}' }")
 
-#timeline-view.screen.container-fluid.col
-  .row
-    #users.bs-docs-example.col-md-12
+.screen.container-fluid.col
+ .row
+    .bs-docs-example.col-md-12
+      .row
+          .bs-docs-example-after
+              | Массовое управление
+            .row
+              #mass-form
+              .form-group
+                .col-md-offset-4.col-md-8
+                  button.btn.btn-sm.btn-info#mass-apply(type='button')
+                    i.glyphicon.glyphicon-sort-by-attributes-alt
+                    | &nbsp;Применить
+                  button.btn.btn-sm.btn-danger#mass-clear-bocities(type='button')
+                    i.glyphicon.glyphicon-sort-by-attributes-alt
+                    | &nbsp;Очистить города
+                  button.btn.btn-sm.btn-danger#mass-clear-boprograms(type='button')
+                    i.glyphicon.glyphicon-sort-by-attributes-alt
+                    | &nbsp;Очистить программы
+ #timeline-view
+  #users.bs-docs-example.col-md-12
       .row
           .bs-docs-example-after
               | Пользователи
@@ -27,13 +45,13 @@ mixin rows(columns)
               table.table.table-hover.table-bordered.table-striped.table-condensed
                 +rows([ { name: 'login',        tpl: 'text-ro',              w: 10 }
                       , { name: 'realName',     tpl: 'text-ro',              w: 20 }
+                      , { name: 'grp',          tpl: 'text-ro',              w: 10 }
                       , { name: 'businessRole', tpl: 'dictionary-table',     w: 15 }
                       , { name: 'bocities',     tpl: 'dictionary-many-table',w: 20 }
                       , { name: 'boprograms',   tpl: 'dictionary-many-table',w: 20 }
                       , { name: 'currentState', tpl: 'dictionary-ro'        ,w: 10 }
                       , { name: 'delayedState', tpl: 'onlyServiceBreak-table',w: 5}
                       ])
-
   // ko foreach: timelines
   #timelines(data-bind="attr: {id: elementId}")
     .row.timeline(data-bind="applyFn: showTimeline")

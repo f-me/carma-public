@@ -37,6 +37,7 @@ import           Data.Model
 import           Carma.Backoffice.DSL
 
 
+-- | Structured text with indentation blocks.
 data IndentedChunk = T Text
                    | NL
                    | IND IndentedText
@@ -44,6 +45,42 @@ data IndentedChunk = T Text
 
 
 type IndentedText = [IndentedChunk]
+
+
+formatIndentedText :: Text
+                   -- ^ Newline text.
+                   -> Text
+                   -- ^ Line prefix per indentation level.
+                   -> IndentedText
+                   -- ^ Source text.
+                   -> Text
+formatIndentedText newline indent = formatText1 0 ""
+  where
+    formatText1 _ acc [] = acc
+    formatText1 l acc (c:cont) =
+      case c of
+        T t -> formatText1 l (acc `T.append` t) cont
+        NL -> formatText1 l
+              (T.concat [acc, newline, T.concat (l `replicate` indent)]) cont
+        IND i ->
+          formatText1 l
+          (acc `T.append` formatText1 (l + 1) "" (NL:i)) (maybeNL cont)
+          where
+            -- Add newlines at start/end of indentation block if
+            -- there's extra content on this indentation level
+            -- (prevents superfluous newlines when a block body ends
+            -- with deeper nesting, as in @IND [.., IND [..]]@)
+            maybeNL [] = []
+            maybeNL ls = NL:ls
+
+
+-- | Format text, ignoring all indentation and newlines.
+formatOneline :: IndentedText -> Text
+formatOneline = foldl combine ""
+  where
+    combine acc NL = acc
+    combine acc (T t) = acc `T.append` t
+    combine acc (IND i) = acc `T.append` formatOneline i
 
 
 -- | Convert an ident to text.
@@ -146,11 +183,11 @@ instance Backoffice TextE where
           return $
             [ T "Пользователь, ответственный за последнее "
             , T $ scopeText scope
-            , T $ " действие с типом {"
+            , T " действие с типом {"
             ] ++
-            (intersperse (T " или ") $ concat acts') ++
+            intersperse (T " или ") (concat acts') ++
             [T "} в состоянии {"] ++
-            (intersperse (T " или ") $ concat res') ++
+            intersperse (T " или ") (concat res') ++
             [T "}"]
 
     noResult = textE "Открыто"
@@ -172,7 +209,7 @@ instance Backoffice TextE where
       "Вместо того, чтобы " " приобрело значение "
 
     not v = TextE $
-            (\o -> [T "НЕ выполнено условие "] ++ o) <$> toText v
+            (\o -> T "НЕ выполнено условие ":o) <$> toText v
 
     a > b = TextE $ textBinary a b "" " > " ""
 
@@ -193,7 +230,7 @@ instance Backoffice TextE where
           return $
             val' ++
             [T " ∈ {"] ++
-            (intersperse (T ", ") $ concat set') ++
+            intersperse (T ", ") (concat set') ++
             [T "}"]
 
     switch conds ow =
@@ -206,7 +243,7 @@ instance Backoffice TextE where
           ow' <- toText ow
           conds' <- mapM ppc conds
           return $
-            (concat conds') ++
+            concat conds' ++
             [T "Во всех других случаях: ", IND ow']
 
     setCaseField acc i =
@@ -242,7 +279,7 @@ instance Backoffice TextE where
             , T $ scopeText scope
             , T " действия {"
             ] ++
-            (intersperse (T ", ") $ concat acts') ++
+            intersperse (T ", ") (concat acts') ++
             [T "} с результатом "] ++
             r'
 
@@ -250,7 +287,7 @@ instance Backoffice TextE where
 
     proceed [] = textE "Завершить обработку"
     proceed acts =
-        TextE $ do
+        TextE $
           ([T "Создать действия: "] ++) <$>
             (intersperse (T ", ") . concat) <$> mapM (toText . const) acts
 
@@ -291,39 +328,10 @@ formatDiff nd' =
       T.pack $ concatMap (\(v, l) -> show v ++ l) nonZeros
 
 
-formatIndentedText :: Text -> Text -> IndentedText -> Text
-formatIndentedText newline indent = formatText1 0 ""
-  where
-    formatText1 _ acc [] = acc
-    formatText1 l acc (c:cont) =
-      case c of
-        T t -> formatText1 l (acc `T.append` t) cont
-        NL -> formatText1 l
-              (T.concat [acc, newline, T.concat (l `replicate` indent)]) cont
-        IND i ->
-          formatText1 l
-          (acc `T.append` formatText1 (l + 1) "" (NL:i)) (maybeNL cont)
-          where
-            -- Add newlines at start/end of indentation block if
-            -- there's extra content on this indentation level
-            -- (prevents superfluous newlines when a block body ends
-            -- with deeper nesting, as in @IND [.., IND [..]]@)
-            maybeNL [] = []
-            maybeNL ls = NL:ls
-
-
-formatOneline :: IndentedText -> Text
-formatOneline = foldl combine ""
-  where
-    combine acc NL = acc
-    combine acc (T t) = acc `T.append` t
-    combine acc (IND i) = acc `T.append` formatOneline i
-
-
 -- | Produce a textual spec from a back office description.
 backofficeText :: BackofficeSpec -> IMap -> Text
 backofficeText spec iMap =
-    formatIndentedText "\n" "    " $
+    formatIndentedText "\n" "    "
     [ T "ВХОДЫ:"
     , IND $ intercalate [NL] $ map fmtEntry $ fst spec
     , NL

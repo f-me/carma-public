@@ -57,11 +57,15 @@ define [ "text!tpl/screens/printSrv.html"
               )
           )
 
+        program = kase.programLocal()
+        if kase.subprogramLocal()
+          program += ' / ' + kase.subprogramLocal()
         kvm =
           kase: kase
           service: svc
           callTaker: callTaker
           comments: kase.comments() || []
+          program: program
           cancels: cancels
         ko.applyBindings kvm, el("print-table")
     )

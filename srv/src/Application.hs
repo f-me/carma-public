@@ -16,6 +16,7 @@ import Snap.Snaplet.Session
 
 import qualified WeatherApi as W
 
+import Snaplet.Avaya
 import Snaplet.Auth.Class
 import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
@@ -35,8 +36,6 @@ data AppOptions = AppOptions
     , searchMinLength :: Int
       -- ^ Minimal query length for database-heavy searches
       -- (@search-min-length@).
-    , cstaWsHost :: Maybe Text
-    , cstaWsPort :: Int
     }
 
 
@@ -50,6 +49,7 @@ data App = App
     , pg_actass   :: Pool Pg.Connection
     , _taskMgr    :: Snaplet (TaskManager App)
     , _fileUpload :: Snaplet (FileUpload App)
+    , _avaya      :: Snaplet (Avaya App)
     , _geo        :: Snaplet Geo
     , _db         :: Snaplet Postgres
     , _search     :: Snaplet (Search App)

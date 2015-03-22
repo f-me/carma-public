@@ -6,53 +6,52 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module ModelTriggers
+module Triggers
   (runCreateTriggers
   ,runUpdateTriggers
   ) where
 
 
-import Prelude hiding (until)
+import           Prelude hiding (until)
 
-import Control.Applicative
-import Control.Concurrent
-import Control.Monad.CatchIO (finally)
-import Control.Monad
-import Control.Monad.Free (Free)
-import Control.Monad.Trans
-import Control.Monad.Trans.Reader
+import           Control.Applicative
+import           Control.Concurrent
+import           Control.Monad.CatchIO (finally)
+import           Control.Monad
+import           Control.Monad.Free (Free)
+import           Control.Monad.Trans
+import           Control.Monad.Trans.Reader
 
-import Data.List
-import qualified Data.List as L
-import qualified Data.Vector as V
 import qualified Data.Aeson as Aeson
-import Data.Map (Map)
+import qualified Data.ByteString.Lazy as LBS
+import           Data.Dynamic
+import           Data.List
+import qualified Data.List as L
+import           Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
-import Data.Maybe
-import Data.Text (Text)
+import           Data.Maybe
+import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import qualified Data.ByteString.Lazy as LBS
-import Text.Printf
-import Data.Time.Calendar
-import Data.Time.Clock
-import Data.Dynamic
-import GHC.TypeLits
+import           Data.Time.Calendar
+import           Data.Time.Clock
+import qualified Data.Vector as V
+import           Text.Printf
+
+import           GHC.TypeLits
 
 import qualified Data.Pool as Pool
+import qualified Database.PostgreSQL.Simple as PG
 import qualified Database.PostgreSQL.Simple.Transaction as PG
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
-import WeatherApi (tempC)
-
-import Application (AppHandler)
-import Data.Model as Model
-import Data.Model.Patch as Patch
-import Data.Model.Types
-import           Trigger.Dsl as Dsl
+import           WeatherApi (tempC)
 
 import           Carma.Model.Types (HMDiffTime(..))
+import           Data.Model as Model
+import           Data.Model.Patch as Patch
+import           Data.Model.Types
 
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.ActionResult as ActionResult
@@ -64,7 +63,8 @@ import           Carma.Model.Case (Case)
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.City as City
 import qualified Carma.Model.CaseStatus as CS
-import           Carma.Model.Contract as Contract hiding (ident)
+import           Carma.Model.Contract (Contract, WDay(..))
+import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.ContractCheckStatus as CCS
 import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.FalseCall as FC
@@ -90,15 +90,20 @@ import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 import           Carma.Backoffice
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
-import qualified Carma.Backoffice.Action.SMS as BOAction (sendSMS)
-import qualified Carma.Backoffice.Action.MailToGenser as BOAction (sendMailToGenser)
-import qualified Carma.Backoffice.Action.MailToPSA as BOAction (sendMailToPSA)
-import qualified Carma.Backoffice.Action.MailToDealer as BOAction (sendMailToDealer)
 import           Carma.Backoffice.DSL.Types
 import           Carma.Backoffice.Graph (startNode)
 
-import           AppHandlers.ActionAssignment
+import           Application (AppHandler)
+import           AppHandlers.ActionAssignment (topPriority, leastPriority)
+
+import qualified Triggers.Action.SMS as BOAction (sendSMS)
+import qualified Triggers.Action.MailToGenser as BOAction (sendMailToGenser)
+import qualified Triggers.Action.MailToPSA as BOAction (sendMailToPSA)
+import qualified Triggers.Action.MailToDealer as BOAction (sendMailToDealer)
+import           Triggers.DSL as Dsl
+
 import           Util (Priority(..), syslogJSON, (.=))
+
 
 -- TODO: rename
 --   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
@@ -217,8 +222,7 @@ beforeUpdate = Map.unionsWith (++) $
 
   , trigOn Call.endDate $ \case
       Nothing -> return ()
-      Just _ -> do
-        getNow >>= (modifyPatch . Patch.put Call.endDate . Just)
+      Just _ -> getNow >>= (modifyPatch . Patch.put Call.endDate . Just)
 
   , trigOn ActionType.priority $
     \n -> modPut ActionType.priority $
@@ -275,7 +279,7 @@ beforeUpdate = Map.unionsWith (++) $
             JsonAsText txt <- val
             Aeson.Array arr <- Aeson.decodeStrict' $ T.encodeUtf8 txt
             return $ V.toList arr
-      let comments = nub $ concat $ catMaybes $ map parseObjList [old, new]
+      let comments = nub $ concat $ mapMaybe parseObjList [old, new]
       let jsonToText = T.decodeUtf8 . LBS.toStrict . Aeson.encode
       let merged = JsonAsText $ jsonToText $ Aeson.Array $ V.fromList comments
       modifyPatch $ Patch.put Case.comments $ Just merged
@@ -333,15 +337,10 @@ beforeUpdate = Map.unionsWith (++) $
               checkStatus = if sinceExceeded || untilExceeded
                             then CCS.vinExpired
                             else CCS.base
-              p = map
-                  (\(C2C conField f caseField) -> case Model.fieldName caseField of
-                    nm |  nm == Model.fieldName Case.contact_name
-                       || nm == Model.fieldName Case.contact_phone1
-                       -> id
-                    _ -> let new = f $ contract `Patch.get'` conField
-                         in Patch.put caseField new)
-                  contractToCase
-          modifyPatch $ foldl (flip (.)) id p
+          let Just subProgId = Patch.get' contract Contract.subprogram
+          -- The line below is just to convert a FullPatch to a Patch
+          let contract' = Patch.delete Contract.ident contract
+          copyContractToCase subProgId contract'
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
   ]  ++
   map entryToTrigger (fst carmaBackoffice) ++
@@ -467,7 +466,7 @@ runTriggers before after dbAction fields state = do
     syslogJSON Info "runTriggers" ["time" .= show (diffUTCTime end start)]
 
 
--- | Mapping between a contract field and a  case field.
+-- | Mapping between a contract field and a case field.
 data Con2Case = forall t1 t2 n1 d1 n2 d2.
                 (Eq t2, Show t2, FieldI t1 n1 d1, FieldI t2 n2 d2) =>
                 C2C
@@ -497,13 +496,38 @@ contractToCase =
     , C2C Contract.subprogram id Case.subprogram
     ]
 
+
+copyContractToCase :: IdentI SubProgram -> Patch Contract -> Free (Dsl Case) ()
+copyContractToCase subProgId contract = do
+  ctrFields <- doApp $ do
+      s <- PS.getPostgresState
+      liftIO $ Pool.withResource (PS.pgPool s) $ \pg ->
+        concat <$> PG.query pg
+          "SELECT contractfield \
+          \  FROM \"SubProgramContractPermission\" \
+          \  WHERE showform AND parent = ?"
+          [subProgId]
+
+  modifyPatch $ foldl'
+    (\fn (C2C ctrFld f caseFld) ->
+      let new = f
+              $ fromMaybe Nothing -- (join :: Maybe (Maybe a) -> Maybe a)
+              $ Patch.get contract ctrFld
+          fld = fieldName ctrFld
+      in if fld `elem` ctrFields || fld == fieldName Contract.subprogram
+          then Patch.put caseFld new . fn
+          else fn)
+    id contractToCase
+
+
 -- | Concat legacy text reference lists
 concatLegacyIds :: Maybe Reference -> Maybe Reference -> Maybe Reference
 concatLegacyIds r1 r2 = Just $ Reference $
     T.intercalate "," $ parseRefs r1 `L.union` parseRefs r2
   where
     parseRefs Nothing              = []
-    parseRefs (Just (Reference r)) = map (T.strip) $ T.splitOn "," r
+    parseRefs (Just (Reference r)) = map T.strip $ T.splitOn "," r
+
 
 -- | Set @validUntil@ field from a subprogram and a new @validSince@
 -- value.
@@ -548,12 +572,13 @@ haskellBinary :: (HaskellType t1 -> HaskellType t2 -> HaskellType t)
 haskellBinary fun a b = HaskellE $ fun <$> toHaskell a <*> toHaskell b
 
 
+-- | Haskell embedding for Backoffice DSL.
 newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
     deriving Typeable
 
 
 instance Backoffice HaskellE where
-    now = HaskellE $ asks ModelTriggers.now
+    now = HaskellE $ asks Triggers.now
 
     since nd t =
         HaskellE $ addUTCTime nd <$> toHaskell t
@@ -900,10 +925,12 @@ data HCtx =
          }
 
 
+-- | Convert Backoffice entries to update triggers.
 entryToTrigger :: BO.Entry -> Map (ModelName, FieldName) [Dynamic]
 entryToTrigger = evalHaskell emptyContext . BO.trigger
 
 
+-- | Convert Backoffice entries to action result triggers.
 actionToTrigger :: BO.Action -> Map (ModelName, FieldName) [Dynamic]
 actionToTrigger a =
   trigOn Action.result $
@@ -911,7 +938,7 @@ actionToTrigger a =
     this <- dbRead =<< getIdent
     case newVal of
       Nothing -> return ()
-      Just newRes -> do
+      Just newRes ->
         -- Skip changes for actions of different types
         when (this `get'` Action.aType == BO.aType a) $
           case lookup newRes (BO.outcomes a) of

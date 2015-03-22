@@ -53,8 +53,8 @@ define [ "utils"
       type: "PUT"
       url: "/backoffice/littleMoreActions"
       success: myActionsHandler
-      error: () ->
-        if global.Usermeta.currentState() == "Busy"
+      error: (res) ->
+        if res.responseText.match /in non-Ready state/
           $("#standby-msg").text "Нельзя получить новое действие в статусе «Занят»!"
         else
           $("#standby-msg").text "Что-то пошло не так!"
@@ -66,11 +66,11 @@ define [ "utils"
 
   # Start working on an action and redirect to its case
   openCaseAction = (actId, caseId) ->
+    $("#standby-msg").text "Открываю действие #{actId} в кейсе #{caseId}…"
     $.ajax
       type: "PUT"
       url: "/backoffice/openAction/#{actId}"
       success: () ->
-        $("#standby-msg").text "Перенаправляю на кейс #{caseId}…"
         window.location.hash = "case/#{caseId}"
 
   { constructor: setupBackOffice

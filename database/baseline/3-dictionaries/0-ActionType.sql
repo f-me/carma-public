@@ -3,6 +3,7 @@ CREATE TABLE "ActionType"
   , label text NOT NULL CHECK (label <> '')
   , description text NOT NULL DEFAULT ''
   , priority int4 NOT NULL
+  , limSeconds int4 NOT NULL DEFAULT 300
   );
 
 INSERT INTO "ActionType" (label, id, priority)
@@ -67,6 +68,9 @@ VALUES ('Заказ услуги через мобильное приложен�
 
 INSERT INTO "ActionType" (label, id, priority)
 VALUES ('Уточнить время выезда', 21, 1);
+
+INSERT INTO "ActionType" (label, id, priority)
+VALUES ('Звонок', 100, 1);
 
 INSERT INTO "ActionType" (label, id, priority)
 VALUES ('Действие не актуально (архив)', 9000, 10);

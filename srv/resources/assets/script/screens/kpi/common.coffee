@@ -38,7 +38,7 @@ define ["lib/current-user"
       filters:
         kvmFilter: (kvm) ->
           return true if _.isEmpty flt()
-          U.kvmCheckMatch(flt(), kvm,
+          U.checkMatch(flt(), kvm.grp) || U.kvmCheckMatch(flt(), kvm,
             if model.name == 'OperKPI'
               {allowed: ['userid', 'currentState']})
 
@@ -46,11 +46,12 @@ define ["lib/current-user"
 
     csv = ko.computed
       read: ->
-        r = ""
+        r = "Оператор;"
         for f in flds when f.show()
           r += "#{f.label};"
         r += "\n"
         for s in sorted()
+          r += "\"#{s.userid.text()}\";"
           for f in flds when f.show()
             r += "#{s[f.name].text()};"
           r += "\n"

@@ -31,6 +31,20 @@ define [ "model/main"
     else
       _.find kase.servicesReference(), (svc) -> svc.view is view
 
+  # Find VM of a view, properly handling reference views or views of
+  # field groups. If the view name is "case-form", then return knockVM
+  # for case.
+  findVM = (view) ->
+    if global.viewsWare["case-form"]
+      vw = global.viewsWare[view]
+      if vw and vw.parentView?
+        # Find VM of a group rendered in a view.
+        findCaseOrReferenceVM(vw.parentView)
+      else
+        findCaseOrReferenceVM(view)
+    else
+      global.viewsWare[view].knockVM
+
   # make this global, still need to use this module as dependency
   # to make sure that this functions will be loaded
   window.el  = (id) -> document.getElementById(id)
@@ -155,7 +169,9 @@ define [ "model/main"
       meta:
         _.extend (meta || {}), {dictionaryStringify: stringify}
 
-  findCaseOrReferenceVM: findCaseOrReferenceVM
+  # Call a number if the CTI panel is available
+  ctiDial = (number) ->
+    global.CTIPanel && $("#cti").show() && global.CTIPanel.instaDial(number)
 
   # build global function from local to module one
   # function should belong to first dependency
@@ -163,6 +179,8 @@ define [ "model/main"
     window[name] = ->
       args = arguments
       require deps, (dep) -> dep[name].apply(this, args)
+
+  ctiDial: ctiDial
 
   mkDataTable: (t, opts) ->
     defaults =
@@ -190,7 +208,7 @@ define [ "model/main"
   getProgramDesc: (pid, sid) ->
     return unless pid
     meta = {dictionaryLabel: 'help'}
-    pvm = buildInstance('Program', pid)
+    pvm = buildInstance('Program', pid) unless sid
     svm = buildInstance('SubProgram', sid) if sid
     if pvm?.pTypeLocal?()
       pType = "<span class=\"label label-info\">#{pvm.pTypeLocal()}</span>"
@@ -208,19 +226,7 @@ define [ "model/main"
     e.scrollIntoView()
     e.focus()
 
-  # Find VM of a view, properly handling reference views or views of
-  # field groups. If the view name is "case-form", then return knockVM
-  # for case.
-  findVM: (view) ->
-    if global.viewsWare["case-form"]
-      vw = global.viewsWare[view]
-      if vw and vw.parentView?
-        # Find VM of a group rendered in a view.
-        findCaseOrReferenceVM(vw.parentView)
-      else
-        findCaseOrReferenceVM(view)
-    else
-      global.viewsWare[view].knockVM
+  findVM: findVM
 
   # Strip whitespace from string
   stripWs: (s) -> do (s) -> s.replace(/\s+/g, '')
@@ -285,10 +291,12 @@ define [ "model/main"
   doPick: (pickType, args, elt) ->
     require ["map"], (map) ->
       pickers =
-        callPlease: (modelName) ->
-          kvm = global.viewsWare["call-form"]?.knockVM
+        callPlease: (fieldName, el) ->
+          viewName = mu.elementView($(el)).id
+          kvm = findVM viewName
           return unless kvm
-          number = kvm[modelName]?()
+          number = kvm[fieldName]?()
+          ctiDial number
           global.avayaPhone && global.avayaPhone.call(number)
         # Set a field to a new randomly generated password
         passwordPicker   : (fieldName, el) ->

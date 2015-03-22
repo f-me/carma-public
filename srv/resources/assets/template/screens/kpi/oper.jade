@@ -11,15 +11,15 @@ include _settings
               +settings
             .col-md-2
             .col-md-6
-              span.inverse-red Выделять красным
+              span.inverse-red Выделяется красным
               | , если занят &ge;
               input.tiny-input(type="text"
                   data-bind="value: overdue.text, update: 'afterkeydown'")
-              | минут
+              | минут или превысил регламентное время выполнения действия
               br
-              span.inverse-orange Выделять оранжевым
+              span.inverse-orange Выделяется оранжевым
               | , если разлогинился из статуса занят
-  
+
               br
               label.checkbox
                 input(type="checkbox" data-bind="checked: hideOffline")
@@ -46,7 +46,7 @@ include _settings
            // /ko
        tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
          tr(data-bind="visible: kvm._meta.visible")
-           td(data-bind="fieldRender: kvm['userid']")
+           td(data-bind="text: kvm['useridGrp']")
            // ko foreach: $root.fields
            td(data-bind="visible: show, \n\
                          render: {kvm: kvm, field: $data}, \n\

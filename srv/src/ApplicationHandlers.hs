@@ -74,7 +74,7 @@ import Utils.LegacyModel (readIdent)
 
 import Utils.Events (logLogin, logCRUD, updateUserState)
 
-import ModelTriggers
+import Triggers
 
 
 ------------------------------------------------------------------------------
@@ -292,9 +292,6 @@ clientConfig = do
       config =
         Map.fromList
         [ ("max-file-size", Aeson.Number mus)
-        , ("csta-ws-host", maybe Aeson.Null Aeson.String $ cstaWsHost opts)
-        , ("csta-ws-port",
-           Aeson.Number $ fromIntegral $ cstaWsPort opts)
         ]
   writeJSON config
 
@@ -323,8 +320,8 @@ copyCtrOptions = do
     void $ execute c
       [sql|
         insert into "ConstructorFieldOption"
-            (model,screen,program,ord,field,label,info,required,r,w)
-          select model,screen,?::int,ord,field,label,info,required,r,w
+            (model,program,ord,field,label,info,required,r,w)
+          select model,?::int,ord,field,label,info,required,r,w
             from "ConstructorFieldOption"
             where program = ?
       |]
