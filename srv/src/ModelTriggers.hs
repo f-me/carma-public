@@ -306,15 +306,6 @@ beforeUpdate = Map.unionsWith (++) $
   , trigOn Service.times_expectedServiceClosure $ const $
     modifyPatch (Patch.put Service.times_factServiceClosure Nothing)
 
-  , trigOn Case.city $ \case
-      Nothing -> return ()
-      Just city ->
-        do
-          cp <- dbRead city
-          w <- getCityWeather (cp `get'` City.label)
-          let temp = either (const $ Just "") (Just . T.pack . show . tempC) w
-          modifyPatch (Patch.put Case.temperature temp)
-
   , trigOn Case.contract $ \case
       Nothing -> do
         -- Clear all contract-related fields.
