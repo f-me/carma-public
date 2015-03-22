@@ -60,6 +60,7 @@ mkIdents [t|Role|]
   , ("bo_info",        43) -- БО: Заказ услуги (ТДИ)
   , ("badmin",         44) -- Бизнес-администратор
   , ("cti",            50) -- Доступ к CTI-панели
+  , ("consultant",     60) -- Консультант
   ]
 
 instance Model Role where

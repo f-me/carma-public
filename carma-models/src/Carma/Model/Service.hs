@@ -10,6 +10,7 @@ import Data.Model.View
 
 import qualified Carma.Model.ClientRefusalReason as CRR
 import           Carma.Model.Case.Type           (Case)
+import           Carma.Model.Complication        (Complication)
 import           Carma.Model.FalseCall           (FalseCall)
 import           Carma.Model.LegacyTypes
 import           Carma.Model.Partner             (Partner)
@@ -94,6 +95,8 @@ data Service = Service
                                  "Приоритетная услуга"
   , status                       :: F (IdentI ServiceStatus) "status"
                                  "Статус услуги"
+  , complication                 :: F (Maybe (IdentI Complication)) "complication"
+                                 "Сложный случай"
   , clientSatisfied              :: F (Maybe (IdentI Satisfaction)) "clientSatisfied"
                                  "Клиент доволен"
   , warrantyCase                 :: F (Maybe Checkbox) "warrantyCase"
