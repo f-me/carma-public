@@ -407,17 +407,18 @@ caseServices :: (PS.HasPostgres m, MonadCatchIO m) =>
              -> [IdentI ST.ServiceType]
              -> m Value
 caseServices fromDate toDate constraints names = logExceptions "rkc/caseServices" $ do
-  [totals, startAvgs, endAvgs, calcs, lims] <- mapM todayAndGroup [count, averageStart, averageEnd, calculatedCost, limitedCost]
+  calcs <- todayAndGroup calculatedCost
+  [totals, startAvgs, endAvgs, lims] <- mapM todayAndGroup [count, averageStart, averageEnd, limitedCost]
   let
     makeServiceInfo n@(Ident m) = object [
       "name" .= m,
-      "total" .= lookAt totals,
+      "total" .= int (lookAt totals),
       "delay" .= lookAt startAvgs,
       "duration" .= lookAt endAvgs,
-      "calculated" .= lookAt calcs,
+      "calculated" .= float (lookAt calcs),
       "limited" .= lookAt lims]
       where
-        lookAt :: [(IdentI ST.ServiceType, Integer)] -> Integer
+        lookAt :: Num n => [(IdentI ST.ServiceType, n)] -> n
         lookAt = fromMaybe 0 . lookup n
   return $ toJSON $ map makeServiceInfo names
   where
