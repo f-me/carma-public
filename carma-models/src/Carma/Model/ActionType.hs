@@ -46,6 +46,7 @@ mkIdents [t|ActionType|]
  , ("tellMeMore", 19)
  , ("callMeMaybe", 20)
  , ("checkDispatchTime", 21)
+ , ("accident", 22)
  , ("call", 100)
  ]
 

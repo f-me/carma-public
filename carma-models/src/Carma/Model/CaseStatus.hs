@@ -16,7 +16,7 @@ data CaseStatus = CaseStatus
   { ident
     :: PK Int CaseStatus "Статус кейса"
   , label
-    :: F Text "label" "Тип"
+    :: F Text "label" "Статус"
   } deriving Typeable
 
 mkIdents [t|CaseStatus|]
@@ -26,6 +26,7 @@ mkIdents [t|CaseStatus|]
  , ("closed", 4)
  , ("canceled", 5)
  , ("mobileOrder", 6)
+ , ("mobileAccident", 7)
  ]
 
 instance Model CaseStatus where

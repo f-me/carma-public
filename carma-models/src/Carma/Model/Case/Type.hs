@@ -7,6 +7,7 @@ import Data.Typeable
 
 import Data.Model
 
+import Carma.Model.CaseSource
 import Carma.Model.CaseStatus
 import Carma.Model.City         (City)
 import Carma.Model.Contract     (Contract)
@@ -149,4 +150,6 @@ data Case = Case
     :: F (Maybe JsonAsText) "comments" "Комментарии"
   , files
     :: F (Maybe Reference) "files" "Прикрепленные файлы"
+  , source
+    :: F (IdentI CaseSource) "source" "Источник кейса"
   } deriving Typeable
