@@ -39,8 +39,9 @@ import           Data.Time
 import           System.Locale
 
 import           Database.PostgreSQL.Simple.SqlQQ
-import qualified Database.PostgreSQL.Simple.ToField as PS
-import qualified Snap.Snaplet.PostgresqlSimple      as PS
+import qualified Database.PostgreSQL.Simple.ToField   as PS
+import qualified Database.PostgreSQL.Simple.FromField as PS
+import qualified Snap.Snaplet.PostgresqlSimple        as PS
 
 import           Snap
 
@@ -333,7 +334,10 @@ relations q = q `mappend` mconcat (map snd $ filter (hasTables . fst) tableRelat
     (["casetbl", "consultationtbl"], consultationCaseRel),
     (["servicetbl", "actiontbl"], actionServiceRel)]
 
-mintQuery :: (PS.HasPostgres m, MonadCatchIO m) => PreQuery -> m (Maybe Integer)
+mintQuery
+  :: (ToJSON num, PS.FromField num
+     ,PS.HasPostgres m, MonadCatchIO m)
+  => PreQuery -> m (Maybe num)
 mintQuery qs = do
     rs <- runQuery [relations qs]
     case rs of
@@ -343,20 +347,20 @@ mintQuery qs = do
 caseSummary :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> PreQuery -> m Value
 caseSummary (Filter fromDate toDate program city partner) constraints = logExceptions "rkc/caseSummary" $ do
   syslogTxt Info "rkc/caseSummary" "Loading summary"
-  [t, m, d, dur, calc, lim, sat] <- sequence [
+  calc <- trace "calculated cost" (run calculatedCost)
+  [t, m, d, dur, lim, sat] <- sequence [
     trace "total" (run count),
     trace "mechanics" mech,
     trace "average tech start" (run averageTowageTechStart),
     trace "average tech end" (run averageTowageTechEnd),
-    trace "calculated cost" (run calculatedCost),
     trace "limited cost" (run limitedCost),
     liftM2 percentage (run satisfaction) (run satisfactionCount)]
   return $ object [
-    "total" .= t,
+    "total" .= int t,
     "mech" .= m,
     "delay" .= d,
     "duration" .= dur,
-    "calculated" .= calc,
+    "calculated" .= float calc,
     "limited" .= lim,
     "satisfied" .= sat]
   where
@@ -437,8 +441,8 @@ actionsSummary fromDate toDate constraints = logExceptions "rkc/actionsSummary" 
   t <- trace "total" (run count)
   u <- trace "undone" (run (mconcat [count, undoneAction]))
   return $ object [
-    "total" .= t,
-    "undone" .= u]
+    "total" .= int t,
+    "undone" .= int u]
   where
     run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, betweenTime fromDate toDate "actiontbl" "duetime"]
 
@@ -800,3 +804,11 @@ AND coalesce(s.suburbanmilage, '0') = '0'
 AND c.calldate >= ?
 AND c.calldate < ?;
 |]
+
+
+-- type coersions
+int :: Integer -> Integer
+int = id
+
+float :: Double -> Double
+float = id
