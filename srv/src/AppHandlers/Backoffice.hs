@@ -42,6 +42,7 @@ import qualified Data.Model.Patch.Sql        as Patch
 import qualified Carma.Model.Action          as Action
 import qualified Carma.Model.ActionResult    as ActionResult
 import qualified Carma.Model.ActionType      as ActionType
+import qualified Carma.Model.CaseSource      as CaseSource
 import qualified Carma.Model.CaseStatus      as CaseStatus
 import           Carma.Model.Event           (EventType(..))
 import qualified Carma.Model.FalseCall       as FalseCall
@@ -108,6 +109,7 @@ serveBackofficeSpec repr = do
   -- Combine mappings for multiple models into one
   let maps = [ boxMap <$> labelMap ActionResult.ident ActionResult.label
              , boxMap <$> labelMap ActionType.ident ActionType.label
+             , boxMap <$> labelMap CaseSource.ident CaseSource.label
              , boxMap <$> labelMap CaseStatus.ident CaseStatus.label
              , boxMap <$> labelMap FalseCall.ident FalseCall.label
              , boxMap <$> labelMap PaymentType.ident PaymentType.label

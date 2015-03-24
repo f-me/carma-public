@@ -195,6 +195,7 @@ WITH servicecounts AS (
     servicetbl.payment_calculatedcost AS "Расчётная стоимость",
     "Suggestion".label AS "Рекомендация",
     servicetbl.scan AS "Скан загружен",
+    "CaseSource".label AS "Источник кейса",
     "CaseStatus".label AS "Статус кейса",
     CASE
         WHEN
@@ -229,6 +230,7 @@ WITH servicecounts AS (
    LEFT JOIN "Part" ON casetbl.diagnosis2 = "Part".id
    LEFT JOIN "Cause" ON casetbl.diagnosis3 = "Cause".id
    LEFT JOIN "Suggestion" ON casetbl.diagnosis4 = "Suggestion".id
+   LEFT JOIN "CaseSource" ON casetbl.source = "CaseSource".id
    LEFT JOIN "CaseStatus" ON casetbl.caseStatus = "CaseStatus".id
    LEFT JOIN "ContractCheckStatus" ON casetbl.vinchecked = "ContractCheckStatus".id,
    servicetbl

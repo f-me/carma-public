@@ -139,6 +139,11 @@ define [ "utils"
           if not kvm['actionsList']?
             kvm['actionsList'] = ko.observableArray()
           kvm['actionsList'].push avm
+          if avm["type"]() == global.idents("ActionType").accident && avm["myAction"]()
+            if global.CTIPanel
+              global.CTIPanel.instaDial kvm["contact_phone1"]()
+              window.alert "Внимание: кейс от системы e-call, \
+                производится набор номера клиента, возьмите трубку"
           # Disable action results if any of required case fields is
           # not set
           do (avm) ->

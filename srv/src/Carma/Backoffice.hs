@@ -22,6 +22,7 @@ import           Prelude hiding ((>), (==), (||), (&&), const)
 import qualified Carma.Model.ActionResult as AResult
 import qualified Carma.Model.ActionType as AType
 import           Carma.Model.Case as Case
+import qualified Carma.Model.CaseSource as CO
 import qualified Carma.Model.CaseStatus as CS
 import           Carma.Model.FalseCall as FS
 import           Carma.Model.Program as Program
@@ -110,7 +111,16 @@ mobileOrder :: Entry
 mobileOrder =
     Entry
     (insteadOf Case.caseStatus (const CS.mobileOrder)
-     (proceed [AType.callMeMaybe]))
+     (setCaseField Case.source (const CO.mobile) *>
+      proceed [AType.callMeMaybe]))
+
+
+mobileAccident :: Entry
+mobileAccident =
+    Entry
+    (insteadOf Case.caseStatus (const CS.mobileAccident)
+     (setCaseField Case.source (const CO.mobileAccident) *>
+      proceed [AType.accident]))
 
 
 cancel :: Entry
@@ -179,6 +189,34 @@ mistake =
     Entry
     (onField Service.status (const SS.mistake)
      finish)
+
+
+accident :: Action
+accident =
+    Action
+    AType.accident
+    (const bo_order)
+    nobody
+    ((5 * minutes) `since` now)
+    [ (AResult.serviceOrdered,
+       sendSMS SMS.order *>
+       messageToPSA *>
+       messageToGenser *>
+       setServiceStatus SS.ordered *>
+       proceed [AType.tellClient, AType.addBill])
+    , (AResult.serviceOrderedSMS,
+       sendSMS SMS.order *>
+       messageToPSA *>
+       messageToGenser *>
+       setServiceStatus SS.ordered *>
+       proceed [AType.checkStatus, AType.addBill])
+    , (AResult.needPartner,
+       sendSMS SMS.parguy *>
+       setServiceStatus SS.needPartner *>
+       proceed [AType.needPartner])
+    , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
+    ]
 
 
 orderService :: Action
@@ -543,6 +581,7 @@ carmaBackoffice =
     ( [ toBack
       , needInfo
       , needMakerApproval
+      , mobileAccident
       , mobileOrder
       , recallClient
       , cancel
@@ -550,6 +589,7 @@ carmaBackoffice =
       , mistake
       ]
     , [ orderService
+      , accident
       , orderServiceAnalyst
       , tellClient
       , checkStatus
