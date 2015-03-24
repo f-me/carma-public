@@ -143,7 +143,8 @@ html
                                 $parent.showBlankCall() ||\
                                 $index() < ($parent.calls().length - 1)')
             span(data-bind='visible: failed')
-              i.glyphicon.glyphicon-alert&nbsp;
+              i.glyphicon.glyphicon-alert
+              | &nbsp;
             span.label.label-danger(data-bind='visible: vip')
               i.glyphicon.glyphicon-star
               | VIP
@@ -161,32 +162,32 @@ html
               data-bind='visible: wip')
             button.call-button.btn.btn-sm.btn-success(type='submit',
               data-bind='visible: canCall, click: makeThis')
-              i.glyphicon.glyphicon-earphone&nbsp;
-              | Позвонить
+              i.glyphicon.glyphicon-earphone
+              | &nbsp;Позвонить
             button.btn.btn-sm.btn-success(type='button',
               data-bind='visible: canAnswer, click: answerThis')
-              i.glyphicon.glyphicon-phone-alt&nbsp;
-              | Принять звонок
+              i.glyphicon.glyphicon-phone-alt
+              | &nbsp;Принять звонок
             button.btn.btn-sm.btn-info(type='button',
               data-bind='visible: canHold, click: holdThis')
-              i.glyphicon.glyphicon-pause&nbsp;
-              | Удерживать
+              i.glyphicon.glyphicon-pause
+              | &nbsp;Удерживать
             button.btn.btn-sm.btn-info(type='button',
               data-bind='visible: canConf, click: confThis')
-              i.glyphicon.glyphicon-plus-sign&nbsp;
-              | Конференция
+              i.glyphicon.glyphicon-plus-sign
+              | &nbsp;Конференция
             button.btn.btn-sm.btn-info(type='button',
               data-bind='visible: canTransfer, click: transferThis')
-              i.glyphicon.glyphicon-arrow-up&nbsp;
-              | Соединить
+              i.glyphicon.glyphicon-arrow-up
+              | &nbsp;Соединить
             button.btn.btn-sm.btn-warning(type='button',
               data-bind='visible: canRetrieve, click: retrieveThis')
-              i.glyphicon.glyphicon-play&nbsp;
-              | Возобновить
+              i.glyphicon.glyphicon-play
+              | &nbsp;Возобновить
             button.btn.btn-sm.btn-danger(type='button',
               data-bind='visible: canEnd, click: endThis')
-              i.glyphicon.glyphicon-remove-circle&nbsp;
-              | Завершить звонок
+              i.glyphicon.glyphicon-remove-circle
+              | &nbsp;Завершить звонок
             span(data-bind='visible: $index() == 0')
               button.btn.btn-sm(type='button',
                 data-bind='visible: $parent.canMute(), click: mute')
@@ -205,8 +206,8 @@ html
                                   $index() == ($parent.calls().length - 2)')
               button.btn.btn-sm(type='button',
                 data-bind='click: addBlankCall')
-                i.glyphicon.glyphicon-plus&nbsp;
-                | Ещё звонок
+                i.glyphicon.glyphicon-plus
+                | &nbsp;Ещё звонок
           // /ko
     // Main container for dynamically rendered layouts
     #main-container
