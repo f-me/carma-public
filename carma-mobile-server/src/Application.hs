@@ -194,6 +194,7 @@ newCase = do
   let -- Do not enforce typing on values when reading JSON
       Just (Object jsonRq0) = Aeson.decode rqb
       coords' = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
+      isAccident  = HM.lookup "isAccident" jsonRq0
       program'    = HM.lookup (fieldName Case.program) jsonRq0
       subprogram' = HM.lookup (fieldName Case.subprogram) jsonRq0
 
@@ -268,7 +269,10 @@ newCase = do
   caseId <- runCarma $ do
     (caseId, _) <- createInstance caseBody''
     -- Trigger an avalanche
-    updateInstance caseId (Patch.put Case.caseStatus CS.mobileOrder Patch.empty)
+    let newStatus = case isAccident of
+                      Just (Aeson.Bool True) -> CS.mobileAccident
+                      _                      -> CS.mobileOrder
+    updateInstance caseId (Patch.put Case.caseStatus newStatus Patch.empty)
     return caseId
 
   modifyResponse $ setContentType "application/json"
