@@ -175,6 +175,7 @@ WITH servicecounts AS (
     servicetbl.bill_billnumber AS "Номер счёта",
     casetbl.contact_ownername AS "Имя владельца",
     servicetbl.id AS "Номер услуги",
+    u1.realName AS "Сотрудник, создавший услугу",
      p1.code AS "Код партнёра",
     casetbl.caseaddress_coords AS "Координаты места поломки",
     servicetbl.contractor_coords AS "Координаты партнёра",
@@ -245,6 +246,7 @@ WITH servicecounts AS (
    LEFT JOIN "ServiceStatus" ON servicetbl.status = "ServiceStatus".id
    LEFT JOIN "Satisfaction" ON servicetbl.clientsatisfied = "Satisfaction".id
    LEFT JOIN orderActions ON servicetbl.id = orderActions.serviceId
+   LEFT JOIN usermetatbl u1 ON u1.id = servicetbl.creator
    LEFT JOIN usermetatbl u2 ON u2.id = orderActions.assignedTo
 WHERE casetbl.id = servicetbl.parentid;
 

@@ -173,6 +173,7 @@ beforeCreate = Map.unionsWith (++)
       Just (addUTCTime (10 * BO.minutes) n)
 
     modPut Service.createTime         $ Just n
+    modPut Service.creator =<< getCurrentUser
     modPut Service.falseCall            FC.none
     modPut Service.payment_overcosted $ Just off
     modPut Service.status               SS.creating
