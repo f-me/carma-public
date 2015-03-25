@@ -14,16 +14,6 @@ data TowerTypes = TowerTypes deriving Typeable
 data WheelsBlockedCount = WheelsBlockedCount deriving Typeable
 data UrgentServiceReason = UrgentServiceReason deriving Typeable
 
-data JsonAsText = JsonAsText Text deriving Typeable
-instance FromJSON JsonAsText where
-  parseJSON fld = JsonAsText <$> parseJSON fld
-instance ToJSON JsonAsText where
-  toJSON (JsonAsText txt) = toJSON txt
-instance ToField JsonAsText where
-  toField (JsonAsText txt) = toField txt
-instance FromField JsonAsText where
-  fromField fld m = JsonAsText <$> fromField fld m
-
 data Password = Password Text deriving Typeable
 instance FromJSON Password where
   parseJSON fld = Password <$> parseJSON fld

@@ -266,9 +266,6 @@ instance DefaultFieldView Reference where
 instance DefaultFieldView Checkbox where
   defaultFieldView f = (defFieldView f) {fv_type = "checkbox"}
 
-instance DefaultFieldView JsonAsText where
-  defaultFieldView f = (defFieldView f) {fv_type = "JsonAsText"}
-
 instance DefaultFieldView Aeson.Value where
   defaultFieldView f = (defFieldView f) {fv_type = "JSON"}
 

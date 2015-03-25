@@ -1,5 +1,6 @@
 module Carma.Model.Case.Type where
 
+import Data.Aeson (Value)
 import Data.Text
 import Data.Time.Calendar
 import Data.Time.Clock
@@ -147,7 +148,7 @@ data Case = Case
   , services
     :: F (Maybe Reference) "services" "Услуги"
   , comments
-    :: F (Maybe JsonAsText) "comments" "Комментарии"
+    :: F (Maybe Value) "comments" "Комментарии"
   , files
     :: F (Maybe Reference) "files" "Прикрепленные файлы"
   , source

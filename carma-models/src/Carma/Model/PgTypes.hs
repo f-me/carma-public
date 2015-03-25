@@ -88,7 +88,6 @@ instance PgTypeable  DeliveryType        where pgTypeOf _ = PgType "text" True
 instance PgTypeable  TowerTypes          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  WheelsBlockedCount  where pgTypeOf _ = PgType "text" True
 instance PgTypeable  UrgentServiceReason where pgTypeOf _ = PgType "text" True
-instance PgTypeable  JsonAsText          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Password            where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Phone               where pgTypeOf _ = PgType "text" True
 instance PgTypeable  PickerField         where pgTypeOf _ = PgType "text" False
