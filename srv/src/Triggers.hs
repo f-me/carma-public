@@ -23,7 +23,6 @@ import           Control.Monad.Trans
 import           Control.Monad.Trans.Reader
 
 import qualified Data.Aeson as Aeson
-import qualified Data.ByteString.Lazy as LBS
 import           Data.Dynamic
 import           Data.List
 import qualified Data.List as L
@@ -33,7 +32,6 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import           Data.Time.Calendar
 import           Data.Time.Clock
 import qualified Data.Vector as V
@@ -277,12 +275,10 @@ beforeUpdate = Map.unionsWith (++) $
       p <- getIdent >>= dbRead
       let old = Patch.get' p Case.comments
       let parseObjList val = do
-            JsonAsText txt <- val
-            Aeson.Array arr <- Aeson.decodeStrict' $ T.encodeUtf8 txt
+            Aeson.Array arr <- val
             return $ V.toList arr
       let comments = nub $ concat $ mapMaybe parseObjList [old, new]
-      let jsonToText = T.decodeUtf8 . LBS.toStrict . Aeson.encode
-      let merged = JsonAsText $ jsonToText $ Aeson.Array $ V.fromList comments
+      let merged = Aeson.Array $ V.fromList comments
       modifyPatch $ Patch.put Case.comments $ Just merged
 
   , trigOn Case.comment $ \case
