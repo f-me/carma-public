@@ -1,5 +1,6 @@
 module Carma.Model.Service where
 
+import Data.Aeson as Aeson
 import Data.Text
 import Data.Time
 import Data.Typeable
@@ -19,6 +20,7 @@ import           Carma.Model.Satisfaction        (Satisfaction)
 import           Carma.Model.Search as S
 import           Carma.Model.ServiceStatus       (ServiceStatus)
 import           Carma.Model.ServiceType         (ServiceType)
+import           Carma.Model.Usermeta            (Usermeta)
 
 data Service = Service
   { ident                        :: PK Int Service ""
@@ -28,6 +30,8 @@ data Service = Service
                                  ""
   , createTime                   :: F (Maybe UTCTime) "createTime"
                                  "Дата создания услуги"
+  , creator                      :: F (IdentI Usermeta) "creator"
+                                 "Сотрудник, создавший услугу"
   , payType                      :: F (Maybe (IdentI PaymentType)) "payType"
                                  "Тип оплаты"
   , payment_costTranscript       :: F (Maybe Text) "payment_costTranscript"
@@ -128,6 +132,8 @@ svcMod =
     ,hiddenIdent parentId
     , readonly status
     , clientCancelReason `completeWith` CRR.label
+    , setMeta "dictionaryLabel" (Aeson.String "realName") creator
+    , readonly creator
     ]
 
 -- | Mods that shouldn't be appied to search view
