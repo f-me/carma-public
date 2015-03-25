@@ -333,11 +333,12 @@ logReq commit  = do
   user <- fmap userLogin <$> with auth currentUser
   r <- getRequest
   syslogJSON Info "handler/logReq"
-    ["ip"     .= show (rqRemoteAddr r)
+    ["ip"     .= T.decodeUtf8 (rqRemoteAddr r)
     ,"user"   .= user
     ,"method" .= show (rqMethod r)
-    ,"uri"    .= show (rqURI r)
-    ,"params" .= show (rqParams r)
+    ,"uri"    .= T.decodeUtf8 (rqURI r)
+    ,"params" .= map (\(k,v) -> show k ++ "=" ++ show v)
+                  (Map.toList $ rqParams r)
     ,"body"   .= commit
     ]
 
