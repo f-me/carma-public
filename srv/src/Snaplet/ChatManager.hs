@@ -6,22 +6,26 @@
 WebSocket chat rooms for CaRMa users.
 
 To connect to a room, open a WebSocket connection using
-@/chat/:roomname@ address. Text datums sent via this connection are
+@/chat/:roomname@ address, where @chat@ is the top-level URL this
+snaplet is installed under. Text datums sent via this connection are
 chat room messages.
 
 When a user first connects to a room, its participants receive an
 announcement as JSON:
 
-> {"joined":{"ip":"127.0.0.1","id":90}}
+> {"joined":{"ip":"192.1.20.17","id":90}}
 
 User IP and usermeta ID also accompany messages sent by a user:
 
-> {"msg":"hello there","user":{"ip":"127.0.0.1","id":90}}
+> {"msg":"hello there","user":{"ip":"192.1.20.17","id":90}}
 
 Server messages sent via 'sendMessage' lack @user@ field in their
 JSON.
 
-When a user disconnects from a room.
+When a user disconnects from a room a matching announcement is
+published:
+
+> {"left":{"ip":"192.1.20.17","id":90}}
 
 Users with the same usermeta id from different IP addresses count as
 different users when connects/disconnects are handled.

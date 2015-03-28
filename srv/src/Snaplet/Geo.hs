@@ -8,11 +8,12 @@
 
 Geoservices snaplet:
 
-- Nominatim forward/reverse geocoding
+- Nominatim forward/reverse geocoding (@\/search\/:query@ and
+@\/revSearch\/:coords@)
 
-- distance calculation
+- distance calculation (@\/distance\/:coords1\/:coords2@)
 
-- geospatial partner search
+- geospatial partner search (@\/partners\/:coords1\/:coords2@)
 
 All coordinates read by various handlers from request parameters are
 in WSG84 in @longitude,latitude@ format, as @33.77,52.128@.

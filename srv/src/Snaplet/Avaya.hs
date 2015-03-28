@@ -4,10 +4,11 @@
 
 {-|
 
-Avaya snaplet provides interface with dmcc-ws via hooks and Web
-Sockets.
+Avaya snaplet provides interface with @dmcc-ws@ via hooks and
+WebSocket connections.
 
-- Web Socket proxy binds used Avaya extensions to CaRMa user id's;
+- WebSocket proxy (@\/ws\/:ext@) binds used Avaya extensions to CaRMa
+user id's;
 
 - hooks allow DMCC to push information directly to CaRMa.
 

@@ -898,9 +898,9 @@ filteredActions scope types resList = do
           resultOk = (act `get'` Action.result) `elem` resList
           srvOk    = case scope of
                        InCase -> True
-                       -- Filter actions by service if needed. Note that
-                       -- *no* error is raised when called with InService
-                       -- from service-less action effect
+                       -- Filter actions by service if needed. Note
+                       -- that _no_ error is raised when called with
+                       -- InService from service-less action effect
                        InService -> act `get'` Action.serviceId == sid
         in
           typeOk && resultOk && srvOk
