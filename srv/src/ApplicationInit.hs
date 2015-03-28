@@ -26,6 +26,7 @@ import WeatherApi.WWOnline (initApi)
 
 ------------------------------------------------------------------------------
 import Snaplet.Avaya
+import Snaplet.ChatManager
 import Snaplet.SiteConfig
 import qualified Snaplet.FileUpload as FU
 import Snaplet.Geo
@@ -175,10 +176,11 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   av <- nestSnaplet "avaya" avaya $ avayaInit auth db
+  ch <- nestSnaplet "chat" chat $ chatInit auth db
   g <- nestSnaplet "geo" geo geoInit
   search' <- nestSnaplet "search" search $ searchInit authMgr db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 
   addRoutes routes
-  return $ App h s authMgr c pgs pga tm fu av g ad search' opts msgr (initApi wkey)
+  return $ App h s authMgr c pgs pga tm fu av ch g ad search' opts msgr (initApi wkey)
