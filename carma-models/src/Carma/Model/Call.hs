@@ -56,6 +56,8 @@ metas =
     , readonly callTaker
     , required callTaker
 
+    , setMeta "filterBy" "active" program
+
     , invisible coords
     , invisible address
     , invisible endDate

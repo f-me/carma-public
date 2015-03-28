@@ -133,6 +133,8 @@ caseMod = [
   ,mainToo contact_contactOwner
   ,mainToo car_plateNum
 
+  ,setMeta "filterBy" "active" program
+  ,setMeta "filterBy" "active" subprogram
   ,setMeta "dictionaryParent"
    (Aeson.String $ Model.fieldName program) subprogram
 
