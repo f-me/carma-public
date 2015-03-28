@@ -2,11 +2,12 @@ define [ "utils"
        , "hotkeys"
        , "text!tpl/screens/case.html"
        , "text!tpl/fields/form.html"
+       , "lib/ws"
        , "model/utils"
        , "model/main"
        , "components/contract"
        ],
-  (utils, hotkeys, tpl, Flds, mu, main, Contract) ->
+  (utils, hotkeys, tpl, Flds, WS, mu, main, Contract) ->
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
     flds =  $('<div/>').append($(Flds))
@@ -78,6 +79,44 @@ define [ "utils"
       $(".status-btn-tooltip").tooltip()
 
     setCommentsHandler = ->
+      legId = "Case:#{kvm.id()}"
+      if window.location.protocol == "https:"
+        chatUrl = "wss://#{location.hostname}:#{location.port}/chat/#{legId}"
+      else
+        chatUrl = "ws://#{location.hostname}:#{location.port}/chat/#{legId}"
+
+      chatNotify = (message, className) ->
+        $.notify message, {className: className || 'info', autoHide: false}
+
+      brDict = utils.newModelDict "BusinessRole"
+
+      chatWs = new WS chatUrl
+      chatWs.onmessage = (raw) ->
+        msg = JSON.parse raw.data
+        who = msg.user || msg.joined || msg.left
+        if who.id == global.user.id
+          return
+        if who.id
+          $.getJSON "/_/Usermeta/#{who.id}", (um) ->
+            note = "Оператор #{um.login}"
+            if msg.msg
+              note += " оставил сообщение: #{msg.msg}"
+              chatNotify note
+            else
+              if um.realName
+                note += " (#{um.realName})"
+              if um.workPhoneSuffix
+                note += ", доб. #{um.workPhoneSuffix}"
+              note += ", IP #{who.ip}"
+              if um.businessRole
+                note += " с ролью #{brDict.getLab(um.businessRole)}"
+              if msg.joined
+                note += " вошёл в кейс"
+                chatNotify note, "error"
+              if msg.left
+                note += " вышел с кейса"
+                chatNotify note, "success"
+
       $("#case-comments-b").on 'click', ->
         i = $("#case-comments-i")
         return if _.isEmpty i.val()
@@ -85,6 +124,7 @@ define [ "utils"
           date: (new Date()).toString('dd.MM.yyyy HH:mm')
           user: global.user.login
           comment: i.val()
+        chatWs.send i.val()
         k = global.viewsWare['case-form'].knockVM
         if _.isEmpty k['comments']()
           k['comments'] [comment]
@@ -139,6 +179,11 @@ define [ "utils"
           if not kvm['actionsList']?
             kvm['actionsList'] = ko.observableArray()
           kvm['actionsList'].push avm
+          if avm["type"]() == global.idents("ActionType").accident && avm["myAction"]()
+            if global.CTIPanel
+              global.CTIPanel.instaDial kvm["contact_phone1"]()
+              window.alert "Внимание: кейс от системы e-call, \
+                производится набор номера клиента, возьмите трубку"
           # Disable action results if any of required case fields is
           # not set
           do (avm) ->

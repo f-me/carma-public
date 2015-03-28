@@ -175,6 +175,7 @@ WITH servicecounts AS (
     servicetbl.bill_billnumber AS "Номер счёта",
     casetbl.contact_ownername AS "Имя владельца",
     servicetbl.id AS "Номер услуги",
+    u1.realName AS "Сотрудник, создавший услугу",
      p1.code AS "Код партнёра",
     casetbl.caseaddress_coords AS "Координаты места поломки",
     servicetbl.contractor_coords AS "Координаты партнёра",
@@ -195,6 +196,7 @@ WITH servicecounts AS (
     servicetbl.payment_calculatedcost AS "Расчётная стоимость",
     "Suggestion".label AS "Рекомендация",
     servicetbl.scan AS "Скан загружен",
+    "CaseSource".label AS "Источник кейса",
     "CaseStatus".label AS "Статус кейса",
     CASE
         WHEN
@@ -229,6 +231,7 @@ WITH servicecounts AS (
    LEFT JOIN "Part" ON casetbl.diagnosis2 = "Part".id
    LEFT JOIN "Cause" ON casetbl.diagnosis3 = "Cause".id
    LEFT JOIN "Suggestion" ON casetbl.diagnosis4 = "Suggestion".id
+   LEFT JOIN "CaseSource" ON casetbl.source = "CaseSource".id
    LEFT JOIN "CaseStatus" ON casetbl.caseStatus = "CaseStatus".id
    LEFT JOIN "ContractCheckStatus" ON casetbl.vinchecked = "ContractCheckStatus".id,
    servicetbl
@@ -243,6 +246,7 @@ WITH servicecounts AS (
    LEFT JOIN "ServiceStatus" ON servicetbl.status = "ServiceStatus".id
    LEFT JOIN "Satisfaction" ON servicetbl.clientsatisfied = "Satisfaction".id
    LEFT JOIN orderActions ON servicetbl.id = orderActions.serviceId
+   LEFT JOIN usermetatbl u1 ON u1.id = servicetbl.creator
    LEFT JOIN usermetatbl u2 ON u2.id = orderActions.assignedTo
 WHERE casetbl.id = servicetbl.parentid;
 

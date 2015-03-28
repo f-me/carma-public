@@ -88,7 +88,7 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       -- VIN import task handler
       with taskMgr $ TM.create $ do
         let opts = Options connInfo inPath outPath
-                   uid -- ^ Set current user as committer
+                   uid -- Set current user as committer
                    fid Nothing (Just sid) False
         res <- doImport opts
 

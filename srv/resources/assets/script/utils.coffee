@@ -123,7 +123,9 @@ define [ "model/main"
     v = for f in kvm._meta.model.fields when allowedField fieldsRestriction, f
       if f.type == "dictionary"
         isMatch(q, kvm["#{f.name}Local"]())
-      else if f.type == "dictionary-many"
+      else if _.contains(
+        ["dictionary-many", "dictionary-set-int", "dictionary-set-text"],
+        f.type)
         checkMatch(q, _.pluck(kvm["#{f.name}Locals"](), 'label'))
       else if f.type == "reference"
         _.any kvm["#{f.name}References"](), (k) -> kvmCheckMatch(q, k)

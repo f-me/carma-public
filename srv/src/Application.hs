@@ -18,6 +18,7 @@ import qualified WeatherApi as W
 
 import Snaplet.Avaya
 import Snaplet.Auth.Class
+import Snaplet.ChatManager
 import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
 import Snaplet.TaskManager
@@ -50,6 +51,7 @@ data App = App
     , _taskMgr    :: Snaplet (TaskManager App)
     , _fileUpload :: Snaplet (FileUpload App)
     , _avaya      :: Snaplet (Avaya App)
+    , _chat       :: Snaplet (ChatManager App)
     , _geo        :: Snaplet Geo
     , _db         :: Snaplet Postgres
     , _search     :: Snaplet (Search App)

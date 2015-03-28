@@ -7,70 +7,73 @@ CREATE TABLE "ActionType"
   );
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Заказ услуги', 1, 1);
+VALUES ('Заказ услуги', 1, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Заказ вторичной услуги', 2, 1);
+VALUES ('Заказ вторичной услуги', 2, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Сообщить клиенту о договорённости', 3, 1);
+VALUES ('Сообщить клиенту о договорённости', 3, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Уточнить статус оказания услуги', 4, 3);
+VALUES ('Уточнить статус оказания услуги', 4, 4);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Оповестить клиента о поиске партнёра', 5, 1);
+VALUES ('Оповестить клиента о поиске партнёра', 5, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Уточнения после оказания услуги', 6, 1);
+VALUES ('Уточнения после оказания услуги', 6, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Закрыть заявку', 7, 3);
+VALUES ('Закрыть заявку', 7, 4);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)', 8, 3);
+VALUES ('Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)', 8, 4);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Отказ от услуги', 9, 1);
+VALUES ('Отказ от услуги', 9, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Согласование с производителем', 10, 1);
+VALUES ('Согласование с производителем', 10, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Оповещение клиента об отказе производителя', 11, 1);
+VALUES ('Оповещение клиента об отказе производителя', 11, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Прикрепить счёт', 12, 1);
+VALUES ('Прикрепить счёт', 12, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Менеджер по счетам запросил доп. информацию', 13, 3);
+VALUES ('Менеджер по счетам запросил доп. информацию', 13, 4);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Проверка РКЦ', 14, 1);
+VALUES ('Проверка РКЦ', 14, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Проверка директором', 15, 1);
+VALUES ('Проверка директором', 15, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Проверка бухгалтерией', 16, 1);
+VALUES ('Проверка бухгалтерией', 16, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Обработка аналитиком', 17, 1);
+VALUES ('Обработка аналитиком', 17, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Претензия', 18, 1);
+VALUES ('Претензия', 18, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Требуется дополнительная информация', 19, 1);
+VALUES ('Требуется дополнительная информация', 19, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Заказ услуги через мобильное приложение', 20, 1);
+VALUES ('Заказ услуги через мобильное приложение', 20, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Уточнить время выезда', 21, 1);
+VALUES ('Уточнить время выезда', 21, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
-VALUES ('Звонок', 100, 1);
+VALUES ('ДТП', 22, 1);
+
+INSERT INTO "ActionType" (label, id, priority)
+VALUES ('Звонок', 100, 2);
 
 INSERT INTO "ActionType" (label, id, priority)
 VALUES ('Действие не актуально (архив)', 9000, 10);

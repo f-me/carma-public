@@ -55,6 +55,14 @@
   /* margin-top: 5px; */
 }
 
+.notifyjs-bootstrap-base > span {
+  white-space: normal;
+}
+
+.notifyjs-corner {
+  max-width: 50%;
+}
+
 /* hack to make feedback left of addon */
 .input-group-addon ~ .form-control-feedback {
   right: 40px !important;

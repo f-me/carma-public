@@ -23,7 +23,6 @@ import           Control.Monad.Trans
 import           Control.Monad.Trans.Reader
 
 import qualified Data.Aeson as Aeson
-import qualified Data.ByteString.Lazy as LBS
 import           Data.Dynamic
 import           Data.List
 import qualified Data.List as L
@@ -33,7 +32,6 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import           Data.Time.Calendar
 import           Data.Time.Clock
 import qualified Data.Vector as V
@@ -173,6 +171,7 @@ beforeCreate = Map.unionsWith (++)
       Just (addUTCTime (10 * BO.minutes) n)
 
     modPut Service.createTime         $ Just n
+    modPut Service.creator =<< getCurrentUser
     modPut Service.falseCall            FC.none
     modPut Service.payment_overcosted $ Just off
     modPut Service.status               SS.creating
@@ -276,12 +275,10 @@ beforeUpdate = Map.unionsWith (++) $
       p <- getIdent >>= dbRead
       let old = Patch.get' p Case.comments
       let parseObjList val = do
-            JsonAsText txt <- val
-            Aeson.Array arr <- Aeson.decodeStrict' $ T.encodeUtf8 txt
+            Aeson.Array arr <- val
             return $ V.toList arr
       let comments = nub $ concat $ mapMaybe parseObjList [old, new]
-      let jsonToText = T.decodeUtf8 . LBS.toStrict . Aeson.encode
-      let merged = JsonAsText $ jsonToText $ Aeson.Array $ V.fromList comments
+      let merged = Aeson.Array $ V.fromList comments
       modifyPatch $ Patch.put Case.comments $ Just merged
 
   , trigOn Case.comment $ \case
@@ -901,9 +898,9 @@ filteredActions scope types resList = do
           resultOk = (act `get'` Action.result) `elem` resList
           srvOk    = case scope of
                        InCase -> True
-                       -- Filter actions by service if needed. Note that
-                       -- *no* error is raised when called with InService
-                       -- from service-less action effect
+                       -- Filter actions by service if needed. Note
+                       -- that _no_ error is raised when called with
+                       -- InService from service-less action effect
                        InService -> act `get'` Action.serviceId == sid
         in
           typeOk && resultOk && srvOk
