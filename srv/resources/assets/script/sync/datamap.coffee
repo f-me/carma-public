@@ -62,7 +62,7 @@ define [], ->
     checkbox  : (v) -> if v then "1" else "0"
     Bool      : (v) -> v
     Integer   : (v) -> parseInt v
-    Double    : (v) -> parseFloat v.replace ',', '.'
+    Double    : (v) -> parseFloat String(v).replace ',', '.'
     Day       : c2sDay
     UTCTime   : (v) -> ((parseISO guiUTCTimeFormat) v)?.toISOString()
     IdentList : (v) -> v
