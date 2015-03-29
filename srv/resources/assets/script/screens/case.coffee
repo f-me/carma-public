@@ -38,7 +38,7 @@ define [ "utils"
           kvm['renderActions']?()
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
-      setCommentsHandler()
+      setCommentsHandler kvm
 
       Contract.setup "contract", kvm
 
@@ -78,7 +78,7 @@ define [ "utils"
 
       $(".status-btn-tooltip").tooltip()
 
-    setCommentsHandler = ->
+    setCommentsHandler = (kvm) ->
       legId = "Case:#{kvm.id()}"
       if window.location.protocol == "https:"
         chatUrl = "wss://#{location.hostname}:#{location.port}/chat/#{legId}"
