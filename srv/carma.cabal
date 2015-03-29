@@ -117,7 +117,7 @@ Executable carma
     time                        >= 1.1 && < 1.5,
     transformers                >= 0.4 && < 0.5,
     unordered-containers,
-    vector                      == 0.10.*,
+    vector                      >= 0.10 && < 0.10.12.3,
     vinnie                      >= 0.3.2 && < 0.4,
     weather-api                 >= 0.4.3,
     websockets                  == 0.9.*,
