@@ -142,7 +142,6 @@ caseMod = [
 
   ,textarea dealerCause
   ,textarea claim
-  ,invisible comments
 
   ,infoText "carVin" car_vin
   ,infoText "comment" comment
