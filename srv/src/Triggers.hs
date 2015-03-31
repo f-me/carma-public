@@ -22,7 +22,6 @@ import           Control.Monad.Free (Free)
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Reader
 
-import qualified Data.Aeson as Aeson
 import           Data.Dynamic
 import           Data.List
 import qualified Data.List as L
@@ -34,7 +33,6 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time.Calendar
 import           Data.Time.Clock
-import qualified Data.Vector as V
 import           Text.Printf
 
 import           GHC.TypeLits
@@ -60,6 +58,7 @@ import qualified Carma.Model.Call as Call
 import           Carma.Model.Case (Case)
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.City as City
+import qualified Carma.Model.CaseComment as CaseComment
 import qualified Carma.Model.CaseStatus as CS
 import           Carma.Model.Contract (Contract, WDay(..))
 import qualified Carma.Model.Contract as Contract
@@ -121,6 +120,9 @@ beforeCreate = Map.unionsWith (++)
     -- Otherwise we need some kind of finalisers for "Real world actions that
     -- could not be deferred".
     createSnapUser login
+
+  , trigOnModel ([]::[CaseComment.CaseComment]) $
+    getCurrentUser >>= modPut CaseComment.author
 
   , trigOnModel ([]::[Contract.Contract]) $ do
     getCurrentUser >>= modPut Contract.committer
@@ -270,16 +272,6 @@ beforeUpdate = Map.unionsWith (++) $
       Just val ->
         when (T.length val > 5) $
         modifyPatch (Patch.put Case.car_plateNum (Just $ T.toUpper val))
-
-  , trigOn Case.comments $ \new -> do -- merge comments
-      p <- getIdent >>= dbRead
-      let old = Patch.get' p Case.comments
-      let parseObjList val = do
-            Aeson.Array arr <- val
-            return $ V.toList arr
-      let comments = nub $ concat $ mapMaybe parseObjList [old, new]
-      let merged = Aeson.Array $ V.fromList comments
-      modifyPatch $ Patch.put Case.comments $ Just merged
 
   , trigOn Case.comment $ \case
       Nothing -> return ()

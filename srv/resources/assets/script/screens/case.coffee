@@ -120,16 +120,12 @@ define [ "utils"
       $("#case-comments-b").on 'click', ->
         i = $("#case-comments-i")
         return if _.isEmpty i.val()
-        comment =
-          date: (new Date()).toString('dd.MM.yyyy HH:mm')
-          user: global.user.login
-          comment: i.val()
         chatWs.send i.val()
-        k = global.viewsWare['case-form'].knockVM
-        if _.isEmpty k['comments']()
-          k['comments'] [comment]
-        else
-          k['comments'] k['comments']().concat comment
+        $.ajax
+          type: "POST"
+          url: "/_/CaseComment"
+          data: JSON.stringify {caseId: parseInt(kvm.id()), comment: i.val()}
+          dataType: "json"
         i.val("")
 
     # Manually re-render a list of case actions

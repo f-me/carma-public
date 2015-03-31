@@ -5,6 +5,15 @@ WITH servicecounts AS (
            FROM servicetbl servicetbl_1
           GROUP BY servicetbl_1.parentid
         ),
+     commentLists AS (
+         SELECT caseId, array_agg(usermetatbl.login || ' в ' ||
+                                  to_char(cc.ctime, 'DD.MM.YYYY HH:MI') ||
+                                  ': ' || trim(cc.comment) ORDER BY cc.ctime)
+                                  AS txt
+         FROM "CaseComment" cc, casetbl, usermetatbl
+         WHERE usermetatbl.id = cc.author AND casetbl.id = cc.caseId
+         GROUP BY caseId
+        ),
      orderActions AS (
          SELECT DISTINCT ON (serviceId) serviceId, assignedTo
           FROM actiontbl
@@ -154,7 +163,7 @@ WITH servicecounts AS (
     "CarClass".label AS "Класс автомобиля",
     casetbl.dealercause AS "Причина неисправ. со слов дилера",
     "Contract".cardnumber AS "Номер карты",
-    casetbl.comments AS "Комментарии аналитиков",
+    commentLists.txt AS "Комментарии аналитиков",
     p3.code AS "Код дилера, продавшего автомобиль",
     allservicesview.towaddress_address AS "Назначение эвакуации-адрес дилера",
     "Contract".validsince AS "Дата начала действия гарантии",
@@ -212,6 +221,7 @@ WITH servicecounts AS (
     casetbl.contact_name AS "ФИО звонящего"
 
    FROM casetbl
+   LEFT JOIN commentLists ON casetbl.id = commentLists.caseId
    LEFT JOIN usermetatbl ON casetbl.callTaker = usermetatbl.id
    LEFT JOIN "Program" ON casetbl.program = "Program".id
    LEFT JOIN "ProgramType" ON "Program".ptype = "ProgramType".id
