@@ -36,6 +36,7 @@ import           Data.Configurator as Cfg
 import qualified Data.Map as Map
 import           Data.Text as Text
 import           Data.Time.Clock
+import           Data.Vector (fromList)
 
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
@@ -177,16 +178,12 @@ hook = do
                 Nothing -> return ()
                 Just (cid@(CallId cidt), et) ->
                   let
-                    -- Concatenate all interlocutors, cutting out
-                    -- switch names
-                    interloc =
+                    interlocs =
                       case Map.lookup cid (_calls st) of
                         Just c ->
-                          Text.intercalate " " $
-                          Prelude.map (\(DeviceId d) ->
-                                         fst $ breakOn ":" $ original d) $
-                          interlocutors c
-                        Nothing -> ""
+                          Prelude.map (\(DeviceId d) -> original d) $
+                          DMCC.interlocutors c
+                        Nothing -> []
                     -- TODO Extract UCID when we switch to DMCC 6.x
                     ucid = cidt
                   in do
@@ -199,7 +196,7 @@ hook = do
                         Patch.put AE.eType et $
                         Patch.put AE.operator uid $
                         Patch.put AE.currentAction (Ident actionId) $
-                        Patch.put AE.interlocutor interloc $
+                        Patch.put AE.interlocutors (fromList interlocs) $
                         Patch.put AE.callId ucid $
                         Patch.empty
 
