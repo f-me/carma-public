@@ -105,15 +105,6 @@ define [ "utils"
       console.log "[#{status}] Can't load cancels for '#{knockVM.id()}' (#{error})"
     )
 
-    return if _.isEmpty knockVM['comments']()
-    rows = for c in knockVM['comments']()
-       [ c.date
-       , c.user || ''
-       , "Комментарий"
-       , c.comment or ''
-       , ""
-       ]
-    st.fnAddData rows
 
 
   descsKbHook: (model, knockVM) ->
@@ -139,7 +130,6 @@ define [ "utils"
     # History rendering is called from renderActions on caseScreen
     knockVM['fillEventHistory'] = fillEventsHistory(knockVM)
     knockVM['contact_phone1']?.subscribe fillEventsHistory(knockVM)
-    knockVM['comments']?.subscribe fillEventsHistory(knockVM)
 
   # Display daily service stats in central pane when `city` field of
   # case is changed.
