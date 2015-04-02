@@ -150,7 +150,7 @@ hook = do
             -- at all
             aeData =
               case ev of
-                DeliveredEvent c _ _ ->
+                DeliveredEvent c _ _ _ ->
                   Just (c, et)
                   where
                     et = if dir == DMCC.In
@@ -176,16 +176,15 @@ hook = do
             in
               case aeData of
                 Nothing -> return ()
-                Just (cid@(CallId cidt), et) ->
+                Just (cid, et) ->
                   let
-                    interlocs =
+                    (ucid', interlocs) =
                       case Map.lookup cid (_calls st) of
                         Just c ->
-                          Prelude.map (\(DeviceId d) -> original d) $
-                          DMCC.interlocutors c
-                        Nothing -> []
-                    -- TODO Extract UCID when we switch to DMCC 6.x
-                    ucid = cidt
+                          ((\(UCID u) -> u) $ DMCC.ucid c,
+                           Prelude.map (\(DeviceId d) -> original d) $
+                           DMCC.interlocutors c)
+                        Nothing -> ("", [])
                   in do
                     (userState, model, actionId) <- userStateAction uid
                     when (userState == Busy &&
@@ -197,7 +196,7 @@ hook = do
                         Patch.put AE.operator uid $
                         Patch.put AE.currentAction (Ident actionId) $
                         Patch.put AE.interlocutors (fromList interlocs) $
-                        Patch.put AE.callId ucid $
+                        Patch.put AE.callId ucid' $
                         Patch.empty
 
 
