@@ -110,7 +110,7 @@ Executable carma
     snap-extras                 == 0.11.*,
     snap-loader-static          >= 0.9.0.1 && < 0.10,
     snap-server                 == 0.9.*,
-    snaplet-postgresql-simple   >= 0.3 && < 0.6,
+    snaplet-postgresql-simple   >= 0.6 && < 0.7,
     stm                         == 2.4.*,
     temporary                   == 1.2.*,
     text                        >= 0.11 && < 1.3,

@@ -29,7 +29,6 @@ import           Carma.Model.Role (Role)
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 
-import           Util (withPG)
 
 -- FIXME: should return Object not a Patch
 currentUserMeta
@@ -42,7 +41,7 @@ currentUserMeta = withCurrentUser >>= \case
     -- (HTTP API)
     case rqRemoteAddr req == rqLocalAddr req of
       True ->
-        withPG (liftIO . Patch.read Usermeta.admin) >>=
+        (PG.liftPG $ Patch.read Usermeta.admin) >>=
           \case
             Left e -> error $ show e
             Right r -> return $ Just r
@@ -50,8 +49,7 @@ currentUserMeta = withCurrentUser >>= \case
   Just usr -> case userId usr of
     Nothing  -> error $ "BUG! currentUser without id: " ++ show usr
     Just (UserId uid) -> do
-      res <- withPG $
-             (liftIO . Patch.readManyWithFilter 1 0 [(fieldName Usermeta.uid, uid)])
+      res <- PG.liftPG $ Patch.readManyWithFilter 1 0 [(fieldName Usermeta.uid, uid)]
       case res of
         [obj] -> return $ Just obj
         _     -> error $ "BUG! select Usermeta.uid " ++ show uid

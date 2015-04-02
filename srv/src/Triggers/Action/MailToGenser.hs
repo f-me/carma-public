@@ -8,28 +8,28 @@ import qualified Data.Text as T
 
 import Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SqlQQ.Alt
-import Data.Pool as Pool
 import Data.Configurator (require)
+
+import Snap.Snaplet.PostgresqlSimple (liftPG)
 
 import Data.Model as Model
 import Carma.Model.Service (Service)
 import qualified Carma.Model.TowType as TowType
 import qualified Carma.Model.LegalForm as LegalForm
-import Triggers.DSL (FutureContext(..))
 
 import Snap.Snaplet (getSnapletUserConfig)
 import Application (AppHandler)
 import Util
 
 
-sendMailToGenser :: Model.IdentI Service -> FutureContext -> AppHandler (IO ())
-sendMailToGenser svcId fc = do
+sendMailToGenser :: Model.IdentI Service -> AppHandler (IO ())
+sendMailToGenser svcId = do
   cfg      <- getSnapletUserConfig
   cfgFrom  <- liftIO (require cfg "genser-mail-from"  :: IO Text)
   cfgReply <- liftIO (require cfg "genser-mail-reply" :: IO Text)
   cfgCopy  <- T.splitOn "," <$> liftIO (require cfg "genser-mail-reply")
 
-  return $ Pool.withResource (fc_pgpool fc) $ \pg -> do
+  liftPG $ \pg -> return $ do
     syslogJSON Info "trigger/mailToGenser" ["svcId" .= svcId]
     [partnerAddr:subj:bodyLines] <- uncurry (PG.query pg)
         [sql|

@@ -46,10 +46,9 @@ import qualified Data.Map as Map
 
 import Data.Maybe
 
-import Database.PostgreSQL.Simple (Query, query, execute)
+import Database.PostgreSQL.Simple (Query)
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
-import Data.Pool (withResource)
 import Heist
 import Heist.Interpreted
 import Text.XmlHtml as X
@@ -69,7 +68,7 @@ import Carma.Model.Event (EventType(..))
 
 import Application
 import AppHandlers.Util
-import Util as U hiding (render, withPG)
+import Util as U hiding (render)
 import Utils.LegacyModel (readIdent)
 
 import Utils.Events (logLogin, logCRUD, updateUserState)
@@ -177,8 +176,7 @@ readHandler = do
       readModel _ = do
         res <- do
           let ident = readIdent objId :: IdentI m
-          s <- PS.getPostgresState
-          liftIO $ withResource (PS.pgPool s)
+          PS.liftPG
                      (runEitherT . crud_read getModelCRUD ident)
         case res of
           Right obj              -> writeJSON obj
@@ -201,9 +199,7 @@ readManyHandler = do
   let readModel :: forall m . Model m => m -> AppHandler ()
       readModel _ = do
         res <- do
-          s   <- PS.getPostgresState
-          liftIO $ withResource
-            (PS.pgPool s)
+          PS.liftPG
             (runEitherT . crud_readManyWithFilter
                         (getModelCRUD :: CRUD m) limit offset queryFilter)
         case res of
@@ -262,8 +258,7 @@ towAvgTime = do
   city <- getIntParam "city"
   case city of
     Just c -> do
-          rows <- withPG pg_search $
-                  \conn -> query conn towAvgTimeQuery [c]
+          rows <- PS.query towAvgTimeQuery [c]
           writeJSON (map head rows :: [Maybe Double])
     _ -> error "Could not read city from request"
 
@@ -272,7 +267,7 @@ getRegionByCity :: AppHandler ()
 getRegionByCity =
   getParam "city" >>= \case
     Just city -> do
-      res <- withPG pg_search $ \c -> query c
+      res <- PS.query
         [sql|
           SELECT r.label
           FROM "Region" r, "City" c
@@ -313,11 +308,10 @@ copyCtrOptions :: AppHandler ()
 copyCtrOptions = do
   from <- getParam "from"
   to   <- getParam "to"
-  withPG pg_search $ \c -> do
-    void $ execute c
+  void $ PS.execute
       [sql|delete from "ConstructorFieldOption" where program = ?|]
       [to]
-    void $ execute c
+  void $ PS.execute
       [sql|
         insert into "ConstructorFieldOption"
             (model,program,ord,field,label,info,required,r,w)

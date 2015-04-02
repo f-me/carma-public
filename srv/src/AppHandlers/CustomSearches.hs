@@ -26,23 +26,23 @@ module AppHandlers.CustomSearches
 
 where
 
-import Control.Applicative
-import Control.Monad
+import           Control.Applicative
+import           Control.Monad
 
-import Data.Aeson as A
-
-import Data.Text (Text)
-import Data.ByteString (ByteString)
+import           Data.Aeson as A
+import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
-import Data.Map as M (Map, (!), delete, fromList)
-import Data.String (fromString)
+import           Data.Map as M (Map, (!), delete, fromList)
+import           Data.String (fromString)
+import           Data.Text (Text)
 
-import Database.PostgreSQL.Simple
-import Database.PostgreSQL.Simple.SqlQQ
+import           Database.PostgreSQL.Simple hiding (query, query_)
+import           Database.PostgreSQL.Simple.SqlQQ
 
-import Snap
+import           Snap
+import           Snap.Snaplet.PostgresqlSimple
 
-import Data.Model.Types
+import           Data.Model.Types
 
 import qualified Carma.Model.ActionType              as AType
 import qualified Carma.Model.Role                    as Role
@@ -53,7 +53,7 @@ import           AppHandlers.CustomSearches.Contract
 import           AppHandlers.Users
 import           AppHandlers.Util
 import           Application
-import           Util                                hiding (withPG)
+import           Util
 import           Utils.HttpErrors
 
 
@@ -118,7 +118,7 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
      AND (? OR extract (epoch from duetime) >= ?)
      AND (? OR extract (epoch from duetime) <= ?);
      |]
-  rows <- withPG pg_search $ \c -> query c actQ $
+  rows <- query actQ $
           (sqlFlagPair (PT "") clToRes  mClosed)               :.
           (sqlFlagPair nid     id       mAssignee)             :.
           (sqlFlagPair (In []) In       mRoles)                :.
@@ -142,7 +142,7 @@ searchCallsByPhone = do
   uri <- rqURI <$> getRequest
   let phone = last $ B.split '/' uri
 
-  rows <- withPG pg_search $ \c -> query c (fromString
+  rows <- query (fromString
     $  "SELECT callerName, program::text, c.callTaker::text, callType::text,"
     ++ "       extract (epoch from callDate at time zone 'UTC')::int8::text"
     ++ "  FROM calltbl c"
@@ -155,7 +155,7 @@ searchCallsByPhone = do
 getActionsForCase :: AppHandler ()
 getActionsForCase = do
   Just caseId <- getParam "id"
-  rows <- withPG pg_search $ \c -> query c (fromString
+  rows <- query (fromString
     $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int8::text,"
     ++ "       result::text, type::text, assignedTo::text, comment"
     ++ "  FROM actiontbl"
@@ -193,8 +193,7 @@ opStatsQ = [sql|
 -- fields `aName`, `caseId`, `openTime`, `closeTime` and `reqTime`.
 opStats :: AppHandler ()
 opStats = do
-  rows <- withPG pg_search $
-          \c -> query c opStatsQ (Only Role.back)
+  rows <- query opStatsQ (Only Role.back)
   let obj = mkMap [ "login"
                   , "aName"
                   , "caseId"
@@ -220,7 +219,7 @@ busyOpsQ = [sql|
 
 busyOps :: AppHandler ()
 busyOps = do
-  rows <- withPG pg_search $ \c -> query_ c busyOpsQ
+  rows <- query_ busyOpsQ
   writeJSON $ mkMap [ "login", "count"] rows
 
 
@@ -264,11 +263,9 @@ actStats = do
                      , AType.tellMakerDeclined
                      ]
   (Only orders:_) <-
-      withPG pg_search $
-      \c -> query c actStatsQ $ (Only $ In orderNames) :. flags
+      query actStatsQ $ (Only $ In orderNames) :. flags
   (Only controls:_) <-
-      withPG pg_search $
-      \c -> query c actStatsQ $ (Only $ In controlNames) :. flags
+      query actStatsQ $ (Only $ In controlNames) :. flags
   writeJSON $ M.fromList
                 ([ ("order", orders)
                  , ("control", controls)] :: [(Text, Text)])
@@ -281,7 +278,7 @@ boUsers = [Role.head, Role.back, Role.supervisor] `usersInStates` [Ready]
 allDealersForMake :: AppHandler ()
 allDealersForMake = do
   Just make <- getParam "make"
-  rows <- withPG pg_search $ \c -> query c [sql|
+  rows <- query [sql|
     SELECT id::text, name
       FROM partnertbl
       WHERE isActive AND isDealer AND ?::int = ANY (makes)
@@ -291,7 +288,7 @@ allDealersForMake = do
 
 getLatestCases :: AppHandler ()
 getLatestCases = do
-  rows <- withPG pg_search $ \c -> query_ c $ fromString $ [sql|
+  rows <- query_ $ [sql|
     SELECT
       casetbl.id::text, contact_name,
       extract (epoch from callDate at time zone 'UTC')::int8::text,
@@ -310,7 +307,7 @@ getLatestCases = do
 searchCases :: AppHandler ()
 searchCases = do
   Just q <- getParam "q"
-  rows <- withPG pg_search $ \c -> query c (fromString $ [sql|
+  rows <- query ([sql|
     SELECT
       cs.id::text, contact_name,
       extract (epoch from callDate at time zone 'UTC')::int8::text,
@@ -335,7 +332,7 @@ findSameContract = do
   case cid of
     Nothing  -> finishWithError 403 "need id param"
     Just id' -> do
-      rows <- withPG pg_search $ \c -> query_ c $ fromString
+      rows <- query_ $ fromString
         $  " SELECT c.id::text, to_char(c.ctime, 'YYYY-MM-DD HH24:MI')"
         ++ " FROM \"Contract\" c, \"Contract\" same"
         ++ " WHERE c.dixi AND c.ctime > now() - interval '30 days'"

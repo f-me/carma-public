@@ -3,9 +3,8 @@
 module Application where
 
 import Control.Lens
+import Control.Monad.Reader
 
-import Data.Pool
-import Database.PostgreSQL.Simple as Pg
 import Data.Text (Text)
 
 import Snap
@@ -46,8 +45,6 @@ data App = App
     , _session    :: Snaplet SessionManager
     , _auth       :: Snaplet (AuthManager App)
     , _siteConfig :: Snaplet (SiteConfig App)
-    , pg_search   :: Pool Pg.Connection
-    , pg_actass   :: Pool Pg.Connection
     , _taskMgr    :: Snaplet (TaskManager App)
     , _fileUpload :: Snaplet (FileUpload App)
     , _avaya      :: Snaplet (Avaya App)
@@ -79,6 +76,7 @@ instance WithCurrentUser (Handler App App) where
 
 instance HasPostgres (Handler b App) where
   getPostgresState = with db get
+  setLocalPostgresState s = local (set (db . snapletValue) s)
 
 instance HasMsg App where
   messengerLens = subSnaplet messenger

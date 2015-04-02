@@ -62,7 +62,7 @@ import           Carma.Model.Event as Event
 import           Carma.Model.Usermeta
 import           Carma.Model.UserState as UserState
 
-import           AppHandlers.Util hiding (withPG)
+import           AppHandlers.Util
 import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers
 import           Util
@@ -190,7 +190,7 @@ hook = do
                     when (userState == Busy &&
                           model == Data.Model.modelName
                           (modelInfo :: ModelInfo Action.Action)) $
-                      void $ withPG $ Patch.create $
+                      void $ liftPG $ Patch.create $
                         Patch.put AE.ctime now $
                         Patch.put AE.eType et $
                         Patch.put AE.operator uid $
@@ -204,7 +204,7 @@ hook = do
 userStateAction :: (IdentI Usermeta)
                 -> Handler b (Avaya b) (UserStateVal, Text, Int)
 userStateAction uid = do
-  res <- withPG $
+  res <- liftPG $
     \c -> uncurry (query c)
     [sql|
      SELECT

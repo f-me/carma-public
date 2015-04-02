@@ -34,7 +34,7 @@ import Snaplet.SiteConfig.SpecialPermissions
 import Snaplet.SiteConfig.Models
 import Snaplet.SiteConfig.Dictionaries
 
-import AppHandlers.Util hiding (withPG)
+import AppHandlers.Util
 import Utils.HttpErrors
 
 import qualified Data.Model as Model

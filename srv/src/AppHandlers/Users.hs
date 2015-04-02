@@ -32,10 +32,11 @@ import qualified Data.Vector as V
 
 import           Text.Printf
 
-import           Database.PostgreSQL.Simple ((:.)(..), In(..), Only(..), query)
+import           Database.PostgreSQL.Simple (query)
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
 
-import Snap
+import           Snap
+import           Snap.Snaplet.PostgresqlSimple hiding (query)
 
 import Data.Model
 import Data.Model.Patch     as Patch
@@ -50,7 +51,7 @@ import AppHandlers.Util
 import Snaplet.Auth.PGUsers
 import Snaplet.Search.Types (mkSel)
 
-import Util hiding (withPG)
+import Util
 import Utils.LegacyModel (readIdent)
 
 
@@ -123,7 +124,7 @@ chkAuthRoles roleCheck handler = do
 -- | True if a user is in any of given states.
 userIsInState :: IdentI Usermeta -> [UserStateVal] -> AppHandler Bool
 userIsInState uid uStates =
-  withPG pg_search $ \conn -> Patch.read uid conn >>=
+  liftPG $ \conn -> Patch.read uid conn >>=
   \case
     Left e -> error $
               "Could not fetch usermeta for user " ++ show uid ++
@@ -145,7 +146,7 @@ userIsReady uid = uid `userIsInState` [Ready]
 -- Response is a list of triples: @[["realName", "login", <id>],...]@
 usersInStates :: [IdentI Role.Role] -> [UserStateVal] -> AppHandler ()
 usersInStates roles uStates = do
-  rows <- withPG pg_search $ \c -> uncurry (query c) [sql|
+  rows <- liftPG $ \c -> uncurry (query c) [sql|
    SELECT
    u.$(fieldPT Usermeta.realName)$,
    u.$(fieldPT Usermeta.login)$,
@@ -175,7 +176,7 @@ serveUserStates = do
   usrId <- readUsermeta <$> getParamT "userId"
   from  <- readDay <$> getParam "from"
   to    <- readDay <$> getParam "to"
-  states <- withPG pg_search $ \c ->
+  states <- liftPG $ \c ->
     query c (fromString $ printf
       -- Get more then asked, we need this during drawing of timeline
       ("SELECT %s FROM \"UserState\" WHERE userId = ? " ++

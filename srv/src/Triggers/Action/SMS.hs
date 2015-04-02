@@ -7,24 +7,22 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SqlQQ
-import Data.Pool as Pool
+
+import Snap.Snaplet.PostgresqlSimple (liftPG)
 
 import Data.Model as Model
 import Carma.Model.Service     (Service)
 import Carma.Model.SmsTemplate as SmsTemplate
 
-import Triggers.DSL (FutureContext(..))
 import Application (AppHandler)
 import Util
 
 
 sendSMS
-  :: Model.IdentI SmsTemplate -> Model.IdentI Service
-  -> FutureContext -> AppHandler (IO ())
-sendSMS tplId svcId fc
-  = return
-  $ Pool.withResource (fc_pgpool fc) $ \pg ->
-    PG.query pg messageInfo (tplId, svcId) >>= \case
+  :: Model.IdentI SmsTemplate -> Model.IdentI Service -> AppHandler (IO ())
+sendSMS tplId svcId
+  = liftPG $ \pg -> return
+  $ PG.query pg messageInfo (tplId, svcId) >>= \case
       [fields] -> do
         let msgInfo = Map.map T.tail $ Map.fromList $ map (T.breakOn "=") fields
         let msg = render msgInfo (msgInfo ! "tpl")

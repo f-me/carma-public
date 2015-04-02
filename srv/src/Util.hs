@@ -32,7 +32,6 @@ module Util
   , (:*)(..)
   , ToRowList(..)
   , sqlFlagPair
-  , withPG
 
     -- * Logging
   , syslogJSON, syslogTxt, Syslog.Priority(..)
@@ -80,14 +79,11 @@ import Database.PostgreSQL.Simple.Types
 
 import GHC.TypeLits
 
-import Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
 import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SqlQQ.Alt
 
 import qualified Data.Model as Model
 import qualified System.Posix.Syslog as Syslog
-
-import Data.Pool
 
 data JSONParseException
   = AttoparsecError FilePath String
@@ -244,13 +240,6 @@ sqlFlagPair :: b
             -> (Bool, b)
 sqlFlagPair def _ Nothing  = (True,  def)
 sqlFlagPair _   f (Just v) = (False, f v)
-
-withPG :: (HasPostgres m)
-       => (PG.Connection -> IO b) -> m b
-withPG f = do
-    s <- getPostgresState
-    let pool = pgPool s
-    liftIO $ withResource pool f
 
 
 syslogTxt :: MonadIO m => Syslog.Priority -> String -> String -> m ()

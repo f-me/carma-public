@@ -16,7 +16,6 @@ import           Prelude hiding (until)
 
 import           Control.Applicative
 import           Control.Concurrent
-import           Control.Monad.CatchIO (finally)
 import           Control.Monad
 import           Control.Monad.Free (Free)
 import           Control.Monad.Trans
@@ -37,9 +36,7 @@ import           Text.Printf
 
 import           GHC.TypeLits
 
-import qualified Data.Pool as Pool
 import qualified Database.PostgreSQL.Simple as PG
-import qualified Database.PostgreSQL.Simple.Transaction as PG
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import           WeatherApi (tempC)
@@ -393,28 +390,24 @@ trigOnModel _ fun
 runCreateTriggers
   :: Model m
   => Patch m -> AppHandler (Either String (IdentI m, Patch m))
-runCreateTriggers patch = do
-  s <- PS.getPostgresState
-  Pool.withResource (PS.pgPool s) $ \pg ->
+runCreateTriggers patch =
     fmap (\st -> (st_ident st, st_patch st))
       <$> runTriggers beforeCreate afterCreate
         (getPatch >>= dbCreate >>= putIdentUnsafe)
         [""] -- pass dummy field name
-        (emptyDslState undefined patch pg)
+        (emptyDslState undefined patch)
 
 
 runUpdateTriggers
   :: Model m
   => IdentI m -> Patch m
   -> AppHandler (Either String (Patch m))
-runUpdateTriggers ident patch = do
-  s <- PS.getPostgresState
-  Pool.withResource (PS.pgPool s) $ \pg ->
+runUpdateTriggers ident patch =
     fmap st_patch
       <$> runTriggers beforeUpdate afterUpdate
         (getPatch >>= dbUpdate ident >> return ())
         (HM.keys $ untypedPatch patch)
-        (emptyDslState ident patch pg)
+        (emptyDslState ident patch)
 
 
 runTriggers
@@ -435,8 +428,6 @@ runTriggers before after dbAction fields state = do
             (show model) (show field))
           (fromDynamic trigger)
 
-  let pg = st_pgcon state
-
   let run = runDslM state $ do
         case parentInfo :: ParentInfo m of
           NoParent -> return ()
@@ -455,11 +446,10 @@ runTriggers before after dbAction fields state = do
         sequence_ $ matchingTriggers (modelName mInfo) after
 
   start <- liftIO getCurrentTime
-  liftIO $ PG.beginLevel PG.ReadCommitted pg
-  finally run $ liftIO $ do
-    PG.commit pg
-    end <- getCurrentTime
-    syslogJSON Info "runTriggers" ["time" .= show (diffUTCTime end start)]
+  res <- run
+  end <- liftIO getCurrentTime
+  syslogJSON Info "runTriggers" ["time" .= show (diffUTCTime end start)]
+  return res
 
 
 -- | Mapping between a contract field and a case field.
@@ -496,8 +486,7 @@ contractToCase =
 copyContractToCase :: IdentI SubProgram -> Patch Contract -> Free (Dsl Case) ()
 copyContractToCase subProgId contract = do
   ctrFields <- doApp $ do
-      s <- PS.getPostgresState
-      liftIO $ Pool.withResource (PS.pgPool s) $ \pg ->
+      PS.liftPG $ \pg ->
         concat <$> PG.query pg
           "SELECT contractfield \
           \  FROM \"SubProgramContractPermission\" \
@@ -666,23 +655,11 @@ instance Backoffice HaskellE where
           return $ void $ setService sid acc (evalHaskell ctx v)
 
     sendMail = \case
-      Genser -> run $ BOAction.sendMailToGenser <$> srvId'
-      PSA    -> run $ BOAction.sendMailToPSA    <$> srvId'
-      Dealer -> run $ BOAction.sendMailToDealer <$> srvId'
-      where
-        run = HaskellE . fmap inFuture
-        inFuture :: (FutureContext -> AppHandler (IO ())) -> Free (Dsl m) ()
-        inFuture f = Dsl.doApp $ do
-          io <- PS.getPostgresState >>= f . FutureContext . PS.pgPool
-          void $ liftIO $ forkIO $ threadDelay 1500000 >> io
+      Genser -> runLater $ BOAction.sendMailToGenser <$> srvId'
+      PSA    -> runLater $ BOAction.sendMailToPSA    <$> srvId'
+      Dealer -> runLater $ BOAction.sendMailToDealer <$> srvId'
 
-    sendSMS tpl = run $ BOAction.sendSMS tpl <$> srvId'
-      where
-        run = HaskellE . fmap inFuture
-        inFuture :: (FutureContext -> AppHandler (IO ())) -> Free (Dsl m) ()
-        inFuture f = Dsl.doApp $ do
-          io <- PS.getPostgresState >>= f . FutureContext . PS.pgPool
-          void $ liftIO $ forkIO io
+    sendSMS tpl = runLater $ BOAction.sendSMS tpl <$> srvId'
 
     when cond act =
       HaskellE $
@@ -870,6 +847,19 @@ srvId' = do
   return $
     fromMaybe (error "No service id in context") $
     (`get'` Service.ident) <$> service ctx
+
+
+-- | Run an IO action later in the future
+runLater :: Reader HCtx (AppHandler (IO ())) -> HaskellE (Eff m)
+runLater = HaskellE . fmap postpone
+  where
+    -- FIXME Get rid of threadDelay, perform when the database action
+    -- returns
+    coffebreak = 1500000
+    postpone :: (AppHandler (IO ())) -> Free (Dsl m) ()
+    postpone act =
+      Dsl.doApp $
+      act >>= \io -> void $ liftIO $ forkIO $ threadDelay coffebreak >> io
 
 
 -- | Select some actions from the context.

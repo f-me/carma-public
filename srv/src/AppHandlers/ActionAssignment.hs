@@ -20,8 +20,8 @@ import Control.Monad
 import Data.Aeson as A
 import Data.Maybe
 
-import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.SqlQQ
+import Snap.Snaplet.PostgresqlSimple
 
 import Data.Model.Types
 import Data.Model.Sql as Sql
@@ -34,7 +34,7 @@ import Snaplet.Auth.PGUsers
 import Application
 import AppHandlers.Users
 import AppHandlers.Util
-import Util hiding (withPG)
+import Util
 
 
 topPriority :: Int
@@ -104,7 +104,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
 
   -- Actions already assigned to the user
   oldActions <- map (\(Only i :. Only caseId :. ()) -> (i, caseId)) <$>
-                (withPG pg_actass $
+                (liftPG $
                  Sql.select $
                  Action.ident :. Action.caseId :.
                  Action.assignedTo `eq` Just uid :.
@@ -138,8 +138,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
               sth -> return sth
 
       newActions <- pullFurther
-                    (\p ->
-                       withPG pg_actass (\c -> query c assignQ (params p)))
+                    (\p -> query assignQ (params p))
                     [topPriority..leastPriority]
 
       unless (null newActions) $

@@ -32,6 +32,7 @@ import           GHC.TypeLits
 
 import           Database.PostgreSQL.Simple  ((:.)(..), Only(..))
 import           Snap
+import           Snap.Snaplet.PostgresqlSimple (liftPG)
 
 import           Carma.Model
 import           Data.Model                  (F, PK, idents)
@@ -60,10 +61,9 @@ import           Carma.Backoffice.Graph
 import           Carma.Backoffice.Text
 import           Carma.Backoffice.Validation
 
-import           AppHandlers.Util hiding (withPG)
+import           AppHandlers.Util
 import           Application
 import           Snaplet.Auth.PGUsers
-import           Util
 import           Utils.Events
 
 
@@ -91,7 +91,7 @@ labelMap :: forall m n d d1. (KnownSymbol n, Model m) =>
          -> AppHandler (IdentMap m)
 labelMap identField labelField = do
   let vals = HM.elems (idents :: HM.HashMap String (IdentI m))
-  res <- withPG $
+  res <- liftPG $
          \conn ->
            Sql.select
            (identField :. labelField :. (identField `Sql.sql_in` vals))
@@ -172,13 +172,13 @@ openAction = do
          getIntParam "actionid"
   uid <- currentUserMetaId
   now <- liftIO getCurrentTime
-  let act = ExceptT (withPG (Patch.read aid'))
+  let act = ExceptT (liftPG (Patch.read aid'))
       aid' = Ident aid
       checkAuth a =
         unless (a `Patch.get'` Action.assignedTo == uid) $
         throwE $ SomeException NotYourAction
       p = Patch.put Action.openTime (Just now) Patch.empty
-      upd = ExceptT (withPG (Patch.update aid' p))
+      upd = ExceptT (liftPG (Patch.update aid' p))
   runExceptT (act >>= checkAuth >> upd) >>=
     \case
       Right r -> logCRUDState Update aid' p >>
@@ -194,7 +194,7 @@ dueCaseActions :: AppHandler ()
 dueCaseActions = do
   cid <- fromMaybe (error "Could not read caseid parameter") <$>
          getIntParam "caseid"
-  res <- withPG $
+  res <- liftPG $
          \conn ->
            Sql.select
            (Action.ident :.

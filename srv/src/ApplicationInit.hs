@@ -6,9 +6,6 @@ import Control.Monad.IO.Class
 import Data.ByteString (ByteString)
 import Data.Configurator as Cfg
 
-import Data.Pool
-import Database.PostgreSQL.Simple as Pg
-
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Heist
@@ -156,21 +153,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
 
-  -- init PostgreSQL connection pool that will be used for searching only
-  let lookupCfg nm = lookupDefault (error $ show nm) cfg nm
-  cInfo <- liftIO $ Pg.ConnectInfo
-            <$> lookupCfg "pg_host"
-            <*> lookupCfg "pg_port"
-            <*> lookupCfg "pg_search_user"
-            <*> lookupCfg "pg_search_pass"
-            <*> lookupCfg "pg_db_name"
-  -- FIXME: force cInfo evaluation
-  pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 5 5 20
-  cInfoActass <- liftIO $ (\u p -> cInfo {connectUser = u, connectPassword = p})
-            <$> lookupCfg "pg_actass_user"
-            <*> lookupCfg "pg_actass_pass"
-  pga <- liftIO $ createPool (Pg.connect cInfoActass) Pg.close 1 5 20
-
   c <- nestSnaplet "cfg" siteConfig $
        initSiteConfig "resources/site-config" auth db
 
@@ -183,4 +165,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 
   addRoutes routes
-  return $ App h s authMgr c pgs pga tm fu av ch g ad search' opts msgr (initApi wkey)
+  return $ App h s authMgr c tm fu av ch g ad search' opts msgr (initApi wkey)

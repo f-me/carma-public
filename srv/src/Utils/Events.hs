@@ -39,8 +39,9 @@ import           Snap
 import           Snap.Snaplet.Auth
 import           Snaplet.Auth.Class
 import           Snap.Snaplet.PostgresqlSimple ( HasPostgres(..)
-                                               , query
+                                               , liftPG
                                                , Only(..)
+                                               , query
                                                )
 import           Database.PostgreSQL.Simple.SqlQQ
 
@@ -58,7 +59,6 @@ import           Snaplet.Messenger.Class
 
 import           AppHandlers.KPI (updateOperKPI)
 
-import           Util
 import           Utils.LegacyModel
 
 
@@ -177,7 +177,7 @@ buildEmpty tpe = P.put E.eventType tpe $  P.empty
 create :: HasPostgres m
        => Patch Event
        -> m (Either SomeException (IdentI Event))
-create ev = withPG $ \c -> liftIO $ P.create ev c
+create ev = liftPG $ \c -> liftIO $ P.create ev c
 
 
 data States = States { _from :: [UserStateVal], _to :: UserStateVal }
@@ -210,7 +210,7 @@ checkUserState uid evType evIdt _ p = do
       let mname = modelName (modelInfo :: ModelInfo m1)
       in nextState s d evType mname (HM.keys $ P.untypedPatch p)
     setNext Nothing = return Nothing
-    setNext (Just s) = withPG $ \c -> do
+    setNext (Just s) = liftPG $ \c -> do
       void $ P.create (mkState s) c
       void $ P.update uid (P.put delayedState Nothing P.empty) c
       return $ Just s
