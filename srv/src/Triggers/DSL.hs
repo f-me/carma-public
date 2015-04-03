@@ -2,21 +2,26 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE StandaloneDeriving, DeriveDataTypeable #-}
 
+{-|
+
+Lower-level database trigger DSL. Ties AppHandler monad and various IO
+actions employed in triggers.
+
+-}
+
 module Triggers.DSL
     (
       -- * DSL evaluator
       TriggerRes
-    , Dsl
     , DslState(..)
     , emptyDslState
     , DslM, runDslM
-    , evalDsl
     , inParentContext
 
       -- * DSL terms
       -- ** Context access
     , getIdent
-    , putIdentUnsafe
+    , unsafePutIdent
     , getPatch
     , modifyPatch
     , getPatchField
@@ -40,10 +45,8 @@ module Triggers.DSL
     , logCRUDState
     , wsMessage
     , getNow
-    , getCityWeather
 
     , inFuture
-    , doApp
     )
 
 where
@@ -51,11 +54,11 @@ where
 import Control.Applicative
 import Control.Monad
 import Control.Exception (SomeException)
-import Control.Monad.Free
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Class (lift)
 
+import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -66,17 +69,13 @@ import Data.Int (Int64)
 import Data.Typeable
 import GHC.TypeLits
 
-import qualified Snap (gets)
 import Snap.Snaplet.Auth
 import Snaplet.Auth.Class
 import Snaplet.Auth.PGUsers
 
-import WeatherApi (Weather, getWeather')
-
-import Application (AppHandler, weatherCfg)
-import           Database.PostgreSQL.Simple ((:.) (..))
+import Application (AppHandler)
 import qualified Database.PostgreSQL.Simple as PG
-import qualified Snap.Snaplet.PostgresqlSimple as PS
+import           Snap.Snaplet.PostgresqlSimple as PS
 
 
 import Data.Model as Model
@@ -99,262 +98,184 @@ import Carma.Model.LegacyTypes (Password(..))
 import qualified AppHandlers.Users as Users
 import qualified Utils.Events as Evt (logCRUDState)
 
-type TriggerRes m = Either (Int,String) (Patch m)
+
+type TriggerRes m = Either (Int, String) (Patch m)
 
 
--- DSL operations
-----------------------------------------------------------------------
-
-getIdent :: Free (Dsl m) (IdentI m)
-getIdent = liftFree $ ModState (\st -> (st, st_ident st)) id
-
-putIdentUnsafe :: IdentI m -> DslM m ()
-putIdentUnsafe i = liftFree $ ModState (\st -> (st{st_ident = i}, ())) id
-
-getPatch :: Free (Dsl m) (Patch m)
-getPatch = liftFree $ ModState (\st -> (st, st_patch st)) id
-
-modifyPatch :: (Patch m -> Patch m) -> Free (Dsl m) ()
-modifyPatch f = liftFree
-  $ ModState (\st -> (st{st_patch = f (st_patch st)}, ())) id
-
-getPatchField
-  :: (KnownSymbol name, Typeable typ)
-  => (m -> Field typ (FOpt name desc app))
-  -> Free (Dsl m) (Maybe typ)
-getPatchField fld = (`Patch.get` fld) <$> getPatch
-
-
-getCurrentUser :: Free (Dsl m) (IdentI Usermeta)
-getCurrentUser = liftFree (CurrentUser id)
-
-createSnapUser :: Text -> Free (Dsl Usermeta) ()
-createSnapUser login = do
-  uid <- liftFree (CreateUser login id)
-  modifyPatch (Patch.put Usermeta.uid uid)
-
-updateSnapUserFromUsermeta :: Free (Dsl Usermeta) ()
-updateSnapUserFromUsermeta = do
-  maybePass <- getPatchField Usermeta.password
-  u <- getIdent >>= dbRead
-  let u' = maybe u (\p -> Patch.put Usermeta.password p u) maybePass
-  liftFree (UpdateUser u' ())
-
-
-tError :: Int -> String -> Free (Dsl m) (TriggerRes m)
-tError httpCode msg = return $ Left (httpCode, msg)
-
-tOk :: Free (Dsl m) (TriggerRes m)
-tOk = Right <$> getPatch
-
-
-dbCreate :: Model m => Patch m -> Free (Dsl n) (IdentI m)
-dbCreate p = liftFree (DbCreate p id)
-
-dbRead :: (PG.FromRow (p m), Model m) => IdentI m -> Free (Dsl n) (p m)
-dbRead i = liftFree (DbRead i id)
-
-dbUpdate :: Model m => IdentI m -> Patch m -> Free (Dsl n) Int64
-dbUpdate i p = liftFree (DbUpdate i p id)
-
-wsMessage :: Free (Dsl m) ()
-wsMessage = liftFree (WsMessage ())
-
-getNow :: Free (Dsl m) UTCTime
-getNow = liftFree (DoApp (liftIO getCurrentTime) id)
-
-userIsReady :: IdentI Usermeta -> Free (Dsl m) Bool
-userIsReady uid = liftFree (DoApp (Users.userIsReady uid) id)
-
-logCRUDState :: Model m =>
-                EventType
-             -> IdentI m
-             -> Patch m
-             -> Free (Dsl m1) (IdentI Event)
-logCRUDState m i p =
-  liftFree (DoApp (Evt.logCRUDState m i p) id)
-
-
-doApp :: AppHandler a -> Free (Dsl m) a
-doApp f = liftFree (DoApp f id)
-
-inParentContext
-  :: (Model m, p ~ Parent m, Model p)
-  => DslM p () -> DslM m ()
-inParentContext act = do
-  let getState = liftFree $ ModState (\st -> (st, st)) id
-  let setState s = liftFree $ ModState (const (s, ())) id
-  st <- getState
-  let st_p = st
-        {st_ident = Patch.toParentIdent $ st_ident st
-        ,st_patch = Patch.toParentPatch $ st_patch st
-        }
-  Right st_p' <- doApp $ runDslM' st_p act
-  let patch' = Patch.mergeParentPatch (st_patch st) (st_patch st_p')
-  setState $ st {st_patch = patch'}
-
-
--- | List of actions in a case, ordered by 'Action.closeTime' and
--- 'Action.ctime' in descending order (latest come first).
-caseActions :: IdentI Case
-            -> Free (Dsl m) [Object Action.Action]
-caseActions cid =
-  liftFree $
-  DbIO (Sql.select (Sql.fullPatch Action.ident :.
-                    Action.caseId `Sql.eq` cid :.
-                    Sql.descBy Action.closeTime :.
-                    Sql.descBy Action.ctime)) (map (\(x :. ()) -> x))
-
-
-getCityWeather :: Text -> Free (Dsl m) (Either String Weather)
-getCityWeather city = liftFree (DoApp action id)
-  where
-    action :: AppHandler (Either String Weather)
-    action = do
-      conf <- Snap.gets weatherCfg
-      weather <- liftIO $ getWeather' conf $
-                 T.unpack $ T.filter (/= '\'') city
-      return $ case weather of
-                 Right w -> Right w
-                 Left e  -> Left $ show e
-
-
-inFuture :: (AppHandler (IO ())) -> Free (Dsl m) ()
-inFuture f
-  = liftFree
-  $ ModState (\st -> (st{st_futur = f : st_futur st}, ())) id
-
-
-liftFree :: Functor f => f a -> Free f a
-liftFree = Free . fmap Pure
-
-
--- These are internals of our DSL
-----------------------------------------------------------------------
-
--- Core DSL operations
--- Don't use them in triggers, use wrappers defined in the section above.
--- Add more if required but try to keep list of core operations small, this
--- will simplify DSL interpreter.
-data Dsl m k where
-  ModState    :: (DslState m -> (DslState m, res)) -> (res -> k) -> Dsl m k
-  DbCreate    :: Model m1 => Patch m1 -> (IdentI m1 -> k) -> Dsl m k
-  DbRead      :: (PG.FromRow (p m1), Model m1) =>
-                 IdentI m1 -> (p m1 -> k) -> Dsl m k
-  DbUpdate    :: Model m1 => IdentI m1 -> Patch m1 -> (Int64 -> k) -> Dsl m k
-  DbIO        :: (PG.Connection -> IO res) -> (res -> k) -> Dsl m k
-  CurrentUser :: (IdentI Usermeta -> k) -> Dsl m k
-  CreateUser  :: Text -> (Int -> k) -> Dsl m k
-  UpdateUser  :: Patch Usermeta -> k -> Dsl m k
-  WsMessage   :: k -> Dsl m k
-  DoApp       :: AppHandler r -> (r -> r') -> Dsl m r'
-
-deriving instance Typeable Dsl
-
--- deriving instance Functor  (Dsl m)
--- seems we can do this automatically in GHC 7.8
--- https://ghc.haskell.org/trac/ghc/ticket/8678
-instance Functor (Dsl m) where
-  fmap fn = \case
-    ModState  f   k -> ModState  f   $ fn . k
-    DbCreate  p   k -> DbCreate  p   $ fn . k
-    DbRead    i   k -> DbRead i      $ fn . k
-    DbUpdate  i p k -> DbUpdate  i p $ fn . k
-    DbIO      q   k -> DbIO q        $ fn . k
-    CurrentUser   k -> CurrentUser   $ fn . k
-    CreateUser l  k -> CreateUser l  $ fn . k
-    UpdateUser p  k -> UpdateUser p  $ fn   k
-    WsMessage     k -> WsMessage     $ fn   k
-    DoApp      a  k -> DoApp      a  $ fn . k
-
-
+-- | DSL operations.
 data DslState m = DslState
   { st_futur :: [AppHandler (IO ())]
   , st_ident :: IdentI m
   , st_patch :: Patch m
   }
 
-emptyDslState :: IdentI m -> Patch m -> DslState m
-emptyDslState = DslState []
 
-type DslM m res = Free (Dsl m) res
-
--- | DSL evaluation.
-runDslM :: Model m =>
-           DslState m -> DslM m a -> AppHandler (Either String (DslState m))
-runDslM st f = PS.withTransactionLevel PS.ReadCommitted $ runDslM' st f
-
--- | Non-transactioned DSL evaluation.
-runDslM' :: Model m =>
-            DslState m -> DslM m a -> AppHandler (Either String (DslState m))
-runDslM' st f = Right <$> execStateT (evalDsl f) st
-
-runDb
-  :: Model m
-  => (PG.Connection -> IO (Either SomeException res))
-  -> (res -> Free (Dsl m) res')
-  -> StateT (DslState m) AppHandler res'
-runDb f k = (lift $ PS.liftPG f) >>= \case
-  Right res -> evalDsl $ k res
-  Left err  -> error $ show err -- FIXME: I don't know what to do
+type DslM m res = StateT (DslState m) AppHandler res
 
 
--- Our Dsl is evaluated in @AppHandler@ context, so it have access to IO and
--- Snap's state.
-evalDsl
-  :: forall m res . Model m
-  => Free (Dsl m) res -> StateT (DslState m) AppHandler res
-evalDsl = \case
-  Pure res -> return res
-  Free op  -> case op of
-    ModState f k
-      -> get >>= \st -> let (st',res) = f st in put st' >> evalDsl (k res)
-    DbCreate p k   -> runDb (Patch.create p)   k
-    DbRead i k     -> runDb (Patch.read i)     k
-    DbUpdate i p k -> runDb (Patch.update i p) k
-    DbIO q k -> do
-      res <- lift $ PS.liftPG q
-      evalDsl $ k res
+getIdent :: DslM m (IdentI m)
+getIdent = gets st_ident
 
-    CurrentUser k -> do
-      Just uid <- lift currentUserMetaId
-      evalDsl $ k uid
 
-    CreateUser l k -> do
-      let user = defAuthUser {userLogin = l}
-      res <- lift $ withAuth $ withBackend $ \bk -> liftIO $ save bk user
-      case res of
-        Left e -> error $ "Could not create new user: " ++ show e
-        Right newUser -> do
-          let Just (UserId uid) = userId newUser
-          case T.decimal uid of
-            Right (uidNum,"") -> evalDsl $ k uidNum
-            _ -> error "Impossible in CreateUser"
+unsafePutIdent :: IdentI m -> DslM m ()
+unsafePutIdent i = modify $ \s -> s{st_ident = i}
 
-    UpdateUser u k -> do
+
+getPatch :: DslM m (Patch m)
+getPatch = gets st_patch
+
+
+modifyPatch :: (Patch m -> Patch m) -> DslM m ()
+modifyPatch f = modify $ \s -> s{st_patch = f $ st_patch s}
+
+
+getPatchField :: (KnownSymbol name, Typeable typ) =>
+                 (m -> Field typ (FOpt name desc app))
+              -> DslM m (Maybe typ)
+getPatchField fld = (`Patch.get` fld) <$> getPatch
+
+
+getCurrentUser :: DslM m (IdentI Usermeta)
+getCurrentUser =
+  lift $ (fromMaybe (error "No current user") <$> currentUserMetaId)
+
+
+createSnapUser :: Text -> DslM Usermeta ()
+createSnapUser login = do
+  uid <- lift $ do
+    let user = defAuthUser {userLogin = login}
+    res <- withAuth $ withBackend $ \bk -> liftIO $ save bk user
+    case res of
+      Left e -> error $ "Could not create new user: " ++ show e
+      Right newUser -> do
+        let Just (UserId uid) = userId newUser
+        case T.decimal uid of
+          Right (uidNum, "")
+            -> return uidNum
+          _ -> error "Impossible in createSnapUser"
+  modifyPatch (Patch.put Usermeta.uid uid)
+
+
+updateSnapUserFromUsermeta :: DslM Usermeta ()
+updateSnapUserFromUsermeta = do
+  maybePass <- getPatchField Usermeta.password
+  u' <- getIdent >>= dbRead
+  let u = maybe u' (\p -> Patch.put Usermeta.password p u') maybePass
+  lift $ do
       let Just login    = Patch.get u Usermeta.login
           Just isActive = Patch.get u Usermeta.isActive
           Just uid      = Patch.get u Usermeta.uid
           maybePwd      = Patch.get u Usermeta.password
-      lift $ do
-        let uid' = UserId $ T.pack $ show uid -- FIXME: Usermeta.uid :: F Text
-        Just user <- withAuth $ withBackend
-          $ \bk -> liftIO $ lookupByUserId bk uid'
-        let zabriskiePoint = UTCTime (fromJulian 3001 0 0) 0
-            lock = if isActive then Nothing else Just zabriskiePoint
-            user' = user {userLogin = login, userLockedOutUntil = lock}
-        user'' <- maybe
-          (return user')
-          (\(Password pwd) -> liftIO $ setPassword user' (T.encodeUtf8 pwd))
-          maybePwd
-        void $ withAuth $ withBackend -- FIXME: can fail
-          $ \bk -> liftIO $ save bk user''
-      evalDsl k
+      let uid' = UserId $ T.pack $ show uid -- FIXME: Usermeta.uid :: F Text
+      Just user <- withAuth $ withBackend
+        $ \bk -> liftIO $ lookupByUserId bk uid'
+      let zabriskiePoint = UTCTime (fromJulian 3001 0 0) 0
+          lock = if isActive then Nothing else Just zabriskiePoint
+          user' = user {userLogin = login, userLockedOutUntil = lock}
+      user'' <- maybe
+        (return user')
+        (\(Password pwd) -> liftIO $ setPassword user' (T.encodeUtf8 pwd))
+        maybePwd
+      void $ withAuth $ withBackend -- FIXME: can fail
+        $ \bk -> liftIO $ save bk user''
 
-    WsMessage k -> do
-      p <- gets st_patch
-      i <- mkLegacyIdent <$> gets st_ident
-      lift $ withMsg $ sendMessage i p
-      evalDsl k
 
-    DoApp a k -> evalDsl =<< k <$> lift a
+tError :: Int -> String -> DslM m (TriggerRes m)
+tError httpCode msg = return $ Left (httpCode, msg)
+
+
+tOk :: DslM m (TriggerRes m)
+tOk = Right <$> getPatch
+
+
+dbCreate :: Model m => Patch m -> DslM m (IdentI m)
+dbCreate p = runDb (Patch.create p) id
+
+
+dbRead :: (PG.FromRow (p n), Model n) => IdentI n -> DslM m (p n)
+dbRead i = runDb (Patch.read i) id
+
+
+dbUpdate :: Model m => IdentI m -> Patch m -> DslM n Int64
+dbUpdate i p = runDb (Patch.update i p) id
+
+
+wsMessage :: Model m => DslM m ()
+wsMessage = do
+  p <- gets st_patch
+  i <- mkLegacyIdent <$> gets st_ident
+  lift $ withMsg $ sendMessage i p
+
+
+getNow :: DslM m UTCTime
+getNow = lift $ liftIO getCurrentTime
+
+
+userIsReady :: IdentI Usermeta -> DslM m Bool
+userIsReady uid = lift $ Users.userIsReady uid
+
+
+logCRUDState :: Model m =>
+                EventType
+             -> IdentI m
+             -> Patch m
+             -> DslM m1 (IdentI Event)
+logCRUDState m i p = lift $ Evt.logCRUDState m i p
+
+
+inParentContext
+  :: (Model m, p ~ Parent m, Model p)
+  => DslM p () -> DslM m ()
+inParentContext act = do
+  st <- get
+  let st_p = st{ st_ident = Patch.toParentIdent $ st_ident st
+               , st_patch = Patch.toParentPatch $ st_patch st
+               }
+  Right st_p' <- lift $ runDslM' st_p act
+  let patch' = Patch.mergeParentPatch (st_patch st) (st_patch st_p')
+  put st{st_patch = patch'}
+
+
+-- | List of actions in a case, ordered by 'Action.closeTime' and
+-- 'Action.ctime' in descending order (latest come first).
+caseActions :: IdentI Case
+            -> DslM m [Object Action.Action]
+caseActions cid = undefined
+  runDb
+  (Sql.select (Sql.fullPatch Action.ident :.
+                    Action.caseId `Sql.eq` cid :.
+                    Sql.descBy Action.closeTime :.
+                    Sql.descBy Action.ctime))
+  (map (\(x :. ()) -> x))
+
+
+inFuture :: (AppHandler (IO ())) -> DslM m ()
+inFuture f = modify $ \st -> st{st_futur = f : st_futur st}
+
+
+emptyDslState :: IdentI m -> Patch m -> DslState m
+emptyDslState = DslState []
+
+
+runDslM :: Model m =>
+           DslState m
+        -> DslM m a
+        -> AppHandler (Either String (DslState m))
+runDslM st f = PS.withTransactionLevel PS.ReadCommitted $ runDslM st f
+
+
+runDslM' :: Model m =>
+            DslState m
+         -> DslM m a
+         -> AppHandler (Either String (DslState m))
+runDslM' st f = Right <$> execStateT f st
+
+
+runDb :: (PG.Connection -> IO (Either SomeException res))
+      -> (res -> res')
+      -> DslM m res'
+runDb fetch process =
+  lift $
+  (liftPG $ \pg -> fetch pg >>= \case
+       Right res -> return $ process res
+       Left err  -> error $ show err) -- FIXME: I don't know what to do

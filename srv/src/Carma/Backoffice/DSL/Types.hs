@@ -38,7 +38,6 @@ import qualified Carma.Model.Action as CarmaAction
 import           Carma.Model.Case as Case
 import           Carma.Model.Service as Service
 
-import           Control.Monad.Free
 import           Triggers.DSL
 
 
@@ -74,17 +73,17 @@ data MailType = Dealer | PSA | Genser
 type family HaskellType t where
   HaskellType Trigger = Map (Text, Text) [Dynamic]
   HaskellType (Maybe v) = Maybe (HaskellType v)
-  HaskellType (Outcome m) = Free (Dsl m) ()
-  HaskellType (Eff m) = Free (Dsl m) ()
+  HaskellType (Outcome m) = DslM m ()
+  HaskellType (Eff m) = DslM m ()
   HaskellType t = t
 
 
 -- | Provides back office context depending on trigger models (@m@ in
 -- @Dsl m@).
 class PreContextAccess m where
-  getKase    :: Free (Dsl m) (Object Case)
-  getService :: Free (Dsl m) (Maybe (Object Service))
-  getAction  :: Free (Dsl m) (Maybe (Object CarmaAction.Action))
+  getKase    :: DslM m (Object Case)
+  getService :: DslM m (Maybe (Object Service))
+  getAction  :: DslM m (Maybe (Object CarmaAction.Action))
 
 
 instance PreContextAccess Case where
@@ -125,7 +124,7 @@ class SvcAccess m where
                 (IdentI Service)
              -> (Service -> F t n d)
              -> t
-             -> Free (Dsl m) ()
+             -> DslM m ()
 
 
 instance SvcAccess Service where

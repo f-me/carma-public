@@ -39,8 +39,6 @@ import           GHC.TypeLits
 import qualified Database.PostgreSQL.Simple as PG
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
-import           WeatherApi (tempC)
-
 import           Carma.Model.Types (HMDiffTime(..))
 import           Data.Model as Model
 import           Data.Model.Patch as Patch
@@ -100,7 +98,7 @@ import           Util (Priority(..), syslogJSON, (.=))
 
 
 -- TODO: rename
---   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
+--   - trigOnModel -> onModel :: ModelCtr m c => c -> DslM m res
 --   - trigOnField -> onField
 
 
@@ -296,15 +294,6 @@ beforeUpdate = Map.unionsWith (++) $
   , trigOn Service.times_expectedServiceClosure $ const $
     modifyPatch (Patch.put Service.times_factServiceClosure Nothing)
 
-  , trigOn Case.city $ \case
-      Nothing -> return ()
-      Just city ->
-        do
-          cp <- dbRead city
-          w <- getCityWeather (cp `get'` City.label)
-          let temp = either (const $ Just "") (Just . T.pack . show . tempC) w
-          modifyPatch (Patch.put Case.temperature temp)
-
   , trigOn Case.contract $ \val -> do
       old <- getIdent >>= dbRead
       case Patch.get' old Case.contract of
@@ -357,7 +346,10 @@ afterUpdate = Map.unionsWith (++) $
 
 type ModelName = Text
 type FieldName = Text
-type TriggerMap = Map (ModelName, FieldName) [Dynamic]
+type TriggerMap = Map (ModelName, FieldName) [TriggerBox]
+
+
+data TriggerBox = forall m. TriggerBox { fromBox :: DslM m () }
 
 
 -- | This is how we make new trigger
@@ -365,9 +357,9 @@ trigOn
   :: forall m name typ desc app res
   . (Model m, KnownSymbol name, Typeable typ)
   => (m -> Field typ (FOpt name desc app)) -- ^ watch this field
-  -> (typ -> Free (Dsl m) res)             -- ^ run this if field changed
+  -> (typ -> DslM m res)                   -- ^ run this if field changed
   -> TriggerMap
-trigOn fld fun = Map.singleton (mName, fName) [toDyn fun']
+trigOn fld fun = Map.singleton (mName, fName) [TriggerBox fun']
   where
     mName = modelName (modelInfo :: ModelInfo m)
     fName = Model.fieldName fld
@@ -378,11 +370,11 @@ trigOn fld fun = Map.singleton (mName, fName) [toDyn fun']
 
 trigOnModel
   :: forall m res . Model m
-  => [m] -> Free (Dsl m) res -> TriggerMap
+  => [m] -> DslM m res -> TriggerMap
 trigOnModel _ fun
   = Map.singleton
     (modelName (modelInfo :: ModelInfo m), "") -- dummy field name
-    [toDyn $ void fun]
+    [TriggerBox $ void fun]
 
 
 -- | This is how we run triggers on a patch
@@ -393,7 +385,7 @@ runCreateTriggers
 runCreateTriggers patch =
     fmap (\st -> (st_ident st, st_patch st))
       <$> runTriggers beforeCreate afterCreate
-        (getPatch >>= dbCreate >>= putIdentUnsafe)
+        (getPatch >>= dbCreate >>= unsafePutIdent)
         [""] -- pass dummy field name
         (emptyDslState undefined patch)
 
@@ -422,11 +414,8 @@ runTriggers before after dbAction fields state = do
       matchingTriggers model trigMap = do
         field <- fields
         Just triggers <- [Map.lookup (model,field) trigMap]
-        trigger <- triggers
-        return $ fromMaybe -- FIXME: fail early
-          (fail $ printf "BUG! while casting tigger (%s,%s)"
-            (show model) (show field))
-          (fromDynamic trigger)
+        TriggerBox trigger <- triggers
+        return trigger
 
   let run = runDslM state $ do
         case parentInfo :: ParentInfo m of
@@ -483,9 +472,9 @@ contractToCase =
     ]
 
 
-copyContractToCase :: IdentI SubProgram -> Patch Contract -> Free (Dsl Case) ()
+copyContractToCase :: IdentI SubProgram -> Patch Contract -> DslM Case ()
 copyContractToCase subProgId contract = do
-  ctrFields <- doApp $ do
+  ctrFields <- lift $ do
       PS.liftPG $ \pg ->
         concat <$> PG.query pg
           "SELECT contractfield \
@@ -516,7 +505,7 @@ concatLegacyIds r1 r2 = Just $ Reference $
 
 -- | Set @validUntil@ field from a subprogram and a new @validSince@
 -- value.
-fillValidUntil :: IdentI SubProgram -> WDay -> Free (Dsl Contract) ()
+fillValidUntil :: IdentI SubProgram -> WDay -> DslM Contract ()
 fillValidUntil subprogram newSince = do
   sp <- dbRead subprogram
   let vf = sp `get'` SubProgram.validFor
@@ -529,7 +518,7 @@ fillValidUntil subprogram newSince = do
 
 
 -- | Fill @diagnosisN@ fields.
-fillWazzup :: IdentI Wazzup.Wazzup -> Free (Dsl Case) ()
+fillWazzup :: IdentI Wazzup.Wazzup -> DslM Case ()
 fillWazzup wi = do
   wazz <- dbRead wi
   let f :: (FieldI t n d) => (Wazzup.Wazzup -> F t n d) -> t
@@ -545,7 +534,7 @@ fillWazzup wi = do
 modPut :: (KnownSymbol name, Typeable typ) =>
           (m -> Field typ (FOpt name desc app))
        -> typ
-       -> Free (Dsl m) ()
+       -> DslM m ()
 modPut acc val = modifyPatch $ Patch.put acc val
 
 
@@ -788,7 +777,7 @@ mkTrigger :: (Eq (HaskellType t),
               PreContextAccess m) =>
              (m -> F (HaskellType t) n d)
           -> HaskellE t
-          -> (HCtx -> Free (Dsl m) ())
+          -> (HCtx -> DslM m ())
           -> HaskellE Trigger
 mkTrigger acc target act =
   HaskellE $
@@ -803,7 +792,7 @@ mkTrigger acc target act =
 mkContext :: PreContextAccess m =>
              Maybe ActionTypeI
              -- ^ Previous action type.
-          -> Free (Dsl m) HCtx
+          -> DslM m HCtx
 mkContext act = do
   srv <- getService
   kase' <- getKase
@@ -856,10 +845,10 @@ runLater = HaskellE . fmap postpone
     -- FIXME Get rid of threadDelay, perform when the database action
     -- returns
     coffebreak = 1500000
-    postpone :: (AppHandler (IO ())) -> Free (Dsl m) ()
+    postpone :: (AppHandler (IO ())) -> DslM m ()
     postpone act =
-      Dsl.doApp $
-      act >>= \io -> void $ liftIO $ forkIO $ threadDelay coffebreak >> io
+      lift $ act >>=
+      \io -> void $ liftIO $ forkIO $ threadDelay coffebreak >> io
 
 
 -- | Select some actions from the context.
@@ -912,12 +901,12 @@ data HCtx =
 
 
 -- | Convert Backoffice entries to update triggers.
-entryToTrigger :: BO.Entry -> Map (ModelName, FieldName) [Dynamic]
+entryToTrigger :: BO.Entry -> Map (ModelName, FieldName) [TriggerBox]
 entryToTrigger = evalHaskell emptyContext . BO.trigger
 
 
 -- | Convert Backoffice entries to action result triggers.
-actionToTrigger :: BO.Action -> Map (ModelName, FieldName) [Dynamic]
+actionToTrigger :: BO.Action -> Map (ModelName, FieldName) [TriggerBox]
 actionToTrigger a =
   trigOn Action.result $
   \newVal -> do
