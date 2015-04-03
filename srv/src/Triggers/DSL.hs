@@ -189,7 +189,7 @@ inParentContext act = do
         {st_ident = Patch.toParentIdent $ st_ident st
         ,st_patch = Patch.toParentPatch $ st_patch st
         }
-  Right st_p' <- doApp $ runDslM st_p act
+  Right st_p' <- doApp $ runDslM' st_p act
   let patch' = Patch.mergeParentPatch (st_patch st) (st_patch st_p')
   setState $ st {st_patch = patch'}
 
@@ -279,10 +279,15 @@ emptyDslState = DslState []
 
 type DslM m res = Free (Dsl m) res
 
-runDslM :: Model m => DslState m -> DslM m a -> AppHandler (Either String (DslState m))
-runDslM st f = PS.withTransactionLevel PS.ReadCommitted $
-               Right <$> execStateT (evalDsl f) st
+-- | DSL evaluation.
+runDslM :: Model m =>
+           DslState m -> DslM m a -> AppHandler (Either String (DslState m))
+runDslM st f = PS.withTransactionLevel PS.ReadCommitted $ runDslM' st f
 
+-- | Non-transactioned DSL evaluation.
+runDslM' :: Model m =>
+            DslState m -> DslM m a -> AppHandler (Either String (DslState m))
+runDslM' st f = Right <$> execStateT (evalDsl f) st
 
 runDb
   :: Model m
