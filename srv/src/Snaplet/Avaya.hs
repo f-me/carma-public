@@ -150,12 +150,12 @@ hook = do
             -- at all
             aeData =
               case ev of
-                DeliveredEvent c _ _ _ ->
+                DeliveredEvent c _ _ _ _ ->
                   Just (c, et)
                   where
-                    et = if dir == DMCC.In
-                         then AET.in
-                         else AET.out
+                    et = case dir of
+                           (DMCC.In _) -> AET.in
+                           _           -> AET.out
                     dir = direction call
                     call = fromMaybe (error "DeliveredEvent with bad state") $
                            Map.lookup c (_calls st)
