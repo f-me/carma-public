@@ -90,6 +90,7 @@ require [ "domready"
         if user.workPhoneSuffix.match(/^\d+$/)
           cti = new CTI user.workPhoneSuffix
           vips = u.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
+          vdns = u.newModelDict("VDN", false, {dictionaryLabel: 'number'})
           opts =
             # AVAYA halts when this is dialed
             bannedNumbers: ["8"]
@@ -99,6 +100,14 @@ require [ "domready"
             internalToDisplayed:
               (number) ->
                 number?.match(/\d+/)?[0]?.replace(/^(98|8|)(\d{10})$/, "\+7$2")
+            vdnToDisplayed:
+              (number) ->
+                number = number?.split(":")[0]
+                vdn = vdns.getElement(vdns.getVal(number))
+                if vdn?
+                  "#{vdn?.label}: #{vdn?.greeting}"
+                else
+                  null
             isVipCb: (n) -> vips.getVal(n)
           global.CTIPanel = new CTIPanel cti, $("#cti"), opts
         else

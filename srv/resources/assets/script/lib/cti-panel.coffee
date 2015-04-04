@@ -4,6 +4,7 @@ define [], () ->
     constructor: (cti, el, options) ->
       displayedToInternal = options.displayedToInternal ? _.identity
       internalToDisplayed = options.internalToDisplayed ? _.identity
+      vdnToDisplayed      = options.vdnToDisplayed ? _.identity
       isVipCb             = options.isVipCb ? _.constant(false)
       onexagentPort       = options.onexagentPort ? 60000
 
@@ -57,6 +58,7 @@ define [], () ->
             @prev       = ko.observable null
             @number     =
               ko.observable interlocutorsToNumber call.interlocutors
+            @vdn        = ko.observable vdnToDisplayed call.direction?.vdn
             @callStart  = ko.observable call.start?
             @callId     = callId
             # Extension number typed so far
@@ -93,10 +95,10 @@ define [], () ->
             # the panel even before the service reports new call
             # state/event
             @canExtend  = ko.observable(
-              call.answered? && call.direction == "Out" && !call.held)
+              call.answered? && call.direction?.dir == "Out" && !call.held)
             @canCall    = ko.observable !(callId?)
             @canAnswer  = ko.observable(
-              !(call.answered?) && (call.direction == "In"))
+              !(call.answered?) && (call.direction?.dir == "In"))
             @canHold    = ko.observable (call.answered? && !call.held)
             @canRetrieve= ko.observable call.held
             @canConf    = ko.computed =>
@@ -105,7 +107,7 @@ define [], () ->
               @prev?() && call.answered? && !call.held
             @canInsta   = ko.computed => !@wip()
             @canEnd     = ko.observable(
-              !call.held && (call.answered? || (call.direction == "Out")))
+              !call.held && (call.answered? || (call.direction?.dir == "Out")))
 
             @addBlankCall= -> kvm.showBlankCall true
 
