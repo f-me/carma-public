@@ -55,9 +55,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/s/",            serveDirectoryWith dconf "resources/static")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/screens",       method GET $ getScreens)
-         , ("/callsByPhone/:phone",
-                              chkAuthLocal . method GET    $ searchCallsByPhone)
-         , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
          , ("/backoffice/errors", method GET $ serveBackofficeSpec Check)
          , ("/backoffice/spec.txt", method GET $ serveBackofficeSpec Txt)
          , ("/backoffice/spec.dot", method GET $ serveBackofficeSpec Dot)
@@ -93,6 +90,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/:mdl",        chkAuth . method GET    $ readManyHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
+         , ("/caseHistory/:caseId",
+                              chkAuthLocal . method GET $ caseHistory)
          , ("/searchCases",   chkAuthLocal . method GET  $ searchCases)
          , ("/latestCases",   chkAuthLocal . method GET  $ getLatestCases)
          , ("/regionByCity/:city",

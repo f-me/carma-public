@@ -530,16 +530,89 @@ mixin caseFilesList
         .form-group
           button#case-comments-b.btn
             | Добавить комментарий
-      legend История звонков
-      table#call-searchtable.table.table-striped.table-bordered
-        thead
-          tr
-            th Дата
-            th Сотрудник РАМК
-            th Тип коммуникации
-            th Комментарий
-            th Результат действия
-        tbody
+      #case-history
+        legend История по кейсу
+        // ko foreach: historyItems
+        div.well.history-item
+          div
+            div(style="float: left")
+              span.history-datetime(data-bind="text: datetime")
+            div(style="float: right")
+              span.history-who(data-bind="text: who")
+            div.history-body(style="clear: both", data-bind="with: json")
+              // ko if: $data.actiontype
+              div
+                i.glyphicon.glyphicon-briefcase
+                | &nbsp;
+                b
+                  | Действие:&nbsp;
+                span(data-bind="text: actiontype")
+              div
+                b
+                  | Результат:&nbsp;
+                span(data-bind="text: actionresult")
+              // /ko
+              // ko if: $data.actioncomment
+              div
+                b
+                  | Комментарий:&nbsp;
+                span(data-bind="text: actioncomment")
+              // /ko
+              // ko if: $data.calltype
+              div
+                i.glyphicon.glyphicon-phone-alt
+                | &nbsp;
+                b
+                  | Звонок:&nbsp;
+                span(data-bind="text: calltype")
+              // /ko
+              // ko if: $data.commenttext
+              div
+                i.glyphicon.glyphicon-bullhorn
+                | &nbsp;
+                b
+                  | Комментарий:&nbsp;
+                span(data-bind="text: commenttext")
+              // /ko
+              // ko if: $data.partnername
+              div
+                i.glyphicon.glyphicon-remove-circle
+                | &nbsp;
+                b
+                  | Отказ партнёра:&nbsp;
+                span(data-bind="text: partnername")
+              div
+                b
+                  | Причина отказа:&nbsp;
+                span(data-bind="text: refusalreason")
+                span(data-bind="visible: refusalcomment")
+                  | &nbsp;(
+                span(data-bind="text: refusalcomment")
+                span(data-bind="visible: refusalcomment")
+                  | )
+              // /ko
+              // ko if: $data.aetype
+              div
+                i.glyphicon.glyphicon-earphone
+                | &nbsp;
+                b
+                  | Событие AVAYA:&nbsp;
+                span(data-bind="text: aetype")
+              // /ko
+              // ko if: $data.aeinterlocutors
+              div
+                b
+                  | Второй абонент:&nbsp;
+                span(data-bind="text: aeinterlocutors")
+              // /ko
+              // ko if: $data.aecall
+              div
+                b
+                  | Идентификатор звонка:&nbsp;
+                span(data-bind="text: aecall")
+              // /ko
+        // /ko
+
 
 #permission-template
   .form-group

@@ -38,7 +38,7 @@ define [ "utils"
           kvm['renderActions']?()
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
-      setCommentsHandler kvm
+      setupCommentsHandler kvm
 
       Contract.setup "contract", kvm
 
@@ -59,7 +59,6 @@ define [ "utils"
             ,drop: 'up'
             }))
 
-      utils.mkDataTable $('#call-searchtable')
       hotkeys.setup()
       kvm = global.viewsWare[viewName].knockVM
 
@@ -70,6 +69,8 @@ define [ "utils"
           disable = _.any nots, (e) -> kvm[e]()
           disable
 
+      setupHistory kvm
+
       kvm['renderActions'] = -> renderActions(kvm)
       kvm['renderActions']()
 
@@ -78,7 +79,26 @@ define [ "utils"
 
       $(".status-btn-tooltip").tooltip()
 
-    setCommentsHandler = (kvm) ->
+    # History pane
+    setupHistory = (kvm) ->
+      historyDatetimeFormat = "dd.MM.yyyy HH:mm:ss"
+      refreshHistory = ->
+        $.getJSON "/caseHistory/#{kvm.id()}", (res) ->
+          kvm['historyItems'].removeAll()
+          for i in res
+            if i[2].aeinterlocutors?
+              i[2].aeinterlocutors =
+                _.map(i[2].aeinterlocutors, utils.internalToDisplayed).
+                  join(", ")
+            kvm['historyItems'].push
+              datetime: new Date(i[0]).toString historyDatetimeFormat
+              who: i[1]
+              json: i[2]
+      kvm['refreshHistory'] = refreshHistory
+      kvm['contact_phone1']?.subscribe refreshHistory
+
+    # Case comments/chat
+    setupCommentsHandler = (kvm) ->
       legId = "Case:#{kvm.id()}"
       if window.location.protocol == "https:"
         chatUrl = "wss://#{location.hostname}:#{location.port}/chat/#{legId}"
@@ -126,6 +146,7 @@ define [ "utils"
           url: "/_/CaseComment"
           data: JSON.stringify {caseId: parseInt(kvm.id()), comment: i.val()}
           dataType: "json"
+          success: -> kvm['refreshHistory']?()
         i.val("")
 
     # Manually re-render a list of case actions
@@ -187,7 +208,7 @@ define [ "utils"
             kvm['hasMissingRequireds'].subscribe (dis) ->
               avm.resultDisabled?(dis)
         cont.spin false
-      kvm['fillEventHistory']?()
+      kvm['refreshHistory']?()
 
     # Top-level wrapper for storeService
     addService = (name) ->

@@ -440,6 +440,14 @@ define [ "model/main"
       dict: name
       meta: meta
 
+  # Pretty-print ugly DeviceId from AVAYA
+  displayedToInternal: (number) ->
+    number.replace("+7", "98").replace("+", "9810")
+
+  # Convert pretty number to DeviceId for AVAYA
+  internalToDisplayed: (number) ->
+    number?.match(/\d+/)?[0]?.replace(/^(98|8|)(\d{10})$/, "\+7$2")
+
   # subset of d3.scale.category20 with dark colors removed
   palette:
     ['#aec7e8' # 1

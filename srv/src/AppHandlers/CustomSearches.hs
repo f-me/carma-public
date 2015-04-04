@@ -14,8 +14,7 @@ module AppHandlers.CustomSearches
       -- * Case screen
     , searchContracts
       -- ** History
-    , searchCallsByPhone
-    , getActionsForCase
+    , caseHistory
 
       -- ** Helpers
     , allDealersForMake
@@ -35,6 +34,7 @@ import qualified Data.ByteString.Char8 as B
 import           Data.Map as M (Map, (!), delete, fromList)
 import           Data.String (fromString)
 import           Data.Text (Text)
+import           Data.Time.Clock
 
 import           Database.PostgreSQL.Simple hiding (query, query_)
 import           Database.PostgreSQL.Simple.SqlQQ
@@ -132,37 +132,6 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
           , "priority", "comment","city", "program"
           , "times_expectedServiceStart"]
   return $ mkMap fields rows
-
-
-searchCallsByPhone :: AppHandler ()
-searchCallsByPhone = do
-  -- This two magic lines are required because `getParam` interprets
-  -- '+' symbol in url as space
-  -- FIXME: maybe better strip '+' from phones everywhere
-  uri <- rqURI <$> getRequest
-  let phone = last $ B.split '/' uri
-
-  rows <- query (fromString
-    $  "SELECT callerName, program::text, c.callTaker::text, callType::text,"
-    ++ "       extract (epoch from callDate at time zone 'UTC')::int8::text"
-    ++ "  FROM calltbl c"
-    ++ "  WHERE callerPhone = ?") [phone]
-  let fields =
-        ["callerName", "program", "callTaker", "callType", "callDate"]
-  writeJSON $ mkMap fields rows
-
-
-getActionsForCase :: AppHandler ()
-getActionsForCase = do
-  Just caseId <- getParam "id"
-  rows <- query (fromString
-    $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int8::text,"
-    ++ "       result::text, type::text, assignedTo::text, comment"
-    ++ "  FROM actiontbl"
-    ++ "  WHERE caseId = ?") [caseId]
-  let fields =
-        ["closeTime", "result", "name", "assignedTo", "comment"]
-  writeJSON $ mkMap fields rows
 
 
 opStatsQ :: Query
@@ -321,6 +290,15 @@ searchCases = do
     ["id", "contact_name", "callDate", "contact_phone1"
     ,"car_plateNum", "car_vin", "program", "comment"]
     rows
+
+
+caseHistory :: AppHandler ()
+caseHistory = do
+  caseId <- getIntParam "caseId"
+  rows <- query
+          [sql|SELECT datetime, who, json FROM "CaseHistory" WHERE caseId = ?|]
+          (Only caseId)
+  writeJSON (rows :: [(UTCTime, Text, Value)])
 
 
 findSameContract :: AppHandler ()

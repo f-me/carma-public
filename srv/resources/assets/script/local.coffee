@@ -85,7 +85,7 @@ require [ "domready"
 
     # disable everytnig websocket-related for portal
     if not window.location.origin.match(/portal\.ruamc\.ru/)
-      # New CTI panel
+      # Setup CTI panel
       if _.contains user.roles, global.idents("Role").cti
         if user.workPhoneSuffix.match(/^\d+$/)
           cti = new CTI user.workPhoneSuffix
@@ -94,12 +94,8 @@ require [ "domready"
           opts =
             # AVAYA halts when this is dialed
             bannedNumbers: ["8"]
-            displayedToInternal:
-              (number) ->
-                number.replace("+7", "98").replace("+", "9810")
-            internalToDisplayed:
-              (number) ->
-                number?.match(/\d+/)?[0]?.replace(/^(98|8|)(\d{10})$/, "\+7$2")
+            displayedToInternal: u.displayedToInternal
+            internalToDisplayed: u.internalToDisplayed
             vdnToDisplayed:
               (number) ->
                 number = number?.split(":")[0]
