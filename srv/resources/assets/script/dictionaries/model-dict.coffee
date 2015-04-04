@@ -39,8 +39,14 @@ define ['dictionaries/local-dict',], (ld) ->
 
     updateSource: (items) ->
       @source = ({value: i[@key], label: i[@label], _e: i} for i in items)
+      @allElementsMap = {}
+      for i in items
+        @allElementsMap[i[@key]] = i
 
     getLab: (val) -> @allValuesMap[val]
+
+    # Fetch full element data by dictionary key
+    getElement: (val) -> @allElementsMap[val]
 
     dictValues: ->
       if !@dictValueCache
