@@ -187,15 +187,17 @@ define [], () ->
         for c in newCalls
           kvm.calls.push c
 
+      errNotify = (err) -> $.notify err, {autoHide: false}
+
       wsHandler = (msg) ->
         if msg.dmccEvent? && msg.dmccEvent.event == "FailedEvent"
           failedCall = msg.newState.calls[msg.dmccEvent.callId]
           failedNumber = interlocutorsToNumber failedCall?.interlocutors
-          $.notify "Не удалось соединиться с номером #{failedNumber}"
+          errNotify "Не удалось соединиться с номером #{failedNumber}"
 
         if msg.errorText?
           console.log "CTI: #{msg.errorText}"
-          $.notify "Ошибка CTI: #{msg.errorText}"
+          errNotify "Ошибка CTI: #{msg.errorText}"
 
         if msg.calls?
           stateToVM msg
