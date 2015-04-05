@@ -3,6 +3,7 @@ module Carma.Model.AvayaEvent where
 import Data.Text
 import Data.Time.Clock
 import Data.Typeable
+import Data.Vector
 
 import Data.Model
 import Data.Model.View
@@ -26,8 +27,8 @@ data AvayaEvent = AvayaEvent
     :: F (IdentI Usermeta) "operator" "Сотрудник"
   , currentAction
     :: F (IdentI Action) "currentAction" "Действие"
-  , interlocutor
-    :: F Text "interlocutor" "Второй абонент"
+  , interlocutors
+    :: F (Vector Text) "interlocutors" "Собеседники"
   , callId
     :: F Text "callId" "Идентификатор звонка"
   } deriving Typeable

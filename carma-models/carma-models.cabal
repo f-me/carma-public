@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.31
+version:             0.32
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -38,6 +38,7 @@ library
     Carma.Model.CarMake,
     Carma.Model.CarModel,
     Carma.Model.Case,
+    Carma.Model.CaseComment,
     Carma.Model.CaseSource,
     Carma.Model.CaseStatus,
     Carma.Model.CheckType,
