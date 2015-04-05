@@ -55,7 +55,16 @@
   /* margin-top: 5px; */
 }
 
+#case-history .history-datetime {
+  float: left;
+}
+
+#case-history .history-who {
+  float: right;
+}
+
 #case-history .history-body {
+  clear: both;
   padding-top: 0.5em;
 }
 

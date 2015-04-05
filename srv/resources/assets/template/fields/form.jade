@@ -535,11 +535,11 @@ mixin caseFilesList
         // ko foreach: historyItems
         div.well.history-item
           div
-            div(style="float: left")
-              span.history-datetime(data-bind="text: datetime")
-            div(style="float: right")
-              span.history-who(data-bind="text: who")
-            div.history-body(style="clear: both", data-bind="with: json")
+            div.history-datetime
+              span(data-bind="text: datetime")
+            div.history-who
+              span(data-bind="text: who")
+            div.history-body(data-bind="with: json")
               // ko if: $data.actiontype
               div
                 i.glyphicon.glyphicon-briefcase
