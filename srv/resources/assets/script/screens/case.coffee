@@ -122,6 +122,7 @@ define [ "utils"
             if msg.msg
               note += " оставил сообщение: #{msg.msg}"
               chatNotify note
+              kvm['refreshHistory']?()
             else
               if um.realName
                 note += " (#{um.realName})"
@@ -137,16 +138,17 @@ define [ "utils"
                 note += " вышел с кейса"
                 chatNotify note, "success"
 
+      # Write new comment to case and send it via WS too
       $("#case-comments-b").on 'click', ->
         i = $("#case-comments-i")
-        return if _.isEmpty i.val()
-        chatWs.send i.val()
-        $.ajax
+        comment = i.val()
+        return if _.isEmpty comment
+        opts =
           type: "POST"
           url: "/_/CaseComment"
-          data: JSON.stringify {caseId: parseInt(kvm.id()), comment: i.val()}
+          data: JSON.stringify {caseId: parseInt(kvm.id()), comment: comment}
           dataType: "json"
-          success: -> kvm['refreshHistory']?()
+        $.ajax(opts).done( -> kvm['refreshHistory']?() && chatWs.send comment)
         i.val("")
 
     # Manually re-render a list of case actions
