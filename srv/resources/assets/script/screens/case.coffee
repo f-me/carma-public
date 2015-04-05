@@ -111,6 +111,7 @@ define [ "utils"
       brDict = utils.newModelDict "BusinessRole"
 
       chatWs = new WS chatUrl
+      kvm['chatWs'] = chatWs
       chatWs.onmessage = (raw) ->
         msg = JSON.parse raw.data
         who = msg.user || msg.joined || msg.left
@@ -236,6 +237,7 @@ define [ "utils"
 
 
     removeCaseMain = ->
+      global.viewsWare["case-form"].knockVM['chatWs']?.close()
       $("body").off "change.input"
       $('.navbar').css "-webkit-transform", ""
 
