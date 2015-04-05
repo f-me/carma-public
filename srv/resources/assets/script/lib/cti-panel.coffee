@@ -33,13 +33,14 @@ define [], () ->
 
       mkName = () -> (Math.random() * 1000000 | 0).toString(16)
 
-      onexagentApi = "http://localhost:#{onexagentPort}/onexagent/api"
+      if onexagentPort?
+        onexagentApi = "http://localhost:#{onexagentPort}/onexagent/api"
 
-      $.get "#{onexagentApi}/registerclient?name=#{mkName()}", (res) ->
-        xml = $.parseXML res
-        onexagentClient =
-          $(xml).find("RegisterClientResponse").attr("ClientId")
-        kvm.canMute !_.isEmpty(onexagentClient)
+        $.get "#{onexagentApi}/registerclient?name=#{mkName()}", (res) ->
+          xml = $.parseXML res
+          onexagentClient =
+            $(xml).find("RegisterClientResponse").attr("ClientId")
+          kvm.canMute !_.isEmpty(onexagentClient)
 
       # Simply call a number in +7921... form using the CTI panel
       @instaDial = (number) ->
