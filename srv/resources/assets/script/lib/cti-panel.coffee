@@ -2,11 +2,13 @@ define [], () ->
   # CTI panel interface
   class CTIPanel
     constructor: (cti, el, options) ->
+      answerCallCb        = options.answerCallCb ? null
       displayedToInternal = options.displayedToInternal ? _.identity
+      incomingCallCb      = options.incomingCallCb ? null
       internalToDisplayed = options.internalToDisplayed ? _.identity
-      vdnToDisplayed      = options.vdnToDisplayed ? _.identity
       isVipCb             = options.isVipCb ? _.constant(false)
-      onexagentPort       = options.onexagentPort ? 60000
+      onexagentPort       = options.onexagentPort ? null
+      vdnToDisplayed      = options.vdnToDisplayed ? _.identity
 
       # CTI panel state (it's a bit different from agent state in CSTA
       # lib to make interface coding easier)
@@ -45,6 +47,14 @@ define [], () ->
       # Simply call a number in +7921... form using the CTI panel
       @instaDial = (number) ->
         _.last(kvm.calls()).instaDial(number)()
+
+      # Answer an incoming call. Return false if no call can be answered.
+      @answer = () ->
+        c = _.find kvm.calls(), (c) -> c.canAnswer()
+        if c?
+          c.answerThis()
+        else
+          false
 
       # Pretty-print list of interlocutors
       interlocutorsToNumber = (interlocutors) ->
@@ -138,6 +148,7 @@ define [], () ->
                 cti.holdCall @prev().callId
               cti.answerCall callId
               @canAnswer false
+              answerCallCb call.interlocutors[0], call.direction?.vdn
             @endThis= ->
               cti.endCall callId
               @canEnd false
@@ -159,6 +170,9 @@ define [], () ->
                 () ->
                   kvm.canMute true
                   kvm.canUnmute false)
+
+            if @canAnswer()
+              incomingCallCb call.interlocutors[0], call.direction?.vdn
 
         newCalls = for callId, call of state.calls
           new CallVM call, callId

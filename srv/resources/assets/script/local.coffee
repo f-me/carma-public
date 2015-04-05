@@ -96,15 +96,32 @@ require [ "domready"
             bannedNumbers: ["8"]
             displayedToInternal: u.displayedToInternal
             internalToDisplayed: u.internalToDisplayed
+            isVipCb: (n) -> vips.getVal(n)
             vdnToDisplayed:
-              (number) ->
-                number = number?.split(":")[0]
-                vdn = vdns.getElement(vdns.getVal(number))
+              (vdnNumber) ->
+                vdnNumber = vdnNumber?.split(":")[0]
+                vdn = vdns.getElement(vdns.getVal(vdnNumber))
                 if vdn?
                   "#{vdn?.label}: #{vdn?.greeting}"
                 else
                   null
-            isVipCb: (n) -> vips.getVal(n)
+            onexagentPort: 60000
+            # Fill caller phone and program when answering a call on
+            # call screen
+            answerCallCb: (number, vdnNumber) ->
+              callVM = global.viewsWare['call-view']?.knockVM
+              if callVM?
+                $("#make-new-call").trigger "newCall"
+                vdnNumber = vdnNumber?.split(":")[0]
+                vdn = vdns.getElement(vdns.getVal(vdnNumber))
+                number = u.internalToDisplayed number
+                if not callVM.callerPhone?()
+                  callVM.callerPhone? number
+                if vdn? && not callVM.program?()
+                  callVM.program? vdn.program
+                localStorage["call.search-query"] = "!Тел:" + number
+                $("#search-query").val("!Тел:" + number).change()
+            incomingCallCb: -> $("#cti").show()
           global.CTIPanel = new CTIPanel cti, $("#cti"), opts
           Mousetrap.bind ["`", "ё"], () ->
             $("#cti").toggle()
