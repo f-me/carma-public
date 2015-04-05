@@ -95,6 +95,7 @@ module.exports = (grunt) ->
     md5:        {src: 'js-md5/js',       file: 'md5.min.js'}
     d3:         {src: 'd3',              file: 'd3.min.js'}
     moment:     {src: 'moment/min',      file: 'moment-with-locales.min.js'}
+    mousetrap:  {src: 'mousetrap',       file: 'mousetrap.min.js'}
     mustache:   {src: 'mustache',        file: 'mustache.js'}
     underscore: {src: 'underscore',      file: 'underscore.js'}
     finch:      {src: 'finchjs',         file: 'finch.min.js'}

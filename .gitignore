@@ -59,6 +59,7 @@ srv/resources/static/3p/jquery.spin.js
 srv/resources/static/3p/knockout.js
 srv/resources/static/3p/md5.min.js
 srv/resources/static/3p/moment-with-locales.min.js
+srv/resources/static/3p/mousetrap.min.js
 srv/resources/static/3p/mustache.js
 srv/resources/static/3p/normalize-css/
 srv/resources/static/3p/notify-combined.min.js

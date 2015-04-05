@@ -106,6 +106,8 @@ require [ "domready"
                   null
             isVipCb: (n) -> vips.getVal(n)
           global.CTIPanel = new CTIPanel cti, $("#cti"), opts
+          Mousetrap.bind ["`", "ё"], () ->
+            $("#cti").toggle()
         else
           console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 

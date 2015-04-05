@@ -222,7 +222,3 @@ define [], () ->
         if e.which == 13
           $(e.target).parent(".call-form").submit()
           e.preventDefault()
-
-      $(document).keydown (e) ->
-        if e.which == 192
-          el.toggle()
