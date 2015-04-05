@@ -125,6 +125,7 @@ require [ "domready"
           global.CTIPanel = new CTIPanel cti, $("#cti"), opts
           Mousetrap.bind ["`", "ё"], () ->
             $("#cti").toggle()
+          Mousetrap.bind "ctrl+enter", () -> global.CTIPanel.answer()
         else
           console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 
