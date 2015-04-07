@@ -85,7 +85,6 @@ instance PgTypeable Value where
 instance PgTypeable  Activity            where pgTypeOf _ = PgType "text" True
 instance PgTypeable  RequestType         where pgTypeOf _ = PgType "text" True
 instance PgTypeable  DeliveryType        where pgTypeOf _ = PgType "text" True
-instance PgTypeable  TowerTypes          where pgTypeOf _ = PgType "text" True
 instance PgTypeable  WheelsBlockedCount  where pgTypeOf _ = PgType "text" True
 instance PgTypeable  UrgentServiceReason where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Password            where pgTypeOf _ = PgType "text" True
