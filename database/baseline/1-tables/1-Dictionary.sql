@@ -79,9 +79,13 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
        ARRAY[]::int4[], ARRAY['number'])
 , (49, 'ConsultationType', 'Типы консультации',
        ARRAY[]::int4[], ARRAY['id', 'label'])
-, (50, 'Complication', 'Типы осложнений',
+, (50, 'ConsultationResult', 'Результаты консультации',
        ARRAY[]::int4[], ARRAY['id', 'label'])
-, (51, 'CaseSource', 'Источники кейса',
+, (51, 'Complication', 'Типы осложнений',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (52, 'CaseSource', 'Источники кейса',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (53, 'TowerType', 'Виды эвакуатора',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 ;
 
