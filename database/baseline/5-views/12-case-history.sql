@@ -15,10 +15,14 @@ FROM (
             actiontbl.assignedTo AS userId,
             "ActionType".label AS actionType,
             "ActionResult".label AS actionResult,
-            actiontbl.comment AS actionComment
-        FROM actiontbl,
-            "ActionResult",
-            "ActionType"
+            actiontbl.comment AS actionComment,
+            s.id AS serviceId,
+            "ServiceType".label AS serviceLabel
+        FROM "ActionResult",
+            "ActionType",
+            actiontbl
+        LEFT OUTER JOIN servicetbl s ON s.id = actiontbl.serviceId
+        LEFT JOIN "ServiceType" ON "ServiceType".id = s.type
         WHERE actiontbl.type = "ActionType".id
             AND actiontbl.result = "ActionResult".id
         ) row

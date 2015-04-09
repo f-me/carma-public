@@ -552,6 +552,12 @@ mixin caseFilesList
                   | Результат:&nbsp;
                 span(data-bind="text: actionresult")
               // /ko
+              // ko if: $data.servicelabel
+              div
+                b
+                  | Услуга:&nbsp;
+                span(data-bind="text: servicelabel")
+              // /ko
               // ko if: $data.actioncomment
               div
                 b
