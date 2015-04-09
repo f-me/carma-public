@@ -533,7 +533,7 @@ mixin caseFilesList
       #case-history
         legend История по кейсу
         // ko foreach: historyItems
-        div.well.history-item
+        div.well.history-item(data-bind="style: {'background-color': color}")
           div
             div.history-datetime
               span(data-bind="text: datetime")
