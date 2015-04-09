@@ -77,6 +77,7 @@ import           Carma.Model.SubProgram as SubProgram hiding (ident)
 
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.TowType as TowType
+import qualified Carma.Model.TowerType as TowerType
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
@@ -199,7 +200,7 @@ beforeCreate = Map.unionsWith (++)
     modPut Towage.manipulatorPossible $ Just off
     modPut Towage.suburbanMilage      $ Just "0"
     modPut Towage.towType             $ Just TowType.dealer
-    modPut Towage.towerType           $ Just $ Ident "evac"
+    modPut Towage.towerType           $ Just TowerType.evac
     modPut Towage.towingPointPresent  $ Just off
     modPut Towage.vandalism           $ Just off
     modPut Towage.wheelsUnblocked     $ Just $ Ident "w0"

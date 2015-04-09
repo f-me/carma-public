@@ -112,6 +112,7 @@ WITH servicecounts AS (
    allservicesview.towdealer_partner AS "Назначение эвакуации-назв. дилера",
    allservicesview.whatToSay1 AS "Описание проблемы",
    "ConsultationType".label AS "Тип консультации",
+   "ConsultationResult".label AS "Результат консультации",
    p2.code AS "Код дилера",
    casecity.label AS "Город места поломки",
    dealercity.label AS "Город дилера (куда эвакуируют)",
@@ -176,6 +177,7 @@ WITH servicecounts AS (
     casetbl.contact_email AS "Email звонящего",
     servicetbl.contractor_address AS "Адрес выезда эвакуатора",
     allservicesview.towtype AS "Вид эвакуации",
+    "TowerType".label AS "Тип эвакуатора",
     timezone('Europe/Moscow'::text, servicetbl.times_expecteddispatch) AS "Время выезда партнёра",
      timezone('Europe/Moscow'::text, servicetbl.bill_billingdate) AS "Дата выставления счёта",
     casetbl.repair AS "Дата починки",
@@ -248,7 +250,9 @@ WITH servicecounts AS (
    LEFT JOIN allservicesview ON allservicesview.id = servicetbl.id AND servicetbl.parentid = allservicesview.parentid
    LEFT JOIN partnertbl p1 ON servicetbl.contractor_partnerid = p1.id
    LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = p2.id
+   LEFT JOIN "ConsultationResult" ON allservicesview.consResult = "ConsultationResult".id
    LEFT JOIN "ConsultationType" ON allservicesview.consType = "ConsultationType".id
+   LEFT JOIN "TowerType" ON allservicesview.towerType = "TowerType".id
    LEFT JOIN servicecounts ON servicetbl.parentid = servicecounts.parentid
    LEFT JOIN "Complication" ON servicetbl.complication = "Complication".id
    LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id
