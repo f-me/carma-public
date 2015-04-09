@@ -5,6 +5,7 @@ import Data.Typeable
 
 import Data.Model
 import Data.Model.View
+import Carma.Model.ConsultationResult (ConsultationResult)
 import Carma.Model.ConsultationType (ConsultationType)
 import Carma.Model.Service (Service)
 import Carma.Model.Usermeta (Usermeta)
@@ -13,6 +14,7 @@ import Carma.Model.Usermeta (Usermeta)
 data Consultation = Consultation
   { ident       :: PK Int Consultation ""
   , consType    :: F (Maybe (IdentI ConsultationType)) "consType" "Тип консультации"
+  , consResult  :: F (Maybe (IdentI ConsultationResult)) "consResult" "Результат консультации"
   , consultant  :: F (Maybe (IdentI Usermeta)) "consultant" "Консультант"
   , whatToSay1  :: F (Maybe Text) "whatToSay1" "Описание проблемы"
   , orderNumber :: F (Maybe Text) "orderNumber" "Номер заказ-наряда"

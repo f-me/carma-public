@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.32
+version:             0.33
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -47,6 +47,7 @@ library
     Carma.Model.Colors,
     Carma.Model.Complication,
     Carma.Model.ConstructorFieldOption,
+    Carma.Model.ConsultationResult,
     Carma.Model.ConsultationType,
     Carma.Model.Contract,
     Carma.Model.ContractCheckStatus,
@@ -120,6 +121,7 @@ library
     Carma.Model.TaxScheme,
     Carma.Model.TechType,
     Carma.Model.TowType,
+    Carma.Model.TowerType,
     Carma.Model.Transmission,
     Carma.Model.Types,
     Carma.Model.UserState
