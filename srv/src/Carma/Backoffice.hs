@@ -51,8 +51,7 @@ toBack =
        , sendSMS SMS.create *> messageToGenser *> proceed [AType.orderService]
        )
      , ( serviceField svcType `oneOf` [ST.ken, ST.consultation]
-       , sendSMS SMS.complete *>
-         setServiceStatus SS.ok *>
+       , setServiceStatus SS.ok *>
          proceed [AType.closeCase, AType.addBill]
        )
      ]
@@ -353,7 +352,6 @@ checkEndOfService =
     nobody
     ((5 * minutes) `since` req (serviceField times_expectedServiceEnd))
     [ (AResult.serviceDone,
-       sendSMS SMS.complete *>
        messageToDealer *>
        messageToGenser *>
        setServiceStatus SS.ok *>
@@ -404,13 +402,11 @@ cancelService =
     nobody
     ((1 * minutes) `since` now)
     [ (AResult.falseCallUnbilled,
-       sendSMS SMS.cancel *>
        messageToGenser *>
        setServiceStatus SS.canceled *>
        setServiceField Service.falseCall (const FS.nobill) *>
        finish)
     , (AResult.falseCallBilled,
-       sendSMS SMS.cancel *>
        messageToGenser *>
        setServiceStatus SS.canceled *>
        setServiceField Service.falseCall (const FS.bill) *>

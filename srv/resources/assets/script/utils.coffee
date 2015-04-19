@@ -299,6 +299,7 @@ define [ "model/main"
           return unless kvm
           number = kvm[fieldName]?()
           ctiDial number
+          global.avayaPhone && global.avayaPhone.call(number)
         # Set a field to a new randomly generated password
         passwordPicker   : (fieldName, el) ->
           viewName = mu.elementView($(el)).id

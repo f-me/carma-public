@@ -132,7 +132,7 @@ hook :: Handler b (Avaya b) ()
 hook = do
   rsb <- readRequestBody 4096
   eMap <- gets extMap
-  now <- liftIO $ getCurrentTime
+  now <- liftIO getCurrentTime
   case decode rsb of
     Nothing -> error $ "Could not read hook data " ++ show rsb
     -- Ignore errors (they shouldn't arrive via a webhook call
@@ -176,15 +176,16 @@ hook = do
             in
               case aeData of
                 Nothing -> return ()
-                Just (cid, et) ->
+                Just (cid@(CallId cidt), et) ->
                   let
                     (ucid', interlocs) =
                       case Map.lookup cid (_calls st) of
                         Just c ->
-                          ((\(UCID u) -> u) $ DMCC.ucid c,
+                          ((cidt `Text.append` "/" `Text.append`)
+                            ((\(UCID u) -> u) $ DMCC.ucid c),
                            Prelude.map (\(DeviceId d) -> original d) $
                            DMCC.interlocutors c)
-                        Nothing -> ("", [])
+                        Nothing -> (cidt, [])
                   in do
                     (userState, model, actionId) <- userStateAction uid
                     when (userState == Busy &&
@@ -196,12 +197,12 @@ hook = do
                         Patch.put AE.operator uid $
                         Patch.put AE.currentAction (Ident actionId) $
                         Patch.put AE.interlocutors (fromList interlocs) $
-                        Patch.put AE.callId ucid' $
+                        Patch.put AE.callId ucid'
                         Patch.empty
 
 
 -- | Return last state and corresponding model name/id for a user.
-userStateAction :: (IdentI Usermeta)
+userStateAction :: IdentI Usermeta
                 -> Handler b (Avaya b) (UserStateVal, Text, Int)
 userStateAction uid = do
   res <- liftPG $

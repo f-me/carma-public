@@ -9,7 +9,7 @@ define [ "text!tpl/screens/printSrv.html"
     svc = main.buildKVM global.model('Service'),
           fetched: {id: id}
           queue: sync.CrudQueue
-    if svc.type() == 2 # global.idents("ServiceType").towage
+    if svc.type() == global.idents("ServiceType").towage
       svc = main.buildKVM global.model('Towage'),
             fetched: {id: id}
             queueOptions: {hooks: ['*','Service']} # disable case-screen related hooks
@@ -56,6 +56,18 @@ define [ "text!tpl/screens/printSrv.html"
                 service: service.typeLocal()
               )
           )
+        comments = ko.observableArray()
+
+        $.getJSON("/caseHistory/#{kase.id()}")
+          .done((objs) ->
+            for obj in objs
+              if obj[2].commenttext?
+                comments.push(
+                  user: obj[1]
+                  date: new Date(obj[0]).toString "dd.MM.yyyy HH:mm:ss"
+                  comment: obj[2].commenttext
+                )
+          )
 
         program = kase.programLocal()
         if kase.subprogramLocal()
@@ -64,7 +76,7 @@ define [ "text!tpl/screens/printSrv.html"
           kase: kase
           service: svc
           callTaker: callTaker
-          comments: kase.comments() || []
+          comments: comments
           program: program
           cancels: cancels
         ko.applyBindings kvm, el("print-table")

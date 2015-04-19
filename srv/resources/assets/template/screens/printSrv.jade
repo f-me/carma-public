@@ -114,7 +114,7 @@ style(type="text/css" media="print")
             th Дата и время
             th Оператор
             th Текст
-        tbody(data-bind='foreach: kase.comments')
+        tbody(data-bind='foreach: comments')
           tr
             td(data-bind='text: $data.date')
             td(data-bind='text: $data.user')

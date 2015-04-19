@@ -85,15 +85,29 @@ define [ "utils"
       refreshHistory = ->
         $.getJSON "/caseHistory/#{kvm.id()}", (res) ->
           kvm['historyItems'].removeAll()
+
+          # List of service id's for colorizing actions
+          svcs =
+            _.map kvm.services()?.split(','),
+              (s) -> parseInt s.split(':')?[1]
+          # Process every history item
           for i in res
-            if i[2].aeinterlocutors?
-              i[2].aeinterlocutors =
-                _.map(i[2].aeinterlocutors, utils.internalToDisplayed).
+            json = i[2]
+            if json.aeinterlocutors?
+              json.aeinterlocutors =
+                _.map(json.aeinterlocutors, utils.internalToDisplayed).
                   join(", ")
+            color = ko.observable(
+              if json.serviceid?
+                utils.palette[svcs.indexOf(json.serviceid) %
+                  utils.palette.length]
+              else
+                null)
             kvm['historyItems'].push
               datetime: new Date(i[0]).toString historyDatetimeFormat
               who: i[1]
-              json: i[2]
+              json: json
+              color: color
       kvm['refreshHistory'] = refreshHistory
       kvm['contact_phone1']?.subscribe refreshHistory
 

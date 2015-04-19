@@ -533,7 +533,7 @@ mixin caseFilesList
       #case-history
         legend История по кейсу
         // ko foreach: historyItems
-        div.well.history-item
+        div.well.history-item(data-bind="style: {'background-color': color}")
           div
             div.history-datetime
               span(data-bind="text: datetime")
@@ -551,6 +551,12 @@ mixin caseFilesList
                 b
                   | Результат:&nbsp;
                 span(data-bind="text: actionresult")
+              // /ko
+              // ko if: $data.servicelabel
+              div
+                b
+                  | Услуга:&nbsp;
+                span(data-bind="text: servicelabel")
               // /ko
               // ko if: $data.actioncomment
               div

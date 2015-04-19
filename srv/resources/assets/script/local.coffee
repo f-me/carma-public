@@ -85,7 +85,14 @@ require [ "domready"
 
     # disable everytnig websocket-related for portal
     if not window.location.origin.match(/portal\.ruamc\.ru/)
-      # Setup CTI panel
+      # Legacy CTI panel
+      avayaCred = document.cookie.match /avaya=([^;]*)/
+      if avayaCred?[1]
+        extPwd = unescape(avayaCred[1]).match /(.*)\|(.*)/
+        if extPwd
+          global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
+
+      # New CTI panel
       if _.contains user.roles, global.idents("Role").cti
         if user.workPhoneSuffix.match(/^\d+$/)
           cti = new CTI user.workPhoneSuffix
@@ -145,6 +152,7 @@ require [ "domready"
       CurrentUser.initialize()
 
     # render menu only after everything else in menu bar is done
+    # FIXME: but we can't be sure that AVAYA widget is initialised
     liveMenu.setup(document.getElementById 'nav')
 
     # file field selection (currenlty only on vin screen)
