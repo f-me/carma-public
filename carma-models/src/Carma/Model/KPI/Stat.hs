@@ -79,7 +79,7 @@ data StatKPI = StatKPI
   , timeRelation    :: F (Maybe Double) "timeRelation" "Отношение: Время"
 
   , actionsAmount
-    :: F (Maybe Int) "actionsAmount" "Итого действий"
+    :: F (Maybe Int) "actionsAmount" "Итого: действий класса \"Заказ\""
   , actionsAvgtime
     :: F (Maybe DiffTime) "actionsAvgtime" "Ср. время обработки действия"
 } deriving Typeable
