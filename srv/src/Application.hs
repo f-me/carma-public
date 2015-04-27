@@ -49,7 +49,7 @@ data App = App
     , _fileUpload :: Snaplet (FileUpload App)
     , _avaya      :: Snaplet (Avaya App)
     , _chat       :: Snaplet (ChatManager App)
-    , _geo        :: Snaplet Geo
+    , _geo        :: Snaplet (Geo App)
     , _db         :: Snaplet Postgres
     , _search     :: Snaplet (Search App)
     , options     :: AppOptions
@@ -65,14 +65,12 @@ makeLenses ''App
 instance HasHeist App where
   heistLens = subSnaplet heist
 
-instance HasAuth App where
-  authLens = subSnaplet auth
-
 instance HasSiteConfig App where
   siteConfigLens = subSnaplet siteConfig
 
-instance WithCurrentUser (Handler App App) where
-  withCurrentUser = with auth currentUser
+instance HasPostgresAuth App App where
+  withAuth = with auth
+  withAuthPg = with db
 
 instance HasPostgres (Handler b App) where
   getPostgresState = with db get

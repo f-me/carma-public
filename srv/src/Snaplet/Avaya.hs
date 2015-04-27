@@ -77,15 +77,12 @@ data Avaya b = Avaya
     }
 
 
-instance HasPostgres (Handler b (Avaya b)) where
-  getPostgresState = withLens db get
+instance HasPostgresAuth b (Avaya b) where
+  withAuth = withLens auth
+  withAuthPg = withLens db
 
 
-instance WithCurrentUser (Handler b (Avaya b)) where
-  withCurrentUser = withLens auth currentUser
-
-
-routes :: WithCurrentUser (Handler b (Avaya b)) =>
+routes :: HasPostgresAuth b (Avaya b) =>
           [(ByteString, Handler b (Avaya b) ())]
 routes = [ ("/ws/:ext", method GET avayaWsProxy)
          , ("/hook/", method POST hook)
@@ -93,7 +90,7 @@ routes = [ ("/ws/:ext", method GET avayaWsProxy)
 
 
 -- | Proxy requests to/from dmcc-ws Web Socket, updating 'extMap'.
-avayaWsProxy :: WithCurrentUser (Handler b (Avaya b)) => Handler b (Avaya b) ()
+avayaWsProxy :: HasPostgresAuth b (Avaya b) => Handler b (Avaya b) ()
 avayaWsProxy= do
   ext <- fromMaybe (error "No extension specified") <$> getIntParam "ext"
   eMap <- gets extMap
@@ -191,7 +188,7 @@ hook = do
                     when (userState == Busy &&
                           model == Data.Model.modelName
                           (modelInfo :: ModelInfo Action.Action)) $
-                      void $ liftPG $ Patch.create $
+                      void $ withAuthPg $ liftPG $ Patch.create $
                         Patch.put AE.ctime now $
                         Patch.put AE.eType et $
                         Patch.put AE.operator uid $
@@ -205,7 +202,7 @@ hook = do
 userStateAction :: IdentI Usermeta
                 -> Handler b (Avaya b) (UserStateVal, Text, Int)
 userStateAction uid = do
-  res <- liftPG $
+  res <- withAuthPg $ liftPG $
     \c -> uncurry (query c)
     [sql|
      SELECT
@@ -226,7 +223,7 @@ userStateAction uid = do
     _     -> error $ "No state for user " ++ show uid
 
 
-avayaInit :: WithCurrentUser (Handler b (Avaya b)) =>
+avayaInit :: HasPostgresAuth b (Avaya b) =>
              SnapletLens b (AuthManager b)
           -> SnapletLens b Postgres
           -> SnapletInit b (Avaya b)

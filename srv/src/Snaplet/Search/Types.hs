@@ -12,7 +12,6 @@
 
 module Snaplet.Search.Types where
 
-import           Control.Lens (Lens', makeLenses)
 import           Control.Monad.State
 
 import           Prelude hiding (null)
@@ -27,7 +26,7 @@ import           Database.PostgreSQL.Simple.FromRow
 
 import           Snap
 import           Snap.Snaplet.Auth hiding (Role)
-import           Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
+import           Snap.Snaplet.PostgresqlSimple (Postgres(..))
 
 import qualified Data.HashMap.Strict   as HM
 
@@ -43,17 +42,13 @@ import           Snaplet.Auth.Class
 import           AppHandlers.Util
 
 data Search b = Search
-  { _auth     :: Snaplet (AuthManager b)
-  , db        :: Lens' b (Snaplet Postgres)
+  { auth      :: SnapletLens b (AuthManager b)
+  , db        :: SnapletLens b Postgres
   }
 
-makeLenses ''Search
-
-instance HasPostgres (Handler b (Search b)) where
-    getPostgresState = withLens db get
-
-instance WithCurrentUser (Handler b (Search b)) where
-    withCurrentUser = with auth currentUser
+instance HasPostgresAuth b (Search b) where
+  withAuth = withLens auth
+  withAuthPg = withLens db
 
 type SearchHandler b t = Handler b (Search b) t
 
