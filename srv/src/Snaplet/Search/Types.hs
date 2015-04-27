@@ -1,5 +1,4 @@
-{-# LANGUAGE TemplateHaskell,
-             ScopedTypeVariables,
+{-# LANGUAGE ScopedTypeVariables,
              DeriveGeneric,
              TypeOperators,
              FlexibleInstances,

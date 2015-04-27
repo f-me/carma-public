@@ -486,7 +486,7 @@ contractToCase =
 
 copyContractToCase :: IdentI SubProgram -> Patch Contract -> Free (Dsl Case) ()
 copyContractToCase subProgId contract = do
-  ctrFields <- doApp $ do
+  ctrFields <- doApp $
       PS.liftPG $ \pg ->
         concat <$> PG.query pg
           "SELECT contractfield \
