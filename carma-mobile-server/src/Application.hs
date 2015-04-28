@@ -208,7 +208,7 @@ newCase = do
 
   carMakeId
     <- (\case { [[makeId]] -> Just makeId; _ -> Nothing })
-    <$> query [sql|select id::text from "CarMake" where value = ?|] [car_make]
+    <$> query [sql|select id from "CarMake" where value = ?|] [car_make]
 
   -- Start building a JSON for CaRMa
   let caseBody = Patch.put Case.car_make carMakeId $
