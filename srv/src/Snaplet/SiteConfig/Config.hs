@@ -21,9 +21,6 @@ data SiteConfig b = SiteConfig
   }
 
 
-instance HasPostgres (Handler b (SiteConfig b)) where
-  getPostgresState = withLens db get
-
-
-instance WithCurrentUser (Handler b (SiteConfig b)) where
-  withCurrentUser = withLens auth currentUser
+instance HasPostgresAuth b (SiteConfig b) where
+  withAuth = withLens auth
+  withAuthPg = withLens db

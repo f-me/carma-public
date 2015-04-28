@@ -198,7 +198,7 @@ readManyHandler = do
           ]
   let readModel :: forall m . Model m => m -> AppHandler ()
       readModel _ = do
-        res <- do
+        res <-
           PS.liftPG
             (runEitherT . crud_readManyWithFilter
                         (getModelCRUD :: CRUD m) limit offset queryFilter)

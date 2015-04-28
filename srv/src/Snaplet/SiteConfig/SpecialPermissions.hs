@@ -32,6 +32,7 @@ import           Snaplet.Auth.PGUsers (currentUserRoles)
 import           Snaplet.SiteConfig.Models
 import           Snaplet.SiteConfig.Config
 
+import           AppHandlers.Util
 import           Util
 
 q :: Query
@@ -49,7 +50,7 @@ instance ToField FilterType where
   toField Form = toField $ PT "showform"
   toField Table = toField $ PT "showtable"
 
-stripContract :: (HasAuth b) =>
+stripContract :: (HasPostgresAuth b (SiteConfig b)) =>
                  Model
               -> Text -- ^ SubProgram id.
               -> FilterType
@@ -68,7 +69,8 @@ stripContract model sid flt = do
                  fromMaybe M.empty $ meta f}
           else f
       getPerms progid = M.fromList <$>
-        (query q (flt, progid) :: Handler b (SiteConfig b) [(Text, Text)])
+        ((withLens db $ query q (flt, progid)) ::
+             Handler b (SiteConfig b) [(Text, Text)])
       filterFields perms flds = filter (isCanShow perms) flds
       isCanShow perms f  = fromMaybe False $ check flt perms (name f)
       check Form _ "dixi"        = return True

@@ -29,6 +29,8 @@ import           Text.Printf
 import           Database.PostgreSQL.Simple as PG
 import           Database.PostgreSQL.Simple.Copy as PG
 import           Database.PostgreSQL.Simple.SqlQQ
+
+import           Snap.Core
 import           Snap.Snaplet.PostgresqlSimple (liftPG)
 
 import           Data.Model
@@ -37,10 +39,11 @@ import           Data.Model.Patch as Patch
 import           Carma.Model.Contract
 import qualified Carma.Model.Usermeta as Usermeta
 
-import           Snap.Core
 import           Snaplet.Auth.PGUsers
 import           Snaplet.Search.Types
 import           Snaplet.Search.Utils
+
+import           AppHandlers.Util
 import           Util
 
 
@@ -101,7 +104,7 @@ contractCSV t = do
       (fp, fh) <- liftIO $
                   getTemporaryDirectory >>=
                   flip openTempFile "portal.csv"
-      liftPG $ \c -> do
+      withLens db $ liftPG $ \c -> do
         BS.hPut fh bom
         prms <- renderPrms c (predicates args) contractSearchParams
         -- Prepare query and request CSV from Postgres

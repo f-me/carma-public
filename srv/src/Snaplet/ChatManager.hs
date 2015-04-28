@@ -62,7 +62,7 @@ import           Carma.Model.Usermeta (Usermeta)
 
 import           Snap
 import           Snap.Snaplet.Auth
-import           Snap.Snaplet.PostgresqlSimple (Postgres(..), HasPostgres(..))
+import           Snap.Snaplet.PostgresqlSimple (Postgres(..))
 
 import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers
@@ -77,12 +77,9 @@ data ChatManager b = ChatManager
     }
 
 
-instance HasPostgres (Handler b (ChatManager b)) where
-    getPostgresState = withLens db get
-
-
-instance WithCurrentUser (Handler b (ChatManager b)) where
-    withCurrentUser = withLens auth currentUser
+instance HasPostgresAuth b (ChatManager b) where
+  withAuth = withLens auth
+  withAuthPg = withLens db
 
 
 type IpAddress = Text

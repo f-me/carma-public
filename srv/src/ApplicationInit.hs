@@ -158,8 +158,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   av <- nestSnaplet "avaya" avaya $ avayaInit auth db
   ch <- nestSnaplet "chat" chat $ chatInit auth db
-  g <- nestSnaplet "geo" geo geoInit
-  search' <- nestSnaplet "search" search $ searchInit authMgr db
+  g <- nestSnaplet "geo" geo $ geoInit db
+  search' <- nestSnaplet "search" search $ searchInit auth db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 

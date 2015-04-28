@@ -1,4 +1,5 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module AppHandlers.KPI ( getStat
                        , getStatFiles
@@ -194,7 +195,7 @@ fillKPIs = do
                         " type should not be there."
 
   putInSt u (f1, v1) (f2, v2) =
-    RWS.modify $ M.adjust (\a -> put f1 v1 $ put f2 v2 a) u
+    RWS.modify $ M.adjust (put f1 v1 . put f2 v2) u
 
   mergeKPI (W p) = RWS.modify $ M.adjust (union p) $
                    fromMaybe (error "No KPI field in user") $ get p S.user
