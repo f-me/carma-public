@@ -16,14 +16,11 @@ import           Prelude hiding (until)
 
 import           Control.Applicative
 import           Control.Concurrent
-import           Control.Monad.CatchIO (finally)
 import           Control.Monad
 import           Control.Monad.Free (Free)
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Reader
 
-import qualified Data.Aeson as Aeson
-import qualified Data.ByteString.Lazy as LBS
 import           Data.Dynamic
 import           Data.List
 import qualified Data.List as L
@@ -33,17 +30,13 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import           Data.Time.Calendar
 import           Data.Time.Clock
-import qualified Data.Vector as V
 import           Text.Printf
 
 import           GHC.TypeLits
 
-import qualified Data.Pool as Pool
 import qualified Database.PostgreSQL.Simple as PG
-import qualified Database.PostgreSQL.Simple.Transaction as PG
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import           WeatherApi (tempC)
@@ -62,6 +55,7 @@ import qualified Carma.Model.Call as Call
 import           Carma.Model.Case (Case)
 import qualified Carma.Model.Case as Case
 import qualified Carma.Model.City as City
+import qualified Carma.Model.CaseComment as CaseComment
 import qualified Carma.Model.CaseStatus as CS
 import           Carma.Model.Contract (Contract, WDay(..))
 import qualified Carma.Model.Contract as Contract
@@ -83,6 +77,7 @@ import           Carma.Model.SubProgram as SubProgram hiding (ident)
 
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.TowType as TowType
+import qualified Carma.Model.TowerType as TowerType
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
@@ -123,6 +118,9 @@ beforeCreate = Map.unionsWith (++)
     -- Otherwise we need some kind of finalisers for "Real world actions that
     -- could not be deferred".
     createSnapUser login
+
+  , trigOnModel ([]::[CaseComment.CaseComment]) $
+    getCurrentUser >>= modPut CaseComment.author
 
   , trigOnModel ([]::[Contract.Contract]) $ do
     getCurrentUser >>= modPut Contract.committer
@@ -173,6 +171,7 @@ beforeCreate = Map.unionsWith (++)
       Just (addUTCTime (10 * BO.minutes) n)
 
     modPut Service.createTime         $ Just n
+    modPut Service.creator =<< getCurrentUser
     modPut Service.falseCall            FC.none
     modPut Service.payment_overcosted $ Just off
     modPut Service.status               SS.creating
@@ -201,7 +200,7 @@ beforeCreate = Map.unionsWith (++)
     modPut Towage.manipulatorPossible $ Just off
     modPut Towage.suburbanMilage      $ Just "0"
     modPut Towage.towType             $ Just TowType.dealer
-    modPut Towage.towerType           $ Just $ Ident "evac"
+    modPut Towage.towerType           $ Just TowerType.evac
     modPut Towage.towingPointPresent  $ Just off
     modPut Towage.vandalism           $ Just off
     modPut Towage.wheelsUnblocked     $ Just $ Ident "w0"
@@ -271,18 +270,6 @@ beforeUpdate = Map.unionsWith (++) $
       Just val ->
         when (T.length val > 5) $
         modifyPatch (Patch.put Case.car_plateNum (Just $ T.toUpper val))
-
-  , trigOn Case.comments $ \new -> do -- merge comments
-      p <- getIdent >>= dbRead
-      let old = Patch.get' p Case.comments
-      let parseObjList val = do
-            JsonAsText txt <- val
-            Aeson.Array arr <- Aeson.decodeStrict' $ T.encodeUtf8 txt
-            return $ V.toList arr
-      let comments = nub $ concat $ mapMaybe parseObjList [old, new]
-      let jsonToText = T.decodeUtf8 . LBS.toStrict . Aeson.encode
-      let merged = JsonAsText $ jsonToText $ Aeson.Array $ V.fromList comments
-      modifyPatch $ Patch.put Case.comments $ Just merged
 
   , trigOn Case.comment $ \case
       Nothing -> return ()
@@ -397,28 +384,24 @@ trigOnModel _ fun
 runCreateTriggers
   :: Model m
   => Patch m -> AppHandler (Either String (IdentI m, Patch m))
-runCreateTriggers patch = do
-  s <- PS.getPostgresState
-  Pool.withResource (PS.pgPool s) $ \pg ->
+runCreateTriggers patch =
     fmap (\st -> (st_ident st, st_patch st))
       <$> runTriggers beforeCreate afterCreate
         (getPatch >>= dbCreate >>= putIdentUnsafe)
         [""] -- pass dummy field name
-        (emptyDslState undefined patch pg)
+        (emptyDslState undefined patch)
 
 
 runUpdateTriggers
   :: Model m
   => IdentI m -> Patch m
   -> AppHandler (Either String (Patch m))
-runUpdateTriggers ident patch = do
-  s <- PS.getPostgresState
-  Pool.withResource (PS.pgPool s) $ \pg ->
+runUpdateTriggers ident patch =
     fmap st_patch
       <$> runTriggers beforeUpdate afterUpdate
         (getPatch >>= dbUpdate ident >> return ())
         (HM.keys $ untypedPatch patch)
-        (emptyDslState ident patch pg)
+        (emptyDslState ident patch)
 
 
 runTriggers
@@ -439,8 +422,6 @@ runTriggers before after dbAction fields state = do
             (show model) (show field))
           (fromDynamic trigger)
 
-  let pg = st_pgcon state
-
   let run = runDslM state $ do
         case parentInfo :: ParentInfo m of
           NoParent -> return ()
@@ -459,11 +440,10 @@ runTriggers before after dbAction fields state = do
         sequence_ $ matchingTriggers (modelName mInfo) after
 
   start <- liftIO getCurrentTime
-  liftIO $ PG.beginLevel PG.ReadCommitted pg
-  finally run $ liftIO $ do
-    PG.commit pg
-    end <- getCurrentTime
-    syslogJSON Info "runTriggers" ["time" .= show (diffUTCTime end start)]
+  res <- run
+  end <- liftIO getCurrentTime
+  syslogJSON Info "runTriggers" ["time" .= show (diffUTCTime end start)]
+  return res
 
 
 -- | Mapping between a contract field and a case field.
@@ -478,8 +458,8 @@ data Con2Case = forall t1 t2 n1 d1 n2 d2.
 -- | Mapping between contract and case fields.
 contractToCase :: [Con2Case]
 contractToCase =
-    [ C2C Contract.name id Case.contact_name
-    , C2C Contract.phone (fmap Phone) Case.contact_phone1
+    [ C2C Contract.name id Case.contact_ownerName
+    , C2C Contract.phone (fmap Phone) Case.contact_ownerPhone1
     , C2C Contract.vin id Case.car_vin
     , C2C Contract.make id Case.car_make
     , C2C Contract.model id Case.car_model
@@ -499,9 +479,8 @@ contractToCase =
 
 copyContractToCase :: IdentI SubProgram -> Patch Contract -> Free (Dsl Case) ()
 copyContractToCase subProgId contract = do
-  ctrFields <- doApp $ do
-      s <- PS.getPostgresState
-      liftIO $ Pool.withResource (PS.pgPool s) $ \pg ->
+  ctrFields <- doApp $
+      PS.liftPG $ \pg ->
         concat <$> PG.query pg
           "SELECT contractfield \
           \  FROM \"SubProgramContractPermission\" \
@@ -670,23 +649,11 @@ instance Backoffice HaskellE where
           return $ void $ setService sid acc (evalHaskell ctx v)
 
     sendMail = \case
-      Genser -> run $ BOAction.sendMailToGenser <$> srvId'
-      PSA    -> run $ BOAction.sendMailToPSA    <$> srvId'
-      Dealer -> run $ BOAction.sendMailToDealer <$> srvId'
-      where
-        run = HaskellE . fmap inFuture
-        inFuture :: (FutureContext -> AppHandler (IO ())) -> Free (Dsl m) ()
-        inFuture f = Dsl.doApp $ do
-          io <- PS.getPostgresState >>= f . FutureContext . PS.pgPool
-          void $ liftIO $ forkIO $ threadDelay 1500000 >> io
+      Genser -> runLater $ BOAction.sendMailToGenser <$> srvId'
+      PSA    -> runLater $ BOAction.sendMailToPSA    <$> srvId'
+      Dealer -> runLater $ BOAction.sendMailToDealer <$> srvId'
 
-    sendSMS tpl = run $ BOAction.sendSMS tpl <$> srvId'
-      where
-        run = HaskellE . fmap inFuture
-        inFuture :: (FutureContext -> AppHandler (IO ())) -> Free (Dsl m) ()
-        inFuture f = Dsl.doApp $ do
-          io <- PS.getPostgresState >>= f . FutureContext . PS.pgPool
-          void $ liftIO $ forkIO io
+    sendSMS tpl = runLater $ BOAction.sendSMS tpl <$> srvId'
 
     when cond act =
       HaskellE $
@@ -876,6 +843,19 @@ srvId' = do
     (`get'` Service.ident) <$> service ctx
 
 
+-- | Run an IO action later in the future
+runLater :: Reader HCtx (AppHandler (IO ())) -> HaskellE (Eff m)
+runLater = HaskellE . fmap postpone
+  where
+    -- FIXME Get rid of threadDelay, perform when the database action
+    -- returns
+    coffebreak = 1500000
+    postpone :: (AppHandler (IO ())) -> Free (Dsl m) ()
+    postpone act =
+      Dsl.doApp $
+      act >>= \io -> void $ liftIO $ forkIO $ threadDelay coffebreak >> io
+
+
 -- | Select some actions from the context.
 filteredActions :: Scope
                 -> [BO.ActionTypeI]
@@ -894,9 +874,9 @@ filteredActions scope types resList = do
           resultOk = (act `get'` Action.result) `elem` resList
           srvOk    = case scope of
                        InCase -> True
-                       -- Filter actions by service if needed. Note that
-                       -- *no* error is raised when called with InService
-                       -- from service-less action effect
+                       -- Filter actions by service if needed. Note
+                       -- that _no_ error is raised when called with
+                       -- InService from service-less action effect
                        InService -> act `get'` Action.serviceId == sid
         in
           typeOk && resultOk && srvOk

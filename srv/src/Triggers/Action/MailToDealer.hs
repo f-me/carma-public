@@ -12,21 +12,21 @@ import Data.List (foldl')
 
 import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SqlQQ
-import Data.Pool as Pool
+
+import Snap.Snaplet.PostgresqlSimple (liftPG)
 
 import Data.Configurator (require)
 
 import Data.Model as Model
 import Carma.Model.Service (Service)
-import Triggers.DSL (FutureContext(..))
 
 import Snap.Snaplet (getSnapletUserConfig)
 import Application (AppHandler)
 import Util hiding (render)
 
 
-sendMailToDealer :: IdentI Service -> FutureContext -> AppHandler (IO ())
-sendMailToDealer svcId fc = do
+sendMailToDealer :: IdentI Service -> AppHandler (IO ())
+sendMailToDealer svcId = do
   let addr = T.strip
   let addrList = map addr . T.splitOn ","
   cfg      <- getSnapletUserConfig
@@ -34,14 +34,13 @@ sendMailToDealer svcId fc = do
   cfgReply <- liftIO $ addr     <$> require cfg "psa-smtp-reply"
   cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy2"
 
-  return $ do
+  liftPG $ \pg -> return $ do
     syslogJSON Info "trigger/mailToDealer" ["svcId" .= svcId]
     let txt = T.pack . show
     let err e = syslogJSON Error
           "trigger/mailToDealer"
           ["svcId" .= svcId, "error" .= (e :: Text)]
-    Pool.withResource (fc_pgpool fc) $ \pg ->
-      PG.query pg q [svcId] >>= \case
+    PG.query pg q [svcId] >>= \case
         [[vals]] -> newHtmlMail pg
           cfgFrom (T.splitOn "," $ render "$emails$" vals)
           cfgCopy cfgReply

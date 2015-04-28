@@ -4,7 +4,7 @@ CREATE TABLE "AvayaEvent"
   , eType int4 REFERENCES "AvayaEventType" NOT NULL
   , operator int4 REFERENCES usermetatbl (id) NOT NULL
   , currentAction int4 REFERENCES actiontbl NOT NULL
-  , interlocutor text
+  , interlocutors text[]
   , callId text
   );
 

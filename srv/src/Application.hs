@@ -3,9 +3,8 @@
 module Application where
 
 import Control.Lens
+import Control.Monad.Reader
 
-import Data.Pool
-import Database.PostgreSQL.Simple as Pg
 import Data.Text (Text)
 
 import Snap
@@ -18,6 +17,7 @@ import qualified WeatherApi as W
 
 import Snaplet.Avaya
 import Snaplet.Auth.Class
+import Snaplet.ChatManager
 import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
 import Snaplet.TaskManager
@@ -45,12 +45,11 @@ data App = App
     , _session    :: Snaplet SessionManager
     , _auth       :: Snaplet (AuthManager App)
     , _siteConfig :: Snaplet (SiteConfig App)
-    , pg_search   :: Pool Pg.Connection
-    , pg_actass   :: Pool Pg.Connection
     , _taskMgr    :: Snaplet (TaskManager App)
     , _fileUpload :: Snaplet (FileUpload App)
     , _avaya      :: Snaplet (Avaya App)
-    , _geo        :: Snaplet Geo
+    , _chat       :: Snaplet (ChatManager App)
+    , _geo        :: Snaplet (Geo App)
     , _db         :: Snaplet Postgres
     , _search     :: Snaplet (Search App)
     , options     :: AppOptions
@@ -66,17 +65,16 @@ makeLenses ''App
 instance HasHeist App where
   heistLens = subSnaplet heist
 
-instance HasAuth App where
-  authLens = subSnaplet auth
-
 instance HasSiteConfig App where
   siteConfigLens = subSnaplet siteConfig
 
-instance WithCurrentUser (Handler App App) where
-  withCurrentUser = with auth currentUser
+instance HasPostgresAuth App App where
+  withAuth = with auth
+  withAuthPg = with db
 
 instance HasPostgres (Handler b App) where
   getPostgresState = with db get
+  setLocalPostgresState s = local (set (db . snapletValue) s)
 
 instance HasMsg App where
   messengerLens = subSnaplet messenger

@@ -32,7 +32,7 @@ import           System.Process.ByteString
 import           System.Exit (ExitCode(..))
 
 import           Snap
-import           Database.PostgreSQL.Simple
+import           Snap.Snaplet.PostgresqlSimple
 import           Database.PostgreSQL.Simple.SqlQQ
 
 import           Application
@@ -98,7 +98,7 @@ fields = [ "car_vin"
 renderContractHandler :: AppHandler ()
 renderContractHandler = do
   Just contractId <- getParamT "contract"
-  aids <- withPG pg_search $ \c -> query c
+  aids <- query
                 [sql|
                  SELECT a.id
                  FROM attachmenttbl a, "SubProgram" s, "Contract" c
@@ -110,7 +110,7 @@ renderContractHandler = do
   case aids of
     (Only aid:_) -> do
         tplPath <- with fileUpload $ getAttachmentPath aid
-        contracts <- withPG pg_search $ \c -> query c q [contractId]
+        contracts <- query q [contractId]
         case contracts of
           (row:_) -> do
               let [m] = mkMap fields [row]

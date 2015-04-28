@@ -6,9 +6,6 @@ import Control.Monad.IO.Class
 import Data.ByteString (ByteString)
 import Data.Configurator as Cfg
 
-import Data.Pool
-import Database.PostgreSQL.Simple as Pg
-
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Heist
@@ -26,6 +23,7 @@ import WeatherApi.WWOnline (initApi)
 
 ------------------------------------------------------------------------------
 import Snaplet.Avaya
+import Snaplet.ChatManager
 import Snaplet.SiteConfig
 import qualified Snaplet.FileUpload as FU
 import Snaplet.Geo
@@ -57,9 +55,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/s/",            serveDirectoryWith dconf "resources/static")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/screens",       method GET $ getScreens)
-         , ("/callsByPhone/:phone",
-                              chkAuthLocal . method GET    $ searchCallsByPhone)
-         , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
          , ("/backoffice/errors", method GET $ serveBackofficeSpec Check)
          , ("/backoffice/spec.txt", method GET $ serveBackofficeSpec Txt)
          , ("/backoffice/spec.dot", method GET $ serveBackofficeSpec Dot)
@@ -95,6 +90,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/:mdl",        chkAuth . method GET    $ readManyHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
+         , ("/caseHistory/:caseId",
+                              chkAuthLocal . method GET $ caseHistory)
          , ("/searchCases",   chkAuthLocal . method GET  $ searchCases)
          , ("/latestCases",   chkAuthLocal . method GET  $ getLatestCases)
          , ("/regionByCity/:city",
@@ -155,30 +152,16 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
 
-  -- init PostgreSQL connection pool that will be used for searching only
-  let lookupCfg nm = lookupDefault (error $ show nm) cfg nm
-  cInfo <- liftIO $ Pg.ConnectInfo
-            <$> lookupCfg "pg_host"
-            <*> lookupCfg "pg_port"
-            <*> lookupCfg "pg_search_user"
-            <*> lookupCfg "pg_search_pass"
-            <*> lookupCfg "pg_db_name"
-  -- FIXME: force cInfo evaluation
-  pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 5 5 20
-  cInfoActass <- liftIO $ (\u p -> cInfo {connectUser = u, connectPassword = p})
-            <$> lookupCfg "pg_actass_user"
-            <*> lookupCfg "pg_actass_pass"
-  pga <- liftIO $ createPool (Pg.connect cInfoActass) Pg.close 1 5 20
-
   c <- nestSnaplet "cfg" siteConfig $
        initSiteConfig "resources/site-config" auth db
 
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   av <- nestSnaplet "avaya" avaya $ avayaInit auth db
-  g <- nestSnaplet "geo" geo geoInit
-  search' <- nestSnaplet "search" search $ searchInit authMgr db
+  ch <- nestSnaplet "chat" chat $ chatInit auth db
+  g <- nestSnaplet "geo" geo $ geoInit db
+  search' <- nestSnaplet "search" search $ searchInit auth db
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 
   addRoutes routes
-  return $ App h s authMgr c pgs pga tm fu av g ad search' opts msgr (initApi wkey)
+  return $ App h s authMgr c tm fu av ch g ad search' opts msgr (initApi wkey)

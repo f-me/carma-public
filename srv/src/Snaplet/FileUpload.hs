@@ -26,7 +26,6 @@ module Snaplet.FileUpload
 
 where
 
-import Control.Lens
 import Control.Monad
 import Control.Concurrent.STM
 
@@ -56,7 +55,7 @@ import System.Directory
 import System.FilePath
 import System.IO
 
-import Snap (get, gets, liftIO)
+import Snap (gets, liftIO)
 import Snap.Core hiding (path)
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple hiding (field)
@@ -70,7 +69,7 @@ import qualified Data.Model.Patch.Sql as DB
 
 import Carma.Model.Attachment as Attachment
 
-import AppHandlers.Util as U hiding (withPG)
+import AppHandlers.Util as U
 import Util
 
 
@@ -81,18 +80,11 @@ data FileUpload b = FU { cfg      :: UploadPolicy
                        , locks    :: TVar (HS.HashSet Text)
                        -- ^ Set of references to currently locked
                        -- instances.
-                       , pg       :: Lens' b (Snaplet Postgres)
+                       , pg       :: SnapletLens b Postgres
                        }
 
 
-type HasPG b = HasPostgres (Handler b (FileUpload b))
-
-
-instance HasPostgres (Handler b (FileUpload b)) where
-  getPostgresState = withLens pg get
-
-
-routes :: HasPG b => [(ByteString, Handler b (FileUpload b) ())]
+routes :: [(ByteString, Handler b (FileUpload b) ())]
 routes = [ (":model/bulk/:field",      method POST uploadBulk)
          , (":model/:id/:field",       method POST uploadInField)
          ]
@@ -119,8 +111,7 @@ type ATarget = (Text, Int, Text)
 --
 -- The file is stored under @attachment/<newid>@ directory hierarchy
 -- of finished uploads dir.
-uploadInManyFields :: HasPG b =>
-                      (FilePath -> [ATarget])
+uploadInManyFields :: (FilePath -> [ATarget])
                    -- ^ Convert the uploaded file name to a list of
                    -- fields in instances to attach the file to.
                    -> Maybe (FilePath -> FilePath)
@@ -136,7 +127,7 @@ uploadInManyFields flds nameFun = do
   now <- liftIO $ getCurrentTime
 
   root <- gets finished
-  (attach@(Ident aid), dupe) <- withPG $ \conn -> do
+  (attach@(Ident aid), dupe) <- withLens pg $ liftPG $ \conn -> do
     -- Check for duplicate files
     res <- PS.query conn hashToAid (Only $ show hash)
     case res of
@@ -168,14 +159,14 @@ uploadInManyFields flds nameFun = do
     forM targets $
     \t@(model, objId, field) ->
       let
-        attachToModel :: forall m b. (HasPG b, Model m) =>
+        attachToModel :: forall m b. (Model m) =>
                          m
                       -> Handler b (FileUpload b) (Either ATarget ATarget)
         attachToModel _ =
           let
             mIdent = Ident objId :: IdentI m
           in
-            (withPG $ DB.exists mIdent) >>=
+            (withLens pg $ liftPG $ DB.exists mIdent) >>=
             \case
               Right True -> do
                 attachToField mIdent field $
@@ -194,7 +185,7 @@ uploadInManyFields flds nameFun = do
   -- Serve back full attachment instance
   obj <- either (\e ->
                    error $ "Could not read attachment back: " ++ show e) id <$>
-         (withPG $ DB.read attach)
+         (withLens pg $ liftPG $ DB.read attach)
 
   return (obj, failedTargets, succTargets, dupe)
 
@@ -209,7 +200,7 @@ uploadInManyFields flds nameFun = do
 -- contains an attachment object, @targets@ contains a list of triples
 -- with attachment targets used, @unknown@ is a failed attachment
 -- target list, @dupe@ is true if the file was a duplicate.
-uploadBulk :: HasPG b => Handler b (FileUpload b) ()
+uploadBulk :: Handler b (FileUpload b) ()
 uploadBulk = do
   -- 'Just' here, for these have already been matched by Snap router
   Just model <- getParamT "model"
@@ -242,7 +233,7 @@ uploadBulk = do
 
 -- | Upload and attach a file (as in 'uploadInManyFields') to a single
 -- instance, given by @model@, @id@ and @field@ request parameters.
-uploadInField :: (HasPG b) => Handler b (FileUpload b) ()
+uploadInField :: Handler b (FileUpload b) ()
 uploadInField = do
   -- 'Just' here, for these have already been matched by Snap router
   Just model <- getParamT "model"
@@ -257,13 +248,12 @@ uploadInField = do
 
 -- | Return path to an attached file (prepended by finished uploads
 -- dir).
-getAttachmentPath :: HasPG b =>
-                     IdentI Attachment
+getAttachmentPath :: IdentI Attachment
                   -- ^ Attachment ID.
                   -> Handler b (FileUpload b) FilePath
 getAttachmentPath aid = do
   obj <- either (error $ "No attachment " ++ show aid) id <$>
-         (withPG $ DB.read aid)
+         (withLens pg $ liftPG $ DB.read aid)
   fPath <- gets finished
   let fName = obj `Patch.get'` Attachment.filename
   return $
@@ -273,7 +263,7 @@ getAttachmentPath aid = do
 
 -- | Append a reference of form @attachment:213@ to a field of another
 -- instance, which must exist. This handler is thread-safe.
-attachToField :: forall m b. (HasPG b, Model m, Typeable m) =>
+attachToField :: forall m b. (Model m, Typeable m) =>
                  IdentI m
               -- ^ Target object.
               -> Text
@@ -302,9 +292,9 @@ attachToField instanceId field ref = do
         -- Append new ref to the target field
         oldRefs <- (`Patch.get'` acc) <$>
                    (either (error $ "No object " ++ show instanceId) id <$>
-                    (withPG $ DB.read instanceId))
+                    (withLens pg $ liftPG $ DB.read instanceId))
         let newRefs = addRef oldRefs ref
-        void $ withPG $
+        void $ withLens pg $ liftPG $
           DB.update instanceId (Patch.put acc newRefs $ Patch.empty)
   -- Unlock the field
   liftIO $ atomically $ do
@@ -392,8 +382,7 @@ partPol :: UploadPolicy -> PartUploadPolicy
 partPol = allowWithMaximumSize . getMaximumFormInputSize
 
 
-fileUploadInit :: HasPG b =>
-                  Lens' b (Snaplet Postgres)
+fileUploadInit :: SnapletLens b Postgres
                -> SnapletInit b (FileUpload b)
 fileUploadInit pg =
     makeSnaplet "fileupload" "fileupload" Nothing $ do

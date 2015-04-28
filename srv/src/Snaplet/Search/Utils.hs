@@ -16,10 +16,13 @@ import           Data.Text (Text, unpack)
 import qualified Data.ByteString.Char8 as B
 
 import           Database.PostgreSQL.Simple as PG
+import           Snap.Snaplet.PostgresqlSimple (liftPG)
 
 import           Data.Model       as M
 
 import           Text.Printf
+
+import           AppHandlers.Util
 import           Util
 
 import           Snap
@@ -57,7 +60,7 @@ mkSearch prms mkq = do
   lim      <- getLimit
   offset   <- getOffset
   args     <- getJsonBody
-  withPG $ \c -> do
+  withLens db $ liftPG $ \c -> do
     prms' <- renderPrms c (predicates args) prms
     case prms' of
       Right p -> do
@@ -108,7 +111,7 @@ stripResults :: StripRead t
              => SearchResult t -> SearchHandler b (SearchResult t)
 stripResults s@SearchResult{..} = do
   Just roles <- currentUserRoles
-  withPG $ \c -> do
+  withLens db $ liftPG $ \c -> do
     vals <- mapM (stripRead c roles) values
     return $ s{ values = vals }
 

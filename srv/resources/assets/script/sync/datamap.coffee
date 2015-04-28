@@ -37,10 +37,6 @@ define [], ->
     return null if _.isEmpty v
     new Date(v).toString fmt
 
-  s2cJson = (v) ->
-    return null if _.isEmpty v
-    JSON.parse v
-
   c2sDay = (v) -> ((parseISO guiDayFormat) v)?.toString serverDayFormat
 
   c2sDictSetInt = (vals) -> _.map vals, (v) -> parseInt v
@@ -68,7 +64,6 @@ define [], ->
     IdentList : (v) -> v
     dictionary: (v) -> if v == "" then null else v
     coords    : (v) -> if v == "" then null else v
-    JsonAsText: JSON.stringify
     JSON      : (v) -> v
     ident     : (v) -> parseInt v
     'interval-date' : (v) -> v.map c2sDay
@@ -88,7 +83,6 @@ define [], ->
     Day       : s2cISO guiDayFormat
     UTCTime   : s2cISO guiUTCTimeFormat
     dictionary: (v) -> v
-    JsonAsText: s2cJson
     JSON      : (v) -> v
 
   defaultc2s = (v) -> if _.isNull(v) then "" else String(v)

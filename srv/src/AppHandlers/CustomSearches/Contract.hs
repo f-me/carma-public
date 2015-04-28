@@ -30,10 +30,10 @@ import qualified Data.Text as T
 import           Data.Text.Encoding (decodeUtf8)
 import qualified Data.Vector as V
 
-import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.FromRow
 
 import           Snap
+import           Snap.Snaplet.PostgresqlSimple
 
 import           Data.Model
 import           Carma.Model.CarMake
@@ -46,7 +46,7 @@ import           Carma.Model.SubProgram as S hiding (field)
 import           Application
 import           AppHandlers.Util
 import           AppHandlers.CustomSearches.Contract.Base
-import           Util hiding (withPG)
+import           Util
 
 
 extraContractFieldNames :: [Text]
@@ -171,7 +171,7 @@ searchContracts = do
       programTable    = tableQT P.ident
       subProgramTable = tableQT S.ident
 
-  res <- withPG pg_search $ \c -> query c (fromString totalQuery)
+  res <- query (fromString totalQuery)
          (()
           -- 2
           :. ( fieldPT Case.ident

@@ -6,8 +6,7 @@
       form#upload-files-form.form
         .form-group
           label.control-label(for='upload-files')
-            | Выберите файлы для загрузки
-            &nbsp;
+            | Выберите файлы для загрузки&nbsp;
             span#upload-files-tip(data-html='true'
               data-placement='right'
               title="Каждый файл будет прикреплён к кейсам, номера которых \
@@ -49,6 +48,7 @@
               href: 's/fileupload/attachment/' + aid() + '/' + filename() \
             }")
           i.glyphicon.glyphicon-download-alt
+          | &nbsp;
           b(data-bind='text: filename')
       div(data-bind='visible: dupe')
         | Такой же файл уже загружался ранее

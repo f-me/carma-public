@@ -5,6 +5,15 @@ WITH servicecounts AS (
            FROM servicetbl servicetbl_1
           GROUP BY servicetbl_1.parentid
         ),
+     commentLists AS (
+         SELECT caseId, array_agg(usermetatbl.login || ' в ' ||
+                                  to_char(cc.ctime, 'DD.MM.YYYY HH:MI') ||
+                                  ': ' || trim(cc.comment) ORDER BY cc.ctime)
+                                  AS txt
+         FROM "CaseComment" cc, casetbl, usermetatbl
+         WHERE usermetatbl.id = cc.author AND casetbl.id = cc.caseId
+         GROUP BY caseId
+        ),
      orderActions AS (
          SELECT DISTINCT ON (serviceId) serviceId, assignedTo
           FROM actiontbl
@@ -103,6 +112,7 @@ WITH servicecounts AS (
    allservicesview.towdealer_partner AS "Назначение эвакуации-назв. дилера",
    allservicesview.whatToSay1 AS "Описание проблемы",
    "ConsultationType".label AS "Тип консультации",
+   "ConsultationResult".label AS "Результат консультации",
    p2.code AS "Код дилера",
    casecity.label AS "Город места поломки",
    dealercity.label AS "Город дилера (куда эвакуируют)",
@@ -154,7 +164,7 @@ WITH servicecounts AS (
     "CarClass".label AS "Класс автомобиля",
     casetbl.dealercause AS "Причина неисправ. со слов дилера",
     "Contract".cardnumber AS "Номер карты",
-    casetbl.comments AS "Комментарии аналитиков",
+    commentLists.txt AS "Комментарии аналитиков",
     p3.code AS "Код дилера, продавшего автомобиль",
     allservicesview.towaddress_address AS "Назначение эвакуации-адрес дилера",
     "Contract".validsince AS "Дата начала действия гарантии",
@@ -167,6 +177,7 @@ WITH servicecounts AS (
     casetbl.contact_email AS "Email звонящего",
     servicetbl.contractor_address AS "Адрес выезда эвакуатора",
     allservicesview.towtype AS "Вид эвакуации",
+    "TowerType".label AS "Тип эвакуатора",
     timezone('Europe/Moscow'::text, servicetbl.times_expecteddispatch) AS "Время выезда партнёра",
      timezone('Europe/Moscow'::text, servicetbl.bill_billingdate) AS "Дата выставления счёта",
     casetbl.repair AS "Дата починки",
@@ -175,6 +186,7 @@ WITH servicecounts AS (
     servicetbl.bill_billnumber AS "Номер счёта",
     casetbl.contact_ownername AS "Имя владельца",
     servicetbl.id AS "Номер услуги",
+    u1.realName AS "Сотрудник, создавший услугу",
      p1.code AS "Код партнёра",
     casetbl.caseaddress_coords AS "Координаты места поломки",
     servicetbl.contractor_coords AS "Координаты партнёра",
@@ -195,6 +207,7 @@ WITH servicecounts AS (
     servicetbl.payment_calculatedcost AS "Расчётная стоимость",
     "Suggestion".label AS "Рекомендация",
     servicetbl.scan AS "Скан загружен",
+    "CaseSource".label AS "Источник кейса",
     "CaseStatus".label AS "Статус кейса",
     CASE
         WHEN
@@ -210,6 +223,7 @@ WITH servicecounts AS (
     casetbl.contact_name AS "ФИО звонящего"
 
    FROM casetbl
+   LEFT JOIN commentLists ON casetbl.id = commentLists.caseId
    LEFT JOIN usermetatbl ON casetbl.callTaker = usermetatbl.id
    LEFT JOIN "Program" ON casetbl.program = "Program".id
    LEFT JOIN "ProgramType" ON "Program".ptype = "ProgramType".id
@@ -229,13 +243,16 @@ WITH servicecounts AS (
    LEFT JOIN "Part" ON casetbl.diagnosis2 = "Part".id
    LEFT JOIN "Cause" ON casetbl.diagnosis3 = "Cause".id
    LEFT JOIN "Suggestion" ON casetbl.diagnosis4 = "Suggestion".id
+   LEFT JOIN "CaseSource" ON casetbl.source = "CaseSource".id
    LEFT JOIN "CaseStatus" ON casetbl.caseStatus = "CaseStatus".id
    LEFT JOIN "ContractCheckStatus" ON casetbl.vinchecked = "ContractCheckStatus".id,
    servicetbl
    LEFT JOIN allservicesview ON allservicesview.id = servicetbl.id AND servicetbl.parentid = allservicesview.parentid
    LEFT JOIN partnertbl p1 ON servicetbl.contractor_partnerid = p1.id
    LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = p2.id
+   LEFT JOIN "ConsultationResult" ON allservicesview.consResult = "ConsultationResult".id
    LEFT JOIN "ConsultationType" ON allservicesview.consType = "ConsultationType".id
+   LEFT JOIN "TowerType" ON allservicesview.towerType = "TowerType".id
    LEFT JOIN servicecounts ON servicetbl.parentid = servicecounts.parentid
    LEFT JOIN "Complication" ON servicetbl.complication = "Complication".id
    LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id
@@ -243,6 +260,7 @@ WITH servicecounts AS (
    LEFT JOIN "ServiceStatus" ON servicetbl.status = "ServiceStatus".id
    LEFT JOIN "Satisfaction" ON servicetbl.clientsatisfied = "Satisfaction".id
    LEFT JOIN orderActions ON servicetbl.id = orderActions.serviceId
+   LEFT JOIN usermetatbl u1 ON u1.id = servicetbl.creator
    LEFT JOIN usermetatbl u2 ON u2.id = orderActions.assignedTo
 WHERE casetbl.id = servicetbl.parentid;
 

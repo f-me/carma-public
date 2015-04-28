@@ -17,7 +17,12 @@ define [ "utils"
     $("#new-call-modal").on "hide.bs.modal", ->
       $(".modal-backdrop").css "z-index", "1040"
 
-    $("#make-new-call").on 'click', -> makeCallClick viewName
+    # Answer an incoming call if we have CTI. 'newCall' handler is
+    # installed to avoid circular handler call from CTI's answerCallCb
+    $("#make-new-call").on 'newCall', -> makeCallClick viewName
+    $("#make-new-call").on 'click', ->
+      if not global.CTIPanel?.answer()
+        $("#make-new-call").trigger 'newCall'
 
     # if user have unfinished call redirect him to close it
     unfinished = localStorage["#{storeKey}.id"]

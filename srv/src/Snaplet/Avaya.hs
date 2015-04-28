@@ -4,10 +4,11 @@
 
 {-|
 
-Avaya snaplet provides interface with dmcc-ws via hooks and Web
-Sockets.
+Avaya snaplet provides interface with @dmcc-ws@ via hooks and
+WebSocket connections.
 
-- Web Socket proxy binds used Avaya extensions to CaRMa user id's;
+- WebSocket proxy (@\/ws\/:ext@) binds used Avaya extensions to CaRMa
+user id's;
 
 - hooks allow DMCC to push information directly to CaRMa.
 
@@ -35,6 +36,7 @@ import           Data.Configurator as Cfg
 import qualified Data.Map as Map
 import           Data.Text as Text
 import           Data.Time.Clock
+import           Data.Vector (fromList)
 
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
@@ -60,7 +62,7 @@ import           Carma.Model.Event as Event
 import           Carma.Model.Usermeta
 import           Carma.Model.UserState as UserState
 
-import           AppHandlers.Util hiding (withPG)
+import           AppHandlers.Util
 import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers
 import           Util
@@ -75,15 +77,12 @@ data Avaya b = Avaya
     }
 
 
-instance HasPostgres (Handler b (Avaya b)) where
-  getPostgresState = withLens db get
+instance HasPostgresAuth b (Avaya b) where
+  withAuth = withLens auth
+  withAuthPg = withLens db
 
 
-instance WithCurrentUser (Handler b (Avaya b)) where
-  withCurrentUser = withLens auth currentUser
-
-
-routes :: WithCurrentUser (Handler b (Avaya b)) =>
+routes :: HasPostgresAuth b (Avaya b) =>
           [(ByteString, Handler b (Avaya b) ())]
 routes = [ ("/ws/:ext", method GET avayaWsProxy)
          , ("/hook/", method POST hook)
@@ -91,7 +90,7 @@ routes = [ ("/ws/:ext", method GET avayaWsProxy)
 
 
 -- | Proxy requests to/from dmcc-ws Web Socket, updating 'extMap'.
-avayaWsProxy :: WithCurrentUser (Handler b (Avaya b)) => Handler b (Avaya b) ()
+avayaWsProxy :: HasPostgresAuth b (Avaya b) => Handler b (Avaya b) ()
 avayaWsProxy= do
   ext <- fromMaybe (error "No extension specified") <$> getIntParam "ext"
   eMap <- gets extMap
@@ -130,7 +129,7 @@ hook :: Handler b (Avaya b) ()
 hook = do
   rsb <- readRequestBody 4096
   eMap <- gets extMap
-  now <- liftIO $ getCurrentTime
+  now <- liftIO getCurrentTime
   case decode rsb of
     Nothing -> error $ "Could not read hook data " ++ show rsb
     -- Ignore errors (they shouldn't arrive via a webhook call
@@ -148,12 +147,12 @@ hook = do
             -- at all
             aeData =
               case ev of
-                DeliveredEvent c _ _ ->
+                DeliveredEvent c _ _ _ _ ->
                   Just (c, et)
                   where
-                    et = if dir == DMCC.In
-                         then AET.in
-                         else AET.out
+                    et = case dir of
+                           (DMCC.In _) -> AET.in
+                           _           -> AET.out
                     dir = direction call
                     call = fromMaybe (error "DeliveredEvent with bad state") $
                            Map.lookup c (_calls st)
@@ -176,38 +175,34 @@ hook = do
                 Nothing -> return ()
                 Just (cid@(CallId cidt), et) ->
                   let
-                    -- Concatenate all interlocutors, cutting out
-                    -- switch names
-                    interloc =
+                    (ucid', interlocs) =
                       case Map.lookup cid (_calls st) of
                         Just c ->
-                          Text.intercalate " " $
-                          Prelude.map (\(DeviceId d) ->
-                                         fst $ breakOn ":" $ original d) $
-                          interlocutors c
-                        Nothing -> ""
-                    -- TODO Extract UCID when we switch to DMCC 6.x
-                    ucid = cidt
+                          ((cidt `Text.append` "/" `Text.append`)
+                            ((\(UCID u) -> u) $ DMCC.ucid c),
+                           Prelude.map (\(DeviceId d) -> original d) $
+                           DMCC.interlocutors c)
+                        Nothing -> (cidt, [])
                   in do
                     (userState, model, actionId) <- userStateAction uid
                     when (userState == Busy &&
                           model == Data.Model.modelName
                           (modelInfo :: ModelInfo Action.Action)) $
-                      void $ withPG $ Patch.create $
+                      void $ withAuthPg $ liftPG $ Patch.create $
                         Patch.put AE.ctime now $
                         Patch.put AE.eType et $
                         Patch.put AE.operator uid $
                         Patch.put AE.currentAction (Ident actionId) $
-                        Patch.put AE.interlocutor interloc $
-                        Patch.put AE.callId ucid $
+                        Patch.put AE.interlocutors (fromList interlocs) $
+                        Patch.put AE.callId ucid'
                         Patch.empty
 
 
 -- | Return last state and corresponding model name/id for a user.
-userStateAction :: (IdentI Usermeta)
+userStateAction :: IdentI Usermeta
                 -> Handler b (Avaya b) (UserStateVal, Text, Int)
 userStateAction uid = do
-  res <- withPG $
+  res <- withAuthPg $ liftPG $
     \c -> uncurry (query c)
     [sql|
      SELECT
@@ -228,7 +223,7 @@ userStateAction uid = do
     _     -> error $ "No state for user " ++ show uid
 
 
-avayaInit :: WithCurrentUser (Handler b (Avaya b)) =>
+avayaInit :: HasPostgresAuth b (Avaya b) =>
              SnapletLens b (AuthManager b)
           -> SnapletLens b Postgres
           -> SnapletInit b (Avaya b)

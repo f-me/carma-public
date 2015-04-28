@@ -40,7 +40,7 @@ define [ "hooks/common"
 
       "Case" : [ k.descsKbHook
                , k.programDesc
-               , k.eventsHistoryKbHook
+               , k.caseHistory
                , k.cityStatsHook
                , k.regionHook
                , k.vwfakeHook

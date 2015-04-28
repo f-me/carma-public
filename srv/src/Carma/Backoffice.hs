@@ -22,6 +22,7 @@ import           Prelude hiding ((>), (==), (||), (&&), const)
 import qualified Carma.Model.ActionResult as AResult
 import qualified Carma.Model.ActionType as AType
 import           Carma.Model.Case as Case
+import qualified Carma.Model.CaseSource as CO
 import qualified Carma.Model.CaseStatus as CS
 import           Carma.Model.FalseCall as FS
 import           Carma.Model.Program as Program
@@ -50,8 +51,7 @@ toBack =
        , sendSMS SMS.create *> messageToGenser *> proceed [AType.orderService]
        )
      , ( serviceField svcType `oneOf` [ST.ken, ST.consultation]
-       , sendSMS SMS.complete *>
-         setServiceStatus SS.ok *>
+       , setServiceStatus SS.ok *>
          proceed [AType.closeCase, AType.addBill]
        )
      ]
@@ -110,7 +110,16 @@ mobileOrder :: Entry
 mobileOrder =
     Entry
     (insteadOf Case.caseStatus (const CS.mobileOrder)
-     (proceed [AType.callMeMaybe]))
+     (setCaseField Case.source (const CO.mobile) *>
+      proceed [AType.callMeMaybe]))
+
+
+mobileAccident :: Entry
+mobileAccident =
+    Entry
+    (insteadOf Case.caseStatus (const CS.mobileAccident)
+     (setCaseField Case.source (const CO.mobileAccident) *>
+      proceed [AType.accident]))
 
 
 cancel :: Entry
@@ -179,6 +188,34 @@ mistake =
     Entry
     (onField Service.status (const SS.mistake)
      finish)
+
+
+accident :: Action
+accident =
+    Action
+    AType.accident
+    (const bo_order)
+    nobody
+    ((5 * minutes) `since` now)
+    [ (AResult.serviceOrdered,
+       sendSMS SMS.order *>
+       messageToPSA *>
+       messageToGenser *>
+       setServiceStatus SS.ordered *>
+       proceed [AType.tellClient, AType.addBill])
+    , (AResult.serviceOrderedSMS,
+       sendSMS SMS.order *>
+       messageToPSA *>
+       messageToGenser *>
+       setServiceStatus SS.ordered *>
+       proceed [AType.checkStatus, AType.addBill])
+    , (AResult.needPartner,
+       sendSMS SMS.parguy *>
+       setServiceStatus SS.needPartner *>
+       proceed [AType.needPartner])
+    , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
+    ]
 
 
 orderService :: Action
@@ -315,7 +352,6 @@ checkEndOfService =
     nobody
     ((5 * minutes) `since` req (serviceField times_expectedServiceEnd))
     [ (AResult.serviceDone,
-       sendSMS SMS.complete *>
        messageToDealer *>
        messageToGenser *>
        setServiceStatus SS.ok *>
@@ -366,13 +402,11 @@ cancelService =
     nobody
     ((1 * minutes) `since` now)
     [ (AResult.falseCallUnbilled,
-       sendSMS SMS.cancel *>
        messageToGenser *>
        setServiceStatus SS.canceled *>
        setServiceField Service.falseCall (const FS.nobill) *>
        finish)
     , (AResult.falseCallBilled,
-       sendSMS SMS.cancel *>
        messageToGenser *>
        setServiceStatus SS.canceled *>
        setServiceField Service.falseCall (const FS.bill) *>
@@ -543,6 +577,7 @@ carmaBackoffice =
     ( [ toBack
       , needInfo
       , needMakerApproval
+      , mobileAccident
       , mobileOrder
       , recallClient
       , cancel
@@ -550,6 +585,7 @@ carmaBackoffice =
       , mistake
       ]
     , [ orderService
+      , accident
       , orderServiceAnalyst
       , tellClient
       , checkStatus

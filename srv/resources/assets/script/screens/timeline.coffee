@@ -324,7 +324,6 @@ define ["text!tpl/screens/timeline.html"
       filters:
         typeahead: (v) => Utils.kvmCheckMatch th(), v
 
-    global.kvms = kvms
     # Mass-update to all shown users upon button click
     $("#mass-apply").click () ->
       _.map kvms(), (k) ->

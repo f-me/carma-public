@@ -2,8 +2,6 @@
 
 module Snaplet.Search (Search, searchInit)  where
 
-import           Control.Lens
-
 import           Data.Aeson
 
 import           Snap.Core
@@ -24,8 +22,8 @@ search :: ToJSON t
 search = (>>= either (finishWithError 500) writeJSON)
 
 searchInit
-  :: Snaplet (AuthManager b)
-  -> Lens' b (Snaplet Postgres)
+  :: SnapletLens b (AuthManager b)
+  -> SnapletLens b Postgres
   -> SnapletInit b (Search b)
 searchInit sessionMgr dbl = makeSnaplet "search" "Search snaplet" Nothing $ do
   addRoutes [ ("case",     method POST $ search caseSearch)

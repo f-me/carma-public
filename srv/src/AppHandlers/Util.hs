@@ -8,12 +8,9 @@ import qualified Data.ByteString.Char8 as B
 import Data.Map (Map)
 import Data.Maybe
 import qualified Data.Map as Map
-import Data.Pool
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-
-import Database.PostgreSQL.Simple as Pg
 
 import Snap
 
@@ -52,14 +49,6 @@ getIntParam :: ByteString -> Handler a b (Maybe Int)
 getIntParam name = do
   val <- getParam name
   return $ fst <$> (B.readInt =<< val)
-
-
--- | Use a connection from a pool to run a query.
-withPG :: (v -> Pool Pg.Connection)
-       -> (Pg.Connection -> IO res)
-       -- ^ Query action.
-       -> Handler b v res
-withPG pool f = gets pool >>= liftIO .(`withResource` f)
 
 
 withLens :: MonadState s (Handler b v')

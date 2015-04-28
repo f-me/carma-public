@@ -97,17 +97,42 @@ require [ "domready"
         if user.workPhoneSuffix.match(/^\d+$/)
           cti = new CTI user.workPhoneSuffix
           vips = u.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
+          vdns = u.newModelDict("VDN", false, {dictionaryLabel: 'number'})
           opts =
             # AVAYA halts when this is dialed
             bannedNumbers: ["8"]
-            displayedToInternal:
-              (number) ->
-                number.replace("+7", "98").replace("+", "9810")
-            internalToDisplayed:
-              (number) ->
-                number?.match(/\d+/)?[0]?.replace(/^(98|8|)(\d{10})$/, "\+7$2")
+            displayedToInternal: u.displayedToInternal
+            internalToDisplayed: u.internalToDisplayed
             isVipCb: (n) -> vips.getVal(n)
+            vdnToDisplayed:
+              (vdnNumber) ->
+                vdnNumber = vdnNumber?.split(":")[0]
+                vdn = vdns.getElement(vdns.getVal(vdnNumber))
+                if vdn?
+                  "#{vdn?.label}: #{vdn?.greeting}"
+                else
+                  null
+            onexagentPort: 60000
+            # Fill caller phone and program when answering a call on
+            # call screen
+            answerCallCb: (number, vdnNumber) ->
+              callVM = global.viewsWare['call-view']?.knockVM
+              if callVM?
+                $("#make-new-call").trigger "newCall"
+                vdnNumber = vdnNumber?.split(":")[0]
+                vdn = vdns.getElement(vdns.getVal(vdnNumber))
+                number = u.internalToDisplayed number
+                if not callVM.callerPhone?()
+                  callVM.callerPhone? number
+                if vdn? && not callVM.program?()
+                  callVM.program? vdn.program
+                localStorage["call.search-query"] = "!Тел:" + number
+                $("#search-query").val("!Тел:" + number).change()
+            incomingCallCb: -> $("#cti").show()
           global.CTIPanel = new CTIPanel cti, $("#cti"), opts
+          Mousetrap.bind ["`", "ё"], () ->
+            $("#cti").toggle()
+          Mousetrap.bind "ctrl+enter", () -> global.CTIPanel.answer()
         else
           console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 

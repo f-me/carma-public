@@ -2,10 +2,13 @@ define [], () ->
   # CTI panel interface
   class CTIPanel
     constructor: (cti, el, options) ->
+      answerCallCb        = options.answerCallCb ? null
       displayedToInternal = options.displayedToInternal ? _.identity
+      incomingCallCb      = options.incomingCallCb ? null
       internalToDisplayed = options.internalToDisplayed ? _.identity
       isVipCb             = options.isVipCb ? _.constant(false)
-      onexagentPort       = options.onexagentPort ? 60000
+      onexagentPort       = options.onexagentPort ? null
+      vdnToDisplayed      = options.vdnToDisplayed ? _.identity
 
       # CTI panel state (it's a bit different from agent state in CSTA
       # lib to make interface coding easier)
@@ -32,17 +35,26 @@ define [], () ->
 
       mkName = () -> (Math.random() * 1000000 | 0).toString(16)
 
-      onexagentApi = "http://localhost:#{onexagentPort}/onexagent/api"
+      if onexagentPort?
+        onexagentApi = "http://localhost:#{onexagentPort}/onexagent/api"
 
-      $.get "#{onexagentApi}/registerclient?name=#{mkName()}", (res) ->
-        xml = $.parseXML res
-        onexagentClient =
-          $(xml).find("RegisterClientResponse").attr("ClientId")
-        kvm.canMute !_.isEmpty(onexagentClient)
+        $.get "#{onexagentApi}/registerclient?name=#{mkName()}", (res) ->
+          xml = $.parseXML res
+          onexagentClient =
+            $(xml).find("RegisterClientResponse").attr("ClientId")
+          kvm.canMute !_.isEmpty(onexagentClient)
 
       # Simply call a number in +7921... form using the CTI panel
       @instaDial = (number) ->
         _.last(kvm.calls()).instaDial(number)()
+
+      # Answer an incoming call. Return false if no call can be answered.
+      @answer = () ->
+        c = _.find kvm.calls(), (c) -> c.canAnswer()
+        if c?
+          c.answerThis()
+        else
+          false
 
       # Pretty-print list of interlocutors
       interlocutorsToNumber = (interlocutors) ->
@@ -57,6 +69,7 @@ define [], () ->
             @prev       = ko.observable null
             @number     =
               ko.observable interlocutorsToNumber call.interlocutors
+            @vdn        = ko.observable vdnToDisplayed call.direction?.vdn
             @callStart  = ko.observable call.start?
             @callId     = callId
             # Extension number typed so far
@@ -93,10 +106,10 @@ define [], () ->
             # the panel even before the service reports new call
             # state/event
             @canExtend  = ko.observable(
-              call.answered? && call.direction == "Out" && !call.held)
+              call.answered? && call.direction?.dir == "Out" && !call.held)
             @canCall    = ko.observable !(callId?)
             @canAnswer  = ko.observable(
-              !(call.answered?) && (call.direction == "In"))
+              !(call.answered?) && (call.direction?.dir == "In"))
             @canHold    = ko.observable (call.answered? && !call.held)
             @canRetrieve= ko.observable call.held
             @canConf    = ko.computed =>
@@ -105,7 +118,7 @@ define [], () ->
               @prev?() && call.answered? && !call.held
             @canInsta   = ko.computed => !@wip()
             @canEnd     = ko.observable(
-              !call.held && (call.answered? || (call.direction == "Out")))
+              !call.held && (call.answered? || (call.direction?.dir == "Out")))
 
             @addBlankCall= -> kvm.showBlankCall true
 
@@ -135,6 +148,7 @@ define [], () ->
                 cti.holdCall @prev().callId
               cti.answerCall callId
               @canAnswer false
+              answerCallCb call.interlocutors[0], call.direction?.vdn
             @endThis= ->
               cti.endCall callId
               @canEnd false
@@ -156,6 +170,9 @@ define [], () ->
                 () ->
                   kvm.canMute true
                   kvm.canUnmute false)
+
+            if @canAnswer()
+              incomingCallCb call.interlocutors[0], call.direction?.vdn
 
         newCalls = for callId, call of state.calls
           new CallVM call, callId
@@ -185,15 +202,17 @@ define [], () ->
         for c in newCalls
           kvm.calls.push c
 
+      errNotify = (err) -> $.notify err, {autoHide: false}
+
       wsHandler = (msg) ->
         if msg.dmccEvent? && msg.dmccEvent.event == "FailedEvent"
           failedCall = msg.newState.calls[msg.dmccEvent.callId]
           failedNumber = interlocutorsToNumber failedCall?.interlocutors
-          $.notify "Не удалось соединиться с номером #{failedNumber}"
+          errNotify "Не удалось соединиться с номером #{failedNumber}"
 
         if msg.errorText?
           console.log "CTI: #{msg.errorText}"
-          $.notify "Ошибка CTI: #{msg.errorText}"
+          errNotify "Ошибка CTI: #{msg.errorText}"
 
         if msg.calls?
           stateToVM msg
@@ -218,7 +237,3 @@ define [], () ->
         if e.which == 13
           $(e.target).parent(".call-form").submit()
           e.preventDefault()
-
-      $(document).keydown (e) ->
-        if e.which == 192
-          el.toggle()

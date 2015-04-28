@@ -34,7 +34,7 @@ import Snaplet.SiteConfig.SpecialPermissions
 import Snaplet.SiteConfig.Models
 import Snaplet.SiteConfig.Dictionaries
 
-import AppHandlers.Util hiding (withPG)
+import AppHandlers.Util
 import Utils.HttpErrors
 
 import qualified Data.Model as Model
@@ -54,7 +54,7 @@ getModel name view =
            Nothing -> finishWithError 404 "Unknown model/view"
 
 
-serveModel :: HasAuth b => Handler b (SiteConfig b) ()
+serveModel :: HasPostgresAuth b (SiteConfig b) => Handler b (SiteConfig b) ()
 serveModel = do
   Just name  <- getParamT "name"
   view  <- fromMaybe "" <$> getParamT "view"
@@ -96,7 +96,7 @@ constructModel mdlName program model = do
           and program = ? :: int
         order by ord asc
       |]
-  res <- query q [mdlName,program]
+  res <- withLens db $ query q [mdlName,program]
   let optMap = Map.fromList [(nm,(l,r,w,rq,inf,o)) | (nm,l,r,w,rq,inf,o) <- res]
   let adjustField f = case Map.lookup (name f) optMap of
         Nothing -> [f] -- NB: field is not modified if no options found
@@ -118,7 +118,8 @@ constructModel mdlName program model = do
     }
 
 
-writeModel :: HasAuth b => Model -> Handler b (SiteConfig b) ()
+writeModel :: HasPostgresAuth b (SiteConfig b) =>
+              Model -> Handler b (SiteConfig b) ()
 writeModel model
   = writeJSON
   =<< case modelName model of
@@ -142,7 +143,7 @@ writeModel model
 stripModel :: AuthUser -> Model -> Handler b (SiteConfig b) Model
 stripModel u m = do
   let Just uid = userId u
-  readableFields <- query [sql|
+  readableFields <- withLens db $ query [sql|
     select p.field, max(p.w::int)::bool
       from "FieldPermission" p, usermetatbl u
       where u.uid = ?::int
@@ -188,7 +189,7 @@ serveDictionaries = do
   writeJSON $ Aeson.Object dictMap
 
 
-initSiteConfig :: HasAuth b
+initSiteConfig :: HasPostgresAuth b (SiteConfig b)
                   => FilePath
                   -> Lens' b (Snaplet (AuthManager b))
                   -> Lens' b (Snaplet Postgres)

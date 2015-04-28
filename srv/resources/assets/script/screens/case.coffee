@@ -2,11 +2,12 @@ define [ "utils"
        , "hotkeys"
        , "text!tpl/screens/case.html"
        , "text!tpl/fields/form.html"
+       , "lib/ws"
        , "model/utils"
        , "model/main"
        , "components/contract"
        ],
-  (utils, hotkeys, tpl, Flds, mu, main, Contract) ->
+  (utils, hotkeys, tpl, Flds, WS, mu, main, Contract) ->
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
     flds =  $('<div/>').append($(Flds))
@@ -37,7 +38,7 @@ define [ "utils"
           kvm['renderActions']?()
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
-      setCommentsHandler()
+      setupCommentsHandler kvm
 
       Contract.setup "contract", kvm
 
@@ -58,7 +59,6 @@ define [ "utils"
             ,drop: 'up'
             }))
 
-      utils.mkDataTable $('#call-searchtable')
       hotkeys.setup()
       kvm = global.viewsWare[viewName].knockVM
 
@@ -69,6 +69,8 @@ define [ "utils"
           disable = _.any nots, (e) -> kvm[e]()
           disable
 
+      setupHistory kvm
+
       kvm['renderActions'] = -> renderActions(kvm)
       kvm['renderActions']()
 
@@ -77,19 +79,91 @@ define [ "utils"
 
       $(".status-btn-tooltip").tooltip()
 
-    setCommentsHandler = ->
+    # History pane
+    setupHistory = (kvm) ->
+      historyDatetimeFormat = "dd.MM.yyyy HH:mm:ss"
+      refreshHistory = ->
+        $.getJSON "/caseHistory/#{kvm.id()}", (res) ->
+          kvm['historyItems'].removeAll()
+
+          # List of service id's for colorizing actions
+          svcs =
+            _.map kvm.services()?.split(','),
+              (s) -> parseInt s.split(':')?[1]
+          # Process every history item
+          for i in res
+            json = i[2]
+            if json.aeinterlocutors?
+              json.aeinterlocutors =
+                _.map(json.aeinterlocutors, utils.internalToDisplayed).
+                  join(", ")
+            color = ko.observable(
+              if json.serviceid?
+                utils.palette[svcs.indexOf(json.serviceid) %
+                  utils.palette.length]
+              else
+                null)
+            kvm['historyItems'].push
+              datetime: new Date(i[0]).toString historyDatetimeFormat
+              who: i[1]
+              json: json
+              color: color
+      kvm['refreshHistory'] = refreshHistory
+      kvm['contact_phone1']?.subscribe refreshHistory
+
+    # Case comments/chat
+    setupCommentsHandler = (kvm) ->
+      legId = "Case:#{kvm.id()}"
+      if window.location.protocol == "https:"
+        chatUrl = "wss://#{location.hostname}:#{location.port}/chat/#{legId}"
+      else
+        chatUrl = "ws://#{location.hostname}:#{location.port}/chat/#{legId}"
+
+      chatNotify = (message, className) ->
+        $.notify message, {className: className || 'info', autoHide: false}
+
+      brDict = utils.newModelDict "BusinessRole"
+
+      chatWs = new WS chatUrl
+      kvm['chatWs'] = chatWs
+      chatWs.onmessage = (raw) ->
+        msg = JSON.parse raw.data
+        who = msg.user || msg.joined || msg.left
+        if who.id == global.user.id
+          return
+        if who.id
+          $.getJSON "/_/Usermeta/#{who.id}", (um) ->
+            note = "Оператор #{um.login}"
+            if msg.msg
+              note += " оставил сообщение: #{msg.msg}"
+              chatNotify note
+              kvm['refreshHistory']?()
+            else
+              if um.realName
+                note += " (#{um.realName})"
+              if um.workPhoneSuffix
+                note += ", доб. #{um.workPhoneSuffix}"
+              note += ", IP #{who.ip}"
+              if um.businessRole
+                note += " с ролью #{brDict.getLab(um.businessRole)}"
+              if msg.joined
+                note += " вошёл в кейс"
+                chatNotify note, "error"
+              if msg.left
+                note += " вышел с кейса"
+                chatNotify note, "success"
+
+      # Write new comment to case and send it via WS too
       $("#case-comments-b").on 'click', ->
         i = $("#case-comments-i")
-        return if _.isEmpty i.val()
-        comment =
-          date: (new Date()).toString('dd.MM.yyyy HH:mm')
-          user: global.user.login
-          comment: i.val()
-        k = global.viewsWare['case-form'].knockVM
-        if _.isEmpty k['comments']()
-          k['comments'] [comment]
-        else
-          k['comments'] k['comments']().concat comment
+        comment = i.val()
+        return if _.isEmpty comment
+        opts =
+          type: "POST"
+          url: "/_/CaseComment"
+          data: JSON.stringify {caseId: parseInt(kvm.id()), comment: comment}
+          dataType: "json"
+        $.ajax(opts).done( -> kvm['refreshHistory']?() && chatWs.send comment)
         i.val("")
 
     # Manually re-render a list of case actions
@@ -139,6 +213,11 @@ define [ "utils"
           if not kvm['actionsList']?
             kvm['actionsList'] = ko.observableArray()
           kvm['actionsList'].push avm
+          if avm["type"]() == global.idents("ActionType").accident && avm["myAction"]()
+            if global.CTIPanel
+              global.CTIPanel.instaDial kvm["contact_phone1"]()
+              window.alert "Внимание: кейс от системы e-call, \
+                производится набор номера клиента, возьмите трубку"
           # Disable action results if any of required case fields is
           # not set
           do (avm) ->
@@ -146,7 +225,7 @@ define [ "utils"
             kvm['hasMissingRequireds'].subscribe (dis) ->
               avm.resultDisabled?(dis)
         cont.spin false
-      kvm['fillEventHistory']?()
+      kvm['refreshHistory']?()
 
     # Top-level wrapper for storeService
     addService = (name) ->
@@ -172,6 +251,7 @@ define [ "utils"
 
 
     removeCaseMain = ->
+      global.viewsWare["case-form"].knockVM['chatWs']?.close()
       $("body").off "change.input"
       $('.navbar').css "-webkit-transform", ""
 

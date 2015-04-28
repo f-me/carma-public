@@ -56,13 +56,17 @@ class @AvayaWidget
 
       localStorage["call.search-query"] = "!Тел:" + number
 
-      vm = global.viewsWare['call-view'].knockVM
-      vm.callDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
-      vm.callerPhone(number)
-      info = lineInfo[line]
-      if info
-        panel.find("#avaya-info").text(info.greeting)
-        vm.program(global.idents("Program")[info.program] || '')
+      callView = global.viewsWare['call-view']
+      if callView
+        vm = callView.knockVM
+        if not vm.callDate()
+          vm.callDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
+        if not vm.callerPhone()
+          vm.callerPhone(number)
+        info = lineInfo[line]
+        if info and not vm.program()
+          panel.find("#avaya-info").text(info.greeting)
+          vm.program(global.idents("Program")[info.program] || '')
 
   call: (number) ->
     @__phone.call(number)

@@ -38,9 +38,9 @@ import qualified Data.Model.Patch.Sql as P
 import           Snap
 import           Snap.Snaplet.Auth
 import           Snaplet.Auth.Class
-import           Snap.Snaplet.PostgresqlSimple ( HasPostgres(..)
-                                               , query
+import           Snap.Snaplet.PostgresqlSimple ( liftPG
                                                , Only(..)
+                                               , query
                                                )
 import           Database.PostgreSQL.Simple.SqlQQ
 
@@ -56,15 +56,14 @@ import           Snaplet.Search.Types (mkSel)
 import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
 
+import           Application
 import           AppHandlers.KPI (updateOperKPI)
 
-import           Util
 import           Utils.LegacyModel
 
 
 -- | Create `Event` for login/logout fact
-logLogin :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
-         => EventType -> Handler b m ()
+logLogin :: EventType -> AppHandler ()
 logLogin tpe = do
   uid <- getRealUid
   case uid of
@@ -74,31 +73,28 @@ logLogin tpe = do
       updateUserState tpe uid' P.empty ev
 
 -- | Create 'Event' from changes in a model.
-logCRUD :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
-           , Model m)
-        => EventType
+logCRUD :: forall m. Model m =>
+           EventType
         -> IdentI m
         -- ^ Identifier of changed model
         -> Patch m
         -- ^ Changed fields
-        -> Handler b b1 (IdentI Event)
-logCRUD tpe idt p = do
+        -> AppHandler (IdentI Event)
+logCRUD tpe idt p =
   log $ buildFull tpe idt (Nothing :: Maybe (m -> PK Int m "")) (Just p)
 
 -- | Create event *and* update user state.
-logCRUDState :: (HasPostgres (Handler b b1), HasAuth b, HasMsg b
-                , Model m)
+logCRUDState :: Model m
              => EventType
              -> IdentI m
              -> Patch m
-             -> Handler b b1 (IdentI Event)
+             -> AppHandler (IdentI Event)
 logCRUDState tpe idt p =
   logCRUD tpe idt p >>=
   \e -> updateUserState tpe idt p e >> return e
 
 -- | Create event from patch
-log :: (HasPostgres (Handler b m), HasAuth b, HasMsg b)
-    => Patch Event -> Handler b m (IdentI Event)
+log :: Patch Event -> AppHandler (IdentI Event)
 log p = do
   uid <- getRealUid
   idt <- create $ setUsr uid p
@@ -106,15 +102,14 @@ log p = do
     Left err -> error $ "Can't create Event: " ++ show err
     Right id' -> return id'
 
-updateUserState :: forall m b b1
-                 . (HasPostgres (Handler b b1), HasAuth b, HasMsg b , Model m)
-                => EventType
+updateUserState :: forall m. Model m =>
+                   EventType
                 -> IdentI m
                 -- ^ Identifier of changed model
                 -> Patch m
                 -- ^ Changed fields
                 -> IdentI Event
-                -> Handler b b1 ()
+                -> AppHandler ()
 updateUserState evt idt p evidt = do
   -- Little hack to determine target user for state change in case if
   -- someone else changed @delayedState@ field of current user
@@ -174,10 +169,9 @@ buildEmpty :: EventType -> Patch Event
 buildEmpty tpe = P.put E.eventType tpe $  P.empty
 
 -- | Create `Event` in `postgres` from `Patch Event`, return it's id
-create :: HasPostgres m
-       => Patch Event
-       -> m (Either SomeException (IdentI Event))
-create ev = withPG $ \c -> liftIO $ P.create ev c
+create :: Patch Event
+       -> AppHandler (Either SomeException (IdentI Event))
+create ev = with db $ liftPG $ \c -> liftIO $ P.create ev c
 
 
 data States = States { _from :: [UserStateVal], _to :: UserStateVal }
@@ -185,13 +179,13 @@ data States = States { _from :: [UserStateVal], _to :: UserStateVal }
 (>>>) f t = States f t
 
 -- | Check current state and maybe create new
-checkUserState :: forall b m m1 . (HasPostgres (Handler b m), Model m1)
+checkUserState :: forall m. Model m
                => IdentI Usermeta
                -> EventType
                -> IdentI Event
-               -> IdentI m1
-               -> Patch m1
-               -> Handler b m (Maybe UserStateVal)
+               -> IdentI m
+               -> Patch m
+               -> AppHandler (Maybe UserStateVal)
 checkUserState uid evType evIdt _ p = do
   hist <- query
     (fromString (printf
@@ -207,10 +201,10 @@ checkUserState uid evType evIdt _ p = do
                    delayedSt
   where
     nextState' s d =
-      let mname = modelName (modelInfo :: ModelInfo m1)
+      let mname = modelName (modelInfo :: ModelInfo m)
       in nextState s d evType mname (HM.keys $ P.untypedPatch p)
     setNext Nothing = return Nothing
-    setNext (Just s) = withPG $ \c -> do
+    setNext (Just s) = liftPG $ \c -> do
       void $ P.create (mkState s) c
       void $ P.update uid (P.put delayedState Nothing P.empty) c
       return $ Just s
@@ -298,8 +292,7 @@ change (States from to) onFn = do
 
 -- Utils -----------------------------------------------------------------------
 
-getRealUid :: (HasPostgres (Handler b m), HasAuth b)
-           => Handler b m (Maybe (IdentI Usermeta))
+getRealUid :: AppHandler (Maybe (IdentI Usermeta))
 getRealUid = do
   mbu <- withAuth currentUser
   case mbu of

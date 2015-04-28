@@ -8,11 +8,12 @@
 
 Geoservices snaplet:
 
-- Nominatim forward/reverse geocoding
+- Nominatim forward/reverse geocoding (@\/search\/:query@ and
+@\/revSearch\/:coords@)
 
-- distance calculation
+- distance calculation (@\/distance\/:coords1\/:coords2@)
 
-- geospatial partner search
+- geospatial partner search (@\/partners\/:coords1\/:coords2@)
 
 All coordinates read by various handlers from request parameters are
 in WSG84 in @longitude,latitude@ format, as @33.77,52.128@.
@@ -52,12 +53,12 @@ import Snap.Extras.JSON
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
 
-import AppHandlers.Util (getParamT)
+import AppHandlers.Util (getParamT, withLens)
 import Util
 
 
-data Geo = Geo
-    { _postgres     :: Snaplet Postgres
+data Geo b = Geo
+    { postgres      :: SnapletLens b Postgres
     , nominatimUrl  :: String
     -- ^ Nominatim installation URL (with trailing slash).
     , nominatimLang :: String
@@ -69,11 +70,7 @@ data Geo = Geo
 makeLenses ''Geo
 
 
-instance HasPostgres (Handler b Geo) where
-    getPostgresState = with postgres get
-
-
-routes :: [(ByteString, Handler b Geo ())]
+routes :: [(ByteString, Handler b (Geo b) ())]
 routes = [ ("/partners/:coords1/:coords2", method GET withinPartners)
          , ("/distance/:coords1/:coords2", method GET distance)
          , ("/revSearch/:coords", method GET revSearch)
@@ -111,7 +108,7 @@ twoPointHandler :: (FromRow a, ToJSON r) =>
                    Query
                 -> ([a] -> r)
                 -- ^ Converts SQL results to a value served in JSON.
-                -> Handler b Geo ()
+                -> Handler b (Geo b) ()
 twoPointHandler q queryToResult = do
   c1 <- getCoordsParam "coords1"
   c2 <- getCoordsParam "coords2"
@@ -119,6 +116,7 @@ twoPointHandler q queryToResult = do
   case (c1, c2) of
     (Just (lon1, lat1), Just (lon2, lat2)) -> do
                    results <- liftM queryToResult $
+                              withLens postgres $
                               query q (lon1, lat1, lon2, lat2)
                    modifyResponse $ setContentType "application/json"
                    writeLBS $ A.encode results
@@ -161,7 +159,7 @@ SELECT ST_Distance_Sphere(ST_PointFromText('POINT(? ?)', 4326),
 -- Response body is a list of JSON objects, representing partners
 -- joined with partner_service (see @withinQuery@ for list of fields).
 -- Mobile partners come last.
-withinPartners :: Handler b Geo ()
+withinPartners :: Handler b (Geo b) ()
 withinPartners = do
   c1 <- getCoordsParam "coords1"
   c2 <- getCoordsParam "coords2"
@@ -188,7 +186,7 @@ withinPartners = do
                       :* city :* make
                       :* srv  :* pr2 :* pr3
                       :* dlr  :* mp
-        results <- recode <$> query withinQuery qParams
+        results <- recode <$> (withLens postgres $ query withinQuery qParams)
         -- Do not serve useless distance if center point is not cet
         let results' = if centered
                        then results
@@ -208,7 +206,7 @@ withinPartners = do
 --
 -- > /distance/37.144775245113,55.542910552955/38.140411231441,56.006347982652/
 -- > 80825.169705850
-distance :: Handler b Geo ()
+distance :: Handler b (Geo b) ()
 distance = twoPointHandler distanceQuery (head . head :: [[Double]] -> Double)
 
 
@@ -272,7 +270,7 @@ instance ToJSON FullAddress where
 -- is a JSON object with keys @city@ and @address@ (possibly with null
 -- values), or a single key @error@ if Nominatim geocoding failed
 -- completely.
-revSearch :: Handler b Geo ()
+revSearch :: Handler b (Geo b) ()
 revSearch = do
   nom <- gets nominatimUrl
   lang <- gets nominatimLang
@@ -298,7 +296,7 @@ revSearch = do
 -- | Use Nominatim to perform a search for objects at an address
 -- provided in @query@ request parameter. Response body is identical
 -- to Nominatim's original response.
-search :: Handler b Geo ()
+search :: Handler b (Geo b) ()
 search = do
   nom <- gets nominatimUrl
   lang <- gets nominatimLang
@@ -314,9 +312,8 @@ search = do
       writeLBS $ BSL.pack rsb
 
 
-geoInit :: SnapletInit b Geo
-geoInit = makeSnaplet "geo" "Geoservices" Nothing $ do
-    db <- nestSnaplet "postgres" postgres pgsInit
+geoInit :: SnapletLens b Postgres -> SnapletInit b (Geo b)
+geoInit db = makeSnaplet "geo" "Geoservices" Nothing $ do
     cfg <- getSnapletUserConfig
     nom <- liftIO $ lookupDefault "http://nominatim.openstreetmap.org/"
            cfg "nominatim-url"

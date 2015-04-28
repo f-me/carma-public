@@ -13,7 +13,8 @@ import Data.Monoid ((<>))
 
 import Database.PostgreSQL.Simple.SqlQQ.Alt
 import Database.PostgreSQL.Simple as PG
-import Data.Pool as Pool
+
+import Snap.Snaplet.PostgresqlSimple (liftPG)
 
 import Data.Model as Model
 import Carma.Model.Service (Service)
@@ -22,7 +23,6 @@ import qualified Carma.Model.ServiceStatus as ServiceStatus
 import qualified Carma.Model.Engine as Engine
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.TechType as TT
-import Triggers.DSL (FutureContext(..))
 
 import Snap.Snaplet
 import Application (AppHandler)
@@ -30,8 +30,8 @@ import Data.Configurator (require)
 import Util hiding (render)
 
 
-sendMailToPSA :: IdentI Service -> FutureContext -> AppHandler (IO ())
-sendMailToPSA svcId fc = do
+sendMailToPSA :: IdentI Service -> AppHandler (IO ())
+sendMailToPSA svcId = do
   cfg      <- getSnapletUserConfig
   let addr = T.strip
   let addrList = map addr . T.splitOn ","
@@ -40,13 +40,12 @@ sendMailToPSA svcId fc = do
   cfgTo    <- liftIO $ addrList <$> require cfg "psa-smtp-to"
   cfgCopy  <- liftIO $ addrList <$> require cfg "psa-smtp-copy1"
 
-  return $ do
+  liftPG $ \pg -> return $ do
     syslogJSON Info "trigger/mailToPSA" ["svcId" .= svcId]
     let err e = syslogJSON Error
           "trigger/mailToPSA"
           ["svcId" .= svcId, "error" .= (e :: Text)]
-    Pool.withResource (fc_pgpool fc) $ \pg ->
-      getMsgData pg svcId >>= \case
+    getMsgData pg svcId >>= \case
         [res] -> case render $ map (fmap T.decodeUtf8) res of
           Left msg  -> err msg
           Right msg -> newTextMail pg

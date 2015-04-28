@@ -28,7 +28,7 @@
 }
 
 #cti {
-  z-index: 1010;
+  z-index: 1050;
   position: fixed;
   width: 100%;
   /* 36px is our navbar height */
@@ -53,6 +53,35 @@
   border-top-style: dotted;
   padding-top: 5px;
   /* margin-top: 5px; */
+}
+
+#case-history .history-datetime {
+  float: left;
+}
+
+#case-history .history-who {
+  float: right;
+}
+
+#case-history .history-body {
+  clear: both;
+  padding-top: 0.5em;
+}
+
+#case-history .well {
+  margin-bottom: 10px;
+}
+
+#case-history .history-item {
+  padding: 0.5em;
+}
+
+.notifyjs-bootstrap-base > span {
+  white-space: normal;
+}
+
+.notifyjs-corner {
+  max-width: 50%;
 }
 
 /* hack to make feedback left of addon */

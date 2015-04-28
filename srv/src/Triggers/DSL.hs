@@ -42,7 +42,6 @@ module Triggers.DSL
     , getNow
     , getCityWeather
 
-    , FutureContext(..)
     , inFuture
     , doApp
     )
@@ -77,7 +76,9 @@ import WeatherApi (Weather, getWeather')
 import Application (AppHandler, weatherCfg)
 import           Database.PostgreSQL.Simple ((:.) (..))
 import qualified Database.PostgreSQL.Simple as PG
-import Data.Pool
+import qualified Snap.Snaplet.PostgresqlSimple as PS
+
+
 import Data.Model as Model
 import Data.Model.Patch (Object, Patch)
 import qualified Data.Model.Sql as Sql
@@ -188,7 +189,7 @@ inParentContext act = do
         {st_ident = Patch.toParentIdent $ st_ident st
         ,st_patch = Patch.toParentPatch $ st_patch st
         }
-  Right st_p' <- doApp $ runDslM st_p act
+  Right st_p' <- doApp $ runDslM' st_p act
   let patch' = Patch.mergeParentPatch (st_patch st) (st_patch st_p')
   setState $ st {st_patch = patch'}
 
@@ -218,7 +219,7 @@ getCityWeather city = liftFree (DoApp action id)
                  Left e  -> Left $ show e
 
 
-inFuture :: (FutureContext -> AppHandler (IO ())) -> Free (Dsl m) ()
+inFuture :: (AppHandler (IO ())) -> Free (Dsl m) ()
 inFuture f
   = liftFree
   $ ModState (\st -> (st{st_futur = f : st_futur st}, ())) id
@@ -267,30 +268,33 @@ instance Functor (Dsl m) where
     DoApp      a  k -> DoApp      a  $ fn . k
 
 
-data FutureContext = FutureContext { fc_pgpool :: Pool PG.Connection }
-
 data DslState m = DslState
-  { st_futur :: [FutureContext -> AppHandler (IO ())]
+  { st_futur :: [AppHandler (IO ())]
   , st_ident :: IdentI m
   , st_patch :: Patch m
-  , st_pgcon :: PG.Connection
   }
 
-emptyDslState :: IdentI m -> Patch m -> PG.Connection -> DslState m
+emptyDslState :: IdentI m -> Patch m -> DslState m
 emptyDslState = DslState []
 
 type DslM m res = Free (Dsl m) res
 
-runDslM :: Model m => DslState m -> DslM m a -> AppHandler (Either String (DslState m))
-runDslM st f = Right <$> execStateT (evalDsl f) st
+-- | DSL evaluation.
+runDslM :: Model m =>
+           DslState m -> DslM m a -> AppHandler (Either String (DslState m))
+runDslM st f = PS.withTransactionLevel PS.ReadCommitted $ runDslM' st f
 
+-- | Non-transactioned DSL evaluation.
+runDslM' :: Model m =>
+            DslState m -> DslM m a -> AppHandler (Either String (DslState m))
+runDslM' st f = Right <$> execStateT (evalDsl f) st
 
 runDb
   :: Model m
   => (PG.Connection -> IO (Either SomeException res))
   -> (res -> Free (Dsl m) res')
   -> StateT (DslState m) AppHandler res'
-runDb f k = gets st_pgcon >>= liftIO . f >>= \case
+runDb f k = (lift $ PS.liftPG f) >>= \case
   Right res -> evalDsl $ k res
   Left err  -> error $ show err -- FIXME: I don't know what to do
 
@@ -309,8 +313,7 @@ evalDsl = \case
     DbRead i k     -> runDb (Patch.read i)     k
     DbUpdate i p k -> runDb (Patch.update i p) k
     DbIO q k -> do
-      c <- gets st_pgcon
-      res <- liftIO $ q c
+      res <- lift $ PS.liftPG q
       evalDsl $ k res
 
     CurrentUser k -> do
