@@ -42,6 +42,7 @@ FROM (
             casetbl,
             "CallType"
         WHERE casetbl.contact_phone1 = calltbl.callerPhone
+            AND calltbl.callerPhone <> ''
             AND calltbl.callType = "CallType".id
         ) row
 
