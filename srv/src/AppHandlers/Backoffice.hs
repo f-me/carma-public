@@ -198,7 +198,7 @@ dueCaseActions = do
          \conn ->
            Sql.select
            (Action.ident :.
-            Action.caseId `Sql.eq` Ident cid :.
+            Action.caseId `Sql.eq` (Just $ Ident cid) :.
             Sql.isNull Action.result :.
             Sql.ascBy Action.ident :. Sql.descBy Action.closeTime)
            conn

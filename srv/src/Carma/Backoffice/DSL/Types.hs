@@ -59,7 +59,10 @@ data Trigger
 
 
 -- | Scope for selection terms.
-data Scope = InCase | InService
+data Scope = InCase
+           -- ^ Any action for a case, including its associated calls
+           -- and services.
+           | InService
 
 
 -- | Mail type/destination.
@@ -82,28 +85,31 @@ type family HaskellType t where
 -- | Provides back office context depending on trigger models (@m@ in
 -- @Dsl m@).
 class PreContextAccess m where
-  getKase    :: Free (Dsl m) (Object Case)
+  getKase    :: Free (Dsl m) (Maybe (Object Case))
   getService :: Free (Dsl m) (Maybe (Object Service))
   getAction  :: Free (Dsl m) (Maybe (Object CarmaAction.Action))
 
 
 instance PreContextAccess Case where
-  getKase    = dbRead =<< getIdent
+  getKase    = Just <$> (dbRead =<< getIdent)
   getService = return Nothing
   getAction  = return Nothing
 
 
 instance PreContextAccess Service where
   getKase =
-    dbRead =<< (`get'` Service.parentId) <$> (dbRead =<< getIdent)
+    Just <$> (dbRead =<< (`get'` Service.parentId) <$> (dbRead =<< getIdent))
 
   getService = Just <$> (dbRead =<< getIdent)
   getAction  = return Nothing
 
 
 instance PreContextAccess CarmaAction.Action where
-  getKase =
-    dbRead =<< (`get'` CarmaAction.caseId) <$> (dbRead =<< getIdent)
+  getKase = do
+    p <- dbRead =<< getIdent
+    case get' p CarmaAction.caseId of
+      Just i' -> Just <$> dbRead i'
+      Nothing -> return Nothing
 
   getService = do
     p <- dbRead =<< getIdent

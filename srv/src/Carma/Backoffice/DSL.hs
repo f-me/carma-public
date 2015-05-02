@@ -138,6 +138,11 @@ class Backoffice impl where
     -- Note that @t@ type is not brought into DSL type system, thus an
     -- extra hint is included in type constraints for the
     -- meta-language interpreter.
+    --
+    -- Strictly speaking, case access functions are not total: if
+    -- there's no corresponding case during the run time, an error is
+    -- raised. However, our interpreters require case to be present as
+    -- case-less actions («call actions») are not handled by our DSL.
     caseField     :: (FieldI t n d, HaskellType t ~ t) =>
                      (Case -> F t n d) -> impl t
 

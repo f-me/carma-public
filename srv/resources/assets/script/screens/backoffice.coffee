@@ -42,7 +42,7 @@ define [ "utils"
   myActionsHandler = (actions) ->
     if !_.isEmpty actions
       act = _.first actions
-      openCaseAction act.id, act.caseId
+      openAction act
     else
       pleaseStandby()
       setupPoller()
@@ -64,14 +64,20 @@ define [ "utils"
     # leave #back
     onBackofficeScreen = false
 
-  # Start working on an action and redirect to its case
-  openCaseAction = (actId, caseId) ->
-    $("#standby-msg").text "Открываю действие #{actId} в кейсе #{caseId}…"
+  # Start working on an action and redirect to its case. Argument is
+  # an element of /littleMoreActions response.
+  openAction = (act) ->
+    if act.caseId?
+      $("#standby-msg").text "Открываю действие #{act.id} в кейсе #{act.caseId}…"
+      whereTo = "case/#{act.caseId}"
+    else
+      $("#standby-msg").text "Перехожу на звонок #{act.callId}…"
+      whereTo = "call/#{act.callId}"
     $.ajax
       type: "PUT"
-      url: "/backoffice/openAction/#{actId}"
+      url: "/backoffice/openAction/#{act.id}"
       success: () ->
-        window.location.hash = "case/#{caseId}"
+        window.location.hash = whereTo
 
   { constructor: setupBackOffice
   , destructor: removeBackOffice

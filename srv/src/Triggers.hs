@@ -66,6 +66,7 @@ import qualified Carma.Model.CallType as CT
 
 import           Carma.Model.LegacyTypes
 
+import qualified Carma.Model.Role as Role
 import qualified Carma.Model.Service as Service
 import           Carma.Model.Service (Service)
 import qualified Carma.Model.Service.Hotel as Hotel
@@ -110,7 +111,7 @@ beforeCreate = Map.unionsWith (++)
   [trigOnModel ([]::[Call]) $ do
     getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
     modPut Call.callType (Just CT.info)
-  ,trigOnModel ([]::[Usermeta]) $ do
+  , trigOnModel ([]::[Usermeta]) $ do
     Just login <- getPatchField Usermeta.login -- TODO: check if valid?
     -- NB!
     -- Hope that Snap does not cache users and, in case of error during some
@@ -208,7 +209,24 @@ beforeCreate = Map.unionsWith (++)
 
 afterCreate :: TriggerMap
 afterCreate = Map.unionsWith (++)
-  [trigOnModel ([]::[Usermeta]) updateSnapUserFromUsermeta
+  [ trigOnModel ([]::[Usermeta]) updateSnapUserFromUsermeta
+    -- Create a self-assigned action for a call
+  , trigOnModel ([]::[Call]) $
+    do
+      ci <- getIdent
+      now <- getNow
+      us <- getCurrentUser
+      let p = Patch.put Action.callId (Just ci) $
+              Patch.put Action.aType ActionType.call $
+              Patch.put Action.ctime now $
+              Patch.put Action.duetime now $
+              Patch.put Action.assignTime (Just now) $
+              Patch.put Action.openTime (Just now) $
+              Patch.put Action.assignedTo (Just us) $
+              Patch.put Action.targetGroup Role.call $
+              Patch.empty
+      aid <- dbCreate p
+      logCRUDState Update aid p
   ]
 
 beforeUpdate :: TriggerMap
@@ -221,7 +239,23 @@ beforeUpdate = Map.unionsWith (++) $
 
   , trigOn Call.endDate $ \case
       Nothing -> return ()
-      Just _ -> getNow >>= (modifyPatch . Patch.put Call.endDate . Just)
+      Just _ -> do
+        now <- getNow
+        us <- getCurrentUser
+        -- Use server time for actual endDate
+        modifyPatch $ Patch.put Call.endDate $ Just now
+        -- Close all associated call actions
+        callActs <- getIdent >>= callActionIds
+        forM_ callActs $
+          \aid ->
+            let
+              p = Patch.put Action.closeTime (Just now) $
+                  Patch.put Action.assignedTo (Just us) $
+                  Patch.put Action.result (Just ActionResult.callEnded) $
+                  Patch.empty
+            in
+              dbUpdate aid p >> logCRUDState Update aid p
+
 
   , trigOn ActionType.priority $
     \n -> modPut ActionType.priority $
@@ -807,7 +841,9 @@ mkContext :: PreContextAccess m =>
           -> Free (Dsl m) HCtx
 mkContext act = do
   srv <- getService
-  kase' <- getKase
+  kase' <-
+    fromMaybe (error "No case in action when evaluating Backoffice term") <$>
+    getKase
   usr <- dbRead =<< getCurrentUser
   acts <- caseActions $ kase' `get'` Case.ident
   t <- getNow
@@ -832,7 +868,7 @@ newActionData ctx aType = (e, p)
     p = Patch.put Action.ctime (now ctx) $
         Patch.put Action.targetGroup (evalHaskell ctx $ BO.targetRole e) $
         Patch.put Action.aType aType $
-        Patch.put Action.caseId (kase ctx `get'` Case.ident) $
+        Patch.put Action.caseId (Just $ kase ctx `get'` Case.ident) $
         Patch.put Action.serviceId ((`get'` Service.ident) <$> service ctx)
         Patch.empty
 

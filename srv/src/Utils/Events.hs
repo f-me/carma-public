@@ -241,9 +241,10 @@ nextState :: UserStateVal
 nextState lastState delayed evt mname fld =
   execUserStateEnv (UserStateEnv lastState delayed evt mname fld) $ do
     change ([Busy] >>> Ready) $
+      -- TODO Remove redundant Call.endDate clause here as a call
+      -- action is always closed when an associated call is closed
       on Update $ Fields [field Call.endDate, field Action.result]
     change ([Ready] >>> Busy) $ do
-      on Create $ Models [model Call.ident]
       on Update $ Fields [field Action.openTime]
     change ([LoggedOut] >>> Ready)     $ on Login  NoModel
     change (allStates   >>> LoggedOut) $ on Logout NoModel
