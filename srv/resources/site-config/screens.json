@@ -107,15 +107,10 @@
         }
       ]
     },
-    { "name"  : "call",
-      "label" : "Звонок",
-      "type"  : "li",
-      "permissions": ["call"]
-    },
     { "name"  : "back",
-      "label" : "Бэкофис",
+      "label" : "Действия и звонки",
       "type"  : "li",
-      "permissions": ["back"]
+      "permissions": ["front", "back"]
     },
     { "name"  : "search/partners",
       "label" : "Дилеры и партнеры",
