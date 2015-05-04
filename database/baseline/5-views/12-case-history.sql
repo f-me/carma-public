@@ -34,6 +34,28 @@ FROM (
         row.userId,
         row_to_json(row)
     FROM (
+        SELECT calltbl.caseId AS caseId,
+            actiontbl.closeTime AS datetime,
+            actiontbl.assignedTo AS userId,
+            "ActionType".label AS actionType,
+            "ActionResult".label AS actionResult,
+            actiontbl.comment AS actionComment
+        FROM "ActionResult",
+            "ActionType",
+            actiontbl,
+            calltbl
+        WHERE actiontbl.type = "ActionType".id
+            AND actiontbl.result = "ActionResult".id
+            AND actiontbl.callId = calltbl.id
+        ) row
+
+    UNION ALL
+
+    SELECT row.caseId,
+        row.datetime,
+        row.userId,
+        row_to_json(row)
+    FROM (
         SELECT casetbl.id AS caseId,
             calltbl.callDate AS datetime,
             calltbl.callTaker AS userId,
