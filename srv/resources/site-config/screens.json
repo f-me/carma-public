@@ -107,10 +107,15 @@
         }
       ]
     },
+    { "name"  : "call",
+      "label" : "Звонок",
+      "type"  : "li",
+      "permissions": ["call"]
+    },
     { "name"  : "back",
       "label" : "Действия и звонки",
       "type"  : "li",
-      "permissions": ["front", "back"]
+      "permissions": ["call", "back"]
     },
     { "name"  : "search/partners",
       "label" : "Дилеры и партнеры",
