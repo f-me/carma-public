@@ -164,7 +164,7 @@ WITH servicecounts AS (
     "CarClass".label AS "Класс автомобиля",
     casetbl.dealercause AS "Причина неисправ. со слов дилера",
     "Contract".cardnumber AS "Номер карты",
-    commentLists.txt AS "Комментарии аналитиков",
+    array_to_string(commentLists.txt, E'\n') AS "Комментарии аналитиков",
     p3.code AS "Код дилера, продавшего автомобиль",
     allservicesview.towaddress_address AS "Назначение эвакуации-адрес дилера",
     "Contract".validsince AS "Дата начала действия гарантии",
