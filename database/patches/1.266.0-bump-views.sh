@@ -1,5 +1,7 @@
 $PSQL <<EOF
 
+-- bump
+
 BEGIN;
 
 DROP VIEW "Услуги";
