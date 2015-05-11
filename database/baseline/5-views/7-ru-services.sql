@@ -113,6 +113,7 @@ WITH servicecounts AS (
    allservicesview.whatToSay1 AS "Описание проблемы",
    "ConsultationType".label AS "Тип консультации",
    "ConsultationResult".label AS "Результат консультации",
+   u3.realname AS "Консультант",
    p2.code AS "Код дилера",
    casecity.label AS "Город места поломки",
    dealercity.label AS "Город дилера (куда эвакуируют)",
@@ -262,6 +263,7 @@ WITH servicecounts AS (
    LEFT JOIN orderActions ON servicetbl.id = orderActions.serviceId
    LEFT JOIN usermetatbl u1 ON u1.id = servicetbl.creator
    LEFT JOIN usermetatbl u2 ON u2.id = orderActions.assignedTo
+   LEFT JOIN usermetatbl u3 ON u3.id = allservicesview.consultant
 WHERE casetbl.id = servicetbl.parentid;
 
 GRANT SELECT ON "Услуги" TO reportgen;

@@ -36,7 +36,7 @@ LEFT JOIN "PartnerRefusalReason" ON "PartnerCancel".partnerCancelReason = "Partn
 LEFT JOIN usermetatbl ON "PartnerCancel".owner = usermetatbl.id
 LEFT JOIN casetbl ON "PartnerCancel".caseid = casetbl.id
 LEFT JOIN "Program" ON casetbl.program = "Program".id
-LEFT JOIN "SubProgram" ON "SubProgram".parent = "Program".id
+LEFT JOIN "SubProgram" ON "SubProgram".id = casetbl.subprogram
 LEFT JOIN partnertbl ON partnertbl.id = "PartnerCancel".partnerid
 LEFT JOIN "City" ON casetbl.city = "City".id --РЕАЛИЗАЦИЯ УНИКАЛЬНОЙ СВЯЗКИ В servicetbl(id, type):
 
