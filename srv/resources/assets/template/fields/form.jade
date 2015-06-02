@@ -517,21 +517,25 @@ mixin caseFilesList
     #contract
     .program
       #case-files(data-bind="visible: hasFiles")
-        legend Прикреплённые файлы
+        h4 Прикреплённые файлы
         +caseFilesList
         dl(data-bind="foreach: servicesReference")
           dt(data-bind="visible: safelyGet(\'filesReference\').length, text: _meta.model.title")
             dd
               +caseFilesList
       #case-comments
-        legend  Комментарий
+        h4 Комментарий
         .form-group
           textarea.form-control#case-comments-i(rows='2', style="width: 100%;")
         .form-group
           button#case-comments-b.btn
             | Добавить комментарий
       #case-history
-        legend История по кейсу
+        h4(style="float: left") История по кейсу
+        div(style="float: right")
+          input.form-control(placeholder="Фильтр",
+                             data-bind="textInput: historyFilter")
+        div(style="clear:both")
         // ko foreach: historyItems
         div.well.history-item(data-bind="style: {'background-color': color}")
           div
