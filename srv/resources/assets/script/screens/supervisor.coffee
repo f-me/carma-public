@@ -87,7 +87,7 @@ define ["utils"
             utils.timeFrom obj.assignTime, res.reqTime
           else
             utils.timeFrom obj.openTime, obj.closeTime
-      [ "#{cid}/#{obj.id} #{svcName or ''}"
+      [ "#{cid or '-'}/#{obj.id} #{svcName or ''}"
       , closedLab
       , (at.getLab obj.name) || ''
       , u[obj.assignedTo] || ''
