@@ -441,11 +441,11 @@ define [ "model/main"
       dict: name
       meta: meta
 
-  # Pretty-print ugly DeviceId from AVAYA
-  displayedToInternal: (number) ->
-    number.replace("+7", "98").replace("+", "9810")
-
   # Convert pretty number to DeviceId for AVAYA
+  displayedToInternal: (number) ->
+    number.replace(/^8/, "98").replace(/^\+7/, "98").replace(/^\+/, "9810")
+
+  # Pretty-print ugly DeviceId from AVAYA
   internalToDisplayed: (number) ->
     number?.match(/\d+/)?[0]?.replace(/^(98|8|)(\d{10})$/, "\+7$2")
 
