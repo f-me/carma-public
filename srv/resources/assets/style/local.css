@@ -28,7 +28,7 @@
 }
 
 #cti {
-  z-index: 1050;
+  z-index: 1020;
   position: fixed;
   width: 100%;
   /* 36px is our navbar height */
