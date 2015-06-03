@@ -22,9 +22,7 @@ import Carma.Model.Usermeta (Usermeta)
 data Action = Action
   { ident       :: PK Int Action                    "Действие"
   , callId      :: F (Maybe (IdentI Call))          "callId" "Звонок"
-  -- TODO Now that call-actions exist, some actions have no case
-  -- (changing this type will require fixing Backoffice DSL)
-  , caseId      :: F (IdentI Case)                  "caseId" "Кейс"
+  , caseId      :: F (Maybe (IdentI Case))          "caseId" "Кейс"
   , serviceId   :: F (Maybe (IdentI Service))       "serviceId" "Услуга"
   , aType       :: F (IdentI ActionType)            "type" "Тип действия"
   , duetime     :: F UTCTime                        "duetime" "Ожидаемое время выполнения"
