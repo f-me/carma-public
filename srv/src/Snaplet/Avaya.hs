@@ -36,7 +36,7 @@ import           Data.Configurator as Cfg
 import qualified Data.Map as Map
 import           Data.Text as Text
 import           Data.Time.Clock
-import           Data.Vector (fromList)
+import           Data.Vector (notElem, fromList)
 
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
@@ -47,6 +47,7 @@ import           Network.WebSockets.Snap
 import           Snap hiding (dir)
 import           Snap.Snaplet.Auth
 import           Snap.Snaplet.PostgresqlSimple hiding (query)
+
 
 import           DMCC
 import           DMCC.WebHook
@@ -59,7 +60,8 @@ import qualified Carma.Model.Action as Action
 import           Carma.Model.AvayaEvent as AE
 import           Carma.Model.AvayaEventType as AET
 import           Carma.Model.Event as Event
-import           Carma.Model.Usermeta
+import           Carma.Model.Role as Role
+import           Carma.Model.Usermeta as Usermeta
 import           Carma.Model.UserState as UserState
 
 import           AppHandlers.Util
@@ -94,8 +96,15 @@ avayaWsProxy :: HasPostgresAuth b (Avaya b) => Handler b (Avaya b) ()
 avayaWsProxy= do
   ext <- fromMaybe (error "No extension specified") <$> getIntParam "ext"
   eMap <- gets extMap
-  -- TODO: Check Role.cti and extension
-  uid <- fromMaybe (error "No user") <$> currentUserMetaId
+  um <- fromMaybe (error "No user") <$> currentUserMeta
+  let reqMeta = fromMaybe (error "Bad meta")
+      uid   = reqMeta $ um `Patch.get` Usermeta.ident
+      roles = reqMeta $ um `Patch.get` Usermeta.roles
+      uext  = reqMeta $ um `Patch.get` Usermeta.workPhoneSuffix
+  when ((Text.pack $ show ext) /= uext) $
+    error "Requested extension does not match that of the user"
+  when (Role.cti `Data.Vector.notElem` roles) $
+    error "No CTI access role"
   avayaConn <- liftIO newEmptyTMVarIO
   dmccWsHost' <- gets dmccWsHost
   dmccWsPort' <- gets dmccWsPort
