@@ -52,6 +52,9 @@ import           Carma.Model.Usermeta  (Usermeta(..))
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.Call   as Call
 
+import qualified DMCC (AgentState(..))
+
+import           Snaplet.Avaya
 import           Snaplet.Search.Types (mkSel)
 import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
@@ -135,6 +138,18 @@ updateUserState evt idt p evidt = do
            P.empty)
         kpis <- updateOperKPI (singleton tgtUsr')
         withMsg $ sendMessage "oper-kpi" kpis
+      -- Probably push new state to Avaya
+      let avayaState = case s of
+                         Just Ready        -> Just DMCC.Ready
+                         Just Rest         -> Just DMCC.AfterCall
+                         Just Busy         -> Just DMCC.AfterCall
+                         Just Dinner       -> Just DMCC.AfterCall
+                         Just ServiceBreak -> Just DMCC.AfterCall
+                         Just LoggedOut    -> Just DMCC.Logout
+                         _                 -> Nothing
+      case avayaState of
+        Just as -> with avaya $ setAgentState as
+        Nothing -> return ()
   where
     mname = modelName (modelInfo :: ModelInfo m)
 

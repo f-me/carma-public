@@ -17,6 +17,7 @@ user id's;
 module Snaplet.Avaya
     ( Avaya
     , avayaInit
+    , setAgentState
     )
 
 where
@@ -36,7 +37,7 @@ import           Data.Configurator as Cfg
 import qualified Data.Map as Map
 import           Data.Text as Text
 import           Data.Time.Clock
-import           Data.Vector (notElem, fromList)
+import           Data.Vector (elem, fromList)
 
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
@@ -91,6 +92,15 @@ routes = [ ("/ws/:ext", method GET avayaWsProxy)
          ]
 
 
+-- | Check if a user has access to CTI.
+isCtiUser :: Patch.Patch Usermeta -> Bool
+isCtiUser um =
+  Role.cti `Data.Vector.elem` roles
+  where
+    roles = fromMaybe (error "No roles in usermeta") $
+            um `Patch.get` Usermeta.roles
+
+
 -- | Proxy requests to/from dmcc-ws Web Socket, updating 'extMap'.
 avayaWsProxy :: HasPostgresAuth b (Avaya b) => Handler b (Avaya b) ()
 avayaWsProxy= do
@@ -99,12 +109,10 @@ avayaWsProxy= do
   um <- fromMaybe (error "No user") <$> currentUserMeta
   let reqMeta = fromMaybe (error "Bad meta")
       uid   = reqMeta $ um `Patch.get` Usermeta.ident
-      roles = reqMeta $ um `Patch.get` Usermeta.roles
       uext  = reqMeta $ um `Patch.get` Usermeta.workPhoneSuffix
   when ((Text.pack $ show ext) /= uext) $
     error "Requested extension does not match that of the user"
-  when (Role.cti `Data.Vector.notElem` roles) $
-    error "No CTI access role"
+  when (not $ isCtiUser um) $ error "No CTI access role"
   avayaConn <- liftIO newEmptyTMVarIO
   dmccWsHost' <- gets dmccWsHost
   dmccWsPort' <- gets dmccWsPort
@@ -230,6 +238,24 @@ userStateAction uid = do
   case res of
     (h:_) -> return h
     _     -> error $ "No state for user " ++ show uid
+
+
+-- | Send an asynchronous agent state change request for the current user, if
+-- CTI is enabled.
+setAgentState :: AgentState -> Handler b (Avaya b) ()
+setAgentState as = do
+  um <- fromMaybe (error "No user") <$> currentUserMeta
+  when (isCtiUser um) $ do
+    dmccWsHost' <- gets dmccWsHost
+    dmccWsPort' <- gets dmccWsPort
+
+    let dmccWsHost'' = Text.unpack $ fromMaybe "localhost" dmccWsHost'
+        ext = fromMaybe (error "Bad meta") $
+              um `Patch.get` Usermeta.workPhoneSuffix
+        miniApp conn = send conn (DataMessage $ Text $ encode (SetState as))
+
+    liftIO $ void $ forkIO $
+      runClient dmccWsHost'' dmccWsPort' ("/" ++ Text.unpack ext) miniApp
 
 
 avayaInit :: HasPostgresAuth b (Avaya b) =>
