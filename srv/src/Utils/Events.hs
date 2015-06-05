@@ -148,7 +148,9 @@ updateUserState evt idt p evidt = do
                          Just LoggedOut    -> Just DMCC.Logout
                          _                 -> Nothing
       case avayaState of
-        Just as -> with avaya $ setAgentState as
+        Just as -> do
+          Right um <- with db $ liftPG $ \c -> P.read tgtUsr' c
+          with avaya $ setAgentState as um
         Nothing -> return ()
   where
     mname = modelName (modelInfo :: ModelInfo m)

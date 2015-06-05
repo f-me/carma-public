@@ -242,9 +242,8 @@ userStateAction uid = do
 
 -- | Send an asynchronous agent state change request for the current user, if
 -- CTI is enabled.
-setAgentState :: AgentState -> Handler b (Avaya b) ()
-setAgentState as = do
-  um <- fromMaybe (error "No user") <$> currentUserMeta
+setAgentState :: AgentState -> Patch.Patch Usermeta -> Handler b (Avaya b) ()
+setAgentState as um = do
   when (isCtiUser um) $ do
     dmccWsHost' <- gets dmccWsHost
     dmccWsPort' <- gets dmccWsPort
