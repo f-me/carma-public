@@ -67,7 +67,6 @@ html
     script(src='/s/js/gen/globallibs/sorted.js')
     script(src='/s/js/gen/globallibs/customKoHandlers.js')
     script(src='/s/js/gen/globallibs/utils.js')
-    script(src='/s/js/gen/avaya.js')
     script(src='/s/3p/require.js')
     script(src='/s/js/gen/requireCfg.js')
     script(src='/s/js/gen/local.js')
@@ -80,16 +79,6 @@ html
             addLocalName CaRMa
         .collapse.navbar-collapse
           ul.nav.navbar-nav#nav
-            li#avaya-panel.dropdown(style='display: none;')
-              form.navbar-search.pull-left
-                input.search-query(type='text', placeholder='Avaya')
-                button#avaya-call.btn
-                  span.glyphicon.stolen-icon-phone
-              ul.dropdown-menu
-                li#avaya-info.nav-header
-                li
-                  a#avaya-accept(href='#') Принять звонок
-
             // ko foreach: $data
 
             // ko renderMenuEl: $data
