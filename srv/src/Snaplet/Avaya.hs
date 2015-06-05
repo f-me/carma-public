@@ -25,7 +25,8 @@ where
 
 import           Control.Concurrent
 import           Control.Concurrent.STM
-import           Control.Exception (handle)
+import           Control.Exception (catches, handle, IOException)
+import qualified Control.Exception as E (Handler(..))
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.Functor
@@ -126,8 +127,13 @@ avayaWsProxy= do
           handle (\(_ :: ConnectionException) ->
                     sendClose avayaConn' ("carma disconnected" :: ByteString)) $
             forever $ receive conn >>= send avayaConn'
-        handle (\(_ :: ConnectionException) -> killThread srvThread) $
-          runClient dmccWsHost'' dmccWsPort' ("/" ++ show ext) (proxyApp conn)
+        let killServer = killThread srvThread
+        runClient dmccWsHost'' dmccWsPort' ("/" ++ show ext) (proxyApp conn)
+          `catches`
+          [ E.Handler $ \(_ :: ConnectionException) -> killServer
+          , E.Handler $ \(_ :: IOException) -> killServer
+          ]
+
       -- CaRMa <-> dmcc-ws
       proxyApp serverConn conn = do
         liftIO $ atomically $ do
