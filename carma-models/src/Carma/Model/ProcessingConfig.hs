@@ -13,9 +13,14 @@ import Carma.Model.PgTypes()
 
 
 data ProcessingConfig = ProcessingConfig
-  { ident        :: PK Int ProcessingConfig "Параметры КЦ"
-  , actionsFirst :: F Bool "actionsFirst" "Действия приоритетнее звонков"
-  , acSeconds    :: F Int "afterCallSeconds" "Время в After call, с"
+  { ident
+    :: PK Int ProcessingConfig "Параметры КЦ"
+  , actionsFirst
+    :: F Bool "actionsFirst" "Действия приоритетнее звонков"
+  , acSeconds
+    :: F Int "afterCallSeconds" "Время в After call, с"
+  , callWaitSeconds
+    :: F Int "callWaitSeconds" "Длительность ожидания звонков, с"
   } deriving Typeable
 
 
@@ -29,5 +34,9 @@ instance Model ProcessingConfig where
   idents = Carma.Model.ProcessingConfig.idents
   modelInfo = mkModelInfo ProcessingConfig ident
   modelView = \case
-    "" -> Just defaultView
+    "" -> Just $ modifyView defaultView
+          [ infoText "actionsFirst" actionsFirst
+          , infoText "acSeconds" acSeconds
+          , infoText "callWaitSeconds" callWaitSeconds
+          ]
     _  -> Nothing
