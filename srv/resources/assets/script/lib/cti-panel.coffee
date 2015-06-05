@@ -60,8 +60,8 @@ define [], () ->
       interlocutorsToNumber = (interlocutors) ->
         _.map(interlocutors, internalToDisplayed).join("\n")
 
-      # Update kvm from state reported by the service
-      stateToVM = (state) ->
+      # Update kvm from snapshot reported by the service
+      snapshotToVM = (snapshot) ->
         # VM for a call. If callId is null, return fresh VM for empty
         # CTI panel
         class CallVM
@@ -104,7 +104,7 @@ define [], () ->
 
             # canX are observable, because we want to hide buttons from
             # the panel even before the service reports new call
-            # state/event
+            # snapshot/event
             @canExtend  = ko.observable(
               call.answered? && call.direction?.dir == "Out" && !call.held)
             @canCall    = ko.observable !(callId?)
@@ -174,12 +174,12 @@ define [], () ->
             if @canAnswer()
               incomingCallCb call.interlocutors[0], call.direction?.vdn
 
-        newCalls = for callId, call of state.calls
+        newCalls = for callId, call of snapshot.calls
           new CallVM call, callId
         # Hide call in progress if the server finally knows about it.
-        # state.calls contains only calls from the server, but kvm.calls
+        # snapshot.calls contains only calls from the server, but kvm.calls
         # always has an extra CallVM (blank line/call in progress)
-        if _.keys(state.calls).length == kvm.calls().length
+        if _.keys(snapshot.calls).length == kvm.calls().length
           kvm.wipCall = false
           kvm.showBlankCall false
         # Always add a "blank line"/"call in progress" for a new call
@@ -190,7 +190,7 @@ define [], () ->
 
         # Delete unknown extension digits
         for k in _.keys kvm.extensions
-          if !_.contains(_.keys(state.calls), k)
+          if !_.contains(_.keys(snapshot.calls), k)
             delete kvm.extensions[k]
 
         # Set links to "previous row" in every call
@@ -206,7 +206,7 @@ define [], () ->
 
       wsHandler = (msg) ->
         if msg.dmccEvent? && msg.dmccEvent.event == "FailedEvent"
-          failedCall = msg.newState.calls[msg.dmccEvent.callId]
+          failedCall = msg.newSnapshot.calls[msg.dmccEvent.callId]
           failedNumber = interlocutorsToNumber failedCall?.interlocutors
           errNotify "Не удалось соединиться с номером #{failedNumber}"
 
@@ -215,10 +215,10 @@ define [], () ->
           errNotify "Ошибка CTI: #{msg.errorText}"
 
         if msg.calls?
-          stateToVM msg
+          snapshotToVM msg
 
-        if msg.newState?
-          stateToVM msg.newState
+        if msg.newSnapshot?
+          snapshotToVM msg.newSnapshot
 
       cti.subscribe wsHandler
 

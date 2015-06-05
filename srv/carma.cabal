@@ -80,7 +80,7 @@ Executable carma
     containers                  == 0.5.*,
     data-default                == 0.5.*,
     directory                   == 1.2.*,
-    dmcc                        >= 0.3 && < 0.4,
+    dmcc                        >= 0.4 && < 0.5,
     easy-file                   >= 0.1 && < 0.3,
     either                      == 4.3.*,
     fgl                         == 5.5.*,
