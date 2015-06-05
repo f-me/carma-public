@@ -1,10 +1,12 @@
 module ApplicationInit (appInit) where
 
 import Control.Applicative
+import Control.Concurrent.STM
 import Control.Monad.IO.Class
 
 import Data.ByteString (ByteString)
 import Data.Configurator as Cfg
+import Data.Map as Map
 
 import Snap.Core
 import Snap.Snaplet
@@ -22,7 +24,6 @@ import Snap.Util.FileServe ( serveFile
 import WeatherApi.WWOnline (initApi)
 
 ------------------------------------------------------------------------------
-import Snaplet.Avaya
 import Snaplet.ChatManager
 import Snaplet.SiteConfig
 import qualified Snaplet.FileUpload as FU
@@ -34,6 +35,7 @@ import Snaplet.Messenger
 import Application
 import ApplicationHandlers
 import AppHandlers.ActionAssignment
+import AppHandlers.Avaya
 --import AppHandlers.ARC
 import AppHandlers.Backoffice
 import AppHandlers.Bulk
@@ -113,8 +115,10 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/kpi/stat/:from/:to",      chkAuth . method GET $ getStat)
          , ("/kpi/stat/:uid/:from/:to", chkAuth . method GET $ getStat)
          , ("/kpi/statFiles/:from/:to", chkAuth . method GET $ getStatFiles)
-         , ("/kpi/group/:from/:to", chkAuth . method GET $ getGroup)
-         , ("/kpi/oper",           chkAuth . method GET $ getOper)
+         , ("/kpi/group/:from/:to",     chkAuth . method GET $ getGroup)
+         , ("/kpi/oper",                chkAuth . method GET $ getOper)
+         , ("/avaya/ws/:ext", chkAuth . method GET $ dmccWsProxy)
+         , ("/avaya/hook/",   chkAuth . method POST $ dmccHook undefined)
          ]
 
 dconf :: DirectoryConfig (Handler App App)
@@ -132,6 +136,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   opts <- liftIO $ AppOptions
                 <$> Cfg.lookup cfg "local-name"
                 <*> Cfg.lookupDefault 4 cfg "search-min-length"
+                <*> Cfg.lookup cfg "dmcc-ws-host"
+                <*> Cfg.require cfg "dmcc-ws-port"
 
   wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
 
@@ -156,7 +162,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        initSiteConfig "resources/site-config" auth db
 
   fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
-  av <- nestSnaplet "avaya" avaya $ avayaInit auth db
   ch <- nestSnaplet "chat" chat $ chatInit auth db
   g <- nestSnaplet "geo" geo $ geoInit db
   search' <- nestSnaplet "search" search $ searchInit auth db
@@ -164,4 +169,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 
   addRoutes routes
-  return $ App h s authMgr c tm fu av ch g ad search' opts msgr (initApi wkey)
+
+  em <- liftIO $ newTVarIO Map.empty
+  return $ App h s authMgr c tm fu ch g ad search' opts msgr (initApi wkey) em

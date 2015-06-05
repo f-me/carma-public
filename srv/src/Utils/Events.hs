@@ -6,6 +6,8 @@ module Utils.Events
     , updateUserState
     , logLogin
     , logCRUDState
+
+    , switchToNA
     )
 
 where
@@ -54,12 +56,12 @@ import qualified Carma.Model.Call   as Call
 
 import qualified DMCC (SettableAgentState(..))
 
-import           Snaplet.Avaya
 import           Snaplet.Search.Types (mkSel)
 import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
 
 import           Application
+import {-# SOURCE #-} AppHandlers.Avaya
 import           AppHandlers.KPI (updateOperKPI)
 
 import           Utils.LegacyModel
@@ -150,7 +152,7 @@ updateUserState evt idt p evidt = do
       case avayaState of
         Just as -> do
           Right um <- with db $ liftPG $ \c -> P.read tgtUsr' c
-          with avaya $ setAgentState as um
+          setAgentState as um
         Nothing -> return ()
   where
     mname = modelName (modelInfo :: ModelInfo m)
@@ -265,6 +267,7 @@ nextState lastState delayed evt mname fld =
       on Update $ Fields [field Action.openTime]
     change ([LoggedOut] >>> Ready)     $ on Login  NoModel
     change (allStates   >>> LoggedOut) $ on Logout NoModel
+    change (allStates   >>> NA)        $ on AvayaNA NoModel
     case delayed of
       Nothing     -> change ([ServiceBreak] >>> Ready) $
         on Update $ Fields [field delayedState]
@@ -329,3 +332,9 @@ addIdent idt p =
 
 setUsr :: Maybe (IdentI Usermeta) -> Patch Event -> Patch Event
 setUsr usr p = P.put E.userid usr p
+
+
+switchToNA :: IdentI Usermeta -> AppHandler ()
+switchToNA uid = do
+  ev <- log $ addIdent uid $ buildEmpty AvayaNA
+  updateUserState AvayaNA uid P.empty ev

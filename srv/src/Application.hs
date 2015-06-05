@@ -1,31 +1,39 @@
 {-# LANGUAGE TemplateHaskell, FlexibleInstances #-}
 
-module Application where
+module Application
 
-import Control.Lens
-import Control.Monad.Reader
+where
 
-import Data.Text (Text)
+import           Control.Concurrent.STM
+import           Control.Lens
+import           Control.Monad.Reader
 
-import Snap
-import Snap.Snaplet.Heist
-import Snap.Snaplet.Auth
-import Snap.Snaplet.PostgresqlSimple
-import Snap.Snaplet.Session
+import           Data.Text (Text)
+import           Data.Map as Map
+
+import           Snap
+import           Snap.Snaplet.Heist
+import           Snap.Snaplet.Auth
+import           Snap.Snaplet.PostgresqlSimple
+import           Snap.Snaplet.Session
+
+import           Carma.Model (IdentI)
+import           Carma.Model.Usermeta (Usermeta)
+
+import           DMCC
 
 import qualified WeatherApi as W
 
-import Snaplet.Avaya
-import Snaplet.Auth.Class
-import Snaplet.ChatManager
-import Snaplet.SiteConfig
-import Snaplet.SiteConfig.Class
-import Snaplet.TaskManager
-import Snaplet.FileUpload
-import Snaplet.Geo
-import Snaplet.Search
-import Snaplet.Messenger
-import Snaplet.Messenger.Class
+import           Snaplet.Auth.Class
+import           Snaplet.ChatManager
+import           Snaplet.SiteConfig
+import           Snaplet.SiteConfig.Class
+import           Snaplet.TaskManager
+import           Snaplet.FileUpload
+import           Snaplet.Geo
+import           Snaplet.Search
+import           Snaplet.Messenger
+import           Snaplet.Messenger.Class
 
 
 -- | Global application options.
@@ -36,6 +44,8 @@ data AppOptions = AppOptions
     , searchMinLength :: Int
       -- ^ Minimal query length for database-heavy searches
       -- (@search-min-length@).
+    , dmccWsHost :: Maybe Text
+    , dmccWsPort :: Int
     }
 
 
@@ -47,7 +57,6 @@ data App = App
     , _siteConfig :: Snaplet (SiteConfig App)
     , _taskMgr    :: Snaplet (TaskManager App)
     , _fileUpload :: Snaplet (FileUpload App)
-    , _avaya      :: Snaplet (Avaya App)
     , _chat       :: Snaplet (ChatManager App)
     , _geo        :: Snaplet (Geo App)
     , _db         :: Snaplet Postgres
@@ -55,6 +64,8 @@ data App = App
     , options     :: AppOptions
     , _messenger  :: Snaplet Messenger
     , weatherCfg  :: W.Config
+    , extMap      :: TVar (Map.Map Extension (IdentI Usermeta))
+      -- ^ AVAYA extensions map
     }
 
 

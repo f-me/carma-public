@@ -5,19 +5,21 @@
 
 {-|
 
-Avaya snaplet provides interface with @dmcc-ws@ via hooks and
-WebSocket connections.
+AVAYA integration.
+
+Interface with @dmcc-ws@ server via hooks and WebSocket connections.
 
 - WebSocket proxy (@\/ws\/:ext@) binds used Avaya extensions to CaRMa
 user id's;
 
-- hooks allow DMCC to push information directly to CaRMa.
+- hooks allow DMCC to push information directly to CaRMa (such as
+agent state changes and Avaya event history).
 
 -}
 
-module Snaplet.Avaya
-    ( Avaya
-    , avayaInit
+module AppHandlers.Avaya
+    ( dmccWsProxy
+    , dmccHook
     , setAgentState
     )
 
@@ -35,7 +37,6 @@ import           Data.Maybe
 import           Data.Aeson
 import           Data.ByteString as BS
 import           Data.CaseInsensitive (original)
-import           Data.Configurator as Cfg
 import qualified Data.Map as Map
 import           Data.Text as Text
 import           Data.Time.Clock
@@ -48,7 +49,6 @@ import           Network.WebSockets
 import           Network.WebSockets.Snap
 
 import           Snap hiding (dir)
-import           Snap.Snaplet.Auth
 import           Snap.Snaplet.PostgresqlSimple hiding (query)
 
 
@@ -67,31 +67,13 @@ import           Carma.Model.Role as Role
 import           Carma.Model.Usermeta as Usermeta
 import           Carma.Model.UserState as UserState
 
+import           Application
+
 import           AppHandlers.Util
 import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers
 import           Util
-
-
-data Avaya b = Avaya
-    { auth       :: SnapletLens b (AuthManager b)
-    , db         :: SnapletLens b Postgres
-    , dmccWsHost :: Maybe Text
-    , dmccWsPort :: Int
-    , extMap     :: TVar (Map.Map Extension (IdentI Usermeta))
-    }
-
-
-instance HasPostgresAuth b (Avaya b) where
-  withAuth = withLens auth
-  withAuthPg = withLens db
-
-
-routes :: HasPostgresAuth b (Avaya b) =>
-          [(ByteString, Handler b (Avaya b) ())]
-routes = [ ("/ws/:ext", method GET avayaWsProxy)
-         , ("/hook/", method POST hook)
-         ]
+import           Utils.Events
 
 
 -- | Check if a user has access to CTI.
@@ -104,8 +86,8 @@ isCtiUser um =
 
 
 -- | Proxy requests to/from dmcc-ws Web Socket, updating 'extMap'.
-avayaWsProxy :: HasPostgresAuth b (Avaya b) => Handler b (Avaya b) ()
-avayaWsProxy= do
+dmccWsProxy :: AppHandler ()
+dmccWsProxy = do
   ext <- fromMaybe (error "No extension specified") <$> getIntParam "ext"
   eMap <- gets extMap
   um <- fromMaybe (error "No user") <$> currentUserMeta
@@ -116,8 +98,8 @@ avayaWsProxy= do
     error "Requested extension does not match that of the user"
   when (not $ isCtiUser um) $ error "No CTI access role"
   avayaConn <- liftIO newEmptyTMVarIO
-  dmccWsHost' <- gets dmccWsHost
-  dmccWsPort' <- gets dmccWsPort
+  dmccWsHost' <- gets (dmccWsHost . options)
+  dmccWsPort' <- gets (dmccWsPort . options)
   let dmccWsHost'' = Text.unpack $ fromMaybe "localhost" dmccWsHost'
       -- Client <-> CaRMa
       serverApp pending = do
@@ -148,13 +130,24 @@ avayaWsProxy= do
   runWebSocketsSnap serverApp
 
 
--- | For every appropriate webhook call from dmcc-ws, create new
+-- | For every appropriate webhook call from dmcc library, create new
 -- AvayaEvent if the user mentioned in the webhook is busy with an
 -- action.
-hook :: Handler b (Avaya b) ()
-hook = do
+dmccHook :: (AgentState -> IdentI Usermeta -> AppHandler ())
+         -> AppHandler ()
+dmccHook stateHandler = do
   rsb <- readRequestBody 4096
   eMap <- gets extMap
+  let -- Handle hook data for an agent if it's present in the
+      -- extension-uid mapping
+      handleWith :: Extension
+                 -> (IdentI Usermeta -> AppHandler ())
+                 -> AppHandler ()
+      handleWith ext hdl = do
+        am <- liftIO $ readTVarIO eMap
+        case Map.lookup ext am of
+          Nothing -> error $ "Hook data from unknown agent " ++ show rsb
+          Just uid -> hdl uid
   now <- liftIO getCurrentTime
   case decode rsb of
     Nothing -> error $ "Could not read hook data " ++ show rsb
@@ -162,13 +155,14 @@ hook = do
     -- anyways)
     Just (WHEvent _                  (RequestError _)) ->
       return ()
-    Just (WHEvent _                  (StateChange ns)) ->
-      liftIO $ print ns
-    Just (WHEvent (AgentId (_, ext)) (TelephonyEvent ev st)) -> do
-      am <- liftIO $ readTVarIO eMap
-      case Map.lookup ext am of
-        Nothing -> error $ "Hook data from unknown agent " ++ show rsb
-        Just uid ->
+    Just (WHEvent (AgentId (_, ext)) (StateChange sn)) ->
+      handleWith ext $ \uid ->
+      maybe
+      (return ())
+      (\s -> switchToNA uid)
+      (_state sn)
+    Just (WHEvent (AgentId (_, ext)) (TelephonyEvent ev st)) ->
+      handleWith ext $ \uid -> do
           let
             -- Map hook data to AvayaEventType dictionary and other
             -- AvayaEvent fields, decide if we need to write anything
@@ -228,7 +222,7 @@ hook = do
 
 -- | Return last state and corresponding model name/id for a user.
 userStateAction :: IdentI Usermeta
-                -> Handler b (Avaya b) (UserStateVal, Text, Int)
+                -> AppHandler (UserStateVal, Text, Int)
 userStateAction uid = do
   res <- withAuthPg $ liftPG $
     \c -> uncurry (query c)
@@ -255,11 +249,11 @@ userStateAction uid = do
 -- CTI is enabled.
 setAgentState :: SettableAgentState
               -> Patch.Patch Usermeta
-              -> Handler b (Avaya b) ()
+              -> AppHandler ()
 setAgentState as um = do
   when (isCtiUser um) $ do
-    dmccWsHost' <- gets dmccWsHost
-    dmccWsPort' <- gets dmccWsPort
+    dmccWsHost' <- gets (dmccWsHost . options)
+    dmccWsPort' <- gets (dmccWsPort . options)
 
     let dmccWsHost'' = Text.unpack $ fromMaybe "localhost" dmccWsHost'
         ext = fromMaybe (error "Bad meta") $
@@ -269,17 +263,3 @@ setAgentState as um = do
 
     liftIO $ void $ forkIO $
       runClient dmccWsHost'' dmccWsPort' ("/" ++ Text.unpack ext) miniApp
-
-
-avayaInit :: HasPostgresAuth b (Avaya b) =>
-             SnapletLens b (AuthManager b)
-          -> SnapletLens b Postgres
-          -> SnapletInit b (Avaya b)
-avayaInit a p = makeSnaplet "avaya" "AVAYA" Nothing $ do
-  addRoutes routes
-  cfg <- getSnapletUserConfig
-  liftIO $
-    Avaya a p
-    <$> Cfg.lookup cfg "dmcc-ws-host"
-    <*> Cfg.require cfg "dmcc-ws-port"
-    <*> newTVarIO Map.empty
