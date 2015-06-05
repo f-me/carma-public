@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-|
 
@@ -24,7 +25,7 @@ where
 
 import           Control.Concurrent
 import           Control.Concurrent.STM
-import           Control.Exception (finally)
+import           Control.Exception (handle)
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.Functor
@@ -122,8 +123,10 @@ avayaWsProxy= do
         conn <- acceptRequest pending
         srvThread <- forkIO $ do
           avayaConn' <- liftIO $ atomically $ takeTMVar avayaConn
-          forever $ receive conn >>= send avayaConn'
-        flip finally (killThread srvThread) $
+          handle (\(_ :: ConnectionException) ->
+                    sendClose avayaConn' ("carma disconnected" :: ByteString)) $
+            forever $ receive conn >>= send avayaConn'
+        handle (\(_ :: ConnectionException) -> killThread srvThread) $
           runClient dmccWsHost'' dmccWsPort' ("/" ++ show ext) (proxyApp conn)
       -- CaRMa <-> dmcc-ws
       proxyApp serverConn conn = do
