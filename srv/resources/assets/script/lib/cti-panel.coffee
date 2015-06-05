@@ -28,6 +28,7 @@ define [], () ->
         # local softphone)
         canMute: ko.observable false
         canUnmute: ko.observable false
+        lostConnection: ko.observable true
 
       # Initialize One-X Agent softphone connection (MUTE button
       # control)
@@ -220,7 +221,14 @@ define [], () ->
         if msg.newSnapshot?
           snapshotToVM msg.newSnapshot
 
-      cti.subscribe wsHandler
+      cti.ws.onmessage = (raw) -> wsHandler JSON.parse raw.data
+      cti.ws.onclose = () ->
+        kvm.lostConnection true
+        console.log "CTI connection lost"
+        alert "Отсутствует соединение с AVAYA, пробуем переподключиться…"
+      cti.ws.onopen = () ->
+        kvm.lostConnection false
+        console.log "CTI connection established"
 
       el.show()
       ko.applyBindings kvm, el[0]

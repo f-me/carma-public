@@ -133,9 +133,13 @@ html
                        visible: $index() == 0 ||\
                                 $parent.showBlankCall() ||\
                                 $index() < ($parent.calls().length - 1)')
-            span(data-bind='visible: failed')
+            span.label.label-danger(
+              data-bind='visible: $parent.lostConnection() && $index() == 0')
+              i.glyphicon.glyphicon-flash
+              | &nbsp;Нет соединения
+            span.label.label-danger(data-bind='visible: failed')
               i.glyphicon.glyphicon-exclamation-sign
-              | &nbsp;
+              | &nbsp;Ошибка дозвона
             span.label.label-primary(data-bind='visible: vdn, text: vdn')
             span.label.label-danger(data-bind='visible: vip')
               i.glyphicon.glyphicon-star
