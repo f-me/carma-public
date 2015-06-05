@@ -162,6 +162,8 @@ hook = do
     -- anyways)
     Just (WHEvent _                  (RequestError _)) ->
       return ()
+    Just (WHEvent _                  (StateChange ns)) ->
+      liftIO $ print ns
     Just (WHEvent (AgentId (_, ext)) (TelephonyEvent ev st)) -> do
       am <- liftIO $ readTVarIO eMap
       case Map.lookup ext am of
@@ -211,7 +213,7 @@ hook = do
                         Nothing -> (cidt, [])
                   in do
                     (userState, model, actionId) <- userStateAction uid
-                    when (userState == Busy &&
+                    when (userState == UserState.Busy &&
                           model == Data.Model.modelName
                           (modelInfo :: ModelInfo Action.Action)) $
                       void $ withAuthPg $ liftPG $ Patch.create $
@@ -251,7 +253,9 @@ userStateAction uid = do
 
 -- | Send an asynchronous agent state change request for the current user, if
 -- CTI is enabled.
-setAgentState :: AgentState -> Patch.Patch Usermeta -> Handler b (Avaya b) ()
+setAgentState :: SettableAgentState
+              -> Patch.Patch Usermeta
+              -> Handler b (Avaya b) ()
 setAgentState as um = do
   when (isCtiUser um) $ do
     dmccWsHost' <- gets dmccWsHost
@@ -260,7 +264,8 @@ setAgentState as um = do
     let dmccWsHost'' = Text.unpack $ fromMaybe "localhost" dmccWsHost'
         ext = fromMaybe (error "Bad meta") $
               um `Patch.get` Usermeta.workPhoneSuffix
-        miniApp conn = send conn (DataMessage $ Text $ encode (SetState as))
+        miniApp conn =
+          send conn (DataMessage $ Text $ encode (SetState as))
 
     liftIO $ void $ forkIO $
       runClient dmccWsHost'' dmccWsPort' ("/" ++ Text.unpack ext) miniApp

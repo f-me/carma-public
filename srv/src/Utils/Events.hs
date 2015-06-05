@@ -52,7 +52,7 @@ import           Carma.Model.Usermeta  (Usermeta(..))
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.Call   as Call
 
-import qualified DMCC (AgentState(..))
+import qualified DMCC (SettableAgentState(..))
 
 import           Snaplet.Avaya
 import           Snaplet.Search.Types (mkSel)
