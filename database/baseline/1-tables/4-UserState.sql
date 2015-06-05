@@ -4,7 +4,8 @@ CREATE TYPE "UserStateVal"
          , 'Rest'
          , 'Busy'
          , 'Dinner'
-         , 'ServiceBreak');
+         , 'ServiceBreak'
+         , 'NA');
 
 CREATE TABLE "UserState"
   (id      SERIAL PRIMARY KEY

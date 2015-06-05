@@ -36,3 +36,9 @@ mixin dictInput(nameMod)
     data-bind='css: { "btn-success": $rawData.kvm.inSBreak }, \
                click: $rawData.kvm.toggleServiceBreak')
     | Служебный перерыв
+
+#onlyNA-table-template.field-template(type='text/template')
+  button.btn.btn-default.btn-small.btn-success(type='button'
+    data-bind='visible: $rawData.kvm.inNA, \
+               click: $rawData.kvm.releaseNA')
+    | NA

@@ -38,6 +38,10 @@
     fill: #729fcf;
 }
 
+.chart .NA {
+    fill: #72c6cf;
+}
+
 .chart .line {
     fill: none;
     stroke: steelblue;

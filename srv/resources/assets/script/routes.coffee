@@ -8,7 +8,7 @@ define ["render/screen"
   addRoute = (url, fn) ->
     Finch.route url,
       setup: (bind) ->
-        if _.contains(['rest', 'serviceBreak'], Finch.navigate())
+        if _.contains(['rest', 'serviceBreak', 'na'], Finch.navigate())
           return Finch.abort()
         fn(bind)
 
@@ -174,6 +174,14 @@ define ["render/screen"
         name: "serviceBreak"
         views:
           'break-view': scr
+      r.renderScreen scr, bind
+
+  Finch.route "na", (bind) ->
+    require ["screens/na"], (scr) ->
+      scr.screen =
+        name: "na"
+        views:
+          'na-view': scr
       r.renderScreen scr, bind
 
   addRoute "search", =>

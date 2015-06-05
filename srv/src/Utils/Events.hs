@@ -269,9 +269,9 @@ nextState lastState delayed evt mname fld =
     change (allStates   >>> LoggedOut) $ on Logout NoModel
     change (allStates   >>> NA)        $ on AvayaNA NoModel
     case delayed of
-      Nothing     -> change ([ServiceBreak] >>> Ready) $
+      Nothing     -> change ([ServiceBreak, NA] >>> Ready) $
         on Update $ Fields [field delayedState]
-      Just Ready  -> change ([Rest, Dinner, ServiceBreak] >>> Ready) $
+      Just Ready  -> change ([Rest, Dinner, ServiceBreak, NA] >>> Ready) $
         on Update $ Fields [field delayedState]
       Just dState -> change ([Ready, Rest, Dinner] >>> dState) $
         on Update $ Fields [field delayedState]

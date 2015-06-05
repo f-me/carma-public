@@ -24,3 +24,17 @@ define [], ->
         kvm.delayedState(null)
       else
         kvm.delayedState('ServiceBreak')
+
+    kvm.inNA = ko.computed =>
+      if not (_.isFunction(kvm.currentState) and _.isFunction(kvm.delayedState))
+        return console.error("Need permission on delayedState and currentState")
+      kvm.currentState() == 'NA' or
+      kvm.delayedState() == 'NA'
+
+    kvm.releaseNA = =>
+      if not (_.isFunction(kvm.currentState) and _.isFunction(kvm.delayedState))
+        return console.error("Need permission on delayedState and currentState")
+      if kvm.currentState() == 'NA'
+        kvm.delayedState('Ready')
+      if kvm.delayedState() == 'NA'
+        kvm.delayedState(null)

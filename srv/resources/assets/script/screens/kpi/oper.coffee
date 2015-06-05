@@ -24,7 +24,7 @@ define ["text!tpl/screens/kpi/oper.html"
       k[k.currentState()] k[k.currentState()]() + 1
       if k.currentState() != "LoggedOut"
         k.totalLoggedIn k.totalLoggedIn() + 1
-      if _.contains ["Dinner", "Rest", "ServiceBreak"], k.currentState()
+      if _.contains ["Dinner", "Rest", "ServiceBreak", "NA"], k.currentState()
         k.totalRest k.totalRest() + 1
     return null
 

@@ -113,7 +113,7 @@ html
                       data-bind="css: {\n\
                         'btn-success': safelyGet('delayedState') == 'Rest'\n\
                         },\n\
-                        disable: inSBreak(),\n\
+                        disable: inSBreak() || inNA(),\n\
                         click: function () {\n\
                         toggleDelayed('Rest')\n\
                         }")
@@ -122,7 +122,7 @@ html
                       data-bind="css: {\n\
                         'btn-success': safelyGet('delayedState') == 'Dinner'\n\
                         },\n\
-                        disable: inSBreak(),\n\
+                        disable: inSBreak() || inNA(),\n\
                         click: function () { toggleDelayed('Dinner')}")
                       | Обед
     #cti.well(style='display: none')

@@ -63,7 +63,7 @@ import qualified Carma.Model.Action as Action
 import           Carma.Model.AvayaEvent as AE
 import           Carma.Model.AvayaEventType as AET
 import           Carma.Model.Event as Event
-import           Carma.Model.Role as Role
+import           Carma.Model.Role as Role (cti)
 import           Carma.Model.Usermeta as Usermeta
 import           Carma.Model.UserState as UserState
 
@@ -133,9 +133,8 @@ dmccWsProxy = do
 -- | For every appropriate webhook call from dmcc library, create new
 -- AvayaEvent if the user mentioned in the webhook is busy with an
 -- action.
-dmccHook :: (AgentState -> IdentI Usermeta -> AppHandler ())
-         -> AppHandler ()
-dmccHook stateHandler = do
+dmccHook :: AppHandler ()
+dmccHook = do
   rsb <- readRequestBody 4096
   eMap <- gets extMap
   let -- Handle hook data for an agent if it's present in the
@@ -157,10 +156,11 @@ dmccHook stateHandler = do
       return ()
     Just (WHEvent (AgentId (_, ext)) (StateChange sn)) ->
       handleWith ext $ \uid ->
-      maybe
-      (return ())
-      (\s -> switchToNA uid)
-      (_state sn)
+      -- When NotReady state is caused by an unanswered call, it has
+      -- empty reason code
+      if (_state sn == (Just $ Settable NotReady, ""))
+      then (switchToNA uid)
+      else (return ())
     Just (WHEvent (AgentId (_, ext)) (TelephonyEvent ev st)) ->
       handleWith ext $ \uid -> do
           let

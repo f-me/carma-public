@@ -14,6 +14,8 @@ define [ "model/main"
       oldNav("rest")
     else if st == 'ServiceBreak'
       oldNav('serviceBreak')
+    else if st == 'NA'
+      oldNav('na')
     else
       oldNav.apply(@, args)
 
@@ -50,7 +52,7 @@ define [ "model/main"
     usr.currentState?.subscribe (v) =>
       # order of conditions is matter, second won't be avaluatd if first
       # is false, and 'Finch.navigate()' may change current route
-      if (_.contains ['rest', 'serviceBreak'], Finch.navigate()) and
+      if (_.contains ['rest', 'serviceBreak', 'na'], Finch.navigate()) and
           v == 'Ready'
         window.location.href = homepage
 
