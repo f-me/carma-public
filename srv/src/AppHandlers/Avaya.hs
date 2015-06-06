@@ -20,6 +20,10 @@ agent state changes and Avaya event history).
 module AppHandlers.Avaya
     ( dmccWsProxy
     , dmccHook
+
+      -- * AVAYA state control
+    , avayaToAfterCall
+    , avayaToReady
     , setAgentState
     )
 
@@ -245,8 +249,22 @@ userStateAction uid = do
     _     -> error $ "No state for user " ++ show uid
 
 
--- | Send an asynchronous agent state change request for the current user, if
--- CTI is enabled.
+-- | Switch current user to AfterCall agent state.
+avayaToAfterCall :: AppHandler()
+avayaToAfterCall =
+  (fromMaybe (error "No user") <$> currentUserMeta) >>=
+  setAgentState DMCC.AfterCall
+
+
+-- | Switch current user to Ready agent state.
+avayaToReady :: AppHandler()
+avayaToReady =
+  (fromMaybe (error "No user") <$> currentUserMeta) >>=
+  setAgentState DMCC.Ready
+
+
+-- | Send an agent state change request for a user, if
+-- CTI is enabled for her.
 setAgentState :: SettableAgentState
               -> Patch.Patch Usermeta
               -> AppHandler ()

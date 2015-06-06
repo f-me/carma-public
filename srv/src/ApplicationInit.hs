@@ -119,6 +119,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/kpi/oper",                chkAuth . method GET $ getOper)
          , ("/avaya/ws/:ext", chkAuth . method GET $ dmccWsProxy)
          , ("/avaya/hook/",   chkAuth . method POST $ dmccHook)
+         , ("/avaya/toAfterCall/", chkAuth . method PUT $ avayaToAfterCall)
+         , ("/avaya/toReady/",     chkAuth . method PUT $ avayaToReady)
          ]
 
 dconf :: DirectoryConfig (Handler App App)
