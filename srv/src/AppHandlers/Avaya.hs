@@ -160,11 +160,18 @@ dmccHook = do
       return ()
     Just (WHEvent (AgentId (_, ext)) (StateChange sn)) ->
       handleWith ext $ \uid ->
-      -- When NotReady state is caused by an unanswered call, it has
-      -- empty reason code
-      if (_state sn == (Just $ Settable NotReady, ""))
-      then (switchToNA uid)
-      else (return ())
+      -- Automatic NotReady state (caused by an unanswered call or
+      -- operator login) has empty reason code
+      let
+        st = fst $ _state sn
+        reason = snd $ _state sn
+      in
+        if (st == (Just $ Settable NotReady))
+        then
+          if reason == ""
+          then switchToNA uid
+          else switchToReady uid
+        else (return ())
     Just (WHEvent (AgentId (_, ext)) (TelephonyEvent ev st)) ->
       handleWith ext $ \uid -> do
           let
