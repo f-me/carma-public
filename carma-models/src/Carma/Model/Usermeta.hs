@@ -102,6 +102,7 @@ instance Model Usermeta where
       , infoText "isDealer" isDealer
       , infoText "isJack" isJack
       , infoText "userSubprograms" subPrograms
+      , infoText "extension" workPhoneSuffix
       , infoText "boPrograms" boprograms
       , infoText "boCities" bocities
       ]

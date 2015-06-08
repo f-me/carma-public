@@ -347,7 +347,7 @@ instance DefaultFieldView (Vector t) => DefaultFieldView (Vector (Maybe t))
 -- Represented as "EventType" enum type in postgres
 --
 -- FIXME: Find a way to check mapping from hs to pg type
-data EventType = Login | Logout | Create | Update
+data EventType = Login | Logout | Create | Update | AvayaNA
                deriving (Eq, Show, Read, Typeable, Generic)
 
 instance FromJSON EventType
