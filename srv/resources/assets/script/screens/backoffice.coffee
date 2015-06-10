@@ -27,10 +27,22 @@ define [ "model/main"
 
   startCycle = (pcvm) ->
    if _.contains global.user.roles, global.idents("Role").call
-     # COMPLEX LOGIC HERE
+     actionsAfterCall = () ->
+      $("#standby-msg").text "Запрещаю приём звонков через AVAYA…"
+      $.ajax "/avaya/toAfterCall", {type: "PUT"}, () ->
+          $("#standby-msg").text "Проверяем наличие действий…"
+         pullActions startCycle
+     if pcvm.actionsFirst()
+       actionsAfterCall()
+     else
+       $("#standby-msg").text "Разрешаю приём звонков через AVAYA…"
+       $.ajax "/avaya/toReady", {type: "PUT"}, () ->
+         secs = pcvm.callWaitSeconds()
+         $("#standby-msg").text "Ожидаем звонки в течение #{secs}…"
+         setTimeout actionsAfterCall, secs * 1000
    else
      # Only pull actions
-     pullActions true
+     pullActions setupActionsPoller
 
   # Install automatic poller for actions only
   setupActionsPoller = ->
@@ -48,25 +60,21 @@ define [ "model/main"
     worker()
 
   # Given /littleMoreActions response, try to redirect to the first
-  # action. If onlyActions=true, then actions-only handler is setup
-  # afterwards.
-  myActionsHandler = (onlyActions) ->
+  # action. If the response is empty, call noActionsHandler
+  myActionsHandler = (noActionsHandler) ->
     if !_.isEmpty actions
       act = _.first actions
       openAction act
     else
       pleaseStandby()
-      if onlyActions
-        setupActionsPoller()
-      else
-        startCycle()
+      noActionsHandler()
 
   # Pull new actions for user
-  pullActions = (onlyActions) ->
+  pullActions = (noActionsHandler) ->
     $.ajax
       type: "PUT"
       url: "/backoffice/littleMoreActions"
-      success: myActionsHandler onlyActions
+      success: myActionsHandler noActionsHandler
       error: (res) ->
         if res.responseText.match /in non-Ready state/
           $("#standby-msg").text "Нельзя получить новое действие в статусе «Занят»!"
