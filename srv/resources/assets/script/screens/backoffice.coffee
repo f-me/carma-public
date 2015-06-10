@@ -29,17 +29,17 @@ define [ "model/main"
    if _.contains global.user.roles, global.idents("Role").call
      actionsAfterCall = () ->
       $("#standby-msg").text "Запрещаю приём звонков через AVAYA…"
-      $.ajax "/avaya/toAfterCall", {type: "PUT"}, () ->
-          $("#standby-msg").text "Проверяем наличие действий…"
-         pullActions startCycle
+      $.ajax "/avaya/toAfterCall", {type: "PUT", success: () ->
+        $("#standby-msg").text "Проверяем наличие действий…"
+        pullActions startCycle}
      if pcvm.actionsFirst()
        actionsAfterCall()
      else
        $("#standby-msg").text "Разрешаю приём звонков через AVAYA…"
-       $.ajax "/avaya/toReady", {type: "PUT"}, () ->
+       $.ajax "/avaya/toReady", {type: "PUT", success: () ->
          secs = pcvm.callWaitSeconds()
          $("#standby-msg").text "Ожидаем звонки в течение #{secs}…"
-         setTimeout actionsAfterCall, secs * 1000
+         setTimeout actionsAfterCall, secs * 1000}
    else
      # Only pull actions
      pullActions setupActionsPoller
@@ -61,7 +61,7 @@ define [ "model/main"
 
   # Given /littleMoreActions response, try to redirect to the first
   # action. If the response is empty, call noActionsHandler
-  myActionsHandler = (noActionsHandler) ->
+  myActionsHandler = (noActionsHandler) -> (actions) ->
     if !_.isEmpty actions
       act = _.first actions
       openAction act
