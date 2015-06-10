@@ -8,6 +8,7 @@ require [ "domready"
         , "json!/_whoami"
         , "json!/_/Usermeta"
         , "utils"
+        , "sync/crud"
         , "sendSms"
         , "liveMenu"
         , "lib/bug-report"
@@ -24,6 +25,7 @@ require [ "domready"
            , user
            , users
            , u
+           , sync
            , sendSms
            , liveMenu
            , bug
