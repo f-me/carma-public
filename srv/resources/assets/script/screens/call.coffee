@@ -186,25 +186,6 @@ define [ "utils"
     url = if q.length == 0 then "/latestCases" else "/searchCases?q=#{q}"
     $.getJSON url, (objs) -> fillTable st, objs
 
-  makeCallClick = (viewName) ->
-    cb = ->
-      hideModal()
-      kvm = global.viewsWare[viewName].knockVM
-    saveInstance viewName, cb, true
-
-
-  setModalVisible = (visible) ->
-    if visible then showModal() else hideModal()
-
-  showModal = ->
-    $("#new-call-modal").show().removeClass("out").addClass("in")
-    $("#call-screen").css('visibility', 'hidden')
-
-  hideModal = ->
-    $("#new-call-modal").hide().removeClass("in").addClass("out")
-    $("#call-screen").css('visibility', 'visible')
-
-
   { constructor: setupCallForm
   , template: tpl
   }
