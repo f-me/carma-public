@@ -107,11 +107,6 @@
         }
       ]
     },
-    { "name"  : "call",
-      "label" : "Звонок",
-      "type"  : "li",
-      "permissions": ["call"]
-    },
     { "name"  : "back",
       "label" : "Действия и звонки",
       "type"  : "li",
