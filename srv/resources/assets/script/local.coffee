@@ -109,16 +109,17 @@ require [ "domready"
             # Fill caller phone and program when answering a call on
             # call screen
             answerCallCb: (number, vdnNumber) ->
-              callVM = global.viewsWare['call-view']?.knockVM
-              if callVM?
-                $("#make-new-call").trigger "newCall"
+              if _.contains global.user.roles, global.idents("Role").call
                 vdnNumber = vdnNumber?.split(":")[0]
                 vdn = vdns.getElement(vdns.getVal(vdnNumber))
                 number = u.internalToDisplayed number
+                fetched = {}
                 if not callVM.callerPhone?()
-                  callVM.callerPhone? number
+                  fetched.callerPhone = number
                 if vdn? && not callVM.program?()
-                  callVM.program? vdn.program
+                  fetched.program = vdn.program
+                cvm = Main.buildKVM global.model('Call'), {fetched: fetched, queue: sync.CrudQueue}
+                Finch.navigate "call/#{cvm.id()}"
                 localStorage["call.search-query"] = "!Тел:" + number
                 $("#search-query").val("!Тел:" + number).change()
             incomingCallCb: -> $("#cti").show()
