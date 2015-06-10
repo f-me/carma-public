@@ -14,7 +14,11 @@ define ["utils"
     fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
       return if _.isEmpty aData
       caseId = aData[0].split('/')[0]
-      caseLnk = "<a style='color: black' href='/#case/#{caseId}'> #{aData[0]} </a>"
+      caseLnk =
+        if caseId != '-'
+          "<a style='color: black' href='/#case/#{caseId}'>#{aData[0]}</a>"
+        else
+          aData[0]
       duetime  = Date.parse aData[5]
       srvStart = Date.parse aData[11]
       mktime = (n) ->
