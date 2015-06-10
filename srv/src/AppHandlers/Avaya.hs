@@ -160,18 +160,12 @@ dmccHook = do
       return ()
     Just (WHEvent (AgentId (_, ext)) (StateChange sn)) ->
       handleWith ext $ \uid ->
-      -- Automatic NotReady state (caused by an unanswered call or
-      -- operator login) has empty reason code
-      let
-        st = fst $ _state sn
-        reason = snd $ _state sn
-      in
-        if (st == (Just $ Settable NotReady))
-        then
-          if reason == ""
-          then switchToNA uid
-          else switchToReady uid
-        else (return ())
+      case _state sn of
+        -- Automatic NotReady state (caused by an unanswered call or
+        -- operator login) has empty reason code
+        (Just (Settable DMCC.NotReady), "") -> switchToNA uid
+        (Just (Settable DMCC.Ready), _) -> switchToReady uid
+        _ -> return ()
     Just (WHEvent (AgentId (_, ext)) (TelephonyEvent ev st)) ->
       handleWith ext $ \uid -> do
           let
