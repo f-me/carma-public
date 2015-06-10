@@ -22,6 +22,11 @@ define [ "model/main"
       width: 50,
       lines: 15,
       radius: 175
+
+    if _.contains(global.user.roles, global.idents("Role").call) &&
+       !_.contains(global.user.roles, global.idents("Role").cti)
+      $("#new-call-button").hide()
+
     pci = global.idents('ProcessingConfig').main
     pcvm = Main.buildKVM global.model('ProcessingConfig'), {fetched: {id: pci}, queue: sync.CrudQueue}
     startCycle pcvm
