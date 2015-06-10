@@ -1,11 +1,12 @@
-define [ "utils"
-       , "text!tpl/screens/back.html"], (utils, tpl) ->
+define [ "model/main"
+       , "utils"
+       , "text!tpl/screens/back.html"], (Main, utils, tpl) ->
   onBackofficeScreen = true
 
   # In s
   cycle_resolution = 0.1
 
-  # Poll server every n seconds
+  # Poll server for new actions every n seconds
   poll_every = 5
 
   pleaseStandby = ->
@@ -20,10 +21,19 @@ define [ "utils"
       width: 50,
       lines: 15,
       radius: 175
-    pullActions()
+    pci = global.idents('ProcessingConfig').main
+    pcvm = Main.buildKVM global.model('ProcessingConfig'), {fetched: {id: pci}}
+    startCycle pcvm
 
-  # Install automatic actions poller
-  setupPoller = ->
+  startCycle = (pcvm) ->
+   if _.contains global.user.roles, global.idents("Role").call
+     # COMPLEX LOGIC HERE
+   else
+     # Only pull actions
+     pullActions true
+
+  # Install automatic poller for actions only
+  setupActionsPoller = ->
     # Time since last cycle start, in seconds
     current_cycle = 0
     worker = ->
@@ -31,28 +41,32 @@ define [ "utils"
         current_cycle += cycle_resolution
         percent = current_cycle / poll_every * 100.0
         if current_cycle >= poll_every
-          pullActions()
+          pullActions true
           current_cycle = 0
         else
           setTimeout worker, (cycle_resolution * 1000)
     worker()
 
   # Given /littleMoreActions response, try to redirect to the first
-  # action
-  myActionsHandler = (actions) ->
+  # action. If onlyActions=true, then actions-only handler is setup
+  # afterwards.
+  myActionsHandler = (onlyActions) ->
     if !_.isEmpty actions
       act = _.first actions
       openAction act
     else
       pleaseStandby()
-      setupPoller()
+      if onlyActions
+        setupActionsPoller()
+      else
+        startCycle()
 
   # Pull new actions for user
-  pullActions = ->
+  pullActions = (onlyActions) ->
     $.ajax
       type: "PUT"
       url: "/backoffice/littleMoreActions"
-      success: myActionsHandler
+      success: myActionsHandler onlyActions
       error: (res) ->
         if res.responseText.match /in non-Ready state/
           $("#standby-msg").text "Нельзя получить новое действие в статусе «Занят»!"
