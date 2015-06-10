@@ -31,7 +31,7 @@ define [ "model/main"
      actionsAfterCall = () ->
       $("#standby-msg").text "Запрещаю приём звонков через AVAYA…"
       $.ajax "/avaya/toAfterCall", {type: "PUT", success: () ->
-        $("#standby-msg").text "Проверяем наличие действий…"
+        $("#standby-msg").text "Проверяю наличие действий…"
         pullActions startCycle}
      if pcvm.actionsFirst()
        actionsAfterCall()
@@ -39,7 +39,7 @@ define [ "model/main"
        $("#standby-msg").text "Разрешаю приём звонков через AVAYA…"
        $.ajax "/avaya/toReady", {type: "PUT", success: () ->
          secs = pcvm.callWaitSeconds()
-         $("#standby-msg").text "Ожидаем звонки в течение #{secs}…"
+         $("#standby-msg").text "Ожидаю звонки в течение #{secs}с…"
          setTimeout actionsAfterCall, secs * 1000}
    else
      # Only pull actions
