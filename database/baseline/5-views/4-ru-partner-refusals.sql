@@ -23,6 +23,7 @@ SELECT "PartnerCancel".id,
                           "PartnerCancel".comment AS "Комментарий",
                           "City".label AS "Город",
                           "ServiceType".label AS "Услуга",
+                          "ServiceStatus".label AS "Результат оказания помощи",
                           usermetatbl.login AS "Оператор",
                           regionlist AS "Регион",
                           CASE
@@ -41,8 +42,9 @@ LEFT JOIN partnertbl ON partnertbl.id = "PartnerCancel".partnerid
 LEFT JOIN "City" ON casetbl.city = "City".id --РЕАЛИЗАЦИЯ УНИКАЛЬНОЙ СВЯЗКИ В servicetbl(id, type):
 
 LEFT JOIN servicetbl ON ("PartnerCancel".serviceid = servicetbl.id)
-LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id --ДЖОЙНИМ РЕЗУЛЬТАТ ПОДЗАПРОСА cities_regions ДЛЯ ВЫБОРА РЕГИОНОВ
-
+LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id
+LEFT JOIN "ServiceStatus" ON servicetbl.status = "ServiceStatus".id
+ --ДЖОЙНИМ РЕЗУЛЬТАТ ПОДЗАПРОСА cities_regions ДЛЯ ВЫБОРА РЕГИОНОВ
 LEFT JOIN cities_regions ON "City".id = cities_regions.cities::Integer
 ORDER BY "PartnerCancel".ctime ASC,
          casetbl.id ASC;
