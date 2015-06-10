@@ -1,6 +1,7 @@
 define [ "model/main"
        , "utils"
-       , "text!tpl/screens/back.html"], (Main, utils, tpl) ->
+       , "sync/crud"
+       , "text!tpl/screens/back.html"], (Main, utils, sync, tpl) ->
   onBackofficeScreen = true
 
   # In s
@@ -22,7 +23,7 @@ define [ "model/main"
       lines: 15,
       radius: 175
     pci = global.idents('ProcessingConfig').main
-    pcvm = Main.buildKVM global.model('ProcessingConfig'), {fetched: {id: pci}}
+    pcvm = Main.buildKVM global.model('ProcessingConfig'), {fetched: {id: pci}, queue: sync.CrudQueue}
     startCycle pcvm
 
   startCycle = (pcvm) ->
