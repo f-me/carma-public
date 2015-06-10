@@ -114,9 +114,9 @@ require [ "domready"
                 vdn = vdns.getElement(vdns.getVal(vdnNumber))
                 number = u.internalToDisplayed number
                 fetched = {}
-                if not callVM.callerPhone?()
+                if number?
                   fetched.callerPhone = number
-                if vdn? && not callVM.program?()
+                if vdn?.program
                   fetched.program = vdn.program
                 cvm = Main.buildKVM global.model('Call'), {fetched: fetched, queue: sync.CrudQueue}
                 Finch.navigate "call/#{cvm.id()}"
