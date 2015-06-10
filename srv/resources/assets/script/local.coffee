@@ -118,7 +118,7 @@ require [ "domready"
                   fetched.callerPhone = number
                 if vdn?.program
                   fetched.program = vdn.program
-                cvm = Main.buildKVM global.model('Call'), {fetched: fetched, queue: sync.CrudQueue}
+                cvm = main.buildKVM global.model('Call'), {fetched: fetched, queue: sync.CrudQueue}
                 Finch.navigate "call/#{cvm.id()}"
                 localStorage["call.search-query"] = "!Тел:" + number
                 $("#search-query").val("!Тел:" + number).change()
