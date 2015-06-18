@@ -278,7 +278,9 @@ setAgentState as um = do
         ext = fromMaybe (error "Bad meta") $
               um `Patch.get` Usermeta.workPhoneSuffix
         miniApp conn =
-          send conn (DataMessage $ Text $ encode (SetState as))
+          send conn (DataMessage $ Text $ encode (SetState as)) >>
+          sendClose conn ("carma disconnected" :: ByteString) >>
+          (void $ (receiveData conn :: IO ByteString))
 
     liftIO $ void $ forkIO $
       runClient dmccWsHost'' dmccWsPort' ("/" ++ Text.unpack ext) miniApp
