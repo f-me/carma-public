@@ -269,7 +269,7 @@ nextState lastState delayed evt mname fld =
     change ([LoggedOut] >>> Ready)     $ on Login  NoModel
     change (allStates   >>> LoggedOut) $ on Logout NoModel
     change (allStates   >>> NA)        $ on AvayaNA NoModel
-    change (allStates   >>> Ready)     $ on AvayaReady NoModel
+    change ([NA]        >>> Ready)     $ on AvayaReady NoModel
     case delayed of
       Nothing     -> change ([ServiceBreak, NA] >>> Ready) $
         on Update $ Fields [field delayedState]
@@ -336,12 +336,13 @@ setUsr :: Maybe (IdentI Usermeta) -> Patch Event -> Patch Event
 setUsr usr p = P.put E.userid usr p
 
 
-switchToNA :: IdentI Usermeta -> AppHandler ()
+-- | Used when a user is put to NA state by AVAYA.
 switchToNA uid = do
   ev <- log $ addIdent uid $ buildEmpty AvayaNA
   updateUserState AvayaNA uid P.empty ev
 
 
+-- | Used when a user manually switches his softphone state.
 switchToReady :: IdentI Usermeta -> AppHandler ()
 switchToReady uid = do
   ev <- log $ addIdent uid $ buildEmpty AvayaReady
