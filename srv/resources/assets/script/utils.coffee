@@ -451,7 +451,9 @@ define [ "model/main"
 
   # Pretty-print ugly DeviceId from AVAYA
   internalToDisplayed: (number) ->
-    number?.match(/\d+/)?[0]?.replace(/^(98|8|)(\d{10})$/, "\+7$2")
+    number?.match(/\d+/)?[0]?.
+      replace(/^(98|8|)(\d{10})$/, "\+7$2").
+      replace(/^9810/, "+")
 
   # subset of d3.scale.category20 with dark colors removed
   palette:
