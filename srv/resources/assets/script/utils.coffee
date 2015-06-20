@@ -442,7 +442,12 @@ define [ "model/main"
 
   # Convert pretty number to DeviceId for AVAYA
   displayedToInternal: (number) ->
-    number.replace(/^8/, "98").replace(/^\+7/, "98").replace(/^\+/, "9810")
+    number.
+      replace(/[^\+0-9]/g, "").
+      replace(/^8/, "98").
+      replace(/^\+7/, "98").
+      replace(/^\+/, "9810").
+      replace(/\+/, "")
 
   # Pretty-print ugly DeviceId from AVAYA
   internalToDisplayed: (number) ->
