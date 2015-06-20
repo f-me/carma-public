@@ -12,9 +12,12 @@ define ["lib/ws"], (WS) ->
       @ws = new WS(url)
 
     makeCall: (number) ->
-      @ws.send JSON.stringify
+      rq =
         action: "MakeCall"
-        number: parseInt number
+        number: 0
+      # Avoid using parseInt because Number.MAX_SAFE_INTEGER may be
+      # less than what we need
+      @ws.send JSON.stringify(rq).replace("0", number)
 
     endCall: (callId) ->
       @ws.send JSON.stringify
