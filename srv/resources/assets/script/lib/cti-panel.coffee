@@ -175,8 +175,13 @@ define [], () ->
             if @canAnswer()
               incomingCallCb call.interlocutors[0], call.direction?.vdn
 
-        newCalls = for callId, call of snapshot.calls
-          new CallVM call, callId
+        # Order calls by start time
+        callIds = _.sortBy(
+            _.keys(snapshot.calls),
+            (k) -> new Date(snapshot.calls[k].start)
+            )
+        newCalls = for callId in callIds
+          new CallVM snapshot.calls[callId], callId
         # Hide call in progress if the server finally knows about it.
         # snapshot.calls contains only calls from the server, but kvm.calls
         # always has an extra CallVM (blank line/call in progress)
