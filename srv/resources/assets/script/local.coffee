@@ -112,18 +112,21 @@ require [ "domready"
             # call screen
             answerCallCb: (number, vdnNumber) ->
               if _.contains global.user.roles, global.idents("Role").call
-                vdnNumber = vdnNumber?.split(":")[0]
-                vdn = vdns.getElement(vdns.getVal(vdnNumber))
-                number = u.internalToDisplayed number
-                fetched = {}
-                if number?
-                  fetched.callerPhone = number
-                if vdn?.program
-                  fetched.program = vdn.program
-                cvm = main.buildKVM global.model('Call'), {fetched: fetched, queue: sync.CrudQueue}
-                Finch.navigate "call/#{cvm.id()}"
-                localStorage["call.search-query"] = "!Тел:" + number
-                $("#search-query").val("!Тел:" + number).change()
+                if number.length > 5
+                  number = u.internalToDisplayed number
+                  vdnNumber = vdnNumber?.split(":")[0]
+                  vdn = vdns.getElement(vdns.getVal(vdnNumber))
+                  fetched = {}
+                  if number?
+                    fetched.callerPhone = number
+                  if vdn?.program
+                    fetched.program = vdn.program
+                  $.notify "Начинаем новый звонок…", {className: 'info'}
+                  cvm = main.buildKVM global.model('Call'),
+                    {fetched: fetched, queue: sync.CrudQueue}
+                  cvm.id.subscribe (id) ->
+                    Finch.navigate "call/#{cvm.id()}"
+                  localStorage["call.search-query"] = "!Тел:" + number
             incomingCallCb: -> $("#cti").show()
           global.CTIPanel = new CTIPanel cti, $("#cti"), opts
           Mousetrap.bind ["`", "ё"], () ->
