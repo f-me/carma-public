@@ -28,27 +28,40 @@ define [ "model/main"
       $("#new-call-button").hide()
 
     pci = global.idents('ProcessingConfig').main
-    pcvm = Main.buildKVM global.model('ProcessingConfig'), {fetched: {id: pci}, queue: sync.CrudQueue}
-    startCycle pcvm
+    pcvm = Main.buildKVM global.model('ProcessingConfig'),
+      {fetched: {id: pci}, queue: sync.CrudQueue}
+    startCycle pcvm, false
 
-  startCycle = (pcvm) ->
-   if _.contains global.user.roles, global.idents("Role").call
-     actionsAfterCall = () ->
-      $("#standby-msg").text "Запрещаю приём звонков через AVAYA…"
-      $.ajax "/avaya/toAfterCall", {type: "PUT", success: () ->
-        $("#standby-msg").text "Проверяю наличие действий…"
-        pullActions startCycle}
-     if pcvm.actionsFirst()
-       actionsAfterCall()
-     else
-       $("#standby-msg").text "Разрешаю приём звонков через AVAYA…"
-       $.ajax "/avaya/toReady", {type: "PUT", success: () ->
-         secs = pcvm.callWaitSeconds()
-         $("#standby-msg").text "Ожидаю звонки в течение #{secs}с…"
-         setTimeout actionsAfterCall, secs * 1000}
-   else
-     # Only pull actions
-     pullActions setupActionsPoller
+  startCycle = (pcvm, alternate) ->
+    cti = _.contains(global.user.roles, global.idents("Role").cti)
+    fo = _.contains global.user.roles, global.idents("Role").call
+    if fo
+      actionsAfterCall = () ->
+        actuallyPull = () ->
+          if fo
+            msg = "Ожидайте звонков"
+          else
+            msg = "Проверяю наличие действий…"
+          $("#standby-msg").text msg
+          pullActions () -> startCycle pcvm, !alternate
+        $("#standby-msg").text "Запрещаю приём звонков через AVAYA…"
+        # Avoid switching agent state when working without CTI
+        if cti
+          $.ajax "/avaya/toAfterCall", {type: "PUT", success: actuallyPull}
+        else
+          actuallyPull()
+      # Non-CTI users always check for new actions
+      if (!cti || (pcvm.actionsFirst() && !alternate))
+        actionsAfterCall()
+      else
+        $("#standby-msg").text "Разрешаю приём звонков через AVAYA…"
+        $.ajax "/avaya/toReady", {type: "PUT", success: () ->
+          secs = pcvm.callWaitSeconds()
+          $("#standby-msg").text "Ожидаю звонки в течение #{secs}с…"
+          setTimeout actionsAfterCall, secs * 1000}
+    else
+      # Only pull actions
+      pullActions setupActionsPoller
 
   # Install automatic poller for actions only
   setupActionsPoller = ->
@@ -59,7 +72,7 @@ define [ "model/main"
         current_cycle += cycle_resolution
         percent = current_cycle / poll_every * 100.0
         if current_cycle >= poll_every
-          pullActions true
+          pullActions setupActionsPoller
           current_cycle = 0
         else
           setTimeout worker, (cycle_resolution * 1000)
