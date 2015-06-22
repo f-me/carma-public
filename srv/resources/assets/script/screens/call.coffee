@@ -104,7 +104,7 @@ define [ "utils"
           knockVM._meta.q.save ->
             # check if we have id in url, then goto call; else just reload
             if location.hash.match(/[0-9]+$/)
-            then Finch.navigate 'call'
+            then Finch.navigate 'back'
             else reloadScreen()
         avail: ko.computed ->
           _.all _.map knockVM._meta.model.fields, (f) ->
