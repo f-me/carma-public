@@ -23,9 +23,12 @@ define [ "model/main"
       lines: 15,
       radius: 175
 
-    if _.contains(global.user.roles, global.idents("Role").call) &&
-       !_.contains(global.user.roles, global.idents("Role").cti)
+    # Allow manual call creation for non-CTI Front Office operators
+    if (!_.contains(global.user.roles, global.idents("Role").call) ||
+         _.contains(global.user.roles, global.idents("Role").cti))
       $("#new-call-button").hide()
+    else
+      $("#new-call-button").click () -> utils.createNewCall {callerPhone: ""}
 
     pci = global.idents('ProcessingConfig').main
     pcvm = Main.buildKVM global.model('ProcessingConfig'),

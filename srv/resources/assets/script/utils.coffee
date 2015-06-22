@@ -1,8 +1,9 @@
 define [ "model/main"
        , "model/utils"
+       , "routes"
        , "dictionaries"
        , "sync/crud"
-       , "text!tpl/fields/form.html"], (main, mu, d, sync, Ftpls) ->
+       , "text!tpl/fields/form.html"], (main, mu, Finch, d, sync, Ftpls) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -454,6 +455,16 @@ define [ "model/main"
     number?.match(/\d+/)?[0]?.
       replace(/^(98|8|)(\d{10})$/, "\+7$2").
       replace(/^9810/, "+")
+
+  # If callData is empty, nothing will be saved! (CrudQueue prevents
+  # empty objects from being created). Set callerPhone to "" for
+  # ad-hoc forced call creation.
+  createNewCall: (callData) ->
+    $.notify "Создаём новый звонок…", {className: 'info'}
+    cvm = main.buildKVM global.model('Call'),
+      {fetched: callData, queue: sync.CrudQueue}
+    cvm.id.subscribe (id) ->
+      Finch.navigate "call/#{cvm.id()}"
 
   # subset of d3.scale.category20 with dark colors removed
   palette:

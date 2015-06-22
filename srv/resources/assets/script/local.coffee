@@ -116,16 +116,14 @@ require [ "domready"
                   number = u.internalToDisplayed number
                   vdnNumber = vdnNumber?.split(":")[0]
                   vdn = vdns.getElement(vdns.getVal(vdnNumber))
-                  fetched = {}
+                  callData = {}
                   if number?
-                    fetched.callerPhone = number
+                    callData.callerPhone = number
+                  else
+                    callData.callerPhone = ""
                   if vdn?.program
-                    fetched.program = vdn.program
-                  $.notify "Начинаем новый звонок…", {className: 'info'}
-                  cvm = main.buildKVM global.model('Call'),
-                    {fetched: fetched, queue: sync.CrudQueue}
-                  cvm.id.subscribe (id) ->
-                    Finch.navigate "call/#{cvm.id()}"
+                    callData.program = vdn.program
+                  u.createNewCall callData
                   localStorage["call.search-query"] = "!Тел:" + number
             incomingCallCb: -> $("#cti").show()
           global.CTIPanel = new CTIPanel cti, $("#cti"), opts
