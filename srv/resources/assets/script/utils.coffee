@@ -456,13 +456,12 @@ define [ "model/main"
       replace(/^(98|8|)(\d{10})$/, "\+7$2").
       replace(/^9810/, "+")
 
-  # If callData is empty, nothing will be saved! (CrudQueue prevents
-  # empty objects from being created). Set callerPhone to "" for
-  # ad-hoc forced call creation.
   createNewCall: (callData) ->
     $.notify "Создаём новый звонок…", {className: 'info'}
     cvm = main.buildKVM global.model('Call'),
       {fetched: callData, queue: sync.CrudQueue}
+    # Force saving
+    cvm._meta.q.save null, true
     cvm.id.subscribe (id) ->
       Finch.navigate "call/#{cvm.id()}"
 

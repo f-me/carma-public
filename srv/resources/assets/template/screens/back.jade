@@ -1,13 +1,15 @@
 // Backoffice screen
 #main-content(style='text-align: center;')
   div
-    #new-call-button
-      button.btn.btn-success
-        | Принять звонок
     #zardoz
-      #standby-msg(style='position: relative; \
+      div(style='position: relative; \
                           top: 50%;   \
                           left: 40%;  \
                           width: 20%; \
                           font-size: x-large;')
-        | Ожидайте новых действий
+        #standby-msg
+          | Ожидайте новых действий
+        #new-call-button(style='margin-top: 1em')
+          button.btn.btn-success.btn-lg
+            i.glyphicon.glyphicon-new-window
+            | &nbsp;Новый звонок

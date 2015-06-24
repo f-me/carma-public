@@ -24,11 +24,12 @@ define [ "model/main"
       radius: 175
 
     # Allow manual call creation for non-CTI Front Office operators
-    if (!_.contains(global.user.roles, global.idents("Role").call) ||
-         _.contains(global.user.roles, global.idents("Role").cti))
+    if !_.contains(global.user.roles, global.idents("Role").call)
       $("#new-call-button").hide()
     else
-      $("#new-call-button").click () -> utils.createNewCall {callerPhone: ""}
+      $("#new-call-button").click () ->
+        $("#new-call-button > button").attr("disabled", "disabled")
+        utils.createNewCall {callerPhone: ""}
 
     pci = global.idents('ProcessingConfig').main
     pcvm = Main.buildKVM global.model('ProcessingConfig'),
@@ -42,7 +43,7 @@ define [ "model/main"
       actionsAfterCall = () ->
         actuallyPull = () ->
           if fo
-            msg = "Ожидайте звонков"
+            msg = "Ожидайте звонка"
           else
             msg = "Проверяю наличие действий…"
           $("#standby-msg").text msg
@@ -54,6 +55,9 @@ define [ "model/main"
         else
           actuallyPull()
       # Non-CTI users always check for new actions
+      #
+      # Actions are checked for non-backoffice users as well (so that
+      # unfinished call actions are re-opened)
       if (!cti || (pcvm.actionsFirst() && !alternate))
         actionsAfterCall()
       else
@@ -111,6 +115,7 @@ define [ "model/main"
   # Start working on an action and redirect to its case. Argument is
   # an element of /littleMoreActions response.
   openAction = (act) ->
+    $("#new-call-button").hide()
     if act.caseId?
       $("#standby-msg").text "Открываю действие #{act.id} в кейсе #{act.caseId}…"
       whereTo = "case/#{act.caseId}"
