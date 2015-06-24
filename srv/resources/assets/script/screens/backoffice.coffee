@@ -43,11 +43,7 @@ define [ "model/main"
     if fo
       actionsAfterCall = () ->
         actuallyPull = () ->
-          if fo
-            msg = "Ожидайте звонка"
-          else
-            msg = "Проверяю наличие действий…"
-          $("#standby-msg").text msg
+          $("#standby-msg").text "Проверяю наличие действий…"
           pullActions () -> startCycle pcvm, !alternate
         $("#standby-msg").text "Запрещаю приём звонков через AVAYA…"
         # Avoid switching agent state when working without CTI
