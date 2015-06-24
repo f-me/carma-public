@@ -57,6 +57,10 @@ define [], () ->
         else
           false
 
+      # Return an unanswered incoming call if there's one
+      @incomingCall = () ->
+        _.find kvm.calls(), (c) -> c.canAnswer()
+
       # Pretty-print list of interlocutors
       interlocutorsToNumber = (interlocutors) ->
         _.map(interlocutors, internalToDisplayed).join("\n")

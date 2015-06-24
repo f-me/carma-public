@@ -42,6 +42,12 @@ define [ "model/main"
     fo = _.contains global.user.roles, global.idents("Role").call
     if fo
       actionsAfterCall = () ->
+        return unless onBackofficeScreen
+        # If there's an incoming call, postpone actions pulling until
+        # we leave the screen
+        if global.CTIPanel.incomingCall()?
+          setTimeout actionsAfterCall, 3000
+          return
         actuallyPull = () ->
           $("#standby-msg").text "Проверяю наличие действий…"
           pullActions () -> startCycle pcvm, !alternate
