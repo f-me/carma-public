@@ -56,6 +56,8 @@ messageInfo = [sql|
       'program_contact_info=' || sprog.smsContact,
       'service.times_expectedServiceStart='
         || coalesce(to_char(svc.times_expectedServiceStart, 'HH24:MI DD-MM-YYYY'), ''),
+      'service.dates_expectedServiceStart='
+        || coalesce(to_char(svc.times_expectedServiceStart, 'DD-MM-YYYY'), ''),
       'service.times_factServiceStart='
         || coalesce(to_char(svc.times_factServiceStart, 'HH24:MI DD-MM-YYYY'), '')
     from
