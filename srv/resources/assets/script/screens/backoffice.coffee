@@ -29,7 +29,8 @@ define [ "model/main"
     else
       $("#new-call-button").click () ->
         $("#new-call-button > button").attr("disabled", "disabled")
-        utils.createNewCall {callerPhone: ""}
+        if not global.CTIPanel?.answer()
+          utils.createNewCall()
 
     pci = global.idents('ProcessingConfig').main
     pcvm = Main.buildKVM global.model('ProcessingConfig'),
