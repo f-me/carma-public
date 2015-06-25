@@ -113,6 +113,7 @@ define ["dictionaries/local-dict"], (ld) ->
         , Rest:         ["Перерыв",           "#fcaf3e"]
         , Dinner:       ["Обед",              "#e9b96e"]
         , ServiceBreak: ["Служебный перерыв", "#729fcf"]
+        , NA:           ["NA",                "#72c6cf"]
         }
       @colors = _.reduce vals, ((m, [_, c], k) -> m[k] = c), {}
       @source = _.map vals, ([v, c], k) -> {label: v, value: k, color: c}

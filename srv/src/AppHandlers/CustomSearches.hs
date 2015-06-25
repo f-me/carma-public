@@ -93,7 +93,8 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
       clToRes "1" = PT "NOT"
       clToRes _   = PT ""
       actQ = [sql|
-     SELECT a.id::text, a.caseId::text, a.serviceId::text, s.type::text,
+     SELECT a.id::text, coalesce(a.caseId, calltbl.caseId)::text,
+           a.serviceId::text, s.type::text,
            a.type::text, a.assignedTo::text, a.targetGroup::text,
            (extract (epoch from a.duetime at time zone 'UTC')::int8)::text,
            (extract (epoch from a.ctime at time zone 'UTC')::int8)::text,
@@ -106,12 +107,11 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
              coalesce(s.times_expectedServiceStart, a.duetime)
               at time zone 'UTC')::int8)::text
      FROM
-       (actiontbl a LEFT JOIN servicetbl s
-         ON  s.id = a.serviceId),
-       casetbl c,
+       actiontbl a LEFT JOIN servicetbl s ON  s.id = a.serviceId
+                   LEFT JOIN casetbl c ON c.id = a.caseId
+                   LEFT JOIN calltbl ON calltbl.id = a.callId,
        "ActionType" at
-     WHERE c.id = a.caseId
-     AND at.id = a.type
+     WHERE at.id = a.type
      AND (? OR result IS ? NULL)
      AND (? OR a.assignedTo = ?)
      AND (? OR targetGroup IN ?)

@@ -2,9 +2,14 @@
 #main-content(style='text-align: center;')
   div
     #zardoz
-      #standby-msg(style='position: relative; \
+      div(style='position: relative; \
                           top: 50%;   \
                           left: 40%;  \
                           width: 20%; \
                           font-size: x-large;')
-        | Ожидайте новых действий
+        #standby-msg
+          | Ожидание
+        #new-call-button(style='margin-top: 1em')
+          button.btn.btn-success.btn-lg
+            i.glyphicon.glyphicon-new-window
+            | &nbsp;Новый звонок

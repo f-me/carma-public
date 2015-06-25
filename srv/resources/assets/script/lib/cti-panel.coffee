@@ -28,6 +28,7 @@ define [], () ->
         # local softphone)
         canMute: ko.observable false
         canUnmute: ko.observable false
+        lostConnection: ko.observable true
 
       # Initialize One-X Agent softphone connection (MUTE button
       # control)
@@ -56,12 +57,16 @@ define [], () ->
         else
           false
 
+      # Return an unanswered incoming call if there's one
+      @incomingCall = () ->
+        _.find kvm.calls(), (c) -> c.canAnswer()
+
       # Pretty-print list of interlocutors
       interlocutorsToNumber = (interlocutors) ->
         _.map(interlocutors, internalToDisplayed).join("\n")
 
-      # Update kvm from state reported by the service
-      stateToVM = (state) ->
+      # Update kvm from snapshot reported by the service
+      snapshotToVM = (snapshot) ->
         # VM for a call. If callId is null, return fresh VM for empty
         # CTI panel
         class CallVM
@@ -104,7 +109,7 @@ define [], () ->
 
             # canX are observable, because we want to hide buttons from
             # the panel even before the service reports new call
-            # state/event
+            # snapshot/event
             @canExtend  = ko.observable(
               call.answered? && call.direction?.dir == "Out" && !call.held)
             @canCall    = ko.observable !(callId?)
@@ -174,12 +179,17 @@ define [], () ->
             if @canAnswer()
               incomingCallCb call.interlocutors[0], call.direction?.vdn
 
-        newCalls = for callId, call of state.calls
-          new CallVM call, callId
+        # Order calls by start time
+        callIds = _.sortBy(
+            _.keys(snapshot.calls),
+            (k) -> new Date(snapshot.calls[k].start)
+            )
+        newCalls = for callId in callIds
+          new CallVM snapshot.calls[callId], callId
         # Hide call in progress if the server finally knows about it.
-        # state.calls contains only calls from the server, but kvm.calls
+        # snapshot.calls contains only calls from the server, but kvm.calls
         # always has an extra CallVM (blank line/call in progress)
-        if _.keys(state.calls).length == kvm.calls().length
+        if _.keys(snapshot.calls).length == kvm.calls().length
           kvm.wipCall = false
           kvm.showBlankCall false
         # Always add a "blank line"/"call in progress" for a new call
@@ -190,7 +200,7 @@ define [], () ->
 
         # Delete unknown extension digits
         for k in _.keys kvm.extensions
-          if !_.contains(_.keys(state.calls), k)
+          if !_.contains(_.keys(snapshot.calls), k)
             delete kvm.extensions[k]
 
         # Set links to "previous row" in every call
@@ -206,7 +216,7 @@ define [], () ->
 
       wsHandler = (msg) ->
         if msg.dmccEvent? && msg.dmccEvent.event == "FailedEvent"
-          failedCall = msg.newState.calls[msg.dmccEvent.callId]
+          failedCall = msg.newSnapshot.calls[msg.dmccEvent.callId]
           failedNumber = interlocutorsToNumber failedCall?.interlocutors
           errNotify "Не удалось соединиться с номером #{failedNumber}"
 
@@ -215,12 +225,19 @@ define [], () ->
           errNotify "Ошибка CTI: #{msg.errorText}"
 
         if msg.calls?
-          stateToVM msg
+          snapshotToVM msg
 
-        if msg.newState?
-          stateToVM msg.newState
+        if msg.newSnapshot?
+          snapshotToVM msg.newSnapshot
 
-      cti.subscribe wsHandler
+      cti.ws.onmessage = (raw) -> wsHandler JSON.parse raw.data
+      cti.ws.onclose = () ->
+        kvm.lostConnection true
+        console.log "CTI connection lost"
+        alert "Отсутствует соединение с AVAYA, пробуем переподключиться…"
+      cti.ws.onopen = () ->
+        kvm.lostConnection false
+        console.log "CTI connection established"
 
       el.show()
       ko.applyBindings kvm, el[0]

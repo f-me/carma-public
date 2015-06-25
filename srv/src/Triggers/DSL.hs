@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE StandaloneDeriving, DeriveDataTypeable #-}
 
@@ -34,6 +35,7 @@ module Triggers.DSL
     , dbRead
     , dbUpdate
     , caseActions
+    , callActionIds
 
       -- ** Miscellaneous
     , userIsReady
@@ -74,9 +76,10 @@ import Snaplet.Auth.PGUsers
 import WeatherApi (Weather, getWeather')
 
 import Application (AppHandler, weatherCfg)
-import           Database.PostgreSQL.Simple ((:.) (..))
+
 import qualified Database.PostgreSQL.Simple as PG
-import qualified Snap.Snaplet.PostgresqlSimple as PS
+import           Database.PostgreSQL.Simple.SqlQQ.Alt
+import           Snap.Snaplet.PostgresqlSimple as PS
 
 
 import Data.Model as Model
@@ -90,6 +93,7 @@ import Snaplet.Messenger.Class (withMsg)
 import Utils.LegacyModel (mkLegacyIdent)
 
 import qualified Carma.Model.Action as Action
+import qualified Carma.Model.Call   as Call
 import Carma.Model.Case        (Case)
 import Carma.Model.Event       (Event, EventType)
 import Carma.Model.Usermeta    (Usermeta)
@@ -98,6 +102,8 @@ import Carma.Model.LegacyTypes (Password(..))
 
 import qualified AppHandlers.Users as Users
 import qualified Utils.Events as Evt (logCRUDState)
+
+import Util (fieldPT, tableQT)
 
 type TriggerRes m = Either (Int,String) (Patch m)
 
@@ -194,16 +200,32 @@ inParentContext act = do
   setState $ st {st_patch = patch'}
 
 
--- | List of actions in a case, ordered by 'Action.closeTime' and
--- 'Action.ctime' in descending order (latest come first).
+-- | List of actions in a case and all calls for this case, ordered by
+-- 'Action.closeTime' and 'Action.ctime' in descending order (latest
+-- come first).
 caseActions :: IdentI Case
             -> Free (Dsl m) [Object Action.Action]
 caseActions cid =
+  doApp $
+  PS.liftPG $
+  \conn ->
+    uncurry (PG.query conn)
+    [sql|SELECT * FROM $(tableQT Action.ident)$ WHERE
+     $(fieldPT Action.caseId)$ = $(cid)$ OR
+     $(fieldPT Action.callId)$ IN (
+       SELECT $(fieldPT Call.ident)$ FROM $(tableQT Call.ident)$
+       WHERE $(fieldPT Call.caseId)$ = $(cid)$)
+     ORDER BY $(fieldPT Action.closeTime)$ DESC, $(fieldPT Action.ctime)$ DESC;
+    |]
+
+
+callActionIds :: IdentI Call.Call
+              -> Free (Dsl m) [IdentI Action.Action]
+callActionIds cid =
   liftFree $
-  DbIO (Sql.select (Sql.fullPatch Action.ident :.
-                    Action.caseId `Sql.eq` cid :.
-                    Sql.descBy Action.closeTime :.
-                    Sql.descBy Action.ctime)) (map (\(x :. ()) -> x))
+  DbIO (Sql.select (Action.ident :.
+                    Action.callId `Sql.eq` (Just cid))) $
+  map (\(PS.Only x :. ()) -> x)
 
 
 getCityWeather :: Text -> Free (Dsl m) (Either String Weather)

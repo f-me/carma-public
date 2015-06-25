@@ -82,7 +82,11 @@ define [ "utils"
     # History pane
     setupHistory = (kvm) ->
       historyDatetimeFormat = "dd.MM.yyyy HH:mm:ss"
+
       refreshHistory = ->
+        filterVal = kvm['historyFilter']()
+        matchesFilter = (s) ->
+          _.isEmpty(filterVal) || (new RegExp(filterVal, "i")).test(s)
         $.getJSON "/caseHistory/#{kvm.id()}", (res) ->
           kvm['historyItems'].removeAll()
 
@@ -103,13 +107,15 @@ define [ "utils"
                   utils.palette.length]
               else
                 null)
-            kvm['historyItems'].push
-              datetime: new Date(i[0]).toString historyDatetimeFormat
-              who: i[1]
-              json: json
-              color: color
+            if matchesFilter(i[1]) || _.any(_.values(json), matchesFilter)
+                 kvm['historyItems'].push
+                   datetime: new Date(i[0]).toString historyDatetimeFormat
+                   who: i[1]
+                   json: json
+                   color: color
       kvm['refreshHistory'] = refreshHistory
       kvm['contact_phone1']?.subscribe refreshHistory
+      kvm['historyFilter'].subscribe _.debounce(refreshHistory, 500)
 
     # Case comments/chat
     setupCommentsHandler = (kvm) ->

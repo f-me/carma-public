@@ -16,6 +16,7 @@ module AppHandlers.ActionAssignment
 where
 
 import Control.Applicative hiding (some)
+import Control.Lens (_1, view)
 import Control.Monad
 import Data.Aeson as A
 import Data.Maybe
@@ -45,7 +46,7 @@ leastPriority :: Int
 leastPriority = 5
 
 
--- | Assign a single action to a user, yield action id and case id.
+-- | Assign a single action to a user, yield action id, case id and call id.
 --
 -- 5 parameters: usermeta ident (3), action priority class, order
 -- action types (as array for IN clause)
@@ -87,7 +88,7 @@ assignQ = [sql|
               AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,
             act.duetime ASC
           LIMIT 1)
-        RETURNING id, caseId;
+        RETURNING id, caseId, callId;
     |]
 
 
@@ -103,10 +104,11 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
       Ident uid' = uid
 
   -- Actions already assigned to the user
-  oldActions <- map (\(Only i :. Only caseId :. ()) -> (i, caseId)) <$>
+  oldActions <- map (\(Only i :. Only caseId :. Only callId :. ()) ->
+                       (i, caseId, callId)) <$>
                 (liftPG $
                  Sql.select $
-                 Action.ident :. Action.caseId :.
+                 Action.ident :. Action.caseId :. Action.callId :.
                  Action.assignedTo `eq` Just uid :.
                  isNull Action.result)
 
@@ -144,10 +146,14 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
       unless (null newActions) $
         syslogJSON Info "littleMoreActions"
         [ "user" .= show uid'
-        , "newActions" .= map fst newActions
+        , "newActions" .= map (view _1) newActions
         ]
 
       return newActions
 
-  writeJSON $ map (\(aid, caseId) ->
-                     A.object ["id" .= aid, "caseId" .= caseId]) actions
+  writeJSON $
+    map (\(aid, caseId, callId) ->
+           A.object [ "id" .= aid
+                    , "caseId" .= caseId
+                    , "callId" .= callId])
+    actions

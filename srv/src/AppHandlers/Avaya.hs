@@ -1,29 +1,38 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-|
 
-Avaya snaplet provides interface with @dmcc-ws@ via hooks and
-WebSocket connections.
+AVAYA integration.
+
+Interface with @dmcc-ws@ server via hooks and WebSocket connections.
 
 - WebSocket proxy (@\/ws\/:ext@) binds used Avaya extensions to CaRMa
 user id's;
 
-- hooks allow DMCC to push information directly to CaRMa.
+- hooks allow DMCC to push information directly to CaRMa (such as
+agent state changes and Avaya event history).
 
 -}
 
-module Snaplet.Avaya
-    ( Avaya
-    , avayaInit
+module AppHandlers.Avaya
+    ( dmccWsProxy
+    , dmccHook
+
+      -- * AVAYA state control
+    , avayaToAfterCall
+    , avayaToReady
+    , setAgentState
     )
 
 where
 
 import           Control.Concurrent
 import           Control.Concurrent.STM
-import           Control.Exception (finally)
+import           Control.Exception (catches, handle, IOException)
+import qualified Control.Exception as E (Handler(..))
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.Functor
@@ -32,11 +41,10 @@ import           Data.Maybe
 import           Data.Aeson
 import           Data.ByteString as BS
 import           Data.CaseInsensitive (original)
-import           Data.Configurator as Cfg
 import qualified Data.Map as Map
 import           Data.Text as Text
 import           Data.Time.Clock
-import           Data.Vector (fromList)
+import           Data.Vector (elem, fromList)
 
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
@@ -45,8 +53,8 @@ import           Network.WebSockets
 import           Network.WebSockets.Snap
 
 import           Snap hiding (dir)
-import           Snap.Snaplet.Auth
 import           Snap.Snaplet.PostgresqlSimple hiding (query)
+
 
 import           DMCC
 import           DMCC.WebHook
@@ -59,55 +67,59 @@ import qualified Carma.Model.Action as Action
 import           Carma.Model.AvayaEvent as AE
 import           Carma.Model.AvayaEventType as AET
 import           Carma.Model.Event as Event
-import           Carma.Model.Usermeta
+import           Carma.Model.Role as Role (cti)
+import           Carma.Model.Usermeta as Usermeta
 import           Carma.Model.UserState as UserState
+
+import           Application
 
 import           AppHandlers.Util
 import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers
 import           Util
+import           Utils.Events
 
 
-data Avaya b = Avaya
-    { auth       :: SnapletLens b (AuthManager b)
-    , db         :: SnapletLens b Postgres
-    , dmccWsHost :: Maybe Text
-    , dmccWsPort :: Int
-    , extMap     :: TVar (Map.Map Extension (IdentI Usermeta))
-    }
-
-
-instance HasPostgresAuth b (Avaya b) where
-  withAuth = withLens auth
-  withAuthPg = withLens db
-
-
-routes :: HasPostgresAuth b (Avaya b) =>
-          [(ByteString, Handler b (Avaya b) ())]
-routes = [ ("/ws/:ext", method GET avayaWsProxy)
-         , ("/hook/", method POST hook)
-         ]
+-- | Check if a user has access to CTI.
+isCtiUser :: Patch.Patch Usermeta -> Bool
+isCtiUser um =
+  Role.cti `Data.Vector.elem` roles
+  where
+    roles = fromMaybe (error "No roles in usermeta") $
+            um `Patch.get` Usermeta.roles
 
 
 -- | Proxy requests to/from dmcc-ws Web Socket, updating 'extMap'.
-avayaWsProxy :: HasPostgresAuth b (Avaya b) => Handler b (Avaya b) ()
-avayaWsProxy= do
+dmccWsProxy :: AppHandler ()
+dmccWsProxy = do
   ext <- fromMaybe (error "No extension specified") <$> getIntParam "ext"
   eMap <- gets extMap
-  -- TODO: Check Role.cti and extension
-  uid <- fromMaybe (error "No user") <$> currentUserMetaId
+  um <- fromMaybe (error "No user") <$> currentUserMeta
+  let reqMeta = fromMaybe (error "Bad meta")
+      uid   = reqMeta $ um `Patch.get` Usermeta.ident
+      uext  = reqMeta $ um `Patch.get` Usermeta.workPhoneSuffix
+  when ((Text.pack $ show ext) /= uext) $
+    error "Requested extension does not match that of the user"
+  when (not $ isCtiUser um) $ error "No CTI access role"
   avayaConn <- liftIO newEmptyTMVarIO
-  dmccWsHost' <- gets dmccWsHost
-  dmccWsPort' <- gets dmccWsPort
+  dmccWsHost' <- gets (dmccWsHost . options)
+  dmccWsPort' <- gets (dmccWsPort . options)
   let dmccWsHost'' = Text.unpack $ fromMaybe "localhost" dmccWsHost'
       -- Client <-> CaRMa
       serverApp pending = do
         conn <- acceptRequest pending
         srvThread <- forkIO $ do
           avayaConn' <- liftIO $ atomically $ takeTMVar avayaConn
-          forever $ receive conn >>= send avayaConn'
-        flip finally (killThread srvThread) $
-          runClient dmccWsHost'' dmccWsPort' ("/" ++ show ext) (proxyApp conn)
+          handle (\(_ :: ConnectionException) ->
+                    sendClose avayaConn' ("carma disconnected" :: ByteString)) $
+            forever $ receive conn >>= send avayaConn'
+        let killServer = killThread srvThread
+        runClient dmccWsHost'' dmccWsPort' ("/" ++ show ext) (proxyApp conn)
+          `catches`
+          [ E.Handler $ \(_ :: ConnectionException) -> killServer
+          , E.Handler $ \(_ :: IOException) -> killServer
+          ]
+
       -- CaRMa <-> dmcc-ws
       proxyApp serverConn conn = do
         liftIO $ atomically $ do
@@ -122,13 +134,23 @@ avayaWsProxy= do
   runWebSocketsSnap serverApp
 
 
--- | For every appropriate webhook call from dmcc-ws, create new
+-- | For every appropriate webhook call from dmcc library, create new
 -- AvayaEvent if the user mentioned in the webhook is busy with an
 -- action.
-hook :: Handler b (Avaya b) ()
-hook = do
+dmccHook :: AppHandler ()
+dmccHook = do
   rsb <- readRequestBody 4096
   eMap <- gets extMap
+  let -- Handle hook data for an agent if it's present in the
+      -- extension-uid mapping
+      handleWith :: Extension
+                 -> (IdentI Usermeta -> AppHandler ())
+                 -> AppHandler ()
+      handleWith ext hdl = do
+        am <- liftIO $ readTVarIO eMap
+        case Map.lookup ext am of
+          Nothing -> error $ "Hook data from unknown agent " ++ show rsb
+          Just uid -> hdl uid
   now <- liftIO getCurrentTime
   case decode rsb of
     Nothing -> error $ "Could not read hook data " ++ show rsb
@@ -136,11 +158,16 @@ hook = do
     -- anyways)
     Just (WHEvent _                  (RequestError _)) ->
       return ()
-    Just (WHEvent (AgentId (_, ext)) (TelephonyEvent ev st)) -> do
-      am <- liftIO $ readTVarIO eMap
-      case Map.lookup ext am of
-        Nothing -> error $ "Hook data from unknown agent " ++ show rsb
-        Just uid ->
+    Just (WHEvent (AgentId (_, ext)) (StateChange sn)) ->
+      handleWith ext $ \uid ->
+      case _state sn of
+        -- Automatic NotReady state (caused by an unanswered call or
+        -- operator login) has empty reason code
+        (Just (Settable DMCC.NotReady), "") -> switchToNA uid
+        (Just (Settable DMCC.Ready), _) -> switchToReady uid
+        _ -> return ()
+    Just (WHEvent (AgentId (_, ext)) (TelephonyEvent ev st)) ->
+      handleWith ext $ \uid -> do
           let
             -- Map hook data to AvayaEventType dictionary and other
             -- AvayaEvent fields, decide if we need to write anything
@@ -185,7 +212,7 @@ hook = do
                         Nothing -> (cidt, [])
                   in do
                     (userState, model, actionId) <- userStateAction uid
-                    when (userState == Busy &&
+                    when (userState == UserState.Busy &&
                           model == Data.Model.modelName
                           (modelInfo :: ModelInfo Action.Action)) $
                       void $ withAuthPg $ liftPG $ Patch.create $
@@ -200,7 +227,7 @@ hook = do
 
 -- | Return last state and corresponding model name/id for a user.
 userStateAction :: IdentI Usermeta
-                -> Handler b (Avaya b) (UserStateVal, Text, Int)
+                -> AppHandler (UserStateVal, Text, Int)
 userStateAction uid = do
   res <- withAuthPg $ liftPG $
     \c -> uncurry (query c)
@@ -223,15 +250,37 @@ userStateAction uid = do
     _     -> error $ "No state for user " ++ show uid
 
 
-avayaInit :: HasPostgresAuth b (Avaya b) =>
-             SnapletLens b (AuthManager b)
-          -> SnapletLens b Postgres
-          -> SnapletInit b (Avaya b)
-avayaInit a p = makeSnaplet "avaya" "AVAYA" Nothing $ do
-  addRoutes routes
-  cfg <- getSnapletUserConfig
-  liftIO $
-    Avaya a p
-    <$> Cfg.lookup cfg "dmcc-ws-host"
-    <*> Cfg.require cfg "dmcc-ws-port"
-    <*> newTVarIO Map.empty
+-- | Switch current user to AfterCall agent state.
+avayaToAfterCall :: AppHandler()
+avayaToAfterCall =
+  (fromMaybe (error "No user") <$> currentUserMeta) >>=
+  setAgentState DMCC.AfterCall
+
+
+-- | Switch current user to Ready agent state.
+avayaToReady :: AppHandler()
+avayaToReady =
+  (fromMaybe (error "No user") <$> currentUserMeta) >>=
+  setAgentState DMCC.Ready
+
+
+-- | Send an agent state change request for a user, if
+-- CTI is enabled for her.
+setAgentState :: SettableAgentState
+              -> Patch.Patch Usermeta
+              -> AppHandler ()
+setAgentState as um = do
+  when (isCtiUser um) $ do
+    dmccWsHost' <- gets (dmccWsHost . options)
+    dmccWsPort' <- gets (dmccWsPort . options)
+
+    let dmccWsHost'' = Text.unpack $ fromMaybe "localhost" dmccWsHost'
+        ext = fromMaybe (error "Bad meta") $
+              um `Patch.get` Usermeta.workPhoneSuffix
+        miniApp conn =
+          send conn (DataMessage $ Text $ encode (SetState as)) >>
+          sendClose conn ("carma disconnected" :: ByteString) >>
+          (void $ (receiveData conn :: IO ByteString))
+
+    liftIO $ void $ forkIO $
+      runClient dmccWsHost'' dmccWsPort' ("/" ++ Text.unpack ext) miniApp

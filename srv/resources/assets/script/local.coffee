@@ -8,6 +8,7 @@ require [ "domready"
         , "json!/_whoami"
         , "json!/_/Usermeta"
         , "utils"
+        , "sync/crud"
         , "sendSms"
         , "liveMenu"
         , "lib/bug-report"
@@ -24,6 +25,7 @@ require [ "domready"
            , user
            , users
            , u
+           , sync
            , sendSms
            , liveMenu
            , bug
@@ -85,14 +87,7 @@ require [ "domready"
 
     # disable everytnig websocket-related for portal
     if not window.location.origin.match(/portal\.ruamc\.ru/)
-      # Legacy CTI panel
-      avayaCred = document.cookie.match /avaya=([^;]*)/
-      if avayaCred?[1]
-        extPwd = unescape(avayaCred[1]).match /(.*)\|(.*)/
-        if extPwd
-          global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
-
-      # New CTI panel
+      # Setup CTI panel
       if _.contains user.roles, global.idents("Role").cti
         if user.workPhoneSuffix.match(/^\d+$/)
           cti = new CTI user.workPhoneSuffix
@@ -116,18 +111,20 @@ require [ "domready"
             # Fill caller phone and program when answering a call on
             # call screen
             answerCallCb: (number, vdnNumber) ->
-              callVM = global.viewsWare['call-view']?.knockVM
-              if callVM?
-                $("#make-new-call").trigger "newCall"
-                vdnNumber = vdnNumber?.split(":")[0]
-                vdn = vdns.getElement(vdns.getVal(vdnNumber))
-                number = u.internalToDisplayed number
-                if not callVM.callerPhone?()
-                  callVM.callerPhone? number
-                if vdn? && not callVM.program?()
-                  callVM.program? vdn.program
-                localStorage["call.search-query"] = "!Тел:" + number
-                $("#search-query").val("!Тел:" + number).change()
+              if _.contains global.user.roles, global.idents("Role").call
+                if number.length > 5
+                  number = u.internalToDisplayed number
+                  vdnNumber = vdnNumber?.split(":")[0]
+                  vdn = vdns.getElement(vdns.getVal(vdnNumber))
+                  callData = {}
+                  if number?
+                    callData.callerPhone = number
+                  else
+                    callData.callerPhone = ""
+                  if vdn?.program
+                    callData.program = vdn.program
+                  u.createNewCall callData
+                  localStorage["call.search-query"] = "!Тел:" + number
             incomingCallCb: -> $("#cti").show()
           global.CTIPanel = new CTIPanel cti, $("#cti"), opts
           Mousetrap.bind ["`", "ё"], () ->
@@ -152,7 +149,6 @@ require [ "domready"
       CurrentUser.initialize()
 
     # render menu only after everything else in menu bar is done
-    # FIXME: but we can't be sure that AVAYA widget is initialised
     liveMenu.setup(document.getElementById 'nav')
 
     # file field selection (currenlty only on vin screen)

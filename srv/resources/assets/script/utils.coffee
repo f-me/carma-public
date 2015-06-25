@@ -1,8 +1,9 @@
 define [ "model/main"
        , "model/utils"
+       , "routes"
        , "dictionaries"
        , "sync/crud"
-       , "text!tpl/fields/form.html"], (main, mu, d, sync, Ftpls) ->
+       , "text!tpl/fields/form.html"], (main, mu, Finch, d, sync, Ftpls) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -299,7 +300,6 @@ define [ "model/main"
           return unless kvm
           number = kvm[fieldName]?()
           ctiDial number
-          global.avayaPhone && global.avayaPhone.call(number)
         # Set a field to a new randomly generated password
         passwordPicker   : (fieldName, el) ->
           viewName = mu.elementView($(el)).id
@@ -441,13 +441,29 @@ define [ "model/main"
       dict: name
       meta: meta
 
-  # Pretty-print ugly DeviceId from AVAYA
-  displayedToInternal: (number) ->
-    number.replace("+7", "98").replace("+", "9810")
-
   # Convert pretty number to DeviceId for AVAYA
+  displayedToInternal: (number) ->
+    number.
+      replace(/[^\+0-9]/g, "").
+      replace(/^8/, "98").
+      replace(/^\+7/, "98").
+      replace(/^\+/, "9810").
+      replace(/\+/, "")
+
+  # Pretty-print ugly DeviceId from AVAYA
   internalToDisplayed: (number) ->
-    number?.match(/\d+/)?[0]?.replace(/^(98|8|)(\d{10})$/, "\+7$2")
+    number?.match(/\d+/)?[0]?.
+      replace(/^(98|8|)(\d{10})$/, "\+7$2").
+      replace(/^9810/, "+")
+
+  createNewCall: (callData) ->
+    $.notify "Создаём новый звонок…", {className: 'info'}
+    cvm = main.buildKVM global.model('Call'),
+      {fetched: callData, queue: sync.CrudQueue}
+    # Force saving
+    cvm._meta.q.save null, true
+    cvm.id.subscribe (id) ->
+      Finch.navigate "call/#{cvm.id()}"
 
   # subset of d3.scale.category20 with dark colors removed
   palette:

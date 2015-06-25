@@ -21,16 +21,6 @@ html
       if (!$.browser.mozilla && !$.browser.webkit) {
       $("body").html(msg);
       }
-      $("form").submit(function() {
-      var ext = $("input[name=avayaExt]")
-      var pwd = $("input[name=avayaPwd]")
-      document.cookie
-      = "avaya=" + escape(ext.val() + "|" + pwd.val())
-      + "; path=/;"
-      ext.val('')
-      pwd.val('')
-      return true
-      })
       })
   body
     .row
@@ -49,13 +39,6 @@ html
               label.control-label.col-sm-4 Пароль
               .col-sm-8
                 input.field.form-control(type='password', name='password')
-            .form-group
-              label.control-label.col-sm-4 Avaya
-              .col-sm-8
-                .input-group
-                  input.field.form-control.input-sm(type='text', name='avayaExt')
-                  span.input-group-addon -
-                  input.field.form-control.input-sm(type='text', name='avayaPwd')
             .form-group
               .col-sm-offset-4.col.sm-8
                 .checkbox

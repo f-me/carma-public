@@ -1,4 +1,4 @@
-CREATE TYPE "EventType" AS ENUM ('Login', 'Logout', 'Create', 'Update');
+CREATE TYPE "EventType" AS ENUM ('Login', 'Logout', 'Create', 'Update', 'AvayaNA');
 
 CREATE TABLE "Event"
   ( id        SERIAL PRIMARY KEY

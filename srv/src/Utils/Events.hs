@@ -6,6 +6,9 @@ module Utils.Events
     , updateUserState
     , logLogin
     , logCRUDState
+
+    , switchToNA
+    , switchToReady
     )
 
 where
@@ -52,11 +55,14 @@ import           Carma.Model.Usermeta  (Usermeta(..))
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.Call   as Call
 
+import qualified DMCC (SettableAgentState(..))
+
 import           Snaplet.Search.Types (mkSel)
 import           Snaplet.Messenger
 import           Snaplet.Messenger.Class
 
 import           Application
+import {-# SOURCE #-} AppHandlers.Avaya
 import           AppHandlers.KPI (updateOperKPI)
 
 import           Utils.LegacyModel
@@ -135,6 +141,20 @@ updateUserState evt idt p evidt = do
            P.empty)
         kpis <- updateOperKPI (singleton tgtUsr')
         withMsg $ sendMessage "oper-kpi" kpis
+      -- Probably push new state to Avaya
+      let avayaState = case s of
+                         Just Ready        -> Just DMCC.Ready
+                         Just Rest         -> Just DMCC.AfterCall
+                         Just Busy         -> Just DMCC.AfterCall
+                         Just Dinner       -> Just DMCC.AfterCall
+                         Just ServiceBreak -> Just DMCC.AfterCall
+                         Just LoggedOut    -> Just DMCC.Logout
+                         _                 -> Nothing
+      case avayaState of
+        Just as -> do
+          Right um <- with db $ liftPG $ \c -> P.read tgtUsr' c
+          setAgentState as um
+        Nothing -> return ()
   where
     mname = modelName (modelInfo :: ModelInfo m)
 
@@ -241,16 +261,19 @@ nextState :: UserStateVal
 nextState lastState delayed evt mname fld =
   execUserStateEnv (UserStateEnv lastState delayed evt mname fld) $ do
     change ([Busy] >>> Ready) $
+      -- TODO Remove redundant Call.endDate clause here as a call
+      -- action is always closed when an associated call is closed
       on Update $ Fields [field Call.endDate, field Action.result]
     change ([Ready] >>> Busy) $ do
-      on Create $ Models [model Call.ident]
       on Update $ Fields [field Action.openTime]
     change ([LoggedOut] >>> Ready)     $ on Login  NoModel
     change (allStates   >>> LoggedOut) $ on Logout NoModel
+    change (allStates   >>> NA)        $ on AvayaNA NoModel
+    change ([NA]        >>> Ready)     $ on AvayaReady NoModel
     case delayed of
-      Nothing     -> change ([ServiceBreak] >>> Ready) $
+      Nothing     -> change ([ServiceBreak, NA] >>> Ready) $
         on Update $ Fields [field delayedState]
-      Just Ready  -> change ([Rest, Dinner, ServiceBreak] >>> Ready) $
+      Just Ready  -> change ([Rest, Dinner, ServiceBreak, NA] >>> Ready) $
         on Update $ Fields [field delayedState]
       Just dState -> change ([Ready, Rest, Dinner] >>> dState) $
         on Update $ Fields [field delayedState]
@@ -311,3 +334,16 @@ addIdent idt p =
 
 setUsr :: Maybe (IdentI Usermeta) -> Patch Event -> Patch Event
 setUsr usr p = P.put E.userid usr p
+
+
+-- | Used when a user is put to NA state by AVAYA.
+switchToNA uid = do
+  ev <- log $ addIdent uid $ buildEmpty AvayaNA
+  updateUserState AvayaNA uid P.empty ev
+
+
+-- | Used when a user manually switches his softphone state.
+switchToReady :: IdentI Usermeta -> AppHandler ()
+switchToReady uid = do
+  ev <- log $ addIdent uid $ buildEmpty AvayaReady
+  updateUserState AvayaReady uid P.empty ev

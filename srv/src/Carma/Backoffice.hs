@@ -46,6 +46,8 @@ toBack =
     (closePrevious InCase
      [AType.tellMeMore, AType.callMeMaybe]
      AResult.communicated *>
+     when (userField Usermeta.isJack)
+     (closePrevious InCase [AType.call] AResult.callEnded) *>
      switch
      [ ( serviceField svcType `oneOf` [ST.towage, ST.tech]
        , sendSMS SMS.create *> messageToGenser *> proceed [AType.orderService]

@@ -34,6 +34,28 @@ FROM (
         row.userId,
         row_to_json(row)
     FROM (
+        SELECT calltbl.caseId AS caseId,
+            actiontbl.closeTime AS datetime,
+            actiontbl.assignedTo AS userId,
+            "ActionType".label AS actionType,
+            "ActionResult".label AS actionResult,
+            actiontbl.comment AS actionComment
+        FROM "ActionResult",
+            "ActionType",
+            actiontbl,
+            calltbl
+        WHERE actiontbl.type = "ActionType".id
+            AND actiontbl.result = "ActionResult".id
+            AND actiontbl.callId = calltbl.id
+        ) row
+
+    UNION ALL
+
+    SELECT row.caseId,
+        row.datetime,
+        row.userId,
+        row_to_json(row)
+    FROM (
         SELECT casetbl.id AS caseId,
             calltbl.callDate AS datetime,
             calltbl.callTaker AS userId,
@@ -42,6 +64,7 @@ FROM (
             casetbl,
             "CallType"
         WHERE casetbl.contact_phone1 = calltbl.callerPhone
+            AND calltbl.callerPhone <> ''
             AND calltbl.callType = "CallType".id
         ) row
 
@@ -97,6 +120,28 @@ FROM (
             actiontbl
         WHERE "AvayaEvent".currentAction = actiontbl.id
             AND "AvayaEventType".id = "AvayaEvent".etype
+        ) row
+
+    UNION ALL
+
+    SELECT row.caseId,
+        row.datetime,
+        row.userId,
+        row_to_json(row)
+    FROM (
+        SELECT calltbl.caseId AS caseId,
+            "AvayaEvent".ctime AS datetime,
+            "AvayaEvent".operator AS userId,
+            "AvayaEventType".label AS aeType,
+            "AvayaEvent".interlocutors AS aeInterlocutors,
+            "AvayaEvent".callId AS aeCall
+        FROM "AvayaEvent",
+            "AvayaEventType",
+            actiontbl,
+            calltbl
+        WHERE "AvayaEvent".currentAction = actiontbl.id
+            AND "AvayaEventType".id = "AvayaEvent".etype
+            AND actiontbl.callId = calltbl.id
         ) row
     ) united,
     usermetatbl

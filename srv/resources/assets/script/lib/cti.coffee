@@ -1,4 +1,4 @@
-define [], () ->
+define ["lib/ws"], (WS) ->
   # CTI core
   class CTI
     constructor: (@extension) ->
@@ -9,21 +9,15 @@ define [], () ->
       else
         url = "ws://#{location.host}/avaya/ws/#{extension}"
 
-      # List of WS message subscribers
-      @subscribers = []
-
-      @ws = new WebSocket(url)
-      @ws.onmessage = (raw) =>
-        msg = JSON.parse raw.data
-        _.each @subscribers, (h) -> h msg
-
-    subscribe: (handler) ->
-      @subscribers.push handler
+      @ws = new WS(url)
 
     makeCall: (number) ->
-      @ws.send JSON.stringify
+      rq =
         action: "MakeCall"
-        number: parseInt number
+        number: 0
+      # Avoid using parseInt because Number.MAX_SAFE_INTEGER may be
+      # less than what we need
+      @ws.send JSON.stringify(rq).replace("0", number)
 
     endCall: (callId) ->
       @ws.send JSON.stringify

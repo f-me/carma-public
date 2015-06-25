@@ -10,25 +10,6 @@ define [ "utils"
   storeKey = "call"
 
   setupCallForm = (viewName, args) ->
-
-    # change z-index, so menu wil be shown even with active modal
-    $("#new-call-modal").on "shown.bs.modal", ->
-      $(".modal-backdrop").css "z-index", 1029
-    $("#new-call-modal").on "hide.bs.modal", ->
-      $(".modal-backdrop").css "z-index", "1040"
-
-    # Answer an incoming call if we have CTI. 'newCall' handler is
-    # installed to avoid circular handler call from CTI's answerCallCb
-    $("#make-new-call").on 'newCall', -> makeCallClick viewName
-    $("#make-new-call").on 'click', ->
-      if not global.CTIPanel?.answer()
-        $("#make-new-call").trigger 'newCall'
-
-    # if user have unfinished call redirect him to close it
-    unfinished = localStorage["#{storeKey}.id"]
-    if unfinished and args.id isnt unfinished
-        return Finch.navigate "call/#{unfinished}"
-
     knockVM = main.modelSetup("Call") viewName, args,
                        permEl      : "case-permissions"
                        slotsee     : ["call-number", "center"]
@@ -120,12 +101,10 @@ define [ "utils"
           if _.isNull knockVM.endDate()
             knockVM.endDate(new Date().toString("dd.MM.yyyy HH:mm:ss"))
 
-          localStorage.removeItem "#{storeKey}.id"
-
           knockVM._meta.q.save ->
             # check if we have id in url, then goto call; else just reload
             if location.hash.match(/[0-9]+$/)
-            then Finch.navigate 'call'
+            then Finch.navigate 'back'
             else reloadScreen()
         avail: ko.computed ->
           _.all _.map knockVM._meta.model.fields, (f) ->
@@ -176,10 +155,6 @@ define [ "utils"
     dtSearch st
     hotkeys.setup()
 
-    # this will prevent modal from hiding on click behind modal borders
-    $("#new-call-modal").modal { backdrop: 'static', show: false }
-    setModalVisible not args.id?
-
     searchQuery = localStorage["#{storeKey}.search-query"]
     if searchQuery
       $("#search-query").val(searchQuery)
@@ -210,26 +185,6 @@ define [ "utils"
     q = q.replace '+', ''
     url = if q.length == 0 then "/latestCases" else "/searchCases?q=#{q}"
     $.getJSON url, (objs) -> fillTable st, objs
-
-  makeCallClick = (viewName) ->
-    cb = ->
-      hideModal()
-      kvm = global.viewsWare[viewName].knockVM
-      localStorage["#{storeKey}.id"] = kvm.id()
-    saveInstance viewName, cb, true
-
-
-  setModalVisible = (visible) ->
-    if visible then showModal() else hideModal()
-
-  showModal = ->
-    $("#new-call-modal").show().removeClass("out").addClass("in")
-    $("#call-screen").css('visibility', 'hidden')
-
-  hideModal = ->
-    $("#new-call-modal").hide().removeClass("in").addClass("out")
-    $("#call-screen").css('visibility', 'visible')
-
 
   { constructor: setupCallForm
   , template: tpl

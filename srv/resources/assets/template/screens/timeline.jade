@@ -51,6 +51,7 @@ mixin rows(columns)
                       , { name: 'boprograms',   tpl: 'dictionary-many-table',w: 20 }
                       , { name: 'currentState', tpl: 'dictionary-ro'        ,w: 10 }
                       , { name: 'delayedState', tpl: 'onlyServiceBreak-table',w: 5}
+                      , { name: 'delayedState', tpl: 'onlyNA-table',w: 5}
                       ])
   // ko foreach: timelines
   #timelines(data-bind="attr: {id: elementId}")

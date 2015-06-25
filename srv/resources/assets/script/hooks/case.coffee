@@ -23,6 +23,7 @@ define [ "utils"
                          (parseInt knockVM['subprogram']?())
 
   caseHistory: (model, kvm) ->
+    kvm['historyFilter'] = ko.observable()
     kvm['historyItems'] = ko.observableArray()
 
   # Display daily service stats in central pane when `city` field of
