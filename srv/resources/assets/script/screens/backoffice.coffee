@@ -28,7 +28,7 @@ define [ "model/main"
       $("#new-call-button").hide()
     else
       $("#new-call-button").click () ->
-        $("#new-call-button > button").attr("disabled", "disabled")
+        $("#new-call-button > button").hide()
         if not global.CTIPanel?.answer()
           utils.createNewCall()
 
