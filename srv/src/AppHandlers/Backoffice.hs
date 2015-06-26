@@ -216,7 +216,7 @@ myActions = do
            Sql.select
            (Action.ident :. Action.caseId :. Action.callId :.
             Action.assignedTo `Sql.eq` uid :.
-            Sql.isNull Action.result)
+            Sql.isNull Action.result :. Sql.ascBy Action.duetime)
            conn
   writeJSON $ map (\(Only aid :. Only caseId :. Only callId :. ()) ->
                      Map.fromList [ ("id" :: Text, A.toJSON aid)
