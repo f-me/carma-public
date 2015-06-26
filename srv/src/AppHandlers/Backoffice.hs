@@ -8,6 +8,7 @@ module AppHandlers.Backoffice
       -- * Back office operation
       openAction
     , dueCaseActions
+    , myActions
 
       -- * Back office analysis
     , allActionResults
@@ -19,6 +20,7 @@ where
 
 import           Control.Exception
 import           Control.Monad.Trans.Except
+import qualified Data.Aeson                  as A
 import           Data.Attoparsec.Text
 import qualified Data.HashMap.Strict         as HM
 import qualified Data.Map                    as Map
@@ -203,3 +205,21 @@ dueCaseActions = do
             Sql.ascBy Action.ident :. Sql.descBy Action.closeTime)
            conn
   writeJSON $ map (\(Only aid :. ()) -> aid) res
+
+
+-- | Serve list of open actions currently assigned to the user.
+myActions :: AppHandler ()
+myActions = do
+  uid <- currentUserMetaId
+  res <- liftPG $
+         \conn ->
+           Sql.select
+           (Action.ident :. Action.caseId :. Action.callId :.
+            Action.assignedTo `Sql.eq` uid :.
+            Sql.isNull Action.result)
+           conn
+  writeJSON $ map (\(Only aid :. Only caseId :. Only callId :. ()) ->
+                     Map.fromList [ ("id" :: Text, A.toJSON aid)
+                                  , ("caseId" :: Text, A.toJSON caseId)
+                                  , ("callId" :: Text, A.toJSON callId)
+                                  ]) res

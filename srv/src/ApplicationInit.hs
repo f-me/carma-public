@@ -60,6 +60,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/backoffice/errors", method GET $ serveBackofficeSpec Check)
          , ("/backoffice/spec.txt", method GET $ serveBackofficeSpec Txt)
          , ("/backoffice/spec.dot", method GET $ serveBackofficeSpec Dot)
+         , ("/backoffice/myActions",
+            chkAuthLocal . method GET $ myActions)
          , ("/backoffice/littleMoreActions",
             chkAuthLocal . method PUT $ littleMoreActionsHandler)
          , ("/backoffice/openAction/:actionid",
