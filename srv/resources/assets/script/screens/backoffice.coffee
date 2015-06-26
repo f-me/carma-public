@@ -45,7 +45,7 @@ define [ "model/main"
         return unless onBackofficeScreen
         # If there's an incoming call, postpone actions pulling until
         # we leave the screen
-        if global.CTIPanel.incomingCall()?
+        if global.CTIPanel?.incomingCall()?
           setTimeout actionsAfterCall, 3000
           return
         actuallyPull = () ->
