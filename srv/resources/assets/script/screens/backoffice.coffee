@@ -32,15 +32,23 @@ define [ "model/main"
         if not global.CTIPanel?.answer()
           utils.createNewCall()
 
-    pci = global.idents('ProcessingConfig').main
-    pcvm = Main.buildKVM global.model('ProcessingConfig'),
-      {fetched: {id: pci}, queue: sync.CrudQueue}
-    startCycle pcvm, false
+    initCycle = () ->
+      pci = global.idents('ProcessingConfig').main
+      pcvm = Main.buildKVM global.model('ProcessingConfig'),
+        {fetched: {id: pci}, queue: sync.CrudQueue}
+      startCycle pcvm, false
+
+    # Check for already assigned actions first no matter what the
+    # global priority is
+    $.ajax
+      type: "GET"
+      url: "/backoffice/myActions"
+      success: myActionsHandler initCycle
+      error: initCycle
 
   startCycle = (pcvm, alternate) ->
     cti = _.contains(global.user.roles, global.idents("Role").cti)
-    fo = _.contains global.user.roles, global.idents("Role").call
-    if fo
+    if _.contains global.user.roles, global.idents("Role").call
       actionsAfterCall = () ->
         return unless onBackofficeScreen
         # If there's an incoming call, postpone actions pulling until
@@ -88,8 +96,9 @@ define [ "model/main"
           setTimeout worker, (cycle_resolution * 1000)
     worker()
 
-  # Given /littleMoreActions response, try to redirect to the first
-  # action. If the response is empty, call noActionsHandler
+  # Given /myActions or /littleMoreActions response, try to redirect
+  # to the first action. If the response is empty, call
+  # noActionsHandler
   myActionsHandler = (noActionsHandler) -> (actions) ->
     if !_.isEmpty actions
       act = _.first actions
