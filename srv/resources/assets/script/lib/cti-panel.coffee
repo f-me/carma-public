@@ -224,9 +224,11 @@ define [], () ->
           console.log "CTI: #{msg.errorText}"
           errNotify "Ошибка CTI: #{msg.errorText}"
 
+        # Initial snapshot received after establishing connection
         if msg.calls?
           snapshotToVM msg
 
+        # A new snapshot bundled with an event
         if msg.newSnapshot?
           snapshotToVM msg.newSnapshot
 
