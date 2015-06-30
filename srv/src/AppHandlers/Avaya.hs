@@ -129,7 +129,7 @@ dmccWsProxy = do
           -- re-implementing ref.checking/timeout code from dmcc-ws on
           -- CaRMa side and the expected memory footprint is small
           -- even for thousands of extensions)
-          modifyTVar' eMap (Map.insert (Extension ext) uid)
+          modifyTVar' eMap (Map.insert (Extension $ Text.pack $ show ext) uid)
         forever $ receive conn >>= send serverConn
   runWebSocketsSnap serverApp
 
