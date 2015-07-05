@@ -53,14 +53,13 @@ leastPriority = 5
 assignQ :: Query
 assignQ = [sql|
       WITH
-      currentUser AS (
-        SELECT * from usermetatbl where id = ? limit 1),
+      currentUser AS (SELECT * from usermetatbl where id = ?),
       activeUsers AS (
-        SELECT u.id
-        FROM "usermetatbl" u
-        LEFT JOIN (SELECT DISTINCT ON (userId) state, userId
-                   FROM "UserState" ORDER BY userId, id DESC) s
-        ON u.id = s.userId
+        SELECT s.userId as id
+        FROM (SELECT DISTINCT on (userId) userId, state
+            FROM "UserState"
+            WHERE ctime > now() - interval '24 hours'
+            ORDER BY userId, id DESC) s
         WHERE s.state <> 'LoggedOut'),
       pullableActions AS (
         SELECT actiontbl.* FROM actiontbl, currentUser u
