@@ -67,8 +67,10 @@ define [], ->
     JSON      : (v) -> v
     ident     : (v) -> parseInt v
     'interval-date' : (v) -> v.map c2sDay
-    'interval-datetime': (v) -> v.map (t) ->
-      Date.parseExact(t, "dd.MM.yyyy")?.toString "yyyy-MM-ddTHH:mm:ss.0Z"
+    'interval-datetime': (v) ->
+      days = v.map (t) -> Date.parseExact(t, "dd.MM.yyyy")
+      days[1].addDays(1)
+      days.map (d) -> d.toString "yyyy-MM-ddTHH:mm:ss.0Z"
 
   s2cTypes =
     'dictionary-set-int':  _.identity

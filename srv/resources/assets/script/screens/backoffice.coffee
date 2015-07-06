@@ -23,7 +23,7 @@ define [ "model/main"
       lines: 15,
       radius: 175
 
-    # Allow manual call creation for non-CTI Front Office operators
+    # Allow manual call creation only for Front Office operators
     if !_.contains(global.user.roles, global.idents("Role").call)
       $("#new-call-button").hide()
     else
@@ -48,7 +48,7 @@ define [ "model/main"
 
   startCycle = (pcvm, alternate) ->
     cti = _.contains(global.user.roles, global.idents("Role").cti)
-    if _.contains global.user.roles, global.idents("Role").call
+    if cti && _.contains global.user.roles, global.idents("Role").call
       actionsAfterCall = () ->
         return unless onBackofficeScreen
         # If there's an incoming call, postpone actions pulling until
@@ -65,18 +65,17 @@ define [ "model/main"
           $.ajax "/avaya/toAfterCall", {type: "PUT", success: actuallyPull}
         else
           actuallyPull()
-      # Non-CTI users always check for new actions
-      #
       # Actions are checked for non-backoffice users as well (so that
       # unfinished call actions are re-opened)
-      if (!cti || (pcvm.actionsFirst() && !alternate))
+      if (pcvm.actionsFirst() && !alternate)
         actionsAfterCall()
       else
         $("#standby-msg").text "Разрешаю приём звонков через AVAYA…"
         $.ajax "/avaya/toReady", {type: "PUT", success: () ->
           secs = pcvm.callWaitSeconds()
           $("#standby-msg").text "Ожидаю звонки в течение #{secs}с…"
-          setTimeout actionsAfterCall, secs * 1000}
+          setTimeout((() -> startCycle(pcvm, !alternate)), secs * 1000)}
+    # Non-Front Office users or non-CTI users always pull for actions
     else
       # Only pull actions
       pullActions setupActionsPoller

@@ -264,11 +264,17 @@ beforeUpdate = Map.unionsWith (++) $
             | n > leastPriority -> leastPriority
             | otherwise         -> n
 
-  , trigOn Action.result $ \case
-      Nothing -> return ()
-      Just _ -> do
-        getNow >>= (modifyPatch . Patch.put Action.closeTime . Just)
-        getCurrentUser >>= (modifyPatch . Patch.put Action.assignedTo . Just)
+  , trigOn Action.result $ \nr -> do
+      ar <- getIdent >>= dbRead
+      case ar `Patch.get` Action.result of
+        Just (Just _) -> error "The action already has a result"
+        _ ->
+          case nr of
+          Nothing -> return ()
+          Just _ -> do
+            getNow >>= (modifyPatch . Patch.put Action.closeTime . Just)
+            getCurrentUser >>=
+              (modifyPatch . Patch.put Action.assignedTo . Just)
 
   , trigOn Action.assignedTo $ \case
       Nothing -> return ()
