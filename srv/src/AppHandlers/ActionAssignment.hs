@@ -68,7 +68,6 @@ assignQ = [sql|
         AND (assignedTo IS NULL
              OR assignedTo NOT IN (SELECT id FROM activeUsers))
         AND duetime <= now() + interval '5 minutes'
-        AND duetime >= now() - interval '4 month'
         FOR UPDATE of actiontbl)
       UPDATE actiontbl SET assignTime = now(), assignedTo = u.id
         FROM currentUser u
