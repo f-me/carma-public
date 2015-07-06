@@ -53,7 +53,7 @@ leastPriority = 5
 assignQ :: Query
 assignQ = [sql|
       WITH
-      currentUser AS (SELECT * from usermetatbl where id = ?),
+      currentUser AS (SELECT * FROM usermetatbl WHERE id = ?),
       activeUsers AS (
         SELECT s.userId as id
         FROM (SELECT DISTINCT on (userId) userId, state
