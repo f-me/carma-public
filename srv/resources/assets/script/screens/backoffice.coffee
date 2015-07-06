@@ -7,7 +7,7 @@ define [ "model/main"
   # In s
   cycle_resolution = 0.1
 
-  # Poll server for new actions every n seconds
+  # Poll server for new actions every n seconds (for non-FO/CTI users)
   poll_every = 5
 
   pleaseStandby = ->
@@ -36,7 +36,7 @@ define [ "model/main"
       pci = global.idents('ProcessingConfig').main
       pcvm = Main.buildKVM global.model('ProcessingConfig'),
         {fetched: {id: pci}, queue: sync.CrudQueue}
-      startCycle pcvm, false
+      startCycle pcvm, pcvm.actionsFirst()
 
     # Check for already assigned actions first no matter what the
     # global priority is
@@ -46,7 +46,7 @@ define [ "model/main"
       success: myActionsHandler initCycle
       error: initCycle
 
-  startCycle = (pcvm, alternate) ->
+  startCycle = (pcvm, pull) ->
     cti = _.contains(global.user.roles, global.idents("Role").cti)
     if cti && _.contains global.user.roles, global.idents("Role").call
       actionsAfterCall = () ->
@@ -58,7 +58,7 @@ define [ "model/main"
           return
         actuallyPull = () ->
           $("#standby-msg").text "Проверяю наличие действий…"
-          pullActions () -> startCycle pcvm, !alternate
+          pullActions () -> startCycle pcvm, !pull
         $("#standby-msg").text "Запрещаю приём звонков через AVAYA…"
         # Avoid switching agent state when working without CTI
         if cti
@@ -67,14 +67,14 @@ define [ "model/main"
           actuallyPull()
       # Actions are checked for non-backoffice users as well (so that
       # unfinished call actions are re-opened)
-      if (pcvm.actionsFirst() && !alternate)
+      if (pull)
         actionsAfterCall()
       else
         $("#standby-msg").text "Разрешаю приём звонков через AVAYA…"
         $.ajax "/avaya/toReady", {type: "PUT", success: () ->
           secs = pcvm.callWaitSeconds()
           $("#standby-msg").text "Ожидаю звонки в течение #{secs}с…"
-          setTimeout((() -> startCycle(pcvm, !alternate)), secs * 1000)}
+          setTimeout((() -> startCycle(pcvm, !pull)), secs * 1000)}
     # Non-Front Office users or non-CTI users always pull for actions
     else
       # Only pull actions
