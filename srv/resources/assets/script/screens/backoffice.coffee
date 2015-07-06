@@ -4,9 +4,6 @@ define [ "model/main"
        , "text!tpl/screens/back.html"], (Main, utils, sync, tpl) ->
   onBackofficeScreen = true
 
-  # In s
-  cycle_resolution = 0.1
-
   # Poll server for new actions every n seconds (for non-FO/CTI users)
   poll_every = 5
 
@@ -82,18 +79,10 @@ define [ "model/main"
 
   # Install automatic poller for actions only
   setupActionsPoller = ->
-    # Time since last cycle start, in seconds
-    current_cycle = 0
     worker = ->
       if onBackofficeScreen
-        current_cycle += cycle_resolution
-        percent = current_cycle / poll_every * 100.0
-        if current_cycle >= poll_every
-          pullActions setupActionsPoller
-          current_cycle = 0
-        else
-          setTimeout worker, (cycle_resolution * 1000)
-    worker()
+        pullActions setupActionsPoller
+    setTimeout worker, poll_every * 1000
 
   # Given /myActions or /littleMoreActions response, try to redirect
   # to the first action. If the response is empty, call
