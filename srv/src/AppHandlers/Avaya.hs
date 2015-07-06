@@ -154,10 +154,6 @@ dmccHook = do
   now <- liftIO getCurrentTime
   case decode rsb of
     Nothing -> error $ "Could not read hook data " ++ show rsb
-    -- Ignore errors (they shouldn't arrive via a webhook call
-    -- anyways)
-    Just (WHEvent _                  (RequestError _)) ->
-      return ()
     Just (WHEvent (AgentId (_, ext)) (StateChange sn)) ->
       handleWith ext $ \uid ->
       case _state sn of
@@ -223,6 +219,10 @@ dmccHook = do
                         Patch.put AE.interlocutors (fromList interlocs) $
                         Patch.put AE.callId ucid'
                         Patch.empty
+    -- Ignore errors (they shouldn't arrive via a webhook call
+    -- anyways)
+    Just (WHEvent _                  _) ->
+      return ()
 
 
 -- | Return last state and corresponding model name/id for a user.

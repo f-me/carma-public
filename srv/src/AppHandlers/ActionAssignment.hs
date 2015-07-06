@@ -48,35 +48,37 @@ leastPriority = 5
 
 -- | Assign a single action to a user, yield action id, case id and call id.
 --
--- 5 parameters: usermeta ident (3), action priority class, order
+-- 3 parameters: usermeta ident, action priority class, order
 -- action types (as array for IN clause)
 assignQ :: Query
 assignQ = [sql|
-      WITH activeUsers AS (
-        SELECT u.id
-        FROM "usermetatbl" u
-        LEFT JOIN (SELECT DISTINCT ON (userId) state, userId
-                   FROM "UserState" ORDER BY userId, id DESC) s
-        ON u.id = s.userId
+      WITH
+      currentUser AS (SELECT * FROM usermetatbl WHERE id = ?),
+      activeUsers AS (
+        SELECT s.userId as id
+        FROM (SELECT DISTINCT on (userId) userId, state
+            FROM "UserState"
+            WHERE ctime > now() - interval '24 hours'
+            ORDER BY userId, id DESC) s
         WHERE s.state <> 'LoggedOut'),
       pullableActions AS (
-        SELECT actiontbl.* FROM actiontbl, usermetatbl u
+        SELECT actiontbl.* FROM actiontbl, currentUser u
         WHERE result IS NULL
-        AND u.id = ?
         AND targetGroup = ANY (u.roles)
         AND (assignedTo IS NULL
              OR assignedTo NOT IN (SELECT id FROM activeUsers))
-        AND duetime - now() <= interval '5 minutes'
+        AND duetime <= now() + interval '5 minutes'
+        AND duetime >= now() - interval '4 month'
         FOR UPDATE of actiontbl)
-      UPDATE actiontbl SET assignTime = now(), assignedTo = ?
-        WHERE id = (SELECT act.id
+      UPDATE actiontbl SET assignTime = now(), assignedTo = u.id
+        FROM currentUser u
+        WHERE actiontbl.id = (SELECT act.id
           FROM (pullableActions act
             LEFT JOIN "ActionType" t ON   t.id = act.type
             LEFT JOIN servicetbl svc ON svc.id = act.serviceId
             LEFT JOIN casetbl      c ON   c.id = act.caseId),
-            usermetatbl u
-          WHERE u.id = ?
-          AND t.priority = ?
+            currentUser u
+          WHERE t.priority = ?
           AND (coalesce(
                   array_length(u.boPrograms, 1),
                   array_length(u.boCities, 1)) is null
@@ -88,7 +90,7 @@ assignQ = [sql|
               AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,
             act.duetime ASC
           LIMIT 1)
-        RETURNING id, caseId, callId;
+        RETURNING actiontbl.id, caseId, callId;
     |]
 
 
@@ -99,8 +101,6 @@ littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   uid <- fromMaybe (error "No current user") <$> currentUserMetaId
   let orders = In [ActionType.orderService, ActionType.orderServiceAnalyst]
-      -- Parameters for assignQ query
-      params n = (uid, uid, uid, n :: Int, orders)
       Ident uid' = uid
 
   -- Actions already assigned to the user
@@ -140,7 +140,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
               sth -> return sth
 
       newActions <- pullFurther
-                    (\p -> query assignQ (params p))
+                    (\p -> query assignQ (uid, p, orders))
                     [topPriority..leastPriority]
 
       unless (null newActions) $
