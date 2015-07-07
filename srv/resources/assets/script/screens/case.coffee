@@ -82,12 +82,17 @@ define [ "utils"
     # History pane
     setupHistory = (kvm) ->
       historyDatetimeFormat = "dd.MM.yyyy HH:mm:ss"
+      historyLimit = 30
+      kvm['lookBackInHistory'] = ->
+        historyLimit += 30
+        refreshHistory()
 
       refreshHistory = ->
         filterVal = kvm['historyFilter']()
         matchesFilter = (s) ->
           _.isEmpty(filterVal) || (new RegExp(filterVal, "i")).test(s)
-        $.getJSON "/caseHistory/#{kvm.id()}", (res) ->
+        $.getJSON "/caseHistory/#{kvm.id()}?limit=#{historyLimit}", (res) ->
+          kvm['endOfHistory'](res.length < historyLimit)
           kvm['historyItems'].removeAll()
 
           # List of service id's for colorizing actions

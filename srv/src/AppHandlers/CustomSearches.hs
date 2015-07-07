@@ -33,6 +33,7 @@ import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import           Data.Map as M (Map, (!), delete, fromList)
 import           Data.String (fromString)
+import           Data.Maybe (fromMaybe)
 import           Data.Text (Text)
 import           Data.Time.Clock
 
@@ -295,9 +296,10 @@ searchCases = do
 caseHistory :: AppHandler ()
 caseHistory = do
   caseId <- getIntParam "caseId"
+  limit  <- fromMaybe 50 <$> getIntParam "limit"
   rows <- query
-          [sql|SELECT datetime, who, json FROM "CaseHistory" WHERE caseId = ?|]
-          (Only caseId)
+          [sql|SELECT datetime, who, json FROM "CaseHistory" WHERE caseId = ? LIMIT ?|]
+          (caseId, limit)
   writeJSON (rows :: [(UTCTime, Text, Value)])
 
 
