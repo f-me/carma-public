@@ -48,8 +48,8 @@ leastPriority = 5
 
 -- | Assign a single action to a user, yield action id, case id and call id.
 --
--- 3 parameters: usermeta ident, action priority class, order
--- action types (as array for IN clause)
+-- 2 parameters: usermeta ident, order action types (as array for IN
+-- clause)
 assignQ :: Query
 assignQ = [sql|
       WITH
@@ -77,12 +77,13 @@ assignQ = [sql|
             LEFT JOIN servicetbl svc ON svc.id = act.serviceId
             LEFT JOIN casetbl      c ON   c.id = act.caseId),
             currentUser u
-          WHERE t.priority = ?
-          AND (coalesce(
+          WHERE
+              (coalesce(
                   array_length(u.boPrograms, 1),
                   array_length(u.boCities, 1)) is null
                OR (c.program::text = ANY (u.boPrograms) OR c.city = ANY (u.boCities)))
           ORDER BY
+            priority ASC,
             (u.boPrograms IS NOT NULL AND c.program::text = ANY (u.boPrograms)) DESC,
             (u.boCities   IS NOT NULL AND c.city          = ANY (u.boCities)) DESC,
             (act.type IN ?
@@ -129,18 +130,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
                    "More actions requested by user " ++ show uid' ++
                    " in non-Ready state"
     (True, []) -> do
-      -- Pull new actions starting from top priority until something is
-      -- pulled (or we run out of priorities to check). This is the
-      -- opposite of Maybe monad behavior.
-      let pullFurther _       []      = return []
-          pullFurther puller (pr:prs) =
-            puller pr >>= \case
-              []  -> pullFurther puller prs
-              sth -> return sth
-
-      newActions <- pullFurther
-                    (\p -> query assignQ (uid, p, orders))
-                    [topPriority..leastPriority]
+      newActions <- query assignQ (uid, orders)
 
       unless (null newActions) $
         syslogJSON Info "littleMoreActions"
