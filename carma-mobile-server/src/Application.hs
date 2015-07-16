@@ -220,8 +220,6 @@ newCase = do
                  putFromRequest Case.contact_email $
                  Patch.put Case.contractIdentifier
                  (HM.lookup "cardNumber_cardNumber" jsonRq) $
-                 Patch.put Case.contractIdentifier
-                 (HM.lookup "cardNumber_cardNumber" jsonRq) $
                  Patch.empty
 
   dict <- gets cityDict
