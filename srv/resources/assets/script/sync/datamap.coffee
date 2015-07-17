@@ -70,7 +70,7 @@ define [], ->
     'interval-datetime': (v) ->
       days = v.map (t) -> Date.parseExact(t, "dd.MM.yyyy")
       days[1].addDays(1)
-      days.map (d) -> d.toString "yyyy-MM-ddTHH:mm:ss.0Z"
+      days.map (d) -> d.toISOString()
 
   s2cTypes =
     'dictionary-set-int':  _.identity
