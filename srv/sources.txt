@@ -2,7 +2,6 @@
 ./../tools/vinnie/
 https://github.com/f-me/carma-models %CURRENT%
 https://github.com/f-me/carma-dict
-https://github.com/f-me/carma-http
 https://github.com/f-me/digestive-functors-heist
 https://github.com/f-me/dmcc
 https://github.com/f-me/hs-weather-api
