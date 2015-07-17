@@ -25,15 +25,14 @@ import Database.PostgreSQL.Simple.SqlQQ
 import Snap.Snaplet.PostgresqlSimple
 
 import Data.Model.Types
-import Data.Model.Sql as Sql
 
-import Carma.Model.Action as Action
 import Carma.Model.ActionType as ActionType
 import Carma.Model.UrgentServiceReason as USR
 
 import Snaplet.Auth.PGUsers
 
 import Application
+import AppHandlers.Backoffice
 import AppHandlers.Users
 import AppHandlers.Util
 import Util
@@ -109,11 +108,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   -- Actions already assigned to the user
   oldActions <- map (\(Only i :. Only caseId :. Only callId :. ()) ->
                        (i, caseId, callId)) <$>
-                (liftPG $
-                 Sql.select $
-                 Action.ident :. Action.caseId :. Action.callId :.
-                 Action.assignedTo `eq` Just uid :.
-                 isNull Action.result)
+                (liftPG (myActionsQ uid))
 
   actions <- ((,) <$> userIsReady uid <*> return oldActions) >>= \case
     -- Do not pull more actions if the user already has some.
