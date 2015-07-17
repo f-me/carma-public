@@ -27,4 +27,3 @@ insert into "CtrModel" (id, value, label) values
 ;
 
 GRANT ALL ON "CtrModel" TO carma_db_sync;
-GRANT ALL ON "CtrModel" TO carma_search;

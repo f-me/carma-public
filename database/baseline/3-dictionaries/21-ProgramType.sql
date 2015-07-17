@@ -9,9 +9,7 @@ COPY "ProgramType" (id, label) FROM stdin;
 \.
 
 GRANT ALL ON "ProgramType" TO carma_db_sync;
-GRANT ALL ON "ProgramType" TO carma_search;
 GRANT ALL ON "ProgramType_id_seq" TO carma_db_sync;
-GRANT ALL ON "ProgramType_id_seq" TO carma_search;
 
 GRANT SELECT ON "ProgramType" TO reportgen;
 

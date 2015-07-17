@@ -1,4 +1,3 @@
-
 create table "Email"
   ( id serial primary key
   , ctime timestamp with time zone not null default now()
@@ -17,6 +16,4 @@ create table "Email"
 
 GRANT ALL ON "Email" TO mail_svc;
 GRANT ALL ON "Email" TO carma_db_sync;
-GRANT ALL ON "Email" TO carma_search;
-GRANT ALL ON "Email_id_seq" TO carma_search;
 GRANT ALL ON "Email_id_seq" TO carma_db_sync;

@@ -9,6 +9,4 @@ CREATE TABLE "AvayaEvent"
   );
 
 GRANT ALL ON "AvayaEvent" TO carma_db_sync;
-GRANT ALL ON "AvayaEvent" TO carma_search;
 GRANT ALL ON "AvayaEvent_id_seq" TO carma_db_sync;
-GRANT ALL ON "AvayaEvent_id_seq" TO carma_search;

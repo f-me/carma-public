@@ -90,4 +90,3 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
 ;
 
 GRANT SELECT ON "Dictionary" TO carma_db_sync;
-GRANT SELECT ON "Dictionary" TO carma_search;

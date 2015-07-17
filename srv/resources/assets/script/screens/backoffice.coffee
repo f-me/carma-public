@@ -4,9 +4,6 @@ define [ "model/main"
        , "text!tpl/screens/back.html"], (Main, utils, sync, tpl) ->
   onBackofficeScreen = true
 
-  # Poll server for new actions every n seconds (for non-FO/CTI users)
-  poll_every = 5
-
   pleaseStandby = ->
     $("#standby-msg").fadeOut('fast').fadeIn('fast')
 
@@ -29,13 +26,27 @@ define [ "model/main"
         if not global.CTIPanel?.answer()
           utils.createNewCall()
 
+    # Setup a new action polling loop or actions/calls alternation
     initCycle = () ->
-      pci = global.idents('ProcessingConfig').main
-      pcvm = Main.buildKVM global.model('ProcessingConfig'),
-        {fetched: {id: pci}, queue: sync.CrudQueue}
-      startCycle pcvm, pcvm.actionsFirst()
+      cti = _.contains(global.user.roles, global.idents("Role").cti)
+      if cti && _.contains global.user.roles, global.idents("Role").call
+        pci = global.idents('ProcessingConfig').main
+        pcvm = Main.buildKVM global.model('ProcessingConfig'),
+          {fetched: {id: pci}, queue: sync.CrudQueue}
+        # Start a new alternation cycle depending on global processing
+        # settings
+        if pcvm.actionsFirst()
+          # Actions are checked for non-backoffice users as well (so
+          # that unfinished call actions are re-opened)
+          actionsAfterCall pcvm
+        else
+          waitForCall pcvm
+      # Non-Front Office users or non-CTI users always pull for new
+      # actions
+      else
+        pullActions setupPlainActionsPoller
 
-    # Check for already assigned actions first no matter what the
+    # But first, check for already assigned actions no matter what the
     # global priority is
     $.ajax
       type: "GET"
@@ -43,45 +54,38 @@ define [ "model/main"
       success: myActionsHandler initCycle
       error: initCycle
 
-  startCycle = (pcvm, pull) ->
-    cti = _.contains(global.user.roles, global.idents("Role").cti)
-    if cti && _.contains global.user.roles, global.idents("Role").call
-      actionsAfterCall = () ->
-        return unless onBackofficeScreen
-        # If there's an incoming call, postpone actions pulling until
-        # we leave the screen
-        if global.CTIPanel?.incomingCall()?
-          setTimeout actionsAfterCall, 3000
-          return
-        actuallyPull = () ->
-          $("#standby-msg").text "Проверяю наличие действий…"
-          pullActions () -> startCycle pcvm, !pull
-        $("#standby-msg").text "Запрещаю приём звонков через AVAYA…"
-        # Avoid switching agent state when working without CTI
-        if cti
-          $.ajax "/avaya/toAfterCall", {type: "PUT", success: actuallyPull}
-        else
-          actuallyPull()
-      # Actions are checked for non-backoffice users as well (so that
-      # unfinished call actions are re-opened)
-      if (pull)
-        actionsAfterCall()
-      else
-        $("#standby-msg").text "Разрешаю приём звонков через AVAYA…"
-        $.ajax "/avaya/toReady", {type: "PUT", success: () ->
-          secs = pcvm.callWaitSeconds()
-          $("#standby-msg").text "Ожидаю звонки в течение #{secs}с…"
-          setTimeout((() -> startCycle(pcvm, !pull)), secs * 1000)}
-    # Non-Front Office users or non-CTI users always pull for actions
-    else
-      # Only pull actions
-      pullActions setupActionsPoller
+  # Wait for calls, then check new actions (FO+CTI users only)
+  waitForCall = (pcvm) ->
+    return unless onBackofficeScreen
+    $("#standby-msg").text "Разрешаю приём звонков через AVAYA…"
+    $.ajax "/avaya/toReady", {type: "PUT", success: () ->
+      secs = pcvm.callWaitSeconds()
+      $("#standby-msg").text "Ожидаю звонки в течение #{secs}с…"
+      setTimeout((() -> actionsAfterCall(pcvm, cti)), secs * 1000)}
 
-  # Install automatic poller for actions only
-  setupActionsPoller = ->
+  # Check new actions, then wait for calls (FO+CTI users only)
+  actionsAfterCall = (pcvm) ->
+    return unless onBackofficeScreen
+    # If there's an incoming call, postpone actions pulling for 3s
+    # (until we leave the screen or the call is dropped)
+    if global.CTIPanel?.incomingCall()?
+      setTimeout actionsAfterCall, 3000
+      return
+    actuallyPull = () ->
+      return unless onBackofficeScreen
+      $("#standby-msg").text "Проверяю наличие действий…"
+      pullActions () -> waitForCall pcvm
+    $("#standby-msg").text "Запрещаю приём звонков через AVAYA…"
+    $.ajax "/avaya/toAfterCall", {type: "PUT", success: actuallyPull}
+
+  # Install automatic poller for new actions only (for non-FO+CTI
+  # users)
+  setupPlainActionsPoller = ->
+    # Static polling timeout
+    poll_every = 5
     worker = ->
       if onBackofficeScreen
-        pullActions setupActionsPoller
+        pullActions setupPlainActionsPoller
     setTimeout worker, poll_every * 1000
 
   # Given /myActions or /littleMoreActions response, try to redirect
@@ -103,21 +107,24 @@ define [ "model/main"
       success: myActionsHandler noActionsHandler
       error: (res) ->
         if res.responseText.match /in non-Ready state/
-          $("#standby-msg").text "Нельзя получить новое действие в статусе «Занят»!"
+          $("#standby-msg").text(
+            "Нельзя получить новое действие в статусе «Занят»!")
         else
           $("#standby-msg").text "Что-то пошло не так!"
 
-  removeBackOffice = ->
-    # Stop auto-polling backoffice-related server handlers when we
-    # leave #back
+  # Stop auto-polling backoffice-related server handlers when we leave
+  # #back
+  leaveBackOffice = ->
     onBackofficeScreen = false
 
   # Start working on an action and redirect to its case. Argument is
   # an element of /littleMoreActions response.
   openAction = (act) ->
+    return unless onBackofficeScreen
     $("#new-call-button").hide()
     if act.caseId?
-      $("#standby-msg").text "Открываю действие #{act.id} в кейсе #{act.caseId}…"
+      $("#standby-msg").text(
+        "Открываю действие #{act.id} в кейсе #{act.caseId}…")
       whereTo = "case/#{act.caseId}"
     else
       $("#standby-msg").text "Перехожу на звонок #{act.callId}…"
@@ -129,6 +136,6 @@ define [ "model/main"
         window.location.hash = whereTo
 
   { constructor: setupBackOffice
-  , destructor: removeBackOffice
+  , destructor: leaveBackOffice
   , template: tpl
   }

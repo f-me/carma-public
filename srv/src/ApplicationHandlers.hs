@@ -188,7 +188,7 @@ readHandler = do
 readManyHandler :: AppHandler ()
 readManyHandler = do
   Just model  <- getParamT "mdl" -- NB: this param can shadow query params
-  limit  <- maybe 2000 readInt <$> getParam "limit"
+  limit  <- maybe 4000 readInt <$> getParam "limit"
   offset <- maybe    0 readInt <$> getParam "offset"
   params <- getQueryParams
   let queryFilter =

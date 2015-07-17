@@ -22,8 +22,6 @@ COPY "TechType" (id, label) FROM stdin;
 \.
 
 GRANT ALL ON "TechType" TO carma_db_sync;
-GRANT ALL ON "TechType" TO carma_search;
 GRANT ALL ON "TechType_id_seq" TO carma_db_sync;
-GRANT ALL ON "TechType_id_seq" TO carma_search;
 
 SELECT setval(pg_get_serial_sequence('"TechType"', 'id'), max(id)) from "TechType";

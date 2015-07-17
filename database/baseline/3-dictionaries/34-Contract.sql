@@ -37,6 +37,4 @@ CREATE TABLE "Contract"
   );
 
 GRANT ALL ON "Contract" TO carma_db_sync;
-GRANT ALL ON "Contract" TO carma_search;
 GRANT ALL ON "Contract_id_seq" TO carma_db_sync;
-GRANT ALL ON "Contract_id_seq" TO carma_search;

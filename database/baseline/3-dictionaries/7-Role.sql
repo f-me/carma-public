@@ -6,11 +6,9 @@ CREATE TABLE "Role"
   ,hidden bool NOT NULL DEFAULT 'f'
   );
 
-GRANT SELECT ON "Role" TO carma_search;
 GRANT ALL ON "Role" TO carma_db_sync;
 
 GRANT ALL ON "Role_id_seq" TO carma_db_sync;
-GRANT ALL ON "Role_id_seq" TO carma_search;
 
 INSERT INTO "Role" (id, value, label, isBack) VALUES
   (1, 'core', 'Экран кейса и базовые поля','f')

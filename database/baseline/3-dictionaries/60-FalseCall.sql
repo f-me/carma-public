@@ -10,8 +10,6 @@ COPY "FalseCall" (id, label) FROM stdin;
 \.
 
 GRANT ALL ON "FalseCall" TO carma_db_sync;
-GRANT ALL ON "FalseCall" TO carma_search;
 GRANT ALL ON "FalseCall_id_seq" TO carma_db_sync;
-GRANT ALL ON "FalseCall_id_seq" TO carma_search;
 
 SELECT setval(pg_get_serial_sequence('"FalseCall"', 'id'), max(id)) from "FalseCall";

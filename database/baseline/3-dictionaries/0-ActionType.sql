@@ -81,4 +81,3 @@ VALUES ('Действие не актуально (архив)', 9000, 10);
 SELECT setval(pg_get_serial_sequence('"ActionType"', 'id'), max(id)) from "ActionType";
 
 GRANT ALL ON "ActionType" TO carma_db_sync;
-GRANT ALL ON "ActionType" TO carma_search;

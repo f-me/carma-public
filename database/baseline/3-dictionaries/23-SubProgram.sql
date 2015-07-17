@@ -152,9 +152,7 @@ SELECT s.id, s.label, p.id, s.value FROM "SubProgram_tmp" s, "Program" p
 WHERE p.label = s.program;
 
 GRANT ALL ON "SubProgram" TO carma_db_sync;
-GRANT ALL ON "SubProgram" TO carma_search;
 GRANT ALL ON "SubProgram_id_seq" TO carma_db_sync;
-GRANT ALL ON "SubProgram_id_seq" TO carma_search;
 
 GRANT SELECT ON "SubProgram" TO reportgen;
 

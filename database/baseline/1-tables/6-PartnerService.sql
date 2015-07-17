@@ -1,4 +1,3 @@
-
 drop table if exists "PartnerService";
 
 create table "PartnerService"
@@ -10,6 +9,3 @@ create table "PartnerService"
   , serviceName int not null references "ServiceType"
   , falseCallPercent numeric(5,2)
   );
-
-GRANT ALL ON "PartnerService" TO carma_search;
-GRANT ALL ON "PartnerService_id_seq" TO carma_search;

@@ -8,4 +8,3 @@ INSERT INTO "AbuseTarget" (label) VALUES
 
 
 GRANT ALL ON "AbuseTarget" TO carma_db_sync;
-GRANT ALL ON "AbuseTarget" TO carma_search;

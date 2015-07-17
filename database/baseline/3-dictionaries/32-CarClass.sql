@@ -5,9 +5,7 @@ CREATE TABLE "CarClass"
   );
 
 GRANT ALL ON "CarClass" TO carma_db_sync;
-GRANT ALL ON "CarClass" TO carma_search;
 GRANT ALL ON "CarClass_id_seq" TO carma_db_sync;
-GRANT ALL ON "CarClass_id_seq" TO carma_search;
 
 COPY "CarClass" (id, label) FROM stdin;
 1	A

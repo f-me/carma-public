@@ -7,6 +7,4 @@ CREATE TABLE "SubProgramContact"
   );
 
 GRANT ALL ON "SubProgramContact" TO carma_db_sync;
-GRANT ALL ON "SubProgramContact" TO carma_search;
 GRANT ALL ON "SubProgramContact_id_seq" TO carma_db_sync;
-GRANT ALL ON "SubProgramContact_id_seq" TO carma_search;
