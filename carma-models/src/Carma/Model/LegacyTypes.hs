@@ -7,12 +7,6 @@ import Data.Aeson
 import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Database.PostgreSQL.Simple.FromField (FromField(..))
 
-data Activity = Activity deriving Typeable
-data RequestType = RequestType deriving Typeable
-data DeliveryType = DeliveryType deriving Typeable
-data WheelsBlockedCount = WheelsBlockedCount deriving Typeable
-data UrgentServiceReason = UrgentServiceReason deriving Typeable
-
 data Password = Password Text deriving Typeable
 instance FromJSON Password where
   parseJSON fld = Password <$> parseJSON fld

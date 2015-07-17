@@ -82,11 +82,6 @@ instance PgTypeable UserStateVal where
 instance PgTypeable Value where
   pgTypeOf _ = PgType "json" True
 
-instance PgTypeable  Activity            where pgTypeOf _ = PgType "text" True
-instance PgTypeable  RequestType         where pgTypeOf _ = PgType "text" True
-instance PgTypeable  DeliveryType        where pgTypeOf _ = PgType "text" True
-instance PgTypeable  WheelsBlockedCount  where pgTypeOf _ = PgType "text" True
-instance PgTypeable  UrgentServiceReason where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Password            where pgTypeOf _ = PgType "text" True
 instance PgTypeable  Phone               where pgTypeOf _ = PgType "text" True
 instance PgTypeable  PickerField         where pgTypeOf _ = PgType "text" False

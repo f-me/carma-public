@@ -7,16 +7,19 @@ import Data.Model
 import Data.Model.View
 import Carma.Model.Types()
 import Carma.Model.LegacyTypes
-import Carma.Model.Service (Service)
+
+import Carma.Model.Activity    (Activity)
+import Carma.Model.RequestType (RequestType)
+import Carma.Model.Service     (Service)
 
 
 data AverageCommissioner = AverageCommissioner
   { ident :: PK Int AverageCommissioner ""
-  , requestType :: F (Maybe (IdentT RequestType))
+  , requestType :: F (Maybe (IdentI RequestType))
                    "requestType" "Тип запроса"
   , whatToSay1  :: F (Maybe Text)
                    "whatToSay1" "Описание проблемы"
-  , activity    :: F (Maybe (IdentT Activity))
+  , activity    :: F (Maybe (IdentI Activity))
                    "activity" "Тип действия"
   , commAddress_address
                 :: F PickerField

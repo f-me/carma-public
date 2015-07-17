@@ -6,12 +6,14 @@ import Data.Typeable
 import Data.Model
 import Data.Model.View
 import Carma.Model.LegacyTypes
-import Carma.Model.Service (Service)
+
+import Carma.Model.DeliveryType (DeliveryType)
+import Carma.Model.Service      (Service)
 
 
 data DeliverClient = DeliverClient
   { ident :: PK Int DeliverClient ""
-  , deliveryType :: F (Maybe (IdentT DeliveryType)) "deliveryType" "Тип доставки"
+  , deliveryType :: F (Maybe (IdentI DeliveryType)) "deliveryType" "Тип доставки"
 
   , deliverFrom_address :: F PickerField "deliverFrom_address" "Откуда везти"
   , deliverFrom_comment :: F (Maybe Text)"deliverFrom_comment" "Примечания"

@@ -3,7 +3,7 @@
 
 module Carma.Model
   ( Model
-  , Ident(..), IdentI, IdentT
+  , Ident(..), IdentI
   , dispatch
   , modelMap
   )
@@ -19,6 +19,7 @@ import           Carma.Model.AbuseTarget                 (AbuseTarget)
 import           Carma.Model.Action                      (Action)
 import           Carma.Model.ActionResult                (ActionResult)
 import           Carma.Model.ActionType                  (ActionType)
+import           Carma.Model.Activity                    (Activity)
 import           Carma.Model.Attachment                  (Attachment)
 import           Carma.Model.AvayaEvent                  (AvayaEvent)
 import           Carma.Model.AvayaEventType              (AvayaEventType)
@@ -53,6 +54,7 @@ import           Carma.Model.Diagnostics.Suggestion      (Suggestion)
 import           Carma.Model.Diagnostics.System          (System)
 import           Carma.Model.Diagnostics.Wazzup          (Wazzup)
 
+import           Carma.Model.DeliveryType                (DeliveryType)
 import           Carma.Model.Dictionary                  (Dictionary)
 import           Carma.Model.Engine                      (Engine)
 import           Carma.Model.FalseCall                   (FalseCall)
@@ -72,6 +74,7 @@ import           Carma.Model.ProcessingConfig            (ProcessingConfig)
 import           Carma.Model.Program                     (Program)
 import           Carma.Model.ProgramType
 import           Carma.Model.Region                      (Region)
+import           Carma.Model.RequestType                 (RequestType)
 import           Carma.Model.Role                        (Role)
 import           Carma.Model.Satisfaction                (Satisfaction)
 
@@ -112,6 +115,7 @@ import           Carma.Model.TechType                    (TechType)
 import           Carma.Model.TowType                     (TowType)
 import           Carma.Model.TowerType                   (TowerType)
 import           Carma.Model.Transmission                (Transmission)
+import           Carma.Model.UrgentServiceReason         (UrgentServiceReason)
 import           Carma.Model.UserState                   (UserState)
 import           Carma.Model.Usermeta                    (Usermeta)
 import           Carma.Model.VDN                         (VDN)
@@ -136,6 +140,7 @@ modelMap fn = modelMap'
       ,add (undefined :: Action)
       ,add (undefined :: ActionResult)
       ,add (undefined :: ActionType)
+      ,add (undefined :: Activity)
       ,add (undefined :: Attachment)
       ,add (undefined :: AvayaEvent)
       ,add (undefined :: AvayaEventType)
@@ -171,6 +176,7 @@ modelMap fn = modelMap'
       ,add (undefined :: DeliverCar)
       ,add (undefined :: DeliverClient)
       ,add (undefined :: DeliverParts)
+      ,add (undefined :: DeliveryType)
       ,add (undefined :: Engine)
       ,add (undefined :: FalseCall)
       ,add (undefined :: FieldPermission)
@@ -191,6 +197,7 @@ modelMap fn = modelMap'
       ,add (undefined :: ProgramType)
       ,add (undefined :: Region)
       ,add (undefined :: Rent)
+      ,add (undefined :: RequestType)
       ,add (undefined :: Role)
       ,add (undefined :: Satisfaction)
       ,add (undefined :: Service)
@@ -215,10 +222,11 @@ modelMap fn = modelMap'
       ,add (undefined :: TechType)
       ,add (undefined :: Tickets)
       ,add (undefined :: TowType)
-      ,add (undefined :: TowerType)
       ,add (undefined :: Towage)
+      ,add (undefined :: TowerType)
       ,add (undefined :: Transmission)
       ,add (undefined :: Transportation)
+      ,add (undefined :: UrgentServiceReason)
       ,add (undefined :: UserState)
       ,add (undefined :: Usermeta)
       ,add (undefined :: VDN)

@@ -20,6 +20,7 @@ import           Carma.Model.Satisfaction        (Satisfaction)
 import           Carma.Model.Search as S
 import           Carma.Model.ServiceStatus       (ServiceStatus)
 import           Carma.Model.ServiceType         (ServiceType)
+import           Carma.Model.UrgentServiceReason (UrgentServiceReason)
 import           Carma.Model.Usermeta            (Usermeta)
 
 data Service = Service
@@ -95,7 +96,7 @@ data Service = Service
                                  "Скан загружен"
   , original                     :: F (Maybe Checkbox) "original"
                                  "Оригинал получен"
-  , urgentService                :: F (Maybe (IdentT UrgentServiceReason)) "urgentService"
+  , urgentService                :: F (Maybe (IdentI UrgentServiceReason)) "urgentService"
                                  "Приоритетная услуга"
   , status                       :: F (IdentI ServiceStatus) "status"
                                  "Статус услуги"

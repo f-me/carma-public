@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.33
+version:             0.34
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -26,6 +26,7 @@ library
     Carma.Model.Action,
     Carma.Model.ActionResult,
     Carma.Model.ActionType,
+    Carma.Model.Activity,
     Carma.Model.Attachment,
     Carma.Model.AvayaEvent,
     Carma.Model.AvayaEventType,
@@ -60,6 +61,7 @@ library
     Carma.Model.Diagnostics.System,
     Carma.Model.Diagnostics.Wazzup,
 
+    Carma.Model.DeliveryType,
     Carma.Model.Dictionary,
     Carma.Model.Engine,
     Carma.Model.Event
@@ -82,6 +84,7 @@ library
     Carma.Model.Program,
     Carma.Model.ProgramType,
     Carma.Model.Region,
+    Carma.Model.RequestType,
     Carma.Model.Role,
     Carma.Model.Satisfaction,
     Carma.Model.Search,
@@ -124,7 +127,8 @@ library
     Carma.Model.TowerType,
     Carma.Model.Transmission,
     Carma.Model.Types,
-    Carma.Model.UserState
+    Carma.Model.UrgentServiceReason,
+    Carma.Model.UserState,
     Carma.Model.Usermeta,
     Carma.Model.VDN,
     Carma.Model.VinFormat,

@@ -36,7 +36,6 @@ instance (Typeable m, Show t) => Show (Ident t m) where
       modelName = show $ typeOf (undefined :: m)
 
 type IdentI m = Ident Int m
-type IdentT m = Ident Text m
 
 instance FromField t => FromField (Ident t m) where
   fromField f x = Ident `fmap` fromField f x

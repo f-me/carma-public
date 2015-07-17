@@ -6,7 +6,10 @@ import Data.Typeable
 import Data.Model
 import Data.Model.View
 import Carma.Model.LegacyTypes
-import Carma.Model.Service (Service)
+
+import Carma.Model.DeliveryType (DeliveryType)
+import Carma.Model.Service      (Service)
+
 
 data Tickets = Tickets
   { ident :: PK Int Tickets ""
@@ -20,7 +23,7 @@ data Tickets = Tickets
   , ticketsTo_coords    :: F PickerField "ticketsTo_coords" "Координаты"
   , ticketsTo_map       :: F MapField    "ticketsTo_map" ""
 
-  , deliveryType        :: F (Maybe (IdentT DeliveryType)) "deliveryType" "Тип доставки"
+  , deliveryType        :: F (Maybe (IdentI DeliveryType)) "deliveryType" "Тип доставки"
   }
   deriving Typeable
 

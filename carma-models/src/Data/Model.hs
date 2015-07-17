@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model
-  ( Ident(..), IdentI, IdentT
+  ( Ident(..), IdentI
   , Model(..)
   , ParentInfo(..)
   , ModelInfo(..), mkModelInfo
