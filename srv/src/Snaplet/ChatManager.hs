@@ -58,8 +58,6 @@ import           Network.WebSockets.Snap
 
 import           Data.Model
 
-import           Carma.Model.Usermeta (Usermeta)
-
 import           Snap
 import           Snap.Snaplet.Auth
 import           Snap.Snaplet.PostgresqlSimple (Postgres(..))
