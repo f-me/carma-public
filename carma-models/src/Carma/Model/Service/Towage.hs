@@ -51,9 +51,9 @@ data Towage = Towage
                              "towerAddress_coords" "Координаты"
   , towerAddress_map         :: F (Maybe MapField) "towerAddress_map"
                              ""
-  , wheelsUnblocked
+  , wheelsBlocked
     :: F (Maybe Int)
-       "wheelsUnblocked" "Количество заблокированных колёс"
+       "wheelsBlocked" "Количество заблокированных колёс"
   , canNeutral               :: F (Maybe Checkbox) "canNeutral"
                              "Переключается на нейтральную передачу"
   , towingPointPresent       :: F (Maybe Checkbox) "towingPointPresent"
