@@ -978,6 +978,4 @@ delete from "ConstructorFieldOption"
 drop table "NewCaseField";
 
 GRANT ALL ON "ConstructorFieldOption" TO carma_db_sync;
-GRANT ALL ON "ConstructorFieldOption" TO carma_search;
 GRANT ALL ON "ConstructorFieldOption_id_seq" TO carma_db_sync;
-GRANT ALL ON "ConstructorFieldOption_id_seq" TO carma_search;

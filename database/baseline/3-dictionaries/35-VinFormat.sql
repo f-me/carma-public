@@ -147,6 +147,4 @@ CREATE TABLE "VinFormat"
   );
 
 GRANT ALL ON "VinFormat" TO carma_db_sync;
-GRANT ALL ON "VinFormat" TO carma_search;
 GRANT ALL ON "VinFormat_id_seq" TO carma_db_sync;
-GRANT ALL ON "VinFormat_id_seq" TO carma_search;

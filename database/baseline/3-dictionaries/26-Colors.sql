@@ -5,7 +5,6 @@ CREATE TABLE "Colors"
   );
 
 GRANT ALL ON "Colors" TO carma_db_sync;
-GRANT ALL ON "Colors" TO carma_search;
 
 INSERT INTO "Colors" (label) VALUES
     ('Белый')

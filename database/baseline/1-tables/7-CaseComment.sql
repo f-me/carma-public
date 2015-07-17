@@ -7,9 +7,7 @@ CREATE TABLE "CaseComment"
   );
 
 GRANT ALL ON "CaseComment" TO carma_db_sync;
-GRANT ALL ON "CaseComment" TO carma_search;
 GRANT ALL ON "CaseComment_id_seq" TO carma_db_sync;
-GRANT ALL ON "CaseComment_id_seq" TO carma_search;
 
 CREATE INDEX ON "CaseComment" (caseid);
 CREATE INDEX ON "CaseComment" (author);

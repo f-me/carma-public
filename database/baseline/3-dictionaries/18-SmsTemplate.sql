@@ -1,4 +1,3 @@
-
 CREATE TABLE "SmsTemplate"
   (id       SERIAL PRIMARY KEY
   ,label    text NOT NULL DEFAULT ''
@@ -7,9 +6,7 @@ CREATE TABLE "SmsTemplate"
   );
 
 GRANT ALL ON "SmsTemplate" TO carma_db_sync;
-GRANT ALL ON "SmsTemplate" TO carma_search;
 GRANT ALL ON "SmsTemplate_id_seq" TO carma_db_sync;
-GRANT ALL ON "SmsTemplate_id_seq" TO carma_search;
 
 insert into "SmsTemplate" (id, label, text, isActive) values
   (1, 'Сообщение о заказе услуги', 'Добрый день! Номер Вашей заявки $case.id$. Помощь прибудет к Вам в $service.times_expectedServiceStart$.', 't')

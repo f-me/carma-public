@@ -12,8 +12,6 @@ COPY "TowerType" (id, label) FROM stdin;
 \.
 
 GRANT ALL ON "TowerType" TO carma_db_sync;
-GRANT ALL ON "TowerType" TO carma_search;
 GRANT ALL ON "TowerType_id_seq" TO carma_db_sync;
-GRANT ALL ON "TowerType_id_seq" TO carma_search;
 
 SELECT setval(pg_get_serial_sequence('"TowerType"', 'id'), max(id)) from "TowerType";

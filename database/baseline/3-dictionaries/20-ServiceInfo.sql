@@ -6,9 +6,7 @@ CREATE TABLE "ServiceInfo"
   );
 
 GRANT ALL ON "ServiceInfo" TO carma_db_sync;
-GRANT ALL ON "ServiceInfo" TO carma_search;
 GRANT ALL ON "ServiceInfo_id_seq" TO carma_db_sync;
-GRANT ALL ON "ServiceInfo_id_seq" TO carma_search;
 
 COPY "ServiceInfo" (service, program, info) FROM STDIN;
 1	21	<b>Правила оказания:</b><br>Если неполадка не может быть устранена в течении 45 минут заказывается эвакуация в ДЦ

@@ -7,9 +7,7 @@ CREATE TABLE "CarMake"
   );
 
 GRANT ALL ON "CarMake" TO carma_db_sync;
-GRANT ALL ON "CarMake" TO carma_search;
 GRANT ALL ON "CarMake_id_seq" TO carma_db_sync;
-GRANT ALL ON "CarMake_id_seq" TO carma_search;
 
 GRANT SELECT ON "CarMake" TO reportgen;
 

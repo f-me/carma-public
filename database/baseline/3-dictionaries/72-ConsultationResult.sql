@@ -13,8 +13,6 @@ COPY "ConsultationResult" (id, label) FROM stdin;
 \.
 
 GRANT ALL ON "ConsultationResult" TO carma_db_sync;
-GRANT ALL ON "ConsultationResult" TO carma_search;
 GRANT ALL ON "ConsultationResult_id_seq" TO carma_db_sync;
-GRANT ALL ON "ConsultationResult_id_seq" TO carma_search;
 
 SELECT setval(pg_get_serial_sequence('"ConsultationResult"', 'id'), max(id)) from "ConsultationResult";

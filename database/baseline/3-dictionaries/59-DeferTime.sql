@@ -5,9 +5,7 @@ CREATE TABLE "DeferTime"
   );
 
 GRANT ALL ON "DeferTime" TO carma_db_sync;
-GRANT ALL ON "DeferTime" TO carma_search;
 GRANT ALL ON "DeferTime_id_seq" TO carma_db_sync;
-GRANT ALL ON "DeferTime_id_seq" TO carma_search;
 
 COPY "DeferTime" (time, label) FROM stdin;
 00:10	10 минут

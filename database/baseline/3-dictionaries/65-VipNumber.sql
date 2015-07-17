@@ -4,6 +4,4 @@ CREATE TABLE "VipNumber"
   );
 
 GRANT ALL ON "VipNumber" TO carma_db_sync;
-GRANT ALL ON "VipNumber" TO carma_search;
 GRANT ALL ON "VipNumber_id_seq" TO carma_db_sync;
-GRANT ALL ON "VipNumber_id_seq" TO carma_search;
