@@ -191,7 +191,7 @@ WITH servicecounts AS (
      p1.code AS "Код партнёра",
     casetbl.caseaddress_coords AS "Координаты места поломки",
     servicetbl.contractor_coords AS "Координаты партнёра",
-     allservicesview.techtype AS "Мероприятие в услуге",
+    "TechType".label AS "Мероприятие в услуге",
     servicetbl.payment_expectedcost AS "Ожидаемая стоимость (число)",
     timezone('Europe/Moscow'::text, servicetbl.times_expectedserviceclosure) AS "Ожидаемое время закрытия услуги",
     timezone('Europe/Moscow'::text, servicetbl.times_expectedserviceend) AS "Ожид. время оконч. оказания услуги",
@@ -264,6 +264,7 @@ WITH servicecounts AS (
    LEFT JOIN usermetatbl u1 ON u1.id = servicetbl.creator
    LEFT JOIN usermetatbl u2 ON u2.id = orderActions.assignedTo
    LEFT JOIN usermetatbl u3 ON u3.id = allservicesview.consultant
+   LEFT JOIN "TechType" ON "TechType".id = allservicesview.techtype
 WHERE casetbl.id = servicetbl.parentid;
 
 GRANT SELECT ON "Услуги" TO reportgen;
