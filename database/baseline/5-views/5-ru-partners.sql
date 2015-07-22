@@ -113,4 +113,3 @@ LEFT JOIN phones ON partnertbl.id = phones.id
 LEFT JOIN emails ON partnertbl.id = emails.id;
 
 GRANT SELECT ON "Партнеры" TO reportgen;
-GRANT ALL ON "Партнеры" TO analyst;

@@ -4,9 +4,7 @@ CREATE TABLE "ClientRefusalReason"
   );
 
 GRANT ALL ON "ClientRefusalReason" TO carma_db_sync;
-GRANT ALL ON "ClientRefusalReason" TO carma_search;
 GRANT ALL ON "ClientRefusalReason_id_seq" TO carma_db_sync;
-GRANT ALL ON "ClientRefusalReason_id_seq" TO carma_search;
 
 INSERT INTO "ClientRefusalReason" (label) VALUES
     ('Неисправность самоустранилась')

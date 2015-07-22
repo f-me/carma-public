@@ -10,8 +10,6 @@ COPY "CaseSource" (id, label) FROM stdin;
 \.
 
 GRANT ALL ON "CaseSource" TO carma_db_sync;
-GRANT ALL ON "CaseSource" TO carma_search;
 GRANT ALL ON "CaseSource_id_seq" TO carma_db_sync;
-GRANT ALL ON "CaseSource_id_seq" TO carma_search;
 
 SELECT setval(pg_get_serial_sequence('"CaseSource"', 'id'), max(id)) from "CaseSource";

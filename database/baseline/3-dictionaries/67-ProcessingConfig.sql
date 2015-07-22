@@ -10,6 +10,5 @@ COPY "ProcessingConfig" (id, actionsFirst, afterCallSeconds, callWaitSeconds) FR
 \.
 
 GRANT ALL ON "ProcessingConfig" TO carma_db_sync;
-GRANT ALL ON "ProcessingConfig" TO carma_search;
 
 SELECT setval(pg_get_serial_sequence('"ProcessingConfig"', 'id'), max(id)) from "ProcessingConfig";

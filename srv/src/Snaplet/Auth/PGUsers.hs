@@ -10,6 +10,7 @@ module Snaplet.Auth.PGUsers
     ( currentUserMeta
     , currentUserMetaId
     , currentUserRoles
+    , Usermeta
     ) where
 
 import           Control.Applicative

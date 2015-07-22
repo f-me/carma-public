@@ -26,8 +26,6 @@ COPY "ServiceStatus" (id, label) FROM stdin;
 \.
 
 GRANT ALL ON "ServiceStatus" TO carma_db_sync;
-GRANT ALL ON "ServiceStatus" TO carma_search;
 GRANT ALL ON "ServiceStatus_id_seq" TO carma_db_sync;
-GRANT ALL ON "ServiceStatus_id_seq" TO carma_search;
 
 SELECT setval(pg_get_serial_sequence('"ServiceStatus"', 'id'), max(id)) from "ServiceStatus";

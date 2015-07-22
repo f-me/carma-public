@@ -11,10 +11,8 @@ CREATE TABLE "CarModel"
 
 CREATE UNIQUE INDEX ON "CarModel" (label) WHERE parent IS NULL;
 
-GRANT ALL ON "CarModel" TO carma_search;
 GRANT ALL ON "CarModel" TO carma_db_sync;
 GRANT ALL ON "CarModel_id_seq" TO carma_db_sync;
-GRANT ALL ON "CarModel_id_seq" TO carma_search;
 
 GRANT SELECT ON "CarModel" TO reportgen;
 

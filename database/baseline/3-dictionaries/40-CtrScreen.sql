@@ -1,4 +1,3 @@
-
 create table "CtrScreen" (
   id       SERIAL PRIMARY KEY,
   value    text NOT NULL,
@@ -11,6 +10,4 @@ insert into "CtrScreen" (id, value, label) values
 ;
 
 GRANT ALL ON "CtrScreen" TO carma_db_sync;
-GRANT ALL ON "CtrScreen" TO carma_search;
 GRANT ALL ON "CtrScreen_id_seq" TO carma_db_sync;
-GRANT ALL ON "CtrScreen_id_seq" TO carma_search;

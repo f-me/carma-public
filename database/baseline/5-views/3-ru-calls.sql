@@ -29,4 +29,3 @@ LEFT JOIN "AbuseTarget" ON calltbl.abuseTarget = "AbuseTarget".id
 ORDER BY calldate ASC;
 
 GRANT SELECT ON TABLE "Звонки" TO reportgen;
-GRANT ALL ON TABLE "Звонки" TO analyst;

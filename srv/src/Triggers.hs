@@ -79,6 +79,7 @@ import           Carma.Model.SubProgram as SubProgram hiding (ident)
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.TowType as TowType
 import qualified Carma.Model.TowerType as TowerType
+import qualified Carma.Model.UrgentServiceReason as USR
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
@@ -176,7 +177,7 @@ beforeCreate = Map.unionsWith (++)
     modPut Service.falseCall            FC.none
     modPut Service.payment_overcosted $ Just off
     modPut Service.status               SS.creating
-    modPut Service.urgentService      $ Just $ Ident "notUrgent"
+    modPut Service.urgentService      $ Just USR.notUrgent
     modPut Service.warrantyCase       $ Just off
 
   , trigOnModel ([]::[Hotel.Hotel]) $
@@ -204,7 +205,7 @@ beforeCreate = Map.unionsWith (++)
     modPut Towage.towerType           $ Just TowerType.evac
     modPut Towage.towingPointPresent  $ Just off
     modPut Towage.vandalism           $ Just off
-    modPut Towage.wheelsUnblocked     $ Just $ Ident "w0"
+    modPut Towage.wheelsBlocked       $ Just 0
   ]
 
 afterCreate :: TriggerMap

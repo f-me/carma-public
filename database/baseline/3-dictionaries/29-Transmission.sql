@@ -5,9 +5,7 @@ CREATE TABLE "Transmission"
   );
 
 GRANT ALL ON "Transmission" TO carma_db_sync;
-GRANT ALL ON "Transmission" TO carma_search;
 GRANT ALL ON "Transmission_id_seq" TO carma_db_sync;
-GRANT ALL ON "Transmission_id_seq" TO carma_search;
 
 COPY "Transmission" (id, label,synonyms) FROM stdin;
 1	Автоматическая	{авт,ручн}

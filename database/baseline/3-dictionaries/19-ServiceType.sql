@@ -7,7 +7,6 @@ CREATE TABLE "ServiceType"
   );
 
 GRANT ALL ON "ServiceType" TO carma_db_sync;
-GRANT ALL ON "ServiceType" TO carma_search;
 
 INSERT INTO "ServiceType" (id, label, icon, fdds, model) VALUES
     (1, 'Техпомощь', 'cog', '55', 14)

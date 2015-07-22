@@ -17,5 +17,4 @@ CREATE TABLE "FieldPermission"
   ,UNIQUE (role,model,field)
   );
 
-GRANT ALL ON "FieldPermission" TO carma_search;
 GRANT ALL ON "FieldPermission" TO carma_db_sync;

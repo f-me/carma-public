@@ -17,8 +17,6 @@ COPY "Complication" (id, label) FROM stdin;
 \.
 
 GRANT ALL ON "Complication" TO carma_db_sync;
-GRANT ALL ON "Complication" TO carma_search;
 GRANT ALL ON "Complication_id_seq" TO carma_db_sync;
-GRANT ALL ON "Complication_id_seq" TO carma_search;
 
 SELECT setval(pg_get_serial_sequence('"Complication"', 'id'), max(id)) from "Complication";

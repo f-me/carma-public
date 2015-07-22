@@ -10,8 +10,6 @@ COPY "TaxScheme" (id, label) FROM stdin;
 \.
 
 GRANT ALL ON "TaxScheme" TO carma_db_sync;
-GRANT ALL ON "TaxScheme" TO carma_search;
 GRANT ALL ON "TaxScheme_id_seq" TO carma_db_sync;
-GRANT ALL ON "TaxScheme_id_seq" TO carma_search;
 
 SELECT setval(pg_get_serial_sequence('"TaxScheme"', 'id'), max(id)) from "TaxScheme";

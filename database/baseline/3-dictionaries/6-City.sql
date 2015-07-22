@@ -1365,6 +1365,4 @@ INSERT INTO "City" (value, label) VALUES
 
 
 GRANT ALL ON "City" TO carma_db_sync;
-GRANT ALL ON "City" TO carma_search;
 GRANT ALL ON "City_id_seq" TO carma_db_sync;
-GRANT ALL ON "City_id_seq" TO carma_search;

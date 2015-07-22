@@ -5,9 +5,7 @@ CREATE TABLE "Engine"
   );
 
 GRANT ALL ON "Engine" TO carma_db_sync;
-GRANT ALL ON "Engine" TO carma_search;
 GRANT ALL ON "Engine_id_seq" TO carma_db_sync;
-GRANT ALL ON "Engine_id_seq" TO carma_search;
 
 COPY "Engine" (id, label, synonyms) FROM stdin;
 1	Бензин	{TSI,FSI,TFSI,HPI,CGI,JTS,IDE,GDI}

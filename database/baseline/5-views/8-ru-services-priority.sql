@@ -54,4 +54,3 @@ LEFT JOIN "City" ON tfs.city = "City".id
 ORDER BY tfs.name;
 
 GRANT SELECT ON "Услуги с приоритетами" TO reportgen;
-GRANT ALL ON "Услуги с приоритетами" TO analyst;

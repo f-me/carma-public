@@ -4,9 +4,7 @@ CREATE TABLE "PartnerRefusalReason"
   );
 
 GRANT ALL ON "PartnerRefusalReason" TO carma_db_sync;
-GRANT ALL ON "PartnerRefusalReason" TO carma_search;
 GRANT ALL ON "PartnerRefusalReason_id_seq" TO carma_db_sync;
-GRANT ALL ON "PartnerRefusalReason_id_seq" TO carma_search;
 
 INSERT INTO "PartnerRefusalReason" (label) VALUES
     ('Занято (Постоянно короткие гудки)')

@@ -84,5 +84,3 @@ SELECT "Contract".id AS idExternal,
    LEFT JOIN "Program" ON "SubProgram".parent = "Program".id
    LEFT JOIN "ProgramType" ON "Program".ptype = "ProgramType".id
    LEFT JOIN "Transmission" ON "Contract".transmission = "Transmission".id;
-
-GRANT SELECT ON "Contract_csv" TO carma_search;

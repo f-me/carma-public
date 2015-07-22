@@ -5,9 +5,7 @@ CREATE TABLE "CheckType"
   );
 
 GRANT ALL ON "CheckType" TO carma_db_sync;
-GRANT ALL ON "CheckType" TO carma_search;
 GRANT ALL ON "CheckType_id_seq" TO carma_db_sync;
-GRANT ALL ON "CheckType_id_seq" TO carma_search;
 
 COPY "CheckType" (id, label) FROM stdin;
 1	Масляный сервис

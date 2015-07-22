@@ -25,6 +25,8 @@ define [ "utils"
   caseHistory: (model, kvm) ->
     kvm['historyFilter'] = ko.observable()
     kvm['historyItems'] = ko.observableArray()
+    kvm['endOfHistory'] = ko.observable true
+    kvm['lookBackInHistory'] = ->
 
   # Display daily service stats in central pane when `city` field of
   # case is changed.

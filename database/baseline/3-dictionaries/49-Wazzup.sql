@@ -8,6 +8,4 @@ CREATE TABLE "Wazzup"
   );
 
 GRANT ALL ON "Wazzup" TO carma_db_sync;
-GRANT ALL ON "Wazzup" TO carma_search;
 GRANT ALL ON "Wazzup_id_seq" TO carma_db_sync;
-GRANT ALL ON "Wazzup_id_seq" TO carma_search;

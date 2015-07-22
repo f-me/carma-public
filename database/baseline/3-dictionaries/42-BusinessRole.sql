@@ -12,6 +12,4 @@ INSERT INTO "BusinessRole" (id, label) VALUES
 ;
 
 GRANT ALL ON "BusinessRole" TO carma_db_sync;
-GRANT ALL ON "BusinessRole" TO carma_search;
 GRANT ALL ON "BusinessRole_id_seq" TO carma_db_sync;
-GRANT ALL ON "BusinessRole_id_seq" TO carma_search;

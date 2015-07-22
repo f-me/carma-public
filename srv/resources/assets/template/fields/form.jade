@@ -622,6 +622,10 @@ mixin caseFilesList
                 span(data-bind="text: aecall")
               // /ko
         // /ko
+        // ko if: !endOfHistory()
+        a.more(href="javascript:void(0)" data-bind="click: lookBackInHistory")
+          | Ещё
+        // /ko
 
 
 #permission-template

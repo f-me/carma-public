@@ -10,8 +10,6 @@ COPY "Satisfaction" (id, label) FROM stdin;
 \.
 
 GRANT ALL ON "Satisfaction" TO carma_db_sync;
-GRANT ALL ON "Satisfaction" TO carma_search;
 GRANT ALL ON "Satisfaction_id_seq" TO carma_db_sync;
-GRANT ALL ON "Satisfaction_id_seq" TO carma_search;
 
 SELECT setval(pg_get_serial_sequence('"Satisfaction"', 'id'), max(id)) from "Satisfaction";

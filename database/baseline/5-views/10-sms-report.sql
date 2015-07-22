@@ -21,4 +21,3 @@
                 LEFT JOIN usermetatbl u on e.userid = u.id;
 
 GRANT SELECT ON TABLE "SMS" TO reportgen;
-GRANT ALL ON TABLE "SMS" TO analyst;

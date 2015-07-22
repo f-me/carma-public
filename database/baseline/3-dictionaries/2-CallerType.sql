@@ -11,4 +11,3 @@ INSERT INTO "CallerType" (id, label) VALUES
   (5, 'Другое');
 
 GRANT ALL ON "CallerType" TO carma_db_sync;
-GRANT ALL ON "CallerType" TO carma_search;
