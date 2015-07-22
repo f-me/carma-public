@@ -268,4 +268,3 @@ WITH servicecounts AS (
 WHERE casetbl.id = servicetbl.parentid;
 
 GRANT SELECT ON "Услуги" TO reportgen;
-GRANT ALL ON "Услуги" TO analyst;

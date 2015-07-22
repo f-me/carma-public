@@ -51,5 +51,3 @@ ORDER BY "PartnerCancel".ctime ASC,
 
  GRANT
 SELECT ON "Отказы партнеров" TO reportgen;
-
- GRANT ALL ON "Отказы партнеров" TO analyst;

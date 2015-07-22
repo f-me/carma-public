@@ -1,4 +1,3 @@
-
 $PSQL <<EOF
 
 BEGIN;

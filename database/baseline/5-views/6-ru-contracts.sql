@@ -59,4 +59,3 @@ SELECT "Contract".id AS "Номер контракта",
    ORDER BY ctime;
 
 GRANT SELECT ON "Контракты" TO reportgen;
-GRANT ALL ON "Контракты" TO analyst;

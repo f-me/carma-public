@@ -32,5 +32,4 @@ ALTER TABLE "Письма"
 GRANT ALL ON TABLE "Письма" TO carma;
 GRANT ALL ON TABLE "Письма" TO fmuser;
 GRANT SELECT ON TABLE "Письма" TO reportgen;
-GRANT ALL ON TABLE "Письма" TO analyst;
 GRANT ALL ON TABLE "Письма" TO carma_db_sync;
