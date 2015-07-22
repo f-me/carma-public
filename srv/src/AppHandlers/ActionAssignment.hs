@@ -25,14 +25,14 @@ import Database.PostgreSQL.Simple.SqlQQ
 import Snap.Snaplet.PostgresqlSimple
 
 import Data.Model.Types
-import Data.Model.Sql as Sql
 
-import Carma.Model.Action as Action
 import Carma.Model.ActionType as ActionType
+import Carma.Model.UrgentServiceReason as USR
 
 import Snaplet.Auth.PGUsers
 
 import Application
+import AppHandlers.Backoffice
 import AppHandlers.Users
 import AppHandlers.Util
 import Util
@@ -48,12 +48,13 @@ leastPriority = 5
 
 -- | Assign a single action to a user, yield action id, case id and call id.
 --
--- 2 parameters: usermeta ident, order action types (as array for IN
--- clause)
+-- 3 parameters: current usermeta ident, UrgentServiceReason.notUrgent
+-- ident, order action types (as array for IN clause)
 assignQ :: Query
 assignQ = [sql|
       WITH
       currentUser AS (SELECT * FROM usermetatbl WHERE id = ?),
+      notUrgent AS (SELECT * FROM "UrgentServiceReason" WHERE id = ?),
       activeUsers AS (
         SELECT s.userId as id
         FROM (SELECT DISTINCT on (userId) userId, state
@@ -76,7 +77,8 @@ assignQ = [sql|
             LEFT JOIN "ActionType" t ON   t.id = act.type
             LEFT JOIN servicetbl svc ON svc.id = act.serviceId
             LEFT JOIN casetbl      c ON   c.id = act.caseId),
-            currentUser u
+            currentUser u,
+            notUrgent
           WHERE
               (coalesce(
                   array_length(u.boPrograms, 1),
@@ -87,7 +89,7 @@ assignQ = [sql|
             (u.boPrograms IS NOT NULL AND c.program::text = ANY (u.boPrograms)) DESC,
             (u.boCities   IS NOT NULL AND c.city          = ANY (u.boCities)) DESC,
             (act.type IN ?
-              AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,
+              AND coalesce(svc.urgentService, notUrgent.id) <> notUrgent.id) DESC,
             act.duetime ASC
           LIMIT 1)
         RETURNING actiontbl.id, caseId, callId;
@@ -106,11 +108,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   -- Actions already assigned to the user
   oldActions <- map (\(Only i :. Only caseId :. Only callId :. ()) ->
                        (i, caseId, callId)) <$>
-                (liftPG $
-                 Sql.select $
-                 Action.ident :. Action.caseId :. Action.callId :.
-                 Action.assignedTo `eq` Just uid :.
-                 isNull Action.result)
+                (liftPG (myActionsQ uid))
 
   actions <- ((,) <$> userIsReady uid <*> return oldActions) >>= \case
     -- Do not pull more actions if the user already has some.
@@ -130,7 +128,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
                    "More actions requested by user " ++ show uid' ++
                    " in non-Ready state"
     (True, []) -> do
-      newActions <- query assignQ (uid, orders)
+      newActions <- query assignQ (uid, USR.notUrgent, orders)
 
       unless (null newActions) $
         syslogJSON Info "littleMoreActions"

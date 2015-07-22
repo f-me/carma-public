@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators #-}
 
 module AppHandlers.Backoffice
     (
@@ -9,6 +10,8 @@ module AppHandlers.Backoffice
       openAction
     , dueCaseActions
     , myActions
+
+    , myActionsQ
 
       -- * Back office analysis
     , allActionResults
@@ -32,7 +35,7 @@ import           Data.Typeable
 
 import           GHC.TypeLits
 
-import           Database.PostgreSQL.Simple  ((:.)(..), Only(..))
+import           Database.PostgreSQL.Simple  ((:.)(..), Only(..), Connection)
 import           Snap
 import           Snap.Snaplet.PostgresqlSimple (liftPG)
 
@@ -45,6 +48,8 @@ import qualified Data.Model.Patch.Sql        as Patch
 import qualified Carma.Model.Action          as Action
 import qualified Carma.Model.ActionResult    as ActionResult
 import qualified Carma.Model.ActionType      as ActionType
+import qualified Carma.Model.Call            as Call
+import qualified Carma.Model.Case            as Case
 import qualified Carma.Model.CaseSource      as CaseSource
 import qualified Carma.Model.CaseStatus      as CaseStatus
 import           Carma.Model.Event           (EventType(..))
@@ -207,17 +212,25 @@ dueCaseActions = do
   writeJSON $ map (\(Only aid :. ()) -> aid) res
 
 
+-- | Fetch open actions currently assigned to a user.
+myActionsQ :: IdentI Usermeta
+           -> Connection
+           -> IO [Only (IdentI Action.Action) :.
+                  Only (Maybe (IdentI Case.Case)) :.
+                  Only (Maybe (IdentI Call.Call)) :.
+                  ()]
+myActionsQ uid =
+  Sql.select
+  (Action.ident :. Action.caseId :. Action.callId :.
+   Action.assignedTo `Sql.eq` Just uid :.
+   Sql.isNull Action.result :. Sql.ascBy Action.duetime)
+
+
 -- | Serve list of open actions currently assigned to the user.
 myActions :: AppHandler ()
 myActions = do
-  uid <- currentUserMetaId
-  res <- liftPG $
-         \conn ->
-           Sql.select
-           (Action.ident :. Action.caseId :. Action.callId :.
-            Action.assignedTo `Sql.eq` uid :.
-            Sql.isNull Action.result :. Sql.ascBy Action.duetime)
-           conn
+  uid <- fromMaybe (error "No current user") <$> currentUserMetaId
+  res <- liftPG (myActionsQ uid)
   writeJSON $ map (\(Only aid :. Only caseId :. Only callId :. ()) ->
                      Map.fromList [ ("id" :: Text, A.toJSON aid)
                                   , ("caseId" :: Text, A.toJSON caseId)
