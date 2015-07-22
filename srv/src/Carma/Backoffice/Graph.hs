@@ -21,7 +21,7 @@ import qualified Prelude as P ((==), (||), const)
 import           Control.Monad.Trans.State
 import           Data.Functor
 
-import           Data.Graph.Inductive.Graph
+import           Data.Graph.Inductive.Graph hiding (toEdge)
 import           Data.Graph.Inductive.PatriciaTree
 import           Data.GraphViz hiding (fromNode)
 import           Data.GraphViz.Printing (printIt)
