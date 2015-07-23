@@ -63,6 +63,9 @@ data Usermeta = Usermeta
   -- Some stuff for internal use on client, can be used instead of localStorage
   , stuff        :: F Aeson.Value "stuff" ""
   , showKPI      :: F Bool "showKPI" "Отслеживать KPI"
+  , lastAvayaSnapshot
+    :: F Aeson.Value "lastAvayaSnapshot"
+       "Последнее известное состояние AVAYA-агента"
   } deriving Typeable
 
 
@@ -83,6 +86,7 @@ instance Model Usermeta where
       [ invisible uid
       , invisible currentStateCTime
       , invisible stuff
+      , invisible lastAvayaSnapshot
       , required realName
       , required login
       , required password

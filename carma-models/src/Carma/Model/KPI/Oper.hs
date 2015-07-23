@@ -23,6 +23,9 @@ data OperKPI = OperKPI
   , loginTime    :: F (Maybe UTCTime) "loginTime" "Время входа"
   , currentState :: F UserStateVal         "currentState"  "Текущий статус"
   , lastState    :: F (Maybe UserStateVal) "lastState"  "Последний статус"
+  , lastAvayaSnapshot
+    :: F Aeson.Value "lastAvayaSnapshot"
+       "Последнее известное состояние AVAYA-агента"
   , inCurrent    :: F DiffTime "inCurrent" "Время в текущем"
 
   , inReady      :: F (Maybe DiffTime) "Ready"   "Готов"
@@ -46,6 +49,7 @@ instance Model OperKPI where
     "kpi" -> Just $ modifyView (stripId $ defaultView)
       [ setMeta "dictionaryLabel" (Aeson.String "realName") user
       , invisible lastState
+      , invisible lastAvayaSnapshot
       , widget "case-ident" currentCase
       ]
     _     -> Nothing

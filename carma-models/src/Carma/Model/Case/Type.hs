@@ -151,4 +151,6 @@ data Case = Case
     :: F (Maybe Reference) "files" "Прикрепленные файлы"
   , source
     :: F (IdentI CaseSource) "source" "Источник кейса"
+  , acStart
+    :: F (Maybe UTCTime) "acStart" "Время начала постзызывной обработки"
   } deriving Typeable
