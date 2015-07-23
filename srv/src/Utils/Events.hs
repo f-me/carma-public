@@ -134,7 +134,7 @@ updateUserState evt idt p evidt = do
         -- from real ctime of new state
         time <- liftIO $ getCurrentTime
         withMsg $ sendMessage
-          (mkLegacyIdent tgtUsr')
+          (mkIdentTopic tgtUsr')
           (P.put currentState      st      $
            P.put currentStateCTime time    $
            P.put delayedState      Nothing $
