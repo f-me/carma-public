@@ -96,7 +96,6 @@ import qualified Carma.Model.Action as Action
 import qualified Carma.Model.Call   as Call
 import Carma.Model.Case        (Case)
 import Carma.Model.Event       (Event, EventType)
-import Carma.Model.Usermeta    (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import Carma.Model.LegacyTypes (Password(..))
 

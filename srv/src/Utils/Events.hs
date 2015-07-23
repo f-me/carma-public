@@ -337,6 +337,7 @@ setUsr usr p = P.put E.userid usr p
 
 
 -- | Used when a user is put to NA state by AVAYA.
+switchToNA :: IdentI Usermeta -> AppHandler ()
 switchToNA uid = do
   ev <- log $ addIdent uid $ buildEmpty AvayaNA
   updateUserState AvayaNA uid P.empty ev
