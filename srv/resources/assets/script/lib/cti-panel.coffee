@@ -61,6 +61,8 @@ define [], () ->
       @incomingCall = () ->
         _.find kvm.calls(), (c) -> c.canAnswer()
 
+      @bargeIn = (callId, pType) -> cti.bargeIn callId, pType
+
       # Pretty-print list of interlocutors
       interlocutorsToNumber = (interlocutors) ->
         _.map(interlocutors, internalToDisplayed).join("\n")

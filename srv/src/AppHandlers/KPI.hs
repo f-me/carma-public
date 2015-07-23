@@ -269,8 +269,11 @@ WITH
          , e.modelName, e.modelId
          , c.id as caseId
          , a.type as actionType
+         , um.lastAvayaSnapshot
     FROM "UserState" u
     INNER JOIN "Event" e ON u.eventid = e.id
+    LEFT  JOIN "usermetatbl" um
+      ON u.userid = um.id
     LEFT  JOIN "actiontbl" a
       ON a.id = e.modelId AND e.modelName = 'Action' AND u.state = 'Busy'
     LEFT  JOIN casetbl c     ON a.caseId = c.id
@@ -295,6 +298,7 @@ WITH
 SELECT l.userid     AS userid
      , l.state      AS currentState
      , l.inCurrent
+     , l.lastAvayaSnapshot
      , l.caseId     AS currentCase
      , l.actionType AS currentAType
      , p.state      AS lastState

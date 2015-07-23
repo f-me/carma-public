@@ -30,6 +30,31 @@ define ["text!tpl/screens/kpi/oper.html"
 
   ticker = null
 
+  # Current call of a busy Front Office operator (always the first one
+  # call of that operator)
+  #
+  # FIXME If an operator loses his CTI role, his last known AVAYA
+  # state will still be preserved and shown on this screen
+  mkCurrentCall = (k) -> ko.computed ->
+    # Ignore non-CTI users or users not busy with a call action
+    if k.currentAType() != global.idents("ActionType").call
+      return null
+
+    snapshot = k.lastAvayaSnapshot()
+    sortedCalls = _.sortBy(
+      _.keys(snapshot.calls),
+      (k) -> new Date(snapshot.calls[k].start)
+      )
+    return sortedCalls[0]
+
+  mkListenTo = (k) -> () ->
+    if k._meta.currentCall()? && global.CTIPanel?
+      global.CTIPanel.bargeIn k._meta.currentCall(), "Silent"
+
+  mkJoinTo = (k) -> () ->
+    if k._meta.currentCall()? && global.CTIPanel?
+      global.CTIPanel.bargeIn k._meta.currentCall(), "Active"
+
   mkLogoutFromBusy = (k) -> ko.computed ->
     k.lastState() == 'Busy' &&
     k.currentState() == 'LoggedOut' &&
@@ -72,6 +97,9 @@ define ["text!tpl/screens/kpi/oper.html"
               k.useridGrp = "#{k.useridLocal()} (#{k.grp})"
             else
               k.useridGrp = k.useridLocal()
+            k._meta.currentCall    = mkCurrentCall(k)
+            k._meta.listenTo       = mkListenTo(k)
+            k._meta.joinTo         = mkJoinTo(k)
             k._meta.logoutFromBusy = mkLogoutFromBusy(k)
             k._meta.overdue        = mkOverDue(k, sCtx.overdue)
             k._meta.visible        =

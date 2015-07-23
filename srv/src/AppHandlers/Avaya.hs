@@ -44,7 +44,7 @@ import           Data.CaseInsensitive (original)
 import qualified Data.Map as Map
 import           Data.Text as Text
 import           Data.Time.Clock
-import           Data.Vector (elem, fromList)
+import           Data.Vector (elem, fromList, singleton)
 
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
@@ -73,11 +73,15 @@ import           Carma.Model.UserState as UserState
 
 import           Application
 
+import           AppHandlers.KPI (updateOperKPI)
 import           AppHandlers.Util
 import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers
+import           Snaplet.Messenger (sendMessage)
+import           Snaplet.Messenger.Class (HasMsg, withMsg)
 import           Util
 import           Utils.Events
+import           Utils.LegacyModel (mkIdentTopic)
 
 
 -- | Check if a user has access to CTI.
@@ -155,15 +159,17 @@ dmccHook = do
   case decode rsb of
     Nothing -> error $ "Could not read hook data " ++ show rsb
     Just (WHEvent (AgentId (_, ext)) (StateChange sn)) ->
-      handleWith ext $ \uid ->
-      case _state sn of
-        -- Automatic NotReady state (caused by an unanswered call or
-        -- operator login) has empty reason code
-        (Just (Settable DMCC.NotReady), "") -> switchToNA uid
-        (Just (Settable DMCC.Ready), _) -> switchToReady uid
-        _ -> return ()
+      handleWith ext $ \uid -> do
+        rememberAvayaSnapshot uid sn
+        case _state sn of
+          -- Automatic NotReady state (caused by an unanswered call or
+          -- operator login) has empty reason code
+          (Just (Settable DMCC.NotReady), "") -> switchToNA uid
+          (Just (Settable DMCC.Ready), _) -> switchToReady uid
+          _ -> return ()
     Just (WHEvent (AgentId (_, ext)) (TelephonyEvent ev st)) ->
       handleWith ext $ \uid -> do
+          rememberAvayaSnapshot uid st
           let
             -- Map hook data to AvayaEventType dictionary and other
             -- AvayaEvent fields, decide if we need to write anything
@@ -223,6 +229,26 @@ dmccHook = do
     -- anyways)
     Just (WHEvent _                  _) ->
       return ()
+
+
+rememberAvayaSnapshot :: (HasMsg b, HasPostgresAuth b v) =>
+                         IdentI Usermeta
+                      -> DMCC.AgentSnapshot
+                      -> Handler b v ()
+rememberAvayaSnapshot uid sn = do
+  let
+    p = Patch.put
+        Usermeta.lastAvayaSnapshot (fromMaybe Null $ decode $ encode sn)
+        Patch.empty
+  -- Update DB data
+  void $ withAuthPg $ liftPG $ Patch.update uid p
+  -- Update client data (via WebSocket)
+  withMsg $ sendMessage (mkIdentTopic uid) p
+  -- Update KPI screen data
+  kpis <- withAuthPg $
+          updateOperKPI (Data.Vector.singleton uid)
+  withMsg $ sendMessage "oper-kpi" kpis
+
 
 
 -- | Return last state and corresponding model name/id for a user.
