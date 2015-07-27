@@ -67,7 +67,7 @@ define [ "utils"
         kvm["#{f}Regexp"] = ko.computed ->
           return false if kvm[f]() == "" or _.isNull(kvm[f]())
           not r.test kvm[f]()
-      )(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]))
+      )(fieldName, new RegExp(regexp))
 
   # For a field <name> with type=file, add an extra observable
   # <name>Url with absolute URL to the stored file.
@@ -239,7 +239,7 @@ define [ "utils"
 
           regexp: ko.computed ->
             if regexp? && kvm[nP]()[i]
-              r = new RegExp global.dictLabelCache["_regexps"][regexp]
+              r = new RegExp regexp
               not r.test kvm[nP]()[i].value()
             else
               false
