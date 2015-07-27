@@ -35,11 +35,11 @@ instance Model SubProgram where
   modelInfo = mkModelInfo SubProgram ident
   modelView = \case
     "" -> Just $ modifyView defaultView
-                [ regexp "email" mailAddr
+                [ regexp regexpEmail mailAddr
                 , required parent
                 , required label
-                , regexp "smsSender" smsSender
-                , regexp "phone" smsContact
+                , regexp regexpTextSender smsSender
+                , regexp regexpPhone smsContact
                 , required smsSender
                 , required smsContact
                 , required smsProgram

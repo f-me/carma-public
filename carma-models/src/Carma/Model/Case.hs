@@ -95,9 +95,9 @@ caseMod = [
   ,transform "capitalize" contact_ownerName
   ,transform "uppercase"  car_vin
   ,transform "uppercase"  car_plateNum
-  ,regexp "plateNum" car_plateNum
-  ,regexp "vin" car_vin
-  ,regexp "year" car_makeYear
+  ,regexp regexpPlateNum car_plateNum
+  ,regexp regexpVIN car_vin
+  ,regexp regexpYear car_makeYear
 
   ,hiddenIdent contract
 
@@ -126,9 +126,9 @@ caseMod = [
   ,required caseStatus
   ,readonly caseStatus
 
-  ,regexp "email" contact_email
-  ,regexp "email" contact_ownerEmail
-  ,regexp "date" car_buyDate
+  ,regexp regexpEmail contact_email
+  ,regexp regexpEmail contact_ownerEmail
+  ,regexp regexpDate car_buyDate
 
   ,mainToo contact_contactOwner
   ,mainToo car_plateNum

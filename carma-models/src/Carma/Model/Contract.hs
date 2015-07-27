@@ -222,10 +222,10 @@ commonMeta =
     , setType "Integer" ident
     , widget "text" ident
     , partnerKey lastCheckDealer
-    , regexp "email" email
-    , regexp "phone" phone
-    , regexp "plateNum" plateNum
-    , regexp "vin" vin
+    , regexp regexpEmail email
+    , regexp regexpPhone phone
+    , regexp regexpPlateNum plateNum
+    , regexp regexpVIN vin
     , widget "checkbutton" dixi
     ]
 

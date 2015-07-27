@@ -1,6 +1,5 @@
 module Carma.Model.Case.Type where
 
-import Data.Aeson (Value)
 import Data.Text
 import Data.Time.Calendar
 import Data.Time.Clock

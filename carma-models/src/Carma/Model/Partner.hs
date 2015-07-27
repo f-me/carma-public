@@ -59,7 +59,7 @@ instance Model Partner where
       [required makes
       ,setMeta "noteLabel"        "Время работы"     phones
       ,setMeta "showNote"         (A.Bool True)      phones
-      ,setMeta "regexp"           "phone"            phones
+      ,regexp regexpPhone                            phones
       ,setMeta "addLabel"         "Добавить телефон и время работы"
                                                      phones
       ,setMeta "jsonSchema"       "dict-objects"     phones
@@ -80,7 +80,7 @@ instance Model Partner where
       ,setMeta "dictionaryName"   "AddressTypes"     addrs
       ,setMeta "widget"           "dict-objects"     addrs
 
-      ,setMeta "regexp"           "email"            emails
+      ,regexp regexpEmail                            emails
       ,setMeta "addLabel"         "Добавить e-mail"  emails
       ,setMeta "jsonSchema"       "dict-objects"     emails
       ,setMeta "dictionaryName"   "EmailTypes"       emails

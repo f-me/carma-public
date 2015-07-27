@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Data.Model.View
   (defaultView
@@ -17,6 +18,7 @@ module Data.Model.View
   ,mainToo
   ,mainOnly
   ,regexp
+  ,module Data.Model.View.Regexp
   ,transform
   ,widget
   ,hiddenIdent
@@ -39,6 +41,7 @@ import Data.Singletons.TypeLits
 
 import Data.Model.Types
 import Data.Model as Model
+import Data.Model.View.Regexp
 
 
 defaultView :: forall m . Model m => ModelView m

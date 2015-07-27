@@ -16,7 +16,7 @@ instance Model SubProgramContact where
   modelView = \case
     "" -> Just $ modifyView defaultView
                 [ invisible cParent
-                , regexp "email" email
-                , regexp "phone" phone
+                , regexp regexpEmail email
+                , regexp regexpPhone phone
                 ]
     _  -> Nothing

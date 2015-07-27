@@ -35,6 +35,6 @@ instance Model Sms where
       , invisible status
       , invisible sender
       , textarea  msgText
-      , regexp "phone" phone
+      , regexp regexpPhone phone
       ]
     _  -> Nothing

@@ -137,6 +137,7 @@ library
 
   other-modules:
     Data.Model.TH,
+    Data.Model.View.Regexp,
 
     Carma.Model.Case.Type,
     Carma.Model.SubProgram.Type

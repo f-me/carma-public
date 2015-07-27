@@ -20,5 +20,5 @@ instance Model DeferTime where
   modelInfo = mkModelInfo DeferTime ident
   modelView = \case
     "" -> Just $ modifyView defaultView [ infoText "defertime" time
-                                        , regexp "timespan" time]
+                                        , regexp regexpTimespan time]
     _  -> Nothing

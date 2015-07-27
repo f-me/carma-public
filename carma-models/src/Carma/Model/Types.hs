@@ -45,7 +45,6 @@ import qualified Data.Map as Map
 
 import Data.Either (rights)
 import Data.Time
-import Data.Scientific (toRealFloat)
 import System.Locale (defaultTimeLocale)
 
 import Text.Read (readMaybe)
@@ -68,6 +67,7 @@ import GHC.Generics
 import Data.Typeable
 
 import Data.Model
+import Data.Model.View.Regexp
 import Data.Model.Types
 import Carma.Model.LegacyTypes
 
@@ -179,7 +179,7 @@ instance DefaultFieldView UTCTime where
   defaultFieldView f = (defFieldView f)
     { fv_type = "UTCTime"
     , fv_meta
-      = Map.insert "regexp" "datetime"
+      = Map.insert "regexp" (Aeson.String regexpDateTime)
       $ Map.insert "widget" "datetime"
       $ fv_meta $ defFieldView f
     }
@@ -188,7 +188,7 @@ instance DefaultFieldView HMDiffTime where
   defaultFieldView f = (defFieldView f)
     { fv_type = "text"
     , fv_meta
-      = Map.insert "regexp" "timespan"
+      = Map.insert "regexp" (Aeson.String regexpTimespan)
       $ fv_meta $ defFieldView f
     }
 
@@ -204,7 +204,7 @@ instance DefaultFieldView Int where
   defaultFieldView f = (defFieldView f)
     { fv_type = "Integer"
     , fv_meta
-      = Map.insert "regexp" "number"
+      = Map.insert "regexp" (Aeson.String regexpNumber)
       $ Map.insert "widget" "text"
       $ fv_meta $ defFieldView f
     }
@@ -213,7 +213,7 @@ instance DefaultFieldView Scientific where
   defaultFieldView f = (defFieldView f)
     { fv_type = "Double"
     , fv_meta
-      = Map.insert "regexp" "double"
+      = Map.insert "regexp" (Aeson.String regexpDouble)
       $ Map.insert "widget" "text"
       $ fv_meta $ defFieldView f
     }
@@ -230,7 +230,7 @@ instance DefaultFieldView Double where
   defaultFieldView f = (defFieldView f)
     { fv_type = "Double"
     , fv_meta
-      = Map.insert "regexp" "double"
+      = Map.insert "regexp" (Aeson.String regexpDouble)
       $ Map.insert "widget" "text"
       $ fv_meta $ defFieldView f
     }
@@ -249,7 +249,7 @@ instance DefaultFieldView Day where
   defaultFieldView f = (defFieldView f)
     { fv_type = "Day"
     , fv_meta
-      = Map.insert "regexp" "date"
+      = Map.insert "regexp" (Aeson.String regexpDate)
       $ Map.insert "widget" "date"
       $ fv_meta $ defFieldView f
     }
@@ -276,7 +276,7 @@ instance DefaultFieldView Phone where
   defaultFieldView f = (defFieldView f)
     {fv_type = "phone"
     ,fv_meta
-      = Map.insert "regexp" "phone"
+      = Map.insert "regexp" (Aeson.String regexpPhone)
       $ Map.insert "picker" "callPlease"
       $ fv_meta $ defFieldView f
     }
