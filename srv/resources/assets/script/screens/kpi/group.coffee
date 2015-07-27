@@ -46,6 +46,9 @@ define ["text!tpl/screens/kpi/group.html"
       return unless interval.correct()
 
       spinner(true)
+      # Clear old values as new results may not contain all fields
+      for k, v of Model.fields
+        kvm[v.name] null
       $.getJSON "/kpi/group/#{sint[0]}/#{sint[1]}", (d) ->
         for k, v of mp.s2cObj d
           kvm[k](v)
