@@ -644,14 +644,6 @@ mixin caseFilesList
       span.save-result
       | {{/ readonly }}
 
-#empty-fields-template
-  ul#empty-fields
-    | {{# fields }}
-    li(onclick="focusField('{{name}}'); return false;"
-      data-bind="css: { 'text-danger': {{name}}Not }, visible: {{name}}Not")
-      | {{meta.label}}
-    | {{/ fields }}
-
 #service-picker-template
   ul.nav.nav-pills
     li(class="drop{{drop}}")
