@@ -115,9 +115,11 @@ define [ "utils"
                   utils.palette.length]
               else
                 null)
-            if matchesFilter(i[1]) || _.any(_.values(json), matchesFilter)
+            dts = new Date(i[0]).toString historyDatetimeFormat
+            if _.any([i[1], dts], matchesFilter) ||
+               _.any(_.values(json), matchesFilter)
                  kvm['historyItems'].push
-                   datetime: new Date(i[0]).toString historyDatetimeFormat
+                   datetime: dts
                    who: i[1]
                    json: json
                    color: color
