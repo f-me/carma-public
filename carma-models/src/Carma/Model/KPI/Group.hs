@@ -7,8 +7,8 @@ import           Data.Time.Clock (DiffTime)
 import           Data.Model
 import           Data.Model.View
 
-import           Carma.Model.Types
-import           Carma.Model.PgTypes
+import           Carma.Model.Types()
+import           Carma.Model.PgTypes()
 
 data GroupKPI = GroupKPI
   { ident       :: PK Int GroupKPI     "KPI пользователя"
