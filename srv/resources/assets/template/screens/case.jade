@@ -61,11 +61,14 @@
           | Незаполненные поля:
       ul
         // ko foreach: _meta.model.fields
-        li.text-danger(data-bind="visible: $root[$data.name + 'Not'](), text: $data.meta.label")
+        li.text-danger(data-bind="visible: $root[$data.name + 'Not'](),\
+                                  text: $data.meta.label,\
+                                  click: function(){focusField($data.name)}")
         // /ko
       ul
         // ko foreach: servicesReference
         // ko foreach: $data._meta.model.fields
-        li.text-danger(data-bind="visible: $parent[$data.name + 'Not'](), text: $data.meta.label")
+        li.text-danger(data-bind="visible: $parent[$data.name + 'Not'](),\
+                                  text: $data.meta.label")
         // /ko
         // /ko
