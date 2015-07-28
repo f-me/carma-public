@@ -74,6 +74,7 @@ import           Carma.Model.UserState as UserState
 import           Application
 
 import           AppHandlers.KPI (updateOperKPI)
+import           AppHandlers.Users
 import           AppHandlers.Util
 import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers
@@ -285,9 +286,14 @@ avayaToAfterCall =
 
 -- | Switch current user to Ready agent state.
 avayaToReady :: AppHandler()
-avayaToReady =
-  (fromMaybe (error "No user") <$> currentUserMeta) >>=
-  setAgentState DMCC.Ready
+avayaToReady = do
+  um <- fromMaybe (error "No user") <$> currentUserMeta
+  let (Just uid) = um `Patch.get` Usermeta.ident
+  userIsReady uid >>=
+    \case
+      True  -> setAgentState DMCC.Ready um
+      False ->
+        error "Will not switch AVAYA to Ready when the user is not ready!"
 
 
 -- | Send an agent state change request for a user, if
