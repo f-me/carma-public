@@ -177,6 +177,20 @@ updatePartnerData pid lon lat free addr mtime =
       runCarma $ updateInstance pid body' >> return ()
 
 
+
+-- | A query to return a previously created case, 1 parameter (contact
+-- phone)
+oldCaseQ :: Query
+oldCaseQ =
+  [sql|
+   SELECT id FROM casetbl
+   WHERE contact_phone1 = ?
+     AND callDate >= now() - interval '10 minutes'
+   ORDER BY id DESC
+   LIMIT 1;
+   |]
+
+
 ------------------------------------------------------------------------------
 -- | Create a new case from a JSON object provided in request body.
 -- Perform reverse geocoding using coordinates from values under @lon@
@@ -264,14 +278,27 @@ newCase = do
                     (fromMaybe SubProgram.ramc subProgValue)) $
                    caseBody'
 
-  caseId <- runCarma $ do
-    (caseId, _) <- createInstance caseBody''
-    -- Trigger an avalanche
-    let newStatus = case isAccident of
-                      Just (Aeson.Bool True) -> CS.mobileAccident
-                      _                      -> CS.mobileOrder
-    updateInstance caseId (Patch.put Case.caseStatus newStatus Patch.empty)
-    return caseId
+  -- Check if there has been a recent case from this number. If so, do
+  -- not create a new case but serve the old id.
+  oldId <-
+    case HM.lookup (fieldName Case.contact_phone1) jsonRq of
+      Nothing -> return Nothing
+      Just t -> do
+        query oldCaseQ [t] >>=
+          \case
+            [[i]] -> return $ Just i
+            _     -> return Nothing
+
+  caseId <- case oldId of
+    Just oi -> return $ Ident oi
+    Nothing -> runCarma $ do
+      (caseId, _) <- createInstance caseBody''
+      -- Trigger an avalanche
+      let newStatus = case isAccident of
+                        Just (Aeson.Bool True) -> CS.mobileAccident
+                        _                      -> CS.mobileOrder
+      updateInstance caseId (Patch.put Case.caseStatus newStatus Patch.empty)
+      return caseId
 
   modifyResponse $ setContentType "application/json"
   writeLBS . encode $ object $ [ "caseId" .= caseId ]
