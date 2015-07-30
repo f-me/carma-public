@@ -31,7 +31,8 @@ SELECT "PartnerCancel".id,
                               ELSE 'Нет'::text
                           END AS "Отказ дилера?",
                           "Program".label AS "Программа",
-                          "SubProgram".label AS "Подпрограмма"
+                          "SubProgram".label AS "Подпрограмма",
+                          "PaymentType".label AS "Тип оплаты"
 FROM "PartnerCancel"
 LEFT JOIN "PartnerRefusalReason" ON "PartnerCancel".partnerCancelReason = "PartnerRefusalReason".id
 LEFT JOIN usermetatbl ON "PartnerCancel".owner = usermetatbl.id
@@ -44,6 +45,7 @@ LEFT JOIN "City" ON casetbl.city = "City".id --РЕАЛИЗАЦИЯ УНИКАЛ
 LEFT JOIN servicetbl ON ("PartnerCancel".serviceid = servicetbl.id)
 LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id
 LEFT JOIN "ServiceStatus" ON servicetbl.status = "ServiceStatus".id
+LEFT JOIN "PaymentType" ON servicetbl.paytype = "PaymentType".id
  --ДЖОЙНИМ РЕЗУЛЬТАТ ПОДЗАПРОСА cities_regions ДЛЯ ВЫБОРА РЕГИОНОВ
 LEFT JOIN cities_regions ON "City".id = cities_regions.cities::Integer
 ORDER BY "PartnerCancel".ctime ASC,
