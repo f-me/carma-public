@@ -164,4 +164,5 @@ getMsgData con svcId = uncurry (PG.query con)
       inner join partnertbl tow_dealer on tow_dealer.id = tow.towDealer_partnerId
     where svc.id = $(svcId)$
       and (tech.id is null or tech.techType in ($(TT.charge)$, $(TT.starter)$, $(TT.ac)$))
+    limit 1
   |]
