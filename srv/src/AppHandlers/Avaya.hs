@@ -65,7 +65,6 @@ import qualified Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as Patch
 
 import qualified Carma.Model.Action as Action
-import qualified Carma.Model.ActionResult as ActionResult
 import           Carma.Model.AvayaEvent as AE
 import           Carma.Model.AvayaEventType as AET
 import           Carma.Model.Event as Event
@@ -336,16 +335,11 @@ ejectUser = chkAuthRoles (hasAnyOfRoles [Role.supervisor]) $ do
       -- Hangup
       sendCommand (EndCall $ DMCC.CallId (Text.pack $ show c)) up
       -- Now close his current action and update his state
-      now <- liftIO getCurrentTime
       (userState, model, actionId) <- userStateAction uid
       when (userState == UserState.Busy &&
             model == Data.Model.modelName
             (modelInfo :: ModelInfo Action.Action)) $ do
-        let p = Patch.put Action.closeTime (Just now) $
-                Patch.put Action.result (Just ActionResult.supervisorClosed) $
-                Patch.empty
-            aid = Ident actionId
-        void $ withAuthPg $ liftPG $ Patch.update aid p
+        let aid = Ident actionId
         forceBusyUserToServiceBreak aid uid
         -- Serve action data for client redirection
         act <- withAuthPg $ liftPG $ Patch.read aid

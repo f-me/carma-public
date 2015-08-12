@@ -365,24 +365,26 @@ switchToReady uid = do
 -- | Force a service break for a user after he was ejected from his
 -- call, also producing an action closing event.
 forceBusyUserToServiceBreak :: IdentI Action.Action
+                            -- ^ Current actions of a user.
                             -> IdentI Usermeta
                             -> AppHandler ()
 forceBusyUserToServiceBreak aid uid = do
   -- Schedule a service break
-  let p1 = P.put delayedState (Just ServiceBreak) P.empty
-      ep1 = buildFull
-           Update uid
-           (Just delayedState)
-           (Just p1)
-  ev1 <- log Nothing $ addIdent uid ep1
+  void $ withAuthPg $ liftPG $
+    P.update uid
+    (P.put delayedState (Just ServiceBreak) P.empty)
 
   -- Action closing (will switch user into Ready state, which will
   -- turn into a service break)
-  let p2 = P.put Action.result (Just ActionResult.supervisorClosed)
-           P.empty
-      ep2 = buildFull
-            Update aid
-            (Just Action.result)
-            (Just p2)
-  ev2 <- log (Just uid) $ addIdent aid ep2
-  updateUserState (Just uid) Update aid p2 ev2
+  now <- liftIO getCurrentTime
+  let p = P.put Action.closeTime (Just now) $
+          P.put Action.result (Just ActionResult.supervisorClosed) $
+          P.empty
+      ep = buildFull
+           Update
+           aid
+           (Just Action.result)
+           (Just p)
+  void $ withAuthPg $ liftPG $ P.update aid p
+  ev <- log (Just uid) $ addIdent aid ep
+  updateUserState (Just uid) Update aid p ev
