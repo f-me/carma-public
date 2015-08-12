@@ -15,8 +15,9 @@ define ["text!tpl/screens/kpi/oper.html"
       do (d) ->
         a = mp.s2cObj d
         kvm = kvmsh[a.userid]
-        for k, v of a
-          do (k, v) -> kvm[k](v)
+        if kvm?
+          for k, v of a
+            do (k, v) -> kvm[k](v)
 
   tick = (kvms) -> ->
     for k in kvms()
