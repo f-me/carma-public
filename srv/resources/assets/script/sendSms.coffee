@@ -27,6 +27,7 @@ define ["model/main"], (main) ->
       vCase = global.viewsWare['case-form']
       if vCase
         smsVM.caseRef(vCase.knockVM.id())
+        smsVM.phone(vCase.knockVM.contact_phone1())
 
       # FIXME: now we can do this with shiny new triggers
       # we really need this because triggers do not trigger on `POST`
