@@ -57,6 +57,9 @@ define [], () ->
         else
           false
 
+      # All current calls
+      @calls = kvm.calls
+
       # Return an unanswered incoming call if there's one
       @incomingCall = () ->
         _.find kvm.calls(), (c) -> c.canAnswer()

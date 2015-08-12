@@ -51,13 +51,17 @@ include _settings
            td(data-bind="text: kvm['useridGrp']")
            td(data-bind="visible: global.CTIPanel", style="text-align: center")
              button.btn.btn-warning(
-               data-bind="click: kvm._meta.joinTo,\n\
-                          visible: kvm._meta.currentCall")
+               data-bind="click: kvm._meta.takeover,\n\
+                          visible: kvm._meta.currentCall() && !kvm._meta.beingListened()")
                | Перехватить
              button.btn.btn-warning(
                data-bind="click: kvm._meta.listenTo,\n\
-                          visible: kvm._meta.currentCall")
+                          visible: kvm._meta.currentCall() && !kvm._meta.beingListened()")
                | Слушать
+             button.btn.btn-info(disabled,
+               data-bind="click: kvm._meta.listenTo,\n\
+                          visible: kvm._meta.currentCall() && kvm._meta.beingListened()")
+               | Прослушивание…
            // ko foreach: $root.fields
            td(data-bind="visible: show, \n\
                          render: {kvm: kvm, field: $data}, \n\
