@@ -25,6 +25,7 @@ module AppHandlers.Avaya
     , avayaToAfterCall
     , avayaToReady
     , setAgentState
+    , ejectUser
     )
 
 where
@@ -44,7 +45,7 @@ import           Data.CaseInsensitive (original)
 import qualified Data.Map as Map
 import           Data.Text as Text
 import           Data.Time.Clock
-import           Data.Vector (elem, fromList)
+import           Data.Vector (elem, fromList, singleton)
 
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
@@ -67,18 +68,22 @@ import qualified Carma.Model.Action as Action
 import           Carma.Model.AvayaEvent as AE
 import           Carma.Model.AvayaEventType as AET
 import           Carma.Model.Event as Event
-import           Carma.Model.Role as Role (cti)
+import           Carma.Model.Role as Role (cti, supervisor)
 import           Carma.Model.Usermeta as Usermeta
 import           Carma.Model.UserState as UserState
 
 import           Application
 
+import           AppHandlers.KPI (updateOperKPI)
 import           AppHandlers.Users
 import           AppHandlers.Util
 import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers
+import           Snaplet.Messenger (sendMessage)
+import           Snaplet.Messenger.Class (HasMsg, withMsg)
 import           Util
 import           Utils.Events
+import           Utils.LegacyModel (mkIdentTopic)
 
 
 -- | Check if a user has access to CTI.
@@ -156,15 +161,17 @@ dmccHook = do
   case decode rsb of
     Nothing -> error $ "Could not read hook data " ++ show rsb
     Just (WHEvent (AgentId (_, ext)) (StateChange sn)) ->
-      handleWith ext $ \uid ->
-      case _state sn of
-        -- Automatic NotReady state (caused by an unanswered call or
-        -- operator login) has empty reason code
-        (Just (Settable DMCC.NotReady), "") -> switchToNA uid
-        (Just (Settable DMCC.Ready), _) -> switchToReady uid
-        _ -> return ()
+      handleWith ext $ \uid -> do
+        rememberAvayaSnapshot uid sn
+        case _state sn of
+          -- Automatic NotReady state (caused by an unanswered call or
+          -- operator login) has empty reason code
+          (Just (Settable DMCC.NotReady), "") -> switchToNA uid
+          (Just (Settable DMCC.Ready), _) -> switchToReady uid
+          _ -> return ()
     Just (WHEvent (AgentId (_, ext)) (TelephonyEvent ev st)) ->
       handleWith ext $ \uid -> do
+          rememberAvayaSnapshot uid st
           let
             -- Map hook data to AvayaEventType dictionary and other
             -- AvayaEvent fields, decide if we need to write anything
@@ -226,6 +233,26 @@ dmccHook = do
       return ()
 
 
+rememberAvayaSnapshot :: (HasMsg b, HasPostgresAuth b v) =>
+                         IdentI Usermeta
+                      -> DMCC.AgentSnapshot
+                      -> Handler b v ()
+rememberAvayaSnapshot uid sn = do
+  let
+    p = Patch.put
+        Usermeta.lastAvayaSnapshot (fromMaybe Null $ decode $ encode sn)
+        Patch.empty
+  -- Update DB data
+  void $ withAuthPg $ liftPG $ Patch.update uid p
+  -- Update client data (via WebSocket)
+  withMsg $ sendMessage (mkIdentTopic uid) p
+  -- Update KPI screen data
+  kpis <- withAuthPg $
+          updateOperKPI (Data.Vector.singleton uid)
+  withMsg $ sendMessage "oper-kpi" kpis
+
+
+
 -- | Return last state and corresponding model name/id for a user.
 userStateAction :: IdentI Usermeta
                 -> AppHandler (UserStateVal, Text, Int)
@@ -270,12 +297,11 @@ avayaToReady = do
         error "Will not switch AVAYA to Ready when the user is not ready!"
 
 
--- | Send an agent state change request for a user, if
--- CTI is enabled for her.
-setAgentState :: SettableAgentState
-              -> Patch.Patch Usermeta
-              -> AppHandler ()
-setAgentState as um = do
+-- | Send an agent request for a user, if CTI is enabled for her.
+sendCommand :: DMCC.Action
+            -> Patch.Patch Usermeta
+            -> AppHandler ()
+sendCommand cmd um = do
   when (isCtiUser um) $ do
     dmccWsHost' <- gets (dmccWsHost . options)
     dmccWsPort' <- gets (dmccWsPort . options)
@@ -284,9 +310,45 @@ setAgentState as um = do
         ext = fromMaybe (error "Bad meta") $
               um `Patch.get` Usermeta.workPhoneSuffix
         miniApp conn =
-          send conn (DataMessage $ Text $ encode (SetState as)) >>
+          send conn (DataMessage $ Text $ encode cmd) >>
           sendClose conn ("carma disconnected" :: ByteString) >>
           (void $ (receiveData conn :: IO ByteString))
 
     liftIO $ void $ forkIO $
       runClient dmccWsHost'' dmccWsPort' ("/" ++ Text.unpack ext) miniApp
+
+
+setAgentState :: SettableAgentState
+              -> Patch.Patch Usermeta
+              -> AppHandler ()
+setAgentState s = sendCommand (SetState s)
+
+
+ejectUser :: AppHandler ()
+ejectUser = chkAuthRoles (hasAnyOfRoles [Role.supervisor]) $ do
+  u <- fromMaybe (error "No user specified") <$> getIntParam "user"
+  let uid = Ident u
+  c <- fromMaybe (error "No call specified") <$> getIntParam "call"
+  up' <- withAuthPg $ liftPG $ Patch.read uid
+  case up' of
+    Right up -> do
+      -- Hangup
+      sendCommand (EndCall $ DMCC.CallId (Text.pack $ show c)) up
+      -- Now close his current action and update his state
+      (userState, model, actionId) <- userStateAction uid
+      when (userState == UserState.Busy &&
+            model == Data.Model.modelName
+            (modelInfo :: ModelInfo Action.Action)) $ do
+        let aid = Ident actionId
+        forceBusyUserToServiceBreak aid uid
+        -- Serve action data for client redirection
+        act <- withAuthPg $ liftPG $ Patch.read aid
+        case act of
+          Right a' ->
+            writeJSON $
+            object [ "id" .= aid
+                   , "caseId" .= (a' `Patch.get'` Action.caseId)
+                   , "callId" .= (a' `Patch.get'` Action.callId)
+                   ]
+          Left _ -> error "Could not fetch action"
+    _ -> error "No such user"

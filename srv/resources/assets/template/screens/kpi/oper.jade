@@ -37,7 +37,9 @@ include _settings
              button.btn.btn-link(
                style='white-space: nowrap;'
                data-bind='text: "Оператор", sort: "userid"')
-
+           th(data-bind="visible: global.CTIPanel",
+              style='text-align: center; vertical-align: middle')
+             | AVAYA
            // ko foreach: fields
            th(data-bind="visible: show")
              button.btn.btn-link(
@@ -47,6 +49,19 @@ include _settings
        tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
          tr(data-bind="visible: kvm._meta.visible")
            td(data-bind="text: kvm['useridGrp']")
+           td(data-bind="visible: global.CTIPanel", style="text-align: center")
+             button.btn.btn-warning(
+               data-bind="click: kvm._meta.takeover,\n\
+                          visible: kvm._meta.currentCall() && !kvm._meta.beingListened()")
+               | Перехватить
+             button.btn.btn-warning(
+               data-bind="click: kvm._meta.listenTo,\n\
+                          visible: kvm._meta.currentCall() && !kvm._meta.beingListened()")
+               | Слушать
+             button.btn.btn-info(disabled,
+               data-bind="click: kvm._meta.listenTo,\n\
+                          visible: kvm._meta.currentCall() && kvm._meta.beingListened()")
+               | Прослушивание…
            // ko foreach: $root.fields
            td(data-bind="visible: show, \n\
                          render: {kvm: kvm, field: $data}, \n\

@@ -42,6 +42,13 @@ define ["lib/ws"], (WS) ->
         activeCall: activeCall
         heldCall:   heldCall
 
+    # pType is either "Active" or "Silent"
+    bargeIn: (activeCall, pType) ->
+      @ws.send JSON.stringify
+        action: "BargeIn"
+        callId: activeCall
+        pType: pType
+
     transferCall: (activeCall, heldCall) ->
       @ws.send JSON.stringify
         action: "TransferCall"

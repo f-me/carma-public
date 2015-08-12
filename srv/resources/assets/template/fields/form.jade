@@ -36,8 +36,8 @@ include _form_utils
     .text-right
       button.btn.btn-info(type="button"
         onclick="doPick('passwordPicker', '{{ name }}', event.target);")
-        i.icon-white.icon-refresh
-        | Создать пароль
+        i.glyphicon.glyphicon-refresh
+        | &nbsp;Создать пароль
 
 .field-template#datetime-field-template
   +fieldControlGroup
@@ -643,14 +643,6 @@ mixin caseFilesList
         | Сохранить
       span.save-result
       | {{/ readonly }}
-
-#empty-fields-template
-  ul#empty-fields
-    | {{# fields }}
-    li(onclick="focusField('{{name}}'); return false;"
-      data-bind="css: { 'text-danger': {{name}}Not }, visible: {{name}}Not")
-      | {{meta.label}}
-    | {{/ fields }}
 
 #service-picker-template
   ul.nav.nav-pills

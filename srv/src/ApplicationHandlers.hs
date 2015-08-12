@@ -156,7 +156,7 @@ createHandler = do
           Right (idt@(Ident i), commit') -> do
             -- Can't do this in trigger because it need ident
             evIdt <- logCRUD Create idt commit
-            updateUserState Create idt commit evIdt
+            updateUserState Nothing Create idt commit evIdt
             -- we really need to separate idents from models
             -- (so we can @Patch.set ident i commit@)
             return $ case Aeson.toJSON (commit' `Patch.differenceFrom` commit) of
@@ -226,7 +226,7 @@ updateHandler = do
           Left err -> error $ "in updateHandler: " ++ show err
           Right commit' -> do
             evIdt <- logCRUD Update ident commit
-            updateUserState Update ident commit evIdt
+            updateUserState Nothing Update ident commit evIdt
             return $ recode (commit' `Patch.differenceFrom` commit)
   fromMaybe (error "Unknown model") (Carma.Model.dispatch model updateModel) >>=
     \case

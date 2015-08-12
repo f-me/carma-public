@@ -326,18 +326,34 @@ define ["text!tpl/screens/timeline.html"
 
     # Mass-update to all shown users upon button click
     $("#mass-apply").click () ->
-      _.map kvms(), (k) ->
-        if massVM.businessRole()?
-          k.businessRole massVM.businessRole()
-        if massVM.bocities()?
-          k.bocities massVM.bocities()
-        if massVM.boprograms()?
-          k.boprograms massVM.boprograms()
+      changes = []
+      if massVM.businessRole()?
+        changes.push "бизнес-роль: «#{massVM.businessRoleLocal()}»"
+      if massVM.bocities()?
+        changes.push \
+          "города: #{_.pluck(massVM.bocitiesLocals(), 'label').join(', ')}"
+      if massVM.boprograms()?
+        changes.push \
+          "программы: #{_.pluck(massVM.boprogramsLocals(), 'label').join(', ')}"
+      if !_.isEmpty(changes)
+        formatted_changes = changes.join("; ")
+        return unless \
+          confirm "Вы уверены, что хотите массово применить изменения? \
+            (#{formatted_changes})"
+        _.map kvms(), (k) ->
+          if massVM.businessRole()?
+            k.businessRole massVM.businessRole()
+          if massVM.bocities()?
+            k.bocities massVM.bocities()
+          if massVM.boprograms()?
+            k.boprograms massVM.boprograms()
 
     $("#mass-clear-bocities").click () ->
+      return unless confirm "Вы уверены, что хотите массово очистить города?"
       _.map kvms(), (k) -> k.bocities []
 
     $("#mass-clear-boprograms").click () ->
+      return unless confirm "Вы уверены, что хотите массово очистить программы?"
       _.map kvms(), (k) -> k.boprograms []
 
     kvms.change_filters ['typeahead']

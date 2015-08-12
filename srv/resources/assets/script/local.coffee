@@ -112,8 +112,8 @@ require [ "domready"
             # call screen
             answerCallCb: (number, vdnNumber) ->
               if _.contains global.user.roles, global.idents("Role").call
+                number = u.internalToDisplayed number
                 if number.length > 5
-                  number = u.internalToDisplayed number
                   vdnNumber = vdnNumber?.split(":")[0]
                   vdn = vdns.getElement(vdns.getVal(vdnNumber))
                   callData = {}

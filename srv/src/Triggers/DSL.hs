@@ -90,13 +90,12 @@ import qualified Data.Model.Patch.Sql as Patch
 
 import Snaplet.Messenger (sendMessage)
 import Snaplet.Messenger.Class (withMsg)
-import Utils.LegacyModel (mkLegacyIdent)
+import Utils.LegacyModel (mkIdentTopic)
 
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.Call   as Call
 import Carma.Model.Case        (Case)
 import Carma.Model.Event       (Event, EventType)
-import Carma.Model.Usermeta    (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import Carma.Model.LegacyTypes (Password(..))
 
@@ -375,7 +374,7 @@ evalDsl = \case
 
     WsMessage k -> do
       p <- gets st_patch
-      i <- mkLegacyIdent <$> gets st_ident
+      i <- mkIdentTopic <$> gets st_ident
       lift $ withMsg $ sendMessage i p
       evalDsl k
 

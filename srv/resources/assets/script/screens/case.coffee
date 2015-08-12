@@ -42,12 +42,6 @@ define [ "utils"
 
       Contract.setup "contract", kvm
 
-      $("#empty-fields-placeholder").html(
-          Mustache.render($(flds).find("#empty-fields-template").html(), ctx))
-
-      ko.applyBindings(kvm, el("empty-fields"))
-
-
       # Render service picker
       #
       # We use Bootstrap's glyphs if "icon" key is set in dictionary
@@ -65,9 +59,18 @@ define [ "utils"
       # True if any of of required fields are missing a value
       do (kvm) ->
         kvm['hasMissingRequireds'] = ko.computed ->
-          nots = (i for i of kvm when /.*Not$/.test i)
-          disable = _.any nots, (e) -> kvm[e]()
+          # Check if any of required fields in a viewmodel is missing
+          checkVM = (vm) ->
+            nots = (i for i of vm when /.*Not$/.test i)
+            _.any nots, (e) -> vm[e]()
+          # Early case-only check
+          disable = checkVM kvm
+          # Check all services too
+          for r, svm of kvm['servicesReference']()
+            disable ||= checkVM svm
           disable
+        # Show a list of empty required fields
+        ko.applyBindings(kvm, el("empty-fields"))
 
       setupHistory kvm
 
@@ -112,9 +115,11 @@ define [ "utils"
                   utils.palette.length]
               else
                 null)
-            if matchesFilter(i[1]) || _.any(_.values(json), matchesFilter)
+            dts = new Date(i[0]).toString historyDatetimeFormat
+            if _.any([i[1], dts], matchesFilter) ||
+               _.any(_.values(json), matchesFilter)
                  kvm['historyItems'].push
-                   datetime: new Date(i[0]).toString historyDatetimeFormat
+                   datetime: dts
                    who: i[1]
                    json: json
                    color: color

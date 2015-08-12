@@ -55,4 +55,20 @@
               data-bind="attr: {id: 'case-desc-' + $index()}")
               .panel-body(data-bind='html: description')
 
-    #empty-fields-placeholder
+    #empty-fields
+      div(data-bind="visible: hasMissingRequireds")
+        strong
+          | Незаполненные поля:
+      ul
+        // ko foreach: _meta.model.fields
+        li.text-danger(data-bind="visible: $root[$data.name + 'Not'](),\
+                                  text: $data.meta.label,\
+                                  click: function(){focusField($data.name)}")
+        // /ko
+      ul
+        // ko foreach: servicesReference
+        // ko foreach: $data._meta.model.fields
+        li.text-danger(data-bind="visible: $parent[$data.name + 'Not'](),\
+                                  text: $data.meta.label")
+        // /ko
+        // /ko

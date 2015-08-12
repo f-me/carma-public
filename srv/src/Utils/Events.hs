@@ -9,6 +9,7 @@ module Utils.Events
 
     , switchToNA
     , switchToReady
+    , forceBusyUserToServiceBreak
     )
 
 where
@@ -53,6 +54,7 @@ import           Carma.Model.UserState (UserState, UserStateVal(..))
 import qualified Carma.Model.UserState as State
 import           Carma.Model.Usermeta  (Usermeta(..))
 import qualified Carma.Model.Action as Action
+import qualified Carma.Model.ActionResult as ActionResult
 import qualified Carma.Model.Call   as Call
 
 import qualified DMCC (SettableAgentState(..))
@@ -75,8 +77,8 @@ logLogin tpe = do
   case uid of
     Nothing -> return ()
     Just uid' -> do
-      ev <- log $ addIdent uid' $ buildEmpty tpe
-      updateUserState tpe uid' P.empty ev
+      ev <- log Nothing $ addIdent uid' $ buildEmpty tpe
+      updateUserState Nothing tpe uid' P.empty ev
 
 -- | Create 'Event' from changes in a model.
 logCRUD :: forall m. Model m =>
@@ -87,7 +89,7 @@ logCRUD :: forall m. Model m =>
         -- ^ Changed fields
         -> AppHandler (IdentI Event)
 logCRUD tpe idt p =
-  log $ buildFull tpe idt (Nothing :: Maybe (m -> PK Int m "")) (Just p)
+  log Nothing $ buildFull tpe idt (Nothing :: Maybe (m -> PK Int m "")) (Just p)
 
 -- | Create event *and* update user state.
 logCRUDState :: Model m
@@ -97,32 +99,42 @@ logCRUDState :: Model m
              -> AppHandler (IdentI Event)
 logCRUDState tpe idt p =
   logCRUD tpe idt p >>=
-  \e -> updateUserState tpe idt p e >> return e
+  \e -> updateUserState Nothing tpe idt p e >> return e
 
 -- | Create event from patch
-log :: Patch Event -> AppHandler (IdentI Event)
-log p = do
+log :: Maybe (IdentI Usermeta)
+    -- ^ Create event as if it was produced by this user. Otherwise,
+    -- use current user as event author.
+    -> Patch Event
+    -> AppHandler (IdentI Event)
+log tgtUsr p = do
   uid <- getRealUid
-  idt <- create $ setUsr uid p
+  idt <- create $ setUsr (maybe uid Just tgtUsr) p
   case idt of
     Left err -> error $ "Can't create Event: " ++ show err
     Right id' -> return id'
 
 updateUserState :: forall m. Model m =>
-                   EventType
+                   Maybe (IdentI Usermeta)
+                -- ^ Update state for this user (or current user
+                -- otherwise).
+                -> EventType
                 -> IdentI m
                 -- ^ Identifier of changed model
                 -> Patch m
                 -- ^ Changed fields
                 -> IdentI Event
                 -> AppHandler ()
-updateUserState evt idt p evidt = do
+updateUserState tgtUsr' evt idt p evidt = do
   -- Little hack to determine target user for state change in case if
   -- someone else changed @delayedState@ field of current user
   tgtUsr <- case mname of
     -- Rebuild ident so haskell won't complain about m ~ Usermeta
     "Usermeta" -> return $ Just $ Ident $ identVal idt
-    _          -> getRealUid
+    _          ->
+      case tgtUsr' of
+        u@(Just _) -> return u
+        Nothing -> getRealUid
   case tgtUsr of
     Nothing -> return ()
     Just tgtUsr' -> do
@@ -134,7 +146,7 @@ updateUserState evt idt p evidt = do
         -- from real ctime of new state
         time <- liftIO $ getCurrentTime
         withMsg $ sendMessage
-          (mkLegacyIdent tgtUsr')
+          (mkIdentTopic tgtUsr')
           (P.put currentState      st      $
            P.put currentStateCTime time    $
            P.put delayedState      Nothing $
@@ -336,14 +348,43 @@ setUsr :: Maybe (IdentI Usermeta) -> Patch Event -> Patch Event
 setUsr usr p = P.put E.userid usr p
 
 
--- | Used when a user is put to NA state by AVAYA.
+-- | Used when current user is put to NA state by AVAYA.
+switchToNA :: IdentI Usermeta -> AppHandler ()
 switchToNA uid = do
-  ev <- log $ addIdent uid $ buildEmpty AvayaNA
-  updateUserState AvayaNA uid P.empty ev
+  ev <- log Nothing $ addIdent uid $ buildEmpty AvayaNA
+  updateUserState Nothing AvayaNA uid P.empty ev
 
 
--- | Used when a user manually switches his softphone state.
+-- | Used when current user manually switches his softphone state.
 switchToReady :: IdentI Usermeta -> AppHandler ()
 switchToReady uid = do
-  ev <- log $ addIdent uid $ buildEmpty AvayaReady
-  updateUserState AvayaReady uid P.empty ev
+  ev <- log Nothing $ addIdent uid $ buildEmpty AvayaReady
+  updateUserState Nothing AvayaReady uid P.empty ev
+
+
+-- | Force a service break for a user after he was ejected from his
+-- call, also producing an action closing event.
+forceBusyUserToServiceBreak :: IdentI Action.Action
+                            -- ^ Current actions of a user.
+                            -> IdentI Usermeta
+                            -> AppHandler ()
+forceBusyUserToServiceBreak aid uid = do
+  -- Schedule a service break
+  void $ withAuthPg $ liftPG $
+    P.update uid
+    (P.put delayedState (Just ServiceBreak) P.empty)
+
+  -- Action closing (will switch user into Ready state, which will
+  -- turn into a service break)
+  now <- liftIO getCurrentTime
+  let p = P.put Action.closeTime (Just now) $
+          P.put Action.result (Just ActionResult.supervisorClosed) $
+          P.empty
+      ep = buildFull
+           Update
+           aid
+           (Just Action.result)
+           (Just p)
+  void $ withAuthPg $ liftPG $ P.update aid p
+  ev <- log (Just uid) $ addIdent aid ep
+  updateUserState (Just uid) Update aid p ev

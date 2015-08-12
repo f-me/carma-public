@@ -13,6 +13,11 @@ module AppHandlers.Users
     , chkAuthLocal
     , chkAuthAdmin
     , chkAuthPartner
+
+    , chkAuthRoles
+    , hasAnyOfRoles
+    , hasNoneOfRoles
+
     , serveUserCake
     , serveUserStates
     , userIsInState

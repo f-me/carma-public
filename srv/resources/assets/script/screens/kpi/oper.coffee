@@ -15,8 +15,9 @@ define ["text!tpl/screens/kpi/oper.html"
       do (d) ->
         a = mp.s2cObj d
         kvm = kvmsh[a.userid]
-        for k, v of a
-          do (k, v) -> kvm[k](v)
+        if kvm?
+          for k, v of a
+            do (k, v) -> kvm[k](v)
 
   tick = (kvms) -> ->
     for k in kvms()
@@ -29,6 +30,48 @@ define ["text!tpl/screens/kpi/oper.html"
     return null
 
   ticker = null
+
+  # Currently active call of a busy Front Office operator (always the
+  # first one answered non-held call of that operator)
+  #
+  # FIXME If an operator loses his CTI role, his last known AVAYA
+  # state will still be preserved and shown on this screen
+  mkCurrentCall = (k) -> ko.computed ->
+    # Ignore non-CTI users or users not busy with a call action
+    if k.currentAType() != global.idents("ActionType").call
+      return null
+
+    calls = k.lastAvayaSnapshot()?.calls
+    return _.find(_.keys(calls), (k) -> !calls[k].held && calls[k].answered)
+
+  mkListenTo = (k) -> () ->
+    if k._meta.currentCall()? && global.CTIPanel?
+      global.CTIPanel.bargeIn k._meta.currentCall(), "Silent"
+
+  # True iff our supervisor CTI currently has a call of this user
+  mkBeingListened = (k) -> ko.computed ->
+    if k._meta.currentCall()? && global.CTIPanel?
+      _.find(global.CTIPanel.calls(),\
+        (c) -> c.callId == k._meta.currentCall())
+
+  # Take over the current call of the user, ejecting him
+  mkTakeover = (k) -> () ->
+    call = k._meta.currentCall()
+    if call? && global.CTIPanel?
+      # Wait for our CTI to connect to the call
+      sub = global.CTIPanel.calls.subscribe (nv) ->
+        if k._meta.beingListened()
+          sub.dispose()
+          ejectUrl = "/avaya/eject/#{k.userid()}/#{call}"
+          $.ajax ejectUrl, {type: "PUT", success: (r) ->
+            if r.caseId?
+              $.notify "Открываю кейс #{r.caseId}…"
+              whereTo = "case/#{r.caseId}"
+            else
+              $.notify "Открываю звонок #{r.callId}…"
+              whereTo = "call/#{r.callId}"
+            window.location.hash = whereTo}
+      global.CTIPanel.bargeIn call, "Active"
 
   mkLogoutFromBusy = (k) -> ko.computed ->
     k.lastState() == 'Busy' &&
@@ -72,6 +115,10 @@ define ["text!tpl/screens/kpi/oper.html"
               k.useridGrp = "#{k.useridLocal()} (#{k.grp})"
             else
               k.useridGrp = k.useridLocal()
+            k._meta.currentCall    = mkCurrentCall(k)
+            k._meta.listenTo       = mkListenTo(k)
+            k._meta.beingListened  = mkBeingListened(k)
+            k._meta.takeover       = mkTakeover(k)
             k._meta.logoutFromBusy = mkLogoutFromBusy(k)
             k._meta.overdue        = mkOverDue(k, sCtx.overdue)
             k._meta.visible        =
