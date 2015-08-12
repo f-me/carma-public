@@ -29,12 +29,6 @@ define ["model/main"], (main) ->
         smsVM.caseRef(vCase.knockVM.id())
         smsVM.phone(vCase.knockVM.contact_phone1())
 
-      # FIXME: now we can do this with shiny new triggers
-      # we really need this because triggers do not trigger on `POST`
-      # so, if {template:"xxx"} comes with POST (not with PUT), then
-      # our template substitution trigger is not fired
-      smsVM._meta.q.save()
-
       $('#do-send-sms')
         .off('click')
         .on('click', () ->
