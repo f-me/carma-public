@@ -118,7 +118,8 @@ fillCurrentState :: Patch Usermeta -> IdentI Usermeta -> PG.Connection
 fillCurrentState p idt c = do
   st <- PG.query c [sql|
           SELECT ctime, state
-          FROM "UserState" WHERE userId = ?
+          FROM "UserState"
+          WHERE userId = ? AND ctime > now() - interval '1 mon'
           ORDER BY id DESC LIMIT 1
         |] (PG.Only idt)
   case st of
@@ -154,6 +155,8 @@ allUsrsQ =
  "SELECT %s, s.state, s.ctime "                                     ++
  "FROM usermetatbl u "                                              ++
  "LEFT JOIN (SELECT DISTINCT ON (userid) id, state, ctime, userid " ++
-            "FROM \"UserState\" ORDER BY userid, id DESC) s "       ++
+            "FROM \"UserState\" "                                   ++
+            "WHERE ctime > now() - interval '1 mon' "               ++
+            "ORDER BY userid, id DESC) s "                          ++
  "ON u.id = s.userid "                                              ++
  "LIMIT ? OFFSET ? ;"
