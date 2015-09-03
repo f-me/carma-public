@@ -41,25 +41,23 @@ require [ "domready"
   # collect errors in console to add them to the bug report
   # and then send to server
   do ->
-    reportBug = (msg, url, line) ->
+    sendError = (err) ->
+      if not err.match(/whoopsie/)
+        $.ajax
+          type: 'POST'
+          url : '/whoopsie'
+          data: err
+
+    window.onerror = (msg, url, line, pos, err) ->
       bugReport.addError msg, url, line
-      # This can cause dos when backend fail to handle request
-      # $.ajax
-      #   type: "POST"
-      #   url : "/errors"
-      #   data: "#{msg} #{url} #{line}"
+      sendError err.stack
 
-    originConsoleError = console.error
-
-    console.error = (msg, url, line) ->
-      reportBug msg, url, line
-      originConsoleError.apply console, [msg, url, line]
-
-    window.onerror = console.error
-
-    $(document).ajaxError (event, jqXHR, settings, error) ->
-      console.error "#{settings.type} #{settings.url} #{jqXHR.status}
- (#{jqXHR.statusText})\n#{settings.data}\n#{jqXHR.responseText}"
+    # FIXME: report websosket errors also
+    $(document).ajaxError (event, jqXHR, s, error) ->
+      sendError [
+          s.type, s.url, jqXHR.status,
+          jqXHR.statusText, s.data, jqXHR.responseText
+      ].join('  ')
 
   # this will be called on dom ready
   dom ->

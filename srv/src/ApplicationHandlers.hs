@@ -24,7 +24,7 @@ module ApplicationHandlers
 
     -- * Misc. client support handlers
     , clientConfig
-    , errorsHandler
+    , whoopsieHandler
     )
 
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
@@ -291,12 +291,12 @@ clientConfig = do
   writeJSON config
 
 
-errorsHandler :: AppHandler ()
-errorsHandler = do
+whoopsieHandler :: AppHandler ()
+whoopsieHandler = do
   r  <- readRequestBody 4096
   ip <- rqRemoteAddr <$> getRequest
   user <- fmap userLogin <$> with auth currentUser
-  syslogJSON Warning "handler/errorsHandler"
+  syslogJSON Warning "handler/whoopsie"
     ["err" .= TL.decodeUtf8 r
     ,"ip"  .= T.decodeUtf8 ip
     ,"user".= user
