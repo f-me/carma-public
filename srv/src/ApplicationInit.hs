@@ -3,10 +3,14 @@ module ApplicationInit (appInit) where
 import Control.Applicative
 import Control.Concurrent.STM
 import Control.Monad.IO.Class
+import qualified Control.Monad.CatchIO as IOEx
+-- ^ FIXME: Monad.CatchIO is deprecated
 
+import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import Data.Configurator as Cfg
-import Data.Map as Map
+import qualified Data.Map as Map
+import qualified Data.Time.Clock as Clock
 
 import Snap.Core
 import Snap.Snaplet
@@ -46,6 +50,7 @@ import AppHandlers.ContractGenerator
 import AppHandlers.Users
 import AppHandlers.Screens
 import AppHandlers.KPI
+import Util
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
@@ -132,6 +137,18 @@ dconf = simpleDirectoryConfig{preServeHook = h}
     h _ = modifyResponse $ setHeader "Cache-Control" "no-cache, must-revalidate"
 
 
+timeIt :: AppHandler () -> AppHandler ()
+timeIt h = do
+  r <- getRequest
+  start <- liftIO Clock.getCurrentTime
+  h `IOEx.finally` (liftIO $ do
+    end <- Clock.getCurrentTime
+    syslogJSON Info "timeIt"
+      [ "method" .= show (rqMethod r)
+      , "uri" .= T.decodeUtf8 (rqURI r)
+      , "time" .= show (Clock.diffUTCTime end start)
+      ])
+
 ------------------------------------------------------------------------------
 -- | The application initializer.
 appInit :: SnapletInit App App
@@ -173,7 +190,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 
-  addRoutes routes
+  addRoutes [(n, timeIt f) | (n, f) <- routes]
 
   em <- liftIO $ newTVarIO Map.empty
   return $ App h s authMgr c tm fu ch g ad search' opts msgr (initApi wkey) em
