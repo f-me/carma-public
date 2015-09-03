@@ -116,7 +116,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/vin/upload",    chkAuth . method POST $ vinImport)
          , ("copyCtrOptions", chkAuth . method POST $ copyCtrOptions)
          , ("/clientConfig",       chkAuth . method GET  $ clientConfig)
-         , ("/errors",        method POST errorsHandler)
+         , ("/whoopsie",      chkAuth . method POST $ whoopsieHandler)
          , ("/userStates/:userId/:from/:to",
             chkAuth . method GET $ serveUserStates)
          , ("/kpi/stat/:from/:to",      chkAuth . method GET $ getStat)
