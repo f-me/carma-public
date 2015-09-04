@@ -127,8 +127,10 @@ chkAuthRoles roleCheck handler = do
 
 
 -- | True if a user is in any of given states.
-userIsInState :: IdentI Usermeta -> [UserStateVal] -> AppHandler Bool
-userIsInState uid uStates =
+-- Nothing if we could not determine user's state due to his long inactivity
+-- period.
+userIsInState :: [UserStateVal] -> IdentI Usermeta -> AppHandler (Maybe Bool)
+userIsInState uStates uid =
   liftPG $ \conn -> Patch.read uid conn >>=
   \case
     Left e -> error $
@@ -136,14 +138,14 @@ userIsInState uid uStates =
               ", error " ++ show e
     Right p -> do
       p' <- liftIO $ fillCurrentState p uid conn
-      case p' `Patch.get` Usermeta.currentState of
-        Just v  -> return $ v `elem` uStates
-        Nothing -> error $ "Could not obtain a state for user " ++ show uid
+      return
+        $ (`elem` uStates)
+        <$> Patch.get p' Usermeta.currentState
 
 
 -- | True if a user is in @Ready@ state.
 userIsReady :: IdentI Usermeta -> AppHandler Bool
-userIsReady uid = uid `userIsInState` [Ready]
+userIsReady uid = fromMaybe False <$> userIsInState [Ready] uid
 
 
 -- | Serve users with any of given roles in any of given states.
