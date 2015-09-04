@@ -1,4 +1,6 @@
 define ["dictionaries/meta-dict", "dictionaries"], (m) ->
+  debounce = (wait, fn) -> _.debounce fn, wait
+
   class ContractsDict extends m.dict
     constructor: (@opts)->
       @kvm = @opts.kvm
@@ -8,9 +10,10 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
       @carModelDict = new @Dict.dicts.ModelDict
         dict: 'CarModel'
 
-    find: (q, cb, opt) ->
+    find: debounce 1200, (q, cb, opt) ->
       return cb({}) if q.length < 4 and not opt?.force
-      qr = q.replace(/\+/g, "%2B")
+      qr = q.trim().replace(/\+/g, "%2B")
+      return cb({}) if qr.match /^0*$/
       params = "program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}"
       query = "/searchContracts/?query=#{qr}&case=#{@kvm.id?()}&#{params}#{if opt?.force then '&type=exact' else ''}"
 
