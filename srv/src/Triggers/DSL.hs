@@ -102,7 +102,9 @@ import Carma.Model.LegacyTypes (Password(..))
 import qualified AppHandlers.Users as Users
 import qualified Utils.Events as Evt (logCRUDState)
 
-import Util (fieldPT, tableQT)
+import Util (fieldPT, tableQT, syslogJSON, Priority(Info))
+import Data.Aeson ((.=))
+import qualified Data.Time.Clock as Clock
 
 type TriggerRes m = Either (Int,String) (Patch m)
 
@@ -332,7 +334,17 @@ evalDsl = \case
       -> get >>= \st -> let (st',res) = f st in put st' >> evalDsl (k res)
     DbCreate p k   -> runDb (Patch.create p)   k
     DbRead i k     -> runDb (Patch.read i)     k
-    DbUpdate i p k -> runDb (Patch.update i p) k
+    DbUpdate i p k -> runDb (\pg -> do
+      start <- liftIO Clock.getCurrentTime
+      res <- Patch.update i p pg
+      end <- Clock.getCurrentTime
+      syslogJSON Info "timeIt/dbUpdate"
+          [ "ident" .= i
+          , "patch" .= p
+          , "time"  .= show (Clock.diffUTCTime end start)
+          ]
+      return res
+      ) k
     DbIO q k -> do
       res <- lift $ PS.liftPG q
       evalDsl $ k res
