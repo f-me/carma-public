@@ -1,5 +1,7 @@
 module ApplicationInit (appInit) where
 
+import Control.Applicative
+import Control.Monad (when)
 import Control.Concurrent.STM
 import Control.Monad.IO.Class
 import qualified Control.Monad.CatchIO as IOEx
@@ -157,11 +159,13 @@ timeIt h = do
   start <- liftIO Clock.getCurrentTime
   h `IOEx.finally` (liftIO $ do
     end <- Clock.getCurrentTime
-    syslogJSON Info "timeIt"
-      [ "method" .= show (rqMethod r)
-      , "uri" .= T.decodeUtf8 (rqURI r)
-      , "time" .= show (Clock.diffUTCTime end start)
-      ])
+    let duration = Clock.diffUTCTime end start
+    when (fromInteger 1 <= duration)
+      $ syslogJSON Info "timeIt"
+        [ "method" .= show (rqMethod r)
+        , "uri" .= T.decodeUtf8 (rqURI r)
+        , "time" .= show duration
+        ])
 
 ------------------------------------------------------------------------------
 -- | The application initializer.
