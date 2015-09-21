@@ -39,14 +39,15 @@ main = do
       withSyslog prog [PID] USER (logUpTo logLevel) $ do
         syslog Info $ "Loading config from " ++ configPath
 
-        carmaUsr <- Config.require conf "carma.user"
-        carmaPrg <- Config.require conf "carma.subprogram"
-        httpPort <- Config.require conf "http.port"
-        pgHost   <- Config.require conf "pg.host"
-        pgPort   <- Config.require conf "pg.port"
-        pgUser   <- Config.require conf "pg.user"
-        pgPwd    <- Config.require conf "pg.pass"
-        pgDb     <- Config.require conf "pg.db"
+        carmaUsr  <- Config.require conf "carma.user"
+        carmaPrg  <- Config.require conf "carma.subprogram"
+        carmaTest <- Config.require conf "carma.test_mode"
+        httpPort  <- Config.require conf "http.port"
+        pgHost    <- Config.require conf "pg.host"
+        pgPort    <- Config.require conf "pg.port"
+        pgUser    <- Config.require conf "pg.user"
+        pgPwd     <- Config.require conf "pg.pass"
+        pgDb      <- Config.require conf "pg.db"
 
         syslog Info $ "Connecting to Postgres on " ++ pgHost
         let cInfo = PG.ConnectInfo
@@ -60,7 +61,9 @@ main = do
             5 -- maximum number of resources to keep open
 
         syslog Info $ "Starting HTTP server on port " ++ show httpPort
-        scotty httpPort $ httpServer pgPool $ Srvconfig carmaPrg carmaUsr
+        scotty httpPort
+          $ httpServer pgPool
+          $ SrvConfig carmaPrg carmaUsr carmaTest
 
     _ -> error $ "Usage: " ++ prog ++ " <config.conf>"
 
@@ -68,6 +71,7 @@ main = do
 data SrvConfig = SrvConfig
   { cfgSubProgram :: Int
   , cfgCommitter  :: Int
+  , cfgTestMode   :: Bool
   }
 
 httpServer :: Pool PG.Connection -> SrvConfig -> ScottyM ()
@@ -145,17 +149,18 @@ httpServer pgPool cfg = do
                 , validsince, validuntil
                 , dixi, committer)
               with p as (select
-                  ? :: text as vin,
-                  ? :: int  as make,
-                  ? :: int  as model,
-                  ? :: int  as seller,
-                  ? :: date as validsince,
-                  ? :: int  as subprogram,
-                  ? :: int  as committer)
+                  ? :: text    as vin,
+                  ? :: int     as make,
+                  ? :: int     as model,
+                  ? :: int     as seller,
+                  ? :: date    as validsince,
+                  ? :: int     as subprogram,
+                  ? :: boolean as testmode,
+                  ? :: int     as committer)
               select
                   p.vin, p.make, p.model, p.seller, p.subprogram,
                   p.validsince,  p.validsince + interval '1 year',
-                  false, p.committer
+                  p.testmode, p.committer
                 from p
                 where not exists (
                   select id from "Contract"
@@ -165,6 +170,6 @@ httpServer pgPool cfg = do
                       and validsince = p.validsince)
       |]
       ( vin, carMake, carModel, dealer, parsedDate
-      , cfgSubProgram cfg, cfgCommitter cfg)
+      , cfgSubProgram cfg, cfgTestMode cfg, cfgCommitter cfg)
     text "Ok"
 
