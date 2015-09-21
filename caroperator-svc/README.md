@@ -1,14 +1,30 @@
 
 Через этот сервис товарищи из caroperator.ru добавляют в БД новые контракты.
 
-Ссылка на спецификацию: 
+Спецификация: https://docs.google.com/document/d/1nsgjiUg2UKklqpV3byJhTVqgCxo8BM6BtsUCxsEv1lo/edit
 
-Необходимая инфраструктура:
+Тикет: https://github.com/f-me/carma/issues/2548
 
-  - nginx
-    - rate limit
-    - client cert
-    - redirect
-  - syslog
+
+Необходимая инфраструктура
+--------------------------
+
   - db user
   - carma user
+
+Утилиты
+-------
+
+  - `sudo ./install.sh` − устанавливает конфигурационные файлы и перезапускает
+    соотвтетсвующие сервисы:
+    + upstart job
+    + syslog
+    + nginx
+  - `sudo ./cert.sh init-ca` − инициализирует хранилище сертификатов для
+    аутентификации клиентов по ключу
+
+
+TODO
+----
+
+  - nginx `rate_limit`
