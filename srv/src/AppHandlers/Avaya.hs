@@ -310,12 +310,18 @@ sendCommand cmd um = do
         ext = fromMaybe (error "Bad meta") $
               um `Patch.get` Usermeta.workPhoneSuffix
         miniApp conn =
-          send conn (DataMessage $ Text $ encode cmd) >>
+          (send conn =<< (DataMessage . Text . encode <$> addTimestamp cmd)) >>
           sendClose conn ("carma disconnected" :: ByteString) >>
           (void $ (receiveData conn :: IO ByteString))
 
     liftIO $ void $ forkIO $
       runClient dmccWsHost'' dmccWsPort' ("/" ++ Text.unpack ext) miniApp
+
+
+addTimestamp :: DMCC.Action -> IO DMCC.TimestampedAction
+addTimestamp act = do
+  now <- getCurrentTime
+  return $ TA act now
 
 
 setAgentState :: SettableAgentState
