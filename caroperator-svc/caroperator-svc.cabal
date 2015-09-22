@@ -1,0 +1,33 @@
+name:                caroperator-svc
+version:             0.1.0.0
+synopsis:            Add new contracts via HTTP
+
+license:             MIT
+license-file:        LICENSE
+author:              Max Taldykin
+maintainer:          max@formalmethods.ru
+
+build-type:          Simple
+
+cabal-version:       >=1.10
+
+executable caroperator-svc
+  main-is:             Main.hs
+  ghc-options:         -O2 -Wall
+  default-language:    Haskell2010
+  default-extensions:
+    OverloadedStrings, LambdaCase
+
+  build-depends:
+    base >=4.7 && <4.8,
+    time == 1.4.*,
+    transformers == 0.4.*,
+    text,
+    aeson,
+    regex-compat,
+    configurator == 0.3.*,
+    hsyslog == 2.0.*,
+    scotty,
+    http-types == 0.8.*,
+    resource-pool,
+    postgresql-simple == 0.4.*
