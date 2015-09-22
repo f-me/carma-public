@@ -145,7 +145,7 @@ httpServer pgPool cfg = do
 
     void $ liftIO $ withResource pgPool $ \c -> PG.execute c
       [sql| insert into "Contract"
-                ( vin, make, model, seller, subrogram
+                ( vin, make, model, seller, subprogram
                 , validsince, validuntil
                 , dixi, committer)
               with p as (select
