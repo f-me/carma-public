@@ -170,6 +170,6 @@ httpServer pgPool cfg = do
                       and validsince = p.validsince)
       |]
       ( vin, carMake, carModel, dealer, parsedDate
-      , cfgSubProgram cfg, cfgTestMode cfg, cfgCommitter cfg)
+      , cfgSubProgram cfg, not $ cfgTestMode cfg, cfgCommitter cfg)
     text "Ok"
 
