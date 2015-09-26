@@ -377,9 +377,9 @@ beforeUpdate = Map.unionsWith (++) $
           let contract' = Patch.delete Contract.ident contract
           copyContractToCase subProgId contract'
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
+  , actionsToTrigger (snd carmaBackoffice)
   ]  ++
-  map entryToTrigger (fst carmaBackoffice) ++
-  map actionToTrigger (snd carmaBackoffice)
+  map entryToTrigger (fst carmaBackoffice)
 
 afterUpdate :: TriggerMap
 afterUpdate = Map.unionsWith (++) $
@@ -960,16 +960,18 @@ entryToTrigger = evalHaskell emptyContext . BO.trigger
 
 
 -- | Convert Backoffice entries to action result triggers.
-actionToTrigger :: BO.Action -> Map (ModelName, FieldName) [Dynamic]
-actionToTrigger a =
+actionsToTrigger :: [BO.Action] -> Map (ModelName, FieldName) [Dynamic]
+actionsToTrigger acts =
   trigOn Action.result $
   \newVal -> do
-    this <- dbRead =<< getIdent
     case newVal of
       Nothing -> return ()
-      Just newRes ->
+      Just newRes -> do
+        this <- dbRead =<< getIdent
         -- Skip changes for actions of different types
-        when (this `get'` Action.aType == BO.aType a) $
+        let aType = get' this Action.aType
+        let acts' = filter ((aType ==) . BO.aType) acts
+        forM_ acts' $ \a ->
           case lookup newRes (BO.outcomes a) of
             Just o -> do
               hctx <-
