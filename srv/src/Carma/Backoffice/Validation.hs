@@ -47,7 +47,7 @@ data ValidityError = OutOfGraphTarget (ActionTypeI, ActionTypeI)
 --
 -- If this returns non-null, the back office cannot be used.
 checkBackoffice :: BackofficeSpec -> IMap -> [ValidityError]
-checkBackoffice spec iMap =
+checkBackoffice (spec@BackofficeSpec{actNodes}) iMap =
     -- Check dupes
     map DuplicateNode (origNodes \\ uniqNodes) ++
     -- Detect traps
@@ -66,7 +66,7 @@ checkBackoffice spec iMap =
     where
       finishId = fst finishNode
       startId = fst startNode
-      origNodes = map aType $ snd spec
+      origNodes = map aType actNodes
       uniqNodes = nub origNodes
       BGr _ edges' switches = backofficeNodesEdges [] spec iMap
       graph = backofficeGraph [] spec iMap

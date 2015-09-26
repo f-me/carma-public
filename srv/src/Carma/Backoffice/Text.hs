@@ -330,17 +330,18 @@ formatDiff nd' =
 
 -- | Produce a textual spec from a back office description.
 backofficeText :: BackofficeSpec -> IMap -> Text
-backofficeText spec iMap =
+backofficeText (BackofficeSpec{..}) iMap =
     formatIndentedText "\n" "    "
     [ T "ВХОДЫ:"
-    , IND $ intercalate [NL] $ map fmtEntry $ fst spec
+    , IND $ intercalate [NL] $
+        map fmtEntry caseEntries ++ map fmtEntry svcEntries
     , NL
     , T "ДЕЙСТВИЯ:"
-    , IND $ intercalate [NL] $ map fmtAction $ snd spec
+    , IND $ intercalate [NL] $ map fmtAction actNodes
     ]
     where
       ctx = TCtx iMap
-      fmtEntry :: Entry -> IndentedText
+      fmtEntry :: Entry m -> IndentedText
       fmtEntry e = evalText ctx (trigger e)
       fmtAction a =
         [ T $ T.snoc (lkp (IBox $ aType a) iMap) ':'

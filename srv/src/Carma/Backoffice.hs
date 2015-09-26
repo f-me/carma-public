@@ -39,7 +39,7 @@ import Carma.Backoffice.DSL
 import Carma.Backoffice.DSL.Types (Eff)
 
 
-toBack :: Entry
+toBack :: Entry Service
 toBack =
     Entry
     (onField Service.status (const SS.backoffice)
@@ -94,21 +94,21 @@ messageToDealer =
     (sendMail Dealer)
 
 
-needMakerApproval :: Entry
+needMakerApproval :: Entry Service
 needMakerApproval =
     Entry
     (onField Service.status (const SS.makerApproval)
      (proceed [AType.makerApproval]))
 
 
-needInfo :: Entry
+needInfo :: Entry Case
 needInfo =
     Entry
     (onField Case.caseStatus (const CS.needInfo)
      (proceed [AType.tellMeMore]))
 
 
-mobileOrder :: Entry
+mobileOrder :: Entry Case
 mobileOrder =
     Entry
     (insteadOf Case.caseStatus (const CS.mobileOrder)
@@ -116,7 +116,7 @@ mobileOrder =
       proceed [AType.callMeMaybe]))
 
 
-mobileAccident :: Entry
+mobileAccident :: Entry Case
 mobileAccident =
     Entry
     (insteadOf Case.caseStatus (const CS.mobileAccident)
@@ -124,7 +124,7 @@ mobileAccident =
       proceed [AType.accident]))
 
 
-cancel :: Entry
+cancel :: Entry Service
 cancel =
     Entry
     (onField Service.status (const SS.canceled) $
@@ -171,21 +171,21 @@ cancel =
     )
 
 
-recallClient :: Entry
+recallClient :: Entry Service
 recallClient =
     Entry
     (insteadOf Service.status (const SS.recallClient)
      (proceed [AType.checkDispatchTime]))
 
 
-complaint :: Entry
+complaint :: Entry Service
 complaint =
     Entry
     (onField Service.clientSatisfied (just Satisfaction.none)
      (proceed [AType.complaintResolution]))
 
 
-mistake :: Entry
+mistake :: Entry Service
 mistake =
     Entry
     (onField Service.status (const SS.mistake)
@@ -575,38 +575,38 @@ callMeMaybe =
 
 
 carmaBackoffice :: BackofficeSpec
-carmaBackoffice =
-    ( [ toBack
-      , needInfo
-      , needMakerApproval
-      , mobileAccident
-      , mobileOrder
-      , recallClient
-      , cancel
-      , complaint
-      , mistake
-      ]
-    , [ orderService
-      , accident
-      , orderServiceAnalyst
-      , tellClient
-      , checkStatus
-      , checkDispatchTime
-      , needPartner
-      , checkEndOfService
-      , closeCase
-      , getDealerInfo
-      , cancelService
-      , makerApproval
-      , tellMakerDeclined
-      , addBill
-      , billmanNeedInfo
-      , headCheck
-      , directorCheck
-      , accountCheck
-      , analystCheck
-      , complaintResolution
-      , callMeMaybe
-      , tellMeMore
-      ]
-    )
+carmaBackoffice = BackofficeSpec
+    [ needInfo
+    , mobileAccident
+    , mobileOrder
+    ]
+    [ toBack
+    , needMakerApproval
+    , recallClient
+    , cancel
+    , complaint
+    , mistake
+    ]
+    [ orderService
+    , accident
+    , orderServiceAnalyst
+    , tellClient
+    , checkStatus
+    , checkDispatchTime
+    , needPartner
+    , checkEndOfService
+    , closeCase
+    , getDealerInfo
+    , cancelService
+    , makerApproval
+    , tellMakerDeclined
+    , addBill
+    , billmanNeedInfo
+    , headCheck
+    , directorCheck
+    , accountCheck
+    , analystCheck
+    , complaintResolution
+    , callMeMaybe
+    , tellMeMore
+    ]

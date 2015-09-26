@@ -18,8 +18,8 @@ where
 import           Prelude hiding ((>), (==), (||), (&&), const)
 import qualified Prelude as P ((==), (||), const)
 
+import           Control.Applicative
 import           Control.Monad.Trans.State
-import           Data.Functor
 
 import           Data.Graph.Inductive.Graph hiding (toEdge)
 import           Data.Graph.Inductive.PatriciaTree
@@ -246,7 +246,7 @@ backofficeNodesEdges :: [IdentI ActionResult]
                      -> BackofficeSpec
                      -> Map IBox Text
                      -> BackofficeGraphData
-backofficeNodesEdges skipResults spec iMap =
+backofficeNodesEdges skipResults (BackofficeSpec{..}) iMap =
     BGr (stateNodes ++ switchNodes) allEdges switchNodes
     where
       -- First, build graph nodes for states (action types plus
@@ -254,7 +254,7 @@ backofficeNodesEdges skipResults spec iMap =
       stateNodes :: [LNode Text]
       stateNodes = startNode:
                    finishNode:
-                   map mkNode (snd spec)
+                   map mkNode actNodes
       mkNode :: Action -> LNode Text
       mkNode a = (i, lkp (IBox t) iMap)
           where
@@ -271,10 +271,12 @@ backofficeNodesEdges skipResults spec iMap =
                     repeat switchLabel
       mkEdges :: NodeGenerator [LEdge ColoredLabel]
       mkEdges = do
-        entries <- mapM mkEntryEdges $ fst spec
-        results <- mapM mkResultEdges $ snd spec
+        entries <- (++)
+            <$> mapM mkEntryEdges caseEntries
+            <*> mapM mkEntryEdges svcEntries
+        results <- mapM mkResultEdges actNodes
         return $ concat $ entries ++ results
-      mkEntryEdges :: Entry -> NodeGenerator [LEdge ColoredLabel]
+      mkEntryEdges :: Entry m -> NodeGenerator [LEdge ColoredLabel]
       mkEntryEdges e =
           evalEdge (EdgeCtx
                     (fst startNode)

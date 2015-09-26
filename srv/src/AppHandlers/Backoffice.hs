@@ -159,7 +159,7 @@ allActionResults = do
     filter (\(_, r) ->
               isSupervisor || r /= ActionResult.supervisorClosed) $
     concatMap (\a -> map (DSL.aType a,) $ DSL.actionResults a) $
-    snd carmaBackoffice
+    DSL.actNodes carmaBackoffice
 
 
 data BackofficeError = NotYourAction

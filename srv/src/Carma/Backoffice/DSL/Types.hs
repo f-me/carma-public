@@ -55,7 +55,7 @@ data Eff m
 data Outcome m
 
 
-data Trigger
+data Trigger m
 
 
 -- | Scope for selection terms.
@@ -75,7 +75,7 @@ data MailType = Dealer | PSA | Genser
 -- Backoffice method signatures define relations between type systems
 -- of our DSL and the meta-language.
 type family HaskellType t where
-  HaskellType Trigger = Map (Text, Text) [Dynamic]
+  HaskellType (Trigger m) = Free (Dsl m) ()
   HaskellType (Maybe v) = Maybe (HaskellType v)
   HaskellType (Outcome m) = Free (Dsl m) ()
   HaskellType (Eff m) = Free (Dsl m) ()

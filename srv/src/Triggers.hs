@@ -377,9 +377,10 @@ beforeUpdate = Map.unionsWith (++) $
           let contract' = Patch.delete Contract.ident contract
           copyContractToCase subProgId contract'
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
+  , entriesToTrigger $ BO.caseEntries carmaBackoffice
+  , entriesToTrigger $ BO.svcEntries carmaBackoffice
   ]  ++
-  map entryToTrigger (fst carmaBackoffice) ++
-  map actionToTrigger (snd carmaBackoffice)
+  map actionToTrigger (BO.actNodes carmaBackoffice)
 
 afterUpdate :: TriggerMap
 afterUpdate = Map.unionsWith (++) $
@@ -423,7 +424,7 @@ trigOnModel
   => [m] -> Free (Dsl m) res -> TriggerMap
 trigOnModel _ fun
   = Map.singleton
-    (modelName (modelInfo :: ModelInfo m), "") -- dummy field name
+    (modelName (modelInfo :: ModelInfo m), "*") -- dummy field name
     [toDyn $ void fun]
 
 
@@ -436,7 +437,7 @@ runCreateTriggers patch =
     fmap (\st -> (st_ident st, st_patch st))
       <$> runTriggers beforeCreate afterCreate
         (getPatch >>= dbCreate >>= putIdentUnsafe)
-        [""] -- pass dummy field name
+        ["*"] -- pass dummy field name
         (emptyDslState undefined patch)
 
 
@@ -448,7 +449,9 @@ runUpdateTriggers ident patch =
     fmap st_patch
       <$> runTriggers beforeUpdate afterUpdate
         (getPatch >>= dbUpdate ident >> return ())
-        (HM.keys $ untypedPatch patch)
+        ("*" : HM.keys (untypedPatch patch))
+        -- ^ don't forget to pass dummy field name so we
+        -- can trigger on model in update triggers
         (emptyDslState ident patch)
 
 
@@ -831,14 +834,14 @@ mkTrigger :: (Eq (HaskellType t),
              (m -> F (HaskellType t) n d)
           -> HaskellE t
           -> (HCtx -> Free (Dsl m) ())
-          -> HaskellE Trigger
-mkTrigger acc target act =
-  HaskellE $
+          -> HaskellE (Trigger m)
+mkTrigger acc target act = HaskellE $ do
+  ctx <- ask
   return $
-  trigOn acc $
-  \newVal -> do
-    hctx <- mkContext Nothing
-    when (newVal == evalHaskell hctx target) (act hctx)
+    getPatchField acc >>= \case
+      Nothing  -> return ()
+      Just val ->
+        when (val == evalHaskell ctx target) $ act ctx
 
 
 -- | Produce a new context for nested Haskell evaluator call.
@@ -871,7 +874,7 @@ newActionData ctx aType = (e, p)
     -- Never breaks for a valid back office
     e = fromMaybe (error "Current action unknown") $
         find ((== aType) . BO.aType) $
-        snd carmaBackoffice
+        BO.actNodes carmaBackoffice
     p = Patch.put Action.ctime (now ctx) $
         Patch.put Action.targetGroup (evalHaskell ctx $ BO.targetRole e) $
         Patch.put Action.aType aType $
@@ -936,11 +939,6 @@ evalHaskell :: HCtx -> HaskellE ty -> HaskellType ty
 evalHaskell c t = runReader (toHaskell t) c
 
 
--- | Bootstrapping HaskellE context.
-emptyContext :: HCtx
-emptyContext = error "Empty context accessed (HaskellE interpreter bug)"
-
-
 -- | Haskell evaluator context.
 --
 -- Enables data access via pure terms.
@@ -956,9 +954,13 @@ data HCtx =
 
 
 -- | Convert Backoffice entries to update triggers.
-entryToTrigger :: BO.Entry -> Map (ModelName, FieldName) [Dynamic]
-entryToTrigger = evalHaskell emptyContext . BO.trigger
-
+entriesToTrigger
+  :: forall m . (Model m, PreContextAccess m)
+  => [BO.Entry m]
+  -> Map (ModelName, FieldName) [Dynamic]
+entriesToTrigger entries = trigOnModel ([]::[m]) $ do
+    ctx <- mkContext Nothing
+    sequence_ $ map (evalHaskell ctx . BO.trigger) entries
 
 -- | Convert Backoffice entries to action result triggers.
 actionToTrigger :: BO.Action -> Map (ModelName, FieldName) [Dynamic]

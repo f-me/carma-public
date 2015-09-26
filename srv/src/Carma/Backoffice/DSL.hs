@@ -19,7 +19,7 @@ module Carma.Backoffice.DSL
     , ActionResultI
     , Action(..)
     , Entry(..)
-    , BackofficeSpec
+    , BackofficeSpec(..)
 
      -- * Back office language
     , Outcome
@@ -173,7 +173,7 @@ class Backoffice impl where
                (m -> F t n d)
             -> impl t
             -> impl (Outcome m)
-            -> impl Trigger
+            -> impl (Trigger m)
 
     -- | Like 'onField', but prevents actual changes to the triggered
     -- field.
@@ -182,7 +182,7 @@ class Backoffice impl where
                  (m -> F t n d)
               -> impl t
               -> impl (Outcome m)
-              -> impl Trigger
+              -> impl (Trigger m)
 
     -- | Negation.
     --
@@ -323,8 +323,8 @@ days = 24 * hours
 
 
 -- | An entry point in an action graph.
-data Entry =
-    Entry { trigger :: forall impl. (Backoffice impl) => impl Trigger
+data Entry m =
+    Entry { trigger :: forall impl. (Backoffice impl) => impl (Trigger m)
           }
 
 
@@ -334,7 +334,11 @@ data Entry =
 -- Due to the indirect addressing it's easy to define an incomplete
 -- graph, so be sure to validate it using 'checkBackoffice' prior to
 -- use.
-type BackofficeSpec = ([Entry], [Action])
+data BackofficeSpec = BackofficeSpec
+  { caseEntries :: [Entry Case]
+  , svcEntries  :: [Entry Service]
+  , actNodes    :: [Action]
+  }
 
 
 -- | Extract a list of possible results from an action.
