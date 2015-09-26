@@ -835,10 +835,9 @@ mkTrigger :: (Eq (HaskellType t),
 mkTrigger acc target act =
   HaskellE $
   return $
-  trigOn acc $
-  \newVal -> do
-    hctx <- mkContext Nothing
-    when (newVal == evalHaskell hctx target) (act hctx)
+  trigOn acc $ \newVal ->
+    when (newVal == evalHaskell emptyContext target)
+      $ mkContext Nothing >>= act
 
 
 -- | Produce a new context for nested Haskell evaluator call.
