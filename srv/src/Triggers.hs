@@ -836,6 +836,10 @@ mkTrigger acc target act =
   HaskellE $
   return $
   trigOn acc $ \newVal ->
+    -- NB! We are assuming that it is safe to evaluate `target` in empty
+    -- context. This may be false if more complex entry conditions are
+    -- introduced.
+    -- See 9a8dce4d74201a07322d7bb540683e13f8d2f223 for alternative solution.
     when (newVal == evalHaskell emptyContext target)
       $ mkContext Nothing >>= act
 
