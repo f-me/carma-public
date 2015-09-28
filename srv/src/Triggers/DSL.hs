@@ -177,9 +177,7 @@ logCRUDState :: Model m =>
              -> Patch m
              -> Free (Dsl m1) (IdentI Event)
 logCRUDState m i p =
-  liftFree (DoApp (do
-    liftIO $ syslogJSON Debug "trigger/logCRUDState" []
-    Evt.logCRUDState m i p) id)
+  liftFree (DoApp (Evt.logCRUDState m i p) id)
 
 
 doApp :: AppHandler a -> Free (Dsl m) a
@@ -206,16 +204,18 @@ inParentContext act = do
 -- come first).
 caseActions :: IdentI Case
             -> Free (Dsl m) [Object Action.Action]
-caseActions cid = doApp $ PS.liftPG $ \conn -> do
-    liftIO $ syslogJSON Debug "trigger/caseActions" []
+caseActions cid =
+  doApp $
+  PS.liftPG $
+  \conn ->
     uncurry (PG.query conn)
-      [sql|SELECT * FROM $(tableQT Action.ident)$ WHERE
-       $(fieldPT Action.caseId)$ = $(cid)$ OR
-       $(fieldPT Action.callId)$ IN (
-         SELECT $(fieldPT Call.ident)$ FROM $(tableQT Call.ident)$
-         WHERE $(fieldPT Call.caseId)$ = $(cid)$)
-       ORDER BY $(fieldPT Action.closeTime)$ DESC, $(fieldPT Action.ctime)$ DESC;
-      |]
+    [sql|SELECT * FROM $(tableQT Action.ident)$ WHERE
+     $(fieldPT Action.caseId)$ = $(cid)$ OR
+     $(fieldPT Action.callId)$ IN (
+       SELECT $(fieldPT Call.ident)$ FROM $(tableQT Call.ident)$
+       WHERE $(fieldPT Call.caseId)$ = $(cid)$)
+     ORDER BY $(fieldPT Action.closeTime)$ DESC, $(fieldPT Action.ctime)$ DESC;
+    |]
 
 
 callActionIds :: IdentI Call.Call
@@ -331,8 +331,8 @@ evalDsl = \case
     ModState f k
       -> get >>= \st -> let (st',res) = f st in put st' >> evalDsl (k res)
     DbCreate p k   -> liftIO (syslogJSON Debug "trigger/create" []) >> runDb (Patch.create p)   k
-    DbRead i k     -> liftIO (syslogJSON Debug "trigger/read"   ["i" .= i]) >> runDb (Patch.read i)     k
-    DbUpdate i p k -> liftIO (syslogJSON Debug "trigger/update" ["i" .= i, "p" .= p]) >> runDb (Patch.update i p) k
+    DbRead i k     -> liftIO (syslogJSON Debug "trigger/read"   []) >> runDb (Patch.read i)     k
+    DbUpdate i p k -> liftIO (syslogJSON Debug "trigger/update" []) >> runDb (Patch.update i p) k
     DbIO q k -> do
       liftIO $ syslogJSON Debug "trigger/dbIo" []
       res <- lift $ PS.liftPG q
