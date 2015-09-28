@@ -102,7 +102,7 @@ import Carma.Model.LegacyTypes (Password(..))
 import qualified AppHandlers.Users as Users
 import qualified Utils.Events as Evt (logCRUDState)
 
-import Util (fieldPT, tableQT, syslogJSON, Priority(Debug), (.=))
+import Util (fieldPT, tableQT)
 
 type TriggerRes m = Either (Int,String) (Patch m)
 
@@ -330,11 +330,10 @@ evalDsl = \case
   Free op  -> case op of
     ModState f k
       -> get >>= \st -> let (st',res) = f st in put st' >> evalDsl (k res)
-    DbCreate p k   -> liftIO (syslogJSON Debug "trigger/create" []) >> runDb (Patch.create p)   k
-    DbRead i k     -> liftIO (syslogJSON Debug "trigger/read"   []) >> runDb (Patch.read i)     k
-    DbUpdate i p k -> liftIO (syslogJSON Debug "trigger/update" []) >> runDb (Patch.update i p) k
+    DbCreate p k   -> runDb (Patch.create p)   k
+    DbRead i k     -> runDb (Patch.read i)     k
+    DbUpdate i p k -> runDb (Patch.update i p) k
     DbIO q k -> do
-      liftIO $ syslogJSON Debug "trigger/dbIo" []
       res <- lift $ PS.liftPG q
       evalDsl $ k res
 
@@ -374,12 +373,9 @@ evalDsl = \case
       evalDsl k
 
     WsMessage k -> do
-      liftIO $ syslogJSON Debug "trigger/wsmessage" []
       p <- gets st_patch
       i <- mkIdentTopic <$> gets st_ident
       lift $ withMsg $ sendMessage i p
       evalDsl k
 
-    DoApp a k -> do
-      liftIO $ syslogJSON Debug "trigger/doapp" []
-      evalDsl =<< k <$> lift a
+    DoApp a k -> evalDsl =<< k <$> lift a
