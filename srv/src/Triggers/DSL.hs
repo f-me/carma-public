@@ -78,7 +78,7 @@ import WeatherApi (Weather, getWeather')
 import Application (AppHandler, weatherCfg)
 
 import qualified Database.PostgreSQL.Simple as PG
-import           Database.PostgreSQL.Simple.SqlQQ.Alt
+import           Database.PostgreSQL.Simple.SqlQQ
 import           Snap.Snaplet.PostgresqlSimple as PS
 
 
@@ -204,18 +204,20 @@ inParentContext act = do
 -- come first).
 caseActions :: IdentI Case
             -> Free (Dsl m) [Object Action.Action]
-caseActions cid =
-  doApp $
-  PS.liftPG $
+caseActions cid = doApp $ PS.liftPG $
   \conn ->
-    uncurry (PG.query conn)
-    [sql|SELECT * FROM $(tableQT Action.ident)$ WHERE
-     $(fieldPT Action.caseId)$ = $(cid)$ OR
-     $(fieldPT Action.callId)$ IN (
-       SELECT $(fieldPT Call.ident)$ FROM $(tableQT Call.ident)$
-       WHERE $(fieldPT Call.caseId)$ = $(cid)$)
-     ORDER BY $(fieldPT Action.closeTime)$ DESC, $(fieldPT Action.ctime)$ DESC;
-    |]
+    PG.query conn
+      [sql|
+        with caseActions as
+          ( (select * from actiontbl where caseId = ?)
+            union
+            (select a.*
+              from actiontbl a, calltbl c
+              where a.callId = c.id and c.caseId = ?)
+          )
+          select distinct * from caseActions
+            order by closeTime desc, ctime desc
+      |] (cid, cid)
 
 
 callActionIds :: IdentI Call.Call
