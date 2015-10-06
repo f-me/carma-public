@@ -1,10 +1,10 @@
 define [ "utils"
-       , "text!tpl/screens/dictionaries.html"
+       , "screens/dictionaries.jade"
        , "model/utils"
        , "model/main"
        , "screenman"
        , "dictionaries/model-dict"
-       , "text!tpl/fields/form.html"
+       , "fields/form.jade"
        ],
   (utils, tpl, mu, main, screenman, modelDict, Flds) ->
 
@@ -134,7 +134,7 @@ define [ "utils"
 
     screenSetup = (viewName, args) ->
       # FIXME: remove this hack when custom ko handler will be made with rjs
-      $("#hidden-fields-container").append($(Flds))
+      $("#hidden-fields-container").append($(Flds()))
       # show choose dict controls
       dicts = [{id: null, name: 'Выберите справочник' }]
       $.bgetJSON '/_/Dictionary', (ds) =>
@@ -200,4 +200,4 @@ define [ "utils"
       ko.applyBindings {kvm: parentKVM}, el("dict-parent")
 
     constructor: screenSetup
-    template: tpl
+    template: tpl()

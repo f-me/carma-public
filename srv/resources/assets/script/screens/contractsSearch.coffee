@@ -1,10 +1,10 @@
 define [ "search/screen"
        , "json!/cfg/model/Contract"
        , "json!/cfg/model/Contract?view=search"
-       , "text!tpl/screens/search.html"
+       , "screens/search.jade"
        ], (Screen, Contract, Search, tpl) ->
 
-  template: tpl
+  template: tpl()
   constructor: -> Screen.constructor
     searchModels: [Search]
     resultModels: [Contract]

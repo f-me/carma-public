@@ -1,4 +1,4 @@
-define [ "text!tpl/screens/printSrv.html"
+define [ "screens/printSrv.jade"
        , "model/main"
        , "sync/crud"
        ], (tpl, main, sync) ->
@@ -87,5 +87,5 @@ define [ "text!tpl/screens/printSrv.html"
 
   { constructor: setupPrintSrv
   , destructor: destroyPrintSrv
-  , template: tpl
+  , template: tpl()
   }

@@ -1,5 +1,5 @@
 define [ "search/screen"
-       , "text!tpl/screens/search.html"
+       , "screens/search.jade"
        , "json!/cfg/model/Case?view=search"
        , "json!/cfg/model/Service?view=search"
        , "json!/cfg/model/Towage?view=search"
@@ -20,7 +20,7 @@ define [ "search/screen"
           , Towage
           , Contract) ->
 
-  template: tpl
+  template: tpl()
   constructor: -> Screen.constructor
     apiUrl: "/search/case"
     searchModels: [CaseSearch, ServiceSearch, TowageSearch, ContractSearch]

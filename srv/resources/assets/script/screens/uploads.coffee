@@ -2,7 +2,7 @@
 #
 # Uses "Attachment" model and /upload/Case/[bulk|<n>]/files server
 # handlers.
-define [ "text!tpl/screens/uploads.html"
+define [ "screens/uploads.jade"
        , "lib/upload"
        , "model/utils"], (tpl, upl, mu) ->
   # Destructively add a reference to attachment:<attId> to files field
@@ -194,5 +194,5 @@ define [ "text!tpl/screens/uploads.html"
         $("#upload-dialog").change()
 
   { constructor:      renderUploadsForm
-  , template:         tpl
+  , template:         tpl()
   }

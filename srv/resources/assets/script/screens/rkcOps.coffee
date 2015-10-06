@@ -1,6 +1,6 @@
 define [ "utils"
        , "screens/rkc"
-       , "text!tpl/screens/rkcOps.html"
+       , "screens/rkcOps.jade"
        ], (utils, rkc, tpl) ->
 
   setupRKCOpsScreen = (viewName, args) ->
@@ -73,5 +73,5 @@ define [ "utils"
 
   { constructor: setupRKCOpsScreen
   , destructor: removeRKCOpsScreen
-  , template: tpl
+  , template: tpl()
   }

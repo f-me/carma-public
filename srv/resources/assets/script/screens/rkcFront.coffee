@@ -1,6 +1,6 @@
 define [ "utils"
        , "screens/rkc"
-       , "text!tpl/screens/rkcFront.html"
+       , "screens/rkcFront.jade"
        ], (utils, rkc, tpl) ->
   setupRKCFrontScreen = (viewName, args) ->
     setTimeout ->
@@ -59,5 +59,5 @@ define [ "utils"
 
   { constructor: setupRKCFrontScreen
   , destructor: removeRKCFrontScreen
-  , template: tpl
+  , template: tpl()
   }

@@ -1,7 +1,7 @@
 define [ "model/main"
        , "utils"
        , "sync/crud"
-       , "text!tpl/screens/back.html"], (Main, utils, sync, tpl) ->
+       , "screens/back.jade"], (Main, utils, sync, tpl) ->
   onBackofficeScreen = true
 
   pleaseStandby = ->
@@ -137,5 +137,5 @@ define [ "model/main"
 
   { constructor: setupBackOffice
   , destructor: leaveBackOffice
-  , template: tpl
+  , template: tpl()
   }

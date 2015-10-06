@@ -3,10 +3,10 @@ define [
     , "utils"
     , "sync/datamap"
     , "dictionaries"
-    , "text!tpl/fields/form.html"
+    , "fields/form.jade"
     ],
   (Main, Utils, DataMap, Dict, Flds) ->
-    flds =  $('<div/>').append($(Flds))
+    flds =  $('<div/>').append($(Flds()))
     ko.bindingHandlers.renderContract =
       update: (el, acc, allBindigns, contract, ctx) ->
         title = ko.utils.unwrapObservable acc()

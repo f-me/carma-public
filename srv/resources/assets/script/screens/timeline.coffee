@@ -1,4 +1,4 @@
-define ["text!tpl/screens/timeline.html"
+define ["screens/timeline.jade"
       , "d3"
       , "model/main"
       , "dictionaries/computed-dict"
@@ -8,8 +8,8 @@ define ["text!tpl/screens/timeline.html"
       , "json!/cfg/model/Usermeta"
       , "model/utils"
       , "utils"
-      , "text!tpl/fields/table.html"
-      , "text!tpl/fields/ro.html"
+      , "fields/table.jade"
+      , "fields/ro.jade"
       , "screens/timeline/models"
       ]
     , (tpl, d3, Main, D, WS, Crud, DataMap, Um, MUtils, Utils
@@ -17,7 +17,7 @@ define ["text!tpl/screens/timeline.html"
 
   fieldsDict = arrToObj 'name', Um.fields
 
-  flds = $("<div />").append($(Ttpl + ROtpl))
+  flds = $("<div />").append($(Ttpl() + ROtpl()))
   ko.bindingHandlers.renderTpl =
     init: (el, acc) ->
       f = acc().field
@@ -387,4 +387,4 @@ define ["text!tpl/screens/timeline.html"
     ws?.close()
     ws   = null
     kvms = null
-  template: tpl
+  template: tpl()

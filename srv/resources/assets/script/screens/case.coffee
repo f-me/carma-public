@@ -1,7 +1,7 @@
 define [ "utils"
        , "hotkeys"
-       , "text!tpl/screens/case.html"
-       , "text!tpl/fields/form.html"
+       , "screens/case.jade"
+       , "fields/form.jade"
        , "lib/ws"
        , "model/utils"
        , "model/main"
@@ -10,7 +10,7 @@ define [ "utils"
   (utils, hotkeys, tpl, Flds, WS, mu, main, Contract) ->
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
-    flds =  $('<div/>').append($(Flds))
+    flds =  $('<div/>').append($(Flds()))
     # Case view (renders to #left, #center and #right as well)
     setupCaseMain = (viewName, args) -> setupCaseModel viewName, args
 
@@ -274,6 +274,6 @@ define [ "utils"
 
     { constructor       : setupCaseMain
     , destructor        : removeCaseMain
-    , template          : tpl
+    , template          : tpl()
     , addService        : addService
     }

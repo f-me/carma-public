@@ -1,5 +1,5 @@
 define [ "utils"
-       , "text!tpl/screens/partner.html"
+       , "screens/partner.jade"
        , "model/utils"
        , "model/main"
        , "screenman"
@@ -71,5 +71,5 @@ define [ "utils"
 
     { constructor: screenSetup
     , destructor : screenRelease
-    , template: tpl
+    , template: tpl()
     }

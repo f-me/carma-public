@@ -7,7 +7,7 @@ define [ "utils"
        , "partnerCancel"
        , "screens/partnersSearch/models"
        , "sync/metaq"
-       , "text!tpl/screens/partnersSearch.html"
+       , "screens/partnersSearch.jade"
        ], ( utils
           , map
           , m
@@ -485,4 +485,4 @@ define [ "utils"
   # key that service should subscribe to get data back
   subName: subName
   open: open
-  template: tpl
+  template: tpl()

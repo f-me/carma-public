@@ -1,5 +1,5 @@
 define [ "search/screen"
-       , "text!tpl/screens/search.html"
+       , "screens/search.jade"
        , "json!/cfg/model/Call"
        , "json!/cfg/model/Call?view=search"
        ], ( Screen
@@ -7,7 +7,7 @@ define [ "search/screen"
           , callModel
           , callSearchModel) ->
 
-  template: tpl
+  template: tpl()
   constructor: -> Screen.constructor
     searchModels: [callSearchModel]
     resultModels: [callModel]

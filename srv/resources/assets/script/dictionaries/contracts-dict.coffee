@@ -1,4 +1,4 @@
-define [ "dictionsries/meta-dict"
+define [ "dictionaries/meta-dict"
        , "dictionaries"]
        , (m, Dict) ->
   class ContractsDict extends m.dict

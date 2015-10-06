@@ -1,4 +1,4 @@
-define ["utils", "text!tpl/screens/rkc.html"],
+define ["utils", "screens/rkc.jade"],
   (utils, tpl) ->
     weatherCityDict =
       utils.newModelDict "City", true, {dictionaryKey: "value"}
@@ -271,7 +271,7 @@ define ["utils", "text!tpl/screens/rkc.html"],
 
 
     { constructor : setupRKCScreen
-    , template    : tpl
+    , template    : tpl()
     , initRKCDate          : initRKCDate
     , fillRKCFilters       : fillRKCFilters
     , rkcWeatherRemoveCity : rkcWeatherRemoveCity

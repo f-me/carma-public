@@ -1,4 +1,4 @@
-define ["text!tpl/screens/kpi/stat.html"
+define ["screens/kpi/stat.jade"
         "json!/cfg/model/StatKPI?view=kpi"
         "model/main"
         "model/fields"
@@ -9,7 +9,7 @@ define ["text!tpl/screens/kpi/stat.html"
 
   stuffKey = "kpi-stat"
   mp = new Map.Mapper(Model)
-  template: Tpl
+  template: Tpl()
   constructor: (view, opts) ->
     $("#stat-screen").addClass("active")
 

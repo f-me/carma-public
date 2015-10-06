@@ -1,4 +1,4 @@
-define ["text!tpl/screens/kpi/group.html"
+define ["screens/kpi/group.jade"
         "json!/cfg/model/GroupKPI?view=kpi"
         "model/main"
         "model/fields"
@@ -11,7 +11,7 @@ define ["text!tpl/screens/kpi/group.html"
 
   mp = new Map.Mapper(Model)
 
-  template: Tpl
+  template: Tpl()
   constructor: (view, opts) ->
     $("#group-screen").addClass("active")
     s = (Usr.readStuff key) || {}

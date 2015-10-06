@@ -1,12 +1,12 @@
 define ["utils"
       , "model/main"
-      , "text!tpl/screens/supervisor.html"
+      , "screens/supervisor.jade"
       , "screenman"
       , "hooks/common"
-      , "text!tpl/fields/form.html"
+      , "fields/form.jade"
       ], (utils, main, tpl, screenman, hook, Flds) ->
 
-  flds =  $('<div/>').append($(Flds))
+  flds =  $('<div/>').append($(Flds()))
 
   dataTableOptions = ->
     aoColumns: utils.repeat(11, null).concat utils.repeat(2, { bVisible: false})
@@ -212,5 +212,5 @@ define ["utils"
     updateActStats()
 
   { constructor: screenSetup
-  , template: tpl
+  , template: tpl()
   }

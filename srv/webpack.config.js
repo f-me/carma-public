@@ -1,6 +1,6 @@
 
 var path = require('path');
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
   entry: {
@@ -9,23 +9,27 @@ module.exports = {
   output: {
     path: './client-dist',
     filename: 'main.js',
-    sourceMapFilename: "main.js.map"
+    sourceMapFilename: 'main.js.map'
   },
   devtool: 'source-map',
   resolve: {
-    root: path.resolve('./resources/assets/script'),
+    root:
+      [ path.resolve('./resources/assets/script')
+      , path.resolve('./resources/assets/template')
+      ],
     modulesDirectories: ['node_modules'],
     extensions: ['', '.coffee']
   },
   module: {
     loaders: [
       {  test: /\.css$/,
-         loader: ExtractTextPlugin.extract("style-loader", "css-loader?sourceMap")
+         loader: ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap')
       },
-      { test: /\.coffee$/, loader: "coffee-loader" }
+      { test: /\.coffee$/, loader: 'coffee-loader' },
+      { test: /\.jade$/, loader: 'jade' }
     ]
   },
   plugins: [
-    new ExtractTextPlugin("[name].css")
+    new ExtractTextPlugin('[name].css')
   ]
 }

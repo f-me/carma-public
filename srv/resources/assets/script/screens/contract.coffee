@@ -1,6 +1,6 @@
 # Portal screen, derived from contract search screen
 define [ "search/screen"
-       , "text!tpl/screens/contract.html"
+       , "screens/contract.jade"
        , "model/main"
        , "utils"
        ], (Screen, tpl, main, u) ->
@@ -51,7 +51,7 @@ define [ "search/screen"
 
   redirect = (hash) -> window.location.hash = hash
 
-  template: tpl
+  template: tpl()
   constructor: (viewName, {sub: subprogram, id: id}) ->
     spgms = u.newComputedDict "portalSubPrograms"
     def_spgm = spgms.source[0]?.value

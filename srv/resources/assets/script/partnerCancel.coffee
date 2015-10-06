@@ -1,6 +1,8 @@
-define ["model/main", "text!tpl/fields/form.html"], (main, Fs) ->
+define [ "model/main"
+       , "fields/form.jade"]
+       , (main, Fs) ->
 
-  flds =  $('<div/>').append($(Fs))
+  flds =  $('<div/>').append($(Fs()))
   class CancelDialog
 
     constructor: ->

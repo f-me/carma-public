@@ -1,4 +1,4 @@
-define ["text!tpl/screens/kpi/oper.html"
+define ["screens/kpi/oper.jade"
         "json!/cfg/model/OperKPI?view=kpi"
         "model/main"
         "sync/datamap"
@@ -91,7 +91,7 @@ define ["text!tpl/screens/kpi/oper.html"
     else
       true
 
-  template: Tpl
+  template: Tpl()
   constructor: (view, opts) ->
     uDict = Utils.newModelDict "Usermeta", false, dictionaryLabel: 'grp'
 

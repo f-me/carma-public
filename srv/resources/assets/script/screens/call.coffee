@@ -2,7 +2,7 @@ define [ "utils"
        , "hotkeys"
        , "model/main"
        , "screens/partnersSearch"
-       , "text!tpl/screens/call.html"
+       , "screens/call.jade"
        , "lib/messenger"
        ], (utils, hotkeys, main, pSearch, tpl, Msg) ->
 
@@ -187,5 +187,5 @@ define [ "utils"
     $.getJSON url, (objs) -> fillTable st, objs
 
   { constructor: setupCallForm
-  , template: tpl
+  , template: tpl()
   }

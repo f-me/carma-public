@@ -1,5 +1,5 @@
 define [ 'knockout'
-       , 'text!tpl/lib/navbar.html'
+       , 'lib/navbar.jade'
        , 'json!/screens'], (ko, Tpls, screens) ->
 
   menuItems = null
@@ -39,7 +39,7 @@ define [ 'knockout'
       do shrink
     do expand
 
-  tpls = $('<div/>').append($(Tpls))
+  tpls = $('<div/>').append($(Tpls()))
   ko.virtualElements.allowedBindings.renderMenuEl = true
   ko.bindingHandlers.renderMenuEl =
     init: (el, acc) ->

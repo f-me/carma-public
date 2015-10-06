@@ -1,4 +1,4 @@
-define [ "text!tpl/screens/vin.html"
+define [ "screens/vin.jade"
        , "dictionaries"
        , "lib/taskmanager"
        , "model/main"
@@ -84,5 +84,5 @@ define [ "text!tpl/screens/vin.html"
         bvm.done true)
 
   { constructor: setupVinForm
-  , template: tpl
+  , template: tpl()
   }

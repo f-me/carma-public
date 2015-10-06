@@ -3,7 +3,7 @@ include _settings
 .container-fluid.screen
   .row
     .col-md-12.default-bs
-      include _statNav
+      include ./_statNav.jade
       .row#settings
         +settingsContainer
           .row
@@ -72,4 +72,4 @@ include _settings
            // /ko
 
 .hidden
-  include /fields/ro.jade
+  include ../../fields/ro.jade

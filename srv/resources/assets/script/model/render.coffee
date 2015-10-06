@@ -1,6 +1,6 @@
-define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
+define ["dictionaries", "fields/form.jade"], (d, Flds) ->
 
-  FS = $('<div/>').append($(Flds))
+  FS = $('<div/>').append($(Flds()))
 
   renderKnockVm = (elName, knockVM, options) ->
     model     = knockVM._meta.model
