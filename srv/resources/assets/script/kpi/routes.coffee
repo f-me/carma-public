@@ -1,25 +1,31 @@
-define ["render/screen"], (r) ->
+define [ "render/screen"
+       , "screens/kpi/stat"
+       , "screens/kpi/oper"
+       , "screens/kpi/group"
+       ], (
+         r,
+         stat,
+         oper,
+         group
+       ) ->
 
   attachTo = (parentUrl) ->
     Finch.route "[#{parentUrl}]/stat", (bind) ->
-      require ["screens/kpi/stat"], (scr) ->
-        scr.screen =
+        stat.screen =
           name : "kpi-stat"
-          views: { "kpi-view": scr }
-        r.renderScreen scr, bind
+          views: { "kpi-view": stat }
+        r.renderScreen stat, bind
 
     Finch.route "[#{parentUrl}]/oper", (bind) ->
-      require ["screens/kpi/oper"], (scr) ->
-        scr.screen =
+        oper.screen =
           name : "kpi-oper"
-          views: { "kpi-view": scr }
-        r.renderScreen scr, bind
+          views: { "kpi-view": oper }
+        r.renderScreen oper, bind
 
     Finch.route "[#{parentUrl}]/group", (bind) ->
-      require ["screens/kpi/group"], (scr) ->
-        scr.screen =
+        group.screen =
           name : "kpi-group"
-          views: { "kpi-view": scr }
-        r.renderScreen scr, bind
+          views: { "kpi-view": group }
+        r.renderScreen group, bind
 
   attachTo: attachTo

@@ -1,9 +1,19 @@
-define ["render/screen"], (r) ->
+define [ "render/screen"
+       , "screens/partnersSearch"
+       , "screens/servicesSearch"
+       , "screens/callsSearch"
+       , "screens/contractsSearch"
+       ], (
+         r,
+         partnersSearch,
+         servicesSearch,
+         callsSearch,
+         contractsSearch
+       ) ->
 
   attachTo = (parentUrl) ->
 
     Finch.route "[#{parentUrl}]/partners/:model", (bind) ->
-      require ["screens/partnersSearch"], (partnersSearch) ->
         partnersSearch.screen =
           name : "partnersSearch"
           views:
@@ -11,7 +21,6 @@ define ["render/screen"], (r) ->
         r.renderScreen partnersSearch, bind
 
     Finch.route "[#{parentUrl}]/services", (bind) ->
-      require ["screens/servicesSearch"], (servicesSearch) ->
         servicesSearch.screen =
           name : "servicesSearch"
           views:
@@ -19,7 +28,6 @@ define ["render/screen"], (r) ->
         r.renderScreen servicesSearch, bind
 
     Finch.route "[#{parentUrl}]/calls", (bind) ->
-      require ["screens/callsSearch"], (callsSearch) ->
         callsSearch.screen =
           name : "callsSearch"
           views:
@@ -27,7 +35,6 @@ define ["render/screen"], (r) ->
         r.renderScreen callsSearch, bind
 
     Finch.route "[#{parentUrl}]/contracts", (bind) ->
-      require ["screens/contractsSearch"], (contractsSearch) ->
         contractsSearch.screen =
           name : "contractsSearch"
           views:

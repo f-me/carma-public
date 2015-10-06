@@ -1,12 +1,8 @@
 #/ Everything local to the customer resides here
 
-require [ "domready"
-        , "model/main"
+define  [ "model/main"
         , "routes"
         , "hooks/config"
-        , "json!/cfg/dictionaries"
-        , "json!/_whoami"
-        , "json!/_/Usermeta"
         , "utils"
         , "sync/crud"
         , "sendSms"
@@ -17,13 +13,10 @@ require [ "domready"
         , "lib/hacking"
         , "lib/cti"
         , "lib/cti-panel"
-        ], ( dom
-           , main
+        , "lib/upload"
+        ], ( main
            , Finch
            , hooks
-           , dicts
-           , user
-           , users
            , u
            , sync
            , sendSms
@@ -34,6 +27,7 @@ require [ "domready"
            , hacking
            , CTI
            , CTIPanel
+           , upload
            ) ->
 
   bugReport = new bug.BugReport
@@ -58,11 +52,13 @@ require [ "domready"
     window.onerror = console.error
 
     $(document).ajaxError (event, jqXHR, settings, error) ->
-      console.error "#{settings.type} #{settings.url} #{jqXHR.status}
- (#{jqXHR.statusText})\n#{settings.data}\n#{jqXHR.responseText}"
+      console.error(
+        "#{settings.type} #{settings.url} #{jqXHR.status} "
+        + "(#{jqXHR.statusText})\n#{settings.data}\n#{jqXHR.responseText}"
+      )
 
   # this will be called on dom ready
-  dom ->
+  onDomReady = (dicts, user, users) ->
     bugReport.setElement $('#send-bug-report')
 
     # Cached mapping between from userid to "name (login)"
@@ -159,13 +155,15 @@ require [ "domready"
       textInput = $(this).parents('.input-group').find(':text')
       textInput.val(label)
 
-  u.build_global_fn 'switchHack', ['lib/hacking']
-  u.build_global_fn 'showComplex', ['utils']
-  u.build_global_fn 'hideComplex', ['utils']
-  u.build_global_fn 'inlineUploadFile', ['lib/upload']
-  u.build_global_fn 'inlineDetachFile', ['lib/upload']
-  u.build_global_fn 'doPick', ['utils']
-  u.build_global_fn 'kdoPick', ['utils']
-  u.build_global_fn 'edoPick', ['utils']
-  u.build_global_fn 'focusField', ['utils']
-  u.build_global_fn 'ctiDial', ['utils']
+  window.switchHack       = hacking.switchHack
+  window.showComplex      = u.showComplex
+  window.hideComplex      = u.hideComplex
+  window.doPick           = u.doPick
+  window.kdoPick          = u.kdoPick
+  window.edoPick          = u.edoPick
+  window.focusField       = u.focusField
+  window.ctiDial          = u.ctiDial
+  window.inlineUploadFile = upload.inlineUploadFile
+  window.inlineDetachFile = upload.inlineDetachFile
+
+  {onDomReady: onDomReady}

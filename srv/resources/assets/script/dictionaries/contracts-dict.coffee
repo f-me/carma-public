@@ -1,8 +1,10 @@
-define ["dictionaries/meta-dict", "dictionaries"], (m) ->
+define [ "dictionsries/meta-dict"
+       , "dictionaries"]
+       , (m, Dict) ->
   class ContractsDict extends m.dict
     constructor: (@opts)->
       @kvm = @opts.kvm
-      @Dict = require "dictionaries"
+      @Dict = Dict
       @carMakeDict = new @Dict.dicts.ModelDict
         dict: 'CarMake'
       @carModelDict = new @Dict.dicts.ModelDict

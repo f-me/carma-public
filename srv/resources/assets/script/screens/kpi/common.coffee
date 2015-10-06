@@ -1,7 +1,7 @@
 define ["lib/current-user"
         "model/utils"
         "utils"
-        "base64"
+        "js-base64"
   ], (Usr, MU, U, B64) ->
 
   initCtx: (key, model, customInit) ->

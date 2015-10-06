@@ -1,8 +1,49 @@
-define ["render/screen"
-        "finch"
-        "search/routes"
-        "kpi/routes"
-       ], (r, Finch, Search, KPI) ->
+define [ "render/screen"
+       , "finch"
+       , "search/routes"
+       , "kpi/routes"
+       , "screens/backoffice"
+       , "screens/call"
+       , "screens/case"
+       , "screens/dictionaries"
+       , "screens/partners"
+       , "screens/processingConfig"
+       , "screens/uploads"
+       , "screens/printService"
+       , "screens/rkc"
+       , "screens/rkcFront"
+       , "screens/rkcOps"
+       , "screens/supervisor"
+       , "screens/vin"
+       , "screens/contract"
+       , "screens/timeline"
+       , "screens/rest"
+       , "screens/serviceBreak"
+       , "screens/na"
+       ], (
+         r,
+         Finch,
+         Search,
+         KPI,
+         bo,
+         call,
+         kase,
+         dictionaries,
+         partner,
+         procCfg,
+         uploads,
+         print,
+         rkc,
+         rkcFront,
+         rkcOps,
+         supervisor,
+         vin,
+         contract,
+         timeline,
+         rest,
+         serviceBreak,
+         na
+       ) ->
 
   # wrapper which will abort execution when user on a brake
   addRoute = (url, fn) ->
@@ -13,7 +54,6 @@ define ["render/screen"
         fn(bind)
 
   addRoute "back", (bind) ->
-    require ["screens/backoffice"], (bo) ->
       bo.screen =
         name : "back"
         template: "back-screen-template"
@@ -22,7 +62,6 @@ define ["render/screen"
       r.renderScreen bo, bind
 
   addRoute "call/:id", (bind) ->
-    require ["screens/call"], (call) ->
       call.screen =
         name : "Call"
         template: "call-screen-template"
@@ -31,7 +70,6 @@ define ["render/screen"
       r.renderScreen call, bind
 
   addRoute "case/:id", (bind) ->
-    require ["screens/case"], (kase) ->
       kase.screen =
         name : "case"
         template: "case-screen-template"
@@ -40,7 +78,6 @@ define ["render/screen"
       r.renderScreen kase, bind
 
   addRoute "dict/:dict/:id", (bind) ->
-    require ["screens/dictionaries"], (dictionaries) ->
       dictionaries.screen =
         name : "dictionaries"
         template: "dictionaries-screen-template"
@@ -49,7 +86,6 @@ define ["render/screen"
       r.renderScreen dictionaries, bind
 
   addRoute "partner/:id", (bind) ->
-    require ["screens/partners"], (partner) ->
       partner.screen =
         name : "partner"
         template: "partner-screen-template"
@@ -58,7 +94,6 @@ define ["render/screen"
       r.renderScreen partner, bind
 
   addRoute "processingConfig", (bind) ->
-    require ["screens/processingConfig"], (procCfg) ->
       procCfg.screen =
         name : "processingConfig"
         views:
@@ -66,18 +101,16 @@ define ["render/screen"
       r.renderScreen procCfg, bind
 
   addRoute "usermeta/:id", (bind) ->
-    require ["screens/dictionaries"], (user) ->
       user.screen =
         name : "dictionaries"
         template: "dictionaries-screen-template"
         views:
-          "dictionaries-view": user
+          "dictionaries-view": dictionaries
 
       bind.dict = 45
       r.renderScreen user, bind
 
   addRoute "uploads", (bind) ->
-    require ["screens/uploads"], (uploads) ->
       uploads.screen =
         name : "uploads"
         views:
@@ -85,7 +118,6 @@ define ["render/screen"
       r.renderScreen uploads, bind
 
   addRoute "printSrv/:id", (bind) ->
-    require ["screens/printService"], (print) ->
       print.screen =
         name : "printSrv"
         template: "printSrv-screen-template"
@@ -94,7 +126,6 @@ define ["render/screen"
       r.renderScreen print, bind
 
   addRoute "rkc", (bind) ->
-    require ["screens/rkc"], (rkc) ->
       rkc.screen =
         name : "rkc"
         template: "rkc-screen-template"
@@ -103,7 +134,6 @@ define ["render/screen"
       r.renderScreen rkc, bind
 
   addRoute "rkcFront", (bind) ->
-    require ["screens/rkcFront"], (rkcFront) ->
       rkcFront.screen =
         name : "rkcFront"
         template: "rkcFront-screen-template"
@@ -112,7 +142,6 @@ define ["render/screen"
       r.renderScreen rkcFront, bind
 
   addRoute "rkcOps", (bind) ->
-    require ["screens/rkcOps"], (rkcOps) ->
       rkcOps.screen =
         name : "rkcOps"
         template: "rkcOps-screen-template"
@@ -121,7 +150,6 @@ define ["render/screen"
       r.renderScreen rkcOps, bind
 
   addRoute "supervisor", (bind) ->
-    require ["screens/supervisor"], (supervisor) ->
       supervisor.screen =
         name : "supervisor"
         template: "supervisor-screen-template"
@@ -130,7 +158,6 @@ define ["render/screen"
       r.renderScreen supervisor, bind
 
   addRoute "vin", (bind) ->
-    require ["screens/vin"], (vin) ->
       vin.screen =
         name : "vin"
         views:
@@ -138,7 +165,6 @@ define ["render/screen"
       r.renderScreen vin, bind
 
   addRoute "contract/:sub/:id", (bind) ->
-    require ["screens/contract"], (contract) ->
       contract.screen =
         name : "contract"
         template: "contract-screen-template"
@@ -152,7 +178,6 @@ define ["render/screen"
         r.renderScreen contract, bind
 
   addRoute "timeline", (bind) ->
-    require ["screens/timeline"], (timeline) ->
       timeline.screen =
         name : "timeline"
         template: "timeline-screen-template"
@@ -161,28 +186,25 @@ define ["render/screen"
       r.renderScreen timeline, bind
 
   Finch.route "rest", (bind) ->
-    require ["screens/rest"], (scr) ->
-      scr.screen =
+      rest.screen =
         name: "rest"
         views:
-          'rest-view': scr
-      r.renderScreen scr, bind
+          'rest-view': rest
+      r.renderScreen rest, bind
 
   Finch.route "serviceBreak", (bind) ->
-    require ["screens/serviceBreak"], (scr) ->
-      scr.screen =
+      serviceBreak.screen =
         name: "serviceBreak"
         views:
-          'break-view': scr
-      r.renderScreen scr, bind
+          'break-view': serviceBreak
+      r.renderScreen serviceBreak, bind
 
   Finch.route "na", (bind) ->
-    require ["screens/na"], (scr) ->
-      scr.screen =
+      na.screen =
         name: "na"
         views:
-          'na-view': scr
-      r.renderScreen scr, bind
+          'na-view': na
+      r.renderScreen na, bind
 
   addRoute "search", =>
   Search.attachTo("search")

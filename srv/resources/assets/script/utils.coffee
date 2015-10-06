@@ -3,7 +3,8 @@ define [ "model/main"
        , "routes"
        , "dictionaries"
        , "sync/crud"
-       , "text!tpl/fields/form.html"], (main, mu, Finch, d, sync, Ftpls) ->
+       , "map"]
+       , (main, mu, Finch, d, sync, map) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -176,13 +177,6 @@ define [ "model/main"
   ctiDial = (number) ->
     global.CTIPanel && $("#cti").show() && global.CTIPanel.instaDial(number)
 
-  # build global function from local to module one
-  # function should belong to first dependency
-  build_global_fn: (name, deps) ->
-    window[name] = ->
-      args = arguments
-      require deps, (dep) -> dep[name].apply(this, args)
-
   ctiDial: ctiDial
 
   mkDataTable: (t, opts) ->
@@ -280,8 +274,7 @@ define [ "model/main"
     $(".complex-field").hide()
 
     view.show ->
-      require ["map"], (map) ->
-        map.initOSM(e, parentView) for e in view.find(".osMap")
+      map.initOSM(e, parentView) for e in view.find(".osMap")
 
   hideComplex: ->
     $(".complex-field").hide()
@@ -292,7 +285,6 @@ define [ "model/main"
   # In templates, bind click to 'doPick({{meta.picker}}, ...,
   # event.target)' to call the appropriate picker.
   doPick: (pickType, args, elt) ->
-    require ["map"], (map) ->
       pickers =
         callPlease: (fieldName, el) ->
           viewName = mu.elementView($(el)).id

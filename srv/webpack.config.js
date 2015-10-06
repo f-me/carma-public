@@ -1,22 +1,21 @@
 
+var path = require('path');
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
-var bower = __dirname + '/bower_components/';
 
 module.exports = {
   entry: {
-    login: './resources/assets/login.js',
+    index: './resources/assets/index.coffee',
   },
   output: {
-    path: './build/js',
-    filename: '[name].js',
-    sourceMapFilename: "[name].js.map"
+    path: './client-dist',
+    filename: 'main.js',
+    sourceMapFilename: "main.js.map"
   },
-  devtool: "source-map",
+  devtool: 'source-map',
   resolve: {
-    alias: {
-      jquery: bower + 'jquery/src/jquery.js',
-      jquery_browser: bower + 'jquery.browser/dist/jquery.browser.js'
-    }
+    root: path.resolve('./resources/assets/script'),
+    modulesDirectories: ['node_modules'],
+    extensions: ['', '.coffee']
   },
   module: {
     loaders: [
