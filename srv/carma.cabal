@@ -143,13 +143,3 @@ Executable carma
     ghc-options: -threaded -w
   else
     ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
-
-Executable carma-db-checker
-  hs-source-dirs: tools
-  main-is: Main.hs
-  Build-depends:
-      postgresql-simple           >= 0.4.4.1 && < 0.5,
-      carma-models                >= 0.29 && < 0.36,
-      unordered-containers        == 0.2.*,
-      cmdlib                      == 0.3.*,
-      boxes                       == 0.1.*
