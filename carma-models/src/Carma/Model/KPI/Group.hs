@@ -80,7 +80,7 @@ data GroupKPI = GroupKPI
   , satisfiedClients :: F (Maybe Int)
     "satisfiedClients" "Процент довольных клиентов"
   , claimsCount :: F (Maybe Int) "claimsCount" "Количество услуг с претензиями"
-  , towStartAvgTime :: F (Maybe Double)
+  , towStartAvgTime :: F (Maybe DiffTime)
     "towStartAvgTime" "Среднее время прибытия эвакуатора/техпомощи"
   } deriving Typeable
 
