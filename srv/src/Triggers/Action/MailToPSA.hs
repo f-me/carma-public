@@ -93,7 +93,7 @@ getMsgData con svcId = uncurry (PG.query con)
         end,
       'Country Code',         '2', 'RU',
       'Task Id',              '9', 'M' || lpad(c.id::text, 8, '0'),
-      'Time of Incident',     '5', to_char(c.callDate at time zone 'MSK', 'HH24:MI'),
+      'Time of Incident',     '5', to_char(c.callDate, 'HH24:MI'),
       'Make',                 '3',
         case c.program
           when $(Program.peugeot)$ then 'PEU'
@@ -117,9 +117,9 @@ getMsgData con svcId = uncurry (PG.query con)
           end,
       'Date of Opening',     '10', to_char(svc.times_expectedServiceStart, 'DD/MM/YYYY'),
       'Date of Response',    '10',
-        to_char(svc.times_expectedServiceStart at time zone 'MSK', 'DD/MM/YYYY'),
+        to_char(svc.times_expectedServiceStart, 'DD/MM/YYYY'),
       'Time of Response',     '5',
-        to_char(svc.times_expectedServiceStart at time zone 'MSK', 'HH24:MI'),
+        to_char(svc.times_expectedServiceStart, 'HH24:MI'),
       'Breakdown Location',  '100', c.caseAddress_address,
       'Breakdown Area',       '20', city.label,
       'Breakdown Service',   '100', coalesce(ctr.name, ''),

@@ -18,8 +18,7 @@ BEGIN
     ) as "timeInState"
    FROM "UserState" us
    WHERE (u_id = '{}' OR us.userid = any(u_id))
-     AND tstzrange(b, e) * coalesce(us.range, tstzrange(us.ctime, now()))
-     IS NOT NULL
+     AND tstzrange(b, e) && coalesce(us.range, tstzrange(us.ctime, now()))
   GROUP BY us.userid, us.state;
 END;
 $func$
@@ -1096,7 +1095,7 @@ CREATE OR REPLACE FUNCTION group_kpi_towStartAvg(
        fromTime timestamp with time zone,
        toTime   timestamp with time zone)
  RETURNS TABLE (
- towStartAvgTime double precision)
+ towStartAvgTime interval)
  AS
 $func$
 BEGIN
@@ -1113,7 +1112,7 @@ WITH
          contractor_partner, suburbanmilage
     FROM towagetbl)
 SELECT
-  extract(epoch from avg(s.times_factServiceStart - s.times_expectedDispatch))
+  avg(s.times_factServiceStart - s.times_expectedDispatch)
 FROM casetbl c, services s
 WHERE s.parentid = c.id
 AND s.times_factServiceStart > s.times_expectedDispatch
