@@ -18,8 +18,7 @@ BEGIN
     ) as "timeInState"
    FROM "UserState" us
    WHERE (u_id = '{}' OR us.userid = any(u_id))
-     AND tstzrange(b, e) * coalesce(us.range, tstzrange(us.ctime, now()))
-     IS NOT NULL
+     AND tstzrange(b, e) && coalesce(us.range, tstzrange(us.ctime, now()))
   GROUP BY us.userid, us.state;
 END;
 $func$
