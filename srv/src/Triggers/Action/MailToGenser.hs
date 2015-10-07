@@ -43,9 +43,9 @@ sendMailToGenser svcId = do
               'Заявка на эвакуацию, офис '
                 || p.name || ', VIN: ' || coalesce(upper(c.car_vin), 'N/A'),
               'Дата отправки: '
-                || to_char(now() at time zone 'MSK', 'YYYY-MM-DD HH24:MI:SS'),
+                || to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
               'Дата создания заявки на эвакуацию: '
-                || to_char(t.createTime at time zone 'MSK', 'YYYY-MM-DD HH24:MI:SS'),
+                || to_char(t.createTime, 'YYYY-MM-DD HH24:MI:SS'),
               '№ заявки в системе учета оператора услуги: ' || c.id,
               'Статус заявки: '              || s.label,
               'Ф.И.О клиента: '              || coalesce(initcap(c.contact_name), ''),
@@ -59,7 +59,7 @@ sendMailToGenser svcId = do
               'Адрес местонахождения автомобиля: '
                 || coalesce(c.caseAddress_address, ''),
               'Время прибытия эвакуатора: '
-                || to_char(t.times_expectedServiceStart at time zone 'MSK', 'YYYY-MM-DD HH24:MI:SS'),
+                || to_char(t.times_expectedServiceStart, 'YYYY-MM-DD HH24:MI:SS'),
               'Стоимость услуги, объявленная клиенту на этапе регистрации заявки: '
                 || (case
                   when t.payment_paidByClient ~ E'^\\d{1,7}(\\.\\d{1,2}){0,1}$'
