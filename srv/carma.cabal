@@ -121,7 +121,7 @@ Executable carma
     vinnie                      >= 0.3.2 && < 0.4,
     weather-api                 >= 0.4.3,
     websockets                  == 0.9.*,
-    websockets-snap             == 0.9.*,
+    websockets-snap             >= 0.9.2 && < 0.10,
     xml-conduit                 == 1.2.*,
     xmlhtml                     == 0.2.*
 
