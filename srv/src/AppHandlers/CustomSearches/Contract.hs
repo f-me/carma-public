@@ -161,6 +161,8 @@ searchContracts = do
           , "AND (? OR ? = p.?)"
           -- 2 parameters: dixi and isActive field names
           , "AND c.? and c.?"
+          -- 2 parameters: program.active and subprogram.active
+          , "AND p.? AND s.?"
           -- 1 parameter: LIMIT value
           , "ORDER BY c.id DESC LIMIT ?;"
           ]
@@ -208,6 +210,8 @@ searchContracts = do
           :. (Only $ fieldPT P.ident)
           -- 2
           :. (fieldPT C.dixi, fieldPT C.isActive)
+          -- 2
+          :. (fieldPT P.active, fieldPT S.active)
           -- 1
           :. Only limit)
 
