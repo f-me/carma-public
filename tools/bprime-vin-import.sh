@@ -48,7 +48,9 @@ VINNIE="${HOME}/carma/srv/.cabal-sandbox/bin/vinnie"
 TMPDIR=$(mktemp -d /tmp/bprime.`date +%F`.XXXXXX)
 
 # Download VIN databases
-echo "get -r ${DIR}/ ${TMPDIR}" | sshpass -p $(grep ${HOST} ~/.netrc | cut -d' ' -f6) sftp -P ${PORT} ${USER}@${HOST}
+echo "get -r ${DIR}/ ${TMPDIR}" \
+  | sshpass -p $(grep "${HOST}.*${USER}" ~/.netrc | cut -d' ' -f6) \
+    sftp -P ${PORT} ${USER}@${HOST}
 
 # Build mail message body as files are processed
 MESSAGE="${TMPDIR}/message"

@@ -59,7 +59,9 @@ echo "${TMPDIR}" >> "${MESSAGE}"
 echo >> "${MESSAGE}"
 
 # Download VIN database
-echo "get ${DIR}/${NAME} ${TMP}" | sshpass -p $(grep ${HOST} ~/.netrc | cut -d' ' -f6) sftp ${USER}@${HOST}
+echo "get ${DIR}/${NAME} ${TMP}" \
+  | sshpass -p $(grep "${HOST}.*${USER}" ~/.netrc | cut -d' ' -f6) \
+    sftp ${USER}@${HOST}
 
 # Unpack single file from the archive
 NAME="${TMPDIR}/$(unzip -Z -1 ${TMP})"
