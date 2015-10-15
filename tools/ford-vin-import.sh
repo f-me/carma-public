@@ -1,56 +1,53 @@
 #!/bin/bash -e
 
-# ARC VIN automatic import script.
+# Ford ARC VIN automatic import script.
 #
 # Usage:
 #
-#     ./arc-vin-import.sh FTP-FILE-NAME SUBPROGRAM-ID
+#     ./ford-vin-import.sh DATE-OF-FILE
 #
-# Fetch a file from the FTP host, unzip it and feed the file inside to
-# vinnie, mailing a report afterwards.
+# Fetch a file from the FTP host, feed it to vinnie,
+# and mail a report afterwards.
 #
 # sendemail(1), sftp(1), unzip(1) and sshpass(1) must be available.
 #
 # .netrc file must contain SFTP credentials for ARC host in one line.
 
-if [ $# -ne 2 ]
+if [ $# -ne 1 ]
 then
-    echo "Usage: ./arc-vin-import.sh FTP-FILE-NAME SUBPROGRAM-ID"
+    echo "Usage: ./ford-vin-import.sh YYYYMMDD"
     exit 1
 fi
 
-
 # CONFIGURATION:
 
-# ARC VinFormat id
-FORMAT="1000"
-# Contract commiter (PSA user)
-COMMITTER="387"
+# Ford VinFormat id
+FORMAT="2000"
+# Contract commiter (Ford user)
+COMMITTER="1192"
+SUBPROGRAM="14" # Ford
 
 # ARC host data
-USER="ramc"
+USER="FordSollers"
 HOST="arcftp.arceurope.com"
-DIR="Production/Vehicle_info/Common"
 
 # CaRMa Postgres connection info
 PG="localhost,5432,carma_db_sync,pass,carma"
 
 # Report mail parameters
 MAIL_FROM="carma@carma.ruamc.ru"
-MAIL_TO=("robots@formalmethods.ru" "Alexander.Dimakov@ruamc.ru" "Pavel.Golovnin@ruamc.ru")
-MAIL_SUBJECT="Отчёт о загрузке контрактов PSA `date +%F`"
+MAIL_TO=("robots@formalmethods.ru")
+MAIL_SUBJECT="Отчёт о загрузке контрактов Ford `date +%F`"
 
 # END OF CONFIGURATION
 
-
-NAME="$1"
-SUBPROGRAM="$2"
+DATE=$1
 
 # Absolute path to vinnie executable
+NAME="CB_fordsara_${DATE}_RU.csv"
 VINNIE="${HOME}/carma/srv/.cabal-sandbox/bin/vinnie"
 
-TMPDIR=$(mktemp -d /tmp/arc.`date +%F`.XXXXXX)
-TMP="${TMPDIR}/${NAME}"
+TMPDIR=$(mktemp -d /tmp/ford`date +%F`.XXXXXX)
 
 # Build mail message body as files are processed
 MESSAGE="${TMPDIR}/message"
@@ -59,21 +56,12 @@ echo "${TMPDIR}" >> "${MESSAGE}"
 echo >> "${MESSAGE}"
 
 # Download VIN database
-echo "get ${DIR}/${NAME} ${TMP}" \
+echo "get ${NAME} ${TMPDIR}" \
   | sshpass -p $(grep "${HOST}.*${USER}" ~/.netrc | cut -d' ' -f6) \
-    sftp ${USER}@${HOST}
+    sftp -C ${USER}@${HOST}
 
-# Unpack single file from the archive
-NAME="${TMPDIR}/$(unzip -Z -1 ${TMP})"
-unzip "${TMP}" -d ${TMPDIR}
-
-IN="${NAME%csv}RU.csv"
-OUT="${IN%csv}OUT.csv"
-
-# Header row
-head -n 1 "${NAME}" > "${IN}"
-# Filter out non-RU rows
-grep -E '^([^;]*;){12}RU' "${NAME}" >> "${IN}"
+IN="${TMPDIR}/${NAME}"
+OUT="${IN%csv}.OUT.csv"
 
 # New section in message
 echo $(basename "${IN}")":" >> "${MESSAGE}"
@@ -102,3 +90,4 @@ sendemail -f "${MAIL_FROM}" \
           -u "${MAIL_SUBJECT}" \
           -o message-file="${MESSAGE}" \
           -a "${ATTACHMENTS[@]}"
+
