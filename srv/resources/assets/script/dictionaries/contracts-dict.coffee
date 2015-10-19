@@ -1,13 +1,13 @@
 define [ "dictionaries/meta-dict"
-       , "dictionaries"]
-       , (m, Dict) ->
-  class ContractsDict extends m.dict
+       , "dictionaries/computed-dict"
+       , "dictionaries/model-dict"]
+       , (metaDict, compDict, modelDict) ->
+  class ContractsDict extends metaDict.dict
     constructor: (@opts)->
       @kvm = @opts.kvm
-      @Dict = Dict
-      @carMakeDict = new @Dict.dicts.ModelDict
+      @carMakeDict = new modelDict.dict
         dict: 'CarMake'
-      @carModelDict = new @Dict.dicts.ModelDict
+      @carModelDict = new modelDict.dict
         dict: 'CarModel'
 
     find: (q, cb, opt) ->
@@ -83,7 +83,7 @@ define [ "dictionaries/meta-dict"
       c.model = @carModelDict.getLab c.model || c.model
 
       if c.subprogram
-        subprogramDict = new @Dict.dicts.ComputedDict
+        subprogramDict = new compDict.dict
           dict: "prefixedSubPrograms"
         c.subprogram = subprogramDict.getLab c.subprogram
 

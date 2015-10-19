@@ -1,7 +1,7 @@
 define ["dictionaries/local-dict", ], (ld) ->
   class DealersDict extends ld.dict
     constructor: (@opts) ->
-      @kvm = opts.kvm
+      @kvm = @opts.kvm
       @cacheByVal = {}
       @cacheByLab = {}
 
