@@ -3,6 +3,9 @@ define [ "utils"
        , "model/main"
        , "sync/crud"
        , "dictionaries"], (u, mu, main, sync, d) ->
+
+  {Finch} = require "finchjs/finch.min.js"
+
   descsKbHook: (model, knockVM) ->
     mkServicesDescs = (p, s) ->
       desc = u.getServiceDesc(p, s.type())

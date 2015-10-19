@@ -9,6 +9,8 @@ define [ "render/screen"
          group
        ) ->
 
+  {Finch} = require "finchjs/finch.min.js"
+
   attachTo = (parentUrl) ->
     Finch.route "[#{parentUrl}]/stat", (bind) ->
         stat.screen =

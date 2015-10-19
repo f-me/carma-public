@@ -2,6 +2,8 @@ define [ "utils"
        , "model/utils"
        , "screens/partnersSearch"
        ], (u, mu, pSearch) ->
+
+  {Finch} = require "finchjs/finch.min.js"
   # sync with partner search screen
   openPartnerSearch: (model, kvm) ->
     # do not run this hook on search screen

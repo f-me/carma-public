@@ -6,7 +6,9 @@ define [ "utils"
        , "lib/messenger"
        ], (utils, hotkeys, main, pSearch, tpl, Msg) ->
 
-  utils.build_global_fn 'reloadScreen', ['utils']
+  {Finch} = require "finchjs/finch.min.js"
+
+  window.reloadScreen = utils.reloadScreen
   storeKey = "call"
 
   setupCallForm = (viewName, args) ->

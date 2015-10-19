@@ -5,10 +5,11 @@ define [ "utils"
        , "lib/ws"
        , "model/utils"
        , "model/main"
+       , "map"
        , "components/contract"
        ],
-  (utils, hotkeys, tpl, Flds, WS, mu, main, Contract) ->
-    utils.build_global_fn 'pickPartnerBlip', ['map']
+  (utils, hotkeys, tpl, Flds, WS, mu, main, map, Contract) ->
+    window.pickPartnerBlip = map.pickPartnerBlip
 
     flds =  $('<div/>').append($(Flds()))
     # Case view (renders to #left, #center and #right as well)

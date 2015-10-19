@@ -11,6 +11,8 @@ define [ "render/screen"
          contractsSearch
        ) ->
 
+  {Finch} = require "finchjs/finch.min.js"
+
   attachTo = (parentUrl) ->
 
     Finch.route "[#{parentUrl}]/partners/:model", (bind) ->

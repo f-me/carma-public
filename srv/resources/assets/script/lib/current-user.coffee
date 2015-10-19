@@ -6,6 +6,8 @@ define [ "model/main"
        , "lib/messenger"
        , "sync/datamap" ], (Main, Crud, Messenger, Map)->
 
+  {Finch} = require "finchjs/finch.min.js"
+
   # block other than rest screens when in rest
   oldNav = Finch.navigate
   Finch.navigate = (args...) ->

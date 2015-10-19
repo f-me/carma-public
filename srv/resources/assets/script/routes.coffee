@@ -1,5 +1,4 @@
 define [ "render/screen"
-       , "finchjs/finch.min.js"
        , "search/routes"
        , "kpi/routes"
        , "screens/backoffice"
@@ -22,7 +21,6 @@ define [ "render/screen"
        , "screens/na"
        ], (
          r,
-         Finch,
          Search,
          KPI,
          bo,
@@ -44,6 +42,8 @@ define [ "render/screen"
          serviceBreak,
          na
        ) ->
+
+  {Finch} = require "finchjs/finch.min.js"
 
   # wrapper which will abort execution when user on a brake
   addRoute = (url, fn) ->
