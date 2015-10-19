@@ -1,5 +1,5 @@
 define [ "render/screen"
-       , "finch"
+       , "finchjs/finch.min.js"
        , "search/routes"
        , "kpi/routes"
        , "screens/backoffice"

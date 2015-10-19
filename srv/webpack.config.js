@@ -19,7 +19,7 @@ module.exports = {
       , path.resolve('./resources/assets/template')
       ],
     modulesDirectories: ['node_modules'],
-    extensions: ['', '.coffee']
+    extensions: ['', '.coffee', '.js']
   },
   module: {
     loaders: [
