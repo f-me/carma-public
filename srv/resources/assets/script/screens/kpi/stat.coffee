@@ -1,5 +1,4 @@
 define ["screens/kpi/stat.jade"
-        "json!/cfg/model/StatKPI?view=kpi"
         "model/main"
         "model/fields"
         "sync/datamap"
@@ -8,11 +7,17 @@ define ["screens/kpi/stat.jade"
   ], (Tpl, Model, Main, Fs, Map, Common, Utils) ->
 
   stuffKey = "kpi-stat"
-  mp = new Map.Mapper(Model)
+
+  fetchJson = (done) ->
+    fetch('/cfg/model/StatKPI?view=kpi', {credentials: 'same-origin'})
+      .then((resp) -> resp.json())
+      .then done
+
   template: Tpl()
-  constructor: (view, opts) ->
+  constructor: (view, opts) -> fetchJson (Model) ->
     $("#stat-screen").addClass("active")
 
+    mp = new Map.Mapper(Model)
     uDict = Utils.newModelDict "Usermeta", false, dictionaryLabel: 'grp'
 
     spinner = ko.observable(false)

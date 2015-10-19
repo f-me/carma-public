@@ -5,17 +5,20 @@ define ["screens/timeline.jade"
       , "lib/messenger"
       , "sync/crud"
       , "sync/datamap"
-      , "json!/cfg/model/Usermeta"
       , "model/utils"
       , "utils"
       , "fields/table.jade"
       , "fields/ro.jade"
       , "screens/timeline/models"
       ]
-    , (tpl, d3, Main, D, WS, Crud, DataMap, Um, MUtils, Utils
+    , (tpl, d3, Main, D, WS, Crud, DataMap, MUtils, Utils
       , Ttpl, ROtpl, models) ->
 
-  fieldsDict = arrToObj 'name', Um.fields
+  fetchJson = (done) ->
+    fetch('/cfg/model/Usermeta', {credentials: 'same-origin'})
+      .then((resp) -> resp.json())
+      .then done
+
 
   flds = $("<div />").append($(Ttpl() + ROtpl()))
   ko.bindingHandlers.renderTpl =
@@ -304,7 +307,8 @@ define ["screens/timeline.jade"
   kvms = null
   ws   = null
 
-  setupScreen = (viewName, args) ->
+  setupScreen = (viewName, args) -> fetchJson (Um) ->
+    fieldsDict = arrToObj 'name', Um.fields
     options =
       permEl: null,
       manual_save: true

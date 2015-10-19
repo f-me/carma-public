@@ -1,6 +1,11 @@
 define [ 'knockout'
        , 'lib/navbar.jade'
-       , 'json!/screens'], (ko, Tpls, screens) ->
+       ], (ko, Tpls) ->
+
+  fetchJson = (done) ->
+    fetch('/screens', {credentials: 'same-origin'}, {credentials: 'same-origin'})
+      .then((resp) -> resp.json())
+      .then done
 
   menuItems = null
   moreItem =
@@ -51,7 +56,7 @@ define [ 'knockout'
   shrink: shrink
   reset:  reset
 
-  setup: (domEl) ->
+  setup: (domEl) -> fetchJson (screens) ->
     menuItems = ko.observableArray [moreItem.screens(screens)]
     ko.applyBindings menuItems, domEl
     window.onresize = _.debounce reset, 500

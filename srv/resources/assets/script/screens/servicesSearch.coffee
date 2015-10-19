@@ -1,27 +1,32 @@
 define [ "search/screen"
        , "screens/search.jade"
-       , "json!/cfg/model/Case?view=search"
-       , "json!/cfg/model/Service?view=search"
-       , "json!/cfg/model/Towage?view=search"
-       , "json!/cfg/model/Contract?view=searchCase"
-       , "json!/cfg/model/Case"
-       , "json!/cfg/model/Service"
-       , "json!/cfg/model/Towage"
-       , "json!/cfg/model/Contract"
-
+       , "q"
        ], ( Screen
           , tpl
-          , CaseSearch
+          Q) ->
+
+  fetchJson = (done) ->
+    Q.all(
+      [fetch('/cfg/model/Case?view=search', {credentials: 'same-origin'})
+      ,fetch('/cfg/model/Service?view=search', {credentials: 'same-origin'})
+      ,fetch('/cfg/model/Towage?view=search', {credentials: 'same-origin'})
+      ,fetch('/cfg/model/Contract?view=searchCase', {credentials: 'same-origin'})
+      ,fetch('/cfg/model/Case', {credentials: 'same-origin'})
+      ,fetch('/cfg/model/Service', {credentials: 'same-origin'})
+      ,fetch('/cfg/model/Towage', {credentials: 'same-origin'})
+      ,fetch('/cfg/model/Contract', {credentials: 'same-origin'})
+      ]).done((res) -> done(res.map((x) -> x.json())))
+
+  template: tpl()
+  constructor: -> fetchJson (
+          [ CaseSearch
           , ServiceSearch
           , TowageSearch
           , ContractSearch
           , Case
           , Service
           , Towage
-          , Contract) ->
-
-  template: tpl()
-  constructor: -> Screen.constructor
+          , Contract]) -> Screen.constructor
     apiUrl: "/search/case"
     searchModels: [CaseSearch, ServiceSearch, TowageSearch, ContractSearch]
     resultModels: [Case, Service, Towage, Contract]

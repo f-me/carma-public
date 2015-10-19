@@ -1,23 +1,18 @@
 define ["screens/kpi/oper.jade"
-        "json!/cfg/model/OperKPI?view=kpi"
         "model/main"
         "sync/datamap"
         "lib/messenger"
         "screens/kpi/common"
         "utils"
-  ], (Tpl, Model, Main, Map, WS, Common, Utils) ->
+  ], (Tpl, Main, Map, WS, Common, Utils) ->
 
   stuffKey = "kpi-oper"
 
-  mp = new Map.Mapper(Model)
-  update = (kvmsh) -> (data) ->
-    for d in data
-      do (d) ->
-        a = mp.s2cObj d
-        kvm = kvmsh[a.userid]
-        if kvm?
-          for k, v of a
-            do (k, v) -> kvm[k](v)
+  fetchJson = (done) ->
+    fetch('/cfg/model/OperKPI?view=kpi', {credentials: 'same-origin'})
+      .then((resp) -> resp.json())
+      .then done
+
 
   tick = (kvms) -> ->
     for k in kvms()
@@ -92,7 +87,16 @@ define ["screens/kpi/oper.jade"
       true
 
   template: Tpl()
-  constructor: (view, opts) ->
+  constructor: (view, opts) -> fetchJson (Model) ->
+    mp = new Map.Mapper(Model)
+    update = (kvmsh) -> (data) ->
+      for d in data
+        do (d) ->
+          a = mp.s2cObj d
+          kvm = kvmsh[a.userid]
+          if kvm?
+            for k, v of a
+              do (k, v) -> kvm[k](v)
     uDict = Utils.newModelDict "Usermeta", false, dictionaryLabel: 'grp'
 
     $("#oper-screen").addClass("active")

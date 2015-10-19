@@ -1,16 +1,19 @@
 define [ "search/screen"
        , "screens/search.jade"
-       , "json!/cfg/model/Call"
-       , "json!/cfg/model/Call?view=search"
-       ], ( Screen
-          , tpl
-          , callModel
-          , callSearchModel) ->
+       , "q"
+       ],
+       (Screen, tpl, Q) ->
+
+  fetchJson = (done) ->
+    Q.all(
+      [fetch('/cfg/model/Call', {credentials: 'same-origin'})
+      ,fetch('/cfg/model/Call?view=search', {credentials: 'same-origin'})
+      ]).done((res) -> done(res.map((x) -> x.json())))
 
   template: tpl()
-  constructor: -> Screen.constructor
-    searchModels: [callSearchModel]
-    resultModels: [callModel]
+  constructor: -> fetchJson ([Call, Search]) -> Screen.constructor
+    searchModels: [Search]
+    resultModels: [Call]
     apiUrl: "/search/call"
     resultTable: [ { name: 'phone',    fixed: true }
                  , { name: 'callDate', fixed: true }

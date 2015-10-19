@@ -1,11 +1,16 @@
 define [ "search/screen"
-       , "json!/cfg/model/Contract"
-       , "json!/cfg/model/Contract?view=search"
        , "screens/search.jade"
-       ], (Screen, Contract, Search, tpl) ->
+       , "q"
+       ], (Screen, tpl, Q) ->
+
+  fetchJson = (done) ->
+    Q.all(
+      [fetch('/cfg/model/Contract', {credentials: 'same-origin'})
+      ,fetch('/cfg/model/Contract?view=search', {credentials: 'same-origin'})
+      ]).done((res) -> done(res.map((x) -> x.json())))
 
   template: tpl()
-  constructor: -> Screen.constructor
+  constructor: -> fetchJson ([Contract, Search]) -> Screen.constructor
     searchModels: [Search]
     resultModels: [Contract]
     apiUrl: "/search/contract"

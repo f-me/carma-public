@@ -1,5 +1,4 @@
 define ["screens/kpi/group.jade"
-        "json!/cfg/model/GroupKPI?view=kpi"
         "model/main"
         "model/fields"
         "sync/datamap"
@@ -9,10 +8,14 @@ define ["screens/kpi/group.jade"
 
   key = "kpi-group"
 
-  mp = new Map.Mapper(Model)
+  fetchJson = (done) ->
+    fetch('/cfg/model/GroupKPI?view=kpi', {credentials: 'same-origin'})
+      .then((resp) -> resp.json())
+      .then done
 
   template: Tpl()
-  constructor: (view, opts) ->
+  constructor: (view, opts) -> fetchJson (Model) ->
+    mp = new Map.Mapper(Model)
     $("#group-screen").addClass("active")
     s = (Usr.readStuff key) || {}
     int = s?.interval or
