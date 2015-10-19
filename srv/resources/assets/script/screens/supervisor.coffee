@@ -61,7 +61,7 @@ define ["utils"
     ar = utils.newModelDict "ActionResult", true
     at = utils.newModelDict "ActionType", true
     cities = utils.newModelDict "City", true
-    u = global.dictValueCache['users']
+    u = window.global.dictValueCache['users']
 
     roles = utils.newModelDict "Role", true
     progs = utils.newModelDict "Program", true
@@ -152,9 +152,9 @@ define ["utils"
     tpl = $(flds).find('#dictionary-many-field-template').html()
     $('#roles').html(Mustache.render tpl, roleModel.fields[0])
     ko.applyBindings roleKVM, $('#roles')[0]
-    roleKVM.roles [ global.idents("Role").bo_order
-                  , global.idents("Role").bo_info
-                  , global.idents("Role").bo_secondary
+    roleKVM.roles [ window.global.idents("Role").bo_order
+                  , window.global.idents("Role").bo_info
+                  , window.global.idents("Role").bo_secondary
                   ]
     roleKVM
 
@@ -195,7 +195,7 @@ define ["utils"
       .on("click.datatable", "tr", ->
         id = @children[0].innerText.split('/')[1].replace(/\D/g,'')
         modelSetup modelName, viewName, {id}
-        global.viewsWare["action-form"].knockVM)
+        window.global.viewsWare["action-form"].knockVM)
 
     screenman.showScreen modelName
 

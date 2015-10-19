@@ -154,7 +154,7 @@ define [ "utils"
         dict = null
         $.bgetJSON "/_/Dictionary/#{args.dict}", (d) -> dict = d
         dictName = dict.name
-        dictModel = global.model dictName
+        dictModel = window.global.model dictName
 
         majorFields = majorFieldsSetup dict, dictModel
         table = null
@@ -177,7 +177,7 @@ define [ "utils"
           textarea2wysiwyg()
 
         # let user show entries from a particular parent
-        parentModel = global.model dictName, "parents"
+        parentModel = window.global.model dictName, "parents"
         if not parentModel
           initEditControls objURL
         else

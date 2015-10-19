@@ -260,7 +260,7 @@ define ["utils", "screens/rkc.jade"],
         initRKCDate update, partners
         fillRKCFilters update, partners
 
-        global.rkcData = {}
+        window.global.rkcData = {}
 
         update()
         updatePartners(partners)

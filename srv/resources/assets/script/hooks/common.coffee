@@ -276,7 +276,7 @@ define [ "utils"
             kvm[n] newFull
 
         kvm["#{n}KeyDictionary"] =
-          ko.observable global.dictionaries[f.meta.dictionaryName].entries
+          ko.observable window.global.dictionaries[f.meta.dictionaryName].entries
 
         # Populate {n}Objects with initial values
         if kvm[n]()?

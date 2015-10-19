@@ -102,18 +102,18 @@ define [ "search/screen"
           # TODO Check for permission to write in a subprogram
           {subprogram: subprogram}, {}
 
-      kvm = global.viewsWare[contractForm].knockVM
+      kvm = window.global.viewsWare[contractForm].knockVM
 
       kvm["id"].subscribe (i) -> redirect "contract/#{subprogram}/#{i}"
 
       # Role-specific permissions
       kvm['isActiveDisableDixi'](true)
-      is_partner = _.find(global.user.roles,
-        (r) -> r == global.idents("Role").partner)
+      is_partner = _.find(window.global.user.roles,
+        (r) -> r == window.global.idents("Role").partner)
       if is_partner
         kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
-      if _.find(global.user.roles,
-        (r) -> r == global.idents("Role").contract_admin)
+      if _.find(window.global.user.roles,
+        (r) -> r == window.global.idents("Role").contract_admin)
         kvm['disableDixi'](true)
 
       # True if a duplicate contract caused user to not save the
@@ -128,7 +128,7 @@ define [ "search/screen"
           kvm["always_true"] = true
         if kvm["always_true"] and !dupe
           kvm["dixi"] true
-        global.searchVM?._meta.q.search()
+        window.global.searchVM?._meta.q.search()
 
       unless kvm["dixi"]()
         # When creating new contracts, check contract duplicates upon
@@ -173,7 +173,7 @@ define [ "search/screen"
           searchVM = screenConstructor Search, Table, ->
             # Open contracts upon table row click
             contract @Contract.id()
-          global.searchVM = searchVM
+          window.global.searchVM = searchVM
           searchVM.subprogram subprogram
 
           # Update URL&info when subprogram changes

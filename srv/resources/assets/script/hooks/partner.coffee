@@ -1,6 +1,6 @@
 define ["utils"], (u) ->
   setServiceRepeat = ->
-    kvm = global.viewsWare['Partner-view'].knockVM
+    kvm = window.global.viewsWare['Partner-view'].knockVM
     return unless kvm
     refs = _.filter kvm.servicesReference(), (r) -> r.serviceName()
     groups = _.groupBy refs, (r) -> r.serviceName()

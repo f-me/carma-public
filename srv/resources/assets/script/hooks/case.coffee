@@ -55,7 +55,7 @@ define [ "utils"
 
   vwfakeHook: (model, knockVM) ->
     knockVM['callDateVisible'] = ko.computed ->
-      not _.contains global.user.roles, global.idents("Role").vwfake
+      not _.contains window.global.user.roles, window.global.idents("Role").vwfake
 
   carModelInfoHook: (model, knockVM) ->
     dict = new d.dicts.ModelDict
@@ -82,12 +82,12 @@ define [ "utils"
     kvm.buttons.needInfo.tooltip = u.reqFieldsTooltip kvm, niFlds
     kvm.buttons.needInfo.text =
       u.newModelDict("CaseStatus").getLab(
-              global.idents("CaseStatus").needInfo)
+              window.global.idents("CaseStatus").needInfo)
     kvm.buttons.needInfo.visible = ko.computed ->
-      statusOk = kvm['caseStatus']() != global.idents("CaseStatus").needInfo
+      statusOk = kvm['caseStatus']() != window.global.idents("CaseStatus").needInfo
       statusOk && _.isEmpty(kvm['servicesReference']())
     kvm.buttons.needInfo.click = ->
-      kvm['caseStatus'] global.idents("CaseStatus").needInfo
+      kvm['caseStatus'] window.global.idents("CaseStatus").needInfo
     kvm.buttons.needInfo.disabled = ko.computed ->
       u.someEmpty kvm, niFlds
 

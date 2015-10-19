@@ -41,7 +41,7 @@ define [
       contract.isActive = if contract.isActive then "Да" else "Нет"
       delete contract.dixi
 
-      model = global.model 'Contract'
+      model = window.global.model 'Contract'
       mapper = new DataMap.Mapper(model)
       kvm = Main.buildKVM model, {fetched: mapper.s2cObj contract}
 

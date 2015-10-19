@@ -34,7 +34,7 @@ define [ "utils"
       args = getArgs()
 
       $.getJSON("/rkc" + args, (result) ->
-        dict = global.dictValueCache
+        dict = window.global.dictValueCache
         eat.fnClearTable()
 
         eavision = []
@@ -48,7 +48,7 @@ define [ "utils"
                     eavision[i + 2] = true
                 if val then fmtavg(val) else "-"
             r.unshift fmtavg(eainfo.avg)
-            r.unshift global.dictValueCache['users'][eainfo.name]
+            r.unshift window.global.dictValueCache['users'][eainfo.name]
             earow = r
 
         for c, i in eavision
@@ -60,15 +60,15 @@ define [ "utils"
     rkc.initRKCDate update, partners
     rkc.fillRKCFilters update, partners
 
-    global.rkcOpsData = {}
+    window.global.rkcOpsData = {}
 
-    global.rkcOpsData.updateHandler = setInterval(update, 30000)
+    window.global.rkcOpsData.updateHandler = setInterval(update, 30000)
 
     update()
     rkc.updatePartners(partners)
 
   removeRKCOpsScreen = ->
-      t = global.rkcOpsData.updateHandler
+      t = window.global.rkcOpsData.updateHandler
       clearInterval t if t?
 
   { constructor: setupRKCOpsScreen

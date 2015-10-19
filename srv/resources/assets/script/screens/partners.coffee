@@ -32,8 +32,8 @@ define [ "utils"
       # I need this object because I can't clean foreach binding, once
       # it's created, to use this proxy object to keep current partner's
       # allerts
-      global.alertObj = { kvm: ko.observable(kvm)}
-      ko.applyBindings(global.alertObj, $("#partner-errors")[0])
+      window.global.alertObj = { kvm: ko.observable(kvm)}
+      ko.applyBindings(window.global.alertObj, $("#partner-errors")[0])
 
       tableParams =
         tableName: "partner"
@@ -47,7 +47,7 @@ define [ "utils"
           if (table.dataTable.fnGetPosition this) != null
             id = @children[0].innerText
             kvm = modelSetup modelName, viewName, {id}
-            global.alertObj.kvm(kvm)
+            window.global.alertObj.kvm(kvm)
 
         )
       screenman.showScreen modelName
@@ -67,7 +67,7 @@ define [ "utils"
 
     screenRelease = () ->
       ko.cleanNode($("#partner-errors")[0])
-      delete global.alertObj
+      delete window.global.alertObj
 
     { constructor: screenSetup
     , destructor : screenRelease

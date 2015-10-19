@@ -4,7 +4,7 @@ define ["model/main", "render/screen"], (main, render) ->
 
   # Save instance loaded in view
   saveInstance = (viewName, cb, force) ->
-    global.viewsWare[viewName].knockVM._meta.q.save(cb, force)
+    window.global.viewsWare[viewName].knockVM._meta.q.save(cb, force)
 
   window.saveInstance = saveInstance
 
@@ -25,19 +25,19 @@ define ["model/main", "render/screen"], (main, render) ->
   createInstance: (viewName, id) ->
     saveInstance(viewName)
     render.forgetView(viewName)
-    global.activeScreen.views[viewName](viewName, {})
+    window.global.activeScreen.views[viewName](viewName, {})
 
   # Load existing model instance
   restoreInstance: (viewName, id) ->
     render.forgetView(viewName)
-    global.activeScreen.views[viewName](viewName, {"id": id})
+    window.global.activeScreen.views[viewName](viewName, {"id": id})
 
   # Remove instance currently loaded in view from storage and render
   # that view from scratch (if possible)
   removeInstance: (viewName) ->
-    global.viewsWare[viewName].knockVM.model().destroy()
+    window.global.viewsWare[viewName].knockVM.model().destroy()
     render.forgetView(viewName)
-    setup = global.activeScreen.views[viewName]
+    setup = window.global.activeScreen.views[viewName]
     setup(viewName, {}) if not _.isNull(setup)
 
   elementView: elementView
@@ -49,7 +49,7 @@ define ["model/main", "render/screen"], (main, render) ->
   # Get field object for named model and field
   modelField: (modelName, fieldName) ->
     _.find(
-      global.model(modelName).fields,
+      window.global.model(modelName).fields,
       (f) -> return f.name == fieldName)
 
   fieldNameToLabel: (kvm) -> (fieldName) ->

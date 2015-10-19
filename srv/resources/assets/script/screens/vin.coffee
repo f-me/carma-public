@@ -6,7 +6,7 @@ define [ "screens/vin.jade"
        , "screens/vin/models"
        , "lib/upload"
        ], (tpl, d, tm, Main, u, models, upl) ->
-  @setupVinForm = (viewName, args) ->
+  setupVinForm = (viewName, args) ->
     # vin_html = $el("vin-form-template").html()
     # bulk_partner_html = $el("partner-form-template").html()
 
@@ -14,10 +14,10 @@ define [ "screens/vin.jade"
     # # by portal users, use appropriate set of programs.
     # all_html = ""
 
-    # if _.contains global.user.roles, global.idents("Role").psaanalyst
+    # if _.contains window.global.user.roles, global.idents("Role").psaanalyst
     #   all_html += bulk_partner_html
 
-    # if _.contains global.user.roles, global.idents("Role").vinAdmin
+    # if _.contains window.global.user.roles, global.idents("Role").vinAdmin
     #   all_html += vin_html
 
     # $el(viewName).html(all_html)
@@ -38,7 +38,7 @@ define [ "screens/vin.jade"
       false
 
   # Send VIN file, set up a new box element to track task progress
-  @sendVin = (sid, fid, file) ->
+  sendVin = (sid, fid, file) ->
     if upl.checkFileSize(file)
       return
     formData = new FormData()

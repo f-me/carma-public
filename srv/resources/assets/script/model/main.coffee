@@ -214,7 +214,7 @@ define [ "model/render"
                 # disposed right after creation, so current computed
                 # won't subscribe to any field in built kvm #1860
                 k = ko.computed ->
-                  buildKVM global.model(m[0], queueOptions?.modelArg),
+                  buildKVM window.global.model(m[0], queueOptions?.modelArg),
                     fetched: {id: m[1]}
                     queue:   queue
                     parent:  kvm
@@ -255,7 +255,7 @@ define [ "model/render"
               ids = kvm[f.name]()
               return [] unless ids
               for i in ids
-                buildKVM global.model(f.meta.model, queueOptions?.modelArg),
+                buildKVM window.global.model(f.meta.model, queueOptions?.modelArg),
                   fetched: {id: i}
                   queue:   queue
                   parent:  kvm
@@ -335,7 +335,7 @@ define [ "model/render"
 
 
     hooks = queueOptions?.hooks or ['*', model.name]
-    applyHooks global.hooks.observable, hooks, model, kvm
+    applyHooks window.global.hooks.observable, hooks, model, kvm
     return kvm
 
   # Cleanup stuff that can prevent remove by gc
@@ -412,13 +412,13 @@ define [ "model/render"
   # maybe with filtered some fields or something
   modelSetup = (modelName, model) ->
     return (elName, args, options) ->
-      model = global.model(modelName, options.modelArg) if not model
+      model = window.global.model(modelName, options.modelArg) if not model
       [kvm, q] = buildModel(model, args, options, elName)
 
       depViews = setupView(elName, kvm,  options)
 
       # Bookkeeping
-      global.viewsWare[elName] =
+      window.global.viewsWare[elName] =
         model           : model
         modelName       : model.name
         knockVM         : kvm
@@ -432,7 +432,7 @@ define [ "model/render"
         Finch.navigate "#{screenName}/#{kvm.id()}", true
 
       hooks = options.hooks or ['*', model.name]
-      applyHooks global.hooks.model, hooks, elName, kvm
+      applyHooks window.global.hooks.model, hooks, elName, kvm
       return kvm
 
   buildModel = (model, args, options, elName) ->
@@ -446,7 +446,7 @@ define [ "model/render"
       return [kvm, kvm._meta.q]
 
   buildNewModel = (modelName, args, options, cb) ->
-    model = global.model(modelName, options.modelArg)
+    model = window.global.model(modelName, options.modelArg)
     [knockVM, q] = buildModel(model, args, options)
     if _.isFunction cb
       q.save -> cb(model, knockVM)
@@ -462,7 +462,7 @@ define [ "model/render"
 
   bindDepViews = (knockVM, parentView, depViews) ->
     for k, v of depViews
-      global.viewsWare[v] =
+      window.global.viewsWare[v] =
         parentView: parentView
       if _.isArray(v)
         rebindko(knockVM, el(s)) for s in v
@@ -501,8 +501,8 @@ define [ "model/render"
         permEl: refBook.refView + "-perms"
         groupsForest: options.groupsForest
         slotsee: [refBook.refView + "-link"]
-      global.viewsWare[refBook.refView] = {}
-      global.viewsWare[refBook.refView].depViews = v
+      window.global.viewsWare[refBook.refView] = {}
+      window.global.viewsWare[refBook.refView].depViews = v
 
   addRef = (knockVM, field, ref, cb) ->
     field = "#{field}Reference" unless /Reference$/.test(field)

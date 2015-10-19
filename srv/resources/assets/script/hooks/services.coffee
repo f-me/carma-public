@@ -13,7 +13,7 @@ define [ "utils"
     for f in model.fields when f.meta?['group-widget'] == "partner"
       do (f) ->
         n = pSearch.subName f.name, model.name, kvm.id()
-        global.pubSub.sub n, (val) ->
+        window.global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
           kvm["#{f.name}Id"]?(parseInt val.id)
           addr = val.addrDeFacto
@@ -63,12 +63,12 @@ define [ "utils"
 
     kvm.buttons.mistake = {}
     kvm.buttons.mistake.text =
-      sDict.getLab global.idents("ServiceStatus").mistake
+      sDict.getLab window.global.idents("ServiceStatus").mistake
     kvm.buttons.mistake.visible = ko.computed ->
-      kvm['status']() == global.idents("ServiceStatus").creating
+      kvm['status']() == window.global.idents("ServiceStatus").creating
     kvm.buttons.mistake.click = ->
       if confirm "Закрыть услугу как ошибочную?"
-        kvm['status'] global.idents("ServiceStatus").mistake
+        kvm['status'] window.global.idents("ServiceStatus").mistake
 
     # Required *case* fields for the backoffice button to be enabled
     boFlds = [ 'city'
@@ -80,40 +80,40 @@ define [ "utils"
     kvm.buttons.backoffice = {}
     kvm.buttons.backoffice.tooltip = u.reqFieldsTooltip kase, boFlds
     kvm.buttons.backoffice.text =
-      sDict.getLab global.idents("ServiceStatus").backoffice
+      sDict.getLab window.global.idents("ServiceStatus").backoffice
     kvm.buttons.backoffice.visible = ko.computed ->
-      kvm['status']() == global.idents("ServiceStatus").creating
+      kvm['status']() == window.global.idents("ServiceStatus").creating
     kvm.buttons.backoffice.disabled = ko.computed ->
       u.someEmpty kase, boFlds
     kvm.buttons.backoffice.click = ->
-      kvm['status'] global.idents("ServiceStatus").backoffice
+      kvm['status'] window.global.idents("ServiceStatus").backoffice
 
     kvm.buttons.needMakerApproval = {}
     kvm.buttons.needMakerApproval.text =
-      sDict.getLab global.idents("ServiceStatus").makerApproval
+      sDict.getLab window.global.idents("ServiceStatus").makerApproval
     kvm.buttons.needMakerApproval.visible = ko.computed ->
-      tgtStatuses = [ global.idents("ServiceStatus").creating
-                    , global.idents("ServiceStatus").backoffice
-                    , global.idents("ServiceStatus").needPartner
+      tgtStatuses = [ window.global.idents("ServiceStatus").creating
+                    , window.global.idents("ServiceStatus").backoffice
+                    , window.global.idents("ServiceStatus").needPartner
                     ]
       _.contains tgtStatuses, kvm['status']()
     kvm.buttons.needMakerApproval.click = ->
       if confirm "Согласовать оказание услуги с производителем?"
-        kvm['status'] global.idents("ServiceStatus").makerApproval
+        kvm['status'] window.global.idents("ServiceStatus").makerApproval
 
     kvm.buttons.recallClient = {}
     kvm.buttons.recallClient.text =
-      sDict.getLab global.idents("ServiceStatus").recallClient
+      sDict.getLab window.global.idents("ServiceStatus").recallClient
     kvm.buttons.recallClient.visible = ko.computed ->
-      tgtStatuses = [ global.idents("ServiceStatus").ordered
-                    , global.idents("ServiceStatus").inProgress
-                    , global.idents("ServiceStatus").needPartner
-                    , global.idents("ServiceStatus").makerApproval
+      tgtStatuses = [ window.global.idents("ServiceStatus").ordered
+                    , window.global.idents("ServiceStatus").inProgress
+                    , window.global.idents("ServiceStatus").needPartner
+                    , window.global.idents("ServiceStatus").makerApproval
                     ]
       _.contains tgtStatuses, kvm['status']()
     kvm.buttons.recallClient.click = ->
       if confirm "Сообщить клиенту время оказания услуги?"
-        kvm['status'] global.idents("ServiceStatus").recallClient
+        kvm['status'] window.global.idents("ServiceStatus").recallClient
 
 
     # There's no guarantee who renders first (services or actions),
@@ -126,14 +126,14 @@ define [ "utils"
     kvm.buttons.cancel = {}
     kvm.buttons.cancel.tooltip = u.reqFieldsTooltip kvm, cnFields
     kvm.buttons.cancel.text =
-      sDict.getLab global.idents("ServiceStatus").canceled
+      sDict.getLab window.global.idents("ServiceStatus").canceled
     kvm.buttons.cancel.visible = ko.computed ->
       # Always show in one of these statuses
-      tgtStatuses = [ global.idents("ServiceStatus").creating
-                    , global.idents("ServiceStatus").ordered
-                    , global.idents("ServiceStatus").inProgress
-                    , global.idents("ServiceStatus").needPartner
-                    , global.idents("ServiceStatus").makerApproval
+      tgtStatuses = [ window.global.idents("ServiceStatus").creating
+                    , window.global.idents("ServiceStatus").ordered
+                    , window.global.idents("ServiceStatus").inProgress
+                    , window.global.idents("ServiceStatus").needPartner
+                    , window.global.idents("ServiceStatus").makerApproval
                     ]
       statusOk = (_.contains tgtStatuses, kvm['status']())
 
@@ -141,15 +141,15 @@ define [ "utils"
       # order actions are unassigned or assigned to the current user
       ordersUnassigned = false
       myOrder = false
-      if kvm['status']() == global.idents("ServiceStatus").backoffice
+      if kvm['status']() == window.global.idents("ServiceStatus").backoffice
         myOrder = false
         svcActs = u.svcActions kase, kvm,
-          [ global.idents("ActionType").orderService
-          , global.idents("ActionType").orderServiceAnalyst
+          [ window.global.idents("ActionType").orderService
+          , window.global.idents("ActionType").orderServiceAnalyst
           ]
         ordersUnassigned = !_.isEmpty(svcActs) &&
           _.every svcActs, (a) -> _.isNull a.assignedTo()
-        myOrder = _.some svcActs, (a) -> a.assignedTo() == global.user.id
+        myOrder = _.some svcActs, (a) -> a.assignedTo() == window.global.user.id
       statusOk || myOrder || ordersUnassigned
     kvm.buttons.cancel.disabled = ko.computed ->
       _.isEmpty kvm['clientCancelReason']?()
@@ -157,9 +157,9 @@ define [ "utils"
       if confirm "Выполнить отказ от услуги?"
         # Redirect to #back if own actions closed
         svcActs = u.svcActions kvm._parent, kvm, null
-        if _.some(svcActs, (a) -> a.assignedTo() == global.user.id)
+        if _.some(svcActs, (a) -> a.assignedTo() == window.global.user.id)
           kvm.buttons.cancel.redirect = true
-        kvm['status'] global.idents("ServiceStatus").canceled
+        kvm['status'] window.global.idents("ServiceStatus").canceled
 
   serviceColor: (model, kvm) ->
     # do not run this hook on search screen
@@ -180,7 +180,7 @@ define [ "utils"
       # action is canceled. Check if the click has just occured to
       # prevent redirections when the case has just been entered.
       if (kvm.buttons.cancel.redirect &&
-          (kvm.status?() == global.idents("ServiceStatus").canceled))
+          (kvm.status?() == window.global.idents("ServiceStatus").canceled))
         window.location.hash = "back"
     # Update actions list when new actions might appear
     #

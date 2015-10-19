@@ -69,7 +69,7 @@ define [ "model/main"
             # warn user about needed choose partner from table
             showAlert true
 
-          kvm.owner(global.user.id)
+          kvm.owner(window.global.user.id)
 
           $("##{modelName}-save")
             .off('click')

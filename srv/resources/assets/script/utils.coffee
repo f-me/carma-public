@@ -27,7 +27,7 @@ define [ "model/main"
 
   # Find VM of reference in a case by its view name.
   findCaseOrReferenceVM = (view) ->
-    kase = global.viewsWare["case-form"].knockVM
+    kase = window.global.viewsWare["case-form"].knockVM
     if (view is "case-form")
       kase
     else
@@ -37,15 +37,15 @@ define [ "model/main"
   # field groups. If the view name is "case-form", then return knockVM
   # for case.
   findVM = (view) ->
-    if global.viewsWare["case-form"]
-      vw = global.viewsWare[view]
+    if window.global.viewsWare["case-form"]
+      vw = window.global.viewsWare[view]
       if vw and vw.parentView?
         # Find VM of a group rendered in a view.
         findCaseOrReferenceVM(vw.parentView)
       else
         findCaseOrReferenceVM(view)
     else
-      global.viewsWare[view].knockVM
+      window.global.viewsWare[view].knockVM
 
   # make this global, still need to use this module as dependency
   # to make sure that this functions will be loaded
@@ -67,7 +67,7 @@ define [ "model/main"
     $(el).addClass("inline-spinner").append("<div class='bounce1'></div><div class='bounce2'></div><div class='bounce3'></div>")
 
   window.getDictionary = (d) ->
-    dict = global.dictionaries[d]
+    dict = window.global.dictionaries[d]
     return dict if dict
     return eval(d)
 
@@ -163,7 +163,7 @@ define [ "model/main"
 
   # Build a KnockVM for a model instance using standard queue
   buildInstance = (modelName, id) ->
-    main.buildKVM global.model(modelName),
+    main.buildKVM window.global.model(modelName),
       fetched: {id: id}
       queue: sync.CrudQueue
 
@@ -175,7 +175,7 @@ define [ "model/main"
 
   # Call a number if the CTI panel is available
   ctiDial = (number) ->
-    global.CTIPanel && $("#cti").show() && global.CTIPanel.instaDial(number)
+    window.global.CTIPanel && $("#cti").show() && window.global.CTIPanel.instaDial(number)
 
   ctiDial: ctiDial
 
@@ -267,7 +267,7 @@ define [ "model/main"
   # Hide all views on center pane and show view for first reference
   # stored in <fieldName> of model loaded into <parentView> there
   showComplex: (parentView, fieldName) ->
-    depViewName = global.viewsWare[parentView].depViews[fieldName][0]
+    depViewName = window.global.viewsWare[parentView].depViews[fieldName][0]
     view = $el(depViewName)
 
     return if view.is(':visible')
@@ -295,7 +295,7 @@ define [ "model/main"
         # Set a field to a new randomly generated password
         passwordPicker   : (fieldName, el) ->
           viewName = mu.elementView($(el)).id
-          kvm = global.viewsWare[viewName].knockVM
+          kvm = window.global.viewsWare[viewName].knockVM
           kvm[fieldName] genPassword()
         geoPicker        : map.geoPicker
         reverseGeoPicker : map.reverseGeoPicker
@@ -450,7 +450,7 @@ define [ "model/main"
 
   createNewCall: (callData) ->
     $.notify "Создаём новый звонок…", {className: 'info'}
-    cvm = main.buildKVM global.model('Call'),
+    cvm = main.buildKVM window.global.model('Call'),
       {fetched: callData, queue: sync.CrudQueue}
     # Force saving
     cvm._meta.q.save null, true

@@ -20,7 +20,7 @@ define [ "utils"
         args = getArgs()
 
         $.getJSON("/rkc/front" + args, (result) ->
-          dict = global.dictValueCache
+          dict = window.global.dictValueCache
 
           callst.fnClearTable()
           opst.fnClearTable()
@@ -46,15 +46,15 @@ define [ "utils"
       rkc.initRKCDate update, partners
       rkc.fillRKCFilters update, partners
 
-      global.rkcFrontData = {}
+      window.global.rkcFrontData = {}
 
-      global.rkcFrontData.updateHandler = setInterval(update, 30000)
+      window.global.rkcFrontData.updateHandler = setInterval(update, 30000)
 
       update()
       rkc.updatePartners(partners)
 
   removeRKCFrontScreen = ->
-      t = global.rkcFrontData.updateHandler
+      t = window.global.rkcFrontData.updateHandler
       clearInterval t if t?
 
   { constructor: setupRKCFrontScreen

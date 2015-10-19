@@ -18,20 +18,20 @@ define [ "model/main"
       radius: 175
 
     # Allow manual call creation only for Front Office operators
-    if !_.contains(global.user.roles, global.idents("Role").call)
+    if !_.contains(window.global.user.roles, global.idents("Role").call)
       $("#new-call-button").hide()
     else
       $("#new-call-button").click () ->
         $("#new-call-button > button").hide()
-        if not global.CTIPanel?.answer()
+        if not window.global.CTIPanel?.answer()
           utils.createNewCall()
 
     # Setup a new action polling loop or actions/calls alternation
     initCycle = () ->
-      cti = _.contains(global.user.roles, global.idents("Role").cti)
-      if cti && _.contains global.user.roles, global.idents("Role").call
-        pci = global.idents('ProcessingConfig').main
-        pcvm = Main.buildKVM global.model('ProcessingConfig'),
+      cti = _.contains(window.global.user.roles, window.global.idents("Role").cti)
+      if cti && _.contains window.global.user.roles, window.global.idents("Role").call
+        pci = window.global.idents('ProcessingConfig').main
+        pcvm = Main.buildKVM window.global.model('ProcessingConfig'),
           {fetched: {id: pci}, queue: sync.CrudQueue}
         # Start a new alternation cycle depending on global processing
         # settings
@@ -68,7 +68,7 @@ define [ "model/main"
     return unless onBackofficeScreen
     # If there's an incoming call, postpone actions pulling for 3s
     # (until we leave the screen or the call is dropped)
-    if global.CTIPanel?.incomingCall()?
+    if window.global.CTIPanel?.incomingCall()?
       setTimeout actionsAfterCall, 3000
       return
     actuallyPull = () ->

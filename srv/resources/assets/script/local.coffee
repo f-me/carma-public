@@ -76,15 +76,15 @@ define  [ "model/main"
               hooks,
               user,
               new pubSub
-    global.keys = {}
-    global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
+    window.global.keys = {}
+    window.global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
 
     hacking.reenableHacks()
 
     # disable everytnig websocket-related for portal
     if not window.location.origin.match(/portal\.ruamc\.ru/)
       # Setup CTI panel
-      if _.contains user.roles, global.idents("Role").cti
+      if _.contains user.roles, window.global.idents("Role").cti
         if user.workPhoneSuffix.match(/^\d+$/)
           cti = new CTI user.workPhoneSuffix
           vips = u.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
@@ -107,7 +107,7 @@ define  [ "model/main"
             # Fill caller phone and program when answering a call on
             # call screen
             answerCallCb: (number, vdnNumber) ->
-              if _.contains global.user.roles, global.idents("Role").call
+              if _.contains window.global.user.roles, window.global.idents("Role").call
                 number = u.internalToDisplayed number
                 if number.length > 5
                   vdnNumber = vdnNumber?.split(":")[0]
@@ -122,10 +122,10 @@ define  [ "model/main"
                   u.createNewCall callData
                   localStorage["call.search-query"] = "!Тел:" + number
             incomingCallCb: -> $("#cti").show()
-          global.CTIPanel = new CTIPanel cti, $("#cti"), opts
+          window.global.CTIPanel = new CTIPanel cti, $("#cti"), opts
           Mousetrap.bind ["`", "ё"], () ->
             $("#cti").toggle()
-          Mousetrap.bind "ctrl+enter", () -> global.CTIPanel.answer()
+          Mousetrap.bind "ctrl+enter", () -> window.global.CTIPanel.answer()
         else
           console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 

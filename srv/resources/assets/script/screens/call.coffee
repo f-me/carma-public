@@ -92,7 +92,7 @@ define [ "utils"
           for f in ["coords", "address", "partner"]
             do (f) ->
               n = pSearch.subName f, "call", knockVM.id()
-              global.pubSub.sub n, knockVM[f]
+              window.global.pubSub.sub n, knockVM[f]
 
           localStorage[pSearch.storeKey] =
             JSON.stringify knockVM._meta.q.toRawObj()
@@ -165,7 +165,7 @@ define [ "utils"
 
   fillTable = (st, objs) ->
     st.fnClearTable()
-    dict = global.dictValueCache
+    dict = window.global.dictValueCache
     progs = utils.newModelDict "Program", true
     wazzup = utils.newModelDict "Wazzup", true
     rows = for obj in objs

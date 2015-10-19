@@ -6,11 +6,11 @@ define [ "screens/printSrv.jade"
   setupPrintSrv = (viewName, {id: id}) ->
     $(".navbar").hide()
 
-    svc = main.buildKVM global.model('Service'),
+    svc = main.buildKVM window.global.model('Service'),
           fetched: {id: id}
           queue: sync.CrudQueue
-    if svc.type() == global.idents("ServiceType").towage
-      svc = main.buildKVM global.model('Towage'),
+    if svc.type() == window.global.idents("ServiceType").towage
+      svc = main.buildKVM window.global.model('Towage'),
             fetched: {id: id}
             queueOptions: {hooks: ['*','Service']} # disable case-screen related hooks
             queue: sync.CrudQueue
@@ -21,30 +21,30 @@ define [ "screens/printSrv.jade"
         if objs?.length > 0
           ass  = _.last(_.sortBy objs, (o) -> o.closeTime).assignedTo
           if ass
-            svc.assignedTo = main.buildKVM global.model('Usermeta'),
+            svc.assignedTo = main.buildKVM window.global.model('Usermeta'),
                 fetched: {id: ass}
                 queue: sync.CrudQueue
 
-        kase = main.buildKVM global.model('Case'),
+        kase = main.buildKVM window.global.model('Case'),
               fetched: {id: svc.parentId()}
               queue: sync.CrudQueue
-        callTaker = main.buildKVM global.model('Usermeta'),
+        callTaker = main.buildKVM window.global.model('Usermeta'),
               fetched: {id: kase.callTaker()}
               queue: sync.CrudQueue
         cancels = ko.observableArray()
         $.getJSON( "/_/PartnerCancel?caseId=#{kase.id()}" )
           .done((objs) ->
             for obj in objs
-              cancel = main.buildKVM global.model('PartnerCancel'),
+              cancel = main.buildKVM window.global.model('PartnerCancel'),
                     fetched: obj
                     queue:   null
-              owner = main.buildKVM global.model('Usermeta'),
+              owner = main.buildKVM window.global.model('Usermeta'),
                     fetched: {id: cancel.owner()}
                     queue: sync.CrudQueue
-              partner = main.buildKVM global.model('Partner'),
+              partner = main.buildKVM window.global.model('Partner'),
                     fetched: {id: cancel.partnerId()}
                     queue: sync.CrudQueue
-              service = main.buildKVM global.model('Service'),
+              service = main.buildKVM window.global.model('Service'),
                     fetched: {id: cancel.serviceId()}
                     queue: sync.CrudQueue
               cancels.push(

@@ -6,5 +6,5 @@ define [ "screens/processingConfig.jade"
   template: tpl()
   constructor: () ->
     view = "config-form"
-    main.modelSetup("ProcessingConfig") view, {id: global.idents("ProcessingConfig").main},
+    main.modelSetup("ProcessingConfig") view, {id: window.global.idents("ProcessingConfig").main},
       {permEl: "config-permissions"}

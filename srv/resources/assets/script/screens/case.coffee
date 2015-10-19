@@ -55,7 +55,7 @@ define [ "utils"
             }))
 
       hotkeys.setup()
-      kvm = global.viewsWare[viewName].knockVM
+      kvm = window.global.viewsWare[viewName].knockVM
 
       # True if any of of required fields are missing a value
       do (kvm) ->
@@ -146,7 +146,7 @@ define [ "utils"
       chatWs.onmessage = (raw) ->
         msg = JSON.parse raw.data
         who = msg.user || msg.joined || msg.left
-        if who.id == global.user.id
+        if who.id == window.global.user.id
           return
         if who.id
           $.getJSON "/_/Usermeta/#{who.id}", (um) ->
@@ -230,9 +230,9 @@ define [ "utils"
           if not kvm['actionsList']?
             kvm['actionsList'] = ko.observableArray()
           kvm['actionsList'].push avm
-          if avm["type"]() == global.idents("ActionType").accident && avm["myAction"]()
-            if global.CTIPanel
-              global.CTIPanel.instaDial kvm["contact_phone1"]()
+          if avm["type"]() == window.global.idents("ActionType").accident && avm["myAction"]()
+            if window.global.CTIPanel
+              window.global.CTIPanel.instaDial kvm["contact_phone1"]()
               window.alert "Внимание: кейс от системы e-call, \
                 производится набор номера клиента, возьмите трубку"
           # Disable action results if any of required case fields is
@@ -246,7 +246,7 @@ define [ "utils"
 
     # Top-level wrapper for storeService
     addService = (name) ->
-      kvm = global.viewsWare["case-form"].knockVM
+      kvm = window.global.viewsWare["case-form"].knockVM
       modelArg = "ctr:#{kvm.program()}"
       mu.addReference kvm,
         'services',
@@ -264,11 +264,10 @@ define [ "utils"
           $(".status-btn-tooltip").tooltip()
           $("##{k['view']}-head").collapse 'show'
 
-    utils.build_global_fn 'addService', ['screens/case']
-
+    window.addService = addService
 
     removeCaseMain = ->
-      global.viewsWare["case-form"].knockVM['chatWs']?.close()
+      window.global.viewsWare["case-form"].knockVM['chatWs']?.close()
       $("body").off "change.input"
       $('.navbar').css "-webkit-transform", ""
 

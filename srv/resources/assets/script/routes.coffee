@@ -173,8 +173,8 @@ define [ "render/screen"
       # Do not update screen if we stay in the same subprogram. This
       # prevents screen reloading when table rows are clicked on
       # portal screen.
-      unless global.previousHash?.match "contract/#{bind.sub}/?"
-        global.previousHash = window.location.hash
+      unless window.global.previousHash?.match "contract/#{bind.sub}/?"
+        window.global.previousHash = window.location.hash
         r.renderScreen contract, bind
 
   addRoute "timeline", (bind) ->

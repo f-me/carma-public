@@ -11,7 +11,7 @@ define [ "screens/uploads.jade"
   # Return true if a reference to this attachment is already present
   #
   # TODO This might be replaced by a regular reference-adding routine
-  @addAttIdToCaseObj = (attId, caseObj) ->
+  addAttIdToCaseObj = (attId, caseObj) ->
     ref = "Attachment:" + attId
     if caseObj.files? && caseObj.files.length > 0
       # No dupe references
@@ -26,7 +26,7 @@ define [ "screens/uploads.jade"
 
   # Remove an attachment reference from case, provided file's bvm and
   # case number.
-  @detachFromCase = (bvm, caseId) ->
+  detachFromCase = (bvm, caseId) ->
     caseUrl = "/_/Case/" + caseId
     attId = bvm.aid()
     ref = "Attachment:" + attId
@@ -40,7 +40,7 @@ define [ "screens/uploads.jade"
   # Attach a file to a case, provided file's bvm and a field
   # containing case number. Check for dupes/unknown cases. Set af's
   # validity in case of error. Push new case id to bvm.cases.
-  @attachToCase = (bvm, af) ->
+  attachToCase = (bvm, af) ->
     caseId = parseInt af.val()
     caseUrl = "/_/Case/" + caseId
     attId = bvm.aid()
@@ -68,7 +68,7 @@ define [ "screens/uploads.jade"
 
   # Upload new attachment, render file progress bar and whistles.
   # Argument is a File object.
-  @sendFile = (file) ->
+  sendFile = (file) ->
     if upl.checkFileSize(file)
       return
 
@@ -159,7 +159,7 @@ define [ "screens/uploads.jade"
 
   # Render file browser widget, setup all hooks and screen-global
   # handlers
-  @renderUploadsForm = (viewName, args) ->
+  renderUploadsForm = (viewName, args) ->
     $("#upload-files-tip").tooltip()
     $("#upload-cleanup-tip").tooltip()
 

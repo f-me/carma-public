@@ -15,7 +15,7 @@ define ["model/main"], (main) ->
           btn.removeAttr('disabled')
 
       buttonDisabled true
-      vSms = global.viewsWare['sms-send-form']
+      vSms = window.global.viewsWare['sms-send-form']
       smsVM = vSms.knockVM
       smsVM['updateUrl'] = ->
       smsVM.msgText.subscribe (msg) ->
@@ -24,7 +24,7 @@ define ["model/main"], (main) ->
       smsVM.phoneRegexp.subscribe (err) ->
         buttonDisabled (err || smsVM.msgText() == "")
 
-      vCase = global.viewsWare['case-form']
+      vCase = window.global.viewsWare['case-form']
       if vCase
         smsVM.caseRef(vCase.knockVM.id())
         smsVM.phone(vCase.knockVM.contact_phone1())

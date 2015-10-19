@@ -31,7 +31,7 @@ define [ "model/main"
   initialize: =>
     user = window.global.user
 
-    Role = global.idents 'Role'
+    Role = window.global.idents 'Role'
     homepage = ""
     homepage = "/#partner"    if _.contains user.roles, Role.parguy
     homepage = "/#back"       if _.contains user.roles, Role.back
@@ -40,7 +40,7 @@ define [ "model/main"
     homepage = "/#rkc"        if _.contains user.roles, Role.head
 
 
-    usr = Main.buildKVM global.model('Usermeta'),
+    usr = Main.buildKVM window.global.model('Usermeta'),
       queue: Crud.CrudQueue
       fetched: {id: user.id}
 
@@ -48,7 +48,7 @@ define [ "model/main"
     # due to dependencies
     window.global.Usermeta = usr
 
-    Messenger.subscribe "#{global.model('Usermeta').name}:#{usr.id()}",
+    Messenger.subscribe "#{window.global.model('Usermeta').name}:#{usr.id()}",
       usr._meta.q.saveSuccessCb(_.identity)
 
     usr.currentState?.subscribe (v) =>

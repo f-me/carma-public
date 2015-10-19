@@ -33,28 +33,28 @@ define ["screens/kpi/oper.jade"
   # state will still be preserved and shown on this screen
   mkCurrentCall = (k) -> ko.computed ->
     # Ignore non-CTI users or users not busy with a call action
-    if k.currentAType() != global.idents("ActionType").call
+    if k.currentAType() != window.global.idents("ActionType").call
       return null
 
     calls = k.lastAvayaSnapshot()?.calls
     return _.find(_.keys(calls), (k) -> !calls[k].held && calls[k].answered)
 
   mkListenTo = (k) -> () ->
-    if k._meta.currentCall()? && global.CTIPanel?
-      global.CTIPanel.bargeIn k._meta.currentCall(), "Silent"
+    if k._meta.currentCall()? && window.global.CTIPanel?
+      window.global.CTIPanel.bargeIn k._meta.currentCall(), "Silent"
 
   # True iff our supervisor CTI currently has a call of this user
   mkBeingListened = (k) -> ko.computed ->
-    if k._meta.currentCall()? && global.CTIPanel?
-      _.find(global.CTIPanel.calls(),\
+    if k._meta.currentCall()? && window.global.CTIPanel?
+      _.find(window.global.CTIPanel.calls(),\
         (c) -> c.callId == k._meta.currentCall())
 
   # Take over the current call of the user, ejecting him
   mkTakeover = (k) -> () ->
     call = k._meta.currentCall()
-    if call? && global.CTIPanel?
+    if call? && window.global.CTIPanel?
       # Wait for our CTI to connect to the call
-      sub = global.CTIPanel.calls.subscribe (nv) ->
+      sub = window.global.CTIPanel.calls.subscribe (nv) ->
         if k._meta.beingListened()
           sub.dispose()
           ejectUrl = "/avaya/eject/#{k.userid()}/#{call}"
@@ -66,7 +66,7 @@ define ["screens/kpi/oper.jade"
               $.notify "Открываю звонок #{r.callId}…"
               whereTo = "call/#{r.callId}"
             window.location.hash = whereTo}
-      global.CTIPanel.bargeIn call, "Active"
+      window.global.CTIPanel.bargeIn call, "Active"
 
   mkLogoutFromBusy = (k) -> ko.computed ->
     k.lastState() == 'Busy' &&

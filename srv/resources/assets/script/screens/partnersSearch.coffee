@@ -41,8 +41,8 @@ define [ "utils"
     kase = ctx['case'].data
     {id, data, sType} = ctx['service']
     srvName = id.split(':')[0]
-    kaseKVM = m.buildKVM global.model('Case'),  {fetched: kase}
-    srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
+    kaseKVM = m.buildKVM window.global.model('Case'),  {fetched: kase}
+    srvKVM  = m.buildKVM window.global.model(srvName), {fetched: data}
     kvm['canSelectPartner'] = true
     kvm['city'](if kaseKVM.city?() then [kaseKVM.city()] else [])
     kvm['make'](if kaseKVM.car_make?() then [kaseKVM.car_make()] else [])
@@ -86,7 +86,7 @@ define [ "utils"
       if _.isNull partner
         # Deselect partner
         kvm['selectedPartner'](null)
-        global.pubSub.pub subName(ctx.field, id),
+        window.global.pubSub.pub subName(ctx.field, id),
           name: ''
           addrDeFacto: ''
           id: ''
@@ -105,7 +105,7 @@ define [ "utils"
           a(utils.getKeyedJsonValue partner.addrs(), 'fact') unless a()
         pRawObj = partner._meta.q.toRawObj()
         pRawObj["distanceFormatted"] = partner["distanceFormatted"]()
-        global.pubSub.pub subName(ctx.field, id), pRawObj
+        window.global.pubSub.pub subName(ctx.field, id), pRawObj
 
     kvm['selectPartner'] = (partner, ev) ->
       selected = kvm['selectedPartner']()
@@ -157,12 +157,12 @@ define [ "utils"
         setupPusher = (field) ->
           kvm[field].subscribe (val) ->
             n = subName field, 'call', ctx.id
-            global.pubSub.pub n, kvm[field]()
+            window.global.pubSub.pub n, kvm[field]()
 
         setupPusher 'coords'
         setupPusher 'address'
         kvm['selectedPartner'].subscribe (v) ->
-          global.pubSub.pub (subName "partner", "call", ctx.id), v
+          window.global.pubSub.pub (subName "partner", "call", ctx.id), v
 
         kvm["canSelectPartner"] = true
 

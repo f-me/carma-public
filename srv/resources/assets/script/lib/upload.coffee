@@ -4,7 +4,7 @@ define ->
   # Produce an XHR-creating callback which updates a Bootstrap
   # .progress element as the file upload progresses (use in xhr
   # argument $.ajax).
-  @progressXHR = (progress) -> () ->
+  progressXHR = (progress) -> () ->
     hideProgress = () -> progress.hide()
     hideProgress()
     xhr = new XMLHttpRequest()
@@ -21,8 +21,8 @@ define ->
     return xhr
 
   # Return true if a file is oversized
-  @checkFileSize = (file) ->
-    max = global.config("max-file-size")
+  checkFileSize = (file) ->
+    max = window.global.config("max-file-size")
     maxMb = max / (1024.0 * 1024.0)
     if file.size > max
       window.alert "Размер файла #{file.name}
@@ -35,7 +35,7 @@ define ->
   # Base object for asynchronous upload requests
   #
   # props is an object with extra properties of $.ajax
-  @ajaxUpload = (url, file, props) ->
+  ajaxUpload = (url, file, props) ->
     fd = new FormData()
     fd.append("file", file)
 
@@ -50,12 +50,12 @@ define ->
     $.ajax _.extend(baseProps, props)
   # Add an attachment reference to an instance, provided a form from
   # inline-uploader template
-  @inlineUploadFile = (form) ->
+  inlineUploadFile = (form) ->
     formMeta = form.data()
     url      = form.attr('action')
     files    = form.find(".upload-dialog")[0].files
     if files.length > 0
-      @ajaxUpload(url, files[0]).
+      ajaxUpload(url, files[0]).
       fail((e) ->
         alert "Не удалось загрузить файл!"
       ).
@@ -67,7 +67,7 @@ define ->
   # Delete an attachment reference from an instance, provided an
   # element from reference template with data-attachment and
   # data-field fields set.
-  @inlineDetachFile = (e) ->
+  inlineDetachFile = (e) ->
     attId = e.data("attachment")
     field = e.data("field")
     ref = "Attachment:#{attId}"

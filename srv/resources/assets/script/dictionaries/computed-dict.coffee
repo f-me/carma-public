@@ -39,7 +39,7 @@ define ["dictionaries/local-dict"], (ld) ->
     programManagers: =>
       @bgetJSON "/_/Usermeta", (objs) =>
         pms = _.filter objs, (o) ->
-          _.contains o.roles, global.idents("Role").programManager
+          _.contains o.roles, window.global.idents("Role").programManager
         @source = for p in pms
             { value: p.id
             , label: p.realName || p.login
@@ -52,7 +52,7 @@ define ["dictionaries/local-dict"], (ld) ->
         @allValuesMap =
           _.reduce objs, ((m,i) => m[i.id] = i.realName || i.login; m), {}
         cs = _.filter objs, (o) ->
-          (o.isActive && _.contains o.roles, global.idents("Role").consultant)
+          (o.isActive && _.contains o.roles, window.global.idents("Role").consultant)
         @source = for c in cs
             { value: c.id
             , label: c.realName || c.login
@@ -80,13 +80,13 @@ define ["dictionaries/local-dict"], (ld) ->
       # Requires user to reload the page to update list of available
       # subprograms
       @source =
-        if _.contains(global.user.roles, global.idents("Role").vinAdmin) or
-           _.contains(global.user.roles, global.idents("Role").contract_admin)
+        if _.contains(window.global.user.roles, window.global.idents("Role").vinAdmin) or
+           _.contains(window.global.user.roles, window.global.idents("Role").contract_admin)
           all_pgms
         else
-          if _.contains(global.user.roles, global.idents("Role").partner) or
-             _.contains(global.user.roles, global.idents("Role").psaanalyst)
-            user_pgms = global.user.subPrograms || []
+          if _.contains(window.global.user.roles, window.global.idents("Role").partner) or
+             _.contains(window.global.user.roles, window.global.idents("Role").psaanalyst)
+            user_pgms = window.global.user.subPrograms || []
             _.filter(all_pgms, (e) -> _.contains user_pgms, e.value)
           else
             []
