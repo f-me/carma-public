@@ -158,7 +158,7 @@ define [ "utils"
 
         majorFields = majorFieldsSetup dict, dictModel
         table = null
-        objURL = "/_/#{dictName}?limit=1000"
+        objURL = "/_/#{dictName}?limit=2500"
 
         # func to init dict table and controls to edit selected entry
         initEditControls = (objURL) ->
