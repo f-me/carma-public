@@ -210,7 +210,14 @@ beforeCreate = Map.unionsWith (++)
 
 afterCreate :: TriggerMap
 afterCreate = Map.unionsWith (++)
-  [ trigOnModel ([]::[Usermeta]) updateSnapUserFromUsermeta
+  [ trigOnModel ([]::[Usermeta])
+    $ updateSnapUserFromUsermeta
+    >> do
+      getPatchField Usermeta.businessRole >>= \case
+        Just (Just bRole) -> dbRead bRole
+          >>= modPut Usermeta.roles . (`get'` BusinessRole.roles)
+        _ -> return ()
+
     -- Create a self-assigned action for a call
   , trigOnModel ([]::[Call]) $
     do
