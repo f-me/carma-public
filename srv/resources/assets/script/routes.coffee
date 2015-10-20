@@ -101,14 +101,14 @@ define [ "render/screen"
       r.renderScreen procCfg, bind
 
   addRoute "usermeta/:id", (bind) ->
-      user.screen =
+      dictionaries.screen =
         name : "dictionaries"
         template: "dictionaries-screen-template"
         views:
           "dictionaries-view": dictionaries
 
       bind.dict = 45
-      r.renderScreen user, bind
+      r.renderScreen dictionaries, bind
 
   addRoute "uploads", (bind) ->
       uploads.screen =

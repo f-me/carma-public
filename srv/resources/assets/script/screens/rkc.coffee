@@ -1,7 +1,11 @@
 define ["utils", "screens/rkc.jade"],
   (utils, tpl) ->
+
+    wcities = ko.observableArray([])
+
     weatherCityDict =
       utils.newModelDict "City", true, {dictionaryKey: "value"}
+
     rkcFillWeather = (result, cities) ->
       cities.removeAll()
       for r in result.weather
@@ -36,10 +40,9 @@ define ["utils", "screens/rkc.jade"],
 
     updateWeather = ->
       setTimeout ->
-        cities = this.wcities
         cfg = document.cookie.match /rkcWeather=([^;]*)/
         $.getJSON "/rkc/weather?cities=#{cfg?[1] || ''}",
-                  (result) -> rkcFillWeather(result, cities)
+                  (result) -> rkcFillWeather(result, wcities)
 
     updatePartners = (partners) ->
       setTimeout ->
@@ -108,7 +111,7 @@ define ["utils", "screens/rkc.jade"],
 
         $('#reload').click updater
 
-    this.filterRKCArgs = () ->
+    filterRKCArgs = () ->
       prog = $('#program-select').val()
       city = $('#city-select').val()
       partner = $('#partner-select').val()
@@ -137,9 +140,7 @@ define ["utils", "screens/rkc.jade"],
         return if weathert.hasClass("dataTable")
         return if complt.hasClass("dataTable")
 
-        this.wcities = ko.observableArray([])
-
-        ko.applyBindings(this.wcities, el "rkc-weather-table")
+        ko.applyBindings(wcities, el "rkc-weather-table")
 
         ct = utils.mkDataTable caset, { bFilter: false, bInfo: false }
         bt = utils.mkDataTable actionst, { bFilter: false, bInfo: false }
@@ -176,7 +177,7 @@ define ["utils", "screens/rkc.jade"],
             fmt = (x) -> if x < 10 then "0" + x else "" + x
             Math.floor(tm / 60) + ":" + fmt(tm % 60)
 
-        getArgs = () -> this.filterRKCArgs()
+        getArgs = () -> filterRKCArgs()
 
         update = () ->
           args = getArgs()
