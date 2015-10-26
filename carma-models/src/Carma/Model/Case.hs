@@ -104,6 +104,7 @@ caseMod = [
   ,widget "force-find-dictionary" contractIdentifier
 
   ,setMeta "visibility" (Aeson.Bool True) callDate
+  ,widget "datetime-local" callDate
 
   ,setType "datetime" repair
 

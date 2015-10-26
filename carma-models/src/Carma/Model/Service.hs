@@ -144,6 +144,16 @@ usualSvcMod = svcMod ++
             , invisible svcType
             , widget "inline-uploader" files
             , setMeta "reference-widget" "files" files
+            , widget "datetime-local" createTime
+            , setMeta "group-widget" "group-datetime-local"
+                times_expectedServiceStart
+            , widget "datetime-local" times_expectedServiceStart
+            , widget "datetime-local" times_expectedDispatch
+            , widget "datetime-local" times_factServiceStart
+            , widget "datetime-local" times_expectedServiceEnd
+            , widget "datetime-local" times_factServiceEnd
+            , widget "datetime-local" times_expectedServiceClosure
+            , widget "datetime-local" times_factServiceClosure
             ]
 
 serviceSearchParams :: [(Text, [Predicate Service])]
