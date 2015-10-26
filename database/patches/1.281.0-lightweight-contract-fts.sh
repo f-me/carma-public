@@ -137,14 +137,16 @@ alter table "Contract_x" rename to "Contract";
 
 
 alter table casetbl add foreign key (contract) references "Contract"(id);
-create index "Contract_fts_key_idx" on "Contract"
+
+create index on "Contract"(subprogram);
+create index on "Contract"
   using gin(fts_key gin_trgm_ops)
   where dixi and isactive;
 
 create or replace function Contract_fts_key_update() returns trigger as
 \$\$
 begin
-  new.fts_key = upper
+  new.fts_key = upper(
          coalesce(new.vin, '')        || '\0'
       || coalesce(new.cardNumber, '') || '\0'
       || coalesce(new.plateNum, '')   || '\0'
@@ -164,7 +166,7 @@ create trigger "Contract_fts_trigger"
 select setval(pg_get_serial_sequence('"Contract"', 'id'), max(id)) from "Contract";
 
 grant all on "Contract" to carma_db_sync;
-grant all on pg_get_serial_sequence('"Contract"', 'id') to carma_db_sync;
+grant all on "Contract_x_id_seq" to carma_db_sync;
 EOF
 
 $PSQL -f baseline/5-views/6-ru-contracts.sql
