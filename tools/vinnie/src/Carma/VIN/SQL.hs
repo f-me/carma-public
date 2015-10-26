@@ -689,13 +689,18 @@ deleteDupes conn =
     [sql|
      DELETE FROM vinnie_queue q
      WHERE EXISTS
-     (SELECT 1 FROM "?" c WHERE ?);
+     (SELECT 1 FROM "?" c
+       WHERE ? AND c.fts_key = upper(?) AND c.isactive AND c.dixi
+     )
      |] ( contractTable
         , PT $ T.intercalate " AND " $
           map (\f -> T.concat [ "((q.", f, " = ","c.", f
                               , ") OR ("
-                              , "q.", f, " IS NULL AND c.", f, " IS NULL))"]) $
+                              , "q.", f, " IS NULL AND c.", f, " IS NULL))"])
           contractFields
+        , PT $ T.intercalate " || '\\0' || " $
+          map (\f -> T.concat ["coalesce(q.", f, ", '')"])
+          C.identifierNames
         )
 
 
