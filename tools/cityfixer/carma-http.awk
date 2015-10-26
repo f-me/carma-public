@@ -3,7 +3,7 @@ BEGIN {
     CURL = "curl -s -X PUT "
     EC = ENVIRON["CARMA_PORT"]
     CARMA_PORT = EC ? EC : "8000"
-    CARMA_CITY_PUT = "http://localhost:"CARMA_PORT"/_/city/"
+    CARMA_CITY_PUT = "http://localhost:"CARMA_PORT"/_/City/"
 }
 
 {

@@ -33,7 +33,7 @@ GOOGLE_TZ_HTTP="https://maps.googleapis.com/maps/api/timezone/json"
 
 CITIES_HTTP1="http://localhost:"
 CARMA_DEFAULT_PORT=8000
-CITIES_HTTP2="/all/city?fields=id,city"
+CITIES_HTTP2="/_/City"
 
 ### END OF CONFIG ###
 
@@ -68,7 +68,7 @@ dest () {
 }
 
 curl ${CITIES_HTTP} 2>/dev/null | \
-    jq -r '.[] | .id + "|" + .city' | \
+    jq -r '.[] | (.id|tostring) + "|" + .label' | \
     cut -d: -f2 > ${SOURCE_LIST}
 
 echo "Writing result list to ${RES_LIST}"
