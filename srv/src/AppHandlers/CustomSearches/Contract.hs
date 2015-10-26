@@ -120,10 +120,8 @@ searchContracts = do
   -- what fields are included in the result.
   let -- Predicate which filters contracts by one field. Parameters
       -- (2): field name, query string.
-      fuzzyFieldPredicate =
-          "(? ILIKE '%' || ? || '%')"
-      exactFieldPredicate =
-          "(? = ?)"
+      fuzzyFieldPredicate = "? ~* ?"
+      exactFieldPredicate = "? = ?"
       fieldPredicate = if exact
                        then exactFieldPredicate
                        else fuzzyFieldPredicate
@@ -148,7 +146,9 @@ searchContracts = do
           -- field, program id field.
           , "JOIN ? p ON s.? = p.?"
           , "WHERE"
-          , "("
+          -- use full text index
+          , "c.fts_key ~* ?"
+          , "AND ("
           -- 2*M parameters: identifier fields and query
           , intercalate " OR " $
             map (const fieldPredicate) C.identifierNames
@@ -200,6 +200,8 @@ searchContracts = do
           -- 3
           :. Only programTable
           :. (fieldPT S.parent, fieldPT P.ident)
+          -- 1 fts_key ~* q
+          :. (Only q)
           -- 2*M
           :. (ToRowList fieldParams)
           -- 3
