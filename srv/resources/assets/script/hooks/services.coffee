@@ -2,6 +2,7 @@ define [ "utils"
        , "model/utils"
        , "screens/partnersSearch"
        ], (u, mu, pSearch) ->
+
   # sync with partner search screen
   openPartnerSearch: (model, kvm) ->
     # do not run this hook on search screen

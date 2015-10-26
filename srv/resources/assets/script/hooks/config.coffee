@@ -9,6 +9,8 @@ define [ "hooks/common"
        (c, k, s, p, a, Um, Call) ->
   model:
       "*"    : [c.stdElCb]
+  preinit:
+      "Case": [k.timeZoneHook]
   observable:
       "*"    : [ c.regexpKbHook
                , c.dictionaryKbHook

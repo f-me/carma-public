@@ -195,6 +195,11 @@ define [ "model/render"
           write: fn.write || defaults.write
         kvm[f.name].text = kvm["#{f.name}Text"]
 
+    # This is required to initialize timeZone-related observables in
+    # case's kvm. We need them to be ready before services initialization.
+    hooks = queueOptions?.hooks or ['*', model.name]
+    applyHooks global.hooks.preinit, hooks, model, kvm
+
     # Setup reference fields: they will be stored in <name>Reference as array
     # of kvm models
     for f in fields when f.type == "reference"

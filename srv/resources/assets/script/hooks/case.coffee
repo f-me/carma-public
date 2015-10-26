@@ -54,6 +54,22 @@ define [ "utils"
     knockVM['callDateVisible'] = ko.computed ->
       not _.contains global.user.roles, global.idents("Role").vwfake
 
+  timeZoneHook: (model, kvm) ->
+    cityTZ = new d.dicts.ModelDict
+      dict: 'City'
+      meta: {dictionaryLabel: 'timezone'}
+    kvm['cityTimeZone'] = ko.computed -> cityTZ.getLab kvm['city']?()
+    cityLabel = new d.dicts.ModelDict dict: 'City'
+    kvm['cityLabel'] = ko.computed -> cityLabel.getLab kvm['city']?()
+
+    kvm['_tzType'] = ko.observable('client')
+    kvm['_timeZone'] = ko.computed ->
+      if kvm['_tzType']() == 'client' then kvm['cityTimeZone']() else null
+    kvm['_switchTimeZone'] = ->
+      kvm['_tzType'](
+        if kvm['_timeZone']() then 'local' else 'client'
+      )
+
   carModelInfoHook: (model, knockVM) ->
     dict = new d.dicts.ModelDict
       dict: 'CarModel'
