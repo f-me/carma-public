@@ -4,9 +4,11 @@ var path = require('path');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
-  entry: {
-     index: './resources/assets/index.coffee'
-  },
+  entry: [
+    './resources/assets/index.coffee',
+    'file?name=index.tpl!apply-jade!./resources/assets/template/index.jade',
+    'file?name=login.html!apply-jade!./resources/assets/template/login.jade'
+  ],
   output: {
     path: './client-dist',
     filename: 'main.js',
@@ -20,6 +22,11 @@ module.exports = {
       ],
     modulesDirectories: ['node_modules'],
     extensions: ['', '.coffee', '.js']
+  },
+  resolveLoader: {
+    alias: {
+      'apply-jade': path.resolve('./apply-jade-loader.js')
+    }
   },
   module: {
     loaders: [

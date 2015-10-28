@@ -7,7 +7,6 @@ module ApplicationHandlers
       indexPage
     , redirectToLogin
     , authOrLogin
-    , loginForm
     , doLogin
     , doLogout
 
@@ -56,7 +55,6 @@ import Text.XmlHtml as X
 import Snap
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
-import Snap.Util.FileServe (serveFile)
 import Snap.Util.FileUploads (getMaximumFormInputSize)
 
 import Snaplet.FileUpload (FileUpload(cfg))
@@ -107,12 +105,6 @@ redirectToLogin = redirect' "/login" 303
 -- handler otherwise.
 authOrLogin :: AppHandler () -> AppHandler ()
 authOrLogin = requireUser auth redirectToLogin
-
-
-------------------------------------------------------------------------------
--- | Render empty login form.
-loginForm :: AppHandler ()
-loginForm = serveFile "resources/static/tpl/login.html"
 
 
 ------------------------------------------------------------------------------

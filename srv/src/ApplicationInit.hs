@@ -51,7 +51,7 @@ import AppHandlers.KPI
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
 routes = [ ("/",              method GET $ authOrLogin indexPage)
-         , ("/login/",        method GET loginForm)
+         , ("/login/",        method GET $ serveFile "client-dist/login.html")
          , ("/login/",        method POST doLogin)
          , ("/logout/",       doLogout)
          , ("/s/",            serveDirectoryWith dconf "client-dist")
@@ -147,7 +147,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
 
   h <- nestSnaplet "heist" heist $ heistInit ""
-  addTemplatesAt h "/" "resources/static/tpl"
+  addTemplatesAt h "/" "client-dist"
 
   addAuthSplices h auth
 
