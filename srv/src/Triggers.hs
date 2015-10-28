@@ -174,7 +174,6 @@ beforeCreate = Map.unionsWith (++)
 
     modPut Service.createTime         $ Just n
     modPut Service.creator =<< getCurrentUser
-    modPut Service.falseCall            FC.none
     modPut Service.payment_overcosted $ Just off
     modPut Service.status               SS.creating
     modPut Service.urgentService      $ Just USR.notUrgent
