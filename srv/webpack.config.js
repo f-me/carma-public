@@ -5,7 +5,7 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
   entry: {
-    index: './resources/assets/index.coffee',
+     index: './resources/assets/index.coffee'
   },
   output: {
     path: './client-dist',
@@ -33,7 +33,11 @@ module.exports = {
   plugins: [
     new ExtractTextPlugin('[name].css'),
     new webpack.ProvidePlugin({
-      'fetch': 'imports?this=>global!exports?global.fetch!whatwg-fetch'
+      'fetch': 'imports?this=>global!exports?global.fetch!whatwg-fetch',
+      '$': 'jquery',
+      '_': 'underscore',
+      'ko': 'knockout',
+      'bootstrap': 'bootstrap'
     })
   ]
 }

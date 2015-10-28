@@ -97,10 +97,6 @@ module.exports = (grunt) ->
     moment:     {src: 'moment/min',      file: 'moment-with-locales.min.js'}
     mousetrap:  {src: 'mousetrap',       file: 'mousetrap.min.js'}
     mustache:   {src: 'mustache',        file: 'mustache.js'}
-    underscore: {src: 'underscore',      file: 'underscore.js'}
-    finch:      {src: 'finchjs',         file: 'finch.min.js'}
-    jquery:     {src: 'jquery/dist',     file: 'jquery.js'}
-    knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
     notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
     spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
     'bootstrap-daterangepicker':
