@@ -3,8 +3,9 @@ define ["screens/kpi/stat.jade"
         "model/fields"
         "sync/datamap"
         "screens/kpi/common"
+        "moment"
         "utils"
-  ], (Tpl, Model, Main, Fs, Map, Common, Utils) ->
+  ], (Tpl, Model, Main, Fs, Map, Common, Moment, Utils) ->
 
   stuffKey = "kpi-stat"
 
@@ -24,8 +25,8 @@ define ["screens/kpi/stat.jade"
     {tblCtx, settingsCtx} = Common.initCtx "kpi-stat", Model,
       (s, sCtx, tCtx, d, kvms) ->
         int = s?.interval or
-         [ (new Date).toString("dd.MM.yyyy 00:00:00")
-         , (new Date).toString("dd.MM.yyyy HH:mm:ss")
+         [ Moment().format("dd.MM.yyyy 00:00:00")
+         , Moment().format("dd.MM.yyyy HH:mm:ss")
          ]
         sCtx.interval = Fs.interval ko.observable(int)
         sCtx.interval.correct = ko.computed ->

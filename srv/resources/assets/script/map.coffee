@@ -1,4 +1,7 @@
-define ["model/utils", "utils"], (mu, u) ->
+define [ "model/utils"
+       , "utils"
+       ]
+       , (mu, u) ->
 
   # Default marker icon size
   iconSize = new OpenLayers.Size(40, 40)

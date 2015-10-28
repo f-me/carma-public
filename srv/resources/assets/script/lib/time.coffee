@@ -15,7 +15,7 @@ define [], ->
     else
       days = [parseInt(days)]
     # check that begin and end time is correct
-    return unless _.all [beg, end], (v) -> Date.parseExact(v, "HH:mm")
+    return unless _.all [beg, end], (v) -> Moment(v, "HH:mm")
     { begin: beg, end: end, days: days }
 
   isWorkingNow = (wtimes) ->

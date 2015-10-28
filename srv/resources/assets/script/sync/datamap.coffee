@@ -1,12 +1,12 @@
-define [], ->
+define ["moment"], (Moment) ->
   # This module maps server <-> client data types
   # c2s prefix means client  -> server
   # s2c prefix means client <-  server
 
   c2sDate = (fmt) -> (v) ->
-    date = Date.parseExact(v, fmt)
-    if date
-      String(Math.round(date.getTime() / 1000))
+    date = Moment(v, fmt)
+    if date.isValid()
+      String(Math.round(date.valueOf() / 1000))
     else
       # FIXME: really what should this do with wrong dates?
       console.error("datamap: can't parse date '#{v}' with '#{fmt}'")
@@ -24,9 +24,9 @@ define [], ->
 
   # Parse a formatted string to ISO 8601 Date
   parseISO = (fmt) -> (v) ->
-    date = Date.parseExact v, fmt
-    if date
-      date
+    date = Moment v, fmt
+    if date.isValid()
+      date.toDate()
     else
       if v != ""
         console.error("datamap: could not parse date '#{v}' with '#{fmt}'")
@@ -35,7 +35,7 @@ define [], ->
   # Convert ISO 8601 date/time object to a formatted string
   s2cISO = (fmt) -> (v) ->
     return null if _.isEmpty v
-    new Date(v).toString fmt
+    new Moment(v).format fmt
 
   c2sDay = (v) -> ((parseISO guiDayFormat) v)?.toString serverDayFormat
 
@@ -68,8 +68,8 @@ define [], ->
     ident     : (v) -> parseInt v
     'interval-date' : (v) -> v.map c2sDay
     'interval-datetime': (v) ->
-      days = v.map (t) -> Date.parseExact(t, "dd.MM.yyyy")
-      days[1].addDays(1)
+      days = v.map (t) -> Moment(t, "dd.MM.yyyy")
+      days[1].add(1, 'day')
       days.map (d) -> d.toISOString()
 
   s2cTypes =

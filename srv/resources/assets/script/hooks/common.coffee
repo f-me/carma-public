@@ -1,6 +1,7 @@
 define [ "utils"
+       , "globallibs/th-menu"
        , "dictionaries"
-       ], (u, d) ->
+       ], (u, ThMenu, d) ->
   thmenuInit = (k, fname, dict, setter) ->
     thmenu = []
     k["#{fname}TypeaheadBuilder"] = ->
@@ -87,7 +88,7 @@ define [ "utils"
         n = f.name
         k["#{n}DateTime"] = ko.computed
           read :       -> k[n]()
-          write: (val) -> if Date.parse(val) then k[n](val) else k[n]("")
+          write: (val) -> if Moment(val).isValid() then k[n](val) else k[n]("")
 
   tarifOptNameDef: (m, k) ->
     k["nameOrDef"] = ko.computed -> k["optionName"]() or "Тарифная опция…"

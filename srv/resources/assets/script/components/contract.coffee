@@ -1,11 +1,13 @@
 define [
-      "model/main"
+      "mustache"
+    , "moment"
+    , "model/main"
     , "utils"
     , "sync/datamap"
     , "dictionaries"
     , "fields/form.jade"
     ],
-  (Main, Utils, DataMap, Dict, Flds) ->
+  (Mustache, Moment, Main, Utils, DataMap, Dict, Flds) ->
     flds =  $('<div/>').append($(Flds()))
     ko.bindingHandlers.renderContract =
       update: (el, acc, allBindigns, contract, ctx) ->
@@ -47,14 +49,14 @@ define [
 
       kvm.isExpired = ko.computed ->
         return unless knockVM.callDate?()
-        callDate = Date.parseExact(knockVM.callDate(), "dd.MM.yyyy HH:mm:ss")?.getTime()
-        validSince = Date.parseExact(contract.validSince, "yyyy-MM-dd")?.getTime()
-        validUntil = Date.parseExact(contract.validUntil, "yyyy-MM-dd")?.getTime()
+        callDate = Moment(knockVM.callDate(), "dd.MM.yyyy HH:mm:ss").valueOf()
+        validSince = Moment(contract.validSince, "yyyy-MM-dd").valueOf()
+        validUntil = Moment(contract.validUntil, "yyyy-MM-dd").valueOf()
         callDate < validSince or callDate > validUntil
 
       kvm.close = ->
         return unless confirm "Стереть из кейса ссылку на контракт?"
-        knockVM.contract("");
+        knockVM.contract("")
 
       $("##{el}").html(
         Mustache.render($(flds).find("#contract-content-template").html(),

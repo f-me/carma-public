@@ -1,6 +1,7 @@
 define [ "model/main"
+       , "mustache"
        , "fields/form.jade"]
-       , (main, Fs) ->
+       , (main, Mustache, Fs) ->
 
   flds =  $('<div/>').append($(Fs()))
   class CancelDialog

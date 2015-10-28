@@ -1,4 +1,5 @@
 define [ "utils"
+       , "mustache"
        , "hotkeys"
        , "screens/case.jade"
        , "fields/form.jade"
@@ -8,7 +9,7 @@ define [ "utils"
        , "map"
        , "components/contract"
        ],
-  (utils, hotkeys, tpl, Flds, WS, mu, main, map, Contract) ->
+  (utils, Mustache, hotkeys, tpl, Flds, WS, mu, main, map, Contract) ->
     window.pickPartnerBlip = map.pickPartnerBlip
 
     flds =  $('<div/>').append($(Flds()))

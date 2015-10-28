@@ -1,4 +1,5 @@
 define ["screens/timeline.jade"
+      , "mustache"
       , "d3"
       , "model/main"
       , "dictionaries/computed-dict"
@@ -11,7 +12,7 @@ define ["screens/timeline.jade"
       , "fields/ro.jade"
       , "screens/timeline/models"
       ]
-    , (tpl, d3, Main, D, WS, Crud, DataMap, MUtils, Utils
+    , (tpl, Mustache, d3, Main, D, WS, Crud, DataMap, MUtils, Utils
       , Ttpl, ROtpl, models) ->
 
   fetchJson = (done) ->

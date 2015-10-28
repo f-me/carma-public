@@ -1,10 +1,11 @@
 define ["utils"
+      , "mustache"
       , "model/main"
       , "screens/supervisor.jade"
       , "screenman"
       , "hooks/common"
       , "fields/form.jade"
-      ], (utils, main, tpl, screenman, hook, Flds) ->
+      ], (utils, Mustache, main, tpl, screenman, hook, Flds) ->
 
   flds =  $('<div/>').append($(Flds()))
 

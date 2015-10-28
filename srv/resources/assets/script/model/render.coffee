@@ -1,4 +1,7 @@
-define ["dictionaries", "fields/form.jade"], (d, Flds) ->
+define [ "dictionaries"
+       , "mustache"
+       , "fields/form.jade"
+       ], (d, Mustache, Flds) ->
 
   FS = $('<div/>').append($(Flds()))
 

@@ -4,7 +4,8 @@
 define [ "model/main"
        , "sync/crud"
        , "lib/messenger"
-       , "sync/datamap" ], (Main, Crud, Messenger, Map)->
+       , "moment"
+       , "sync/datamap" ], (Main, Crud, Messenger, Moment, Map)->
 
   {Finch} = require "finchjs/finch.min.js"
 
@@ -63,10 +64,9 @@ define [ "model/main"
     # calculate diff between state change and current time in 'hh:mm' format
     calcTime = =>
       return unless usr.currentStateCTime?()
-      t1 = Date.parseExact usr.currentStateCTime(), Map.guiUTCTimeFormat
-      t2 = new Date()
-      diff = t2 - t1
-      msec = diff
+      t1 = Moment usr.currentStateCTime(), Map.guiUTCTimeFormat
+      t2 = Moment()
+      msec = t2.diff(t1)
       hh = Math.floor(msec / 1000 / 60 / 60)
       msec -= hh * 1000 * 60 * 60
       mm = Math.floor(msec / 1000 / 60)

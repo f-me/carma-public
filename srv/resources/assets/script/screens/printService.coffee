@@ -1,7 +1,8 @@
 define [ "screens/printSrv.jade"
        , "model/main"
        , "sync/crud"
-       ], (tpl, main, sync) ->
+       , "moment"
+       ], (tpl, main, sync, Moment) ->
 
   setupPrintSrv = (viewName, {id: id}) ->
     $(".navbar").hide()
@@ -48,7 +49,7 @@ define [ "screens/printSrv.jade"
                     fetched: {id: cancel.serviceId()}
                     queue: sync.CrudQueue
               cancels.push(
-                ctime:   new Date(cancel.ctime()).toString("dd.MM.yyyy HH:mm")
+                ctime:   Moment(cancel.ctime()).format("dd.MM.yyyy HH:mm")
                 owner:   owner.realName()
                 partner: partner.name()
                 reason:  cancel.partnerCancelReasonLocal()
@@ -64,7 +65,7 @@ define [ "screens/printSrv.jade"
               if obj[2].commenttext?
                 comments.push(
                   user: obj[1]
-                  date: new Date(obj[0]).toString "dd.MM.yyyy HH:mm:ss"
+                  date: Moment(obj[0]).format "dd.MM.yyyy HH:mm:ss"
                   comment: obj[2].commenttext
                 )
           )

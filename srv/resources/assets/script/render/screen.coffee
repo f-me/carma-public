@@ -1,4 +1,4 @@
-define [], ->
+define ["mustache"], (Mustache) ->
   # Remove all content of view and clean up wares.
   #
   # To setup view back again, call

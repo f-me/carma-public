@@ -212,3 +212,5 @@ class ThMenu
         @next()
 
     e.stopPropagation()
+
+module.exports = ThMenu

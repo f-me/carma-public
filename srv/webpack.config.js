@@ -41,10 +41,14 @@ module.exports = {
     new ExtractTextPlugin('[name].css'),
     new webpack.ProvidePlugin({
       'fetch': 'imports?this=>global!exports?global.fetch!whatwg-fetch',
+      'jQuery': 'jquery', // for bootstrap
+      'window.jQuery': 'jquery', // for jasny-bootstrap
       '$': 'jquery',
       '_': 'underscore',
       'ko': 'knockout',
-      'bootstrap': 'bootstrap'
+      'bootstrap': 'bootstrap',
+       // OpenLyers requires a hack to export it globally
+      'OpenLayers': path.resolve('./resources/static/3p/OpenLayers/OpenLayers.js')
     })
   ]
 }

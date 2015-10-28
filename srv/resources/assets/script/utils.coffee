@@ -6,7 +6,7 @@ define [ "model/main"
        , "map"]
        , (main, mu, Finch, d, sync, map) ->
   # jquery -> html(as string) conversion, with selected element
-  jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
+  $.fn.outerHTML = () -> $("<div>").append(this.clone()).html()
 
   # Synchronous JSON request
   $.bgetJSON = (url, cb) ->

@@ -3,8 +3,9 @@ define ["screens/kpi/group.jade"
         "model/fields"
         "sync/datamap"
         "utils"
+        "moment",
         "lib/current-user"
-  ], (Tpl, Model, Main, Fs, Map, U, Usr) ->
+  ], (Tpl, Model, Main, Fs, Map, U, Moment, Usr) ->
 
   key = "kpi-group"
 
@@ -19,8 +20,8 @@ define ["screens/kpi/group.jade"
     $("#group-screen").addClass("active")
     s = (Usr.readStuff key) || {}
     int = s?.interval or
-      [ (new Date).toString("dd.MM.yyyy 00:00:00")
-      , (new Date).toString("dd.MM.yyyy HH:mm:ss")
+      [ Moment().format("dd.MM.yyyy 00:00:00")
+      , Moment().format("dd.MM.yyyy HH:mm:ss")
       ]
     interval = Fs.interval ko.observable(int)
     interval.correct = ko.computed ->
