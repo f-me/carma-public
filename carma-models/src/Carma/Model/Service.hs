@@ -63,7 +63,7 @@ data Service = Service
                                  "Ожидаемое время закрытия услуги"
   , times_factServiceClosure     :: F (Maybe UTCTime) "times_factServiceClosure"
                                  "Фактическое время закрытия услуги"
-  , falseCall                    :: F (IdentI FalseCall) "falseCall"
+  , falseCall                    :: F (Maybe (IdentI FalseCall)) "falseCall"
                                  "Ложный вызов"
   , clientCancelReason           :: F (Maybe Text) "clientCancelReason"
                                  "Причина отказа клиента"

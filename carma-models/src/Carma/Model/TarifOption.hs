@@ -14,9 +14,9 @@ import Carma.Model.PartnerService (PartnerService)
 
 data TarifOption = TarifOption
   { ident     :: PK Int TarifOption ""
-  , partnerId :: F (IdentI Partner) "parentId" "Услуга"
+  , partnerId :: F (IdentI Partner) "partnerId" "Партнёр"
   , parentId  :: F (IdentI PartnerService) "parentId" "Услуга"
-  , option    :: F Text "optionname" "Марка"
+  , option    :: F Text "optionname" "Название опции"
   , price1    :: F Text "price1" "Цена 1"
   , price2    :: F Text "price2" "Цена 2"
   }
@@ -27,7 +27,10 @@ instance Model TarifOption where
   type TableName TarifOption = "TarifOption"
   modelInfo = mkModelInfo TarifOption ident
   modelView = \case
-    "" -> Just defaultView
+    "" -> Just $ modifyView defaultView
+      [ invisible partnerId
+      , invisible parentId
+      ]
     "parents" -> Just
       $ (searchView
         [("partnerId", one partnerId), ("parentId", one parentId)])
