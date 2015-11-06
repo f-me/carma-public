@@ -97,17 +97,11 @@ WITH servicecounts AS (
     servicetbl.contractor_partner AS "Субподрядчик, оказавший услугу",
     "ServiceStatus".label AS "Результат оказания помощи",
     "Complication".label AS "Сложный случай",
-    CASE
-            WHEN servicetbl.falsecall = 2 OR servicetbl.falsecall = 3 THEN 'Y'::text
-            ELSE 'N'::text
-        END AS "Ложный вызов",
-        CASE
-            WHEN servicetbl.falsecall = 2 THEN 'Y'::text
-            ELSE 'N'::text
-        END AS "Выставлен счет за ложный вызов",
-        'Обработано'::text AS "Статус обращения(: обработано)",
+    coalesce("FalseCall".label, '-') AS "Ложный вызов",
+    '-' :: text AS "Выставлен счет за ложный вызов",
+    'Обработано'::text AS "Статус обращения(: обработано)",
 
-            "ServiceType".label as "Тип обращения",--"Услуга"
+   "ServiceType".label as "Тип обращения",--"Услуга"
    servicetbl.clientcancelreason AS "Причина отказа клиента",
    allservicesview.towdealer_partner AS "Назначение эвакуации-назв. дилера",
    allservicesview.whatToSay1 AS "Описание проблемы",
@@ -256,6 +250,7 @@ WITH servicecounts AS (
    LEFT JOIN "TowerType" ON allservicesview.towerType = "TowerType".id
    LEFT JOIN servicecounts ON servicetbl.parentid = servicecounts.parentid
    LEFT JOIN "Complication" ON servicetbl.complication = "Complication".id
+   LEFT JOIN "FalseCall" ON servicetbl.falseCall = "FalseCall".id
    LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id
    LEFT JOIN "PaymentType" ON servicetbl.paytype = "PaymentType".id
    LEFT JOIN "ServiceStatus" ON servicetbl.status = "ServiceStatus".id
