@@ -76,7 +76,7 @@ Executable carma
     , directory
     , dmcc
     , easy-file
-    , either
+    , errors
     , fgl
     , filepath
     , free
