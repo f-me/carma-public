@@ -153,7 +153,6 @@ library
     , cereal
     , containers
     , errors
-    , old-locale
     , parsec
     , postgresql-libpq
     , postgresql-simple

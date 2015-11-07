@@ -45,7 +45,6 @@ import qualified Data.Map as Map
 
 import Data.Either (rights)
 import Data.Time
-import System.Locale (defaultTimeLocale)
 
 import Text.Read (readMaybe)
 import Text.Printf
