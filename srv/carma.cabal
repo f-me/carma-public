@@ -68,15 +68,11 @@ Executable carma
     , base
     , basic-prelude
     , blaze-builder
-    , BoundedChan
     , bytestring
     , carma-models
     , case-insensitive
-    , conduit
     , configurator
-    , connection
     , containers
-    , data-default
     , directory
     , dmcc
     , easy-file
@@ -85,26 +81,18 @@ Executable carma
     , filepath
     , free
     , graphviz
-    , hashable
     , heist
     , hformat
     , hsyslog
     , HTTP
-    , http-conduit
-    , http-types
     , lens
-    , mime-mail
     , MonadCatchIO-transformers
     , mtl
-    , network
     , pg-simple-qq-alt
     , postgresql-simple
     , process-extras
     , pureMD5
     , random
-    , resource-pool-catchio
-    , resourcet
-    , singletons
     , snap
     , snap-core
     , snap-extras
@@ -112,7 +100,6 @@ Executable carma
     , snap-server
     , snaplet-postgresql-simple
     , stm
-    , temporary
     , text
     , time
     , transformers
@@ -122,7 +109,6 @@ Executable carma
     , weather-api
     , websockets
     , websockets-snap
-    , xml-conduit
     , xmlhtml
 
   Extensions:
