@@ -27,7 +27,6 @@ module Snaplet.Geo
 
 where
 
-import Control.Applicative
 import Control.Lens hiding ((.=))
 import Control.Monad
 import Control.Monad.State hiding (state)

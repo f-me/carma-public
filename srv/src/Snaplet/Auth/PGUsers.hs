@@ -13,8 +13,6 @@ module Snaplet.Auth.PGUsers
     , Usermeta
     ) where
 
-import           Control.Applicative
-
 import           Snap
 import           Snaplet.Auth.Class
 import           Snap.Snaplet.Auth hiding (Role)

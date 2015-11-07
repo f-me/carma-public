@@ -51,7 +51,6 @@ import           Control.Lens (Lens')
 
 import           Data.Aeson
 import qualified Data.Map as Map
-import           Data.Maybe
 
 import           Network.WebSockets
 import           Network.WebSockets.Snap

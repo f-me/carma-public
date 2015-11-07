@@ -17,8 +17,6 @@ import           Data.Maybe
 import qualified Data.Map as M
 import           Data.Text (Text)
 
-import           Control.Applicative
-
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.ToField
 

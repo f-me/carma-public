@@ -50,7 +50,6 @@ module Triggers.DSL
 
 where
 
-import Control.Applicative
 import Control.Monad
 import Control.Exception (SomeException)
 import Control.Monad.Free
@@ -101,8 +100,6 @@ import Carma.Model.LegacyTypes (Password(..))
 
 import qualified AppHandlers.Users as Users
 import qualified Utils.Events as Evt (logCRUDState)
-
-import Util (fieldPT, tableQT)
 
 type TriggerRes m = Either (Int,String) (Patch m)
 
