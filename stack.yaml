@@ -11,10 +11,6 @@ packages:
     commit: HEAD
   extra-dep: true
 - location:
-    git: git@github.com:f-me/hformat.git
-    commit: origin/stack
-  extra-dep: true
-- location:
     git: git@github.com:f-me/hs-weather-api.git
     commit: HEAD
   extra-dep: true
