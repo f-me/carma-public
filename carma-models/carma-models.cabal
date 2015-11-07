@@ -152,7 +152,6 @@ library
     , bytestring
     , cereal
     , containers
-    , either
     , errors
     , old-locale
     , parsec
