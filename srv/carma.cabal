@@ -66,6 +66,7 @@ Executable carma
       aeson
     , attoparsec
     , base
+    , basic-prelude
     , blaze-builder
     , BoundedChan
     , bytestring
@@ -96,7 +97,6 @@ Executable carma
     , MonadCatchIO-transformers
     , mtl
     , network
-    , old-locale
     , pg-simple-qq-alt
     , postgresql-simple
     , process-extras

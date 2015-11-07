@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators #-}
@@ -18,16 +19,12 @@ module AppHandlers.CustomSearches.Contract
 
 where
 
-import           Control.Applicative
-import           Control.Monad
+import           BasicPrelude
+
+import           Control.Monad.State.Class
 
 import           Data.Aeson as A
-import           Data.List
-import           Data.Maybe
-import           Data.String (fromString)
-import           Data.Text (Text)
 import qualified Data.Text as T
-import           Data.Text.Encoding (decodeUtf8)
 import qualified Data.Vector as V
 
 import           Database.PostgreSQL.Simple.FromRow

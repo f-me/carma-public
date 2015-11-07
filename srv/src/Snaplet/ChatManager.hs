@@ -1,4 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 
 {-|
@@ -40,18 +42,16 @@ module Snaplet.ChatManager
 
 where
 
+import           BasicPrelude
+
 import           Control.Concurrent
 import           Control.Concurrent.STM
-
-import           Control.Exception hiding (Handler)
-
+import           Control.Monad.State.Class
 import           Control.Lens (Lens')
 
 import           Data.Aeson
 import qualified Data.Map as Map
 import           Data.Maybe
-import           Data.Text
-import           Data.Text.Encoding
 
 import           Network.WebSockets
 import           Network.WebSockets.Snap
@@ -160,8 +160,7 @@ handler queue refs = do
                              else Map.delete ref r
                   atomically $ putTMVar refs newR
                   return $ cnt - 1
-                Nothing -> error $ "Releasing unknown agent " ++
-                           show ref
+                Nothing -> error $ "Releasing unknown agent " <> fromShow ref
           -- Announce if we're leaving
           when (cnt == 0) $ atomically $
             writeTChan queue (ourRoom, UserLeft me)

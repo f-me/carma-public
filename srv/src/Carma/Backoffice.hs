@@ -17,7 +17,7 @@ module Carma.Backoffice (carmaBackoffice)
 
 where
 
-import           Prelude hiding ((>), (==), (||), (&&), const)
+import           Prelude hiding ((>), (*>), (==), (||), (&&), const)
 
 import qualified Carma.Model.ActionResult as AResult
 import qualified Carma.Model.ActionType as AType

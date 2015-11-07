@@ -11,6 +11,7 @@ module AppHandlers.PSA
 
 where
 
+import Control.Monad
 import Data.ByteString.Char8 (readInt)
 import qualified Data.Vector as V
 import Snap.Snaplet.PostgresqlSimple

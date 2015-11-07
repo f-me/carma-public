@@ -25,8 +25,8 @@ module AppHandlers.CustomSearches
 
 where
 
-import           Control.Applicative
 import           Control.Monad
+import           Control.Monad.IO.Class
 
 import           Data.Aeson as A
 import           Data.ByteString (ByteString)

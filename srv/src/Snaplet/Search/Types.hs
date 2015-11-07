@@ -11,6 +11,7 @@
 
 module Snaplet.Search.Types where
 
+import           Control.Applicative
 import           Control.Monad.State
 
 import           Prelude hiding (null)

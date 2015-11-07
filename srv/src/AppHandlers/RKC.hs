@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 {-|
@@ -16,27 +17,24 @@ module AppHandlers.RKC
 
 where
 
-import           Control.Arrow
-import           Control.Monad
+import           BasicPrelude                       hiding ( intercalate
+                                                           , groupBy
+                                                           )
+import qualified BasicPrelude                       as L ( intercalate
+                                                         , groupBy
+                                                         )
+
+import           Control.Monad.State.Class
 import           Control.Monad.CatchIO              (MonadCatchIO)
-import           Data.Functor
 
 import           Data.Aeson
 import qualified Data.Aeson                         as Aeson
-import           Data.ByteString                    (ByteString)
 import qualified Data.ByteString.Lazy               as LB
-import           Data.Function
-import           Data.List                          (intersect, nub, sort)
-import qualified Data.List                          as L (groupBy, intercalate)
-import           Data.Maybe
-import           Data.Monoid
-import           Data.String
 import qualified Data.Text                          as T
 import qualified Data.Text.Encoding                 as T
 import           Text.Format
 
 import           Data.Time
-import           System.Locale
 
 import           Database.PostgreSQL.Simple.SqlQQ
 import qualified Database.PostgreSQL.Simple.ToField   as PS

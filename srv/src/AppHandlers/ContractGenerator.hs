@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 -- Allowed fields
@@ -21,7 +22,8 @@
 
 module AppHandlers.ContractGenerator where
 
-import           Data.Text (Text)
+import           BasicPrelude
+
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Lazy as B (toStrict)
