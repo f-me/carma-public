@@ -61,6 +61,7 @@ instance Model Case where
           $ caseMod ++ caseDicts ++ caseRo ++
           [ widget "inline-uploader" files
           , setMeta "reference-widget" "files" files
+          , widget "datetime-local" callDate
           ]
       _ -> Nothing
 
@@ -104,8 +105,6 @@ caseMod = [
   ,widget "force-find-dictionary" contractIdentifier
 
   ,setMeta "visibility" (Aeson.Bool True) callDate
-  ,widget "datetime-local" callDate
-
   ,setType "datetime" repair
 
   ,required city
