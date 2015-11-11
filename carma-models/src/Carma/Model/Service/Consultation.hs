@@ -29,8 +29,8 @@ instance Model Consultation where
   modelView v = case parentView v :: Maybe (ModelView Consultation) of
     Nothing -> Nothing
     Just mv -> Just $ modifyView (mv {mv_title = "Консультация"})
-               [ dict consultant $ (dictOpt "activeConsultants")
-                 { dictType    = Just "ComputedDict"
+               [ dict consultant $ (dictOpt "")
+                 { dictType    = Just "ConsultantDict"
                  , dictBounded = True
                  }
                ]
