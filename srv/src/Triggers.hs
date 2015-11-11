@@ -349,7 +349,7 @@ beforeUpdate = Map.unionsWith (++) $
       Just city ->
         do
           cp <- dbRead city
-          w <- getCityWeather (cp `get'` City.label)
+          w <- getCityWeather (cp `get'` City.value)
           let temp = either (const $ Just "") (Just . T.pack . show . tempC) w
           modifyPatch (Patch.put Case.temperature temp)
 
