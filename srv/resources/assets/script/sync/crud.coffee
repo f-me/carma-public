@@ -34,6 +34,10 @@ define [ "sync/metaq"
       for f in @model.fields
         do (f) =>
           @kvm[f.name].subscribe (v) =>
+            # Silently skip saving case.program=null.
+            # This is used when searching contract with program field cleared.
+            if @model.name == 'Case' and f.name == 'program' and not v
+              return
             @q[f.name] = v
             @._save() unless @options?.manual_save
 

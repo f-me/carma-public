@@ -118,3 +118,11 @@ define [ "utils"
         kvm['contact_phone3Vip']?(),
         kvm['contact_phone4Vip']?()
         ]
+
+  contract: (model, kvm) ->
+    kvm.contract.subscribe (id) ->
+      if not kvm.program() or not kvm.subprogram()
+        $.getJSON "/_/Contract/#{id}", (c) ->
+          kvm.subprogram(c.subprogram)
+          $.getJSON "/_/SubProgram/#{c.subprogram}", (s) ->
+            kvm.program(s.parent)

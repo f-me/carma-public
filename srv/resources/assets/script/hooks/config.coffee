@@ -50,6 +50,7 @@ define [ "hooks/common"
                , k.buttons
                , k.hasFiles
                , k.vip
+               , k.contract
                ]
 
       "Consultation" : [ s.serviceColor
