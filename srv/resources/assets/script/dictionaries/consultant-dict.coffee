@@ -14,22 +14,22 @@ define ["dictionaries/meta-dict"], (m) ->
 
 
     find: (q, cb, opt) ->
-      q = q.trim()
+      q = q.trim().toLowerCase()
       consType = window.global.idents("ConsultationType")
       switch @opts.kvm.consType()
         when consType.oper
-          ops = for u in @ops when not q or u.label.indexOf(q) != -1
+          ops = for u in @ops when not q or u.label.toLowerCase().indexOf(q) != -1
               id: u.id
               label: u.label
               html: u.label
           @vals = ops
           cb @vals.map((u) -> u.html)
         when consType.mech
-          mechs = for u in @mechs when not q or u.label.indexOf(q) != -1
+          mechs = for u in @mechs when not q or u.label.toLowerCase().indexOf(q) != -1
             id: u.id
             label: u.label
             html: "<span><i class='glyphicon glyphicon-wrench'></i>&nbsp;#{u.label}</span>"
-          techs = for u in @techs when not q or u.label.indexOf(q) != -1
+          techs = for u in @techs when not q or u.label.toLowerCase().indexOf(q) != -1
             id: u.id
             label: u.label
             html: "<span><i class='glyphicon glyphicon-lamp'></i>&nbsp;#{u.label}</span>"
