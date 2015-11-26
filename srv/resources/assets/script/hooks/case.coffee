@@ -58,9 +58,9 @@ define [ "utils"
     cityTZ = new d.dicts.ModelDict
       dict: 'City'
       meta: {dictionaryLabel: 'timezone'}
-    kvm['cityTimeZone'] = ko.computed -> cityTZ.getLab kvm['city']?()
+    kvm['cityTimeZone'] = ko.computed -> cityTZ.getLab kvm['caseAddress_city']?()
     cityLabel = new d.dicts.ModelDict dict: 'City'
-    kvm['cityLabel'] = ko.computed -> cityLabel.getLab kvm['city']?()
+    kvm['cityLabel'] = ko.computed -> cityLabel.getLab kvm['caseAddress_city']?()
 
     kvm['_tzType'] = ko.observable('client')
     kvm['_timeZone'] = ko.computed ->
