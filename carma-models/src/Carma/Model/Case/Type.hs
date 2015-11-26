@@ -118,6 +118,8 @@ data Case = Case
     :: F (Maybe (IdentI ContractCheckStatus)) "vinChecked" "Участие в программе"
   , city
     :: F (Maybe (IdentI City)) "city" "Город"
+  , caseAddress_city
+    :: F (Maybe (IdentI City)) "caseAddress_city" "Город"
   , caseAddress_address
     :: F PickerField "caseAddress_address" "Адрес места поломки"
   , caseAddress_comment

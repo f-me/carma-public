@@ -5,6 +5,7 @@ module Carma.Model.Case
 
 import Data.Text (Text)
 import Data.Aeson as Aeson
+import qualified Data.Vector as V
 
 import Data.Model as Model
 import Data.Model.View as View
@@ -164,5 +165,14 @@ caseMod = [
   ,infoText "claim" claim
   ]
   ++ mapWidget caseAddress_address caseAddress_coords caseAddress_map
-  ++ [ setMeta "cityField" (Aeson.String $ Model.fieldName city) caseAddress_map
-     , setMeta "cityField" (Aeson.String $ Model.fieldName city) caseAddress_coords]
+  ++ [ setMeta "cityField" (Aeson.Array $ V.fromList
+        [Aeson.String $ Model.fieldName city
+        ,Aeson.String $ Model.fieldName caseAddress_city
+        ])
+        caseAddress_map
+     , setMeta "cityField" (Aeson.Array $ V.fromList
+        [Aeson.String $ Model.fieldName city
+        ,Aeson.String $ Model.fieldName caseAddress_city
+        ])
+        caseAddress_coords
+     ]
