@@ -45,19 +45,6 @@ define ["dictionaries/local-dict"], (ld) ->
             , label: p.realName || p.login
             }
 
-    # Dictionary of all active usermetas with mechanic role (used on
-    # Consultation)
-    activeConsultants: =>
-      @bgetJSON "/_/Usermeta", (objs) =>
-        @allValuesMap =
-          _.reduce objs, ((m,i) => m[i.id] = i.realName || i.login; m), {}
-        cs = _.filter objs, (o) ->
-          (o.isActive && _.contains o.roles, global.idents("Role").consultant)
-        @source = for c in cs
-            { value: c.id
-            , label: c.realName || c.login
-            }
-
     # Dictionary of all subprograms, with labels including parent
     # program name
     prefixedSubPrograms: =>

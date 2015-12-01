@@ -35,6 +35,12 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
     )&attributes(attributes)
   +savingSpinner
 
+mixin localDateTimeInput(nameMod, dataBinds, change)
+  +defaultInput(nameMod, dataBinds, change)
+  .local-datetime-button(
+    data-bind="text: {{name}}TimeZone() ? {{name}}CityLabel() : 'Локальное время',\n\
+               click: {{name}}SwitchTimeZone"
+  )
 
 mixin rawDateInput(nameMod, dataBinds, change)
   .input-group.input-group-sm.date(data-provide="datepicker"
@@ -49,6 +55,7 @@ mixin dateInput(nameMod, dataBinds, change)
   +rawDateInput(nameMod, dataBinds, change)&attributes(attributes)
     span.input-group-addon
       span.glyphicon.glyphicon-calendar
+
 
 mixin savingSpinner
   span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(

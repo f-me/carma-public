@@ -2,6 +2,7 @@ define [ "utils"
        , "model/utils"
        , "screens/partnersSearch"
        ], (u, mu, pSearch) ->
+
   # sync with partner search screen
   openPartnerSearch: (model, kvm) ->
     # do not run this hook on search screen
@@ -190,3 +191,12 @@ define [ "utils"
     kvm["clientSatisfiedSync"]?.subscribe (nv) ->
       if !nv
         kvm._parent?['renderActions']?()
+
+  consultantOperator: (model, kvm) ->
+    consType = window.global.idents("ConsultationType")
+    role = window.global.idents("Role")
+    kvm.consType?.subscribe (v) ->
+      if v == consType.oper
+        u = window.global.dictionaries.users.byId[kvm.creator()]
+        if u and _.contains u.roles, role.consultant_op
+          kvm.consultant u.id

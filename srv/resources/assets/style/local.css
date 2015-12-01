@@ -144,6 +144,25 @@ tr.details > td {
     display: block;
 }
 
+.local-datetime-button {
+    position: absolute;
+    top: 7px;
+    right: 3px;
+    max-width: 35%;
+    text-align: right;
+    z-index: 2;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 80%;
+    color: grey;
+    cursor: pointer;
+}
+
+.local-datetime-button:hover {
+    color: black;
+}
+
 .osMap {
   height: 600px;
 }

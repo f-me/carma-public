@@ -95,6 +95,11 @@ module.exports = (grunt) ->
     md5:        {src: 'js-md5/js',       file: 'md5.min.js'}
     d3:         {src: 'd3',              file: 'd3.min.js'}
     moment:     {src: 'moment/min',      file: 'moment-with-locales.min.js'}
+    'moment-timezone':
+      src: 'moment-timezone/builds'
+      file: [ 'moment-timezone.min.js'
+            , 'moment-timezone-with-data-2010-2020.min.js'
+            ]
     mousetrap:  {src: 'mousetrap',       file: 'mousetrap.min.js'}
     mustache:   {src: 'mustache',        file: 'mustache.js'}
     underscore: {src: 'underscore',      file: 'underscore.js'}

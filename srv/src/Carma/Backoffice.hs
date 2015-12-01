@@ -137,7 +137,7 @@ cancel =
           (serviceField status == const SS.makerApproval &&
            assigneeOfLast InService [AType.makerApproval]
            [noResult] == nobody)
-        , setServiceField falseCall (const FS.nobill) *>
+        , setServiceField falseCall (just FS.nobill) *>
           closePrevious InService
           [AType.orderService, AType.orderServiceAnalyst, AType.makerApproval]
           AResult.clientCanceledService *>
@@ -406,12 +406,12 @@ cancelService =
     [ (AResult.falseCallUnbilled,
        messageToGenser *>
        setServiceStatus SS.canceled *>
-       setServiceField Service.falseCall (const FS.nobill) *>
+       setServiceField Service.falseCall (just FS.nobill) *>
        finish)
     , (AResult.falseCallBilled,
        messageToGenser *>
        setServiceStatus SS.canceled *>
-       setServiceField Service.falseCall (const FS.bill) *>
+       setServiceField Service.falseCall (just FS.bill) *>
        finish)
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)

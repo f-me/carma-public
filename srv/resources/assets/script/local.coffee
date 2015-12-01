@@ -64,10 +64,25 @@ require [ "domready"
     bugReport.setElement $('#send-bug-report')
 
     # Cached mapping between from userid to "name (login)"
+    usersById = {}
+    users.forEach (i) -> usersById[i.id] =
+        id: i.id
+        label: "#{i.realName} (#{i.login})"
+        roles: i.roles
+        isActive: i.isActive
+    usersByLabel = {}
+    users.forEach (i) -> usersByLabel["#{i.realName} (#{i.login})"] =
+        id: i.id
     dicts.users =
       entries:
         for i in users
-          {value: String(i.id), label: "#{i.realName} (#{i.login})"}
+          id: i.id
+          value: String(i.id)
+          label: "#{i.realName} (#{i.login})"
+          roles: i.roles
+          isActive: i.isActive
+      byId: usersById
+      byLabel: usersByLabel
     dicts.roles =
       entries:
         for i in users

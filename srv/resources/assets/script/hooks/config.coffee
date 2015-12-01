@@ -9,6 +9,8 @@ define [ "hooks/common"
        (c, k, s, p, a, Um, Call) ->
   model:
       "*"    : [c.stdElCb]
+  preinit:
+      "Case": [k.timeZoneHook]
   observable:
       "*"    : [ c.regexpKbHook
                , c.dictionaryKbHook
@@ -48,12 +50,14 @@ define [ "hooks/common"
                , k.buttons
                , k.hasFiles
                , k.vip
+               , k.contract
                ]
 
       "Consultation" : [ s.serviceColor
                        , s.updateCaseActions
                        , s.buttons
                        , s.openPartnerSearch
+                       , s.consultantOperator
                        ]
 
       "Continue" : [ s.serviceColor

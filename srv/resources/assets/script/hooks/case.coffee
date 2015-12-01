@@ -54,6 +54,22 @@ define [ "utils"
     knockVM['callDateVisible'] = ko.computed ->
       not _.contains global.user.roles, global.idents("Role").vwfake
 
+  timeZoneHook: (model, kvm) ->
+    cityTZ = new d.dicts.ModelDict
+      dict: 'City'
+      meta: {dictionaryLabel: 'timezone'}
+    kvm['cityTimeZone'] = ko.computed -> cityTZ.getLab kvm['caseAddress_city']?()
+    cityLabel = new d.dicts.ModelDict dict: 'City'
+    kvm['cityLabel'] = ko.computed -> cityLabel.getLab kvm['caseAddress_city']?()
+
+    kvm['_tzType'] = ko.observable('client')
+    kvm['_timeZone'] = ko.computed ->
+      if kvm['_tzType']() == 'client' then kvm['cityTimeZone']() else null
+    kvm['_switchTimeZone'] = ->
+      kvm['_tzType'](
+        if kvm['_timeZone']() then 'local' else 'client'
+      )
+
   carModelInfoHook: (model, knockVM) ->
     dict = new d.dicts.ModelDict
       dict: 'CarModel'
@@ -102,3 +118,11 @@ define [ "utils"
         kvm['contact_phone3Vip']?(),
         kvm['contact_phone4Vip']?()
         ]
+
+  contract: (model, kvm) ->
+    kvm.contract.subscribe (id) ->
+      if not kvm.program() or not kvm.subprogram()
+        $.getJSON "/_/Contract/#{id}", (c) ->
+          kvm.subprogram(c.subprogram)
+          $.getJSON "/_/SubProgram/#{c.subprogram}", (s) ->
+            kvm.program(s.parent)

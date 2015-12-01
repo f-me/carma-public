@@ -43,6 +43,11 @@ include _form_utils
   +fieldControlGroup
     +defaultInput("DateTime", "addMask: 'datetime'", "change")
 
+.field-template#datetime-local-field-template
+  +fieldControlGroup
+    +localDateTimeInput("DateTime", "addMask: 'datetime'", "change")
+
+
 .field-template#date-field-template
   +fieldControlGroup
     +dateInput("", "", "afterkeydown")
@@ -202,6 +207,28 @@ include _form_utils
                         onfocus="showComplex('{{ viewName }}', '{{ name }}');"
                         data-bind="value: {{ name }},\
                                    valueUpdate: 'afterkeydown',\
+                                   disabled: {{ name }}Disabled")
+        +savingSpinner
+        span.input-group-addon(
+            onclick="showComplex('{{ viewName }}', '{{ name }}');")
+          span.glyphicon.glyphicon-share
+
+#group-datetime-local-field-template.field-template(type='text/template')
+  .form-group.has-feedback
+    label.control-label.col-sm-4
+      +labelWithInfo("{{ name }}")
+
+    .col-sm-8
+      .input-group.input-group-sm
+        input.form-control(type='text'
+                        name='name'
+                        autocomplete='off'
+                        style="{{# meta.transform }}\n\
+                               text-transform:{{meta.transform}};\n\
+                               {{/ meta.transform }}"
+                        onfocus="showComplex('{{ viewName }}', '{{ name }}');"
+                        data-bind="value: {{ name }}DateTime,\
+                                   valueUpdate: ['change', 'afterpaste'],\
                                    disabled: {{ name }}Disabled")
         +savingSpinner
         span.input-group-addon(
