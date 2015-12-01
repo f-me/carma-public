@@ -89,19 +89,19 @@ define [ "utils"
         if f.meta.widget == 'datetime-local'
           k["#{n}DateTime"] = ko.computed
             read: ->
-              tz = (k._timeZone || k._parent._timeZone)()
+              tz = (k._timeZone || k._parent?._timeZone)?()
               if tz
                 stamp = moment(k[n](), fmt)
                 if stamp.isValid() then stamp.tz(tz).format(fmt) else ''
               else
                 k[n]()
             write: (val) ->
-              tz = (k._timeZone || k._parent._timeZone)()
+              tz = (k._timeZone || k._parent?._timeZone)?()
               stamp = if tz then moment.tz(val, fmt, tz).local() else moment(val, fmt)
               k[n](if stamp.isValid() then stamp.format(fmt) else '')
-          k["#{n}TimeZone"] = ko.computed -> (k._timeZone || k._parent._timeZone)()
-          k["#{n}CityLabel"] = ko.computed -> (k.cityLabel || k._parent.cityLabel)()
-          k["#{n}SwitchTimeZone"] = -> (k._switchTimeZone || k._parent._switchTimeZone)()
+          k["#{n}TimeZone"] = ko.computed -> (k._timeZone || k._parent?._timeZone)?()
+          k["#{n}CityLabel"] = ko.computed -> (k.cityLabel || k._parent?.cityLabel)?()
+          k["#{n}SwitchTimeZone"] = -> (k._switchTimeZone || k._parent?._switchTimeZone)?()
         else
           k["#{n}DateTime"] = ko.computed
             read :       -> k[n]()

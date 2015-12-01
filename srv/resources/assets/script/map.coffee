@@ -274,6 +274,9 @@ define ["model/utils", "utils"], (mu, u) ->
     # not been recognized (fitting whole city when coords are set
     # makes no sense)
     if city_field?
+      if city_field instanceof Array
+        city_field = city_field[0]
+
       city_meta = u.splitFieldInView city_field, viewName
       if city_meta.view
         vm = u.findVM city_meta.view
@@ -384,7 +387,10 @@ define ["model/utils", "utils"], (mu, u) ->
           # Do not overwrite current city if new city is not
           # recognized
           if city?
-            kvm[options.city_field]?(city)
+            if options.city_field instanceof Array
+              options_city_field.forEach((f) -> kvm[f]?(city))
+            else
+              kvm[options.city_field]?(city)
       )
 
   # Forward geocoding picker (address -> coordinates)

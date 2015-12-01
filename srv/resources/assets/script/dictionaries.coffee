@@ -6,6 +6,7 @@ define [ "dictionaries/local-dict"
        , "dictionaries/model-dict"
        , "dictionaries/results-dict"
        , "dictionaries/hiddenFields"
+       , "dictionaries/consultant-dict"
        ], ->
 
   dicts = {}

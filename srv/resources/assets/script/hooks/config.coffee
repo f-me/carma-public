@@ -50,12 +50,14 @@ define [ "hooks/common"
                , k.buttons
                , k.hasFiles
                , k.vip
+               , k.contract
                ]
 
       "Consultation" : [ s.serviceColor
                        , s.updateCaseActions
                        , s.buttons
                        , s.openPartnerSearch
+                       , s.consultantOperator
                        ]
 
       "Continue" : [ s.serviceColor

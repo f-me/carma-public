@@ -93,7 +93,7 @@ define [], ->
 
   mapObj = (mapper) -> (obj, types) ->
     r = {}
-    r[k] = mapper(v, types[k]) for k, v of obj
+    r[k] = mapper(v, types[k]) for k, v of obj when k[0] != '_'
     r
 
   modelTypes = (model) ->
