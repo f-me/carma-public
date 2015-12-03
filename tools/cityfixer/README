@@ -24,5 +24,18 @@ invocation lines:
     cat result-commands | parallel -j4
 
        or simply
-    
+
     bash result-commands
+
+
+Another set of scripts ({overpass,insert}-cities.sh, update-tz.sh) is used to:
+
+  - get some cities via OverpassAPI;
+  - insert some of them into "Cities" dictionary in PG
+  - set timezones for cities with known coords
+
+Usage:
+
+  ./overpass-cities.sh > list.json
+  ./insert-cities.sh list.json
+  ./set-timezone.sh
