@@ -120,7 +120,7 @@ define [ "utils"
         ]
 
   contract: (model, kvm) ->
-    kvm.contract.subscribe (id) ->
+    kvm.contract?.subscribe (id) ->
       if not kvm.program() or not kvm.subprogram()
         $.getJSON "/_/Contract/#{id}", (c) ->
           kvm.subprogram(c.subprogram)
