@@ -100,7 +100,7 @@ searchContracts :: AppHandler ()
 searchContracts = do
   pid <- getIntParam "program"
   sid <- getIntParam "subprogram"
-  limit <- fromMaybe 100 <$> getIntParam "limit"
+  limit <- min 100 . fromMaybe 20 <$> getIntParam "limit"
   q <- (decodeUtf8 .
         fromMaybe (error "No search query provided")) <$>
        getParam "query"
@@ -117,16 +117,14 @@ searchContracts = do
   -- what fields are included in the result.
   let -- Predicate which filters contracts by one field. Parameters
       -- (2): field name, query string.
-      fuzzyFieldPredicate =
-          "(? ILIKE '%' || ? || '%')"
-      exactFieldPredicate =
-          "(? = ?)"
+      fuzzyFieldPredicate = "? ~* ?"
+      exactFieldPredicate = "? = ?"
       fieldPredicate = if exact
                        then exactFieldPredicate
                        else fuzzyFieldPredicate
       fieldParams = zip (map PT C.identifierNames) $ repeat q
       totalQuery = intercalate " "
-          [ "SELECT DISTINCT ON(c.?) c.?,"
+          [ "SELECT c.?,"
           -- 4 parameters: case callDate name, contract start/end date
           -- field name, case callDate name (expiration predicate)
           , "((cs.? < ?) or (? < cs.?)),"
@@ -145,7 +143,9 @@ searchContracts = do
           -- field, program id field.
           , "JOIN ? p ON s.? = p.?"
           , "WHERE"
-          , "("
+          -- use full text index
+          , "c.fts_key ~* ?"
+          , "AND ("
           -- 2*M parameters: identifier fields and query
           , intercalate " OR " $
             map (const fieldPredicate) C.identifierNames
@@ -161,7 +161,7 @@ searchContracts = do
           -- 2 parameters: program.active and subprogram.active
           , "AND p.? AND s.?"
           -- 1 parameter: LIMIT value
-          , "ORDER BY c.id DESC LIMIT ?;"
+          , "LIMIT ?;"
           ]
       -- Fields selected from matching rows
       selectedFieldsParam =
@@ -172,10 +172,8 @@ searchContracts = do
 
   res <- query (fromString totalQuery)
          (()
-          -- 2
-          :. ( fieldPT Case.ident
-             , fieldPT Case.ident
-             )
+          -- 1
+          :. (Only $ fieldPT C.ident)
           -- 4
           :. ( fieldPT Case.callDate
              , fieldPT C.validSince
@@ -197,6 +195,8 @@ searchContracts = do
           -- 3
           :. Only programTable
           :. (fieldPT S.parent, fieldPT P.ident)
+          -- 1 fts_key ~* q
+          :. (Only q)
           -- 2*M
           :. (ToRowList fieldParams)
           -- 3

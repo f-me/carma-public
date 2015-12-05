@@ -349,22 +349,24 @@ beforeUpdate = Map.unionsWith (++) $
       Just city ->
         do
           cp <- dbRead city
-          w <- getCityWeather (cp `get'` City.label)
+          w <- getCityWeather (cp `get'` City.value)
           let temp = either (const $ Just "") (Just . T.pack . show . tempC) w
           modifyPatch (Patch.put Case.temperature temp)
 
-  , trigOn Case.contract $ \val -> do
-      old <- getIdent >>= dbRead
-      case Patch.get' old Case.contract of
-        Nothing -> return ()
-        Just ctrId -> do -- Erase data copied form old contract
-          contract <- dbRead ctrId
-          let Just subProgId = Patch.get' contract Contract.subprogram
-          copyContractToCase subProgId Patch.empty
-          modifyPatch $ Patch.put Case.vinChecked Nothing
-      case val of
-        Nothing -> return ()
-        Just cid -> do
+  , trigOn Case.contract $ \case
+      Nothing -> do
+        -- Clear all contract-related fields.
+        -- NB. we assume they are all nullable
+        modifyPatch $ foldl'
+          (\fn (C2C _ _ caseFld) -> case Model.fieldName caseFld of
+            nm |  nm == Model.fieldName Case.contact_name
+               || nm == Model.fieldName Case.contact_phone1
+               -> fn
+            _ -> Patch.put caseFld Nothing . fn)
+          id contractToCase
+        modifyPatch $ Patch.put Case.vinChecked Nothing
+      Just cid ->
+        do
           contract <- dbRead cid
           n <- getNow
           let sinceExceeded =

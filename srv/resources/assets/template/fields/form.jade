@@ -228,7 +228,7 @@ include _form_utils
                                {{/ meta.transform }}"
                         onfocus="showComplex('{{ viewName }}', '{{ name }}');"
                         data-bind="value: {{ name }}DateTime,\
-                                   valueUpdate: 'afterkeydown',\
+                                   valueUpdate: ['change', 'afterpaste'],\
                                    disabled: {{ name }}Disabled")
         +savingSpinner
         span.input-group-addon(

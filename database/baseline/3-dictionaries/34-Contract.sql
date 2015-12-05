@@ -34,7 +34,38 @@ CREATE TABLE "Contract"
   , fromArc bool NOT NULL DEFAULT FALSE
   , extra json
   , ctime timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+  , sourcefile text NOT NULL DEFAULT ''
+  , fts_key text NOT NULL DEFAULT ''
   );
+
+
+create index on "Contract"(subprogram);
+create index on "Contract"
+  using gin(fts_key gin_trgm_ops)
+  where dixi and isactive;
+
+
+-- trigger to update fst_key
+create or replace function "Contract_fts_key_update" returns trigger as
+$$
+begin
+  new.fts_key = upper(
+         coalesce(new.vin, '')        || '\0'
+      || coalesce(new.cardNumber, '') || '\0'
+      || coalesce(new.plateNum, '')   || '\0'
+      || coalesce(new.name, '')       || '\0'
+      || coalesce(new.phone, '')      || '\0'
+      || coalesce(new.codeword, '')   || '\0'
+      || coalesce(new.email, ''));
+  return new;
+end;
+$$ language 'plpgsql';
+
+create trigger "Contract_fts_trigger"
+  before insert or update on "Contract"
+  for each row
+  execute procedure "Contract_fts_key_update"();
+
 
 GRANT ALL ON "Contract" TO carma_db_sync;
 GRANT ALL ON "Contract_id_seq" TO carma_db_sync;
