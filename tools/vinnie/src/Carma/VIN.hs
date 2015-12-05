@@ -65,7 +65,7 @@ import           Carma.VIN.SQL
 
 -- | Perform VIN file import, write report.
 doImport :: Options -> IO (Either ImportError ImportResult)
-doImport opts = runImport vinImport opts
+doImport = runImport vinImport
 
 
 getOption :: (Options -> a) -> Import a
@@ -82,7 +82,7 @@ throwError err = lift $ E.throwE err
 vinImport :: Import ImportResult
 vinImport = do
   vf <- asks vinFormat
-  (pid, sid) <- (,) <$> (getOption program) <*> (getOption subprogram)
+  (pid, sid) <- (,) <$> getOption program <*> getOption subprogram
   input <- getOption infile
 
   -- Figure out program id if only subprogram is provided.
@@ -107,8 +107,8 @@ vinImport = do
         -- Fail if a specific subprogram is not set and it's not
         -- loadable either. We check against the actual set of file
         -- columns, not the format.
-        when (not $ (isJust sid') ||
-              (hasSubprogram vf $ map ffa $ snd mapping)) $
+        when (not $ isJust sid' ||
+              hasSubprogram vf (map ffa $ snd mapping)) $
              throwError NoTargetSubprogram
         process (pid', sid') enc mapping
 
@@ -184,7 +184,7 @@ data FFMapper =
     FM { internal :: InternalName
        , ffa      :: FFA
        -- ^ Format smart accessor.
-       , _concats  :: (Maybe [InternalName])
+       , _concats  :: Maybe [InternalName]
        -- ^ Columns to be concatenated to this field.
        }
 
@@ -216,19 +216,19 @@ processTitles vf csvHeader =
           titles = ffaTitles f vf
           errIfRequired e = if Patch.get' vf req
                             then throwError e
-                            else return $ Nothing
+                            else return Nothing
       in
         case titles of
           -- Fail when a required column lacks proper titles
           [] -> errIfRequired $ NoTitle (fieldDesc c)
           _  ->
-              case (filter (not . (flip elem iCsvHeader) . toCaseFold) titles,
+              case (filter (not . (`elem` iCsvHeader) . toCaseFold) titles,
                     titles) of
                 -- Single-column field
                 ([], [t])    -> return $ Just $
                                 FM (interName t) f Nothing
                 -- Multi-column
-                ([], (t:ts)) -> return $ Just $
+                ([], t:ts) -> return $ Just $
                                 FM (interName t) f (Just $ map interName ts)
                 -- Fail when a required column is missing
                 (m, _) -> errIfRequired $ NoColumn (fieldDesc c) m) $
@@ -238,10 +238,10 @@ processTitles vf csvHeader =
           interMap = zip csvHeader $ mkInternalNames csvHeader
           -- Unordered interMap with case-folded keys
           foldedInterMap =
-              (Map.fromList $
-               map (\(k, v) -> (toCaseFold k, v)) interMap)
+              Map.fromList $
+              map (\(k, v) -> (toCaseFold k, v)) interMap
           -- Internal name of a CSV column (case-insensitive lookup)
-          interName t = foldedInterMap Map.! (toCaseFold t)
+          interName t = foldedInterMap Map.! toCaseFold t
 
 
 -- | Perform VIN file import using the provided mapping.
@@ -290,8 +290,8 @@ process psid enc mapping = do
   -- null. Queue table has only typed Contract fields.
   protoToQueue transferChunks
 
-  forM_ (vinFormatAccessors) $
-        (\(FFAcc (FA c) _ loadAcc reqAcc defAcc _) ->
+  forM_ vinFormatAccessors $
+        \(FFAcc (FA c) _ loadAcc reqAcc defAcc _) ->
              let
                  fn = fieldName c
                  -- TODO Might use CSV titles here instead of Contract
@@ -307,7 +307,7 @@ process psid enc mapping = do
                  when (Patch.get' vf reqAcc) $
                       void $ execute markEmptyRequired (EmptyRequired fd, PT fn)
                  -- Set default values.
-                 void $ execute setQueueDefaults (PT fn, dv, PT fn))
+                 void $ execute setQueueDefaults (PT fn, dv, PT fn)
 
   arcVal <- getOption fromArc
   -- Set service field values. If the subprogram is loadable and
@@ -330,10 +330,10 @@ process psid enc mapping = do
                deferConstraints conn >>
                transferContracts conn
         case ser of
-          Right n -> (liftIO $ commit conn) >> return n
+          Right n -> liftIO (commit conn) >> return n
           Left e -> if isSerializationError e
                     then if tries > 0
-                         then (liftIO $ rollback conn) >>
+                         then liftIO (rollback conn) >>
                               finalTransfer (tries - 1 :: Int)
                          else throwError SerializationFailed
                     else throw e
@@ -349,7 +349,7 @@ process psid enc mapping = do
        liftIO $ void $ do
          BS.writeFile output bom
          -- Write report header, adding errors column title if not present
-         runResourceT $ yield ((delete errorsTitle columnTitles) ++
+         runResourceT $ yield (delete errorsTitle columnTitles ++
                                [errorsTitle]) $=
                         CSV.fromCSV csvSettings $$
                         sinkIOHandle (openFile output AppendMode)
@@ -375,7 +375,7 @@ processField :: (Int, Maybe Int)
              -> (Import (), (Text, ContractFieldName))
 processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
     case stag of
-      SRaw -> (pass, (sqlCast cn "text"))
+      SRaw -> (pass, sqlCast cn "text")
       SNumber ->
           ( protoUpdateWithFun cn
             "regexp_replace" [iname, "'\\D'", "''", "'g'"] >>
@@ -383,7 +383,7 @@ processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
             -- empty string cannot be cast to int
             protoNullizeEmptyStrings cn >>
             pass
-          , (sqlCast cn "int"))
+          , sqlCast cn "int")
       SVIN ->
           -- We don't use protoUpdateWithFun here because it breaks
           -- encoding of function arguments
@@ -391,67 +391,66 @@ processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
             "ЗАВЕКМНРСТУХавекмнрстух" "3ABEKMHPCTYXabekmhpctyx" cn >>
             protoCheckRegexp cn "^[0-9a-hj-npr-z]{17}$" >>
             pass
-          , (sqlCast cn "text"))
+          , sqlCast cn "text")
       SEmail ->
           ( protoTransfer iname cn >>
             protoCheckRegexp cn
             "^[\\w\\+\\.\\-]+@[\\w\\+\\.\\-]+\\.\\w+$" >>
             pass
-          , (sqlCast cn "text"))
+          , sqlCast cn "text")
       SPlate ->
           ( protoTransfer iname cn >>
-            (protoCheckRegexp cn $ fromString $
+            protoCheckRegexp cn (fromString $
              "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}" ++
              "[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$") >>
             pass
-          , (sqlCast cn "text"))
+          , sqlCast cn "text")
       SYear ->
           ( protoTransfer iname cn >>
-            (protoCheckRegexp cn $ fromString $
+            protoCheckRegexp cn (fromString
              "^[12][09][0-9]{2}$") >>
             pass
-          , (sqlCast cn "int2"))
+          , sqlCast cn "int2")
       SPhone ->
           ( void $ protoUpdateWithFun cn
             "'+'||regexp_replace" [iname, "'\\D'", "''", "'g'"]
-          , (sqlCast cn "text"))
+          , sqlCast cn "text")
       SName ->
           ( case cols of
               Just l@(_:_) -> void $ protoUpdateWithFun cn "concat_ws"
                               ([joinSymbol, iname] ++ l)
               _            -> pass
-          , (sqlCast cn "text"))
+          , sqlCast cn "text")
       SDate ->
           -- Delete all malformed dates
           ( void $ protoUpdateWithFun cn "pg_temp.dateordead" [cn']
-          , (sqlCast cn "date"))
+          , sqlCast cn "date")
       SDict ->
           ( -- Try to recognize references to dictionary elements
             protoDictCleanup iname cn (identModelName defAcc) >>
             protoDictLookup iname cn (identModelName defAcc) >>
             protoUpdateWithFun cn "pg_temp.numordead" [cn'] >>
             pass
-          , (sqlCast cn "int"))
+          , sqlCast cn "int")
       SSubprogram ->
           ( -- Try to recognize references to subprograms
             protoSubprogramLookup pid iname cn >>
             protoUpdateWithFun cn "pg_temp.numordead" [cn'] >>
             pass
-          , (sqlCast cn "int"))
+          , sqlCast cn "int")
       SDealer ->
           ( -- Try to recognize partner names/codes from all columns
             -- (latter ones are preferred)
             protoPartnerCleanup allNames cn >>
-            (forM_ allNames
-             (\n -> do
-                protoPartnerLookup n cn)) >>
+            forM_ allNames
+             (`protoPartnerLookup` cn) >>
             -- Delete if no matches found
             protoUpdateWithFun cn "pg_temp.numordead" [cn'] >>
             pass
-          , (sqlCast cn "int"))
+          , sqlCast cn "int")
       where
         cn :: ContractFieldName
         cn = CN cn'
         cn' :: Text
         cn' = fieldName c
-        allNames = [iname] ++ fromMaybe [] cols
+        allNames = iname : fromMaybe [] cols

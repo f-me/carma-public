@@ -101,7 +101,7 @@ instance ToJSON ImportError where
         NoTargetSubprogram -> "Невозможно определить подпрограмму"
         NoHeader -> "В файле отсутствует корректный заголовок"
         NotEnoughData e -> T.concat ["В файле недостаточно данных ("
-                                    , (T.pack $ show e)
+                                    , T.pack $ show e
                                     , ")"
                                     ]
         PGLoadingFailed -> "Не удалось загрузить данные в PostgreSQL"
@@ -133,7 +133,7 @@ runImport act opts =
       -- Close connection when short-circuiting Import monad
       liftBaseOp (bracket
                   (connect $ cInfo opts)
-                  (close)) $
+                  close) $
                   \c -> do
                     vf <- liftIO $ Patch.read (Ident fid) c
                     case vf of
