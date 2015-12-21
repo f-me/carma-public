@@ -83,6 +83,12 @@ define ["model/utils", "utils"], (mu, u) ->
       29.4298095703125, 59.6337814331055,
       30.7591361999512, 60.2427024841309)
 
+  Ryazan =
+    coords: new OpenLayers.LonLat(39.734928, 54.629169)
+    bounds: new OpenLayers.Bounds(
+      39.510620, 54.522743,
+      39.907501, 54.810895)
+
   # Build a place for city from geoQuery response (overrides
   # coordinates and boundaries for certain key cities). Second
   # argument is a key in City dictionary.
@@ -92,6 +98,8 @@ define ["model/utils", "utils"], (mu, u) ->
         Moscow
       when "337422"
         Petersburg
+      when "252173619"
+        Ryazan
       else
         buildPlace res, city
 
