@@ -350,16 +350,16 @@ define ["model/utils", "utils"], (mu, u) ->
   spliceAddress = (addr, kvm, options) ->
     $.getJSON(geoQuery(addr), (res) ->
       if res.length > 0
-        lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
+        place = buildCityPlace res
+        if place
+          if options.coord_field?
+            kvm[options.coord_field]? shortStringFromLonlat place.coords
 
-        if options.coord_field?
-          kvm[options.coord_field]? shortStringFromLonlat lonlat
-
-        if options.osmap?
-          setPlace options.osmap, buildPlace res
-          currentBlip options.osmap,
-            lonlat.clone().transform(wsgProj, osmProj),
-            options.current_blip_type
+          if options.osmap?
+            setPlace options.osmap, place
+            currentBlip options.osmap,
+              place.coords.clone().transform(wsgProj, osmProj),
+              options.current_blip_type
     )
 
   # Given an OpenLayers.Coords object (in WSG projection), try to fill
