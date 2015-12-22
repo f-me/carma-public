@@ -47,7 +47,7 @@ NAME="$1"
 SUBPROGRAM="$2"
 
 # Absolute path to vinnie executable
-VINNIE="${HOME}/carma/srv/.cabal-sandbox/bin/vinnie"
+VINNIE="${HOME}/.local/bin/vinnie"
 
 TMPDIR=$(mktemp -d /tmp/arc.`date +%F`.XXXXXX)
 TMP="${TMPDIR}/${NAME}"

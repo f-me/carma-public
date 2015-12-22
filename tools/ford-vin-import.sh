@@ -45,7 +45,7 @@ DATE=$1
 
 # Absolute path to vinnie executable
 NAME="CB_fordsara_${DATE}_RU.csv"
-VINNIE="${HOME}/carma/srv/.cabal-sandbox/bin/vinnie"
+VINNIE="${HOME}/.local/bin/vinnie"
 
 TMPDIR=$(mktemp -d /tmp/ford`date +%F`.XXXXXX)
 
