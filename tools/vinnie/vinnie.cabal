@@ -9,35 +9,35 @@ category:            Database
 
 build-type:          Simple
 cabal-version:       >=1.10
-tested-with:         GHC == 7.8.3
+tested-with:         GHC == 7.10.2
 
 library
   exposed-modules:
     Carma.VIN
 
   other-modules:
-    Carma.VIN.Base
+    Carma.VIN.Base,
     Carma.VIN.SQL
 
   build-depends:
-    aeson             >= 0.6 && < 0.9,
-    attoparsec-conduit== 1.1.*,
-    base              >= 4.6 && < 4.8,
-    blaze-builder     == 0.3.*,
-    bytestring        == 0.10.*,
-    carma-models      >= 0.24.14 && < 0.36,
-    conduit           >= 1.0 && < 1.3,
-    conduit-extra     == 1.1.*,
-    containers        == 0.5.*,
-    csv-conduit       == 0.6.*,
-    filepath          == 1.3.*,
-    lifted-base       == 0.2.*,
-    monad-control     >= 0.3 && < 1.1,
-    postgresql-simple >= 0.4.4.1 && < 0.5,
-    text              >= 0.11 && < 1.3,
-    text-icu          >= 0.6 && < 0.8,
-    transformers      >= 0.4 && < 0.5,
-    vector            == 0.10.*
+      aeson
+    , attoparsec-conduit
+    , base
+    , blaze-builder
+    , bytestring
+    , carma-models
+    , conduit
+    , conduit-extra
+    , containers
+    , csv-conduit
+    , filepath
+    , lifted-base
+    , monad-control
+    , postgresql-simple
+    , text
+    , text-icu
+    , transformers
+    , vector
 
   ghc-options:         -Wall -fno-warn-unused-do-bind
   hs-source-dirs:      src
@@ -49,28 +49,31 @@ executable vinnie
 
   -- Modules included in this executable, other than Main.
   other-modules:
-    Carma.VIN
+    Carma.VIN,
+    Carma.VIN.Base,
+    Carma.VIN.SQL,
+    Paths_vinnie
 
   build-depends:
-    aeson             >= 0.6 && < 0.9,
-    attoparsec-conduit== 1.1.*,
-    base              >= 4.6 && < 4.8,
-    blaze-builder     == 0.3.*,
-    bytestring        == 0.10.*,
-    carma-models      >= 0.24.14 && < 0.36,
-    cmdargs           == 0.10.*,
-    conduit           >= 1.0 && < 1.3,
-    conduit-extra     == 1.1.*,
-    containers        == 0.5.*,
-    csv-conduit       == 0.6.*,
-    filepath          == 1.3.*,
-    lifted-base       == 0.2.*,
-    monad-control     >= 0.3 && < 1.1,
-    postgresql-simple >= 0.4.4.1 && < 0.5,
-    text              >= 0.11 && < 1.3,
-    text-icu          >= 0.6 && < 0.8,
-    transformers      >= 0.4 && < 0.5,
-    vector            == 0.10.*
+      aeson
+    , attoparsec-conduit
+    , base
+    , blaze-builder
+    , bytestring
+    , carma-models
+    , cmdargs
+    , conduit
+    , conduit-extra
+    , containers
+    , csv-conduit
+    , filepath
+    , lifted-base
+    , monad-control
+    , postgresql-simple
+    , text
+    , text-icu
+    , transformers
+    , vector
 
   ghc-options:         -Wall -fno-warn-unused-do-bind
   hs-source-dirs:      src

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE Rank2Types #-}
@@ -7,22 +8,14 @@ module Snaplet.Messenger ( Messenger
                          , sendMessage
                          , Topic) where
 
-import Prelude hiding (log)
-
-import           Control.Applicative
-import           Control.Monad
-import           Control.Exception (finally)
+import           BasicPrelude
 
 import           Control.Concurrent (forkIO, killThread)
 import           Control.Concurrent.STM
--- import           Control.Concurrent.Suspend.Lifted
--- import           Control.Concurrent.Timer
-
+import           Control.Monad.State.Class
 import           Data.Aeson
 import           Data.Maybe
 import qualified Data.Set as Set
-import           Data.Text
-
 import           Network.WebSockets
 import           Network.WebSockets.Snap
 

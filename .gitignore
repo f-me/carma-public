@@ -6,6 +6,7 @@ dist
 cabal-dev
 *.hi
 *.o
+.stack-work
 
 # logs
 *.log

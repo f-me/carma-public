@@ -13,7 +13,6 @@ import           Data.Aeson
 import           Data.ByteString as BS
 import           Data.ByteString.Char8 as B8
 import           Data.ByteString.Lazy
-import           Data.Functor
 import qualified Data.HashMap.Strict as HM
 import           Data.Maybe
 import           Data.String (fromString)

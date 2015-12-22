@@ -9,10 +9,9 @@ import           Data.Aeson.TH
 import           Data.Text (Text)
 import qualified Data.ByteString.Lazy  as L8
 
-import           Control.Applicative
+import           Control.Monad.IO.Class
 import           Database.PostgreSQL.Simple.SqlQQ
 
-import           Snap
 import           Snap.Snaplet.PostgresqlSimple
 import           Snap.Snaplet.Auth
 import           Snaplet.Auth.Class

@@ -153,11 +153,11 @@ module.exports = (grunt) ->
       file: [ 'wysihtml5x.min.js', 'wysihtml5x.min.map'
             , 'wysihtml5x-toolbar.min.js', 'wysihtml5x-toolbar.min.map']
     'bootstrap-datepicker':
-      src:  'bootstrap-datepicker'
+      src:  'bootstrap-datepicker/dist'
       dest: 'bootstrap-datepicker'
-      file: [ 'css/datepicker3.css'
-            , 'js/bootstrap-datepicker.js'
-            , 'js/locales/bootstrap-datepicker.ru.js'
+      file: [ 'css/bootstrap-datepicker3.min.css'
+            , 'js/bootstrap-datepicker.min.js'
+            , 'locales/bootstrap-datepicker.ru.min.js'
             ]
     'normalize-css':
       src: 'normalize-css'

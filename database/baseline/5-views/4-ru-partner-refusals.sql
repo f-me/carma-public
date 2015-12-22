@@ -51,5 +51,4 @@ LEFT JOIN cities_regions ON "City".id = cities_regions.cities::Integer
 ORDER BY "PartnerCancel".ctime ASC,
          casetbl.id ASC;
 
- GRANT
-SELECT ON "Отказы партнеров" TO reportgen;
+GRANT SELECT ON "Отказы партнеров" TO reportgen;

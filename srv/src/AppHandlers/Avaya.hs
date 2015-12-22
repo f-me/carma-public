@@ -35,8 +35,8 @@ import           Control.Concurrent.STM
 import           Control.Exception (catches, handle, IOException)
 import qualified Control.Exception as E (Handler(..))
 import           Control.Monad
+import           Control.Monad.State.Class
 import           Control.Monad.IO.Class
-import           Data.Functor
 import           Data.Maybe
 
 import           Data.Aeson
@@ -182,7 +182,7 @@ dmccHook = do
                   Just (c, et)
                   where
                     et = case dir of
-                           (DMCC.In _) -> AET.in
+                           (DMCC.In _) -> AET.incoming
                            _           -> AET.out
                     dir = direction call
                     call = fromMaybe (error "DeliveredEvent with bad state") $
@@ -310,18 +310,12 @@ sendCommand cmd um = do
         ext = fromMaybe (error "Bad meta") $
               um `Patch.get` Usermeta.workPhoneSuffix
         miniApp conn =
-          (send conn =<< (DataMessage . Text . encode <$> addTimestamp cmd)) >>
+          send conn (DataMessage $ Text $ encode cmd) >>
           sendClose conn ("carma disconnected" :: ByteString) >>
           (void $ (receiveData conn :: IO ByteString))
 
     liftIO $ void $ forkIO $
       runClient dmccWsHost'' dmccWsPort' ("/" ++ Text.unpack ext) miniApp
-
-
-addTimestamp :: DMCC.Action -> IO DMCC.TimestampedAction
-addTimestamp act = do
-  now <- getCurrentTime
-  return $ TA act now
 
 
 setAgentState :: SettableAgentState

@@ -8,7 +8,6 @@ module AppHandlers.KPI ( getStat
                        , updateOperKPI
                        ) where
 
-import           Control.Applicative ((<$>))
 import           Control.Monad (forM, join)
 import           Control.Monad.Trans.Class
 import qualified Control.Monad.Trans.RWS.Strict as RWS

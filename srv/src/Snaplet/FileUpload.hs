@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DoAndIfThenElse #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -26,17 +27,17 @@ module Snaplet.FileUpload
 
 where
 
-import Control.Monad
+import BasicPrelude hiding (show)
+import Prelude (show)
+
 import Control.Concurrent.STM
+import Control.Monad.State.Class
 
 import Data.Aeson as A hiding (Object)
 import Data.Attoparsec.Text as P
 
-import Data.Either
-import Data.Functor
 import Data.Maybe
 import Data.Configurator
-import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as BL
 import Data.Digest.Pure.MD5 (md5)
 import qualified Data.HashSet as HS
@@ -44,7 +45,6 @@ import qualified Database.PostgreSQL.Simple as PS
 import Database.PostgreSQL.Simple.SqlQQ
 import Data.Char
 import Data.Time.Clock
-import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.Typeable
@@ -55,7 +55,6 @@ import System.Directory
 import System.FilePath
 import System.IO
 
-import Snap (gets, liftIO)
 import Snap.Core hiding (path)
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple hiding (field)

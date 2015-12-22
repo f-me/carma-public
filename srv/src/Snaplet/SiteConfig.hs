@@ -5,7 +5,6 @@ module Snaplet.SiteConfig
   , initSiteConfig
   ) where
 
-import Control.Applicative
 import Control.Lens hiding (view)
 import Control.Monad
 import Control.Monad.State
