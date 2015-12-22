@@ -16,7 +16,7 @@ library
     Carma.VIN
 
   other-modules:
-    Carma.VIN.Base
+    Carma.VIN.Base,
     Carma.VIN.SQL
 
   build-depends:
@@ -49,7 +49,10 @@ executable vinnie
 
   -- Modules included in this executable, other than Main.
   other-modules:
-    Carma.VIN
+    Carma.VIN,
+    Carma.VIN.Base,
+    Carma.VIN.SQL,
+    Paths_vinnie
 
   build-depends:
       aeson

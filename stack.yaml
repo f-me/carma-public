@@ -4,7 +4,7 @@ packages:
 - tools/vinnie
 - location:
     git: git@github.com:f-me/carma-models.git
-    commit: origin/stack
+    commit: origin/rc
   extra-dep: true
 - location:
     git: git@github.com:f-me/dmcc.git
