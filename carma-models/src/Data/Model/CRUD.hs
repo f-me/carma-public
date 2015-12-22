@@ -30,7 +30,7 @@ defaultCRUD = CRUD
   { crud_create = \obj pg -> do
       p     <- hoistEither $ parseJSON obj
       liftIO (Sql.create p pg) >>= \case
-        Left ex -> left $ PgException ex
+        Left ex -> throwE $ PgException ex
         Right ident -> do
           Right res <- tryPg $ Sql.read (ident :: IdentI m) pg
           hoistEither $ unparseRes ident [res]
@@ -38,15 +38,15 @@ defaultCRUD = CRUD
   , crud_read = \ident pg
     -> tryPg (Sql.read ident pg) >>= \case
       Right res -> hoistEither $ unparseRes ident [res]
-      Left err  -> left $ PgException err
+      Left err  -> throwE $ PgException err
 
   , crud_update = \ident obj pg -> do
       p <- hoistEither $ parseJSON obj
       liftIO (Sql.update ident p pg) >>= \case
-        Right 1 -> right $ Aeson.object []
-        Right 0 -> left  $ NoSuchObject $ show ident
-        Right _ -> left  $ InconsistentDbState $ show ident
-        Left ex -> left  $ PgException ex
+        Right 1 -> return $ Aeson.object []
+        Right 0 -> throwE  $ NoSuchObject $ show ident
+        Right _ -> throwE  $ InconsistentDbState $ show ident
+        Left ex -> throwE  $ PgException ex
 
   , crud_delete = error "not implemented"
   , crud_readManyWithFilter = \lim off flt pg -> do
@@ -86,7 +86,7 @@ parseJSON jsn = case Aeson.fromJSON jsn of
   Aeson.Success p -> Right p
 
 
-tryPg :: IO a -> EitherT CrudError IO a
+tryPg :: IO a -> ExceptT CrudError IO a
 tryPg = fmapLT PgException . syncIO
 
 

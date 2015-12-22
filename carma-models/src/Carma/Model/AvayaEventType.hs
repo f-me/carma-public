@@ -20,7 +20,7 @@ data AvayaEventType = AvayaEventType
 
 
 mkIdents [t|AvayaEventType|]
- [ ("in", 1)
+ [ ("incoming", 1)
  , ("out", 2)
  , ("hold", 3)
  , ("unhold", 4)

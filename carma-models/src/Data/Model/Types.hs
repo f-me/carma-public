@@ -4,7 +4,7 @@
 
 module Data.Model.Types where
 
-import Control.Monad.Trans.Either (EitherT)
+import Control.Error
 import Control.Exception (SomeException)
 import Data.Text (Text, unpack)
 import Data.HashMap.Strict (HashMap)
@@ -137,7 +137,7 @@ data CrudError
   | PgException SomeException
   deriving Show
 
-type CrudRes = EitherT CrudError IO Aeson.Value
+type CrudRes = ExceptT CrudError IO Aeson.Value
 
 data CRUD m = CRUD
   { crud_create :: Aeson.Value             -> PG.Connection -> CrudRes
