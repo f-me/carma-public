@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -21,17 +22,16 @@ module AppHandlers.Backoffice
 
 where
 
+import           BasicPrelude
+
 import           Control.Exception
 import           Control.Monad.Trans.Except
 import qualified Data.Aeson                  as A
 import           Data.Attoparsec.Text
 import qualified Data.HashMap.Strict         as HM
 import qualified Data.Map                    as Map
-import           Data.Maybe
-import           Data.Text                   (Text)
 import qualified Data.Text                   as T
 import           Data.Time
-import           Data.Typeable
 
 import           GHC.TypeLits
 
@@ -190,7 +190,7 @@ openAction = do
     \case
       Right r -> logCRUDState Update aid' p >>
                  writeJSON r
-      Left  e -> error $ show e
+      Left  e -> error $ fromShow e
 
 
 -- | Read @caseid@ request parameter and serve JSON list of ids of

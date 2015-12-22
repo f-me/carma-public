@@ -48,7 +48,6 @@ import Data.Map (Map)
 import Data.Maybe
 import qualified Data.Vector as Vector
 
-import Control.Applicative
 import Control.Monad.IO.Class
 import qualified Control.Exception as Ex
 import Control.Monad.CatchIO as IOEx

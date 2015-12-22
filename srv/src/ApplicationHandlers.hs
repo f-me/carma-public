@@ -31,7 +31,8 @@ module ApplicationHandlers
 where
 
 import Data.Functor
-import Control.Monad.Trans.Either
+import Control.Error
+import Control.Monad.State.Class
 
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -177,7 +178,7 @@ readHandler = do
         res <- do
           let ident = readIdent objId :: IdentI m
           PS.liftPG
-                     (runEitherT . crud_read getModelCRUD ident)
+                     (runExceptT . crud_read getModelCRUD ident)
         case res of
           Right obj              -> writeJSON obj
           Left (NoSuchObject _)  -> handleError 404
@@ -200,7 +201,7 @@ readManyHandler = do
       readModel _ = do
         res <-
           PS.liftPG
-            (runEitherT . crud_readManyWithFilter
+            (runExceptT . crud_readManyWithFilter
                         (getModelCRUD :: CRUD m) limit offset queryFilter)
         case res of
           Right obj -> writeJSON obj

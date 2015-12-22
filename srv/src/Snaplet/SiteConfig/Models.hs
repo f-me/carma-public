@@ -5,7 +5,6 @@ module Snaplet.SiteConfig.Models
 
 where
 
-import Control.Applicative
 import Data.Aeson as Aeson
 import Data.Text (Text)
 import Data.Map

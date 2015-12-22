@@ -62,7 +62,6 @@ module Snaplet.TaskManager
 
 where
 
-import Control.Applicative
 import Control.Concurrent
 import Control.Concurrent.STM.TVar
 import Control.Monad
@@ -81,7 +80,6 @@ import Data.Digest.Pure.MD5 (md5)
 import Data.HashSet as HS hiding (map)
 import Data.List as L
 import Data.Map as M hiding (map)
-import Data.Maybe
 
 import Data.Text hiding (head, map)
 import Data.Text.Encoding

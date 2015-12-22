@@ -1,6 +1,5 @@
 module ApplicationInit (appInit) where
 
-import Control.Applicative
 import Control.Concurrent.STM
 import Control.Monad.IO.Class
 import qualified Control.Monad.CatchIO as IOEx

@@ -1,4 +1,5 @@
 {-# LANGUAGE DoAndIfThenElse #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 {-| Bulk import handlers. -}
 
@@ -8,13 +9,13 @@ module AppHandlers.Bulk
 
 where
 
+import           BasicPrelude
+
+import           Control.Monad.State.Class
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as B
 import           Data.Configurator
-import           Data.Int
-import           Data.Map (Map)
 import qualified Data.Map as Map
-import qualified Data.Text as T
 import qualified Data.Vector as V
 
 import           System.Directory
@@ -97,7 +98,7 @@ vinImport = logExceptions "Bulk/vinImport" $ do
           Right (ImportResult (total, good, bad)) ->
               if bad == 0
               then removeFile outPath >>
-                   (return $ Right (Aeson.String $ T.pack $ show good, []))
+                   (return $ Right (Aeson.String $ show good, []))
               else return $ Right (Aeson.toJSON stats, [outPath])
                 where
                   stats :: Map String Int64

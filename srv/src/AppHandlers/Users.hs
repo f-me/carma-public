@@ -27,6 +27,7 @@ module AppHandlers.Users
 
 where
 
+import           Control.Monad.IO.Class
 import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text           as T

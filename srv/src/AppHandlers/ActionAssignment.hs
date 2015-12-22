@@ -15,7 +15,6 @@ module AppHandlers.ActionAssignment
 
 where
 
-import Control.Applicative hiding (some)
 import Control.Lens (_1, view)
 import Control.Monad
 import Data.Aeson as A

@@ -50,12 +50,12 @@ module Triggers.DSL
 
 where
 
-import Control.Applicative
 import Control.Monad
 import Control.Exception (SomeException)
 import Control.Monad.Free
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Trans.State
+import Control.Monad.State.Class (gets)
+import Control.Monad.Trans.State hiding (gets)
 import Control.Monad.Trans.Class (lift)
 
 import Data.Text (Text)
@@ -68,7 +68,6 @@ import Data.Int (Int64)
 import Data.Typeable
 import GHC.TypeLits
 
-import qualified Snap (gets)
 import Snap.Snaplet.Auth
 import Snaplet.Auth.Class
 import Snaplet.Auth.PGUsers
@@ -101,8 +100,6 @@ import Carma.Model.LegacyTypes (Password(..))
 
 import qualified AppHandlers.Users as Users
 import qualified Utils.Events as Evt (logCRUDState)
-
-import Util (fieldPT, tableQT)
 
 type TriggerRes m = Either (Int,String) (Patch m)
 
@@ -234,7 +231,7 @@ getCityWeather city = liftFree (DoApp action id)
   where
     action :: AppHandler (Either String Weather)
     action = do
-      conf <- Snap.gets weatherCfg
+      conf <- gets weatherCfg
       weather <- liftIO $ getWeather' conf $
                  T.unpack $ T.filter (/= '\'') city
       return $ case weather of

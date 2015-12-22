@@ -21,7 +21,6 @@ where
 import           Prelude hiding ((>), (==), (||), (&&), const)
 import qualified Prelude as P ((==))
 
-import           Control.Applicative
 import           Control.Monad.Trans.Reader
 
 import           Data.Map (Map)

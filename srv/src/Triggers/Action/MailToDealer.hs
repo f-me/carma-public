@@ -1,6 +1,5 @@
 module Triggers.Action.MailToDealer (sendMailToDealer) where
 
-import Control.Applicative
 import Control.Monad.IO.Class (liftIO)
 
 import Data.Text (Text)
