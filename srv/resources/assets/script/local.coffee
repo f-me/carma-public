@@ -61,6 +61,9 @@ require [ "domready"
 
   # this will be called on dom ready
   dom ->
+    $.fn.datepicker.defaults.autoclose = true
+    $.fn.datepicker.defaults.enableOnReadonly = false
+
     bugReport.setElement $('#send-bug-report')
 
     # Cached mapping between from userid to "name (login)"
