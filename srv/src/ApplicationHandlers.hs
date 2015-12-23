@@ -45,8 +45,6 @@ import qualified Data.Aeson as Aeson
 import Data.Aeson
 import qualified Data.Map as Map
 
-import Data.Maybe
-
 import Database.PostgreSQL.Simple (Query)
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
