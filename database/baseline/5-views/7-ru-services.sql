@@ -1,4 +1,4 @@
-CREATE VIEW "Услуги" AS
+CREATE OR REPLACE VIEW "Услуги" AS
 WITH servicecounts AS (
          SELECT servicetbl_1.parentid,
             count(*) AS amount
@@ -171,7 +171,7 @@ WITH servicecounts AS (
     casetbl.contact_owneremail AS "Email владельца",
     casetbl.contact_email AS "Email звонящего",
     servicetbl.contractor_address AS "Адрес выезда эвакуатора",
-    allservicesview.towtype AS "Вид эвакуации",
+    "TowType".label AS "Вид эвакуации",
     "TowerType".label AS "Тип эвакуатора",
     timezone('Europe/Moscow'::text, servicetbl.times_expecteddispatch) AS "Время выезда партнёра",
      timezone('Europe/Moscow'::text, servicetbl.bill_billingdate) AS "Дата выставления счёта",
@@ -247,6 +247,7 @@ WITH servicecounts AS (
    LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = p2.id
    LEFT JOIN "ConsultationResult" ON allservicesview.consResult = "ConsultationResult".id
    LEFT JOIN "ConsultationType" ON allservicesview.consType = "ConsultationType".id
+   LEFT JOIN "TowType" ON allservicesview.towType = "TowType".id
    LEFT JOIN "TowerType" ON allservicesview.towerType = "TowerType".id
    LEFT JOIN servicecounts ON servicetbl.parentid = servicecounts.parentid
    LEFT JOIN "Complication" ON servicetbl.complication = "Complication".id

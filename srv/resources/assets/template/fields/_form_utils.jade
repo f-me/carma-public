@@ -47,7 +47,8 @@ mixin rawDateInput(nameMod, dataBinds, change)
                      data-autoshow-datepicker="true"
                      data-date-format="dd.mm.yyyy"
                      data-date-weekstart="1"
-                     data-bind="pickerDisable: {{ name }}.disabled")
+                     data-bind="readonly: {{ name }}Disabled,\n\
+                                pickerDisable: {{ name }}.disabled")
     +defaultInput(nameMod, dataBinds, change)&attributes(attributes)
     block
 
