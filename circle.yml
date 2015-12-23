@@ -3,6 +3,8 @@ machine:
     PATH: ${HOME}/stack-bin/:${PATH}
 
 dependencies:
+  cache_directories:
+    - "~/.stack"
   override:
     - rm -rf stack*.tar.gz
     - rm -rf stack-bin/
