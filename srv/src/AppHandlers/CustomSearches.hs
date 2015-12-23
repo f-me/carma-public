@@ -19,6 +19,7 @@ module AppHandlers.CustomSearches
       -- ** Helpers
     , allDealersForMake
     , getLatestCases
+    , relevantCases
     , searchCases
     , findSameContract
     )
@@ -273,6 +274,22 @@ getLatestCases = do
     ,"car_plateNum", "car_vin", "program", "comment"]
     rows
 
+relevantCases :: AppHandler ()
+relevantCases = do
+  Just c <- getParam "caseId"
+  rows <- query ([sql|
+    SELECT
+      c2.id::text,
+      to_char(c2.callDate, 'YYYY-MM-DD HH24:MI')
+    FROM casetbl c1, casetbl c2
+    WHERE c1.id = ?
+      AND c2.id <> c1.id
+      AND c1.contractIdentifier = c2.contractIdentifier
+      AND length(c2.contractIdentifier) > 4
+    ORDER BY c2.callDate DESC
+    LIMIT 10
+    |]) [c]
+  writeJSON $ mkMap ["caseId", "caseDate"] rows
 
 searchCases :: AppHandler ()
 searchCases = do

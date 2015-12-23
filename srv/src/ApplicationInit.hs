@@ -100,6 +100,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
          , ("/caseHistory/:caseId",
                               chkAuthLocal . method GET $ caseHistory)
+         , ("/relevantCases/:caseId",
+                              chkAuthLocal . method GET  $ relevantCases)
          , ("/searchCases",   chkAuthLocal . method GET  $ searchCases)
          , ("/latestCases",   chkAuthLocal . method GET  $ getLatestCases)
          , ("/regionByCity/:city",
