@@ -12,11 +12,15 @@ packages:
   extra-dep: true
 - location:
     git: git@github.com:f-me/hs-weather-api.git
-    commit: HEAD
+    commit: 517efee8d565901604d2f48d20ba746913fc6f51
   extra-dep: true
 - location:
     git: git@github.com:f-me/pg-simple-alt-qq.git
-    commit: origin/stack
+    commit: 15fd5b959f0d88a50d2c460938bdb0cd2cd7322d
+  extra-dep: true
+- location:
+    git: git@github.com:f-me/snap-core.git
+    commit: 1732b6ff0325b68a93dd9e07ac618f4d5e2cd527
   extra-dep: true
 extra-deps:
 - attoparsec-conduit-1.1.0
