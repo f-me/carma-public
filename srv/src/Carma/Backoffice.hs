@@ -52,7 +52,7 @@ toBack =
      [ ( serviceField svcType `oneOf` [ST.towage, ST.tech]
        , sendSMS SMS.create *> messageToGenser *> proceed [AType.orderService]
        )
-     , ( serviceField svcType `oneOf` [ST.ken, ST.consultation]
+     , ( serviceField svcType `oneOf` [ST.ken, ST.medic, ST.consultation]
        , setServiceStatus SS.ok *>
          proceed [AType.closeCase, AType.addBill]
        )
