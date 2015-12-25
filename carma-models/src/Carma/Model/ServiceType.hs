@@ -43,7 +43,7 @@ mkIdents [t|ServiceType|]
  , ("consultation", 13)
  , ("tickets", 14)
  , ("tripOn", 15)
- , ("bank", 16)
+ , ("medic", 16)
  , ("deliverClient", 17)
  , ("adjuster", 18)
  ]
