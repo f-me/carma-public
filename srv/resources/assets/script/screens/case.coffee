@@ -91,9 +91,6 @@ define [ "utils"
         refreshHistory()
 
       refreshHistory = ->
-        filterVal = kvm['historyFilter']()
-        matchesFilter = (s) ->
-          _.isEmpty(filterVal) || (new RegExp(filterVal, "i")).test(s)
         $.getJSON "/caseHistory/#{kvm.id()}?limit=#{historyLimit}", (res) ->
           kvm['endOfHistory'](res.length < historyLimit)
           kvm['historyItems'].removeAll()
@@ -106,14 +103,6 @@ define [ "utils"
           for i in res
             json = i[2]
 
-            if json.actiontype && not kvm.histShowActi()
-              continue
-            if json.commenttext && not kvm.histShowComm()
-              continue
-            if json.refusalreason && not kvm.histShowCanc()
-              continue
-            if (json.calltype || json.aetype) && not kvm.histShowCall()
-              continue
 
             if json.aeinterlocutors?
               json.aeinterlocutors =
@@ -125,22 +114,34 @@ define [ "utils"
                   utils.palette.length]
               else
                 null)
+
             dts = new Date(i[0]).toString historyDatetimeFormat
-            if _.any([i[1], dts], matchesFilter) ||
-               _.any(_.values(json), matchesFilter)
-                 kvm['historyItems'].push
-                   datetime: dts
-                   who: i[1]
-                   json: json
-                   color: color
+            item =
+              datetime: dts
+              who: i[1]
+              json: json
+              color: color
+            item.visible = ko.computed(showHistoryItem item)
+            kvm['historyItems'].push item
+
+      showHistoryItem = (i) ->
+        ->
+          if i.json.actiontype && not kvm.histShowActi()
+            return false
+          if i.json.commenttext && not kvm.histShowComm()
+            return false
+          if i.json.refusalreason && not kvm.histShowCanc()
+            return false
+          if (i.json.calltype || i.json.aetype) && not kvm.histShowCall()
+            return false
+
+          filterVal = kvm['historyFilter']()
+          matchesFilter = (s) ->
+            _.isEmpty(filterVal) || (new RegExp(filterVal, "i")).test(s)
+          return _.any([i.who, i.datetime].concat(_.values(i.json)), matchesFilter)
+
       kvm['refreshHistory'] = refreshHistory
       kvm['contact_phone1']?.subscribe refreshHistory
-      kvm['historyFilter'].subscribe _.debounce(refreshHistory, 500)
-      debouncedRefresh = _.debounce refreshHistory, 100
-      kvm['histShowActi'].subscribe debouncedRefresh
-      kvm['histShowComm'].subscribe debouncedRefresh
-      kvm['histShowCanc'].subscribe debouncedRefresh
-      kvm['histShowCall'].subscribe debouncedRefresh
 
     # Case comments/chat
     setupCommentsHandler = (kvm) ->

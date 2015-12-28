@@ -581,7 +581,7 @@ mixin caseFilesList
                              data-bind="textInput: historyFilter")
         div(style="clear:both")
         // ko foreach: historyItems
-        div.well.history-item(data-bind="style: {'background-color': color}")
+        div.well.history-item(data-bind="visible: visible, style: {'background-color': color}")
           div
             div.history-datetime
               span(data-bind="text: datetime")
