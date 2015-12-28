@@ -105,6 +105,16 @@ define [ "utils"
           # Process every history item
           for i in res
             json = i[2]
+
+            if json.actiontype && not kvm.histShowActi()
+              continue
+            if json.commenttext && not kvm.histShowComm()
+              continue
+            if json.refusalreason && not kvm.histShowCanc()
+              continue
+            if (json.calltype || json.aetype) && not kvm.histShowCall()
+              continue
+
             if json.aeinterlocutors?
               json.aeinterlocutors =
                 _.map(json.aeinterlocutors, utils.internalToDisplayed).
@@ -126,6 +136,11 @@ define [ "utils"
       kvm['refreshHistory'] = refreshHistory
       kvm['contact_phone1']?.subscribe refreshHistory
       kvm['historyFilter'].subscribe _.debounce(refreshHistory, 500)
+      debouncedRefresh = _.debounce refreshHistory, 100
+      kvm['histShowActi'].subscribe debouncedRefresh
+      kvm['histShowComm'].subscribe debouncedRefresh
+      kvm['histShowCanc'].subscribe debouncedRefresh
+      kvm['histShowCall'].subscribe debouncedRefresh
 
     # Case comments/chat
     setupCommentsHandler = (kvm) ->

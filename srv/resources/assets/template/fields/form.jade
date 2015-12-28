@@ -560,7 +560,24 @@ mixin caseFilesList
       #case-history
         h4(style="float: left") История по кейсу
         div(style="float: right")
-          input.form-control(placeholder="Фильтр",
+          div.btn-group.btn-group-sm(role="group")
+            .btn.btn-default(
+              title="Показать действия",
+              data-bind="css: histShowActi() && 'active', click: histToggleActi")
+                i.glyphicon.glyphicon-briefcase
+            .btn.btn-default(
+              title="Показать комментарии",
+              data-bind="css: histShowComm() && 'active', click: histToggleComm")
+                i.glyphicon.glyphicon-bullhorn
+            .btn.btn-default(
+              title="Показать отказы партнёров",
+              data-bind="css: histShowCanc() && 'active', click: histToggleCanc")
+                i.glyphicon.glyphicon-remove-circle
+            .btn.btn-default(
+              title="Показать звонки",
+              data-bind="css: histShowCall() && 'active', click: histToggleCall")
+                i.glyphicon.glyphicon-phone-alt
+          input.form-control(placeholder="Фильтр", style="display: inline-block; width: auto;"
                              data-bind="textInput: historyFilter")
         div(style="clear:both")
         // ko foreach: historyItems
