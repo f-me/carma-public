@@ -149,6 +149,12 @@ define [ "model/render"
         kvm["#{n}Visible"] = ko.computed ->
           if _.isFunction kvm[n].customVisible()
             kvm[n].customVisible()()
+          else if f.meta.visibleIf
+            for p of f.meta.visibleIf
+              val = kvm[p]()
+              if f.meta.visibleIf[p].some((x) -> String(x) == String(val))
+                return true
+            return false
           else
             true
 
