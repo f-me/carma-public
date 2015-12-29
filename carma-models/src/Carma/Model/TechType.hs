@@ -21,9 +21,18 @@ data TechType = TechType
 
 mkIdents [t|TechType|]
  [ ("charge", 4)
+ , ("chargeRuamc", 18)
  , ("starter", 5)
  , ("ac", 6)
  , ("lights", 13)
+ , ("hack", 9)
+ , ("hackByRuamc", 20)
+ , ("wheel", 3)
+ , ("wheelTower", 5)
+ , ("wheelRuamc", 21)
+ , ("fuel", 1)
+ , ("fuelTower", 16)
+ , ("fuelRuamc", 17)
  ]
 
 instance Model TechType where
