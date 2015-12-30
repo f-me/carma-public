@@ -344,7 +344,7 @@ beforeUpdate = Map.unionsWith (++) $
   , trigOn Service.times_expectedServiceClosure $ const $
     modifyPatch (Patch.put Service.times_factServiceClosure Nothing)
 
-  , trigOn Case.city $ \case
+  , trigOn Case.caseAddress_city $ \case
       Nothing -> return ()
       Just city ->
         do
