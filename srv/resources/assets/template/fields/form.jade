@@ -531,14 +531,14 @@ mixin caseFilesList
       span(data-bind='text: safelyGet(\'caseAddress_address\')')
       br
       span(data-bind='text: safelyGet(\'caseAddress_comment\')')
-    p(data-bind='visible: safelyGet(\'cityLocal\')')
+    p(data-bind='visible: safelyGet(\'caseAddress_cityLocal\')')
       b Регион:&nbsp;
       span(data-bind='text: safelyGet(\'region\')')
-    p(data-bind='visible: safelyGet(\'cityLocal\')')
+    p(data-bind='visible: safelyGet(\'caseAddress_cityLocal\')')
       b
         | Расчётное значение ожидания эвакуатора в
         | г.
-        span(data-bind='text: safelyGet(\'cityLocal\')')
+        span(data-bind='text: safelyGet(\'caseAddress_cityLocal\')')
         | :&nbsp;
       span#city-towage-average-time
     #contract
