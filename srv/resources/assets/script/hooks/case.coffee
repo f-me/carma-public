@@ -36,12 +36,10 @@ define [ "utils"
     kvm['endOfHistory'] = ko.observable true
     kvm['lookBackInHistory'] = ->
 
-  # Display daily service stats in central pane when `city` field of
+  # Display daily service stats in central pane when `caseAddress_city` field of
   # case is changed.
-  cityStatsHook: (model, knockVM) ->
-    cityField = "city"
-    u.hideComplex
-    knockVM[cityField]?.subscribe (new_city) ->
+  cityStatsHook: (model, kvm) ->
+    kvm.caseAddress_city?.subscribe (new_city) ->
       if new_city
         $.getJSON "/stats/towAvgTime/" + new_city,
           (r) -> $("#city-towage-average-time").text(u.formatSecToMin(r[0]))
