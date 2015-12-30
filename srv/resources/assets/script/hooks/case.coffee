@@ -48,11 +48,11 @@ define [ "utils"
       else
         $("#city-towage-average-time").text ''
 
-  regionHook: (model, knockVM) ->
+  regionHook: (model, kvm) ->
     knockVM['region'] = ko.computed
       read: ->
         res = ''
-        city = knockVM.city?()
+        city = kvm.caseAddress_city?() || kvm.city?()
         if city
           $.bgetJSON "/regionByCity/#{city}",
             (r) -> res = r.join ','
