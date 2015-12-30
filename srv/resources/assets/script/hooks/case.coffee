@@ -47,7 +47,7 @@ define [ "utils"
         $("#city-towage-average-time").text ''
 
   regionHook: (model, kvm) ->
-    knockVM['region'] = ko.computed
+    kvm['region'] = ko.computed
       read: ->
         res = ''
         city = kvm.caseAddress_city?() || kvm.city?()
