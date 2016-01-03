@@ -215,7 +215,25 @@ WITH servicecounts AS (
     servicetbl.files AS "Файлы, прикрепленные к услуге",
     timezone('Europe/Moscow'::text, servicetbl.times_factserviceclosure) AS "Фактическое время закрытия услуги",
     timezone('Europe/Moscow'::text, servicetbl.times_factdealerinfo) AS "Факт. время получения информации",
-    casetbl.contact_name AS "ФИО звонящего"
+    casetbl.contact_name AS "ФИО звонящего",
+
+    CASE allservicesview.flags->>'Заблокирован электронный ручной т'
+      WHEN 'true'::text THEN 'Y' ELSE 'N' END as "Заблокирован электронный ручной т",
+    CASE allservicesview.flags->>'Руль заблокирован'
+      WHEN 'true'::text THEN 'Y' ELSE 'N' END as "Руль заблокирован",
+
+    CASE allservicesview.flags->>'Капот открывается'
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Капот открывается",
+    CASE allservicesview.flags->>'Наличие запасного колеса'
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Наличие запасного колеса",
+    CASE allservicesview.flags->>'Наличие секреток'
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Наличие секреток",
+    CASE allservicesview.flags->>'Запасной ключ имеется'
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Запасной ключ имеется",
+    CASE allservicesview.flags->>'Документы на автомобиль на руках'
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Документы на автомобиль на руках",
+    CASE allservicesview.flags->>'Не открывается лючок бензобака'
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Не открывается лючок бензобака"
 
    FROM casetbl
    LEFT JOIN commentLists ON casetbl.id = commentLists.caseId

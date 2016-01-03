@@ -15,7 +15,8 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                                                             NULL::int4 AS towertype,
                                                                                             averagecommissionertbl.contractor_address AS towaddress_address,
                                                                                             averagecommissionertbl.contractor_partnerid AS towdealer_partnerid,
-                                                                                            averagecommissionertbl.parentid
+                                                                                            averagecommissionertbl.parentid,
+                                                                                            '{}'::json AS flags
                                                                                            FROM averagecommissionertbl
                                                                                 UNION ALL
                                                                                          SELECT banktbl.id,
@@ -34,7 +35,8 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                                                             NULL::int4 AS towertype,
                                                                                             NULL::text AS towaddress_address,
                                                                                             banktbl.contractor_partnerid AS towdealer_partnerid,
-                                                                                            banktbl.parentid
+                                                                                            banktbl.parentid,
+                                                                                            '{}'::json AS flags
                                                                                            FROM banktbl)
                                                                         UNION ALL
                                                                                  SELECT consultationtbl.id,
@@ -53,7 +55,8 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                                                     NULL::int4 AS towertype,
                                                                                     NULL::text AS towaddress_address,
                                                                                     consultationtbl.contractor_partnerid AS towdealer_partnerid,
-                                                                                    consultationtbl.parentid
+                                                                                    consultationtbl.parentid,
+                                                                                    '{}'::json AS flags
                                                                                    FROM consultationtbl)
                                                                 UNION ALL
                                                                          SELECT deliverclienttbl.id,
@@ -72,7 +75,8 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                                             NULL::int4 AS towertype,
                                                                             deliverclienttbl.contractor_address AS towaddress_address,
                                                                             deliverclienttbl.contractor_partnerid AS towdealer_partnerid,
-                                                                            deliverclienttbl.parentid
+                                                                            deliverclienttbl.parentid,
+                                                                            '{}'::json AS flags
                                                                            FROM deliverclienttbl)
                                                         UNION ALL
                                                                  SELECT informationtbl.id,
@@ -90,7 +94,8 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                                     NULL::int4 AS towertype,
                                                                     informationtbl.contractor_address AS towaddress_address,
                                                                     informationtbl.contractor_partnerid AS towdealer_partnerid,
-                                                                    informationtbl.parentid
+                                                                    informationtbl.parentid,
+                                                                    '{}'::json AS flags
                                                                    FROM informationtbl)
                                                 UNION ALL
                                                          SELECT deliverpartstbl.id,
@@ -109,7 +114,8 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                             NULL::int4 AS towertype,
                                                             deliverpartstbl.contractor_address AS towaddress_address,
                                                             deliverpartstbl.contractor_partnerid AS towdealer_partnerid,
-                                                            deliverpartstbl.parentid
+                                                            deliverpartstbl.parentid,
+                                                            '{}'::json AS flags
                                                            FROM deliverpartstbl)
                                         UNION ALL
                                                  SELECT hoteltbl.id,
@@ -128,7 +134,8 @@ CREATE OR REPLACE VIEW allservicesview AS
                                                     NULL::int4 AS towertype,
                                                     hoteltbl.contractor_address AS towaddress_address,
                                                     hoteltbl.contractor_partnerid AS towdealer_partnerid,
-                                                    hoteltbl.parentid
+                                                    hoteltbl.parentid,
+                                                    '{}'::json AS flags
                                                    FROM hoteltbl)
                                 UNION ALL
                                          SELECT sobertbl.id,
@@ -146,7 +153,8 @@ CREATE OR REPLACE VIEW allservicesview AS
                                             NULL::int4 AS towertype,
                                             sobertbl.contractor_address AS towaddress_address,
                                             sobertbl.contractor_partnerid AS towdealer_partnerid,
-                                            sobertbl.parentid
+                                            sobertbl.parentid,
+                                            '{}'::json AS flags
                                            FROM sobertbl)
                         UNION ALL
                                  SELECT renttbl.id,
@@ -164,7 +172,8 @@ CREATE OR REPLACE VIEW allservicesview AS
                                     NULL::int4 AS towertype,
                                     NULL::text AS towaddress_address,
                                     renttbl.towdealer_partnerid,
-                                    renttbl.parentid
+                                    renttbl.parentid,
+                                    '{}'::json AS flags
                                    FROM renttbl)
                 UNION ALL
                          SELECT towagetbl.id,
@@ -182,7 +191,13 @@ CREATE OR REPLACE VIEW allservicesview AS
                             towagetbl.towertype,
                             towagetbl.towaddress_address,
                             towagetbl.towdealer_partnerid,
-                            towagetbl.parentid
+                            towagetbl.parentid,
+                            (select row_to_json(flags)
+                              from (values (towagetbl.check1, towagetbl.check2))
+                                as flags(
+                                    "Заблокирован электронный ручной тормоз",
+                                    "Руль заблокирован")
+                            ) as flags
                            FROM towagetbl)
         UNION ALL
                  SELECT techtbl.id,
@@ -200,7 +215,19 @@ CREATE OR REPLACE VIEW allservicesview AS
                     NULL::int4 AS towertype,
                     NULL::text AS towaddress_address,
                     NULL::int4 AS towdealer_partnerid,
-                    techtbl.parentid
+                    techtbl.parentid,
+                    (select row_to_json(flags)
+                      from (values(
+                            techtbl.check1, techtbl.check2, techtbl.check3,
+                            techtbl.check4, techtbl.check5, techtbl.check6))
+                        as flags(
+                          "Капот открывается",
+                          "Наличие запасного колеса",
+                          "Наличие секреток",
+                          "Запасной ключ имеется",
+                          "Документы на автомобиль на руках",
+                          "Не открывается лючок бензобака")
+                    ) as flags
                    FROM techtbl)
 UNION ALL
          SELECT taxitbl.id,
@@ -218,5 +245,6 @@ UNION ALL
             NULL::int4 AS towertype,
             taxitbl.taxito_address AS towaddress_address,
             taxitbl.contractor_partnerid AS towdealer_partnerid,
-            taxitbl.parentid
+            taxitbl.parentid,
+            '{}'::json AS flags
            FROM taxitbl;
