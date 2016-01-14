@@ -25,8 +25,7 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
         @url = "#{@api}/1,1/100,100/"
       q = {}
       for f in @model.fields when @kvm[f.name]() and not f.meta?.nosearch
-        if f.name != 'city' # FIXME: maybe use 'meta.nosearch'?
-          q[f.name] = @kvm[f.name]()
+        q[f.name] = @kvm[f.name]()
       $.ajax
         url      : @url
         dataType : 'json'
