@@ -44,7 +44,13 @@ define [ "utils"
     kaseKVM = m.buildKVM global.model('Case'),  {fetched: kase}
     srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
     kvm['canSelectPartner'] = true
-    kvm['city'](if kaseKVM.city?() then [kaseKVM.city()] else [])
+
+    # City filter is empty by default but map must be centered on
+    # case.city or case.caseAddress_city. See #2568.
+    defaultCity = kaseKVM.city?() || kaseKVM.caseAddress_city?()
+    kvm['defaultCity'] = if defaultCity then [defaultCity] else []
+    kvm['city']([])
+
     kvm['make'](if kaseKVM.car_make?() then [kaseKVM.car_make()] else [])
     kvm['field'] = ctx['field']
 
@@ -207,15 +213,17 @@ define [ "utils"
     dict = utils.newModelDict "City"
     kvm["city"].subscribe (newCities) ->
       return unless newCities?
-      kvm["cityPlacesExpected"] = newCities.length
+      cities = if newCities.length > 0 then newCities else kvm.defaultCity
+      kvm["cityPlacesExpected"] = cities.length
       kvm["cityPlaces"].removeAll()
-      for c in newCities
+      for c in cities
         do (c) ->
           fixed_city = dict.getLab c
           $.getJSON map.geoQuery(fixed_city), (res) ->
             if res.length > 0
               place = map.buildCityPlace res, c
               kvm["cityPlaces"].push place
+
 
   # Format addrs field for partner info template
   getFactAddress = (addrs) ->
