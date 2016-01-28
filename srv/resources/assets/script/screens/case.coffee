@@ -194,7 +194,6 @@ define [ "utils"
           type: "POST"
           url: "/_/CaseComment"
           data: JSON.stringify {caseId: parseInt(kvm.id()), comment: comment}
-          dataType: "json"
         $.ajax(opts).done( -> kvm['refreshHistory']?() && chatWs.send comment)
         i.val("")
 
