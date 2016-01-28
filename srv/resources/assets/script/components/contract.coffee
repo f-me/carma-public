@@ -53,7 +53,7 @@ define [
           btn.text(if lst.is(':visible') then 'Скрыть' else 'Показать')
         $.getJSON "/relevantCases/#{contract.caseId}", (res) ->
           relevantCases = for r in res
-            "<li><a target='_blank' hef='#case/#{r.caseId}'>#{r.caseDate} / #{r.caseId}</a></li>"
+            "<li><a target='_blank' href='#case/#{r.caseId}'>#{r.caseDate} / #{r.caseId}</a></li>"
           if relevantCases.length
             lst.html(relevantCases.join '')
           else
