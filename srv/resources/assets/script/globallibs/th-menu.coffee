@@ -63,6 +63,13 @@ class ThMenu
   show: =>
     pos = $.extend {}, @.$element.offset(),
       height: @.$element[0].offsetHeight
+      width: @.$element[0].offsetWidth
+
+    windowWidth = $(window).width()
+    [left, right] = if pos.right > windowWidth * 0.8
+        [pos.left, 'auto']
+      else
+        ['auto', windowWidth - pos.left - pos.width]
 
     # if element in bottom area of the screen
     if pos.top > $(window).height() / 2
@@ -70,14 +77,18 @@ class ThMenu
       paddingBottom = pos.height / 2 + 4
       @$menu.css
         top: pos.top - @$menu.height() - paddingBottom
-        left: pos.left
+        left: left
+        right: right
         minWidth: @.$element.width() + "px"
+        maxWidth: '55%'
     else
       # .. show menu below it
       @$menu.css
         top: pos.top + pos.height
-        left: pos.left
+        left: left
+        right: right
         minWidth: @.$element.width() + "px"
+        maxWidth: '55%'
 
     @$menu.show()
     @shown = true
