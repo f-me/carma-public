@@ -40,26 +40,24 @@ define [
         $dl.append(
           '<tr><td><strong>Предыдущие кейсы</strong></td>
                <td>
-                 <button id="contract-relevant-cases-btn">Показать</button>
-                 <ul id="contract-relevant-cases-lst" style="display:none;">
+                 <button id="contract-relevant-cases-btn">Скрыть</button>
+                 <ul id="contract-relevant-cases-lst">
                    <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
                  </ul>
                </td>
           </tr>')
-        relevantCases = null
         lst = $dl.find '#contract-relevant-cases-lst'
         btn = $dl.find '#contract-relevant-cases-btn'
         btn.on 'click', ->
           lst.toggle()
           btn.text(if lst.is(':visible') then 'Скрыть' else 'Показать')
-          if not relevantCases && lst.is(':visible')
-            $.getJSON "/relevantCases/#{contract.caseId}", (res) ->
-              relevantCases = for r in res
-                "<li><a target='_blank' hef='#case/#{r.caseId}'>#{r.caseDate} / #{r.caseId}</a></li>"
-              if relevantCases.length
-                lst.html(relevantCases.join '')
-              else
-                lst.html 'Ничего не найдено'
+        $.getJSON "/relevantCases/#{contract.caseId}", (res) ->
+          relevantCases = for r in res
+            "<li><a target='_blank' hef='#case/#{r.caseId}'>#{r.caseDate} / #{r.caseId}</a></li>"
+          if relevantCases.length
+            lst.html(relevantCases.join '')
+          else
+            lst.html 'Ничего не найдено'
 
 
 

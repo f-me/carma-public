@@ -287,7 +287,7 @@ relevantCases = do
       AND c1.contractIdentifier = c2.contractIdentifier
       AND length(c2.contractIdentifier) > 4
     ORDER BY c2.callDate DESC
-    LIMIT 10
+    LIMIT 25
     |]) [c]
   writeJSON $ mkMap ["caseId", "caseDate"] rows
 
