@@ -110,7 +110,8 @@ WITH servicecounts AS (
    u3.realname AS "Консультант",
    p2.code AS "Код дилера",
    casecity.label AS "Город места поломки",
-   dealercity.label AS "Город дилера (куда эвакуируют)",
+   dealerTOcity.label AS "Город дилера (где было ТО)",
+   towdealercity.label AS "Город ДЦ",
    p4.name AS "Дилер ТО(последний)",
    p4.code AS "Код дилера ТО(последн.)",
    initcap(split_part(casetbl.contact_name, ' '::text, 2)) AS "Имя клиента",
@@ -215,7 +216,25 @@ WITH servicecounts AS (
     servicetbl.files AS "Файлы, прикрепленные к услуге",
     timezone('Europe/Moscow'::text, servicetbl.times_factserviceclosure) AS "Фактическое время закрытия услуги",
     timezone('Europe/Moscow'::text, servicetbl.times_factdealerinfo) AS "Факт. время получения информации",
-    casetbl.contact_name AS "ФИО звонящего"
+    casetbl.contact_name AS "ФИО звонящего",
+
+    CASE allservicesview.flags->>'Заблокирован электронный ручной т'
+      WHEN 'true'::text THEN 'Y' ELSE 'N' END as "Заблокирован электронный ручной т",
+    CASE allservicesview.flags->>'Руль заблокирован'
+      WHEN 'true'::text THEN 'Y' ELSE 'N' END as "Руль заблокирован",
+
+    CASE allservicesview.flags->>'Капот открывается'
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Капот открывается",
+    CASE allservicesview.flags->>'Наличие запасного колеса'
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Наличие запасного колеса",
+    CASE allservicesview.flags->>'Наличие секреток'
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Наличие секреток",
+    CASE allservicesview.flags->>'Запасной ключ имеется'
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Запасной ключ имеется",
+    CASE allservicesview.flags->>'Документы на автомобиль на руках'
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Документы на автомобиль на руках",
+    CASE allservicesview.flags->>'Не открывается лючок бензобака'
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Не открывается лючок бензобака"
 
    FROM casetbl
    LEFT JOIN commentLists ON casetbl.id = commentLists.caseId
@@ -229,7 +248,7 @@ WITH servicecounts AS (
    LEFT JOIN partnertbl p3 ON casetbl.car_seller = p3.id
    LEFT JOIN partnertbl p4 ON casetbl.car_dealerto = p4.id
    LEFT JOIN "City" casecity ON casetbl.city = casecity.id
-   LEFT JOIN "City" dealercity ON p4.city = dealercity.id
+   LEFT JOIN "City" dealerTOcity ON p4.city = dealerTOcity.id
    LEFT JOIN "CarMake" ON casetbl.car_make = "CarMake".id
    LEFT JOIN "CarModel" ON casetbl.car_model = "CarModel".id
    LEFT JOIN "Contract" ON casetbl.contract = "Contract".id
@@ -245,6 +264,7 @@ WITH servicecounts AS (
    LEFT JOIN allservicesview ON allservicesview.id = servicetbl.id AND servicetbl.parentid = allservicesview.parentid
    LEFT JOIN partnertbl p1 ON servicetbl.contractor_partnerid = p1.id
    LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = p2.id
+   LEFT JOIN "City" towdealercity ON p2.city = towdealercity.id
    LEFT JOIN "ConsultationResult" ON allservicesview.consResult = "ConsultationResult".id
    LEFT JOIN "ConsultationType" ON allservicesview.consType = "ConsultationType".id
    LEFT JOIN "TowType" ON allservicesview.towType = "TowType".id

@@ -1,222 +1,170 @@
 CREATE OR REPLACE VIEW allservicesview AS
-                (((        (        (        (        (        (        (        (         SELECT averagecommissionertbl.id,
-
-                                                                                            averagecommissionertbl.type,
-                                                                                            averagecommissionertbl.contractor_partner AS towdealer_partner,
-                                                                                            averagecommissionertbl.suburbanmilage,
-                                                                                            NULL::text AS providedfor,
-                                                                                            NULL::timestamp with time zone AS repairenddate,
-                                                                                            NULL::text AS whatToSay1,
-                                                                                            NULL::int4 AS consType,
-                                                                                            NULL::int4 AS consResult,
-                                                                                            NULL::int4 AS consultant,
-                                                                                            NULL::int4 AS techtype,
-                                                                                            NULL::int4 AS towtype,
-                                                                                            NULL::int4 AS towertype,
-                                                                                            averagecommissionertbl.contractor_address AS towaddress_address,
-                                                                                            averagecommissionertbl.contractor_partnerid AS towdealer_partnerid,
-                                                                                            averagecommissionertbl.parentid
-                                                                                           FROM averagecommissionertbl
-                                                                                UNION ALL
-                                                                                         SELECT banktbl.id,
-
-                                                                                            banktbl.type,
-                                                                                            banktbl.contractor_partner AS towdealer_partner,
-                                                                                            banktbl.suburbanmilage,
-                                                                                            NULL::text AS providedfor,
-                                                                                            NULL::timestamp with time zone AS repairenddate,
-                                                                                            NULL::text AS whatToSay1,
-                                                                                            NULL::int4 AS consType,
-                                                                                            NULL::int4 AS consResult,
-                                                                                            NULL::int4 AS consultant,
-                                                                                            NULL::int4 AS techtype,
-                                                                                            NULL::int4 AS towtype,
-                                                                                            NULL::int4 AS towertype,
-                                                                                            NULL::text AS towaddress_address,
-                                                                                            banktbl.contractor_partnerid AS towdealer_partnerid,
-                                                                                            banktbl.parentid
-                                                                                           FROM banktbl)
-                                                                        UNION ALL
-                                                                                 SELECT consultationtbl.id,
-
-                                                                                    consultationtbl.type,
-                                                                                    consultationtbl.contractor_partner AS towdealer_partner,
-                                                                                    consultationtbl.suburbanmilage,
-                                                                                    NULL::text AS providedfor,
-                                                                                    NULL::timestamp with time zone AS repairenddate,
-                                                                                    consultationtbl.whatToSay1,
-                                                                                    consultationtbl.consType,
-                                                                                    consultationtbl.consResult,
-                                                                                    consultationtbl.consultant,
-                                                                                    NULL::int4 AS techtype,
-                                                                                    NULL::int4 AS towtype,
-                                                                                    NULL::int4 AS towertype,
-                                                                                    NULL::text AS towaddress_address,
-                                                                                    consultationtbl.contractor_partnerid AS towdealer_partnerid,
-                                                                                    consultationtbl.parentid
-                                                                                   FROM consultationtbl)
-                                                                UNION ALL
-                                                                         SELECT deliverclienttbl.id,
-
-                                                                            deliverclienttbl.type,
-                                                                            deliverclienttbl.contractor_partner AS towdealer_partner,
-                                                                            deliverclienttbl.suburbanmilage,
-                                                                            NULL::text AS providedfor,
-                                                                            NULL::timestamp with time zone AS repairenddate,
-                                                                            NULL::text AS whatToSay1,
-                                                                            NULL::int4 AS consType,
-                                                                            NULL::int4 AS consResult,
-                                                                            NULL::int4 AS consultant,
-                                                                            NULL::int4 AS techtype,
-                                                                            NULL::int4 AS towtype,
-                                                                            NULL::int4 AS towertype,
-                                                                            deliverclienttbl.contractor_address AS towaddress_address,
-                                                                            deliverclienttbl.contractor_partnerid AS towdealer_partnerid,
-                                                                            deliverclienttbl.parentid
-                                                                           FROM deliverclienttbl)
-                                                        UNION ALL
-                                                                 SELECT informationtbl.id,
-                                                                    informationtbl.type,
-                                                                    informationtbl.contractor_partner AS towdealer_partner,
-                                                                    informationtbl.suburbanmilage,
-                                                                    NULL::text AS providedfor,
-                                                                    NULL::timestamp with time zone AS repairenddate,
-                                                                    NULL::text AS whatToSay1,
-                                                                    NULL::int4 AS consType,
-                                                                    NULL::int4 AS consResult,
-                                                                    NULL::int4 AS consultant,
-                                                                    NULL::int4 AS techtype,
-                                                                    NULL::int4 AS towtype,
-                                                                    NULL::int4 AS towertype,
-                                                                    informationtbl.contractor_address AS towaddress_address,
-                                                                    informationtbl.contractor_partnerid AS towdealer_partnerid,
-                                                                    informationtbl.parentid
-                                                                   FROM informationtbl)
-                                                UNION ALL
-                                                         SELECT deliverpartstbl.id,
-
-                                                            deliverpartstbl.type,
-                                                            deliverpartstbl.contractor_partner AS towdealer_partner,
-                                                            deliverpartstbl.suburbanmilage,
-                                                            NULL::text AS providedfor,
-                                                            NULL::timestamp with time zone AS repairenddate,
-                                                            NULL::text AS whatToSay1,
-                                                            NULL::int4 AS consType,
-                                                            NULL::int4 AS consResult,
-                                                            NULL::int4 AS consultant,
-                                                            NULL::int4 AS techtype,
-                                                            NULL::int4 AS towtype,
-                                                            NULL::int4 AS towertype,
-                                                            deliverpartstbl.contractor_address AS towaddress_address,
-                                                            deliverpartstbl.contractor_partnerid AS towdealer_partnerid,
-                                                            deliverpartstbl.parentid
-                                                           FROM deliverpartstbl)
-                                        UNION ALL
-                                                 SELECT hoteltbl.id,
-
-                                                    hoteltbl.type,
-                                                    hoteltbl.contractor_partner AS towdealer_partner,
-                                                    hoteltbl.suburbanmilage,
-                                                    hoteltbl.providedfor,
-                                                    NULL::timestamp with time zone AS repairenddate,
-                                                    NULL::text AS whatToSay1,
-                                                    NULL::int4 AS consType,
-                                                    NULL::int4 AS consResult,
-                                                    NULL::int4 AS consultant,
-                                                    NULL::int4 AS techtype,
-                                                    NULL::int4 AS towtype,
-                                                    NULL::int4 AS towertype,
-                                                    hoteltbl.contractor_address AS towaddress_address,
-                                                    hoteltbl.contractor_partnerid AS towdealer_partnerid,
-                                                    hoteltbl.parentid
-                                                   FROM hoteltbl)
-                                UNION ALL
-                                         SELECT sobertbl.id,
-                                            sobertbl.type,
-                                            sobertbl.contractor_partner AS towdealer_partner,
-                                            sobertbl.suburbanmilage,
-                                            NULL::text AS providedfor,
-                                            NULL::timestamp with time zone AS repairenddate,
-                                            NULL::text AS whatToSay1,
-                                            NULL::int4 AS consType,
-                                            NULL::int4 AS consResult,
-                                            NULL::int4 AS consultant,
-                                            NULL::int4 AS techtype,
-                                            NULL::int4 AS towtype,
-                                            NULL::int4 AS towertype,
-                                            sobertbl.contractor_address AS towaddress_address,
-                                            sobertbl.contractor_partnerid AS towdealer_partnerid,
-                                            sobertbl.parentid
-                                           FROM sobertbl)
-                        UNION ALL
-                                 SELECT renttbl.id,
-                                    renttbl.type,
-                                    renttbl.towdealer_partner,
-                                    NULL::text AS suburbanmilage,
-                                    renttbl.providedfor,
-                                    NULL::timestamp with time zone AS repairenddate,
-                                    NULL::text AS whatToSay1,
-                                    NULL::int4 AS consType,
-                                    NULL::int4 AS consResult,
-                                    NULL::int4 AS consultant,
-                                    NULL::int4 AS techtype,
-                                    NULL::int4 AS towtype,
-                                    NULL::int4 AS towertype,
-                                    NULL::text AS towaddress_address,
-                                    renttbl.towdealer_partnerid,
-                                    renttbl.parentid
-                                   FROM renttbl)
-                UNION ALL
-                         SELECT towagetbl.id,
-                            towagetbl.type,
-                            towagetbl.towdealer_partner,
-                            towagetbl.suburbanmilage,
-                            NULL::text AS providedfor,
-                            towagetbl.repairenddate,
-                            NULL::text AS whatToSay1,
-                            NULL::int4 AS consType,
-                            NULL::int4 AS consResult,
-                            NULL::int4 AS consultant,
-                            NULL::int4 AS techtype,
-                            towagetbl.towtype,
-                            towagetbl.towertype,
-                            towagetbl.towaddress_address,
-                            towagetbl.towdealer_partnerid,
-                            towagetbl.parentid
-                           FROM towagetbl)
-        UNION ALL
-                 SELECT techtbl.id,
-                    techtbl.type,
-                    NULL::text AS towdealer_partner,
-                    techtbl.suburbanmilage,
-                    NULL::text AS providedfor,
-                    NULL::timestamp with time zone AS repairenddate,
-                    NULL::text AS whatToSay1,
-                    NULL::int4 AS consType,
-                    NULL::int4 AS consResult,
-                    NULL::int4 AS consultant,
-                    techtbl.techtype,
-                    NULL::int4 AS towtype,
-                    NULL::int4 AS towertype,
-                    NULL::text AS towaddress_address,
-                    NULL::int4 AS towdealer_partnerid,
-                    techtbl.parentid
-                   FROM techtbl)
-UNION ALL
-         SELECT taxitbl.id,
-            taxitbl.type,
-            taxitbl.contractor_partner AS towdealer_partner,
-            NULL::text AS suburbanmilage,
-            NULL::text AS providedfor,
-            NULL::timestamp with time zone AS repairenddate,
-            NULL::text AS whatToSay1,
-            NULL::int4 AS consType,
-            NULL::int4 AS consResult,
-            NULL::int4 AS consultant,
-            NULL::int4 AS techtype,
-            NULL::int4 AS towtype,
-            NULL::int4 AS towertype,
-            taxitbl.taxito_address AS towaddress_address,
-            taxitbl.contractor_partnerid AS towdealer_partnerid,
-            taxitbl.parentid
-           FROM taxitbl;
+  SELECT
+      (json->>'id')::int4 as id,
+      (json->>'type')::int4 as type,
+      (json->>'towdealer_partner') as towdealer_partner,
+      (json->>'suburbanmilage') as suburbanmilage,
+      (json->>'providedfor') as providedfor,
+      (json->>'repairenddate')::timestamp with time zone as repairenddate,
+      (json->>'whatToSay1') as whatToSay1,
+      (json->>'consType')::int4 as consType,
+      (json->>'consResult')::int4 as consResult,
+      (json->>'consultant')::int4 as consultant,
+      (json->>'techtype')::int4 as techtype,
+      (json->>'towtype')::int4 as towtype,
+      (json->>'towertype')::int4 as towertype,
+      (json->>'towaddress_address') as towaddress_address,
+      (json->>'towdealer_partnerid')::int4 as towdealer_partnerid,
+      (json->>'parentid')::int4 as parentid,
+      (json->'flags')::json as flags
+    FROM (
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              contractor_partner AS towdealer_partner,
+              suburbanmilage,
+              contractor_address AS towaddress_address,
+              contractor_partnerid AS towdealer_partnerid,
+              parentid
+            FROM averagecommissionertbl) x
+      UNION ALL
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              contractor_partner AS towdealer_partner,
+              suburbanmilage,
+              contractor_partnerid AS towdealer_partnerid,
+              parentid
+             FROM banktbl) x
+      UNION ALL
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              contractor_partner AS towdealer_partner,
+              suburbanmilage,
+              whatToSay1,
+              consType,
+              consResult,
+              consultant,
+              contractor_partnerid AS towdealer_partnerid,
+              parentid
+            FROM consultationtbl) x
+      UNION ALL
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              contractor_partner AS towdealer_partner,
+              suburbanmilage,
+              contractor_address AS towaddress_address,
+              contractor_partnerid AS towdealer_partnerid,
+              parentid
+            FROM deliverclienttbl) x
+      UNION ALL
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              contractor_partner AS towdealer_partner,
+              suburbanmilage,
+              contractor_address AS towaddress_address,
+              contractor_partnerid AS towdealer_partnerid,
+              parentid
+            FROM informationtbl) x
+      UNION ALL
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              contractor_partner AS towdealer_partner,
+              suburbanmilage,
+              contractor_address AS towaddress_address,
+              contractor_partnerid AS towdealer_partnerid,
+              parentid
+            FROM deliverpartstbl) x
+      UNION ALL
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              contractor_partner AS towdealer_partner,
+              suburbanmilage,
+              providedfor,
+              contractor_address AS towaddress_address,
+              contractor_partnerid AS towdealer_partnerid,
+              parentid
+            FROM hoteltbl) x
+      UNION ALL
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              contractor_partner AS towdealer_partner,
+              suburbanmilage,
+              contractor_address AS towaddress_address,
+              contractor_partnerid AS towdealer_partnerid,
+              parentid
+            FROM sobertbl) x
+      UNION ALL
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              towdealer_partner,
+              providedfor,
+              towdealer_partnerid,
+              parentid
+            FROM renttbl) x
+      UNION ALL
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              towdealer_partner,
+              suburbanmilage,
+              repairenddate,
+              towtype,
+              towertype,
+              towaddress_address,
+              towdealer_partnerid,
+              parentid,
+              (select row_to_json(flags)
+                from (values (check1, check2))
+                  as flags(
+                    "Заблокирован электронный ручной тормоз",
+                    "Руль заблокирован")
+                ) as flags
+            FROM towagetbl) x
+      UNION ALL
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              suburbanmilage,
+              techtype,
+              parentid,
+              (select row_to_json(flags)
+                from (values(check1, check2, check3, check4, check5, check6))
+                  as flags(
+                    "Капот открывается",
+                    "Наличие запасного колеса",
+                    "Наличие секреток",
+                    "Запасной ключ имеется",
+                    "Документы на автомобиль на руках",
+                    "Не открывается лючок бензобака")
+                ) as flags
+              FROM techtbl) x
+      UNION ALL
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              contractor_partner AS towdealer_partner,
+              taxito_address AS towaddress_address,
+              contractor_partnerid AS towdealer_partnerid,
+              parentid
+              FROM taxitbl) x
+    ) res(json);

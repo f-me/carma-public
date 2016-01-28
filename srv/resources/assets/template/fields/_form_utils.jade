@@ -126,7 +126,7 @@ mixin checkboxField(name)
       +labelWithInfo(name)
 
 mixin checkboxTpl(name)
-  .form-group
+  .form-group(data-bind="visible: {{name}}Visible")
     .col-sm-4
     label.col-sm-8.control-label(style="text-align: left")
       +checkboxField(name)

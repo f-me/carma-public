@@ -439,7 +439,7 @@ mixin simpleRefHdr(name, bindName)
 #services-reference-template.reference-template
   +refCommon('style: {"background-color": _svcColor}')
     span &nbsp;
-    a(data-bind='text: _meta.model.title') Услуга…
+    a.btn(data-bind='text: _meta.model.title') Услуга…
     span &nbsp;
     a.btn.btn-mini.btn-default(
       data-bind="attr: { href: '#printSrv/' + id() }"
@@ -531,14 +531,14 @@ mixin caseFilesList
       span(data-bind='text: safelyGet(\'caseAddress_address\')')
       br
       span(data-bind='text: safelyGet(\'caseAddress_comment\')')
-    p(data-bind='visible: safelyGet(\'cityLocal\')')
+    p(data-bind='visible: safelyGet(\'caseAddress_cityLocal\')')
       b Регион:&nbsp;
       span(data-bind='text: safelyGet(\'region\')')
-    p(data-bind='visible: safelyGet(\'cityLocal\')')
+    p(data-bind='visible: safelyGet(\'caseAddress_cityLocal\')')
       b
         | Расчётное значение ожидания эвакуатора в
         | г.
-        span(data-bind='text: safelyGet(\'cityLocal\')')
+        span(data-bind='text: safelyGet(\'caseAddress_cityLocal\')')
         | :&nbsp;
       span#city-towage-average-time
     #contract
@@ -560,11 +560,28 @@ mixin caseFilesList
       #case-history
         h4(style="float: left") История по кейсу
         div(style="float: right")
-          input.form-control(placeholder="Фильтр",
+          div.btn-group.btn-group-sm(role="group")
+            .btn.btn-default(
+              title="Показать действия",
+              data-bind="css: histShowActi() && 'active', click: histToggleActi")
+                i.glyphicon.glyphicon-briefcase
+            .btn.btn-default(
+              title="Показать комментарии",
+              data-bind="css: histShowComm() && 'active', click: histToggleComm")
+                i.glyphicon.glyphicon-bullhorn
+            .btn.btn-default(
+              title="Показать отказы партнёров",
+              data-bind="css: histShowCanc() && 'active', click: histToggleCanc")
+                i.glyphicon.glyphicon-remove-circle
+            .btn.btn-default(
+              title="Показать звонки",
+              data-bind="css: histShowCall() && 'active', click: histToggleCall")
+                i.glyphicon.glyphicon-phone-alt
+          input.form-control(placeholder="Фильтр", style="display: inline-block; width: auto;"
                              data-bind="textInput: historyFilter")
         div(style="clear:both")
         // ko foreach: historyItems
-        div.well.history-item(data-bind="style: {'background-color': color}")
+        div.well.history-item(data-bind="visible: visible, style: {'background-color': color}")
           div
             div.history-datetime
               span(data-bind="text: datetime")

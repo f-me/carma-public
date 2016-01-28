@@ -37,6 +37,30 @@ define [
             label = "<td><strong>#{f.meta.label}</strong></td>"
             $dl.append("<tr>#{label}#{value}</tr>")
 
+        $dl.append(
+          '<tr><td><strong>Предыдущие кейсы</strong></td>
+               <td>
+                 <button id="contract-relevant-cases-btn">Скрыть</button>
+                 <ul id="contract-relevant-cases-lst">
+                   <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+                 </ul>
+               </td>
+          </tr>')
+        lst = $dl.find '#contract-relevant-cases-lst'
+        btn = $dl.find '#contract-relevant-cases-btn'
+        btn.on 'click', ->
+          lst.toggle()
+          btn.text(if lst.is(':visible') then 'Скрыть' else 'Показать')
+        $.getJSON "/relevantCases/#{contract.caseId}", (res) ->
+          relevantCases = for r in res
+            "<li><a target='_blank' href='#case/#{r.caseId}'>#{r.caseDate} / #{r.caseId}</a></li>"
+          if relevantCases.length
+            lst.html(relevantCases.join '')
+          else
+            lst.html 'Ничего не найдено'
+
+
+
     showContract = (contract, knockVM, el) ->
       contract.isActive = if contract.isActive then "Да" else "Нет"
       delete contract.dixi
@@ -45,6 +69,7 @@ define [
       mapper = new DataMap.Mapper(model)
       kvm = Main.buildKVM model, {fetched: mapper.s2cObj contract}
 
+      kvm.caseId = knockVM.id()
       kvm.isExpired = ko.computed ->
         return unless knockVM.callDate?()
         callDate = Date.parseExact(knockVM.callDate(), "dd.MM.yyyy HH:mm:ss")?.getTime()
@@ -54,7 +79,7 @@ define [
 
       kvm.close = ->
         return unless confirm "Стереть из кейса ссылку на контракт?"
-        knockVM.contract("");
+        knockVM.contract("")
 
       $("##{el}").html(
         Mustache.render($(flds).find("#contract-content-template").html(),

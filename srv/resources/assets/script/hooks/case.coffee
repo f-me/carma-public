@@ -24,27 +24,33 @@ define [ "utils"
 
   caseHistory: (model, kvm) ->
     kvm['historyFilter'] = ko.observable()
+    kvm['histShowActi'] = ko.observable true
+    kvm['histShowComm'] = ko.observable true
+    kvm['histShowCanc'] = ko.observable true
+    kvm['histShowCall'] = ko.observable true
+    kvm['histToggleActi'] = -> kvm.histShowActi(not kvm.histShowActi())
+    kvm['histToggleComm'] = -> kvm.histShowComm(not kvm.histShowComm())
+    kvm['histToggleCanc'] = -> kvm.histShowCanc(not kvm.histShowCanc())
+    kvm['histToggleCall'] = -> kvm.histShowCall(not kvm.histShowCall())
     kvm['historyItems'] = ko.observableArray()
     kvm['endOfHistory'] = ko.observable true
     kvm['lookBackInHistory'] = ->
 
-  # Display daily service stats in central pane when `city` field of
+  # Display daily service stats in central pane when `caseAddress_city` field of
   # case is changed.
-  cityStatsHook: (model, knockVM) ->
-    cityField = "city"
-    u.hideComplex
-    knockVM[cityField]?.subscribe (new_city) ->
+  cityStatsHook: (model, kvm) ->
+    kvm.caseAddress_city?.subscribe (new_city) ->
       if new_city
         $.getJSON "/stats/towAvgTime/" + new_city,
           (r) -> $("#city-towage-average-time").text(u.formatSecToMin(r[0]))
       else
         $("#city-towage-average-time").text ''
 
-  regionHook: (model, knockVM) ->
-    knockVM['region'] = ko.computed
+  regionHook: (model, kvm) ->
+    kvm['region'] = ko.computed
       read: ->
         res = ''
-        city = knockVM.city?()
+        city = kvm.caseAddress_city?() || kvm.city?()
         if city
           $.bgetJSON "/regionByCity/#{city}",
             (r) -> res = r.join ','
