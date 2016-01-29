@@ -472,8 +472,10 @@ define [ "utils"
     kvm['searchProcessed'].set_sorter(sorterName, 'asc')
     kvm['searchProcessed'].change_filters ['searchq', 'workNow']
     kvm['selectedPartner'] = ko.observable(null)
+    kvm['defaultCity'] = []
 
-    kvm["cityPlaces"] = ko.observableArray []
+
+    kvm['cityPlaces'] = ko.observableArray []
     bindCityPlaces kvm
 
     loadContext kvm, args
