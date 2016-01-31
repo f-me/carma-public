@@ -82,6 +82,16 @@ define [ "utils"
 
       $(".status-btn-tooltip").tooltip()
 
+      # scroll to service if we have its id in url
+      if args.svc
+        services = global.viewsWare["case-form"].knockVM.servicesReference()
+        for s in services
+          if String(s.id()) == args.svc
+            $("##{s._meta.model.viewName}-head").collapse('show')
+            leftTop = $("#left").scrollTop()
+            svcTop = $("##{s._meta.model.viewName}-group").offset().top
+            $("#left").animate {scrollTop: leftTop + svcTop - 40}, 1000
+
     # History pane
     setupHistory = (kvm) ->
       historyDatetimeFormat = "dd.MM.yyyy HH:mm:ss"
