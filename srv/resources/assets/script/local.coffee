@@ -168,7 +168,7 @@ require [ "domready"
       svcs.removeAll()
       svcs.extend {rateLimit: 100}
       if global.user._abandonedServices
-        for s in global.user._abandonedServices
+        for s in global.user._abandonedServices.slice(0,20)
           svcs.push(
             href: "#case/#{s.caseId}/#{s.svcId}"
             text: "#{s.caseId} ― #{s.type}"
