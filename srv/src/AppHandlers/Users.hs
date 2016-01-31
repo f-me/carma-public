@@ -200,9 +200,10 @@ serveUserCake = currentUserMeta >>= \case
           select row_to_json(x) from
             (select
                 extract(epoch from createtime) as ctime,
-                parentid as "caseId",
-                id as "svcId"
-              from servicetbl
+                s.parentid as "caseId",
+                s.id as "svcId",
+                t.label as "type"
+              from servicetbl s join "ServiceType" t on (s.type = t.id)
               where status = 2
                 and creator = $(ident)$
               order by createtime desc, parentid) x
@@ -210,7 +211,7 @@ serveUserCake = currentUserMeta >>= \case
         let list = toJSON (map fromOnly svcs :: [Aeson.Value])
         let Object usr' = Aeson.toJSON usr
         writeJSON $ Object
-          $ HashMap.insert "_createdServices" list usr'
+          $ HashMap.insert "_abandonedServices" list usr'
 
 
 -- | Serve states for a user within a time interval.

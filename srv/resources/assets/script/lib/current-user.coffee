@@ -79,6 +79,7 @@ define [ "model/main"
     usr.currentStateCTime?.subscribe (v) => calcTime()
 
     # update time diff each 10 seconds
+    calcTime()
     setInterval(calcTime, 10000)
 
     usr.delayedStateLocal?.subscribeWithOld (n, o) =>
@@ -87,6 +88,10 @@ define [ "model/main"
       msg = "Переход в статус \"#{n}\" после завершения текущего действия."
       $.notify msg, className: "info"
 
+    usr.abandonedServices = ko.observableArray([])
+    usr.alert = ko.computed ->
+      usr.abandonedServices().length > 0
+
     ko.applyBindings(usr, $("#current-user")[0])
     # little hack so dropdown with delayed states won't close when user
     # change next state
@@ -94,6 +99,7 @@ define [ "model/main"
 
     if window.location.hash == "" and homepage
       Finch.navigate homepage.replace '/', ''
+
 
   readStuff: (key) ->
     checkStuff()
