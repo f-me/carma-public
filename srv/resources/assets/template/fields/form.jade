@@ -446,13 +446,19 @@ mixin simpleRefHdr(name, bindName)
       target='_blank')
       span.glyphicon.glyphicon-print
       | &nbsp;Печать
+    br
+    // ko foreach: topLevelButtons
     span &nbsp;
     button.btn.btn-mini.btn-danger(
-      data-bind='visible: buttons.mistake.visible,\
-                 click: buttons.mistake.click')
-      span.glyphicon.glyphicon-remove
+      data-bind='visible: visible,\
+         css: {"btn-danger":  type == "danger",\
+               "btn-warning": type == "warning",\
+               "btn-success": type == "success"\
+              },\
+         click: click')
       | &nbsp;
-      span(data-bind='text: buttons.mistake.text')
+      span(data-bind='text: text')
+    // /ko
 
 
 #partner_services-reference-template.reference-template

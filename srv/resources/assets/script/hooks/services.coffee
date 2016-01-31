@@ -60,14 +60,37 @@ define [ "utils"
     kase = kvm._parent
     sDict = u.newModelDict("ServiceStatus")
 
-    kvm.buttons.mistake = {}
-    kvm.buttons.mistake.text =
-      sDict.getLab global.idents("ServiceStatus").mistake
-    kvm.buttons.mistake.visible = ko.computed ->
-      kvm['status']() == global.idents("ServiceStatus").creating
-    kvm.buttons.mistake.click = ->
-      if confirm "Закрыть услугу как ошибочную?"
-        kvm['status'] global.idents("ServiceStatus").mistake
+
+    kvm.topLevelButtons = [
+      {
+        type: 'danger'
+        text: sDict.getLab global.idents("ServiceStatus").mistake
+        visible: ko.computed(->
+          kvm['status']() == global.idents("ServiceStatus").creating)
+        click: ->
+          event.stopPropagation()
+          if confirm "Закрыть услугу как ошибочную?"
+            kvm['status'] global.idents("ServiceStatus").mistake
+      },
+      {
+        type: 'warning'
+        text: "Обработать позже"
+        visible: ko.computed(->
+          kvm['status']() == global.idents("ServiceStatus").creating)
+        click: ->
+          event.stopPropagation()
+          kvm['status'] global.idents("ServiceStatus").suspended
+      },
+      {
+        type: 'success'
+        text: "Активировать"
+        visible: ko.computed(->
+          kvm['status']() == global.idents("ServiceStatus").suspended)
+        click: ->
+          event.stopPropagation()
+          kvm['status'] global.idents("ServiceStatus").creating
+      }
+    ]
 
     # Required *case* fields for the backoffice button to be enabled
     boFlds = [ 'city'
