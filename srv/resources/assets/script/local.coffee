@@ -163,16 +163,7 @@ require [ "domready"
     # disable everytnig websocket-related for portal
     if not window.location.origin.match(/portal\.ruamc\.ru/)
       CurrentUser.initialize()
-      # get abandoned services and render them at #current-user
-      svcs = global.Usermeta.abandonedServices
-      svcs.removeAll()
-      svcs.extend {rateLimit: 100}
-      if global.user._abandonedServices
-        for s in global.user._abandonedServices.slice(0,20)
-          svcs.push(
-            href: "#case/#{s.caseId}/#{s.svcId}"
-            text: "#{s.caseId} ― #{s.type}"
-          )
+      global.Usermeta.updateAbandonedServices()
 
     # render menu only after everything else in menu bar is done
     liveMenu.setup(document.getElementById 'nav')

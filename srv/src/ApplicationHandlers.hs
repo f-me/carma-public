@@ -31,7 +31,7 @@ module ApplicationHandlers
 where
 
 import Data.Functor
-import Control.Error
+import Control.Error hiding (err)
 import Control.Monad.State.Class
 
 import Data.Text (Text)
@@ -44,8 +44,6 @@ import Data.ByteString (ByteString)
 import qualified Data.Aeson as Aeson
 import Data.Aeson
 import qualified Data.Map as Map
-
-import Data.Maybe
 
 import Database.PostgreSQL.Simple (Query)
 import Database.PostgreSQL.Simple.SqlQQ
@@ -283,7 +281,6 @@ getRegionByCity =
 clientConfig :: AppHandler ()
 clientConfig = do
   mus <- with fileUpload $ gets (fromIntegral . getMaximumFormInputSize . cfg)
-  opts <- gets options
   let config :: Map.Map T.Text Aeson.Value
       config =
         Map.fromList

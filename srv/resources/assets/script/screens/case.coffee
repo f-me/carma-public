@@ -287,6 +287,7 @@ define [ "utils"
           $('.accordion-toggle:has(> .alert)').css 'padding', 0
           $(".status-btn-tooltip").tooltip()
           $("##{k['view']}-head").collapse 'show'
+          global.Usermeta.updateAbandonedServices()
 
     utils.build_global_fn 'addService', ['screens/case']
 

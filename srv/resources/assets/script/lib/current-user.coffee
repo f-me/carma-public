@@ -92,6 +92,19 @@ define [ "model/main"
     usr.alert = ko.computed ->
       usr.abandonedServices().length > 0
 
+    # get abandoned services and render them at #current-user
+    usr.updateAbandonedServices = ->
+      $.getJSON '/backoffice/abandonedServices', (res) ->
+        usr.abandonedServices.removeAll()
+        usr.abandonedServices.extend {rateLimit: 100}
+        for s in res.slice(0,20)
+          usr.abandonedServices.push(
+            href: "#case/#{s.caseId}/#{s.svcId}"
+            text: "#{s.caseId} ― #{s.type}"
+          )
+        if res.length > 20
+          usr.abandonedServices.push({href: '', text: '...'})
+
     ko.applyBindings(usr, $("#current-user")[0])
     # little hack so dropdown with delayed states won't close when user
     # change next state

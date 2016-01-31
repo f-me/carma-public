@@ -22,6 +22,7 @@ module AppHandlers.CustomSearches
     , relevantCases
     , searchCases
     , findSameContract
+    , abandonedServices
     )
 
 where
@@ -37,14 +38,17 @@ import           Data.String (fromString)
 import           Data.Maybe (fromMaybe)
 import           Data.Text (Text)
 import           Data.Time.Clock
+import qualified Data.Vector as V
 
 import           Database.PostgreSQL.Simple hiding (query, query_)
 import           Database.PostgreSQL.Simple.SqlQQ
 
 import           Snap
 import           Snap.Snaplet.PostgresqlSimple
+import           Snaplet.Auth.PGUsers
 
 import           Data.Model.Types
+import qualified Data.Model.Patch as Patch
 
 import qualified Carma.Model.ActionType              as AType
 import qualified Carma.Model.Role                    as Role
@@ -341,3 +345,37 @@ findSameContract = do
         ++ (maybe "" (\x -> " OR c.cardNumber = " ++ quote x) num)
         ++ ")"
       writeJSON $ mkMap ["id", "ctime"] rows
+
+abandonedServices :: AppHandler ()
+abandonedServices = currentUserMeta >>= \case
+  Nothing  -> handleError 401
+  Just usr -> do
+    let Just roles = V.toList <$> Patch.get usr Usermeta.roles
+    let needCreatedServiceList = hasNoneOfRoles roles
+          [Role.reportManager
+          ,Role.supervisor
+          ,Role.head
+          ,Role.bo_qa
+          ,Role.bo_director
+          ,Role.bo_analyst
+          ,Role.bo_bill
+          ,Role.bo_close
+          ,Role.bo_dealer
+          ]
+    case needCreatedServiceList of
+      False -> writeJSON ([] :: [A.Value])
+      True  -> do
+        let Just ident = Patch.get usr Usermeta.ident
+        svcs <- query [sql|
+          select row_to_json(x) from
+            (select
+                extract(epoch from createtime) as ctime,
+                s.parentid as "caseId",
+                s.id as "svcId",
+                t.label as "type"
+              from servicetbl s join "ServiceType" t on (s.type = t.id)
+              where status = 2
+                and creator = ?
+              order by createtime desc, parentid) x
+          |] [ident]
+        writeJSON (map fromOnly svcs :: [A.Value])

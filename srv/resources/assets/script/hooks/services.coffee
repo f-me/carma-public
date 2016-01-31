@@ -56,6 +56,10 @@ define [ "utils"
   buttons: (model, kvm) ->
     return if /^search/.test(Finch.navigate())
 
+    kvm.status.subscribe ->
+      # we need to be sure that udpate is called after applying changes
+      # to the server
+      kvm._meta.q.save (-> global.Usermeta.updateAbandonedServices())
     kvm.buttons = {}
     kase = kvm._parent
     sDict = u.newModelDict("ServiceStatus")
