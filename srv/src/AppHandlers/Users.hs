@@ -35,6 +35,8 @@ import           Data.String (fromString)
 import           Data.Time.Calendar (Day)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Vector as V
+import           Data.Aeson as Aeson
+import qualified Data.HashMap.Strict as HashMap
 
 import           Text.Printf
 
@@ -175,7 +177,40 @@ usersInStates roles uStates = do
 
 -- | Serve user account data back to client.
 serveUserCake :: AppHandler ()
-serveUserCake = currentUserMeta >>= maybe (handleError 401) writeJSON
+serveUserCake = currentUserMeta >>= \case
+  Nothing  -> handleError 401
+  Just usr -> do
+    let Just roles = V.toList <$> Patch.get usr Usermeta.roles
+    let needCreatedServiceList = hasNoneOfRoles roles
+          [Role.reportManager
+          ,Role.supervisor
+          ,Role.head
+          ,Role.bo_qa
+          ,Role.bo_director
+          ,Role.bo_analyst
+          ,Role.bo_bill
+          ,Role.bo_close
+          ,Role.bo_dealer
+          ]
+    case needCreatedServiceList of
+      False -> writeJSON usr
+      True  -> do
+        let Just ident = Patch.get usr Usermeta.ident
+        svcs <- liftPG $ \c -> uncurry (query c) [sql|
+          select row_to_json(x) from
+            (select
+                extract(epoch from createtime) as ctime,
+                parentid as "caseId",
+                id as "svcId"
+              from servicetbl
+              where status = 2
+                and creator = $(ident)$
+              order by createtime desc, parentid) x
+          |]
+        let list = toJSON (map fromOnly svcs :: [Aeson.Value])
+        let Object usr' = Aeson.toJSON usr
+        writeJSON $ Object
+          $ HashMap.insert "_createdServices" list usr'
 
 
 -- | Serve states for a user within a time interval.
