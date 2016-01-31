@@ -99,6 +99,8 @@ define [ "model/main"
         usr.abandonedServices.extend {rateLimit: 100}
         for s in res.slice(0,20)
           usr.abandonedServices.push(
+            caseId: s.caseId
+            svcId: s.svcId
             href: "#case/#{s.caseId}/#{s.svcId}"
             text: "#{s.caseId} ― #{s.type}"
           )

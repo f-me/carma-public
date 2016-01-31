@@ -58,6 +58,11 @@ define [ "utils"
 
       # True if any of of required fields are missing a value
       do (kvm) ->
+        kvm['abandonedServices'] = ko.observable(
+          global.Usermeta.abandonedServices().filter (s) -> `s.caseId == args.id`)
+        global.Usermeta.abandonedServices.subscribe (svcs) ->
+          kvm.abandonedServices(svcs.filter (s) -> `s.caseId == args.id`)
+
         kvm['hasMissingRequireds'] = ko.computed ->
           # Check if any of required fields in a viewmodel is missing
           checkVM = (vm) ->
@@ -68,7 +73,7 @@ define [ "utils"
           # Check all services too
           for r, svm of kvm['servicesReference']()
             disable ||= checkVM svm
-          disable
+          disable || kvm.abandonedServices().length > 0
         # Show a list of empty required fields
         ko.applyBindings(kvm, el("empty-fields"))
 
