@@ -35,7 +35,7 @@ import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import           Data.Map as M (Map, (!), delete, fromList)
 import           Data.String (fromString)
-import           Data.Maybe (fromMaybe)
+import           Data.Maybe (fromMaybe, isJust)
 import           Data.Text (Text)
 import           Data.Time.Clock
 import qualified Data.Vector as V
@@ -346,36 +346,36 @@ findSameContract = do
         ++ ")"
       writeJSON $ mkMap ["id", "ctime"] rows
 
+
 abandonedServices :: AppHandler ()
-abandonedServices = currentUserMeta >>= \case
-  Nothing  -> handleError 401
-  Just usr -> do
-    let Just roles = V.toList <$> Patch.get usr Usermeta.roles
-    let needCreatedServiceList = hasNoneOfRoles roles
-          [Role.reportManager
-          ,Role.supervisor
-          ,Role.head
-          ,Role.bo_qa
-          ,Role.bo_director
-          ,Role.bo_analyst
-          ,Role.bo_bill
-          ,Role.bo_close
-          ,Role.bo_dealer
-          ]
-    case needCreatedServiceList of
-      False -> writeJSON ([] :: [A.Value])
-      True  -> do
-        let Just ident = Patch.get usr Usermeta.ident
-        svcs <- query [sql|
-          select row_to_json(x) from
-            (select
-                extract(epoch from createtime) as ctime,
-                s.parentid as "caseId",
-                s.id as "svcId",
-                t.label as "type"
-              from servicetbl s join "ServiceType" t on (s.type = t.id)
-              where status = 2
-                and creator = ?
-              order by createtime desc, parentid) x
-          |] [ident]
-        writeJSON (map fromOnly svcs :: [A.Value])
+abandonedServices = do
+  usr <- getParam "usr"
+  let forbiddenRoles =
+        [Role.reportManager
+        ,Role.supervisor
+        ,Role.head
+        ,Role.bo_qa
+        ,Role.bo_director
+        ,Role.bo_analyst
+        ,Role.bo_bill
+        ,Role.bo_close
+        ,Role.bo_dealer
+        ]
+  svcs <- query [sql|
+    select row_to_json(x) from
+      (select
+          extract(epoch from createtime) :: int as ctime,
+          s.parentid as "caseId",
+          s.id as "svcId",
+          t.label as "type",
+          u.id as "userId",
+          u.realname as "userName"
+        from servicetbl s
+          join "ServiceType" t on (s.type = t.id)
+          join usermetatbl u on (s.creator = u.id)
+        where status = 2
+          and (not ? or creator = ?)
+          and not (u.roles && ?)
+        order by createtime desc nulls last) x
+    |] (isJust usr, usr, V.fromList forbiddenRoles)
+  writeJSON (map fromOnly svcs :: [A.Value])

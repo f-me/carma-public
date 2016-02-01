@@ -94,7 +94,7 @@ define [ "model/main"
 
     # get abandoned services and render them at #current-user
     usr.updateAbandonedServices = ->
-      $.getJSON '/backoffice/abandonedServices', (res) ->
+      $.getJSON "/backoffice/abandonedServices/#{usr.id()}", (res) ->
         usr.abandonedServices.removeAll()
         usr.abandonedServices.extend {rateLimit: 100}
         for s in res.slice(0,20)
