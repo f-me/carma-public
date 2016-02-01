@@ -9,21 +9,33 @@ include _settings
           .row
             .col-md-4
               +settings
-            .col-md-2
-            .col-md-6
-              span.inverse-red Выделяется красным
-              | , если занят &ge;
-              input.tiny-input(type="text"
-                  data-bind="value: overdue.text, update: 'afterkeydown'")
-              | минут или превысил регламентное время выполнения действия
-              br
-              span.inverse-orange Выделяется оранжевым
-              | , если разлогинился из статуса занят
+            .col-md-8
+              .in(style="padding-left: 3em; height: 12em; overflow-x: auto;")
+                span.inverse-red Выделяется красным
+                | , если занят &ge;
+                input.tiny-input(type="text"
+                    data-bind="value: overdue.text, update: 'afterkeydown'")
+                | минут или превысил регламентное время выполнения действия
+                br
+                span.inverse-orange Выделяется оранжевым
+                | , если разлогинился из статуса занят
 
-              br
-              label.checkbox
-                input(type="checkbox" data-bind="checked: hideOffline")
-                | Скрывать в статусе "Разлогинен"
+                br
+                label.checkbox
+                  input(type="checkbox" data-bind="checked: hideOffline")
+                  span Скрывать в статусе "Разлогинен"
+
+                strong#abandoned-services
+                  | Ожидают обработки &nbsp;
+                  span(data-bind="text: abandoned.total")
+                ul
+                  // ko foreach: abandoned.services
+                  li
+                    a(data-bind="attr: {href: href}, text: text")
+                    | &nbsp;
+                    span(data-bind="text: user")
+                  // /ko
+
         .row.col-md-4#filters(style="margin-top: 10px; margin-bottom: 10px;")
           #kvmsFilter
             +kvmFilter

@@ -30,6 +30,25 @@ define ["text!tpl/screens/kpi/oper.html"
     return null
 
   ticker = null
+  abandonedServicesTicker = null
+  updateAbandonedServices = (kvm) -> ->
+    $.getJSON '/backoffice/abandonedServices', (res) ->
+        maxLen = 20
+        total = if res.length > maxLen
+            "(показано #{maxLen} из #{res.length})"
+          else if res.length == 0
+            '(не найдено)'
+          else
+            "(#{res.length})"
+        kvm.total(total)
+        kvm.services.removeAll()
+        kvm.services.extend {rateLimit: 100}
+        for s in res.slice(0,maxLen)
+          kvm.services.push
+            href: "#case/#{s.caseId}/#{s.svcId}"
+            text: "#{s.caseId} ― #{s.type}"
+            user: s.userName
+
 
   # Currently active call of a busy Front Office operator (always the
   # first one answered non-held call of that operator)
@@ -103,6 +122,9 @@ define ["text!tpl/screens/kpi/oper.html"
         sCtx.overdue.text = ko.computed
           read:      -> Math.floor(sCtx.overdue() / 60)
           write: (v) -> sCtx.overdue 60 * parseInt(v)
+        sCtx.abandoned =
+          total: ko.observable '(ищем)'
+          services: ko.observableArray []
 
         sCtx.hideOffline = ko.observable(s.hideOffline)
         tCtx.hideOffline = sCtx.hideOffline
@@ -133,10 +155,15 @@ define ["text!tpl/screens/kpi/oper.html"
         tblCtx:      tCtx
         dumpSettings: { overdue: sCtx.overdue, hideOffline: sCtx.hideOffline }
 
+    updateAbandoned = updateAbandonedServices(settingsCtx.abandoned)
+    updateAbandoned()
+    abandonedServicesTicker = setInterval updateAbandoned, 15000
+
     ko.applyBindings(settingsCtx, $("#settings")[0])
     ko.applyBindings(tblCtx, $("#tbl")[0])
 
   # FIXME: find better way to cleanup (why the hell we have to do this by hand?)
   destructor: ->
-    clearInterval(ticker)
+    clearInterval ticker
+    clearInterval abandonedServicesTicker
     ko.dataFor($("#tbl")[0]).kvms.clean()
