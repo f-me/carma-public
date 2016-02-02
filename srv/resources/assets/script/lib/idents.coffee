@@ -5,3 +5,6 @@ define ["lib/ajax"], (Ajax) ->
       retval = {}
       @bgetJSON "/cfg/idents/#{modelName}", (objs) -> retval = objs
       retval
+
+  mgr = new Idents
+  idents: (m) -> mgr.getIdents m
