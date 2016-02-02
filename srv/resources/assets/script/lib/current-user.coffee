@@ -94,6 +94,19 @@ define [ "model/main"
 
     # get abandoned services and render them at #current-user
     usr.updateAbandonedServices = ->
+      Role = global.idents("Role")
+      forbiddenRoles =
+        [Role.reportManager ,Role.supervisor
+        ,Role.head          ,Role.bo_qa
+        ,Role.bo_director   ,Role.bo_analyst
+        ,Role.bo_bill       ,Role.bo_close
+        ,Role.bo_dealer
+        ]
+      usrRoles = usr.roles()
+      for role in forbiddenRoles
+        if role in usrRoles
+          return
+
       $.getJSON "/backoffice/abandonedServices/#{usr.id()}", (res) ->
         usr.abandonedServices.removeAll()
         usr.abandonedServices.extend {rateLimit: 100}
