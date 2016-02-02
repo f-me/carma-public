@@ -32,7 +32,7 @@ define ["text!tpl/screens/kpi/oper.html"
   ticker = null
   abandonedServicesTicker = null
   updateAbandonedServices = (kvm) -> ->
-    $.getJSON '/backoffice/abandonedServices', (res) ->
+    $.getJSON '/backoffice/suspendedServices', (res) ->
         maxLen = 20
         total = if res.length > maxLen
             "(показано #{maxLen} из #{res.length})"
@@ -47,7 +47,6 @@ define ["text!tpl/screens/kpi/oper.html"
           kvm.services.push
             href: "#case/#{s.caseId}/#{s.svcId}"
             text: "#{s.caseId} ― #{s.type}"
-            user: s.userName
 
 
   # Currently active call of a busy Front Office operator (always the

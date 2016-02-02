@@ -76,8 +76,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
             chkAuthLocal . method GET $ allActionResults)
          , ("/backoffice/allActions",
             chkAuthLocal . method GET $ allActionsHandler)
-         , ("/backoffice/abandonedServices",
-            chkAuthLocal . method GET $ abandonedServices)
+         , ("/backoffice/suspendedServices",
+            chkAuthLocal . method GET $ suspendedServices)
          , ("/backoffice/abandonedServices/:usr",
             chkAuthLocal . method GET $ abandonedServices)
          , ("/supervisor/busyOps",  chkAuthLocal . method GET $ busyOps)

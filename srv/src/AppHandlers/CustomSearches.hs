@@ -22,6 +22,7 @@ module AppHandlers.CustomSearches
     , relevantCases
     , searchCases
     , findSameContract
+    , suspendedServices
     , abandonedServices
     )
 
@@ -52,8 +53,9 @@ import qualified Data.Model.Patch as Patch
 
 import qualified Carma.Model.ActionType              as AType
 import qualified Carma.Model.Role                    as Role
-import           Carma.Model.Usermeta                as Usermeta
-import           Carma.Model.UserState               as UserState
+import qualified Carma.Model.Usermeta                as Usermeta
+import qualified Carma.Model.UserState               as UserState
+import qualified Carma.Model.ServiceStatus           as ServiceStatus
 
 import           AppHandlers.CustomSearches.Contract
 import           AppHandlers.Users
@@ -247,7 +249,8 @@ actStats = do
 
 
 boUsers :: AppHandler ()
-boUsers = [Role.head, Role.back, Role.supervisor] `usersInStates` [Ready]
+boUsers
+  = [Role.head, Role.back, Role.supervisor] `usersInStates` [UserState.Ready]
 
 
 allDealersForMake :: AppHandler ()
@@ -347,20 +350,25 @@ findSameContract = do
       writeJSON $ mkMap ["id", "ctime"] rows
 
 
+suspendedServices :: AppHandler ()
+suspendedServices = do
+  svcs <- query [sql|
+    select row_to_json(x) from
+      (select
+          s.parentid as "caseId",
+          s.id as "svcId",
+          t.label as "type"
+        from servicetbl s
+          join "ServiceType" t on (s.type = t.id)
+        where status = ?
+        order by createtime desc nulls last) x
+    |] [ServiceStatus.suspended]
+  writeJSON (map fromOnly svcs :: [A.Value])
+
+
 abandonedServices :: AppHandler ()
 abandonedServices = do
   usr <- getParam "usr"
-  let forbiddenRoles =
-        [Role.reportManager
-        ,Role.supervisor
-        ,Role.head
-        ,Role.bo_qa
-        ,Role.bo_director
-        ,Role.bo_analyst
-        ,Role.bo_bill
-        ,Role.bo_close
-        ,Role.bo_dealer
-        ]
   svcs <- query [sql|
     select row_to_json(x) from
       (select
@@ -368,14 +376,11 @@ abandonedServices = do
           s.parentid as "caseId",
           s.id as "svcId",
           t.label as "type",
-          u.id as "userId",
-          u.realname as "userName"
+          creator as "userId"
         from servicetbl s
           join "ServiceType" t on (s.type = t.id)
-          join usermetatbl u on (s.creator = u.id)
-        where status = 2
+        where status = ?
           and (not ? or creator = ?)
-          and not (u.roles && ?)
         order by createtime desc nulls last) x
-    |] (isJust usr, usr, V.fromList forbiddenRoles)
+    |] (ServiceStatus.creating, isJust usr, usr)
   writeJSON (map fromOnly svcs :: [A.Value])
