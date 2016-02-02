@@ -25,13 +25,11 @@ define [ "hooks/common"
 
       "AverageCommissioner" : [ s.serviceColor
                               , s.updateCaseActions
-                              , s.buttons
                               , s.openPartnerSearch
                               ]
 
       "Bank" : [ s.serviceColor
                , s.updateCaseActions
-               , s.buttons
                , s.openPartnerSearch
                ]
 
@@ -51,24 +49,22 @@ define [ "hooks/common"
                , k.hasFiles
                , k.vip
                , k.contract
+               , k.serviceButtons
                ]
 
       "Consultation" : [ s.serviceColor
                        , s.updateCaseActions
-                       , s.buttons
                        , s.openPartnerSearch
                        , s.consultantOperator
                        ]
 
       "Continue" : [ s.serviceColor
                    , s.updateCaseActions
-                   , s.buttons
                    , s.openPartnerSearch
                    ]
 
       "DeliverClient" : [ s.serviceColor
                         , s.updateCaseActions
-                        , s.buttons
                         , s.openPartnerSearch
                         ]
 
@@ -77,19 +73,16 @@ define [ "hooks/common"
 
       "Hotel" : [ s.serviceColor
                 , s.updateCaseActions
-                , s.buttons
                 , s.openPartnerSearch
                 ]
 
       "Information" : [ s.serviceColor
                       , s.updateCaseActions
-                      , s.buttons
                       , s.openPartnerSearch
                       ]
 
       "LegalAssistance" : [ s.serviceColor
                           , s.updateCaseActions
-                          , s.buttons
                           , s.openPartnerSearch ]
 
       "Partner" : [ (c.bindRemoveHook 'services')
@@ -103,13 +96,11 @@ define [ "hooks/common"
 
       "Rent" : [ s.serviceColor
                , s.updateCaseActions
-               , s.buttons
                , s.openPartnerSearch
                ]
 
       "SoberDriver" : [ s.serviceColor
                       , s.updateCaseActions
-                      , s.buttons
                       , s.openPartnerSearch
                       ]
 
@@ -117,47 +108,39 @@ define [ "hooks/common"
 
       "Taxi" : [ s.serviceColor
                , s.updateCaseActions
-               , s.buttons
                , s.openPartnerSearch
                ]
 
       "Tech" : [ s.serviceColor
                , s.updateCaseActions
-               , s.buttons
                , s.openPartnerSearch
                ]
 
       "Transportation" : [ s.serviceColor
                          , s.updateCaseActions
-                         , s.buttons
                          , s.openPartnerSearch
                          ]
 
       "DeliverParts" : [ s.serviceColor
                        , s.updateCaseActions
-                       , s.buttons
                        , s.openPartnerSearch
                        ]
 
       "DeliverCar" : [ s.serviceColor
                      , s.updateCaseActions
-                     , s.buttons
                      , s.openPartnerSearch
                      ]
 
       "TechInspect" : [ s.serviceColor
                       , s.updateCaseActions
-                      , s.buttons
                       , s.openPartnerSearch ]
 
       "Tickets" : [ s.serviceColor
                   , s.updateCaseActions
-                  , s.buttons
                   , s.openPartnerSearch ]
 
       "Towage" : [ s.serviceColor
                  , s.updateCaseActions
-                 , s.buttons
                  , s.openPartnerSearch
                  ]
 

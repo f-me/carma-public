@@ -343,7 +343,6 @@ define [ "model/render"
       for f in kvm._meta.model.fields when obj[f.name]
         kvm[f.name](obj[f.name])
 
-
     hooks = queueOptions?.hooks or ['*', model.name]
     applyHooks global.hooks.observable, hooks, model, kvm
     return kvm
