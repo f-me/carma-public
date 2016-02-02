@@ -446,9 +446,8 @@ mixin simpleRefHdr(name, bindName)
       target='_blank')
       span.glyphicon.glyphicon-print
       | &nbsp;Печать
-    br
     // ko foreach: topLevelButtons
-    span &nbsp;
+    br(data-bind='visible: visible')
     button.btn.btn-mini.btn-danger(
       data-bind='visible: visible,\
          css: {"btn-danger":  type == "danger",\
@@ -456,7 +455,6 @@ mixin simpleRefHdr(name, bindName)
                "btn-success": type == "success"\
               },\
          click: click')
-      | &nbsp;
       span(data-bind='text: text')
     // /ko
 
