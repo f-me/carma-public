@@ -9,8 +9,6 @@ define [ "utils"
   Program = idents.idents "Program"
 
   serviceButtons = (kvm) ->
-    return if /^search/.test(Finch.navigate())
-
     kvm.status.subscribe ->
       # we need to be sure that udpate is called after applying changes
       # to the server
@@ -148,6 +146,8 @@ define [ "utils"
   # just to have case.serivicesReference ready.
   # this allows to check sibling services while initializing buttons
   serviceButtons: (model, kvm) ->
+    return if /^search/.test(Finch.navigate())
+
     for s in kvm.servicesReference()
       serviceButtons(s)
 
