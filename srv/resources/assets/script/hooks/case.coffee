@@ -141,6 +141,18 @@ define [ "utils"
           kvm.buttons.cancel.redirect = true
         kvm['status'] ServiceStatus.canceled
 
+    kvm.buttons.anotherPSA = {}
+    kvm.buttons.anotherPSA.text = 'Доп. услуга'
+    kvm.buttons.anotherPSA.visible = ko.computed ->
+      kase.program() in [Program.peugeot, Program.citroen] and
+        kvm.status() == ServiceStatus.ordered and
+        kvm.type() == ServiceType.tech and
+        kase.servicesReference().some((s) ->
+          s.status() in [ServiceStatus.creating, ServiceStatus.suspended] and
+            s.type() in [ServiceType.tech, ServiceType.towage]
+        )
+    kvm.buttons.anotherPSA.click = ->
+
 
   # we initialize service buttons here (not in service hooks)
   # just to have case.serivicesReference ready.

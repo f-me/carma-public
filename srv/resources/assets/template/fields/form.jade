@@ -340,6 +340,12 @@ include _form_utils
           span.glyphicon.glyphicon-fast-backward
           |&nbsp;
           span(data-bind='text: buttons.cancel.text')
+      .svc-status-button.btn-block(
+        data-bind="visible: buttons.anotherPSA.visible")
+        button.btn.btn-small.btn-info(
+          style="width:100%"
+          data-bind='click: buttons.anotherPSA.click')
+          span(data-bind='text: buttons.anotherPSA.text')
 
 
 #partner-field-template.field-template
