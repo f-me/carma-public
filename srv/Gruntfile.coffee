@@ -119,6 +119,9 @@ module.exports = (grunt) ->
     'jquery-knob':
       src: 'jquery-knob/dist'
       file: 'jquery.knob.min.js'
+    datejs:
+      src: 'datejs/build/production'
+      file: 'date-ru-RU.min.js'
     datatables:
       src: 'datatables/media'
       dest: 'datatables'

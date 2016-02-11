@@ -61,7 +61,6 @@ import           Carma.Model.Contract (Contract, WDay(..))
 import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.ContractCheckStatus as CCS
 import           Carma.Model.Event (EventType(..))
-import qualified Carma.Model.FalseCall as FC
 import qualified Carma.Model.CallType as CT
 
 import           Carma.Model.LegacyTypes

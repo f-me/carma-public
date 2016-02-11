@@ -17,7 +17,7 @@ programName = "vinnie"
 
 
 main :: IO ()
-main = do
+main =
   let
         sample = Options
                  { cInfo = defaultConnectInfo
@@ -51,9 +51,9 @@ main = do
       res <- doImport clArgs
       case res of
         Right (ImportResult (total, good, bad)) -> do
-            putStrLn $ concat [show total, " total"]
-            putStrLn $ concat [show good, " loaded"]
-            putStrLn $ concat [show bad,  " errors"]
+            putStrLn $ show total ++ " total"
+            putStrLn $ show good ++ " loaded"
+            putStrLn $ show bad ++ " errors"
         Left e -> do
             putStrLn $ "Critical error: " ++ show e
             exitFailure
