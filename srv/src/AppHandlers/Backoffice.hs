@@ -86,11 +86,6 @@ data BORepr = Txt
 type IdentMap m = Map.Map (IdentI m) Text
 
 
--- | Simple ident mapping
-iMap :: Model m => IdentMap m
-iMap = Map.fromList $ map (\(k, v) -> (v, T.pack k)) $ HM.toList idents
-
-
 -- | Use labels set in database to pretty-print constants.
 labelMap :: forall m n d d1. (KnownSymbol n, Model m) =>
             (m -> PK Int m d)

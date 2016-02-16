@@ -39,7 +39,6 @@ import           Data.String (fromString)
 import           Data.Maybe (fromMaybe, isJust)
 import           Data.Text (Text)
 import           Data.Time.Clock
-import qualified Data.Vector as V
 
 import           Database.PostgreSQL.Simple hiding (query, query_)
 import           Database.PostgreSQL.Simple.SqlQQ
@@ -49,11 +48,9 @@ import           Snap.Snaplet.PostgresqlSimple
 import           Snaplet.Auth.PGUsers
 
 import           Data.Model.Types
-import qualified Data.Model.Patch as Patch
 
 import qualified Carma.Model.ActionType              as AType
 import qualified Carma.Model.Role                    as Role
-import qualified Carma.Model.Usermeta                as Usermeta
 import qualified Carma.Model.UserState               as UserState
 import qualified Carma.Model.ServiceStatus           as ServiceStatus
 

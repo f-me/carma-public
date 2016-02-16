@@ -125,14 +125,14 @@ updateUserState :: forall m. Model m =>
                 -- ^ Changed fields
                 -> IdentI Event
                 -> AppHandler ()
-updateUserState tgtUsr' evt idt p evidt = do
+updateUserState tgtUsr'' evt idt p evidt = do
   -- Little hack to determine target user for state change in case if
   -- someone else changed @delayedState@ field of current user
   tgtUsr <- case mname of
     -- Rebuild ident so haskell won't complain about m ~ Usermeta
     "Usermeta" -> return $ Just $ Ident $ identVal idt
     _          ->
-      case tgtUsr' of
+      case tgtUsr'' of
         u@(Just _) -> return u
         Nothing -> getRealUid
   case tgtUsr of
@@ -270,8 +270,8 @@ nextState :: UserStateVal
           -> [Text]
           -- ^ Field names
           -> Maybe UserStateVal
-nextState lastState delayed evt mname fld =
-  execUserStateEnv (UserStateEnv lastState delayed evt mname fld) $ do
+nextState lastState delayed' evt mname fld =
+  execUserStateEnv (UserStateEnv lastState delayed' evt mname fld) $ do
     change ([Busy] >>> Ready) $
       -- TODO Remove redundant Call.endDate clause here as a call
       -- action is always closed when an associated call is closed
@@ -282,7 +282,7 @@ nextState lastState delayed evt mname fld =
     change (allStates   >>> LoggedOut) $ on Logout NoModel
     change (allStates   >>> NA)        $ on AvayaNA NoModel
     change ([NA]        >>> Ready)     $ on AvayaReady NoModel
-    case delayed of
+    case delayed' of
       Nothing     -> change ([ServiceBreak, NA] >>> Ready) $
         on Update $ Fields [field delayedState]
       Just Ready  -> change ([Rest, Dinner, ServiceBreak, NA] >>> Ready) $
@@ -296,8 +296,6 @@ nextState lastState delayed evt mname fld =
     field :: forall t n d m1.(Model m1, KnownSymbol n)
           => (m1 -> F t n d) -> (Text, Text)
     field f = (modelName (modelInfo :: ModelInfo m1), fieldName f)
-    model :: forall t n d m1.(Model m1, KnownSymbol n) => (m1 -> F t n d) -> Text
-    model _ = modelName (modelInfo :: ModelInfo m1)
     allStates = [minBound .. ]
     checkDelayed = do
       UserStateEnv{..} <- ask
