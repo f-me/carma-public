@@ -163,6 +163,10 @@ define [ "utils"
     for s in kvm.servicesReference()
       serviceButtons(s)
 
+    kvm.servicesReference.subscribe (svcs) ->
+      for s in svcs
+        serviceButtons(s)
+
   descsKbHook: (model, knockVM) ->
     mkServicesDescs = (p, s) ->
       desc = u.getServiceDesc(p, s.type())
