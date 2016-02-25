@@ -30,4 +30,8 @@ executable caroperator-svc
     scotty,
     http-types,
     resource-pool,
-    postgresql-simple
+    postgresql-simple,
+    wai,
+    wai-extra,
+    data-default-class,
+    fast-logger
