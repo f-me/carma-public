@@ -9,9 +9,12 @@ import           Control.Monad.IO.Class (liftIO)
 import           Text.Read (readMaybe)
 import           Text.Regex
 
+import           Data.Default.Class (Default (def))
 import           Data.Maybe (fromMaybe, isJust)
 import           Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy as L
 import           Data.Time (parseTime, Day, fromGregorian)
 import qualified Data.Configurator as Config
 import qualified Data.Aeson as Aeson
@@ -23,7 +26,10 @@ import           System.Posix.Syslog
 import qualified System.Environment as Env
 
 import           Web.Scotty
-import           Network.HTTP.Types.Status (status401)
+import           Network.HTTP.Types.Status (status400)
+import           Network.Wai (Middleware)
+import           Network.Wai.Middleware.RequestLogger
+import           System.Log.FastLogger (fromLogStr)
 
 
 main :: IO ()
@@ -60,9 +66,13 @@ main = do
             (fromInteger 20) -- seconds
             5 -- maximum number of resources to keep open
 
+        reqLogger <- mkRequestLogger $ def
+          { destination = Callback
+              $ syslog Info . T.unpack . T.decodeUtf8 . fromLogStr
+          }
         syslog Info $ "Starting HTTP server on port " ++ show httpPort
         scotty httpPort
-          $ httpServer pgPool
+          $ httpServer pgPool reqLogger
           $ SrvConfig carmaPrg carmaUsr carmaTest
 
     _ -> error $ "Usage: " ++ prog ++ " <config.conf>"
@@ -74,8 +84,10 @@ data SrvConfig = SrvConfig
   , cfgTestMode   :: Bool
   }
 
-httpServer :: Pool PG.Connection -> SrvConfig -> ScottyM ()
-httpServer pgPool cfg = do
+httpServer :: Pool PG.Connection -> Middleware -> SrvConfig -> ScottyM ()
+httpServer pgPool reqLogger cfg = do
+  middleware reqLogger
+
   let queryJSON q = do
         [[res]] <- liftIO $ withResource pgPool $ \c -> PG.query_ c q
         json (res :: Aeson.Value)
@@ -109,7 +121,9 @@ httpServer pgPool cfg = do
     |]
 
 
-  let handleErrors f = f `rescue` \err -> status status401 >> text err
+  let handleErrors f = f `rescue` \err -> do
+        liftIO $ syslog Error $ L.unpack err
+        status status400 >> text err
 
   post "/Contract/Mazda" $ handleErrors $ do
     vin      <- param "vin"      :: ActionM Text

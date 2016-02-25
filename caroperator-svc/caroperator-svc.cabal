@@ -19,15 +19,19 @@ executable caroperator-svc
     OverloadedStrings, LambdaCase
 
   build-depends:
-    base >=4.7 && <4.8,
-    time == 1.4.*,
-    transformers == 0.4.*,
+    base,
+    time,
+    transformers,
     text,
     aeson,
     regex-compat,
-    configurator == 0.3.*,
-    hsyslog == 2.0.*,
+    configurator,
+    hsyslog,
     scotty,
-    http-types == 0.8.*,
+    http-types,
     resource-pool,
-    postgresql-simple == 0.4.*
+    postgresql-simple,
+    wai,
+    wai-extra,
+    data-default-class,
+    fast-logger
