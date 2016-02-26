@@ -151,7 +151,7 @@ httpServer pgPool reqLogger cfg = do
         exists (select id from "CarModel" where parent = 28 and id = ?),
         exists (
           select id from partnertbl
-          where id = ? and isActive and isDealer and 28 = any(makes))
+          where id = ? and isDealer and 28 = any(makes))
       |] [carModel, dealer]
 
     when (not modelOk)  $ raise "Invalid carModel"
