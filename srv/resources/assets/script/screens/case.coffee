@@ -256,7 +256,7 @@ define [ "utils"
           avm["resultSync"]?.subscribe (nv) ->
             # Don't redirect to backoffice if action result was set with
             # 'anotherPSA' button
-            if !nv && avm.result__ != ActionResult.needAnotherPSA
+            if !nv && avm.result__ != ActionResult.needAnotherService
               window.location.hash = "back"
           avm["result"]?.subscribe (res) ->
             avm.result__ = res

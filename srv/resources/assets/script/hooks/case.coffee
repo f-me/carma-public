@@ -149,14 +149,13 @@ define [ "utils"
     kvm.buttons.anotherPSA = {}
     kvm.buttons.anotherPSA.text = 'Доп. услуга'
     kvm.buttons.anotherPSA.visible = ko.computed ->
-      kase.program() in [Program.peugeot, Program.citroen] and
-        kvm.status() == ServiceStatus.ordered and
+      kvm.status() == ServiceStatus.ordered and
         kvm.type() == ServiceType.tech and
         kase.servicesReference().some(isSecondarySvc)
     kvm.buttons.anotherPSA.click = ->
       chkActions = u.svcActions kvm._parent, kvm, [ActionType.checkStatus]
       for a in chkActions
-        a['result'] ActionResult.needAnotherPSA
+        a['result'] ActionResult.needAnotherService
         # rerender services and actions
         a._meta.q.save (->
           svcs = kvm._parent.services

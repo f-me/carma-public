@@ -336,7 +336,7 @@ checkStatus =
        setServiceStatus SS.inProgress *> proceed [AType.checkEndOfService])
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
-    , (AResult.needAnotherPSA,
+    , (AResult.needAnotherService,
        withRelatedService $ setServiceStatus SS.order *> toBackAux)
     ]
 

@@ -143,7 +143,6 @@ doLogout = ifTop $ do
 readInt :: (Read i, Integral i) => ByteString -> i
 readInt = read . read . show
 
-
 createHandler :: AppHandler ()
 createHandler = do
   Just model <- getParamT "model"

@@ -153,8 +153,8 @@ allActionResults = do
     filter (\(_, r) ->
               isSupervisor || r /= ActionResult.supervisorClosed) $
 
-    -- anotherPSA should not be visible for users see #2593
-    filter (\(_, r) -> r /= ActionResult.needAnotherPSA) $
+    -- anotherService should not be visible for users see #2593
+    filter (\(_, r) -> r /= ActionResult.needAnotherService) $
     concatMap (\a -> map (DSL.aType a,) $ DSL.actionResults a) $
     snd carmaBackoffice
 
