@@ -297,6 +297,13 @@ instance Backoffice TextE where
         return $ a' ++ [NL] ++ b'
 
 
+    withRelatedService f =
+      TextE $
+        ([T "Переключаемся на соседнюю услугу: "]++) <$>
+        toText f
+
+
+
 -- | TextE evaluator for DSL terms.
 evalText :: TCtx -> TextE ty -> IndentedText
 evalText c t = runReader (toText t) c

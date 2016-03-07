@@ -30,7 +30,6 @@ import qualified Data.Aeson                  as A
 import           Data.Attoparsec.Text
 import qualified Data.HashMap.Strict         as HM
 import qualified Data.Map                    as Map
-import qualified Data.Text                   as T
 import           Data.Time
 
 import           GHC.TypeLits
@@ -153,6 +152,9 @@ allActionResults = do
   writeJSON $
     filter (\(_, r) ->
               isSupervisor || r /= ActionResult.supervisorClosed) $
+
+    -- anotherPSA should not be visible for users see #2593
+    filter (\(_, r) -> r /= ActionResult.needAnotherPSA) $
     concatMap (\a -> map (DSL.aType a,) $ DSL.actionResults a) $
     snd carmaBackoffice
 

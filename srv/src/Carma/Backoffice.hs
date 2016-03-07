@@ -36,13 +36,18 @@ import qualified Carma.Model.SmsTemplate as SMS
 import qualified Carma.Model.Usermeta as Usermeta
 
 import Carma.Backoffice.DSL
-import Carma.Backoffice.DSL.Types (Eff)
+import Carma.Backoffice.DSL.Types (Eff, PreContextAccess, SvcAccess)
 
 
 toBack :: Entry
 toBack =
     Entry
-    (onField Service.status (const SS.backoffice)
+    (onField Service.status (const SS.backoffice) toBackAux)
+
+toBackAux
+  :: (Backoffice impl, PreContextAccess mdl, SvcAccess mdl)
+  => impl (Outcome mdl)
+toBackAux =
     (closePrevious InCase
      [AType.tellMeMore, AType.callMeMaybe]
      AResult.communicated *>
@@ -58,7 +63,7 @@ toBack =
        )
      ]
      (proceed [AType.orderServiceAnalyst])
-    ))
+    )
 
 
 messageToGenser :: Backoffice bk => bk (Eff m)
@@ -226,6 +231,7 @@ orderService =
     AType.orderService
     (const bo_order)
     (ite (previousAction == const AType.needPartner ||
+          previousAction == const AType.checkStatus ||
           userField Usermeta.isJack)
      currentUser
      (assigneeOfLast InCase
@@ -330,6 +336,8 @@ checkStatus =
        setServiceStatus SS.inProgress *> proceed [AType.checkEndOfService])
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
+    , (AResult.needAnotherPSA,
+       withRelatedService $ setServiceStatus SS.order *> toBackAux)
     ]
 
 

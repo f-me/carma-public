@@ -36,8 +36,9 @@ import           Text.Printf
 
 import           GHC.TypeLits
 
-import qualified Database.PostgreSQL.Simple as PG
-import qualified Snap.Snaplet.PostgresqlSimple as PS
+import           Database.PostgreSQL.Simple.SqlQQ.Alt
+import           Database.PostgreSQL.Simple as PG
+import           Snap.Snaplet.PostgresqlSimple (liftPG)
 
 import           WeatherApi (tempC)
 
@@ -76,6 +77,7 @@ import qualified Carma.Model.Service.Towage as Towage
 import           Carma.Model.SubProgram as SubProgram hiding (ident)
 
 import qualified Carma.Model.ServiceStatus as SS
+import qualified Carma.Model.ServiceType as ST
 import qualified Carma.Model.TowType as TowType
 import qualified Carma.Model.TowerType as TowerType
 import qualified Carma.Model.UrgentServiceReason as USR
@@ -535,7 +537,7 @@ contractToCase =
 copyContractToCase :: IdentI SubProgram -> Patch Contract -> Free (Dsl Case) ()
 copyContractToCase subProgId contract = do
   ctrFields <- doApp $
-      PS.liftPG $ \pg ->
+      liftPG $ \pg ->
         concat <$> PG.query pg
           "SELECT contractfield \
           \  FROM \"SubProgramContractPermission\" \
@@ -827,6 +829,24 @@ instance Backoffice HaskellE where
             void $ dbCreate p
 
 
+    withRelatedService (HaskellE f) = HaskellE $ do
+      ctx <- ask
+      return $ do
+        let caseId = kase ctx `get'` Case.ident
+        relatedSvcs <- doApp $ liftPG $ \pg ->
+          uncurry (PG.query pg)
+            [sql|
+              select id from servicetbl
+                where parentId = $(caseId)$
+                  and (type = $(ST.towage)$ or type = $(ST.tech)$)
+                  and (status = $(SS.creating)$ or status = $(SS.suspended)$)
+            |]
+        -- Actually we expect only one related service.
+        forM_ relatedSvcs $ \[svcId] -> do
+          svcObj <- dbRead svcId
+          runReader f (ctx{service = Just svcObj})
+
+
 -- | Trigger evaluator helper.
 --
 -- Upon entering the trigger, bootstrap available context for further
@@ -910,7 +930,7 @@ runLater = HaskellE . fmap postpone
     -- FIXME Get rid of threadDelay, perform when the database action
     -- returns
     coffebreak = 1500000
-    postpone :: (AppHandler (IO ())) -> Free (Dsl m) ()
+    postpone :: AppHandler (IO ()) -> Free (Dsl m) ()
     postpone act =
       Dsl.doApp $
       act >>= \io -> void $ liftIO $ forkIO $ threadDelay coffebreak >> io

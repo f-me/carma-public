@@ -192,6 +192,9 @@ instance Backoffice EdgeE where
     -- Mark presence of left-hand effects
     _ *> b = EdgeE $ \c -> evalEdge c{edgeText = edgeText c ++ ["*"]} b
 
+    -- FIXME: mark context switching on a graph somehow
+    withRelatedService f = f
+
 
 -- | EdgeE evaluator for DSL terms.
 evalEdge :: EdgeCtx -> EdgeE v -> NodeGenerator [LEdge ColoredLabel]

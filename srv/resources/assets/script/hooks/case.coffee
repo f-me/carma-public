@@ -6,6 +6,8 @@ define [ "utils"
        , "dictionaries"], (u, idents, mu, main, sync, d) ->
   ServiceStatus = idents.idents "ServiceStatus"
   ServiceType = idents.idents "ServiceType"
+  ActionType = idents.idents "ActionType"
+  ActionResult = idents.idents "ActionResult"
   Program = idents.idents "Program"
 
   serviceButtons = (kvm) ->
@@ -141,17 +143,31 @@ define [ "utils"
           kvm.buttons.cancel.redirect = true
         kvm['status'] ServiceStatus.canceled
 
+    isSecondarySvc = (s) ->
+        s.status() in [ServiceStatus.creating, ServiceStatus.suspended] and
+          s.type() in [ServiceType.tech, ServiceType.towage]
     kvm.buttons.anotherPSA = {}
     kvm.buttons.anotherPSA.text = 'Доп. услуга'
     kvm.buttons.anotherPSA.visible = ko.computed ->
       kase.program() in [Program.peugeot, Program.citroen] and
         kvm.status() == ServiceStatus.ordered and
         kvm.type() == ServiceType.tech and
-        kase.servicesReference().some((s) ->
-          s.status() in [ServiceStatus.creating, ServiceStatus.suspended] and
-            s.type() in [ServiceType.tech, ServiceType.towage]
-        )
+        kase.servicesReference().some(isSecondarySvc)
     kvm.buttons.anotherPSA.click = ->
+      chkActions = u.svcActions kvm._parent, kvm, [ActionType.checkStatus]
+      for a in chkActions
+        a['result'] ActionResult.needAnotherPSA
+        # rerender services and actions
+        a._meta.q.save (->
+          svcs = kvm._parent.services
+          svcs.notifySubscribers svcs()
+          kvm._parent.renderActions())
+
+      if chkActions.length == 0
+        # There is no checkStatus action, just send secondary service(s) to back
+        for s in kase.servicesReference()
+          if isSecondarySvc(s)
+            s['status'] ServiceStatus.backoffice
 
 
   # we initialize service buttons here (not in service hooks)
