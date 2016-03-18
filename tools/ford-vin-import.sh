@@ -25,7 +25,7 @@ fi
 FORMAT="2000"
 # Contract commiter (Ford user)
 COMMITTER="1192"
-SUBPROGRAM="14" # Ford
+SUBPROGRAM="15" # Ford new
 
 # ARC host data
 USER="FordSollers"
