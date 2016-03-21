@@ -46,7 +46,7 @@ data Partner = Partner
   , foreignIdent
              :: F (Maybe Text) "foreignIdent" "Внешний код партнёра"
   , mtime    :: F UTCTime      "mtime" ""
-  , services :: F Reference    "services" ""
+  , services :: F A.Value      "services" "Услуги"
   , comment  :: F Text         "comment" "Комментарий"
   }
   deriving Typeable
@@ -86,9 +86,7 @@ instance Model Partner where
       ,setMeta "dictionaryName"   "EmailTypes"       emails
       ,setMeta "widget"           "dict-objects"     emails
 
-      ,setMeta "reference-label"  "Добавить услугу"  services
-      ,setMeta "reference-widget" "partner_services" services
-      ,setMeta "model"            "PartnerService"   services
+      ,setMeta "widget"           "partner_services" services
       ,textarea comment
       ,invisible mtime
       ]
