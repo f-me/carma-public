@@ -357,6 +357,65 @@ include _form_utils
           data-bind='click: openPartnerSearch.bind($data, \'{{ name }}\')')
         span.glyphicon.glyphicon-search
 
+
+#partner_services-field-template.field-template
+  +fieldControlGroup
+    #partner_services-accordion.panel-group
+      .panel(data-bind="foreach: _serviceModels")
+        .accordion-toggle(
+          data-toggle="collapse"
+          data-parent="#partner_services-accordion"
+          data-bind="attr: {'data-target': '#partner_service' + $index()}")
+            i.glyphicon.glyphicon-chevron-down
+              | &nbsp;
+            span(data-bind="text: name")
+            i.glyphicon.glyphicon-remove.pull-right(data-bind='bindClick: delService')
+        .panel-collapse.collapse(data-bind="attr: {id: 'partner_service' + $index()}")
+          .panel-body
+            .control-group.tight
+              label
+                | Приоритет: &nbsp;
+                input(type='text' data-bind="textInput: priority1")
+                input(type='text' data-bind="textInput: priority2")
+                input(type='text' data-bind="textInput: priority3")
+              label
+                | Штраф за отказ: &nbsp;
+                input(type='text' data-bind="textInput: fine")
+              table.tarif-options
+                thead
+                  tr
+                    th(width="50%") Тарифная опция
+                    th(width="20%") Цена 1
+                    th(width="20%") Цена 2
+                    th(width="10%")
+                tbody
+                  // ko foreach: options
+                  tr
+                    td
+                      input(type='text' data-bind="textInput: name")
+                    td
+                      input(type='text' data-bind="textInput: price1")
+                    td
+                      input(type='text' data-bind="textInput: price2")
+                    td(align="center")
+                      i.glyphicon.glyphicon-remove(data-bind='bindClick: delOption')
+                  // /ko
+                  tr
+                    td(colspan=4)
+                      button.btn.btn-action(data-bind='bindClick: addOption')
+                        i.glyphicon.glyphicon-plus
+                        | &nbsp; Добавить опцию
+
+    .dropup
+      button.dropdown-toggle.btn.btn-action(
+        data-toggle="dropdown"
+        data-bind='bindClick: _addService')
+          i.glyphicon.glyphicon-plus
+          | &nbsp; Добавить услугу
+      ul.dropdown-menu(data-bind="foreach: _serviceTypes.items")
+        li
+          a(data-bind="text: label, click: $parent._addService(id)" href="#")
+
 // Modal dialog launch button
 #modalDialogButton-field-template.field-template
   .control-group
@@ -463,11 +522,6 @@ mixin simpleRefHdr(name, bindName)
          click: click')
       span(data-bind='text: text')
     // /ko
-
-
-#partner_services-reference-template.reference-template
-  +refCommon
-    +simpleRefHdr("Тариф", "serviceNameLocal")
 
 // SubProgram.services (SubProgramService model) reference template
 #subprogram-services-reference-template.reference-template

@@ -194,5 +194,36 @@ input.re-failed {
   overflow-x: hidden;
 }
 
+.accordion-toggle {
+  width: 100%;
+  text-align: left;
+  vertical-align: middle;
+  height: 34px;
+  padding: 6px 12px;
+  background-color: #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.control-group.tight label {
+  font-weight: normal;
+}
+
+.control-group.tight input {
+  width: 3em;
+}
+
+table.tarif-options {
+  width: 100%;
+  margin: 20px;
+}
+
+table.tarif-options input {
+  width: 100% !important;
+  margin: 2px;
+}
+
+
+
 
 } /* end @media screen */

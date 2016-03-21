@@ -54,13 +54,13 @@ $$
                (now() <= ('01:00' + p.mtime)))
         AND   (ce  OR p.city        = ANY(ca))
         AND   (se  OR EXISTS
-                (SELECT 1 FROM json_array_elements(services) s
+                (SELECT 1 FROM json_array_elements(p.services) s
                   WHERE (s->>'type')::int = ANY(sa)))
         AND   (p2e OR EXISTS
-                (SELECT 1 FROM json_array_elements(services) s
+                (SELECT 1 FROM json_array_elements(p.services) s
                   WHERE (s->>'priority2')::int = ANY(p2a)))
         AND   (p3e OR EXISTS
-                (SELECT 1 FROM json_array_elements(services) s
+                (SELECT 1 FROM json_array_elements(p.services) s
                   WHERE (s->>'priority3')::int = ANY(p3a)))
         AND   case when isDlr then p.isDealer = true  else true end
         AND   case when isMbl then p.isMobile = isMbl else true end

@@ -85,9 +85,8 @@ define [ "hooks/common"
                           , s.updateCaseActions
                           , s.openPartnerSearch ]
 
-      "Partner" : [ (c.bindRemoveHook 'services')
-                  , p.serviceRepeat
-                  , p.factAddr
+      "Partner" : [ p.factAddr
+                  , p.tarifOptions
                   ]
 
       "partner_service" : [ p.bindTitleServiceName
