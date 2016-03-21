@@ -33,6 +33,7 @@ data Partner = Partner
   , code     :: F (Maybe Text) "code"     "Код"
   , city     :: F (Maybe (IdentI City)) "city" "Город"
   , makes    :: F (Vector (IdentI CarMake)) "makes" "Обслуживаемые марки"
+  , services :: F A.Value      "services" "Услуги"
   , phones   :: F A.Value      "phones"   "Телефоны"
   , coords   :: F (Maybe Coords)"coords"  "Координаты фактического адреса"
   , addrs    :: F A.Value       "addrs"   "Адреса"
@@ -46,7 +47,6 @@ data Partner = Partner
   , foreignIdent
              :: F (Maybe Text) "foreignIdent" "Внешний код партнёра"
   , mtime    :: F UTCTime      "mtime" ""
-  , services :: F A.Value      "services" "Услуги"
   , comment  :: F Text         "comment" "Комментарий"
   }
   deriving Typeable
@@ -57,6 +57,8 @@ instance Model Partner where
   modelView = \case
     "" -> Just $ modifyView defaultView
       [required makes
+      ,setMeta "widget"           "partner_services" services
+
       ,setMeta "noteLabel"        "Время работы"     phones
       ,setMeta "showNote"         (A.Bool True)      phones
       ,regexp regexpPhone                            phones
@@ -86,7 +88,6 @@ instance Model Partner where
       ,setMeta "dictionaryName"   "EmailTypes"       emails
       ,setMeta "widget"           "dict-objects"     emails
 
-      ,setMeta "widget"           "partner_services" services
       ,textarea comment
       ,invisible mtime
       ]
