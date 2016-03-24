@@ -6,20 +6,21 @@ define ["utils", "dictionaries/model-dict"], (u, ModelDict) ->
     if not /^partner/.test(Finch.navigate())
       return
 
-    maybeInt = (str) -> if str then parseInt str else null
+    maybeNum = (str) -> if str then parseFloat str else null
+    checkNum = (str) -> !isNaN(parseFloat str) && isFinite str
     syncJSON = ->
       # FIXME: if no errors
       kvm.services(
         kvm._serviceModels().map (s) ->
           type: s.type
-          priority1: maybeInt s.priority1()
-          priority2: maybeInt s.priority2()
-          priority3: maybeInt s.priority3()
-          fine: maybeInt s.fine()
+          priority1: maybeNum s.priority1()
+          priority2: maybeNum s.priority2()
+          priority3: maybeNum s.priority3()
+          fine: maybeNum s.fine()
           options: s.options().map (o) ->
             name:   o.name()
-            price1: maybeInt o.price1()
-            price2: maybeInt o.price2()
+            price1: maybeNum o.price1()
+            price2: maybeNum o.price2()
       )
 
     subscribe = (k, callback) ->
@@ -40,6 +41,11 @@ define ["utils", "dictionaries/model-dict"], (u, ModelDict) ->
           delOption: ->
             options.remove((o) -> o.index == optIx)
             return false
+        optKVM._error = ko.computed ->
+          [ !!optKVM.name()?.trim()   || 'name',
+            checkNum(optKVM.price1()) || 'price1',
+            checkNum(optKVM.price2()) || 'price2']
+        optKVM.noError = ko.computed -> optKVM._error().every((e) -> e == true)
         subscribe optKVM, syncJSON
         return optKVM
 
@@ -60,6 +66,15 @@ define ["utils", "dictionaries/model-dict"], (u, ModelDict) ->
         priority3: ko.observable svc.priority3
         fine: ko.observable svc.fine
         options: options
+      svcKVM._error = ko.computed ->
+        [ [1,2,3,null].indexOf(maybeNum svcKVM.priority1()) >= 0 || 'priority1',
+          [1,2,3,null].indexOf(maybeNum svcKVM.priority2()) >= 0 || 'priority2',
+          [1,2,3,null].indexOf(maybeNum svcKVM.priority3()) >= 0 || 'priority3',
+          checkNum(svcKVM.fine())                                || 'fine',
+          svcKVM.options().every((o) -> o.noError())             || 'options',
+          !kvm._serviceModels().some(
+            (s) -> s.type == svc.type && s.index != svcIx)       || 'duplicate']
+      svcKVM.noError = ko.computed -> svcKVM._error().every((e) -> e == true)
       subscribe svcKVM, syncJSON
       return svcKVM
 

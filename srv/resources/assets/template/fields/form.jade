@@ -365,22 +365,31 @@ include _form_utils
         .accordion-toggle(
           data-toggle="collapse"
           data-parent="#partner_services-accordion"
-          data-bind="attr: {'data-target': '#partner_service' + $index()}")
+          data-bind="css: {error: !noError()},\
+              attr: {'data-target': '#partner_service' + $index()}")
             i.glyphicon.glyphicon-chevron-down
               | &nbsp;
             span(data-bind="text: name")
-            i.glyphicon.glyphicon-remove.pull-right(data-bind='bindClick: delService')
+            i.glyphicon.glyphicon-remove.pull-right(
+              title='Удалить'
+              data-bind='bindClick: delService')
         .panel-collapse.collapse(data-bind="attr: {id: 'partner_service' + $index()}")
           .panel-body
             .control-group.tight
               label
                 | Приоритет: &nbsp;
-                input(type='text' data-bind="textInput: priority1")
-                input(type='text' data-bind="textInput: priority2")
-                input(type='text' data-bind="textInput: priority3")
+                input(type='text' data-bind="textInput: priority1,\
+                  css: {error: _error().indexOf('priority1') >= 0}")
+                | &nbsp; ПБГ
+                input(type='text' data-bind="textInput: priority2,\
+                  css: {error: _error().indexOf('priority2') >= 0}")
+                | &nbsp; ПБЗ
+                input(type='text' data-bind="textInput: priority3,\
+                  css: {error: _error().indexOf('priority3') >= 0}")
               label
-                | Штраф за отказ: &nbsp;
-                input(type='text' data-bind="textInput: fine")
+                | Процент за ложный вызов: &nbsp;
+                input(type='text' data-bind="textInput: fine,\
+                  css: {error: _error().indexOf('fine') >= 0}")
               table.tarif-options
                 thead
                   tr
@@ -392,13 +401,18 @@ include _form_utils
                   // ko foreach: options
                   tr
                     td
-                      input(type='text' data-bind="textInput: name")
+                      input(type='text' data-bind="textInput: name,\
+                        css: {error: _error().indexOf('name') >= 0}")
                     td
-                      input(type='text' data-bind="textInput: price1")
+                      input(type='text' data-bind="textInput: price1,\
+                        css: {error: _error().indexOf('price1') >= 0}")
                     td
-                      input(type='text' data-bind="textInput: price2")
+                      input(type='text' data-bind="textInput: price2,\
+                        css: {error: _error().indexOf('price2') >= 0}")
                     td(align="center")
-                      i.glyphicon.glyphicon-remove(data-bind='bindClick: delOption')
+                      i.glyphicon.glyphicon-remove(
+                        title='Удалить'
+                        data-bind='bindClick: delOption')
                   // /ko
                   tr
                     td(colspan=4)
