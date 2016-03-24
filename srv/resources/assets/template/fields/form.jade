@@ -426,7 +426,7 @@ include _form_utils
         data-bind='bindClick: _addService')
           i.glyphicon.glyphicon-plus
           | &nbsp; Добавить услугу
-      ul.dropdown-menu(data-bind="foreach: _serviceTypes.items")
+      ul.dropdown-menu(data-bind="foreach: _serviceTypes.filteredItems")
         li
           a(data-bind="text: label, click: $parent._addService(id)" href="#")
 

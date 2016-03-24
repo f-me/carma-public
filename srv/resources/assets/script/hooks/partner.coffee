@@ -83,6 +83,8 @@ define ["utils", "dictionaries/model-dict"], (u, ModelDict) ->
 
     kvm['_serviceModels'] = ko.observableArray []
     kvm.services()?.forEach((s,i) -> kvm._serviceModels.push(mkSvc(s, i)))
+    kvm['_serviceTypes'].filteredItems = ko.computed ->
+      kvm._serviceTypes.items.filter((t) -> !kvm._serviceModels().some((s) -> s.type == t.id))
 
     kvm['_addService'] = (svcType) -> ->
       kvm._serviceModels.push mkSvc({type: svcType}, kvm._serviceModels().length)
