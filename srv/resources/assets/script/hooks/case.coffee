@@ -3,7 +3,9 @@ define [ "utils"
        , "model/utils"
        , "model/main"
        , "sync/crud"
-       , "dictionaries"], (u, idents, mu, main, sync, d) ->
+       , "dictionaries"
+       , "components/partnerDelayDialog"],
+       (u, idents, mu, main, sync, d, PartnerDelayDialog) ->
   ServiceStatus = idents.idents "ServiceStatus"
   ServiceType = idents.idents "ServiceType"
   ActionType = idents.idents "ActionType"
@@ -154,6 +156,7 @@ define [ "utils"
                      ServiceType.adjuster] and
         kvm.status() in [ServiceStatus.ordered, ServiceStatus.inProgress]
     kvm.buttons.partnerDelay.click = ->
+      PartnerDelayDialog.show()
 
 
     isSecondarySvc = (s) ->
