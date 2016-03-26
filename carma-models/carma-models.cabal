@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.36.0
+version:             0.36.1
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -77,6 +77,11 @@ library
     Carma.Model.Partner,
     Carma.Model.PartnerCancel,
     Carma.Model.PartnerRefusalReason,
+    Carma.Model.PartnerDelay,
+    Carma.Model.PartnerDelay.Confirmed,
+    Carma.Model.PartnerDelay.Exceptional,
+    Carma.Model.PartnerDelay.Notified,
+    Carma.Model.PartnerDelay.Reason,
     Carma.Model.PaymentType,
     Carma.Model.PgTypes,
     Carma.Model.ProcessingConfig,
