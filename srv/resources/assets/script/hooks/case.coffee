@@ -143,6 +143,19 @@ define [ "utils"
           kvm.buttons.cancel.redirect = true
         kvm['status'] ServiceStatus.canceled
 
+    kvm.buttons.partnerDelay = {}
+    kvm.buttons.partnerDelay.text = 'Партнёр опаздывает'
+    kvm.buttons.partnerDelay.visible = ko.computed ->
+      kvm.type() in [ServiceType.tech,
+                     ServiceType.towage,
+                     ServiceType.rent,
+                     ServiceType.taxi,
+                     ServiceType.sober,
+                     ServiceType.adjuster] and
+        kvm.status() in [ServiceStatus.ordered, ServiceStatus.inProgress]
+    kvm.buttons.partnerDelay.click = ->
+
+
     isSecondarySvc = (s) ->
         s.status() in [ServiceStatus.creating, ServiceStatus.suspended] and
           s.type() in [ServiceType.tech, ServiceType.towage]

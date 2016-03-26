@@ -235,6 +235,15 @@ include _form_utils
             onclick="showComplex('{{ viewName }}', '{{ name }}');")
           span.glyphicon.glyphicon-share
 
+      .input-group.input-group-sm
+        .btn-block.hidden
+        .svc-status-button.btn-block(
+          data-bind="visible: buttons.partnerDelay.visible")
+          button.btn.btn-small.btn-info(
+            style="width:100%"
+            data-bind='click: buttons.partnerDelay.click')
+            span(data-bind='text: buttons.partnerDelay.text')
+
 // Template for fields with unknown type
 .field-template#unknown-field-template
   .form-control
