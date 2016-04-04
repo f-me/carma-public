@@ -147,7 +147,7 @@ data Case = Case
   , claim
     :: F (Maybe Text) "claim" "Претензия / Благодарность"
   , services
-    :: F (Maybe Reference) "services" "Услуги"
+    :: EF Reference "services" "Услуги"
   , files
     :: F (Maybe Reference) "files" "Прикрепленные файлы"
   , source

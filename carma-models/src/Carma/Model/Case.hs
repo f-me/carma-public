@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
+
 module Carma.Model.Case
        (Case(..)
        ,caseSearchParams
@@ -7,9 +9,15 @@ import Data.Text (Text)
 import Data.Aeson as Aeson
 import qualified Data.Vector as V
 
-import Data.Model as Model
-import Data.Model.View as View
-import Data.Model.Types ((:@))
+import qualified Database.PostgreSQL.Simple as PG
+import           Database.PostgreSQL.Simple.SqlQQ
+
+import           Data.Model as Model
+import           Data.Model.View as View
+import           Data.Model.Types ((:@))
+import           Data.Model.Patch (Patch)
+import qualified Data.Model.Patch as P
+import           Data.Model.CRUD (customizeRead)
 
 import Carma.Model.Case.Type as Case
 import Carma.Model.Colors as Color
@@ -42,9 +50,10 @@ caseSearchParams
     ,("files",      refMExist Case.files)
     ]
 
+
 instance Model Case where
   type TableName Case = "casetbl"
-  modelInfo = mkModelInfo Case Case.ident
+  modelInfo = mkModelInfo Case Case.ident `customizeRead`  fillServices
   modelView = \case
       "search" -> Just
         $ modifyView (searchView caseSearchParams)
@@ -65,6 +74,24 @@ instance Model Case where
           , widget "datetime-local" callDate
           ]
       _ -> Nothing
+
+
+fillServices :: Patch Case -> IdentI Case -> PG.Connection -> IO (Patch Case)
+fillServices p idt c = do
+  [[svcs]] <- PG.query c
+    [sql|
+      select string_agg(value || ':' || id, ',')
+        from
+          (select m.value, s.id
+            from servicetbl s
+              join "ServiceType" t on (s."type" = t.id)
+              join "CtrModel" m on (t.model = m.id)
+            where s.parentid = ?
+            order by s.id
+          ) x
+    |] (PG.Only idt)
+  return $ P.put services svcs p
+
 
 caseDicts :: [(Text, FieldView -> FieldView) :@ Case]
 caseDicts = [

@@ -5,7 +5,6 @@ import Data.Typeable
 
 import Data.Aeson((.=), object)
 import Data.Model
-import Data.Model.Types
 import Data.Model.View
 import Carma.Model.LegacyTypes (Checkbox)
 import Carma.Model.Service (Service)
