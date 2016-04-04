@@ -38,6 +38,7 @@ mkIdents [t|ServiceStatus|]
  , ("falseCall", 18)
  , ("ok", 19)
  , ("closed", 20)
+ , ("suspended", 21)
  ]
 
 instance Model ServiceStatus where

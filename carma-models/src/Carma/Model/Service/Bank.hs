@@ -31,4 +31,7 @@ instance Model Bank where
   modelInfo = mkModelInfo Bank ident
   modelView v = case parentView v :: Maybe (ModelView Bank) of
     Nothing -> Nothing
-    Just mv -> Just $ mv {mv_title = "Банковская поддержка"}
+    -- FIXME: Suddenly!
+    -- see #2580 for more info on why we have to give medic
+    -- consultations in a bank
+    Just mv -> Just $ mv {mv_title = "Медицинская консультация"}

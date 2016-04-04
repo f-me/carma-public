@@ -68,7 +68,12 @@ import           Carma.Model.LegalForm
 import           Carma.Model.Partner
 import           Carma.Model.PartnerCancel               (PartnerCancel)
 import           Carma.Model.PartnerRefusalReason        (PartnerRefusalReason)
-import           Carma.Model.PartnerService              (PartnerService)
+import           Carma.Model.PartnerDelay                (PartnerDelay)
+import           Carma.Model.PartnerDelay.Confirmed      (PartnerDelay_Confirmed)
+import           Carma.Model.PartnerDelay.Exceptional    (PartnerDelay_Exceptional)
+import           Carma.Model.PartnerDelay.Notified       (PartnerDelay_Notified)
+import           Carma.Model.PartnerDelay.Reason         (PartnerDelay_Reason)
+
 import           Carma.Model.PaymentType                 (PaymentType)
 import           Carma.Model.ProcessingConfig            (ProcessingConfig)
 import           Carma.Model.Program                     (Program)
@@ -109,7 +114,6 @@ import           Carma.Model.SubProgramContact
 import           Carma.Model.SubProgramContractPermission
 import           Carma.Model.SubProgramService           (SubProgramService)
 
-import           Carma.Model.TarifOption                 (TarifOption)
 import           Carma.Model.TaxScheme                   (TaxScheme)
 import           Carma.Model.TechType                    (TechType)
 import           Carma.Model.TowType                     (TowType)
@@ -190,7 +194,11 @@ modelMap fn = modelMap'
       ,add (undefined :: Partner)
       ,add (undefined :: PartnerCancel)
       ,add (undefined :: PartnerRefusalReason)
-      ,add (undefined :: PartnerService)
+      ,add (undefined :: PartnerDelay)
+      ,add (undefined :: PartnerDelay_Confirmed)
+      ,add (undefined :: PartnerDelay_Exceptional)
+      ,add (undefined :: PartnerDelay_Notified)
+      ,add (undefined :: PartnerDelay_Reason)
       ,add (undefined :: PaymentType)
       ,add (undefined :: ProcessingConfig)
       ,add (undefined :: Program)
@@ -214,7 +222,6 @@ modelMap fn = modelMap'
       ,add (undefined :: SubProgramService)
       ,add (undefined :: Suggestion)
       ,add (undefined :: System)
-      ,add (undefined :: TarifOption)
       ,add (undefined :: TaxScheme)
       ,add (undefined :: Taxi)
       ,add (undefined :: Tech)
