@@ -196,6 +196,12 @@ mistake =
     (onField Service.status (const SS.mistake)
      finish)
 
+activate :: Entry
+activate =
+    Entry
+    (onField Service.status (const SS.creating)
+     (setServiceField Service.owner (req currentUser) *>
+      finish))
 
 accident :: Action
 accident =
@@ -593,6 +599,7 @@ carmaBackoffice =
       , cancel
       , complaint
       , mistake
+      , activate
       ]
     , [ orderService
       , accident

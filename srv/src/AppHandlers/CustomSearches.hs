@@ -373,11 +373,11 @@ abandonedServices = do
           s.parentid as "caseId",
           s.id as "svcId",
           t.label as "type",
-          creator as "userId"
+          owner as "userId"
         from servicetbl s
           join "ServiceType" t on (s.type = t.id)
         where status = ?
-          and (not ? or creator = ?)
+          and (not ? or owner = ?)
         order by createtime desc nulls last) x
     |] (ServiceStatus.creating, isJust usr, usr)
   writeJSON (map fromOnly svcs :: [A.Value])
