@@ -127,7 +127,7 @@ searchContracts = do
           [ "SELECT c.?,"
           -- 4 parameters: case callDate name, contract start/end date
           -- field name, case callDate name (expiration predicate)
-          , "((cs.? < ?) or (? < cs.?)),"
+          , "((cs.? < ?) or (? < cs.?)) as _expired,"
           -- M + N more parameters: selected fields.
           , intercalate "," $
             map (const "c.?") selectedFieldsParam
@@ -160,6 +160,7 @@ searchContracts = do
           , "AND c.? and c.?"
           -- 2 parameters: program.active and subprogram.active
           , "AND p.? AND s.?"
+          , "ORDER BY _expired"
           -- 1 parameter: LIMIT value
           , "LIMIT ?;"
           ]

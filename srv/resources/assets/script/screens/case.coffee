@@ -3,11 +3,13 @@ define [ "utils"
        , "text!tpl/screens/case.html"
        , "text!tpl/fields/form.html"
        , "lib/ws"
+       , "lib/idents"
        , "model/utils"
        , "model/main"
        , "components/contract"
        ],
-  (utils, hotkeys, tpl, Flds, WS, mu, main, Contract) ->
+  (utils, hotkeys, tpl, Flds, WS, idents, mu, main, Contract) ->
+    ActionResult = idents.idents "ActionResult"
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
     flds =  $('<div/>').append($(Flds))
@@ -252,8 +254,12 @@ define [ "utils"
             parent: kvm
           # Redirect to backoffice when an action result changes
           avm["resultSync"]?.subscribe (nv) ->
-            if !nv
+            # Don't redirect to backoffice if action result was set with
+            # 'anotherPSA' button
+            if !nv && avm.result__ != ActionResult.needAnotherService
               window.location.hash = "back"
+          avm["result"]?.subscribe (res) ->
+            avm.result__ = res
           # There's no guarantee who renders first (services or
           # actions), try to set up an observable from here
           if not kvm['actionsList']?

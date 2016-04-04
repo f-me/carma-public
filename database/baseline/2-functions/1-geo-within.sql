@@ -24,7 +24,7 @@ create or replace function GeoWithin ( x1 float
                                      , isDlr boolean
                                      , isMbl boolean
                                      )
-returns table (res text) as
+returns table (res text) stable as
 $$
   declare
     ca  int[] = string_to_array(city, ' ');
@@ -45,9 +45,7 @@ $$
              , st_y(p.coords)
              , now() > ('01:00' + p.mtime)      as stale
              , ST_Distance_Sphere(p.coords, ST_Point(xc, yc))      as distance
-             , array_to_json(array_agg(s.* :: "PartnerService"))   as services
         FROM partnertbl p
-        LEFT JOIN "PartnerService" s ON p.id = s.parentid
         WHERE coords && ST_SetSRID( ST_MakeBox2D( ST_Point(x1, y1)
                                                , ST_Point(x2, y2))
                                  , 4326)
@@ -55,9 +53,15 @@ $$
         AND   ((p.isMobile <> 't') OR (p.isMobile is NULL) OR
                (now() <= ('01:00' + p.mtime)))
         AND   (ce  OR p.city        = ANY(ca))
-        AND   (se  OR s.servicename = ANY(sa))
-        AND   (p2e OR s.priority2   = ANY(p2a))
-        AND   (p3e OR s.priority3   = ANY(p3a))
+        AND   (se  OR EXISTS
+                (SELECT 1 FROM json_array_elements(p.services) s
+                  WHERE (s->>'type')::int = ANY(sa)))
+        AND   (p2e OR EXISTS
+                (SELECT 1 FROM json_array_elements(p.services) s
+                  WHERE (s->>'priority2')::int = ANY(p2a)))
+        AND   (p3e OR EXISTS
+                (SELECT 1 FROM json_array_elements(p.services) s
+                  WHERE (s->>'priority3')::int = ANY(p3a)))
         AND   case when isDlr then p.isDealer = true  else true end
         AND   case when isMbl then p.isMobile = isMbl else true end
         AND   case when isDealer

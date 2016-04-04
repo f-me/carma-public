@@ -1,5 +1,6 @@
 define [ "utils"
        , "map"
+       , "dictionaries/model-dict"
        , "model/main"
        , "sync/dipq"
        , "dictionaries"
@@ -10,6 +11,7 @@ define [ "utils"
        , "text!tpl/screens/partnersSearch.html"
        ], ( utils
           , map
+          , ModelDict
           , m
           , sync
           , dict
@@ -20,6 +22,7 @@ define [ "utils"
           , tpl
           ) ->
 
+  ServiceTypes = new ModelDict.dict(dict: 'ServiceType')
   model = models.PartnerSearch
 
   storeKey = 'partnersSearch'
@@ -414,19 +417,19 @@ define [ "utils"
 
         k['coords'] = ko.computed -> "#{k['st_x']()},#{k['st_y']()}"
 
-        for nested in k['servicesNested']()
+        for nested in k['services']()
           do (nested) ->
             nested['showStr'] = ko.computed ->
               show  = "<span class='label label-info'>
-                       #{nested.servicenameLocal()}
+                       #{ServiceTypes.getLab nested.type}
                        </span>"
-              if nested.priority2()
+              if nested.priority2
                 show += " <span class='label label-danger'>
-                          ПБГ: #{nested.priority2()}
+                          ПБГ: #{nested.priority2}
                           </span>"
-              if nested.priority3()
+              if nested.priority3
                 show += " <span class='label label-warning'>
-                          ПБЗ: #{nested.priority3()}
+                          ПБЗ: #{nested.priority3}
                           </span>"
               show
 
@@ -442,8 +445,8 @@ define [ "utils"
       srvs = kvm['servicesLocals']()
       return v.distanceFormatted() if sort == "distance"
       unless _.isEmpty srvs
-        v = parseInt (_.find v.servicesNested(),
-                 (s) -> s.servicename() == srvs[0].value)?[sort]?()
+        v = parseInt (_.find v.services(),
+                 (s) -> String(s.type) == String(srvs[0].value))?[sort]?()
         # sorter will sort arrays with NaN as multiple arrays divided by NaN
         if _.isNaN v then Infinity else v
 

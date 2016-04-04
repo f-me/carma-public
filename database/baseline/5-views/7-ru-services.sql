@@ -16,9 +16,14 @@ WITH servicecounts AS (
         ),
      orderActions AS (
          SELECT DISTINCT ON (serviceId) serviceId, assignedTo
-          FROM actiontbl
+         FROM actiontbl
          WHERE result IN (1, 2)
-         ORDER BY serviceId, closeTime DESC)
+         ORDER BY serviceId, closeTime DESC),
+     cities_regions AS (
+        SELECT
+            unnest(cities) AS city,
+            string_agg(label, E'\n') AS regionlist
+        FROM "Region" GROUP BY city)
  SELECT
     "PaymentType".label AS "Тип оплаты",
         servicetbl.parentid || COALESCE(('/'::text || rank() OVER (PARTITION BY servicetbl.parentid ORDER BY servicetbl.createtime ASC)) ||
@@ -211,7 +216,6 @@ WITH servicecounts AS (
         ELSE 'N'
     END   AS "Стоимость превышена?",
     servicetbl.bill_billingcost AS "Сумма по счёту",
-    casetbl.services AS "Услуги",
     casetbl.files AS "Файлы, прикрепленные к кейсу",
     servicetbl.files AS "Файлы, прикрепленные к услуге",
     timezone('Europe/Moscow'::text, servicetbl.times_factserviceclosure) AS "Фактическое время закрытия услуги",
@@ -234,7 +238,9 @@ WITH servicecounts AS (
     CASE allservicesview.flags->>'Документы на автомобиль на руках'
       WHEN 'true' THEN 'Y' ELSE 'N' END as "Документы на автомобиль на руках",
     CASE allservicesview.flags->>'Не открывается лючок бензобака'
-      WHEN 'true' THEN 'Y' ELSE 'N' END as "Не открывается лючок бензобака"
+      WHEN 'true' THEN 'Y' ELSE 'N' END as "Не открывается лючок бензобака",
+
+    cities_regions.regionlist as "Регион"
 
    FROM casetbl
    LEFT JOIN commentLists ON casetbl.id = commentLists.caseId
@@ -248,6 +254,7 @@ WITH servicecounts AS (
    LEFT JOIN partnertbl p3 ON casetbl.car_seller = p3.id
    LEFT JOIN partnertbl p4 ON casetbl.car_dealerto = p4.id
    LEFT JOIN "City" casecity ON casetbl.city = casecity.id
+   LEFT JOIN cities_regions ON casetbl.city = cities_regions.city
    LEFT JOIN "City" dealerTOcity ON p4.city = dealerTOcity.id
    LEFT JOIN "CarMake" ON casetbl.car_make = "CarMake".id
    LEFT JOIN "CarModel" ON casetbl.car_model = "CarModel".id

@@ -29,12 +29,6 @@ define [ "utils"
       modelName = "Partner"
       kvm = modelSetup modelName, viewName, args
 
-      # I need this object because I can't clean foreach binding, once
-      # it's created, to use this proxy object to keep current partner's
-      # allerts
-      global.alertObj = { kvm: ko.observable(kvm)}
-      ko.applyBindings(global.alertObj, $("#partner-errors")[0])
-
       tableParams =
         tableName: "partner"
         objURL: "/_/Partner?limit=5000"
@@ -46,9 +40,7 @@ define [ "utils"
         .on("click.datatable", "tr", ->
           if (table.dataTable.fnGetPosition this) != null
             id = @children[0].innerText
-            kvm = modelSetup modelName, viewName, {id}
-            global.alertObj.kvm(kvm)
-
+            modelSetup modelName, viewName, {id}
         )
       screenman.showScreen modelName
 
@@ -65,11 +57,7 @@ define [ "utils"
           name: kvm.name()
         table.dataTable.fnAddData objsToRows [obj]
 
-    screenRelease = () ->
-      ko.cleanNode($("#partner-errors")[0])
-      delete global.alertObj
 
     { constructor: screenSetup
-    , destructor : screenRelease
     , template: tpl
     }

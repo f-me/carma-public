@@ -1,13 +1,9 @@
 CREATE VIEW "Отказы партнеров" AS --ОБЪЕДИНЕНИЕ ГОРОДОВ ИЗ "Region" В ОДНУ СТРОКУ ДЛЯ ИЗБЕЖАНИЯ ЗАДВОЕНИЯ СТРОК В ОТЧЕТЕ
-WITH cities_regions AS (WITH cit AS
-                          (SELECT label,
-                                  unnest(cities) AS cities
-                           FROM "Region")
-                        SELECT array_to_string(array_agg(label), ',') AS regionlist,
-                               cities
-                        FROM cit
-                        GROUP BY cities
-                        ORDER BY cities)
+WITH cities_regions AS (
+        SELECT
+            unnest(cities) AS city,
+            string_agg(label, E'\n') as regionlist
+        FROM "Region" GROUP BY city)
 SELECT "PartnerCancel".id,
        --ФУНКЦИИ TIME (ВРЕМЯ ПО МОСКВЕ) НЕ РЕАЛИЗУЕТС ВО VIEW, БУДЕТ РЕАЛИЗОВАНА В JASPERSOFT STUDIO (формат DD.MM.YYYY HH24:MI)
 
@@ -47,7 +43,7 @@ LEFT JOIN "ServiceType" ON servicetbl.type = "ServiceType".id
 LEFT JOIN "ServiceStatus" ON servicetbl.status = "ServiceStatus".id
 LEFT JOIN "PaymentType" ON servicetbl.paytype = "PaymentType".id
  --ДЖОЙНИМ РЕЗУЛЬТАТ ПОДЗАПРОСА cities_regions ДЛЯ ВЫБОРА РЕГИОНОВ
-LEFT JOIN cities_regions ON "City".id = cities_regions.cities::Integer
+LEFT JOIN cities_regions ON "City".id = cities_regions.city::Integer
 ORDER BY "PartnerCancel".ctime ASC,
          casetbl.id ASC;
 
