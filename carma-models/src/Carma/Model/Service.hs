@@ -33,6 +33,8 @@ data Service = Service
                                  "Дата создания услуги"
   , creator                      :: F (IdentI Usermeta) "creator"
                                  "Сотрудник, создавший услугу"
+  , owner                        :: F (IdentI Usermeta) "owner"
+                                 "Сотрудник, ответственный за услугу"
   , payType                      :: F (Maybe (IdentI PaymentType)) "payType"
                                  "Тип оплаты"
   , payment_costTranscript       :: F (Maybe Text) "payment_costTranscript"
@@ -131,10 +133,11 @@ svcMod =
     ,setMeta "group-widget" "partner" contractor_partner
     ,invisible contractor_coords
     ,hiddenIdent parentId
-    , readonly status
-    , clientCancelReason `completeWith` CRR.label
-    , setMeta "dictionaryLabel" (Aeson.String "realName") creator
-    , readonly creator
+    ,readonly status
+    ,clientCancelReason `completeWith` CRR.label
+    ,setMeta "dictionaryLabel" (Aeson.String "realName") creator
+    ,readonly creator
+    ,invisible owner
     ]
 
 -- | Mods that shouldn't be appied to search view
