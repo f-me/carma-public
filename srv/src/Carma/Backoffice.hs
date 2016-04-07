@@ -343,7 +343,8 @@ checkStatus =
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     , (AResult.needAnotherService,
-       withRelatedService $ setServiceStatus SS.order *> toBackAux)
+       setServiceStatus SS.ordered *>
+        (withRelatedService $ setServiceStatus SS.order *> toBackAux))
     ]
 
 
