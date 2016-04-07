@@ -23,7 +23,6 @@ import           Control.Monad.Trans.Reader
 
 import           Data.Dynamic
 import           Data.List
-import qualified Data.List as L
 import           Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
