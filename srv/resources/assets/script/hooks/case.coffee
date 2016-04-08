@@ -160,6 +160,7 @@ define [ "utils"
         a._meta.q.save (->
           svcs = kvm._parent.services
           svcs.notifySubscribers svcs()
+          global.Usermeta.updateAbandonedServices()
           kvm._parent.renderActions())
 
       if chkActions.length == 0
