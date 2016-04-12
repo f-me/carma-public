@@ -279,6 +279,10 @@ class Backoffice impl where
     (*>) :: impl (Eff m) -> impl (Outcome m) -> impl (Outcome m)
 
 
+    -- | Switch current context to related service
+    withRelatedService :: impl (Outcome m) -> impl (Outcome m)
+
+
 -- | Do nothing.
 finish :: (Backoffice impl, PreContextAccess m) => impl (Outcome m)
 finish = proceed []

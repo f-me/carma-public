@@ -49,9 +49,9 @@ executable vinnie
 
   -- Modules included in this executable, other than Main.
   other-modules:
-    Carma.VIN,
-    Carma.VIN.Base,
-    Carma.VIN.SQL,
+    Carma.VIN
+    Carma.VIN.Base
+    Carma.VIN.SQL
     Paths_vinnie
 
   build-depends:

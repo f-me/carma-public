@@ -216,7 +216,6 @@ WITH servicecounts AS (
         ELSE 'N'
     END   AS "Стоимость превышена?",
     servicetbl.bill_billingcost AS "Сумма по счёту",
-    casetbl.services AS "Услуги",
     casetbl.files AS "Файлы, прикрепленные к кейсу",
     servicetbl.files AS "Файлы, прикрепленные к услуге",
     timezone('Europe/Moscow'::text, servicetbl.times_factserviceclosure) AS "Фактическое время закрытия услуги",

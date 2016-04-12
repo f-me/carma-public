@@ -19,7 +19,6 @@ import           Prelude hiding ((>), (==), (||), (&&), const)
 import qualified Prelude as P ((==), (||), const)
 
 import           Control.Monad.Trans.State
-import           Data.Functor
 
 import           Data.Graph.Inductive.Graph hiding (toEdge)
 import           Data.Graph.Inductive.PatriciaTree
@@ -192,6 +191,9 @@ instance Backoffice EdgeE where
 
     -- Mark presence of left-hand effects
     _ *> b = EdgeE $ \c -> evalEdge c{edgeText = edgeText c ++ ["*"]} b
+
+    -- FIXME: mark context switching on a graph somehow
+    withRelatedService f = f
 
 
 -- | EdgeE evaluator for DSL terms.

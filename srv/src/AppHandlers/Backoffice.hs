@@ -30,7 +30,6 @@ import qualified Data.Aeson                  as A
 import           Data.Attoparsec.Text
 import qualified Data.HashMap.Strict         as HM
 import qualified Data.Map                    as Map
-import qualified Data.Text                   as T
 import           Data.Time
 
 import           GHC.TypeLits
@@ -84,11 +83,6 @@ data BORepr = Txt
 
 -- | Translation tables to print constants in human-readable form.
 type IdentMap m = Map.Map (IdentI m) Text
-
-
--- | Simple ident mapping
-iMap :: Model m => IdentMap m
-iMap = Map.fromList $ map (\(k, v) -> (v, T.pack k)) $ HM.toList idents
 
 
 -- | Use labels set in database to pretty-print constants.
@@ -158,6 +152,9 @@ allActionResults = do
   writeJSON $
     filter (\(_, r) ->
               isSupervisor || r /= ActionResult.supervisorClosed) $
+
+    -- anotherService should not be visible for users see #2593
+    filter (\(_, r) -> r /= ActionResult.needAnotherService) $
     concatMap (\a -> map (DSL.aType a,) $ DSL.actionResults a) $
     snd carmaBackoffice
 

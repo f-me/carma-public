@@ -33,7 +33,6 @@ define [ "model/render"
              , pubSub) ->
 
     dictCache = dict.buildCache(localDictionaries)
-    imgr = new Idents
     configmgr = new Config
 
     window.global =
@@ -48,7 +47,7 @@ define [ "model/render"
         user: user
         # Provided a model name, return available idents for that
         # model
-        idents: (mn) -> imgr.getIdents mn
+        idents: Idents.idents
         # Return client config option value
         config: (cn) -> configmgr.getOption cn
         model: do ->
@@ -343,7 +342,6 @@ define [ "model/render"
     kvm.fromJSON = (obj) ->
       for f in kvm._meta.model.fields when obj[f.name]
         kvm[f.name](obj[f.name])
-
 
     hooks = queueOptions?.hooks or ['*', model.name]
     applyHooks global.hooks.observable, hooks, model, kvm

@@ -81,7 +81,7 @@ data a :* b = a :* b deriving (Eq, Ord, Show, Read)
 infixl 3 :*
 
 instance (ToRow a, ToField b) => ToRow (a :* b) where
-    toRow (a :* b) = toRow $ a :. (Only b)
+    toRow (a :* b) = toRow $ a :. Only b
 
 
 execute :: ToRow p => Query -> p -> Import Int64
@@ -132,12 +132,12 @@ cfn f= CN $ fieldName f
 
 
 contractTable :: PlainText
-contractTable = PT $ tableName $
+contractTable = PT $ tableName
                 (modelInfo :: ModelInfo Contract)
 
 
 partnerTable :: PlainText
-partnerTable = PT $ tableName $
+partnerTable = PT $ tableName
                (modelInfo :: ModelInfo Partner)
 
 
@@ -151,7 +151,7 @@ sqlCast cn@(CN n) t = (T.concat [n, "::", t], cn)
 
 
 sqlCommas :: [T.Text] -> T.Text
-sqlCommas ts = T.intercalate "," ts
+sqlCommas = T.intercalate ","
 
 
 getProgram :: Int
@@ -162,8 +162,8 @@ getProgram sid =
     [sql|
      SELECT p.id FROM "?" p, "?" s
      WHERE p.id = s.parent AND s.id = ?;
-     |] ( PT $ tableName $ (modelInfo :: ModelInfo Program)
-        , PT $ tableName $ (modelInfo :: ModelInfo SubProgram)
+     |] ( PT $ tableName (modelInfo :: ModelInfo Program)
+        , PT $ tableName (modelInfo :: ModelInfo SubProgram)
         , sid)
 
 
@@ -187,8 +187,8 @@ createCSVTables inames cnames =
                             , table
                             , " ("
                             , intercalate "," $
-                              (map (\n -> (T.unpack n) ++ " text") names) ++
-                              [(T.unpack kid) ++ " serial"]
+                              map (\n -> T.unpack n ++ " text") names ++
+                              [T.unpack kid ++ " serial"]
                             , ");"
                             ]
 
@@ -227,8 +227,8 @@ pristineToProto names =
     INSERT INTO vinnie_proto (?)
     SELECT ?
     FROM vinnie_pristine;
-    |] ( PT $ sqlCommas (kid:(map (\(_, CN t) -> t) names))
-       , PT $ sqlCommas (kid:(map fst names)))
+    |] ( PT $ sqlCommas (kid : map (\(_, CN t) -> t) names)
+       , PT $ sqlCommas (kid : map fst names))
 
 
 protoUpdateWithFun :: ContractFieldName
@@ -490,8 +490,8 @@ protoSubprogramLookup pid iname cname =
          :* PT iname
          :* tKid :* tKid)
         where
-          programTable = PT $ tableName $ (modelInfo :: ModelInfo Program)
-          subProgramTable = PT $ tableName $ (modelInfo :: ModelInfo SubProgram)
+          programTable = PT $ tableName (modelInfo :: ModelInfo Program)
+          subProgramTable = PT $ tableName (modelInfo :: ModelInfo SubProgram)
 
 
 -- | TODO Move @lower(trim(both ' ' from $1))@ to functions (when the
@@ -628,8 +628,8 @@ protoToQueue names =
      INSERT INTO vinnie_queue (?)
      SELECT ?
      FROM vinnie_proto;
-     |] ( PT $ sqlCommas (kid:(map (\(_, CN t) -> t) names))
-        , PT $ sqlCommas (kid:(map fst names)))
+     |] ( PT $ sqlCommas (kid : map (\(_, CN t) -> t) names)
+        , PT $ sqlCommas (kid : map fst names))
 
 
 -- | Set default values for a column in queue table. Parameters: field
@@ -717,16 +717,16 @@ transferContracts conn =
      FROM vinnie_queue WHERE errors IS NULL;
      |] ( contractTable
         , PT $ sqlCommas $
-          (fieldName C.fromArc):
-          (fieldName C.committer):
-          (fieldName C.dixi):
-          (fieldName C.sourceFile):
+          fieldName C.fromArc:
+          fieldName C.committer:
+          fieldName C.dixi:
+          fieldName C.sourceFile:
           contractFields
         , PT $ sqlCommas $
-          (fieldName C.fromArc):
-          (fieldName C.committer):
-          (fieldName C.dixi):
-          (fieldName C.sourceFile):
+          fieldName C.fromArc:
+          fieldName C.committer:
+          fieldName C.dixi:
+          fieldName C.sourceFile:
           contractFields)
 
 

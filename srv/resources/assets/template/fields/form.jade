@@ -340,6 +340,12 @@ include _form_utils
           span.glyphicon.glyphicon-fast-backward
           |&nbsp;
           span(data-bind='text: buttons.cancel.text')
+      .svc-status-button.btn-block(
+        data-bind="visible: buttons.anotherPSA.visible")
+        button.btn.btn-small.btn-info(
+          style="width:100%"
+          data-bind='click: buttons.anotherPSA.click')
+          span(data-bind='text: buttons.anotherPSA.text')
 
 
 #partner-field-template.field-template
@@ -350,6 +356,79 @@ include _form_utils
       span.input-group-addon(
           data-bind='click: openPartnerSearch.bind($data, \'{{ name }}\')')
         span.glyphicon.glyphicon-search
+
+
+#partner_services-field-template.field-template
+  +fieldControlGroup
+    #partner_services-accordion.panel-group
+      .panel(data-bind="foreach: _serviceModels")
+        .accordion-toggle(
+          data-toggle="collapse"
+          data-parent="#partner_services-accordion"
+          data-bind="css: {error: !noError()},\
+              attr: {'data-target': '#partner_service' + $index()}")
+            i.glyphicon.glyphicon-chevron-down
+              | &nbsp;
+            span(data-bind="text: name")
+            i.glyphicon.glyphicon-remove.pull-right(
+              title='Удалить'
+              data-bind='bindClick: delService')
+        .panel-collapse.collapse(data-bind="attr: {id: 'partner_service' + $index()}")
+          .panel-body
+            .control-group.tight
+              label
+                | Приоритет: &nbsp; ПН
+                input(type='text' data-bind="textInput: priority1,\
+                  css: {error: _error().indexOf('priority1') >= 0}")
+                | &nbsp; ПБГ
+                input(type='text' data-bind="textInput: priority2,\
+                  css: {error: _error().indexOf('priority2') >= 0}")
+                | &nbsp; ПБЗ
+                input(type='text' data-bind="textInput: priority3,\
+                  css: {error: _error().indexOf('priority3') >= 0}")
+              label
+                | Процент за ложный вызов: &nbsp;
+                input(type='text' data-bind="textInput: fine,\
+                  css: {error: _error().indexOf('fine') >= 0}")
+              table.tarif-options
+                thead
+                  tr
+                    th(width="50%") Тарифная опция
+                    th(width="20%") Цена 1
+                    th(width="20%") Цена 2
+                    th(width="10%")
+                tbody
+                  // ko foreach: options
+                  tr
+                    td
+                      input(type='text' data-bind="textInput: name,\
+                        css: {error: _error().indexOf('name') >= 0}")
+                    td
+                      input(type='text' data-bind="textInput: price1,\
+                        css: {error: _error().indexOf('price1') >= 0}")
+                    td
+                      input(type='text' data-bind="textInput: price2,\
+                        css: {error: _error().indexOf('price2') >= 0}")
+                    td(align="center")
+                      i.glyphicon.glyphicon-remove(
+                        title='Удалить'
+                        data-bind='bindClick: delOption')
+                  // /ko
+                  tr
+                    td(colspan=4)
+                      button.btn.btn-action(data-bind='bindClick: addOption')
+                        i.glyphicon.glyphicon-plus
+                        | &nbsp; Добавить опцию
+
+    .dropup
+      button.dropdown-toggle.btn.btn-action(
+        data-toggle="dropdown"
+        data-bind='bindClick: _addService')
+          i.glyphicon.glyphicon-plus
+          | &nbsp; Добавить услугу
+      ul.dropdown-menu(data-bind="foreach: _serviceTypes.filteredItems")
+        li
+          a(data-bind="text: label, click: $parent._addService(id)" href="#")
 
 // Modal dialog launch button
 #modalDialogButton-field-template.field-template
@@ -446,18 +525,17 @@ mixin simpleRefHdr(name, bindName)
       target='_blank')
       span.glyphicon.glyphicon-print
       | &nbsp;Печать
-    span &nbsp;
+    // ko foreach: topLevelButtons
+    br(data-bind='visible: visible')
     button.btn.btn-mini.btn-danger(
-      data-bind='visible: buttons.mistake.visible,\
-                 click: buttons.mistake.click')
-      span.glyphicon.glyphicon-remove
-      | &nbsp;
-      span(data-bind='text: buttons.mistake.text')
-
-
-#partner_services-reference-template.reference-template
-  +refCommon
-    +simpleRefHdr("Тариф", "serviceNameLocal")
+      data-bind='visible: visible,\
+         css: {"btn-danger":  type == "danger",\
+               "btn-warning": type == "warning",\
+               "btn-success": type == "success"\
+              },\
+         click: click')
+      span(data-bind='text: text')
+    // /ko
 
 // SubProgram.services (SubProgramService model) reference template
 #subprogram-services-reference-template.reference-template

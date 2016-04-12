@@ -181,7 +181,7 @@ define [], ->
           dictionaryStringify: true
           label: "Услуга"
         type: "dictionary",
-        name: "servicename"
+        name: "type"
       },
       {
         meta:

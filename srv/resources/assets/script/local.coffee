@@ -163,6 +163,7 @@ require [ "domready"
     # disable everytnig websocket-related for portal
     if not window.location.origin.match(/portal\.ruamc\.ru/)
       CurrentUser.initialize()
+      global.Usermeta.updateAbandonedServices()
 
     # render menu only after everything else in menu bar is done
     liveMenu.setup(document.getElementById 'nav')

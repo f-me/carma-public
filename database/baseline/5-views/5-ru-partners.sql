@@ -4,12 +4,10 @@ CREATE VIEW "Партнеры" AS
 --ВЫБИРАЕМ НОРМАЛЬНЫЕ НАЗВАНИЯ УСЛУГ У ПАРТНЕРА
 WITH servicelabel AS
 (
-WITH A AS (SELECT id, regexp_split_to_table(services, ',') as service
-FROM partnertbl)
-SELECT A.id, string_agg("ServiceType".label, ', ') as label from A
-LEFT JOIN "PartnerService" ON SPLIT_PART(A.service, ':', 2) = "PartnerService".id::text
-LEFT JOIN "ServiceType" ON "PartnerService".servicename = "ServiceType".id
-GROUP BY A.id
+  SELECT p.id AS id, string_agg(t.label, ', ') AS label
+  FROM (SELECT DISTINCT id, json_array_elements(services)->>'type' AS svcid FROM partnertbl) p
+    JOIN "ServiceType" t ON (p.svcid::int = t.id)
+  GROUP BY p.id
 ),
 makelabels AS
 (
@@ -38,71 +36,33 @@ emails AS
  (SELECT id, json_array_elements(emails)->>'value' as emails_value
   FROM partnertbl) s GROUP BY id
 )
-Select
---ФУНКЦИЯ YESNO
-        (CASE
-                WHEN
-                        partnertbl.isActive = true
-                THEN
-                        '+'
-                ELSE
-                        '-'
-                END)
-        AS "Партнер активен",
---ФУНКЦИЯ YESNO
-        (CASE
-                WHEN
-                        partnertbl.isDealer = true
-                THEN
-                        '+'
-                ELSE
-                        '-'
-                END)
-        AS "Дилер",
---ФУНКЦИЯ YESNO
-        (CASE
-                WHEN
-                        partnertbl.isMobile = true
-                THEN
-                        '+'
-                ELSE
-                        '-'
-                END)
-        AS "Мобильный партнёр",
-partnertbl.name AS "Название партнёра",
-partnertbl.code AS "Код",
---LOOKUP(DealerCities, partnertbl.city) вместо dictionaries/DealerCities.json
+SELECT
+        (CASE WHEN partnertbl.isActive THEN '+' ELSE '-' END) AS "Партнер активен",
+        (CASE WHEN partnertbl.isDealer THEN '+' ELSE '-' END) AS "Дилер",
+        (CASE WHEN partnertbl.isMobile THEN '+' ELSE '-' END) AS "Мобильный партнёр",
+        partnertbl.name AS "Название партнёра",
+        partnertbl.code AS "Код",
         "City".label AS "Город",
-makelabels.makes AS "Обслуживаемые марки",
-partnertbl.personInCharge AS "Ответственное лицо",
---partnertbl.taxScheme AS "Форма налогообложения",
+        makelabels.makes AS "Обслуживаемые марки",
+        partnertbl.personInCharge AS "Ответственное лицо",
         "TaxScheme".label AS "Форма налогообложения",
---ФУНКЦИЯ YESNO
-        (CASE
-                WHEN
-                        partnertbl.isPayBackConfirmed = true
-                THEN
-                        '+'
-                ELSE
-                        '-'
-                END)
-        AS "Соглашение о вознаграждении",
-partnertbl.comment AS "Комментарий",
---Далее идут поля, которых нету в шаблоне отчета по партнерам:
-servicelabel.label AS "Услуги",
---ЧТО ЭТО?
-        --partnertbl.garbage,
---ЧТО ЭТО? Чем отличается от makes?
-        --makers, --СТАРОЕ ПОЛЕ
---ЧТО ЭТО?
-        --mtime, -- время последнего обновления данных о партнёре через партнёрское приложение
-addrs.text AS "Адрес",
-phones.text AS "Телефоны",
-emails.text AS "Электронная почта",
---ЧТО ЭТО?
-        --isfree, -- свободен ли партнёр (используется для мобильных партнёров, у них кнопочка в приложении есть)
-foreignident AS "Интеграционный код",
-array_to_string(synonyms, ', ') AS "Синонимы"
+        (CASE WHEN partnertbl.isPayBackConfirmed THEN '+' ELSE '-' END) AS "Соглашение о вознаграждении",
+        partnertbl.comment AS "Комментарий",
+        --Далее идут поля, которых нету в шаблоне отчета по партнерам:
+        servicelabel.label AS "Услуги",
+        --ЧТО ЭТО?
+                --partnertbl.garbage,
+        --ЧТО ЭТО? Чем отличается от makes?
+                --makers, --СТАРОЕ ПОЛЕ
+        --ЧТО ЭТО?
+                --mtime, -- время последнего обновления данных о партнёре через партнёрское приложение
+        addrs.text AS "Адрес",
+        phones.text AS "Телефоны",
+        emails.text AS "Электронная почта",
+        --ЧТО ЭТО?
+                --isfree, -- свободен ли партнёр (используется для мобильных партнёров, у них кнопочка в приложении есть)
+        foreignident AS "Интеграционный код",
+        array_to_string(synonyms, ', ') AS "Синонимы"
 FROM partnertbl
 LEFT JOIN "City" ON partnertbl.city = "City".id
 LEFT JOIN "TaxScheme" ON partnertbl.taxScheme::Integer = "TaxScheme".id

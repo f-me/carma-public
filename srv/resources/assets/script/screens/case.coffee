@@ -3,11 +3,13 @@ define [ "utils"
        , "text!tpl/screens/case.html"
        , "text!tpl/fields/form.html"
        , "lib/ws"
+       , "lib/idents"
        , "model/utils"
        , "model/main"
        , "components/contract"
        ],
-  (utils, hotkeys, tpl, Flds, WS, mu, main, Contract) ->
+  (utils, hotkeys, tpl, Flds, WS, idents, mu, main, Contract) ->
+    ActionResult = idents.idents "ActionResult"
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
     flds =  $('<div/>').append($(Flds))
@@ -58,6 +60,11 @@ define [ "utils"
 
       # True if any of of required fields are missing a value
       do (kvm) ->
+        kvm['abandonedServices'] = ko.observable(
+          global.Usermeta.abandonedServices().filter (s) -> `s.caseId == args.id`)
+        global.Usermeta.abandonedServices.subscribe (svcs) ->
+          kvm.abandonedServices(svcs.filter (s) -> `s.caseId == args.id`)
+
         kvm['hasMissingRequireds'] = ko.computed ->
           # Check if any of required fields in a viewmodel is missing
           checkVM = (vm) ->
@@ -68,7 +75,7 @@ define [ "utils"
           # Check all services too
           for r, svm of kvm['servicesReference']()
             disable ||= checkVM svm
-          disable
+          disable || kvm.abandonedServices().length > 0
         # Show a list of empty required fields
         ko.applyBindings(kvm, el("empty-fields"))
 
@@ -81,6 +88,16 @@ define [ "utils"
       $('.accordion-toggle:has(> .alert)').css 'padding', 0
 
       $(".status-btn-tooltip").tooltip()
+
+      # scroll to service if we have its id in url
+      if args.svc
+        services = global.viewsWare["case-form"].knockVM.servicesReference()
+        for s in services
+          if String(s.id()) == args.svc
+            $("##{s._meta.model.viewName}-head").collapse('show')
+            leftTop = $("#left").scrollTop()
+            svcTop = $("##{s._meta.model.viewName}-group").offset().top
+            $("#left").animate {scrollTop: leftTop + svcTop - 40}, 1000
 
     # History pane
     setupHistory = (kvm) ->
@@ -237,8 +254,12 @@ define [ "utils"
             parent: kvm
           # Redirect to backoffice when an action result changes
           avm["resultSync"]?.subscribe (nv) ->
-            if !nv
+            # Don't redirect to backoffice if action result was set with
+            # 'anotherPSA' button
+            if !nv && avm.result__ != ActionResult.needAnotherService
               window.location.hash = "back"
+          avm["result"]?.subscribe (res) ->
+            avm.result__ = res
           # There's no guarantee who renders first (services or
           # actions), try to set up an observable from here
           if not kvm['actionsList']?
@@ -277,6 +298,7 @@ define [ "utils"
           $('.accordion-toggle:has(> .alert)').css 'padding', 0
           $(".status-btn-tooltip").tooltip()
           $("##{k['view']}-head").collapse 'show'
+          global.Usermeta.updateAbandonedServices()
 
     utils.build_global_fn 'addService', ['screens/case']
 

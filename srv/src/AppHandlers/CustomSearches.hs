@@ -22,6 +22,8 @@ module AppHandlers.CustomSearches
     , relevantCases
     , searchCases
     , findSameContract
+    , suspendedServices
+    , abandonedServices
     )
 
 where
@@ -34,7 +36,7 @@ import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import           Data.Map as M (Map, (!), delete, fromList)
 import           Data.String (fromString)
-import           Data.Maybe (fromMaybe)
+import           Data.Maybe (fromMaybe, isJust)
 import           Data.Text (Text)
 import           Data.Time.Clock
 
@@ -43,13 +45,14 @@ import           Database.PostgreSQL.Simple.SqlQQ
 
 import           Snap
 import           Snap.Snaplet.PostgresqlSimple
+import           Snaplet.Auth.PGUsers
 
 import           Data.Model.Types
 
 import qualified Carma.Model.ActionType              as AType
 import qualified Carma.Model.Role                    as Role
-import           Carma.Model.Usermeta                as Usermeta
-import           Carma.Model.UserState               as UserState
+import qualified Carma.Model.UserState               as UserState
+import qualified Carma.Model.ServiceStatus           as ServiceStatus
 
 import           AppHandlers.CustomSearches.Contract
 import           AppHandlers.Users
@@ -243,7 +246,8 @@ actStats = do
 
 
 boUsers :: AppHandler ()
-boUsers = [Role.head, Role.back, Role.supervisor] `usersInStates` [Ready]
+boUsers
+  = [Role.head, Role.back, Role.supervisor] `usersInStates` [UserState.Ready]
 
 
 allDealersForMake :: AppHandler ()
@@ -341,3 +345,39 @@ findSameContract = do
         ++ (maybe "" (\x -> " OR c.cardNumber = " ++ quote x) num)
         ++ ")"
       writeJSON $ mkMap ["id", "ctime"] rows
+
+
+suspendedServices :: AppHandler ()
+suspendedServices = do
+  svcs <- query [sql|
+    select row_to_json(x) from
+      (select
+          s.parentid as "caseId",
+          s.id as "svcId",
+          t.label as "type"
+        from servicetbl s
+          join "ServiceType" t on (s.type = t.id)
+        where status = ?
+        order by createtime desc nulls last) x
+    |] [ServiceStatus.suspended]
+  writeJSON (map fromOnly svcs :: [A.Value])
+
+
+abandonedServices :: AppHandler ()
+abandonedServices = do
+  usr <- getParam "usr"
+  svcs <- query [sql|
+    select row_to_json(x) from
+      (select
+          extract(epoch from createtime) :: int as ctime,
+          s.parentid as "caseId",
+          s.id as "svcId",
+          t.label as "type",
+          owner as "userId"
+        from servicetbl s
+          join "ServiceType" t on (s.type = t.id)
+        where status = ?
+          and (not ? or owner = ?)
+        order by createtime desc nulls last) x
+    |] (ServiceStatus.creating, isJust usr, usr)
+  writeJSON (map fromOnly svcs :: [A.Value])

@@ -1,7 +1,9 @@
 define [ "utils"
+       , "lib/idents"
        , "model/utils"
        , "screens/partnersSearch"
-       ], (u, mu, pSearch) ->
+       ], (u, i, mu, pSearch) ->
+  ServiceStatus = i.idents "ServiceStatus"
 
   # sync with partner search screen
   openPartnerSearch: (model, kvm) ->
@@ -53,113 +55,6 @@ define [ "utils"
         JSON.stringify {case: kase, service: srv, field: field}
       pSearch.open('case')
 
-  buttons: (model, kvm) ->
-    return if /^search/.test(Finch.navigate())
-
-    kvm.buttons = {}
-    kase = kvm._parent
-    sDict = u.newModelDict("ServiceStatus")
-
-    kvm.buttons.mistake = {}
-    kvm.buttons.mistake.text =
-      sDict.getLab global.idents("ServiceStatus").mistake
-    kvm.buttons.mistake.visible = ko.computed ->
-      kvm['status']() == global.idents("ServiceStatus").creating
-    kvm.buttons.mistake.click = ->
-      if confirm "Закрыть услугу как ошибочную?"
-        kvm['status'] global.idents("ServiceStatus").mistake
-
-    # Required *case* fields for the backoffice button to be enabled
-    boFlds = [ 'city'
-             , 'contact_name'
-             , 'contact_phone1'
-             , 'customerComment'
-             , 'program'
-             ]
-    kvm.buttons.backoffice = {}
-    kvm.buttons.backoffice.tooltip = u.reqFieldsTooltip kase, boFlds
-    kvm.buttons.backoffice.text =
-      sDict.getLab global.idents("ServiceStatus").backoffice
-    kvm.buttons.backoffice.visible = ko.computed ->
-      kvm['status']() == global.idents("ServiceStatus").creating
-    kvm.buttons.backoffice.disabled = ko.computed ->
-      u.someEmpty kase, boFlds
-    kvm.buttons.backoffice.click = ->
-      kvm['status'] global.idents("ServiceStatus").backoffice
-
-    kvm.buttons.needMakerApproval = {}
-    kvm.buttons.needMakerApproval.text =
-      sDict.getLab global.idents("ServiceStatus").makerApproval
-    kvm.buttons.needMakerApproval.visible = ko.computed ->
-      tgtStatuses = [ global.idents("ServiceStatus").creating
-                    , global.idents("ServiceStatus").backoffice
-                    , global.idents("ServiceStatus").needPartner
-                    ]
-      _.contains tgtStatuses, kvm['status']()
-    kvm.buttons.needMakerApproval.click = ->
-      if confirm "Согласовать оказание услуги с производителем?"
-        kvm['status'] global.idents("ServiceStatus").makerApproval
-
-    kvm.buttons.recallClient = {}
-    kvm.buttons.recallClient.text =
-      sDict.getLab global.idents("ServiceStatus").recallClient
-    kvm.buttons.recallClient.visible = ko.computed ->
-      tgtStatuses = [ global.idents("ServiceStatus").ordered
-                    , global.idents("ServiceStatus").inProgress
-                    , global.idents("ServiceStatus").needPartner
-                    , global.idents("ServiceStatus").makerApproval
-                    ]
-      _.contains tgtStatuses, kvm['status']()
-    kvm.buttons.recallClient.click = ->
-      if confirm "Сообщить клиенту время оказания услуги?"
-        kvm['status'] global.idents("ServiceStatus").recallClient
-
-
-    # There's no guarantee who renders first (services or actions),
-    # try to set up an observable from here
-    if not kase['actionsList']?
-      kase['actionsList'] = ko.observableArray()
-
-    # Required fields for the cancel button to be enabled
-    cnFields = ['clientCancelReason']
-    kvm.buttons.cancel = {}
-    kvm.buttons.cancel.tooltip = u.reqFieldsTooltip kvm, cnFields
-    kvm.buttons.cancel.text =
-      sDict.getLab global.idents("ServiceStatus").canceled
-    kvm.buttons.cancel.visible = ko.computed ->
-      # Always show in one of these statuses
-      tgtStatuses = [ global.idents("ServiceStatus").creating
-                    , global.idents("ServiceStatus").ordered
-                    , global.idents("ServiceStatus").inProgress
-                    , global.idents("ServiceStatus").needPartner
-                    , global.idents("ServiceStatus").makerApproval
-                    ]
-      statusOk = (_.contains tgtStatuses, kvm['status']())
-
-      # Show actions for a service in backoffice status only if its
-      # order actions are unassigned or assigned to the current user
-      ordersUnassigned = false
-      myOrder = false
-      if kvm['status']() == global.idents("ServiceStatus").backoffice
-        myOrder = false
-        svcActs = u.svcActions kase, kvm,
-          [ global.idents("ActionType").orderService
-          , global.idents("ActionType").orderServiceAnalyst
-          ]
-        ordersUnassigned = !_.isEmpty(svcActs) &&
-          _.every svcActs, (a) -> _.isNull a.assignedTo()
-        myOrder = _.some svcActs, (a) -> a.assignedTo() == global.user.id
-      statusOk || myOrder || ordersUnassigned
-    kvm.buttons.cancel.disabled = ko.computed ->
-      _.isEmpty kvm['clientCancelReason']?()
-    kvm.buttons.cancel.click = ->
-      if confirm "Выполнить отказ от услуги?"
-        # Redirect to #back if own actions closed
-        svcActs = u.svcActions kvm._parent, kvm, null
-        if _.some(svcActs, (a) -> a.assignedTo() == global.user.id)
-          kvm.buttons.cancel.redirect = true
-        kvm['status'] global.idents("ServiceStatus").canceled
-
   serviceColor: (model, kvm) ->
     # do not run this hook on search screen
     return if /^search/.test(Finch.navigate())
@@ -179,7 +74,7 @@ define [ "utils"
       # action is canceled. Check if the click has just occured to
       # prevent redirections when the case has just been entered.
       if (kvm.buttons.cancel.redirect &&
-          (kvm.status?() == global.idents("ServiceStatus").canceled))
+          (kvm.status?() == ServiceStatus.canceled))
         window.location.hash = "back"
     # Update actions list when new actions might appear
     #

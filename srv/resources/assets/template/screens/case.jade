@@ -59,16 +59,24 @@
       div(data-bind="visible: hasMissingRequireds")
         strong
           | Незаполненные поля:
-      ul
-        // ko foreach: _meta.model.fields
-        li.text-danger(data-bind="visible: $root[$data.name + 'Not'](),\
-                                  text: $data.meta.label,\
-                                  click: function(){focusField($data.name)}")
-        // /ko
-      ul
-        // ko foreach: servicesReference
-        // ko foreach: $data._meta.model.fields
-        li.text-danger(data-bind="visible: $parent[$data.name + 'Not'](),\
-                                  text: $data.meta.label")
-        // /ko
-        // /ko
+        ul
+          // ko foreach: _meta.model.fields
+          li.text-danger(data-bind="visible: $root[$data.name + 'Not'](),\
+                                    text: $data.meta.label,\
+                                    click: function(){focusField($data.name)}")
+          // /ko
+        ul
+          // ko foreach: servicesReference
+          // ko foreach: $data._meta.model.fields
+          li.text-danger(data-bind="visible: $parent[$data.name + 'Not'](),\
+                                    text: $data.meta.label")
+          // /ko
+          // /ko
+        div(data-bind="visible: abandonedServices().length > 0")
+          strong
+            | Услуги в статусе "Создание"
+          ul
+            // ko foreach: abandonedServices
+            li
+              a(data-bind='attr: {href: href}, text: text')
+            // /ko

@@ -56,6 +56,8 @@ define [ "utils"
       knockVM['partner']?.customRequired ->
         knockVM['callReason']() == reasons["client_contactDealer"] and
         not _.isNumber knockVM['partner']()
+      knockVM['abandonedServices'] = ko.observable global.Usermeta.abandonedServices()
+      global.Usermeta.abandonedServices.subscribe (svcs) -> knockVM.abandonedServices(svcs)
 
 
 
@@ -106,9 +108,15 @@ define [ "utils"
             if location.hash.match(/[0-9]+$/)
             then Finch.navigate 'back'
             else reloadScreen()
+        title:
+          if knockVM.abandonedServices().length == 0
+            ''
+          else
+            'Невозможно завершить звонок, у Вас есть услуга в статусе “Создание”'
         avail: ko.computed ->
-          _.all _.map knockVM._meta.model.fields, (f) ->
-            ! knockVM["#{f.name}Not"]()
+          knockVM.abandonedServices().length == 0 and
+            _.all _.map knockVM._meta.model.fields, (f) ->
+              ! knockVM["#{f.name}Not"]()
 
       servicesSearch:
         fn: ->

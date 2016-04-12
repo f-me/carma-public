@@ -102,13 +102,24 @@ html
                     i.icon-off.icon-black
                     | Выход
             li.dropdown
-              a.nav-block.dropdown-toggle(data-toggle='dropdown',
-                data-bind="text: safelyGet('currentStateLocal')")
+              .attention-magnet(style='display: none;', data-bind="visible: alert")
+              a.dropdown-toggle(href='#' data-toggle='dropdown',
+                data-bind="css: {important: alert}, text: safelyGet('currentStateLocal')")
               ul.dropdown-menu
+                li.abandoned-services(
+                  data-bind='visible: abandonedServices().length > 0')
+                  b Услуги в стaтусе "Создание":
+                  ul#abandoned-services
+                    // ko foreach: abandonedServices
+                    li
+                      a(data-bind='attr: {href: href}, text: text')
+                    // /ko
+                  hr
                 li.current-user-menu
-                  | Текущий статус:
-                  span(data-bind="text: safelyGet('currentStateLocal')")
-                  span(data-bind="text: safelyGet('timeInCurrentState')")
+                  .status
+                    b Текущий статус:
+                    span(data-bind="text: safelyGet('currentStateLocal')")
+                    span(data-bind="text: safelyGet('timeInCurrentState')")
                   #user-state-btngroup.btn-group.btn-group-xs
                     button.btn.btn-default.btn-small(type='button',
                       data-bind="css: {\n\

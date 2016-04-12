@@ -1,0 +1,21 @@
+machine:
+  environment:
+    PATH: ${HOME}/stack-bin/:${PATH}
+
+dependencies:
+  cache_directories:
+    - "~/.stack"
+  override:
+    - rm -rf stack*.tar.gz
+    - rm -rf stack-bin/
+
+    - wget https://github.com/commercialhaskell/stack/releases/download/v0.1.10.0/stack-0.1.10.0-linux-x86_64.tar.gz
+    - tar -zxf stack*.tar.gz
+
+    - mkdir ~/stack-bin/
+    - cp stack*/stack ~/stack-bin/
+    - stack setup
+
+test:
+  override:
+    - stack -j2 build

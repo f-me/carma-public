@@ -30,7 +30,7 @@ define ["render/screen"
           "call-view": call
       r.renderScreen call, bind
 
-  addRoute "case/:id", (bind) ->
+  addRoute "case/:id/:svc", (bind) ->
     require ["screens/case"], (kase) ->
       kase.screen =
         name : "case"

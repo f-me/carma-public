@@ -24,7 +24,6 @@ import           Data.String (fromString)
 import           Text.Printf
 
 import           Data.Maybe
-import           Data.List
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time.Clock (getCurrentTime)
@@ -33,6 +32,7 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Vector (singleton)
 
 import           GHC.TypeLits
+import           Data.Dynamic
 
 import           Data.Model
 import           Data.Model.Patch (Patch)
@@ -125,14 +125,14 @@ updateUserState :: forall m. Model m =>
                 -- ^ Changed fields
                 -> IdentI Event
                 -> AppHandler ()
-updateUserState tgtUsr' evt idt p evidt = do
+updateUserState tgtUsr'' evt idt p evidt = do
   -- Little hack to determine target user for state change in case if
   -- someone else changed @delayedState@ field of current user
   tgtUsr <- case mname of
     -- Rebuild ident so haskell won't complain about m ~ Usermeta
     "Usermeta" -> return $ Just $ Ident $ identVal idt
     _          ->
-      case tgtUsr' of
+      case tgtUsr'' of
         u@(Just _) -> return u
         Nothing -> getRealUid
   case tgtUsr of
@@ -234,7 +234,7 @@ checkUserState uid evType evIdt _ p = do
   where
     nextState' s d =
       let mname = modelName (modelInfo :: ModelInfo m)
-      in nextState s d evType mname (HM.keys $ P.untypedPatch p)
+      in nextState s d evType mname (P.untypedPatch p)
     setNext Nothing = return Nothing
     setNext (Just s) = liftPG $ \c -> do
       void $ P.create (mkState s) c
@@ -250,14 +250,14 @@ data UserStateEnv = UserStateEnv { lastState :: UserStateVal
                                  , delayed   :: Maybe UserStateVal
                                  , evType    :: EventType
                                  , mdlName   :: Text
-                                 , mdlFlds   :: [Text]
+                                 , mdlPatch  :: HM.HashMap Text Dynamic
                                  }
 type UserStateM   = RWS UserStateEnv [Bool] (Maybe UserStateVal) ()
 
 execUserStateEnv :: UserStateEnv -> UserStateM -> Maybe UserStateVal
 execUserStateEnv s c = fst $ execRWS c s Nothing
 
-data Matcher = Fields [(Text, Text)] | Models [Text] | NoModel
+data Matcher = Fields [(Text, Text, Dynamic -> Bool)] | Models [Text] | NoModel
 
 -- | Calculate next state
 nextState :: UserStateVal
@@ -267,22 +267,26 @@ nextState :: UserStateVal
           -> EventType
           -> Text
           -- ^ Model name
-          -> [Text]
-          -- ^ Field names
+          -> HM.HashMap Text Dynamic
+          -- ^ Fields and values
           -> Maybe UserStateVal
-nextState lastState delayed evt mname fld =
-  execUserStateEnv (UserStateEnv lastState delayed evt mname fld) $ do
+nextState lastState delayed' evt mname patch =
+  execUserStateEnv (UserStateEnv lastState delayed' evt mname patch) $ do
     change ([Busy] >>> Ready) $
       -- TODO Remove redundant Call.endDate clause here as a call
       -- action is always closed when an associated call is closed
-      on Update $ Fields [field Call.endDate, field Action.result]
+      on Update $ Fields
+        [field Call.endDate
+        -- Don't switch to Ready state if needAnoterService button is pressed:
+        -- https://github.com/f-me/carma/issues/2593#issuecomment-202555443
+        ,fieldVal Action.result $ (/= Just ActionResult.needAnotherService)]
     change ([Ready] >>> Busy) $ do
       on Update $ Fields [field Action.openTime]
     change ([LoggedOut] >>> Ready)     $ on Login  NoModel
     change (allStates   >>> LoggedOut) $ on Logout NoModel
     change (allStates   >>> NA)        $ on AvayaNA NoModel
     change ([NA]        >>> Ready)     $ on AvayaReady NoModel
-    case delayed of
+    case delayed' of
       Nothing     -> change ([ServiceBreak, NA] >>> Ready) $
         on Update $ Fields [field delayedState]
       Just Ready  -> change ([Rest, Dinner, ServiceBreak, NA] >>> Ready) $
@@ -293,29 +297,35 @@ nextState lastState delayed evt mname fld =
     -- Check if we can switch user into delayed state
     checkDelayed
   where
-    field :: forall t n d m1.(Model m1, KnownSymbol n)
-          => (m1 -> F t n d) -> (Text, Text)
-    field f = (modelName (modelInfo :: ModelInfo m1), fieldName f)
-    model :: forall t n d m1.(Model m1, KnownSymbol n) => (m1 -> F t n d) -> Text
-    model _ = modelName (modelInfo :: ModelInfo m1)
+    fieldVal :: forall t n d m1 . (Model m1, KnownSymbol n, Typeable t)
+      => (m1 -> F t n d)
+      -> (t -> Bool)
+      -> (Text, Text, (Dynamic -> Bool))
+    fieldVal f valChk
+      = (modelName (modelInfo :: ModelInfo m1)
+        ,fieldName f
+        ,fromMaybe False . fmap valChk . fromDynamic
+        )
+    field f = fieldVal f (const True)
     allStates = [minBound .. ]
     checkDelayed = do
       UserStateEnv{..} <- ask
       newstate         <- get
       case (delayed, newstate) of
         (Just _, Just Ready) -> put delayed
-        _                     -> return ()
+        _                    -> return ()
 
 on :: EventType -> Matcher -> UserStateM
 on tpe matcher = do
   UserStateEnv{..} <- ask
-  let applicable = evType == tpe && isMatch mdlName mdlFlds matcher
-  tell [applicable]
-  where
-    isMatch _     _ NoModel         = True
-    isMatch mname _ (Models mnames) = mname `elem` mnames
-    isMatch mname fld (Fields fs)   =
-      not $ null $ fs `intersect` map (mname,) fld
+  let matchField (mname, fld, mVal)
+        =  mname == mdlName
+        && fromMaybe False (mVal <$> HM.lookup fld mdlPatch)
+  let match = case matcher of
+        NoModel   -> True
+        Models ms -> mdlName `elem` ms
+        Fields fs -> any matchField fs
+  tell [evType == tpe && match]
 
 change :: States -> UserStateM -> UserStateM
 change (States from to) onFn = do

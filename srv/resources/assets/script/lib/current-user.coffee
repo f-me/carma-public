@@ -79,6 +79,7 @@ define [ "model/main"
     usr.currentStateCTime?.subscribe (v) => calcTime()
 
     # update time diff each 10 seconds
+    calcTime()
     setInterval(calcTime, 10000)
 
     usr.delayedStateLocal?.subscribeWithOld (n, o) =>
@@ -87,6 +88,38 @@ define [ "model/main"
       msg = "Переход в статус \"#{n}\" после завершения текущего действия."
       $.notify msg, className: "info"
 
+    usr.abandonedServices = ko.observableArray([])
+    usr.alert = ko.computed ->
+      usr.abandonedServices().length > 0
+
+    # get abandoned services and render them at #current-user
+    usr.updateAbandonedServices = ->
+      Role = global.idents("Role")
+      forbiddenRoles =
+        [Role.reportManager ,Role.supervisor
+        ,Role.head          ,Role.bo_qa
+        ,Role.bo_director   ,Role.bo_analyst
+        ,Role.bo_bill       ,Role.bo_close
+        ,Role.bo_dealer
+        ]
+      usrRoles = usr.roles()
+      for role in forbiddenRoles
+        if role in usrRoles
+          return
+
+      $.getJSON "/backoffice/abandonedServices/#{usr.id()}", (res) ->
+        usr.abandonedServices.removeAll()
+        usr.abandonedServices.extend {rateLimit: 100}
+        for s in res.slice(0,20)
+          usr.abandonedServices.push(
+            caseId: s.caseId
+            svcId: s.svcId
+            href: "#case/#{s.caseId}/#{s.svcId}"
+            text: "#{s.caseId} ― #{s.type}"
+          )
+        if res.length > 20
+          usr.abandonedServices.push({href: '', text: '...'})
+
     ko.applyBindings(usr, $("#current-user")[0])
     # little hack so dropdown with delayed states won't close when user
     # change next state
@@ -94,6 +127,7 @@ define [ "model/main"
 
     if window.location.hash == "" and homepage
       Finch.navigate homepage.replace '/', ''
+
 
   readStuff: (key) ->
     checkStuff()

@@ -1,11 +1,5 @@
 .screen.container-fluid.row
   #partner-left.col.col-md-6
-    #partner-errors.alert.alert-error(
-        data-bind="visible: kvm().serviceRepeat().length > 0")
-      | Следующие сервисы присутствуют в количестве более одного,
-      | при работе с кейсом будет использован только первый!
-      ul(data-bind='foreach: kvm().serviceRepeat')
-        li(data-bind='text: $data')
     form.form-vertical
       button.btn.btn-action(type='button'
           onclick="location.hash='partner';location.reload(true);")
