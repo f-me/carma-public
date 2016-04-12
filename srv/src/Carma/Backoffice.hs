@@ -344,7 +344,7 @@ checkStatus =
     , (AResult.supervisorClosed, finish)
     , (AResult.needAnotherService,
        setServiceStatus SS.ok *>
-        (withRelatedService $ setServiceStatus SS.order *> toBackAux))
+        (withRelatedService $ setServiceStatus SS.backoffice *> toBackAux))
     ]
 
 
