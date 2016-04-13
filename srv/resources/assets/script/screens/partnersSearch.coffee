@@ -446,7 +446,7 @@ define [ "utils"
       return v.distanceFormatted() if sort == "distance"
       unless _.isEmpty srvs
         v = parseInt (_.find v.services(),
-                 (s) -> String(s.type) == String(srvs[0].value))?[sort]?()
+                 (s) -> String(s.type) == String(srvs[0].value))?[sort]
         # sorter will sort arrays with NaN as multiple arrays divided by NaN
         if _.isNaN v then Infinity else v
 
