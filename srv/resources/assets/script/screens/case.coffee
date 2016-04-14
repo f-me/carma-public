@@ -60,10 +60,14 @@ define [ "utils"
 
       # True if any of of required fields are missing a value
       do (kvm) ->
-        kvm['abandonedServices'] = ko.observable(
-          global.Usermeta.abandonedServices().filter (s) -> `s.caseId == args.id`)
-        global.Usermeta.abandonedServices.subscribe (svcs) ->
-          kvm.abandonedServices(svcs.filter (s) -> `s.caseId == args.id`)
+        if global.Usermeta
+          kvm['abandonedServices'] = ko.observable(
+            global.Usermeta.abandonedServices().filter (s) -> `s.caseId == args.id`)
+          global.Usermeta.abandonedServices.subscribe (svcs) ->
+            kvm.abandonedServices(svcs.filter (s) -> `s.caseId == args.id`)
+        else
+          kvm['abandonedServices'] = ko.observable []
+
 
         kvm['hasMissingRequireds'] = ko.computed ->
           # Check if any of required fields in a viewmodel is missing
@@ -298,7 +302,7 @@ define [ "utils"
           $('.accordion-toggle:has(> .alert)').css 'padding', 0
           $(".status-btn-tooltip").tooltip()
           $("##{k['view']}-head").collapse 'show'
-          global.Usermeta.updateAbandonedServices()
+          global.Usermeta?.updateAbandonedServices()
 
     utils.build_global_fn 'addService', ['screens/case']
 

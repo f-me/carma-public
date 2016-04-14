@@ -56,8 +56,8 @@ define [ "utils"
       knockVM['partner']?.customRequired ->
         knockVM['callReason']() == reasons["client_contactDealer"] and
         not _.isNumber knockVM['partner']()
-      knockVM['abandonedServices'] = ko.observable global.Usermeta.abandonedServices()
-      global.Usermeta.abandonedServices.subscribe (svcs) -> knockVM.abandonedServices(svcs)
+      knockVM['abandonedServices'] = ko.observable(global.Usermeta?.abandonedServices() || [])
+      global.Usermeta?.abandonedServices.subscribe (svcs) -> knockVM.abandonedServices(svcs)
 
 
 

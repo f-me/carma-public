@@ -14,7 +14,7 @@ define [ "utils"
     kvm.status.subscribe ->
       # we need to be sure that udpate is called after applying changes
       # to the server
-      kvm._meta.q.save (-> global.Usermeta.updateAbandonedServices())
+      kvm._meta.q.save (-> global.Usermeta?.updateAbandonedServices())
 
     kvm.buttons = {}
     kase = kvm._parent
@@ -160,7 +160,7 @@ define [ "utils"
         a._meta.q.save (->
           svcs = kvm._parent.services
           svcs.notifySubscribers svcs()
-          global.Usermeta.updateAbandonedServices()
+          global.Usermeta?.updateAbandonedServices()
           kvm._parent.renderActions())
 
       if chkActions.length == 0
