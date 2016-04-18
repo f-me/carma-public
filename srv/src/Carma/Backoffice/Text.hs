@@ -219,6 +219,7 @@ instance Backoffice TextE where
     const v = TextE $ (\t -> [T t]) . lkp (IBox v) . identMap <$> ask
 
     just v = TextE $ (\t -> [T t]) . lkp (IBox v) . identMap <$> ask
+    justTxt v = TextE $ pure [T v]
 
     req v = TextE $ (++ [T "*"]) <$> toText v
 

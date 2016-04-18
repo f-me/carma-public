@@ -164,6 +164,7 @@ instance Backoffice EdgeE where
 
     const _ = nothing
     just _ = nothing
+    justTxt _ = nothing
     req _ = nothing
 
     setCaseField _ _ = nothing

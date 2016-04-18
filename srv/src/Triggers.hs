@@ -637,6 +637,7 @@ instance Backoffice HaskellE where
     const = HaskellE . return
 
     just = HaskellE . return . Just
+    justTxt = HaskellE . return . Just
 
     req v =
       HaskellE $
