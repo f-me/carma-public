@@ -72,6 +72,10 @@ VALUES ('Уточнить время выезда', 21, 2);
 INSERT INTO "ActionType" (label, id, priority)
 VALUES ('ДТП', 22, 1);
 
+INSERT INTO "ActionType" (label, id, priority, description)
+VALUES ('Согласовать опоздание партнёра', 23, 1,
+  'Требуется согласовать время опоздания партнёра с клиентом');
+
 INSERT INTO "ActionType" (label, id, priority)
 VALUES ('Звонок', 100, 2);
 

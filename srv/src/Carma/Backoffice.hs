@@ -24,7 +24,8 @@ import qualified Carma.Model.ActionType as AType
 import           Carma.Model.Case as Case
 import qualified Carma.Model.CaseSource as CO
 import qualified Carma.Model.CaseStatus as CS
-import           Carma.Model.FalseCall as FS
+import qualified Carma.Model.FalseCall as FS
+import qualified Carma.Model.ClientRefusalReason as CR
 import           Carma.Model.Program as Program
 import           Carma.Model.Role as Role
 import           Carma.Model.Satisfaction as Satisfaction
@@ -133,6 +134,15 @@ cancel :: Entry
 cancel =
     Entry
     (onField Service.status (const SS.canceled) $
+      doCancelService finish (proceed [AType.cancelService]))
+
+
+doCancelService
+  :: (Backoffice impl, PreContextAccess mdl, SvcAccess mdl)
+  => impl (Outcome mdl)
+  -> impl (Outcome mdl)
+  -> impl (Outcome mdl)
+doCancelService fin1 fin2 =
      switch
       [ ( serviceField status == const SS.creating ||
           (serviceField status == const SS.backoffice &&
@@ -150,7 +160,7 @@ cancel =
           [AType.tellMeMore, AType.callMeMaybe]
           AResult.okButNoService *>
           messageToPSA *>
-          finish
+          fin1
         )
       , ( serviceField status == const SS.backoffice &&
           currentUser ==
@@ -161,7 +171,7 @@ cancel =
           [AType.orderService, AType.orderServiceAnalyst]
           AResult.clientCanceledService *>
           messageToPSA *>
-          finish
+          fin1
         )
       ] $
       closePrevious InService
@@ -172,8 +182,7 @@ cancel =
       AResult.clientCanceledService *>
       messageToPSA *>
       messageToGenser *>
-      proceed [AType.cancelService]
-    )
+      fin2
 
 
 recallClient :: Entry
@@ -588,6 +597,25 @@ callMeMaybe =
     , (AResult.supervisorClosed, finish)
     ]
 
+confirmPartnerDelay :: Action
+confirmPartnerDelay =
+    Action
+    AType.confirmPartnerDelay
+    (const bo_order)
+    nobody
+    ((5 * minutes) `since` now)
+    [ (AResult.partnerDelayConfirmed, finish)
+    , (AResult.partnerDelayNotConfirmed,
+      let fin =
+            setServiceField falseCall (just FS.noService) *>
+            setServiceField clientCancelReason (justTxt "Партнёр опоздал") *>
+            setServiceStatus SS.canceled *>
+            finish
+      in doCancelService fin fin)
+    , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
+    ]
+
 
 carmaBackoffice :: BackofficeSpec
 carmaBackoffice =
@@ -624,5 +652,6 @@ carmaBackoffice =
       , complaintResolution
       , callMeMaybe
       , tellMeMore
+      , confirmPartnerDelay
       ]
     )
