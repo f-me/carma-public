@@ -13,7 +13,7 @@ This module provides the concrete specification of our back office.
 
 -}
 
-module Carma.Backoffice (carmaBackoffice)
+module Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 
 where
 
@@ -35,6 +35,8 @@ import           Carma.Model.ServiceType as ST
 import           Carma.Model.PaymentType as PT
 import qualified Carma.Model.SmsTemplate as SMS
 import qualified Carma.Model.Usermeta as Usermeta
+import qualified Carma.Model.PartnerDelay as PartnerDelay
+import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
 
 import Carma.Backoffice.DSL
 import Carma.Backoffice.DSL.Types (Eff, PreContextAccess, SvcAccess)
@@ -184,6 +186,30 @@ doCancelService fin1 fin2 =
       messageToGenser *>
       fin2
 
+
+partnerDelayEntries :: [Entry]
+partnerDelayEntries =
+  [ Entry $ onField
+      PartnerDelay.delayConfirmed
+      (const PartnerDelay_Confirmed.no)
+      cancelServiceDueToPartnerDelay
+  , Entry $ onField
+      PartnerDelay.delayConfirmed
+      (const PartnerDelay_Confirmed.needConfirmation)
+      (proceed [AType.confirmPartnerDelay])
+  ]
+
+
+cancelServiceDueToPartnerDelay
+  :: (Backoffice impl, PreContextAccess mdl, SvcAccess mdl)
+  => impl (Outcome mdl)
+cancelServiceDueToPartnerDelay = doCancelService fin fin
+  where
+    fin =
+      setServiceField falseCall (just FS.noService) *>
+      setServiceField clientCancelReason (justTxt "Партнёр опоздал") *>
+      setServiceStatus SS.canceled *>
+      finish
 
 recallClient :: Entry
 recallClient =
@@ -597,6 +623,7 @@ callMeMaybe =
     , (AResult.supervisorClosed, finish)
     ]
 
+
 confirmPartnerDelay :: Action
 confirmPartnerDelay =
     Action
@@ -605,13 +632,7 @@ confirmPartnerDelay =
     nobody
     ((5 * minutes) `since` now)
     [ (AResult.partnerDelayConfirmed, finish)
-    , (AResult.partnerDelayNotConfirmed,
-      let fin =
-            setServiceField falseCall (just FS.noService) *>
-            setServiceField clientCancelReason (justTxt "Партнёр опоздал") *>
-            setServiceStatus SS.canceled *>
-            finish
-      in doCancelService fin fin)
+    , (AResult.partnerDelayNotConfirmed, cancelServiceDueToPartnerDelay)
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)
     ]

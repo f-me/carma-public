@@ -75,8 +75,6 @@ import qualified Carma.Model.Service.Tech as Tech
 import qualified Carma.Model.Service.Towage as Towage
 import           Carma.Model.SubProgram as SubProgram hiding (ident)
 
-import qualified Carma.Model.PartnerDelay as PartnerDelay
-import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.ServiceType as ST
 import qualified Carma.Model.TowType as TowType
@@ -86,7 +84,7 @@ import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 
-import           Carma.Backoffice
+import           Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
 import           Carma.Backoffice.DSL.Types
@@ -212,7 +210,7 @@ beforeCreate = Map.unionsWith (++)
   ]
 
 afterCreate :: TriggerMap
-afterCreate = Map.unionsWith (++)
+afterCreate = Map.unionsWith (++) $
   [ trigOnModel ([]::[Usermeta])
     $ updateSnapUserFromUsermeta
     >> do
@@ -238,20 +236,8 @@ afterCreate = Map.unionsWith (++)
               Patch.empty
       aid <- dbCreate p
       logCRUDState Update aid p
-
-  , trigOnModel ([] :: [PartnerDelay.PartnerDelay]) $ do
-      getPatchField PartnerDelay.delayConfirmed >>= \case
-        Just v | v == PartnerDelay_Confirmed.needConfirmation -> do
-          now <- getNow
-          let p = Patch.put Action.aType ActionType.call $
-                  Patch.put Action.ctime now $
-                  Patch.put Action.duetime (addUTCTime (5 * BO.minutes) now) $
-                  Patch.put Action.targetGroup Role.bo_order $
-                  Patch.empty
-          aid <- dbCreate p
-          void $ logCRUDState Update aid p
-        _ -> return ()
-  ]
+  ] ++
+  map entryToTrigger partnerDelayEntries
 
 beforeUpdate :: TriggerMap
 beforeUpdate = Map.unionsWith (++) $
