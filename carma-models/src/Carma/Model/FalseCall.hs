@@ -23,6 +23,7 @@ mkIdents [t|FalseCall|]
  [ ("none", 1)
  , ("bill", 2)
  , ("nobill", 3)
+ , ("noService", 6)
  ]
 
 instance Model FalseCall where
