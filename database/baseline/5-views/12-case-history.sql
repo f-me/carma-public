@@ -10,7 +10,9 @@ FROM (
         row.userId,
         row_to_json(row)
     FROM (
-        SELECT actiontbl.caseId AS caseId,
+        SELECT
+            'action' as "type",
+            actiontbl.caseId AS caseId,
             actiontbl.closeTime AS datetime,
             actiontbl.assignedTo AS userId,
             "ActionType".label AS actionType,
@@ -34,7 +36,9 @@ FROM (
         row.userId,
         row_to_json(row)
     FROM (
-        SELECT calltbl.caseId AS caseId,
+        SELECT
+            'action' as "type",
+            calltbl.caseId AS caseId,
             actiontbl.closeTime AS datetime,
             actiontbl.assignedTo AS userId,
             "ActionType".label AS actionType,
@@ -51,12 +55,15 @@ FROM (
 
     UNION ALL
 
-    SELECT row.caseId,
+    SELECT
+        row.caseId,
         row.datetime,
         row.userId,
         row_to_json(row)
     FROM (
-        SELECT casetbl.id AS caseId,
+        SELECT
+            'call' as "type",
+            casetbl.id AS caseId,
             calltbl.callDate AS datetime,
             calltbl.callTaker AS userId,
             "CallType".label AS callType
@@ -75,7 +82,9 @@ FROM (
         row.userId,
         row_to_json(row)
     FROM (
-        SELECT caseId AS caseId,
+        SELECT
+            'comment' as "type",
+            caseId AS caseId,
             ctime AS datetime,
             author AS userId,
             comment AS commentText
@@ -89,7 +98,9 @@ FROM (
         row.userId,
         row_to_json(row)
     FROM (
-        SELECT "PartnerCancel".caseId AS caseId,
+        SELECT
+            'partnerCancel' as "type",
+            "PartnerCancel".caseId AS caseId,
             "PartnerCancel".ctime AS datetime,
             "PartnerCancel".OWNER AS userId,
             partnertbl.NAME AS partnerName,
@@ -109,7 +120,9 @@ FROM (
         row.userId,
         row_to_json(row)
     FROM (
-        SELECT actiontbl.caseId AS caseId,
+        SELECT
+            'avayaEvent' as "type",
+            actiontbl.caseId AS caseId,
             "AvayaEvent".ctime AS datetime,
             "AvayaEvent".operator AS userId,
             "AvayaEventType".label AS aeType,
@@ -129,7 +142,9 @@ FROM (
         row.userId,
         row_to_json(row)
     FROM (
-        SELECT calltbl.caseId AS caseId,
+        SELECT
+            'avayaEvent' as "type",
+            calltbl.caseId AS caseId,
             "AvayaEvent".ctime AS datetime,
             "AvayaEvent".operator AS userId,
             "AvayaEventType".label AS aeType,
