@@ -42,7 +42,7 @@ define [ "sync/metaq"
             @._save() unless @options?.manual_save
 
     fetch: =>
-      $.bgetJSON "#{@url}/#{@kvm.id()}", (o) => @updadeKvm m.s2cObj(o, @ftypes)
+      $.bgetJSON "#{@url}/#{@kvm.id()}", (o) => @updateKvm m.s2cObj(o, @ftypes)
 
     _save: => @debounced_save()
 
@@ -78,7 +78,7 @@ define [ "sync/metaq"
         _.each (_.keys @qbackup), (fname) =>
           @kvm["#{fname}Sync"] false
 
-    updadeKvm: (obj) =>
+    updateKvm: (obj) =>
       # Hope This won't break anything, erasing last fetch don't work
       # with ws notifications because we may receive 2 updates after
       # put first from crud second from ws queue and second update
@@ -92,7 +92,7 @@ define [ "sync/metaq"
 
     saveSuccessCb: (cb) => (json) =>
       @persisted ||= true
-      @updadeKvm(m.s2cObj(json, @ftypes))
+      @updateKvm(m.s2cObj(json, @ftypes))
       @hideSyncAnim()
       @qbackup = {}
       @kvm._saveSuccessCb?(@kvm, @model, json)
