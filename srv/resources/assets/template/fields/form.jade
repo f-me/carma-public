@@ -661,6 +661,10 @@ mixin caseFilesList
               data-bind="css: histShowCanc() && 'active', click: histToggleCanc")
                 i.glyphicon.glyphicon-remove-circle
             .btn.btn-default(
+              title="Показать опоздания партнёров",
+              data-bind="css: histShowDelay() && 'active', click: histToggleDelay")
+                i.glyphicon.glyphicon-time
+            .btn.btn-default(
               title="Показать звонки",
               data-bind="css: histShowCall() && 'active', click: histToggleCall")
                 i.glyphicon.glyphicon-phone-alt
@@ -707,7 +711,7 @@ mixin caseFilesList
                   | Звонок:&nbsp;
                 span(data-bind="text: calltype")
               // /ko
-              // ko if: $data.commenttext
+              // ko if: $data.type == 'comment'
               div
                 i.glyphicon.glyphicon-bullhorn
                 | &nbsp;
@@ -715,7 +719,7 @@ mixin caseFilesList
                   | Комментарий:&nbsp;
                 span(data-bind="text: commenttext")
               // /ko
-              // ko if: $data.partnername
+              // ko if: $data.type == 'partnerCancel'
               div
                 i.glyphicon.glyphicon-remove-circle
                 | &nbsp;
@@ -731,6 +735,23 @@ mixin caseFilesList
                 span(data-bind="text: refusalcomment")
                 span(data-bind="visible: refusalcomment")
                   | )
+              // /ko
+              // ko if: $data.type == 'partnerDelay'
+              div
+                i.glyphicon.glyphicon-time
+                | &nbsp;
+                b
+                  | Опоздание партнёра:&nbsp;
+                span(data-bind="text: partnername")
+              div
+                b
+                  | Время опоздания:&nbsp;
+                span(data-bind="text: delayminutes")
+                | &nbsp; мин
+              div
+                b
+                  | Опоздание согласовано:&nbsp;
+                span(data-bind="text: delayconfirmed ")
               // /ko
               // ko if: $data.aetype
               div

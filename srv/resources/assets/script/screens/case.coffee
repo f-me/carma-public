@@ -147,13 +147,15 @@ define [ "utils"
 
       showHistoryItem = (i) ->
         ->
-          if i.type == 'action' && not kvm.histShowActi()
+          if i.json.type == 'action' && not kvm.histShowActi()
             return false
-          if i.type == 'comment' && not kvm.histShowComm()
+          if i.json.type == 'comment' && not kvm.histShowComm()
             return false
-          if i.type == 'partnerCancel' && not kvm.histShowCanc()
+          if i.json.type == 'partnerCancel' && not kvm.histShowCanc()
             return false
-          if (i.type == 'call' || i.type == 'avayaEvent') && not kvm.histShowCall()
+          if i.json.type == 'partnerDelay' && not kvm.histShowDelay()
+            return false
+          if (i.json.type == 'call' || i.json.type == 'avayaEvent') && not kvm.histShowCall()
             return false
 
           filterVal = kvm['historyFilter']()

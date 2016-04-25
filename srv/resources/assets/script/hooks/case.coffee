@@ -223,10 +223,12 @@ define [ "utils"
     kvm['histShowActi'] = ko.observable true
     kvm['histShowComm'] = ko.observable true
     kvm['histShowCanc'] = ko.observable true
+    kvm['histShowDelay'] = ko.observable true
     kvm['histShowCall'] = ko.observable true
     kvm['histToggleActi'] = -> kvm.histShowActi(not kvm.histShowActi())
     kvm['histToggleComm'] = -> kvm.histShowComm(not kvm.histShowComm())
     kvm['histToggleCanc'] = -> kvm.histShowCanc(not kvm.histShowCanc())
+    kvm['histToggleDelay'] = -> kvm.histShowDelay(not kvm.histShowDelay())
     kvm['histToggleCall'] = -> kvm.histShowCall(not kvm.histShowCall())
     kvm['historyItems'] = ko.observableArray()
     kvm['endOfHistory'] = ko.observable true

@@ -1,3 +1,5 @@
+DROP VIEW IF EXISTS "CaseHistory";
+
 CREATE VIEW "CaseHistory"
 AS
 SELECT caseId,
@@ -89,6 +91,30 @@ FROM (
             author AS userId,
             comment AS commentText
         FROM "CaseComment"
+        ) row
+
+    UNION ALL
+
+    SELECT row.caseId,
+        row.datetime,
+        row.userId,
+        row_to_json(row)
+    FROM (
+        SELECT
+            'partnerDelay' as "type",
+            caseId AS caseId,
+            ctime AS datetime,
+            "PartnerDelay".owner AS userId,
+            serviceId AS serviceId,
+            "ServiceType".label AS serviceLabel,
+            partnertbl.name AS partnername,
+            delayminutes,
+            "PartnerDelay_Confirmed".label as delayconfirmed
+        FROM "PartnerDelay"
+          JOIN servicetbl ON (servicetbl.id = serviceid)
+          JOIN "ServiceType" ON ("ServiceType".id = servicetbl.type)
+          JOIN partnertbl ON (partnertbl.id = partnerid)
+          JOIN "PartnerDelay_Confirmed" ON ("PartnerDelay_Confirmed".id = delayconfirmed)
         ) row
 
     UNION ALL
