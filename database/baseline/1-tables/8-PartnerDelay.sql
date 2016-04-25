@@ -56,17 +56,19 @@ create table "PartnerDelay"
   ( id serial primary key
   , ctime timestamptz not null default now()
   , caseId         int not null references casetbl
-  , serviceId      int not null references servicetbl
+  , serviceId      int not null -- references servicetbl
   , partnerId      int not null references partnertbl
   , owner          int not null references usermetatbl
   , delayReason    int not null references "PartnerDelay_Reason"
   , delayReasonComment text
-  , delayMinutes   int
+  , delayMinutes   int not null
   , notified       int not null references "PartnerDelay_Notified"
   , delayConfirmed int not null references "PartnerDelay_Confirmed"
   , exceptional    int not null references "PartnerDelay_Exceptional"
   , exceptionalComment text
   );
+
+create index on "PartnerDelay"(caseId);
 
 grant all on "PartnerDelay" to carma_db_sync;
 grant all on "PartnerDelay_id_seq" to carma_db_sync;

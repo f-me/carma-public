@@ -6,5 +6,8 @@
         h4.modal-title {{ title }}
       .modal-body.form-horizontal(id="{{ id }}-form")
       .modal-footer
-        button.btn.btn-primary(id="{{ id }}-save") {{ saveLabel }}
-        button.btn(data-dismiss='modal', aria-hidden='true') {{ cancelLabel}}
+        button.btn.btn-primary(
+          id="{{ id }}-save",
+          data-bind="click: save, enable: canSave")
+          | {{ saveLabel }}
+        button.btn(data-dismiss='modal', aria-hidden='true') {{ cancelLabel }}

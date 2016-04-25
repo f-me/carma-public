@@ -156,7 +156,7 @@ define [ "utils"
                      ServiceType.adjuster] and
         kvm.status() in [ServiceStatus.ordered, ServiceStatus.inProgress]
     kvm.buttons.partnerDelay.click = ->
-      PartnerDelayDialog.show()
+      PartnerDelayDialog.show(kvm)
 
 
     isSecondarySvc = (s) ->

@@ -209,6 +209,7 @@ beforeCreate = Map.unionsWith (++)
     modPut Towage.wheelsBlocked       $ Just 0
   ]
 
+
 afterCreate :: TriggerMap
 afterCreate = Map.unionsWith (++) $
   [ trigOnModel ([]::[Usermeta])
@@ -238,6 +239,7 @@ afterCreate = Map.unionsWith (++) $
       logCRUDState Update aid p
   ] ++
   map entryToTrigger partnerDelayEntries
+
 
 beforeUpdate :: TriggerMap
 beforeUpdate = Map.unionsWith (++) $
@@ -386,6 +388,7 @@ beforeUpdate = Map.unionsWith (++) $
   ]  ++
   map entryToTrigger (fst carmaBackoffice)
 
+
 afterUpdate :: TriggerMap
 afterUpdate = Map.unionsWith (++) $
   [trigOn Usermeta.delayedState $ \_ -> wsMessage
@@ -441,7 +444,9 @@ runCreateTriggers patch =
     fmap (\st -> (st_ident st, st_patch st))
       <$> runTriggers beforeCreate afterCreate
         (getPatch >>= dbCreate >>= putIdentUnsafe)
-        [""] -- pass dummy field name
+        ("" -- pass dummy field name
+        : HM.keys (untypedPatch patch) -- just to run PartnerDelay tirggers
+        )
         (emptyDslState undefined patch)
 
 
