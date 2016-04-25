@@ -120,6 +120,17 @@ define [ "utils"
           svcs =
             _.map kvm.services()?.split(','),
               (s) -> parseInt s.split(':')?[1]
+
+          # scan items in reverse order and set cumulative partner delays
+          partnerDelays = {}
+          for i in [].concat(res).reverse()
+            json = i[2]
+            if json.type == 'partnerDelay'
+              if !partnerDelays[json.serviceid]
+                partnerDelays[json.serviceid] = 0
+              partnerDelays[json.serviceid] += json.delayminutes
+              json.delayminutes = partnerDelays[json.serviceid]
+
           # Process every history item
           for i in res
             json = i[2]
@@ -144,6 +155,7 @@ define [ "utils"
               color: color
             item.visible = ko.computed(showHistoryItem item)
             kvm['historyItems'].push item
+
 
       showHistoryItem = (i) ->
         ->
