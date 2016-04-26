@@ -53,6 +53,9 @@ data Service = Service
                                  "Оплата Клиент"
   , times_expectedServiceStart   :: F (Maybe UTCTime) "times_expectedServiceStart"
                                  "Ожидаемое время начала оказания услуги"
+  , times_expectedServiceStartHistory
+                                 :: F Aeson.Value "times_expectedServiceStartHistory"
+                                 "История ОВНОУ"
   , times_expectedDispatch       :: F (Maybe UTCTime) "times_expectedDispatch"
                                  "Время выезда партнёра"
   , times_factServiceStart       :: F (Maybe UTCTime) "times_factServiceStart"
@@ -157,6 +160,7 @@ usualSvcMod = svcMod ++
             , widget "datetime-local" times_factServiceEnd
             , widget "datetime-local" times_expectedServiceClosure
             , widget "datetime-local" times_factServiceClosure
+            , widget "list-of-times"  times_expectedServiceStartHistory
             ]
 
 serviceSearchParams :: [(Text, [Predicate Service])]
