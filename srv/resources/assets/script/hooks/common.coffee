@@ -107,6 +107,22 @@ define [ "utils"
             read :       -> k[n]()
             write: (val) -> if Date.parse(val) then k[n](val) else k[n]("")
 
+
+  listOfTimesHook: (m, k) ->
+    for f in m.fields when f.meta.widget == 'list-of-times'
+      do (f) ->
+        n = f.name
+        fmtIn = 'YYYY-MM-DD HH:mm:ss'
+        fmtOut = 'DD.MM.YYYY HH:mm:ss'
+        k["#{n}List"] = ko.computed ->
+          tz = (k._timeZone || k._parent?._timeZone)?()
+          for t in k[n]()
+            stamp = moment.utc(t, fmtIn)
+            if tz
+              if stamp.isValid() then stamp.tz(tz).format(fmtOut) else ''
+            else
+              if stamp.isValid() then stamp.local().format(fmtOut) else ''
+
   tarifOptNameDef: (m, k) ->
     k["nameOrDef"] = ko.computed -> k["optionName"]() or "Тарифная опция…"
 
