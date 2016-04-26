@@ -21,6 +21,8 @@ data ProcessingConfig = ProcessingConfig
     :: F Int "afterCallSeconds" "Время в After call, с"
   , callWaitSeconds
     :: F Int "callWaitSeconds" "Длительность ожидания звонков, с"
+  , avgSuburbanSpeed
+    :: F Double "avgSuburbanSpeed" "Средняя скорость эвакуатора за городом, км/ч"
   } deriving Typeable
 
 
@@ -38,5 +40,6 @@ instance Model ProcessingConfig where
           [ infoText "actionsFirst" actionsFirst
           , infoText "acSeconds" acSeconds
           , infoText "callWaitSeconds" callWaitSeconds
+          , infoText "avgSuburbanSpeed" avgSuburbanSpeed
           ]
     _  -> Nothing
