@@ -83,6 +83,7 @@ import qualified Carma.Model.UrgentServiceReason as USR
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
+import           Carma.Model.PartnerDelay (PartnerDelay)
 
 import           Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
@@ -237,6 +238,27 @@ afterCreate = Map.unionsWith (++) $
               Patch.empty
       aid <- dbCreate p
       logCRUDState Update aid p
+  , trigOnModel ([]::[PartnerDelay]) $ do
+    delayId <- getIdent
+    doApp $ liftPG $ \pg ->
+      uncurry (PG.execute pg)
+        [sql| update servicetbl s
+          set
+            times_expectedServiceStart
+              = times_expectedServiceStart + interval '1m' * p.delayminutes,
+            times_expectedServiceStartHistory =
+              (select array_to_json(
+                array_prepend(
+                  to_json(to_char(
+                    times_expectedServiceStart at time zone 'UTC',
+                    'YYYY-MM-DD HH24:MI:SS')),
+                  array(select * from json_array_elements(times_expectedServiceStartHistory))
+               ))::json)
+          from "PartnerDelay" p
+          where s.id = p.serviceId
+            and p.id = $(delayId)$
+        |]
+
   ] ++
   map entryToTrigger partnerDelayEntries
 
