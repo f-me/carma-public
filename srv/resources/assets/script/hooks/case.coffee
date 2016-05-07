@@ -148,6 +148,7 @@ define [ "utils"
     kvm.buttons.partnerDelay = {}
     kvm.buttons.partnerDelay.text = 'Партнёр опаздывает'
     kvm.buttons.partnerDelay.tooltip = 'Партнёр не выбран'
+    kvm.buttons.partnerDelay.disabled = ko.computed -> !kvm.contractor_partnerId()
     kvm.buttons.partnerDelay.visible = ko.computed ->
       kvm.type() in [ServiceType.tech,
                      ServiceType.towage,
@@ -155,8 +156,7 @@ define [ "utils"
                      ServiceType.taxi,
                      ServiceType.sober,
                      ServiceType.adjuster] and
-        kvm.status() in [ServiceStatus.ordered, ServiceStatus.inProgress] and
-        kvm.contractor_partnerId()
+        kvm.status() in [ServiceStatus.ordered, ServiceStatus.inProgress]
     kvm.buttons.partnerDelay.click = ->
       PartnerDelayDialog.show(kvm)
 
