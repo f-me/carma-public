@@ -116,7 +116,7 @@ define [ "utils"
         fmtOut = 'DD.MM.YYYY HH:mm:ss'
         k["#{n}List"] = ko.computed ->
           tz = (k._timeZone || k._parent?._timeZone)?()
-          for t in k[n]()
+          for t in (k[n]() || [])
             stamp = moment.utc(t, fmtIn)
             if tz
               if stamp.isValid() then stamp.tz(tz).format(fmtOut) else ''
