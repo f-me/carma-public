@@ -29,6 +29,7 @@ define ["model/main", "text!tpl/partials/partnerDelayDialog.html"], (main, tpl) 
                 $modalDialog.modal 'hide'
                 svcKvm._parent.renderActions()
                 svcKvm._parent.refreshHistory()
+                svcKvm._meta.q.fetch()
             canSave: ko.pureComputed ->
               [kvm.delayReason(),
                (kvm.delayReason() != 1 or kvm.delayReasonComment()),
