@@ -24,7 +24,7 @@ define [ "hooks/common"
 
       "Action" : [a.actionColor, a.nameLocal, a.suppressScroll]
 
-      "AverageCommissioner" : [ s.serviceColor
+      "AverageCommissioner" : [ s.serviceColor, s.partnerWarnedInTimeBtn
                               , s.updateCaseActions
                               , s.openPartnerSearch
                               ]
@@ -94,24 +94,24 @@ define [ "hooks/common"
                           , p.partnerServiceRepeat
                           ]
 
-      "Rent" : [ s.serviceColor
+      "Rent" : [ s.serviceColor, s.partnerWarnedInTimeBtn
                , s.updateCaseActions
                , s.openPartnerSearch
                ]
 
-      "SoberDriver" : [ s.serviceColor
+      "SoberDriver" : [ s.serviceColor, s.partnerWarnedInTimeBtn
                       , s.updateCaseActions
                       , s.openPartnerSearch
                       ]
 
       "tarifOption" : [c.tarifOptNameDef]
 
-      "Taxi" : [ s.serviceColor
+      "Taxi" : [ s.serviceColor, s.partnerWarnedInTimeBtn
                , s.updateCaseActions
                , s.openPartnerSearch
                ]
 
-      "Tech" : [ s.serviceColor
+      "Tech" : [ s.serviceColor, s.partnerWarnedInTimeBtn
                , s.updateCaseActions
                , s.openPartnerSearch
                ]
@@ -139,7 +139,7 @@ define [ "hooks/common"
                   , s.updateCaseActions
                   , s.openPartnerSearch ]
 
-      "Towage" : [ s.serviceColor
+      "Towage" : [ s.serviceColor, s.partnerWarnedInTimeBtn
                  , s.updateCaseActions
                  , s.openPartnerSearch
                  ]

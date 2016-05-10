@@ -363,6 +363,22 @@ include _form_utils
           span(data-bind='text: buttons.anotherPSA.text')
 
 
+#partnerWarnedInTime-btn-field-template.field-template
+  .form-group(data-bind="visible: {{name}}Visible")
+    label.col-sm-4.control-label
+      span.label.label-danger(data-bind="visible: partnerWarnedInTime() === false")
+        | Опоздание
+      span.label.label-success(data-bind="visible: partnerWarnedInTime() === true")
+        | Вовремя
+    .col-sm-8
+      button.btn.btn-small.btn-info(
+        style="width:100%"
+        data-bind="\
+          click: partnerWarnedInTimeBtn.click,\
+          attr: { title: partnerWarnedInTimeBtn.tooltip },\
+          disabled: partnerWarnedInTimeBtn.disabled")
+        | Расчёт
+
 #partner-field-template.field-template
   +fieldControlGroup
       input.form-control(type='text'
