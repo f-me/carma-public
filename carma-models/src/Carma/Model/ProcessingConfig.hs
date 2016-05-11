@@ -3,6 +3,7 @@
 module Carma.Model.ProcessingConfig where
 
 import Data.Typeable
+import Data.Scientific
 
 import Data.Model
 import Data.Model.View
@@ -22,7 +23,7 @@ data ProcessingConfig = ProcessingConfig
   , callWaitSeconds
     :: F Int "callWaitSeconds" "Длительность ожидания звонков, с"
   , avgSuburbanSpeed
-    :: F Double "avgSuburbanSpeed" "Средняя скорость эвакуатора за городом, км/ч"
+    :: F Scientific "avgSuburbanSpeed" "Средняя скорость эвакуатора за городом, км/ч"
   } deriving Typeable
 
 
