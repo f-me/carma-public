@@ -163,6 +163,25 @@ tr.details > td {
     color: black;
 }
 
+.legacy-partner-button {
+    position: absolute;
+    top: 35px;
+    right: 3px;
+    max-width: 55%;
+    text-align: right;
+    z-index: 2;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 80%;
+    color: grey;
+    cursor: pointer;
+}
+
+.legacy-partner-button:hover {
+    color: black;
+}
+
 .osMap {
   height: 600px;
 }

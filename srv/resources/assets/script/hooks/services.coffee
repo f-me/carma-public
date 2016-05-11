@@ -14,6 +14,27 @@ define [ "utils"
     # subscibe partner fields to partnersSearch screen events
     for f in model.fields when f.meta?['group-widget'] == "partner"
       do (f) ->
+        btn = {}
+        btn.state = ko.observable 'legacy'
+        btn.newName = ko.observable null
+        btn.text = ko.computed ->
+          if btn.state() == 'legacy' then 'Старое название' else 'Новое название'
+        btn.value = ko.computed ->
+          if btn.state() == 'legacy'
+          then kvm[f.name]()
+          else btn.newName()
+        btn.switch = ->
+          btn.state(if btn.state() == 'legacy' then 'current' else 'legacy')
+        kvm["#{f.name}Btn"] = btn
+        partnerId = kvm["#{f.name}Id"]?()
+        if partnerId
+          $.ajax
+            type: "GET"
+            url: "/_/Partner/#{partnerId}"
+            success: (p) ->
+              if kvm[f.name]() != p.name
+                btn.newName(p.name)
+
         n = pSearch.subName f.name, model.name, kvm.id()
         global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
