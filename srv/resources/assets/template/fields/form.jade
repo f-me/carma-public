@@ -351,8 +351,12 @@ include _form_utils
 #partner-field-template.field-template
   +fieldControlGroup
       input.form-control(type='text'
-        name='{{ name }}'
-        data-bind='value: {{ name }}')
+        name='{{name}}'
+        data-bind='value: {{name}}Btn.value')
+      .legacy-partner-button(
+        data-bind="text: {{name}}Btn.text,\
+                   click: {{name}}Btn.switch,\
+                   visible: {{name}}Btn.newName() != null")
       span.input-group-addon(
           data-bind='click: openPartnerSearch.bind($data, \'{{ name }}\')')
         span.glyphicon.glyphicon-search
