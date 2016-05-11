@@ -2,6 +2,8 @@ module Carma.Model.Service.AverageCommissioner where
 
 import Data.Text
 import Data.Typeable
+import Data.Aeson((.=), object)
+import Data.Scientific
 
 import Data.Model
 import Data.Model.View
@@ -32,8 +34,11 @@ data AverageCommissioner = AverageCommissioner
                    "commAddress_coords" "Координаты"
   , commAddress_map
                 :: F MapField "commAddress_map" ""
-  , commMilage  :: F (Maybe Text) {- FIXME: why not int? -}
-                   "commMilage" "Пробег аваркома за городом"
+
+  , isCountryRide       :: F Bool "isCountryRide" "За городом"
+  , suburbanMilage      :: F (Maybe Scientific) "suburbanMilage" "Пробег за городом"
+  , totalMilage         :: F (Maybe Scientific) "totalMilage" "Километраж по тахометру"
+  , partnerWarnedInTime :: F (Maybe Bool) "partnerWarnedInTime" "Партнёр предупредил вовремя"
   }
   deriving Typeable
 
@@ -47,4 +52,8 @@ instance Model AverageCommissioner where
     Nothing -> Nothing
     Just mv -> Just
       $ modifyView (mv {mv_title = "Аварийный комиссар"})
-      $ mapWidget commAddress_address commAddress_coords commAddress_map
+      $ setMeta "visibleIf" (object ["isCountryRide" .= [True]]) suburbanMilage
+      : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) totalMilage
+      : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) partnerWarnedInTime
+      : widget "partnerWarnedInTime-btn" partnerWarnedInTime
+      : mapWidget commAddress_address commAddress_coords commAddress_map

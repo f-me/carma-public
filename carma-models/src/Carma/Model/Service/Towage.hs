@@ -3,6 +3,8 @@ module Carma.Model.Service.Towage where
 import Data.Text
 import Data.Time
 import Data.Typeable
+import Data.Aeson((.=), object)
+import Data.Scientific
 
 import Data.Model
 import Data.Model.Types
@@ -66,12 +68,14 @@ data Towage = Towage
                              "Заблокирован электронный ручной тормоз"
   , check2                   :: F (Maybe Checkbox) "check2"
                              "Руль заблокирован"
-  , suburbanMilage           :: F (Maybe Text) "suburbanMilage"
-                             "Пробег эвакуатора за городом"
   , orderNumber              :: F (Maybe Text) "orderNumber"
                              "Номер заказ-наряда"
   , repairEndDate            :: F (Maybe Day) "repairEndDate"
                              "Дата окончания ремонта"
+  , isCountryRide            :: F Bool "isCountryRide" "За городом"
+  , suburbanMilage           :: F (Maybe Scientific) "suburbanMilage" "Пробег за городом"
+  , totalMilage              :: F (Maybe Scientific) "totalMilage" "Километраж по тахометру"
+  , partnerWarnedInTime      :: F (Maybe Bool) "partnerWarnedInTime" "Партнёр предупредил вовремя"
   }
   deriving Typeable
 
@@ -84,7 +88,9 @@ instance Model Towage where
   modelView = \case
     "search" -> Just
       $ modifyView (searchView towageSearchParams)
-      $ (setType "dictionary-set-int" towDealer_partnerId) : viewModifier
+      $ (setType "dictionary-set-int" towDealer_partnerId)
+      : invisible partnerWarnedInTime
+      : viewModifier
     ""
       -> case parentView "" :: Maybe (ModelView Towage) of
         Nothing -> Nothing
@@ -98,6 +104,10 @@ viewModifier'
   : setMeta "group-widget" "partner" towDealer_partner
   : invisible towDealer_partnerId
   : invisible towDealer_coords
+  : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) suburbanMilage
+  : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) totalMilage
+  : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) partnerWarnedInTime
+  : widget "partnerWarnedInTime-btn" partnerWarnedInTime
   : viewModifier
 
 

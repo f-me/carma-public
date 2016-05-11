@@ -3,6 +3,7 @@ module Carma.Model.Service.Rent where
 import Data.Aeson as Aeson
 import Data.Text
 import Data.Typeable
+import Data.Scientific
 
 import Data.Model as Model
 import Data.Model.View
@@ -20,6 +21,12 @@ data Rent = Rent
   , towDealer_partnerId :: F (Maybe (IdentI Partner)) "towDealer_partnerId" ""
   , towDealer_address   :: F (Maybe Text) "towDealer_address" "Адрес"
   , towDealer_coords    :: F (Maybe Text) "towDealer_coords" "Координаты"
+
+  , isCountryRide       :: F Bool "isCountryRide" "За городом"
+  , suburbanMilage      :: F (Maybe Scientific) "suburbanMilage" "Пробег за городом"
+  , totalMilage         :: F (Maybe Scientific) "totalMilage" "Километраж по тахометру"
+  , partnerWarnedInTime :: F (Maybe Bool) "partnerWarnedInTime" "Партнёр предупредил вовремя"
+
   , rentAddress_address :: F PickerField "rentAddress_address" "Адрес доставки"
   , rentAddress_comment :: F (Maybe Text) "rentAddress_comment" "Примечания"
   , rentAddress_coords  :: F PickerField "rentAddress_coords" "Координаты"
@@ -53,4 +60,8 @@ instance Model Rent where
       : setMeta "group-widget" "partner" towDealer_partner
       : invisible towDealer_partnerId
       : invisible towDealer_coords
+      : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) suburbanMilage
+      : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) totalMilage
+      : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) partnerWarnedInTime
+      : widget "partnerWarnedInTime-btn" partnerWarnedInTime
       : mapWidget rentAddress_address rentAddress_coords rentAddress_map
