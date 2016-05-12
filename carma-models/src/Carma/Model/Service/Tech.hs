@@ -45,7 +45,8 @@ instance Model Tech where
     Nothing -> Nothing
     Just mv ->
       Just $ modifyView (mv {mv_title = "Техпомощь"})
-        [setMeta "visibleIf" (object
+        [setMeta "filterBy" "isActive" techType
+        ,setMeta "visibleIf" (object
           ["techType" .= [TechType.charge, TechType.chargeRuamc]
           ]) check1
         ,setMeta "visibleIf" (object
