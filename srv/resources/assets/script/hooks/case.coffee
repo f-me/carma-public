@@ -147,7 +147,8 @@ define [ "utils"
 
     kvm.buttons.partnerDelay = {}
     kvm.buttons.partnerDelay.text = 'Партнёр опаздывает'
-    kvm.buttons.partnerDelay.tooltip = 'Партнёр не выбран'
+    kvm.buttons.partnerDelay.tooltip = ko.computed ->
+      if kvm.contractor_partnerId() then '' else 'Партнёр не выбран'
     kvm.buttons.partnerDelay.disabled = ko.computed -> !kvm.contractor_partnerId()
     kvm.buttons.partnerDelay.visible = ko.computed ->
       kvm.type() in [ServiceType.tech,

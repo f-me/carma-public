@@ -244,10 +244,16 @@ include _form_utils
       .input-group.input-group-sm
         .btn-block.hidden
         .svc-status-button.btn-block(
-          data-bind="visible: buttons.partnerDelay.visible")
+          data-toggle="tooltip"
+          data-html="true"
+          data-placement="bottom"
+          data-bind='attr: { title: buttons.partnerDelay.tooltip },\
+                     visible: buttons.partnerDelay.visible')
           button.btn.btn-small.btn-info(
             style="width:100%"
-            data-bind='click: buttons.partnerDelay.click')
+            data-bind='\
+              click: buttons.partnerDelay.click,\
+              disabled: buttons.partnerDelay.disabled')
             span(data-bind='text: buttons.partnerDelay.text')
 
 // Template for fields with unknown type
