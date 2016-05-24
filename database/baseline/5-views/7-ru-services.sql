@@ -100,6 +100,16 @@ WITH servicecounts AS (
     casetbl.caseaddress_address AS "Место поломки",
     casetbl.caseaddress_comment AS "Адрес места поломки/примечания",
     servicetbl.contractor_partner AS "Субподрядчик, оказавший услугу",
+
+    servicetbl.contractor_partner AS "Название партнёра при создании",
+    contractor_partner_new.name AS "Tекущее название партнёра",
+    servicetbl.contractor_partnerLegacy->>'priority1' AS "ПН на момент создания услуги",
+    servicetbl.contractor_partnerLegacy->>'priority2' AS "ПБГ на момент создания услуги",
+    servicetbl.contractor_partnerLegacy->>'priority3' AS "ПБЗ на момент создания услуги",
+    contractor_partner_svc.val->>'priority1' AS "Текущий приоритет ПН",
+    contractor_partner_svc.val->>'priority2' AS "Текущий приоритет ПБГ",
+    contractor_partner_svc.val->>'priority3' AS "Текущий приоритет ПБЗ",
+
     "ServiceStatus".label AS "Результат оказания помощи",
     "Complication".label AS "Сложный случай",
     coalesce("FalseCall".label, '-') AS "Ложный вызов",
@@ -108,7 +118,11 @@ WITH servicecounts AS (
 
    "ServiceType".label as "Тип обращения",--"Услуга"
    servicetbl.clientcancelreason AS "Причина отказа клиента",
+
    allservicesview.towdealer_partner AS "Назначение эвакуации-назв. дилера",
+   allservicesview.towdealer_partner AS "Название дилера при создании",
+   towdealer_partner_new.name AS "Tекущее название дилера",
+
    allservicesview.whatToSay1 AS "Описание проблемы",
    "ConsultationType".label AS "Тип консультации",
    "ConsultationResult".label AS "Результат консультации",
@@ -271,6 +285,11 @@ WITH servicecounts AS (
    LEFT JOIN allservicesview ON allservicesview.id = servicetbl.id AND servicetbl.parentid = allservicesview.parentid
    LEFT JOIN partnertbl p1 ON servicetbl.contractor_partnerid = p1.id
    LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = p2.id
+   LEFT JOIN partnertbl towdealer_partner_new ON allservicesview.towdealer_partnerid = towdealer_partner_new.id
+   LEFT JOIN partnertbl contractor_partner_new ON servicetbl.contractor_partnerid = contractor_partner_new.id
+   LEFT JOIN LATERAL
+      (select * from json_array_elements(contractor_partner_new.services) js where js->>'type' = servicetbl.type::text)
+        contractor_partner_svc(val) ON TRUE
    LEFT JOIN "City" towdealercity ON p2.city = towdealercity.id
    LEFT JOIN "ConsultationResult" ON allservicesview.consResult = "ConsultationResult".id
    LEFT JOIN "ConsultationType" ON allservicesview.consType = "ConsultationType".id
