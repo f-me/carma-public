@@ -412,6 +412,25 @@ afterUpdate = Map.unionsWith (++) $
   ,trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
+  ,trigOn Service.contractor_partnerId $ \_ -> do
+    svcId <- getIdent
+    doApp $ liftPG $ \pg ->
+      uncurry (PG.execute pg)
+        [sql|
+          update servicetbl svc
+            set contractor_partnerLegacy = row_to_json(js.*)
+            from
+              partnertbl p,
+              json_array_elements(p.services) s
+                join lateral
+                  (select
+                    s->>'priority1' as priority1,
+                    s->>'priority2' as priority2,
+                    s->>'priority3' as priority3) js on true
+            where svc.id = $(svcId)$
+              and p.id = svc.contractor_partnerId
+              and svc.type::text = s->>'type'
+        |]
   ]
 
 --  - runReadTriggers
