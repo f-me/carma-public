@@ -134,8 +134,6 @@ define [ "utils"
           # Process every history item
           for i in res
             json = i[2]
-
-
             if json.aeinterlocutors?
               json.aeinterlocutors =
                 _.map(json.aeinterlocutors, utils.internalToDisplayed).
@@ -146,6 +144,15 @@ define [ "utils"
                   utils.palette.length]
               else
                 null)
+
+            if json.delayminutes
+              hours = String(Math.floor(json.delayminutes / 60))
+              minutes = String(json.delayminutes % 60)
+              if hours.length < 2
+                hours = '0' + hours
+              if minutes.length < 2
+                minutes = '0' + minutes
+              json.delayminutes = hours + ':' + minutes
 
             dts = new Date(i[0]).toString historyDatetimeFormat
             item =
