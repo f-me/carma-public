@@ -5,6 +5,16 @@ WITH servicecounts AS (
            FROM servicetbl servicetbl_1
           GROUP BY servicetbl_1.parentid
         ),
+     partner_with_priorities AS (
+         SELECT
+            p.id as id,
+            p.name as name,
+            svc->>'type' as type,
+            svc->>'priority1' as priority1,
+            svc->>'priority2' as priority2,
+            svc->>'priority3' as priority3
+          FROM partnertbl p, json_array_elements(p.services) x(svc)
+        ),
      commentLists AS (
          SELECT caseId, array_agg(usermetatbl.login || ' в ' ||
                                   to_char(cc.ctime, 'DD.MM.YYYY HH:MI') ||
@@ -102,13 +112,13 @@ WITH servicecounts AS (
     servicetbl.contractor_partner AS "Субподрядчик, оказавший услугу",
 
     servicetbl.contractor_partner AS "Название партнёра при создании",
-    contractor_partner_new.name AS "Tекущее название партнёра",
+    contractor_partner_svc.name AS "Tекущее название партнёра",
     servicetbl.contractor_partnerLegacy->>'priority1' AS "ПН на момент создания услуги",
     servicetbl.contractor_partnerLegacy->>'priority2' AS "ПБГ на момент создания услуги",
     servicetbl.contractor_partnerLegacy->>'priority3' AS "ПБЗ на момент создания услуги",
-    contractor_partner_svc.val->>'priority1' AS "Текущий приоритет ПН",
-    contractor_partner_svc.val->>'priority2' AS "Текущий приоритет ПБГ",
-    contractor_partner_svc.val->>'priority3' AS "Текущий приоритет ПБЗ",
+    contractor_partner_svc.priority1 AS "Текущий приоритет ПН",
+    contractor_partner_svc.priority2 AS "Текущий приоритет ПБГ",
+    contractor_partner_svc.priority3 AS "Текущий приоритет ПБЗ",
 
     "ServiceStatus".label AS "Результат оказания помощи",
     "Complication".label AS "Сложный случай",
@@ -286,10 +296,8 @@ WITH servicecounts AS (
    LEFT JOIN partnertbl p1 ON servicetbl.contractor_partnerid = p1.id
    LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = p2.id
    LEFT JOIN partnertbl towdealer_partner_new ON allservicesview.towdealer_partnerid = towdealer_partner_new.id
-   LEFT JOIN partnertbl contractor_partner_new ON servicetbl.contractor_partnerid = contractor_partner_new.id
-   LEFT JOIN LATERAL
-      (select * from json_array_elements(contractor_partner_new.services) js where js->>'type' = servicetbl.type::text)
-        contractor_partner_svc(val) ON TRUE
+   LEFT JOIN partner_with_priorities contractor_partner_svc
+    ON (servicetbl.contractor_partnerid = contractor_partner_svc.id AND servicetbl.type::text = contractor_partner_svc.type)
    LEFT JOIN "City" towdealercity ON p2.city = towdealercity.id
    LEFT JOIN "ConsultationResult" ON allservicesview.consResult = "ConsultationResult".id
    LEFT JOIN "ConsultationType" ON allservicesview.consType = "ConsultationType".id
