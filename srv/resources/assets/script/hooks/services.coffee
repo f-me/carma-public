@@ -139,7 +139,8 @@ define [ "utils"
               t2 = moment(kvm.times_expectedServiceStart(), 'DD.MM.YYYY HH:mm:ss')
               kvm.partnerWarnedInTime(t1.format() < t2.format())
         tooltip: ko.computed ->
-          if !kvm.suburbanMilage() or !kvm.totalMilage()
+          if !kvm.suburbanMilage() or !kvm.totalMilage() or kvm.suburbanMilageRegexp() or kvm.totalMilageRegexp()
           then 'Не заполнены поля "Километраж по тахометру" и "Пробег за городом"'
           else ''
-        disabled: ko.computed -> !kvm.suburbanMilage() or !kvm.totalMilage()
+        disabled: ko.computed ->
+          !kvm.suburbanMilage() or !kvm.totalMilage() or kvm.suburbanMilageRegexp() or kvm.totalMilageRegexp()
