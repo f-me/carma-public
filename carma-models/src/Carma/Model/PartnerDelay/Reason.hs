@@ -23,4 +23,6 @@ instance Model PartnerDelay_Reason where
   type TableName PartnerDelay_Reason = "PartnerDelay_Reason"
   idents = Carma.Model.PartnerDelay.Reason.idents
   modelInfo = mkModelInfo PartnerDelay_Reason ident
-  modelView _ = Just defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

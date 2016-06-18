@@ -25,4 +25,6 @@ instance Model PartnerDelay_Confirmed where
   type TableName PartnerDelay_Confirmed = "PartnerDelay_Confirmed"
   idents = Carma.Model.PartnerDelay.Confirmed.idents
   modelInfo = mkModelInfo PartnerDelay_Confirmed ident
-  modelView _ = Just defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing

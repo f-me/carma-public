@@ -24,4 +24,6 @@ instance Model PartnerDelay_Exceptional where
   type TableName PartnerDelay_Exceptional = "PartnerDelay_Exceptional"
   idents = Carma.Model.PartnerDelay.Exceptional.idents
   modelInfo = mkModelInfo PartnerDelay_Exceptional ident
-  modelView _ = Just defaultView
+  modelView = \case
+    "" -> Just defaultView
+    _  -> Nothing
