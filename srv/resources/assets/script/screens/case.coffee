@@ -202,6 +202,13 @@ define [ "utils"
       kvm['chatWs'] = chatWs
       chatWs.onmessage = (raw) ->
         msg = JSON.parse raw.data
+        if msg.youAreNotAlone
+          for usr in msg.youAreNotAlone
+            um = global.dictionaries.users?.byId[usr.id]
+            if um
+              note = "Оператор #{um.label} работает с кейсом"
+              chatNotify note, "error"
+          return
         who = msg.user || msg.joined || msg.left
         if who.id == global.user.id
           return
