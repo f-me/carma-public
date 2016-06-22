@@ -134,7 +134,7 @@ define [ "utils"
             type: "GET"
             url: "/_/ProcessingConfig/1"
             success: (cfg) ->
-              dt = 60 * (kvm.totalMilage() - kvm.suburbanMilage()) / cfg.avgSuburbanSpeed
+              dt = 60 * (kvm.suburbanMilage() - kvm.totalMilage()) / cfg.avgSuburbanSpeed
               t1 = moment().add(moment.duration(dt, 'minutes'))
               t2 = moment(kvm.times_expectedServiceStart(), 'DD.MM.YYYY HH:mm:ss')
               kvm.partnerWarnedInTime(t1.format() < t2.format())
