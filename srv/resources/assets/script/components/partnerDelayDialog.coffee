@@ -1,5 +1,5 @@
 define ["model/main", "text!tpl/partials/partnerDelayDialog.html"], (main, tpl) ->
-  show: (svcKvm) ->
+  show: (kase, svcKvm) ->
     modelName = "PartnerDelay"
 
     $('body').append(
@@ -27,9 +27,18 @@ define ["model/main", "text!tpl/partials/partnerDelayDialog.html"], (main, tpl) 
               kvm.owner global.user.id
               kvm._meta.q.save ->
                 $modalDialog.modal 'hide'
-                svcKvm._parent.renderActions()
-                svcKvm._parent.refreshHistory()
-                svcKvm._meta.q.fetch()
+                # redirect to #back
+                # This is the same behaviour as in kvm.buttons.cancel.click
+                svcActs = u.svcActions kase, svcKvm,
+                  [ global.idents("ActionType").orderService
+                  , global.idents("ActionType").orderServiceAnalyst
+                  ]
+                if _.some(svcActs, (a) -> a.assignedTo() == global.user.id)
+                  window.location.hash = "back"
+                else
+                  svcKvm._parent.renderActions()
+                  svcKvm._parent.refreshHistory()
+                  svcKvm._meta.q.fetch()
             canSave: ko.pureComputed ->
               [kvm.delayReason(),
                (kvm.delayReason() != 1 or kvm.delayReasonComment()),
