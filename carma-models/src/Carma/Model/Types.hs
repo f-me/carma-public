@@ -132,9 +132,9 @@ newtype HMDiffTime = HMDiffTime DiffTime deriving (FromField, ToField,
 
 instance FromJSON HMDiffTime where
   parseJSON (Aeson.String hm) =
-     case (map T.decimal $ T.splitOn ":" hm) of
+     case (map (T.signed T.decimal) $ T.splitOn ":" hm) of
         [Right (hours, _), Right (minutes, _)] ->
-            if (0 <= hours && 0 <= minutes && minutes <= 59)
+            if 0 <= minutes && minutes <= 59
             then return $ HMDiffTime $
                  fromInteger (hours * 60 + minutes) * 60
             else err
@@ -500,8 +500,8 @@ instance DefaultFieldView DiffTime where
 diffTimeTohms :: Real a => a -> (Int, Int, Int)
 diffTimeTohms t =
   let ss :: Int = floor $ toRational t
-      sec = ss `rem` 60
-      mis = (ss `div` 60) `rem` 60
+      sec = abs $ ss `rem` 60
+      mis = abs $ (ss `div` 60) `rem` 60
       hrs = (ss `div` 60) `div` 60
   in (hrs, mis, sec)
 
