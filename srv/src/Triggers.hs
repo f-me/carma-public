@@ -83,6 +83,7 @@ import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 import           Carma.Model.PartnerDelay (PartnerDelay)
+import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
 
 import           Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
@@ -252,6 +253,19 @@ afterCreate = Map.unionsWith (++) $
           from "PartnerDelay" p
           where s.id = p.serviceId
             and p.id = $(delayId)$
+        |]
+    -- FIXME: this should be in Backoffice.partnerDelayEntries
+    doApp $ liftPG $ \pg ->
+      uncurry (PG.execute pg)
+        [sql| update actiontbl a
+          set duetime = times_expectedServiceStart + interval '5m'
+          from "PartnerDelay" p, servicetbl s
+          where s.id = p.serviceId
+            and p.id = $(delayId)$
+            and p.delayConfirmed = $(PartnerDelay_Confirmed.yes)$
+            and a.serviceId = p.serviceId
+            and a.type = $(ActionType.checkStatus)$
+            and a.assignedTo is null
         |]
 
   ] ++
