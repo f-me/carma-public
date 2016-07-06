@@ -64,6 +64,13 @@ instance Model PartnerDelay where
       , setMeta "visibleIf" (object ["delayReason" .= [Reason.other]]) delayReasonComment
       , textarea exceptionalComment
       , setMeta "visibleIf" (object ["exceptional" .= [Exceptional.yes]]) exceptionalComment
+      , required delayReason
+      , required delayReasonComment
+      , required delayMinutes
+      , required notified
+      , required delayConfirmed
+      , required exceptional
+      , required exceptionalComment
       ]
     _  -> Nothing
 

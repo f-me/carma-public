@@ -2,6 +2,8 @@ module Carma.Model.Service.SoberDriver where
 
 import Data.Text
 import Data.Typeable
+import Data.Aeson((.=), object)
+import Data.Scientific
 
 import Data.Model
 import Data.Model.View
@@ -20,6 +22,11 @@ data SoberDriver = SoberDriver
   , toAddress_comment :: F (Maybe Text)"toAddress_comment" "Примечания"
   , toAddress_coords  :: F PickerField "toAddress_coords" "Координаты"
   , toAddress_map     :: F MapField    "toAddress_map" ""
+
+  , isCountryRide       :: F Bool "isCountryRide" "За городом"
+  , suburbanMilage      :: F (Maybe Scientific) "suburbanMilage" "Пробег за городом"
+  , totalMilage         :: F (Maybe Scientific) "totalMilage" "Километраж по тахометру"
+  , partnerWarnedInTime :: F (Maybe Bool) "partnerWarnedInTime" "Партнёр предупредил вовремя"
   }
   deriving Typeable
 
@@ -33,5 +40,9 @@ instance Model SoberDriver where
     Nothing -> Nothing
     Just mv -> Just
       $ modifyView (mv {mv_title = "Трезвый водитель"})
-      $ mapWidget fromAddress_address fromAddress_coords fromAddress_map
+      $ setMeta "visibleIf" (object ["isCountryRide" .= [True]]) suburbanMilage
+      : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) totalMilage
+      : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) partnerWarnedInTime
+      : widget "partnerWarnedInTime-btn" partnerWarnedInTime
+      : mapWidget fromAddress_address fromAddress_coords fromAddress_map
       ++ mapWidget toAddress_address toAddress_coords toAddress_map

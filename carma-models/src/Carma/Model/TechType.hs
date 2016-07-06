@@ -13,10 +13,9 @@ import Carma.Model.Types()
 import Carma.Model.PgTypes()
 
 data TechType = TechType
-  { ident
-    :: PK Int TechType "Тип техпомощи"
-  , label
-    :: F Text "label" "Тип"
+  { ident  :: PK Int TechType "Тип техпомощи"
+  , isActive :: F Bool "isActive" "Активно"
+  , label  :: F Text "label" "Тип"
   } deriving Typeable
 
 mkIdents [t|TechType|]

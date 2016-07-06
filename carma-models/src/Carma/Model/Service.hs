@@ -53,6 +53,9 @@ data Service = Service
                                  "Оплата Клиент"
   , times_expectedServiceStart   :: F (Maybe UTCTime) "times_expectedServiceStart"
                                  "Ожидаемое время начала оказания услуги"
+  , times_expectedServiceStartHistory
+                                 :: F Aeson.Value "times_expectedServiceStartHistory"
+                                 "История ОВНОУ"
   , times_expectedDispatch       :: F (Maybe UTCTime) "times_expectedDispatch"
                                  "Время выезда партнёра"
   , times_factServiceStart       :: F (Maybe UTCTime) "times_factServiceStart"
@@ -78,6 +81,8 @@ data Service = Service
                                  "Дата выставления счёта"
 
   , contractor_partner           :: F (Maybe Text) "contractor_partner"
+                                 "Партнёр"
+  , contractor_partnerLegacy     :: F Aeson.Value "contractor_partnerLegacy"
                                  "Партнёр"
   , contractor_partnerId         :: F (Maybe (IdentI Partner)) "contractor_partnerId"
                                  "Партнёр"
@@ -132,6 +137,7 @@ svcMod =
     ,setType "dictionary" contractor_partnerId
     ,setMeta "group-widget" "partner" contractor_partner
     ,invisible contractor_coords
+    ,invisible contractor_partnerLegacy
     ,hiddenIdent parentId
     ,readonly status
     ,clientCancelReason `completeWith` CRR.label
@@ -157,6 +163,7 @@ usualSvcMod = svcMod ++
             , widget "datetime-local" times_factServiceEnd
             , widget "datetime-local" times_expectedServiceClosure
             , widget "datetime-local" times_factServiceClosure
+            , widget "list-of-times"  times_expectedServiceStartHistory
             ]
 
 serviceSearchParams :: [(Text, [Predicate Service])]

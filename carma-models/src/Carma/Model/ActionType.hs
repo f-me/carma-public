@@ -47,6 +47,7 @@ mkIdents [t|ActionType|]
  , ("callMeMaybe", 20)
  , ("checkDispatchTime", 21)
  , ("accident", 22)
+ , ("confirmPartnerDelay", 23)
  , ("call", 100)
  ]
 

@@ -2,6 +2,7 @@ module Carma.Model.Service.Tech where
 
 import Data.Text
 import Data.Typeable
+import Data.Scientific
 
 import Data.Aeson((.=), object)
 import Data.Model
@@ -15,8 +16,6 @@ import qualified Carma.Model.TechType as TechType
 data Tech = Tech
   { ident          :: PK Int Tech ""
   , techType       :: F (Maybe (IdentI TechType)) "techType" "Услуга"
-  , suburbanMilage :: F (Maybe Text) "suburbanMilage"
-                      "Пробег техпомощи за городом"
   , orderNumber    :: F (Maybe Text) "orderNumber" "Номер заказ-наряда"
   , check1         :: F (Maybe Checkbox) "check1"
                       "Капот открывается"
@@ -30,6 +29,10 @@ data Tech = Tech
                       "Документы на автомобиль на руках"
   , check6         :: F (Maybe Checkbox) "check6"
                       "Не открывается лючок бензобака"
+  , isCountryRide       :: F Bool "isCountryRide" "За городом"
+  , suburbanMilage      :: F (Maybe Scientific) "suburbanMilage" "Пробег за городом"
+  , totalMilage         :: F (Maybe Scientific) "totalMilage" "Километраж по тахометру"
+  , partnerWarnedInTime :: F (Maybe Bool) "partnerWarnedInTime" "Партнёр предупредил вовремя"
   }
   deriving Typeable
 
@@ -42,7 +45,8 @@ instance Model Tech where
     Nothing -> Nothing
     Just mv ->
       Just $ modifyView (mv {mv_title = "Техпомощь"})
-        [setMeta "visibleIf" (object
+        [setMeta "filterBy" "isActive" techType
+        ,setMeta "visibleIf" (object
           ["techType" .= [TechType.charge, TechType.chargeRuamc]
           ]) check1
         ,setMeta "visibleIf" (object
@@ -60,4 +64,8 @@ instance Model Tech where
         ,setMeta "visibleIf" (object
           ["techType" .= [TechType.fuel, TechType.fuelTower, TechType.fuelRuamc]
           ]) check6
+        , setMeta "visibleIf" (object ["isCountryRide" .= [True]]) suburbanMilage
+        , setMeta "visibleIf" (object ["isCountryRide" .= [True]]) totalMilage
+        , setMeta "visibleIf" (object ["isCountryRide" .= [True]]) partnerWarnedInTime
+        , widget "partnerWarnedInTime-btn" partnerWarnedInTime
         ]

@@ -80,7 +80,7 @@ fillServices :: Patch Case -> IdentI Case -> PG.Connection -> IO (Patch Case)
 fillServices p idt c = do
   [[svcs]] <- PG.query c
     [sql|
-      select string_agg(value || ':' || id, ',')
+      select coalesce(string_agg(value || ':' || id, ','), '')
         from
           (select m.value, s.id
             from servicetbl s
