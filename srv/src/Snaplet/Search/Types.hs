@@ -156,7 +156,8 @@ class MkSelect t where
   mkSel :: t -> Text
 
 instance Model m => MkSelect (ModelInfo m) where
-  mkSel _ = T.intercalate ", " $ map (tofldName.fd_name) $ modelFields mInfo
+  mkSel _ = T.intercalate ", " $ map (tofldName.fd_name)
+    $ onlyDefaultFields $ modelFields mInfo
     where
       mInfo = modelInfo :: ModelInfo m
       tofldName f = T.concat ["\"", M.tableName mInfo, "\"", ".", f]

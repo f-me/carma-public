@@ -24,7 +24,6 @@ import           Data.String (fromString)
 import           Text.Printf
 
 import           Data.Maybe
-import           Data.List
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time.Clock (getCurrentTime)

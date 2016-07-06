@@ -37,6 +37,7 @@ import           Data.Model.Types
 import qualified Carma.Model.Action as CarmaAction
 import           Carma.Model.Case as Case
 import           Carma.Model.Service as Service
+import           Carma.Model.PartnerDelay as PartnerDelay
 
 import           Control.Monad.Free
 import           Triggers.DSL
@@ -104,6 +105,14 @@ instance PreContextAccess Service where
   getAction  = return Nothing
 
 
+instance PreContextAccess PartnerDelay where
+  getKase =
+    Just <$> (dbRead =<< (`get'` PartnerDelay.caseId) <$> (dbRead =<< getIdent))
+  getService =
+    Just <$> (dbRead =<< (`get'` PartnerDelay.serviceId) <$> (dbRead =<< getIdent))
+  getAction  = return Nothing
+
+
 instance PreContextAccess CarmaAction.Action where
   getKase = do
     p <- dbRead =<< getIdent
@@ -141,5 +150,10 @@ instance SvcAccess Service where
 
 
 instance SvcAccess CarmaAction.Action where
+  setService i acc val =
+    void $ dbUpdate i $ put acc val Data.Model.Patch.empty
+
+
+instance SvcAccess PartnerDelay where
   setService i acc val =
     void $ dbUpdate i $ put acc val Data.Model.Patch.empty

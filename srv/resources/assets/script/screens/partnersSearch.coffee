@@ -417,7 +417,15 @@ define [ "utils"
 
         k['coords'] = ko.computed -> "#{k['st_x']()},#{k['st_y']()}"
 
-        for nested in k['services']()
+        k['filteredServices'] = ko.computed ->
+          srvs = kvm['servicesLocals']()
+          if _.isEmpty srvs
+            k['services']()
+          else
+            _.filter k['services'](),
+              ({type}) -> srvs.some((s) -> `s.value == type`)
+
+        for nested in k['filteredServices']()
           do (nested) ->
             nested['showStr'] = ko.computed ->
               show  = "<span class='label label-info'>
@@ -446,7 +454,7 @@ define [ "utils"
       return v.distanceFormatted() if sort == "distance"
       unless _.isEmpty srvs
         v = parseInt (_.find v.services(),
-                 (s) -> String(s.type) == String(srvs[0].value))?[sort]?()
+                 (s) -> String(s.type) == String(srvs[0].value))?[sort]
         # sorter will sort arrays with NaN as multiple arrays divided by NaN
         if _.isNaN v then Infinity else v
 

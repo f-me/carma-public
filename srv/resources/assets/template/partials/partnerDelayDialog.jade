@@ -1,0 +1,13 @@
+
+.modal.fade(id="{{ id }}-modal", data-backdrop="static", data-keyboard="false")
+  .modal-dialog
+    .modal-content
+      .modal-header
+        h4.modal-title {{ title }}
+      .modal-body.form-horizontal(id="{{ id }}-form")
+      .modal-footer
+        button.btn.btn-primary(
+          id="{{ id }}-save",
+          data-bind="click: save, enable: canSave")
+          | {{ saveLabel }}
+        button.btn(data-dismiss='modal', aria-hidden='true') {{ cancelLabel }}

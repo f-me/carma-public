@@ -66,14 +66,15 @@ define ["utils", "dictionaries/model-dict"], (u, ModelDict) ->
         priority3: ko.observable svc.priority3
         fine: ko.observable svc.fine
         options: options
+      validPriorities = [null,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
       svcKVM._error = ko.computed ->
-        [ [1,2,3,null].indexOf(maybeNum svcKVM.priority1()) >= 0 || 'priority1',
-          [1,2,3,null].indexOf(maybeNum svcKVM.priority2()) >= 0 || 'priority2',
-          [1,2,3,null].indexOf(maybeNum svcKVM.priority3()) >= 0 || 'priority3',
-          checkNum(svcKVM.fine())                                || 'fine',
-          svcKVM.options().every((o) -> o.noError())             || 'options',
+        [ validPriorities.indexOf(maybeNum svcKVM.priority1()) >= 0 || 'priority1',
+          validPriorities.indexOf(maybeNum svcKVM.priority2()) >= 0 || 'priority2',
+          validPriorities.indexOf(maybeNum svcKVM.priority3()) >= 0 || 'priority3',
+          checkNum(svcKVM.fine())                                   || 'fine',
+          svcKVM.options().every((o) -> o.noError())                || 'options',
           !kvm._serviceModels().some(
-            (s) -> s.type == svc.type && s.index != svcIx)       || 'duplicate']
+            (s) -> s.type == svc.type && s.index != svcIx)          || 'duplicate']
       svcKVM.noError = ko.computed -> svcKVM._error().every((e) -> e == true)
       subscribe svcKVM, syncJSON
       return svcKVM

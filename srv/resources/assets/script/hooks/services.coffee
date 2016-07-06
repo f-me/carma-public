@@ -4,6 +4,7 @@ define [ "utils"
        , "screens/partnersSearch"
        ], (u, i, mu, pSearch) ->
   ServiceStatus = i.idents "ServiceStatus"
+  ServiceType = i.idents "ServiceType"
 
   # sync with partner search screen
   openPartnerSearch: (model, kvm) ->
@@ -13,6 +14,27 @@ define [ "utils"
     # subscibe partner fields to partnersSearch screen events
     for f in model.fields when f.meta?['group-widget'] == "partner"
       do (f) ->
+        btn = {}
+        btn.state = ko.observable 'legacy'
+        btn.newName = ko.observable null
+        btn.text = ko.computed ->
+          if btn.state() == 'legacy' then 'Старое название' else 'Новое название'
+        btn.value = ko.computed ->
+          if btn.state() == 'legacy'
+          then kvm[f.name]()
+          else btn.newName()
+        btn.switch = ->
+          btn.state(if btn.state() == 'legacy' then 'current' else 'legacy')
+        kvm["#{f.name}Btn"] = btn
+        partnerId = kvm["#{f.name}Id"]?()
+        if partnerId
+          $.ajax
+            type: "GET"
+            url: "/_/Partner/#{partnerId}"
+            success: (p) ->
+              if kvm[f.name]() != p.name
+                btn.newName(p.name)
+
         n = pSearch.subName f.name, model.name, kvm.id()
         global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
@@ -95,3 +117,30 @@ define [ "utils"
         u = window.global.dictionaries.users.byId[kvm.creator()]
         if u and _.contains u.roles, role.consultant_op
           kvm.consultant u.id
+
+  partnerWarnedInTimeBtn: (model, kvm) ->
+    # do not run this hook on search screen
+    return if /^search/.test(Finch.navigate())
+    return if kvm.type() not in
+      [ServiceType.tech,
+       ServiceType.towage,
+       ServiceType.rent,
+       ServiceType.taxi,
+       ServiceType.sober,
+       ServiceType.adjuster]
+    kvm.partnerWarnedInTimeBtn =
+        click: ->
+          $.ajax
+            type: "GET"
+            url: "/_/ProcessingConfig/1"
+            success: (cfg) ->
+              dt = 60 * (kvm.suburbanMilage() - kvm.totalMilage()) / cfg.avgSuburbanSpeed
+              t1 = moment().add(moment.duration(dt, 'minutes'))
+              t2 = moment(kvm.times_expectedServiceStart(), 'DD.MM.YYYY HH:mm:ss')
+              kvm.partnerWarnedInTime(t1.format() < t2.format())
+        tooltip: ko.computed ->
+          if !kvm.suburbanMilage() or !kvm.totalMilage() or kvm.suburbanMilageRegexp() or kvm.totalMilageRegexp()
+          then 'Не заполнены поля "Километраж по тахометру" и "Пробег за городом"'
+          else ''
+        disabled: ko.computed ->
+          !kvm.suburbanMilage() or !kvm.totalMilage() or kvm.suburbanMilageRegexp() or kvm.totalMilageRegexp()

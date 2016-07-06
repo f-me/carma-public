@@ -131,9 +131,9 @@ mixin dictInput(name)
                                       makesLocalsString()")
                 li(data-bind="visible: comment, \
                                html: '<b>Комментарий: </b>' + comment()")
-                li(data-bind="visible: services().length > 0")
+                li(data-bind="visible: filteredServices().length > 0")
                   b Услуги:
-                  ul(data-bind="foreach: services")
+                  ul(data-bind="foreach: filteredServices")
                     li(data-bind="html: showStr")
               .btn-div(style="display: none")
                 a.select-btn.btn.btn-mini.btn-primary Выбрать

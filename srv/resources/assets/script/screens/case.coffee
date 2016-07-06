@@ -60,10 +60,14 @@ define [ "utils"
 
       # True if any of of required fields are missing a value
       do (kvm) ->
-        kvm['abandonedServices'] = ko.observable(
-          global.Usermeta.abandonedServices().filter (s) -> `s.caseId == args.id`)
-        global.Usermeta.abandonedServices.subscribe (svcs) ->
-          kvm.abandonedServices(svcs.filter (s) -> `s.caseId == args.id`)
+        if global.Usermeta
+          kvm['abandonedServices'] = ko.observable(
+            global.Usermeta.abandonedServices().filter (s) -> `s.caseId == args.id`)
+          global.Usermeta.abandonedServices.subscribe (svcs) ->
+            kvm.abandonedServices(svcs.filter (s) -> `s.caseId == args.id`)
+        else
+          kvm['abandonedServices'] = ko.observable []
+
 
         kvm['hasMissingRequireds'] = ko.computed ->
           # Check if any of required fields in a viewmodel is missing
@@ -116,11 +120,20 @@ define [ "utils"
           svcs =
             _.map kvm.services()?.split(','),
               (s) -> parseInt s.split(':')?[1]
+
+          # scan items in reverse order and set cumulative partner delays
+          partnerDelays = {}
+          for i in [].concat(res).reverse()
+            json = i[2]
+            if json.type == 'partnerDelay'
+              if !partnerDelays[json.serviceid]
+                partnerDelays[json.serviceid] = 0
+              partnerDelays[json.serviceid] += json.delayminutes
+              json.delayminutes = partnerDelays[json.serviceid]
+
           # Process every history item
           for i in res
             json = i[2]
-
-
             if json.aeinterlocutors?
               json.aeinterlocutors =
                 _.map(json.aeinterlocutors, utils.internalToDisplayed).
@@ -132,6 +145,15 @@ define [ "utils"
               else
                 null)
 
+            if json.delayminutes
+              hours = String(Math.floor(json.delayminutes / 60))
+              minutes = String(json.delayminutes % 60)
+              if hours.length < 2
+                hours = '0' + hours
+              if minutes.length < 2
+                minutes = '0' + minutes
+              json.delayminutes = hours + ':' + minutes
+
             dts = new Date(i[0]).toString historyDatetimeFormat
             item =
               datetime: dts
@@ -141,15 +163,18 @@ define [ "utils"
             item.visible = ko.computed(showHistoryItem item)
             kvm['historyItems'].push item
 
+
       showHistoryItem = (i) ->
         ->
-          if i.json.actiontype && not kvm.histShowActi()
+          if i.json.type == 'action' && not kvm.histShowActi()
             return false
-          if i.json.commenttext && not kvm.histShowComm()
+          if i.json.type == 'comment' && not kvm.histShowComm()
             return false
-          if i.json.refusalreason && not kvm.histShowCanc()
+          if i.json.type == 'partnerCancel' && not kvm.histShowCanc()
             return false
-          if (i.json.calltype || i.json.aetype) && not kvm.histShowCall()
+          if i.json.type == 'partnerDelay' && not kvm.histShowDelay()
+            return false
+          if (i.json.type == 'call' || i.json.type == 'avayaEvent') && not kvm.histShowCall()
             return false
 
           filterVal = kvm['historyFilter']()
@@ -177,6 +202,13 @@ define [ "utils"
       kvm['chatWs'] = chatWs
       chatWs.onmessage = (raw) ->
         msg = JSON.parse raw.data
+        if msg.youAreNotAlone
+          for usr in msg.youAreNotAlone
+            um = global.dictionaries.users?.byId[usr.id]
+            if um
+              note = "Оператор #{um.label} работает с кейсом"
+              chatNotify note, "error"
+          return
         who = msg.user || msg.joined || msg.left
         if who.id == global.user.id
           return
@@ -298,7 +330,7 @@ define [ "utils"
           $('.accordion-toggle:has(> .alert)').css 'padding', 0
           $(".status-btn-tooltip").tooltip()
           $("##{k['view']}-head").collapse 'show'
-          global.Usermeta.updateAbandonedServices()
+          global.Usermeta?.updateAbandonedServices()
 
     utils.build_global_fn 'addService', ['screens/case']
 

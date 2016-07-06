@@ -23,7 +23,6 @@ import           Control.Monad.Trans.Reader
 
 import           Data.Dynamic
 import           Data.List
-import qualified Data.List as L
 import           Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
@@ -72,7 +71,6 @@ import           Carma.Model.Service (Service)
 import qualified Carma.Model.Service.Hotel as Hotel
 import qualified Carma.Model.Service.Rent as Rent
 import qualified Carma.Model.Service.Taxi as Taxi
-import qualified Carma.Model.Service.Tech as Tech
 import qualified Carma.Model.Service.Towage as Towage
 import           Carma.Model.SubProgram as SubProgram hiding (ident)
 
@@ -84,8 +82,10 @@ import qualified Carma.Model.UrgentServiceReason as USR
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
+import           Carma.Model.PartnerDelay (PartnerDelay)
+import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
 
-import           Carma.Backoffice
+import           Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
 import           Carma.Backoffice.DSL.Types
@@ -113,6 +113,7 @@ beforeCreate = Map.unionsWith (++)
   [trigOnModel ([]::[Call]) $ do
     getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
     modPut Call.callType (Just CT.info)
+
   , trigOnModel ([]::[Usermeta]) $ do
     Just login <- getPatchField Usermeta.login -- TODO: check if valid?
     -- NB!
@@ -194,14 +195,10 @@ beforeCreate = Map.unionsWith (++)
     c <- dbRead parId
     modPut Taxi.taxiFrom_address $ c `Patch.get'` Case.caseAddress_address
 
-  , trigOnModel ([]::[Tech.Tech]) $
-    modPut Tech.suburbanMilage $ Just "0"
-
   , trigOnModel ([]::[Towage.Towage]) $ do
     modPut Towage.accident            $ Just off
     modPut Towage.canNeutral          $ Just off
     modPut Towage.manipulatorPossible $ Just off
-    modPut Towage.suburbanMilage      $ Just "0"
     modPut Towage.towType             $ Just TowType.dealer
     modPut Towage.towerType           $ Just TowerType.evac
     modPut Towage.towingPointPresent  $ Just off
@@ -209,8 +206,9 @@ beforeCreate = Map.unionsWith (++)
     modPut Towage.wheelsBlocked       $ Just 0
   ]
 
+
 afterCreate :: TriggerMap
-afterCreate = Map.unionsWith (++)
+afterCreate = Map.unionsWith (++) $
   [ trigOnModel ([]::[Usermeta])
     $ updateSnapUserFromUsermeta
     >> do
@@ -236,7 +234,43 @@ afterCreate = Map.unionsWith (++)
               Patch.empty
       aid <- dbCreate p
       logCRUDState Update aid p
-  ]
+  , trigOnModel ([]::[PartnerDelay]) $ do
+    delayId <- getIdent
+    doApp $ liftPG $ \pg ->
+      uncurry (PG.execute pg)
+        [sql| update servicetbl s
+          set
+            times_expectedServiceStart
+              = times_expectedServiceStart + interval '1m' * p.delayminutes,
+            times_expectedServiceStartHistory =
+              (select array_to_json(
+                array_prepend(
+                  to_json(to_char(
+                    times_expectedServiceStart at time zone 'UTC',
+                    'YYYY-MM-DD HH24:MI:SS')),
+                  array(select * from json_array_elements(times_expectedServiceStartHistory))
+               ))::json)
+          from "PartnerDelay" p
+          where s.id = p.serviceId
+            and p.id = $(delayId)$
+        |]
+    -- FIXME: this should be in Backoffice.partnerDelayEntries
+    doApp $ liftPG $ \pg ->
+      uncurry (PG.execute pg)
+        [sql| update actiontbl a
+          set duetime = times_expectedServiceStart + interval '5m'
+          from "PartnerDelay" p, servicetbl s
+          where s.id = p.serviceId
+            and p.id = $(delayId)$
+            and p.delayConfirmed = $(PartnerDelay_Confirmed.yes)$
+            and a.serviceId = p.serviceId
+            and a.type = $(ActionType.checkStatus)$
+            and a.assignedTo is null
+        |]
+
+  ] ++
+  map entryToTrigger partnerDelayEntries
+
 
 beforeUpdate :: TriggerMap
 beforeUpdate = Map.unionsWith (++) $
@@ -385,12 +419,32 @@ beforeUpdate = Map.unionsWith (++) $
   ]  ++
   map entryToTrigger (fst carmaBackoffice)
 
+
 afterUpdate :: TriggerMap
 afterUpdate = Map.unionsWith (++) $
   [trigOn Usermeta.delayedState $ \_ -> wsMessage
   ,trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
   ,trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
+  ,trigOn Service.contractor_partnerId $ \_ -> do
+    svcId <- getIdent
+    doApp $ liftPG $ \pg ->
+      uncurry (PG.execute pg)
+        [sql|
+          update servicetbl svc
+            set contractor_partnerLegacy = row_to_json(js.*)
+            from
+              partnertbl p,
+              json_array_elements(p.services) s
+                join lateral
+                  (select
+                    s->>'priority1' as priority1,
+                    s->>'priority2' as priority2,
+                    s->>'priority3' as priority3) js on true
+            where svc.id = $(svcId)$
+              and p.id = svc.contractor_partnerId
+              and svc.type::text = s->>'type'
+        |]
   ]
 
 --  - runReadTriggers
@@ -440,7 +494,9 @@ runCreateTriggers patch =
     fmap (\st -> (st_ident st, st_patch st))
       <$> runTriggers beforeCreate afterCreate
         (getPatch >>= dbCreate >>= putIdentUnsafe)
-        [""] -- pass dummy field name
+        ("" -- pass dummy field name
+        : HM.keys (untypedPatch patch) -- just to run PartnerDelay tirggers
+        )
         (emptyDslState undefined patch)
 
 
@@ -638,6 +694,7 @@ instance Backoffice HaskellE where
     const = HaskellE . return
 
     just = HaskellE . return . Just
+    justTxt = HaskellE . return . Just
 
     req v =
       HaskellE $

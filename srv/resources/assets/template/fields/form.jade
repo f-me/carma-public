@@ -47,6 +47,12 @@ include _form_utils
   +fieldControlGroup
     +localDateTimeInput("DateTime", "addMask: 'datetime'", "change")
 
+.field-template#list-of-times-field-template
+  div(style="margin-top: -15px;" data-bind="foreach: {{ name }}List")
+    div(class="col-sm-4")
+    p(class="col-sm-8",
+      style="padding-left: 15px; color: #555; font-size: 90%",
+      data-bind="text: $data")
 
 .field-template#date-field-template
   +fieldControlGroup
@@ -235,6 +241,21 @@ include _form_utils
             onclick="showComplex('{{ viewName }}', '{{ name }}');")
           span.glyphicon.glyphicon-share
 
+      .input-group.input-group-sm
+        .btn-block.hidden
+        .svc-status-button.btn-block(
+          data-toggle="tooltip"
+          data-html="true"
+          data-placement="bottom"
+          data-bind='attr: { title: buttons.partnerDelay.tooltip },\
+                     visible: buttons.partnerDelay.visible')
+          button.btn.btn-small.btn-info(
+            style="width:100%"
+            data-bind='\
+              click: buttons.partnerDelay.click,\
+              disabled: buttons.partnerDelay.disabled')
+            span(data-bind='text: buttons.partnerDelay.text')
+
 // Template for fields with unknown type
 .field-template#unknown-field-template
   .form-control
@@ -348,11 +369,31 @@ include _form_utils
           span(data-bind='text: buttons.anotherPSA.text')
 
 
+#partnerWarnedInTime-btn-field-template.field-template
+  .form-group(data-bind="visible: {{name}}Visible")
+    label.col-sm-4.control-label
+      span.label.label-danger(data-bind="visible: partnerWarnedInTime() === false")
+        | Опоздание
+      span.label.label-success(data-bind="visible: partnerWarnedInTime() === true")
+        | Вовремя
+    .col-sm-8
+      button.btn.btn-small.btn-info(
+        style="width:100%"
+        data-bind="\
+          click: partnerWarnedInTimeBtn.click,\
+          attr: { title: partnerWarnedInTimeBtn.tooltip },\
+          disabled: partnerWarnedInTimeBtn.disabled")
+        | Расчёт
+
 #partner-field-template.field-template
   +fieldControlGroup
       input.form-control(type='text'
-        name='{{ name }}'
-        data-bind='value: {{ name }}')
+        name='{{name}}'
+        data-bind='value: {{name}}Btn.value')
+      .legacy-partner-button(
+        data-bind="text: {{name}}Btn.text,\
+                   click: {{name}}Btn.switch,\
+                   visible: {{name}}Btn.newName() != null")
       span.input-group-addon(
           data-bind='click: openPartnerSearch.bind($data, \'{{ name }}\')')
         span.glyphicon.glyphicon-search
@@ -377,7 +418,7 @@ include _form_utils
           .panel-body
             .control-group.tight
               label
-                | Приоритет: &nbsp;
+                | Приоритет: &nbsp; ПН
                 input(type='text' data-bind="textInput: priority1,\
                   css: {error: _error().indexOf('priority1') >= 0}")
                 | &nbsp; ПБГ
@@ -420,7 +461,7 @@ include _form_utils
                         i.glyphicon.glyphicon-plus
                         | &nbsp; Добавить опцию
 
-    .dropup
+    .dropdown
       button.dropdown-toggle.btn.btn-action(
         data-toggle="dropdown"
         data-bind='bindClick: _addService')
@@ -652,6 +693,10 @@ mixin caseFilesList
               data-bind="css: histShowCanc() && 'active', click: histToggleCanc")
                 i.glyphicon.glyphicon-remove-circle
             .btn.btn-default(
+              title="Показать опоздания партнёров",
+              data-bind="css: histShowDelay() && 'active', click: histToggleDelay")
+                i.glyphicon.glyphicon-time
+            .btn.btn-default(
               title="Показать звонки",
               data-bind="css: histShowCall() && 'active', click: histToggleCall")
                 i.glyphicon.glyphicon-phone-alt
@@ -698,7 +743,7 @@ mixin caseFilesList
                   | Звонок:&nbsp;
                 span(data-bind="text: calltype")
               // /ko
-              // ko if: $data.commenttext
+              // ko if: $data.type == 'comment'
               div
                 i.glyphicon.glyphicon-bullhorn
                 | &nbsp;
@@ -706,7 +751,7 @@ mixin caseFilesList
                   | Комментарий:&nbsp;
                 span(data-bind="text: commenttext")
               // /ko
-              // ko if: $data.partnername
+              // ko if: $data.type == 'partnerCancel'
               div
                 i.glyphicon.glyphicon-remove-circle
                 | &nbsp;
@@ -722,6 +767,22 @@ mixin caseFilesList
                 span(data-bind="text: refusalcomment")
                 span(data-bind="visible: refusalcomment")
                   | )
+              // /ko
+              // ko if: $data.type == 'partnerDelay'
+              div
+                i.glyphicon.glyphicon-time
+                | &nbsp;
+                b
+                  | Опоздание партнёра:&nbsp;
+                span(data-bind="text: partnername")
+              div
+                b
+                  | Время опоздания:&nbsp;
+                span(data-bind="text: delayminutes")
+              div
+                b
+                  | Опоздание согласовано:&nbsp;
+                span(data-bind="text: delayconfirmed ")
               // /ko
               // ko if: $data.aetype
               div

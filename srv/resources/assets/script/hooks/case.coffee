@@ -3,7 +3,9 @@ define [ "utils"
        , "model/utils"
        , "model/main"
        , "sync/crud"
-       , "dictionaries"], (u, idents, mu, main, sync, d) ->
+       , "dictionaries"
+       , "components/partnerDelayDialog"],
+       (u, idents, mu, main, sync, d, PartnerDelayDialog) ->
   ServiceStatus = idents.idents "ServiceStatus"
   ServiceType = idents.idents "ServiceType"
   ActionType = idents.idents "ActionType"
@@ -14,7 +16,7 @@ define [ "utils"
     kvm.status.subscribe ->
       # we need to be sure that udpate is called after applying changes
       # to the server
-      kvm._meta.q.save (-> global.Usermeta.updateAbandonedServices())
+      kvm._meta.q.save (-> global.Usermeta?.updateAbandonedServices())
 
     kvm.buttons = {}
     kase = kvm._parent
@@ -143,6 +145,23 @@ define [ "utils"
           kvm.buttons.cancel.redirect = true
         kvm['status'] ServiceStatus.canceled
 
+    kvm.buttons.partnerDelay = {}
+    kvm.buttons.partnerDelay.text = 'Партнёр опаздывает'
+    kvm.buttons.partnerDelay.tooltip = ko.computed ->
+      if kvm.contractor_partnerId() then '' else 'Партнёр не выбран'
+    kvm.buttons.partnerDelay.disabled = ko.computed -> !kvm.contractor_partnerId()
+    kvm.buttons.partnerDelay.visible = ko.computed ->
+      kvm.type() in [ServiceType.tech,
+                     ServiceType.towage,
+                     ServiceType.rent,
+                     ServiceType.taxi,
+                     ServiceType.sober,
+                     ServiceType.adjuster] and
+        kvm.status() in [ServiceStatus.ordered, ServiceStatus.inProgress]
+    kvm.buttons.partnerDelay.click = ->
+      PartnerDelayDialog.show(kase, kvm)
+
+
     isSecondarySvc = (s) ->
         s.status() in [ServiceStatus.creating, ServiceStatus.suspended] and
           s.type() in [ServiceType.tech, ServiceType.towage]
@@ -160,6 +179,7 @@ define [ "utils"
         a._meta.q.save (->
           svcs = kvm._parent.services
           svcs.notifySubscribers svcs()
+          global.Usermeta?.updateAbandonedServices()
           kvm._parent.renderActions())
 
       if chkActions.length == 0
@@ -206,10 +226,12 @@ define [ "utils"
     kvm['histShowActi'] = ko.observable true
     kvm['histShowComm'] = ko.observable true
     kvm['histShowCanc'] = ko.observable true
+    kvm['histShowDelay'] = ko.observable true
     kvm['histShowCall'] = ko.observable true
     kvm['histToggleActi'] = -> kvm.histShowActi(not kvm.histShowActi())
     kvm['histToggleComm'] = -> kvm.histShowComm(not kvm.histShowComm())
     kvm['histToggleCanc'] = -> kvm.histShowCanc(not kvm.histShowCanc())
+    kvm['histToggleDelay'] = -> kvm.histShowDelay(not kvm.histShowDelay())
     kvm['histToggleCall'] = -> kvm.histShowCall(not kvm.histShowCall())
     kvm['historyItems'] = ko.observableArray()
     kvm['endOfHistory'] = ko.observable true
