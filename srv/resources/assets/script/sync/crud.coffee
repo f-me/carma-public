@@ -38,11 +38,21 @@ define [ "sync/metaq"
             # This is used when searching contract with program field cleared.
             if @model.name == 'Case' and f.name == 'program' and not v
               return
+            # Substitute Action.deferBy with computed value (see #2617).
+            if @model.name == 'Action' and f.name == 'deferBy' and v == '$expectedSvcStart$+5m'
+              sid = @kvm.serviceId()
+              @kvm._parent.servicesReference().forEach((svc) =>
+                if String(svc.id()) == String(sid)
+                  fmt = 'DD.MM.YYYY HH:mm:ss'
+                  newDate = moment(svc.times_expectedServiceStart(), fmt).add(5, 'minutes')
+                  diffDur = moment.duration(newDate.diff(moment()))
+                  v = Math.floor(diffDur.asHours()) + ':' + Math.abs(Math.floor(diffDur.asMinutes() % 60))
+              )
             @q[f.name] = v
             @._save() unless @options?.manual_save
 
     fetch: =>
-      $.bgetJSON "#{@url}/#{@kvm.id()}", (o) => @updadeKvm m.s2cObj(o, @ftypes)
+      $.bgetJSON "#{@url}/#{@kvm.id()}", (o) => @updateKvm m.s2cObj(o, @ftypes)
 
     _save: => @debounced_save()
 
@@ -78,7 +88,7 @@ define [ "sync/metaq"
         _.each (_.keys @qbackup), (fname) =>
           @kvm["#{fname}Sync"] false
 
-    updadeKvm: (obj) =>
+    updateKvm: (obj) =>
       # Hope This won't break anything, erasing last fetch don't work
       # with ws notifications because we may receive 2 updates after
       # put first from crud second from ws queue and second update
@@ -92,7 +102,7 @@ define [ "sync/metaq"
 
     saveSuccessCb: (cb) => (json) =>
       @persisted ||= true
-      @updadeKvm(m.s2cObj(json, @ftypes))
+      @updateKvm(m.s2cObj(json, @ftypes))
       @hideSyncAnim()
       @qbackup = {}
       @kvm._saveSuccessCb?(@kvm, @model, json)

@@ -17,6 +17,10 @@ announcement as JSON:
 
 > {"joined":{"ip":"192.1.20.17","id":90}}
 
+Upon each connection user recieves list of room participants:
+
+> {"youAreNotAlone": [{"ip":"192.1.20.17","id":90}]}
+
 User IP and usermeta ID also accompany messages sent by a user:
 
 > {"msg":"hello there","user":{"ip":"192.1.20.17","id":90}}
@@ -86,6 +90,9 @@ type IpAddress = Text
 newtype UserKey = UK (Maybe (IdentI Usermeta), IpAddress)
                   deriving (Eq, Ord, Show)
 
+userKeyId :: UserKey -> Maybe (IdentI Usermeta)
+userKeyId (UK (i, _)) = i
+
 
 instance ToJSON UserKey where
   toJSON (UK (ident, ip)) = toJSON $ object ["id" .= ident, "ip" .= ip]
@@ -128,6 +135,15 @@ handler queue refs = do
         when (oldCount == 0) $ writeTChan queue (ourRoom, UserJoined me)
         putTMVar refs (Map.insert ref (oldCount + 1) r)
         dupTChan queue
+      -- Send list of room participants to the user.
+      -- (Filter out connected user if he is also in the room.)
+      members <- atomically $ do
+        xs <- Map.keys <$> readTMVar refs
+        return
+          [ user
+          | (user, room) <- xs
+          , room == ourRoom && userKeyId user /= uid]
+      sendTextData conn $ encode $ object ["youAreNotAlone" .= members]
       -- Observe message queue channel and push messages in our room
       -- to the client
       qThread <- forkIO $ forever $ join $ atomically $ do

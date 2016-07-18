@@ -13,7 +13,7 @@ This module provides the concrete specification of our back office.
 
 -}
 
-module Carma.Backoffice (carmaBackoffice)
+module Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 
 where
 
@@ -24,7 +24,8 @@ import qualified Carma.Model.ActionType as AType
 import           Carma.Model.Case as Case
 import qualified Carma.Model.CaseSource as CO
 import qualified Carma.Model.CaseStatus as CS
-import           Carma.Model.FalseCall as FS
+import qualified Carma.Model.FalseCall as FS
+import qualified Carma.Model.ClientRefusalReason as CR
 import           Carma.Model.Program as Program
 import           Carma.Model.Role as Role
 import           Carma.Model.Satisfaction as Satisfaction
@@ -34,6 +35,8 @@ import           Carma.Model.ServiceType as ST
 import           Carma.Model.PaymentType as PT
 import qualified Carma.Model.SmsTemplate as SMS
 import qualified Carma.Model.Usermeta as Usermeta
+import qualified Carma.Model.PartnerDelay as PartnerDelay
+import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
 
 import Carma.Backoffice.DSL
 import Carma.Backoffice.DSL.Types (Eff, PreContextAccess, SvcAccess)
@@ -133,6 +136,15 @@ cancel :: Entry
 cancel =
     Entry
     (onField Service.status (const SS.canceled) $
+      doCancelService finish (proceed [AType.cancelService]))
+
+
+doCancelService
+  :: (Backoffice impl, PreContextAccess mdl, SvcAccess mdl)
+  => impl (Outcome mdl)
+  -> impl (Outcome mdl)
+  -> impl (Outcome mdl)
+doCancelService fin1 fin2 =
      switch
       [ ( serviceField status == const SS.creating ||
           (serviceField status == const SS.backoffice &&
@@ -150,7 +162,7 @@ cancel =
           [AType.tellMeMore, AType.callMeMaybe]
           AResult.okButNoService *>
           messageToPSA *>
-          finish
+          fin1
         )
       , ( serviceField status == const SS.backoffice &&
           currentUser ==
@@ -161,7 +173,7 @@ cancel =
           [AType.orderService, AType.orderServiceAnalyst]
           AResult.clientCanceledService *>
           messageToPSA *>
-          finish
+          fin1
         )
       ] $
       closePrevious InService
@@ -172,9 +184,32 @@ cancel =
       AResult.clientCanceledService *>
       messageToPSA *>
       messageToGenser *>
-      proceed [AType.cancelService]
-    )
+      fin2
 
+
+partnerDelayEntries :: [Entry]
+partnerDelayEntries =
+  [ Entry $ onField
+      PartnerDelay.delayConfirmed
+      (const PartnerDelay_Confirmed.no)
+      cancelServiceDueToPartnerDelay
+  , Entry $ onField
+      PartnerDelay.delayConfirmed
+      (const PartnerDelay_Confirmed.needConfirmation)
+      (proceed [AType.confirmPartnerDelay])
+  ]
+
+
+cancelServiceDueToPartnerDelay
+  :: (Backoffice impl, PreContextAccess mdl, SvcAccess mdl)
+  => impl (Outcome mdl)
+cancelServiceDueToPartnerDelay = doCancelService fin fin
+  where
+    fin =
+      setServiceField falseCall (just FS.noService) *>
+      setServiceField clientCancelReason (justTxt "Партнёр опоздал") *>
+      setServiceStatus SS.canceled *>
+      finish
 
 recallClient :: Entry
 recallClient =
@@ -589,6 +624,20 @@ callMeMaybe =
     ]
 
 
+confirmPartnerDelay :: Action
+confirmPartnerDelay =
+    Action
+    AType.confirmPartnerDelay
+    (const bo_order)
+    nobody
+    ((5 * minutes) `since` now)
+    [ (AResult.partnerDelayConfirmed, finish)
+    , (AResult.partnerDelayNotConfirmed, cancelServiceDueToPartnerDelay)
+    , (AResult.defer, defer)
+    , (AResult.supervisorClosed, finish)
+    ]
+
+
 carmaBackoffice :: BackofficeSpec
 carmaBackoffice =
     ( [ toBack
@@ -624,5 +673,6 @@ carmaBackoffice =
       , complaintResolution
       , callMeMaybe
       , tellMeMore
+      , confirmPartnerDelay
       ]
     )

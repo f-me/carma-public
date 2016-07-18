@@ -174,7 +174,8 @@ define [ "model/render"
             fn =
               read: ->
                 return kvm[f.name]() unless _.isNumber kvm[f.name]()
-                kvm[f.name]().toFixed(3)
+                val = kvm[f.name]().toFixed(3)
+                if val.search(/\./) < 0 then val else val.replace(/\.?0*$/, '')
           when "DiffTime"
             twoDig = (v) -> if v < 10 then "0#{v}" else "#{v}"
             fn =

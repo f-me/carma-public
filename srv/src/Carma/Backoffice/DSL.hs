@@ -43,6 +43,7 @@ where
 import           Prelude hiding (const)
 
 import           Data.Time.Clock
+import           Data.Text (Text)
 
 import           Data.Model
 import           Data.Model.Types
@@ -216,8 +217,8 @@ class Backoffice impl where
              IdentI v -> impl (IdentI v)
 
     -- | 'const' for optional values.
-    just :: Model v =>
-            IdentI v -> impl (Maybe (IdentI v))
+    just :: Model v => IdentI v -> impl (Maybe (IdentI v))
+    justTxt :: Text -> impl (Maybe Text)
 
     -- | Require a value.
     req :: impl (Maybe v) -> impl v

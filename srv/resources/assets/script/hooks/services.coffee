@@ -4,6 +4,7 @@ define [ "utils"
        , "screens/partnersSearch"
        ], (u, i, mu, pSearch) ->
   ServiceStatus = i.idents "ServiceStatus"
+  ServiceType = i.idents "ServiceType"
 
   # sync with partner search screen
   openPartnerSearch: (model, kvm) ->
@@ -116,3 +117,30 @@ define [ "utils"
         u = window.global.dictionaries.users.byId[kvm.creator()]
         if u and _.contains u.roles, role.consultant_op
           kvm.consultant u.id
+
+  partnerWarnedInTimeBtn: (model, kvm) ->
+    # do not run this hook on search screen
+    return if /^search/.test(Finch.navigate())
+    return if kvm.type() not in
+      [ServiceType.tech,
+       ServiceType.towage,
+       ServiceType.rent,
+       ServiceType.taxi,
+       ServiceType.sober,
+       ServiceType.adjuster]
+    kvm.partnerWarnedInTimeBtn =
+        click: ->
+          $.ajax
+            type: "GET"
+            url: "/_/ProcessingConfig/1"
+            success: (cfg) ->
+              dt = 60 * (kvm.suburbanMilage() - kvm.totalMilage()) / cfg.avgSuburbanSpeed
+              t1 = moment().add(moment.duration(dt, 'minutes'))
+              t2 = moment(kvm.times_expectedServiceStart(), 'DD.MM.YYYY HH:mm:ss')
+              kvm.partnerWarnedInTime(t1.format() < t2.format())
+        tooltip: ko.computed ->
+          if !kvm.suburbanMilage() or !kvm.totalMilage() or kvm.suburbanMilageRegexp() or kvm.totalMilageRegexp()
+          then 'Не заполнены поля "Километраж по тахометру" и "Пробег за городом"'
+          else ''
+        disabled: ko.computed ->
+          !kvm.suburbanMilage() or !kvm.totalMilage() or kvm.suburbanMilageRegexp() or kvm.totalMilageRegexp()

@@ -160,7 +160,7 @@ searchContracts = do
           , "AND c.? and c.?"
           -- 2 parameters: program.active and subprogram.active
           , "AND p.? AND s.?"
-          , "ORDER BY _expired"
+          , "ORDER BY _expired, ctime desc"
           -- 1 parameter: LIMIT value
           , "LIMIT ?;"
           ]

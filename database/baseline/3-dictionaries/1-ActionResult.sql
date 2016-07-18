@@ -100,6 +100,12 @@ INSERT INTO "ActionResult" (label, id)
 VALUES ('Закрыто супервизором', 32);
 
 INSERT INTO "ActionResult" (label, id)
+VALUES ('Опоздание согласовано', 33);
+
+INSERT INTO "ActionResult" (label, id)
+VALUES ('Опоздание не согласовано', 34);
+
+INSERT INTO "ActionResult" (label, id)
 VALUES ('Звонок завершён', 100);
 
 INSERT INTO "ActionResult" (label, id)
