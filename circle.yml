@@ -9,7 +9,7 @@ dependencies:
     - rm -rf stack*.tar.gz
     - rm -rf stack-bin/
 
-    - wget https://github.com/commercialhaskell/stack/releases/download/v0.1.10.0/stack-0.1.10.0-linux-x86_64.tar.gz
+    - wget https://github.com/commercialhaskell/stack/releases/download/v1.1.2/stack-1.1.2-linux-x86_64.tar.gz
     - tar -zxf stack*.tar.gz
 
     - mkdir ~/stack-bin/
