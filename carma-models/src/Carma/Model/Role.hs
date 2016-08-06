@@ -63,6 +63,7 @@ mkIdents [t|Role|]
   , ("consultant_op",  60) -- Консультант: Оператор
   , ("consultant_mech",61) -- Консультант: Механик
   , ("consultant_tech",62) -- Консультант: Теххелпер
+  , ("bo_urgent",      63) -- БО: Специалист по срочным вопросам
   ]
 
 instance Model Role where
