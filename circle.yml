@@ -1,6 +1,8 @@
 machine:
   environment:
     PATH: ${HOME}/stack-bin/:${PATH}
+  services:
+    - docker
 
 dependencies:
   cache_directories:
@@ -14,8 +16,8 @@ dependencies:
 
     - mkdir ~/stack-bin/
     - cp stack*/stack ~/stack-bin/
-    - stack setup
+    - stack docker pull
 
 test:
   override:
-    - stack -j2 build
+    - stack --docker --no-terminal -j2 image container
