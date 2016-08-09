@@ -127,7 +127,7 @@ searchContracts = do
           [ "SELECT c.?,"
           -- 4 parameters: case callDate name, contract start/end date
           -- field name, case callDate name (expiration predicate)
-          , "((cs.? < ?) or (? < cs.?)) as _expired,"
+          , "((date(cs.?) < ?) or (? < date(cs.?))) as _expired,"
           -- M + N more parameters: selected fields.
           , intercalate "," $
             map (const "c.?") selectedFieldsParam
