@@ -107,7 +107,7 @@ searchContracts = do
   caseId <- fromMaybe (error "No case number provided") <$> getIntParam "case"
 
   ml <- gets $ searchMinLength . options
-  when (T.length q < ml && not exact) $ error "Search query is too short"
+  when (T.length q < ml) $ error "Search query is too short"
 
   -- Form query template and all of its parameters. Contract
   -- identifiers (length M) and extraContractFields (length N) define
