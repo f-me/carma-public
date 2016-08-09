@@ -47,13 +47,13 @@ instance Model Tech where
       Just $ modifyView (mv {mv_title = "Техпомощь"})
         [setMeta "filterBy" "isActive" techType
         ,setMeta "visibleIf" (object
-          ["techType" .= [TechType.charge, TechType.chargeRuamc]
+          ["techType" .= [TechType.charge, TechType.chargeRuamc, TechType.customTech_27]
           ]) check1
         ,setMeta "visibleIf" (object
-          ["techType" .= [TechType.wheel, TechType.wheelTower,  TechType.wheelRuamc]
+          ["techType" .= [TechType.wheel, TechType.wheelTower,  TechType.wheelRuamc, TechType.customTech_28]
           ]) check2
         ,setMeta "visibleIf" (object
-          ["techType" .= [TechType.wheel, TechType.wheelTower,  TechType.wheelRuamc]
+          ["techType" .= [TechType.wheel, TechType.wheelTower,  TechType.wheelRuamc, TechType.customTech_28]
           ]) check3
         ,setMeta "visibleIf" (object
           ["techType" .= [TechType.hack, TechType.hackByRuamc]

@@ -32,6 +32,8 @@ mkIdents [t|TechType|]
  , ("fuel", 1)
  , ("fuelTower", 16)
  , ("fuelRuamc", 17)
+ , ("customTech_27", 27)
+ , ("customTech_28", 28)
  ]
 
 instance Model TechType where
