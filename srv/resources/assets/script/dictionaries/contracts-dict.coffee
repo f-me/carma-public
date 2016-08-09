@@ -15,7 +15,7 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
       qr = q.trim().replace(/\+/g, "%2B")
       return cb({}) if qr.match /^0*$/
       params = "program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}"
-      query = "/searchContracts/?query=#{qr}&case=#{@kvm.id?()}&#{params}#{if opt?.force then '&type=exact' else ''}"
+      query = "/searchContracts/?query=#{qr}&case=#{@kvm.id?()}&#{params}"
 
       @needArc = false
       @orig = null
