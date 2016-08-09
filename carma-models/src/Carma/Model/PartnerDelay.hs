@@ -40,7 +40,7 @@ data PartnerDelay = PartnerDelay
                            "Партнёр предупредил об опоздании"
   ,delayConfirmed     :: F (IdentI PartnerDelay_Confirmed)
                            "delayConfirmed"
-                           "Опоздание согласовано"
+                           "Продолжаем с текущим партнёром"
   ,exceptional        :: F (IdentI PartnerDelay_Exceptional)
                            "exceptional"
                            "Исключительный случай"
