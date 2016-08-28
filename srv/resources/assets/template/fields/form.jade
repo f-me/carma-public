@@ -220,6 +220,13 @@ include _form_utils
           span.glyphicon.glyphicon-share
 
 #group-datetime-local-field-template.field-template(type='text/template')
+  .form-group.has-feedback(
+      data-bind='visible: buttons.partnerDelay_payment.visible')
+    label.control-label.col-sm-4
+    .col-sm-8
+      | Оплата:&nbsp;
+      span(data-bind='text: buttons.partnerDelay_payment.text')
+
   .form-group.has-feedback
     label.control-label.col-sm-4
       +labelWithInfo("{{ name }}")

@@ -15,6 +15,7 @@ module AppHandlers.CustomSearches
     , searchContracts
       -- ** History
     , caseHistory
+    , partnerDelays
 
       -- ** Helpers
     , allDealersForMake
@@ -322,6 +323,21 @@ caseHistory = do
           [sql|SELECT datetime, who, json FROM "CaseHistory" WHERE caseId = ? LIMIT ?|]
           (caseId, limit)
   writeJSON (rows :: [(UTCTime, Text, Value)])
+
+
+partnerDelays :: AppHandler ()
+partnerDelays = do
+  svcId <- getIntParam "svcid"
+  partnerId <- getIntParam "partnerid"
+  [[json]] <- query
+          [sql|
+            SELECT coalesce(json_agg(row_to_json(p.*)), '[]') FROM (
+              SELECT * FROM "PartnerDelay"
+              WHERE serviceid = ? AND partnerid = ?
+              ORDER BY ctime ASC) p
+          |]
+          (svcId, partnerId)
+  writeJSON (json :: Value)
 
 
 findSameContract :: AppHandler ()

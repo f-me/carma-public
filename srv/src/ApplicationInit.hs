@@ -102,6 +102,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/:mdl",        chkAuth . method GET    $ readManyHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
+         , ("/partnerDelays/:svcid/:partnerid",
+                              chkAuth . method GET    $ partnerDelays)
          , ("/caseHistory/:caseId",
                               chkAuthLocal . method GET $ caseHistory)
          , ("/relevantCases/:caseId",
