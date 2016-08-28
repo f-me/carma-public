@@ -189,6 +189,28 @@ define [ "utils"
                 else if 60 < diff
                   kvm.buttons.partnerDelay_payment.text '0%'
 
+              else if delays.length == 1
+                if delays[0].delayminutes < 30 and diff <= 30
+                  kvm.buttons.partnerDelay_payment.text '100%'
+                else if delays[0].delayminutes <= 30 and 30 < diff and diff <= 60
+                  kvm.buttons.partnerDelay_payment.text '50%'
+                else if delays[0].delayminutes < 30 and diff > 60
+                  kvm.buttons.partnerDelay_payment.text '0%'
+                else if delays[0].delayminutes > 30 and diff <= 30
+                  kvm.buttons.partnerDelay_payment.text '90%'
+                else if delays[0].delayminutes > 30 and diff > 30
+                  kvm.buttons.partnerDelay_payment.text '0%'
+
+              else if delays.length == 2
+                if delays[0].delayminutes < 30 and 30 < diff and diff <= 60
+                  kvm.buttons.partnerDelay_payment.text '90%'
+                else if delays[0].delayminutes < 30 and diff > 60
+                  kvm.buttons.partnerDelay_payment.text '50%'
+                else if delays[0].delayminutes > 30 and diff > 0
+                  kvm.buttons.partnerDelay_payment.text '50%'
+                else if delays[0].delayminutes < 30 and diff <= 30
+                  kvm.buttons.partnerDelay_payment.text '100%'
+
             if kvm.isCountryRide()
               if delays.length == 0
                 if diff <= 0
