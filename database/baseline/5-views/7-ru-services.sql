@@ -1,4 +1,5 @@
-CREATE OR REPLACE VIEW "Услуги" AS
+DROP VIEW "Услуги";
+CREATE VIEW "Услуги" AS
 WITH servicecounts AS (
          SELECT servicetbl_1.parentid,
             count(*) AS amount
@@ -44,6 +45,12 @@ WITH servicecounts AS (
     '1-RAMC'::text AS "Орг-ия, обрабатывающая происшеств.",
     timezone('Europe/Moscow'::text, casetbl.calldate) AS "Дата и время звонка (МСК)", --"Дата звонка"
     timezone('Europe/Moscow'::text, servicetbl.times_expectedservicestart) AS "Ожид. время нач. оказания услуги",
+    case when json_array_length(servicetbl.times_expectedserviceStartHistory) > 0
+      then timezone('Europe/Moscow'::text,
+        (servicetbl.times_expectedServiceStartHistory->(json_array_length(servicetbl.times_expectedServiceStartHistory)-1))
+          :: text :: timestamp at time zone 'UTC')
+      else timezone('Europe/Moscow'::text, servicetbl.times_expectedServiceStart)
+      end AS "Исходное Ожид. время нач. оказания",
     timezone('Europe/Moscow'::text, servicetbl.createtime) AS "Дата и время создания услуги",
     upper(casetbl.car_platenum) AS "Регистрационный номер автомобиля",
     DATE(timezone('Europe/Moscow'::text, casetbl.car_buydate::timestamp with time zone)) AS "Дата продажи автомобиля",

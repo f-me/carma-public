@@ -52,6 +52,9 @@ INSERT INTO "Role" (id, value, label, isBack) VALUES
 , (44, 'badmin', 'Бизнес-администратор', 'f')
 , (50, 'cti', 'Доступ к CTI-панели','f')
 , (60, 'consultant', 'Консультант','f')
+, (61, 'consultant_mech', 'Консультант: Механик','f')
+, (62, 'consultant_tech', 'Консультант: Теххелпер','f')
+, (63, 'bo_urgent', 'БО: Специалист по срочным вопросам', 't')
 ;
 
 SELECT setval(pg_get_serial_sequence('"Role"', 'id'), max(id)) from "Role";

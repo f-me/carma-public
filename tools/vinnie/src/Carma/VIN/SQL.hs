@@ -423,26 +423,56 @@ protoPartnerCleanup inames cname =
 protoPartnerLookup :: InternalName
                    -> ContractFieldName
                    -> Import Int64
-protoPartnerLookup iname cname =
+protoPartnerLookup iname cname = do
+    let params = (()
+                  :* partnerTable
+                  :* cname
+                  :* PT iname
+                  :* PT iname
+                  :* tKid :* tKid)
+    -- TODO We can just use one query here with unnest + WITH
+    -- ORDINALITY if we had PG 9.5.x
     execute
-    [sql|
-     WITH dict AS
-     (SELECT DISTINCT ON (label) id AS did,
-      -- TODO name/code/synonyms field names
-      lower(trim(both ' ' from (unnest(ARRAY[name, code] || synonyms))))
-       AS label
-      FROM "?" ORDER BY label, did)
-     UPDATE vinnie_proto SET ? = dict.did
-     FROM dict, vinnie_pristine s
-     WHERE length(lower(trim(both ' ' from ?))) > 0
-     AND dict.label=lower(trim(both ' ' from ?))
-     AND vinnie_proto.? = s.?;
-     |] (()
-         :* partnerTable
-         :* cname
-         :* PT iname
-         :* PT iname
-         :* tKid :* tKid)
+      [sql|
+       WITH dict AS
+       (SELECT DISTINCT ON (label) id AS did,
+        lower(trim(both ' ' from (unnest(ARRAY[name]))))
+         AS label
+        FROM "?" ORDER BY label, did)
+       UPDATE vinnie_proto SET ? = dict.did
+       FROM dict, vinnie_pristine s
+       WHERE length(lower(trim(both ' ' from ?))) > 0
+       AND dict.label=lower(trim(both ' ' from ?))
+       AND vinnie_proto.? = s.?;
+       |] params
+
+    execute
+      [sql|
+       WITH dict AS
+       (SELECT DISTINCT ON (label) id AS did,
+        lower(trim(both ' ' from (unnest(synonyms))))
+         AS label
+        FROM "?" ORDER BY label, did)
+       UPDATE vinnie_proto SET ? = dict.did
+       FROM dict, vinnie_pristine s
+       WHERE length(lower(trim(both ' ' from ?))) > 0
+       AND dict.label=lower(trim(both ' ' from ?))
+       AND vinnie_proto.? = s.?;
+       |] params
+
+    execute
+      [sql|
+       WITH dict AS
+       (SELECT DISTINCT ON (label) id AS did,
+        lower(trim(both ' ' from (unnest(ARRAY[code]))))
+         AS label
+        FROM "?" ORDER BY label, did)
+       UPDATE vinnie_proto SET ? = dict.did
+       FROM dict, vinnie_pristine s
+       WHERE length(lower(trim(both ' ' from ?))) > 0
+       AND dict.label=lower(trim(both ' ' from ?))
+       AND vinnie_proto.? = s.?;
+       |] params
 
 
 -- | Replace subprogram label references with subprogram ids. Only

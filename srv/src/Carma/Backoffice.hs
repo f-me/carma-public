@@ -358,7 +358,7 @@ checkDispatchTime :: Action
 checkDispatchTime =
     Action
     AType.checkDispatchTime
-    (const bo_control)
+    (const bo_urgent)
     nobody
     ((1 * minutes) `since` now)
     [ (AResult.clientNotified, finish)

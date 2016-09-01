@@ -155,6 +155,7 @@ define ["utils"
     roleKVM.roles [ global.idents("Role").bo_order
                   , global.idents("Role").bo_info
                   , global.idents("Role").bo_secondary
+                  , global.idents("Role").bo_urgent
                   ]
     roleKVM
 
