@@ -202,7 +202,6 @@ create or replace view "PartnerPayment" as
         when s.isCountryRide
           and d.numOfDelays >= 1
           and s.partnerWarnedInTime
-          and delay <= interval '0 minutes'
         then '{"val": "100%"'
           || ',"desc": "Эвакуатор за городом опаздывает и предупреждает РАМК'
           ||           ' об опоздании. РАМК согласовывает опоздание при условии'
@@ -212,7 +211,6 @@ create or replace view "PartnerPayment" as
         when s.isCountryRide
           and d.numOfDelays >= 1
           and not s.partnerWarnedInTime
-          and delay <= interval '0 minutes'
         then '{"val": "90%"'
           || ',"desc": "Эвакуатор за городом опаздывает и предупреждает РАМК'
           ||           ' об опоздании. РАМК согласовывает опоздание при условии'
