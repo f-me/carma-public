@@ -11,6 +11,7 @@ create or replace view "PartnerPayment" as
         window w as (partition by serviceId, partnerId order by ctime asc)
       ) x
       where next_id is null),
+
   services(serviceId, partnerId, delay, isCountryRide, partnerWarnedInTime) as
     (select *
       from (select
@@ -56,27 +57,38 @@ create or replace view "PartnerPayment" as
             partnerWarnedInTime
           from averagecommissionertbl)
     ),
+
+  services_with_delays as
+    (select s.*,
+        coalesce(firstDelay, 0) as firstDelay,
+        coalesce(numOfDelays, 0) as numOfDelays
+      from services s
+        left outer join delays d
+          on (s.serviceId = d.serviceId and s.partnerId = d.partnerId)
+      where s.partnerId is not null
+    ),
+
   payments as
     (select
-      s.serviceId, s.partnerId,
+      serviceId, partnerId,
       case
-        when not s.isCountryRide
-          and d.numOfDelays = 0
+        when not isCountryRide
+          and numOfDelays = 0
           and delay <= interval '0 minutes'
         then '{"val": "100% + бонус"'
           || ',"desc": "Эвакуатор приехал в назначенное время без опозданий."'
           || '}'
 
-        when not s.isCountryRide
-          and d.numOfDelays = 0
+        when not isCountryRide
+          and numOfDelays = 0
           and delay <= interval '30 minutes'
         then '{"val": "90%"'
           || ',"desc": "Эвакуатор приезжает с опозданием менее 30 минут без'
           ||           ' уведомления РАМК."'
           || '}'
 
-        when not s.isCountryRide
-          and d.numOfDelays = 0
+        when not isCountryRide
+          and numOfDelays = 0
           and delay >  interval '30 minutes'
           and delay <= interval '60 minutes'
         then '{"val": "50%"'
@@ -84,17 +96,17 @@ create or replace view "PartnerPayment" as
           ||           ' менее часа без уведомления РАМК."'
           || '}'
 
-        when not s.isCountryRide
-          and d.numOfDelays = 0
+        when not isCountryRide
+          and numOfDelays = 0
           and delay >  interval '60 minutes'
         then '{"val": "0%"'
           || ',"desc": "Эвакуатор приезжает с опозданием более 1 часа без'
           ||           ' уведомления РАМК."'
           || '}'
 
-        when not s.isCountryRide
-          and d.numOfDelays = 1
-          and d.firstDelay <= 30
+        when not isCountryRide
+          and numOfDelays = 1
+          and firstDelay <= 30
           and delay <= interval '30 minutes'
         then '{"val": "100%"'
           || ',"desc": "Эвакуатор приезжает с опозданием менее 30 минут,'
@@ -102,9 +114,9 @@ create or replace view "PartnerPayment" as
           ||           ' предположительного времени доезда."'
           || '}'
 
-        when not s.isCountryRide
-          and d.numOfDelays = 2
-          and d.firstDelay <= 30
+        when not isCountryRide
+          and numOfDelays = 2
+          and firstDelay <= 30
           and delay >  interval '30 minutes'
           and delay <= interval '60 minutes'
         then '{"val": "90%"'
@@ -115,9 +127,9 @@ create or replace view "PartnerPayment" as
           ||           ' согласованного срока прибытия."'
           || '}'
 
-        when not s.isCountryRide
-          and d.numOfDelays = 1
-          and d.firstDelay <= 30
+        when not isCountryRide
+          and numOfDelays = 1
+          and firstDelay <= 30
           and delay >  interval '30 minutes'
           and delay <= interval '60 minutes'
         then '{"val": "50%"'
@@ -128,9 +140,9 @@ create or replace view "PartnerPayment" as
           ||          ' согласованного срока прибытия."'
           || '}'
 
-        when not s.isCountryRide
-          and d.numOfDelays = 2
-          and d.firstDelay <= 30
+        when not isCountryRide
+          and numOfDelays = 2
+          and firstDelay <= 30
           and delay >  interval '60 minutes'
         then '{"val": "50%"'
           || ',"desc": "Эвакуатор приезжает с опозданием более часа,'
@@ -140,9 +152,9 @@ create or replace view "PartnerPayment" as
           ||           ' согласованного срока прибытия."'
           || '}'
 
-        when not s.isCountryRide
-          and d.numOfDelays = 1
-          and d.firstDelay <= 30
+        when not isCountryRide
+          and numOfDelays = 1
+          and firstDelay <= 30
           and delay >  interval '60 minutes'
         then '{"val": "0%"'
           || ',"desc": "Эвакуатор приезжает с опозданием более часа,'
@@ -152,9 +164,9 @@ create or replace view "PartnerPayment" as
           ||           ' согласованного срока прибытия."'
           || '}'
 
-        when not s.isCountryRide
-          and d.numOfDelays = 1
-          and d.firstDelay > 30
+        when not isCountryRide
+          and numOfDelays = 1
+          and firstDelay > 30
           and delay <= interval '30 minutes'
         then '{"val": "90%"'
           || ',"desc": "Эвакуатор приезжает с опозданием более 30 минут,'
@@ -162,9 +174,9 @@ create or replace view "PartnerPayment" as
           ||           ' оператором РАМК и получив подтверждение."'
           || '}'
 
-        when not s.isCountryRide
-          and d.numOfDelays = 2
-          and d.firstDelay > 30
+        when not isCountryRide
+          and numOfDelays = 2
+          and firstDelay > 30
           and delay > interval '0 minutes'
         then '{"val": "50%"'
           || ',"desc": "Эвакуатор опаздывает более, чем на 30 минут,'
@@ -172,9 +184,9 @@ create or replace view "PartnerPayment" as
           ||           ' выдерживает сроки, но уведомляет об этом РАМК."'
           || '}'
 
-        when not s.isCountryRide
-          and d.numOfDelays = 1
-          and d.firstDelay > 30
+        when not isCountryRide
+          and numOfDelays = 1
+          and firstDelay > 30
           and delay > interval '30 minutes'
         then '{"val": "0%"'
           || ',"desc": "Эвакуатор опаздывает более, чем на 30 минут,'
@@ -182,9 +194,9 @@ create or replace view "PartnerPayment" as
           ||           ' выдерживает сроки, да ещё и не уведомляет об этом РАМК."'
           || '}'
 
-        when not s.isCountryRide
-          and d.numOfDelays = 2
-          and d.firstDelay <= 30
+        when not isCountryRide
+          and numOfDelays = 2
+          and firstDelay <= 30
           and delay <= interval '30 minutes'
         then '{"val": "100%"'
           || ',"desc": "Эвакуатор опаздывает менее, чем на 30 минут,'
@@ -192,47 +204,42 @@ create or replace view "PartnerPayment" as
           ||           ' согласовывает опоздание, но при этом опоздания нет."'
           || '}'
 
-        when s.isCountryRide
-          and d.numOfDelays = 0
+        when isCountryRide
+          and numOfDelays = 0
           and delay <= interval '0 minutes'
         then '{"val": "110%"'
           || ',"desc": "Эвакуатор за городом приехал вовремя."'
           || '}'
 
-        when s.isCountryRide
-          and d.numOfDelays >= 1
-          and s.partnerWarnedInTime
+        when isCountryRide
+          and numOfDelays >= 1
+          and partnerWarnedInTime
         then '{"val": "100%"'
           || ',"desc": "Эвакуатор за городом опаздывает и предупреждает РАМК'
           ||           ' об опоздании. РАМК согласовывает опоздание при условии'
           ||           ' доезда до клиента из расчета скорости эвакуатора."'
           || '}'
 
-        when s.isCountryRide
-          and d.numOfDelays >= 1
-          and not s.partnerWarnedInTime
+        when isCountryRide
+          and numOfDelays >= 1
+          and not partnerWarnedInTime
         then '{"val": "90%"'
           || ',"desc": "Эвакуатор за городом опаздывает и предупреждает РАМК'
           ||           ' об опоздании. РАМК согласовывает опоздание при условии'
           ||           ' доезда до клиента из расчета скорости эвакуатора."'
           || '}'
 
-        when s.isCountryRide
-          and d.numOfDelays = 0
+        when isCountryRide
+          and numOfDelays = 0
           and delay > interval '0 minutes'
         then '{"val": "90%"'
           || ',"desc": "Эвакуатор за городом опаздывает и не предупреждает РАМК'
           ||           ' об опоздании."'
           || '}'
 
-        else '{"val": "−"'
-          || ',"desc": "Неизвестно"'
-          || '}'
+        else '{}'
       end as payment
-      from services s
-        left outer join delays d
-          on (s.serviceId = d.serviceId and s.partnerId = d.partnerId)
-      where s.partnerId is not null)
+      from services_with_delays)
 
   select
       serviceId,
