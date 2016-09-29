@@ -1,8 +1,8 @@
-include _settings
+include _settings.pug
 
 .row.screen.col
   .col-md-12.labeled-pane
-    include _statNav
+    include _statNav.pug
     .row#settings.spinner(data-bind="spinner: spinner")
       #fader.blur(style="position: absolute; width: 100%; height: 100%")
       +settingsContainer("Показатели")

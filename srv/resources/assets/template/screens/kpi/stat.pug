@@ -1,8 +1,8 @@
-include _settings
+include _settings.pug
 
 .container-fluid.screen
   .col-md-12.default-bs
-    include _statNav
+    include _statNav.pug
     #stat-kpi-content(data-bind="spinner: spinner")
       .row#settings(data-bind="with: settingsCtx")
         +settingsContainer

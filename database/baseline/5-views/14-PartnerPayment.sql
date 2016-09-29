@@ -272,3 +272,4 @@ create or replace view "PartnerPayment" as
 ;
 
 grant select on table "PartnerPayment" to reportgen;
+grant select on table "PartnerPayment" to carma_db_sync;
