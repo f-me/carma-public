@@ -170,61 +170,9 @@ define [ "utils"
     if kvm.buttons.partnerDelay_payment.visible()
         $.ajax
           type: "GET"
-          url: "/partnerDelays/#{kvm.id()}/#{kvm.contractor_partnerId()}"
-          success: (delays) ->
-            fmt1 = 'DD.MM.YYYY HH:mm:ss'
-            fmt2 = 'YYYY-MM-DD HH:mm:ss'
-            factStart = moment(kvm.times_factServiceStart(), fmt1)
-            expeStart = moment(kvm.times_expectedServiceStart(), fmt1)
-            diff = moment.duration(factStart.diff(expeStart)).asMinutes()
-
-            if not kvm.isCountryRide()
-              if delays.length == 0
-                if diff <= 0
-                  kvm.buttons.partnerDelay_payment.text '100% + бонус'
-                else if diff <= 30
-                  kvm.buttons.partnerDelay_payment.text '90%'
-                else if 30 < diff and diff <= 60
-                  kvm.buttons.partnerDelay_payment.text '50%'
-                else if 60 < diff
-                  kvm.buttons.partnerDelay_payment.text '0%'
-
-              else if delays.length == 1
-                if delays[0].delayminutes < 30 and diff <= 30
-                  kvm.buttons.partnerDelay_payment.text '100%'
-                else if delays[0].delayminutes <= 30 and 30 < diff and diff <= 60
-                  kvm.buttons.partnerDelay_payment.text '50%'
-                else if delays[0].delayminutes < 30 and diff > 60
-                  kvm.buttons.partnerDelay_payment.text '0%'
-                else if delays[0].delayminutes > 30 and diff <= 30
-                  kvm.buttons.partnerDelay_payment.text '90%'
-                else if delays[0].delayminutes > 30 and diff > 30
-                  kvm.buttons.partnerDelay_payment.text '0%'
-
-              else if delays.length == 2
-                if delays[0].delayminutes < 30 and 30 < diff and diff <= 60
-                  kvm.buttons.partnerDelay_payment.text '90%'
-                else if delays[0].delayminutes < 30 and diff > 60
-                  kvm.buttons.partnerDelay_payment.text '50%'
-                else if delays[0].delayminutes > 30 and diff > 0
-                  kvm.buttons.partnerDelay_payment.text '50%'
-                else if delays[0].delayminutes < 30 and diff <= 30
-                  kvm.buttons.partnerDelay_payment.text '100%'
-
-            if kvm.isCountryRide()
-              if delays.length == 0
-                if diff <= 0
-                  kvm.buttons.partnerDelay_payment.text '110%'
-                else
-                  kvm.buttons.partnerDelay_payment.text '90%'
-
-              if delays.length > 0
-                if kvm.partnerWarnedInTime()
-                  kvm.buttons.partnerDelay_payment.text '100%'
-                else
-                  kvm.buttons.partnerDelay_payment.text '90%'
-
-
+          url: "/partnerKPI/#{kvm.id()}/#{kvm.contractor_partnerId()}"
+          success: (kpi) ->
+            kvm.buttons.partnerDelay_payment.text (kpi.paymentpercent || '−')
 
     isSecondarySvc = (s) ->
         s.status() in [ServiceStatus.creating, ServiceStatus.suspended] and
