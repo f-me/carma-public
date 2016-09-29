@@ -15,7 +15,7 @@ module AppHandlers.CustomSearches
     , searchContracts
       -- ** History
     , caseHistory
-    , partnerDelays
+    , partnerKPI
 
       -- ** Helpers
     , allDealersForMake
@@ -325,16 +325,16 @@ caseHistory = do
   writeJSON (rows :: [(UTCTime, Text, Value)])
 
 
-partnerDelays :: AppHandler ()
-partnerDelays = do
+partnerKPI :: AppHandler ()
+partnerKPI = do
   svcId <- getIntParam "svcid"
   partnerId <- getIntParam "partnerid"
   [[json]] <- query
           [sql|
-            SELECT coalesce(json_agg(row_to_json(p.*)), '[]') FROM (
-              SELECT * FROM "PartnerDelay"
-              WHERE serviceid = ? AND partnerid = ?
-              ORDER BY ctime ASC) p
+            SELECT coalesce(row_to_json(p.*), '{}') FROM (
+              SELECT * FROM "PartnerPayment"
+              WHERE serviceId = ? AND partnerId = ?
+              LIMIT 1) p
           |]
           (svcId, partnerId)
   writeJSON (json :: Value)

@@ -47,8 +47,7 @@ WITH servicecounts AS (
     timezone('Europe/Moscow'::text, servicetbl.times_expectedservicestart) AS "Ожид. время нач. оказания услуги",
     case when json_array_length(servicetbl.times_expectedserviceStartHistory) > 0
       then timezone('Europe/Moscow'::text,
-        (servicetbl.times_expectedServiceStartHistory->(json_array_length(servicetbl.times_expectedServiceStartHistory)-1))
-          :: text :: timestamp at time zone 'UTC')
+        (servicetbl.times_expectedServiceStartHistory->0) :: text :: timestamp at time zone 'UTC')
       else timezone('Europe/Moscow'::text, servicetbl.times_expectedServiceStart)
       end AS "Исходное Ожид. время нач. оказания",
     timezone('Europe/Moscow'::text, servicetbl.createtime) AS "Дата и время создания услуги",

@@ -18,7 +18,7 @@ mixin rows(columns)
       .row
           .bs-docs-example-after
               | Массовое управление
-            .row
+          .row
               #mass-form
               .form-group
                 .col-md-offset-4.col-md-8
@@ -36,12 +36,12 @@ mixin rows(columns)
       .row
           .bs-docs-example-after
               | Пользователи
-            .row
+          .row
               p
                 input.input-large.search-query(type='text'
                   placeholder='Поиск'
                   data-bind='value: kvms.typeahead, valueUpdate: "afterkeydown"')
-            .row(style="height: 70vh; overflow-y: auto;")
+          .row(style="height: 70vh; overflow-y: auto;")
               table.table.table-hover.table-bordered.table-striped.table-condensed
                 +rows([ { name: 'login',        tpl: 'text-ro',              w: 10 }
                       , { name: 'realName',     tpl: 'text-ro',              w: 20 }
