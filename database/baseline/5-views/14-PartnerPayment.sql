@@ -1,4 +1,9 @@
 
+-- FIXME: CTEs are not efficient if we are want to calculate partner payment
+-- for single service (GET /partner/KPI/{svc}/{partner}).
+-- Maybe worth rewriting this as stored procedure.
+
+
 create or replace view "PartnerPayment" as
   with delays as
     (select serviceId, partnerId, firstDelay, num as numOfDelays
@@ -72,6 +77,7 @@ create or replace view "PartnerPayment" as
     (select
       serviceId, partnerId,
       case
+        -- 1
         when not isCountryRide
           and numOfDelays = 0
           and delay <= interval '0 minutes'
@@ -79,6 +85,7 @@ create or replace view "PartnerPayment" as
           || ',"desc": "Эвакуатор приехал в назначенное время без опозданий."'
           || '}'
 
+        -- 2
         when not isCountryRide
           and numOfDelays = 0
           and delay <= interval '30 minutes'
@@ -87,6 +94,7 @@ create or replace view "PartnerPayment" as
           ||           ' уведомления РАМК."'
           || '}'
 
+        -- 3
         when not isCountryRide
           and numOfDelays = 0
           and delay >  interval '30 minutes'
@@ -96,6 +104,7 @@ create or replace view "PartnerPayment" as
           ||           ' менее часа без уведомления РАМК."'
           || '}'
 
+        -- 4
         when not isCountryRide
           and numOfDelays = 0
           and delay >  interval '60 minutes'
@@ -104,6 +113,7 @@ create or replace view "PartnerPayment" as
           ||           ' уведомления РАМК."'
           || '}'
 
+        -- 5
         when not isCountryRide
           and numOfDelays = 1
           and firstDelay <= 30
@@ -114,6 +124,7 @@ create or replace view "PartnerPayment" as
           ||           ' предположительного времени доезда."'
           || '}'
 
+        -- 6
         when not isCountryRide
           and numOfDelays = 2
           and firstDelay <= 30
@@ -127,6 +138,7 @@ create or replace view "PartnerPayment" as
           ||           ' согласованного срока прибытия."'
           || '}'
 
+        -- 7
         when not isCountryRide
           and numOfDelays = 1
           and firstDelay <= 30
@@ -140,6 +152,7 @@ create or replace view "PartnerPayment" as
           ||          ' согласованного срока прибытия."'
           || '}'
 
+        -- 8
         when not isCountryRide
           and numOfDelays = 2
           and firstDelay <= 30
@@ -152,6 +165,7 @@ create or replace view "PartnerPayment" as
           ||           ' согласованного срока прибытия."'
           || '}'
 
+        -- 9
         when not isCountryRide
           and numOfDelays = 1
           and firstDelay <= 30
@@ -164,6 +178,7 @@ create or replace view "PartnerPayment" as
           ||           ' согласованного срока прибытия."'
           || '}'
 
+        -- 10
         when not isCountryRide
           and numOfDelays = 1
           and firstDelay > 30
@@ -174,6 +189,7 @@ create or replace view "PartnerPayment" as
           ||           ' оператором РАМК и получив подтверждение."'
           || '}'
 
+        -- 11
         when not isCountryRide
           and numOfDelays = 2
           and firstDelay > 30
@@ -184,6 +200,7 @@ create or replace view "PartnerPayment" as
           ||           ' выдерживает сроки, но уведомляет об этом РАМК."'
           || '}'
 
+        -- 12
         when not isCountryRide
           and numOfDelays = 1
           and firstDelay > 30
@@ -194,6 +211,7 @@ create or replace view "PartnerPayment" as
           ||           ' выдерживает сроки, да ещё и не уведомляет об этом РАМК."'
           || '}'
 
+        -- 13
         when not isCountryRide
           and numOfDelays = 2
           and firstDelay <= 30
@@ -204,6 +222,7 @@ create or replace view "PartnerPayment" as
           ||           ' согласовывает опоздание, но при этом опоздания нет."'
           || '}'
 
+        -- 14
         when isCountryRide
           and numOfDelays = 0
           and delay <= interval '0 minutes'
@@ -211,6 +230,7 @@ create or replace view "PartnerPayment" as
           || ',"desc": "Эвакуатор за городом приехал вовремя."'
           || '}'
 
+        -- 15.1
         when isCountryRide
           and numOfDelays >= 1
           and partnerWarnedInTime
@@ -220,6 +240,7 @@ create or replace view "PartnerPayment" as
           ||           ' доезда до клиента из расчета скорости эвакуатора."'
           || '}'
 
+        -- 15.2
         when isCountryRide
           and numOfDelays >= 1
           and not partnerWarnedInTime
@@ -229,6 +250,7 @@ create or replace view "PartnerPayment" as
           ||           ' доезда до клиента из расчета скорости эвакуатора."'
           || '}'
 
+        -- 16
         when isCountryRide
           and numOfDelays = 0
           and delay > interval '0 minutes'
