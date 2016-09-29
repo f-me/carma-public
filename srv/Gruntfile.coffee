@@ -45,6 +45,21 @@ module.exports = (grunt) ->
           "resources/static/css/style.css": ["#{content}/style/style.less","#{content}/style/*.css"]
 
 
+    puglint:
+      validate:
+        options:
+          config:
+            extends: 'clock'
+            disallowIdLiterals: null # we need them often
+            requireLowerCaseTags: null # `addLocalName` is interpolated by heist
+            validateAttributeQuoteMarks: null # inconsistent / hard to fix
+            validateAttributeSeparator: null  # inconsistent / hard to fix
+            validateIndentation: null         # inconsistent / hard to fix
+            requireClassLiteralsBeforeIdLiterals: null # too lazy to fix
+            requireSpecificAttributes: null # Our forms don't need `action`
+            disallowClassAttributeWithStaticValue: null # some classes are interpolated by mustache
+        src: ["#{content}/template/**/*.pug"]
+
     pug:
       compile:
         options:
@@ -181,7 +196,7 @@ module.exports = (grunt) ->
 
   newerify = (ts) -> "newer:#{t}" for t in ts
 
-  grunt.registerTask("build", ['copy', 'coffee', 'less', 'pug'])
+  grunt.registerTask("build", ['copy', 'coffee', 'less', 'puglint', 'pug'])
   grunt.registerTask("rebuild", ['shell:bower', 'clean', 'build'])
   grunt.registerTask("bwatch", ['rebuild', 'watch'])
   grunt.registerTask("default", "rebuild")

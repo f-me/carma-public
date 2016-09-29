@@ -1,28 +1,26 @@
-include /fields/_form_utils
+include /fields/_form_utils.pug
 
 mixin dictInput(name)
   .input-group.input-group-sm
-    input.form-control( type="text"
+    input.form-control(type="text"
        autocomplete="off"
-       data-bind="\n\
+       data-bind=`\n\
                   attr: { \
-                    name: #{name}.field.meta.label, \
-                    placeholder: #{name}.field.meta.label \
+                    name: ${name}.field.meta.label, \
+                    placeholder: ${name}.field.meta.label \
                   }, \
-                  value: #{name}.local,\
+                  value: ${name}.local,\
                   valueUpdate: 'change',\
-                  disabled: #{name}.disabled,\
-                  pickerDisable: #{name}.disabled,\
-                  bindDict: '#{name}'")
+                  disabled: ${name}.disabled,\
+                  pickerDisable: ${name}.disabled,\
+                  bindDict: '${name}'`)
     span.input-group-addon
       span.glyphicon.glyphicon-chevron-down
   div
-    ul(data-bind="foreach: #{name}.locals")
+    ul(data-bind=`foreach: ${name}.locals`)
       li
         span(data-bind="text: label")
         a(href="" data-bind="click: remove") &nbsp ×
-
-
 
 #partnersSearch-content.screen.row
   // customized popover tpl with increased max-width

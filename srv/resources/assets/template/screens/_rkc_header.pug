@@ -9,7 +9,7 @@ include /fields/_form_utils.pug
         .form-group
           label.col-md-4= v
           .col-md-8
-            select.form-control(id="#{i}" data-bind='foreach: $data')
+            select.form-control(id=i data-bind='foreach: $data')
               option(data-bind='value: id, text: name')
   .col-md-6
     .row

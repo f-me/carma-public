@@ -2,15 +2,15 @@ mixin rows(columns)
   thead
     tr
       each c in columns
-        th(width="#{c.w}%")
+        th(width=`${c.w}%`)
           button.btn.btn-link(
-            data-bind="{ text: $root.fieldsDict['#{c.name}'].meta.label \
-                       , sort: '#{c.name}' }")
+            data-bind=`{ text: $root.fieldsDict['${c.name}'].meta.label \
+                       , sort: '${c.name}' }`)
 
   tbody(data-bind="foreach: kvms")
     tr(data-bind="event: {dblclick: function () {$root.select($data)}}")
       each c in columns
-        td(data-bind="renderTpl: {field: $data['#{c.name}'], tpl: '#{c.tpl}' }")
+        td(data-bind=`renderTpl: {field: $data['${c.name}'], tpl: '${c.tpl}' }`)
 
 .screen.container-fluid.col
  .row

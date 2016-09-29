@@ -8,7 +8,7 @@
   this template. Client code must prefer named templates to
   only-typed ones.
 
-include _form_utils
+include _form_utils.pug
 
 .field-template#textarea-field-template
   +fieldControlGroup
@@ -49,8 +49,8 @@ include _form_utils
 
 .field-template#list-of-times-field-template
   div(style="margin-top: -15px;" data-bind="foreach: {{ name }}List")
-    div(class="col-sm-4")
-    p(class="col-sm-8",
+    .col-sm-4
+    p.col-sm-8(
       style="padding-left: 15px; color: #555; font-size: 90%",
       data-bind="text: $data")
 
@@ -74,7 +74,7 @@ include _form_utils
   +fieldControlGroup
     .input-group.input-group-sm
       +defaultInput("","","afterkeydown")(
-        onkeyDown="kdoPick('{{ meta.picker }}', '{{ name }}', 73, event);")
+        onkeydown="kdoPick('{{ meta.picker }}', '{{ name }}', 73, event);")
       span.field-vip-label.label.label-danger(data-bind="visible: {{name}}Vip")
         i.glyphicon.glyphicon-star
         | VIP
@@ -96,7 +96,7 @@ include _form_utils
   +fieldControlGroup
     .input-group.input-group-sm
       +defaultInput("", "", "afterkeydown")(
-        onkeyDown="edoPick('{{ meta.picker }}', '{{ name }}', 13, event);")
+        onkeydown="edoPick('{{ meta.picker }}', '{{ name }}', 13, event);")
       span.input-group-addon
         span.glyphicon.glyphicon-search(onclick="doPick('{{ meta.picker }}',\
                                                '{{ name }}', event.target);")
@@ -155,7 +155,7 @@ include _form_utils
 #map-field-template.field-template(type='text/template')
   .control-group
     .controls
-      div.osMap(name='{{ name }}' id="{{ viewName }}-{{ name }}")
+      .osMap(name='{{ name }}' id="{{ viewName }}-{{ name }}")
 
 // NOP here — references are rendered after model has loaded
 #reference-field-template.field-template(type='text/template')
@@ -375,7 +375,6 @@ include _form_utils
           data-bind='click: buttons.anotherPSA.click')
           span(data-bind='text: buttons.anotherPSA.text')
 
-
 #partnerWarnedInTime-btn-field-template.field-template
   .form-group(data-bind="visible: {{name}}Visible")
     label.col-sm-4.control-label
@@ -404,7 +403,6 @@ include _form_utils
       span.input-group-addon(
           data-bind='click: openPartnerSearch.bind($data, \'{{ name }}\')')
         span.glyphicon.glyphicon-search
-
 
 #partner_services-field-template.field-template
   +fieldControlGroup
@@ -535,7 +533,6 @@ include _form_utils
       .col-md-12
         .content.form-horizontal
 
-
 //
   Template for one of references.
   Must generate id="{{ refView }}" element which
@@ -549,7 +546,7 @@ mixin refCommon(headingDataBind)
     .panel.panel-default
       .panel-heading(id="{{ refView }}-link"
                        data-parent="{{ refView }}-group"
-                       data-target="#{{ refView }}-head"
+                       data-target="\#{{ refView }}-head"
                        data-toggle="collapse"
                        data-bind=headingDataBind)
         h4.panel-title
@@ -561,7 +558,7 @@ mixin refCommon(headingDataBind)
 
 mixin simpleRefHdr(name, bindName)
   a.icon.icon-remove
-  a(data-bind="text: #{bindName}")= name
+  a(data-bind=`text: ${bindName}`)= name
 
 #services-reference-template.reference-template
   +refCommon('style: {"background-color": _svcColor}')
@@ -686,7 +683,7 @@ mixin caseFilesList
       #case-history
         h4(style="float: left") История по кейсу
         div(style="float: right")
-          div.btn-group.btn-group-sm(role="group")
+          .btn-group.btn-group-sm(role="group")
             .btn.btn-default(
               title="Показать действия",
               data-bind="css: histShowActi() && 'active', click: histToggleActi")
@@ -711,13 +708,13 @@ mixin caseFilesList
                              data-bind="textInput: historyFilter")
         div(style="clear:both")
         // ko foreach: historyItems
-        div.well.history-item(data-bind="visible: visible, style: {'background-color': color}")
+        .well.history-item(data-bind="visible: visible, style: {'background-color': color}")
           div
-            div.history-datetime
+            .history-datetime
               span(data-bind="text: datetime")
-            div.history-who
+            .history-who
               span(data-bind="text: who")
-            div.history-body(data-bind="with: json")
+            .history-body(data-bind="with: json")
               // ko if: $data.actiontype
               div
                 i.glyphicon.glyphicon-briefcase
@@ -817,7 +814,6 @@ mixin caseFilesList
           | Ещё
         // /ko
 
-
 #permission-template
   .form-group
     .col-md-offset-4.col-md-8
@@ -828,7 +824,7 @@ mixin caseFilesList
       | {{/ readonly }}
       | {{^ readonly }}
       button.btn.btn-success(type="button"
-              onClick="saveInstance('{{ viewName }}');successfulSave.call(this);")
+              onclick="saveInstance('{{ viewName }}');successfulSave.call(this);")
         span.glyphicon.glyphicon-pencil
         | Сохранить
       span.save-result
@@ -850,7 +846,7 @@ mixin caseFilesList
 
 #alert-template(type='text/html')
   .alert
-    button(type="button" class="close" data-dismiss="alert") ×
+    button.close(type="button", data-dismiss="alert") ×
     strong Внимание!
     | {{message}}
 

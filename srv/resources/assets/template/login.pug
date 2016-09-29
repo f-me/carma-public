@@ -25,9 +25,9 @@ html
   body
     .row
       .col-md-4
-      #loginblock.box.col-md-4
+      .box.col-md-4#loginblock
         #loginlogo
-          img(src='/s/img/logo.png')
+          img(src='/s/img/logo.png', alt='')
         form.form-horizontal(action='/login/', method='POST')
           fieldset
             legend Вход в систему
