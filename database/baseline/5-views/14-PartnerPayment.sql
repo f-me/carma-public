@@ -82,7 +82,7 @@ create view "PartnerPayment" as
         coalesce(numOfDelays, 0) as numOfDelays,
         s.tmFact
           - coalesce(
-              (s.tmHist->>(json_array_length(s.tmHist))) :: timestamp at time zone 'UTC',
+              (s.tmHist->>(json_array_length(s.tmHist) - 1)) :: timestamp at time zone 'UTC',
               s.tmExp)
           as delay
       from services s
