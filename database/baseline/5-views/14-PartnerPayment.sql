@@ -3,8 +3,9 @@
 -- for single service (GET /partner/KPI/{svc}/{partner}).
 -- Maybe worth rewriting this as stored procedure.
 
+drop view "PartnerPayment";
 
-create or replace view "PartnerPayment" as
+create view "PartnerPayment" as
   with delays as
     (select serviceId, partnerId, firstDelay, num as numOfDelays
       from (
@@ -17,47 +18,59 @@ create or replace view "PartnerPayment" as
       ) x
       where next_id is null),
 
-  services(serviceId, partnerId, delay, isCountryRide, partnerWarnedInTime) as
+  services(serviceId, partnerId, tmFact, tmExp, tmHist, isCountryRide, partnerWarnedInTime) as
     (select *
       from (select
             id,
             contractor_partnerId,
-            times_factServiceStart - times_expectedServiceStart as delay,
+            times_factServiceStart,
+            times_expectedServiceStart,
+            times_expectedServiceStartHistory,
             isCountryRide,
             partnerWarnedInTime
           from techtbl) tech
         union all (select
             id,
             contractor_partnerId,
-            times_factServiceStart - times_expectedServiceStart as delay,
+            times_factServiceStart,
+            times_expectedServiceStart,
+            times_expectedServiceStartHistory,
             isCountryRide,
             partnerWarnedInTime
           from towagetbl)
         union all (select
             id,
             contractor_partnerId,
-            times_factServiceStart - times_expectedServiceStart as delay,
+            times_factServiceStart,
+            times_expectedServiceStart,
+            times_expectedServiceStartHistory,
             isCountryRide,
             partnerWarnedInTime
           from renttbl)
         union all (select
             id,
             contractor_partnerId,
-            times_factServiceStart - times_expectedServiceStart as delay,
+            times_factServiceStart,
+            times_expectedServiceStart,
+            times_expectedServiceStartHistory,
             isCountryRide,
             partnerWarnedInTime
           from taxitbl)
         union all (select
             id,
             contractor_partnerId,
-            times_factServiceStart - times_expectedServiceStart as delay,
+            times_factServiceStart,
+            times_expectedServiceStart,
+            times_expectedServiceStartHistory,
             isCountryRide,
             partnerWarnedInTime
           from sobertbl)
         union all (select
             id,
             contractor_partnerId,
-            times_factServiceStart - times_expectedServiceStart as delay,
+            times_factServiceStart,
+            times_expectedServiceStart,
+            times_expectedServiceStartHistory,
             isCountryRide,
             partnerWarnedInTime
           from averagecommissionertbl)
@@ -66,7 +79,12 @@ create or replace view "PartnerPayment" as
   services_with_delays as
     (select s.*,
         coalesce(firstDelay, 0) as firstDelay,
-        coalesce(numOfDelays, 0) as numOfDelays
+        coalesce(numOfDelays, 0) as numOfDelays,
+        s.tmFact
+          - coalesce(
+              (s.tmHist->>(json_array_length(s.tmHist))) :: timestamp at time zone 'UTC',
+              s.tmExp)
+          as delay
       from services s
         left outer join delays d
           on (s.serviceId = d.serviceId and s.partnerId = d.partnerId)
@@ -80,7 +98,7 @@ create or replace view "PartnerPayment" as
         -- 1
         when not isCountryRide
           and numOfDelays = 0
-          and delay <= interval '0 minutes'
+          and delay <= interval '10 minutes'
         then '{"val": "100% + бонус"'
           || ',"desc": "Эвакуатор приехал в назначенное время без опозданий."'
           || '}'
@@ -111,6 +129,14 @@ create or replace view "PartnerPayment" as
         then '{"val": "0%"'
           || ',"desc": "Эвакуатор приезжает с опозданием более 1 часа без'
           ||           ' уведомления РАМК."'
+          || '}'
+
+        -- 4.x ("Показатель которого сначала не было")
+        when not isCountryRide
+          and numOfDelays = 1
+          and delay <= interval '10 minutes'
+        then '{"val": "100% + бонус"'
+          || ',"desc": "Нет описания."'
           || '}'
 
         -- 5

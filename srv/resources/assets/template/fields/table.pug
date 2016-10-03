@@ -2,14 +2,13 @@ mixin dictInput(nameMod)
   input.form-control(type='text'
                     autocomplete='off'
                     name='{{ name }}'
-                    data-bind='value: $rawData#{nameMod ? "." + nameMod : ""},\
+                    data-bind=`value: $rawData${nameMod ? "." + nameMod : ""},\
                       valueUpdate: "change",\
                       disabled: $rawData.disabled,\
                       pickerDisable: $rawData.disabled,\
-                      bindDict: $rawData')
+                      bindDict: $rawData`)
   span.input-group-addon
     span.glyphicon.glyphicon-chevron-down
-
 
 #dictionary-many-table-template(type='text/template')
   .input-group.input-group-sm

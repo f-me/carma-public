@@ -95,7 +95,7 @@ define [ "utils"
       # Redirect to back when a service with a self-assigned order
       # action is canceled. Check if the click has just occured to
       # prevent redirections when the case has just been entered.
-      if (kvm.buttons.cancel.redirect &&
+      if (kvm.buttons?.cancel.redirect &&
           (kvm.status?() == ServiceStatus.canceled))
         window.location.hash = "back"
     # Update actions list when new actions might appear

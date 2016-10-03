@@ -7,7 +7,7 @@
               option(data-bind='value: id, text: name')
           #dict-parent(data-bind='if: kvm')
             span.lead(data-bind='text: kvm._meta.model.title')
-            div.form-horizontal
+            .form-horizontal
               div(data-bind='foreach: kvm._meta.model.fields')
                 div(data-bind='renderField: $data')
               .form-group
@@ -17,7 +17,7 @@
                     i.icon-search
                     | Найти
         table#dict-table.table.table-striped.table-bordered.table-break-word
-      .col-md-7
+    .col-md-7
         #button-panel.page-header(style='display: none;')
           a#copy-options-btn.btn.btn-action(href='#ctr-copy-modal'
                                             data-toggle='modal'
@@ -41,7 +41,7 @@
                   | ×
                 h4.modal-title Копирование настроек конструктора
               .modal-body
-                div.form-horizontal(data-bind='foreach: kvm._meta.model.fields')
+                .form-horizontal(data-bind='foreach: kvm._meta.model.fields')
                   div(data-bind='renderField: $data')
               .modal-footer
                 button.btn(data-dismiss='modal', aria-hidden='true') Отменить
@@ -50,4 +50,4 @@
                   | Копировать
         #dictionaries-view.form-horizontal
         #permissions
-      #hidden-fields-container(style='display: none;')
+    #hidden-fields-container(style='display: none;')

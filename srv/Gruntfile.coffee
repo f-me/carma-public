@@ -45,22 +45,37 @@ module.exports = (grunt) ->
           "resources/static/css/style.css": ["#{content}/style/style.less","#{content}/style/*.css"]
 
 
-    jade:
+    puglint:
+      validate:
+        options:
+          config:
+            extends: 'clock'
+            disallowIdLiterals: null # we need them often
+            requireLowerCaseTags: null # `addLocalName` is interpolated by heist
+            validateAttributeQuoteMarks: null # inconsistent / hard to fix
+            validateAttributeSeparator: null  # inconsistent / hard to fix
+            validateIndentation: null         # inconsistent / hard to fix
+            requireClassLiteralsBeforeIdLiterals: null # too lazy to fix
+            requireSpecificAttributes: null # Our forms don't need `action`
+            disallowClassAttributeWithStaticValue: null # some classes are interpolated by mustache
+        src: ["#{content}/template/**/*.pug"]
+
+    pug:
       compile:
         options:
           pretty: true
           basedir: "#{content}/template"
         files: [
           { cwd: "#{content}/template"
-          , src: "**/*.jade"
+          , src: "**/*.pug"
           , filter: (f) ->
-              # ignore index.jade and files, that begin with "_"
-              (f != "index.jade") and (not /.*?\/?_[^\/]+\.jade/.test(f))
+              # ignore index.pug and files, that begin with "_"
+              (f != "index.pug") and (not /.*?\/?_[^\/]+\.pug/.test(f))
           , dest: tpl
           , expand: true
           , ext: ".html"
           },
-          { src: "#{content}/template/index.jade"
+          { src: "#{content}/template/index.pug"
           , dest: "#{tpl}/index.tpl"
           }
           ]
@@ -80,9 +95,9 @@ module.exports = (grunt) ->
       js:
         files: "#{scripts}/**/*.js"
         tasks: "newer:copy:js"
-      jade:
-        files: ["#{content}/template/**/*.jade"]
-        tasks: "jade"
+      pug:
+        files: ["#{content}/template/**/*.pug"]
+        tasks: "pug"
       html:
         files: ["#{content}/template/**/*.html"]
         tasks: "newer:copy:template"
@@ -181,7 +196,7 @@ module.exports = (grunt) ->
 
   newerify = (ts) -> "newer:#{t}" for t in ts
 
-  grunt.registerTask("build", ['copy', 'coffee', 'less', 'jade'])
+  grunt.registerTask("build", ['copy', 'coffee', 'less', 'puglint', 'pug'])
   grunt.registerTask("rebuild", ['shell:bower', 'clean', 'build'])
   grunt.registerTask("bwatch", ['rebuild', 'watch'])
   grunt.registerTask("default", "rebuild")

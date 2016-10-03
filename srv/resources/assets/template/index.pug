@@ -15,20 +15,20 @@ html
     script(src='/s/3p/bootstrap/js/bootstrap.min.js')
 
     // datepicker
-    link(rel='stylesheet' href='/s/3p/bootstrap-datepicker/css/bootstrap-datepicker3.min.css')
+    link(rel='stylesheet', href='/s/3p/bootstrap-datepicker/css/bootstrap-datepicker3.min.css')
     script(src='/s/3p/bootstrap-datepicker/js/bootstrap-datepicker.min.js')
     script(src='/s/3p/bootstrap-datepicker/locales/bootstrap-datepicker.ru.min.js')
 
     // Jasny BS extensions
-    link(rel='stylesheet' href='/s/3p/jasny-bootstrap/css/jasny-bootstrap.min.css')
+    link(rel='stylesheet', href='/s/3p/jasny-bootstrap/css/jasny-bootstrap.min.css')
     script(src='/s/3p/jasny-bootstrap/js/jasny-bootstrap.min.js')
 
     // WYSIWYG
     link(rel='stylesheet', href='/s/3p/wysihtml5/bootstrap3-wysihtml5.css')
     script(src='/s/3p/wysihtml5x/wysihtml5x.min.js')
     script(src='/s/3p/wysihtml5x/wysihtml5x-toolbar.min.js')
-    script(src="/s/3p/wysihtml5/bootstrap3-wysihtml5.all.min.js")
-    script(src="/s/3p/wysihtml5/locales/bootstrap-wysihtml5.ru-RU.js")
+    script(src='/s/3p/wysihtml5/bootstrap3-wysihtml5.all.min.js')
+    script(src='/s/3p/wysihtml5/locales/bootstrap-wysihtml5.ru-RU.js')
 
     // Date Range Picker for Bootstrap
     script(src='/s/3p/moment-with-locales.min.js')
@@ -89,11 +89,11 @@ html
             li
               a#send-bug-report
                 span.glyphicon.glyphicon-fire
-          ul#current-user.nav.navbar-nav.navbar-right
+          ul.nav.navbar-nav.navbar-right#current-user
             li.divider-vertical
             li.dropdown
               a.dropdown-toggle(href='#', data-toggle='dropdown')
-                i#icon-user.icon-user.icon-white
+                i.icon-user.icon-white#icon-user
                 span(data-bind='text: safelyGet(\'login\')')
                 b.caret
               ul.dropdown-menu
@@ -103,7 +103,7 @@ html
                     | Выход
             li.dropdown
               .attention-magnet(style='display: none;', data-bind="visible: alert")
-              a.dropdown-toggle(href='#' data-toggle='dropdown',
+              a.dropdown-toggle(href='#', data-toggle='dropdown',
                 data-bind="css: {important: alert}, text: safelyGet('currentStateLocal')")
               ul.dropdown-menu
                 li.abandoned-services(
@@ -120,7 +120,7 @@ html
                     b Текущий статус:
                     span(data-bind="text: safelyGet('currentStateLocal')")
                     span(data-bind="text: safelyGet('timeInCurrentState')")
-                  #user-state-btngroup.btn-group.btn-group-xs
+                  .btn-group.btn-group-xs#user-state-btngroup
                     button.btn.btn-default.btn-small(type='button',
                       data-bind="css: {\n\
                         'btn-success': safelyGet('delayedState') == 'Rest'\n\
@@ -137,10 +137,11 @@ html
                         disable: inSBreak() || inNA(),\n\
                         click: function () { toggleDelayed('Dinner')}")
                       | Обед
-    #cti.well(style='display: none')
+    .well#cti(style='display: none')
       .container-fluid#cti-form
           // ko foreach: calls
           form.call-form.form-inline(
+            action='#',
             data-bind='submit: makeThis,\
                        visible: $index() == 0 ||\
                                 $parent.showBlankCall() ||\
@@ -163,8 +164,9 @@ html
                          attr: { rows : numberRows },\
                          disable: callStart")
             input.form-control.extension-mask(
+              type='text',
               placeholder='Добавочный',
-              size="10"
+              size="10",
               data-bind='textInput: extension,\
                          visible: canExtend')
             span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
@@ -222,12 +224,12 @@ html
     #main-container
       #layout
     // SMS send form
-    #sms-send-modal.modal.fade
+    .modal.fade#sms-send-modal
       .modal-dialog
         .modal-content
           .modal-header
             button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
             h4.modal-title Отправка СМС
-          #sms-send-form.modal-body.form-horizontal
+          .modal-body.form-horizontal#sms-send-form
           .modal-footer
-            button#do-send-sms.btn.btn-primary Отправить
+            button.btn.btn-primary#do-send-sms Отправить
