@@ -97,198 +97,191 @@ create view "PartnerPayment" as
     (select
       serviceId, partnerId,
       case
-        -- 1
         when not isCountryRide
-          and numOfDelays = 0
-          and delay <= interval '10 minutes'
-        then '{"val": "100% + бонус"'
-          || ',"desc": "Эвакуатор приехал в назначенное время без опозданий."'
-          || '}'
+          then case
+            when numOfDelays = 0
+              then case
+                -- 1
+                when  delay <= interval '10 minutes'
+                then '{"val": "100% + бонус"'
+                  || ',"desc": "Эвакуатор приехал в назначенное время без опозданий."'
+                  || '}'
 
-        -- 2
-        when not isCountryRide
-          and numOfDelays = 0
-          and delay <= interval '30 minutes'
-        then '{"val": "90%"'
-          || ',"desc": "Эвакуатор приезжает с опозданием менее 30 минут без'
-          ||           ' уведомления РАМК."'
-          || '}'
+                -- 2
+                when  delay >  interval '10 minutes'
+                  and delay <= interval '30 minutes'
+                then '{"val": "90%"'
+                  || ',"desc": "Эвакуатор приезжает с опозданием менее 30 минут без'
+                  ||           ' уведомления РАМК."'
+                  || '}'
 
-        -- 3
-        when not isCountryRide
-          and numOfDelays = 0
-          and delay >  interval '30 minutes'
-          and delay <= interval '60 minutes'
-        then '{"val": "50%"'
-          || ',"desc": "Эвакуатор приезжает с опозданием более 30 минут, но'
-          ||           ' менее часа без уведомления РАМК."'
-          || '}'
+                -- 3
+                when  delay >  interval '30 minutes'
+                  and delay <= interval '60 minutes'
+                then '{"val": "50%"'
+                  || ',"desc": "Эвакуатор приезжает с опозданием более 30 минут, но'
+                  ||           ' менее часа без уведомления РАМК."'
+                  || '}'
 
-        -- 4
-        when not isCountryRide
-          and numOfDelays = 0
-          and delay >  interval '60 minutes'
-        then '{"val": "0%"'
-          || ',"desc": "Эвакуатор приезжает с опозданием более 1 часа без'
-          ||           ' уведомления РАМК."'
-          || '}'
+                -- 4
+                when  delay >  interval '60 minutes'
+                then '{"val": "0%"'
+                  || ',"desc": "Эвакуатор приезжает с опозданием более 1 часа без'
+                  ||           ' уведомления РАМК."'
+                  || '}'
+              end
 
-        -- 4.x ("Показатель которого сначала не было")
-        when not isCountryRide
-          and numOfDelays in (1,2)
-          and firstDelay <= 30
-          and delay <= interval '10 minutes'
-        then '{"val": "100% + бонус"'
-          || ',"desc": "Нет описания."'
-          || '}'
+            when numOfDelays = 1
+              then case
+                when firstDelay <= 30
+                  then case
+                    --
+                    when  delay <= interval '10 minutes'
+                    then '{"val": "100% + бонус"'
+                      || ',"desc": "Нет описания для этого показателя."'
+                      || '}'
 
-        -- 5
-        when not isCountryRide
-          and numOfDelays = 1
-          and firstDelay <= 30
-          and delay <= interval '30 minutes'
-        then '{"val": "100%"'
-          || ',"desc": "Эвакуатор приезжает с опозданием менее 30 минут,'
-          ||           ' предварительно уведомив РАМК об опоздании до момента'
-          ||           ' предположительного времени доезда."'
-          || '}'
+                    -- 5
+                    when  delay >  interval '10 minutes'
+                      and delay <= interval '30 minutes'
+                    then '{"val": "100%"'
+                      || ',"desc": "Эвакуатор приезжает с опозданием менее 30 минут,'
+                      ||           ' предварительно уведомив РАМК об опоздании до момента'
+                      ||           ' предположительного времени доезда."'
+                      || '}'
 
-        -- 6
-        when not isCountryRide
-          and numOfDelays = 2
-          and firstDelay <= 30
-          and delay >  interval '30 minutes'
-          and delay <= interval '60 minutes'
-        then '{"val": "90%"'
-          || ',"desc": "Эвакуатор приезжает с опозданием более 30 минут, но'
-          ||           ' менее часа, предварительно уведомив РАМК об опоздании'
-          ||           ' до момента предположительного времени доезда а также'
-          ||           ' дополнительно сообщив о повторном опоздании  до'
-          ||           ' согласованного срока прибытия."'
-          || '}'
+                    -- 7
+                    when  delay >  interval '30 minutes'
+                      and delay <= interval '60 minutes'
+                    then '{"val": "50%"'
+                      || ',"desc":"Эвакуатор приезжает с опозданием более 30 минут, но'
+                      ||          ' менее часа, предварительно уведомив РАМК об опоздании'
+                      ||          ' до момента предположительного времени доезда,'
+                      ||          ' дополнительно не сообщив о повторном опоздании до'
+                      ||          ' согласованного срока прибытия."'
+                      || '}'
 
-        -- 7
-        when not isCountryRide
-          and numOfDelays = 1
-          and firstDelay <= 30
-          and delay >  interval '30 minutes'
-          and delay <= interval '60 minutes'
-        then '{"val": "50%"'
-          || ',"desc":"Эвакуатор приезжает с опозданием более 30 минут, но'
-          ||          ' менее часа, предварительно уведомив РАМК об опоздании'
-          ||          ' до момента предположительного времени доезда,'
-          ||          ' дополнительно не сообщив о повторном опоздании до'
-          ||          ' согласованного срока прибытия."'
-          || '}'
+                    -- 9
+                    when  delay >  interval '60 minutes'
+                    then '{"val": "0%"'
+                      || ',"desc": "Эвакуатор приезжает с опозданием более часа,'
+                      ||           ' предварительно уведомив РАМК об опоздании до'
+                      ||           ' момента предположительного времени доезда,'
+                      ||           ' дополнительно не сообщив о повторном опоздании до'
+                      ||           ' согласованного срока прибытия."'
+                      || '}'
+                  end -- firstDelay <= 30
 
-        -- 8
-        when not isCountryRide
-          and numOfDelays = 2
-          and firstDelay <= 30
-          and delay >  interval '60 minutes'
-        then '{"val": "50%"'
-          || ',"desc": "Эвакуатор приезжает с опозданием более часа,'
-          ||           ' предварительно уведомив РАМК об опоздании до'
-          ||           ' момента предположительного времени доезда,'
-          ||           ' дополнительно сообщив о повторном опоздании до'
-          ||           ' согласованного срока прибытия."'
-          || '}'
+                when firstDelay > 30
+                  then case
+                    -- 10
+                    when lastDelay <= interval '0 minutes'
+                    then '{"val": "90%"'
+                      || ',"desc": "Эвакуатор приезжает с опозданием более 30 минут,'
+                      ||           ' предварительно согласовав данное опоздание с'
+                      ||           ' оператором РАМК и получив подтверждение."'
+                      || '}'
 
-        -- 9
-        when not isCountryRide
-          and numOfDelays = 1
-          and firstDelay <= 30
-          and delay >  interval '60 minutes'
-        then '{"val": "0%"'
-          || ',"desc": "Эвакуатор приезжает с опозданием более часа,'
-          ||           ' предварительно уведомив РАМК об опоздании до'
-          ||           ' момента предположительного времени доезда,'
-          ||           ' дополнительно не сообщив о повторном опоздании до'
-          ||           ' согласованного срока прибытия."'
-          || '}'
+                    -- 12
+                    when lastDelay > interval '0 minutes'
+                    then '{"val": "0%"'
+                      || ',"desc": "Эвакуатор опаздывает более, чем на 30 минут,'
+                      ||           ' согласовывает это опоздание с РАМК, повторно не'
+                      ||           ' выдерживает сроки, да ещё и не уведомляет об этом РАМК."'
+                      || '}'
+                  end -- firstDelay > 30
+              end -- numOfDelays = 1
 
-        -- 10
-        when not isCountryRide
-          and numOfDelays = 1
-          and firstDelay > 30
-          and lastDelay <= interval '0 minutes'
-        then '{"val": "90%"'
-          || ',"desc": "Эвакуатор приезжает с опозданием более 30 минут,'
-          ||           ' предварительно согласовав данное опоздание с'
-          ||           ' оператором РАМК и получив подтверждение."'
-          || '}'
+            when numOfDelays = 2
+              then case
+                when firstDelay <= 30
+                  then case
+                    --
+                    when  delay <= interval '10 minutes'
+                    then '{"val": "100% + бонус"'
+                      || ',"desc": "Нет описания для этого показателя."'
+                      || '}'
 
-        -- 11
-        when not isCountryRide
-          and numOfDelays = 2
-          and firstDelay > 30
-          and delay > interval '0 minutes'
-        then '{"val": "50%"'
-          || ',"desc": "Эвакуатор опаздывает более, чем на 30 минут,'
-          ||           ' согласовывает это опоздание с РАМК, повторно не'
-          ||           ' выдерживает сроки, но уведомляет об этом РАМК."'
-          || '}'
+                    -- 13
+                    when  delay >  interval '10 minutes'
+                      and delay <= interval '30 minutes'
+                    then '{"val": "100%"'
+                      || ',"desc": "Эвакуатор опаздывает менее, чем на 30 минут,'
+                      ||           ' согласовывает это с РАМК. Затем повторно'
+                      ||           ' согласовывает опоздание, но при этом опоздания нет."'
+                      || '}'
 
-        -- 12
-        when not isCountryRide
-          and numOfDelays = 1
-          and firstDelay > 30
-          and lastDelay > interval '0 minutes'
-        then '{"val": "0%"'
-          || ',"desc": "Эвакуатор опаздывает более, чем на 30 минут,'
-          ||           ' согласовывает это опоздание с РАМК, повторно не'
-          ||           ' выдерживает сроки, да ещё и не уведомляет об этом РАМК."'
-          || '}'
+                    -- 6
+                    when  delay >  interval '30 minutes'
+                      and delay <= interval '60 minutes'
+                    then '{"val": "90%"'
+                      || ',"desc": "Эвакуатор приезжает с опозданием более 30 минут, но'
+                      ||           ' менее часа, предварительно уведомив РАМК об опоздании'
+                      ||           ' до момента предположительного времени доезда а также'
+                      ||           ' дополнительно сообщив о повторном опоздании  до'
+                      ||           ' согласованного срока прибытия."'
+                      || '}'
 
-        -- 13
-        when not isCountryRide
-          and numOfDelays = 2
-          and firstDelay <= 30
-          and delay <= interval '30 minutes'
-        then '{"val": "100%"'
-          || ',"desc": "Эвакуатор опаздывает менее, чем на 30 минут,'
-          ||           ' согласовывает это с РАМК. Затем повторно'
-          ||           ' согласовывает опоздание, но при этом опоздания нет."'
-          || '}'
+                    -- 8
+                    when  delay >  interval '60 minutes'
+                    then '{"val": "50%"'
+                      || ',"desc": "Эвакуатор приезжает с опозданием более часа,'
+                      ||           ' предварительно уведомив РАМК об опоздании до'
+                      ||           ' момента предположительного времени доезда,'
+                      ||           ' дополнительно сообщив о повторном опоздании до'
+                      ||           ' согласованного срока прибытия."'
+                      || '}'
+                  end -- firstDelay <= 30
 
-        -- 14
+                when firstDelay >  30
+                  then case
+                    -- 11
+                    when  delay > interval '0 minutes'
+                    then '{"val": "50%"'
+                      || ',"desc": "Эвакуатор опаздывает более, чем на 30 минут,'
+                      ||           ' согласовывает это опоздание с РАМК, повторно не'
+                      ||           ' выдерживает сроки, но уведомляет об этом РАМК."'
+                      || '}'
+
+                  end -- firstDelay >  30
+              end -- numOfDelays = 2
+          end -- not isCountryRide
+
         when isCountryRide
-          and numOfDelays = 0
-          and delay <= interval '0 minutes'
-        then '{"val": "110%"'
-          || ',"desc": "Эвакуатор за городом приехал вовремя."'
-          || '}'
+          then case
+            -- 14
+            when  numOfDelays = 0
+              and delay <= interval '0 minutes'
+            then '{"val": "100% + бонус"'
+              || ',"desc": "Эвакуатор за городом приехал вовремя."'
+              || '}'
 
-        -- 15.1
-        when isCountryRide
-          and numOfDelays >= 1
-          and partnerWarnedInTime
-        then '{"val": "100%"'
-          || ',"desc": "Эвакуатор за городом опаздывает и предупреждает РАМК'
-          ||           ' об опоздании. РАМК согласовывает опоздание при условии'
-          ||           ' доезда до клиента из расчета скорости эвакуатора."'
-          || '}'
+            -- 15.1
+            when  numOfDelays >= 1
+              and partnerWarnedInTime
+            then '{"val": "100%"'
+              || ',"desc": "Эвакуатор за городом опаздывает и предупреждает РАМК'
+              ||           ' об опоздании. РАМК согласовывает опоздание при условии'
+              ||           ' доезда до клиента из расчета скорости эвакуатора."'
+              || '}'
 
-        -- 15.2
-        when isCountryRide
-          and numOfDelays >= 1
-          and not partnerWarnedInTime
-        then '{"val": "90%"'
-          || ',"desc": "Эвакуатор за городом опаздывает и предупреждает РАМК'
-          ||           ' об опоздании. РАМК согласовывает опоздание при условии'
-          ||           ' доезда до клиента из расчета скорости эвакуатора."'
-          || '}'
+            -- 15.2
+            when  numOfDelays >= 1
+              and not partnerWarnedInTime
+            then '{"val": "90%"'
+              || ',"desc": "Эвакуатор за городом опаздывает и предупреждает РАМК'
+              ||           ' об опоздании. РАМК согласовывает опоздание при условии'
+              ||           ' доезда до клиента из расчета скорости эвакуатора."'
+              || '}'
 
-        -- 16
-        when isCountryRide
-          and numOfDelays = 0
-          and delay > interval '0 minutes'
-        then '{"val": "90%"'
-          || ',"desc": "Эвакуатор за городом опаздывает и не предупреждает РАМК'
-          ||           ' об опоздании."'
-          || '}'
-
-        else '{}'
+            -- 16
+            when  numOfDelays = 0
+              and delay > interval '0 minutes'
+            then '{"val": "90%"'
+              || ',"desc": "Эвакуатор за городом опаздывает и не предупреждает РАМК'
+              ||           ' об опоздании."'
+              || '}'
+          end -- isCountryRide
       end as payment
       from services_with_delays)
 
