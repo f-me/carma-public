@@ -2,12 +2,12 @@ define ["lib/ws"], (WS) ->
   # CTI core
   class CTI
     constructor: (@extension) ->
-      console.log "Enabling CTI for extension #{extension}"
+      console.log "Enabling CTI for extension #{@extension}"
 
       if window.location.protocol == "https:"
-        url = "wss://#{location.host}/avaya/ws/#{extension}"
+        url = "wss://#{location.host}/avaya/ws/#{@extension}"
       else
-        url = "ws://#{location.host}/avaya/ws/#{extension}"
+        url = "ws://#{location.host}/avaya/ws/#{@extension}"
 
       @ws = new WS(url)
 
