@@ -86,11 +86,7 @@ create view "PartnerPayment" as
               (s.tmHist->>(json_array_length(s.tmHist) - 1)) :: timestamp at time zone 'UTC',
               s.tmExp)
           as delay,
-        s.tmFact
-          - coalesce(
-              (s.tmHist->>0) :: timestamp at time zone 'UTC',
-              s.tmExp)
-          as lastDelay
+        s.tmFact - s.tmExp as lastDelay
       from services s
         left outer join delays d
           on (s.serviceId = d.serviceId and s.partnerId = d.partnerId)
@@ -139,7 +135,8 @@ create view "PartnerPayment" as
 
         -- 4.x ("Показатель которого сначала не было")
         when not isCountryRide
-          and numOfDelays = 1
+          and numOfDelays in (1,2)
+          and firstDelay <= 30
           and delay <= interval '10 minutes'
         then '{"val": "100% + бонус"'
           || ',"desc": "Нет описания."'
