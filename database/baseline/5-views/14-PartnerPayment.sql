@@ -14,6 +14,7 @@ create view "PartnerPayment" as
           row_number() over w as num,
           lead(id) over w as next_id
         from "PartnerDelay"
+        where notified = 1 -- Yes
         window w as (partition by serviceId, partnerId order by ctime asc)
       ) x
       where next_id is null),
@@ -84,7 +85,12 @@ create view "PartnerPayment" as
           - coalesce(
               (s.tmHist->>(json_array_length(s.tmHist) - 1)) :: timestamp at time zone 'UTC',
               s.tmExp)
-          as delay
+          as delay,
+        s.tmFact
+          - coalesce(
+              (s.tmHist->>0) :: timestamp at time zone 'UTC',
+              s.tmExp)
+          as lastDelay
       from services s
         left outer join delays d
           on (s.serviceId = d.serviceId and s.partnerId = d.partnerId)
@@ -208,7 +214,7 @@ create view "PartnerPayment" as
         when not isCountryRide
           and numOfDelays = 1
           and firstDelay > 30
-          and delay <= interval '30 minutes'
+          and lastDelay <= interval '0 minutes'
         then '{"val": "90%"'
           || ',"desc": "Эвакуатор приезжает с опозданием более 30 минут,'
           ||           ' предварительно согласовав данное опоздание с'
@@ -230,7 +236,7 @@ create view "PartnerPayment" as
         when not isCountryRide
           and numOfDelays = 1
           and firstDelay > 30
-          and delay > interval '30 minutes'
+          and lastDelay > interval '0 minutes'
         then '{"val": "0%"'
           || ',"desc": "Эвакуатор опаздывает более, чем на 30 минут,'
           ||           ' согласовывает это опоздание с РАМК, повторно не'
