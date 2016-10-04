@@ -6,7 +6,7 @@ define [], ->
     constructor: ->
       s = localStorage
       @subs = {}
-      window.addEventListener("storage", @notify, false);
+      window.addEventListener("storage", @notify, false)
 
     # cleanup all old ^lstore|.* keys, kind of gc
     cleanup: =>
