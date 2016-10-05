@@ -11,7 +11,6 @@ module AppHandlers.RKC
     (
       rkcHandler
     , rkcWeatherHandler
-    , rkcFrontHandler
     , rkcPartners
     )
 
@@ -116,11 +115,6 @@ rkcWeatherHandler = logExceptions "handler/rkc/weather" $ do
   writeJSON $ Aeson.object [
     "weather" .= zipWith toTemp temps cities]
 
-rkcFrontHandler :: AppHandler ()
-rkcFrontHandler = logExceptions "handler/rkc/front" $ do
-  flt' <- mkRkcFilter
-  res <- rkcFront flt'
-  writeJSON res
 
 rkcPartners :: AppHandler ()
 rkcPartners = logExceptions "handler/rkc/partners" $ do
@@ -619,64 +613,6 @@ rkc filt@(Filter fromDate toDate program city partner) = logExceptions "rkc/rkc"
       ifNotNull city $ equals "casetbl" "city",
       ifNotNull partner $ equalsTo "servicetbl" "trim(servicetbl.contractor_partner)"]
 
-
-rkcFront :: (PS.HasPostgres m, MonadCatchIO m) => Filter -> m Value
-rkcFront filt@(Filter fromDate toDate program city _) = logExceptions "rkc/rkcFront" $ do
-  traceFilter "rkc/rkcFront" filt
-
-  let
-    args = [
-      "program" %= (if T.null program then "" else "and (program is not null) and (program = ?)" :: String),
-      "city" %= (if T.null city then "" else "and (city is not null) and (city = ?)" :: String)]
-
-    callq = concat [
-      "select callertype, calltype, count(*) from calltbl where",
-      " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
-      " group by callertype, calltype order by callertype, calltype"]
-    opCallsq = concat [
-      "select u.realName, count(*) from calltbl c, usermetatbl u where",
-      " u.id = c.calltaker and",
-      " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
-      " group by u.realName order by u.realName"]
-    opCasesq = concat [
-      "select u.realName, count(*) from casetbl c, usermetatbl u where",
-      " u.id = c.calltaker and",
-      " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
-      " group by u.realName order by u.realName"]
-
-    dateArgs = map PS.toField [fromDate, toDate]
-    progCityArgs = map PS.toField $ filter (not . T.null) [program, city]
-
-  calls <- trace "result" $ fquery callq args (dateArgs ++ progCityArgs)
-  opCalls <- trace "op calls" $ fquery opCallsq args (dateArgs ++ progCityArgs)
-  opCases <- trace "op cases" $ fquery opCasesq args (dateArgs ++ progCityArgs)
-
-  let
-    sums :: [(Integer, Integer)] -> (Integer, Integer)
-    sums = foldr1 sumPair where
-      sumPair (lx, ly) (rx, ry) = (lx + rx, ly + ry)
-    opCallsCases :: [(Maybe T.Text, (Integer, Integer))]
-    opCallsCases = map ((head *** sums) . unzip)
-      $ L.groupBy ((==) `on` fst)
-      $ sort
-      $ map (\(name, i) -> (name, (i, 0))) opCalls ++ map (\(name, i) -> (name, (0, i))) opCases
-
-  return $ object [
-    "calls" .= map toCall calls,
-    "ops" .= map toOp opCallsCases]
-
-  where
-    toCall :: (Maybe T.Text, Maybe T.Text, Integer) -> Value
-    toCall (callerType, callType, callsCount) = object [
-      "callertype" .= callerType,
-      "calltype" .= callType,
-      "callcount" .= callsCount]
-
-    toOp :: (Maybe T.Text, (Integer, Integer)) -> Value
-    toOp (name, (calls, cases)) = object [
-      "name" .= name,
-      "calls" .= calls,
-      "cases" .= cases]
 
 -- | All partners on services within time interval
 partners :: (PS.HasPostgres m, MonadCatchIO m) => Day -> Day -> m Value
