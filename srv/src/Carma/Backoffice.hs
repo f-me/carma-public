@@ -57,7 +57,7 @@ toBackAux =
      when (userField Usermeta.isJack)
      (closePrevious InCase [AType.call] AResult.callEnded) *>
      switch
-     [ ( serviceField svcType `oneOf` [ST.towage, ST.tech, ST.adjuster]
+     [ ( serviceField svcType `oneOf` [ST.towage, ST.tech]
        , sendSMS SMS.create *> messageToGenser *> proceed [AType.orderService]
        )
      , ( serviceField svcType `oneOf` [ST.ken, ST.medic, ST.consultation]
