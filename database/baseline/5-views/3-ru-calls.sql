@@ -1,3 +1,5 @@
+DROP VIEW "Звонки";
+
 CREATE VIEW "Звонки" AS
 
 SELECT
@@ -11,6 +13,7 @@ callerName              AS "Звонящий",
 calltbl.callerPhone     AS "Контактный телефон звонящего",
 "CallerType".label      as "Кто звонит",
 "CallType".label        AS "Тип обращения",
+"CallReason".label      AS "Причина обращения",
 calltbl.coords          AS "Координаты",
 address                 AS "Адрес",
 "Program".label         AS "Программа",
@@ -22,6 +25,7 @@ FROM
 calltbl
 LEFT JOIN "CallerType"  ON calltbl.callertype = "CallerType".id
 LEFT JOIN "CallType"    ON calltbl.calltype = "CallType".id
+LEFT JOIN "CallReason"  ON calltbl.callreason = "CallReason".id
 LEFT JOIN "Program"     ON calltbl.program = "Program".id
 LEFT JOIN usermetatbl   ON calltbl.calltaker = usermetatbl.id
 LEFT JOIN partnertbl    ON calltbl.partner = partnertbl.id
