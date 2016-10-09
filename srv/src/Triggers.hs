@@ -233,7 +233,7 @@ afterCreate = Map.unionsWith (++) $
               Patch.put Action.targetGroup Role.call $
               Patch.empty
       aid <- dbCreate p
-      logCRUDState Update aid p
+      logCRUDState Create aid p
   , trigOnModel ([]::[PartnerDelay]) $ do
     delayId <- getIdent
     doApp $ liftPG $ \pg ->
