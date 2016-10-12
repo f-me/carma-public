@@ -1,9 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
+import SmsForm from './SmsForm';
 import './index.css';
 
-ReactDOM.render(
-  <App />,
-  document.getElementById('root')
-);
+window.React = React;
+window.ReactDOM = ReactDOM;
+window.CarmaComponents = {
+  SmsForm: SmsForm
+};
