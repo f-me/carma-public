@@ -9,7 +9,6 @@ require [ "domready"
         , "json!/_/Usermeta"
         , "utils"
         , "sync/crud"
-        , "sendSms"
         , "liveMenu"
         , "lib/bug-report"
         , "lstorePubSub"
@@ -26,7 +25,6 @@ require [ "domready"
            , users
            , u
            , sync
-           , sendSms
            , liveMenu
            , bug
            , pubSub
@@ -149,8 +147,6 @@ require [ "domready"
         else
           console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 
-    sendSms.setup()
-
     if user.login == "darya"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')
 
@@ -177,6 +173,7 @@ require [ "domready"
       textInput.val(label)
 
   u.build_global_fn 'switchHack', ['lib/hacking']
+  u.build_global_fn 'sendSms',    ['lib/send-sms']
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']
   u.build_global_fn 'inlineUploadFile', ['lib/upload']

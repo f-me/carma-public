@@ -6,9 +6,9 @@
   li(data-bind="attr: { id: name + '-screen-nav-link' }")
     a(target="_blank" data-bind="attr: { href: name}, text: label")
 
-.menu-el-plt#sms
+.menu-el-tpl#sms
   li
-    a(href='#sms-send-modal', data-toggle='modal')
+    a(onclick="sendSms();")
       span.glyphicon.glyphicon-envelope
 
 .menu-el-tpl#dropdown

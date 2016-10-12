@@ -233,7 +233,7 @@ afterCreate = Map.unionsWith (++) $
               Patch.put Action.targetGroup Role.call $
               Patch.empty
       aid <- dbCreate p
-      logCRUDState Update aid p
+      logCRUDState Create aid p
   , trigOnModel ([]::[PartnerDelay]) $ do
     delayId <- getIdent
     doApp $ liftPG $ \pg ->
@@ -764,6 +764,7 @@ instance Backoffice HaskellE where
     closePrevious scope types res =
       HaskellE $ do
         ctx <- ask
+        let nowFromCtx = Just $ now ctx
         targetActs <- filteredActions scope types [Nothing]
         return $ do
           let currentUser = user ctx `get'` Usermeta.ident
@@ -776,7 +777,7 @@ instance Backoffice HaskellE where
                 -- TODO this is identical to basic Action.result
                 -- trigger, which we can't call programmatically
                 Patch.put Action.assignedTo (Just currentUser) $
-                Patch.put Action.closeTime (Just $ now ctx) Patch.empty
+                Patch.put Action.closeTime nowFromCtx Patch.empty
               -- Cause an action-closing event if we're canceling one
               -- of our own actions
               fakeClosing act =
@@ -785,9 +786,16 @@ instance Backoffice HaskellE where
                   where
                     aid = act `get'` Action.ident
                     myAction = act `get'` Action.assignedTo == Just currentUser
-          forM_ targetActs (\act ->
-                              dbUpdate (act `get'` Action.ident) p >>
-                              fakeClosing act)
+          forM_ targetActs (\act -> do
+            case act `get'` Action.callId of
+              Nothing  -> return ()
+              Just cId -> void
+                -- Don't forget to set Call.endDate if call-action is closed.
+                -- Closing call-action for already closed call should never
+                -- happen, so we don't afraid to overwrite existing endDate.
+                $ dbUpdate cId $ Patch.singleton Call.endDate nowFromCtx
+            dbUpdate (act `get'` Action.ident) p
+            fakeClosing act)
 
     a *> b =
         HaskellE $ do
