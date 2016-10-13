@@ -102,24 +102,6 @@ define ["render/screen"
           "rkc-form": rkc
       r.renderScreen rkc, bind
 
-  addRoute "rkcFront", (bind) ->
-    require ["screens/rkcFront"], (rkcFront) ->
-      rkcFront.screen =
-        name : "rkcFront"
-        template: "rkcFront-screen-template"
-        views:
-          "rkcFront-form": rkcFront
-      r.renderScreen rkcFront, bind
-
-  addRoute "rkcOps", (bind) ->
-    require ["screens/rkcOps"], (rkcOps) ->
-      rkcOps.screen =
-        name : "rkcOps"
-        template: "rkcOps-screen-template"
-        views:
-          "rkcOps-form": rkcOps
-      r.renderScreen rkcOps, bind
-
   addRoute "supervisor", (bind) ->
     require ["screens/supervisor"], (supervisor) ->
       supervisor.screen =

@@ -5,6 +5,7 @@ module.exports = (grunt) ->
   content = "resources/assets"
   pub     = "resources/static"
   scripts = "#{content}/script"
+  react   = "#{content}/react-components/build/static"
   built   = "#{pub}/js/gen"
   js      = "#{pub}/js"
   tpl     = "#{pub}/tpl"
@@ -81,8 +82,16 @@ module.exports = (grunt) ->
           ]
 
     shell:
-      bower:
-        command: "bower install"
+      bower: "bower install"
+      'react-components':
+        command: [
+          "cd #{content}/react-components && npm run build && cd -",
+          "cp #{react}/js/main*.js #{built}/react-components.js",
+          "cp #{react}/js/main*.js.map #{built}/"
+          "cp #{react}/css/main*.css #{css}/react-components.css",
+          "cp #{react}/css/main*.css.map #{css}/"
+          ].join(" && ")
+
 
     clean:
       all:
@@ -196,7 +205,7 @@ module.exports = (grunt) ->
 
   newerify = (ts) -> "newer:#{t}" for t in ts
 
-  grunt.registerTask("build", ['copy', 'coffee', 'less', 'puglint', 'pug'])
+  grunt.registerTask("build", ['shell:react-components', 'copy', 'coffee', 'less', 'puglint', 'pug'])
   grunt.registerTask("rebuild", ['shell:bower', 'clean', 'build'])
   grunt.registerTask("bwatch", ['rebuild', 'watch'])
   grunt.registerTask("default", "rebuild")

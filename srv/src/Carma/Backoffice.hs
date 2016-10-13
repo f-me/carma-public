@@ -628,7 +628,7 @@ confirmPartnerDelay :: Action
 confirmPartnerDelay =
     Action
     AType.confirmPartnerDelay
-    (const bo_order)
+    (const bo_urgent)
     nobody
     ((5 * minutes) `since` now)
     [ (AResult.partnerDelayConfirmed, finish)

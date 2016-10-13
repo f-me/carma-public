@@ -61,6 +61,9 @@ html
     script(src='/s/3p/md5.min.js')
     script(src='/s/3p/d3.min.js')
     script(src='/s/3p/notify-combined.min.js')
+    // react-components
+    script(src='/s/js/gen/react-components.js')
+    link(rel='stylesheet', href='/s/css/react-components.css')
     // global libs, that is not handled by require js
     // typeahead menu
     script(src='/s/js/gen/globallibs/th-menu.js')
@@ -223,13 +226,4 @@ html
     // Main container for dynamically rendered layouts
     #main-container
       #layout
-    // SMS send form
-    .modal.fade#sms-send-modal
-      .modal-dialog
-        .modal-content
-          .modal-header
-            button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
-            h4.modal-title Отправка СМС
-          .modal-body.form-horizontal#sms-send-form
-          .modal-footer
-            button.btn.btn-primary#do-send-sms Отправить
+    #sms-send-form

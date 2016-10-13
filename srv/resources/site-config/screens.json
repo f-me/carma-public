@@ -27,30 +27,10 @@
       ]
     },
     {
-      "type": "dropdown",
-      "name": "rkcList",
-      "label": "РКЦ",
-      "permissions": ["head"],
-      "screens": [
-        {
-          "name": "rkc",
-          "label": "Услуги",
-          "type": "li",
-          "permissions": ["head"]
-        },
-        {
-          "name": "rkcOps",
-          "label": "Операторы",
-          "type": "li",
-          "permissions": ["head"]
-        },
-        {
-          "name": "rkcFront",
-          "label": "Front Office",
-          "type": "li",
-          "permissions": ["head"]
-        }
-      ]
+      "type": "li",
+      "name": "rkc",
+      "label": "РКЦ Услуги",
+      "permissions": ["head"]
     },
     { "type": "li",
       "name": "supervisor",
