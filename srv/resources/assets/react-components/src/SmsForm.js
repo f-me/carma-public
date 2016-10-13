@@ -15,6 +15,8 @@ import 'react-bootstrap-typeahead/css/Typeahead.css';
 //      <span class="field-vip-label label label-danger" data-bind="visible: phoneVip">
 //        <i class="glyphicon glyphicon-star"></i>VIP</span>
 //   - fix tests
+//   - report send errors
+//   - add $program_info$ keys
 
 const propTypes = {
   isVisible: React.PropTypes.bool.isRequired,
@@ -34,7 +36,7 @@ export default class SmsForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      phone: this.props.values.phone,
+      phone: this.props.values.phone || '',
       selectedTemplate: [],
       msgText: ''
     };
@@ -60,11 +62,27 @@ export default class SmsForm extends Component {
 
 
   _send = () => {
-    // TODO: $.ajax post, close on callback
-    this.setState(
-      { selectedTemplate: [], msgText: '' },
-      this.props.onHide
-    );
+    $.ajax({
+      type: 'POST',
+      url: '/_/Sms',
+      data: JSON.stringify({
+        status: 'please-send',
+        caseRef: this.props.values['case.id'],
+        phone: this.state.phone,
+        template: this.state.selectedTemplate.length > 0
+          ? this.state.selectedTemplate[0]
+          : null,
+        msgText: this.state.msgText
+      }),
+      processData: false,
+      contentType: 'application/json',
+      error: (res) => {console.log(res)}, // TODO: ask user to retry
+      success: () =>
+        this.setState(
+          { selectedTemplate: [], msgText: '' },
+          this.props.onHide
+        )
+    })
   }
 
 
@@ -126,7 +144,7 @@ export default class SmsForm extends Component {
           <Button bsStyle="primary" onClick={this.props.onHide}>
             Отмена
           </Button>
-          <Button bsStyle="success" onClick={this.send} disabled={!canSend}>
+          <Button bsStyle="success" onClick={this._send} disabled={!canSend}>
             Отправить
           </Button>
         </Modal.Footer>
