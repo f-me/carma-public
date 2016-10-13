@@ -17,11 +17,13 @@ define [], ->
         smsTemplates = res.filter((x) => x.isActive)
 
   sendSms: ->
-    vCase = global.viewsWare['case-form']
+    kase = global.viewsWare['case-form']?.knockVM
     renderForm
       isVisible: true
       onHide: onHide
       smsTemplates: smsTemplates
-      defaultValues:
-        caseRef: vCase?.knockVM.id(),
-        phone: vCase?.knockVM.contact_phone1()
+      values:
+        phone: kase?.contact_phone1(),
+        'case.id': kase?.id(),
+        'case.city': kase?.cityLocal(),
+        'case.caseAddress_address': kase?.caseAddress_address()
