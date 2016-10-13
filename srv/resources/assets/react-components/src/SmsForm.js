@@ -1,25 +1,60 @@
 import React, { Component } from 'react';
+
 import { Modal } from 'react-bootstrap';
 import { Button, Glyphicon } from 'react-bootstrap';
 import { InputGroup, ControlLabel } from 'react-bootstrap';
 import { Form, FormGroup, Col, FormControl } from 'react-bootstrap';
+
 import Typeahead from 'react-bootstrap-typeahead';
+import 'react-bootstrap-typeahead/css/Typeahead.css';
+
+
+const propTypes = {
+  isVisible: React.PropTypes.bool.isRequired,
+  onHide: React.PropTypes.func.isRequired,
+  smsTemplates: React.PropTypes.array,
+  defaultValues: React.PropTypes.object
+};
+
+const defaultProps = {
+  smsTemplates: [],
+  defaultValues: { phone: '', caseRef: null }
+};
 
 
 export default class SmsForm extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { isVisible: false };
+    this.state = {
+      phone: this.props.defaultValues.phone,
+      selectedTemplate: [],
+      msgText: ''
+    };
   }
 
-  canSend() {
-    return false;
+
+  _templateChange = (tpl) => {
+    console.log(tpl);
+    this.setState({
+      selectedTemplate: tpl,
+      msgText: tpl.length > 0 ? tpl[0].text : this.state.msgText
+    });
   }
+
+
+  _canSend() {
+    return !!this.state.msgText && !!this.state.phone;
+  }
+
 
   send() {
-    console.log('Sending SMS');
+    this.setState({
+      selectedTemplate: [],
+      msgText:''
+    });
   }
+
 
   render() {
     const formGroup = (label, control) => {
@@ -39,21 +74,33 @@ export default class SmsForm extends Component {
         <Modal.Body>
           <Form horizontal>
             {formGroup('Номер кейса',
-              <FormControl disabled type="number"/>)
+              <FormControl disabled type="number"
+                value={this.props.defaultValues.caseRef}
+              />)
             }
             {formGroup('Телефон получателя',
               <InputGroup bsSize="sm">
-                <FormControl type="tel"/>
+                <FormControl type="tel"
+                  value={this.state.phone}
+                  onChange={(e) => this.setState({phone: e.value})}
+                />
                 <InputGroup.Addon>
                   <Glyphicon bsClass="stolen-icon" glyph="phone" />
                 </InputGroup.Addon>
               </InputGroup>)
             }
             {formGroup('Шаблон сообщения',
-                <Typeahead emptyLabel="Ничего не найдено" options={[]}/>)
+              <Typeahead emptyLabel="Ничего не найдено"
+                options={this.props.smsTemplates}
+                selected={this.state.selectedTemplate}
+                onChange={this._templateChange}
+              />)
             }
             {formGroup('Текст сообщения',
-              <textarea className="form-control" rows="7"></textarea>)
+              <textarea className="form-control" rows="7"
+                value={this.state.msgText}
+                onChange={(e) => this.setState({msgText: e.value})}>
+              </textarea>)
             }
           </Form>
         </Modal.Body>
@@ -61,7 +108,7 @@ export default class SmsForm extends Component {
           <Button bsStyle="primary" onClick={this.props.onHide}>
             Отмена
           </Button>
-          <Button bsStyle="success" onClick={this.send} disabled={!this.canSend()}>
+          <Button bsStyle="success" onClick={this.send} disabled={!this._canSend()}>
             Отправить
           </Button>
         </Modal.Footer>
@@ -69,6 +116,10 @@ export default class SmsForm extends Component {
     );
   }
 }
+
+SmsForm.propTypes = propTypes;
+SmsForm.defaultProps = defaultProps;
+
 // TODO:
 //   - add templates to typeahead
 //   - include typeahead.css
@@ -78,6 +129,7 @@ export default class SmsForm extends Component {
 //   - canSend
 //   - render templates
 //   - vip label
+//   - fix test
 
 /*
   <div class="form-group has-feedback" data-bind="css: { 'has-error': caseRefNot },                                       visible: caseRefVisible                                      ">

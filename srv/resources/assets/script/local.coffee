@@ -9,6 +9,7 @@ require [ "domready"
         , "json!/_/Usermeta"
         , "utils"
         , "sync/crud"
+        , "lib/send-sms"
         , "liveMenu"
         , "lib/bug-report"
         , "lstorePubSub"
@@ -25,6 +26,7 @@ require [ "domready"
            , users
            , u
            , sync
+           , sendSms
            , liveMenu
            , bug
            , pubSub
@@ -146,6 +148,8 @@ require [ "domready"
           Mousetrap.bind "ctrl+enter", () -> global.CTIPanel.answer()
         else
           console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
+
+    sendSms.setupSmsForm()
 
     if user.login == "darya"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')
