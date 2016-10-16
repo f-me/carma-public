@@ -2,7 +2,7 @@ module Carma.Model.Service.AverageCommissioner where
 
 import Data.Text
 import Data.Typeable
-import Data.Aeson((.=), object)
+import Data.Aeson(Value, (.=), object)
 import Data.Scientific
 
 import Data.Model
@@ -17,6 +17,7 @@ import Carma.Model.Service     (Service)
 
 data AverageCommissioner = AverageCommissioner
   { ident :: PK Int AverageCommissioner ""
+  , tasks       :: F Value "tasks" "Задачи"
   , requestType :: F (Maybe (IdentI RequestType))
                    "requestType" "Тип запроса"
   , whatToSay1  :: F (Maybe Text)
@@ -56,4 +57,6 @@ instance Model AverageCommissioner where
       : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) totalMilage
       : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) partnerWarnedInTime
       : widget "partnerWarnedInTime-btn" partnerWarnedInTime
+      : widget "reactComponent" tasks
+      : setMeta "reactComponent" "AvarcomTasks" tasks
       : mapWidget commAddress_address commAddress_coords commAddress_map
