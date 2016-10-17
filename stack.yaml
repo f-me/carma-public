@@ -3,7 +3,9 @@ packages:
 - srv
 - tools/vinnie
 - caroperator-svc
-- location: ../carma-models
+- location:
+    git: git@github.com:f-me/carma-models.git
+    commit: origin/rc
   extra-dep: true
 - location:
     git: git@github.com:f-me/dmcc.git
