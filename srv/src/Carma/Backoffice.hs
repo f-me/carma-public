@@ -270,7 +270,8 @@ orderService :: Action
 orderService =
     Action
     AType.orderService
-    (const bo_order)
+    (ite (serviceField svcType == const ST.adjuster)
+      (const bo_orderAvarcom) (const bo_order))
     (ite (previousAction == const AType.needPartner ||
           previousAction == const AType.checkStatus ||
           userField Usermeta.isJack)
