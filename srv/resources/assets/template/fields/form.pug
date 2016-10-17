@@ -10,6 +10,10 @@
 
 include _form_utils.pug
 
+.field-template#reactComponent-field-template
+  +fieldControlGroup
+    div(id="{{ cid }}-{{ name }}")
+
 .field-template#textarea-field-template
   +fieldControlGroup
     textarea.form-control(name="{{ name }}" rows="7"
