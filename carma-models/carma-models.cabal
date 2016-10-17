@@ -30,6 +30,7 @@ library
     Carma.Model.Attachment,
     Carma.Model.AvayaEvent,
     Carma.Model.AvayaEventType,
+    Carma.Model.AvarcomTask,
     Carma.Model.BusinessRole,
     Carma.Model.Call,
     Carma.Model.CallReason,

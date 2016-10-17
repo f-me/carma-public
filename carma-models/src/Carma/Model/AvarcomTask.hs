@@ -4,8 +4,8 @@ module Carma.Model.AvarcomTask where
 import Data.Text
 import Data.Model
 import Data.Typeable
-
 import Data.Model.View
+import Carma.Model.PgTypes ()
 
 
 data AvarcomTask = AvarcomTask
