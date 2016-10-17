@@ -737,6 +737,18 @@ mixin caseFilesList
                   | Услуга:&nbsp;
                 span(data-bind="text: servicelabel")
               // /ko
+              // ko if: $data.tasks
+              div
+                b
+                  | Задачи:&nbsp;
+                // ko foreach: $data.tasks
+                br
+                | &nbsp;
+                input(type="checkbox" data-bind="checked: isChecked")
+                | &nbsp;
+                span(data-bind="text: label")
+                // /ko
+              // /ko
               // ko if: $data.actioncomment
               div
                 b
