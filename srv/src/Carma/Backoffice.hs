@@ -270,7 +270,8 @@ orderService :: Action
 orderService =
     Action
     AType.orderService
-    (const bo_order)
+    (ite (serviceField svcType == const ST.adjuster)
+      (const bo_orderAvarcom) (const bo_order))
     (ite (previousAction == const AType.needPartner ||
           previousAction == const AType.checkStatus ||
           userField Usermeta.isJack)
@@ -309,7 +310,8 @@ orderServiceAnalyst :: Action
 orderServiceAnalyst =
     Action
     AType.orderServiceAnalyst
-    (const bo_secondary)
+    (ite (serviceField svcType == const ST.tech1)
+      (const bo_orderRefs) (const bo_secondary))
     nobody
     (let
         n = (1 * minutes) `since` now

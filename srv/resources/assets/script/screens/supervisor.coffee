@@ -153,6 +153,8 @@ define ["utils"
     $('#roles').html(Mustache.render tpl, roleModel.fields[0])
     ko.applyBindings roleKVM, $('#roles')[0]
     roleKVM.roles [ global.idents("Role").bo_order
+                  , global.idents("Role").bo_orderRefs
+                  , global.idents("Role").bo_orderAvarcom
                   , global.idents("Role").bo_info
                   , global.idents("Role").bo_secondary
                   , global.idents("Role").bo_urgent
