@@ -302,7 +302,11 @@ define [ "model/render"
       do (f) ->
         kvm._reactComponents.push
           id: "#{kvm._meta.cid}-#{f.name}"
-          component: React.createElement(CarmaComponents[f.meta.reactComponent])
+          component: React.createElement(
+            CarmaComponents[f.meta.reactComponent],
+            value: kvm[f.name]()
+            onChange: (o) -> kvm[f.name](_.clone o)
+            kvm: kvm)
 
     # disable dixi filed for model
     kvm['disableDixi'] = ko.observable(false)
