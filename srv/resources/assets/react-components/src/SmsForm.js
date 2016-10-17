@@ -144,11 +144,7 @@ export default class SmsForm extends Component {
           <Button bsStyle="primary" onClick={this.props.onHide}>
             Отмена
           </Button>
-<<<<<<< HEAD
-          <Button bsStyle="success" onClick={this.send} disabled={!canSend}>
-=======
           <Button bsStyle="success" onClick={this._send} disabled={!canSend}>
->>>>>>> master
             Отправить
           </Button>
         </Modal.Footer>
