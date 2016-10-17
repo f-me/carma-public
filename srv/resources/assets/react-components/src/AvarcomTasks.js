@@ -9,56 +9,119 @@ const propTypes = {
 const defaultProps = {
 };
 
+let avarcomTasks = null;
+
+const DISABLED_STATES = [4, 9, 19, 20];
+
 
 export default class AvarcomTasks extends Component {
   constructor(props) {
     super(props);
+
     this.state = {
       availableTasks: [],
-      selectedTasks: []
+      selectedTasks: this.props.value,
+      disabled: DISABLED_STATES.indexOf(this.props.kvm.status()) >= 0
     };
 
-    $.ajax({
-      type: 'GET',
-      url: '/_/AvarcomTask',
-      dataType: 'json',
-      success: (res) =>
-        this.setState({availableTasks: res.filter((x) => x.isActive)})
-    });
+    this.props.kvm.status.subscribe(st =>
+      this.setState({disabled: DISABLED_STATES.indexOf(st) >= 0})
+    );
+
+    if (avarcomTasks) {
+      this._setSelectedTasks(this.props.value);
+    } else {
+      $.ajax({
+        type: 'GET',
+        url: '/_/AvarcomTask',
+        dataType: 'json',
+        success: res => {
+          avarcomTasks = res;
+          this._setSelectedTasks(this.state.selectedTasks);
+        }
+      });
+    }
   }
 
-  _addTask = (tasks) => {
-    const selectedTasks = this.state.selectedTasks.concat(tasks);
-    const availableTasks = this.state.availableTasks.filter(
-        (x) => !(x in selectedTasks));
-    this.setState({
-      selectedTasks: selectedTasks,
-      availableTasks: availableTasks
-    });
+  _setSelectedTasks = (selectedTasks, callback) => {
+    this.setState(
+      { selectedTasks,
+        availableTasks: avarcomTasks
+          .filter(x => x.isActive && !selectedTasks.find(y => x.id === y.id))
+          .map(x => ({isChecked: false, id: x.id, label: x.label}))
+      },
+      callback
+    );
   }
 
-  _removeTask = (task) => {
-    return () => {};
+  _addTask = tasks => {
+    if (tasks.length === 0) return;
+    this._setSelectedTasks(
+      this.state.selectedTasks.concat(tasks),
+      () => {
+        this.refs.typeahead.getInstance().clear();
+        this.props.onChange(this.state.selectedTasks);
+      }
+    );
+  }
+
+  _checkTask = task => {
+    return ev => {
+      task.isChecked = ev.target.checked;
+      this.forceUpdate(() =>
+        this.props.onChange(this.state.selectedTasks));
+    }
+  }
+
+  _removeTask = task => {
+    return ev => {
+      ev.preventDefault();
+      this._setSelectedTasks(
+        this.state.selectedTasks.filter(t => t.id !== task.id),
+        () => this.props.onChange(this.state.selectedTasks)
+      );
+    }
   }
 
   render() {
-    const selectedTasks = this.state.selectedTasks.map((task) => {
-      return (
-        <li key={task.id}>
-          <input type="checkbox"/> &nbsp;
-          {task.label}
-          <a href="" onClick={this._removeTask(task)}>&nbsp; ×</a>
-        </li>);
-    });
+    if (this.state.disabled) {
+      const selectedTasks = this.state.selectedTasks.map(task => {
+        return (
+          <div key={task.id}>
+            <input type="checkbox" disabled checked={task.isChecked}/>
+            &nbsp; {task.label}
+            <br/>
+          </div>);
+      });
 
-    return (
-      <div>
-        <Typeahead emptyLabel="Ничего не найдено"
-          options={this.state.availableTasks}
-          onChange={this._addTask}
-        />
-        <ul>{selectedTasks}</ul>
-      </div>);
+      return (<div>{selectedTasks}</div>);
+    }
+    else {
+      const selectedTasks = this.state.selectedTasks.map(task => {
+        return (
+          <div key={task.id}>
+            <input type="checkbox"
+              checked={task.isChecked}
+              onChange={this._checkTask(task)}
+            />
+            &nbsp; {task.label} &nbsp;
+            <a href="" onClick={this._removeTask(task)}>×</a>
+            <br/>
+          </div>);
+      });
+
+      return (
+        <div>
+          <Typeahead emptyLabel="Ничего не найдено"
+            ref="typeahead"
+            options={this.state.availableTasks}
+            selected={[]}
+            onChange={this._addTask}
+          />
+          <div>{selectedTasks}</div>
+        </div>
+      );
+    }
   }
 }
 
