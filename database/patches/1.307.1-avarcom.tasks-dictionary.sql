@@ -1,6 +1,6 @@
 
 create table "AvarcomTask"
-  ( id int primary key
+  ( id serial primary key
   , label text unique not null
   , isActive bool not null default true
   );
@@ -18,3 +18,12 @@ insert into "Dictionary" (id, name, description, parent, majorFields) values
 ;
 
 grant all on "AvarcomTask" to carma_db_sync;
+
+insert into "FieldPermission" (role, model, field, r, w) values
+ (7, 'AvarcomTask', 'id', 't', 'f')
+,(6, 'AvarcomTask', 'id', 't', 't')
+,(7, 'AvarcomTask', 'label', 't', 'f')
+,(6, 'AvarcomTask', 'label', 't', 't')
+,(7, 'AvarcomTask', 'isActive', 't', 'f')
+,(6, 'AvarcomTask', 'isActive', 't', 't')
+;
