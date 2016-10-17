@@ -309,7 +309,8 @@ orderServiceAnalyst :: Action
 orderServiceAnalyst =
     Action
     AType.orderServiceAnalyst
-    (const bo_secondary)
+    (ite (serviceField svcType == const ST.tech1)
+      (const bo_orderRefs) (const bo_secondary))
     nobody
     (let
         n = (1 * minutes) `since` now
