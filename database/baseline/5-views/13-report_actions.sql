@@ -1,4 +1,5 @@
 drop view if exists report_actions;
+create view report_actions as
  SELECT c.id::text || 
         CASE
             WHEN serv.id IS NULL THEN ''::text
