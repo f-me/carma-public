@@ -12,5 +12,5 @@ insert into "ConstructorFieldOption" (model, program, ord, field, label, r, w)
       model, program, ord+1,
       'tasks', 'Задачи', 't', 't'
     from "ConstructorFieldOption"
-    where field = 'times_expectedServiceStart'
+    where field = 'times_factServiceEnd'
       and model = 2; -- AverageCommissioner
