@@ -1,4 +1,4 @@
-define ["model/main", "text!tpl/partials/partnerDelayDialog.html"], (main, tpl) ->
+define ["utils", "model/main", "text!tpl/partials/partnerDelayDialog.html"], (u, main, tpl) ->
   show: (kase, svcKvm) ->
     modelName = "PartnerDelay"
 
