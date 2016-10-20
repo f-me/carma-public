@@ -1,0 +1,79 @@
+name:        carma
+version:     "1.0"
+synopsis:    CRM
+description: Customer relationship management and call center assistance system
+license:     BSD3
+author:      Formal Methods
+maintainer:  <dev@formalmethods.ru>
+stability:   Do not touch anything
+category:    Web
+
+dependencies:
+  - aeson
+  - attoparsec
+  - base
+  - basic-prelude
+  - blaze-builder
+  - bytestring
+  - carma-models
+  - case-insensitive
+  - configurator
+  - containers
+  - directory
+  - dmcc
+  - easy-file
+  - errors
+  - fgl
+  - filepath
+  - free
+  - graphviz
+  - heist
+  - hsyslog
+  - HTTP
+  - lens
+  - MonadCatchIO-transformers
+  - mtl
+  - pg-simple-qq-alt
+  - postgresql-simple
+  - process-extras
+  - pureMD5
+  - random
+  - snap
+  - snap-core
+  - snap-extras
+  - snap-loader-static
+  - snap-server
+  - snaplet-postgresql-simple
+  - stm
+  - text
+  - time
+  - transformers
+  - unordered-containers
+  - vector
+  - vinnie
+  - weather-api
+  - websockets
+  - websockets-snap
+  - xmlhtml
+
+default-extensions:
+  - FlexibleContexts
+  - FlexibleInstances
+  - LambdaCase
+  - MultiParamTypeClasses
+  - NamedFieldPuns
+  - OverloadedStrings
+  - QuasiQuotes
+  - RecordWildCards
+  - TupleSections
+
+ghc-options:
+  - -Wall
+  - -threaded
+  - -O2
+  - -funbox-strict-fields
+
+executables:
+  carma:
+    source-dirs: src
+    main: Main.hs
