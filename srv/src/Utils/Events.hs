@@ -142,17 +142,17 @@ updateUserState tgtUsr'' evt idt p evidt = do
       void $ case s of
         Nothing -> return ()
         Just st -> do
-        -- well it's hack of course, current time will be little differene
-        -- from real ctime of new state
-        time <- liftIO $ getCurrentTime
-        withMsg $ sendMessage
-          (mkIdentTopic tgtUsr')
-          (P.put currentState      st      $
-           P.put currentStateCTime time    $
-           P.put delayedState      Nothing $
-           P.empty)
-        kpis <- updateOperKPI (singleton tgtUsr')
-        withMsg $ sendMessage "oper-kpi" kpis
+          -- well it's hack of course, current time will be little differene
+          -- from real ctime of new state
+          time <- liftIO $ getCurrentTime
+          withMsg $ sendMessage
+            (mkIdentTopic tgtUsr')
+            (P.put currentState      st      $
+             P.put currentStateCTime time    $
+             P.put delayedState      Nothing $
+             P.empty)
+          kpis <- updateOperKPI (singleton tgtUsr')
+          withMsg $ sendMessage "oper-kpi" kpis
       -- Probably push new state to Avaya
       let avayaState = case s of
                          Just Ready        -> Just DMCC.Ready
