@@ -18,6 +18,7 @@ insert into "Dictionary" (id, name, description, parent, majorFields) values
 ;
 
 grant all on "AvarcomTask" to carma_db_sync;
+grant all on "AvarcomTask_id_seq" to carma_db_sync;
 
 insert into "FieldPermission" (role, model, field, r, w) values
  (7, 'AvarcomTask', 'id', 't', 'f')

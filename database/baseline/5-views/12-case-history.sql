@@ -22,10 +22,16 @@ FROM (
             actiontbl.comment AS actionComment,
             s.id AS serviceId,
             "ServiceType".label AS serviceLabel,
-            (select tasks from averagecommissionertbl avc
-                where avc.id = actiontbl.serviceid
+            (select (e.patch->'tasks')::json from "Event" e
+                where e.modelid = actiontbl.serviceid
+                  and e.modelname = 'AverageCommissioner'
+                  and (e.patch->'tasks')::json is not null
+                  and e.ctime <= actiontbl.closetime
+                  and e.ctime >= s.createtime
                   and actiontbl.type = 1
                   and (actiontbl.result = 1 or actiontbl.result = 2)
+                order by e.ctime desc
+                limit 1
             ) as tasks
         FROM "ActionResult",
             "ActionType",
