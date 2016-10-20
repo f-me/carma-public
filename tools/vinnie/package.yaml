@@ -1,0 +1,45 @@
+name:                vinnie
+version:             "0.3.4"
+synopsis:            VINNIE Is a New Nice Importer Engine
+license:             BSD3
+author:              Dmitry Dzhus
+maintainer:          <dmitry@formalmethods.ru>
+category:            Database
+
+ghc-options:
+  - -Wall
+  - -fno-warn-unused-do-bind
+
+dependencies:
+  - aeson
+  - attoparsec-conduit
+  - base
+  - blaze-builder
+  - bytestring
+  - carma-models
+  - conduit
+  - conduit-extra
+  - containers
+  - csv-conduit
+  - filepath
+  - lifted-base
+  - monad-control
+  - postgresql-simple
+  - text
+  - text-icu
+  - transformers
+  - vector
+
+library:
+  source-dirs: src
+  exposed-modules:
+    - Carma.VIN
+
+executables:
+  vinnie:
+    source-dirs: exe
+    main: vinnie.hs
+
+    dependencies:
+      - cmdargs
+      - vinnie
