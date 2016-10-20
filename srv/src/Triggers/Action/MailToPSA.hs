@@ -160,9 +160,8 @@ getMsgData con svcId = uncurry (PG.query con)
         on ctr_phone_close.value->>'key' = 'close'
       left join json_array_elements(ctr.addrs) ctr_addr_fact
         on ctr_addr_fact.value->>'key' = 'fact'
-      left join partnertbl tow_dealer on tow_dealer.id = tow.towDealer_partnerId
+      inner join partnertbl tow_dealer on tow_dealer.id = tow.towDealer_partnerId
     where svc.id = $(svcId)$
       and (tech.id is null or tech.techType in ($(TT.charge)$, $(TT.starter)$, $(TT.ac)$))
-      and (svc.type = $(ServiceType.consultation)$ or tow_dealer.id is not null)
     limit 1
   |]
