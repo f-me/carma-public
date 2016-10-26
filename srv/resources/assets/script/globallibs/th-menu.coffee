@@ -115,14 +115,17 @@ class ThMenu
   render: (items) =>
     that = @
 
-    itms = $.map items, (v, k) ->
+    itms = $.map items, (v, k) -> { key: k, label: v }
+    if @dict.sorter
+      itms = itms.sort @dict.sorter
+    itms = itms.map ({key, label}) ->
       i = if _.isFunction that.options.item
             that.options.item.call(that, item)
           else
             el = $(that.options.item)
-            el.find('a').html(v)
+            el.find('a').html(label)
             el
-      i.attr('data-value', k)
+      i.attr('data-value', key)
       i[0]
 
     $(itms).first().addClass('active')

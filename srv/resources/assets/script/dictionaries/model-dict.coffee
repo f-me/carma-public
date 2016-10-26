@@ -23,6 +23,10 @@ define ['dictionaries/local-dict',], (ld) ->
       @bgetJSON "/_/#{@model}", (@items) =>
         # we need to gracefully handle cases when parent is not yet
         # initialised but child field should be rendered (see #2027)
+        @fullValuesMap   = _.reduce(
+          @items,
+          ((m,i) => m[i[@key]] = i; m),
+          {})
         @allValuesMap   = _.reduce(
           @items,
           ((m,i) => m[i[@key]] = i[@label]; m),
@@ -47,6 +51,10 @@ define ['dictionaries/local-dict',], (ld) ->
 
     # Fetch full element data by dictionary key
     getElement: (val) -> @allElementsMap[val]
+
+    sorter: (a, b) =>
+      if @fullValuesMap
+        @fullValuesMap[a.key].ord - @fullValuesMap[b.key].ord
 
     dictValues: ->
       if !@dictValueCache

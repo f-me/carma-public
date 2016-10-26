@@ -48,7 +48,7 @@ define [ "utils"
         kvm[fieldName].text = kvm[fieldName].local
         # Use builder here, because same field can be in group
         # and in the main section, and we need to have
-        # different instances og thMenu for them
+        # different instances of thMenu for them
         thmenuInit kvm, fieldName, dict, (v) ->
           kvm[fieldName](dict.id2val(v))
           kvm[fieldName].valueHasMutated()
