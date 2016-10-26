@@ -108,6 +108,7 @@ define [ "model/render"
     {elName, fetched, queue, queueOptions, models} = options
     kvm._meta   = { model: model, cid: _.uniqueId("#{model.name}_") }
     kvm.safelyGet = (prop) -> kvm[prop]?() || ''
+    kvm._reactComponents = []
 
     # build observables for real model fields
     for f in fields
@@ -296,6 +297,17 @@ define [ "model/render"
               fetched: fetched
               models: models
 
+
+    for f in fields when f.meta.reactComponent
+      do (f) ->
+        kvm._reactComponents.push
+          id: "#{kvm._meta.cid}-#{f.name}"
+          component: React.createElement(
+            CarmaComponents[f.meta.reactComponent],
+            value: kvm[f.name]()
+            onChange: (o) -> kvm[f.name](_.clone o)
+            kvm: kvm)
+
     # disable dixi filed for model
     kvm['disableDixi'] = ko.observable(false)
 
@@ -469,6 +481,10 @@ define [ "model/render"
   rebindko = (kvm, el) =>
     ko.cleanNode(el)
     ko.applyBindings(kvm, el)
+    for c in kvm._reactComponents
+      ReactDOM.render(
+        c.component,
+        document.getElementById c.id)
 
   bindDepViews = (knockVM, parentView, depViews) ->
     for k, v of depViews

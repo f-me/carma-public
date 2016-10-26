@@ -9,7 +9,6 @@ import Typeahead from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 
 // TODO:
-//   - doSend
 //   - typeahead + addon + onClick
 //   - vip label
 //      <span class="field-vip-label label label-danger" data-bind="visible: phoneVip">
@@ -70,7 +69,7 @@ export default class SmsForm extends Component {
         caseRef: this.props.values['case.id'],
         phone: this.state.phone,
         template: this.state.selectedTemplate.length > 0
-          ? this.state.selectedTemplate[0]
+          ? this.state.selectedTemplate[0].id
           : null,
         msgText: this.state.msgText
       }),

@@ -95,6 +95,8 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (57, 'DeliveryType', 'Типы доставки',
        ARRAY[]::int4[], ARRAY['id', 'label'])
+, (58, 'AvarcomTasks', 'Задачи аварийного комиссара',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
 ;
 
 GRANT SELECT ON "Dictionary" TO carma_db_sync;

@@ -270,7 +270,8 @@ orderService :: Action
 orderService =
     Action
     AType.orderService
-    (const bo_order)
+    (ite (serviceField svcType == const ST.adjuster)
+      (const bo_orderAvarcom) (const bo_order))
     (ite (previousAction == const AType.needPartner ||
           previousAction == const AType.checkStatus ||
           userField Usermeta.isJack)
@@ -309,7 +310,8 @@ orderServiceAnalyst :: Action
 orderServiceAnalyst =
     Action
     AType.orderServiceAnalyst
-    (const bo_secondary)
+    (ite (serviceField svcType == const ST.tech1)
+      (const bo_orderRefs) (const bo_secondary))
     nobody
     (let
         n = (1 * minutes) `since` now
@@ -345,7 +347,11 @@ tellClient :: Action
 tellClient =
     Action
     AType.tellClient
-    (const bo_control)
+    (switch
+      [ (serviceField svcType == const ST.tech1, const bo_controlRefs)
+      , (serviceField svcType == const ST.adjuster, const bo_controlAvarcom)
+      ]
+      (const bo_control))
     nobody
     ((5 * minutes) `since` now)
     [ (AResult.clientOk, proceed [AType.checkStatus])
@@ -370,7 +376,11 @@ checkStatus :: Action
 checkStatus =
     Action
     AType.checkStatus
-    (const bo_control)
+    (switch
+      [ (serviceField svcType == const ST.tech1, const bo_controlRefs)
+      , (serviceField svcType == const ST.adjuster, const bo_controlAvarcom)
+      ]
+      (const bo_control))
     nobody
     ((5 * minutes) `since` req (serviceField times_expectedServiceStart))
     [ (AResult.serviceInProgress,
@@ -400,7 +410,11 @@ checkEndOfService :: Action
 checkEndOfService =
     Action
     AType.checkEndOfService
-    (const bo_control)
+    (switch
+      [ (serviceField svcType == const ST.tech1, const bo_controlRefs)
+      , (serviceField svcType == const ST.adjuster, const bo_controlAvarcom)
+      ]
+      (const bo_control))
     nobody
     ((5 * minutes) `since` req (serviceField times_expectedServiceEnd))
     [ (AResult.serviceDone,
@@ -450,7 +464,11 @@ cancelService :: Action
 cancelService =
     Action
     AType.cancelService
-    (const bo_control)
+    (switch
+      [ (serviceField svcType == const ST.tech1, const bo_controlRefs)
+      , (serviceField svcType == const ST.adjuster, const bo_controlAvarcom)
+      ]
+      (const bo_control))
     nobody
     ((1 * minutes) `since` now)
     [ (AResult.falseCallUnbilled,
@@ -471,7 +489,11 @@ makerApproval :: Action
 makerApproval =
     Action
     AType.makerApproval
-    (const bo_control)
+    (switch
+      [ (serviceField svcType == const ST.tech1, const bo_controlRefs)
+      , (serviceField svcType == const ST.adjuster, const bo_controlAvarcom)
+      ]
+      (const bo_control))
     nobody
     ((1 * minutes) `since` now)
     [ (AResult.makerApproved,
@@ -486,7 +508,11 @@ tellMakerDeclined :: Action
 tellMakerDeclined =
     Action
     AType.tellMakerDeclined
-    (const bo_control)
+    (switch
+      [ (serviceField svcType == const ST.tech1, const bo_controlRefs)
+      , (serviceField svcType == const ST.adjuster, const bo_controlAvarcom)
+      ]
+      (const bo_control))
     nobody
     ((5 * minutes) `since` now)
     [ (AResult.clientNotified,
