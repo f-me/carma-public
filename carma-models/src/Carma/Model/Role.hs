@@ -66,6 +66,8 @@ mkIdents [t|Role|]
   , ("bo_urgent",      63) -- БО: Специалист по срочным вопросам
   , ("bo_orderRefs",   64) -- БО: Заказ услуги (Сбор справок)
   , ("bo_orderAvarcom",65) -- БО: Заказ услуги (Аварком)
+  , ("bo_controlRefs", 66) -- БО: Контроль услуги (Сбор справок)
+  , ("bo_controlAvarcom",67) -- БО: Контроль услуги (Аварком)
   ]
 
 instance Model Role where
