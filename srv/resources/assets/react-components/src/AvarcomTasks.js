@@ -19,7 +19,7 @@ export default class AvarcomTasks extends Component {
     super(props);
 
     this.state = {
-      availableTasks: [],
+      availableTasks: avarcomTasks || [],
       selectedTasks: this.props.value,
       disabled: DISABLED_STATES.indexOf(this.props.kvm.status()) >= 0
     };
