@@ -17,7 +17,8 @@ import Carma.Model.CallerType (CallerType)
 
 data CallReason = CallReason
   {ident   :: PK Int CallReason ""
-  ,label   :: F Text "label" "Название цвета"
+  ,label   :: F Text "label" "Причина обращения"
+  ,ord     :: F Int  "ord" ""
   ,parent  :: F (IdentI CallerType) "parent" ""
   } deriving Typeable
 

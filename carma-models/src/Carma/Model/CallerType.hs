@@ -14,7 +14,8 @@ import Data.Model.TH
 
 data CallerType = CallerType
   {ident   :: PK Int CallerType ""
-  ,label   :: F Text "label" "Название цвета"
+  ,label   :: F Text "label" "Кто звонит"
+  ,ord     :: F Int  "ord" ""
   } deriving Typeable
 
 mkIdents [t|CallerType|]
