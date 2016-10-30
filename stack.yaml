@@ -5,7 +5,7 @@ packages:
 - caroperator-svc
 - location:
     git: git@github.com:f-me/carma-models.git
-    commit: fb1fa4ee8b6ce78058dd8754546b7b1e21b9e4a2
+    commit: cab94e45db485ebcb4f4b103a7c504488e02e979
   extra-dep: true
 - location:
     git: git@github.com:f-me/dmcc.git
