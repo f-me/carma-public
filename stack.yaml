@@ -3,10 +3,7 @@ packages:
 - srv
 - tools/vinnie
 - caroperator-svc
-- location:
-    git: git@github.com:f-me/carma-models.git
-    commit: cab94e45db485ebcb4f4b103a7c504488e02e979
-  extra-dep: true
+- carma-models
 - location:
     git: git@github.com:f-me/dmcc.git
     commit: HEAD
