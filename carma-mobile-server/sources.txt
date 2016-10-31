@@ -1,4 +1,0 @@
-./
-https://github.com/f-me/carma-dict
-https://github.com/f-me/carma-http
-https://github.com/f-me/carma-models
