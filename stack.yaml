@@ -4,6 +4,7 @@ packages:
 - tools/vinnie
 - caroperator-svc
 - carma-models
+- carma-mobile-server
 - location:
     git: git@github.com:f-me/dmcc.git
     commit: HEAD
