@@ -20,32 +20,35 @@ Executable carma-mobile-server
   hs-source-dirs: src
   main-is: Main.hs
 
+  other-modules:
+    Application
+
   Build-depends:
-    aeson                       >= 0.7 && < 0.10,
-    attoparsec                  >= 0.11 && < 0.13,
-    scientific                  == 0.3.*,
-    base                        >= 4 && < 5,
-    bytestring                  >= 0.9.1 && < 0.11,
-    carma-dict                  == 0.1.*,
-    carma-http                  >= 0.5 && < 0.6,
-    carma-models                >= 0.31 && < 0.36,
-    configurator                == 0.2.*,
-    lens                        >= 3.8 && < 4.10,
-    HTTP                        == 4000.2.*,
-    MonadCatchIO-transformers   >= 0.2.1 && < 0.4,
-    mtl                         >= 2 && < 3,
-    network                     >= 2.4 && < 2.7,
-    old-locale                  == 1.0.*,
-    postgresql-simple           == 0.4.*,
-    snap                        == 0.13.*,
-    snap-core                   >= 0.9.2 && <0.10,
-    snap-server                 >= 0.9.2 && <0.10,
-    snap-loader-static          == 0.9.*,
-    snaplet-postgresql-simple   >= 0.3 && < 0.7,
-    text                        >= 0.11 && < 1.3,
-    time                        >= 1.1 && < 1.5,
-    unordered-containers        == 0.2.*,
-    vector                      == 0.10.*
+    aeson,
+    attoparsec,
+    scientific,
+    base,
+    bytestring,
+    carma-dict,
+    carma-http,
+    carma-models,
+    configurator,
+    lens,
+    HTTP,
+    MonadCatchIO-transformers,
+    mtl,
+    network,
+    old-locale,
+    postgresql-simple,
+    snap,
+    snap-core,
+    snap-server,
+    snap-loader-static,
+    snaplet-postgresql-simple,
+    text,
+    time,
+    unordered-containers,
+    vector
 
   Extensions:                   OverloadedStrings,
                                 LambdaCase

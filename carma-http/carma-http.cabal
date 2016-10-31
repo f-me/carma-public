@@ -24,17 +24,17 @@ library
     Carma.HTTP.Util
 
   build-depends:
-    aeson                  >= 0.7 && < 0.9,
-    base                   >= 4.6 && < 4.8,
-    bytestring             == 0.10.*,
-    carma-dict             >= 0.1.1 && < 0.2,
-    carma-models           >= 0.24 && < 0.36,
-    containers             == 0.5.*,
-    HTTP                   == 4000.2.*,
-    lens                   >= 3.8 && < 4.8,
-    network                == 2.6.*,
-    network-uri            == 2.6.*,
-    text                   >= 0.11 && < 1.3,
-    transformers           >= 0.3 && < 0.5,
-    unordered-containers   == 0.2.*,
-    vector                 == 0.10.*
+    aeson,
+    base,
+    bytestring,
+    carma-dict,
+    carma-models,
+    containers,
+    HTTP,
+    lens,
+    network,
+    network-uri,
+    text,
+    transformers,
+    unordered-containers,
+    vector
