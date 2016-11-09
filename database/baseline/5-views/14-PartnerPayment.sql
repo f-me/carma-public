@@ -251,23 +251,45 @@ create view "PartnerPayment" as
           then case
             -- 14
             when  numOfDelays = 0
-              and delay <= interval '0 minutes'
+              and delay <= interval '10 minutes'
             then '{"val": "100% + бонус"'
               || ',"desc": "Эвакуатор за городом приехал вовремя."'
               || '}'
 
-            -- 15.1
+            -- 15.1.1
             when  numOfDelays >= 1
               and partnerWarnedInTime
+              and delay <= interval '10 minutes'
+            then '{"val": "100% + бонус"'
+              || ',"desc": "Эвакуатор за городом опаздывает и предупреждает РАМК'
+              ||           ' об опоздании. РАМК согласовывает опоздание при условии'
+              ||           ' доезда до клиента из расчета скорости эвакуатора."'
+              || '}'
+
+            -- 15.1.2
+            when  numOfDelays >= 1
+              and partnerWarnedInTime
+              and delay > interval '10 minutes'
             then '{"val": "100%"'
               || ',"desc": "Эвакуатор за городом опаздывает и предупреждает РАМК'
               ||           ' об опоздании. РАМК согласовывает опоздание при условии'
               ||           ' доезда до клиента из расчета скорости эвакуатора."'
               || '}'
 
-            -- 15.2
+            -- 15.2.1
             when  numOfDelays >= 1
               and not partnerWarnedInTime
+              and delay <= interval '10 minutes'
+            then '{"val": "100% + бонус"'
+              || ',"desc": "Эвакуатор за городом опаздывает и предупреждает РАМК'
+              ||           ' об опоздании. РАМК согласовывает опоздание при условии'
+              ||           ' доезда до клиента из расчета скорости эвакуатора."'
+              || '}'
+
+            -- 15.2.2
+            when  numOfDelays >= 1
+              and not partnerWarnedInTime
+              and delay > interval '10 minutes'
             then '{"val": "90%"'
               || ',"desc": "Эвакуатор за городом опаздывает и предупреждает РАМК'
               ||           ' об опоздании. РАМК согласовывает опоздание при условии'
@@ -276,10 +298,28 @@ create view "PartnerPayment" as
 
             -- 16
             when  numOfDelays = 0
-              and delay > interval '0 minutes'
+              and delay > interval '10 minutes'
             then '{"val": "90%"'
               || ',"desc": "Эвакуатор за городом опаздывает и не предупреждает РАМК'
               ||           ' об опоздании."'
+              || '}'
+
+            -- 17
+            when  numOfDelays = 1
+              and firstDelay <= 30
+              and delay <= interval '10 minutes'
+            then '{"val": "100% + 100 руб"'
+              || ',"desc": "Эвакуатор приехал в назначенное'
+              ||           ' время, предупредив РАМК об опоздании."'
+              || '}'
+
+            -- 18
+            when  numOfDelays = 2
+              and firstDelay <= 30
+              and delay <= interval '10 minutes'
+            then '{"val": "100% + 100 руб"'
+              || ',"desc": "Эвакуатор приехал в назначенное время без'
+              ||           ' опозданий, предупредив РАМК об опоздании дважды."'
               || '}'
           end -- isCountryRide
       end as payment

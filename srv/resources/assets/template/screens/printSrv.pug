@@ -2,6 +2,7 @@ style(type="text/css" media="print")
   |  .table {
   |    margin-bottom: 8px;
   |    page-break-inside: avoid;
+  |    font-size: 1.3vh;
   |  }
 
 .container
@@ -84,7 +85,7 @@ style(type="text/css" media="print")
           td  Ложный вызов
           td(data-bind='text: service.falseCallLocal')
 
-    .row.col-md-12
+    .row.col-md-12(data-bind='visible: cancels().length')
       table.table.table-condensed
         caption
           strong Отказы партнёров
@@ -105,7 +106,7 @@ style(type="text/css" media="print")
             td(data-bind='text: $data.comment')
             td(data-bind='text: $data.service')
 
-    .row.col-md-12
+    .row.col-md-12(data-bind='visible: comments().length')
       table.table.table-condensed
         caption
           strong Комментарии

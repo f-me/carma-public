@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 import Typeahead from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
+import './AvarcomTasks.css';
 
 const propTypes = {
 };
@@ -111,7 +112,7 @@ export default class AvarcomTasks extends Component {
       });
 
       return (
-        <div>
+        <div className="AvarcomTasks">
           <Typeahead emptyLabel="Ничего не найдено"
             ref="typeahead"
             options={this.state.availableTasks}
