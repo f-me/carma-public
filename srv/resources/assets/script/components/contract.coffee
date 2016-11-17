@@ -72,9 +72,12 @@ define [
       kvm.caseId = knockVM.id()
       kvm.isExpired = ko.computed ->
         return unless knockVM.callDate?()
-        callDate = Date.parseExact(knockVM.callDate(), "dd.MM.yyyy HH:mm:ss")?.getTime()
-        validSince = Date.parseExact(contract.validSince, "yyyy-MM-dd")?.getTime()
-        validUntil = Date.parseExact(contract.validUntil, "yyyy-MM-dd")?.getTime()
+        callDate = moment(
+            knockVM.callDate(),
+            "dd.MM.yyyy HH:mm:ss"
+          )?.startOf('day').format()
+        validSince = moment(contract.validSince, "yyyy-MM-dd")?.format()
+        validUntil = moment(contract.validUntil, "yyyy-MM-dd")?.format()
         callDate < validSince or callDate > validUntil
 
       kvm.close = ->
