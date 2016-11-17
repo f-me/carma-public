@@ -250,12 +250,14 @@ accident =
        messageToPSA *>
        messageToGenser *>
        setServiceStatus SS.ordered *>
+       setServiceField Service.times_expectedDispatch justNow *>
        proceed [AType.tellClient, AType.addBill])
     , (AResult.serviceOrderedSMS,
        sendSMS SMS.order *>
        messageToPSA *>
        messageToGenser *>
        setServiceStatus SS.ordered *>
+       setServiceField Service.times_expectedDispatch justNow *>
        proceed [AType.checkStatus, AType.addBill])
     , (AResult.needPartner,
        sendSMS SMS.parguy *>

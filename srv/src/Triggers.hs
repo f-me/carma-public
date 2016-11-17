@@ -171,8 +171,6 @@ beforeCreate = Map.unionsWith (++)
       Just (addUTCTime (12 * BO.hours) n)
     modPut Service.times_factServiceClosure $
       Just (addUTCTime (12 * BO.hours) n)
-    modPut Service.times_expectedDispatch $
-      Just (addUTCTime (10 * BO.minutes) n)
 
     modPut Service.createTime         $ Just n
     modPut Service.creator =<< getCurrentUser
@@ -367,8 +365,6 @@ beforeUpdate = Map.unionsWith (++) $
         Patch.put Service.times_expectedServiceClosure
         (Just $ addUTCTime (11 * BO.hours) tm) .
         Patch.put Service.times_factServiceStart Nothing
-  , trigOn Service.times_expectedDispatch $ const $
-    modifyPatch (Patch.put Service.times_factServiceStart Nothing)
   , trigOn Service.times_expectedServiceEnd $ const $
     modifyPatch (Patch.put Service.times_factServiceEnd Nothing)
   , trigOn Service.times_expectedServiceClosure $ const $
@@ -656,6 +652,7 @@ newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
 
 instance Backoffice HaskellE where
     now = HaskellE $ asks Triggers.now
+    justNow = HaskellE $ Just <$> asks Triggers.now
 
     since nd t =
         HaskellE $ addUTCTime nd <$> toHaskell t
