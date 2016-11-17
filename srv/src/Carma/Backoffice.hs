@@ -154,8 +154,7 @@ doCancelService fin1 fin2 =
           (serviceField status == const SS.makerApproval &&
            assigneeOfLast InService [AType.makerApproval]
            [noResult] == nobody)
-        , setServiceField falseCall (just FS.nobill) *>
-          closePrevious InService
+        , closePrevious InService
           [AType.orderService, AType.orderServiceAnalyst, AType.makerApproval]
           AResult.clientCanceledService *>
           closePrevious InCase
