@@ -1,4 +1,5 @@
-﻿CREATE VIEW "Contract_csv" AS
+DROP VIEW IF EXISTS "Contract_csv";
+CREATE VIEW "Contract_csv" AS
 SELECT "Contract".id AS idExternal,
         CASE "Contract".isactive
             WHEN true THEN '+'::text
@@ -37,6 +38,7 @@ SELECT "Contract".id AS idExternal,
             WHEN true THEN '+'::text
             ELSE '-'::text
         END AS dixiExternal,
+    p2.code as dealercodeExternal,
     "Contract".id,
     "Contract".name,
     "Contract".email,
@@ -84,3 +86,4 @@ SELECT "Contract".id AS idExternal,
    LEFT JOIN "Program" ON "SubProgram".parent = "Program".id
    LEFT JOIN "ProgramType" ON "Program".ptype = "ProgramType".id
    LEFT JOIN "Transmission" ON "Contract".transmission = "Transmission".id;
+GRANT SELECT ON "Contract_csv" TO carma_db_sync;

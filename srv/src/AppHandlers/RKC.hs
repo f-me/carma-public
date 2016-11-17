@@ -720,15 +720,22 @@ towStartAvgTimeQuery = [sql|
 WITH
  services AS (
   SELECT type, id, parentid, times_factServiceStart, times_expectedDispatch,
+         times_expectedServiceStart,
          contractor_partner, suburbanmilage
     FROM techtbl
   UNION ALL
   SELECT type, id, parentid, times_factServiceStart, times_expectedDispatch,
+         times_expectedServiceStart,
          contractor_partner, suburbanmilage
     FROM towagetbl)
 SELECT extract(epoch from avg(s.times_factServiceStart - s.times_expectedDispatch))
 FROM casetbl c, services s
 WHERE s.parentid = c.id
+AND (select min(a1.ctime) from actiontbl a1 where a1.serviceid = s.id and a1.type = 2)
+    - s.times_expectedServiceStart <= interval '1 hour'
+AND EXISTS
+  (select 1 from actiontbl a2
+    where a2.serviceid = s.id AND (a2.result = 1 OR a2.result = 2))
 AND (s.times_factServiceStart > s.times_expectedDispatch)
 AND (? or c.program = ?)
 AND (? or c.city = ?)

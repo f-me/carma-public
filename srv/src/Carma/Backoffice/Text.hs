@@ -166,6 +166,7 @@ type IMap = Map IBox Text
 
 instance Backoffice TextE where
     now = textE "Текущее время"
+    justNow = textE "Текущее время"
     since dt t =
         TextE $ (\c -> c ++ [T " + ", T $ formatDiff dt]) <$> toText t
     before dt t =

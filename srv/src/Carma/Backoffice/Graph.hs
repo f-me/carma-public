@@ -106,6 +106,7 @@ nothing = EdgeE $ P.const $ return []
 
 instance Backoffice EdgeE where
     now = nothing
+    justNow = nothing
     since _ _ = nothing
     before _ _ = nothing
 
