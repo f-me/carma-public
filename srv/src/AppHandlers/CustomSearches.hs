@@ -289,7 +289,7 @@ relevantCases = do
     FROM casetbl c1, casetbl c2
     WHERE c1.id = ?
       AND c2.id <> c1.id
-      AND c1.contractIdentifier = c2.contractIdentifier
+      AND lower(c1.contractIdentifier) = lower(c2.contractIdentifier)
       AND length(c2.contractIdentifier) > 4
     ORDER BY c2.callDate DESC
     LIMIT 25

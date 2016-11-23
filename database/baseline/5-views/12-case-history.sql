@@ -89,6 +89,33 @@ FROM (
         ) row
 
     UNION ALL
+    SELECT row.caseId,
+        row.datetime,
+        row.userId,
+        row_to_json(row)
+    FROM (
+      SELECT
+          'comment' as "type", cl.id,
+          cs.id as caseId,
+          cl.callDate as datetime,
+          cl.callTaker as userId,
+          cl.customercomment as commentText
+        FROM casetbl cs
+          left join calltbl cl on (cl.callerPhone = cs.contact_phone1)
+        WHERE length(cl.callerPhone) > 7
+        AND cl.customercomment is not null
+        AND cl.callDate < cs.calldate
+        AND cl.callDate >
+              coalesce(
+                  (select max(xx.calldate)
+                    from calltbl xx
+                    where xx.callerPhone = cl.callerPhone
+                      and xx.caseid <> cs.id
+                      and xx.calldate < cs.calldate),
+                  '2000-01-01')
+      ) row
+
+    UNION ALL
 
     SELECT row.caseId,
         row.datetime,
