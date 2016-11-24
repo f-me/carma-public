@@ -22,11 +22,11 @@ define ["dictionaries/meta-dict"], (m) ->
 
     dictValues: ->
       @dictValueCache ||=
-        _.reduce @source, ((m, i) -> m[i.value] = i.label; m), {}
+        _.reduce @source, ((m, i) -> m[i.value] = i.label.trim(); m), {}
 
     dictLabels: ->
       @dictLabelCache ||=
-        _.reduce @source, ((m, i) -> m[i.label] = i.value; m), {}
+        _.reduce @source, ((m, i) -> m[i.label.trim()] = i.value; m), {}
 
     getVal: (lab) ->
       @dictLabels()[lab]

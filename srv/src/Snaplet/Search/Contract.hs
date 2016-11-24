@@ -95,7 +95,8 @@ contractCSV t = do
       fieldNameToDesc mi name =
           case HM.lookup name (modelFieldsMap mi) of
             Just f -> Just $ fd_desc f
-            _      -> Nothing
+            _ | name == "dealercode" -> Just "Код ДЦ"
+              | otherwise -> Nothing
   case args' of
     Nothing -> error "Could not read parameters"
     Just args -> do
@@ -108,7 +109,8 @@ contractCSV t = do
         prms <- renderPrms c (predicates args) contractSearchParams
         -- Prepare query and request CSV from Postgres
         case (resultFields args, prms) of
-          (Just rf, Right p) -> do
+          (Just rf', Right p) -> do
+            let rf = rf' ++ ["dealercode"]
             let header = T.intercalate ";" $
                          Prelude.map ((\f -> T.concat ["\"", f, "\""]) .
                                       fromMaybe (error "Unknown field") .

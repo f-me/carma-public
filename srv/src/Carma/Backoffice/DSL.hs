@@ -92,6 +92,7 @@ data Action =
 class Backoffice impl where
     -- | Current time.
     now    :: impl UTCTime
+    justNow:: impl (Maybe UTCTime)
 
     since  :: NominalDiffTime
            -- ^ This long ..
