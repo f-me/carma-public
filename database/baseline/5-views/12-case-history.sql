@@ -103,6 +103,7 @@ FROM (
         FROM casetbl cs
           left join calltbl cl on (cl.callerPhone = cs.contact_phone1)
         WHERE length(cl.callerPhone) > 7
+        AND cl.callerPhone <> '+70000000000'
         AND cl.customercomment is not null
         AND cl.callDate < cs.calldate
         AND cl.callDate >
