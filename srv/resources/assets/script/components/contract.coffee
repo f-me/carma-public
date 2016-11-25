@@ -74,10 +74,10 @@ define [
         return unless knockVM.callDate?()
         callDate = moment(
             knockVM.callDate(),
-            "dd.MM.yyyy HH:mm:ss"
+            "DD.MM.YYYY HH:mm:ss"
           )?.startOf('day').format()
-        validSince = moment(contract.validSince, "yyyy-MM-dd")?.format()
-        validUntil = moment(contract.validUntil, "yyyy-MM-dd")?.format()
+        validSince = moment(contract.validSince, "YYYY-MM-DD")?.format()
+        validUntil = moment(contract.validUntil, "YYYY-MM-DD")?.format()
         callDate < validSince or callDate > validUntil
 
       kvm.close = ->
