@@ -29,7 +29,12 @@ define ['dictionaries/local-dict',], (ld) ->
           {})
         @allValuesMap   = _.reduce(
           @items,
-          ((m,i) => m[i[@key]] = i[@label]?.trim(); m),
+          ((m,i) =>
+            # trim labels because sometimes they have \r\n at the end
+            # FIXME: maybe we should filter this in DB
+            lab = i[@label]
+            m[i[@key]] = if lab?.trim then lab.trim() else lab
+            m),
           {})
         if @parent and _.isFunction @kvm[@parent]
           updateChildren = (val) =>
