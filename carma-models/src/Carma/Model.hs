@@ -48,6 +48,8 @@ import           Carma.Model.Contract
 import           Carma.Model.ContractCheckStatus
 import           Carma.Model.CtrModel                    (CtrModel)
 import           Carma.Model.DeferTime                   (DeferTime)
+import           Carma.Model.DiagSlide                   (DiagSlide)
+import           Carma.Model.DiagHistory                 (DiagHistory)
 
 import           Carma.Model.Diagnostics.Cause           (Cause)
 import           Carma.Model.Diagnostics.Part            (Part)
@@ -179,6 +181,8 @@ modelMap fn = modelMap'
       ,add (undefined :: ContractCheckStatus)
       ,add (undefined :: CtrModel)
       ,add (undefined :: DeferTime)
+      ,add (undefined :: DiagSlide)
+      ,add (undefined :: DiagHistory)
       ,add (undefined :: DeliverCar)
       ,add (undefined :: DeliverClient)
       ,add (undefined :: DeliverParts)
