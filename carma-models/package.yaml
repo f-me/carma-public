@@ -1,0 +1,56 @@
+name:       carma-models
+version:    0.39.0
+synopsis:   Model definitions/CRUD for CaRMa
+license:    MIT
+author:     Formal Methods
+maintainer: dev@formalmethods.ru
+category:   Database
+
+
+dependencies:
+ - aeson
+ - base
+ - base16-bytestring
+ - blaze-builder
+ - blaze-textual
+ - bytestring
+ - cereal
+ - containers
+ - errors
+ - parsec
+ - postgresql-libpq
+ - postgresql-simple
+ - scientific
+ - singletons
+ - template-haskell
+ - text
+ - time
+ - transformers
+ - unordered-containers
+ - vector
+
+default-extensions:
+ - DataKinds
+ - KindSignatures
+ - TypeOperators
+ - TypeFamilies
+ - EmptyDataDecls
+ - MultiParamTypeClasses
+ - FlexibleInstances
+ - FlexibleContexts
+ - DeriveDataTypeable
+ - OverloadedStrings
+ - TupleSections
+ - NamedFieldPuns
+ - RecordWildCards
+ - LambdaCase
+
+ghc-options:
+  - -Wall
+  - -threaded
+  - -O2
+  - -funbox-strict-fields
+  - -fcontext-stack=200
+
+library:
+  source-dirs: src
