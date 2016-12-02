@@ -26,7 +26,17 @@ export default class SlideEditor extends React.Component {
   }
 
   componentWillReceiveProps(props) {
-    this.setState({slide: props.slide})
+    console.log('componentWillReceiveProps', props.slide.toJS());
+    this.setState({
+      slide: props.slide,
+      draftAnswer: false,
+      draftResource: false,
+    }, st => console.log('receivedProps', this.state.slide.toJS()));
+  }
+
+  shouldComponentUpdate(newProps, {slide}) {
+    console.log('shouldComponentUpdate.prev', this.props.slide.toJS());
+    console.log('shouldComponentUpdate.next', slide.toJS());
   }
 
 
@@ -69,10 +79,12 @@ export default class SlideEditor extends React.Component {
 
   render() {
     const {slide} = this.state;
+    console.log('SlideEditor.render', slide.toJS());
+
     const isNotChanged = slide.equals(this.props.slide);
     const setSlide = (f, v) => this.setState({slide: slide.set(f, v)})
 
-    const resources = slide.get('resources').map((res, i) => (
+    const resources = slide.get('resources').toArray().map((res, i) => (
       <div key={i}>
         <img src={res.get('files')[0].preview} role="presentation" />
         <span>{res.get('text')}</span>
@@ -90,7 +102,7 @@ export default class SlideEditor extends React.Component {
       </ListGroupItem>
     );
 
-    const answers = slide.get('answers').map((ans,i) => (
+    const answers = slide.get('answers').toArray().map((ans,i) => (
       <ListGroupItem key={i} header={ans.get('header')}>
         {ans.get('text')}
       </ListGroupItem>

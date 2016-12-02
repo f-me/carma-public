@@ -1,12 +1,14 @@
 
 .Editor {
-  margin-top: 20px;
+  margin: 20px;
 }
 
 .Editor .list-group-item {
   border: none;
 }
-
+.Editor .list-group-item.selected {
+  background-color: lightblue;
+}
 
 .SlideEditor {
   margin-left: auto;

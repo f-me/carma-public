@@ -13,7 +13,7 @@ export default class Editor extends React.Component {
     super(props);
 
     this.state = {
-      slides: [],
+      slides: Immutable.fromJS([]),
       currentSlide: null
     }
 
@@ -23,32 +23,76 @@ export default class Editor extends React.Component {
 
   componentWillReceiveProps(props) {
     this.loadSlides(slides => this.setState({
-      slides,
+      slides: Immutable.fromJS(slides),
       currentSlide: Immutable.fromJS(slides.find(x => x.isRoot))
     }));
   }
 
+  shouldComponentUpdate(nextProps, {slides, currentSlide}) {
+    return this.state.currentSlide !== currentSlide
+        || this.state.slides !== slides
+  }
 
-  loadSlides(callback) {
+
+  loadSlides = callback =>
     $.ajax({
       type: 'GET',
       url: '/_/DiagSlide',
       dataType: 'json',
       success: callback
+    })
+
+
+  newSlide = () => {
+    let slide = {
+      header: 'Новый вопрос',
+      body: '?',
+      resources: [],
+      answers: [],
+      isRoot: true
+    };
+
+    $.ajax({
+      type: 'POST',
+      url: '/_/DiagSlide',
+      data: JSON.stringify(slide),
+      processData: false,
+      contentType: 'application/json',
+      success: res => {
+        slide.id = res.id;
+        slide = Immutable.fromJS(slide);
+        this.setState({
+          slides: this.state.slides.push(slide),
+          currentSlide: slide
+        })
+      }
+    })
+  }
+
+
+  // FIXME: add new slides for answers
+  saveSlide = data => {
+    const {slides, currentSlide} = this.state;
+    const id = currentSlide.get("id");
+    const ix = slides.findIndex(x => x.get("id") == id);
+
+    $.ajax({
+      type: 'PUT',
+      url: `/_/DiagSlide/${id}`,
+      data: JSON.stringify(data.toJS()),
+      processData: false,
+      contentType: 'application/json',
+      success: () => this.setState({
+        slides: slides.set(ix, data),
+        currentSlide: data
+      })
     });
   }
 
 
-  newSlide() {
-  }
-
-
-  saveSlide() {
-  }
-
-
   render() {
-    const {slides, currentSlide } = this.state;
+    const {slides, currentSlide} = this.state;
+    console.log('Editor.render', currentSlide && currentSlide.toJS());
 
     return (
       <Grid className="Editor">
@@ -57,15 +101,15 @@ export default class Editor extends React.Component {
             <SlideTree
               slides={slides}
               currentSlide={currentSlide}
-              onSelect={id => this.setState({currentSlide: id})}
-              onAddSlide={() => this.newSlide()}
+              onSelect={s => this.setState({currentSlide: s})}
+              onAddSlide={this.newSlide}
             />
           </Col>
           <Col md={8}>
             { currentSlide &&
               <SlideEditor
                 slide={currentSlide}
-                onChange={data => this.saveSlide(currentSlide, data)}
+                onChange={this.saveSlide}
               />
             }
           </Col>
