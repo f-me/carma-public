@@ -1,6 +1,7 @@
 define [ "dictionaries/local-dict"
        , "dictionaries/contracts-dict"
        , "dictionaries/bo-users-dict"
+       , "dictionaries/fo-users-dict"
        , "dictionaries/computed-dict"
        , "dictionaries/dealers-dict"
        , "dictionaries/model-dict"

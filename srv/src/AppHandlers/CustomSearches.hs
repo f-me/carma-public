@@ -10,6 +10,7 @@ module AppHandlers.CustomSearches
     , busyOps
     , actStats
     , boUsers
+    , foUsers
 
       -- * Case screen
     , searchContracts
@@ -250,6 +251,13 @@ boUsers :: AppHandler ()
 boUsers
   = [Role.head, Role.back, Role.supervisor] `usersInStates` [UserState.Ready]
 
+foUsers :: AppHandler ()
+foUsers
+  = [Role.call] `usersInStates`
+    [ UserState.Ready, UserState.Busy
+    , UserState.Rest, UserState.Dinner
+    , UserState.ServiceBreak, UserState.NA
+    ]
 
 allDealersForMake :: AppHandler ()
 allDealersForMake = do
