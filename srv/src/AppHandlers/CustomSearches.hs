@@ -10,7 +10,7 @@ module AppHandlers.CustomSearches
     , busyOps
     , actStats
     , boUsers
-    , foUsers
+    , loggedUsers
 
       -- * Case screen
     , searchContracts
@@ -251,9 +251,10 @@ boUsers :: AppHandler ()
 boUsers
   = [Role.head, Role.back, Role.supervisor] `usersInStates` [UserState.Ready]
 
-foUsers :: AppHandler ()
-foUsers
-  = [Role.call] `usersInStates`
+loggedUsers :: AppHandler ()
+loggedUsers = do
+  Just role <- (>>= fvIdentBs) <$> getParam "role"
+  usersInStates [role]
     [ UserState.Ready, UserState.Busy
     , UserState.Rest, UserState.Dinner
     , UserState.ServiceBreak, UserState.NA

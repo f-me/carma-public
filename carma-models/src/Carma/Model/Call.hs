@@ -55,7 +55,8 @@ metas =
 
     , readonly callTaker
     , required callTaker
-    , setMeta "dictionaryType" "FoUsersDict" redirectTo
+    , setMeta "dictionaryType" "LoggedUsersDict" redirectTo
+    , setMeta "filterBy" "role=2" redirectTo
 
     , setMeta "filterBy" "active" program
 

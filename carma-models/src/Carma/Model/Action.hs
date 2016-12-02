@@ -27,6 +27,7 @@ data Action = Action
   , aType       :: F (IdentI ActionType)            "type" "Тип действия"
   , duetime     :: F UTCTime                        "duetime" "Ожидаемое время выполнения"
   , comment     :: F (Maybe Text)                   "comment" "Комментарий"
+  , redirectTo  :: F (Maybe (IdentI Usermeta))      "redirectTo" "Перевести действие"
   , deferBy     :: F (Maybe HMDiffTime)             "deferBy" "Отложить на"
   , result      :: F (Maybe (IdentI ActionResult))  "result" "Результат"
   , ctime       :: F UTCTime                        "ctime" "Время создания"
@@ -52,6 +53,8 @@ instance Model Action where
           , setMeta "dictionaryLabel"
             (A.String $ fieldName label) deferBy
           , infoText "defertime" deferBy
+          , setMeta "dictionaryType" "LoggedUsersDict" redirectTo
+          , setMeta "filterBy" "role=14" redirectTo
           , setMeta "addClass" "redirectOnChange" result
           , setMeta "dictionaryType" "BoUsersDict" assignedTo
           , setMeta "dictionaryType" "ResultsDict" result
