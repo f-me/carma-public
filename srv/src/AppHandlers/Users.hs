@@ -163,6 +163,7 @@ usersInStates roles uStates = do
    LEFT JOIN (SELECT DISTINCT ON ($(fieldPT UserState.userId)$)
               $(fieldPT UserState.state)$, $(fieldPT UserState.userId)$
               FROM $(tableQT UserState.ident)$
+              WHERE range IS NULL
               ORDER BY
               $(fieldPT UserState.userId)$,
               $(fieldPT UserState.ident)$ DESC) s
