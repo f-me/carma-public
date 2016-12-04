@@ -11,3 +11,5 @@ alter table actiontbl add redirectTo int references usermetatbl(id);
 insert into "FieldPermission"
   (role, model, field, r, w) values
   (1, 'Action', 'redirectTo', true, true);
+
+insert into "ActionResult" (id, label) values (35, 'Перевод действия');

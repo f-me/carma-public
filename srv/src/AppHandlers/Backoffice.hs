@@ -155,6 +155,7 @@ allActionResults = do
 
     -- anotherService should not be visible for users see #2593
     filter (\(_, r) -> r /= ActionResult.needAnotherService) $
+    filter (\(_, r) -> r /= ActionResult.transferAction) $
     concatMap (\a -> map (DSL.aType a,) $ DSL.actionResults a) $
     snd carmaBackoffice
 

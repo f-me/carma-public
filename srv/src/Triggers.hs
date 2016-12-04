@@ -21,6 +21,7 @@ import           Control.Monad.Free (Free)
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Reader
 
+import           Data.Singletons
 import           Data.Dynamic
 import           Data.List
 import           Data.Map (Map)
@@ -46,6 +47,7 @@ import           Data.Model as Model
 import           Data.Model.Patch as Patch
 import           Data.Model.Types
 
+import           Carma.Model.Action (Action)
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.ActionResult as ActionResult
 import qualified Carma.Model.ActionType as ActionType
@@ -307,15 +309,38 @@ beforeUpdate = Map.unionsWith (++) $
 
   , trigOn Action.result $ \nr -> do
       ar <- getIdent >>= dbRead
-      case ar `Patch.get` Action.result of
-        Just (Just _) -> error "The action already has a result"
-        _ ->
-          case nr of
+      case ar `Patch.get'` Action.result of
+        Just _ -> error "The action already has a result"
+        _ -> case nr of
           Nothing -> return ()
           Just _ -> do
             getNow >>= (modifyPatch . Patch.put Action.closeTime . Just)
             getCurrentUser >>=
               (modifyPatch . Patch.put Action.assignedTo . Just)
+
+  , trigOn Action.redirectTo $ maybe (return ())
+      (\newAssignee -> do
+        ident <- getIdent
+        act <- dbRead ident
+        now <- getNow
+        let copy :: (Typeable t, SingI name)
+                 => (Action -> Field t (FOpt name desc app))
+                 -> Patch Action -> Patch Action
+            copy f = Patch.put f (Patch.get' act f)
+        let p = Patch.put Action.ctime now
+              $ Patch.put Action.assignTime (Just now)
+              $ Patch.put Action.duetime (addUTCTime (1 * BO.minutes) now)
+              $ Patch.put Action.assignedTo (Just newAssignee)
+              $ Patch.put Action.parent (Just ident)
+              $ copy Action.aType
+              $ copy Action.targetGroup
+              $ copy Action.serviceId
+              $ copy Action.caseId
+              $ copy Action.callId
+              $ Patch.empty
+        aid <- dbCreate p
+        void $ logCRUDState Create aid p
+      )
 
   , trigOn Action.assignedTo $ \case
       Nothing -> return ()

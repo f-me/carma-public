@@ -54,6 +54,7 @@ mkIdents [t|ActionResult|]
  , ("supervisorClosed", 32)
  , ("partnerDelayConfirmed", 33)
  , ("partnerDelayNotConfirmed", 34)
+ , ("transferAction", 35)
  , ("callEnded", 100)
  , ("needAnotherService", 101)
  ]
