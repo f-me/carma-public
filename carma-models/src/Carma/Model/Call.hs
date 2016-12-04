@@ -57,6 +57,7 @@ metas =
     , required callTaker
     , setMeta "dictionaryType" "LoggedUsersDict" redirectTo
     , setMeta "filterBy" "role=2" redirectTo
+    , widget  "dictionary-with-btn" redirectTo
 
     , setMeta "filterBy" "active" program
 

@@ -55,6 +55,7 @@ instance Model Action where
           , infoText "defertime" deferBy
           , setMeta "dictionaryType" "LoggedUsersDict" redirectTo
           , setMeta "filterBy" "role=14" redirectTo
+          , widget  "dictionary-with-btn" redirectTo
           , setMeta "addClass" "redirectOnChange" result
           , setMeta "dictionaryType" "BoUsersDict" assignedTo
           , setMeta "dictionaryType" "ResultsDict" result

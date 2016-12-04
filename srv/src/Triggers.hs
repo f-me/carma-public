@@ -49,6 +49,7 @@ import           Data.Model.Types
 
 import           Carma.Model.Action (Action)
 import qualified Carma.Model.Action as Action
+import           Carma.Model.ActionResult (ActionResult)
 import qualified Carma.Model.ActionResult as ActionResult
 import qualified Carma.Model.ActionType as ActionType
 import qualified Carma.Model.BusinessRole as BusinessRole
@@ -286,7 +287,7 @@ beforeUpdate = Map.unionsWith (++) $
       callActs <- getIdent >>= callActionIds
       forM_ callActs $ \aid -> do
         transferAction newAss aid
-        closeCall aid
+        closeAction ActionResult.transferred aid
     )
 
   , trigOn Call.endDate $ \case
@@ -296,7 +297,7 @@ beforeUpdate = Map.unionsWith (++) $
         -- Use server time for actual endDate
         modifyPatch $ Patch.put Call.endDate $ Just now
         -- Close all associated call actions
-        getIdent >>= callActionIds >>= mapM_ closeCall
+        getIdent >>= callActionIds >>= mapM_ (closeAction ActionResult.callEnded)
 
   , trigOn ActionType.priority $
     \n -> modPut ActionType.priority $
@@ -316,8 +317,10 @@ beforeUpdate = Map.unionsWith (++) $
             getCurrentUser >>=
               (modifyPatch . Patch.put Action.assignedTo . Just)
 
-  , trigOn Action.redirectTo
-      $ maybe (return ()) ((getIdent >>=) . transferAction)
+  , trigOn Action.redirectTo $ maybe (return ()) (\newAss -> do
+        getIdent >>= closeAction ActionResult.transferred
+        getIdent >>= transferAction newAss
+      )
 
   , trigOn Action.assignedTo $ \case
       Nothing -> return ()
@@ -655,13 +658,13 @@ transferAction newAss actId = do
   void $ logCRUDState Create aid p
 
 
-closeCall :: IdentI Action -> Free (Dsl m) ()
-closeCall actId = do
+closeAction :: IdentI ActionResult -> IdentI Action -> Free (Dsl m) ()
+closeAction res actId = do
   now <- getNow
   us <- getCurrentUser
   let p = Patch.put Action.closeTime (Just now)
         $ Patch.put Action.assignedTo (Just us)
-        $ Patch.put Action.result (Just ActionResult.callEnded)
+        $ Patch.put Action.result (Just res)
         $ Patch.empty
   dbUpdate actId p
   void $ logCRUDState Update actId p
