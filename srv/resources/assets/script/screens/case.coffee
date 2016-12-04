@@ -284,12 +284,16 @@ define [ "utils"
           avm = main.modelSetup("Action") view, {id: aid},
             slotsee: [view + "-link"]
             parent: kvm
-          # Redirect to backoffice when an action result changes
+          # Redirect to backoffice when action result changes
           avm["resultSync"]?.subscribe (nv) ->
             # Don't redirect to backoffice if action result was set with
             # 'anotherPSA' button
             if !nv && avm.result__ != ActionResult.needAnotherService
               window.location.hash = "back"
+          # Redirect to backoffice when action transferred
+          avm["redirectToSync"]?.subscribe (nv) ->
+            # redirect to backoffice if action result was set with
+            window.location.hash = "back"
           avm["result"]?.subscribe (res) ->
             avm.result__ = res
           # There's no guarantee who renders first (services or
