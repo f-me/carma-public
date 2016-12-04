@@ -234,6 +234,7 @@ afterCreate = Map.unionsWith (++) $
               Patch.empty
       aid <- dbCreate p
       logCRUDState Create aid p
+
   , trigOnModel ([]::[PartnerDelay]) $ do
     delayId <- getIdent
     doApp $ liftPG $ \pg ->
@@ -280,25 +281,22 @@ beforeUpdate = Map.unionsWith (++) $
       roles <- (`get'` BusinessRole.roles) <$> dbRead bRole
       modPut Usermeta.roles roles
 
+  , trigOn Call.redirectTo $ maybe (return ()) (\newAss -> do
+      modifyPatch $ Patch.put Call.redirectTo Nothing
+      callActs <- getIdent >>= callActionIds
+      forM_ callActs $ \aid -> do
+        transferAction newAss aid
+        closeCall aid
+    )
+
   , trigOn Call.endDate $ \case
       Nothing -> return ()
       Just _ -> do
         now <- getNow
-        us <- getCurrentUser
         -- Use server time for actual endDate
         modifyPatch $ Patch.put Call.endDate $ Just now
         -- Close all associated call actions
-        callActs <- getIdent >>= callActionIds
-        forM_ callActs $
-          \aid ->
-            let
-              p = Patch.put Action.closeTime (Just now) $
-                  Patch.put Action.assignedTo (Just us) $
-                  Patch.put Action.result (Just ActionResult.callEnded) $
-                  Patch.empty
-            in
-              dbUpdate aid p >> logCRUDState Update aid p
-
+        getIdent >>= callActionIds >>= mapM_ closeCall
 
   , trigOn ActionType.priority $
     \n -> modPut ActionType.priority $
@@ -318,29 +316,8 @@ beforeUpdate = Map.unionsWith (++) $
             getCurrentUser >>=
               (modifyPatch . Patch.put Action.assignedTo . Just)
 
-  , trigOn Action.redirectTo $ maybe (return ())
-      (\newAssignee -> do
-        ident <- getIdent
-        act <- dbRead ident
-        now <- getNow
-        let copy :: (Typeable t, SingI name)
-                 => (Action -> Field t (FOpt name desc app))
-                 -> Patch Action -> Patch Action
-            copy f = Patch.put f (Patch.get' act f)
-        let p = Patch.put Action.ctime now
-              $ Patch.put Action.assignTime (Just now)
-              $ Patch.put Action.duetime (addUTCTime (1 * BO.minutes) now)
-              $ Patch.put Action.assignedTo (Just newAssignee)
-              $ Patch.put Action.parent (Just ident)
-              $ copy Action.aType
-              $ copy Action.targetGroup
-              $ copy Action.serviceId
-              $ copy Action.caseId
-              $ copy Action.callId
-              $ Patch.empty
-        aid <- dbCreate p
-        void $ logCRUDState Create aid p
-      )
+  , trigOn Action.redirectTo
+      $ maybe (return ()) ((getIdent >>=) . transferAction)
 
   , trigOn Action.assignedTo $ \case
       Nothing -> return ()
@@ -652,6 +629,42 @@ fillWazzup wi = do
           Patch.put Case.diagnosis3 (f Wazzup.cause) .
           Patch.put Case.diagnosis4 (f Wazzup.suggestion)
   modifyPatch p
+
+
+-- | transfer action to another user
+transferAction :: IdentI Usermeta -> IdentI Action -> Free (Dsl m) ()
+transferAction newAss actId = do
+  act <- dbRead actId
+  now <- getNow
+  let copy :: (Typeable t, SingI name)
+           => (Action -> Field t (FOpt name desc app))
+           -> Patch Action -> Patch Action
+      copy f = Patch.put f (Patch.get' act f)
+  let p = Patch.put Action.ctime now
+        $ Patch.put Action.assignTime (Just now)
+        $ Patch.put Action.duetime (addUTCTime (1 * BO.minutes) now)
+        $ Patch.put Action.assignedTo (Just newAss)
+        $ Patch.put Action.parent (Just actId)
+        $ copy Action.aType
+        $ copy Action.targetGroup
+        $ copy Action.serviceId
+        $ copy Action.caseId
+        $ copy Action.callId
+        $ Patch.empty
+  aid <- dbCreate p
+  void $ logCRUDState Create aid p
+
+
+closeCall :: IdentI Action -> Free (Dsl m) ()
+closeCall actId = do
+  now <- getNow
+  us <- getCurrentUser
+  let p = Patch.put Action.closeTime (Just now)
+        $ Patch.put Action.assignedTo (Just us)
+        $ Patch.put Action.result (Just ActionResult.callEnded)
+        $ Patch.empty
+  dbUpdate actId p
+  void $ logCRUDState Update actId p
 
 
 -- | Change a field in the patch.

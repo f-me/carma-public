@@ -221,9 +221,12 @@ callActionIds :: IdentI Call.Call
               -> Free (Dsl m) [IdentI Action.Action]
 callActionIds cid =
   liftFree $
-  DbIO (Sql.select (Action.ident :.
-                    Action.callId `Sql.eq` (Just cid))) $
-  map (\(PS.Only x :. ()) -> x)
+  DbIO (Sql.select
+    (  Action.ident
+    :. Action.callId `Sql.eq` Just cid
+    :. Sql.isNull Action.result
+    ))
+    $ map (\(PS.Only x :. _) -> x)
 
 
 getCityWeather :: Text -> Free (Dsl m) (Either String Weather)
