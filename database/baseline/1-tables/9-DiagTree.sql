@@ -17,6 +17,18 @@ grant all on "DiagHistory" to carma_db_sync;
 grant all on "DiagHistory_id_seq" to carma_db_sync;
 
 
+insert into "FieldPermission" (role, model, field, r, w) values
+  (1, 'DiagHistory', 'ctime',    true, false)
+, (1, 'DiagHistory', 'owner',    true, true)
+, (1, 'DiagHistory', 'caseId',   true, true)
+, (1, 'DiagHistory', 'slideId',  true, true)
+, (1, 'DiagHistory', 'question', true, true)
+, (1, 'DiagHistory', 'answer',   true, true)
+, (1, 'DiagHistory', 'isFinal',  true, true)
+;
+
+
+
 drop table if exists "DiagSlide";
 create table "DiagSlide"
   ( id serial primary key
@@ -34,3 +46,12 @@ insert into "DiagSlide"
 
 grant all on "DiagSlide" to carma_db_sync;
 grant all on "DiagSlide_id_seq" to carma_db_sync;
+
+
+insert into "FieldPermission" (role, model, field, r, w) values
+  (1, 'DiagSlide', 'header', true, true)
+, (1, 'DiagSlide', 'body', true, true)
+, (1, 'DiagSlide', 'resources', true, true)
+, (1, 'DiagSlide', 'answers', true, true)
+, (1, 'DiagSlide', 'isRoot', true, true)
+;

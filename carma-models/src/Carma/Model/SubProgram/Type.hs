@@ -24,8 +24,9 @@ import Data.Model
 
 import Carma.Model.Types (IdentList)
 import Carma.Model.LegacyTypes (Reference)
-import Carma.Model.Program hiding (ident)
-import Carma.Model.ServiceType hiding (ident)
+import Carma.Model.Program (Program)
+import Carma.Model.ServiceType (ServiceType)
+import Carma.Model.DiagSlide (DiagSlide)
 
 
 data SubProgram = SubProgram
@@ -46,6 +47,9 @@ data SubProgram = SubProgram
   , synonyms    :: F (Maybe (Vector Text))
                    "synonyms"
                    "Синонимы"
+  , diagTree    :: F (Maybe (IdentI DiagSlide))
+                   "diagTree"
+                   "Тип дерева неисправностей"
   , mailAddr    :: F (Maybe Text)
                    "mailAddr"
                    "Mail для отправки писем"
