@@ -163,8 +163,8 @@ include _form_utils.pug
               data-bind="checked: {{ name }},\
                          valueUpdate: 'change',\
                          disabled: {{ name }}Disabled")
-        span.btn.btn-success(data-bind='disabled: {{ name }}Disabled',
-                             onclick='successfulSave.call(this);')
+        span.btn.btn-success(
+          data-bind='disabled: {{ name }}Disabled')
           | {{ meta.label }}
         span.save-result
 

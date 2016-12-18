@@ -128,6 +128,9 @@ define [ "search/screen"
           kvm["always_true"] = true
         if kvm["always_true"] and !dupe
           kvm["dixi"] true
+          if v
+            kvm._meta.q.save ->
+              $.notify("Контракт успешно сохранён", className: "success")
         global.searchVM?._meta.q.search()
 
       unless kvm["dixi"]()
@@ -149,6 +152,7 @@ define [ "search/screen"
               else
                 dupe = true
                 kvm["dixi"](false)
+
 
     contract.subscribe (c) ->
       if _.isNumber(c)
