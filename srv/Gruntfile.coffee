@@ -130,7 +130,7 @@ module.exports = (grunt) ->
     finch:      {src: 'finchjs',         file: 'finch.min.js'}
     jquery:     {src: 'jquery/dist',     file: 'jquery.js'}
     knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
-    notify:     {src: 'notifyjs/dist',   file: 'notify.js'}
+    notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
     spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
     'bootstrap-daterangepicker':
       src: 'bootstrap-daterangepicker'
