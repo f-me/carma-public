@@ -135,11 +135,13 @@ beforeCreate = Map.unionsWith (++)
     -- Set checkPeriod and validUntil from the subprogram. Remember to
     -- update vinnie_queue triggers when changing these!
     s <- getPatchField Contract.subprogram
-    cp <- getPatchField Contract.checkPeriod
-    case (s, cp) of
-      (Just (Just s'), Nothing) -> do
+    case s of
+      Just (Just s') -> do
         sp <- dbRead s'
-        modPut Contract.checkPeriod (sp `get'` SubProgram.checkPeriod)
+        modPut Contract.make (sp `get'` SubProgram.defaultMake)
+        getPatchField Contract.checkPeriod >>= \case
+          Nothing -> modPut Contract.checkPeriod (sp `get'` SubProgram.checkPeriod)
+          _       -> return ()
       _ -> return ()
     since <- getPatchField Contract.validSince
     until <- getPatchField Contract.validUntil

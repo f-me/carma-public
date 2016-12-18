@@ -24,8 +24,9 @@ import Data.Model
 
 import Carma.Model.Types (IdentList)
 import Carma.Model.LegacyTypes (Reference)
-import Carma.Model.Program hiding (ident)
-import Carma.Model.ServiceType hiding (ident)
+import Carma.Model.Program (Program)
+import Carma.Model.ServiceType (ServiceType)
+import Carma.Model.CarMake (CarMake)
 
 
 data SubProgram = SubProgram
@@ -64,6 +65,9 @@ data SubProgram = SubProgram
   , validFor    :: F (Maybe Int)
                    "validFor"
                    "Срок действия программы по умолчанию"
+  , defaultMake :: F (Maybe (IdentI CarMake))
+                   "defaultMake"
+                   "Марка в Портале"
   , smsSender   :: F Text
                    "smsSender"
                    "Отправитель SMS"
