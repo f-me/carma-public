@@ -18,7 +18,7 @@ html
           версии не ниже <b>50</b>. При работе с другими браузерами \
           функциональность может быть ограничена.                   \
         </div>";
-        if (!($.browser.webkit && $.browser.versionNumber > 50)) {
+        if (!($.browser.webkit && $.browser.versionNumber >= 50)) {
           $("#browser-msg").html(msg);
         }
       })
