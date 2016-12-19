@@ -91,6 +91,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method GET $ repTowagesHandler)
          , ("/renderContract",
                               chkAuth . method GET    $ renderContractHandler)
+         , ("/contracts/copy/:id",
+                              chkAuth . method POST   $ copyContract)
          , ("contracts/findSame",
                               chkAuth . method GET    $ findSameContract)
          , ("/searchContracts",

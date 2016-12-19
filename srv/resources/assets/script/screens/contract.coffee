@@ -131,7 +131,13 @@ define [ "search/screen"
           if v
             kvm._meta.q.save ->
               $.notify("Контракт успешно сохранён", className: "success")
+              $("#renew-contract-btn").show()
         global.searchVM?._meta.q.search()
+
+      if kvm.dixi()
+        $("#renew-contract-btn").show()
+      else
+        $("#renew-contract-btn").hide()
 
       unless kvm["dixi"]()
         # When creating new contracts, check contract duplicates upon
@@ -170,6 +176,15 @@ define [ "search/screen"
     $("#new-contract-btn").click () ->
       contract null
       openContract contract()
+
+    # Renew existing contract
+    $("#renew-contract-btn").click () ->
+      $.ajax
+        type: 'POST'
+        url: "/contracts/copy/#{contract()}"
+        success: (res) ->
+          redirect "contract/#{subprogram}/#{res.id}"
+          openContract res.id
 
     $.getJSON "/cfg/model/#{contractModel}&field=showtable&view=portalSearch", (Search) ->
       $.getJSON "/cfg/model/#{contractModel}&field=showtable", (Table) ->

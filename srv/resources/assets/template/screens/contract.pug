@@ -38,10 +38,14 @@
       .row.col-md-12
         a#new-contract-btn.btn.btn-default(type='button')
           span.glyphicon.glyphicon-plus
-          | Добавить контракт
+          | &nbsp; Добавить контракт
+        | &nbsp;
+        a#renew-contract-btn.btn.btn-default(
+          style='display: none', type='button')
+          | Продлить контракт
       .row.col-md-12
         span.glyphicon.glyphicon-print
-        b Распечатать: &nbsp;
+        b &nbsp; Распечатать: &nbsp;
         a#render-contract(onclick='return false;', href='#', target='_blank')
           | Договор.pdf
       .row.col-md-12
