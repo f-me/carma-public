@@ -353,6 +353,28 @@ beforeUpdate = Map.unionsWith (++) $
                when (oldSince /= Just newSince) $ fillValidUntil s' newSince
              _ -> return ()
 
+
+  -- Copy some data form prev contract
+  , trigOn Contract.vin $ \case
+      Just vin | T.length vin >= 17 -> do
+        cId <- getIdent
+        prototypeId <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
+          [sql|
+            select c2.id
+              from "Contract" c1, "Contract" c2
+              where c2.dixi
+                and c1.subprogram is not null
+                and c1.subprogram = c2.subprogram
+                and c1.id <> c2.id
+                and c1.id = $(cId)$
+                and c2.vin = upper($(vin)$)
+              order by c2.ctime desc
+              limit 1
+          |]
+        mapM_ (copyFromContract . head) prototypeId
+      _ -> return ()
+
+
   , trigOn Case.car_plateNum $ \case
       Nothing -> return ()
       Just val ->
@@ -608,6 +630,44 @@ copyContractToCase subProgId contract = do
           then Patch.put caseFld new . fn
           else fn)
     id contractToCase
+
+
+copyFromContract :: IdentI Contract -> Free (Dsl Contract) ()
+copyFromContract cId = do
+  currentCtr <- getIdent >>= dbRead
+  protoCtr   <- dbRead cId
+  let cp :: FieldI t n d
+         => (Contract -> Field (Maybe t) (FOpt n d a))
+         -> Patch Contract -> Patch Contract
+      cp f = maybe (Patch.put f (get' protoCtr f)) (const id) $ get' currentCtr f
+  modifyPatch
+    $ cp Contract.name
+    . cp Contract.email
+    . cp Contract.cardNumber
+    . cp Contract.codeWord
+    . cp Contract.phone
+    . cp Contract.plateNum
+    . cp Contract.startMileage
+    . cp Contract.make
+    . cp Contract.model
+    . cp Contract.makeYear
+    . cp Contract.carClass
+    . cp Contract.color
+    . cp Contract.transmission
+    . cp Contract.engineVolume
+    . cp Contract.engineType
+    . cp Contract.buyDate
+    . cp Contract.seller
+    . cp Contract.registrationReason
+    . cp Contract.priceInOrder
+    . cp Contract.lastCheckDealer
+    . cp Contract.checkPeriod
+    . cp Contract.checkType
+    . cp Contract.orderNumber
+    . cp Contract.managerName
+    . cp Contract.comment
+    . cp Contract.legalForm
+
 
 -- | Set @validUntil@ field from a subprogram and a new @validSince@
 -- value.
