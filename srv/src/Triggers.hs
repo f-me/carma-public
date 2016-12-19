@@ -401,12 +401,15 @@ beforeUpdate = Map.unionsWith (++) $
 
   , trigOn Case.caseAddress_city $ \case
       Nothing -> return ()
-      Just city ->
-        do
-          cp <- dbRead city
-          w <- getCityWeather (cp `get'` City.value)
-          let temp = either (const $ Just "") (Just . T.pack . show . tempC) w
-          modifyPatch (Patch.put Case.temperature temp)
+      Just city -> do
+        cp <- dbRead city
+        let cityVal = cp `get'` City.value
+        getCityWeather cityVal >>= \case
+          Left err -> doApp $ syslogJSON Warning
+            "getWeather" ["city" .= cityVal, "error" .= err]
+          Right temp -> do
+            let temp' = Just $ T.pack $ show $ tempC temp
+            modifyPatch $ Patch.put Case.temperature temp'
 
   , trigOn Case.contract $ \case
       Nothing -> do
