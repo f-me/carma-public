@@ -132,7 +132,7 @@ define [ "search/screen"
             kvm._meta.q.save ->
               $.notify("Контракт успешно сохранён", className: "success")
               $("#renew-contract-btn").show()
-        global.searchVM?._meta.q.search()
+              global.searchVM?._meta.q.search()
 
       if kvm.dixi()
         $("#renew-contract-btn").show()
