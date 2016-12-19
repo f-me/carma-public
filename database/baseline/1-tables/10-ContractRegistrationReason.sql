@@ -8,6 +8,9 @@ insert into "ContractRegistrationReason" (id, label) values
   (1, 'ТО'),
   (2, 'Ремонт свыше 10000р.');
 
+select setval(pg_get_serial_sequence('"ContractRegistrationReason"', 'id'), max(id))
+  from "ContractRegistrationReason";
+
 insert into "FieldPermission" (role, model, field, r, w) values
   (6, 'ContractRegistrationReason', 'id',    true, true)
 , (6, 'ContractRegistrationReason', 'label', true, true)
