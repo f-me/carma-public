@@ -283,6 +283,8 @@ contractSearchParams =
      , FA startMileage
      , FA checkPeriod
      , FA makeYear
+     , FA registrationReason
+     , FA priceInOrder
      ]) ++
     (map (\p@(FA f) -> (fieldNameE p, fuzzy $ one $ f)) $
      identifiers ++
