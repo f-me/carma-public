@@ -235,6 +235,7 @@ commonMeta =
     , regexp regexpPlateNum plateNum
     , regexp regexpVIN vin
     , widget "checkbutton" dixi
+    , widget "contract_isActive" isActive
     ]
 
 

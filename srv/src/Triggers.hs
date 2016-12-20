@@ -130,6 +130,7 @@ beforeCreate = Map.unionsWith (++)
     getCurrentUser >>= modPut CaseComment.author
 
   , trigOnModel ([]::[Contract.Contract]) $ do
+    modPut Contract.isActive True
     getCurrentUser >>= modPut Contract.committer
     getNow >>= modPut Contract.ctime
     -- Set checkPeriod and validUntil from the subprogram. Remember to
@@ -374,6 +375,24 @@ beforeUpdate = Map.unionsWith (++) $
         mapM_ (copyFromContract . head) prototypeId
       _ -> return ()
 
+  , trigOn Contract.isActive $ \v -> do
+      cId <- getIdent
+      uId <- getCurrentUser
+      [[canChange]] <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
+        [sql|
+          select (c.dixi = false)
+              or (20 = ANY(u.roles))
+              or (c.ctime + interval '24 hours' < now()
+                and c.subprogram = ANY(u.subprograms))
+            from "Contract" c, usermetatbl u
+            where c.id = $(cId)$
+              and u.id = $(uId)$
+        |]
+      when (not canChange) $ do
+        currentCtr <- getIdent >>= dbRead
+        modifyPatch
+          $ Patch.put Contract.isActive
+            $ get' currentCtr Contract.isActive
 
   , trigOn Case.car_plateNum $ \case
       Nothing -> return ()

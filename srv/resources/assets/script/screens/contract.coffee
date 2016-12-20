@@ -112,6 +112,12 @@ define [ "search/screen"
         (r) -> r == global.idents("Role").partner)
       if is_partner
         kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
+
+        ctime = moment(kvm.ctime(), 'DD.MM.YYYY HH:mm:ss')
+        ctime = ctime.add(moment.duration(24, 'hours')).format()
+        if kvm.dixi() and moment().format() > ctime
+          kvm['isActiveDisableDixi'](false)
+
       if _.find(global.user.roles,
         (r) -> r == global.idents("Role").contract_admin)
         kvm['disableDixi'](true)
