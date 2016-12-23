@@ -112,6 +112,12 @@ define [ "search/screen"
         (r) -> r == global.idents("Role").partner)
       if is_partner
         kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
+
+        ctime = moment(kvm.ctime(), 'DD.MM.YYYY HH:mm:ss')
+        ctime = ctime.add(moment.duration(24, 'hours')).format()
+        if kvm.dixi() and moment().format() > ctime
+          kvm['isActiveDisableDixi'](false)
+
       if _.find(global.user.roles,
         (r) -> r == global.idents("Role").contract_admin)
         kvm['disableDixi'](true)
@@ -128,7 +134,16 @@ define [ "search/screen"
           kvm["always_true"] = true
         if kvm["always_true"] and !dupe
           kvm["dixi"] true
-        global.searchVM?._meta.q.search()
+          if v
+            kvm._meta.q.save ->
+              $.notify("Контракт успешно сохранён", className: "success")
+              $("#renew-contract-btn").show()
+              global.searchVM?._meta.q.search()
+
+      if kvm.dixi()
+        $("#renew-contract-btn").show()
+      else
+        $("#renew-contract-btn").hide()
 
       unless kvm["dixi"]()
         # When creating new contracts, check contract duplicates upon
@@ -150,6 +165,7 @@ define [ "search/screen"
                 dupe = true
                 kvm["dixi"](false)
 
+
     contract.subscribe (c) ->
       if _.isNumber(c)
         # Redirect to contract URL (does not cause actual reload due
@@ -166,6 +182,15 @@ define [ "search/screen"
     $("#new-contract-btn").click () ->
       contract null
       openContract contract()
+
+    # Renew existing contract
+    $("#renew-contract-btn").click () ->
+      $.ajax
+        type: 'POST'
+        url: "/contracts/copy/#{contract()}"
+        success: (res) ->
+          redirect "contract/#{subprogram}/#{res.id}"
+          openContract res.id
 
     $.getJSON "/cfg/model/#{contractModel}&field=showtable&view=portalSearch", (Search) ->
       $.getJSON "/cfg/model/#{contractModel}&field=showtable", (Table) ->
@@ -189,13 +214,3 @@ define [ "search/screen"
 
           # Make subprogram label bold
           $(".control-label label").first().css("font-weight", "bold")
-
-          w = $(window).height()
-          gap = 20
-
-          # Limit maximum height of portal screen containers
-          t = $("#sidebar-content").offset().top
-          $("#sidebar-content").height(w - t - gap)
-
-          t = $("#main-content").offset().top
-          $("#main-content").height(w - t - gap)

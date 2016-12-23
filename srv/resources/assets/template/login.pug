@@ -12,15 +12,15 @@ html
 
     script(type='text/javascript').
       $(function() {
-      $(".field").first().focus();
-      var msg = "<div class='span6 offset2'>                             \
-      Для использования системы необходим браузер Google chrome          \
-      версии не ниже 10, установить его можно по следующей ссылке:       \
-      <a href='http://www.google.com/chrome'> www.google.com/chrome </a> \
-      </div>";
-      if (!$.browser.mozilla && !$.browser.webkit) {
-      $("body").html(msg);
-      }
+        $(".field").first().focus();
+        var msg = "<div class='span6 offset2'>                      \
+          Рекомендуется использовать браузер <b>Google Chrome</b>   \
+          версии не ниже <b>50</b>. При работе с другими браузерами \
+          функциональность может быть ограничена.                   \
+        </div>";
+        if (!($.browser.webkit && $.browser.versionNumber >= 50)) {
+          $("#browser-msg").html(msg);
+        }
       })
   body
     .row
@@ -48,3 +48,4 @@ html
             .form-group
               .col-sm-offset-4.col.sm-8
                 button.btn.btn-large.btn-success(type='submit') Войти
+        .box#browser-msg

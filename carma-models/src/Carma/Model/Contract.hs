@@ -20,7 +20,7 @@ import Data.Time.Calendar (Day)
 import Data.Time.Clock (UTCTime)
 import Data.Text (Text)
 import Data.Typeable
-
+import Data.Scientific (Scientific)
 import Data.Singletons
 
 import Database.PostgreSQL.Simple.FromField (FromField)
@@ -42,6 +42,7 @@ import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
 import Carma.Model.Usermeta     as Usermeta (Usermeta, realName)
 import Carma.Model.Engine       (Engine)
+import Carma.Model.ContractRegistrationReason (ContractRegistrationReason)
 
 
 -- | Transparent 'Day' wrapper so that @typeOf WDay@ points to this
@@ -140,6 +141,13 @@ data Contract = Contract
   , seller           :: F (Maybe (IdentI Partner))
                         "seller"
                         "Дилер, продавший автомобиль"
+  , registrationReason
+                     :: F (Maybe (IdentI ContractRegistrationReason))
+                        "registrationReason"
+                        "Основание для регистрации в программе"
+  , priceInOrder     :: F (Maybe Scientific)
+                        "priceInOrder"
+                        "Стоимость в заказ-наряде"
   , lastCheckDealer  :: F (Maybe (IdentI Partner))
                         "lastCheckDealer"
                         "Дилер, у которого проходило последнее ТО"
@@ -227,6 +235,7 @@ commonMeta =
     , regexp regexpPlateNum plateNum
     , regexp regexpVIN vin
     , widget "checkbutton" dixi
+    , widget "contract_isActive" isActive
     ]
 
 
@@ -274,6 +283,8 @@ contractSearchParams =
      , FA startMileage
      , FA checkPeriod
      , FA makeYear
+     , FA registrationReason
+     , FA priceInOrder
      ]) ++
     (map (\p@(FA f) -> (fieldNameE p, fuzzy $ one $ f)) $
      identifiers ++

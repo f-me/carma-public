@@ -163,10 +163,18 @@ include _form_utils.pug
               data-bind="checked: {{ name }},\
                          valueUpdate: 'change',\
                          disabled: {{ name }}Disabled")
-        span.btn.btn-success(data-bind='disabled: {{ name }}Disabled',
-                             onclick='successfulSave.call(this);')
+        span.btn.btn-success(
+          data-bind='disabled: {{ name }}Disabled')
           | {{ meta.label }}
         span.save-result
+
+#contract_isActive-field-template.field-template(type='text/template')
+  .form-group(data-bind="visible: {{name}}Visible")
+    .col-sm-4
+    label.col-sm-8.control-label(style="text-align: left")
+      +checkboxField("{{ name }}")
+      span(data-bind="visible: {{name}}Disabled() && {{name}}()")
+        | Для деактивации контракта обратитесь к куратору программы
 
 // // OpenLayers map container field
 #map-field-template.field-template(type='text/template')
