@@ -95,6 +95,19 @@ include _form_utils.pug
 .field-template#dictionary-many-field-template
   +dictMany("Many", "glyphicon-chevron-down")
 
+.field-template#dictionary-with-btn-field-template
+  .form-group.has-feedback(data-bind="css: { 'has-error': {{name}}Not }, \
+                                      visible: {{name}}Visible \
+                                     ")
+    label.col-sm-4.control-label
+      +labelWithInfo("{{name}}")
+    .col-sm-8
+      .input-group.input-group-sm
+        +dictInputChevron("Local", "glyphicon-chevron-down")
+        span.input-group-addon.btn-success(
+            data-bind="click: {{name}}BtnClick, disabled: {{name}}BtnDisabled")
+          span.glyphicon.glyphicon-share-alt
+
 //- Picker which fills fields with stored data
 .field-template#picker-field-template
   +fieldControlGroup
@@ -150,10 +163,18 @@ include _form_utils.pug
               data-bind="checked: {{ name }},\
                          valueUpdate: 'change',\
                          disabled: {{ name }}Disabled")
-        span.btn.btn-success(data-bind='disabled: {{ name }}Disabled',
-                             onclick='successfulSave.call(this);')
+        span.btn.btn-success(
+          data-bind='disabled: {{ name }}Disabled')
           | {{ meta.label }}
         span.save-result
+
+#contract_isActive-field-template.field-template(type='text/template')
+  .form-group(data-bind="visible: {{name}}Visible")
+    .col-sm-4
+    label.col-sm-8.control-label(style="text-align: left")
+      +checkboxField("{{ name }}")
+      span(data-bind="visible: {{name}}Disabled() && {{name}}()")
+        | Для деактивации контракта обратитесь к куратору программы
 
 // // OpenLayers map container field
 #map-field-template.field-template(type='text/template')

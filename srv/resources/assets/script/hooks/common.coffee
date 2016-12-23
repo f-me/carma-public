@@ -23,6 +23,9 @@ define [ "utils"
         parent     = f.meta.dictionaryParent
         bounded    = f.meta.bounded
         dictType   = f.meta.dictionaryType
+        saveOnBtn  = f.meta.widget == "dictionary-with-btn"
+        kvm["#{fieldName}Value"] = ko.observable()
+        kvmF = if saveOnBtn then kvm["#{fieldName}Value"] else kvm[fieldName]
 
         dict = d.dictFromMeta kvm, f.meta
         # Perform label-value transformation
@@ -30,7 +33,7 @@ define [ "utils"
           ko.computed
             read: ->
               # Read label by real value
-              val = kvm[fieldName]()
+              val = kvmF()
               lab = dict.getLab(val)
               return (lab || val)
             write: (lab) ->
@@ -39,8 +42,8 @@ define [ "utils"
               val = dict.getVal(lab)
               # drop value if can't find one for bounded dict
               if bounded and not val
-              then  kvm[fieldName]("")
-              else  kvm[fieldName](val || lab)
+              then  kvmF ""
+              else  kvmF(val || lab)
 
         kvm[fieldName].local = kvm["#{fieldName}Local"]
         # FIXME: this shouldn't rewrite existing observable
@@ -50,11 +53,19 @@ define [ "utils"
         # and in the main section, and we need to have
         # different instances of thMenu for them
         thmenuInit kvm, fieldName, dict, (v) ->
-          kvm[fieldName](dict.id2val(v))
-          kvm[fieldName].valueHasMutated()
+          kvmF(dict.id2val(v))
+          kvmF.valueHasMutated()
 
         # dict.disabled = kvm["#{fieldName}Disabled"]()
         kvm["#{fieldName}Disabled"].subscribe (v) -> dict.disabled = v
+
+        if saveOnBtn
+          kvm["#{fieldName}BtnDisabled"] = ko.computed -> not kvmF()
+          kvm["#{fieldName}BtnClick"] = ->
+            val = kvmF()
+            if val
+              kvm[fieldName] val
+              kvm._meta.q.save -> Finch.navigate 'back'
 
   regexpKbHook: (model, kvm) ->
     # Set observable with name <fieldName>Regexp for inverse of

@@ -1,0 +1,40 @@
+name:                carma-http
+version:             0.5.0.5
+synopsis:            Access local CaRMa using HTTP API
+description:         Interface to create/read/update/delete
+                     operations of CaRMa HTTP API.
+license:             BSD3
+license-file:        LICENSE
+author:              Dmitry Dzhus
+maintainer:          dima@dzhus.org
+category:            Network
+build-type:          Simple
+cabal-version:       >=1.8
+
+library
+  ghc-options: -Wall
+  hs-source-dirs: src
+
+  exposed-modules:
+    Carma.HTTP,
+    Carma.HTTP.Base,
+    Carma.HTTP.New
+
+  other-modules:
+    Carma.HTTP.Util
+
+  build-depends:
+    aeson,
+    base,
+    bytestring,
+    carma-dict,
+    carma-models,
+    containers,
+    HTTP,
+    lens,
+    network,
+    network-uri,
+    text,
+    transformers,
+    unordered-containers,
+    vector

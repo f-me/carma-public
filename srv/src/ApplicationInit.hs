@@ -93,6 +93,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method GET $ repTowagesHandler)
          , ("/renderContract",
                               chkAuth . method GET    $ renderContractHandler)
+         , ("/contracts/copy/:id",
+                              chkAuth . method POST   $ copyContract)
          , ("contracts/findSame",
                               chkAuth . method GET    $ findSameContract)
          , ("/searchContracts",
@@ -120,6 +122,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/rkc/weather",   chkAuthLocal . method GET $ rkcWeatherHandler)
          , ("/rkc/partners",  chkAuthLocal . method GET $ rkcPartners)
          , ("/boUsers",       chkAuth . method GET  $ boUsers)
+         , ("/loggedUsers",   chkAuth . method GET  $ loggedUsers)
          , ("/dealers/:make", chkAuth . method GET  $ allDealersForMake)
          , ("/vin/upload",    chkAuth . method POST $ vinImport)
          , ("copyCtrOptions", chkAuth . method POST $ copyCtrOptions)

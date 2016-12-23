@@ -284,7 +284,7 @@ define [ "utils"
           avm = main.modelSetup("Action") view, {id: aid},
             slotsee: [view + "-link"]
             parent: kvm
-          # Redirect to backoffice when an action result changes
+          # Redirect to backoffice when action result changes
           avm["resultSync"]?.subscribe (nv) ->
             # Don't redirect to backoffice if action result was set with
             # 'anotherPSA' button
