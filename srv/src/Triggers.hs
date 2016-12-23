@@ -382,12 +382,14 @@ beforeUpdate = Map.unionsWith (++) $
         [sql|
           select (c.dixi = false)
               or (20 = ANY(u.roles))
-              or (c.ctime + interval '24 hours' < now()
+              or (c.ctime + interval '24 hours' > now()
                 and c.subprogram = ANY(u.subprograms))
             from "Contract" c, usermetatbl u
             where c.id = $(cId)$
               and u.id = $(uId)$
         |]
+      when canChange $ do
+        modifyPatch $ Patch.put Contract.isActive v
       when (not canChange) $ do
         currentCtr <- getIdent >>= dbRead
         modifyPatch
