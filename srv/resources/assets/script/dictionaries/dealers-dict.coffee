@@ -27,3 +27,4 @@ define ["dictionaries/local-dict", ], (ld) ->
         res
 
   dict: DealersDict
+  name: 'DealersDict'

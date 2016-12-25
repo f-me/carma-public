@@ -12,3 +12,4 @@ define ["dictionaries/local-dict"], (ld) ->
       super
 
   dict: LoggedUsersDict
+  name: 'LoggedUsersDict'

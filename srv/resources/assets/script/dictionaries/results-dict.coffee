@@ -34,3 +34,4 @@ define ['dictionaries/local-dict',], (ld) ->
     getLab: (val) -> (@allValuesMap || @dictValues())[val]
 
   dict: ResultsDict
+  name: 'ResultsDict'
