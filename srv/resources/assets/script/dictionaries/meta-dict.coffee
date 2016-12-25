@@ -14,3 +14,4 @@ define ["lib/ajax"], (Ajax)->
     id2val: _.identity
 
   dict: MetaDict
+  name: 'MetaDict'
