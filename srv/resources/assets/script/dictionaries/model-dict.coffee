@@ -72,3 +72,4 @@ define ['dictionaries/local-dict',], (ld) ->
       @dictValueCache
 
   dict: ModelDict
+  name: 'ModelDict'

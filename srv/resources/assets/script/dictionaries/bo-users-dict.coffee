@@ -13,3 +13,4 @@ define ["dictionaries/local-dict"], (ld) ->
       super
 
   dict: BoUsersDict
+  name: 'BoUsersDict'

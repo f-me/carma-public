@@ -12,7 +12,7 @@ define [ "dictionaries/local-dict"
 
   dicts = {}
   for a in arguments when a.dict?
-    dicts[a.dict.name] = a.dict
+    dicts[a.name] = a.dict
 
   dicts: dicts
   dictFromMeta: (kvm, meta) ->
