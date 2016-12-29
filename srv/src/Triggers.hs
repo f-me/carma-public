@@ -362,10 +362,11 @@ beforeUpdate = Map.unionsWith (++) $
         prototypeId <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
           [sql|
             select c2.id
-              from "Contract" c1, "Contract" c2
+              from "Contract" c1, "Contract" c2, "SubProgram" s1, "SubProgram" s2
               where c2.dixi
-                and c1.subprogram is not null
-                and c1.subprogram = c2.subprogram
+                and c1.subprogram = s1.id
+                and c2.subprogram = s2.id
+                and s1.parent = s2.parent
                 and c1.id <> c2.id
                 and c1.id = $(cId)$
                 and c2.vin = upper($(vin)$)
