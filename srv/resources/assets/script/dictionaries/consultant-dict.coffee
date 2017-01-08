@@ -41,3 +41,4 @@ define ["dictionaries/meta-dict"], (m) ->
     getLab: (v) -> window.global.dictionaries.users.byId[v]?.label
 
   dict: ConsultantDict
+  name: 'ConsultantDict'

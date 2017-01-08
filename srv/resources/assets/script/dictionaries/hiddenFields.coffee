@@ -22,3 +22,4 @@ define ["dictionaries/local-dict"], (ld) ->
     getLab: (val) -> @dictValues()[val]
 
   dict: HiddenFieldsDict
+  name: 'HiddenFieldsDict'

@@ -12,6 +12,7 @@ CREATE TABLE "SubProgram"
   , services int4[] NOT NULL DEFAULT '{}' -- ELEMENT REFERENCES SubProgramService
   , checkPeriod integer
   , validFor integer
+  , defaultMake int REFERENCES "CarMake"(id)
   , smsSender text NOT NULL DEFAULT 'RAMC' CHECK (smsSender <> '')
   , smsContact text NOT NULL DEFAULT '+78002507262' CHECK (smsContact <> '')
   , smsProgram text NOT NULL DEFAULT 'РАМК' CHECK (smsProgram <> '')

@@ -111,3 +111,4 @@ define ["dictionaries/local-dict"], (ld) ->
       @source = _.map vals, ([v, c], k) -> {label: v, value: k, color: c}
 
   dict: ComputedDict
+  name: 'ComputedDict'

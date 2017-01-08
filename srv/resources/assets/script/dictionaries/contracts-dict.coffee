@@ -141,3 +141,4 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
       _.chain(@found[i].matched).values().first().value()
 
   dict: ContractsDict
+  name: 'ContractsDict'

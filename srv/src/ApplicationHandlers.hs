@@ -21,6 +21,7 @@ module ApplicationHandlers
     , getRegionByCity
     , towAvgTime
     , copyCtrOptions
+    , copyContract
 
     -- * Misc. client support handlers
     , clientConfig
@@ -45,8 +46,9 @@ import qualified Data.Aeson as Aeson
 import Data.Aeson
 import qualified Data.Map as Map
 
-import Database.PostgreSQL.Simple (Query)
+import Database.PostgreSQL.Simple (Query, Only(..), (:.)(..))
 import Database.PostgreSQL.Simple.SqlQQ
+import qualified Database.PostgreSQL.Simple.SqlQQ.Alt as Alt
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import Heist
 import Heist.Interpreted
@@ -55,6 +57,7 @@ import Text.XmlHtml as X
 import Snap
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
+import Snaplet.Auth.PGUsers (currentUserMetaId)
 import Snap.Util.FileServe (serveFile)
 import Snap.Util.FileUploads (getMaximumFormInputSize)
 
@@ -318,6 +321,59 @@ copyCtrOptions = do
       |]
       [to, from]
   writeJSON ()
+
+copyContract :: AppHandler ()
+copyContract = do
+  cId <- getParam "id"
+  Just uId <- currentUserMetaId
+  [[newId]] <- uncurry PS.query
+    $ [Alt.sql|
+        insert into "Contract"
+          ( name           , enginetype
+          , email          , buydate
+          , vin            , seller
+          , cardnumber     , lastcheckdealer
+          , codeword       , checkperiod
+          , phone          , checktype
+          , platenum       , ordernumber
+          , startmileage   , managername
+          , make           , comment
+          , model          , subprogram
+          , makeyear       , legalform
+          , carclass       , fromarc
+          , color          , extra
+          , transmission   , registrationreason
+          , enginevolume   , priceinorder
+          , committer      , dixi
+          , isactive
+          )
+        select c.name           , c.enginetype
+             , c.email          , c.buydate
+             , c.vin            , c.seller
+             , c.cardnumber     , c.lastcheckdealer
+             , c.codeword       , c.checkperiod
+             , c.phone          , c.checktype
+             , c.platenum       , c.ordernumber
+             , c.startmileage   , c.managername
+             , c.make           , c.comment
+             , c.model          , c.subprogram
+             , c.makeyear       , c.legalform
+             , c.carclass       , c.fromarc
+             , c.color          , c.extra
+             , c.transmission   , c.registrationreason
+             , c.enginevolume   , c.priceinorder
+             , $(uId)$        , false
+             , true
+          from "Contract" c, usermetatbl u
+            where c.subprogram is not null
+              and (c.subprogram = ANY(u.subprograms) or 20 = ANY(u.roles))
+              and c.id = $(cId)$
+              and u.id = $(uId)$
+              and c.dixi
+        returning id
+      |]
+  writeJSON $ Aeson.object ["id" .= (newId :: Integer)]
+
 
 logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do

@@ -46,6 +46,7 @@ import           Carma.Model.ConsultationResult          (ConsultationResult)
 import           Carma.Model.ConsultationType            (ConsultationType)
 import           Carma.Model.Contract
 import           Carma.Model.ContractCheckStatus
+import           Carma.Model.ContractRegistrationReason  (ContractRegistrationReason)
 import           Carma.Model.CtrModel                    (CtrModel)
 import           Carma.Model.DeferTime                   (DeferTime)
 import           Carma.Model.DiagSlide                   (DiagSlide)
@@ -179,6 +180,7 @@ modelMap fn = modelMap'
       ,add (undefined :: Continue)
       ,add (undefined :: Contract)
       ,add (undefined :: ContractCheckStatus)
+      ,add (undefined :: ContractRegistrationReason)
       ,add (undefined :: CtrModel)
       ,add (undefined :: DeferTime)
       ,add (undefined :: DiagSlide)

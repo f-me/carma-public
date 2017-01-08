@@ -55,6 +55,9 @@ metas =
 
     , readonly callTaker
     , required callTaker
+    , setMeta "dictionaryType" "LoggedUsersDict" redirectTo
+    , setMeta "filterBy" "role=2" redirectTo
+    , widget  "dictionary-with-btn" redirectTo
 
     , setMeta "filterBy" "active" program
 
@@ -86,6 +89,8 @@ data Call = Call
     :: F (Maybe UTCTime) "endDate"  "Дата окончания звонка"
   , callTaker
     :: F (IdentI Usermeta) "callTaker" "Сотрудник РАМК"
+  , redirectTo
+    :: F (Maybe (IdentI Usermeta)) "redirectTo" "Перевести звонок"
   , program
     :: F (Maybe (IdentI Program)) "program" "Программа"
   , callerName

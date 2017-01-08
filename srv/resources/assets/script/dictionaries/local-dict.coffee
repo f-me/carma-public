@@ -97,6 +97,8 @@ define ["dictionaries/meta-dict"], (m) ->
 
 
   dict: LocalDict
+  name: 'LocalDict'
+
   buildCache: (localDictionaries) ->
     dictLabelCache = {}
     dictValueCache = {}

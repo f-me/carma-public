@@ -1,6 +1,7 @@
 define [ "dictionaries/local-dict"
        , "dictionaries/contracts-dict"
        , "dictionaries/bo-users-dict"
+       , "dictionaries/logged-users-dict"
        , "dictionaries/computed-dict"
        , "dictionaries/dealers-dict"
        , "dictionaries/model-dict"
@@ -11,7 +12,7 @@ define [ "dictionaries/local-dict"
 
   dicts = {}
   for a in arguments when a.dict?
-    dicts[a.dict.name] = a.dict
+    dicts[a.name] = a.dict
 
   dicts: dicts
   dictFromMeta: (kvm, meta) ->
