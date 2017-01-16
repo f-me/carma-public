@@ -475,12 +475,10 @@ cancelService =
     [ (AResult.falseCallUnbilled,
        messageToGenser *>
        setServiceStatus SS.canceled *>
-       setServiceField Service.falseCall (just FS.nobill) *>
        finish)
     , (AResult.falseCallBilled,
        messageToGenser *>
        setServiceStatus SS.canceled *>
-       setServiceField Service.falseCall (just FS.bill) *>
        finish)
     , (AResult.defer, defer)
     , (AResult.supervisorClosed, finish)

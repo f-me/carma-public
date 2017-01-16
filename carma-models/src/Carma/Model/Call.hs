@@ -81,36 +81,37 @@ metas =
 
 data Call = Call
   { ident :: PK Int Call "Номер звонка"
-  , callType
-    :: F (Maybe (IdentI CallType)) "callType" "Тип звонка"
-  , callDate
-    :: F UTCTime "callDate" "Дата звонка"
-  , endDate
-    :: F (Maybe UTCTime) "endDate"  "Дата окончания звонка"
   , callTaker
     :: F (IdentI Usermeta) "callTaker" "Сотрудник РАМК"
-  , redirectTo
-    :: F (Maybe (IdentI Usermeta)) "redirectTo" "Перевести звонок"
   , program
     :: F (Maybe (IdentI Program)) "program" "Программа"
-  , callerName
-    :: F (Maybe Text) "callerName" "Звонящий"
-  , callerPhone
-    :: F (Maybe Phone) "callerPhone" "Контактные телефоны"
+  , customerComment
+    :: F (Maybe Text) "customerComment" "Комментарий"
   , callerType
     :: F (Maybe (IdentI CallerType)) "callerType" "Кто звонит?"
   , callReason
     :: F (Maybe (IdentI CallReason)) "callReason" "Причина обращения"
   , abuseTarget
     :: F (Maybe (IdentI AbuseTarget)) "abuseTarget" "На кого поступила жалоба"
+  , redirectTo
+    :: F (Maybe (IdentI Usermeta)) "redirectTo" "Перевести звонок"
+  , callerName
+    :: F (Maybe Text) "callerName" "Звонящий"
+  , callerPhone
+    :: F (Maybe Phone) "callerPhone" "Контактные телефоны"
+
+  , callType
+    :: F (Maybe (IdentI CallType)) "callType" "Тип звонка"
+  , callDate
+    :: F UTCTime "callDate" "Дата звонка"
+  , endDate
+    :: F (Maybe UTCTime) "endDate"  "Дата окончания звонка"
   , coords
     :: F (Maybe Coords) "coords" "Координаты места поломки"
   , address
     :: F (Maybe Text) "address" "Адрес места поломки"
   , partner
     :: F (Maybe (IdentI Partner)) "partner" "Дилер"
-  , customerComment
-    :: F (Maybe Text) "customerComment" "Комментарий"
   , caseId
     :: F (Maybe (IdentI Case)) "caseId" "Связанный кейс"
   } deriving Typeable
