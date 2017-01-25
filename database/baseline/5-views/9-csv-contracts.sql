@@ -40,6 +40,7 @@ SELECT "Contract".id AS idExternal,
         END AS dixiExternal,
     p2.code as dealercodeExternal,
     "ContractRegistrationReason".label AS registrationreasonExternal,
+    "Contract".priceinorder AS priceinorderExernal,
     "Contract".id,
     "Contract".name,
     "Contract".email,
@@ -73,7 +74,8 @@ SELECT "Contract".id AS idExternal,
     "Contract".isactive,
     "Contract".ctime,
     "Contract".checkperiod,
-    "Contract".registrationreason
+    "Contract".registrationreason,
+    "Contract".priceinorder
    FROM "Contract"
    LEFT JOIN "CarClass" ON "Contract".carclass = "CarClass".id
    LEFT JOIN "CheckType" ON "Contract".checktype = "CheckType".id
