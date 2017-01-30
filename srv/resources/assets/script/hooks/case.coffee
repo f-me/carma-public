@@ -249,6 +249,15 @@ define [ "utils"
     kvm['endOfHistory'] = ko.observable true
     kvm['lookBackInHistory'] = ->
 
+  caseDiag: (model, kvm) ->
+    kvm._canDiag = ko.observable false
+    kvm._canStartDiag = ko.observable false
+    kvm._canProceedDiag = ko.observable false
+    kvm._canShowDiag = ko.observable false
+    kvm._showDiag = ->
+    kvm._startDiag = ->
+
+
   # Display daily service stats in central pane when `caseAddress_city` field of
   # case is changed.
   cityStatsHook: (model, kvm) ->

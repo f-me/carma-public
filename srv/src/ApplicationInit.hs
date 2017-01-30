@@ -138,6 +138,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/avaya/hook/",   chkAuth . method POST $ dmccHook)
          , ("/avaya/toAfterCall/", chkAuth . method PUT $ avayaToAfterCall)
          , ("/avaya/toReady/",     chkAuth . method PUT $ avayaToReady)
+         , ("/diag/info/:caseId",  chkAuth . method GET $ diagInfo)
          ]
 
 dconf :: DirectoryConfig (Handler App App)

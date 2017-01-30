@@ -26,6 +26,7 @@ module AppHandlers.CustomSearches
     , findSameContract
     , suspendedServices
     , abandonedServices
+    , diagInfo
     )
 
 where
@@ -406,3 +407,26 @@ abandonedServices = do
         order by createtime desc nulls last) x
     |] (ServiceStatus.creating, isJust usr, usr)
   writeJSON (map fromOnly svcs :: [A.Value])
+
+
+diagInfo :: AppHandler ()
+diagInfo = do
+  caseId <- getParam "caseId"
+  [Only res] <- query [sql|
+    with slides as
+        (select
+            h.ctime, s.isRoot,
+            (s.answers->h.answerIx->>'isFinal')::bool as isFinal
+          from "DiagHistory" h join "DiagSlide" s on (h.slideId = s.id)
+          where caseId = ?
+        )
+      select row_to_json(x) from
+        (select
+          (select diagTree
+            from "SubProgram" s join casetbl c on (s.id = c.subprogram)
+            where c.id = ?) as root,
+          (select ctime from slides where isRoot limit 1) as started,
+          (select ctime from slides where isFinal limit 1) as ended
+        ) x
+    |] [caseId, caseId]
+  writeJSON (res :: A.Value)
