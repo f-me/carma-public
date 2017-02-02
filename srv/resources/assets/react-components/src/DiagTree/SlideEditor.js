@@ -4,9 +4,7 @@ import { FormGroup, FormControl, ControlLabel } from 'react-bootstrap'
 import { ButtonToolbar, Button } from 'react-bootstrap'
 import { ListGroup, ListGroupItem } from 'react-bootstrap'
 
-import MdEditor from 'react-md-editor'
-import 'react-md-editor/dist/react-md-editor.css'
-import 'codemirror/lib/codemirror.css'
+import RichTextEditor from 'react-rte';
 
 
 import ResourceEditor from './ResourceEditor'
@@ -17,29 +15,22 @@ export default class SlideEditor extends React.Component {
 
   constructor(props) {
     super(props);
-
-    this.state = {
-      slide: props.slide,
-      draftAnswer: false,
-      draftResource: false
-    }
+    this.state = this._defaultState(props);
   }
 
   componentWillReceiveProps(props) {
-    this.setState({
-      slide: props.slide,
-      draftAnswer: false,
-      draftResource: false
-    });
+    this.setState(this._defaultState(props));
   }
 
-
-  _revert = () => this.setState({
-    slide: this.props.slide,
+  _defaultState = (props) => ({
+    slide: props.slide,
+    rtValue: RichTextEditor.createValueFromString(props.slide.get('body'), 'markdown'),
     draftAnswer: false,
     draftResource: false
   })
 
+
+  _revert = () => this.setState(this._defaultState(this.props))
 
   _setAnswer = (i, answer) => this.setState(st => ({
     draftAnswer: false,
@@ -64,6 +55,12 @@ export default class SlideEditor extends React.Component {
   _defaultResource = Immutable.Map({
     files: [],
     text: ''
+  })
+
+
+  _rtChanged = value => this.setState({
+    rtValue: value,
+    slide: this.state.slide.set('body', value.toString('markdown'))
   })
 
 
@@ -123,11 +120,11 @@ export default class SlideEditor extends React.Component {
         </FormGroup>
 
         <FormGroup>
-          <MdEditor
+          <RichTextEditor
             placeholder="Описание"
             rows={8}
-            onChange={txt => setSlide("body", txt)}
-            value={slide.get("body")} />
+            onChange={this._rtChanged}
+            value={this.state.rtValue} />
         </FormGroup>
 
         <FormGroup>
