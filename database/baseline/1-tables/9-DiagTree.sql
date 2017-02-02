@@ -1,6 +1,6 @@
 
 delete from "FieldPermission" where model = 'DiagHistory' or model = 'DiagSlide';
-drop table if exists "DiagHistory" cascade;
+drop table if exists "DiagHistory";
 drop table if exists "DiagSlide";
 
 

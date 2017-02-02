@@ -26,17 +26,11 @@ export default class SlideEditor extends React.Component {
   }
 
   componentWillReceiveProps(props) {
-    console.log('componentWillReceiveProps', props.slide.toJS());
     this.setState({
       slide: props.slide,
       draftAnswer: false,
-      draftResource: false,
-    }, st => console.log('receivedProps', this.state.slide.toJS()));
-  }
-
-  shouldComponentUpdate(newProps, {slide}) {
-    console.log('shouldComponentUpdate.prev', this.props.slide.toJS());
-    console.log('shouldComponentUpdate.next', slide.toJS());
+      draftResource: false
+    });
   }
 
 
@@ -47,14 +41,12 @@ export default class SlideEditor extends React.Component {
   })
 
 
-  _setAnswer = (i, answer) => this.setState(st => {
-    return {
-      draftAnswer: false,
-      slide: st.slide.update('answers',
-          as => i === null ? as.push(answer) : as.set(i, answer)
-      )
-    }
-  })
+  _setAnswer = (i, answer) => this.setState(st => ({
+    draftAnswer: false,
+    slide: st.slide.update('answers',
+        as => i === null ? as.push(answer) : as.set(i, answer)
+    )
+  }))
 
   _defaultAnswer = Immutable.Map({
     header: '',
@@ -62,14 +54,12 @@ export default class SlideEditor extends React.Component {
     action: {}
   })
 
-  _setResource = (i, resource) => this.setState(st => {
-    return {
-      draftResource: false,
-      slide: st.slide.update('resources',
-          as => i === null ? as.push(resource) : as.set(i, resource)
-      )
-    }
-  })
+  _setResource = (i, resource) => this.setState(st => ({
+    draftResource: false,
+    slide: st.slide.update('resources',
+        as => i === null ? as.push(resource) : as.set(i, resource)
+    )
+  }))
 
   _defaultResource = Immutable.Map({
     files: [],
