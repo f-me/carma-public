@@ -14,7 +14,7 @@ export default class AnswerEditor extends React.Component {
   render() {
     const {answer} = this.state;
     const isNotChanged = answer.equals(this.props.answer);
-    const setAnswer = (f, v) => this.setState({answer: answer.set(f, v)})
+    const setAnswer = (f, v) => this.setState({answer: answer.set(f, v)});
 
     return (
       <div>

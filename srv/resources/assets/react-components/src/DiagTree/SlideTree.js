@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { ListGroup, ListGroupItem } from 'react-bootstrap'
-import { Button, ButtonToolbar } from 'react-bootstrap'
+import { Button, ButtonToolbar, Glyphicon } from 'react-bootstrap'
 
 
 export default function(props) {
@@ -24,10 +24,8 @@ export default function(props) {
         })}
       </ListGroup>
       <ButtonToolbar>
-        <Button bsStyle='success'
-          onClick={props.onAddSlide}
-        >
-          + Новое дерево
+        <Button bsStyle='success' onClick={props.onAddSlide}>
+          <Glyphicon glyph="plus" /> Новое дерево
         </Button>
       </ButtonToolbar>
     </div>

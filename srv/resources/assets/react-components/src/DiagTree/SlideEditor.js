@@ -1,14 +1,13 @@
 import Immutable from 'immutable'
 import React from 'react'
 import { FormGroup, FormControl, ControlLabel } from 'react-bootstrap'
-import { ButtonToolbar, Button } from 'react-bootstrap'
+import { ButtonToolbar, Button, Glyphicon } from 'react-bootstrap'
 import { ListGroup, ListGroupItem } from 'react-bootstrap'
 
-import RichTextEditor from 'react-rte';
-
+import RichTextEditor from 'react-rte'
 
 import ResourceEditor from './ResourceEditor'
-import AnswerEditor from './AnswerEditor'
+import Answer from './Answer'
 
 
 export default class SlideEditor extends React.Component {
@@ -25,25 +24,11 @@ export default class SlideEditor extends React.Component {
   _defaultState = (props) => ({
     slide: props.slide,
     rtValue: RichTextEditor.createValueFromString(props.slide.get('body'), 'markdown'),
-    draftAnswer: false,
     draftResource: false
   })
 
 
   _revert = () => this.setState(this._defaultState(this.props))
-
-  _setAnswer = (i, answer) => this.setState(st => ({
-    draftAnswer: false,
-    slide: st.slide.update('answers',
-        as => i === null ? as.push(answer) : as.set(i, answer)
-    )
-  }))
-
-  _defaultAnswer = Immutable.Map({
-    header: '',
-    text: '',
-    action: {}
-  })
 
   _setResource = (i, resource) => this.setState(st => ({
     draftResource: false,
@@ -83,27 +68,26 @@ export default class SlideEditor extends React.Component {
                 onSave={res => this._setResource(null, res)}
                 onCancel={() => this.setState({draftResource: false})} />
             : <Button onClick={() => this.setState({draftResource: true})}>
-                + Добавить картинку
+                <Glyphicon glyph="plus" /> Добавить картинку
               </Button>
         }
       </ListGroupItem>
     );
 
     const answers = slide.get('answers').toArray().map((ans,i) => (
-      <ListGroupItem key={i} header={ans.get('header')}>
-        {ans.get('text')}
-      </ListGroupItem>
+      <Answer key={i} answer={ans}
+        onDelete={() => this.setState({slide: slide.deleteIn(['answers', i])})}
+        onChange={x  => this.setState({slide: slide.setIn(['answers', i], x)})}
+      />
     )).concat(
       <ListGroupItem key={-1}>
-        { this.state.draftAnswer
-            ? <AnswerEditor answer={this._defaultAnswer}
-                onSave={ans => this._setAnswer(null, ans)}
-                onCancel={() => this.setState({draftAnswer: false})} />
-            : <Button
-                onClick={() => this.setState({draftAnswer: true})}>
-                  + Добавить ответ
-              </Button>
-        }
+        <Button
+          onClick={() => this.setState({
+              slide: slide.updateIn(['answers'], as => as.push(null))
+          })}
+        >
+          <Glyphicon glyph="plus" /> Добавить ответ
+        </Button>
       </ListGroupItem>
     );
 

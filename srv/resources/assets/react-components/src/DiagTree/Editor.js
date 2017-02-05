@@ -71,6 +71,7 @@ export default class Editor extends React.Component {
 
 
   // FIXME: add new slides for answers
+  // FIXME: filter out null answers and resources
   saveSlide = data => {
     const {slides, currentSlide} = this.state;
     const id = currentSlide.get("id");
