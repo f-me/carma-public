@@ -87,6 +87,7 @@ import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 import           Carma.Model.PartnerDelay (PartnerDelay)
 import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
+import qualified Carma.Model.DiagHistory as DiagHistory
 
 import           Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
@@ -208,6 +209,17 @@ beforeCreate = Map.unionsWith (++)
     modPut Towage.towingPointPresent  $ Just off
     modPut Towage.vandalism           $ Just off
     modPut Towage.wheelsBlocked       $ Just 0
+
+  , trigOnModel ([]::[DiagHistory.DiagHistory]) $ do
+    caseId <- getPatchField DiagHistory.caseId
+    [[slideId]] <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
+      [sql|
+        select diagTree
+          from "SubProgram" s join casetbl c on (s.id = c.subprogram)
+          where c.id = $(caseId)$
+      |]
+    modPut DiagHistory.slideId slideId
+    modPut DiagHistory.userId =<< getCurrentUser
   ]
 
 
