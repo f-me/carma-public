@@ -27,6 +27,7 @@ module AppHandlers.CustomSearches
     , suspendedServices
     , abandonedServices
     , diagInfo
+    , diagHistory
     )
 
 where
@@ -430,3 +431,19 @@ diagInfo = do
         ) x
     |] [caseId, caseId]
   writeJSON (res :: A.Value)
+
+
+diagHistory :: AppHandler ()
+diagHistory = do
+  caseId <- getParam "caseId"
+  hist <- query [sql|
+    select row_to_json(x) from
+      (select
+          h.id, h.ctime,
+          h.userId as "userId", h.caseId as "caseId", h.answerIx as "answerIx",
+          s.header, s.body, s.answers
+        from "DiagHistory" h join "DiagSlide" s on (h.slideId = s.id)
+        where h.caseId = ?
+        order by h.ctime asc) x
+    |] [caseId]
+  writeJSON (map fromOnly hist :: [A.Value])

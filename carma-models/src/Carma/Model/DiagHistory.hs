@@ -21,7 +21,7 @@ data DiagHistory = DiagHistory
   , userId   :: F (IdentI Usermeta) "userId" "Пользователь"
   , caseId   :: F (IdentI Case) "caseId" "Кейс"
   , slideId  :: F (IdentI DiagSlide) "slideId" "Слайд"
-  , answerix :: F Int "answerIx" "Ответ"
+  , answerIx :: F Int "answerIx" "Ответ"
   } deriving Typeable
 
 

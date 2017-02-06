@@ -1,11 +1,12 @@
 
-.Editor {
+.Editor, .Show {
   margin: 20px;
 }
 
 .Editor .list-group-item {
   border: none;
 }
+
 .Editor .list-group-item.selected {
   background-color: lightblue;
 }

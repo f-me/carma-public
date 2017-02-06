@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import SmsForm from './SmsForm';
 import AvarcomTasks from './AvarcomTasks';
 import DiagTreeEditor from './DiagTree/Editor';
+import DiagTreeShow from './DiagTree/Show';
 import './index.css';
 
 window.React = React;
@@ -12,5 +13,6 @@ window.CarmaComponents = {
   AvarcomTasks: AvarcomTasks,
   DiagTree: {
     Editor: DiagTreeEditor,
+    Show: DiagTreeShow,
   }
 };

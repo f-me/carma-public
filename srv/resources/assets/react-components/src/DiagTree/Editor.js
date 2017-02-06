@@ -4,7 +4,7 @@ import { Grid, Row, Col } from 'react-bootstrap'
 
 import SlideTree from './SlideTree'
 import SlideEditor from './SlideEditor'
-import './Editor.css'
+import './DiagTree.css'
 
 
 

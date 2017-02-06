@@ -106,7 +106,6 @@ export default class SlideEditor extends React.Component {
         <FormGroup>
           <RichTextEditor
             placeholder="Описание"
-            rows={8}
             onChange={this._rtChanged}
             value={this.state.rtValue} />
         </FormGroup>
