@@ -123,7 +123,7 @@ define [ "utils"
         kvm._canDiag(res.root != null)
         kvm._canStartDiag(!res.started)
         kvm._canProceedDiag(res.started && !res.ended)
-        kvm._canShowDiag(res.started && !res.ended)
+        kvm._canShowDiag(res.started && res.ended)
 
     # History pane
     setupHistory = (kvm) ->

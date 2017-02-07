@@ -22,8 +22,8 @@ export default class SlideEditor extends React.Component {
   }
 
   _defaultState = (props) => ({
-    slide: props.slide,
-    rtValue: RichTextEditor.createValueFromString(props.slide.get('body'), 'markdown'),
+    slide: Immutable.fromJS(props.slide),
+    rtValue: RichTextEditor.createValueFromString(props.slide.body, 'markdown'),
     draftResource: false
   })
 

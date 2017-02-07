@@ -21,6 +21,7 @@ import           Control.Monad.Free (Free)
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Reader
 
+import qualified Data.Aeson as Aeson
 import           Data.Singletons
 import           Data.Dynamic
 import           Data.List
@@ -32,6 +33,7 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time.Calendar
 import           Data.Time.Clock
+import qualified Data.Vector as Vector
 import           Text.Printf
 
 import           GHC.TypeLits
@@ -88,6 +90,7 @@ import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 import           Carma.Model.PartnerDelay (PartnerDelay)
 import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
 import qualified Carma.Model.DiagHistory as DiagHistory
+import qualified Carma.Model.DiagSlide as DiagSlide
 
 import           Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
@@ -477,6 +480,26 @@ beforeUpdate = Map.unionsWith (++) $
           let contract' = Patch.delete Contract.ident contract
           copyContractToCase subProgId contract'
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
+
+  , trigOn DiagSlide.answers $ \(Aeson.Array answers) -> do
+    answers' <- forM (Vector.toList answers) $ \(Aeson.Object ans) ->
+      case HM.lookup "nextSlide" ans of
+        Just _ -> return $ Aeson.Object ans
+        Nothing -> do
+          [Only newId] <- doApp $ liftPG $ \pg ->
+            uncurry (PG.query pg)
+              [sql|
+                insert into "DiagSlide" (header, body)
+                  values ($(fromJust $ HM.lookup "header" ans)$, '')
+                  returning id
+              |]
+          return $ Aeson.Object
+            $ HM.insert "nextSlide" (Aeson.Number $ fromInteger newId)
+              ans
+
+    modPut DiagSlide.answers $ Aeson.Array $ Vector.fromList answers'
+
+
   , actionsToTrigger (snd carmaBackoffice)
   ]  ++
   map entryToTrigger (fst carmaBackoffice)

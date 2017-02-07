@@ -23,7 +23,6 @@ data DiagSlide = DiagSlide
   } deriving Typeable
 
 
-
 instance Model DiagSlide where
   type TableName DiagSlide = "DiagSlide"
   modelInfo = mkModelInfo DiagSlide ident
