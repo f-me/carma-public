@@ -6,17 +6,12 @@ import RichTextEditor from 'react-rte'
 import './DiagTree.css';
 
 
-//FIXME: - caseId to props?
-//       - immutable history
+// FIXME: - immutable history
 export default class Show extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      history: null,
-      path: [0]
-    };
-
+    this.state = { history: null, path: null };
     this._loadHistory();
     this._loadSlides();
   }
@@ -40,12 +35,10 @@ export default class Show extends React.Component {
     })
   }
 
-  _answer = ix => () => {
-    const {history, path} = this.state;
-    const slide = history[path[0]]; // FIXME:
+  _answer = (slideId, ix, nextSlide) => () => {
     $.ajax({
       type: 'PUT',
-      url: `/_/DiagHistory/${slide.id}`,
+      url: `/_/DiagHistory/${slideId}`,
       data: JSON.stringify({answerIx: ix}),
       processData: false,
       contentType: 'application/json',
@@ -55,15 +48,11 @@ export default class Show extends React.Component {
           url: `/_/DiagHistory`,
           data: JSON.stringify({
             caseId: Number.parseInt(this.props.caseId),
-            // FIXME: next slide Id
+            slideId: nextSlide
           }),
           processData: false,
           contentType: 'application/json',
-          success: newSlide => this.setState({
-            // FIXME: join history item & slide
-            history: history.concat([newSlide]),
-            path: [path[0]+1]
-          })
+          success: this._loadHistory
         })
     })
   }
@@ -94,7 +83,9 @@ export default class Show extends React.Component {
               {slide.answers.map((ans,i) => (
                 <ListGroupItem
                   header={ans.header}
-                  onClick={slide.answerIx !== null ? undefined : this._answer(i)}
+                  onClick={slide.answerIx !== null
+                    ? undefined
+                    : this._answer(slide.id, i, ans.nextSlide)}
                 >
                   {ans.text}
                 </ListGroupItem>

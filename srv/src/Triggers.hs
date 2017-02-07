@@ -214,15 +214,19 @@ beforeCreate = Map.unionsWith (++)
     modPut Towage.wheelsBlocked       $ Just 0
 
   , trigOnModel ([]::[DiagHistory.DiagHistory]) $ do
-    caseId <- getPatchField DiagHistory.caseId
-    [[slideId]] <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
-      [sql|
-        select diagTree
-          from "SubProgram" s join casetbl c on (s.id = c.subprogram)
-          where c.id = $(caseId)$
-      |]
-    modPut DiagHistory.slideId slideId
     modPut DiagHistory.userId =<< getCurrentUser
+    getPatchField DiagHistory.slideId >>= \case
+      Just _ -> return ()
+      Nothing -> do
+        caseId <- getPatchField DiagHistory.caseId
+        [[slideId]] <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
+          [sql|
+            select diagTree
+              from "SubProgram" s join casetbl c on (s.id = c.subprogram)
+              where c.id = $(caseId)$
+          |]
+        modPut DiagHistory.slideId slideId
+
   ]
 
 
@@ -486,11 +490,12 @@ beforeUpdate = Map.unionsWith (++) $
       case HM.lookup "nextSlide" ans of
         Just _ -> return $ Aeson.Object ans
         Nothing -> do
+          let header = maybe "" (\(Aeson.String s) -> s) $ HM.lookup "header" ans
           [Only newId] <- doApp $ liftPG $ \pg ->
             uncurry (PG.query pg)
               [sql|
                 insert into "DiagSlide" (header, body)
-                  values ($(fromJust $ HM.lookup "header" ans)$, '')
+                  values ($(header)$, '')
                   returning id
               |]
           return $ Aeson.Object

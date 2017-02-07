@@ -440,9 +440,10 @@ diagHistory = do
     select row_to_json(x) from
       (select
           h.id, h.ctime,
-          h.userId as "userId", h.caseId as "caseId", h.answerIx as "answerIx",
+          u.login as "user", h.answerIx as "answerIx",
           s.header, s.body, s.answers
         from "DiagHistory" h join "DiagSlide" s on (h.slideId = s.id)
+          join usermetatbl u on (h.userId = u.id)
         where h.caseId = ?
         order by h.ctime asc) x
     |] [caseId]
