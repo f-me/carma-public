@@ -39,6 +39,8 @@ SELECT "Contract".id AS idExternal,
             ELSE '-'::text
         END AS dixiExternal,
     p2.code as dealercodeExternal,
+    "ContractRegistrationReason".label AS registrationreasonExternal,
+    "Contract".priceinorder AS priceinorderExternal,
     "Contract".id,
     "Contract".name,
     "Contract".email,
@@ -71,7 +73,9 @@ SELECT "Contract".id AS idExternal,
     "Contract".dixi,
     "Contract".isactive,
     "Contract".ctime,
-    "Contract".checkperiod
+    "Contract".checkperiod,
+    "Contract".registrationreason,
+    "Contract".priceinorder
    FROM "Contract"
    LEFT JOIN "CarClass" ON "Contract".carclass = "CarClass".id
    LEFT JOIN "CheckType" ON "Contract".checktype = "CheckType".id
@@ -85,5 +89,6 @@ SELECT "Contract".id AS idExternal,
    LEFT JOIN "SubProgram" ON "Contract".subprogram = "SubProgram".id
    LEFT JOIN "Program" ON "SubProgram".parent = "Program".id
    LEFT JOIN "ProgramType" ON "Program".ptype = "ProgramType".id
-   LEFT JOIN "Transmission" ON "Contract".transmission = "Transmission".id;
+   LEFT JOIN "Transmission" ON "Contract".transmission = "Transmission".id
+   LEFT JOIN "ContractRegistrationReason" ON "Contract".registrationreason = "ContractRegistrationReason".id;
 GRANT SELECT ON "Contract_csv" TO carma_db_sync;
