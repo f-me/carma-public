@@ -44,7 +44,7 @@ MAIL_SUBJECT="Отчёт о загрузке контрактов Ford `date +%F
 DATE=$1
 
 # Absolute path to vinnie executable
-NAME="CB_fordsara_${DATE}_RU.csv"
+NAME="CB_fordsara_${DATE}_RU_v2.csv"
 VINNIE="${HOME}/.local/bin/vinnie"
 
 TMPDIR=$(mktemp -d /tmp/ford`date +%F`.XXXXXX)
@@ -90,4 +90,3 @@ sendemail -f "${MAIL_FROM}" \
           -u "${MAIL_SUBJECT}" \
           -o message-file="${MESSAGE}" \
           -a "${ATTACHMENTS[@]}"
-
