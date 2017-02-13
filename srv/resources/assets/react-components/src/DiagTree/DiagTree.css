@@ -11,6 +11,10 @@
   background-color: lightblue;
 }
 
+.Show .list-group-item.selected {
+  background-color: lightblue;
+}
+
 .SlideEditor {
   margin-left: auto;
   margin-right: auto;

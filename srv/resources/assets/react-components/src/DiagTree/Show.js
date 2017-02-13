@@ -6,12 +6,12 @@ import RichTextEditor from 'react-rte'
 import './DiagTree.css';
 
 
-// FIXME: - immutable history
+// FIXME: - immutable history?
 export default class Show extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = { history: null, path: null };
+    this.state = { history: null, slideId: null };
     this._loadHistory();
     this._loadSlides();
   }
@@ -31,7 +31,10 @@ export default class Show extends React.Component {
       type: 'GET',
       url: `/diag/history/${this.props.caseId}`,
       dataType: 'json',
-      success: hist => this.setState({history: hist, path: [hist.length-1]})
+      success: hist => this.setState({
+        history: hist,
+        slideId: hist[hist.length-1].id
+      })
     })
   }
 
@@ -59,10 +62,10 @@ export default class Show extends React.Component {
 
 
   render() {
-    const {history, path} = this.state;
+    const {history, slideId} = this.state;
     if (!history) return <span>Loading...</span>;
 
-    const slide = history[path[0]]; // FIXME:
+    const slide = history.find(h => h.id === slideId);
     const body  = RichTextEditor.createValueFromString(slide.body, 'markdown');
     return (
       <Grid className="Show">
@@ -70,7 +73,11 @@ export default class Show extends React.Component {
           <Col md={4}>
             <ListGroup>
               {history.map((h,i) => (
-                <ListGroupItem header={h.header}>
+                <ListGroupItem
+                  className={h.id === slideId ? 'selected' : ''}
+                  onClick={() => this.setState({slideId: h.id})}
+                  header={h.header}
+                >
                   {h.answerIx === null ? '...' : h.answers[h.answerIx].header}
                 </ListGroupItem>
               ))}
@@ -83,11 +90,12 @@ export default class Show extends React.Component {
               {slide.answers.map((ans,i) => (
                 <ListGroupItem
                   header={ans.header}
+                  className={slide.answerIx === i ? 'selected' : ''}
                   onClick={slide.answerIx !== null
                     ? undefined
                     : this._answer(slide.id, i, ans.nextSlide)}
                 >
-                  {ans.text}
+                  {ans.text}<br/><small>{slide.</small>
                 </ListGroupItem>
               ))}
             </ListGroup>
