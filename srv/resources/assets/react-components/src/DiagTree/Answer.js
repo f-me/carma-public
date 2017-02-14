@@ -22,6 +22,7 @@ export default class Answer extends React.Component {
   _defaultState = (props) => ({
     answer: props.answer || this._defaultAnswer,
     edit: !props.answer,
+    hover: false
   });
 
 
@@ -45,11 +46,14 @@ export default class Answer extends React.Component {
 
 
   render() {
-    const {answer, edit} = this.state;
+    const {answer, edit, hover} = this.state;
     const tooltip = text => (<Tooltip>{text}</Tooltip>);
     if (!edit) {
       return (
-        <Grid className="Answer">
+        <Grid
+          className="Answer"
+          onMouseEnter={() => this.setState({hover: true})}
+          onMouseLeave={() => this.setState({hover: false})}>
           <Row>
             <Col md={7}>
               <ListGroupItem header={answer.get('header')}>
@@ -57,18 +61,22 @@ export default class Answer extends React.Component {
               </ListGroupItem>
             </Col>
             <Col md={2}>
-              <ButtonToolbar>
-                <OverlayTrigger placement="top" overlay={tooltip('Редактировать')}>
-                  <Button onClick={() => this.setState({edit: true})}>
-                    <Glyphicon glyph="pencil"/>
-                  </Button>
-                </OverlayTrigger>
-                <OverlayTrigger placement="top" overlay={tooltip('Удалить')}>
-                  <Button onClick={this.props.onDelete}>
-                    <Glyphicon glyph="trash"/>
-                  </Button>
-                </OverlayTrigger>
-              </ButtonToolbar>
+              { hover &&
+                <ButtonToolbar>
+                  <OverlayTrigger placement="top" overlay={tooltip('Редактировать')}>
+                    <Glyphicon
+                      className="btn"
+                      onClick={() => this.setState({edit: true})}
+                      glyph="pencil"/>
+                  </OverlayTrigger>
+                  <OverlayTrigger placement="top" overlay={tooltip('Удалить')}>
+                    <Glyphicon
+                      className="btn"
+                      onClick={this.props.onDelete}
+                      glyph="trash"/>
+                  </OverlayTrigger>
+                </ButtonToolbar>
+              }
             </Col>
           </Row>
         </Grid>

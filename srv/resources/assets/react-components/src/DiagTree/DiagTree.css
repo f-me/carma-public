@@ -1,4 +1,17 @@
 
+
+.Show .invisible {
+  display: none;
+}
+
+.Show .floating-btn {
+  float: right;
+}
+
+.Show .history-answer {
+  float:left;
+}
+
 .Editor, .Show {
   margin: 20px;
 }

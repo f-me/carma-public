@@ -1,6 +1,8 @@
 import React from 'react'
 import { Grid, Row, Col } from 'react-bootstrap'
 import { ListGroup, ListGroupItem } from 'react-bootstrap'
+import { OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Button, Glyphicon } from 'react-bootstrap'
 import RichTextEditor from 'react-rte'
 
 import './DiagTree.css';
@@ -11,7 +13,11 @@ export default class Show extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = { history: null, slideId: null };
+    this.state = {
+      history: null,
+      slideId: null,
+      hoverId: null
+    };
     this._loadHistory();
     this._loadSlides();
   }
@@ -61,12 +67,45 @@ export default class Show extends React.Component {
   }
 
 
+  _repeatQuestion = histId => () => {
+    $.ajax({
+      type: 'POST',
+      url: `/diag/retry/${histId}`,
+      data: "{}"
+      processData: false,
+      contentType: 'application/json',
+      success: this._loadHistory
+    })
+  }
+
+
   render() {
-    const {history, slideId} = this.state;
+    const {history, slideId, hoverId} = this.state;
     if (!history) return <span>Loading...</span>;
 
     const slide = history.find(h => h.id === slideId);
     const body  = RichTextEditor.createValueFromString(slide.body, 'markdown');
+    const answer = hist => {
+      if(hist.answerIx === null) return '';
+      return (<div>
+        <div className="history-answer">
+          {hist.answers[hist.answerIx].header}
+          <br/>
+          {hist.answerTime} − {hist.user}
+        </div>
+        { hoverId === hist.id &&
+          <OverlayTrigger
+              placement="top"
+              overlay={<Tooltip>Повторить вопрос</Tooltip>}>
+            <Glyphicon
+                className="btn floating-btn"
+                onClick={this._repeatQuestion(hist.id)}
+                glyph="repeat"/>
+          </OverlayTrigger>
+        }
+      </div>);
+    };
+
     return (
       <Grid className="Show">
         <Row>
@@ -76,9 +115,11 @@ export default class Show extends React.Component {
                 <ListGroupItem
                   className={h.id === slideId ? 'selected' : ''}
                   onClick={() => this.setState({slideId: h.id})}
+                  onMouseEnter={() => this.setState({hoverId: h.id})}
+                  onMouseLeave={() => this.setState({hoverId: null})}
                   header={h.header}
                 >
-                  {h.answerIx === null ? '...' : h.answers[h.answerIx].header}
+                  {answer(h)}
                 </ListGroupItem>
               ))}
             </ListGroup>
@@ -95,7 +136,7 @@ export default class Show extends React.Component {
                     ? undefined
                     : this._answer(slide.id, i, ans.nextSlide)}
                 >
-                  {ans.text}<br/><small>{slide.</small>
+                  {ans.text}
                 </ListGroupItem>
               ))}
             </ListGroup>
