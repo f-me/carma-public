@@ -71,7 +71,7 @@ export default class Show extends React.Component {
     $.ajax({
       type: 'POST',
       url: `/diag/retry/${histId}`,
-      data: "{}"
+      data: "{}",
       processData: false,
       contentType: 'application/json',
       success: this._loadHistory

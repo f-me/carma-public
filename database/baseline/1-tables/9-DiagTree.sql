@@ -42,7 +42,12 @@ create table "DiagHistory"
   , caseId int not null references casetbl(id)
   , slideId int not null references "DiagSlide"(id)
   , answerIx int
+  , snapshots json not null default '[]'::json
+  , snapshotId int
   );
+
+create sequence "DiagHistory_snapshot_seq";
+grant all on "DiagHistory_snapshot_seq" to carma_db_sync;
 
 grant all on "DiagHistory" to carma_db_sync;
 grant all on "DiagHistory_id_seq" to carma_db_sync;

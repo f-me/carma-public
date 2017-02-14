@@ -49,6 +49,7 @@ import AppHandlers.ContractGenerator
 import AppHandlers.Users
 import AppHandlers.Screens
 import AppHandlers.KPI
+import AppHandlers.DiagTree
 import Util
 
 ------------------------------------------------------------------------------
@@ -140,6 +141,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/avaya/toReady/",          chkAuth . method PUT $ avayaToReady)
          , ("/diag/info/:caseId",       chkAuth . method GET $ diagInfo)
          , ("/diag/history/:caseId",    chkAuth . method GET $ diagHistory)
+         , ("/diag/retry/:histId",      chkAuth . method POST $ retryQuestion)
          ]
 
 dconf :: DirectoryConfig (Handler App App)
