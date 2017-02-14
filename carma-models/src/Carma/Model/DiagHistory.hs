@@ -16,14 +16,16 @@ import Carma.Model.PgTypes()
 
 
 data DiagHistory = DiagHistory
-  { ident    :: PK Int DiagHistory ""
-  , ctime    :: F UTCTime "ctime" "Дата создания"
-  , userId   :: F (IdentI Usermeta) "userId" "Пользователь"
-  , caseId   :: F (IdentI Case) "caseId" "Кейс"
-  , slideId  :: F (IdentI DiagSlide) "slideId" "Слайд"
-  , answerIx :: F Int "answerIx" "Ответ"
+  { ident        :: PK Int DiagHistory ""
+  , ctime        :: F UTCTime "ctime" "Дата создания"
+  , caseId       :: F (IdentI Case) "caseId" "Кейс"
+  , slideId      :: F (IdentI DiagSlide) "slideId" "Слайд"
+  , createdBy    :: F (IdentI Usermeta) "createdBy" "Кто создал вопрос"
+  , answerIx     :: F Int "answerIx" "Ответ"
+  , answeredBy   :: F (Maybe (IdentI Usermeta)) "answeredBy" "Кто ответил"
+  , answerTime   :: F (Maybe UTCTime) "answerTime" "Дата ответа"
+  , deprecatedBy :: F (Maybe (IdentI DiagHistory)) "deprecatedBy" "Ответ отменён"
   } deriving Typeable
-
 
 
 instance Model DiagHistory where

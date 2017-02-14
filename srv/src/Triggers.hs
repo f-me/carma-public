@@ -214,7 +214,7 @@ beforeCreate = Map.unionsWith (++)
     modPut Towage.wheelsBlocked       $ Just 0
 
   , trigOnModel ([]::[DiagHistory.DiagHistory]) $ do
-    modPut DiagHistory.userId =<< getCurrentUser
+    modPut DiagHistory.createdBy =<< getCurrentUser
     getPatchField DiagHistory.slideId >>= \case
       Just _ -> return ()
       Nothing -> do
@@ -226,7 +226,6 @@ beforeCreate = Map.unionsWith (++)
               where c.id = $(caseId)$
           |]
         modPut DiagHistory.slideId slideId
-
   ]
 
 
@@ -501,9 +500,11 @@ beforeUpdate = Map.unionsWith (++) $
           return $ Aeson.Object
             $ HM.insert "nextSlide" (Aeson.Number $ fromInteger newId)
               ans
-
     modPut DiagSlide.answers $ Aeson.Array $ Vector.fromList answers'
 
+  , trigOn DiagHistory.answerIx $ \_ -> do
+      modPut DiagHistory.answeredBy =<< Just <$> getCurrentUser
+      modPut DiagHistory.answerTime =<< Just <$> getNow
 
   , actionsToTrigger (snd carmaBackoffice)
   ]  ++

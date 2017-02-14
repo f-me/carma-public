@@ -38,16 +38,15 @@ insert into "FieldPermission" (role, model, field, r, w) values
 create table "DiagHistory"
   ( id serial primary key
   , ctime timestamptz not null default now()
-  , userId int not null references usermetatbl(id)
   , caseId int not null references casetbl(id)
   , slideId int not null references "DiagSlide"(id)
+  , createdBy int not null references usermetatbl(id)
   , answerIx int
-  , snapshots json not null default '[]'::json
-  , snapshotId int
+  , answeredBy int references usermetatbl(id)
+  , answerTime timestamptz
+  , depreceatedBy int references "DiagHistory"(id)
   );
 
-create sequence "DiagHistory_snapshot_seq";
-grant all on "DiagHistory_snapshot_seq" to carma_db_sync;
 
 grant all on "DiagHistory" to carma_db_sync;
 grant all on "DiagHistory_id_seq" to carma_db_sync;

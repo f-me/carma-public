@@ -19,17 +19,7 @@ export default class Show extends React.Component {
       hoverId: null
     };
     this._loadHistory();
-    this._loadSlides();
   }
-
-
-  _loadSlides = () =>
-    $.ajax({
-      type: 'GET',
-      url: '/_/DiagSlide',
-      dataType: 'json',
-      success: slides => this.setState({slides})
-    })
 
 
   _loadHistory = () => {
@@ -91,7 +81,7 @@ export default class Show extends React.Component {
         <div className="history-answer">
           {hist.answers[hist.answerIx].header}
           <br/>
-          {hist.answerTime} − {hist.user}
+          {hist.answerTime} − {hist.answeredBy}
         </div>
         { hoverId === hist.id &&
           <OverlayTrigger
@@ -111,7 +101,7 @@ export default class Show extends React.Component {
         <Row>
           <Col md={4}>
             <ListGroup>
-              {history.map((h,i) => (
+              {history.filter(h => h.deprecatedBy === null).map((h,i) => (
                 <ListGroupItem
                   className={h.id === slideId ? 'selected' : ''}
                   onClick={() => this.setState({slideId: h.id})}
