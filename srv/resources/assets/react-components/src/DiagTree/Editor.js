@@ -1,0 +1,109 @@
+import Immutable from 'immutable'
+import React from 'react'
+import { Grid, Row, Col } from 'react-bootstrap'
+
+import SlideTree from './SlideTree'
+import SlideEditor from './SlideEditor'
+import './DiagTree.css'
+
+
+
+// FIXME: error if there is no slides
+export default class Editor extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      slides: null,
+      selectedId: null
+    }
+
+    this._loadSlides()
+  }
+
+
+  _loadSlides = () =>
+    $.ajax({
+      type: 'GET',
+      url: '/_/DiagSlide',
+      dataType: 'json',
+      success: slides => this.setState({
+        slides: Immutable.Map(
+          slides.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
+        selectedId: slides.find(x => x.isRoot).id
+      })
+    })
+
+
+  newSlide = () => {
+    let slide = {
+      header: 'Новый вопрос',
+      body: '?',
+      resources: [],
+      answers: [],
+      isRoot: true
+    };
+
+    $.ajax({
+      type: 'POST',
+      url: '/_/DiagSlide',
+      data: JSON.stringify(slide),
+      processData: false,
+      contentType: 'application/json',
+      success: res => {
+        slide.id = res.id;
+        slide = Immutable.fromJS(slide);
+        this.setState({
+          slides: this.state.slides.put(slide.get('id'), slide),
+          selectedId: slide.get('id')
+        })
+      }
+    })
+  }
+
+
+  saveSlide = data => {
+    let slide = data.toJS();
+
+    $.ajax({
+      type: 'PUT',
+      url: `/_/DiagSlide/${slide.id}`,
+      data: JSON.stringify(slide),
+      processData: false,
+      contentType: 'application/json',
+      success: res => {
+        slide = Object.assign(slide, res);
+        this.setState({
+          slides: this.state.slides.set(String(slide.id), slide)
+        })
+      }
+    });
+  }
+
+
+  render() {
+    const {slides, selectedId} = this.state;
+    if (selectedId === null) return (<span>Loading...</span>);
+
+    return (
+      <Grid className="Editor">
+        <Row>
+          <Col md={4}>
+            <SlideTree
+              slides={slides}
+              selectedId={selectedId}
+              onSelect={s => this.setState({selectedId: s})}
+              onAddSlide={this.newSlide}
+            />
+          </Col>
+          <Col md={8}>
+            <SlideEditor
+              slide={slides.get(String(selectedId))}
+              onChange={this.saveSlide}
+            />
+          </Col>
+        </Row>
+      </Grid>
+    );
+  }
+}

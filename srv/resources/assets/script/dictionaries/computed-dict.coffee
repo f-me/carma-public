@@ -84,6 +84,11 @@ define ["dictionaries/local-dict"], (ld) ->
         @source = for o in objs when o.name
           { value: o.id, label: o.name }
 
+    diagTreeRoots: =>
+      @bgetJSON "/_/DiagSlide?isRoot=t", (objs) =>
+        @source = for obj in objs
+          { value: obj.id, label: obj.header || '' }
+
     Priorities: => @source = [1..3].map (e) -> s=String(e);{value:s,label:s}
 
     ExistDict: =>
