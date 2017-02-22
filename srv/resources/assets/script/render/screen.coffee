@@ -17,6 +17,7 @@ define [], ->
       cs.destructor(name)
     forgetView(viewName) for viewName of global.viewsWare
     global.topElement.off()
+    ReactDOM.unmountComponentAtNode global.topElement[0]
     ko.cleanNode global.topElement[0]
     global.topElement.empty()
     global.viewsWare = {}
@@ -47,18 +48,21 @@ define [], ->
 
     wrappers = screenObj.wrappers?(partials) or {}
 
-    tpl   = screenObj?.template
-    tpl ||= $el(screen.template).html()
+    if screen.component
+      ReactDOM.render screen.component, global.topElement[0]
+    else
+      tpl   = screenObj?.template
+      tpl ||= $el(screen.template).html()
 
-    unless tpl?
-      throw "Template for screen #{screen.name} is not found"
+      unless tpl?
+        throw "Template for screen #{screen.name} is not found"
 
-    tpl1 = Mustache.render tpl, wrappers, partials
-    global.topElement.html(tpl1)
-    # Call setup functions for all views, assuming they will set
-    # their viewsWare
-    for viewName, cs of screen.views when cs.constructor?
-      cs.constructor(viewName, args)
+      tpl1 = Mustache.render tpl, wrappers, partials
+      global.topElement.html(tpl1)
+      # Call setup functions for all views, assuming they will set
+      # their viewsWare
+      for viewName, cs of screen.views when cs.constructor?
+        cs.constructor(viewName, args)
 
   # Clean up all views on screen and everything.
   forgetScreen: forgetScreen

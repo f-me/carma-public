@@ -65,5 +65,9 @@ instance Model SubProgram where
                 , setMeta "widget" "inline-uploader" logo
                 , setMeta "reference-widget" "files" logo
                 , setMeta "single-uploader" (A.Bool True) logo
+                , dict diagTree $ (dictOpt "diagTreeRoots")
+                  { dictType = Just "ComputedDict"
+                  , dictBounded = True
+                  }
                 ]
     _  -> Nothing

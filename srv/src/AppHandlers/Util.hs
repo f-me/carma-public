@@ -24,7 +24,7 @@ writeJSON v = do
 
 
 getJSONBody :: Aeson.FromJSON v => Handler a b v
-getJSONBody = Util.readJSONfromLBS <$> readRequestBody 32768
+getJSONBody = Util.readJSONfromLBS <$> readRequestBody (4 * 1024 * 1024)
 
 
 handleError :: MonadSnap m => Int -> m ()

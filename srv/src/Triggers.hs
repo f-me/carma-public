@@ -21,6 +21,7 @@ import           Control.Monad.Free (Free)
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Reader
 
+import qualified Data.Aeson as Aeson
 import           Data.Singletons
 import           Data.Dynamic
 import           Data.List
@@ -32,6 +33,7 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time.Calendar
 import           Data.Time.Clock
+import qualified Data.Vector as Vector
 import           Text.Printf
 
 import           GHC.TypeLits
@@ -87,6 +89,8 @@ import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
 import           Carma.Model.PartnerDelay (PartnerDelay)
 import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
+import qualified Carma.Model.DiagHistory as DiagHistory
+import qualified Carma.Model.DiagSlide as DiagSlide
 
 import           Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
@@ -208,6 +212,20 @@ beforeCreate = Map.unionsWith (++)
     modPut Towage.towingPointPresent  $ Just off
     modPut Towage.vandalism           $ Just off
     modPut Towage.wheelsBlocked       $ Just 0
+
+  , trigOnModel ([]::[DiagHistory.DiagHistory]) $ do
+    modPut DiagHistory.createdBy =<< getCurrentUser
+    getPatchField DiagHistory.slideId >>= \case
+      Just _ -> return ()
+      Nothing -> do
+        caseId <- getPatchField DiagHistory.caseId
+        [[slideId]] <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
+          [sql|
+            select diagTree
+              from "SubProgram" s join casetbl c on (s.id = c.subprogram)
+              where c.id = $(caseId)$
+          |]
+        modPut DiagHistory.slideId slideId
   ]
 
 
@@ -465,6 +483,29 @@ beforeUpdate = Map.unionsWith (++) $
           let contract' = Patch.delete Contract.ident contract
           copyContractToCase subProgId contract'
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
+
+  , trigOn DiagSlide.answers $ \(Aeson.Array answers) -> do
+    answers' <- forM (Vector.toList answers) $ \(Aeson.Object ans) ->
+      case HM.lookup "nextSlide" ans of
+        Just _ -> return $ Aeson.Object ans
+        Nothing -> do
+          let header = maybe "" (\(Aeson.String s) -> s) $ HM.lookup "header" ans
+          [Only newId] <- doApp $ liftPG $ \pg ->
+            uncurry (PG.query pg)
+              [sql|
+                insert into "DiagSlide" (header, body)
+                  values ($(header)$, '')
+                  returning id
+              |]
+          return $ Aeson.Object
+            $ HM.insert "nextSlide" (Aeson.Number $ fromInteger newId)
+              ans
+    modPut DiagSlide.answers $ Aeson.Array $ Vector.fromList answers'
+
+  , trigOn DiagHistory.answerIx $ \_ -> do
+      modPut DiagHistory.answeredBy =<< Just <$> getCurrentUser
+      modPut DiagHistory.answerTime =<< Just <$> getNow
+
   , actionsToTrigger (snd carmaBackoffice)
   ]  ++
   map entryToTrigger (fst carmaBackoffice)

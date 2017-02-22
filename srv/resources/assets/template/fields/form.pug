@@ -698,6 +698,15 @@ mixin caseFilesList
           dt(data-bind="visible: safelyGet(\'filesReference\').length, text: _meta.model.title")
             dd
               +caseFilesList
+      #case-diag(data-bind="visible: _canDiag")
+        h4
+          a(data-bind="click: _startDiag, visible: _canStartDiag")
+            | Начать диагностику
+          a(data-bind="click: _showDiag, visible: _canProceedDiag")
+            | Продолжить диагностику
+          a(data-bind="click: _showDiag, visible: _canShowDiag")
+            | История диагностики
+
       #case-comments
         h4 Комментарий
         .form-group
