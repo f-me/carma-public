@@ -6,7 +6,7 @@ import { ListGroup, ListGroupItem } from 'react-bootstrap'
 
 import RichTextEditor from 'react-rte'
 
-import ResourceEditor from './ResourceEditor'
+import Resource from './Resource'
 import Answer from './Answer'
 
 
@@ -21,7 +21,7 @@ export default class SlideEditor extends React.Component {
     this.setState(this._defaultState(props));
   }
 
-  _defaultState = (props) => ({
+  _defaultState = props => ({
     slide: Immutable.fromJS(props.slide),
     rtValue: RichTextEditor.createValueFromString(props.slide.body, 'markdown'),
     draftResource: false
@@ -51,26 +51,24 @@ export default class SlideEditor extends React.Component {
 
   render() {
     const {slide} = this.state;
-    console.log('SlideEditor.render', slide.toJS());
 
     const isNotChanged = slide.equals(this.props.slide);
     const setSlide = (f, v) => this.setState({slide: slide.set(f, v)})
 
     const resources = slide.get('resources').toArray().map((res, i) => (
-      <div key={i}>
-        <img src={res.get('files')[0].preview} role="presentation" />
-        <span>{res.get('text')}</span>
-      </div>
+      <Resource key={i} resource={res}
+        onDelete={() => this.setState({slide: slide.deleteIn(['resources', i])})}
+        onChange={x  => this.setState({slide: slide.setIn(['resources', i], x)})}
+      />
     )).concat(
       <ListGroupItem key={-1}>
-        { this.state.draftResource
-            ? <ResourceEditor resource={this._defaultResource}
-                onSave={res => this._setResource(null, res)}
-                onCancel={() => this.setState({draftResource: false})} />
-            : <Button onClick={() => this.setState({draftResource: true})}>
-                <Glyphicon glyph="plus" /> Добавить картинку
-              </Button>
-        }
+        <Button
+          onClick={() => this.setState({
+              slide: slide.updateIn(['resources'], as => as.push(null))
+          })}
+        >
+          <Glyphicon glyph="plus" /> Добавить картинку
+        </Button>
       </ListGroupItem>
     );
 

@@ -37,6 +37,12 @@
   font-size: 36px;
 }
 
+.Show img {
+  font-size: 36px;
+  margin: 10px;
+  max-width: 30%;
+}
+
 .SlideEditor img {
   font-size: 36px;
   margin: 10px;

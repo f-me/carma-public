@@ -117,8 +117,14 @@ export default class Show extends React.Component {
           <Col md={8}>
             <h1>{slide.header}</h1>
             <RichTextEditor readOnly={true} value={body} />
+            {slide.resources.map((res, i) => (
+              <div key={i}>
+                <img src={res.file} role="presentation"/>
+                <span>{res.text}</span>
+              </div>
+            ))}
             <ListGroup>
-              {slide.answers.map((ans,i) => (
+              {slide.answers.map((ans, i) => (
                 <ListGroupItem
                   header={ans.header}
                   className={slide.answerIx === i ? 'selected' : ''}

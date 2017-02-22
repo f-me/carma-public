@@ -36,7 +36,7 @@ export default class Editor extends React.Component {
 
 
   newSlide = () => {
-    let slide = {
+    const slide = {
       header: 'Новый вопрос',
       body: '?',
       resources: [],
@@ -51,11 +51,10 @@ export default class Editor extends React.Component {
       processData: false,
       contentType: 'application/json',
       success: res => {
-        slide.id = res.id;
-        slide = Immutable.fromJS(slide);
+        Object.assign(slide, res);
         this.setState({
-          slides: this.state.slides.put(slide.get('id'), slide),
-          selectedId: slide.get('id')
+          slides: this.state.slides.set(String(slide.id), slide),
+          selectedId: slide.id
         })
       }
     })

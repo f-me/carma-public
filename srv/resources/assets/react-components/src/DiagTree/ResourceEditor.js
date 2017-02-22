@@ -16,20 +16,24 @@ export default class ResourceEditor extends React.Component {
   render() {
     const {resource} = this.state;
     const isNotChanged = resource.equals(this.props.resource);
-    const setResource = (f, v) => this.setState({resource: resource.set(f, v)})
+    const setResource = (f, v) => this.setState({resource: resource.set(f, v)});
+    const setFile = fs => {
+      if (fs && fs[0]) {
+        const reader = new FileReader();
+        reader.onload = () => setResource('file', reader.result);
+        reader.readAsDataURL(fs[0]);
+      }
+    };
 
     return (
       <div className="ResourceEditor">
         <FormGroup>
           <Dropzone className="dropzone"
-            onDrop={fs => setResource('files', fs)}
+            onDrop={setFile}
             accept="audio/*,video/*,image/*">
               Нажмите для добавления картинки или перетащите её сюда
           </Dropzone>
-          { resource.get('files').length
-              ?  <img src={resource.get('files')[0].preview} role="presentation" />
-              : null
-          }
+          <img src={resource.get('file')} role="presentation" />
           <FormControl type="text"
             placeholder="Подпись к картинке"
             onChange={e => setResource('text', e.target.value)}

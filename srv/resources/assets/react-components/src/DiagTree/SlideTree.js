@@ -7,7 +7,6 @@ import { Button, ButtonToolbar, Glyphicon } from 'react-bootstrap'
 export default function(props) {
   const {selectedId, slides} = props;
   const roots = slides.valueSeq().filter(x => x.isRoot).toArray();
-  console.log('SlideTree.render', roots);
 
   return (
     <div>
