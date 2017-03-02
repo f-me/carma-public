@@ -52,7 +52,7 @@ export default class SlideEditor extends React.Component {
 
   _addAction = actions => {
     this.setState({
-      slide: this.state.slide.set('actions', actions)
+      slide: this.state.slide.set('actions', Immutable.fromJS(actions))
     });
   }
 
