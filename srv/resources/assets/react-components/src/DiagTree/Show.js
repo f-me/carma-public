@@ -68,6 +68,19 @@ export default class Show extends React.Component {
     })
   }
 
+  _execAction = act => () => {
+    $.ajax({
+      type: 'POST',
+      url: `/_/${act.svc}`,
+      data: JSON.stringify({
+        parentId: Number.parseInt(this.props.caseId)
+      }),
+      processData: false,
+      contentType: 'application/json',
+      success: alert('Готово')
+    })
+  }
+
 
   render() {
     const {history, slideId, hoverId} = this.state;
@@ -136,6 +149,15 @@ export default class Show extends React.Component {
                 </ListGroupItem>
               ))}
             </ListGroup>
+
+            {slide.actions && slide.actions.length &&
+              <ListGroup>
+                <ListGroupItem
+                  header={slide.actions[0].label}
+                  onClick={this._execAction(slide.actions[0])}
+                />
+              </ListGroup>
+            }
           </Col>
         </Row>
       </Grid>

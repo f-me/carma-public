@@ -5,6 +5,8 @@ import { ButtonToolbar, Button, Glyphicon } from 'react-bootstrap'
 import { ListGroup, ListGroupItem } from 'react-bootstrap'
 
 import RichTextEditor from 'react-rte'
+import Typeahead from 'react-bootstrap-typeahead';
+import 'react-bootstrap-typeahead/css/Typeahead.css';
 
 import Resource from './Resource'
 import Answer from './Answer'
@@ -48,6 +50,12 @@ export default class SlideEditor extends React.Component {
     slide: this.state.slide.set('body', value.toString('markdown'))
   })
 
+  _addAction = actions => {
+    this.setState({
+      slide: this.state.slide.set('actions', actions)
+    });
+  }
+
 
   render() {
     const {slide} = this.state;
@@ -89,6 +97,13 @@ export default class SlideEditor extends React.Component {
       </ListGroupItem>
     );
 
+    const actions =
+      [ {label: "Создать Эвакуацию", svc: "Towage"}
+      , {label: "Создать Техпомощь", svc: "Tech"}
+      , {label: "Создать Консультацию", svc: "Consultation"}
+      ];
+
+
 
     return (
       <form className="SlideEditor">
@@ -113,10 +128,22 @@ export default class SlideEditor extends React.Component {
           <ListGroup>{resources}</ListGroup>
         </FormGroup>
 
-        <FormGroup>
-          <ControlLabel>Ответы</ControlLabel>
-          <ListGroup>{answers}</ListGroup>
-        </FormGroup>
+        { slide.get('action') == null &&
+          <FormGroup>
+            <ControlLabel>Ответы</ControlLabel>
+            <ListGroup>{answers}</ListGroup>
+          </FormGroup>
+        }
+        { slide.get('answers').toArray().length === 0 &&
+          <FormGroup>
+            <ControlLabel>Рекомендация</ControlLabel>
+            <Typeahead emptyLabel="Что делать?"
+              options={actions}
+              selected={[]}
+              onChange={this._addAction}
+            />
+          </FormGroup>
+        }
 
         <ButtonToolbar>
           <Button

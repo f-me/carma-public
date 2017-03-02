@@ -19,6 +19,7 @@ data DiagSlide = DiagSlide
   , body      :: F Text "body" "Описание"
   , resources :: F Aeson.Value "resources" "Картинки"
   , answers   :: F Aeson.Value "answers" "Ответы"
+  , actions   :: F Aeson.Value "actions" "Рекомендации"
   , isRoot    :: F Bool "isRoot" "Начало опроса"
   } deriving Typeable
 
