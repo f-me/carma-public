@@ -145,6 +145,7 @@ export default class Show extends React.Component {
                     ? undefined
                     : this._answer(slide.id, i, ans.nextSlide)}
                 >
+                  {ans.file && <img src={ans.file} role="presentation"/>}
                   {ans.text}
                 </ListGroupItem>
               ))}

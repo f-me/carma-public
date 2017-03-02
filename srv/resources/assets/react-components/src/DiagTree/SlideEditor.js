@@ -104,7 +104,6 @@ export default class SlideEditor extends React.Component {
       ];
 
 
-
     return (
       <form className="SlideEditor">
         <FormGroup>

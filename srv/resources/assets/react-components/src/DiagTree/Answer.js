@@ -57,6 +57,7 @@ export default class Answer extends React.Component {
           <Row>
             <Col md={7}>
               <ListGroupItem header={answer.get('header')}>
+                {answer.get('file') && <img src={answer.get('file')} role="presentation"/>}
                 {answer.get('text')}
               </ListGroupItem>
             </Col>
