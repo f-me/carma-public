@@ -127,7 +127,7 @@ export default class SlideEditor extends React.Component {
           <ListGroup>{resources}</ListGroup>
         </FormGroup>
 
-        { slide.get('action') == null &&
+        { slide.get('actions').toArray().length === 0 &&
           <FormGroup>
             <ControlLabel>Ответы</ControlLabel>
             <ListGroup>{answers}</ListGroup>
