@@ -119,11 +119,18 @@ define [ "utils"
           win = window.open "#diag/show/#{kvm.id()}", '_blank'
           win.focus()
 
-      $.getJSON "/diag/info/#{kvm.id()}", (res) ->
-        kvm._canDiag(res.root != null)
-        kvm._canStartDiag(!res.started)
-        kvm._canProceedDiag(res.started && !res.ended)
-        kvm._canShowDiag(res.started && res.ended)
+      refreshDiagTree = ->
+        $.getJSON "/diag/info/#{kvm.id()}", (res) ->
+          kvm._canDiag(res.root != null)
+          kvm._canStartDiag(!res.started)
+          kvm._canProceedDiag(res.started && !res.ended)
+          kvm._canShowDiag(res.started && res.ended)
+
+      refreshDiagTree()
+      kvm.subprogramSync.subscribe (nv) ->
+        if !nv
+          refreshDiagTree()
+
 
     # History pane
     setupHistory = (kvm) ->

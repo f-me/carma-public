@@ -152,6 +152,9 @@ export default class SlideEditor extends React.Component {
             disabled={isNotChanged}
             bsStyle="success"
             onClick={() => this.props.onChange(slide)}>Сохранить</Button>
+          <span style={{margin: "10px 5px"}}>
+            {this.props.saveMsg}
+          </span>
         </ButtonToolbar>
       </form>
     );

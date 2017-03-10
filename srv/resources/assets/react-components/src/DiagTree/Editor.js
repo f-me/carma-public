@@ -30,7 +30,7 @@ export default class Editor extends React.Component {
       success: slides => this.setState({
         slides: Immutable.Map(
           slides.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
-        selectedId: slides.find(x => x.isRoot).id
+        selectedId: this.state.selectedId || slides.find(x => x.isRoot).id
       })
     })
 
@@ -63,6 +63,7 @@ export default class Editor extends React.Component {
 
   saveSlide = data => {
     let slide = data.toJS();
+    this.setState({saveMsg: "Сохраняем"});
 
     $.ajax({
       type: 'PUT',
@@ -73,9 +74,13 @@ export default class Editor extends React.Component {
       success: res => {
         slide = Object.assign(slide, res);
         this.setState({
-          slides: this.state.slides.set(String(slide.id), slide)
+          slides: this.state.slides.set(String(slide.id), slide),
+          saveMsg: "Сохранено"
         })
-      }
+        this._loadSlides();
+        setTimeout(() => this.setState({saveMsg: ''}), 2000);
+      },
+      error: () => this.setState({saveMsg: "Ошибка"})
     });
   }
 
@@ -99,6 +104,7 @@ export default class Editor extends React.Component {
             <SlideEditor
               slide={slides.get(String(selectedId))}
               onChange={this.saveSlide}
+              saveMsg={this.state.saveMsg}
             />
           </Col>
         </Row>
