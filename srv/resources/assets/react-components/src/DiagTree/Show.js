@@ -78,7 +78,13 @@ export default class Show extends React.Component {
       }),
       processData: false,
       contentType: 'application/json',
-      success: alert('Готово')
+      success: () => {
+        window.localStorage.setItem(
+            `DiagTree/${this.props.caseId}/newSvc`,
+            true)
+        alert('Готово. Опрос будет закрыт.')
+        window.close()
+      }
     })
   }
 

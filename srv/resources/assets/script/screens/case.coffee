@@ -105,7 +105,13 @@ define [ "utils"
             $("#left").animate {scrollTop: leftTop + svcTop - 40}, 1000
 
     setupDiagTree = (kvm) ->
+      watchLocalStorage = (e) ->
+        if e.key == "DiagTree/#{kvm.id()}/newSvc"
+          window.localStorage.removeItem(e.key)
+          window.location.reload()
+
       kvm._showDiag = ->
+        window.addEventListener("storage", watchLocalStorage, false)
         win = window.open "#diag/show/#{kvm.id()}", '_blank'
         win.focus()
       kvm._startDiag = ->
@@ -114,6 +120,7 @@ define [ "utils"
           url: "/_/DiagHistory"
           data: JSON.stringify {caseId: parseInt(kvm.id())}
         $.ajax(opts).done ->
+          window.addEventListener("storage", watchLocalStorage, false)
           kvm._canStartDiag false
           kvm._canProceedDiag true
           win = window.open "#diag/show/#{kvm.id()}", '_blank'
