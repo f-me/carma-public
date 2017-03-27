@@ -95,7 +95,6 @@ define [ "search/screen"
         $('#render-contract').attr(
           "href",
           "/renderContract?contract=#{cid}")
-        $('#render-contract').attr "onclick", null
         main.modelSetup(formContractModel) contractForm, {id: cid}, {}
       else
         main.modelSetup(formContractModel) contractForm,

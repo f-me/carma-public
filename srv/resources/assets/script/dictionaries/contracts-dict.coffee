@@ -92,9 +92,9 @@ define ["dictionaries/meta-dict", "dictionaries"], (m) ->
         if _.isNull c._expired
           ""
         if c._expired
-          "<span class='label label-danger'>Не действует</span>"
+          "<span class='label label-danger'>Проверить участие</span>"
         else
-          "<span class='label label-success'>Действует</span>"
+          "<span class='label label-success'>Проверить условия</span>"
 
       # highlight matched search string
       if (not _.isEmpty fs) and q

@@ -256,6 +256,9 @@ table.tarif-options .glyphicon-remove {
 }
 
 
+h4 a {
+  cursor: pointer;
+}
 
 
 } /* end @media screen */

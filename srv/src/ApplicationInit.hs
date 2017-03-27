@@ -51,6 +51,7 @@ import AppHandlers.ContractGenerator
 import AppHandlers.Users
 import AppHandlers.Screens
 import AppHandlers.KPI
+import AppHandlers.DiagTree
 import Util
 
 ------------------------------------------------------------------------------
@@ -136,10 +137,13 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/kpi/group/:from/:to",     chkAuth . method GET $ getGroup)
          , ("/kpi/oper",                chkAuth . method GET $ getOper)
          , ("/avaya/eject/:user/:call", chkAuth . method PUT $ ejectUser)
-         , ("/avaya/ws/:ext", chkAuth . method GET $ dmccWsProxy)
-         , ("/avaya/hook/",   chkAuth . method POST $ dmccHook)
-         , ("/avaya/toAfterCall/", chkAuth . method PUT $ avayaToAfterCall)
-         , ("/avaya/toReady/",     chkAuth . method PUT $ avayaToReady)
+         , ("/avaya/ws/:ext",           chkAuth . method GET $ dmccWsProxy)
+         , ("/avaya/hook/",             chkAuth . method POST $ dmccHook)
+         , ("/avaya/toAfterCall/",      chkAuth . method PUT $ avayaToAfterCall)
+         , ("/avaya/toReady/",          chkAuth . method PUT $ avayaToReady)
+         , ("/diag/info/:caseId",       chkAuth . method GET $ diagInfo)
+         , ("/diag/history/:caseId",    chkAuth . method GET $ diagHistory)
+         , ("/diag/retry/:histId",      chkAuth . method POST $ retryQuestion)
          ]
 
 dconf :: DirectoryConfig (Handler App App)

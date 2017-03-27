@@ -698,6 +698,7 @@ mixin caseFilesList
           dt(data-bind="visible: safelyGet(\'filesReference\').length, text: _meta.model.title")
             dd
               +caseFilesList
+
       #case-comments
         h4 Комментарий
         .form-group
@@ -899,3 +900,18 @@ mixin caseFilesList
     .col-sm-8
       p.form-control-static
         strong(data-bind="text: callType.local")
+
+.field-template#case-vinChecked-field-template
+  +fieldControlGroup
+    +dictInputChevron("Local", "glyphicon-chevron-down")
+  .form-group(data-bind="visible: _canDiag")
+    label.col-sm-4.control-label
+      | &nbsp;
+    .col-sm-8
+      .input-group.input-group-sm
+        a(data-bind="click: _startDiag, visible: _canStartDiag")
+          | Начать диагностику
+        a(data-bind="click: _showDiag, visible: _canProceedDiag")
+          | Продолжить диагностику
+        a(data-bind="click: _showDiag, visible: _canShowDiag")
+          | История диагностики
