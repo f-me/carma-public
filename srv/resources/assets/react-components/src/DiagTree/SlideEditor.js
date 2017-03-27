@@ -138,7 +138,7 @@ export default class SlideEditor extends React.Component {
             <ControlLabel>Рекомендация</ControlLabel>
             <Typeahead emptyLabel="Что делать?"
               options={actions}
-              selected={[]}
+              selected={slide.get('actions').toJS()}
               onChange={this._addAction}
             />
           </FormGroup>
