@@ -904,8 +904,7 @@ mixin caseFilesList
 .field-template#case-vinChecked-field-template
   +fieldControlGroup
     +dictInputChevron("Local", "glyphicon-chevron-down")
-
-  .form-group
+  .form-group(data-bind="visible: _canDiag")
     label.col-sm-4.control-label
       | &nbsp;
     .col-sm-8
