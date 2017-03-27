@@ -154,6 +154,8 @@ caseMod = [
   ,required caseStatus
   ,readonly caseStatus
 
+  ,widget "case-vinChecked" vinChecked
+
   ,regexp regexpEmail contact_email
   ,regexp regexpEmail contact_ownerEmail
   ,regexp regexpDate car_buyDate
