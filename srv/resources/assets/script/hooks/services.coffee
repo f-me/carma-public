@@ -124,6 +124,7 @@ define [ "utils"
     return if kvm.type() not in
       [ServiceType.tech,
        ServiceType.towage,
+       ServiceType.bikeTowage,
        ServiceType.rent,
        ServiceType.taxi,
        ServiceType.sober,

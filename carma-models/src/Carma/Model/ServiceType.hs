@@ -46,6 +46,7 @@ mkIdents [t|ServiceType|]
  , ("medic", 16)
  , ("deliverClient", 17)
  , ("adjuster", 18)
+ , ("bikeTowage", 19)
  ]
 
 instance Model ServiceType where
