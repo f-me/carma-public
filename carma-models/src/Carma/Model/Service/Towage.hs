@@ -97,30 +97,79 @@ instance Model Towage where
         Just mv -> Just $ modifyView (mv {mv_title = "Эвакуация"}) viewModifier'
     _ -> Nothing
 
+-- I wish we could just use classy lenses here
+class TowageService a where
+  g_towDealer_partnerId  :: a -> F (Maybe (IdentI Partner))
+                            "towDealer_partnerId"
+                            "Дилер (куда эвакуируют автомобиль)"
+  g_towDealer_partner    :: a -> F (Maybe Text) "towDealer_partner"
+                            "Дилер (куда эвакуируют автомобиль)"
+  g_towDealer_coords     :: a -> F (Maybe Text) "towDealer_coords"
+                            "Координаты"
 
-viewModifier' :: [(Text, FieldView -> FieldView) :@ Towage]
+  g_towAddress_address   :: a -> F PickerField
+                            "towAddress_address" "Адрес доставки"
+  g_towAddress_coords    :: a ->  F PickerField "towAddress_coords"
+                            "Координаты"
+
+  g_towAddress_map       :: a -> F (Maybe MapField) "towAddress_map"
+                           ""
+
+  g_towerAddress_address :: a -> F (Maybe PickerField)
+                            "towerAddress_address" "Адрес выезда эвакуатора"
+  g_towerAddress_coords  :: a -> F (Maybe PickerField)
+                            "towerAddress_coords" "Координаты"
+  g_towerAddress_map     :: a -> F (Maybe MapField) "towerAddress_map"
+                            ""
+
+  g_suburbanMilage       :: a -> F (Maybe Scientific) "suburbanMilage"
+                            "Пробег за городом"
+  g_totalMilage          :: a -> F (Maybe Scientific) "totalMilage"
+                            "Километраж по тахометру"
+  g_partnerWarnedInTime  :: a -> F (Maybe Bool) "partnerWarnedInTime"
+                            "Партнёр предупредил вовремя"
+
+
+instance TowageService Towage where
+  g_towDealer_partnerId = towDealer_partnerId
+  g_towDealer_partner = towDealer_partner
+  g_towDealer_coords = towDealer_coords
+
+  g_towAddress_address = towAddress_address
+  g_towAddress_coords = towAddress_coords
+  g_towAddress_map = towAddress_map
+
+  g_towerAddress_address = towerAddress_address
+  g_towerAddress_coords = towerAddress_coords
+  g_towerAddress_map = towerAddress_map
+
+  g_suburbanMilage = suburbanMilage
+  g_totalMilage = totalMilage
+  g_partnerWarnedInTime = partnerWarnedInTime
+
+
+viewModifier' :: TowageService a => [(Text, FieldView -> FieldView) :@ a]
 viewModifier'
-  = setType "dictionary" towDealer_partnerId
-  : setMeta "group-widget" "partner" towDealer_partner
-  : invisible towDealer_partnerId
-  : invisible towDealer_coords
-  : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) suburbanMilage
-  : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) totalMilage
-  : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) partnerWarnedInTime
-  : widget "partnerWarnedInTime-btn" partnerWarnedInTime
+  = setType "dictionary" g_towDealer_partnerId
+  : setMeta "group-widget" "partner" g_towDealer_partner
+  : invisible g_towDealer_partnerId
+  : invisible g_towDealer_coords
+  : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) g_suburbanMilage
+  : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) g_totalMilage
+  : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) g_partnerWarnedInTime
+  : widget "partnerWarnedInTime-btn" g_partnerWarnedInTime
   : viewModifier
 
 
-viewModifier :: [(Text, FieldView -> FieldView) :@ Towage]
+viewModifier :: TowageService a => [(Text, FieldView -> FieldView) :@ a]
 viewModifier =
-  [dict towDealer_partnerId $ (dictOpt "allPartners")
+  [dict g_towDealer_partnerId $ (dictOpt "allPartners")
           { dictType    = Just "ComputedDict"
           , dictBounded = True
           }
   ]
-  ++ mapWidget towAddress_address towAddress_coords towAddress_map
-  ++ mapWidget towerAddress_address towerAddress_coords towerAddress_map
-
+  ++ mapWidget g_towAddress_address g_towAddress_coords g_towAddress_map
+  ++ mapWidget g_towerAddress_address g_towerAddress_coords g_towerAddress_map
 
 towageSearchParams :: [(Text, [Predicate Towage])]
 towageSearchParams = [("towDealer_partnerId", listOf towDealer_partnerId)]
