@@ -187,7 +187,7 @@ manyFieldDivisor = ','
 read1Reference :: FieldValue -> Maybe (String, Int)
 read1Reference val =
     case B8.split ':' val of
-      (ref:sid:[]) ->
+      [ref, sid] ->
           case B8.readInt sid of
             Just (n, _) -> Just (B8.unpack ref, n)
             Nothing -> Nothing
