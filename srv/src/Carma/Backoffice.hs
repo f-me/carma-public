@@ -25,7 +25,6 @@ import           Carma.Model.Case as Case
 import qualified Carma.Model.CaseSource as CO
 import qualified Carma.Model.CaseStatus as CS
 import qualified Carma.Model.FalseCall as FS
-import qualified Carma.Model.ClientRefusalReason as CR
 import           Carma.Model.Program as Program
 import           Carma.Model.Role as Role
 import           Carma.Model.Satisfaction as Satisfaction
