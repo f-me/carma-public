@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Carma.Model.ConsultationResult where
 
 import Data.Text
