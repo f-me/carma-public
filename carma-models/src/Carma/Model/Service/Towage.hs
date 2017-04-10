@@ -14,6 +14,7 @@ import Carma.Model.LegacyTypes
 import Carma.Model.Partner (Partner)
 import Carma.Model.Service (Service)
 import Carma.Model.Search as S
+import Carma.Model.TowSort (TowSort)
 import Carma.Model.TowType (TowType)
 import Carma.Model.TowerType (TowerType)
 
@@ -23,6 +24,8 @@ data Towage = Towage
                              "Тип эвакуатора"
   , towType                  :: F (Maybe (IdentI TowType)) "towType"
                              "Вид эвакуации"
+  , towSort                  :: F (Maybe (IdentI TowSort)) "towSort"
+                             "Тип эвакуации"
   , vandalism                :: F (Maybe Checkbox) "vandalism"
                              "Случай вандализма"
   , accident                 :: F (Maybe Checkbox) "accident"
