@@ -168,7 +168,7 @@ setKeyedJsonValue parsed key value =
     case parsed of
       Array objs ->
         if V.null objs
-        then (V.singleton newEntry)
+        then V.singleton newEntry
         else
           case V.findIndex keyPred objs of
             Just iMatch -> objs & element iMatch .~ newEntry

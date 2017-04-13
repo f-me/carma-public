@@ -17,7 +17,7 @@ define [], ->
       cs.destructor(name)
     forgetView(viewName) for viewName of global.viewsWare
     global.topElement.off()
-    ReactDOM.unmountComponentAtNode global.topElement[0]
+    window.ReactDOM && window.ReactDOM.unmountComponentAtNode(global.topElement[0])
     ko.cleanNode global.topElement[0]
     global.topElement.empty()
     global.viewsWare = {}

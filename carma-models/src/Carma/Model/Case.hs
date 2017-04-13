@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Carma.Model.Case
        (Case(..)

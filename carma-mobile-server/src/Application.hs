@@ -81,13 +81,13 @@ makeLenses ''GeoApp
 
 
 instance HasPostgres (Handler b GeoApp) where
-    getPostgresState = with postgres $ get
+    getPostgresState = with postgres get
 
 
 routes :: [(ByteString, Handler b GeoApp ())]
-routes = [ ("/geo/partner/:pid",           method PUT $ updatePosition)
-         , ("/geo/partnersAround/:coords", method GET $ partnersAround)
-         , ("/geo/case/",                  method POST $ newCase)
+routes = [ ("/geo/partner/:pid",           method PUT updatePosition)
+         , ("/geo/partnersAround/:coords", method GET partnersAround)
+         , ("/geo/case/",                  method POST newCase)
          ]
 
 
@@ -100,7 +100,7 @@ runCarma action = do
 ------------------------------------------------------------------------------
 -- | Pack coordinates to a string of format @33.12,57.32@.
 coordsToString :: Double -> Double -> String
-coordsToString lon lat = (show lon) ++ "," ++ (show lat)
+coordsToString lon lat = show lon ++ "," ++ show lat
 
 
 ------------------------------------------------------------------------------
@@ -136,7 +136,7 @@ updatePosition = do
   case (lon', lat', pid') of
     (Just lon, Just lat, Just pid) -> do
        addr <- snd <$> revGeocode lon lat
-       mtime <- liftIO $ getCurrentTime
+       mtime <- liftIO getCurrentTime
        updatePartnerData (Ident pid) lon lat (fromMaybe True free) addr mtime
     _ -> error "Bad request"
 
@@ -153,7 +153,7 @@ updatePartnerData :: IdentI Partner.Partner
                   -- ^ Latitude.
                   -> Bool
                   -- ^ Partner status.
-                  -> (Maybe Text)
+                  -> Maybe Text
                   -- ^ New address if available (unchanged otherwise).
                   -> UTCTime
                   -- ^ New partner mtime.
@@ -162,7 +162,7 @@ updatePartnerData pid lon lat free addr mtime =
     let
         body = Patch.put Partner.coords (Just $ Coords (lon, lat)) $
                Patch.put Partner.isFree free $
-               Patch.put Partner.mtime mtime $
+               Patch.put Partner.mtime mtime
                Patch.empty
     in do
       -- Update addrs with new "fact" address. Not thread-safe.
@@ -174,7 +174,7 @@ updatePartnerData pid lon lat free addr mtime =
                          Patch.get pData Partner.addrs
               newAddrs = setKeyedJsonValue oldAddrs "fact" (String newFactAddr)
           return $ Patch.put Partner.addrs newAddrs body
-      runCarma $ updateInstance pid body' >> return ()
+      runCarma $ void (updateInstance pid body')
 
 
 
@@ -207,7 +207,7 @@ newCase = do
   rqb <- readRequestBody 4096
   let -- Do not enforce typing on values when reading JSON
       Just (Object jsonRq0) = Aeson.decode rqb
-      coords' = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
+      coords' = (,) <$> HM.lookup "lon" jsonRq0 <*> HM.lookup "lat" jsonRq0
       isAccident  = HM.lookup "isAccident" jsonRq0
       program'    = HM.lookup (fieldName Case.program) jsonRq0
       subprogram' = HM.lookup (fieldName Case.subprogram) jsonRq0
@@ -233,7 +233,7 @@ newCase = do
                  putFromRequest Case.contact_name $
                  putFromRequest Case.contact_email $
                  Patch.put Case.contractIdentifier
-                 (HM.lookup "cardNumber_cardNumber" jsonRq) $
+                 (HM.lookup "cardNumber_cardNumber" jsonRq)
                  Patch.empty
 
   dict <- gets cityDict
@@ -247,15 +247,15 @@ newCase = do
           return $
           -- Translate input city name to corresponding dictionary key
           maybe id (Patch.put Case.city . Just . Ident)
-          (city >>= (flip valueOfLabel dict)) $
+          (city >>= (`valueOfLabel` dict)) $
           -- Prepend street address with city name
           maybe id
           (\a ->
-             Patch.put Case.caseAddress_address $
-             (PickerField $ Just $
+             Patch.put Case.caseAddress_address
+             (PickerField $ Just
               (maybe a (\c -> T.concat [c, ", ", a]) city))) addr $
-          (Patch.put Case.caseAddress_coords $
-           (PickerField $ Just $ T.pack $ coordsToString lon lat)) $
+          Patch.put Case.caseAddress_coords
+          (PickerField $ Just $ T.pack $ coordsToString lon lat)
           caseBody
     _ -> return caseBody
 
@@ -275,7 +275,7 @@ newCase = do
                    (fromMaybe Program.ramc progValue) $
                    Patch.put Case.subprogram
                    (Just
-                    (fromMaybe SubProgram.ramc subProgValue)) $
+                    (fromMaybe SubProgram.ramc subProgValue))
                    caseBody'
 
   -- Check if there has been a recent case from this number. If so, do
@@ -283,7 +283,7 @@ newCase = do
   oldId <-
     case HM.lookup (fieldName Case.contact_phone1) jsonRq of
       Nothing -> return Nothing
-      Just t -> do
+      Just t ->
         query oldCaseQ [t] >>=
           \case
             [[i]] -> return $ Just i
@@ -301,7 +301,7 @@ newCase = do
       return caseId
 
   modifyResponse $ setContentType "application/json"
-  writeLBS . encode $ object $ [ "caseId" .= caseId ]
+  writeLBS . encode $ object [ "caseId" .= caseId ]
 
 
 ------------------------------------------------------------------------------
@@ -427,7 +427,7 @@ getParamWith :: MonadSnap m =>
              -- ^ Parameter name.
              -> m (Maybe a)
 getParamWith parser name = do
-  input <- liftM (parseOnly parser) <$> getParam name
+  input <- fmap (parseOnly parser) <$> getParam name
   return $ case input of
              Just (Right p) -> Just p
              _ -> Nothing

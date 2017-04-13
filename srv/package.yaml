@@ -26,6 +26,7 @@ dependencies:
   - fgl
   - filepath
   - free
+  - gitrev
   - graphviz
   - heist
   - hsyslog

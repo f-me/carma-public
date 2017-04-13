@@ -1,5 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module ApplicationHandlers
     (
@@ -26,6 +27,9 @@ module ApplicationHandlers
     -- * Misc. client support handlers
     , clientConfig
     , whoopsieHandler
+
+    -- * Misc. debugging handlers
+    , serveMeta
     )
 
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
@@ -49,6 +53,9 @@ import qualified Data.Map as Map
 import Database.PostgreSQL.Simple (Query, Only(..), (:.)(..))
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Database.PostgreSQL.Simple.SqlQQ.Alt as Alt
+
+import Development.GitRev
+
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import Heist
 import Heist.Interpreted
@@ -394,3 +401,7 @@ logResp act = logExceptions "handler/logResp" $ do
   r <- act
   syslogJSON Info "handler/logResp" ["response" .= r]
   writeJSON r
+
+serveMeta :: AppHandler ()
+serveMeta = writeJSON $
+            Aeson.object ["build" .= Aeson.object ["gitCommit" .= ($(gitHash) :: String)]]
