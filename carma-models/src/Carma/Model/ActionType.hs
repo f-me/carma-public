@@ -56,7 +56,7 @@ instance Model ActionType where
   idents = Carma.Model.ActionType.idents
   modelInfo = mkModelInfo ActionType ident
   modelView = \case
-    "" -> Just $ modifyView defaultView $
+    "" -> Just $ modifyView defaultView
           [ infoText "actpriority" priority
           ]
     _  -> Nothing

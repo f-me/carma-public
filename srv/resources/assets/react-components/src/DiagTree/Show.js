@@ -16,7 +16,8 @@ export default class Show extends React.Component {
     this.state = {
       history: null,
       slideId: null,
-      hoverId: null
+      hoverId: null,
+      showDeprecated: null
     };
     this._loadHistory();
   }
@@ -68,6 +69,25 @@ export default class Show extends React.Component {
     })
   }
 
+  _execAction = act => () => {
+    $.ajax({
+      type: 'POST',
+      url: `/_/${act.svc}`,
+      data: JSON.stringify({
+        parentId: Number.parseInt(this.props.caseId)
+      }),
+      processData: false,
+      contentType: 'application/json',
+      success: () => {
+        window.localStorage.setItem(
+            `DiagTree/${this.props.caseId}/newSvc`,
+            true)
+        alert('Готово. Опрос будет закрыт.')
+        window.close()
+      }
+    })
+  }
+
 
   render() {
     const {history, slideId, hoverId} = this.state;
@@ -75,7 +95,7 @@ export default class Show extends React.Component {
 
     const slide = history.find(h => h.id === slideId);
     const body  = RichTextEditor.createValueFromString(slide.body, 'markdown');
-    const answer = hist => {
+    const answer = (hist, opt={}) => {
       if(hist.answerIx === null) return '';
       return (<div>
         <div className="history-answer">
@@ -83,15 +103,16 @@ export default class Show extends React.Component {
           <br/>
           {hist.answerTime} − {hist.answeredBy}
         </div>
-        { hoverId === hist.id &&
-          <OverlayTrigger
-              placement="top"
-              overlay={<Tooltip>Повторить вопрос</Tooltip>}>
-            <Glyphicon
-                className="btn floating-btn"
-                onClick={this._repeatQuestion(hist.id)}
-                glyph="repeat"/>
-          </OverlayTrigger>
+        { !opt.disabled && hoverId ===  hist.id
+          ?  <OverlayTrigger
+                placement="top"
+                overlay={<Tooltip>Повторить вопрос</Tooltip>}>
+              <Glyphicon
+                  className="btn floating-btn"
+                  onClick={this._repeatQuestion(hist.id)}
+                  glyph="repeat"/>
+            </OverlayTrigger>
+          : ''
         }
       </div>);
     };
@@ -101,17 +122,53 @@ export default class Show extends React.Component {
         <Row>
           <Col md={4}>
             <ListGroup>
-              {history.filter(h => h.deprecatedBy === null).map((h,i) => (
-                <ListGroupItem
-                  className={h.id === slideId ? 'selected' : ''}
-                  onClick={() => this.setState({slideId: h.id})}
-                  onMouseEnter={() => this.setState({hoverId: h.id})}
-                  onMouseLeave={() => this.setState({hoverId: null})}
-                  header={h.header}
-                >
-                  {answer(h)}
-                </ListGroupItem>
-              ))}
+              {history.filter(h => h.deprecatedBy === null).map((h,i) => {
+                const prevHistory = history.filter(hh => hh.deprecatedBy === h.id);
+                return (
+                  <div>
+                    <div>
+                      { prevHistory.length && this.state.showDeprecated != h.id
+                        ? <a className="more" href="#"
+                            onClick={() => this.setState({showDeprecated: h.id})}
+                          >
+                            Показать отменённые ответы
+                          </a>
+                        : ''
+                      }
+                      { this.state.showDeprecated == h.id
+                        ? <a className="more" href="#"
+                            onClick={() => this.setState({showDeprecated: null})}
+                          >
+                            Скрыть отменённые ответы
+                          </a>
+                        : ''
+                      }
+                    </div>
+                    { prevHistory.length && this.state.showDeprecated == h.id
+                      ? <ListGroup>
+                        { history.filter(hh => hh.deprecatedBy === h.id).map((hh, j) =>
+                            <ListGroupItem key={j}
+                              className={hh.id === slideId ? 'deprecated selected' : 'deprecated'}
+                              header={hh.header}
+                              onClick={() => this.setState({slideId: hh.id})}
+                            >
+                              {answer(h, {disabled: true})}
+                            </ListGroupItem>
+                        )}
+                        </ListGroup>
+                      : ''
+                    }
+                    <ListGroupItem
+                      className={h.id === slideId ? 'selected' : ''}
+                      onClick={() => this.setState({slideId: h.id})}
+                      onMouseEnter={() => this.setState({hoverId: h.id})}
+                      onMouseLeave={() => this.setState({hoverId: null})}
+                      header={h.header}
+                    >
+                      {answer(h)}
+                    </ListGroupItem>
+                  </div>);
+              })}
             </ListGroup>
           </Col>
           <Col md={8}>
@@ -132,10 +189,21 @@ export default class Show extends React.Component {
                     ? undefined
                     : this._answer(slide.id, i, ans.nextSlide)}
                 >
+                  {ans.file && <img src={ans.file} role="presentation"/>}
                   {ans.text}
                 </ListGroupItem>
               ))}
             </ListGroup>
+
+            {slide.actions && slide.actions.length
+              ? <ListGroup>
+                  <ListGroupItem
+                    header={slide.actions[0].label}
+                    onClick={this._execAction(slide.actions[0])}
+                  />
+                </ListGroup>
+              : ''
+            }
           </Col>
         </Row>
       </Grid>

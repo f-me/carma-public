@@ -145,5 +145,10 @@ define [ "hooks/common"
                  , s.openPartnerSearch
                  ]
 
+      "BikeTowage" : [ s.serviceColor, s.partnerWarnedInTimeBtn
+                   , s.updateCaseActions
+                   , s.openPartnerSearch
+                   ]
+
       "SubProgram" : [ c.bindRemoveHook 'services' ]
       "Usermeta": [Um.stateStuff]

@@ -14,9 +14,9 @@ define [
         # FIXME: move markup in templates
         unless contract.isExpired() is undefined
           expired = if contract.isExpired()
-              "<span class='label label-danger'>Не действует</span>"
+              "<span class='label label-danger'>Проверить участие</span>"
             else
-              "<span class='label label-success'>Действует</span>"
+              "<span class='label label-success'>Проверить условия</span>"
         close = "<button id='remove-contract'
                          title='Стереть из кейса ссылку на контракт'>
                    <span class='glyphicon glyphicon-trash'/></button>"

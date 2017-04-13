@@ -12,6 +12,7 @@ create table "DiagSlide"
   , body text not null default ''
   , resources json not null default '[]'::json
   , answers json not null default '[]'::json
+  , actions json not null default '[]'::json
   , isRoot bool not null default false
   );
 

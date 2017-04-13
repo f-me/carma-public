@@ -142,6 +142,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/diag/info/:caseId",       chkAuth . method GET $ diagInfo)
          , ("/diag/history/:caseId",    chkAuth . method GET $ diagHistory)
          , ("/diag/retry/:histId",      chkAuth . method POST $ retryQuestion)
+         , ("/meta",                    method GET serveMeta)
          ]
 
 dconf :: DirectoryConfig (Handler App App)

@@ -8,6 +8,10 @@
   float: right;
 }
 
+.Show .more {
+  float: right;
+}
+
 .Show .history-answer {
   float:left;
 }
@@ -26,6 +30,14 @@
 
 .Show .list-group-item.selected {
   background-color: lightblue;
+}
+
+.Show .list-group-item.deprecated {
+  background-color: hsl(0, 0%, 50%);
+}
+
+.Show .list-group-item.deprecated.selected {
+  background-color: hsl(200, 30%, 50%);
 }
 
 .SlideEditor {

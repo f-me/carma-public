@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Carma.Model.Case
        (Case(..)
@@ -153,6 +153,8 @@ caseMod = [
   ,required vinChecked
   ,required caseStatus
   ,readonly caseStatus
+
+  ,widget "case-vinChecked" vinChecked
 
   ,regexp regexpEmail contact_email
   ,regexp regexpEmail contact_ownerEmail

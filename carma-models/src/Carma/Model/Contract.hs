@@ -191,16 +191,16 @@ instance Model Contract where
     "search" ->
         Just $ subDict "prefixedSubPrograms" $
         flip modifyView commonMeta $
-        searchView (contractSearchParams)
+        searchView contractSearchParams
     "searchCase" ->
         Just $ subDict "prefixedSubPrograms" $
         flip modifyView commonMeta $
-        searchView (contractCaseSearchParams)
+        searchView contractCaseSearchParams
 
     "portalSearch" ->
         Just $ subDict "portalSubPrograms" $
         flip modifyView commonMeta $
-        searchView (contractSearchParams)
+        searchView contractSearchParams
     "portalForm" ->
         Just $ subDict "portalSubPrograms" $
         defaultView `modifyView` commonMeta
@@ -266,7 +266,7 @@ contractCaseSearchParams = [("cardNumber", fuzzy $ one cardNumber)]
 -- Must include all fields possibly available through portal screen.
 contractSearchParams :: [(Text, [Predicate Contract])]
 contractSearchParams =
-    (map (\p@(FA f) -> (fieldNameE p, one $ f)) $
+    (map (\p@(FA f) -> (fieldNameE p, one f))
      [ FA subprogram
      , FA isActive
      , FA ident
@@ -286,7 +286,7 @@ contractSearchParams =
      , FA registrationReason
      , FA priceInOrder
      ]) ++
-    (map (\p@(FA f) -> (fieldNameE p, fuzzy $ one $ f)) $
+    (map (\p@(FA f) -> (fieldNameE p, fuzzy $ one f)) $
      identifiers ++
      [ FA color
      , FA engineVolume

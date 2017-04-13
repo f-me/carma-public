@@ -54,7 +54,7 @@ diagHistory = do
           h.id, to_char(h.answerTime, 'YYYY-MM-DD HH24-MI') as "answerTime",
           u.login as "answeredBy", h.answerIx as "answerIx",
           h.deprecatedBy as "deprecatedBy",
-          s.header, s.body, s.answers, s.resources
+          s.header, s.body, s.answers, s.resources, s.actions
         from "DiagHistory" h
           join "DiagSlide" s on (h.slideId = s.id)
           left outer join usermetatbl u on (h.answeredBy = u.id)

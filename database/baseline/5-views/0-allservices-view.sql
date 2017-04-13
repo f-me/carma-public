@@ -11,7 +11,9 @@ CREATE OR REPLACE VIEW allservicesview AS
       (json->>'consresult')::int4 as consResult,
       (json->>'consultant')::int4 as consultant,
       (json->>'techtype')::int4 as techtype,
+      (json->>'towsort')::int4 as towsort,
       (json->>'towtype')::int4 as towtype,
+      (json->>'biketowtype')::int4 as biketowtype,
       (json->>'towertype')::int4 as towertype,
       (json->>'towaddress_address') as towaddress_address,
       (json->>'towdealer_partnerid')::int4 as towdealer_partnerid,
@@ -127,6 +129,7 @@ CREATE OR REPLACE VIEW allservicesview AS
               suburbanmilage,
               repairenddate,
               towtype,
+              towsort,
               towertype,
               towaddress_address,
               towdealer_partnerid,
@@ -138,6 +141,20 @@ CREATE OR REPLACE VIEW allservicesview AS
                     "Руль заблокирован")
                 ) as flags
             FROM towagetbl) x
+      UNION ALL
+        SELECT row_to_json(x.*) AS json FROM
+          (SELECT
+              id,
+              type,
+              towdealer_partner,
+              suburbanmilage,
+              repairenddate,
+              biketowtype,
+              towertype,
+              towaddress_address,
+              towdealer_partnerid,
+              parentid
+            FROM "BikeTowage") x
       UNION ALL
         SELECT row_to_json(x.*) AS json FROM
           (SELECT
