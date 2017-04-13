@@ -4,8 +4,10 @@ import { Grid, Row, Col } from 'react-bootstrap'
 import { Button, ButtonToolbar, Glyphicon } from 'react-bootstrap'
 import Immutable from 'immutable'
 
+import Tree from './Tree'
 import SlideEditor from './SlideEditor'
 import './DiagTree.css'
+import slides_json from './slides.json'
 
 
 
@@ -16,23 +18,33 @@ export default class Editor extends React.Component {
 
     this.state = {
       slides: null,
-      selectedIx: 0,
-      expandedListItems: [],
+      selectedId: null
     }
+  }
 
+  componentDidMount() {
     this._loadSlides()
   }
 
 
-  _loadSlides = () =>
-    fetch('/_/DiagSlide')
-      .then(resp => resp.json().then(slides =>
-        this.setState({
-          slides: Immutable.Map(
-            slides.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
-          selectedId: this.state.selectedId || slides.find(x => x.isRoot).id
-        })
-      ))
+  _loadSlides = () => {
+    if (this.props.testMode) {
+      this.setState({
+        slides: Immutable.Map(
+          slides_json.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
+          selectedId: this.state.selectedId || slides_json.find(x => x.isRoot).id
+      })
+    } else {
+      fetch('/_/DiagSlide')
+        .then(resp => resp.json().then(slides =>
+          this.setState({
+            slides: Immutable.Map(
+              slides.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
+            selectedId: this.state.selectedId || slides.find(x => x.isRoot).id
+          })
+        ))
+    }
+  }
 
 
   newSlide = () => {
@@ -86,24 +98,9 @@ export default class Editor extends React.Component {
   }
 
 
-  _handleTreeTap = (item, index) => {
-    const {expandedListItems} = this.state;
-    if (expandedListItems.indexOf(index) === -1) {
-      this.setState({
-        expandedListItems: [index].concat(expandedListItems),
-        selectedIx: index
-      })
-    } else {
-      this.setState({
-        expandedListItems: expandedListItems.filter(x => x != index),
-        selectedIx: index
-      })
-    }
-  }
-
 
   render() {
-    const {slides, listItems, expandedListItems, selectedIx} = this.state;
+    const {slides, selectedId} = this.state;
 
     if (slides === null) return (<span>Loading...</span>);
 
@@ -111,24 +108,21 @@ export default class Editor extends React.Component {
       <Grid className="Editor">
         <Row>
           <Col md={4}>
-            <TreeList
-              listItems={listItems}
-              contentKey={'header'}
-              haveSearchbar={true}
-              handleTouchTap={this._handleTreeTap}
-              expandedListItems={expandedListItems}
-              activeListItem={selectedIx}
-              >
-                <ButtonToolbar>
-                  <Button bsStyle='success' onClick={this.newSlide}>
-                    <Glyphicon glyph="plus" /> Новое дерево
-                  </Button>
-                </ButtonToolbar>
-            </TreeList>
+            <Tree
+              items={slides}
+              selected={selectedId}
+              onSelect={it => this.setState({selectedId: it.id})}
+            >
+              <ButtonToolbar>
+                <Button bsStyle='success' onClick={this.newSlide}>
+                  <Glyphicon glyph="plus" /> Новое дерево
+                </Button>
+              </ButtonToolbar>
+            </Tree>
           </Col>
           <Col md={8}>
             <SlideEditor
-              slide={slides.get(String(listItems[selectedIx].id))}
+              slide={slides.get(String(selectedId))}
               onChange={this.saveSlide}
               saveMsg={this.state.saveMsg}
             />

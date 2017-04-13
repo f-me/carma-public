@@ -14,5 +14,11 @@ window.CarmaComponents = {
   DiagTree: {
     Editor: DiagTreeEditor,
     Show: DiagTreeShow,
+  },
+  testPage: () => {
+    ReactDOM.render(
+      <DiagTreeEditor testMode={true} />,
+      document.getElementById('root')
+    );
   }
 };
