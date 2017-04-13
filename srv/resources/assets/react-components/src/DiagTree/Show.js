@@ -23,70 +23,59 @@ export default class Show extends React.Component {
   }
 
 
-  _loadHistory = () => {
-    $.ajax({
-      type: 'GET',
-      url: `/diag/history/${this.props.caseId}`,
-      dataType: 'json',
-      success: hist => this.setState({
-        history: hist,
-        slideId: hist[hist.length-1].id
-      })
-    })
-  }
-
-  _answer = (slideId, ix, nextSlide) => () => {
-    $.ajax({
-      type: 'PUT',
-      url: `/_/DiagHistory/${slideId}`,
-      data: JSON.stringify({answerIx: ix}),
-      processData: false,
-      contentType: 'application/json',
-      success: () =>
-        $.ajax({
-          type: 'POST',
-          url: `/_/DiagHistory`,
-          data: JSON.stringify({
-            caseId: Number.parseInt(this.props.caseId),
-            slideId: nextSlide
-          }),
-          processData: false,
-          contentType: 'application/json',
-          success: this._loadHistory
+  _loadHistory = () =>
+    fetch(`/diag/history/${this.props.caseId}`)
+      .then(resp => resp.json().then(hist =>
+        this.setState({
+          history: hist,
+          slideId: hist[hist.length-1].id
         })
+      ))
+
+  _answer = (slideId, ix, nextSlide) => () =>
+    fetch(`/_/DiagHistory/${slideId}`,
+      { method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        data: JSON.stringify({answerIx: ix}),
+      })
+    .then(resp => {
+      if (resp.status === 200) {
+        fetch('/_/DiagHistory',
+          { method: 'POST',
+            data: JSON.stringify({
+              caseId: Number.parseInt(this.props.caseId),
+              slideId: nextSlide
+            })
+          })
+          .then(this._loadHistory)
+      }
     })
-  }
 
 
-  _repeatQuestion = histId => () => {
-    $.ajax({
-      type: 'POST',
-      url: `/diag/retry/${histId}`,
-      data: "{}",
-      processData: false,
-      contentType: 'application/json',
-      success: this._loadHistory
-    })
-  }
+  _repeatQuestion = histId => () =>
+    fetch(`/diag/retry/${histId}`,
+      { method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: "{}",
+      })
+      .then(this._loadHistory)
 
-  _execAction = act => () => {
-    $.ajax({
-      type: 'POST',
-      url: `/_/${act.svc}`,
-      data: JSON.stringify({
-        parentId: Number.parseInt(this.props.caseId)
-      }),
-      processData: false,
-      contentType: 'application/json',
-      success: () => {
+
+  _execAction = act => () =>
+    fetch(`/_/${act.svc}`,
+      { method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: JSON.stringify({
+          parentId: Number.parseInt(this.props.caseId)
+        })
+      })
+      .then(() => {
         window.localStorage.setItem(
             `DiagTree/${this.props.caseId}/newSvc`,
             true)
         alert('Готово. Опрос будет закрыт.')
         window.close()
-      }
-    })
-  }
+      })
 
 
   render() {

@@ -32,15 +32,11 @@ export default class AvarcomTasks extends Component {
     if (avarcomTasks) {
       this._setSelectedTasks(this.props.value);
     } else {
-      $.ajax({
-        type: 'GET',
-        url: '/_/AvarcomTask',
-        dataType: 'json',
-        success: res => {
-          avarcomTasks = res;
+      fetch('/_/AvarcomTask')
+        .then(resp => resp.json().then(jsn => {
+          avarcomTasks = jsn;
           this._setSelectedTasks(this.state.selectedTasks);
-        }
-      });
+        }))
     }
   }
 

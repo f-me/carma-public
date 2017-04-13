@@ -7,16 +7,13 @@
   },
   "dependencies": {
     "immutable": "^3.8.1",
-    "material-ui": "^0.17.1",
     "react": "^15.4.2",
     "react-addons-css-transition-group": "^15.4.2",
     "react-bootstrap": "^0.30.5",
     "react-bootstrap-typeahead": "^0.9.4",
     "react-dom": "^15.3.2",
     "react-dropzone": "^3.7.3",
-    "react-rte": "^0.11.0",
-    "react-tap-event-plugin": "^2.0.1",
-    "react-treeview-mui": "^0.1.2"
+    "react-rte": "^0.11.0"
   },
   "scripts": {
     "start": "react-scripts start",
