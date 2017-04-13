@@ -2,7 +2,7 @@ import React from 'react'
 import { Grid, Row, Col } from 'react-bootstrap'
 import { ListGroup, ListGroupItem } from 'react-bootstrap'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
-import { Button, Glyphicon } from 'react-bootstrap'
+import { Glyphicon } from 'react-bootstrap'
 import RichTextEditor from 'react-rte'
 
 import './DiagTree.css';
@@ -43,7 +43,7 @@ export default class Show extends React.Component {
         fetch('/_/DiagHistory',
           { method: 'POST',
             data: JSON.stringify({
-              caseId: Number.parseInt(this.props.caseId),
+              caseId: Number.parseInt(this.props.caseId, 10),
               slideId: nextSlide
             })
           })
@@ -66,7 +66,7 @@ export default class Show extends React.Component {
       { method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         data: JSON.stringify({
-          parentId: Number.parseInt(this.props.caseId)
+          parentId: Number.parseInt(this.props.caseId, 10)
         })
       })
       .then(() => {
@@ -116,7 +116,7 @@ export default class Show extends React.Component {
                 return (
                   <div>
                     <div>
-                      { prevHistory.length && this.state.showDeprecated != h.id
+                      { prevHistory.length && this.state.showDeprecated !== h.id
                         ? <a className="more" href="#"
                             onClick={() => this.setState({showDeprecated: h.id})}
                           >
@@ -124,7 +124,7 @@ export default class Show extends React.Component {
                           </a>
                         : ''
                       }
-                      { this.state.showDeprecated == h.id
+                      { this.state.showDeprecated === h.id
                         ? <a className="more" href="#"
                             onClick={() => this.setState({showDeprecated: null})}
                           >
@@ -133,7 +133,7 @@ export default class Show extends React.Component {
                         : ''
                       }
                     </div>
-                    { prevHistory.length && this.state.showDeprecated == h.id
+                    { prevHistory.length && this.state.showDeprecated === h.id
                       ? <ListGroup>
                         { history.filter(hh => hh.deprecatedBy === h.id).map((hh, j) =>
                             <ListGroupItem key={j}

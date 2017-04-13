@@ -51,7 +51,7 @@ export default class SmsForm extends Component {
     });
   }
 
-  _renderTemplate = (msg) => {
+  _renderTemplate = msg => {
     for(const k in this.props.values) {
       const rx = new RegExp(`\\$${k}\\$`, 'g');
       msg = msg.replace(rx, this.props.values[k]);
