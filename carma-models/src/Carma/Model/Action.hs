@@ -43,7 +43,7 @@ instance Model Action where
   type TableName Action = "actiontbl"
   modelInfo = mkModelInfo Action ident
   modelView = \case
-    "" -> Just $ modifyView defaultView $
+    "" -> Just $ modifyView defaultView
           [ hiddenIdent callId
           , hiddenIdent caseId
           , hiddenIdent serviceId

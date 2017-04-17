@@ -57,13 +57,13 @@ instance FromJSON Dict where
               V.foldM' (\(fm, im) e -> do
                           val <- e .: "value"
                           lab <- e .: "label"
-                          return $ (HM.insert
-                                    (T.encodeUtf8 val)
-                                    (T.encodeUtf8 lab) fm,
-                                    HM.insert
-                                    (T.encodeUtf8 lab)
-                                    (T.encodeUtf8 val) im))
-                       (HM.empty, HM.empty) entries
+                          return (HM.insert
+                                   (T.encodeUtf8 val)
+                                   (T.encodeUtf8 lab) fm,
+                                   HM.insert
+                                   (T.encodeUtf8 lab)
+                                   (T.encodeUtf8 val) im))
+              (HM.empty, HM.empty) entries
           return $ Dict (fm, im)
     parseJSON _          = mzero
 

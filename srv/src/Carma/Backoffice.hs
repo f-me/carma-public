@@ -25,7 +25,6 @@ import           Carma.Model.Case as Case
 import qualified Carma.Model.CaseSource as CO
 import qualified Carma.Model.CaseStatus as CS
 import qualified Carma.Model.FalseCall as FS
-import qualified Carma.Model.ClientRefusalReason as CR
 import           Carma.Model.Program as Program
 import           Carma.Model.Role as Role
 import           Carma.Model.Satisfaction as Satisfaction
@@ -57,7 +56,7 @@ toBackAux =
      when (userField Usermeta.isJack)
      (closePrevious InCase [AType.call] AResult.callEnded) *>
      switch
-     [ ( serviceField svcType `oneOf` [ST.towage, ST.tech, ST.adjuster]
+     [ ( serviceField svcType `oneOf` [ST.towage, ST.bikeTowage, ST.tech, ST.adjuster]
        , sendSMS SMS.create *> messageToGenser *> proceed [AType.orderService]
        )
      , ( serviceField svcType `oneOf` [ST.ken, ST.medic, ST.consultation]

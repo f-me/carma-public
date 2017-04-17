@@ -45,7 +45,7 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (32, 'ContractCheckStatus', 'Статусы проверки контракта',
        ARRAY[]::int4[], ARRAY['id', 'label'])
-, (33, 'TowType', 'Типы эвакуации',
+, (33, 'TowType', 'Виды эвакуации',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (34, 'TechType', 'Типы техпомощи',
        ARRAY[]::int4[], ARRAY['id', 'label'])
@@ -96,6 +96,10 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
 , (57, 'DeliveryType', 'Типы доставки',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 , (58, 'AvarcomTasks', 'Задачи аварийного комиссара',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (59, 'TowSort', 'Типы эвакуации',
+       ARRAY[]::int4[], ARRAY['id', 'label'])
+, (60, 'BikeTowType', 'Типы мотоэвакуации',
        ARRAY[]::int4[], ARRAY['id', 'label'])
 ;
 

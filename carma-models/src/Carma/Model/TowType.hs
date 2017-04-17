@@ -14,9 +14,9 @@ import Carma.Model.PgTypes()
 
 data TowType = TowType
   { ident
-    :: PK Int TowType "Тип эвакуации"
+    :: PK Int TowType "Вид эвакуации"
   , label
-    :: F Text "label" "Тип"
+    :: F Text "label" "Вид"
   } deriving Typeable
 
 mkIdents [t|TowType|]
