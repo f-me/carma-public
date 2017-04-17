@@ -64,6 +64,7 @@ export default class SmsForm extends Component {
     fetch('/_/Sms',
       { method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         data: JSON.stringify({
           status: 'please-send',
           caseRef: this.props.values['case.id'],

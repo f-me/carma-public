@@ -32,7 +32,7 @@ export default class AvarcomTasks extends Component {
     if (avarcomTasks) {
       this._setSelectedTasks(this.props.value);
     } else {
-      fetch('/_/AvarcomTask')
+      fetch('/_/AvarcomTask', {credentials: 'same-origin'})
         .then(resp => resp.json().then(jsn => {
           avarcomTasks = jsn;
           this._setSelectedTasks(this.state.selectedTasks);

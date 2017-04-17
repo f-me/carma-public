@@ -24,7 +24,7 @@ export default class Show extends React.Component {
 
 
   _loadHistory = () =>
-    fetch(`/diag/history/${this.props.caseId}`)
+    fetch(`/diag/history/${this.props.caseId}`, {credentials: 'same-origin'})
       .then(resp => resp.json().then(hist =>
         this.setState({
           history: hist,
@@ -36,12 +36,15 @@ export default class Show extends React.Component {
     fetch(`/_/DiagHistory/${slideId}`,
       { method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         data: JSON.stringify({answerIx: ix}),
       })
     .then(resp => {
       if (resp.status === 200) {
         fetch('/_/DiagHistory',
           { method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
             data: JSON.stringify({
               caseId: Number.parseInt(this.props.caseId, 10),
               slideId: nextSlide
@@ -56,6 +59,7 @@ export default class Show extends React.Component {
     fetch(`/diag/retry/${histId}`,
       { method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         data: "{}",
       })
       .then(this._loadHistory)
@@ -65,6 +69,7 @@ export default class Show extends React.Component {
     fetch(`/_/${act.svc}`,
       { method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         data: JSON.stringify({
           parentId: Number.parseInt(this.props.caseId, 10)
         })

@@ -35,7 +35,7 @@ export default class Editor extends React.Component {
           selectedId: this.state.selectedId || slides_json.find(x => x.isRoot).id
       })
     } else {
-      fetch('/_/DiagSlide')
+      fetch('/_/DiagSlide', {credentials: 'same-origin'})
         .then(resp => resp.json().then(slides =>
           this.setState({
             slides: Immutable.Map(
@@ -59,6 +59,7 @@ export default class Editor extends React.Component {
     fetch('/_/DiagSlide',
       { method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         data: JSON.stringify(slide),
       })
       .then(resp => resp.json().then(res => {
@@ -78,6 +79,7 @@ export default class Editor extends React.Component {
     fetch(`/_/DiagSlide/${slide.id}`,
       { method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         data: JSON.stringify(slide),
       })
       .then(resp => {
