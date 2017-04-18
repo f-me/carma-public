@@ -110,17 +110,16 @@ export default class Editor extends React.Component {
       <Grid className="Editor">
         <Row>
           <Col md={4}>
+            <ButtonToolbar style={{padding: '10px'}}>
+              <Button bsStyle='success' onClick={this.newSlide}>
+                <Glyphicon glyph="plus" /> Новое дерево
+              </Button>
+            </ButtonToolbar>
             <Tree
               items={slides}
               selected={selectedId}
               onSelect={it => this.setState({selectedId: it.id})}
-            >
-              <ButtonToolbar>
-                <Button bsStyle='success' onClick={this.newSlide}>
-                  <Glyphicon glyph="plus" /> Новое дерево
-                </Button>
-              </ButtonToolbar>
-            </Tree>
+            />
           </Col>
           <Col md={8}>
             <SlideEditor
