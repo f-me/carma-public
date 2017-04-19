@@ -65,7 +65,7 @@ export default class SmsForm extends Component {
       { method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        data: JSON.stringify({
+        body: JSON.stringify({
           status: 'please-send',
           caseRef: this.props.values['case.id'],
           phone: this.state.phone,

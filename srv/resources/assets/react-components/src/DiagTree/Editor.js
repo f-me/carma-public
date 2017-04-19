@@ -60,7 +60,7 @@ export default class Editor extends React.Component {
       { method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        data: JSON.stringify(slide),
+        body: JSON.stringify(slide),
       })
       .then(resp => resp.json().then(res => {
         Object.assign(slide, res);
@@ -80,7 +80,7 @@ export default class Editor extends React.Component {
       { method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        data: JSON.stringify(slide),
+        body: JSON.stringify(slide),
       })
       .then(resp => {
         if(resp.status === 200) {
