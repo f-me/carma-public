@@ -37,7 +37,7 @@ export default class Show extends React.Component {
       { method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        data: JSON.stringify({answerIx: ix}),
+        body: JSON.stringify({answerIx: ix}),
       })
     .then(resp => {
       if (resp.status === 200) {
@@ -45,7 +45,7 @@ export default class Show extends React.Component {
           { method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
-            data: JSON.stringify({
+            body: JSON.stringify({
               caseId: Number.parseInt(this.props.caseId, 10),
               slideId: nextSlide
             })
@@ -60,7 +60,7 @@ export default class Show extends React.Component {
       { method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        data: "{}",
+        body: "{}",
       })
       .then(this._loadHistory)
 
@@ -70,7 +70,7 @@ export default class Show extends React.Component {
       { method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        data: JSON.stringify({
+        body: JSON.stringify({
           parentId: Number.parseInt(this.props.caseId, 10)
         })
       })
