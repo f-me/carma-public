@@ -103,9 +103,9 @@ export default class Tree extends React.Component {
   _renderChildren = (it, depth) => {
     const {items} = this.props;
 
-    return it.answers.map(ans => {
+    return it.answers.map((ans, i) => {
       const nxt = items.get(String(ans.nextSlide));
-      return this._renderItem(nxt, depth, ans.header)
+      return nxt ? this._renderItem(nxt, depth, ans.header) : <div key={i}/>;
     });
   }
 
