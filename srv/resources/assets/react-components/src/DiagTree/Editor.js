@@ -53,6 +53,7 @@ export default class Editor extends React.Component {
       body: '?',
       resources: [],
       answers: [],
+      actions: [],
       isRoot: true
     };
 
