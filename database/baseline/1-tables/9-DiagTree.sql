@@ -45,7 +45,7 @@ create table "DiagHistory"
   , answerIx int
   , answeredBy int references usermetatbl(id)
   , answerTime timestamptz
-  , depreceatedBy int references "DiagHistory"(id)
+  , deprecatedBy int references "DiagHistory"(id)
   );
 
 
