@@ -51,7 +51,7 @@ export default class SmsForm extends Component {
     });
   }
 
-  _renderTemplate = (msg) => {
+  _renderTemplate = msg => {
     for(const k in this.props.values) {
       const rx = new RegExp(`\\$${k}\\$`, 'g');
       msg = msg.replace(rx, this.props.values[k]);
@@ -60,29 +60,28 @@ export default class SmsForm extends Component {
   }
 
 
-  _send = () => {
-    $.ajax({
-      type: 'POST',
-      url: '/_/Sms',
-      data: JSON.stringify({
-        status: 'please-send',
-        caseRef: this.props.values['case.id'],
-        phone: this.state.phone,
-        template: this.state.selectedTemplate.length > 0
-          ? this.state.selectedTemplate[0].id
-          : null,
-        msgText: this.state.msgText
-      }),
-      processData: false,
-      contentType: 'application/json',
-      error: (res) => {console.log(res)}, // TODO: ask user to retry
-      success: () =>
+  _send = () =>
+    fetch('/_/Sms',
+      { method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          status: 'please-send',
+          caseRef: this.props.values['case.id'],
+          phone: this.state.phone,
+          template: this.state.selectedTemplate.length > 0
+            ? this.state.selectedTemplate[0].id
+            : null,
+          msgText: this.state.msgText
+        })
+      })
+    .then(resp => {
+      if(resp.status === 200) {
         this.setState(
           { selectedTemplate: [], msgText: '' },
-          this.props.onHide
-        )
+          this.props.onHide)
+      }
     })
-  }
 
 
   render() {

@@ -1,8 +1,8 @@
 import Immutable from 'immutable'
 import React from 'react'
 import { Grid, Row, Col } from 'react-bootstrap'
-import { ListGroupItem, OverlayTrigger, Tooltip } from 'react-bootstrap'
-import { Button, ButtonToolbar, Glyphicon } from 'react-bootstrap'
+import { OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { ButtonToolbar, Glyphicon } from 'react-bootstrap'
 
 import ResourceEditor from './ResourceEditor'
 

@@ -1,10 +1,12 @@
-import Immutable from 'immutable'
 import React from 'react'
 import { Grid, Row, Col } from 'react-bootstrap'
+import { Button, ButtonToolbar, Glyphicon } from 'react-bootstrap'
+import Immutable from 'immutable'
 
-import SlideTree from './SlideTree'
+import Tree from './Tree'
 import SlideEditor from './SlideEditor'
 import './DiagTree.css'
+// import slides_json from './slides.json'
 
 
 
@@ -17,22 +19,31 @@ export default class Editor extends React.Component {
       slides: null,
       selectedId: null
     }
+  }
 
+  componentDidMount() {
     this._loadSlides()
   }
 
 
-  _loadSlides = () =>
-    $.ajax({
-      type: 'GET',
-      url: '/_/DiagSlide',
-      dataType: 'json',
-      success: slides => this.setState({
+  _loadSlides = () => {
+    if (this.props.testMode) {
+      this.setState({
         slides: Immutable.Map(
-          slides.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
-        selectedId: this.state.selectedId || slides.find(x => x.isRoot).id
+          slides_json.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
+          selectedId: this.state.selectedId || slides_json.find(x => x.isRoot).id
       })
-    })
+    } else {
+      fetch('/_/DiagSlide', {credentials: 'same-origin'})
+        .then(resp => resp.json().then(slides =>
+          this.setState({
+            slides: Immutable.Map(
+              slides.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
+            selectedId: this.state.selectedId || slides.find(x => x.isRoot).id
+          })
+        ))
+    }
+  }
 
 
   newSlide = () => {
@@ -41,23 +52,23 @@ export default class Editor extends React.Component {
       body: '?',
       resources: [],
       answers: [],
+      actions: [],
       isRoot: true
     };
 
-    $.ajax({
-      type: 'POST',
-      url: '/_/DiagSlide',
-      data: JSON.stringify(slide),
-      processData: false,
-      contentType: 'application/json',
-      success: res => {
+    fetch('/_/DiagSlide',
+      { method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(slide),
+      })
+      .then(resp => resp.json().then(res => {
         Object.assign(slide, res);
         this.setState({
           slides: this.state.slides.set(String(slide.id), slide),
           selectedId: slide.id
         })
-      }
-    })
+      }))
   }
 
 
@@ -65,39 +76,49 @@ export default class Editor extends React.Component {
     let slide = data.toJS();
     this.setState({saveMsg: "Сохраняем"});
 
-    $.ajax({
-      type: 'PUT',
-      url: `/_/DiagSlide/${slide.id}`,
-      data: JSON.stringify(slide),
-      processData: false,
-      contentType: 'application/json',
-      success: res => {
-        slide = Object.assign(slide, res);
-        this.setState({
-          slides: this.state.slides.set(String(slide.id), slide),
-          saveMsg: "Сохранено"
-        })
-        this._loadSlides();
-        setTimeout(() => this.setState({saveMsg: ''}), 2000);
-      },
-      error: () => this.setState({saveMsg: "Ошибка"})
-    });
+    fetch(`/_/DiagSlide/${slide.id}`,
+      { method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(slide),
+      })
+      .then(resp => {
+        if(resp.status === 200) {
+          resp.json().then(res => {
+            slide = Object.assign(slide, res);
+            this.setState({
+              slides: this.state.slides.set(String(slide.id), slide),
+              saveMsg: "Сохранено"
+            })
+            this._loadSlides();
+            setTimeout(() => this.setState({saveMsg: ''}), 2000);
+          })
+        } else {
+          this.setState({saveMsg: "Ошибка"})
+        }
+      })
   }
+
 
 
   render() {
     const {slides, selectedId} = this.state;
-    if (selectedId === null) return (<span>Loading...</span>);
+
+    if (slides === null) return (<span>Loading...</span>);
 
     return (
       <Grid className="Editor">
         <Row>
           <Col md={4}>
-            <SlideTree
-              slides={slides}
-              selectedId={selectedId}
-              onSelect={s => this.setState({selectedId: s})}
-              onAddSlide={this.newSlide}
+            <ButtonToolbar style={{padding: '10px'}}>
+              <Button bsStyle='success' onClick={this.newSlide}>
+                <Glyphicon glyph="plus" /> Новое дерево
+              </Button>
+            </ButtonToolbar>
+            <Tree
+              items={slides}
+              selected={selectedId}
+              onSelect={it => this.setState({selectedId: it.id})}
             />
           </Col>
           <Col md={8}>
