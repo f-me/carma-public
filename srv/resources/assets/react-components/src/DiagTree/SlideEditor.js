@@ -99,6 +99,7 @@ export default class SlideEditor extends React.Component {
 
     const actions =
       [ {label: "Создать Эвакуацию", svc: "Towage"}
+      , {label: "Создать Мотоэвакуация", svc: "BikeTowage"}
       , {label: "Создать Техпомощь", svc: "Tech"}
       , {label: "Создать Консультацию", svc: "Consultation"}
       ];
