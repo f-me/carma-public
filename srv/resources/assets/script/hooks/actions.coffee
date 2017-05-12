@@ -6,8 +6,7 @@ define ["utils"], (u) ->
       uid == global.user.id
     return if not /^case/.test(Finch.navigate())
     sDict = u.newModelDict "ServiceType"
-    u1Dict = u.newModelDict "Usermeta", false, dictionaryLabel: 'login'
-    u2Dict = u.newModelDict "Usermeta", false, dictionaryLabel: 'workPhoneSuffix'
+    u1Dict = u.newModelDict "Usermeta", false, dictionaryLabel: 'realName'
     knockVM["actionNameLocal"] =
       ko.computed
         read: ->
@@ -26,9 +25,8 @@ define ["utils"], (u) ->
           if svcName?
             actName = actName + " (#{svcName})"
           if uid?
-            login = u1Dict.getLab uid
-            phone = u2Dict.getLab uid
-            "@#{login} (#{phone})<br /> #{actName}"
+            userName = u1Dict.getLab uid
+            "#{userName}<br/>#{actName}"
           else
             actName
 
