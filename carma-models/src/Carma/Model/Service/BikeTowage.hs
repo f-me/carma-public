@@ -17,8 +17,6 @@ import qualified Carma.Model.Service.Towage as T
 
 data BikeTowage = BikeTowage
   { ident                    :: PK Int BikeTowage ""
-  , bikeTowType              :: F (Maybe (IdentI BikeTowType)) "bikeTowType"
-                             "Тип мотоэвакуации"
   , towDealer_partner        :: F (Maybe Text) "towDealer_partner"
                              "Дилер (куда эвакуируют автомобиль)"
   , towDealer_partnerId      :: F (Maybe (IdentI Partner)) "towDealer_partnerId"
@@ -50,6 +48,8 @@ data BikeTowage = BikeTowage
   , repairEndDate            :: F (Maybe Day) "repairEndDate"
                              "Дата окончания ремонта"
   , isCountryRide            :: F Bool "isCountryRide" "За городом"
+  , bikeTowType              :: F (Maybe (IdentI BikeTowType)) "bikeTowType"
+                             "Тип мотоэвакуации"
   , suburbanMilage           :: F (Maybe Scientific) "suburbanMilage" "Пробег за городом"
   , totalMilage              :: F (Maybe Scientific) "totalMilage" "Километраж по тахометру"
   , partnerWarnedInTime      :: F (Maybe Bool) "partnerWarnedInTime" "Партнёр предупредил вовремя"
