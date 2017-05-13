@@ -17,8 +17,6 @@ import qualified Carma.Model.Service.Towage as T
 
 data BikeTowage = BikeTowage
   { ident                    :: PK Int BikeTowage ""
-  , towerType                :: F (Maybe (IdentI TowerType)) "towerType"
-                             "Тип эвакуатора"
   , bikeTowType              :: F (Maybe (IdentI BikeTowType)) "bikeTowType"
                              "Тип мотоэвакуации"
   , towDealer_partner        :: F (Maybe Text) "towDealer_partner"
