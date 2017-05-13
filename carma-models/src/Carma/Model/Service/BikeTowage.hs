@@ -45,9 +45,6 @@ data BikeTowage = BikeTowage
                              "towerAddress_coords" "Координаты"
   , towerAddress_map         :: F (Maybe MapField) "towerAddress_map"
                              ""
-  , wheelsBlocked
-    :: F (Maybe Int)
-       "wheelsBlocked" "Количество заблокированных колёс"
   , orderNumber              :: F (Maybe Text) "orderNumber"
                              "Номер заказ-наряда"
   , repairEndDate            :: F (Maybe Day) "repairEndDate"
