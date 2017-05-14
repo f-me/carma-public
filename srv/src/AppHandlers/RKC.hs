@@ -135,9 +135,6 @@ trace name fn = do
   syslogJSON Info "rkc/trace" [name .= show val]
   return val
 
-fquery :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => String -> FormatArgs -> q -> m [r]
-fquery fmt args v = query (fromString $ T.unpack $ format fmt args) v
-
 query :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => PS.Query -> q -> m [r]
 query s v = do
     bs <- PS.formatQuery s v
