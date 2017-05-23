@@ -6,7 +6,7 @@ import Immutable from 'immutable'
 import Tree from './Tree'
 import SlideEditor from './SlideEditor'
 import './DiagTree.css'
-// import slides_json from './slides.json'
+import slides_json from './slides.json'
 
 
 
@@ -99,6 +99,14 @@ export default class Editor extends React.Component {
       })
   }
 
+  deleteSlide = id => {
+    fetch(`/_/DiagSlide/${id}`,
+      { method: 'DELETE',
+        credentials: 'same-origin'
+      })
+      .then(resp => { if(resp.status === 200) this._loadSlides(); })
+  }
+
 
 
   render() {
@@ -125,6 +133,7 @@ export default class Editor extends React.Component {
             <SlideEditor
               slide={slides.get(String(selectedId))}
               onChange={this.saveSlide}
+              onDelete={this.deleteSlide}
               saveMsg={this.state.saveMsg}
             />
           </Col>

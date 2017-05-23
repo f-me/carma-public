@@ -73,3 +73,11 @@
   margin: 10px;
   max-width: 30%;
 }
+
+.Editor .Tree .item {
+  width: 100%;
+}
+
+.Editor .Tree .item .floating-btn {
+  float: right;
+}
