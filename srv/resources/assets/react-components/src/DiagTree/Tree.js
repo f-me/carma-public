@@ -3,6 +3,9 @@ import Immutable from 'immutable'
 import React from 'react'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 
+import { OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Glyphicon } from 'react-bootstrap'
+
 
 
 export default class Tree extends React.Component {
@@ -10,6 +13,7 @@ export default class Tree extends React.Component {
     super(props);
 
     this.state = {
+      hoverId: null,
       expandedItems: Immutable.Map(),
       searchText: ''
     }
@@ -27,6 +31,8 @@ export default class Tree extends React.Component {
 
     this.props.onSelect(it)
   }
+
+  _onDeleteItem = id => this.props.onDelete(id)
 
 
   _onSearch = e => {
@@ -54,7 +60,7 @@ export default class Tree extends React.Component {
 
   _renderItem = (it, depth, ans) => {
     const {selected} = this.props;
-    const {expandedItems, searchText} = this.state;
+    const {hoverId, expandedItems, searchText} = this.state;
 
     const itemStyle = {
       cursor: 'pointer',
@@ -66,9 +72,11 @@ export default class Tree extends React.Component {
     const searchRes = isSearchMode ? this._highlight(it.header, needle)  : null;
 
     return (
-      <div key={it.id}>
+      <div className="item" key={it.id}>
         <div
           onClick={() => this._onClick(it)}
+          onMouseEnter={() => this.setState({hoverId: it.id})}
+          onMouseLeave={() => this.setState({hoverId: null})}
           style={{...itemStyle,
             display: (!isSearchMode || it.isRoot || searchRes !== null) ? undefined : 'none',
             paddingLeft: '4px',
@@ -76,8 +84,21 @@ export default class Tree extends React.Component {
             borderLeft: '5px solid '+ (it.id === selected ? '#2B95fD' : '#fff')
           }}
         >
-          <div style={{color: 'grey'}}>{ans}</div>
-          {searchRes || it.header}
+          <div>
+            <div style={{color: 'grey'}}>{ans}</div>
+            {searchRes || it.header}
+          </div>
+          { hoverId === it.id && depth === 0
+            ?  <OverlayTrigger
+                  placement="top"
+                  overlay={<Tooltip id="">Удалить</Tooltip>}>
+                <Glyphicon
+                    className="btn floating-btn"
+                    onClick={() => this._onDeleteItem(it.id)}
+                    glyph="trash"/>
+              </OverlayTrigger>
+            : ''
+          }
         </div>
         {isSearchMode || expandedItems.get(it.id)
           ? this._renderChildren(it, depth+1) : ''
@@ -125,7 +146,7 @@ export default class Tree extends React.Component {
 
     return (
       <ReactCSSTransitionGroup transitionName="tree-list" transitionEnterTimeout={300} transitionLeaveTimeout={150}>
-        <div>
+        <div className="Tree">
           <input
             style={searchInputStyle}
             value={searchText}

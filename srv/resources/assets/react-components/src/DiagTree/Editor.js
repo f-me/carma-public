@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { Grid, Row, Col } from 'react-bootstrap'
 import { Button, ButtonToolbar, Glyphicon } from 'react-bootstrap'
@@ -7,7 +6,6 @@ import Immutable from 'immutable'
 import Tree from './Tree'
 import SlideEditor from './SlideEditor'
 import './DiagTree.css'
-import slides_json from './slides.json'
 
 
 
@@ -29,6 +27,7 @@ export default class Editor extends React.Component {
 
   _loadSlides = () => {
     if (this.props.testMode) {
+      const slides_json = require('./slides.json');
       this.setState({
         slides: Immutable.Map(
           slides_json.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
@@ -67,7 +66,7 @@ export default class Editor extends React.Component {
         Object.assign(slide, res);
         this.setState({
           slides: this.state.slides.set(String(slide.id), slide),
-          selectedId: slide.id,
+          selectedId: slide.id
         })
       }))
   }
@@ -100,6 +99,14 @@ export default class Editor extends React.Component {
       })
   }
 
+  deleteSlide = id => {
+    fetch(`/_/DiagSlide/${id}`,
+      { method: 'DELETE',
+        credentials: 'same-origin'
+      })
+      .then(resp => { if(resp.status === 200) this._loadSlides(); })
+  }
+
 
 
   render() {
@@ -126,6 +133,7 @@ export default class Editor extends React.Component {
             <SlideEditor
               slide={slides.get(String(selectedId))}
               onChange={this.saveSlide}
+              onDelete={this.deleteSlide}
               saveMsg={this.state.saveMsg}
             />
           </Col>
