@@ -139,6 +139,7 @@ export default class Editor extends React.Component {
             <SlideEditor
               slide={slides.get(String(selectedId))}
               onChange={this.saveSlide}
+              onDelete={this.deleteSlide}
               saveMsg={this.state.saveMsg}
             />
           </Col>

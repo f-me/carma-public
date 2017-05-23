@@ -1,4 +1,3 @@
-
 import Immutable from 'immutable'
 import React from 'react'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
@@ -84,10 +83,14 @@ export default class Tree extends React.Component {
             borderLeft: '5px solid '+ (it.id === selected ? '#2B95fD' : '#fff')
           }}
         >
+          <div>
+            <div style={{color: 'grey'}}>{ans}</div>
+            {searchRes || it.header}
+          </div>
           { hoverId === it.id && depth === 0
             ?  <OverlayTrigger
                   placement="top"
-                  overlay={<Tooltip id="x">Удалить</Tooltip>}>
+                  overlay={<Tooltip id="">Удалить</Tooltip>}>
                 <Glyphicon
                     className="btn floating-btn"
                     onClick={() => this._onDeleteItem(it.id)}
@@ -95,10 +98,6 @@ export default class Tree extends React.Component {
               </OverlayTrigger>
             : ''
           }
-          <div>
-            <div style={{color: 'grey'}}>{ans}</div>
-            {searchRes || it.header}
-          </div>
         </div>
         {isSearchMode || expandedItems.get(it.id)
           ? this._renderChildren(it, depth+1) : ''
