@@ -35,14 +35,13 @@ export default class Editor extends React.Component {
       })
     } else {
       fetch('/_/DiagSlide', {credentials: 'same-origin'})
-        .then(resp => resp.json().then(slides => {
-          slides = slides.filter(s => s.isActive);
+        .then(resp => resp.json().then(slides =>
           this.setState({
             slides: Immutable.Map(
               slides.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
             selectedId: this.state.selectedId || slides.find(x => x.isRoot).id
-          });
-        }))
+          })
+        ))
     }
   }
 
