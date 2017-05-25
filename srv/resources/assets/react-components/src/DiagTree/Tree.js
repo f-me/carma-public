@@ -84,10 +84,6 @@ export default class Tree extends React.Component {
             borderLeft: '5px solid '+ (it.id === selected ? '#2B95fD' : '#fff')
           }}
         >
-          <div>
-            <div style={{color: 'grey'}}>{ans}</div>
-            {searchRes || it.header}
-          </div>
           { hoverId === it.id && depth === 0
             ?  <OverlayTrigger
                   placement="top"
@@ -99,6 +95,10 @@ export default class Tree extends React.Component {
               </OverlayTrigger>
             : ''
           }
+          <div>
+            <div style={{color: 'grey'}}>{ans}</div>
+            {searchRes || it.header}
+          </div>
         </div>
         {isSearchMode || expandedItems.get(it.id)
           ? this._renderChildren(it, depth+1) : ''

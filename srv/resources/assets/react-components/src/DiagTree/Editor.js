@@ -129,13 +129,13 @@ export default class Editor extends React.Component {
               items={slides}
               selected={selectedId}
               onSelect={it => this.setState({selectedId: it.id})}
+              onDelete={this.deleteSlide}
             />
           </Col>
           <Col md={8}>
             <SlideEditor
               slide={slides.get(String(selectedId))}
               onChange={this.saveSlide}
-              onDelete={this.deleteSlide}
               saveMsg={this.state.saveMsg}
             />
           </Col>
