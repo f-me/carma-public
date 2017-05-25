@@ -54,7 +54,8 @@ export default class AvarcomTasks extends Component {
   _addTask = tasks => {
     if (tasks.length === 0) return;
     this._setSelectedTasks(
-      this.state.selectedTasks.concat(tasks),
+      this.state.selectedTasks.concat(
+        tasks.map(x => ({isChecked: false, id: x.id, label: x.label}))),
       () => {
         this.refs.typeahead.getInstance().clear();
         this.props.onChange(this.state.selectedTasks);
