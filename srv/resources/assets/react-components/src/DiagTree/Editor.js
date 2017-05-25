@@ -27,7 +27,7 @@ export default class Editor extends React.Component {
 
   _loadSlides = () => {
     if (this.props.testMode) {
-      const slides_json = require('./slides.json');
+//      const slides_json = require('./slides.json');
       this.setState({
         slides: Immutable.Map(
           slides_json.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
