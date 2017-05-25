@@ -170,6 +170,13 @@ define [ "utils"
           # Process every history item
           for i in res
             json = i[2]
+
+            if json.tasks
+              # We expect `isChecked` field to be present in each task,
+              # but is is not always the case due to the bug fixed in
+              # b0e4ce19b330cfafa05ba33a92234f24bd6bfe65
+              json.tasks.forEach((task) -> task.isChecked = !!task.isChecked)
+
             if json.aeinterlocutors?
               json.aeinterlocutors =
                 _.map(json.aeinterlocutors, utils.internalToDisplayed).
