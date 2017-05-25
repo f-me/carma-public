@@ -91,7 +91,7 @@ export default class Tree extends React.Component {
           { hoverId === it.id && depth === 0
             ?  <OverlayTrigger
                   placement="top"
-                  overlay={<Tooltip id="">Удалить</Tooltip>}>
+                  overlay={<Tooltip id="x">Удалить</Tooltip>}>
                 <Glyphicon
                     className="btn floating-btn"
                     onClick={() => this._onDeleteItem(it.id)}

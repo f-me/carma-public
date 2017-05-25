@@ -35,13 +35,14 @@ export default class Editor extends React.Component {
       })
     } else {
       fetch('/_/DiagSlide', {credentials: 'same-origin'})
-        .then(resp => resp.json().then(slides =>
+        .then(resp => resp.json().then(slides => {
+          slides = slides.filter(s => s.isActive);
           this.setState({
             slides: Immutable.Map(
               slides.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
             selectedId: this.state.selectedId || slides.find(x => x.isRoot).id
-          })
-        ))
+          });
+        }))
     }
   }
 
@@ -101,8 +102,10 @@ export default class Editor extends React.Component {
 
   deleteSlide = id => {
     fetch(`/_/DiagSlide/${id}`,
-      { method: 'DELETE',
-        credentials: 'same-origin'
+      { method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({isActive: false}),
       })
       .then(resp => { if(resp.status === 200) this._loadSlides(); })
   }
