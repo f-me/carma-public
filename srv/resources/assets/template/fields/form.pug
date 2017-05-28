@@ -447,16 +447,45 @@ include _form_utils.pug
         .panel-collapse.collapse(data-bind="attr: {id: 'partner_service' + $index()}")
           .panel-body
             .control-group.tight
-              label
-                | Приоритет: &nbsp; ПН
-                input(type='text' data-bind="textInput: priority1,\
-                  css: {error: _error().indexOf('priority1') >= 0}")
-                | &nbsp; ПБГ
-                input(type='text' data-bind="textInput: priority2,\
-                  css: {error: _error().indexOf('priority2') >= 0}")
-                | &nbsp; ПБЗ
-                input(type='text' data-bind="textInput: priority3,\
-                  css: {error: _error().indexOf('priority3') >= 0}")
+              div(data-bind='visible: !subtypes')
+                label
+                  | Приоритет: &nbsp; ПН
+                  input(type='text' data-bind="textInput: priority1,\
+                    css: {error: _error().indexOf('priority1') >= 0}")
+                  | &nbsp; ПБГ
+                  input(type='text' data-bind="textInput: priority2,\
+                    css: {error: _error().indexOf('priority2') >= 0}")
+                  | &nbsp; ПБЗ
+                  input(type='text' data-bind="textInput: priority3,\
+                    css: {error: _error().indexOf('priority3') >= 0}")
+              div(data-bind='visible: subtypes')
+                div(data-bind="foreach: subtypes")
+                  .panel.panel-default
+                    .panel-heading
+                      span(data-bind="text: name")
+                      i.glyphicon.glyphicon-remove.pull-right(
+                        title='Удалить'
+                        data-bind='bindClick: _delSubtype')
+                    .panel-body
+                      .control-group.tight
+                        label
+                          | Приоритет: &nbsp; ПН
+                          input(type='text' data-bind="textInput: priority1,\
+                            css: {error: _error().indexOf('priority1') >= 0}")
+                          | &nbsp; ПБГ
+                          input(type='text' data-bind="textInput: priority2,\
+                            css: {error: _error().indexOf('priority2') >= 0}")
+                          | &nbsp; ПБЗ
+                          input(type='text' data-bind="textInput: priority3,\
+                            css: {error: _error().indexOf('priority3') >= 0}")
+                .dropdown
+                  button.dropdown-toggle.btn.btn-action(
+                    data-toggle='dropdown')
+                      i.glyphicon.glyphicon-plus
+                      | &nbsp; Добавить подтип
+                  ul.dropdown-menu(data-bind="foreach: _subtypesDict.filteredItems")
+                    li
+                      a(data-bind="text: label, click: $parent._addSubtype" href="#")
               label
                 | Процент за ложный вызов: &nbsp;
                 input(type='text' data-bind="textInput: fine,\

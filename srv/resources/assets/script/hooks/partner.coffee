@@ -8,11 +8,18 @@ define ["utils", "dictionaries/model-dict"], (u, ModelDict) ->
 
     maybeNum = (str) -> if str then parseFloat str else null
     checkNum = (str) -> !isNaN(parseFloat str) && isFinite str
+    # This converts svc["servicesModels"] (KVMs) to a JSON to be
+    # persisted in services field of "partner" model
     syncJSON = ->
       # FIXME: if no errors
       kvm.services(
         kvm._serviceModels().map (s) ->
           type: s.type
+          subtypes: s.subtypes?().map (st) ->
+            subtype: st.subtype
+            priority1: maybeNum st.priority1()
+            priority2: maybeNum st.priority2()
+            priority3: maybeNum st.priority3()
           priority1: maybeNum s.priority1()
           priority2: maybeNum s.priority2()
           priority3: maybeNum s.priority3()
@@ -29,6 +36,7 @@ define ["utils", "dictionaries/model-dict"], (u, ModelDict) ->
           k[f].extend(rateLimit: 350)
           k[f].subscribe callback
 
+    # Convert JSON into a KVM for a partner's service type
     mkSvc = (svc, svcIx) ->
       options = ko.observableArray []
 
@@ -67,6 +75,68 @@ define ["utils", "dictionaries/model-dict"], (u, ModelDict) ->
         fine: ko.observable svc.fine
         options: options
       validPriorities = [null,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+
+      # If the service type supports subtypes, add another level of
+      # nesting: an observable array of objects with service subtypes,
+      # each with its own priorities (priority1,2,3)
+      sTypes = window.global.idents("ServiceType")
+      if _.contains [sTypes.bikeTowage, sTypes.tech, sTypes.towage], svc.type
+        svcKVM['subtypes'] = ko.observableArray []
+
+        mkSubtypeDict = (name, meta) ->
+          new ModelDict.dict({dict: name, meta: meta})
+
+        # Pick a dictionary of service subtypes
+        svcKVM['_subtypesDict'] =
+          switch svc.type
+            when sTypes.bikeTowage
+              mkSubtypeDict("BikeTowType")
+            when sTypes.tech
+              mkSubtypeDict('TechType', {filterBy: 'isActive'})
+            when sTypes.towage
+              mkSubtypeDict('TowSort')
+        # Do not display subtypes already added to the service
+        svcKVM['_subtypesDict'].filteredItems = ko.computed ->
+          svcKVM._subtypesDict.items.filter(
+            (st) -> !svcKVM.subtypes().some((s) -> s.subtype == st.id)
+          )
+
+        # Convert JSON into a KVM for a partner's service subtype
+        mkSubtypeSvc = (subtype, subtypeIx) ->
+          subtypeKVM =
+            index: subtypeIx
+            subtype: subtype.subtype
+            name: svcKVM['_subtypesDict'].getLab subtype.subtype
+            priority1: ko.observable subtype.priority1
+            priority2: ko.observable subtype.priority2
+            priority3: ko.observable subtype.priority3
+          subtypeKVM._error = ko.computed ->
+            [ validPriorities.indexOf(maybeNum subtypeKVM.priority1()) >= 0 || 'priority1',
+              validPriorities.indexOf(maybeNum subtypeKVM.priority2()) >= 0 || 'priority2',
+              validPriorities.indexOf(maybeNum subtypeKVM.priority3()) >= 0 || 'priority3'
+            ]
+          subtypeKVM._delSubtype = () ->
+            svcKVM['subtypes'].remove((s) -> s.index == subtypeIx)
+            return false
+          subscribe subtypeKVM, syncJSON
+          return subtypeKVM
+
+        # Create KVMs for existing subtypes
+        svc.subtypes?.forEach((s, i) ->
+          svcKVM['subtypes'].push(mkSubtypeSvc(s, i)))
+
+        svcKVM['_addSubtype'] = (e) ->
+          svcSubtype = e.id
+          svcKVM['subtypes'].push(
+            mkSubtypeSvc({subtype: svcSubtype}, svcKVM['subtypes']().length)
+          )
+          return false
+      # Non-subtyped service
+      else
+        svcKVM['subtypes'] = null
+        svcKVM['_subtypesDict'] = {}
+        svcKVM['_addSubtype'] = () -> return false
+
       svcKVM._error = ko.computed ->
         [ validPriorities.indexOf(maybeNum svcKVM.priority1()) >= 0 || 'priority1',
           validPriorities.indexOf(maybeNum svcKVM.priority2()) >= 0 || 'priority2',
