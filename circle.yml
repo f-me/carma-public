@@ -20,4 +20,11 @@ dependencies:
 
 test:
   override:
+    - |
+      pushd srv
+      pushd resources/assets/react-components
+      npm install
+      popd
+      npm install
+      grunt build
     - stack --docker --no-terminal -j2 image container

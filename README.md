@@ -10,4 +10,5 @@ On macOS with `openssl` installed via Homebrew, build with
 
 To build the client, do `cd resources/assets/react-components && npm
 install && cd -` (just once), then `grunt build` to rebuild all client
-code.
+code. Run `grunt watch` in background to rebuild client code
+automatically when sources change.
