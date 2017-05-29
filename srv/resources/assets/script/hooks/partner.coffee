@@ -98,7 +98,8 @@ define ["utils", "dictionaries/model-dict"], (u, ModelDict) ->
         # Do not display subtypes already added to the service
         svcKVM['_subtypesDict'].filteredItems = ko.computed ->
           svcKVM._subtypesDict.items.filter(
-            (st) -> !svcKVM.subtypes().some((s) -> s.subtype == st.id)
+            (st) -> (!_.has(st, 'isActive') || st.isActive) &&
+              !svcKVM.subtypes().some((s) -> s.subtype == st.id)
           )
 
         # Convert JSON into a KVM for a partner's service subtype
