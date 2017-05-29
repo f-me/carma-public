@@ -9,7 +9,7 @@ packages:
 - carma-dict
 - location:
     git: git@github.com:f-me/dmcc.git
-    commit: HEAD
+    commit: ba5ad3c1d57f60e248a5d5b2c1be808db00825ae
   extra-dep: true
 - location:
     git: git@github.com:f-me/hs-weather-api.git
