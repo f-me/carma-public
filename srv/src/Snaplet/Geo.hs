@@ -126,11 +126,11 @@ twoPointHandler q queryToResult = do
 -- | Query to fetch partners within a box, with mobile partners coming
 -- last. See 'withinPartners' and `geowithin` SQL stored procedure.
 --
--- Splice 13 parameters, starting with lon1, lat1 and lon2, lat2 on
+-- Splice 14 parameters, starting with lon1, lat1 and lon2, lat2 on
 -- the query, where coordinates are those of opposite 2D box points.
 withinQuery :: Query
 withinQuery = [sql|
-SELECT geowithin(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+SELECT geowithin(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 |]
 
 
@@ -167,6 +167,7 @@ withinPartners = do
   city <- fromMaybe ""  <$> getParam "city[]"
   make <- fromMaybe ""  <$> getParam "make[]"
   srv  <- fromMaybe ""  <$> getParam "services[]"
+  sub  <- getParamWith decimal "subtype"
   pr2  <- fromMaybe ""  <$> getParam "priority2"
   pr3  <- fromMaybe ""  <$> getParam "priority3"
   dlr  <- fromMaybe "0" <$> getParam "isDealer"
@@ -183,7 +184,8 @@ withinPartners = do
                       :* lon1 :* lat1 :* lon2 :* lat2
                       :* lonc :* latc
                       :* city :* make
-                      :* srv  :* pr2 :* pr3
+                      :* srv  :* (sub :: Maybe Int)
+                      :* pr2 :* pr3
                       :* dlr  :* mp
         results <- recode <$> (withLens postgres $ query withinQuery qParams)
         -- Do not serve useless distance if center point is not cet
