@@ -111,7 +111,7 @@ define ["dictionaries/local-dict"], (ld) ->
             @getElement = (v) -> _.find(@source, (e) -> e.value == v)
             @getValue = (t, s) ->
               _.find(@source, ({typeId, subtypeId}) ->
-                typeId == t && subtypeId == s).value
+                typeId == t && subtypeId == s)?.value
 
     Priorities: => @source = [1..3].map (e) -> s=String(e);{value:s,label:s}
 
