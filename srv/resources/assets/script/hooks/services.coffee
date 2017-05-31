@@ -69,6 +69,11 @@ define [ "utils"
         id: srvId
         data: kvm._meta.q.toRawObj()
         sType: kvm.type()
+        subtype:
+          switch kvm.type()
+            when ServiceType.tech then kvm.techType()
+            when ServiceType.towage then kvm.towSort()
+            when ServiceType.bikeTowage then kvm.bikeTowType()
       kase =
         id: "case:#{kvm._parent.id()}"
         data: kvm._parent._meta.q.toRawObj()

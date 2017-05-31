@@ -42,7 +42,7 @@ define [ "utils"
   # Add some of case data to screen kvm
   setupCase = (kvm, ctx) ->
     kase = ctx['case'].data
-    {id, data, sType} = ctx['service']
+    {id, data, sType, subtype} = ctx['service']
     srvName = id.split(':')[0]
     kaseKVM = m.buildKVM global.model('Case'),  {fetched: kase}
     srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
@@ -68,6 +68,8 @@ define [ "utils"
       kvm['isDealer'](true)
     else
       kvm['services']([sType])
+      ServiceSubtypes = utils.newComputedDict('serviceSubtypes')
+      kvm['subtype'](ServiceSubtypes.getValue(sType, subtype))
     kvm['isDealerDisabled'](true)
     kvm['caseInfo'] = """
     <ul class='unstyled'>
