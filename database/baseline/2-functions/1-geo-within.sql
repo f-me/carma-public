@@ -58,6 +58,7 @@ $$
         AND   ((p.isMobile <> 't') OR (p.isMobile is NULL) OR
                (now() <= ('01:00' + p.mtime)))
         AND   (ce  OR p.city        = ANY(ca))
+        AND   NOT ((1 = ANY(sa) OR 2 = ANY(sa) OR 19 = ANY(sa)) AND subt IS NULL)
         AND   (subt IS NULL OR EXISTS
                 (SELECT 1 FROM
                   (SELECT json_array_elements(srv->'subtypes') AS subtype FROM
