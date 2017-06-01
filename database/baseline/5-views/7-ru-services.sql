@@ -34,7 +34,89 @@ WITH servicecounts AS (
         SELECT
             unnest(cities) AS city,
             string_agg(label, E'\n') AS regionlist
-        FROM "Region" GROUP BY city)
+        FROM "Region" GROUP BY city),
+	-- сложности 
+	comps (tech_type_id, name1, name2, name3, name4, name5) as (
+		select 
+			 27
+			,'Двери открываются'
+			,'Капот открывается'
+			,'Есть место для подъезда ТП спереди/ сбоку 6 метров'
+			,'Сложность №4'
+			,'Сложность №5'
+		union all 
+		select 
+			 28
+			,'Автомобиль не посреди дороги/ автомагистрали'
+			,'Автомобиль стоит на твердом ровном покрытии, без уклона'	
+			,'Есть запасное колесо'	
+			,'Секреток нет'	
+			,'Есть ключ от секретки'
+		union all 
+		select 
+			 32
+			,'Ключ в автомобиле'
+			,'Двигатель не заведен'	
+			,'Есть дополнительное запирающее устройство капота'	
+			,'Есть документы на автомобиль'	
+			,'Сложность №5'
+		union all 
+		select 
+			 33
+			,'Двери открываются'	
+			,'Сложность №2'	
+			,'Сложность №3'	
+			,'Сложность №4'	
+			,'Сложность №5'
+		union all 
+		select 
+			 31
+			,'Открывается лючок бензобака'	
+			,'Сложность №2'	
+			,'Сложность №3'	
+			,'Сложность №4'	
+			,'Сложность №5'
+		union all 
+		select 
+			 35
+			,'Авто на твердой поверхности'	
+			,'Авто на колесах'	
+			,'Расстояние от авто до дороги меньше 10 метров'	
+			,'Сложность №4'	
+			,'Сложность №5'
+		union all 
+		select 
+			 34
+			,'Высота потолка ниже 2м20 см'	
+			,'Сложность №2'	
+			,'Сложность №3'	
+			,'Сложность №4'	
+			,'Сложность №5'
+		union all 
+		select 
+			 37
+			,'Сложность №1'	
+			,'Сложность №2'	
+			,'Сложность №3'	
+			,'Сложность №4'	
+			,'Сложность №5'
+		union all 
+		select 
+			 36
+			,'Топливо вытекает, когда двигатель заведен'	
+			,'Топливо вытекает когда двигатель заглушен'	
+			,'Сложность №3'	
+			,'Сложность №4'	
+			,'Сложность №5'
+		union all 
+		select 
+			 41
+			,'Наличие запасных частей'	
+			,'Сложность №2'	
+			,'Сложность №3'	
+			,'Сложность №4'	
+			,'Сложность №5'
+	)
  SELECT
     "PaymentType".label AS "Тип оплаты",
         servicetbl.parentid || COALESCE(('/'::text || rank() OVER (PARTITION BY servicetbl.parentid ORDER BY servicetbl.createtime ASC)) ||
@@ -271,8 +353,77 @@ WITH servicecounts AS (
     CASE allservicesview.flags->>'Не открывается лючок бензобака'
       WHEN 'true' THEN 'Y' ELSE 'N' END as "Не открывается лючок бензобака",
 
-    cities_regions.regionlist as "Регион"
-
+    cities_regions.regionlist as "Регион",
+	c.name1 as "Сложность_1",
+	CASE 	
+		WHEN t.type = 27 THEN compl27p1
+		WHEN t.type = 28 THEN compl28p1
+		WHEN t.type = 32 THEN compl32p1
+		WHEN t.type = 33 THEN compl33p1
+		WHEN t.type = 31 THEN compl31p1
+		WHEN t.type = 35 THEN compl35p1
+		WHEN t.type = 34 THEN compl34p1
+		WHEN t.type = 37 THEN compl37p1
+		WHEN t.type = 36 THEN compl36p1
+		WHEN t.type = 41 THEN compl41p1
+		ELSE null
+	END as  "Сложность_значение_1",
+	c.name2 as "Сложность_2",
+	CASE 	
+		WHEN t.type = 27 THEN compl27p2
+		WHEN t.type = 28 THEN compl28p2
+		WHEN t.type = 32 THEN compl32p2
+		WHEN t.type = 33 THEN compl33p2
+		WHEN t.type = 31 THEN compl31p2
+		WHEN t.type = 35 THEN compl35p2
+		WHEN t.type = 34 THEN compl34p2
+		WHEN t.type = 37 THEN compl37p2
+		WHEN t.type = 36 THEN compl36p2
+		WHEN t.type = 41 THEN compl41p2
+		ELSE null
+	END as  "Сложность_значение_2",	
+	c.name3 as "Сложность_3",
+	CASE 	
+		WHEN t.type = 27 THEN compl27p3
+		WHEN t.type = 28 THEN compl28p3
+		WHEN t.type = 32 THEN compl32p3
+		WHEN t.type = 33 THEN compl33p3
+		WHEN t.type = 31 THEN compl31p3
+		WHEN t.type = 35 THEN compl35p3
+		WHEN t.type = 34 THEN compl34p3
+		WHEN t.type = 37 THEN compl37p3
+		WHEN t.type = 36 THEN compl36p3
+		WHEN t.type = 41 THEN compl41p3
+		ELSE null
+	END as  "Сложность_значение_3",
+	c.name4 as "Сложность_4",
+	CASE 	
+		WHEN t.type = 27 THEN compl27p4
+		WHEN t.type = 28 THEN compl28p4
+		WHEN t.type = 32 THEN compl32p4
+		WHEN t.type = 33 THEN compl33p4
+		WHEN t.type = 31 THEN compl31p4
+		WHEN t.type = 35 THEN compl35p4
+		WHEN t.type = 34 THEN compl34p4
+		WHEN t.type = 37 THEN compl37p4
+		WHEN t.type = 36 THEN compl36p4
+		WHEN t.type = 41 THEN compl41p4
+		ELSE null
+	 END as  "Сложность_значение_4",
+	c.name5 as "Сложность_5",
+	CASE 	
+		WHEN t.type = 27 THEN compl27p5
+		WHEN t.type = 28 THEN compl28p5
+		WHEN t.type = 32 THEN compl32p5
+		WHEN t.type = 33 THEN compl33p5
+		WHEN t.type = 31 THEN compl31p5
+		WHEN t.type = 35 THEN compl35p5
+		WHEN t.type = 34 THEN compl34p5
+		WHEN t.type = 37 THEN compl37p5
+		WHEN t.type = 36 THEN compl36p5
+		WHEN t.type = 41 THEN compl41p5
+		ELSE null
+	 END as  "Сложность_значение_5"
    FROM casetbl
    LEFT JOIN commentLists ON casetbl.id = commentLists.caseId
    LEFT JOIN usermetatbl ON casetbl.callTaker = usermetatbl.id
@@ -326,6 +477,8 @@ WITH servicecounts AS (
    LEFT JOIN usermetatbl u2 ON u2.id = orderActions.assignedTo
    LEFT JOIN usermetatbl u3 ON u3.id = allservicesview.consultant
    LEFT JOIN "TechType" ON "TechType".id = allservicesview.techtype
+   LEFT JOIN techtbl t ON t.id = servicetbl.id AND t.parentid = servicetbl.parentid
+   LEFT JOIN comps c on t.type = c.tech_type_id
 WHERE casetbl.id = servicetbl.parentid;
 
 GRANT SELECT ON "Услуги" TO reportgen;
