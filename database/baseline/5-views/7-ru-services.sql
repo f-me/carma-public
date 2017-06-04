@@ -36,87 +36,34 @@ WITH servicecounts AS (
             string_agg(label, E'\n') AS regionlist
         FROM "Region" GROUP BY city),
 	-- сложности 
-	comps (tech_type_id, name1, name2, name3, name4, name5) as (
-		select 
-			 27
-			,'Двери открываются'
-			,'Капот открывается'
-			,'Есть место для подъезда ТП спереди/ сбоку 6 метров'
-			,'Сложность №4'
-			,'Сложность №5'
-		union all 
-		select 
-			 28
-			,'Автомобиль не посреди дороги/ автомагистрали'
-			,'Автомобиль стоит на твердом ровном покрытии, без уклона'	
-			,'Есть запасное колесо'	
-			,'Секреток нет'	
-			,'Есть ключ от секретки'
-		union all 
-		select 
-			 32
-			,'Ключ в автомобиле'
-			,'Двигатель не заведен'	
-			,'Есть дополнительное запирающее устройство капота'	
-			,'Есть документы на автомобиль'	
-			,'Сложность №5'
-		union all 
-		select 
-			 33
-			,'Двери открываются'	
-			,'Сложность №2'	
-			,'Сложность №3'	
-			,'Сложность №4'	
-			,'Сложность №5'
-		union all 
-		select 
-			 31
-			,'Открывается лючок бензобака'	
-			,'Сложность №2'	
-			,'Сложность №3'	
-			,'Сложность №4'	
-			,'Сложность №5'
-		union all 
-		select 
-			 35
-			,'Авто на твердой поверхности'	
-			,'Авто на колесах'	
-			,'Расстояние от авто до дороги меньше 10 метров'	
-			,'Сложность №4'	
-			,'Сложность №5'
-		union all 
-		select 
-			 34
-			,'Высота потолка ниже 2м20 см'	
-			,'Сложность №2'	
-			,'Сложность №3'	
-			,'Сложность №4'	
-			,'Сложность №5'
-		union all 
-		select 
-			 37
-			,'Сложность №1'	
-			,'Сложность №2'	
-			,'Сложность №3'	
-			,'Сложность №4'	
-			,'Сложность №5'
-		union all 
-		select 
-			 36
-			,'Топливо вытекает, когда двигатель заведен'	
-			,'Топливо вытекает когда двигатель заглушен'	
-			,'Сложность №3'	
-			,'Сложность №4'	
-			,'Сложность №5'
-		union all 
-		select 
-			 41
-			,'Наличие запасных частей'	
-			,'Сложность №2'	
-			,'Сложность №3'	
-			,'Сложность №4'	
-			,'Сложность №5'
-	)
+     comps as (
+	SELECT
+		 program
+		,substring(field, 6, 2)::int as tech_type_id
+		,MAX(case 
+			when substring(field, 9, 1)::int = 1 then label
+			else null
+		 end) as name1
+		,MAX(case 
+			when substring(field, 9, 1)::int = 2 then label
+			else null
+		 end) as name2
+		,MAX(case 
+			when substring(field, 9, 1)::int = 3 then label
+			else null
+		 end) as name3
+		,MAX(case 
+			when substring(field, 9, 1)::int = 4 then label
+			else null
+		 end) as name4
+		,MAX(case 
+			when substring(field, 9, 1)::int = 5 then label
+			else null
+		 end) as name5
+	FROM "ConstructorFieldOption" cfo 
+	WHERE model = 14	
+	and field like 'comp___p_'
+	GROUP BY program, substring(field, 6, 2)::int)
  SELECT
     "PaymentType".label AS "Тип оплаты",
         servicetbl.parentid || COALESCE(('/'::text || rank() OVER (PARTITION BY servicetbl.parentid ORDER BY servicetbl.createtime ASC)) ||
@@ -448,8 +395,9 @@ WITH servicecounts AS (
    LEFT JOIN "Suggestion" ON casetbl.diagnosis4 = "Suggestion".id
    LEFT JOIN "CaseSource" ON casetbl.source = "CaseSource".id
    LEFT JOIN "CaseStatus" ON casetbl.caseStatus = "CaseStatus".id
-   LEFT JOIN "ContractCheckStatus" ON casetbl.vinchecked = "ContractCheckStatus".id,
-   servicetbl
+   LEFT JOIN "ContractCheckStatus" ON casetbl.vinchecked = "ContractCheckStatus".id
+   --
+   INNER JOIN servicetbl ON casetbl.id = servicetbl.parentid
    LEFT JOIN allservicesview ON allservicesview.id = servicetbl.id AND servicetbl.parentid = allservicesview.parentid
    LEFT JOIN partnertbl p1 ON servicetbl.contractor_partnerid = p1.id
    LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = p2.id
@@ -478,7 +426,8 @@ WITH servicecounts AS (
    LEFT JOIN usermetatbl u3 ON u3.id = allservicesview.consultant
    LEFT JOIN "TechType" ON "TechType".id = allservicesview.techtype
    LEFT JOIN techtbl t ON t.id = servicetbl.id AND t.parentid = servicetbl.parentid
-   LEFT JOIN comps c on t.type = c.tech_type_id
-WHERE casetbl.id = servicetbl.parentid;
+   LEFT JOIN comps c on t.type = c.tech_type_id and casetbl.program = c.program
+order by servicetbl.id desc
+limit 10000;
 
 GRANT SELECT ON "Услуги" TO reportgen;
