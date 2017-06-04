@@ -426,8 +426,6 @@ WITH servicecounts AS (
    LEFT JOIN usermetatbl u3 ON u3.id = allservicesview.consultant
    LEFT JOIN "TechType" ON "TechType".id = allservicesview.techtype
    LEFT JOIN techtbl t ON t.id = servicetbl.id AND t.parentid = servicetbl.parentid
-   LEFT JOIN comps c on t.type = c.tech_type_id and casetbl.program = c.program
-order by servicetbl.id desc
-limit 10000;
+   LEFT JOIN comps c on t.type = c.tech_type_id and casetbl.program = c.program;
 
 GRANT SELECT ON "Услуги" TO reportgen;
