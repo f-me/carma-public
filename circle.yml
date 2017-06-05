@@ -16,11 +16,14 @@ dependencies:
       mkdir ~/stack-bin/
       cp stack*/stack ~/stack-bin/
     - |
-      pushd srv
-      pushd resources/assets/react-components
+      cd srv
+      npm install -g bower grunt
       npm install
-      popd
+      bower install
+      cd resources/assets/react-components
       npm install
+      cd -
+      mkdir -p resources/static/{js/gen,css}
     - stack docker pull
 
 test:

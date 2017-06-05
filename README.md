@@ -100,11 +100,20 @@ shared between the container and the host anyways).
 
 ### Frontend (JS)
 
-To build the client, do `cd resources/assets/react-components && npm
-install && cd -` (just once), then `npm
-install && bower update && grunt build` to rebuild all client
-code. Run `grunt watch` in background to rebuild client code
-automatically when sources change.
+To build the client from scratch:
+
+    cd srv
+    npm install -g bower grunt && npm install && bower install
+    cdd resources/assets/react-components && npm install && cd -
+    mkdir -p resources/static/{js/gen,css}
+    grunt build
+
+To rebuild the client:
+
+    grunt build
+
+Run `grunt watch` in background to rebuild client code automatically
+when sources change.
 
 ## Running
 
