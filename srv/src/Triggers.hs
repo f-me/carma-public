@@ -82,7 +82,6 @@ import           Carma.Model.SubProgram as SubProgram hiding (ident)
 import qualified Carma.Model.ServiceStatus as SS
 import qualified Carma.Model.ServiceType as ST
 import qualified Carma.Model.TowType as TowType
-import qualified Carma.Model.TowerType as TowerType
 import qualified Carma.Model.UrgentServiceReason as USR
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
@@ -208,7 +207,6 @@ beforeCreate = Map.unionsWith (++)
     modPut Towage.canNeutral          $ Just off
     modPut Towage.manipulatorPossible $ Just off
     modPut Towage.towType             $ Just TowType.dealer
-    modPut Towage.towerType           $ Just TowerType.evac
     modPut Towage.towingPointPresent  $ Just off
     modPut Towage.vandalism           $ Just off
     modPut Towage.wheelsBlocked       $ Just 0

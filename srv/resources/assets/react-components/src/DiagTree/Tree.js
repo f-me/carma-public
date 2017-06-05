@@ -142,7 +142,7 @@ export default class Tree extends React.Component {
       borderBottom: '1px solid #CCCCCC'
     };
 
-    const roots = items.valueSeq().filter(x => x.isRoot).toArray();
+    const roots = items.valueSeq().filter(x => x.isRoot && x.isActive).toArray();
 
     return (
       <ReactCSSTransitionGroup transitionName="tree-list" transitionEnterTimeout={300} transitionLeaveTimeout={150}>

@@ -42,7 +42,7 @@ define [ "utils"
   # Add some of case data to screen kvm
   setupCase = (kvm, ctx) ->
     kase = ctx['case'].data
-    {id, data, sType} = ctx['service']
+    {id, data, sType, subtype} = ctx['service']
     srvName = id.split(':')[0]
     kaseKVM = m.buildKVM global.model('Case'),  {fetched: kase}
     srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
@@ -68,6 +68,8 @@ define [ "utils"
       kvm['isDealer'](true)
     else
       kvm['services']([sType])
+      ServiceSubtypes = utils.newComputedDict('serviceSubtypes')
+      kvm['subtype'](ServiceSubtypes.getValue(sType, subtype))
     kvm['isDealerDisabled'](true)
     kvm['caseInfo'] = """
     <ul class='unstyled'>
@@ -393,12 +395,31 @@ define [ "utils"
         $('#main-container').css('padding-top', '5px')
         $(".navbar").hide()
 
+    ServiceSubtypes = utils.newComputedDict('serviceSubtypes')
+
     kvm = m.buildKVM(model, "partnersSearch-content")
     q = new sync.DipQueue(kvm, model)
     kvm._meta.q = q
     kvm['id'](1) # just to make disabled observables work
     kvm['choosenSort'] = ko.observableArray(["priority2"])
     kvm['searchResults'] = ko.observable()
+
+    kvm["subtypeId"] = ko.computed ->
+      ServiceSubtypes.getElement(kvm["subtype"]())?.subtypeId
+    kvm["typeId"] = ko.computed ->
+      ServiceSubtypes.getElement(kvm["subtype"]())?.typeId
+
+    # Force a parent type when selecting a subtype
+    kvm['typeId'].subscribe (newTypeId) ->
+      if newTypeId
+        kvm['services']([newTypeId])
+
+    # Force the user to pick a new subtype when changing types to
+    # prevent displaying inconsistent UI.
+    kvm['services'].subscribe (newTypeId) ->
+      if newTypeId[0] != kvm["typeId"].peek() or newTypeId.length > 1
+        kvm["subtype"](null)
+
     kvm['searchH'] = ko.computed ->
       s = kvm['searchResults']()
       return [] unless s
@@ -422,8 +443,24 @@ define [ "utils"
           if _.isEmpty srvs
             k['services']()
           else
-            _.filter k['services'](),
-              ({type}) -> srvs.some((s) -> `s.value == type`)
+            srvs = _.filter k['services'](),
+              ({type}) -> srvs.some (s) -> `s.value == type`
+            # Go deeper and extract a subtyped service. Add `type`
+            # property to be compatible to `showStr` templates below.
+            # In case multiple types are selected, the behaviour is
+            # undefined (the UI should prevent that, so `srvs` should
+            # be a 1-element array here)
+            if kvm["subtypeId"]()
+              srv = _.find srvs[0]?.subtypes, (s) -> s.subtype == kvm["subtypeId"]()
+              if srv
+                srv.type = kvm["typeId"]()
+                [srv]
+              else
+                []
+            else
+              # Do not extract subtypes for non-subtyped services
+              srvs
+
 
         for nested in k['filteredServices']()
           do (nested) ->
@@ -453,7 +490,12 @@ define [ "utils"
       srvs = kvm['servicesLocals']()
       return v.distanceFormatted() if sort == "distance"
       unless _.isEmpty srvs
-        v = parseInt (_.find v.services(),
+        subtypePicker =
+          if kvm["subtypeId"]()
+            (srv) -> _.find(srv.subtypes, (e) -> e.subtype == kvm["subtypeId"]())
+          else
+            _.identity
+        v = parseInt subtypePicker(_.find v.services(),
                  (s) -> String(s.type) == String(srvs[0].value))?[sort]
         # sorter will sort arrays with NaN as multiple arrays divided by NaN
         if _.isNaN v then Infinity else v

@@ -26,6 +26,7 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
       q = {}
       for f in @model.fields when @kvm[f.name]() and not f.meta?.nosearch
         q[f.name] = @kvm[f.name]()
+      q["subtype"] = @kvm["subtypeId"]()
       $.ajax
         url      : @url
         dataType : 'json'

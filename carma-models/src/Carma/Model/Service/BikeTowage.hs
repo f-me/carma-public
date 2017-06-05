@@ -17,10 +17,6 @@ import qualified Carma.Model.Service.Towage as T
 
 data BikeTowage = BikeTowage
   { ident                    :: PK Int BikeTowage ""
-  , towerType                :: F (Maybe (IdentI TowerType)) "towerType"
-                             "Тип эвакуатора"
-  , bikeTowType              :: F (Maybe (IdentI BikeTowType)) "bikeTowType"
-                             "Тип мотоэвакуации"
   , towDealer_partner        :: F (Maybe Text) "towDealer_partner"
                              "Дилер (куда эвакуируют автомобиль)"
   , towDealer_partnerId      :: F (Maybe (IdentI Partner)) "towDealer_partnerId"
@@ -47,14 +43,18 @@ data BikeTowage = BikeTowage
                              "towerAddress_coords" "Координаты"
   , towerAddress_map         :: F (Maybe MapField) "towerAddress_map"
                              ""
-  , wheelsBlocked
-    :: F (Maybe Int)
-       "wheelsBlocked" "Количество заблокированных колёс"
   , orderNumber              :: F (Maybe Text) "orderNumber"
                              "Номер заказ-наряда"
   , repairEndDate            :: F (Maybe Day) "repairEndDate"
                              "Дата окончания ремонта"
   , isCountryRide            :: F Bool "isCountryRide" "За городом"
+  , canPushBike              :: F Bool "canPushBike" "Возможно ли катить мотоцикл"
+  , canUnblock               :: F Bool "canUnblock" "Возможно ли разблокировать руль"
+  , canHelp                  :: F Bool "canHelp" "Сможете ли помочь при погрузке и креплении"
+  , compl4                   :: F Bool "compl4" "Сложность №4"
+  , compl5                   :: F Bool "compl5" "Сложность №5"
+  , bikeTowType              :: F (Maybe (IdentI BikeTowType)) "bikeTowType"
+                             "Тип мотоэвакуации"
   , suburbanMilage           :: F (Maybe Scientific) "suburbanMilage" "Пробег за городом"
   , totalMilage              :: F (Maybe Scientific) "totalMilage" "Километраж по тахометру"
   , partnerWarnedInTime      :: F (Maybe Bool) "partnerWarnedInTime" "Партнёр предупредил вовремя"

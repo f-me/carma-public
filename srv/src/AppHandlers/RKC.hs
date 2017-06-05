@@ -135,9 +135,6 @@ trace name fn = do
   syslogJSON Info "rkc/trace" [name .= show val]
   return val
 
-fquery :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => String -> FormatArgs -> q -> m [r]
-fquery fmt args v = query (fromString $ T.unpack $ format fmt args) v
-
 query :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => PS.Query -> q -> m [r]
 query s v = do
     bs <- PS.formatQuery s v
@@ -538,7 +535,7 @@ rkcStats (Filter from to program city partner) = logExceptions "rkc/rkcStats" $ 
   rsp1 <- PS.query procAvgTimeQuery $
           (orders, orderResults) PS.:. qParams
   rsp2 <- PS.query towStartAvgTimeQuery
-    $ PS.Only from PS.:. PS.Only from PS.:. qParams
+    $ PS.Only from PS.:. PS.Only from PS.:. PS.Only from PS.:. qParams
   rsp3 <- PS.query assignAvgTimeQuery $ (PS.Only orders) PS.:. qParams
   rsp4 <- PS.query realprocAvgTimeQuery $
           (orders, orderResults) PS.:. qParams
@@ -730,7 +727,13 @@ WITH
          times_expectedServiceStart,
          contractor_partner, suburbanmilage
     FROM towagetbl
-    WHERE createtime >= ?)
+    WHERE createtime >= ?
+  UNION ALL
+  SELECT type, id, parentid, times_factServiceStart, times_expectedDispatch,
+         times_expectedServiceStart,
+         contractor_partner, suburbanmilage
+    FROM "BikeTowage"
+    WHERE createtime >= ?    )
 SELECT extract(epoch from avg(s.times_factServiceStart - s.times_expectedDispatch))
 FROM casetbl c, services s
 WHERE s.parentid = c.id

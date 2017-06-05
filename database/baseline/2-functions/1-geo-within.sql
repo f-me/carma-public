@@ -19,6 +19,11 @@ create or replace function GeoWithin ( x1 float
                                      , city text
                                      , makes text
                                      , services text
+                                     , subt int
+                                     -- ^ Service subtype ID.
+                                     -- Behaviour is defined only for
+                                     -- services 1, 2, and 19 (tech,
+                                     -- towage, biketowage).
                                      , priority2 text
                                      , priority3 text
                                      , isDlr boolean
@@ -53,15 +58,25 @@ $$
         AND   ((p.isMobile <> 't') OR (p.isMobile is NULL) OR
                (now() <= ('01:00' + p.mtime)))
         AND   (ce  OR p.city        = ANY(ca))
+        AND   NOT ((1 = ANY(sa) OR 2 = ANY(sa) OR 19 = ANY(sa)) AND subt IS NULL)
+        AND   (subt IS NULL OR EXISTS
+                (SELECT 1 FROM
+                  (SELECT json_array_elements(srv->'subtypes') AS subtype FROM
+                   json_array_elements(p.services) srv
+                    WHERE (srv->>'type')::int = ANY(sa)) subtype
+                    WHERE (subtype->>'subtype')::int = subt
+                      AND (p2e OR (subtype->>'priority2')::int = ANY(p2a))
+                      AND (p3e OR (subtype->>'priority3')::int = ANY(p3a))
+                    ))
         AND   (se  OR EXISTS
                 (SELECT 1 FROM json_array_elements(p.services) s
                   WHERE (s->>'type')::int = ANY(sa)))
-        AND   (p2e OR EXISTS
+        AND   (p2e OR subt IS NOT NULL OR (subt IS NULL AND EXISTS
                 (SELECT 1 FROM json_array_elements(p.services) s
-                  WHERE (s->>'priority2')::int = ANY(p2a)))
-        AND   (p3e OR EXISTS
+                  WHERE (s->>'priority2')::int = ANY(p2a))))
+        AND   (p3e OR subt IS NOT NULL OR (subt IS NULL AND EXISTS
                 (SELECT 1 FROM json_array_elements(p.services) s
-                  WHERE (s->>'priority3')::int = ANY(p3a)))
+                  WHERE (s->>'priority3')::int = ANY(p3a))))
         AND   case when isDlr then p.isDealer = true  else true end
         AND   case when isMbl then p.isMobile = isMbl else true end
         AND   case when isDealer

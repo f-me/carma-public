@@ -8,16 +8,22 @@ dependencies:
   cache_directories:
     - "~/.stack"
   override:
-    - rm -rf stack*.tar.gz
-    - rm -rf stack-bin/
-
-    - wget https://github.com/commercialhaskell/stack/releases/download/v1.1.2/stack-1.1.2-linux-x86_64.tar.gz
-    - tar -zxf stack*.tar.gz
-
-    - mkdir ~/stack-bin/
-    - cp stack*/stack ~/stack-bin/
+    - |
+      rm -rf stack*.tar.gz
+      rm -rf stack-bin/
+      wget https://github.com/commercialhaskell/stack/releases/download/v1.4.0/stack-1.4.0-linux-x86_64.tar.gz
+      tar -zxf stack*.tar.gz
+      mkdir ~/stack-bin/
+      cp stack*/stack ~/stack-bin/
+    - |
+      pushd srv
+      pushd resources/assets/react-components
+      npm install
+      popd
+      npm install
     - stack docker pull
 
 test:
   override:
+    - cd srv && grunt build
     - stack --docker --no-terminal -j2 image container

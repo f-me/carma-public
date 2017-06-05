@@ -30,6 +30,16 @@ define [], ->
           dictionaryStringify: true
           label: "Услуги"
       },
+      { name: "subtype"
+      , type: "dictionary"
+      , meta:
+          dictionaryName: "serviceSubtypes"
+          dictionaryType: "ComputedDict"
+          dictionaryStringify: true
+          widget: "dictionary"
+          label: "Подуслуга"
+          nosearch: true
+      },
       { name: "priority2"
       , type: "dictionary-many"
       , meta:

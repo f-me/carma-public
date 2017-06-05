@@ -6,7 +6,6 @@ import Immutable from 'immutable'
 import Tree from './Tree'
 import SlideEditor from './SlideEditor'
 import './DiagTree.css'
-import slides_json from './slides.json'
 
 
 
@@ -28,6 +27,7 @@ export default class Editor extends React.Component {
 
   _loadSlides = () => {
     if (this.props.testMode) {
+//      const slides_json = require('./slides.json');
       this.setState({
         slides: Immutable.Map(
           slides_json.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
@@ -101,8 +101,10 @@ export default class Editor extends React.Component {
 
   deleteSlide = id => {
     fetch(`/_/DiagSlide/${id}`,
-      { method: 'DELETE',
-        credentials: 'same-origin'
+      { method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({isActive: false}),
       })
       .then(resp => { if(resp.status === 200) this._loadSlides(); })
   }
@@ -127,6 +129,7 @@ export default class Editor extends React.Component {
               items={slides}
               selected={selectedId}
               onSelect={it => this.setState({selectedId: it.id})}
+              onDelete={this.deleteSlide}
             />
           </Col>
           <Col md={8}>

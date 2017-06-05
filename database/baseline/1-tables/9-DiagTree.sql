@@ -14,6 +14,7 @@ create table "DiagSlide"
   , answers json not null default '[]'::json
   , actions json not null default '[]'::json
   , isRoot bool not null default false
+  , isActive bool not null default true
   );
 
 
@@ -32,6 +33,7 @@ insert into "FieldPermission" (role, model, field, r, w) values
 , (1, 'DiagSlide', 'resources', true, true)
 , (1, 'DiagSlide', 'answers', true, true)
 , (1, 'DiagSlide', 'isRoot', true, true)
+, (1, 'DiagSlide', 'isActive', true, true)
 ;
 
 

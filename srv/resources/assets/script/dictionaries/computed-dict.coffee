@@ -89,6 +89,30 @@ define ["dictionaries/local-dict"], (ld) ->
         @source = for obj in objs
           { value: obj.id, label: obj.header || '' }
 
+    serviceSubtypes: =>
+      @bgetJSON "/_/TowSort", (tow_types) =>
+        @bgetJSON "/_/TechType", (tech_types) =>
+          @bgetJSON "/_/BikeTowType", (bike_tow_types) =>
+            sType = global.idents("ServiceType")
+            enrich = (es, prefix, sType) ->
+              for e in es
+                { subtypeId: e.id, label: "#{prefix} - #{e.label}", typeId: sType }
+            all_types =
+              # TODO Use actual ServiceType labels here?
+              enrich(tow_types, "Эвакуация", sType.towage).concat(
+                enrich(_.filter(tech_types, (e) -> e.isActive), "Техпомощь", sType.tech).concat(
+                  enrich(bike_tow_types, "Мотоэвакуация", sType.bikeTowage)))
+            # Re-number element of this dictionary. Original "subtype
+            # ID" values are preserved in "subtypeID" property of
+            # elements.
+            @source = for e, i in all_types
+              e.value = i
+              e
+            @getElement = (v) -> _.find(@source, (e) -> e.value == v)
+            @getValue = (t, s) ->
+              _.find(@source, ({typeId, subtypeId}) ->
+                typeId == t && subtypeId == s)?.value
+
     Priorities: => @source = [1..3].map (e) -> s=String(e);{value:s,label:s}
 
     ExistDict: =>

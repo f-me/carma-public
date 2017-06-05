@@ -20,8 +20,6 @@ import Carma.Model.TowerType (TowerType)
 
 data Towage = Towage
   { ident                    :: PK Int Towage ""
-  , towerType                :: F (Maybe (IdentI TowerType)) "towerType"
-                             "Тип эвакуатора"
   , towType                  :: F (Maybe (IdentI TowType)) "towType"
                              "Вид эвакуации"
   , towSort                  :: F (Maybe (IdentI TowSort)) "towSort"
