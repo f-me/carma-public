@@ -34,7 +34,36 @@ WITH servicecounts AS (
         SELECT
             unnest(cities) AS city,
             string_agg(label, E'\n') AS regionlist
-        FROM "Region" GROUP BY city)
+        FROM "Region" GROUP BY city),
+	-- сложности 
+     comps as (
+	SELECT
+		 program
+		,substring(field, 6, 2)::int as tech_type_id
+		,MAX(case 
+			when substring(field, 9, 1)::int = 1 then label
+			else null
+		 end) as name1
+		,MAX(case 
+			when substring(field, 9, 1)::int = 2 then label
+			else null
+		 end) as name2
+		,MAX(case 
+			when substring(field, 9, 1)::int = 3 then label
+			else null
+		 end) as name3
+		,MAX(case 
+			when substring(field, 9, 1)::int = 4 then label
+			else null
+		 end) as name4
+		,MAX(case 
+			when substring(field, 9, 1)::int = 5 then label
+			else null
+		 end) as name5
+	FROM "ConstructorFieldOption" cfo 
+	WHERE model = 14	
+	and field like 'comp___p_'
+	GROUP BY program, substring(field, 6, 2)::int)
  SELECT
     "PaymentType".label AS "Тип оплаты",
         servicetbl.parentid || COALESCE(('/'::text || rank() OVER (PARTITION BY servicetbl.parentid ORDER BY servicetbl.createtime ASC)) ||
@@ -271,8 +300,77 @@ WITH servicecounts AS (
     CASE allservicesview.flags->>'Не открывается лючок бензобака'
       WHEN 'true' THEN 'Y' ELSE 'N' END as "Не открывается лючок бензобака",
 
-    cities_regions.regionlist as "Регион"
-
+    cities_regions.regionlist as "Регион",
+	c.name1 as "Сложность_1",
+	CASE 	
+		WHEN t.type = 27 THEN compl27p1
+		WHEN t.type = 28 THEN compl28p1
+		WHEN t.type = 32 THEN compl32p1
+		WHEN t.type = 33 THEN compl33p1
+		WHEN t.type = 31 THEN compl31p1
+		WHEN t.type = 35 THEN compl35p1
+		WHEN t.type = 34 THEN compl34p1
+		WHEN t.type = 37 THEN compl37p1
+		WHEN t.type = 36 THEN compl36p1
+		WHEN t.type = 41 THEN compl41p1
+		ELSE null
+	END as  "Сложность_значение_1",
+	c.name2 as "Сложность_2",
+	CASE 	
+		WHEN t.type = 27 THEN compl27p2
+		WHEN t.type = 28 THEN compl28p2
+		WHEN t.type = 32 THEN compl32p2
+		WHEN t.type = 33 THEN compl33p2
+		WHEN t.type = 31 THEN compl31p2
+		WHEN t.type = 35 THEN compl35p2
+		WHEN t.type = 34 THEN compl34p2
+		WHEN t.type = 37 THEN compl37p2
+		WHEN t.type = 36 THEN compl36p2
+		WHEN t.type = 41 THEN compl41p2
+		ELSE null
+	END as  "Сложность_значение_2",	
+	c.name3 as "Сложность_3",
+	CASE 	
+		WHEN t.type = 27 THEN compl27p3
+		WHEN t.type = 28 THEN compl28p3
+		WHEN t.type = 32 THEN compl32p3
+		WHEN t.type = 33 THEN compl33p3
+		WHEN t.type = 31 THEN compl31p3
+		WHEN t.type = 35 THEN compl35p3
+		WHEN t.type = 34 THEN compl34p3
+		WHEN t.type = 37 THEN compl37p3
+		WHEN t.type = 36 THEN compl36p3
+		WHEN t.type = 41 THEN compl41p3
+		ELSE null
+	END as  "Сложность_значение_3",
+	c.name4 as "Сложность_4",
+	CASE 	
+		WHEN t.type = 27 THEN compl27p4
+		WHEN t.type = 28 THEN compl28p4
+		WHEN t.type = 32 THEN compl32p4
+		WHEN t.type = 33 THEN compl33p4
+		WHEN t.type = 31 THEN compl31p4
+		WHEN t.type = 35 THEN compl35p4
+		WHEN t.type = 34 THEN compl34p4
+		WHEN t.type = 37 THEN compl37p4
+		WHEN t.type = 36 THEN compl36p4
+		WHEN t.type = 41 THEN compl41p4
+		ELSE null
+	 END as  "Сложность_значение_4",
+	c.name5 as "Сложность_5",
+	CASE 	
+		WHEN t.type = 27 THEN compl27p5
+		WHEN t.type = 28 THEN compl28p5
+		WHEN t.type = 32 THEN compl32p5
+		WHEN t.type = 33 THEN compl33p5
+		WHEN t.type = 31 THEN compl31p5
+		WHEN t.type = 35 THEN compl35p5
+		WHEN t.type = 34 THEN compl34p5
+		WHEN t.type = 37 THEN compl37p5
+		WHEN t.type = 36 THEN compl36p5
+		WHEN t.type = 41 THEN compl41p5
+		ELSE null
+	 END as  "Сложность_значение_5"
    FROM casetbl
    LEFT JOIN commentLists ON casetbl.id = commentLists.caseId
    LEFT JOIN usermetatbl ON casetbl.callTaker = usermetatbl.id
@@ -297,8 +395,9 @@ WITH servicecounts AS (
    LEFT JOIN "Suggestion" ON casetbl.diagnosis4 = "Suggestion".id
    LEFT JOIN "CaseSource" ON casetbl.source = "CaseSource".id
    LEFT JOIN "CaseStatus" ON casetbl.caseStatus = "CaseStatus".id
-   LEFT JOIN "ContractCheckStatus" ON casetbl.vinchecked = "ContractCheckStatus".id,
-   servicetbl
+   LEFT JOIN "ContractCheckStatus" ON casetbl.vinchecked = "ContractCheckStatus".id
+   --
+   INNER JOIN servicetbl ON casetbl.id = servicetbl.parentid
    LEFT JOIN allservicesview ON allservicesview.id = servicetbl.id AND servicetbl.parentid = allservicesview.parentid
    LEFT JOIN partnertbl p1 ON servicetbl.contractor_partnerid = p1.id
    LEFT JOIN partnertbl p2 ON allservicesview.towdealer_partnerid = p2.id
@@ -326,6 +425,7 @@ WITH servicecounts AS (
    LEFT JOIN usermetatbl u2 ON u2.id = orderActions.assignedTo
    LEFT JOIN usermetatbl u3 ON u3.id = allservicesview.consultant
    LEFT JOIN "TechType" ON "TechType".id = allservicesview.techtype
-WHERE casetbl.id = servicetbl.parentid;
+   LEFT JOIN techtbl t ON t.id = servicetbl.id AND t.parentid = servicetbl.parentid
+   LEFT JOIN comps c on t.type = c.tech_type_id and casetbl.program = c.program;
 
 GRANT SELECT ON "Услуги" TO reportgen;
