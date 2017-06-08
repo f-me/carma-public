@@ -1,16 +1,18 @@
-CREATE OR REPLACE FUNCTION get_kpi_userstates(
-    IN u_id integer[],
-    IN b timestamp with time zone,
-    IN e timestamp with time zone)
-  RETURNS TABLE(userid integer, state "UserStateVal", timeinstate interval) AS
-$BODY$
+CREATE OR REPLACE FUNCTION get_KPI_userstates(u_id integer[],
+       b timestamptz,
+       e timestamptz)
+RETURNS TABLE (
+ userid         integer,
+ state          "UserStateVal",
+ timeInState    interval) AS
+$func$
 BEGIN
   RETURN QUERY
-	-- определим последние даты смены статусов пользователей
-	with max_dates as (
+   -- определим последние даты смены статусов пользователей
+   with max_dates as (
 		select us_total.userid, max(us_total.ctime) as max_ctime
 		from "UserState" us_total
-		WHERE range is null --and userid = 10
+		WHERE range is null
 		group by us_total.userid
 	)
 	select
@@ -28,8 +30,8 @@ BEGIN
 		 us.userid
 		,us.state;
 END;
-$BODY$
-  LANGUAGE plpgsql;
+$func$
+LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION get_KPI_userstates_days(u_id integer[],
        b timestamptz,
