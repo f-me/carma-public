@@ -106,7 +106,7 @@ define ["dictionaries/local-dict"], (ld) ->
             # ID" values are preserved in "subtypeID" property of
             # elements.
             @source = for e, i in all_types
-              e.value = i
+              e.value = i + 1
               e
             @getElement = (v) -> _.find(@source, (e) -> e.value == v)
             @getValue = (t, s) ->
