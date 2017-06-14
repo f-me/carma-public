@@ -411,7 +411,7 @@ define [ "utils"
 
     # Force a parent type when selecting a subtype
     kvm['typeId'].subscribe (newTypeId) ->
-      if newTypeId
+      if newTypeId != kvm['services'].peek()?[0]
         kvm['services']([newTypeId])
 
     # Force the user to pick a new subtype when changing types to
