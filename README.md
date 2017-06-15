@@ -8,6 +8,54 @@ Refer to `circle.yml` for full building instructions.
 
 ### Backend (Haskell)
 
+#### Generic
+
+1. Install [Haskell Stack][haskell-stack]. Check that it works:
+
+   ```
+   stack --numeric-version
+   1.4.0
+   ```
+
+2. Install PostgreSQL 9.3 (this is what production servers use).
+   Create a database named `carma`:
+
+   ```
+   createdb carma
+   ```
+
+3. Unpack and recover a database snapshot:
+
+   ```
+   psql carma -f 2017-05-29_03-15_carma.sql
+   ```
+
+3. Clone CaRMa Git repository:
+
+   ```
+   git clone git@github.com:f-me/carma.git
+   cd carma
+   ```
+
+4. Build the backend:
+
+   ```
+   stack install
+   ```
+
+5. Change the current directory to `srv/` and run the server:
+
+    ```
+    cd srv
+    carma -p 8000
+    ```
+
+6. Check that the server works:
+
+   ```
+   curl localhost:8000/meta
+   ```
+
 #### macOS
 
 On macOS with `openssl` installed via Homebrew, build with
@@ -40,3 +88,5 @@ automatically when sources change.
    ```
    scp <YOUR_LOGIN>@192.168.10.13:/var/backups/allbackups/postgresql_carma/2017-05-29_03-15_carma.sql.gz .
    ```
+
+[haskell-stack]: https://docs.haskellstack.org/en/stable/README/
