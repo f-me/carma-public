@@ -24,6 +24,19 @@ Refer to `circle.yml` for full building instructions.
    createdb carma
    ```
 
+3. Add roles:
+
+   ```
+   createuser carma
+   createuser carma_db_sync
+   createuser carma_geo
+   createuser carma_sms
+   createuser mail_svc
+   createuser fmuser
+   createuser pavel.golovnin
+   createuser reportgen
+   ```
+
 3. Unpack and recover a database snapshot:
 
    ```
