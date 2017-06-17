@@ -17,8 +17,7 @@ Refer to `circle.yml` for full building instructions.
    1.4.0
    ```
 
-2. Install PostgreSQL 9.3 (this is what production servers use).
-   Create a database named `carma`:
+2. Install PostgreSQL 9.3 (this is what production servers use) and PostGIS. Create a database named `carma`:
 
    ```
    createdb carma
