@@ -16,11 +16,6 @@ Refer to `circle.yml` for full building instructions.
    stack --numeric-version
    1.4.0
    ```
-2. Install GHC:
-
-   ```
-   stack setup
-   ```
 
 2. Install PostgreSQL 9.3 (this is what production servers use) and PostGIS. Create a database named `carma`:
 
@@ -57,6 +52,7 @@ Refer to `circle.yml` for full building instructions.
 4. Build the backend:
 
    ```
+   stack setup
    stack install
    ```
 
