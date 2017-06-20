@@ -88,7 +88,8 @@ shared between the container and the host anyways).
 ### Frontend (JS)
 
 To build the client, do `cd resources/assets/react-components && npm
-install && cd -` (just once), then `grunt build` to rebuild all client
+install && cd -` (just once), then `npm
+install && grunt build` to rebuild all client
 code. Run `grunt watch` in background to rebuild client code
 automatically when sources change.
 
