@@ -89,7 +89,7 @@ shared between the container and the host anyways).
 
 To build the client, do `cd resources/assets/react-components && npm
 install && cd -` (just once), then `npm
-install && grunt build` to rebuild all client
+install && bower update && grunt build` to rebuild all client
 code. Run `grunt watch` in background to rebuild client code
 automatically when sources change.
 
