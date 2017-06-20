@@ -57,6 +57,7 @@ srv/resources/static/3p/spin.js
 srv/resources/static/3p/underscore.js
 srv/resources/static/3p/wysihtml5/
 srv/resources/static/3p/wysihtml5x/
+srv/resources/static/3p/moment-timezone*.js
 
 # no more configs in gir repo anymore
 srv/snaplets/*
