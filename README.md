@@ -36,17 +36,17 @@ Refer to `circle.yml` for full building instructions.
    createuser reportgen
    ```
 
+3. Unpack and recover a database snapshot:
+
+   ```
+   psql carma -f 2017-05-29_03-15_carma.sql
+   ```
+
 3. Add passwords:
 
    ```
    psql carma -c "alter user carma with password 'pass'"
    psql carma -c "alter user carma_db_sync with password 'pass'"
-   ```
-
-3. Unpack and recover a database snapshot:
-
-   ```
-   psql carma -f 2017-05-29_03-15_carma.sql
    ```
 
 3. Clone CaRMa Git repository:
@@ -56,7 +56,7 @@ Refer to `circle.yml` for full building instructions.
    cd carma
    ```
 
-3. Add log files
+3. Add log files:
 
    ```
    mkdir srv/log && > srv/log/access.log && > srv/log/error.log
