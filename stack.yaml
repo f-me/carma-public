@@ -12,7 +12,7 @@ packages:
     commit: ba5ad3c1d57f60e248a5d5b2c1be808db00825ae
   extra-dep: true
 - location:
-    git: git@github.com:f-me/hs-weather-api.git
+    git: git@github.com:cvb/hs-weather-api.git
     commit: 610e2e2f6e20d8116fefc6ebe4bdf029ebe8d3d4
   extra-dep: true
 - location:
