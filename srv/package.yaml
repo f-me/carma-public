@@ -33,7 +33,6 @@ dependencies:
   - hsyslog
   - HTTP
   - lens
-  - MonadCatchIO-transformers
   - mtl
   - persistent
   - persistent-postgresql
