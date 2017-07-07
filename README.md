@@ -84,14 +84,21 @@ Refer to `circle.yml` for full building instructions.
 
 #### macOS
 
-On macOS with `openssl` installed via Homebrew, build with
+On macOS with `openssl` and `icu4c` installed via Homebrew, build with
 
     stack build --extra-include-dirs=/usr/local/opt/openssl/include/ --extra-include-dirs=/usr/local/opt/icu4c/include/ --extra-lib-dirs=/usr/local/opt/openssl/lib/ --extra-lib-dirs=/usr/local/opt/icu4c/lib/
 
 #### Docker
 
+Alternatively, to build inside Docker and package the app in a
+container:
+
     stack docker pull
     stack --docker image container
+
+If you're on Linux, you can just build with `stack --docker build` and
+run the app outside Docker. You will not be able to run the app built
+this way on macOS or Windows.
 
 If the container has no access to your SSH keys (which may be the case
 when using a token), use `stack dot` prior to building the image to
