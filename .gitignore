@@ -27,6 +27,7 @@ srv/site_key.txt
 srv/resources/private
 srv/node_modules
 srv/bower_components
+package-lock.json
 
 # static content built by grunt js
 srv/resources/static/css/
