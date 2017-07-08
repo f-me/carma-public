@@ -390,8 +390,12 @@ fileUploadInit pg =
       minRate  <- liftIO $ lookupDefault 1000 cfg "min-upload-rate"
       kickLag  <- liftIO $ lookupDefault 10   cfg "min-rate-kick-lag"
       inact    <- liftIO $ lookupDefault 20   cfg "inactivity-timeout"
-      tmp      <- liftIO $ require            cfg "tmp-path"
-      finished <- liftIO $ require            cfg "finished-path"
+      tmp      <- liftIO $
+                  lookupDefault "/tmp"
+                  cfg "tmp-path"
+      finished <- liftIO $
+                  lookupDefault "resources/static/fileupload"
+                  cfg "finished-path"
       -- we need some values in bytes
       let maxFile' = maxFile * 1024
           minRate' = minRate * 1024
