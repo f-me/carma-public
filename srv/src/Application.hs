@@ -45,7 +45,7 @@ data AppOptions = AppOptions
     , searchMinLength :: Int
       -- ^ Minimal query length for database-heavy searches
       -- (@search-min-length@).
-    , dmccWsHost :: Maybe Text
+    , dmccWsHost :: Text
     , dmccWsPort :: Int
     }
 

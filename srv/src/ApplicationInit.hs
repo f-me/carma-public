@@ -172,8 +172,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   opts <- liftIO $ AppOptions
                 <$> Cfg.lookup cfg "local-name"
                 <*> Cfg.lookupDefault 4 cfg "search-min-length"
-                <*> Cfg.lookup cfg "dmcc-ws-host"
-                <*> Cfg.require cfg "dmcc-ws-port"
+                <*> Cfg.lookupDefault "localhost" cfg "dmcc-ws-host"
+                <*> Cfg.lookupDefault 8333 cfg "dmcc-ws-port"
 
   wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
 

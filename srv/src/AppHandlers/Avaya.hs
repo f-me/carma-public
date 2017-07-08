@@ -110,7 +110,7 @@ dmccWsProxy = do
   avayaConn <- liftIO newEmptyTMVarIO
   dmccWsHost' <- gets (dmccWsHost . options)
   dmccWsPort' <- gets (dmccWsPort . options)
-  let dmccWsHost'' = Text.unpack $ fromMaybe "localhost" dmccWsHost'
+  let dmccWsHost'' = Text.unpack dmccWsHost'
       -- Client <-> CaRMa
       serverApp pending = do
         conn <- acceptRequest pending
@@ -306,7 +306,7 @@ sendCommand cmd um = do
     dmccWsHost' <- gets (dmccWsHost . options)
     dmccWsPort' <- gets (dmccWsPort . options)
 
-    let dmccWsHost'' = Text.unpack $ fromMaybe "localhost" dmccWsHost'
+    let dmccWsHost'' = Text.unpack dmccWsHost'
         ext = fromMaybe (error "Bad meta") $
               um `Patch.get` Usermeta.workPhoneSuffix
         miniApp conn =
