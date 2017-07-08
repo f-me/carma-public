@@ -190,7 +190,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        initCookieSessionManager sesKey "_session" Nothing
 
   -- DB
-  ad <- nestSnaplet "auth_db" db $ pgsInit' $ pgsDefaultConfig
+  ad <- nestSnaplet "db" db $ pgsInit' $ pgsDefaultConfig
         "host=localhost port=5432 dbname=carma user=carma_db_sync password=pass"
 
   authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
