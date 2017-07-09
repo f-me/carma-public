@@ -653,6 +653,7 @@ contractToCase :: [Con2Case]
 contractToCase =
   [ C2C Contract.name id Case.contact_ownerName
   , C2C Contract.phone (fmap Phone) Case.contact_ownerPhone1
+  , C2C Contract.generation id Case.car_generation
   , C2C Contract.vin id Case.car_vin
   , C2C Contract.make id Case.car_make
   , C2C Contract.model id Case.car_model

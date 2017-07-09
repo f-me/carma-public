@@ -18,6 +18,7 @@ import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
 import Carma.Model.Engine       (Engine)
 import Carma.Model.CarClass     (CarClass)
+import Carma.Model.CarGeneration(CarGeneration)
 import Carma.Model.CarMake      (CarMake)
 import Carma.Model.CarModel     (CarModel)
 import Carma.Model.LegacyTypes
@@ -91,6 +92,8 @@ data Case = Case
     :: F (Maybe (IdentI CarMake)) "car_make" "Марка"
   , car_model
     :: F (Maybe (IdentI CarModel)) "car_model" "Модель"
+  , car_generation
+    :: F (Maybe (IdentI CarGeneration)) "car_generation" "Поколение"
   , car_seller
     :: F (Maybe (IdentI Partner)) "car_seller" "Дилер, продавший автомобиль"
   , car_plateNum

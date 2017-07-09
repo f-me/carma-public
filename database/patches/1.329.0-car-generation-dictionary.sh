@@ -26,5 +26,15 @@ UPDATE "SubProgram" SET contractPermissions = rev.perms FROM
 (SELECT parent, array_agg(id) AS perms
  FROM "SubProgramContractPermission" GROUP BY parent) rev WHERE rev.parent = "SubProgram".id;
 
+ALTER TABLE casetbl ADD COLUMN car_generation int4 REFERENCES "CarGeneration"(id) NULL;
+
+INSERT INTO "FieldPermission" (role, model, field, r, w)
+(SELECT role, model, 'car_generation', r, w
+ FROM "FieldPermission" WHERE model='Case' AND field = 'car_model');
+
+INSERT INTO "ConstructorFieldOption" (model, program, ord, field, label, r, w)
+(SELECT 1, program, ord + 1, 'car_generation', 'Поколение', r, w
+ FROM "ConstructorFieldOption" s where model=1 AND field='car_model');
+
 END;
 EOF

@@ -102,6 +102,9 @@ caseDicts = [
   , setMeta "dictionaryParent"
       (Aeson.String $ Model.fieldName car_make)
       car_model
+  , setMeta "dictionaryParent"
+      (Aeson.String $ Model.fieldName car_model)
+      car_generation
   ,dict car_seller $ (dictOpt "")
               {dictType = Just "DealersDict", dictBounded = True}
   ,dict car_dealerTO $ (dictOpt "")
