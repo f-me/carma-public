@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 {-| CLI runner for VINNIE. -}
@@ -11,6 +12,7 @@ import Data.Attoparsec.Text hiding (Parser)
 import Data.Optional
 import Data.Text (unpack)
 import Data.Version (showVersion)
+import Development.GitRev
 import Filesystem.Path.CurrentOS
 import Paths_vinnie
 
@@ -43,7 +45,7 @@ textToConnInfo inp =
 main :: IO ()
 main =
   let
-    desc = fromString $ programName <> " " <> showVersion version
+    desc = fromString $ programName <> " " <> showVersion version <> " " <> $(gitHash)
     optParser :: Parser (ConnectInfo, Options)
     optParser =
       (,)

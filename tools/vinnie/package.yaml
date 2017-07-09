@@ -42,6 +42,7 @@ executables:
 
     dependencies:
       - attoparsec
+      - gitrev
       - optional-args
       - system-filepath
       - turtle
