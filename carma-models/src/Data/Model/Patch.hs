@@ -16,7 +16,6 @@ module Data.Model.Patch
 
 where
 
-import Control.Applicative ((<$>))
 import Control.Monad.Trans.Reader (ask)
 import Control.Monad (mplus)
 import Control.Monad.Trans.Class (lift)

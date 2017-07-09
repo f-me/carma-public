@@ -9,7 +9,6 @@ module Data.Model.CRUD
   ) where
 
 import Control.Error
-import Control.Applicative ((<$>))
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Aeson as Aeson
 import qualified Database.PostgreSQL.Simple as PG

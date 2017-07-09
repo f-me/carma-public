@@ -1,6 +1,5 @@
 module Carma.Model.DiagHistory where
 
-import Data.Text (Text)
 import Data.Time (UTCTime)
 import Data.Typeable
 

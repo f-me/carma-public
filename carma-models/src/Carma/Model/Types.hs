@@ -17,7 +17,6 @@ module Carma.Model.Types ( Dict(..)
                          , off
                          ) where
 
-import Control.Applicative ((<$>), (<*>), (*>))
 import Control.Monad (void)
 
 import Data.Maybe

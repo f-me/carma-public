@@ -12,7 +12,6 @@ import Carma.Model.BikeTowType (BikeTowType)
 import Carma.Model.LegacyTypes
 import Carma.Model.Partner (Partner)
 import Carma.Model.Service (Service)
-import Carma.Model.TowerType (TowerType)
 import qualified Carma.Model.Service.Towage as T
 
 data BikeTowage = BikeTowage

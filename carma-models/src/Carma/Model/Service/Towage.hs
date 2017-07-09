@@ -16,7 +16,6 @@ import Carma.Model.Service (Service)
 import Carma.Model.Search as S
 import Carma.Model.TowSort (TowSort)
 import Carma.Model.TowType (TowType)
-import Carma.Model.TowerType (TowerType)
 
 data Towage = Towage
   { ident                    :: PK Int Towage ""

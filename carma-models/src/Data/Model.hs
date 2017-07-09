@@ -22,7 +22,6 @@ module Data.Model
   ) where
 
 
-import Control.Applicative
 import Data.Maybe (fromJust)
 import Data.Text (Text)
 import qualified Data.Text as T

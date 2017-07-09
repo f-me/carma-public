@@ -3,7 +3,6 @@
 
 module Carma.Model.Usermeta where
 
-import           Control.Applicative
 import           Data.Int (Int64)
 import           Data.Text (Text, intercalate, unpack, append)
 import           Data.Typeable
