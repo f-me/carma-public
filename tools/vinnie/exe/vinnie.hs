@@ -1,54 +1,67 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 {-| CLI runner for VINNIE. -}
 
+import Prelude hiding (takeWhile)
+
+import Control.Exception
 import Database.PostgreSQL.Simple
 
+import Data.Attoparsec.Text hiding (Parser)
+import Data.Optional
+import Data.Text (unpack)
 import Data.Version (showVersion)
+import Filesystem.Path.CurrentOS
 import Paths_vinnie
 
-import System.Console.CmdArgs.Implicit
 import System.Exit
+import Turtle hiding (decimal, e, skip)
 
-import Carma.VIN hiding           (program)
-import qualified Carma.VIN as VIN (program)
+import Carma.VIN
 
 
 programName :: String
 programName = "vinnie"
 
 
+textToConnInfo :: Text -> Maybe ConnectInfo
+textToConnInfo inp =
+  let
+    notComma = (/= ',')
+    comma = (== ',')
+    res = flip parseOnly inp $ ConnectInfo
+      <$> (unpack <$> takeWhile notComma <* skip comma)
+      <*> (decimal <* skip comma)
+      <*> (unpack <$> takeWhile notComma <* skip comma)
+      <*> (unpack <$> takeWhile notComma <* skip comma)
+      <*> (unpack <$> takeWhile notComma)
+  in
+    case res of
+      Right r -> Just r
+      _       -> Nothing
+
 main :: IO ()
 main =
   let
-        sample = Options
-                 { cInfo = defaultConnectInfo
-                   &= name "c"
-                   &= help "PostgreSQL connection info"
-                   &= typ "HOST,PORT,USER,PW,DBNAME"
-                 , infile = def
-                   &= argPos 0
-                   &= typ "IN-FILE"
-                 , outfile = def
-                   &= argPos 1
-                   &= typ "OUT-FILE"
-                 , committer = def
-                   &= argPos 2
-                   &= typ "COMMITTER-ID"
-                 , format = def
-                   &= argPos 3
-                   &= typ "FORMAT-ID"
-                 , VIN.program = Nothing
-                 , subprogram = Nothing
-                 , fromArc = False
-                   &= explicit
-                   &= name "arc"
-                   &= help "Set the flag indicating ARC is the source"
-                 }
-                 &= verbosity &= verbosityArgs [] [ignore]
-                 &= program programName
-                 &= summary (programName ++ " " ++ showVersion version)
-    in do
-      clArgs <- cmdArgs sample
-      res <- doImport clArgs
+    desc = fromString $ programName <> " " <> showVersion version
+    optParser :: Parser (ConnectInfo, Options)
+    optParser =
+      (,)
+      <$> opt textToConnInfo "connection" 'c'
+           "PostgreSQL connection info (HOST,PORT,USER,PW,DBNAME)"
+      <*> (Options
+           <$> (encodeString <$> argPath "infile"
+                "Input CSV file to import")
+           <*> (encodeString <$> argPath "outfile"
+                "Location to write CSV report file to")
+           <*> argInt "committer-id" Default
+           <*> argInt "format-id" Default
+           <*> optional (optInt "program" 'p' Default)
+           <*> optional (optInt "subprogram" 's' Default)
+           <*> switch "arc" 'a' "Set ARC flag when importing contracts")
+  in do
+      (cInfo, opts) <- options desc optParser
+      res <- bracket (connect cInfo) close $ \c -> doImport opts c
       case res of
         Right (ImportResult (total, good, bad)) -> do
             putStrLn $ show total ++ " total"

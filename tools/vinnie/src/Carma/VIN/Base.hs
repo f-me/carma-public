@@ -25,12 +25,10 @@ where
 import Control.Exception.Lifted
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
-import Control.Monad.Trans.Control
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
 
 import Data.Aeson as A
-import Data.Data
 import Data.Int
 import Data.Text as T (Text, concat, pack)
 import Database.PostgreSQL.Simple
@@ -41,16 +39,10 @@ import Data.Model.Patch.Sql as Patch
 
 import Carma.Model.VinFormat  (VinFormat)
 
-
-deriving instance Data ConnectInfo
-
-
 type ColumnTitle = Text
 
-
 data Options = Options
-    { cInfo      :: ConnectInfo
-    , infile     :: FilePath
+    { infile     :: FilePath
     , outfile    :: FilePath
     , committer  :: Int
     , format     :: Int
@@ -61,7 +53,7 @@ data Options = Options
     -- name in every row.
     , fromArc    :: Bool
     -- ^ Contracts are loaded from ARC.
-    } deriving (Show, Data, Typeable)
+    } deriving (Show)
 
 
 data ImportContext = ImportContext
@@ -126,16 +118,11 @@ type Import =
 
 
 -- | Perform VIN import action using the provided options.
-runImport :: Import a -> Options -> IO (Either ImportError a)
-runImport act opts =
+runImport :: Import a -> Options -> Connection -> IO (Either ImportError a)
+runImport act opts conn =
     flip runReaderT opts $ runExceptT $ do
       fid <- lift $ asks format
-      -- Close connection when short-circuiting Import monad
-      liftBaseOp (bracket
-                  (connect $ cInfo opts)
-                  close) $
-                  \c -> do
-                    vf <- liftIO $ Patch.read (Ident fid) c
-                    case vf of
-                      Right vf' -> runReaderT act $ ImportContext c vf'
-                      _         -> throwE UnknownVinFormat
+      vf <- liftIO $ Patch.read (Ident fid) conn
+      case vf of
+        Right vf' -> runReaderT act $ ImportContext conn vf'
+        _         -> throwE UnknownVinFormat

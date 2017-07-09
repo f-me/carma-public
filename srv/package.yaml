@@ -39,6 +39,7 @@ dependencies:
   - process-extras
   - pureMD5
   - random
+  - resource-pool-catchio
   - singletons
   - snap
   - snap-core
