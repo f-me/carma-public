@@ -67,6 +67,19 @@ define ["dictionaries/local-dict"], (ld) ->
             , label: (parent_make.label + ' — ' + model.label) || ''
             }
 
+    # Dictionary of all car generations, with labels including parent
+    # make and model names
+    prefixedGenerations: =>
+      @bgetJSON "/_/CarMake", (makes) =>
+        @bgetJSON "/_/CarModel", (models) =>
+          @bgetJSON "/_/CarGeneration", (gens) =>
+            @source = for gen in gens
+              parent_model = _.find models, (m) -> m.id == gen.parent
+              parent_make = _.find makes, (m) -> m.id == parent_model.parent
+              { value: gen.id
+              , label: (parent_make.label + ' — ' + parent_model.label + ' — ' + gen.label) || ''
+              }
+
     # Dictionary of all subprograms available to user from VIN/portal screen.
     # - partner/psaanalyst may see only his own subprograms
     # - contractAdmin/vinAdmin role may access all subprograms

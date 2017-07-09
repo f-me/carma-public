@@ -57,6 +57,10 @@
          "label" : "Модель"
       },
       {
+         "value" : "generation",
+         "label" : "Поколение"
+      },
+      {
          "value" : "makeYear",
          "label" : "Год производства автомобиля"
       },
