@@ -64,6 +64,11 @@ CREATE TABLE "VinFormat"
   , modelDefault             int4 REFERENCES "CarModel"
   , modelRequired            bool NOT NULL DEFAULT TRUE
 
+  , generationLoad           bool NOT NULL DEFAULT FALSE
+  , generationTitle          text NOT NULL DEFAULT 'Поколение'
+  , generationDefault        int4 REFERENCES "CarGeneration"
+  , generationRequired       bool NOT NULL DEFAULT FALSE
+
   , makeYearLoad             bool NOT NULL DEFAULT TRUE
   , makeYearTitle            text NOT NULL DEFAULT 'Год производства автомобиля'
   , makeYearDefault          int4

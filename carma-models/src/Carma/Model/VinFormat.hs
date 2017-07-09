@@ -31,6 +31,7 @@ import qualified Carma.Model.Contract as Contract
 import Carma.Model.Contract hiding (ident)
 
 import Carma.Model.CarClass     (CarClass)
+import Carma.Model.CarGeneration(CarGeneration)
 import Carma.Model.CarMake      (CarMake)
 import Carma.Model.CarModel     (CarModel)
 import Carma.Model.CheckType    (CheckType)
@@ -56,6 +57,7 @@ mkVinFormat  [ FF SName   Contract.name
              , FF SNumber Contract.startMileage
              , FF SDict   Contract.make
              , FF SDict   Contract.model
+             , FF SDict   Contract.generation
              , FF SYear   Contract.makeYear
              , FF SDict   Contract.carClass
              , FF SRaw    Contract.color
