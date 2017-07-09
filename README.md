@@ -90,8 +90,8 @@ On macOS with `openssl` and `icu4c` installed via Homebrew, build with
 
 #### Docker
 
-Alternatively, to build inside Docker and package the app in a
-container:
+Alternatively, to build the server inside Docker and package all
+executables in a container:
 
     stack docker pull
     stack --docker image container
@@ -104,6 +104,9 @@ If the container has no access to your SSH keys (which may be the case
 when using a token), use `stack dot` prior to building the image to
 quickly fetch dependencies (`.stack-work/downloaded` directory is
 shared between the container and the host anyways).
+
+Note that this container lacks frontend resources necessary to launch
+CaRMa - see below for how to build the whole bundle.
 
 ### Frontend (JS)
 
@@ -121,6 +124,19 @@ To rebuild the client:
 
 Run `grunt watch` in background to rebuild client code automatically
 when sources change.
+
+### Docker bundle
+
+If you built the frontend and the backend Docker image, you can now
+build an image containing both:
+
+    cd srv/
+    docker build -t carma-bundle .
+
+CaRMa server executable inside the container is located at
+`/usr/local/bin/carma`. The command to run the container is
+
+    docker run carma-bundle /usr/local/bin/carma
 
 ## Running
 
