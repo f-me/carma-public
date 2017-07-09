@@ -114,7 +114,7 @@ To build the client from scratch:
 
     cd srv
     npm install -g bower grunt && npm install && bower install
-    cdd resources/assets/react-components && npm install && cd -
+    cd resources/assets/react-components && npm install && cd -
     mkdir -p resources/static/{js/gen,css}
     grunt build
 
