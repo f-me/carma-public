@@ -70,18 +70,6 @@ import Data.Model.Types
 import Carma.Model.LegacyTypes
 
 
--- ISO 8601
-instance FromJSON Day where
-  parseJSON (String s)
-    = case parseTime defaultTimeLocale "%Y-%m-%d" $ T.unpack s of
-      Just day -> return day
-      Nothing  -> fail $ "invalid date format: " ++ show s
-  parseJSON v = fail $ "invalid date: " ++ show v
-
--- ISO 8601
-instance ToJSON Day where
-  toJSON = String . fromString . show
-
 newtype Dict m = Dict Text
    deriving (FromField, ToField,
              FromJSON, ToJSON,
