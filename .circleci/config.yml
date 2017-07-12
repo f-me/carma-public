@@ -1,0 +1,44 @@
+version: 2
+
+jobs:
+
+  build_server:
+    working_directory: "/carma"
+    docker:
+      - image: fpco/stack-build
+    steps:
+      - setup_remote_docker
+      - checkout
+      - restore_cache:
+          keys:
+            - stack-cache-{{ checksum "stack.yaml" }}
+      - run: |
+          stack --install-ghc -j2 build
+      - save_cache:
+          key: stack-cache-{{ checksum "stack.yaml" }}
+          paths:
+            - .stack-work
+
+  build_client:
+    working_directory: "/carma"
+    docker:
+      - image: node:4.8.4
+    steps:
+      - checkout
+      - run: |
+          cd srv
+          npm install -g bower grunt
+          npm install
+          bower install --allow-root
+          cd resources/assets/react-components
+          npm install
+          cd -
+          mkdir -p resources/static/{js/gen,css}
+          grunt build
+
+workflows:
+  version: 2
+  build_all:
+    jobs:
+      - build_client
+      - build_server
