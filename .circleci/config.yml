@@ -18,6 +18,7 @@ jobs:
           key: stack-cache-{{ checksum "stack.yaml" }}
           paths:
             - .stack-work
+            - ~/.stack
 
   build_client:
     working_directory: "/carma"
