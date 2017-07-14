@@ -1,6 +1,6 @@
 # CaRMa
 
-[![Circle CI](https://circleci.com/gh/f-me/carma.svg?style=svg&circle-token=ed097e1dbbde9591b7b2bec9ce252ddc840deb54)](https://circleci.com/gh/f-me/carma)
+[![Circle CI](https://circleci.com/gh/f-me/carma.svg?style=svg&circle-token=ed097e1dbbde9591b7b2bec9ce252ddc840deb54)][ci]
 
 ## Building
 
@@ -137,6 +137,18 @@ CaRMa server executable inside the container is located at
 
     docker run carma-bundle /usr/local/bin/carma
 
+### CI build
+
+[CircleCI][ci] is configured to build CaRMa on every push. If you have
+Docker installed, you may use [CircleCI CLI tool][ci-cli] to performs
+builds in the same environment as on CI server:
+
+    circleci build --job build_client
+    circleci build --job build_server
+
+Jobs run in an auto-removed container, so at the moment you may
+only use them to test that the build finishes successfully.
+
 ## Running
 
 1. Get a recent database snapshot. Backup folder with daily production
@@ -147,4 +159,6 @@ CaRMa server executable inside the container is located at
    scp <YOUR_LOGIN>@192.168.10.13:/var/backups/allbackups/postgresql_carma/2017-05-29_03-15_carma.sql.gz .
    ```
 
+[ci]: https://circleci.com/gh/f-me/carma
+[ci-cli]: https://circleci.com/docs/2.0/local-jobs/
 [haskell-stack]: https://docs.haskellstack.org/en/stable/README/
