@@ -160,5 +160,5 @@ only use them to test that the build finishes successfully.
    ```
 
 [ci]: https://circleci.com/gh/f-me/carma
-[ci-cli]: https://circleci.com/docs/2.0/local-jobs/
+[ci-cli]: https://circleci.com/docs/2.0/local-jobs/#installing-the-cli-locally
 [haskell-stack]: https://docs.haskellstack.org/en/stable/README/
