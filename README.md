@@ -4,7 +4,7 @@
 
 ## Building
 
-Refer to `circle.yml` for full building instructions.
+Refer to [`.circleci/config.yml`](https://github.com/f-me/carma/blob/master/.circleci/config.yml) for full building instructions.
 
 ### Backend (Haskell)
 
