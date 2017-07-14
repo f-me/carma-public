@@ -65,8 +65,7 @@ Refer to [`.circleci/config.yml`](https://github.com/f-me/carma/blob/master/.cir
 4. Build the backend:
 
    ```
-   stack setup
-   stack install
+   stack --install-ghc install
    ```
 
 5. Change the current directory to `srv/` and run the server:
