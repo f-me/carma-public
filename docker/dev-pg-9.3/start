@@ -1,0 +1,2 @@
+#!/bin/sh
+/start-pg.sh || exit $?

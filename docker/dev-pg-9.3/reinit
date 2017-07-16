@@ -1,0 +1,3 @@
+#!/bin/sh
+/clean || exit $?
+/init  || exit $?
