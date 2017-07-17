@@ -1,2 +1,2 @@
-#!/bin/sh
-rm -rf /pgdata/* || exit $?
+#!/bin/sh -e
+rm -rf /pgdata/*

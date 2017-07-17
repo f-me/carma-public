@@ -1,2 +1,2 @@
-#!/bin/sh
-/init-db.sh || exit $?
+#!/bin/sh -e
+/init-db.sh
