@@ -7,8 +7,8 @@
 {-# LANGUAGE TypeFamilies #-}
 
 module Triggers
-  (runCreateTriggers
-  ,runUpdateTriggers
+  ( runCreateTriggers
+  , runUpdateTriggers
   ) where
 
 
@@ -116,130 +116,128 @@ import           Util (Priority(..), syslogJSON, (.=))
 
 beforeCreate :: TriggerMap
 beforeCreate = Map.unionsWith (++)
-  [trigOnModel ([]::[Call]) $ do
-    getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
-    modPut Call.callType (Just CT.info)
+  [ trigOnModel ([]::[Call]) $ do
+      getCurrentUser >>= modifyPatch . Patch.put Call.callTaker
+      modPut Call.callType (Just CT.info)
 
   , trigOnModel ([]::[Usermeta]) $ do
-    Just login <- getPatchField Usermeta.login -- TODO: check if valid?
-    -- NB!
-    -- Hope that Snap does not cache users and, in case of error during some
-    -- further steps of Usermeta, this will be automatically rolled back.
-    -- Otherwise we need some kind of finalisers for "Real world actions that
-    -- could not be deferred".
-    createSnapUser login
+      Just login <- getPatchField Usermeta.login -- TODO: check if valid?
+      -- NB!
+      -- Hope that Snap does not cache users and, in case of error during some
+      -- further steps of Usermeta, this will be automatically rolled back.
+      -- Otherwise we need some kind of finalisers for "Real world actions that
+      -- could not be deferred".
+      createSnapUser login
 
   , trigOnModel ([]::[CaseComment.CaseComment]) $
-    getCurrentUser >>= modPut CaseComment.author
+      getCurrentUser >>= modPut CaseComment.author
 
   , trigOnModel ([]::[Contract.Contract]) $ do
-    modPut Contract.isActive True
-    getCurrentUser >>= modPut Contract.committer
-    getNow >>= modPut Contract.ctime
-    -- Set checkPeriod and validUntil from the subprogram. Remember to
-    -- update vinnie_queue triggers when changing these!
-    s <- getPatchField Contract.subprogram
-    case s of
-      Just (Just s') -> do
-        sp <- dbRead s'
-        modPut Contract.make (sp `get'` SubProgram.defaultMake)
-        getPatchField Contract.checkPeriod >>= \case
-          Nothing -> modPut Contract.checkPeriod (sp `get'` SubProgram.checkPeriod)
-          _       -> return ()
-      _ -> return ()
-    since <- getPatchField Contract.validSince
-    until <- getPatchField Contract.validUntil
-    case (s, since, until) of
-      (Just (Just s'), Just (Just newSince), Nothing) ->
-        fillValidUntil s' newSince
-      _ -> return ()
+      modPut Contract.isActive True
+      getCurrentUser >>= modPut Contract.committer
+      getNow >>= modPut Contract.ctime
+      -- Set checkPeriod and validUntil from the subprogram. Remember to
+      -- update vinnie_queue triggers when changing these!
+      s <- getPatchField Contract.subprogram
+      case s of
+        Just (Just s') -> do
+          sp <- dbRead s'
+          modPut Contract.make (sp `get'` SubProgram.defaultMake)
+          getPatchField Contract.checkPeriod >>= \case
+            Nothing -> modPut Contract.checkPeriod
+                              (sp `get'` SubProgram.checkPeriod)
+            _       -> return ()
+        _ -> return ()
+      since <- getPatchField Contract.validSince
+      until <- getPatchField Contract.validUntil
+      case (s, since, until) of
+        (Just (Just s'), Just (Just newSince), Nothing) ->
+          fillValidUntil s' newSince
+        _ -> return ()
 
   , trigOnModel ([]::[Case]) $ do
-    n <- getNow
-    getCurrentUser >>= modPut Case.callTaker
-    modPut Case.callDate             $ Just n
-    modPut Case.caseStatus             CS.front
-    modPut Case.contact_contactOwner $ Just on
-    getPatchField Case.comment >>=
-      \case
-        Just (Just wi) -> fillWazzup wi
-        _              -> return ()
+      n <- getNow
+      getCurrentUser >>= modPut Case.callTaker
+      modPut Case.callDate             $ Just n
+      modPut Case.caseStatus             CS.front
+      modPut Case.contact_contactOwner $ Just on
+      getPatchField Case.comment >>=
+        \case
+          Just (Just wi) -> fillWazzup wi
+          _              -> return ()
 
   , trigOnModel ([]::[Service]) $ do
-    n <- getNow
-    modPut Service.createTime         $ Just n
-    modPut Service.times_expectedServiceStart $
-      Just (addUTCTime (1 * BO.hours) n)
-    modPut Service.times_factServiceStart $
-      Just (addUTCTime (1 * BO.hours) n)
-    modPut Service.times_expectedServiceEnd $
-      Just (addUTCTime (2 * BO.hours) n)
-    modPut Service.times_factServiceEnd $
-      Just (addUTCTime (2 * BO.hours) n)
-    modPut Service.times_expectedServiceClosure $
-      Just (addUTCTime (12 * BO.hours) n)
-    modPut Service.times_factServiceClosure $
-      Just (addUTCTime (12 * BO.hours) n)
+      n <- getNow
+      modPut Service.createTime         $ Just n
+      modPut Service.times_expectedServiceStart $
+        Just (addUTCTime (1 * BO.hours) n)
+      modPut Service.times_factServiceStart $
+        Just (addUTCTime (1 * BO.hours) n)
+      modPut Service.times_expectedServiceEnd $
+        Just (addUTCTime (2 * BO.hours) n)
+      modPut Service.times_factServiceEnd $
+        Just (addUTCTime (2 * BO.hours) n)
+      modPut Service.times_expectedServiceClosure $
+        Just (addUTCTime (12 * BO.hours) n)
+      modPut Service.times_factServiceClosure $
+        Just (addUTCTime (12 * BO.hours) n)
 
-    modPut Service.createTime         $ Just n
-    modPut Service.creator =<< getCurrentUser
-    modPut Service.owner   =<< getCurrentUser
-    modPut Service.payment_overcosted $ Just off
-    modPut Service.status               SS.creating
-    modPut Service.urgentService      $ Just USR.notUrgent
-    modPut Service.warrantyCase       $ Just off
+      modPut Service.createTime         $ Just n
+      modPut Service.creator =<< getCurrentUser
+      modPut Service.owner   =<< getCurrentUser
+      modPut Service.payment_overcosted $ Just off
+      modPut Service.status               SS.creating
+      modPut Service.urgentService      $ Just USR.notUrgent
+      modPut Service.warrantyCase       $ Just off
 
   , trigOnModel ([]::[Hotel.Hotel]) $
-    modPut Hotel.providedFor $ Just "0"
+      modPut Hotel.providedFor $ Just "0"
 
   , trigOnModel ([]::[Rent.Rent]) $
-    modPut Rent.providedFor $ Just "0"
+      modPut Rent.providedFor $ Just "0"
 
   , trigOnModel ([]::[Taxi.Taxi]) $ do
-    p <- getPatch
-    let parId = fromMaybe (error "No parent case") $
-                p `Patch.get` parentField Service.parentId
-    c <- dbRead parId
-    modPut Taxi.taxiFrom_address $ c `Patch.get'` Case.caseAddress_address
+      p <- getPatch
+      let parId = fromMaybe (error "No parent case") $
+                  p `Patch.get` parentField Service.parentId
+      c <- dbRead parId
+      modPut Taxi.taxiFrom_address $ c `Patch.get'` Case.caseAddress_address
 
   , trigOnModel ([]::[Towage.Towage]) $ do
-    modPut Towage.accident            $ Just off
-    modPut Towage.canNeutral          $ Just off
-    modPut Towage.manipulatorPossible $ Just off
-    modPut Towage.towType             $ Just TowType.dealer
-    modPut Towage.towingPointPresent  $ Just off
-    modPut Towage.vandalism           $ Just off
-    modPut Towage.wheelsBlocked       $ Just 0
+      modPut Towage.accident            $ Just off
+      modPut Towage.canNeutral          $ Just off
+      modPut Towage.manipulatorPossible $ Just off
+      modPut Towage.towType             $ Just TowType.dealer
+      modPut Towage.towingPointPresent  $ Just off
+      modPut Towage.vandalism           $ Just off
+      modPut Towage.wheelsBlocked       $ Just 0
 
   , trigOnModel ([]::[DiagHistory.DiagHistory]) $ do
-    modPut DiagHistory.createdBy =<< getCurrentUser
-    getPatchField DiagHistory.slideId >>= \case
-      Just _ -> return ()
-      Nothing -> do
-        caseId <- getPatchField DiagHistory.caseId
-        [[slideId]] <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
-          [sql|
-            select diagTree
-              from "SubProgram" s join casetbl c on (s.id = c.subprogram)
-              where c.id = $(caseId)$
-          |]
-        modPut DiagHistory.slideId slideId
+      modPut DiagHistory.createdBy =<< getCurrentUser
+      getPatchField DiagHistory.slideId >>= \case
+        Just _  -> return ()
+        Nothing -> do
+          caseId <- getPatchField DiagHistory.caseId
+          [[slideId]] <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
+            [sql|
+              select diagTree
+                from "SubProgram" s join casetbl c on (s.id = c.subprogram)
+                where c.id = $(caseId)$
+            |]
+          modPut DiagHistory.slideId slideId
   ]
 
 
 afterCreate :: TriggerMap
 afterCreate = Map.unionsWith (++) $
-  [ trigOnModel ([]::[Usermeta])
-    $ updateSnapUserFromUsermeta
-    >> do
+  [ trigOnModel ([]::[Usermeta]) $ updateSnapUserFromUsermeta >> do
       getPatchField Usermeta.businessRole >>= \case
         Just (Just bRole) -> dbRead bRole
           >>= modPut Usermeta.roles . (`get'` BusinessRole.roles)
         _ -> return ()
 
     -- Create a self-assigned action for a call
-  , trigOnModel ([]::[Call]) $
-    do
+  , trigOnModel ([]::[Call]) $ do
       ci <- getIdent
       now <- getNow
       us <- getCurrentUser
@@ -256,9 +254,8 @@ afterCreate = Map.unionsWith (++) $
       logCRUDState Create aid p
 
   , trigOnModel ([]::[PartnerDelay]) $ do
-    delayId <- getIdent
-    doApp $ liftPG $ \pg ->
-      uncurry (PG.execute pg)
+      delayId <- getIdent
+      doApp $ liftPG $ \pg -> uncurry (PG.execute pg)
         [sql| update servicetbl s
           set
             times_expectedServiceStart
@@ -269,15 +266,16 @@ afterCreate = Map.unionsWith (++) $
                   to_json(to_char(
                     times_expectedServiceStart at time zone 'UTC',
                     'YYYY-MM-DD HH24:MI:SS')),
-                  array(select * from json_array_elements(times_expectedServiceStartHistory))
+                  array(select * from json_array_elements(
+                    times_expectedServiceStartHistory
+                  ))
                ))::json)
           from "PartnerDelay" p
           where s.id = p.serviceId
             and p.id = $(delayId)$
         |]
-    -- FIXME: this should be in Backoffice.partnerDelayEntries
-    doApp $ liftPG $ \pg ->
-      uncurry (PG.execute pg)
+      -- FIXME: this should be in Backoffice.partnerDelayEntries
+      doApp $ liftPG $ \pg -> uncurry (PG.execute pg)
         [sql| update actiontbl a
           set duetime = times_expectedServiceStart + interval '5m'
           from "PartnerDelay" p, servicetbl s
@@ -295,19 +293,18 @@ afterCreate = Map.unionsWith (++) $
 
 beforeUpdate :: TriggerMap
 beforeUpdate = Map.unionsWith (++) $
-  [trigOn Usermeta.businessRole $ \case
-    Nothing -> return ()
-    Just bRole -> do
-      roles <- (`get'` BusinessRole.roles) <$> dbRead bRole
-      modPut Usermeta.roles roles
+  [ trigOn Usermeta.businessRole $ \case
+      Nothing -> return ()
+      Just bRole -> do
+        roles <- (`get'` BusinessRole.roles) <$> dbRead bRole
+        modPut Usermeta.roles roles
 
-  , trigOn Call.redirectTo $ maybe (return ()) (\newAss -> do
+  , trigOn Call.redirectTo $ maybe (return ()) $ \newAssignee -> do
       modifyPatch $ Patch.put Call.redirectTo Nothing
       callActs <- getIdent >>= callActionIds
       forM_ callActs $ \aid -> do
-        transferAction newAss aid
+        transferAction newAssignee aid
         closeAction ActionResult.transferred aid
-    )
 
   , trigOn Call.endDate $ \case
       Nothing -> return ()
@@ -319,11 +316,11 @@ beforeUpdate = Map.unionsWith (++) $
         getIdent >>= callActionIds >>= mapM_ (closeAction ActionResult.callEnded)
 
   , trigOn ActionType.priority $
-    \n -> modPut ActionType.priority $
-          if
-            | n < topPriority   -> topPriority
-            | n > leastPriority -> leastPriority
-            | otherwise         -> n
+      \n -> modPut ActionType.priority $
+            if
+              | n < topPriority   -> topPriority
+              | n > leastPriority -> leastPriority
+              | otherwise         -> n
 
   , trigOn Action.result $ \nr -> do
       ar <- getIdent >>= dbRead
@@ -336,10 +333,9 @@ beforeUpdate = Map.unionsWith (++) $
             getCurrentUser >>=
               (modifyPatch . Patch.put Action.assignedTo . Just)
 
-  , trigOn Action.redirectTo $ maybe (return ()) (\newAss -> do
-        getIdent >>= closeAction ActionResult.transferred
-        getIdent >>= transferAction newAss
-      )
+  , trigOn Action.redirectTo $ maybe (return ()) $ \newAssignee -> do
+      getIdent >>= closeAction ActionResult.transferred
+      getIdent >>= transferAction newAssignee
 
   , trigOn Action.assignedTo $ \case
       Nothing -> return ()
@@ -349,26 +345,26 @@ beforeUpdate = Map.unionsWith (++) $
   -- Set validUntil from the subprogram. Remember to update
   -- vinnie_queue triggers when changing this!
   , trigOn Contract.validSince $ \case
-       Nothing -> return ()
-       Just newSince -> do
-         cp <- getIdent >>= dbRead
-         let oldSince = cp `get'` Contract.validSince
-         do
-           s  <- getPatchField Contract.subprogram
-           vu <- getPatchField Contract.validUntil
-           -- Prefer fields from the patch, but check DB as well
-           let  nize (Just Nothing) = Nothing
-                nize v              = v
-                sub = (nize s) <|> (Just $ cp `get'` Contract.subprogram)
-                -- We need to check if validUntil field is *missing*
-                -- from both patch and DB, thus Just Nothing from DB
-                -- is converted to Nothing
-                until =
-                  (nize vu) <|> (nize $ Just $ cp `get'` Contract.validUntil)
-           case (sub, until) of
-             (Just (Just s'), Nothing) ->
-               when (oldSince /= Just newSince) $ fillValidUntil s' newSince
-             _ -> return ()
+      Nothing -> return ()
+      Just newSince -> do
+        cp <- getIdent >>= dbRead
+        let oldSince = cp `get'` Contract.validSince
+        do
+          s  <- getPatchField Contract.subprogram
+          vu <- getPatchField Contract.validUntil
+          -- Prefer fields from the patch, but check DB as well
+          let  nize (Just Nothing) = Nothing
+               nize v              = v
+               sub = (nize s) <|> (Just $ cp `get'` Contract.subprogram)
+               -- We need to check if validUntil field is *missing*
+               -- from both patch and DB, thus Just Nothing from DB
+               -- is converted to Nothing
+               until =
+                 (nize vu) <|> (nize $ Just $ cp `get'` Contract.validUntil)
+          case (sub, until) of
+            (Just (Just s'), Nothing) ->
+              when (oldSince /= Just newSince) $ fillValidUntil s' newSince
+            _ -> return ()
 
 
   -- Copy some data form prev contract
@@ -378,7 +374,8 @@ beforeUpdate = Map.unionsWith (++) $
         prototypeId <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
           [sql|
             select c2.id
-              from "Contract" c1, "Contract" c2, "SubProgram" s1, "SubProgram" s2
+              from
+                "Contract" c1, "Contract" c2, "SubProgram" s1, "SubProgram" s2
               where c2.dixi
                 and c1.subprogram = s1.id
                 and c2.subprogram = s2.id
@@ -433,9 +430,9 @@ beforeUpdate = Map.unionsWith (++) $
         (Just $ addUTCTime (11 * BO.hours) tm) .
         Patch.put Service.times_factServiceStart Nothing
   , trigOn Service.times_expectedServiceEnd $ const $
-    modifyPatch (Patch.put Service.times_factServiceEnd Nothing)
+      modifyPatch (Patch.put Service.times_factServiceEnd Nothing)
   , trigOn Service.times_expectedServiceClosure $ const $
-    modifyPatch (Patch.put Service.times_factServiceClosure Nothing)
+      modifyPatch (Patch.put Service.times_factServiceClosure Nothing)
 
   , trigOn Case.caseAddress_city $ \case
       Nothing -> return ()
@@ -483,42 +480,41 @@ beforeUpdate = Map.unionsWith (++) $
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
 
   , trigOn DiagSlide.answers $ \(Aeson.Array answers) -> do
-    answers' <- forM (Vector.toList answers) $ \(Aeson.Object ans) ->
-      case HM.lookup "nextSlide" ans of
-        Just _ -> return $ Aeson.Object ans
-        Nothing -> do
-          let header = maybe "" (\(Aeson.String s) -> s) $ HM.lookup "header" ans
-          [Only newId] <- doApp $ liftPG $ \pg ->
-            uncurry (PG.query pg)
+      answers' <- forM (Vector.toList answers) $ \(Aeson.Object ans) ->
+        case HM.lookup "nextSlide" ans of
+          Just _ -> return $ Aeson.Object ans
+          Nothing -> do
+            let header = maybe "" (\(Aeson.String s) -> s)
+                       $ HM.lookup "header" ans
+            [Only newId] <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
               [sql|
                 insert into "DiagSlide" (header, body)
                   values ($(header)$, '')
                   returning id
               |]
-          return $ Aeson.Object
-            $ HM.insert "nextSlide" (Aeson.Number $ fromInteger newId)
-              ans
-    modPut DiagSlide.answers $ Aeson.Array $ Vector.fromList answers'
+            return $ Aeson.Object
+              $ HM.insert "nextSlide" (Aeson.Number $ fromInteger newId) ans
+      modPut DiagSlide.answers $ Aeson.Array $ Vector.fromList answers'
 
   , trigOn DiagHistory.answerIx $ \_ -> do
       modPut DiagHistory.answeredBy =<< Just <$> getCurrentUser
       modPut DiagHistory.answerTime =<< Just <$> getNow
 
   , actionsToTrigger (snd carmaBackoffice)
-  ]  ++
+  ] ++
   map entryToTrigger (fst carmaBackoffice)
 
 
 afterUpdate :: TriggerMap
 afterUpdate = Map.unionsWith (++) $
-  [trigOn Usermeta.delayedState $ \_ -> wsMessage
-  ,trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
-  ,trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
-  ,trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
-  ,trigOn Service.contractor_partnerId $ \_ -> do
-    svcId <- getIdent
-    doApp $ liftPG $ \pg ->
-      uncurry (PG.execute pg)
+  [ trigOn Usermeta.delayedState $ \_ -> wsMessage
+  , trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
+  , trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
+  , trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
+
+  , trigOn Service.contractor_partnerId $ \_ -> do
+      svcId <- getIdent
+      doApp $ liftPG $ \pg -> uncurry (PG.execute pg)
         [sql|
           update servicetbl svc
             set contractor_partnerLegacy = row_to_json(js.*)
@@ -580,13 +576,13 @@ runCreateTriggers
   :: Model m
   => Patch m -> AppHandler (Either String (IdentI m, Patch m))
 runCreateTriggers patch =
-    fmap (\st -> (st_ident st, st_patch st))
-      <$> runTriggers beforeCreate afterCreate
-        (getPatch >>= dbCreate >>= putIdentUnsafe)
-        ("" -- pass dummy field name
-        : HM.keys (untypedPatch patch) -- just to run PartnerDelay tirggers
-        )
-        (emptyDslState undefined patch)
+  fmap (\st -> (st_ident st, st_patch st))
+    <$> runTriggers beforeCreate afterCreate
+      (getPatch >>= dbCreate >>= putIdentUnsafe)
+      ("" -- pass dummy field name
+      : HM.keys (untypedPatch patch) -- just to run PartnerDelay tirggers
+      )
+      (emptyDslState undefined patch)
 
 
 runUpdateTriggers
@@ -594,11 +590,11 @@ runUpdateTriggers
   => IdentI m -> Patch m
   -> AppHandler (Either String (Patch m))
 runUpdateTriggers ident patch =
-    fmap st_patch
-      <$> runTriggers beforeUpdate afterUpdate
-        (getPatch >>= dbUpdate ident >> return ())
-        (HM.keys $ untypedPatch patch)
-        (emptyDslState ident patch)
+  fmap st_patch
+    <$> runTriggers beforeUpdate afterUpdate
+      (getPatch >>= dbUpdate ident >> return ())
+      (HM.keys $ untypedPatch patch)
+      (emptyDslState ident patch)
 
 
 runTriggers
@@ -655,34 +651,34 @@ data Con2Case = forall t1 t2 n1 d1 n2 d2.
 -- | Mapping between contract and case fields.
 contractToCase :: [Con2Case]
 contractToCase =
-    [ C2C Contract.name id Case.contact_ownerName
-    , C2C Contract.phone (fmap Phone) Case.contact_ownerPhone1
-    , C2C Contract.vin id Case.car_vin
-    , C2C Contract.make id Case.car_make
-    , C2C Contract.model id Case.car_model
-    , C2C Contract.seller id Case.car_seller
-    , C2C Contract.plateNum id Case.car_plateNum
-    , C2C Contract.makeYear id Case.car_makeYear
-    , C2C Contract.color id Case.car_color
-    , C2C Contract.buyDate (fmap Contract.unWDay) Case.car_buyDate
-    , C2C Contract.lastCheckDealer id Case.car_dealerTO
-    , C2C Contract.transmission id Case.car_transmission
-    , C2C Contract.engineType id Case.car_engine
-    , C2C Contract.engineVolume id Case.car_liters
-    , C2C Contract.carClass id Case.car_class
-    , C2C Contract.subprogram id Case.subprogram
-    ]
+  [ C2C Contract.name id Case.contact_ownerName
+  , C2C Contract.phone (fmap Phone) Case.contact_ownerPhone1
+  , C2C Contract.vin id Case.car_vin
+  , C2C Contract.make id Case.car_make
+  , C2C Contract.model id Case.car_model
+  , C2C Contract.seller id Case.car_seller
+  , C2C Contract.plateNum id Case.car_plateNum
+  , C2C Contract.makeYear id Case.car_makeYear
+  , C2C Contract.color id Case.car_color
+  , C2C Contract.buyDate (fmap Contract.unWDay) Case.car_buyDate
+  , C2C Contract.lastCheckDealer id Case.car_dealerTO
+  , C2C Contract.transmission id Case.car_transmission
+  , C2C Contract.engineType id Case.car_engine
+  , C2C Contract.engineVolume id Case.car_liters
+  , C2C Contract.carClass id Case.car_class
+  , C2C Contract.subprogram id Case.subprogram
+  ]
 
 
 copyContractToCase :: IdentI SubProgram -> Patch Contract -> Free (Dsl Case) ()
 copyContractToCase subProgId contract = do
   ctrFields <- doApp $
-      liftPG $ \pg ->
-        concat <$> PG.query pg
-          "SELECT contractfield \
-          \  FROM \"SubProgramContractPermission\" \
-          \  WHERE showform AND parent = ?"
-          [subProgId]
+    liftPG $ \pg ->
+      concat <$> PG.query pg
+        "SELECT contractfield \
+        \  FROM \"SubProgramContractPermission\" \
+        \  WHERE showform AND parent = ?"
+        [subProgId]
 
   modifyPatch $ foldl'
     (\fn (C2C ctrFld f caseFld) ->
@@ -762,7 +758,7 @@ fillWazzup wi = do
 
 -- | transfer action to another user
 transferAction :: IdentI Usermeta -> IdentI Action -> Free (Dsl m) ()
-transferAction newAss actId = do
+transferAction newAssignee actId = do
   act <- dbRead actId
   now <- getNow
   let copy :: (Typeable t, SingI name)
@@ -772,7 +768,7 @@ transferAction newAss actId = do
   let p = Patch.put Action.ctime now
         $ Patch.put Action.assignTime (Just now)
         $ Patch.put Action.duetime (addUTCTime (1 * BO.minutes) now)
-        $ Patch.put Action.assignedTo (Just newAss)
+        $ Patch.put Action.assignedTo (Just newAssignee)
         $ Patch.put Action.parent (Just actId)
         $ copy Action.aType
         $ copy Action.targetGroup
@@ -814,251 +810,241 @@ haskellBinary fun a b = HaskellE $ fun <$> toHaskell a <*> toHaskell b
 
 -- | Haskell embedding for Backoffice DSL.
 newtype HaskellE t = HaskellE { toHaskell :: Reader HCtx (HaskellType t) }
-    deriving Typeable
+  deriving Typeable
 
 
 instance Backoffice HaskellE where
-    now = HaskellE $ asks Triggers.now
-    justNow = HaskellE $ Just <$> asks Triggers.now
+  now = HaskellE $ asks Triggers.now
+  justNow = HaskellE $ Just <$> asks Triggers.now
 
-    since nd t =
-        HaskellE $ addUTCTime nd <$> toHaskell t
+  since nd t = HaskellE $ addUTCTime nd <$> toHaskell t
 
-    nobody = nothing
+  nobody = nothing
 
-    currentUser =
-        HaskellE $
-        Just <$> toHaskell (BO.userField Usermeta.ident)
+  currentUser = HaskellE $ Just <$> toHaskell (BO.userField Usermeta.ident)
 
-    assigneeOfLast scope types res =
-      HaskellE $ do
-        res' <- mapM toHaskell res
-        ids <- filteredActions scope types (res' :: [Maybe BO.ActionResultI])
-        case ids of
-          (l:_) -> return $ l `get'` Action.assignedTo
-          []    -> return Nothing
+  assigneeOfLast scope types res =
+    HaskellE $ do
+      res' <- mapM toHaskell res
+      ids <- filteredActions scope types (res' :: [Maybe BO.ActionResultI])
+      case ids of
+        (l:_) -> return $ l `get'` Action.assignedTo
+        []    -> return Nothing
 
-    noResult = nothing
+  noResult = nothing
 
-    previousAction =
-        HaskellE $
-        fromMaybe (Ident $ fst startNode) <$> asks prevAction
+  previousAction =
+    HaskellE $ fromMaybe (Ident $ fst startNode) <$> asks prevAction
 
-    userField acc =
-        HaskellE $ asks (flip get' acc . user)
+  userField acc = HaskellE $ asks (flip get' acc . user)
 
-    serviceField acc =
-        HaskellE $
-        asks (flip get' acc . fromMaybe (error "No service") . service)
+  serviceField acc =
+    HaskellE $ asks (flip get' acc . fromMaybe (error "No service") . service)
 
-    caseField acc =
-        HaskellE $
-        asks (flip get' acc . kase)
+  caseField acc = HaskellE $ asks (flip get' acc . kase)
 
-    const = HaskellE . return
+  const = HaskellE . return
 
-    just = HaskellE . return . Just
-    justTxt = HaskellE . return . Just
+  just = HaskellE . return . Just
+  justTxt = HaskellE . return . Just
 
-    req v =
-      HaskellE $
-      fromMaybe (error "Required value not set") <$> toHaskell v
+  req v =
+    HaskellE $ fromMaybe (error "Required value not set") <$> toHaskell v
 
-    oneOf e lst =
-      HaskellE $ flip elem lst <$> toHaskell e
+  oneOf e lst =
+    HaskellE $ flip elem lst <$> toHaskell e
 
-    switch branches ow =
-      HaskellE $
-      case branches of
-        ((c, br):bs) ->
-          toHaskell c >>=
-          \case
-              True -> toHaskell br
-              False -> toHaskell $ BO.switch bs ow
-        [] -> toHaskell ow
+  switch branches ow =
+    HaskellE $
+    case branches of
+      ((c, br):bs) ->
+        toHaskell c >>=
+        \case
+            True -> toHaskell br
+            False -> toHaskell $ BO.switch bs ow
+      [] -> toHaskell ow
 
-    not a = HaskellE $ Prelude.not <$> toHaskell a
+  not a = HaskellE $ Prelude.not <$> toHaskell a
 
-    (==) = haskellBinary (==)
+  (==) = haskellBinary (==)
 
-    (>) = haskellBinary (Prelude.>)
+  (>) = haskellBinary (Prelude.>)
 
-    (&&) = haskellBinary (Prelude.&&)
+  (&&) = haskellBinary (Prelude.&&)
 
-    (||) = haskellBinary (Prelude.||)
+  (||) = haskellBinary (Prelude.||)
 
-    onField acc target body =
-      mkTrigger acc target (`evalHaskell` body)
+  onField acc target body =
+    mkTrigger acc target (`evalHaskell` body)
 
-    insteadOf acc target body =
-      mkTrigger acc target $
-      \ctx -> do
-        -- Reset to old value
-        old <- dbRead =<< getIdent
-        modifyPatch (Patch.put acc (old `get'` acc))
-        evalHaskell ctx body
+  insteadOf acc target body =
+    mkTrigger acc target $
+    \ctx -> do
+      -- Reset to old value
+      old <- dbRead =<< getIdent
+      modifyPatch (Patch.put acc (old `get'` acc))
+      evalHaskell ctx body
 
-    setCaseField acc v =
-        HaskellE $ do
-          ctx <- ask
-          let cid = kase ctx `Patch.get'` Case.ident
-              val = evalHaskell ctx v
-          return $ void $ dbUpdate cid $ put acc val Patch.empty
+  setCaseField acc v =
+    HaskellE $ do
+      ctx <- ask
+      let cid = kase ctx `Patch.get'` Case.ident
+          val = evalHaskell ctx v
+      return $ void $ dbUpdate cid $ put acc val Patch.empty
 
-    setServiceField acc v =
-        HaskellE $ do
-          ctx <- ask
-          sid <- srvId'
-          return $ void $ setService sid acc (evalHaskell ctx v)
+  setServiceField acc v =
+    HaskellE $ do
+      ctx <- ask
+      sid <- srvId'
+      return $ void $ setService sid acc (evalHaskell ctx v)
 
-    sendMail = \case
-      Genser -> runLater $ BOAction.sendMailToGenser <$> srvId'
-      PSA    -> runLater $ BOAction.sendMailToPSA    <$> srvId'
-      Dealer -> runLater $ BOAction.sendMailToDealer <$> srvId'
+  sendMail = \case
+    Genser -> runLater $ BOAction.sendMailToGenser <$> srvId'
+    PSA    -> runLater $ BOAction.sendMailToPSA    <$> srvId'
+    Dealer -> runLater $ BOAction.sendMailToDealer <$> srvId'
 
-    sendSMS tpl = runLater $ BOAction.sendSMS tpl <$> srvId'
+  sendSMS tpl = runLater $ BOAction.sendSMS tpl <$> srvId'
 
-    when cond act =
-      HaskellE $
-      toHaskell cond >>=
-      \case
-        True -> toHaskell act
-        False -> return $ return ()
+  when cond act =
+    HaskellE $
+    toHaskell cond >>=
+    \case
+      True -> toHaskell act
+      False -> return $ return ()
 
-    closePrevious scope types res =
-      HaskellE $ do
-        ctx <- ask
-        let nowFromCtx = Just $ now ctx
-        targetActs <- filteredActions scope types [Nothing]
-        return $ do
-          let currentUser = user ctx `get'` Usermeta.ident
-              -- Patch for closing actions
-              p   =
-                Patch.put Action.result (Just res) $
-                -- Set current user as assignee if closing unassigned
-                -- action
-                --
-                -- TODO this is identical to basic Action.result
-                -- trigger, which we can't call programmatically
-                Patch.put Action.assignedTo (Just currentUser) $
-                Patch.put Action.closeTime nowFromCtx Patch.empty
-              -- Cause an action-closing event if we're canceling one
-              -- of our own actions
-              fakeClosing act =
-                when (myAction && res == ActionResult.clientCanceledService) $
-                void $ logCRUDState Update aid p
-                  where
-                    aid = act `get'` Action.ident
-                    myAction = act `get'` Action.assignedTo == Just currentUser
-          forM_ targetActs (\act -> do
-            case act `get'` Action.callId of
-              Nothing  -> return ()
-              Just cId -> void
-                -- Don't forget to set Call.endDate if call-action is closed.
-                -- Closing call-action for already closed call should never
-                -- happen, so we don't afraid to overwrite existing endDate.
-                $ dbUpdate cId $ Patch.singleton Call.endDate nowFromCtx
-            dbUpdate (act `get'` Action.ident) p
-            fakeClosing act)
+  closePrevious scope types res =
+    HaskellE $ do
+      ctx <- ask
+      let nowFromCtx = Just $ now ctx
+      targetActs <- filteredActions scope types [Nothing]
+      return $ do
+        let currentUser = user ctx `get'` Usermeta.ident
+            -- Patch for closing actions
+            p   =
+              Patch.put Action.result (Just res) $
+              -- Set current user as assignee if closing unassigned
+              -- action
+              --
+              -- TODO this is identical to basic Action.result
+              -- trigger, which we can't call programmatically
+              Patch.put Action.assignedTo (Just currentUser) $
+              Patch.put Action.closeTime nowFromCtx Patch.empty
+            -- Cause an action-closing event if we're canceling one
+            -- of our own actions
+            fakeClosing act =
+              when (myAction && res == ActionResult.clientCanceledService) $
+              void $ logCRUDState Update aid p
+                where
+                  aid = act `get'` Action.ident
+                  myAction = act `get'` Action.assignedTo == Just currentUser
+        forM_ targetActs $ \act -> do
+          case act `get'` Action.callId of
+            Nothing  -> return ()
+            Just cId -> void
+              -- Don't forget to set Call.endDate if call-action is closed.
+              -- Closing call-action for already closed call should never
+              -- happen, so we don't afraid to overwrite existing endDate.
+              $ dbUpdate cId $ Patch.singleton Call.endDate nowFromCtx
+          dbUpdate (act `get'` Action.ident) p
+          fakeClosing act
 
-    a *> b =
-        HaskellE $ do
-          ctx <- ask
-          -- Freezing the context at the beginning of the chain we
-          -- make all context-changing effects invisible to subsequent
-          -- chain operators
-          return $ evalHaskell ctx a >> evalHaskell ctx b
+  a *> b =
+    HaskellE $ do
+      ctx <- ask
+      -- Freezing the context at the beginning of the chain we
+      -- make all context-changing effects invisible to subsequent
+      -- chain operators
+      return $ evalHaskell ctx a >> evalHaskell ctx b
 
-    proceed [] = HaskellE $ return $ return ()
-    proceed (aT:ts) =
-        HaskellE $ do
-          ctx <- ask
-          return $ do
-            this <- getAction
-            acts <- caseActions $ kase ctx `get'` Case.ident
-            let -- Set current action as a source in the nested
-                -- evaluator context
-                ctx' = ctx{ prevAction = (`get'` Action.aType) <$> this
-                          , actions = acts
-                          }
-                (e, basePatch) = newActionData ctx' aT
-                who = evalHaskell ctx' $ BO.assignment e
-
-            -- Ignore insta-assignment for non-current users if
-            -- target user is not Ready
-            whoIfReady <-
-              case who of
-                Just u -> userIsReady u >>= \case
-                  True -> return who
-                  False ->
-                    return $
-                    if Just currentUser == who
-                    then Just currentUser
-                    else Nothing
-                    where
-                      currentUser = user ctx `get'` Usermeta.ident
-                Nothing -> return Nothing
-
-            let due = evalHaskell ctx' $ BO.due e
-                -- Set assignTime + openTime if a user is picked
-                ctime = now ctx
-                nowIfWho = maybe Nothing (const $ Just ctime) whoIfReady
-                p = Patch.put Action.duetime due $
-                    Patch.put Action.openTime nowIfWho $
-                    Patch.put Action.assignedTo whoIfReady $
-                    Patch.put Action.assignTime nowIfWho $
-                    Patch.put Action.parent ((`get'` Action.ident) <$> this)
-                    basePatch
-            dbCreate p >> evalHaskell ctx (BO.proceed ts)
-
-    defer =
-        HaskellE $ do
-          ctx <- ask
-          return $ do
-            aid <- getIdent
-            curPatch <- getPatch
-            this <- dbRead aid
-            let aT = this `get'` Action.aType
-                -- Set current action as a source in the nested
-                -- evaluator context
-                ctx' = ctx{prevAction = Just aT}
-                (_, basePatch) = newActionData ctx' aT
-
-                dbDefer = fromMaybe (error "No deferBy in action") $
-                          this `get'` Action.deferBy
-                -- If there's no deferBy field in current patch, try
-                -- to read it from DB for this action
-                HMDiffTime deferBy =
-                  case curPatch `get` Action.deferBy of
-                    Just sth -> fromMaybe dbDefer sth
-                    Nothing -> dbDefer
-
-                -- Truncate everything below seconds, disregard leap
-                -- seconds
-                deferBy' = realToFrac deferBy
-                due = addUTCTime deferBy' (now ctx)
-                p = Patch.put Action.duetime due $
-                    Patch.put Action.parent (Just aid)
-                    basePatch
-            void $ dbCreate p
-
-
-    withRelatedService (HaskellE f) = HaskellE $ do
+  proceed [] = HaskellE $ return $ return ()
+  proceed (aT:ts) =
+    HaskellE $ do
       ctx <- ask
       return $ do
-        let caseId = kase ctx `get'` Case.ident
-        relatedSvcs <- doApp $ liftPG $ \pg ->
-          uncurry (PG.query pg)
-            [sql|
-              select id from servicetbl
-                where parentId = $(caseId)$
-                  and (type = $(ST.towage)$ or type = $(ST.tech)$)
-                  and (status = $(SS.creating)$ or status = $(SS.suspended)$)
-            |]
-        -- Actually we expect only one related service.
-        forM_ relatedSvcs $ \[svcId] -> do
-          svcObj <- dbRead svcId
-          runReader f (ctx{service = Just svcObj})
+        this <- getAction
+        acts <- caseActions $ kase ctx `get'` Case.ident
+        let -- Set current action as a source in the nested
+            -- evaluator context
+            ctx' = ctx{ prevAction = (`get'` Action.aType) <$> this
+                      , actions = acts
+                      }
+            (e, basePatch) = newActionData ctx' aT
+            who = evalHaskell ctx' $ BO.assignment e
+
+        -- Ignore insta-assignment for non-current users if
+        -- target user is not Ready
+        whoIfReady <-
+          case who of
+            Just u -> userIsReady u >>= \case
+              True -> return who
+              False ->
+                return $
+                if Just currentUser == who
+                then Just currentUser
+                else Nothing
+                where
+                  currentUser = user ctx `get'` Usermeta.ident
+            Nothing -> return Nothing
+
+        let due = evalHaskell ctx' $ BO.due e
+            -- Set assignTime + openTime if a user is picked
+            ctime = now ctx
+            nowIfWho = maybe Nothing (const $ Just ctime) whoIfReady
+            p = Patch.put Action.duetime due $
+                Patch.put Action.openTime nowIfWho $
+                Patch.put Action.assignedTo whoIfReady $
+                Patch.put Action.assignTime nowIfWho $
+                Patch.put Action.parent ((`get'` Action.ident) <$> this)
+                basePatch
+        dbCreate p >> evalHaskell ctx (BO.proceed ts)
+
+  defer =
+    HaskellE $ do
+      ctx <- ask
+      return $ do
+        aid <- getIdent
+        curPatch <- getPatch
+        this <- dbRead aid
+        let aT = this `get'` Action.aType
+            -- Set current action as a source in the nested
+            -- evaluator context
+            ctx' = ctx{prevAction = Just aT}
+            (_, basePatch) = newActionData ctx' aT
+
+            dbDefer = fromMaybe (error "No deferBy in action") $
+                      this `get'` Action.deferBy
+            -- If there's no deferBy field in current patch, try
+            -- to read it from DB for this action
+            HMDiffTime deferBy =
+              case curPatch `get` Action.deferBy of
+                Just sth -> fromMaybe dbDefer sth
+                Nothing -> dbDefer
+
+            -- Truncate everything below seconds, disregard leap
+            -- seconds
+            deferBy' = realToFrac deferBy
+            due = addUTCTime deferBy' (now ctx)
+            p = Patch.put Action.duetime due $
+                Patch.put Action.parent (Just aid)
+                basePatch
+        void $ dbCreate p
+
+
+  withRelatedService (HaskellE f) = HaskellE $ do
+    ctx <- ask
+    return $ do
+      let caseId = kase ctx `get'` Case.ident
+      relatedSvcs <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
+        [sql|
+          select id from servicetbl
+            where parentId = $(caseId)$
+              and (type = $(ST.towage)$ or type = $(ST.tech)$)
+              and (status = $(SS.creating)$ or status = $(SS.suspended)$)
+        |]
+      -- Actually we expect only one related service.
+      forM_ relatedSvcs $ \[svcId] -> do
+        svcObj <- dbRead svcId
+        runReader f (ctx{service = Just svcObj})
 
 
 -- | Trigger evaluator helper.

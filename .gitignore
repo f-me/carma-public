@@ -1,6 +1,9 @@
 # vim swap files
 .*.sw[a-z]
 
+# vim local config
+.lvimrc
+
 # haskell's junk
 dist
 cabal-dev

@@ -174,7 +174,7 @@ instance Model m => ToJSON (Patch m) where
 
 instance Model m => FromRow (Patch m) where
   fromRow = Patch . HashMap.fromList <$> sequence
-    [(fd_name f,) <$> fd_fromField f
+    [ (fd_name f,) <$> fd_fromField f
     | f <- onlyDefaultFields $ modelFields (modelInfo :: ModelInfo m)
     ]
 
