@@ -297,4 +297,5 @@ contractSearchParams =
     [ (DM.fieldName ctime, interval ctime)
     , (DM.fieldName validSince, interval validSince)
     , (DM.fieldName validUntil, interval validUntil)
-    , (DM.fieldName buyDate, interval buyDate)]
+    , (DM.fieldName buyDate, interval buyDate)
+    ]
