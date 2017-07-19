@@ -17,9 +17,9 @@ jobs:
       - save_cache:
           key: stack-cache-{{ checksum "stack.yaml" }}
           paths:
-            - $HOME/.cabal
-            - $HOME/.ghc
-            - $HOME/.stack
+            - ~/.cabal
+            - ~/.ghc
+            - ~/.stack
 
   build_client:
     working_directory: "/carma"
