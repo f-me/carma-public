@@ -58,6 +58,7 @@ dependencies:
   - websockets
   - websockets-snap
   - xmlhtml
+  - qm-interpolated-string
 
 default-extensions:
   - FlexibleContexts

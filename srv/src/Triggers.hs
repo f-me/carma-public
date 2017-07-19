@@ -672,13 +672,14 @@ contractToCase =
 
 copyContractToCase :: IdentI SubProgram -> Patch Contract -> Free (Dsl Case) ()
 copyContractToCase subProgId contract = do
-  ctrFields <- doApp $
-    liftPG $ \pg ->
-      concat <$> PG.query pg
-        "SELECT contractfield \
-        \  FROM \"SubProgramContractPermission\" \
-        \  WHERE showform AND parent = ?"
-        [subProgId]
+
+  ctrFields <- doApp $ liftPG $ \pg -> concat <$> uncurry (PG.query pg)
+    [sql|
+      select contractField
+        from "SubProgramContractPermission"
+        where showForm
+          and parent = $(subProgId)$
+    |]
 
   modifyPatch $ foldl'
     (\fn (C2C ctrFld f caseFld) ->
