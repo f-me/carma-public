@@ -143,6 +143,9 @@ data Contract = Contract
   , buyDate          :: F (Maybe WDay)
                         "buyDate"
                         "Дата покупки"
+  , firstSaleDate    :: F (Maybe WDay)
+                        "firstSaleDate"
+                        "Дата первой продажи"
   , seller           :: F (Maybe (IdentI Partner))
                         "seller"
                         "Дилер, продавший автомобиль"
@@ -314,4 +317,5 @@ contractSearchParams =
     , (DM.fieldName validSince, interval validSince)
     , (DM.fieldName validUntil, interval validUntil)
     , (DM.fieldName buyDate, interval buyDate)
+    , (DM.fieldName firstSaleDate, interval firstSaleDate)
     ]

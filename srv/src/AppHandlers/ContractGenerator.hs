@@ -50,6 +50,7 @@ q = [sql|
         , carModel.label
         , plateNum
         , to_char(c.buyDate, 'DD/MM/YYYY')
+        , to_char(c.firstSaleDate, 'DD/MM/YYYY')
         , cardNumber::text
         , to_char(c.validSince, 'DD/MM/YYYY')
         , to_char(c.validUntil, 'DD/MM/YYYY')

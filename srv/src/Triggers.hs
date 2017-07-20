@@ -719,6 +719,7 @@ copyFromContract cId = do
     . cp Contract.engineVolume
     . cp Contract.engineType
     . cp Contract.buyDate
+    . cp Contract.firstSaleDate
     . cp Contract.seller
     . cp Contract.registrationReason
     . cp Contract.priceInOrder
