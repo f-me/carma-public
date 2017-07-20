@@ -65,6 +65,7 @@ mkVinFormat  [ FF SName   Contract.name
              , FF SRaw    Contract.engineVolume
              , FF SDict   Contract.engineType
              , FF SDate   Contract.buyDate
+             , FF SDate   Contract.firstSaleDate
              , FF SDealer Contract.seller
              , FF SDealer Contract.lastCheckDealer
              , FF SNumber Contract.checkPeriod

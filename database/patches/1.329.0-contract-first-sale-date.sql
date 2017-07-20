@@ -50,4 +50,34 @@ UPDATE "SubProgram" SET contractPermissions = rev.perms FROM
  FROM "SubProgramContractPermission" GROUP BY parent) rev
  WHERE rev.parent = "SubProgram".id;
 
+INSERT INTO "FieldPermission" (role, model, field, r, w)
+(SELECT role, model, replace(field, 'model', 'firstSaleDate'), r, w
+ FROM "FieldPermission" WHERE model='VinFormat' AND field ilike 'model%');
+
+ALTER TABLE "VinFormat" ADD COLUMN firstSaleDateLoad bool NOT NULL DEFAULT FALSE;
+ALTER TABLE "VinFormat" ADD COLUMN firstSaleDateTitle text NOT NULL DEFAULT 'Дата первой продажи';
+ALTER TABLE "VinFormat" ADD COLUMN firstSaleDateDefault date;
+ALTER TABLE "VinFormat" ADD COLUMN firstSaleDateRequired bool NOT NULL DEFAULT FALSE;
+
+/*
+  First-Sale-Date field loading enabled only for 'BMW' formats.
+
+  carma=# select id, label from "VinFormat" where label ilike '%bmw%';
+    id  |     label
+  ------+---------------
+     15 | bmw moto
+   1011 | BMW 8 часов
+   1059 | bmw mini new
+   2022 | BMW MINI SARA
+     25 | BMW VIP
+  (5 rows)
+*/
+UPDATE "VinFormat" SET firstSaleDateLoad = TRUE
+  WHERE id = 15
+     OR id = 1011
+     OR id = 1059
+     OR id = 2022
+     OR id = 25
+        ;
+
 COMMIT;
