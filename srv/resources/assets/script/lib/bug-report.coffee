@@ -9,7 +9,7 @@ define ["sync/datamap"], (m) ->
       @setElement options.el if options?.el
       @mail_subject = options?.mail_subject or ""
       @mail_to = options?.mail_to or "support@formalmethods.ru"
-      @mail_cc = options?.mail_cc or "pavel.golovnin@ruamc.ru#{@comma}vladimir.kulakov@ruamc.ru"
+      @mail_cc = options?.mail_cc or ""
       @stack = []
 
     setElement: (el) =>
@@ -55,4 +55,3 @@ define ["sync/datamap"], (m) ->
       decodeURIComponent escape atob str
 
   BugReport: BugReport
-
