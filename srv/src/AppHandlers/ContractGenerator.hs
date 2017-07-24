@@ -14,6 +14,7 @@
 -- Межсервисный интервал              | cardnumber_serviceinterval
 -- Дата начала гарантии               | car_warrantystart
 -- Дата покупки                       | car_buydate
+-- Дата первой продажи                | car_firstsaledate
 -- Дилер, продавший автомобиль        | car_seller
 -- Заказчик
 -- Код заказчика
@@ -81,6 +82,7 @@ fields = [ "car_vin"
          , "car_model"
          , "car_platenum"
          , "car_buydate"
+         , "car_firstsaledate"
          , "cardnumber_cardnumber"
          , "cardnumber_validfrom"
          , "cardnumber_validuntil"

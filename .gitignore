@@ -4,6 +4,9 @@
 # vim local config
 .lvimrc
 
+# ctags
+tags
+
 # haskell's junk
 dist
 cabal-dev
