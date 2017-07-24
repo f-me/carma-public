@@ -39,7 +39,7 @@ import Data.Attoparsec.Text as P
 import Data.Maybe
 import Data.Configurator
 import qualified Data.ByteString.Lazy as BL
-import Data.Digest.Pure.MD5 (md5)
+import Data.Digest.Pure.SHA (sha256)
 import qualified Data.HashSet as HS
 import qualified Database.PostgreSQL.Simple as PS
 import Database.PostgreSQL.Simple.SqlQQ
@@ -122,7 +122,7 @@ uploadInManyFields flds nameFun = do
   fPath <- oneUpload =<< doUpload =<< gets tmp
   let (_, fName) = splitFileName fPath
 
-  hash <- liftIO $ md5 <$> BL.readFile fPath
+  hash <- liftIO $ sha256 <$> BL.readFile fPath
   now <- liftIO $ getCurrentTime
 
   root <- gets finished

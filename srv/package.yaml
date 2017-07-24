@@ -37,9 +37,9 @@ dependencies:
   - pg-simple-qq-alt
   - postgresql-simple
   - process-extras
-  - pureMD5
   - random
   - resource-pool-catchio
+  - SHA
   - singletons
   - snap
   - snap-core
