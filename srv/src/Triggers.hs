@@ -662,6 +662,7 @@ contractToCase =
   , C2C Contract.makeYear id Case.car_makeYear
   , C2C Contract.color id Case.car_color
   , C2C Contract.buyDate (fmap Contract.unWDay) Case.car_buyDate
+  , C2C Contract.firstSaleDate (fmap Contract.unWDay) Case.car_firstSaleDate
   , C2C Contract.lastCheckDealer id Case.car_dealerTO
   , C2C Contract.transmission id Case.car_transmission
   , C2C Contract.engineType id Case.car_engine

@@ -1,10 +1,17 @@
 BEGIN;
 
 ALTER TABLE "Contract" ADD COLUMN firstSaleDate date;
+ALTER TABLE casetbl ADD COLUMN car_firstSaleDate date;
 
+-- For Contract
 INSERT INTO "FieldPermission" (role, model, field, r, w)
 (SELECT role, model, 'firstSaleDate', r, w
- FROM "FieldPermission" WHERE model='Contract' AND field = 'model');
+ FROM "FieldPermission" WHERE model = 'Contract' AND field = 'model');
+
+-- For Case
+INSERT INTO "FieldPermission" (role, model, field, r, w)
+(SELECT role, model, 'car_firstSaleDate', r, w
+ FROM "FieldPermission" WHERE model = 'Case' AND field = 'car_buyDate');
 
 /*
   See https://github.com/f-me/carma/issues/2812
@@ -79,5 +86,13 @@ UPDATE "VinFormat" SET firstSaleDateLoad = TRUE
      OR id = 2022
      OR id = 25
         ;
+
+-- Program #171 is BMW.
+-- Ordering value '480' is between `car_seller` (474) and `car_plateNum` (490)
+-- by filter `model = 1 AND program = 171` (model #1 is 'Case').
+INSERT INTO "ConstructorFieldOption"
+(model, program, ord, field, label, r, w)
+(SELECT id, 171, 480, 'car_firstSaleDate', 'Дата первой продажи', TRUE, TRUE
+ FROM "CtrModel" WHERE value = 'Case');
 
 COMMIT;

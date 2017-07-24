@@ -162,6 +162,7 @@ caseMod = [
   ,regexp regexpEmail contact_email
   ,regexp regexpEmail contact_ownerEmail
   ,regexp regexpDate car_buyDate
+  ,regexp regexpDate car_firstSaleDate
 
   ,mainToo contact_contactOwner
   ,mainToo car_plateNum
