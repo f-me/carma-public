@@ -13,7 +13,7 @@ packages:
   extra-dep: true
 - location:
     git: git@github.com:f-me/hs-weather-api.git
-    commit: a16c671655ae20aa7151737683b7a3a605a496c4
+    commit: cdde2e61b47b870bf964ec790ed5f5fe41aaa1b2
   extra-dep: true
 - location:
     git: git@github.com:f-me/pg-simple-alt-qq.git
