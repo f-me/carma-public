@@ -17,6 +17,7 @@ SELECT "Contract".id AS idExternal,
     "Contract".startmileage AS startmileageExternal,
     "CarMake".label AS makeExternal,
     "CarModel".label AS modelExternal,
+    "CarGeneration".label AS generationExternal,
     "Contract".makeyear::Integer makeyearExternal,
     "CarClass".label AS carclassExternal,
     "Contract".color AS colorExternal,
@@ -55,6 +56,7 @@ SELECT "Contract".id AS idExternal,
     "Contract".startmileage,
     "Contract".make,
     "Contract".model,
+    "Contract".generation,
     "Contract".makeyear,
     "Contract".carclass,
     "Contract".color,
@@ -87,6 +89,7 @@ SELECT "Contract".id AS idExternal,
    LEFT JOIN "LegalForm" ON "Contract".legalform = "LegalForm".id
    LEFT JOIN "CarMake" ON "Contract".make = "CarMake".id
    LEFT JOIN "CarModel" ON "Contract".model = "CarModel".id
+   LEFT JOIN "CarGeneration" ON "Contract".generation = "CarGeneration".id
    LEFT JOIN partnertbl p2 ON "Contract".seller = p2.id
    LEFT JOIN "SubProgram" ON "Contract".subprogram = "SubProgram".id
    LEFT JOIN "Program" ON "SubProgram".parent = "Program".id
