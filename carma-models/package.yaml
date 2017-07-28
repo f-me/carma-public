@@ -28,6 +28,7 @@ dependencies:
  - transformers
  - unordered-containers
  - vector
+ - qm-interpolated-string
 
 default-extensions:
  - DataKinds

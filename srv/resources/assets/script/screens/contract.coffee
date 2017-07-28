@@ -129,15 +129,23 @@ define [ "search/screen"
       # true (#1042)
       kvm["always_true"] = kvm["dixi"]()? || false
       kvm["dixi"].subscribe (v) ->
-        if v
-          kvm["always_true"] = true
+        kvm["always_true"] = true if v
         if kvm["always_true"] and !dupe
+
           kvm["dixi"] true
-          if v
-            kvm._meta.q.save ->
-              $.notify("Контракт успешно сохранён", className: "success")
-              $("#renew-contract-btn").show()
-              global.searchVM?._meta.q.search()
+          return unless v
+
+          return if kvm["firstSaleDate"]? \
+                 and moment(kvm["firstSaleDate"](), "DD.MM.YYYY")
+                       .add(moment.duration(7, "years"))
+                       .isBefore(moment()) \
+                 and not confirm("Автомобиль старше 7 лет,\
+                                 \ всё равно продолжить?")
+
+          kvm._meta.q.save ->
+            $.notify("Контракт успешно сохранён", className: "success")
+            $("#renew-contract-btn").show()
+            global.searchVM?._meta.q.search()
 
       if kvm.dixi()
         $("#renew-contract-btn").show()
