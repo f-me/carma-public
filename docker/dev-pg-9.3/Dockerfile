@@ -18,7 +18,8 @@
 #
 # Or a temporary container:
 #   # docker run --rm -it -p 127.0.0.1:5432:5432 -v carma-db-data:/var/lib/postgresql/data --name carma-db carma-db
-#
+# Upload a SQL dump:
+#   # psql -h 127.0.0.1 -p 5432 -U carma_db_sync -d carma -f 2017-05-29_03-15_carma.sql
 
 FROM postgres:9.3.17
 
