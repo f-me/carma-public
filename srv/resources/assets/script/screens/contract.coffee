@@ -131,17 +131,8 @@ define [ "search/screen"
       kvm["dixi"].subscribe (v) ->
         kvm["always_true"] = true if v
         if kvm["always_true"] and !dupe
-
           kvm["dixi"] true
           return unless v
-
-          return if kvm["firstSaleDate"]? \
-                 and moment(kvm["firstSaleDate"](), "DD.MM.YYYY")
-                       .add(moment.duration(7, "years"))
-                       .isBefore(moment()) \
-                 and not confirm("Автомобиль старше 7 лет,\
-                                 \ всё равно продолжить?")
-
           kvm._meta.q.save ->
             $.notify("Контракт успешно сохранён", className: "success")
             $("#renew-contract-btn").show()
@@ -156,21 +147,34 @@ define [ "search/screen"
         # When creating new contracts, check contract duplicates upon
         # contract saving, ignoring first dixi update (when default
         # fields are first fetched)
-          check = kvm["dixi"].subscribe (v) ->
-            return if !v
-            findSame kvm, (r) ->
-              if _.isEmpty(r)
-                dupe = false
-                return
-              txt = "За последние 30 дней уже были созданы контракты с " +
-                    "таким же VIN или номером карты участника, их id: " +
-                    "#{_.pluck(r, 'id').join(', ')}. Всё равно сохранить?"
-              if confirm(txt)
-                dupe = false
-                check.dispose()
-              else
-                dupe = true
-                kvm["dixi"](false)
+        check = kvm["dixi"].subscribe (v) ->
+          return unless v
+
+          finish = (ok) -> if ok then dupe = false ; check.dispose() \
+                                 else dupe = true  ; kvm["dixi"] false
+
+          if (
+            kvm["firstSaleDate"]? \
+            and (
+              moment(kvm["firstSaleDate"](), "DD.MM.YYYY")
+                .add(moment.duration(7, "years"))
+                .isBefore(moment())
+            ) \
+            and not confirm("Автомобиль старше 7 лет, всё равно продолжить?")
+          )
+            finish false
+            return
+
+          findSame kvm, (r) ->
+            if _.isEmpty(r)
+              dupe = false
+              return
+            if confirm("За последние 30 дней уже были созданы контракты с\
+                       \ таким же VIN или номером карты участника, их id:\
+                       \ #{_.pluck(r, 'id').join(', ')}. Всё равно сохранить?")
+              finish true
+            else
+              finish false
 
 
     contract.subscribe (c) ->
