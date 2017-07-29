@@ -16,7 +16,6 @@ module Data.Dict
 where
 
 import Control.Monad
-import Data.Functor
 
 import Data.Aeson
 import qualified Data.ByteString as BS

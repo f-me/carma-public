@@ -45,7 +45,6 @@ module Carma.HTTP
 
 where
 
-import           Control.Lens               hiding (createInstance)
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Reader
 
@@ -56,7 +55,6 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.Dict
 import           Data.Functor
 import           Data.HashMap.Strict        as M hiding (filter)
-import           Data.List
 import           Data.Maybe
 import qualified Data.Text.Encoding         as T
 

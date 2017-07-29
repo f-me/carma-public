@@ -1,9 +1,7 @@
-
 {-# LANGUAGE QuasiQuotes #-}
 
 module Main where
 
-import           Control.Applicative
 import           Control.Monad (when, void)
 import           Control.Monad.IO.Class (liftIO)
 import           Text.Read (readMaybe)
@@ -186,4 +184,3 @@ httpServer pgPool reqLogger cfg = do
       ( vin, carMake, carModel, dealer, parsedDate
       , cfgSubProgram cfg, not $ cfgTestMode cfg, cfgCommitter cfg)
     text "Ok"
-

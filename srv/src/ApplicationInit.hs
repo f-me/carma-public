@@ -1,6 +1,5 @@
 module ApplicationInit (appInit) where
 
-import Control.Applicative
 import Control.Monad (when)
 import Control.Concurrent.STM
 import Control.Monad.IO.Class
