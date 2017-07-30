@@ -26,7 +26,7 @@ Refer to [`.circleci/config.yml`](https://github.com/f-me/carma/blob/master/.cir
 3. Add roles:
 
    ```
-   createuser carma
+   createuser -s carma
    createuser carma_db_sync
    createuser carma_geo
    createuser carma_sms
@@ -36,13 +36,16 @@ Refer to [`.circleci/config.yml`](https://github.com/f-me/carma/blob/master/.cir
    createuser reportgen
    ```
 
+   `carma` is the superuser which owns the database and is used to run
+   DB migration scripts.
+
 3. Unpack and recover a database snapshot:
 
    ```
    psql carma -f 2017-05-29_03-15_carma.sql
    ```
 
-3. Add passwords:
+3. Set passwords:
 
    ```
    psql carma -c "alter user carma with password 'pass'"
