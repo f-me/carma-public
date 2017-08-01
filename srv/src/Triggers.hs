@@ -713,6 +713,7 @@ copyFromContract cId = do
     . cp Contract.startMileage
     . cp Contract.make
     . cp Contract.model
+    . cp Contract.generation
     . cp Contract.makeYear
     . cp Contract.carClass
     . cp Contract.color
