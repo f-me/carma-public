@@ -7,6 +7,28 @@ import RichTextEditor from 'react-rte'
 
 import './DiagTree.css';
 
+// h ∈ [0..360]; s ∈ [0..1]; v ∈ [0..1]
+// see https://github.com/tmpvar/hsv2rgb/blob/master/hsv2rgb.js
+const hsv2rgb = (h, s, v) => {
+  h = h % 360;
+  s = Math.max(0, Math.min(s, 1));
+  v = Math.max(0, Math.min(v, 1));
+  const b = ((1 - s) * v), vb = v - b, hm = h % 60;
+  if(!s)return [v, v, v].map(x => Math.round(x * 255));
+  let res;
+  switch ((h / 60) | 0) {
+    case 0: res = [v, vb * h / 60 + b, b]; break;
+    case 1: res = [vb * (60 - hm) / 60 + b, v, b]; break;
+    case 2: res = [b, v, vb * hm / 60 + b]; break;
+    case 3: res = [b, vb * (60 - hm) / 60 + b, v]; break;
+    case 4: res = [vb * hm / 60 + b, b, v]; break;
+    case 5: res = [v, b, vb * (60 - hm) / 60 + b]; break;
+  }
+  return res.map(x => Math.round(x * 255));
+};
+
+const backgrounds = [...Array(7).keys()]
+  .map(x => hsv2rgb(x / 7 * 360, 0.10, 1));
 
 // FIXME: - immutable history?
 export default class Show extends React.Component {
@@ -25,12 +47,12 @@ export default class Show extends React.Component {
 
   _loadHistory = () =>
     fetch(`/diag/history/${this.props.caseId}`, {credentials: 'same-origin'})
-      .then(resp => resp.json().then(hist =>
-        this.setState({
-          history: hist,
-          slideId: hist[hist.length-1].id
-        })
-      ))
+      .then(resp => resp.json())
+      .then(hist => this.setState({
+        history: hist,
+        slideId: hist[hist.length-1].id
+      }))
+
 
   _answer = (slideId, ix, nextSlide) => () =>
     fetch(`/_/DiagHistory/${slideId}`,
@@ -175,18 +197,28 @@ export default class Show extends React.Component {
               </div>
             ))}
             <ListGroup>
-              {slide.answers.map((ans, i) => (
-                <ListGroupItem
+              {slide.answers.map((ans, i) => {
+                const color = backgrounds[i % backgrounds.length];
+                return <ListGroupItem
                   header={ans.header}
                   className={slide.answerIx === i ? 'selected' : ''}
+
+                  style={{
+                    backgroundColor: `rgb(
+                      ${color[0]},
+                      ${color[1]},
+                      ${color[2]}
+                    )`
+                  }}
+
                   onClick={slide.answerIx !== null
                     ? undefined
                     : this._answer(slide.id, i, ans.nextSlide)}
                 >
                   {ans.file && <img src={ans.file} role="presentation"/>}
                   {ans.text}
-                </ListGroupItem>
-              ))}
+                </ListGroupItem>;
+              })}
             </ListGroup>
 
             {slide.actions && slide.actions.length
