@@ -13,9 +13,9 @@ const hsv2rgb = (h, s, v) => {
   h = h % 360;
   s = Math.max(0, Math.min(s, 1));
   v = Math.max(0, Math.min(v, 1));
-  const b = ((1 - s) * v), vb = v - b, hm = h % 60;
   if(!s)return [v, v, v].map(x => Math.round(x * 255));
   let res;
+  const b = ((1 - s) * v), vb = v - b, hm = h % 60;
   switch ((h / 60) | 0) {
     case 0: res = [v, vb * h / 60 + b, b]; break;
     case 1: res = [vb * (60 - hm) / 60 + b, v, b]; break;
