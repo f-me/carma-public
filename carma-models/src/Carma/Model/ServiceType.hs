@@ -25,6 +25,8 @@ data ServiceType = ServiceType
     :: F Text "fdds"  "FDDS-код"
   , model
     :: F (IdentI CtrModel) "model"  "Модель данных"
+  , ordering
+    :: F Int "ordering" "Порядок сортировки"
   } deriving Typeable
 
 mkIdents [t|ServiceType|]
@@ -52,7 +54,7 @@ mkIdents [t|ServiceType|]
 instance Model ServiceType where
   type TableName ServiceType = "ServiceType"
   idents = Carma.Model.ServiceType.idents
-  modelInfo = mkModelInfo ServiceType ident
+  modelInfo = mkModelInfo' ServiceType ident ordering
   modelView = \case
     "" -> Just defaultView
     _  -> Nothing
