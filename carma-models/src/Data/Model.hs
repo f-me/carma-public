@@ -7,7 +7,7 @@ module Data.Model
   ( Ident(..), IdentI
   , Model(..)
   , ParentInfo(..)
-  , ModelInfo(..), mkModelInfo
+  , ModelInfo(..), mkModelInfo, mkModelInfo'
   , Field(..), FF, F, EF, PK
   , FOpt
   , FieldDesc(..)
@@ -22,7 +22,7 @@ module Data.Model
   ) where
 
 
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as HashMap
@@ -47,7 +47,16 @@ mkModelInfo
   . (Model m, GetModelFields m ctr, SingI pkNm)
   => ctr -> (m -> F (Ident pkTy m) pkNm pkDesc)
   -> ModelInfo m
-mkModelInfo ctr pk = case parentInfo :: ParentInfo m of
+mkModelInfo ctr pk = mkModelInfo' ctr pk pk
+
+mkModelInfo'
+  :: forall m ctr pkTy pkNm pkDesc sortTy sortNm sortDesc
+  . (Model m, GetModelFields m ctr, SingI pkNm, SingI sortNm)
+  => ctr -> (m -> F (Ident pkTy m) pkNm pkDesc)
+  -> (m -> F sortTy sortNm sortDesc)
+  -- ^ Sort by this field.
+  -> ModelInfo m
+mkModelInfo' ctr pk sortBy = case parentInfo :: ParentInfo m of
   NoParent      -> mInf
   ExParent pInf ->
     let pFields
@@ -68,6 +77,7 @@ mkModelInfo ctr pk = case parentInfo :: ParentInfo m of
       , modelFields     = mFields
       , modelOnlyFields = mFields
       , modelFieldsMap  = HashMap.fromList [(fd_name f, f) | f <- mFields]
+      , sortByFieldName = fieldName sortBy
       , modelCRUD       = Nothing
       }
 

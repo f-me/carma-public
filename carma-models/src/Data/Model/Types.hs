@@ -92,6 +92,7 @@ data ModelInfo m = ModelInfo
   , modelFields     :: [FieldDesc]
   , modelOnlyFields :: [FieldDesc]
   , modelFieldsMap  :: HashMap Text FieldDesc
+  , sortByFieldName :: Text
   , modelCRUD       :: Maybe (CRUD m) -- ^ `Nothing` means `defaultCRUD`
   }
 

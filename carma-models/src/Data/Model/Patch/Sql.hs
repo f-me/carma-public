@@ -79,9 +79,10 @@ readMany lim off c = query_ c (fromString q)
   where
     mInfo = modelInfo :: ModelInfo m
     fieldNames = map fd_name $ onlyDefaultFields $ modelFields mInfo
-    q = printf "SELECT %s FROM %s ORDER BY id LIMIT %i OFFSET %i"
+    q = printf "SELECT %s FROM %s ORDER BY %s LIMIT %i OFFSET %i"
       (T.unpack $ T.intercalate ", " fieldNames)
       (show $ tableName mInfo)
+      (T.unpack $ sortByFieldName mInfo)
       lim off
 
 -- FIXME: supports only integer idents and text in filters
@@ -94,10 +95,10 @@ readManyWithFilter lim off params c = query c (fromString q) filterArgs
   where
     mInfo = modelInfo :: ModelInfo m
     fieldNames = map fd_name $ onlyDefaultFields $ modelFields mInfo
-    q = printf "SELECT %s FROM %s WHERE %s ORDER BY id LIMIT %i OFFSET %i"
+    q = printf "SELECT %s FROM %s WHERE %s ORDER BY %s LIMIT %i OFFSET %i"
       (T.unpack $ T.intercalate ", " fieldNames)
       (show $ tableName mInfo)
-      filterPred lim off
+      filterPred (T.unpack $ sortByFieldName mInfo) lim off
     filterArgs = [val | (key,val) <- params, HashMap.member key (modelFieldsMap mInfo)]
     filterPred = T.unpack $ T.intercalate " AND "
       $ "TRUE"
