@@ -8,7 +8,7 @@ require.config
     tpl     : "/s/tpl"
     finch   : "/s/3p/finch.min"
     d3      : "/s/3p/d3.min"
-    knockout: "/s/3p/knockout"
+    knockout: "/s/3p/knockout-latest"
     base64  : "/s/3p/base64.min"
     bootstrap: '/s/3p/bootstrap/js/bootstrap'
     wysihtml5: "/s/3p/wysihtml5/bootstrap3-wysihtml5.all.min"

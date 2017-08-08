@@ -15,8 +15,8 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON('package.json')
     coffee:
       all:
-        options: 
-          bare:  true 
+        options:
+          bare:  true
           sourceMap: true
         expand:  true
         flatten: false
@@ -25,8 +25,8 @@ module.exports = (grunt) ->
         dest:    built
         ext:     '.js'
 
-    babel: 
-      options: 
+    babel:
+      options:
         sourceMap: true
         presets: ['es2015']
       dist:
@@ -55,7 +55,7 @@ module.exports = (grunt) ->
     less:
       production:
         options:
-          paths: ["#{content}/style", "bower_components"]
+          paths: ["#{content}/style", "node_modules"]
           cleancss: true
         files:
           "resources/static/css/style.css": ["#{content}/style/style.less","#{content}/style/*.css"]
@@ -97,14 +97,14 @@ module.exports = (grunt) ->
           ]
 
     shell:
-      bower: "bower install"
       'react-components':
-        command: [
-          "cd #{content}/react-components && npm run build && cd -",
-          "cp #{react}/js/main*.js #{built}/react-components.js",
-          "cp #{react}/js/main*.js.map #{built}/"
-          "cp #{react}/css/main*.css #{css}/react-components.css",
-          "cp #{react}/css/main*.css.map #{css}/"
+        command:
+          [ "cd #{content}/react-components && npm run build && cd -"
+          , "mkdir -p #{built} #{css}"
+          , "cp #{react}/js/main*.js #{built}/react-components.js"
+          , "cp #{react}/js/main*.js.map #{built}/"
+          , "cp #{react}/css/main*.css #{css}/react-components.css"
+          , "cp #{react}/css/main*.css.map #{css}/"
           ].join(" && ")
 
 
@@ -131,33 +131,44 @@ module.exports = (grunt) ->
 
 
   thirdParty =
-    md5:        {src: 'js-md5/js',       file: 'md5.min.js'}
+    md5:        {src: 'blueimp-md5/js',  file: 'md5.min.js'}
     d3:         {src: 'd3',              file: 'd3.min.js'}
     moment:     {src: 'moment/min',      file: 'moment-with-locales.min.js'}
+
     'moment-timezone':
       src: 'moment-timezone/builds'
       file: [ 'moment-timezone.min.js'
             , 'moment-timezone-with-data-2010-2020.min.js'
             ]
+
     mousetrap:  {src: 'mousetrap',       file: 'mousetrap.min.js'}
     mustache:   {src: 'mustache',        file: 'mustache.js'}
     underscore: {src: 'underscore',      file: 'underscore.js'}
     finch:      {src: 'finchjs',         file: 'finch.min.js'}
     jquery:     {src: 'jquery/dist',     file: 'jquery.js'}
-    knockout:   {src: 'knockoutjs/dist', file: 'knockout.js'}
-    notify:     {src: 'notifyjs/dist',   file: 'notify-combined.min.js'}
+
+    knockout:
+      src: 'knockout/build/output'
+      file: 'knockout-latest.js'
+
+    notify:     {src: 'notify/dist',     file: 'notify-combined.min.js'}
     spin:       {src: 'spin.js',         file: ['spin.js', 'jquery.spin.js']}
+
     'bootstrap-daterangepicker':
       src: 'bootstrap-daterangepicker'
       dest: 'daterangepicker'
       file: ['daterangepicker.js', 'daterangepicker-bs3.css']
+
     'js-base64':{src: 'js-base64',       file: 'base64.min.js'}
+
     'jquery.browser':
       src: 'jquery.browser/dist'
       file: 'jquery.browser.min.js'
+
     'jquery-knob':
       src: 'jquery-knob/dist'
       file: 'jquery.knob.min.js'
+
     datatables:
       src: 'datatables/media'
       dest: 'datatables'
@@ -165,20 +176,24 @@ module.exports = (grunt) ->
              'js/jquery.dataTables.min.js'
              'images/*'
             ]
+
     bootstrap:
       src: 'bootstrap/dist'
       dest: 'bootstrap'
       file: ['fonts/**', 'js/**']
+
     openLayers:
-      src: 'OpenLayers'
+      src: 'openlayers-2-build'
       dest: 'OpenLayers'
       file: ['OpenLayers.js', 'img/**', 'theme/**']
+
     'jasny-bootstrap':
       src:  'jasny-bootstrap/dist'
       dest: 'jasny-bootstrap'
       file: [ 'js/jasny-bootstrap.min.js'
             , 'css/jasny-bootstrap.min.css'
             ]
+
     'bootstrap3-wysihtml5':
       src:  'bootstrap3-wysihtml5-bower/dist'
       dest: 'wysihtml5'
@@ -186,11 +201,14 @@ module.exports = (grunt) ->
             , 'bootstrap3-wysihtml5.css'
             , 'locales/bootstrap-wysihtml5.ru-RU.js'
             ]
+
     wysihtml5x:
       src: 'wysihtml5x/dist'
       dest: 'wysihtml5x'
       file: [ 'wysihtml5x.min.js', 'wysihtml5x.min.map'
-            , 'wysihtml5x-toolbar.min.js', 'wysihtml5x-toolbar.min.map']
+            , 'wysihtml5x-toolbar.min.js', 'wysihtml5x-toolbar.min.map'
+            ]
+
     'bootstrap-datepicker':
       src:  'bootstrap-datepicker/dist'
       dest: 'bootstrap-datepicker'
@@ -198,8 +216,9 @@ module.exports = (grunt) ->
             , 'js/bootstrap-datepicker.min.js'
             , 'locales/bootstrap-datepicker.ru.min.js'
             ]
+
     'normalize-css':
-      src: 'normalize-css'
+      src: 'normalize.css'
       dest: 'normalize-css'
       file: 'normalize.css'
 
@@ -207,7 +226,7 @@ module.exports = (grunt) ->
     for lib, libCfg of libs
       cfg.copy[lib] =
         expand: true
-        cwd:  "bower_components/#{libCfg.src}"
+        cwd:  "node_modules/#{libCfg.src}"
         src:  libCfg.file
         dest: "#{pub}/3p/#{libCfg.dest ? ''}"
       cfg.clean[lib] =
@@ -220,7 +239,16 @@ module.exports = (grunt) ->
 
   newerify = (ts) -> "newer:#{t}" for t in ts
 
-  grunt.registerTask("build", ['shell:react-components', 'copy', 'coffee', 'babel', 'less', 'puglint', 'pug'])
-  grunt.registerTask("rebuild", ['shell:bower', 'clean', 'build'])
+  grunt.registerTask("build",
+    [ 'shell:react-components'
+    , 'copy'
+    , 'coffee'
+    , 'babel'
+    , 'less'
+    , 'puglint'
+    , 'pug'
+    ])
+
+  grunt.registerTask("rebuild", ['clean', 'build'])
   grunt.registerTask("bwatch", ['rebuild', 'watch'])
   grunt.registerTask("default", "rebuild")

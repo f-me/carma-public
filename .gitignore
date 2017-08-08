@@ -53,6 +53,7 @@ srv/resources/static/3p/jquery.browser.min.js
 srv/resources/static/3p/jquery.knob.min.js
 srv/resources/static/3p/jquery.spin.js
 srv/resources/static/3p/knockout.js
+srv/resources/static/3p/knockout-latest.js
 srv/resources/static/3p/md5.min.js
 srv/resources/static/3p/moment-with-locales.min.js
 srv/resources/static/3p/mousetrap.min.js
