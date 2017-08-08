@@ -15,14 +15,13 @@ jobs:
           name: Build CaRMa frontend
           command: |
             cd srv
-            npm install -g bower grunt
+            npm install -g grunt
             npm install
-            bower install --allow-root
             cd resources/assets/react-components
             npm install
             cd -
             mkdir -p resources/static/{js/gen,css}
-            grunt build
+            # TODO webpack build
       - persist_to_workspace:
           root: .
           paths:
