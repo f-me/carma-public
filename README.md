@@ -117,7 +117,7 @@ CaRMa - see below for how to build the whole bundle.
 To build the client from scratch:
 
     cd srv
-    npm install -g bower grunt && npm install && bower install
+    npm install -g grunt && npm install
     cd resources/assets/react-components && npm install && cd -
     mkdir -p resources/static/{js/gen,css}
     grunt build
