@@ -1,10 +1,11 @@
 {
+  "private": true,
   "name": "carma",
   "version": "0.0.0",
   "description": "carma client",
   "main": "local.coffee",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean-old-stuff": "rm -rf bower_components"
   },
   "repository": {
     "type": "git",
