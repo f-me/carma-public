@@ -2,78 +2,80 @@ doctype html
 html
   head
     meta(charset='utf-8')
+
     title
       addLocalName CaRMa
-    link(rel='stylesheet', href='/s/3p/normalize-css/normalize.css')
 
-    // Everything is concatenated in this
-    link(rel='stylesheet', href='/s/css/style.css', title='local')
+    // link(rel='stylesheet', href='/s/3p/normalize-css/normalize.css')
 
-    // DOM manipulation
-    script(src='/s/3p/jquery.js')
-    // Rich UI
-    script(src='/s/3p/bootstrap/js/bootstrap.min.js')
+    // // Everything is concatenated in this
+    // link(rel='stylesheet', href='/s/css/style.css', title='local')
 
-    // datepicker
-    link(rel='stylesheet', href='/s/3p/bootstrap-datepicker/css/bootstrap-datepicker3.min.css')
-    script(src='/s/3p/bootstrap-datepicker/js/bootstrap-datepicker.min.js')
-    script(src='/s/3p/bootstrap-datepicker/locales/bootstrap-datepicker.ru.min.js')
+    // // DOM manipulation
+    // script(src='/s/3p/jquery.js')
+    // // Rich UI
+    // script(src='/s/3p/bootstrap/js/bootstrap.min.js')
 
-    // Jasny BS extensions
-    link(rel='stylesheet', href='/s/3p/jasny-bootstrap/css/jasny-bootstrap.min.css')
-    script(src='/s/3p/jasny-bootstrap/js/jasny-bootstrap.min.js')
+    // // datepicker
+    // link(rel='stylesheet', href='/s/3p/bootstrap-datepicker/css/bootstrap-datepicker3.min.css')
+    // script(src='/s/3p/bootstrap-datepicker/js/bootstrap-datepicker.min.js')
+    // script(src='/s/3p/bootstrap-datepicker/locales/bootstrap-datepicker.ru.min.js')
 
-    // WYSIWYG
-    link(rel='stylesheet', href='/s/3p/wysihtml5/bootstrap3-wysihtml5.css')
-    script(src='/s/3p/wysihtml5x/wysihtml5x.min.js')
-    script(src='/s/3p/wysihtml5x/wysihtml5x-toolbar.min.js')
-    script(src='/s/3p/wysihtml5/bootstrap3-wysihtml5.all.min.js')
-    script(src='/s/3p/wysihtml5/locales/bootstrap-wysihtml5.ru-RU.js')
+    // // Jasny BS extensions
+    // link(rel='stylesheet', href='/s/3p/jasny-bootstrap/css/jasny-bootstrap.min.css')
+    // script(src='/s/3p/jasny-bootstrap/js/jasny-bootstrap.min.js')
 
-    // Date Range Picker for Bootstrap
-    script(src='/s/3p/moment-with-locales.min.js')
-    script(src='/s/3p/moment-timezone-with-data-2010-2020.min.js')
-    link(rel='stylesheet', href='/s/3p/daterangepicker/daterangepicker-bs3.css')
-    script(src='/s/3p/daterangepicker/daterangepicker.js')
-    // Spinner
-    script(src='/s/3p/spin.js')
-    script(src='/s/3p/jquery.spin.js')
-    // Tabular display
-    link(rel='stylesheet', href='/s/3p/datatables/css/jquery.dataTables.min.css')
-    script(src='/s/3p/datatables/js/jquery.dataTables.min.js')
-    // Responsive UI javascript library
-    script(src='/s/3p/knockout-latest.js')
-    // Utility library, Backbone dependency
-    script(src='/s/3p/underscore.js')
-    // Simple templates
-    script(src='/s/3p/mustache.js')
-    // Key bindings
-    script(src='/s/3p/mousetrap.min.js')
-    // OpenLayers library allows map rendering
-    script(src='/s/3p/OpenLayers/OpenLayers.js')
-    // 25Kb of date parsing and formatting
-    script(src='/s/3p/date/core.js')
-    script(src='/s/3p/date/ru-RU.js')
-    script(src='/s/3p/date/extras.js')
-    script(src='/s/3p/date/parser.js')
-    script(src='/s/3p/date/sugarpak.js')
-    script(src='/s/3p/jquery.knob.min.js')
-    script(src='/s/3p/md5.min.js')
-    script(src='/s/3p/d3.min.js')
-    script(src='/s/3p/notify-combined.min.js')
-    // react-components
-    script(src='/s/js/gen/react-components.js')
-    link(rel='stylesheet', href='/s/css/react-components.css')
-    // global libs, that is not handled by require js
-    // typeahead menu
-    script(src='/s/js/gen/globallibs/th-menu.js')
-    script(src='/s/js/gen/globallibs/observableSet.js')
-    script(src='/s/js/gen/globallibs/sorted.js')
-    script(src='/s/js/gen/globallibs/customKoHandlers.js')
-    script(src='/s/js/gen/globallibs/utils.js')
-    script(src='/s/3p/require.js')
-    script(src='/s/js/gen/requireCfg.js')
-    script(src='/s/js/gen/local.js')
+    // // WYSIWYG
+    // link(rel='stylesheet', href='/s/3p/wysihtml5/bootstrap3-wysihtml5.css')
+    // script(src='/s/3p/wysihtml5x/wysihtml5x.min.js')
+    // script(src='/s/3p/wysihtml5x/wysihtml5x-toolbar.min.js')
+    // script(src='/s/3p/wysihtml5/bootstrap3-wysihtml5.all.min.js')
+    // script(src='/s/3p/wysihtml5/locales/bootstrap-wysihtml5.ru-RU.js')
+
+    // // Date Range Picker for Bootstrap
+    // script(src='/s/3p/moment-with-locales.min.js')
+    // script(src='/s/3p/moment-timezone-with-data-2010-2020.min.js')
+    // link(rel='stylesheet', href='/s/3p/daterangepicker/daterangepicker-bs3.css')
+    // script(src='/s/3p/daterangepicker/daterangepicker.js')
+    // // Spinner
+    // script(src='/s/3p/spin.js')
+    // script(src='/s/3p/jquery.spin.js')
+    // // Tabular display
+    // link(rel='stylesheet', href='/s/3p/datatables/css/jquery.dataTables.min.css')
+    // script(src='/s/3p/datatables/js/jquery.dataTables.min.js')
+    // // Responsive UI javascript library
+    // script(src='/s/3p/knockout-latest.js')
+    // // Utility library, Backbone dependency
+    // script(src='/s/3p/underscore.js')
+    // // Simple templates
+    // script(src='/s/3p/mustache.js')
+    // // Key bindings
+    // script(src='/s/3p/mousetrap.min.js')
+    // // OpenLayers library allows map rendering
+    // script(src='/s/3p/OpenLayers/OpenLayers.js')
+    // // 25Kb of date parsing and formatting
+    // script(src='/s/3p/date/core.js')
+    // script(src='/s/3p/date/ru-RU.js')
+    // script(src='/s/3p/date/extras.js')
+    // script(src='/s/3p/date/parser.js')
+    // script(src='/s/3p/date/sugarpak.js')
+    // script(src='/s/3p/jquery.knob.min.js')
+    // script(src='/s/3p/md5.min.js')
+    // script(src='/s/3p/d3.min.js')
+    // script(src='/s/3p/notify-combined.min.js')
+    // // react-components
+    // script(src='/s/js/gen/react-components.js')
+    // link(rel='stylesheet', href='/s/css/react-components.css')
+    // // global libs, that is not handled by require js
+    // // typeahead menu
+    // script(src='/s/js/gen/globallibs/th-menu.js')
+    // script(src='/s/js/gen/globallibs/observableSet.js')
+    // script(src='/s/js/gen/globallibs/sorted.js')
+    // script(src='/s/js/gen/globallibs/customKoHandlers.js')
+    // script(src='/s/js/gen/globallibs/utils.js')
+    // script(src='/s/3p/require.js')
+    // script(src='/s/js/gen/requireCfg.js')
+    // script(src='/s/js/gen/local.js')
   body
     // Navigation bar on top
     nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
@@ -231,3 +233,6 @@ html
     #main-container
       #layout
     #sms-send-form
+
+    script(src="/s/js/gen/carma/bundle.vendor.js")
+    script(src="/s/js/gen/carma/bundle.carma.js")
