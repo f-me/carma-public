@@ -132,8 +132,8 @@ writeModel model
           case field of
             "showform"  -> stripContract model i Form
             "showtable" -> stripContract model i Table
-            _ ->
-              finishWithError 403 "field param be either showform or showtable"
+            _           -> finishWithError 403 "field param must be either\
+                                               \ 'showform' or 'showtable'"
         Nothing -> return model
     _ -> return model
 
@@ -157,8 +157,8 @@ stripModel u m = do
         Nothing -> fs
         Just wr ->
           let w = canWrite f && wr
-          in f {meta = Map.insert "readonly" (Aeson.Bool $ ro f w) <$> meta f
-               ,canWrite = w
+          in f { meta = Map.insert "readonly" (Aeson.Bool $ ro f w) <$> meta f
+               , canWrite = w
                } : fs
   return $ m {fields = foldr fieldFilter [] $ fields m}
 

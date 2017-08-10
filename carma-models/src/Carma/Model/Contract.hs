@@ -26,11 +26,13 @@ import Data.Singletons
 import Database.PostgreSQL.Simple.FromField (FromField)
 import Database.PostgreSQL.Simple.ToField
 
+import Data.Model as Model
 import Data.Model as DM
 import Data.Model.Types
 import Data.Model.View
 
 import Carma.Model.CarClass     (CarClass)
+import Carma.Model.CarGeneration (CarGeneration)
 import Carma.Model.CarMake      (CarMake)
 import Carma.Model.CarModel     (CarModel)
 import Carma.Model.CheckType    (CheckType)
@@ -116,6 +118,9 @@ data Contract = Contract
   , model            :: F (Maybe (IdentI CarModel))
                         "model"
                         "Модель"
+  , generation       :: F (Maybe (IdentI CarGeneration))
+                        "generation"
+                        "Поколение"
   -- TODO New Year (pun intended) field type
   , makeYear         :: F (Maybe Int)
                         "makeYear"
@@ -138,6 +143,9 @@ data Contract = Contract
   , buyDate          :: F (Maybe WDay)
                         "buyDate"
                         "Дата покупки"
+  , firstSaleDate    :: F (Maybe WDay)
+                        "firstSaleDate"
+                        "Дата первой продажи"
   , seller           :: F (Maybe (IdentI Partner))
                         "seller"
                         "Дилер, продавший автомобиль"
@@ -189,30 +197,38 @@ instance Model Contract where
   modelInfo = mkModelInfo Contract ident
   modelView = \case
     "search" ->
-        Just $ subDict "prefixedSubPrograms" $
+        Just $
+        useDict subprogram "prefixedSubPrograms" $
+        useDict generation "prefixedGenerations" $
         flip modifyView commonMeta $
         searchView contractSearchParams
     "searchCase" ->
-        Just $ subDict "prefixedSubPrograms" $
+        Just $
+        useDict subprogram "prefixedSubPrograms" $
+        useDict generation "prefixedGenerations" $
         flip modifyView commonMeta $
         searchView contractCaseSearchParams
 
     "portalSearch" ->
-        Just $ subDict "portalSubPrograms" $
+        Just $
+        useDict subprogram "portalSubPrograms" $
         flip modifyView commonMeta $
         searchView contractSearchParams
     "portalForm" ->
-        Just $ subDict "portalSubPrograms" $
+        Just $
+        useDict subprogram "portalSubPrograms" $
         defaultView `modifyView` commonMeta
     ""       ->
-        Just $ subDict "prefixedSubPrograms" $
+        Just $
+        useDict subprogram "prefixedSubPrograms" $
         defaultView `modifyView` commonMeta
     _ -> Nothing
     where
-      -- Make subprogram field more usable on client
-      subDict n v =
+      -- Make a dictionary field more usable on client (include parent
+      -- labels)
+      useDict f n v =
           modifyView v
-          [ dict subprogram $
+          [ dict f $
             (dictOpt n){dictType = Just "ComputedDict", dictBounded = True}
           ]
 
@@ -221,6 +237,8 @@ instance Model Contract where
 commonMeta :: [(Text, FieldView -> FieldView) :@ Contract]
 commonMeta =
     [ setMeta "dictionaryParent" "make" model
+    , setMeta "dictionaryParent"
+      (String $ Model.fieldName model) generation
     , setMeta "dictionaryLabel"
       (String $ DM.fieldName Usermeta.realName)
       committer
@@ -272,6 +290,7 @@ contractSearchParams =
      , FA ident
      , FA make
      , FA model
+     , FA generation
      , FA carClass
      , FA transmission
      , FA engineType
@@ -297,4 +316,6 @@ contractSearchParams =
     [ (DM.fieldName ctime, interval ctime)
     , (DM.fieldName validSince, interval validSince)
     , (DM.fieldName validUntil, interval validUntil)
-    , (DM.fieldName buyDate, interval buyDate)]
+    , (DM.fieldName buyDate, interval buyDate)
+    , (DM.fieldName firstSaleDate, interval firstSaleDate)
+    ]

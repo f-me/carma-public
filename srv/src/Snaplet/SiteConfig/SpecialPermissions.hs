@@ -48,9 +48,10 @@ instance ToField FilterType where
   toField Form = toField $ PT "showform"
   toField Table = toField $ PT "showtable"
 
-stripContract :: (HasPostgresAuth b (SiteConfig b)) =>
-                 Model
-              -> Text -- ^ SubProgram id.
+stripContract :: (HasPostgresAuth b (SiteConfig b))
+              => Model
+              -> Text
+              -- ^ SubProgram id.
               -> FilterType
               -> Handler b (SiteConfig b) Model
 stripContract model sid flt = do
@@ -70,11 +71,11 @@ stripContract model sid flt = do
         ((withLens db $ query q (flt, progid)) ::
              Handler b (SiteConfig b) [(Text, Text)])
       filterFields perms flds = filter (isCanShow perms) flds
-      isCanShow perms f  = fromMaybe False $ check flt perms (name f)
+      isCanShow perms f = fromMaybe False $ check flt perms (name f)
       check Form _ "dixi"        = return True
       check Form _ "committer"   = return True
       check Form _ "isActive"    = return True
       check Form _ "ctime"       = return True
       check Table _ "id"         = return True
-      check _ _ "subprogram" = return True
+      check _ _ "subprogram"     = return True
       check _ perms name         = M.lookup name perms >>= return . ("t" ==)

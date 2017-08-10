@@ -14,6 +14,7 @@
 -- Межсервисный интервал              | cardnumber_serviceinterval
 -- Дата начала гарантии               | car_warrantystart
 -- Дата покупки                       | car_buydate
+-- Дата первой продажи                | car_firstsaledate
 -- Дилер, продавший автомобиль        | car_seller
 -- Заказчик
 -- Код заказчика
@@ -50,6 +51,7 @@ q = [sql|
         , carModel.label
         , plateNum
         , to_char(c.buyDate, 'DD/MM/YYYY')
+        , to_char(c.firstSaleDate, 'DD/MM/YYYY')
         , cardNumber::text
         , to_char(c.validSince, 'DD/MM/YYYY')
         , to_char(c.validUntil, 'DD/MM/YYYY')
@@ -80,6 +82,7 @@ fields = [ "car_vin"
          , "car_model"
          , "car_platenum"
          , "car_buydate"
+         , "car_firstsaledate"
          , "cardnumber_cardnumber"
          , "cardnumber_validfrom"
          , "cardnumber_validuntil"

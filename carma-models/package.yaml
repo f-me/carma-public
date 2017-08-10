@@ -1,5 +1,5 @@
 name:       carma-models
-version:    0.40.0
+version:    0.41.0
 synopsis:   Model definitions/CRUD for CaRMa
 license:    MIT
 author:     Formal Methods
@@ -28,6 +28,7 @@ dependencies:
  - transformers
  - unordered-containers
  - vector
+ - qm-interpolated-string
 
 default-extensions:
  - DataKinds

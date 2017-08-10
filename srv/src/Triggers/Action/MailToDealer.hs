@@ -4,6 +4,7 @@ import Control.Monad.IO.Class (liftIO)
 
 import Data.Text (Text)
 import qualified Data.Text as T
+import Text.InterpolatedString.QM (qn)
 import Data.Monoid ((<>))
 import qualified Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
@@ -94,46 +95,49 @@ q = [sql|
 
 
 msgTemplate :: Text
-msgTemplate
-  = "<p>На территорию Вашего ДЦ был доставлен а/м по программе Assistance.</p> \
-    \<br /> \
-    \Кейс в РАМК: $case_id$<br /> \
-    \VIN номер: $car_vin$<br /> \
-    \Госномер: $car_plate$<br /> \
-    \Дата доставки а/м: $case_date$<br /> \
-    \Марка: $car_make$<br /> \
-    \Модель: $car_model$<br /> \
-    \Неисправность со слов Клиента: $wazzup$<br /> \
-    \<p>Просим Вас, \
-    \<u>используя функцию <font color=\"red\">«ОТВЕТИТЬ ВСЕМ»</font></u>, \
-    \предоставить дополнительную информацию, после диагностики а/м \
-    \в виде таблицы.</p>\
-    \<table border=\"1\"> \
-    \  <tr bgcolor=\"SkyBlue\"> \
-    \    <th>Код дилера</th> \
-    \    <th>VIN номер автомобиля</th> \
-    \    <th>Пробег а/м на момент поломки</th> \
-    \    <th>Номер заказа-наряда ремонта у дилера</th> \
-    \    <th>Время/Дата поступления автомобиля</th> \
-    \    <th>Время/дата диагностики</th> \
-    \    <th>Запланированное время/дата окончания работ</th> \
-    \    <th>Реальное время/дата окончания работ</th> \
-    \    <th>Гарантия / негарантия</th> \
-    \    <th>Описание причины неисправности</th> \
-    \    <th>Система автомобиля, в которой произошла неисправность</th> \
-    \    <th>Неисправная деталь</th> \
-    \  </tr> \
-    \  <tr align=\"center\"> \
-    \    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td> \
-    \    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td> \
-    \  </tr> \
-    \  <tr align=\"center\"> \
-    \    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td> \
-    \    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td> \
-    \  </tr> \
-    \  <tr align=\"center\"> \
-    \    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td> \
-    \    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td> \
-    \  </tr> \
-    \</table> \
-    \<p>Заранее благодарим за своевременный ответ в течение 24 часов.</p>"
+msgTemplate = [qn|
+    <p>На территорию Вашего ДЦ был доставлен а/м по программе Assistance.</p>
+    <br />
+    Кейс в РАМК: $case_id$<br />
+    VIN номер: $car_vin$<br />
+    Госномер: $car_plate$<br />
+    Дата доставки а/м: $case_date$<br />
+    Марка: $car_make$<br />
+    Модель: $car_model$<br />
+    Неисправность со слов Клиента: $wazzup$<br />
+    <p>
+      Просим Вас,
+      \ <u>используя функцию <font color="red">«ОТВЕТИТЬ ВСЕМ»</font></u>,
+      \ предоставить дополнительную информацию, после диагностики а/м
+      \ в виде таблицы.
+    </p>
+    <table border="1">
+      <tr bgcolor="SkyBlue">
+        <th>Код дилера</th>
+        <th>VIN номер автомобиля</th>
+        <th>Пробег а/м на момент поломки</th>
+        <th>Номер заказа-наряда ремонта у дилера</th>
+        <th>Время/Дата поступления автомобиля</th>
+        <th>Время/дата диагностики</th>
+        <th>Запланированное время/дата окончания работ</th>
+        <th>Реальное время/дата окончания работ</th>
+        <th>Гарантия / негарантия</th>
+        <th>Описание причины неисправности</th>
+        <th>Система автомобиля, в которой произошла неисправность</th>
+        <th>Неисправная деталь</th>
+      </tr>
+      <tr align="center">
+        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+      </tr>
+      <tr align="center">
+        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+      </tr>
+      <tr align="center">
+        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+      </tr>
+    </table>
+    <p>Заранее благодарим за своевременный ответ в течение 24 часов.</p>
+  |]

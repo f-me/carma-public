@@ -7,16 +7,14 @@ import Tree from './Tree'
 import SlideEditor from './SlideEditor'
 import './DiagTree.css'
 
-
-
 // FIXME: error if there is no slides
 export default class Editor extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
 
     this.state = {
       slides: null,
-      selectedId: null
+      selectedId: null,
     }
   }
 
@@ -24,27 +22,34 @@ export default class Editor extends React.Component {
     this._loadSlides()
   }
 
-
   _loadSlides = () => {
     if (this.props.testMode) {
-//      const slides_json = require('./slides.json');
+      const slides_json = require('./slides.json')
       this.setState({
         slides: Immutable.Map(
-          slides_json.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
-          selectedId: this.state.selectedId || slides_json.find(x => x.isRoot).id
+          slides_json.reduce((m, s) => {
+            m[String(s.id)] = s
+            return m
+          }, {}),
+        ),
+        selectedId: this.state.selectedId || slides_json.find(x => x.isRoot).id,
       })
     } else {
-      fetch('/_/DiagSlide', {credentials: 'same-origin'})
-        .then(resp => resp.json().then(slides =>
+      fetch('/_/DiagSlide', { credentials: 'same-origin' }).then(resp =>
+        resp.json().then(slides =>
           this.setState({
             slides: Immutable.Map(
-              slides.reduce((m, s) => {m[String(s.id)] = s; return m;}, {})),
-            selectedId: this.state.selectedId || slides.find(x => x.isRoot).id
-          })
-        ))
+              slides.reduce((m, s) => {
+                m[String(s.id)] = s
+                return m
+              }, {}),
+            ),
+            selectedId: this.state.selectedId || slides.find(x => x.isRoot).id,
+          }),
+        ),
+      )
     }
   }
-
 
   newSlide = () => {
     const slide = {
@@ -53,82 +58,80 @@ export default class Editor extends React.Component {
       resources: [],
       answers: [],
       actions: [],
-      isRoot: true
-    };
+      isRoot: true,
+    }
 
-    fetch('/_/DiagSlide',
-      { method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(slide),
-      })
-      .then(resp => resp.json().then(res => {
-        Object.assign(slide, res);
+    fetch('/_/DiagSlide', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(slide),
+    }).then(resp =>
+      resp.json().then(res => {
+        Object.assign(slide, res)
         this.setState({
           slides: this.state.slides.set(String(slide.id), slide),
-          selectedId: slide.id
+          selectedId: slide.id,
         })
-      }))
+      }),
+    )
   }
 
-
   saveSlide = data => {
-    let slide = data.toJS();
-    this.setState({saveMsg: "Сохраняем"});
+    let slide = data.toJS()
+    this.setState({ saveMsg: 'Сохраняем' })
 
-    fetch(`/_/DiagSlide/${slide.id}`,
-      { method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(slide),
-      })
-      .then(resp => {
-        if(resp.status === 200) {
-          resp.json().then(res => {
-            slide = Object.assign(slide, res);
-            this.setState({
-              slides: this.state.slides.set(String(slide.id), slide),
-              saveMsg: "Сохранено"
-            })
-            this._loadSlides();
-            setTimeout(() => this.setState({saveMsg: ''}), 2000);
+    fetch(`/_/DiagSlide/${slide.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(slide),
+    }).then(resp => {
+      if (resp.status === 200) {
+        resp.json().then(res => {
+          slide = Object.assign(slide, res)
+          this.setState({
+            slides: this.state.slides.set(String(slide.id), slide),
+            saveMsg: 'Сохранено',
           })
-        } else {
-          this.setState({saveMsg: "Ошибка"})
-        }
-      })
+          this._loadSlides()
+          setTimeout(() => this.setState({ saveMsg: '' }), 2000)
+        })
+      } else {
+        this.setState({ saveMsg: 'Ошибка' })
+      }
+    })
   }
 
   deleteSlide = id => {
-    fetch(`/_/DiagSlide/${id}`,
-      { method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({isActive: false}),
-      })
-      .then(resp => { if(resp.status === 200) this._loadSlides(); })
+    fetch(`/_/DiagSlide/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ isActive: false }),
+    }).then(resp => {
+      if (resp.status === 200) this._loadSlides()
+    })
   }
 
-
-
   render() {
-    const {slides, selectedId} = this.state;
+    const { slides, selectedId } = this.state
 
-    if (slides === null) return (<span>Loading...</span>);
+    if (slides === null) return <span>Loading...</span>
 
     return (
       <Grid className="Editor">
         <Row>
           <Col md={4}>
-            <ButtonToolbar style={{padding: '10px'}}>
-              <Button bsStyle='success' onClick={this.newSlide}>
+            <ButtonToolbar style={{ padding: '10px' }}>
+              <Button bsStyle="success" onClick={this.newSlide}>
                 <Glyphicon glyph="plus" /> Новое дерево
               </Button>
             </ButtonToolbar>
             <Tree
               items={slides}
               selected={selectedId}
-              onSelect={it => this.setState({selectedId: it.id})}
+              onSelect={it => this.setState({ selectedId: it.id })}
               onDelete={this.deleteSlide}
             />
           </Col>
@@ -142,6 +145,6 @@ export default class Editor extends React.Component {
           </Col>
         </Row>
       </Grid>
-    );
+    )
   }
 }

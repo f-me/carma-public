@@ -53,20 +53,20 @@ instance ToField t => ToField (Ident t m) where
 -- | FieldKind and it's singletons
 data FieldKind = DefaultField | EphemeralField
 data FieldKindSingleton (k :: FieldKind) where
-  FKSDefault   :: FieldKindSingleton DefaultField
-  FKSEphemeral :: FieldKindSingleton EphemeralField
+  FKSDefault   :: FieldKindSingleton 'DefaultField
+  FKSEphemeral :: FieldKindSingleton 'EphemeralField
 
 class FieldKindSing k where fieldKindSing :: FieldKindSingleton k
-instance FieldKindSing DefaultField   where fieldKindSing = FKSDefault
-instance FieldKindSing EphemeralField where fieldKindSing = FKSEphemeral
+instance FieldKindSing 'DefaultField   where fieldKindSing = FKSDefault
+instance FieldKindSing 'EphemeralField where fieldKindSing = FKSEphemeral
 
 
 data FOpt (name :: Symbol) (desc :: Symbol) (app :: FieldKind) = FOpt
 data Field typ opt = Field
 type FF t n d a = Field t (FOpt n d a)
-type F  t n d   = FF t n d DefaultField
-type EF t n d   = FF t n d EphemeralField
-type PK t m n   = FF (Ident t m) "id" n DefaultField
+type F  t n d   = FF t n d 'DefaultField
+type EF t n d   = FF t n d 'EphemeralField
+type PK t m n   = FF (Ident t m) "id" n 'DefaultField
 
 -- | Existential wrapper for field accessors.
 data FA m = forall t n d. (FieldI t n d) =>
@@ -80,38 +80,42 @@ type FieldI t (n :: Symbol) (d :: Symbol) =
   , DefaultFieldView t
   , FromJSON t, ToJSON t
   , FromField t, ToField t
-  , KnownSymbol n, KnownSymbol d)
+  , KnownSymbol n, KnownSymbol d
+  )
 
 
 data ModelInfo m = ModelInfo
-  { modelName      :: Text
-  , parentName     :: Maybe Text
-  , tableName      :: Text
-  , primKeyName    :: Text
-  , modelFields    :: [FieldDesc]
-  , modelOnlyFields:: [FieldDesc]
-  , modelFieldsMap :: HashMap Text FieldDesc
-  , modelCRUD      :: Maybe (CRUD m) -- ^ `Nothing` means `defaultCRUD`
+  { modelName       :: Text
+  , parentName      :: Maybe Text
+  , tableName       :: Text
+  , primKeyName     :: Text
+  , modelFields     :: [FieldDesc]
+  , modelOnlyFields :: [FieldDesc]
+  , modelFieldsMap  :: HashMap Text FieldDesc
+  , sortByFieldName :: Text
+  , modelCRUD       :: Maybe (CRUD m) -- ^ `Nothing` means `defaultCRUD`
   }
 
 
-data FieldDesc = FieldDesc
-  {fd_name       :: Text
-  ,fd_desc       :: Text
-  ,fd_type       :: TypeRep
-  ,fd_parseJSON  :: Value -> Parser Dynamic
-  ,fd_toJSON     :: Dynamic -> Value
-  ,fd_fromField  :: RowParser Dynamic
-  ,fd_toField    :: Dynamic -> Action
-  ,fd_view       :: FieldView
-  ,fd_pgType     :: PgType
-  } | EFieldDesc
-  {fd_name       :: Text
-  ,fd_desc       :: Text
-  ,fd_type       :: TypeRep
-  ,fd_toJSON     :: Dynamic -> Value
-  ,fd_parseJSON  :: Value -> Parser Dynamic
-  ,fd_view       :: FieldView
+data FieldDesc
+  = FieldDesc
+  { fd_name       :: Text
+  , fd_desc       :: Text
+  , fd_type       :: TypeRep
+  , fd_parseJSON  :: Value -> Parser Dynamic
+  , fd_toJSON     :: Dynamic -> Value
+  , fd_fromField  :: RowParser Dynamic
+  , fd_toField    :: Dynamic -> Action
+  , fd_view       :: FieldView
+  , fd_pgType     :: PgType
+  }
+  | EFieldDesc
+  { fd_name       :: Text
+  , fd_desc       :: Text
+  , fd_type       :: TypeRep
+  , fd_toJSON     :: Dynamic -> Value
+  , fd_parseJSON  :: Value -> Parser Dynamic
+  , fd_view       :: FieldView
   }
 
 data FieldView = FieldView

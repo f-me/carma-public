@@ -111,13 +111,13 @@ $(genSingletons [''FormatFieldTitle])
 
 type SFFL a = SFormatFieldTitle a
 
-instance FormatFieldParameter (SFFL Title) where
-    type ParamType (SFFL Title) = Text
+instance FormatFieldParameter (SFFL 'Title) where
+    type ParamType (SFFL 'Title) = Text
     nameFormat _ = "%sTitle"
     descFormat _ = "Заголовок поля «%s»"
 
-instance FormatFieldParameter (SFFL MultiTitles) where
-    type ParamType (SFFL MultiTitles) = Vector Text
+instance FormatFieldParameter (SFFL 'MultiTitles) where
+    type ParamType (SFFL 'MultiTitles) = Vector Text
     nameFormat _ = "%sTitles"
     descFormat _ = "Заголовки поля «%s»"
 
@@ -195,33 +195,33 @@ type SFFT a = SFormatFieldType a
 -- extra parameter (title).
 class (FormatFieldParameter (TitleParameter a)) => FFTypeI a where
     type TitleParameter a
-    type TitleParameter a = (SFFL Title)
+    type TitleParameter a = (SFFL 'Title)
 
-instance FFTypeI (SFFT Raw)
+instance FFTypeI (SFFT 'Raw)
 
-instance FFTypeI (SFFT Number)
+instance FFTypeI (SFFT 'Number)
 
-instance FFTypeI (SFFT VIN)
+instance FFTypeI (SFFT 'VIN)
 
-instance FFTypeI (SFFT Email)
+instance FFTypeI (SFFT 'Email)
 
-instance FFTypeI (SFFT Plate)
+instance FFTypeI (SFFT 'Plate)
 
-instance FFTypeI (SFFT Year)
+instance FFTypeI (SFFT 'Year)
 
-instance FFTypeI (SFFT Phone)
+instance FFTypeI (SFFT 'Phone)
 
-instance FFTypeI (SFFT Date)
+instance FFTypeI (SFFT 'Date)
 
-instance FFTypeI (SFFT Name) where
-    type TitleParameter (SFFT Name) = (SFFL MultiTitles)
+instance FFTypeI (SFFT 'Name) where
+    type TitleParameter (SFFT 'Name) = (SFFL 'MultiTitles)
 
-instance FFTypeI (SFFT Dict)
+instance FFTypeI (SFFT 'Dict)
 
-instance FFTypeI (SFFT Dealer) where
-    type TitleParameter (SFFT Dealer) = (SFFL MultiTitles)
+instance FFTypeI (SFFT 'Dealer) where
+    type TitleParameter (SFFT 'Dealer) = (SFFL 'MultiTitles)
 
-instance FFTypeI (SFFT Subprogram)
+instance FFTypeI (SFFT 'Subprogram)
 
 
 -- | Annotated field of the 'Contract' model.

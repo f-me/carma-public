@@ -1,6 +1,5 @@
 module ApplicationInit (appInit) where
 
-import Control.Applicative
 import Control.Monad (when)
 import Control.Concurrent.STM
 import Control.Monad.IO.Class
@@ -18,7 +17,7 @@ import Snap.Snaplet
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Auth.Backends.PostgresqlSimple
-import Snap.Snaplet.PostgresqlSimple (pgsInit)
+import Snap.Snaplet.PostgresqlSimple (pgsDefaultConfig, pgsInit')
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe ( serveFile
                            , simpleDirectoryConfig
@@ -176,8 +175,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   opts <- liftIO $ AppOptions
                 <$> Cfg.lookup cfg "local-name"
                 <*> Cfg.lookupDefault 4 cfg "search-min-length"
-                <*> Cfg.lookup cfg "dmcc-ws-host"
-                <*> Cfg.require cfg "dmcc-ws-port"
+                <*> Cfg.lookupDefault "localhost" cfg "dmcc-ws-host"
+                <*> Cfg.lookupDefault 8333 cfg "dmcc-ws-port"
 
   wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
 
@@ -194,7 +193,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        initCookieSessionManager sesKey "_session" Nothing
 
   -- DB
-  ad <- nestSnaplet "auth_db" db pgsInit
+  ad <- nestSnaplet "db" db $ pgsInit' $ pgsDefaultConfig
+        "host=localhost port=5432 dbname=carma user=carma_db_sync password=pass"
 
   authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
 

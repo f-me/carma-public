@@ -1,4 +1,3 @@
-
 import Immutable from 'immutable'
 import React from 'react'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'

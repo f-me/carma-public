@@ -1,4 +1,5 @@
-﻿CREATE VIEW "Контракты" AS
+﻿DROP VIEW IF EXISTS "Контракты";
+CREATE VIEW "Контракты" AS
 SELECT "Contract".id AS "Номер контракта",
 --ФУНКЦИИ TIME (ВРЕМЯ ПО МОСКВЕ) НЕ РЕАЛИЗУЕТС ВО VIEW, БУДЕТ РЕАЛИЗОВАНА В JASPERSOFT STUDIO (формат  'DD/MM/YYYY HH24:MI')
     "Contract".ctime AT TIME ZONE 'Europe/Moscow' AS "Время создания контракта",
@@ -25,6 +26,7 @@ SELECT "Contract".id AS "Номер контракта",
     "Contract".enginevolume AS "Объём двигателя",
     "Engine".label AS "Тип двигателя",
     "Contract".buydate AS "Дата покупки",
+    "Contract".firstSaleDate AS "Дата первой продажи",
     p2.name AS "Дилер, продавший автомобиль",
     p1.name AS "Дилер, у которого проходило послед",
     "Contract".checkperiod AS "Межсервисный интервал",

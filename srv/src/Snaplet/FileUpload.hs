@@ -39,7 +39,7 @@ import Data.Attoparsec.Text as P
 import Data.Maybe
 import Data.Configurator
 import qualified Data.ByteString.Lazy as BL
-import Data.Digest.Pure.MD5 (md5)
+import Data.Digest.Pure.SHA (sha256)
 import qualified Data.HashSet as HS
 import qualified Database.PostgreSQL.Simple as PS
 import Database.PostgreSQL.Simple.SqlQQ
@@ -122,7 +122,7 @@ uploadInManyFields flds nameFun = do
   fPath <- oneUpload =<< doUpload =<< gets tmp
   let (_, fName) = splitFileName fPath
 
-  hash <- liftIO $ md5 <$> BL.readFile fPath
+  hash <- liftIO $ sha256 <$> BL.readFile fPath
   now <- liftIO $ getCurrentTime
 
   root <- gets finished
@@ -390,8 +390,12 @@ fileUploadInit pg =
       minRate  <- liftIO $ lookupDefault 1000 cfg "min-upload-rate"
       kickLag  <- liftIO $ lookupDefault 10   cfg "min-rate-kick-lag"
       inact    <- liftIO $ lookupDefault 20   cfg "inactivity-timeout"
-      tmp      <- liftIO $ require            cfg "tmp-path"
-      finished <- liftIO $ require            cfg "finished-path"
+      tmp      <- liftIO $
+                  lookupDefault "/tmp"
+                  cfg "tmp-path"
+      finished <- liftIO $
+                  lookupDefault "resources/static/fileupload"
+                  cfg "finished-path"
       -- we need some values in bytes
       let maxFile' = maxFile * 1024
           minRate' = minRate * 1024

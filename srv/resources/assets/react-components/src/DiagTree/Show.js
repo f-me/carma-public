@@ -1,12 +1,41 @@
 import React from 'react'
-import { Grid, Row, Col } from 'react-bootstrap'
-import { ListGroup, ListGroupItem } from 'react-bootstrap'
-import { OverlayTrigger, Tooltip } from 'react-bootstrap'
-import { Glyphicon } from 'react-bootstrap'
 import RichTextEditor from 'react-rte'
+
+import {
+  Grid, Row, Col,
+  ListGroup, ListGroupItem,
+  Button, ButtonGroup,
+  OverlayTrigger, Tooltip,
+  Glyphicon
+} from 'react-bootstrap'
 
 import './DiagTree.css';
 
+// h ∈ [0..360]; s ∈ [0..1]; v ∈ [0..1]
+// see https://github.com/tmpvar/hsv2rgb/blob/master/hsv2rgb.js
+const hsv2rgb = (h, s, v) => {
+  h = h % 360;
+  s = Math.max(0, Math.min(s, 1));
+  v = Math.max(0, Math.min(v, 1));
+  if(!s)return [v, v, v].map(x => Math.round(x * 255));
+  let res;
+  const b = ((1 - s) * v), vb = v - b, hm = h % 60;
+  switch ((h / 60) | 0) {
+    case 0: res = [v, vb * h / 60 + b, b]; break;
+    case 1: res = [vb * (60 - hm) / 60 + b, v, b]; break;
+    case 2: res = [b, v, vb * hm / 60 + b]; break;
+    case 3: res = [b, vb * (60 - hm) / 60 + b, v]; break;
+    case 4: res = [vb * hm / 60 + b, b, v]; break;
+    case 5: res = [v, b, vb * (60 - hm) / 60 + b]; break;
+  }
+  return res.map(x => Math.round(x * 255));
+};
+
+const backgrounds = [...Array(7).keys()]
+  .map(x => hsv2rgb(x / 7 * 360, 0.10, 1))
+  .map(([r, g, b]) => ({backgroundColor: `rgb(${r}, ${g}, ${b})`}));
+
+const yesNoRegs = [/^да/i, /^нет/i];
 
 // FIXME: - immutable history?
 export default class Show extends React.Component {
@@ -25,12 +54,12 @@ export default class Show extends React.Component {
 
   _loadHistory = () =>
     fetch(`/diag/history/${this.props.caseId}`, {credentials: 'same-origin'})
-      .then(resp => resp.json().then(hist =>
-        this.setState({
-          history: hist,
-          slideId: hist[hist.length-1].id
-        })
-      ))
+      .then(resp => resp.json())
+      .then(hist => this.setState({
+        history: hist,
+        slideId: hist[hist.length-1].id
+      }))
+
 
   _answer = (slideId, ix, nextSlide) => () =>
     fetch(`/_/DiagHistory/${slideId}`,
@@ -83,6 +112,21 @@ export default class Show extends React.Component {
       })
 
 
+  _answerItem = slide => (ans, i) => {
+    return <ListGroupItem
+      header={ans.header}
+      className={slide.answerIx === i ? 'selected' : null}
+      style={backgrounds[i % backgrounds.length]}
+      onClick={slide.answerIx !== null
+        ? undefined
+        : this._answer(slide.id, i, ans.nextSlide)}
+    >
+      {ans.file && <img src={ans.file} role="presentation"/>}
+      {ans.text}
+    </ListGroupItem>;
+  };
+
+
   render() {
     const {history, slideId, hoverId} = this.state;
     if (!history) return <span>Loading...</span>;
@@ -90,7 +134,7 @@ export default class Show extends React.Component {
     const slide = history.find(h => h.id === slideId);
     const body  = RichTextEditor.createValueFromString(slide.body, 'markdown');
     const answer = (hist, opt={}) => {
-      if(hist.answerIx === null) return '';
+      if(hist.answerIx === null) return null;
       return (<div>
         <div className="history-answer">
           {hist.answers[hist.answerIx].header}
@@ -98,7 +142,7 @@ export default class Show extends React.Component {
           {hist.answerTime} − {hist.answeredBy}
         </div>
         { !opt.disabled && hoverId ===  hist.id
-          ?  <OverlayTrigger
+          ? <OverlayTrigger
                 placement="top"
                 overlay={<Tooltip>Повторить вопрос</Tooltip>}>
               <Glyphicon
@@ -106,7 +150,7 @@ export default class Show extends React.Component {
                   onClick={this._repeatQuestion(hist.id)}
                   glyph="repeat"/>
             </OverlayTrigger>
-          : ''
+          : null
         }
       </div>);
     };
@@ -127,7 +171,7 @@ export default class Show extends React.Component {
                           >
                             Показать отменённые ответы
                           </a>
-                        : ''
+                        : null
                       }
                       { this.state.showDeprecated === h.id
                         ? <a className="more" href="#"
@@ -135,25 +179,30 @@ export default class Show extends React.Component {
                           >
                             Скрыть отменённые ответы
                           </a>
-                        : ''
+                        : null
                       }
                     </div>
                     { prevHistory.length && this.state.showDeprecated === h.id
                       ? <ListGroup>
-                        { history.filter(hh => hh.deprecatedBy === h.id).map((hh, j) =>
-                            <ListGroupItem key={j}
-                              className={hh.id === slideId ? 'deprecated selected' : 'deprecated'}
-                              header={hh.header}
-                              onClick={() => this.setState({slideId: hh.id})}
-                            >
-                              {answer(h, {disabled: true})}
-                            </ListGroupItem>
-                        )}
+                        { history
+                            .filter(hh => hh.deprecatedBy === h.id)
+                            .map((hh, j) =>
+                              <ListGroupItem key={j}
+                                className={hh.id === slideId
+                                            ? 'deprecated selected'
+                                            : 'deprecated'}
+                                header={hh.header}
+                                onClick={() => this.setState({slideId: hh.id})}
+                              >
+                                {answer(h, {disabled: true})}
+                              </ListGroupItem>
+                            )
+                        }
                         </ListGroup>
-                      : ''
+                      : null
                     }
                     <ListGroupItem
-                      className={h.id === slideId ? 'selected' : ''}
+                      className={h.id === slideId ? 'selected' : null}
                       onClick={() => this.setState({slideId: h.id})}
                       onMouseEnter={() => this.setState({hoverId: h.id})}
                       onMouseLeave={() => this.setState({hoverId: null})}
@@ -168,26 +217,31 @@ export default class Show extends React.Component {
           <Col md={8}>
             <h1>{slide.header}</h1>
             <RichTextEditor readOnly={true} value={body} />
+
             {slide.resources.map((res, i) => (
               <div key={i}>
                 <img src={res.file} role="presentation"/>
                 <span>{res.text}</span>
               </div>
             ))}
-            <ListGroup>
-              {slide.answers.map((ans, i) => (
-                <ListGroupItem
-                  header={ans.header}
-                  className={slide.answerIx === i ? 'selected' : ''}
-                  onClick={slide.answerIx !== null
-                    ? undefined
-                    : this._answer(slide.id, i, ans.nextSlide)}
-                >
-                  {ans.file && <img src={ans.file} role="presentation"/>}
-                  {ans.text}
-                </ListGroupItem>
-              ))}
-            </ListGroup>
+
+            { slide.answers.length === 2 &&
+              ( yesNoRegs.every((x, i) => x.test(slide.answers[i].header)) ||
+                yesNoRegs.reverse().every((x, i) => x.test(slide.answers[i].header))
+              )
+
+              ? <Row>
+                  {slide.answers.map((x, i) =>
+                    <Col md={6}>
+                      <ListGroup>{this._answerItem(slide)(x, i)}</ListGroup>
+                    </Col>
+                  )}
+                </Row>
+
+              : <ListGroup>
+                  {slide.answers.map(this._answerItem(slide))}
+                </ListGroup>
+            }
 
             {slide.actions && slide.actions.length
               ? <ListGroup>
@@ -196,7 +250,7 @@ export default class Show extends React.Component {
                     onClick={this._execAction(slide.actions[0])}
                   />
                 </ListGroup>
-              : ''
+              : null
             }
           </Col>
         </Row>

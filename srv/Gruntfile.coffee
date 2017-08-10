@@ -15,7 +15,9 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON('package.json')
     coffee:
       all:
-        options: { bare:  true }
+        options: 
+          bare:  true 
+          sourceMap: true
         expand:  true
         flatten: false
         cwd:     scripts
@@ -23,13 +25,26 @@ module.exports = (grunt) ->
         dest:    built
         ext:     '.js'
 
+    babel: 
+      options: 
+        sourceMap: true
+        presets: ['es2015']
+      dist:
+        files: [
+          expand: true
+          cwd:    scripts
+          src:    ['**/*.js']
+          dest:   built
+          filter: 'isFile'
+        ]
+
     copy:
-      js:
-        expand: true
-        cwd: scripts
-        src: ["**/*.js"]
-        dest: js
-        filter: 'isFile'
+      # js:
+      #   expand: true
+      #   cwd: scripts
+      #   src: ["**/*.js"]
+      #   dest: built
+      #   filter: 'isFile'
       template:
         expand: true
         cwd: "#{content}/template"
@@ -103,7 +118,7 @@ module.exports = (grunt) ->
         tasks: "newer:coffee"
       js:
         files: "#{scripts}/**/*.js"
-        tasks: "newer:copy:js"
+        tasks: "newer:babel"
       pug:
         files: ["#{content}/template/**/*.pug"]
         tasks: "pug"
@@ -205,7 +220,7 @@ module.exports = (grunt) ->
 
   newerify = (ts) -> "newer:#{t}" for t in ts
 
-  grunt.registerTask("build", ['shell:react-components', 'copy', 'coffee', 'less', 'puglint', 'pug'])
+  grunt.registerTask("build", ['shell:react-components', 'copy', 'coffee', 'babel', 'less', 'puglint', 'pug'])
   grunt.registerTask("rebuild", ['shell:bower', 'clean', 'build'])
   grunt.registerTask("bwatch", ['rebuild', 'watch'])
   grunt.registerTask("default", "rebuild")

@@ -34,6 +34,7 @@ extra-deps:
 - snap-loader-static-0.9.0.2
 - snaplet-postgresql-simple-0.6.0.4
 - websockets-snap-0.9.2.0
+- qm-interpolated-string-0.1.1.0
 image:
   containers:
-    - base: "fpco/stack-run"
+    - base: "formalmethods/carma-base-runtime"

@@ -16,7 +16,6 @@ import Data.Model.View
 import Data.Model.Types
 
 import Carma.Model.Types (Coords)
-import Carma.Model.LegacyTypes (Reference)
 import Carma.Model.CarMake (CarMake)
 import Carma.Model.City (City)
 import Carma.Model.TaxScheme (TaxScheme)

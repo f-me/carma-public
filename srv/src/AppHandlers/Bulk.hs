@@ -14,8 +14,8 @@ import           BasicPrelude
 import           Control.Monad.State.Class
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as B
-import           Data.Configurator
 import qualified Data.Map as Map
+import           Data.Pool
 import qualified Data.Vector as V
 
 import           System.Directory
@@ -26,7 +26,6 @@ import           Carma.VIN
 
 import           Application
 import           AppHandlers.Util
-import           Database.PostgreSQL.Simple as Pg
 
 import           Data.Model (Ident(..))
 import qualified Data.Model.Patch as Patch
@@ -35,6 +34,7 @@ import qualified Carma.Model.Usermeta as Usermeta
 
 import           Snaplet.Auth.PGUsers
 import           Snaplet.FileUpload (tmp, doUploadTmp, oneUpload)
+import           Snap.Snaplet.PostgresqlSimple
 import           Snaplet.TaskManager as TM
 import           Util as U hiding (render)
 
@@ -76,22 +76,17 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       tmpDir <- with fileUpload $ gets tmp
       (outPath, _) <- liftIO $ openTempFile tmpDir inName
 
-      -- Use connection information from DbLayer
-      appCfg <- getSnapletUserConfig
-      connInfo <- liftIO $ ConnectInfo
-                  <$> require appCfg "vinnie_host"
-                  <*> require appCfg "vinnie_port"
-                  <*> require appCfg "vinnie_user"
-                  <*> require appCfg "vinnie_pass"
-                  <*> require appCfg "vinnie_db"
-
+      pgs <- with db getPostgresState
 
       -- VIN import task handler
       with taskMgr $ TM.create $ do
-        let opts = Options connInfo inPath outPath
+        let opts = Options inPath outPath
                    uid -- Set current user as committer
                    fid Nothing (Just sid) False
-        res <- doImport opts
+            connGetter = case pgs of
+                           PostgresPool pool -> withResource pool
+                           PostgresConn c -> ($ c)
+        res <- connGetter (doImport opts)
 
         removeFile inPath
         case res of

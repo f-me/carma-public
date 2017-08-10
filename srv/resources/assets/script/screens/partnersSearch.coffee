@@ -411,7 +411,7 @@ define [ "utils"
 
     # Force a parent type when selecting a subtype
     kvm['typeId'].subscribe (newTypeId) ->
-      if newTypeId != kvm['services'].peek()?[0]
+      if newTypeId
         kvm['services']([newTypeId])
 
     # Force the user to pick a new subtype when changing types to
@@ -438,31 +438,7 @@ define [ "utils"
 
         k['coords'] = ko.computed -> "#{k['st_x']()},#{k['st_y']()}"
 
-        k['filteredServices'] = ko.computed ->
-          srvs = kvm['servicesLocals']()
-          if _.isEmpty srvs
-            k['services']()
-          else
-            srvs = _.filter k['services'](),
-              ({type}) -> srvs.some (s) -> `s.value == type`
-            # Go deeper and extract a subtyped service. Add `type`
-            # property to be compatible to `showStr` templates below.
-            # In case multiple types are selected, the behaviour is
-            # undefined (the UI should prevent that, so `srvs` should
-            # be a 1-element array here)
-            if kvm["subtypeId"]()
-              srv = _.find srvs[0]?.subtypes, (s) -> s.subtype == kvm["subtypeId"]()
-              if srv
-                srv.type = kvm["typeId"]()
-                [srv]
-              else
-                []
-            else
-              # Do not extract subtypes for non-subtyped services
-              srvs
-
-
-        for nested in k['filteredServices']()
+        addShowStrs = (services) -> for nested in services
           do (nested) ->
             nested['showStr'] = ko.computed ->
               show  = "<span class='label label-info'>
@@ -477,7 +453,32 @@ define [ "utils"
                           ПБЗ: #{nested.priority3}
                           </span>"
               show
+            nested
 
+        k['filteredServices'] = ko.computed ->
+         srvs = kvm['servicesLocals']()
+         addShowStrs(
+          if _.isEmpty srvs
+            k['services']()
+          else
+            srvs = _.filter k['services'](),
+              ({type}) -> srvs.some (s) -> `s.value == type`
+            # Go deeper and extract a subtyped service. Add `type`
+            # property to be compatible to `showStr` templates above.
+            # In case multiple types are selected, the behaviour is
+            # undefined (the UI should prevent that, so `srvs` should
+            # be a 1-element array here)
+            if kvm["subtypeId"]()
+              srv = _.find srvs[0]?.subtypes, (s) -> s.subtype == kvm["subtypeId"]()
+              if srv
+                srv.type = kvm["typeId"]()
+                [srv]
+              else
+                []
+            else
+              # Do not extract subtypes for non-subtyped services
+              srvs
+         )
         k
       return ms
 

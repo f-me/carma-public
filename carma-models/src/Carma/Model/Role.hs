@@ -8,16 +8,16 @@ import Data.Typeable
 import Data.Model
 import Data.Model.View
 import Data.Model.TH
-import Carma.Model.Types()
-import Carma.Model.PgTypes()
+import Carma.Model.Types ()
+import Carma.Model.PgTypes ()
 
 data Role = Role
-  {ident  :: PK Int Role ""
-  ,label  :: F Text "label"  "Название роли"
-  ,value  :: F Text "value"  "Внутреннее название роли"
+  { ident  :: PK Int Role ""
+  , label  :: F Text "label"  "Название роли"
+  , value  :: F Text "value"  "Внутреннее название роли"
   -- ^ Internal label is only used to set screen permissions.
-  ,isBack :: F Bool "isBack" "Роль бэкофиса"
-  ,hidden :: F Bool "hidden" "Скрытая"
+  , isBack :: F Bool "isBack" "Роль бэкофиса"
+  , hidden :: F Bool "hidden" "Скрытая"
   } deriving Typeable
 
 mkIdents [t|Role|]

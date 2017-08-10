@@ -75,7 +75,7 @@ import qualified Data.ByteString.Lazy.Char8 as BL8
 import Data.ByteString (ByteString)
 
 import Data.Configurator
-import Data.Digest.Pure.MD5 (md5)
+import Data.Digest.Pure.SHA (sha256)
 
 import Data.HashSet as HS hiding (map)
 import Data.List as L
@@ -158,7 +158,7 @@ create handler = do
              gen <- readTVar r
              let (i, g) = next gen
              writeTVar r g
-             return $ show $ md5 $ BL8.pack $ show i
+             return $ show $ sha256 $ BL8.pack $ show i
   let token = B8.pack tokenStr
 
   -- Start a new task

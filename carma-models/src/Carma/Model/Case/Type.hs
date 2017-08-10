@@ -18,6 +18,7 @@ import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
 import Carma.Model.Engine       (Engine)
 import Carma.Model.CarClass     (CarClass)
+import Carma.Model.CarGeneration(CarGeneration)
 import Carma.Model.CarMake      (CarMake)
 import Carma.Model.CarModel     (CarModel)
 import Carma.Model.LegacyTypes
@@ -37,7 +38,7 @@ data Case = Case
   , vwcreatedate
     :: F (Maybe UTCTime) "vwcreatedate" "Дата звонка"
   , callTaker
-    :: F (IdentI Usermeta)      "callTaker" "Сотрудник РАМК"
+    :: F (IdentI Usermeta) "callTaker" "Сотрудник РАМК"
   , customerComment
     :: F (Maybe Text) "customerComment" "Неисправность со слов клиента"
   , comment
@@ -63,7 +64,7 @@ data Case = Case
   , contact_email
     :: F (Maybe Text) "contact_email" "Email звонящего"
   , contact_contactOwner
-    :: F (Maybe Checkbox)     "contact_contactOwner" "Звонящий владелец?"
+    :: F (Maybe Checkbox) "contact_contactOwner" "Звонящий владелец?"
   , contact_ownerName
     :: F (Maybe Text) "contact_ownerName" "Владелец"
   , contact_ownerPhone1
@@ -91,6 +92,8 @@ data Case = Case
     :: F (Maybe (IdentI CarMake)) "car_make" "Марка"
   , car_model
     :: F (Maybe (IdentI CarModel)) "car_model" "Модель"
+  , car_generation
+    :: F (Maybe (IdentI CarGeneration)) "car_generation" "Поколение"
   , car_seller
     :: F (Maybe (IdentI Partner)) "car_seller" "Дилер, продавший автомобиль"
   , car_plateNum
@@ -101,6 +104,8 @@ data Case = Case
     :: F (Maybe Text) "car_color" "Цвет"
   , car_buyDate
     :: F (Maybe Day) "car_buyDate" "Дата покупки"
+  , car_firstSaleDate
+    :: F (Maybe Day) "car_firstSaleDate" "Дата первой продажи"
   , car_dealerTO
     :: F (Maybe (IdentI Partner)) "car_dealerTO" "Дилер, у которого проходило последнее ТО"
   , car_mileage

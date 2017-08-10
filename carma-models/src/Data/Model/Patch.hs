@@ -16,7 +16,6 @@ module Data.Model.Patch
 
 where
 
-import Control.Applicative ((<$>))
 import Control.Monad.Trans.Reader (ask)
 import Control.Monad (mplus)
 import Control.Monad.Trans.Class (lift)
@@ -175,7 +174,7 @@ instance Model m => ToJSON (Patch m) where
 
 instance Model m => FromRow (Patch m) where
   fromRow = Patch . HashMap.fromList <$> sequence
-    [(fd_name f,) <$> fd_fromField f
+    [ (fd_name f,) <$> fd_fromField f
     | f <- onlyDefaultFields $ modelFields (modelInfo :: ModelInfo m)
     ]
 

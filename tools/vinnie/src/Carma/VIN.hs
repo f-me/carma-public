@@ -20,7 +20,6 @@ module Carma.VIN
 
 where
 
-import           Control.Applicative
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Fix
@@ -48,7 +47,7 @@ import           Data.Text (Text, toCaseFold, snoc)
 import           Data.Text.Encoding
 import qualified Data.Text.ICU.Convert as ICU
 
-import           Database.PostgreSQL.Simple (Only(..))
+import           Database.PostgreSQL.Simple (Connection, Only(..))
 import           Database.PostgreSQL.Simple.Copy
 import           Database.PostgreSQL.Simple.Transaction
 
@@ -64,7 +63,7 @@ import           Carma.VIN.SQL
 
 
 -- | Perform VIN file import, write report.
-doImport :: Options -> IO (Either ImportError ImportResult)
+doImport :: Options -> Connection -> IO (Either ImportError ImportResult)
 doImport = runImport vinImport
 
 
