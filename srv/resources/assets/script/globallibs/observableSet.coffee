@@ -1,3 +1,5 @@
+{_, ko} = require "carma/vendor"
+
 ko.observableSet = (init) ->
   init = init || {}
   if not _.isObject(init) and not _.isArray(init)

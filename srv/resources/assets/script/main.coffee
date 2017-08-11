@@ -1,3 +1,4 @@
-v = require "carma/vendor"
+require "carma/vendor"
+require "carma/globallibs"
 
-console.error "vendor", v
+console.info "greetings!", ThMenu

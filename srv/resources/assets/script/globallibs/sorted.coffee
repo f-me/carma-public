@@ -1,3 +1,5 @@
+{_, ko} = require "carma/vendor"
+
 ko.sorted = ({kvms, filters, sorters}) ->
   active_sorter  = ko.observable()
   active_filters = ko.observableSet()

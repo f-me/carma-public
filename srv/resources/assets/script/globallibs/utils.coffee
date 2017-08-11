@@ -1,8 +1,9 @@
-ko.subscribable.fn.subscribeWithOld = (callback) ->
-    oldValue = null
-    @subscribe ((old) -> oldValue = old), this, 'beforeChange'
+{ko} = require "carma/vendor"
 
-    @subscribe (newValue) -> callback(newValue, oldValue)
+ko.subscribable.fn.subscribeWithOld = (callback) ->
+  oldValue = null
+  @subscribe ((old) -> oldValue = old), this, 'beforeChange'
+  @subscribe (newValue) -> callback(newValue, oldValue)
 
 window.urlFor = (field) ->
   switch field.kvm._meta.model.name

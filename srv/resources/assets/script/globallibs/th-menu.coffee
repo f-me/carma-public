@@ -1,3 +1,5 @@
+{$, _, ko} = require "carma/vendor"
+
 $.fn.typeahead = {}
 $.fn.typeahead.defaults =
   source: []
@@ -8,7 +10,7 @@ $.fn.typeahead.defaults =
   scrollHeight: 0
   autoSelect: true
 
-class ThMenu
+window.ThMenu = class ThMenu
   constructor: (options) ->
     @options     = $.extend({}, $.fn.typeahead.defaults, options)
     @matcher     = @.options.matcher     || @.matcher

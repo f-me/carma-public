@@ -1,3 +1,5 @@
+{$, _, ko} = require "carma/vendor"
+
 ko.bindingHandlers.setdata =
   init: (element, valueAccessor, allBindingsAccessor, viewModel) ->
     # This will be called when the binding is first applied to an element
