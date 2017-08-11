@@ -5,7 +5,8 @@
   "description": "carma client",
   "main": "local.coffee",
   "scripts": {
-    "clean-old-stuff": "rm -rf bower_components"
+    "clean-old-stuff": "rm -rf bower_components",
+    "clean": "rm -rf static/js/gen/carma"
   },
   "repository": {
     "type": "git",
@@ -35,6 +36,7 @@
     "grunt-newer": "^0.7.0",
     "grunt-puglint": "^1.0.0",
     "grunt-shell": "^1.1.1",
+    "imports-loader": "^0.7.1",
     "json-loader": "^0.5.7",
     "less": "^1.7.5",
     "load-grunt-tasks": "^0.6.0",

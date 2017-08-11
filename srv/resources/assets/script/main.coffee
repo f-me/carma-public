@@ -1,7 +1,3 @@
-ko = require "knockout"
-$ = require "jquery"
-_ = require "underscore"
+v = require "carma/vendor"
 
-console.error "testing ko...", ko
-console.error "testing jq...", $
-console.error "testing _...", _
+console.error "vendor", v
