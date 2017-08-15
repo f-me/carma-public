@@ -59,16 +59,16 @@ define ["model/utils", "utils"], (mu, u) ->
           (r) ->
             if city_coords?
               bb = r.boundingbox
-              bounds = new OpenLayers.Bounds bb[0], bb[2], bb[1], bb[3]
+              bounds = new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
               cityOk = bounds.containsLonLat city_coords
             else
-              cityOk = (r.osm_type == "relation")
-            cityOk # && (r.osm_type == "relation") #2799
+              cityOk = true
+            cityOk && (r.osm_type == "relation")
         if not el?
           el = res[0]
         bb = el.boundingbox
         coords: new OpenLayers.LonLat el.lon, el.lat
-        bounds: new OpenLayers.Bounds bb[0], bb[2], bb[1], bb[3]
+        bounds: new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
 
   # Cut off everything beyond The Wall
   Moscow =
