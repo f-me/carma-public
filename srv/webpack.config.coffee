@@ -21,8 +21,6 @@ module.exports =
     # resources: []
 
     vendor: [
-      "normalize-styles"
-
       "jquery"
       "jquery.knob"
       "jquery.notify"
@@ -61,11 +59,18 @@ module.exports =
 
   resolve:
     alias:
-      carma:          path.resolve SRC_DIR
-      "carma-img":    path.join RES_DIR, "static", "img"
-      "./carma-img":  path.join RES_DIR, "static", "img" # for urls in css
-      "more-libs":    path.join RES_DIR, "static", "3p"
-      "carma-styles": path.join RES_DIR, "assets", "style", "style.less"
+      carma:            path.resolve SRC_DIR
+
+      # FIXME union to one single dir in 'assets' directory
+      "carma-img":      path.join RES_DIR, "static", "img"
+      "./carma-img":    path.join RES_DIR, "static", "img" # for urls in css
+      "carma-images":   path.join RES_DIR, "static", "images"
+      "./carma-images": path.join RES_DIR, "static", "images" # for urls in css
+
+      # FIXME move from 'static' to 'assets'
+      "more-libs":      path.join RES_DIR, "static", "3p"
+
+      "carma-styles":   path.join RES_DIR, "assets", "style", "style.less"
 
       "jquery.knob": "jquery-knob/js/jquery.knob"
       "jquery.notify": "notify/dist/notify-combined"
@@ -83,7 +88,7 @@ module.exports =
 
       spin: "spin.js"
       ol2: "openlayers-2-build"
-      "normalize-styles": "normalize.css/normalize.css"
+      "normalize-css": "normalize.css/normalize.css"
 
     extensions: [".js", ".coffee"]
 
@@ -95,26 +100,31 @@ module.exports =
   module:
     rules: [
       { test: require.resolve(BS_WYSIHTML5)
-      , use:  "imports-loader?define=>false,this=>window"
+      , use:  { loader: "imports-loader"
+              , options: { define: ">false", "this": ">window" }
+              }
       }
 
       { test: require.resolve(BS_WYSIHTML5_LOC_RU)
-      , use:  "imports-loader?define=>false,this=>window"
+      , use:  { loader: "imports-loader"
+              , options: { define: ">false", "this": ">window" }
+              }
       }
 
       { test: require.resolve("jasny-bootstrap/dist/js/jasny-bootstrap")
-      , use:  "imports-loader?define=>false,this=>window"
+      , use:  { loader: "imports-loader"
+              , options: { define: ">false", "this": ">window" }
+              }
       }
 
       { test: require.resolve("openlayers-2-build")
-      , use:  "exports-loader?OpenLayers"
+      , use:  { loader: "exports-loader", options: "OpenLayers": true }
       }
 
       { test: /\.coffee$/, use: "coffee-loader" }
       { test: /\.json$/,   use: "json-loader" }
-      { test: /\.css$/,    use: cssExtractor.extract("css-loader") }
 
-      { test: /\.less$/
+      { test: /\.(css|less)$/
       , use: cssExtractor.extract [
           "css-loader"
 
@@ -124,7 +134,10 @@ module.exports =
         ]
       }
 
-      { test: /\.(png|jpg|jpeg|gif)$/,       use: "file-loader" }
+      { test: /\.(png|jpg|jpeg|gif)$/
+      , use: { loader: "url-loader", options: limit: 8192 }
+      }
+
       { test: /\.(eot|svg|ttf|woff|woff2)$/, use: "file-loader" }
     ]
 

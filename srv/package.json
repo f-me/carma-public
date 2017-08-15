@@ -6,7 +6,9 @@
   "main": "local.coffee",
   "scripts": {
     "clean-old-stuff": "rm -rf bower_components resources/static/js/gen/*.{js,js.map} resources/static/js/gen/{components,dictionaries,globallibs,hooks,kpi,lib,model,render,screens,search,sync}",
-    "clean": "rm -rf static/js/gen/carma"
+    "clean": "rm -rf resources/static/js/gen/carma",
+    "build": "webpack",
+    "clean-build": "npm run clean && npm run build"
   },
   "repository": {
     "type": "git",
@@ -46,6 +48,7 @@
     "less-loader": "^4.0.5",
     "load-grunt-tasks": "^0.6.0",
     "pug-lint-config-clock": "^2.0.0",
+    "url-loader": "^0.5.9",
     "webpack": "^3.5.2"
   },
   "dependencies": {

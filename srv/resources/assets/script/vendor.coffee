@@ -1,5 +1,3 @@
-require "normalize-styles"
-
 $ = require "jquery"
 require "jquery.knob"
 require "jquery.notify"
