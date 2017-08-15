@@ -5,7 +5,7 @@
   "description": "carma client",
   "main": "local.coffee",
   "scripts": {
-    "clean-old-stuff": "rm -rf bower_components",
+    "clean-old-stuff": "rm -rf bower_components resources/static/js/gen/*.{js,js.map} resources/static/js/gen/{components,dictionaries,globallibs,hooks,kpi,lib,model,render,screens,search,sync}",
     "clean": "rm -rf static/js/gen/carma"
   },
   "repository": {

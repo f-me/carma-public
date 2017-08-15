@@ -46,7 +46,7 @@ module.exports =
 
       "d3/d3"
       "mousetrap"
-      "openlayers-2-build"
+      "ol2"
 
       "more-libs/date/core"
       "more-libs/date/ru-RU.js"
