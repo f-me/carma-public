@@ -1,15 +1,17 @@
 webpack = require "webpack"
+ExtractTextPlugin = require "extract-text-webpack-plugin"
 path = require "path"
 
 RES_DIR = path.join __dirname, "resources"
 SRC_DIR = path.join RES_DIR, "assets", "script"
-OUT_DIR = path.join RES_DIR, "static", "js", "gen", "carma"
 
 BS_WYSIHTML5 =
   "bootstrap3-wysihtml5-bower/dist/bootstrap3-wysihtml5.all"
 
 BS_WYSIHTML5_LOC_RU =
   "bootstrap3-wysihtml5-bower/dist/locales/bootstrap-wysihtml5.ru-RU"
+
+cssExtractor = new ExtractTextPlugin "bundle.[name].css"
 
 module.exports =
   devtool: "source-map"
@@ -19,6 +21,8 @@ module.exports =
     # resources: []
 
     vendor: [
+      "normalize-styles"
+
       "jquery"
       "jquery.knob"
       "jquery.notify"
@@ -57,8 +61,12 @@ module.exports =
 
   resolve:
     alias:
-      carma: path.resolve SRC_DIR
-      "more-libs": path.join RES_DIR, "static", "3p"
+      carma:          path.resolve SRC_DIR
+      "carma-img":    path.join RES_DIR, "static", "img"
+      "./carma-img":  path.join RES_DIR, "static", "img" # for urls in css
+      "more-libs":    path.join RES_DIR, "static", "3p"
+      "carma-styles": path.join RES_DIR, "assets", "style", "style.less"
+
       "jquery.knob": "jquery-knob/js/jquery.knob"
       "jquery.notify": "notify/dist/notify-combined"
       "jquery.datatables": "datatables"
@@ -75,11 +83,12 @@ module.exports =
 
       spin: "spin.js"
       ol2: "openlayers-2-build"
+      "normalize-styles": "normalize.css/normalize.css"
 
     extensions: [".js", ".coffee"]
 
   output:
-    path: OUT_DIR
+    path: path.join RES_DIR, "static", "js", "gen", "carma"
     filename: "bundle.[name].js"
     publicPath: "/s/js/gen/carma/"
 
@@ -102,7 +111,21 @@ module.exports =
       }
 
       { test: /\.coffee$/, use: "coffee-loader" }
-      { test: /\.json$/,   use: "json-loader"   }
+      { test: /\.json$/,   use: "json-loader" }
+      { test: /\.css$/,    use: cssExtractor.extract("css-loader") }
+
+      { test: /\.less$/
+      , use: cssExtractor.extract [
+          "css-loader"
+
+          { loader: "less-loader"
+          , options: paths: [path.resolve(__dirname, "node_modules")]
+          }
+        ]
+      }
+
+      { test: /\.(png|jpg|jpeg|gif)$/,       use: "file-loader" }
+      { test: /\.(eot|svg|ttf|woff|woff2)$/, use: "file-loader" }
     ]
 
   plugins: [
@@ -116,4 +139,6 @@ module.exports =
       jQuery: "jquery"
       "window.jQuery": "jquery"
     )
+
+    cssExtractor
   ]

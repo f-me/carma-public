@@ -5,6 +5,6 @@ trim_trailing_whitespace = true
 insert_final_newline = true
 end_of_line = lf
 
-[*.{hs,md,cabal,yaml,yml,json,js,coffee,css,pug,html,sh,sql}]
+[*.{hs,md,cabal,yaml,yml,json,js,coffee,pug,html,css,less,sh,sql}]
 indent_style = space
 indent_size = 2
