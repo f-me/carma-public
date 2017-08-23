@@ -331,7 +331,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||  '}'
 
              -- 17. n=0 ∧ x+5<y<=x+30мин
-             WHEN (x + 5) < y
+             WHEN (x + interval '5 minutes') < y
               AND y <= (x + interval '30 minutes')
               AND NOT partnerWarnedInTime
              THEN '{ "v": "100% - бонус"'
