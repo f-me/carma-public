@@ -7,7 +7,15 @@ DROP VIEW IF EXISTS "PartnerPayment";
 
 CREATE VIEW "PartnerPayment" AS WITH
 
-  delays AS (SELECT * FROM "PartnerDelay" ORDER BY ctime DESC),
+  delays AS (
+    WITH d AS (
+      SELECT
+        "PartnerDelay".*,
+        ROW_NUMBER() OVER (PARTITION BY serviceId ORDER BY ctime DESC) AS r
+      FROM "PartnerDelay"
+      ORDER BY ctime DESC
+    ) SELECT d.* FROM d WHERE d.r = 1
+  ),
 
   services ( serviceId
            , partnerId
@@ -17,6 +25,7 @@ CREATE VIEW "PartnerPayment" AS WITH
            , isCountryRide
            , partnerWarnedInTime
            ) AS
+
     (SELECT * FROM (SELECT
                       id,
                       contractor_partnerId,
@@ -99,6 +108,8 @@ CREATE VIEW "PartnerPayment" AS WITH
         W — Последние уведомление партнёра об опоздании было согласовано
             (да/нет)
 
+        E — Исключительный случай (да/нет)
+
       Таблица по услуге содержит историю опозданий как: `tmExp ++ [tmHist]`
       Даты сортированы по убыванию, `tmExp` - последняя дата.
     */
@@ -132,32 +143,30 @@ CREATE VIEW "PartnerPayment" AS WITH
           WHEN JSON_ARRAY_LENGTH(s.tmHist) >= 1 THEN s.tmExp
         END :: TIMESTAMP AT TIME ZONE 'UTC') AS an,
 
-       (SELECT (delays.notified = 1) AS q
-        FROM delays
-        WHERE delays.serviceId = s.serviceId
-        LIMIT 1
-       ),
-
-       (SELECT (delays.delayConfirmed = 1) AS w
-        FROM delays
-        WHERE delays.serviceId = s.serviceId
-        LIMIT 1
-       ),
-
+       (delays.notified = 1) AS q,
+       (delays.delayConfirmed = 1) AS w,
+       (delays.exceptional = 1) AS e,
+       delays.exceptionalComment,
        s.isCountryRide,
        s.partnerId,
        s.serviceId
 
      FROM services s
+     LEFT JOIN delays ON delays.serviceId = s.serviceId
      WHERE s.partnerId IS NOT NULL
     ),
 
   payments AS
+
     (SELECT
        serviceId,
        partnerId,
+       exceptionalComment,
 
        CASE
+
+         -- 21. Исключительный случай = true
+         WHEN e THEN '{"v": "100% (исключительный случай)", "d": null}'
 
          WHEN NOT isCountryRide THEN CASE
 
@@ -397,7 +406,14 @@ CREATE VIEW "PartnerPayment" AS WITH
     serviceId,
     partnerId,
     (payment::JSON)->>'v' AS paymentPercent,
-    (payment::JSON)->>'d' AS paymentDescription
+
+    (
+      CASE
+        WHEN payment IS NULL THEN 'Не распознано'
+        ELSE COALESCE((payment::JSON)->>'d', exceptionalComment)
+      END
+    ) AS paymentDescription
+
   FROM payments
 ;
 
