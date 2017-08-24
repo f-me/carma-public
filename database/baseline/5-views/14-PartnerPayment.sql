@@ -7,6 +7,8 @@ DROP VIEW IF EXISTS "PartnerPayment";
 
 CREATE VIEW "PartnerPayment" AS WITH
 
+  delays AS (SELECT * FROM "PartnerDelay" ORDER BY ctime DESC),
+
   services ( serviceId
            , partnerId
            , tmFact
@@ -92,6 +94,11 @@ CREATE VIEW "PartnerPayment" AS WITH
                            озвучивания партнером опоздания n-ый раз
                            (последнее оповещение)
 
+        Q — Уведомил ли партнёр об опоздании в последний раз (да/нет)
+
+        W — Последние уведомление партнёра об опоздании было согласовано
+            (да/нет)
+
       Таблица по услуге содержит историю опозданий как: `tmExp ++ [tmHist]`
       Даты сортированы по убыванию, `tmExp` - последняя дата.
     */
@@ -125,14 +132,24 @@ CREATE VIEW "PartnerPayment" AS WITH
           WHEN JSON_ARRAY_LENGTH(s.tmHist) >= 1 THEN s.tmExp
         END :: TIMESTAMP AT TIME ZONE 'UTC') AS an,
 
-       s.partnerWarnedInTime,
+       (SELECT (delays.notified = 1) AS q
+        FROM delays
+        WHERE delays.serviceId = s.serviceId
+        LIMIT 1
+       ),
+
+       (SELECT (delays.delayConfirmed = 1) AS w
+        FROM delays
+        WHERE delays.serviceId = s.serviceId
+        LIMIT 1
+       ),
+
        s.isCountryRide,
        s.partnerId,
        s.serviceId
 
      FROM services s
      WHERE s.partnerId IS NOT NULL
-       AND s.tmFact    IS NOT NULL -- Только оказанные услуги
     ),
 
   payments AS
@@ -156,7 +173,6 @@ CREATE VIEW "PartnerPayment" AS WITH
              -- 2. n=0 ∧ x+5мин<y<=x+30мин
              WHEN (x + interval '5 minutes') < y
               AND y <= (x + interval '30 minutes')
-              AND NOT partnerWarnedInTime
              THEN '{ "v": "90%"'
               ||  ', "d": "Эвакуатор приезжает с опозданием менее 30 минут '
               ||          'без уведомления РАМК"'
@@ -165,7 +181,6 @@ CREATE VIEW "PartnerPayment" AS WITH
              -- 3. n=0 ∧ x+30мин<y<=x+60мин
              WHEN (x + interval '30 minutes') < y
               AND y <= (x + interval '60 minutes')
-              AND NOT partnerWarnedInTime
              THEN '{ "v": "50%"'
               ||  ', "d": "Эвакуатор приезжает с опозданием более 30 минут, '
               ||          'но менее часа без уведомления РАМК"'
@@ -173,7 +188,6 @@ CREATE VIEW "PartnerPayment" AS WITH
 
              -- 4. n=0 ∧ y>x+60мин
              WHEN y > (x + interval '60 minutes')
-              AND NOT partnerWarnedInTime
              THEN '{ "v": "0%"'
               ||  ', "d": "Эвакуатор приезжает с опозданием '
               ||          'более 1 часа без уведомления РАМК"'
@@ -183,21 +197,21 @@ CREATE VIEW "PartnerPayment" AS WITH
 
            WHEN n = 1 THEN CASE
 
-             -- 5. n=1 ∧ a[1]-x<=30мин ∧ y<=x+30мин
+             -- 5. n=1 ∧ a[1]-x<=30мин ∧ y<=x+30мин ∧ q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND y <= (x + interval '30 minutes')
-              AND partnerWarnedInTime
+              AND q
              THEN '{ "v": "100%"'
               ||  ', "d": "Эвакуатор приезжает с опозданием менее 30 минут, '
               ||          'предварительно уведомив РАМК об опоздании до '
               ||          'момента предположительного времени доезда"'
               ||  '}'
 
-             -- 6. n=1 ∧ a[1]-x<=30мин ∧ x+30мин<y<=x+60мин
+             -- 6. n=1 ∧ a[1]-x<=30мин ∧ x+30мин<y<=x+60мин ∧ ¬q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND (x + interval '30 minutes') < y
               AND y <= (x + interval '60 minutes')
-              AND NOT partnerWarnedInTime
+              AND NOT q
              THEN '{ "v": "50%"'
               ||  ', "d": "Эвакуатор приезжает с опозданием более 30 минут, '
               ||          'но менее часа, предварительно уведомив РАМК об '
@@ -206,10 +220,10 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'опоздании до согласованного срока прибытия"'
               ||  '}'
 
-             -- 7. n=1 ∧ a[1]-x<=30мин ∧ y>x+60мин
+             -- 7. n=1 ∧ a[1]-x<=30мин ∧ y>x+60мин ∧ ¬q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND y > (x + '60 minutes')
-              AND NOT partnerWarnedInTime
+              AND NOT q
              THEN '{ "v": "0%"'
               ||  ', "d": "Эвакуатор приезжает с опозданием более часа, '
               ||          'предварительно уведомив РАМК об опоздании до '
@@ -218,20 +232,21 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'до согласованного срока прибытия"'
               ||  '}'
 
-             -- 8. n=1 ∧ a[1]-x>30мин ∧ y<=a[1]
+             -- 8. n=1 ∧ a[1]-x>30мин ∧ y<=a[1] ∧ q ∧ w
              WHEN (a1 - x) > (interval '30 minutes')
               AND y <= a1
-              AND partnerWarnedInTime
+              AND q
+              AND w
              THEN '{ "v": "90%"'
               ||  ', "d": "Эвакуатор приезжает с опозданием более 30 минут, '
               ||          'предварительно согласовав данное опоздание '
               ||          'с оператором РАМК и получив подтверждение"'
               ||  '}'
 
-             -- 9. n=1 ∧ a[1]-x>30мин ∧ y>a[1]
+             -- 9. n=1 ∧ a[1]-x>30мин ∧ y>a[1] ∧ ¬q
              WHEN (a1 - x) > (interval '30 minutes')
               AND y > a1
-              AND NOT partnerWarnedInTime
+              AND NOT q
              THEN '{ "v": "0%"'
               ||  ', "d": "Эвакуатор опаздывает более, чем на 30 минут, '
               ||          'согласовывает это опоздание с РАМК, повторно '
@@ -243,11 +258,11 @@ CREATE VIEW "PartnerPayment" AS WITH
 
            WHEN n > 1 THEN CASE
 
-             -- 10. n>1 ∧ a[1]-x<=30мин ∧ x+30мин<y<=x+60мин
+             -- 10. n>1 ∧ a[1]-x<=30мин ∧ x+30мин<y<=x+60мин ∧ q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND (x + interval '30 minutes') < y
               AND y <= (x + interval '60 minutes')
-              AND partnerWarnedInTime
+              AND q
              THEN '{ "v": "90%"'
               ||  ', "d": "Эвакуатор приезжает с опозданием более 30 минут, '
               ||          'но менее часа, предварительно уведомив РАМК об '
@@ -256,11 +271,11 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'опоздании до согласованного срока прибытия"'
               ||  '}'
 
-             -- 11. n>1 ∧ a[1]-x<=30мин ∧ x+60мин<y<=a[n]
+             -- 11. n>1 ∧ a[1]-x<=30мин ∧ x+60мин<y<=a[n] ∧ q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND (x + interval '60 minutes') < y
               AND y <= an
-              AND partnerWarnedInTime
+              AND q
              THEN '{ "v": "50%"'
               ||  ', "d": "Эвакуатор приезжает с опозданием более часа, '
               ||          'предварительно уведомив РАМК об опоздании до '
@@ -269,11 +284,11 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'до согласованного срока прибытия"'
               ||  '}'
 
-             -- 12. n>1 ∧ a[1]-x<=30мин ∧ x+60мин<y>a[n]
+             -- 12. n>1 ∧ a[1]-x<=30мин ∧ x+60мин<y>a[n] ∧ ¬q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND (x + interval '60 minutes') < y
               AND y > an
-              AND NOT partnerWarnedInTime
+              AND NOT q
              THEN '{ "v": "0%"'
               ||  ', "d": "Эвакуатор приезжает с опозданием более часа, '
               ||          'предварительно уведомив РАМК об опоздании до '
@@ -283,20 +298,20 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'не выдерживает сроки."'
               ||  '}'
 
-             -- 13. n>1 ∧ a[1]-x>30мин ∧ y<=a[n]
+             -- 13. n>1 ∧ a[1]-x>30мин ∧ y<=a[n] ∧ q
              WHEN (a1 - x) > (interval '30 minutes')
               AND y <= an
-              AND partnerWarnedInTime
+              AND q
              THEN '{ "v": "50%"'
               ||  ', "d": "Эвакуатор опаздывает более чем на 30 минут, '
               ||          'согласовывает это опоздание с РАМК, повторно '
               ||          'не выдерживает сроки, но уведомляет об этом РАМК"'
               ||  '}'
 
-             -- 14. n>1 ∧ a[1]-x>30мин ∧ y>a[n]
+             -- 14. n>1 ∧ a[1]-x>30мин ∧ y>a[n] ∧ ¬q
              WHEN (a1 - x) > (interval '30 minutes')
               AND y > an
-              AND NOT partnerWarnedInTime
+              AND NOT q
              THEN '{ "v": "0%"'
               ||  ', "d": "Эвакуатор опаздывает более чем на 30 минут, '
               ||          'предварительно уведомив РАМК об опоздании до '
@@ -306,10 +321,10 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'не выдерживает сроки."'
               ||  '}'
 
-             -- 15. n>1 ∧ a[1]-x<=30мин ∧ y<=x+30мин
+             -- 15. n>1 ∧ a[1]-x<=30мин ∧ y<=x+30мин ∧ q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND y <= (x + interval '30 minutes')
-              AND partnerWarnedInTime
+              AND q
              THEN '{ "v": "100%"'
               ||  ', "d": "Эвакуатор опаздывает менее, чем на 30 минут, '
               ||          'согласовывает это с РАМК. Затем повторно '
@@ -330,18 +345,18 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||  ', "d": "Эвакуатор за городом приехал вовремя"'
               ||  '}'
 
-             -- 17. n=0 ∧ x+5<y<=x+30мин
+             -- 17. n=0 ∧ x+5<y<=x+30мин ∧ ¬q
              WHEN (x + interval '5 minutes') < y
               AND y <= (x + interval '30 minutes')
-              AND NOT partnerWarnedInTime
+              AND NOT q
              THEN '{ "v": "100% - бонус"'
               ||  ', "d": "Эвакуатор за городом приезжает с опозданием менее '
               ||          '30 минут, не предупреждает РАМК об опоздании."'
               ||  '}'
 
-             -- 18. n=0 ∧ y>x+30мин
+             -- 18. n=0 ∧ y>x+30мин ∧ ¬q
              WHEN y > (x + interval '30 minutes')
-              AND NOT partnerWarnedInTime
+              AND NOT q
              THEN '{ "v": "90%"'
               ||  ', "d": "Эвакуатор за городом приезжает с опозданием более '
               ||          '30 минут, не предупреждает РАМК об опоздании"'
@@ -351,18 +366,18 @@ CREATE VIEW "PartnerPayment" AS WITH
 
            WHEN n > 0 THEN CASE
 
-             -- 19. n>0 ∧ y<=a[n]
+             -- 19. n>0 ∧ y<=a[n] ∧ q
              WHEN y <= an
-              AND partnerWarnedInTime
+              AND q
              THEN '{ "v": "100%"'
               ||  ', "d": "Эвакуатор за городом опаздывает и предупреждает '
               ||          'РАМК об опоздании. РАМК согласовывает опоздание. '
               ||          'Эвакуатор приезжает назначенное время."'
               ||  '}'
 
-             -- 20. n>0 ∧ y>a[n]
+             -- 20. n>0 ∧ y>a[n] ∧ q
              WHEN y > an
-              AND partnerWarnedInTime
+              AND q
              THEN '{ "v": "90%"'
               ||  ', "d": "Эвакуатор за городом опаздывает и предупреждает '
               ||          'РАМК об опоздании. РАМК согласовывает опоздание. '
