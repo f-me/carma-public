@@ -103,6 +103,7 @@ CREATE VIEW "PartnerPayment" AS WITH
                            озвучивания партнером опоздания n-ый раз
                            (последнее оповещение)
 
+        C — За городом (да/нет)
         Q — Уведомил ли партнёр об опоздании в последний раз (да/нет)
 
         W — Последние уведомление партнёра об опоздании было согласовано
@@ -147,7 +148,7 @@ CREATE VIEW "PartnerPayment" AS WITH
        (delays.delayConfirmed = 1) AS w,
        (delays.exceptional = 1) AS e,
        delays.exceptionalComment,
-       s.isCountryRide,
+       s.isCountryRide AS c,
        s.partnerId,
        s.serviceId
 
@@ -168,18 +169,18 @@ CREATE VIEW "PartnerPayment" AS WITH
          -- 21. Исключительный случай = true
          WHEN e THEN '{"v": "100% (исключительный случай)", "d": null}'
 
-         WHEN NOT isCountryRide THEN CASE
+         WHEN NOT c THEN CASE
 
            WHEN n = 0 THEN CASE
 
-             -- 1. n=0 ∧ y<=x+5мин
+             -- 1. ¬c ∧ n=0 ∧ y<=x+5мин
              WHEN y <= (x + interval '5 minutes')
              THEN '{ "v": "100% + бонус"'
               ||  ', "d": "Эвакуатор приехал в назначенное время '
               ||          'без опозданий"'
               ||  '}'
 
-             -- 2. n=0 ∧ x+5мин<y<=x+30мин
+             -- 2. ¬c ∧ n=0 ∧ x+5мин<y<=x+30мин
              WHEN (x + interval '5 minutes') < y
               AND y <= (x + interval '30 minutes')
              THEN '{ "v": "90%"'
@@ -187,7 +188,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'без уведомления РАМК"'
               ||  '}'
 
-             -- 3. n=0 ∧ x+30мин<y<=x+60мин
+             -- 3. ¬c ∧ n=0 ∧ x+30мин<y<=x+60мин
              WHEN (x + interval '30 minutes') < y
               AND y <= (x + interval '60 minutes')
              THEN '{ "v": "50%"'
@@ -195,7 +196,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'но менее часа без уведомления РАМК"'
               ||  '}'
 
-             -- 4. n=0 ∧ y>x+60мин
+             -- 4. ¬c ∧ n=0 ∧ y>x+60мин
              WHEN y > (x + interval '60 minutes')
              THEN '{ "v": "0%"'
               ||  ', "d": "Эвакуатор приезжает с опозданием '
@@ -206,7 +207,7 @@ CREATE VIEW "PartnerPayment" AS WITH
 
            WHEN n = 1 THEN CASE
 
-             -- 5. n=1 ∧ a[1]-x<=30мин ∧ y<=x+30мин ∧ q
+             -- 5. ¬c ∧ n=1 ∧ a[1]-x<=30мин ∧ y<=x+30мин ∧ q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND y <= (x + interval '30 minutes')
               AND q
@@ -216,7 +217,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'момента предположительного времени доезда"'
               ||  '}'
 
-             -- 6. n=1 ∧ a[1]-x<=30мин ∧ x+30мин<y<=x+60мин ∧ ¬q
+             -- 6. ¬c ∧ n=1 ∧ a[1]-x<=30мин ∧ x+30мин<y<=x+60мин ∧ ¬q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND (x + interval '30 minutes') < y
               AND y <= (x + interval '60 minutes')
@@ -229,7 +230,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'опоздании до согласованного срока прибытия"'
               ||  '}'
 
-             -- 7. n=1 ∧ a[1]-x<=30мин ∧ y>x+60мин ∧ ¬q
+             -- 7. ¬c ∧ n=1 ∧ a[1]-x<=30мин ∧ y>x+60мин ∧ ¬q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND y > (x + '60 minutes')
               AND NOT q
@@ -241,7 +242,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'до согласованного срока прибытия"'
               ||  '}'
 
-             -- 8. n=1 ∧ a[1]-x>30мин ∧ y<=a[1] ∧ q ∧ w
+             -- 8. ¬c ∧ n=1 ∧ a[1]-x>30мин ∧ y<=a[1] ∧ q ∧ w
              WHEN (a1 - x) > (interval '30 minutes')
               AND y <= a1
               AND q
@@ -252,7 +253,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'с оператором РАМК и получив подтверждение"'
               ||  '}'
 
-             -- 9. n=1 ∧ a[1]-x>30мин ∧ y>a[1] ∧ ¬q
+             -- 9. ¬c ∧ n=1 ∧ a[1]-x>30мин ∧ y>a[1] ∧ ¬q
              WHEN (a1 - x) > (interval '30 minutes')
               AND y > a1
               AND NOT q
@@ -267,7 +268,7 @@ CREATE VIEW "PartnerPayment" AS WITH
 
            WHEN n > 1 THEN CASE
 
-             -- 10. n>1 ∧ a[1]-x<=30мин ∧ x+30мин<y<=x+60мин ∧ q
+             -- 10. ¬c ∧ n>1 ∧ a[1]-x<=30мин ∧ x+30мин<y<=x+60мин ∧ q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND (x + interval '30 minutes') < y
               AND y <= (x + interval '60 minutes')
@@ -280,7 +281,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'опоздании до согласованного срока прибытия"'
               ||  '}'
 
-             -- 11. n>1 ∧ a[1]-x<=30мин ∧ x+60мин<y<=a[n] ∧ q
+             -- 11. ¬c ∧ n>1 ∧ a[1]-x<=30мин ∧ x+60мин<y<=a[n] ∧ q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND (x + interval '60 minutes') < y
               AND y <= an
@@ -293,7 +294,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'до согласованного срока прибытия"'
               ||  '}'
 
-             -- 12. n>1 ∧ a[1]-x<=30мин ∧ x+60мин<y>a[n] ∧ ¬q
+             -- 12. ¬c ∧ n>1 ∧ a[1]-x<=30мин ∧ x+60мин<y>a[n] ∧ ¬q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND (x + interval '60 minutes') < y
               AND y > an
@@ -307,7 +308,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'не выдерживает сроки."'
               ||  '}'
 
-             -- 13. n>1 ∧ a[1]-x>30мин ∧ y<=a[n] ∧ q
+             -- 13. ¬c ∧ n>1 ∧ a[1]-x>30мин ∧ y<=a[n] ∧ q
              WHEN (a1 - x) > (interval '30 minutes')
               AND y <= an
               AND q
@@ -317,7 +318,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'не выдерживает сроки, но уведомляет об этом РАМК"'
               ||  '}'
 
-             -- 14. n>1 ∧ a[1]-x>30мин ∧ y>a[n] ∧ ¬q
+             -- 14. ¬c ∧ n>1 ∧ a[1]-x>30мин ∧ y>a[n] ∧ ¬q
              WHEN (a1 - x) > (interval '30 minutes')
               AND y > an
               AND NOT q
@@ -330,7 +331,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'не выдерживает сроки."'
               ||  '}'
 
-             -- 15. n>1 ∧ a[1]-x<=30мин ∧ y<=x+30мин ∧ q
+             -- 15. ¬c ∧ n>1 ∧ a[1]-x<=30мин ∧ y<=x+30мин ∧ q
              WHEN (a1 - x) <= (interval '30 minutes')
               AND y <= (x + interval '30 minutes')
               AND q
@@ -342,19 +343,19 @@ CREATE VIEW "PartnerPayment" AS WITH
 
            END -- of `CASE` of `n > 1` condition
 
-         END -- of `CASE` of `NOT isCountryRide` condition
+         END -- of `CASE` of `NOT c` condition
 
-         WHEN isCountryRide THEN CASE
+         WHEN c THEN CASE
 
            WHEN n = 0 THEN CASE
 
-             -- 16. n=0 ∧ y<=x+5мин
+             -- 16. c ∧ n=0 ∧ y<=x+5мин
              WHEN y <= (x + interval '5 minutes')
              THEN '{ "v": "100% + бонус"'
               ||  ', "d": "Эвакуатор за городом приехал вовремя"'
               ||  '}'
 
-             -- 17. n=0 ∧ x+5<y<=x+30мин ∧ ¬q
+             -- 17. c ∧ n=0 ∧ x+5<y<=x+30мин ∧ ¬q
              WHEN (x + interval '5 minutes') < y
               AND y <= (x + interval '30 minutes')
               AND NOT q
@@ -363,7 +364,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          '30 минут, не предупреждает РАМК об опоздании."'
               ||  '}'
 
-             -- 18. n=0 ∧ y>x+30мин ∧ ¬q
+             -- 18. c ∧ n=0 ∧ y>x+30мин ∧ ¬q
              WHEN y > (x + interval '30 minutes')
               AND NOT q
              THEN '{ "v": "90%"'
@@ -375,7 +376,7 @@ CREATE VIEW "PartnerPayment" AS WITH
 
            WHEN n > 0 THEN CASE
 
-             -- 19. n>0 ∧ y<=a[n] ∧ q
+             -- 19. c ∧ n>0 ∧ y<=a[n] ∧ q
              WHEN y <= an
               AND q
              THEN '{ "v": "100%"'
@@ -384,7 +385,7 @@ CREATE VIEW "PartnerPayment" AS WITH
               ||          'Эвакуатор приезжает назначенное время."'
               ||  '}'
 
-             -- 20. n>0 ∧ y>a[n] ∧ q
+             -- 20. c ∧ n>0 ∧ y>a[n] ∧ q
              WHEN y > an
               AND q
              THEN '{ "v": "90%"'
@@ -395,7 +396,7 @@ CREATE VIEW "PartnerPayment" AS WITH
 
            END -- of `CASE` of `n > 0` condition
 
-         END -- of `CASE` of `isCountryRide` condition
+         END -- of `CASE` of `c` condition
 
        END AS payment -- of `CASE`
 
