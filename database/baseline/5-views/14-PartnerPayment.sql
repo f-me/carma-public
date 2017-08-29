@@ -23,7 +23,6 @@ CREATE VIEW "PartnerPayment" AS WITH
            , tmExp
            , tmHist
            , isCountryRide
-           , partnerWarnedInTime
            ) AS
 
     (SELECT * FROM (SELECT
@@ -32,8 +31,7 @@ CREATE VIEW "PartnerPayment" AS WITH
                       times_factServiceStart,
                       times_expectedServiceStart,
                       times_expectedServiceStartHistory,
-                      isCountryRide,
-                      partnerWarnedInTime
+                      isCountryRide
                     FROM techtbl) tech
 
          UNION ALL (SELECT
@@ -42,8 +40,7 @@ CREATE VIEW "PartnerPayment" AS WITH
                       times_factServiceStart,
                       times_expectedServiceStart,
                       times_expectedServiceStartHistory,
-                      isCountryRide,
-                      partnerWarnedInTime
+                      isCountryRide
                     FROM towagetbl)
 
          UNION ALL (SELECT
@@ -52,8 +49,7 @@ CREATE VIEW "PartnerPayment" AS WITH
                       times_factServiceStart,
                       times_expectedServiceStart,
                       times_expectedServiceStartHistory,
-                      isCountryRide,
-                      partnerWarnedInTime
+                      isCountryRide
                     FROM renttbl)
 
          UNION ALL (SELECT
@@ -62,8 +58,7 @@ CREATE VIEW "PartnerPayment" AS WITH
                       times_factServiceStart,
                       times_expectedServiceStart,
                       times_expectedServiceStartHistory,
-                      isCountryRide,
-                      partnerWarnedInTime
+                      isCountryRide
                     FROM taxitbl)
 
          UNION ALL (SELECT
@@ -72,8 +67,7 @@ CREATE VIEW "PartnerPayment" AS WITH
                       times_factServiceStart,
                       times_expectedServiceStart,
                       times_expectedServiceStartHistory,
-                      isCountryRide,
-                      partnerWarnedInTime
+                      isCountryRide
                     FROM sobertbl)
 
          UNION ALL (SELECT
@@ -82,8 +76,7 @@ CREATE VIEW "PartnerPayment" AS WITH
                       times_factServiceStart,
                       times_expectedServiceStart,
                       times_expectedServiceStartHistory,
-                      isCountryRide,
-                      partnerWarnedInTime
+                      isCountryRide
                     FROM averagecommissionertbl)
     ),
 
@@ -110,6 +103,8 @@ CREATE VIEW "PartnerPayment" AS WITH
             (да/нет)
 
         E — Исключительный случай (да/нет)
+
+        R — Результат расчета предупреждения партнера (Вовремя/Не вовремя)
 
       Таблица по услуге содержит историю опозданий как: `tmExp ++ [tmHist]`
       Даты сортированы по убыванию, `tmExp` - последняя дата.
@@ -152,7 +147,7 @@ CREATE VIEW "PartnerPayment" AS WITH
        s.partnerId,
        s.serviceId
 
-     FROM services s
+     FROM services AS s
      LEFT JOIN delays ON delays.serviceId = s.serviceId
      WHERE s.partnerId IS NOT NULL
     ),
@@ -166,7 +161,7 @@ CREATE VIEW "PartnerPayment" AS WITH
 
        CASE
 
-         -- 21. Исключительный случай = true
+         -- Исключительный случай
          WHEN e THEN '{"v": "100% (исключительный случай)", "d": null}'
 
          WHEN NOT c THEN CASE
@@ -376,22 +371,22 @@ CREATE VIEW "PartnerPayment" AS WITH
 
            WHEN n > 0 THEN CASE
 
-             -- 19. c ∧ n>0 ∧ y<=a[n] ∧ q
+             -- 19. c ∧ n>0 ∧ r
+             -- TODO
              WHEN y <= an
               AND q
              THEN '{ "v": "100%"'
               ||  ', "d": "Эвакуатор за городом опаздывает и предупреждает '
-              ||          'РАМК об опоздании. РАМК согласовывает опоздание. '
-              ||          'Эвакуатор приезжает назначенное время."'
+              ||          'РАМК об опоздании вовремя"'
               ||  '}'
 
-             -- 20. c ∧ n>0 ∧ y>a[n] ∧ q
+             -- 20. c ∧ n>0 ∧ ¬r
+             -- TODO
              WHEN y > an
               AND q
              THEN '{ "v": "90%"'
               ||  ', "d": "Эвакуатор за городом опаздывает и предупреждает '
-              ||          'РАМК об опоздании. РАМК согласовывает опоздание. '
-              ||          'Эвакуатор повторно опаздывает, предупредив РАМК."'
+              ||          'РАМК об опоздании не вовремя"'
               ||  '}'
 
            END -- of `CASE` of `n > 0` condition
