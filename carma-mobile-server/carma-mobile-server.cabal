@@ -35,7 +35,6 @@ Executable carma-mobile-server
     configurator,
     lens,
     HTTP,
-    MonadCatchIO-transformers,
     mtl,
     network,
     old-locale,

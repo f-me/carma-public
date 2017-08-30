@@ -54,7 +54,7 @@ import qualified Data.ByteString.Char8      as B8
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.Dict
 import           Data.Functor
-import           Data.HashMap.Strict        as M hiding (filter)
+import           Data.HashMap.Strict        as M hiding (filter, mapMaybe)
 import           Data.Maybe
 import qualified Data.Text.Encoding         as T
 
@@ -68,17 +68,19 @@ type FieldValue = BS.ByteString
 
 type FieldName = BS.ByteString
 
+instance ToJSON B8.ByteString where
+  toJSON = toJSON
+
+instance FromJSON B8.ByteString where
+  parseJSON = parseJSON 
+
+instance ToJSONKey B8.ByteString
+
+instance FromJSONKey B8.ByteString
+
 -- | An instance of a model is a set of key-value pairs.
 type InstanceData = M.HashMap FieldName FieldValue
 {-# DEPRECATED InstanceData "Legacy ByteString-based interface" #-}
-
-instance ToJSON InstanceData where
-    toJSON = Object . mapKeyVal T.decodeUtf8 (toJSON . T.decodeUtf8)
-
-instance FromJSON InstanceData where
-    parseJSON = fmap (mapKeyVal T.encodeUtf8 T.encodeUtf8) . parseJSON
-
-mapKeyVal fk kv = M.foldrWithKey (\k v -> M.insert (fk k) (kv v)) M.empty
 
 
 -- | Send request to c/r/u/d an instance of model, possibly using new

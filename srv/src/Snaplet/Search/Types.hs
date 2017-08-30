@@ -73,6 +73,7 @@ data Order = Order { fields :: [FieldIdent]
 
 instance FromJSON Order where
   parseJSON (Object o) = Order <$> o .: "fields" <*> o .: "order"
+  parseJSON _ = error "bad pattern"
 
 data FieldIdent = FieldIdent { tablename :: Text
                              , fname     :: Text
@@ -129,6 +130,7 @@ instance forall m b.(Model m, ToJSON b) => ToJSON (Patch m :. b) where
       merge :: Value -> Value -> Value
       merge (Object o1) (Object o2) =
         Object $ HM.fromList $ (HM.toList o1) ++ (HM.toList o2)
+      merge _ _ = error "bad pattern"
 
 instance forall m b.(Model m, ToJSON b) => ToJSON (Maybe (Patch m) :. b) where
   toJSON (Just p :. ps)  = toJSON (p :. ps)

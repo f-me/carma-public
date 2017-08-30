@@ -27,7 +27,12 @@ import           Web.Scotty
 import           Network.HTTP.Types.Status (status400)
 import           Network.Wai (Middleware)
 import           Network.Wai.Middleware.RequestLogger
-import           System.Log.FastLogger (fromLogStr)
+import           System.Log.FastLogger (fromLogStr, toLogStr)
+import           Foreign.C.String
+import           System.Log.FastLogger
+
+f :: LogStr -> String
+f = T.unpack . T.decodeUtf8 . fromLogStr
 
 
 main :: IO ()
@@ -38,10 +43,10 @@ main = do
       conf <- Config.load [Config.Required configPath]
 
       logLevel <- fromMaybe (error "Invalid log_level in config")
-          . readMaybe <$> Config.require conf "log.level"
+        . readMaybe <$> (Config.require conf) "log.level" :: IO String
 
-      withSyslog prog [PID] USER (logUpTo logLevel) $ do
-        syslog Info $ "Loading config from " ++ configPath
+      withSyslog prog [LogPID] User $ do
+        (withCStringLen $ "Loading config from " ++ configPath) $ syslog (Just User) Info
 
         carmaUsr  <- Config.require conf "carma.user"
         carmaPrg  <- Config.require conf "carma.subprogram"
@@ -53,7 +58,7 @@ main = do
         pgPwd     <- Config.require conf "pg.pass"
         pgDb      <- Config.require conf "pg.db"
 
-        syslog Info $ "Connecting to Postgres on " ++ pgHost
+        (withCStringLen $ "Connecting to Postgres on " ++ pgHost) $ syslog (Just User) Info
         let cInfo = PG.ConnectInfo
               pgHost pgPort
               pgUser pgPwd
@@ -66,9 +71,9 @@ main = do
 
         reqLogger <- mkRequestLogger $ def
           { destination = Callback
-              $ syslog Info . T.unpack . T.decodeUtf8 . fromLogStr
+              $ ((flip withCStringLen) $ syslog (Just User) Info) . f
           }
-        syslog Info $ "Starting HTTP server on port " ++ show httpPort
+        (withCStringLen $ "Starting HTTP server on port " ++ show httpPort) $ syslog (Just User) Info
         scotty httpPort
           $ httpServer pgPool reqLogger
           $ SrvConfig carmaPrg carmaUsr carmaTest
@@ -120,7 +125,7 @@ httpServer pgPool reqLogger cfg = do
 
 
   let handleErrors f = f `rescue` \err -> do
-        liftIO $ syslog Error $ L.unpack err
+        liftIO $ (withCStringLen $ L.unpack err) $ syslog (Just User) Error
         status status400 >> text err
 
   post "/Contract/Mazda" $ handleErrors $ do

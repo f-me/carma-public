@@ -126,7 +126,7 @@ uploadInManyFields flds nameFun = do
   now <- liftIO $ getCurrentTime
 
   root <- gets finished
-  (attach@(Ident aid), dupe) <- withLens pg $ liftPG $ \conn -> do
+  (attach@(Ident aid), dupe) <- withLens pg $ liftPG' $ \conn -> do
     -- Check for duplicate files
     res <- PS.query conn hashToAid (Only $ show hash)
     case res of
@@ -165,7 +165,7 @@ uploadInManyFields flds nameFun = do
           let
             mIdent = Ident objId :: IdentI m
           in
-            (withLens pg $ liftPG $ DB.exists mIdent) >>=
+            (withLens pg $ liftPG' $ DB.exists mIdent) >>=
             \case
               Right True -> do
                 attachToField mIdent field $
@@ -184,7 +184,7 @@ uploadInManyFields flds nameFun = do
   -- Serve back full attachment instance
   obj <- either (\e ->
                    error $ "Could not read attachment back: " ++ show e) id <$>
-         (withLens pg $ liftPG $ DB.read attach)
+         (withLens pg $ liftPG' $ DB.read attach)
 
   return (obj, failedTargets, succTargets, dupe)
 
@@ -252,7 +252,7 @@ getAttachmentPath :: IdentI Attachment
                   -> Handler b (FileUpload b) FilePath
 getAttachmentPath aid = do
   obj <- either (error $ "No attachment " ++ show aid) id <$>
-         (withLens pg $ liftPG $ DB.read aid)
+         (withLens pg $ liftPG' $ DB.read aid)
   fPath <- gets finished
   let fName = obj `Patch.get'` Attachment.filename
   return $
@@ -291,9 +291,9 @@ attachToField instanceId field ref = do
         -- Append new ref to the target field
         oldRefs <- (`Patch.get'` acc) <$>
                    (either (error $ "No object " ++ show instanceId) id <$>
-                    (withLens pg $ liftPG $ DB.read instanceId))
+                    (withLens pg $ liftPG' $ DB.read instanceId))
         let newRefs = addRef oldRefs ref
-        void $ withLens pg $ liftPG $
+        void $ withLens pg $ liftPG' $
           DB.update instanceId (Patch.put acc newRefs $ Patch.empty)
   -- Unlock the field
   liftIO $ atomically $ do
@@ -327,7 +327,7 @@ withUploads proceed = do
   tmpDir <- gets tmp
   cfg <- gets cfg
   fns <- handleFileUploads tmpDir cfg (const $ partPol cfg) $
-    liftIO . mapM (\(info, r) -> case r of
+    curry (\(info, r) -> case r of
       Right tmp -> Right <$> proceed info tmp
       Left e    -> return $ Left (info, e)
       )

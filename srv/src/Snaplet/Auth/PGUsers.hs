@@ -38,9 +38,9 @@ currentUserMeta = withAuth currentUser >>= \case
     req <- getRequest
     -- Consider current user to be admin when accessing from localhost
     -- (HTTP API)
-    case rqRemoteAddr req == rqLocalAddr req of
+    case rqClientAddr req == rqLocalHostname req of
       True ->
-        (withAuthPg $ PG.liftPG $ Patch.read Usermeta.admin) >>=
+        (withAuthPg $ PG.liftPG' $ Patch.read Usermeta.admin) >>=
           \case
             Left e -> error $ show e
             Right r -> return $ Just r
@@ -48,7 +48,7 @@ currentUserMeta = withAuth currentUser >>= \case
   Just usr -> case userId usr of
     Nothing  -> error $ "BUG! currentUser without id: " ++ show usr
     Just (UserId uid) -> do
-      res <- withAuthPg $ PG.liftPG $
+      res <- withAuthPg $ PG.liftPG' $
              Patch.readManyWithFilter 1 0 [(fieldName Usermeta.uid, uid)]
       case res of
         [obj] -> return $ Just obj

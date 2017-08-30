@@ -41,7 +41,7 @@ main = do
                                           ["snaplets/heist/templates"])
 
     progName <- getProgName
-    _ <- withSyslog progName [PID] USER (logUpTo Debug)
+    _ <- withSyslog progName [LogPID] User
       $ try $ httpServe conf site :: IO (Either SomeException ())
     cleanup
 

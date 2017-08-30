@@ -15,8 +15,9 @@ import           Control.Monad.State.Class
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as Map
-import           Data.Pool
+import           Data.Pool (withResource)
 import qualified Data.Vector as V
+import           Data.Text (pack)
 
 import           System.Directory
 import           System.IO
@@ -93,7 +94,7 @@ vinImport = logExceptions "Bulk/vinImport" $ do
           Right (ImportResult (total, good, bad)) ->
               if bad == 0
               then removeFile outPath >>
-                   (return $ Right (Aeson.String $ show good, []))
+                   (return $ Right (Aeson.String $ pack . show $ good, []))
               else return $ Right (Aeson.toJSON stats, [outPath])
                 where
                   stats :: Map String Int64

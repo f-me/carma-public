@@ -3,7 +3,8 @@ module ApplicationInit (appInit) where
 import Control.Monad (when)
 import Control.Concurrent.STM
 import Control.Monad.IO.Class
-import qualified Control.Monad.CatchIO as IOEx
+import Control.Monad.Trans.Control (MonadBaseControl)
+import Control.Exception.Lifted hiding (Handler)
 -- ^ FIXME: Monad.CatchIO is deprecated
 
 import qualified Data.Text.Encoding as T
@@ -160,7 +161,7 @@ timeIt :: AppHandler () -> AppHandler ()
 timeIt h = do
   r <- getRequest
   start <- liftIO Clock.getCurrentTime
-  h `IOEx.finally` liftIO (do
+  h `finally` liftIO (do
     end <- Clock.getCurrentTime
     let duration = Clock.diffUTCTime end start
     when (1 <= duration)
@@ -194,7 +195,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                           cfg "session-key"
 
   s <- nestSnaplet "session" session $
-       initCookieSessionManager sesKey "_session" Nothing
+       initCookieSessionManager sesKey "_session" Nothing (Just 600)
 
   -- DB
   ad <- nestSnaplet "db" db $ pgsInit

@@ -10,6 +10,7 @@ import Database.PostgreSQL.Simple
 
 import Data.Attoparsec.Text hiding (Parser)
 import Data.Optional
+import Control.Applicative as AP
 import Data.Text (unpack)
 import Data.Version (showVersion)
 import Development.GitRev
@@ -58,8 +59,8 @@ main =
                 "Location to write CSV report file to")
            <*> argInt "committer-id" Default
            <*> argInt "format-id" Default
-           <*> optional (optInt "program" 'p' Default)
-           <*> optional (optInt "subprogram" 's' Default)
+           <*> AP.optional (optInt "program" 'p' Default)
+           <*> AP.optional (optInt "subprogram" 's' Default)
            <*> switch "arc" 'a' "Set ARC flag when importing contracts")
   in do
       (cInfo, opts) <- options desc optParser

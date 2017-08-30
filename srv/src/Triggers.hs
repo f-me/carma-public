@@ -41,7 +41,7 @@ import           GHC.TypeLits
 
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
 import           Database.PostgreSQL.Simple as PG
-import           Snap.Snaplet.PostgresqlSimple as SPG (liftPG, execute)
+import           Snap.Snaplet.PostgresqlSimple as SPG (liftPG, liftPG', execute)
 
 import           WeatherApi (tempC)
 
@@ -224,7 +224,7 @@ beforeCreate = Map.unionsWith (++)
         Just _  -> return ()
         Nothing -> do
           caseId <- getPatchField DiagHistory.caseId
-          [[slideId]] <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
+          [[slideId]] <- doApp $ liftPG' $ \pg -> uncurry (PG.query pg)
             [sql|
               select diagTree
                 from "SubProgram" s join casetbl c on (s.id = c.subprogram)
@@ -261,7 +261,7 @@ afterCreate = Map.unionsWith (++) $
 
   , trigOnModel ([]::[PartnerDelay]) $ do
       delayId <- getIdent
-      doApp $ liftPG $ \pg -> uncurry (PG.execute pg)
+      doApp $ liftPG' $ \pg -> uncurry (PG.execute pg)
         [sql| update servicetbl s
           set
             times_expectedServiceStart
@@ -281,7 +281,7 @@ afterCreate = Map.unionsWith (++) $
             and p.id = $(delayId)$
         |]
       -- FIXME: this should be in Backoffice.partnerDelayEntries
-      doApp $ liftPG $ \pg -> uncurry (PG.execute pg)
+      doApp $ liftPG' $ \pg -> uncurry (PG.execute pg)
         [sql| update actiontbl a
           set duetime = times_expectedServiceStart + interval '5m'
           from "PartnerDelay" p, servicetbl s
@@ -377,7 +377,7 @@ beforeUpdate = Map.unionsWith (++) $
   , trigOn Contract.vin $ \case
       Just vin | T.length vin >= 17 -> do
         cId <- getIdent
-        prototypeId <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
+        prototypeId <- doApp $ liftPG' $ \pg -> uncurry (PG.query pg)
           [sql|
             select c2.id
               from
@@ -398,7 +398,7 @@ beforeUpdate = Map.unionsWith (++) $
   , trigOn Contract.isActive $ \v -> do
       cId <- getIdent
       uId <- getCurrentUser
-      [[canChange]] <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
+      [[canChange]] <- doApp $ liftPG' $ \pg -> uncurry (PG.query pg)
         [sql|
           select (c.dixi = false)
               or (20 = ANY(u.roles))
@@ -505,7 +505,7 @@ beforeUpdate = Map.unionsWith (++) $
           Nothing -> do
             let header = maybe "" (\(Aeson.String s) -> s)
                        $ HM.lookup "header" ans
-            [Only newId] <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
+            [Only newId] <- doApp $ liftPG' $ \pg -> uncurry (PG.query pg)
               [sql|
                 insert into "DiagSlide" (header, body)
                   values ($(header)$, '')
@@ -699,7 +699,7 @@ contractToCase =
 copyContractToCase :: IdentI SubProgram -> Patch Contract -> Free (Dsl Case) ()
 copyContractToCase subProgId contract = do
 
-  ctrFields <- doApp $ liftPG $ \pg -> concat <$> uncurry (PG.query pg)
+  ctrFields <- doApp $ liftPG' $ \pg -> concat <$> uncurry (PG.query pg)
     [sql|
       select contractField
         from "SubProgramContractPermission"
@@ -1063,7 +1063,7 @@ instance Backoffice HaskellE where
     ctx <- ask
     return $ do
       let caseId = kase ctx `get'` Case.ident
-      relatedSvcs <- doApp $ liftPG $ \pg -> uncurry (PG.query pg)
+      relatedSvcs <- doApp $ liftPG' $ \pg -> uncurry (PG.query pg)
         [sql|
           select id from servicetbl
             where parentId = $(caseId)$

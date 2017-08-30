@@ -353,14 +353,6 @@ data UserStateVal = LoggedOut | Ready | Rest | Busy | Dinner | ServiceBreak | NA
 instance FromJSON UserStateVal
 instance ToJSON   UserStateVal
 
--- Need this because client send "" instead of null in case of empty
--- which can'd be parsed to 'UserStateVal'
-instance FromJSON (Maybe UserStateVal) where
-  parseJSON o =
-    case fromJSON o of
-      Success v -> return $ Just v
-      _err      -> return Nothing
-
 instance ToField UserStateVal where
   toField = toField . show
 

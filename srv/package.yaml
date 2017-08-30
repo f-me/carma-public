@@ -33,6 +33,9 @@ dependencies:
   - hsyslog
   - HTTP
   - lens
+  - lifted-base
+  - map-syntax
+  - monad-control
   - mtl
   - persistent
   - persistent-postgresql
@@ -40,8 +43,8 @@ dependencies:
   - postgresql-simple
   - process-extras
   - qm-interpolated-string
+  - resource-pool
   - random
-  - resource-pool-catchio
   - SHA
   - singletons
   - snap

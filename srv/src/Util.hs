@@ -50,7 +50,8 @@ import qualified Data.Vector as Vector
 
 import Control.Monad.IO.Class
 import qualified Control.Exception as Ex
-import Control.Monad.CatchIO as IOEx
+import Control.Monad.Trans.Control (MonadBaseControl)
+import Control.Exception.Lifted
 import Control.Concurrent (myThreadId)
 import Data.Typeable
 import           Data.ByteString.Char8 (ByteString)
@@ -79,6 +80,9 @@ import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SqlQQ.Alt
 
 import qualified System.Posix.Syslog as Syslog
+import qualified System.Posix.Syslog.Functions as Syslog
+
+import           Foreign.C.Types (CInt)
 
 import Utils.Model
 
@@ -211,22 +215,24 @@ syslogJSON p tag msg = liftIO $ do
   let msgBS = L8.concat -- FIXME: escape '%' in messge
         [L8.pack tag, " ", Aeson.encode $ Aeson.object msg']
   B.useAsCString (L8.toStrict msgBS)
-    $ Syslog._syslog (toEnum (fromEnum p))
+    $ flip (Syslog._syslog (toEnum (fromEnum Syslog.User))
+        (toEnum (fromEnum p)))
+            (fromIntegral (L8.length msgBS) :: CInt)
 
-hushExceptions :: MonadCatchIO m => String -> m () -> m ()
-hushExceptions tag act = IOEx.catch act $ \(e :: Ex.SomeException) ->
+hushExceptions :: (MonadIO m, MonadBaseControl IO m) => String -> m () -> m ()
+hushExceptions tag act = catch act $ \(e :: Ex.SomeException) ->
   syslogJSON Syslog.Warning tag
     ["msg" .= Aeson.String "hushed exception"
     ,"exn" .= Aeson.String (T.pack $ show e)
     ]
 
-logExceptions :: MonadCatchIO m => String -> m a -> m a
-logExceptions tag act = IOEx.catch act $ \(e :: Ex.SomeException) -> do
+logExceptions :: (MonadIO m, MonadBaseControl IO m) => String -> m a -> m a
+logExceptions tag act = catch act $ \(e :: Ex.SomeException) -> do
   syslogJSON Syslog.Error tag
     ["msg" .= Aeson.String "rethrowed exception"
     ,"exn" .= Aeson.String (T.pack $ show e)
     ]
-  IOEx.throw e
+  throw e
 
 
 
