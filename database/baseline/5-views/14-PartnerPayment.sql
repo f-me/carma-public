@@ -134,7 +134,7 @@ CREATE VIEW "PartnerPayment" AS WITH
         END :: TIMESTAMP AT TIME ZONE 'UTC') AS a1,
 
        -- `tmExp` - это последняя дата, но если история (`tmHist`) пуста -
-       -- это значение будет некорректным, т.к. это будет `X`.
+       -- это значение будет некорректным, т.к. это будет `X` (оставляем NULL).
        (CASE
           WHEN JSON_ARRAY_LENGTH(s.tmHist) >= 1 THEN s.tmExp
         END :: TIMESTAMP AT TIME ZONE 'UTC') AS an,
@@ -144,6 +144,15 @@ CREATE VIEW "PartnerPayment" AS WITH
        (delays.exceptional = 1) AS e,
        delays.exceptionalComment,
        s.isCountryRide AS c,
+
+       -- T - время создания последнего опоздания
+       -- R = если T < (A[n-1] или X, если N = 1))
+       -- Описано так односложно, т.к. X в случае N = 1 будет последним
+       -- элементом из `s.tmHist` (а когда N = 1, там будет только один
+       -- элемент), а когда N > 1, то A[n-1] будет первым элементом из списка.
+       ((delays.ctime :: TIMESTAMP AT TIME ZONE 'UTC') <
+         ((s.tmHist->>0) :: TIMESTAMP AT TIME ZONE 'UTC')) AS r,
+
        s.partnerId,
        s.serviceId
 
@@ -372,18 +381,14 @@ CREATE VIEW "PartnerPayment" AS WITH
            WHEN n > 0 THEN CASE
 
              -- 19. c ∧ n>0 ∧ r
-             -- TODO
-             WHEN y <= an
-              AND q
+             WHEN r
              THEN '{ "v": "100%"'
               ||  ', "d": "Эвакуатор за городом опаздывает и предупреждает '
               ||          'РАМК об опоздании вовремя"'
               ||  '}'
 
              -- 20. c ∧ n>0 ∧ ¬r
-             -- TODO
-             WHEN y > an
-              AND q
+             WHEN NOT r
              THEN '{ "v": "90%"'
               ||  ', "d": "Эвакуатор за городом опаздывает и предупреждает '
               ||          'РАМК об опоздании не вовремя"'
