@@ -18,7 +18,38 @@ module.exports =
 
   entry:
     carma: path.join SRC_DIR, "main"
-    # resources: []
+
+    resources: [
+      "carma-tpl/fields/form.pug"
+      "carma-tpl/fields/ro.pug"
+      "carma-tpl/fields/table.pug"
+
+      "carma-tpl/lib/navbar.pug"
+
+      "carma-tpl/partials/partnerDelayDialog.pug"
+
+      "carma-tpl/screens/kpi/group.pug"
+      "carma-tpl/screens/kpi/oper.pug"
+      "carma-tpl/screens/kpi/stat.pug"
+      "carma-tpl/screens/back.pug"
+      "carma-tpl/screens/call.pug"
+      "carma-tpl/screens/case.pug"
+      "carma-tpl/screens/contract.pug"
+      "carma-tpl/screens/dictionaries.pug"
+      "carma-tpl/screens/na.pug"
+      "carma-tpl/screens/partner.pug"
+      "carma-tpl/screens/partnersSearch.pug"
+      "carma-tpl/screens/printSrv.pug"
+      "carma-tpl/screens/processingConfig.pug"
+      "carma-tpl/screens/rest.pug"
+      "carma-tpl/screens/rkc.pug"
+      "carma-tpl/screens/search.pug"
+      "carma-tpl/screens/serviceBreak.pug"
+      "carma-tpl/screens/supervisor.pug"
+      "carma-tpl/screens/timeline.pug"
+      "carma-tpl/screens/uploads.pug"
+      "carma-tpl/screens/vin.pug"
+    ]
 
     vendor: [
       "jquery"
@@ -71,6 +102,8 @@ module.exports =
       "more-libs":      path.join RES_DIR, "static", "3p"
 
       "carma-styles":   path.join RES_DIR, "assets", "style", "style.less"
+      "carma-tpl":      path.join RES_DIR, "assets", "template"
+      "./carma-tpl":    path.join RES_DIR, "assets", "template" # pug includes
 
       "jquery.knob": "jquery-knob/js/jquery.knob"
       "jquery.notify": "notify/dist/notify-combined"
@@ -123,6 +156,7 @@ module.exports =
 
       { test: /\.coffee$/, use: "coffee-loader" }
       { test: /\.json$/,   use: "json-loader" }
+      { test: /\.pug$/,    use: "pug-loader" }
 
       { test: /\.(css|less)$/
       , use: cssExtractor.extract [
@@ -143,7 +177,7 @@ module.exports =
 
   plugins: [
     new webpack.optimize.CommonsChunkPlugin(
-      names: ["carma", "vendor"] # "resources"
+      names: ["carma", "resources", "vendor"]
       minChunks: Infinity
     )
 
