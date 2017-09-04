@@ -27,6 +27,7 @@ module.exports =
       "carma-tpl/lib/navbar.pug"
 
       "carma-tpl/partials/partnerDelayDialog.pug"
+      "carma-tpl/partials/partnersSearch.pug"
 
       "carma-tpl/screens/kpi/group.pug"
       "carma-tpl/screens/kpi/oper.pug"
