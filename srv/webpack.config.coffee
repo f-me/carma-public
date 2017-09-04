@@ -1,6 +1,8 @@
+path = require "path"
+
 webpack = require "webpack"
 ExtractTextPlugin = require "extract-text-webpack-plugin"
-path = require "path"
+UglifyJSPlugin = require "uglifyjs-webpack-plugin"
 
 RES_DIR = path.join __dirname, "resources"
 SRC_DIR = path.join RES_DIR, "assets", "script"
@@ -157,7 +159,6 @@ module.exports =
 
       { test: /\.coffee$/, use: "coffee-loader" }
       { test: /\.json$/,   use: "json-loader" }
-      { test: /\.pug$/,    use: "pug-loader" }
 
       { test: /\.(css|less)$/
       , use: cssExtractor.extract [
@@ -169,6 +170,12 @@ module.exports =
         ]
       }
 
+      { test: /\.pug$/
+      , use: [ { loader: "babel-loader", options: presets: ["env"] }
+             , "pug-loader"
+             ]
+      }
+
       { test: /\.(png|jpg|jpeg|gif)$/
       , use: { loader: "url-loader", options: limit: 8192 }
       }
@@ -177,6 +184,7 @@ module.exports =
     ]
 
   plugins: [
+
     new webpack.optimize.CommonsChunkPlugin(
       names: ["carma", "resources", "vendor"]
       minChunks: Infinity
@@ -189,4 +197,7 @@ module.exports =
     )
 
     cssExtractor
-  ]
+
+  ] .concat if process.env.NODE_ENV is "production" \
+               then new UglifyJSPlugin()
+               else []

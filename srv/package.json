@@ -8,7 +8,9 @@
     "clean-old-stuff": "rm -rf bower_components resources/static/js/gen/*.{js,js.map} resources/static/js/gen/{components,dictionaries,globallibs,hooks,kpi,lib,model,render,screens,search,sync}",
     "clean": "rm -rf resources/static/js/gen/carma",
     "build": "webpack",
-    "clean-build": "npm run clean && npm run build"
+    "prod-build": "env NODE_ENV=production webpack",
+    "clean-build": "npm run clean && npm run build",
+    "prod-clean-build": "npm run clean && npm run prod-build"
   },
   "repository": {
     "type": "git",
@@ -24,6 +26,8 @@
   },
   "homepage": "https://github.com/f-me/carma",
   "devDependencies": {
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.0",
     "babel-preset-es2015": "^6.24.1",
     "coffee-loader": "^0.8.0",
     "coffeescript": "^1.12.7",
@@ -49,6 +53,7 @@
     "load-grunt-tasks": "^0.6.0",
     "pug-lint-config-clock": "^2.0.0",
     "pug-loader": "^2.3.0",
+    "uglifyjs-webpack-plugin": "^0.4.6",
     "url-loader": "^0.5.9",
     "webpack": "^3.5.2"
   },
