@@ -23,6 +23,7 @@ CREATE VIEW "PartnerPayment" AS WITH
            , tmExp
            , tmHist
            , isCountryRide
+           , partnerWarnedInTime
            ) AS
 
     (SELECT * FROM (SELECT
@@ -31,7 +32,8 @@ CREATE VIEW "PartnerPayment" AS WITH
                       times_factServiceStart,
                       times_expectedServiceStart,
                       times_expectedServiceStartHistory,
-                      isCountryRide
+                      isCountryRide,
+                      partnerWarnedInTime
                     FROM techtbl) tech
 
          UNION ALL (SELECT
@@ -40,7 +42,8 @@ CREATE VIEW "PartnerPayment" AS WITH
                       times_factServiceStart,
                       times_expectedServiceStart,
                       times_expectedServiceStartHistory,
-                      isCountryRide
+                      isCountryRide,
+                      partnerWarnedInTime
                     FROM towagetbl)
 
          UNION ALL (SELECT
@@ -49,7 +52,8 @@ CREATE VIEW "PartnerPayment" AS WITH
                       times_factServiceStart,
                       times_expectedServiceStart,
                       times_expectedServiceStartHistory,
-                      isCountryRide
+                      isCountryRide,
+                      partnerWarnedInTime
                     FROM renttbl)
 
          UNION ALL (SELECT
@@ -58,7 +62,8 @@ CREATE VIEW "PartnerPayment" AS WITH
                       times_factServiceStart,
                       times_expectedServiceStart,
                       times_expectedServiceStartHistory,
-                      isCountryRide
+                      isCountryRide,
+                      partnerWarnedInTime
                     FROM taxitbl)
 
          UNION ALL (SELECT
@@ -67,7 +72,8 @@ CREATE VIEW "PartnerPayment" AS WITH
                       times_factServiceStart,
                       times_expectedServiceStart,
                       times_expectedServiceStartHistory,
-                      isCountryRide
+                      isCountryRide,
+                      partnerWarnedInTime
                     FROM sobertbl)
 
          UNION ALL (SELECT
@@ -76,7 +82,8 @@ CREATE VIEW "PartnerPayment" AS WITH
                       times_factServiceStart,
                       times_expectedServiceStart,
                       times_expectedServiceStartHistory,
-                      isCountryRide
+                      isCountryRide,
+                      partnerWarnedInTime
                     FROM averagecommissionertbl)
     ),
 
@@ -143,13 +150,8 @@ CREATE VIEW "PartnerPayment" AS WITH
        delays.exceptionalComment,
        s.isCountryRide AS c,
 
-       -- T - время создания последнего опоздания
-       -- R = если T < (A[n-1] или X, если N = 1))
-       -- Описано так односложно, т.к. X в случае N = 1 будет последним
-       -- элементом из `s.tmHist` (а когда N = 1, там будет только один
-       -- элемент), а когда N > 1, то A[n-1] будет первым элементом из списка.
-       ((delays.ctime :: TIMESTAMP AT TIME ZONE 'UTC') <
-         ((s.tmHist->>0) :: TIMESTAMP AT TIME ZONE 'UTC')) AS r,
+       -- По дефолту (если НЕ нажали на кнопку "расчёт") считать что вовремя
+       COALESCE(s.partnerWarnedInTime, TRUE) AS r,
 
        s.partnerId,
        s.serviceId
