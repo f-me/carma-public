@@ -3,7 +3,6 @@ module ApplicationInit (appInit) where
 import Control.Monad (when)
 import Control.Concurrent.STM
 import Control.Monad.IO.Class
-import Control.Monad.Trans.Control (MonadBaseControl)
 import Control.Exception.Lifted hiding (Handler)
 -- ^ FIXME: Monad.CatchIO is deprecated
 
