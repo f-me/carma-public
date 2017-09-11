@@ -52,7 +52,6 @@ ghc-options:
   - -threaded
   - -O2
   - -funbox-strict-fields
-  - -fcontext-stack=200
 
 library:
   source-dirs: src
