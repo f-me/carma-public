@@ -38,7 +38,7 @@ currentUserMeta = withAuth currentUser >>= \case
     req <- getRequest
     -- Consider current user to be admin when accessing from localhost
     -- (HTTP API)
-    case rqClientAddr req == rqLocalHostname req of
+    case rqClientAddr req == rqServerAddr req of
       True ->
         (withAuthPg $ PG.liftPG' $ Patch.read Usermeta.admin) >>=
           \case

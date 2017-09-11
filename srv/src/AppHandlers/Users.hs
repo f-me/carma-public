@@ -117,7 +117,7 @@ chkAuthRoles :: RoleChecker
 chkAuthRoles roleCheck handler = do
   ipHeaderFilter
   req <- getRequest
-  case rqClientAddr req /= rqLocalHostname req of
+  case rqClientAddr req /= rqServerAddr req of
     False -> handler -- No checks for requests from localhost
     True  -> currentUserRoles >>= \case
       Nothing -> handleError 401
