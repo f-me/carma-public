@@ -56,6 +56,7 @@ import           Data.Dict
 import           Data.Functor
 import           Data.HashMap.Strict        as M hiding (filter, mapMaybe)
 import           Data.Maybe
+import           Data.Text (pack)
 import qualified Data.Text.Encoding         as T
 
 import           Network.HTTP
@@ -69,14 +70,16 @@ type FieldValue = BS.ByteString
 type FieldName = BS.ByteString
 
 instance ToJSON B8.ByteString where
-  toJSON = toJSON
+  toJSON = toJSON . pack . B8.unpack
 
 instance FromJSON B8.ByteString where
-  parseJSON = parseJSON 
+  parseJSON = return . B8.pack . show
 
 instance ToJSONKey B8.ByteString
 
 instance FromJSONKey B8.ByteString
+
+
 
 -- | An instance of a model is a set of key-value pairs.
 type InstanceData = M.HashMap FieldName FieldValue
