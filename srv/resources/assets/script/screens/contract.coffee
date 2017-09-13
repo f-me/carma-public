@@ -121,37 +121,33 @@ define [ "search/screen"
         (r) -> r == global.idents("Role").contract_admin)
         kvm['disableDixi'](true)
 
-      # True if a duplicate contract caused user to not save the
-      # contract
-      dupe = false
+      reallySave = () ->
+        kvm._meta.q.save ->
+          $.notify("Контракт успешно сохранён", className: "success")
+          $("#renew-contract-btn").show()
+          global.searchVM?._meta.q.search()
 
       # Prevent on-off behaviour of dixi: once true, it's always
       # true (#1042)
-      kvm["always_true"] = kvm["dixi"]()? || false
-      kvm["dixi"].subscribe (v) ->
-        kvm["always_true"] = true if v
-        if kvm["always_true"] and !dupe
+      preventDixiFlapping = () ->
+        kvm["dixi"].subscribe (v) ->
           kvm["dixi"] true
-          return unless v
-          kvm._meta.q.save ->
-            $.notify("Контракт успешно сохранён", className: "success")
-            $("#renew-contract-btn").show()
-            global.searchVM?._meta.q.search()
+          reallySave()
 
       if kvm.dixi()
         $("#renew-contract-btn").show()
       else
         $("#renew-contract-btn").hide()
 
-      unless kvm["dixi"]()
+      if !kvm["dixi"]()
         # When creating new contracts, check contract duplicates upon
         # contract saving, ignoring first dixi update (when default
         # fields are first fetched)
         check = kvm["dixi"].subscribe (v) ->
           return unless v
 
-          finish = (ok) -> if ok then dupe = false ; check.dispose() \
-                                 else dupe = true  ; kvm["dixi"] false
+          finish = (ok) -> if ok then check.dispose() ; reallySave() ; preventDixiFlapping() \
+                                 else kvm["dixi"] false
 
           if (
             kvm["firstSaleDate"]? \
@@ -167,7 +163,7 @@ define [ "search/screen"
 
           findSame kvm, (r) ->
             if _.isEmpty(r)
-              dupe = false
+              finish true
               return
             if confirm("За последние 30 дней уже были созданы контракты с\
                        \ таким же VIN или номером карты участника, их id:\
@@ -175,6 +171,8 @@ define [ "search/screen"
               finish true
             else
               finish false
+      else
+        preventDixiFlapping()
 
 
     contract.subscribe (c) ->
