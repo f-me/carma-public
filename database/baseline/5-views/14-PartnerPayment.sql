@@ -95,6 +95,8 @@ CREATE VIEW "PartnerPayment" AS WITH
         X — Ожидаемое время начала оказания услуги (при передаче заявки)
         Y — Фактическое время начала оказания услуги
         N (numOfDelays) — Количество оповещений об опоздании
+                          (оповещений от партнёра, не считаются опоздания,
+                           о которых партнёр не сообщил, см. флаг “предупредил”)
 
         A[1] (firstDelay) — Ожидаемое время начала оказания услуги после
                             озвучивания партнером опоздания в первый раз
@@ -125,7 +127,12 @@ CREATE VIEW "PartnerPayment" AS WITH
                 ) :: TIMESTAMP AT TIME ZONE 'UTC') AS x,
 
        (s.tmFact :: TIMESTAMP AT TIME ZONE 'UTC') AS y,
-       JSON_ARRAY_LENGTH(s.tmHist) AS n,
+
+       (SELECT COUNT(*) AS n
+        FROM "PartnerDelay" AS pd
+        WHERE pd.serviceId = s.serviceId
+          AND pd.notified  = 1
+       ),
 
        (CASE
 
