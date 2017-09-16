@@ -6,8 +6,6 @@
 
 HTTP API using DbLayer legacy types.
 
-TODO: Port InstanceData to use Text.
-
 -}
 
 module Carma.HTTP
@@ -49,15 +47,15 @@ import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Reader
 
 import           Data.Aeson                 hiding (Result)
-import qualified Data.ByteString            as BS
-import qualified Data.ByteString.Char8      as B8
-import qualified Data.ByteString.Lazy.Char8 as BSL
+import qualified Data.ByteString.Lazy.Char8 as B8L
 import           Data.Dict
 import           Data.Functor
 import           Data.HashMap.Strict        as M hiding (filter, mapMaybe)
 import           Data.Maybe
-import           Data.Text (pack)
+import           Data.Text (Text)
+import qualified Data.Text                  as T
 import qualified Data.Text.Encoding         as T
+import qualified Data.Text.Read             as T
 
 import           Network.HTTP
 
@@ -65,26 +63,12 @@ import           Carma.HTTP.Base
 import           Carma.HTTP.Util
 
 
-type FieldValue = BS.ByteString
+type FieldValue = Text
 
-type FieldName = BS.ByteString
-
-instance ToJSON B8.ByteString where
-  toJSON = toJSON . pack . B8.unpack
-
-instance FromJSON B8.ByteString where
-  parseJSON = return . B8.pack . show
-
-instance ToJSONKey B8.ByteString
-
-instance FromJSONKey B8.ByteString
-
-
+type FieldName = Text
 
 -- | An instance of a model is a set of key-value pairs.
 type InstanceData = M.HashMap FieldName FieldValue
-{-# DEPRECATED InstanceData "Legacy ByteString-based interface" #-}
-
 
 -- | Send request to c/r/u/d an instance of model, possibly using new
 -- instance data. Return id and instance data from server response.
@@ -107,9 +91,9 @@ instanceRequest model rid rm row = do
         case row of
           Just payload ->
               mkRequestWithBody uri rm $
-              Just ("application/json", BSL.unpack $ encode payload)
+              Just ("application/json", B8L.unpack $ encode payload)
           Nothing -> mkRequestWithBody uri rm Nothing
-  inst <- liftIO $ (decode' . BSL.pack) <$> getResponseBody rs
+  inst <- liftIO $ (decode' . B8L.pack) <$> getResponseBody rs
   return $ case rid of
     -- We already know id
     Just n -> (n, inst)
@@ -119,9 +103,9 @@ instanceRequest model rid rm row = do
         case inst of
           Just d -> case M.lookup "id" d of
                       Just carmaId ->
-                          case B8.readInt carmaId of
-                            Just (n, _) -> (n, Just d)
-                            Nothing     ->
+                          case T.decimal carmaId of
+                            Right (n, _) -> (n, Just d)
+                            Left _     ->
                                 error "Could not read id from CaRMa response"
                       Nothing -> error "CaRMa response contains no id field"
           -- Fail if no id provided and could not read response
@@ -180,7 +164,7 @@ instanceExists modelName rid = do
 
 
 -- | Separates individual values in dictionary-many fields and
--- reference list fields. @B8.split manyFieldDivisor@ may be applied
+-- reference list fields. @Text.split manyFieldDivisor@ may be applied
 -- to a 'FieldValue' to obtain the corresponding list.
 manyFieldDivisor :: Char
 manyFieldDivisor = ','
@@ -189,11 +173,11 @@ manyFieldDivisor = ','
 -- | Read reference of format @foo:32@ into model name and id.
 read1Reference :: FieldValue -> Maybe (String, Int)
 read1Reference val =
-    case B8.split ':' val of
+    case T.split (== ':') val of
       [ref, sid] ->
-          case B8.readInt sid of
-            Just (n, _) -> Just (B8.unpack ref, n)
-            Nothing -> Nothing
+          case T.decimal sid of
+            Right (n, _) -> Just (T.unpack ref, n)
+            Left _ -> Nothing
       _ -> Nothing
 
 
@@ -201,7 +185,7 @@ read1Reference val =
 -- ids. Invalid references are ignored.
 readReferences :: FieldValue -> [(String, Int)]
 readReferences refs =
-    mapMaybe read1Reference (B8.split manyFieldDivisor refs)
+    mapMaybe read1Reference (T.split (== manyFieldDivisor) refs)
 
 
 -- | Load a dictionary with given name from CaRMa.
@@ -214,7 +198,7 @@ readDictionary name = do
   rsb <- liftIO $ getResponseBody rs
   -- Read server response into @HashMap String Value@, since
   -- carma-dict does not support multi-level dictionaries yet
-  let dicts = decode' $ BSL.pack rsb :: Maybe (M.HashMap String Value)
+  let dicts = decode' $ B8L.pack rsb :: Maybe (M.HashMap String Value)
   return $ case M.lookup name <$> dicts of
     Just (Just v) -> decode' $ encode v
     _             -> Nothing
@@ -246,4 +230,4 @@ getAllKeyedJsonValues :: FieldValue
 getAllKeyedJsonValues field key =
   mapMaybe (M.lookup "value") $
   filter (\o -> fromMaybe "" (M.lookup "key" o) == key)
-  (fromMaybe [] $ decode' $ BSL.fromStrict field :: JsonDictObjects)
+  (fromMaybe [] $ decode' $ B8L.fromStrict $ T.encodeUtf8 field :: JsonDictObjects)
