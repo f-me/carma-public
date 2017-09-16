@@ -30,7 +30,11 @@ create view report_actions as
    LEFT JOIN "ActionType" act_t ON act.type = act_t.id
    LEFT JOIN usermetatbl um ON act.assignedto = um.id
    LEFT JOIN "ActionResult" ar ON act.result = ar.id
-   LEFT JOIN "ServiceType" st ON serv.type = st.id;
+   LEFT JOIN "ServiceType" st ON serv.type = st.id
+   WHERE act.closetime IS NOT NULL
+   AND act.opentime  IS NOT NULL
+   AND act.result <> 32 -- Закрыто супервизором
+   AND act.result is not null;
 
 grant select on report_actions to reportgen;
 
