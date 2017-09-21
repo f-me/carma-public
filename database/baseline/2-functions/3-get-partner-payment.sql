@@ -1,17 +1,12 @@
 BEGIN;
 
--- FIXME: CTEs are not efficient if we are want to calculate partner payment
--- for single service (GET /partnerKPI/:svcid/:partnerid).
--- Maybe worth rewriting this as stored procedure.
-
-DROP VIEW IF EXISTS "PartnerPayment";
-
 CREATE OR REPLACE FUNCTION GetPartnerPayment(argServiceId INT)
 RETURNS TABLE ( serviceId          INT
               , partnerId          INT
               , paymentPercent     TEXT
               , paymentDescription TEXT
-              ) AS $$
+              )
+AS $$
 BEGIN
 
   RETURN QUERY WITH
@@ -40,6 +35,7 @@ BEGIN
                         partnerWarnedInTime
                       FROM techtbl AS t
                       WHERE t.id = argServiceId
+                      LIMIT 1
                     ) AS tech
 
           UNION ALL ( SELECT
@@ -52,6 +48,7 @@ BEGIN
                         partnerWarnedInTime
                       FROM towagetbl AS t
                       WHERE t.id = argServiceId
+                      LIMIT 1
                     )
 
           UNION ALL ( SELECT
@@ -64,6 +61,7 @@ BEGIN
                         partnerWarnedInTime
                       FROM renttbl AS t
                       WHERE t.id = argServiceId
+                      LIMIT 1
                     )
 
           UNION ALL ( SELECT
@@ -76,6 +74,7 @@ BEGIN
                         partnerWarnedInTime
                       FROM taxitbl AS t
                       WHERE t.id = argServiceId
+                      LIMIT 1
                     )
 
           UNION ALL ( SELECT
@@ -88,6 +87,7 @@ BEGIN
                         partnerWarnedInTime
                       FROM sobertbl AS t
                       WHERE t.id = argServiceId
+                      LIMIT 1
                     )
 
           UNION ALL ( SELECT
@@ -100,6 +100,7 @@ BEGIN
                         partnerWarnedInTime
                       FROM averagecommissionertbl AS t
                       WHERE t.id = argServiceId
+                      LIMIT 1
                     )
 
     ),
@@ -422,14 +423,12 @@ BEGIN
 
   FROM payments AS t;
 
-END; $$
-LANGUAGE PLPGSQL;
+END;
+$$ LANGUAGE PLPGSQL
+SECURITY DEFINER;
 
--- TODO
--- CREATE VIEW "PartnerPayment" AS
-  -- SELECT * FROM servicetbl AS s;
-
-GRANT SELECT ON TABLE "PartnerPayment" TO reportgen;
-GRANT SELECT ON TABLE "PartnerPayment" TO carma_db_sync;
+REVOKE ALL ON FUNCTION GetPartnerPayment(argServiceId INT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION GetPartnerPayment(argServiceId INT) TO reportgen;
+GRANT EXECUTE ON FUNCTION GetPartnerPayment(argServiceId INT) TO carma_db_sync;
 
 COMMIT;
