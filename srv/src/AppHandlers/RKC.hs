@@ -31,7 +31,6 @@ import qualified Data.Aeson                         as Aeson
 import qualified Data.ByteString.Lazy               as LB
 import qualified Data.Text                          as T
 import qualified Data.Text.Encoding                 as T
-import           Data.Text.Format
 import           Data.Time
 
 import           Database.PostgreSQL.Simple.SqlQQ
