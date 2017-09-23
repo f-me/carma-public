@@ -622,11 +622,12 @@ partners fromDate toDate = logExceptions "rkc/partners" $ do
       "select trim(contractor_partner) c from servicetbl where",
       " (createTime >= ?) and (createTime < ?) and (createTime is not null) group by c order by c"]
 
-  ps <- trace "result" $ queryFmt q [] [fromDate, toDate]
+  ps <- trace "result" $ queryFmt q [fromDate, toDate]
   return $ toJSON (mapMaybe PS.fromOnly ps :: [T.Text])
 
-queryFmt :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => [String] -> FormatArgs -> q -> m [r]
-queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)
+queryFmt :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r)
+         => [String] -> q -> m [r]
+queryFmt lns = query $ fromString $ concat lns
 
 -- | Calculate average service processing time (in seconds).
 --
