@@ -338,7 +338,8 @@ partnerKPI :: AppHandler ()
 partnerKPI = do
   svcId     <- getIntParam "svcid"
   partnerId <- getIntParam "partnerid"
-  [[json]]  <- query [sql| WITH p AS (SELECT (GetPartnerPayment(?)).*)
+  [[json]]  <- query [sql| WITH
+                             p AS (SELECT (GetPartnerPayment(?, NULL, NULL)).*)
                            SELECT coalesce(row_to_json(p.*), '{}') FROM p
                            WHERE partnerId = ? |]
                      (svcId, partnerId)

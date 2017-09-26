@@ -1,20 +1,34 @@
 BEGIN;
 
-CREATE OR REPLACE FUNCTION GetPartnerPayment(argServiceId INT)
+CREATE OR REPLACE FUNCTION
+  GetPartnerPayment ( argServiceId INT
+                    , argFrom      TIMESTAMP WITH TIME ZONE
+                    , argTo        TIMESTAMP WITH TIME ZONE
+                    )
 RETURNS TABLE ( serviceId          INT
               , partnerId          INT
               , paymentPercent     TEXT
               , paymentDescription TEXT
               )
 AS $$
+DECLARE
+  lim INT = NULL;
 BEGIN
+
+  IF argServiceId IS NULL THEN
+    lim := NULL;
+  ELSE
+    lim := 1;
+  END IF;
 
   RETURN QUERY WITH
 
   delays AS ( SELECT * FROM "PartnerDelay" AS t
-              WHERE t.serviceId = argServiceId
+              WHERE argServiceId IS NULL OR t.serviceId = argServiceId
               ORDER BY ctime DESC
             ),
+
+  distinct_delays AS (SELECT DISTINCT ON (serviceId) * FROM delays),
 
   services ( serviceId
            , partnerId
@@ -34,8 +48,10 @@ BEGIN
                         isCountryRide,
                         partnerWarnedInTime
                       FROM techtbl AS t
-                      WHERE t.id = argServiceId
-                      LIMIT 1
+                      WHERE (argServiceId IS NULL OR t.id = argServiceId)
+                        AND (argFrom IS NULL OR createtime >= argFrom)
+                        AND (argTo   IS NULL OR createtime <= argTo)
+                      LIMIT lim
                     ) AS tech
 
           UNION ALL ( SELECT
@@ -47,8 +63,10 @@ BEGIN
                         isCountryRide,
                         partnerWarnedInTime
                       FROM towagetbl AS t
-                      WHERE t.id = argServiceId
-                      LIMIT 1
+                      WHERE (argServiceId IS NULL OR t.id = argServiceId)
+                        AND (argFrom IS NULL OR createtime >= argFrom)
+                        AND (argTo   IS NULL OR createtime <= argTo)
+                      LIMIT lim
                     )
 
           UNION ALL ( SELECT
@@ -60,8 +78,10 @@ BEGIN
                         isCountryRide,
                         partnerWarnedInTime
                       FROM renttbl AS t
-                      WHERE t.id = argServiceId
-                      LIMIT 1
+                      WHERE (argServiceId IS NULL OR t.id = argServiceId)
+                        AND (argFrom IS NULL OR createtime >= argFrom)
+                        AND (argTo   IS NULL OR createtime <= argTo)
+                      LIMIT lim
                     )
 
           UNION ALL ( SELECT
@@ -73,8 +93,10 @@ BEGIN
                         isCountryRide,
                         partnerWarnedInTime
                       FROM taxitbl AS t
-                      WHERE t.id = argServiceId
-                      LIMIT 1
+                      WHERE (argServiceId IS NULL OR t.id = argServiceId)
+                        AND (argFrom IS NULL OR createtime >= argFrom)
+                        AND (argTo   IS NULL OR createtime <= argTo)
+                      LIMIT lim
                     )
 
           UNION ALL ( SELECT
@@ -86,8 +108,10 @@ BEGIN
                         isCountryRide,
                         partnerWarnedInTime
                       FROM sobertbl AS t
-                      WHERE t.id = argServiceId
-                      LIMIT 1
+                      WHERE (argServiceId IS NULL OR t.id = argServiceId)
+                        AND (argFrom IS NULL OR createtime >= argFrom)
+                        AND (argTo   IS NULL OR createtime <= argTo)
+                      LIMIT lim
                     )
 
           UNION ALL ( SELECT
@@ -99,8 +123,10 @@ BEGIN
                         isCountryRide,
                         partnerWarnedInTime
                       FROM averagecommissionertbl AS t
-                      WHERE t.id = argServiceId
-                      LIMIT 1
+                      WHERE (argServiceId IS NULL OR t.id = argServiceId)
+                        AND (argFrom IS NULL OR createtime >= argFrom)
+                        AND (argTo   IS NULL OR createtime <= argTo)
+                      LIMIT lim
                     )
 
     ),
@@ -146,7 +172,10 @@ BEGIN
 
         (s.tmFact :: TIMESTAMP AT TIME ZONE 'UTC') AS y,
 
-        (SELECT COUNT(*) AS n FROM delays AS t WHERE t.notified = 1),
+        ( SELECT COUNT(*) AS n
+          FROM delays AS t
+          WHERE t.serviceId = s.serviceId
+            AND t.notified = 1 ),
 
         ( CASE
 
@@ -166,9 +195,9 @@ BEGIN
             WHEN JSON_ARRAY_LENGTH(s.tmHist) >= 1 THEN s.tmExp
           END :: TIMESTAMP AT TIME ZONE 'UTC' ) AS an,
 
-        (delays.delayConfirmed = 1) AS w,
-        (delays.exceptional = 1) AS e,
-        delays.exceptionalComment,
+        (dl.delayConfirmed = 1) AS w,
+        (dl.exceptional = 1) AS e,
+        dl.exceptionalComment,
         s.isCountryRide AS c,
 
         -- По дефолту (если НЕ нажали на кнопку "расчёт") считать что вовремя
@@ -178,14 +207,15 @@ BEGIN
         s.serviceId
 
       FROM services AS s
-      LEFT JOIN delays ON delays.serviceId = s.serviceId
+      INNER JOIN distinct_delays AS dl ON dl.serviceId = s.serviceId
       WHERE s.partnerId IS NOT NULL
-      LIMIT 1
+      LIMIT lim
     ),
 
   payments AS
 
     ( SELECT
+        x.serviceId,
         x.partnerId,
         x.exceptionalComment,
 
@@ -412,7 +442,7 @@ BEGIN
     )
 
   SELECT
-    argServiceId AS serviceId,
+    t.serviceId,
     t.partnerId,
     (t.payment::JSON)->>'v' AS paymentPercent,
 
@@ -427,8 +457,13 @@ END;
 $$ LANGUAGE PLPGSQL
 SECURITY DEFINER;
 
-REVOKE ALL ON FUNCTION GetPartnerPayment(argServiceId INT) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION GetPartnerPayment(argServiceId INT) TO reportgen;
-GRANT EXECUTE ON FUNCTION GetPartnerPayment(argServiceId INT) TO carma_db_sync;
+REVOKE ALL ON FUNCTION GetPartnerPayment
+  (INT, TIMESTAMP WITH TIME ZONE, TIMESTAMP WITH TIME ZONE) FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION GetPartnerPayment
+  (INT, TIMESTAMP WITH TIME ZONE, TIMESTAMP WITH TIME ZONE) TO reportgen;
+
+GRANT EXECUTE ON FUNCTION GetPartnerPayment
+  (INT, TIMESTAMP WITH TIME ZONE, TIMESTAMP WITH TIME ZONE) TO carma_db_sync;
 
 COMMIT;
