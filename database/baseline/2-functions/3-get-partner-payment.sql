@@ -49,8 +49,8 @@ BEGIN
                         partnerWarnedInTime
                       FROM techtbl AS t
                       WHERE (argServiceId IS NULL OR t.id = argServiceId)
-                        AND (argFrom IS NULL OR createtime >= argFrom)
-                        AND (argTo   IS NULL OR createtime <= argTo)
+                        AND (argFrom      IS NULL OR createtime >= argFrom)
+                        AND (argTo        IS NULL OR createtime <= argTo)
                       LIMIT lim
                     ) AS tech
 
@@ -64,8 +64,8 @@ BEGIN
                         partnerWarnedInTime
                       FROM towagetbl AS t
                       WHERE (argServiceId IS NULL OR t.id = argServiceId)
-                        AND (argFrom IS NULL OR createtime >= argFrom)
-                        AND (argTo   IS NULL OR createtime <= argTo)
+                        AND (argFrom      IS NULL OR createtime >= argFrom)
+                        AND (argTo        IS NULL OR createtime <= argTo)
                       LIMIT lim
                     )
 
@@ -79,8 +79,8 @@ BEGIN
                         partnerWarnedInTime
                       FROM renttbl AS t
                       WHERE (argServiceId IS NULL OR t.id = argServiceId)
-                        AND (argFrom IS NULL OR createtime >= argFrom)
-                        AND (argTo   IS NULL OR createtime <= argTo)
+                        AND (argFrom      IS NULL OR createtime >= argFrom)
+                        AND (argTo        IS NULL OR createtime <= argTo)
                       LIMIT lim
                     )
 
@@ -94,8 +94,8 @@ BEGIN
                         partnerWarnedInTime
                       FROM taxitbl AS t
                       WHERE (argServiceId IS NULL OR t.id = argServiceId)
-                        AND (argFrom IS NULL OR createtime >= argFrom)
-                        AND (argTo   IS NULL OR createtime <= argTo)
+                        AND (argFrom      IS NULL OR createtime >= argFrom)
+                        AND (argTo        IS NULL OR createtime <= argTo)
                       LIMIT lim
                     )
 
@@ -109,8 +109,8 @@ BEGIN
                         partnerWarnedInTime
                       FROM sobertbl AS t
                       WHERE (argServiceId IS NULL OR t.id = argServiceId)
-                        AND (argFrom IS NULL OR createtime >= argFrom)
-                        AND (argTo   IS NULL OR createtime <= argTo)
+                        AND (argFrom      IS NULL OR createtime >= argFrom)
+                        AND (argTo        IS NULL OR createtime <= argTo)
                       LIMIT lim
                     )
 
@@ -124,8 +124,8 @@ BEGIN
                         partnerWarnedInTime
                       FROM averagecommissionertbl AS t
                       WHERE (argServiceId IS NULL OR t.id = argServiceId)
-                        AND (argFrom IS NULL OR createtime >= argFrom)
-                        AND (argTo   IS NULL OR createtime <= argTo)
+                        AND (argFrom      IS NULL OR createtime >= argFrom)
+                        AND (argTo        IS NULL OR createtime <= argTo)
                       LIMIT lim
                     )
 
@@ -207,7 +207,7 @@ BEGIN
         s.serviceId
 
       FROM services AS s
-      INNER JOIN distinct_delays AS dl ON dl.serviceId = s.serviceId
+      LEFT JOIN distinct_delays AS dl ON dl.serviceId = s.serviceId
       WHERE s.partnerId IS NOT NULL
       LIMIT lim
     ),
