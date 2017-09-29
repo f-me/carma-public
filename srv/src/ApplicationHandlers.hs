@@ -351,6 +351,7 @@ copyContract = do
           , color          , extra
           , transmission   , registrationreason
           , enginevolume   , priceinorder
+          , firstSaleDate  , generation
           , committer      , dixi
           , isactive
           )
@@ -369,7 +370,8 @@ copyContract = do
              , c.color          , c.extra
              , c.transmission   , c.registrationreason
              , c.enginevolume   , c.priceinorder
-             , $(uId)$        , false
+             , c.firstSaleDate  , c.generation
+             , $(uId)$          , false
              , true
           from "Contract" c, usermetatbl u
             where c.subprogram is not null

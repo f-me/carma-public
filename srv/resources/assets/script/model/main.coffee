@@ -320,7 +320,8 @@ define [ "model/render"
         kvm["#{name}DisableDixi"] = ko.observable(false)
         kvm["#{name}Disabled"]    = ko.computed
           read: ->
-            mbid = parseInt(kvm["maybeId"]())
+            return true if options.waitFor? and not kvm[options.waitFor]()?
+            mbid = parseInt kvm["maybeId"]()
             return true if readonly
             dixi = kvm['dixi']?() and not kvm["#{name}DisableDixi"]()
             (not _.isNaN mbid)   and
@@ -465,6 +466,7 @@ define [ "model/render"
         parent: options.parent
         saveSuccessCb: options.saveSuccessCb
         fetched: args
+        waitFor: options.waitFor ? null
       return [kvm, kvm._meta.q]
 
   buildNewModel = (modelName, args, options, cb) ->

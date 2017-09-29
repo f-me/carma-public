@@ -97,9 +97,10 @@ define [ "search/screen"
           "/renderContract?contract=#{cid}")
         main.modelSetup(formContractModel) contractForm, {id: cid}, {}
       else
-        main.modelSetup(formContractModel) contractForm,
-          # TODO Check for permission to write in a subprogram
-          {subprogram: subprogram}, {}
+        main.modelSetup(formContractModel) \
+          contractForm,
+          {subprogram}, # TODO Check for permission to write in a subprogram
+          {waitFor: "ctime"}
 
       kvm = global.viewsWare[contractForm].knockVM
 
