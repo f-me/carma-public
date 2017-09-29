@@ -331,8 +331,8 @@ copyCtrOptions = do
 
 copyContract :: AppHandler ()
 copyContract = do
-  cId <- getParam "id"
-  Just uId <- currentUserMetaId
+  cId       <- getParam "id"
+  Just uId  <- currentUserMetaId
   [[newId]] <- uncurry PS.query
     $ [Alt.sql|
         insert into "Contract"

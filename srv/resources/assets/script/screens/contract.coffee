@@ -10,22 +10,24 @@ define [ "search/screen"
     # All portal fields marked with showtable option in subprogram
     # dictionary are searchable and shown in the table
     resultFields = _.map Table.fields, (f) ->
-            name: f.name
-            fixed: true
+      name: f.name
+      fixed: true
     searchFields = _.pluck resultFields, 'name'
     Screen.constructor
-        noState: true
-        hideFieldsList: true
-        apiUrl: "/search/portal"
-        searchModels: [Search]
-        resultModels: [Table]
-        resultTable: _.filter resultFields, (f) -> f.name != "subprogram"
-        searchFields: searchFields
-        defaultSort: { fields: [{ model: "Contract", name: "id" }], order: "desc" }
-        allowedResultFields:
-          Contract: _.pluck Table.fields, 'name'
-        predFieldWrap: 'contract-wrap'
-        trClickAction: onClick
+      noState: true
+      hideFieldsList: true
+      apiUrl: "/search/portal"
+      searchModels: [Search]
+      resultModels: [Table]
+      resultTable: _.filter resultFields, (f) -> f.name != "subprogram"
+      searchFields: searchFields
+      defaultSort:
+        fields: [{model: "Contract", name: "id"}]
+        order: "desc"
+      allowedResultFields:
+        Contract: _.pluck Table.fields, 'name'
+      predFieldWrap: 'contract-wrap'
+      trClickAction: onClick
 
   # Given subprogram id and its title, setup logo, title and dealer
   # help on page header
@@ -52,7 +54,7 @@ define [ "search/screen"
   redirect = (hash) -> window.location.hash = hash
 
   template: tpl
-  constructor: (viewName, {sub: subprogram, id: id}) ->
+  constructor: (viewName, {sub: subprogram, id}) ->
     spgms = u.newComputedDict "portalSubPrograms"
     def_spgm = spgms.source[0]?.value
 
@@ -95,7 +97,8 @@ define [ "search/screen"
         $('#render-contract').attr(
           "href",
           "/renderContract?contract=#{cid}")
-        main.modelSetup(formContractModel) contractForm, {id: cid}, {}
+        main.modelSetup(formContractModel) \
+          contractForm, {id: cid}, {}
       else
         main.modelSetup(formContractModel) \
           contractForm,
@@ -111,7 +114,7 @@ define [ "search/screen"
       is_partner = _.find(global.user.roles,
         (r) -> r == global.idents("Role").partner)
       if is_partner
-        kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
+        kvm['commentDisableDixi'](true) if kvm['commentDisabled']
 
         ctime = moment(kvm.ctime(), 'DD.MM.YYYY HH:mm:ss')
         ctime = ctime.add(moment.duration(24, 'hours')).format()
