@@ -235,8 +235,8 @@ getCityWeather city = liftFree (DoApp action id)
     action :: AppHandler (Either String Weather)
     action = do
       conf <- gets weatherCfg
-      weather <- liftIO $ getWeather' conf $
-                 T.unpack $ T.filter (/= '\'') city
+      weather <- liftIO $ getWeather' conf
+                 $ T.unpack (T.filter (/= '\'') city) ++ ",ru"
       return $ case weather of
                  Right w -> Right w
                  Left e  -> Left $ show e
