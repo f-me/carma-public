@@ -25,7 +25,7 @@ import Snap.Util.FileServe ( serveFile
                            , DirectoryConfig(..)
                            )
 
-import WeatherApi.WWOnline (initApi)
+import WeatherApi.OpenWeatherMap (initApi)
 
 ------------------------------------------------------------------------------
 import Snaplet.ChatManager
