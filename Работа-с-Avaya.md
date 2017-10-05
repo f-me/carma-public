@@ -16,6 +16,7 @@ ACR запущен на `192.168.20.6:8080`, доступ к которому е
 - Чтобы узнать CallID, проще всего поставить Call monitor на нужные типы событий и при появлении события в проскроллить до CallID. Это короткое число, типа 421.
 - API при указании сторонних номеров (например, при выполнении Make call или Deflect call) тоже использует длинный формат с секцией для коммутатора: `989150603267:ADACs8300::` (для получения актуальных форматов номеров следует пользоваться методами `GetDeviceId` и `GetThirdPartyDeviceId`).
 
-# Настройки AVAYA
+# Настройки AVAYA (сервер и компьютеры операторов)
 
 <https://docs.google.com/document/d/11QX2ywFvpnQGCR3Q7P9VDJf5WM5gVEVyuJ6KRuaeXqg>
+<https://docs.google.com/document/d/1sGhiDedBYXvLo9wFbF3n9dV1ftur7lSbKhfsDCfi24c>
