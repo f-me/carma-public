@@ -196,7 +196,7 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
   # <field.meta.widget>, <field.type>
   chooseFieldTemplate = (field, templates) ->
     typed_tpl = field.type
-    named_tpl = field.name + "-" + field.type
+    named_tpl = "#{field.name}-#{field.type}"
     mdl_named_tpl = "#{field.modelName}-#{field.name}"
     widget_tpl = ""
     if field.meta? and _.has(field.meta, "widget")
@@ -205,7 +205,8 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
     tpl = pickTemplate(templates,
                        [ mdl_named_tpl, named_tpl
                        , widget_tpl, typed_tpl
-                       , "unknown"])
+                       , "unknown"
+                       ])
     return tpl
 
   # Render permissions controls for form holding an instance in given
@@ -261,15 +262,17 @@ define ["dictionaries", "text!tpl/fields/form.html"], (d, Flds) ->
   renderDep = (refBook, templates) ->
     typed_tpl = refBook.refField
     widget_tpl = refBook.refWidget || typed_tpl
-    return Mustache.render pickTemplate(templates, [widget_tpl, typed_tpl, ""]), refBook
+    return Mustache.render \
+      pickTemplate(templates, [widget_tpl, typed_tpl, ""]),
+      refBook
 
   # Pick a template from cache which matches one of given names first.
   pickTemplate = (templates, names) ->
     for n in names when _.has(templates, n)
       return templates[n]
-    Mustache.render FS.find("#unknown-field-template").html(), {names:names}
+    Mustache.render FS.find("#unknown-field-template").html(), {names}
 
   { kvm: renderKnockVm
-  , getTemplates: getTemplates
-  , mkRefContainer: mkRefContainer
+  , getTemplates
+  , mkRefContainer
   }

@@ -184,7 +184,7 @@ data Contract = Contract
   , committer        :: F (IdentI Usermeta)
                         "committer"
                         "Пользователь, внёсший данные"
-  , extra          :: F (Maybe Value)
+  , extra            :: F (Maybe Value)
                         "extra"
                         "Дополнительные данные"
   , dixi             :: F Bool

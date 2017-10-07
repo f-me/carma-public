@@ -320,14 +320,15 @@ define [ "model/render"
         kvm["#{name}DisableDixi"] = ko.observable(false)
         kvm["#{name}Disabled"]    = ko.computed
           read: ->
-            mbid = parseInt(kvm["maybeId"]())
+            return true if options.waitFor? and not kvm[options.waitFor]()?
+            mbid = parseInt kvm["maybeId"]()
             return true if readonly
             dixi = kvm['dixi']?() and not kvm["#{name}DisableDixi"]()
-            (not _.isNaN mbid)   and
-            (dixi or disabled()) and not
-            kvm['disableDixi']()
+            (not _.isNaN mbid) \
+              and (dixi or disabled()) \
+              and not kvm['disableDixi']()
           write: (a) ->
-            disabled(not not a)
+            disabled Boolean a
         kvm[name].disableDixi = kvm["#{name}DisableDixi"]
         kvm[name].disabled    = kvm["#{name}Disabled"]
 
@@ -432,40 +433,40 @@ define [ "model/render"
 
   # model parameter is used here when we need some customized model
   # maybe with filtered some fields or something
-  modelSetup = (modelName, model) ->
-    return (elName, args, options) ->
-      model = global.model(modelName, options.modelArg) if not model
-      [kvm, q] = buildModel(model, args, options, elName)
+  modelSetup = (modelName, model) -> (elName, args, options) ->
+    model = global.model(modelName, options.modelArg) if not model
+    [kvm, q] = buildModel(model, args, options, elName)
 
-      depViews = setupView(elName, kvm,  options)
+    depViews = setupView(elName, kvm,  options)
 
-      # Bookkeeping
-      global.viewsWare[elName] =
-        model           : model
-        modelName       : model.name
-        knockVM         : kvm
-        depViews        : depViews
+    # Bookkeeping
+    global.viewsWare[elName] =
+      model           : model
+      modelName       : model.name
+      knockVM         : kvm
+      depViews        : depViews
 
-      # update url here, because only top level models made with modelSetup
-      kvm["maybeId"].subscribe -> kvm["updateUrl"]()
+    # update url here, because only top level models made with modelSetup
+    kvm["maybeId"].subscribe -> kvm["updateUrl"]()
 
-      screenName = options.screenName or modelName
-      kvm["updateUrl"] = ->
-        Finch.navigate "#{screenName}/#{kvm.id()}", true
+    screenName = options.screenName or modelName
+    kvm["updateUrl"] = ->
+      Finch.navigate "#{screenName}/#{kvm.id()}", true
 
-      hooks = options.hooks or ['*', model.name]
-      applyHooks global.hooks.model, hooks, elName, kvm
-      return kvm
+    hooks = options.hooks or ['*', model.name]
+    applyHooks global.hooks.model, hooks, elName, kvm
+    kvm
 
   buildModel = (model, args, options, elName) ->
-      kvm = buildKVM model,
-        elName: elName
-        queue: sync.CrudQueue
-        queueOptions: options
-        parent: options.parent
-        saveSuccessCb: options.saveSuccessCb
-        fetched: args
-      return [kvm, kvm._meta.q]
+    kvm = buildKVM model,
+      elName: elName
+      queue: sync.CrudQueue
+      queueOptions: options
+      parent: options.parent
+      saveSuccessCb: options.saveSuccessCb
+      fetched: args
+      waitFor: options.waitFor ? null
+    [kvm, kvm._meta.q]
 
   buildNewModel = (modelName, args, options, cb) ->
     model = global.model(modelName, options.modelArg)
@@ -565,11 +566,11 @@ define [ "model/render"
     fs = _.map selectors, (s) -> hooks[s]
     f.apply(this, args) for f in _.compact _.flatten fs
 
-  { setup         : mainSetup
-  , modelSetup    : modelSetup
-  , buildNewModel : buildNewModel
-  , buildKVM      : buildKVM
-  , cleanupKVM    : cleanupKVM
-  , addRef        : addRef
-  , focusRef      : focusRef
+  { setup: mainSetup
+  , modelSetup
+  , buildNewModel
+  , buildKVM
+  , cleanupKVM
+  , addRef
+  , focusRef
   }

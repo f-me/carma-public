@@ -162,18 +162,8 @@ CREATE OR REPLACE VIEW allservicesview AS
               type,
               suburbanmilage,
               techtype,
-              parentid,
-              (select row_to_json(flags)
-                from (values(check1, check2, check3, check4, check5, check6))
-                  as flags(
-                    "Капот открывается",
-                    "Наличие запасного колеса",
-                    "Наличие секреток",
-                    "Запасной ключ имеется",
-                    "Документы на автомобиль на руках",
-                    "Не открывается лючок бензобака")
-                ) as flags
-              FROM techtbl) x
+              parentid
+            FROM techtbl) x
       UNION ALL
         SELECT row_to_json(x.*) AS json FROM
           (SELECT
