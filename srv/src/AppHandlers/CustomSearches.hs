@@ -336,16 +336,13 @@ caseHistory = do
 
 partnerKPI :: AppHandler ()
 partnerKPI = do
-  svcId <- getIntParam "svcid"
+  svcId     <- getIntParam "svcid"
   partnerId <- getIntParam "partnerid"
-  [[json]] <- query
-          [sql|
-            SELECT coalesce(row_to_json(p.*), '{}') FROM (
-              SELECT * FROM "PartnerPayment"
-              WHERE serviceId = ? AND partnerId = ?
-              LIMIT 1) p
-          |]
-          (svcId, partnerId)
+  [[json]]  <- query [sql| WITH
+                             p AS (SELECT (GetPartnerPayment(?, NULL, NULL)).*)
+                           SELECT coalesce(row_to_json(p.*), '{}') FROM p
+                           WHERE partnerId = ? |]
+                     (svcId, partnerId)
   writeJSON (json :: Value)
 
 

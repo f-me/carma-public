@@ -31,7 +31,6 @@ import qualified Data.Aeson                         as Aeson
 import qualified Data.ByteString.Lazy               as LB
 import qualified Data.Text                          as T
 import qualified Data.Text.Encoding                 as T
-import           Data.Text.Format
 import           Data.Time
 
 import           Database.PostgreSQL.Simple.SqlQQ
@@ -622,11 +621,12 @@ partners fromDate toDate = logExceptions "rkc/partners" $ do
       "select trim(contractor_partner) c from servicetbl where",
       " (createTime >= ?) and (createTime < ?) and (createTime is not null) group by c order by c"]
 
-  ps <- trace "result" $ queryFmt q [] [fromDate, toDate]
+  ps <- trace "result" $ queryFmt q [fromDate, toDate]
   return $ toJSON (mapMaybe PS.fromOnly ps :: [T.Text])
 
-queryFmt :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r) => [String] -> FormatArgs -> q -> m [r]
-queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)
+queryFmt :: (PS.HasPostgres m, MonadCatchIO m, PS.ToRow q, PS.FromRow r)
+         => [String] -> q -> m [r]
+queryFmt lns = query $ fromString $ concat lns
 
 -- | Calculate average service processing time (in seconds).
 --
