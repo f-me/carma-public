@@ -17,6 +17,7 @@ import Snap.Snaplet
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Auth.Backends.PostgresqlSimple
+import Snap.Snaplet.Persistent
 import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe ( serveFile
@@ -195,6 +196,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   -- DB
   ad <- nestSnaplet "db" db $ pgsInit
 
+  ad2 <- nestSnaplet "db2" db2 $ initPersist (return ())
+
   authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
 
   c <- nestSnaplet "cfg" siteConfig $
@@ -210,4 +213,5 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   addRoutes [(n, timeIt f) | (n, f) <- routes]
 
   em <- liftIO $ newTVarIO Map.empty
-  return $ App h s authMgr c tm fu ch g ad search' opts msgr (initApi wkey) em
+
+  return $ App h s authMgr c tm fu ch g ad ad2 search' opts msgr (initApi wkey) em
