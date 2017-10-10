@@ -18,6 +18,9 @@ module AppHandlers.CustomSearches
     , caseHistory
     , partnerKPI
 
+      -- ** CTI
+    , findContractByPhone
+
       -- ** Helpers
     , allDealersForMake
     , getLatestCases
@@ -30,6 +33,7 @@ module AppHandlers.CustomSearches
 
 where
 
+import           Data.Monoid
 import           Control.Monad
 import           Control.Monad.IO.Class
 
@@ -40,18 +44,23 @@ import           Data.Map as M (Map, (!), delete, fromList)
 import           Data.String (fromString)
 import           Data.Maybe (fromMaybe, isJust)
 import           Data.Text (Text)
+import qualified Data.Text as T
+import           Data.Text.Encoding
 import           Data.Time.Clock
 
+import           Database.Persist hiding (In)
 import           Database.PostgreSQL.Simple hiding (query, query_)
 import           Database.PostgreSQL.Simple.SqlQQ
 
 import           Snap
+import           Snap.Snaplet.Persistent
 import           Snap.Snaplet.PostgresqlSimple
 import           Snaplet.Auth.PGUsers
 
 import           Data.Model.Types
 
 import qualified Carma.Model.ActionType              as AType
+import           Carma.Model.Contract.Persistent
 import qualified Carma.Model.Role                    as Role
 import qualified Carma.Model.UserState               as UserState
 import qualified Carma.Model.ServiceStatus           as ServiceStatus
@@ -66,6 +75,24 @@ import           Utils.HttpErrors
 
 type MBS = Maybe ByteString
 
+
+findContractByPhone :: AppHandler ()
+findContractByPhone = do
+  p <- maybe T.empty decodeUtf8 <$> getParam "phone"
+  when (T.length p < 7) $
+    finishWithError 403 "phone parameter must be at least 7 characters long"
+  -- Generate several phone variants to have more luck with our
+  -- contract database: for +7XXX we will search for +XXX, +7XXX and
+  -- +8XXX.
+  let phoneVariants =
+        p:maybe [] (\s -> map (<> s) ["+8", "+"]) (T.stripPrefix "+7" p)
+  res <- with db2 $ runPersist $
+    selectList [ FilterOr $ map ((ContractPhone ==.) . Just) phoneVariants
+               , ContractDixi     ==. True
+               , ContractIsActive ==. True
+               ]
+    [Desc ContractCtime, LimitTo 1]
+  writeJSON res
 
 
 -- | Read @closed@, @assignedTo@, @targetGroup@ (comma-separated),
