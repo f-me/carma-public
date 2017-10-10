@@ -202,7 +202,7 @@ readManyHandler = do
   let queryFilter =
           [(T.decodeUtf8 k, T.decodeUtf8 v)
           | (k,v:_) <- Map.toList params
-          , not $ k `elem` ["limit", "offset"]
+          , k `notElem` ["limit", "offset"]
           ]
   let readModel :: forall m . Model m => m -> AppHandler ()
       readModel _ = do
@@ -224,7 +224,7 @@ updateHandler = do
                      m -> AppHandler (Either Int Aeson.Value)
       updateModel _ = do
         let ident = readIdent objId :: IdentI m
-            recode x = case (Aeson.decode $ Aeson.encode x) of
+            recode x = case Aeson.decode (Aeson.encode x) of
                          Just obj -> Right obj
                          err      -> error $
                                      "BUG in updateHandler: " ++ show err
