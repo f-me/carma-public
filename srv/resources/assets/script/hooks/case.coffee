@@ -188,11 +188,11 @@ define [ "utils"
       for a in chkActions
         a['result'] ActionResult.needAnotherService
         # rerender services and actions
-        a._meta.q.save (->
+        a._meta.q.save ->
           svcs = kvm._parent.services
           svcs.notifySubscribers svcs()
           global.Usermeta?.updateAbandonedServices()
-          kvm._parent.renderActions())
+          kvm._parent.renderActions()
 
       if chkActions.length == 0
         # There is no checkStatus action, just send secondary service(s) to back
