@@ -141,7 +141,13 @@ require [ "domready"
                     callData.program = vdn.program
                   u.createNewCall callData
                   localStorage["call.search-query"] = "!Тел:" + number
-            incomingCallCb: -> $("#cti").show()
+            incomingCallCb: (number, callVM) ->
+              $("#cti").show()
+              if number.length > 5
+                n = encodeURIComponent(u.internalToDisplayed(number))
+                $.getJSON "/findContractByPhone/#{n}", (res) ->
+                  callVM.name(res[0]?.name)
+
           global.CTIPanel = new CTIPanel cti, $("#cti"), opts
           Mousetrap.bind ["`", "ё"], () ->
             $("#cti").toggle()

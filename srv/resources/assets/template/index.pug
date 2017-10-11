@@ -156,7 +156,11 @@ html
             span.label.label-danger(data-bind='visible: failed')
               i.glyphicon.glyphicon-exclamation-sign
               | &nbsp;Ошибка дозвона
-            span.label.label-primary(data-bind='visible: vdn, text: vdn')
+            div(style='vertical-align: middle; display: inline-block;')
+              span.label.label-primary(
+                data-bind='visible: vdn, text: vdn', style='display: block')
+              span.label.label-info(
+                data-bind='visible: name, text: name', style='display: block')
             span.label.label-danger(data-bind='visible: vip')
               i.glyphicon.glyphicon-star
               | VIP

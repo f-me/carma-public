@@ -77,6 +77,9 @@ define [], () ->
         class CallVM
           constructor: (call, callId) ->
             @prev       = ko.observable null
+            # Caller's name, populated via incomingCallCb using an
+            # extra AJAX request to the server
+            @name       = ko.observable null
             @number     =
               ko.observable interlocutorsToNumber call.interlocutors
             @vdn        = ko.observable vdnToDisplayed call.direction?.vdn
@@ -182,7 +185,7 @@ define [], () ->
                   kvm.canUnmute false)
 
             if @canAnswer()
-              incomingCallCb call.interlocutors[0], call.direction?.vdn
+              incomingCallCb call.interlocutors[0], this
 
         # Order calls by start time
         callIds = _.sortBy(
