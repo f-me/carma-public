@@ -75,7 +75,10 @@ jobs:
           command: |
             docker load < carma-image.tar
             cd srv
-            docker build -t carma-bundle .
+            docker build \
+              --build-arg VCS_REF=`git rev-parse --short HEAD` \
+              --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+              -t carma-bundle .
 
 workflows:
   version: 2
