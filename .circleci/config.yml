@@ -4,24 +4,6 @@ defaults: &defaults
   working_directory: "/carma"
 
 jobs:
-  build_server:
-    <<: *defaults
-    docker:
-      - image: fpco/stack-build
-    steps:
-      - setup_remote_docker
-      - checkout
-      - restore_cache:
-          keys:
-            - stack-cache-{{ checksum "stack.yaml" }}
-      - run: |
-          stack --install-ghc -j2 build
-      - save_cache:
-          key: stack-cache-{{ checksum "stack.yaml" }}
-          paths:
-            - ~/.cabal
-            - ~/.ghc
-            - ~/.stack
 
   build_client:
     <<: *defaults
@@ -39,6 +21,53 @@ jobs:
           cd -
           mkdir -p resources/static/{js/gen,css}
           grunt build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./srv/resources
+
+  build_server:
+    <<: *defaults
+    docker:
+      - image: formalmethods/carma-stack-build
+    steps:
+      - setup_remote_docker
+      - checkout
+      - restore_cache:
+          keys:
+            - stack-cache-{{ checksum "stack.yaml" }}
+      - run: |
+          stack --install-ghc -j2 build
+      - save_cache:
+          key: stack-cache-{{ checksum "stack.yaml" }}
+          paths:
+            - ~/.cabal
+            - ~/.ghc
+            - ~/.stack
+      - run: |
+          stack image container
+          docker save carma > carma-image.tar
+      - save_cache:
+          key: carma-image-{{ checksum "stack.yaml" }}
+          paths:
+            - ./carma-image.tar
+
+  build_bundle:
+    <<: *defaults
+    docker:
+      - image: formalmethods/carma-stack-build
+    steps:
+      - setup_remote_docker
+      - checkout
+      - attach_workspace:
+          at: ./srv/resources
+      - restore_cache:
+          keys:
+            - carma-image-{{ checksum "stack.yaml" }}
+      - run: |
+          docker load < carma-image.tar
+          cd srv
+          docker build -t carma-bundle .
 
 workflows:
   version: 2
@@ -46,3 +75,7 @@ workflows:
     jobs:
       - build_client
       - build_server
+      - build_bundle:
+          requires:
+            - build_client
+            - build_server
