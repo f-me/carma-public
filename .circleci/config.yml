@@ -1,9 +1,11 @@
 version: 2
 
-jobs:
+defaults: &defaults
+  working_directory: "/carma"
 
+jobs:
   build_server:
-    working_directory: "/carma"
+    <<: *defaults
     docker:
       - image: fpco/stack-build
     steps:
@@ -22,7 +24,7 @@ jobs:
             - ~/.stack
 
   build_client:
-    working_directory: "/carma"
+    <<: *defaults
     docker:
       - image: node:4.8.4
     steps:
