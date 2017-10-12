@@ -11,16 +11,18 @@ jobs:
       - image: node:4.8.4
     steps:
       - checkout
-      - run: |
-          cd srv
-          npm install -g bower grunt
-          npm install
-          bower install --allow-root
-          cd resources/assets/react-components
-          npm install
-          cd -
-          mkdir -p resources/static/{js/gen,css}
-          grunt build
+      - run:
+          name: Build CaRMa frontend
+          command: |
+            cd srv
+            npm install -g bower grunt
+            npm install
+            bower install --allow-root
+            cd resources/assets/react-components
+            npm install
+            cd -
+            mkdir -p resources/static/{js/gen,css}
+            grunt build
       - persist_to_workspace:
           root: .
           paths:
@@ -36,17 +38,21 @@ jobs:
       - restore_cache:
           keys:
             - stack-cache-{{ checksum "stack.yaml" }}
-      - run: |
-          stack --install-ghc -j2 build
+      - run:
+          name: Build CaRMa backend
+          command: |
+            stack --install-ghc -j2 build
       - save_cache:
           key: stack-cache-{{ checksum "stack.yaml" }}
           paths:
             - ~/.cabal
             - ~/.ghc
             - ~/.stack
-      - run: |
-          stack image container
-          docker save carma > carma-image.tar
+      - run:
+          name: Build CaRMa backend container
+          command: |
+            stack image container
+            docker save carma > carma-image.tar
       - save_cache:
           key: carma-image-{{ checksum "stack.yaml" }}
           paths:
@@ -64,10 +70,12 @@ jobs:
       - restore_cache:
           keys:
             - carma-image-{{ checksum "stack.yaml" }}
-      - run: |
-          docker load < carma-image.tar
-          cd srv
-          docker build -t carma-bundle .
+      - run:
+          name: Build CaRMa frontend + backend container
+          command: |
+            docker load < carma-image.tar
+            cd srv
+            docker build -t carma-bundle .
 
 workflows:
   version: 2
