@@ -8,6 +8,7 @@ INSERT INTO "FieldPermission"
   VALUES
   (1, 'Service', 'rushJob', TRUE, FALSE);
 
+-- TODO shift order
 INSERT INTO "ConstructorFieldOption"
   (model, program, ord, field, label, r, w)
   ( SELECT ctr.id

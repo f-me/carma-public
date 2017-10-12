@@ -40,10 +40,14 @@ import qualified Data.Model as Model
 import qualified Carma.Model as Model
 
 
+-- `Model` - is type from 'Snaplet.SiteConfig.Models'
+-- `Model.Model` - is type from 'Data.Model'
+
+
 getModel :: Text -> Text -> Handler b (SiteConfig b) (Maybe Model)
 getModel name view =
   case T.splitOn ":" view of
-    ["ctr",pgm] ->
+    ["ctr", pgm] ->
       case Model.dispatch name $ viewForModel "" of
         Just (Just res) -> Just <$> constructModel name pgm res
         -- Try to fetch a plain model if constructor failed
@@ -95,7 +99,7 @@ constructModel mdlName program model = do
           and program = ? :: int
         order by ord asc
       |]
-  res <- withLens db $ query q [mdlName,program]
+  res <- withLens db $ query q [mdlName, program]
   let optMap = Map.fromList [(nm,(l,r,w,rq,inf,o)) | (nm,l,r,w,rq,inf,o) <- res]
   let adjustField f = case Map.lookup (name f) optMap of
         Nothing -> [f] -- NB: field is not modified if no options found
@@ -111,7 +115,7 @@ constructModel mdlName program model = do
             , canWrite = w}
           ]
   return $ model
-    {fields = sortBy (comparing sortingOrder)
+    { fields = sortBy (comparing sortingOrder)
         $ concatMap adjustField
         $ fields model
     }
@@ -141,18 +145,9 @@ writeModel model
 
 stripModel :: AuthUser -> Model -> Handler b (SiteConfig b) Model
 stripModel u m = do
-  let Just uid = userId u
-  readableFields <- withLens db $ query [sql|
-    select p.field, max(p.w::int)::bool
-      from "FieldPermission" p, usermetatbl u
-      where u.uid = ?::int
-        and p.model = ?
-        and p.r = true
-        and p.role = ANY (u.roles)
-      group by p.field
-    |]
-    (unUid uid, modelName m)
-  let fieldsMap = Map.fromList readableFields
+
+  fieldsMap <- inheritFields (modelName m) Map.empty
+
   let fieldFilter f fs = case Map.lookup (name f) fieldsMap of
         Nothing -> fs
         Just wr ->
@@ -161,6 +156,46 @@ stripModel u m = do
                , canWrite = w
                } : fs
   return $ m {fields = foldr fieldFilter [] $ fields m}
+
+  where {-
+          Inherit fields permissions from parent models.
+
+          For instance you could describe a field for "Service"
+          and then it would automatically be inherited by children models
+          "Towage", "Taxi", "Tech" etc.
+
+          If there's a record for the same field for parent and child both
+          then child's one will override parent's.
+        -}
+        inheritFields :: Text
+                      -> Map.Map Text Bool
+                      -> Handler b (SiteConfig b) (Map.Map Text Bool)
+        inheritFields name prevFieldsMap = do
+
+          unitedFieldsMap <-
+            Map.union prevFieldsMap <$> fieldsMapByModelName name
+
+          let parentModelName = join $
+                Model.dispatch name $ Model.parentName .
+                  (const Model.modelInfo :: forall m . Model.Model m
+                                         => m -> Model.ModelInfo m)
+
+          case parentModelName of
+               Just x  -> inheritFields x unitedFieldsMap
+               Nothing -> pure unitedFieldsMap
+
+        fieldsMapByModelName name =
+          fmap Map.fromList $ withLens db $ query
+            [sql|
+              select p.field, max(p.w::int)::bool
+                from "FieldPermission" p, usermetatbl u
+                where u.uid = ?::int
+                  and p.model = ?
+                  and p.r = true
+                  and p.role = ANY (u.roles)
+                group by p.field
+            |]
+            (unUid $ fromJust $ userId u, name)
 
 -- | Serve available idents for a model (given in @name@ request
 -- parameter) as JSON object: @{"foo": 12, "bar": 28}@.
