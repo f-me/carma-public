@@ -80,7 +80,7 @@ jobs:
               --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
               -t carma-bundle .
             docker tag carma-bundle formalmethods/carma-bundle:latest
-            docker tag carma-bundle formalmethods/carma-bundle:$CIRCLE_BRANCH
+            docker tag carma-bundle formalmethods/carma-bundle:${CIRCLE_BRANCH/\//-}
             docker tag carma-bundle formalmethods/carma-bundle:$CIRCLE_SHA1
 
       - run:
@@ -88,7 +88,7 @@ jobs:
           command: |
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
             docker push formalmethods/carma-bundle:latest
-            docker push formalmethods/carma-bundle:$CIRCLE_BRANCH
+            docker push formalmethods/carma-bundle:${CIRCLE_BRANCH/\//-}
             docker push formalmethods/carma-bundle:$CIRCLE_SHA1
             docker logout
 
