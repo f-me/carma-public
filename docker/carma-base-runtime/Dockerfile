@@ -1,11 +1,18 @@
-FROM bitnami/minideb:jessie
-RUN install_packages \
-    ca-certificates \
-    curl \
-    libicu52 \
-    libpq5 \
-    xinetd \
-    --
+# Runtime system libraries must match those used in
+# formalmethods/carma-stack-build
+FROM bitnami/minideb:stretch
+RUN install_packages dirmngr gnupg && \
+    echo "deb http://security.ubuntu.com/ubuntu xenial-security main" | \
+        tee --append /etc/apt/sources.list && \
+    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 \
+        --recv-keys 3B4FE6ACC0B21F32 && \
+    install_packages \
+        ca-certificates \
+        curl \
+        libicu55 \
+        libpq5 \
+        xinetd \
+        --
 
 ARG BUILD_DATE
 ARG VCS_REF
