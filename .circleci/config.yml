@@ -85,7 +85,7 @@ jobs:
           name: Push to Docker Hub
           command: |
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            docker push formalmethods/carma-bundle:latest
+            if [ $CIRCLE_BRANCH = "master" ]; then docker push formalmethods/carma-bundle:latest; fi
             docker push formalmethods/carma-bundle:${CIRCLE_BRANCH/\//-}
             docker push formalmethods/carma-bundle:$CIRCLE_SHA1
             docker logout
