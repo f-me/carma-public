@@ -76,10 +76,10 @@ jobs:
             docker build \
               --build-arg VCS_REF=$CIRCLE_SHA1 \
               --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
-              -t carma-bundle .
-            docker tag carma-bundle formalmethods/carma-bundle:latest
-            docker tag carma-bundle formalmethods/carma-bundle:${CIRCLE_BRANCH/\//-}
-            docker tag carma-bundle formalmethods/carma-bundle:$CIRCLE_SHA1
+              -t formalmethods/carma-bundle:latest \
+              -t formalmethods/carma-bundle:${CIRCLE_BRANCH/\//-} \
+              -t formalmethods/carma-bundle:$CIRCLE_SHA1 \
+              .
 
       - run:
           name: Push to Docker Hub
