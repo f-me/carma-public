@@ -54,8 +54,8 @@ jobs:
           command: |
             stack image container
             docker save carma > carma-image.tar
-      - save_cache:
-          key: carma-image-{{ checksum "stack.yaml" }}
+      - persist_to_workspace:
+          root: .
           paths:
             - ./carma-image.tar
 
@@ -67,10 +67,7 @@ jobs:
       - setup_remote_docker
       - checkout
       - attach_workspace:
-          at: ./srv/resources
-      - restore_cache:
-          keys:
-            - carma-image-{{ checksum "stack.yaml" }}
+          at: .
       - run:
           name: Build CaRMa frontend + backend container
           command: |
