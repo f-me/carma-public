@@ -315,15 +315,6 @@ instance DefaultFieldView (Ident Int tag) =>
         ,fv_meta = Map.insert "widget" "dictionary-many" $ fv_meta v
         }
 
-instance DefaultFieldView (Ident Text tag) =>
- DefaultFieldView (Vector (Ident Text tag)) where
-  defaultFieldView (_ :: m -> FF (Vector (Ident Text tag)) nm desc app) =
-    let v = defaultFieldView (undefined :: m -> FF (Ident Text tag) nm desc app)
-    in v{fv_type = "dictionary-set-text"
-        ,fv_meta = Map.insert "widget" "dictionary-many" $ fv_meta v
-        }
-
-
 instance DefaultFieldView (Interval UTCTime) where
   defaultFieldView f = (defFieldView f) {fv_type = "interval-datetime"}
 
