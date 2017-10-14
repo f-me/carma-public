@@ -48,6 +48,7 @@ jobs:
             - ~/.cabal
             - ~/.ghc
             - ~/.stack
+            - .stack-work
       - run:
           name: Build CaRMa backend container
           command: |
