@@ -17,7 +17,7 @@ import Snap.Snaplet
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Auth.Backends.PostgresqlSimple
-import Snap.Snaplet.PostgresqlSimple (pgsDefaultConfig, pgsInit')
+import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe ( serveFile
                            , simpleDirectoryConfig
@@ -193,8 +193,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        initCookieSessionManager sesKey "_session" Nothing
 
   -- DB
-  ad <- nestSnaplet "db" db $ pgsInit' $ pgsDefaultConfig
-        "host=localhost port=5432 dbname=carma user=carma_db_sync password=pass"
+  ad <- nestSnaplet "db" db $ pgsInit
 
   authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
 
