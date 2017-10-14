@@ -1,17 +1,21 @@
 BEGIN;
 
 
+-- Add 'rushJob' field for services
 ALTER TABLE servicetbl ADD COLUMN rushJob BOOL DEFAULT FALSE;
 
 
--- id#1 ("Role") - core/Экран кейса и базовые поля
+-- value = 'core' (Экран кейса и базовые поля)
 INSERT INTO "FieldPermission"
   (role, model, field, r, w)
-  VALUES
-  (1, 'Service', 'rushJob', TRUE, FALSE);
+  ( SELECT
+      role.id, 'Service', 'rushJob', TRUE, FALSE
+      FROM "Role" AS role WHERE value = 'core'
+      LIMIT 1
+  );
 
 
--- Shifting old order from place where new 'rushjob' will appear
+-- Shifting old order from place where new 'rushJob' will appear
 WITH t AS (
   SELECT DISTINCT ON (t.id) t.model   AS model
                           , t.id      AS id
@@ -39,6 +43,7 @@ WITH t AS (
   ;
 
 
+-- Add 'rushJob' field after 'contractor_partner'
 WITH t AS (
   SELECT DISTINCT ON (t.id) t.model   AS model
                           , t.id      AS id
@@ -69,6 +74,26 @@ WITH t AS (
         FROM t
     )
   ;
+
+
+-- Add field where 'rushJob' flags mapped to specific cities at the moment
+ALTER TABLE "ProcessingConfig"
+  ADD COLUMN rushJobCities
+  INTEGER[] NOT NULL DEFAULT '{}'::INTEGER[];
+
+
+-- call = Оператор Front Office
+-- head = Глава РКЦ
+-- back = Работа с бэкофисом
+INSERT INTO "FieldPermission"
+  (role, model, field, r, w)
+  ( SELECT role.id
+         , 'ProcessingConfig'
+         , 'rushJobCities'
+         , TRUE
+         , (CASE role.value WHEN 'head' THEN TRUE ELSE FALSE END)
+      FROM "Role" AS role WHERE value IN ('call', 'back', 'head')
+  );
 
 
 COMMIT;
