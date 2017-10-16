@@ -1,42 +1,94 @@
 version: 2
 
+defaults: &defaults
+  working_directory: "/carma"
+
 jobs:
 
-  build_server:
-    working_directory: "/carma"
+  build_client:
+    <<: *defaults
     docker:
-      - image: fpco/stack-build
+      - image: node:4.8.4
+    steps:
+      - checkout
+      - run:
+          name: Build CaRMa frontend
+          command: |
+            cd srv
+            npm install -g bower grunt
+            npm install
+            bower install --allow-root
+            cd resources/assets/react-components
+            npm install
+            cd -
+            mkdir -p resources/static/{js/gen,css}
+            grunt build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./srv/resources
+
+  build_server:
+    <<: *defaults
+    docker:
+      - image: formalmethods/carma-stack-build
     steps:
       - setup_remote_docker
       - checkout
       - restore_cache:
           keys:
             - stack-cache-{{ checksum "stack.yaml" }}
-      - run: |
-          stack --install-ghc -j2 build
+      - run:
+          name: Build CaRMa backend
+          command: |
+            stack --install-ghc -j2 build
       - save_cache:
           key: stack-cache-{{ checksum "stack.yaml" }}
           paths:
             - ~/.cabal
             - ~/.ghc
             - ~/.stack
+            - .stack-work
+      - run:
+          name: Build CaRMa backend container
+          command: |
+            stack image container
+            docker save carma > carma-image.tar
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./carma-image.tar
 
-  build_client:
-    working_directory: "/carma"
+  build_bundle:
+    <<: *defaults
     docker:
-      - image: node:4.8.4
+      - image: formalmethods/carma-stack-build
     steps:
+      - setup_remote_docker
       - checkout
-      - run: |
-          cd srv
-          npm install -g bower grunt
-          npm install
-          bower install --allow-root
-          cd resources/assets/react-components
-          npm install
-          cd -
-          mkdir -p resources/static/{js/gen,css}
-          grunt build
+      - attach_workspace:
+          at: .
+      - run:
+          name: Build CaRMa frontend + backend container
+          command: |
+            docker load < carma-image.tar
+            cd srv
+            docker build \
+              --build-arg VCS_REF=$CIRCLE_SHA1 \
+              --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+              -t formalmethods/carma-bundle:latest \
+              -t formalmethods/carma-bundle:${CIRCLE_BRANCH/\//-} \
+              -t formalmethods/carma-bundle:$CIRCLE_SHA1 \
+              .
+
+      - run:
+          name: Push to Docker Hub
+          command: |
+            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+            if [ $CIRCLE_BRANCH = "master" ]; then docker push formalmethods/carma-bundle:latest; fi
+            docker push formalmethods/carma-bundle:${CIRCLE_BRANCH/\//-}
+            docker push formalmethods/carma-bundle:$CIRCLE_SHA1
+            docker logout
 
 workflows:
   version: 2
@@ -44,3 +96,7 @@ workflows:
     jobs:
       - build_client
       - build_server
+      - build_bundle:
+          requires:
+            - build_client
+            - build_server

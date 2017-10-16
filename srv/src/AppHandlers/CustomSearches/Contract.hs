@@ -55,7 +55,7 @@ extraContractFieldNames = map fieldNameE extraContractFields
 --
 -- 'FromRow'/'ToJSON' instance uses field instances from carma-models.
 data SearchResult =
-    SearchResult { _cid         :: (IdentI Contract)
+    SearchResult { _cid         :: IdentI Contract
                  , _expired     :: Maybe Bool
                  , _identifiers :: $(fieldTypesQ C.identifiers)
                  , _extras      :: $(fieldTypesQ extraContractFields)
@@ -68,13 +68,13 @@ instance ToJSON SearchResult where
     toJSON (SearchResult i e vals (cm, cl, ml, sp, d, a)) =
         object $ [ "id"       .= i
                  , "_expired" .= e
-                 ] ++ (zip C.identifierNames listVals)
-                   ++ (zip extraContractFieldNames [ toJSON cm
-                                                   , toJSON cl
-                                                   , toJSON ml
-                                                   , toJSON sp
-                                                   , toJSON d
-                                                   , toJSON a])
+                 ] ++ zip C.identifierNames listVals
+                   ++ zip extraContractFieldNames [ toJSON cm
+                                                  , toJSON cl
+                                                  , toJSON ml
+                                                  , toJSON sp
+                                                  , toJSON d
+                                                  , toJSON a]
         where
           jsonVals = toJSON vals
           -- Assume that if identifierTypes is a tuple, its ToJSON
@@ -115,7 +115,7 @@ searchContracts = do
   let -- Predicate which filters contracts by one field. Parameters
       -- (2): field name, query string.
       fieldParams = zip (map PT C.identifierNames) $ repeat q
-      totalQuery = intercalate " "
+      totalQuery = unwords
           [ "SELECT c.?,"
           -- 4 parameters: case callDate name, contract start/end date
           -- field name, case callDate name (expiration predicate)
@@ -163,10 +163,10 @@ searchContracts = do
       programTable    = tableQT P.ident
       subProgramTable = tableQT S.ident
 
-  res <- query (fromString totalQuery)
-         (()
+  res <- query (fromString $ T.unpack totalQuery) $
+          ()
           -- 1
-          :. (Only $ fieldPT C.ident)
+          :. Only (fieldPT C.ident)
           -- 4
           :. ( fieldPT Case.callDate
              , fieldPT C.validSince
@@ -174,9 +174,9 @@ searchContracts = do
              , fieldPT Case.callDate
              )
           -- M + N
-          :. (selectedFieldsParam)
+          :. selectedFieldsParam
           -- 1
-          :. (Only contractTable)
+          :. Only contractTable
           -- 3
           :. ( tableQT Case.ident
              , fieldPT Case.ident
@@ -189,20 +189,20 @@ searchContracts = do
           :. Only programTable
           :. (fieldPT S.parent, fieldPT P.ident)
           -- 1 fts_key ~* q
-          :. (Only q)
+          :. Only q
           -- 2*M
-          :. (ToRowList fieldParams)
+          :. ToRowList fieldParams
           -- 3
-          :. (sqlFlagPair (0::Int) id sid)
+          :. sqlFlagPair (0::Int) id sid
           :. (Only $ fieldPT C.subprogram)
           -- 3
-          :. (sqlFlagPair (0::Int) id pid)
-          :. (Only $ fieldPT P.ident)
+          :. sqlFlagPair (0::Int) id pid
+          :. Only (fieldPT P.ident)
           -- 2
           :. (fieldPT C.dixi, fieldPT C.isActive)
           -- 2
           :. (fieldPT P.active, fieldPT S.active)
           -- 1
-          :. Only limit)
+          :. Only limit
 
   writeJSON (res :: [SearchResult])

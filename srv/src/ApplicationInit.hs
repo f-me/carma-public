@@ -17,7 +17,7 @@ import Snap.Snaplet
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Auth.Backends.PostgresqlSimple
-import Snap.Snaplet.PostgresqlSimple (pgsDefaultConfig, pgsInit')
+import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe ( serveFile
                            , simpleDirectoryConfig
@@ -62,7 +62,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/logout/",       doLogout)
          , ("/s/",            serveDirectoryWith dconf "resources/static")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
-         , ("/screens",       method GET $ getScreens)
+         , ("/screens",       method GET getScreens)
          , ("/backoffice/errors", method GET $ serveBackofficeSpec Check)
          , ("/backoffice/spec.txt", method GET $ serveBackofficeSpec Txt)
          , ("/backoffice/spec.dot", method GET $ serveBackofficeSpec Dot)
@@ -156,10 +156,10 @@ timeIt :: AppHandler () -> AppHandler ()
 timeIt h = do
   r <- getRequest
   start <- liftIO Clock.getCurrentTime
-  h `IOEx.finally` (liftIO $ do
+  h `IOEx.finally` liftIO (do
     end <- Clock.getCurrentTime
     let duration = Clock.diffUTCTime end start
-    when (fromInteger 1 <= duration)
+    when (1 <= duration)
       $ syslogJSON Info "timeIt"
         [ "method" .= show (rqMethod r)
         , "uri" .= T.decodeUtf8 (rqURI r)
@@ -193,8 +193,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        initCookieSessionManager sesKey "_session" Nothing
 
   -- DB
-  ad <- nestSnaplet "db" db $ pgsInit' $ pgsDefaultConfig
-        "host=localhost port=5432 dbname=carma user=carma_db_sync password=pass"
+  ad <- nestSnaplet "db" db $ pgsInit
 
   authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
 
@@ -205,7 +204,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   ch <- nestSnaplet "chat" chat $ chatInit auth db
   g <- nestSnaplet "geo" geo $ geoInit db
   search' <- nestSnaplet "search" search $ searchInit auth db
-  tm <- nestSnaplet "tasks" taskMgr $ taskManagerInit
+  tm <- nestSnaplet "tasks" taskMgr taskManagerInit
   msgr <- nestSnaplet "wsmessenger" messenger messengerInit
 
   addRoutes [(n, timeIt f) | (n, f) <- routes]

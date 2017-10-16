@@ -169,6 +169,7 @@ WHERE um.id = any(u_id)
   AND a.assigntime BETWEEN fromTime AND toTime
   AND a.closetime IS NOT NULL
   AND a.opentime  IS NOT NULL
+  AND a.type IN (3, 4, 6, 9, 10, 11, 1, 19, 20)
   AND a.result <> 32 -- Закрыто супервизором
   AND a.result is not null
 GROUP BY um.id, (CASE
@@ -238,6 +239,7 @@ WHERE um.id = any(u_id)
   AND a.assigntime BETWEEN fromTime AND toTime
   AND a.closetime IS NOT NULL
   AND a.opentime  IS NOT NULL
+  AND a.type IN (3, 4, 6, 9, 10, 11, 1, 19, 20)
   AND a.result <> 32 -- Закрыто супервизором
   AND a.result is not null
 GROUP BY um.id, g, (CASE
