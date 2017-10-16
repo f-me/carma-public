@@ -62,6 +62,8 @@ dependencies:
   - websockets-snap
   - xmlhtml
   - qm-interpolated-string
+  - template-haskell
+  - haskell-src-meta
 
 default-extensions:
   - FlexibleContexts

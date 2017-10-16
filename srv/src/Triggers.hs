@@ -40,7 +40,7 @@ import           GHC.TypeLits
 
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
 import           Database.PostgreSQL.Simple as PG
-import           Snap.Snaplet.PostgresqlSimple (liftPG)
+import           Snap.Snaplet.PostgresqlSimple as SPG (liftPG, execute)
 
 import           WeatherApi (tempC)
 
@@ -86,6 +86,7 @@ import qualified Carma.Model.UrgentServiceReason as USR
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
+import qualified Carma.Model.Partner as Partner
 import           Carma.Model.PartnerDelay (PartnerDelay)
 import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
 import qualified Carma.Model.DiagHistory as DiagHistory
@@ -106,7 +107,8 @@ import qualified Triggers.Action.MailToPSA as BOAction (sendMailToPSA)
 import qualified Triggers.Action.MailToDealer as BOAction (sendMailToDealer)
 import           Triggers.DSL as Dsl
 
-import           Util (Priority(..), syslogJSON, (.=))
+import           Util (Priority(..), syslogJSON, tableQT, fieldPT, (.=))
+import           Utils.Model.MSqlQQ hiding (parseQuery)
 
 
 -- TODO: rename
@@ -512,24 +514,30 @@ afterUpdate = Map.unionsWith (++) $
   , trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
   , trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
 
-  , trigOn Service.contractor_partnerId $ \_ -> do
+  , trigOn Service.contractor_partnerId $ \(Just partnerId) -> do
+
       svcId <- getIdent
-      doApp $ liftPG $ \pg -> uncurry (PG.execute pg)
-        [sql|
-          update servicetbl svc
-            set contractor_partnerLegacy = row_to_json(js.*)
-            from
-              partnertbl p,
-              json_array_elements(p.services) s
-                join lateral
-                  (select
-                    s->>'priority1' as priority1,
-                    s->>'priority2' as priority2,
-                    s->>'priority3' as priority3) js on true
-            where svc.id = $(svcId)$
-              and p.id = svc.contractor_partnerId
-              and svc.type::text = s->>'type'
+
+      void $ doApp $ uncurry SPG.execute
+        [msql|
+           UPDATE $(T|Service)$ svc
+             SET $(F|Service.contractor_partnerLegacy)$ = ROW_TO_JSON(js.*)
+             FROM
+               $(T|Partner)$ p,
+               JSON_ARRAY_ELEMENTS( p.$(F|Partner.services)$ ) s
+               JOIN LATERAL
+               ( SELECT
+                   s->>'priority1' as priority1,
+                   s->>'priority2' as priority2,
+                   s->>'priority3' as priority3
+               ) js ON TRUE
+             WHERE svc.$(F|Service.ident)$ = $(V|svcId)$
+               AND p.$(F|Partner.ident)$
+                     = svc.$(F|Service.contractor_partnerId)$
+               AND svc.$(F|Service.svcType)$::text = s->>'type'
         |]
+
+      -- TODO rush job flag
   ]
 
 --  - runReadTriggers
@@ -1100,7 +1108,7 @@ mkContext act = do
 
 -- | Graph entry and common data for new actions produced by 'proceed'
 -- or 'defer'.
-newActionData :: HCtx-> ActionTypeI -> (BO.Action, Patch Action.Action)
+newActionData :: HCtx -> ActionTypeI -> (BO.Action, Patch Action.Action)
 newActionData ctx aType = (e, p)
   where
     -- Never breaks for a valid back office

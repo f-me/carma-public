@@ -52,14 +52,13 @@ import Control.Monad.IO.Class
 import qualified Control.Exception as Ex
 import Control.Monad.CatchIO as IOEx
 import Control.Concurrent (myThreadId)
-import qualified Blaze.ByteString.Builder.Char8 as BZ
 import Data.Typeable
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Lazy  as L
 import qualified Data.ByteString.Lazy.Char8  as L8
 import qualified Data.ByteString.Char8 as B
 
-import Data.Text (Text)
+import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Read as T
@@ -76,13 +75,12 @@ import Database.PostgreSQL.Simple.ToField
 import Database.PostgreSQL.Simple.ToRow
 import Database.PostgreSQL.Simple.Types
 
-import GHC.TypeLits
-
 import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SqlQQ.Alt
 
-import qualified Data.Model as Model
 import qualified System.Posix.Syslog as Syslog
+
+import Utils.Model
 
 data JSONParseException
   = AttoparsecError FilePath String
@@ -157,45 +155,6 @@ render varMap = T.concat . loop
 projNow :: (Int -> Int) -> IO Text
 projNow fn =
   (T.pack . show . fn . round . utcTimeToPOSIXSeconds) <$> getCurrentTime
-
-
--- | Convert an Ident to an untyped field value.
-identFv :: Model.Model m => Model.IdentI m -> Text
-identFv (Model.Ident v) = T.pack $ show v
-
-
--- | Convert an untyped field value to an Ident if it's a numeric
--- string.
-fvIdent :: Model.Model m => Text -> Maybe (Model.IdentI m)
-fvIdent s = case T.decimal s of
-  Right (i,_) -> Just $ Model.Ident i
-  _           -> Nothing
-
--- | Same as `fvIdent` but for `ByteString`
-fvIdentBs :: Model.Model m => ByteString -> Maybe (Model.IdentI m)
-fvIdentBs = fvIdent . T.decodeUtf8
-
--- | Text wrapper with a non-quoting 'ToField' instance.
---
--- Copied from vinnie.
-newtype PlainText = PT Text
-
-instance ToField PlainText where
-    toField (PT i) = Plain $ BZ.fromText i
-
-
--- | Field name, unquoted.
-fieldPT :: KnownSymbol n => (m -> Model.Field t (Model.FOpt n d a)) -> PlainText
-fieldPT = PT . Model.fieldName
-
-
--- | Table name, in double quotes.
-tableQT :: forall m t d. Model.Model m => (m -> Model.PK t m d) -> PlainText
-tableQT _ =
-    PT $ T.concat [ "\""
-                  , Model.tableName (Model.modelInfo :: Model.ModelInfo m)
-                  , "\""
-                  ]
 
 
 -- | Works almost like '(:.)' for 'ToField' instances. Start with `()`
