@@ -6,9 +6,9 @@
   values interpolation.
 
   There's three types of interpolation blocks:
-    1. $(T|…) - table name from model
-    2. $(F|…) - field name from model
-    3. $(V|…) - a value
+    1. $(T|…)$ - table name from model where '…' is module name of a model
+    2. $(F|…)$ - field name from model
+    3. $(V|…)$ - a value
 
   An usage example:
     [msql|
@@ -23,6 +23,12 @@
   (but usually you don't need it).
 
   Keep in mind that $(T|…)$ counts on that any model always have `ident` field.
+  Also model must be imported with `as` alias, like this (or with `qualified`):
+    import Carma.Model.ModelName as ModelName
+  so you can rich `ModelName.ident`. But if you don't mind you could write it
+  this way:
+    $(T|Carma.Model.ModelName)$
+  So this means this is actually module of a model name, not exactly model name.
 -}
 
 {-
@@ -136,7 +142,7 @@ parseInterpolation = f ""
     ("T", x) -> T $ map onlySpaces x
     ("F", x) -> F $ map onlySpaces x
     ("V", x) -> V $ map onlySpaces x
-    (t, _) -> error $ "Unknown interpolation type: " ++ show t
+    (t, _)   -> error $ "Unknown interpolation type: " ++ show t
 
   spaces = "\t\r\n " :: String
   trim = dropWhileEnd (`elem` spaces) . dropWhile (`elem` spaces)

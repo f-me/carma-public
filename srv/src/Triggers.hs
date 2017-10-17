@@ -48,6 +48,7 @@ import           Carma.Model.Types (HMDiffTime(..))
 import           Data.Model as Model
 import           Data.Model.Patch as Patch
 import           Data.Model.Types
+import qualified Data.HashMap.Strict as HM
 
 import           Carma.Model.Action (Action)
 import qualified Carma.Model.Action as Action
@@ -92,6 +93,8 @@ import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
 import qualified Carma.Model.DiagHistory as DiagHistory
 import qualified Carma.Model.DiagSlide as DiagSlide
 
+import qualified Carma.Model.ProcessingConfig as ProcessingConfig
+
 import           Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
 import qualified Carma.Backoffice.DSL as BO
@@ -107,7 +110,7 @@ import qualified Triggers.Action.MailToPSA as BOAction (sendMailToPSA)
 import qualified Triggers.Action.MailToDealer as BOAction (sendMailToDealer)
 import           Triggers.DSL as Dsl
 
-import           Util (Priority(..), syslogJSON, tableQT, fieldPT, (.=))
+import           Util (Priority(..), syslogJSON, (.=))
 import           Utils.Model.MSqlQQ hiding (parseQuery)
 
 
@@ -520,24 +523,40 @@ afterUpdate = Map.unionsWith (++) $
 
       void $ doApp $ uncurry SPG.execute
         [msql|
-           UPDATE $(T|Service)$ svc
-             SET $(F|Service.contractor_partnerLegacy)$ = ROW_TO_JSON(js.*)
-             FROM
-               $(T|Partner)$ p,
-               JSON_ARRAY_ELEMENTS( p.$(F|Partner.services)$ ) s
-               JOIN LATERAL
-               ( SELECT
-                   s->>'priority1' as priority1,
-                   s->>'priority2' as priority2,
-                   s->>'priority3' as priority3
-               ) js ON TRUE
-             WHERE svc.$(F|Service.ident)$ = $(V|svcId)$
-               AND p.$(F|Partner.ident)$
-                     = svc.$(F|Service.contractor_partnerId)$
-               AND svc.$(F|Service.svcType)$::text = s->>'type'
+          UPDATE $(T|Service)$ AS svc
+            SET $(F|Service.contractor_partnerLegacy)$ = ROW_TO_JSON(js.*)
+            FROM
+              $(T|Partner)$ AS p,
+              JSON_ARRAY_ELEMENTS( p.$(F|Partner.services)$ ) AS s
+              JOIN LATERAL ( SELECT
+                               s->>'priority1' AS priority1,
+                               s->>'priority2' AS priority2,
+                               s->>'priority3' AS priority3
+                           ) js ON TRUE
+            WHERE svc.$(F|Service.ident)$ = $(V|svcId)$
+              AND p.$(F|Partner.ident)$
+                    = svc.$(F|Service.contractor_partnerId)$
+              AND svc.$(F|Service.svcType)$::TEXT = s->>'type'
         |]
 
-      -- TODO rush job flag
+      void $ doApp $ uncurry SPG.execute
+        [msql|
+          WITH pc AS (
+            SELECT t.$(F|ProcessingConfig.rushJobCities)$ AS rush
+              FROM $(T|ProcessingConfig)$ AS t
+              WHERE t.$(F|ProcessingConfig.ident)$
+                      = $(V|ProcessingConfig.idents HM.! "main")$
+              LIMIT 1
+          )
+            UPDATE $(T|Service)$ AS svc
+              SET $(F|Service.rushJob)$
+                    = (p.$(F|Partner.city)$ = ANY (pc.rush))
+              FROM $(T|Partner)$ p
+              INNER JOIN pc ON TRUE
+              WHERE svc.$(F|Service.ident)$ = $(V|svcId)$
+                AND p.$(F|Partner.ident)$
+                      = svc.$(F|Service.contractor_partnerId)$
+        |]
   ]
 
 --  - runReadTriggers

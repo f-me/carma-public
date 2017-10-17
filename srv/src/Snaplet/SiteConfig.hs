@@ -35,9 +35,12 @@ import Snaplet.SiteConfig.Dictionaries
 
 import AppHandlers.Util
 import Utils.HttpErrors
+import Utils.Model.MSqlQQ hiding (parseQuery)
 
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
+import qualified Carma.Model.FieldPermission as FieldPermission
+import qualified Carma.Model.Usermeta as Usermeta
 
 
 -- `Model` - is type from 'Snaplet.SiteConfig.Models'
@@ -142,7 +145,6 @@ writeModel model
     _ -> return model
 
 
-
 stripModel :: AuthUser -> Model -> Handler b (SiteConfig b) Model
 stripModel u m = do
 
@@ -185,17 +187,21 @@ stripModel u m = do
                Nothing -> pure unitedFieldsMap
 
         fieldsMapByModelName name =
-          fmap Map.fromList $ withLens db $ query
-            [sql|
-              select p.field, max(p.w::int)::bool
-                from "FieldPermission" p, usermetatbl u
-                where u.uid = ?::int
-                  and p.model = ?
-                  and p.r = true
-                  and p.role = ANY (u.roles)
-                group by p.field
+          fmap Map.fromList $ withLens db $ uncurry query
+            [msql|
+              SELECT p.$(F|FieldPermission.field)$
+                   , MAX( p.$(F|FieldPermission.w)$::INT )::BOOL
+                FROM $(T|FieldPermission)$ AS p
+                   , $(T|Usermeta)$ AS u
+                WHERE u.$(F|Usermeta.uid)$
+                        = $(V|unUid $ fromJust $ userId u)$::INT
+                  AND p.$(F|FieldPermission.model)$ = $(V|name)$
+                  AND p.$(F|FieldPermission.r)$ = TRUE
+                  AND p.$(F|FieldPermission.role)$
+                        = ANY (u.$(F|Usermeta.roles)$)
+                GROUP BY p.$(F|FieldPermission.field)$
             |]
-            (unUid $ fromJust $ userId u, name)
+
 
 -- | Serve available idents for a model (given in @name@ request
 -- parameter) as JSON object: @{"foo": 12, "bar": 28}@.
