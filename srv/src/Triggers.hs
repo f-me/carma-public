@@ -517,7 +517,7 @@ afterUpdate = Map.unionsWith (++) $
   , trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
   , trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
 
-  , trigOn Service.contractor_partnerId $ \(Just partnerId) -> do
+  , trigOn Service.contractor_partnerId $ \_ -> do
 
       svcId <- getIdent
 
@@ -558,6 +558,7 @@ afterUpdate = Map.unionsWith (++) $
                       = svc.$(F|Service.contractor_partnerId)$
         |]
   ]
+
 
 --  - runReadTriggers
 --    - ephemeral fields
