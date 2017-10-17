@@ -7,6 +7,15 @@ define [ "hooks/common"
        , "hooks/Call"
        ],
        (c, k, s, p, a, Um, Call) ->
+
+  partnerKpiService = [
+    s.serviceColor
+    s.partnerWarnedInTimeBtn
+    s.updateCaseActions
+    s.openPartnerSearch
+    s.rushJobAndPartnerKPI
+  ]
+
   model:
       "*"    : [c.stdElCb]
   preinit:
@@ -24,10 +33,7 @@ define [ "hooks/common"
 
       "Action" : [a.actionColor, a.nameLocal, a.suppressScroll]
 
-      "AverageCommissioner" : [ s.serviceColor, s.partnerWarnedInTimeBtn
-                              , s.updateCaseActions
-                              , s.openPartnerSearch
-                              ]
+      "AverageCommissioner" : [].concat partnerKpiService
 
       "Bank" : [ s.serviceColor
                , s.updateCaseActions
@@ -95,27 +101,13 @@ define [ "hooks/common"
                           , p.partnerServiceRepeat
                           ]
 
-      "Rent" : [ s.serviceColor, s.partnerWarnedInTimeBtn
-               , s.updateCaseActions
-               , s.openPartnerSearch
-               ]
-
-      "SoberDriver" : [ s.serviceColor, s.partnerWarnedInTimeBtn
-                      , s.updateCaseActions
-                      , s.openPartnerSearch
-                      ]
+      "Rent"        : [].concat partnerKpiService
+      "SoberDriver" : [].concat partnerKpiService
 
       "tarifOption" : [c.tarifOptNameDef]
 
-      "Taxi" : [ s.serviceColor, s.partnerWarnedInTimeBtn
-               , s.updateCaseActions
-               , s.openPartnerSearch
-               ]
-
-      "Tech" : [ s.serviceColor, s.partnerWarnedInTimeBtn
-               , s.updateCaseActions
-               , s.openPartnerSearch
-               ]
+      "Taxi" : [].concat partnerKpiService
+      "Tech" : [].concat partnerKpiService
 
       "Transportation" : [ s.serviceColor
                          , s.updateCaseActions
@@ -140,15 +132,8 @@ define [ "hooks/common"
                   , s.updateCaseActions
                   , s.openPartnerSearch ]
 
-      "Towage" : [ s.serviceColor, s.partnerWarnedInTimeBtn
-                 , s.updateCaseActions
-                 , s.openPartnerSearch
-                 ]
-
-      "BikeTowage" : [ s.serviceColor, s.partnerWarnedInTimeBtn
-                   , s.updateCaseActions
-                   , s.openPartnerSearch
-                   ]
+      "Towage"     : [].concat partnerKpiService
+      "BikeTowage" : [].concat partnerKpiService
 
       "SubProgram" : [ c.bindRemoveHook 'services' ]
       "Usermeta": [Um.stateStuff]

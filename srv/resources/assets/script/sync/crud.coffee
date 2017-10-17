@@ -54,6 +54,12 @@ define [ "sync/metaq"
     fetch: =>
       $.bgetJSON "#{@url}/#{@kvm.id()}", (o) => @updateKvm m.s2cObj(o, @ftypes)
 
+    fetchOnly: (fields) => # fields: [string]
+      $.bgetJSON "#{@url}/#{@kvm.id()}", (o) =>
+        newData = m.s2cObj o, @ftypes
+        for fieldName in fields when o[fieldName]?
+          @kvm[fieldName]? newData[fieldName]
+
     _save: => @debounced_save()
 
     save: (cb, force = false) =>

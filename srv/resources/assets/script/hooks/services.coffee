@@ -150,3 +150,27 @@ define [ "utils"
           else ''
         disabled: ko.computed ->
           !kvm.suburbanMilage() or !kvm.totalMilage() or kvm.suburbanMilageRegexp() or kvm.totalMilageRegexp()
+
+  rushJobAndPartnerKPI: (model, kvm) ->
+    updatePayment = ->
+      return unless kvm["partnerDelay_payment"].visible()
+      $.ajax
+        type: "GET"
+        url: "/partnerKPI/#{kvm["id"]()}/#{kvm["contractor_partnerId"]()}"
+        success: (kpi) ->
+          kvm["partnerDelay_payment"].text (kpi.paymentpercent || '−')
+
+    updateRushJob = ->
+      kvm._meta.q.fetchOnly ["rushJob"]
+
+    kvm["partnerDelay_payment"] = {}
+    kvm["partnerDelay_payment"].text = ko.observable '−'
+    kvm["partnerDelay_payment"].visible = ko.computed ->
+      Boolean kvm["contractor_partnerId"]?()
+
+    do updatePayment
+
+    kvm["contractor_partnerIdSync"]?.subscribe (isProcess) ->
+      return if isProcess
+      do updatePayment
+      do updateRushJob

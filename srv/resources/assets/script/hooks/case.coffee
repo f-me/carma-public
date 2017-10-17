@@ -155,24 +155,14 @@ define [ "utils"
     kvm.buttons.partnerDelay.text = 'Партнёр опаздывает'
     kvm.buttons.partnerDelay.tooltip = ko.computed ->
       if kvm.contractor_partnerId?() then '' else 'Партнёр не выбран'
-    kvm.buttons.partnerDelay.disabled = ko.computed -> !kvm.contractor_partnerId?()
+    kvm.buttons.partnerDelay.disabled = ko.computed ->
+      !kvm.contractor_partnerId?()
     kvm.buttons.partnerDelay.visible = ko.computed ->
       kvm.type() in delayabaleServiceTypes and
         kvm.status() in [ServiceStatus.ordered, ServiceStatus.inProgress]
 
     kvm.buttons.partnerDelay.click = ->
       PartnerDelayDialog.show(kase, kvm)
-
-    kvm.buttons.partnerDelay_payment = {}
-    kvm.buttons.partnerDelay_payment.text = ko.observable '−'
-    kvm.buttons.partnerDelay_payment.visible = ko.computed ->
-      kvm.contractor_partnerId?() and kvm.type() in delayabaleServiceTypes
-    if kvm.buttons.partnerDelay_payment.visible()
-        $.ajax
-          type: "GET"
-          url: "/partnerKPI/#{kvm.id()}/#{kvm.contractor_partnerId()}"
-          success: (kpi) ->
-            kvm.buttons.partnerDelay_payment.text (kpi.paymentpercent || '−')
 
     isSecondarySvc = (s) ->
         s.status() in [ServiceStatus.creating, ServiceStatus.suspended] and
