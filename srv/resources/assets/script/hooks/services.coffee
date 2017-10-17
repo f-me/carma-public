@@ -151,6 +151,8 @@ define [ "utils"
         disabled: ko.computed ->
           !kvm.suburbanMilage() or !kvm.totalMilage() or kvm.suburbanMilageRegexp() or kvm.totalMilageRegexp()
 
+  # Refetching 'rush job' flag and payment for partner when partner have been
+  # assigned or reassigned.
   rushJobAndPartnerKPI: (model, kvm) ->
     updatePayment = ->
       return unless kvm["partnerDelay_payment"].visible()

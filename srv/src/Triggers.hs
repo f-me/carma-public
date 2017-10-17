@@ -521,6 +521,7 @@ afterUpdate = Map.unionsWith (++) $
 
       svcId <- getIdent
 
+      -- Updating `contractor_partnerLegacy` field in `Service` table
       void $ doApp $ uncurry SPG.execute
         [msql|
           UPDATE $(T|Service)$ AS svc
@@ -539,6 +540,9 @@ afterUpdate = Map.unionsWith (++) $
               AND svc.$(F|Service.svcType)$::TEXT = s->>'type'
         |]
 
+      -- Set ON/OFF 'rush job' flag for service depending on city of partner.
+      -- If partner's city at this moment in 'rush job cities' list
+      -- then setting it ON else setting it OFF.
       void $ doApp $ uncurry SPG.execute
         [msql|
           WITH pc AS (

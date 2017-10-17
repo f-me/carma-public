@@ -54,6 +54,9 @@ define [ "sync/metaq"
     fetch: =>
       $.bgetJSON "#{@url}/#{@kvm.id()}", (o) => @updateKvm m.s2cObj(o, @ftypes)
 
+    # Actually gets all fields but updates in `kvm` only those which specified.
+    # Maybe in the future on back-end could be implemented request handler
+    # that could return only requested fields.
     fetchOnly: (fields) => # fields: [string]
       $.bgetJSON "#{@url}/#{@kvm.id()}", (o) =>
         newData = m.s2cObj o, @ftypes

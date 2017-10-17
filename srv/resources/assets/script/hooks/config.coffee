@@ -8,6 +8,7 @@ define [ "hooks/common"
        ],
        (c, k, s, p, a, Um, Call) ->
 
+  # Hooks for services that have calculated payments for partners
   partnerKpiService = [
     s.serviceColor
     s.partnerWarnedInTimeBtn
