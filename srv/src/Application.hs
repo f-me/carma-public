@@ -9,12 +9,14 @@ import           Control.Lens
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
 
+import           Database.Persist.Sql (ConnectionPool)
 import           Data.Text (Text)
 import           Data.Map as Map
 
 import           Snap
 import           Snap.Snaplet.Heist
 import           Snap.Snaplet.Auth
+import           Snap.Snaplet.Persistent
 import           Snap.Snaplet.PostgresqlSimple
 import           Snap.Snaplet.Session
 
@@ -61,6 +63,7 @@ data App = App
     , _chat       :: Snaplet (ChatManager App)
     , _geo        :: Snaplet (Geo App)
     , _db         :: Snaplet Postgres
+    , _db2        :: Snaplet PersistState
     , _search     :: Snaplet (Search App)
     , options     :: AppOptions
     , _messenger  :: Snaplet Messenger

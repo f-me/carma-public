@@ -23,6 +23,10 @@ packages:
     git: git@github.com:f-me/snap-core.git
     commit: 1732b6ff0325b68a93dd9e07ac618f4d5e2cd527
   extra-dep: true
+- location:
+    git: git@github.com:Soostone/snaplet-persistent.git
+    commit: 27c30f24bdff3f801fda47f30d483ca154708674
+  extra-dep: true
 extra-deps:
 - attoparsec-conduit-1.1.0
 - digestive-functors-heist-0.8.6.2

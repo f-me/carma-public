@@ -34,6 +34,8 @@ dependencies:
   - lens
   - MonadCatchIO-transformers
   - mtl
+  - persistent
+  - persistent-postgresql
   - pg-simple-qq-alt
   - postgresql-simple
   - process-extras
@@ -46,6 +48,7 @@ dependencies:
   - snap-extras
   - snap-loader-static
   - snap-server
+  - snaplet-persistent
   - snaplet-postgresql-simple
   - stm
   - text
