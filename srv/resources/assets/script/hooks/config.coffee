@@ -14,7 +14,7 @@ define [ "hooks/common"
     s.partnerWarnedInTimeBtn
     s.updateCaseActions
     s.openPartnerSearch
-    s.rushJobAndPartnerKPI
+    s.updatePartnerPayment
   ]
 
   model:

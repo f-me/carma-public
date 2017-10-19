@@ -24,6 +24,7 @@ import           Control.Monad.Trans.Reader
 import qualified Data.Aeson as Aeson
 import           Data.Singletons
 import           Data.Dynamic
+import           Data.Bool
 import           Data.List
 import           Data.Map (Map)
 import qualified Data.Map as Map
@@ -484,6 +485,19 @@ beforeUpdate = Map.unionsWith (++) $
           copyContractToCase subProgId contract'
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
 
+  , trigOn Service.contractor_partnerId $ \(Just newPartnerId) -> do
+
+    partnerCity <- (`get'` Partner.city) <$> dbRead newPartnerId
+    rushCities  <- (`get'` ProcessingConfig.rushJobCities)
+                     <$> dbRead (ProcessingConfig.idents HM.! "main")
+
+    -- Set ON/OFF 'rush job' flag for service depending on city of partner.
+    -- If partner's city at this moment in 'rush job cities' list
+    -- then setting it ON else setting it OFF.
+    let x = bool off on <$> (`Vector.elem` rushCities) <$> partnerCity
+        p = modifyPatch . Patch.put Service.rushJob . Just
+     in p $ fromMaybe off x
+
   , trigOn DiagSlide.answers $ \(Aeson.Array answers) -> do
       answers' <- forM (Vector.toList answers) $ \(Aeson.Object ans) ->
         case HM.lookup "nextSlide" ans of
@@ -538,28 +552,6 @@ afterUpdate = Map.unionsWith (++) $
               AND p.$(F|Partner.ident)$
                     = svc.$(F|Service.contractor_partnerId)$
               AND svc.$(F|Service.svcType)$::TEXT = s->>'type'
-        |]
-
-      -- Set ON/OFF 'rush job' flag for service depending on city of partner.
-      -- If partner's city at this moment in 'rush job cities' list
-      -- then setting it ON else setting it OFF.
-      void $ doApp $ uncurry SPG.execute
-        [msql|
-          WITH pc AS (
-            SELECT t.$(F|ProcessingConfig.rushJobCities)$ AS rush
-              FROM $(T|ProcessingConfig)$ AS t
-              WHERE t.$(F|ProcessingConfig.ident)$
-                      = $(V|ProcessingConfig.idents HM.! "main")$
-              LIMIT 1
-          )
-            UPDATE $(T|Service)$ AS svc
-              SET $(F|Service.rushJob)$
-                    = (p.$(F|Partner.city)$ = ANY (pc.rush))
-              FROM $(T|Partner)$ p
-              INNER JOIN pc ON TRUE
-              WHERE svc.$(F|Service.ident)$ = $(V|svcId)$
-                AND p.$(F|Partner.ident)$
-                      = svc.$(F|Service.contractor_partnerId)$
         |]
   ]
 

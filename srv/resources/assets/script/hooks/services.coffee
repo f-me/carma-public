@@ -151,9 +151,7 @@ define [ "utils"
         disabled: ko.computed ->
           !kvm.suburbanMilage() or !kvm.totalMilage() or kvm.suburbanMilageRegexp() or kvm.totalMilageRegexp()
 
-  # Refetching 'rush job' flag and payment for partner when partner have been
-  # assigned or reassigned.
-  rushJobAndPartnerKPI: (model, kvm) ->
+  updatePartnerPayment: (model, kvm) ->
     updatePayment = ->
       return unless kvm["partnerDelay_payment"].visible()
       $.ajax
@@ -161,9 +159,6 @@ define [ "utils"
         url: "/partnerKPI/#{kvm["id"]()}/#{kvm["contractor_partnerId"]()}"
         success: (kpi) ->
           kvm["partnerDelay_payment"].text (kpi.paymentpercent || '−')
-
-    updateRushJob = ->
-      kvm._meta.q.fetchOnly ["rushJob"]
 
     kvm["partnerDelay_payment"] = {}
     kvm["partnerDelay_payment"].text = ko.observable '−'
@@ -175,4 +170,3 @@ define [ "utils"
     kvm["contractor_partnerIdSync"]?.subscribe (isProcess) ->
       return if isProcess
       do updatePayment
-      do updateRushJob
