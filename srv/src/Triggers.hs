@@ -489,7 +489,7 @@ beforeUpdate = Map.unionsWith (++) $
 
     partnerCity <- (`get'` Partner.city) <$> dbRead newPartnerId
     rushCities  <- (`get'` ProcessingConfig.rushJobCities)
-                     <$> dbRead (ProcessingConfig.idents HM.! "main")
+                     <$> dbRead ProcessingConfig.main
 
     -- Set ON/OFF 'rush job' flag for service depending on city of partner.
     -- If partner's city at this moment in 'rush job cities' list
