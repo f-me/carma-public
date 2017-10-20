@@ -25,7 +25,7 @@ packages:
   extra-dep: true
 - location:
     git: git@github.com:Soostone/snaplet-persistent.git
-    commit: 27c30f24bdff3f801fda47f30d483ca154708674
+    commit: 100291ada8c71d817d6758062dd98bbf2e60a040
   extra-dep: true
 extra-deps:
 - attoparsec-conduit-1.1.0
