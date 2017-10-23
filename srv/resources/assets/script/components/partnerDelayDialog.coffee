@@ -1,4 +1,11 @@
-define ["utils", "model/main", "text!tpl/partials/partnerDelayDialog.html"], (u, main, tpl) ->
+{$, _, ko, Mustache} = require "carma/vendor"
+{tpl} = require "carma/globallibs"
+
+u    = require "carma/utils"
+main = require "carma/model/main"
+tpl  = tpl require "carma-tpl/partials/partnerDelayDialog.pug"
+
+module.exports =
   show: (kase, svcKvm) ->
     modelName = "PartnerDelay"
 

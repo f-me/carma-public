@@ -1,4 +1,6 @@
-define [], ->
+{_, ko} = require "carma/vendor"
+
+module.exports =
 
   stateStuff: (model, kvm) =>
     kvm.toggleDelayed = (st) =>

@@ -1,180 +1,186 @@
-define [ "model/main"
-       , "model/utils"
-       , "routes"
-       , "dictionaries"
-       , "sync/crud"
-       , "text!tpl/fields/form.html"], (main, mu, Finch, d, sync, Ftpls) ->
-  # jquery -> html(as string) conversion, with selected element
-  jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
+{$, _, Finch} = require "carma/vendor"
 
-  # Synchronous JSON request
-  $.bgetJSON = (url, cb) ->
-    $.ajax
-      type     : 'GET'
-      url      : url
-      dataType : 'json'
-      success  : cb
-      async    : false
+main = require "carma/model/main"
+mu   = require "carma/model/utils"
+d    = require "carma/dictionaries"
+sync = require "carma/sync/crud"
 
-  $.putJSON = (url, obj) ->
-    $.ajax
-      type        : "PUT"
-      url         : url
-      data        : JSON.stringify obj
-      processData : false
-      contentType : "application/json"
+# jquery -> html(as string) conversion, with selected element
+$.fn.outerHTML = () -> $("<div>").append(@clone()).html()
 
-  # Find VM of reference in a case by its view name.
-  findCaseOrReferenceVM = (view) ->
-    kase = global.viewsWare["case-form"].knockVM
-    if (view is "case-form")
-      kase
+# Synchronous JSON request
+$.bgetJSON = (url, cb) ->
+  $.ajax
+    type     : 'GET'
+    url      : url
+    dataType : 'json'
+    success  : cb
+    async    : false
+
+$.putJSON = (url, obj) ->
+  $.ajax
+    type        : "PUT"
+    url         : url
+    data        : JSON.stringify obj
+    processData : false
+    contentType : "application/json"
+
+# Find VM of reference in a case by its view name.
+findCaseOrReferenceVM = (view) ->
+  kase = global.viewsWare["case-form"].knockVM
+  if (view is "case-form")
+    kase
+  else
+    _.find kase.servicesReference(), (svc) -> svc.view is view
+
+# Find VM of a view, properly handling reference views or views of
+# field groups. If the view name is "case-form", then return knockVM
+# for case.
+findVM = (view) ->
+  if global.viewsWare["case-form"]
+    vw = global.viewsWare[view]
+    if vw and vw.parentView?
+      # Find VM of a group rendered in a view.
+      findCaseOrReferenceVM(vw.parentView)
     else
-      _.find kase.servicesReference(), (svc) -> svc.view is view
+      findCaseOrReferenceVM(view)
+  else
+    global.viewsWare[view].knockVM
 
-  # Find VM of a view, properly handling reference views or views of
-  # field groups. If the view name is "case-form", then return knockVM
-  # for case.
-  findVM = (view) ->
-    if global.viewsWare["case-form"]
-      vw = global.viewsWare[view]
-      if vw and vw.parentView?
-        # Find VM of a group rendered in a view.
-        findCaseOrReferenceVM(vw.parentView)
-      else
-        findCaseOrReferenceVM(view)
+# make this global, still need to use this module as dependency
+# to make sure that this functions will be loaded
+window.el  = (id) -> document.getElementById(id)
+window.$el = (id) -> $(el(id))
+# like _.has but for list
+window.hasL = (lst, e) -> _.find(lst, (x) -> x == e)
+
+window.successfulSave = ->
+  return if this.hasAttribute("disabled")
+  $span = $(this).siblings(".save-result")
+  setTimeout((->
+    $span.text("Сохранено успешно")
+    $span.show()
+    $span.fadeOut(2000))
+  , 500)
+
+window.inlineSpinner = (el) ->
+  $(el).addClass("inline-spinner").append(
+    "<div class='bounce1'></div><div class='bounce2'></div><div class='bounce3'></div>"
+  )
+
+window.getDictionary = (d) ->
+  dict = global.dictionaries[d]
+  return dict if dict
+  return eval(d)
+
+# Converts lists into objects. Pass either a single array of `[key, value]`
+# pairs, or two parallel arrays of the same length -- one of keys, and one of
+# the corresponding values.
+_.object = (list, values) ->
+  return {} if  _.isEmpty list
+  if values
+    _.object _.zip list, values
+  else
+    _.foldl list, ((a, [k, v]) -> a[k] = v; return a), {}
+
+_.pairs = (obj) -> [k, v] for k, v of obj
+
+window.arrToObj = (key, val, f = _.identity) ->
+  keys = if _.isFunction key then _.map val, key else _.pluck val, key
+  _.object _.zip keys, (_.map val, f)
+
+# FIXME doing tricky shit, fella? how about use it just from 'underscore'?
+String.prototype.capitalize = -> @charAt(0).toUpperCase() + @slice(1)
+
+bindRemove = (parent, field, cb) ->
+  for i in parent["#{field}Reference"]()
+    do (i) ->
+      $("##{i['view']}")
+        .parents('div.accordion-group')
+        .first()
+        .find('.icon.icon-remove')
+        .click ->
+          mu.removeReference(parent, field, i)
+          bindRemove parent, field, cb
+          cb(parent, field, i) if _.isFunction cb
+
+modelsFromUrl = -> location.hash.match(/#(\w+)/)[1]
+
+# Generate a random password of given length (default 10)
+genPassword = (len) ->
+  chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789"
+  temp = ""
+  tlen = len || 10
+  for i in [0..tlen]
+    temp += chars.charAt Math.floor Math.random() * chars.length
+  return temp
+
+isMatch = (q, str) -> !!~String(str).toLowerCase().indexOf(q.toLowerCase())
+
+allowedField = (r, f) ->
+  return true unless r
+  if r.allowed?
+    _.contains(r.allowed, f.name) and not _.contains(r.forbidden, f.name)
+  else
+    not _.contains(r.forbidden, f.name)
+
+kvmCheckMatch = (q, kvm, fieldsRestriction) ->
+  v = for f in kvm._meta.model.fields when allowedField fieldsRestriction, f
+    if f.type == "dictionary"
+      isMatch(q, kvm["#{f.name}Local"]())
+    else if _.contains(
+      ["dictionary-many", "dictionary-set-int", "dictionary-set-text"],
+      f.type)
+      checkMatch(q, _.pluck(kvm["#{f.name}Locals"](), 'label'))
+    else if f.type == "reference"
+      _.any kvm["#{f.name}References"](), (k) -> kvmCheckMatch(q, k)
+    else if f.type == "nested-model"
+      _.any kvm["#{f.name}Nested"](), (k) -> kvmCheckMatch(q, k)
+    else if f.type == "json" and f.meta?.jsonSchema == "dict-objects"
+      _.any kvm["#{f.name}Objects"](),
+            (k) -> _.any ['keyLocal', 'value', 'note'],
+                        (s) -> checkMatch(q, k[s]?())
     else
-      global.viewsWare[view].knockVM
+      checkMatch(q, kvm[f.name]())
 
-  # make this global, still need to use this module as dependency
-  # to make sure that this functions will be loaded
-  window.el  = (id) -> document.getElementById(id)
-  window.$el = (id) -> $(el(id))
-  # like _.has but for list
-  window.hasL = (lst, e) -> _.find(lst, (x) -> x == e)
+  _.any v
 
-  window.successfulSave = ->
-    return if this.hasAttribute("disabled")
-    $span = $(this).siblings(".save-result")
-    setTimeout((->
-      $span.text("Сохранено успешно")
-      $span.show()
-      $span.fadeOut(2000))
-    , 500)
+# deep check that anything in @val@ has @q@
+checkMatch = (q, val) ->
+  if _.isArray val
+    _.any val, (a) -> checkMatch(q, a)
+  else if _.isObject val
+    _.any (checkMatch(q, v) for k, v of val), _.identity
+  else
+    !!~String(val).toLowerCase().indexOf(q.toLowerCase())
+window.checkMatch = checkMatch
 
-  window.inlineSpinner = (el) ->
-    $(el).addClass("inline-spinner").append("<div class='bounce1'></div><div class='bounce2'></div><div class='bounce3'></div>")
+# Format a numeric value from seconds to hours and minutes
+formatSec = (s) ->
+  mins = Math.round(s / 60 % 60)
+  hours = Math.floor(s / 3600 % 3600)
+  if hours == 0
+    "#{mins}м"
+  else
+    "#{hours}ч #{mins}м"
 
-  window.getDictionary = (d) ->
-    dict = global.dictionaries[d]
-    return dict if dict
-    return eval(d)
+# Build a KnockVM for a model instance using standard queue
+buildInstance = (modelName, id) ->
+  main.buildKVM global.model(modelName),
+    fetched: {id: id}
+    queue: sync.CrudQueue
 
-  # Converts lists into objects. Pass either a single array of `[key, value]`
-  # pairs, or two parallel arrays of the same length -- one of keys, and one of
-  # the corresponding values.
-  _.object = (list, values) ->
-    return {} if  _.isEmpty list
-    if values
-      _.object _.zip list, values
-    else
-      _.foldl list, ((a, [k, v]) -> a[k] = v; return a), {}
+newModelDict = (name, stringify, meta) ->
+  new d.dicts.ModelDict
+    dict: name
+    meta:
+      _.extend (meta || {}), {dictionaryStringify: stringify}
 
-  _.pairs = (obj) -> [k, v] for k, v of obj
+# Call a number if the CTI panel is available
+ctiDial = (number) ->
+  global.CTIPanel && $("#cti").show() && global.CTIPanel.instaDial(number)
 
-  window.arrToObj = (key, val, f = _.identity) ->
-    keys = if _.isFunction key then _.map val, key else _.pluck val, key
-    _.object _.zip keys, (_.map val, f)
-
-  String.prototype.capitalize = -> @charAt(0).toUpperCase() + @slice(1)
-
-  bindRemove = (parent, field, cb) ->
-    for i in parent["#{field}Reference"]()
-      do (i) ->
-        $("##{i['view']}")
-          .parents('div.accordion-group')
-          .first()
-          .find('.icon.icon-remove')
-          .click ->
-            mu.removeReference(parent, field, i)
-            bindRemove parent, field, cb
-            cb(parent, field, i) if _.isFunction cb
-
-  modelsFromUrl = -> location.hash.match(/#(\w+)/)[1]
-
-  # Generate a random password of given length (default 10)
-  genPassword = (len) ->
-    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789"
-    temp = ""
-    tlen = len || 10
-    for i in [0..tlen]
-      temp += chars.charAt Math.floor Math.random() * chars.length
-    return temp
-
-  isMatch = (q, str) -> !!~String(str).toLowerCase().indexOf(q.toLowerCase())
-
-  allowedField = (r, f) ->
-    return true unless r
-    if r.allowed?
-      _.contains(r.allowed, f.name) and not _.contains(r.forbidden, f.name)
-    else
-      not _.contains(r.forbidden, f.name)
-
-  kvmCheckMatch = (q, kvm, fieldsRestriction) ->
-    v = for f in kvm._meta.model.fields when allowedField fieldsRestriction, f
-      if f.type == "dictionary"
-        isMatch(q, kvm["#{f.name}Local"]())
-      else if _.contains(
-        ["dictionary-many", "dictionary-set-int", "dictionary-set-text"],
-        f.type)
-        checkMatch(q, _.pluck(kvm["#{f.name}Locals"](), 'label'))
-      else if f.type == "reference"
-        _.any kvm["#{f.name}References"](), (k) -> kvmCheckMatch(q, k)
-      else if f.type == "nested-model"
-        _.any kvm["#{f.name}Nested"](), (k) -> kvmCheckMatch(q, k)
-      else if f.type == "json" and f.meta?.jsonSchema == "dict-objects"
-        _.any kvm["#{f.name}Objects"](),
-              (k) -> _.any ['keyLocal', 'value', 'note'],
-                          (s) -> checkMatch(q, k[s]?())
-      else
-        checkMatch(q, kvm[f.name]())
-
-    _.any v
-
-  # deep check that anything in @val@ has @q@
-  checkMatch = (q, val) ->
-    if _.isArray val
-      _.any val, (a) -> checkMatch(q, a)
-    else if _.isObject val
-      _.any (checkMatch(q, v) for k, v of val), _.identity
-    else
-      !!~String(val).toLowerCase().indexOf(q.toLowerCase())
-  window.checkMatch = checkMatch
-
-  # Format a numeric value from seconds to hours and minutes
-  formatSec = (s) ->
-    mins = Math.round(s / 60 % 60)
-    hours = Math.floor(s / 3600 % 3600)
-    if hours == 0
-      "#{mins}м"
-    else
-      "#{hours}ч #{mins}м"
-
-  # Build a KnockVM for a model instance using standard queue
-  buildInstance = (modelName, id) ->
-    main.buildKVM global.model(modelName),
-      fetched: {id: id}
-      queue: sync.CrudQueue
-
-  newModelDict = (name, stringify, meta) ->
-    new d.dicts.ModelDict
-      dict: name
-      meta:
-        _.extend (meta || {}), {dictionaryStringify: stringify}
-
-  # Call a number if the CTI panel is available
-  ctiDial = (number) ->
-    global.CTIPanel && $("#cti").show() && global.CTIPanel.instaDial(number)
+module.exports =
 
   # build global function from local to module one
   # function should belong to first dependency

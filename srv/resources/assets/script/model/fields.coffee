@@ -1,5 +1,6 @@
-define [], ->
+{_, ko} = require "carma/vendor"
 
+module.exports =
   # add 'begin' and 'end' properties to the observable and put interval
   # object into obs when it is ready
   interval: (obs) ->

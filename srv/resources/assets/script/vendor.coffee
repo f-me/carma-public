@@ -3,10 +3,11 @@ require "jquery.knob"
 require "jquery.notify"
 require "jquery.datatables"
 
-md5 = require "blueimp-md5"
-_ = require "underscore"
-mustache = require "mustache"
-ko = require "knockout"
+md5      = require "blueimp-md5"
+_        = require "underscore"
+Mustache = require "mustache"
+ko       = require "knockout"
+Finch    = require "finchjs/coffee/finch"
 
 moment = require "moment"
 require "moment/locale/ru"
@@ -23,9 +24,12 @@ require "bootstrap.wysihtml5.ru-RU"
 Spinner = require "spin"
 require "spin/jquery.spin"
 
-d3 = require "d3/d3"
-Mousetrap = require "mousetrap"
+d3         = require "d3/d3"
+Mousetrap  = require "mousetrap"
 OpenLayers = require "ol2"
+
+Promise = require "bluebird"
+require "whatwg-fetch"
 
 # old messy shit
 # TODO FIXME kill me please someone
@@ -37,13 +41,15 @@ require "more-libs/date/sugarpak.js"
 
 module.exports =
   { $
-  , md5
   , _
-  , mustache
   , ko
-  , moment
-  , Spinner
   , d3
+  , md5
+  , moment
+  , Finch
+  , Mustache
+  , Spinner
   , Mousetrap
   , OpenLayers
+  , Promise
   }

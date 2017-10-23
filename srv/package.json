@@ -58,6 +58,7 @@
     "webpack": "^3.5.2"
   },
   "dependencies": {
+    "bluebird": "^3.5.1",
     "blueimp-md5": "~1.1.0",
     "bootstrap": "~3.3.0",
     "bootstrap-datepicker": "~1.5.0",
@@ -81,6 +82,7 @@
     "openlayers-2-build": "github:f-me/openlayers-2-build#v2.13.1",
     "spin.js": "2.0.1",
     "underscore": "~1.6.0",
+    "whatwg-fetch": "^2.0.3",
     "wysihtml5x": "github:Voog/wysihtml#0.4.13"
   }
 }

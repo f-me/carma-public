@@ -1,57 +1,61 @@
-define [], ->
-  # Client-side hacker extensions and hidden features
-  #
-  # To add a new hack, insert an entry in `hackMap` below and add a
-  # link of type `hack` in screens.json:
-  #
-  #         { "name"  : "permute-case-panes",
-  #           "label" : "Переставить панели кейса",
-  #           "type"  : "hack",
-  #           "permissions": ["hacker"]
-  #         }
-  #
-  # Hack state (on/off) is stored per user. Once activated, hacks are
-  # re-enabled on every page load. Disabling a hack means turning this
-  # re-activation off.
+{$, _} = require "carma/vendor"
 
-  addLocalCSSRule = (selector, rule) ->
-    styles = document.styleSheets
-    localCSS = _.find styles, (s) -> s.title == "local"
-    # For some reason insertRule does not work with
-    # ::-webkit-scrollbar-thumb selectors
-    localCSS.addRule selector, rule
+# Client-side hacker extensions and hidden features
+#
+# To add a new hack, insert an entry in `hackMap` below and add a
+# link of type `hack` in screens.json:
+#
+#         { "name"  : "permute-case-panes",
+#           "label" : "Переставить панели кейса",
+#           "type"  : "hack",
+#           "permissions": ["hacker"]
+#         }
+#
+# Hack state (on/off) is stored per user. Once activated, hacks are
+# re-enabled on every page load. Disabling a hack means turning this
+# re-activation off.
 
-  # How to enable hacks.
-  #
-  # A hack cannot be explicitly disabled (we reload the page without
-  # re-enabling the hack instead).
-  hackMap =
-    'permute-case-panes': ->
-      addLocalCSSRule "#right", "left: 0; width: 20%;"
-      addLocalCSSRule "#left", "left: 22%; width: 30%;"
-      addLocalCSSRule "#center", "left: 54%; width: 44%;"
+addLocalCSSRule = (selector, rule) ->
+  styles = document.styleSheets
+  localCSS = _.find styles, (s) -> s.title == "local"
+  # For some reason insertRule does not work with
+  # ::-webkit-scrollbar-thumb selectors
+  localCSS.addRule selector, rule
 
-  usermetaUrl = -> "/_/Usermeta/#{global.user.id}"
+# How to enable hacks.
+#
+# A hack cannot be explicitly disabled (we reload the page without
+# re-enabling the hack instead).
+hackMap =
+  'permute-case-panes': ->
+    addLocalCSSRule "#right", "left: 0; width: 20%;"
+    addLocalCSSRule "#left", "left: 22%; width: 30%;"
+    addLocalCSSRule "#center", "left: 54%; width: 44%;"
 
-  addHack = (h) ->
-    $.getJSON usermetaUrl(), (res) ->
-      stuff = res.stuff
-      hacks = stuff?.hacks || []
-      if not _.contains hacks, h
-        hacks.push h
-        stuff.hacks = hacks
-        global.user.stuff.hacks = hacks
-        $.putJSON(usermetaUrl(), {stuff: stuff}).
-          done(-> hackMap[h]?())
+usermetaUrl = -> "/_/Usermeta/#{global.user.id}"
 
-  dropHack = (h) ->
-    $.getJSON usermetaUrl(), (res) ->
-      stuff = res.stuff
-      hacks = _.without (stuff?.hacks || []), h
+addHack = (h) ->
+  $.getJSON usermetaUrl(), (res) ->
+    stuff = res.stuff
+    hacks = stuff?.hacks || []
+    if not _.contains hacks, h
+      hacks.push h
       stuff.hacks = hacks
       global.user.stuff.hacks = hacks
       $.putJSON(usermetaUrl(), {stuff: stuff}).
-        done(-> location.reload())
+        done(-> hackMap[h]?())
+
+dropHack = (h) ->
+  $.getJSON usermetaUrl(), (res) ->
+    stuff = res.stuff
+    hacks = _.without (stuff?.hacks || []), h
+    stuff.hacks = hacks
+    global.user.stuff.hacks = hacks
+    $.putJSON(usermetaUrl(), {stuff: stuff}).
+      done(-> location.reload())
+
+
+module.exports =
 
   # Activate hacks previously enabled by the user
   reenableHacks: ->

@@ -1,3 +1,6 @@
+# TODO
+{cancelDialog} = require "carma/partnerCancel"
+
 define [ "utils"
        , "map"
        , "dictionaries/model-dict"

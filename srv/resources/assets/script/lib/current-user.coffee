@@ -1,31 +1,34 @@
 # All current user's specific code should be here except legacy
 # 'global.user' initialization
+{$, _, ko, Finch} = require "carma/vendor"
 
-define [ "model/main"
-       , "sync/crud"
-       , "lib/messenger"
-       , "sync/datamap" ], (Main, Crud, Messenger, Map)->
+Main      = require "carma/model/main"
+Crud      = require "carma/sync/crud"
+Messenger = require "carma/lib/messenger"
+Map       = require "carma/sync/datamap"
 
-  # block other than rest screens when in rest
-  oldNav = Finch.navigate
-  Finch.navigate = (args...) ->
-    st = window.global?.Usermeta?.currentState?()
-    if _.contains(["Dinner", "Rest"], st)
-      oldNav("rest")
-    else if st == 'ServiceBreak'
-      oldNav('serviceBreak')
-    else if st == 'NA'
-      oldNav('na')
-    else
-      oldNav.apply(@, args)
+# block other than rest screens when in rest
+oldNav = Finch.navigate
+Finch.navigate = (args...) ->
+  st = window.global?.Usermeta?.currentState?()
+  if _.contains(["Dinner", "Rest"], st)
+    oldNav("rest")
+  else if st == 'ServiceBreak'
+    oldNav('serviceBreak')
+  else if st == 'NA'
+    oldNav('na')
+  else
+    oldNav.apply(@, args)
 
-  checkStuff = ->
-    um = window.global.Usermeta
-    if _.isUndefined um
-      throw Error("current user is undefined, initialize it first")
-    if _.isUndefined um.stuff
-      throw Error("need permission to read 'usermeta.stuff'")
+checkStuff = ->
+  um = window.global.Usermeta
+  if _.isUndefined um
+    throw Error("current user is undefined, initialize it first")
+  if _.isUndefined um.stuff
+    throw Error("need permission to read 'usermeta.stuff'")
 
+
+module.exports =
   initialize: =>
     user = window.global.user
 

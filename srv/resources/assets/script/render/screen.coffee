@@ -1,28 +1,31 @@
-define [], ->
-  # Remove all content of view and clean up wares.
-  #
-  # To setup view back again, call
-  # screen.views[viewName]($el(viewName), args);
-  forgetView = (viewName) ->
-    vW = global.viewsWare[viewName]
-    # View may have not setup any knockVM (static views like search)
-    # FIXME: do we have to release knockvm at all?
-    # if not _.isUndefined(vW.knockVM) then kb.vmRelease(vW.knockVM)
-    vW = {}
-    $el(viewName).empty()
+{$, _, ko, Mustache} = require "carma/vendor"
 
-  # Clean up all views on screen and everything.
-  forgetScreen = ->
-    for name, cs of global.activeScreen?.views when cs.destructor?
-      cs.destructor(name)
-    forgetView(viewName) for viewName of global.viewsWare
-    global.topElement.off()
-    window.ReactDOM && window.ReactDOM.unmountComponentAtNode(global.topElement[0])
-    ko.cleanNode global.topElement[0]
-    global.topElement.empty()
-    global.viewsWare = {}
-    global.activeScreen = null
+# Remove all content of view and clean up wares.
+#
+# To setup view back again, call
+# screen.views[viewName]($el(viewName), args);
+forgetView = (viewName) ->
+  vW = global.viewsWare[viewName]
+  # View may have not setup any knockVM (static views like search)
+  # FIXME: do we have to release knockvm at all?
+  # if not _.isUndefined(vW.knockVM) then kb.vmRelease(vW.knockVM)
+  vW = {}
+  $el(viewName).empty()
 
+# Clean up all views on screen and everything.
+forgetScreen = ->
+  for name, cs of global.activeScreen?.views when cs.destructor?
+    cs.destructor(name)
+  forgetView(viewName) for viewName of global.viewsWare
+  global.topElement.off()
+  window.ReactDOM && window.ReactDOM.unmountComponentAtNode(global.topElement[0])
+  ko.cleanNode global.topElement[0]
+  global.topElement.empty()
+  global.viewsWare = {}
+  global.activeScreen = null
+
+
+module.exports =
 
   # Render top-level screen template (static)
   #

@@ -1,18 +1,23 @@
-define [ "utils"
-       , "dictionaries"
-       ], (u, d) ->
-  thmenuInit = (k, fname, dict, setter) ->
+{$, _, ko, moment, Finch} = require "carma/vendor"
+{ThMenu} = require "carma/globallibs"
+
+u = require "carma/utils"
+d = require "carma/dictionaries"
+
+thmenuInit = (k, fname, dict, setter) ->
+  thmenu = []
+  k["#{fname}TypeaheadBuilder"] = ->
+    m = new ThMenu { select: setter, dict  : dict }
+    thmenu.push(m)
+    return m
+
+  k["#{fname}TypeaheadBuilder"].destroy = ->
+    _.map thmenu, (v) -> v.destructor()
     thmenu = []
-    k["#{fname}TypeaheadBuilder"] = ->
-      m = new ThMenu { select: setter, dict  : dict }
-      thmenu.push(m)
-      return m
+  k[fname].typeaheadBuilder = k["#{fname}TypeaheadBuilder"]
 
-    k["#{fname}TypeaheadBuilder"].destroy = ->
-      _.map thmenu, (v) -> v.destructor()
-      thmenu = []
-    k[fname].typeaheadBuilder = k["#{fname}TypeaheadBuilder"]
 
+module.exports =
   # - <field>Local for dictionary fields: reads as label, writes real
   #   value back to Backbone model;
   dictionaryKbHook: (m, kvm) ->

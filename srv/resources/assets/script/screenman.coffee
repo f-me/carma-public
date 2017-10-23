@@ -1,28 +1,29 @@
-define "screenman", ["tableman"], (TM) ->
-  class Screen
-    constructor: (@callback) ->
-      @table = null
+{Table} = require "carma/tableman"
 
-    show: ->
-      do @callback
-      do @table?.show
+class Screen
+  constructor: (@callback) ->
+    @table = null
 
-    addTable: (params) ->
-      @table = new TM.Table(params)
+  show: ->
+    do @callback
+    do @table?.show
 
-    getTable: ->
-      @table
+  addTable: (params) ->
+    @table = new Table(params)
 
-  class ScreenMan
-    # screens array
-    # key -> screen's name
-    # value -> instance of the Screen class
-    screens = []
+  getTable: ->
+    @table
 
-    addScreen: (name, callback) ->
-      screens[name] = new Screen(callback)
+class ScreenMan
+  # screens array
+  # key -> screen's name
+  # value -> instance of the Screen class
+  screens = []
 
-    showScreen: (name) ->
-      do screens[name]?.show
+  addScreen: (name, callback) ->
+    screens[name] = new Screen(callback)
 
-  new ScreenMan
+  showScreen: (name) ->
+    do screens[name]?.show
+
+module.exports.screenMan = new ScreenMan

@@ -64,6 +64,7 @@ module.exports =
       "underscore"
       "mustache"
       "knockout"
+      "finchjs/coffee/finch"
 
       "moment"
       "moment/locale/ru"

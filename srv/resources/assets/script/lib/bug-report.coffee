@@ -1,57 +1,57 @@
-define ["sync/datamap"], (m) ->
+{$, _, md5} = require "carma/vendor"
 
-  class BugReport
-    constructor: (options) ->
-      @sp = "%20"
-      @br = "%0A"
-      @vertBar = "%7C"
-      @comma = "%2C"
-      @setElement options.el if options?.el
-      @mail_subject = options?.mail_subject or ""
-      @mail_to = options?.mail_to or "support@formalmethods.ru"
-      @mail_cc = options?.mail_cc or ""
-      @stack = []
+m = require "carma/sync/datamap"
 
-    setElement: (el) =>
-      @$element = $(el)
-      @$element.on('click', @sendReport)
+module.exports.BugReport = class BugReport
+  constructor: (options) ->
+    @sp = "%20"
+    @br = "%0A"
+    @vertBar = "%7C"
+    @comma = "%2C"
+    @setElement options.el if options?.el
+    @mail_subject = options?.mail_subject or ""
+    @mail_to = options?.mail_to or "support@formalmethods.ru"
+    @mail_cc = options?.mail_cc or ""
+    @stack = []
 
-    addError: (msg, url, line) =>
-      @stack.push "#{msg} #{url} #{line}"
+  setElement: (el) =>
+    @$element = $(el)
+    @$element.on('click', @sendReport)
 
-    sendReport: =>
-      url = location.href
-      models = []
+  addError: (msg, url, line) =>
+    @stack.push "#{msg} #{url} #{line}"
 
-      _.each global?.viewsWare, (view) ->
-        if q = view.knockVM?._meta?.q
-          ftypes = q.ftypes
-          model = q.toJSON()
-          queue = m.c2sObj(q.q, ftypes) if q.q
-          queueBackup = m.c2sObj(q.qbackup, ftypes) if q.qbackup
-          models.push {model, queue, queueBackup}
+  sendReport: =>
+    url = location.href
+    models = []
 
-      body  = "#{@br}"
-      body += "#{@br}========#{@sp}INFORMATION#{@sp}FOR#{@sp}DEVELOPERS#{@sp}========"
-      content =
-        url: url,
-        console: @stack,
-        models: models
-        user: global.user.login
-      contentB64 = @encodeBase64 JSON.stringify content
-      body += "#{@br}#{contentB64}#{@vertBar}#{md5 contentB64}"
+    _.each global?.viewsWare, (view) ->
+      if q = view.knockVM?._meta?.q
+        ftypes = q.ftypes
+        model = q.toJSON()
+        queue = m.c2sObj(q.q, ftypes) if q.q
+        queueBackup = m.c2sObj(q.qbackup, ftypes) if q.qbackup
+        models.push {model, queue, queueBackup}
 
-      location.href = "mailto:#{@mail_to}?cc=#{@mail_cc}
-                       &subject=#{@mail_subject}
-                       &body=#{body}"
+    body  = "#{@br}"
+    body += "#{@br}========#{@sp}INFORMATION#{@sp}FOR#{@sp}DEVELOPERS#{@sp}========"
+    content =
+      url: url,
+      console: @stack,
+      models: models
+      user: global.user.login
+    contentB64 = @encodeBase64 JSON.stringify content
+    body += "#{@br}#{contentB64}#{@vertBar}#{md5 contentB64}"
 
-      # remove collected errors
-      @stack.length = 0
+    location.href = "mailto:#{@mail_to}?cc=#{@mail_cc}
+                     &subject=#{@mail_subject}
+                     &body=#{body}"
 
-    encodeBase64: (str) ->
-      btoa unescape encodeURIComponent str
+    # remove collected errors
+    @stack.length = 0
 
-    decodeBase64: (str) ->
-      decodeURIComponent escape atob str
+  encodeBase64: (str) ->
+    btoa unescape encodeURIComponent str
 
-  BugReport: BugReport
+  decodeBase64: (str) ->
+    decodeURIComponent escape atob str

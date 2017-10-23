@@ -1,4 +1,8 @@
-define ["utils"], (u) ->
+{$, _, ko, Finch} = require "carma/vendor"
+u = require "carma/utils"
+
+module.exports =
+
   # Pretty action name for accordion header
   nameLocal: (model, knockVM) ->
     uid   = knockVM.assignedTo()

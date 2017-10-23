@@ -1,20 +1,23 @@
-define ["lib/ws"], (WS) ->
+{$, _, ko} = require "carma/vendor"
+{WS} = require "carma/lib/ws"
 
-  # WebSocket model synchronization backbone
+# WebSocket model synchronization backbone
 
-  if window.location.protocol == "https:"
-    messengerUrl = "wss://#{location.hostname}:#{location.port}/wsmessenger"
-  else
-    messengerUrl = "ws://#{location.hostname}:#{location.port}/wsmessenger"
+if window.location.protocol == "https:"
+  messengerUrl = "wss://#{location.hostname}:#{location.port}/wsmessenger"
+else
+  messengerUrl = "ws://#{location.hostname}:#{location.port}/wsmessenger"
 
-  sendSubscribe = (ws, topic) => ws.send JSON.stringify subscribe: topic
+sendSubscribe = (ws, topic) => ws.send JSON.stringify subscribe: topic
 
-  subscribe =  (topic, cb) =>
-    ws = new WS(messengerUrl)
-    ws.onopen  = => sendSubscribe(ws, topic)
-    ws.onmessage = (ev) => cb((JSON.parse ev.data).payload)
-    return ws
+subscribe = (topic, cb) =>
+  ws = new WS(messengerUrl)
+  ws.onopen  = => sendSubscribe(ws, topic)
+  ws.onmessage = (ev) => cb((JSON.parse ev.data).payload)
+  return ws
 
+
+module.exports =
 
   multisubKVM: (kvms) =>
     ws = new WS(messengerUrl)

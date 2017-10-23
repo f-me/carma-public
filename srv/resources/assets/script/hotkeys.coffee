@@ -1,20 +1,23 @@
-define ["utils"], (u) ->
-  handleLeft = (e) ->
-    arrs = global.keys.arrows
-    if e.ctrlKey and e.keyCode == arrs.right
-      c = global.nav.lastCenter
-      if c and c.is(':visible')
-        c.focus()
-      else if f = $('#center fieldset:visible input')
-        f.first().focus()
+{$} = require "carma/vendor"
+u = require "carma/utils"
 
-  handleCenter = (e) ->
-    arrs = global.keys.arrows
-    l = global.nav.lastLeft
-    if e.ctrlKey and e.keyCode == arrs.left and l
-      u.checkAccordion(l)
-      l.focus()
+handleLeft = (e) ->
+  arrs = global.keys.arrows
+  if e.ctrlKey and e.keyCode == arrs.right
+    c = global.nav.lastCenter
+    if c and c.is(':visible')
+      c.focus()
+    else if f = $('#center fieldset:visible input')
+      f.first().focus()
 
+handleCenter = (e) ->
+  arrs = global.keys.arrows
+  l = global.nav.lastLeft
+  if e.ctrlKey and e.keyCode == arrs.left and l
+    u.checkAccordion(l)
+    l.focus()
+
+module.exports =
   setup: ->
     $('#left').on('keydown.hotkeys', handleLeft)
     $('#center').on('keydown.hotkeys', handleCenter)

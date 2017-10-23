@@ -1,12 +1,19 @@
-define ["model/main", "render/screen"], (main, render) ->
-  # Find view for this element
-  elementView = (elt) -> _.last($(elt).parents("[id*=view]"))
+{$, _} = require "carma/vendor"
 
-  # Save instance loaded in view
-  saveInstance = (viewName, cb, force) ->
-    global.viewsWare[viewName].knockVM._meta.q.save(cb, force)
+main   = require "carma/model/main"
+render = require "carma/render/screen"
 
-  window.saveInstance = saveInstance
+# Find view for this element
+elementView = (elt) -> _.last($(elt).parents("[id*=view]"))
+
+# Save instance loaded in view
+saveInstance = (viewName, cb, force) ->
+  global.viewsWare[viewName].knockVM._meta.q.save(cb, force)
+
+window.saveInstance = saveInstance
+
+
+module.exports =
 
   # FIXME: remove this function definition
   # and correct module dependencies

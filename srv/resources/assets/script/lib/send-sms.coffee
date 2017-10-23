@@ -1,12 +1,16 @@
-define [], ->
-  smsTemplates = []
+{$} = require "carma/vendor"
 
-  div = document.getElementById 'sms-send-form'
-  renderForm = (props) ->
-    ReactDOM.render(React.createElement(CarmaComponents.SmsForm, props), div)
+smsTemplates = []
 
-  onHide = ->
-    renderForm {isVisible: false, onHide: onHide}
+div = document.getElementById 'sms-send-form'
+renderForm = (props) ->
+  ReactDOM.render(React.createElement(CarmaComponents.SmsForm, props), div)
+
+onHide = ->
+  renderForm {isVisible: false, onHide: onHide}
+
+
+module.exports =
 
   setupSmsForm: ->
     $.ajax
