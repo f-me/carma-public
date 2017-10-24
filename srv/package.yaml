@@ -28,6 +28,7 @@ dependencies:
   - free
   - gitrev
   - graphviz
+  - haskell-src-meta
   - heist
   - hsyslog
   - HTTP
@@ -39,6 +40,7 @@ dependencies:
   - pg-simple-qq-alt
   - postgresql-simple
   - process-extras
+  - qm-interpolated-string
   - random
   - resource-pool-catchio
   - SHA
@@ -51,6 +53,7 @@ dependencies:
   - snaplet-persistent
   - snaplet-postgresql-simple
   - stm
+  - template-haskell
   - text
   - time
   - transformers
@@ -61,7 +64,6 @@ dependencies:
   - websockets
   - websockets-snap
   - xmlhtml
-  - qm-interpolated-string
 
 default-extensions:
   - FlexibleContexts

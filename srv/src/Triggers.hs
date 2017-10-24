@@ -24,6 +24,7 @@ import           Control.Monad.Trans.Reader
 import qualified Data.Aeson as Aeson
 import           Data.Singletons
 import           Data.Dynamic
+import           Data.Bool
 import           Data.List
 import           Data.Map (Map)
 import qualified Data.Map as Map
@@ -40,7 +41,7 @@ import           GHC.TypeLits
 
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
 import           Database.PostgreSQL.Simple as PG
-import           Snap.Snaplet.PostgresqlSimple (liftPG)
+import           Snap.Snaplet.PostgresqlSimple as SPG (liftPG, execute)
 
 import           WeatherApi (tempC)
 
@@ -48,6 +49,7 @@ import           Carma.Model.Types (HMDiffTime(..))
 import           Data.Model as Model
 import           Data.Model.Patch as Patch
 import           Data.Model.Types
+import qualified Data.HashMap.Strict as HM
 
 import           Carma.Model.Action (Action)
 import qualified Carma.Model.Action as Action
@@ -86,10 +88,13 @@ import qualified Carma.Model.UrgentServiceReason as USR
 import           Carma.Model.Usermeta (Usermeta)
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.Diagnostics.Wazzup as Wazzup
+import qualified Carma.Model.Partner as Partner
 import           Carma.Model.PartnerDelay (PartnerDelay)
 import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
 import qualified Carma.Model.DiagHistory as DiagHistory
 import qualified Carma.Model.DiagSlide as DiagSlide
+
+import qualified Carma.Model.ProcessingConfig as ProcessingConfig
 
 import           Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 import           Carma.Backoffice.DSL (ActionTypeI, Backoffice)
@@ -107,6 +112,7 @@ import qualified Triggers.Action.MailToDealer as BOAction (sendMailToDealer)
 import           Triggers.DSL as Dsl
 
 import           Util (Priority(..), syslogJSON, (.=))
+import           Utils.Model.MSqlQQ hiding (parseQuery)
 
 
 -- TODO: rename
@@ -479,6 +485,19 @@ beforeUpdate = Map.unionsWith (++) $
           copyContractToCase subProgId contract'
           modifyPatch (Patch.put Case.vinChecked $ Just checkStatus)
 
+  , trigOn Service.contractor_partnerId $ \(Just newPartnerId) -> do
+
+    partnerCity <- (`get'` Partner.city) <$> dbRead newPartnerId
+    rushCities  <- (`get'` ProcessingConfig.rushJobCities)
+                     <$> dbRead ProcessingConfig.main
+
+    -- Set ON/OFF 'rush job' flag for service depending on city of partner.
+    -- If partner's city at this moment in 'rush job cities' list
+    -- then setting it ON else setting it OFF.
+    let x = bool off on <$> (`Vector.elem` rushCities) <$> partnerCity
+        p = modifyPatch . Patch.put Service.rushJob . Just
+     in p $ fromMaybe off x
+
   , trigOn DiagSlide.answers $ \(Aeson.Array answers) -> do
       answers' <- forM (Vector.toList answers) $ \(Aeson.Object ans) ->
         case HM.lookup "nextSlide" ans of
@@ -513,24 +532,29 @@ afterUpdate = Map.unionsWith (++) $
   , trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
 
   , trigOn Service.contractor_partnerId $ \_ -> do
+
       svcId <- getIdent
-      doApp $ liftPG $ \pg -> uncurry (PG.execute pg)
-        [sql|
-          update servicetbl svc
-            set contractor_partnerLegacy = row_to_json(js.*)
-            from
-              partnertbl p,
-              json_array_elements(p.services) s
-                join lateral
-                  (select
-                    s->>'priority1' as priority1,
-                    s->>'priority2' as priority2,
-                    s->>'priority3' as priority3) js on true
-            where svc.id = $(svcId)$
-              and p.id = svc.contractor_partnerId
-              and svc.type::text = s->>'type'
+
+      -- Updating `contractor_partnerLegacy` field in `Service` table
+      void $ doApp $ uncurry SPG.execute
+        [msql|
+          UPDATE $(T|Service)$ AS svc
+            SET $(F|Service.contractor_partnerLegacy)$ = ROW_TO_JSON(js.*)
+            FROM
+              $(T|Partner)$ AS p,
+              JSON_ARRAY_ELEMENTS( p.$(F|Partner.services)$ ) AS s
+              JOIN LATERAL ( SELECT
+                               s->>'priority1' AS priority1,
+                               s->>'priority2' AS priority2,
+                               s->>'priority3' AS priority3
+                           ) js ON TRUE
+            WHERE svc.$(F|Service.ident)$ = $(V|svcId)$
+              AND p.$(F|Partner.ident)$
+                    = svc.$(F|Service.contractor_partnerId)$
+              AND svc.$(F|Service.svcType)$::TEXT = s->>'type'
         |]
   ]
+
 
 --  - runReadTriggers
 --    - ephemeral fields
@@ -1100,7 +1124,7 @@ mkContext act = do
 
 -- | Graph entry and common data for new actions produced by 'proceed'
 -- or 'defer'.
-newActionData :: HCtx-> ActionTypeI -> (BO.Action, Patch Action.Action)
+newActionData :: HCtx -> ActionTypeI -> (BO.Action, Patch Action.Action)
 newActionData ctx aType = (e, p)
   where
     -- Never breaks for a valid back office

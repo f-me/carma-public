@@ -37,6 +37,7 @@ BEGIN
            , tmHist
            , isCountryRide
            , partnerWarnedInTime
+           , rushJob
            ) AS
 
     ( SELECT * FROM ( SELECT
@@ -46,7 +47,8 @@ BEGIN
                         times_expectedServiceStart,
                         times_expectedServiceStartHistory,
                         isCountryRide,
-                        partnerWarnedInTime
+                        partnerWarnedInTime,
+                        rushJob
                       FROM techtbl AS t
                       WHERE (argServiceId IS NULL OR t.id = argServiceId)
                         AND (argFrom      IS NULL OR createtime >= argFrom)
@@ -61,7 +63,8 @@ BEGIN
                         times_expectedServiceStart,
                         times_expectedServiceStartHistory,
                         isCountryRide,
-                        partnerWarnedInTime
+                        partnerWarnedInTime,
+                        rushJob
                       FROM towagetbl AS t
                       WHERE (argServiceId IS NULL OR t.id = argServiceId)
                         AND (argFrom      IS NULL OR createtime >= argFrom)
@@ -76,7 +79,8 @@ BEGIN
                         times_expectedServiceStart,
                         times_expectedServiceStartHistory,
                         isCountryRide,
-                        partnerWarnedInTime
+                        partnerWarnedInTime,
+                        rushJob
                       FROM renttbl AS t
                       WHERE (argServiceId IS NULL OR t.id = argServiceId)
                         AND (argFrom      IS NULL OR createtime >= argFrom)
@@ -91,7 +95,8 @@ BEGIN
                         times_expectedServiceStart,
                         times_expectedServiceStartHistory,
                         isCountryRide,
-                        partnerWarnedInTime
+                        partnerWarnedInTime,
+                        rushJob
                       FROM taxitbl AS t
                       WHERE (argServiceId IS NULL OR t.id = argServiceId)
                         AND (argFrom      IS NULL OR createtime >= argFrom)
@@ -106,7 +111,8 @@ BEGIN
                         times_expectedServiceStart,
                         times_expectedServiceStartHistory,
                         isCountryRide,
-                        partnerWarnedInTime
+                        partnerWarnedInTime,
+                        rushJob
                       FROM sobertbl AS t
                       WHERE (argServiceId IS NULL OR t.id = argServiceId)
                         AND (argFrom      IS NULL OR createtime >= argFrom)
@@ -121,7 +127,8 @@ BEGIN
                         times_expectedServiceStart,
                         times_expectedServiceStartHistory,
                         isCountryRide,
-                        partnerWarnedInTime
+                        partnerWarnedInTime,
+                        rushJob
                       FROM averagecommissionertbl AS t
                       WHERE (argServiceId IS NULL OR t.id = argServiceId)
                         AND (argFrom      IS NULL OR createtime >= argFrom)
@@ -149,14 +156,14 @@ BEGIN
                            озвучивания партнером опоздания n-ый раз
                            (последнее оповещение)
 
-        C — За городом (да/нет)
-
         W — Последние уведомление партнёра об опоздании было согласовано
             (да/нет)
 
-        E — Исключительный случай (да/нет)
-
         R — Результат расчета предупреждения партнера (Вовремя/Не вовремя)
+
+        C (country-side) — За городом (да/нет)
+        E (exceptional) — Исключительный случай (да/нет)
+        P (panic) — Аврал (да/нет)
 
       Таблица по услуге содержит историю опозданий как: `tmExp ++ [tmHist]`
       Даты сортированы по убыванию, `tmExp` - последняя дата.
@@ -199,6 +206,7 @@ BEGIN
         (dl.exceptional = 1) AS e,
         dl.exceptionalComment,
         s.isCountryRide AS c,
+        s.rushJob AS p,
 
         -- По дефолту (если НЕ нажали на кнопку "расчёт") считать что вовремя
         COALESCE(s.partnerWarnedInTime, TRUE) AS r,
@@ -221,7 +229,10 @@ BEGIN
 
         CASE
 
-          -- Исключительный случай
+          -- -1. Аврал
+          WHEN p THEN '{"v": "100%", "d": "Аврал"}'
+
+          -- 0. Исключительный случай
           WHEN e THEN '{"v": "100% (исключительный случай)", "d": null}'
 
           WHEN NOT c THEN CASE

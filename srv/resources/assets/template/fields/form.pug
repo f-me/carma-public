@@ -246,11 +246,12 @@ include _form_utils.pug
 
 #group-datetime-local-field-template.field-template(type='text/template')
   .form-group.has-feedback(
-      data-bind='visible: buttons.partnerDelay_payment.visible')
+      data-bind='visible: partnerDelay_payment && partnerDelay_payment.visible')
     label.control-label.col-sm-4
     .col-sm-8
       | Оплата:&nbsp;
-      span(data-bind='text: buttons.partnerDelay_payment.text')
+      span(data-bind=
+             'text: partnerDelay_payment ? partnerDelay_payment.text : ""')
 
   .form-group.has-feedback
     label.control-label.col-sm-4

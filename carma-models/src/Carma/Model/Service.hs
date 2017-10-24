@@ -115,6 +115,8 @@ data Service = Service
                                  "Гарантийный случай"
   , files                        :: F (Maybe Reference) "files"
                                  "Прикрепленные файлы"
+  , rushJob                      :: F (Maybe Checkbox) "rushJob"
+                                 "Аврал"
   }
   deriving Typeable
 
