@@ -39,7 +39,8 @@ Refer to [`.circleci/config.yml`](https://github.com/f-me/carma/blob/master/.cir
    `carma` is the superuser which owns the database and is used to run
    DB migration scripts.
 
-3. Unpack and recover a database snapshot:
+3. Unpack and recover a database snapshot (this needs to run as a
+   PostgreSQL superuser):
 
    ```
    psql carma -f 2017-05-29_03-15_carma.sql
