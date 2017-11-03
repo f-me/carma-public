@@ -17,7 +17,7 @@ serviceButtons = (kvm) ->
   kvm.status.subscribe ->
     # we need to be sure that udpate is called after applying changes
     # to the server
-    kvm._meta.q.save (-> global.Usermeta?.updateAbandonedServices())
+    kvm._meta.q.save (-> window.global.Usermeta?.updateAbandonedServices())
 
   kvm.buttons = {}
   kase = kvm._parent
@@ -129,12 +129,12 @@ serviceButtons = (kvm) ->
     if kvm['status']() == ServiceStatus.backoffice
       myOrder = false
       svcActs = u.svcActions kase, kvm,
-        [ global.idents("ActionType").orderService
-        , global.idents("ActionType").orderServiceAnalyst
+        [ window.global.idents("ActionType").orderService
+        , window.global.idents("ActionType").orderServiceAnalyst
         ]
       ordersUnassigned = !_.isEmpty(svcActs) &&
         _.every svcActs, (a) -> _.isNull a.assignedTo()
-      myOrder = _.some svcActs, (a) -> a.assignedTo() == global.user.id
+      myOrder = _.some svcActs, (a) -> a.assignedTo() == window.global.user.id
     statusOk || myOrder || ordersUnassigned
   kvm.buttons.cancel.disabled = ko.computed ->
     _.isEmpty kvm['clientCancelReason']?()
@@ -142,7 +142,7 @@ serviceButtons = (kvm) ->
     if confirm "Выполнить отказ от услуги?"
       # Redirect to #back if own actions closed
       svcActs = u.svcActions kvm._parent, kvm, null
-      if _.some(svcActs, (a) -> a.assignedTo() == global.user.id)
+      if _.some(svcActs, (a) -> a.assignedTo() == window.global.user.id)
         kvm.buttons.cancel.redirect = true
       kvm['status'] ServiceStatus.canceled
 
@@ -182,7 +182,7 @@ serviceButtons = (kvm) ->
       a._meta.q.save ->
         svcs = kvm._parent.services
         svcs.notifySubscribers svcs()
-        global.Usermeta?.updateAbandonedServices()
+        window.global.Usermeta?.updateAbandonedServices()
         kvm._parent.renderActions()
 
     if chkActions.length == 0
@@ -272,7 +272,7 @@ module.exports =
 
   vwfakeHook: (model, knockVM) ->
     knockVM['callDateVisible'] = ko.computed ->
-      not _.contains global.user.roles, global.idents("Role").vwfake
+      not _.contains window.global.user.roles, window.global.idents("Role").vwfake
 
   timeZoneHook: (model, kvm) ->
     cityTZ = new d.dicts.ModelDict
@@ -315,12 +315,12 @@ module.exports =
     kvm.buttons.needInfo.tooltip = u.reqFieldsTooltip kvm, niFlds
     kvm.buttons.needInfo.text =
       u.newModelDict("CaseStatus").getLab(
-              global.idents("CaseStatus").needInfo)
+              window.global.idents("CaseStatus").needInfo)
     kvm.buttons.needInfo.visible = ko.computed ->
-      statusOk = kvm['caseStatus']() != global.idents("CaseStatus").needInfo
+      statusOk = kvm['caseStatus']() != window.global.idents("CaseStatus").needInfo
       statusOk && _.isEmpty(kvm['servicesReference']())
     kvm.buttons.needInfo.click = ->
-      kvm['caseStatus'] global.idents("CaseStatus").needInfo
+      kvm['caseStatus'] window.global.idents("CaseStatus").needInfo
     kvm.buttons.needInfo.disabled = ko.computed ->
       u.someEmpty kvm, niFlds
 

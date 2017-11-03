@@ -1,28 +1,20 @@
 #/ Everything local to the customer resides here
 
-{$, _, Mousetrap, Finch} = require "carma/vendor"
+{$, _, Mousetrap} = require "carma/vendor"
 require "carma/routes"
 
-main        = require "carma/model/main"
-hooks       = require "carma/config"
-u           = require "carma/utils"
-sync        = require "carma/sync/crud"
-sendSms     = require "carma/lib/send-sms"
-liveMenu    = require "carma/liveMenu"
 {BugReport} = require "carma/lib/bug-report"
-{LstoreSub} = require "carma/lstorePubSub"
-CurrentUser = require "carma/lib/current-user"
-hacking     = require "carma/lib/hacking"
-{CTI}       = require "carma/lib/cti"
-{CTIPanel}  = require "carma/lib/cti-panel"
-
 bugReport = new BugReport
+
+# Some shit depends on it
+# (last useful stacktrace path is 'carma/screens/servicesSearch').
+window._ = _
 
 # collect errors in console to add them to the bug report
 # and then send to server
 do ->
   sendError = (err) ->
-    if not err.match(/whoopsie/)
+    unless err.match(/whoopsie/)
       $.ajax
         type: 'POST'
         url : '/whoopsie'
@@ -39,19 +31,8 @@ do ->
         jqXHR.statusText, s.data, jqXHR.responseText
     ].join('  ')
 
-u.build_global_fn 'switchHack', ['lib/hacking']
-u.build_global_fn 'sendSms',    ['lib/send-sms']
-u.build_global_fn 'showComplex', ['utils']
-u.build_global_fn 'hideComplex', ['utils']
-u.build_global_fn 'inlineUploadFile', ['lib/upload']
-u.build_global_fn 'inlineDetachFile', ['lib/upload']
-u.build_global_fn 'doPick', ['utils']
-u.build_global_fn 'kdoPick', ['utils']
-u.build_global_fn 'edoPick', ['utils']
-u.build_global_fn 'focusField', ['utils']
-u.build_global_fn 'ctiDial', ['utils']
-
-# this will be called on dom ready
+# This will be called on dom ready.
+# We do 'require' here inside because some of modules depends on previous logic.
 module.exports.init = ({dicts, user, users}) ->
   $.fn.datepicker.defaults.autoclose = true
   $.fn.datepicker.defaults.enableOnReadonly = false
@@ -81,22 +62,35 @@ module.exports.init = ({dicts, user, users}) ->
   dicts.roles =
     entries:
       for i in users
-        {value: i.login, label: i.roles }
+        {value: i.login, label: i.roles}
 
-  main.setup Finch,
-            dicts,
-            hooks,
-            user,
-            new pubSub
-  global.keys = {}
-  global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
+  main        = require "carma/model/main"
+  hooks       = require "carma/hooks/config"
+  {LstoreSub} = require "carma/lstorePubSub"
+
+  # also declares `window.global` crap
+  main.setup dicts, hooks, user, new LstoreSub
+
+  window.global.keys = {}
+  window.global.keys.arrows = {left: 37, up: 38, right: 39, down: 40}
+
+  # Doing it here because some of it depends on global messy crappy dungy shit.
+  u           = require "carma/utils"
+  sync        = require "carma/sync/crud"
+  sendSms     = require "carma/lib/send-sms"
+  liveMenu    = require "carma/liveMenu"
+  CurrentUser = require "carma/lib/current-user"
+  hacking     = require "carma/lib/hacking"
+  {CTI}       = require "carma/lib/cti"
+  {CTIPanel}  = require "carma/lib/cti-panel"
 
   hacking.reenableHacks()
+  do u.makeAFuckingMess
 
   # disable everytnig websocket-related for portal
   if not window.location.origin.match(/portal\.ruamc\.ru/)
     # Setup CTI panel
-    if _.contains user.roles, global.idents("Role").cti
+    if _.contains user.roles, window.global.idents("Role").cti
       if user.workPhoneSuffix.match(/^\d+$/)
         cti = new CTI user.workPhoneSuffix
         vips = u.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
@@ -119,7 +113,7 @@ module.exports.init = ({dicts, user, users}) ->
           # Fill caller phone and program when answering a call on
           # call screen
           answerCallCb: (number, vdnNumber) ->
-            if _.contains global.user.roles, global.idents("Role").call
+            if _.contains window.global.user.roles, window.global.idents("Role").call
               number = u.internalToDisplayed number
               if number.length > 5
                 vdnNumber = vdnNumber?.split(":")[0]
@@ -140,10 +134,10 @@ module.exports.init = ({dicts, user, users}) ->
               $.getJSON "/findContractByPhone/#{n}", (res) ->
                 callVM.name(res[0]?.name)
 
-        global.CTIPanel = new CTIPanel cti, $("#cti"), opts
+        window.global.CTIPanel = new CTIPanel cti, $("#cti"), opts
         Mousetrap.bind ["`", "ё"], () ->
           $("#cti").toggle()
-        Mousetrap.bind "ctrl+enter", () -> global.CTIPanel.answer()
+        Mousetrap.bind "ctrl+enter", () -> window.global.CTIPanel.answer()
       else
         console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 
@@ -161,7 +155,7 @@ module.exports.init = ({dicts, user, users}) ->
   # disable everytnig websocket-related for portal
   if not window.location.origin.match(/portal\.ruamc\.ru/)
     CurrentUser.initialize()
-    global.Usermeta.updateAbandonedServices()
+    window.global.Usermeta.updateAbandonedServices()
 
   # render menu only after everything else in menu bar is done
   liveMenu.setup(document.getElementById 'nav')

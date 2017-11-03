@@ -1,2 +1,6 @@
-define ["text!tpl/screens/serviceBreak.html"], (tpl) ->
-  template: tpl
+{tpl} = require "carma/globallibs"
+template = tpl require "carma-tpl/screens/serviceBreak.pug"
+
+module.exports = {
+  template
+}

@@ -60,6 +60,7 @@ module.exports =
       "jquery.notify"
       "jquery.datatables"
 
+      "js-base64"
       "blueimp-md5"
       "underscore"
       "mustache"

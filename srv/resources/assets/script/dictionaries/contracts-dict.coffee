@@ -1,13 +1,12 @@
 {$, _} = require "carma/vendor"
 m = require "carma/dictionaries/meta-dict"
-require "carma/dictionaries"
 
 debounce = (wait, fn) -> _.debounce fn, wait
 
 class ContractsDict extends m.dict
   constructor: (@opts)->
     @kvm = @opts.kvm
-    @Dict = require "dictionaries"
+    @Dict = require "carma/dictionaries"
     @carMakeDict = new @Dict.dicts.ModelDict
       dict: 'CarMake'
     @carModelDict = new @Dict.dicts.ModelDict

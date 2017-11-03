@@ -1,26 +1,19 @@
-define [ "search/screen"
-       , "text!tpl/screens/search.html"
-       , "json!/cfg/model/Case?view=search"
-       , "json!/cfg/model/Service?view=search"
-       , "json!/cfg/model/Towage?view=search"
-       , "json!/cfg/model/Contract?view=searchCase"
-       , "json!/cfg/model/Case"
-       , "json!/cfg/model/Service"
-       , "json!/cfg/model/Towage"
-       , "json!/cfg/model/Contract"
+{tpl}    = require "carma/globallibs"
+{data}   = require "carma/data"
+Screen   = require "carma/search/screen"
+template = tpl require "carma-tpl/screens/search.pug"
 
-       ], ( Screen
-          , tpl
-          , CaseSearch
-          , ServiceSearch
-          , TowageSearch
-          , ContractSearch
-          , Case
-          , Service
-          , Towage
-          , Contract) ->
+CaseSearch     = data.cfg.m.v.search.Case
+ServiceSearch  = data.cfg.m.v.search.Service
+TowageSearch   = data.cfg.m.v.search.Towage
+ContractSearch = data.cfg.m.v.searchCase.Contract
+Case           = data.cfg.m.Case
+Service        = data.cfg.m.Service
+Towage         = data.cfg.m.Towage
+Contract       = data.cfg.m.Contract
 
-  template: tpl
+module.exports = {
+  template
   constructor: -> Screen.constructor
     apiUrl: "/search/case"
     searchModels: [CaseSearch, ServiceSearch, TowageSearch, ContractSearch]
@@ -78,3 +71,4 @@ define [ "search/screen"
       Contract: [
         "cardNumber"
         ]
+}

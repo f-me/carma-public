@@ -1,12 +1,13 @@
-define ["lib/current-user"
-        "model/utils"
-        "utils"
-        "base64"
-  ], (Usr, MU, U, B64) ->
+{$, _, ko, Base64} = require "carma/vendor"
 
+Usr = require "carma/lib/current-user"
+MU  = require "carma/model/utils"
+U   = require "carma/utils"
+
+module.exports =
   initCtx: (key, model, customInit) ->
     $("#settings-label").on "click", ->
-      if $("#kpi-list-inner").hasClass("in")
+      if $("#kpi,rist-inner").hasClass("in")
         $("#kpi-list-inner").removeClass("in").slideUp()
       else
         $("#kpi-list-inner").addClass("in").slideDown()
@@ -55,7 +56,7 @@ define ["lib/current-user"
           for f in flds when f.show()
             r += "#{s[f.name].text()};"
           r += "\n"
-        "data:application/octet-stream; base64, #{B64.encode('\uFEFF' + r)}"
+        "data:application/octet-stream; base64, #{Base64.encode('\uFEFF' + r)}"
 
       deferEvaluation: true
 

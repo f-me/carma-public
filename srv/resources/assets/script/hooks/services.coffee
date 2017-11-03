@@ -41,7 +41,7 @@ module.exports =
                 btn.newName(p.name)
 
         n = pSearch.subName f.name, model.name, kvm.id()
-        global.pubSub.sub n, (val) ->
+        window.global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
           kvm["#{f.name}Id"]?(parseInt val.id)
           addr = val.addrDeFacto

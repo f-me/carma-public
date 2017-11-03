@@ -1,9 +1,10 @@
 {$, _, Finch} = require "carma/vendor"
 
-main = require "carma/model/main"
-mu   = require "carma/model/utils"
-d    = require "carma/dictionaries"
-sync = require "carma/sync/crud"
+main        = require "carma/model/main"
+mu          = require "carma/model/utils"
+d           = require "carma/dictionaries"
+{CrudQueue} = require "carma/sync/crud"
+map         = require "carma/map"
 
 # jquery -> html(as string) conversion, with selected element
 $.fn.outerHTML = () -> $("<div>").append(@clone()).html()
@@ -27,7 +28,7 @@ $.putJSON = (url, obj) ->
 
 # Find VM of reference in a case by its view name.
 findCaseOrReferenceVM = (view) ->
-  kase = global.viewsWare["case-form"].knockVM
+  kase = window.global.viewsWare["case-form"].knockVM
   if (view is "case-form")
     kase
   else
@@ -37,15 +38,15 @@ findCaseOrReferenceVM = (view) ->
 # field groups. If the view name is "case-form", then return knockVM
 # for case.
 findVM = (view) ->
-  if global.viewsWare["case-form"]
-    vw = global.viewsWare[view]
+  if window.global.viewsWare["case-form"]
+    vw = window.global.viewsWare[view]
     if vw and vw.parentView?
       # Find VM of a group rendered in a view.
       findCaseOrReferenceVM(vw.parentView)
     else
       findCaseOrReferenceVM(view)
   else
-    global.viewsWare[view].knockVM
+    window.global.viewsWare[view].knockVM
 
 # make this global, still need to use this module as dependency
 # to make sure that this functions will be loaded
@@ -69,7 +70,7 @@ window.inlineSpinner = (el) ->
   )
 
 window.getDictionary = (d) ->
-  dict = global.dictionaries[d]
+  dict = window.global.dictionaries[d]
   return dict if dict
   return eval(d)
 
@@ -166,9 +167,9 @@ formatSec = (s) ->
 
 # Build a KnockVM for a model instance using standard queue
 buildInstance = (modelName, id) ->
-  main.buildKVM global.model(modelName),
-    fetched: {id: id}
-    queue: sync.CrudQueue
+  main.buildKVM window.global.model(modelName),
+    fetched: {id}
+    queue: CrudQueue
 
 newModelDict = (name, stringify, meta) ->
   new d.dicts.ModelDict
@@ -178,18 +179,34 @@ newModelDict = (name, stringify, meta) ->
 
 # Call a number if the CTI panel is available
 ctiDial = (number) ->
-  global.CTIPanel && $("#cti").show() && global.CTIPanel.instaDial(number)
+  window.global.CTIPanel && $("#cti").show() && window.global.CTIPanel.instaDial(number)
 
-module.exports =
+module.exports = {
 
-  # build global function from local to module one
-  # function should belong to first dependency
-  build_global_fn: (name, deps) ->
-    window[name] = ->
-      args = arguments
-      require deps, (dep) -> dep[name].apply(this, args)
+  makeAFuckingMess: ->
+    # Replacement for old `build_global_fn` from 'utils'
+    setGlobalShit = (name, module) -> window[name] = module[name]
 
-  ctiDial: ctiDial
+    # Compatibility with old horrible shit.
+    # From 'screens/call':
+    setGlobalShit "reloadScreen",     require "carma/utils"
+    # From 'screens/case':
+    setGlobalShit "pickPartnerBlip",  require "carma/map"
+    setGlobalShit "addService",       require "carma/screens/case"
+    # From 'local':
+    setGlobalShit "inlineUploadFile", require "carma/lib/upload"
+    setGlobalShit "inlineDetachFile", require "carma/lib/upload"
+    setGlobalShit "switchHack",       require "carma/lib/hacking"
+    setGlobalShit "sendSms",          require "carma/lib/send-sms"
+    setGlobalShit "showComplex",      require "carma/utils"
+    setGlobalShit "hideComplex",      require "carma/utils"
+    setGlobalShit "doPick",           require "carma/utils"
+    setGlobalShit "kdoPick",          require "carma/utils"
+    setGlobalShit "edoPick",          require "carma/utils"
+    setGlobalShit "focusField",       require "carma/utils"
+    setGlobalShit "ctiDial",          require "carma/utils"
+
+  ctiDial
 
   mkDataTable: (t, opts) ->
     defaults =
@@ -235,7 +252,7 @@ module.exports =
     e.scrollIntoView()
     e.focus()
 
-  findVM: findVM
+  findVM
 
   # Strip whitespace from string
   stripWs: (s) -> do (s) -> s.replace(/\s+/g, '')
@@ -279,15 +296,14 @@ module.exports =
   # Hide all views on center pane and show view for first reference
   # stored in <fieldName> of model loaded into <parentView> there
   showComplex: (parentView, fieldName) ->
-    depViewName = global.viewsWare[parentView].depViews[fieldName][0]
+    depViewName = window.global.viewsWare[parentView].depViews[fieldName][0]
     view = $el(depViewName)
 
     return if view.is(':visible')
     $(".complex-field").hide()
 
     view.show ->
-      require ["map"], (map) ->
-        map.initOSM(e, parentView) for e in view.find(".osMap")
+      map.initOSM(e, parentView) for e in view.find(".osMap")
 
   hideComplex: ->
     $(".complex-field").hide()
@@ -298,23 +314,22 @@ module.exports =
   # In templates, bind click to 'doPick({{meta.picker}}, ...,
   # event.target)' to call the appropriate picker.
   doPick: (pickType, args, elt) ->
-    require ["map"], (map) ->
-      pickers =
-        callPlease: (fieldName, el) ->
-          viewName = mu.elementView($(el)).id
-          kvm = findVM viewName
-          return unless kvm
-          number = kvm[fieldName]?()
-          ctiDial number
-        # Set a field to a new randomly generated password
-        passwordPicker   : (fieldName, el) ->
-          viewName = mu.elementView($(el)).id
-          kvm = global.viewsWare[viewName].knockVM
-          kvm[fieldName] genPassword()
-        geoPicker        : map.geoPicker
-        reverseGeoPicker : map.reverseGeoPicker
-        mapPicker        : map.mapPicker
-      pickers[pickType](args, elt)
+    pickers =
+      callPlease: (fieldName, el) ->
+        viewName = mu.elementView($(el)).id
+        kvm = findVM viewName
+        return unless kvm
+        number = kvm[fieldName]?()
+        ctiDial number
+      # Set a field to a new randomly generated password
+      passwordPicker   : (fieldName, el) ->
+        viewName = mu.elementView($(el)).id
+        kvm = window.global.viewsWare[viewName].knockVM
+        kvm[fieldName] genPassword()
+      geoPicker        : map.geoPicker
+      reverseGeoPicker : map.reverseGeoPicker
+      mapPicker        : map.mapPicker
+    pickers[pickType](args, elt)
 
   kdoPick: (pickType, args, k, e) ->
     doPick pickType, args, e.srcElement if e.ctrlKey and e.keyCode == k
@@ -344,7 +359,7 @@ module.exports =
               (_.isEmpty(types) || _.contains types, a.type())
 
   # FIXME: This could be a callback for main.js:saveInstance
-  successfulSave: successfulSave
+  successfulSave
 
   checkAccordion: (e) ->
     acc = e.parents('.accordion-body') #.hasClass('in')
@@ -396,7 +411,7 @@ module.exports =
   # and correct module dependencies
   focusRef: mu.focusReference
 
-  bindRemove: bindRemove
+  bindRemove
 
   toUnix: (d) -> Math.round(d.getTime() / 1000)
 
@@ -405,12 +420,12 @@ module.exports =
 
   repeat: (times, v) -> [1..times].map -> v
 
-  modelsFromUrl: modelsFromUrl
+  modelsFromUrl
 
   reloadScreen: -> window.global.activeScreen.reload()
 
-  checkMatch: checkMatch
-  kvmCheckMatch: kvmCheckMatch
+  checkMatch
+  kvmCheckMatch
 
   parseUrlParams: (uri) ->
     fromUrlParams url.substring(url.indexOf('?') + 1)
@@ -438,9 +453,9 @@ module.exports =
 
   inject: (dest, src) -> dest[k] = v for k, v of src when not dest[k]
 
-  buildInstance: buildInstance
+  buildInstance
 
-  newModelDict: newModelDict
+  newModelDict
 
   newComputedDict: (name, meta) ->
     new d.dicts.ComputedDict
@@ -464,8 +479,8 @@ module.exports =
 
   createNewCall: (callData) ->
     $.notify "Создаём новый звонок…", {className: 'info'}
-    cvm = main.buildKVM global.model('Call'),
-      {fetched: callData, queue: sync.CrudQueue}
+    cvm = main.buildKVM window.global.model('Call'),
+      {fetched: callData, queue: CrudQueue}
     # Force saving
     cvm._meta.q.save null, true
     cvm.id.subscribe (id) ->
@@ -487,3 +502,4 @@ module.exports =
     ,'#9edae5' # 19
     ,'#ff7f0e' # 2
     ]
+}

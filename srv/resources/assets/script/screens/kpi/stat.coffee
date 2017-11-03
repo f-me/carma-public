@@ -1,14 +1,19 @@
-define ["text!tpl/screens/kpi/stat.html"
-        "json!/cfg/model/StatKPI?view=kpi"
-        "model/main"
-        "model/fields"
-        "sync/datamap"
-        "screens/kpi/common"
-        "utils"
-  ], (Tpl, Model, Main, Fs, Map, Common, Utils) ->
+{$, _, ko} = require "carma/vendor"
+{tpl} = require "carma/globallibs"
 
-  stuffKey = "kpi-stat"
-  mp = new Map.Mapper(Model)
+Model = require("carma/data").data.cfg.m.v.kpi.StatKPI
+
+Main   = require "carma/model/main"
+Fs     = require "carma/model/fields"
+Map    = require "carma/sync/datamap"
+Common = require "carma/screens/kpi/common"
+Utils  = require "carma/utils"
+
+Tpl = tpl require "carma-tpl/screens/kpi/stat.pug"
+
+mp = new Map.Mapper(Model)
+
+module.exports =
   template: Tpl
   constructor: (view, opts) ->
     $("#stat-screen").addClass("active")

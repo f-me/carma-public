@@ -21,7 +21,7 @@ module.exports =
         smsTemplates = res.filter((x) => x.isActive)
 
   sendSms: ->
-    kase = global.viewsWare['case-form']?.knockVM
+    kase = window.global.viewsWare['case-form']?.knockVM
     renderForm
       isVisible: true
       onHide: onHide

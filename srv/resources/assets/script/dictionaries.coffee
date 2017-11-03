@@ -13,8 +13,8 @@ dicts = _.reduce [
   require "carma/dictionaries/consultant-dict"
 ], ((obj, {name, dict}) -> obj[name] = dict if dict?; obj), {}
 
-module.exports =
-  dicts: dicts
+module.exports = {
+  dicts
   dictFromMeta: (kvm, meta) ->
     type = meta.dictionaryType
     opts =
@@ -23,3 +23,4 @@ module.exports =
       parent: meta.dictionaryParent
       meta  : meta
     new dicts[type || 'LocalDict'](opts)
+}

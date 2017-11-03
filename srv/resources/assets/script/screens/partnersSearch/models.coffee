@@ -1,4 +1,4 @@
-define [], ->
+module.exports =
   PartnerSearch:
     name: "partnerSearch"
     title: "Экран поиска партнеров"

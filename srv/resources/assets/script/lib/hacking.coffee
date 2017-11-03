@@ -1,4 +1,7 @@
 {$, _} = require "carma/vendor"
+{data} = require "carma/data"
+
+user = data.model.user
 
 # Client-side hacker extensions and hidden features
 #
@@ -32,7 +35,7 @@ hackMap =
     addLocalCSSRule "#left", "left: 22%; width: 30%;"
     addLocalCSSRule "#center", "left: 54%; width: 44%;"
 
-usermetaUrl = -> "/_/Usermeta/#{global.user.id}"
+usermetaUrl = -> "/_/Usermeta/#{user.id}"
 
 addHack = (h) ->
   $.getJSON usermetaUrl(), (res) ->
@@ -41,8 +44,8 @@ addHack = (h) ->
     if not _.contains hacks, h
       hacks.push h
       stuff.hacks = hacks
-      global.user.stuff.hacks = hacks
-      $.putJSON(usermetaUrl(), {stuff: stuff}).
+      user.stuff.hacks = hacks # FIXME WHAT THE FUCK? it was just data!
+      $.putJSON(usermetaUrl(), {stuff}).
         done(-> hackMap[h]?())
 
 dropHack = (h) ->
@@ -50,8 +53,8 @@ dropHack = (h) ->
     stuff = res.stuff
     hacks = _.without (stuff?.hacks || []), h
     stuff.hacks = hacks
-    global.user.stuff.hacks = hacks
-    $.putJSON(usermetaUrl(), {stuff: stuff}).
+    user.stuff.hacks = hacks # FIXME WHAT THE FUCK? it was just data!
+    $.putJSON(usermetaUrl(), {stuff}).
       done(-> location.reload())
 
 
@@ -59,7 +62,7 @@ module.exports =
 
   # Activate hacks previously enabled by the user
   reenableHacks: ->
-    for h in global.user.stuff?.hacks || []
+    for h in user.stuff?.hacks || []
       console.log "Re-enabling hack #{h}"
       hackMap[h]?()
 
@@ -67,7 +70,7 @@ module.exports =
     hack = $(link).data('hack')
 
     # Was it previously enabled?
-    if not _.contains global.user.stuff.hacks, hack
+    if not _.contains user.stuff.hacks, hack
       console.log "Switching hack #{hack} ON"
       addHack hack
     else

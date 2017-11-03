@@ -5,7 +5,7 @@
 # To setup view back again, call
 # screen.views[viewName]($el(viewName), args);
 forgetView = (viewName) ->
-  vW = global.viewsWare[viewName]
+  vW = window.global.viewsWare[viewName]
   # View may have not setup any knockVM (static views like search)
   # FIXME: do we have to release knockvm at all?
   # if not _.isUndefined(vW.knockVM) then kb.vmRelease(vW.knockVM)
@@ -14,15 +14,15 @@ forgetView = (viewName) ->
 
 # Clean up all views on screen and everything.
 forgetScreen = ->
-  for name, cs of global.activeScreen?.views when cs.destructor?
+  for name, cs of window.global.activeScreen?.views when cs.destructor?
     cs.destructor(name)
-  forgetView(viewName) for viewName of global.viewsWare
-  global.topElement.off()
-  window.ReactDOM && window.ReactDOM.unmountComponentAtNode(global.topElement[0])
-  ko.cleanNode global.topElement[0]
-  global.topElement.empty()
-  global.viewsWare = {}
-  global.activeScreen = null
+  forgetView(viewName) for viewName of window.global.viewsWare
+  window.global.topElement.off()
+  window.ReactDOM && window.ReactDOM.unmountComponentAtNode(window.global.topElement[0])
+  ko.cleanNode window.global.topElement[0]
+  window.global.topElement.empty()
+  window.global.viewsWare = {}
+  window.global.activeScreen = null
 
 
 module.exports =
@@ -34,7 +34,7 @@ module.exports =
     forgetScreen()
     screen = screenObj.screen
     screen.reload = => @renderScreen(screenObj, args)
-    global.activeScreen = screen
+    window.global.activeScreen = screen
 
     # Highlight the new item in navbar
     $("li.active").removeClass("active")
@@ -52,7 +52,7 @@ module.exports =
     wrappers = screenObj.wrappers?(partials) or {}
 
     if screen.component
-      ReactDOM.render screen.component, global.topElement[0]
+      ReactDOM.render screen.component, window.global.topElement[0]
     else
       tpl   = screenObj?.template
       tpl ||= $el(screen.template).html()
@@ -61,7 +61,7 @@ module.exports =
         throw "Template for screen #{screen.name} is not found"
 
       tpl1 = Mustache.render tpl, wrappers, partials
-      global.topElement.html(tpl1)
+      window.global.topElement.html(tpl1)
       # Call setup functions for all views, assuming they will set
       # their viewsWare
       for viewName, cs of screen.views when cs.constructor?

@@ -4,10 +4,12 @@ require "jquery.notify"
 require "jquery.datatables"
 
 md5      = require "blueimp-md5"
+{Base64} = require "js-base64"
+
 _        = require "underscore"
 Mustache = require "mustache"
 ko       = require "knockout"
-Finch    = require "finchjs/coffee/finch"
+{Finch}  = require "finchjs/coffee/finch"
 
 moment = require "moment"
 require "moment/locale/ru"
@@ -45,6 +47,7 @@ module.exports =
   , ko
   , d3
   , md5
+  , Base64
   , moment
   , Finch
   , Mustache

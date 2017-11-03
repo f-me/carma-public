@@ -1,4 +1,4 @@
-{$, _, ko} = require "carma/vendor"
+{$, _, ko, Mustache} = require "carma/vendor"
 
 ko.bindingHandlers.setdata =
   init: (element, valueAccessor, allBindingsAccessor, viewModel) ->

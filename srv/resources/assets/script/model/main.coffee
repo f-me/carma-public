@@ -28,65 +28,65 @@ Idents   = require "carma/lib/idents"
 {Config} = require "carma/lib/config"
 Fs       = require "carma/model/fields"
 
-mainSetup = (Finch
-           , localDictionaries
-           , hooks
-           , user
-           , pubSub) ->
+mainSetup = ( localDictionaries
+            , hooks
+            , user
+            , pubSub
+            ) ->
 
   dictCache = dict.buildCache(localDictionaries)
   configmgr = new Config
 
-  window.global =
-      topElement: $el("layout")
-      router: Finch
-      dictionaries: localDictionaries
-      # Maps labels to values for every dictionary
-      dictLabelCache: dictCache.labelCache
-      # Maps values to labels
-      dictValueCache: dictCache.valueCache
-      hooks: hooks
-      user: user
-      # Provided a model name, return available idents for that
-      # model
-      idents: Idents.idents
-      # Return client config option value
-      config: (cn) -> configmgr.getOption cn
-      model: do ->
-        modelCache = {}
-        (name, view) ->
-          url = "/cfg/model/#{name}"
-          url = url + "?view=#{view}" if view
-          if not modelCache[url]
-            $.ajax url,
-              async: false
-              dataType: 'json'
-              success: (m) -> modelCache[url] = m
-          modelCache[url]
-      activeScreen: null
-      pubSub: pubSub
-      # viewsWare is for bookkeeping of views in current screen.
-      #
-      # Hash keys are DOM tree element IDs associated with the
-      # model (view names). Values are hashes which contain the
-      # following keys:
-      #
-      # - model (model definition);
-      #
-      # - modelName;
-      #
-      # - knockVM (Knockout ViewModel bound to view);
-      #
-      # - depViews (hash with views for every reference/group field).
-      #
-      # - parentView (name of view for which this view is listed as
-      #   dependant (only for group fields; group fields have none of
-      #   other values in their viewsWare entry))
-      #
-      # When screen is loaded, viewsWare should generally contain
-      # only keys which correspond to that screen views. View
-      # renderers maintain their viewsWare.
-      viewsWare: {}
+  window.global = {
+    topElement: $el("layout")
+    dictionaries: localDictionaries
+    # Maps labels to values for every dictionary
+    dictLabelCache: dictCache.labelCache
+    # Maps values to labels
+    dictValueCache: dictCache.valueCache
+    hooks
+    user
+    # Provided a model name, return available idents for that
+    # model
+    idents: Idents.idents
+    # Return client config option value
+    config: (cn) -> configmgr.getOption cn
+    model: do ->
+      modelCache = {}
+      (name, view) ->
+        url = "/cfg/model/#{name}"
+        url = url + "?view=#{view}" if view
+        if not modelCache[url]
+          $.ajax url,
+            async: false
+            dataType: 'json'
+            success: (m) -> modelCache[url] = m
+        modelCache[url]
+    activeScreen: null
+    pubSub
+    # viewsWare is for bookkeeping of views in current screen.
+    #
+    # Hash keys are DOM tree element IDs associated with the
+    # model (view names). Values are hashes which contain the
+    # following keys:
+    #
+    # - model (model definition);
+    #
+    # - modelName;
+    #
+    # - knockVM (Knockout ViewModel bound to view);
+    #
+    # - depViews (hash with views for every reference/group field).
+    #
+    # - parentView (name of view for which this view is listed as
+    #   dependant (only for group fields; group fields have none of
+    #   other values in their viewsWare entry))
+    #
+    # When screen is loaded, viewsWare should generally contain
+    # only keys which correspond to that screen views. View
+    # renderers maintain their viewsWare.
+    viewsWare: {}
+  }
 
   Finch.listen()
 
@@ -207,7 +207,7 @@ buildKVM = (model, options = {}) ->
   # This is required to initialize timeZone-related observables in
   # case's kvm. We need them to be ready before services initialization.
   hooks = queueOptions?.hooks or ['*', model.name]
-  applyHooks global.hooks.preinit, hooks, model, kvm
+  applyHooks window.global.hooks.preinit, hooks, model, kvm
 
   # Setup reference fields: they will be stored in <name>Reference as array
   # of kvm models
@@ -228,7 +228,7 @@ buildKVM = (model, options = {}) ->
               # disposed right after creation, so current computed
               # won't subscribe to any field in built kvm #1860
               k = ko.computed ->
-                buildKVM global.model(m[0], queueOptions?.modelArg),
+                buildKVM window.global.model(m[0], queueOptions?.modelArg),
                   fetched: {id: m[1]}
                   queue:   queue
                   parent:  kvm
@@ -269,7 +269,7 @@ buildKVM = (model, options = {}) ->
             ids = kvm[f.name]()
             return [] unless ids
             for i in ids
-              buildKVM global.model(f.meta.model, queueOptions?.modelArg),
+              buildKVM window.global.model(f.meta.model, queueOptions?.modelArg),
                 fetched: {id: i}
                 queue:   queue
                 parent:  kvm
@@ -360,7 +360,7 @@ buildKVM = (model, options = {}) ->
       kvm[f.name](obj[f.name])
 
   hooks = queueOptions?.hooks or ['*', model.name]
-  applyHooks global.hooks.observable, hooks, model, kvm
+  applyHooks window.global.hooks.observable, hooks, model, kvm
   return kvm
 
 # Cleanup stuff that can prevent remove by gc
@@ -429,20 +429,20 @@ cleanupKVM = (kvm) =>
 #   recursively rendered with the same value of groupsForest (so
 #   parent model and its children share the same groupsForest).
 #
-# After model is set, every hook in global.modelHooks["*"] and
-# global.modelHooks[modelName] is called with model view name as
+# After model is set, every hook in window.global.modelHooks["*"] and
+# window.global.modelHooks[modelName] is called with model view name as
 # argument.
 
 # model parameter is used here when we need some customized model
 # maybe with filtered some fields or something
 modelSetup = (modelName, model) -> (elName, args, options) ->
-  model = global.model(modelName, options.modelArg) if not model
+  model = window.global.model(modelName, options.modelArg) if not model
   [kvm, q] = buildModel(model, args, options, elName)
 
   depViews = setupView(elName, kvm,  options)
 
   # Bookkeeping
-  global.viewsWare[elName] =
+  window.global.viewsWare[elName] =
     model           : model
     modelName       : model.name
     knockVM         : kvm
@@ -456,7 +456,7 @@ modelSetup = (modelName, model) -> (elName, args, options) ->
     Finch.navigate "#{screenName}/#{kvm.id()}", true
 
   hooks = options.hooks or ['*', model.name]
-  applyHooks global.hooks.model, hooks, elName, kvm
+  applyHooks window.global.hooks.model, hooks, elName, kvm
   kvm
 
 buildModel = (model, args, options, elName) ->
@@ -471,7 +471,7 @@ buildModel = (model, args, options, elName) ->
   [kvm, kvm._meta.q]
 
 buildNewModel = (modelName, args, options, cb) ->
-  model = global.model(modelName, options.modelArg)
+  model = window.global.model(modelName, options.modelArg)
   [knockVM, q] = buildModel(model, args, options)
   if _.isFunction cb
     q.save -> cb(model, knockVM)
@@ -491,7 +491,7 @@ rebindko = (kvm, el) =>
 
 bindDepViews = (knockVM, parentView, depViews) ->
   for k, v of depViews
-    global.viewsWare[v] =
+    window.global.viewsWare[v] =
       parentView: parentView
     if _.isArray(v)
       rebindko(knockVM, el(s)) for s in v
@@ -530,8 +530,8 @@ renderRefs = (knockVM, f, tpls, options) ->
       permEl: refBook.refView + "-perms"
       groupsForest: options.groupsForest
       slotsee: [refBook.refView + "-link"]
-    global.viewsWare[refBook.refView] = {}
-    global.viewsWare[refBook.refView].depViews = v
+    window.global.viewsWare[refBook.refView] = {}
+    window.global.viewsWare[refBook.refView].depViews = v
 
 addRef = (knockVM, field, ref, cb) ->
   field = "#{field}Reference" unless /Reference$/.test(field)

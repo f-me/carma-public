@@ -32,7 +32,7 @@ module.exports =
   initialize: =>
     user = window.global.user
 
-    Role = global.idents 'Role'
+    Role = window.global.idents 'Role'
     homepage = ""
     homepage = "/#partner"    if _.contains user.roles, Role.parguy
     homepage = "/#back"       if _.contains user.roles, Role.back
@@ -41,7 +41,7 @@ module.exports =
     homepage = "/#rkc"        if _.contains user.roles, Role.head
 
 
-    usr = Main.buildKVM global.model('Usermeta'),
+    usr = Main.buildKVM window.global.model('Usermeta'),
       queue: Crud.CrudQueue
       fetched: {id: user.id}
 
@@ -49,7 +49,7 @@ module.exports =
     # due to dependencies
     window.global.Usermeta = usr
 
-    Messenger.subscribe "#{global.model('Usermeta').name}:#{usr.id()}",
+    Messenger.subscribe "#{window.global.model('Usermeta').name}:#{usr.id()}",
       usr._meta.q.saveSuccessCb(_.identity)
 
     usr.currentState?.subscribe (v) =>
@@ -97,7 +97,7 @@ module.exports =
 
     # get abandoned services and render them at #current-user
     usr.updateAbandonedServices = ->
-      Role = global.idents("Role")
+      Role = window.global.idents("Role")
       forbiddenRoles =
         [Role.reportManager ,Role.supervisor
         ,Role.head          ,Role.bo_qa

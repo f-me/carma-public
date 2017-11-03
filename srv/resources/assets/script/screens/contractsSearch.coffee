@@ -1,10 +1,15 @@
-define [ "search/screen"
-       , "json!/cfg/model/Contract"
-       , "json!/cfg/model/Contract?view=search"
-       , "text!tpl/screens/search.html"
-       ], (Screen, Contract, Search, tpl) ->
+{$, _} = require "carma/vendor"
+{tpl} = require "carma/globallibs"
 
-  template: tpl
+Screen   = require "carma/search/screen"
+{data}   = require "carma/data"
+template = tpl require "carma-tpl/screens/search.pug"
+
+Contract = data.cfg.m.Contract
+Search   = data.cfg.m.v.search.Contract
+
+module.exports = {
+  template
   constructor: -> Screen.constructor
     searchModels: [Search]
     resultModels: [Contract]
@@ -42,3 +47,4 @@ define [ "search/screen"
     defaultSort: { fields: [{ model: "Contract", name: "id" }], order: "desc" }
     allowedResultFields:
       Contract: _.without(_.pluck(Contract.fields, 'name'), 'id', 'dixi')
+}

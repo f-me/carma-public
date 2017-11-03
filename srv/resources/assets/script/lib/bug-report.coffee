@@ -25,7 +25,7 @@ module.exports.BugReport = class BugReport
     url = location.href
     models = []
 
-    _.each global?.viewsWare, (view) ->
+    _.each window.global?.viewsWare, (view) ->
       if q = view.knockVM?._meta?.q
         ftypes = q.ftypes
         model = q.toJSON()
@@ -39,7 +39,7 @@ module.exports.BugReport = class BugReport
       url: url,
       console: @stack,
       models: models
-      user: global.user.login
+      user: window.global.user.login
     contentB64 = @encodeBase64 JSON.stringify content
     body += "#{@br}#{contentB64}#{@vertBar}#{md5 contentB64}"
 
