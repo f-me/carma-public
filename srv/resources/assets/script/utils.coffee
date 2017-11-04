@@ -205,6 +205,8 @@ module.exports = {
     setGlobalShit "edoPick",          require "carma/utils"
     setGlobalShit "focusField",       require "carma/utils"
     setGlobalShit "ctiDial",          require "carma/utils"
+    # etc.
+    setGlobalShit "urlFor",           require "carma/globallibs" # used in fields/ro.pug
 
   ctiDial
 

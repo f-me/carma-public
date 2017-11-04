@@ -1,4 +1,5 @@
 {$, _} = require "carma/vendor"
+{tpl} = require "carma/globallibs"
 
 utils       = require "carma/utils"
 mu          = require "carma/model/utils"
