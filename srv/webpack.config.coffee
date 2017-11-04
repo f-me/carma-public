@@ -138,9 +138,16 @@ module.exports =
   module:
     rules: [
       { test: require.resolve(BS_WYSIHTML5)
-      , use:  { loader: "imports-loader"
-              , options: { define: ">false", "this": ">window" }
-              }
+      , use:  [
+                {
+                  loader: "imports-loader"
+                  options: { define: ">false", "this": ">window" }
+                }
+                {
+                  loader: "exports-loader"
+                  options: { "wysihtml5": true }
+                }
+              ]
       }
 
       { test: require.resolve(BS_WYSIHTML5_LOC_RU)
