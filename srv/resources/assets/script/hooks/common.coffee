@@ -195,10 +195,13 @@ module.exports =
         # remove this after refactoring, we shouldn't count on template for
         # getting value
         k["#{n}Remove"] = (el) ->
-          return false
+          return false # see: 22aecbf1 (Peter Goncharov 2014-10-10)
+          # code below are commented because previous line made it unreachable
+          ###
           return if k["#{n}Disabled"]()
           v = k[n]()
           k[n] _.without v, el.value
+          ###
 
         k[n].many = k["#{n}Many"]
         k[n].locals = k["#{n}Locals"]
