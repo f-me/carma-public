@@ -114,20 +114,37 @@ CaRMa - see below for how to build the whole bundle.
 
 ### Frontend (JS)
 
-To build the client from scratch:
+<strong>Warning!</strong> <em>If you're building front-end
+after migrating to webpack, run `npm run clean-old-stuff` first.</em>
 
-    cd srv
-    npm install -g grunt && npm install
-    cd resources/assets/react-components && npm install && cd -
-    mkdir -p resources/static/{js/gen,css}
-    grunt build
+To build front-end from scratch (development build):
 
-To rebuild the client:
+    ```bash
+    $ cd srv
+    $ npm install
+    $ npm run build
+    ```
 
-    grunt build
+If you need to just rebuild it again (after some changes for instance) run:
 
-Run `grunt watch` in background to rebuild client code automatically
-when sources change.
+    ```bash
+    $ npm run build
+    ```
+
+To build bundle for production instead of for development run:
+
+    ```bash
+    $ cd srv
+    $ npm install
+    $ npm run prod-build
+    ```
+
+You also could run a watcher in background to rebuild client code automatically
+when sources change by using this command (development mode):
+
+    ```bash
+    $ npm run watch
+    ```
 
 ### Docker bundle
 

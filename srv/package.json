@@ -7,8 +7,9 @@
   "scripts": {
     "clean-old-stuff": "rm -rf bower_components resources/static/js/gen/*.{js,js.map} resources/static/js/gen/{components,dictionaries,globallibs,hooks,kpi,lib,model,render,screens,search,sync}",
     "clean": "rm -rf resources/static/js/gen/carma",
-    "build": "webpack",
-    "prod-build": "env NODE_ENV=production webpack",
+    "build": "webpack --progress --colors",
+    "watch": "webpack --progress --colors --watch",
+    "prod-build": "env NODE_ENV=production webpack --progress --colors",
     "clean-build": "npm run clean && npm run build",
     "prod-clean-build": "npm run clean && npm run prod-build"
   },
