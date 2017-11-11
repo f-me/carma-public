@@ -137,56 +137,72 @@ module.exports =
 
   module:
     rules: [
-      { test: require.resolve(BS_WYSIHTML5)
-      , use:  [
+      {
+        test: require.resolve(BS_WYSIHTML5)
+        use:  [
                 {
                   loader: "imports-loader"
                   options: { define: ">false", "this": ">window" }
                 }
                 {
                   loader: "exports-loader"
-                  options: { "wysihtml5": true }
+                  options: { wysihtml5: true }
                 }
               ]
       }
 
-      { test: require.resolve(BS_WYSIHTML5_LOC_RU)
-      , use:  { loader: "imports-loader"
-              , options: { define: ">false", "this": ">window" }
+      {
+        test: require.resolve(BS_WYSIHTML5_LOC_RU)
+        use:  {
+                loader: "imports-loader"
+                options: { define: ">false", "this": ">window" }
               }
       }
 
-      { test: require.resolve("jasny-bootstrap/dist/js/jasny-bootstrap")
-      , use:  { loader: "imports-loader"
-              , options: { define: ">false", "this": ">window" }
+      {
+        test: require.resolve("jasny-bootstrap/dist/js/jasny-bootstrap")
+        use:  {
+                loader: "imports-loader"
+                options: { define: ">false", "this": ">window" }
               }
       }
 
-      { test: require.resolve("openlayers-2-build")
-      , use:  { loader: "exports-loader", options: "OpenLayers": true }
+      {
+        test: require.resolve("openlayers-2-build")
+        use:  { loader: "exports-loader", options: "OpenLayers": true }
       }
 
       { test: /\.coffee$/, use: "coffee-loader" }
       { test: /\.json$/,   use: "json-loader" }
 
-      { test: /\.(css|less)$/
-      , use: cssExtractor.extract [
+      {
+        test: /\.(css|less)$/
+        use: cssExtractor.extract [
           "css-loader"
 
-          { loader: "less-loader"
-          , options: paths: [path.resolve(__dirname, "node_modules")]
+          {
+            loader: "less-loader"
+            options: paths: [path.resolve(__dirname, "node_modules")]
           }
         ]
       }
 
-      { test: /\.pug$/
-      , use: [ { loader: "babel-loader", options: presets: ["env"] }
-             , "pug-loader"
-             ]
+      {
+        test: /\.pug$/
+        use:  [
+                { loader: "babel-loader", options: presets: ["env"] }
+                { loader: "pug-loader" }
+
+                {
+                  loader:  "pug-lint-loader"
+                  options: require "./.pug-lintrc.js"
+                }
+              ]
       }
 
-      { test: /\.(png|jpg|jpeg|gif)$/
-      , use: { loader: "url-loader", options: limit: 8192 }
+      {
+        test: /\.(png|jpg|jpeg|gif)$/
+        use:  { loader: "url-loader", options: limit: 8192 }
       }
 
       { test: /\.(eot|svg|ttf|woff|woff2)$/, use: "file-loader" }
