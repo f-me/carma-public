@@ -119,32 +119,32 @@ after migrating to webpack, run `npm run clean-old-stuff` first.</em>
 
 To build front-end from scratch (development build):
 
-    ```bash
-    $ cd srv
-    $ npm install
-    $ npm run build
-    ```
+```bash
+$ cd srv
+$ npm install
+$ npm run build
+```
 
 If you need to just rebuild it again (after some changes for instance) run:
 
-    ```bash
-    $ npm run build
-    ```
+```bash
+$ npm run build
+```
 
 To build bundle for production instead of for development run:
 
-    ```bash
-    $ cd srv
-    $ npm install
-    $ npm run prod-build
-    ```
+```bash
+$ cd srv
+$ npm install
+$ npm run prod-build
+```
 
 You also could run a watcher in background to rebuild client code automatically
 when sources change by using this command (development mode):
 
-    ```bash
-    $ npm run watch
-    ```
+```bash
+$ npm run watch
+```
 
 ### Docker bundle
 
