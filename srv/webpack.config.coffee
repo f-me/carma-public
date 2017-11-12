@@ -129,9 +129,9 @@ module.exports =
     extensions: [".js", ".coffee"]
 
   output:
-    path: path.join RES_DIR, "static", "js", "gen", "carma"
+    path: path.join RES_DIR, "static", "build", "frontend"
     filename: "bundle.[name].js"
-    publicPath: "/s/js/gen/carma/"
+    publicPath: "/s/frontend/"
 
   module:
     rules: [

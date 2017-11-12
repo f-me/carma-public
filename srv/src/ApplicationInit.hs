@@ -62,6 +62,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/login/",        method POST doLogin)
          , ("/logout/",       doLogout)
          , ("/s/",            serveDirectoryWith dconf "resources/static")
+         , ("/s/frontend",    serveDirectoryWith dconf "resources/static/build/frontend")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/screens",       method GET getScreens)
          , ("/backoffice/errors", method GET $ serveBackofficeSpec Check)
@@ -184,7 +185,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
 
   h <- nestSnaplet "heist" heist $ heistInit ""
-  addTemplatesAt h "/" "resources/static/backendPages"
+  addTemplatesAt h "/" "resources/static/build/backendPages"
 
   addAuthSplices h auth
 

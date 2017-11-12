@@ -17,9 +17,6 @@ cabal-dev
 # logs
 *.log
 
-# generated from coffee
-srv/resources/static/js/gen/*
-
 # someone may have this
 srv/cabal.config
 
@@ -34,7 +31,9 @@ srv/resources/private
 srv/node_modules
 
 # html files for backend generated from pug templates
-srv/resources/static/backendPages
+srv/resources/static/build/backendPages
+# frontend built by webpack
+srv/resources/static/build/frontend
 
 # no more configs in gir repo anymore
 srv/snaplets/*
@@ -51,3 +50,5 @@ srv/resources/static/css/
 srv/resources/static/tpl/
 # Ignore all 3p after total bowerification.
 srv/resources/static/3p/
+# Generated from coffee
+srv/resources/static/js/

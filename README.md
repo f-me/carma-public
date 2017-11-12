@@ -148,6 +148,13 @@ when sources change by using this command (development mode):
 $ npm run watch
 ```
 
+To clean everything run:
+
+```bash
+$ npm run clean
+$ npm run clean-backend-templates
+```
+
 ### Docker bundle
 
 If you built the frontend and the backend Docker image, you can now
