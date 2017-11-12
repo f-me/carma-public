@@ -12,8 +12,8 @@
     "prod-build": "env NODE_ENV=production npm run webpack -- --progress --colors",
     "clean-build": "npm run clean && npm run build",
     "prod-clean-build": "npm run clean && npm run prod-build",
-    "clean-backend-templates": "rm -rf resources/static/backend-tpl",
-    "build-backend-templates": "npm run pug -- resources/assets/template/index.pug --extension=tpl --out resources/static/backend-tpl --pretty && npm run pug -- resources/assets/template/login.pug --extension=html --out resources/static/backend-tpl --pretty",
+    "clean-backend-templates": "rm -rf resources/static/backendPages",
+    "build-backend-templates": "npm run pug -- resources/assets/template/backendPages/index.pug --extension=tpl --out resources/static/backendPages --pretty && npm run pug -- resources/assets/template/backendPages/login.pug --extension=html --out resources/static/backendPages --pretty",
     "clean-build-backend-templates": "npm run clean-backend-templates && npm run build-backend-templates",
     "webpack": "webpack",
     "pug": "pug"

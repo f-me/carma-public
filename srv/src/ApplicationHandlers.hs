@@ -121,7 +121,7 @@ authOrLogin = requireUser auth redirectToLogin
 ------------------------------------------------------------------------------
 -- | Render empty login form.
 loginForm :: AppHandler ()
-loginForm = serveFile "resources/static/backend-tpl/login.html"
+loginForm = serveFile "resources/static/backendPages/login.html"
 
 
 ------------------------------------------------------------------------------

@@ -71,7 +71,7 @@ srv/resources/static/3p/wysihtml5x/
 srv/resources/static/3p/moment-timezone*.js
 
 # html files for backend generated from pug templates
-srv/resources/static/backend-tpl
+srv/resources/static/backendPages
 
 # no more configs in gir repo anymore
 srv/snaplets/*
