@@ -2,10 +2,10 @@
 
 require "carma/map"
 
-metaq = require "carma/sync/metaq"
-m     = require "carma/sync/datamap"
+{MetaQueue} = require "carma/sync/metaq"
+m           = require "carma/sync/datamap"
 
-module.exports.DipQueue = class DipQueue extends metaq
+module.exports.DipQueue = class DipQueue extends MetaQueue
   constructor: (@kvm, @model, @options) ->
     @api = "/geo/partners"
     @ftypes  = {}

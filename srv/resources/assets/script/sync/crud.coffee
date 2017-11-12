@@ -1,10 +1,10 @@
 {$, _, moment} = require "carma/vendor"
 
-metaq     = require "carma/sync/metaq"
-m         = require "carma/sync/datamap"
-Messenger = require "carma/lib/messenger"
+{MetaQueue} = require "carma/sync/metaq"
+m           = require "carma/sync/datamap"
+Messenger   = require "carma/lib/messenger"
 
-module.exports.CrudQueue = class CrudQueue extends metaq
+module.exports.CrudQueue = class CrudQueue extends MetaQueue
   constructor: (@kvm, @model, @options = {}) ->
     @url = "/_/#{@model.name}"
     @q       = {}
