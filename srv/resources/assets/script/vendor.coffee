@@ -35,13 +35,12 @@ OpenLayers = require "ol2"
 Promise = require "bluebird"
 require "whatwg-fetch"
 
-# old messy shit
-# TODO FIXME kill me please someone
-require "more-libs/date/core"
-require "more-libs/date/ru-RU.js"
-require "more-libs/date/extras.js"
-require "more-libs/date/parser.js"
-require "more-libs/date/sugarpak.js"
+# TODO maybe replace it with the moment library?
+require "oldLegacy3p/date/core"
+require "oldLegacy3p/date/ru-RU.js"
+require "oldLegacy3p/date/extras.js"
+require "oldLegacy3p/date/parser.js"
+require "oldLegacy3p/date/sugarpak.js"
 
 module.exports =
   { $

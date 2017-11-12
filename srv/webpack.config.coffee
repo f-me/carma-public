@@ -88,11 +88,11 @@ module.exports =
       "mousetrap"
       "ol2"
 
-      "more-libs/date/core"
-      "more-libs/date/ru-RU.js"
-      "more-libs/date/extras.js"
-      "more-libs/date/parser.js"
-      "more-libs/date/sugarpak.js"
+      "oldLegacy3p/date/core"
+      "oldLegacy3p/date/ru-RU.js"
+      "oldLegacy3p/date/extras.js"
+      "oldLegacy3p/date/parser.js"
+      "oldLegacy3p/date/sugarpak.js"
     ]
 
   resolve:
@@ -102,12 +102,11 @@ module.exports =
       "carma-img":      path.join RES_DIR, "static", "img"
       "./carma-img":    path.join RES_DIR, "static", "img" # for urls in css
 
-      # FIXME move from 'static' to 'assets'
-      "more-libs":      path.join RES_DIR, "static", "3p"
-
       "carma-styles":   path.join RES_DIR, "assets", "style", "style.less"
       "carma-tpl":      path.join RES_DIR, "assets", "template"
       "./carma-tpl":    path.join RES_DIR, "assets", "template" # pug includes
+
+      oldLegacy3p:      "carma/oldLegacy3p"
 
       "jquery.knob": "jquery-knob/js/jquery.knob"
       "jquery.notify": "notify/dist/notify-combined"

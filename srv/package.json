@@ -5,7 +5,7 @@
   "description": "carma client",
   "main": "local.coffee",
   "scripts": {
-    "clean-old-stuff": "rm -rf bower_components resources/static/js/gen/*.{js,js.map} resources/static/js/gen/{components,dictionaries,globallibs,hooks,kpi,lib,model,render,screens,search,sync} resources/static/{tpl,css}",
+    "clean-old-stuff": "rm -rf bower_components resources/static/js/gen/*.{js,js.map} resources/static/js/gen/{components,dictionaries,globallibs,hooks,kpi,lib,model,render,screens,search,sync} resources/static/{tpl,css,3p}",
     "clean": "rm -rf resources/static/js/gen/carma",
     "build": "npm run webpack -- --progress --colors",
     "watch": "npm run webpack -- --progress --colors --watch",
