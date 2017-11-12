@@ -123,6 +123,7 @@ To build front-end from scratch (development build):
 $ cd srv
 $ npm install
 $ npm run build
+$ npm run build-backend-templates
 ```
 
 If you need to just rebuild it again (after some changes for instance) run:
@@ -137,6 +138,7 @@ To build bundle for production instead of for development run:
 $ cd srv
 $ npm install
 $ npm run prod-build
+$ npm run build-backend-templates
 ```
 
 You also could run a watcher in background to rebuild client code automatically

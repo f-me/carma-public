@@ -75,14 +75,14 @@ module.exports.init = ({dicts, user, users}) ->
   window.global.keys.arrows = {left: 37, up: 38, right: 39, down: 40}
 
   # Doing it here because some of it depends on global messy crappy dungy shit.
-  u           = require "carma/utils"
-  sync        = require "carma/sync/crud"
-  sendSms     = require "carma/lib/send-sms"
-  liveMenu    = require "carma/liveMenu"
-  CurrentUser = require "carma/lib/current-user"
-  hacking     = require "carma/lib/hacking"
-  {CTI}       = require "carma/lib/cti"
-  {CTIPanel}  = require "carma/lib/cti-panel"
+  u             = require "carma/utils"
+  sync          = require "carma/sync/crud"
+  liveMenu      = require "carma/liveMenu"
+  CurrentUser   = require "carma/lib/current-user"
+  hacking       = require "carma/lib/hacking"
+  {CTI}         = require "carma/lib/cti"
+  {CTIPanel}    = require "carma/lib/cti-panel"
+  neoComponents = require "carma/neoComponents"
 
   hacking.reenableHacks()
   do u.makeAFuckingMess
@@ -141,7 +141,7 @@ module.exports.init = ({dicts, user, users}) ->
       else
         console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 
-  sendSms.setupSmsForm()
+  do neoComponents.init
 
   if user.login == "darya"
     $('#icon-user').removeClass('icon-user').addClass('icon-heart')

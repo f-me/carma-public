@@ -52,6 +52,8 @@ module.exports =
       "carma-tpl/screens/timeline.pug"
       "carma-tpl/screens/uploads.pug"
       "carma-tpl/screens/vin.pug"
+
+      "carma-tpl/neoComponents/SmsForm.pug"
     ]
 
     vendor: [

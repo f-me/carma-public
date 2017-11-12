@@ -25,7 +25,7 @@ forgetScreen = ->
   window.global.activeScreen = null
 
 
-module.exports =
+module.exports = {
 
   # Render top-level screen template (static)
   #
@@ -68,4 +68,5 @@ module.exports =
         cs.constructor(viewName, args)
 
   # Clean up all views on screen and everything.
-  forgetScreen: forgetScreen
+  forgetScreen
+}

@@ -3,23 +3,6 @@ html
   head
     meta(charset='utf-8')
     title Вход в систему
-    link(rel='stylesheet', href='/s/3p/normalize-css/normalize.css')
-    link(rel='stylesheet', href='/s/css/style.css')
-    script(src='/s/3p/jquery.js')
-    script(src='/s/3p/jquery.browser.min.js')
-    script(src='/s/3p/bootstrap/js/bootstrap.min.js')
-    script(type='text/javascript').
-      $(function() {
-        $(".field").first().focus();
-        var msg = "<div class='span6 offset2'>                      \
-          Рекомендуется использовать браузер <b>Google Chrome</b>   \
-          версии не ниже <b>50</b>. При работе с другими браузерами \
-          функциональность может быть ограничена.                   \
-        </div>";
-        if (!($.browser.webkit && $.browser.versionNumber >= 50)) {
-          $("#browser-msg").html(msg);
-        }
-      })
   body
     .row
       .col-md-4
@@ -47,3 +30,5 @@ html
               .col-sm-offset-4.col.sm-8
                 button.btn.btn-large.btn-success(type='submit') Войти
         .box#browser-msg
+    script.
+      document.querySelector('input[name=login]').focus();

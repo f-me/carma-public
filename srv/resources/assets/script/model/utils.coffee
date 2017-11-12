@@ -37,7 +37,7 @@ module.exports =
   # Load existing model instance
   restoreInstance: (viewName, id) ->
     render.forgetView(viewName)
-    window.global.activeScreen.views[viewName](viewName, {"id": id})
+    window.global.activeScreen.views[viewName](viewName, {id})
 
   # Remove instance currently loaded in view from storage and render
   # that view from scratch (if possible)
@@ -68,7 +68,7 @@ module.exports =
     mkSortFns = (name, fn) ->
       sorters[name] = {}
       sorters[name]["asc"]  = fn
-      sorters[name]["desc"] = { fn: fn, reverse: true }
+      sorters[name]["desc"] = { fn, reverse: true }
 
     ignoreType = (type) ->
       _.contains ["reference", "nested-model", "json"], type

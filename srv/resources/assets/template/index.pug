@@ -162,7 +162,17 @@ html
     // Main container for dynamically rendered layouts
     #main-container
       #layout
+
     #sms-send-form
+      // ko if: smsFormActive()
+      div(data-bind='component: { \
+        name:   "SmsForm", \
+        params: { \
+          valuesModel: smsFormValuesModel, \
+          closeForm:   closeSmsForm \
+        } \
+      }')
+      // /ko
 
     link(rel="stylesheet" type="text/css" href="/s/js/gen/carma/bundle.carma.css")
     script(src="/s/js/gen/carma/bundle.vendor.js")

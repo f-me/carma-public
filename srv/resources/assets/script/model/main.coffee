@@ -55,7 +55,7 @@ mainSetup = ( localDictionaries
       modelCache = {}
       (name, view) ->
         url = "/cfg/model/#{name}"
-        url = url + "?view=#{view}" if view
+        url = "#{url}?view=#{view}" if view
         if not modelCache[url]
           $.ajax url,
             async: false
@@ -108,14 +108,14 @@ buildKVM = (model, options = {}) ->
   kvm._parent = options.parent
   kvm._saveSuccessCb = options.saveSuccessCb
   {elName, fetched, queue, queueOptions, models} = options
-  kvm._meta   = { model: model, cid: _.uniqueId("#{model.name}_") }
+  kvm._meta   = { model, cid: _.uniqueId("#{model.name}_") }
   kvm.safelyGet = (prop) -> kvm[prop]?() || ''
   kvm._reactComponents = []
 
   # build observables for real model fields
   for f in fields
     do (f) ->
-      kvm[f.name] = ko.observable(null)
+      kvm[f.name] = ko.observable null
       kvm[f.name].field = f
       kvm[f.name].kvm   = kvm
 

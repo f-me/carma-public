@@ -28,8 +28,9 @@ mapping = Object.freeze
           Contract: "/cfg/model/Contract?view=searchCase"
 
   model: Object.freeze
-    user:  "/_whoami"
-    users: "/_/Usermeta"
+    user:        "/_whoami"
+    users:       "/_/Usermeta"
+    SmsTemplate: "/_/SmsTemplate"
 
   screens: "/screens"
 

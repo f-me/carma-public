@@ -184,7 +184,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
 
   h <- nestSnaplet "heist" heist $ heistInit ""
-  addTemplatesAt h "/" "resources/static/tpl"
+  addTemplatesAt h "/" "resources/static/backend-tpl"
 
   addAuthSplices h auth
 

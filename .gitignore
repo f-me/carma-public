@@ -34,11 +34,15 @@ srv/resources/private
 srv/node_modules
 srv/bower_components
 
-# static content built by grunt js
+# Static content built by grunt js.
+# Warning! It's old deprecated stuff, do not forget to run
+# `npm run clean-old-stuff` being inside `srv` dir.
 srv/resources/static/css/
 srv/resources/static/tpl/
 
-# ignore all 3p after total bowerification
+# Ignore all 3p after total bowerification.
+# Warning! It's old deprecated stuff, do not forget to run
+# `npm run clean-old-stuff` being inside `srv` dir.
 srv/resources/static/3p/OpenLayers/
 srv/resources/static/3p/base64.min.js
 srv/resources/static/3p/bootstrap-datepicker/
@@ -65,6 +69,9 @@ srv/resources/static/3p/underscore.js
 srv/resources/static/3p/wysihtml5/
 srv/resources/static/3p/wysihtml5x/
 srv/resources/static/3p/moment-timezone*.js
+
+# html files for backend generated from pug templates
+srv/resources/static/backend-tpl
 
 # no more configs in gir repo anymore
 srv/snaplets/*

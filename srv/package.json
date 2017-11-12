@@ -5,13 +5,18 @@
   "description": "carma client",
   "main": "local.coffee",
   "scripts": {
-    "clean-old-stuff": "rm -rf bower_components resources/static/js/gen/*.{js,js.map} resources/static/js/gen/{components,dictionaries,globallibs,hooks,kpi,lib,model,render,screens,search,sync}",
+    "clean-old-stuff": "rm -rf bower_components resources/static/js/gen/*.{js,js.map} resources/static/js/gen/{components,dictionaries,globallibs,hooks,kpi,lib,model,render,screens,search,sync} resources/static/{tpl,css}",
     "clean": "rm -rf resources/static/js/gen/carma",
-    "build": "webpack --progress --colors",
-    "watch": "webpack --progress --colors --watch",
-    "prod-build": "env NODE_ENV=production webpack --progress --colors",
+    "build": "npm run webpack -- --progress --colors",
+    "watch": "npm run webpack -- --progress --colors --watch",
+    "prod-build": "env NODE_ENV=production npm run webpack -- --progress --colors",
     "clean-build": "npm run clean && npm run build",
-    "prod-clean-build": "npm run clean && npm run prod-build"
+    "prod-clean-build": "npm run clean && npm run prod-build",
+    "clean-backend-templates": "rm -rf resources/static/backend-tpl",
+    "build-backend-templates": "npm run pug -- resources/assets/template/index.pug --extension=tpl --out resources/static/backend-tpl --pretty && npm run pug -- resources/assets/template/login.pug --extension=html --out resources/static/backend-tpl --pretty",
+    "clean-build-backend-templates": "npm run clean-backend-templates && npm run build-backend-templates",
+    "webpack": "webpack",
+    "pug": "pug"
   },
   "repository": {
     "type": "git",
@@ -52,6 +57,7 @@
     "less": "^2.7.2",
     "less-loader": "^4.0.5",
     "load-grunt-tasks": "^0.6.0",
+    "pug-cli": "^1.0.0-alpha6",
     "pug-lint-config-clock": "^2.0.0",
     "pug-lint-loader": "0.0.4",
     "pug-loader": "^2.3.0",

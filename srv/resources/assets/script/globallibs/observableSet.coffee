@@ -10,7 +10,7 @@ ko.observableSet = (init) ->
     init = {}
     init[i] = true for i in ibak
 
-  # have to use this dummy observalble so computed write can notify
+  # have to use this dummy observable so computed write can notify
   # read about update
   recalcNotifier = ko.observable()
 
