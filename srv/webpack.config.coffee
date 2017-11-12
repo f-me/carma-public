@@ -99,11 +99,8 @@ module.exports =
     alias:
       carma:            path.resolve SRC_DIR
 
-      # FIXME union to one single dir in 'assets' directory
       "carma-img":      path.join RES_DIR, "static", "img"
       "./carma-img":    path.join RES_DIR, "static", "img" # for urls in css
-      "carma-images":   path.join RES_DIR, "static", "images"
-      "./carma-images": path.join RES_DIR, "static", "images" # for urls in css
 
       # FIXME move from 'static' to 'assets'
       "more-libs":      path.join RES_DIR, "static", "3p"
