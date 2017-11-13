@@ -1,5 +1,5 @@
 {$, ko} = require "carma/vendor"
-{tpl} = require "carma/globallibs"
+{tpl} = require "carma/lib/template"
 template = tpl require "carma-tpl/screens/rest.pug"
 
 module.exports = {

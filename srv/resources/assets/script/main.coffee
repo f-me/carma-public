@@ -3,7 +3,7 @@ require "carma/globallibs"
 require "carma-styles"
 
 {request} = require "carma/data"
-{tpl} = require "carma/globallibs/utils"
+{tpl} = require "carma/lib/template"
 
 document.getElementById("top-navbar").innerHTML =
   tpl require "carma-tpl/partials/navbar.pug"

@@ -18,4 +18,5 @@ class BaseModel
     do @smsFormValuesModel.reset
 
 
-module.exports.baseModel = new BaseModel
+module.exports =
+  baseModel: new BaseModel

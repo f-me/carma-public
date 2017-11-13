@@ -7,5 +7,4 @@ utils = require "./utils"
 module.exports = {
   ThMenu: thMenu.ThMenu
   urlFor: utils.urlFor
-  tpl:    utils.tpl
 }

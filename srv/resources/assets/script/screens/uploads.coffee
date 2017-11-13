@@ -4,7 +4,7 @@
 # handlers.
 
 {$, _, ko} = require "carma/vendor"
-{tpl} = require "carma/globallibs"
+{tpl} = require "carma/lib/template"
 
 upl = require "carma/lib/upload"
 mu  = require "carma/model/utils"

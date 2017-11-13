@@ -10,7 +10,7 @@ $.fn.typeahead.defaults =
   scrollHeight: 0
   autoSelect: true
 
-module.exports.ThMenu = class ThMenu
+class ThMenu
   constructor: (options) ->
     @options     = $.extend({}, $.fn.typeahead.defaults, options)
     @matcher     = @.options.matcher     || @.matcher
@@ -231,3 +231,5 @@ module.exports.ThMenu = class ThMenu
         @next()
 
     e.stopPropagation()
+
+module.exports = {ThMenu}

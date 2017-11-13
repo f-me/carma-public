@@ -1,5 +1,5 @@
 {$, _, ko, moment} = require "carma/vendor"
-{tpl} = require "carma/globallibs"
+{tpl} = require "carma/lib/template"
 
 # Portal screen, derived from contract search screen
 Screen = require "carma/search/screen"

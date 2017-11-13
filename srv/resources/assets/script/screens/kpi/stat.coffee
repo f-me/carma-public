@@ -1,5 +1,5 @@
 {$, _, ko} = require "carma/vendor"
-{tpl} = require "carma/globallibs"
+{tpl} = require "carma/lib/template"
 
 Model = require("carma/data").data.cfg.m.v.kpi.StatKPI
 

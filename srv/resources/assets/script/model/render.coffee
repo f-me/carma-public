@@ -1,5 +1,5 @@
 {$, _, Mustache} = require "carma/vendor"
-{tpl} = require "carma/globallibs"
+{tpl} = require "carma/lib/template"
 
 d    = require "carma/dictionaries"
 Flds = tpl require "carma-tpl/fields/form.pug"

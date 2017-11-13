@@ -1,5 +1,5 @@
 {ko} = require "carma/vendor"
-{tpl} = require "carma/globallibs"
+{tpl} = require "carma/lib/template"
 {data} = require "carma/data"
 require "./styles.less"
 

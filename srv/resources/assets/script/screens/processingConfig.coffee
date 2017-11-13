@@ -2,7 +2,7 @@
 #
 # Uses "ProcessingConfig" model
 
-{tpl} = require "carma/globallibs"
+{tpl} = require "carma/lib/template"
 main = require "carma/model/main"
 template = tpl require "carma-tpl/screens/processingConfig.pug"
 

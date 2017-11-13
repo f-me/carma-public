@@ -1,5 +1,5 @@
 {$, _, ko, Finch} = require "carma/vendor"
-{tpl} = require "carma/globallibs"
+{tpl} = require "carma/lib/template"
 
 utils   = require "carma/utils"
 hotkeys = require "carma/hotkeys"

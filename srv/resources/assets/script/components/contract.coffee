@@ -1,5 +1,5 @@
 {$, _, ko, moment, Mustache} = require "carma/vendor"
-{tpl} = require "carma/globallibs"
+{tpl} = require "carma/lib/template"
 
 Main    = require "carma/model/main"
 Utils   = require "carma/utils"

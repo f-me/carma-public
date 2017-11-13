@@ -1,5 +1,5 @@
 {$, _, ko, OpenLayers} = require "carma/vendor"
-{tpl} = require "carma/globallibs"
+{tpl} = require "carma/lib/template"
 
 utils                         = require "carma/utils"
 map                           = require "carma/map"
