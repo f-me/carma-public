@@ -1,6 +1,6 @@
 require "carma/vendor"
 require "carma/globallibs"
-require "carma-styles"
+require "carma-css"
 
 {request} = require "carma/data"
 {tpl} = require "carma/lib/template"

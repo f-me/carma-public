@@ -19,96 +19,20 @@ module.exports =
   devtool: "source-map"
 
   entry:
-    carma: path.join SRC_DIR, "main"
-
-    resources: [
-      "carma-tpl/fields/form.pug"
-      "carma-tpl/fields/ro.pug"
-      "carma-tpl/fields/table.pug"
-
-      "carma-tpl/lib/navbar.pug"
-
-      "carma-tpl/partials/partnerDelayDialog.pug"
-      "carma-tpl/partials/partnersSearch.pug"
-      "carma-tpl/partials/navbar.pug"
-      "carma-tpl/partials/topLevelModals.pug"
-
-      "carma-tpl/screens/kpi/group.pug"
-      "carma-tpl/screens/kpi/oper.pug"
-      "carma-tpl/screens/kpi/stat.pug"
-      "carma-tpl/screens/back.pug"
-      "carma-tpl/screens/call.pug"
-      "carma-tpl/screens/case.pug"
-      "carma-tpl/screens/contract.pug"
-      "carma-tpl/screens/dictionaries.pug"
-      "carma-tpl/screens/na.pug"
-      "carma-tpl/screens/partner.pug"
-      "carma-tpl/screens/partnersSearch.pug"
-      "carma-tpl/screens/printSrv.pug"
-      "carma-tpl/screens/processingConfig.pug"
-      "carma-tpl/screens/rest.pug"
-      "carma-tpl/screens/rkc.pug"
-      "carma-tpl/screens/search.pug"
-      "carma-tpl/screens/serviceBreak.pug"
-      "carma-tpl/screens/supervisor.pug"
-      "carma-tpl/screens/timeline.pug"
-      "carma-tpl/screens/uploads.pug"
-      "carma-tpl/screens/vin.pug"
-
-      "carma/neoComponents/SmsForm/template.pug"
-    ]
-
-    vendor: [
-      "jquery"
-      "jquery.knob"
-      "jquery.notify"
-      "jquery.datatables"
-
-      "js-base64"
-      "blueimp-md5"
-      "underscore"
-      "mustache"
-      "knockout"
-      "finchjs/coffee/finch"
-
-      "moment"
-      "moment/locale/ru"
-      "moment.tz"
-
-      "bootstrap"
-      "bootstrap-datepicker"
-      "bootstrap-datepicker.ru"
-      "bootstrap-daterangepicker"
-      "bootstrap.jasny"
-      "bootstrap.wysihtml5"
-      "bootstrap.wysihtml5.ru-RU"
-
-      "spin.js"
-      "spin.js/jquery.spin"
-
-      "d3/d3"
-      "mousetrap"
-      "ol2"
-
-      "oldLegacy3p/date/core"
-      "oldLegacy3p/date/ru-RU.js"
-      "oldLegacy3p/date/extras.js"
-      "oldLegacy3p/date/parser.js"
-      "oldLegacy3p/date/sugarpak.js"
-    ]
+    carma:     path.join SRC_DIR, "entryPoints", "main"
+    resources: path.join SRC_DIR, "entryPoints", "resources"
+    vendor:    path.join SRC_DIR, "entryPoints", "vendor"
 
   resolve:
     alias:
-      carma:            path.resolve SRC_DIR
+      carma:         path.resolve SRC_DIR
+      "carma-img":   path.join RES_DIR, "static", "img"
+      "./carma-img": path.join RES_DIR, "static", "img" # for urls in css
+      "carma-tpl":   path.join RES_DIR, "assets", "template"
+      "./carma-tpl": path.join RES_DIR, "assets", "template" # pug includes
+      "carma-css":   path.join RES_DIR, "assets", "style", "style.less"
 
-      "carma-img":      path.join RES_DIR, "static", "img"
-      "./carma-img":    path.join RES_DIR, "static", "img" # for urls in css
-
-      "carma-styles":   path.join RES_DIR, "assets", "style", "style.less"
-      "carma-tpl":      path.join RES_DIR, "assets", "template"
-      "./carma-tpl":    path.join RES_DIR, "assets", "template" # pug includes
-
-      oldLegacy3p:      "carma/oldLegacy3p"
+      oldLegacy3p:   "carma/oldLegacy3p"
 
       "jquery.knob": "jquery-knob/js/jquery.knob"
       "jquery.notify": "notify/dist/notify-combined"
