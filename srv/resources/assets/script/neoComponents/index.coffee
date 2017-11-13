@@ -3,5 +3,7 @@
 
 module.exports =
   init: () ->
-    ko.components.register "SmsForm", require "carma/neoComponents/SmsForm"
-    ko.applyBindings baseModel, document.getElementById "sms-send-form"
+    do ->
+      {name, template, viewModel} = require "carma/neoComponents/SmsForm"
+      ko.components.register name, {template, viewModel}
+      ko.applyBindings baseModel, document.getElementById "top-level-modals"

@@ -1,31 +1,11 @@
-{ko: {observable}} = require "carma/vendor"
-
-
-class SmsFormValuesModel
-  constructor: ->
-    @phone       = observable ""
-    @caseId      = observable ""
-    @caseCity    = observable ""
-    @caseAddress = observable ""
-  dispose: =>
-
-  fill: ({phone, caseId, caseCity, caseAddress}) =>
-    @phone       phone
-    @caseId      caseId
-    @caseCity    caseCity
-    @caseAddress caseAddress
-
-  reset: =>
-    @phone       ""
-    @caseId      ""
-    @caseCity    ""
-    @caseAddress ""
+{ko} = require "carma/vendor"
+{SmsFormValuesModel} = require "carma/neoComponents/SmsForm"
 
 
 class BaseModel
   constructor: ->
     @smsFormValuesModel = new SmsFormValuesModel
-    @smsFormActive = observable false
+    @smsFormActive = ko.observable false
   dispose: =>
     do @smsFormValuesModel.dispose
 

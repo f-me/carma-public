@@ -1,0 +1,37 @@
+.modal-backdrop.fade(data-bind='css: {in: fadeIn, active: isVisible}')
+.modal.fade.is-overlay(data-bind='\
+  css: {in: fadeIn, active: isVisible},\
+  click: handleOverlayClick,\
+')
+  .modal-dialog
+    .modal-content
+      .modal-header
+        button.close(data-bind='click: closeForm')
+          span ×
+        h4 Отправка СМС
+      .modal-body
+        form.form-horizontal
+          .form-group.has-error
+            label.col-sm-4.control-label Номер кейса
+            .col-sm-8
+              input.form-control(
+                disabled
+                type='number'
+                data-bind='value: caseId')
+          .form-group.has-error
+            label.col-sm-4.control-label Телефон получателя
+            .col-sm-8
+              span.input-group.input-group-sm
+                input.form-control(type='tel' data-bind='value: phone')
+                span.input-group-addon
+                  span.stolen-icon.stolen-icon-phone
+          .form-group.has-error
+            label.col-sm-4.control-label Шаблон сообщения
+            .col-sm-8 <b>TODO</b>
+          .form-group.has-error
+            label.col-sm-4.control-label Текст сообщения
+            .col-sm-8
+              textarea.form-control(rows=7 data-bind='value: message')
+      .modal-footer
+        button.btn.btn-primary(data-bind='click: closeForm') Отмена
+        button.btn.btn-success Отправить

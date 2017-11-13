@@ -30,6 +30,8 @@ module.exports =
 
       "carma-tpl/partials/partnerDelayDialog.pug"
       "carma-tpl/partials/partnersSearch.pug"
+      "carma-tpl/partials/navbar.pug"
+      "carma-tpl/partials/topLevelModals.pug"
 
       "carma-tpl/screens/kpi/group.pug"
       "carma-tpl/screens/kpi/oper.pug"
@@ -53,7 +55,7 @@ module.exports =
       "carma-tpl/screens/uploads.pug"
       "carma-tpl/screens/vin.pug"
 
-      "carma-tpl/neoComponents/SmsForm.pug"
+      "carma/neoComponents/SmsForm/template.pug"
     ]
 
     vendor: [
