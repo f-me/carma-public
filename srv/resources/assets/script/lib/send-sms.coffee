@@ -1,11 +1,12 @@
 {$} = require "carma/vendor"
-{baseModel} = require "carma/neoComponents/BaseModel"
+{store} = require "carma/neoComponents/store"
+{showSmsForm} = require "carma/neoComponents/store/smsForm/actions"
 
 module.exports =
   sendSms: ->
     kase = window.global.viewsWare['case-form']?.knockVM
 
-    baseModel.showSmsForm
+    store.dispatch showSmsForm
       phone:       kase?.contact_phone1()      ? ''
       caseId:      kase?.id()                  ? ''
       caseCity:    kase?.cityLocal()           ? ''

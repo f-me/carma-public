@@ -1,54 +1,45 @@
 {ko} = require "carma/vendor"
 {data} = require "carma/data"
+{store} = require "carma/neoComponents/store"
+{closeSmsForm} = require "carma/neoComponents/store/smsForm/actions"
 require "./styles.less"
 
 smsTemplates = data.model.SmsTemplate.filter (x) => x.isActive
 
 
 class SmsFormViewModel
-  constructor: ({valuesModel: {@phone, @caseId}, @closeForm, isActive}) ->
+  constructor: () ->
     @smsTemplates = ko.observableArray smsTemplates
+
+    @appState = ko.observable store.getState()
+    @unsubscribeFromAppState = store.subscribe => @appState store.getState()
+
+    @isShown = ko.pureComputed => @appState().smsForm.isShown
+    @phone   = ko.pureComputed => @appState().smsForm.phone
+    @caseId  = ko.pureComputed => @appState().smsForm.caseId
     @message = ko.observable "…"
 
-    @fadeIn = ko.pureComputed isActive
+    @fadeIn = ko.pureComputed @isShown
       .extend rateLimit: {method: "notifyWhenChangesStop", timeout: 1}
 
     fadeOut = ko.pureComputed @fadeIn
       .extend rateLimit: {method: "notifyWhenChangesStop", timeout: 500}
 
-    @isVisible = ko.computed => isActive() || fadeOut()
+    @isVisible = ko.computed => @isShown() || fadeOut()
 
   dispose: =>
+    do @unsubscribeFromAppState
+
+  closeForm: () =>
+    store.dispatch closeSmsForm()
 
   handleOverlayClick: (model, {target}) =>
     do @closeForm if target.classList.contains "is-overlay"
 
 
-class SmsFormValuesModel
-  constructor: ->
-    @phone       = ko.observable ""
-    @caseId      = ko.observable ""
-    @caseCity    = ko.observable ""
-    @caseAddress = ko.observable ""
-  dispose: =>
+module.exports =
+  componentName: "sms-form"
 
-  fill: ({phone, caseId, caseCity, caseAddress}) =>
-    @phone       phone
-    @caseId      caseId
-    @caseCity    caseCity
-    @caseAddress caseAddress
-
-  reset: =>
-    @phone       ""
-    @caseId      ""
-    @caseCity    ""
-    @caseAddress ""
-
-
-module.exports = {
-  name:      "sms-form"
-  template:  require "./template.pug"
-  viewModel: SmsFormViewModel
-
-  SmsFormValuesModel
-}
+  component:
+    template:  require "./template.pug"
+    viewModel: SmsFormViewModel

@@ -12,6 +12,9 @@ require "mustache"
 require "knockout"
 require "finchjs/coffee/finch"
 
+require "redux"
+require "redux-actions"
+
 require "moment"
 require "moment/locale/ru"
 require "moment.tz"

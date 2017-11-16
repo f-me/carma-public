@@ -11,6 +11,9 @@ Mustache = require "mustache"
 ko       = require "knockout"
 {Finch}  = require "finchjs/coffee/finch"
 
+Redux        = require "redux"
+ReduxActions = require "redux-actions"
+
 moment = require "moment"
 require "moment/locale/ru"
 require "moment.tz"
@@ -51,6 +54,8 @@ module.exports =
   , Base64
   , moment
   , Finch
+  , Redux
+  , ReduxActions
   , Mustache
   , Spinner
   , Mousetrap

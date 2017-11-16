@@ -1,9 +1,14 @@
 {ko} = require "carma/vendor"
-{baseModel} = require "carma/neoComponents/BaseModel"
+{BaseViewModel} = require "carma/neoComponents/BaseViewModel"
 
 module.exports =
   init: () ->
-    do ->
-      {name, template, viewModel} = require "carma/neoComponents/SmsForm"
-      ko.components.register name, {template, viewModel}
-      ko.applyBindings baseModel, document.getElementById "top-level-modals"
+    components = [
+      require "carma/neoComponents/SmsForm"
+    ]
+
+    for x in components
+      ko.components.register x.componentName, x.component
+
+    ko.applyBindings (new BaseViewModel),
+      document.getElementById "top-level-modals"
