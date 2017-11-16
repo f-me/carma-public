@@ -1,6 +1,5 @@
 {$, ko, _} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
-Tpls = tpl require "carma-tpl/lib/navbar.pug"
+Tpls = require "carma-tpl/lib/navbar.pug"
 {data: {screens}} = require "carma/data"
 
 menuItems = null

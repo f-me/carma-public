@@ -1,6 +1,4 @@
-{tpl} = require "carma/lib/template"
-
-template = tpl require "carma-tpl/screens/na.pug"
+template = require "carma-tpl/screens/na.pug"
 
 module.exports = {
   template

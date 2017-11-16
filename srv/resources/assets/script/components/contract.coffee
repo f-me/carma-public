@@ -1,11 +1,10 @@
 {$, _, ko, moment, Mustache} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 Main    = require "carma/model/main"
 Utils   = require "carma/utils"
 DataMap = require "carma/sync/datamap"
 Dict    = require "carma/dictionaries"
-Flds    = tpl require "carma-tpl/fields/form.pug"
+Flds    = require "carma-tpl/fields/form.pug"
 
 flds = $('<div/>').append($(Flds))
 

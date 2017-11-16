@@ -1,5 +1,4 @@
 {$, _, ko, OpenLayers} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 utils                         = require "carma/utils"
 map                           = require "carma/map"
@@ -12,7 +11,7 @@ time                          = require "carma/lib/time"
 models                        = require "carma/screens/partnersSearch/models"
 {MetaQueue}                   = require "carma/sync/metaq"
 
-template = tpl require "carma-tpl/screens/partnersSearch.pug"
+template = require "carma-tpl/screens/partnersSearch.pug"
 
 ServiceTypes = new ModelDict.dict(dict: 'ServiceType')
 model = models.PartnerSearch

@@ -1,5 +1,4 @@
 {$, _, ko} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 Model = require("carma/data").data.cfg.m.v.kpi.StatKPI
 
@@ -9,7 +8,7 @@ Map    = require "carma/sync/datamap"
 Common = require "carma/screens/kpi/common"
 Utils  = require "carma/utils"
 
-Tpl = tpl require "carma-tpl/screens/kpi/stat.pug"
+Tpl = require "carma-tpl/screens/kpi/stat.pug"
 
 mp = new Map.Mapper(Model)
 

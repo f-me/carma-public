@@ -1,5 +1,4 @@
 {$, _, ko} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 d      = require "carma/dictionaries"
 tm     = require "carma/lib/taskmanager"
@@ -8,7 +7,7 @@ u      = require "carma/utils"
 models = require "carma/screens/vin/models"
 upl    = require "carma/lib/upload"
 
-template = tpl require "carma-tpl/screens/vin.pug"
+template = require "carma-tpl/screens/vin.pug"
 
 # Send VIN file, set up a new box element to track task progress
 sendVin = (sid, fid, file) ->

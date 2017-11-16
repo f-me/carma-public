@@ -1,11 +1,10 @@
 {$, _} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 Main  = require "carma/model/main"
 utils = require "carma/utils"
 sync  = require "carma/sync/crud"
 
-template = tpl require "carma-tpl/screens/back.pug"
+template = require "carma-tpl/screens/back.pug"
 
 onBackofficeScreen = true
 

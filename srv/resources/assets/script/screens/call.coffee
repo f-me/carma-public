@@ -1,12 +1,11 @@
 {$, _, ko, Finch} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 utils   = require "carma/utils"
 hotkeys = require "carma/hotkeys"
 main    = require "carma/model/main"
 pSearch = require "carma/screens/partnersSearch"
 
-template = tpl require "carma-tpl/screens/call.pug"
+template = require "carma-tpl/screens/call.pug"
 
 storeKey = "call"
 

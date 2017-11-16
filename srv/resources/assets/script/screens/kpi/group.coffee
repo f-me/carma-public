@@ -1,5 +1,4 @@
 {$, _, ko} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 Model = require("carma/data").data.cfg.m.v.kpi.GroupKPI
 
@@ -9,7 +8,7 @@ Map  = require "carma/sync/datamap"
 Usr  = require "carma/lib/current-user"
 U    = require "carma/utils"
 
-Tpl = tpl require "carma-tpl/screens/kpi/group.pug"
+Tpl = require "carma-tpl/screens/kpi/group.pug"
 
 key = "kpi-group"
 mp  = new Map.Mapper(Model)

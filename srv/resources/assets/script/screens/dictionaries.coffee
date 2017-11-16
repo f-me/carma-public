@@ -1,5 +1,4 @@
 {$, _, ko, Finch} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 utils       = require "carma/utils"
 mu          = require "carma/model/utils"
@@ -7,8 +6,8 @@ main        = require "carma/model/main"
 {screenMan} = require "carma/screenman"
 modelDict   = require "carma/dictionaries/model-dict"
 
-template = tpl require "carma-tpl/screens/dictionaries.pug"
-Flds     = tpl require "carma-tpl/fields/form.pug"
+template = require "carma-tpl/screens/dictionaries.pug"
+Flds     = require "carma-tpl/fields/form.pug"
 
 textarea2wysiwyg = ->
   # transform all textarea elements to wisiwyg

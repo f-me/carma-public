@@ -1,12 +1,11 @@
 {$, _, ko, moment} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 # Portal screen, derived from contract search screen
 Screen = require "carma/search/screen"
 main   = require "carma/model/main"
 u      = require "carma/utils"
 
-template = tpl require "carma-tpl/screens/contract.pug"
+template = require "carma-tpl/screens/contract.pug"
 
 # Initialize portal search screen from portal-stripped Contract
 # model

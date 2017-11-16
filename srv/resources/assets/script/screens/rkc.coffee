@@ -1,7 +1,6 @@
 {$, _, ko} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 utils = require "carma/utils"
-template = tpl require "carma-tpl/screens/rkc.pug"
+template = require "carma-tpl/screens/rkc.pug"
 
 weatherCityDict =
   utils.newModelDict "City", true, {dictionaryKey: "value"}

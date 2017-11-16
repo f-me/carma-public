@@ -1,12 +1,11 @@
 {$, _} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 utils       = require "carma/utils"
 mu          = require "carma/model/utils"
 main        = require "carma/model/main"
 {screenMan} = require "carma/screenman"
 
-template = tpl require "carma-tpl/screens/partner.pug"
+template = require "carma-tpl/screens/partner.pug"
 
 modelSetup = (modelName, viewName, args) ->
   permEl = "#{modelName}-permissions"

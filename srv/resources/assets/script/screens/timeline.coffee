@@ -1,5 +1,4 @@
 {$, _, ko, d3, moment, Mustache} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 Main        = require "carma/model/main"
 D           = require "carma/dictionaries/computed-dict"
@@ -10,9 +9,9 @@ MUtils      = require "carma/model/utils"
 Utils       = require "carma/utils"
 models      = require "carma/screens/timeline/models"
 
-template = tpl require "carma-tpl/screens/timeline.pug"
-Ttpl     = tpl require "carma-tpl/fields/table.pug"
-ROtpl    = tpl require "carma-tpl/fields/ro.pug"
+template = require "carma-tpl/screens/timeline.pug"
+Ttpl     = require "carma-tpl/fields/table.pug"
+ROtpl    = require "carma-tpl/fields/ro.pug"
 
 {data} = require "carma/data"
 Um = data.cfg.m.Usermeta

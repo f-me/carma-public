@@ -1,7 +1,6 @@
-{tpl}    = require "carma/lib/template"
 {data}   = require "carma/data"
 Screen   = require "carma/search/screen"
-template = tpl require "carma-tpl/screens/search.pug"
+template = require "carma-tpl/screens/search.pug"
 
 CaseSearch     = data.cfg.m.v.search.Case
 ServiceSearch  = data.cfg.m.v.search.Service

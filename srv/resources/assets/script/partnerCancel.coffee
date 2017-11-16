@@ -1,8 +1,7 @@
 {$, Mustache} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 main = require "carma/model/main"
-Fs   = tpl require "carma-tpl/fields/form.pug"
+Fs   = require "carma-tpl/fields/form.pug"
 
 flds = $('<div/>').append($(Fs))
 

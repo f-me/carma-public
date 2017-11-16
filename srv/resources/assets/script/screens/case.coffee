@@ -1,5 +1,4 @@
 {$, _, ko, Mustache} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 utils    = require "carma/utils"
 hotkeys  = require "carma/hotkeys"
@@ -9,8 +8,8 @@ mu       = require "carma/model/utils"
 main     = require "carma/model/main"
 Contract = require "carma/components/contract"
 
-template = tpl require "carma-tpl/screens/case.pug"
-Flds     = tpl require "carma-tpl/fields/form.pug"
+template = require "carma-tpl/screens/case.pug"
+Flds     = require "carma-tpl/fields/form.pug"
 
 ActionResult = idents.idents "ActionResult"
 

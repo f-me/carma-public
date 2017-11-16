@@ -1,5 +1,4 @@
 {$, _, ko} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 Model = require("carma/data").data.cfg.m.v.kpi.OperKPI
 
@@ -9,7 +8,7 @@ WS     = require "carma/lib/messenger"
 Common = require "carma/screens/kpi/common"
 Utils  = require "carma/utils"
 
-Tpl = tpl require "carma-tpl/screens/kpi/oper.pug"
+Tpl = require "carma-tpl/screens/kpi/oper.pug"
 
 mp = new Map.Mapper(Model)
 update = (kvmsh) -> (data) ->

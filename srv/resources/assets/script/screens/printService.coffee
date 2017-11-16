@@ -1,9 +1,8 @@
 {$, _, ko} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 {CrudQueue} = require "carma/sync/crud"
 main        = require "carma/model/main"
-template    = tpl require "carma-tpl/screens/printSrv.pug"
+template    = require "carma-tpl/screens/printSrv.pug"
 
 setupPrintSrv = (viewName, {id}) ->
   $(".navbar").hide()

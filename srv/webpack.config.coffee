@@ -59,6 +59,11 @@ module.exports =
     filename: "bundle.[name].js"
     publicPath: "/s/frontend/"
 
+  resolveLoader:
+    alias:
+      "precompile-template-loader": path.resolve __dirname,
+        "webpackLoaders/precompile-template-loader.coffee"
+
   module:
     rules: [
       {
@@ -114,7 +119,7 @@ module.exports =
       {
         test: /\.pug$/
         use:  [
-                { loader: "babel-loader", options: presets: ["env"] }
+                { loader: "precompile-template-loader" }
                 { loader: "pug-loader" }
 
                 {

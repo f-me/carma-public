@@ -4,12 +4,11 @@
 # handlers.
 
 {$, _, ko} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 upl = require "carma/lib/upload"
 mu  = require "carma/model/utils"
 
-template = tpl require "carma-tpl/screens/uploads.pug"
+template = require "carma-tpl/screens/uploads.pug"
 
 # Destructively add a reference to attachment:<attId> to files field
 # of a case instance object

@@ -1,5 +1,4 @@
 {$, _, ko} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 utils     = require "carma/utils"
 main      = require "carma/model/main"
@@ -9,7 +8,7 @@ SUtils    = require "carma/search/utils"
 SPager    = require "carma/search/pager"
 {searchQ} = require "carma/sync/search"
 State     = require "carma/lib/state-url"
-Tpl       = tpl require "carma-tpl/fields/form.pug"
+Tpl       = require "carma-tpl/fields/form.pug"
 
 filterModels = (allowed, models) ->
   mdls = for m in  models

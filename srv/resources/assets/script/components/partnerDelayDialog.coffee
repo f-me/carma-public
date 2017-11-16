@@ -1,9 +1,8 @@
 {$, _, ko, Mustache} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 u    = require "carma/utils"
 main = require "carma/model/main"
-tpl  = tpl require "carma-tpl/partials/partnerDelayDialog.pug"
+tpl  = require "carma-tpl/partials/partnerDelayDialog.pug"
 
 module.exports =
   show: (kase, svcKvm) ->

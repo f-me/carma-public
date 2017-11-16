@@ -1,9 +1,8 @@
 {$, _} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 Screen   = require "carma/search/screen"
 {data}   = require "carma/data"
-template = tpl require "carma-tpl/screens/search.pug"
+template = require "carma-tpl/screens/search.pug"
 
 Contract = data.cfg.m.Contract
 Search   = data.cfg.m.v.search.Contract

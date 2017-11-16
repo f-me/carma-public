@@ -3,13 +3,12 @@ require "carma/globallibs"
 require "carma-css"
 
 {request} = require "carma/data"
-{tpl} = require "carma/lib/template"
 
 document.getElementById("top-navbar").innerHTML =
-  tpl require "carma-tpl/partials/navbar.pug"
+  require "carma-tpl/partials/navbar.pug"
 
 document.getElementById("top-level-modals").innerHTML =
-  tpl require "carma-tpl/partials/topLevelModals.pug"
+  require "carma-tpl/partials/topLevelModals.pug"
 
 request()
   .then \

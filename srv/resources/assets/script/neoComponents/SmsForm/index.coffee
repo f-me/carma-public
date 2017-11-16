@@ -1,5 +1,4 @@
 {ko} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 {data} = require "carma/data"
 require "./styles.less"
 
@@ -48,7 +47,7 @@ class SmsFormValuesModel
 
 module.exports = {
   name:      "sms-form"
-  template:  tpl require "./template.pug"
+  template:  require "./template.pug"
   viewModel: SmsFormViewModel
 
   SmsFormValuesModel

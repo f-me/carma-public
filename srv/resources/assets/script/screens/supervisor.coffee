@@ -1,13 +1,12 @@
 {$, _, ko, Mustache} = require "carma/vendor"
-{tpl} = require "carma/lib/template"
 
 utils       = require "carma/utils"
 main        = require "carma/model/main"
 {screenMan} = require "carma/screenman"
 hook        = require "carma/hooks/common"
 
-template    = tpl require "carma-tpl/screens/supervisor.pug"
-Flds        = tpl require "carma-tpl/fields/form.pug"
+template    = require "carma-tpl/screens/supervisor.pug"
+Flds        = require "carma-tpl/fields/form.pug"
 
 flds = $('<div/>').append($(Flds))
 
