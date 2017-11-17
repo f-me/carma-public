@@ -4,7 +4,7 @@ ko.bindingHandlers.setdata =
   init: (element, valueAccessor, allBindingsAccessor, viewModel) ->
     # This will be called when the binding is first applied to an element
     # Set up any initial state, event handlers, etc. here
-    $(element).data({ knockVM: viewModel, acc: valueAccessor})
+    $(element).data knockVM: viewModel, acc: valueAccessor
 
 ko.bindingHandlers.bindClick =
   init: (element, valueAccessor, allBindingsAccessor, viewModel) ->
@@ -132,7 +132,7 @@ ko.bindingHandlers.renderField =
     context ?= ctx.$root.kvm
     ko.utils.setHtml el, tpl
     ko.applyBindingsToDescendants(context, el)
-    return { controlsDescendantBindings: true }
+    controlsDescendantBindings: true
 
 ko.bindingHandlers.renderGroup =
   init: (el, acc, allBindigns, fld, ctx) ->
@@ -143,7 +143,7 @@ ko.bindingHandlers.renderGroup =
 
     ko.utils.setHtml el, $("#group-ro-template").html()
     ko.applyBindingsToDescendants({ fields: fs}, el)
-    return { controlsDescendantBindings: true }
+    controlsDescendantBindings: true
 
 ko.bindingHandlers.render =
   init: (el, acc, allBindigns, ctx, koctx) ->
@@ -161,7 +161,7 @@ ko.bindingHandlers.fieldRender =
     console.error "Cant find template for #{tplName}" unless tpl
     ko.utils.setHtml el, tpl
     ko.applyBindingsToDescendants(acc().kvm[acc().field.name], el)
-    return { controlsDescendantBindings: true }
+    controlsDescendantBindings: true
 
 ko.bindingHandlers.expandAll =
   init: (el, acc, allBindigns, ctx, koctx) ->
@@ -198,10 +198,60 @@ ko.bindingHandlers.eachNonEmpty =
     fnames = ko.utils.unwrapObservable acc()
     fns = ko.bindingHandlers.eachNonEmpty.nonEmpty fnames, ctx, koctx
     ko.applyBindingsToNode el, {foreach: fns}, koctx
-    { controlsDescendantBindings: true }
+    controlsDescendantBindings: true
 
 ko.bindingHandlers.addMask =
   init: (el, acc) ->
     switch acc()
-      when "datetime" then $(el).inputmask({mask: "99.99.9999 99:99:99"})
+      when "datetime" then $(el).inputmask mask: "99.99.9999 99:99:99"
       else console.error("unknown mask")
+
+# "typeahead" handler
+# params model (every params here is optional):
+#   options:  Object (see for docs of typeahead.js)
+#   datasets: [Object (see for docs of typeahead.js)]
+#   value:    Observable (knockout's) - to set selected value there
+do ->
+  defaultOptions = Object.freeze
+    highlight: true
+    minLength: 0
+
+    classNames: Object.freeze
+      open: "open tt-open"
+      dataset: "dropdown-menu tt-dataset"
+
+  defaultDatasets = Object.freeze
+    source: []
+
+    templates: Object.freeze
+      suggestion: (value) -> "<li><a href='#'>#{value}</a></li>"
+
+      notFound: () ->
+        "<li class='disabled'><a href='#'>Ничего не найдено</a></li>"
+
+  makeDataset = (x) ->
+    x ?= {}
+    templates = Object.assign {}, defaultDatasets.templates, (x.templates ? {})
+    Object.assign {}, defaultDatasets, x, {templates}
+
+  init = (el, acc) ->
+    o = acc() ? {}
+
+    classNames = Object.assign {},
+      defaultOptions.classNames,
+      (o.options?.classNames ? {})
+
+    options = Object.assign {},
+      defaultOptions,
+      (o.options ? {}),
+      {classNames}
+
+    args = [options].concat (makeDataset x for x in o.datasets ? [])
+    $el = $ el
+    $el.typeahead.apply $el, args
+    $el.bind "typeahead:select", ((e, x) -> o.value x) if o.value?
+
+  ko.bindingHandlers.typeahead = {
+    init
+    update: (el, acc) -> $(el).typeahead "destroy"; init el, acc
+  }

@@ -37,6 +37,8 @@ module.exports =
       "jquery.knob": "jquery-knob/js/jquery.knob"
       "jquery.notify": "notify/dist/notify-combined"
       "jquery.datatables": "datatables"
+      "jquery.typeahead": "typeahead.js/dist/typeahead.jquery"
+      # "bloodhound": "typeahead.js/dist/bloodhound"
 
       "moment.tz":
         "moment-timezone/builds/moment-timezone-with-data-2010-2020"

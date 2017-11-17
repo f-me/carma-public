@@ -4,10 +4,10 @@
 
 module.exports =
   sendSms: ->
-    kase = window.global.viewsWare['case-form']?.knockVM
+    kase = window.global.viewsWare["case-form"]?.knockVM
 
     store.dispatch showSmsForm
-      phone:       kase?.contact_phone1()      ? ''
-      caseId:      kase?.id()                  ? ''
-      caseCity:    kase?.cityLocal()           ? ''
-      caseAddress: kase?.caseAddress_address() ? ''
+      phone:       kase?.contact_phone1()      ? ""
+      caseId:      kase?.id()                  ? ""
+      caseCity:    kase?.cityLocal()           ? ""
+      caseAddress: kase?.caseAddress_address() ? ""

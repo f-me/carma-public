@@ -1,7 +1,6 @@
 {$, _, ko} = require "carma/vendor"
 
-$.fn.typeahead = {}
-$.fn.typeahead.defaults =
+typeaheadDefaults =
   source: []
   items: 8
   menu: '<ul class="typeahead dropdown-menu"></ul>'
@@ -10,13 +9,14 @@ $.fn.typeahead.defaults =
   scrollHeight: 0
   autoSelect: true
 
+
 class ThMenu
   constructor: (options) ->
-    @options     = $.extend({}, $.fn.typeahead.defaults, options)
-    @matcher     = @.options.matcher     || @.matcher
-    @sorter      = @.options.sorter      || @.sorter
-    @highlighter = @.options.highlighter || @.highlighter
-    @$menu       = $(@.options.menu).appendTo('body')
+    @options     = $.extend({}, typeaheadDefaults, options)
+    @matcher     = @options.matcher     || @matcher
+    @sorter      = @options.sorter      || @sorter
+    @highlighter = @options.highlighter || @highlighter
+    @$menu       = $(@options.menu).appendTo('body')
 
     @selectcb    = options.select
     @dict        = options.dict
@@ -24,21 +24,21 @@ class ThMenu
     @shown = false
 
     @$menu
-      .on('click.typeahead',            $.proxy(@.click, @))
-      .on('mousedown.typeahead',        $.proxy(@.mousedown, @))
-      .on('mouseenter.typeahead', 'li', $.proxy(@.mouseenter, @))
+      .on('click.typeahead',            $.proxy(@click, @))
+      .on('mousedown.typeahead',        $.proxy(@mousedown, @))
+      .on('mouseenter.typeahead', 'li', $.proxy(@mouseenter, @))
 
   setElement: (el) =>
     @$element = $(el)
     @$element
-      .on('blur.typeahead',     $.proxy(@.blur, @))
-      .on('keypress.typeahead', $.proxy(@.keypress, @))
-      .on('keyup.typeahead',    $.proxy(@.keyup, @))
+      .on('blur.typeahead',     $.proxy(@blur, @))
+      .on('keypress.typeahead', $.proxy(@keypress, @))
+      .on('keyup.typeahead',    $.proxy(@keyup, @))
 
     # if $.browser.webkit or $.browser.msie
     # FIXME: test this on ff, in case of failure find way to detect browser
     # $.browser is deprecated
-    @$element.on('keydown.typeahead', $.proxy(@.keypress, @))
+    @$element.on('keydown.typeahead', $.proxy(@keypress, @))
 
   destructor: =>
     if @$element
@@ -57,7 +57,7 @@ class ThMenu
 
 
   select: =>
-    @selectcb(@.$menu.find('.active').attr('data-value'))
+    @selectcb(@$menu.find('.active').attr('data-value'))
     @hide()
     @$element.change()
     return @
@@ -65,9 +65,9 @@ class ThMenu
   show: =>
     windowWidth = $(window).width()
 
-    pos = $.extend {}, @.$element.offset(),
-      height: @.$element[0].offsetHeight
-      width: @.$element[0].offsetWidth
+    pos = $.extend {}, @$element.offset(),
+      height: @$element[0].offsetHeight
+      width: @$element[0].offsetWidth
 
     pos.right = windowWidth - pos.left - pos.width
 
@@ -84,7 +84,7 @@ class ThMenu
         top: pos.top - @$menu.height() - paddingBottom
         left: left
         right: right
-        minWidth: @.$element.width() + "px"
+        minWidth: @$element.width() + "px"
         maxWidth: '55%'
     else
       # .. show menu below it
@@ -92,19 +92,19 @@ class ThMenu
         top: pos.top + pos.height
         left: left
         right: right
-        minWidth: @.$element.width() + "px"
+        minWidth: @$element.width() + "px"
         maxWidth: '55%'
 
     @$menu.show()
     @shown = true
-    $(document).on('mousedown', $.proxy(@.hide, @))
+    $(document).on('mousedown', $.proxy(@hide, @))
     return @
 
   hide: =>
-    return @ unless @.shown
+    return @ unless @shown
     @$menu.hide()
     @shown = false
-    $(document).off('mousedown', @.hide)
+    $(document).off('mousedown', @hide)
     return @
 
   toggle: =>
@@ -165,7 +165,7 @@ class ThMenu
     @select()
 
   mouseenter: (e) =>
-    @.$menu.find('.active').removeClass('active')
+    @$menu.find('.active').removeClass('active')
     $(e.currentTarget).addClass('active')
 
   mousedown: (e) -> e.stopPropagation(); e.preventDefault()
@@ -177,24 +177,24 @@ class ThMenu
   _draw:  =>
     return @ unless @$element
     @dict.lookup @$element.val(), (v) =>
-      return @.hide() if _.isEmpty v
-      return @.render(v).show()
+      return @hide() if _.isEmpty v
+      return @render(v).show()
 
   # this methos is for .add-on arrow on the field
   drawAll: =>
     return @ unless @$element
     unless @$element.is(':disabled')
       @dict.lookup "", (v) =>
-        return @.hide() if _.isEmpty v
-        return @.render(v).show()
+        return @hide() if _.isEmpty v
+        return @render(v).show()
 
   # this methos is for .add-on search on the field
   drawAllForce: =>
     return @ unless @$element
     unless @$element.is(':disabled')
       @dict.lookup @$element.val(), (v) =>
-        return @.hide() if _.isEmpty v
-        return @.render(v).show()
+        return @hide() if _.isEmpty v
+        return @render(v).show()
       , {force: true}
 
 
@@ -231,5 +231,6 @@ class ThMenu
         @next()
 
     e.stopPropagation()
+
 
 module.exports = {ThMenu}

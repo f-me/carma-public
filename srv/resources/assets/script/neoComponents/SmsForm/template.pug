@@ -11,7 +11,7 @@
         h4 Отправка СМС
       .modal-body
         form.form-horizontal
-          .form-group.has-error
+          .form-group
             label.col-sm-4.control-label Номер кейса
             .col-sm-8
               input.form-control(
@@ -25,9 +25,15 @@
                 input.form-control(type='tel' data-bind='value: phone')
                 span.input-group-addon
                   span.stolen-icon.stolen-icon-phone
-          .form-group.has-error
+          .form-group
             label.col-sm-4.control-label Шаблон сообщения
-            .col-sm-8 <b>TODO</b>
+            .col-sm-8
+              input.form-control(type='text' data-bind='\
+                typeahead: {\
+                  datasets: [{limit: 20, source: smsTplFuzzySearchHandler}],\
+                  value: smsTemplate,\
+                },\
+              ')
           .form-group.has-error
             label.col-sm-4.control-label Текст сообщения
             .col-sm-8

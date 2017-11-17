@@ -4,6 +4,7 @@ require "jquery"
 require "jquery.knob"
 require "jquery.notify"
 require "jquery.datatables"
+require "jquery.typeahead"
 
 require "js-base64"
 require "blueimp-md5"

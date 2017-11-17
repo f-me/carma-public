@@ -2,6 +2,7 @@ $ = require "jquery"
 require "jquery.knob"
 require "jquery.notify"
 require "jquery.datatables"
+require "jquery.typeahead"
 
 md5      = require "blueimp-md5"
 {Base64} = require "js-base64"
