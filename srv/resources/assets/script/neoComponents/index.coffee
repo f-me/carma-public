@@ -1,5 +1,7 @@
 {ko} = require "carma/vendor"
-{BaseViewModel} = require "carma/neoComponents/BaseViewModel"
+
+{TopLevelModalsViewModel} =
+  require "carma/neoComponents/TopLevelModalsViewModel"
 
 module.exports =
   init: () ->
@@ -10,5 +12,5 @@ module.exports =
     for x in components
       ko.components.register x.componentName, x.component
 
-    ko.applyBindings (new BaseViewModel),
+    ko.applyBindings (new TopLevelModalsViewModel),
       document.getElementById "top-level-modals"

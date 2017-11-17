@@ -1,7 +1,12 @@
-{ko} = require "carma/vendor"
+{_, ko} = require "carma/vendor"
 {data} = require "carma/data"
 {store} = require "carma/neoComponents/store"
-{closeSmsForm} = require "carma/neoComponents/store/smsForm/actions"
+
+{
+  closeSmsForm
+  sendSmsFormRequest
+} = require "carma/neoComponents/store/smsForm/actions"
+
 require "./styles.less"
 
 smsTemplates = data.model.SmsTemplate.filter (x) => x.isActive
@@ -19,7 +24,9 @@ class SmsFormViewModel
     @unsubscribeFromAppState = store.subscribe => @appState store.getState()
 
     # Pure value from store
-    isShown = ko.pureComputed => @appState().smsForm.isShown
+    @isProcessing = ko.pureComputed => @appState().smsForm.isProcessing
+    @isFailed     = ko.pureComputed => @appState().smsForm.isFailed
+    isShown       = ko.pureComputed => @appState().smsForm.isShown
 
     @subscriptions = [] # Mutable
 
@@ -32,11 +39,15 @@ class SmsFormViewModel
 
     # Overwrite form's values with ones from store when form is just shown
     @subscriptions.push isShown.subscribe (value) =>
-      return unless value # if form is just close with don' have to do anything
+      return unless value # if form is just closed we don't have to do anything
+
       @phone       @appState().smsForm.phone
       @caseId      @appState().smsForm.caseId
       @caseCity    @appState().smsForm.caseCity
       @caseAddress @appState().smsForm.caseAddress
+
+      @smsTemplate null
+      @message     ""
 
     @message = ko.observable("").extend validate: (x) -> true if x.trim() is ""
 
@@ -55,6 +66,7 @@ class SmsFormViewModel
     @smsTemplate = ko.observable null
 
     @subscriptions.push @smsTemplate.subscribe (x) =>
+      return unless x?
       {text} = _.find smsTemplates, ({label}) -> label is x
 
       x = text
@@ -65,8 +77,10 @@ class SmsFormViewModel
 
       @message x
 
-    @sendIsBlocked = ko.pureComputed =>
-      Boolean @phone.validationError() || @message.validationError()
+    @sendIsBlocked = ko.pureComputed => Boolean \
+      @phone.validationError() or \
+      @message.validationError() or \
+      @isProcessing()
 
   dispose: =>
     do @unsubscribeFromAppState
@@ -84,7 +98,20 @@ class SmsFormViewModel
     cb (x for {label: x} in smsTemplates when hasMatch q, x)
 
   send: =>
-    console.error "TODO: sms form sending"
+    smsTpl = @smsTemplate()
+
+    reqData =
+      phone:      @phone()
+      caseId:     @caseId()
+      message:    @message()
+      templateId: _.find(smsTemplates, ({label: x}) => x is smsTpl)?.id ? null
+
+    store.dispatch sendSmsFormRequest reqData
+      .then =>
+        @smsTemplate null
+        @message     ""
+
+  clearSmsTemplate: => @smsTemplate null
 
 
 module.exports =

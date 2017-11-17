@@ -13,6 +13,7 @@ ko       = require "knockout"
 {Finch}  = require "finchjs/coffee/finch"
 
 Redux        = require "redux"
+ReduxThunk   = require("redux-thunk").default
 ReduxActions = require "redux-actions"
 
 moment = require "moment"
@@ -46,20 +47,23 @@ require "oldLegacy3p/date/extras.js"
 require "oldLegacy3p/date/parser.js"
 require "oldLegacy3p/date/sugarpak.js"
 
-module.exports =
-  { $
-  , _
-  , ko
-  , d3
-  , md5
-  , Base64
-  , moment
-  , Finch
-  , Redux
-  , ReduxActions
-  , Mustache
-  , Spinner
-  , Mousetrap
-  , OpenLayers
-  , Promise
-  }
+module.exports = {
+  $
+  _
+  ko
+  d3
+  md5
+  moment
+
+  Redux
+  ReduxThunk
+  ReduxActions
+
+  Finch
+  Base64
+  Spinner
+  Promise
+  Mustache
+  Mousetrap
+  OpenLayers
+}

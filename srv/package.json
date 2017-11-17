@@ -76,6 +76,7 @@
     "openlayers-2-build": "github:f-me/openlayers-2-build#v2.13.1",
     "redux": "^3.7.2",
     "redux-actions": "^2.2.1",
+    "redux-thunk": "^2.2.0",
     "spin.js": "2.0.1",
     "typeahead.js": "^0.11.1",
     "underscore": "~1.6.0",

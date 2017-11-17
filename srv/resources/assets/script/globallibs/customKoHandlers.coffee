@@ -249,9 +249,23 @@ do ->
     args = [options].concat (makeDataset x for x in o.datasets ? [])
     $el = $ el
     $el.typeahead.apply $el, args
-    $el.bind "typeahead:select", ((e, x) -> o.value x) if o.value?
+
+    if o.value?
+      lastValue = o.value()
+
+      el.__ko_typeahead_unsubscribe = o.value.subscribe (x) ->
+        $el.typeahead "val", x if x isnt lastValue
+
+      $el.bind "typeahead:select", (e, x) ->
+        lastValue = x
+        o.value x
 
   ko.bindingHandlers.typeahead = {
     init
-    update: (el, acc) -> $(el).typeahead "destroy"; init el, acc
+
+    update: (el, acc) ->
+      el.__ko_typeahead_unsubscribe?()
+      delete el.__ko_typeahead_unsubscribe
+      $(el).typeahead "destroy"
+      init el, acc
   }

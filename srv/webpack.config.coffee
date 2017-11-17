@@ -23,6 +23,10 @@ module.exports =
     resources: path.join SRC_DIR, "entryPoints", "resources"
     vendor:    path.join SRC_DIR, "entryPoints", "vendor"
 
+  node:
+    __filename: true
+    __dirname:  true
+
   resolve:
     alias:
       carma:         path.resolve SRC_DIR

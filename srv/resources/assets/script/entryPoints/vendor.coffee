@@ -15,6 +15,7 @@ require "finchjs/coffee/finch"
 
 require "redux"
 require "redux-actions"
+require "redux-thunk"
 
 require "moment"
 require "moment/locale/ru"

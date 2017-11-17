@@ -1,6 +1,11 @@
-{Redux: {createStore, combineReducers}} = require "carma/vendor"
+{
+  Redux: {createStore, combineReducers, applyMiddleware}
+  ReduxThunk
+} = require "carma/vendor"
 
-store = createStore combineReducers
+reducers = combineReducers
   smsForm: require "./smsForm/reducers"
+
+store = createStore reducers, applyMiddleware ReduxThunk
 
 module.exports = {store}
