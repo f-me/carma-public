@@ -23,8 +23,9 @@ class SmsFormViewModel
 
     @subscriptions = [] # Mutable
 
-    # Internal own model's properties
-    @phone       = ko.observable @appState().smsForm.phone
+    @phone = ko.observable @appState().smsForm.phone
+      .extend validate: (x) -> true unless /^\+\d{11}$/.test x
+
     @caseId      = ko.observable @appState().smsForm.caseId
     @caseCity    = ko.observable @appState().smsForm.caseCity
     @caseAddress = ko.observable @appState().smsForm.caseAddress
@@ -37,7 +38,7 @@ class SmsFormViewModel
       @caseCity    @appState().smsForm.caseCity
       @caseAddress @appState().smsForm.caseAddress
 
-    @message = ko.observable ""
+    @message = ko.observable("").extend validate: (x) -> true if x.trim() is ""
 
     # Delaying just for a moment to start animation after element is shown
     @fadeIn = ko.pureComputed isShown
@@ -57,18 +58,23 @@ class SmsFormViewModel
       {text} = _.find smsTemplates, ({label}) -> label is x
 
       x = text
-        .replace /\$phone\$/,                     @phone()
-        .replace /\$case\.id\$/,                  @caseId()
-        .replace /\$case\.city\$/,                @caseCity()
-        .replace /\$case\.caseAddress_address\$/, @caseAddress()
+        .replace /\$phone\$/g,                     @phone()
+        .replace /\$case\.id\$/g,                  @caseId()
+        .replace /\$case\.city\$/g,                @caseCity()
+        .replace /\$case\.caseAddress_address\$/g, @caseAddress()
 
       @message x
+
+    @sendIsBlocked = ko.pureComputed =>
+      Boolean @phone.validationError() || @message.validationError()
 
   dispose: =>
     do @unsubscribeFromAppState
     do x.dispose for x in @subscriptions
 
-  closeForm: () ->
+  closeForm: (model, e) ->
+    do e?.preventDefault
+    do e?.stopPropagation
     store.dispatch closeSmsForm()
 
   handleOverlayClick: (model, {target}) =>
@@ -76,6 +82,9 @@ class SmsFormViewModel
 
   smsTplFuzzySearchHandler: (q, cb) ->
     cb (x for {label: x} in smsTemplates when hasMatch q, x)
+
+  send: =>
+    console.error "TODO: sms form sending"
 
 
 module.exports =

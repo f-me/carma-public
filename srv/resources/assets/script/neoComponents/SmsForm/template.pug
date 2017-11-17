@@ -18,11 +18,13 @@
                 disabled
                 type='number'
                 data-bind='value: caseId')
-          .form-group.has-error
+          .form-group(data-bind='css: {"has-error": phone.validationError}')
             label.col-sm-4.control-label Телефон получателя
             .col-sm-8
               span.input-group.input-group-sm
-                input.form-control(type='tel' data-bind='value: phone')
+                input.form-control(
+                  type='tel'
+                  data-bind='value: phone, valueUpdate: "keyup"')
                 span.input-group-addon
                   span.stolen-icon.stolen-icon-phone
           .form-group
@@ -32,12 +34,19 @@
                 typeahead: {\
                   datasets: [{limit: 20, source: smsTplFuzzySearchHandler}],\
                   value: smsTemplate,\
+                  valueUpdate: "keyup",\
                 },\
               ')
-          .form-group.has-error
+          .form-group(data-bind='css: {"has-error": message.validationError}')
             label.col-sm-4.control-label Текст сообщения
             .col-sm-8
-              textarea.form-control(rows=7 data-bind='value: message')
+              textarea.form-control(
+                rows=7
+                data-bind='value: message, valueUpdate: "keyup"')
       .modal-footer
         button.btn.btn-primary(data-bind='click: closeForm') Отмена
-        button.btn.btn-success Отправить
+
+        button.btn.btn-success(data-bind='\
+          disabled: sendIsBlocked,\
+          click:    send,\
+        ') Отправить
