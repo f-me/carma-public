@@ -23,42 +23,41 @@ forgetScreen = ->
   window.global.viewsWare = {}
   window.global.activeScreen = null
 
+# Render top-level screen template (static)
+#
+# args object is passed further to all view setup functions.
+renderScreen = (screenObj, args) ->
+  do forgetScreen
+  screen = screenObj.screen
+  screen.reload = -> renderScreen screenObj, args
+  window.global.activeScreen = screen
+
+  # Highlight the new item in navbar
+  $("li.active").removeClass "active"
+  $el("#{screen.name}-screen-nav").addClass "active"
+
+  rawPartials = if screenObj.partials \
+    then $('.partial').add $(screenObj.partials).siblings(".partial")
+    else $('.partial')
+
+  partials = do ->
+    reducer = (res, p) -> res[$(p).attr('id')] = $(p).html(); res
+    Array::reduce.call rawPartials, reducer, {}
+
+  wrappers = screenObj.wrappers?(partials) or {}
+
+  tpl = screenObj?.template || $el(screen.template).html()
+  throw "Template for screen #{screen.name} is not found" unless tpl?
+  tpl1 = Mustache.render tpl, wrappers, partials
+  window.global.topElement.html tpl1
+
+  # Call setup functions for all views,
+  # assuming they will set their 'viewsWare'.
+  for viewName, cs of screen.views when cs.constructor?
+    cs.constructor viewName, args
+
 
 module.exports = {
-
-  # Render top-level screen template (static)
-  #
-  # args object is passed further to all view setup functions.
-  renderScreen: (screenObj, args) ->
-    forgetScreen()
-    screen = screenObj.screen
-    screen.reload = => @renderScreen(screenObj, args)
-    window.global.activeScreen = screen
-
-    # Highlight the new item in navbar
-    $("li.active").removeClass("active")
-    $el(screen.name + "-screen-nav").addClass("active")
-
-    rawPartials = if screenObj.partials \
-      then $('.partial').add($(screenObj.partials).siblings(".partial"))
-      else $('.partial')
-
-    partials = do ->
-      reducer = (res, p) -> res[$(p).attr('id')] = $(p).html(); res
-      Array::reduce.call rawPartials, reducer, {}
-
-    wrappers = screenObj.wrappers?(partials) or {}
-
-    tpl = screenObj?.template || $el(screen.template).html()
-    throw "Template for screen #{screen.name} is not found" unless tpl?
-    tpl1 = Mustache.render tpl, wrappers, partials
-    window.global.topElement.html tpl1
-
-    # Call setup functions for all views,
-    # assuming they will set their 'viewsWare'.
-    for viewName, cs of screen.views when cs.constructor?
-      cs.constructor viewName, args
-
-  # Clean up all views on screen and everything.
+  renderScreen
   forgetScreen
 }
