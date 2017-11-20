@@ -18,7 +18,7 @@ hasMatch = (q, x) ->
 
 
 class SmsFormViewModel
-  constructor: () ->
+  constructor: ->
     # Connector to store
     @appState = ko.observable store.getState()
     @unsubscribeFromAppState = store.subscribe => @appState store.getState()

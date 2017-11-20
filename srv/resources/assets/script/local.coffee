@@ -64,15 +64,17 @@ module.exports.init = ({dicts, user, users}) ->
       for i in users
         {value: i.login, label: i.roles}
 
-  main        = require "carma/model/main"
-  hooks       = require "carma/hooks/config"
-  {LstoreSub} = require "carma/lstorePubSub"
+  main          = require "carma/model/main"
+  hooks         = require "carma/hooks/config"
+  {LstoreSub}   = require "carma/lstorePubSub"
+  neoComponents = require "carma/neoComponents"
+
+  do neoComponents.registerComponents
 
   # also declares `window.global` crap
   main.setup dicts, hooks, user, new LstoreSub
 
-  window.global.keys = {}
-  window.global.keys.arrows = {left: 37, up: 38, right: 39, down: 40}
+  window.global.keys = arrows: {left: 37, up: 38, right: 39, down: 40}
 
   # Doing it here because some of it depends on global messy crappy dungy shit.
   u             = require "carma/utils"
@@ -82,10 +84,10 @@ module.exports.init = ({dicts, user, users}) ->
   hacking       = require "carma/lib/hacking"
   {CTI}         = require "carma/lib/cti"
   {CTIPanel}    = require "carma/lib/cti-panel"
-  neoComponents = require "carma/neoComponents"
 
-  hacking.reenableHacks()
+  do hacking.reenableHacks
   do u.makeAFuckingMess
+  do neoComponents.initTopLevelModals
 
   # disable everytnig websocket-related for portal
   if not window.location.origin.match(/portal\.ruamc\.ru/)
@@ -140,8 +142,6 @@ module.exports.init = ({dicts, user, users}) ->
         Mousetrap.bind "ctrl+enter", () -> window.global.CTIPanel.answer()
       else
         console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
-
-  do neoComponents.init
 
   if user.login == "darya"
     $('#icon-user').removeClass('icon-user').addClass('icon-heart')

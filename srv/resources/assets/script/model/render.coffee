@@ -5,55 +5,93 @@ Flds = require "carma-tpl/fields/form.pug"
 
 FS = $('<div/>').append($(Flds))
 
-renderKnockVm = (elName, knockVM, options) ->
-  model     = knockVM._meta.model
-  cid       = knockVM._meta.cid
-  content   = renderFields(model, elName, options, knockVM)
-  groupTpls = getTemplates("group-template")
-  depViews  = {}
-  for gName, cont of content
-    # Main form & permissions
-    if gName == "_"
-      $el(elName).html(cont)
-      $el(options.permEl).html renderPermissions(model, elName)
-    else
-      view = mkSubviewName(gName, 0, model.name, cid)
-      depViews[gName] = [view]
+# Build name of view for refN-th reference stored in refField of
+# instance of model name parentModelName with id parentId.
+mkSubviewName = (refField, refN, parentModelName, parentId) ->
+  "#{parentModelName}-#{parentId}-#{refField}-view-#{refN}"
 
-      # Subforms for groups
-      $el(options.groupsForest).append(
-          renderDep { refField: gName, refN: 0, refView  : view },
-                    groupTpls)
-      # render actual view content in the '.content'
-      # children of view block, so we can add
-      # custom elements to decorate view
-      $el(view).find('.content').html(content[gName])
+# Build name of class of views for references stored in refField of
+# parentModelName with given id.
+mkSubviewClass = (refField, parentModelName, parentId) ->
+  "#{parentModelName}-#{parentId}-#{refField}-views"
 
-  if options.defaultGroup and _.has(groupTpls, options.defaultGroup)
-    depViews["default-group"] = options.defaultGroup
-    $el(options.groupsForest).append(
-          renderDep { refField: options.defaultGroup }, groupTpls)
-  if _.isFunction(options.renderRefCb)
-    options.renderCb(r, subViewN)
+# Get all templates with given class, stripping "-<class>" from id of
+# every template.
+#
+# TODO Cache this
+getTemplates = (cls) ->
+  templates = {}
+  for tmp in _.union FS.find(".#{cls}").toArray(), $(".#{cls}").toArray()
+    templates[tmp.id.replace("-#{cls}", "")] = $(tmp).html()
+  templates
 
-  return depViews
+# Render permissions controls for form holding an instance in given
+# view.
+#
+# @return String with HTML for form
+renderPermissions = (model, viewName) ->
+  modelRo = not model.canUpdate and not model.canCreate and not model.canDelete
+  # Add HTML to contents for non-false permissions
+  Mustache.render \
+    $(FS).find("#permission-template").html(),
+    _.extend(model, {viewName, readonly: modelRo})
 
-mkRefContainer = (ref, field, forest, templates)->
-  modelName = ref._meta.model.name
-  cid       = ref._meta.cid
-  fname     = field.name
-  refBook =
-    refN: 0
-    refModelName: modelName
-    refId: ref.id()
-    refField: fname
-    refWidget: field.meta?["reference-widget"]
-    refClass: mkSubviewClass(fname, modelName, cid)
-    refView: mkSubviewName(fname, 0, modelName, cid)
+# Pick a template from cache which matches one of given names first.
+pickTemplate = (templates, names) ->
+  return templates[n] for n in names when _.has(templates, n)
+  Mustache.render FS.find("#unknown-field-template").html(), {names}
 
-  refView = renderDep(refBook, templates)
-  $el(forest).append(refView)
-  return refBook
+# Pick first template element with id which matches:
+# <model.name>-<field.name>, <field.name>-<field.type>,
+# <field.meta.widget>, <field.type>
+chooseFieldTemplate = (field, templates) ->
+  typed_tpl = field.type
+  named_tpl = "#{field.name}-#{field.type}"
+  mdl_named_tpl = "#{field.modelName}-#{field.name}"
+  widget_tpl = ""
+
+  if field.meta? and _.has(field.meta, "widget")
+    widget_tpl = field.meta.widget
+
+  pickTemplate templates,
+    [mdl_named_tpl, named_tpl, widget_tpl, typed_tpl, "unknown"]
+
+# Generate HTML contents for view which will be populated by
+# referenced instance described by keys of refBook:
+#
+# refN - number of instance in reference field of parent model;
+#
+# refId - id of model instance being referenced;
+#
+# refField - name of field of parent model which stores reference;
+#
+# refWidget - overrides field name when picking reference template;
+#
+# refView - name of reference view. where instance will be rendered
+# after loading.
+#
+# refClass - class of reference views in this book.
+#
+# refBook may contain any other keys as well and will be passed to
+# Mustache.render as a context.
+#
+# Templates will be pickTemplate'd against using <refWidget>, simply
+# <refField> or default template.
+#
+# Every view template MUST set div with id=<refView> and
+# class=<refClass> where model will be setup; an element with
+# id=<refView>-link which will be bound to KnockVM of referenced
+# instance; possibly <refView>-perms for rendering instance
+# permissions template.
+#
+# This may also be used to render any dependant views for model to
+# maintain unique ids.
+renderDep = (refBook, templates) ->
+  typed_tpl  = refBook.refField
+  widget_tpl = refBook.refWidget || typed_tpl
+  Mustache.render \
+    pickTemplate(templates, [widget_tpl, typed_tpl, ""]),
+    refBook
 
 # field templates
 
@@ -90,7 +128,7 @@ mkRefContainer = (ref, field, forest, templates)->
 # There's no way to fully include group fields in main section except
 # giving `mainToo` annotation in each field of group.
 renderFields = (model, viewName, options, knockVM) ->
-  templates = getTemplates("field-template")
+  templates = getTemplates "field-template"
 
   contents  = {}
   fType     = ""
@@ -126,7 +164,7 @@ renderFields = (model, viewName, options, knockVM) ->
       readonly = f.readonly or not model.canUpdate or not f.canWrite
 
       # Add extra context prior to rendering
-      ctx = {readonly: readonly, viewName: viewName}
+      ctx = {readonly, viewName}
 
       # If group ended, or group spliced for different
       # original field started, we'll put contents to
@@ -182,98 +220,57 @@ renderFields = (model, viewName, options, knockVM) ->
 
       if f.meta and (f.meta.mainToo or f.meta.mainOnly)
         contents[mainGroup] += Mustache.render(tpl, ctx)
-  return contents
+  contents
 
-# Build name of view for refN-th reference stored in refField of
-# instance of model name parentModelName with id parentId.
-mkSubviewName = (refField, refN, parentModelName, parentId) ->
-  "#{parentModelName}-#{parentId}-#{refField}-view-#{refN}"
+renderKnockVm = (elName, knockVM, options) ->
+  model     = knockVM._meta.model
+  cid       = knockVM._meta.cid
+  content   = renderFields model, elName, options, knockVM
+  groupTpls = getTemplates "group-template"
+  depViews  = {}
+  for gName, cont of content
+    # Main form & permissions
+    if gName == "_"
+      $el(elName).html(cont)
+      $el(options.permEl).html renderPermissions(model, elName)
+    else
+      view = mkSubviewName(gName, 0, model.name, cid)
+      depViews[gName] = [view]
 
-# Build name of class of views for references stored in refField of
-# parentModelName with given id.
-mkSubviewClass = (refField, parentModelName, parentId) ->
-  "#{parentModelName}-#{parentId}-#{refField}-views"
+      # Subforms for groups
+      $el(options.groupsForest).append(
+          renderDep { refField: gName, refN: 0, refView  : view },
+                    groupTpls)
+      # render actual view content in the '.content'
+      # children of view block, so we can add
+      # custom elements to decorate view
+      $el(view).find('.content').html(content[gName])
 
-# Pick first template element with id which matches:
-# <model.name>-<field.name>, <field.name>-<field.type>,
-# <field.meta.widget>, <field.type>
-chooseFieldTemplate = (field, templates) ->
-  typed_tpl = field.type
-  named_tpl = "#{field.name}-#{field.type}"
-  mdl_named_tpl = "#{field.modelName}-#{field.name}"
-  widget_tpl = ""
-  if field.meta? and _.has(field.meta, "widget")
-    widget_tpl = field.meta.widget
+  if options.defaultGroup and _.has(groupTpls, options.defaultGroup)
+    depViews["default-group"] = options.defaultGroup
+    $el(options.groupsForest).append(
+          renderDep { refField: options.defaultGroup }, groupTpls)
+  if _.isFunction(options.renderRefCb)
+    options.renderCb(r, subViewN)
 
-  tpl = pickTemplate(templates,
-                     [ mdl_named_tpl, named_tpl
-                     , widget_tpl, typed_tpl
-                     , "unknown"
-                     ])
-  return tpl
+  depViews
 
-# Render permissions controls for form holding an instance in given
-# view.
-#
-# @return String with HTML for form
-renderPermissions = (model, viewName) ->
-  modelRo = not model.canUpdate and not model.canCreate and not model.canDelete
-  # Add HTML to contents for non-false permissions
-  Mustache.render($(FS).find("#permission-template").html(),
-                  _.extend(model, {viewName: viewName, readonly: modelRo}))
+mkRefContainer = (ref, field, forest, templates)->
+  modelName = ref._meta.model.name
+  cid       = ref._meta.cid
+  fname     = field.name
+  refBook =
+    refN: 0
+    refModelName: modelName
+    refId: ref.id()
+    refField: fname
+    refWidget: field.meta?["reference-widget"]
+    refClass: mkSubviewClass(fname, modelName, cid)
+    refView: mkSubviewName(fname, 0, modelName, cid)
 
-# Get all templates with given class, stripping "-<class>" from id of
-# every template.
-#
-# TODO Cache this
-getTemplates = (cls) ->
-  templates = {}
-  for tmp in _.union FS.find(".#{cls}").toArray(), $(".#{cls}").toArray()
-    templates[tmp.id.replace("-#{cls}", "")] = $(tmp).html()
-  return templates
-
-# Generate HTML contents for view which will be populated by
-# referenced instance described by keys of refBook:
-#
-# refN - number of instance in reference field of parent model;
-#
-# refId - id of model instance being referenced;
-#
-# refField - name of field of parent model which stores reference;
-#
-# refWidget - overrides field name when picking reference template;
-#
-# refView - name of reference view. where instance will be rendered
-# after loading.
-#
-# refClass - class of reference views in this book.
-#
-# refBook may contain any other keys as well and will be passed to
-# Mustache.render as a context.
-#
-# Templates will be pickTemplate'd against using <refWidget>, simply
-# <refField> or default template.
-#
-# Every view template MUST set div with id=<refView> and
-# class=<refClass> where model will be setup; an element with
-# id=<refView>-link which will be bound to KnockVM of referenced
-# instance; possibly <refView>-perms for rendering instance
-# permissions template.
-#
-# This may also be used to render any dependant views for model to
-# maintain unique ids.
-renderDep = (refBook, templates) ->
-  typed_tpl = refBook.refField
-  widget_tpl = refBook.refWidget || typed_tpl
-  return Mustache.render \
-    pickTemplate(templates, [widget_tpl, typed_tpl, ""]),
-    refBook
-
-# Pick a template from cache which matches one of given names first.
-pickTemplate = (templates, names) ->
-  for n in names when _.has(templates, n)
-    return templates[n]
-  Mustache.render FS.find("#unknown-field-template").html(), {names}
+  refView = renderDep(refBook, templates)
+  $el(forest).append(refView)
+  refBook
 
 module.exports = {
   kvm: renderKnockVm
