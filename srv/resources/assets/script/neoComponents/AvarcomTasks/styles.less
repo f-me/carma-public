@@ -3,15 +3,21 @@ avarcom-tasks {
     width: 100%;
 
     .tt-input { border-radius: 4px !important; }
-  }
 
-  .dropdown-menu {
-    max-height: 300px;
-    overflow: auto;
+    .tt-menu.tt-open {
+      width: 100%;
+      top: 0 !important;
 
-    & > li > a {
-      white-space: normal;
-      padding: 5px 20px;
+      .dropdown-menu {
+        width: 100%;
+        max-height: 300px;
+        overflow: auto;
+
+        & > li > a {
+          white-space: normal;
+          padding: 5px 20px;
+        }
+      }
     }
   }
 }
