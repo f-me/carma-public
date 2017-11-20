@@ -3,7 +3,6 @@
 
 class DiagTreeEditorViewModel
   constructor: ->
-    console.error "constructor of DiagTreeEditorViewModel"
   dispose: =>
 
 
