@@ -1,4 +1,5 @@
 {ko} = require "carma/vendor"
+{simpleFuzzySearch} = require "carma/lib/search"
 {data} = require "carma/data"
 {store} = require "carma/neoComponents/store"
 
@@ -10,11 +11,6 @@
 require "./styles.less"
 
 smsTemplates = data.model.SmsTemplate.filter (x) => x.isActive
-
-hasMatch = (q, x) ->
-  q = q.toLowerCase()
-  x = x.toLowerCase()
-  (w.trim() for w in q.split /\s+/g).every (w) -> ~ x.indexOf w
 
 
 class SmsFormViewModel
@@ -95,7 +91,7 @@ class SmsFormViewModel
     do @closeForm if target.classList.contains "is-overlay"
 
   smsTplFuzzySearchHandler: (q, cb) ->
-    cb (x for {label: x} in smsTemplates when hasMatch q, x)
+    cb (x for {label: x} in smsTemplates when simpleFuzzySearch q, x)
 
   send: =>
     smsTpl = @smsTemplate()

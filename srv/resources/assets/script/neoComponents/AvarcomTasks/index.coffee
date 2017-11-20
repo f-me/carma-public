@@ -1,4 +1,5 @@
 {ko} = require "carma/vendor"
+{simpleFuzzySearch} = require "carma/lib/search"
 require "./styles.less"
 
 DISABLED_STATES = [4, 9, 19, 20]
@@ -12,11 +13,6 @@ fetchAvailableTasks = ->
       cachedAvailableTasks \
         ({isChecked: false, id, label} \
           for {id, label, isActive} in json when isActive)
-
-hasMatch = (q, x) ->
-  q = q.toLowerCase()
-  x = x.toLowerCase()
-  (w.trim() for w in q.split /\s+/g).every (w) -> ~ x.indexOf w
 
 
 class AvarcomTasksViewModel
@@ -81,7 +77,7 @@ class AvarcomTasksViewModel
     @onChange cloneTasks @tasks()
 
   typeaheadHandler: (q, cb) =>
-    cb (x for {label: x} in @availableTasks() when hasMatch q, x)
+    cb (x for {label: x} in @availableTasks() when simpleFuzzySearch q, x)
 
 
 module.exports =
