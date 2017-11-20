@@ -12,6 +12,8 @@ include _form_utils.pug
 
 .field-template#AvarcomTasks-field-template
   +fieldControlGroup
+    // 'onChange' is a function that takes new list as first argument,
+    // so observable is, but keeping API clean in sense of immutability.
     avarcom-tasks(params='\
       selectedTasks: {{ name }},\
       serviceStatus: status,\

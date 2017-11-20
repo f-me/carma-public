@@ -174,12 +174,13 @@ Search.attachTo("search")
 addRoute "kpi", =>
 KPI.attachTo("kpi")
 
-addRoute "diag/edit", =>
-  console.error "TODO DiagTree.Editor"
-  # r.renderScreen
-  #   screen:
-  #     name: "diag-edit"
-  #     component: React.createElement CarmaComponents.DiagTree.Editor
+addRoute "diag/edit", (bind) ->
+  scr = require "carma/screens/diagTree/editor"
+  scr.screen =
+    name: "diagTreeEditor"
+    views:
+      "diagTreeEditor-view": scr
+  r.renderScreen scr, bind
 
 addRoute "diag/show/:caseId", (args) =>
   console.error "TODO DiagTree.Show"

@@ -8,6 +8,7 @@ module.exports =
     components = [
       require "carma/neoComponents/SmsForm"
       require "carma/neoComponents/AvarcomTasks"
+      require "carma/neoComponents/DiagTree/Editor"
     ]
 
     for x in components
