@@ -1,4 +1,4 @@
-{_, ko} = require "carma/vendor"
+{ko} = require "carma/vendor"
 {data} = require "carma/data"
 {store} = require "carma/neoComponents/store"
 
@@ -67,7 +67,7 @@ class SmsFormViewModel
 
     @subscriptions.push @smsTemplate.subscribe (x) =>
       return unless x?
-      {text} = _.find smsTemplates, ({label}) -> label is x
+      {text} = do -> return tpl for tpl in smsTemplates when tpl.label is x
 
       x = text
         .replace /\$phone\$/g,                     @phone()

@@ -1,1 +1,17 @@
-div some testing stuff…
+div(data-bind='foreach: tasks')
+  div(data-bind='attr: {"data-task-id": id}')
+    input(type='checkbox' data-bind='\
+      disable: $parent.isDisabled,\
+      checked: isChecked,\
+      event:   {change: $parent.onCheckboxChange},\
+    ')
+
+    | &nbsp;&nbsp;
+    span(data-bind='text: label')
+
+    // ko ifnot: $parent.isDisabled
+    | &nbsp;&nbsp;
+    a(href='#' data-bind='click: $parent.removeTask') ×
+    // /ko
+
+    br

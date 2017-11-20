@@ -12,7 +12,11 @@ include _form_utils.pug
 
 .field-template#AvarcomTasks-field-template
   +fieldControlGroup
-    avarcom-tasks
+    avarcom-tasks(params='\
+      selectedTasks: {{ name }},\
+      serviceStatus: status,\
+      onChange:      {{ name }},\
+    ')
 
 .field-template#textarea-field-template
   +fieldControlGroup
