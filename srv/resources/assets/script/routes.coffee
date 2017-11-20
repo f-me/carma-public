@@ -175,13 +175,15 @@ addRoute "kpi", =>
 KPI.attachTo("kpi")
 
 addRoute "diag/edit", =>
-  r.renderScreen
-    screen:
-      name: "diag-edit"
-      component: React.createElement CarmaComponents.DiagTree.Editor
+  console.error "TODO DiagTree.Editor"
+  # r.renderScreen
+  #   screen:
+  #     name: "diag-edit"
+  #     component: React.createElement CarmaComponents.DiagTree.Editor
 
 addRoute "diag/show/:caseId", (args) =>
-  r.renderScreen
-    screen:
-      name: "diag-show"
-      component: React.createElement CarmaComponents.DiagTree.Show, args
+  console.error "TODO DiagTree.Show"
+  # r.renderScreen
+  #   screen:
+  #     name: "diag-show"
+  #     component: React.createElement CarmaComponents.DiagTree.Show, args

@@ -18,7 +18,6 @@ forgetScreen = ->
     cs.destructor(name)
   forgetView(viewName) for viewName of window.global.viewsWare
   window.global.topElement.off()
-  window.ReactDOM && window.ReactDOM.unmountComponentAtNode(window.global.topElement[0])
   ko.cleanNode window.global.topElement[0]
   window.global.topElement.empty()
   window.global.viewsWare = {}
@@ -40,32 +39,25 @@ module.exports = {
     $("li.active").removeClass("active")
     $el(screen.name + "-screen-nav").addClass("active")
 
-    rawPartials = if screenObj.partials
-        $('.partial').add($(screenObj.partials).siblings(".partial"))
-      else
-        $('.partial')
+    rawPartials = if screenObj.partials \
+      then $('.partial').add($(screenObj.partials).siblings(".partial"))
+      else $('.partial')
 
-    partials = {}
-    for p in rawPartials
-      partials[$(p).attr('id')] = $(p).html()
+    partials = do ->
+      reducer = (res, p) -> res[$(p).attr('id')] = $(p).html(); res
+      Array::reduce.call rawPartials, reducer, {}
 
     wrappers = screenObj.wrappers?(partials) or {}
 
-    if screen.component
-      ReactDOM.render screen.component, window.global.topElement[0]
-    else
-      tpl   = screenObj?.template
-      tpl ||= $el(screen.template).html()
+    tpl = screenObj?.template || $el(screen.template).html()
+    throw "Template for screen #{screen.name} is not found" unless tpl?
+    tpl1 = Mustache.render tpl, wrappers, partials
+    window.global.topElement.html tpl1
 
-      unless tpl?
-        throw "Template for screen #{screen.name} is not found"
-
-      tpl1 = Mustache.render tpl, wrappers, partials
-      window.global.topElement.html(tpl1)
-      # Call setup functions for all views, assuming they will set
-      # their viewsWare
-      for viewName, cs of screen.views when cs.constructor?
-        cs.constructor(viewName, args)
+    # Call setup functions for all views,
+    # assuming they will set their 'viewsWare'.
+    for viewName, cs of screen.views when cs.constructor?
+      cs.constructor viewName, args
 
   # Clean up all views on screen and everything.
   forgetScreen
