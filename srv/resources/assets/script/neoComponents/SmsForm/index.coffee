@@ -20,27 +20,29 @@ class SmsFormViewModel
     @unsubscribeFromAppState = store.subscribe => @appState store.getState()
 
     # Pure value from store
-    @isProcessing = ko.pureComputed => @appState().smsForm.isProcessing
-    @isFailed     = ko.pureComputed => @appState().smsForm.isFailed
-    isShown       = ko.pureComputed => @appState().smsForm.isShown
+    @isProcessing =
+      ko.pureComputed => @appState().getIn ["smsForm", "isProcessing"]
+
+    @isFailed     = ko.pureComputed => @appState().getIn ["smsForm", "isFailed"]
+    isShown       = ko.pureComputed => @appState().getIn ["smsForm", "isShown"]
 
     @subscriptions = [] # Mutable
 
-    @phone = ko.observable @appState().smsForm.phone
+    @phone = ko.observable @appState().getIn ["smsForm", "phone"]
       .extend validate: (x) -> true unless /^\+\d{11}$/.test x
 
-    @caseId      = ko.observable @appState().smsForm.caseId
-    @caseCity    = ko.observable @appState().smsForm.caseCity
-    @caseAddress = ko.observable @appState().smsForm.caseAddress
+    @caseId      = ko.observable @appState().getIn ["smsForm", "caseId"]
+    @caseCity    = ko.observable @appState().getIn ["smsForm", "caseCity"]
+    @caseAddress = ko.observable @appState().getIn ["smsForm", "caseAddress"]
 
     # Overwrite form's values with ones from store when form is just shown
     @subscriptions.push isShown.subscribe (value) =>
       return unless value # if form is just closed we don't have to do anything
 
-      @phone       @appState().smsForm.phone
-      @caseId      @appState().smsForm.caseId
-      @caseCity    @appState().smsForm.caseCity
-      @caseAddress @appState().smsForm.caseAddress
+      @phone       @appState().getIn ["smsForm", "phone"]
+      @caseId      @appState().getIn ["smsForm", "caseId"]
+      @caseCity    @appState().getIn ["smsForm", "caseCity"]
+      @caseAddress @appState().getIn ["smsForm", "caseAddress"]
 
       @smsTemplate null
       @message     ""
@@ -96,7 +98,7 @@ class SmsFormViewModel
   send: =>
     smsTpl = @smsTemplate()
 
-    reqData =
+    reqData = sendSmsFormRequest.Payload
       phone:      @phone()
       caseId:     @caseId()
       message:    @message()

@@ -182,7 +182,7 @@ addRoute "diag/edit", (args) ->
       "diagTreeEditor-view": scr
   r.renderScreen scr, args
 
-addRoute "diag/show/:caseId", (args) =>
+addRoute "diag/show/:caseId", (args) ->
   scr = require "carma/screens/diagTree/show"
   scr.screen =
     name: "diagTreeShow"

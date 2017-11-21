@@ -1,8 +1,11 @@
-{ReduxActions: {handleActions}} = require "carma/vendor"
-{forkObj} = require "carma/neoComponents/store/utils"
+{
+  Immutable: {Record}
+  ReduxActions: {handleActions}
+} = require "carma/vendor"
+
 actions = require "./actions"
 
-defaultState =
+SmsFormState = Record
   isShown:      false
   isProcessing: false
   isFailed:     false
@@ -14,25 +17,24 @@ defaultState =
 
 reducerMap =
   "#{actions.showSmsForm}":
-    (state, {payload: {phone, caseId, caseCity, caseAddress}}) ->
-      forkObj state, {isShown: true, phone, caseId, caseCity, caseAddress}
+    (state, {payload}) -> state.set("isShown", true).merge(payload)
 
-  "#{actions.closeSmsForm}": (state) -> forkObj state,
+  "#{actions.closeSmsForm}": (state) -> state.merge
     isProcessing: false
     isFailed:     false
     isShown:      false
 
-  "#{actions.sendSmsFormRequest}": (state) -> forkObj state,
+  "#{actions.sendSmsFormRequest}": (state) -> state.merge
     isProcessing: true
     isFailed:     false
 
-  "#{actions.sendSmsFormSuccess}": (state) -> forkObj state,
+  "#{actions.sendSmsFormSuccess}": (state) -> state.merge
     isProcessing: false
     isFailed:     false
     isShown:      false
 
-  "#{actions.sendSmsFormFailure}": (state) -> forkObj state,
+  "#{actions.sendSmsFormFailure}": (state) -> state.merge
     isProcessing: false
     isFailed:     true
 
-module.exports = handleActions reducerMap, defaultState
+module.exports = handleActions reducerMap, new SmsFormState

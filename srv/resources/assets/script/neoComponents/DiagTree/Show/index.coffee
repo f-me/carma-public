@@ -1,4 +1,5 @@
 {ko} = require "carma/vendor"
+require "./styles.less"
 
 
 class DiagTreeShowViewModel

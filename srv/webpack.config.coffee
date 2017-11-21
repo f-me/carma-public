@@ -1,8 +1,8 @@
 path = require "path"
 
-webpack = require "webpack"
+webpack           = require "webpack"
+UglifyJSPlugin    = require "uglifyjs-webpack-plugin"
 ExtractTextPlugin = require "extract-text-webpack-plugin"
-UglifyJSPlugin = require "uglifyjs-webpack-plugin"
 
 RES_DIR = path.join __dirname, "resources"
 SRC_DIR = path.join RES_DIR, "assets", "script"
@@ -56,6 +56,7 @@ module.exports =
 
       spin: "spin.js"
       ol2: "openlayers-2-build"
+      finch: "finchjs/coffee/finch"
       "normalize-css": "normalize.css/normalize.css"
 
     extensions: [".js", ".coffee"]
@@ -73,7 +74,7 @@ module.exports =
   module:
     rules: [
       {
-        test: require.resolve(BS_WYSIHTML5)
+        test: require.resolve BS_WYSIHTML5
         use:  [
                 {
                   loader: "imports-loader"
@@ -81,13 +82,13 @@ module.exports =
                 }
                 {
                   loader: "exports-loader"
-                  options: { wysihtml5: true }
+                  options: wysihtml5: true
                 }
               ]
       }
 
       {
-        test: require.resolve(BS_WYSIHTML5_LOC_RU)
+        test: require.resolve BS_WYSIHTML5_LOC_RU
         use:  {
                 loader: "imports-loader"
                 options: { define: ">false", "this": ">window" }
@@ -95,7 +96,7 @@ module.exports =
       }
 
       {
-        test: require.resolve("jasny-bootstrap/dist/js/jasny-bootstrap")
+        test: require.resolve "jasny-bootstrap/dist/js/jasny-bootstrap"
         use:  {
                 loader: "imports-loader"
                 options: { define: ">false", "this": ">window" }
@@ -103,7 +104,7 @@ module.exports =
       }
 
       {
-        test: require.resolve("openlayers-2-build")
+        test: require.resolve "openlayers-2-build"
         use:  { loader: "exports-loader", options: "OpenLayers": true }
       }
 
@@ -145,19 +146,17 @@ module.exports =
 
   plugins: [
 
-    new webpack.optimize.CommonsChunkPlugin(
+    new webpack.optimize.CommonsChunkPlugin
       names: ["carma", "resources", "vendor"]
       minChunks: Infinity
-    )
 
-    new webpack.ProvidePlugin(
+    new webpack.ProvidePlugin
       $: "jquery"
       jQuery: "jquery"
       "window.jQuery": "jquery"
-    )
 
     cssExtractor
 
   ] .concat if process.env.NODE_ENV is "production" \
-               then new UglifyJSPlugin()
+               then new UglifyJSPlugin
                else []

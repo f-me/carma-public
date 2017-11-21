@@ -1,6 +1,7 @@
 {
-  Redux: {createStore, combineReducers, applyMiddleware}
+  Redux: {createStore, applyMiddleware}
   ReduxThunk
+  ReduxImmutable: {combineReducers}
 } = require "carma/vendor"
 
 reducers = combineReducers

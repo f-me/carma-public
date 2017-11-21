@@ -7,14 +7,16 @@ require "jquery.typeahead"
 md5      = require "blueimp-md5"
 {Base64} = require "js-base64"
 
-_        = require "underscore"
-Mustache = require "mustache"
-ko       = require "knockout"
-{Finch}  = require "finchjs/coffee/finch"
+_         = require "underscore"
+Immutable = require "immutable"
+Mustache  = require "mustache"
+ko        = require "knockout"
+{Finch}   = require "finch"
 
-Redux        = require "redux"
-ReduxThunk   = require("redux-thunk").default
-ReduxActions = require "redux-actions"
+Redux          = require "redux"
+ReduxThunk     = require("redux-thunk").default
+ReduxActions   = require "redux-actions"
+ReduxImmutable = require "redux-immutable"
 
 moment = require "moment"
 require "moment/locale/ru"
@@ -58,12 +60,14 @@ module.exports = {
   Redux
   ReduxThunk
   ReduxActions
+  ReduxImmutable
 
   Finch
   Base64
   Spinner
   Promise
   Mustache
+  Immutable
   Mousetrap
   OpenLayers
 }

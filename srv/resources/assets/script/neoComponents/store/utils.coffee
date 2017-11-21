@@ -1,7 +1,8 @@
 {Promise, ReduxActions: {createAction}} = require "carma/vendor"
 
 isActionMapObjValid = (v) ->
-  Object.keys(v).every (x) -> x in ["handler", "payloadCreator", "metaCreator"]
+  Object.keys(v).every (x) ->
+    x in ["handler", "payloadCreator", "metaCreator", "Payload"]
 
 # Helper to make actions creators that could be converted to contextual system
 # action name by converting to string.
@@ -44,15 +45,15 @@ makeActions = (pathContext, actionMap) ->
       when not v?
         creator = createAction actionSysName
 
-        ->
-          action = creator.apply null, arguments
+        (args...) ->
+          action = creator args...
           (dispatch) -> Promise.resolve dispatch action
 
       when typeof v is "function"
         creator = createAction actionSysName
 
-        ->
-          action = creator.apply null, arguments
+        (args...) ->
+          action = creator args...
 
           (dispatch, getState) ->
             dispatch action
@@ -61,14 +62,24 @@ makeActions = (pathContext, actionMap) ->
 
       when typeof v is "object" and isActionMapObjValid v
         creator = createAction actionSysName, v.payloadCreator, v.metaCreator
+        Payload = v.Payload ? null
 
-        ->
-          action = creator.apply null, arguments
+        f = (payload, etc...) ->
+          if Payload? and payload not instanceof Payload
+            throw new Error "Incorrect payload type"
 
-          (dispatch, getState) ->
-            dispatch action
-            x = v.handler action, dispatch, getState
-            if x.then? then x else Promise.resolve x
+          action = creator payload, etc...
+
+          unless v.handler?
+            (dispatch) -> Promise.resolve dispatch action
+          else
+            (dispatch, getState) ->
+              dispatch action
+              x = v.handler action, dispatch, getState
+              if x.then? then x else Promise.resolve x
+
+        f.Payload = Payload if Payload?
+        f
 
       else throw new Error "Unexpected type"
 
@@ -76,11 +87,8 @@ makeActions = (pathContext, actionMap) ->
     result
   , {}
 
-# Clone object and extend it with something
-forkObj = (from, modifications) -> Object.assign {}, from, modifications
-
 # Helper for handling error case
 catchFailure = (dispatch, failureAction, promise) ->
   promise.catch (err) -> dispatch(failureAction err).then -> throw err
 
-module.exports = {makeActions, forkObj, catchFailure}
+module.exports = {makeActions, catchFailure}

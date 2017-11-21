@@ -8,14 +8,17 @@ require "jquery.typeahead"
 
 require "js-base64"
 require "blueimp-md5"
+
 require "underscore"
+require "immutable"
 require "mustache"
 require "knockout"
-require "finchjs/coffee/finch"
+require "finch"
 
 require "redux"
 require "redux-actions"
 require "redux-thunk"
+require "redux-immutable"
 
 require "moment"
 require "moment/locale/ru"

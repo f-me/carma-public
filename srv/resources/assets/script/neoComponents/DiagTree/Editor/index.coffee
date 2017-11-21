@@ -1,9 +1,13 @@
 {ko} = require "carma/vendor"
+require "./styles.less"
 
 
 class DiagTreeEditorViewModel
   constructor: ->
   dispose: =>
+
+  addSlide: =>
+    console.error "TODO 'addSlide' method"
 
 
 module.exports =
