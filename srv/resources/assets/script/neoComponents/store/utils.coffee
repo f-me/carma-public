@@ -30,6 +30,11 @@ isActionMapObjValid = (v) ->
 #       See docs of `createAction` of "redux-actions".
 #     metaCreator: function (optional) -
 #       See docs of `createAction` of "redux-actions".
+#     Payload: an Immutable's Record (optional) -
+#       Constructor for payload data.
+#       Keep in mind when you create an action payload is checked that it's
+#       an instance of this contructor or throws exception otherwise.
+#       See http://facebook.github.io/immutable-js/docs/#/Record
 #
 # Any produced action creater always returns a promise
 # to make any dispatching process being consistent.

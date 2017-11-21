@@ -6,6 +6,7 @@
 
 reducers = combineReducers
   smsForm: require "./smsForm/reducers"
+  diagTree: require "./diagTree/reducers"
 
 store = createStore reducers, applyMiddleware ReduxThunk
 
