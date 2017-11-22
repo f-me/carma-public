@@ -1,5 +1,8 @@
 {ko} = require "carma/vendor"
+{backgrounds} = require "./precompiled"
 require "./styles.less"
+
+yesNoRegs = [/^да/i, /^нет/i]
 
 
 class DiagTreeShowViewModel

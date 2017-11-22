@@ -68,6 +68,8 @@ module.exports =
 
   resolveLoader:
     alias:
+      "precompile-code-loader": path.resolve __dirname,
+        "webpackLoaders/precompile-code-loader.coffee"
       "precompile-template-loader": path.resolve __dirname,
         "webpackLoaders/precompile-template-loader.coffee"
 
@@ -109,6 +111,25 @@ module.exports =
       }
 
       { test: /\.coffee$/, use: "coffee-loader" }
+
+      {
+        test: /([a-zA-Z0-9]P|\/p|-p)recompiled\.coffee$/
+        use:  [
+                {
+                  loader: "precompile-code-loader"
+                  options:
+                    requirableLibs: [
+                      "underscore"
+                      "immutable"
+                      "blueimp-md5"
+                      "js-base64"
+                    ]
+                }
+
+                { loader: "coffee-loader" }
+              ]
+      }
+
       { test: /\.json$/,   use: "json-loader" }
 
       {
