@@ -6,7 +6,7 @@ mutils    = require "carma/model/utils"
 smodel    = require "carma/search/model"
 SUtils    = require "carma/search/utils"
 SPager    = require "carma/search/pager"
-{searchQ} = require "carma/sync/search"
+{SearchQ} = require "carma/sync/search"
 State     = require "carma/lib/state-url"
 Tpl       = require "carma-tpl/fields/form.pug"
 
@@ -67,7 +67,7 @@ module.exports =
 
     searchKVM.searchResults = SUtils.mkResultObservable searchKVM, allModels
 
-    q = new searchQ searchKVM,
+    q = new SearchQ searchKVM,
       apiUrl: opts.apiUrl
       defaultSort: opts.defaultSort
       searchHook: opts.searchHook

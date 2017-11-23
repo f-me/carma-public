@@ -1,6 +1,6 @@
 m = require "carma/sync/datamap"
 
-module.exports.MetaQueue = class MetaQueue
+class MetaQueue
 
   constructor: (@kvm, @model) ->
     @ftypes = {}
@@ -13,3 +13,5 @@ module.exports.MetaQueue = class MetaQueue
     m.c2sObj r, @ftypes
 
   toJSON: -> JSON.stringify @toRawObj()
+
+module.exports = {MetaQueue}

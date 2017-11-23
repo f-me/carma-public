@@ -5,7 +5,7 @@ require "carma/map"
 {MetaQueue} = require "carma/sync/metaq"
 m           = require "carma/sync/datamap"
 
-module.exports.searchQ = class searchQ extends MetaQueue
+class SearchQ extends MetaQueue
   constructor: (@kvm, @options) ->
     @api = @options.apiUrl
     @requestUrl = @api
@@ -26,7 +26,7 @@ module.exports.searchQ = class searchQ extends MetaQueue
       pager.offset.valueHasMutated()
     @kvm['searchResultsSpinner'] = ko.observable false
 
-  _search: _.debounce((-> @search()), 300)
+  _search: _.debounce (-> do @search), 300
 
   searchParams: =>
     q = {}
@@ -38,18 +38,18 @@ module.exports.searchQ = class searchQ extends MetaQueue
     { predicates: preds, sorts: sorts }
 
   search: =>
-    if @options.searchHook?
-      @options.searchHook(this)
+    @options.searchHook this if @options.searchHook?
+
     # have nothing to search, maybe user delete value
     # return @kvm['searchResults']([]) if _.isEmpty req
     $.ajax
-      url      : @requestUrl
-      dataType : 'json'
-      type     : 'POST'
-      data     : JSON.stringify @searchParams()
-      success  : @successCb
-      error    : @errorCb
-      beforeSend : @showSpinner
+      url:        @requestUrl
+      dataType:   'json'
+      type:       'POST'
+      data:       JSON.stringify @searchParams()
+      success:    @successCb
+      error:      @errorCb
+      beforeSend: @showSpinner
 
   sort: (fs, ord) ->
     @searchFields = fs
@@ -67,9 +67,10 @@ module.exports.searchQ = class searchQ extends MetaQueue
 
   successCb: (data) =>
     @kvm['searchResults'](data)
-    @hideSpinner()
+    do @hideSpinner
 
   errorCb: (x, status) =>
     @hideSpinner x, status
-    console.error "searchQ: search failed with
- '#{x.status}: #{x.statusText}'"
+    console.error "SearchQ: search failed with '#{x.status}: #{x.statusText}'"
+
+module.exports = {SearchQ}

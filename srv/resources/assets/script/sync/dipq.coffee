@@ -5,7 +5,7 @@ require "carma/map"
 {MetaQueue} = require "carma/sync/metaq"
 m           = require "carma/sync/datamap"
 
-module.exports.DipQueue = class DipQueue extends MetaQueue
+class DipQueue extends MetaQueue
   constructor: (@kvm, @model, @options) ->
     @api = "/geo/partners"
     @ftypes  = {}
@@ -44,3 +44,5 @@ module.exports.DipQueue = class DipQueue extends MetaQueue
 
   errorCb: (x, status) =>
     console.error "dipq: search failed with '#{x.status}: #{x.statusText}'"
+
+module.exports = {DipQueue}
