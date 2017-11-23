@@ -7,9 +7,9 @@ d = require "carma/dictionaries"
 thmenuInit = (k, fname, dict, setter) ->
   thmenu = []
   k["#{fname}TypeaheadBuilder"] = ->
-    m = new ThMenu { select: setter, dict  : dict }
+    m = new ThMenu {select: setter, dict}
     thmenu.push(m)
-    return m
+    m
 
   k["#{fname}TypeaheadBuilder"].destroy = ->
     _.map thmenu, (v) -> v.destructor()

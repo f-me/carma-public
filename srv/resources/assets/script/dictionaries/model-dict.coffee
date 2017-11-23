@@ -25,34 +25,30 @@ class ModelDict extends ld.dict
     @bgetJSON "/_/#{@model}", (@items) =>
       # we need to gracefully handle cases when parent is not yet
       # initialised but child field should be rendered (see #2027)
-      @fullValuesMap   = _.reduce(
-        @items,
-        ((m,i) => m[i[@key]] = i; m),
-        {})
-      @allValuesMap   = _.reduce(
-        @items,
-        ((m,i) =>
+      @fullValuesMap = _.reduce @items, ((m, i) => m[i[@key]] = i; m), {}
+
+      @allValuesMap = do =>
+        reducer = (m, i) =>
           # trim labels because sometimes they have \r\n at the end
           # FIXME: maybe we should filter this in DB
           lab = i[@label]
           m[i[@key]] = if lab?.trim then lab.trim() else lab
-          m),
-        {})
+          m
+        _.reduce @items, reducer, {}
+
       if @parent and _.isFunction @kvm[@parent]
         updateChildren = (val) =>
-          @updateSource(_.filter @items, (e) => e[parentKey] == val)
+          @updateSource _.filter @items, (e) => e[parentKey] is val
           @dictValueCache = null
           @dictLabelCache = null
         @kvm[@parent].subscribe updateChildren
-        updateChildren(@kvm[@parent]())
+        updateChildren @kvm[@parent]()
       else
         @updateSource @items
 
   updateSource: (items) ->
     @source = ({value: i[@key], label: i[@label], _e: i} for i in items)
-    @allElementsMap = {}
-    for i in items
-      @allElementsMap[i[@key]] = i
+    @allElementsMap = do => x = {}; x[i[@key]] = i for i in items; x
 
   getLab: (val) -> @allValuesMap[val]
 

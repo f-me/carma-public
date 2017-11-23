@@ -12,11 +12,11 @@ typeaheadDefaults =
 
 class ThMenu
   constructor: (options) ->
-    @options     = $.extend({}, typeaheadDefaults, options)
+    @options     = $.extend {}, typeaheadDefaults, options
     @matcher     = @options.matcher     || @matcher
     @sorter      = @options.sorter      || @sorter
     @highlighter = @options.highlighter || @highlighter
-    @$menu       = $(@options.menu).appendTo('body')
+    @$menu       = $(@options.menu).appendTo 'body'
 
     @selectcb    = options.select
     @dict        = options.dict
@@ -24,43 +24,45 @@ class ThMenu
     @shown = false
 
     @$menu
-      .on('click.typeahead',            $.proxy(@click, @))
-      .on('mousedown.typeahead',        $.proxy(@mousedown, @))
-      .on('mouseenter.typeahead', 'li', $.proxy(@mouseenter, @))
+      .on 'click.typeahead',            $.proxy @click, @
+      .on 'mousedown.typeahead',        $.proxy @mousedown, @
+      .on 'mouseenter.typeahead', 'li', $.proxy @mouseenter, @
 
   setElement: (el) =>
     @$element = $(el)
     @$element
-      .on('blur.typeahead',     $.proxy(@blur, @))
-      .on('keypress.typeahead', $.proxy(@keypress, @))
-      .on('keyup.typeahead',    $.proxy(@keyup, @))
+      .on 'blur.typeahead',     $.proxy @blur, @
+      .on 'keypress.typeahead', $.proxy @keypress, @
+      .on 'keyup.typeahead',    $.proxy @keyup, @
 
     # if $.browser.webkit or $.browser.msie
     # FIXME: test this on ff, in case of failure find way to detect browser
     # $.browser is deprecated
-    @$element.on('keydown.typeahead', $.proxy(@keypress, @))
+    @$element.on 'keydown.typeahead', $.proxy @keypress, @
 
   destructor: =>
     if @$element
       @$element
-        .off('blur.typeahead')
-        .off('keypress.typeahead')
-        .off('keyup.typeahead')
+        .off 'blur.typeahead'
+        .off 'keypress.typeahead'
+        .off 'keyup.typeahead'
 
       if ($.browser.webkit or $.browser.msie) and @$element
-        @$element.off('keydown.typeahead')
+        @$element.off 'keydown.typeahead'
 
-    @$menu.remove()
+    do @$menu.remove
     @$menu    = null
     @$element = null
 
 
 
   select: =>
-    @selectcb(@$menu.find('.active').attr('data-value'))
-    @hide()
-    @$element.change()
-    return @
+    # dictionary field value must be a nubmer (about `parseInt` here)
+    @selectcb parseInt @$menu.find('.active').attr 'data-value'
+
+    do @hide
+    do @$element.change
+    this
 
   show: =>
     windowWidth = $(window).width()
@@ -71,10 +73,9 @@ class ThMenu
 
     pos.right = windowWidth - pos.left - pos.width
 
-    [left, right] = if pos.right > windowWidth * 0.6
-        [pos.left, 'auto']
-      else
-        ['auto', pos.right]
+    [left, right] = if pos.right > windowWidth * 0.6 \
+                       then [pos.left, 'auto']
+                       else ['auto', pos.right]
 
     # if element in bottom area of the screen
     if pos.top > $(window).height() / 2
@@ -84,7 +85,7 @@ class ThMenu
         top: pos.top - @$menu.height() - paddingBottom
         left: left
         right: right
-        minWidth: @$element.width() + "px"
+        minWidth: "#{@$element.width()}px"
         maxWidth: '55%'
     else
       # .. show menu below it
@@ -92,60 +93,55 @@ class ThMenu
         top: pos.top + pos.height
         left: left
         right: right
-        minWidth: @$element.width() + "px"
+        minWidth: "#{@$element.width()}px"
         maxWidth: '55%'
 
-    @$menu.show()
+    do @$menu.show
     @shown = true
-    $(document).on('mousedown', $.proxy(@hide, @))
+    $(document).on 'mousedown', $.proxy @hide, @
     return @
 
   hide: =>
-    return @ unless @shown
-    @$menu.hide()
+    return this unless @shown
+    do @$menu.hide
     @shown = false
-    $(document).off('mousedown', @hide)
-    return @
+    $(document).off 'mousedown', @hide
+    this
 
   toggle: =>
-    if @shown
-    then @hide()
-    else @show()
-    return @
+    if @shown \
+       then do @hide
+       else do @show
+    this
 
-  setItems: @render
   render: (items) =>
-    that = @
-
-    itms = $.map items, (v, k) -> { key: k, label: v }
-    if @dict.sorter
-      itms = itms.sort @dict.sorter
-    itms = itms.map ({key, label}) ->
-      i = if _.isFunction that.options.item
-            that.options.item.call(that, item)
+    itms = $.map items, (v, k) -> key: k, label: v
+    itms = itms.sort @dict.sorter if @dict.sorter
+    itms = itms.map ({key, label}) =>
+      i = if _.isFunction @options.item
+            @options.item.call this, item
           else
-            el = $(that.options.item)
+            el = $(@options.item)
             el.find('a').html(label)
             el
-      i.attr('data-value', key)
+      i.attr 'data-value', key
       i[0]
 
-    $(itms).first().addClass('active')
-    @$menu.html(itms)
-    return @
+    $(itms).first().addClass 'active'
+    @$menu.html itms
+    this
 
   inViewport: (el) =>
     m = @$menu
     elOffset = el.offset().top - m.offset().top
-    return 0 < elOffset && elOffset < m.height()
+    0 < elOffset && elOffset < m.height()
 
   next: (event) =>
-    active = @$menu.find('.active').removeClass('active')
+    active = @$menu.find('.active').removeClass 'active'
     next   = active.next()
+    next   = $(@$menu.find('li')[0]) unless next.length
 
-    next = $(@$menu.find('li')[0]) unless next.length
-
-    next.addClass('active')
+    next.addClass 'active'
     @inViewport(next) || next[0].scrollIntoView(false)
 
   prev: (event) =>
@@ -154,83 +150,85 @@ class ThMenu
 
     prev = @$menu.find('li').last() unless prev.length
 
-    prev.addClass('active')
+    prev.addClass 'active'
     @inViewport(prev) || prev[0].scrollIntoView(false)
 
-  blur: (e) => setTimeout((=> @hide()), 150)
+  blur: (e) => setTimeout (=> do @hide), 150
 
   click: (e) =>
-    e.stopPropagation()
-    e.preventDefault()
-    @select()
+    do e.stopPropagation
+    do e.preventDefault
+    do @select
 
   mouseenter: (e) =>
-    @$menu.find('.active').removeClass('active')
-    $(e.currentTarget).addClass('active')
+    @$menu.find('.active').removeClass 'active'
+    $(e.currentTarget).addClass 'active'
 
-  mousedown: (e) -> e.stopPropagation(); e.preventDefault()
+  mousedown: (e) ->
+    do e.stopPropagation
+    do e.preventDefault
 
   # debounce here will decrease request rate for remote dictionaries
   # still it's small enough to not be noticable for regular dicts
-  draw: _.debounce((-> @_draw()), 150)
+  draw: _.debounce (-> do @_draw), 150
 
   _draw:  =>
-    return @ unless @$element
+    return this unless @$element
     @dict.lookup @$element.val(), (v) =>
-      return @hide() if _.isEmpty v
-      return @render(v).show()
+      return do @hide if _.isEmpty v
+      return do @render(v).show
 
   # this methos is for .add-on arrow on the field
   drawAll: =>
-    return @ unless @$element
-    unless @$element.is(':disabled')
+    return this unless @$element
+    unless @$element.is ':disabled'
       @dict.lookup "", (v) =>
-        return @hide() if _.isEmpty v
-        return @render(v).show()
+        return do @hide if _.isEmpty v
+        return do @render(v).show
 
   # this methos is for .add-on search on the field
   drawAllForce: =>
-    return @ unless @$element
-    unless @$element.is(':disabled')
+    return this unless @$element
+    unless @$element.is ':disabled'
       @dict.lookup @$element.val(), (v) =>
-        return @hide() if _.isEmpty v
-        return @render(v).show()
+        return do @hide if _.isEmpty v
+        return do @render(v).show
       , {force: true}
 
 
   keyup: (e) =>
     switch e.keyCode
       when 40, 38 # down arrow, up arrow
-        @draw() unless @shown
+        do @draw unless @shown
       when 9, 16, 37, 39  # tab, shift, left, right
         return
       when 13     # enter
-        @select() if @shown
+        do @select if @shown
       when 27     # escape
-        @hide()
+        do @hide
 
       else
-        @draw()
+        do @draw
 
-    e.stopPropagation()
-    e.preventDefault()
+    do e.stopPropagation
+    do e.preventDefault
 
   keypress: (e) =>
     return unless @shown
 
     switch e.keyCode
       when 9, 13, 27 # tab, enter, escape
-        e.preventDefault()
+        do e.preventDefault
 
       when 38        # up arrow
-        e.preventDefault()
-        @prev()
+        do e.preventDefault
+        do @prev
 
       when 40        # down arrow
-        e.preventDefault()
-        @next()
+        do e.preventDefault
+        do @next
 
-    e.stopPropagation()
+    do e.stopPropagation
 
 
 module.exports = {ThMenu}
