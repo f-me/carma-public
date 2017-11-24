@@ -39,7 +39,7 @@ isActionMapObjValid = (v) ->
 # Any produced action creater always returns a promise
 # to make any dispatching process being consistent.
 makeActions = (pathContext, actionMap) ->
-  Object.keys(actionMap).reduce (result, name) ->
+  reducer = (result, name) ->
     actionSysName = "#{pathContext}/#{name}"
       .replace /[A-Z]/g, (match) -> "_#{match.toLowerCase()}"
       .toUpperCase()
@@ -90,10 +90,41 @@ makeActions = (pathContext, actionMap) ->
 
     result[name].toString = -> actionSysName
     result
-  , {}
+
+  Object.keys(actionMap).reduce reducer, {}
 
 # Helper for handling error case
 catchFailure = (dispatch, failureAction, promise) ->
   promise.catch (err) -> dispatch(failureAction err).then -> throw err
 
-module.exports = {makeActions, catchFailure}
+fetchMethod = (method, url, data, customOpts) ->
+  reqOpts =
+    method      : method
+    headers     : {"Content-Type": "application/json"}
+    credentials : "same-origin"
+
+  # For GET method it is optional
+  reqOpts.body = JSON.stringify data if data?
+
+  if customOpts?
+    if customOpts.headers?
+      headers = Object.assign reqOpts.headers, customOpts.headers
+      Object.assign reqOpts, customOpts, {headers}
+    else
+      Object.assign reqOpts, customOpts
+
+  fetch(url, reqOpts).then (x) -> x.json()
+
+# Fetch, POST method, with credentials, JSON data in/JSON data out
+fetchPost = (url, data = {}, customOpts = null) ->
+  fetchMethod "POST", url, data, customOpts
+
+# Fetch, GET method, with credentials, JSON data in/JSON data out
+fetchGet = (url, customOpts = null) ->
+  fetchMethod "GET", url, null, customOpts
+
+# Fetch, PUT method, with credentials, JSON data in/JSON data out
+fetchPut = (url, data = {}, customOpts = null) ->
+  fetchMethod "PUT", url, data, customOpts
+
+module.exports = {makeActions, catchFailure, fetchPost, fetchGet, fetchPut}

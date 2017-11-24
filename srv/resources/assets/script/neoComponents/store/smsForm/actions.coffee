@@ -1,5 +1,7 @@
 {Immutable: {Record}} = require "carma/vendor"
-{makeActions, catchFailure} = require "carma/neoComponents/store/utils"
+
+{makeActions, catchFailure, fetchPost} =
+  require "carma/neoComponents/store/utils"
 
 actions = makeActions __dirname,
   showSmsForm:
@@ -19,20 +21,16 @@ actions = makeActions __dirname,
       templateId: ""
 
     handler:
-      ({payload}, dispatch, getState) ->
-        reqOpts =
-          method: "POST"
-          headers: {"Content-Type": "application/json"}
-          credentials: "same-origin"
-          body: JSON.stringify
-            status:   "please-send"
-            caseRef:  payload.get "caseId"
-            phone:    payload.get "phone"
-            template: payload.get "templateId"
-            msgText:  payload.get "message"
+      ({payload}, dispatch) ->
+        data =
+          status:   "please-send"
+          caseRef:  payload.get "caseId"
+          phone:    payload.get "phone"
+          template: payload.get "templateId"
+          msgText:  payload.get "message"
 
         catchFailure dispatch, actions.sendSmsFormFailure,
-          fetch "/_/Sms", reqOpts
+          fetchPost "/_/Sms", data
             .then -> dispatch actions.sendSmsFormSuccess()
 
   sendSmsFormSuccess: null

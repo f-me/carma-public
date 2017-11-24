@@ -13,26 +13,27 @@ Flds     = require "carma-tpl/fields/form.pug"
 
 ActionResult = idents.idents "ActionResult"
 
-flds = $('<div/>').append($(Flds))
+flds = $('<div/>').append $(Flds)
 # Case view (renders to #left, #center and #right as well)
 setupCaseMain = (viewName, args) -> setupCaseModel viewName, args
 
 setupCaseModel = (viewName, args) ->
   kaze = {}
+
   # Bootstrap case data to load proper view for Case model
   # depending on the program
   if args.id
     $.bgetJSON "/_/Case/#{args.id}", (rsp) -> kaze = rsp
 
   kvm = main.modelSetup("Case") viewName, args,
-                     permEl       : "case-permissions"
-                     focusClass   : "focusable"
-                     slotsee      : ["case-number",
-                                     "case-program-description",
-                                     "case-car-description"]
-                     groupsForest : "center"
-                     defaultGroup : "default-case"
-                     modelArg     : "ctr:#{kaze.program}"
+    permEl       : "case-permissions"
+    focusClass   : "focusable"
+    slotsee      : ["case-number"
+                    "case-program-description"
+                    "case-car-description"]
+    groupsForest : "center"
+    defaultGroup : "default-case"
+    modelArg     : "ctr:#{kaze.program}"
 
   # TODO The server should notify the client about new actions
   # appearing in the case instead of explicit subscription
@@ -40,7 +41,7 @@ setupCaseModel = (viewName, args) ->
     if !nv
       kvm['renderActions']?()
 
-  ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
+  ctx = fields: (f for f in kvm._meta.model.fields when f.meta?.required)
   setupCommentsHandler kvm
 
   Contract.setup "contract", kvm
@@ -49,12 +50,10 @@ setupCaseModel = (viewName, args) ->
   #
   # We use Bootstrap's glyphs if "icon" key is set in dictionary
   # entry.
-  $("#service-picker-container").html(
-    Mustache.render(
-      $(flds).find("#service-picker-template").html(),
-        {dictionary: utils.newComputedDict("iconizedServiceTypes")
-        ,drop: 'up'
-        }))
+  $("#service-picker-container").html Mustache.render \
+    $(flds).find("#service-picker-template").html(),
+      dictionary: utils.newComputedDict("iconizedServiceTypes")
+      drop: 'up'
 
   hotkeys.setup()
   kvm = window.global.viewsWare[viewName].knockVM
@@ -62,10 +61,11 @@ setupCaseModel = (viewName, args) ->
   # True if any of of required fields are missing a value
   do (kvm) ->
     if window.global.Usermeta
-      kvm['abandonedServices'] = ko.observable(
-        window.global.Usermeta.abandonedServices().filter (s) -> `s.caseId == args.id`)
+      kvm['abandonedServices'] = ko.observable do ->
+        window.global.Usermeta.abandonedServices()
+          .filter (s) -> `s.caseId == args.id`
       window.global.Usermeta.abandonedServices.subscribe (svcs) ->
-        kvm.abandonedServices(svcs.filter (s) -> `s.caseId == args.id`)
+        kvm.abandonedServices svcs.filter (s) -> `s.caseId == args.id`
     else
       kvm['abandonedServices'] = ko.observable []
 
@@ -78,11 +78,11 @@ setupCaseModel = (viewName, args) ->
       # Early case-only check
       disable = checkVM kvm
       # Check all services too
-      for r, svm of kvm['servicesReference']()
-        disable ||= checkVM svm
+      disable ||= checkVM svm for r, svm of kvm['servicesReference']()
       disable || kvm.abandonedServices().length > 0
+
     # Show a list of empty required fields
-    ko.applyBindings(kvm, el("empty-fields"))
+    ko.applyBindings kvm, el "empty-fields"
 
   setupHistory kvm
   setupDiagTree kvm
@@ -93,7 +93,7 @@ setupCaseModel = (viewName, args) ->
   # make colored services and actions a little bit nicer
   $('.accordion-toggle:has(> .alert)').css 'padding', 0
 
-  $(".status-btn-tooltip").tooltip()
+  do $(".status-btn-tooltip").tooltip
 
   # scroll to service if we have its id in url
   if args.svc
@@ -108,36 +108,34 @@ setupCaseModel = (viewName, args) ->
 setupDiagTree = (kvm) ->
   watchLocalStorage = (e) ->
     if e.key == "DiagTree/#{kvm.id()}/newSvc"
-      window.localStorage.removeItem(e.key)
-      window.location.reload()
+      window.localStorage.removeItem e.key
+      do window.location.reload
 
   kvm._showDiag = ->
-    window.addEventListener("storage", watchLocalStorage, false)
+    window.addEventListener "storage", watchLocalStorage, false
     win = window.open "#diag/show/#{kvm.id()}", '_blank'
-    win.focus()
+    do win.focus
   kvm._startDiag = ->
     opts =
       type: 'POST'
       url: "/_/DiagHistory"
-      data: JSON.stringify {caseId: parseInt(kvm.id())}
+      data: JSON.stringify {caseId: parseInt kvm.id()}
     $.ajax(opts).done ->
-      window.addEventListener("storage", watchLocalStorage, false)
+      window.addEventListener "storage", watchLocalStorage, false
       kvm._canStartDiag false
       kvm._canProceedDiag true
       win = window.open "#diag/show/#{kvm.id()}", '_blank'
-      win.focus()
+      do win.focus
 
   refreshDiagTree = ->
     $.getJSON "/diag/info/#{kvm.id()}", (res) ->
-      kvm._canDiag(res.root != null)
-      kvm._canStartDiag(!res.started)
-      kvm._canProceedDiag(res.started && !res.ended)
-      kvm._canShowDiag(res.started && res.ended)
+      kvm._canDiag res.root isnt null
+      kvm._canStartDiag !res.started
+      kvm._canProceedDiag res.started and !res.ended
+      kvm._canShowDiag res.started and res.ended
 
-  refreshDiagTree()
-  kvm.subprogramSync.subscribe (nv) ->
-    if !nv
-      refreshDiagTree()
+  do refreshDiagTree
+  kvm.subprogramSync.subscribe (nv) -> do refreshDiagTree if !nv
 
 
 # History pane
@@ -146,12 +144,12 @@ setupHistory = (kvm) ->
   historyLimit = 30
   kvm['lookBackInHistory'] = ->
     historyLimit += 30
-    refreshHistory()
+    do refreshHistory
 
   refreshHistory = ->
     $.getJSON "/caseHistory/#{kvm.id()}?limit=#{historyLimit}", (res) ->
-      kvm['endOfHistory'](res.length < historyLimit)
-      kvm['historyItems'].removeAll()
+      kvm['endOfHistory'] res.length < historyLimit
+      do kvm['historyItems'].removeAll
 
       # List of service id's for colorizing actions
       svcs =
@@ -176,26 +174,23 @@ setupHistory = (kvm) ->
           # We expect `isChecked` field to be present in each task,
           # but is is not always the case due to the bug fixed in
           # b0e4ce19b330cfafa05ba33a92234f24bd6bfe65
-          json.tasks.forEach((task) -> task.isChecked = !!task.isChecked)
+          json.tasks.forEach (task) -> task.isChecked = Boolean task.isChecked
 
         if json.aeinterlocutors?
           json.aeinterlocutors =
-            _.map(json.aeinterlocutors, utils.internalToDisplayed).
-              join(", ")
-        color = ko.observable(
+            _.map(json.aeinterlocutors, utils.internalToDisplayed).join ", "
+        color = ko.observable \
           if json.serviceid?
             utils.palette[svcs.indexOf(json.serviceid) %
               utils.palette.length]
           else
-            null)
+            null
 
         if json.delayminutes
-          hours = String(Math.floor(json.delayminutes / 60))
-          minutes = String(json.delayminutes % 60)
-          if hours.length < 2
-            hours = '0' + hours
-          if minutes.length < 2
-            minutes = '0' + minutes
+          hours   = String Math.floor json.delayminutes / 60
+          minutes = String json.delayminutes % 60
+          hours   = "0#{hours}"   if hours.length   < 2
+          minutes = "0#{minutes}" if minutes.length < 2
           json.delayminutes = hours + ':' + minutes
 
         dts = new Date(i[0]).toString historyDatetimeFormat
@@ -204,27 +199,29 @@ setupHistory = (kvm) ->
           who: i[1]
           json: json
           color: color
-        item.visible = ko.computed(showHistoryItem item)
+        item.visible = ko.computed showHistoryItem item
         kvm['historyItems'].push item
 
 
   showHistoryItem = (i) ->
     ->
-      if i.json.type == 'action' && not kvm.histShowActi()
-        return false
-      if i.json.type == 'comment' && not kvm.histShowComm()
-        return false
-      if i.json.type == 'partnerCancel' && not kvm.histShowCanc()
-        return false
-      if i.json.type == 'partnerDelay' && not kvm.histShowDelay()
-        return false
-      if (i.json.type == 'call' || i.json.type == 'avayaEvent') && not kvm.histShowCall()
-        return false
+      switch
+        when i.json.type is 'action' and not kvm.histShowActi()
+          return false
+        when i.json.type is 'comment' and not kvm.histShowComm()
+          return false
+        when i.json.type is 'partnerCancel' and not kvm.histShowCanc()
+          return false
+        when i.json.type is 'partnerDelay' and not kvm.histShowDelay()
+          return false
+        when (i.json.type is 'call' or i.json.type is 'avayaEvent') \
+        and not kvm.histShowCall()
+          return false
 
       filterVal = kvm['historyFilter']()
       matchesFilter = (s) ->
-        _.isEmpty(filterVal) || (new RegExp(filterVal, "i")).test(s)
-      return _.any([i.who, i.datetime].concat(_.values(i.json)), matchesFilter)
+        _.isEmpty(filterVal) || new RegExp(filterVal, "i").test(s)
+      _.any [i.who, i.datetime].concat(_.values i.json), matchesFilter
 
   kvm['refreshHistory'] = refreshHistory
   kvm['contact_phone1']?.subscribe refreshHistory
@@ -383,9 +380,9 @@ removeCaseMain = ->
   $('.navbar').css "-webkit-transform", ""
 
 
-module.exports =
-  { constructor : setupCaseMain
-  , destructor  : removeCaseMain
-  , template
-  , addService
-  }
+module.exports = {
+  constructor : setupCaseMain
+  destructor  : removeCaseMain
+  template
+  addService
+}
