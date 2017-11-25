@@ -1,8 +1,7 @@
-// div …testing diag tree show…
-// div(data-bind='text: caseId')
-.container
-  .row
-    .col-md-4
-      .list-group
-    .col-md-8
-      h1(data-bind='text: slideHeader')
+// ko if: isLoading
+span Loading…
+// /ko
+
+// ko ifnot: isLoading
+diag-tree-show-inside(params='caseModel: caseModel')
+// /ko

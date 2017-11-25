@@ -33,7 +33,7 @@ isActionMapObjValid = (v) ->
 #     Payload: an Immutable's Record (optional) -
 #       Constructor for payload data.
 #       Keep in mind when you create an action payload is checked that it's
-#       an instance of this contructor or throws exception otherwise.
+#       an instance of this constructor or throws exception otherwise.
 #       See http://facebook.github.io/immutable-js/docs/#/Record
 #
 # Any produced action creater always returns a promise
@@ -71,7 +71,9 @@ makeActions = (pathContext, actionMap) ->
 
         f = (payload, etc...) ->
           if Payload? and payload not instanceof Payload
-            throw new Error "Incorrect payload type"
+            err = new Error "Incorrect payload type"
+            console.error err, "payload:", payload
+            throw err
 
           action = creator payload, etc...
 

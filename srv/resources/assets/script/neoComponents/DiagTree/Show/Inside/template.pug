@@ -1,0 +1,47 @@
+mixin answer
+  div TODO
+
+mixin historyItem
+  div
+    //
+      ko if:
+        $parent.hasPrevHistory(get("id")) &&
+        $parent.showDeprecated() !== get("id")
+
+    a.more(href='#' data-bind='click: $parent.showDeprecatedAnswers')
+      | Показать отменённые ответы
+    // /ko
+
+    // ko if: $parent.showDeprecated() === get("id")
+    a.more(href='#' data-bind='click: $parent.hideDeprecatedAnswers')
+      | Скрыть отменённые ответы
+    // /ko
+
+  //
+    ko if:
+      $parent.hasPrevHistory(get("id"))
+      $parent.showDeprecated() === get("id")
+
+  .list-group TODO
+  // /ko
+
+  button.list-group-item(data-bind='\
+    css: {selected: $parent.slideId() === get("id")},\
+    click: $parent.onHistoryClick,\
+    event: {\
+      mouseenter: $parent.onHistoryMouseEnter,\
+      mouseleave: $parent.onHistoryMouseLeave,\
+    },\
+  ')
+    h4.list-group-item-heading(data-bind='text: get("header")')
+    p.list-group-item-text
+      +answer
+
+.container
+  .row
+    .col-md-4
+      .list-group(data-bind='foreach: history')
+        div
+          +historyItem
+    .col-md-8
+      h1(data-bind='text: slideHeader')

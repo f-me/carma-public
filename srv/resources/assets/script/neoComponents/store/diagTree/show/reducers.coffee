@@ -3,16 +3,17 @@
   ReduxActions: {handleActions}
 } = require "carma/vendor"
 
+{CaseHistoryList} = require "./models"
 actions = require "./actions"
 
 CaseItem = Record
   # scalar types
-  id           : 0
-  isProcessing : false
-  isFailed     : false
+  id        : 0
+  isLoading : false
+  isFailed  : false
 
   # complex types
-  history      : List() # for model see "./actions" module
+  history   : new CaseHistoryList
 
 DiagTreeShowState = Record
   cases: Map() # Map<number (case id), CaseItem>
@@ -22,22 +23,22 @@ reducerMap =
     state.updateIn ["cases", payload.get "caseId"],
       (caseItem = new CaseItem id: payload.get "caseId") ->
         caseItem.merge
-          isProcessing : true
-          isFailed     : false
-          history      : List()
+          isLoading : true
+          isFailed  : false
+          history   : new CaseHistoryList
 
   "#{actions.getCaseHistorySuccess}": (state, {payload}) ->
     state.updateIn ["cases", payload.get "caseId"],
       (caseItem) -> caseItem.merge
-        isProcessing : false
-        isFailed     : false
-        history      : payload.get "history"
+        isLoading : false
+        isFailed  : false
+        history   : payload.get "history"
 
   "#{actions.getCaseHistoryFailure}": (state, {payload}) ->
     state.updateIn ["cases", payload.get "caseId"],
       (caseItem) -> caseItem.merge
-        isProcessing : false
-        isFailed     : true
-        history      : List()
+        isLoading : false
+        isFailed  : true
+        history   : new CaseHistoryList
 
 module.exports = handleActions reducerMap, new DiagTreeShowState

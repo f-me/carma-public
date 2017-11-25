@@ -11,38 +11,37 @@
 require "./styles.less"
 
 smsTemplates = data.model.SmsTemplate.filter (x) => x.isActive
+storeSelector = -> store.getState().get "smsForm"
 
 
 class SmsFormViewModel
   constructor: ->
     # Connector to store
-    @appState = ko.observable store.getState()
-    @unsubscribeFromAppState = store.subscribe => @appState store.getState()
-
-    # Pure value from store
-    @isProcessing =
-      ko.pureComputed => @appState().getIn ["smsForm", "isProcessing"]
-
-    @isFailed     = ko.pureComputed => @appState().getIn ["smsForm", "isFailed"]
-    isShown       = ko.pureComputed => @appState().getIn ["smsForm", "isShown"]
+    @appState = ko.observable storeSelector()
+    @unsubscribeFromAppState = store.subscribe => @appState storeSelector()
 
     @subscriptions = [] # Mutable
 
-    @phone = ko.observable @appState().getIn ["smsForm", "phone"]
+    # Pure value from store
+    @isProcessing = ko.pureComputed => @appState().get "isProcessing"
+    @isFailed     = ko.pureComputed => @appState().get "isFailed"
+    isShown       = ko.pureComputed => @appState().get "isShown"
+
+    @phone = ko.observable @appState().get "phone"
       .extend validate: (x) -> true unless /^\+\d{11}$/.test x
 
-    @caseId      = ko.observable @appState().getIn ["smsForm", "caseId"]
-    @caseCity    = ko.observable @appState().getIn ["smsForm", "caseCity"]
-    @caseAddress = ko.observable @appState().getIn ["smsForm", "caseAddress"]
+    @caseId      = ko.observable @appState().get "caseId"
+    @caseCity    = ko.observable @appState().get "caseCity"
+    @caseAddress = ko.observable @appState().get "caseAddress"
 
     # Overwrite form's values with ones from store when form is just shown
     @subscriptions.push isShown.subscribe (value) =>
       return unless value # if form is just closed we don't have to do anything
 
-      @phone       @appState().getIn ["smsForm", "phone"]
-      @caseId      @appState().getIn ["smsForm", "caseId"]
-      @caseCity    @appState().getIn ["smsForm", "caseCity"]
-      @caseAddress @appState().getIn ["smsForm", "caseAddress"]
+      @phone       @appState().get "phone"
+      @caseId      @appState().get "caseId"
+      @caseCity    @appState().get "caseCity"
+      @caseAddress @appState().get "caseAddress"
 
       @smsTemplate null
       @message     ""
@@ -59,7 +58,7 @@ class SmsFormViewModel
 
     # Property that indicates if root elements must be shown,
     # not really visible for user, but visible for browser (display: block).
-    @isVisible = ko.computed => isShown() || fadeOut()
+    @isVisible = ko.computed => isShown() or fadeOut()
 
     @smsTemplate = ko.observable null
 
@@ -98,7 +97,7 @@ class SmsFormViewModel
   send: =>
     smsTpl = @smsTemplate()
 
-    reqData = sendSmsFormRequest.Payload
+    reqData = new sendSmsFormRequest.Payload
       phone:      @phone()
       caseId:     @caseId()
       message:    @message()
