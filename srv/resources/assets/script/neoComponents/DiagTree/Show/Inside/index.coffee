@@ -35,12 +35,15 @@ class DiagTreeShowInsideViewModel
     do x.dispose for x in @subscriptions
 
   prevHistory: (id) => @originalHistory().getPreviousById id
-  hasPrevHistory: (id) => @prevHistory(id).length > 0
+  hasPrevHistory: (id) => @prevHistory(id).size > 0
   showDeprecatedAnswers: (model) => @showDeprecated model.get "id"
   hideDeprecatedAnswers: => @showDeprecated null
-  onHistoryClick: (model) => @slideId model.get "id"
+  selectHistory: (model) => @slideId model.get "id"
   onHistoryMouseEnter: (model) => @hoverId model.get "id"
   onHistoryMouseLeave: (model) => @hoverId null if @hoverId() is model.get "id"
+
+  repeatQuestion: (model) =>
+    console.error "TODO repeatQuestion", model.get "id"
 
 
 module.exports =

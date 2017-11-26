@@ -14,9 +14,13 @@ class CaseHistoryItemAnswersItem extends Record(
   @fromPlain = (plainObj) => new @ pick plainObj, @plainObjScalarProps
 
 
-class CaseHistoryItemAnswersList
+class CaseHistoryItemAnswersList extends List
   @Item: CaseHistoryItemAnswersItem
   @fromPlain: (plainArr) => List plainArr.map (x) => @Item.fromPlain x
+
+  constructor: (args...) ->
+    list = super args...
+    return list
 
 
 class CaseHistoryItem extends Record(

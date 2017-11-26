@@ -1,47 +1,88 @@
-mixin answer
-  div TODO
+- var pfx = 'diag-tree-show'
+
+mixin answer(disabled)
+  div(data-bind='if: item.get("answerIx") !== null')
+    div(class=`${pfx}--history-answer`)
+      span(data-bind='\
+        text: item.getIn(["answers", item.get("answerIx"), "header"]),\
+      ')
+      br
+      span(data-bind='text: item.get("answerTime")')
+      span= ' - '
+      span(data-bind='text: item.get("answeredBy")')
+
+    // TODO do it different way
+    unless disabled
+      span.btn.glyphicon.glyphicon-repeat(
+        class=`${pfx}--floating-btn`
+        title='Повторить вопрос'
+        data-action='repeat-question'
+        data-bind='visible: $component.hoverId() === item.get("id")')
 
 mixin historyItem
   div
-    //
-      ko if:
-        $parent.hasPrevHistory(get("id")) &&
-        $parent.showDeprecated() !== get("id")
-
-    a.more(href='#' data-bind='click: $parent.showDeprecatedAnswers')
+    a(
+      href='#'
+      class=`${pfx}--more`
+      data-bind='\
+        visible: \
+          $component.hasPrevHistory(item.get("id")) &&\
+          $component.showDeprecated() !== item.get("id"),\
+        click: $component.showDeprecatedAnswers,\
+      ')
       | Показать отменённые ответы
-    // /ko
 
-    // ko if: $parent.showDeprecated() === get("id")
-    a.more(href='#' data-bind='click: $parent.hideDeprecatedAnswers')
+    a(
+      href='#'
+      class=`${pfx}--more`
+      data-bind='\
+        visible: $component.showDeprecated() === item.get("id"),\
+        click: $component.hideDeprecatedAnswers,\
+      ')
       | Скрыть отменённые ответы
-    // /ko
 
   //
     ko if:
-      $parent.hasPrevHistory(get("id"))
-      $parent.showDeprecated() === get("id")
+      $component.hasPrevHistory(item.get("id")) &&
+      $component.showDeprecated() === item.get("id")
 
-  .list-group TODO
+  .list-group(data-bind='\
+    foreach: {\
+      data: $component.prevHistory(item.get("id")).toArray(),\
+      as: "prevItem",\
+    },\
+  ')
+    button.list-group-item(
+      class=`${pfx}--deprecated`
+      data-bind=`\
+        css: {"${pfx}--selected": prevItem.get("id") === $component.slideId()},\
+        click: $component.selectHistory,\
+      `)
+        h4.list-group-item-heading(data-bind='text: prevItem.get("header")')
+        p.list-group-item-text
+          +answer(true)
+
   // /ko
 
   button.list-group-item(data-bind='\
-    css: {selected: $parent.slideId() === get("id")},\
-    click: $parent.onHistoryClick,\
+    css: {selected: $component.slideId() === item.get("id")},\
+    click: $component.selectHistory,\
     event: {\
-      mouseenter: $parent.onHistoryMouseEnter,\
-      mouseleave: $parent.onHistoryMouseLeave,\
+      mouseenter: $component.onHistoryMouseEnter,\
+      mouseleave: $component.onHistoryMouseLeave,\
     },\
   ')
-    h4.list-group-item-heading(data-bind='text: get("header")')
+    h4.list-group-item-heading(data-bind='text: item.get("header")')
     p.list-group-item-text
-      +answer
+      +answer(false)
 
 .container
   .row
     .col-md-4
-      .list-group(data-bind='foreach: history')
+      .list-group(data-bind='\
+        foreach: {data: $component.history, as: "item"},\
+      ')
         div
           +historyItem
     .col-md-8
-      h1(data-bind='text: slideHeader')
+      h1(data-bind='text: $component.slideHeader')

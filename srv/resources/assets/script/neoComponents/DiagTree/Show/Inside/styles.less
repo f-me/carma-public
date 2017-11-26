@@ -1,2 +1,25 @@
 diag-tree-show-inside {
+  @pfx: diag-tree-show;
+
+  .@{pfx}--more { float: right; }
+  .@{pfx}--floating-btn { float: right; }
+  .@{pfx}--history-answer { float: left; }
+
+  .@{pfx}--img {
+    font-size: 36px;
+    margin: 10px;
+    max-width: 30%;
+  }
+
+  .list-group-item.@{pfx}--selected {
+    background-color: lightblue;
+  }
+
+  .list-group-item.@{pfx}--deprecated {
+    background-color: hsl(0, 0%, 50%);
+  }
+
+  .list-group-item.@{pfx}--deprecated.@{pfx}--selected {
+    background-color: hsl(200, 30%, 50%);
+  }
 }

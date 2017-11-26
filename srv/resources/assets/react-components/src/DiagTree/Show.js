@@ -184,8 +184,7 @@ export default class Show extends React.Component {
                     </div>
                     { prevHistory.length && this.state.showDeprecated === h.id
                       ? <ListGroup>
-                        { history
-                            .filter(hh => hh.deprecatedBy === h.id)
+                        { prevHistory
                             .map((hh, j) =>
                               <ListGroupItem key={j}
                                 className={hh.id === slideId
