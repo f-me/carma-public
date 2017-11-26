@@ -22,14 +22,17 @@ class DiagTreeShowInsideViewModel
       @originalHistory().onlyNotDeprecated().toArray()
 
     @showDeprecated = ko.observable null
-    @slideId = ko.observable null
     @hoverId = ko.observable null
 
-    @slideHeader = ko.observable "testing slide header"
+    @slideId = ko.observable if @originalHistory().size > 0 \
+                                then @originalHistory().last().get "id"
+                                else null
 
     @subscriptions.push @originalHistory.subscribeWithOld (newVal, oldVal) =>
       if oldVal.size is 0 and newVal.size > 0
         @slideId newVal.last().get "id"
+
+    @slideHeader = ko.observable "testing slide header"
 
   dispose: =>
     do x.dispose for x in @subscriptions

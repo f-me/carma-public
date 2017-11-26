@@ -64,14 +64,14 @@ mixin historyItem
 
   // /ko
 
-  button.list-group-item(data-bind='\
-    css: {selected: $component.slideId() === item.get("id")},\
+  button.list-group-item(data-bind=`\
+    css: {"${pfx}--selected": $component.slideId() === item.get("id")},\
     click: $component.selectHistory,\
     event: {\
       mouseenter: $component.onHistoryMouseEnter,\
       mouseleave: $component.onHistoryMouseLeave,\
     },\
-  ')
+  `)
     h4.list-group-item-heading(data-bind='text: item.get("header")')
     p.list-group-item-text
       +answer(false)
