@@ -115,7 +115,11 @@ fetchMethod = (method, url, data, customOpts) ->
     else
       Object.assign reqOpts, customOpts
 
-  fetch(url, reqOpts).then (x) -> x.json()
+  promise = fetch(url, reqOpts)
+
+  if customOpts?.originalResponse \
+     then promise
+     else promise.then (x) -> x.json()
 
 # Fetch, POST method, with credentials, JSON data in/JSON data out
 fetchPost = (url, data = {}, customOpts = null) ->

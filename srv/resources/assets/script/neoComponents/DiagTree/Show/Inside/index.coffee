@@ -2,7 +2,11 @@
 {backgrounds} = require "./precompiled"
 {store} = require "carma/neoComponents/store"
 
-{repeatQuestionRequest} =
+{
+  repeatQuestionRequest
+  createServiceRequest
+  answerRequest
+} =
   require "carma/neoComponents/store/diagTree/show/actions"
 
 {
@@ -25,12 +29,6 @@ class DiagTreeShowInsideViewModel
     @originalHistory = ko.pureComputed => @caseModel().get "history"
     @isProcessing = ko.pureComputed => @caseModel().get "isLoading"
 
-    @isGetCaseHistoryFailed = ko.pureComputed =>
-      @caseModel().get "isGetCaseHistoryFailed"
-
-    @isRepeatQuestionFailed = ko.pureComputed =>
-      @caseModel().get "isRepeatQuestionFailed"
-
     @history = ko.pureComputed =>
       @originalHistory().onlyNotDeprecated().toArray()
 
@@ -51,16 +49,28 @@ class DiagTreeShowInsideViewModel
       if oldVal.size is 0 and newVal.size > 0
         @slideId newVal.last().get "id"
 
+    @slideAction     = ko.pureComputed => @slide().getIn ["actions", 0], null
+    @slideResources  = ko.pureComputed => @slide().get("resources").toArray()
+    @slideAnswers    = ko.pureComputed => @slide().get("answers").toArray()
+    @slideAnswerIdx  = ko.pureComputed => @slide().get("answerIx")
+    @isSlideAnswered = ko.pureComputed => @slideAnswerIdx() isnt null
+    @slideBody       = ko.pureComputed => @slide().get("body").trim()
+
+    @isItYesNoAnswer = ko.pureComputed =>
+      slide = @slide()
+      slide.get("answers").size is 2 and (
+        tester = (x, i) => x.test slide.getIn ["answers", i, "header"]
+        yesNoRegs.every(tester) or yesNoRegs.reverse().every(tester)
+      )
+
   dispose: =>
     do x.dispose for x in @subscriptions
 
-  prevHistory: (id) =>
-    return if @isProcessing()
-    @originalHistory().getPreviousById id
+  prevHistory: (id) => @originalHistory().getPreviousById id
+  hasPrevHistory: (id) => @prevHistory(id).size > 0
+  answerBg: (idx) => backgrounds[idx % backgrounds.length]
 
-  hasPrevHistory: (id) =>
-    return if @isProcessing()
-    @prevHistory(id).size > 0
+  # handlers
 
   showDeprecatedAnswers: (model) =>
     return if @isProcessing()
@@ -92,6 +102,30 @@ class DiagTreeShowInsideViewModel
     store.dispatch repeatQuestionRequest new repeatQuestionRequest.Payload
       caseId: @caseModel().get "id"
       historyItemId: model.get "id"
+
+  handleAnswer: (answerIdx, model) =>
+    return if @isProcessing()
+
+    store.dispatch answerRequest new answerRequest.Payload
+      caseId      : @caseModel().get "id"
+      slideId     : @slide().get "id"
+      nextSlideId : model.get "nextSlide"
+      answerIndex : answerIdx
+
+  handleSlideAction: =>
+    return if @isProcessing()
+    caseId = @caseModel().get "id"
+
+    payload = new createServiceRequest.Payload {
+      serviceModelName: @slideAction().get "svc"
+      caseId
+    }
+
+    store.dispatch createServiceRequest payload
+      .then ->
+        window.localStorage.setItem "DiagTree/#{caseId}/newSvc", true
+        window.alert "Готово. Опрос будет закрыт."
+        do window.close
 
 
 module.exports =

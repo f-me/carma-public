@@ -1,43 +1,9 @@
-
-
-.Show .invisible {
-  display: none;
-}
-
-.Show .floating-btn {
-  float: right;
-}
-
-.Show .more {
-  float: right;
-}
-
-.Show .history-answer {
-  float:left;
-}
-
-.Editor, .Show {
-  margin: 20px;
-}
-
 .Editor .list-group-item {
   border: none;
 }
 
 .Editor .list-group-item.selected {
   background-color: lightblue;
-}
-
-.Show .list-group-item.selected {
-  background-color: lightblue;
-}
-
-.Show .list-group-item.deprecated {
-  background-color: hsl(0, 0%, 50%);
-}
-
-.Show .list-group-item.deprecated.selected {
-  background-color: hsl(200, 30%, 50%);
 }
 
 .SlideEditor {
@@ -47,12 +13,6 @@
 
 .SlideEditor .header {
   font-size: 36px;
-}
-
-.Show img {
-  font-size: 36px;
-  margin: 10px;
-  max-width: 30%;
 }
 
 .SlideEditor img {

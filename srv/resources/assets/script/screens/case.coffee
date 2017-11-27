@@ -107,7 +107,7 @@ setupCaseModel = (viewName, args) ->
 
 setupDiagTree = (kvm) ->
   watchLocalStorage = (e) ->
-    if e.key == "DiagTree/#{kvm.id()}/newSvc"
+    if e.key is "DiagTree/#{kvm.id()}/newSvc"
       window.localStorage.removeItem e.key
       do window.location.reload
 
@@ -130,12 +130,12 @@ setupDiagTree = (kvm) ->
   refreshDiagTree = ->
     $.getJSON "/diag/info/#{kvm.id()}", (res) ->
       kvm._canDiag res.root isnt null
-      kvm._canStartDiag !res.started
-      kvm._canProceedDiag res.started and !res.ended
+      kvm._canStartDiag not res.started
+      kvm._canProceedDiag res.started and not res.ended
       kvm._canShowDiag res.started and res.ended
 
   do refreshDiagTree
-  kvm.subprogramSync.subscribe (nv) -> do refreshDiagTree if !nv
+  kvm.subprogramSync.subscribe (nv) -> do refreshDiagTree unless nv
 
 
 # History pane

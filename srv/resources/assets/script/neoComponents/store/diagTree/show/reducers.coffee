@@ -13,8 +13,10 @@ CaseItem = Record
   isLoading : false
   isFailed  : false
 
-  isGetCaseHistoryFailed: false
-  isRepeatQuestionFailed: false
+  isGetCaseHistoryFailed : false
+  isRepeatQuestionFailed : false
+  isCreateServiceFailed  : false
+  isAnswerFailed         : false
 
   # complex types
   history: new CaseHistoryList
@@ -77,5 +79,56 @@ repeatQuestionReducers =
         isRepeatQuestionFailed : true
 
 
-reducerMap = Object.assign {}, getCaseHistoryReducers, repeatQuestionReducers
+answerReducers =
+  "#{actions.answerRequest}": (state, {payload}) ->
+    state.updateIn ["cases", payload.get "caseId"],
+      (caseItem) -> caseItem.merge
+        isLoading      : true
+        isFailed       : false
+        isAnswerFailed : false
+
+  "#{actions.answerSuccess}": (state, {payload}) ->
+    state.updateIn ["cases", payload.get "caseId"],
+      (caseItem) -> caseItem.merge
+        isLoading      : false
+        isFailed       : false
+        isAnswerFailed : false
+
+  "#{actions.answerFailure}": (state, {payload}) ->
+    state.updateIn ["cases", payload.get "caseId"],
+      (caseItem) -> caseItem.merge
+        isLoading      : false
+        isFailed       : true
+        isAnswerFailed : true
+
+
+createServiceReducers =
+  "#{actions.answerRequest}": (state, {payload}) ->
+    state.updateIn ["cases", payload.get "caseId"],
+      (caseItem) -> caseItem.merge
+        isLoading             : true
+        isFailed              : false
+        isCreateServiceFailed : false
+
+  "#{actions.answerSuccess}": (state, {payload}) ->
+    state.updateIn ["cases", payload.get "caseId"],
+      (caseItem) -> caseItem.merge
+        isLoading             : false
+        isFailed              : false
+        isCreateServiceFailed : false
+
+  "#{actions.answerFailure}": (state, {payload}) ->
+    state.updateIn ["cases", payload.get "caseId"],
+      (caseItem) -> caseItem.merge
+        isLoading             : false
+        isFailed              : true
+        isCreateServiceFailed : true
+
+
+reducerMap = Object.assign {},
+  getCaseHistoryReducers,
+  repeatQuestionReducers,
+  createServiceReducers,
+  answerReducers
+
 module.exports = handleActions reducerMap, new DiagTreeShowState

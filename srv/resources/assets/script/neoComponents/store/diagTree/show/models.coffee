@@ -1,11 +1,12 @@
 {_: {pick, memoize}, Immutable: {Record, List}} = require "carma/vendor"
 
 
-class CaseHistoryItemAnswersItem extends Record(
+class CaseHistoryAnswersItem extends Record(
   # scalar types
   nextSlide : 0
   header    : ""
   text      : ""
+  file      : null # null or string
 
   # unknown types
   # action    : {}
@@ -14,32 +15,57 @@ class CaseHistoryItemAnswersItem extends Record(
   @fromPlain = (plainObj) => new @ pick plainObj, @plainObjScalarProps
 
 
-class CaseHistoryItemAnswersList extends List
-  @Item: CaseHistoryItemAnswersItem
-  @fromPlain: (plainArr) => List plainArr.map (x) => @Item.fromPlain x
+class CaseHistoryAnswersList extends List
+  @Item: CaseHistoryAnswersItem
+  @fromPlain: (plainArr) => new @ plainArr.map (x) => @Item.fromPlain x
+  constructor: (args...) -> return super args...
 
-  constructor: (args...) ->
-    list = super args...
-    return list
+
+class CaseHistoryActionsItem extends Record(
+  # scalar types
+  label : ""
+  svc   : "" # Service model name
+)
+  @plainObjScalarProps = ["label", "svc"]
+  @fromPlain = (plainObj) => new @ pick plainObj, @plainObjScalarProps
+
+
+class CaseHistoryActionsList extends List
+  @Item: CaseHistoryActionsItem
+  @fromPlain: (plainArr) => new @ plainArr.map (x) => @Item.fromPlain x
+  constructor: (args...) -> return super args...
+
+
+class CaseHistoryResourcesItem extends Record(
+  # scalar types
+  file : ""
+  text : ""
+)
+  @plainObjScalarProps = ["file", "text"]
+  @fromPlain = (plainObj) => new @ pick plainObj, @plainObjScalarProps
+
+
+class CaseHistoryResourcesList extends List
+  @Item: CaseHistoryResourcesItem
+  @fromPlain: (plainArr) => new @ plainArr.map (x) => @Item.fromPlain x
+  constructor: (args...) -> return super args...
 
 
 class CaseHistoryItem extends Record(
   # scalar types
   id           : 0
   header       : ""
-  body         : "" # html code
-  answerIx     : null # number
+  body         : ""   # html code
+  answerIx     : null # number - selected answer index
   answeredBy   : null # string
   answerTime   : null # string
   deprecatedBy : null # number
 
   # complex types
-  answers      : List()
-  # actions      : List()
-  # resources    : List()
+  answers      : new CaseHistoryAnswersList
+  actions      : new CaseHistoryActionsList
+  resources    : new CaseHistoryResourcesList
 )
-  @AnswersItem = CaseHistoryItemAnswersItem
-
   @plainObjScalarProps = [
     "id", "header", "body"
     "answerIx", "answeredBy", "answerTime"
@@ -49,7 +75,9 @@ class CaseHistoryItem extends Record(
   @fromPlain: (plainObj) =>
     obj = pick plainObj, @plainObjScalarProps
     new @ Object.assign obj,
-      answers: List plainObj.answers.map (x) => @AnswersItem.fromPlain x
+      answers   : CaseHistoryAnswersList.fromPlain plainObj.answers
+      actions   : CaseHistoryActionsList.fromPlain plainObj.actions
+      resources : CaseHistoryResourcesList.fromPlain plainObj.resources
 
 
 class CaseHistoryList extends List

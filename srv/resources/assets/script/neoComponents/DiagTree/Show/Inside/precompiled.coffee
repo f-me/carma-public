@@ -25,7 +25,7 @@ hsv2rgb = (h, s, v) ->
       when 5 then [v, b, vb * (60 - hm) / 60 + b]
 
 backgrounds =
-  (backgroundColor: "rgb(#{r}, #{g}, #{b})" for [r, g, b] in \
+  ("rgb(#{r}, #{g}, #{b})" for [r, g, b] in \
     (hsv2rgb x / 7 * 360, 0.10, 1 for x in [0..6]))
 
 module.exports = {backgrounds}
