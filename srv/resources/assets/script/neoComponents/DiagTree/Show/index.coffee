@@ -23,9 +23,7 @@ class DiagTreeShowViewModel
     @caseId = ko.pureComputed -> parseInt caseIdStrParam()
     @caseModel = ko.pureComputed => @appState().getIn ["cases", @caseId()], null
     @isInitiated = ko.pureComputed => @caseModel() isnt null
-
-    @isLoading = ko.pureComputed =>
-      not @isInitiated() or @caseModel().get "isLoading"
+    @isLoading = ko.pureComputed => not @isInitiated()
 
     unless @isInitiated()
       store.dispatch getCaseHistoryRequest \

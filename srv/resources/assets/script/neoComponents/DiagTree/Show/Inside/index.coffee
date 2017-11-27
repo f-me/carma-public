@@ -17,6 +17,7 @@ class DiagTreeShowInsideViewModel
     @subscriptions = [] # Mutable
 
     @originalHistory = ko.pureComputed => @caseModel().get "history"
+    @isProcessing = ko.pureComputed => @caseModel().get "isLoading"
 
     @history = ko.pureComputed =>
       @originalHistory().onlyNotDeprecated().toArray()

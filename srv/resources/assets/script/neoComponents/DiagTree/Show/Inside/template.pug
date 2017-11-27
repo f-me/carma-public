@@ -1,15 +1,16 @@
 - var pfx = 'diag-tree-show'
 
 mixin answer
-  div(data-bind='if: item.get("answerIx") !== null')
-    div(class=`${pfx}--history-answer`)
-      span(data-bind='\
-        text: item.getIn(["answers", item.get("answerIx"), "header"]),\
-      ')
-      br
-      span(data-bind='text: item.get("answerTime")')
-      span= ' - '
-      span(data-bind='text: item.get("answeredBy")')
+  // ko if: item.get("answerIx") !== null
+  span(class=`${pfx}--history-answer`)
+    span(data-bind='\
+      text: item.getIn(["answers", item.get("answerIx"), "header"]),\
+    ')
+    br
+    span(data-bind='text: item.get("answerTime")')
+    span= ' - '
+    span(data-bind='text: item.get("answeredBy")')
+  // /ko
 
 mixin historyItem
   div(data-bind='if: $component.hasPrevHistory(item.get("id"))')
@@ -99,4 +100,5 @@ mixin historyItem
         div
           +historyItem
     .col-md-8
+      div(data-bind='spinner: $component.isProcessing')
       h1(data-bind='text: $component.slideHeader')
