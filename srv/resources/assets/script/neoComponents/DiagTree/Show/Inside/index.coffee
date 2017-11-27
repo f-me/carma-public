@@ -68,7 +68,7 @@ class DiagTreeShowInsideViewModel
 
   hideDeprecatedAnswers: =>
     return if @isProcessing()
-     @showDeprecated null
+    @showDeprecated null
 
   selectHistory: (model) =>
     return if @isProcessing()

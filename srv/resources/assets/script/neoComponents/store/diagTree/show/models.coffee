@@ -40,8 +40,11 @@ class CaseHistoryItem extends Record(
 )
   @AnswersItem = CaseHistoryItemAnswersItem
 
-  @plainObjScalarProps =
-    ["id", "header", "body", "answerIx", "answeredBy", "answerTime"]
+  @plainObjScalarProps = [
+    "id", "header", "body"
+    "answerIx", "answeredBy", "answerTime"
+    "deprecatedBy"
+  ]
 
   @fromPlain: (plainObj) =>
     obj = pick plainObj, @plainObjScalarProps
