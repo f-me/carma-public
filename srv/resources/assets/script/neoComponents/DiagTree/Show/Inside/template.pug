@@ -13,11 +13,14 @@ mixin answer
   // /ko
 
 mixin historyItem
-  div(data-bind='if: $component.hasPrevHistory(item.get("id"))')
+  div(
+    class=`${pfx}--more-actions`
+    data-bind='if: $component.hasPrevHistory(item.get("id"))')
     a(
       href='#'
       class=`${pfx}--more`
       data-bind='\
+        disabled: $component.isProcessing,\
         visible: \
           $component.hasPrevHistory(item.get("id")) &&\
           $component.showDeprecated() !== item.get("id"),\
@@ -29,6 +32,7 @@ mixin historyItem
       href='#'
       class=`${pfx}--more`
       data-bind='\
+        disabled: $component.isProcessing,\
         visible: $component.showDeprecated() === item.get("id"),\
         click: $component.hideDeprecatedAnswers,\
       ')
@@ -46,8 +50,9 @@ mixin historyItem
     },\
   ')
     button.list-group-item(
-      class=`${pfx}--deprecated`
+      class=`${pfx}--btn ${pfx}--deprecated`
       data-bind=`\
+        disabled: $component.isProcessing,\
         css: {"${pfx}--selected": prevItem.get("id") === $component.slideId()},\
         click: $component.selectHistory,\
       `)
@@ -65,9 +70,10 @@ mixin historyItem
         mouseleave: $component.onHistoryMouseLeave,\
       },\
     ')
-    button.list-group-item(data-bind=`\
+    button.list-group-item(class=`${pfx}--btn` data-bind=`\
       css: {"${pfx}--selected": $component.slideId() === item.get("id")},\
       click: $component.selectHistory,\
+      disabled: $component.isProcessing,\
       event: {\
         focus: $component.onHistoryFocus,\
         blur: $component.onHistoryBlur,\
@@ -81,6 +87,7 @@ mixin historyItem
       title='Повторить вопрос'
       data-bind=`\
         click: $component.repeatQuestion,\
+        disabled: $component.isProcessing,\
         css: {\
           "${pfx}--floating-btn--visible":\
             $component.hoverId() === item.get("id"),\
@@ -101,4 +108,7 @@ mixin historyItem
           +historyItem
     .col-md-8
       div(data-bind='spinner: $component.isProcessing')
-      h1(data-bind='text: $component.slideHeader')
+      h1(data-bind='text: $component.slide().get("header")')
+      div(
+        class=`${pfx}--slide-body`
+        data-bind='html: $component.slide().get("body")')

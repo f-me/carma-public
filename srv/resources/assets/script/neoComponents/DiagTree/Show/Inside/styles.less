@@ -1,13 +1,33 @@
 diag-tree-show-inside {
   @pfx: diag-tree-show;
 
-  .@{pfx}--more { float: right; }
+  .@{pfx}--more-actions {
+    .@{pfx}--more {
+      float: right;
+
+      &[disabled] {
+        text-decoration: line-through;
+        cursor: not-allowed;
+      }
+    }
+
+    &:after {
+      display: block;
+      content: '';
+      clear: both;
+    }
+  }
+
   .@{pfx}--history-answer { float: left; }
 
   .@{pfx}--img {
     font-size: 36px;
     margin: 10px;
     max-width: 30%;
+  }
+
+  .@{pfx}--btn[disabled] {
+    cursor: not-allowed;
   }
 
   .list-group-item.@{pfx}--selected {
@@ -28,19 +48,31 @@ diag-tree-show-inside {
     .@{pfx}--floating-btn {
       display: block;
       position: absolute;
-      right: 0;
-      top: 0;
-      padding: 12px;
-      background: none;
-      transition: text-shadow 0.5s ease-in-out, opacity 0.5s ease-in-out;
+      right: 1px;
+      top: 1px;
+      padding: 9px 12px;
+      background: rgba(255, 255, 255, .8);
       opacity: 0;
+
+      transition:
+        text-shadow .3s ease-in-out,
+        opacity .3s ease-in-out,
+        background .3s ease-in-out;
 
       &--visible { opacity: 1; }
 
       &:hover, &:focus {
         text-shadow: 0 0 4px #777;
-        opacity: 0.7;
+        opacity: 0.8;
       }
     }
+  }
+
+  .@{pfx}--slide-body {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 9px;
+    font-size: 125%;
   }
 }

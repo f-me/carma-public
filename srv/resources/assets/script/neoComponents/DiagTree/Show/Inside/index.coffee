@@ -1,8 +1,12 @@
 {ko, Immutable: {Map, List}} = require "carma/vendor"
 {backgrounds} = require "./precompiled"
 {store} = require "carma/neoComponents/store"
-{CaseHistoryList} = require "carma/neoComponents/store/diagTree/show/models"
 {} = require "carma/neoComponents/store/diagTree/show/actions"
+
+{
+  CaseHistoryList
+  CaseHistoryItem
+} = require "carma/neoComponents/store/diagTree/show/models"
 
 require "./styles.less"
 
@@ -29,26 +33,52 @@ class DiagTreeShowInsideViewModel
                                 then @originalHistory().last().get "id"
                                 else null
 
+    defaultSlide = new CaseHistoryItem
+    @slide = ko.pureComputed =>
+      slideId = @slideId() # setting dependency
+      found = @originalHistory().find (x) -> x.get("id") is slideId
+      if found? then found else defaultSlide
+
     @subscriptions.push @originalHistory.subscribeWithOld (newVal, oldVal) =>
       if oldVal.size is 0 and newVal.size > 0
         @slideId newVal.last().get "id"
 
-    @slideHeader = ko.observable "testing slide header"
-
   dispose: =>
     do x.dispose for x in @subscriptions
 
-  prevHistory: (id) => @originalHistory().getPreviousById id
-  hasPrevHistory: (id) => @prevHistory(id).size > 0
-  showDeprecatedAnswers: (model) => @showDeprecated model.get "id"
-  hideDeprecatedAnswers: => @showDeprecated null
-  selectHistory: (model) => @slideId model.get "id"
-  onHistoryMouseEnter: (model) => @hoverId model.get "id"
-  onHistoryMouseLeave: (model) => @hoverId null if @hoverId() is model.get "id"
+  prevHistory: (id) =>
+    return if @isProcessing()
+    @originalHistory().getPreviousById id
+
+  hasPrevHistory: (id) =>
+    return if @isProcessing()
+    @prevHistory(id).size > 0
+
+  showDeprecatedAnswers: (model) =>
+    return if @isProcessing()
+    @showDeprecated model.get "id"
+
+  hideDeprecatedAnswers: =>
+    return if @isProcessing()
+     @showDeprecated null
+
+  selectHistory: (model) =>
+    return if @isProcessing()
+    @slideId model.get "id"
+
+  onHistoryMouseEnter: (model) =>
+    return if @isProcessing()
+    @hoverId model.get "id"
+
+  onHistoryMouseLeave: (model) =>
+    return if @isProcessing()
+    @hoverId null if @hoverId() is model.get "id"
+
   onHistoryFocus: (args...) => @onHistoryMouseEnter args...
   onHistoryBlur: (args...) => @onHistoryMouseLeave args...
 
   repeatQuestion: (model) =>
+    return if @isProcessing()
     console.error "TODO repeatQuestion", model.get "id"
 
 
