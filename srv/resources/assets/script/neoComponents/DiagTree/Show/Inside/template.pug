@@ -8,7 +8,7 @@ mixin answer
     ')
     br
     span(data-bind='text: item.get("answerTime")')
-    span= ' - '
+    span= ' — '
     span(data-bind='text: item.get("answeredBy")')
   // /ko
 
@@ -108,6 +108,17 @@ mixin historyItem
           +historyItem
     .col-md-8
       div(data-bind='spinner: $component.isProcessing')
+
+      p(data-bind='visible: $component.isGetCaseHistoryFailed')
+        span.label.label-danger Ошибка
+        |
+        | Произошла ошибка при загрузке истории диагностики
+
+      p(data-bind='visible: $component.isRepeatQuestionFailed')
+        span.label.label-danger Ошибка
+        |
+        | Произошла ошибка при попытке повторить вопрос
+
       h1(data-bind='text: $component.slide().get("header")')
       div(
         class=`${pfx}--slide-body`

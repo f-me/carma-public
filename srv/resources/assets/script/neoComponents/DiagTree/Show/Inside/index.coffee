@@ -1,7 +1,9 @@
 {ko, Immutable: {Map, List}} = require "carma/vendor"
 {backgrounds} = require "./precompiled"
 {store} = require "carma/neoComponents/store"
-{} = require "carma/neoComponents/store/diagTree/show/actions"
+
+{repeatQuestionRequest} =
+  require "carma/neoComponents/store/diagTree/show/actions"
 
 {
   CaseHistoryList
@@ -22,6 +24,12 @@ class DiagTreeShowInsideViewModel
 
     @originalHistory = ko.pureComputed => @caseModel().get "history"
     @isProcessing = ko.pureComputed => @caseModel().get "isLoading"
+
+    @isGetCaseHistoryFailed = ko.pureComputed =>
+      @caseModel().get "isGetCaseHistoryFailed"
+
+    @isRepeatQuestionFailed = ko.pureComputed =>
+      @caseModel().get "isRepeatQuestionFailed"
 
     @history = ko.pureComputed =>
       @originalHistory().onlyNotDeprecated().toArray()
@@ -77,9 +85,13 @@ class DiagTreeShowInsideViewModel
   onHistoryFocus: (args...) => @onHistoryMouseEnter args...
   onHistoryBlur: (args...) => @onHistoryMouseLeave args...
 
-  repeatQuestion: (model) =>
+  repeatQuestion: (model, e) =>
+    do e.target.blur
     return if @isProcessing()
-    console.error "TODO repeatQuestion", model.get "id"
+
+    store.dispatch repeatQuestionRequest new repeatQuestionRequest.Payload
+      caseId: @caseModel().get "id"
+      historyItemId: model.get "id"
 
 
 module.exports =
