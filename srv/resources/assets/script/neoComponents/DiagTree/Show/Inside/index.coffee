@@ -44,6 +44,8 @@ class DiagTreeShowInsideViewModel
   selectHistory: (model) => @slideId model.get "id"
   onHistoryMouseEnter: (model) => @hoverId model.get "id"
   onHistoryMouseLeave: (model) => @hoverId null if @hoverId() is model.get "id"
+  onHistoryFocus: (args...) => @onHistoryMouseEnter args...
+  onHistoryBlur: (args...) => @onHistoryMouseLeave args...
 
   repeatQuestion: (model) =>
     console.error "TODO repeatQuestion", model.get "id"

@@ -1,6 +1,6 @@
 - var pfx = 'diag-tree-show'
 
-mixin answer(disabled)
+mixin answer
   div(data-bind='if: item.get("answerIx") !== null')
     div(class=`${pfx}--history-answer`)
       span(data-bind='\
@@ -11,16 +11,8 @@ mixin answer(disabled)
       span= ' - '
       span(data-bind='text: item.get("answeredBy")')
 
-    // TODO do it different way
-    unless disabled
-      span.btn.glyphicon.glyphicon-repeat(
-        class=`${pfx}--floating-btn`
-        title='Повторить вопрос'
-        data-action='repeat-question'
-        data-bind='visible: $component.hoverId() === item.get("id")')
-
 mixin historyItem
-  div
+  div(data-bind='if: $component.hasPrevHistory(item.get("id"))')
     a(
       href='#'
       class=`${pfx}--more`
@@ -60,21 +52,43 @@ mixin historyItem
       `)
         h4.list-group-item-heading(data-bind='text: prevItem.get("header")')
         p.list-group-item-text
-          +answer(true)
+          +answer
 
   // /ko
 
-  button.list-group-item(data-bind=`\
-    css: {"${pfx}--selected": $component.slideId() === item.get("id")},\
-    click: $component.selectHistory,\
-    event: {\
-      mouseenter: $component.onHistoryMouseEnter,\
-      mouseleave: $component.onHistoryMouseLeave,\
-    },\
-  `)
-    h4.list-group-item-heading(data-bind='text: item.get("header")')
-    p.list-group-item-text
-      +answer(false)
+  div(
+    class=`${pfx}--with-floating-btn`
+    data-bind='\
+      event: {\
+        mouseenter: $component.onHistoryMouseEnter,\
+        mouseleave: $component.onHistoryMouseLeave,\
+      },\
+    ')
+    button.list-group-item(data-bind=`\
+      css: {"${pfx}--selected": $component.slideId() === item.get("id")},\
+      click: $component.selectHistory,\
+      event: {\
+        focus: $component.onHistoryFocus,\
+        blur: $component.onHistoryBlur,\
+      },\
+    `)
+      h4.list-group-item-heading(data-bind='text: item.get("header")')
+      p.list-group-item-text
+        +answer
+    button.btn.glyphicon.glyphicon-repeat(
+      class=`${pfx}--floating-btn`
+      title='Повторить вопрос'
+      data-bind=`\
+        click: $component.repeatQuestion,\
+        css: {\
+          "${pfx}--floating-btn--visible":\
+            $component.hoverId() === item.get("id"),\
+        },\
+        event: {\
+          focus: $component.onHistoryFocus,\
+          blur: $component.onHistoryBlur,\
+        },\
+      `)
 
 .container
   .row

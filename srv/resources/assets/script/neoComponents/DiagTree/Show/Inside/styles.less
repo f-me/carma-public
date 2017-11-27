@@ -2,7 +2,6 @@ diag-tree-show-inside {
   @pfx: diag-tree-show;
 
   .@{pfx}--more { float: right; }
-  .@{pfx}--floating-btn { float: right; }
   .@{pfx}--history-answer { float: left; }
 
   .@{pfx}--img {
@@ -21,5 +20,29 @@ diag-tree-show-inside {
 
   .list-group-item.@{pfx}--deprecated.@{pfx}--selected {
     background-color: hsl(200, 30%, 50%);
+  }
+
+  .@{pfx}--with-floating-btn {
+    position: relative;
+
+    .@{pfx}--floating-btn {
+      display: block;
+      position: absolute;
+      right: 0;
+      top: 0;
+      padding: 12px;
+      background: none;
+      transition: text-shadow 0.5s ease-in-out, opacity 0.5s ease-in-out;
+      opacity: 0;
+
+      &--visible {
+        opacity: 1;
+      }
+
+      &:hover, &:focus {
+        text-shadow: 0 0 4px #777;
+        opacity: 0.7;
+      }
+    }
   }
 }
