@@ -23,18 +23,22 @@ create view report_actions as
     COALESCE(c.id::bigint, 10000000000::bigint) AS sort_case_id, 
     COALESCE(serv.id::bigint, 10000000000::bigint) AS sort_service_id, 
     act.id AS sort_act_id, 
-    COALESCE(c.calldate::date, serv.createtime::date, act.ctime::date, '3000-01-01'::date) AS sort_date
+    COALESCE(c.calldate::date, serv.createtime::date, act.ctime::date, '3000-01-01'::date) AS sort_date,
+    CASE
+        WHEN act.closetime IS NOT NULL
+            AND act.opentime  IS NOT NULL
+            AND act.result <> 32 -- Закрыто супервизором
+            AND act.result is not null
+            THEN true
+        ELSE false
+    END as is_for_kpi_actions
    FROM actiontbl act
    LEFT JOIN servicetbl serv ON act.serviceid = serv.id
    LEFT JOIN casetbl c ON act.caseid = c.id
    LEFT JOIN "ActionType" act_t ON act.type = act_t.id
    LEFT JOIN usermetatbl um ON act.assignedto = um.id
    LEFT JOIN "ActionResult" ar ON act.result = ar.id
-   LEFT JOIN "ServiceType" st ON serv.type = st.id
-   WHERE act.closetime IS NOT NULL
-   AND act.opentime  IS NOT NULL
-   AND act.result <> 32 -- Закрыто супервизором
-   AND act.result is not null;
+   LEFT JOIN "ServiceType" st ON serv.type = st.id;
 
 grant select on report_actions to reportgen;
 

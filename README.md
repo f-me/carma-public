@@ -4,7 +4,7 @@
 
 ## Building
 
-Refer to [`.circleci/config.yml`](https://github.com/f-me/carma/blob/master/.circleci/config.yml) for full building instructions.
+Refer to [`.circleci/config.yml`](.circleci/config.yml) for full building instructions.
 
 ### Backend (Haskell)
 
@@ -17,7 +17,8 @@ Refer to [`.circleci/config.yml`](https://github.com/f-me/carma/blob/master/.cir
    1.4.0
    ```
 
-2. Install PostgreSQL 9.3 (this is what production servers use) and PostGIS. Create a database named `carma`:
+2. Install PostgreSQL 9.3 (this is what production servers use) and
+   PostGIS. Create a database named `carma`:
 
    ```
    createdb carma
@@ -39,7 +40,8 @@ Refer to [`.circleci/config.yml`](https://github.com/f-me/carma/blob/master/.cir
    `carma` is the superuser which owns the database and is used to run
    DB migration scripts.
 
-3. Unpack and recover a database snapshot:
+3. Unpack and recover a database snapshot (note that this needs to run
+   as a PostgreSQL superuser - for example, prepend with `sudo -u postgres`):
 
    ```
    psql carma -f 2017-05-29_03-15_carma.sql
