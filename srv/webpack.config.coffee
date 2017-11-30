@@ -1,8 +1,9 @@
 path = require "path"
 
-webpack           = require "webpack"
-UglifyJSPlugin    = require "uglifyjs-webpack-plugin"
-ExtractTextPlugin = require "extract-text-webpack-plugin"
+webpack                 = require "webpack"
+UglifyJSPlugin          = require "uglifyjs-webpack-plugin"
+ExtractTextPlugin       = require "extract-text-webpack-plugin"
+OptimizeCssAssetsPlugin = require "optimize-css-assets-webpack-plugin"
 
 RES_DIR = path.join __dirname, "resources"
 SRC_DIR = path.join RES_DIR, "assets", "script"
@@ -165,19 +166,22 @@ module.exports =
       { test: /\.(eot|svg|ttf|woff|woff2)$/, use: "file-loader" }
     ]
 
-  plugins: [
+  plugins: do ->
+    plugins = [
+      new webpack.optimize.CommonsChunkPlugin
+        names: ["carma", "resources", "vendor"]
+        minChunks: Infinity
 
-    new webpack.optimize.CommonsChunkPlugin
-      names: ["carma", "resources", "vendor"]
-      minChunks: Infinity
+      new webpack.ProvidePlugin
+        $: "jquery"
+        jQuery: "jquery"
+        "window.jQuery": "jquery"
 
-    new webpack.ProvidePlugin
-      $: "jquery"
-      jQuery: "jquery"
-      "window.jQuery": "jquery"
+      new webpack.EnvironmentPlugin ["NODE_ENV"]
+      cssExtractor
+    ]
 
-    cssExtractor
+    if process.env.NODE_ENV is "production"
+      plugins.push new UglifyJSPlugin, new OptimizeCssAssetsPlugin
 
-  ] .concat if process.env.NODE_ENV is "production" \
-               then new UglifyJSPlugin
-               else []
+    plugins
