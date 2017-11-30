@@ -107,6 +107,11 @@ module.exports =
       }
 
       {
+        test: require.resolve "jquery-migrate"
+        use:  { loader: "imports-loader", options: define: ">false" }
+      }
+
+      {
         test: require.resolve "openlayers-2-build"
         use:  { loader: "exports-loader", options: "OpenLayers": true }
       }

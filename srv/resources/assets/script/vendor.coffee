@@ -1,4 +1,4 @@
-$ = require "jquery"
+$ = require "jquery-migrate" # compatibility with jquery 2.x
 require "jquery.knob"
 require "jquery.notify"
 require "jquery.datatables"
