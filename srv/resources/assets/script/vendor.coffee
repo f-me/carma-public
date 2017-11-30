@@ -1,4 +1,5 @@
 $ = require "jquery-migrate" # compatibility with jquery 2.x
+$.migrateMute = true if process.env.NODE_ENV is "production"
 require "jquery.knob"
 require "jquery.notify"
 require "jquery.datatables"
