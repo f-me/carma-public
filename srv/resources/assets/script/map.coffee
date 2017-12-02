@@ -4,38 +4,34 @@ mu = require "carma/model/utils"
 u  = require "carma/utils"
 
 # Default marker icon size
-iconSize = new OpenLayers.Size(40, 40)
+iconSize = new OpenLayers.Size 40, 40
 
 # Default map zoom level (used when a POI displayed on map has no
 # bounds)
 defaultZoomLevel = 13
 
 geoRevQuery = (lon, lat) -> "/geo/revSearch/#{lon},#{lat}/"
-
-geoQuery = (addr) -> "/geo/search/#{addr}/"
+geoQuery    = (addr) -> "/geo/search/#{addr}/"
 
 # Build readable address from reverse Nominatim JSON response
 buildReverseAddress = (res) ->
-  if (res.error)
-    null
-  else
-    if res.city?
-      if res.address?
-        res.city + ', ' + res.address
-      else
-        res.city
+  return null if res.error
+
+  if res.city?
+    if res.address?
+      "#{res.city}, #{res.address}"
     else
-      res.address
+      res.city
+  else
+    res.address
 
 # Build city field value (or null, if the city is unknown)
 buildReverseCity = (res) ->
-  if (res.error)
-    null
-  else
-    u.newModelDict("City").getVal res.city || null
+  return null if res.error
+  u.newModelDict("City").getVal res.city || null
 
-wsgProj = new OpenLayers.Projection("EPSG:4326")
-osmProj = new OpenLayers.Projection("EPSG:900913")
+wsgProj = new OpenLayers.Projection "EPSG:4326"
+osmProj = new OpenLayers.Projection "EPSG:900913"
 
 # Build a place (structure with `coords` and `bounds` fields,
 # containing OpenLayers LonLat and Bounds, respectively) from
@@ -46,51 +42,50 @@ osmProj = new OpenLayers.Projection("EPSG:900913")
 #
 # Places use WSG projection for coordinates and bounds.
 buildPlace = (res, city) ->
-  if res.error
-    null
-  else
-    if res.length > 0
-      if city?
-        city_el = _.find u.newModelDict("City").source,
-                         (e) -> e.value == city
-        city_coords = lonlatFromShortString city_el?._e?.coords
-      # If possible, pick first result with osm_type = "relation",
-      # because "node" results usually have no suitable bondingbox
-      # property. Select relations with bounding box encompassing
-      # target city.
-      el = _.find res,
-        (r) ->
-          if city_coords?
-            bb = r.boundingbox
-            bounds = new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
-            cityOk = bounds.containsLonLat city_coords
-          else
-            cityOk = true
-          cityOk && (r.osm_type == "relation")
-      if not el?
-        el = res[0]
-      bb = el.boundingbox
-      coords: new OpenLayers.LonLat el.lon, el.lat
-      bounds: new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
+  return null if res.error
+  return if res.length <= 0
+
+  if city?
+    city_el = _.find u.newModelDict("City").source, (e) -> e.value == city
+    city_coords = lonlatFromShortString city_el?._e?.coords
+
+  # If possible, pick first result with osm_type = "relation",
+  # because "node" results usually have no suitable bondingbox
+  # property. Select relations with bounding box encompassing
+  # target city.
+  el = _.find res,
+    (r) ->
+      if city_coords?
+        bb = r.boundingbox
+        bounds = new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
+        cityOk = bounds.containsLonLat city_coords
+      else
+        cityOk = true
+      cityOk && (r.osm_type == "relation")
+  el = res[0] unless el?
+  bb = el.boundingbox
+
+  coords: new OpenLayers.LonLat el.lon, el.lat
+  bounds: new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
 
 # Cut off everything beyond The Wall
 Moscow =
-  coords: new OpenLayers.LonLat(37.617874, 55.757549)
-  bounds: new OpenLayers.Bounds(
+  coords: new OpenLayers.LonLat 37.617874, 55.757549
+  bounds: new OpenLayers.Bounds \
     37.2, 55.5,
-    37.9674301147461, 56.0212249755859)
+    37.9674301147461, 56.0212249755859
 
 Petersburg =
-  coords: new OpenLayers.LonLat(30.312458, 59.943168)
-  bounds: new OpenLayers.Bounds(
+  coords: new OpenLayers.LonLat 30.312458, 59.943168
+  bounds: new OpenLayers.Bounds \
     29.4298095703125, 59.6337814331055,
-    30.7591361999512, 60.2427024841309)
+    30.7591361999512, 60.2427024841309
 
 Ryazan =
-  coords: new OpenLayers.LonLat(39.734928, 54.629169)
-  bounds: new OpenLayers.Bounds(
+  coords: new OpenLayers.LonLat 39.734928, 54.629169
+  bounds: new OpenLayers.Bounds \
     39.510620, 54.522743,
-    39.907501, 54.810895)
+    39.907501, 54.810895
 
 # Build a place for city from geoQuery response (overrides
 # coordinates and boundaries for certain key cities). Second
@@ -109,67 +104,62 @@ buildCityPlace = (res, city) ->
 # Read "32.54,56.21" (the way coordinates are stored in model
 # fields) into LonLat object (WSG projection)
 lonlatFromShortString = (coords) ->
-  if coords?.length > 0
-    parts = coords.split ","
-    new OpenLayers.LonLat parts[0], parts[1]
-  else
-    null
+  return null if coords?.length <= 0
+  parts = coords.split ","
+  new OpenLayers.LonLat parts[0], parts[1]
 
 # Convert LonLat object (in WSG projection) to a string in format
 # "32.41,52.33"
 shortStringFromLonlat = (coords) ->
-  if coords?
-    return "#{coords.lon},#{coords.lat}"
-  else
-    null
+  return null unless coords?
+  "#{coords.lon},#{coords.lat}"
 
-carIcon = "/s/img/car-icon.png"
-towIcon = "/s/img/tow-icon.png"
-busyTowIcon = "/s/img/busy-tow-icon.png"
+carIcon      = "/s/img/car-icon.png"
+towIcon      = "/s/img/tow-icon.png"
+busyTowIcon  = "/s/img/busy-tow-icon.png"
 staleTowIcon = "/s/img/stale-tow-icon.png"
-partnerIcon = "/s/img/partner-icon.png"
-dealerIcon = "/s/img/dealer-icon.png"
+partnerIcon  = "/s/img/partner-icon.png"
+dealerIcon   = "/s/img/dealer-icon.png"
 
 # Map values "default", "car", "tow", "partner", "dealer" to icon
 # absolute paths
 iconFromType =
-  default: carIcon
-  car: carIcon
-  tow: towIcon
-  partner: partnerIcon
-  dealer: dealerIcon
+  default : carIcon
+  car     : carIcon
+  tow     : towIcon
+  partner : partnerIcon
+  dealer  : dealerIcon
 
 # Given regular icon name, return name of highlighted icon
 #
 # Filenames must follow the convention that original icons are named
 # as foo-icon.png and highlighted icons are named as foo-hl-icon.png.
-hlIconName = (filename) -> filename.replace("-icon", "-hl-icon")
+hlIconName = (filename) -> filename.replace "-icon", "-hl-icon"
 
 # Erase existing marker layer and install a new one of the same name
 reinstallMarkers = (osmap, layerName) ->
   osmap.popups.forEach (p) -> osmap.removePopup p
   for l in osmap.getLayersByName layerName
     if l.CLASS_NAME == 'OpenLayers.Layer.Markers'
-      for m in l.markers
-        m.events.remove 'click'
-      l.clearMarkers()
+      m.events.remove 'click' for m in l.markers
+      do l.clearMarkers
     osmap.removeLayer l
 
   new_layer = new OpenLayers.Layer.Markers layerName
   osmap.addLayer new_layer
 
-  return new_layer
+  new_layer
 
 # Center map on place bounds or coordinates
 setPlace = (osmap, place) -> fitPlaces osmap, [place]
 
 # Center an OSM on a city. City is a city dictionary key.
 centerMapOnCity = (osmap, city) ->
-  if city?
-    fixed_city = u.newModelDict("City").getLab city
-    $.getJSON geoQuery(fixed_city), (res) ->
-      if res.length > 0
-        setPlace osmap, (buildCityPlace res, city)
+  return unless city?
+
+  fixed_city = u.newModelDict("City").getLab city
+  $.getJSON geoQuery(fixed_city), (res) ->
+    setPlace osmap, (buildCityPlace res, city) if res.length > 0
 
 # Reposition and rezoom a map so that all places (see `buildPlace`)
 # fit. Set default place (Moscow) if places array is empty.
@@ -535,36 +525,36 @@ mapPicker = (field_name, el) ->
 
   $("#partnerMapModal").modal('show')
 
-module.exports =
-  { iconSize
-  , defaultZoomLevel
-  , geoQuery
-  , buildCityPlace
-  , Moscow
-  , Petersburg
-  , wsgProj
-  , osmProj
+module.exports = {
+  iconSize
+  defaultZoomLevel
+  geoQuery
+  buildCityPlace
+  Moscow
+  Petersburg
+  wsgProj
+  osmProj
 
-  , lonlatFromShortString
-  , shortStringFromLonlat
+  lonlatFromShortString
+  shortStringFromLonlat
 
-  , carIcon
-  , towIcon
-  , busyTowIcon
-  , staleTowIcon
-  , partnerIcon
-  , dealerIcon
-  , hlIconName
-  , reinstallMarkers
-  , fitPlaces
+  carIcon
+  towIcon
+  busyTowIcon
+  staleTowIcon
+  partnerIcon
+  dealerIcon
+  hlIconName
+  reinstallMarkers
+  fitPlaces
 
-  , initOSM
-  , currentBlip
+  initOSM
+  currentBlip
 
-  , spliceCoords
-  , spliceAddress
+  spliceCoords
+  spliceAddress
 
-  , geoPicker
-  , reverseGeoPicker
-  , mapPicker
-  }
+  geoPicker
+  reverseGeoPicker
+  mapPicker
+}

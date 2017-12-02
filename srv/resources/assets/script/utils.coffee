@@ -4,7 +4,6 @@ main        = require "carma/model/main"
 mu          = require "carma/model/utils"
 d           = require "carma/dictionaries"
 {CrudQueue} = require "carma/sync/crud"
-map         = require "carma/map"
 
 # jquery -> html(as string) conversion, with selected element
 $.fn.outerHTML = () -> $("<div>").append(@clone()).html()
@@ -314,7 +313,8 @@ module.exports = {
     $(".complex-field").hide()
 
     view.show ->
-      map.initOSM(e, parentView) for e in view.find(".osMap")
+      # "carma/map" depends on this module, cannot move "require" to top-level
+      require("carma/map").initOSM(e, parentView) for e in view.find(".osMap")
 
   hideComplex: ->
     $(".complex-field").hide()
@@ -325,22 +325,29 @@ module.exports = {
   # In templates, bind click to 'doPick({{meta.picker}}, ...,
   # event.target)' to call the appropriate picker.
   doPick: (pickType, args, elt) ->
-    pickers =
+    # "carma/map" depends on this module, cannot move "require" to top-level
+    {geoPicker, reverseGeoPicker, mapPicker} = require "carma/map"
+
+    pickers = {
       callPlease: (fieldName, el) ->
         viewName = mu.elementView($(el)).id
         kvm = findVM viewName
         return unless kvm
         number = kvm[fieldName]?()
         ctiDial number
+
       # Set a field to a new randomly generated password
       passwordPicker   : (fieldName, el) ->
         viewName = mu.elementView($(el)).id
         kvm = window.global.viewsWare[viewName].knockVM
         kvm[fieldName] genPassword()
-      geoPicker        : map.geoPicker
-      reverseGeoPicker : map.reverseGeoPicker
-      mapPicker        : map.mapPicker
-    pickers[pickType](args, elt)
+
+      geoPicker
+      reverseGeoPicker
+      mapPicker
+    }
+
+    pickers[pickType] args, elt
 
   kdoPick: (pickType, args, k, e) ->
     doPick pickType, args, e.srcElement if e.ctrlKey and e.keyCode == k
@@ -498,19 +505,19 @@ module.exports = {
       Finch.navigate "call/#{cvm.id()}"
 
   # subset of d3.scale.category20 with dark colors removed
-  palette:
-    ['#aec7e8' # 1
-    ,'#ffbb78' # 3
-    ,'#98df8a' # 5
-    ,'#ff9896' # 7
-    ,'#c5b0d5' # 9
-    ,'#c49c94' # 11
-    ,'#e377c2' # 12
-    ,'#f7b6d2' # 13
-    ,'#c7c7c7' # 15
-    ,'#bcbd22' # 16
-    ,'#dbdb8d' # 17
-    ,'#9edae5' # 19
-    ,'#ff7f0e' # 2
-    ]
+  palette: [
+    '#aec7e8' # 1
+    '#ffbb78' # 3
+    '#98df8a' # 5
+    '#ff9896' # 7
+    '#c5b0d5' # 9
+    '#c49c94' # 11
+    '#e377c2' # 12
+    '#f7b6d2' # 13
+    '#c7c7c7' # 15
+    '#bcbd22' # 16
+    '#dbdb8d' # 17
+    '#9edae5' # 19
+    '#ff7f0e' # 2
+  ]
 }

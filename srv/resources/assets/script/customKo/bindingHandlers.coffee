@@ -279,6 +279,7 @@ do ->
 
   ko.bindingHandlers.typeahead = {init, update}
 
+# "datepicker" handler
 do ->
   defaultOptions = Object.freeze
     autoclose        : true

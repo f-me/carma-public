@@ -15,6 +15,7 @@ dicts = _.reduce [
 
 module.exports = {
   dicts
+
   dictFromMeta: (kvm, meta) ->
     type = meta.dictionaryType
     opts =
