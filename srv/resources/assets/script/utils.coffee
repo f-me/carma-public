@@ -179,7 +179,9 @@ newModelDict = (name, stringify, meta) ->
 
 # Call a number if the CTI panel is available
 ctiDial = (number) ->
-  window.global.CTIPanel && $("#cti").show() && window.global.CTIPanel.instaDial(number)
+  window.global.CTIPanel and \
+  $("#cti").show() and \
+  window.global.CTIPanel.instaDial(number)
 
 module.exports = {
 
@@ -198,15 +200,22 @@ module.exports = {
     setGlobalShit "inlineDetachFile", require "carma/lib/upload"
     setGlobalShit "switchHack",       require "carma/lib/hacking"
     setGlobalShit "sendSms",          require "carma/lib/send-sms"
-    setGlobalShit "showComplex",      require "carma/utils"
-    setGlobalShit "hideComplex",      require "carma/utils"
-    setGlobalShit "doPick",           require "carma/utils"
-    setGlobalShit "kdoPick",          require "carma/utils"
-    setGlobalShit "edoPick",          require "carma/utils"
-    setGlobalShit "focusField",       require "carma/utils"
-    setGlobalShit "ctiDial",          require "carma/utils"
-    # etc.
-    setGlobalShit "urlFor",           require "carma/globallibs" # used in fields/ro.pug
+    setGlobalShit "showComplex",      module.exports
+    setGlobalShit "hideComplex",      module.exports
+    setGlobalShit "doPick",           module.exports
+    setGlobalShit "kdoPick",          module.exports
+    setGlobalShit "edoPick",          module.exports
+    setGlobalShit "focusField",       module.exports
+    setGlobalShit "ctiDial",          module.exports
+
+    # used in fields/ro.pug
+    # TODO FIXME declare as view-model method
+    window.urlFor = (field) ->
+      switch field.kvm._meta.model.name
+        when "Case"
+          "/#case/#{field()}"
+        else
+          "/##{field.kvm._meta.model.name}/#{field()}"
 
   ctiDial
 

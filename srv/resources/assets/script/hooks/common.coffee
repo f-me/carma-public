@@ -1,5 +1,5 @@
 {$, _, ko, moment, Finch} = require "carma/vendor"
-{ThMenu} = require "carma/globallibs"
+{ThMenu} = require "carma/lib/th-menu"
 
 u = require "carma/utils"
 d = require "carma/dictionaries"

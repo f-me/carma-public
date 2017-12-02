@@ -1,5 +1,5 @@
 require "carma/vendor"
-require "carma/globallibs"
+require "carma/customKo"
 require "carma-css"
 
 {request} = require "carma/data"
