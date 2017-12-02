@@ -1,4 +1,4 @@
-{Promise, ReduxActions: {createAction}} = require "carma/vendor"
+{_: {identity}, Promise, ReduxActions: {createAction}} = require "carma/vendor"
 
 isActionMapObjValid = (v) ->
   Object.keys(v).every (x) ->
@@ -95,9 +95,23 @@ makeActions = (pathContext, actionMap) ->
 
   Object.keys(actionMap).reduce reducer, {}
 
-# Helper for handling error case
-catchFailure = (dispatch, failureAction, promise) ->
-  promise.catch (err) -> dispatch(failureAction err).then -> throw err
+# Helper for dispatching failure action if some error happens
+catchFailure = (
+  dispatch
+  # ^ Dispatch function
+  failureAction
+  # ^ Action creator (usually provided by `makeActions`)
+  payloadTransformer = identity
+  # ^ (Error, FailureActionPayloadContructor) -> NewPayload
+  promise
+  # ^ A Promise that could fail
+) ->
+  promise.catch (err) ->
+    payload = payloadTransformer err, failureAction.Payload
+    dispatch(failureAction payload).then ->
+      # Pushing error forward, because this promise will be returned from
+      # `dispatch` function.
+      throw err
 
 fetchMethod = (method, url, data, customOpts) ->
   reqOpts =

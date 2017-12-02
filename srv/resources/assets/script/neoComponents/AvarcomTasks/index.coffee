@@ -1,23 +1,33 @@
 {ko} = require "carma/vendor"
 {simpleFuzzySearch} = require "carma/lib/search"
+{store} = require "carma/neoComponents/store"
+
+{getAvarcomTasksRequest} =
+  require "carma/neoComponents/store/avarcomTasks/actions"
+
 require "./styles.less"
 
 DISABLED_STATES = [4, 9, 19, 20]
 cloneTasks = (tasks) -> (Object.assign {}, x for x in tasks)
-cachedAvailableTasks = ko.observableArray()
-
-fetchAvailableTasks = ->
-  fetch "/_/AvarcomTask", credentials: "same-origin"
-    .then (x) => x.json()
-    .then (json) =>
-      cachedAvailableTasks \
-        ({isChecked: false, id, label} \
-          for {id, label, isActive} in json when isActive)
+storeSelector = -> store.getState().get "avarcomTasks"
 
 
 class AvarcomTasksViewModel
   constructor: ({selectedTasks, serviceStatus, @onChange}) ->
     @subscriptions = [] # mutable
+
+    # Connector to store
+    @appState = ko.observable storeSelector()
+    @unsubscribeFromAppState = store.subscribe => @appState storeSelector()
+
+    @isInitiated = ko.pureComputed =>
+      @appState().get("isLoaded") or @appState().get("isLoading")
+
+    @isLoading = ko.pureComputed => @appState().get("isLoading")
+    @isFailed  = ko.pureComputed => @appState().get("isFailed")
+
+    @loadedAvailableTasks = ko.pureComputed =>
+      @appState().get("tasks").onlyAvailable()
 
     @tasks = ko.observableArray cloneTasks selectedTasks()
     do =>
@@ -28,17 +38,19 @@ class AvarcomTasksViewModel
     @subscriptions.push serviceStatus.subscribe (x) =>
       @isDisabled x in DISABLED_STATES
 
+    @isInputVisible = ko.pureComputed =>
+      not (@isDisabled() or @isLoading() or @isFailed())
+
     @selectedTask = ko.observable null
     @subscriptions.push @selectedTask.subscribe (x) =>
       return unless x?
       @addTask x
       setTimeout (=> @selectedTask null), 1
 
-    @availableTasks = ko.observableArray \
-      @filterAvailableTasks cachedAvailableTasks()
+    @availableTasks = ko.observableArray @getAvailableTasks()
     do =>
-      f = => @availableTasks @filterAvailableTasks cachedAvailableTasks()
-      @subscriptions.push cachedAvailableTasks.subscribe f, null, "arrayChange"
+      f = => @availableTasks @getAvailableTasks()
+      @subscriptions.push @loadedAvailableTasks.subscribe f
       @subscriptions.push @tasks.subscribe f, null, "arrayChange"
 
     @typeaheadHandlerObservable = ko.observable @typeaheadHandler
@@ -47,16 +59,18 @@ class AvarcomTasksViewModel
       # reinitialize 'availableTasks'.
       @typeaheadHandlerObservable @typeaheadHandler.bind null
 
-    unless cachedAvailableTasks.cached?
-      cachedAvailableTasks.cached = true
-      do fetchAvailableTasks
+    unless @isInitiated()
+      store.dispatch getAvarcomTasksRequest()
 
   dispose: =>
+    do @unsubscribeFromAppState
     do x.dispose for x in @subscriptions
 
-  filterAvailableTasks: (tasks) =>
+  getAvailableTasks: =>
     selectedIds = (id for {id} in @tasks())
-    (Object.assign {}, x for x in tasks when x.id not in selectedIds)
+    @loadedAvailableTasks()
+      .filter (x) -> x.get("id") not in selectedIds
+      .toJS()
 
   addTask: (label) =>
     @tasks.push Object.assign {}, do =>

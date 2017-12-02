@@ -29,7 +29,7 @@ actions = makeActions __dirname,
           template: payload.get "templateId"
           msgText:  payload.get "message"
 
-        catchFailure dispatch, actions.sendSmsFormFailure,
+        catchFailure dispatch, actions.sendSmsFormFailure, null,
           fetchPost "/_/Sms", data
             .then -> dispatch actions.sendSmsFormSuccess()
 

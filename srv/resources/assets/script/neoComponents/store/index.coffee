@@ -5,8 +5,9 @@
 } = require "carma/vendor"
 
 reducers = combineReducers
-  smsForm: require "./smsForm/reducers"
-  diagTree: require "./diagTree/reducers"
+  smsForm      : require "./smsForm/reducers"
+  diagTree     : require "./diagTree/reducers"
+  avarcomTasks : require "./avarcomTasks/reducers"
 
 store = createStore reducers, applyMiddleware ReduxThunk
 

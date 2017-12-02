@@ -1,5 +1,5 @@
 {
-  Immutable: {Record, Map, List}
+  Immutable: {Record, Map}
   ReduxActions: {handleActions}
 } = require "carma/vendor"
 

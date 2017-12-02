@@ -11,8 +11,8 @@ class CaseHistoryAnswersItem extends Record(
   # unknown types
   # action    : {}
 )
-  @plainObjScalarProps = ["nextSlide", "header", "text"]
-  @fromPlain = (plainObj) => new @ pick plainObj, @plainObjScalarProps
+  @plainObjScalarProps: ["nextSlide", "header", "text"]
+  @fromPlain: (plainObj) => new @ pick plainObj, @plainObjScalarProps
 
 
 class CaseHistoryAnswersList extends List
@@ -26,8 +26,8 @@ class CaseHistoryActionsItem extends Record(
   label : ""
   svc   : "" # Service model name
 )
-  @plainObjScalarProps = ["label", "svc"]
-  @fromPlain = (plainObj) => new @ pick plainObj, @plainObjScalarProps
+  @plainObjScalarProps: ["label", "svc"]
+  @fromPlain: (plainObj) => new @ pick plainObj, @plainObjScalarProps
 
 
 class CaseHistoryActionsList extends List
@@ -41,8 +41,8 @@ class CaseHistoryResourcesItem extends Record(
   file : ""
   text : ""
 )
-  @plainObjScalarProps = ["file", "text"]
-  @fromPlain = (plainObj) => new @ pick plainObj, @plainObjScalarProps
+  @plainObjScalarProps: ["file", "text"]
+  @fromPlain: (plainObj) => new @ pick plainObj, @plainObjScalarProps
 
 
 class CaseHistoryResourcesList extends List
@@ -66,7 +66,7 @@ class CaseHistoryItem extends Record(
   actions      : new CaseHistoryActionsList
   resources    : new CaseHistoryResourcesList
 )
-  @plainObjScalarProps = [
+  @plainObjScalarProps: [
     "id", "header", "body"
     "answerIx", "answeredBy", "answerTime"
     "deprecatedBy"
@@ -83,15 +83,14 @@ class CaseHistoryItem extends Record(
 class CaseHistoryList extends List
   @Item: CaseHistoryItem
   @fromPlain: (plainArr) => new @ plainArr.map (x) => @Item.fromPlain x
+  onlyNotDeprecated: -> @filter (x) -> x.get("deprecatedBy") is null
+  getPreviousById: (id) -> @filter (x) -> x.get("deprecatedBy") is id
 
   constructor: (args...) ->
     list = super args...
     list.onlyNotDeprecated = memoize @onlyNotDeprecated
     list.getPreviousById = memoize @getPreviousById
     return list
-
-  onlyNotDeprecated: -> @filter (x) -> x.get("deprecatedBy") is null
-  getPreviousById: (id) -> @filter (x) -> x.get("deprecatedBy") is id
 
 
 module.exports = {

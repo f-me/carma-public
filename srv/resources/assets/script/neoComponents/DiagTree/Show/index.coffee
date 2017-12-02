@@ -27,7 +27,7 @@ class DiagTreeShowViewModel
 
     unless @isInitiated()
       store.dispatch getCaseHistoryRequest \
-        getCaseHistoryRequest.Payload caseId: @caseId()
+        new getCaseHistoryRequest.Payload caseId: @caseId()
 
   dispose: =>
     do @unsubscribeFromAppState
