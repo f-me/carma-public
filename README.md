@@ -5,7 +5,8 @@
 
 ## Building
 
-Refer to [`.circleci/config.yml`](.circleci/config.yml) for full building instructions.
+Refer to [`.circleci/config.yml`][ci-config] for full building
+instructions.
 
 ### Backend (Haskell)
 
@@ -156,23 +157,10 @@ $ npm run clean
 $ npm run clean-backend-templates
 ```
 
-### Docker bundle
-
-If you built the frontend and the backend Docker image, you can now
-build an image containing both:
-
-    cd srv/
-    docker build -t carma-bundle .
-
-CaRMa server executable inside the container is located at
-`/usr/local/bin/carma`. The command to run the container is
-
-    docker run carma-bundle /usr/local/bin/carma
-
 ### CI build
 
 [CircleCI][ci] is configured to build CaRMa on every push. If you have
-Docker installed, you may use [CircleCI CLI tool][ci-cli] to performs
+Docker installed, you may use [CircleCI CLI tool][ci-cli] to perform
 builds in the same environment as on CI server:
 
     circleci build --job build_client
@@ -180,6 +168,39 @@ builds in the same environment as on CI server:
 
 Jobs run in an auto-removed container, so at the moment you may
 only use them to test that the build finishes successfully.
+
+### Docker bundle
+
+*This is an EXPERIMENTAL workflow*
+
+If you build the frontend and the backend Docker image, you can also
+build a bundle image containing both:
+
+    cd srv/
+    docker build -t carma-bundle .
+
+CaRMa server executable inside the container is located at
+`/usr/local/bin/carma`.
+
+This is what [`build_bundle`][ci-config] CI step does.
+
+Alternatively, you may skip building CaRMa altogether and just pick an
+image from [formalmethods/carma-bundle][hub-bundle] repo on Docker
+Hub.
+
+To run the bundle, use [carma-bundle.yml][] Docker Compose file, which
+combines a CaRMa bundle and PostgreSQL.
+
+Required steps:
+
+1. Create carma-db-data volume using docker/dev-pg-9.3 container.
+
+2. Clone [carma-configs][] and edit CaRMa configs path in `volumes:`
+   section of [carma-bundle.yml][].
+
+The command to run the bundle is
+
+    docker-compose -f docker/carma-bundle.yml up
 
 ## Running
 
@@ -191,6 +212,10 @@ only use them to test that the build finishes successfully.
    scp <YOUR_LOGIN>@192.168.10.13:/var/backups/allbackups/postgresql_carma/2017-05-29_03-15_carma.sql.gz .
    ```
 
-[ci]: https://circleci.com/gh/f-me/carma
+[carma-bundle.yml]: docker/carma-bundle.yml
+[carma-configs]: https://github.com/f-me/carma-configs
 [ci-cli]: https://circleci.com/docs/2.0/local-jobs/#installing-the-cli-locally
+[ci-config]: .circleci/config.yml
+[ci]: https://circleci.com/gh/f-me/carma
 [haskell-stack]: https://docs.haskellstack.org/en/stable/README/
+[hub-bundle]: https://hub.docker.com/r/formalmethods/carma-bundle/tags/
