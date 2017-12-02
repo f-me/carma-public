@@ -27,42 +27,49 @@ do ->
   # FIXME: report websosket errors also
   $(document).ajaxError (event, jqXHR, s, error) ->
     sendError [
-        s.type, s.url, jqXHR.status,
-        jqXHR.statusText, s.data, jqXHR.responseText
+      s.type, s.url, jqXHR.status,
+      jqXHR.statusText, s.data, jqXHR.responseText
     ].join('  ')
 
 # This will be called on dom ready.
 # We do 'require' here inside because some of modules depends on previous logic.
 module.exports.init = ({dicts, user, users}) ->
-  $.fn.datepicker.defaults.autoclose = true
-  $.fn.datepicker.defaults.enableOnReadonly = false
+  $(document).off ".datepicker.data-api"
 
   bugReport.setElement $('#send-bug-report')
 
   # Cached mapping between from userid to "name (login)"
   usersById = {}
-  users.forEach (i) -> usersById[i.id] =
+
+  users.forEach (i) ->
+    usersById[i.id] =
       id: i.id
       label: "#{i.realName} (#{i.login})"
       roles: i.roles
       isActive: i.isActive
+
   usersByLabel = {}
-  users.forEach (i) -> usersByLabel["#{i.realName} (#{i.login})"] =
-      id: i.id
+
+  users.forEach (i) ->
+    usersByLabel["#{i.realName} (#{i.login})"] = id: i.id
+
   dicts.users =
     entries:
       for i in users
         id: i.id
-        value: String(i.id)
+        value: String i.id
         label: "#{i.realName} (#{i.login})"
         roles: i.roles
         isActive: i.isActive
+
     byId: usersById
     byLabel: usersByLabel
+
   dicts.roles =
     entries:
       for i in users
-        {value: i.login, label: i.roles}
+        value: i.login
+        label: i.roles
 
   main          = require "carma/model/main"
   hooks         = require "carma/hooks/config"

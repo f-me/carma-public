@@ -234,8 +234,18 @@ do ->
     templates = Object.assign {}, defaultDatasets.templates, (x.templates ? {})
     Object.assign {}, defaultDatasets, x, {templates}
 
+  dispose = (el) ->
+    el.__ko_typeahead_unsubscribe?()
+    delete el.__ko_typeahead_unsubscribe
+
+    $(el)
+      .off "typeahead:select.__ko_typeahead"
+      .typeahead "destroy"
+
   init = (el, acc) ->
-    o = acc() ? {}
+    accVal = ko.utils.unwrapObservable acc()
+    return unless accVal # disabled by falsy value
+    o = if typeof accVal is "object" then accVal else {}
 
     classNames = Object.assign {},
       defaultOptions.classNames,
@@ -256,16 +266,47 @@ do ->
       el.__ko_typeahead_unsubscribe = o.value.subscribe (x) ->
         $el.typeahead "val", x if x isnt lastValue
 
-      $el.bind "typeahead:select", (e, x) ->
+      $el.on "typeahead:select.__ko_typeahead", (e, x) ->
         lastValue = x
         o.value x
 
-  ko.bindingHandlers.typeahead = {
-    init
+    ko.utils.domNodeDisposal.addDisposeCallback el,
+      dispose.bind null, arguments...
 
-    update: (el, acc) ->
-      el.__ko_typeahead_unsubscribe?()
-      delete el.__ko_typeahead_unsubscribe
-      $(el).typeahead "destroy"
-      init el, acc
-  }
+  update = (args...) ->
+    dispose args...
+    init args...
+
+  ko.bindingHandlers.typeahead = {init, update}
+
+do ->
+  defaultOptions = Object.freeze
+    autoclose        : true
+    enableOnReadonly : false
+    format           : "dd.mm.yyyy"
+    weekStart        : 1
+
+  dispose = (el) ->
+    $(el)
+      .off "changeDate.__ko_datepicker"
+      .datepicker "destroy"
+
+  init = (el, acc, allBindingsAcc) ->
+    accVal = ko.utils.unwrapObservable acc()
+    return unless accVal # disabled by falsy value
+    o = if typeof accVal is "object" then accVal else {}
+
+    $(el)
+      .datepicker Object.assign {}, defaultOptions, o
+      .on "changeDate.__ko_datepicker", ->
+        allBindings = allBindingsAcc()
+        allBindings.value @value if ko.isObservable allBindings.value
+
+    ko.utils.domNodeDisposal.addDisposeCallback el,
+      dispose.bind null, arguments...
+
+  update = (args...) ->
+    dispose args...
+    init args...
+
+  ko.bindingHandlers.datepicker = {init, update}
