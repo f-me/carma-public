@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "description": "carma client",
   "main": "local.coffee",
+  "engines" : {
+    "node" : ">=6.7.0"
+  },
   "scripts": {
     "clean-old-stuff": "rm -rf bower_components resources/static/{tpl,css,js,3p} resources/assets/react-components",
     "clean": "rm -rf resources/static/build/frontend",
