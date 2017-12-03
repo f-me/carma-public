@@ -11,11 +11,12 @@ module.exports =
       require "carma/neoComponents/DiagTree/Show"
       require "carma/neoComponents/DiagTree/Show/Inside"
       require "carma/neoComponents/DiagTree/Editor"
+      require "carma/neoComponents/DiagTree/Editor/Inside"
     ]
 
     for x in components
       ko.components.register x.componentName, x.component
 
   initTopLevelModals: ->
-    ko.applyBindings (new TopLevelModalsViewModel),
+    ko.applyBindings new TopLevelModalsViewModel,
       document.getElementById "top-level-modals"

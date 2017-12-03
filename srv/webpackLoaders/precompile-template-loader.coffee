@@ -22,7 +22,8 @@ customRequire = (module) ->
 module.exports = (source) ->
   script   = new Script source
   sandbox  = require: customRequire, module: exports: {}
-  template = JSON.stringify script.runInNewContext(sandbox) {_}
+  context  = {_, process: env: NODE_ENV: process.env.NODE_ENV}
+  template = JSON.stringify script.runInNewContext(sandbox) context
 
   withIncludes =
     if pugIncludeReg.test template

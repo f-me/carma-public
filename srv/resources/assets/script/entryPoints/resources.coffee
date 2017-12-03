@@ -34,9 +34,11 @@ require "carma-tpl/screens/uploads.pug"
 require "carma-tpl/screens/vin.pug"
 
 require "carma/neoComponents/SmsForm/template.pug"
+require "carma/neoComponents/AvarcomTasks/template.pug"
 require "carma/neoComponents/DiagTree/Show/template.pug"
 require "carma/neoComponents/DiagTree/Show/Inside/template.pug"
 require "carma/neoComponents/DiagTree/Editor/template.pug"
+require "carma/neoComponents/DiagTree/Editor/Inside/template.pug"
 
 # OpenLayers 3p images
 require "ol2/img/blank.gif"

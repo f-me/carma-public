@@ -1,2 +1,9 @@
 #diag-tree-editor-screen
-  diag-tree-editor
+  if process.env.NODE_ENV === 'production'
+    p
+      span.label.label-warning Временно недоступно
+      |
+      | Редактирование дерева диагностики временно недоступно по техническим
+      | причинам.
+  else
+    diag-tree-editor

@@ -2,5 +2,6 @@
 
 reducersMap =
   show: require "./show/reducers"
+  edit: require "./edit/reducers"
 
 module.exports = combineReducers reducersMap
