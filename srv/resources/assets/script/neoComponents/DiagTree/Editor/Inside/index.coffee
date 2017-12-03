@@ -19,7 +19,7 @@ class DiagTreeEditorInsideViewModel
     do @unsubscribeFromAppState
 
   addSlide: =>
-    console.error "TODO 'addSlide' method", @appState().get("slides").toJS()
+    console.error "TODO 'addSlide' method", @appState().get "selectedSlide"
 
 
 module.exports =

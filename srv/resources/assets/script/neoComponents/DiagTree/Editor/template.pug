@@ -7,7 +7,13 @@ div
   p
     span.label.label-danger Ошибка
     |
+    |
+    // ko if: $component.isParsingDataFailed
+    | Произошла ошибка при обработке полученных от сервера данных
+    // /ko
+    // ko ifnot: $component.isParsingDataFailed
     | Произошла ошибка при загрузке данных
+    // /ko
 // /ko
 
 // ko if: $component.isLoaded

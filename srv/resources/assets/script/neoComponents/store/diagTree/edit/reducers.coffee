@@ -13,32 +13,33 @@ DiagTreeEditState = Record
   isSlidesLoading: false
   isSlidesLoaded: false
   isSlidesLoadingFailed: false
+  isParsingSlidesDataFailed: false
 
 
 loadSlidesReducers =
 
   "#{actions.loadSlidesRequest}": (state, {payload}) -> state.merge
-    slides: Map()
-    selectedSlide: null
-    isSlidesLoading: true
-    isSlidesLoaded: false
-    isSlidesLoadingFailed: false
+    slides                    : Map()
+    selectedSlide             : null
+    isSlidesLoading           : true
+    isSlidesLoaded            : false
+    isSlidesLoadingFailed     : false
+    isParsingSlidesDataFailed : false
 
-  "#{actions.loadSlidesSuccess}": (state, {payload}) ->
-    slides = payload.get "slides"
+  "#{actions.loadSlidesSuccess}": (state, {payload}) -> state.merge
+    slides          : payload.get "slides"
+    selectedSlide   : payload.get "rootSlide"
+    isSlidesLoading : false
+    isSlidesLoaded  : true
 
-    state.merge {
-      slides
-      selectedSlide: slides.find((x) -> x.get "isRoot")?.get "id"
-      isSlidesLoading: false
-      isSlidesLoaded: true
-      isSlidesLoadingFailed: false
-    }
+  "#{actions.loadSlidesFailure}": (state, {payload}) ->
+    state.withMutations (s) ->
+      if payload?.message?.indexOf("Root slide not found") isnt -1
+        s.set "isParsingSlidesDataFailed", true
 
-  "#{actions.loadSlidesFailure}": (state, {payload}) -> state.merge
-    isSlidesLoading: false
-    isSlidesLoaded: false
-    isSlidesLoadingFailed: true
+      s.merge
+        isSlidesLoading       : false
+        isSlidesLoadingFailed : true
 
 
 reducerMap = Object.assign {},

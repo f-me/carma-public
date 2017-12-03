@@ -19,6 +19,9 @@ class DiagTreeEditorViewModel
     @isLoaded  = ko.pureComputed => @appState().get "isSlidesLoaded"
     @isFailed  = ko.pureComputed => @appState().get "isSlidesLoadingFailed"
 
+    @isParsingDataFailed = ko.pureComputed =>
+      @appState().get "isParsingSlidesDataFailed"
+
     if not @isLoading() and not @isLoaded()
       store.dispatch loadSlidesRequest()
 

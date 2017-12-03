@@ -9,7 +9,7 @@ class SlideItem extends Record(
   # complex types
   # …
 )
-  @plainObjScalarProps: ["id"]
+  @plainObjScalarProps: ["id", "isRoot"]
   @fromPlain: (plainObj) => new @ pick plainObj, @plainObjScalarProps
 
 

@@ -16,12 +16,15 @@ loadSlidesFlow =
             Map().withMutations (m) ->
               m.set slide.id, SlideItem.fromPlain slide for slide in plainArr
           .then (slides) ->
+            rootSlide = slides.find((x) -> x.get "isRoot")?.get "id"
+            throw new Error "Root slide not found" unless rootSlide?
             success = actions.loadSlidesSuccess
-            dispatch success new success.Payload {slides}
+            dispatch success new success.Payload {slides, rootSlide}
 
   loadSlidesSuccess:
     Payload: Record
       slides: Map() # Map<number (slide id), SlideItem>
+      rootSlide: 0 # Slide id
 
   loadSlidesFailure: null
 
