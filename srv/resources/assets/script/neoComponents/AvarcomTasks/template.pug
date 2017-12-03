@@ -12,23 +12,23 @@ div
 
 // ko if: $component.isInputVisible
 div
-  input.form-control(data-bind='\
-    typeahead: {\
-      value: $component.selectedTask,\
-      valueUpdate: "keyup",\
-      datasets:\
-        [{limit: 100, source: $component.typeaheadHandlerObservable()}],\
-    },\
-  ')
+  input.form-control(data-bind=`
+    typeahead: {
+      value: $component.selectedTask,
+      valueUpdate: "keyup",
+      datasets:
+        [{limit: 100, source: $component.typeaheadHandlerObservable()}],
+    },
+  `)
 // /ko
 
 div(data-bind='foreach: $component.tasks')
   div(data-bind='attr: {"data-task-id": id}')
-    input(type='checkbox' data-bind='\
-      disable: $component.isDisabled,\
-      checked: isChecked,\
-      event:   {change: $component.onCheckboxChange},\
-    ')
+    input(type='checkbox' data-bind=`
+      disable: $component.isDisabled,
+      checked: isChecked,
+      event:   {change: $component.onCheckboxChange},
+    `)
 
     | &nbsp;&nbsp;
     span(data-bind='text: label')

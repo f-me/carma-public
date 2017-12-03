@@ -1,8 +1,8 @@
 .modal-backdrop.fade(data-bind='css: {in: fadeIn, active: isVisible}')
-.modal.fade.is-overlay(data-bind='\
-  css: {in: fadeIn, active: isVisible},\
-  click: handleOverlayClick,\
-')
+.modal.fade.is-overlay(data-bind=`
+  css: {in: fadeIn, active: isVisible},
+  click: handleOverlayClick,
+`)
   .modal-dialog
     .modal-content
       .modal-header
@@ -34,13 +34,13 @@
           .form-group
             label.col-sm-4.control-label Шаблон сообщения
             .col-sm-8.sms-template-wrap
-              input.form-control(type='text' data-bind='\
-                typeahead: {\
-                  datasets: [{limit: 20, source: smsTplFuzzySearchHandler}],\
-                  value: smsTemplate,\
-                  valueUpdate: "keyup",\
-                },\
-              ')
+              input.form-control(type='text' data-bind=`
+                typeahead: {
+                  datasets: [{limit: 20, source: smsTplFuzzySearchHandler}],
+                  value: smsTemplate,
+                  valueUpdate: "keyup",
+                },
+              `)
               span.clear-sms-template-btn(
                 data-bind='visible: smsTemplate, click: clearSmsTemplate')
                 span.glyphicon.glyphicon-remove
@@ -53,10 +53,10 @@
       .modal-footer
         button.btn.btn-primary(data-bind='click: closeForm') Отмена
 
-        button.btn.btn-success.send-btn(data-bind='\
-          disabled: sendIsBlocked,\
-          click:    send,\
-          css:      {"btn-warning": isProcessing},\
-        ')
+        button.btn.btn-success.send-btn(data-bind=`
+          disabled: sendIsBlocked,
+          click:    send,
+          css:      {"btn-warning": isProcessing},
+        `)
           i.glyphicon.glyphicon-refresh(data-bind='visible: isProcessing')
           span(data-bind='text: isProcessing() ? " Обработка" : "Отправить"')
