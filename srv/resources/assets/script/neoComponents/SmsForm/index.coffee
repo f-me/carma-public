@@ -1,16 +1,15 @@
 {ko} = require "carma/vendor"
 {simpleFuzzySearch} = require "carma/lib/search"
-{data} = require "carma/data"
 {store} = require "carma/neoComponents/store"
 
 {
   closeSmsForm
   sendSmsFormRequest
+  loadSmsTemplatesRequest
 } = require "carma/neoComponents/store/smsForm/actions"
 
 require "./styles.less"
 
-smsTemplates = data.model.SmsTemplate.filter (x) => x.isActive
 storeSelector = -> store.getState().get "smsForm"
 
 
@@ -26,6 +25,8 @@ class SmsFormViewModel
     @isProcessing = ko.pureComputed => @appState().get "isProcessing"
     @isFailed     = ko.pureComputed => @appState().get "isFailed"
     isShown       = ko.pureComputed => @appState().get "isShown"
+    @templates    = ko.pureComputed => @appState().get "templates"
+    @smsTemplates = ko.pureComputed => @templates().get("list").onlyActive()
 
     @phone = ko.observable @appState().get "phone"
       .extend validate: (x) -> true unless /^\+\d{11}$/.test x
@@ -62,22 +63,26 @@ class SmsFormViewModel
 
     @smsTemplate = ko.observable null
 
-    @subscriptions.push @smsTemplate.subscribe (x) =>
-      return unless x?
-      {text} = do -> return tpl for tpl in smsTemplates when tpl.label is x
+    @subscriptions.push @smsTemplate.subscribe (newVal) =>
+      return unless newVal?
 
-      x = text
+      msg = @smsTemplates()
+        .find (tpl) -> tpl.get("label") is newVal
+        .get "text"
         .replace /\$phone\$/g,                     @phone()
         .replace /\$case\.id\$/g,                  @caseId()
         .replace /\$case\.city\$/g,                @caseCity()
         .replace /\$case\.caseAddress_address\$/g, @caseAddress()
 
-      @message x
+      @message msg
 
     @sendIsBlocked = ko.pureComputed => Boolean \
       @phone.validationError() or \
       @message.validationError() or \
       @isProcessing()
+
+    if not @templates().get("isLoaded") and not @templates().get("isLoading")
+      store.dispatch loadSmsTemplatesRequest()
 
   dispose: =>
     do @unsubscribeFromAppState
@@ -91,17 +96,26 @@ class SmsFormViewModel
   handleOverlayClick: (model, {target}) =>
     do @closeForm if target.classList.contains "is-overlay"
 
-  smsTplFuzzySearchHandler: (q, cb) ->
-    cb (x for {label: x} in smsTemplates when simpleFuzzySearch q, x)
+  smsTplFuzzySearchHandler: (q, cb) =>
+    labels = @smsTemplates()
+      .map (x) -> x.get "label"
+      .filter (x) -> simpleFuzzySearch q, x
+      .toJS()
+
+    cb labels
 
   send: =>
     smsTpl = @smsTemplate()
 
-    reqData = new sendSmsFormRequest.Payload
-      phone:      @phone()
-      caseId:     @caseId()
-      message:    @message()
-      templateId: _.find(smsTemplates, ({label: x}) => x is smsTpl)?.id ? null
+    templateId =
+      @smsTemplates().find((x) -> x.get("label") is smsTpl)?.get("id") ? null
+
+    reqData = new sendSmsFormRequest.Payload {
+      phone:   @phone()
+      caseId:  @caseId()
+      message: @message()
+      templateId
+    }
 
     store.dispatch sendSmsFormRequest reqData
       .then =>

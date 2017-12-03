@@ -17,12 +17,14 @@ ko.bindingHandlers.updMultiDict =
     fn = valueAccessor()
 
 ko.bindingHandlers.disabled =
-  update: (el, acc, allBindigns, kvm) ->
-    $(el).attr('disabled', acc()())
+  update: (el, acc) ->
+    val = ko.utils.unwrapObservable acc()
+    $(el).attr "disabled", val
 
 ko.bindingHandlers.readonly =
-  update: (el, acc, allBindigns, kvm) ->
-    $(el).attr('readonly', acc()())
+  update: (el, acc) ->
+    val = ko.utils.unwrapObservable acc()
+    $(el).attr "readonly", val
 
 ko.bindingHandlers.sync =
   update: (el, acc, allBindings) ->
@@ -32,17 +34,22 @@ ko.bindingHandlers.sync =
     else
       $(el).fadeOut 'slow'
 
-ko.bindingHandlers.spinner =
-  update: (el, acc, allBindings) ->
-    showSpinner = ko.utils.unwrapObservable acc()
-    if showSpinner
-      $(el).children(':not(.spinner)').each (index, element) ->
-        $(element).addClass "blur"
-      $(el).spin 'huge', '#777'
-    else
-      $(el).children(':not(.spinner)').each (index, element) ->
-        $(element).removeClass "blur"
-      $(el).spin false
+do ->
+  defaultOptions = Object.freeze
+    color: "#777"
+
+  ko.bindingHandlers.spinner =
+    update: (el, acc) ->
+      showSpinner = ko.utils.unwrapObservable acc()
+      if showSpinner
+        opts = if typeof showSpinner is "object" then showSpinner else {}
+        $(el).children(':not(.spinner)').each (index, element) ->
+          $(element).addClass "blur"
+        $(el).spin Object.assign {}, defaultOptions, opts
+      else
+        $(el).children(':not(.spinner)').each (index, element) ->
+          $(element).removeClass "blur"
+        $(el).spin false
 
 ko.bindingHandlers.pickerDisable =
   update: (el, acc, allBindigns, kvm) ->
