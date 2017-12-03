@@ -50,7 +50,7 @@ class SmsFormViewModel
 
     # Delaying just for a moment to start animation after element is shown
     @fadeIn = ko.pureComputed isShown
-      .extend rateLimit: {method: "notifyWhenChangesStop", timeout: 1}
+      .extend rateLimit: {method: "notifyWhenChangesStop", timeout: 100}
 
     # Some gap for fade-out animation
     fadeOut = ko.pureComputed @fadeIn
