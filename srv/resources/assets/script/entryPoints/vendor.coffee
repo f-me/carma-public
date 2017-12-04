@@ -1,6 +1,9 @@
 # dependencies that goes to 'vendor' bundle
 
+require "oldLegacy3p/myJQuery"
+require "jquery-original"
 require "jquery-migrate" # compatibility with jquery 2.x
+
 require "jquery.knob"
 require "jquery.notify"
 require "jquery.datatables"
