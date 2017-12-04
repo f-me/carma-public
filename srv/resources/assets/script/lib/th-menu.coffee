@@ -55,11 +55,13 @@ class ThMenu
     @$element = null
 
 
-
   select: =>
-    # dictionary field value must be a nubmer (about `parseInt` here)
-    @selectcb parseInt @$menu.find('.active').attr 'data-value'
+    f = switch typeof @dict.source[0]?.value
+      when "number" then parseInt
+      when "string" then String
+      else _.identity
 
+    @selectcb f @$menu.find('.active').attr 'data-value'
     do @hide
     do @$element.change
     this
