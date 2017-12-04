@@ -291,8 +291,9 @@ do ->
   defaultOptions = Object.freeze
     autoclose        : true
     enableOnReadonly : false
-    format           : "dd.mm.yyyy"
     weekStart        : 1
+    language         : "ru"
+    format           : "dd.mm.yyyy"
 
   dispose = (el) ->
     $(el)
