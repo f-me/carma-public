@@ -1,5 +1,7 @@
-$ = require "jquery-migrate" # compatibility with jquery 2.x
+# compatibility with jquery 2.x
+$ = require "oldLegacy3p/myJQuery"
 $.migrateMute = true if process.env.NODE_ENV is "production"
+
 require "jquery.knob"
 require "jquery.notify"
 require "jquery.datatables"
@@ -22,6 +24,7 @@ ReduxImmutable = require "redux-immutable"
 moment = require "moment"
 require "moment/locale/ru"
 require "moment.tz"
+moment.locale "ru"
 
 require "bootstrap"
 require "bootstrap-datepicker"

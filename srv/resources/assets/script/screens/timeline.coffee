@@ -74,7 +74,6 @@ class Timeline
     if @chart then @draw()
 
   showRangePicker: (element) =>
-    moment().locale("ru")
     $picker = $(element).find(".rangepicker")
     cb = (start, end) =>
       @startDate = start.toDate()
@@ -100,17 +99,15 @@ class Timeline
           customRangeLabel: 'Календарь...',
         },
         ranges: {
-          'Сегодня': [moment().subtract(1, 'days'), moment()],
-          'Вчера': [ moment().subtract(2, 'days')
-                   , moment().subtract(1, 'days')
-                   ],
-          'Последние 7 дней': [moment().subtract(6, 'days'), moment()],
+          'Сегодня': [moment().subtract(1, 'days'), moment()]
+          'Вчера': [moment().subtract(2, 'days'), moment().subtract(1, 'days')]
+          'Последние 7 дней': [moment().subtract(6, 'days'), moment()]
         }
       },
       cb
     )
     # put init data to timeline
-    cb(moment().subtract(1, 'days'), moment())
+    cb moment().subtract(1, 'days'), moment()
 
   showTimeline: (element) =>
     @showRangePicker(element)

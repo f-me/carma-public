@@ -39,6 +39,8 @@ module.exports =
 
       oldLegacy3p:   "carma/oldLegacy3p"
 
+      "jquery": "oldLegacy3p/myJQuery"
+      "jquery-original": path.resolve __dirname, "node_modules", "jquery"
       "jquery.knob": "jquery-knob/js/jquery.knob"
       "jquery.notify": "notify/dist/notify-combined"
       "jquery.datatables": "datatables"
@@ -81,7 +83,7 @@ module.exports =
         use:  [
                 {
                   loader: "imports-loader"
-                  options: { define: ">false", "this": ">window" }
+                  options: define: ">false", "this": ">window"
                 }
                 {
                   loader: "exports-loader"
@@ -94,7 +96,7 @@ module.exports =
         test: require.resolve BS_WYSIHTML5_LOC_RU
         use:  {
                 loader: "imports-loader"
-                options: { define: ">false", "this": ">window" }
+                options: define: ">false", "this": ">window"
               }
       }
 
@@ -102,18 +104,23 @@ module.exports =
         test: require.resolve "jasny-bootstrap/dist/js/jasny-bootstrap"
         use:  {
                 loader: "imports-loader"
-                options: { define: ">false", "this": ">window" }
+                options: define: ">false", "this": ">window"
               }
       }
 
       {
+        test: require.resolve "bootstrap-daterangepicker"
+        use:  loader: "imports-loader", options: define: ">false"
+      }
+
+      {
         test: require.resolve "jquery-migrate"
-        use:  { loader: "imports-loader", options: define: ">false" }
+        use:  loader: "imports-loader", options: define: ">false"
       }
 
       {
         test: require.resolve "openlayers-2-build"
-        use:  { loader: "exports-loader", options: "OpenLayers": true }
+        use:  loader: "exports-loader", options: "OpenLayers": true
       }
 
       { test: /\.coffee$/, use: "coffee-loader" }
@@ -136,7 +143,7 @@ module.exports =
               ]
       }
 
-      { test: /\.json$/,   use: "json-loader" }
+      { test: /\.json$/, use: "json-loader" }
 
       {
         test: /\.(css|less)$/

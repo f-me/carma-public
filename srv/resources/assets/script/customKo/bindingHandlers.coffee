@@ -27,13 +27,14 @@ ko.bindingHandlers.readonly =
     $(el).attr "readonly", val
 
 ko.bindingHandlers.sync =
-  update: (el, acc, allBindings) ->
+  update: (el, acc) ->
     isSync = ko.utils.unwrapObservable acc()
     if isSync
       $(el).fadeIn 'fast'
     else
       $(el).fadeOut 'slow'
 
+# "spinner" handler
 do ->
   defaultOptions = Object.freeze
     color: "#777"
@@ -42,7 +43,7 @@ do ->
     update: (el, acc) ->
       showSpinner = ko.utils.unwrapObservable acc()
       if showSpinner
-        opts = if typeof showSpinner is "object" then showSpinner else {}
+        opts = if typeof showSpinner is "object" then showSpinner else null
         $(el).children(':not(.spinner)').each (index, element) ->
           $(element).addClass "blur"
         $(el).spin Object.assign {}, defaultOptions, opts
@@ -52,8 +53,9 @@ do ->
         $(el).spin false
 
 ko.bindingHandlers.pickerDisable =
-  update: (el, acc, allBindigns, kvm) ->
-    $(el).data('disabled', acc()())
+  update: (el, acc) ->
+    val = ko.utils.unwrapObservable acc()
+    $(el).data "disabled", val
 
 ko.bindingHandlers.bindDict =
   init: (el, acc, allBindigns, kvm) ->
@@ -238,7 +240,11 @@ do ->
 
   makeDataset = (x) ->
     x ?= {}
-    templates = Object.assign {}, defaultDatasets.templates, (x.templates ? {})
+
+    templates = Object.assign {},
+      defaultDatasets.templates,
+      (x.templates ? null)
+
     Object.assign {}, defaultDatasets, x, {templates}
 
   dispose = (el) ->
@@ -256,11 +262,11 @@ do ->
 
     classNames = Object.assign {},
       defaultOptions.classNames,
-      (o.options?.classNames ? {})
+      (o.options?.classNames ? null)
 
     options = Object.assign {},
       defaultOptions,
-      (o.options ? {}),
+      (o.options ? null),
       {classNames}
 
     args = [options].concat (makeDataset x for x in o.datasets ? [])
@@ -303,7 +309,7 @@ do ->
   init = (el, acc, allBindingsAcc) ->
     accVal = ko.utils.unwrapObservable acc()
     return unless accVal # disabled by falsy value
-    o = if typeof accVal is "object" then accVal else {}
+    o = if typeof accVal is "object" then accVal else null
 
     $(el)
       .datepicker Object.assign {}, defaultOptions, o
