@@ -101,7 +101,8 @@ module.exports =
       }
 
       {
-        test: require.resolve "jasny-bootstrap/dist/js/jasny-bootstrap"
+        test: require.resolve path.join "jasny-bootstrap",
+                                        "dist", "js", "jasny-bootstrap"
         use:  {
                 loader: "imports-loader"
                 options: define: ">false", "this": ">window"
@@ -115,6 +116,11 @@ module.exports =
 
       {
         test: require.resolve "jquery-migrate"
+        use:  loader: "imports-loader", options: define: ">false"
+      }
+
+      {
+        test: require.resolve path.join SRC_DIR, "oldLegacy3p", "d3-v3.5.17"
         use:  loader: "imports-loader", options: define: ">false"
       }
 

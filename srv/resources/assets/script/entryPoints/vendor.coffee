@@ -38,7 +38,7 @@ require "bootstrap.wysihtml5.ru-RU"
 require "spin.js"
 require "spin.js/jquery.spin"
 
-require "d3"
+require "oldLegacy3p/d3-v3.5.17"
 require "mousetrap"
 require "ol2"
 

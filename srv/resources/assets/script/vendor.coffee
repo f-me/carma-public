@@ -39,7 +39,7 @@ require "bootstrap.wysihtml5.ru-RU"
 Spinner = require "spin"
 require "spin/jquery.spin"
 
-d3         = require "d3"
+d3         = require "oldLegacy3p/d3-v3.5.17"
 Mousetrap  = require "mousetrap"
 
 OpenLayers = require "ol2"
