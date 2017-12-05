@@ -56,7 +56,8 @@ class ThMenu
 
 
   select: =>
-    f = switch typeof @dict.source[0]?.value
+    # TODO FIXME types should be provided by meta information (am i right?)
+    f = switch typeof @dict.source?[0]?.value
       when "number" then parseInt
       when "string" then String
       else _.identity
