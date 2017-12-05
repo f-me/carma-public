@@ -87,6 +87,13 @@ mainSetup = (localDictionaries, hooks, user, pubSub) ->
 
   Finch.listen()
 
+urlFor = ->
+  switch this.kvm._meta.model.name
+    when "Case"
+      "/#case/#{this()}"
+    else
+      "/##{this.kvm._meta.model.name}/#{this()}"
+
 # Knockout model builder
 #
 # Sets additional observables in Knockout model:
@@ -97,16 +104,16 @@ mainSetup = (localDictionaries, hooks, user, pubSub) ->
 #
 # - modelTitle;
 buildKVM = (model, options = {}) ->
-  fields    = model.fields
-  required  = (f for f in fields when f.meta?.required)
+  {fields} = model
+  required = (f for f in fields when f.meta?.required)
 
   # Build kvm with fetched data if have one
   kvm = {}
   kvm._parent = options.parent
   kvm._saveSuccessCb = options.saveSuccessCb
   {elName, fetched, queue, queueOptions, models} = options
-  kvm._meta   = { model, cid: _.uniqueId("#{model.name}_") }
-  kvm.safelyGet = (prop) -> kvm[prop]?() || ''
+  kvm._meta     = {model, cid: _.uniqueId "#{model.name}_"}
+  kvm.safelyGet = (prop) -> kvm[prop]?() or ''
 
   # build observables for real model fields
   for f in fields
@@ -121,11 +128,13 @@ buildKVM = (model, options = {}) ->
   unless _.isFunction kvm['id']
     kvm['id'] = ko.observable()
     kvm['id'].kvm = kvm
-  kvm.id(fetched['id']) unless _.isUndefined fetched?['id']
+  kvm['id'] fetched['id'] unless _.isUndefined fetched?['id']
+
+  kvm["id"].urlFor = urlFor
 
   # set queue if have one, and sync it with backend
-  kvm._meta.q = new queue(kvm, model, queueOptions) if queue
-  kvm[f.name](fetched[f.name]) for f in fields when fetched?[f.name]
+  kvm._meta.q = new queue kvm, model, queueOptions if queue
+  kvm[f.name] fetched[f.name] for f in fields when fetched?[f.name]
 
   for f in fields
     do (f, n = f.name) ->
@@ -169,38 +178,39 @@ buildKVM = (model, options = {}) ->
       # This cycle build presentation computed, which can be safely binded
       # to ui elements
       do ->
-        fn = { read: null, write: null }
+        fn = read: null, write: null
         switch f.type
           when "Double"
             fn =
               read: ->
-                return kvm[f.name]() unless _.isNumber kvm[f.name]()
-                val = kvm[f.name]().toFixed(3)
+                return kvm[n]() unless _.isNumber kvm[n]()
+                val = kvm[n]().toFixed 3
                 if val.search(/\./) < 0 then val else val.replace(/\.?0*$/, '')
           when "DiffTime"
             twoDig = (v) -> if v < 10 then "0#{v}" else "#{v}"
             fn =
               read: ->
-                d = kvm[f.name]()
+                d = kvm[n]()
                 s = d % 60
                 m = Math.floor(d / 60) % 60
                 h = Math.floor(d / 60 / 60)
                 "#{h}:#{twoDig(m)}:#{twoDig(s)}"
               write: (v) ->
                 [h, m, s] = map v.split(":"), parseInt
-                kvm[f.name](s + m*60 + h*3600)
+                kvm[n] s + m*60 + h*3600
         defaults =
-          read:      ->
-            v = kvm[f.name]()
+          read: ->
+            v = kvm[n]()
             if _.isNull(v) or _.isUndefined(v) then "" else v
           write: (v) ->
-            return if _.isEmpty(kvm[f.name]()) and v == ""
-            kvm[f.name](v)
+            return if _.isEmpty(kvm[n]()) and v == ""
+            kvm[n] v
 
-        kvm["#{f.name}Text"] = ko.computed
-          read: fn.read   || defaults.read
-          write: fn.write || defaults.write
-        kvm[f.name].text = kvm["#{f.name}Text"]
+        kvm["#{n}Text"] = ko.computed
+          read:  fn.read  or defaults.read
+          write: fn.write or defaults.write
+
+        kvm[n].text = kvm["#{n}Text"]
 
   # This is required to initialize timeZone-related observables in
   # case's kvm. We need them to be ready before services initialization.

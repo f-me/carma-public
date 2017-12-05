@@ -215,15 +215,6 @@ module.exports = {
     setGlobalShit "focusField",       module.exports
     setGlobalShit "ctiDial",          module.exports
 
-    # used in fields/ro.pug
-    # TODO FIXME declare as view-model method
-    window.urlFor = (field) ->
-      switch field.kvm._meta.model.name
-        when "Case"
-          "/#case/#{field()}"
-        else
-          "/##{field.kvm._meta.model.name}/#{field()}"
-
   ctiDial
 
   mkDataTable: (t, opts) ->
