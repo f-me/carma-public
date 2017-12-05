@@ -37,8 +37,8 @@ checkFileSize = (file) ->
 #
 # props is an object with extra properties of $.ajax
 ajaxUpload = (url, file, props) ->
-  fd = new FormData()
-  fd.append("file", file)
+  fd = new FormData
+  fd.append "file", file
 
   baseProps =
     type        : "POST"
@@ -48,23 +48,22 @@ ajaxUpload = (url, file, props) ->
     data        : fd
     dataType    : "json"
 
-  $.ajax _.extend(baseProps, props)
+  $.ajax Object.assign baseProps, props
 
 # Add an attachment reference to an instance, provided a form from
 # inline-uploader template
 inlineUploadFile = (form) ->
   formMeta = form.data()
-  url      = form.attr('action')
+  url      = form.attr "action"
   files    = form.find(".upload-dialog")[0].files
-  if files.length > 0
-    ajaxUpload(url, files[0]).
-    fail((e) ->
-      alert "Не удалось загрузить файл!"
-    ).
-    # Re-read instance data when a new attachment is added
-    done(() -> formMeta.knockVM._meta.q.fetch())
 
-    form.find('input:file').val("").trigger("change")
+  if files.length > 0
+    ajaxUpload url, files[0]
+      # Re-read instance data when a new attachment is added
+      .then  -> formMeta.knockVM._meta.q.fetch()
+      .catch -> window.alert "Не удалось загрузить файл!"
+
+    form.find('input:file').val("").trigger "change"
 
 # Delete an attachment reference from an instance, provided an
 # element from reference template with data-attachment and

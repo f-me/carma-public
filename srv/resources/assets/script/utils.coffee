@@ -1,11 +1,11 @@
 {$, _, Finch} = require "carma/vendor"
 
-main        = require "carma/model/main"
 mu          = require "carma/model/utils"
 d           = require "carma/dictionaries"
 {CrudQueue} = require "carma/sync/crud"
 
 # jquery -> html(as string) conversion, with selected element
+# FIXME bullshit, what if it is not wrapped with <div>?
 $.fn.outerHTML = () -> $("<div>").append(@clone()).html()
 
 # Synchronous JSON request
@@ -49,11 +49,12 @@ findVM = (view) ->
 
 # make this global, still need to use this module as dependency
 # to make sure that this functions will be loaded
-window.el  = (id) -> document.getElementById(id)
-window.$el = (id) -> $(el(id))
+window.el  = (id) -> document.getElementById(id) # FIXME global shit
+window.$el = (id) -> $(el(id)) # FIXME global shit
 # like _.has but for list
-window.hasL = (lst, e) -> _.find(lst, (x) -> x == e)
+window.hasL = (lst, e) -> _.find(lst, (x) -> x == e) # FIXME global shit
 
+# FIXME global shit
 window.successfulSave = ->
   return if this.hasAttribute("disabled")
   $span = $(this).siblings(".save-result")
@@ -63,11 +64,13 @@ window.successfulSave = ->
     $span.fadeOut(2000))
   , 500)
 
+# FIXME global shit
 window.inlineSpinner = (el) ->
   $(el).addClass("inline-spinner").append(
     "<div class='bounce1'></div><div class='bounce2'></div><div class='bounce3'></div>"
   )
 
+# FIXME global shit
 window.getDictionary = (d) ->
   dict = window.global.dictionaries[d]
   return dict if dict
@@ -85,6 +88,7 @@ _.object = (list, values) ->
 
 _.pairs = (obj) -> [k, v] for k, v of obj
 
+# FIXME global shit
 window.arrToObj = (key, val, f = _.identity) ->
   keys = if _.isFunction key then _.map val, key else _.pluck val, key
   _.object _.zip keys, (_.map val, f)
@@ -153,7 +157,7 @@ checkMatch = (q, val) ->
     _.any (checkMatch(q, v) for k, v of val), _.identity
   else
     !!~String(val).toLowerCase().indexOf(q.toLowerCase())
-window.checkMatch = checkMatch
+window.checkMatch = checkMatch # FIXME global shit
 
 # Format a numeric value from seconds to hours and minutes
 formatSec = (s) ->
@@ -166,6 +170,10 @@ formatSec = (s) ->
 
 # Build a KnockVM for a model instance using standard queue
 buildInstance = (modelName, id) ->
+
+  # requiring it here to avoid recursive dependencies
+  main = require "carma/model/main"
+
   main.buildKVM window.global.model(modelName),
     fetched: {id}
     queue: CrudQueue
@@ -186,6 +194,7 @@ module.exports = {
 
   makeAFuckingMess: ->
     # Replacement for old `build_global_fn` from 'utils'
+    # FIXME
     setGlobalShit = (name, module) -> window[name] = module[name]
 
     # Compatibility with old horrible shit.
@@ -195,7 +204,6 @@ module.exports = {
     setGlobalShit "pickPartnerBlip",  require "carma/map"
     setGlobalShit "addService",       require "carma/screens/case"
     # From 'local':
-    setGlobalShit "inlineUploadFile", require "carma/lib/upload"
     setGlobalShit "inlineDetachFile", require "carma/lib/upload"
     setGlobalShit "switchHack",       require "carma/lib/hacking"
     setGlobalShit "sendSms",          require "carma/lib/send-sms"
@@ -497,12 +505,16 @@ module.exports = {
 
   createNewCall: (callData) ->
     $.notify "Создаём новый звонок…", {className: 'info'}
+
+    # requiring it here to avoid recursive dependencies
+    main = require "carma/model/main"
+
     cvm = main.buildKVM window.global.model('Call'),
       {fetched: callData, queue: CrudQueue}
+
     # Force saving
     cvm._meta.q.save null, true
-    cvm.id.subscribe (id) ->
-      Finch.navigate "call/#{cvm.id()}"
+    cvm.id.subscribe (id) -> Finch.navigate "call/#{cvm.id()}"
 
   # subset of d3.scale.category20 with dark colors removed
   palette: [

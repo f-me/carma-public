@@ -79,23 +79,22 @@ module.exports =
     for f in model.fields when f.meta?.regexp?
       fieldName = f.name
       regexp    = f.meta.regexp
-      ((f, r) ->
+      do (f = fieldName, r = new RegExp regexp) ->
         kvm["#{f}Regexp"] = ko.computed ->
-          return false if kvm[f]() == "" or _.isNull(kvm[f]())
+          return false if kvm[f]() is "" or _.isNull kvm[f]()
           not r.test kvm[f]()
-      )(fieldName, new RegExp(regexp))
 
   # For a field <name> with type=file, add an extra observable
   # <name>Url with absolute URL to the stored file.
   fileKbHook: (model, kvm) ->
-    for f in model.fields when f.type == "file"
-      do(f) ->
-        n   = f.name
+    for f in model.fields when f.type is "file"
+      do (f) ->
+        n = f.name
         kvm["#{n}Url"] = ko.computed
           read: ->
-            p  = "/s/fileupload/attachment/" + kvm.id()
+            p  = "/s/fileupload/attachment/#{kvm.id()}"
             fs = encodeURIComponent kvm[n]()
-            p + "/" + fs
+            "#{p}/#{fs}"
 
   dateTimeHook: (m, k) ->
     for f in m.fields when _.contains ["datetime", "Day", "UTCTime"], f.type

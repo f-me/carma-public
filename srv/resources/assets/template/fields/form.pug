@@ -207,14 +207,15 @@ include _form_utils.pug
 // form. See also files-reference-template for each item template.
 #inline-uploader-field-template.field-template(type='text/template')
   +fieldControlGroup
-    form.form(data-bind="\n\
-      attr: { action: '/upload/{{ modelName }}/'+maybeId()+'/{{ name }}'},\
-      {{#meta.single-uploader}} \n\
-      visible: _.isEmpty({{name}}()),\n\
-      {{/meta.single-uploader}}\n\
-      setdata: {{ name }}"
-      style='margin-bottom: 0;')
+    form.form(style='margin-bottom: 0;' data-bind=`
+      attr: { action: '/upload/{{modelName}}/' + maybeId() + '/{{name}}'},
 
+      {{#meta.single-uploader}}
+        visible: _.isEmpty({{name}}()),
+      {{/meta.single-uploader}}
+
+      setdata: {{name}},
+    `)
       // File chooser widget
       .input-group.input-group-sm
         input.form-control(type="text" readonly)
@@ -222,10 +223,9 @@ include _form_utils.pug
           span.btn.btn-default.btn-file
             span.glyphicon.glyphicon-folder-open
             input.upload-dialog(type="file")
-          a.btn.btn-primary#upload-send(
-              onclick="inlineUploadFile($(this).closest('form'), event);")
+          a.btn.btn-primary(data-bind='click: {{name}}ClickHandler')
             span.glyphicon.glyphicon-upload
-    div(id="{{ modelName }}-{{ cid }}-{{ name }}-references")
+    div(id="{{modelName}}-{{cid}}-{{name}}-references")
 
 //- Special template used to render first field of group in parent view.
 #group-field-template.field-template(type='text/template')

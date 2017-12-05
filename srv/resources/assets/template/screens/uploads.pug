@@ -43,10 +43,11 @@
       button.close(data-dismiss='alert')
           | ×
       div
-        a(target='_blank'
-          data-bind="attr: { \
-              href: 's/fileupload/attachment/' + aid() + '/' + filename() \
-            }")
+        a(target='_blank' data-bind=`
+          attr: {
+            href: 's/fileupload/attachment/' + aid() + '/' + filename(),
+          },
+        `)
           i.glyphicon.glyphicon-download-alt
           | &nbsp;
           b(data-bind='text: filename')
@@ -61,11 +62,11 @@
           | )
         | :&nbsp;
         span.case-numbers(data-bind='foreach: cases')
-          a(data-bind='attr: { href: \'/#case/\' + $data }', target='_blank')
+          a(data-bind='attr: { href: "/#case/" + $data }' target='_blank')
             i.glyphicon.glyphicon-file
             b(data-bind='text: $data')
           a.detach-button.text-danger(href='#'
-            data-bind="attr: { 'data-target': $data }")
+            data-bind='attr: { "data-target": $data }')
             | ×
           |&nbsp;
       form.attach-form(style='display: none;')

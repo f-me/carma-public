@@ -21,12 +21,13 @@
 
 require "carma/lib/serialize"
 
-render   = require "carma/model/render"
-dict     = require "carma/dictionaries/local-dict"
-sync     = require "carma/sync/crud"
-Idents   = require "carma/lib/idents"
-{Config} = require "carma/lib/config"
-Fs       = require "carma/model/fields"
+dict               = require "carma/dictionaries/local-dict"
+render             = require "carma/model/render"
+Fs                 = require "carma/model/fields"
+sync               = require "carma/sync/crud"
+Idents             = require "carma/lib/idents"
+{Config}           = require "carma/lib/config"
+{inlineUploadFile} = require "carma/lib/upload"
 
 mainSetup = (localDictionaries, hooks, user, pubSub) ->
 
@@ -127,8 +128,8 @@ buildKVM = (model, options = {}) ->
   kvm[f.name](fetched[f.name]) for f in fields when fetched?[f.name]
 
   for f in fields
-    do (f) ->
-      n = f.name
+    do (f, n = f.name) ->
+
       # Set extra observable for inverse of every required
       # parameters, with name <fieldName>Not
       # required can be customized with function put into
@@ -149,55 +150,57 @@ buildKVM = (model, options = {}) ->
         else if f.meta.visibleIf
           for p of f.meta.visibleIf
             val = kvm[p]()
-            if f.meta.visibleIf[p].some((x) -> String(x) == String(val))
+            if f.meta.visibleIf[p].some((x) -> String(x) is String(val))
               return true
           return false
         else
           true
 
-  # Determines the sync state with the server
-  for f in fields
-    do (f) ->
-      kvm["#{f.name}Sync"] = ko.observable(false)
+      # Determines the sync state with the server
+      kvm["#{n}Sync"] = ko.observable false
 
-  # special observable for text, so it won't be saved on update null -> ""
-  # #1221
-  # This cycle build presentation computed, which can be safely binded
-  # to ui elements
-  for f in fields
-    do (f) ->
-      fn = { read: null, write: null }
-      switch f.type
-        when "Double"
-          fn =
-            read: ->
-              return kvm[f.name]() unless _.isNumber kvm[f.name]()
-              val = kvm[f.name]().toFixed(3)
-              if val.search(/\./) < 0 then val else val.replace(/\.?0*$/, '')
-        when "DiffTime"
-          twoDig = (v) -> if v < 10 then "0#{v}" else "#{v}"
-          fn =
-            read: ->
-              d = kvm[f.name]()
-              s = d % 60
-              m = Math.floor(d / 60) % 60
-              h = Math.floor(d / 60 / 60)
-              "#{h}:#{twoDig(m)}:#{twoDig(s)}"
-            write: (v) ->
-              [h, m, s] = map v.split(":"), parseInt
-              kvm[f.name](s + m*60 + h*3600)
-      defaults =
-        read:      ->
-          v = kvm[f.name]()
-          if _.isNull(v) or _.isUndefined(v) then "" else v
-        write: (v) ->
-          return if _.isEmpty(kvm[f.name]()) and v == ""
-          kvm[f.name](v)
+      # Handler for clicking on "upload" button
+      if f.meta?.widget is "inline-uploader"
+        kvm["#{n}ClickHandler"] = (model, e) ->
+          inlineUploadFile $(e.target).closest('form')
 
-      kvm["#{f.name}Text"] = ko.computed
-        read: fn.read   || defaults.read
-        write: fn.write || defaults.write
-      kvm[f.name].text = kvm["#{f.name}Text"]
+      # special observable for text, so it won't be saved on update null -> ""
+      # #1221
+      # This cycle build presentation computed, which can be safely binded
+      # to ui elements
+      do ->
+        fn = { read: null, write: null }
+        switch f.type
+          when "Double"
+            fn =
+              read: ->
+                return kvm[f.name]() unless _.isNumber kvm[f.name]()
+                val = kvm[f.name]().toFixed(3)
+                if val.search(/\./) < 0 then val else val.replace(/\.?0*$/, '')
+          when "DiffTime"
+            twoDig = (v) -> if v < 10 then "0#{v}" else "#{v}"
+            fn =
+              read: ->
+                d = kvm[f.name]()
+                s = d % 60
+                m = Math.floor(d / 60) % 60
+                h = Math.floor(d / 60 / 60)
+                "#{h}:#{twoDig(m)}:#{twoDig(s)}"
+              write: (v) ->
+                [h, m, s] = map v.split(":"), parseInt
+                kvm[f.name](s + m*60 + h*3600)
+        defaults =
+          read:      ->
+            v = kvm[f.name]()
+            if _.isNull(v) or _.isUndefined(v) then "" else v
+          write: (v) ->
+            return if _.isEmpty(kvm[f.name]()) and v == ""
+            kvm[f.name](v)
+
+        kvm["#{f.name}Text"] = ko.computed
+          read: fn.read   || defaults.read
+          write: fn.write || defaults.write
+        kvm[f.name].text = kvm["#{f.name}Text"]
 
   # This is required to initialize timeZone-related observables in
   # case's kvm. We need them to be ready before services initialization.
