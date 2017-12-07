@@ -18,7 +18,7 @@
         },
         {
             "value": "fax",
-            "label": "Факс"
+            "label": "Номер для SMS"
         },
         {
             "value": "man",
