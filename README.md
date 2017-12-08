@@ -16,7 +16,7 @@ instructions.
 
    ```
    stack --numeric-version
-   1.4.0
+   1.6.1
    ```
 
 2. Install PostgreSQL 9.3 (this is what production servers use) and
