@@ -19,9 +19,9 @@ objsToRows = (objs) ->
   cities = utils.newModelDict "City", true
   rows = for obj in objs then [
     obj.id
-    obj.name                 or ''
-    (cities.getLab obj.city) or ''
-    obj.comment              or ''
+    obj.name                or ''
+    cities.getLab(obj.city) or ''
+    obj.comment             or ''
   ]
 
 screenSetup = (viewName, args) ->
@@ -33,12 +33,12 @@ screenSetup = (viewName, args) ->
     objURL    : "/_/Partner?limit=5000"
 
   table = screenMan
-    .addScreen(modelName, ->)
-    .addTable(tableParams)
-    .setObjsToRowsConverter(objsToRows)
+    .addScreen modelName, (->)
+    .addTable tableParams
+    .setObjsToRowsConverter objsToRows
   table
     .on "click.datatable", "tr", ->
-      if (table.dataTable.fnGetPosition this) isnt null
+      if table.dataTable.fnGetPosition(this) isnt null
         id = @children[0].innerText
         modelSetup modelName, viewName, {id}
 
