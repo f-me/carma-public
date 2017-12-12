@@ -36,4 +36,4 @@ extra-deps:
   commit: 100291ada8c71d817d6758062dd98bbf2e60a040
 image:
   containers:
-    - base: "formalmethods/carma-base-runtime"
+    - base: "formalmethods/carma-base-runtime@sha256:eedbc3e51e501518ef8d64cafe7f97bbdabb7eefc07f672e5b08afe4d9fed7b5"
