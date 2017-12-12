@@ -19,6 +19,8 @@ import qualified Carma.Model.Service        as Service
 import qualified Carma.Model.Service.Towage as Towage
 import qualified Carma.Model.Case           as Case
 import qualified Carma.Model.City           as City
+import qualified Carma.Model.CarMake        as CarMake
+import qualified Carma.Model.CarModel       as CarModel
 
 import Utils.Model.MSqlQQ hiding (parseQuery)
 import Application (AppHandler)
@@ -30,7 +32,7 @@ sendSMS
   -> Model.IdentI Service.Service
   -> AppHandler (IO ())
 sendSMS tplId svcId =
-  withNoIO $ uncurry SPG.query messageInfo >>= \case
+  (pure () <$) $ uncurry SPG.query messageInfo >>= \case
 
     [fields] ->
       let msgInfo = Map.map T.tail $ Map.fromList $ map (T.breakOn "=") fields
@@ -45,9 +47,6 @@ sendSMS tplId svcId =
 
   where
 
-  -- withNoIO = (pure () <$)
-  withNoIO = (putStrLn "... TESING IT ..." <$)
-
   messageInfo = [msql|
     select
       'tpl='                   || tpl.$(F|SmsTemplate.text)$,
@@ -55,16 +54,26 @@ sendSMS tplId svcId =
       'sender='                || sprog.$(F|SubProgram.smsSender)$,
       'case.id='               || cs.$(F|Case.ident)$::text,
       'case.city='             || coalesce(city.$(F|City.label)$, ''),
-      'case.car_make='         || cs.$(F|Case.car_make)$,  -- TODO resolve label by id
-      'case.car_model='        || cs.$(F|Case.car_model)$, -- TODO resolve label by id
       'case.customer_phone='   || cs.$(F|Case.contact_phone1)$,
       'case.breakage_address=' || cs.$(F|Case.caseAddress_address)$,
       'service.type='          || svct.$(F|ServiceType.label)$,
       'program_info='          || sprog.$(F|SubProgram.smsProgram)$,
       'program_contact_info='  || sprog.$(F|SubProgram.smsContact)$,
 
-      -- 'service.towage.towage_to_address=' ||
-      --   coalesce(towage.$(F|Towage.towAddress_address)$, ''),
+      'case.car_make=' ||
+        coalesce((
+          select $(F|CarMake.label)$ from $(T|CarMake)$
+          where $(F|CarMake.ident)$ = cs.$(F|Case.car_make)$
+        ), ''),
+
+      'case.car_model=' ||
+        coalesce((
+          select $(F|CarModel.label)$ from $(T|CarModel)$
+          where $(F|CarModel.ident)$ = cs.$(F|Case.car_model)$
+        ), ''),
+
+      'service.towage.towage_to_address=' ||
+        coalesce(towage.$(F|Towage.towAddress_address)$, ''),
 
       'service.times_expectedServiceStart=' ||
         coalesce(to_char(
@@ -86,17 +95,13 @@ sendSMS tplId svcId =
 
     from
       $(T|Case)$ cs
-
         left join $(T|City)$ city
-        on ( city.$(F|City.ident)$ = cs.$(F|Case.city)$ ),
+          on ( city.$(F|City.ident)$ = cs.$(F|Case.city)$ ),
 
-        -- TODO get field `Service.parentId` from parent model
-        --      (as `Towage.parentId`)
-        --      see also TODO in Utils.Model.MSqlQQ
-        -- left join $(T|Towage)$ towage
-        -- on ( towage.$(F|Service.parentId)$ = cs.$(F|Case.ident)$ ),
+      $(T|Service)$ svc
+        left join $(T|Towage)$ towage
+          on ( towage.$(F|Towage.ident)$ = svc.$(F|Service.ident)$ ),
 
-      $(T|Service)$     svc,
       $(T|ServiceType)$ svct,
       $(T|SubProgram)$  sprog,
       $(T|SmsTemplate)$ tpl
