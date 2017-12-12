@@ -12,7 +12,7 @@ RUN install_packages dirmngr gnupg && \
         libicu55 \
         libpq5 \
         libssl1.0.0 \
-        xinetd \
+        netbase \
         --
 
 ARG BUILD_DATE
