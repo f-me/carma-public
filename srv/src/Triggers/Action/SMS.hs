@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns #-}
 
-module Triggers.Action.SMS (sendSMS) where
+module Triggers.Action.SMS (sendSMS, SendTo (..)) where
 
 import Control.Monad (void)
 
@@ -17,6 +17,7 @@ import qualified Carma.Model.SubProgram     as SubProgram
 import qualified Carma.Model.ServiceType    as ServiceType
 import qualified Carma.Model.Service        as Service
 import qualified Carma.Model.Service.Towage as Towage
+import qualified Carma.Model.Partner        as Partner
 import qualified Carma.Model.Case           as Case
 import qualified Carma.Model.City           as City
 import qualified Carma.Model.CarMake        as CarMake
@@ -27,11 +28,18 @@ import Application (AppHandler)
 import Util (syslogJSON, render, Priority (Error), (.=))
 
 
+data SendTo
+  = SendToCaller            -- Contact phone from "Case"
+  | SendToContractorPartner -- "fax" phone from "Partner.phones" field
+  deriving (Show, Eq)
+
+
 sendSMS
   :: Model.IdentI SmsTemplate.SmsTemplate
   -> Model.IdentI Service.Service
+  -> SendTo
   -> AppHandler (IO ())
-sendSMS tplId svcId =
+sendSMS tplId svcId sendTo =
   (pure () <$) $ uncurry SPG.query messageInfo >>= \case
 
     [fields] ->
@@ -50,7 +58,6 @@ sendSMS tplId svcId =
   messageInfo = [msql|
     select
       'tpl='                   || tpl.$(F|SmsTemplate.text)$,
-      'phone='                 || coalesce(cs.$(F|Case.contact_phone1)$, ''),
       'sender='                || sprog.$(F|SubProgram.smsSender)$,
       'case.id='               || cs.$(F|Case.ident)$::text,
       'case.city='             || coalesce(city.$(F|City.label)$, ''),
@@ -59,6 +66,16 @@ sendSMS tplId svcId =
       'service.type='          || svct.$(F|ServiceType.label)$,
       'program_info='          || sprog.$(F|SubProgram.smsProgram)$,
       'program_contact_info='  || sprog.$(F|SubProgram.smsContact)$,
+
+      'phone=' ||
+        coalesce((
+          case
+            when $(V|show sendTo)$ = $(V|show SendToCaller)$
+              then cs.$(F|Case.contact_phone1)$
+            when $(V|show sendTo)$ = $(V|show SendToContractorPartner)$
+              then GetPartnerSmsPhone(partner.$(F|Partner.ident)$)
+          end
+        ), ''),
 
       'case.car_make=' ||
         coalesce((
@@ -100,7 +117,12 @@ sendSMS tplId svcId =
 
       $(T|Service)$ svc
         left join $(T|Towage)$ towage
-          on ( towage.$(F|Towage.ident)$ = svc.$(F|Service.ident)$ ),
+          on ( towage.$(F|Towage.ident)$ = svc.$(F|Service.ident)$ )
+        left join $(T|Partner)$ partner
+          on (
+            partner.$(F|Partner.ident)$ =
+            svc.$(F|Service.contractor_partnerId)$
+          ),
 
       $(T|ServiceType)$ svct,
       $(T|SubProgram)$  sprog,

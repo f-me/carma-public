@@ -105,7 +105,9 @@ import           Carma.Backoffice.Graph (startNode)
 import           Application (AppHandler)
 import           AppHandlers.ActionAssignment (topPriority, leastPriority)
 
-import qualified Triggers.Action.SMS as BOAction (sendSMS)
+import qualified Triggers.Action.SMS as BOAction ( sendSMS
+                                                 , SendTo (SendToCaller)
+                                                 )
 import qualified Triggers.Action.MailToGenser as BOAction (sendMailToGenser)
 import qualified Triggers.Action.MailToPSA as BOAction (sendMailToPSA)
 import qualified Triggers.Action.MailToDealer as BOAction (sendMailToDealer)
@@ -932,7 +934,8 @@ instance Backoffice HaskellE where
     PSA    -> runLater $ BOAction.sendMailToPSA    <$> srvId'
     Dealer -> runLater $ BOAction.sendMailToDealer <$> srvId'
 
-  sendSMS tpl = runLater $ BOAction.sendSMS tpl <$> srvId'
+  sendSMS tpl = runLater
+              $ BOAction.sendSMS tpl <$> srvId' <*> pure BOAction.SendToCaller
 
   when cond act =
     HaskellE $
