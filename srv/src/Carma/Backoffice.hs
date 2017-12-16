@@ -28,6 +28,7 @@ import qualified Carma.Model.FalseCall as FS
 import           Carma.Model.Program as Program
 import           Carma.Model.Role as Role
 import           Carma.Model.Satisfaction as Satisfaction
+import           Carma.Model.Partner as Partner
 import           Carma.Model.Service as Service
 import qualified Carma.Model.ServiceStatus as SS
 import           Carma.Model.ServiceType as ST
@@ -309,6 +310,7 @@ orderService = Action AType.orderService
     , sendSMS SendSmsToCaller SMS.order
         *> messageToPSA
         *> messageToGenser
+        *> notifyPartner
         *> setServiceStatus SS.ordered
         *> setServiceField Service.times_expectedDispatch justNow
         *> proceed [AType.tellClient, AType.addBill]
@@ -318,6 +320,7 @@ orderService = Action AType.orderService
     , sendSMS SendSmsToCaller SMS.order
         *> messageToPSA
         *> messageToGenser
+        *> notifyPartner
         *> setServiceStatus SS.ordered
         *> setServiceField Service.times_expectedDispatch justNow
         *> proceed [AType.checkStatus, AType.addBill]
@@ -332,6 +335,17 @@ orderService = Action AType.orderService
   , (AResult.defer, defer)
   , (AResult.supervisorClosed, finish)
   ]
+
+
+-- TODO
+notifyPartner :: Backoffice bk => bk (Eff m)
+notifyPartner = when condition
+              $ sendSMS SendSmsToContractorPartner SMS.notifyPartner
+
+  where condition =
+          (  serviceField svcType `oneOf` [ST.towage, ST.tech]
+          -- && serviceField Service.contractor_partnerId == just Partner.ident
+          )
 
 
 orderServiceAnalyst :: Action
