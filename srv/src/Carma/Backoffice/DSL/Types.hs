@@ -13,13 +13,14 @@ module Carma.Backoffice.DSL.Types
       Eff
     , Outcome
     , Trigger
-    , Scope(..)
-    , MailType(..)
+    , Scope (..)
+    , MailType (..)
+    , SendSmsTo (..)
 
       -- * Haskell interface for Backoffice DSL
     , HaskellType
-    , PreContextAccess(..)
-    , SvcAccess(..)
+    , PreContextAccess (..)
+    , SvcAccess (..)
     )
 
 where
@@ -68,6 +69,12 @@ data Scope = InCase
 
 -- | Mail type/destination.
 data MailType = Dealer | PSA | Genser
+
+
+data SendSmsTo
+  = SendSmsToCaller            -- Contact phone from "Case"
+  | SendSmsToContractorPartner -- "fax" phone from "Partner.phones" field
+  deriving (Show, Eq)
 
 
 -- | Haskell embeddings of DSL types.

@@ -171,7 +171,7 @@ instance Backoffice EdgeE where
     setCaseField _ _ = nothing
     setServiceField _ _ = nothing
     sendMail _ = nothing
-    sendSMS _ = nothing
+    sendSMS _ _ = nothing
 
     when _ _ = nothing
 

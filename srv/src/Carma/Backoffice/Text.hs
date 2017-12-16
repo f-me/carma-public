@@ -29,11 +29,13 @@ import           Data.String
 import           Data.List
 import           Data.Text (Text)
 import qualified Data.Text as T
+import           Text.InterpolatedString.QM
 import           Data.Typeable
 
 import           Data.Model
 
 import           Carma.Backoffice.DSL
+import           Carma.Backoffice.DSL.Types (SendSmsTo (..))
 
 
 -- | Structured text with indentation blocks.
@@ -255,9 +257,12 @@ instance Backoffice TextE where
         TextE $
         (\c -> [T $ fieldDesc acc, T " ← "] ++ c) <$> toText i
 
-    sendSMS i =
-        TextE $
-        ([T "Отправить SMS по шаблону "] ++) <$> toText (const i)
+    sendSMS t i = TextE $ ([T msg] ++) <$> tpl
+      where tpl = toText $ const i
+            msg = [qm| Отправить SMS {who :: Text} по шаблону\ |] :: Text
+            who = case t of
+                       SendSmsToCaller            -> "звонящему"
+                       SendSmsToContractorPartner -> "партнёру"
 
     sendMail to =
       textE $ T.append "Отправить письмо " $ case to of

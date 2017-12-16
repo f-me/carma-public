@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns #-}
 
-module Triggers.Action.SMS (sendSMS, SendTo (..)) where
+module Triggers.Action.SMS (sendSMS) where
 
 import Control.Monad (void)
 
@@ -9,6 +9,7 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Database.PostgreSQL.Simple as PG
 import qualified Snap.Snaplet.PostgresqlSimple as SPG (liftPG, query, execute)
+import Carma.Backoffice.DSL.Types (SendSmsTo (..))
 
 import qualified Data.Model                 as Model
 import qualified Carma.Model.Sms            as Sms
@@ -28,16 +29,10 @@ import Application (AppHandler)
 import Util (syslogJSON, render, Priority (Error), (.=))
 
 
-data SendTo
-  = SendToCaller            -- Contact phone from "Case"
-  | SendToContractorPartner -- "fax" phone from "Partner.phones" field
-  deriving (Show, Eq)
-
-
 sendSMS
   :: Model.IdentI SmsTemplate.SmsTemplate
   -> Model.IdentI Service.Service
-  -> SendTo
+  -> SendSmsTo
   -> AppHandler (IO ())
 sendSMS tplId svcId sendTo =
   (pure () <$) $ uncurry SPG.query messageInfo >>= \case
@@ -70,9 +65,9 @@ sendSMS tplId svcId sendTo =
       'phone=' ||
         coalesce((
           case
-            when $(V|show sendTo)$ = $(V|show SendToCaller)$
+            when $(V|sendTo == SendSmsToCaller)$
               then cs.$(F|Case.contact_phone1)$
-            when $(V|show sendTo)$ = $(V|show SendToContractorPartner)$
+            when $(V|sendTo == SendSmsToContractorPartner)$
               then GetPartnerSmsPhone(partner.$(F|Partner.ident)$)
           end
         ), ''),
