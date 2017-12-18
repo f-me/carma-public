@@ -222,8 +222,10 @@ instance Backoffice TextE where
 
     const v = TextE $ (\t -> [T t]) . lkp (IBox v) . identMap <$> ask
 
-    just v = TextE $ (\t -> [T t]) . lkp (IBox v) . identMap <$> ask
-    justTxt v = TextE $ pure [T v]
+    just      v = TextE $ (\t -> [T t]) . lkp (IBox v) . identMap <$> ask
+    justTxt   v = TextE $ pure [T v]
+    isEmpty   v = TextE $ ([T "Значение не задано "] ++) <$> toText v
+    isntEmpty v = TextE $ ([T "Значение задано "]    ++) <$> toText v
 
     req v = TextE $ (++ [T "*"]) <$> toText v
 

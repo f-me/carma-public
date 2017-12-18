@@ -36,34 +36,26 @@ sendSMS
   -> SendSmsTo
   -> AppHandler (IO ())
 sendSMS tplId svcId sendTo =
-  (pure () <$) $ uncurry SPG.query messageInfo >>= \case
+  ((print sendTo >> print tplId >> print svcId) <$) $ uncurry SPG.query messageInfo >>= \case
 
     [fields] ->
       let
         msgInfo = Map.map T.tail $ Map.fromList $ map (T.breakOn "=") fields
         phone   = msgInfo ! "phone"
+        save    = uncurry SPG.execute $ insertSms msgInfo
 
-        guard :: Bool -> T.Text -> Either T.Text ()
-        guard condition errMsg =
-          if condition then Right () else Left errMsg
-
-        validatePhone :: Either T.Text () -> AppHandler ()
-        validatePhone =
-          \case Left msg -> reportError ["err" .= msg]
-                Right () -> void $ uncurry SPG.execute $ insertSms msgInfo
-
-      in
-        validatePhone $ do
+        phoneValidator = do
           guard
             (not $ T.null phone)
             [qm| {phoneView} is NULL or empty |]
-
           guard
             -- Matching +7**********
             ( T.length phone == 12 &&
               T.take 2 phone == "+7" &&
               T.all (`elem` ("0123456789" :: String)) (T.drop 2 phone) )
             [qm| {phoneView} is invalid: "{phone}" |]
+      in
+        whenValid phoneValidator $ void save
 
     res -> reportError
       [ "err" .= ("unexpected query result" :: T.Text)
@@ -71,6 +63,13 @@ sendSMS tplId svcId sendTo =
       ]
 
   where
+
+  whenValid :: Either T.Text () -> AppHandler () -> AppHandler ()
+  whenValid (Left msg) _ = reportError ["err" .= msg]
+  whenValid (Right ()) m = m
+
+  guard :: Bool -> T.Text -> Either T.Text ()
+  guard condition errMsg = if condition then Right () else Left errMsg
 
   phoneView :: T.Text
   phoneView = case sendTo of

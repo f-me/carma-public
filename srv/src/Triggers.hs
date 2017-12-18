@@ -874,8 +874,10 @@ instance Backoffice HaskellE where
 
   const = HaskellE . return
 
-  just = HaskellE . return . Just
-  justTxt = HaskellE . return . Just
+  just      = HaskellE . return . Just
+  justTxt   = HaskellE . return . Just
+  isEmpty   = HaskellE . fmap isNothing . toHaskell
+  isntEmpty = HaskellE . fmap isJust    . toHaskell
 
   req v =
     HaskellE $ fromMaybe (error "Required value not set") <$> toHaskell v

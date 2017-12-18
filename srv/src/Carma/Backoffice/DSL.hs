@@ -214,19 +214,19 @@ class Backoffice impl where
     (||) :: impl Bool -> impl Bool -> impl Bool
 
     -- | Lift idents for use with comparison combinators.
-    const :: Model v =>
-             IdentI v -> impl (IdentI v)
+    const :: Model v => IdentI v -> impl (IdentI v)
 
     -- | 'const' for optional values.
-    just :: Model v => IdentI v -> impl (Maybe (IdentI v))
-    justTxt :: Text -> impl (Maybe Text)
+    just      :: Model v => IdentI v -> impl (Maybe (IdentI v))
+    justTxt   :: Text -> impl (Maybe Text)
+    isEmpty   :: forall a . impl (Maybe a) -> impl Bool
+    isntEmpty :: forall a . impl (Maybe a) -> impl Bool
 
     -- | Require a value.
     req :: impl (Maybe v) -> impl v
 
     -- | List membership predicate.
-    oneOf :: Model v =>
-             impl (IdentI v) -> [IdentI v] -> impl Bool
+    oneOf :: Model v => impl (IdentI v) -> [IdentI v] -> impl Bool
 
     -- | Branching.
     switch :: [(impl Bool, impl v)]

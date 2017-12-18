@@ -17,7 +17,7 @@ module Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 
 where
 
-import           Prelude hiding ((>), (*>), (==), (||), (&&), const)
+import           Prelude hiding ((>), (*>), (==), (||), (&&), const, not)
 
 import qualified Carma.Model.ActionResult as AResult
 import qualified Carma.Model.ActionType as AType
@@ -308,9 +308,9 @@ orderService = Action AType.orderService
 
   [ ( AResult.serviceOrdered
     , sendSMS SendSmsToCaller SMS.order
+        *> notifyPartner
         *> messageToPSA
         *> messageToGenser
-        *> notifyPartner
         *> setServiceStatus SS.ordered
         *> setServiceField Service.times_expectedDispatch justNow
         *> proceed [AType.tellClient, AType.addBill]
@@ -318,9 +318,9 @@ orderService = Action AType.orderService
 
   , ( AResult.serviceOrderedSMS
     , sendSMS SendSmsToCaller SMS.order
+        *> notifyPartner
         *> messageToPSA
         *> messageToGenser
-        *> notifyPartner
         *> setServiceStatus SS.ordered
         *> setServiceField Service.times_expectedDispatch justNow
         *> proceed [AType.checkStatus, AType.addBill]
@@ -337,14 +337,13 @@ orderService = Action AType.orderService
   ]
 
 
--- TODO
 notifyPartner :: Backoffice bk => bk (Eff m)
 notifyPartner = when condition
               $ sendSMS SendSmsToContractorPartner SMS.notifyPartner
 
   where condition =
           (  serviceField svcType `oneOf` [ST.towage, ST.tech]
-          -- && serviceField Service.contractor_partnerId == just Partner.ident
+          && isntEmpty (serviceField Service.contractor_partnerId)
           )
 
 
