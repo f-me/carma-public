@@ -165,10 +165,10 @@ instance Backoffice EdgeE where
 
     const _ = nothing
 
-    just      _ = nothing
-    justTxt   _ = nothing
-    isEmpty   _ = nothing
-    isntEmpty _ = nothing
+    just    _ = nothing
+    justTxt _ = nothing
+
+    isNotNull _ = nothing
 
     req _ = nothing
 

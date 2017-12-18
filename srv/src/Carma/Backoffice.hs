@@ -342,9 +342,8 @@ notifyPartner = when condition
               $ sendSMS SendSmsToContractorPartner SMS.notifyPartner
 
   where condition =
-          (  serviceField svcType `oneOf` [ST.towage, ST.tech]
-          && isntEmpty (serviceField Service.contractor_partnerId)
-          )
+          serviceField svcType `oneOf` [ST.towage, ST.tech] &&
+          isNotNull (serviceField Service.contractor_partnerId)
 
 
 orderServiceAnalyst :: Action

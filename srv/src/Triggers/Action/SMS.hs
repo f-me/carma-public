@@ -36,7 +36,7 @@ sendSMS
   -> SendSmsTo
   -> AppHandler (IO ())
 sendSMS tplId svcId sendTo =
-  ((print sendTo >> print tplId >> print svcId) <$) $ uncurry SPG.query messageInfo >>= \case
+  (pure () <$) $ uncurry SPG.query messageInfo >>= \case
 
     [fields] ->
       let

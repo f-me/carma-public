@@ -217,10 +217,10 @@ class Backoffice impl where
     const :: Model v => IdentI v -> impl (IdentI v)
 
     -- | 'const' for optional values.
-    just      :: Model v => IdentI v -> impl (Maybe (IdentI v))
-    justTxt   :: Text -> impl (Maybe Text)
-    isEmpty   :: forall a . impl (Maybe a) -> impl Bool
-    isntEmpty :: forall a . impl (Maybe a) -> impl Bool
+    just    :: Model v => IdentI v -> impl (Maybe (IdentI v))
+    justTxt :: Text -> impl (Maybe Text)
+
+    isNotNull :: forall a . impl (Maybe a) -> impl Bool
 
     -- | Require a value.
     req :: impl (Maybe v) -> impl v
