@@ -27,6 +27,7 @@ import qualified Carma.Model.CarModel       as CarModel
 import Utils.Model.MSqlQQ hiding (parseQuery)
 import Application (AppHandler)
 import Util (syslogJSON, render, Priority (Error), (.=))
+import Text.InterpolatedString.QM
 
 
 sendSMS
@@ -38,17 +39,49 @@ sendSMS tplId svcId sendTo =
   (pure () <$) $ uncurry SPG.query messageInfo >>= \case
 
     [fields] ->
-      let msgInfo = Map.map T.tail $ Map.fromList $ map (T.breakOn "=") fields
-       in void $ uncurry SPG.execute $ insertSms msgInfo
+      let
+        msgInfo = Map.map T.tail $ Map.fromList $ map (T.breakOn "=") fields
+        phone   = msgInfo ! "phone"
 
-    res -> syslogJSON Error "backoffice/sendSMS"
+        guard :: Bool -> T.Text -> Either T.Text ()
+        guard condition errMsg =
+          if condition then Right () else Left errMsg
+
+        validatePhone :: Either T.Text () -> AppHandler ()
+        validatePhone =
+          \case Left msg -> reportError ["err" .= msg]
+                Right () -> void $ uncurry SPG.execute $ insertSms msgInfo
+
+      in
+        validatePhone $ do
+          guard
+            (not $ T.null phone)
+            [qm| {phoneView} is NULL or empty |]
+
+          guard
+            -- Matching +7**********
+            ( T.length phone == 12 &&
+              T.take 2 phone == "+7" &&
+              T.all (`elem` ("0123456789" :: String)) (T.drop 2 phone) )
+            [qm| {phoneView} is invalid: "{phone}" |]
+
+    res -> reportError
       [ "err" .= ("unexpected query result" :: T.Text)
       , "res" .= T.pack (show res)
-      , "tpl" .= T.pack (show tplId)
-      , "svc" .= T.pack (show svcId)
       ]
 
   where
+
+  phoneView :: T.Text
+  phoneView = case sendTo of
+                   SendSmsToCaller            -> "caller's phone"
+                   SendSmsToContractorPartner -> "partner's phone"
+
+  reportError json =
+    syslogJSON Error "backoffice/sendSMS" $ json ++ params
+    where params = [ "tpl" .= T.pack (show tplId)
+                   , "svc" .= T.pack (show svcId)
+                   ]
 
   messageInfo = [msql|
     select

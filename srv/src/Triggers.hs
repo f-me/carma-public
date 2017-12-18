@@ -934,7 +934,6 @@ instance Backoffice HaskellE where
 
   sendSMS sendTo tpl =
     runLater $ BOAction.sendSMS tpl <$> srvId' <*> pure sendTo
-                 >> (pure $ pure $ putStrLn $ "sms sent to: " ++ show sendTo)
 
   when cond act =
     HaskellE $

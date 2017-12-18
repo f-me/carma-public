@@ -39,9 +39,9 @@ import           Carma.Backoffice.DSL.Types (SendSmsTo (..))
 
 
 -- | Structured text with indentation blocks.
-data IndentedChunk = T Text
-                   | NL
-                   | IND IndentedText
+data IndentedChunk = T Text           -- Text unit
+                   | NL               -- New Line
+                   | IND IndentedText -- Child block
                    deriving (Eq, Show)
 
 
@@ -85,6 +85,7 @@ formatOneline = foldl combine ""
 
 
 -- | Convert an ident to text.
+-- "lkp" - "lookup"
 lkp :: IBox -> IMap -> Text
 lkp k@(IBox k'@(Ident i)) env =
     maybe
@@ -104,7 +105,7 @@ newtype TextE t = TextE { toText :: Reader TCtx IndentedText }
 
 -- | Simple TextE constructor which does not use the context.
 textE :: Text -> TextE t
-textE t = TextE (return [T t])
+textE t = TextE $ pure [T t]
 
 
 -- | Format binary function arguments (in one line).
@@ -250,17 +251,14 @@ instance Backoffice TextE where
             [T "Во всех других случаях: ", IND ow']
 
     setCaseField acc i =
-        TextE $
-        (\c -> [T $ fieldDesc acc, T " ← "] ++ c) <$> toText i
+      TextE $ ([T $ fieldDesc acc, T " ← "] ++) <$> toText i
 
     setServiceField acc i =
-        TextE $
-        (\c -> [T $ fieldDesc acc, T " ← "] ++ c) <$> toText i
+      TextE $ ([T $ fieldDesc acc, T " ← "] ++) <$> toText i
 
-    sendSMS t i = TextE $ ([T msg] ++) <$> tpl
-      where tpl = toText $ const i
-            msg = [qm| Отправить SMS {who :: Text} по шаблону\ |] :: Text
-            who = case t of
+    sendSMS to tplId = TextE $ ([T msg] ++) <$> toText (const tplId)
+      where msg = [qm| Отправить SMS {who :: Text} по шаблону\ |] :: Text
+            who = case to of
                        SendSmsToCaller            -> "звонящему"
                        SendSmsToContractorPartner -> "партнёру"
 
