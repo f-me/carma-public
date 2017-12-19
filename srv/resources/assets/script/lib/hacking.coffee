@@ -18,22 +18,13 @@ user = data.model.user
 # re-enabled on every page load. Disabling a hack means turning this
 # re-activation off.
 
-addLocalCSSRule = (selector, rule) ->
-  styles = document.styleSheets
-  localCSS = _.find styles, (s) -> s.title == "local"
-  # For some reason insertRule does not work with
-  # ::-webkit-scrollbar-thumb selectors
-  localCSS.addRule selector, rule
-
 # How to enable hacks.
 #
 # A hack cannot be explicitly disabled (we reload the page without
 # re-enabling the hack instead).
 hackMap =
   'permute-case-panes': ->
-    addLocalCSSRule "#right", "left: 0; width: 20%;"
-    addLocalCSSRule "#left", "left: 22%; width: 30%;"
-    addLocalCSSRule "#center", "left: 54%; width: 44%;"
+    document.querySelector("body").classList.add("hack--permute-case-panes")
 
 usermetaUrl = -> "/_/Usermeta/#{user.id}"
 
