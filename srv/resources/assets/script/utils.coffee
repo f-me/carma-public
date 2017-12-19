@@ -205,7 +205,6 @@ module.exports = {
     setGlobalShit "addService",       require "carma/screens/case"
     # From 'local':
     setGlobalShit "inlineDetachFile", require "carma/lib/upload"
-    setGlobalShit "switchHack",       require "carma/lib/hacking"
     setGlobalShit "sendSms",          require "carma/lib/send-sms"
     setGlobalShit "showComplex",      module.exports
     setGlobalShit "hideComplex",      module.exports

@@ -88,11 +88,9 @@ module.exports.init = ({dicts, user, users}) ->
   sync          = require "carma/sync/crud"
   liveMenu      = require "carma/liveMenu"
   CurrentUser   = require "carma/lib/current-user"
-  hacking       = require "carma/lib/hacking"
   {CTI}         = require "carma/lib/cti"
   {CTIPanel}    = require "carma/lib/cti-panel"
 
-  do hacking.reenableHacks
   do u.makeAFuckingMess
   do neoComponents.initTopLevelModals
 
