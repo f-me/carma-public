@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 {-
   An QuasiQuoter for postresql-simple that helps extracts data from model
   that kinda more safe and robust than deal with plain text SQL and only
