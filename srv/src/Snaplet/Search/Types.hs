@@ -107,18 +107,6 @@ data SearchResult t = SearchResult
   } deriving (Generic)
 instance ToJSON t => ToJSON (SearchResult t)
 
-
-instance forall m.(Model m) => ToJSON (Patch m :. ()) where
-  toJSON (p :. ()) =
-    object [(M.modelName (M.modelInfo :: M.ModelInfo m)) .= toJSON p]
-
-instance forall m.(Model m) => ToJSON (Maybe (Patch m) :. ()) where
-  toJSON (Just p :. ()) =
-    object [(M.modelName (M.modelInfo :: M.ModelInfo m)) .= toJSON p]
-  toJSON (Nothing :. ()) =
-    object [(M.modelName (M.modelInfo :: M.ModelInfo m)) .= object []]
-
-
 instance forall m b.(Model m, ToJSON b) => ToJSON (Patch m :. b) where
   toJSON (p :. ps) = merge
     (object [(M.modelName (M.modelInfo :: M.ModelInfo m)) .= toJSON p])
@@ -127,7 +115,9 @@ instance forall m b.(Model m, ToJSON b) => ToJSON (Patch m :. b) where
       merge :: Value -> Value -> Value
       merge (Object o1) (Object o2) =
         Object $ HM.fromList $ (HM.toList o1) ++ (HM.toList o2)
-      merge _ _ = error "bad pattern"
+      merge v1@(Object _) v2 | v2 == toJSON () = v1
+                             | otherwise       = error "toJSON: bad pattern"
+      merge _ _ = error "toJSON: bad pattern"
 
 instance forall m b.(Model m, ToJSON b) => ToJSON (Maybe (Patch m) :. b) where
   toJSON (Just p :. ps)  = toJSON (p :. ps)
