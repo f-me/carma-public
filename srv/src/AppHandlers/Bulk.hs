@@ -65,10 +65,10 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       let Just roles       = Patch.get user Usermeta.roles
       let Just subPrograms = Patch.get user Usermeta.subPrograms
 
-      when (not
-            $  (V.elem Role.partner roles && V.elem (Ident sid) subPrograms)
-            || (V.elem Role.vinAdmin roles)
-            || (V.elem Role.psaanalyst roles)) $
+      unless (
+              (V.elem Role.partner roles && V.elem (Ident sid) subPrograms)
+            || V.elem Role.vinAdmin roles
+            || V.elem Role.psaanalyst roles) $
             handleError 403
 
       (inName, inPath) <- with fileUpload $ oneUpload =<< doUploadTmp

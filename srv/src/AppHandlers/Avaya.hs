@@ -106,7 +106,7 @@ dmccWsProxy = do
       uext  = reqMeta $ um `Patch.get` Usermeta.workPhoneSuffix
   when (Text.pack (show ext) /= uext) $
     error "Requested extension does not match that of the user"
-  when (not $ isCtiUser um) $ error "No CTI access role"
+  unless (isCtiUser um) $ error "No CTI access role"
   avayaConn <- liftIO newEmptyTMVarIO
   dmccWsHost' <- gets (dmccWsHost . options)
   dmccWsPort' <- gets (dmccWsPort . options)
