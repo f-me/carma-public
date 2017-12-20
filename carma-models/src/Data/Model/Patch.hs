@@ -16,8 +16,11 @@ module Data.Model.Patch
 
 where
 
+import Prelude hiding (null)
+
+import Control.Applicative ((<|>))
 import Control.Monad.Trans.Reader (ask)
-import Control.Monad (mplus)
+import Control.Monad (mplus, replicateM_)
 import Control.Monad.Trans.Class (lift)
 
 import Data.ByteString (ByteString)
@@ -35,6 +38,7 @@ import Database.PostgreSQL.Simple.Internal ( Row(..)
 import Database.PostgreSQL.Simple.FromField (ResultError(..))
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToRow
+import Database.PostgreSQL.Simple.Types
 
 import Data.Dynamic
 
@@ -225,3 +229,12 @@ instance Model m => FromRow (FullPatch m) where
         rowP = fromRow
     p <- rowP
     return $ FullPatch $ unW p
+
+null :: RowParser Null
+null =  field
+
+instance Model m => FromRow (Maybe (Patch m)) where
+  fromRow =
+    (replicateM_ n null *> pure Nothing) <|> (Just <$> fromRow)
+    where
+      n = length $ modelFields (modelInfo :: ModelInfo m)
