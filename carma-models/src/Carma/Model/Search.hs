@@ -230,11 +230,9 @@ searchView flds = ModelView
           , Aeson.String $ T.pack $ show $ matchType p
           )
           ,("original"
-          , Aeson.Array $ V.fromList $ concatNames ps
+          , Aeson.Array $ V.fromList $ map buildOriginal ps
           )
         ]
-    concatNames []     = []
-    concatNames (p:ps) = (buildOriginal p) : concatNames ps
     buildOriginal p = Aeson.Object $ HM.fromList
       [ ("name",  Aeson.String $ fieldName p)
       , ("model", Aeson.String $ modelName p)

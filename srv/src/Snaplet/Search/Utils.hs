@@ -50,7 +50,7 @@ instance (Model m, RenderPrms ps)
     ps' <- renderPrms c v ps
     case partitionEithers [p', ps'] of
       ([], preds) -> return $ Right $ concatPredStrings preds
-      (errs, _)   -> return $ Left $ foldl (++) "" errs
+      (errs, _)   -> return $ Left $ concat errs
 
 mkSearch :: (RenderPrms p, FromRow t, MkSelect t)
          => p

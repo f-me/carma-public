@@ -296,7 +296,7 @@ mkVinFormat formatFields =
 
         constructor = [recC typeName $
                        basic ++
-                       (concat $ map snd fields)
+                       (concatMap snd fields)
                       ]
 
         vfas = map fst fields
@@ -305,7 +305,7 @@ mkVinFormat formatFields =
       d' <- [d|
              vinFormatAccessors :: [FormatFieldAccessor $(conT typeName)]
              vinFormatAccessors = $(listE vfas)|]
-      return $ [d] ++ d'
+      return $ d:d'
 
 
 -- | A group of VinFormat accessors produced from a single source

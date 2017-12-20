@@ -61,7 +61,7 @@ import           Util hiding (withPG)
 -- contracts into CaRMa database. Serve JSON list with single integer
 -- equal to number of contracts loaded this way.
 arcImport :: AppHandler ()
-arcImport = writeJSON [0::Int] >> return ()
+arcImport = void $ writeJSON [0::Int]
 {-
   -- DISABLE IMPORT #2047
 

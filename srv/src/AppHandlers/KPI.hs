@@ -208,17 +208,17 @@ fillKPIs = do
 
 fillTotalStates :: HandlerSt k
 fillTotalStates = RWS.modify $ M.map $ \p ->
-  put S.totalLoggedIn (Just $ sum $ catMaybes $ map join
+  put S.totalLoggedIn (Just $ sum $ mapMaybe join
     [get p S.inReady, get p S.inBusy, get p S.totalRest]) $
-  put S.totalRest (Just $ sum $ catMaybes $ map join
+  put S.totalRest (Just $ sum $ mapMaybe join
     [get p S.inDinner, get p S.inRest, get p S.inServiceBreak])
   p
 
 fillTotalStates' :: Patch O.OperKPI -> Patch O.OperKPI
 fillTotalStates' p =
-  put O.totalLoggedIn (Just $ sum $ catMaybes $ map join
+  put O.totalLoggedIn (Just $ sum $ mapMaybe join
     [get p O.inReady, get p O.inBusy, get p O.totalRest]) $
-  put O.totalRest (Just $ sum $ catMaybes $ map join
+  put O.totalRest (Just $ sum $ mapMaybe join
     [get p O.inDinner, get p O.inRest, get p O.inServiceBreak])
   p
 
