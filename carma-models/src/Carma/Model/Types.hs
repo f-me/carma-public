@@ -83,7 +83,7 @@ instance (Typeable t, Show t) => Show (Interval t) where
 instance (FromJSON t, Typeable t, Show t) => FromJSON (Interval t) where
   parseJSON (Array a)
     | V.length a == 2 = parseInterval a
-    | otherwise       = fail $ "array should be 2 elements long"
+    | otherwise       = fail "array should be 2 elements long"
     where
       parseInterval x =
         Interval <$> parseJSON (x ! 0) <*> parseJSON (x ! 1)
@@ -128,7 +128,7 @@ instance FromJSON HMDiffTime where
         _ -> err
      where
        err = fail $ "Invalid HMDiffTime format: " ++ show hm
-  parseJSON _ = fail $ "HMDiffTime JSON must be a string"
+  parseJSON _ = fail "HMDiffTime JSON must be a string"
 
 instance ToJSON HMDiffTime where
   toJSON (HMDiffTime dt) =

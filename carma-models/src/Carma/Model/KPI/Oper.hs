@@ -46,7 +46,7 @@ instance Model OperKPI where
   type TableName OperKPI = "OperKPI"
   modelInfo = mkModelInfo OperKPI frontIdent
   modelView = \case
-    "kpi" -> Just $ modifyView (stripId $ defaultView)
+    "kpi" -> Just $ modifyView (stripId defaultView)
       [ setMeta "dictionaryLabel" (Aeson.String "realName") user
       , invisible lastState
       , invisible lastAvayaSnapshot

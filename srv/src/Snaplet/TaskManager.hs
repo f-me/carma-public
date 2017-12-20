@@ -169,11 +169,11 @@ create handler = do
          atomically $ modifyTVar' ts' $ M.insert token $
            case res of
              Left e ->
-                 (Task $ Failed $ A.String $ pack $ show e)
+                 Task $ Failed $ A.String $ pack $ show e
              Right (Left e) ->
-                 (Task $ Failed e)
+                 Task $ Failed e
              Right (Right (msg, outPath)) ->
-                 (Task $ Finished (msg, outPath))
+                 Task $ Finished (msg, outPath)
 
   -- Serve token to client
   writeJSON $ M.singleton ("token" :: String) tokenStr
@@ -279,7 +279,7 @@ waitTokenAnd action token = do
     hs <- readTVar locks'
     if HS.member token hs
     then retry
-    else (action locks')
+    else action locks'
 
 
 -- | Create a new task manager snaplet.
@@ -287,6 +287,6 @@ taskManagerInit :: SnapletInit b (TaskManager b)
 taskManagerInit = makeSnaplet "task-manager" "TaskMgr" Nothing $ do
    addRoutes routes
    TaskManager
-     <$> (liftIO $ newTVarIO M.empty)
-     <*> (liftIO (newTVarIO =<< newStdGen))
-     <*> (liftIO $ newTVarIO HS.empty)
+     <$> liftIO (newTVarIO M.empty)
+     <*> liftIO (newTVarIO =<< newStdGen)
+     <*> liftIO (newTVarIO HS.empty)

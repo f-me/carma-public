@@ -88,6 +88,6 @@ instance Model StatKPI where
   type TableName StatKPI = "StatKPI"
   modelInfo = mkModelInfo StatKPI frontIdent
   modelView = \case
-    "kpi" -> Just $ modifyView (stripId $ defaultView)
+    "kpi" -> Just $ modifyView (stripId defaultView)
       [setMeta "dictionaryLabel" (Aeson.String "realName") user]
     _     -> Nothing

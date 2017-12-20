@@ -104,7 +104,7 @@ dmccWsProxy = do
   let reqMeta = fromMaybe (error "Bad meta")
       uid   = reqMeta $ um `Patch.get` Usermeta.ident
       uext  = reqMeta $ um `Patch.get` Usermeta.workPhoneSuffix
-  when ((Text.pack $ show ext) /= uext) $
+  when (Text.pack (show ext) /= uext) $
     error "Requested extension does not match that of the user"
   when (not $ isCtiUser um) $ error "No CTI access role"
   avayaConn <- liftIO newEmptyTMVarIO

@@ -94,7 +94,7 @@ vinImport = logExceptions "Bulk/vinImport" $ do
           Right (ImportResult (total, good, bad)) ->
               if bad == 0
               then removeFile outPath >>
-                   (return $ Right (Aeson.String $ pack . show $ good, []))
+                   return (Right (Aeson.String $ pack . show $ good, []))
               else return $ Right (Aeson.toJSON stats, [outPath])
                 where
                   stats :: Map String Int64
