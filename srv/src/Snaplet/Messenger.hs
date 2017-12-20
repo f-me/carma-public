@@ -14,7 +14,6 @@ import           Control.Concurrent (forkIO, killThread)
 import           Control.Concurrent.STM
 import           Control.Monad.State.Class
 import           Data.Aeson
-import           Data.Maybe
 import qualified Data.Set as Set
 import           Network.WebSockets
 import           Network.WebSockets.Snap
@@ -43,6 +42,11 @@ instance ToJSON   Subscription where
   toJSON (UnSubscribe topic) = object ["unsubscribe" .= topic ]
 
 
+instance WebSocketsData (Maybe Subscription) where
+  fromLazyByteString = decode
+  toLazyByteString   = encode
+
+
 -- | A message for clients
 data Payload a = Payload Topic a deriving Show
 
@@ -59,13 +63,8 @@ instance ToJSON a => ToJSON (Payload a) where
 
 
 instance (ToJSON a, FromJSON a) => WebSocketsData (Payload a) where
-  -- FIXME: handle maybe value more gracefully
-  fromLazyByteString = fromJust . decode
-  toLazyByteString   = encode
-
-
-instance (FromJSON a, ToJSON a) => WebSocketsData (Maybe a) where
-  fromLazyByteString = decode
+  fromLazyByteString =
+    fromMaybe (error "fromLazyByteString: could not parse Payload") . decode
   toLazyByteString   = encode
 
 
