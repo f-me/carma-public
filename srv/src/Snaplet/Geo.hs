@@ -28,7 +28,6 @@ module Snaplet.Geo
 where
 
 import Control.Lens hiding ((.=))
-import Control.Monad
 import Control.Monad.State hiding (state)
 
 import Data.Aeson as A

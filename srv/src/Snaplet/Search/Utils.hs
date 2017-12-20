@@ -16,7 +16,7 @@ import           Data.Text (Text, unpack)
 import qualified Data.ByteString.Char8 as B
 
 import           Database.PostgreSQL.Simple as PG
-import           Snap.Snaplet.PostgresqlSimple (liftPG, liftPG')
+import           Snap.Snaplet.PostgresqlSimple (liftPG')
 
 import           Data.Model       as M
 

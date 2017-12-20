@@ -27,7 +27,6 @@ import           Web.Scotty
 import           Network.HTTP.Types.Status (status400)
 import           Network.Wai (Middleware)
 import           Network.Wai.Middleware.RequestLogger
-import           System.Log.FastLogger (fromLogStr, toLogStr)
 import           Foreign.C.String
 import           System.Log.FastLogger
 

@@ -41,7 +41,7 @@ import           GHC.TypeLits
 
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
 import           Database.PostgreSQL.Simple as PG
-import           Snap.Snaplet.PostgresqlSimple as SPG (liftPG, liftPG', execute)
+import           Snap.Snaplet.PostgresqlSimple as SPG (liftPG', execute)
 
 import           WeatherApi (tempC)
 
@@ -49,7 +49,6 @@ import           Carma.Model.Types (HMDiffTime(..))
 import           Data.Model as Model
 import           Data.Model.Patch as Patch
 import           Data.Model.Types
-import qualified Data.HashMap.Strict as HM
 
 import           Carma.Model.Action (Action)
 import qualified Carma.Model.Action as Action

@@ -9,7 +9,6 @@ import           Control.Lens
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
 
-import           Database.Persist.Sql (ConnectionPool)
 import           Data.Text (Text)
 import           Data.Map as Map
 

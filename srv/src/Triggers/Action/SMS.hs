@@ -5,8 +5,7 @@ import Control.Monad (void)
 import Data.Map ((!))
 import qualified Data.Map as Map
 import qualified Data.Text as T
-import qualified Database.PostgreSQL.Simple as PG
-import qualified Snap.Snaplet.PostgresqlSimple as SPG (liftPG, query, execute)
+import qualified Snap.Snaplet.PostgresqlSimple as SPG (query, execute)
 import Carma.Backoffice.DSL.Types (SendSmsTo (..))
 
 import qualified Data.Model                 as Model

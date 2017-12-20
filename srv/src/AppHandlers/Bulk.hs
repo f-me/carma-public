@@ -37,7 +37,7 @@ import           Snaplet.Auth.PGUsers
 import           Snaplet.FileUpload (tmp, doUploadTmp, oneUpload)
 import           Snap.Snaplet.PostgresqlSimple
 import           Snaplet.TaskManager as TM
-import           Util as U hiding (render)
+import           Util as U
 
 
 -- | Read @program@/@subprogram@/@format@ parameters and upload a VIN

@@ -19,7 +19,7 @@ module Application
 where
 
 import           Control.Applicative
-import           Control.Lens hiding ((.=), createInstance)
+import           Control.Lens hiding ((.=))
 import           Control.Monad
 import           Control.Monad.State hiding (ap)
 
