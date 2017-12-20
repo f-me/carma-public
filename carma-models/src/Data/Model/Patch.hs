@@ -176,6 +176,24 @@ instance Model m => ToJSON (Patch m) where
       toJS k = fd_toJSON $ fields HashMap.! k
 
 
+instance forall m b.(Model m, ToJSON b) => ToJSON (Patch m :. b) where
+  toJSON (p :. ps) = merge
+    (object [(modelName (modelInfo :: ModelInfo m)) .= toJSON p])
+    (toJSON ps)
+    where
+      merge :: Value -> Value -> Value
+      merge (Object o1) (Object o2) =
+        Object $ HashMap.fromList $ (HashMap.toList o1) ++ (HashMap.toList o2)
+      merge v1@(Object _) v2 | v2 == toJSON () = v1
+                             | otherwise       = error "toJSON: bad pattern"
+      merge _ _ = error "toJSON: bad pattern"
+
+
+instance forall m b.(Model m, ToJSON b) => ToJSON (Maybe (Patch m) :. b) where
+  toJSON (Just p :. ps)  = toJSON (p :. ps)
+  toJSON (Nothing :. ps) = toJSON ps
+
+
 instance Model m => FromRow (Patch m) where
   fromRow = Patch . HashMap.fromList <$> sequence
     [ (fd_name f,) <$> fd_fromField f

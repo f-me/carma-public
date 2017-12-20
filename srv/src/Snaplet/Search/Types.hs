@@ -21,8 +21,6 @@ import           Data.Aeson
 import           GHC.Generics
 
 import           Database.PostgreSQL.Simple as PG
-import           Database.PostgreSQL.Simple.Types
-import           Database.PostgreSQL.Simple.FromRow
 
 import           Snap
 import           Snap.Snaplet.Auth hiding (Role)
@@ -106,23 +104,6 @@ data SearchResult t = SearchResult
   , prev :: Maybe Int
   } deriving (Generic)
 instance ToJSON t => ToJSON (SearchResult t)
-
-instance forall m b.(Model m, ToJSON b) => ToJSON (Patch m :. b) where
-  toJSON (p :. ps) = merge
-    (object [(M.modelName (M.modelInfo :: M.ModelInfo m)) .= toJSON p])
-    (toJSON ps)
-    where
-      merge :: Value -> Value -> Value
-      merge (Object o1) (Object o2) =
-        Object $ HM.fromList $ (HM.toList o1) ++ (HM.toList o2)
-      merge v1@(Object _) v2 | v2 == toJSON () = v1
-                             | otherwise       = error "toJSON: bad pattern"
-      merge _ _ = error "toJSON: bad pattern"
-
-instance forall m b.(Model m, ToJSON b) => ToJSON (Maybe (Patch m) :. b) where
-  toJSON (Just p :. ps)  = toJSON (p :. ps)
-  toJSON (Nothing :. ps) = toJSON ps
-
 
 class StripRead p where
   stripRead :: Connection -> [IdentI Role] -> p -> IO p
