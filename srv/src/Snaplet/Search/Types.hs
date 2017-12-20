@@ -100,9 +100,6 @@ instance FromJSON FieldIdent where
   parseJSON v = fail $ "Can't parse FieldDesc, expecting object, but got: " ++
                 show v
 
-instance Show FieldDesc where
-  show fd = "FieldDesc: " ++ (show $ fd_name fd)
-
 data SearchResult t = SearchResult
   { values :: [t]
   , next :: Maybe Int

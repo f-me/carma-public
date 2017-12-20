@@ -118,6 +118,9 @@ data FieldDesc
   , fd_view       :: FieldView
   }
 
+instance Show FieldDesc where
+  show fd = "FieldDesc: " ++ (show $ fd_name fd)
+
 data FieldView = FieldView
   { fv_name     :: Text
   , fv_type     :: Text
