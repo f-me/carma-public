@@ -87,7 +87,7 @@ coords = (,) <$> double <* anyChar <*> double
 -- | Apply a parser to read data from a named request parameter.
 getParamWith :: MonadSnap m => Parser a -> ByteString -> m (Maybe a)
 getParamWith parser name = do
-  input <- liftM (parseOnly parser) <$> getParam name
+  input <- fmap (parseOnly parser) <$> getParam name
   return $ case input of
              Just (Right p) -> Just p
              _ -> Nothing
@@ -114,7 +114,7 @@ twoPointHandler q queryToResult = do
 
   case (c1, c2) of
     (Just (lon1, lat1), Just (lon2, lat2)) -> do
-                   results <- liftM queryToResult $
+                   results <- fmap queryToResult $
                               withLens postgres $
                               query q (lon1, lat1, lon2, lat2)
                    modifyResponse $ setContentType "application/json"

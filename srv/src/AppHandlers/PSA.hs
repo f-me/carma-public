@@ -11,7 +11,6 @@ module AppHandlers.PSA
 
 where
 
-import Control.Monad
 import Data.ByteString.Char8 (readInt)
 import qualified Data.Vector as V
 import Snap.Snaplet.PostgresqlSimple
@@ -46,7 +45,7 @@ psaCasesHandler = do
 -- repeated towage.
 repTowagesHandler :: AppHandler ()
 repTowagesHandler = do
- cid <- (liftM readInt) <$> getParam "id"
+ cid <- fmap readInt <$> getParam "id"
  case cid of
    Just (Just (n, _)) ->
        do

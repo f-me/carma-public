@@ -122,7 +122,7 @@ serveBackofficeSpec repr = do
              , boxMap <$> labelMap Program.ident Program.label
              ]
   boxedIMap <- Map.unions <$> sequence maps
-  skipParam <- liftM (parseOnly (decimal `sepBy1` char ',')) <$>
+  skipParam <- fmap (parseOnly (decimal `sepBy1` char ',')) <$>
                getParamT "skipResults"
   let skippedResults =
         case skipParam of
