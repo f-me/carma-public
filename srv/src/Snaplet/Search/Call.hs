@@ -3,6 +3,8 @@
  #-}
 module Snaplet.Search.Call where
 
+import           Prelude hiding (pred)
+
 import           Data.String (fromString)
 
 import           Data.Text (Text)

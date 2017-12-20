@@ -122,13 +122,13 @@ uploadInManyFields flds nameFun = do
   fPath <- oneUpload =<< doUpload =<< gets tmp
   let (_, fName) = splitFileName fPath
 
-  hash <- liftIO $ sha256 <$> BL.readFile fPath
+  fileHash <- liftIO $ sha256 <$> BL.readFile fPath
   now <- liftIO $ getCurrentTime
 
   root <- gets finished
   (attach@(Ident aid), dupe) <- withLens pg $ liftPG' $ \conn -> do
     -- Check for duplicate files
-    res <- PS.query conn hashToAid (Only $ show hash)
+    res <- PS.query conn hashToAid (Only $ show fileHash)
     case res of
       (Only aid:_) -> return (aid, True)
       [] ->
@@ -136,7 +136,7 @@ uploadInManyFields flds nameFun = do
           newName = (fromMaybe id nameFun) fName
           patch   = Patch.put Attachment.ctime now $
                     Patch.put Attachment.filename (T.pack newName) $
-                    Patch.put Attachment.hash (T.pack $ show hash) $
+                    Patch.put Attachment.hash (T.pack $ show fileHash) $
                     Patch.empty
         in
           -- Create empty attachment instance

@@ -357,7 +357,7 @@ selectGroup from to = do
   let p' =
         case p of
           []  -> empty
-          [p'] -> unW p'
+          [p''] -> unW p''
           _   -> error "imposible happen, more than 1 record in query results"
 
   rawCalls   <- query [sql| select * from group_kpi_calls(?, ?)  |] (from, to)

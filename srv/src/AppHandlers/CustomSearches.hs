@@ -37,7 +37,7 @@ import           Data.Monoid
 import           Control.Monad
 import           Control.Monad.IO.Class
 
-import           Data.Aeson as A
+import           Data.Aeson as A hiding (json)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import           Data.Map as M (Map, (!), delete, fromList)
