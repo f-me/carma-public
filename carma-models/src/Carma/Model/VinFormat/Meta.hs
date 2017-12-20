@@ -54,8 +54,8 @@ fieldProjFormatter :: (ContractField -> String)
 fieldProjFormatter proj cf format = printf format $ proj cf
 
 
-ns :: TypeQ -> StrictTypeQ
-ns = strictType (return (Bang SourceNoUnpack NoSourceStrictness))
+ns :: TypeQ -> BangTypeQ
+ns = bangType (return (Bang SourceNoUnpack NoSourceStrictness))
 
 
 -- | This class describes how a format parameter is generated from a
@@ -138,9 +138,9 @@ mkAcc :: FormatFieldParameter a =>
       -- ^ Parameter type.
       -> ContractField
       -- ^ Source field.
-      -> VarStrictTypeQ
+      -> VarBangTypeQ
 mkAcc a cf =
-    varStrictType (mkName n) $ ns $
+    varBangType (mkName n) $ ns $
     [t|
      F $(return $ typeRepToType t)
      $(litT $ strTyLit n)
@@ -244,10 +244,10 @@ mkVinFormat formatFields =
         typeName = mkName "VinFormat"
 
         -- Primary key and label
-        basic = [ varStrictType (mkName "ident") $
+        basic = [ varBangType (mkName "ident") $
                  ns $
                  appT (appT [t|PK Int|] (conT typeName)) [t|"Формат VIN"|]
-               , varStrictType (mkName "label") $
+               , varBangType (mkName "label") $
                  ns $
                  [t|F Text "label" "Название формата"|]
                ]
@@ -255,7 +255,7 @@ mkVinFormat formatFields =
         -- Use specified fields of 'Contract' model in constructor.
         -- Collect accessors that were produced from every source
         -- field.
-        fields :: [(ExpQ, [VarStrictTypeQ])]
+        fields :: [(ExpQ, [VarBangTypeQ])]
         fields =
             map
             (\(FF (fft :: SFFT a) proj) ->
