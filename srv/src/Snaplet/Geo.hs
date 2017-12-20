@@ -187,7 +187,7 @@ withinPartners = do
                       :* srv  :* (sub :: Maybe Int)
                       :* pr2 :* pr3
                       :* dlr  :* mp
-        results <- recode <$> (withLens postgres $ query withinQuery qParams)
+        results <- recode <$> withLens postgres (query withinQuery qParams)
         -- Do not serve useless distance if center point is not cet
         let results' = if centered
                        then results
@@ -308,7 +308,7 @@ search = do
       let --qD = fromMaybe (error "Bad query encoding") $ urlDecode q'
           fullUrl = nom ++ "search?format=json" ++
                     "&accept-language=" ++ lang ++
-                    "&q=" ++ (H.urlEncode $ T.unpack q')
+                    "&q=" ++ H.urlEncode (T.unpack q')
       rsb <- liftIO $ simpleHTTP (H.getRequest fullUrl) >>= getResponseBody
       writeLBS $ BSL.pack rsb
 
