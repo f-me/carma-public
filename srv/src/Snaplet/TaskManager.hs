@@ -74,7 +74,6 @@ import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import Data.ByteString (ByteString)
 
-import Data.Configurator
 import Data.Digest.Pure.SHA (sha256)
 
 import Data.HashSet as HS hiding (map)
@@ -166,7 +165,7 @@ create handler = do
   liftIO $ atomically $
          modifyTVar' ts' (M.insert token (Task InProgress))
 
-  tid <- liftIO $ forkFinally handler $ \res ->
+  _ <- liftIO $ forkFinally handler $ \res ->
          atomically $ modifyTVar' ts' $ M.insert token $
            case res of
              Left e ->
@@ -238,11 +237,12 @@ cleanup = do
     ts <- readTVar tasks'
     case M.lookup token ts of
       Just (Task InProgress) -> return $ Left "Task in progress"
-      Just (Task stat) -> do
+      Just (Task (Failed _)) -> do
         modifyTVar tasks' (M.delete token)
-        return $ Right $ case stat of
-          Finished (_, files) -> files
-          Failed _            -> []
+        return $ Right []
+      Just (Task (Finished (_, files))) -> do
+        modifyTVar tasks' (M.delete token)
+        return $ Right files
       Nothing -> return $ Left "Unknown token"
 
   -- Remove task files
@@ -285,7 +285,6 @@ waitTokenAnd action token = do
 -- | Create a new task manager snaplet.
 taskManagerInit :: SnapletInit b (TaskManager b)
 taskManagerInit = makeSnaplet "task-manager" "TaskMgr" Nothing $ do
-   cfg <- getSnapletUserConfig
    addRoutes routes
    TaskManager
      <$> (liftIO $ newTVarIO M.empty)
