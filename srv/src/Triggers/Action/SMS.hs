@@ -41,8 +41,16 @@ sendSMS tplId svcId sendTo =
     [fields] ->
       let
         msgInfo = Map.map T.tail $ Map.fromList $ map (T.breakOn "=") fields
+        numbers = "0123456789" :: String
+        caseId  = msgInfo ! "case.id"
         phone   = msgInfo ! "phone"
         save    = uncurry SPG.execute $ insertSms msgInfo
+
+        caseIdValidator =
+          guard
+            -- Empty or number means it's valid (empty means `NULL`)
+            (T.all (`elem` numbers) caseId)
+            [qm| Case id is invalid: "{caseId}" |]
 
         phoneValidator = do
           guard
@@ -52,10 +60,10 @@ sendSMS tplId svcId sendTo =
             -- Matching +7**********
             ( T.length phone == 12 &&
               T.take 2 phone == "+7" &&
-              T.all (`elem` ("0123456789" :: String)) (T.drop 2 phone) )
+              T.all (`elem` numbers) (T.drop 2 phone) )
             [qm| {phoneView} is invalid: "{phone}" |]
       in
-        whenValid phoneValidator $ void save
+        whenValid (caseIdValidator >> phoneValidator) $ void save
 
     res -> reportError
       [ "err" .= ("unexpected query result" :: T.Text)
@@ -173,7 +181,7 @@ sendSMS tplId svcId sendTo =
       , $(F|Sms.status)$
       )
       values
-      ( $(V|msgInfo ! "case.id")$
+      ( nullif($(V|msgInfo ! "case.id")$, '')::integer
       , $(V|msgInfo ! "phone")$
       , $(V|msgInfo ! "sender")$
       , $(V|tplId)$
