@@ -1,4 +1,4 @@
-{$, _, ko, Mustache} = require "carma/vendor"
+{$, _, ko, Mustache, moment} = require "carma/vendor"
 
 utils    = require "carma/utils"
 hotkeys  = require "carma/hotkeys"
@@ -193,12 +193,17 @@ setupHistory = (kvm) ->
           minutes = "0#{minutes}" if minutes.length < 2
           json.delayminutes = hours + ':' + minutes
 
-        dts = new Date(i[0]).toString historyDatetimeFormat
-        item =
-          datetime: dts
+        if json.type is "smsForPartner"
+          json.mtime =
+            moment.utc(json.mtime).local().format "DD.MM.YYYY HH:mm:ss"
+
+        item = {
+          datetime: new Date(i[0]).toString historyDatetimeFormat
           who: i[1]
-          json: json
-          color: color
+          json
+          color
+        }
+
         item.visible = ko.computed showHistoryItem item
         kvm['historyItems'].push item
 
@@ -213,6 +218,8 @@ setupHistory = (kvm) ->
         when i.json.type is 'partnerCancel' and not kvm.histShowCanc()
           return false
         when i.json.type is 'partnerDelay' and not kvm.histShowDelay()
+          return false
+        when i.json.type is 'smsForPartner' and not kvm.histShowPartnerSms()
           return false
         when (i.json.type is 'call' or i.json.type is 'avayaEvent') \
         and not kvm.histShowCall()

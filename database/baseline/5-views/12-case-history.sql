@@ -181,6 +181,7 @@ CREATE VIEW "CaseHistory" AS
                 , t.id                        AS id
                 , t.msgText                   AS msgText
                 , t.sender                    AS sender
+                , t.phone                     AS phone
                 , GetSmsStatusLabel(t.status) AS deliveryStatus
 
            FROM "Sms" AS t

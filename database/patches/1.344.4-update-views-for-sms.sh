@@ -2,3 +2,4 @@
 
 $PSQL -f baseline/2-functions/5-get-sms-status-label.sql
 $PSQL -f baseline/5-views/10-sms-report.sql
+$PSQL -f baseline/5-views/12-case-history.sql
