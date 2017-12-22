@@ -935,7 +935,7 @@ instance Backoffice HaskellE where
     Dealer -> runLater $ BOAction.sendMailToDealer <$> srvId'
 
   sendSMS sendTo tpl =
-    runLater $ BOAction.sendSMS tpl <$> srvId' <*> pure sendTo
+    runLater $ BOAction.sendSMS tpl <$> srvId' <*> userId' <*> pure sendTo
 
   when cond act =
     HaskellE $
@@ -1153,6 +1153,10 @@ srvId' = do
   return $
     fromMaybe (error "No service id in context") $
     (`get'` Service.ident) <$> service ctx
+
+
+userId' :: Reader HCtx (IdentI Usermeta)
+userId' = (`get'` Usermeta.ident) . user <$> ask
 
 
 -- | Run an IO action later in the future

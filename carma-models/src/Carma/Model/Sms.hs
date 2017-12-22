@@ -6,10 +6,11 @@ import Data.Model
 import Data.Typeable
 
 import Data.Model.View
-import Carma.Model.Types()
+import Carma.Model.Types ()
 import Carma.Model.Case (Case)
 import Carma.Model.SmsTemplate (SmsTemplate)
 import Carma.Model.LegacyTypes (Phone)
+import Carma.Model.Usermeta (Usermeta)
 
 data Sms = Sms
   { ident     :: PK Int Sms ""
@@ -26,6 +27,10 @@ data Sms = Sms
   , caseRef   :: F (Maybe (IdentI Case))
                    "caseRef"
                    "Номер кейса"
+
+  , userRef   :: F (Maybe (IdentI Usermeta))
+                   "userRef"
+                   "Пользователь, инициировавший отправку"
 
   , template  :: F (Maybe (IdentI SmsTemplate))
                    "template"

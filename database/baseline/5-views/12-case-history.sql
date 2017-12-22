@@ -1,16 +1,20 @@
+BEGIN;
+
 DROP VIEW IF EXISTS "CaseHistory";
 
-CREATE VIEW "CaseHistory"
-AS
-SELECT caseId,
-    datetime,
-    usermetatbl.realName || ' (' || usermetatbl.login || ')' AS who,
-    row_to_json AS json
-FROM (
-    SELECT row.caseId,
-        row.datetime,
-        row.userId,
-        row_to_json(row)
+CREATE VIEW "CaseHistory" AS
+  SELECT caseId
+       , datetime
+       , usermetatbl.realName || ' (' || usermetatbl.login || ')' AS who
+       , ROW_TO_JSON AS json
+
+  FROM (
+
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+
     FROM (
         SELECT
             'action' as "type",
@@ -44,10 +48,11 @@ FROM (
 
     UNION ALL
 
-    SELECT row.caseId,
-        row.datetime,
-        row.userId,
-        row_to_json(row)
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+
     FROM (
         SELECT
             'action' as "type",
@@ -68,11 +73,11 @@ FROM (
 
     UNION ALL
 
-    SELECT
-        row.caseId,
-        row.datetime,
-        row.userId,
-        row_to_json(row)
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+
     FROM (
         SELECT
             'call' as "type",
@@ -89,10 +94,12 @@ FROM (
         ) row
 
     UNION ALL
-    SELECT row.caseId,
-        row.datetime,
-        row.userId,
-        row_to_json(row)
+
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+
     FROM (
       SELECT
           'comment' as "type", cl.id,
@@ -118,10 +125,11 @@ FROM (
 
     UNION ALL
 
-    SELECT row.caseId,
-        row.datetime,
-        row.userId,
-        row_to_json(row)
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+
     FROM (
         SELECT
             'comment' as "type",
@@ -134,10 +142,11 @@ FROM (
 
     UNION ALL
 
-    SELECT row.caseId,
-        row.datetime,
-        row.userId,
-        row_to_json(row)
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+
     FROM (
         SELECT
             'partnerDelay' as "type",
@@ -158,10 +167,33 @@ FROM (
 
     UNION ALL
 
-    SELECT row.caseId,
-        row.datetime,
-        row.userId,
-        row_to_json(row)
+    -- SMS for partners
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+
+    FROM ( SELECT 'smsForPartner'::TEXT       AS "type"
+                , t.caseRef                   AS caseId
+                , t.userRef                   AS userId
+                , t.ctime                     AS datetime
+                , t.mtime                     AS mtime
+                , t.id                        AS id
+                , t.msgText                   AS msgText
+                , t.sender                    AS sender
+                , GetSmsStatusLabel(t.status) AS deliveryStatus
+
+           FROM "Sms" AS t
+           WHERE t.template = 15 -- SmsTemplate id#15 - "notifyPartner"
+         ) AS row
+
+    UNION ALL
+
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+
     FROM (
         SELECT
             'partnerCancel' as "type",
@@ -180,10 +212,11 @@ FROM (
 
     UNION ALL
 
-    SELECT row.caseId,
-        row.datetime,
-        row.userId,
-        row_to_json(row)
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+
     FROM (
         SELECT
             'avayaEvent' as "type",
@@ -202,10 +235,11 @@ FROM (
 
     UNION ALL
 
-    SELECT row.caseId,
-        row.datetime,
-        row.userId,
-        row_to_json(row)
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+
     FROM (
         SELECT
             'avayaEvent' as "type",
@@ -223,9 +257,13 @@ FROM (
             AND "AvayaEventType".id = "AvayaEvent".etype
             AND actiontbl.callId = calltbl.id
         ) row
-    ) united,
+
+    ) AS united,
     usermetatbl
-WHERE usermetatbl.id = united.userId
-ORDER BY datetime DESC;
+
+  WHERE usermetatbl.id = united.userId
+  ORDER BY datetime DESC;
 
 GRANT SELECT ON "CaseHistory" TO carma_db_sync;
+
+COMMIT;

@@ -23,6 +23,7 @@ import qualified Carma.Model.Case           as Case
 import qualified Carma.Model.City           as City
 import qualified Carma.Model.CarMake        as CarMake
 import qualified Carma.Model.CarModel       as CarModel
+import qualified Carma.Model.Usermeta       as Usermeta
 
 import Utils.Model.MSqlQQ hiding (parseQuery)
 import Application (AppHandler)
@@ -33,9 +34,10 @@ import Text.InterpolatedString.QM
 sendSMS
   :: Model.IdentI SmsTemplate.SmsTemplate
   -> Model.IdentI Service.Service
+  -> Model.IdentI Usermeta.Usermeta
   -> SendSmsTo
   -> AppHandler (IO ())
-sendSMS tplId svcId sendTo =
+sendSMS tplId svcId sendBy sendTo =
   (pure () <$) $ uncurry SPG.query messageInfo >>= \case
 
     [fields] ->
@@ -88,6 +90,7 @@ sendSMS tplId svcId sendTo =
     syslogJSON Error "backoffice/sendSMS" $ json ++ params
     where params = [ "tpl" .= T.pack (show tplId)
                    , "svc" .= T.pack (show svcId)
+                   , "usr" .= T.pack (show sendBy)
                    ]
 
   messageInfo = [msql|
@@ -174,6 +177,7 @@ sendSMS tplId svcId sendTo =
   insertSms msgInfo = [msql|
     insert into $(T|Sms)$
       ( $(F|Sms.caseRef)$
+      , $(F|Sms.userRef)$
       , $(F|Sms.phone)$
       , $(F|Sms.sender)$
       , $(F|Sms.template)$
@@ -182,6 +186,7 @@ sendSMS tplId svcId sendTo =
       )
       values
       ( nullif($(V|msgInfo ! "case.id")$, '')::integer
+      , $(V|sendBy)$
       , $(V|msgInfo ! "phone")$
       , $(V|msgInfo ! "sender")$
       , $(V|tplId)$
