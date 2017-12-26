@@ -209,11 +209,37 @@ ko.bindingHandlers.eachNonEmpty =
     ko.applyBindingsToNode el, {foreach: fns}, koctx
     controlsDescendantBindings: true
 
-ko.bindingHandlers.addMask =
-  init: (el, acc) ->
-    switch acc()
-      when "datetime" then $(el).inputmask mask: "99.99.9999 99:99:99"
-      else console.error("unknown mask")
+# "addMask" handler
+do ->
+  dispose = (el) ->
+    $el = $ el
+    $el.off ev for ev in el.__ko_addMask_bound_events
+    delete el.__ko_addMask_bound_events
+    $el.trigger "unmask.bs.inputmask"
+
+  init = (el, acc, allBindingsAcc) ->
+    accVal = ko.utils.unwrapObservable acc()
+    return unless typeof accVal is "string"
+    return console.error "unknown mask" unless accVal is "datetime"
+    {valueUpdate} = allBindingsAcc()
+
+    x = $(el).inputmask mask: "99.99.9999 99:99:99"
+    el.__ko_addMask_bound_events = ("#{ev}.__ko_addMask" for ev in valueUpdate)
+
+    updater = ->
+      {value} = allBindingsAcc()
+      value @value if ko.isObservable value
+
+    x.on ev, updater for ev in el.__ko_addMask_bound_events
+
+    ko.utils.domNodeDisposal.addDisposeCallback el,
+      dispose.bind null, arguments...
+
+  update = (args...) ->
+    dispose args...
+    init args...
+
+  ko.bindingHandlers.addMask = {init, update}
 
 # "typeahead" handler
 # params model (every params here is optional):
