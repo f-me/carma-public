@@ -51,11 +51,11 @@ include _form_utils.pug
 
 .field-template#datetime-field-template
   +fieldControlGroup
-    +defaultInput("DateTime", "addMask: 'datetime',", ["change", "keydown"])
+    +defaultInput("DateTime", "addMask: 'datetime',", "change")
 
 .field-template#datetime-local-field-template
   +fieldControlGroup
-    +localDateTimeInput("DateTime", "addMask: 'datetime'", ["change", "keydown"])
+    +localDateTimeInput("DateTime", "addMask: 'datetime'", "change")
 
 .field-template#list-of-times-field-template
   div(style="margin-top: -15px;" data-bind="foreach: {{ name }}List")
