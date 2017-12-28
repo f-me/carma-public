@@ -21,12 +21,13 @@ data Sms = Sms
                    "Время последнего изменения сообщения (или статуса)"
 
   , status    :: F Text  "status"  "Статус отправки сообщения"
-  , phone     :: F Phone "phone"   "Телефон получателя"
-  , sender    :: F Text  "sender"  "Подпись отправителя"
 
   , caseRef   :: F (Maybe (IdentI Case))
                    "caseRef"
                    "Номер кейса"
+
+  , phone     :: F Phone "phone"   "Телефон получателя"
+  , sender    :: F Text  "sender"  "Подпись отправителя"
 
   , userRef   :: F (Maybe (IdentI Usermeta))
                    "userRef"

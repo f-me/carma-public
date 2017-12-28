@@ -28,15 +28,12 @@ data Partner = Partner
   , isMobile :: F Bool         "isMobile" "Мобильный партнёр"
   , isFree   :: F Bool         "isFree"   "Свободен"
   , name     :: F Text         "name"     "Название"
-  , code     :: F (Maybe Text) "code"     "Код"
-  , addrs    :: F A.Value      "addrs"    "Адреса"
-  , emails   :: F A.Value      "emails"   "E-mail"
-  , services :: F A.Value      "services" "Услуги"
-  , phones   :: F A.Value      "phones"   "Телефоны"
 
   , synonyms :: F (Vector Text)
                 "synonyms"
                 "Синонимы"
+
+  , code     :: F (Maybe Text) "code"     "Код"
 
   , city     :: F (Maybe (IdentI City))
                 "city"
@@ -46,9 +43,16 @@ data Partner = Partner
                 "makes"
                 "Обслуживаемые марки"
 
+  , services :: F A.Value      "services" "Услуги"
+
+  , phones   :: F A.Value      "phones"   "Телефоны"
+
   , coords   :: F (Maybe Coords)
                 "coords"
                 "Координаты фактического адреса"
+
+  , addrs    :: F A.Value      "addrs"    "Адреса"
+  , emails   :: F A.Value      "emails"   "E-mail"
 
   , personInCharge
              :: F (Maybe Text) "personInCharge" "Ответственное лицо"

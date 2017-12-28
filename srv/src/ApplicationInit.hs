@@ -159,7 +159,7 @@ timeIt :: AppHandler () -> AppHandler ()
 timeIt h = do
   r <- getRequest
   start <- liftIO Clock.getCurrentTime
-  h `finally` liftIO (do
+  finally h $ liftIO $ do
     end <- Clock.getCurrentTime
     let duration = Clock.diffUTCTime end start
     when (1 <= duration)
@@ -167,7 +167,7 @@ timeIt h = do
         [ "method" .= show (rqMethod r)
         , "uri" .= T.decodeUtf8 (rqURI r)
         , "time" .= show duration
-        ])
+        ]
 
 ------------------------------------------------------------------------------
 -- | The application initializer.
@@ -199,7 +199,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   -- DB
   ad <- nestSnaplet "db" db pgsInit
 
-  ad2 <- nestSnaplet "db2" db2 $ initPersist (return ())
+  ad2 <- nestSnaplet "db2" db2 $ initPersist $ return ()
 
   authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
 
@@ -217,4 +217,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   em <- liftIO $ newTVarIO Map.empty
 
-  return $ App h s authMgr c tm fu ch g ad ad2 search' opts msgr (initApi wkey) em
+  pure $ App h s authMgr c tm fu ch g ad ad2 search' opts msgr (initApi wkey) em
