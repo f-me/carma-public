@@ -9,18 +9,6 @@ modelDict   = require "carma/dictionaries/model-dict"
 template = require "carma-tpl/screens/dictionaries.pug"
 Flds     = require "carma-tpl/fields/form.pug"
 
-textarea2wysiwyg = ->
-  # transform all textarea elements to wisiwyg
-  $("#dictionaries-view textarea").each (index) ->
-    id = "wisyhtml5-" + index
-    $(@).attr("id", id).wysihtml5
-      image: false,
-      html: true,
-      locale: "ru-RU",
-      events:
-        blur: ->
-          $("#" + id).trigger 'change'
-
 modelSetup = (dict, viewName, args) ->
   permEl = "permissions"
   focusClass = "focusable"
@@ -63,16 +51,17 @@ tableSetup = (objURL, majorFields, dict, viewName) ->
     tableName: "dict"
     objURL: objURL
 
-  table = screenMan.addScreen(dict.name, -> )
-    .addTable(tableParams)
-    .setObjsToRowsConverter(objsToRows)
-    .setDataTableOptions({aoColumnDefs: [{sWidth: "10%", aTargets: [0]}]})
-    .on("click.datatable", "tr", ->
+  table = screenMan
+    .addScreen dict.name, (->)
+    .addTable tableParams
+    .setObjsToRowsConverter objsToRows
+    .setDataTableOptions aoColumnDefs: [{sWidth: "10%", aTargets: [0]}]
+    .on "click.datatable", "tr", ->
       id = @children[0].innerText
-      k = modelSetup dict, viewName, {id}
-      textarea2wysiwyg()
-      k['updateUrl']()
-      k)
+      kvm = modelSetup dict, viewName, {id}
+      do kvm['updateUrl']
+      kvm
+
   screenMan.showScreen dict.name
   table
 
@@ -175,7 +164,6 @@ screenSetup = (viewName, args) ->
           table.dataTable.fnAddData [row]
 
       setupButtonPanel kvm, table, args, objURL
-      textarea2wysiwyg()
 
     # let user show entries from a particular parent
     parentModel = window.global.model dictName, "parents"

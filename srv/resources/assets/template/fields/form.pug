@@ -14,23 +14,32 @@ include _form_utils.pug
   +fieldControlGroup
     // 'onChange' is a function that takes new list as first argument,
     // so observable is, but keeping API clean in sense of immutability.
-    avarcom-tasks(params='\
-      selectedTasks: {{ name }},\
-      serviceStatus: status,\
-      onChange:      {{ name }},\
-    ')
+    avarcom-tasks(params=`
+      selectedTasks: {{ name }},
+      serviceStatus: status,
+      onChange:      {{ name }},
+    `)
 
 .field-template#textarea-field-template
   +fieldControlGroup
-    textarea.form-control(name="{{ name }}" rows="7"
+    textarea.form-control(
+      name="{{ name }}"
+      rows="7"
       style="height: 10em;"
-      data-bind="\n\
-                 value: {{ name }}Text,\n\
-                 valueUpdate: ['afterkeydown', 'afterpaste'],\n\
-                 disabled: {{ name }}Disabled,\n\
-                 {{# meta.regexp }}\n\
-                 css: { warning: {{name}}Regexp }\n\
-                 {{/ meta.regexp }}")
+      data-bind=`
+        value: {{ name }}Text,
+        valueUpdate: ['afterkeydown', 'afterpaste', 'change'],
+        disabled: {{ name }}Disabled,
+
+        wysihtml5: Boolean(
+          $data._meta && $data._meta.model &&
+          $data._meta.model.viewName === 'dictionaries-view'
+        ),
+
+        {{# meta.regexp }}
+          css: { warning: {{name}}Regexp }
+        {{/ meta.regexp }}
+      `)
 
 .field-template#statictext-field-template
   .control-group

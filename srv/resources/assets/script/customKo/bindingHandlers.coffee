@@ -174,21 +174,31 @@ ko.bindingHandlers.fieldRender =
 
 ko.bindingHandlers.expandAll =
   init: (el, acc, allBindigns, ctx, koctx) ->
-    $(el).append("<label><span class='glyphicon glyphicon-plus'></span></label>")
+    $(el).append \
+      "<label><span class='glyphicon glyphicon-plus'></span></label>"
+
     $(el).click ->
-      expanded = $(el).find('span').hasClass('glyphicon-minus')
+      expanded = $(el).find('span').hasClass 'glyphicon-minus'
+
       $(el).closest('table').find('.expand-contoller').each (key, tr) ->
-        if expanded is $(tr).hasClass('expanded')
-          $(tr).trigger 'click'
-      $(el).find('span').toggleClass('glyphicon-plus').toggleClass('glyphicon-minus')
+        $(tr).trigger 'click' if expanded is $(tr).hasClass 'expanded'
+
+      $(el).find 'span'
+        .toggleClass 'glyphicon-plus'
+        .toggleClass 'glyphicon-minus'
 
 ko.bindingHandlers.expand =
   init: (el, acc, allBindigns, ctx, koctx) ->
-    $(el).append("<label><span class='glyphicon glyphicon-plus'></span></label>")
+    $(el).append \
+      "<label><span class='glyphicon glyphicon-plus'></span></label>"
+
     $(el).click ->
-      $(el).parent().next().toggleClass('hide')
-      $(el).toggleClass('expanded')
-      $(el).find('span').toggleClass('glyphicon-plus').toggleClass('glyphicon-minus')
+      $(el).parent().next().toggleClass 'hide'
+      $(el).toggleClass 'expanded'
+
+      $(el).find 'span'
+        .toggleClass 'glyphicon-plus'
+        .toggleClass 'glyphicon-minus'
 
 ko.bindingHandlers.eachNonEmpty =
   nonEmpty: (fnames, ctx, koctx) ->
@@ -211,10 +221,16 @@ ko.bindingHandlers.eachNonEmpty =
 
 # "addMask" handler
 do ->
+  evs_key = "__ko_addMask_bound_events"
+  ev_sfx  = "__ko_addMask"
+
   dispose = (el) ->
     $el = $ el
-    $el.off ev for ev in el.__ko_addMask_bound_events
-    delete el.__ko_addMask_bound_events
+
+    if el[evs_key]?
+      $el.off ev for ev in el[evs_key]
+      delete el[evs_key]
+
     $el.trigger "unmask.bs.inputmask"
 
   init = (el, acc, allBindingsAcc) ->
@@ -224,13 +240,13 @@ do ->
     {valueUpdate} = allBindingsAcc()
 
     x = $(el).inputmask mask: "99.99.9999 99:99:99"
-    el.__ko_addMask_bound_events = ("#{ev}.__ko_addMask" for ev in valueUpdate)
+    el[evs_key] = ("#{ev}.#{ev_sfx}" for ev in valueUpdate)
 
     updater = ->
       {value} = allBindingsAcc()
       value @value if ko.isObservable value
 
-    x.on ev, updater for ev in el.__ko_addMask_bound_events
+    x.on ev, updater for ev in el[evs_key]
 
     ko.utils.domNodeDisposal.addDisposeCallback el,
       dispose.bind null, arguments...
@@ -351,3 +367,59 @@ do ->
     init args...
 
   ko.bindingHandlers.datepicker = {init, update}
+
+# "wysihtml5" handler
+do ->
+  evs_key = "__ko_wysihtml5_bound_events"
+  ev_sfx  = "__ko_wysihtml5"
+
+  defaultOptions = Object.freeze
+    image: false
+    html: true
+    locale: "ru-RU"
+
+  dispose = (el) ->
+    # WARNING! Once it's initialized it can't be destroyed
+    #          "bootstrap3-wysihtml5-bower" doesn't support destroying.
+    #          See https://github.com/Waxolunist/bootstrap3-wysihtml5-bower/blob/f1b9b218bf2587303167f0c4ab5bc0c08c9f2da4/src/bootstrap3-wysihtml5.js#L107
+    #          for details.
+
+    return unless el[evs_key]?
+    $el = $ el
+    $el.off ev for ev in el[evs_key]
+    delete el[evs_key]
+
+  init = (el, acc, allBindingsAcc) ->
+    accVal = ko.utils.unwrapObservable acc()
+    return unless accVal # disabled by falsy value
+    o = if typeof accVal is "object" then accVal else null
+    {valueUpdate} = allBindingsAcc()
+
+    $el = $ el
+    x = $el.wysihtml5 Object.assign {}, defaultOptions, o,
+      events: Object.assign {}, o?.events,
+        blur: ->
+          $el.trigger "change"
+          o?.events?.blur?()
+        change: ->
+          $el.trigger "change"
+          o?.events?.change?()
+
+    el[evs_key] = ("#{ev}.#{ev_sfx}" for ev in valueUpdate)
+
+    # FIXME for some reason overvable doesn't always react with sync when value
+    # updates
+    updater = ->
+      {value} = allBindingsAcc()
+      value @value if ko.isObservable value
+
+    x.on ev, updater for ev in el[evs_key]
+
+    ko.utils.domNodeDisposal.addDisposeCallback el,
+      dispose.bind null, arguments...
+
+  update = (args...) ->
+    dispose args...
+    init args...
+
+  ko.bindingHandlers.wysihtml5 = {init, update}
