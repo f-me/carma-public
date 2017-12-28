@@ -193,10 +193,11 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                           cfg "session-key"
 
   s <- nestSnaplet "session" session $
-       initCookieSessionManager sesKey "_session" Nothing (Just 600)
+       let lifetime = Just $ 365 * 24 * 60 * 60 -- One year in seconds
+        in initCookieSessionManager sesKey "_session" Nothing lifetime
 
   -- DB
-  ad <- nestSnaplet "db" db $ pgsInit
+  ad <- nestSnaplet "db" db pgsInit
 
   ad2 <- nestSnaplet "db2" db2 $ initPersist (return ())
 
