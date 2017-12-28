@@ -381,7 +381,7 @@ do ->
   dispose = (el) ->
     # WARNING! Once it's initialized it can't be destroyed
     #          "bootstrap3-wysihtml5-bower" doesn't support destroying.
-    #          See https://github.com/Waxolunist/bootstrap3-wysihtml5-bower/blob/f1b9b218bf2587303167f0c4ab5bc0c08c9f2da4/src/bootstrap3-wysihtml5.js#L107
+    #          See https://github.com/Waxolunist/bootstrap3-wysihtml5-bower/blob/f1b9b218bf2587303167f0c4ab5bc0c08c9f2da4/src/bootstrap3-wysihtml5.js
     #          for details.
 
     return unless el[evs_key]?
@@ -407,7 +407,7 @@ do ->
 
     el[evs_key] = ("#{ev}.#{ev_sfx}" for ev in valueUpdate)
 
-    # FIXME for some reason overvable doesn't always react with sync when value
+    # FIXME for some reason observable doesn't always react with sync when value
     # updates
     updater = ->
       {value} = allBindingsAcc()
