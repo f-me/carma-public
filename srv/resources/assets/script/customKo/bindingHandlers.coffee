@@ -399,9 +399,15 @@ do ->
     x = $el.wysihtml5 Object.assign {}, defaultOptions, o,
       events: Object.assign {}, o?.events,
         blur: ->
-          $el.trigger "change"
+          $el.trigger "blur"
           o?.events?.blur?()
+
         change: ->
+          # For some reasong it doesn't automatically syncronizes data with
+          # textarea, so, doing it here by bare hands.
+          @synchronizer.textarea.element.value =
+            @synchronizer.composer.element.innerHTML
+
           $el.trigger "change"
           o?.events?.change?()
 
@@ -413,7 +419,7 @@ do ->
       {value} = allBindingsAcc()
       value @value if ko.isObservable value
 
-    x.on ev, updater for ev in el[evs_key]
+    $el.on ev, updater for ev in el[evs_key]
 
     ko.utils.domNodeDisposal.addDisposeCallback el,
       dispose.bind null, arguments...
