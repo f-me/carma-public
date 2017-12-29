@@ -55,16 +55,6 @@ window.$el = (id) -> $(el(id)) # FIXME global shit
 window.hasL = (lst, e) -> _.find(lst, (x) -> x == e) # FIXME global shit
 
 # FIXME global shit
-window.successfulSave = ->
-  return if this.hasAttribute("disabled")
-  $span = $(this).siblings(".save-result")
-  setTimeout((->
-    $span.text("Сохранено успешно")
-    $span.show()
-    $span.fadeOut(2000))
-  , 500)
-
-# FIXME global shit
 window.inlineSpinner = (el) ->
   $(el).addClass("inline-spinner").append(
     "<div class='bounce1'></div><div class='bounce2'></div><div class='bounce3'></div>"
@@ -373,9 +363,6 @@ module.exports = {
     _.filter (kase['actionsList']?() || []),
       (a) -> (a.serviceId() == parseInt(svc.id())) &&
               (_.isEmpty(types) || _.contains types, a.type())
-
-  # FIXME: This could be a callback for main.js:saveInstance
-  successfulSave
 
   checkAccordion: (e) ->
     acc = e.parents('.accordion-body') #.hasClass('in')

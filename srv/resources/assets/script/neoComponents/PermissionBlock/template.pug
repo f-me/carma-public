@@ -1,0 +1,34 @@
+- var pfx = 'permission-block'
+
+.form-group
+  .col-md-offset-4.col-md-8
+
+    // ko if: $component.readonly
+    button.btn.disabled(type="button")
+      span.glyphicon.glyphicon-circle
+        | Только для чтения
+    // /ko
+
+    // ko ifnot: $component.readonly
+    button.btn.btn-success(
+      data-bind="click: $component.onSaveClick"
+      type="button")
+      span.glyphicon.glyphicon-pencil
+      | Сохранить
+    span(class=`${pfx}--save-result` data-bind=`
+      text: (
+        $component.saveStatus() === 'success' ? ' Сохранено успешно' :
+        $component.saveStatus() === 'failure' ? ' Ошибка сохранения' : ''
+      ),
+
+      css: {
+        "${pfx}--save-success": $component.saveStatus() === 'success',
+        "${pfx}--save-failure": $component.saveStatus() === 'failure',
+        "${pfx}--save-result--shown": $component.saveStatus() !== null,
+
+        "${pfx}--save-result--fade-out": (
+          $component.saveStatusFadeOut() !== null
+        ),
+      },
+    `)
+    // /ko

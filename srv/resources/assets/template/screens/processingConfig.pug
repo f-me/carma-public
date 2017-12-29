@@ -5,3 +5,7 @@
     .col-md-8
       #config-form.form-horizontal
       #config-permissions(style="margin-top: 20px")
+        permission-block(params=`
+          readonly: _meta.cannotModifyModelData,
+          viewName: view,
+        `)

@@ -11,8 +11,8 @@ storeKey = "call"
 
 setupCallForm = (viewName, args) ->
   knockVM = main.modelSetup("Call") viewName, args,
-                     permEl      : "case-permissions"
-                     slotsee     : ["call-number", "center"]
+                     slotsee     : ["call-number"
+                                    "center"]
                      focusClass  : "focusable"
                      groupsForest: "center"
 

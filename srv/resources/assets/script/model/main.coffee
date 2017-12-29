@@ -85,14 +85,14 @@ mainSetup = (localDictionaries, hooks, user, pubSub) ->
     viewsWare: {}
   }
 
-  Finch.listen()
+  do Finch.listen
 
 urlFor = ->
-  switch this.kvm._meta.model.name
+  switch @kvm._meta.model.name
     when "Case"
       "/#case/#{this()}"
     else
-      "/##{this.kvm._meta.model.name}/#{this()}"
+      "/##{@kvm._meta.model.name}/#{this()}"
 
 # Knockout model builder
 #
@@ -107,13 +107,16 @@ buildKVM = (model, options = {}) ->
   {fields} = model
   required = (f for f in fields when f.meta?.required)
 
+  cannotModifyModelData =
+    not model.canUpdate and not model.canCreate and not model.canDelete
+
   # Build kvm with fetched data if have one
   kvm = {}
   kvm._parent = options.parent
   kvm._saveSuccessCb = options.saveSuccessCb
   {elName, fetched, queue, queueOptions, models} = options
-  kvm._meta     = {model, cid: _.uniqueId "#{model.name}_"}
   kvm.safelyGet = (prop) -> kvm[prop]?() or ''
+  kvm._meta = {model, cid: _.uniqueId("#{model.name}_"), cannotModifyModelData}
 
   # build observables for real model fields
   for f in fields
@@ -379,9 +382,6 @@ cleanupKVM = (kvm) =>
 #
 # Following keys are recognized in options argument:
 #
-# - permEl: string, name of element to render permissions template
-# - for model into;
-#
 # - slotsee: array of element IDs:
 #
 #   [foo-title", "overlook"]
@@ -433,24 +433,24 @@ cleanupKVM = (kvm) =>
 # model parameter is used here when we need some customized model
 # maybe with filtered some fields or something
 modelSetup = (modelName, model) -> (elName, args, options) ->
-  model = window.global.model(modelName, options.modelArg) if not model
-  [kvm, q] = buildModel(model, args, options, elName)
+  model = window.global.model modelName, options.modelArg unless model
+  [kvm, q] = buildModel model, args, options, elName
 
-  depViews = setupView(elName, kvm,  options)
+  depViews = setupView elName, kvm, options
 
   # Bookkeeping
-  window.global.viewsWare[elName] =
-    model           : model
-    modelName       : model.name
-    knockVM         : kvm
-    depViews        : depViews
+  window.global.viewsWare[elName] = {
+    model
+    modelName: model.name
+    knockVM: kvm
+    depViews
+  }
 
   # update url here, because only top level models made with modelSetup
   kvm["maybeId"].subscribe -> kvm["updateUrl"]()
 
   screenName = options.screenName or modelName
-  kvm["updateUrl"] = ->
-    Finch.navigate "#{screenName}/#{kvm.id()}", true
+  kvm["updateUrl"] = -> Finch.navigate "#{screenName}/#{kvm.id()}", true
 
   hooks = options.hooks or ['*', model.name]
   applyHooks window.global.hooks.model, hooks, elName, kvm
@@ -468,51 +468,55 @@ buildModel = (model, args, options, elName) ->
   [kvm, kvm._meta.q]
 
 buildNewModel = (modelName, args, options, cb) ->
-  model = window.global.model(modelName, options.modelArg)
-  [knockVM, q] = buildModel(model, args, options)
+  model = window.global.model modelName, options.modelArg
+  [knockVM, q] = buildModel model, args, options
+
   if _.isFunction cb
-    q.save -> cb(model, knockVM)
+    q.save -> cb model, knockVM
   else
     q.save()
-  return [knockVM, q]
+
+  [knockVM, q]
 
 # little helper, ko 3.1.0 don't allow to bind to already binded dom
 # so cleanup it first
 rebindko = (kvm, el) =>
-  ko.cleanNode(el)
-  ko.applyBindings(kvm, el)
+  ko.cleanNode el
+  ko.applyBindings kvm, el
 
 bindDepViews = (knockVM, parentView, depViews) ->
   for k, v of depViews
-    window.global.viewsWare[v] =
-      parentView: parentView
-    if _.isArray(v)
-      rebindko(knockVM, el(s)) for s in v
+    window.global.viewsWare[v] = {parentView}
+    if _.isArray v
+      rebindko knockVM, el s for s in v
     else
-      rebindko(knockVM, el(v))
+      rebindko knockVM, el v
 
-setupView = (elName, knockVM,  options) ->
-  tpls = render.getTemplates("reference-template")
-  depViews = render.kvm(elName, knockVM,  options)
-  # Bind group subforms (note that refs are bound
-  # separately)
-  bindDepViews(knockVM, elName, depViews)
-  # Bind extra views if provided
-  rebindko knockVM, el(v) for k, v of options.slotsee when el(v)
-
-  # Bind the model to Knockout UI
-  rebindko(knockVM, el(elName)) if el(elName)
-
+setupView = (elName, knockVM, options) ->
   knockVM['view'] = elName
 
-  for f in knockVM._meta.model.fields when f.type == 'reference' or f.type == 'IdentList'
+  tpls = render.getTemplates "reference-template"
+  depViews = render.kvm elName, knockVM, options
+  # Bind group subforms (note that refs are bound
+  # separately)
+  bindDepViews knockVM, elName, depViews
+  # Bind extra views if provided
+  rebindko knockVM, el v for k, v of options.slotsee when el v
+
+  # Bind the model to Knockout UI
+  rebindko knockVM, el elName if el elName
+
+  for f in knockVM._meta.model.fields when f.type in ['reference', 'IdentList']
     do (f) ->
-      refsForest = getrForest(knockVM, f.name)
+      refsForest = getrForest knockVM, f.name
       $("##{refsForest}").empty()
+
       knockVM["#{f.name}Reference"].subscribe (newValue) ->
-        renderRefs(knockVM, f, tpls, options)
-      renderRefs(knockVM, f, tpls, options)
-  return depViews
+        renderRefs knockVM, f, tpls, options
+
+      renderRefs knockVM, f, tpls, options
+
+  depViews
 
 renderRefs = (knockVM, f, tpls, options) ->
   refsForest = getrForest(knockVM, f.name)
@@ -520,7 +524,6 @@ renderRefs = (knockVM, f, tpls, options) ->
   for r in knockVM["#{f.name}Reference"]()
     refBook = render.mkRefContainer(r, f, refsForest, tpls)
     v = setupView refBook.refView, r,
-      permEl: refBook.refView + "-perms"
       groupsForest: options.groupsForest
       slotsee: [refBook.refView + "-link"]
     window.global.viewsWare[refBook.refView] = {}

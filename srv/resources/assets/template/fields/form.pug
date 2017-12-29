@@ -30,11 +30,7 @@ include _form_utils.pug
         value: {{ name }}Text,
         valueUpdate: ['afterkeydown', 'afterpaste', 'change'],
         disabled: {{ name }}Disabled,
-
-        wysihtml5: Boolean(
-          $data._meta && $data._meta.model &&
-          $data._meta.model.viewName === 'dictionaries-view'
-        ),
+        wysihtml5: $data.view === 'dictionaries-view',
 
         {{# meta.regexp }}
           css: { warning: {{name}}Regexp }
@@ -605,11 +601,10 @@ include _form_utils.pug
 
 //
   Template for one of references.
+
   Must generate id="{{ refView }}" element which
-  will hold contents of referenced model. Its class must be is
-  {{ refClass }}.
-  "{{ refView }}-perms" will be used for instance permissions.
-  May setup on-demand loading function.
+  will hold contents of referenced model.
+  Its class must be is {{ refClass }}.
 
 mixin refCommon(headingDataBind)
   .panel-group(id="{{ refView }}-group")
@@ -929,22 +924,6 @@ mixin caseFilesList
         a.more(href="javascript:void(0)" data-bind="click: lookBackInHistory")
           | Ещё
         // /ko
-
-#permission-template
-  .form-group
-    .col-md-offset-4.col-md-8
-      | {{# readonly }}
-      button.btn.disabled(type="button")
-        span.glyphicon.glyphicon-circle
-          | Только для чтения
-      | {{/ readonly }}
-      | {{^ readonly }}
-      button.btn.btn-success(type="button"
-              onclick="saveInstance('{{ viewName }}');successfulSave.call(this);")
-        span.glyphicon.glyphicon-pencil
-        | Сохранить
-      span.save-result
-      | {{/ readonly }}
 
 #service-picker-template
   ul.nav.nav-pills

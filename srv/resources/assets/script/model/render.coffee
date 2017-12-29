@@ -25,17 +25,6 @@ getTemplates = (cls) ->
     templates[tmp.id.replace("-#{cls}", "")] = $(tmp).html()
   templates
 
-# Render permissions controls for form holding an instance in given
-# view.
-#
-# @return String with HTML for form
-renderPermissions = (model, viewName) ->
-  modelRo = not model.canUpdate and not model.canCreate and not model.canDelete
-  # Add HTML to contents for non-false permissions
-  Mustache.render \
-    $(FS).find("#permission-template").html(),
-    _.extend(model, {viewName, readonly: modelRo})
-
 # Pick a template from cache which matches one of given names first.
 pickTemplate = (templates, names) ->
   return templates[n] for n in names when _.has(templates, n)
@@ -81,8 +70,7 @@ chooseFieldTemplate = (field, templates) ->
 # Every view template MUST set div with id=<refView> and
 # class=<refClass> where model will be setup; an element with
 # id=<refView>-link which will be bound to KnockVM of referenced
-# instance; possibly <refView>-perms for rendering instance
-# permissions template.
+# instance;
 #
 # This may also be used to render any dependant views for model to
 # maintain unique ids.
@@ -209,13 +197,13 @@ renderFields = (model, viewName, options, knockVM) ->
             f.meta?.widget = realWidget
 
       # Initialiaze new section contents
-      if not _.has(contents, currentSection)
-          contents[currentSection] = ""
+      unless _.has(contents, currentSection)
+        contents[currentSection] = ""
 
       tpl = chooseFieldTemplate(f, templates)
 
       # Put field HTML in appropriate section
-      if not f.meta?.mainOnly
+      unless f.meta?.mainOnly
         contents[currentSection] += Mustache.render(tpl, ctx)
 
       if f.meta and (f.meta.mainToo or f.meta.mainOnly)
@@ -228,30 +216,31 @@ renderKnockVm = (elName, knockVM, options) ->
   content   = renderFields model, elName, options, knockVM
   groupTpls = getTemplates "group-template"
   depViews  = {}
+
   for gName, cont of content
-    # Main form & permissions
-    if gName == "_"
-      $el(elName).html(cont)
-      $el(options.permEl).html renderPermissions(model, elName)
+    # Main form
+    if gName is "_"
+      $el(elName).html cont
     else
-      view = mkSubviewName(gName, 0, model.name, cid)
+      view = mkSubviewName gName, 0, model.name, cid
       depViews[gName] = [view]
 
       # Subforms for groups
-      $el(options.groupsForest).append(
-          renderDep { refField: gName, refN: 0, refView  : view },
-                    groupTpls)
+      $el options.groupsForest
+        .append renderDep {refField: gName, refN: 0, refView: view}, groupTpls
       # render actual view content in the '.content'
       # children of view block, so we can add
       # custom elements to decorate view
-      $el(view).find('.content').html(content[gName])
+      $el(view).find('.content').html content[gName]
 
   if options.defaultGroup and _.has(groupTpls, options.defaultGroup)
     depViews["default-group"] = options.defaultGroup
-    $el(options.groupsForest).append(
-          renderDep { refField: options.defaultGroup }, groupTpls)
+
+    $el options.groupsForest
+      .append renderDep {refField: options.defaultGroup}, groupTpls
+
   if _.isFunction(options.renderRefCb)
-    options.renderCb(r, subViewN)
+    options.renderCb r, subViewN
 
   depViews
 

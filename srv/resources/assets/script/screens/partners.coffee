@@ -8,12 +8,11 @@ main        = require "carma/model/main"
 template = require "carma-tpl/screens/partner.pug"
 
 modelSetup = (modelName, viewName, args) ->
-  permEl = "#{modelName}-permissions"
-  focusClass = "focusable"
-  refs = [{field: "services", forest: "partner-services-references"}]
-  slotsee = ["map-address"]
-  options = {permEl, focusClass, refs, slotsee}
-  main.modelSetup(modelName) viewName, args, options
+  main.modelSetup(modelName) viewName, args,
+    focusClass: "focusable"
+    refs: [{field: "services", forest: "partner-services-references"}]
+    slotsee: ["map-address"
+              "#{modelName}-permissions"]
 
 objsToRows = (objs) ->
   cities = utils.newModelDict "City", true

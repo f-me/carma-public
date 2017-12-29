@@ -53,3 +53,7 @@
       form.form-horizontal
         #action-form
         #Action-permissions
+          permission-block(params=`
+            readonly: _meta.cannotModifyModelData,
+            viewName: view,
+          `)

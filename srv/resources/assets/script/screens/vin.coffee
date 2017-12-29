@@ -71,11 +71,9 @@ setupVinForm = (viewName, args) ->
 
   # $el(viewName).html(all_html)
 
-  # Program/format selection
-  options =
-    permEl: null,
-    manual_save: true
-  kvm = Main.modelSetup("vinUpload", models.VinUpload) "new-form", {}, options
+  kvm = Main.modelSetup("vinUpload", models.VinUpload) \
+    "new-form", {}, manual_save: true
+
   $("#vin-send").click (e) ->
     vinFile = $("#vin-upload-file")[0].files[0]
     sid = kvm.subprogram()

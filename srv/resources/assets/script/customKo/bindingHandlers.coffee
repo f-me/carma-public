@@ -384,12 +384,8 @@ do ->
     #          See https://github.com/Waxolunist/bootstrap3-wysihtml5-bower/blob/f1b9b218bf2587303167f0c4ab5bc0c08c9f2da4/src/bootstrap3-wysihtml5.js
     #          for details.
 
-    return unless el[evs_key]?
-    $el = $ el
-    $el.off ev for ev in el[evs_key]
-    delete el[evs_key]
-
   init = (el, acc, allBindingsAcc) ->
+    return if el[evs_key]? # already initialized (cannot be destroyed)
     accVal = ko.utils.unwrapObservable acc()
     return unless accVal # disabled by falsy value
     o = if typeof accVal is "object" then accVal else null

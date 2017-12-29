@@ -70,7 +70,7 @@ class CrudQueue extends MetaQueue
 
   _save: => do @debounced_save
 
-  save: (cb = _.identity, force = false) =>
+  save: (cb = _.identity, force = false, cbErr = _.identity) =>
     do @saveKvm unless @persisted
     delete @q[k] for k, v of @q when _.isEqual @lastFetch[k], v
     _.extend @lastFetch, $.extend true, {}, @q
@@ -80,15 +80,16 @@ class CrudQueue extends MetaQueue
     @qbackup = $.extend @qbackup, _.clone @q
     @q = {}
 
-    $.ajax
+    $.ajax {
       type:        method
-      url:         url
+      url
       dataType:    'json'
       contentType: 'application/json; charset=utf-8'
       success:     @saveSuccessCb cb
-      error:       @saveErrorCb
+      error:       @saveErrorCb cbErr
       data:        JSON.stringify m.c2sObj @qbackup, @ftypes
       beforeSend:  @showSyncAnim
+    }
 
   showSyncAnim: =>
     _.each (_.keys @qbackup), (fname) =>
@@ -96,8 +97,8 @@ class CrudQueue extends MetaQueue
 
   hideSyncAnim: (jqXHR, status) =>
     if status
-      $.notify "Данные не были сохранены. Попробуйте сохранить изменения
-                ещё раз."
+      $.notify "Данные не были сохранены.
+                Попробуйте сохранить изменения ещё раз."
     else
       _.each (_.keys @qbackup), (fname) =>
         @kvm["#{fname}Sync"] false
@@ -122,11 +123,12 @@ class CrudQueue extends MetaQueue
     @kvm._saveSuccessCb? @kvm, @model, json
     cb @kvm, @model
 
-  saveErrorCb: (x, status) =>
+  saveErrorCb: (cbErr) => (x, status) =>
     @q = _.defaults @q, @qbackup
     @hideSyncAnim x, status
     console.error "CRUD sync: save of '#{@model.name}:#{@kvm.id()}' failed
                    with '#{x.status}: #{x.statusText}'"
+    cbErr x, @kvm, @model
 
   # push all non empty kvm fields to the save queue, on first post for example
   saveKvm: =>

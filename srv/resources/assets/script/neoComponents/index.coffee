@@ -12,6 +12,7 @@ module.exports =
       require "carma/neoComponents/DiagTree/Show/Inside"
       require "carma/neoComponents/DiagTree/Editor"
       require "carma/neoComponents/DiagTree/Editor/Inside"
+      require "carma/neoComponents/PermissionBlock"
     ]
 
     for x in components

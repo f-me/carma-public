@@ -3,14 +3,13 @@
 main   = require "carma/model/main"
 render = require "carma/render/screen"
 
+{store} = require "carma/neoComponents/store"
+
+{saveModelInstanceRequest} =
+  require "carma/neoComponents/store/model/actions"
+
 # Find view for this element
 elementView = (elt) -> _.last($(elt).parents("[id*=view]"))
-
-# Save instance loaded in view
-saveInstance = (viewName, cb, force) ->
-  window.global.viewsWare[viewName].knockVM._meta.q.save(cb, force)
-
-window.saveInstance = saveInstance
 
 
 module.exports =
@@ -30,9 +29,10 @@ module.exports =
 
   # Load existing model instance
   createInstance: (viewName, id) ->
-    saveInstance(viewName)
-    render.forgetView(viewName)
-    window.global.activeScreen.views[viewName](viewName, {})
+    action = saveModelInstanceRequest
+    store.dispatch action new action.Payload {viewName}
+    render.forgetView viewName
+    window.global.activeScreen.views[viewName] viewName, {}
 
   # Load existing model instance
   restoreInstance: (viewName, id) ->

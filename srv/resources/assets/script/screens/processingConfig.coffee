@@ -12,5 +12,5 @@ module.exports = {
     main.modelSetup("ProcessingConfig") \
       view,
       {id: window.global.idents("ProcessingConfig").main},
-      {permEl: "config-permissions"}
+      {slotsee: ["config-permissions"]}
 }

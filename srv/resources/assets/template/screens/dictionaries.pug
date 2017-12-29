@@ -50,4 +50,8 @@
                   | Копировать
         #dictionaries-view.form-horizontal
         #permissions
+          permission-block(params=`
+            readonly: _meta.cannotModifyModelData,
+            viewName: view,
+          `)
     #hidden-fields-container(style='display: none;')

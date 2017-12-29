@@ -129,13 +129,12 @@ formatObjURL = (roles) ->
     ""
 
 modelSetup = (modelName, viewName, args) ->
-  permEl = "#{modelName}-permissions"
-  focusClass = "focusable"
-  refs = []
-  forceRender = ["assignedTo", "priority", "closed", "targetGroup"]
-  manual_save = true
-  options = {permEl, focusClass, refs, forceRender, manual_save}
-  main.modelSetup(modelName) viewName, args, options
+  main.modelSetup(modelName) viewName, args,
+    refs        : []
+    focusClass  : "focusable"
+    manual_save : true
+    forceRender : ["assignedTo", "priority", "closed", "targetGroup"]
+    slotsee     : ["#{modelName}-permissions"]
 
 roleFieldSetup = ->
   roleModel =

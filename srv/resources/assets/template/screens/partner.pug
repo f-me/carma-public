@@ -39,3 +39,7 @@
             .modal-footer
               a.btn.btn-primary(data-dismiss='modal') Сохранить
       #Partner-permissions
+        permission-block(params=`
+          readonly: _meta.cannotModifyModelData,
+          viewName: view,
+        `)

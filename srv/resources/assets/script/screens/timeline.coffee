@@ -303,11 +303,8 @@ kvms = null
 ws   = null
 
 setupScreen = (viewName, args) ->
-  options =
-    permEl: null,
-    manual_save: true
-  massVM = Main.modelSetup("massUpdate", models.MassUpdate)(
-    "mass-form", {}, options)
+  massVM = Main.modelSetup("massUpdate", models.MassUpdate) \
+    "mass-form", {}, manual_save: true
 
   timelines = ko.observableArray()
   ks   = ko.observableArray []

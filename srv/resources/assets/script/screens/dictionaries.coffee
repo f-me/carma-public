@@ -10,15 +10,21 @@ template = require "carma-tpl/screens/dictionaries.pug"
 Flds     = require "carma-tpl/fields/form.pug"
 
 modelSetup = (dict, viewName, args) ->
-  permEl = "permissions"
   focusClass = "focusable"
   refs = []
-  manual_save = true if dict.name == "Usermeta"
-  options = {permEl, focusClass, refs, manual_save}
-  kvm = main.modelSetup(dict.name) viewName, args, options
+  manual_save = true if dict.name is "Usermeta"
+
+  kvm = main.modelSetup(dict.name) viewName, args, {
+    focusClass
+    refs
+    manual_save
+    slotsee: ["permissions"]
+  }
+
   kvm['updateUrl'] = ->
     # FIXME: Drop this, because it makes filters unusable
     # Finch.navigate "dict/#{dict.id}/#{kvm.id()}", true
+
   kvm
 
 majorFieldsSetup = (dict, dictModel) ->

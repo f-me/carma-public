@@ -26,9 +26,9 @@ setupCaseModel = (viewName, args) ->
     $.bgetJSON "/_/Case/#{args.id}", (rsp) -> kaze = rsp
 
   kvm = main.modelSetup("Case") viewName, args,
-    permEl       : "case-permissions"
     focusClass   : "focusable"
     slotsee      : ["case-number"
+                    "case-permissions"
                     "case-program-description"
                     "case-car-description"]
     groupsForest : "center"
