@@ -39,8 +39,11 @@ module.exports =
 
       oldLegacy3p:   "carma/oldLegacy3p"
 
-      "jquery": "oldLegacy3p/myJQuery"
-      "jquery-original": path.resolve __dirname, "node_modules", "jquery"
+      "jquery": "oldLegacy3p/jquery-2.2.4"
+      # Not using it right now:
+      # "jquery": "oldLegacy3p/myJQuery"
+      # "jquery-original": path.resolve __dirname, "node_modules", "jquery"
+
       "jquery.knob": "jquery-knob/js/jquery.knob"
       "jquery.notify": "notify/dist/notify-combined"
       "jquery.datatables": "datatables"
@@ -114,10 +117,11 @@ module.exports =
         use:  loader: "imports-loader", options: define: ">false"
       }
 
-      {
-        test: require.resolve "jquery-migrate"
-        use:  loader: "imports-loader", options: define: ">false"
-      }
+      # Not using it right now:
+      # {
+      #   test: require.resolve "jquery-migrate"
+      #   use:  loader: "imports-loader", options: define: ">false"
+      # }
 
       {
         test: require.resolve path.join SRC_DIR, "oldLegacy3p", "d3-v3.5.17"

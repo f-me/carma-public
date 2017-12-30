@@ -1,6 +1,8 @@
+$ = require "oldLegacy3p/jquery-2.2.4"
+# Not using it right now:
 # compatibility with jquery 2.x
-$ = require "oldLegacy3p/myJQuery"
-$.migrateMute = true if process.env.NODE_ENV is "production"
+# $ = require "oldLegacy3p/myJQuery"
+# $.migrateMute = true if process.env.NODE_ENV is "production"
 
 require "jquery.knob"
 require "jquery.notify"
