@@ -31,7 +31,7 @@ jobs:
   build_server:
     <<: *defaults
     docker:
-      - image: formalmethods/carma-stack-build
+      - image: formalmethods/carma-stack-build:stack-1.6.3@sha256:13b265472181d1c519420aff8dbe2e8426da52e41094e4c9e70004caac4004ae
     steps:
       - setup_remote_docker
       - checkout
@@ -62,7 +62,7 @@ jobs:
   build_bundle:
     <<: *defaults
     docker:
-      - image: formalmethods/carma-stack-build
+      - image: formalmethods/carma-stack-build:stack-1.6.3@sha256:13b265472181d1c519420aff8dbe2e8426da52e41094e4c9e70004caac4004ae
     steps:
       - setup_remote_docker
       - checkout
