@@ -33,7 +33,7 @@ do ->
 
 # This will be called on dom ready.
 # We do 'require' here inside because some of modules depends on previous logic.
-module.exports.init = ({dicts, user, users}) ->
+init = ({dicts, user, users}) ->
   $(document).off ".datepicker.data-api"
 
   # Cached mapping between from userid to "name (login)"
@@ -92,56 +92,58 @@ module.exports.init = ({dicts, user, users}) ->
   do neoComponents.initTopLevelModals
 
   # disable everytnig websocket-related for portal
-  if not window.location.origin.match(/portal\.ruamc\.ru/)
+  unless window.location.origin.match /portal\.ruamc\.ru/
     # Setup CTI panel
     if _.contains user.roles, window.global.idents("Role").cti
-      if user.workPhoneSuffix.match(/^\d+$/)
+      if user.workPhoneSuffix.match /^\d+$/
         cti = new CTI user.workPhoneSuffix
-        vips = u.newModelDict("VipNumber", false, {dictionaryLabel: 'number'})
-        vdns = u.newModelDict("VDN", false, {dictionaryLabel: 'number'})
+        vips = u.newModelDict "VipNumber", false, dictionaryLabel: 'number'
+        vdns = u.newModelDict "VDN", false, dictionaryLabel: 'number'
+
         opts =
           # AVAYA halts when this is dialed
           bannedNumbers: ["8"]
           displayedToInternal: u.displayedToInternal
           internalToDisplayed: u.internalToDisplayed
-          isVipCb: (n) -> vips.getVal(n)
+          onexagentPort: 60000
+          isVipCb: (n) -> vips.getVal n
+
           vdnToDisplayed:
             (vdnNumber) ->
               vdnNumber = vdnNumber?.split(":")[0]
-              vdn = vdns.getElement(vdns.getVal(vdnNumber))
+              vdn = vdns.getElement vdns.getVal vdnNumber
               if vdn?
                 "#{vdn?.label}: #{vdn?.greeting}"
               else
                 null
-          onexagentPort: 60000
+
           # Fill caller phone and program when answering a call on
           # call screen
           answerCallCb: (number, vdnNumber) ->
-            if _.contains window.global.user.roles, window.global.idents("Role").call
+            if _.contains user.roles, window.global.idents("Role").call
               number = u.internalToDisplayed number
+
               if number.length > 5
                 vdnNumber = vdnNumber?.split(":")[0]
-                vdn = vdns.getElement(vdns.getVal(vdnNumber))
-                callData = {}
-                if number?
-                  callData.callerPhone = number
-                else
-                  callData.callerPhone = ""
-                if vdn?.program
-                  callData.program = vdn.program
+                vdn = vdns.getElement vdns.getVal vdnNumber
+
+                callData = callerPhone: number ? ""
+                callData.program = vdn.program if vdn?.program
                 u.createNewCall callData
-                localStorage["call.search-query"] = "!Тел:" + number
+
+                localStorage["call.search-query"] = "!Тел:#{number}"
+
           incomingCallCb: (number, callVM) ->
-            $("#cti").show()
+            do $("#cti").show
+
             if number.length > 5
-              n = encodeURIComponent(u.internalToDisplayed(number))
+              n = encodeURIComponent u.internalToDisplayed number
               $.getJSON "/findContractByPhone/#{n}", (res) ->
-                callVM.name(res[0]?.name)
+                callVM.name res[0]?.name
 
         window.global.CTIPanel = new CTIPanel cti, $("#cti"), opts
-        Mousetrap.bind ["`", "ё"], () ->
-          $("#cti").toggle()
-        Mousetrap.bind "ctrl+enter", () -> window.global.CTIPanel.answer()
+        Mousetrap.bind ["`", "ё"], () -> do $("#cti").toggle
+        Mousetrap.bind "ctrl+enter", () -> do window.global.CTIPanel.answer
       else
         console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 
@@ -168,6 +170,8 @@ module.exports.init = ({dicts, user, users}) ->
   $(document).on 'change', '.btn-file :file', ->
     input = $(this)
     numFiles = if input.get(0).files then input.get(0).files.length else 1
-    label = input.val().replace(/\\/g, '/').replace(/.*\//, '')
-    textInput = $(this).parents('.input-group').find(':text')
-    textInput.val(label)
+    label = input.val().replace(/\\/g, '/').replace /.*\//, ''
+    textInput = $(this).parents('.input-group').find ':text'
+    textInput.val label
+
+module.exports = {init}
