@@ -39,6 +39,7 @@ require "carma/neoComponents/DiagTree/Editor/template.pug"
 require "carma/neoComponents/DiagTree/Editor/Inside/template.pug"
 require "carma/neoComponents/PermissionBlock/template.pug"
 require "carma/neoComponents/Navbar/template.pug"
+require "carma/neoComponents/Navbar/itemTemplate.pug"
 
 # OpenLayers 3p images
 require "ol2/img/blank.gif"
