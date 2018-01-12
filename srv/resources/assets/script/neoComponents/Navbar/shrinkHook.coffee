@@ -2,6 +2,9 @@
 {store} = require "carma/neoComponents/store"
 actions = require "carma/neoComponents/store/navbar/actions"
 
+# It would be better do this shrinking different way, without hacks like this,
+# but while we don't have better solution for this, that what we have to deal
+# with.
 initHook = (el) ->
   parent = el.parentNode
   initHeight = parent.offsetHeight

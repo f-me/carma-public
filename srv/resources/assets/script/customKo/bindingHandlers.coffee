@@ -438,9 +438,9 @@ do ->
       $li.addClass "open"
 
       $li
-        .children("ul.dropdown-menu")
+        .children "ul.dropdown-menu"
         .parent()
-        .children("li.dropdown")
+        .children "li.dropdown"
         .addClass "open"
 
     ko.utils.domNodeDisposal.addDisposeCallback el,
