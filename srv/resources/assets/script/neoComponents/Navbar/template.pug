@@ -1,0 +1,9 @@
+// ko template: {
+  name: 'navbar-item-template',
+  foreach: $component.menu().toArray()
+  }
+// /ko
+
+li
+  a(data-bind=`click: $component.sendBugReport`)
+    span.glyphicon.glyphicon-fire

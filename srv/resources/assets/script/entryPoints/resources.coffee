@@ -4,8 +4,6 @@ require "carma-tpl/fields/form.pug"
 require "carma-tpl/fields/ro.pug"
 require "carma-tpl/fields/table.pug"
 
-require "carma-tpl/lib/navbar.pug"
-
 require "carma-tpl/partials/partnerDelayDialog.pug"
 require "carma-tpl/partials/partnersSearch.pug"
 require "carma-tpl/partials/navbar.pug"
@@ -40,6 +38,7 @@ require "carma/neoComponents/DiagTree/Show/Inside/template.pug"
 require "carma/neoComponents/DiagTree/Editor/template.pug"
 require "carma/neoComponents/DiagTree/Editor/Inside/template.pug"
 require "carma/neoComponents/PermissionBlock/template.pug"
+require "carma/neoComponents/Navbar/template.pug"
 
 # OpenLayers 3p images
 require "ol2/img/blank.gif"

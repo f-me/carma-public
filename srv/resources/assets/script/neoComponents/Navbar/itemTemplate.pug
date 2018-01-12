@@ -1,0 +1,38 @@
+// ko if: type === 'li'
+li(data-bind=`css: {active: $component.isActive($data)}`)
+  a(data-bind=`attr: {href: '#' + $data.get('name')}, text: $data.get('label')`)
+// /ko
+
+// ko if: type === 'link'
+li
+  a(target="_blank" data-bind=`
+    attr: {href: $data.get('name')},
+    text: $data.get('label'),
+  `)
+// /ko
+
+// ko if: type === 'sms'
+li
+  a(data-bind=`click: $component.showSmsForm`)
+    span.glyphicon.glyphicon-envelope
+// /ko
+
+// ko if: type === 'dropdown'
+li.dropdown(data-bind=`css: {active: $component.isActive($data)}`)
+
+  a.dropdown-toggle(
+    href='#'
+    data-toggle='dropdown'
+    data-bind=`nestedDropdown: true`)
+
+    // ko text: label
+    // /ko
+    b.caret
+
+  ul.dropdown-menu(data-bind=`
+    template: {
+      name: 'navbar-item-template',
+      foreach: $data.get('screens').toArray(),
+    },
+  `)
+// /ko

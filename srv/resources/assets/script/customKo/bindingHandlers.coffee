@@ -419,3 +419,35 @@ do ->
     init args...
 
   ko.bindingHandlers.wysihtml5 = {init, update}
+
+# "nestedDropdown" handler
+do ->
+  ev_sfx = "__ko_nestedDropdown"
+
+  dispose = (el) ->
+    $(el).off "click.#{ev_sfx}"
+
+  init = (el, acc) ->
+    accVal = ko.utils.unwrapObservable acc()
+    return unless accVal # disabled by falsy value
+
+    $(el).on "click.#{ev_sfx}", (ev) ->
+      do ev.preventDefault
+      do ev.stopPropagation
+      $li = $(@).parent()
+      $li.addClass "open"
+
+      $li
+        .children("ul.dropdown-menu")
+        .parent()
+        .children("li.dropdown")
+        .addClass "open"
+
+    ko.utils.domNodeDisposal.addDisposeCallback el,
+      dispose.bind null, arguments...
+
+  update = (args...) ->
+    dispose args...
+    init args...
+
+  ko.bindingHandlers.nestedDropdown = {init, update}

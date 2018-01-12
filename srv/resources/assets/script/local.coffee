@@ -1,12 +1,16 @@
 #/ Everything local to the customer resides here
 
-{$, _, Mousetrap} = require "carma/vendor"
+{ko, $, _, Mousetrap} = require "carma/vendor"
+
+{bugReport} = require "carma/lib/bug-report"
 require "carma/routes"
 
-{BugReport} = require "carma/lib/bug-report"
-bugReport = new BugReport
+{data: {screens}} = require "carma/data"
+{store} = require "carma/neoComponents/store"
+navbarActions = require "carma/neoComponents/store/navbar/actions"
+navbarShrinkHook = require "carma/neoComponents/Navbar/shrinkHook"
 
-# Some shit depends on it
+# TODO FIXME Some shit depends on it
 # (last useful stacktrace path is 'carma/screens/servicesSearch').
 window._ = _
 
@@ -14,11 +18,11 @@ window._ = _
 # and then send to server
 do ->
   sendError = (err) ->
-    unless err.match(/whoopsie/)
+    unless err.match /whoopsie/
       $.ajax
-        type: 'POST'
-        url : '/whoopsie'
-        data: err
+        type : 'POST'
+        url  : '/whoopsie'
+        data : err
 
   window.onerror = (msg, url, line, pos, err) ->
     bugReport.addError msg, url, line
@@ -29,14 +33,12 @@ do ->
     sendError [
       s.type, s.url, jqXHR.status,
       jqXHR.statusText, s.data, jqXHR.responseText
-    ].join('  ')
+    ].join '  '
 
 # This will be called on dom ready.
 # We do 'require' here inside because some of modules depends on previous logic.
 module.exports.init = ({dicts, user, users}) ->
   $(document).off ".datepicker.data-api"
-
-  bugReport.setElement $('#send-bug-report')
 
   # Cached mapping between from userid to "name (login)"
   usersById = {}
@@ -86,7 +88,6 @@ module.exports.init = ({dicts, user, users}) ->
   # Doing it here because some of it depends on global messy crappy dungy shit.
   u             = require "carma/utils"
   sync          = require "carma/sync/crud"
-  liveMenu      = require "carma/liveMenu"
   CurrentUser   = require "carma/lib/current-user"
   {CTI}         = require "carma/lib/cti"
   {CTIPanel}    = require "carma/lib/cti-panel"
@@ -148,22 +149,24 @@ module.exports.init = ({dicts, user, users}) ->
       else
         console.error "Malformed workPhoneSuffix \"#{user.workPhoneSuffix}\""
 
-  if user.login == "darya"
-    $('#icon-user').removeClass('icon-user').addClass('icon-heart')
-
   # Enable Popover data API
-  $( () -> $('body').popover
-                        html: true,
-                        selector: '[data-provide="popover"]',
-                        trigger: 'hover')
+  $('body').popover
+    selector : '[data-provide="popover"]'
+    trigger  : 'hover'
+    html     : true
 
   # disable everytnig websocket-related for portal
-  if not window.location.origin.match(/portal\.ruamc\.ru/)
-    CurrentUser.initialize()
-    window.global.Usermeta.updateAbandonedServices()
+  unless window.location.origin.match /portal\.ruamc\.ru/
+    do CurrentUser.initialize
+    do window.global.Usermeta.updateAbandonedServices
 
   # render menu only after everything else in menu bar is done
-  liveMenu.setup(document.getElementById 'nav')
+  do ->
+    el = document.getElementById 'nav'
+    navbarShrinkHook.initHook el
+    ko.applyBindings {}, el
+    action = navbarActions.fillMenu
+    store.dispatch action new action.Payload plainData: screens
 
   # file field selection (currenlty only on vin screen)
   $(document).on 'change', '.btn-file :file', ->

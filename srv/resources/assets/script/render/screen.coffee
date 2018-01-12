@@ -1,4 +1,6 @@
 {$, _, ko, Mustache} = require "carma/vendor"
+{store} = require "carma/neoComponents/store"
+navbarActions = require "carma/neoComponents/store/navbar/actions"
 
 # Remove all content of view and clean up wares.
 #
@@ -33,8 +35,9 @@ renderScreen = (screenObj, args) ->
   window.global.activeScreen = screen
 
   # Highlight the new item in navbar
-  $("li.active").removeClass "active"
-  $el("#{screen.name}-screen-nav").addClass "active"
+  do ->
+    action = navbarActions.setCurrent
+    store.dispatch action new action.Payload name: screen.name
 
   rawPartials = if screenObj.partials \
     then $('.partial').add $(screenObj.partials).siblings(".partial")

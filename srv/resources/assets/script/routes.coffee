@@ -68,7 +68,7 @@ addRoute "processingConfig", (bind) ->
 addRoute "usermeta/:id", (bind) ->
   user = require "carma/screens/dictionaries"
   user.screen =
-    name : "dictionaries"
+    name    : "usermeta"
     template: "dictionaries-screen-template"
     views:
       "dictionaries-view": user
