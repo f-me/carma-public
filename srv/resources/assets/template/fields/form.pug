@@ -213,13 +213,9 @@ include _form_utils.pug
 #inline-uploader-field-template.field-template(type='text/template')
   +fieldControlGroup
     form.form(style='margin-bottom: 0;' data-bind=`
-      attr: { action: '/upload/{{modelName}}/' + maybeId() + '/{{name}}'},
-
       {{#meta.single-uploader}}
         visible: _.isEmpty({{name}}()),
       {{/meta.single-uploader}}
-
-      setdata: {{name}},
     `)
       // File chooser widget
       .input-group.input-group-sm
@@ -230,7 +226,14 @@ include _form_utils.pug
             input.upload-dialog(type="file")
           a.btn.btn-primary(data-bind='click: {{name}}ClickHandler')
             span.glyphicon.glyphicon-upload
-    div(id="{{modelName}}-{{cid}}-{{name}}-references")
+    div(data-bind=`foreach: {{name}}Reference`)
+      div
+        a.text-danger(href='#' data-bind=`click: $parent.{{name}}DetachFile`)
+          | × &nbsp;
+        span
+          span.glyphicon.glyphicon-folder-open
+          | &nbsp;
+          a.file-name(data-bind=`attr: {href: filenameUrl}, text: filename`)
 
 //- Special template used to render first field of group in parent view.
 #group-field-template.field-template(type='text/template')
@@ -660,16 +663,6 @@ mixin simpleRefHdr(name, bindName)
 #subprogram-contract-fields-reference-template.reference-template
   +refCommon
     +simpleRefHdr("Поле", "contractFieldLocal")
-
-#files-reference-template.reference-template
-  div
-    a.detach-button.text-danger(href='#'
-       onclick='inlineDetachFile($(this)); return false'
-       data-attachment='{{ refId }}'
-       data-field='{{ refField }}')
-      | × &nbsp;
-    span(id="{{ refView }}" class="{{ refClass }}")
-    // Attachment contents are rendered here
 
 #actions-reference-template.reference-template
   +refCommon('style: {"background-color": _actColor}')

@@ -37,57 +37,21 @@ checkFileSize = (file) ->
 #
 # props is an object with extra properties of $.ajax
 ajaxUpload = (url, file, props) ->
-  fd = new FormData
-  fd.append "file", file
+  data = new FormData
+  data.append "file", file
 
-  baseProps =
+  baseProps = {
+    url
+    data
     type        : "POST"
-    url         : url
+    dataType    : "json"
     contentType : false
     processData : false
-    data        : fd
-    dataType    : "json"
+  }
 
   $.ajax Object.assign baseProps, props
 
-# Add an attachment reference to an instance, provided a form from
-# inline-uploader template
-inlineUploadFile = (form) ->
-  formMeta = form.data()
-  url      = form.attr "action"
-  files    = form.find(".upload-dialog")[0].files
-
-  if files.length > 0
-    ajaxUpload url, files[0]
-      # Re-read instance data when a new attachment is added
-      .then  -> formMeta.knockVM._meta.q.fetch()
-      .catch -> window.alert "Не удалось загрузить файл!"
-
-    form.find('input:file').val("").trigger "change"
-
-# Delete an attachment reference from an instance, provided an
-# element from reference template with data-attachment and
-# data-field fields set.
-inlineDetachFile = (e) ->
-  attId = e.data("attachment")
-  field = e.data("field")
-  ref = "Attachment:#{attId}"
-
-  return unless confirm "Вы уверены, что хотите открепить этот файл?"
-
-  formMeta = e.parent().parent().siblings("form").data()
-  kvm = formMeta.knockVM
-
-  # Cut out attachment ref and re-save the instance
-  kvm[field] _.without(kvm[field]().split(','), ref).join(',')
-  kvm._meta.q.save()
-
-  # Suitable for onClick on <a>
-  false
-
 module.exports = {
-  inlineUploadFile
-  inlineDetachFile
   ajaxUpload
   progressXHR
   checkFileSize

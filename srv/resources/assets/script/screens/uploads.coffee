@@ -163,7 +163,8 @@ sendFile = (file) ->
       )
 
 # Render file browser widget, setup all hooks and screen-global
-# handlers
+# handlers.
+# TODO refactor this spagetti of jquery with knockout
 renderUploadsForm = (viewName, args) ->
   $("#upload-files-tip").tooltip()
   $("#upload-cleanup-tip").tooltip()

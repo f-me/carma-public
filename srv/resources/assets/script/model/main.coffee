@@ -21,13 +21,13 @@
 
 require "carma/lib/serialize"
 
-dict               = require "carma/dictionaries/local-dict"
-render             = require "carma/model/render"
-Fs                 = require "carma/model/fields"
-sync               = require "carma/sync/crud"
-Idents             = require "carma/lib/idents"
-{Config}           = require "carma/lib/config"
-{inlineUploadFile} = require "carma/lib/upload"
+dict         = require "carma/dictionaries/local-dict"
+render       = require "carma/model/render"
+Fs           = require "carma/model/fields"
+sync         = require "carma/sync/crud"
+Idents       = require "carma/lib/idents"
+{Config}     = require "carma/lib/config"
+{ajaxUpload} = require "carma/lib/upload"
 
 mainSetup = (localDictionaries, hooks, user, pubSub) ->
 
@@ -173,8 +173,25 @@ buildKVM = (model, options = {}) ->
 
       # Handler for clicking on "upload" button
       if f.meta?.widget is "inline-uploader"
-        kvm["#{n}ClickHandler"] = (model, e) ->
-          inlineUploadFile $(e.target).closest('form')
+
+        kvm["#{n}ClickHandler"] = (vm, e) ->
+          $file = $(e.target).closest("form").find "input.upload-dialog"
+          {files} = $file.get 0
+          return if files.length <= 0
+
+          ajaxUpload "/upload/#{model.name}/#{kvm["maybeId"]()}/#{n}", files[0]
+            # Re-read instance data when a new attachment is added
+            .done -> do kvm._meta.q.fetch
+            .fail -> window.alert "Не удалось загрузить файл!"
+
+          $file.val("").trigger "change"
+
+        kvm["#{n}DetachFile"] = (vm, e) ->
+          return unless confirm "Вы уверены, что хотите открепить этот файл?"
+          # Cut out attachment ref and re-save the instance
+          ref = "Attachment:#{vm.id()}"
+          kvm[n] _.without(kvm[n]().split(','), ref).join ','
+          do kvm._meta.q.save
 
       # special observable for text, so it won't be saved on update null -> ""
       # #1221

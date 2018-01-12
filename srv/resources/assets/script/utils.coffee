@@ -194,7 +194,6 @@ module.exports = {
     setGlobalShit "pickPartnerBlip",  require "carma/map"
     setGlobalShit "addService",       require "carma/screens/case"
     # From 'local':
-    setGlobalShit "inlineDetachFile", require "carma/lib/upload"
     setGlobalShit "sendSms",          require "carma/lib/send-sms"
     setGlobalShit "showComplex",      module.exports
     setGlobalShit "hideComplex",      module.exports
