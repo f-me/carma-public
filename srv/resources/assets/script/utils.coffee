@@ -184,7 +184,7 @@ module.exports = {
 
   makeAFuckingMess: ->
     # Replacement for old `build_global_fn` from 'utils'
-    # FIXME
+    # FIXME The goal is to completely remove this historical big mistake.
     setGlobalShit = (name, module) -> window[name] = module[name]
 
     # Compatibility with old horrible shit.

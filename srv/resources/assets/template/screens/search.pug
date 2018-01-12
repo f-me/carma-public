@@ -4,10 +4,10 @@
 
   .col-md-3
     .row.col-md-12
-        #search-conditions.form-horizontal(data-bind='foreach: kvm.showFields')
-          div(data-bind='renderField: $data')
+      #search-conditions.form-horizontal(data-bind='foreach: kvm.showFields')
+        div(data-bind='renderField: $data')
     .row.col-md-12.form-horizontal
-        #show-field(data-bind='renderField: f')
+      #show-field(data-bind='renderField: f')
 
 #search-wrap-template.hidden
   div(style="position: absolute;")

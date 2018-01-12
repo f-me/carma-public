@@ -174,6 +174,10 @@ buildKVM = (model, options = {}) ->
       # Handler for clicking on "upload" button
       if f.meta?.widget is "inline-uploader"
 
+        kvm["#{n}IsFormVisible"] = ko.pureComputed ->
+          isEmpty = _.isEmpty kvm[n]() # it's important to subscribe to it first
+          not f.meta["single-uploader"] or isEmpty
+
         kvm["#{n}ClickHandler"] = (vm, e) ->
           $file = $(e.target).closest("form").find "input.upload-dialog"
           {files} = $file.get 0

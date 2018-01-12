@@ -10,10 +10,6 @@ require "carma/routes"
 navbarActions = require "carma/neoComponents/store/navbar/actions"
 navbarShrinkHook = require "carma/neoComponents/Navbar/shrinkHook"
 
-# TODO FIXME Some shit depends on it
-# (last useful stacktrace path is 'carma/screens/servicesSearch').
-window._ = _
-
 # collect errors in console to add them to the bug report
 # and then send to server
 do ->

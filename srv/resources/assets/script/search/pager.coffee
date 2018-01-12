@@ -13,19 +13,22 @@ class Pager extends SimpleSerialize
 
     @kvm._meta.pager = @
 
-    @limit = ko.observable(lim)
-    @offset = ko.observable(offset)
-    @page   = ko.computed
+    @limit  = ko.observable lim
+    @offset = ko.observable offset
+
+    @page = ko.computed
       read:      => page @offset(), @limit()
-      write: (p) => @offset((p-1) * @limit())
+      write: (p) => @offset (p-1) * @limit()
 
-    @next = ko.observable()
     @prev = ko.observable()
+    @next = ko.observable()
+    @isPrevHidden = ko.pureComputed => ! _.isNumber @prev()
+    @isNextHidden = ko.pureComputed => ! @next()
 
-  nextPage: => @offset(@next()) if _.isNumber @next()
-  prevPage: => @offset(@prev()) if _.isNumber @prev()
+  nextPage: => @offset @next() if _.isNumber @next()
+  prevPage: => @offset @prev() if _.isNumber @prev()
 
-  toJSON: -> super(['kvm'])
+  toJSON: -> super ['kvm']
 
 
 module.exports =

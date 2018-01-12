@@ -212,11 +212,10 @@ include _form_utils.pug
 // form. See also files-reference-template for each item template.
 #inline-uploader-field-template.field-template(type='text/template')
   +fieldControlGroup
-    form.form(style='margin-bottom: 0;' data-bind=`
-      {{#meta.single-uploader}}
-        visible: _.isEmpty({{name}}()),
-      {{/meta.single-uploader}}
-    `)
+    form.form(
+      style='margin-bottom: 0;'
+      data-bind=`visible: {{name}}IsFormVisible`)
+
       // File chooser widget
       .input-group.input-group-sm
         input.form-control(type="text" readonly)
@@ -226,6 +225,7 @@ include _form_utils.pug
             input.upload-dialog(type="file")
           a.btn.btn-primary(data-bind='click: {{name}}ClickHandler')
             span.glyphicon.glyphicon-upload
+
     div(data-bind=`foreach: {{name}}Reference`)
       div
         a.text-danger(href='#' data-bind=`click: $parent.{{name}}DetachFile`)
