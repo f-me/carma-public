@@ -97,7 +97,6 @@ OpenLayers.Util.getImageLocation = (img) ->
       throw new Error "Unexpected requested OpenLayers image: '#{img}'"
 
 Promise = require "bluebird"
-require "whatwg-fetch"
 
 # TODO maybe replace it with the moment library?
 require "oldLegacy3p/date/core"
