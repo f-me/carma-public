@@ -37,6 +37,22 @@ include _form_utils.pug
         {{/ meta.regexp }}
       `)
 
+.field-template#plainTextarea-field-template
+  +fieldControlGroup
+    textarea.form-control(
+      name="{{ name }}"
+      rows="7"
+      style="height: 10em;"
+      data-bind=`
+        value: {{ name }}Text,
+        valueUpdate: ['afterkeydown', 'afterpaste', 'change'],
+        disabled: {{ name }}Disabled,
+
+        {{# meta.regexp }}
+          css: { warning: {{name}}Regexp }
+        {{/ meta.regexp }}
+      `)
+
 .field-template#statictext-field-template
   .control-group
     span(data-bind="text: {{ name }}Text")

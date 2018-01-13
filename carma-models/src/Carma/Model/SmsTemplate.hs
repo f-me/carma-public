@@ -37,5 +37,5 @@ instance Model SmsTemplate where
   idents = Carma.Model.SmsTemplate.idents
   modelInfo = mkModelInfo SmsTemplate ident
   modelView = \case
-    "" -> Just $ modifyView defaultView [textarea text]
+    "" -> Just $ modifyView defaultView [plainTextarea text]
     _  -> Nothing

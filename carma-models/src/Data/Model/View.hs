@@ -9,6 +9,7 @@ module Data.Model.View
   ,modifyView
   ,stripId
   ,textarea
+  ,plainTextarea
   ,readonly
   ,required
   ,invisible
@@ -103,6 +104,12 @@ textarea
 textarea fld = Wrap
   (fieldName fld
   ,\v -> v {fv_type = "textarea"})
+
+plainTextarea
+  :: SingI name => (m -> Field t (FOpt name desc app))
+  -> (Text, FieldView -> FieldView) :@ m
+plainTextarea fld
+  = Wrap (fieldName fld, \v -> v {fv_type = "plainTextarea"})
 
 
 setMeta
