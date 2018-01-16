@@ -133,13 +133,13 @@ module.exports =
 
 
   readStuff: (key) ->
-    checkStuff()
+    do checkStuff
     window.global.Usermeta.stuff()[key]
 
   writeStuff: (key, val) ->
-    checkStuff()
+    do checkStuff
     s = window.global.Usermeta.stuff
     newVal = {}; newVal[key] = val
     # write deep copy of previous value, otherwise we can change values that was
     # read by somebody else
-    s($.extend(true, {}, s(), newVal))
+    s $.extend true, {}, s(), newVal

@@ -89,7 +89,7 @@ init = ({dicts, user, users}) ->
   {CTIPanel}    = require "carma/lib/cti-panel"
 
   do u.makeAFuckingMess
-  do neoComponents.initTopLevelModals
+  ko.applyBindings {}, document.getElementById "top-level-modals"
 
   # disable everytnig websocket-related for portal
   unless window.location.origin.match /portal\.ruamc\.ru/
