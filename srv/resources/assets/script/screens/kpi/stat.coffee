@@ -77,16 +77,17 @@ module.exports =
             sCtx.files_attached f
 
         updateTbl sCtx.interval()
-        sCtx.fetchData = -> updateTbl(sCtx.interval())
+        sCtx.fetchData = -> updateTbl sCtx.interval()
 
-        settingsCtx: sCtx
-        tblCtx:      tCtx
-        dumpSettings: { interval: sCtx.interval }
+        settingsCtx:  sCtx
+        tblCtx:       tCtx
+        dumpSettings: {interval: sCtx.interval}
 
-    ko.applyBindings({settingsCtx, tblCtx, spinner, kvms: tblCtx.kvms},
-                     $("#stat-kpi-content")[0])
-    # ko.applyBindings(settingsCtx, $("#settings")[0])
-    # ko.applyBindings(tblCtx, $("#tbl")[0])
+    ko.applyBindings \
+      {settingsCtx, tblCtx, spinner, kvms: tblCtx.kvms},
+      $("#stat-kpi-content")[0]
+    # ko.applyBindings settingsCtx, $("#settings")[0]
+    # ko.applyBindings tblCtx, $("#tbl")[0]
 
   destructor: ->
-    ko.dataFor($("#tbl")[0]).kvms.clean()
+    do ko.dataFor($("#tbl")[0]).kvms.clean

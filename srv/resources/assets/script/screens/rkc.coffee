@@ -38,7 +38,7 @@ rkcWeatherAddCity = (name) ->
 
 updateWeather = ->
   setTimeout ->
-    cities = this.wcities
+    cities = wcities
     cfg = document.cookie.match /rkcWeather=([^;]*)/
     $.getJSON "/rkc/weather?cities=#{cfg?[1] || ''}",
               (result) -> rkcFillWeather(result, cities)
@@ -110,7 +110,7 @@ fillRKCFilters = (updater, partners) ->
 
     $('#reload').click updater
 
-this.filterRKCArgs = () ->
+filterRKCArgs = () ->
   prog = $('#program-select').val()
   city = $('#city-select').val()
   partner = $('#partner-select').val()
@@ -121,7 +121,9 @@ this.filterRKCArgs = () ->
   args.push "program=#{prog}"    if prog    != "*"
   args.push "city=#{city}"       if city    != "*"
   args.push "partner=#{partner}" if partner != "*"
-  return "?" + args.join "&"
+  "?#{args.join "&"}"
+
+wcities = null # mutable
 
 setupRKCScreen = (viewName, args) ->
   setTimeout ->
@@ -139,9 +141,9 @@ setupRKCScreen = (viewName, args) ->
     return if weathert.hasClass("dataTable")
     return if complt.hasClass("dataTable")
 
-    this.wcities = ko.observableArray([])
+    wcities = ko.observableArray []
 
-    ko.applyBindings(this.wcities, el "rkc-weather-table")
+    ko.applyBindings wcities, el "rkc-weather-table"
 
     ct = utils.mkDataTable caset, { bFilter: false, bInfo: false }
     bt = utils.mkDataTable actionst, { bFilter: false, bInfo: false }
@@ -178,7 +180,7 @@ setupRKCScreen = (viewName, args) ->
         fmt = (x) -> if x < 10 then "0" + x else "" + x
         Math.floor(tm / 60) + ":" + fmt(tm % 60)
 
-    getArgs = () -> this.filterRKCArgs()
+    getArgs = () -> do filterRKCArgs
 
     update = () ->
       args = getArgs()
