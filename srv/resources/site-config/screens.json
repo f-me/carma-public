@@ -42,19 +42,22 @@
          "type"  : "li",
          "permissions": ["supervisor"]
        },
-       { "name"  :"kpi/stat",
+       { "name"  : "kpi/stat",
          "label" : "Статистические показатели",
          "type"  : "li",
+         "nameAliases": ["kpi-stat"],
          "permissions": ["supervisor"]
        },
-       { "name"  :"kpi/oper",
+       { "name"  : "kpi/oper",
          "label" : "Оперативные показатели",
          "type"  : "li",
+         "nameAliases": ["kpi-oper"],
          "permissions": ["supervisor"]
        },
-       { "name"  :"kpi/group",
+       { "name"  : "kpi/group",
          "label" : "Групповые показатели",
          "type"  : "li",
+         "nameAliases": ["kpi-group"],
          "permissions": ["supervisor"]
        }
 
