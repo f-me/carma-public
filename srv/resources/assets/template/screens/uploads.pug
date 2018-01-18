@@ -1,3 +1,6 @@
+// a protection from id collisions (also from jquery-monkeys)
+- var rnd = String(Math.random()).slice(2)
+
 #uploads-form.container
   .page-header
     h3 Загрузка файлов
@@ -5,9 +8,10 @@
     .col-md-8
       form#upload-files-form.form(data-bind=`submit: uploadHandler`)
         .form-group
-          label.control-label(for='upload-files')
+          label.control-label(for=`upload-files--${rnd}`)
             | Выберите файлы для загрузки&nbsp;
-            span#upload-files-tip(data-html='true'
+            span#upload-files-tip(
+              data-html='true'
               data-placement='right'
               title="Каждый файл будет прикреплён к кейсам, номера которых \
                      перечислены  в начале его имени до первого дефиса, \
@@ -17,7 +21,7 @@
           upload-file-field(params=`
             isMultiple    : true,
             autoClear     : false,
-            fileInputId   : 'upload-files',
+            fileInputId   : 'upload-files--${rnd}',
             isLoading     : isProcessing,
             uploadHandler : uploadHandler,
             selectedFiles : filesToUpload,
