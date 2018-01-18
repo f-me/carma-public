@@ -231,17 +231,10 @@ include _form_utils.pug
     form.form(
       style='margin-bottom: 0;'
       data-bind=`visible: {{name}}IsFormVisible`)
-
-      // File chooser widget
-      .input-group.input-group-sm
-        input.form-control(type="text" readonly)
-        .input-group-btn
-          span.btn.btn-default.btn-file
-            span.glyphicon.glyphicon-folder-open
-            input.upload-dialog(type="file")
-          a.btn.btn-primary(data-bind='click: {{name}}ClickHandler')
-            span.glyphicon.glyphicon-upload
-
+      upload-file-field(params=`
+        uploadHandler: {{name}}UploadHandler,
+        isLoading: {{name}}IsProcessing,
+      `)
     div(data-bind=`foreach: {{name}}Reference`)
       div
         a.text-danger(href='#' data-bind=`click: $parent.{{name}}DetachFile`)

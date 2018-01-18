@@ -166,12 +166,4 @@ init = ({dicts, user, users}) ->
     action = navbarActions.fillMenu
     store.dispatch action new action.Payload plainData: screens
 
-  # file field selection (currenlty only on vin screen)
-  $(document).on 'change', '.btn-file :file', ->
-    input = $(this)
-    numFiles = if input.get(0).files then input.get(0).files.length else 1
-    label = input.val().replace(/\\/g, '/').replace /.*\//, ''
-    textInput = $(this).parents('.input-group').find ':text'
-    textInput.val label
-
 module.exports = {init}

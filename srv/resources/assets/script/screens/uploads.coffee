@@ -3,7 +3,7 @@
 # Uses "Attachment" model and /upload/Case/[bulk|<n>]/files server
 # handlers.
 
-{$, _, ko} = require "carma/vendor"
+{$, _, ko, Promise} = require "carma/vendor"
 
 upl = require "carma/lib/upload"
 mu  = require "carma/model/utils"
@@ -73,8 +73,9 @@ attachToCase = (bvm, af) ->
 
 # Upload new attachment, render file progress bar and whistles.
 # Argument is a File object.
-sendFile = (file) ->
+sendFile = (file, alwaysCb = (->)) ->
   if upl.checkFileSize(file)
+    do alwaysCb
     return
 
   uid = _.uniqueId "upload-"
@@ -82,9 +83,9 @@ sendFile = (file) ->
   # A box for this upload, with a progress bar and whistles
   box = $ $("#upload-box-template").clone().html()
   box.attr "id", uid
-  box.hide()
+  do box.hide
   box.appendTo $("#uploaded-files")
-  box.fadeIn()
+  do box.fadeIn
 
   # A small KVM for user interaction
   bvm =
@@ -102,19 +103,23 @@ sendFile = (file) ->
   ko.applyBindings bvm, $(box)[0]
 
   # Upload the file asynchronously
-  upl.ajaxUpload("/upload/Case/bulk/files/", file,
-    xhr: upl.progressXHR box.find ".progress"
-    ).
-    always(() ->
-      box.find(".progress").fadeOut()
-      box.removeClass "alert-info").
-    fail(() ->
+  upl.ajaxUpload "/upload/Case/bulk/files/",
+                 file,
+                 xhr: upl.progressXHR box.find ".progress"
+
+    .always () ->
+      do box.find(".progress").fadeOut
+      box.removeClass "alert-info"
+      do alwaysCb
+
+    .fail () ->
       box.addClass "alert-danger"
-      bvm.msg "Во время загрузки произошла критическая ошибка").
-    done((res) ->
-      bvm.aid(res.attachment.id)
-      bvm.filename(res.attachment.filename)
-      bvm.dupe(res.dupe)
+      bvm.msg "Во время загрузки произошла критическая ошибка"
+
+    .done (res) ->
+      bvm.aid res.attachment.id
+      bvm.filename res.attachment.filename
+      bvm.dupe res.dupe
 
       for t in res.targets
         bvm.cases.push t[1]
@@ -124,80 +129,66 @@ sendFile = (file) ->
       if bvm.cases().length == 0
         box.addClass "alert-danger"
         bvm.msg "Файл загружен, но номера кейсов не распознаны"
+      else if bvm.unknown().length > 0
+        box.addClass "alert-warning"
+        bvm.msg "Файл загружен, но некоторые номера кейсов не распознаны"
       else
-        if bvm.unknown().length > 0
-          box.addClass "alert-warning"
-          bvm.msg "Файл загружен, но некоторые номера кейсов не распознаны"
-        else
-          box.addClass "alert-success"
-          bvm.msg "Файл успешно загружен"
+        box.addClass "alert-success"
+        bvm.msg "Файл успешно загружен"
 
       bvm.attach true
 
       # Activate "add case" link
       box.find(".attach-button").click () ->
-        $(this).hide()
-        box.find(".attach-form").show().find(".attach-field").focus()
+        do $(this).hide
+        do box.find(".attach-form").show().find(".attach-field").focus
         false
       box.find(".attach-field").blur () ->
-        if $(this).val().length == 0
-          $(this).parents(".attach-form").hide()
-          box.find(".attach-button").show()
+        return if $(this).val().length isnt 0
+        do $(this).parents(".attach-form").hide
+        do box.find(".attach-button").show
 
       # "Delete case" links
       box.on "click", ".detach-button", () ->
-        detachFromCase bvm, $(this).data("target")
+        detachFromCase bvm, $(this).data "target"
         false
 
       # Hook up case add routine for input field
       box.find(".attach-form").submit (e) ->
-        af = $(this).find(".attach-field")
+        af = $(this).find ".attach-field"
         res = attachToCase bvm, af
         false
 
       # Forget existing validity violations when case number changes
       box.find(".attach-field").change () ->
-        $(this)[0].setCustomValidity("")
+        $(this)[0].setCustomValidity ""
 
-      box.data("bvm", bvm)
-      )
+      box.data "bvm", bvm
 
 # Render file browser widget, setup all hooks and screen-global
 # handlers.
-# TODO refactor this spagetti of jquery with knockout
+# TODO refactor spagetti of jquery with knockout
 renderUploadsForm = (viewName, args) ->
   $("#upload-files-tip").tooltip()
   $("#upload-cleanup-tip").tooltip()
 
-  # Fake browse button
-  $("#upload-browse-btn").click () ->
-    $("#upload-dialog").click()
-
   $("#upload-cleanup").click () ->
     $("#uploaded-files .alert-success").slideUp()
 
-  $("#upload-files-form").submit (e) ->
-    $("#upload-send").click()
-    false
+  kvm =
+    filesToUpload: ko.observableArray []
+    isProcessing: ko.observable no
 
-  # Show file names when selecting files
-  $("#upload-dialog").change () ->
-    files = @files
-    if files.length > 0
-      names = (files.item(n).name for n in [0..(files.length - 1)])
-      $("#upload-names").val names.join " "
-    else
-      $("#upload-names").val ""
+    uploadHandler: ->
+      files = kvm.filesToUpload()
+      return if files.length is 0
+      kvm.filesToUpload []
+      kvm.isProcessing yes
 
-  $("#upload-send").click () ->
-    # Upload all files
-    files = $("#upload-dialog")[0].files
-    if files.length > 0
-      for n in [0..(files.length - 1)]
-        sendFile files.item(n)
-      # Flush files list
-      $("#upload-dialog").val("")
-      $("#upload-dialog").change()
+      Promise.all ((new Promise (cb) -> sendFile file, cb) for file in files)
+        .then -> kvm.isProcessing no
+
+  ko.applyBindings kvm, document.getElementById "upload-files-form"
 
 module.exports =
   { constructor: renderUploadsForm

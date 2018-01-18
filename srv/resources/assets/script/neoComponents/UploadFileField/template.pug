@@ -1,0 +1,26 @@
+.input-group.input-group-sm
+  span(data-bind=`spinner: $component.isLoading`)
+  input.form-control(type="text" readonly data-bind=`
+    value: $component.viewSelectedFiles,
+    disable: $component.isLoading,
+  `)
+  .input-group-btn
+    span.btn.btn-default.btn-file
+      span.glyphicon.glyphicon-folder-open
+      input(type="file" data-bind=`
+        attr: {
+          multiple : $component.isMultiple,
+          accept   : $component.mimeFilter,
+          id       : $component.fileInputId,
+        },
+
+        disable: $component.isLoading,
+        event: {change: $component.fileInputChangeHandler},
+      `)
+    // ko if: $component.withButton
+    button.btn.btn-primary(data-bind=`
+      click: $component.uploadClickHandler,
+      disable: $component.isLoading,
+    `)
+      span.glyphicon.glyphicon-upload
+    // /ko

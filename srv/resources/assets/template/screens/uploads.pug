@@ -3,7 +3,7 @@
     h3 Загрузка файлов
   .central-form.row
     .col-md-8
-      form#upload-files-form.form
+      form#upload-files-form.form(data-bind=`submit: uploadHandler`)
         .form-group
           label.control-label(for='upload-files')
             | Выберите файлы для загрузки&nbsp;
@@ -14,15 +14,14 @@
                      например: <i>75521,78214-Акт315.pdf</i> → кейсы 75521 \
                      и 78214")
               i.glyphicon.glyphicon-question-sign
-          // File chooser widget
-          .input-group.input-group-sm
-            input.form-control(type="text" readonly)
-            .input-group-btn
-              span.btn.btn-default.btn-file
-                span.glyphicon.glyphicon-folder-open
-                input#upload-dialog(type="file" multiple)
-              button.btn.btn-primary#upload-send
-                span.glyphicon.glyphicon-upload
+          upload-file-field(params=`
+            isMultiple    : true,
+            autoClear     : false,
+            fileInputId   : 'upload-files',
+            isLoading     : isProcessing,
+            uploadHandler : uploadHandler,
+            selectedFiles : filesToUpload,
+          `)
 
       #uploaded-files(style='overflow-y: scroll;')
 

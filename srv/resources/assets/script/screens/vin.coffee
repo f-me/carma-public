@@ -10,20 +10,23 @@ upl    = require "carma/lib/upload"
 template = require "carma-tpl/screens/vin.pug"
 
 # Send VIN file, set up a new box element to track task progress
-sendVin = (sid, fid, file) ->
-  if upl.checkFileSize(file)
+# TODO heal this jquery spagetti
+sendVin = (sid, fid, file, alwaysCb = (->)) ->
+  if upl.checkFileSize file
+    do alwaysCb
     return
-  formData = new FormData()
-  formData.append("file", file)
-  formData.append("subprogram", sid)
-  formData.append("format", fid)
+
+  formData = new FormData
+  formData.append "file", file
+  formData.append "subprogram", sid
+  formData.append "format", fid
 
   uid = _.uniqueId "vin-"
   box = $ $("#vin-box-template").clone().html()
   box.attr "id", uid
-  box.hide()
+  do box.hide
   box.appendTo $("#vin-box-container")
-  box.fadeIn()
+  do box.fadeIn
 
   bvm = tm.newTaskVM()
   bvm.filename = file.name
@@ -32,59 +35,58 @@ sendVin = (sid, fid, file) ->
   ko.applyBindings bvm, $(box)[0]
 
   bvm.errorMsg.subscribe (msg) ->
-    box.removeClass("alert-info")
-    box.addClass("alert-danger")
+    box.removeClass "alert-info"
+    box.addClass "alert-danger"
 
   bvm.resultMsg.subscribe (msg) ->
-    box.removeClass("alert-info")
+    box.removeClass "alert-info"
     if bvm.fileUrls().length > 0
-      box.addClass("alert-warning")
+      box.addClass "alert-warning"
     else
-      box.addClass("alert-success")
+      box.addClass "alert-success"
 
   resultFmt = (obj) ->
     bvm.bad obj.bad
 
-  upl.ajaxUpload("/vin/upload?subprogram=#{sid}&format=#{fid}", file,
-    xhr: upl.progressXHR box.find ".progress"
-    ).
-    always(() -> bvm.uploaded true).
-    done((res) ->
-      tm.handleTaskWith res.token, bvm, resultFmt, _.identity).
-    fail((res) ->
+  upl.ajaxUpload "/vin/upload?subprogram=#{sid}&format=#{fid}",
+                 file,
+                 xhr: upl.progressXHR box.find ".progress"
+
+    .always () ->
+      bvm.uploaded true
+      do alwaysCb
+
+    .done (res) ->
+      tm.handleTaskWith res.token, bvm, resultFmt, _.identity
+
+    .fail (res) ->
       bvm.errorMsg res.responseText
-      bvm.done true)
+      bvm.done true
 
 setupVinForm = (viewName, args) ->
-  # vin_html = $el("vin-form-template").html()
-  # bulk_partner_html = $el("partner-form-template").html()
+  kvm = null
 
-  # # Do not show partner bulk upload form when the screen is accessed
-  # # by portal users, use appropriate set of programs.
-  # all_html = ""
+  extendKVM =
+    vinIsProcessing: ko.observable no
+    vinFilesToUpload: ko.observableArray []
 
-  # if _.contains window.global.user.roles, window.global.idents("Role").psaanalyst
-  #   all_html += bulk_partner_html
+    vinSendHandler: ->
+      vinFile = @vinFilesToUpload()[0]
+      sid = kvm.subprogram()
+      fid = kvm.format()
+      if sid? and fid? and vinFile?
+        @vinIsProcessing yes
+        sendVin sid, fid, vinFile, => @vinIsProcessing no
+        @vinFilesToUpload []
 
-  # if _.contains window.global.user.roles, window.global.idents("Role").vinAdmin
-  #   all_html += vin_html
-
-  # $el(viewName).html(all_html)
-
-  kvm = Main.modelSetup("vinUpload", models.VinUpload) \
-    "new-form", {}, manual_save: true
-
-  $("#vin-send").click (e) ->
-    vinFile = $("#vin-upload-file")[0].files[0]
-    sid = kvm.subprogram()
-    fid = kvm.format()
-    if sid? && fid? && vinFile?
-      sendVin sid, fid, vinFile
-      $("#vin-upload-file")[0].value = null
-      $("#vin-upload-file").change()
-    false
-
-module.exports =
-  { constructor: setupVinForm
-  , template
+  kvm = Main.modelSetup("vinUpload", models.VinUpload) "new-form", {}, {
+    extendKVM
+    manual_save : true
+    slotsee     : ["vin-upload-form"
+                   "vin-send"]
   }
+
+module.exports = {
+  constructor: setupVinForm
+  template
+}

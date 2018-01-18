@@ -52,7 +52,7 @@ mainSetup = (localDictionaries, hooks, user, pubSub) ->
       modelCache = {}
       (name, view) ->
         url = "/cfg/model/#{name}"
-        url = "#{url}?view=#{view}" if view
+        url += "?view=#{view}" if view
         if not modelCache[url]
           $.ajax url,
             async: false
@@ -114,7 +114,7 @@ buildKVM = (model, options = {}) ->
   kvm = {}
   kvm._parent = options.parent
   kvm._saveSuccessCb = options.saveSuccessCb
-  {elName, fetched, queue, queueOptions, models} = options
+  {fetched, queue, queueOptions, models} = options
   kvm.safelyGet = (prop) -> kvm[prop]?() or ''
   kvm._meta = {model, cid: _.uniqueId("#{model.name}_"), cannotModifyModelData}
 
@@ -178,17 +178,17 @@ buildKVM = (model, options = {}) ->
           isEmpty = _.isEmpty kvm[n]() # it's important to subscribe to it first
           not f.meta["single-uploader"] or isEmpty
 
-        kvm["#{n}ClickHandler"] = (vm, e) ->
-          $file = $(e.target).closest("form").find "input.upload-dialog"
-          {files} = $file.get 0
-          return if files.length <= 0
+        kvm["#{n}IsProcessing"] = ko.observable no
+
+        kvm["#{n}UploadHandler"] = (files) ->
+          return if files.length is 0
+          kvm["#{n}IsProcessing"] yes
 
           ajaxUpload "/upload/#{model.name}/#{kvm["maybeId"]()}/#{n}", files[0]
             # Re-read instance data when a new attachment is added
-            .done -> do kvm._meta.q.fetch
-            .fail -> window.alert "Не удалось загрузить файл!"
-
-          $file.val("").trigger "change"
+            .always -> kvm["#{n}IsProcessing"] no
+            .done   -> do kvm._meta.q.fetch
+            .fail   -> window.alert "Не удалось загрузить файл!"
 
         kvm["#{n}DetachFile"] = (vm, e) ->
           return unless confirm "Вы уверены, что хотите открепить этот файл?"
@@ -327,9 +327,7 @@ buildKVM = (model, options = {}) ->
     do (f) ->
       kvm["#{f.name}Nested"] = ko.computed ->
         _.map (_.compact kvm[f.name]()), (fetched) ->
-          buildKVM models[f.meta.modelName],
-            fetched: fetched
-            models: models
+          buildKVM models[f.meta.modelName], {fetched, models}
 
   # disable dixi filed for model
   kvm['disableDixi'] = ko.observable(false)
@@ -455,7 +453,7 @@ cleanupKVM = (kvm) =>
 # maybe with filtered some fields or something
 modelSetup = (modelName, model) -> (elName, args, options) ->
   model = window.global.model modelName, options.modelArg unless model
-  [kvm, q] = buildModel model, args, options, elName
+  [kvm, q] = buildModel model, args, options
 
   depViews = setupView elName, kvm, options
 
@@ -477,15 +475,15 @@ modelSetup = (modelName, model) -> (elName, args, options) ->
   applyHooks window.global.hooks.model, hooks, elName, kvm
   kvm
 
-buildModel = (model, args, options, elName) ->
+buildModel = (model, args, options) ->
   kvm = buildKVM model,
-    elName: elName
     queue: sync.CrudQueue
     queueOptions: options
     parent: options.parent
     saveSuccessCb: options.saveSuccessCb
     fetched: args
     waitFor: options.waitFor ? null
+  Object.assign kvm, options.extendKVM # optional extending built KVM
   [kvm, kvm._meta.q]
 
 buildNewModel = (modelName, args, options, cb) ->

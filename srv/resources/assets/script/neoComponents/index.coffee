@@ -10,6 +10,7 @@ registerComponents = ->
     require "carma/neoComponents/DiagTree/Editor/Inside"
     require "carma/neoComponents/PermissionBlock"
     require "carma/neoComponents/Navbar"
+    require "carma/neoComponents/UploadFileField"
   ]
 
   for x in components
