@@ -1,6 +1,6 @@
 #/ Everything local to the customer resides here
 
-{ko, $, _, Mousetrap} = require "carma/vendor"
+{ko, $, _, Mousetrap, Finch} = require "carma/vendor"
 
 {bugReport} = require "carma/lib/bug-report"
 require "carma/routes"
@@ -165,5 +165,7 @@ init = ({dicts, user, users}) ->
     ko.applyBindings {}, el
     action = navbarActions.fillMenu
     store.dispatch action new action.Payload plainData: screens
+
+  do Finch.listen # init screens after everything else is ready to serve
 
 module.exports = {init}

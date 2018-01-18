@@ -34,6 +34,7 @@ mainSetup = (localDictionaries, hooks, user, pubSub) ->
   dictCache = dict.buildCache localDictionaries
   configmgr = new Config
 
+  # TODO FIXME this should never exists
   window.global = {
     topElement: $el("layout")
     dictionaries: localDictionaries
@@ -53,9 +54,9 @@ mainSetup = (localDictionaries, hooks, user, pubSub) ->
       (name, view) ->
         url = "/cfg/model/#{name}"
         url += "?view=#{view}" if view
-        if not modelCache[url]
+        unless modelCache[url]?
           $.ajax url,
-            async: false
+            async: false # TODO FIXME huge design mistake
             dataType: 'json'
             success: (m) -> modelCache[url] = m
         modelCache[url]
@@ -84,8 +85,6 @@ mainSetup = (localDictionaries, hooks, user, pubSub) ->
     # renderers maintain their viewsWare.
     viewsWare: {}
   }
-
-  do Finch.listen
 
 urlFor = ->
   switch @kvm._meta.model.name
