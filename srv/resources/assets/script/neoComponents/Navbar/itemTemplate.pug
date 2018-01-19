@@ -31,7 +31,7 @@ li.dropdown(data-bind=`css: {active: $component.isActive($data)}`)
 
   ul.dropdown-menu(data-bind=`
     template: {
-      name: 'navbar-item-template',
+      name: $component.itemTemplateId,
       foreach: $data.get('screens').toArray(),
     },
   `)

@@ -4,14 +4,15 @@ actions = require "carma/neoComponents/store/navbar/actions"
 smsFormActions = require "carma/neoComponents/store/smsForm/actions"
 {NavbarMenuItem} = require "carma/neoComponents/store/navbar/models"
 
+rnd = String(Math.random()).slice 2 # for scope isolation
+itemTemplateId = "navbar-item-template--#{rnd}"
 
 # Defining knockout template.
 # This done this way to avoid additional wrappers.
-# DO NOT USE this template outside this component!
-do (id = "navbar-item-template", tpl = require "./itemTemplate.pug") ->
+do (tpl = require "./itemTemplate.pug") ->
   el = document.createElement "script"
   el.type = "text/html"
-  el.id = id
+  el.id = itemTemplateId
   el.innerHTML = tpl
   document.body.appendChild el
 
@@ -20,6 +21,8 @@ storeSelector = -> store.getState().get "navbar"
 
 
 class NavbarViewModel
+  itemTemplateId: itemTemplateId
+
   constructor: ->
     # Connector to the store
     @appState = ko.observable storeSelector()
