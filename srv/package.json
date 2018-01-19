@@ -64,7 +64,7 @@
     "bootstrap-datepicker": "^1.7.1",
     "bootstrap-daterangepicker": "github:dangrossman/bootstrap-daterangepicker#v1.3.23",
     "bootstrap3-wysihtml5-bower": "~0.3.3",
-    "datatables": "github:DataTables/DataTables#1.10.15",
+    "datatables": "github:DataTables/DataTables#1.10.16",
     "finchjs": "~0.5.14",
     "immutable": "^4.0.0-rc.9",
     "jasny-bootstrap": "~3.1.0",

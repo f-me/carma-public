@@ -1,7 +1,7 @@
 {$, _} = require "carma/vendor"
 utils = require "carma/utils"
 
-module.exports.Table = class Table
+class Table
   constructor: (params) ->
     {@tableName, @objURL} = params
     @sLength = "dataTables_length form-inline"
@@ -24,7 +24,7 @@ module.exports.Table = class Table
     objURL ?= @objURL
     unless objURL is ""
       $.getJSON objURL, (objs) =>
-        @dataTable.fnClearTable()
+        do @dataTable.fnClearTable
         rows = @objsToRows? objs
         return if _.isEmpty rows
         @dataTable.fnAddData rows
@@ -41,3 +41,5 @@ module.exports.Table = class Table
   on: (eventName, elementName, callback) ->
     $("##{@tableName}-table").on(eventName, elementName, callback)
     @
+
+module.exports = {Table}

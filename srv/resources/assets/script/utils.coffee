@@ -83,9 +83,6 @@ window.arrToObj = (key, val, f = _.identity) ->
   keys = if _.isFunction key then _.map val, key else _.pluck val, key
   _.object _.zip keys, (_.map val, f)
 
-# FIXME doing tricky shit, fella? how about use it just from 'underscore'?
-String.prototype.capitalize = -> @charAt(0).toUpperCase() + @slice(1)
-
 bindRemove = (parent, field, cb) ->
   for i in parent["#{field}Reference"]()
     do (i) ->
@@ -206,7 +203,6 @@ module.exports = {
 
   mkDataTable: (t, opts) ->
     defaults =
-      sScrollY  : "500px"
       bPaginate : false
       oLanguage :
         sSearch      : "Фильтр"
@@ -214,7 +210,7 @@ module.exports = {
         sZeroRecords : "Ничего не найдено"
         sInfo        : "Показаны записи с _START_ по _END_ (всего _TOTAL_)"
 
-    defaults = $.extend(defaults, opts) if opts?
+    defaults = $.extend defaults, opts if opts?
 
     t.dataTable defaults
 
