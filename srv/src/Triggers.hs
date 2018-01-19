@@ -196,6 +196,15 @@ beforeCreate = Map.unionsWith (++)
       modPut Service.urgentService      $ Just USR.notUrgent
       modPut Service.warrantyCase       $ Just off
 
+      Just parentCase <- getPatchField Service.parentId
+      [[inRushCity]] <- doApp $ liftPG' $ \pg -> uncurry (PG.query pg)
+        [sql|
+          select array[cs.city, cs.caseAddress_city] && pc.rushCities
+            from casetbl cs, "ProcessingConfig" pc
+            where cs.id = $(parentCase)$
+        |]
+      modPut Service.rushJob $ Just inRushCity
+
   , trigOnModel ([]::[Hotel.Hotel]) $
       modPut Hotel.providedFor $ Just "0"
 
