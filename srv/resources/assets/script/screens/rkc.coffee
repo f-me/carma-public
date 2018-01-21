@@ -182,8 +182,12 @@ setupRKCScreen = (viewName, args) ->
 
     getArgs = () -> do filterRKCArgs
 
+    partners = ko.observableArray([])
+
     update = () ->
       args = getArgs()
+
+      updatePartners(partners)
 
       $.getJSON("/rkc" + args, (result) ->
         from = Date.parseExact($('#rkc-date-from').val(), "dd.MM.yyyy")
@@ -260,14 +264,12 @@ setupRKCScreen = (viewName, args) ->
               srvname = srvDict.getLab s
           }))
 
-    partners = ko.observableArray([])
     initRKCDate update, partners
     fillRKCFilters update, partners
 
     window.global.rkcData = {}
 
     update()
-    updatePartners(partners)
     updateWeather()
 
 
