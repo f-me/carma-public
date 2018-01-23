@@ -133,7 +133,7 @@ sendSMS tplId svcId sendBy sendTo =
       'service.times_expectedServiceStart=' ||
         coalesce(to_char(
           svc.$(F|Service.times_expectedServiceStart)$,
-          'HH24:MI DD-MM-YYYY'
+          'DD.MM.YYYY HH24:MI:SS'
         ), ''),
       'service.times_expectedServiceStart_caseCityTZ=' ||
         coalesce(
@@ -143,7 +143,7 @@ sendSMS tplId svcId sendBy sendTo =
                 city.$(F|City.timezone)$,
                 svc.$(F|Service.times_expectedServiceStart)$
               ),
-              'HH24:MI DD-MM-YYYY'
+              'DD.MM.YYYY HH24:MI:SS'
             )
           end
         , ''),
@@ -151,7 +151,7 @@ sendSMS tplId svcId sendBy sendTo =
       'service.dates_expectedServiceStart=' ||
         coalesce(to_char(
           svc.$(F|Service.times_expectedServiceStart)$,
-          'DD-MM-YYYY'
+          'DD.MM.YYYY'
         ), ''),
       'service.dates_expectedServiceStart_caseCityTZ=' ||
         coalesce(
@@ -161,7 +161,7 @@ sendSMS tplId svcId sendBy sendTo =
                 city.$(F|City.timezone)$,
                 svc.$(F|Service.times_expectedServiceStart)$
               ),
-              'DD-MM-YYYY'
+              'DD.MM.YYYY'
             )
           end
         , ''),
@@ -169,7 +169,7 @@ sendSMS tplId svcId sendBy sendTo =
       'service.times_factServiceStart=' ||
         coalesce(to_char(
           svc.$(F|Service.times_factServiceStart)$,
-          'HH24:MI DD-MM-YYYY'
+          'DD.MM.YYYY HH24:MI:SS'
         ), ''),
       'service.times_factServiceStart_caseCityTZ=' ||
         coalesce(
@@ -179,7 +179,7 @@ sendSMS tplId svcId sendBy sendTo =
                 city.$(F|City.timezone)$,
                 svc.$(F|Service.times_factServiceStart)$
               ),
-              'HH24:MI DD-MM-YYYY'
+              'DD.MM.YYYY HH24:MI:SS'
             )
           end
         , '')
