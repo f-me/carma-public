@@ -36,6 +36,7 @@ jobs:
       - run:
           name: Build CaRMa backend
           command: |
+            stack --version
             stack --install-ghc -j2 build
       - save_cache:
           key: stack-cache-{{ checksum "stack.yaml" }}
