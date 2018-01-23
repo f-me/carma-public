@@ -331,6 +331,9 @@ do ->
 
 # "datepicker" handler
 do ->
+  ev_sfx = "__ko_datepicker"
+  subscribers_key = "__ko_datepicker__subscribers"
+
   defaultOptions = Object.freeze
     autoclose        : true
     enableOnReadonly : false
@@ -339,8 +342,12 @@ do ->
     format           : "dd.mm.yyyy"
 
   dispose = (el) ->
+    if el[subscribers_key]?
+      do x.dispose for x in el[subscribers_key]
+      delete el[subscribers_key]
+
     $(el)
-      .off "changeDate.__ko_datepicker"
+      .off "changeDate.#{ev_sfx}"
       .datepicker "destroy"
 
   init = (el, acc, allBindingsAcc) ->
@@ -348,11 +355,22 @@ do ->
     return unless accVal # disabled by falsy value
     o = if typeof accVal is "object" then accVal else null
 
-    $(el)
+    $el = $ el
+    el[subscribers_key] = []
+
+    $el
       .datepicker Object.assign {}, defaultOptions, o
-      .on "changeDate.__ko_datepicker", ->
+      .on "changeDate.#{ev_sfx}", ->
         allBindings = allBindingsAcc()
         allBindings.value @value if ko.isObservable allBindings.value
+
+    do -> # Fix for outside changes of observable value
+
+      allBindings = allBindingsAcc()
+      return unless ko.isObservable allBindings.value
+
+      el[subscribers_key].push allBindingsAcc().value.subscribe (newValue) ->
+        $el.datepicker "update", newValue
 
     ko.utils.domNodeDisposal.addDisposeCallback el,
       dispose.bind null, arguments...
