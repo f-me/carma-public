@@ -1,4 +1,12 @@
-include carma-tpl/fields/_form_utils.pug
+mixin dateField(fieldName)
+  .input-group.input-group-sm.date&attributes(attributes)
+    input.form-control(type="text" autocomplete="off" data-bind=`
+      datepicker: true,
+      value: ${fieldName},
+      valueUpdate: ['change', 'afterkeydown'],
+    `)
+    span.input-group-addon
+      span.glyphicon.glyphicon-calendar
 
 .row
   .col-md-6
@@ -16,8 +24,8 @@ include carma-tpl/fields/_form_utils.pug
       h3 Интервал
     .row.col-md-6.form-horizontal
       .form-group
-        +dateInput("", "", "")#rkc-date-from
+        +dateField('dateFrom')#rkc-date-from
       .form-group
-        +dateInput("", "", "")#rkc-date-to
+        +dateField('dateTo')#rkc-date-to
       .form-group
         button#reload.btn Обновить

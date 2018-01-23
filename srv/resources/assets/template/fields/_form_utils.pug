@@ -47,18 +47,16 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
 
 mixin localDateTimeInput(nameMod, dataBinds, change)
   +defaultInput(nameMod, dataBinds, change)
-  .local-datetime-button(
-    data-bind=`
-      text  : {{name}}TimeZone() ? {{name}}CityLabel() : 'Локальное время',
-      click : {{name}}SwitchTimeZone,
-    `)
+  .local-datetime-button(data-bind=`
+    text  : {{name}}TimeZone() ? {{name}}CityLabel() : 'Локальное время',
+    click : {{name}}SwitchTimeZone,
+  `)
 
 mixin rawDateInput(nameMod, dataBinds, change)
-  .input-group.input-group-sm.date(
-    data-bind=`
-      readonly      : {{name}}Disabled,
-      pickerDisable : {{name}}.disabled,
-    `)
+  .input-group.input-group-sm.date(data-bind=`
+    readonly      : {{name}}Disabled,
+    pickerDisable : {{name}}.disabled,
+  `)
     +defaultInput(
       nameMod,
       dataBinds + 'datepicker: !{{name}}Disabled(),',
