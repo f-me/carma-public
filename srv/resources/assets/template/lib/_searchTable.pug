@@ -29,14 +29,18 @@
   .row
     .pager.col-md-12
       ul
-        li(style='cursor: pointer;', data-bind='css: {fade: !_.isNumber(prev())}')
+        li(style='cursor: pointer;', data-bind='css: {fade: isPrevHidden}')
           a(data-bind='click: prevPage')
             | ←
+        |
+        |
         li
           a(data-bind='text: page')
-        li(style='cursor: pointer;', data-bind='css: {fade: !next()}')
+        |
+        |
+        li(style='cursor: pointer;', data-bind='css: {fade: isNextHidden}')
           a(data-bind='click: nextPage')
             | →
 
 .hidden
-  include /fields/ro.pug
+  include carma-tpl/fields/ro.pug

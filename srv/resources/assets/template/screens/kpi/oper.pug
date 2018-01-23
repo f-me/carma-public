@@ -47,7 +47,7 @@ include _settings.pug
              button.btn.btn-link(
                style='white-space: nowrap;'
                data-bind='text: "Оператор", sort: "userid"')
-           th(data-bind="visible: global.CTIPanel",
+           th(data-bind="visible: window.global.CTIPanel",
               style='text-align: center; vertical-align: middle')
              | AVAYA
            // ko foreach: fields
@@ -59,7 +59,7 @@ include _settings.pug
        tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
          tr(data-bind="visible: kvm._meta.visible")
            td(data-bind="text: kvm['useridGrp']")
-           td(data-bind="visible: global.CTIPanel", style="text-align: center")
+           td(data-bind="visible: window.global.CTIPanel", style="text-align: center")
              button.btn.btn-warning(
                data-bind="click: kvm._meta.takeover,\n\
                           visible: kvm._meta.currentCall() && !kvm._meta.beingListened()")
@@ -82,4 +82,4 @@ include _settings.pug
            // /ko
 
 .hidden
-  include /fields/ro.pug
+  include carma-tpl/fields/ro.pug

@@ -1,4 +1,7 @@
-define ["utils"], (Utils) ->
+{_} = require "carma/vendor"
+Utils = require "carma/utils"
+
+module.exports =
 
   persistKVM: (name, obj) ->
     _save = _.debounce((=> @save(obj)), 500)

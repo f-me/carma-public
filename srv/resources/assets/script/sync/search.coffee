@@ -1,71 +1,76 @@
-define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
-  class searchQ extends metaq
-    constructor: (@kvm, @options) ->
-      @api = @options.apiUrl
-      @requestUrl = @api
-      @model = @kvm._meta.model
-      @searchFields = @options.defaultSort.fields
-      @searchOrder  = @options.defaultSort.order
-      @ftypes  = {}
-      @ftypes[f.name] = f.type for f in @model.fields
-      for f in @model.fields when not f.meta?.nosearch
-        do (f) =>
-          @kvm[f.name].subscribe (v) => @_search()
-      if @kvm._meta.pager
-        pager = @kvm._meta.pager
-        pager.offset.subscribe (v) =>
-          @requestUrl =
-            "#{@api}?limit=#{pager.limit()}&offset=#{pager.offset()}"
-          @_search()
-        pager.offset.valueHasMutated()
-      @kvm['searchResultsSpinner'] = ko.observable false
+{$, _, ko} = require "carma/vendor"
 
-    _search: _.debounce((-> @search()), 300)
+require "carma/map"
 
-    searchParams: =>
-      q = {}
-      for f in @model.fields when not f.meta?.nosearch
-        if (_.isNumber @kvm[f.name]()) || (!_.isEmpty @kvm[f.name]())
-          q[f.name] = @kvm[f.name]()
-      preds =  m.c2sObj(q, @ftypes)
-      sorts = { fields: @searchFields, order: @searchOrder }
-      { predicates: preds, sorts: sorts }
+{MetaQueue} = require "carma/sync/metaq"
+m           = require "carma/sync/datamap"
 
-    search: =>
-      if @options.searchHook?
-        @options.searchHook(this)
-      # have nothing to search, maybe user delete value
-      # return @kvm['searchResults']([]) if _.isEmpty req
-      $.ajax
-        url      : @requestUrl
-        dataType : 'json'
-        type     : 'POST'
-        data     : JSON.stringify @searchParams()
-        success  : @successCb
-        error    : @errorCb
-        beforeSend : @showSpinner
+class SearchQ extends MetaQueue
+  constructor: (@kvm, @options) ->
+    @api = @options.apiUrl
+    @requestUrl = @api
+    @model = @kvm._meta.model
+    @searchFields = @options.defaultSort.fields
+    @searchOrder  = @options.defaultSort.order
+    @ftypes  = {}
+    @ftypes[f.name] = f.type for f in @model.fields
+    for f in @model.fields when not f.meta?.nosearch
+      do (f) =>
+        @kvm[f.name].subscribe (v) => @_search()
+    if @kvm._meta.pager
+      pager = @kvm._meta.pager
+      pager.offset.subscribe (v) =>
+        @requestUrl =
+          "#{@api}?limit=#{pager.limit()}&offset=#{pager.offset()}"
+        @_search()
+      pager.offset.valueHasMutated()
+    @kvm['searchResultsSpinner'] = ko.observable false
 
-    sort: (fs, ord) ->
-      @searchFields = fs
-      @searchOrder  = ord
-      @_search()
+  _search: _.debounce (-> do @search), 300
 
-    showSpinner: =>
-      @kvm['searchResultsSpinner'] true
+  searchParams: =>
+    q = {}
+    for f in @model.fields when not f.meta?.nosearch
+      if (_.isNumber @kvm[f.name]()) || (!_.isEmpty @kvm[f.name]())
+        q[f.name] = @kvm[f.name]()
+    preds =  m.c2sObj(q, @ftypes)
+    sorts = { fields: @searchFields, order: @searchOrder }
+    { predicates: preds, sorts: sorts }
 
-    hideSpinner: (jqXHR, error) =>
-      if error
-        $.notify "Данные не были получены. Повторите поиск."
-      else
-        @kvm['searchResultsSpinner'] false
+  search: =>
+    @options.searchHook this if @options.searchHook?
 
-    successCb: (data) =>
-      @kvm['searchResults'](data)
-      @hideSpinner()
+    # have nothing to search, maybe user delete value
+    # return @kvm['searchResults']([]) if _.isEmpty req
+    $.ajax
+      url:        @requestUrl
+      dataType:   'json'
+      type:       'POST'
+      data:       JSON.stringify @searchParams()
+      success:    @successCb
+      error:      @errorCb
+      beforeSend: @showSpinner
 
-    errorCb: (x, status) =>
-      @hideSpinner x, status
-      console.error "searchQ: search failed with
- '#{x.status}: #{x.statusText}'"
+  sort: (fs, ord) ->
+    @searchFields = fs
+    @searchOrder  = ord
+    @_search()
 
-  searchQ: searchQ
+  showSpinner: =>
+    @kvm['searchResultsSpinner'] true
+
+  hideSpinner: (jqXHR, error) =>
+    if error
+      $.notify "Данные не были получены. Повторите поиск."
+    else
+      @kvm['searchResultsSpinner'] false
+
+  successCb: (data) =>
+    @kvm['searchResults'](data)
+    do @hideSpinner
+
+  errorCb: (x, status) =>
+    @hideSpinner x, status
+    console.error "SearchQ: search failed with '#{x.status}: #{x.statusText}'"
+
+module.exports = {SearchQ}

@@ -1,18 +1,23 @@
-define [ "utils"
-       , "dictionaries"
-       ], (u, d) ->
-  thmenuInit = (k, fname, dict, setter) ->
+{$, _, ko, moment, Finch} = require "carma/vendor"
+{ThMenu} = require "carma/lib/th-menu"
+
+u = require "carma/utils"
+d = require "carma/dictionaries"
+
+thmenuInit = (k, fname, dict, setter) ->
+  thmenu = []
+  k["#{fname}TypeaheadBuilder"] = ->
+    m = new ThMenu {select: setter, dict}
+    thmenu.push(m)
+    m
+
+  k["#{fname}TypeaheadBuilder"].destroy = ->
+    _.map thmenu, (v) -> v.destructor()
     thmenu = []
-    k["#{fname}TypeaheadBuilder"] = ->
-      m = new ThMenu { select: setter, dict  : dict }
-      thmenu.push(m)
-      return m
+  k[fname].typeaheadBuilder = k["#{fname}TypeaheadBuilder"]
 
-    k["#{fname}TypeaheadBuilder"].destroy = ->
-      _.map thmenu, (v) -> v.destructor()
-      thmenu = []
-    k[fname].typeaheadBuilder = k["#{fname}TypeaheadBuilder"]
 
+module.exports =
   # - <field>Local for dictionary fields: reads as label, writes real
   #   value back to Backbone model;
   dictionaryKbHook: (m, kvm) ->
@@ -74,23 +79,22 @@ define [ "utils"
     for f in model.fields when f.meta?.regexp?
       fieldName = f.name
       regexp    = f.meta.regexp
-      ((f, r) ->
+      do (f = fieldName, r = new RegExp regexp) ->
         kvm["#{f}Regexp"] = ko.computed ->
-          return false if kvm[f]() == "" or _.isNull(kvm[f]())
+          return false if kvm[f]() is "" or _.isNull kvm[f]()
           not r.test kvm[f]()
-      )(fieldName, new RegExp(regexp))
 
   # For a field <name> with type=file, add an extra observable
   # <name>Url with absolute URL to the stored file.
   fileKbHook: (model, kvm) ->
-    for f in model.fields when f.type == "file"
-      do(f) ->
-        n   = f.name
+    for f in model.fields when f.type is "file"
+      do (f) ->
+        n = f.name
         kvm["#{n}Url"] = ko.computed
           read: ->
-            p  = "/s/fileupload/attachment/" + kvm.id()
+            p  = "/s/fileupload/attachment/#{kvm.id()}"
             fs = encodeURIComponent kvm[n]()
-            p + "/" + fs
+            "#{p}/#{fs}"
 
   dateTimeHook: (m, k) ->
     for f in m.fields when _.contains ["datetime", "Day", "UTCTime"], f.type
@@ -190,10 +194,13 @@ define [ "utils"
         # remove this after refactoring, we shouldn't count on template for
         # getting value
         k["#{n}Remove"] = (el) ->
-          return false
+          return false # see: 22aecbf1 (Peter Goncharov 2014-10-10)
+          # code below are commented because previous line made it unreachable
+          ###
           return if k["#{n}Disabled"]()
           v = k[n]()
           k[n] _.without v, el.value
+          ###
 
         k[n].many = k["#{n}Many"]
         k[n].locals = k["#{n}Locals"]
@@ -321,7 +328,7 @@ define [ "utils"
             kvm[n] newFull
 
         kvm["#{n}KeyDictionary"] =
-          ko.observable global.dictionaries[f.meta.dictionaryName].entries
+          ko.observable window.global.dictionaries[f.meta.dictionaryName].entries
 
         # Populate {n}Objects with initial values
         if kvm[n]()?

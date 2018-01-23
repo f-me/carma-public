@@ -1,14 +1,18 @@
-define ["text!tpl/screens/kpi/stat.html"
-        "json!/cfg/model/StatKPI?view=kpi"
-        "model/main"
-        "model/fields"
-        "sync/datamap"
-        "screens/kpi/common"
-        "utils"
-  ], (Tpl, Model, Main, Fs, Map, Common, Utils) ->
+{$, _, ko} = require "carma/vendor"
 
-  stuffKey = "kpi-stat"
-  mp = new Map.Mapper(Model)
+Model = require("carma/data").data.cfg.m.v.kpi.StatKPI
+
+Main   = require "carma/model/main"
+Fs     = require "carma/model/fields"
+Map    = require "carma/sync/datamap"
+Common = require "carma/screens/kpi/common"
+Utils  = require "carma/utils"
+
+Tpl = require "carma-tpl/screens/kpi/stat.pug"
+
+mp = new Map.Mapper(Model)
+
+module.exports =
   template: Tpl
   constructor: (view, opts) ->
     $("#stat-screen").addClass("active")
@@ -73,16 +77,17 @@ define ["text!tpl/screens/kpi/stat.html"
             sCtx.files_attached f
 
         updateTbl sCtx.interval()
-        sCtx.fetchData = -> updateTbl(sCtx.interval())
+        sCtx.fetchData = -> updateTbl sCtx.interval()
 
-        settingsCtx: sCtx
-        tblCtx:      tCtx
-        dumpSettings: { interval: sCtx.interval }
+        settingsCtx:  sCtx
+        tblCtx:       tCtx
+        dumpSettings: {interval: sCtx.interval}
 
-    ko.applyBindings({settingsCtx, tblCtx, spinner, kvms: tblCtx.kvms},
-                     $("#stat-kpi-content")[0])
-    # ko.applyBindings(settingsCtx, $("#settings")[0])
-    # ko.applyBindings(tblCtx, $("#tbl")[0])
+    ko.applyBindings \
+      {settingsCtx, tblCtx, spinner, kvms: tblCtx.kvms},
+      $("#stat-kpi-content")[0]
+    # ko.applyBindings settingsCtx, $("#settings")[0]
+    # ko.applyBindings tblCtx, $("#tbl")[0]
 
   destructor: ->
-    ko.dataFor($("#tbl")[0]).kvms.clean()
+    do ko.dataFor($("#tbl")[0]).kvms.clean

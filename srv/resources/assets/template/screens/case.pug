@@ -4,15 +4,19 @@
       .form-group
         label.control-label.col-sm-4 Номер
         .col-sm-8
-          input#case-number.form-control.input-sm(type='text'
-                                                  disabled='disabled'
-                                                  data-bind='value: maybeId')
+          input#case-number.form-control.input-sm(
+            type='text'
+            disabled='disabled'
+            data-bind='value: maybeId')
       #case-form
       .form-group
         .col-md-3
           span#service-picker-container
-        .col-md-2
-          span#case-permissions
+        #case-permissions.col-md-2
+          permission-block(params=`
+            readonly: _meta.cannotModifyModelData,
+            viewName: view,
+          `)
 
   // Central pane with subform
   // TODO Should be spanN when fluid containers are fixed in Bootstrap upstream.

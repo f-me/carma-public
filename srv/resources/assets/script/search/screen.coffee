@@ -1,38 +1,30 @@
-define [ "utils"
-       , "model/main"
-       , "model/utils"
-       , "search/screen"
-       , "search/model"
-       , "search/utils"
-       , "search/pager"
-       , "sync/search"
-       , "lib/state-url"
-       , "text!tpl/fields/form.html"
-       ], ( utils
-          , main
-          , mutils
-          , Screen
-          , smodel
-          , SUtils
-          , SPager
-          , sync
-          , State
-          , Tpl) ->
+{$, _, ko} = require "carma/vendor"
 
-  filterModels = (allowed, models) ->
-    mdls = for m in  models
-      mdl = $.extend true, {}, m
-      mdl.fields = _.filter m.fields, (f) ->
-         _.contains allowed[m.name], f.name
-      mdl
-    arrToObj 'name', mdls
+utils     = require "carma/utils"
+main      = require "carma/model/main"
+mutils    = require "carma/model/utils"
+smodel    = require "carma/search/model"
+SUtils    = require "carma/search/utils"
+SPager    = require "carma/search/pager"
+{SearchQ} = require "carma/sync/search"
+State     = require "carma/lib/state-url"
+Tpl       = require "carma-tpl/fields/form.pug"
 
-  mergeFields = (ms) ->
-    m = $.extend true, {}, ms[0]
-    m.fields = _.union.apply @, _.pluck ms, 'fields'
-    m
+filterModels = (allowed, models) ->
+  mdls = for m in  models
+    mdl = $.extend true, {}, m
+    mdl.fields = _.filter m.fields, (f) ->
+       _.contains allowed[m.name], f.name
+    mdl
+  arrToObj 'name', mdls
+
+mergeFields = (ms) ->
+  m = $.extend true, {}, ms[0]
+  m.fields = _.union.apply @, _.pluck ms, 'fields'
+  m
 
 
+module.exports =
   constructor: (opts)->
 
     # need this hack because renderField can't work with require js
@@ -75,7 +67,7 @@ define [ "utils"
 
     searchKVM.searchResults = SUtils.mkResultObservable searchKVM, allModels
 
-    q = new sync.searchQ searchKVM,
+    q = new SearchQ searchKVM,
       apiUrl: opts.apiUrl
       defaultSort: opts.defaultSort
       searchHook: opts.searchHook

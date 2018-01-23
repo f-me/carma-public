@@ -30,7 +30,7 @@ import           Database.PostgreSQL.Simple.Copy as PG
 import           Database.PostgreSQL.Simple.SqlQQ
 
 import           Snap.Core
-import           Snap.Snaplet.PostgresqlSimple (liftPG)
+import           Snap.Snaplet.PostgresqlSimple (liftPG')
 
 import           Data.Model
 import           Data.Model.Patch as Patch
@@ -104,7 +104,7 @@ contractCSV t = do
       (fp, fh) <- liftIO $
                   getTemporaryDirectory >>=
                   flip openTempFile "portal.csv"
-      withLens db $ liftPG $ \c -> do
+      withLens db $ liftPG' $ \c -> do
         BS.hPut fh bom
         prms <- renderPrms c (predicates args) contractSearchParams
         -- Prepare query and request CSV from Postgres

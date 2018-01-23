@@ -1,114 +1,116 @@
-define ["text!tpl/screens/kpi/oper.html"
-        "json!/cfg/model/OperKPI?view=kpi"
-        "model/main"
-        "sync/datamap"
-        "lib/messenger"
-        "screens/kpi/common"
-        "utils"
-  ], (Tpl, Model, Main, Map, WS, Common, Utils) ->
+{$, _, ko} = require "carma/vendor"
 
-  stuffKey = "kpi-oper"
+Model = require("carma/data").data.cfg.m.v.kpi.OperKPI
 
-  mp = new Map.Mapper(Model)
-  update = (kvmsh) -> (data) ->
-    for d in data
-      do (d) ->
-        a = mp.s2cObj d
-        kvm = kvmsh[a.userid]
-        if kvm?
-          for k, v of a
-            do (k, v) -> kvm[k](v)
+Main   = require "carma/model/main"
+Map    = require "carma/sync/datamap"
+WS     = require "carma/lib/messenger"
+Common = require "carma/screens/kpi/common"
+Utils  = require "carma/utils"
 
-  tick = (kvms) -> ->
-    for k in kvms()
-      k.inCurrent(k.inCurrent() + 1)
-      k[k.currentState()] k[k.currentState()]() + 1
-      if k.currentState() != "LoggedOut"
-        k.totalLoggedIn k.totalLoggedIn() + 1
-      if _.contains ["Dinner", "Rest", "ServiceBreak", "NA"], k.currentState()
-        k.totalRest k.totalRest() + 1
+Tpl = require "carma-tpl/screens/kpi/oper.pug"
+
+mp = new Map.Mapper(Model)
+update = (kvmsh) -> (data) ->
+  for d in data
+    do (d) ->
+      a = mp.s2cObj d
+      kvm = kvmsh[a.userid]
+      if kvm?
+        for k, v of a
+          do (k, v) -> kvm[k](v)
+
+tick = (kvms) -> ->
+  for k in kvms()
+    k.inCurrent(k.inCurrent() + 1)
+    k[k.currentState()] k[k.currentState()]() + 1
+    if k.currentState() != "LoggedOut"
+      k.totalLoggedIn k.totalLoggedIn() + 1
+    if _.contains ["Dinner", "Rest", "ServiceBreak", "NA"], k.currentState()
+      k.totalRest k.totalRest() + 1
+  return null
+
+ticker = null
+abandonedServicesTicker = null
+updateAbandonedServices = (kvm) -> ->
+  $.getJSON '/backoffice/suspendedServices', (res) ->
+      maxLen = 20
+      total = if res.length > maxLen
+          "(показано #{maxLen} из #{res.length})"
+        else if res.length == 0
+          '(не найдено)'
+        else
+          "(#{res.length})"
+      kvm.total(total)
+      kvm.services.removeAll()
+      kvm.services.extend {rateLimit: 100}
+      for s in res.slice(0,maxLen)
+        kvm.services.push
+          href: "#case/#{s.caseId}/#{s.svcId}"
+          text: "#{s.caseId} ― #{s.type}"
+
+
+# Currently active call of a busy Front Office operator (always the
+# first one answered non-held call of that operator)
+#
+# FIXME If an operator loses his CTI role, his last known AVAYA
+# state will still be preserved and shown on this screen
+mkCurrentCall = (k) -> ko.computed ->
+  # Ignore non-CTI users or users not busy with a call action
+  if k.currentAType() != window.global.idents("ActionType").call
     return null
 
-  ticker = null
-  abandonedServicesTicker = null
-  updateAbandonedServices = (kvm) -> ->
-    $.getJSON '/backoffice/suspendedServices', (res) ->
-        maxLen = 20
-        total = if res.length > maxLen
-            "(показано #{maxLen} из #{res.length})"
-          else if res.length == 0
-            '(не найдено)'
+  calls = k.lastAvayaSnapshot()?.calls
+  return _.find(_.keys(calls), (k) -> !calls[k].held && calls[k].answered)
+
+mkListenTo = (k) -> () ->
+  if k._meta.currentCall()? && window.global.CTIPanel?
+    window.global.CTIPanel.bargeIn k._meta.currentCall(), "Silent"
+
+# True iff our supervisor CTI currently has a call of this user
+mkBeingListened = (k) -> ko.computed ->
+  if k._meta.currentCall()? && window.global.CTIPanel?
+    _.find(window.global.CTIPanel.calls(),\
+      (c) -> c.callId == k._meta.currentCall())
+
+# Take over the current call of the user, ejecting him
+mkTakeover = (k) -> () ->
+  call = k._meta.currentCall()
+  if call? && window.global.CTIPanel?
+    # Wait for our CTI to connect to the call
+    sub = window.global.CTIPanel.calls.subscribe (nv) ->
+      if k._meta.beingListened()
+        sub.dispose()
+        ejectUrl = "/avaya/eject/#{k.userid()}/#{call}"
+        $.ajax ejectUrl, {type: "PUT", success: (r) ->
+          if r.caseId?
+            $.notify "Открываю кейс #{r.caseId}…"
+            whereTo = "case/#{r.caseId}"
           else
-            "(#{res.length})"
-        kvm.total(total)
-        kvm.services.removeAll()
-        kvm.services.extend {rateLimit: 100}
-        for s in res.slice(0,maxLen)
-          kvm.services.push
-            href: "#case/#{s.caseId}/#{s.svcId}"
-            text: "#{s.caseId} ― #{s.type}"
+            $.notify "Открываю звонок #{r.callId}…"
+            whereTo = "call/#{r.callId}"
+          window.location.hash = whereTo}
+    window.global.CTIPanel.bargeIn call, "Active"
 
+mkLogoutFromBusy = (k) -> ko.computed ->
+  k.lastState() == 'Busy' &&
+  k.currentState() == 'LoggedOut' &&
+  k.inCurrent() <= 15 * 60
 
-  # Currently active call of a busy Front Office operator (always the
-  # first one answered non-held call of that operator)
-  #
-  # FIXME If an operator loses his CTI role, his last known AVAYA
-  # state will still be preserved and shown on this screen
-  mkCurrentCall = (k) -> ko.computed ->
-    # Ignore non-CTI users or users not busy with a call action
-    if k.currentAType() != global.idents("ActionType").call
-      return null
+aDict = Utils.newModelDict "ActionType", false, dictionaryLabel: 'maxSeconds'
 
-    calls = k.lastAvayaSnapshot()?.calls
-    return _.find(_.keys(calls), (k) -> !calls[k].held && calls[k].answered)
+mkOverDue = (k, overdue) -> ko.computed ->
+  secs = parseInt aDict.getLab k.currentAType()
+  k.currentState() == 'Busy' && (
+    (k.inCurrent() > overdue()) || (k.inCurrent() > secs))
 
-  mkListenTo = (k) -> () ->
-    if k._meta.currentCall()? && global.CTIPanel?
-      global.CTIPanel.bargeIn k._meta.currentCall(), "Silent"
+mkVisible = (k, hideOffline,outFromBusy) -> ko.computed ->
+  if hideOffline()
+    outFromBusy() or k.currentState() != "LoggedOut"
+  else
+    true
 
-  # True iff our supervisor CTI currently has a call of this user
-  mkBeingListened = (k) -> ko.computed ->
-    if k._meta.currentCall()? && global.CTIPanel?
-      _.find(global.CTIPanel.calls(),\
-        (c) -> c.callId == k._meta.currentCall())
-
-  # Take over the current call of the user, ejecting him
-  mkTakeover = (k) -> () ->
-    call = k._meta.currentCall()
-    if call? && global.CTIPanel?
-      # Wait for our CTI to connect to the call
-      sub = global.CTIPanel.calls.subscribe (nv) ->
-        if k._meta.beingListened()
-          sub.dispose()
-          ejectUrl = "/avaya/eject/#{k.userid()}/#{call}"
-          $.ajax ejectUrl, {type: "PUT", success: (r) ->
-            if r.caseId?
-              $.notify "Открываю кейс #{r.caseId}…"
-              whereTo = "case/#{r.caseId}"
-            else
-              $.notify "Открываю звонок #{r.callId}…"
-              whereTo = "call/#{r.callId}"
-            window.location.hash = whereTo}
-      global.CTIPanel.bargeIn call, "Active"
-
-  mkLogoutFromBusy = (k) -> ko.computed ->
-    k.lastState() == 'Busy' &&
-    k.currentState() == 'LoggedOut' &&
-    k.inCurrent() <= 15 * 60
-
-  aDict = Utils.newModelDict "ActionType", false, dictionaryLabel: 'maxSeconds'
-
-  mkOverDue = (k, overdue) -> ko.computed ->
-    secs = parseInt aDict.getLab k.currentAType()
-    k.currentState() == 'Busy' && (
-      (k.inCurrent() > overdue()) || (k.inCurrent() > secs))
-
-  mkVisible = (k, hideOffline,outFromBusy) -> ko.computed ->
-    if hideOffline()
-      outFromBusy() or k.currentState() != "LoggedOut"
-    else
-      true
-
+module.exports =
   template: Tpl
   constructor: (view, opts) ->
     uDict = Utils.newModelDict "Usermeta", false, dictionaryLabel: 'grp'

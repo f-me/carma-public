@@ -42,7 +42,7 @@ import qualified Data.Model.Patch.Sql as P
 import           Snap
 import           Snap.Snaplet.Auth
 import           Snaplet.Auth.Class
-import           Snap.Snaplet.PostgresqlSimple ( liftPG
+import           Snap.Snaplet.PostgresqlSimple ( liftPG'
                                                , Only(..)
                                                , query
                                                )
@@ -164,7 +164,7 @@ updateUserState tgtUsr'' evt idt p evidt = do
                          _                 -> Nothing
       case avayaState of
         Just as -> do
-          Right um <- with db $ liftPG $ \c -> P.read tgtUsr' c
+          Right um <- with db $ liftPG' $ \c -> P.read tgtUsr' c
           setAgentState as um
         Nothing -> return ()
   where
@@ -203,7 +203,7 @@ buildEmpty tpe = P.put E.eventType tpe $  P.empty
 -- | Create `Event` in `postgres` from `Patch Event`, return it's id
 create :: Patch Event
        -> AppHandler (Either SomeException (IdentI Event))
-create ev = with db $ liftPG $ \c -> liftIO $ P.create ev c
+create ev = with db $ liftPG' $ \c -> liftIO $ P.create ev c
 
 
 data States = States { _from :: [UserStateVal], _to :: UserStateVal }
@@ -236,7 +236,7 @@ checkUserState uid evType evIdt _ p = do
       let mname = modelName (modelInfo :: ModelInfo m)
       in nextState s d evType mname (P.untypedPatch p)
     setNext Nothing = return Nothing
-    setNext (Just s) = liftPG $ \c -> do
+    setNext (Just s) = liftPG' $ \c -> do
       void $ P.create (mkState s) c
       void $ P.update uid (P.put delayedState Nothing P.empty) c
       return $ Just s
@@ -380,7 +380,7 @@ forceBusyUserToServiceBreak :: IdentI Action.Action
                             -> AppHandler ()
 forceBusyUserToServiceBreak aid uid = do
   -- Schedule a service break
-  void $ withAuthPg $ liftPG $
+  void $ withAuthPg $ liftPG' $
     P.update uid
     (P.put delayedState (Just ServiceBreak) P.empty)
 
@@ -395,6 +395,6 @@ forceBusyUserToServiceBreak aid uid = do
            aid
            (Just Action.result)
            (Just p)
-  void $ withAuthPg $ liftPG $ P.update aid p
+  void $ withAuthPg $ liftPG' $ P.update aid p
   ev <- log (Just uid) $ addIdent aid ep
   updateUserState (Just uid) Update aid p ev

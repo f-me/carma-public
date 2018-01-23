@@ -1,0 +1,25 @@
+# Please see README.md for instructions on how to run the bundle
+
+version: "3"
+
+services:
+  carma:
+    # EDIT TAG HERE TO USE A DIFFERENT BUILD
+    image: formalmethods/carma-bundle:latest
+    ports:
+      - 8000:8000
+    # EDIT CONFIG PATHS BELOW TO POINT TO YOUR LOCAL carma-configs COPY
+    volumes:
+      - ../../carma-configs/local-docker/devel.cfg:/srv/devel.cfg:ro
+      - ../../carma-configs/local-docker/snaplets/:/srv/snaplets/:ro
+    links:
+      - carma_db
+  carma_db:
+    image: carma-db
+    ports:
+      - 5432
+    volumes:
+      - carma-db-data:/var/lib/postgresql/data
+
+volumes:
+  carma-db-data:

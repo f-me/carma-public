@@ -1,11 +1,25 @@
-include /fields/_form_utils.pug
+mixin dateField(fieldName)
+  label.input-group.input-group-sm.date&attributes(attributes)
+    input.form-control(type="text" autocomplete="off" data-bind=`
+      datepicker: true,
+      value: ${fieldName},
+    `)
+    span.input-group-addon
+      span.glyphicon.glyphicon-calendar
+
+-
+  var filters =
+    { 'city-select'    : "Город:"
+    , 'program-select' : "Программа:"
+    , 'partner-select' : "Партнёр:"
+    }
 
 .row
   .col-md-6
     .row
       h3 Фильтрация
     .row.col-md-6.form-horizontal
-      each v, i in { 'city-select': "Город:", 'program-select': "Программа:", 'partner-select': "Партнёр:" }
+      each v, i in filters
         .form-group
           label.col-md-4= v
           .col-md-8
@@ -16,8 +30,8 @@ include /fields/_form_utils.pug
       h3 Интервал
     .row.col-md-6.form-horizontal
       .form-group
-        +dateInput("", "", "")#rkc-date-from
+        +dateField('dateFrom')#rkc-date-from
       .form-group
-        +dateInput("", "", "")#rkc-date-to
+        +dateField('dateTo')#rkc-date-to
       .form-group
         button#reload.btn Обновить

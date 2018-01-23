@@ -1,13 +1,13 @@
-define [ "search/screen"
-       , "text!tpl/screens/search.html"
-       , "json!/cfg/model/Call"
-       , "json!/cfg/model/Call?view=search"
-       ], ( Screen
-          , tpl
-          , callModel
-          , callSearchModel) ->
+Screen = require "carma/search/screen"
+{data} = require "carma/data"
 
-  template: tpl
+template = require "carma-tpl/screens/search.pug"
+
+callModel       = data.cfg.m.Call
+callSearchModel = data.cfg.m.v.search.Call
+
+module.exports = {
+  template
   constructor: -> Screen.constructor
     searchModels: [callSearchModel]
     resultModels: [callModel]
@@ -33,3 +33,4 @@ define [ "search/screen"
               "callTaker"
               "callType"
             ]
+}

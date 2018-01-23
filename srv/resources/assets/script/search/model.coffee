@@ -1,71 +1,75 @@
-define ["utils"], ->
+{$, _, ko} = require "carma/vendor"
+require "carma/utils"
 
-  class FieldsDynView
-    constructor: (@searchKVM, {@labels, @groups}, @defaults) ->
-      d = _.difference (_.pluck @defaults, 'name'), (_.keys @groups)
+class FieldsDynView
+  constructor: (@searchKVM, {@labels, @groups}, @defaults) ->
+    d = _.difference (_.pluck @defaults, 'name'), (_.keys @groups)
+    unless _.isEmpty d
+      throw new Error("Unknown groups: #{d}, available: #{_.keys @groups}")
+
+    fixed   = _.chain(@defaults).filter((f) -> f.fixed).pluck('name').value()
+
+    dyndefs = _.chain(@defaults).reject((f) -> f.fixed).pluck('name').value()
+
+    @dynamic    = ko.observableArray dyndefs
+    @showFields = ko.computed => fixed.concat @dynamic()
+    @hiddenFields = ko.computed =>
+      _.difference (_.keys @groups), @showFields()
+
+    @sfieldsh   = arrToObj 'name', @searchKVM._meta.model.fields
+    # storage for shifted user fields
+    # free fields will be out of here
+    @history = []
+
+    for f in @searchKVM._meta.model.fields when not f.meta?.nosearch?
+      do (f) =>
+        @searchKVM[f.name].subscribe (v) =>
+          if (v)
+            @updateFields(f.name)
+          else
+            unless @isDefault f.name
+              @removeField f.name
+          # rewind to the first page of search results
+          @searchKVM._meta.pager.offset 0
+
+  isDefault: (f) ->
+    _.contains _.pluck(@defaults, 'name'), f
+
+  updateFields: (f) ->
+    switch @sfieldsh[f].meta.search.matchType
+      when "MatchExact"    then @removeField f
+      when "MatchFuzzy"    then @addField f
+      when "MatchArray"    then @addField f
+      when "MatchInterval" then @addField f
+
+  removeField: (f) =>
+    unless _.isEmpty(@dynamic.remove (v) -> _.isEqual f, v)
+      @addFree()
+
+  addField:    (f) =>
+    return if _.contains @showFields(), f
+    @changeHistory @dynamic.shift()
+    @dynamic.push(f)
+
+  addFree: =>
+    unless _.isEmpty @history
+      # add a recently shifted field
+      @dynamic.push @history.shift()
+    else
+      # add a random field
+      f = @showFields()
+      t = _.keys @groups
+      d = _.difference t, f
       unless _.isEmpty d
-        throw new Error("Unknown groups: #{d}, available: #{_.keys @groups}")
+        @dynamic.push d[0]
 
-      fixed   = _.chain(@defaults).filter((f) -> f.fixed).pluck('name').value()
+  changeHistory: (f...) =>
+    # move fields to first position
+    @history = _.without @history, f
+    @history = _.union f, @history
 
-      dyndefs = _.chain(@defaults).reject((f) -> f.fixed).pluck('name').value()
 
-      @dynamic    = ko.observableArray dyndefs
-      @showFields = ko.computed => fixed.concat @dynamic()
-      @hiddenFields = ko.computed =>
-        _.difference (_.keys @groups), @showFields()
-
-      @sfieldsh   = arrToObj 'name', @searchKVM._meta.model.fields
-      # storage for shifted user fields
-      # free fields will be out of here
-      @history = []
-
-      for f in @searchKVM._meta.model.fields when not f.meta?.nosearch?
-        do (f) =>
-          @searchKVM[f.name].subscribe (v) =>
-            if (v)
-              @updateFields(f.name)
-            else
-              unless @isDefault f.name
-                @removeField f.name
-            # rewind to the first page of search results
-            @searchKVM._meta.pager.offset 0
-
-    isDefault: (f) ->
-      _.contains _.pluck(@defaults, 'name'), f
-
-    updateFields: (f) ->
-      switch @sfieldsh[f].meta.search.matchType
-        when "MatchExact"    then @removeField f
-        when "MatchFuzzy"    then @addField f
-        when "MatchArray"    then @addField f
-        when "MatchInterval" then @addField f
-
-    removeField: (f) =>
-      unless _.isEmpty(@dynamic.remove (v) -> _.isEqual f, v)
-        @addFree()
-
-    addField:    (f) =>
-      return if _.contains @showFields(), f
-      @changeHistory @dynamic.shift()
-      @dynamic.push(f)
-
-    addFree: =>
-      unless _.isEmpty @history
-        # add a recently shifted field
-        @dynamic.push @history.shift()
-      else
-        # add a random field
-        f = @showFields()
-        t = _.keys @groups
-        d = _.difference t, f
-        unless _.isEmpty d
-          @dynamic.push d[0]
-
-    changeHistory: (f...) =>
-      # move fields to first position
-      @history = _.without @history, f
-      @history = _.union f, @history
+module.exports =
 
   mkFieldsDynView: (searchKVM, {labels, groups}, defaults) ->
     dynView = new FieldsDynView searchKVM, {labels, groups}, defaults

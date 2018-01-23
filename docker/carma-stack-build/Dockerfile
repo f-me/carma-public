@@ -11,6 +11,8 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0.0-rc1"
 
 ARG DOCKER_VERSION="17.03.0-ce"
+ARG STACK_VERSION="1.6.3"
 RUN curl -L -o /tmp/docker-$DOCKER_VERSION.tgz https://get.docker.com/builds/Linux/x86_64/docker-$DOCKER_VERSION.tgz && \
     tar -xz -C /tmp -f /tmp/docker-$DOCKER_VERSION.tgz && \
-    mv /tmp/docker/* /usr/bin
+    mv /tmp/docker/* /usr/bin && \
+    stack upgrade --binary-version $STACK_VERSION

@@ -117,7 +117,7 @@ chkAuthRoles :: RoleChecker
 chkAuthRoles roleCheck handler = do
   ipHeaderFilter
   req <- getRequest
-  case rqRemoteAddr req /= rqLocalAddr req of
+  case rqClientAddr req /= rqServerAddr req of
     False -> handler -- No checks for requests from localhost
     True  -> currentUserRoles >>= \case
       Nothing -> handleError 401
@@ -132,7 +132,7 @@ chkAuthRoles roleCheck handler = do
 -- period.
 userIsInState :: [UserStateVal] -> IdentI Usermeta -> AppHandler (Maybe Bool)
 userIsInState uStates uid =
-  liftPG $ \conn -> Patch.read uid conn >>=
+  liftPG' $ \conn -> Patch.read uid conn >>=
   \case
     Left e -> error $
               "Could not fetch usermeta for user " ++ show uid ++
@@ -154,7 +154,7 @@ userIsReady uid = fromMaybe False <$> userIsInState [Ready] uid
 -- Response is a list of triples: @[["realName", "login", <id>],...]@
 usersInStates :: [IdentI Role.Role] -> [UserStateVal] -> AppHandler ()
 usersInStates roles uStates = do
-  rows <- liftPG $ \c -> uncurry (query c) [sql|
+  rows <- liftPG' $ \c -> uncurry (query c) [sql|
    SELECT
    u.$(fieldPT Usermeta.realName)$,
    u.$(fieldPT Usermeta.login)$,
@@ -185,7 +185,7 @@ serveUserStates = do
   usrId <- readUsermeta <$> getParamT "userId"
   from  <- readDay <$> getParam "from"
   to    <- readDay <$> getParam "to"
-  states <- liftPG $ \c ->
+  states <- liftPG' $ \c ->
     query c (fromString $ printf
       -- Get more then asked, we need this during drawing of timeline
       ("SELECT %s FROM \"UserState\" WHERE userId = ? " ++

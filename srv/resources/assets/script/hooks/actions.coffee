@@ -1,9 +1,13 @@
-define ["utils"], (u) ->
+{$, _, ko, Finch} = require "carma/vendor"
+u = require "carma/utils"
+
+module.exports =
+
   # Pretty action name for accordion header
   nameLocal: (model, knockVM) ->
     uid   = knockVM.assignedTo()
     knockVM["myAction"] = ko.computed ->
-      uid == global.user.id
+      uid == window.global.user.id
     return if not /^case/.test(Finch.navigate())
     sDict = u.newModelDict "ServiceType"
     u1Dict = u.newModelDict "Usermeta", false, dictionaryLabel: 'realName'

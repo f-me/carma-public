@@ -1,13 +1,16 @@
 # Global processing configuration
 #
 # Uses "ProcessingConfig" model
-define [ "text!tpl/screens/processingConfig.html"
-       , "model/main"
-       ], (tpl, main) ->
-  template: tpl
+
+main = require "carma/model/main"
+template = require "carma-tpl/screens/processingConfig.pug"
+
+module.exports = {
+  template
   constructor: () ->
     view = "config-form"
     main.modelSetup("ProcessingConfig") \
       view,
-      {id: global.idents("ProcessingConfig").main},
-      {permEl: "config-permissions"}
+      {id: window.global.idents("ProcessingConfig").main},
+      {slotsee: ["config-permissions"]}
+}

@@ -1,14 +1,18 @@
-define ["model/main", "sync/datamap"], (Main, DataMap) ->
+{_, ko} = require "carma/vendor"
 
-  buildKVMS = (models, raws) -> _.map raws, (r) -> buildKVM models, r
+Main    = require "carma/model/main"
+DataMap = require "carma/sync/datamap"
 
-  buildKVM = (models, rs) ->
-    r = {}
-    for n, m of models
-      mapper = new DataMap.Mapper(m)
-      r[n] = Main.buildKVM m, { fetched: mapper.s2cObj rs[n] }
-    return r
+buildKVMS = (models, raws) -> _.map raws, (r) -> buildKVM models, r
 
+buildKVM = (models, rs) ->
+  r = {}
+  for n, m of models
+    mapper = new DataMap.Mapper(m)
+    r[n] = Main.buildKVM m, { fetched: mapper.s2cObj rs[n] }
+  return r
+
+module.exports =
   mkResultObservable: (kvm, models) ->
     robs = ko.observable([])
     ko.computed

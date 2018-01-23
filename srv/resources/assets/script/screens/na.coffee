@@ -1,2 +1,5 @@
-define ["text!tpl/screens/na.html"], (tpl) ->
-  template: tpl
+template = require "carma-tpl/screens/na.pug"
+
+module.exports = {
+  template
+}

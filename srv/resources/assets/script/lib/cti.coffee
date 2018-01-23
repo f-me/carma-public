@@ -1,62 +1,63 @@
-define ["lib/ws"], (WS) ->
-  # CTI core
-  class CTI
-    constructor: (@extension) ->
-      console.log "Enabling CTI for extension #{@extension}"
+{WS} = require "carma/lib/ws"
 
-      if window.location.protocol == "https:"
-        url = "wss://#{location.host}/avaya/ws/#{@extension}"
-      else
-        url = "ws://#{location.host}/avaya/ws/#{@extension}"
+# CTI core
+module.exports.CTI = class CTI
+  constructor: (@extension) ->
+    console.log "Enabling CTI for extension #{@extension}"
 
-      @ws = new WS(url)
+    if window.location.protocol == "https:"
+      url = "wss://#{location.host}/avaya/ws/#{@extension}"
+    else
+      url = "ws://#{location.host}/avaya/ws/#{@extension}"
 
-    makeCall: (number) ->
-      @ws.send JSON.stringify
-        action: "MakeCall"
-        number: number
+    @ws = new WS(url)
 
-    endCall: (callId) ->
-      @ws.send JSON.stringify
-        action: "EndCall"
-        callId: callId
+  makeCall: (number) ->
+    @ws.send JSON.stringify
+      action: "MakeCall"
+      number: number
 
-    holdCall: (callId) ->
-      @ws.send JSON.stringify
-        action: "HoldCall"
-        callId: callId
+  endCall: (callId) ->
+    @ws.send JSON.stringify
+      action: "EndCall"
+      callId: callId
 
-    retrieveCall: (callId) ->
-      @ws.send JSON.stringify
-        action: "RetrieveCall"
-        callId: callId
+  holdCall: (callId) ->
+    @ws.send JSON.stringify
+      action: "HoldCall"
+      callId: callId
 
-    answerCall: (callId) ->
-      @ws.send JSON.stringify
-        action: "AnswerCall"
-        callId: callId
+  retrieveCall: (callId) ->
+    @ws.send JSON.stringify
+      action: "RetrieveCall"
+      callId: callId
 
-    conferenceCall: (activeCall, heldCall) ->
-      @ws.send JSON.stringify
-        action: "ConferenceCall"
-        activeCall: activeCall
-        heldCall:   heldCall
+  answerCall: (callId) ->
+    @ws.send JSON.stringify
+      action: "AnswerCall"
+      callId: callId
 
-    # pType is either "Active" or "Silent"
-    bargeIn: (activeCall, pType) ->
-      @ws.send JSON.stringify
-        action: "BargeIn"
-        callId: activeCall
-        pType: pType
+  conferenceCall: (activeCall, heldCall) ->
+    @ws.send JSON.stringify
+      action: "ConferenceCall"
+      activeCall: activeCall
+      heldCall:   heldCall
 
-    transferCall: (activeCall, heldCall) ->
-      @ws.send JSON.stringify
-        action: "TransferCall"
-        activeCall: activeCall
-        heldCall:   heldCall
+  # pType is either "Active" or "Silent"
+  bargeIn: (activeCall, pType) ->
+    @ws.send JSON.stringify
+      action: "BargeIn"
+      callId: activeCall
+      pType: pType
 
-    sendDigits: (callId, digits) ->
-      @ws.send JSON.stringify
-        action: "SendDigits"
-        callId: callId
-        digits: digits
+  transferCall: (activeCall, heldCall) ->
+    @ws.send JSON.stringify
+      action: "TransferCall"
+      activeCall: activeCall
+      heldCall:   heldCall
+
+  sendDigits: (callId, digits) ->
+    @ws.send JSON.stringify
+      action: "SendDigits"
+      callId: callId
+      digits: digits

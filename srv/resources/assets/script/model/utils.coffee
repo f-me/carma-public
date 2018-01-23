@@ -1,12 +1,18 @@
-define ["model/main", "render/screen"], (main, render) ->
-  # Find view for this element
-  elementView = (elt) -> _.last($(elt).parents("[id*=view]"))
+{$, _} = require "carma/vendor"
 
-  # Save instance loaded in view
-  saveInstance = (viewName, cb, force) ->
-    global.viewsWare[viewName].knockVM._meta.q.save(cb, force)
+main   = require "carma/model/main"
+render = require "carma/render/screen"
 
-  window.saveInstance = saveInstance
+{store} = require "carma/neoComponents/store"
+
+{saveModelInstanceRequest} =
+  require "carma/neoComponents/store/model/actions"
+
+# Find view for this element
+elementView = (elt) -> _.last($(elt).parents("[id*=view]"))
+
+
+module.exports =
 
   # FIXME: remove this function definition
   # and correct module dependencies
@@ -23,21 +29,22 @@ define ["model/main", "render/screen"], (main, render) ->
 
   # Load existing model instance
   createInstance: (viewName, id) ->
-    saveInstance(viewName)
-    render.forgetView(viewName)
-    global.activeScreen.views[viewName](viewName, {})
+    action = saveModelInstanceRequest
+    store.dispatch action new action.Payload {viewName}
+    render.forgetView viewName
+    window.global.activeScreen.views[viewName] viewName, {}
 
   # Load existing model instance
   restoreInstance: (viewName, id) ->
     render.forgetView(viewName)
-    global.activeScreen.views[viewName](viewName, {"id": id})
+    window.global.activeScreen.views[viewName](viewName, {id})
 
   # Remove instance currently loaded in view from storage and render
   # that view from scratch (if possible)
   removeInstance: (viewName) ->
-    global.viewsWare[viewName].knockVM.model().destroy()
+    window.global.viewsWare[viewName].knockVM.model().destroy()
     render.forgetView(viewName)
-    setup = global.activeScreen.views[viewName]
+    setup = window.global.activeScreen.views[viewName]
     setup(viewName, {}) if not _.isNull(setup)
 
   elementView: elementView
@@ -49,7 +56,7 @@ define ["model/main", "render/screen"], (main, render) ->
   # Get field object for named model and field
   modelField: (modelName, fieldName) ->
     _.find(
-      global.model(modelName).fields,
+      window.global.model(modelName).fields,
       (f) -> return f.name == fieldName)
 
   fieldNameToLabel: (kvm) -> (fieldName) ->
@@ -61,7 +68,7 @@ define ["model/main", "render/screen"], (main, render) ->
     mkSortFns = (name, fn) ->
       sorters[name] = {}
       sorters[name]["asc"]  = fn
-      sorters[name]["desc"] = { fn: fn, reverse: true }
+      sorters[name]["desc"] = { fn, reverse: true }
 
     ignoreType = (type) ->
       _.contains ["reference", "nested-model", "json"], type

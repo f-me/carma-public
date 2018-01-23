@@ -1,0 +1,76 @@
+diag-tree-show-inside {
+  @pfx: diag-tree-show;
+
+  .@{pfx}--more-actions {
+    .@{pfx}--more {
+      float: right;
+
+      &[disabled] {
+        text-decoration: line-through;
+        cursor: not-allowed;
+      }
+    }
+
+    &:after {
+      display: block;
+      content: '';
+      clear: both;
+    }
+  }
+
+  .@{pfx}--history-answer { float: left; }
+  .@{pfx}--btn[disabled] { cursor: not-allowed; }
+
+  .list-group-item.@{pfx}--selected {
+    background-color: lightblue;
+    & > .list-group-item-heading { font-weight: 700; }
+  }
+
+  .list-group-item.@{pfx}--deprecated {
+    background-color: hsl(0, 0%, 50%);
+  }
+
+  .list-group-item.@{pfx}--deprecated.@{pfx}--selected {
+    background-color: hsl(200, 30%, 50%);
+  }
+
+  .@{pfx}--with-floating-btn {
+    position: relative;
+
+    .@{pfx}--floating-btn {
+      display: block;
+      position: absolute;
+      right: 1px;
+      top: 1px;
+      padding: 9px 12px;
+      background: rgba(255, 255, 255, .8);
+      opacity: 0;
+
+      transition:
+        text-shadow .3s ease-in-out,
+        opacity .3s ease-in-out,
+        background .3s ease-in-out;
+
+      &--visible { opacity: 1; }
+
+      &:hover, &:focus {
+        text-shadow: 0 0 4px #777;
+        opacity: 0.8;
+      }
+    }
+  }
+
+  .@{pfx}--slide-body {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 9px;
+    font-size: 125%;
+  }
+
+  .@{pfx}--img, .@{pfx}--slide-body img {
+    font-size: 36px;
+    margin: 10px;
+    max-width: 30%;
+  }
+}

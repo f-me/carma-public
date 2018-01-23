@@ -5,22 +5,23 @@
     #logo-help.form-inline.well
       .media(style='text-align: center;')
         .pull-left
-          img#logo.media-object(data-bind='attr: { src: filenameUrl }',
-                                style='width: 260px; height: 180px;')
+          img#logo.media-object(
+            data-bind='attr: {src: filenameUrl}'
+            style='width: 260px; height: 180px;')
         .media-body
           h4#help-program
           p#help-text
     // Table
     .row(style="overflow: auto")
-      include /lib/_searchTable.pug
+      include carma-tpl/lib/_searchTable.pug
 
   // Sidebar header
   .col-md-3
     ul.nav.nav-tabs
       li.active
-        a(href='#search-tab', data-toggle='tab') Поиск
+        a(href='#search-tab' data-toggle='tab') Поиск
       li
-        a(href='#contract-tab', data-toggle='tab') Редактирование
+        a(href='#contract-tab' data-toggle='tab') Редактирование
   #sidebar-content.col-md-3.tab-content(style='overflow-y: scroll;')
     // Search tab
     #search-tab.tab-pane.active.vmargined-2(style='width: 95%;')
@@ -41,12 +42,13 @@
           | &nbsp; Добавить контракт
         | &nbsp;
         a#renew-contract-btn.btn.btn-default(
-          style='display: none', type='button')
+          style='display: none'
+          type='button')
           | Продлить контракт
       .row.col-md-12
         span.glyphicon.glyphicon-print
         b &nbsp; Распечатать: &nbsp;
-        a#render-contract(href='#', target='_blank')
+        a#render-contract(href='#' target='_blank')
           | Скачать PDF-файл
       .row.col-md-12
         #contract-form.form-horizontal

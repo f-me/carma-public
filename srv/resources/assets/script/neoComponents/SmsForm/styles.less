@@ -1,0 +1,39 @@
+sms-form {
+  .modal-backdrop, .modal {
+    display: none;
+    &.active { display: block; }
+
+    .twitter-typeahead {
+      width: 100%;
+
+      .tt-menu.tt-open {
+        width: 100%;
+
+        .dropdown-menu {
+          width: 100%;
+          max-height: 300px;
+          overflow: auto;
+        }
+      }
+    }
+
+    .send-btn > .glyphicon.glyphicon-refresh {
+      @keyframes sms-form-processing-spin {
+        0%   { transform: rotate(0deg); }
+        50%  { transform: rotate(180deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      animation: sms-form-processing-spin 1.5s ease-in-out infinite;
+    }
+
+    .clear-sms-template-btn {
+      display: block;
+      cursor: pointer;
+      position: absolute;
+      right: 8px;
+      top: 0;
+      padding: 8px;
+    }
+  }
+}

@@ -1,22 +1,22 @@
-define [ "hooks/common"
-       , "hooks/case"
-       , "hooks/services"
-       , "hooks/partner"
-       , "hooks/actions"
-       , "hooks/Usermeta"
-       , "hooks/Call"
-       ],
-       (c, k, s, p, a, Um, Call) ->
+c    = require "carma/hooks/common"
+k    = require "carma/hooks/case"
+s    = require "carma/hooks/services"
+p    = require "carma/hooks/partner"
+a    = require "carma/hooks/actions"
+Um   = require "carma/hooks/Usermeta"
+Call = require "carma/hooks/Call"
 
-  # Hooks for services that have calculated payments for partners
-  partnerKpiService = [
-    s.serviceColor
-    s.partnerWarnedInTimeBtn
-    s.updateCaseActions
-    s.openPartnerSearch
-    s.updatePartnerPayment
-  ]
+# Hooks for services that have calculated payments for partners
+partnerKpiService = [
+  s.serviceColor
+  s.partnerWarnedInTimeBtn
+  s.updateCaseActions
+  s.openPartnerSearch
+  s.updatePartnerPayment
+]
 
+
+module.exports =
   model:
       "*"    : [c.stdElCb]
   preinit:

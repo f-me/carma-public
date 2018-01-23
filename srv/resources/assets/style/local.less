@@ -1,0 +1,276 @@
+@media screen { /* don't mess with print layout */
+
+#top-navbar {
+}
+
+#main-container {
+  /* FIXME:
+   * Somehow `height: calc(100vh - 70px);` does not work.
+   * After preprocessing with less it is converted to `height: 30vh;`
+   * */
+  height: 100vh;
+  padding-top: 40px;
+  overflow-x: hidden;
+}
+
+#top-level-modals {
+}
+
+#layout {
+  height: 100%;
+}
+
+#layout > .screen {
+  height: 100%;
+}
+
+/* suppress row margins, so we won't get off the screen */
+.screen.row, .screen > .row {
+  margin-left: 0px;
+  margin-right: 0px;
+}
+.col {
+  height: 100%;
+  overflow-y: auto;
+}
+
+#cti {
+  z-index: 1020;
+  position: fixed;
+  width: 100%;
+  /* 36px is our navbar height */
+  top: 36px;
+  padding: 10px;
+}
+
+#call-screen > .row {
+  /* this will count width including paddings, so there is no more scroll */
+  box-sizing: border-box;
+  height: 50%;
+  overflow-y: auto;
+}
+
+#call-screen > .row > .col {
+  height: 100%;
+  overflow-y: auto;
+}
+
+#call-screen > .bottom-part {
+  border-top: 1px #aaa;
+  border-top-style: dotted;
+  padding-top: 5px;
+  /* margin-top: 5px; */
+}
+
+#case-history .history-datetime {
+  float: left;
+}
+
+#case-history .history-who {
+  float: right;
+}
+
+#case-history .history-body {
+  clear: both;
+  padding-top: 0.5em;
+}
+
+#case-history .well {
+  margin-bottom: 10px;
+}
+
+#case-history > *:last-child {
+  margin-bottom: 15vh;
+}
+
+#case-history .more {
+  display: block;
+  text-align: center;
+  margin-top: 2em;
+}
+
+#case-history .history-item {
+  padding: 0.5em;
+}
+
+.notifyjs-bootstrap-base > span {
+  white-space: normal;
+}
+
+.notifyjs-corner {
+  max-width: 50%;
+}
+
+/* hack to make feedback left of addon */
+.input-group-addon ~ .form-control-feedback {
+  right: 40px !important;
+}
+
+/* hack to fix misaligned addon for small inputs */
+.input-group-sm .input-group-addon {
+    padding-bottom: 4px;
+}
+
+.form-group .input-group {
+  width: 100%;
+}
+
+/* inline labels for "VIP phone" fields */
+.field-vip-label {
+  position: absolute;
+  right: 5em;
+  top: 0.5em;
+  z-index: 1000;
+}
+
+tr.details > td {
+  background-color: #f9f9f9;
+}
+
+.checkbutton label input {
+  display: none;
+}
+
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+
+.local-datetime-button {
+    position: absolute;
+    top: 7px;
+    right: 3px;
+    max-width: 35%;
+    text-align: right;
+    z-index: 2;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 80%;
+    color: grey;
+    cursor: pointer;
+}
+
+.local-datetime-button:hover {
+    color: black;
+}
+
+.legacy-partner-button {
+    position: absolute;
+    top: 35px;
+    right: 3px;
+    max-width: 55%;
+    text-align: right;
+    z-index: 2;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 80%;
+    color: grey;
+    cursor: pointer;
+}
+
+.legacy-partner-button:hover {
+    color: black;
+}
+
+.osMap {
+  height: 600px;
+}
+
+.vmargined-1 > .row {
+  margin-top: 5px;
+}
+
+.vmargined-2 > .row {
+  margin-top: 10px;
+}
+
+/* so dropdowns won't hide behind modal windows */
+.typeahead.dropdown-menu {
+  z-index: 1051;
+}
+
+.saving-spinner {
+  right: 30px !important;
+}
+
+input.re-failed {
+  background-color: #FEE793;
+}
+
+.typeahead {
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+
+#partner_services-accordion .error {
+  background-color: #d77 !important;
+}
+
+#partner_services-accordion input {
+  border: solid gray 1px;
+}
+
+.accordion-toggle {
+  width: 100%;
+  text-align: left;
+  vertical-align: middle;
+  height: 34px;
+  padding: 6px 12px;
+  margin-bottom: 2px;
+  background-color: #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.control-group.tight label {
+  font-weight: normal;
+}
+
+.control-group.tight input {
+  width: 3em;
+}
+
+table.tarif-options {
+  width: 100%;
+  margin: 20px;
+}
+
+table.tarif-options input {
+  width: 100% !important;
+  margin: 2px;
+}
+table.tarif-options .glyphicon-remove {
+  cursor: pointer;
+}
+
+
+h4 a {
+  cursor: pointer;
+}
+
+
+label.date input {
+  font-weight: normal;
+}
+
+
+} /* end @media screen */

@@ -8,21 +8,16 @@ jobs:
   build_client:
     <<: *defaults
     docker:
-      - image: node:4.8.4
+      - image: node:6.7.0
     steps:
       - checkout
       - run:
           name: Build CaRMa frontend
           command: |
             cd srv
-            npm install -g bower grunt
             npm install
-            bower install --allow-root
-            cd resources/assets/react-components
-            npm install
-            cd -
-            mkdir -p resources/static/{js/gen,css}
-            grunt build
+            npm run prod-build
+            npm run build-backend-templates
       - persist_to_workspace:
           root: .
           paths:
@@ -31,7 +26,7 @@ jobs:
   build_server:
     <<: *defaults
     docker:
-      - image: formalmethods/carma-stack-build
+      - image: formalmethods/carma-stack-build:stack-1.6.3@sha256:13b265472181d1c519420aff8dbe2e8426da52e41094e4c9e70004caac4004ae
     steps:
       - setup_remote_docker
       - checkout
@@ -41,6 +36,7 @@ jobs:
       - run:
           name: Build CaRMa backend
           command: |
+            stack --version
             stack --install-ghc -j2 build
       - save_cache:
           key: stack-cache-{{ checksum "stack.yaml" }}
@@ -62,7 +58,7 @@ jobs:
   build_bundle:
     <<: *defaults
     docker:
-      - image: formalmethods/carma-stack-build
+      - image: formalmethods/carma-stack-build:stack-1.6.3@sha256:13b265472181d1c519420aff8dbe2e8426da52e41094e4c9e70004caac4004ae
     steps:
       - setup_remote_docker
       - checkout

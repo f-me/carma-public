@@ -1,16 +1,19 @@
-define ["text!tpl/screens/kpi/group.html"
-        "json!/cfg/model/GroupKPI?view=kpi"
-        "model/main"
-        "model/fields"
-        "sync/datamap"
-        "utils"
-        "lib/current-user"
-  ], (Tpl, Model, Main, Fs, Map, U, Usr) ->
+{$, _, ko} = require "carma/vendor"
 
-  key = "kpi-group"
+Model = require("carma/data").data.cfg.m.v.kpi.GroupKPI
 
-  mp = new Map.Mapper(Model)
+Main = require "carma/model/main"
+Fs   = require "carma/model/fields"
+Map  = require "carma/sync/datamap"
+Usr  = require "carma/lib/current-user"
+U    = require "carma/utils"
 
+Tpl = require "carma-tpl/screens/kpi/group.pug"
+
+key = "kpi-group"
+mp  = new Map.Mapper(Model)
+
+module.exports =
   template: Tpl
   constructor: (view, opts) ->
     $("#group-screen").addClass("active")

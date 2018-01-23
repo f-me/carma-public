@@ -1,37 +1,40 @@
-define ['dictionaries/local-dict',], (ld) ->
-  # Nested ActionResult dictionary
-  #
-  # dictionaryParent meta is required and must point to an ActionType
-  # field. This dictionary does not auto-update when a parent field is
-  # changed (action type is normally immutable)
-  class ResultsDict extends ld.dict
-    constructor: (@opts) ->
-      @model   = @opts.dict
-      @kvm     = @opts.kvm
-      @bounded = @opts.bounded
+{_} = require "carma/vendor"
+ld = require "carma/dictionaries/local-dict"
 
-      @parent  = @opts.parent
-      unless _.isFunction @kvm[@parent]
-        console.error "Parent of results-dict not set"
+# Nested ActionResult dictionary
+#
+# dictionaryParent meta is required and must point to an ActionType
+# field. This dictionary does not auto-update when a parent field is
+# changed (action type is normally immutable)
+class ResultsDict extends ld.dict
+  constructor: (@opts) ->
+    @model   = @opts.dict
+    @kvm     = @opts.kvm
+    @bounded = @opts.bounded
 
-      @key      = @opts.meta?.dictionaryKey || "id"
-      @label    = @opts.meta?.dictionaryLabel || "label"
+    @parent  = @opts.parent
+    unless _.isFunction @kvm[@parent]
+      console.error "Parent of results-dict not set"
 
-      @bgetJSON "/_/ActionResult/", (@allItems) =>
-        # Fetch full key-label mapping
-        @allValuesMap =
-          _.reduce @allItems, ((m,i) => m[i[@key]] = i[@label]; m), {}
-        # Fetch [(type, result)] mapping
-        @bgetJSON "/backoffice/allActionResults/", (@resultPairs) =>
-          aType = @kvm[@parent]()
-          @updateSource(_.filter @resultPairs, (e) => e[0] == aType)
-          @dictValueCache = null
-          @dictLabelCache = null
+    @key      = @opts.meta?.dictionaryKey || "id"
+    @label    = @opts.meta?.dictionaryLabel || "label"
 
-    updateSource: (pairs) ->
-      @source = ({value: p[1], label: @allValuesMap[p[1]]} for p in pairs)
+    @bgetJSON "/_/ActionResult/", (@allItems) =>
+      # Fetch full key-label mapping
+      @allValuesMap =
+        _.reduce @allItems, ((m,i) => m[i[@key]] = i[@label]; m), {}
+      # Fetch [(type, result)] mapping
+      @bgetJSON "/backoffice/allActionResults/", (@resultPairs) =>
+        aType = @kvm[@parent]()
+        @updateSource(_.filter @resultPairs, (e) => e[0] == aType)
+        @dictValueCache = null
+        @dictLabelCache = null
 
-    getLab: (val) -> (@allValuesMap || @dictValues())[val]
+  updateSource: (pairs) ->
+    @source = ({value: p[1], label: @allValuesMap[p[1]]} for p in pairs)
 
+  getLab: (val) -> (@allValuesMap || @dictValues())[val]
+
+module.exports =
   dict: ResultsDict
   name: 'ResultsDict'

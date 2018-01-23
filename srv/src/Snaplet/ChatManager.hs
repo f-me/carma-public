@@ -119,7 +119,7 @@ handler :: TChan (RoomName, ChatMessage)
         -> Handler b (ChatManager b) ()
 handler queue refs = do
   rName <- fromMaybe (error "Empty chat room name") <$> getParam "room"
-  addr <- rqRemoteAddr <$> getRequest
+  addr <- rqClientAddr <$> getRequest
   uid <- currentUserMetaId
   let
     me = UK (uid, decodeUtf8 addr)

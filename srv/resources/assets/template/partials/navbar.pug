@@ -1,0 +1,142 @@
+// Navigation bar on top
+nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
+  .container-fluid
+    .navbar-header
+      a.navbar-brand(href='/')
+        addLocalName CaRMa
+    .collapse.navbar-collapse
+      ul.nav.navbar-nav#nav(data-bind=`component: 'navbar'`)
+      ul.nav.navbar-nav.navbar-right#current-user
+        li.divider-vertical
+        li.dropdown
+          a.dropdown-toggle(href='#', data-toggle='dropdown')
+            span(data-bind='text: safelyGet(\'login\')')
+            b.caret
+          ul.dropdown-menu
+            li
+              a(href='/logout/')
+                i.icon-off.icon-black
+                | Выход
+        li.dropdown
+          .attention-magnet(style='display: none;', data-bind="visible: alert")
+          a.dropdown-toggle(href='#', data-toggle='dropdown',
+            data-bind="css: {important: alert}, text: safelyGet('currentStateLocal')")
+          ul.dropdown-menu
+            li.abandoned-services(
+              data-bind='visible: abandonedServices().length > 0')
+              b Услуги в стaтусе "Создание":
+              ul#abandoned-services
+                // ko foreach: abandonedServices
+                li
+                  a(data-bind='attr: {href: href}, text: text')
+                // /ko
+              hr
+            li.current-user-menu
+              .status
+                b Текущий статус:
+                span(data-bind="text: safelyGet('currentStateLocal')")
+                span(data-bind="text: safelyGet('timeInCurrentState')")
+              .btn-group.btn-group-xs#user-state-btngroup
+                button.btn.btn-default.btn-small(type='button',
+                  data-bind="css: {\n\
+                    'btn-success': safelyGet('delayedState') == 'Rest'\n\
+                    },\n\
+                    disable: inSBreak() || inNA(),\n\
+                    click: function () {\n\
+                    toggleDelayed('Rest')\n\
+                    }")
+                  | Перерыв
+                button.btn.btn-default.btn-small(type='button',
+                  data-bind="css: {\n\
+                    'btn-success': safelyGet('delayedState') == 'Dinner'\n\
+                    },\n\
+                    disable: inSBreak() || inNA(),\n\
+                    click: function () { toggleDelayed('Dinner')}")
+                  | Обед
+.well#cti(style='display: none')
+  .container-fluid#cti-form
+      // ko foreach: calls
+      form.call-form.form-inline(
+        action='#',
+        data-bind='submit: makeThis,\
+                   visible: $index() == 0 ||\
+                            $parent.showBlankCall() ||\
+                            $index() < ($parent.calls().length - 1)')
+        span.label.label-danger(
+          data-bind='visible: $parent.lostConnection() && $index() == 0')
+          i.glyphicon.glyphicon-flash
+          | &nbsp;Нет соединения
+        span.label.label-danger(data-bind='visible: failed')
+          i.glyphicon.glyphicon-exclamation-sign
+          | &nbsp;Ошибка дозвона
+        div(style='vertical-align: middle; display: inline-block;')
+          span.label.label-primary(
+            data-bind='visible: vdn, text: vdn', style='display: block')
+          span.label.label-info(
+            data-bind='visible: name, text: name', style='display: block')
+        span.label.label-danger(data-bind='visible: vip')
+          i.glyphicon.glyphicon-star
+          | VIP
+        textarea.form-control.number(placeholder='Номер телефона',
+          cols='25',
+          style='resize: none',
+          data-bind="textInput: number,\
+                     attr: { rows : numberRows },\
+                     disable: callStart")
+        input.form-control.extension-mask(
+          type='text',
+          placeholder='Добавочный',
+          size="10",
+          data-bind='textInput: extension,\
+                     visible: canExtend')
+        span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
+          data-bind='visible: wip')
+        button.call-button.btn.btn-sm.btn-success(type='submit',
+          data-bind='visible: canCall, click: makeThis')
+          i.glyphicon.glyphicon-earphone
+          | &nbsp;Позвонить
+        button.btn.btn-sm.btn-success(type='button',
+          data-bind='visible: canAnswer, click: answerThis')
+          i.glyphicon.glyphicon-phone-alt
+          | &nbsp;Принять звонок
+        button.btn.btn-sm.btn-info(type='button',
+          data-bind='visible: canHold, click: holdThis')
+          i.glyphicon.glyphicon-pause
+          | &nbsp;Удерживать
+        button.btn.btn-sm.btn-info(type='button',
+          data-bind='visible: canConf, click: confThis')
+          i.glyphicon.glyphicon-plus-sign
+          | &nbsp;Конференция
+        button.btn.btn-sm.btn-info(type='button',
+          data-bind='visible: canTransfer, click: transferThis')
+          i.glyphicon.glyphicon-arrow-up
+          | &nbsp;Соединить
+        button.btn.btn-sm.btn-warning(type='button',
+          data-bind='visible: canRetrieve, click: retrieveThis')
+          i.glyphicon.glyphicon-play
+          | &nbsp;Возобновить
+        button.btn.btn-sm.btn-danger(type='button',
+          data-bind='visible: canEnd, click: endThis')
+          i.glyphicon.glyphicon-remove-circle
+          | &nbsp;Завершить звонок
+        span(data-bind='visible: $index() == 0')
+          button.btn.btn-sm(type='button',
+            data-bind='visible: $parent.canMute(), click: mute')
+            i.glyphicon.glyphicon-volume-off
+          button.btn.btn-sm(type='button',
+            data-bind='visible: $parent.canUnmute(), click: unmute')
+            i.glyphicon.glyphicon-volume-up
+          button.btn.btn-sm(type='button',
+            data-bind='visible: canInsta, click: instaDial(\'665\')')
+            | Супервизор
+          button.btn.btn-sm(type='button',
+            data-bind='visible: canInsta, click: instaDial(\'667\')')
+            | Механик
+        .pull-right(
+          data-bind='visible: !$parent.showBlankCall() &&\
+                              $index() == ($parent.calls().length - 2)')
+          button.btn.btn-sm(type='button',
+            data-bind='click: addBlankCall')
+            i.glyphicon.glyphicon-plus
+            | &nbsp;Ещё звонок
+      // /ko

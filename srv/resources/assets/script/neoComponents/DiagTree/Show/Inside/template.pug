@@ -1,0 +1,205 @@
+- var pfx = 'diag-tree-show'
+
+mixin answer
+  // ko if: item.get("answerIx") !== null
+  span(class=`${pfx}--history-answer`)
+    span(data-bind=`
+      text: item.getIn(["answers", item.get("answerIx"), "header"]),
+    `)
+    br
+    span(data-bind='text: item.get("answerTime")')
+    span= ' — '
+    span(data-bind='text: item.get("answeredBy")')
+  // /ko
+
+mixin historyItem
+  div(
+    class=`${pfx}--more-actions`
+    data-bind='if: $component.hasPrevHistory(item.get("id"))')
+    a(
+      href='#'
+      class=`${pfx}--more`
+      data-bind=`
+        disabled: $component.isProcessing,
+        visible:
+          $component.hasPrevHistory(item.get("id")) &&
+          $component.showDeprecated() !== item.get("id"),
+        click: $component.showDeprecatedAnswers,
+      `)
+      | Показать отменённые ответы
+
+    a(
+      href='#'
+      class=`${pfx}--more`
+      data-bind=`
+        disabled: $component.isProcessing,
+        visible: $component.showDeprecated() === item.get("id"),
+        click: $component.hideDeprecatedAnswers,
+      `)
+      | Скрыть отменённые ответы
+
+  //
+    ko if:
+      $component.hasPrevHistory(item.get("id")) &&
+      $component.showDeprecated() === item.get("id")
+
+  .list-group(data-bind=`
+    foreach: {
+      data: $component.prevHistory(item.get("id")).toArray(),
+      as: "prevItem",
+    },
+  `)
+    button.list-group-item(
+      class=`${pfx}--btn ${pfx}--deprecated`
+      data-bind=`
+        disabled: $component.isProcessing,
+        css: {"${pfx}--selected": prevItem.get("id") === $component.slideId()},
+        click: $component.selectHistory,
+      `)
+        h4.list-group-item-heading(data-bind='text: prevItem.get("header")')
+        p.list-group-item-text
+          +answer
+
+  // /ko
+
+  div(
+    class=`${pfx}--with-floating-btn`
+    data-bind=`
+      event: {
+        mouseenter: $component.onHistoryMouseEnter,
+        mouseleave: $component.onHistoryMouseLeave,
+      },
+    `)
+    button.list-group-item(class=`${pfx}--btn` data-bind=`
+      css: {"${pfx}--selected": $component.slideId() === item.get("id")},
+      click: $component.selectHistory,
+      disabled: $component.isProcessing,
+
+      event: {
+        focus: $component.onHistoryFocus,
+        blur: $component.onHistoryBlur,
+      },
+    `)
+      h4.list-group-item-heading(data-bind='text: item.get("header")')
+      p.list-group-item-text
+        +answer
+    button.btn.glyphicon.glyphicon-repeat(
+      class=`${pfx}--floating-btn`
+      title='Повторить вопрос'
+      data-bind=`
+        click: $component.repeatQuestion,
+        disabled: $component.isProcessing,
+
+        css: {
+          "${pfx}--floating-btn--visible":
+            $component.hoverId() === item.get("id"),
+        },
+
+        event: {
+          focus: $component.onHistoryFocus,
+          blur: $component.onHistoryBlur,
+        },
+      `)
+
+mixin answerItemInside
+  h4.list-group-item-heading(data-bind='text: answer.get("header")')
+  p.list-group-item-text
+    // ko if: answer.get("file")
+    img(class=`${pfx}--img` data-bind='attr: {src: answer.get("file")}')
+    // /ko
+    span(data-bind='text: answer.get("text")')
+
+mixin answerItem
+  - var css = `{"${pfx}--selected": $component.slideAnswerIdx() === $index()}`
+  - var style = '{"background-color": $component.answerBg($index())}'
+
+  // ko if: $component.isSlideAnswered
+  span.list-group-item(class=`${pfx}--btn` data-bind=`
+    css: ${css},
+    style: ${style},
+  `)
+    +answerItemInside
+  // /ko
+
+  // ko ifnot: $component.isSlideAnswered
+  button.list-group-item(class=`${pfx}--btn` data-bind=`
+    css: ${css},
+    style: ${style},
+    click: $component.handleAnswer.bind(null, $index()),
+    disabled: $component.isProcessing,
+  `)
+    +answerItemInside
+  // /ko
+
+mixin error(k, msg)
+  p(data-bind=`visible: $component.caseModel().get("${k}")`)
+    span.label.label-danger Ошибка
+    |
+    |
+    = msg
+
+mixin errors
+  +error(
+    'isGetCaseHistoryFailed',
+    'Произошла ошибка при загрузке истории диагностики')
+
+  +error(
+    'isRepeatQuestionFailed',
+    'Произошла ошибка при попытке повторить вопрос')
+
+  +error('isAnswerFailed', 'Произошла ошибка при сохранении ответа')
+  +error('isCreateServiceFailed', 'Произошла ошибка создания заявки')
+
+.container
+  .row
+    .col-md-4
+      .list-group(data-bind=`
+        foreach: {data: $component.history, as: "item"},
+      `)
+        div
+          +historyItem
+    .col-md-8
+      div(data-bind='spinner: $component.isProcessing')
+      +errors
+
+      h1(data-bind='text: $component.slide().get("header")')
+
+      div(
+        class=`${pfx}--slide-body`
+        data-bind=`
+          html: $component.slideBody(),
+          visible: $component.slideBody() !== "",
+        `)
+
+      div(data-bind=`
+        foreach: {data: $component.slideResources, as: "resource"},
+      `)
+        div
+          img(class=`${pfx}--img` data-bind='attr: {src: resource.get("file")}')
+          span(data-bind='text: resource.get("text")')
+
+      // ko if: $component.isItYesNoAnswer
+      .row(data-bind=`
+        foreach: {data: $component.slideAnswers, as: "answer"},
+      `)
+        .col-md-6
+          .list-group
+            +answerItem
+      // /ko
+      // ko ifnot: $component.isItYesNoAnswer
+      .list-group(data-bind=`
+        foreach: {data: $component.slideAnswers, as: "answer"},
+      `)
+        +answerItem
+      // /ko
+
+      // ko if: $component.slideAction
+      .list-group
+        button.list-group-item(class=`${pfx}--btn` data-bind=`
+          click: $component.handleSlideAction,
+          disabled: $component.isProcessing,
+        `)
+          h4.list-group-item-heading(data-bind=`
+            text: $component.slideAction().get("label"),
+          `)
+      // /ko

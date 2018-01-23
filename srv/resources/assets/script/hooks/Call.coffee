@@ -1,4 +1,6 @@
-define [], ->
+{_, ko} = require "carma/vendor"
+
+module.exports =
   callTypeBtn: (model, kvm) ->
 
     return unless kvm.callType

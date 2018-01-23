@@ -57,6 +57,5 @@ instance Model AverageCommissioner where
       : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) totalMilage
       : setMeta "visibleIf" (object ["isCountryRide" .= [True]]) partnerWarnedInTime
       : widget "partnerWarnedInTime-btn" partnerWarnedInTime
-      : widget "reactComponent" tasks
-      : setMeta "reactComponent" "AvarcomTasks" tasks
+      : widget "AvarcomTasks" tasks
       : mapWidget commAddress_address commAddress_coords commAddress_map

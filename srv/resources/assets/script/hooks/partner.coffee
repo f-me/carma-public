@@ -1,4 +1,9 @@
-define ["utils", "dictionaries/model-dict"], (u, ModelDict) ->
+{_, ko, Finch} = require "carma/vendor"
+
+u         = require "carma/utils"
+ModelDict = require "carma/dictionaries/model-dict"
+
+module.exports =
   bindTitleServiceName: (model, kvm) ->
     kvm['modelTitle'] = kvm['serviceNameLocal']
 

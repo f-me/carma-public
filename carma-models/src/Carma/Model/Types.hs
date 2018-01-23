@@ -70,18 +70,6 @@ import Data.Model.Types
 import Carma.Model.LegacyTypes
 
 
--- ISO 8601
-instance FromJSON Day where
-  parseJSON (String s)
-    = case parseTime defaultTimeLocale "%Y-%m-%d" $ T.unpack s of
-      Just day -> return day
-      Nothing  -> fail $ "invalid date format: " ++ show s
-  parseJSON v = fail $ "invalid date: " ++ show v
-
--- ISO 8601
-instance ToJSON Day where
-  toJSON = String . fromString . show
-
 newtype Dict m = Dict Text
    deriving (FromField, ToField,
              FromJSON, ToJSON,
@@ -364,14 +352,6 @@ data UserStateVal = LoggedOut | Ready | Rest | Busy | Dinner | ServiceBreak | NA
 
 instance FromJSON UserStateVal
 instance ToJSON   UserStateVal
-
--- Need this because client send "" instead of null in case of empty
--- which can'd be parsed to 'UserStateVal'
-instance FromJSON (Maybe UserStateVal) where
-  parseJSON o =
-    case fromJSON o of
-      Success v -> return $ Just v
-      _err      -> return Nothing
 
 instance ToField UserStateVal where
   toField = toField . show

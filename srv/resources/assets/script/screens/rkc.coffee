@@ -1,281 +1,281 @@
-define ["utils", "text!tpl/screens/rkc.html"],
-  (utils, tpl) ->
-    weatherCityDict =
-      utils.newModelDict "City", true, {dictionaryKey: "value"}
-    rkcFillWeather = (result, cities) ->
-      cities.removeAll()
-      for r in result.weather
-        cities.push
-          city: r.city
-          cityname: weatherCityDict.getLab r.city
-          temp: r.temp
-          delCity: rkcWeatherRemoveCity r.city
-      cities.sort((l, r) -> l.cityname > r.cityname)
+{$, _, ko} = require "carma/vendor"
+utils = require "carma/utils"
+template = require "carma-tpl/screens/rkc.pug"
 
-    getCookie = (key) ->
-      x = document.cookie.match(new RegExp "#{key}=([^;]*)")
-      x && JSON.parse(unescape x[1])
+wcities       = null # mutable
+dateFilterKVM = null # mutable
 
-    updateCookie = (key, def, fn) ->
-      obj = getCookie(key) || def
-      val = escape(JSON.stringify(fn obj))
-      document.cookie = "#{key}=#{val}; path=/;"
+weatherCityDict = utils.newModelDict "City", true, dictionaryKey: "value"
 
-    rkcWeatherRemoveCity = (name) -> () ->
-      setTimeout ->
-        updateCookie 'rkcWeather', [], (val) ->
-          _.filter val, (c) -> c != name
-        updateWeather()
+rkcFillWeather = (result, cities) ->
+  do cities.removeAll
+  for r in result.weather
+    cities.push
+      city     : r.city
+      cityname : weatherCityDict.getLab r.city
+      temp     : r.temp
+      delCity  : rkcWeatherRemoveCity r.city
+  cities.sort (l, r) -> l.cityname > r.cityname
 
-    rkcWeatherAddCity = (name) ->
-      setTimeout ->
-        updateCookie 'rkcWeather', [], (val) ->
-          val.push(name) if not _.contains(val, name)
-          val
-        updateWeather()
+getCookie = (key) ->
+  x = document.cookie.match new RegExp "#{key}=([^;]*)"
+  x && JSON.parse unescape x[1]
 
-    updateWeather = ->
-      setTimeout ->
-        cities = this.wcities
-        cfg = document.cookie.match /rkcWeather=([^;]*)/
-        $.getJSON "/rkc/weather?cities=#{cfg?[1] || ''}",
-                  (result) -> rkcFillWeather(result, cities)
+updateCookie = (key, def, fn) ->
+  obj = getCookie(key) || def
+  val = escape JSON.stringify fn obj
+  document.cookie = "#{key}=#{val}; path=/;"
 
-    updatePartners = (partners) ->
-      setTimeout ->
-        dateFrom = $('#rkc-date-from')
-        dateTo = $('#rkc-date-to')
+rkcWeatherRemoveCity = (name) -> () ->
+  setTimeout ->
+    updateCookie 'rkcWeather', [], (val) ->
+      _.filter val, (c) -> c != name
+    do updateWeather
 
-        from = dateFrom.val()
-        to = dateTo.val()
+rkcWeatherAddCity = (name) ->
+  setTimeout ->
+    updateCookie 'rkcWeather', [], (val) ->
+      val.push name unless _.contains val, name
+      val
+    do updateWeather
 
-        partnerArgs = "?" + ["from=" + from, "to=" + to].filter((x) -> x).join("&")
+updateWeather = ->
+  setTimeout ->
+    cities = wcities
+    cfg = document.cookie.match /rkcWeather=([^;]*)/
+    $.getJSON "/rkc/weather?cities=#{cfg?[1] || ''}",
+              (result) -> rkcFillWeather result, cities
 
-        $.getJSON("/rkc/partners" + partnerArgs, (result) ->
-          partners.removeAll()
-          partners.push({ id: "*", name: "Все" })
-          for r in result
-            partners.push({ id: r, name: r }))
+updatePartners = (partners) ->
+  setTimeout ->
+    from = dateFilterKVM.dateFrom()
+    to   = dateFilterKVM.dateTo()
 
-    initRKCDate = (updater, partners) ->
-      setTimeout ->
-        d1 = new Date
-        d2 = new Date
-        d2.setDate (d1.getDate() + 1)
+    partnerArgs = "?" + ["from=" + from, "to=" + to].filter((x) -> x).join "&"
 
-        dateFrom = $('#rkc-date-from')
-        dateTo = $('#rkc-date-to')
+    $.getJSON "/rkc/partners#{partnerArgs}", (result) ->
+      do partners.removeAll
+      partners.push {id: "*", name: "Все"}
+      partners.push {id: r,   name: r    } for r in result
 
-        dateFrom.val (d1.toString 'dd.MM.yyyy')
-        dateTo.val (d2.toString 'dd.MM.yyyy')
+initRKCDate = (updater, partners) ->
+  setTimeout ->
+    d1 = new Date
+    d2 = new Date
+    d2.setDate d1.getDate() + 1
 
-    fillRKCFilters = (updater, partners) ->
-      setTimeout ->
-        # Fill programs
-        programs = for v in (utils.newModelDict "Program", true).source
-          p =
-            id: v.value
-            name: v.label
+    dateFilterKVM.dateFrom d1.toString 'dd.MM.yyyy'
+    dateFilterKVM.dateTo   d2.toString 'dd.MM.yyyy'
 
-        programs.unshift { id: "*", name: "Все" }
+fillRKCFilters = (updater, partners) ->
+  setTimeout ->
+    # Fill programs
+    programs = for v in utils.newModelDict("Program", true).source
+      p =
+        id: v.value
+        name: v.label
 
-        ko.applyBindings(programs, el("program-select"))
+    programs.unshift {id: "*", name: "Все"}
 
-        # Fill cities
-        cities = for v in utils.newModelDict("City").source
-          c =
-            id: v.value
-            name: v.label
+    ko.applyBindings programs, document.getElementById "program-select"
 
-        cities.unshift { id: "*", name: "Все" }
+    # Fill cities
+    cities = for v in utils.newModelDict("City").source
+      c =
+        id: v.value
+        name: v.label
 
-        ko.applyBindings(cities, el("city-select"))
+    cities.unshift {id: "*", name: "Все"}
 
-        # Fill partner
-        partners.push({ id: "*", name: "Все" })
+    ko.applyBindings cities, document.getElementById "city-select"
 
-        ko.applyBindings(partners, el("partner-select"))
+    # Fill partner
+    partners.push {id: "*", name: "Все"}
 
-        # Set on-change
-        ps = $('#program-select')
-        ps.change updater
+    ko.applyBindings partners, document.getElementById "partner-select"
 
-        cs = $('#city-select')
-        cs.change updater
+    # Set on-change
+    ps = $('#program-select')
+    ps.change updater
 
-        pps = $('#partner-select')
-        pps.change updater
+    cs = $('#city-select')
+    cs.change updater
 
-        $('#reload').click updater
+    pps = $('#partner-select')
+    pps.change updater
 
-    this.filterRKCArgs = () ->
-      prog = $('#program-select').val()
-      city = $('#city-select').val()
-      partner = $('#partner-select').val()
-      from = $('#rkc-date-from').val()
-      to = $('#rkc-date-to').val()
+    $('#reload').click updater
 
-      args = ["from=#{from || ''}", "to=#{to || ''}"]
-      args.push "program=#{prog}"    if prog    != "*"
-      args.push "city=#{city}"       if city    != "*"
-      args.push "partner=#{partner}" if partner != "*"
-      return "?" + args.join "&"
+filterRKCArgs = () ->
+  prog    = $('#program-select').val()
+  city    = $('#city-select').val()
+  partner = $('#partner-select').val()
+  from    = dateFilterKVM.dateFrom()
+  to      = dateFilterKVM.dateTo()
 
-    setupRKCScreen = (viewName, args) ->
-      setTimeout ->
-        $('#add-weather').on 'click', ->
-          rkcWeatherAddCity($('#rkc-weather-city-select').val())
+  args = ["from=#{from || ''}", "to=#{to || ''}"]
+  args.push "program=#{prog}"    if prog    != "*"
+  args.push "city=#{city}"       if city    != "*"
+  args.push "partner=#{partner}" if partner != "*"
+  "?#{args.join "&"}"
 
-        caset = $("#rkc-services-table")
-        actionst = $("#rkc-actions-table")
-        weathert = $('#rkc-weather-table')
-        complt = $('#rkc-complaints-table')
-        mobit = $('#rkc-mobile-partners-table')
+setupRKCScreen = (viewName, args) ->
+  setTimeout ->
+    $('#add-weather').on 'click', ->
+      rkcWeatherAddCity $('#rkc-weather-city-select').val()
 
-        return if caset.hasClass("dataTable")
-        return if actionst.hasClass("dataTable")
-        return if weathert.hasClass("dataTable")
-        return if complt.hasClass("dataTable")
+    caset    = $("#rkc-services-table")
+    actionst = $("#rkc-actions-table")
+    weathert = $('#rkc-weather-table')
+    complt   = $('#rkc-complaints-table')
+    mobit    = $('#rkc-mobile-partners-table')
 
-        this.wcities = ko.observableArray([])
+    return if caset.hasClass    "dataTable"
+    return if actionst.hasClass "dataTable"
+    return if weathert.hasClass "dataTable"
+    return if complt.hasClass   "dataTable"
 
-        ko.applyBindings(this.wcities, el "rkc-weather-table")
+    wcities = ko.observableArray []
 
-        ct = utils.mkDataTable caset, { bFilter: false, bInfo: false }
-        bt = utils.mkDataTable actionst, { bFilter: false, bInfo: false }
-        mt = utils.mkDataTable mobit, { bFilter: true, bInfo: false }
+    dateFilterKVM =
+      dateFrom : ko.observable ""
+      dateTo   : ko.observable ""
 
-        # Fill general info
-        totalServices = $('#total-services')
-        averageStart = $('#average-towage-tech-start')
-        procAvgTime = $('#processing-average-time')
-        assignAvgTime = $('#assignAvgTime')
-        realprocAvgTime = $('#realprocAvgTime')
-        calculated = $('#calculated-cost')
-        mechanic = $('#mechanic')
-        averageEnd = $('#average-towage-tech-end')
-        limited = $('#limited-cost')
+    ko.applyBindings wcities,       document.getElementById "rkc-weather-table"
+    ko.applyBindings dateFilterKVM, document.getElementById "rkc-date-from"
+    ko.applyBindings dateFilterKVM, document.getElementById "rkc-date-to"
 
-        satisfied = $('#satisfied-percentage')
+    ct = utils.mkDataTable caset,    {bFilter: false, bInfo: false}
+    bt = utils.mkDataTable actionst, {bFilter: false, bInfo: false}
+    mt = utils.mkDataTable mobit,    {bFilter: true,  bInfo: false}
 
-        totalActions = $('#total-actions')
-        totalIncompleteActions = $('#total-incomplete-actions')
+    # Fill general info
+    totalServices          = $('#total-services')
+    averageStart           = $('#average-towage-tech-start')
+    procAvgTime            = $('#processing-average-time')
+    assignAvgTime          = $('#assignAvgTime')
+    realprocAvgTime        = $('#realprocAvgTime')
+    calculated             = $('#calculated-cost')
+    mechanic               = $('#mechanic')
+    averageEnd             = $('#average-towage-tech-end')
+    limited                = $('#limited-cost')
 
-        ko.applyBindings(weatherCityDict.source,
-                el "rkc-weather-city-select")
+    satisfied              = $('#satisfied-percentage')
 
-        cityDict = utils.newModelDict("City")
-        actDict = utils.newModelDict "ActionType"
-        srvDict = utils.newModelDict "ServiceType"
+    totalActions           = $('#total-actions')
+    totalIncompleteActions = $('#total-incomplete-actions')
 
-        # Complaints
-        complaints = ko.observableArray([])
-        ko.applyBindings(complaints, el "rkc-complaints-table")
+    ko.applyBindings weatherCityDict.source,
+      document.getElementById "rkc-weather-city-select"
 
-        fmttime = (tm) ->
-            fmt = (x) -> if x < 10 then "0" + x else "" + x
-            Math.floor(tm / 60) + ":" + fmt(tm % 60)
+    cityDict = utils.newModelDict "City"
+    actDict  = utils.newModelDict "ActionType"
+    srvDict  = utils.newModelDict "ServiceType"
 
-        getArgs = () -> this.filterRKCArgs()
+    # Complaints
+    complaints = ko.observableArray []
+    ko.applyBindings complaints, document.getElementById "rkc-complaints-table"
 
-        update = () ->
-          args = getArgs()
+    fmttime = (tm) ->
+      fmt = (x) -> if x < 10 then "0#{x}" else "#{x}"
+      "#{Math.floor tm / 60}:#{fmt tm % 60}"
 
-          $.getJSON("/rkc" + args, (result) ->
-            from = Date.parseExact($('#rkc-date-from').val(), "dd.MM.yyyy")
-            to   = Date.parseExact($('#rkc-date-to').val(), "dd.MM.yyyy")
+    getArgs = () -> do filterRKCArgs
 
-            ct.fnClearTable()
-            bt.fnClearTable()
+    partners = ko.observableArray []
 
-            # Update general statistics fields from JSON response data
-            totalServices.val(result.case.summary.total)
-            averageStart.val(utils.formatSecToMin(result.stats.towStartAvgTime))
-            procAvgTime.val(utils.formatSecToMin(result.stats.procAvgTime))
-            assignAvgTime.val(utils.formatSecToMin(result.stats.assignAvgTime))
-            realprocAvgTime.val(utils.formatSecToMin(result.stats.realprocAvgTime))
-            calculated.val(result.case.summary.calculated)
-            mechanic.val(result.case.summary.mech)
-            averageEnd.val(utils.formatSecToMin(result.case.summary.duration))
-            limited.val(result.case.summary.limited)
+    update = () ->
+      args = getArgs()
 
-            satisfied.val(result.case.summary.satisfied)
+      updatePartners partners
 
-            # Update services table
-            crows = for cinfo in result.case.services
-              crow = [
-                srvDict.getLab(cinfo.name),
-                cinfo.total,
-                utils.formatSecToMin(cinfo.delay),
-                utils.formatSecToMin(cinfo.duration),
-                cinfo.calculated,
-                cinfo.limited]
-            ct.fnAddData(crows)
+      $.getJSON "/rkc#{args}", (result) ->
+        from = Date.parseExact dateFilterKVM.dateFrom(), "dd.MM.yyyy"
+        to   = Date.parseExact dateFilterKVM.dateTo(),   "dd.MM.yyyy"
 
-            totalActions.val(result.back.summary.total)
-            totalIncompleteActions.val(result.back.summary.undone)
+        do ct.fnClearTable
+        do bt.fnClearTable
 
-            # Update actions table
-            brows = for binfo in result.back.actions
-              brow = [
-                actDict.getLab(binfo.name),
-                binfo.total,
-                binfo.undone,
-                fmttime(binfo.average)]
+        # Update general statistics fields from JSON response data
+        totalServices.val   result.case.summary.total
+        averageStart.val    utils.formatSecToMin result.stats.towStartAvgTime
+        procAvgTime.val     utils.formatSecToMin result.stats.procAvgTime
+        assignAvgTime.val   utils.formatSecToMin result.stats.assignAvgTime
+        realprocAvgTime.val utils.formatSecToMin result.stats.realprocAvgTime
+        calculated.val      result.case.summary.calculated
+        mechanic.val        result.case.summary.mech
+        averageEnd.val      utils.formatSecToMin result.case.summary.duration
+        limited.val         result.case.summary.limited
 
-            bt.fnAddData(brows)
+        satisfied.val result.case.summary.satisfied
 
-            # Fill mobile partners table
-            $.getJSON "/_/Partner/?isMobile=true&isActive=true",
-              (result) ->
-                mt.fnClearTable()
-                mrows = for minfo in result
-                  mrow =
-                    [ minfo.name
-                    , if minfo.mtime.length > 0
-                        new Date(minfo.mtime).toString('dd.MM.yyyy HH:mm')
-                      else
-                        ""
-                    , cityDict.getLab(minfo.city) || ''
-                    , if minfo.addrs.length > 0
-                        (utils.getKeyedJsonValue minfo.addrs, "fact") || ""
-                      else
-                        ""
-                    ]
-                # this will susppress datables alerts about missing rows #2415
-                return if _.isEmpty(mrows)
-                mt.fnAddData(mrows)
+        # Update services table
+        crows = for cinfo in result.case.services
+          crow = [
+            srvDict.getLab cinfo.name
+            cinfo.total
+            utils.formatSecToMin cinfo.delay
+            utils.formatSecToMin cinfo.duration
+            cinfo.calculated
+            cinfo.limited
+          ]
+        ct.fnAddData crows
 
-            # Update complaints
-            complaints.removeAll()
-            for comp in result.complaints
-              complaints.push({
-                caseid: comp.caseid,
-                url: "/#case/" + comp.caseid,
-                services: for s in comp.services
-                  srvname = srvDict.getLab s
-              }))
+        totalActions.val result.back.summary.total
+        totalIncompleteActions.val result.back.summary.undone
 
-        partners = ko.observableArray([])
-        initRKCDate update, partners
-        fillRKCFilters update, partners
+        # Update actions table
+        brows = for binfo in result.back.actions
+          brow = [
+            actDict.getLab binfo.name
+            binfo.total
+            binfo.undone
+            fmttime binfo.average
+          ]
 
-        global.rkcData = {}
+        bt.fnAddData brows
 
-        update()
-        updatePartners(partners)
-        updateWeather()
+        # Fill mobile partners table
+        $.getJSON "/_/Partner/?isMobile=true&isActive=true", (result) ->
+          do mt.fnClearTable
+          mrows = for minfo in result
+            mrow = [
+              minfo.name
+
+              if minfo.mtime.length > 0
+                new Date(minfo.mtime).toString 'dd.MM.yyyy HH:mm'
+              else
+                ""
+
+              cityDict.getLab(minfo.city) || ''
+
+              if minfo.addrs.length > 0
+                utils.getKeyedJsonValue(minfo.addrs, "fact") || ""
+              else
+                ""
+            ]
+
+          # this will susppress datables alerts about missing rows #2415
+          return if _.isEmpty mrows
+          mt.fnAddData mrows
+
+        # Update complaints
+        do complaints.removeAll
+        for comp in result.complaints
+          complaints.push
+            caseid: comp.caseid,
+            url: "/#case/" + comp.caseid,
+            services: for s in comp.services
+              srvname = srvDict.getLab s
+
+    initRKCDate    update, partners
+    fillRKCFilters update, partners
+
+    do update
+    do updateWeather
 
 
-    # function which return object with functions returning functions
-
-
-    { constructor : setupRKCScreen
-    , template    : tpl
-    , initRKCDate          : initRKCDate
-    , fillRKCFilters       : fillRKCFilters
-    , rkcWeatherRemoveCity : rkcWeatherRemoveCity
-    , rkcWeatherAddCity    : rkcWeatherAddCity
-    , updateWeather        : updateWeather
-    , updatePartners       : updatePartners
-    }
+module.exports = {
+  constructor: setupRKCScreen
+  template
+}

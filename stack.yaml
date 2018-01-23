@@ -1,4 +1,4 @@
-resolver: lts-3.12
+resolver: lts-9.21
 packages:
 - srv
 - tools/vinnie
@@ -7,38 +7,33 @@ packages:
 - carma-mobile-server
 - carma-http
 - carma-dict
-- location:
-    git: git@github.com:f-me/dmcc.git
-    commit: ba5ad3c1d57f60e248a5d5b2c1be808db00825ae
-  extra-dep: true
-- location:
-    git: git@github.com:f-me/hs-weather-api.git
-    commit: 6256f3925bdf324b696559bb75b900c544599784
-  extra-dep: true
-- location:
-    git: git@github.com:f-me/pg-simple-alt-qq.git
-    commit: 15fd5b959f0d88a50d2c460938bdb0cd2cd7322d
-  extra-dep: true
-- location:
-    git: git@github.com:f-me/snap-core.git
-    commit: 1732b6ff0325b68a93dd9e07ac618f4d5e2cd527
-  extra-dep: true
-- location:
-    git: git@github.com:Soostone/snaplet-persistent.git
-    commit: 27c30f24bdff3f801fda47f30d483ca154708674
-  extra-dep: true
 extra-deps:
 - attoparsec-conduit-1.1.0
-- digestive-functors-heist-0.8.6.2
-- digestive-functors-snap-0.6.1.3
-- graphviz-2999.18.0.2
-- qm-interpolated-string-0.1.1.0
-- readable-0.3.1
-- resource-pool-catchio-0.2.1.0
-- snap-extras-0.11.0.2
-- snap-loader-static-0.9.0.2
-- snaplet-postgresql-simple-0.6.0.4
-- websockets-snap-0.9.2.0
+- blaze-html-0.8.1.3
+- blaze-markup-0.7.1.1
+- digestive-functors-0.8.2.0
+- digestive-functors-heist-0.8.7.0
+- digestive-functors-snap-0.7.0.0
+- haskell-src-meta-0.7.0.1
+- heist-1.0.1.0
+- io-streams-1.3.6.1
+- map-syntax-0.2.0.2
+- qm-interpolated-string-0.2.1.0
+- snap-1.0.0.1
+- snap-extras-0.12.0.0
+- snap-loader-static-1.0.0.0
+- snaplet-postgresql-simple-1.0.2.0
+- stm-lifted-0.1.1.0
+- syb-0.6
+- xmlhtml-0.2.4
+- git: git@github.com:f-me/dmcc.git
+  commit: 7c2e6fafb2d37c1b16a71b1fe6b3c8f97967d257
+- git: git@github.com:f-me/hs-weather-api.git
+  commit: 6256f3925bdf324b696559bb75b900c544599784
+- git: git@github.com:f-me/pg-simple-alt-qq.git
+  commit: 15fd5b959f0d88a50d2c460938bdb0cd2cd7322d
+- git: git@github.com:Soostone/snaplet-persistent.git
+  commit: 100291ada8c71d817d6758062dd98bbf2e60a040
 image:
   containers:
-    - base: "formalmethods/carma-base-runtime"
+    - base: "formalmethods/carma-base-runtime@sha256:eedbc3e51e501518ef8d64cafe7f97bbdabb7eefc07f672e5b08afe4d9fed7b5"

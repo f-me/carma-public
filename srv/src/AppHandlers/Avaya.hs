@@ -219,7 +219,7 @@ dmccHook = do
                     when (userState == UserState.Busy &&
                           model == Data.Model.modelName
                           (modelInfo :: ModelInfo Action.Action)) $
-                      void $ withAuthPg $ liftPG $ Patch.create $
+                      void $ withAuthPg $ liftPG' $ Patch.create $
                         Patch.put AE.ctime now $
                         Patch.put AE.eType et $
                         Patch.put AE.operator uid $
@@ -243,7 +243,7 @@ rememberAvayaSnapshot uid sn = do
         Usermeta.lastAvayaSnapshot (fromMaybe Null $ decode $ encode sn)
         Patch.empty
   -- Update DB data
-  void $ withAuthPg $ liftPG $ Patch.update uid p
+  void $ withAuthPg $ liftPG' $ Patch.update uid p
   -- Update client data (via WebSocket)
   withMsg $ sendMessage (mkIdentTopic uid) p
   -- Update KPI screen data
@@ -257,7 +257,7 @@ rememberAvayaSnapshot uid sn = do
 userStateAction :: IdentI Usermeta
                 -> AppHandler (UserStateVal, Text, Int)
 userStateAction uid = do
-  res <- withAuthPg $ liftPG $
+  res <- withAuthPg $ liftPG' $
     \c -> uncurry (query c)
     [sql|
      SELECT
@@ -329,7 +329,7 @@ ejectUser = chkAuthRoles (hasAnyOfRoles [Role.supervisor]) $ do
   u <- fromMaybe (error "No user specified") <$> getIntParam "user"
   let uid = Ident u
   c <- fromMaybe (error "No call specified") <$> getIntParam "call"
-  up' <- withAuthPg $ liftPG $ Patch.read uid
+  up' <- withAuthPg $ liftPG' $ Patch.read uid
   case up' of
     Right up -> do
       -- Hangup
@@ -342,7 +342,7 @@ ejectUser = chkAuthRoles (hasAnyOfRoles [Role.supervisor]) $ do
         let aid = Ident actionId
         forceBusyUserToServiceBreak aid uid
         -- Serve action data for client redirection
-        act <- withAuthPg $ liftPG $ Patch.read aid
+        act <- withAuthPg $ liftPG' $ Patch.read aid
         case act of
           Right a' ->
             writeJSON $

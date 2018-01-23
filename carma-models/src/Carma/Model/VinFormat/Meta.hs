@@ -55,7 +55,7 @@ fieldProjFormatter proj cf format = printf format $ proj cf
 
 
 ns :: TypeQ -> StrictTypeQ
-ns = strictType (return NotStrict)
+ns = strictType (return (Bang SourceNoUnpack NoSourceStrictness))
 
 
 -- | This class describes how a format parameter is generated from a
@@ -301,7 +301,7 @@ mkVinFormat formatFields =
 
         vfas = map fst fields
     in do
-      d  <- dataD (cxt []) typeName [] constructor [''Typeable]
+      d  <- dataD (cxt []) typeName [] Nothing constructor (mapM conT [''Typeable])
       d' <- [d|
              vinFormatAccessors :: [FormatFieldAccessor $(conT typeName)]
              vinFormatAccessors = $(listE vfas)|]

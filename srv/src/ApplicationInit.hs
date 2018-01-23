@@ -3,8 +3,7 @@ module ApplicationInit (appInit) where
 import Control.Monad (when)
 import Control.Concurrent.STM
 import Control.Monad.IO.Class
-import qualified Control.Monad.CatchIO as IOEx
--- ^ FIXME: Monad.CatchIO is deprecated
+import Control.Exception.Lifted hiding (Handler)
 
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
@@ -62,6 +61,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/login/",        method POST doLogin)
          , ("/logout/",       doLogout)
          , ("/s/",            serveDirectoryWith dconf "resources/static")
+         , ("/s/frontend",    serveDirectoryWith dconf "resources/static/build/frontend")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/screens",       method GET getScreens)
          , ("/backoffice/errors", method GET $ serveBackofficeSpec Check)
@@ -159,7 +159,7 @@ timeIt :: AppHandler () -> AppHandler ()
 timeIt h = do
   r <- getRequest
   start <- liftIO Clock.getCurrentTime
-  h `IOEx.finally` liftIO (do
+  finally h $ liftIO $ do
     end <- Clock.getCurrentTime
     let duration = Clock.diffUTCTime end start
     when (1 <= duration)
@@ -167,7 +167,7 @@ timeIt h = do
         [ "method" .= show (rqMethod r)
         , "uri" .= T.decodeUtf8 (rqURI r)
         , "time" .= show duration
-        ])
+        ]
 
 ------------------------------------------------------------------------------
 -- | The application initializer.
@@ -184,7 +184,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   wkey <- liftIO $ Cfg.lookupDefault "" cfg "weather-key"
 
   h <- nestSnaplet "heist" heist $ heistInit ""
-  addTemplatesAt h "/" "resources/static/tpl"
+  addTemplatesAt h "/" "resources/static/build/backendPages"
 
   addAuthSplices h auth
 
@@ -193,12 +193,13 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                           cfg "session-key"
 
   s <- nestSnaplet "session" session $
-       initCookieSessionManager sesKey "_session" Nothing
+       let lifetime = Just $ 365 * 24 * 60 * 60 -- One year in seconds
+        in initCookieSessionManager sesKey "_session" Nothing lifetime
 
   -- DB
-  ad <- nestSnaplet "db" db $ pgsInit
+  ad <- nestSnaplet "db" db pgsInit
 
-  ad2 <- nestSnaplet "db2" db2 $ initPersist (return ())
+  ad2 <- nestSnaplet "db2" db2 $ initPersist $ return ()
 
   authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
 
@@ -216,4 +217,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   em <- liftIO $ newTVarIO Map.empty
 
-  return $ App h s authMgr c tm fu ch g ad ad2 search' opts msgr (initApi wkey) em
+  pure $ App h s authMgr c tm fu ch g ad ad2 search' opts msgr (initApi wkey) em

@@ -1,28 +1,31 @@
+// a protection from id collisions (also from jquery-monkeys)
+- var rnd = String(Math.random()).slice(2)
+
 #uploads-form.container
   .page-header
     h3 Загрузка файлов
   .central-form.row
     .col-md-8
-      form#upload-files-form.form
+      form#upload-files-form.form(data-bind=`submit: uploadHandler`)
         .form-group
-          label.control-label(for='upload-files')
+          label.control-label(for=`upload-files--${rnd}`)
             | Выберите файлы для загрузки&nbsp;
-            span#upload-files-tip(data-html='true'
+            span#upload-files-tip(
+              data-html='true'
               data-placement='right'
               title="Каждый файл будет прикреплён к кейсам, номера которых \
                      перечислены  в начале его имени до первого дефиса, \
                      например: <i>75521,78214-Акт315.pdf</i> → кейсы 75521 \
                      и 78214")
               i.glyphicon.glyphicon-question-sign
-          // File chooser widget
-          .input-group.input-group-sm
-            input.form-control(type="text" readonly)
-            .input-group-btn
-              span.btn.btn-default.btn-file
-                span.glyphicon.glyphicon-folder-open
-                input#upload-dialog(type="file", multiple)
-              button.btn.btn-primary#upload-send
-                span.glyphicon.glyphicon-upload
+          upload-file-field(params=`
+            isMultiple    : true,
+            autoClear     : false,
+            fileInputId   : 'upload-files--${rnd}',
+            isLoading     : isProcessing,
+            uploadHandler : uploadHandler,
+            selectedFiles : filesToUpload,
+          `)
 
       #uploaded-files(style='overflow-y: scroll;')
 
@@ -43,10 +46,11 @@
       button.close(data-dismiss='alert')
           | ×
       div
-        a(target='_blank'
-          data-bind="attr: { \
-              href: 's/fileupload/attachment/' + aid() + '/' + filename() \
-            }")
+        a(target='_blank' data-bind=`
+          attr: {
+            href: 's/fileupload/attachment/' + aid() + '/' + filename(),
+          },
+        `)
           i.glyphicon.glyphicon-download-alt
           | &nbsp;
           b(data-bind='text: filename')
@@ -61,11 +65,11 @@
           | )
         | :&nbsp;
         span.case-numbers(data-bind='foreach: cases')
-          a(data-bind='attr: { href: \'/#case/\' + $data }', target='_blank')
+          a(data-bind='attr: { href: "/#case/" + $data }' target='_blank')
             i.glyphicon.glyphicon-file
             b(data-bind='text: $data')
           a.detach-button.text-danger(href='#'
-            data-bind="attr: { 'data-target': $data }")
+            data-bind='attr: { "data-target": $data }')
             | ×
           |&nbsp;
       form.attach-form(style='display: none;')

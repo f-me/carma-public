@@ -1,45 +1,45 @@
-define "tableman", ["utils"], (utils) ->
-  class Table
-    constructor: (params) ->
-      {@tableName, @objURL} = params
-      @sLength = "dataTables_length form-inline"
-      @sFilter = "dataTables_filter form-inline"
-      @objsToRows = null
-      @dataTable = null
-      @dataTableOpts = null
-      @$tableEl = null
+{$, _} = require "carma/vendor"
+utils = require "carma/utils"
 
-    show: ->
-      $.fn.dataTableExt.oStdClasses.sLength = @sLength
-      $.fn.dataTableExt.oStdClasses.sFilter = @sFilter
+class Table
+  constructor: (params) ->
+    {@tableName, @objURL} = params
+    @sLength = "dataTables_length form-inline"
+    @sFilter = "dataTables_filter form-inline"
+    @objsToRows = null
+    @dataTable = null
+    @dataTableOpts = null
+    @$tableEl = null
 
-      @$tableEl = $("##{@tableName}-table")
-      unless @$tableEl.hasClass "dataTable"
-        @dataTable = utils.mkDataTable @$tableEl, @dataTableOpts
-        @setObjs @objURL
+  show: ->
+    $.fn.dataTableExt.oStdClasses.sLength = @sLength
+    $.fn.dataTableExt.oStdClasses.sFilter = @sFilter
 
-    setObjs: (objURL) ->
-      objURL ?= @objURL
-      unless objURL is ""
-        $.getJSON objURL, (objs) =>
-          @dataTable.fnClearTable()
-          rows = @objsToRows? objs
-          return if _.isEmpty rows
-          @dataTable.fnAddData rows
-      @
+    @$tableEl = $("##{@tableName}-table")
+    unless @$tableEl.hasClass "dataTable"
+      @dataTable = utils.mkDataTable @$tableEl, @dataTableOpts
+      @setObjs @objURL
 
-    setObjsToRowsConverter: (fun) ->
-      @objsToRows = fun
-      @
+  setObjs: (objURL) ->
+    objURL ?= @objURL
+    unless objURL is ""
+      $.getJSON objURL, (objs) =>
+        do @dataTable.fnClearTable
+        rows = @objsToRows? objs
+        return if _.isEmpty rows
+        @dataTable.fnAddData rows
+    @
 
-    setDataTableOptions: (options) ->
-      @dataTableOpts = options
-      @
+  setObjsToRowsConverter: (fun) ->
+    @objsToRows = fun
+    @
 
-    on: (eventName, elementName, callback) ->
-      $("##{@tableName}-table").on(eventName, elementName, callback)
-      @
+  setDataTableOptions: (options) ->
+    @dataTableOpts = options
+    @
 
-  TableMan =
-    Table: Table
+  on: (eventName, elementName, callback) ->
+    $("##{@tableName}-table").on(eventName, elementName, callback)
+    @
 
+module.exports = {Table}

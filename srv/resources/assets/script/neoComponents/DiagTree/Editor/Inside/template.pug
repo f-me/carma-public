@@ -1,0 +1,12 @@
+- var pfx = 'diag-tree-editor'
+
+.container
+  .row
+    .col-md-4(class=`${pfx}--tree-panel`)
+      .btn-toolbar
+        button.btn.btn-success(data-bind='click: addSlide')
+          i.glyphicon.glyphicon-plus
+          | &nbsp;Новое дерево
+
+    .col-md-8(class=`${pfx}--slide-editor-panel`)
+      b …

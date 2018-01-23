@@ -1,35 +1,38 @@
 # All current user's specific code should be here except legacy
 # 'global.user' initialization
+{$, _, ko, Finch} = require "carma/vendor"
 
-define [ "model/main"
-       , "sync/crud"
-       , "lib/messenger"
-       , "sync/datamap" ], (Main, Crud, Messenger, Map)->
+Main      = require "carma/model/main"
+Crud      = require "carma/sync/crud"
+Messenger = require "carma/lib/messenger"
+Map       = require "carma/sync/datamap"
 
-  # block other than rest screens when in rest
-  oldNav = Finch.navigate
-  Finch.navigate = (args...) ->
-    st = window.global?.Usermeta?.currentState?()
-    if _.contains(["Dinner", "Rest"], st)
-      oldNav("rest")
-    else if st == 'ServiceBreak'
-      oldNav('serviceBreak')
-    else if st == 'NA'
-      oldNav('na')
-    else
-      oldNav.apply(@, args)
+# block other than rest screens when in rest
+oldNav = Finch.navigate
+Finch.navigate = (args...) ->
+  st = window.global?.Usermeta?.currentState?()
+  if _.contains(["Dinner", "Rest"], st)
+    oldNav("rest")
+  else if st == 'ServiceBreak'
+    oldNav('serviceBreak')
+  else if st == 'NA'
+    oldNav('na')
+  else
+    oldNav.apply(@, args)
 
-  checkStuff = ->
-    um = window.global.Usermeta
-    if _.isUndefined um
-      throw Error("current user is undefined, initialize it first")
-    if _.isUndefined um.stuff
-      throw Error("need permission to read 'usermeta.stuff'")
+checkStuff = ->
+  um = window.global.Usermeta
+  if _.isUndefined um
+    throw Error("current user is undefined, initialize it first")
+  if _.isUndefined um.stuff
+    throw Error("need permission to read 'usermeta.stuff'")
 
+
+module.exports =
   initialize: =>
     user = window.global.user
 
-    Role = global.idents 'Role'
+    Role = window.global.idents 'Role'
     homepage = ""
     homepage = "/#partner"    if _.contains user.roles, Role.parguy
     homepage = "/#back"       if _.contains user.roles, Role.back
@@ -38,7 +41,7 @@ define [ "model/main"
     homepage = "/#rkc"        if _.contains user.roles, Role.head
 
 
-    usr = Main.buildKVM global.model('Usermeta'),
+    usr = Main.buildKVM window.global.model('Usermeta'),
       queue: Crud.CrudQueue
       fetched: {id: user.id}
 
@@ -46,7 +49,7 @@ define [ "model/main"
     # due to dependencies
     window.global.Usermeta = usr
 
-    Messenger.subscribe "#{global.model('Usermeta').name}:#{usr.id()}",
+    Messenger.subscribe "#{window.global.model('Usermeta').name}:#{usr.id()}",
       usr._meta.q.saveSuccessCb(_.identity)
 
     usr.currentState?.subscribe (v) =>
@@ -94,7 +97,7 @@ define [ "model/main"
 
     # get abandoned services and render them at #current-user
     usr.updateAbandonedServices = ->
-      Role = global.idents("Role")
+      Role = window.global.idents("Role")
       forbiddenRoles =
         [Role.reportManager ,Role.supervisor
         ,Role.head          ,Role.bo_qa
@@ -130,13 +133,13 @@ define [ "model/main"
 
 
   readStuff: (key) ->
-    checkStuff()
+    do checkStuff
     window.global.Usermeta.stuff()[key]
 
   writeStuff: (key, val) ->
-    checkStuff()
+    do checkStuff
     s = window.global.Usermeta.stuff
     newVal = {}; newVal[key] = val
     # write deep copy of previous value, otherwise we can change values that was
     # read by somebody else
-    s($.extend(true, {}, s(), newVal))
+    s $.extend true, {}, s(), newVal

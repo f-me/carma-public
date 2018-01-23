@@ -1,4 +1,4 @@
-define [], ->
+module.exports =
   VinUpload:
     name: "vinUpload"
     title: "Загрузка VIN"

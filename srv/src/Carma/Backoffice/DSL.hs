@@ -91,24 +91,24 @@ data Action =
 -- | Back office language (typed tagless final representation).
 class Backoffice impl where
     -- | Current time.
-    now    :: impl UTCTime
-    justNow:: impl (Maybe UTCTime)
+    now     :: impl UTCTime
+    justNow :: impl (Maybe UTCTime)
 
-    since  :: NominalDiffTime
-           -- ^ This long ..
-           -> impl UTCTime
-           -- ^ .. from this time.
-           -> impl UTCTime
+    since   :: NominalDiffTime
+            -- ^ This long ..
+            -> impl UTCTime
+            -- ^ .. from this time.
+            -> impl UTCTime
 
-    before :: NominalDiffTime
-           -- ^ This long ..
-           -> impl UTCTime
-           -- ^ .. before this time.
-           -> impl UTCTime
+    before  :: NominalDiffTime
+            -- ^ This long ..
+            -> impl UTCTime
+            -- ^ .. before this time.
+            -> impl UTCTime
     before diff time = (-diff) `since` time
 
     -- | No user.
-    nobody :: impl (Maybe (IdentI Usermeta))
+    nobody  :: impl (Maybe (IdentI Usermeta))
 
     currentUser :: impl (Maybe (IdentI Usermeta))
 
@@ -214,19 +214,19 @@ class Backoffice impl where
     (||) :: impl Bool -> impl Bool -> impl Bool
 
     -- | Lift idents for use with comparison combinators.
-    const :: Model v =>
-             IdentI v -> impl (IdentI v)
+    const :: Model v => IdentI v -> impl (IdentI v)
 
     -- | 'const' for optional values.
-    just :: Model v => IdentI v -> impl (Maybe (IdentI v))
+    just    :: Model v => IdentI v -> impl (Maybe (IdentI v))
     justTxt :: Text -> impl (Maybe Text)
+
+    isNotNull :: forall a . impl (Maybe a) -> impl Bool
 
     -- | Require a value.
     req :: impl (Maybe v) -> impl v
 
     -- | List membership predicate.
-    oneOf :: Model v =>
-             impl (IdentI v) -> [IdentI v] -> impl Bool
+    oneOf :: Model v => impl (IdentI v) -> [IdentI v] -> impl Bool
 
     -- | Branching.
     switch :: [(impl Bool, impl v)]
@@ -248,7 +248,7 @@ class Backoffice impl where
 
     sendMail :: MailType -> impl (Eff m)
 
-    sendSMS  :: IdentI SmsTemplate -> impl (Eff m)
+    sendSMS  :: SendSmsTo -> IdentI SmsTemplate -> impl (Eff m)
 
     -- | Use an effect only if a condition is met.
     when :: impl Bool -> impl (Eff m) -> impl (Eff m)

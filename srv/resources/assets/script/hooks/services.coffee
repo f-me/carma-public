@@ -1,10 +1,15 @@
-define [ "utils"
-       , "lib/idents"
-       , "model/utils"
-       , "screens/partnersSearch"
-       ], (u, i, mu, pSearch) ->
-  ServiceStatus = i.idents "ServiceStatus"
-  ServiceType = i.idents "ServiceType"
+{$, _, ko, moment, Finch} = require "carma/vendor"
+
+u       = require "carma/utils"
+i       = require "carma/lib/idents"
+mu      = require "carma/model/utils"
+pSearch = require "carma/screens/partnersSearch"
+
+ServiceStatus = i.idents "ServiceStatus"
+ServiceType   = i.idents "ServiceType"
+
+
+module.exports =
 
   # sync with partner search screen
   openPartnerSearch: (model, kvm) ->
@@ -36,7 +41,7 @@ define [ "utils"
                 btn.newName(p.name)
 
         n = pSearch.subName f.name, model.name, kvm.id()
-        global.pubSub.sub n, (val) ->
+        window.global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
           kvm["#{f.name}Id"]?(parseInt val.id)
           addr = val.addrDeFacto

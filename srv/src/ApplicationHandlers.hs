@@ -40,6 +40,7 @@ import Control.Error hiding (err)
 import Control.Monad.State.Class
 
 import Data.Text (Text)
+import Data.Map.Syntax ((##))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy.Encoding as TL
@@ -99,7 +100,7 @@ indexPage = ifTop $ do
                       Just s  -> T.concat [t, " [", s, "]"]
                       Nothing -> t
             return [X.TextNode r]
-        splices = "addLocalName" ## addLocalName
+        splices = (T.pack "addLocalName") ## addLocalName
     renderWithSplices "index" splices
 
 
@@ -121,7 +122,7 @@ authOrLogin = requireUser auth redirectToLogin
 ------------------------------------------------------------------------------
 -- | Render empty login form.
 loginForm :: AppHandler ()
-loginForm = serveFile "resources/static/tpl/login.html"
+loginForm = serveFile "resources/static/build/backendPages/login.html"
 
 
 ------------------------------------------------------------------------------
@@ -184,7 +185,7 @@ readHandler = do
       readModel _ = do
         res <- do
           let ident = readIdent objId :: IdentI m
-          PS.liftPG
+          PS.liftPG'
                      (runExceptT . crud_read getModelCRUD ident)
         case res of
           Right obj              -> writeJSON obj
@@ -207,7 +208,7 @@ readManyHandler = do
   let readModel :: forall m . Model m => m -> AppHandler ()
       readModel _ = do
         res <-
-          PS.liftPG
+          PS.liftPG'
             (runExceptT . crud_readManyWithFilter
                         (getModelCRUD :: CRUD m) limit offset queryFilter)
         case res of
@@ -301,7 +302,7 @@ clientConfig = do
 whoopsieHandler :: AppHandler ()
 whoopsieHandler = do
   r  <- readRequestBody 4096
-  ip <- rqRemoteAddr <$> getRequest
+  ip <- rqClientAddr <$> getRequest
   user <- fmap userLogin <$> with auth currentUser
   syslogJSON Warning "handler/whoopsie"
     ["err" .= TL.decodeUtf8 r
@@ -389,7 +390,7 @@ logReq commit  = do
   user <- fmap userLogin <$> with auth currentUser
   r <- getRequest
   syslogJSON Info "handler/logReq"
-    ["ip"     .= T.decodeUtf8 (rqRemoteAddr r)
+    ["ip"     .= T.decodeUtf8 (rqClientAddr r)
     ,"user"   .= user
     ,"method" .= show (rqMethod r)
     ,"uri"    .= T.decodeUtf8 (rqURI r)

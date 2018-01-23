@@ -1,4 +1,4 @@
-define [], ->
+module.exports =
   MassUpdate:
     name: "massUpdate"
     title: "Настройки пользователя"

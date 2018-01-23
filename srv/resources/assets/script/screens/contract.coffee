@@ -1,59 +1,64 @@
+{$, _, ko, moment} = require "carma/vendor"
+
 # Portal screen, derived from contract search screen
-define [ "search/screen"
-       , "text!tpl/screens/contract.html"
-       , "model/main"
-       , "utils"
-       ], (Screen, tpl, main, u) ->
-  # Initialize portal search screen from portal-stripped Contract
-  # model
-  screenConstructor = (Search, Table, onClick) ->
-    # All portal fields marked with showtable option in subprogram
-    # dictionary are searchable and shown in the table
-    resultFields = _.map Table.fields, (f) ->
-      name: f.name
-      fixed: true
-    searchFields = _.pluck resultFields, 'name'
-    Screen.constructor
-      noState: true
-      hideFieldsList: true
-      apiUrl: "/search/portal"
-      searchModels: [Search]
-      resultModels: [Table]
-      resultTable: _.filter resultFields, (f) -> f.name != "subprogram"
-      searchFields: searchFields
-      defaultSort:
-        fields: [{model: "Contract", name: "id"}]
-        order: "desc"
-      allowedResultFields:
-        Contract: _.pluck Table.fields, 'name'
-      predFieldWrap: 'contract-wrap'
-      trClickAction: onClick
+Screen = require "carma/search/screen"
+main   = require "carma/model/main"
+u      = require "carma/utils"
 
-  # Given subprogram id and its title, setup logo, title and dealer
-  # help on page header
-  logoSetup = (sid, title) ->
-    $.getJSON "/_/SubProgram/#{sid}", (instance) ->
-      if instance.logo
-        attachmentId = instance.logo.split(':')?[1]
-        main.modelSetup("Attachment") "logo", {id: attachmentId}, {}
-      else
-        $("#logo").attr "src", null
-      $("#help-program").text(title)
-      $("#help-text").html(instance.dealerHelp)
+template = require "carma-tpl/screens/contract.pug"
 
-  # Download current search results in CSV form
-  downloadCSV = (searchVM) ->
-    params = searchVM?._meta.q.searchParams()
-    params.resultFields = searchVM?.resultFields.fields()
-    q = JSON.stringify params
-    url = "/search/#{q}/contract.csv"
-    window.location = url
+# Initialize portal search screen from portal-stripped Contract
+# model
+screenConstructor = (Search, Table, onClick) ->
+  # All portal fields marked with showtable option in subprogram
+  # dictionary are searchable and shown in the table
+  resultFields = _.map Table.fields, (f) ->
+    name: f.name
+    fixed: true
+  searchFields = _.pluck resultFields, 'name'
+  Screen.constructor
+    noState: true
+    hideFieldsList: true
+    apiUrl: "/search/portal"
+    searchModels: [Search]
+    resultModels: [Table]
+    resultTable: _.filter resultFields, (f) -> f.name != "subprogram"
+    searchFields: searchFields
+    defaultSort:
+      fields: [{model: "Contract", name: "id"}]
+      order: "desc"
+    allowedResultFields:
+      Contract: _.pluck Table.fields, 'name'
+    predFieldWrap: 'contract-wrap'
+    trClickAction: onClick
 
-  contractForm = "contract-form"
+# Given subprogram id and its title, setup logo, title and dealer
+# help on page header
+logoSetup = (sid, title) ->
+  $.getJSON "/_/SubProgram/#{sid}", (instance) ->
+    if instance.logo
+      attachmentId = instance.logo.split(':')?[1]
+      main.modelSetup("Attachment") "logo", {id: attachmentId}, {}
+    else
+      $("#logo").attr "src", null
+    $("#help-program").text(title)
+    $("#help-text").html(instance.dealerHelp)
 
-  redirect = (hash) -> window.location.hash = hash
+# Download current search results in CSV form
+downloadCSV = (searchVM) ->
+  params = searchVM?._meta.q.searchParams()
+  params.resultFields = searchVM?.resultFields.fields()
+  q = JSON.stringify params
+  url = "/search/#{q}/contract.csv"
+  window.location = url
 
-  template: tpl
+contractForm = "contract-form"
+
+redirect = (hash) -> window.location.hash = hash
+
+
+module.exports =
+  template: template
   constructor: (viewName, {sub: subprogram, id}) ->
     spgms = u.newComputedDict "portalSubPrograms"
     def_spgm = spgms.source[0]?.value
@@ -105,14 +110,14 @@ define [ "search/screen"
           {subprogram}, # TODO Check for permission to write in a subprogram
           {waitFor: "ctime"}
 
-      kvm = global.viewsWare[contractForm].knockVM
+      kvm = window.global.viewsWare[contractForm].knockVM
 
       kvm["id"].subscribe (i) -> redirect "contract/#{subprogram}/#{i}"
 
       # Role-specific permissions
       kvm['isActiveDisableDixi'](true)
-      is_partner = _.find(global.user.roles,
-        (r) -> r == global.idents("Role").partner)
+      is_partner = _.find(window.global.user.roles,
+        (r) -> r == window.global.idents("Role").partner)
       if is_partner
         kvm['commentDisableDixi'](true) if kvm['commentDisabled']
 
@@ -121,15 +126,15 @@ define [ "search/screen"
         if kvm.dixi() and moment().format() > ctime
           kvm['isActiveDisableDixi'](false)
 
-      if _.find(global.user.roles,
-        (r) -> r == global.idents("Role").contract_admin)
+      if _.find(window.global.user.roles,
+        (r) -> r == window.global.idents("Role").contract_admin)
         kvm['disableDixi'](true)
 
       reallySave = () ->
         kvm._meta.q.save ->
           $.notify("Контракт успешно сохранён", className: "success")
           $("#renew-contract-btn").show()
-          global.searchVM?._meta.q.search()
+          window.global.searchVM?._meta.q.search()
 
       # Prevent on-off behaviour of dixi: once true, it's always
       # true (#1042)
@@ -211,7 +216,7 @@ define [ "search/screen"
           searchVM = screenConstructor Search, Table, ->
             # Open contracts upon table row click
             contract @Contract.id()
-          global.searchVM = searchVM
+          window.global.searchVM = searchVM
           searchVM.subprogram subprogram
 
           # Update URL&info when subprogram changes

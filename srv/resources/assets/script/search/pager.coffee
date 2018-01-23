@@ -1,28 +1,35 @@
-define ["lib/serialize", "utils"], (Serialize, Utils) ->
+{_, ko} = require "carma/vendor"
 
-  page = (offset, limit) -> Math.round(offset / limit) + 1
+{SimpleSerialize} = require "carma/lib/serialize"
+Utils             = require "carma/utils"
 
-  updateCurrent = (kvm, limit) -> (v) ->
-    kvm.current(current v, limit)
+page = (offset, limit) -> Math.round(offset / limit) + 1
 
-  class Pager extends Serialize.SimpleSerialize
-    constructor: (@kvm, lim = 10, offset = 0) ->
+updateCurrent = (kvm, limit) -> (v) ->
+  kvm.current(current v, limit)
 
-      @kvm._meta.pager = @
+class Pager extends SimpleSerialize
+  constructor: (@kvm, lim = 10, offset = 0) ->
 
-      @limit = ko.observable(lim)
-      @offset = ko.observable(offset)
-      @page   = ko.computed
-        read:      => page @offset(), @limit()
-        write: (p) => @offset((p-1) * @limit())
+    @kvm._meta.pager = @
 
-      @next = ko.observable()
-      @prev = ko.observable()
+    @limit  = ko.observable lim
+    @offset = ko.observable offset
 
-    nextPage: => @offset(@next()) if _.isNumber @next()
-    prevPage: => @offset(@prev()) if _.isNumber @prev()
+    @page = ko.computed
+      read:      => page @offset(), @limit()
+      write: (p) => @offset (p-1) * @limit()
 
-    toJSON: -> super(['kvm'])
+    @prev = ko.observable()
+    @next = ko.observable()
+    @isPrevHidden = ko.pureComputed => ! _.isNumber @prev()
+    @isNextHidden = ko.pureComputed => ! @next()
+
+  nextPage: => @offset @next() if _.isNumber @next()
+  prevPage: => @offset @prev() if _.isNumber @prev()
+
+  toJSON: -> super ['kvm']
 
 
+module.exports =
   buildPager: (kvm, lim, offset) -> new Pager(kvm, lim, offset)

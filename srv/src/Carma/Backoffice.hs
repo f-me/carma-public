@@ -17,7 +17,7 @@ module Carma.Backoffice (carmaBackoffice, partnerDelayEntries)
 
 where
 
-import           Prelude hiding ((>), (*>), (==), (||), (&&), const)
+import           Prelude hiding ((>), (*>), (==), (||), (&&), const, not)
 
 import qualified Carma.Model.ActionResult as AResult
 import qualified Carma.Model.ActionType as AType
@@ -28,6 +28,7 @@ import qualified Carma.Model.FalseCall as FS
 import           Carma.Model.Program as Program
 import           Carma.Model.Role as Role
 import           Carma.Model.Satisfaction as Satisfaction
+import           Carma.Model.Partner as Partner
 import           Carma.Model.Service as Service
 import qualified Carma.Model.ServiceStatus as SS
 import           Carma.Model.ServiceType as ST
@@ -38,7 +39,11 @@ import qualified Carma.Model.PartnerDelay as PartnerDelay
 import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
 
 import Carma.Backoffice.DSL
-import Carma.Backoffice.DSL.Types (Eff, PreContextAccess, SvcAccess)
+import Carma.Backoffice.DSL.Types ( Eff
+                                  , PreContextAccess
+                                  , SvcAccess
+                                  , SendSmsTo (..)
+                                  )
 
 
 toBack :: Entry
@@ -50,22 +55,28 @@ toBackAux
   :: (Backoffice impl, PreContextAccess mdl, SvcAccess mdl)
   => impl (Outcome mdl)
 toBackAux =
-    (closePrevious InCase
-     [AType.tellMeMore, AType.callMeMaybe]
-     AResult.communicated *>
-     when (userField Usermeta.isJack)
-     (closePrevious InCase [AType.call] AResult.callEnded) *>
-     switch
-     [ ( serviceField svcType `oneOf` [ST.towage, ST.bikeTowage, ST.tech, ST.adjuster]
-       , sendSMS SMS.create *> messageToGenser *> proceed [AType.orderService]
-       )
-     , ( serviceField svcType `oneOf` [ST.ken, ST.medic, ST.consultation]
-       , setServiceStatus SS.ok *>
-         proceed [AType.closeCase, AType.addBill]
-       )
-     ]
-     (proceed [AType.orderServiceAnalyst])
-    )
+  closePrevious InCase
+                [AType.tellMeMore, AType.callMeMaybe]
+                AResult.communicated
+
+    *> when (userField Usermeta.isJack)
+            (closePrevious InCase [AType.call] AResult.callEnded)
+
+    *> switch [ ( serviceField svcType
+                    `oneOf` [ST.towage, ST.bikeTowage, ST.tech, ST.adjuster]
+                , sendSMS SendSmsToCaller SMS.create
+                    *> messageToGenser
+                    *> proceed [AType.orderService]
+                )
+
+              , ( serviceField svcType
+                    `oneOf` [ST.ken, ST.medic, ST.consultation]
+                , setServiceStatus SS.ok
+                    *> proceed [AType.closeCase, AType.addBill]
+                )
+              ]
+
+              (proceed [AType.orderServiceAnalyst])
 
 
 messageToGenser :: Backoffice bk => bk (Eff m)
@@ -237,73 +248,102 @@ activate =
       finish))
 
 accident :: Action
-accident =
-    Action
-    AType.accident
-    (const bo_order)
-    nobody
-    ((5 * minutes) `since` now)
-    [ (AResult.serviceOrdered,
-       sendSMS SMS.order *>
-       messageToPSA *>
-       messageToGenser *>
-       setServiceStatus SS.ordered *>
-       proceed [AType.tellClient, AType.addBill])
-    , (AResult.serviceOrderedSMS,
-       sendSMS SMS.order *>
-       messageToPSA *>
-       messageToGenser *>
-       setServiceStatus SS.ordered *>
-       proceed [AType.checkStatus, AType.addBill])
-    , (AResult.needPartner,
-       sendSMS SMS.parguy *>
-       setServiceStatus SS.needPartner *>
-       proceed [AType.needPartner])
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
+accident = Action AType.accident
+  (const bo_order)
+  nobody
+  ((5 * minutes) `since` now)
+
+  [ ( AResult.serviceOrdered
+    , sendSMS SendSmsToCaller SMS.order
+        *> messageToPSA
+        *> messageToGenser
+        *> setServiceStatus SS.ordered
+        *> proceed [AType.tellClient, AType.addBill]
+    )
+
+  , ( AResult.serviceOrderedSMS
+    , sendSMS SendSmsToCaller SMS.order
+        *> messageToPSA
+        *> messageToGenser
+        *> setServiceStatus SS.ordered
+        *> proceed [AType.checkStatus, AType.addBill]
+    )
+
+  , ( AResult.needPartner
+    , sendSMS SendSmsToCaller SMS.parguy
+        *> setServiceStatus SS.needPartner
+        *> proceed [AType.needPartner]
+    )
+
+  , (AResult.defer, defer)
+  , (AResult.supervisorClosed, finish)
+  ]
 
 
 orderService :: Action
-orderService =
-    Action
-    AType.orderService
-    (ite (serviceField svcType == const ST.adjuster)
-      (const bo_orderAvarcom) (const bo_order))
-    (ite (previousAction == const AType.needPartner ||
-          previousAction == const AType.checkStatus ||
-          userField Usermeta.isJack)
-     currentUser
-     (assigneeOfLast InCase
-      [AType.tellMeMore, AType.callMeMaybe] [just AResult.communicated])
+orderService = Action AType.orderService
+
+  ( ite (serviceField svcType == const ST.adjuster)
+        (const bo_orderAvarcom)
+        (const bo_order)
+  )
+
+  ( ite (  previousAction == const AType.needPartner
+        || previousAction == const AType.checkStatus
+        || userField Usermeta.isJack
+        )
+        currentUser
+        ( assigneeOfLast InCase
+                         [AType.tellMeMore, AType.callMeMaybe]
+                         [just AResult.communicated]
+        )
+  )
+
+  ( let
+      n = (1 * minutes) `since` now
+      t = (1 * days) `before` req (serviceField times_expectedServiceStart)
+    in
+      ite (t > n) t ((5 * minutes) `since` now)
+  )
+
+  [ ( AResult.serviceOrdered
+    , sendSMS SendSmsToCaller SMS.order
+        *> notifyPartner
+        *> messageToPSA
+        *> messageToGenser
+        *> setServiceStatus SS.ordered
+        *> setServiceField Service.times_expectedDispatch justNow
+        *> proceed [AType.tellClient, AType.addBill]
     )
-    (let
-        n = (1 * minutes) `since` now
-        t = (1 * days) `before` req (serviceField times_expectedServiceStart)
-     in
-       ite (t > n) t ((5 * minutes) `since` now)
+
+  , ( AResult.serviceOrderedSMS
+    , sendSMS SendSmsToCaller SMS.order
+        *> notifyPartner
+        *> messageToPSA
+        *> messageToGenser
+        *> setServiceStatus SS.ordered
+        *> setServiceField Service.times_expectedDispatch justNow
+        *> proceed [AType.checkStatus, AType.addBill]
     )
-    [ (AResult.serviceOrdered,
-       sendSMS SMS.order *>
-       messageToPSA *>
-       messageToGenser *>
-       setServiceStatus SS.ordered *>
-       setServiceField Service.times_expectedDispatch justNow *>
-       proceed [AType.tellClient, AType.addBill])
-    , (AResult.serviceOrderedSMS,
-       sendSMS SMS.order *>
-       messageToPSA *>
-       messageToGenser *>
-       setServiceStatus SS.ordered *>
-       setServiceField Service.times_expectedDispatch justNow *>
-       proceed [AType.checkStatus, AType.addBill])
-    , (AResult.needPartner,
-       sendSMS SMS.parguy *>
-       setServiceStatus SS.needPartner *>
-       proceed [AType.needPartner])
-    , (AResult.defer, defer)
-    , (AResult.supervisorClosed, finish)
-    ]
+
+  , ( AResult.needPartner
+    , sendSMS SendSmsToCaller SMS.parguy
+        *> setServiceStatus SS.needPartner
+        *> proceed [AType.needPartner]
+    )
+
+  , (AResult.defer, defer)
+  , (AResult.supervisorClosed, finish)
+  ]
+
+
+notifyPartner :: Backoffice bk => bk (Eff m)
+notifyPartner = when condition
+              $ sendSMS SendSmsToContractorPartner SMS.notifyPartner
+
+  where condition =
+          serviceField svcType `oneOf` [ST.towage, ST.tech] &&
+          isNotNull (serviceField Service.contractor_partnerId)
 
 
 orderServiceAnalyst :: Action

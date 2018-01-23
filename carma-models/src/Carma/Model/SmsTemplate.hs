@@ -14,10 +14,10 @@ import Carma.Model.PgTypes()
 
 
 data SmsTemplate = SmsTemplate
-  {ident    :: PK Int SmsTemplate ""
-  ,label    :: F Text "label"    "Название шаблона"
-  ,isActive :: F Bool "isActive" "Активный?"
-  ,text     :: F Text "text"     "Текст шаблона"
+  { ident    :: PK Int SmsTemplate ""
+  , label    :: F Text "label"    "Название шаблона"
+  , isActive :: F Bool "isActive" "Активный?"
+  , text     :: F Text "text"     "Текст шаблона"
   }
   deriving Typeable
 
@@ -28,6 +28,7 @@ mkIdents [t|SmsTemplate|]
  , ("complete", 3)
  , ("create", 13)
  , ("parguy", 7)
+ , ("notifyPartner", 15)
  ]
 
 
@@ -36,5 +37,5 @@ instance Model SmsTemplate where
   idents = Carma.Model.SmsTemplate.idents
   modelInfo = mkModelInfo SmsTemplate ident
   modelView = \case
-    "" -> Just $ modifyView defaultView [textarea text]
+    "" -> Just $ modifyView defaultView [plainTextarea text]
     _  -> Nothing

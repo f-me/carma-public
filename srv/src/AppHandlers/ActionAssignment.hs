@@ -107,7 +107,7 @@ littleMoreActionsHandler = logExceptions "littleMoreActions" $ do
   -- Actions already assigned to the user
   oldActions <- map (\(Only i :. Only caseId :. Only callId :. ()) ->
                        (i, caseId, callId)) <$>
-                (liftPG (myActionsQ uid))
+                (liftPG' (myActionsQ uid))
 
   actions <- ((,) <$> userIsReady uid <*> return oldActions) >>= \case
     -- Do not pull more actions if the user already has some.

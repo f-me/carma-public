@@ -1,21 +1,25 @@
+// a protection from id collisions (also from jquery-monkeys)
+- var rnd = String(Math.random()).slice(2)
+
 #vin-form.container(style="margin-top: 20px")
   .page-header
     h3 Загрузка VIN
-  form#vin-import-form.form-horizontal(style="width: 80%;")
+  form.form-horizontal(style="width: 80%")
     #new-form
-    .form-group
-      label.col-md-4.control-label(for='vin-upload-file') Файл
+    .form-group#vin-upload-form
+      label.col-md-4.control-label(for=`vin-upload-file--${rnd}`) Файл
       .col-md-8
-        .input-group.input-group-sm
-          input.form-control(type="text" readonly)
-          .input-group-btn
-            span.btn.btn-default.btn-file
-              span.glyphicon.glyphicon-folder-open
-              input#vin-upload-file(type="file" accept='text/csv')
+        upload-file-field(params=`
+          withButton    : false,
+          autoClear     : false,
+          mimeFilter    : 'text/csv',
+          fileInputId   : 'vin-upload-file--${rnd}',
+          selectedFiles : vinFilesToUpload,
+          isLoading     : vinIsProcessing,
+        `)
     .form-group
-      // TODO Find out how to use button here without causing weird shit
       .col-md-offset-4.col-md-8
-        a#vin-send.btn.btn-primary
+        a#vin-send.btn.btn-primary(data-bind=`click: vinSendHandler`)
           i.glyphicon.glyphicon-upload.glyphicon-white
           | &nbsp;Загрузить
   fieldset

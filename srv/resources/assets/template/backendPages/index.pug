@@ -1,0 +1,24 @@
+doctype html
+html(lang='ru')
+  head
+    meta(charset='utf-8')
+
+    title
+      addLocalName CaRMa
+  body
+    // Will be filled by 'partials/navbar.pug' at initialization time.
+    // Contains template for Knockout.
+    #top-navbar
+
+    // Main container for dynamically rendered layouts
+    #main-container
+      #layout
+
+    // Will be filled by 'partials/topLevelModals.pug' at initialization time.
+    // Contains template for Knockout.
+    #top-level-modals
+
+    link(rel="stylesheet" type="text/css" href="/s/frontend/bundle.carma.css")
+    script(src="/s/frontend/bundle.vendor.js")
+    script(src="/s/frontend/bundle.resources.js")
+    script(src="/s/frontend/bundle.carma.js")

@@ -1,17 +1,20 @@
-define ["lib/ajax"], (Ajax)->
-  class MetaDict extends Ajax
-    constructor: (@opts) ->
+{_} = require "carma/vendor"
+{Ajax} = require "carma/lib/ajax"
 
-    getVal: _.identity
-    getLab: _.identity
+class MetaDict extends Ajax
+  constructor: (@opts) ->
 
-    lookup: (q, cb, opt) -> if @disabled then cb({}) else @find(q, cb, opt)
+  getVal: _.identity
+  getLab: _.identity
 
-    # find is what should be redefined in descedant classes
-    # lookup is still part of public api, to retrieve data from dict
-    find  : (q, cb, opt) -> cb({})
+  lookup: (q, cb, opt) -> if @disabled then cb({}) else @find(q, cb, opt)
 
-    id2val: _.identity
+  # find is what should be redefined in descedant classes
+  # lookup is still part of public api, to retrieve data from dict
+  find  : (q, cb, opt) -> cb({})
 
+  id2val: _.identity
+
+module.exports =
   dict: MetaDict
   name: 'MetaDict'

@@ -201,7 +201,7 @@ inParentContext act = do
 -- come first).
 caseActions :: IdentI Case
             -> Free (Dsl m) [Object Action.Action]
-caseActions cid = doApp $ PS.liftPG $
+caseActions cid = doApp $ PS.liftPG' $
   \conn ->
     PG.query conn
       [sql|
@@ -317,7 +317,7 @@ runDb
   => (PG.Connection -> IO (Either SomeException res))
   -> (res -> Free (Dsl m) res')
   -> StateT (DslState m) AppHandler res'
-runDb f k = (lift $ PS.liftPG f) >>= \case
+runDb f k = (lift $ PS.liftPG' f) >>= \case
   Right res -> evalDsl $ k res
   Left err  -> error $ show err -- FIXME: I don't know what to do
 
@@ -336,7 +336,7 @@ evalDsl = \case
     DbRead i k     -> runDb (Patch.read i)     k
     DbUpdate i p k -> runDb (Patch.update i p) k
     DbIO q k -> do
-      res <- lift $ PS.liftPG q
+      res <- lift $ PS.liftPG' q
       evalDsl $ k res
 
     CurrentUser k -> do

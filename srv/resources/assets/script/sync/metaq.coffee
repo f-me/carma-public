@@ -1,14 +1,17 @@
-define ["sync/datamap"], (m) ->
-  class MetaQueue
+m = require "carma/sync/datamap"
 
-    constructor: (@kvm, @model) ->
-      @ftypes = {}
-      @ftypes[f.name] = f.type for f in @model.fields
+class MetaQueue
 
-    toRawObj: ->
-      r = {}
-      r[f.name] = @kvm[f.name]() for f in @model.fields when @kvm[f.name]()
-      r['id']   = @kvm.id()
-      m.c2sObj r, @ftypes
+  constructor: (@kvm, @model) ->
+    @ftypes = {}
+    @ftypes[f.name] = f.type for f in @model.fields
 
-    toJSON: -> JSON.stringify @toRawObj()
+  toRawObj: ->
+    r = {}
+    r[f.name] = @kvm[f.name]() for f in @model.fields when @kvm[f.name]()
+    r['id']   = @kvm.id()
+    m.c2sObj r, @ftypes
+
+  toJSON: -> JSON.stringify @toRawObj()
+
+module.exports = {MetaQueue}

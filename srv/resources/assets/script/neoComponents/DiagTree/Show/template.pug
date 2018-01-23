@@ -1,0 +1,7 @@
+// ko if: $component.isLoading
+div(data-bind='spinner: true')
+// /ko
+
+// ko ifnot: $component.isLoading
+diag-tree-show-inside(params='caseModel: caseModel')
+// /ko

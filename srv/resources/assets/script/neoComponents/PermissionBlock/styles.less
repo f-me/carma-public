@@ -1,0 +1,20 @@
+permission-block {
+  @pfx: permission-block;
+
+  .@{pfx}--save-result {
+    display: none;
+    opacity: 1;
+    transition: none;
+
+    &.@{pfx}--save-success {color: green;}
+    &.@{pfx}--save-failure {color: red;}
+
+    &.@{pfx}--save-result--shown {
+      display: inline;
+      opacity: 1;
+      transition: opacity 2s ease-in-out;
+    }
+
+    &.@{pfx}--save-result--fade-out {opacity: 0;}
+  }
+}

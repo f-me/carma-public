@@ -1,10 +1,12 @@
 # CaRMa
 
-[![Circle CI](https://circleci.com/gh/f-me/carma.svg?style=svg&circle-token=ed097e1dbbde9591b7b2bec9ce252ddc840deb54)][ci]
+[![Circle CI](https://circleci.com/gh/f-me/carma.svg?style=shield&circle-token=ed097e1dbbde9591b7b2bec9ce252ddc840deb54)][ci]
+[![](https://images.microbadger.com/badges/image/formalmethods/carma-bundle.svg)](https://microbadger.com/images/formalmethods/carma-bundle)
 
 ## Building
 
-Refer to [`.circleci/config.yml`](.circleci/config.yml) for full building instructions.
+Refer to [`.circleci/config.yml`][ci-config] for full building
+instructions.
 
 ### Backend (Haskell)
 
@@ -14,7 +16,7 @@ Refer to [`.circleci/config.yml`](.circleci/config.yml) for full building instru
 
    ```
    stack --numeric-version
-   1.4.0
+   1.6.3
    ```
 
 2. Install PostgreSQL 9.3 (this is what production servers use) and
@@ -114,38 +116,51 @@ CaRMa - see below for how to build the whole bundle.
 
 ### Frontend (JS)
 
-To build the client from scratch:
+<strong>Warning!</strong> <em>If you're building front-end
+after migrating to webpack, run `npm run clean-old-stuff` first.</em>
 
-    cd srv
-    npm install -g bower grunt && npm install && bower install
-    cd resources/assets/react-components && npm install && cd -
-    mkdir -p resources/static/{js/gen,css}
-    grunt build
+To build front-end from scratch (development build):
 
-To rebuild the client:
+```bash
+cd srv
+npm install
+npm run build
+npm run build-backend-templates
+```
 
-    grunt build
+If you need to just rebuild it again (after some changes for instance) run:
 
-Run `grunt watch` in background to rebuild client code automatically
-when sources change.
+```bash
+npm run build
+```
 
-### Docker bundle
+To build bundle for production instead of for development run:
 
-If you built the frontend and the backend Docker image, you can now
-build an image containing both:
+```bash
+cd srv
+npm install
+npm run prod-build
+npm run build-backend-templates
+```
 
-    cd srv/
-    docker build -t carma-bundle .
+You also could run a watcher in background to rebuild client code automatically
+when sources change by using this command (development mode):
 
-CaRMa server executable inside the container is located at
-`/usr/local/bin/carma`. The command to run the container is
+```bash
+npm run watch
+```
 
-    docker run carma-bundle /usr/local/bin/carma
+To clean everything run:
+
+```bash
+npm run clean
+npm run clean-backend-templates
+```
 
 ### CI build
 
 [CircleCI][ci] is configured to build CaRMa on every push. If you have
-Docker installed, you may use [CircleCI CLI tool][ci-cli] to performs
+Docker installed, you may use [CircleCI CLI tool][ci-cli] to perform
 builds in the same environment as on CI server:
 
     circleci build --job build_client
@@ -153,6 +168,39 @@ builds in the same environment as on CI server:
 
 Jobs run in an auto-removed container, so at the moment you may
 only use them to test that the build finishes successfully.
+
+### Docker bundle
+
+*This is an EXPERIMENTAL workflow*
+
+If you build the frontend and the backend Docker image, you can also
+build a bundle image containing both:
+
+    cd srv/
+    docker build -t carma-bundle .
+
+CaRMa server executable inside the container is located at
+`/usr/local/bin/carma`.
+
+This is what [`build_bundle`][ci-config] CI step does.
+
+Alternatively, you may skip building CaRMa altogether and just pick an
+image from [formalmethods/carma-bundle][hub-bundle] repo on Docker
+Hub.
+
+To run the bundle, use [carma-bundle.yml][] Docker Compose file, which
+combines a CaRMa bundle and PostgreSQL.
+
+Required steps:
+
+1. Create carma-db-data volume using docker/dev-pg-9.3 container.
+
+2. Clone [carma-configs][] and edit CaRMa configs path in `volumes:`
+   section of [carma-bundle.yml][].
+
+The command to run the bundle is
+
+    docker-compose -f docker/carma-bundle.yml up
 
 ## Running
 
@@ -164,6 +212,10 @@ only use them to test that the build finishes successfully.
    scp <YOUR_LOGIN>@192.168.10.13:/var/backups/allbackups/postgresql_carma/2017-05-29_03-15_carma.sql.gz .
    ```
 
-[ci]: https://circleci.com/gh/f-me/carma
+[carma-bundle.yml]: docker/carma-bundle.yml
+[carma-configs]: https://github.com/f-me/carma-configs
 [ci-cli]: https://circleci.com/docs/2.0/local-jobs/#installing-the-cli-locally
+[ci-config]: .circleci/config.yml
+[ci]: https://circleci.com/gh/f-me/carma
 [haskell-stack]: https://docs.haskellstack.org/en/stable/README/
+[hub-bundle]: https://hub.docker.com/r/formalmethods/carma-bundle/tags/

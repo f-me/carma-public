@@ -8,6 +8,7 @@
   There's three types of interpolation blocks:
     1. $(T|…)$ - table name from model where '…' is module name of a model
     2. $(F|…)$ - field name from model
+       TODO fields from parent models
     3. $(V|…)$ - a value
 
   An usage example:
@@ -45,17 +46,17 @@ module Utils.Model.MSqlQQ
   ( msql
   , parseQuery
 
-  , Only
+  , Only (..)
+  , (:.) (..)
   , tableQT
   , fieldPT
-  , (:.)
   ) where
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote (QuasiQuoter (..))
 import Language.Haskell.Meta (parseExp)
 
-import Database.PostgreSQL.Simple (Only, (:.))
+import Database.PostgreSQL.Simple (Only (..), (:.) (..))
 import Data.List (dropWhileEnd)
 
 import Utils.Model (fieldPT, tableQT)
@@ -142,7 +143,7 @@ parseInterpolation = f ""
     ("T", x) -> T $ map onlySpaces x
     ("F", x) -> F $ map onlySpaces x
     ("V", x) -> V $ map onlySpaces x
-    (t, _)   -> error $ "Unknown interpolation type: " ++ show t
+    (t,   _) -> error $ "Unknown interpolation type: " ++ show t
 
   spaces = "\t\r\n " :: String
   trim = dropWhileEnd (`elem` spaces) . dropWhile (`elem` spaces)
@@ -151,7 +152,7 @@ parseInterpolation = f ""
   --   $( V | 100
   --        + 500 )$
   -- will be interpreted `V "100      + 500"`
-  onlySpaces x | x `elem` spaces = ' ' | otherwise =  x
+  onlySpaces x | x `elem` spaces = ' ' | otherwise = x
 
   -- Parse and split type of interpolation and its content
   splitType :: String -> String -> (String, String)

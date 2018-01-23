@@ -25,6 +25,7 @@ data Screen = Screen
   { __name        :: Text
   , s'type        :: Text
   , __label       :: Maybe Text
+  , __nameAliases :: Maybe [Text] -- For correct matching current active screen
   , s'screens     :: Maybe [Screen]
   , s'permissions :: [Text]
   }
