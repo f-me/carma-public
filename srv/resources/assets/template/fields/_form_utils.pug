@@ -53,7 +53,7 @@ mixin localDateTimeInput(nameMod, dataBinds, change)
   `)
 
 mixin rawDateInput(nameMod, dataBinds, change)
-  .input-group.input-group-sm.date(data-bind=`
+  label.input-group.input-group-sm.date(data-bind=`
     readonly      : {{name}}Disabled,
     pickerDisable : {{name}}.disabled,
   `)
