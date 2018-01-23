@@ -135,18 +135,54 @@ sendSMS tplId svcId sendBy sendTo =
           svc.$(F|Service.times_expectedServiceStart)$,
           'HH24:MI DD-MM-YYYY'
         ), ''),
+      'service.times_expectedServiceStart_caseCityTZ=' ||
+        coalesce(
+          case
+            when city.$(F|City.ident)$ is not null then to_char(
+              timezone(
+                city.$(F|City.timezone)$,
+                svc.$(F|Service.times_expectedServiceStart)$
+              ),
+              'HH24:MI DD-MM-YYYY'
+            )
+          end
+        , ''),
 
       'service.dates_expectedServiceStart=' ||
         coalesce(to_char(
           svc.$(F|Service.times_expectedServiceStart)$,
           'DD-MM-YYYY'
         ), ''),
+      'service.dates_expectedServiceStart_caseCityTZ=' ||
+        coalesce(
+          case
+            when city.$(F|City.ident)$ is not null then to_char(
+              timezone(
+                city.$(F|City.timezone)$,
+                svc.$(F|Service.times_expectedServiceStart)$
+              ),
+              'DD-MM-YYYY'
+            )
+          end
+        , ''),
 
       'service.times_factServiceStart=' ||
         coalesce(to_char(
           svc.$(F|Service.times_factServiceStart)$,
           'HH24:MI DD-MM-YYYY'
-        ), '')
+        ), ''),
+      'service.times_factServiceStart_caseCityTZ=' ||
+        coalesce(
+          case
+            when city.$(F|City.ident)$ is not null then to_char(
+              timezone(
+                city.$(F|City.timezone)$,
+                svc.$(F|Service.times_factServiceStart)$
+              ),
+              'HH24:MI DD-MM-YYYY'
+            )
+          end
+        , '')
 
     from
       $(T|Case)$ cs

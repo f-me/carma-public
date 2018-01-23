@@ -22,7 +22,7 @@ import           Data.Model.CRUD (customizeRead)
 import Carma.Model.Case.Type as Case
 import Carma.Model.Colors as Color
 import Carma.Model.Search as S
-import Carma.Model.Types()
+import Carma.Model.Types ()
 
 
 caseSearchParams :: [(Text, [Predicate Case])]
