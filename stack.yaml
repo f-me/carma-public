@@ -35,6 +35,7 @@ extra-deps:
 - qm-interpolated-string-0.1.1.0
 - readable-0.3.1
 - resource-pool-catchio-0.2.1.0
+- semigroupoids-5.0.0.4@rev:0
 - snap-extras-0.11.0.2
 - snap-loader-static-0.9.0.2
 - snaplet-postgresql-simple-0.6.0.4
