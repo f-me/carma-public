@@ -232,7 +232,7 @@ do ->
     return unless typeof accVal is "string"
     return console.error "unknown mask" unless accVal is "datetime"
     {valueUpdate} = allBindingsAcc()
-    valueUpdate ?= []
+    valueUpdate ?= ["change"]
 
     x = $(el).inputmask mask: "99.99.9999 99:99:99"
     el[evs_key] = ("#{ev}.#{ev_sfx}" for ev in valueUpdate)
@@ -403,7 +403,7 @@ do ->
     return unless accVal # disabled by falsy value
     o = if typeof accVal is "object" then accVal else null
     {valueUpdate} = allBindingsAcc()
-    valueUpdate ?= []
+    valueUpdate ?= ["change"]
 
     $el = $ el
     x = $el.wysihtml5 Object.assign {}, defaultOptions, o,
