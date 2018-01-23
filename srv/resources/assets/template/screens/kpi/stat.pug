@@ -32,14 +32,14 @@ include _settings.pug
               input.form-control(type="text"
                 autocomplete="off"
                 name="interval.begin"
-                data-bind="value: interval.begin, addMask: 'datetime'")
+                data-bind="value: interval.begin, valueUpdate: ['change'], addMask: 'datetime'")
               span.input-group-addon.glyphicon.glyphicon-calendar
           .col-md-2
             .input-group.input-group-sm
               input.form-control(type="text"
                 autocomplete="off"
                 name="interval.end"
-                data-bind="value: interval.end, addMask: 'datetime'")
+                data-bind="value: interval.end, valueUpdate: ['change'], addMask: 'datetime'")
               span.input-group-addon.glyphicon.glyphicon-calendar
           .col-md-2
             button.btn(data-bind="click: fetchData"

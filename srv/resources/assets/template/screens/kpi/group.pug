@@ -17,13 +17,13 @@ include _settings.pug
                   input.form-control.pane-span.focusable(type="text"
                     autocomplete="off"
                     name="interval.begin"
-                    data-bind="value: interval.begin, addMask: 'datetime'")
+                    data-bind="value: interval.begin, valueUpdate: ['change'], addMask: 'datetime'")
               .col-md-5
                 .input-group-sm
                   input.form-control.pane-span.focusable(type="text"
                     autocomplete="off"
                     name="interval.end"
-                    data-bind="value: interval.end, addMask: 'datetime'")
+                    data-bind="value: interval.end, valueUpdate: ['change'], addMask: 'datetime'")
               .col-md-2
                 button.btn(data-bind="click: fetchData"
                            style="padding-bottom: 2px; padding-top:2px") OK
