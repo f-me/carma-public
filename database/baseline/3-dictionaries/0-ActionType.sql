@@ -77,6 +77,9 @@ VALUES ('Согласовать опоздание партнёра', 23, 1,
   'Требуется согласовать время опоздания партнёра с клиентом');
 
 INSERT INTO "ActionType" (label, id, priority)
+VALUES ('Заказ услуги (аврал)', 24, -1);
+
+INSERT INTO "ActionType" (label, id, priority)
 VALUES ('Звонок', 100, 2);
 
 INSERT INTO "ActionType" (label, id, priority)

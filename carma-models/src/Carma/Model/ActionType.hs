@@ -48,6 +48,7 @@ mkIdents [t|ActionType|]
  , ("checkDispatchTime", 21)
  , ("accident", 22)
  , ("confirmPartnerDelay", 23)
+ , ("rushOrder", 24)
  , ("call", 100)
  ]
 
