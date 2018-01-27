@@ -9,7 +9,7 @@ class Screen
     do @table?.show
 
   addTable: (params) ->
-    @table = new Table(params)
+    @table = new Table params
 
   getTable: ->
     @table
@@ -21,7 +21,7 @@ class ScreenMan
   screens = []
 
   addScreen: (name, callback) ->
-    screens[name] = new Screen(callback)
+    screens[name] = new Screen callback
 
   showScreen: (name) ->
     do screens[name]?.show

@@ -2,8 +2,7 @@
 utils = require "carma/utils"
 
 class Table
-  constructor: (params) ->
-    {@tableName, @objURL} = params
+  constructor: ({@tableName, @objURL}) ->
     @sLength = "dataTables_length form-inline"
     @sFilter = "dataTables_filter form-inline"
     @objsToRows = null
@@ -39,7 +38,7 @@ class Table
     @
 
   on: (eventName, elementName, callback) ->
-    $("##{@tableName}-table").on(eventName, elementName, callback)
+    $("##{@tableName}-table").on eventName, elementName, callback
     @
 
 module.exports = {Table}

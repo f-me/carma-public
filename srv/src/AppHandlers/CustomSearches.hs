@@ -103,13 +103,16 @@ allActionsHandler = do
   let getRoles = do
           tg <- getParam "targetGroup"
           return $ B.split ',' <$> tg
-  acts <- join (selectActions
+
+  acts <- join $ selectActions
           <$> getParam "closed"
           <*> (fmap Ident <$> getIntParam "assignedTo")
           <*> getRoles
           <*> getParam "duetimeFrom"
-          <*> getParam "duetimeTo")
+          <*> getParam "duetimeTo"
+
   dn <- liftIO $ projNow id
+
   writeJSON $ A.object [ "actions" .= acts
                        , "reqTime" .= dn
                        ]

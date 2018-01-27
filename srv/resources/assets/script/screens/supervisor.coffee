@@ -246,9 +246,7 @@ screenSetup = (viewName, args) ->
   roleKVM = roleFieldSetup()
 
   objURL = formatObjURL roleKVM.roles()
-  tableParams =
-    tableName: "supervisor"
-    objURL: objURL
+  tableParams = {tableName: "supervisor", objURL}
 
   modelName = "Action"
 
