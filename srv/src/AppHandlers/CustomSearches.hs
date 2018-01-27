@@ -126,45 +126,66 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
       clToRes :: ByteString -> PlainText
       clToRes "1" = PT "NOT"
       clToRes _   = PT ""
+
       actQ = [sql|
-     SELECT a.id::text, coalesce(a.caseId, calltbl.caseId)::text,
-           a.serviceId::text, s.type::text,
-           a.type::text, a.assignedTo::text, a.targetGroup::text,
-           (extract (epoch from a.duetime at time zone 'UTC')::int8)::text,
-           (extract (epoch from a.ctime at time zone 'UTC')::int8)::text,
-           (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text,
-           (extract (epoch from a.opentime at time zone 'UTC')::int8)::text,
-           (extract (epoch from a.closetime at time zone 'UTC')::int8)::text,
-           a.result::text, at.priority::text, a.comment,
-           c.city::text, c.program::text,
-           (extract (epoch from
-             coalesce(s.times_expectedServiceStart, a.duetime)
-              at time zone 'UTC')::int8)::text
-     FROM
-       actiontbl a LEFT JOIN servicetbl s ON  s.id = a.serviceId
-                   LEFT JOIN casetbl c ON c.id = a.caseId
-                   LEFT JOIN calltbl ON calltbl.id = a.callId,
-       "ActionType" at
-     WHERE at.id = a.type
-     AND (? OR result IS ? NULL)
-     AND (? OR a.assignedTo = ?)
-     AND (? OR targetGroup IN ?)
-     AND (? OR extract (epoch from duetime) >= ?)
-     AND (? OR extract (epoch from duetime) <= ?);
+        SELECT a.id::text
+             , coalesce(a.caseId, calltbl.caseId)::text
+             , a.serviceId::text
+             , s.type::text
+             , a.type::text
+             , a.assignedTo::text
+             , a.targetGroup::text
+             , (extract(epoch from a.duetime at time zone 'UTC')::int8)::text
+             , (extract(epoch from a.ctime at time zone 'UTC')::int8)::text
+             , (extract(epoch from a.assigntime at time zone 'UTC')::int8)::text
+             , (extract(epoch from a.opentime at time zone 'UTC')::int8)::text
+             , (extract(epoch from a.closetime at time zone 'UTC')::int8)::text
+             , a.result::text
+             , at.priority::text
+             , a.comment
+             , c.city::text
+             , c.program::text
+
+             , (extract(
+                 epoch from
+                 coalesce(s.times_expectedServiceStart, a.duetime)
+                 at time zone 'UTC'
+               )::int8)::text
+
+             , ( extract(epoch from a.closetime at time zone 'UTC')::int8
+               - extract(epoch from a.ctime at time zone 'UTC')::int8
+               )::text
+
+        FROM actiontbl a LEFT JOIN servicetbl s ON  s.id = a.serviceId
+                         LEFT JOIN casetbl c ON c.id = a.caseId
+                         LEFT JOIN calltbl ON calltbl.id = a.callId
+
+           , "ActionType" at
+
+        WHERE at.id = a.type
+          AND (? OR result IS ? NULL)
+          AND (? OR a.assignedTo = ?)
+          AND (? OR targetGroup IN ?)
+          AND (? OR extract (epoch from duetime) >= ?)
+          AND (? OR extract (epoch from duetime) <= ?)
      |]
-  rows <- query actQ $
-          (sqlFlagPair (PT "") clToRes  mClosed)               :.
-          (sqlFlagPair nid     id       mAssignee)             :.
-          (sqlFlagPair (In []) In       mRoles)                :.
-          (sqlFlagPair 0       fst      (mFrom >>= B.readInt)) :.
-          (sqlFlagPair 0       fst      (mTo >>= B.readInt))
-  let fields
-        = [ "id", "caseId", "serviceId", "serviceType", "name"
-          , "assignedTo", "targetGroup", "duetime"
-          , "ctime", "assignTime", "openTime", "closeTime"
-          , "result"
-          , "priority", "comment","city", "program"
-          , "times_expectedServiceStart"]
+
+  rows <- query actQ
+       $  sqlFlagPair (PT "") clToRes  mClosed
+       :. sqlFlagPair nid     id       mAssignee
+       :. sqlFlagPair (In []) In       mRoles
+       :. sqlFlagPair 0       fst      (mFrom >>= B.readInt)
+       :. sqlFlagPair 0       fst      (mTo >>= B.readInt)
+
+  let fields = [ "id", "caseId", "serviceId", "serviceType", "name"
+               , "assignedTo", "targetGroup", "duetime"
+               , "ctime", "assignTime", "openTime", "closeTime"
+               , "result"
+               , "priority", "comment","city", "program"
+               , "times_expectedServiceStart"
+               , "executionDuration"
+               ]
+
   return $ mkMap fields rows
 
 

@@ -12,7 +12,10 @@ Flds        = require "carma-tpl/fields/form.pug"
 
 flds = $('<div/>').append $(Flds)
 
-getDefaultSort = -> [[13, "desc"], [5, "asc"]]
+caseIdx = 0
+duetimeIdx = 5
+importanceIdx = 14
+getDefaultSort = -> [[importanceIdx, "desc"], [duetimeIdx, "asc"]]
 
 mktime = (n) -> d = new Date; d.setMinutes d.getMinutes() + n; d
 
@@ -39,29 +42,31 @@ getImportanceLevel = (name, duetime, srvStart) ->
     when time < now         then 4
 
 dataTableOptions = ->
+  bPaginate: true
+
   aoColumns:
     utils.repeat 11, null
       .concat utils.repeat 2, bVisible: no
-      .concat bVisible: no
+      .concat null, bVisible: no
 
-  bPaginate: true
   fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
     return if _.isEmpty aData
 
     do -> # hyperlink to case
-      caseId = aData[0].split('/')[0]
+      x = aData[caseIdx]
+      caseId = x.split("/")[0]
 
       caseLnk =
-        if caseId != '-'
-          "<a style='color: black' href='/#case/#{caseId}'>#{aData[0]}</a>"
+        if caseId isnt "-"
+          "<a style='color: black' href='/#case/#{caseId}'>#{x}</a>"
         else
-          aData[0]
+          x
 
-      $('td:eq(0)', nRow).html caseLnk
+      $("td:eq(0)", nRow).html caseLnk
 
     # coloring by importance level
     for x in nRow.childNodes
-      x.style.backgroundColor = importanceHexColors[Number aData[13]]
+      x.style.backgroundColor = importanceHexColors[Number aData[importanceIdx]]
 
 objsToRows = (res) ->
   ar = utils.newModelDict "ActionResult", true
@@ -82,9 +87,11 @@ objsToRows = (res) ->
 
     cid = obj.caseId
     closed = not _.isEmpty obj.result
-    closedLab = if closed then 'Закрыто' else 'Открыто'
+    closedLab = if closed then "Закрыто" else "Открыто"
 
     name = obj.name or ""
+
+    # (*1000) is for converting seconds to milliseconds
 
     duetime = (
       x = new Date obj.duetime * 1000
@@ -97,6 +104,32 @@ objsToRows = (res) ->
         .toString "dd.MM.yyyy HH:mm:ss"
       x or ""
     )
+
+    executionDuration = do ->
+      d = new Date
+      oneDaySeconds = 60 * 60 * 24
+      days = 0
+      duration = obj.executionDuration
+
+      if duration >= oneDaySeconds
+        days = Math.floor duration / oneDaySeconds
+        duration -= days * oneDaySeconds # remove days and keep only time
+
+      tzOffset = d.getTimezoneOffset() * 60 * 1000
+      d.setTime duration * 1000 + tzOffset
+      result = d.toString "HH:mm:ss"
+
+      if days > 0
+        lastNumber = Number (days/10).toFixed(1).slice -1
+
+        dayLabel = switch
+          when lastNumber is 1    then "день"
+          when 1 < lastNumber < 5 then "дня"
+          else "дней"
+
+        result = "#{days} #{dayLabel} #{result}"
+
+      result
 
     timeLabel =
       if _.isEmpty obj.assignedTo
@@ -120,6 +153,7 @@ objsToRows = (res) ->
       progs.getLab(obj.program) || ''
       srvStart
       name
+      executionDuration || ''
       getImportanceLevel name, duetime, srvStart
     ]
 
