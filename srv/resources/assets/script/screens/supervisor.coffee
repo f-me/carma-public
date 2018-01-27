@@ -80,8 +80,7 @@ objsToRows = (res) ->
 
   rows = for obj in res.actions
     if obj.serviceId
-      svcName = svcTypes.getLab obj.serviceType
-      svcName = "(#{svcName})"
+      svcName = "(#{svcTypes.getLab obj.serviceType})"
     else
       svcName = null
 
@@ -107,29 +106,29 @@ objsToRows = (res) ->
 
     executionDuration = do ->
       d = new Date
-      oneDaySeconds = 60 * 60 * 24
       days = 0
+      oneDaySeconds = 60 * 60 * 24
       duration = obj.executionDuration
+      tzOffset = d.getTimezoneOffset() * 60 * 1000
 
       if duration >= oneDaySeconds
         days = Math.floor duration / oneDaySeconds
         duration -= days * oneDaySeconds # remove days and keep only time
 
-      tzOffset = d.getTimezoneOffset() * 60 * 1000
       d.setTime duration * 1000 + tzOffset
-      result = d.toString "HH:mm:ss"
+      formatted = d.toString "HH:mm:ss"
 
       if days > 0
-        lastNumber = Number (days/10).toFixed(1).slice -1
+        lastDigit = Number (days/10).toFixed(1).slice -1
 
         dayLabel = switch
-          when lastNumber is 1    then "день"
-          when 1 < lastNumber < 5 then "дня"
-          else "дней"
+          when lastDigit is 1    then "день" # 1
+          when 1 < lastDigit < 5 then "дня"  # 2, 3, 4
+          else "дней"                        # 0, 5, 6, 7, 8, 9
 
-        result = "#{days} #{dayLabel} #{result}"
-
-      result
+        "#{days} #{dayLabel} #{formatted}"
+      else
+        formatted
 
     timeLabel =
       if _.isEmpty obj.assignedTo
