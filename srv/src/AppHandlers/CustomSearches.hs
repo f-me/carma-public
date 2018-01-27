@@ -155,8 +155,10 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
                  at time zone 'UTC'
                )::int8)::text
 
-             , ( extract(epoch from a.closetime at time zone 'UTC')::int8
-               - extract(epoch from a.ctime at time zone 'UTC')::int8
+             , ( coalesce(
+                   extract(epoch from a.closetime at time zone 'UTC')::int8,
+                   extract(epoch from now() at time zone 'UTC')::int8
+                 ) - extract(epoch from a.ctime at time zone 'UTC')::int8
                )::text
 
         FROM actiontbl a LEFT JOIN servicetbl s ON  s.id = a.serviceId
