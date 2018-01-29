@@ -34,6 +34,7 @@ import qualified Carma.Model.ServiceStatus as SS
 import           Carma.Model.ServiceType as ST
 import           Carma.Model.PaymentType as PT
 import qualified Carma.Model.SmsTemplate as SMS
+import qualified Carma.Model.UrgentServiceReason as USR
 import qualified Carma.Model.Usermeta as Usermeta
 import qualified Carma.Model.PartnerDelay as PartnerDelay
 import qualified Carma.Model.PartnerDelay.Confirmed as PartnerDelay_Confirmed
@@ -66,7 +67,12 @@ toBackAux =
                     `oneOf` [ST.towage, ST.bikeTowage, ST.tech, ST.adjuster]
                 , sendSMS SendSmsToCaller SMS.create
                     *> messageToGenser
-                    *> proceed [AType.orderService]
+                    *>
+                    switch
+                    [ ( serviceField rushJob &&
+                        (serviceField urgentService == just USR.notUrgent)
+                      , proceed [AType.rushOrder]) ]
+                    (proceed [AType.orderService])
                 )
 
               , ( serviceField svcType
@@ -280,8 +286,9 @@ accident = Action AType.accident
   ]
 
 
-orderService :: Action
-orderService = Action AType.orderService
+-- | A skeleton for orderService and rushOrder actions.
+mkOrderService :: ActionTypeI -> Bool -> Action
+mkOrderService at withRushDefer = Action at
 
   ( ite (serviceField svcType == const ST.adjuster)
         (const bo_orderAvarcom)
@@ -305,7 +312,7 @@ orderService = Action AType.orderService
     in
       ite (t > n) t ((5 * minutes) `since` now)
   )
-
+  $
   [ ( AResult.serviceOrdered
     , sendSMS SendSmsToCaller SMS.order
         *> notifyPartner
@@ -334,7 +341,16 @@ orderService = Action AType.orderService
 
   , (AResult.defer, defer)
   , (AResult.supervisorClosed, finish)
-  ]
+  ] ++
+  [(AResult.rushDefer, proceed [AType.rushOrder]) | withRushDefer]
+
+
+orderService :: Action
+orderService = mkOrderService AType.orderService True
+
+
+rushOrder :: Action
+rushOrder = mkOrderService AType.rushOrder False
 
 
 notifyPartner :: Backoffice bk => bk (Eff m)
@@ -716,6 +732,7 @@ carmaBackoffice =
       , activate
       ]
     , [ orderService
+      , rushOrder
       , accident
       , orderServiceAnalyst
       , tellClient
