@@ -60,6 +60,7 @@ import qualified Carma.Model.Satisfaction    as Satisfaction
 import qualified Carma.Model.ServiceStatus   as ServiceStatus
 import qualified Carma.Model.ServiceType     as ServiceType
 import qualified Carma.Model.SmsTemplate     as SmsTemplate
+import qualified Carma.Model.UrgentServiceReason as UrgentServiceReason
 
 import           Carma.Backoffice
 import qualified Carma.Backoffice.DSL        as DSL
@@ -120,6 +121,7 @@ serveBackofficeSpec repr = do
              , boxMap <$> labelMap ServiceType.ident ServiceType.label
              , boxMap <$> labelMap SmsTemplate.ident SmsTemplate.label
              , boxMap <$> labelMap Program.ident Program.label
+             , boxMap <$> labelMap UrgentServiceReason.ident UrgentServiceReason.label
              ]
   boxedIMap <- Map.unions <$> sequence maps
   skipParam <- fmap (parseOnly (decimal `sepBy1` char ',')) <$>
