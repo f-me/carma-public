@@ -203,7 +203,7 @@ beforeCreate = Map.unionsWith (++)
             from casetbl cs, "ProcessingConfig" pc
             where cs.id = $(parentCase)$
         |]
-      modPut Service.rushJob $ Just inRushCity
+      modPut Service.rushJob inRushCity
 
   , trigOnModel ([]::[Hotel.Hotel]) $
       modPut Hotel.providedFor $ Just "0"
@@ -503,9 +503,8 @@ beforeUpdate = Map.unionsWith (++) $
     -- Set ON/OFF 'rush job' flag for service depending on city of partner.
     -- If partner's city at this moment in 'rush job cities' list
     -- then setting it ON else setting it OFF.
-    let x = bool off on <$> (`Vector.elem` rushCities) <$> partnerCity
-        p = modifyPatch . Patch.put Service.rushJob . Just
-     in p $ fromMaybe off x
+    let x = (`Vector.elem` rushCities) <$> partnerCity
+     in modifyPatch $ Patch.put Service.rushJob $ fromMaybe False x
 
   , trigOn DiagSlide.answers $ \(Aeson.Array answers) -> do
       answers' <- forM (Vector.toList answers) $ \(Aeson.Object ans) ->
