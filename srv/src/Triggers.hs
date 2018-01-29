@@ -199,7 +199,7 @@ beforeCreate = Map.unionsWith (++)
       Just parentCase <- getPatchField Service.parentId
       [[inRushCity]] <- doApp $ liftPG' $ \pg -> uncurry (PG.query pg)
         [sql|
-          select array[cs.city, cs.caseAddress_city] && pc.rushCities
+          select array[cs.city, cs.caseAddress_city] && pc.rushJobCities
             from casetbl cs, "ProcessingConfig" pc
             where cs.id = $(parentCase)$
         |]
