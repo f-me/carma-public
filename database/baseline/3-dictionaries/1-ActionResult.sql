@@ -106,6 +106,9 @@ INSERT INTO "ActionResult" (label, id)
 VALUES ('Опоздание не согласовано', 34);
 
 INSERT INTO "ActionResult" (label, id)
+VALUES ('Отложено в аврал', 36);
+
+INSERT INTO "ActionResult" (label, id)
 VALUES ('Звонок завершён', 100);
 
 INSERT INTO "ActionResult" (label, id)

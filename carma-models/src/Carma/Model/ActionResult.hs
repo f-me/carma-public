@@ -55,6 +55,7 @@ mkIdents [t|ActionResult|]
  , ("partnerDelayConfirmed", 33)
  , ("partnerDelayNotConfirmed", 34)
  , ("transferred", 35)
+ , ("rushDefer", 36)
  , ("callEnded", 100)
  , ("needAnotherService", 101)
  ]
