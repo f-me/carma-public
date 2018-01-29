@@ -122,6 +122,18 @@ module.exports =
             read :       -> k[n]()
             write: (val) -> if Date.parse(val) then k[n](val) else k[n]("")
 
+  cityInRushHook: (m, k) ->
+    for f in m.fields when f.meta.widget == 'city-dict-with-rush-badge'
+      do (f) ->
+        pcId = window.global.idents("ProcessingConfig").main
+        fld  = k[f.name]
+        rush = ko.observable false
+        k["#{f.name}InRush"] = rush
+        updateRush = (v) ->
+          $.getJSON "/_/ProcessingConfig/#{pcId}", (pc) =>
+            rush(v in pc.rushJobCities)
+        fld.subscribe updateRush
+        updateRush fld()
 
   listOfTimesHook: (m, k) ->
     for f in m.fields when f.meta.widget == 'list-of-times'

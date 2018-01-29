@@ -974,3 +974,18 @@ mixin caseFilesList
           | Продолжить диагностику
         a(data-bind="click: _showDiag, visible: _canShowDiag")
           | История диагностики
+
+.field-template#city-dict-with-rush-badge-field-template
+  // Copypasted from +fieldControlGroup beacause it does not allow to append
+  // elements after input-group
+  .form-group.has-feedback(data-bind=`
+    css     : {'has-error': {{name}}Not},
+    visible : {{name}}Visible,
+  `)
+    label.col-sm-4.control-label
+      +labelWithInfo("{{name}}")
+    .col-sm-8
+      .input-group.input-group-sm
+        +dictInputChevron("Local", "glyphicon-chevron-down")
+      .help-block(data-bind="visible: {{name}}InRush")
+        | В этом городе аврал

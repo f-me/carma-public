@@ -30,6 +30,7 @@ module.exports =
                , c.listOfTimesHook
                , c.jsonDictObjsHook
                , c.vipPhones
+               , c.cityInRushHook
                ]
 
       "Action" : [a.actionColor, a.nameLocal, a.suppressScroll]

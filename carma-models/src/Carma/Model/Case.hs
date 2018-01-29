@@ -112,6 +112,8 @@ caseDicts = [
 
   ,car_color `completeWith` Color.label
   ,setMeta "dictionaryLabel" (Aeson.String "realName") callTaker
+  ,widget "city-dict-with-rush-badge" city
+  ,widget "city-dict-with-rush-badge" caseAddress_city
   ]
 
 caseRo :: [(Text, FieldView -> FieldView) :@ Case]
