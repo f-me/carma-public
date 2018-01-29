@@ -62,8 +62,10 @@ assignQ = [sql|
             ORDER BY userId, id DESC) s
         WHERE s.state <> 'LoggedOut'),
       pullableActions AS (
-        SELECT actiontbl.* FROM actiontbl, currentUser u
+        SELECT actiontbl.* FROM actiontbl, currentUser u, "ActionType" t
         WHERE result IS NULL
+        AND actiontbl.type = t.id
+        AND t.priority > 0
         AND targetGroup = ANY (u.roles)
         AND (assignedTo IS NULL
              OR assignedTo NOT IN (SELECT id FROM activeUsers))
