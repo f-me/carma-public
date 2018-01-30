@@ -10,7 +10,7 @@ import Data.Model.Types ((:@))
 import Data.Model.View
 
 import qualified Carma.Model.ClientRefusalReason as CRR
-import           Carma.Model.Case.Type           (Case)
+import           Carma.Model.Case                (Case)
 import           Carma.Model.Complication        (Complication)
 import           Carma.Model.FalseCall           (FalseCall)
 import           Carma.Model.LegacyTypes

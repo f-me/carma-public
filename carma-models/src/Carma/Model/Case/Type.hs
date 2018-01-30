@@ -1,3 +1,6 @@
+-- WARNING! This module supposed to be imported only from `Carma.Model.Case`.
+--          If you need `Case` type import it from `Carma.Model.Case` instead.
+
 module Carma.Model.Case.Type where
 
 import Data.Text

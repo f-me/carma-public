@@ -7,9 +7,9 @@ import Data.Typeable
 import Data.Model
 import Data.Model.View
 
-import Carma.Model.Case.Type (Case)
-import Carma.Model.Types()
-import Carma.Model.PgTypes()
+import Carma.Model.Case (Case)
+import Carma.Model.Types ()
+import Carma.Model.PgTypes ()
 import Carma.Model.Usermeta (Usermeta)
 
 

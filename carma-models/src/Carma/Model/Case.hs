@@ -1,9 +1,17 @@
 {-# LANGUAGE QuasiQuotes #-}
 
+-- Supressing 'orphan instance' warning for `instance Model Case`,
+-- because `Case` separated into own '*.Type' module
+-- but this instance declared here.
+-- We're okay with this, because we never import '*.Type' module directly,
+-- it's only for internal use of this current module
+-- (and you shouldn't do it too).
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module Carma.Model.Case
-       (Case(..)
-       ,caseSearchParams
-       ) where
+     ( Case (..)
+     , caseSearchParams
+     ) where
 
 import Data.Text (Text)
 import Data.Aeson as Aeson
@@ -19,7 +27,10 @@ import           Data.Model.Patch (Patch)
 import qualified Data.Model.Patch as P
 import           Data.Model.CRUD (customizeRead)
 
+-- WARNING! This module supposed to be imported only from here.
+--          If you need `Case` type import it from `Carma.Model.Case` instead.
 import Carma.Model.Case.Type as Case
+
 import Carma.Model.Colors as Color
 import Carma.Model.Search as S
 import Carma.Model.Types ()
