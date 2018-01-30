@@ -1,5 +1,3 @@
-{-# LANGUAGE ViewPatterns #-}
-
 module Triggers.Action.SMS (sendSMS) where
 
 import Control.Monad (void)
@@ -99,8 +97,12 @@ sendSMS tplId svcId sendBy sendTo =
       'sender='                || sprog.$(F|SubProgram.smsSender)$,
       'case.id='               || cs.$(F|Case.ident)$::text,
       'case.city='             || coalesce(city.$(F|City.label)$, ''),
+      'case.customer_name='    || coalesce(cs.$(F|Case.contact_name)$, ''),
       'case.customer_phone='   || coalesce(cs.$(F|Case.contact_phone1)$, ''),
-      'case.breakage_address=' || coalesce(cs.$(F|Case.caseAddress_address)$, ''),
+
+      'case.breakage_address=' ||
+        coalesce(cs.$(F|Case.caseAddress_address)$, ''),
+
       'service.type='          || svct.$(F|ServiceType.label)$,
       'program_info='          || sprog.$(F|SubProgram.smsProgram)$,
       'program_contact_info='  || sprog.$(F|SubProgram.smsContact)$,
