@@ -88,10 +88,10 @@ instance Model VinFormat where
   type TableName VinFormat = "VinFormat"
   modelInfo = mkModelInfo VinFormat ident
   modelView = \case
-    "" -> Just $ modifyView (defaultView :: ModelView VinFormat) $
-                [ partnerKey lastCheckDealerDefault
-                , partnerKey sellerDefault
-                ]
+    "" -> Just $ modifyView (defaultView :: ModelView VinFormat)
+               [ partnerKey lastCheckDealerDefault
+               , partnerKey sellerDefault
+               ]
     _  -> Nothing
 
 
