@@ -41,9 +41,6 @@ main = do
     [configPath] -> do
       conf <- Config.load [Config.Required configPath]
 
-      logLevel <- fromMaybe (error "Invalid log_level in config")
-        . readMaybe <$> Config.require conf "log.level" :: IO String
-
       withSyslog prog [LogPID] User $ do
         withCStringLen ("Loading config from " ++ configPath) $
           syslog (Just User) Info
