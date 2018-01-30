@@ -5,30 +5,29 @@
 
 ## Building
 
-Refer to [`.circleci/config.yml`][ci-config] for full building
-instructions.
+Refer to [`.circleci/config.yml`][ci-config] for full building instructions.
 
 ### Backend (Haskell)
 
 #### Generic
 
-1. Install [Haskell Stack][haskell-stack]. Check that it works:
+##### Prepare database
 
-   ```
-   stack --numeric-version
-   1.6.3
-   ```
+1. Install PostgreSQL 9.3 (this is what production servers use) and
+   PostGIS (extension for PostgreSQL).
 
-2. Install PostgreSQL 9.3 (this is what production servers use) and
-   PostGIS. Create a database named `carma`:
+   We have [docker container](./docker/dev-pg-9.3) with exact PostgreSQL version
+   for development, you could use it.
 
-   ```
+   Create a database named `carma`:
+
+   ```postgresql
    createdb carma
    ```
 
-3. Add roles:
+2. Add roles:
 
-   ```
+   ```postgresql
    createuser -s carma
    createuser carma_db_sync
    createuser carma_geo
@@ -45,46 +44,74 @@ instructions.
 3. Unpack and recover a database snapshot (note that this needs to run
    as a PostgreSQL superuser - for example, prepend with `sudo -u postgres`):
 
-   ```
+   ```bash
    psql carma -f 2017-05-29_03-15_carma.sql
    ```
 
-3. Set passwords:
+   Or if you use development docker container mentioned above, you could do it
+   by this command:
 
+   ```bash
+   psql -h 127.0.0.1 -U carma_db_sync -d carma -f 2017-05-29_03-15_carma.sql
    ```
+
+4. Set passwords:
+
+   ```bash
    psql carma -c "alter user carma with password 'pass'"
    psql carma -c "alter user carma_db_sync with password 'pass'"
    ```
 
-3. Clone CaRMa Git repository:
+##### Build backend executables
 
+1. Install [Haskell Stack][haskell-stack]. Check that it works:
+
+   ```bash
+   stack --numeric-version
+   1.6.3
    ```
+
+2. Clone **CaRMa** Git repository:
+
+   ```bash
    git clone git@github.com:f-me/carma.git
    cd carma
    ```
 
 3. Add log files:
 
-   ```
-   mkdir srv/log && > srv/log/access.log && > srv/log/error.log
+   ```bash
+   mkdir -p srv/log && > srv/log/access.log && > srv/log/error.log
    ```
 
 4. Build the backend:
 
+   ```bash
+   stack build --install-ghc
    ```
-   stack --install-ghc install
+
+   P.S. When you rebuild backend on production servers you need to run
+
+   ```bash
+   stack install
    ```
 
-5. Change the current directory to `srv/` and run the server:
+   after to install executables to `$HOME/.local/bin` dir which is used to run
+   backend from by init-scripts.
 
-    ```
-    cd srv
-    carma -p 8000
-    ```
+5. **WARNING!** Before going to next step you supposed to build
+   [frontend](#frontend) first, because templates for backend must be built
+   by frontend toolchain before start.
 
-6. Check that the server works:
+6. Change the current directory to `srv/` and run the server:
 
+   ```bash
+   (cd srv && stack exec carma -- -p 8000)
    ```
+
+7. Check that the server works:
+
+   ```bash
    curl localhost:8000/meta
    ```
 
@@ -92,15 +119,19 @@ instructions.
 
 On macOS with `openssl` and `icu4c` installed via Homebrew, build with
 
-    stack build --extra-include-dirs=/usr/local/opt/openssl/include/ --extra-include-dirs=/usr/local/opt/icu4c/include/ --extra-lib-dirs=/usr/local/opt/openssl/lib/ --extra-lib-dirs=/usr/local/opt/icu4c/lib/
+```bash
+stack build --extra-include-dirs=/usr/local/opt/openssl/include/ --extra-include-dirs=/usr/local/opt/icu4c/include/ --extra-lib-dirs=/usr/local/opt/openssl/lib/ --extra-lib-dirs=/usr/local/opt/icu4c/lib/
+```
 
 #### Docker
 
 Alternatively, to build the server inside Docker and package all
 executables in a container:
 
-    stack docker pull
-    stack --docker image container
+```bash
+stack docker pull
+stack --docker image container
+```
 
 If you're on Linux, you can just build with `stack --docker build` and
 run the app outside Docker. You will not be able to run the app built
@@ -112,12 +143,9 @@ quickly fetch dependencies (`.stack-work/downloaded` directory is
 shared between the container and the host anyways).
 
 Note that this container lacks frontend resources necessary to launch
-CaRMa - see below for how to build the whole bundle.
+**CaRMa** - see below for how to build the whole bundle.
 
-### Frontend (JS)
-
-<strong>Warning!</strong> <em>If you're building front-end
-after migrating to webpack, run `npm run clean-old-stuff` first.</em>
+### Frontend
 
 To build front-end from scratch (development build):
 
@@ -163,8 +191,10 @@ npm run clean-backend-templates
 Docker installed, you may use [CircleCI CLI tool][ci-cli] to perform
 builds in the same environment as on CI server:
 
-    circleci build --job build_client
-    circleci build --job build_server
+```bash
+circleci build --job build_client
+circleci build --job build_server
+```
 
 Jobs run in an auto-removed container, so at the moment you may
 only use them to test that the build finishes successfully.
@@ -176,8 +206,10 @@ only use them to test that the build finishes successfully.
 If you build the frontend and the backend Docker image, you can also
 build a bundle image containing both:
 
-    cd srv/
-    docker build -t carma-bundle .
+```bash
+cd srv/
+docker build -t carma-bundle .
+```
 
 CaRMa server executable inside the container is located at
 `/usr/local/bin/carma`.
@@ -200,7 +232,9 @@ Required steps:
 
 The command to run the bundle is
 
-    docker-compose -f docker/carma-bundle.yml up
+```bash
+docker-compose -f docker/carma-bundle.yml up
+```
 
 ## Running
 
@@ -208,7 +242,7 @@ The command to run the bundle is
    snapshots is mounted on `carma-test` server at
    `/var/backups/allbackups/postgresql_carma`:
 
-   ```
+   ```bash
    scp <YOUR_LOGIN>@192.168.10.13:/var/backups/allbackups/postgresql_carma/2017-05-29_03-15_carma.sql.gz .
    ```
 
