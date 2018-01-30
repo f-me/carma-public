@@ -4,11 +4,10 @@ module Main where
 
 import           Control.Monad (when, unless, void)
 import           Control.Monad.IO.Class (liftIO)
-import           Text.Read (readMaybe)
 import           Text.Regex
 
 import           Data.Default.Class (Default (def))
-import           Data.Maybe (fromMaybe, isJust)
+import           Data.Maybe (isJust)
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
