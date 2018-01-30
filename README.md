@@ -68,7 +68,7 @@ Refer to [`.circleci/config.yml`][ci-config] for full building instructions.
 
    ```bash
    stack --numeric-version
-   1.6.3
+   # 1.6.3
    ```
 
 2. Clone **CaRMa** Git repository:
@@ -146,6 +146,13 @@ Note that this container lacks frontend resources necessary to launch
 **CaRMa** - see below for how to build the whole bundle.
 
 ### Frontend
+
+Check that you have proper versions of **node.js** and **npm**:
+
+```bash
+printf 'node: %s, npm: %s\n' "`node --version`" "`npm --version`"
+# node: v8.9.1, npm: 5.6.0
+```
 
 To build front-end from scratch (development build):
 
