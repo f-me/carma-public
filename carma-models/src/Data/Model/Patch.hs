@@ -160,10 +160,10 @@ mergeParentPatch a b = case parentInfo :: ParentInfo m of
 instance Model m => FromJSON (Patch m) where
   parseJSON (Aeson.Object o)
     = Patch . HashMap.fromList
-    <$> mapM parseField (HashMap.toList o)
+    <$> mapM parseField' (HashMap.toList o)
     where
       fields = modelFieldsMap (modelInfo :: ModelInfo m)
-      parseField (name, val) = case HashMap.lookup name fields of
+      parseField' (name, val) = case HashMap.lookup name fields of
         Nothing -> fail $ "Unexpected field: " ++ show name
         Just p  -> (name,) <$> fd_parseJSON p val
   parseJSON j = fail $ "JSON object expected but here is what I have: " ++ show j

@@ -37,7 +37,7 @@ defaultCRUD = CRUD
   , crud_read = \ident pg
     -> tryPg (Sql.read ident pg) >>= \case
       Right res -> hoistEither $ unparseRes ident [res]
-      Left err  -> throwE $ PgException err
+      Left err' -> throwE $ PgException err'
 
   , crud_update = \ident obj pg -> do
       p <- hoistEither $ parseJSON obj

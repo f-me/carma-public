@@ -40,7 +40,7 @@ caseSearch = defaultSearch
     mkQuery
 
 mkQuery :: forall t.MkSelect t => t -> Text -> Int -> Int -> String -> Query
-mkQuery _ pred lim offset ord
+mkQuery _ pred' lim offset ord
   = fromString $ printf
       (  "    select %s "
       ++ "     from casetbl left join servicetbl"
@@ -52,4 +52,4 @@ mkQuery _ pred lim offset ord
       ++ "     where (%s) %s limit %i offset %i;"
       )
       (T.unpack (mkSel (undefined :: t)))
-      (T.unpack pred) ord lim offset
+      (T.unpack pred') ord lim offset

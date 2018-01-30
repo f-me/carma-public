@@ -25,7 +25,7 @@ module Carma.HTTP.New
 
 where
 
-import           Control.Lens               hiding (createInstance)
+import           Control.Lens
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Reader
 

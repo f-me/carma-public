@@ -2,7 +2,7 @@
 
 module Main where
 
-import           Control.Monad (when, void)
+import           Control.Monad (when, unless, void)
 import           Control.Monad.IO.Class (liftIO)
 import           Text.Read (readMaybe)
 import           Text.Regex
@@ -13,7 +13,7 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as L
-import           Data.Time (parseTime, Day, fromGregorian)
+import           Data.Time (parseTimeM, Day, fromGregorian)
 import qualified Data.Configurator as Config
 import qualified Data.Aeson as Aeson
 import           Data.Pool (Pool, createPool, withResource)
@@ -42,10 +42,11 @@ main = do
       conf <- Config.load [Config.Required configPath]
 
       logLevel <- fromMaybe (error "Invalid log_level in config")
-        . readMaybe <$> (Config.require conf) "log.level" :: IO String
+        . readMaybe <$> Config.require conf "log.level" :: IO String
 
       withSyslog prog [LogPID] User $ do
-        (withCStringLen $ "Loading config from " ++ configPath) $ syslog (Just User) Info
+        withCStringLen ("Loading config from " ++ configPath) $
+          syslog (Just User) Info
 
         carmaUsr  <- Config.require conf "carma.user"
         carmaPrg  <- Config.require conf "carma.subprogram"
@@ -57,7 +58,8 @@ main = do
         pgPwd     <- Config.require conf "pg.pass"
         pgDb      <- Config.require conf "pg.db"
 
-        (withCStringLen $ "Connecting to Postgres on " ++ pgHost) $ syslog (Just User) Info
+        withCStringLen ("Connecting to Postgres on " ++ pgHost) $
+          syslog (Just User) Info
         let cInfo = PG.ConnectInfo
               pgHost pgPort
               pgUser pgPwd
@@ -65,14 +67,15 @@ main = do
         pgPool <- createPool (PG.connect cInfo) PG.close
             1 -- number of distinct sub-pools
               -- time for which an unused resource is kept open
-            (fromInteger 20) -- seconds
+            20 -- seconds
             5 -- maximum number of resources to keep open
 
         reqLogger <- mkRequestLogger $ def
           { destination = Callback
-              $ ((flip withCStringLen) $ syslog (Just User) Info) . f
+              $ flip withCStringLen (syslog (Just User) Info) . f
           }
-        (withCStringLen $ "Starting HTTP server on port " ++ show httpPort) $ syslog (Just User) Info
+        withCStringLen ("Starting HTTP server on port " ++ show httpPort)
+          $ syslog (Just User) Info
         scotty httpPort
           $ httpServer pgPool reqLogger
           $ SrvConfig carmaPrg carmaUsr carmaTest
@@ -123,8 +126,8 @@ httpServer pgPool reqLogger cfg = do
     |]
 
 
-  let handleErrors f = f `rescue` \err -> do
-        liftIO $ (withCStringLen $ L.unpack err) $ syslog (Just User) Error
+  let handleErrors f' = f' `rescue` \err -> do
+        liftIO $ withCStringLen (L.unpack err) $ syslog (Just User) Error
         status status400 >> text err
 
   post "/Contract/Mazda" $ handleErrors $ do
@@ -136,13 +139,13 @@ httpServer pgPool reqLogger cfg = do
 
     let vinRx = mkRegexWithOpts "^[0-9A-HJ-NPR-Z]{17}$" False True
     let vinOk = isJust $ matchRegex vinRx $ T.unpack vin
-    when (not vinOk) $ raise "Invalid VIN format."
-    when (not True)  $ raise "Invalid VIN checksum."
+    unless vinOk $ raise "Invalid VIN format."
+    unless True  $ raise "Invalid VIN checksum."
     when (carMake /= 28) $ raise "Invalid carMake."
 
     let minDay = fromGregorian 1982 3 15 :: Day
     let maxDay = fromGregorian 2019 3 19 :: Day
-    parsedDate <- case parseTime undefined "%F" $ T.unpack sellDate of
+    parsedDate <- case parseTimeM True undefined "%F" $ T.unpack sellDate of
       Nothing -> raise "Invalid sellDate format. Should be YYYY-MM-DD."
       Just day
         | minDay < day && day < maxDay -> return day
@@ -156,8 +159,8 @@ httpServer pgPool reqLogger cfg = do
           where id = ? and isActive and isDealer and 28 = any(makes))
       |] [carModel, dealer]
 
-    when (not modelOk)  $ raise "Invalid carModel"
-    when (not dealerOk) $ raise "Invalid dealer"
+    unless modelOk  $ raise "Invalid carModel"
+    unless dealerOk $ raise "Invalid dealer"
 
     void $ liftIO $ withResource pgPool $ \c -> PG.execute c
       [sql| insert into "Contract"
