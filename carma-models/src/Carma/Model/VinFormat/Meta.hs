@@ -3,6 +3,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+{-# OPTIONS_GHC -Wno-unused-top-binds #-} -- For unused templated singletons
+
 {-|
 
 VinFormat macros and meta helpers.
