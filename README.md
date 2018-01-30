@@ -99,17 +99,30 @@ Refer to [`.circleci/config.yml`][ci-config] for full building instructions.
    after to install executables to `$HOME/.local/bin` dir which is used to run
    backend from by init-scripts.
 
-5. **WARNING!** Before going to next step you supposed to build
+5. Copy default configuration files to your local directory
+   (which is ignored from git-index):
+
+   ```bash
+   cp -r srv/snaplets-default srv/snaplets
+   ```
+
+   Keep in mind that if you change database configuration or credentials to
+   access to it you need to update these files (links points to default ones):
+
+   - [srv/snaplets/persist/devel.cfg](./srv/snaplets-default/persist/devel.cfg)
+   - [srv/snaplets/postgresql-simple/devel.cfg](./srv/snaplets-default/postgresql-simple/devel.cfg)
+
+6. **WARNING!** Before going to next step you supposed to build
    [frontend](#frontend) first, because templates for backend must be built
    by frontend toolchain before start.
 
-6. Change the current directory to `srv/` and run the server:
+7. Run the server from `srv/` directory:
 
    ```bash
    (cd srv && stack exec carma -- -p 8000)
    ```
 
-7. Check that the server works:
+8. Check that the server works:
 
    ```bash
    curl localhost:8000/meta
