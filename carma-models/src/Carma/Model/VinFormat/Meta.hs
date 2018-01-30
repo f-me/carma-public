@@ -278,7 +278,7 @@ mkVinFormat formatFields =
               -- used later.
               $(sigE [e|sing|] $
                 appT [t|SFFT|] $
-                conT $ mkName $ showConstr $ toConstr fallenFft)
+                promotedT $ mkName $ showConstr $ toConstr fallenFft)
               $(varE $ mkName (name Load acc))
               $(varE $ mkName (name Required acc))
               $(varE $ mkName (name Default acc))
