@@ -75,15 +75,6 @@ formatIndentedText newline indent = formatText1 0 ""
             maybeNL ls = NL:ls
 
 
--- | Format text, ignoring all indentation and newlines.
-formatOneline :: IndentedText -> Text
-formatOneline = foldl combine ""
-  where
-    combine acc NL = acc
-    combine acc (T t) = acc `T.append` t
-    combine acc (IND i) = acc `T.append` formatOneline i
-
-
 -- | Convert an ident to text.
 -- "lkp" - "lookup"
 lkp :: IBox -> IMap -> Text
@@ -310,14 +301,9 @@ instance Backoffice TextE where
         toText f
 
 
-
 -- | TextE evaluator for DSL terms.
 evalText :: TCtx -> TextE ty -> IndentedText
 evalText c t = runReader (toText t) c
-
-
-evalTextOneline :: TCtx -> TextE ty -> Text
-evalTextOneline c t = formatOneline $ runReader (toText t) c
 
 
 -- | Show non-zero days, hours, minutes and seconds of a time
