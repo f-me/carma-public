@@ -12,6 +12,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Node.js and NPM version
+          command: |
+            node --version
+            npm --version
+      - run:
           name: Build CaRMa frontend
           command: |
             cd srv
@@ -34,9 +39,12 @@ jobs:
           keys:
             - stack-cache-{{ checksum "stack.yaml" }}
       - run:
-          name: Build CaRMa backend
+          name: Haskell Stack version
           command: |
             stack --version
+      - run:
+          name: Build CaRMa backend
+          command: |
             stack --install-ghc -j2 build
       - save_cache:
           key: stack-cache-{{ checksum "stack.yaml" }}
