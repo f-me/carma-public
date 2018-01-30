@@ -1,5 +1,4 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverlappingInstances #-}
 
 module Data.Model.Sql
   ( select
@@ -13,7 +12,7 @@ module Data.Model.Sql
   , descBy
   , ascBy
 
-  , SqlQ(..)
+  , SqlQ (..)
   , SqlP
   ) where
 
@@ -28,7 +27,7 @@ import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromField hiding (Field)
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToField
-import Data.Aeson (ToJSON(..), fromJSON, Result)
+import Data.Aeson (ToJSON (..), fromJSON, Result)
 import qualified Data.Aeson as Aeson
 
 import Data.Singletons
