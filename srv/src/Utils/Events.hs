@@ -227,10 +227,10 @@ checkUserState uid evType evIdt _ p = do
          (Only uid)
   let delayedSt = head $ head dst
   case hist of
-    []          -> setNext $ nextState' LoggedOut delayedSt
-    [lastState] -> setNext $ nextState'
-                   (P.get' lastState State.state)
-                   delayedSt
+    []           -> setNext $ nextState' LoggedOut delayedSt
+    [lastState'] -> setNext $ nextState'
+                    (P.get' lastState' State.state)
+                    delayedSt
   where
     nextState' s d =
       let mname = modelName (modelInfo :: ModelInfo m)
@@ -252,6 +252,7 @@ data UserStateEnv = UserStateEnv { lastState :: UserStateVal
                                  , mdlName   :: Text
                                  , mdlPatch  :: HM.HashMap Text Dynamic
                                  }
+
 type UserStateM   = RWS UserStateEnv [Bool] (Maybe UserStateVal) ()
 
 execUserStateEnv :: UserStateEnv -> UserStateM -> Maybe UserStateVal
@@ -270,8 +271,8 @@ nextState :: UserStateVal
           -> HM.HashMap Text Dynamic
           -- ^ Fields and values
           -> Maybe UserStateVal
-nextState lastState delayed' evt mname patch =
-  execUserStateEnv (UserStateEnv lastState delayed' evt mname patch) $ do
+nextState lastState' delayed' evt mname patch =
+  execUserStateEnv (UserStateEnv lastState' delayed' evt mname patch) $ do
     change ([Busy] >>> Ready) $
       -- TODO Remove redundant Call.endDate clause here as a call
       -- action is always closed when an associated call is closed

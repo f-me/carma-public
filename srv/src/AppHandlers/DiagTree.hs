@@ -68,7 +68,7 @@ retryQuestion :: AppHandler ()
 retryQuestion = do
   histId <- getParam "histId"
   Just userId <- currentUserMetaId
-  execute [sql|
+  _ <- execute [sql|
       with newQ(id) as
         (insert into "DiagHistory" (caseId, slideId, createdBy)
           select caseId, slideId, ?::int

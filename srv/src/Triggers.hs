@@ -24,7 +24,6 @@ import           Control.Monad.Trans.Reader
 import qualified Data.Aeson as Aeson
 import           Data.Singletons
 import           Data.Dynamic
-import           Data.Bool
 import           Data.List
 import           Data.Map (Map)
 import qualified Data.Map as Map
@@ -269,7 +268,7 @@ afterCreate = Map.unionsWith (++) $
 
   , trigOnModel ([]::[PartnerDelay]) $ do
       delayId <- getIdent
-      doApp $ liftPG' $ \pg -> uncurry (PG.execute pg)
+      void $ doApp $ liftPG' $ \pg -> uncurry (PG.execute pg)
         [sql| update servicetbl s
           set
             times_expectedServiceStart
@@ -289,7 +288,7 @@ afterCreate = Map.unionsWith (++) $
             and p.id = $(delayId)$
         |]
       -- FIXME: this should be in Backoffice.partnerDelayEntries
-      doApp $ liftPG' $ \pg -> uncurry (PG.execute pg)
+      void $ doApp $ liftPG' $ \pg -> uncurry (PG.execute pg)
         [sql| update actiontbl a
           set duetime = times_expectedServiceStart + interval '5m'
           from "PartnerDelay" p, servicetbl s
@@ -369,12 +368,12 @@ beforeUpdate = Map.unionsWith (++) $
           -- Prefer fields from the patch, but check DB as well
           let  nize (Just Nothing) = Nothing
                nize v              = v
-               sub = (nize s) <|> (Just $ cp `get'` Contract.subprogram)
+               sub = nize s <|> Just (cp `get'` Contract.subprogram)
                -- We need to check if validUntil field is *missing*
                -- from both patch and DB, thus Just Nothing from DB
                -- is converted to Nothing
                until =
-                 (nize vu) <|> (nize $ Just $ cp `get'` Contract.validUntil)
+                 nize vu <|> nize (Just $ cp `get'` Contract.validUntil)
           case (sub, until) of
             (Just (Just s'), Nothing) ->
               when (oldSince /= Just newSince) $ fillValidUntil s' newSince
@@ -416,9 +415,9 @@ beforeUpdate = Map.unionsWith (++) $
             where c.id = $(cId)$
               and u.id = $(uId)$
         |]
-      when canChange $ do
+      when canChange $
         modifyPatch $ Patch.put Contract.isActive v
-      when (not canChange) $ do
+      unless canChange $ do
         currentCtr <- getIdent >>= dbRead
         modifyPatch
           $ Patch.put Contract.isActive
@@ -532,13 +531,13 @@ beforeUpdate = Map.unionsWith (++) $
 
 
 afterUpdate :: TriggerMap
-afterUpdate = Map.unionsWith (++) $
-  [ trigOn Usermeta.delayedState $ \_ -> wsMessage
-  , trigOn Usermeta.login        $ \_ -> updateSnapUserFromUsermeta
-  , trigOn Usermeta.password     $ \_ -> updateSnapUserFromUsermeta
-  , trigOn Usermeta.isActive     $ \_ -> updateSnapUserFromUsermeta
+afterUpdate = Map.unionsWith (++)
+  [ trigOn Usermeta.delayedState $ const wsMessage
+  , trigOn Usermeta.login        $ const updateSnapUserFromUsermeta
+  , trigOn Usermeta.password     $ const updateSnapUserFromUsermeta
+  , trigOn Usermeta.isActive     $ const updateSnapUserFromUsermeta
 
-  , trigOn Service.contractor_partnerId $ \_ -> do
+  , trigOn Service.contractor_partnerId $ const $ do
 
       svcId <- getIdent
 
@@ -824,7 +823,7 @@ closeAction res actId = do
         $ Patch.put Action.assignedTo (Just us)
         $ Patch.put Action.result (Just res)
         $ Patch.empty
-  dbUpdate actId p
+  void $ dbUpdate actId p
   void $ logCRUDState Update actId p
 
 
@@ -984,7 +983,7 @@ instance Backoffice HaskellE where
               -- Closing call-action for already closed call should never
               -- happen, so we don't afraid to overwrite existing endDate.
               $ dbUpdate cId $ Patch.singleton Call.endDate nowFromCtx
-          dbUpdate (act `get'` Action.ident) p
+          void $ dbUpdate (act `get'` Action.ident) p
           fakeClosing act
 
   a *> b =
@@ -1158,8 +1157,9 @@ srvId' :: Reader HCtx (IdentI Service)
 srvId' = do
   ctx <- ask
   return $
-    fromMaybe (error "No service id in context") $
-    (`get'` Service.ident) <$> service ctx
+    maybe (error "No service id in context")
+          (`get'` Service.ident)
+          (service ctx)
 
 
 userId' :: Reader HCtx (IdentI Usermeta)
@@ -1237,7 +1237,7 @@ entryToTrigger = evalHaskell emptyContext . BO.trigger
 actionsToTrigger :: [BO.Action] -> Map (ModelName, FieldName) [Dynamic]
 actionsToTrigger acts =
   trigOn Action.result $
-  \newVal -> do
+  \newVal ->
     case newVal of
       Nothing -> return ()
       Just newRes -> do
