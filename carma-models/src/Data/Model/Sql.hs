@@ -74,10 +74,10 @@ class ToValueList xs where
   toValueList :: xs -> [Aeson.Value]
 instance ToJSON x => ToValueList (Only x) where
   toValueList (Only x) = [toJSON x]
+instance {-# OVERLAPS #-} ToJSON x => ToValueList (Only x :. ()) where
+  toValueList (Only x :. ()) = [toJSON x]
 instance (ToJSON x, ToValueList xs) => ToValueList (Only x :. xs) where
   toValueList (Only x :. xs) = toJSON x : toValueList xs
-instance ToJSON x => ToValueList (Only x :. ()) where
-  toValueList (Only x :. ()) = [toJSON x]
 
 selectJSON
   :: (ToValueList (QRes q), SqlQ q, FromRow (QRes q))
@@ -163,6 +163,10 @@ instance (Model m, SingI nm, FromField t)
     queryTbl       _  = tableName (modelInfo :: ModelInfo m)
     queryArgs       _ = ()
 
+-- NB!
+instance {-# OVERLAPS #-} FromRow a => FromRow (a :. ()) where
+  fromRow = fmap (:. ()) fromRow
+
 instance (Model m, SingI nm, FromField t, SqlQ q, QMod q ~ m)
     => SqlQ ((m -> Field t (FOpt nm desc app)) :. q)
   where
@@ -174,10 +178,6 @@ instance (Model m, SingI nm, FromField t, SqlQ q, QMod q ~ m)
     queryOrdering   (_ :. q) = queryOrdering q
     queryTbl       _        = tableName (modelInfo :: ModelInfo m)
     queryArgs       (_ :. q) = queryArgs q
-
--- NB!
-instance FromRow a => FromRow (a :. ()) where
-  fromRow = fmap (:. ()) fromRow
 
 
 data SqlP m t = SqlP
