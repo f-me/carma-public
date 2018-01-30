@@ -185,6 +185,17 @@ module.exports.CTIPanel = class CTIPanel
                 kvm.canMute true
                 kvm.canUnmute false)
 
+          # Allow only 0-9, * and # in extension number field
+          #
+          # Technically this also allows symbols such as ( which is
+          # Shift + 9
+          @keyInExtension = (vm, e) ->
+            ((e.which >= 48 && e.which <= 57) || e.which == 42 || e.which == 35)
+
+          # Start a call upon <Enter> pressed in number field
+          @keyInNumber = (vm, e) ->
+            (e.which == 13 && vm.makeThis()) || true
+
           if @canAnswer()
             incomingCallCb call.interlocutors[0], this
 
@@ -252,16 +263,3 @@ module.exports.CTIPanel = class CTIPanel
 
     el.show()
     ko.applyBindings kvm, el[0]
-
-    # Allow only 0-9, * and # in extension number field
-    $(el).on "keydown", ".extension-mask", (e) ->
-      unless ((e.which >= 48 && e.which <= 57) ||
-        (e.which >= 96 && e.which <= 105) ||
-          e.which == 106 || e.which == 56 || e.which == 51)
-        e.preventDefault()
-
-    # Make call upon <Enter> in number field
-    $(el).on "keydown", ".number", (e) ->
-      if e.which == 13
-        $(e.target).parent(".call-form").submit()
-        e.preventDefault()
