@@ -63,14 +63,19 @@ class NavbarViewModel
     store.dispatch actions.sendBugReport()
 
   showSmsForm: =>
-    kase = window.global.viewsWare["case-form"]?.knockVM
     action = smsFormActions.showSmsForm
+    kase = window.global.viewsWare["case-form"]?.knockVM
 
-    store.dispatch action action.Payload
+    caseId = do ->
+      x = kase?.id()
+      if typeof x is "string" and x isnt "" then Number x else null
+
+    store.dispatch action action.Payload {
       phone:       kase?.contact_phone1()      ? ""
-      caseId:      kase?.id()                  ? ""
+      caseId
       caseCity:    kase?.cityLocal()           ? ""
       caseAddress: kase?.caseAddress_address() ? ""
+    }
 
 
 module.exports =

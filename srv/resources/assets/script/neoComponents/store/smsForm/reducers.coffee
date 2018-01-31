@@ -18,7 +18,7 @@ SmsFormState = Record
   isFailed     : false
 
   phone        : ""
-  caseId       : ""
+  caseId       : null # `null` or a number
   caseCity     : ""
   caseAddress  : ""
 
