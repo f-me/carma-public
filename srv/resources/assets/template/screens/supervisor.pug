@@ -27,7 +27,10 @@
                 option(value='') Открытые и закрытые
           .form-group
             .col-md-offset-4.col-sm-8
-             button#reload.btn Обновить
+              button#reload.btn Обновить
+              |
+              |
+              button#supervisor-reset-search.btn Сбросить сортировку
 
     .row.col-md-12
       table#supervisor-table.table.table-striped.table-bordered
@@ -46,6 +49,7 @@
             th Программа
             th Ожидаемое время начала оказания услуги
             th Название услуги
+            th Срочность
         tbody
 
   .col.col-md-4

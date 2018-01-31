@@ -8,55 +8,60 @@ hook        = require "carma/hooks/common"
 template    = require "carma-tpl/screens/supervisor.pug"
 Flds        = require "carma-tpl/fields/form.pug"
 
+{importanceHexColors} = require "./supervisorPrecompiled"
+
 flds = $('<div/>').append $(Flds)
 
+getDefaultSort = -> [[13, "desc"], [5, "asc"]]
+
+mktime = (n) -> d = new Date; d.setMinutes d.getMinutes() + n; d
+
+getImportanceLevel = (name, duetime, srvStart) ->
+  duetime  = Date.parse duetime
+  srvStart = Date.parse srvStart
+
+  now  = new Date
+  d60  = mktime 60
+  d120 = mktime 120
+  d480 = mktime 480
+
+  time =
+    if name is "orderService" or name is "orderServiceAnalyst"
+      srvStart or duetime
+    else
+      duetime
+
+  switch
+    when time > d480        then 0
+    when d120 < time < d480 then 1
+    when d60  < time < d120 then 2
+    when now  < time < d60  then 3
+    when time < now         then 4
+
 dataTableOptions = ->
-  aoColumns: utils.repeat(11, null).concat utils.repeat 2, bVisible: false
+  aoColumns:
+    utils.repeat 11, null
+      .concat utils.repeat 2, bVisible: no
+      .concat bVisible: no
+
   bPaginate: true
   fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
     return if _.isEmpty aData
-    caseId = aData[0].split('/')[0]
 
-    caseLnk =
-      if caseId != '-'
-        "<a style='color: black' href='/#case/#{caseId}'>#{aData[0]}</a>"
-      else
-        aData[0]
+    do -> # hyperlink to case
+      caseId = aData[0].split('/')[0]
 
-    duetime  = Date.parse aData[5]
-    srvStart = Date.parse aData[11]
+      caseLnk =
+        if caseId != '-'
+          "<a style='color: black' href='/#case/#{caseId}'>#{aData[0]}</a>"
+        else
+          aData[0]
 
-    mktime = (n) ->
-      d = new Date
-      d.setMinutes d.getMinutes() + n
-      return d
+      $('td:eq(0)', nRow).html caseLnk
 
-    d60  = mktime 60
-    d120 = mktime 120
-    d480 = mktime 480
-    now  = new Date
-    name = aData[12]
-
-    $('td:eq(0)', nRow).html caseLnk
-
-    green  = "#99ff66"
-    orange = "#ff6600"
-    yellow = "#ffcc33"
-    red    = "#ff6666"
-    violet = "#9999ff"
-
-    set = (clr) -> $(nRow).children().css 'background-color', clr
-
-    time = if name == 'orderService' or name == 'orderServiceAnalyst'
-             srvStart || duetime
-           else
-             duetime
-
-    if time > d480        then set green
-    if d120 < time < d480 then set orange
-    if d60  < time < d120 then set yellow
-    if now  < time < d60  then set red
-    if time < now         then set violet
+    # coloring by importance level
+    for x in nRow.childNodes
+      x.style.backgroundColor = importanceHexColors[Number aData[13]]
 
 objsToRows = (res) ->
   ar = utils.newModelDict "ActionResult", true
@@ -79,33 +84,43 @@ objsToRows = (res) ->
     closed = not _.isEmpty obj.result
     closedLab = if closed then 'Закрыто' else 'Открыто'
 
-    duetime = new Date obj.duetime * 1000
-      .toString "dd.MM.yyyy HH:mm:ss"
+    name = obj.name or ""
 
-    srvStart = new Date obj.times_expectedServiceStart * 1000
-      .toString "dd.MM.yyyy HH:mm:ss"
+    duetime = (
+      x = new Date obj.duetime * 1000
+        .toString "dd.MM.yyyy HH:mm:ss"
+      x or ""
+    )
+
+    srvStart = (
+      x = new Date obj.times_expectedServiceStart * 1000
+        .toString "dd.MM.yyyy HH:mm:ss"
+      x or ""
+    )
 
     timeLabel =
       if _.isEmpty obj.assignedTo
         utils.timeFrom obj.ctime, res.reqTime
-      else if !closed
+      else unless closed
         utils.timeFrom obj.assignTime, res.reqTime
       else
         utils.timeFrom obj.openTime, obj.closeTime
+
     [
       "#{cid or '-'}/#{obj.id} #{svcName or ''}"
       closedLab
-      (at.getLab obj.name) || ''
+      at.getLab(obj.name) || ''
       u[obj.assignedTo] || ''
       roles.getLab(obj.targetGroup) || obj.targetGroup || ''
-      duetime || ''
+      duetime
       timeLabel?[0] || ''
-      (ar.getLab obj.result) || ''
+      ar.getLab(obj.result) || ''
       obj.priority || ''
-      (cities.getLab obj.city) || ''
+      cities.getLab(obj.city) || ''
       progs.getLab(obj.program) || ''
-      srvStart || ''
-      obj.name || ''
+      srvStart
+      name
+      getImportanceLevel name, duetime, srvStart
     ]
 
 formatObjURL = (roles) ->
@@ -220,7 +235,10 @@ screenSetup = (viewName, args) ->
     do updateActStats
     table.setObjs objURL unless objURL is ""
 
-  table.dataTable.fnSort [[5, 'asc']]
+  $("#supervisor-reset-search").click ->
+    table.dataTable.fnSort getDefaultSort()
+
+  table.dataTable.fnSort getDefaultSort()
   $('select[name=supervisor-table_length]').val 100
   do $('select[name=supervisor-table_length]').change
 
