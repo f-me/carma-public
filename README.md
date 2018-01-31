@@ -62,6 +62,18 @@ Refer to [`.circleci/config.yml`][ci-config] for full building instructions.
    psql -h 127.0.0.1 -U carma_db_sync -d carma -f 2017-05-29_03-15_carma.sql
    ```
 
+   In case you have a gzipped database dump (`.sql.gz` extension):
+
+   ```bash
+   zcat 2017-05-29_03-15_carma.sql.gz | psql carma
+   ```
+
+   For [docker/dev-pg-9.3][]:
+
+   ```bash
+   zcat 2017-05-29_03-15_carma.sql.gz | psql -h 127.0.0.1 -U carma_db_sync -d carma
+   ```
+
 5. You might need to apply some migrations if your database snapshot is older
    than current state of git-branch. To do so run:
 
