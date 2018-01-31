@@ -167,8 +167,6 @@ printf 'node: %s, npm: %s\n' "`node --version`" "`npm --version`"
 # node: v8.9.1, npm: 5.6.0
 ```
 
-You need `npm` >= 5.x (to make use of the `package.lock` file).
-
 To build front-end from scratch (development build):
 
 ```bash
