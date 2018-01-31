@@ -16,7 +16,7 @@ Refer to [`.circleci/config.yml`][ci-config] for full building instructions.
 1. Install PostgreSQL 9.3 (this is what production servers use) and
    PostGIS (extension for PostgreSQL).
 
-   We have [docker container](./docker/dev-pg-9.3) with exact PostgreSQL version
+   We have [docker container][docker/dev-pg-9.3] with exact PostgreSQL version
    for development, you could use it.
 
    Create a database named `carma`:
@@ -41,25 +41,38 @@ Refer to [`.circleci/config.yml`][ci-config] for full building instructions.
    `carma` is the superuser which owns the database and is used to run
    DB migration scripts.
 
-3. Unpack and recover a database snapshot (note that this needs to run
+3. Set passwords:
+
+   ```bash
+   psql carma -c "alter user carma with password 'pass'"
+   psql carma -c "alter user carma_db_sync with password 'pass'"
+   ```
+
+4. Unpack and recover a database snapshot (note that this needs to run
    as a PostgreSQL superuser - for example, prepend with `sudo -u postgres`):
 
    ```bash
    psql carma -f 2017-05-29_03-15_carma.sql
    ```
 
-   Or if you use development docker container mentioned above, you could do it
-   by this command:
+   Or if you use [docker/dev-pg-9.3][] mentioned above,
+   you could do it by this command:
 
    ```bash
    psql -h 127.0.0.1 -U carma_db_sync -d carma -f 2017-05-29_03-15_carma.sql
    ```
 
-4. Set passwords:
+5. You might need to apply some migrations if your database snapshot is older
+   than current state of git-branch. To do so run:
 
    ```bash
-   psql carma -c "alter user carma with password 'pass'"
-   psql carma -c "alter user carma_db_sync with password 'pass'"
+   (cd database && ./db.sh update)
+   ```
+
+   Or if you use [docker/dev-pg-9.3][]:
+
+   ```bash
+   (cd database && env PGHOST=127.0.0.1 PGUSER=carma_db_sync PGPASSWORD=pass ./db.sh update-devel)
    ```
 
 ##### Build backend executables
@@ -245,7 +258,7 @@ combines a CaRMa bundle and PostgreSQL.
 
 Required steps:
 
-1. Create carma-db-data volume using docker/dev-pg-9.3 container.
+1. Create carma-db-data volume using [docker/dev-pg-9.3][] container.
 
 2. Clone [carma-configs][] and edit CaRMa configs path in `volumes:`
    section of [carma-bundle.yml][].
@@ -273,3 +286,4 @@ docker-compose -f docker/carma-bundle.yml up
 [ci]: https://circleci.com/gh/f-me/carma
 [haskell-stack]: https://docs.haskellstack.org/en/stable/README/
 [hub-bundle]: https://hub.docker.com/r/formalmethods/carma-bundle/tags/
+[docker/dev-pg-9.3]: docker/dev-pg-9.3
