@@ -9,7 +9,16 @@
    * After preprocessing with less it is converted to `height: 30vh;`
    * */
   height: 100vh;
-  padding-top: 40px;
+
+  @p: 40px;
+  padding-top: @p;
+
+  html.with-cti-panel & {
+    @cti-height: 46px;
+    @cti-padding: 10px;
+    @cti-border: 1px;
+    padding-top: @p + @cti-height + (@cti-padding * 2) + @cti-border;
+  }
 }
 
 #top-level-modals {
@@ -40,6 +49,7 @@
   /* 36px is our navbar height */
   top: 36px;
   padding: 10px;
+  margin-bottom: 0;
 }
 
 #call-screen > .row {

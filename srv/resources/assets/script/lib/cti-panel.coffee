@@ -262,6 +262,7 @@ class CTIPanel
       console.log "CTI connection established"
 
     el.show()
+    document.querySelector("html").classList.add "with-cti-panel"
     ko.applyBindings kvm, el[0]
 
 module.exports = {CTIPanel}
