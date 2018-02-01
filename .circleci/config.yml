@@ -16,8 +16,7 @@ jobs:
       - run:
           name: Node.js and NPM version
           command: |
-            node --version
-            npm --version
+            printf 'node: %s, npm: %s\n' "`node --version`" "`npm --version`"
       - run:
           name: Build CaRMa frontend
           command: |
