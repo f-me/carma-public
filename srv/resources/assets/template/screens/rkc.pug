@@ -68,12 +68,16 @@ mixin smallInput(label, id)
           td(data-bind='text: services')
     .col-md-6
       h2 Погода
-      .form-inline(style="margin-bottom: 10px")
+      .form-inline#rkc-weather-form(style="margin-bottom: 10px")
         .form-group
-          select#rkc-weather-city-select.form-control(data-bind='foreach: $data')
-            option(data-bind='value: value, text: label')
+          select.form-control(data-bind=`
+            value        : selectedWeatherCity,
+            options      : weatherCities,
+            optionsText  : optionsText,
+            optionsValue : optionsValue,
+          `)
         .form-group
-          button#add-weather.btn.form-control
+          button.btn.form-control(data-bind=`click: addWeather`)
             | Добавить
       table#rkc-weather-table.table.table-striped.table-bordered
         thead

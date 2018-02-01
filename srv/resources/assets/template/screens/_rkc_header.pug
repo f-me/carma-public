@@ -9,22 +9,26 @@ mixin dateField(fieldName)
 
 -
   var filters =
-    { 'city-select'    : "Город:"
-    , 'program-select' : "Программа:"
-    , 'partner-select' : "Партнёр:"
+    { cities   : ['selectedCity',    'Город:']
+    , programs : ['selectedProgram', 'Программа:']
+    , partners : ['selectedPartner', 'Партнёр:']
     }
 
 .row
   .col-md-6
     .row
       h3 Фильтрация
-    .row.col-md-6.form-horizontal
-      each v, i in filters
+    .row.col-md-6.form-horizontal#rkc-filters
+      each val, key in filters
         .form-group
-          label.col-md-4= v
+          label.col-md-4= val[1]
           .col-md-8
-            select.form-control(id=i data-bind='foreach: $data')
-              option(data-bind='value: id, text: name')
+            select.form-control(data-bind=`
+              value        : ${val[0]},
+              options      : ${key},
+              optionsText  : optionsText,
+              optionsValue : optionsValue,
+            `)
   .col-md-6
     .row
       h3 Интервал
@@ -34,4 +38,4 @@ mixin dateField(fieldName)
       .form-group
         +dateField('dateTo')#rkc-date-to
       .form-group
-        button#reload.btn Обновить
+        button#rkc-reload.btn(data-bind=`click: update`) Обновить
