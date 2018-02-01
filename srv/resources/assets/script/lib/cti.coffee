@@ -1,7 +1,7 @@
 {WS} = require "carma/lib/ws"
 
 # CTI core
-module.exports.CTI = class CTI
+class CTI
   constructor: (@extension) ->
     console.log "Enabling CTI for extension #{@extension}"
 
@@ -61,3 +61,5 @@ module.exports.CTI = class CTI
       action: "SendDigits"
       callId: callId
       digits: digits
+
+module.exports = {CTI}

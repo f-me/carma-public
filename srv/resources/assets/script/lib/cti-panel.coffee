@@ -1,7 +1,7 @@
 {$, _, ko} = require "carma/vendor"
 
 # CTI panel interface
-module.exports.CTIPanel = class CTIPanel
+class CTIPanel
   constructor: (cti, el, options) ->
     answerCallCb        = options.answerCallCb ? null
     displayedToInternal = options.displayedToInternal ? _.identity
@@ -263,3 +263,5 @@ module.exports.CTIPanel = class CTIPanel
 
     el.show()
     ko.applyBindings kvm, el[0]
+
+module.exports = {CTIPanel}
