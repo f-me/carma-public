@@ -3,8 +3,8 @@ include _settings.pug
 .container-fluid.screen
   .col-md-12.default-bs
     include _statNav.pug
-    #stat-kpi-content(data-bind="spinner: spinner")
-      .row#settings(data-bind="with: settingsCtx")
+    #stat-kpi-content(data-bind=`spinner: spinner`)
+      .row#settings(data-bind=`with: settingsCtx`)
         +settingsContainer
           .row
             .col-md-6
@@ -13,13 +13,13 @@ include _settings.pug
               .row
                 .col-md-5
                   | Всего кейсов с заказ-нарядом
-                .col-md-3(data-bind="text: cases_amount")
+                .col-md-3(data-bind=`text: cases_amount`)
               .row
                 .col-md-5
                   | Прикрепено файлов "Заказ-Наряд"
-                .col-md-3(data-bind="text: files_attached")
+                .col-md-3(data-bind=`text: files_attached`)
 
-        .row(data-bind="visible: !interval.correct()")
+        .row(data-bind=`visible: !interval.correct()`)
           .col-md-offset-4
             small.text-danger
             | Начало диапазона должно быть меньше чем конец
@@ -29,24 +29,35 @@ include _settings.pug
             +kvmFilter
           .col-md-2#date-range
             .input-group.input-group-sm
-              input.form-control(type="text"
+              input.form-control(
+                type="text"
                 autocomplete="off"
                 name="interval.begin"
-                data-bind="value: interval.begin, valueUpdate: ['change'], addMask: 'datetime'")
+                data-bind=`
+                  value       : interval.begin,
+                  valueUpdate : ['change'],
+                  addMask     : 'datetime',
+                `)
               span.input-group-addon.glyphicon.glyphicon-calendar
           .col-md-2
             .input-group.input-group-sm
-              input.form-control(type="text"
+              input.form-control(
+                type="text"
                 autocomplete="off"
                 name="interval.end"
-                data-bind="value: interval.end, valueUpdate: ['change'], addMask: 'datetime'")
+                data-bind=`
+                  value       : interval.end,
+                  valueUpdate : ['change'],
+                  addMask     : 'datetime',
+                `)
               span.input-group-addon.glyphicon.glyphicon-calendar
           .col-md-2
-            button.btn(data-bind="click: fetchData"
-                       style="padding-bottom: 2px; padding-top:2px") OK
+            button.btn(
+              data-bind=`click: fetchData`
+              style="padding-bottom: 2px; padding-top:2px") OK
           +downloadTbl
 
-      .row#results(style="overflow-y: auto" data-bind="with: tblCtx")
+      .row#results(style="overflow-y: auto" data-bind=`with: tblCtx`)
         table#tbl.table.table-condensed.table-bordered
           thead
             tr
@@ -54,30 +65,32 @@ include _settings.pug
               th
                 button.btn.btn-link(
                   style='white-space: nowrap;'
-                  data-bind='text: "Оператор", sort: "userid"')
+                  data-bind=`text: "Оператор", sort: "userid"`)
 
               // ko foreach: fields
-              th(data-bind="visible: show")
+              th(data-bind=`visible: show`)
                 button.btn.btn-link(
                   style='white-space: nowrap;'
-                  data-bind='text: label, sort: name')
+                  data-bind=`text: label, sort: name`)
               // /ko
-          tbody(data-bind="foreach: {data: kvms, as: 'kvm'}")
+          tbody(data-bind=`foreach: {data: kvms, as: 'kvm'}`)
             tr
               td
                 strong
-                  span.glyphicon(data-bind=" \
-                    visible: !showDetails.loading(), \
-                     click: showDetails.toggle, \
-                    attr: { \
-                    class: 'glyphicon-' + (showDetails() ? 'minus' : 'plus') \
-                    }")
+                  span.glyphicon(data-bind=`
+                    visible: !showDetails.loading(),
+                    click: showDetails.toggle,
+
+                    attr: {
+                      class: 'glyphicon-' + (showDetails() ? 'minus' : 'plus'),
+                    },
+                  `)
                 span.glyphicon.glyphicon-refresh.glyphicon-refresh-animate(
-                  data-bind="visible: showDetails.loading")
-              td(data-bind="text: kvm['useridGrp']")
+                  data-bind=`visible: showDetails.loading`)
+              td(data-bind=`text: kvm['useridGrp']`)
               // ko foreach: $root.tblCtx.fields
               // ko if: show
-              td(data-bind="render: {kvm: kvm, field: $data}")
+              td(data-bind=`render: {kvm: kvm, field: $data}`)
               // /ko
               // /ko
 
@@ -85,10 +98,10 @@ include _settings.pug
             // ko foreach: kvm.days
             tr.details
               td
-              td(data-bind="fieldRender: $data['day']")
+              td(data-bind=`fieldRender: $data['day']`)
               // ko foreach: $root.tblCtx.fields
               // ko if: show
-              td(data-bind="render: {kvm: $parent, field: $data}")
+              td(data-bind=`render: {kvm: $parent, field: $data}`)
               // /ko
               // /ko
             // /ko

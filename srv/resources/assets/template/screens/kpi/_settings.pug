@@ -8,15 +8,16 @@ mixin settingsContainer(header)
         block
 
 mixin settings
-    #kpi-list-inner.in(style="height: 12em; overflow-x: auto;")
-      .input-group-sm
-        input.form-control#kpi-list-filter(type="text"
-          data-bind="value: settingsFilter, valueUpdate: 'afterkeydown'")
-      ul.unstyled(data-bind="foreach: fields")
-        li
-          label.checkbox
-            input(type="checkbox" data-bind="checked: show")
-            span(data-bind="text: label")
+  #kpi-list-inner.in(style="height: 12em; overflow-x: auto;")
+    .input-group-sm
+      input.form-control#kpi-list-filter(
+        type="text"
+        data-bind=`value: settingsFilter, valueUpdate: 'afterkeydown'`)
+    ul.unstyled(data-bind=`foreach: fields`)
+      li
+        label.checkbox
+          input(type="checkbox" data-bind=`checked: show`)
+          span(data-bind=`text: label`)
 
 mixin kvmFilter
   .input-group-sm
@@ -24,9 +25,9 @@ mixin kvmFilter
       type="text"
       placeholder="Поиск"
       name="kvmsFilter"
-      data-bind="value: kvmsFilter, valueUpdate: 'afterkeydown'")
+      data-bind=`value: kvmsFilter, valueUpdate: 'afterkeydown'`)
 
 mixin downloadTbl
   #download(style="float: right")
-    a.btn(data-bind="attr: { href: csv }" download="oper-kpi.csv")
+    a.btn(data-bind=`attr: {href: csv}` download="oper-kpi.csv")
       | Выгрузить данные
