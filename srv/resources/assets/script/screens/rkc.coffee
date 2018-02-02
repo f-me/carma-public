@@ -127,23 +127,21 @@ fillRKCMobilePartners = (mt, cityDict) ->
     mt.fnAddData mrows unless _.isEmpty mrows
 
 setupRKCScreen = (viewName, args) ->
-  wcities = ko.observableArray []
-
-  dateFilterKVM = do ->
-    x = getInitRKCDate()
-    dateFrom : ko.observable x.from
-    dateTo   : ko.observable x.to
-
   caset    = $("#rkc-services-table")
   actionst = $("#rkc-actions-table")
   weathert = $('#rkc-weather-table')
   complt   = $('#rkc-complaints-table')
   mobit    = $('#rkc-mobile-partners-table')
 
-  return if caset.hasClass    "dataTable"
-  return if actionst.hasClass "dataTable"
-  return if weathert.hasClass "dataTable"
-  return if complt.hasClass   "dataTable"
+  isInitialized = (x) -> x.hasClass "dataTable"
+  return if [caset, actionst, weathert, complt, mobit].some isInitialized
+
+  wcities = ko.observableArray []
+
+  dateFilterKVM = do ->
+    x = getInitRKCDate()
+    dateFrom : ko.observable x.from
+    dateTo   : ko.observable x.to
 
   ko.applyBindings wcities,       document.getElementById "rkc-weather-table"
   ko.applyBindings dateFilterKVM, document.getElementById "rkc-date-from"
