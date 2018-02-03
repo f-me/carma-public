@@ -100,6 +100,7 @@ constructor = (view, opts) ->
 destructor = ->
   do ko.dataFor($("#tbl")[0]).kvms.clean
 
+
 module.exports = {
   template: Tpl
   constructor

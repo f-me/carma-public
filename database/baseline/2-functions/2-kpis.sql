@@ -10,25 +10,25 @@ BEGIN
   RETURN QUERY
    -- определим последние даты смены статусов пользователей
     with max_dates as (
-		select us_total.userid, max(us_total.ctime) as max_ctime
-		from "UserState" us_total
-		WHERE range is null
-		group by us_total.userid
-	)
-	select
-		 us.userid
-		,us.state
-		,SUM (LEAST(upper(us.range), upper(ur.dates), now()) - GREATEST(us.ctime, lower(ur.dates))) as timeinstate
-	from "UserState" us
-	-- исключим все некорректные смены статусов, у которых нету даты завершения, при условии, что есть более поздние статусы
-	inner join max_dates md on us.userid = md.userid and ((us.ctime < md.max_ctime and us.range is not null) or (us.ctime = md.max_ctime and us.range is null))
-	cross join (select tstzrange(b, e) as dates) ur
-	-- для последних статусов выберем только те записи, которые созданы до конца указанного нами диапазона
-	WHERE ctime >= lower(ur.dates) and (us.ctime<= upper(ur.dates) /*or ( upper(us.range) is null and us.ctime <= upper (us.range))*/)
-	and (u_id = '{}' OR us.userid = any(u_id))
-	GROUP BY 
-		 us.userid
-		,us.state;
+    select us_total.userid, max(us_total.ctime) as max_ctime
+    from "UserState" us_total
+    WHERE range is null
+    group by us_total.userid
+  )
+  select
+     us.userid
+    ,us.state
+    ,SUM (LEAST(upper(us.range), upper(ur.dates), now()) - GREATEST(us.ctime, lower(ur.dates))) as timeinstate
+  from "UserState" us
+  -- исключим все некорректные смены статусов, у которых нету даты завершения, при условии, что есть более поздние статусы
+  inner join max_dates md on us.userid = md.userid and ((us.ctime < md.max_ctime and us.range is not null) or (us.ctime = md.max_ctime and us.range is null))
+  cross join (select tstzrange(b, e) as dates) ur
+  -- для последних статусов выберем только те записи, которые созданы до конца указанного нами диапазона
+  WHERE ctime >= lower(ur.dates) and (us.ctime<= upper(ur.dates) /*or ( upper(us.range) is null and us.ctime <= upper (us.range))*/)
+  and (u_id = '{}' OR us.userid = any(u_id))
+  GROUP BY
+     us.userid
+    ,us.state;
 END;
 $func$
 LANGUAGE plpgsql;
