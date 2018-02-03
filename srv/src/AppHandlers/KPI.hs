@@ -50,7 +50,7 @@ getStatFiles = do
   where
     selectStatFiles :: ByteString -> ByteString -> AppHandler (Int, Int)
     selectStatFiles f t =
-      head <$>  query [sql| SELECT * FROM get_KPI_attachments(?, ?) |] (f, t)
+      head <$> query [sql| SELECT * FROM get_KPI_attachments(?, ?) |] (f, t)
 
 getStat :: AppHandler ()
 getStat = do
@@ -130,6 +130,7 @@ fillKPIsDays = do
     case tpe :: Text of
       "control"      -> putInSt (u, day) (S.controlT, t)      (S.controlC, a)
       "orderService" -> putInSt (u, day) (S.orderServiceT, t) (S.orderServiceC, a)
+      "rushOrder"    -> putInSt (u, day) (S.rushOrderT, t)    (S.rushOrderC, a)
       "tellMeMore"   -> putInSt (u, day) (S.tellMeMoreT,   t) (S.tellMeMoreC,   a)
       "callMeMaybe"  -> putInSt (u, day) (S.callMeMaybeT,  t) (S.callMeMaybeC,  a)
       errVal -> error $ "Check get_KPI_actions," ++ (show errVal) ++
@@ -188,6 +189,7 @@ fillKPIs = do
     case tpe :: Text of
       "control"      -> putInSt u (S.controlT, t)      (S.controlC, a)
       "orderService" -> putInSt u (S.orderServiceT, t) (S.orderServiceC, a)
+      "rushOrder"    -> putInSt u (S.rushOrderT, t)    (S.rushOrderC, a)
       "tellMeMore"   -> putInSt u (S.tellMeMoreT,   t) (S.tellMeMoreC,   a)
       "callMeMaybe"  -> putInSt u (S.callMeMaybeT,  t) (S.callMeMaybeC,  a)
       errVal -> error $ "Check get_KPI_actions," ++ (show errVal) ++

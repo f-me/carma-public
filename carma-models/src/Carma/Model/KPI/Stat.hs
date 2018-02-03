@@ -38,21 +38,27 @@ data StatKPI = StatKPI
   , newCount :: F (Maybe Int)      "newCount" "Количество: Создание кейса"
 
   , controlT :: F (Maybe DiffTime)
-                "controlT" "Ср. время \"Контроль услуги\""
+                  "controlT" "Ср. время \"Контроль услуги\""
   , controlC :: F (Maybe Int)
-                "controlC" "Действий \"Контроль услуги\""
+                  "controlC" "Действий \"Контроль услуги\""
   , orderServiceT :: F (Maybe DiffTime)
-                "orderServiceT" "Ср. время \"Заказ услуги\""
+                       "orderServiceT" "Ср. время \"Заказ услуги\""
   , orderServiceC :: F (Maybe Int)
-                "orderServiceC" "Действий \"Заказ услуги\""
+                       "orderServiceC" "Действий \"Заказ услуги\""
+  , rushOrderT :: F (Maybe DiffTime)
+                    "rushOrderT"
+                    "Ср. время \"Заказ услуги (аврал)\""
+  , rushOrderC :: F (Maybe Int)
+                    "rushOrderC"
+                    "Действий \"Заказ услуги (аврал)\""
   , tellMeMoreT :: F (Maybe DiffTime)
-                "tellMeMoreT" "Ср. время \"Заказ услуги - доп. инф.\""
+                     "tellMeMoreT" "Ср. время \"Заказ услуги - доп. инф.\""
   , tellMeMoreC :: F (Maybe Int)
-                "tellMeMoreC" "Действий \"Заказ услуги - доп. инф.\""
+                     "tellMeMoreC" "Действий \"Заказ услуги - доп. инф.\""
   , callMeMaybeT :: F (Maybe DiffTime)
-                "callMeMaybeT" "Ср. время \"Заказ услуги - моб. прил.\""
+                      "callMeMaybeT" "Ср. время \"Заказ услуги - моб. прил.\""
   , callMeMaybeC :: F (Maybe Int)
-                "callMeMaybeC" "Действий \"Заказ услуги - моб. прил.\""
+                      "callMeMaybeC" "Действий \"Заказ услуги - моб. прил.\""
 
   , assigned
     :: F (Maybe Int) "assigned" "Назначено"

@@ -135,6 +135,7 @@ BEGIN
   RETURN QUERY
 --ЗАКАЗ
   --"orderService" - "Заказ услуги"
+  --"rushOrder" - "Заказ услуги (аврал)"
   --"tellMeMore" - "Заказ услуги (требуется дополнительная информация)"
   --"callMeMaybe" - "Заказ услуги через мобильное приложение"
 --КОНТРОЛЬ
@@ -147,16 +148,20 @@ BEGIN
   --"tellMakerDenied" - "Оповещение об отказе автопроизводителя"
 SELECT
   um.id,
+
   CASE
-  WHEN (a.type IN (3, 4, 6, 9, 10, 11))
-  THEN 'control'
-  WHEN (a.type = 1)
-  THEN 'orderService'
-  WHEN (a.type = 19)
-  THEN 'tellMeMore'
-  WHEN (a.type = 20)
-  THEN 'callMeMaybe'
-  ELSE a.type::text
+    WHEN (a.type IN (3, 4, 6, 9, 10, 11))
+      THEN 'control'
+    WHEN (a.type = 1)
+      THEN 'orderService'
+    WHEN (a.type = 24)
+      THEN 'rushOrder'
+    WHEN (a.type = 19)
+      THEN 'tellMeMore'
+    WHEN (a.type = 20)
+      THEN 'callMeMaybe'
+    ELSE
+      a.type::text
   END AS actiontype,
 
   sum(a.closetime - a.opentime) / COUNT(a.id) as avgtime,
@@ -169,19 +174,22 @@ WHERE um.id = any(u_id)
   AND a.assigntime BETWEEN fromTime AND toTime
   AND a.closetime IS NOT NULL
   AND a.opentime  IS NOT NULL
-  AND a.type IN (3, 4, 6, 9, 10, 11, 1, 19, 20)
+  AND a.type IN (3, 4, 6, 9, 10, 11, 1, 24, 19, 20)
   AND a.result <> 32 -- Закрыто супервизором
   AND a.result is not null
 GROUP BY um.id, (CASE
     WHEN (a.type IN (3, 4, 6, 9, 10, 11))
-    THEN 'control'
+      THEN 'control'
     WHEN (a.type = 1)
-    THEN 'orderService'
+      THEN 'orderService'
+    WHEN (a.type = 24)
+      THEN 'rushOrder'
     WHEN (a.type = 19)
-    THEN 'tellMeMore'
+      THEN 'tellMeMore'
     WHEN (a.type = 20)
-    THEN 'callMeMaybe'
-    ELSE a.type::text
+      THEN 'callMeMaybe'
+    ELSE
+      a.type::text
   END);
 END;
 $func$
@@ -202,6 +210,7 @@ BEGIN
   RETURN QUERY
 --ЗАКАЗ
   --"orderService" - "Заказ услуги"
+  --"rushOrder" - "Заказ услуги (аврал)"
   --"tellMeMore" - "Заказ услуги (требуется дополнительная информация)"
   --"callMeMaybe" - "Заказ услуги через мобильное приложение"
 --КОНТРОЛЬ
@@ -214,16 +223,20 @@ BEGIN
   --"tellMakerDenied" - "Оповещение об отказе автопроизводителя"
 SELECT
   um.id, date(g),
+
   CASE
-  WHEN (a.type IN (3, 4, 6, 9, 10, 11))
-  THEN 'control'
-  WHEN (a.type = 1)
-  THEN 'orderService'
-  WHEN (a.type = 19)
-  THEN 'tellMeMore'
-  WHEN (a.type = 20)
-  THEN 'callMeMaybe'
-  ELSE a.type::text
+    WHEN (a.type IN (3, 4, 6, 9, 10, 11))
+      THEN 'control'
+    WHEN (a.type = 1)
+      THEN 'orderService'
+    WHEN (a.type = 24)
+      THEN 'rushOrder'
+    WHEN (a.type = 19)
+      THEN 'tellMeMore'
+    WHEN (a.type = 20)
+      THEN 'callMeMaybe'
+    ELSE
+      a.type::text
   END AS actiontype,
 
   sum(a.closetime - a.opentime) / COUNT(a.id) as avgtime,
@@ -239,19 +252,22 @@ WHERE um.id = any(u_id)
   AND a.assigntime BETWEEN fromTime AND toTime
   AND a.closetime IS NOT NULL
   AND a.opentime  IS NOT NULL
-  AND a.type IN (3, 4, 6, 9, 10, 11, 1, 19, 20)
+  AND a.type IN (3, 4, 6, 9, 10, 11, 1, 24, 19, 20)
   AND a.result <> 32 -- Закрыто супервизором
   AND a.result is not null
 GROUP BY um.id, g, (CASE
     WHEN (a.type IN (3, 4, 6, 9, 10, 11))
-    THEN 'control'
+      THEN 'control'
     WHEN (a.type = 1)
-    THEN 'orderService'
+      THEN 'orderService'
+    WHEN (a.type = 24)
+      THEN 'rushOrder'
     WHEN (a.type = 19)
-    THEN 'tellMeMore'
+      THEN 'tellMeMore'
     WHEN (a.type = 20)
-    THEN 'callMeMaybe'
-    ELSE a.type::text
+      THEN 'callMeMaybe'
+    ELSE
+      a.type::text
   END);
 END;
 $func$
