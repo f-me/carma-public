@@ -21,6 +21,7 @@ where
 import           Control.Applicative
 import           Control.Lens hiding ((.=))
 import           Control.Monad
+import           Control.Monad.Reader
 import           Control.Monad.State hiding (ap)
 
 import           Data.Aeson as Aeson
@@ -82,7 +83,7 @@ makeLenses ''GeoApp
 
 instance HasPostgres (Handler b GeoApp) where
     getPostgresState = with postgres get
-
+    setLocalPostgresState s = local (set (postgres . snapletValue) s)
 
 routes :: [(ByteString, Handler b GeoApp ())]
 routes = [ ("/geo/partner/:pid",           method PUT updatePosition)
