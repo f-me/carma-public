@@ -4,7 +4,7 @@ import Control.Monad.IO.Class (liftIO)
 
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.InterpolatedString.QM (qn)
+import Text.InterpolatedString.QM (qns)
 import Data.Monoid ((<>))
 import qualified Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
@@ -95,7 +95,7 @@ q = [sql|
 
 
 msgTemplate :: Text
-msgTemplate = [qn|
+msgTemplate = [qns|
     <p>На территорию Вашего ДЦ был доставлен а/м по программе Assistance.</p>
     <br />
     Кейс в РАМК: $case_id$<br />
@@ -107,9 +107,9 @@ msgTemplate = [qn|
     Неисправность со слов Клиента: $wazzup$<br />
     <p>
       Просим Вас,
-      \ <u>используя функцию <font color="red">«ОТВЕТИТЬ ВСЕМ»</font></u>,
-      \ предоставить дополнительную информацию, после диагностики а/м
-      \ в виде таблицы.
+      <u>используя функцию <font color="red">«ОТВЕТИТЬ ВСЕМ»</font></u>,
+      предоставить дополнительную информацию, после диагностики а/м
+      в виде таблицы.
     </p>
     <table border="1">
       <tr bgcolor="SkyBlue">

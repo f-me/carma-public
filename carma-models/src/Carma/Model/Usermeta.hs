@@ -12,7 +12,7 @@ import           Data.Time.Calendar (Day)
 import           Data.String (fromString)
 import qualified Data.Aeson as Aeson
 import           Text.Printf
-import           Text.InterpolatedString.QM (qn)
+import           Text.InterpolatedString.QM (qns)
 
 import qualified Database.PostgreSQL.Simple as PG
 import           Database.PostgreSQL.Simple.SqlQQ
@@ -151,14 +151,15 @@ fillStatesForAll lim off _ c
 
 -- | Select all users with their current states
 allUsrsQ :: String
-allUsrsQ =
-  [qn| SELECT %s, s.state, s.ctime
-     \ FROM usermetatbl u
-     \ LEFT JOIN ( SELECT DISTINCT ON (userid) id, state, ctime, userid
-                 \ FROM "UserState"
-                 \ WHERE ctime > now() - interval '1 mon'
-                 \ ORDER BY userid, id DESC
-                 ) s
-     \ ON u.id = s.userid
-     \ LIMIT ? OFFSET ?
-     ; |]
+allUsrsQ = [qns|
+  SELECT %s, s.state, s.ctime
+  FROM usermetatbl u
+  LEFT JOIN ( SELECT DISTINCT ON (userid) id, state, ctime, userid
+              FROM "UserState"
+              WHERE ctime > now() - interval '1 mon'
+              ORDER BY userid, id DESC
+            ) s
+  ON u.id = s.userid
+  LIMIT ? OFFSET ?
+  ;
+|]
