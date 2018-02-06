@@ -231,6 +231,8 @@ checkUserState uid evType evIdt _ p = do
     [lastState'] -> setNext $ nextState'
                     (P.get' lastState' State.state)
                     delayedSt
+    _            ->
+      error "checkUserState: query returned more than one result (check LIMIT)"
   where
     nextState' s d =
       let mname = modelName (modelInfo :: ModelInfo m)
