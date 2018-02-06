@@ -216,6 +216,13 @@ npm run prod-build
 npm run build-backend-templates
 ```
 
+If you're about to deploy next release to the production server, just run
+(this includes `npm i`, `clean-build-backend-templates` and `prod-clean-build`):
+
+```bash
+npm run prod-release
+```
+
 You also could run a watcher in background to rebuild client code automatically
 when sources change by using this command (development mode):
 
@@ -228,6 +235,12 @@ To clean everything run:
 ```bash
 npm run clean
 npm run clean-backend-templates
+```
+
+There's also single command to do the same:
+
+```bash
+npm run full-clean
 ```
 
 ### CI build
