@@ -5,6 +5,8 @@ UglifyJSPlugin          = require "uglifyjs-webpack-plugin"
 ExtractTextPlugin       = require "extract-text-webpack-plugin"
 OptimizeCssAssetsPlugin = require "optimize-css-assets-webpack-plugin"
 
+{vendorNames} = require "./frontend.data.json"
+
 RES_DIR = path.join __dirname, "resources"
 SRC_DIR = path.join RES_DIR, "assets", "script"
 
@@ -19,10 +21,14 @@ cssExtractor = new ExtractTextPlugin "bundle.[name].css"
 module.exports =
   devtool: "source-map"
 
-  entry:
-    carma:     path.join SRC_DIR, "entryPoints", "main"
-    resources: path.join SRC_DIR, "entryPoints", "resources"
-    vendor:    path.join SRC_DIR, "entryPoints", "vendor"
+  entry: do ->
+    f = (acc, x) ->
+      acc[x] = path.join SRC_DIR, "entryPoints", x
+      acc
+
+    vendorNames.reduce f,
+      carma:     path.join SRC_DIR, "entryPoints", "main"
+      resources: path.join SRC_DIR, "entryPoints", "resources"
 
   node:
     __filename: true
@@ -191,7 +197,10 @@ module.exports =
   plugins: do ->
     plugins = [
       new webpack.optimize.CommonsChunkPlugin
-        names: ["carma", "resources", "vendor"]
+        # Last in the list contains `webpackJsonp` function that others depends
+        # on, so we need to reverse `vendorNames` to make first vendor to be
+        # last in the list, because in page template it goes first.
+        names: ["carma", "resources"].concat vendorNames.reverse()
         minChunks: Infinity
 
       new webpack.ProvidePlugin

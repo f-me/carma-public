@@ -19,6 +19,9 @@ html(lang='ru')
     #top-level-modals
 
     link(rel="stylesheet" type="text/css" href="/s/frontend/bundle.carma.css")
-    script(src="/s/frontend/bundle.vendor.js")
+
+    each x in vendorNames
+      script(src=`/s/frontend/bundle.${x}.js`)
+
     script(src="/s/frontend/bundle.resources.js")
     script(src="/s/frontend/bundle.carma.js")
