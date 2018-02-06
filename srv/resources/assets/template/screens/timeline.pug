@@ -9,10 +9,15 @@ mixin rows(columns)
               sort: '${c.name}',
             `)
 
-  tbody(data-bind="foreach: kvms")
-    tr(data-bind="event: {dblclick: function () {$root.select($data)}}")
+  tbody(data-bind=`foreach: kvms`)
+    tr(data-bind=`event: {dblclick: function () {$root.select($data)}}`)
       each c in columns
-        td(data-bind=`renderTpl: {field: $data['${c.name}'], tpl: '${c.tpl}' }`)
+        td(data-bind=`
+          __timeline__renderTpl: {
+            field : $data['${c.name}'],
+            tpl   : '${c.tpl}',
+          }
+        `)
 
 .screen.container-fluid.col
   .row
@@ -44,9 +49,10 @@ mixin rows(columns)
           | Пользователи
         .row
           p
-            input.input-large.search-query(type='text'
+            input.input-large.search-query(
+              type='text'
               placeholder='Поиск'
-              data-bind='value: kvms.typeahead, valueUpdate: "afterkeydown"')
+              data-bind=`value: kvms.typeahead, valueUpdate: "afterkeydown"`)
         .row(style="height: 70vh; overflow-y: auto;")
           table.table.table-hover.table-bordered.table-striped.table-condensed
             +rows(
@@ -62,12 +68,12 @@ mixin rows(columns)
               ])
 
     // ko foreach: timelines
-    #timelines(data-bind="attr: {id: elementId}")
-      .row.timeline(data-bind="applyFn: showTimeline")
+    #timelines(data-bind=`attr: {id: elementId}`)
+      .row.timeline(data-bind=`__timeline__applyFn: showTimeline`)
         .bs-docs-example.col-md-10.offset1
-            .bs-docs-example-after(data-bind='text: $data.title')
+            .bs-docs-example-after(data-bind=`text: $data.title`)
             .bs-docs-example-close
-              button.close(type='button', data-bind='click: $data.closeClick') ×
+              button.close(type='button' data-bind=`click: $data.closeClick`) ×
             .row.form-horizontal
               .form-horizontal
                 .control-group
