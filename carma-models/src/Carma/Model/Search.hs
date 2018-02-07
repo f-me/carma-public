@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Carma.Model.Search where
 
