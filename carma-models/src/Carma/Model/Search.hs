@@ -30,13 +30,15 @@ import           Database.PostgreSQL.Simple.FromField (FromField)
 import           Data.Singletons
 
 import           Text.Printf
+import           Text.InterpolatedString.QM
 
 import           Data.Model hiding (fieldName, modelName, fieldDesc)
 import qualified Data.Model as Model
 import           Data.Model.Types hiding (modelName)
+
 import           Carma.Model.Types
 import           Carma.Model.LegacyTypes (Reference)
-import           Carma.Model.PgTypes()
+import           Carma.Model.PgTypes ()
 
 data Predicate m
   = Predicate
@@ -213,26 +215,23 @@ searchView flds = ModelView
   , mv_title = "Поиск"
   , mv_fields
     = [ v
-        {fv_name = nm
-        ,fv_meta = Map.insert
-                "search"
-                (buildSearchMeta ps)
-                (fv_meta v)
+        { fv_name = nm
+        , fv_meta = Map.insert "search" (buildSearchMeta ps) (fv_meta v)
         }
       | (nm, ps@(p:_)) <- flds
       , let v = fd_view $ unWrap $ fieldDesc p
       ]
   }
   where
+    buildSearchMeta [] = error [qns| Unexpected value, at least one element
+                                     expected to be matched in list
+                                     comprehension |]
     buildSearchMeta ps@(p:_) =
       Aeson.Object $ HM.fromList
-        [ ( "matchType"
-          , Aeson.String $ T.pack $ show $ matchType p
-          )
-          ,("original"
-          , Aeson.Array $ V.fromList $ map buildOriginal ps
-          )
+        [ ("matchType", Aeson.String $ T.pack $ show $ matchType p)
+        , ("original",  Aeson.Array $ V.fromList $ map buildOriginal ps)
         ]
+
     buildOriginal p = Aeson.Object $ HM.fromList
       [ ("name",  Aeson.String $ fieldName p)
       , ("model", Aeson.String $ modelName p)
