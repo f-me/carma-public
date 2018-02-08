@@ -208,7 +208,7 @@ module.exports =
         jQuery: "jquery"
         "window.jQuery": "jquery"
 
-      new webpack.EnvironmentPlugin ["NODE_ENV"]
+      new webpack.EnvironmentPlugin NODE_ENV: "development"
       cssExtractor
     ]
 
