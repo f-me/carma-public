@@ -80,6 +80,7 @@ default-extensions:
 
 ghc-options:
   - -Wall
+  - -Werror
   - -threaded
   - -O2
   - -funbox-strict-fields

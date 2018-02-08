@@ -12,7 +12,7 @@ build-type:          Simple
 cabal-version:       >=1.8
 
 library
-  ghc-options: -Wall
+  ghc-options: -Wall -Werror
   hs-source-dirs: src
 
   exposed-modules:

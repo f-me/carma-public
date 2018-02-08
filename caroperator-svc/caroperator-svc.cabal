@@ -13,7 +13,7 @@ cabal-version:       >=1.10
 
 executable caroperator-svc
   main-is:             Main.hs
-  ghc-options:         -O2 -Wall
+  ghc-options:         -O2 -Wall -Werror
   default-language:    Haskell2010
   default-extensions:
     OverloadedStrings, LambdaCase

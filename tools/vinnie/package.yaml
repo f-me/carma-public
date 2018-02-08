@@ -8,6 +8,7 @@ category:            Database
 
 ghc-options:
   - -Wall
+  - -Werror
   - -fno-warn-unused-do-bind
 
 dependencies:

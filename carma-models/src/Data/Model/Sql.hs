@@ -25,7 +25,6 @@ import qualified Data.Text as T
 
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromField hiding (Field)
-import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToField
 import Data.Aeson (ToJSON (..), fromJSON, Result)
 import qualified Data.Aeson as Aeson
@@ -34,6 +33,8 @@ import Data.Singletons
 
 import Data.Model
 import Data.Model.Patch
+
+import Data.Model.Sql.Extras ()
 
 select :: (FromRow (QRes q), SqlQ q) => q -> Connection -> IO [QRes q]
 select q c = uncurry (query c) $ mkSelect q
@@ -162,10 +163,6 @@ instance (Model m, SingI nm, FromField t)
     queryOrdering   _ = []
     queryTbl       _  = tableName (modelInfo :: ModelInfo m)
     queryArgs       _ = ()
-
--- NB!
-instance {-# OVERLAPS #-} FromRow a => FromRow (a :. ()) where
-  fromRow = fmap (:. ()) fromRow
 
 instance (Model m, SingI nm, FromField t, SqlQ q, QMod q ~ m)
     => SqlQ ((m -> Field t (FOpt nm desc app)) :. q)
