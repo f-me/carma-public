@@ -1,0 +1,36 @@
+{
+  "private": true,
+  "name": "pure",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-thermite": "^5.0.0",
+    "purescript-react": "^5.1.0",
+    "purescript-react-dom": "^5.0.0",
+    "purescript-prelude": "^3.1.1",
+    "purescript-eff": "^3.1.0",
+    "purescript-console": "^3.0.0",
+    "purescript-psci-support": "^3.0.0",
+    "purescript-js-timers": "^3.0.0",
+    "purescript-maybe": "^3.0.0",
+    "purescript-nullable": "^3.0.0",
+    "purescript-routing": "^7.0.0",
+    "purescript-generics": "^4.0.0",
+    "purescript-monoid": "^3.3.0",
+    "purescript-control": "^3.3.1",
+    "purescript-aff": "^4.0.2",
+    "purescript-transformers": "^3.5.0",
+    "purescript-dom": "^4.15.0",
+    "purescript-exceptions": "^3.1.0",
+    "purescript-pipe-op": "^1.0.0"
+  },
+  "devDependencies": {},
+  "resolutions": {
+    "purescript-react-dom": "^4.0.0",
+    "purescript-react": "^4.0.0"
+  }
+}

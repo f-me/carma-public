@@ -34,6 +34,8 @@ srv/node_modules
 srv/resources/static/build/backendPages
 # frontend built by webpack
 srv/resources/static/build/frontend
+# new frontend written in purescript
+srv/resources/static/build/pureFrontend
 
 # no more configs in gir repo anymore
 srv/snaplets/*

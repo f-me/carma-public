@@ -57,11 +57,13 @@ import Util
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
 routes = [ ("/",              method GET $ authOrLogin indexPage)
+         , ("/pure/",         method GET $ authOrLogin purePage)
          , ("/login/",        method GET loginForm)
          , ("/login/",        method POST doLogin)
          , ("/logout/",       doLogout)
          , ("/s/",            serveDirectoryWith dconf "resources/static")
          , ("/s/frontend",    serveDirectoryWith dconf "resources/static/build/frontend")
+         , ("/s/pureFrontend", serveDirectoryWith dconf "resources/static/build/pureFrontend")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/screens",       method GET getScreens)
          , ("/backoffice/errors", method GET $ serveBackofficeSpec Check)

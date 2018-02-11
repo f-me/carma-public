@@ -6,6 +6,7 @@ module ApplicationHandlers
     (
       -- * Authentication
       indexPage
+    , purePage
     , redirectToLogin
     , authOrLogin
     , loginForm
@@ -97,10 +98,10 @@ indexPage = ifTop $ do
         addLocalName = do
             t <- X.nodeText <$> getParamNode
             let r = case ln of
-                      Just s  -> T.concat [t, " [", s, "]"]
-                      Nothing -> t
+                         Just s  -> T.concat [t, " [", s, "]"]
+                         Nothing -> t
             return [X.TextNode r]
-        splices = (T.pack "addLocalName") ## addLocalName
+        splices = T.pack "addLocalName" ## addLocalName
     renderWithSplices "index" splices
 
 
@@ -123,6 +124,10 @@ authOrLogin = requireUser auth redirectToLogin
 -- | Render empty login form.
 loginForm :: AppHandler ()
 loginForm = serveFile "resources/static/build/backendPages/login.html"
+
+
+purePage :: AppHandler ()
+purePage = serveFile "resources/static/build/backendPages/pure.html"
 
 
 ------------------------------------------------------------------------------
