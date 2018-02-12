@@ -16,7 +16,16 @@ const
 
 module.exports = {
   devtool: 'source-map',
-  entry: path.resolve(__dirname, 'src', 'Main.purs'),
+
+  entry: {
+    pure: path.resolve(__dirname, 'src', 'Main.purs'),
+
+    vendor: [
+      'react',
+      'react-dom',
+      'create-react-class',
+    ],
+  },
 
   resolve: {
     modules    : ['node_modules', 'bower_components'],
@@ -26,7 +35,7 @@ module.exports = {
   output: {
     path       : BUILD_DIR,
     pathinfo   : true,
-    filename   : 'bundle.pure.js',
+    filename   : 'bundle.[name].js',
     publicPath : '/s/pureFrontend/',
   },
 
@@ -59,6 +68,11 @@ module.exports = {
 
   plugins: (() => {
     const x = [
+      new webpack.optimize.CommonsChunkPlugin({
+        names: ['pure', 'vendor'],
+        minChunks: Infinity,
+      }),
+
       new webpack.EnvironmentPlugin({NODE_ENV: 'development'}),
       new webpack.LoaderOptionsPlugin({debug: !IS_PROD_BUILD}),
     ];
