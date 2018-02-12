@@ -1,15 +1,18 @@
 'use strict';
 
 const
-  path    = require('path'),
-  webpack = require('webpack'),
-  {watch} = require('yargs').argv;
+  path                = require('path'),
+  webpack             = require('webpack'),
+  UglifyJSPlugin      = require("uglifyjs-webpack-plugin"),
+  {watch: isWatching} = require('yargs').argv;
 
 const
-  SRV_DIR    = path.resolve(__dirname, '..', '..', '..'),
-  RES_DIR    = path.join(SRV_DIR, 'resources'),
+  RES_DIR    = path.resolve(__dirname, '..', '..'),
   STATIC_DIR = path.join(RES_DIR, 'static'),
   BUILD_DIR  = path.join(STATIC_DIR, 'build', 'pureFrontend');
+
+const
+  IS_PROD_BUILD = process.env.NODE_ENV === "production";
 
 module.exports = {
   devtool: 'source-map',
@@ -45,8 +48,8 @@ module.exports = {
               ],
 
               psc: 'psa',
-              bundle: false,
-              watch: watch === true,
+              bundle: IS_PROD_BUILD,
+              watch: isWatching === true,
             },
           },
         ],
@@ -54,7 +57,13 @@ module.exports = {
     ],
   },
 
-  plugins: [
-    new webpack.LoaderOptionsPlugin({debug: true}),
-  ],
+  plugins: (() => {
+    const x = [
+      new webpack.EnvironmentPlugin({NODE_ENV: 'development'}),
+      new webpack.LoaderOptionsPlugin({debug: !IS_PROD_BUILD}),
+    ];
+
+    if (IS_PROD_BUILD) x.push(new UglifyJSPlugin());
+    return x;
+  })(),
 };
