@@ -1,3 +1,31 @@
+-- This implementation mostly inspired by redux.js library, so you could find
+-- parallels to understand it faster if you already met the redux.
+--
+-- Some usage steps:
+--   1. Create a store by `createAppContext` passing initial state to it
+--      and a reducer (see `StoreReducer` type);
+--   2. Subscribe to store updates by `subscribe`
+--      (also inside `componentDidMount`), it returns unique `StoreSubscription`
+--      which you could use to unsubscribe when you need it;
+--   3. You `dispatch` some actions any time you want, store reducer passed in
+--      1st step handles state updates looking at actions you dispatch, and
+--      subscribers can trigger some side-effect such as API requests looking at
+--      actions you dispatch and they could dispatch another actions with some
+--      data with response;
+--   4. Do not forget to `unsubscribe` using `StoreSubscription` in
+--      `componentWillUnmount`.
+--
+-- The purpuse of this is to create efficient state storage. You supposed to use
+-- some HOC (High-Order Component) to bind to specific values from store and
+-- pass them as properties to a component, so when state is updated component
+-- will rerender but in this case parent component isn't urged to be rerendered,
+-- `shouldComponentUpdate` (of parent component) could return `false` and child
+-- component that attached to the store is still able to update any time. This
+-- solves many performance issues (as opposite to using state from
+-- root-component that requires rerendering whole tree).
+-- P.S. By "rerendering" I meant even just constructing virtual-dom that still
+-- wastes CPU time a lot.
+--
 -- This store implementation is attached to `AppState`, so it isn't polymorphic
 -- for different state types, just for now, because we don't need more, but with
 -- some modifications this store implementation could be separated and
@@ -7,6 +35,7 @@ module App.Store
      ( AppContext
      , AppState
      , AppAction (..)
+     , StoreSubscriber
      , StoreSubscription
      , createAppContext
      , getAppState
@@ -38,6 +67,8 @@ type AppState =
 data AppAction
   = Navigate Location
 
+derive instance eqAppAction :: Eq AppAction
+
 newtype StoreSubscription = StoreSubscription Int
 derive instance eqStoreSubscriberId :: Eq StoreSubscription
 derive instance ordStoreSubscriberId :: Ord StoreSubscription
@@ -50,13 +81,13 @@ type StoreReducer =
 type StoreSubscriber eff =
   AppState -> AppAction -> Aff (ref :: REF | eff) Unit
 
-type StoreSubscribers eff =
-  Tuple Int
-        -- ^ Unique id value
-        (Map StoreSubscription (StoreSubscriber eff))
-        -- ^ Map of subscribers keyed by unique id
+type StoreSubscribers eff = Tuple
+  Int
+  -- ^ Unique id value
+  (Map StoreSubscription (StoreSubscriber eff))
+  -- ^ Map of subscribers keyed by unique id
 
-data AppContext subscriberEff
+newtype AppContext subscriberEff
   = AppContext
   { store       :: Ref AppState
   , reducer     :: StoreReducer
@@ -75,9 +106,9 @@ createAppContext storeReducer initialState = do
   (subscribersRef :: Ref (StoreSubscribers eff)) <- newRef $ Tuple 1 empty
 
   pure $ AppContext
-       { store: storeRef
-       , reducer: storeReducer
-       , subscribers: subscribersRef
+       { store       : storeRef
+       , reducer     : storeReducer
+       , subscribers : subscribersRef
        }
 
 

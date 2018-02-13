@@ -3,6 +3,7 @@ module App (runApp) where
 import Prelude
 
 import Data.Maybe (Maybe (..))
+import Data.Record.Builder (merge)
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.Aff (liftEff')
@@ -22,13 +23,12 @@ import DOM.Node.Types ( Element
                       , documentToNonElementParentNode
                       ) as DOM
 
-import React (createElement) as React
-import ReactDOM (render) as React
-import React.DOM (h1', h2', text, button)
+import React (ReactClass, createClassStateless, createClass, spec, getProps, createElement)
+import ReactDOM (render)
+import React.DOM (div', h1', h2', text, button)
 import React.DOM.Props (onClick)
-import Thermite as T
 
-import Utils (createReactClass)
+import Utils (StoreConnectEff, storeConnect)
 import Router (Location (..), initRouter, navigateToRoute)
 import Component.Spinner (spinner)
 
@@ -38,16 +38,32 @@ import App.Store ( AppContext
                  , createAppContext
                  , dispatch
                  , subscribe
-                 , unsubscribe
                  )
 
 
-appRender :: forall props. T.Render AppState props AppAction
-appRender dispatch a@_ state b@_ =
-  case state.currentLocation of
-       {-- DiagTreeEditPartial -> --}
-       _ -> [h1' [text $ "Loading…" <> show state.currentLocation]]
-            <> spinner dispatch a state b
+appRender
+  :: forall eff
+   . AppContext (StoreConnectEff eff)
+  -> ReactClass { appFoo :: Location }
+appRender ctx =
+  {-- createClassStateless $ \props -> div' --}
+
+  createClass $ spec unit renderFn # _
+    { shouldComponentUpdate = \_ _ _ -> pure false
+    }
+
+  where
+    renderFn this = do
+      log "app render called"
+      props <- getProps this
+      case props.appFoo of
+           {-- DiagTreeEditPartial -> --}
+           _ -> pure $ div'
+                [ h1' [text $ "Loading…" <> show props.appFoo]
+                , createElement spinnerComponent
+                                { spBaz: "spinner BAZ from app" }
+                                []
+                ]
 
   {--[ h1' [ text $ show state.currentLocation ]
   , h2' [ text "some testing text" ]
@@ -55,12 +71,29 @@ appRender dispatch a@_ state b@_ =
            [ text "just do it!" ]
   ]--}
 
+  {-- where -- TODO FIXME This React component class will be created for each --}
+    --            component independently. We need to use single class
+    --            anywhere (provide components with bound `AppContext`
+    --            from `AppContext`?)
+    spinnerComponent = spinner ctx
 
-runApp :: Eff ( console :: CONSOLE
-              , dom :: DOM
-              , dom :: DOM
-              , ref :: REF
-              ) Unit
+app
+  :: forall eff
+   . AppContext (StoreConnectEff eff)
+  -> ReactClass {}
+app ctx = storeConnect ctx f $ appRender ctx
+  where
+    f appState = merge { appFoo: appState.currentLocation }
+
+
+runApp
+  :: forall eff
+   . Eff ( StoreConnectEff ( console :: CONSOLE
+                           , dom :: DOM
+                           , ref :: REF
+                           | eff
+                           )
+         ) Unit
 runApp = do
   (appEl :: DOM.Element) <-
     DOM.window
@@ -73,22 +106,13 @@ runApp = do
              Just el -> pure el
 
   appCtx <- createAppContext storeReducer appInitialState
-  _ <- subscribe appCtx navHandler
+  initRouter $ dispatch appCtx <<< Navigate
 
-  let component =
-        createReactClass appSpec appInitialState \spec dispatcher ->
-          spec { displayName = "App"
+  void $ subscribe appCtx $ const $ case _ of
+    Navigate route -> liftEff' $ navigateToRoute route
+    _              -> pure unit
 
-               , componentDidMount = \this ->
-                   initRouter $ dispatcher this <<< Navigate
-
-               , componentWillUnmount = \_ ->
-                   unsafeThrow "<App> component isn't supposed to be unmounted"
-
-               {-- , shouldComponentUpdate = \_ _ _ -> pure false --}
-               }
-
-  void $ React.render (React.createElement component unit []) appEl
+  void $ render (createElement (app appCtx) {} []) appEl
 
   where
 
@@ -96,26 +120,7 @@ runApp = do
     appInitialState = { currentLocation: Empty
                       }
 
-    appActionHandler (Navigate route) _ state =
-      when (state.currentLocation /= route) $ do
-        _ <- T.modifyState _ {currentLocation = route}
-        lift $ liftEff' $ navigateToRoute route
-
-
     storeReducer state (Navigate route) =
       if state.currentLocation /= route
          then Just $ state {currentLocation = route}
          else Nothing
-
-
-    navHandler state (Navigate route) = liftEff' $ navigateToRoute route
-    navHandler _ _ = pure unit
-
-
-    appSpec
-      :: T.Spec ( console :: CONSOLE
-                , dom :: DOM
-                , ref :: REF
-                ) AppState Unit AppAction
-    appSpec
-      = T.simpleSpec appActionHandler appRender

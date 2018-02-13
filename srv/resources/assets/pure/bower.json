@@ -8,7 +8,6 @@
     "output"
   ],
   "dependencies": {
-    "purescript-thermite": "^5.0.0",
     "purescript-react": "^5.1.0",
     "purescript-react-dom": "^5.0.0",
     "purescript-prelude": "^3.1.1",
@@ -28,7 +27,8 @@
     "purescript-exceptions": "^3.1.0",
     "purescript-refs": "^3.0.0",
     "purescript-maps": "^3.6.0",
-    "purescript-tuples": "^4.1.0"
+    "purescript-tuples": "^4.1.0",
+    "purescript-record": "^0.2.6"
   },
   "devDependencies": {},
   "resolutions": {

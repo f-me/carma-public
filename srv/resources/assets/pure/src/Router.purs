@@ -53,7 +53,7 @@ routing  =  f DiagTreeEditPartial (partials *> lit "diag-tree-edit")
 
 initRouter
   :: forall eff
-  .  (Location -> Eff (dom :: DOM, ref :: REF | eff) Unit)
+   . (Location -> Eff (dom :: DOM, ref :: REF | eff) Unit)
   -> Eff (dom :: DOM, ref :: REF | eff) Unit
 initRouter notify = void $ matches routing $ \oldRoute newRoute ->
 
