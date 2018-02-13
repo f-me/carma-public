@@ -10,7 +10,7 @@ import Thermite (Spec, EventHandler, createReactSpec) as T
 
 createReactClass
   :: forall eff state props action
-  .  T.Spec eff state props action
+   . T.Spec eff state props action
   -> state
   -> (
        React.ReactSpec props state eff

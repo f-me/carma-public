@@ -6,7 +6,7 @@ import Data.Maybe (Maybe (..))
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.Aff (liftEff')
-import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Eff.Exception.Unsafe (unsafeThrow)
@@ -26,28 +26,34 @@ import React (createElement) as React
 import ReactDOM (render) as React
 import React.DOM (h1', h2', text, button)
 import React.DOM.Props (onClick)
-
 import Thermite as T
 
 import Utils (createReactClass)
 import Router (Location (..), initRouter, navigateToRoute)
+import Component.Spinner (spinner)
 
-
-type AppState =
-  { currentLocation :: Location
-  }
-
-data AppAction
-  = Navigate Location
+import App.Store ( AppContext
+                 , AppState
+                 , AppAction (..)
+                 , createAppContext
+                 , dispatch
+                 , subscribe
+                 , unsubscribe
+                 )
 
 
 appRender :: forall props. T.Render AppState props AppAction
-appRender dispatch _ state _ =
-  [ h1' [ text $ show state.currentLocation ]
+appRender dispatch a@_ state b@_ =
+  case state.currentLocation of
+       {-- DiagTreeEditPartial -> --}
+       _ -> [h1' [text $ "Loading…" <> show state.currentLocation]]
+            <> spinner dispatch a state b
+
+  {--[ h1' [ text $ show state.currentLocation ]
   , h2' [ text "some testing text" ]
-  , button [ onClick (const $ dispatch $ Navigate DiagTreeEdit) ]
+  , button [ onClick (const $ dispatch $ Navigate DiagTreeEditPartial) ]
            [ text "just do it!" ]
-  ]
+  ]--}
 
 
 runApp :: Eff ( console :: CONSOLE
@@ -66,6 +72,9 @@ runApp = do
              Nothing -> unsafeThrow "#app element not found"
              Just el -> pure el
 
+  appCtx <- createAppContext storeReducer appInitialState
+  _ <- subscribe appCtx navHandler
+
   let component =
         createReactClass appSpec appInitialState \spec dispatcher ->
           spec { displayName = "App"
@@ -75,23 +84,38 @@ runApp = do
 
                , componentWillUnmount = \_ ->
                    unsafeThrow "<App> component isn't supposed to be unmounted"
+
+               {-- , shouldComponentUpdate = \_ _ _ -> pure false --}
                }
 
   void $ React.render (React.createElement component unit []) appEl
 
-  where appInitialState :: AppState
-        appInitialState = { currentLocation: Empty
-                          }
+  where
 
-        appActionHandler (Navigate route) _ state =
-          when (state.currentLocation /= route) $ do
-            _ <- T.modifyState _ {currentLocation = route}
-            lift $ liftEff' $ navigateToRoute route
+    appInitialState :: AppState
+    appInitialState = { currentLocation: Empty
+                      }
 
-        appSpec
-          :: T.Spec ( console :: CONSOLE
-                    , dom :: DOM
-                    , ref :: REF
-                    ) AppState Unit AppAction
-        appSpec
-          = T.simpleSpec appActionHandler appRender
+    appActionHandler (Navigate route) _ state =
+      when (state.currentLocation /= route) $ do
+        _ <- T.modifyState _ {currentLocation = route}
+        lift $ liftEff' $ navigateToRoute route
+
+
+    storeReducer state (Navigate route) =
+      if state.currentLocation /= route
+         then Just $ state {currentLocation = route}
+         else Nothing
+
+
+    navHandler state (Navigate route) = liftEff' $ navigateToRoute route
+    navHandler _ _ = pure unit
+
+
+    appSpec
+      :: T.Spec ( console :: CONSOLE
+                , dom :: DOM
+                , ref :: REF
+                ) AppState Unit AppAction
+    appSpec
+      = T.simpleSpec appActionHandler appRender

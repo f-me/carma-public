@@ -22,25 +22,28 @@ import Routing.Hash (matches, setHash)
 
 data Location
   = Empty
-  | DiagTreeEdit
+  | DiagTreeEditPartial
   | NotFound
 
 derive instance eqLocation :: Eq Location
 derive instance genericShow :: Generic Location
 instance eqShow :: Show Location where show = gShow
 
-getLocationRoute :: Location -> String
-getLocationRoute Empty = ""
-getLocationRoute NotFound = "-"
-getLocationRoute DiagTreeEdit = "diag-tree-edit"
+-- Backward mapping for navigating by `Location`s.
+locationHash :: Location -> String
+locationHash Empty = ""
+locationHash NotFound = "-"
+locationHash DiagTreeEditPartial = "partial/diag-tree-edit"
 
 
 routing :: Match Location
-routing  =  f DiagTreeEdit (lit "diag-tree-edit")
+routing  =  f DiagTreeEditPartial (partials *> lit "diag-tree-edit")
         <|> (NotFound <$ str)
         <|> pure Empty
 
   where
+
+    partials = lit "partial"
 
     -- `lit "foo"` matches both "foo" and "foo/smth"
     -- but wee need to match only "foo", so, this helps to solve it.
@@ -55,7 +58,7 @@ initRouter
 initRouter notify = void $ matches routing $ \oldRoute newRoute ->
 
   let isPassed = fromMaybe true $ (_ /= newRoute) <$> oldRoute
-      defaultRoute = getLocationRoute DiagTreeEdit
+      defaultRoute = locationHash DiagTreeEditPartial
 
       navigate =
         if newRoute == Empty
@@ -68,4 +71,4 @@ initRouter notify = void $ matches routing $ \oldRoute newRoute ->
 navigateToRoute :: forall eff. Location -> Eff (dom :: DOM | eff) Unit
 navigateToRoute Empty    = pure unit
 navigateToRoute NotFound = pure unit
-navigateToRoute route    = setHash $ getLocationRoute route
+navigateToRoute route    = setHash $ locationHash route

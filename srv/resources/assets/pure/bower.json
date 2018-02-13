@@ -26,7 +26,9 @@
     "purescript-transformers": "^3.5.0",
     "purescript-dom": "^4.15.0",
     "purescript-exceptions": "^3.1.0",
-    "purescript-pipe-op": "^1.0.0"
+    "purescript-refs": "^3.0.0",
+    "purescript-maps": "^3.6.0",
+    "purescript-tuples": "^4.1.0"
   },
   "devDependencies": {},
   "resolutions": {
