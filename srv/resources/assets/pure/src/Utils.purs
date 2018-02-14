@@ -35,20 +35,27 @@ type StoreConnectEff eff =
   | eff
   ) :: # Effect
 
+type PropsWithAppContext eff props =
+  { appContext :: AppContext ( props :: ReactProps
+                             , state :: ReactState ReadWrite
+                             , refs  :: ReactRefs  ReadOnly
+                             , ref   :: REF
+                             | eff
+                             )
+  | props
+  }
+
 storeConnect
   :: forall eff props1 props2
-   . AppContext
-   ( props :: ReactProps
-   , state :: ReactState ReadWrite
-   , refs  :: ReactRefs  ReadOnly
-   , ref   :: REF
-   | eff
-   )
-  -> (AppState -> Builder (Record props1) (Record props2))
-  -> ReactClass (Record props2)
-  -> ReactClass (Record props1)
+   . (
+       AppState
+       -> Builder (PropsWithAppContext eff props1)
+                  (PropsWithAppContext eff props2)
+     )
+  -> ReactClass (PropsWithAppContext eff props2)
+  -> ReactClass (PropsWithAppContext eff props1)
 
-storeConnect store storeSelector child = createClass spec
+storeConnect storeSelector child = createClass spec
 
   where
 
@@ -57,11 +64,12 @@ storeConnect store storeSelector child = createClass spec
       pure $ createElement child state.mappedProps []
 
     initialState this = do
+      props <- getProps this
+
       -- TODO FIXME `unsafeCoerceEff` to avoid:
       --            couldn't match `ReadOnly` with type `Disallowed`
       --            (don't know why yet)
-      appState <- unsafeCoerceEff $ getAppState store
-      props <- getProps this
+      appState <- unsafeCoerceEff $ getAppState props.appContext
 
       pure { subscription : (Nothing :: Maybe StoreSubscription)
            , mappedProps  : build (storeSelector appState) props
@@ -78,10 +86,15 @@ storeConnect store storeSelector child = createClass spec
                 props <- getProps this <#> build (storeSelector appState)
                 transformState this $ _ { mappedProps = props }
 
-          subscription <- subscribe store $ storeUpdateHandler transformer
+          props <- getProps this
+
+          subscription <-
+            subscribe props.appContext $ storeUpdateHandler transformer
+
           transformState this $ _ { subscription = Just subscription }
 
       , componentWillUnmount = \this -> do
+          props <- getProps this
           state <- readState this
 
           -- TODO FIXME `unsafeCoerceEff` to avoid:
@@ -89,6 +102,6 @@ storeConnect store storeSelector child = createClass spec
           --            inside `ReactState`
           --            (don't know why yet)
           case state.subscription of
-               Just x  -> unsafeCoerceEff $ unsubscribe store x
+               Just x  -> unsafeCoerceEff $ unsubscribe props.appContext x
                Nothing -> pure unit
       }

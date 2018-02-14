@@ -20,13 +20,13 @@ import Utils (StoreConnectEff, storeConnect)
 
 spinnerRender
   :: forall eff
-   . AppContext (StoreConnectEff eff)
-  -> ReactClass { spFoo :: String
-                , spBar :: Location
-                , spBaz :: String
+   . ReactClass { spFoo      :: String
+                , spBar      :: Location
+                , spBaz      :: String
+                , appContext :: AppContext (StoreConnectEff eff)
                 }
 
-spinnerRender _ = createClassStateless $ \props ->
+spinnerRender = createClassStateless $ \props ->
   let foo = unsafePerformEff $ log "spinner render called"
   in div
   [ className "circle-spinner--with-label" ]
@@ -43,10 +43,11 @@ spinnerRender _ = createClassStateless $ \props ->
 
 spinner
   :: forall eff
-   . AppContext (StoreConnectEff eff)
-  -> ReactClass { spBaz :: String }
+   . ReactClass { spBaz      :: String
+                , appContext :: AppContext (StoreConnectEff eff)
+                }
 
-spinner ctx = storeConnect ctx f $ spinnerRender ctx
+spinner = storeConnect f spinnerRender
   where
     f appState = merge { spFoo: "spinner foo"
                        , spBar: appState.currentLocation

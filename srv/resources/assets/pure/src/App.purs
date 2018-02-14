@@ -42,10 +42,10 @@ import App.Store ( AppContext
 
 
 appRender
-  :: forall eff
-   . AppContext (StoreConnectEff eff)
-  -> ReactClass { appFoo :: Location }
-appRender ctx =
+  :: forall eff. ReactClass { appFoo     :: Location
+                            , appContext :: AppContext (StoreConnectEff eff)
+                            }
+appRender =
   {-- createClassStateless $ \props -> div' --}
 
   createClass $ spec unit renderFn # _
@@ -60,8 +60,10 @@ appRender ctx =
            {-- DiagTreeEditPartial -> --}
            _ -> pure $ div'
                 [ h1' [text $ "Loading…" <> show props.appFoo]
-                , createElement spinnerComponent
-                                { spBaz: "spinner BAZ from app" }
+                , createElement spinner
+                                { spBaz      : "spinner BAZ from app"
+                                , appContext : props.appContext
+                                }
                                 []
                 ]
 
@@ -71,17 +73,9 @@ appRender ctx =
            [ text "just do it!" ]
   ]--}
 
-  {-- where -- TODO FIXME This React component class will be created for each --}
-    --            component independently. We need to use single class
-    --            anywhere (provide components with bound `AppContext`
-    --            from `AppContext`?)
-    spinnerComponent = spinner ctx
-
 app
-  :: forall eff
-   . AppContext (StoreConnectEff eff)
-  -> ReactClass {}
-app ctx = storeConnect ctx f $ appRender ctx
+  :: forall eff . ReactClass { appContext :: AppContext (StoreConnectEff eff) }
+app = storeConnect f appRender
   where
     f appState = merge { appFoo: appState.currentLocation }
 
@@ -112,7 +106,12 @@ runApp = do
     Navigate route -> liftEff' $ navigateToRoute route
     _              -> pure unit
 
-  void $ render (createElement (app appCtx) {} []) appEl
+  -- Convention about passing `appContext` property:
+  --   1. Every component must require to receive `appContext` prop;
+  --   2. Every component must pass `appContext` prop to every child component.
+  -- This will help to connect to store at any level of components tree without
+  -- changing anything else but that component.
+  void $ render (createElement app { appContext: appCtx } []) appEl
 
   where
 
