@@ -4,11 +4,11 @@ module Component.Spinner
 
 import Prelude hiding (div)
 
-import React (ReactClass, createClassStateless)
+import React (ReactClass)
 import React.DOM (div', div, text)
 import React.DOM.Props (className)
 
-import Utils (StoreConnectEff)
+import Utils (StoreConnectEff, createClassStatelessWithSpec)
 import App.Store (AppContext)
 
 
@@ -16,11 +16,16 @@ spinnerRender
   :: forall eff
    . ReactClass { appContext :: AppContext (StoreConnectEff eff) }
 
-spinnerRender = createClassStateless $ \props -> div
+spinnerRender = createClassStatelessWithSpec specMiddleware $ const $ div
   [ className "circle-spinner--with-label" ]
   [ div' [ text $ "Загрузка…" ]
   , div [ className "circle-spinner--icon" ] []
   ]
+
+  where
+    specMiddleware = _
+      { shouldComponentUpdate = \_ _ _ -> pure false
+      }
 
 
 spinner

@@ -1,7 +1,7 @@
 module Utils
-     ( module Utils.StoreConnect
-     , module Utils.ReactComponent
+     ( module StoreConnect
+     , module ReactComponent
      ) where
 
-import Utils.StoreConnect
-import Utils.ReactComponent
+import Utils.StoreConnect as StoreConnect
+import Utils.ReactComponent as ReactComponent

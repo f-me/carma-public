@@ -96,11 +96,6 @@ runApp = do
     Navigate route -> liftEff' $ navigateToRoute route
     _              -> pure unit
 
-  -- Convention about passing `appContext` property:
-  --   1. Every component must require to receive `appContext` prop;
-  --   2. Every component must pass `appContext` prop to every child component.
-  -- This will help to connect to store at any level of components tree without
-  -- changing anything else but that component.
   void $ render (createElement app { appContext: appCtx } []) appEl
 
   where
