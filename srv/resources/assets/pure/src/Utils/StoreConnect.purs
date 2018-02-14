@@ -10,21 +10,19 @@ import Prelude
 import Data.Maybe (Maybe (..))
 import Data.Record.Builder (Builder, build)
 
-import Control.Monad.Eff (kind Effect, Eff)
+import Control.Monad.Eff (kind Effect)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Aff (liftEff')
 
-import React ( ReactSpec, ReactThis, ReactClass
-             , ReactProps, ReactState, ReactRefs
+import React ( ReactClass, ReactProps, ReactState, ReactRefs
              , ReadWrite, ReadOnly
              , createClass, spec', createElement
              , transformState, readState
              , getProps
              )
 
-import App.Store ( StoreSubscriber, StoreSubscription
-                 , AppContext, AppAction, AppState
+import App.Store ( StoreSubscription, AppContext, AppState
                  , subscribe, unsubscribe, getAppState
                  )
 

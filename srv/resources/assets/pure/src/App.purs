@@ -7,9 +7,8 @@ import Data.Record.Builder (merge)
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.Aff (liftEff')
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Ref (REF)
-import Control.Monad.Trans.Class (lift)
 import Control.Monad.Eff.Exception.Unsafe (unsafeThrow)
 
 import DOM (DOM)
@@ -23,12 +22,11 @@ import DOM.Node.Types ( Element
                       , documentToNonElementParentNode
                       ) as DOM
 
-import React (ReactClass, createClassStateless, createClass, spec, getProps, createElement)
+import React (ReactClass, getProps, createElement)
 import ReactDOM (render)
-import React.DOM (div', h1', h2', text, button)
-import React.DOM.Props (onClick)
+import React.DOM (div', h1', text)
 
-import Utils (StoreConnectEff, storeConnect)
+import Utils (StoreConnectEff, storeConnect, createClassStatelessWithSpec)
 import Router (Location (..), initRouter, navigateToRoute)
 import Component.Spinner (spinner)
 
@@ -42,42 +40,33 @@ import App.Store ( AppContext
 
 
 appRender
-  :: forall eff. ReactClass { appFoo     :: Location
-                            , appContext :: AppContext (StoreConnectEff eff)
-                            }
-appRender =
-  {-- createClassStateless $ \props -> div' --}
+  :: forall eff
+   . ReactClass { location   :: Location
+                , appContext :: AppContext (StoreConnectEff eff)
+                }
 
-  createClass $ spec unit renderFn # _
-    { shouldComponentUpdate = \_ _ _ -> pure false
-    }
+appRender = createClassStatelessWithSpec specMiddleware $ \props -> div' $
+
+  case props.location of
+    {-- DiagTreeEditPartial -> --}
+    _ -> [ h1' [text "Loading…"]
+         , createElement spinner { appContext : props.appContext } []
+         ]
 
   where
-    renderFn this = do
-      log "app render called"
-      props <- getProps this
-      case props.appFoo of
-           {-- DiagTreeEditPartial -> --}
-           _ -> pure $ div'
-                [ h1' [text $ "Loading…" <> show props.appFoo]
-                , createElement spinner
-                                { spBaz      : "spinner BAZ from app"
-                                , appContext : props.appContext
-                                }
-                                []
-                ]
+    specMiddleware = _
+      { shouldComponentUpdate = \this nextProps _ ->
+          getProps this <#> _.location <#> (_ /= nextProps.location)
+      }
 
-  {--[ h1' [ text $ show state.currentLocation ]
-  , h2' [ text "some testing text" ]
-  , button [ onClick (const $ dispatch $ Navigate DiagTreeEditPartial) ]
-           [ text "just do it!" ]
-  ]--}
 
 app
-  :: forall eff . ReactClass { appContext :: AppContext (StoreConnectEff eff) }
+  :: forall eff
+   . ReactClass { appContext :: AppContext (StoreConnectEff eff) }
+
 app = storeConnect f appRender
   where
-    f appState = merge { appFoo: appState.currentLocation }
+    f appState = merge { location: appState.currentLocation }
 
 
 runApp
@@ -88,6 +77,7 @@ runApp
                            | eff
                            )
          ) Unit
+
 runApp = do
   (appEl :: DOM.Element) <-
     DOM.window
