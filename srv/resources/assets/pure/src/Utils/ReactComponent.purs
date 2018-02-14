@@ -44,7 +44,7 @@ type SpecMiddleware props eff
   -> ReactSpec (RequiredProps props eff) Unit (props :: ReactProps | eff)
 
 
--- Helper that works kinda `createClassStateless`
+-- Helper that works kinda like `createClassStateless`
 -- but provides ability to customize `ReactSpec`.
 -- This could be useful for example to set `shouldComponentUpdate`.
 createClassStatelessWithSpec

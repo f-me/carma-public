@@ -37,9 +37,10 @@ locationHash DiagTreeEditPartial = "partial/diag-tree-edit"
 
 
 routing :: Match Location
-routing  =  f DiagTreeEditPartial (partials *> lit "diag-tree-edit")
-        <|> (NotFound <$ str)
-        <|> pure Empty
+routing
+   =  f DiagTreeEditPartial (partials *> lit "diag-tree-edit")
+  <|> (NotFound <$ str)
+  <|> pure Empty
 
   where
 
@@ -55,6 +56,7 @@ initRouter
   :: forall eff
    . (Location -> Eff (dom :: DOM, ref :: REF | eff) Unit)
   -> Eff (dom :: DOM, ref :: REF | eff) Unit
+
 initRouter notify = void $ matches routing $ \oldRoute newRoute ->
 
   let isPassed = fromMaybe true $ (_ /= newRoute) <$> oldRoute

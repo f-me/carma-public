@@ -22,7 +22,7 @@
     "pulp": "pulp",
     "purs": "purs",
     "webpack": "webpack",
-    "clean": "rm -rf ../../static/build/pureFrontend",
+    "clean": "rm -rf output && rm -rf ../../static/build/pureFrontend",
     "build": "npm run webpack -- --progress --colors",
     "clean-build": "npm run clean && npm run build",
     "prod-build": "env NODE_ENV=production npm run webpack -- --progress --colors",
