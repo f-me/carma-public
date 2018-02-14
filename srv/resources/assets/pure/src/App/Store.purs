@@ -147,7 +147,7 @@ subscribe (AppContext ctx) subscriber =
       subscription = StoreSubscription nextId
       updated = Tuple (nextId + 1) $ insert subscription subscriber s
     in
-      {state: updated, value: subscription}
+      { state: updated, value: subscription }
 
 
 unsubscribe
