@@ -2,7 +2,7 @@ module Main (_main) where
 
 import Prelude
 import Control.Monad.Eff.Unsafe (unsafePerformEff)
-import App (runApp)
+import ApplicationInit (runApplication)
 
 _main :: Unit
-_main = unsafePerformEff runApp
+_main = unsafePerformEff runApplication

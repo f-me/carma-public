@@ -1,9 +1,8 @@
-module App (runApp) where
+module ApplicationInit (runApplication) where
 
 import Prelude
 
 import Data.Maybe (Maybe (..))
-import Data.Record.Builder (merge)
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.Aff (liftEff')
@@ -22,16 +21,14 @@ import DOM.Node.Types ( Element
                       , documentToNonElementParentNode
                       ) as DOM
 
-import React (ReactClass, getProps, createElement)
+import React (createElement)
 import ReactDOM (render)
-import React.DOM (div', h1', text)
 
-import Utils (StoreConnectEff, storeConnect, createClassStatelessWithSpec)
+import Utils (StoreConnectEff)
 import Router (Location (..), initRouter, navigateToRoute)
-import Component.Spinner (spinner)
+import Component.App (app)
 
-import App.Store ( AppContext
-                 , AppState
+import App.Store ( AppState
                  , AppAction (..)
                  , createAppContext
                  , dispatch
@@ -39,37 +36,7 @@ import App.Store ( AppContext
                  )
 
 
-appRender
-  :: forall eff
-   . ReactClass { location   :: Location
-                , appContext :: AppContext (StoreConnectEff eff)
-                }
-
-appRender = createClassStatelessWithSpec specMiddleware $ \props -> div' $
-
-  case props.location of
-    {-- DiagTreeEditPartial -> --}
-    _ -> [ h1' [text "Loading…"]
-         , createElement spinner { appContext : props.appContext } []
-         ]
-
-  where
-    specMiddleware = _
-      { shouldComponentUpdate = \this nextProps _ ->
-          getProps this <#> _.location <#> (_ /= nextProps.location)
-      }
-
-
-app
-  :: forall eff
-   . ReactClass { appContext :: AppContext (StoreConnectEff eff) }
-
-app = storeConnect f appRender
-  where
-    f appState = merge { location: appState.currentLocation }
-
-
-runApp
+runApplication
   :: forall eff
    . Eff ( StoreConnectEff ( console :: CONSOLE
                            , dom :: DOM
@@ -78,7 +45,7 @@ runApp
                            )
          ) Unit
 
-runApp = do
+runApplication = do
   (appEl :: DOM.Element) <-
     DOM.window
     >>= DOM.document
