@@ -1,5 +1,7 @@
 module Utils
      ( StoreConnectEff
+     , StoreConnectProps
+     , StoreSelector
      , storeConnect
      ) where
 
@@ -35,7 +37,7 @@ type StoreConnectEff eff =
   | eff
   ) :: # Effect
 
-type PropsWithAppContext eff props =
+type StoreConnectProps eff props =
   { appContext :: AppContext ( props :: ReactProps
                              , state :: ReactState ReadWrite
                              , refs  :: ReactRefs  ReadOnly
@@ -45,15 +47,15 @@ type PropsWithAppContext eff props =
   | props
   }
 
+type StoreSelector eff props1 props2
+   = AppState
+  -> Builder (StoreConnectProps eff props1) (StoreConnectProps eff props2)
+
 storeConnect
   :: forall eff props1 props2
-   . (
-       AppState
-       -> Builder (PropsWithAppContext eff props1)
-                  (PropsWithAppContext eff props2)
-     )
-  -> ReactClass (PropsWithAppContext eff props2)
-  -> ReactClass (PropsWithAppContext eff props1)
+   . StoreSelector eff props1 props2
+  -> ReactClass (StoreConnectProps eff props2)
+  -> ReactClass (StoreConnectProps eff props1)
 
 storeConnect storeSelector child = createClass spec
 
