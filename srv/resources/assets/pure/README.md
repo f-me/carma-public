@@ -291,7 +291,20 @@ PureScript is **strict** by default!
     produced js code, they're named like this just by convention but they can be
     named differently.
 
-14. **About some packages**:
+14. **About imports**:
+
+    In **PureScript** you don't have `qualified` imports,
+    if an import have `as` alias it **is** `qualified`.
+
+    In **PureScript** `as` keyword must be places after everything
+    (even after explicit imports).
+
+    | PureScript                     | Haskell                                  |
+    | ---                            | ---                                      |
+    | `import Data.Foo as Foo`       | `import qualified Data.Foo as Foo`       |
+    | `import Data.Foo as Foo (foo)` | `import qualified Data.Foo (foo) as Foo` |
+
+15. **About some packages**:
 
     - `Maybe` isn't included, install `purescript-maybe`
     - `purescript-console` for writing to the console
