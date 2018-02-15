@@ -29,7 +29,7 @@ module Utils.ReactComponent
 import Prelude
 
 import React ( ReactElement, ReactClass, ReactSpec, ReactProps
-             , createClass, spec, getProps, getChildren
+             , class ReactRender, createClass, spec, getProps, getChildren
              )
 
 import Utils.StoreConnect (StoreConnectEff)
@@ -39,18 +39,19 @@ import App.Store (AppContext)
 type RequiredProps props eff =
   { appContext :: AppContext (StoreConnectEff eff) | props }
 
-type SpecMiddleware props eff
-   = ReactSpec (RequiredProps props eff) Unit (props :: ReactProps | eff)
-  -> ReactSpec (RequiredProps props eff) Unit (props :: ReactProps | eff)
+type SpecMiddleware props render eff
+   = ReactSpec (RequiredProps props eff) Unit render (props :: ReactProps | eff)
+  -> ReactSpec (RequiredProps props eff) Unit render (props :: ReactProps | eff)
 
 
 -- Helper that works kinda like `createClassStateless`
 -- but provides ability to customize `ReactSpec`.
 -- This could be useful for example to set `shouldComponentUpdate`.
 createClassStatelessWithSpec
-  :: forall props eff
-   . SpecMiddleware props eff
-  -> (RequiredProps props eff -> ReactElement)
+  :: forall props render eff
+   . ReactRender render
+  => SpecMiddleware props render eff
+  -> (RequiredProps props eff -> render)
   -> ReactClass (RequiredProps props eff)
 
 createClassStatelessWithSpec specMiddleware pureRender =
@@ -60,9 +61,10 @@ createClassStatelessWithSpec specMiddleware pureRender =
 -- See `createClassStatelessWithSpec`, this one just can deal with children,
 -- as `createClassStateless'` can comparing with `createClassStateless`.
 createClassStatelessWithSpec'
-  :: forall props eff
-   . SpecMiddleware props eff
-  -> (RequiredProps props eff -> Array ReactElement -> ReactElement)
+  :: forall props render eff
+   . ReactRender render
+  => SpecMiddleware props render eff
+  -> (RequiredProps props eff -> Array ReactElement -> render)
   -> ReactClass (RequiredProps props eff)
 
 createClassStatelessWithSpec' specMiddleware pureRender =
