@@ -1,12 +1,5 @@
-module App.Store.DiagTree.Editor
+module App.Store.DiagTree.Editor.Reducers
      ( DiagTreeEditorState
-     , DiagTreeEditorAction (..)
-     , LoadSlidesFailureReason (..)
-
-     , DiagTreeSlideId
-     , DiagTreeSlides
-     , DiagTreeSlide
-
      , diagTreeEditorInitialState
      , diagTreeEditorReducer
      ) where
@@ -14,7 +7,14 @@ module App.Store.DiagTree.Editor
 import Prelude
 
 import Data.Maybe (Maybe (..))
-import Data.Map (Map, empty)
+import Data.Map (empty)
+
+import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId)
+
+import App.Store.DiagTree.Editor.Actions
+     ( DiagTreeEditorAction (..)
+     , LoadSlidesFailureReason (..)
+     )
 
 
 type DiagTreeEditorState =
@@ -37,17 +37,6 @@ diagTreeEditorInitialState =
   , isSlidesLoadingFailed     : false
   , isParsingSlidesDataFailed : false
   }
-
-
-data DiagTreeEditorAction
-  = LoadSlidesRequest
-
-  | LoadSlidesSuccess
-      { slides    :: DiagTreeSlides
-      , rootSlide :: DiagTreeSlideId
-      }
-
-  | LoadSlidesFailure LoadSlidesFailureReason
 
 
 diagTreeEditorReducer
@@ -80,16 +69,3 @@ diagTreeEditorReducer state (LoadSlidesFailure ParsingSlidesDataFailed) =
                , isSlidesLoadingFailed     = true
                , isParsingSlidesDataFailed = true
                }
-
-
-type DiagTreeSlideId = Int
-type DiagTreeSlides  = Map DiagTreeSlideId DiagTreeSlide
-
-type DiagTreeSlide =
-  { id     :: DiagTreeSlideId
-  , isRoot :: Boolean
-  }
-
-data LoadSlidesFailureReason
-  = LoadingSlidesFailed
-  | ParsingSlidesDataFailed

@@ -1,9 +1,6 @@
 module App.Store.Types
-     ( AppState
-     , AppAction (..)
-     , StoreReducer
+     ( StoreReducer
      , StoreSubscriber
-     , appInitialState
      ) where
 
 import Prelude
@@ -13,23 +10,8 @@ import Data.Maybe (Maybe)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Aff (Aff)
 
-import Router (Location (Empty))
-
-import App.Store.DiagTree ( DiagTreeState
-                          , DiagTreeAction
-                          , diagTreeInitialState
-                          )
-
-
-type AppState =
-  { currentLocation :: Location
-  , diagTree        :: DiagTreeState
-  }
-
-
-data AppAction
-  = Navigate Location
-  | DiagTree DiagTreeAction
+import App.Store.Actions (AppAction)
+import App.Store.Reducers (AppState)
 
 
 -- `Maybe` here to be able to avoid notifying subscribers
@@ -39,10 +21,3 @@ type StoreReducer =
 
 type StoreSubscriber eff =
   AppState -> AppAction -> Aff (ref :: REF | eff) Unit
-
-
-appInitialState :: AppState
-appInitialState =
-  { currentLocation : Empty
-  , diagTree        : diagTreeInitialState
-  }

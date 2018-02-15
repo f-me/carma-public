@@ -28,15 +28,9 @@ import Utils (StoreConnectEff)
 import Router (initRouter, navigateToRoute)
 import Component.App (app)
 
-import App.Store ( AppState
-                 , AppAction (..)
-                 , appInitialState
-                 , createAppContext
-                 , dispatch
-                 , subscribe
-                 )
-
-import App.Store.DiagTree (diagTreeReducer)
+import App.Store (createAppContext, subscribe, dispatch)
+import App.Store.Actions (AppAction (Navigate))
+import App.Store.Reducers (appInitialState, appReducer)
 
 
 runApplication
@@ -59,23 +53,11 @@ runApplication = do
              Nothing -> unsafeThrow "#app element not found"
              Just el -> pure el
 
-  appCtx <- createAppContext storeReducer appInitialState
+  appCtx <- createAppContext appReducer appInitialState
   initRouter $ dispatch appCtx <<< Navigate
 
   void $ subscribe appCtx $ const $ case _ of
     Navigate route -> liftEff' $ navigateToRoute route
     _              -> pure unit
 
-  void $ render (createElement app { appContext: appCtx } []) appEl
-
-  where
-
-    storeReducer :: AppState -> AppAction -> Maybe AppState
-
-    storeReducer state (Navigate route) =
-      if state.currentLocation /= route
-         then Just $ state { currentLocation = route }
-         else Nothing
-
-    storeReducer state (DiagTree x) =
-      diagTreeReducer state.diagTree x <#> state { diagTree = _ }
+  void $ flip render appEl $ createElement app { appContext: appCtx } []

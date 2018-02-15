@@ -1,6 +1,5 @@
-module App.Store.DiagTree
+module App.Store.DiagTree.Reducers
      ( DiagTreeState
-     , DiagTreeAction (..)
      , diagTreeInitialState
      , diagTreeReducer
      ) where
@@ -9,9 +8,10 @@ import Prelude
 
 import Data.Maybe (Maybe)
 
-import App.Store.DiagTree.Editor
+import App.Store.DiagTree.Actions (DiagTreeAction (..))
+
+import App.Store.DiagTree.Editor.Reducers
      ( DiagTreeEditorState
-     , DiagTreeEditorAction
      , diagTreeEditorInitialState
      , diagTreeEditorReducer
      )
@@ -26,9 +26,6 @@ diagTreeInitialState =
   { editor: diagTreeEditorInitialState
   }
 
-
-data DiagTreeAction
-  = Editor DiagTreeEditorAction
 
 diagTreeReducer :: DiagTreeState -> DiagTreeAction -> Maybe DiagTreeState
 diagTreeReducer state (Editor x) =

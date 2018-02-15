@@ -34,7 +34,6 @@
 module App.Store
      ( AppContext
      , StoreSubscription
-     , module App.Store.Types
      , createAppContext
      , getAppState
      , dispatch
@@ -56,12 +55,9 @@ import Control.Monad.Eff.Ref ( Ref, REF
                              , newRef, readRef, writeRef, modifyRef, modifyRef'
                              )
 
-import App.Store.Types ( AppState
-                       , AppAction (..)
-                       , StoreReducer
-                       , StoreSubscriber
-                       , appInitialState
-                       )
+import App.Store.Actions (AppAction)
+import App.Store.Reducers (AppState)
+import App.Store.Types (StoreReducer, StoreSubscriber)
 
 
 newtype StoreSubscription = StoreSubscription Int

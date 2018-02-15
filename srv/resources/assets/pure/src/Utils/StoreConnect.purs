@@ -22,7 +22,9 @@ import React ( ReactClass, ReactProps, ReactState, ReactRefs
              , getProps
              )
 
-import App.Store ( StoreSubscription, AppContext, AppState
+import App.Store.Reducers (AppState)
+
+import App.Store ( AppContext, StoreSubscription
                  , subscribe, unsubscribe, getAppState
                  )
 
