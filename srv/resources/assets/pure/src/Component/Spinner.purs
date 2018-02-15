@@ -24,7 +24,8 @@ spinnerRender = createClassStatelessWithSpec specMiddleware $ const $ div
 
   where
     specMiddleware = _
-      { shouldComponentUpdate = \_ _ _ -> pure false
+      { displayName = "Spinner"
+      , shouldComponentUpdate = \_ _ _ -> pure false
       }
 
 

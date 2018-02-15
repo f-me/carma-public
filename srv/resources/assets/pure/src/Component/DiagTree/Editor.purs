@@ -4,11 +4,11 @@ module Component.DiagTree.Editor
 
 import Prelude
 
-import React (ReactClass, createClassStateless)
+import React (ReactClass)
 import React.DOM (IsDynamic (IsDynamic), mkDOM, text, h1')
 import React.DOM.Props (className)
 
-import Utils (StoreConnectEff)
+import Utils (StoreConnectEff, createClassStatelessWithSpec)
 import App.Store (AppContext)
 
 
@@ -16,12 +16,14 @@ diagTreeEditorRender
   :: forall eff
    . ReactClass { appContext :: AppContext (StoreConnectEff eff) }
 
-diagTreeEditorRender = createClassStateless $ \props -> wrapper
+diagTreeEditorRender = f $ \props -> wrap
   [ h1' [text "TODO diag tree editor"]
   ]
 
   where
-    wrapper = mkDOM (IsDynamic false) "diag-tree-editor" [className "container"]
+    wrap = mkDOM (IsDynamic false) "diag-tree-editor" [className "container"]
+    f = createClassStatelessWithSpec specMiddleware
+    specMiddleware = _ { displayName = "DiagTreeEditor" }
 
 
 diagTreeEditor

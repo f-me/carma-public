@@ -40,7 +40,8 @@ appRender = createClassStatelessWithSpec specMiddleware $ \props -> div' $
 
   where
     specMiddleware = _
-      { shouldComponentUpdate = \this nextProps _ ->
+      { displayName = "App"
+      , shouldComponentUpdate = \this nextProps _ ->
           getProps this <#> _.location <#> (_ /= nextProps.location)
       }
 
