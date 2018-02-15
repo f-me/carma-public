@@ -52,7 +52,8 @@ PureScript is **strict** by default!
 
    In PureScript using unicode is allowed by default.
 
-   Basic unicode symbols also included (such as `∷`, `→`, `⇒`, `⇐`, `∀`, etc.)
+   Basic unicode symbols also included
+   (such as `∷`, `←`, `→`, `⇐`, `⇒`, `∀`, etc.)
 
 4. **Basic operators equivalents** (those which differ):
 
