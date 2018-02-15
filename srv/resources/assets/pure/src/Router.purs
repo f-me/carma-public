@@ -26,8 +26,8 @@ data Location
   | NotFound
 
 derive instance eqLocation :: Eq Location
-derive instance genericShow :: Generic Location
-instance eqShow :: Show Location where show = gShow
+derive instance genericLocation :: Generic Location
+instance showLocation :: Show Location where show = gShow
 
 -- Backward mapping for navigating by `Location`s.
 locationHash :: Location -> String
