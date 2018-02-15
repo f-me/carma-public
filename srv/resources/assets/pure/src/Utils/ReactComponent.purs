@@ -34,12 +34,12 @@ import React ( ReactElement, ReactClass, ReactSpec, ReactProps
              , class ReactRender, createClass, spec, getProps, getChildren
              )
 
-import Utils.StoreConnect (StoreConnectEff)
 import App.Store (AppContext)
+import App.Store.Types (StoreConnectEffects)
 
 
 type RequiredProps props eff =
-  { appContext :: AppContext (StoreConnectEff eff) | props }
+  { appContext :: AppContext (StoreConnectEffects eff) | props }
 
 type SpecMiddleware props render eff
    = ReactSpec (RequiredProps props eff) Unit render (props :: ReactProps | eff)

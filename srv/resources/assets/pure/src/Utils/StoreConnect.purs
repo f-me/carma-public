@@ -1,6 +1,5 @@
 module Utils.StoreConnect
-     ( StoreConnectEff
-     , StoreConnectProps
+     ( StoreConnectProps
      , StoreSelector
      , storeConnect
      ) where
@@ -10,7 +9,6 @@ import Prelude
 import Data.Maybe (Maybe (..))
 import Data.Record.Builder (Builder, build)
 
-import Control.Monad.Eff (kind Effect)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Aff (liftEff')
@@ -29,14 +27,6 @@ import App.Store ( AppContext, StoreSubscription
                  )
 
 
-type StoreConnectEff eff =
-  ( props :: ReactProps
-  , state :: ReactState ReadWrite
-  , refs  :: ReactRefs  ReadOnly
-  , ref   :: REF
-  | eff
-  ) :: # Effect
-
 type StoreConnectProps eff props =
   { appContext :: AppContext ( props :: ReactProps
                              , state :: ReactState ReadWrite
@@ -50,6 +40,7 @@ type StoreConnectProps eff props =
 type StoreSelector eff props1 props2
    = AppState
   -> Builder (StoreConnectProps eff props1) (StoreConnectProps eff props2)
+
 
 storeConnect
   :: forall eff props1 props2

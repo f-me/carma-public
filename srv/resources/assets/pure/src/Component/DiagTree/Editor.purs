@@ -8,13 +8,14 @@ import React (ReactClass)
 import React.DOM (IsDynamic (IsDynamic), mkDOM, text, h1')
 import React.DOM.Props (className)
 
-import Utils (StoreConnectEff, createClassStatelessWithName)
+import Utils (createClassStatelessWithName)
 import App.Store (AppContext)
+import App.Store.Types (StoreConnectEffects)
 
 
 diagTreeEditorRender
   :: forall eff
-   . ReactClass { appContext :: AppContext (StoreConnectEff eff) }
+   . ReactClass { appContext :: AppContext (StoreConnectEffects eff) }
 
 diagTreeEditorRender = f $ \props -> wrap
   [ h1' [text "TODO diag tree editor"]
@@ -27,6 +28,6 @@ diagTreeEditorRender = f $ \props -> wrap
 
 diagTreeEditor
   :: forall eff
-   . ReactClass { appContext :: AppContext (StoreConnectEff eff) }
+   . ReactClass { appContext :: AppContext (StoreConnectEffects eff) }
 
 diagTreeEditor = diagTreeEditorRender
