@@ -8,7 +8,7 @@ import React (ReactClass)
 import React.DOM (IsDynamic (IsDynamic), mkDOM, text, h1')
 import React.DOM.Props (className)
 
-import Utils (StoreConnectEff, createClassStatelessWithSpec)
+import Utils (StoreConnectEff, createClassStatelessWithName)
 import App.Store (AppContext)
 
 
@@ -22,8 +22,7 @@ diagTreeEditorRender = f $ \props -> wrap
 
   where
     wrap = mkDOM (IsDynamic false) "diag-tree-editor" [className "container"]
-    f = createClassStatelessWithSpec specMiddleware
-    specMiddleware = _ { displayName = "DiagTreeEditor" }
+    f = createClassStatelessWithName "DiagTreeEditor"
 
 
 diagTreeEditor

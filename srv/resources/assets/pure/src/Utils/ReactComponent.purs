@@ -24,6 +24,8 @@ module Utils.ReactComponent
      ( RequiredProps
      , createClassStatelessWithSpec
      , createClassStatelessWithSpec'
+     , createClassStatelessWithName
+     , createClassStatelessWithName'
      ) where
 
 import Prelude
@@ -72,3 +74,28 @@ createClassStatelessWithSpec' specMiddleware pureRender =
     props    <- getProps    this
     children <- getChildren this
     pure $ pureRender props children
+
+
+-- Helper to just
+createClassStatelessWithName
+  :: forall props render eff
+   . ReactRender render
+  => String
+  -> (RequiredProps props eff -> render)
+  -> ReactClass (RequiredProps props eff)
+
+createClassStatelessWithName name =
+  createClassStatelessWithSpec _ { displayName = name }
+
+
+-- See `createClassStatelessWithName`, this one just can deal with children,
+-- as `createClassStateless'` can comparing with `createClassStateless`.
+createClassStatelessWithName'
+  :: forall props render eff
+   . ReactRender render
+  => String
+  -> (RequiredProps props eff -> Array ReactElement -> render)
+  -> ReactClass (RequiredProps props eff)
+
+createClassStatelessWithName' name =
+  createClassStatelessWithSpec' _ { displayName = name }
