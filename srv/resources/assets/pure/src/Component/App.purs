@@ -13,6 +13,7 @@ import Utils (StoreConnectEff, storeConnect, createClassStatelessWithSpec)
 import Router (Location (..))
 import App.Store (AppContext)
 import Component.Spinner (spinner)
+import Component.DiagTree.Editor (diagTreeEditor)
 
 
 appRender
@@ -26,7 +27,7 @@ appRender = createClassStatelessWithSpec specMiddleware $ \props -> div' $
   case props.location of
 
     DiagTreeEditPartial ->
-      [ h1' [text "TODO редактирование дерева диагностики"]
+      [ createElement diagTreeEditor { appContext : props.appContext } []
       ]
 
     NotFound ->
