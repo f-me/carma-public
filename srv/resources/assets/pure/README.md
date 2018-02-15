@@ -293,7 +293,7 @@ PureScript is **strict** by default!
 
 14. **About imports**:
 
-    In **PureScript** you don't have `qualified` imports,
+    In **PureScript** you don't have `qualified` keyword for imports,
     if an import have `as` alias it **is** `qualified`.
 
     In **PureScript** `as` keyword must be places after everything
