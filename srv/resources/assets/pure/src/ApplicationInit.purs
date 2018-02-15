@@ -25,15 +25,18 @@ import React (createElement)
 import ReactDOM (render)
 
 import Utils (StoreConnectEff)
-import Router (Location (..), initRouter, navigateToRoute)
+import Router (initRouter, navigateToRoute)
 import Component.App (app)
 
 import App.Store ( AppState
                  , AppAction (..)
+                 , appInitialState
                  , createAppContext
                  , dispatch
                  , subscribe
                  )
+
+import App.Store.DiagTree (diagTreeReducer)
 
 
 runApplication
@@ -67,11 +70,12 @@ runApplication = do
 
   where
 
-    appInitialState :: AppState
-    appInitialState = { currentLocation: Empty
-                      }
+    storeReducer :: AppState -> AppAction -> Maybe AppState
 
     storeReducer state (Navigate route) =
       if state.currentLocation /= route
-         then Just $ state {currentLocation = route}
+         then Just $ state { currentLocation = route }
          else Nothing
+
+    storeReducer state (DiagTree x) =
+      diagTreeReducer state.diagTree x <#> state { diagTree = _ }

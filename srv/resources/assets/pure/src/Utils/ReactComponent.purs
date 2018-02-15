@@ -76,7 +76,7 @@ createClassStatelessWithSpec' specMiddleware pureRender =
     pure $ pureRender props children
 
 
--- Helper to just
+-- Helper to just set display-name to a component.
 createClassStatelessWithName
   :: forall props render eff
    . ReactRender render

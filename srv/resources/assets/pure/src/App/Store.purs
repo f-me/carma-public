@@ -33,10 +33,8 @@
 
 module App.Store
      ( AppContext
-     , AppState
-     , AppAction (..)
-     , StoreSubscriber
      , StoreSubscription
+     , module App.Store.Types
      , createAppContext
      , getAppState
      , dispatch
@@ -51,35 +49,24 @@ import Data.Tuple (Tuple (Tuple), snd)
 import Data.Maybe (Maybe (..))
 import Data.Foldable (foldM)
 
-import Control.Monad.Aff (Aff, launchAff_)
+import Control.Monad.Aff (launchAff_)
 import Control.Monad.Eff (Eff)
+
 import Control.Monad.Eff.Ref ( Ref, REF
                              , newRef, readRef, writeRef, modifyRef, modifyRef'
                              )
 
-import Router (Location)
+import App.Store.Types ( AppState
+                       , AppAction (..)
+                       , StoreReducer
+                       , StoreSubscriber
+                       , appInitialState
+                       )
 
-
-type AppState =
-  { currentLocation :: Location
-  }
-
-data AppAction
-  = Navigate Location
-
-derive instance eqAppAction :: Eq AppAction
 
 newtype StoreSubscription = StoreSubscription Int
 derive instance eqStoreSubscriberId :: Eq StoreSubscription
 derive instance ordStoreSubscriberId :: Ord StoreSubscription
-
--- `Maybe` here to be able to avoid notifying subscribers
--- (when state isn't changed for example).
-type StoreReducer =
-  AppState -> AppAction -> Maybe AppState
-
-type StoreSubscriber eff =
-  AppState -> AppAction -> Aff (ref :: REF | eff) Unit
 
 type StoreSubscribers eff = Tuple
   Int
