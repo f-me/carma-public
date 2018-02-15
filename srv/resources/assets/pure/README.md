@@ -2,7 +2,7 @@
 
 ## How to deploy
 
-- `npm i && npm run bower install` to install dependencies
+- `npm i && npm run bower i` to install dependencies
 - `npm run build` to build a bundle
 - `npm run clean` to clean bundle and built PureScript modules (`output` dir)
 - `npm run clean-build` to build a bundle from scratch
