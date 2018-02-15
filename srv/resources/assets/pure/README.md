@@ -64,6 +64,8 @@ PureScript is **strict** by default!
    | `(#)`                           | `(Data.Function.&)` from `base` package            |
    | `(<#>)`                         | `(Control.Lens.Operators.<&>)` from `lens` package |
    | `(<>)` (`Semigroup` type class) | `(++)`                                             |
+   | `a >>= const b`                 | `a >> b`                                           |
+   | `const b =<< a`                 | `b << a`                                           |
 
 5. **Basic functions equivalents** (those which differ):
 
