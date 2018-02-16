@@ -6,6 +6,7 @@ import Data.Maybe (Maybe (..))
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception.Unsafe (unsafeThrow)
+import Control.Monad.Aff (launchAff_)
 
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (document) as DOM
@@ -43,6 +44,6 @@ runApplication = do
              Just el -> pure el
 
   appCtx <- createAppContext appReducer appInitialState
-  initRouter $ dispatch appCtx <<< Navigate
+  initRouter $ launchAff_ <<< dispatch appCtx <<< Navigate
   void $ subscribe appCtx $ appHandler appCtx
   void $ flip render appEl $ createElement app { appContext: appCtx } []

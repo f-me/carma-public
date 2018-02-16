@@ -28,7 +28,8 @@
     "purescript-refs": "^3.0.0",
     "purescript-maps": "^3.6.0",
     "purescript-tuples": "^4.1.0",
-    "purescript-record": "^0.2.6"
+    "purescript-record": "^0.2.6",
+    "purescript-newtype": "^2.0.0"
   },
   "devDependencies": {}
 }

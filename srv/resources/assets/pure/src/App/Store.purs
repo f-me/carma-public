@@ -48,12 +48,14 @@ import Data.Tuple (Tuple (Tuple), snd)
 import Data.Maybe (Maybe (..))
 import Data.Foldable (foldM)
 
-import Control.Monad.Aff (launchAff_)
+import Control.Monad.Aff (Aff, launchAff_)
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Class (liftEff)
 
-import Control.Monad.Eff.Ref ( Ref, REF
-                             , newRef, readRef, writeRef, modifyRef, modifyRef'
-                             )
+import Control.Monad.Eff.Ref
+     ( Ref, REF
+     , newRef, readRef, writeRef, modifyRef, modifyRef'
+     )
 
 import App.Store.Actions (AppAction)
 import App.Store.Reducers (AppState)
@@ -103,19 +105,18 @@ dispatch
   :: forall eff
    . AppContext eff
   -> AppAction
-  -> Eff (ref :: REF | eff) Unit
+  -> Aff (ref :: REF | eff) Unit
 
-dispatch (AppContext ctx) action = do
+dispatch (AppContext ctx) action = liftEff $ do
   appState         <- readRef ctx.store
   storeSubscribers <- readRef ctx.subscribers <#> snd
 
-  newAppState <-
-    case ctx.reducer appState action of
-         Just x  -> x <$ writeRef ctx.store x
-         Nothing -> pure appState
-
-  let f acc x = acc <$ launchAff_ (x newAppState action)
-  foldM f unit storeSubscribers
+  case ctx.reducer appState action of
+       Nothing -> pure unit -- TODO notify strict subscribers
+       Just newState -> do
+         writeRef ctx.store newState
+         let f acc subscriber = acc <$ launchAff_ (subscriber newState action)
+         foldM f unit storeSubscribers
 
 
 subscribe
