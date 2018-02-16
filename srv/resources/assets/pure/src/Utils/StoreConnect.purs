@@ -74,14 +74,17 @@ storeConnect storeSelector child = createClass spec
     spec = spec' initialState renderFn # _
       { displayName = "StoreConnect"
 
-      , componentDidMount = \this -> do
+      , componentWillMount = \this -> do
           let transformer appState = do
                 props <- getProps this <#> build (storeSelector appState)
                 transformState this $ _ { mappedProps = props }
 
           props <- getProps this
 
-          subscription <-
+          -- TODO FIXME `unsafeCoerceEff` because `WillMount` has
+          --            `refs :: ReactRefs Disallowed` effect
+          --            when `appContext` has `refs :: ReactRefs ReadOnly`
+          subscription <- unsafeCoerceEff $
             subscribe props.appContext $ storeUpdateHandler transformer
 
           transformState this $ _ { subscription = Just subscription }

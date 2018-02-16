@@ -6,7 +6,7 @@ import Prelude
 
 import Data.Record.Builder (merge)
 
-import Control.Monad.Aff (launchAff_, delay, Milliseconds (Milliseconds))
+import Control.Monad.Aff (launchAff_)
 import Control.Monad.Aff.Unsafe (unsafeCoerceAff)
 
 import React (ReactClass, getProps, createElement)
@@ -50,14 +50,8 @@ diagTreeEditorRender = f $ \props ->
       , componentDidMount = \this -> do
           props <- getProps this
 
-          launchAff_ $ do
-            -- TODO FIXME temporary hack to solve dispatching after all
-            --            subscribers are subscribed (parent `componentDidMount`
-            --            is executed after child one).
-            unsafeCoerceAff $ delay $ Milliseconds 0.0
-
-            unsafeCoerceAff $
-              dispatch props.appContext $ DiagTree $ Editor $ LoadSlidesRequest
+          launchAff_ $ unsafeCoerceAff $
+            dispatch props.appContext $ DiagTree $ Editor $ LoadSlidesRequest
       }
 
 
