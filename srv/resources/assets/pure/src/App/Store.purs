@@ -75,6 +75,7 @@ import Data.Maybe (Maybe (..), maybe, fromMaybe)
 import Data.Either (Either (..))
 import Data.Foldable (foldM)
 
+import Control.Monad.Rec.Class (forever)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Exception (error)
@@ -207,11 +208,7 @@ reduceLoop appCtx@(AppContext ctx) appReducer = guardOnlyOneInstance $ do
          else pure unit
 
       liftEff $ writeRef ctx.isReduceLoopStarted true
-
-      let infiniteLoop = do iter
-                            infiniteLoop
-
-      infiniteLoop
+      forever iter
 
 
 getAppState

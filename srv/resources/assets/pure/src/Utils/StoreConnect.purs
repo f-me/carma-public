@@ -9,6 +9,7 @@ import Data.Maybe (Maybe (..))
 import Data.Tuple (Tuple (Tuple))
 import Data.Record.Builder (Builder, build)
 
+import Control.Monad.Rec.Class (forever)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Exception (error)
 import Control.Monad.Aff (launchAff, launchAff_, killFiber)
@@ -72,12 +73,9 @@ storeConnect storeSelector child = createClass spec
                   x <- getProps this <#> build (storeSelector appState)
                   transformState this $ _ { mappedProps = x }
 
-                recursiveReact = do
-                  event <- takeVar bus
-                  liftEff $ transformer event.state
-                  recursiveReact
-
-            recursiveReact
+            forever $ do
+              event <- takeVar bus
+              liftEff $ transformer event.state
 
           transformState this $ _
             { subscription = Just (Tuple subscription fiber) }
