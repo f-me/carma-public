@@ -35,15 +35,14 @@ import React ( ReactElement, ReactClass, ReactSpec, ReactProps
              )
 
 import App.Store (AppContext)
-import App.Store.Types (StoreConnectEffects)
 
 
-type RequiredProps props eff =
-  { appContext :: AppContext (StoreConnectEffects eff) | props }
+type RequiredProps props =
+  { appContext :: AppContext | props }
 
 type SpecMiddleware props render eff
-   = ReactSpec (RequiredProps props eff) Unit render (props :: ReactProps | eff)
-  -> ReactSpec (RequiredProps props eff) Unit render (props :: ReactProps | eff)
+   = ReactSpec (RequiredProps props) Unit render (props :: ReactProps | eff)
+  -> ReactSpec (RequiredProps props) Unit render (props :: ReactProps | eff)
 
 
 -- Helper that works kinda like `createClassStateless`
@@ -53,8 +52,8 @@ createClassStatelessWithSpec
   :: forall props render eff
    . ReactRender render
   => SpecMiddleware props render eff
-  -> (RequiredProps props eff -> render)
-  -> ReactClass (RequiredProps props eff)
+  -> (RequiredProps props -> render)
+  -> ReactClass (RequiredProps props)
 
 createClassStatelessWithSpec specMiddleware pureRender =
   createClass $ specMiddleware $ spec unit $ getProps >>> map pureRender
@@ -66,8 +65,8 @@ createClassStatelessWithSpec'
   :: forall props render eff
    . ReactRender render
   => SpecMiddleware props render eff
-  -> (RequiredProps props eff -> Array ReactElement -> render)
-  -> ReactClass (RequiredProps props eff)
+  -> (RequiredProps props -> Array ReactElement -> render)
+  -> ReactClass (RequiredProps props)
 
 createClassStatelessWithSpec' specMiddleware pureRender =
   createClass $ specMiddleware $ spec unit $ \this -> do
@@ -78,11 +77,11 @@ createClassStatelessWithSpec' specMiddleware pureRender =
 
 -- Helper to just set display-name to a component.
 createClassStatelessWithName
-  :: forall props render eff
+  :: forall props render
    . ReactRender render
   => String
-  -> (RequiredProps props eff -> render)
-  -> ReactClass (RequiredProps props eff)
+  -> (RequiredProps props -> render)
+  -> ReactClass (RequiredProps props)
 
 createClassStatelessWithName name =
   createClassStatelessWithSpec _ { displayName = name }
@@ -91,11 +90,11 @@ createClassStatelessWithName name =
 -- See `createClassStatelessWithName`, this one just can deal with children,
 -- as `createClassStateless'` can comparing with `createClassStateless`.
 createClassStatelessWithName'
-  :: forall props render eff
+  :: forall props render
    . ReactRender render
   => String
-  -> (RequiredProps props eff -> Array ReactElement -> render)
-  -> ReactClass (RequiredProps props eff)
+  -> (RequiredProps props -> Array ReactElement -> render)
+  -> ReactClass (RequiredProps props)
 
 createClassStatelessWithName' name =
   createClassStatelessWithSpec' _ { displayName = name }

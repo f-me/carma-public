@@ -4,11 +4,14 @@ module App.Store.Handlers
 
 import Prelude
 
-import Control.Monad.Aff (Aff, liftEff')
+import Control.Monad.Aff (Aff)
+import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Console (CONSOLE)
+
+import DOM (DOM)
 
 import Router (navigateToRoute)
 import App.Store (AppContext)
-import App.Store.Types (AppContextEffects, StoreEffects)
 import App.Store.Actions (AppAction (..))
 import App.Store.Reducers (AppState)
 import App.Store.DiagTree.Handlers (diagTreeHandler)
@@ -16,13 +19,13 @@ import App.Store.DiagTree.Handlers (diagTreeHandler)
 
 appHandler
   :: forall eff
-   . AppContext (AppContextEffects eff)
+   . AppContext
   -> AppState
   -> AppAction
-  -> Aff (StoreEffects eff) Unit
+  -> Aff (console :: CONSOLE, dom :: DOM | eff) Unit
 
 appHandler appCtx state action = case action of
-  Navigate route -> liftEff' $ navigateToRoute route
+  Navigate route -> liftEff $ navigateToRoute route
   DiagTree x     -> diagTree state.diagTree x
 
   where

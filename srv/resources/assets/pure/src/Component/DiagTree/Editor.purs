@@ -7,7 +7,6 @@ import Prelude
 import Data.Record.Builder (merge)
 
 import Control.Monad.Aff (launchAff_)
-import Control.Monad.Aff.Unsafe (unsafeCoerceAff)
 
 import React (ReactClass, getProps, createElement)
 import React.DOM (IsDynamic (IsDynamic), mkDOM, text, h1')
@@ -15,7 +14,6 @@ import React.DOM.Props (className)
 
 import Utils (createClassStatelessWithSpec, storeConnect)
 import App.Store (AppContext, dispatch)
-import App.Store.Types (StoreConnectEffects)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
 import Component.Spinner (spinner)
@@ -26,10 +24,9 @@ import App.Store.DiagTree.Editor.Actions
 
 
 diagTreeEditorRender
-  :: forall eff
-   . ReactClass { isSlidesLoading :: Boolean
+  :: ReactClass { isSlidesLoading :: Boolean
                 , isSlidesLoaded  :: Boolean
-                , appContext      :: AppContext (StoreConnectEffects eff)
+                , appContext      :: AppContext
                 }
 
 diagTreeEditorRender = f $ \props ->
@@ -50,15 +47,12 @@ diagTreeEditorRender = f $ \props ->
       , componentDidMount = \this -> do
           props <- getProps this
 
-          launchAff_ $ unsafeCoerceAff $
+          launchAff_ $
             dispatch props.appContext $ DiagTree $ Editor $ LoadSlidesRequest
       }
 
 
-diagTreeEditor
-  :: forall eff
-   . ReactClass { appContext :: AppContext (StoreConnectEffects eff) }
-
+diagTreeEditor :: ReactClass { appContext :: AppContext }
 diagTreeEditor = storeConnect f diagTreeEditorRender
   where
     f appState = merge $ let branch = appState.diagTree.editor in

@@ -1,52 +1,46 @@
 module Utils.StoreConnect
-     ( StoreConnectProps
-     , StoreSelector
+     ( StoreSelector
      , storeConnect
      ) where
 
 import Prelude
 
 import Data.Maybe (Maybe (..))
+import Data.Tuple (Tuple (Tuple))
 import Data.Record.Builder (Builder, build)
 
-import Control.Monad.Eff.Ref (REF)
-import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
-import Control.Monad.Aff (liftEff')
+import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Exception (error)
+import Control.Monad.Aff (launchAff, launchAff_, killFiber)
+import Control.Monad.Aff.AVar (takeVar)
+import Control.Monad.Aff.Unsafe (unsafeCoerceAff)
 
-import React ( ReactClass, ReactProps, ReactState, ReactRefs
-             , ReadWrite, ReadOnly
-             , createClass, spec', createElement
-             , transformState, readState
-             , getProps
-             )
+import React
+     ( ReactClass
+     , createClass, spec', createElement
+     , transformState, readState, getProps
+     )
 
 import App.Store.Reducers (AppState)
 
-import App.Store ( AppContext, StoreSubscription
-                 , subscribe, unsubscribe, getAppState
-                 )
+import App.Store
+     ( AppContext
+     , subscribe, unsubscribe, getAppState, getSubscriberBus
+     )
 
 
-type StoreConnectProps eff props =
-  { appContext :: AppContext ( props :: ReactProps
-                             , state :: ReactState ReadWrite
-                             , refs  :: ReactRefs  ReadOnly
-                             , ref   :: REF
-                             | eff
-                             )
-  | props
-  }
-
-type StoreSelector eff props1 props2
+type StoreSelector props1 props2
    = AppState
-  -> Builder (StoreConnectProps eff props1) (StoreConnectProps eff props2)
+  -> Builder
+       { appContext :: AppContext | props1 }
+       { appContext :: AppContext | props2 }
 
 
 storeConnect
-  :: forall eff props1 props2
-   . StoreSelector eff props1 props2
-  -> ReactClass (StoreConnectProps eff props2)
-  -> ReactClass (StoreConnectProps eff props1)
+  :: forall props1 props2
+   . StoreSelector props1 props2
+  -> ReactClass { appContext :: AppContext | props2 }
+  -> ReactClass { appContext :: AppContext | props1 }
 
 storeConnect storeSelector child = createClass spec
 
@@ -57,47 +51,51 @@ storeConnect storeSelector child = createClass spec
       pure $ createElement child state.mappedProps []
 
     initialState this = do
-      props <- getProps this
+      props    <- getProps this
+      appState <- getAppState props.appContext
 
-      -- TODO FIXME `unsafeCoerceEff` to avoid:
-      --            couldn't match `ReadOnly` with type `Disallowed`
-      --            (don't know why yet)
-      appState <- unsafeCoerceEff $ getAppState props.appContext
-
-      pure { subscription : (Nothing :: Maybe StoreSubscription)
+      pure { subscription : Nothing
            , mappedProps  : build (storeSelector appState) props
            }
-
-    storeUpdateHandler transformer appState _ =
-      liftEff' $ transformer appState
 
     spec = spec' initialState renderFn # _
       { displayName = "StoreConnect"
 
       , componentWillMount = \this -> do
-          let transformer appState = do
-                props <- getProps this <#> build (storeSelector appState)
-                transformState this $ _ { mappedProps = props }
+          props        <- getProps  this
+          subscription <- subscribe props.appContext
 
-          props <- getProps this
+          fiber <- launchAff $ do
+            bus <- getSubscriberBus props.appContext subscription
 
-          -- TODO FIXME `unsafeCoerceEff` because `WillMount` has
-          --            `refs :: ReactRefs Disallowed` effect
-          --            when `appContext` has `refs :: ReactRefs ReadOnly`
-          subscription <- unsafeCoerceEff $
-            subscribe props.appContext $ storeUpdateHandler transformer
+            let transformer appState = do
+                  x <- getProps this <#> build (storeSelector appState)
+                  transformState this $ _ { mappedProps = x }
 
-          transformState this $ _ { subscription = Just subscription }
+                recursiveReact = do
+                  event <- takeVar bus
+                  liftEff $ transformer event.state
+                  recursiveReact
+
+            recursiveReact
+
+          transformState this $ _
+            { subscription = Just (Tuple subscription fiber) }
 
       , componentWillUnmount = \this -> do
-          props <- getProps this
+          props <- getProps  this
           state <- readState this
 
-          -- TODO FIXME `unsafeCoerceEff` to avoid:
-          --            couldn't match `ReadOnly` with type `ReadWrite`
-          --            inside `ReactState`
-          --            (don't know why yet)
           case state.subscription of
-               Just x  -> unsafeCoerceEff $ unsubscribe props.appContext x
                Nothing -> pure unit
+               Just (Tuple subscription fiber) -> launchAff_ $ do
+
+                 -- `unsafeCoerceAff` because fiber inherited effects from
+                 -- `componentWillMount`, there's some differences in
+                 -- `ReactState` and `ReactRefs`, I have no idea yet how to
+                 -- solve this.
+                 unsafeCoerceAff $
+                   killFiber (error "Component was unmounted") fiber
+
+                 liftEff $ unsubscribe props.appContext subscription
       }

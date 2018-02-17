@@ -5,9 +5,14 @@ import Prelude
 import Data.Maybe (Maybe (..))
 
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Ref (REF)
+import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Exception.Unsafe (unsafeThrow)
-import Control.Monad.Aff (launchAff_)
+import Control.Monad.Aff (launchAff_, forkAff)
+import Control.Monad.Aff.AVar (AVAR, takeVar)
 
+import DOM (DOM)
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (document) as DOM
 import DOM.HTML.Types (htmlDocumentToDocument) as DOM
@@ -24,14 +29,21 @@ import ReactDOM (render)
 import Router (initRouter)
 import Component.App (app)
 
-import App.Store (createAppContext, subscribe, dispatch)
-import App.Store.Types (StoreEffects)
 import App.Store.Actions (AppAction (Navigate))
 import App.Store.Reducers (appInitialState, appReducer)
 import App.Store.Handlers (appHandler)
 
+import App.Store
+     ( createAppContext, reduceLoop, subscribe', getSubscriberBus, dispatch
+     )
 
-runApplication :: forall eff. Eff (StoreEffects eff) Unit
+
+runApplication :: Eff ( ref     :: REF
+                      , avar    :: AVAR
+                      , dom     :: DOM
+                      , console :: CONSOLE
+                      ) Unit
+
 runApplication = do
   (appEl :: DOM.Element) <-
     DOM.window
@@ -43,7 +55,23 @@ runApplication = do
              Nothing -> unsafeThrow "#app element not found"
              Just el -> pure el
 
-  appCtx <- createAppContext appReducer appInitialState
-  initRouter $ launchAff_ <<< dispatch appCtx <<< Navigate
-  void $ subscribe appCtx $ appHandler appCtx
-  void $ flip render appEl $ createElement app { appContext: appCtx } []
+  launchAff_ $ do
+    appCtx <- createAppContext appInitialState
+    void $ forkAff $ reduceLoop appCtx appReducer
+    liftEff $ initRouter $ launchAff_ <<< dispatch appCtx <<< Navigate
+
+    handlerSubscription <- liftEff $ subscribe' appCtx
+    handlerBus <- getSubscriberBus appCtx handlerSubscription
+    let handler = appHandler appCtx
+
+    void $ forkAff $
+      let
+        handleRecursive = do
+          event <- takeVar handlerBus
+          handler event.state event.action
+          handleRecursive
+      in
+        handleRecursive
+
+    liftEff $ void $
+      flip render appEl $ createElement app { appContext: appCtx } []

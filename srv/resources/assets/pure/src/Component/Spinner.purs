@@ -10,13 +10,9 @@ import React.DOM.Props (className)
 
 import Utils (createClassStatelessWithSpec)
 import App.Store (AppContext)
-import App.Store.Types (StoreConnectEffects)
 
 
-spinnerRender
-  :: forall eff
-   . ReactClass { appContext :: AppContext (StoreConnectEffects eff) }
-
+spinnerRender :: ReactClass { appContext :: AppContext }
 spinnerRender = createClassStatelessWithSpec specMiddleware $ const $ div
   [ className "circle-spinner--with-label" ]
   [ div' [ text $ "Загрузка…" ]
@@ -30,8 +26,5 @@ spinnerRender = createClassStatelessWithSpec specMiddleware $ const $ div
       }
 
 
-spinner
-  :: forall eff
-   . ReactClass { appContext :: AppContext (StoreConnectEffects eff) }
-
+spinner :: ReactClass { appContext :: AppContext }
 spinner = spinnerRender

@@ -12,15 +12,13 @@ import React.DOM (div', h1', text)
 import Utils (storeConnect, createClassStatelessWithSpec)
 import Router (Location (..))
 import App.Store (AppContext)
-import App.Store.Types (StoreConnectEffects)
 import Component.Spinner (spinner)
 import Component.DiagTree.Editor (diagTreeEditor)
 
 
 appRender
-  :: forall eff
-   . ReactClass { location   :: Location
-                , appContext :: AppContext (StoreConnectEffects eff)
+  :: ReactClass { location   :: Location
+                , appContext :: AppContext
                 }
 
 appRender = createClassStatelessWithSpec specMiddleware $ \props -> div' $
@@ -47,10 +45,7 @@ appRender = createClassStatelessWithSpec specMiddleware $ \props -> div' $
       }
 
 
-app
-  :: forall eff
-   . ReactClass { appContext :: AppContext (StoreConnectEffects eff) }
-
+app :: ReactClass { appContext :: AppContext }
 app = storeConnect f appRender
   where
     f appState = merge { location: appState.currentLocation }
