@@ -10,7 +10,7 @@ import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Exception.Unsafe (unsafeThrow)
 import Control.Monad.Aff (launchAff_, forkAff)
-import Control.Monad.Aff.AVar (AVAR, takeVar)
+import Control.Monad.Aff.AVar (AVAR)
 
 import DOM (DOM)
 import DOM.HTML (window) as DOM
@@ -18,10 +18,11 @@ import DOM.HTML.Window (document) as DOM
 import DOM.HTML.Types (htmlDocumentToDocument) as DOM
 import DOM.Node.NonElementParentNode (getElementById) as DOM
 
-import DOM.Node.Types ( Element
-                      , ElementId (ElementId)
-                      , documentToNonElementParentNode
-                      ) as DOM
+import DOM.Node.Types
+     ( Element
+     , ElementId (ElementId)
+     , documentToNonElementParentNode
+     ) as DOM
 
 import React (createElement)
 import ReactDOM (render)
@@ -29,13 +30,10 @@ import ReactDOM (render)
 import Router (initRouter)
 import Component.App (app)
 
+import App.Store (createAppContext, reduceLoop, dispatch)
 import App.Store.Actions (AppAction (Navigate))
 import App.Store.Reducers (appInitialState, appReducer)
-import App.Store.Handlers (appHandler)
-
-import App.Store
-     ( createAppContext, reduceLoop, subscribe', getSubscriberBus, dispatch
-     )
+import App.Store.Handlers (subscribeHandlers)
 
 
 runApplication :: Eff ( ref     :: REF
@@ -59,19 +57,7 @@ runApplication = do
     appCtx <- createAppContext appInitialState
     void $ forkAff $ reduceLoop appCtx appReducer
     liftEff $ initRouter $ launchAff_ <<< dispatch appCtx <<< Navigate
-
-    handlerSubscription <- liftEff $ subscribe' appCtx
-    handlerBus <- getSubscriberBus appCtx handlerSubscription
-    let handler = appHandler appCtx
-
-    void $ forkAff $
-      let
-        handleRecursive = do
-          event <- takeVar handlerBus
-          handler event.state event.action
-          handleRecursive
-      in
-        handleRecursive
+    subscribeHandlers appCtx
 
     liftEff $ void $
       flip render appEl $ createElement app { appContext: appCtx } []
