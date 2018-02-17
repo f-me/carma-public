@@ -172,7 +172,10 @@ PureScript is **strict** by default!
    - Use `launchAff` or `launchAff_` to run `Aff` from `Eff` monad
      asynchronously;
    - Use `forkAff` to run another `Aff` from `Aff` monad asynchronously;
-   - Use `liftEff'` to execute `Eff` from `Aff` monad.
+   - Use `liftEff` (`Control.Monad.Eff.Class` from `purescript-eff`)
+     to execute `Eff` from `Aff` monad;
+   - Use `liftEff'` (`Control.Monad.Aff` from `purescript-aff`)
+     to execute `Eff` from `Aff` monad if `Eff` monad has `EXCEPTION` effect.
 
    See also:
    - https://pursuit.purescript.org/packages/purescript-eff
