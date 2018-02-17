@@ -73,6 +73,10 @@ PureScript is **strict** by default!
    | ---                                                                                                | ---                                 |
    | `map` (`Functor` type class)                                                                       | `fmap` (works like `map` for lists) |
    | `unsafeThrow`<br>from `Control.Monad.Eff.Exception.Unsafe`<br>from `purescript-exceptions` package | `error`                             |
+   | `forkAff`<br>from `Control.Monad.Aff`<br>from `purescript-aff` package                             | `forkIO`                            |
+
+   If you're looking for **Haskell**'s `Control.Concurrent.MVar` look at
+   **PureScript**'s `Control.Monad.Aff.AVar` from `purescript-aff` package.
 
 6. **About point-free style**:
 
