@@ -89,7 +89,7 @@ import Control.Monad.Eff.Ref
 
 import Control.Monad.Aff.AVar
      ( AVAR, AVar
-     , makeEmptyVar, takeVar, putVar, killVar
+     , makeEmptyVar, takeVar, putVar, killVar, isKilledVar
      )
 
 import App.Store.Actions (AppAction)
@@ -146,8 +146,8 @@ createAppContext
 createAppContext initialState = do
   (store               :: Ref AppState)    <- liftEff $ newRef initialState
   (subscribers         :: Ref Subscribers) <- liftEff $ newRef $ Tuple 1 empty
-  (actionsBus          :: AVar AppAction)  <- makeEmptyVar
   (isReduceLoopStarted :: Ref Boolean)     <- liftEff $ newRef false
+  (actionsBus          :: AVar AppAction)  <- makeEmptyVar
 
   pure $ AppContext
        { store               : store
@@ -195,8 +195,12 @@ reduceLoop appCtx@(AppContext ctx) appReducer = guardOnlyOneInstance $ do
   where
     notify x =
 
-      let f acc (Tuple _ Nothing)    = pure acc
-          f acc (Tuple _ (Just bus)) = acc <$ putVar x bus
+      let f acc (Tuple _ Nothing) = pure acc
+          f acc (Tuple _ (Just bus)) = do
+            isKilled <- isKilledVar bus
+            if not isKilled
+               then acc <$ putVar x bus
+               else pure unit
 
        in foldM f unit
 

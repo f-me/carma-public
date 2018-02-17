@@ -6,15 +6,14 @@ module Utils.StoreConnect
 import Prelude
 
 import Data.Maybe (Maybe (..))
-import Data.Tuple (Tuple (Tuple))
 import Data.Record.Builder (Builder, build)
 
 import Control.Monad.Rec.Class (forever)
+import Control.Monad.Error.Class (catchError, throwError)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Exception (error)
-import Control.Monad.Aff (launchAff, launchAff_, killFiber)
+import Control.Monad.Eff.Exception (message)
+import Control.Monad.Aff (launchAff_)
 import Control.Monad.Aff.AVar (takeVar)
-import Control.Monad.Aff.Unsafe (unsafeCoerceAff)
 
 import React
      ( ReactClass
@@ -66,19 +65,23 @@ storeConnect storeSelector child = createClass spec
           props        <- getProps  this
           subscription <- subscribe props.appContext
 
-          fiber <- launchAff $ do
+          launchAff_ $ do
             bus <- getSubscriberBus props.appContext subscription
 
             let transformer appState = do
                   x <- getProps this <#> build (storeSelector appState)
                   transformState this $ _ { mappedProps = x }
 
-            forever $ do
+                catchUnsubscribed err = do
+                  if message err == "Unsubscribed"
+                     then pure unit -- It's okay, we're done
+                     else throwError err -- Unknown exception
+
+            flip catchError catchUnsubscribed $ forever $ do
               event <- takeVar bus
               liftEff $ transformer event.state
 
-          transformState this $ _
-            { subscription = Just (Tuple subscription fiber) }
+          transformState this $ _ { subscription = Just subscription }
 
       , componentWillUnmount = \this -> do
           props <- getProps  this
@@ -86,14 +89,5 @@ storeConnect storeSelector child = createClass spec
 
           case state.subscription of
                Nothing -> pure unit
-               Just (Tuple subscription fiber) -> launchAff_ $ do
-
-                 -- `unsafeCoerceAff` because fiber inherited effects from
-                 -- `componentWillMount`, there's some differences in
-                 -- `ReactState` and `ReactRefs`, I have no idea yet how to
-                 -- solve this.
-                 unsafeCoerceAff $
-                   killFiber (error "Component was unmounted") fiber
-
-                 liftEff $ unsubscribe props.appContext subscription
+               Just x  -> unsubscribe props.appContext x
       }
