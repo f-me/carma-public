@@ -33,7 +33,7 @@ import Component.App (app)
 import App.Store (createAppContext, reduceLoop, dispatch)
 import App.Store.Actions (AppAction (Navigate))
 import App.Store.Reducers (appInitialState, appReducer)
-import App.Store.Handlers (subscribeHandlers)
+import App.Store.HandlersSpec (subscribeHandlers)
 
 
 runApplication :: Eff ( ref     :: REF
