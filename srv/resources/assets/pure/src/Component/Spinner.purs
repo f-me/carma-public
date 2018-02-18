@@ -12,12 +12,23 @@ import Utils (createClassStatelessWithSpec)
 import App.Store (AppContext)
 
 
-spinnerRender :: ReactClass { appContext :: AppContext }
-spinnerRender = createClassStatelessWithSpec specMiddleware $ const $ div
-  [ className "circle-spinner--with-label" ]
-  [ div' [ text $ "Загрузка…" ]
-  , div [ className "circle-spinner--icon" ] []
-  ]
+spinnerRender
+  :: ReactClass { withLabel  :: Boolean
+                , appContext :: AppContext
+                }
+
+spinnerRender = createClassStatelessWithSpec specMiddleware $ \props ->
+  if props.withLabel
+
+     then div
+          [ className "circle-spinner--with-label" ]
+          [ div' [ text $ "Загрузка…" ]
+          , div [ className "circle-spinner--icon" ] []
+          ]
+
+     else div
+          [ className "circle-spinner--icon" ]
+          []
 
   where
     specMiddleware = _
@@ -26,5 +37,5 @@ spinnerRender = createClassStatelessWithSpec specMiddleware $ const $ div
       }
 
 
-spinner :: ReactClass { appContext :: AppContext }
+spinner :: ReactClass { withLabel :: Boolean, appContext :: AppContext }
 spinner = spinnerRender

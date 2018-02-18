@@ -26,7 +26,7 @@ appRender = createClassStatelessWithSpec specMiddleware $ \props -> div' $
   case props.location of
 
     DiagTreeEditPartial ->
-      [ createElement diagTreeEditor { appContext : props.appContext } []
+      [ createElement diagTreeEditor { appContext: props.appContext } []
       ]
 
     NotFound ->
@@ -34,7 +34,9 @@ appRender = createClassStatelessWithSpec specMiddleware $ \props -> div' $
       ]
 
     Empty ->
-      [ createElement spinner { appContext : props.appContext } []
+      [ createElement spinner { withLabel: true
+                              , appContext: props.appContext
+                              } []
       ]
 
   where
