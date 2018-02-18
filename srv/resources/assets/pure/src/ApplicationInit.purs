@@ -27,6 +27,8 @@ import DOM.Node.Types
 import React (createElement)
 import ReactDOM (render)
 
+import Network.HTTP.Affjax (AJAX)
+
 import Router (initRouter)
 import Component.App (app)
 
@@ -40,6 +42,7 @@ runApplication :: Eff ( ref     :: REF
                       , avar    :: AVAR
                       , dom     :: DOM
                       , console :: CONSOLE
+                      , ajax    :: AJAX
                       ) Unit
 
 runApplication = do

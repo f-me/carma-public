@@ -15,7 +15,7 @@
 --      `StoreSubscription` which you could use to unsubscribe (e.g. in
 --      `componentWillUnmount`) and to get a bus to read events from,
 --      subscriber will be notified only if state change by reducer (use
---      `subscribe'` to get notifications every time action is rised,
+--      `subscribe'` to get notifications every time action is raised,
 --      notwithstanding if state change or not);
 --
 --   4. Start another `Aff` thread and get unique `SubscriberBus` (`AVar`) by

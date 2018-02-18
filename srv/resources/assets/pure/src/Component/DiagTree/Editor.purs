@@ -4,6 +4,9 @@ module Component.DiagTree.Editor
 
 import Prelude hiding (div)
 
+import Data.Maybe (Maybe (..))
+import Data.Array (snoc, fromFoldable)
+import Data.Foldable (foldlDefault)
 import Data.Record.Builder (merge)
 
 import Control.Monad.Aff (launchAff_)
@@ -17,14 +20,16 @@ import React.DOM
      )
 
 import Utils (createClassStatelessWithSpec, storeConnect)
+import Component.Spinner (spinner)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
-import Component.Spinner (spinner)
+import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId)
 
 import App.Store.DiagTree.Editor.Actions
      ( DiagTreeEditorAction (LoadSlidesRequest)
      )
+
 
 
 diagTreeEditorRender
@@ -33,6 +38,8 @@ diagTreeEditorRender
                 , isSlidesLoadingFailed     :: Boolean
                 , isParsingSlidesDataFailed :: Boolean
                 , appContext                :: AppContext
+                , slides                    :: DiagTreeSlides
+                , selectedSlide             :: Maybe DiagTreeSlideId
                 }
 
 diagTreeEditorRender = f $ \props ->
@@ -46,9 +53,8 @@ diagTreeEditorRender = f $ \props ->
             ]
           ]
         ]
-      , div [className $ "col-md-8 " <> classSfx "slide-editor-panel"]
-        [ b' [text "…TODO…"]
-        ]
+      , div [className $ "col-md-8 " <> classSfx "slide-editor-panel"] $
+        map (renderSlide props) $ fromFoldable props.slides
       ]
     ]
   ]
@@ -59,16 +65,27 @@ diagTreeEditorRender = f $ \props ->
     classSfx s = name <> "--" <> s
     name = "diag-tree-editor"
 
+    renderSlide props slide = div' $
+      [ text ("id: " <> show slide.id)
+      , text (" isRoot: " <> show slide.isRoot)
+      ] <> case props.selectedSlide of
+                Nothing -> []
+                Just x  -> if x == slide.id
+                              then [b' [text " SELECTED"]]
+                              else []
+
     branching render props
       | props.isSlidesLoadingFailed =
           [ div'
-          [ p'
-          [ span [className "label label-danger"] [text "Ошибка"]
-          , if props.isParsingSlidesDataFailed
-               then text " Произошла ошибка при обработке\
-                         \ полученных от сервера данных"
-               else text " Произошла ошибка при загрузке данных"
-          ]]]
+            [ p'
+              [ span [className "label label-danger"] [text "Ошибка"]
+              , if props.isParsingSlidesDataFailed
+                   then text " Произошла ошибка при обработке\
+                             \ полученных от сервера данных"
+                   else text " Произошла ошибка при загрузке данных"
+              ]
+            ]
+          ]
 
       | props.isSlidesLoading =
           [ createElement spinner { withLabel: true
@@ -79,10 +96,12 @@ diagTreeEditorRender = f $ \props ->
       | props.isSlidesLoaded = render props
       | otherwise =
           [ div'
-          [ p'
-          [ span [className "label label-warning"] [text "Ожидание"]
-          , text " Данные ещё не загружены…"
-          ]]]
+            [ p'
+              [ span [className "label label-warning"] [text "Ожидание"]
+              , text " Данные ещё не загружены…"
+              ]
+            ]
+          ]
 
     spec = createClassStatelessWithSpec $ _
       { displayName = "DiagTreeEditor"
@@ -90,8 +109,11 @@ diagTreeEditorRender = f $ \props ->
       , componentDidMount = \this -> do
           props <- getProps this
 
-          launchAff_ $
-            dispatch props.appContext $ DiagTree $ Editor $ LoadSlidesRequest
+          if props.isSlidesLoaded || props.isSlidesLoading
+             then pure unit
+             else launchAff_
+                $ dispatch props.appContext
+                $ DiagTree $ Editor $ LoadSlidesRequest
       }
 
 
@@ -103,4 +125,6 @@ diagTreeEditor = storeConnect f diagTreeEditorRender
       , isSlidesLoaded            : branch.isSlidesLoaded
       , isSlidesLoadingFailed     : branch.isSlidesLoadingFailed
       , isParsingSlidesDataFailed : branch.isParsingSlidesDataFailed
+      , slides                    : branch.slides
+      , selectedSlide             : branch.selectedSlide
       }

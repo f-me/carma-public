@@ -11,6 +11,7 @@ import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Aff (Aff, forkAff)
 import Control.Monad.Aff.AVar (AVAR, takeVar)
 
+import Network.HTTP.Affjax (AJAX)
 import DOM (DOM)
 
 import App.Store (AppContext, subscribe', getSubscriberBus)
@@ -27,6 +28,7 @@ subscribeHandlers
          , avar    :: AVAR
          , dom     :: DOM
          , console :: CONSOLE
+         , ajax    :: AJAX
          | eff
          ) Unit
 
