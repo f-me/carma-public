@@ -15,9 +15,7 @@ import Data.Int (fromNumber)
 import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
 import Data.Tuple (Tuple (Tuple), fst, snd)
-import Data.Array (snoc)
 import Data.Foldable (foldM)
-import Data.StrMap (StrMap)
 import Data.StrMap as StrMap
 import Data.Map as Map
 import Data.HTTP.Method (Method (GET))
@@ -71,18 +69,16 @@ loadSlides appCtx = flip catchError handleError $ do
   parsed <- flip catchError handleParseError $ do
     let json = unsafeFromForeign res.response :: Json
 
-        itemF :: Array (StrMap Json) -> Json -> Maybe (Array (StrMap Json))
-        itemF acc x = toObject x <#> snoc acc
-
-        itemFieldsF
+        foldReducer
           :: Tuple (Maybe DiagTreeSlideId) DiagTreeSlides
-          -> StrMap Json
+          -> Json
           -> Maybe (Tuple (Maybe DiagTreeSlideId) DiagTreeSlides)
 
-        itemFieldsF acc x = do
-          idVal <- StrMap.lookup "id" x `joinMap` toNumber `joinMap` fromNumber
-          isRoot <- StrMap.lookup "isRoot" x `joinMap` toBoolean
-          isActive <- StrMap.lookup "isActive" x `joinMap` toBoolean
+        foldReducer acc jsonItem = do
+          x <- toObject jsonItem
+          idVal <- StrMap.lookup "id" x >>= toNumber >>= fromNumber
+          isRoot <- StrMap.lookup "isRoot" x >>= toBoolean
+          isActive <- StrMap.lookup "isActive" x >>= toBoolean
 
           if not isActive
              then pure acc -- Ignore inactive slides
@@ -95,9 +91,8 @@ loadSlides appCtx = flip catchError handleError $ do
                pure $ flip map newAcc $
                  Map.insert idVal { id: idVal, isRoot: isRoot }
 
-        parsedResult = toArray json
-          `joinMap` foldM itemF []
-          `joinMap` foldM itemFieldsF (Tuple Nothing Map.empty)
+        parsedResult =
+          toArray json >>= foldM foldReducer (Tuple Nothing Map.empty)
 
     case parsedResult of
 
@@ -114,9 +109,6 @@ loadSlides appCtx = flip catchError handleError $ do
     dataParseFailMsg = "parsing data failed"
     errLog = liftEff <<< Log.error <<< ("Diag Tree Editor: " <> _)
     act = dispatch appCtx <<< DiagTree <<< Editor
-
-    joinMap :: forall a b. Maybe a -> (a -> Maybe b) -> Maybe b
-    joinMap a b = join $ a <#> b
 
     handleError err =
       if message err == dataParseFailMsg
