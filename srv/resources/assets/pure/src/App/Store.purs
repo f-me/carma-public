@@ -150,10 +150,10 @@ createAppContext initialState = do
   (actionsBus          :: AVar AppAction)  <- makeEmptyVar
 
   pure $ AppContext
-       { store               : store
-       , subscribers         : subscribers
-       , actionsBus          : actionsBus
-       , isReduceLoopStarted : isReduceLoopStarted
+       { store
+       , subscribers
+       , actionsBus
+       , isReduceLoopStarted
        }
 
 
@@ -220,7 +220,7 @@ getAppState
    . AppContext
   -> Eff (ref :: REF | eff) AppState
 
-getAppState (AppContext ctx) = readRef ctx.store
+getAppState (AppContext { store }) = readRef store
 
 
 dispatch
@@ -229,7 +229,7 @@ dispatch
   -> AppAction
   -> Aff (avar :: AVAR | eff) Unit
 
-dispatch (AppContext ctx) action = putVar action ctx.actionsBus
+dispatch (AppContext { actionsBus }) action = putVar action actionsBus
 
 
 -- See `subscribeInternal` for details.
@@ -256,8 +256,8 @@ getSubscriberBus
   -> StoreSubscription
   -> Aff (ref :: REF, avar :: AVAR | eff) SubscriberBus
 
-getSubscriberBus (AppContext ctx) subscription = do
-  subscribers <- liftEff $ readRef ctx.subscribers <#> snd
+getSubscriberBus (AppContext { subscribers: subscribersRef }) subscription = do
+  subscribers <- liftEff $ readRef subscribersRef <#> snd
 
   let subscriber =
         case subscription `lookup` subscribers of
@@ -277,7 +277,7 @@ getSubscriberBus (AppContext ctx) subscription = do
 
              f = update (map subscriberBusF >>> Just) subscription
 
-         liftEff $ modifyRef ctx.subscribers $ map f
+         liftEff $ modifyRef subscribersRef $ map f
          pure subscriberBus
 
 
@@ -288,9 +288,9 @@ unsubscribe
   -> StoreSubscription
   -> Eff (ref :: REF, avar :: AVAR | eff) Unit
 
-unsubscribe (AppContext ctx) subscription = do
+unsubscribe (AppContext { subscribers }) subscription = do
   subscriber <-
-    modifyRef' ctx.subscribers $ \(Tuple nextId s) ->
+    modifyRef' subscribers $ \(Tuple nextId s) ->
       { state: Tuple nextId $ delete subscription s
       , value: lookup subscription s
       }
@@ -309,8 +309,8 @@ subscribeInternal
   -> AppContext
   -> Eff (ref :: REF | eff) StoreSubscription
 
-subscribeInternal isStrict (AppContext ctx) =
-  modifyRef' ctx.subscribers $ \(Tuple nextId s) ->
+subscribeInternal isStrict (AppContext { subscribers }) =
+  modifyRef' subscribers $ \(Tuple nextId s) ->
     let
       subscription = StoreSubscription nextId
 

@@ -85,8 +85,8 @@ diagTreeEditorRender = createClass $ spec $ \props state -> do
 
       | props.isSlidesLoading =
           div !. "text-center" $
-            spinner ^ { withLabel: true
-                      , appContext: props.appContext
+            spinner ^ { withLabel  : true
+                      , appContext : props.appContext
                       }
 
       | props.isSlidesLoaded = mainRender props state

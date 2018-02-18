@@ -34,8 +34,8 @@ appRender = f $ \props -> renderIn div' $
       h1 $ text "Страница не найдена"
 
     Empty ->
-      spinner ^ { withLabel: true
-                , appContext: props.appContext
+      spinner ^ { withLabel  : true
+                , appContext : props.appContext
                 }
 
   where

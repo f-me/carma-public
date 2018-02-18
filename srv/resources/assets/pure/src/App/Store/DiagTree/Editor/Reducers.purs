@@ -52,9 +52,9 @@ diagTreeEditorReducer state LoadSlidesRequest =
                , isParsingSlidesDataFailed = false
                }
 
-diagTreeEditorReducer state (LoadSlidesSuccess x) =
-  Just $ state { slides          = x.slides
-               , selectedSlide   = Just x.rootSlide
+diagTreeEditorReducer state (LoadSlidesSuccess { slides, rootSlide }) =
+  Just $ state { slides          = slides
+               , selectedSlide   = Just rootSlide
                , isSlidesLoaded  = true
                , isSlidesLoading = false
                }

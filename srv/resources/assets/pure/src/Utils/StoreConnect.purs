@@ -62,11 +62,11 @@ storeConnect storeSelector child = createClass spec
       { displayName = "StoreConnect"
 
       , componentWillMount = \this -> do
-          props        <- getProps  this
-          subscription <- subscribe props.appContext
+          { appContext } <- getProps  this
+          subscription   <- subscribe appContext
 
           launchAff_ $ do
-            bus <- getSubscriberBus props.appContext subscription
+            bus <- getSubscriberBus appContext subscription
 
             let transformer appState = do
                   x <- getProps this <#> build (storeSelector appState)
@@ -84,10 +84,10 @@ storeConnect storeSelector child = createClass spec
           transformState this $ _ { subscription = Just subscription }
 
       , componentWillUnmount = \this -> do
-          props <- getProps  this
+          { appContext } <- getProps this
           state <- readState this
 
           case state.subscription of
                Nothing -> pure unit
-               Just x  -> unsubscribe props.appContext x
+               Just x  -> unsubscribe appContext x
       }

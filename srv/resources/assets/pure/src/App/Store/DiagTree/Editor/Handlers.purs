@@ -2,7 +2,7 @@ module App.Store.DiagTree.Editor.Handlers
      ( diagTreeEditorHandler
      ) where
 
-import Prelude
+import Prelude hiding (id)
 
 import Control.Monad.Error.Class (catchError, throwError)
 import Control.Monad.Eff.Exception (error, message)
@@ -59,8 +59,8 @@ loadSlides
 loadSlides appCtx = flip catchError handleError $ do
   (res :: AffjaxResponse Foreign) <-
     affjax $ defaultRequest
-      { url = "/_/DiagSlide"
-      , method = Left GET
+      { url     = "/_/DiagSlide"
+      , method  = Left GET
       , headers = [ Accept      applicationJSON
                   , ContentType applicationJSON
                   ]
@@ -75,9 +75,9 @@ loadSlides appCtx = flip catchError handleError $ do
           -> Maybe (Tuple (Maybe DiagTreeSlideId) DiagTreeSlides)
 
         foldReducer acc jsonItem = do
-          x <- toObject jsonItem
-          idVal <- StrMap.lookup "id" x >>= toNumber >>= fromNumber
-          isRoot <- StrMap.lookup "isRoot" x >>= toBoolean
+          x        <- toObject jsonItem
+          id       <- StrMap.lookup "id" x >>= toNumber >>= fromNumber
+          isRoot   <- StrMap.lookup "isRoot" x >>= toBoolean
           isActive <- StrMap.lookup "isActive" x >>= toBoolean
 
           if not isActive
@@ -85,22 +85,16 @@ loadSlides appCtx = flip catchError handleError $ do
              else do
                let newAcc =
                      if isRoot && fst acc == Nothing
-                        then Tuple (Just idVal) $ snd acc
+                        then Tuple (Just id) $ snd acc
                         else acc
 
-               pure $ flip map newAcc $
-                 Map.insert idVal { id: idVal, isRoot: isRoot }
+               pure $ flip map newAcc $ Map.insert id { id, isRoot }
 
         parsedResult =
           toArray json >>= foldM foldReducer (Tuple Nothing Map.empty)
 
     case parsedResult of
-
-         Just (Tuple (Just rootSlide) slides) -> pure $
-           { slides    : slides
-           , rootSlide : rootSlide
-           }
-
+         Just (Tuple (Just rootSlide) slides) -> pure $ { slides, rootSlide }
          _ -> throwError $ error dataParseFailMsg
 
   act $ LoadSlidesSuccess parsed

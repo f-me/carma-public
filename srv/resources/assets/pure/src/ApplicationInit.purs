@@ -57,10 +57,10 @@ runApplication = do
              Just el -> pure el
 
   launchAff_ $ do
-    appCtx <- createAppContext appInitialState
-    void $ forkAff $ reduceLoop appCtx appReducer
-    liftEff $ initRouter $ launchAff_ <<< dispatch appCtx <<< Navigate
-    subscribeHandlers appCtx
+    appContext <- createAppContext appInitialState
+    void $ forkAff $ reduceLoop appContext appReducer
+    liftEff $ initRouter $ launchAff_ <<< dispatch appContext <<< Navigate
+    subscribeHandlers appContext
 
     liftEff $ void $
-      flip render appEl $ createElement app { appContext: appCtx } []
+      flip render appEl $ createElement app { appContext } []
