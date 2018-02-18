@@ -25,6 +25,8 @@
     "clean": "rm -rf output && rm -rf ../../static/build/pureFrontend",
     "build": "npm run webpack -- --progress --colors",
     "clean-build": "npm run clean && npm run build",
+    "debug-build": "env NODE_ENV=debug npm run webpack -- --progress --colors",
+    "debug-clean-build": "npm run clean && npm run debug-build",
     "prod-build": "env NODE_ENV=production npm run webpack -- --progress --colors",
     "prod-clean-build": "npm run clean && npm run prod-build",
     "watch": "npm run webpack -- --progress --colors --watch"

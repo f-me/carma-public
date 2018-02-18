@@ -9,7 +9,14 @@
 - `npm run prod-build` to build a bundle for production
 - `npm run clean-prod-build` to build a bundle for production from scratch
 - `npm run watch`
-   to start watcher daemon that will automatically rebuild your changes
+  to start watcher daemon that will automatically rebuild your changes
+
+### Additional tasks
+
+- `npm run debug-build` to build debug bundle
+  (optimized but not minified, unreachable code is eliminated)
+- `npm run debug-clean-build` to build debug bundle
+  (optimized but not minified, unreachable code is eliminated) from scratch
 
 ## About PureScript
 

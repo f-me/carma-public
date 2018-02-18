@@ -11,7 +11,8 @@ const
   BUILD_DIR  = path.join(STATIC_DIR, 'build', 'pureFrontend');
 
 const
-  IS_PROD_BUILD = process.env.NODE_ENV === "production";
+  IS_PROD_BUILD  = process.env.NODE_ENV === "production",
+  IS_DEBUG_BUILD = process.env.NODE_ENV === "debug";
 
 module.exports = {
   devtool: 'source-map',
@@ -56,7 +57,7 @@ module.exports = {
               ],
 
               psc: 'psa',
-              bundle: IS_PROD_BUILD,
+              bundle: IS_PROD_BUILD || IS_DEBUG_BUILD,
             },
           },
         ],
