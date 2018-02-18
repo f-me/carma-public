@@ -69,3 +69,6 @@ diagTreeEditorReducer state (LoadSlidesFailure ParsingSlidesDataFailed) =
                , isSlidesLoadingFailed     = true
                , isParsingSlidesDataFailed = true
                }
+
+diagTreeEditorReducer state (SelectSlide slideId) =
+  Just $ state { selectedSlide = Just slideId }

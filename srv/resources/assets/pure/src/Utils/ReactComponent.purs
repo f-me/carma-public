@@ -30,9 +30,10 @@ module Utils.ReactComponent
 
 import Prelude
 
-import React ( ReactElement, ReactClass, ReactSpec, ReactProps
-             , class ReactRender, createClass, spec, getProps, getChildren
-             )
+import React
+     ( ReactElement, ReactClass, ReactSpec, ReactProps
+     , class ReactRender, createClass, spec, getProps, getChildren
+     )
 
 import App.Store (AppContext)
 
