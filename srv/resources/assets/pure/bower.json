@@ -39,7 +39,8 @@
     "purescript-arrays": "^4.2.2",
     "purescript-foreign": "^4.0.1",
     "purescript-argonaut-core": "^3.1.1",
-    "purescript-integers": "^3.2.0"
+    "purescript-integers": "^3.2.0",
+    "purescript-react-spaces": "^1.0.1"
   },
   "devDependencies": {}
 }

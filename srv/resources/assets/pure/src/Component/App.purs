@@ -6,8 +6,10 @@ import Prelude
 
 import Data.Record.Builder (merge)
 
-import React (ReactClass, getProps, createElement)
-import React.DOM (div', h1', text)
+import React (ReactClass, getProps)
+import React.DOM (div')
+import React.Spaces.DOM (h1)
+import React.Spaces ((^), renderIn, text)
 
 import Utils (storeConnect, createClassStatelessWithSpec)
 import Router (Location (..))
@@ -21,25 +23,24 @@ appRender
                 , appContext :: AppContext
                 }
 
-appRender = createClassStatelessWithSpec specMiddleware $ \props -> div' $
+appRender = f $ \props -> renderIn div' $
 
   case props.location of
 
     DiagTreeEditPartial ->
-      [ createElement diagTreeEditor { appContext: props.appContext } []
-      ]
+      diagTreeEditor ^ { appContext: props.appContext }
 
     NotFound ->
-      [ h1' [text "Страница не найдена"]
-      ]
+      h1 $ text "Страница не найдена"
 
     Empty ->
-      [ createElement spinner { withLabel: true
-                              , appContext: props.appContext
-                              } []
-      ]
+      spinner ^ { withLabel: true
+                , appContext: props.appContext
+                }
 
   where
+    f = createClassStatelessWithSpec specMiddleware
+
     specMiddleware = _
       { displayName = "App"
       , shouldComponentUpdate = \this nextProps _ ->

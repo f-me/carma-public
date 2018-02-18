@@ -5,21 +5,18 @@ module Component.DiagTree.Editor
 import Prelude hiding (div)
 
 import Data.Maybe (Maybe (..))
-import Data.Array (snoc, fromFoldable)
-import Data.Foldable (foldlDefault)
+import Data.Array (fromFoldable)
 import Data.Record.Builder (merge)
 
 import Control.Monad.Aff (launchAff_)
 
-import React (ReactClass, getProps, createElement)
-import React.DOM.Props (className)
+import React (ReactClass, getProps)
+{-- import React.DOM.Props (onClick) --}
+import React.DOM (IsDynamic (IsDynamic), mkDOM, div')
+import React.Spaces.DOM (div, p, span, b, button, i)
+import React.Spaces ((!.), (^), renderIn, elements, text, empty)
 
-import React.DOM
-     ( IsDynamic (IsDynamic)
-     , mkDOM, text, div', div, p', span, b', button, i
-     )
-
-import Utils (createClassStatelessWithSpec, storeConnect)
+import Utils ((<.>), createClassStatelessWithSpec, storeConnect)
 import Component.Spinner (spinner)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
@@ -29,7 +26,6 @@ import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId)
 import App.Store.DiagTree.Editor.Actions
      ( DiagTreeEditorAction (LoadSlidesRequest)
      )
-
 
 
 diagTreeEditorRender
@@ -42,66 +38,56 @@ diagTreeEditorRender
                 , selectedSlide             :: Maybe DiagTreeSlideId
                 }
 
-diagTreeEditorRender = f $ \props ->
-  [ div [className "container"]
-    [ div [className "row"]
-      [ div [className $ "col-md-4 " <> classSfx "tree-panel"]
-        [ div [className "btn-toolbar"]
-          [ button [className "btn btn-success"]
-            [ i [className "glyphicon glyphicon-plus"] []
-            , text " Новое дерево"
-            ]
-          ]
-        ]
-      , div [className $ "col-md-8 " <> classSfx "slide-editor-panel"] $
-        map (renderSlide props) $ fromFoldable props.slides
-      ]
-    ]
-  ]
+diagTreeEditorRender = f $ \props -> do
+  div !. "col-md-4" <.> classSfx "tree-panel" $ do
+    div !. "btn-toolbar" $ do
+      button !. "btn btn-success" $ do
+        i !. "glyphicon glyphicon-plus" $ empty
+        text " Новое дерево"
+
+  div !. "col-md-8" <.> classSfx "slide-editor-panel" $ do
+    elements $ map (renderSlide props.selectedSlide) $ fromFoldable props.slides
 
   where
-    wrapper = mkDOM (IsDynamic false) name []
-    f render = spec $ \props -> wrapper $ branching render props
-    classSfx s = name <> "--" <> s
     name = "diag-tree-editor"
+    classSfx s = name <> "--" <> s
+    wrapper = mkDOM (IsDynamic false) name []
 
-    renderSlide props slide = div' $
-      [ text ("id: " <> show slide.id)
-      , text (" isRoot: " <> show slide.isRoot)
-      ] <> case props.selectedSlide of
-                Nothing -> []
-                Just x  -> if x == slide.id
-                              then [b' [text " SELECTED"]]
-                              else []
+    f mainRender =
+      spec $ \props -> renderIn wrapper $ do
+        div !. "container" $
+          div !. "row" $
+            branching mainRender props
 
-    branching render props
-      | props.isSlidesLoadingFailed =
-          [ div'
-            [ p'
-              [ span [className "label label-danger"] [text "Ошибка"]
-              , if props.isParsingSlidesDataFailed
-                   then text " Произошла ошибка при обработке\
-                             \ полученных от сервера данных"
-                   else text " Произошла ошибка при загрузке данных"
-              ]
-            ]
-          ]
+    renderSlide selectedSlide slide = renderIn div' $ do
+      text $ "id: " <> show slide.id
+      text $ " isRoot: " <> show slide.isRoot
 
-      | props.isSlidesLoading =
-          [ createElement spinner { withLabel: true
-                                  , appContext: props.appContext
-                                  } []
-          ]
+      case selectedSlide of
+           Just x | x == slide.id -> b $ text " SELECTED"
+           _ -> empty
 
-      | props.isSlidesLoaded = render props
-      | otherwise =
-          [ div'
-            [ p'
-              [ span [className "label label-warning"] [text "Ожидание"]
-              , text " Данные ещё не загружены…"
-              ]
-            ]
-          ]
+    branching mainRender props
+      | props.isSlidesLoadingFailed = div $ do
+          p $ do
+            span !. "label label-danger" $ text "Ошибка"
+            text if props.isParsingSlidesDataFailed
+                    then " Произошла ошибка при обработке\
+                         \ полученных от сервера данных"
+                    else " Произошла ошибка при загрузке данных"
+
+      | props.isSlidesLoading = do
+          div !. "text-center" $
+            spinner ^ { withLabel: true
+                      , appContext: props.appContext
+                      }
+
+      | props.isSlidesLoaded = mainRender props
+
+      | otherwise = div $ do
+          p $ do
+            span !. "label label-warning" $ text "Ожидание"
+            text " Данные ещё не загружены…"
 
     spec = createClassStatelessWithSpec $ _
       { displayName = "DiagTreeEditor"
