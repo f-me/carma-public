@@ -1,10 +1,9 @@
 'use strict';
 
 const
-  path                = require('path'),
-  webpack             = require('webpack'),
-  UglifyJSPlugin      = require("uglifyjs-webpack-plugin"),
-  {watch: isWatching} = require('yargs').argv;
+  path           = require('path'),
+  webpack        = require('webpack'),
+  UglifyJSPlugin = require("uglifyjs-webpack-plugin");
 
 const
   RES_DIR    = path.resolve(__dirname, '..', '..'),
@@ -58,7 +57,6 @@ module.exports = {
 
               psc: 'psa',
               bundle: IS_PROD_BUILD,
-              watch: isWatching === true,
             },
           },
         ],
