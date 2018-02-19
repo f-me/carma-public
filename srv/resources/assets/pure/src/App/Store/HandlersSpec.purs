@@ -4,6 +4,8 @@ module App.Store.HandlersSpec
 
 import Prelude
 
+import Data.JSDate (LOCALE)
+
 import Control.Monad.Rec.Class (forever)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE)
@@ -27,8 +29,9 @@ subscribeHandlers
   -> Aff ( ref     :: REF
          , avar    :: AVAR
          , dom     :: DOM
-         , console :: CONSOLE
          , ajax    :: AJAX
+         , locale  :: LOCALE
+         , console :: CONSOLE
          | eff
          ) Unit
 

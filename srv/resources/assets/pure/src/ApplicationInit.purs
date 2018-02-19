@@ -3,6 +3,7 @@ module ApplicationInit (runApplication) where
 import Prelude
 
 import Data.Maybe (Maybe (..))
+import Data.JSDate (LOCALE)
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Ref (REF)
@@ -41,8 +42,9 @@ import App.Store.HandlersSpec (subscribeHandlers)
 runApplication :: Eff ( ref     :: REF
                       , avar    :: AVAR
                       , dom     :: DOM
-                      , console :: CONSOLE
                       , ajax    :: AJAX
+                      , locale  :: LOCALE
+                      , console :: CONSOLE
                       ) Unit
 
 runApplication = do

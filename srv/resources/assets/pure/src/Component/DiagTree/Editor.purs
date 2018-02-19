@@ -22,7 +22,12 @@ import Component.Spinner (spinner)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
-import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId)
+
+import App.Store.DiagTree.Editor.Types
+     ( DiagTreeSlides
+     , DiagTreeSlideId
+     , DiagTreeSlide (DiagTreeSlide)
+     )
 
 import App.Store.DiagTree.Editor.Actions
      ( DiagTreeEditorAction (LoadSlidesRequest, SelectSlide)
@@ -63,7 +68,7 @@ diagTreeEditorRender = createClass $ spec $ \props state -> do
           div !. "row" $
             branching mainRender props state
 
-    renderSlide selectedSlide select slide = renderIn div' $ do
+    renderSlide selectedSlide select (DiagTreeSlide slide) = renderIn div' $ do
       text $ "id: " <> show slide.id
       text $ " isRoot: " <> show slide.isRoot
 
