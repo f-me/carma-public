@@ -12,7 +12,6 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Aff (Aff)
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Maybe.Trans (MaybeT, runMaybeT)
-import Control.Monad.Trans.Class (lift)
 
 import Data.Int (fromNumber)
 import Data.Maybe (Maybe (..))
@@ -20,7 +19,6 @@ import Data.Either (Either (..))
 import Data.Tuple (Tuple (Tuple), fst, snd)
 import Data.Array (snoc)
 import Data.Foldable (foldM, foldl)
-import Data.StrMap (StrMap)
 import Data.StrMap as StrMap
 import Data.Map (Map)
 import Data.Map as Map
@@ -31,7 +29,7 @@ import Data.JSDate (LOCALE, parse, toDateTime)
 
 import Data.Argonaut.Core
      ( Json
-     , toArray, toBoolean, toNumber, toObject, toString
+     , toArray, toObject, isNull, toBoolean, toNumber, toString
      )
 
 import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax, defaultRequest)
@@ -96,21 +94,58 @@ loadSlides appCtx = flip catchError handleError $ do
   parsed <- flip catchError handleParseError $ do
     let json = unsafeFromForeign res.response :: Json
 
+        reduceResource acc jsonItem = do
+          x    <- toObject jsonItem
+          text <- StrMap.lookup "text" x >>= toString
+          file <- StrMap.lookup "file" x >>= toString
+          pure $ snoc acc { text, file }
+
+        reduceAction acc jsonItem = do
+          x       <- toObject jsonItem
+          label   <- StrMap.lookup "label" x >>= toString
+          service <- StrMap.lookup "svc"   x >>= toString
+          pure $ snoc acc { label, service }
+
+        reduceAnswer acc jsonItem = do
+          x <- toObject jsonItem
+
+          nextSlide <- StrMap.lookup "nextSlide" x >>= toNumber >>= fromNumber
+          header    <- StrMap.lookup "header"    x >>= toString
+          text      <- StrMap.lookup "text"      x >>= toString
+
+          file <-
+            case StrMap.lookup "file" x of
+                 Nothing  -> pure Nothing  -- Field is not set (that's okay)
+                 Just raw -> if isNull raw -- Field is set to `null`
+                                then pure Nothing
+                                else toString raw <#> Just
+
+          pure $ snoc acc { nextSlide, header, text, file }
+
         -- Parsing single element
         -- (not `DiagTreeSlide` yet, just a record of a slide for flat map).
         parseFlatElem acc x = do
-          id     <- StrMap.lookup "id"     x >>= toNumber >>= fromNumber
-          isRoot <- StrMap.lookup "isRoot" x >>= toBoolean
-          header <- StrMap.lookup "header" x >>= toString
-          body   <- StrMap.lookup "body"   x >>= toString
-          ctime  <- StrMap.lookup "ctime"  x >>= toString
+          id        <- StrMap.lookup "id"        x >>= toNumber >>= fromNumber
+          isRoot    <- StrMap.lookup "isRoot"    x >>= toBoolean
+          ctime     <- StrMap.lookup "ctime"     x >>= toString
+          header    <- StrMap.lookup "header"    x >>= toString
+          body      <- StrMap.lookup "body"      x >>= toString
+
+          resources <- StrMap.lookup "resources" x >>= toArray
+                                                   >>= foldM reduceResource []
+
+          answers   <- StrMap.lookup "answers"   x >>= toArray
+                                                   >>= foldM reduceAnswer []
+
+          actions   <- StrMap.lookup "actions"   x >>= toArray
+                                                   >>= foldM reduceAction []
 
           let newAcc = if isRoot && fst acc == Nothing
                           then Tuple (Just id) $ snd acc
                           else acc
 
           pure $ flip map newAcc $ Map.insert id
-            { id, isRoot, ctime, header, body }
+            { id, isRoot, ctime, header, body, resources, answers, actions }
 
 
         -- Building flat slides map
@@ -131,38 +166,54 @@ loadSlides appCtx = flip catchError handleError $ do
                      Nothing -> Nothing
 
 
-        reduceTree
-          :: forall eff props
+        getSlide
+          :: forall getSlideEff
            . Map DiagTreeSlideId FlatSlide
-          -> DiagTreeSlides
           -> DiagTreeSlideId
-          -> MaybeT (Eff (locale :: LOCALE | eff)) DiagTreeSlides
+          -> MaybeT (Eff (locale :: LOCALE | getSlideEff)) DiagTreeSlide
 
-        reduceTree flatSlides acc slideId = do
-          { id, isRoot, ctime, header, body } <-
+        getSlide flatSlides slideId = do
+          { id, isRoot, ctime, header, body, resources, answers, actions } <-
             toMaybeT $ slideId `Map.lookup` flatSlides
 
           parsedCtime <- do
             jsDate <- liftEff $ parse ctime
             toMaybeT $ toDateTime jsDate
 
-          toMaybeT $ pure $ flip (Map.insert id) acc $
+          slideAnswers <- foldM answerReducer [] answers
+
+          toMaybeT $ pure $
             DiagTreeSlide
               { id
               , isRoot
               , ctime: parsedCtime
               , header
               , body
-              , resources: []
-              , answers: []
-              , actions: []
+              , resources
+              , answers: slideAnswers
+              , actions
               }
+
+          where
+            answerReducer acc { nextSlide, header, text, file } =
+              getSlide flatSlides nextSlide
+                <#> \slide -> snoc acc { nextSlide: slide, header, text, file }
+
+        reduceTree
+          :: forall reduceTreeEff
+           . Map DiagTreeSlideId FlatSlide
+          -> DiagTreeSlides
+          -> DiagTreeSlideId
+          -> MaybeT (Eff (locale :: LOCALE | reduceTreeEff)) DiagTreeSlides
+
+        reduceTree flatSlides acc slideId =
+          getSlide flatSlides slideId <#> flip (Map.insert slideId) acc
 
 
         -- `Eff` is required to parse date.
         -- It builds a tree of `DiagTreeSlides` from flat map of all slides.
-        parseTree :: forall eff.
-          MaybeT (Eff (locale :: LOCALE | eff))
+        parseTree :: forall parseTreeEff.
+          MaybeT (Eff (locale :: LOCALE | parseTreeEff))
                  (Tuple DiagTreeSlideId DiagTreeSlides)
 
         parseTree = do
@@ -171,8 +222,7 @@ loadSlides appCtx = flip catchError handleError $ do
           let reduce acc { id, isRoot } = if isRoot then snoc acc id else acc
               flatIds = foldl reduce [] flatSlides
 
-          slidesTree <- foldM (reduceTree flatSlides) Map.empty flatIds
-          pure $ Tuple rootSlide slidesTree
+          Tuple rootSlide <$> foldM (reduceTree flatSlides) Map.empty flatIds
 
 
     tree <- liftEff $ runMaybeT parseTree
@@ -211,9 +261,17 @@ sendAction :: forall eff.
 sendAction appCtx = dispatch appCtx <<< DiagTree <<< Editor
 
 type FlatSlide =
-  { id     :: DiagTreeSlideId
-  , isRoot :: Boolean
-  , ctime  :: String
-  , header :: String
-  , body   :: String
+  { id        :: DiagTreeSlideId
+  , isRoot    :: Boolean
+  , ctime     :: String
+  , header    :: String
+  , body      :: String
+  , resources :: Array { text  :: String, file    :: String }
+  , actions   :: Array { label :: String, service :: String }
+
+  , answers   :: Array { nextSlide :: DiagTreeSlideId
+                       , header    :: String
+                       , text      :: String
+                       , file      :: Maybe String -- could be not set or `null`
+                       }
   }

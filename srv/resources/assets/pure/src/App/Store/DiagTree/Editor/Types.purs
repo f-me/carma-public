@@ -16,20 +16,20 @@ type DiagTreeSlideId = Int
 type DiagTreeSlides  = Map DiagTreeSlideId DiagTreeSlide
 
 type DiagTreeSlideResource =
-  { file :: String
-  , text :: String
+  { text :: String
+  , file :: String
   }
 
 type DiagTreeSlideAnswer =
   { nextSlide :: DiagTreeSlide
   , header    :: String
   , text      :: String
-  , file      :: Maybe String -- Nullable
+  , file      :: Maybe String
   }
 
 type DiagTreeSlideAction =
-  { label :: String
-  , svc   :: String -- Service model name
+  { label   :: String
+  , service :: String
   }
 
 -- `newtype` is required here to allow recursive types
