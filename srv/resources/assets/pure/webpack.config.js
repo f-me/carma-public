@@ -8,7 +8,8 @@ const
 const
   RES_DIR    = path.resolve(__dirname, '..', '..'),
   STATIC_DIR = path.join(RES_DIR, 'static'),
-  BUILD_DIR  = path.join(STATIC_DIR, 'build', 'pureFrontend');
+  BUILD_DIR  = path.join(STATIC_DIR, 'build', 'pureFrontend'),
+  SRC_DIR    = path.resolve(__dirname, 'src');
 
 const
   IS_PROD_BUILD  = process.env.NODE_ENV === "production",
@@ -18,7 +19,10 @@ module.exports = {
   devtool: 'source-map',
 
   entry: {
-    pure: path.resolve(__dirname, 'src', 'Main.purs'),
+    pure: [
+      path.join(SRC_DIR, 'Main.styl'),
+      path.join(SRC_DIR, 'Main.purs'),
+    ],
 
     vendor: [
       'react',
@@ -61,6 +65,10 @@ module.exports = {
             },
           },
         ],
+      },
+      {
+        test: /\.styl$/,
+        use: ['style-loader', 'css-loader', 'stylus-loader'],
       },
     ],
   },

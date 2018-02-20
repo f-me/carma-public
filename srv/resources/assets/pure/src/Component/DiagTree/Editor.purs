@@ -19,6 +19,8 @@ import React.Spaces ((!), (!.), (^), renderIn, elements, text, empty)
 
 import Utils ((<.>), storeConnect)
 import Component.Spinner (spinner)
+import Component.DiagTree.Editor.Tree (diagTreeEditorTree)
+import Component.DiagTree.Editor.TreeSearch (diagTreeEditorTreeSearch)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
@@ -44,18 +46,29 @@ diagTreeEditorRender
                 , selectedSlideBranch       :: Maybe (Array DiagTreeSlideId)
                 }
 
-diagTreeEditorRender = createClass $ spec $ \props state -> do
+diagTreeEditorRender = createClass $ spec $ \ { appContext
+                                              , selectedSlideBranch
+                                              , slides
+                                              } state -> do
 
   div !. "col-md-4" <.> classSfx "tree-panel" $ do
+
     div !. "btn-toolbar" $ do
       button !. "btn btn-success" ! onClick state.newSlide $ do
         i !. "glyphicon glyphicon-plus" $ empty
         text " Новое дерево"
 
+    diagTreeEditorTreeSearch ^ { appContext }
+    diagTreeEditorTree       ^ { appContext }
+
+    spinner ^ { withLabel  : true
+              , appContext
+              }
+
   div !. "col-md-8" <.> classSfx "slide-editor-panel" $ do
     elements
-      $ map (renderSlide props.selectedSlideBranch state.selectSlide)
-      $ fromFoldable props.slides
+      $ map (renderSlide selectedSlideBranch state.selectSlide)
+      $ fromFoldable slides
 
   where
     name = "diag-tree-editor"

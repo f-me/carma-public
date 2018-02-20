@@ -25,31 +25,3 @@
   from { -moz-transform: rotate( 0deg );   }
   to   { -moz-transform: rotate( 360deg ); }
 }
-
-
-
-.circle-spinner--with-label {
-  display: inline-block;
-  text-align: center;
-  padding: 10px;
-  font-style: italic;
-
-  .circle-spinner--icon {
-    margin-top: 5px;
-  }
-}
-
-.circle-spinner--icon {
-  display: inline-block;
-  box-sizing: border-box;
-  width: 64px;
-  height: 64px;
-  border-radius: 100%;
-  border: 10px solid rgba(50, 50, 50, 0.2);
-  border-top-color: #333;
-  animation: circle-spinner-animation 1s infinite linear;
-
-  @keyframes circle-spinner-animation {
-    100% { transform: rotate(360deg); }
-  }
-}

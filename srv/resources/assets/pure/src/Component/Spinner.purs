@@ -36,7 +36,7 @@ spinnerRender = createClassStatelessWithSpec specMiddleware $ \props ->
 
     specMiddleware = _
       { displayName = "Spinner"
-      , shouldComponentUpdate = \_ _ _ -> pure false
+      , shouldComponentUpdate = \_ _ _ -> pure false -- TODO FIXME
       }
 
 

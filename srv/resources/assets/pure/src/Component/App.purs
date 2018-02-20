@@ -7,7 +7,7 @@ import Prelude
 import Data.Record.Builder (merge)
 
 import React (ReactClass, getProps)
-import React.DOM (div')
+import React.DOM (IsDynamic (IsDynamic), mkDOM)
 import React.Spaces.DOM (h1)
 import React.Spaces ((^), renderIn, text)
 
@@ -23,7 +23,7 @@ appRender
                 , appContext :: AppContext
                 }
 
-appRender = f $ \props -> renderIn div' $
+appRender = f $ \props -> renderIn wrapper $
 
   case props.location of
 
@@ -39,6 +39,8 @@ appRender = f $ \props -> renderIn div' $
                 }
 
   where
+    name = "carma-app"
+    wrapper = mkDOM (IsDynamic false) name []
     f = createClassStatelessWithSpec specMiddleware
 
     specMiddleware = _

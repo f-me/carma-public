@@ -1,0 +1,28 @@
+name = circle-spinner
+spin-animation = name + '--spin-animation'
+
+{name}
+  display inline-block
+
+  .{name}--with-label
+    display inline-block
+    text-align center
+    padding 10px
+    font-style italic
+
+    .{name}--icon
+      margin-top 5px
+
+  .{name}--icon
+    display inline-block
+    box-sizing border-box
+    width 64px
+    height 64px
+    border-radius 100%
+    border 10px solid rgba(50, 50, 50, 0.2)
+    border-top-color #333
+    animation spin-animation 1s infinite linear
+
+  @keyframes {spin-animation}
+    100%
+      transform rotate(360deg)
