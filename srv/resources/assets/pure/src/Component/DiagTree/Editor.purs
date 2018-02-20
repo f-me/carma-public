@@ -4,8 +4,8 @@ module Component.DiagTree.Editor
 
 import Prelude hiding (div)
 
-import Data.Maybe (Maybe (..))
-import Data.Array (fromFoldable)
+import Data.Maybe (Maybe (..), isJust)
+import Data.Array (fromFoldable, elemIndex)
 import Data.Record.Builder (merge)
 
 import Control.Monad.Aff (launchAff_)
@@ -41,7 +41,7 @@ diagTreeEditorRender
                 , isParsingSlidesDataFailed :: Boolean
                 , appContext                :: AppContext
                 , slides                    :: DiagTreeSlides
-                , selectedSlide             :: Maybe DiagTreeSlideId
+                , selectedSlideBranch       :: Maybe (Array DiagTreeSlideId)
                 }
 
 diagTreeEditorRender = createClass $ spec $ \props state -> do
@@ -54,7 +54,7 @@ diagTreeEditorRender = createClass $ spec $ \props state -> do
 
   div !. "col-md-8" <.> classSfx "slide-editor-panel" $ do
     elements
-      $ map (renderSlide props.selectedSlide state.selectSlide)
+      $ map (renderSlide props.selectedSlideBranch state.selectSlide)
       $ fromFoldable props.slides
 
   where
@@ -68,16 +68,17 @@ diagTreeEditorRender = createClass $ spec $ \props state -> do
           div !. "row" $
             branching mainRender props state
 
-    renderSlide selectedSlide select (DiagTreeSlide slide) = renderIn div' $ do
-      text $ "id: " <> show slide.id
-      text $ " isRoot: " <> show slide.isRoot
+    renderSlide selectedSlideBranch select (DiagTreeSlide slide) =
+      renderIn div' $ do
+        text $ "id: " <> show slide.id
+        text $ " isRoot: " <> show slide.isRoot
 
-      case selectedSlide of
-           Just x | x == slide.id ->
-             b $ text " SELECTED"
-           _ -> do
-             text " "
-             button ! onClick (select slide.id) $ text "select"
+        case selectedSlideBranch of
+             Just x | isJust $ slide.id `elemIndex` x ->
+               b $ text " SELECTED"
+             _ -> do
+               text " "
+               button ! onClick (select slide.id) $ text "select"
 
     branching mainRender props state
       | props.isSlidesLoadingFailed = div $ do
@@ -103,7 +104,7 @@ diagTreeEditorRender = createClass $ spec $ \props state -> do
 
     selectSlide appContext slideId _ =
       launchAff_ $ dispatch appContext $
-        DiagTree $ Editor $ SelectSlide slideId
+        DiagTree $ Editor $ SelectSlide [slideId]
 
     newSlide appContext _ =
       log "TODO new slide"
@@ -147,5 +148,5 @@ diagTreeEditor = storeConnect f diagTreeEditorRender
       , isSlidesLoadingFailed     : branch.isSlidesLoadingFailed
       , isParsingSlidesDataFailed : branch.isParsingSlidesDataFailed
       , slides                    : branch.slides
-      , selectedSlide             : branch.selectedSlide
+      , selectedSlideBranch       : branch.selectedSlideBranch
       }

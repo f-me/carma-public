@@ -18,8 +18,10 @@ import App.Store.DiagTree.Editor.Actions
 
 
 type DiagTreeEditorState =
-  { slides        :: DiagTreeSlides
-  , selectedSlide :: Maybe DiagTreeSlideId
+  { slides                    :: DiagTreeSlides
+
+  -- Selected slide with all parents in ascending order
+  , selectedSlideBranch       :: Maybe (Array DiagTreeSlideId)
 
   , isSlidesLoaded            :: Boolean
   , isSlidesLoading           :: Boolean
@@ -29,8 +31,8 @@ type DiagTreeEditorState =
 
 diagTreeEditorInitialState :: DiagTreeEditorState
 diagTreeEditorInitialState =
-  { slides        : empty
-  , selectedSlide : Nothing
+  { slides                    : empty
+  , selectedSlideBranch       : Nothing
 
   , isSlidesLoaded            : false
   , isSlidesLoading           : false
@@ -43,8 +45,8 @@ diagTreeEditorReducer
   :: DiagTreeEditorState -> DiagTreeEditorAction -> Maybe DiagTreeEditorState
 
 diagTreeEditorReducer state LoadSlidesRequest =
-  Just $ state { slides        = (empty :: DiagTreeSlides)
-               , selectedSlide = Nothing
+  Just $ state { slides                    = (empty :: DiagTreeSlides)
+               , selectedSlideBranch       = Nothing
 
                , isSlidesLoaded            = false
                , isSlidesLoading           = true
@@ -53,10 +55,10 @@ diagTreeEditorReducer state LoadSlidesRequest =
                }
 
 diagTreeEditorReducer state (LoadSlidesSuccess { slides, rootSlide }) =
-  Just $ state { slides          = slides
-               , selectedSlide   = Just rootSlide
-               , isSlidesLoaded  = true
-               , isSlidesLoading = false
+  Just $ state { slides              = slides
+               , selectedSlideBranch = Just [rootSlide]
+               , isSlidesLoaded      = true
+               , isSlidesLoading     = false
                }
 
 diagTreeEditorReducer state (LoadSlidesFailure LoadingSlidesFailed) =
@@ -70,5 +72,5 @@ diagTreeEditorReducer state (LoadSlidesFailure ParsingSlidesDataFailed) =
                , isParsingSlidesDataFailed = true
                }
 
-diagTreeEditorReducer state (SelectSlide slideId) =
-  Just $ state { selectedSlide = Just slideId }
+diagTreeEditorReducer state (SelectSlide branch) =
+  Just $ state { selectedSlideBranch = Just branch }

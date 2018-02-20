@@ -16,7 +16,7 @@ data DiagTreeEditorAction
 
   | LoadSlidesFailure LoadSlidesFailureReason
 
-  | SelectSlide DiagTreeSlideId
+  | SelectSlide (Array DiagTreeSlideId)
 
 
 data LoadSlidesFailureReason
