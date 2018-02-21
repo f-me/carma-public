@@ -23,19 +23,19 @@ appRender
                 , appContext :: AppContext
                 }
 
-appRender = f $ \props -> renderIn wrapper $
+appRender = f $ \ { appContext, location } -> renderIn wrapper $
 
-  case props.location of
+  case location of
 
     DiagTreeEditPartial ->
-      diagTreeEditor ^ { appContext: props.appContext }
+      diagTreeEditor ^ { appContext }
 
     NotFound ->
       h1 $ text "Страница не найдена"
 
     Empty ->
-      spinner ^ { withLabel  : true
-                , appContext : props.appContext
+      spinner ^ { withLabel: true
+                , appContext
                 }
 
   where

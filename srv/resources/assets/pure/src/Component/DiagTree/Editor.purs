@@ -61,10 +61,6 @@ diagTreeEditorRender = createClass $ spec $ \ { appContext
     diagTreeEditorTreeSearch ^ { appContext }
     diagTreeEditorTree       ^ { appContext }
 
-    spinner ^ { withLabel  : true
-              , appContext
-              }
-
   div !. "col-md-8" <.> classSfx "slide-editor-panel" $ do
     elements
       $ map (renderSlide selectedSlideBranch state.selectSlide)
