@@ -182,6 +182,24 @@ PureScript is **strict** by default!
    - Use `liftEff'` (`Control.Monad.Aff` from `purescript-aff`)
      to execute `Eff` from `Aff` monad if `Eff` monad has `EXCEPTION` effect.
 
+   Keep in mind that **PureScript** is strict by default, so using:
+
+   ```purescript
+   if condition
+      then someMonad foo bar
+      else pure unit
+   ```
+
+   could be better than:
+
+   ```purescript
+   when condition $ someMonad foo bar
+   ```
+
+   in sense of efficiency, because `if` condition compiles to native js `if`
+   condition while `when` constructs function reference with possible partial
+   application.
+
    See also:
    - https://pursuit.purescript.org/packages/purescript-eff
    - https://pursuit.purescript.org/packages/purescript-aff
