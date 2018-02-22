@@ -1,11 +1,31 @@
 name = diag-tree-editor-tree-search
 
 {name}
+  pad = 10px
   display block
-  padding 10px
+  padding pad
+  position relative
 
   .{name}--search-input
     width 100%
-    padding 4px 10px
+    padding 4px 28px 4px 10px
     border 0
     border-bottom 1px solid #ccc
+
+    & + .{name}--clear
+      opacity 1
+      transition opacity .3s ease-in-out
+      cursor pointer
+
+    &[value=''] + .{name}--clear
+      opacity 0
+      cursor default
+
+  .{name}--clear
+    position absolute
+    top pad
+    right pad
+    background transparent
+    padding 7px
+    margin 0
+    border 0

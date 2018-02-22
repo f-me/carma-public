@@ -9,7 +9,9 @@ import Data.Record.Builder (merge)
 import Data.String (trim)
 import Data.String.NonEmpty (NonEmptyString, fromString, toString)
 
+import Control.Monad.Eff (Eff)
 import Control.Monad.Aff (launchAff_)
+import Control.Monad.Aff.AVar (AVAR)
 
 import React
      ( ReactClass, createClass, spec'
@@ -17,14 +19,14 @@ import React
      )
 
 import React.DOM (IsDynamic (IsDynamic), mkDOM)
-import React.DOM.Props (value, onChange, _type, placeholder)
-import React.Spaces ((!), (!.), renderIn)
-import React.Spaces.DOM (input)
+import React.DOM.Props (value, onChange, onClick, _type, placeholder)
+import React.Spaces ((!), (!.), renderIn, empty)
+import React.Spaces.DOM (input, button, i)
 
 import RxJS.ReplaySubject (just, debounceTime, send, subscribeNext)
 import RxJS.Subscription (unsubscribe)
 
-import Utils (storeConnect, eventInputValue)
+import Utils ((<.>), storeConnect, eventInputValue)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
@@ -44,12 +46,14 @@ diagTreeEditorTreeSearchRender
                 }
 
 diagTreeEditorTreeSearchRender = createClass $ spec $
-  \ { changeObservable, changeHandler, query } -> do
+  \ { changeObservable, changeHandler, clearHandler, query } -> do
     input !. classSfx "search-input"
       ! _type "text"
       ! placeholder "Поиск"
       ! value query
       ! onChange changeHandler
+    button !. classSfx "clear" ! onClick clearHandler $
+      i !. "glyphicon" <.> "glyphicon-remove" $ empty
 
   where
     name = "diag-tree-editor-tree-search"
@@ -62,11 +66,12 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
       transformState this _ { query = query }
       send query changeObservable
 
-    searchHandler appCtx query =
-      launchAff_ $ dispatch appCtx $ DiagTree $ Editor $ TreeSearch $
-        case fromString $ trim query of
-             Nothing -> ResetSearch
-             Just x  -> SearchByQuery x
+    onClearHandler appCtx = act appCtx ResetSearch
+
+    searchHandler appCtx query = act appCtx $
+      case fromString $ trim query of
+           Nothing -> ResetSearch
+           Just x  -> SearchByQuery x
 
     getInitialState this = do
       { appContext, searchQuery } <- getProps this
@@ -74,6 +79,7 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
       pure { changeObservable   : just "" # debounceTime 500
            , changeSubscription : Nothing
            , changeHandler      : onChangeHandler this
+           , clearHandler       : const $ onClearHandler appContext
            , query              : maybe "" toString searchQuery
            , search             : searchHandler appContext
            }
@@ -114,3 +120,11 @@ diagTreeEditorTreeSearch = storeConnect f diagTreeEditorTreeSearchRender
     f appState =
       let { searchQuery } = appState.diagTree.editor.treeSearch
        in merge { searchQuery }
+
+
+act :: forall eff
+     . AppContext
+    -> DiagTreeEditorTreeSearchAction
+    -> Eff (avar :: AVAR | eff) Unit
+
+act ctx = launchAff_ <<< dispatch ctx <<< DiagTree <<< Editor <<< TreeSearch
