@@ -4,11 +4,12 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import Data.Maybe (Maybe (..), isJust)
+import Data.Maybe (Maybe (..), isJust, isNothing)
 import Data.Record.Builder (merge)
-import Data.Array (fromFoldable, elemIndex, snoc, last)
+import Data.Array (fromFoldable, elemIndex, snoc, last, delete)
 
 import Control.Monad.Aff (launchAff_)
+import Control.Lazy (fix)
 
 import React.DOM (IsDynamic (IsDynamic), mkDOM)
 import React.DOM (div) as R
@@ -18,7 +19,7 @@ import React.Spaces.DOM (div)
 
 import React
      ( ReactClass
-     , getProps, readState, createClass, spec'
+     , getProps, readState, transformState, createClass, spec'
      , preventDefault, stopPropagation
      )
 
@@ -45,10 +46,11 @@ diagTreeEditorTreeRender
                 }
 
 diagTreeEditorTreeRender = createClass $ spec $
-  \ { slides, selectedSlideBranch } { selectSlide } -> do
+  \ { slides, selectedSlideBranch } { selectSlide, unfoldedSlides } -> do
 
     elements
-      $ map (renderItem selectedSlideBranch Nothing selectSlide [])
+      $ map (renderItem selectedSlideBranch unfoldedSlides
+                        Nothing selectSlide [])
       $ fromFoldable slides
 
   where
@@ -56,55 +58,63 @@ diagTreeEditorTreeRender = createClass $ spec $
     classSfx s = name <> "--" <> s
     wrapper = mkDOM (IsDynamic false) name []
 
-    renderItem selectedSlideBranch
-               question
-               select
-               parents
-               (DiagTreeSlide slide) =
+    renderItem selectedSlideBranch unfoldedSlides = fix $
+      \again question select parents (DiagTreeSlide slide) ->
+        let
+          w = R.div [className wClass]
+          slideBranch = parents `snoc` slide.id
 
-      renderIn w $ do
-        div !. classSfx "header" ! onClick (select slideBranch) $ do
+          childRender { header, nextSlide } =
+            again (Just header) select slideBranch nextSlide
 
-          case question of
-               Just x  -> div !. classSfx "answer" $ text x
-               Nothing -> empty
+          wClass = classSfx "item" #
+            case selectedSlideBranch of
+                 Just x | last x == Just slide.id ->
+                            (_ <.> classSfx "item--selected")
+                        | isJust $ slide.id `elemIndex` x ->
+                            (_ <.> classSfx "item--parent-selected")
+                 _ -> id
+        in
+          renderIn w $ do
+            div !. classSfx "header" ! onClick (select slideBranch) $ do
 
-          div !. classSfx "question" $ text slide.header
+              case question of
+                   Just x  -> div !. classSfx "answer" $ text x
+                   Nothing -> empty
 
-        div !. classSfx "children" $ do
-          elements
-            $ map childRender
-            $ fromFoldable slide.answers
+              div !. classSfx "question" $ text slide.header
 
-      where w = R.div [className wClass]
-            slideBranch = parents `snoc` slide.id
+            if isNothing $ slide.id `elemIndex` unfoldedSlides
+               then empty
+               else div !. classSfx "children" $ do
+                      elements
+                        $ map childRender
+                        $ fromFoldable slide.answers
 
-            childRender { header, nextSlide } =
-              renderItem selectedSlideBranch
-                         (Just header)
-                         select
-                         slideBranch
-                         nextSlide
-
-            wClass = classSfx "item" #
-              case selectedSlideBranch of
-                   Just x | last x == Just slide.id ->
-                              (_ <.> classSfx "item--selected")
-                          | isJust $ slide.id `elemIndex` x ->
-                              (_ <.> classSfx "item--parent-selected")
-                   _ -> id
-
-    selectSlideHandler appContext slideBranch event = do
+    selectSlideHandler appContext toggleSlideFold slideBranch event = do
       preventDefault  event
       stopPropagation event
 
-      launchAff_ $ dispatch appContext $
-        DiagTree $ Editor $ SelectSlide slideBranch
+      case last slideBranch of
+           Nothing -> pure unit
+           Just x  -> do
+             toggleSlideFold x
+             launchAff_ $ dispatch appContext $
+               DiagTree $ Editor $ SelectSlide slideBranch
+
+    toggleSlideFoldHandler this slideId =
+      transformState this $ \s@{ unfoldedSlides } ->
+        if isJust $ slideId `elemIndex` unfoldedSlides
+           then s { unfoldedSlides = slideId `delete` unfoldedSlides }
+           else s { unfoldedSlides = unfoldedSlides `snoc` slideId }
 
     getInitialState this = do
       { appContext } <- getProps this
+      let toggleSlideFold = toggleSlideFoldHandler this
 
-      pure { selectSlide : selectSlideHandler appContext
+      pure { selectSlide     : selectSlideHandler appContext toggleSlideFold
+           , unfoldedSlides  : ([] :: Array DiagTreeSlideId)
+           , toggleSlideFold
            }
 
     spec renderFn =

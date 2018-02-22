@@ -84,14 +84,14 @@ diagTreeEditorRender = createClass $ spec $ \ { appContext } { newSlide } -> do
             span !. "label label-warning" $ text "Ожидание"
             text " Данные ещё не загружены…"
 
-    newSlide appContext _ =
+    newSlideHandler appContext _ =
       log "TODO new slide"
 
     getInitialState this = do
       { appContext } <- getProps this
 
       -- Handlers with prebound `AppContext`
-      pure { newSlide : newSlide appContext
+      pure { newSlide : newSlideHandler appContext
            }
 
     spec mainRender =

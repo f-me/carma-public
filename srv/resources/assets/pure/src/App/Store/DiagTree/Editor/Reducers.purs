@@ -82,6 +82,8 @@ diagTreeEditorReducer state (LoadSlidesFailure ParsingSlidesDataFailed) =
              , isParsingSlidesDataFailed = true
              }
 
+diagTreeEditorReducer _ (SelectSlide []) = Nothing
+
 diagTreeEditorReducer state (SelectSlide branch) =
   Just state { selectedSlideBranch = Just branch }
 
