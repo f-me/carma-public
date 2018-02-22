@@ -44,7 +44,8 @@
     "purescript-datetime": "^3.4.1",
     "purescript-js-date": "^5.1.0",
     "purescript-foldable-traversable": "^3.7.1",
-    "purescript-rxjs": "^0.3.1"
+    "purescript-rxjs": "^0.3.1",
+    "purescript-strings": "^3.5.0"
   },
   "devDependencies": {}
 }

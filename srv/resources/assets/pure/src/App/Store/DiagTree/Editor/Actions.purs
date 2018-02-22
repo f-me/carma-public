@@ -5,6 +5,10 @@ module App.Store.DiagTree.Editor.Actions
 
 import App.Store.DiagTree.Editor.Types (DiagTreeSlideId, DiagTreeSlides)
 
+import App.Store.DiagTree.Editor.TreeSearch.Actions
+     ( DiagTreeEditorTreeSearchAction
+     )
+
 
 data DiagTreeEditorAction
   = LoadSlidesRequest
@@ -17,6 +21,8 @@ data DiagTreeEditorAction
   | LoadSlidesFailure LoadSlidesFailureReason
 
   | SelectSlide (Array DiagTreeSlideId)
+
+  | TreeSearch DiagTreeEditorTreeSearchAction
 
 
 data LoadSlidesFailureReason

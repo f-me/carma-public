@@ -34,7 +34,7 @@ appReducer :: AppState -> AppAction -> Maybe AppState
 
 appReducer state (Navigate route) =
   if state.currentLocation /= route
-     then Just $ state { currentLocation = route }
+     then Just state { currentLocation = route }
      else Nothing
 
 appReducer state (DiagTree x) =

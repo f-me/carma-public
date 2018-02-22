@@ -16,6 +16,12 @@ import App.Store.DiagTree.Editor.Actions
      , LoadSlidesFailureReason (..)
      )
 
+import App.Store.DiagTree.Editor.TreeSearch.Reducers
+     ( DiagTreeEditorTreeSearchState
+     , diagTreeEditorTreeSearchInitialState
+     , diagTreeEditorTreeSearchReducer
+     )
+
 
 type DiagTreeEditorState =
   { slides                    :: DiagTreeSlides
@@ -27,6 +33,8 @@ type DiagTreeEditorState =
   , isSlidesLoading           :: Boolean
   , isSlidesLoadingFailed     :: Boolean
   , isParsingSlidesDataFailed :: Boolean
+
+  , treeSearch                :: DiagTreeEditorTreeSearchState
   }
 
 diagTreeEditorInitialState :: DiagTreeEditorState
@@ -38,6 +46,8 @@ diagTreeEditorInitialState =
   , isSlidesLoading           : false
   , isSlidesLoadingFailed     : false
   , isParsingSlidesDataFailed : false
+
+  , treeSearch                : diagTreeEditorTreeSearchInitialState
   }
 
 
@@ -45,32 +55,36 @@ diagTreeEditorReducer
   :: DiagTreeEditorState -> DiagTreeEditorAction -> Maybe DiagTreeEditorState
 
 diagTreeEditorReducer state LoadSlidesRequest =
-  Just $ state { slides                    = (empty :: DiagTreeSlides)
-               , selectedSlideBranch       = Nothing
+  Just state { slides                    = (empty :: DiagTreeSlides)
+             , selectedSlideBranch       = Nothing
 
-               , isSlidesLoaded            = false
-               , isSlidesLoading           = true
-               , isSlidesLoadingFailed     = false
-               , isParsingSlidesDataFailed = false
-               }
+             , isSlidesLoaded            = false
+             , isSlidesLoading           = true
+             , isSlidesLoadingFailed     = false
+             , isParsingSlidesDataFailed = false
+             }
 
 diagTreeEditorReducer state (LoadSlidesSuccess { slides, rootSlide }) =
-  Just $ state { slides              = slides
-               , selectedSlideBranch = Just [rootSlide]
-               , isSlidesLoaded      = true
-               , isSlidesLoading     = false
-               }
+  Just state { slides              = slides
+             , selectedSlideBranch = Just [rootSlide]
+             , isSlidesLoaded      = true
+             , isSlidesLoading     = false
+             }
 
 diagTreeEditorReducer state (LoadSlidesFailure LoadingSlidesFailed) =
-  Just $ state { isSlidesLoading       = false
-               , isSlidesLoadingFailed = true
-               }
+  Just state { isSlidesLoading       = false
+             , isSlidesLoadingFailed = true
+             }
 
 diagTreeEditorReducer state (LoadSlidesFailure ParsingSlidesDataFailed) =
-  Just $ state { isSlidesLoading           = false
-               , isSlidesLoadingFailed     = true
-               , isParsingSlidesDataFailed = true
-               }
+  Just state { isSlidesLoading           = false
+             , isSlidesLoadingFailed     = true
+             , isParsingSlidesDataFailed = true
+             }
 
 diagTreeEditorReducer state (SelectSlide branch) =
-  Just $ state { selectedSlideBranch = Just branch }
+  Just state { selectedSlideBranch = Just branch }
+
+diagTreeEditorReducer state (TreeSearch x) =
+  diagTreeEditorTreeSearchReducer state.treeSearch x
+    <#> state { treeSearch = _ }
