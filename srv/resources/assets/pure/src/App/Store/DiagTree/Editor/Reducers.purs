@@ -2,12 +2,17 @@ module App.Store.DiagTree.Editor.Reducers
      ( DiagTreeEditorState
      , diagTreeEditorInitialState
      , diagTreeEditorReducer
+     , FoundSlides
      ) where
 
 import Prelude
 
+import Data.Tuple (Tuple (Tuple))
 import Data.Maybe (Maybe (..))
-import Data.Map (empty)
+import Data.Map (Map, empty)
+import Data.String (toLower)
+import Data.String.NonEmpty (toString)
+import Data.Foldable (foldl)
 
 import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId)
 
@@ -23,8 +28,17 @@ import App.Store.DiagTree.Editor.TreeSearch.Reducers
      )
 
 
+type FoundSlides =
+  Tuple
+    (Array DiagTreeSlideId)
+    -- ^ Found slides (including parents of branches)
+    (Map DiagTreeSlideId { answer :: Maybe Int, question :: Maybe Int })
+    -- ^ `Int` value is start index of matched pattern
+    --   (search word length could be determinted from 'treeSearch' branch).
+
 type DiagTreeEditorState =
   { slides                    :: DiagTreeSlides
+  , foundSlides               :: Maybe FoundSlides
 
   -- Selected slide with all parents in ascending order
   , selectedSlideBranch       :: Maybe (Array DiagTreeSlideId)
@@ -41,6 +55,7 @@ diagTreeEditorInitialState :: DiagTreeEditorState
 diagTreeEditorInitialState =
   { slides                    : empty
   , selectedSlideBranch       : Nothing
+  , foundSlides               : Nothing
 
   , isSlidesLoaded            : false
   , isSlidesLoading           : false
@@ -87,6 +102,13 @@ diagTreeEditorReducer _ (SelectSlide []) = Nothing
 diagTreeEditorReducer state (SelectSlide branch) =
   Just state { selectedSlideBranch = Just branch }
 
-diagTreeEditorReducer state (TreeSearch x) =
-  diagTreeEditorTreeSearchReducer state.treeSearch x
+diagTreeEditorReducer state (TreeSearch subAction) =
+  diagTreeEditorTreeSearchReducer state.treeSearch subAction
     <#> state { treeSearch = _ }
+    <#> \s@{ slides, treeSearch: { searchQuery: q } } ->
+          s { foundSlides = q <#> toString <#> toLower <#> search slides }
+
+  where
+    search slides query = foldl (searchReduce query) (Tuple [] empty) slides
+
+    searchReduce query acc x = acc -- TODO implement

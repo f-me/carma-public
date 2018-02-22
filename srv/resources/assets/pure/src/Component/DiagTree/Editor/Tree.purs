@@ -63,7 +63,7 @@ diagTreeEditorTreeRender = createClass $ spec $
     wrapper = mkDOM (IsDynamic false) name []
 
     renderItem selectedSlideBranch unfoldedSlides select deleteSlide = fix $
-      \again question parents (DiagTreeSlide slide) ->
+      \again answer parents (DiagTreeSlide slide) ->
         let
           slideBranch = parents `snoc` slide.id
 
@@ -87,7 +87,7 @@ diagTreeEditorTreeRender = createClass $ spec $
 
                 i !. "glyphicon" <.> "glyphicon-trash" $ empty
 
-              case question of
+              case answer of
                    Just x  -> div !. classSfx "answer" $ text x
                    Nothing -> empty
 
