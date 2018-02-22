@@ -24,7 +24,7 @@ import React.Spaces.DOM (input, button, i)
 import React.DOM (IsDynamic (IsDynamic), mkDOM)
 
 import React.DOM.Props
-     ( value, onChange, onClick, onKeyUp, _type, placeholder
+     ( value, onChange, onClick, onKeyUp, _type, placeholder, title
      )
 
 import RxJS.ReplaySubject (just, debounceTime, send, subscribeNext)
@@ -58,13 +58,16 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
     } -> do
 
       input !. classSfx "search-input"
-        ! _type "text"
-        ! placeholder "Поиск"
-        ! value query
-        ! onChange changeHandler
-        ! onKeyUp keyHandler
+            ! _type "text"
+            ! placeholder "Поиск"
+            ! value query
+            ! onChange changeHandler
+            ! onKeyUp keyHandler
 
-      button !. classSfx "clear" ! onClick clearHandler $
+      button !. classSfx "clear"
+             ! onClick clearHandler
+             ! title "Очистить строку поиска" $
+
         i !. "glyphicon" <.> "glyphicon-remove" $ empty
 
   where

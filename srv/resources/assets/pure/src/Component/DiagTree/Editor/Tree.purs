@@ -9,13 +9,14 @@ import Data.Record.Builder (merge)
 import Data.Array (fromFoldable, elemIndex, snoc, last, delete)
 
 import Control.Monad.Aff (launchAff_)
+import Control.Monad.Eff.Console (log)
 import Control.Lazy (fix)
 
 import React.DOM (IsDynamic (IsDynamic), mkDOM)
 import React.DOM (div) as R
-import React.DOM.Props (className, onClick)
+import React.DOM.Props (className, onClick, title)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
-import React.Spaces.DOM (div)
+import React.Spaces.DOM (div, button, i)
 
 import React
      ( ReactClass
@@ -46,26 +47,28 @@ diagTreeEditorTreeRender
                 }
 
 diagTreeEditorTreeRender = createClass $ spec $
-  \ { slides, selectedSlideBranch } { selectSlide, unfoldedSlides } -> do
+  \ { slides, selectedSlideBranch }
+    { selectSlide, deleteSlide, unfoldedSlides } -> do
 
-    elements
-      $ map (renderItem selectedSlideBranch unfoldedSlides
-                        Nothing selectSlide [])
-      $ fromFoldable slides
+    let renderItemFn =
+          renderItem selectedSlideBranch unfoldedSlides
+                     selectSlide deleteSlide
+                     Nothing []
+
+    elements $ map renderItemFn $ fromFoldable slides
 
   where
     name = "diag-tree-editor-tree"
     classSfx s = name <> "--" <> s
     wrapper = mkDOM (IsDynamic false) name []
 
-    renderItem selectedSlideBranch unfoldedSlides = fix $
-      \again question select parents (DiagTreeSlide slide) ->
+    renderItem selectedSlideBranch unfoldedSlides select deleteSlide = fix $
+      \again question parents (DiagTreeSlide slide) ->
         let
-          w = R.div [className wClass]
           slideBranch = parents `snoc` slide.id
 
           childRender { header, nextSlide } =
-            again (Just header) select slideBranch nextSlide
+            again (Just header) slideBranch nextSlide
 
           wClass = classSfx "item" #
             case selectedSlideBranch of
@@ -75,8 +78,14 @@ diagTreeEditorTreeRender = createClass $ spec $
                             (_ <.> classSfx "item--parent-selected")
                  _ -> id
         in
-          renderIn w $ do
+          renderIn (R.div [className wClass]) $ do
             div !. classSfx "header" ! onClick (select slideBranch) $ do
+
+              button !. "btn" <.> "btn-danger" <.> classSfx "delete"
+                     ! onClick (deleteSlide slideBranch)
+                     ! title "Удалить ветвь" $
+
+                i !. "glyphicon" <.> "glyphicon-trash" $ empty
 
               case question of
                    Just x  -> div !. classSfx "answer" $ text x
@@ -86,7 +95,7 @@ diagTreeEditorTreeRender = createClass $ spec $
 
             if isNothing $ slide.id `elemIndex` unfoldedSlides
                then empty
-               else div !. classSfx "children" $ do
+               else div !. classSfx "children" $
                       elements
                         $ map childRender
                         $ fromFoldable slide.answers
@@ -102,6 +111,12 @@ diagTreeEditorTreeRender = createClass $ spec $
              launchAff_ $ dispatch appContext $
                DiagTree $ Editor $ SelectSlide slideBranch
 
+    deleteSlideHandler slideBranch event = do
+      preventDefault  event
+      stopPropagation event
+
+      log $ "TODO delete slide: " <> show slideBranch
+
     toggleSlideFoldHandler this slideId =
       transformState this $ \s@{ unfoldedSlides } ->
         if isJust $ slideId `elemIndex` unfoldedSlides
@@ -114,6 +129,7 @@ diagTreeEditorTreeRender = createClass $ spec $
 
       pure { selectSlide     : selectSlideHandler appContext toggleSlideFold
            , unfoldedSlides  : ([] :: Array DiagTreeSlideId)
+           , deleteSlide     : deleteSlideHandler
            , toggleSlideFold
            }
 
