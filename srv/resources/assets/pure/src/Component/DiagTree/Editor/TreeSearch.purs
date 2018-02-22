@@ -16,12 +16,16 @@ import Control.Monad.Aff.AVar (AVAR)
 import React
      ( ReactClass, createClass, spec'
      , getProps, readState, transformState
+     , preventDefault
      )
 
-import React.DOM (IsDynamic (IsDynamic), mkDOM)
-import React.DOM.Props (value, onChange, onClick, _type, placeholder)
 import React.Spaces ((!), (!.), renderIn, empty)
 import React.Spaces.DOM (input, button, i)
+import React.DOM (IsDynamic (IsDynamic), mkDOM)
+
+import React.DOM.Props
+     ( value, onChange, onClick, onKeyUp, _type, placeholder
+     )
 
 import RxJS.ReplaySubject (just, debounceTime, send, subscribeNext)
 import RxJS.Subscription (unsubscribe)
@@ -46,14 +50,22 @@ diagTreeEditorTreeSearchRender
                 }
 
 diagTreeEditorTreeSearchRender = createClass $ spec $
-  \ { changeObservable, changeHandler, clearHandler, query } -> do
-    input !. classSfx "search-input"
-      ! _type "text"
-      ! placeholder "Поиск"
-      ! value query
-      ! onChange changeHandler
-    button !. classSfx "clear" ! onClick clearHandler $
-      i !. "glyphicon" <.> "glyphicon-remove" $ empty
+  \ { changeObservable
+    , changeHandler
+    , clearHandler
+    , keyHandler
+    , query
+    } -> do
+
+      input !. classSfx "search-input"
+        ! _type "text"
+        ! placeholder "Поиск"
+        ! value query
+        ! onChange changeHandler
+        ! onKeyUp keyHandler
+
+      button !. classSfx "clear" ! onClick clearHandler $
+        i !. "glyphicon" <.> "glyphicon-remove" $ empty
 
   where
     name = "diag-tree-editor-tree-search"
@@ -66,7 +78,22 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
       transformState this _ { query = query }
       send query changeObservable
 
-    onClearHandler appCtx = act appCtx ResetSearch
+    onClearHandler appCtx this event = do
+      preventDefault event
+      resetSearch appCtx this
+
+    onKeyHandler appCtx this { altKey, ctrlKey, shiftKey, key } =
+      if not altKey && not ctrlKey && not shiftKey && key == "Escape"
+         then resetSearch appCtx this
+         else pure unit
+
+    resetSearch appCtx this = do
+      { changeObservable } <- readState this
+      act appCtx ResetSearch
+
+      -- In case escape pressed before debounced request
+      send "" changeObservable
+      transformState this _ { query = "" }
 
     searchHandler appCtx query = act appCtx $
       case fromString $ trim query of
@@ -79,7 +106,8 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
       pure { changeObservable   : just "" # debounceTime 500
            , changeSubscription : Nothing
            , changeHandler      : onChangeHandler this
-           , clearHandler       : const $ onClearHandler appContext
+           , clearHandler       : onClearHandler appContext this
+           , keyHandler         : onKeyHandler appContext this
            , query              : maybe "" toString searchQuery
            , search             : searchHandler appContext
            }
@@ -99,14 +127,15 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
           , componentWillReceiveProps = \this { searchQuery: newQuery } -> do
               { searchQuery: oldQuery } <- getProps this
 
-              when (newQuery /= oldQuery) $
-                case newQuery <#> toString of
-                     Nothing -> transformState this _ { query = "" }
-                     Just x  -> do
-                       { query } <- readState this
-                       if trim query /= x
-                          then transformState this _ { query = x }
-                          else pure unit
+              if newQuery == oldQuery
+                then pure unit
+                else case newQuery <#> toString of
+                          Nothing -> transformState this _ { query = "" }
+                          Just x  -> do
+                            { query } <- readState this
+                            if trim query /= x
+                               then transformState this _ { query = x }
+                               else pure unit
 
           , componentWillUnmount = \this -> do
               { changeSubscription } <- readState this
