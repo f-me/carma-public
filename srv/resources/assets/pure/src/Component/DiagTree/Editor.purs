@@ -4,8 +4,6 @@ module Component.DiagTree.Editor
 
 import Prelude hiding (div)
 
-import Data.Maybe (Maybe (..), isJust)
-import Data.Array (fromFoldable, elemIndex)
 import Data.Record.Builder (merge)
 
 import Control.Monad.Aff (launchAff_)
@@ -13,9 +11,9 @@ import Control.Monad.Eff.Console (log)
 
 import React (ReactClass, getProps, readState, createClass, spec')
 import React.DOM.Props (onClick)
-import React.DOM (IsDynamic (IsDynamic), mkDOM, div')
-import React.Spaces.DOM (div, p, span, b, button, i)
-import React.Spaces ((!), (!.), (^), renderIn, elements, text, empty)
+import React.DOM (IsDynamic (IsDynamic), mkDOM)
+import React.Spaces.DOM (div, p, span, button, i)
+import React.Spaces ((!), (!.), (^), renderIn, text, empty)
 
 import Utils ((<.>), storeConnect)
 import Component.Spinner (spinner)
@@ -25,14 +23,8 @@ import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
 
-import App.Store.DiagTree.Editor.Types
-     ( DiagTreeSlides
-     , DiagTreeSlideId
-     , DiagTreeSlide (DiagTreeSlide)
-     )
-
 import App.Store.DiagTree.Editor.Actions
-     ( DiagTreeEditorAction (LoadSlidesRequest, SelectSlide)
+     ( DiagTreeEditorAction (LoadSlidesRequest)
      )
 
 
@@ -42,19 +34,14 @@ diagTreeEditorRender
                 , isSlidesLoadingFailed     :: Boolean
                 , isParsingSlidesDataFailed :: Boolean
                 , appContext                :: AppContext
-                , slides                    :: DiagTreeSlides
-                , selectedSlideBranch       :: Maybe (Array DiagTreeSlideId)
                 }
 
-diagTreeEditorRender = createClass $ spec $ \ { appContext
-                                              , selectedSlideBranch
-                                              , slides
-                                              } state -> do
+diagTreeEditorRender = createClass $ spec $ \ { appContext } { newSlide } -> do
 
   div !. "col-md-4" <.> classSfx "tree-panel" $ do
 
     div !. "btn-toolbar" $ do
-      button !. "btn btn-success" ! onClick state.newSlide $ do
+      button !. "btn btn-success" ! onClick newSlide $ do
         i !. "glyphicon glyphicon-plus" $ empty
         text " Новое дерево"
 
@@ -62,9 +49,7 @@ diagTreeEditorRender = createClass $ spec $ \ { appContext
     diagTreeEditorTree       ^ { appContext }
 
   div !. "col-md-8" <.> classSfx "slide-editor-panel" $ do
-    elements
-      $ map (renderSlide selectedSlideBranch state.selectSlide)
-      $ fromFoldable slides
+    text "TODO"
 
   where
     name = "diag-tree-editor"
@@ -76,18 +61,6 @@ diagTreeEditorRender = createClass $ spec $ \ { appContext
         div !. "container" $
           div !. "row" $
             branching mainRender props state
-
-    renderSlide selectedSlideBranch select (DiagTreeSlide slide) =
-      renderIn div' $ do
-        text $ "id: " <> show slide.id
-        text $ " isRoot: " <> show slide.isRoot
-
-        case selectedSlideBranch of
-             Just x | isJust $ slide.id `elemIndex` x ->
-               b $ text " SELECTED"
-             _ -> do
-               text " "
-               button ! onClick (select slide.id) $ text "select"
 
     branching mainRender props state
       | props.isSlidesLoadingFailed = div $ do
@@ -111,10 +84,6 @@ diagTreeEditorRender = createClass $ spec $ \ { appContext
             span !. "label label-warning" $ text "Ожидание"
             text " Данные ещё не загружены…"
 
-    selectSlide appContext slideId _ =
-      launchAff_ $ dispatch appContext $
-        DiagTree $ Editor $ SelectSlide [slideId]
-
     newSlide appContext _ =
       log "TODO new slide"
 
@@ -122,8 +91,7 @@ diagTreeEditorRender = createClass $ spec $ \ { appContext
       { appContext } <- getProps this
 
       -- Handlers with prebound `AppContext`
-      pure { selectSlide : selectSlide appContext
-           , newSlide    : newSlide appContext
+      pure { newSlide : newSlide appContext
            }
 
     spec mainRender =
@@ -156,6 +124,4 @@ diagTreeEditor = storeConnect f diagTreeEditorRender
       , isSlidesLoaded            : branch.isSlidesLoaded
       , isSlidesLoadingFailed     : branch.isSlidesLoadingFailed
       , isParsingSlidesDataFailed : branch.isParsingSlidesDataFailed
-      , slides                    : branch.slides
-      , selectedSlideBranch       : branch.selectedSlideBranch
       }

@@ -1,4 +1,57 @@
 name = diag-tree-editor-tree
 
 {name}
+  pad = 10px
+  depth-padding = 16px
+
   display block
+  padding-right pad
+
+  .{name}--item
+    display block
+    cursor pointer
+
+    > .{name}--header
+      transition opacity .3s ease-in-out
+      position relative
+      margin-left 9px
+
+      &:before
+        content ''
+        display block
+        position absolute
+        left -4px
+        top 0
+        width 2px
+        height 100%
+        background rgba(255, 255, 255, 0)
+        transform translateX(-100%)
+
+        transition \
+          width .3s ease-in-out,
+          background-color .3s ease-in-out
+
+      .{name}--answer
+        color grey
+
+    &--selected
+    &--parent-selected
+      > .{name}--header:before
+        background rgba(43, 149, 253, 1)
+
+    &--selected > .{name}--header:before
+      width 5px
+
+    &:hover > .{name}--header
+      opacity 0.7
+
+      &:before
+        background rgba(128, 128, 128, 0.5)
+
+    &--selected
+    &--parent-selected
+      &:hover > .{name}--header:before
+        background rgba(43, 149, 253, 0.5)
+
+    .{name}--children
+      margin-left 16px
