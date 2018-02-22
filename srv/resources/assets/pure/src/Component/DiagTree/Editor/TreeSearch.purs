@@ -4,7 +4,6 @@ module Component.DiagTree.Editor.TreeSearch
 
 import Prelude
 
-import Unsafe.Coerce (unsafeCoerce)
 import Data.Maybe (Maybe (..), maybe)
 import Data.Record.Builder (merge)
 import Data.String (trim)
@@ -25,7 +24,7 @@ import React.Spaces.DOM (input)
 import RxJS.ReplaySubject (just, debounceTime, send, subscribeNext)
 import RxJS.Subscription (unsubscribe)
 
-import Utils (storeConnect)
+import Utils (storeConnect, eventInputValue)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
@@ -59,7 +58,7 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
 
     onChangeHandler this event = do
       { changeObservable } <- readState this
-      let query = unsafeCoerce event # _.currentTarget.value
+      let query = eventInputValue event
       transformState this _ { query = query }
       send query changeObservable
 
