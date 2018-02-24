@@ -7,7 +7,6 @@ module App.Store.DiagTree.Editor.Reducers
 
 import Prelude
 
-import Data.Tuple (Tuple (Tuple))
 import Data.Maybe (Maybe (..))
 import Data.Map (Map, empty)
 import Data.String (toLower)
@@ -29,12 +28,17 @@ import App.Store.DiagTree.Editor.TreeSearch.Reducers
 
 
 type FoundSlides =
-  Tuple
-    (Array DiagTreeSlideId)
-    -- ^ Found slides (including parents of branches)
-    (Map DiagTreeSlideId { answer :: Maybe Int, question :: Maybe Int })
-    -- ^ `Int` value is start index of matched pattern
-    --   (search word length could be determinted from 'treeSearch' branch).
+  { matchedSlides
+      :: Array DiagTreeSlideId
+      -- ^ Found slides (including parents of branches)
+
+  , matchedPatterns
+      :: Map DiagTreeSlideId { answer :: Maybe Int, question :: Maybe Int }
+      -- ^ `Int` value is start position of matched pattern,
+      --   for example search pattern is "bar baz" and if `answer` of a slide
+      --   has value "foo bar baz bzz" then it would be `Just 4`.
+      --   (search word length could be determinted from 'treeSearch' branch).
+  }
 
 type DiagTreeEditorState =
   { slides                    :: DiagTreeSlides
@@ -109,6 +113,8 @@ diagTreeEditorReducer state (TreeSearch subAction) =
           s { foundSlides = q <#> toString <#> toLower <#> search slides }
 
   where
-    search slides query = foldl (searchReduce query) (Tuple [] empty) slides
+    search slides query =
+      let initialValue = { matchedSlides: [], matchedPatterns: empty }
+       in foldl (searchReduce query) initialValue slides
 
     searchReduce query acc x = acc -- TODO implement

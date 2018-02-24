@@ -4,9 +4,14 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import Data.Maybe (Maybe (..), isJust, isNothing)
+import Data.Maybe (Maybe (..), isJust, isNothing, fromMaybe)
 import Data.Record.Builder (merge)
 import Data.Array (fromFoldable, elemIndex, snoc, last, delete)
+import Data.String (length, splitAt)
+import Data.String.NonEmpty (toString)
+import Data.Map (Map, lookup)
+import Data.Foldable (foldl)
+import Data.Tuple (Tuple (Tuple))
 
 import Control.Monad.Aff (launchAff_)
 import Control.Monad.Eff.Console (log)
@@ -16,7 +21,7 @@ import React.DOM (IsDynamic (IsDynamic), mkDOM)
 import React.DOM (div) as R
 import React.DOM.Props (className, onClick, title)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
-import React.Spaces.DOM (div, button, i)
+import React.Spaces.DOM (div, button, i, span)
 
 import React
      ( ReactClass
@@ -41,17 +46,28 @@ import App.Store.DiagTree.Editor.Types
 
 
 diagTreeEditorTreeRender
-  :: ReactClass { appContext          :: AppContext
-                , slides              :: DiagTreeSlides
-                , selectedSlideBranch :: Maybe (Array DiagTreeSlideId)
-                }
+  :: ReactClass
+       { appContext          :: AppContext
+       , slides              :: DiagTreeSlides
+       , selectedSlideBranch :: Maybe (Array DiagTreeSlideId)
+
+       , search
+           :: Maybe { query    :: String
+                    , slides   :: Array DiagTreeSlideId
+
+                    , patterns :: Map DiagTreeSlideId
+                                      { answer   :: Maybe Int
+                                      , question :: Maybe Int
+                                      }
+                    }
+       }
 
 diagTreeEditorTreeRender = createClass $ spec $
-  \ { slides, selectedSlideBranch }
+  \ { slides, selectedSlideBranch, search }
     { selectSlide, deleteSlide, unfoldedSlides } -> do
 
     let renderItemFn =
-          renderItem selectedSlideBranch unfoldedSlides
+          renderItem selectedSlideBranch unfoldedSlides search
                      selectSlide deleteSlide
                      Nothing []
 
@@ -62,21 +78,29 @@ diagTreeEditorTreeRender = createClass $ spec $
     classSfx s = name <> "--" <> s
     wrapper = mkDOM (IsDynamic false) name []
 
-    renderItem selectedSlideBranch unfoldedSlides select deleteSlide = fix $
-      \again answer parents (DiagTreeSlide slide) ->
+    renderItem selectedSlide unfoldedSlides search select deleteSlide = fix $
+      \again answerHeader parents (DiagTreeSlide slide) ->
         let
           slideBranch = parents `snoc` slide.id
 
-          childRender { header, nextSlide } =
-            again (Just header) slideBranch nextSlide
-
           wClass = classSfx "item" #
-            case selectedSlideBranch of
+            case selectedSlide of
                  Just x | last x == Just slide.id ->
                             (_ <.> classSfx "item--selected")
                         | isJust $ slide.id `elemIndex` x ->
                             (_ <.> classSfx "item--parent-selected")
                  _ -> id
+
+          childReducer = case search of
+            Nothing ->
+              \acc { header, nextSlide } ->
+                acc `snoc` again (Just header) slideBranch nextSlide
+
+            Just { slides } ->
+              \acc { header, nextSlide } ->
+                if isJust $ slide.id `elemIndex` slides
+                   then acc `snoc` again (Just header) slideBranch nextSlide
+                   else acc
         in
           renderIn (R.div [className wClass]) $ do
             div !. classSfx "header" ! onClick (select slideBranch) $ do
@@ -87,18 +111,51 @@ diagTreeEditorTreeRender = createClass $ spec $
 
                 i !. "glyphicon" <.> "glyphicon-trash" $ empty
 
-              case answer of
-                   Just x  -> div !. classSfx "answer" $ text x
-                   Nothing -> empty
+              let searchPatterns = do
+                    { query, patterns }  <- search
+                    { answer, question } <- lookup slide.id patterns
+                    pure { len: length query, answer, question }
 
-              div !. classSfx "question" $ text slide.header
+                  searchAnswer = do
+                    x <- searchPatterns
+                    y <- x.answer
+                    pure $ Tuple y x.len
+
+                  searchQuestion = do
+                    x <- searchPatterns
+                    y <- x.question
+                    pure $ Tuple y x.len
+
+              case answerHeader of
+                   Nothing -> empty
+                   Just x  ->
+                     div !. classSfx "answer" $
+                       case searchAnswer of
+                            Nothing -> text x
+                            Just s -> hlSearch x s
+
+              div !. classSfx "question" $
+                case searchQuestion of
+                     Nothing -> text slide.header
+                     Just s -> hlSearch slide.header s
 
             if isNothing $ slide.id `elemIndex` unfoldedSlides
                then empty
                else div !. classSfx "children" $
-                      elements
-                        $ map childRender
-                        $ fromFoldable slide.answers
+                      elements $ foldl childReducer [] slide.answers
+
+    hlSearch x (Tuple start len) = fromMaybe (text x) $ do
+      { before: pfx, after } <- splitAt start x
+
+      { before: hl, after: sfx } <-
+        if length after > len
+           then splitAt len after
+           else pure $ { before: after, after: "" }
+
+      pure $ do
+        if pfx /= "" then text pfx else empty
+        span !. classSfx "search-match" $ text hl
+        if sfx /= "" then text sfx else empty
 
     selectSlideHandler appContext toggleSlideFold slideBranch event = do
       preventDefault  event
@@ -148,6 +205,13 @@ diagTreeEditorTreeRender = createClass $ spec $
 diagTreeEditorTree :: ReactClass { appContext :: AppContext }
 diagTreeEditorTree = storeConnect f diagTreeEditorTreeRender
   where
-    f appState =
-      let { slides, selectedSlideBranch } = appState.diagTree.editor
-       in merge { slides, selectedSlideBranch }
+    f appState = let branch = appState.diagTree.editor in merge
+      { slides              : branch.slides
+      , selectedSlideBranch : branch.selectedSlideBranch
+
+      , search:
+          branch.foundSlides
+            >>= \ { matchedSlides: slides, matchedPatterns: patterns } -> do
+                  query <- branch.treeSearch.searchQuery <#> toString
+                  pure { query, slides, patterns }
+      }
