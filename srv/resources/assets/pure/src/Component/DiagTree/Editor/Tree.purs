@@ -79,10 +79,15 @@ diagTreeEditorTreeRender = createClass $ spec $
     wrapper = mkDOM (IsDynamic false) name []
 
     renderItem selectedSlide unfoldedSlides search select deleteSlide = fix $
+      -- `fix` to prevent passing a lot of arguments every recursive iteration.
       \again answerHeader parents (DiagTreeSlide slide) ->
         let
+          -- Full path of slides ids to current one
           slideBranch = parents `snoc` slide.id
 
+          -- Constructing class name:
+          --   * "selected" for currently selected one
+          --   * "parent-selected" for all parents of currently selected
           wClass = classSfx "item" #
             case selectedSlide of
                  Just x | last x == Just slide.id ->
@@ -91,6 +96,7 @@ diagTreeEditorTreeRender = createClass $ spec $
                             (_ <.> classSfx "item--parent-selected")
                  _ -> id
 
+          -- Fold-reducer of array of elements to render children ("answers")
           childReducer = case search of
             Nothing ->
               \acc { header, nextSlide } ->
@@ -98,6 +104,7 @@ diagTreeEditorTreeRender = createClass $ spec $
 
             Just { slides } ->
               \acc { header, nextSlide } ->
+                -- Filtering only branches that have matched
                 if isJust $ slide.id `elemIndex` slides
                    then acc `snoc` again (Just header) slideBranch nextSlide
                    else acc
@@ -144,6 +151,7 @@ diagTreeEditorTreeRender = createClass $ spec $
                else div !. classSfx "children" $
                       elements $ foldl childReducer [] slide.answers
 
+    -- Highlighting matched search patterns
     hlSearch x (Tuple start len) = fromMaybe (text x) $ do
       { before: pfx, after } <- splitAt start x
 
