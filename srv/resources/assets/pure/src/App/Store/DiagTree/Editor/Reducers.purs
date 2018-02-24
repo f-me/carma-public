@@ -7,14 +7,18 @@ module App.Store.DiagTree.Editor.Reducers
 
 import Prelude
 
-import Data.Maybe (Maybe (..))
+import Control.Alt ((<|>))
+
+import Data.Maybe (Maybe (..), fromMaybe, isNothing)
+import Data.Array (snoc)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Set (Set)
 import Data.Set as Set
+import Data.Tuple (Tuple (Tuple))
 import Data.String (Pattern (Pattern), toLower, indexOf)
 import Data.String.NonEmpty (toString)
-import Data.Foldable (foldl)
+import Data.Foldable (foldl, foldr)
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlides
@@ -35,9 +39,11 @@ import App.Store.DiagTree.Editor.TreeSearch.Reducers
 
 
 type FoundSlides =
-  { matchedSlides
+  { matchedParents
       :: Set DiagTreeSlideId
-      -- ^ Found slides (including parents of branches)
+      -- ^ Found slides in these parents (including all parents of a branch).
+      --   Matches slide must NOT be included here
+      --   (except if it's parent of another one that matches).
 
   , matchedPatterns
       :: Map DiagTreeSlideId { answer :: Maybe Int, question :: Maybe Int }
@@ -122,13 +128,43 @@ diagTreeEditorReducer state (TreeSearch subAction) =
 
   where
     search slides query =
-      let initial = { matchedSlides: Set.empty, matchedPatterns: Map.empty }
+      let initial = { matchedParents: Set.empty, matchedPatterns: Map.empty }
        in foldl (searchReduce query) initial slides
 
     searchReduce query acc (DiagTreeSlide x) =
       let
-        rootMatch pos = Map.insert x.id { answer: Nothing, question: Just pos }
+        -- Matching only `question` for root silde
+        rootSearch =
+          fromMaybe acc $
+            query `indexOf` toLower x.header <#>
+              \pos -> acc { matchedPatterns = m pos acc.matchedPatterns }
+          where m pos = Map.insert x.id { answer: Nothing, question: Just pos }
+
+        -- Matching all children deep to end of the branches
+        rootChildren = foldl (childReduce $ Set.singleton x.id) [] x.answers
+
+        -- Merging found matches to root accumulator
+        rootChildrenReduce rootAcc (Tuple parents { id, answer, question }) =
+          let
+            matchedParents = foldr Set.insert rootAcc.matchedParents parents
+            matches = Map.insert id { answer, question } rootAcc.matchedPatterns
+          in
+            rootAcc { matchedParents  = matchedParents
+                    , matchedPatterns = matches
+                    }
+
+        -- Traverser for an "answer" (single child with all his children)
+        childReduce parents matches item@{ nextSlide: (DiagTreeSlide slide) } =
+          foldl ownChildReduce newMatches slide.answers
+          where
+            answer         = query `indexOf` toLower item.header
+            question       = query `indexOf` toLower slide.header
+            ownChildReduce = childReduce $ slide.id `Set.insert` parents
+
+            newMatches =
+              if isNothing $ answer <|> question
+                 then matches
+                 else matches `snoc`
+                        Tuple parents { id: slide.id, answer, question }
       in
-        case query `indexOf` toLower x.header <#> rootMatch of
-             Nothing -> acc
-             Just f  -> acc { matchedPatterns = f acc.matchedPatterns }
+        foldl rootChildrenReduce rootSearch rootChildren

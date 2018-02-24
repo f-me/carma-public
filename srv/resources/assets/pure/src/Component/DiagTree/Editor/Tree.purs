@@ -4,7 +4,7 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import Data.Maybe (Maybe (..), isJust, isNothing, fromMaybe, maybe)
+import Data.Maybe (Maybe (..), isJust, fromMaybe, maybe)
 import Data.Record.Builder (merge)
 import Data.Array (elemIndex, snoc, last, null)
 import Data.String (length, splitAt)
@@ -13,7 +13,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Foldable (foldl)
+import Data.Foldable (foldl, foldr)
 import Data.Tuple (Tuple (Tuple))
 
 import Control.Monad.Aff (launchAff_)
@@ -57,7 +57,7 @@ diagTreeEditorTreeRender
 
        , search
            :: Maybe { query    :: String
-                    , slides   :: Set DiagTreeSlideId
+                    , parents  :: Set DiagTreeSlideId
 
                     , patterns :: Map DiagTreeSlideId
                                       { answer   :: Maybe Int
@@ -82,9 +82,9 @@ diagTreeEditorTreeRender = createClass $ spec $
     classSfx s = name <> "--" <> s
     wrapper = mkDOM (IsDynamic true) name []
 
-    addUnfoldedClass = (_ <.> classSfx "item--unfolded")
-    addLeafClass = (_ <.> classSfx "item--leaf")
-    addSelectedClass = (_ <.> classSfx "item--selected")
+    addUnfoldedClass       = (_ <.> classSfx "item--unfolded")
+    addLeafClass           = (_ <.> classSfx "item--leaf")
+    addSelectedClass       = (_ <.> classSfx "item--selected")
     addParentSelectedClass = (_ <.> classSfx "item--parent-selected")
 
     childrenRenderer =
@@ -103,9 +103,7 @@ diagTreeEditorTreeRender = createClass $ spec $
           --   * "unfolded" for items with shown children
           --   * "lead" for items that have no children (end of a branch)
           wClass = classSfx "item"
-            # (if isNothing search && isJust children
-                  then addUnfoldedClass
-                  else id)
+            # (if isJust children then addUnfoldedClass else id)
             # (if Map.isEmpty slide.answers then addLeafClass else id)
             # case selectedSlide of
                    Just x | last x == Just slide.id -> addSelectedClass
@@ -114,7 +112,7 @@ diagTreeEditorTreeRender = createClass $ spec $
                    _ -> id
 
           children =
-            if slide.id `Set.member` unfoldedSlides
+            if isJust search || slide.id `Set.member` unfoldedSlides
                then let x = foldl childReducer [] slide.answers
                      in if null x then Nothing else Just x
                else Nothing
@@ -125,10 +123,10 @@ diagTreeEditorTreeRender = createClass $ spec $
               \acc { header, nextSlide } ->
                 acc `snoc` again (Just header) slideBranch nextSlide
 
-            Just { slides } ->
+            Just { parents: searchParents } ->
               \acc { header, nextSlide } ->
                 -- Filtering only branches that have matched
-                if slide.id `Set.member` slides
+                if slide.id `Set.member` searchParents
                    then acc `snoc` again (Just header) slideBranch nextSlide
                    else acc
         in
@@ -187,14 +185,21 @@ diagTreeEditorTreeRender = createClass $ spec $
         span !. classSfx "search-match" $ text hl
         if sfx /= "" then text sfx else empty
 
-    selectSlideHandler appContext toggleSlideFold slideBranch event = do
+    selectSlideHandler appContext this =
+      \toggleSlideFold unfoldSlideBranch slideBranch event -> do
+
+      isSearching <- getProps this <#> _.search <#> isJust
+
       preventDefault  event
       stopPropagation event
 
       case last slideBranch of
            Nothing -> pure unit
            Just x  -> do
-             toggleSlideFold x
+             if isSearching
+                then unfoldSlideBranch slideBranch
+                else toggleSlideFold x
+
              launchAff_ $ dispatch appContext $
                DiagTree $ Editor $ SelectSlide slideBranch
 
@@ -211,14 +216,26 @@ diagTreeEditorTreeRender = createClass $ spec $
                    else Set.insert
          in s { unfoldedSlides = slideId `f` unfoldedSlides }
 
+    -- When search mode is on slide could be selected, if search is reset after
+    -- we keep whole branch unfolded (to prevent it from disapearing from user).
+    unfoldSlideBranchHandler this slideBranch =
+      transformState this $ \s@{ unfoldedSlides } ->
+        s { unfoldedSlides = _ } $
+          foldr Set.insert unfoldedSlides slideBranch
+
     getInitialState this = do
       { appContext } <- getProps this
-      let toggleSlideFold = toggleSlideFoldHandler this
 
-      pure { selectSlide     : selectSlideHandler appContext toggleSlideFold
-           , unfoldedSlides  : (Set.empty :: Set DiagTreeSlideId)
-           , deleteSlide     : deleteSlideHandler
-           , toggleSlideFold
+      let toggleSlideFold   = toggleSlideFoldHandler   this
+          unfoldSlideBranch = unfoldSlideBranchHandler this
+
+          selectSlide =
+            selectSlideHandler appContext this
+                               toggleSlideFold unfoldSlideBranch
+
+      pure { selectSlide
+           , unfoldedSlides : (Set.empty :: Set DiagTreeSlideId)
+           , deleteSlide    : deleteSlideHandler
            }
 
     spec renderFn =
@@ -242,7 +259,7 @@ diagTreeEditorTree = storeConnect f diagTreeEditorTreeRender
 
       , search:
           branch.foundSlides
-            >>= \ { matchedSlides: slides, matchedPatterns: patterns } -> do
+            >>= \ { matchedParents: parents, matchedPatterns: patterns } -> do
                   query <- branch.treeSearch.searchQuery <#> toString
-                  pure { query, slides, patterns }
+                  pure { query, parents, patterns }
       }
