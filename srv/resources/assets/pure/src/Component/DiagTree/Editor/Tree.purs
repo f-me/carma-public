@@ -165,6 +165,8 @@ diagTreeEditorTreeRender = createClass $ spec $
       { before: pfx, after } <- splitAt start x
 
       { before: hl, after: sfx } <-
+        -- Splitting at the end gives you `Nothing`,
+        -- that's why we checking it here.
         if length after > len
            then splitAt len after
            else pure $ { before: after, after: "" }
