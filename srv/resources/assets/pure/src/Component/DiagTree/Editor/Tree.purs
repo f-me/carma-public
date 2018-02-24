@@ -4,9 +4,9 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import Data.Maybe (Maybe (..), isJust, isNothing, fromMaybe)
+import Data.Maybe (Maybe (..), isJust, isNothing, fromMaybe, maybe)
 import Data.Record.Builder (merge)
-import Data.Array (fromFoldable, elemIndex, snoc, last, delete)
+import Data.Array (fromFoldable, elemIndex, snoc, last, delete, null)
 import Data.String (length, splitAt)
 import Data.String.NonEmpty (toString)
 import Data.Map (Map, lookup)
@@ -78,6 +78,10 @@ diagTreeEditorTreeRender = createClass $ spec $
     classSfx s = name <> "--" <> s
     wrapper = mkDOM (IsDynamic false) name []
 
+    addUnfoldedClass = (_ <.> classSfx "item--unfolded")
+    addSelectedClass = (_ <.> classSfx "item--selected")
+    addParentSelectedClass = (_ <.> classSfx "item--parent-selected")
+
     renderItem selectedSlide unfoldedSlides search select deleteSlide = fix $
       -- `fix` to prevent passing a lot of arguments every recursive iteration.
       \again answerHeader parents (DiagTreeSlide slide) ->
@@ -88,13 +92,21 @@ diagTreeEditorTreeRender = createClass $ spec $
           -- Constructing class name:
           --   * "selected" for currently selected one
           --   * "parent-selected" for all parents of currently selected
-          wClass = classSfx "item" #
-            case selectedSlide of
-                 Just x | last x == Just slide.id ->
-                            (_ <.> classSfx "item--selected")
-                        | isJust $ slide.id `elemIndex` x ->
-                            (_ <.> classSfx "item--parent-selected")
-                 _ -> id
+          --   * "unfolded" for items with shown children
+          wClass = classSfx "item"
+            # (if isNothing search && isJust children
+                  then addUnfoldedClass
+                  else id)
+            # case selectedSlide of
+                   Just x | last x == Just slide.id -> addSelectedClass
+                          | isJust $ slide.id `elemIndex` x ->
+                              addParentSelectedClass
+                   _ -> id
+
+          children =
+            slide.id `elemIndex` unfoldedSlides
+            $> foldl childReducer [] slide.answers
+            >>= \x -> if null x then Nothing else Just x
 
           -- Fold-reducer of array of elements to render children ("answers")
           childReducer = case search of
@@ -146,10 +158,7 @@ diagTreeEditorTreeRender = createClass $ spec $
                      Nothing -> text slide.header
                      Just s -> hlSearch slide.header s
 
-            if isNothing $ slide.id `elemIndex` unfoldedSlides
-               then empty
-               else div !. classSfx "children" $
-                      elements $ foldl childReducer [] slide.answers
+            maybe empty (elements >>> (div !. classSfx "children")) children
 
     -- Highlighting matched search patterns
     hlSearch x (Tuple start len) = fromMaybe (text x) $ do

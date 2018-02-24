@@ -30,6 +30,16 @@ name = diag-tree-editor-tree
           width .3s ease-in-out,
           background-color .3s ease-in-out
 
+      &:after
+        content '📂'
+        display inline-block
+        position absolute
+        left -12px
+        top 0
+        transform translateX(-100%)
+        transition opacity .3s ease-in-out
+        opacity 0
+
       .{name}--answer
         color grey
 
@@ -67,6 +77,9 @@ name = diag-tree-editor-tree
     &--parent-selected
       &:hover > .{name}--header:before
         background rgba(43, 149, 253, 0.5)
+
+    &--unfolded > .{name}--header:after
+      opacity 1
 
     .{name}--children
       margin-left 16px
