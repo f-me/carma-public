@@ -41,6 +41,6 @@ newtype DiagTreeSlide
   , header    :: String
   , body      :: String
   , resources :: Array DiagTreeSlideResource
-  , answers   :: Array DiagTreeSlideAnswer
+  , answers   :: Map DiagTreeSlideId DiagTreeSlideAnswer
   , actions   :: Array DiagTreeSlideAction
   }

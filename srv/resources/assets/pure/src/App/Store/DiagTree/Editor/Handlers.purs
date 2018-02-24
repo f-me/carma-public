@@ -180,7 +180,7 @@ loadSlides appCtx = flip catchError handleError $ do
             jsDate <- liftEff $ parse ctime
             toMaybeT $ toDateTime jsDate
 
-          slideAnswers <- foldM answerReducer [] answers
+          slideAnswers <- foldM answerReducer Map.empty answers
 
           toMaybeT $ pure $
             DiagTreeSlide
@@ -196,8 +196,9 @@ loadSlides appCtx = flip catchError handleError $ do
 
           where
             answerReducer acc { nextSlide, header, text, file } =
-              getSlide flatSlides nextSlide
-                <#> \slide -> snoc acc { nextSlide: slide, header, text, file }
+              getSlide flatSlides nextSlide <#> \slide ->
+                let x = { nextSlide: slide, header, text, file }
+                 in Map.insert nextSlide x acc
 
         reduceTree
           :: forall reduceTreeEff

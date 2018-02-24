@@ -6,10 +6,11 @@ import Prelude hiding (div)
 
 import Data.Maybe (Maybe (..), isJust, isNothing, fromMaybe, maybe)
 import Data.Record.Builder (merge)
-import Data.Array (fromFoldable, elemIndex, snoc, last, null)
+import Data.Array (elemIndex, snoc, last, null)
 import Data.String (length, splitAt)
 import Data.String.NonEmpty (toString)
-import Data.Map (Map, lookup)
+import Data.Map (Map)
+import Data.Map as Map
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Foldable (foldl)
@@ -74,7 +75,7 @@ diagTreeEditorTreeRender = createClass $ spec $
                      selectSlide deleteSlide
                      Nothing []
 
-    elements $ map renderItemFn $ fromFoldable slides
+    elements $ map renderItemFn slides
 
   where
     name = "diag-tree-editor-tree"
@@ -105,7 +106,7 @@ diagTreeEditorTreeRender = createClass $ spec $
             # (if isNothing search && isJust children
                   then addUnfoldedClass
                   else id)
-            # (if null slide.answers then addLeafClass else id)
+            # (if Map.isEmpty slide.answers then addLeafClass else id)
             # case selectedSlide of
                    Just x | last x == Just slide.id -> addSelectedClass
                           | isJust $ slide.id `elemIndex` x ->
@@ -142,7 +143,7 @@ diagTreeEditorTreeRender = createClass $ spec $
 
               let searchPatterns = do
                     { query, patterns }  <- search
-                    { answer, question } <- lookup slide.id patterns
+                    { answer, question } <- Map.lookup slide.id patterns
                     pure { len: length query, answer, question }
 
                   searchAnswer = do
