@@ -82,6 +82,7 @@ diagTreeEditorTreeRender = createClass $ spec $
     wrapper = mkDOM (IsDynamic true) name []
 
     addUnfoldedClass = (_ <.> classSfx "item--unfolded")
+    addLeafClass = (_ <.> classSfx "item--leaf")
     addSelectedClass = (_ <.> classSfx "item--selected")
     addParentSelectedClass = (_ <.> classSfx "item--parent-selected")
 
@@ -99,10 +100,12 @@ diagTreeEditorTreeRender = createClass $ spec $
           --   * "selected" for currently selected one
           --   * "parent-selected" for all parents of currently selected
           --   * "unfolded" for items with shown children
+          --   * "lead" for items that have no children (end of a branch)
           wClass = classSfx "item"
             # (if isNothing search && isJust children
                   then addUnfoldedClass
                   else id)
+            # (if null slide.answers then addLeafClass else id)
             # case selectedSlide of
                    Just x | last x == Just slide.id -> addSelectedClass
                           | isJust $ slide.id `elemIndex` x ->
