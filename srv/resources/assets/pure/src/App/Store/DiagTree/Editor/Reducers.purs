@@ -8,14 +8,19 @@ module App.Store.DiagTree.Editor.Reducers
 import Prelude
 
 import Data.Maybe (Maybe (..))
-import Data.Map (Map, empty)
+import Data.Map (Map)
+import Data.Map as Map
 import Data.Set (Set)
 import Data.Set as Set
-import Data.String (toLower)
+import Data.String (Pattern (Pattern), toLower, indexOf)
 import Data.String.NonEmpty (toString)
 import Data.Foldable (foldl)
 
-import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId)
+import App.Store.DiagTree.Editor.Types
+     ( DiagTreeSlides
+     , DiagTreeSlideId
+     , DiagTreeSlide (DiagTreeSlide)
+     )
 
 import App.Store.DiagTree.Editor.Actions
      ( DiagTreeEditorAction (..)
@@ -59,7 +64,7 @@ type DiagTreeEditorState =
 
 diagTreeEditorInitialState :: DiagTreeEditorState
 diagTreeEditorInitialState =
-  { slides                    : empty
+  { slides                    : Map.empty
   , selectedSlideBranch       : Nothing
   , foundSlides               : Nothing
 
@@ -76,7 +81,7 @@ diagTreeEditorReducer
   :: DiagTreeEditorState -> DiagTreeEditorAction -> Maybe DiagTreeEditorState
 
 diagTreeEditorReducer state LoadSlidesRequest =
-  Just state { slides                    = (empty :: DiagTreeSlides)
+  Just state { slides                    = (Map.empty :: DiagTreeSlides)
              , selectedSlideBranch       = Nothing
 
              , isSlidesLoaded            = false
@@ -112,11 +117,18 @@ diagTreeEditorReducer state (TreeSearch subAction) =
   diagTreeEditorTreeSearchReducer state.treeSearch subAction
     <#> state { treeSearch = _ }
     <#> \s@{ slides, treeSearch: { searchQuery: q } } ->
-          s { foundSlides = q <#> toString <#> toLower <#> search slides }
+          let f = toString >>> toLower >>> Pattern >>> search slides
+           in s { foundSlides = q <#> f }
 
   where
     search slides query =
-      let initialValue = { matchedSlides: Set.empty, matchedPatterns: empty }
-       in foldl (searchReduce query) initialValue slides
+      let initial = { matchedSlides: Set.empty, matchedPatterns: Map.empty }
+       in foldl (searchReduce query) initial slides
 
-    searchReduce query acc x = acc -- TODO implement
+    searchReduce query acc (DiagTreeSlide x) =
+      let
+        rootMatch pos = Map.insert x.id { answer: Nothing, question: Just pos }
+      in
+        case query `indexOf` toLower x.header <#> rootMatch of
+             Nothing -> acc
+             Just f  -> acc { matchedPatterns = f acc.matchedPatterns }
