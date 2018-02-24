@@ -21,9 +21,10 @@ import Control.Lazy (fix)
 
 import React.DOM (IsDynamic (IsDynamic), mkDOM)
 import React.DOM (div) as R
-import React.DOM.Props (className, onClick, title)
+import React.DOM.Props (className, key, onClick, title)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
 import React.Spaces.DOM (div, button, i, span)
+import React.Spaces.DOM (div) as SDyn
 
 import React
      ( ReactClass
@@ -78,11 +79,14 @@ diagTreeEditorTreeRender = createClass $ spec $
   where
     name = "diag-tree-editor-tree"
     classSfx s = name <> "--" <> s
-    wrapper = mkDOM (IsDynamic false) name []
+    wrapper = mkDOM (IsDynamic true) name []
 
     addUnfoldedClass = (_ <.> classSfx "item--unfolded")
     addSelectedClass = (_ <.> classSfx "item--selected")
     addParentSelectedClass = (_ <.> classSfx "item--parent-selected")
+
+    childrenRenderer =
+      maybe empty $ elements >>> (SDyn.div !. classSfx "children")
 
     renderItem selectedSlide unfoldedSlides search select deleteSlide = fix $
       -- `fix` to prevent passing a lot of arguments every recursive iteration.
@@ -124,7 +128,7 @@ diagTreeEditorTreeRender = createClass $ spec $
                    then acc `snoc` again (Just header) slideBranch nextSlide
                    else acc
         in
-          renderIn (R.div [className wClass]) $ do
+          renderIn (R.div [className wClass, key $ show slide.id]) $ do
             div !. classSfx "header" ! onClick (select slideBranch) $ do
 
               button !. "btn" <.> "btn-danger" <.> classSfx "delete"
@@ -154,14 +158,14 @@ diagTreeEditorTreeRender = createClass $ spec $
                      div !. classSfx "answer" $
                        case searchAnswer of
                             Nothing -> text x
-                            Just s -> hlSearch x s
+                            Just s  -> hlSearch x s
 
               div !. classSfx "question" $
                 case searchQuestion of
                      Nothing -> text slide.header
-                     Just s -> hlSearch slide.header s
+                     Just s  -> hlSearch slide.header s
 
-            maybe empty (elements >>> (div !. classSfx "children")) children
+            childrenRenderer children
 
     -- Highlighting matched search patterns
     hlSearch x (Tuple start len) = fromMaybe (text x) $ do
