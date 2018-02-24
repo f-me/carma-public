@@ -6,10 +6,12 @@ import Prelude hiding (div)
 
 import Data.Maybe (Maybe (..), isJust, isNothing, fromMaybe, maybe)
 import Data.Record.Builder (merge)
-import Data.Array (fromFoldable, elemIndex, snoc, last, delete, null)
+import Data.Array (fromFoldable, elemIndex, snoc, last, null)
 import Data.String (length, splitAt)
 import Data.String.NonEmpty (toString)
 import Data.Map (Map, lookup)
+import Data.Set (Set)
+import Data.Set as Set
 import Data.Foldable (foldl)
 import Data.Tuple (Tuple (Tuple))
 
@@ -53,7 +55,7 @@ diagTreeEditorTreeRender
 
        , search
            :: Maybe { query    :: String
-                    , slides   :: Array DiagTreeSlideId
+                    , slides   :: Set DiagTreeSlideId
 
                     , patterns :: Map DiagTreeSlideId
                                       { answer   :: Maybe Int
@@ -104,9 +106,10 @@ diagTreeEditorTreeRender = createClass $ spec $
                    _ -> id
 
           children =
-            slide.id `elemIndex` unfoldedSlides
-            $> foldl childReducer [] slide.answers
-            >>= \x -> if null x then Nothing else Just x
+            if slide.id `Set.member` unfoldedSlides
+               then let x = foldl childReducer [] slide.answers
+                     in if null x then Nothing else Just x
+               else Nothing
 
           -- Fold-reducer of array of elements to render children ("answers")
           childReducer = case search of
@@ -117,7 +120,7 @@ diagTreeEditorTreeRender = createClass $ spec $
             Just { slides } ->
               \acc { header, nextSlide } ->
                 -- Filtering only branches that have matched
-                if isJust $ slide.id `elemIndex` slides
+                if slide.id `Set.member` slides
                    then acc `snoc` again (Just header) slideBranch nextSlide
                    else acc
         in
@@ -195,16 +198,17 @@ diagTreeEditorTreeRender = createClass $ spec $
 
     toggleSlideFoldHandler this slideId =
       transformState this $ \s@{ unfoldedSlides } ->
-        if isJust $ slideId `elemIndex` unfoldedSlides
-           then s { unfoldedSlides = slideId `delete` unfoldedSlides }
-           else s { unfoldedSlides = unfoldedSlides `snoc` slideId }
+        let f = if slideId `Set.member` unfoldedSlides
+                   then Set.delete
+                   else Set.insert
+         in s { unfoldedSlides = slideId `f` unfoldedSlides }
 
     getInitialState this = do
       { appContext } <- getProps this
       let toggleSlideFold = toggleSlideFoldHandler this
 
       pure { selectSlide     : selectSlideHandler appContext toggleSlideFold
-           , unfoldedSlides  : ([] :: Array DiagTreeSlideId)
+           , unfoldedSlides  : (Set.empty :: Set DiagTreeSlideId)
            , deleteSlide     : deleteSlideHandler
            , toggleSlideFold
            }

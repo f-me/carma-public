@@ -9,6 +9,8 @@ import Prelude
 
 import Data.Maybe (Maybe (..))
 import Data.Map (Map, empty)
+import Data.Set (Set)
+import Data.Set as Set
 import Data.String (toLower)
 import Data.String.NonEmpty (toString)
 import Data.Foldable (foldl)
@@ -29,7 +31,7 @@ import App.Store.DiagTree.Editor.TreeSearch.Reducers
 
 type FoundSlides =
   { matchedSlides
-      :: Array DiagTreeSlideId
+      :: Set DiagTreeSlideId
       -- ^ Found slides (including parents of branches)
 
   , matchedPatterns
@@ -114,7 +116,7 @@ diagTreeEditorReducer state (TreeSearch subAction) =
 
   where
     search slides query =
-      let initialValue = { matchedSlides: [], matchedPatterns: empty }
+      let initialValue = { matchedSlides: Set.empty, matchedPatterns: empty }
        in foldl (searchReduce query) initialValue slides
 
     searchReduce query acc x = acc -- TODO implement
