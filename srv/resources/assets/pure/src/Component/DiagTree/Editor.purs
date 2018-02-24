@@ -12,7 +12,7 @@ import Control.Monad.Eff.Console (log)
 import React (ReactClass, getProps, readState, createClass, spec')
 import React.DOM.Props (onClick)
 import React.DOM (IsDynamic (IsDynamic), mkDOM)
-import React.Spaces.DOM (div, p, span, button, i)
+import React.Spaces.DOM (div, p, span, button, i, ul, li, h5)
 import React.Spaces ((!), (!.), (^), renderIn, text, empty)
 
 import Utils ((<.>), storeConnect)
@@ -47,6 +47,13 @@ diagTreeEditorRender = createClass $ spec $ \ { appContext } { newSlide } -> do
 
     diagTreeEditorTreeSearch ^ { appContext }
     diagTreeEditorTree       ^ { appContext }
+
+    -- A hint for a user
+    div !. classSfx "tree-hints" $ do
+      h5 $ text "Обозначения:"
+      ul $ do
+        li $ text "📂 — Раскрытая ветвь"
+        li $ text "🏁 — Конец ветви (нет вложенных шагов)"
 
   div !. "col-md-8" <.> classSfx "slide-editor-panel" $ do
     text "TODO"
