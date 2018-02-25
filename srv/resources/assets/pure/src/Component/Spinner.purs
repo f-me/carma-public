@@ -4,7 +4,7 @@ module Component.Spinner
 
 import Prelude hiding (div)
 
-import React (ReactClass)
+import React (ReactClass, getProps)
 import React.DOM (div) as R
 import React.DOM.Props (className)
 import React.Spaces.DOM (div)
@@ -37,7 +37,10 @@ spinnerRender = createClassStatelessWithSpec specMiddleware $ \props ->
 
     specMiddleware = _
       { displayName = name
-      , shouldComponentUpdate = \_ _ _ -> pure false -- TODO FIXME
+
+      , shouldComponentUpdate = \this nextProps _ -> do
+          prevProps <- getProps this
+          pure $ prevProps.withLabel /= nextProps.withLabel
       }
 
 
