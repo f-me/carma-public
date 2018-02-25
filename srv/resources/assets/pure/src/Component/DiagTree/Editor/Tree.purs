@@ -4,7 +4,7 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import Data.Maybe (Maybe (..), isJust, isNothing, fromMaybe, maybe)
+import Data.Maybe (Maybe (..), isJust, fromMaybe, maybe)
 import Data.Record.Builder (merge)
 import Data.Array ((!!), elemIndex, snoc, last, null, head, take, init)
 import Data.Array (length) as A
@@ -87,21 +87,22 @@ diagTreeEditorTreeRender = createClass $ spec $
           firstSlide <- firstId `Map.lookup` slides
           shiftSlideBranch branch 0 Nothing firstSlide
 
-    if isNothing shifted
-       then empty
-       else do
-         div !. classSfx "folded-parents-menu" $
-           div !. "btn-group" $ do
+    case shifted <#> _.parents >>> A.length of
+         Nothing -> empty
+         Just n -> do
+           div !. classSfx "folded-parents-menu" $
+             div !. "btn-group" $ do
 
-             div !. "btn-group" $
-               button !. "btn btn-info btn-sm" ! onClick selectOneLevelUp $
-                 text "На уровень выше"
+               div !. "btn-group" $
+                 button !. "btn btn-info btn-sm" ! onClick selectOneLevelUp $
+                   text "На уровень выше"
 
-             div !. "btn-group" $
-               button !. "btn btn-warning btn-sm" ! onClick selectRoot $
-                 text "К корню ветви"
+               div !. "btn-group" $
+                 button !. "btn btn-warning btn-sm" ! onClick selectRoot $
+                   text "К корню ветви"
 
-         div !. classSfx "more-elems" $ i $ text "… (верхние уровни скрыты) …"
+           div !. classSfx "more-elems" $
+             i $ text $ "… (скрыто верхних уровней: " <> show n <> ") …"
 
     SDyn.div !. classSfx "list" $ do
 
