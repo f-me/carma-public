@@ -1,0 +1,82 @@
+name = diag-tree-editor-tree-item
+
+.{name}
+  display block
+
+  > .{name}--header
+    position relative
+    cursor pointer
+    margin-left 9px
+
+    &:before
+      content ''
+      display block
+      position absolute
+      left -4px
+      top 0
+      width 2px
+      height 100%
+      background rgba(255, 255, 255, 0)
+      transform translateX(-100%)
+
+      transition \
+        width .3s ease-in-out,
+        background-color .3s ease-in-out
+
+    &:after
+      content '📂'
+      display inline-block
+      position absolute
+      left -12px
+      top 0
+      transform translateX(-100%)
+      transition opacity .3s ease-in-out
+      opacity 0
+
+    .{name}--answer
+      color grey
+
+    .{name}--delete
+      position absolute
+      right 0
+      top 50%
+      transform translateY(-50%)
+      padding 2px 5px 1px 4px
+      cursor pointer
+      opacity 0
+      transition \
+        opacity .3s ease-in-out,
+        color .3s ease-in-out,
+        background-color .3s ease-in-out
+
+    &:hover .{name}--delete
+      opacity 1
+
+    .{name}--search-match
+      background-color yellow
+
+  &:hover > .{name}--header:before
+    background rgba(128, 128, 128, 0.5)
+
+  .{name}--children
+    margin-left 16px
+
+.{name}--selected
+.{name}--parent-selected
+  > .{name}--header:before
+    background rgba(43, 149, 253, 1)
+
+.{name}--selected > .{name}--header:before
+  width 5px
+
+.{name}--selected
+.{name}--parent-selected
+  &:hover > .{name}--header:before
+    background rgba(43, 149, 253, 0.5)
+
+.{name}--leaf > .{name}--header:after
+  content '🏁'
+  opacity 1
+
+.{name}--unfolded > .{name}--header:after
+  opacity 1

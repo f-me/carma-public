@@ -4,37 +4,31 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import Data.Maybe (Maybe (..), isJust, fromMaybe, maybe)
-import Data.Record.Builder (merge)
-import Data.Array ((!!), elemIndex, snoc, last, null, head, take, init)
-import Data.Array (length) as A
-import Data.String (length, splitAt)
+import Data.Maybe (Maybe (..), isJust)
+import Data.Record.Builder (merge, build)
+import Data.Array ((!!), last, head, take, init, length)
 import Data.String.NonEmpty (toString)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Foldable (foldl, foldr)
+import Data.Foldable (foldr)
 import Data.Tuple (Tuple (Tuple))
 
 import Control.Monad.Aff (launchAff_)
 import Control.Monad.Eff.Console (log)
-import Control.Lazy (fix)
 
 import React.DOM (IsDynamic (IsDynamic), mkDOM)
-import React.DOM (div) as R
+import React.DOM.Props (onClick, onChange, _type, checked)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
-import React.Spaces.DOM (div, button, i, span, label, input)
+import React.Spaces.DOM (div, button, i, label, input)
 import React.Spaces.DOM (div) as SDyn
-
-import React.DOM.Props
-     ( className, key, onClick, onChange, title, _type, checked
-     )
 
 import React
      ( ReactClass
      , getProps, readState, transformState, createClass, spec'
-     , preventDefault, stopPropagation
+     , preventDefault
+     , createElement
      )
 
 import Utils ((<.>), storeConnect, eventIsChecked)
@@ -51,6 +45,8 @@ import App.Store.DiagTree.Editor.Types
      , DiagTreeSlideId
      , DiagTreeSlide (DiagTreeSlide)
      )
+
+import Component.DiagTree.Editor.Tree.Item (diagTreeEditorTreeItem)
 
 
 -- If selected slides has more parents they will be hidden.
@@ -79,7 +75,7 @@ diagTreeEditorTreeRender
        }
 
 diagTreeEditorTreeRender = createClass $ spec $
-  \ { slides, selectedSlideBranch, search }
+  \ { appContext, slides, selectedSlideBranch, search }
     { selectSlide, deleteSlide, unfoldedSlides
     , shiftedSlidesMenu, dontShiftLevels, changeDontShiftLevels
     } -> do
@@ -99,114 +95,37 @@ diagTreeEditorTreeRender = createClass $ spec $
 
         text " Не сокращать вложенность"
 
-    case shifted <#> _.parents >>> A.length of
+    case shifted <#> _.parents >>> length of
          Nothing -> empty
          Just n  -> shiftedSlidesMenu n
 
     SDyn.div !. classSfx "list" $ do
 
-      let f = renderItem selectedSlideBranch unfoldedSlides search
-                         selectSlide deleteSlide
+      let itemProps =
+            { appContext
+            , selectedSlide: selectedSlideBranch, unfoldedSlides, search
+            , select: selectSlide, delete: deleteSlide
+            }
 
-          Tuple renderItemFn slidesList =
+          Tuple slidesList itemPropsBuilder =
             case shifted of
-                 Nothing -> Tuple (f Nothing []) slides
-                 Just x@{ slide: slide@(DiagTreeSlide { id: slideId }) } ->
-                   Tuple (f x.answer x.parents) $ Map.singleton slideId slide
+                 Nothing ->
+                   Tuple slides $ \slide ->
+                     merge { answerHeader: Nothing, parents: [], slide }
 
-      elements $ map renderItemFn slidesList
+                 Just x@{ slide: slide@(DiagTreeSlide { id: slideId }) } ->
+                   Tuple (Map.singleton slideId slide) $ \slide ->
+                     merge { answerHeader: x.answer, parents: x.parents, slide }
+
+          itemRender x = createElement diagTreeEditorTreeItem p []
+            where p = build (itemPropsBuilder x) itemProps
+
+      elements $ map itemRender slidesList
 
   where
     name = "diag-tree-editor-tree"
     classSfx s = name <> "--" <> s
     wrapper = mkDOM (IsDynamic false) name []
-
-    addUnfoldedClass       = (_ <.> classSfx "item--unfolded")
-    addLeafClass           = (_ <.> classSfx "item--leaf")
-    addSelectedClass       = (_ <.> classSfx "item--selected")
-    addParentSelectedClass = (_ <.> classSfx "item--parent-selected")
-
-    childrenRenderer =
-      maybe empty $ elements >>> (SDyn.div !. classSfx "children")
-
-    renderItem selectedSlide unfoldedSlides search select deleteSlide = fix $
-      -- `fix` to prevent passing a lot of arguments every recursive iteration.
-      \again answerHeader parents (DiagTreeSlide slide) ->
-        let
-          -- Full path of slides ids to current one
-          slideBranch = parents `snoc` slide.id
-
-          -- Constructing class name:
-          --   * "selected" for currently selected one
-          --   * "parent-selected" for all parents of currently selected
-          --   * "unfolded" for items with shown children
-          --   * "lead" for items that have no children (end of a branch)
-          wClass = classSfx "item"
-            # (if isJust children then addUnfoldedClass else id)
-            # (if Map.isEmpty slide.answers then addLeafClass else id)
-            # case selectedSlide of
-                   Just x | last x == Just slide.id -> addSelectedClass
-                          | isJust $ slide.id `elemIndex` x ->
-                              addParentSelectedClass
-                   _ -> id
-
-          children =
-            if isJust search || slide.id `Set.member` unfoldedSlides
-               then let x = foldl childReducer [] slide.answers
-                     in if null x then Nothing else Just x
-               else Nothing
-
-          -- Fold-reducer of array of elements to render children ("answers")
-          childReducer = case search of
-            Nothing ->
-              \acc { header, nextSlide } ->
-                acc `snoc` again (Just header) slideBranch nextSlide
-
-            Just { parents: searchParents } ->
-              \acc { header, nextSlide } ->
-                -- Filtering only branches that have matched
-                if slide.id `Set.member` searchParents
-                   then acc `snoc` again (Just header) slideBranch nextSlide
-                   else acc
-        in
-          renderIn (R.div [className wClass, key $ show slide.id]) $ do
-            div !. classSfx "header" ! onClick (select slideBranch) $ do
-
-              button !. "btn" <.> "btn-danger" <.> classSfx "delete"
-                     ! onClick (deleteSlide slideBranch)
-                     ! title "Удалить ветвь" $
-
-                i !. "glyphicon" <.> "glyphicon-trash" $ empty
-
-              let searchPatterns = do
-                    { query, patterns }  <- search
-                    { answer, question } <- Map.lookup slide.id patterns
-                    pure { len: length query, answer, question }
-
-                  searchAnswer = do
-                    x <- searchPatterns
-                    y <- x.answer
-                    pure $ Tuple y x.len
-
-                  searchQuestion = do
-                    x <- searchPatterns
-                    y <- x.question
-                    pure $ Tuple y x.len
-
-              case answerHeader of
-                   Nothing -> empty
-                   Just x  ->
-                     div !. classSfx "answer" $
-                       case searchAnswer of
-                            Nothing -> text x
-                            Just s  -> hlSearch x s
-
-              div !. classSfx "question" $
-                case searchQuestion of
-                     Nothing -> text slide.header
-                     Just s  -> hlSearch slide.header s
-
-            childrenRenderer children
 
     shiftedSlidesMenuFn selectRoot selectOneLevelUp levelsHidden = do
 
@@ -224,29 +143,9 @@ diagTreeEditorTreeRender = createClass $ spec $
       div !. classSfx "more-elems" $
         i $ text $ "… (скрыто верхних уровней: " <> show levelsHidden <> ") …"
 
-    -- Highlighting matched search patterns
-    hlSearch x (Tuple start len) = fromMaybe (text x) $ do
-      { before: pfx, after } <- splitAt start x
-
-      { before: hl, after: sfx } <-
-        -- Splitting at the end gives you `Nothing`,
-        -- that's why we checking it here.
-        if length after > len
-           then splitAt len after
-           else pure $ { before: after, after: "" }
-
-      pure $ do
-        if pfx /= "" then text pfx else empty
-        span !. classSfx "search-match" $ text hl
-        if sfx /= "" then text sfx else empty
-
     selectSlideHandler appContext this =
-      \toggleSlideFold unfoldSlideBranch slideBranch event -> do
-
+      \toggleSlideFold unfoldSlideBranch slideBranch -> do
       isSearching <- getProps this <#> _.search <#> isJust
-
-      preventDefault  event
-      stopPropagation event
 
       case last slideBranch of
            Nothing -> pure unit
@@ -258,10 +157,7 @@ diagTreeEditorTreeRender = createClass $ spec $
              launchAff_ $ dispatch appContext $
                DiagTree $ Editor $ SelectSlide slideBranch
 
-    deleteSlideHandler slideBranch event = do
-      preventDefault  event
-      stopPropagation event
-
+    deleteSlideHandler slideBranch =
       log $ "TODO delete slide: " <> show slideBranch
 
     toggleSlideFoldHandler this slideId =
@@ -302,7 +198,7 @@ diagTreeEditorTreeRender = createClass $ spec $
     -- Reduce visible levels of slide path
     -- (some parents will be hidden).
     shiftSlideBranch branch n answer slide@(DiagTreeSlide { answers })
-      | (A.length branch - n) <= maxTreeDepth =
+      | (length branch - n) <= maxTreeDepth =
           if n == 0
              then Nothing
              else Just { parents: take n branch, answer, slide }
