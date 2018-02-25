@@ -2,12 +2,13 @@ module Component.App
      ( app
      ) where
 
-import Prelude
+import Prelude hiding (div)
 
 import Data.Record.Builder (merge)
 
 import React (ReactClass, getProps)
-import React.DOM (IsDynamic (IsDynamic), mkDOM)
+import React.DOM (div)
+import React.DOM.Props (className)
 import React.Spaces.DOM (h1)
 import React.Spaces ((^), renderIn, text)
 
@@ -39,12 +40,12 @@ appRender = f $ \ { appContext, location } -> renderIn wrapper $
                 }
 
   where
-    name = "carma-app"
-    wrapper = mkDOM (IsDynamic false) name []
+    name = "CarmaApp"
+    wrapper = div [className name]
     f = createClassStatelessWithSpec specMiddleware
 
     specMiddleware = _
-      { displayName = "App"
+      { displayName = name
       , shouldComponentUpdate = \this nextProps _ ->
           getProps this <#> _.location <#> (_ /= nextProps.location)
       }

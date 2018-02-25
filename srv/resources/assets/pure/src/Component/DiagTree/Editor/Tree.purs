@@ -18,8 +18,8 @@ import Data.Tuple (Tuple (Tuple))
 import Control.Monad.Aff (launchAff_)
 import Control.Monad.Eff.Console (log)
 
-import React.DOM (IsDynamic (IsDynamic), mkDOM)
-import React.DOM.Props (onClick, onChange, _type, checked)
+import React.DOM (div) as R
+import React.DOM.Props (className, onClick, onChange, _type, checked)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
 import React.Spaces.DOM (div, button, i, label, input)
 import React.Spaces.DOM (div) as SDyn
@@ -53,6 +53,9 @@ import Component.DiagTree.Editor.Tree.Item (diagTreeEditorTreeItem)
 -- Two button also will be shown:
 --   * Go one level up (select parent slide)
 --   * Select root slide of current branch
+-- This actually means N selected items of a selected branch,
+-- You could actually see (N+1) levels
+-- when selected slide have children and it is unfolded.
 maxTreeDepth :: Int
 maxTreeDepth = 3
 
@@ -123,9 +126,9 @@ diagTreeEditorTreeRender = createClass $ spec $
       elements $ map itemRender slidesList
 
   where
-    name = "diag-tree-editor-tree"
+    name = "DiagTreeEditorTree"
     classSfx s = name <> "--" <> s
-    wrapper = mkDOM (IsDynamic false) name []
+    wrapper = R.div [className name]
 
     shiftedSlidesMenuFn selectRoot selectOneLevelUp levelsHidden = do
 
@@ -242,9 +245,7 @@ diagTreeEditorTreeRender = createClass $ spec $
           state <- readState this
           pure $ renderFn props state # renderIn wrapper
       in
-        spec' getInitialState renderHandler # _
-          { displayName = "DiagTreeEditorTree"
-          }
+        spec' getInitialState renderHandler # _ { displayName = name }
 
 
 diagTreeEditorTree :: ReactClass { appContext :: AppContext }

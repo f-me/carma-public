@@ -5,7 +5,8 @@ module Component.Spinner
 import Prelude hiding (div)
 
 import React (ReactClass)
-import React.DOM (IsDynamic (IsDynamic), mkDOM)
+import React.DOM (div) as R
+import React.DOM.Props (className)
 import React.Spaces.DOM (div)
 import React.Spaces ((!.), renderIn, text, empty)
 
@@ -30,12 +31,12 @@ spinnerRender = createClassStatelessWithSpec specMiddleware $ \props ->
             div !. classSfx "icon" $ empty
 
   where
-    name = "circle-spinner"
+    name = "CircleSpinner"
     classSfx s = name <> "--" <> s
-    wrapper = mkDOM (IsDynamic false) name []
+    wrapper = R.div [className name]
 
     specMiddleware = _
-      { displayName = "Spinner"
+      { displayName = name
       , shouldComponentUpdate = \_ _ _ -> pure false -- TODO FIXME
       }
 

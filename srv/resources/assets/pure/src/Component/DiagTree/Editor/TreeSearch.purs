@@ -2,7 +2,7 @@ module Component.DiagTree.Editor.TreeSearch
      ( diagTreeEditorTreeSearch
      ) where
 
-import Prelude
+import Prelude hiding (div)
 
 import Data.Maybe (Maybe (..), maybe)
 import Data.Record.Builder (merge)
@@ -21,10 +21,10 @@ import React
 
 import React.Spaces ((!), (!.), renderIn, empty)
 import React.Spaces.DOM (input, button, i)
-import React.DOM (IsDynamic (IsDynamic), mkDOM)
+import React.DOM (div)
 
 import React.DOM.Props
-     ( value, onChange, onClick, onKeyUp, _type, placeholder, title
+     ( className, value, onChange, onClick, onKeyUp, _type, placeholder, title
      )
 
 import RxJS.ReplaySubject (just, debounceTime, send, subscribeNext)
@@ -71,9 +71,9 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
         i !. "glyphicon" <.> "glyphicon-remove" $ empty
 
   where
-    name = "diag-tree-editor-tree-search"
+    name = "DiagTreeEditorTreeSearch"
     classSfx s = name <> "--" <> s
-    wrapper = mkDOM (IsDynamic false) name []
+    wrapper = div [className name]
 
     onChangeHandler this event = do
       { changeObservable } <- readState this
@@ -120,7 +120,7 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
         renderHandler this = readState this <#> renderFn >>> renderIn wrapper
       in
         spec' getInitialState renderHandler # _
-          { displayName = "DiagTreeEditorTreeSearch"
+          { displayName = name
 
           , componentWillMount = \this -> do
               { changeObservable, search } <- readState this

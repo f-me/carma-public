@@ -160,7 +160,7 @@ diagTreeEditorTreeItemRender = f $
       childrenRenderer children
 
   where
-    name = "diag-tree-editor-tree-item"
+    name = "DiagTreeEditorTreeItem"
     classSfx s = name <> "--" <> s
 
     addUnfoldedClass       = (_ <.> classSfx "unfolded")
@@ -172,7 +172,7 @@ diagTreeEditorTreeItemRender = f $
       maybe empty $ elements >>> (SDyn.div !. classSfx "children")
 
     f renderFn =
-      createClassStatelessWithName "DiagTreeEditorTreeItem" renderFn
+      createClassStatelessWithName name renderFn
 
     -- Highlighting matched search patterns
     hlSearch x (Tuple start len) = fromMaybe (text x) $ do

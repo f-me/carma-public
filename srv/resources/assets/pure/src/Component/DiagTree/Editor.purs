@@ -10,8 +10,8 @@ import Control.Monad.Aff (launchAff_)
 import Control.Monad.Eff.Console (log)
 
 import React (ReactClass, getProps, readState, createClass, spec')
-import React.DOM.Props (onClick)
-import React.DOM (IsDynamic (IsDynamic), mkDOM)
+import React.DOM.Props (className, onClick)
+import React.DOM (div) as R
 import React.Spaces.DOM (div, p, span, button, i, ul, li, h5)
 import React.Spaces ((!), (!.), (^), renderIn, text, empty)
 
@@ -59,9 +59,9 @@ diagTreeEditorRender = createClass $ spec $ \ { appContext } { newSlide } -> do
     text "TODO"
 
   where
-    name = "diag-tree-editor"
+    name = "DiagTreeEditor"
     classSfx s = name <> "--" <> s
-    wrapper = mkDOM (IsDynamic false) name []
+    wrapper = R.div [className name]
 
     renderFn mainRender props state =
       renderIn wrapper $ do
@@ -110,7 +110,7 @@ diagTreeEditorRender = createClass $ spec $ \ { appContext } { newSlide } -> do
           pure $ renderWrap props state
       in
         spec' getInitialState renderHandler # _
-          { displayName = "DiagTreeEditor"
+          { displayName = name
 
           , componentDidMount = \this -> do
               props <- getProps this
