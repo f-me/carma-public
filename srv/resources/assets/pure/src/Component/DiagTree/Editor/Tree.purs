@@ -77,9 +77,7 @@ diagTreeEditorTreeRender
 
 diagTreeEditorTreeRender = createClass $ spec $
   \ { slides, selectedSlideBranch, search }
-    { selectSlide, deleteSlide, unfoldedSlides
-    , selectRoot, selectOneLevelUp
-    } -> do
+    { selectSlide, deleteSlide, unfoldedSlides, shiftedSlidesMenu } -> do
 
     let shifted = do
           branch     <- selectedSlideBranch
@@ -89,20 +87,7 @@ diagTreeEditorTreeRender = createClass $ spec $
 
     case shifted <#> _.parents >>> A.length of
          Nothing -> empty
-         Just n -> do
-           div !. classSfx "folded-parents-menu" $
-             div !. "btn-group" $ do
-
-               div !. "btn-group" $
-                 button !. "btn btn-info btn-sm" ! onClick selectOneLevelUp $
-                   text "На уровень выше"
-
-               div !. "btn-group" $
-                 button !. "btn btn-warning btn-sm" ! onClick selectRoot $
-                   text "К корню ветви"
-
-           div !. classSfx "more-elems" $
-             i $ text $ "… (скрыто верхних уровней: " <> show n <> ") …"
+         Just n  -> shiftedSlidesMenu n
 
     SDyn.div !. classSfx "list" $ do
 
@@ -112,9 +97,8 @@ diagTreeEditorTreeRender = createClass $ spec $
           Tuple renderItemFn slidesList =
             case shifted of
                  Nothing -> Tuple (f Nothing []) slides
-                 Just x@{ slide: (DiagTreeSlide slide) }  ->
-                   Tuple (f x.answer x.parents) $
-                     Map.singleton slide.id x.slide
+                 Just x@{ slide: slide@(DiagTreeSlide { id: slideId }) } ->
+                   Tuple (f x.answer x.parents) $ Map.singleton slideId slide
 
       elements $ map renderItemFn slidesList
 
@@ -209,6 +193,22 @@ diagTreeEditorTreeRender = createClass $ spec $
                      Just s  -> hlSearch slide.header s
 
             childrenRenderer children
+
+    shiftedSlidesMenuFn selectRoot selectOneLevelUp levelsHidden = do
+
+      div !. classSfx "folded-parents-menu" $
+        div !. "btn-group" $ do
+
+          div !. "btn-group" $
+            button !. "btn btn-info btn-sm" ! onClick selectOneLevelUp $
+              text "На уровень выше"
+
+          div !. "btn-group" $
+            button !. "btn btn-warning btn-sm" ! onClick selectRoot $
+              text "К корню ветви"
+
+      div !. classSfx "more-elems" $
+        i $ text $ "… (скрыто верхних уровней: " <> show levelsHidden <> ") …"
 
     -- Highlighting matched search patterns
     hlSearch x (Tuple start len) = fromMaybe (text x) $ do
@@ -311,15 +311,17 @@ diagTreeEditorTreeRender = createClass $ spec $
       let toggleSlideFold   = toggleSlideFoldHandler   this
           unfoldSlideBranch = unfoldSlideBranchHandler this
 
+          selectOneLevelUp  = selectOneLevelUpHandler appContext this
+          selectRoot        = selectRootHandler       appContext this
+
           selectSlide =
             selectSlideHandler appContext this
                                toggleSlideFold unfoldSlideBranch
 
       pure { selectSlide
-           , unfoldedSlides   : (Set.empty :: Set DiagTreeSlideId)
-           , deleteSlide      : deleteSlideHandler
-           , selectOneLevelUp : selectOneLevelUpHandler appContext this
-           , selectRoot       : selectRootHandler appContext this
+           , unfoldedSlides    : (Set.empty :: Set DiagTreeSlideId)
+           , deleteSlide       : deleteSlideHandler
+           , shiftedSlidesMenu : shiftedSlidesMenuFn selectRoot selectOneLevelUp
            }
 
     spec renderFn =
