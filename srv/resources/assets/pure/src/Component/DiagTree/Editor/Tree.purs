@@ -4,9 +4,10 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import Data.Maybe (Maybe (..), isJust, fromMaybe, maybe)
+import Data.Maybe (Maybe (..), isJust, isNothing, fromMaybe, maybe)
 import Data.Record.Builder (merge)
-import Data.Array (elemIndex, snoc, last, null)
+import Data.Array ((!!), elemIndex, snoc, last, null, head, take, init)
+import Data.Array (length) as A
 import Data.String (length, splitAt)
 import Data.String.NonEmpty (toString)
 import Data.Map (Map)
@@ -49,6 +50,14 @@ import App.Store.DiagTree.Editor.Types
      )
 
 
+-- If selected slides has more parents they will be hidden.
+-- Two button also will be shown:
+--   * Go one level up (select parent slide)
+--   * Select root slide of current branch
+maxTreeDepth :: Int
+maxTreeDepth = 3
+
+
 diagTreeEditorTreeRender
   :: ReactClass
        { appContext          :: AppContext
@@ -68,19 +77,50 @@ diagTreeEditorTreeRender
 
 diagTreeEditorTreeRender = createClass $ spec $
   \ { slides, selectedSlideBranch, search }
-    { selectSlide, deleteSlide, unfoldedSlides } -> do
+    { selectSlide, deleteSlide, unfoldedSlides
+    , selectRoot, selectOneLevelUp
+    } -> do
 
-    let renderItemFn =
-          renderItem selectedSlideBranch unfoldedSlides search
-                     selectSlide deleteSlide
-                     Nothing []
+    let shifted = do
+          branch     <- selectedSlideBranch
+          firstId    <- head branch
+          firstSlide <- firstId `Map.lookup` slides
+          shiftSlideBranch branch 0 Nothing firstSlide
 
-    elements $ map renderItemFn slides
+    if isNothing shifted
+       then empty
+       else do
+         div !. classSfx "folded-parents-menu" $
+           div !. "btn-group" $ do
+
+             div !. "btn-group" $
+               button !. "btn btn-info btn-sm" ! onClick selectOneLevelUp $
+                 text "На уровень выше"
+
+             div !. "btn-group" $
+               button !. "btn btn-warning btn-sm" ! onClick selectRoot $
+                 text "К корню ветви"
+
+         div !. classSfx "more-elems" $ i $ text "… (верхние уровни скрыты) …"
+
+    SDyn.div !. classSfx "list" $ do
+
+      let f = renderItem selectedSlideBranch unfoldedSlides search
+                         selectSlide deleteSlide
+
+          Tuple renderItemFn slidesList =
+            case shifted of
+                 Nothing -> Tuple (f Nothing []) slides
+                 Just x@{ slide: (DiagTreeSlide slide) }  ->
+                   Tuple (f x.answer x.parents) $
+                     Map.singleton slide.id x.slide
+
+      elements $ map renderItemFn slidesList
 
   where
     name = "diag-tree-editor-tree"
     classSfx s = name <> "--" <> s
-    wrapper = mkDOM (IsDynamic true) name []
+    wrapper = mkDOM (IsDynamic false) name []
 
     addUnfoldedClass       = (_ <.> classSfx "item--unfolded")
     addLeafClass           = (_ <.> classSfx "item--leaf")
@@ -223,6 +263,47 @@ diagTreeEditorTreeRender = createClass $ spec $
         s { unfoldedSlides = _ } $
           foldr Set.insert unfoldedSlides slideBranch
 
+    selectOneLevelUpHandler appContext this event = do
+      preventDefault event
+      { selectedSlideBranch } <- getProps this
+
+      case selectedSlideBranch >>= init of
+           Nothing -> pure unit
+           Just [] -> pure unit
+           Just x  ->
+             launchAff_ $ dispatch appContext $
+               DiagTree $ Editor $ SelectSlide x
+
+    selectRootHandler appContext this event = do
+      preventDefault event
+      { selectedSlideBranch } <- getProps this
+
+      case selectedSlideBranch >>= head of
+           Nothing -> pure unit
+           Just x  ->
+             launchAff_ $ dispatch appContext $
+               DiagTree $ Editor $ SelectSlide [x]
+
+    -- Reduce visible levels of slide path
+    -- (some parents will be hidden).
+    shiftSlideBranch
+      :: Array DiagTreeSlideId -> Int -> Maybe String -> DiagTreeSlide
+      -> Maybe { parents :: Array DiagTreeSlideId
+               , answer  :: Maybe String
+               , slide   :: DiagTreeSlide
+               }
+
+    shiftSlideBranch branch n answer slide@(DiagTreeSlide { answers })
+      | (A.length branch - n) <= maxTreeDepth =
+          if n == 0
+             then Nothing
+             else Just { parents: take n branch, answer, slide }
+      | otherwise = do
+          let nextN = n + 1
+          nextSlideId <- branch !! nextN
+          { header, nextSlide } <- nextSlideId `Map.lookup` answers
+          shiftSlideBranch branch nextN (Just header) nextSlide
+
     getInitialState this = do
       { appContext } <- getProps this
 
@@ -234,8 +315,10 @@ diagTreeEditorTreeRender = createClass $ spec $
                                toggleSlideFold unfoldSlideBranch
 
       pure { selectSlide
-           , unfoldedSlides : (Set.empty :: Set DiagTreeSlideId)
-           , deleteSlide    : deleteSlideHandler
+           , unfoldedSlides   : (Set.empty :: Set DiagTreeSlideId)
+           , deleteSlide      : deleteSlideHandler
+           , selectOneLevelUp : selectOneLevelUpHandler appContext this
+           , selectRoot       : selectRootHandler appContext this
            }
 
     spec renderFn =

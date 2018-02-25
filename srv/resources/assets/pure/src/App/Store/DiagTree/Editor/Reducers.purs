@@ -132,26 +132,25 @@ diagTreeEditorReducer state (TreeSearch subAction) =
        in foldl (searchReduce query) initial slides
 
     searchReduce query acc (DiagTreeSlide x) =
-      let
+      foldl rootChildrenReduce rootSearch rootChildren
+      where
         -- Matching only `question` for root silde
         rootSearch =
           fromMaybe acc $
             query `indexOf` toLower x.header <#>
               \pos -> acc { matchedPatterns = m pos acc.matchedPatterns }
-          where m pos = Map.insert x.id { answer: Nothing, question: Just pos }
+          where
+            m pos = Map.insert x.id { answer: Nothing, question: Just pos }
 
         -- Matching all children deep to end of the branches
         rootChildren = foldl (childReduce $ Set.singleton x.id) [] x.answers
 
         -- Merging found matches to root accumulator
         rootChildrenReduce rootAcc (Tuple parents { id, answer, question }) =
-          let
+          rootAcc { matchedParents = matchedParents, matchedPatterns = matches }
+          where
             matchedParents = foldr Set.insert rootAcc.matchedParents parents
             matches = Map.insert id { answer, question } rootAcc.matchedPatterns
-          in
-            rootAcc { matchedParents  = matchedParents
-                    , matchedPatterns = matches
-                    }
 
         -- Traverser for an "answer" (single child with all his children)
         childReduce parents matches item@{ nextSlide: (DiagTreeSlide slide) } =
@@ -166,5 +165,3 @@ diagTreeEditorReducer state (TreeSearch subAction) =
                  then matches
                  else matches `snoc`
                         Tuple parents { id: slide.id, answer, question }
-      in
-        foldl rootChildrenReduce rootSearch rootChildren
