@@ -23,10 +23,13 @@ import Control.Lazy (fix)
 
 import React.DOM (IsDynamic (IsDynamic), mkDOM)
 import React.DOM (div) as R
-import React.DOM.Props (className, key, onClick, title)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
-import React.Spaces.DOM (div, button, i, span)
+import React.Spaces.DOM (div, button, i, span, label, input)
 import React.Spaces.DOM (div) as SDyn
+
+import React.DOM.Props
+     ( className, key, onClick, onChange, title, _type, checked
+     )
 
 import React
      ( ReactClass
@@ -34,7 +37,7 @@ import React
      , preventDefault, stopPropagation
      )
 
-import Utils ((<.>), storeConnect)
+import Utils ((<.>), storeConnect, eventIsChecked)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
@@ -77,13 +80,24 @@ diagTreeEditorTreeRender
 
 diagTreeEditorTreeRender = createClass $ spec $
   \ { slides, selectedSlideBranch, search }
-    { selectSlide, deleteSlide, unfoldedSlides, shiftedSlidesMenu } -> do
+    { selectSlide, deleteSlide, unfoldedSlides
+    , shiftedSlidesMenu, dontShiftLevels, changeDontShiftLevels
+    } -> do
 
     let shifted = do
+          if dontShiftLevels then Nothing else pure unit
           branch     <- selectedSlideBranch
           firstId    <- head branch
           firstSlide <- firstId `Map.lookup` slides
           shiftSlideBranch branch 0 Nothing firstSlide
+
+    div !. "checkbox" <.> classSfx "dont-shift-levels" $ do
+      label $ do
+        input ! _type "checkbox"
+              ! checked dontShiftLevels
+              ! onChange changeDontShiftLevels
+
+        text " Не сокращать вложенность"
 
     case shifted <#> _.parents >>> A.length of
          Nothing -> empty
@@ -287,13 +301,6 @@ diagTreeEditorTreeRender = createClass $ spec $
 
     -- Reduce visible levels of slide path
     -- (some parents will be hidden).
-    shiftSlideBranch
-      :: Array DiagTreeSlideId -> Int -> Maybe String -> DiagTreeSlide
-      -> Maybe { parents :: Array DiagTreeSlideId
-               , answer  :: Maybe String
-               , slide   :: DiagTreeSlide
-               }
-
     shiftSlideBranch branch n answer slide@(DiagTreeSlide { answers })
       | (A.length branch - n) <= maxTreeDepth =
           if n == 0
@@ -305,6 +312,10 @@ diagTreeEditorTreeRender = createClass $ spec $
           { header, nextSlide } <- nextSlideId `Map.lookup` answers
           shiftSlideBranch branch nextN (Just header) nextSlide
 
+    changeDontShiftLevelsHandler this event = do
+      let isChecked = eventIsChecked event
+      transformState this _ { dontShiftLevels = isChecked }
+
     getInitialState this = do
       { appContext } <- getProps this
 
@@ -314,6 +325,8 @@ diagTreeEditorTreeRender = createClass $ spec $
           selectOneLevelUp  = selectOneLevelUpHandler appContext this
           selectRoot        = selectRootHandler       appContext this
 
+          changeDontShiftLevels = changeDontShiftLevelsHandler this
+
           selectSlide =
             selectSlideHandler appContext this
                                toggleSlideFold unfoldSlideBranch
@@ -322,6 +335,8 @@ diagTreeEditorTreeRender = createClass $ spec $
            , unfoldedSlides    : (Set.empty :: Set DiagTreeSlideId)
            , deleteSlide       : deleteSlideHandler
            , shiftedSlidesMenu : shiftedSlidesMenuFn selectRoot selectOneLevelUp
+           , dontShiftLevels   : false
+           , changeDontShiftLevels
            }
 
     spec renderFn =

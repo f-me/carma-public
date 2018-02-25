@@ -5,6 +5,7 @@ module Utils
      , addClassName
      , toMaybeT
      , eventInputValue
+     , eventIsChecked
      ) where
 
 import Prelude
@@ -32,3 +33,6 @@ toMaybeT = MaybeT <<< pure
 
 eventInputValue :: Event -> String
 eventInputValue = unsafeCoerce >>> _.currentTarget.value
+
+eventIsChecked :: Event -> Boolean
+eventIsChecked = unsafeCoerce >>> _.currentTarget.checked
