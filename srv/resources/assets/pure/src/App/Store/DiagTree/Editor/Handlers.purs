@@ -9,7 +9,7 @@ import Control.Monad.Eff.Exception (error, message)
 import Control.Monad.Eff.Console as Log
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Aff (Aff)
+import Control.Monad.Aff (Aff, Milliseconds (Milliseconds), delay)
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Maybe.Trans (MaybeT, runMaybeT)
 
@@ -67,7 +67,9 @@ diagTreeEditorHandler
          ) Unit
 
 diagTreeEditorHandler appCtx state action = case action of
-  LoadSlidesRequest -> loadSlides appCtx
+  NewSlideRequest              -> newSlide    appCtx
+  LoadSlidesRequest            -> loadSlides  appCtx
+  DeleteSlideRequest slidePath -> deleteSlide appCtx slidePath
   _ -> pure unit
 
 
@@ -251,6 +253,29 @@ loadSlides appCtx = flip catchError handleError $ do
          else do errLog $ "Parsing data unexpectedly failed: " <> message err
                  act $ LoadSlidesFailure ParsingSlidesDataFailed
                  throwError $ error dataParseFailMsg
+
+
+deleteSlide
+  :: forall eff
+   . AppContext
+  -> Array DiagTreeSlideId
+  -> Aff (avar :: AVAR, console :: Log.CONSOLE | eff) Unit
+
+deleteSlide appCtx slidePath = do
+  errLog "TODO deleting slide isn't implemented yet"
+  delay $ Milliseconds 2000.0
+  sendAction appCtx $ DeleteSlideFailure slidePath
+
+
+newSlide
+  :: forall eff
+   . AppContext
+  -> Aff (avar :: AVAR, console :: Log.CONSOLE | eff) Unit
+
+newSlide appCtx = do
+  errLog "TODO new slide isn't implemented yet"
+  delay $ Milliseconds 2000.0
+  sendAction appCtx NewSlideFailure
 
 
 errLog :: forall eff. String -> Aff (console :: Log.CONSOLE | eff) Unit

@@ -24,7 +24,8 @@ import React.Spaces.DOM (input, button, i)
 import React.DOM (div)
 
 import React.DOM.Props
-     ( className, value, onChange, onClick, onKeyUp, _type, placeholder, title
+     ( className, value, _type, placeholder, title, disabled
+     , onChange, onClick, onKeyUp
      )
 
 import RxJS.ReplaySubject (just, debounceTime, send, subscribeNext)
@@ -46,11 +47,13 @@ import App.Store.DiagTree.Editor.TreeSearch.Actions
 
 diagTreeEditorTreeSearchRender
   :: ReactClass { appContext  :: AppContext
+                , isDisabled  :: Boolean
                 , searchQuery :: Maybe NonEmptyString
                 }
 
 diagTreeEditorTreeSearchRender = createClass $ spec $
-  \ { changeObservable
+  \ { isDisabled }
+    { changeObservable
     , changeHandler
     , clearHandler
     , keyHandler
@@ -61,10 +64,12 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
             ! _type "text"
             ! placeholder "Поиск"
             ! value query
+            ! disabled isDisabled
             ! onChange changeHandler
             ! onKeyUp keyHandler
 
       button !. classSfx "clear"
+             ! disabled isDisabled
              ! onClick clearHandler
              ! title "Очистить строку поиска" $
 
@@ -117,15 +122,20 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
 
     spec renderFn =
       let
-        renderHandler this = readState this <#> renderFn >>> renderIn wrapper
+        renderHandler this = do
+          props <- getProps  this
+          state <- readState this
+          pure $ renderIn wrapper $ renderFn props state
       in
         spec' getInitialState renderHandler # _
           { displayName = name
 
           , componentWillMount = \this -> do
               { changeObservable, search } <- readState this
-              subscription <- flip subscribeNext changeObservable search
-              transformState this _ { changeSubscription = Just subscription }
+              subscription <- subscribeNext search changeObservable
+              -- FIXME See https://github.com/jasonzoladz/purescript-rxjs/issues/22
+              {-- transformState this _ { changeSubscription = Just subscription } --}
+              pure unit
 
           , componentWillReceiveProps = \this { searchQuery: newQuery } -> do
               { searchQuery: oldQuery } <- getProps this
@@ -146,7 +156,9 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
           }
 
 
-diagTreeEditorTreeSearch :: ReactClass { appContext :: AppContext }
+diagTreeEditorTreeSearch
+  :: ReactClass { appContext :: AppContext, isDisabled :: Boolean }
+
 diagTreeEditorTreeSearch = storeConnect f diagTreeEditorTreeSearchRender
   where
     f appState =

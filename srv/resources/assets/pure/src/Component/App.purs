@@ -5,6 +5,7 @@ module Component.App
 import Prelude hiding (div)
 
 import Data.Record.Builder (merge)
+import Data.Either (Either (..))
 
 import React (ReactClass, getProps)
 import React.DOM (div)
@@ -35,7 +36,7 @@ appRender = f $ \ { appContext, location } -> renderIn wrapper $
       h1 $ text "Страница не найдена"
 
     Empty ->
-      spinner ^ { withLabel: true
+      spinner ^ { withLabel: Left true
                 , appContext
                 }
 

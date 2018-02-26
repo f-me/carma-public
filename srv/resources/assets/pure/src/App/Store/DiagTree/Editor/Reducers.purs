@@ -66,6 +66,17 @@ type DiagTreeEditorState =
   , isParsingSlidesDataFailed :: Boolean
 
   , treeSearch                :: DiagTreeEditorTreeSearchState
+
+  , slideDeleting
+      :: { isProcessing :: Boolean
+         , isFailed     :: Boolean
+         , branch       :: Maybe (Array DiagTreeSlideId)
+         }
+
+  , newSlide
+      :: { isProcessing :: Boolean
+         , isFailed     :: Boolean
+         }
   }
 
 diagTreeEditorInitialState :: DiagTreeEditorState
@@ -80,11 +91,23 @@ diagTreeEditorInitialState =
   , isParsingSlidesDataFailed : false
 
   , treeSearch                : diagTreeEditorTreeSearchInitialState
+
+  , slideDeleting:
+      { isProcessing : false
+      , isFailed     : false
+      , branch       : Nothing
+      }
+
+  , newSlide:
+      { isProcessing : false
+      , isFailed     : false
+      }
   }
 
 
 diagTreeEditorReducer
   :: DiagTreeEditorState -> DiagTreeEditorAction -> Maybe DiagTreeEditorState
+
 
 diagTreeEditorReducer state LoadSlidesRequest =
   Just state { slides                    = (Map.empty :: DiagTreeSlides)
@@ -114,10 +137,55 @@ diagTreeEditorReducer state (LoadSlidesFailure ParsingSlidesDataFailed) =
              , isParsingSlidesDataFailed = true
              }
 
+
 diagTreeEditorReducer _ (SelectSlide []) = Nothing
+
+
+diagTreeEditorReducer _ (DeleteSlideRequest []) = Nothing
+
+diagTreeEditorReducer state (DeleteSlideRequest slidePath) = do
+  when state.slideDeleting.isProcessing Nothing
+  Just state { slideDeleting
+                 { isProcessing = true
+                 , isFailed     = false
+                 , branch       = Just slidePath
+                 }
+             }
+
+diagTreeEditorReducer state (DeleteSlideSuccess slidePath) = do
+  isSameBranch <- state.slideDeleting.branch <#> (_ == slidePath)
+  unless isSameBranch Nothing
+  Just state { slideDeleting
+                 { isProcessing = false
+                 , isFailed     = false
+                 , branch       = Nothing
+                 }
+             }
+
+diagTreeEditorReducer state (DeleteSlideFailure slidePath) = do
+  isSameBranch <- state.slideDeleting.branch <#> (_ == slidePath)
+  unless isSameBranch Nothing
+  Just state { slideDeleting
+                 { isProcessing = false
+                 , isFailed     = true
+                 }
+             }
+
+
+diagTreeEditorReducer state NewSlideRequest = do
+  when state.newSlide.isProcessing Nothing
+  Just state { newSlide { isProcessing = true, isFailed = false } }
+
+diagTreeEditorReducer state NewSlideSuccess =
+  Just state { newSlide { isProcessing = false, isFailed = false } }
+
+diagTreeEditorReducer state NewSlideFailure =
+  Just state { newSlide { isProcessing = false, isFailed = true } }
+
 
 diagTreeEditorReducer state (SelectSlide branch) =
   Just state { selectedSlideBranch = Just branch }
+
 
 diagTreeEditorReducer state (TreeSearch subAction) =
   diagTreeEditorTreeSearchReducer state.treeSearch subAction

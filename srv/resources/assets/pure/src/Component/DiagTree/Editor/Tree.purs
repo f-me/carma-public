@@ -4,7 +4,7 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import Data.Maybe (Maybe (..), isJust)
+import Data.Maybe (Maybe (..), isJust, fromMaybe)
 import Data.Record.Builder (merge, build)
 import Data.Array ((!!), last, head, take, init, length)
 import Data.String.NonEmpty (toString)
@@ -16,7 +16,9 @@ import Data.Foldable (foldr)
 import Data.Tuple (Tuple (Tuple))
 
 import Control.Monad.Aff (launchAff_)
-import Control.Monad.Eff.Console (log)
+
+import DOM.HTML (window) as DOM
+import DOM.HTML.Window (confirm) as DOM
 
 import React.DOM (div) as R
 import React.DOM.Props (className, onClick, onChange, _type, checked)
@@ -32,12 +34,13 @@ import React
      )
 
 import Utils ((<.>), storeConnect, eventIsChecked)
+import Utils.DiagTree.Editor (getSlideByBranch)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
 
 import App.Store.DiagTree.Editor.Actions
-     ( DiagTreeEditorAction (SelectSlide)
+     ( DiagTreeEditorAction (SelectSlide, DeleteSlideRequest)
      )
 
 import App.Store.DiagTree.Editor.Types
@@ -160,8 +163,22 @@ diagTreeEditorTreeRender = createClass $ spec $
              launchAff_ $ dispatch appContext $
                DiagTree $ Editor $ SelectSlide slideBranch
 
-    deleteSlideHandler slideBranch =
-      log $ "TODO delete slide: " <> show slideBranch
+    deleteSlideHandler appContext this slideBranch = do
+      getSlide <- getProps this <#> _.slides <#> getSlideByBranch
+
+      create <-
+        let sfx = fromMaybe "" $
+              getSlide slideBranch <#> \(DiagTreeSlide x) ->
+                " #" <> show x.id <> " (\"" <> x.header <> "\")"
+
+            msg = "Вы уверены, что хотите удалить ветвь" <> sfx <> "?"
+
+         in DOM.window >>= DOM.confirm msg
+
+      if not create
+         then pure unit
+         else launchAff_ $ dispatch appContext $
+                DiagTree $ Editor $ DeleteSlideRequest slideBranch
 
     toggleSlideFoldHandler this slideId =
       transformState this $ \s@{ unfoldedSlides } ->
@@ -232,7 +249,7 @@ diagTreeEditorTreeRender = createClass $ spec $
 
       pure { selectSlide
            , unfoldedSlides    : (Set.empty :: Set DiagTreeSlideId)
-           , deleteSlide       : deleteSlideHandler
+           , deleteSlide       : deleteSlideHandler appContext this
            , shiftedSlidesMenu : shiftedSlidesMenuFn selectRoot selectOneLevelUp
            , dontShiftLevels   : false
            , changeDontShiftLevels

@@ -83,6 +83,11 @@ storeConnect storeSelector child = createClass spec
 
           transformState this $ _ { subscription = Just subscription }
 
+      , componentWillReceiveProps = \this nextProps -> do
+          appState <- getAppState nextProps.appContext
+          let x = build (storeSelector appState) nextProps
+          transformState this $ _ { mappedProps = x }
+
       , componentWillUnmount = \this -> do
           { appContext } <- getProps this
           state <- readState this

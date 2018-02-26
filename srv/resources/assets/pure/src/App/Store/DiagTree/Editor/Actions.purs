@@ -24,6 +24,14 @@ data DiagTreeEditorAction
 
   | TreeSearch DiagTreeEditorTreeSearchAction
 
+  | DeleteSlideRequest (Array DiagTreeSlideId)
+  | DeleteSlideSuccess (Array DiagTreeSlideId)
+  | DeleteSlideFailure (Array DiagTreeSlideId)
+
+  | NewSlideRequest
+  | NewSlideSuccess
+  | NewSlideFailure
+
 
 data LoadSlidesFailureReason
   = LoadingSlidesFailed
