@@ -4,18 +4,21 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import Data.Maybe (Maybe (..), isJust, fromMaybe)
+import Data.Tuple (Tuple (Tuple))
+import Data.Maybe (Maybe (..), isJust, fromMaybe, maybe)
 import Data.Record.Builder (merge, build)
-import Data.Array ((!!), last, head, take, init, length)
 import Data.String.NonEmpty (toString)
+import Data.Array ((!!), last, head, take, init, length)
+import Data.Foldable (foldr)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Foldable (foldr)
-import Data.Tuple (Tuple (Tuple))
 
 import Control.Monad.Aff (launchAff_)
+import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.MonadZero (guard)
 
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
@@ -33,7 +36,7 @@ import React
      , createElement
      )
 
-import Utils ((<.>), storeConnect, eventIsChecked)
+import Utils ((<.>), storeConnect, eventIsChecked, toMaybeT)
 import Utils.DiagTree.Editor (getSlideByBranch)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
@@ -233,7 +236,7 @@ diagTreeEditorTreeRender = createClass $ spec $
       transformState this _ { dontShiftLevels = isChecked }
 
     getInitialState this = do
-      { appContext } <- getProps this
+      { appContext, selectedSlideBranch } <- getProps this
 
       let toggleSlideFold   = toggleSlideFoldHandler   this
           unfoldSlideBranch = unfoldSlideBranchHandler this
@@ -247,8 +250,10 @@ diagTreeEditorTreeRender = createClass $ spec $
             selectSlideHandler appContext this
                                toggleSlideFold unfoldSlideBranch
 
+          unfoldedSlides = maybe Set.empty Set.fromFoldable selectedSlideBranch
+
       pure { selectSlide
-           , unfoldedSlides    : (Set.empty :: Set DiagTreeSlideId)
+           , unfoldedSlides
            , deleteSlide       : deleteSlideHandler appContext this
            , shiftedSlidesMenu : shiftedSlidesMenuFn selectRoot selectOneLevelUp
            , dontShiftLevels   : false
@@ -256,13 +261,30 @@ diagTreeEditorTreeRender = createClass $ spec $
            }
 
     spec renderFn =
-      let
+      spec' getInitialState renderHandler # _
+        { displayName = name
+
+        , componentWillReceiveProps =
+            \this { selectedSlideBranch: nextSelected, slides } -> do
+              { selectedSlideBranch: prevSelected } <- getProps this
+
+              -- Unfolding new selected branch
+              void $ runMaybeT $ do
+                x <- toMaybeT $ do
+                  selectedBranch <- nextSelected
+                  guard $ nextSelected /= prevSelected
+                  void $ getSlideByBranch slides selectedBranch
+                  pure $ Set.fromFoldable selectedBranch
+
+                liftEff $ transformState this $
+                  \s -> s { unfoldedSlides = s.unfoldedSlides `Set.union` x }
+        }
+
+      where
         renderHandler this = do
           props <- getProps  this
           state <- readState this
           pure $ renderFn props state # renderIn wrapper
-      in
-        spec' getInitialState renderHandler # _ { displayName = name }
 
 
 diagTreeEditorTree :: ReactClass { appContext :: AppContext }
