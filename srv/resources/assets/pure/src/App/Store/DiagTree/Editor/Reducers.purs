@@ -20,6 +20,8 @@ import Data.String (Pattern (Pattern), toLower, indexOf)
 import Data.String.NonEmpty (toString)
 import Data.Foldable (foldl, foldr)
 
+import Utils.DiagTree.Editor (getSlideByBranch)
+
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlides
      , DiagTreeSlideId
@@ -111,7 +113,6 @@ diagTreeEditorReducer
 
 diagTreeEditorReducer state LoadSlidesRequest =
   Just state { slides                    = (Map.empty :: DiagTreeSlides)
-             , selectedSlideBranch       = Nothing
 
              , isSlidesLoaded            = false
              , isSlidesLoading           = true
@@ -121,20 +122,26 @@ diagTreeEditorReducer state LoadSlidesRequest =
 
 diagTreeEditorReducer state (LoadSlidesSuccess { slides, rootSlide }) =
   Just state { slides              = slides
-             , selectedSlideBranch = Just [rootSlide]
              , isSlidesLoaded      = true
              , isSlidesLoading     = false
+             , selectedSlideBranch = previouslySelected <|> Just [rootSlide]
              }
+  where
+    previouslySelected = do
+      selected <- state.selectedSlideBranch
+      selected <$ getSlideByBranch slides selected
 
 diagTreeEditorReducer state (LoadSlidesFailure LoadingSlidesFailed) =
   Just state { isSlidesLoading       = false
              , isSlidesLoadingFailed = true
+             , selectedSlideBranch   = Nothing
              }
 
 diagTreeEditorReducer state (LoadSlidesFailure ParsingSlidesDataFailed) =
   Just state { isSlidesLoading           = false
              , isSlidesLoadingFailed     = true
              , isParsingSlidesDataFailed = true
+             , selectedSlideBranch       = Nothing
              }
 
 

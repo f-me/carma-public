@@ -90,7 +90,7 @@ diagTreeEditorTreeRender = createClass $ spec $
     } -> do
 
     let shifted = do
-          if dontShiftLevels then Nothing else pure unit
+          guard $ not dontShiftLevels
           branch     <- selectedSlideBranch
           firstId    <- head branch
           firstSlide <- firstId `Map.lookup` slides
