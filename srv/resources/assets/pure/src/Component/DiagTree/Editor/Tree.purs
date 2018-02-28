@@ -250,7 +250,9 @@ diagTreeEditorTreeRender = createClass $ spec $
             selectSlideHandler appContext this
                                toggleSlideFold unfoldSlideBranch
 
-          unfoldedSlides = maybe Set.empty Set.fromFoldable selectedSlideBranch
+          -- Not unfolding at initialization step if a root slide is selected
+          unfoldedSlides = maybe Set.empty f selectedSlideBranch
+            where f x = if length x /= 1 then Set.fromFoldable x else Set.empty
 
       pure { selectSlide
            , unfoldedSlides
