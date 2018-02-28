@@ -8,6 +8,7 @@ module App.Store.DiagTree.Editor.Reducers
 import Prelude
 
 import Control.Alt ((<|>))
+import Control.MonadZero (guard)
 
 import Data.Maybe (Maybe (..), fromMaybe, isNothing)
 import Data.Array (snoc)
@@ -111,7 +112,9 @@ diagTreeEditorReducer
   :: DiagTreeEditorState -> DiagTreeEditorAction -> Maybe DiagTreeEditorState
 
 
-diagTreeEditorReducer state LoadSlidesRequest =
+diagTreeEditorReducer state LoadSlidesRequest = do
+  guard $ not state.isSlidesLoading
+
   Just state { slides                    = (Map.empty :: DiagTreeSlides)
 
              , isSlidesLoaded            = false
@@ -151,7 +154,8 @@ diagTreeEditorReducer _ (SelectSlide []) = Nothing
 diagTreeEditorReducer _ (DeleteSlideRequest []) = Nothing
 
 diagTreeEditorReducer state (DeleteSlideRequest slidePath) = do
-  when state.slideDeleting.isProcessing Nothing
+  guard $ not state.slideDeleting.isProcessing
+
   Just state { slideDeleting
                  { isProcessing = true
                  , isFailed     = false
@@ -160,8 +164,8 @@ diagTreeEditorReducer state (DeleteSlideRequest slidePath) = do
              }
 
 diagTreeEditorReducer state (DeleteSlideSuccess slidePath) = do
-  isSameBranch <- state.slideDeleting.branch <#> (_ == slidePath)
-  unless isSameBranch Nothing
+  guard =<< map (_ == slidePath) state.slideDeleting.branch
+
   Just state { slideDeleting
                  { isProcessing = false
                  , isFailed     = false
@@ -170,8 +174,8 @@ diagTreeEditorReducer state (DeleteSlideSuccess slidePath) = do
              }
 
 diagTreeEditorReducer state (DeleteSlideFailure slidePath) = do
-  isSameBranch <- state.slideDeleting.branch <#> (_ == slidePath)
-  unless isSameBranch Nothing
+  guard =<< map (_ == slidePath) state.slideDeleting.branch
+
   Just state { slideDeleting
                  { isProcessing = false
                  , isFailed     = true
@@ -180,7 +184,7 @@ diagTreeEditorReducer state (DeleteSlideFailure slidePath) = do
 
 
 diagTreeEditorReducer state NewSlideRequest = do
-  when state.newSlide.isProcessing Nothing
+  guard $ not state.newSlide.isProcessing
   Just state { newSlide { isProcessing = true, isFailed = false } }
 
 diagTreeEditorReducer state NewSlideSuccess =
