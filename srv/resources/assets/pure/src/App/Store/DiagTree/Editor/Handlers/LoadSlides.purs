@@ -15,15 +15,12 @@ import Control.Monad.Maybe.Trans (MaybeT, runMaybeT)
 
 import Data.Int (fromNumber)
 import Data.Maybe (Maybe (..))
-import Data.Either (Either (..))
 import Data.Tuple (Tuple (Tuple), fst, snd)
 import Data.Array (snoc)
 import Data.Foldable (foldM, foldl)
 import Data.StrMap as StrMap
 import Data.Map (Map)
 import Data.Map as Map
-import Data.HTTP.Method (Method (GET))
-import Data.MediaType.Common (applicationJSON)
 import Data.Foreign (Foreign, unsafeFromForeign)
 import Data.JSDate (LOCALE, parse, toDateTime)
 
@@ -32,10 +29,10 @@ import Data.Argonaut.Core
      , toArray, toObject, isNull, toBoolean, toNumber, toString
      )
 
-import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax, defaultRequest)
-import Network.HTTP.RequestHeader (RequestHeader (..))
+import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax)
 
 import Utils (toMaybeT)
+import Utils.Affjax (getRequest)
 import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
 
@@ -63,13 +60,7 @@ loadSlides
 
 loadSlides appCtx = flip catchError handleError $ do
   (res :: AffjaxResponse Foreign) <-
-    affjax $ defaultRequest
-      { url     = "/_/DiagSlide"
-      , method  = Left GET
-      , headers = [ Accept      applicationJSON
-                  , ContentType applicationJSON
-                  ]
-      }
+    affjax $ getRequest "/_/DiagSlide" (Nothing :: Maybe Unit)
 
   parsed <- flip catchError handleParseError $ do
     let json = unsafeFromForeign res.response :: Json

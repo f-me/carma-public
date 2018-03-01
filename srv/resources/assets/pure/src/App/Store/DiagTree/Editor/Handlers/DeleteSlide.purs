@@ -24,6 +24,9 @@ deleteSlide
   -> Aff (avar :: AVAR, console :: CONSOLE | eff) Unit
 
 deleteSlide appCtx slidePath = do
+  -- We're about to remove an answer from parent slide
+  -- and to deactivate slide we're deleting.
+
   errLog "TODO deleting slide isn't implemented yet"
   delay $ Milliseconds 2000.0
   sendAction appCtx $ DeleteSlideFailure slidePath
