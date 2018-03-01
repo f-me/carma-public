@@ -23,11 +23,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Foreign (Foreign, unsafeFromForeign)
 import Data.JSDate (LOCALE, parse, toDateTime)
-
-import Data.Argonaut.Core
-     ( Json
-     , toArray, toObject, isNull, toBoolean, toNumber, toString
-     )
+import Data.Argonaut.Core as A
 
 import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax)
 
@@ -35,6 +31,11 @@ import Utils (toMaybeT)
 import Utils.Affjax (getRequest)
 import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
+
+import App.Store.DiagTree.Editor.Handlers.SharedUtils
+     ( BackendAnswer
+     , fromBackendAnswer
+     )
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlides
@@ -62,52 +63,38 @@ loadSlides appCtx = flip catchError handleError $ do
   (res :: AffjaxResponse Foreign) <- affjax $ getRequest "/_/DiagSlide"
 
   parsed <- flip catchError handleParseError $ do
-    let json = unsafeFromForeign res.response :: Json
+    let json = unsafeFromForeign res.response :: A.Json
 
         reduceResource acc jsonItem = do
-          x    <- toObject jsonItem
-          text <- StrMap.lookup "text" x >>= toString
-          file <- StrMap.lookup "file" x >>= toString
+          x    <- A.toObject jsonItem
+          text <- StrMap.lookup "text" x >>= A.toString
+          file <- StrMap.lookup "file" x >>= A.toString
           pure $ snoc acc { text, file }
 
         reduceAction acc jsonItem = do
-          x       <- toObject jsonItem
-          label   <- StrMap.lookup "label" x >>= toString
-          service <- StrMap.lookup "svc"   x >>= toString
+          x       <- A.toObject jsonItem
+          label   <- StrMap.lookup "label" x >>= A.toString
+          service <- StrMap.lookup "svc"   x >>= A.toString
           pure $ snoc acc { label, service }
 
-        reduceAnswer acc jsonItem = do
-          x <- toObject jsonItem
-
-          nextSlide <- StrMap.lookup "nextSlide" x >>= toNumber >>= fromNumber
-          header    <- StrMap.lookup "header"    x >>= toString
-          text      <- StrMap.lookup "text"      x >>= toString
-
-          file <-
-            case StrMap.lookup "file" x of
-                 Nothing  -> pure Nothing  -- Field is not set (that's okay)
-                 Just raw -> if isNull raw -- Field is set to `null`
-                                then pure Nothing
-                                else toString raw <#> Just
-
-          pure $ snoc acc { nextSlide, header, text, file }
+        reduceAnswer acc jsonItem = snoc acc <$> fromBackendAnswer jsonItem
 
         -- Parsing single element
         -- (not `DiagTreeSlide` yet, just a record of a slide for flat map).
         parseFlatElem acc x = do
-          id        <- StrMap.lookup "id"        x >>= toNumber >>= fromNumber
-          isRoot    <- StrMap.lookup "isRoot"    x >>= toBoolean
-          ctime     <- StrMap.lookup "ctime"     x >>= toString
-          header    <- StrMap.lookup "header"    x >>= toString
-          body      <- StrMap.lookup "body"      x >>= toString
+          id        <- StrMap.lookup "id"        x >>= A.toNumber >>= fromNumber
+          isRoot    <- StrMap.lookup "isRoot"    x >>= A.toBoolean
+          ctime     <- StrMap.lookup "ctime"     x >>= A.toString
+          header    <- StrMap.lookup "header"    x >>= A.toString
+          body      <- StrMap.lookup "body"      x >>= A.toString
 
-          resources <- StrMap.lookup "resources" x >>= toArray
+          resources <- StrMap.lookup "resources" x >>= A.toArray
                                                    >>= foldM reduceResource []
 
-          answers   <- StrMap.lookup "answers"   x >>= toArray
+          answers   <- StrMap.lookup "answers"   x >>= A.toArray
                                                    >>= foldM reduceAnswer []
 
-          actions   <- StrMap.lookup "actions"   x >>= toArray
+          actions   <- StrMap.lookup "actions"   x >>= A.toArray
                                                    >>= foldM reduceAction []
 
           let newAcc = if isRoot && fst acc == Nothing
@@ -120,15 +107,15 @@ loadSlides appCtx = flip catchError handleError $ do
 
         -- Building flat slides map
         reduceFlat acc jsonItem = do
-          x        <- toObject jsonItem
-          isActive <- StrMap.lookup "isActive" x >>= toBoolean
+          x        <- A.toObject jsonItem
+          isActive <- StrMap.lookup "isActive" x >>= A.toBoolean
 
           if not isActive
              then pure acc -- Ignore inactive slides
              else parseFlatElem acc x
 
         parsedFlat =
-          toArray json
+          A.toArray json
           >>= foldM reduceFlat (Tuple Nothing Map.empty)
           >>= \(Tuple rootSlide flatSlides) ->
                 case rootSlide of
@@ -231,10 +218,5 @@ type FlatSlide =
   , body      :: String
   , resources :: Array { text  :: String, file    :: String }
   , actions   :: Array { label :: String, service :: String }
-
-  , answers   :: Array { nextSlide :: DiagTreeSlideId
-                       , header    :: String
-                       , text      :: String
-                       , file      :: Maybe String -- could be not set or `null`
-                       }
+  , answers   :: Array BackendAnswer
   }

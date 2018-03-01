@@ -9,7 +9,7 @@ import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff.Console (CONSOLE)
 
 import Data.JSDate (LOCALE)
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe, fromMaybe)
 
 import Network.HTTP.Affjax (AJAX)
 
@@ -34,24 +34,30 @@ diagTreeEditorHandler
          | eff
          ) Unit
 
-diagTreeEditorHandler appCtx prevState _ action = case action of
+diagTreeEditorHandler appCtx prevState nextState action = case action of
 
   LoadSlidesRequest ->
-    if prevState.isSlidesLoading
+    if isProcessing
        then ignore
        else loadSlides appCtx
 
   NewSlideRequest ->
-    if prevState.newSlide.isProcessing
+    if isProcessing
        then ignore
        else newSlide appCtx
 
   DeleteSlideRequest slidePath ->
-    if prevState.slideDeleting.isProcessing
+    if isProcessing
        then ignore
-       else deleteSlide appCtx slidePath
+       else let state = fromMaybe prevState nextState
+             in deleteSlide appCtx state.slides slidePath
 
   _ -> ignore
 
   where
     ignore = pure unit
+
+    isProcessing
+       = prevState.isSlidesLoading
+      || prevState.newSlide.isProcessing
+      || prevState.slideDeleting.isProcessing
