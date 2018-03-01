@@ -59,8 +59,7 @@ loadSlides
          ) Unit
 
 loadSlides appCtx = flip catchError handleError $ do
-  (res :: AffjaxResponse Foreign) <-
-    affjax $ getRequest "/_/DiagSlide" (Nothing :: Maybe Unit)
+  (res :: AffjaxResponse Foreign) <- affjax $ getRequest "/_/DiagSlide"
 
   parsed <- flip catchError handleParseError $ do
     let json = unsafeFromForeign res.response :: Json

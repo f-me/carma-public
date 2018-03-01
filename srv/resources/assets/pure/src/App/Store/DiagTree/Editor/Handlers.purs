@@ -9,6 +9,7 @@ import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff.Console (CONSOLE)
 
 import Data.JSDate (LOCALE)
+import Data.Maybe (Maybe)
 
 import Network.HTTP.Affjax (AJAX)
 
@@ -24,6 +25,7 @@ diagTreeEditorHandler
   :: forall eff
    . AppContext
   -> DiagTreeEditorState
+  -> Maybe DiagTreeEditorState
   -> DiagTreeEditorAction
   -> Aff ( ajax    :: AJAX
          , avar    :: AVAR
@@ -32,8 +34,24 @@ diagTreeEditorHandler
          | eff
          ) Unit
 
-diagTreeEditorHandler appCtx state action = case action of
-  NewSlideRequest              -> newSlide    appCtx
-  LoadSlidesRequest            -> loadSlides  appCtx
-  DeleteSlideRequest slidePath -> deleteSlide appCtx slidePath
-  _ -> pure unit
+diagTreeEditorHandler appCtx prevState _ action = case action of
+
+  LoadSlidesRequest ->
+    if prevState.isSlidesLoading
+       then ignore
+       else loadSlides appCtx
+
+  NewSlideRequest ->
+    if prevState.newSlide.isProcessing
+       then ignore
+       else newSlide appCtx
+
+  DeleteSlideRequest slidePath ->
+    if prevState.slideDeleting.isProcessing
+       then ignore
+       else deleteSlide appCtx slidePath
+
+  _ -> ignore
+
+  where
+    ignore = pure unit

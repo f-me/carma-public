@@ -71,8 +71,7 @@ import Prelude
 
 import Data.Map (Map, empty, insert, delete, lookup, filter, update)
 import Data.Tuple (Tuple (Tuple), fst, snd)
-import Data.Maybe (Maybe (..), maybe, fromMaybe)
-import Data.Either (Either (..))
+import Data.Maybe (Maybe (..), fromMaybe)
 import Data.Foldable (foldM)
 
 import Control.Monad.Rec.Class (forever)
@@ -102,7 +101,10 @@ derive instance ordStoreSubscriberId :: Ord StoreSubscription
 
 
 type SubscriberBus =
-  AVar { state :: AppState, action :: AppAction }
+  AVar { prevState :: AppState
+       , nextState :: Maybe AppState
+       , action    :: AppAction
+       }
 
 
 type Subscriber =
@@ -172,25 +174,23 @@ reduceLoop
 reduceLoop appCtx@(AppContext ctx) appReducer = guardOnlyOneInstance $ do
   action <- takeVar ctx.actionsBus
 
-  newState <-
+  subscriberData <-
     liftEff $ modifyRef' ctx.store $ \state ->
       let
         reduced = appReducer state action
       in
         { state: fromMaybe state reduced
-        , value: maybe (Left state) Right reduced
+        , value: { prevState: state, nextState: reduced, action }
         }
 
   subscribers <- liftEff $ readRef ctx.subscribers <#> snd
 
-  case newState of
-
-       -- `Left` means state wasn't changed,
-       -- so, we're notifying only strict subscribers.
-       Left s  -> notify { state: s, action: action } $ filter fst subscribers
-
-       -- `Right` means state was changed, we're notifying all subscribers.
-       Right s -> notify { state: s, action: action } subscribers
+  notify subscriberData $
+    case subscriberData.nextState of
+         -- State wasn't changed, notifying only strict subscribers
+         Nothing -> filter fst subscribers
+         -- State was changed, notifying all subscribers
+         Just _  -> subscribers
 
   where
     notify x =

@@ -37,18 +37,24 @@ subscribeHandlers
 
 subscribeHandlers appCtx = do
 
-  runHandler $ \ev -> case ev.action of
-    Navigate _ -> app ev.state ev.action
+  runHandler $ \ { prevState, nextState, action } -> case action of
+    Navigate _ -> app prevState nextState action
     _ -> ignore
 
-  runHandler $ \ev -> case ev.action of
-    DiagTree (Editor x) -> diagTreeEditor ev.state.diagTree.editor x
+  runHandler $ \ { prevState, nextState, action } -> case action of
+    DiagTree (Editor x) ->
+      diagTreeEditor (diagTreeEditorLens prevState)
+                     (diagTreeEditorLens <$> nextState)
+                     x
     _ -> ignore
 
   where
     ignore = pure unit
+
     app = appHandler appCtx
+
     diagTreeEditor = diagTreeEditorHandler appCtx
+    diagTreeEditorLens = _.diagTree.editor
 
     runHandler selector = do
       handlerSubscription <- liftEff $ subscribe' appCtx

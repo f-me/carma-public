@@ -5,7 +5,7 @@ module Utils.StoreConnect
 
 import Prelude
 
-import Data.Maybe (Maybe (..))
+import Data.Maybe (Maybe (..), fromMaybe)
 import Data.Record.Builder (Builder, build)
 
 import Control.Monad.Rec.Class (forever)
@@ -79,7 +79,7 @@ storeConnect storeSelector child = createClass spec
 
             flip catchError catchUnsubscribed $ forever $ do
               event <- takeVar bus
-              liftEff $ transformer event.state
+              liftEff $ transformer $ fromMaybe event.prevState event.nextState
 
           transformState this $ _ { subscription = Just subscription }
 

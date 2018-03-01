@@ -4,6 +4,8 @@ module Utils.Affjax
      , putRequest
      ) where
 
+import Prelude
+
 import Data.Maybe (Maybe)
 import Data.Either (Either (Left))
 import Data.HTTP.Method (Method (GET, PUT))
@@ -21,20 +23,18 @@ defaultHeaders =
 
 
 getRequest
-  :: forall content. Affjax.URL -> Maybe content -> Affjax.AffjaxRequest content
-getRequest url content = Affjax.defaultRequest
+  :: Affjax.URL -> Affjax.AffjaxRequest Unit
+getRequest url = Affjax.defaultRequest
   { url     = url
   , method  = Left GET
   , headers = defaultHeaders
-  , content = content
   }
 
 
 putRequest
-  :: forall content. Affjax.URL -> Maybe content -> Affjax.AffjaxRequest content
-putRequest url content = Affjax.defaultRequest
+  :: Affjax.URL -> Affjax.AffjaxRequest Unit
+putRequest url = Affjax.defaultRequest
   { url     = url
   , method  = Left PUT
   , headers = defaultHeaders
-  , content = content
   }
