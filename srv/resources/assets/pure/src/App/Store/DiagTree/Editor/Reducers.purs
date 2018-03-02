@@ -130,6 +130,7 @@ diagTreeEditorReducer state (LoadSlidesSuccess { slides, rootSlide }) =
              , selectedSlideBranch = previouslySelected <|> Just [rootSlide]
              }
   where
+    -- TODO try to restore as deep as possible
     previouslySelected = do
       selected <- state.selectedSlideBranch
       selected <$ getSlideByBranch slides selected
