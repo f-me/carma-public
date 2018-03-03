@@ -11,7 +11,7 @@ import Control.Alt ((<|>))
 import Control.MonadZero (guard)
 
 import Data.Maybe (Maybe (..), fromMaybe, isNothing)
-import Data.Array (snoc)
+import Data.Array (snoc, init, length)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Set (Set)
@@ -130,10 +130,13 @@ diagTreeEditorReducer state (LoadSlidesSuccess { slides, rootSlide }) =
              , selectedSlideBranch = previouslySelected <|> Just [rootSlide]
              }
   where
-    -- TODO try to restore as deep as possible
-    previouslySelected = do
-      selected <- state.selectedSlideBranch
-      selected <$ getSlideByBranch slides selected
+    -- Trying to restore selected slide branch as deep as possible by slicing
+    -- last slide from branch one by one until reach first existing branch.
+    previouslySelected = f =<< state.selectedSlideBranch
+      where
+        f selected =
+          (selected <$ getSlideByBranch slides selected) <|>
+            (init selected >>= (\x -> x <$ guard (length x > 0)) >>= f)
 
 diagTreeEditorReducer state (LoadSlidesFailure LoadingSlidesFailed) =
   Just state { isSlidesLoading       = false

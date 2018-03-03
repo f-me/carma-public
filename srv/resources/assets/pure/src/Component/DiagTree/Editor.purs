@@ -96,9 +96,6 @@ diagTreeEditorRender = createClass $ spec $
                         Nothing -> text $ msg <> "."
                         Just x  -> text msg *> i x *> text "."
 
-                   -- TODO remove after implementation
-                   i $ text " Удаление ветви временно недоступно…"
-
     if not isNewSlideFailed
        then pure unit
        else p $ do span !. "label label-danger" $ text "Ошибка"
