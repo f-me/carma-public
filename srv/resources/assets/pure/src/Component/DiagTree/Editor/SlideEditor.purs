@@ -80,15 +80,17 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
   div !. "btn-toolbar" $ do
 
+    let isBlocked = isProcessing || not isChanged
+
     button !. "btn btn-default"
            ! _type "button"
-           ! disabled (isProcessing || not isChanged)
+           ! disabled isBlocked
            ! onClick onCancel
            $ text "Отменить изменения"
 
     button !. "btn btn-success"
            ! _type "button"
-           ! disabled isProcessing
+           ! disabled isBlocked
            ! onClick onSave
            $ text "Сохранить"
 
@@ -143,7 +145,6 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
          eqIshDiagTreeSlideAnswers nextSlide.answers
                                    prevSlide.answers
-
 
          then toMaybeT $ pure unit
          else liftEff $ resetChanges this props.slide
