@@ -11,14 +11,19 @@ import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..))
 
 import React.DOM (form) as R
-import React.DOM.Props (className, _type, placeholder, value, onChange)
 import React.Spaces ((!), (!.), renderIn, text)
-import React.Spaces.DOM (div, input)
+import React.Spaces.DOM (div, input, button)
+
+import React.DOM.Props
+     ( className, _type, placeholder, value, disabled
+     , onChange, onClick
+     )
 
 import React
      ( ReactClass
      , createClass, spec'
      , getProps, readState, transformState
+     , preventDefault
      )
 
 import Utils ((<.>), storeConnect, toMaybeT, eventInputValue)
@@ -49,7 +54,12 @@ diagTreeEditorSlideEditorRender
        }
 
 diagTreeEditorSlideEditorRender = createClass $ spec $
-  \ { appContext } { slide: (DiagTreeSlide slide), onChangeHeader } -> do
+  \ { appContext }
+    { slide: (DiagTreeSlide slide)
+    , onChangeHeader
+    , onCancel
+    , onSave
+    } -> do
 
   div !. "form-group" $
     input !. "form-control" <.> classSfx "header"
@@ -57,6 +67,22 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
           ! placeholder "Заголовок"
           ! value slide.header
           ! onChange onChangeHeader
+
+  div !. "btn-toolbar" $ do
+
+    button !. "btn btn-default"
+           ! _type "button"
+           ! disabled false -- TODO block when processing or nothing changed
+           ! onClick onCancel
+           $ text "Отменить изменения"
+
+    button !. "btn btn-success"
+           ! _type "button"
+           ! disabled false -- TODO block when processing
+           ! onClick onSave
+           $ text "Сохранить"
+
+    -- TODO save message here
 
   where
     name = "DiagTreeEditorSlideEditor"
@@ -69,11 +95,21 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       transformState this $ \s -> s { slide = s.slide <#> headerUpdater x }
       where headerUpdater x (DiagTreeSlide s) = DiagTreeSlide $ s { header = x }
 
+    cancelHandler this event = do
+      -- TODO
+      preventDefault event
+
+    saveHandler this event = do
+      -- TODO
+      preventDefault event
+
     getInitialState this = do
       { slide } <- getProps this
 
       pure { slide
-           , onChangeHeader: changeHeaderHandler this
+           , onChangeHeader : changeHeaderHandler this
+           , onCancel       : cancelHandler       this
+           , onSave         : saveHandler         this
            }
 
     spec renderFn =
