@@ -49,13 +49,15 @@ import Component.DiagTree.Editor.SlideEditor.Resource
 
 diagTreeEditorSlideEditorRender
   :: ReactClass
-       { appContext :: AppContext
-       , slide      :: Maybe DiagTreeSlide
+       { appContext   :: AppContext
+       , slide        :: Maybe DiagTreeSlide
+       , isProcessing :: Boolean
        }
 
 diagTreeEditorSlideEditorRender = createClass $ spec $
-  \ { appContext }
+  \ { appContext, isProcessing }
     { slide: (DiagTreeSlide slide)
+    , isChanged
     , onChangeHeader
     , onChangeBody
     , onCancel
@@ -80,13 +82,13 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
     button !. "btn btn-default"
            ! _type "button"
-           ! disabled false -- TODO block when processing or nothing changed
+           ! disabled (isProcessing || not isChanged)
            ! onClick onCancel
            $ text "Отменить изменения"
 
     button !. "btn btn-success"
            ! _type "button"
-           ! disabled false -- TODO block when processing
+           ! disabled isProcessing
            ! onClick onSave
            $ text "Сохранить"
 
@@ -100,26 +102,37 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
     changeHeaderHandler this event = do
       let x = eventInputValue event
-      transformState this $ \s -> s { slide = s.slide <#> headerUpdater x }
+
+      transformState this $
+        \s -> s { slide = s.slide <#> headerUpdater x, isChanged = true }
+
       where headerUpdater x (DiagTreeSlide s) = DiagTreeSlide $ s { header = x }
 
     changeBodyHandler this event = do
       let x = eventInputValue event
-      transformState this $ \s -> s { slide = s.slide <#> bodyUpdater x }
+
+      transformState this $
+        \s -> s { slide = s.slide <#> bodyUpdater x, isChanged = true }
+
       where bodyUpdater x (DiagTreeSlide s) = DiagTreeSlide $ s { body = x }
 
     cancelHandler this event = do
-      -- TODO
+      resetChanges this
       preventDefault event
 
     saveHandler this event = do
       -- TODO
       preventDefault event
 
+    resetChanges this = do
+      { slide } <- getProps this
+      transformState this _ { slide = slide, isChanged = false }
+
     getInitialState this = do
       { slide } <- getProps this
 
       pure { slide
+           , isChanged      : false
            , onChangeHeader : changeHeaderHandler this
            , onChangeBody   : changeBodyHandler   this
            , onCancel       : cancelHandler       this
@@ -150,8 +163,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
                                            prevSlide.answers
 
                  then toMaybeT $ pure unit
-                 else liftEff $ transformState this
-                              $ _ { slide = nextProps.slide }
+                 else liftEff $ resetChanges this
         }
 
       where
@@ -171,4 +183,6 @@ diagTreeEditorSlideEditor = storeConnect f diagTreeEditorSlideEditorRender
     f appState = let branch = appState.diagTree.editor in merge
       { slide:
           branch.selectedSlideBranch >>= getSlideByBranch branch.slides
+
+      , isProcessing: false
       }
