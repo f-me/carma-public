@@ -117,16 +117,36 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       where bodyUpdater x (DiagTreeSlide s) = DiagTreeSlide $ s { body = x }
 
     cancelHandler this event = do
-      resetChanges this
+      { slide } <- getProps this
+      resetChanges this slide
       preventDefault event
 
     saveHandler this event = do
       -- TODO
       preventDefault event
 
-    resetChanges this = do
-      { slide } <- getProps this
+    resetChanges this slide =
       transformState this _ { slide = slide, isChanged = false }
+
+    fetchSlide this state props = do
+      (DiagTreeSlide prevSlide) <- toMaybeT state.slide
+      (DiagTreeSlide nextSlide) <- toMaybeT props.slide
+
+      if nextSlide.header == prevSlide.header &&
+         nextSlide.body   == prevSlide.body &&
+
+         eqDiagTreeSlideResources nextSlide.resources
+                                  prevSlide.resources &&
+
+         eqDiagTreeSlideActions nextSlide.actions
+                                prevSlide.actions &&
+
+         eqIshDiagTreeSlideAnswers nextSlide.answers
+                                   prevSlide.answers
+
+
+         then toMaybeT $ pure unit
+         else liftEff $ resetChanges this props.slide
 
     getInitialState this = do
       { slide } <- getProps this
@@ -145,25 +165,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
         , componentWillReceiveProps = \this nextProps -> do
             state <- readState this
-
-            void $ runMaybeT $ do
-              (DiagTreeSlide prevSlide) <- toMaybeT state.slide
-              (DiagTreeSlide nextSlide) <- toMaybeT nextProps.slide
-
-              if nextSlide.header == prevSlide.header &&
-                 nextSlide.body   == prevSlide.body &&
-
-                 eqDiagTreeSlideResources nextSlide.resources
-                                          prevSlide.resources &&
-
-                 eqDiagTreeSlideActions nextSlide.actions
-                                        prevSlide.actions &&
-
-                 eqIshDiagTreeSlideAnswers nextSlide.answers
-                                           prevSlide.answers
-
-                 then toMaybeT $ pure unit
-                 else liftEff $ resetChanges this
+            void $ runMaybeT $ fetchSlide this state nextProps
         }
 
       where
