@@ -3,8 +3,8 @@ module App.Store.DiagTree.Editor.Types
      , DiagTreeSlides
      , DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlideResource
-     , DiagTreeSlideAnswer
      , DiagTreeSlideAction
+     , DiagTreeSlideAnswer
      ) where
 
 import Data.Map (Map)
@@ -15,10 +15,18 @@ import Data.DateTime (DateTime)
 type DiagTreeSlideId = Int
 type DiagTreeSlides  = Map DiagTreeSlideId DiagTreeSlide
 
+
 type DiagTreeSlideResource =
   { text :: String
   , file :: String
   }
+
+
+type DiagTreeSlideAction =
+  { label   :: String
+  , service :: String
+  }
+
 
 type DiagTreeSlideAnswer =
   { nextSlide :: DiagTreeSlide
@@ -31,10 +39,6 @@ type DiagTreeSlideAnswer =
   , file      :: Maybe String
   }
 
-type DiagTreeSlideAction =
-  { label   :: String
-  , service :: String
-  }
 
 -- `newtype` is required here to allow recursive types
 newtype DiagTreeSlide
@@ -45,9 +49,8 @@ newtype DiagTreeSlide
   , header    :: String -- ^ Also known as "question" of a slide
   , body      :: String
   , resources :: Array DiagTreeSlideResource
+  , actions   :: Array DiagTreeSlideAction
 
   , answers   :: Map DiagTreeSlideId DiagTreeSlideAnswer
   -- ^ You could read "answers" here as "children slides"
-
-  , actions   :: Array DiagTreeSlideAction
   }

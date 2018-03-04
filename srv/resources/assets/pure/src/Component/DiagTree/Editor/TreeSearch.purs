@@ -6,7 +6,7 @@ import Prelude hiding (div)
 
 import Data.Maybe (Maybe (..), maybe)
 import Data.Record.Builder (merge)
-import Data.String (trim)
+import Data.String (trim, null)
 import Data.String.NonEmpty (NonEmptyString, fromString, toString)
 
 import Control.Monad.Eff (Eff)
@@ -69,7 +69,7 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
             ! onKeyUp keyHandler
 
       button !. classSfx "clear"
-             ! disabled isDisabled
+             ! disabled (isDisabled || null query)
              ! onClick clearHandler
              ! title "Очистить строку поиска" $
 
