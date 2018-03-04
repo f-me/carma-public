@@ -12,7 +12,7 @@ import Data.Maybe (Maybe (..))
 
 import React.DOM (form) as R
 import React.Spaces ((!), (!.), renderIn, text)
-import React.Spaces.DOM (div, input, button)
+import React.Spaces.DOM (div, input, button, textarea)
 
 import React.DOM.Props
      ( className, _type, placeholder, value, disabled
@@ -57,6 +57,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
   \ { appContext }
     { slide: (DiagTreeSlide slide)
     , onChangeHeader
+    , onChangeBody
     , onCancel
     , onSave
     } -> do
@@ -67,6 +68,13 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
           ! placeholder "Заголовок"
           ! value slide.header
           ! onChange onChangeHeader
+
+  div !. "form-group" $
+    -- TODO write bindings to RichTextEditor (react-rte) and use it here
+    textarea !. "form-control"
+             ! placeholder "Описание"
+             ! value slide.body
+             ! onChange onChangeBody
 
   div !. "btn-toolbar" $ do
 
@@ -95,6 +103,11 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       transformState this $ \s -> s { slide = s.slide <#> headerUpdater x }
       where headerUpdater x (DiagTreeSlide s) = DiagTreeSlide $ s { header = x }
 
+    changeBodyHandler this event = do
+      let x = eventInputValue event
+      transformState this $ \s -> s { slide = s.slide <#> bodyUpdater x }
+      where bodyUpdater x (DiagTreeSlide s) = DiagTreeSlide $ s { body = x }
+
     cancelHandler this event = do
       -- TODO
       preventDefault event
@@ -108,6 +121,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
       pure { slide
            , onChangeHeader : changeHeaderHandler this
+           , onChangeBody   : changeBodyHandler   this
            , onCancel       : cancelHandler       this
            , onSave         : saveHandler         this
            }
