@@ -191,8 +191,10 @@ diagTreeEditorReducer state NewSlideRequest = do
   guard $ not state.newSlide.isProcessing
   Just state { newSlide { isProcessing = true, isFailed = false } }
 
-diagTreeEditorReducer state NewSlideSuccess =
-  Just state { newSlide { isProcessing = false, isFailed = false } }
+diagTreeEditorReducer state (NewSlideSuccess slide@(DiagTreeSlide x)) =
+  Just state { newSlide { isProcessing = false, isFailed = false }
+             , slides = Map.insert x.id slide state.slides
+             }
 
 diagTreeEditorReducer state NewSlideFailure =
   Just state { newSlide { isProcessing = false, isFailed = true } }

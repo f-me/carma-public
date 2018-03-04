@@ -15,9 +15,8 @@ import Data.Tuple (Tuple (Tuple), uncurry)
 import Data.Maybe (Maybe (..), maybe)
 import Data.Either (Either (..), either)
 import Data.Foreign (Foreign, unsafeFromForeign)
-import Data.Array (snoc, unsnoc)
+import Data.Array (snoc, unsnoc, filter)
 import Data.Foldable (foldl, foldM)
-import Data.StrMap as StrMap
 import Data.Argonaut.Core as A
 
 import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax)
@@ -28,8 +27,9 @@ import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils
-     ( fromBackendAnswer
-     , toBackendAnswer
+     ( fromBackendSlide
+     , toBackendSlideFromPartial
+     , defaultPartialBackendSlide
      )
 
 import App.Store.DiagTree.Editor.Types
@@ -94,10 +94,9 @@ deleteSlide appCtx slides slidePath = flip catchError handleError $ do
 
     deactivateSlide slideId = do
       (res :: AffjaxResponse Foreign) <- affjax $
-        putRequest ("/_/DiagSlide/" <> show slideId) # _
-          { content = Just $ A.fromObject $
-              StrMap.singleton "isActive" $ A.fromBoolean false
-          }
+        putRequest ("/_/DiagSlide/" <> show slideId) $
+          toBackendSlideFromPartial $ defaultPartialBackendSlide
+            { isActive = Just false }
 
       pure res
 
@@ -114,20 +113,12 @@ deleteSlide appCtx slides slidePath = flip catchError handleError $ do
 
       let json = unsafeFromForeign res.response :: A.Json
 
-          reduceAnswer acc jsonItem = do
-            x <- fromBackendAnswer jsonItem
-            if x.nextSlide == slideId
-               then pure acc -- Excluding answer with slide we're deleting
-               else pure $ snoc acc $ toBackendAnswer x
-
           newAnswers =
-            A.toObject json
-              >>= StrMap.lookup "answers"
-              >>= A.toArray
-              >>= foldM reduceAnswer []
-              <#> A.fromArray
+            fromBackendSlide json
+            <#> _.answers
+            <#> filter (\x -> x.nextSlide /= slideId)
 
-      newAnswersJson <-
+      newAnswersArray <-
         case newAnswers of
              Just x  -> pure x
              Nothing -> throwError $ error $
@@ -141,10 +132,9 @@ deleteSlide appCtx slides slidePath = flip catchError handleError $ do
         extractParResult $
           sequential $ foldl (\acc x -> snoc <$> acc <*> x) (pure [])
             [ parallel $ catchPar $ affjax $
-                putRequest ("/_/DiagSlide/" <> show parentSlideId) # _
-                  { content = Just $ A.fromObject $
-                      StrMap.singleton "answers" newAnswersJson
-                  }
+                putRequest ("/_/DiagSlide/" <> show parentSlideId) $
+                  toBackendSlideFromPartial $ defaultPartialBackendSlide
+                    { answers = Just newAnswersArray }
 
             , parallel $ catchPar $ deactivateSlide slideId
             ]

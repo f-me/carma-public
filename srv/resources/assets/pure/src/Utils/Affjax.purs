@@ -2,13 +2,14 @@ module Utils.Affjax
      ( defaultHeaders
      , getRequest
      , putRequest
+     , postRequest
      ) where
 
 import Prelude
 
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe (Just))
 import Data.Either (Either (Left))
-import Data.HTTP.Method (Method (GET, PUT))
+import Data.HTTP.Method (Method (GET, PUT, POST))
 import Data.MediaType.Common (applicationJSON)
 
 import Network.HTTP.Affjax as Affjax
@@ -17,8 +18,8 @@ import Network.HTTP.RequestHeader (RequestHeader (..))
 
 defaultHeaders :: Array RequestHeader
 defaultHeaders =
-  [ Accept      applicationJSON
-  , ContentType applicationJSON
+  [ ContentType applicationJSON
+  , Accept      applicationJSON
   ]
 
 
@@ -32,9 +33,20 @@ getRequest url = Affjax.defaultRequest
 
 
 putRequest
-  :: Affjax.URL -> Affjax.AffjaxRequest Unit
-putRequest url = Affjax.defaultRequest
+  :: forall content. Affjax.URL -> content -> Affjax.AffjaxRequest content
+putRequest url content = Affjax.defaultRequest
   { url     = url
   , method  = Left PUT
   , headers = defaultHeaders
+  , content = Just content
+  }
+
+
+postRequest
+  :: forall content. Affjax.URL -> content -> Affjax.AffjaxRequest content
+postRequest url content = Affjax.defaultRequest
+  { url     = url
+  , method  = Left POST
+  , headers = defaultHeaders
+  , content = Just content
   }

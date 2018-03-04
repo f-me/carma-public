@@ -3,7 +3,11 @@ module App.Store.DiagTree.Editor.Actions
      , LoadSlidesFailureReason (..)
      ) where
 
-import App.Store.DiagTree.Editor.Types (DiagTreeSlideId, DiagTreeSlides)
+import App.Store.DiagTree.Editor.Types
+     ( DiagTreeSlideId
+     , DiagTreeSlides
+     , DiagTreeSlide
+     )
 
 import App.Store.DiagTree.Editor.TreeSearch.Actions
      ( DiagTreeEditorTreeSearchAction
@@ -29,7 +33,7 @@ data DiagTreeEditorAction
   | DeleteSlideFailure (Array DiagTreeSlideId)
 
   | NewSlideRequest
-  | NewSlideSuccess
+  | NewSlideSuccess DiagTreeSlide
   | NewSlideFailure
 
 

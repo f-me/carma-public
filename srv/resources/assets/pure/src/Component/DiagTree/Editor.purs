@@ -100,8 +100,6 @@ diagTreeEditorRender = createClass $ spec $
        then pure unit
        else p $ do span !. "label label-danger" $ text "Ошибка"
                    text " Произошла ошибка при попытке создать новое дерево."
-                   -- TODO remove after implementation
-                   i $ text " Создание нового дерева временно недоступно…"
 
     if isProcessing
        then div !. classSfx "processing" $ spinner ^ processingSpinnerProps
