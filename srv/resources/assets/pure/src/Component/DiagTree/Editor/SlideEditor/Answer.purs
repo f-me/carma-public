@@ -4,8 +4,6 @@ module Component.DiagTree.Editor.SlideEditor.Answer
 
 import Prelude hiding (div)
 
-import Data.Record.Builder (merge)
-
 import React.DOM (div) as R
 import React.DOM.Props (className)
 import React.Spaces (renderIn, text)
@@ -15,15 +13,15 @@ import React
      , getProps, readState, createClass, spec'
      )
 
-import Utils (storeConnect)
 import App.Store (AppContext)
 
 
-diagTreeEditorSlideEditorAnswerRender
-  :: ReactClass
-       { appContext :: AppContext
-       }
+type Props =
+  { appContext :: AppContext
+  }
 
+
+diagTreeEditorSlideEditorAnswerRender :: ReactClass Props
 diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
   \ { appContext } { } -> do
 
@@ -49,10 +47,5 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
           pure $ renderFn props state # renderIn wrapper
 
 
-diagTreeEditorSlideEditorAnswer :: ReactClass { appContext :: AppContext }
-diagTreeEditorSlideEditorAnswer =
-  storeConnect f diagTreeEditorSlideEditorAnswerRender
-  where
-    f appState = let branch = appState.diagTree.editor in merge
-      {
-      }
+diagTreeEditorSlideEditorAnswer :: ReactClass Props
+diagTreeEditorSlideEditorAnswer = diagTreeEditorSlideEditorAnswerRender

@@ -27,7 +27,7 @@ import React.DOM (div) as R
 import React.DOM.Props (className, onClick, onChange, _type, checked)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
 import React.Spaces.DOM (div, button, i, label, input)
-import React.Spaces.DOM (div) as SDyn
+import React.Spaces.DOM.Dynamic (div) as SDyn
 
 import React
      ( ReactClass
@@ -119,12 +119,20 @@ diagTreeEditorTreeRender = createClass $ spec $
           Tuple slidesList itemPropsBuilder =
             case shifted of
                  Nothing ->
-                   Tuple slides $ \slide ->
-                     merge { answerHeader: Nothing, parents: [], slide }
+                   Tuple slides $ \slide@(DiagTreeSlide x) ->
+                     merge { answerHeader: Nothing
+                           , parents: []
+                           , key: show x.id
+                           , slide
+                           }
 
                  Just x@{ slide: slide@(DiagTreeSlide { id: slideId }) } ->
                    Tuple (Map.singleton slideId slide) $ \slide ->
-                     merge { answerHeader: x.answer, parents: x.parents, slide }
+                     merge { answerHeader: x.answer
+                           , parents: x.parents
+                           , key: show slideId
+                           , slide
+                           }
 
           itemRender x = createElement diagTreeEditorTreeItem p []
             where p = build (itemPropsBuilder x) itemProps

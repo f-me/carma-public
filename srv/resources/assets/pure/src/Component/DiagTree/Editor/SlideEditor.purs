@@ -7,12 +7,16 @@ import Prelude hiding (div)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Maybe.Trans (runMaybeT)
 
+import Data.Tuple (Tuple (Tuple), snd)
+import Data.Array (snoc)
+import Data.Foldable (foldl)
 import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..))
 
 import React.DOM (form) as R
-import React.Spaces ((!), (!.), renderIn, text)
-import React.Spaces.DOM (div, input, button, textarea)
+import React.Spaces ((!), (!.), renderIn, text, empty, elements)
+import React.Spaces.DOM (div, input, button, textarea, label, i)
+import React.Spaces.DOM.Dynamic (ul) as SDyn
 
 import React.DOM.Props
      ( className, _type, placeholder, value, disabled
@@ -21,7 +25,7 @@ import React.DOM.Props
 
 import React
      ( ReactClass
-     , createClass, spec'
+     , createClass, spec', createElement
      , getProps, readState, transformState
      , preventDefault
      )
@@ -77,6 +81,26 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
              ! placeholder "Описание"
              ! value slide.body
              ! onChange onChangeBody
+
+  div !. "form-group" $ do
+    label !. "control-label" $ text "Картинки"
+
+    SDyn.ul !. "list-group" <.> classSfx "resources-list" $
+
+      let itemReducer (Tuple key list) resource =
+            Tuple (key + 1) $ list `snoc`
+              createElement diagTreeEditorSlideEditorResource
+                            { appContext, resource, key: show key } []
+
+       in elements $ snd $ foldl itemReducer (Tuple 0 []) slide.resources
+
+    button !. "btn btn-default" <.> classSfx "resource-button"
+           ! _type "button"
+           ! disabled isProcessing
+           $ do
+
+      i !. "glyphicon glyphicon-plus" $ empty
+      text " Добавить картинку"
 
   div !. "btn-toolbar" $ do
 

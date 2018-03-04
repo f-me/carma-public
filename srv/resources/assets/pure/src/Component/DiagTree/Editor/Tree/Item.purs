@@ -47,6 +47,8 @@ type MethodEff eff =
 
 type Props eff =
   { appContext     :: AppContext
+  , key            :: String
+
   , selectedSlide  :: Maybe (Array DiagTreeSlideId)
   , unfoldedSlides :: Set DiagTreeSlideId
 
