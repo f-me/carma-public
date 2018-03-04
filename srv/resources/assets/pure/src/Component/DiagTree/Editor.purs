@@ -29,6 +29,7 @@ import Utils.DiagTree.Editor (getSlideByBranch)
 import Component.Spinner (spinner)
 import Component.DiagTree.Editor.Tree (diagTreeEditorTree)
 import Component.DiagTree.Editor.TreeSearch (diagTreeEditorTreeSearch)
+import Component.DiagTree.Editor.SlideEditor (diagTreeEditorSlideEditor)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
@@ -103,7 +104,7 @@ diagTreeEditorRender = createClass $ spec $
 
     if isProcessing
        then div !. classSfx "processing" $ spinner ^ processingSpinnerProps
-       else i $ text "Временно недоступно…"
+       else diagTreeEditorSlideEditor ^ { appContext }
 
   where
     name = "DiagTreeEditor"
