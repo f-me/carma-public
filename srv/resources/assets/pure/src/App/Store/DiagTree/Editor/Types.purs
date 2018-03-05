@@ -49,7 +49,7 @@ newtype DiagTreeSlide
   , header    :: String -- ^ Also known as "question" of a slide
   , body      :: String
   , resources :: Array DiagTreeSlideResource
-  , actions   :: Array DiagTreeSlideAction
+  , action    :: Maybe DiagTreeSlideAction
 
   , answers   :: Map DiagTreeSlideId DiagTreeSlideAnswer
   -- ^ You could read "answers" here as "children slides"

@@ -8,10 +8,10 @@ import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Maybe.Trans (runMaybeT)
 
 import Data.Tuple (Tuple (Tuple), snd)
-import Data.Array (snoc, null)
+import Data.Array (snoc)
 import Data.Foldable (class Foldable, foldl)
 import Data.Record.Builder (merge)
-import Data.Maybe (Maybe (..))
+import Data.Maybe (Maybe (..), isJust)
 import Data.Map as Map
 
 import React.DOM (form, div) as R
@@ -39,7 +39,7 @@ import Utils
 import Utils.DiagTree.Editor
      ( getSlideByBranch
      , eqDiagTreeSlideResources
-     , eqDiagTreeSlideActions
+     , eqDiagTreeSlideAction
      , eqIshDiagTreeSlideAnswers
      )
 
@@ -135,20 +135,18 @@ answersRender = createClassStatelessWithName name $
     renderer = renderIn wrapper
 
 
-actionsRender
-  :: forall f
-   . Foldable f
-  => ReactClass { appContext :: AppContext
+actionRender
+  :: ReactClass { appContext :: AppContext
                 , isDisabled :: Boolean
-                , actions    :: f DiagTreeSlideAction
+                , action     :: Maybe DiagTreeSlideAction
                 }
 
-actionsRender = createClassStatelessWithName name $
-  \ { appContext, isDisabled, actions } -> renderer $ do
+actionRender = createClassStatelessWithName name $
+  \ { appContext, isDisabled, action } -> renderer $ do
 
   label !. "control-label" $ text "Рекомендация"
 
-  -- TODO typeahead component
+  -- TODO implement
 
   where
     name = "DiagTreeEditorSlideEditorActions"
@@ -191,21 +189,21 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
   resourcesRender ^
     { appContext, isDisabled: isProcessing, resources: slide.resources }
 
-  -- Rendering "answers" only if "actions" is empty
-  if not $ null slide.actions
+  -- Rendering "answers" only if "action" is not set
+  if isJust slide.action
      then empty
      else answersRender ^ { appContext
                           , isDisabled: isProcessing
                           , answers: slide.answers
                           }
 
-  -- Rendering "actions" only if "answers" is empty
+  -- Rendering "action" only if "answers" is empty
   if not $ Map.isEmpty slide.answers
      then empty
-     else actionsRender ^ { appContext
-                          , isDisabled: isProcessing
-                          , actions: slide.actions
-                          }
+     else actionRender ^ { appContext
+                         , isDisabled: isProcessing
+                         , action: slide.action
+                         }
 
   div !. "btn-toolbar" $ do
 
@@ -269,8 +267,8 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
          eqDiagTreeSlideResources nextSlide.resources
                                   prevSlide.resources &&
 
-         eqDiagTreeSlideActions nextSlide.actions
-                                prevSlide.actions &&
+         eqDiagTreeSlideAction nextSlide.action
+                               prevSlide.action &&
 
          eqIshDiagTreeSlideAnswers nextSlide.answers
                                    prevSlide.answers

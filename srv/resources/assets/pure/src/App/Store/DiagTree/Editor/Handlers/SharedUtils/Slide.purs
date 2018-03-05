@@ -7,11 +7,13 @@ import Prelude hiding (id)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Maybe.Trans (MaybeT)
+import Control.MonadZero (guard)
 
 import Data.JSDate (LOCALE, parse, toDateTime)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Foldable (foldM)
+import Data.Array (length, head)
 
 import Utils (toMaybeT)
 
@@ -42,6 +44,9 @@ getSlide flatSlides slideId = do
 
   slideAnswers <- foldM answerReducer Map.empty answers
 
+  -- "actions" must be an array of one element or empty array)
+  guard $ let x = length actions in x == 0 || x == 1
+
   toMaybeT $ pure $
     DiagTreeSlide
       { id
@@ -50,8 +55,8 @@ getSlide flatSlides slideId = do
       , header
       , body
       , resources
+      , action: head actions
       , answers: slideAnswers
-      , actions
       }
 
   where

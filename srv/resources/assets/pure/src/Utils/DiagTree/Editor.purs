@@ -3,7 +3,6 @@ module Utils.DiagTree.Editor
      , eqDiagTreeSlideResource
      , eqDiagTreeSlideResources
      , eqDiagTreeSlideAction
-     , eqDiagTreeSlideActions
      , eqIshDiagTreeSlideAnswer
      , eqIshDiagTreeSlideAnswers
      ) where
@@ -15,7 +14,7 @@ import Data.Array (uncons, length, zip, fromFoldable)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Foldable (foldM)
-import Data.Maybe (Maybe (..), fromMaybe)
+import Data.Maybe (Maybe (..), fromMaybe, isJust)
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
@@ -44,8 +43,8 @@ getSlideByBranch slides branch = do
 
 eqDiagTreeSlideResource
   :: DiagTreeSlideResource -> DiagTreeSlideResource -> Boolean
-
-eqDiagTreeSlideResource a b = a.text == b.text && a.file == b.file
+eqDiagTreeSlideResource a b =
+  a.text == b.text && a.file == b.file
 
 eqDiagTreeSlideResources
   :: Array DiagTreeSlideResource -> Array DiagTreeSlideResource -> Boolean
@@ -58,18 +57,15 @@ eqDiagTreeSlideResources a b =
    in zip a b # foldM reducer true # fromMaybe false
 
 
-eqDiagTreeSlideAction :: DiagTreeSlideAction -> DiagTreeSlideAction -> Boolean
-eqDiagTreeSlideAction a b = a.label == b.label && a.service == b.service
+eqDiagTreeSlideAction
+  :: Maybe DiagTreeSlideAction -> Maybe DiagTreeSlideAction -> Boolean
+eqDiagTreeSlideAction a b =
+  isJust a == isJust b &&
+  (\x -> x == Nothing || x == Just true)
+    (do x <- a
+        y <- b
+        pure $ x.label == y.label && x.service == y.service)
 
-eqDiagTreeSlideActions
-  :: Array DiagTreeSlideAction -> Array DiagTreeSlideAction -> Boolean
-eqDiagTreeSlideActions a b =
-  length a == length b &&
-
-  let reducer _ (Tuple xa xb) =
-        if eqDiagTreeSlideAction xa xb then Just true else Nothing
-
-   in zip a b # foldM reducer true # fromMaybe false
 
 
 -- Keep in mind that in this `Ish` version we do not checking recursively all of
