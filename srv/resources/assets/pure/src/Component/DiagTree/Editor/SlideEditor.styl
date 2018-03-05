@@ -1,4 +1,6 @@
-name = DiagTreeEditorSlideEditor
+name           = DiagTreeEditorSlideEditor
+resources-name = DiagTreeEditorSlideEditorResources
+answers-name   = DiagTreeEditorSlideEditorAnswers
 
 .{name}
   display block
@@ -8,12 +10,14 @@ name = DiagTreeEditorSlideEditor
     height auto
     font-size 36px
 
-  .{name}--resources-list
-  .{name}--answers-list
-    margin-bottom 10px
+  .{resources-name}
+  .{answers-name}
+    .{resources-name}--list
+    .{answers-name}--list
+      margin-bottom 10px
 
-  .{name}--resource-button
-  .{name}--answer-button
-    margin-left 15px
-    margin-right 15px
-    margin-bottom 10px
+    .{resources-name}--add-button
+    .{answers-name}--add-button
+      margin-left 15px
+      margin-right 15px
+      margin-bottom 10px

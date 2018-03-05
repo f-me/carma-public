@@ -9,12 +9,12 @@ import Control.Monad.Maybe.Trans (runMaybeT)
 
 import Data.Tuple (Tuple (Tuple), snd)
 import Data.Array (snoc)
-import Data.Foldable (foldl)
+import Data.Foldable (class Foldable, foldl)
 import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..))
 
-import React.DOM (form) as R
-import React.Spaces ((!), (!.), renderIn, text, empty, elements)
+import React.DOM (form, div) as R
+import React.Spaces ((!), (!.), (^), renderIn, text, empty, elements)
 import React.Spaces.DOM (div, input, button, textarea, label, i)
 import React.Spaces.DOM.Dynamic (ul) as SDyn
 
@@ -30,7 +30,10 @@ import React
      , preventDefault
      )
 
-import Utils ((<.>), storeConnect, toMaybeT, eventInputValue)
+import Utils
+     ( (<.>), storeConnect, toMaybeT, eventInputValue
+     , createClassStatelessWithName
+     )
 
 import Utils.DiagTree.Editor
      ( getSlideByBranch
@@ -40,7 +43,12 @@ import Utils.DiagTree.Editor
      )
 
 import App.Store (AppContext)
-import App.Store.DiagTree.Editor.Types (DiagTreeSlide (DiagTreeSlide))
+
+import App.Store.DiagTree.Editor.Types
+     ( DiagTreeSlide (DiagTreeSlide)
+     , DiagTreeSlideResource
+     , DiagTreeSlideAnswer
+     )
 
 import Component.DiagTree.Editor.SlideEditor.Resource
      ( diagTreeEditorSlideEditorResource
@@ -49,6 +57,80 @@ import Component.DiagTree.Editor.SlideEditor.Resource
 import Component.DiagTree.Editor.SlideEditor.Answer
      ( diagTreeEditorSlideEditorAnswer
      )
+
+
+resourcesRender
+  :: forall f
+   . Foldable f
+  => ReactClass { appContext :: AppContext
+                , isDisabled :: Boolean
+                , resources  :: f DiagTreeSlideResource
+                }
+
+resourcesRender = createClassStatelessWithName name $
+  \ { appContext, isDisabled, resources } -> renderer $ do
+
+  label !. "control-label" $ text "Картинки"
+
+  SDyn.ul !. "list-group" <.> classSfx "list" $
+
+    let itemReducer (Tuple key list) resource =
+          Tuple (key + 1) $ list `snoc`
+            createElement diagTreeEditorSlideEditorResource
+                          { appContext, resource, key: show key } []
+
+     in elements $ snd $ foldl itemReducer (Tuple 0 []) resources
+
+  button !. "btn btn-default" <.> classSfx "add-button"
+         ! _type "button"
+         ! disabled isDisabled
+         $ do
+
+    i !. "glyphicon glyphicon-plus" $ empty
+    text " Добавить картинку"
+
+  where
+    name = "DiagTreeEditorSlideEditorResources"
+    classSfx s = name <> "--" <> s
+    wrapper = R.div [className $ "form-group" <.> name]
+    renderer = renderIn wrapper
+
+
+answersRender
+  :: forall f
+   . Foldable f
+  => ReactClass { appContext :: AppContext
+                , isDisabled :: Boolean
+                , answers    :: f DiagTreeSlideAnswer
+                }
+
+answersRender = createClassStatelessWithName name $
+  \ { appContext, isDisabled, answers } -> renderer $ do
+
+  label !. "control-label" $ text "Ответы"
+
+  SDyn.ul !. "list-group" <.> classSfx "list" $
+
+    let itemReducer (Tuple key list) answer =
+          Tuple (key + 1) $ list `snoc`
+            createElement diagTreeEditorSlideEditorAnswer
+                          { appContext, answer, key: show key } []
+
+     in elements $ snd $ foldl itemReducer (Tuple 0 []) answers
+
+  button !. "btn btn-default" <.> classSfx "add-button"
+         ! _type "button"
+         ! disabled isDisabled
+         $ do
+
+    i !. "glyphicon glyphicon-plus" $ empty
+    text " Добавить ответ"
+
+  where
+    name = "DiagTreeEditorSlideEditorAnswers"
+    classSfx s = name <> "--" <> s
+    wrapper = R.div [className $ "form-group" <.> name]
+    renderer = renderIn wrapper
 
 
 diagTreeEditorSlideEditorRender
@@ -82,45 +164,11 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
              ! value slide.body
              ! onChange onChangeBody
 
-  div !. "form-group" $ do
-    label !. "control-label" $ text "Картинки"
+  resourcesRender ^
+    { appContext, isDisabled: isProcessing, resources: slide.resources }
 
-    SDyn.ul !. "list-group" <.> classSfx "resources-list" $
-
-      let itemReducer (Tuple key list) resource =
-            Tuple (key + 1) $ list `snoc`
-              createElement diagTreeEditorSlideEditorResource
-                            { appContext, resource, key: show key } []
-
-       in elements $ snd $ foldl itemReducer (Tuple 0 []) slide.resources
-
-    button !. "btn btn-default" <.> classSfx "resource-button"
-           ! _type "button"
-           ! disabled isProcessing
-           $ do
-
-      i !. "glyphicon glyphicon-plus" $ empty
-      text " Добавить картинку"
-
-  div !. "form-group" $ do
-    label !. "control-label" $ text "Ответы"
-
-    SDyn.ul !. "list-group" <.> classSfx "answers-list" $
-
-      let itemReducer (Tuple key list) answer =
-            Tuple (key + 1) $ list `snoc`
-              createElement diagTreeEditorSlideEditorAnswer
-                            { appContext, answer, key: show key } []
-
-       in elements $ snd $ foldl itemReducer (Tuple 0 []) slide.answers
-
-    button !. "btn btn-default" <.> classSfx "answer-button"
-           ! _type "button"
-           ! disabled isProcessing
-           $ do
-
-      i !. "glyphicon glyphicon-plus" $ empty
-      text " Добавить ответ"
+  answersRender ^
+    { appContext, isDisabled: isProcessing, answers: slide.answers }
 
   div !. "btn-toolbar" $ do
 
@@ -231,5 +279,8 @@ diagTreeEditorSlideEditor = storeConnect f diagTreeEditorSlideEditorRender
       { slide:
           branch.selectedSlideBranch >>= getSlideByBranch branch.slides
 
+      -- This component supposed to be rendered only when any upper editor
+      -- processing is done, so we check processing only of slide editing
+      -- actions.
       , isProcessing: false
       }
