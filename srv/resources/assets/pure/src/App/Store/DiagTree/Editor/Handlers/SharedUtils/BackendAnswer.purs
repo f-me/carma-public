@@ -10,6 +10,7 @@ import Prelude
 import Control.MonadZero (guard)
 
 import Data.Int (fromNumber, toNumber)
+import Data.String (null)
 import Data.Tuple (Tuple (Tuple))
 import Data.Maybe (Maybe (..), maybe)
 import Data.StrMap as StrMap
@@ -98,15 +99,16 @@ fromBackendAnswer json = do
       l key = answerKeyToBackendKey key `StrMap.lookup` obj
 
   nextSlide <- l (SProxy :: SProxy "nextSlide") >>= A.toNumber >>= fromNumber
-  header    <- l (SProxy :: SProxy "header") >>= A.toString
-  text      <- l (SProxy :: SProxy "text") >>= A.toString
+  header    <- l (SProxy :: SProxy "header")    >>= A.toString
+  text      <- l (SProxy :: SProxy "text")      >>= A.toString
 
   file <-
     case l (SProxy :: SProxy "file") of
          Nothing  -> pure Nothing  -- Field is not set (that's okay)
          Just raw -> if A.isNull raw -- Field is set to `null`
                         then pure Nothing
-                        else A.toString raw <#> Just
+                        else A.toString raw <#>
+                               \x -> if null x then Nothing else Just x
 
   -- TODO FIXME Remove after cleanup migration.
   --            Deprecated field that must be `{}` or just not set.
