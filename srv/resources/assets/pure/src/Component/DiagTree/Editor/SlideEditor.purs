@@ -8,10 +8,11 @@ import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Maybe.Trans (runMaybeT)
 
 import Data.Tuple (Tuple (Tuple), snd)
-import Data.Array (snoc)
+import Data.Array (snoc, null)
 import Data.Foldable (class Foldable, foldl)
 import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..))
+import Data.Map as Map
 
 import React.DOM (form, div) as R
 import React.Spaces ((!), (!.), (^), renderIn, text, empty, elements)
@@ -47,6 +48,7 @@ import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlideResource
+     , DiagTreeSlideAction
      , DiagTreeSlideAnswer
      )
 
@@ -133,6 +135,28 @@ answersRender = createClassStatelessWithName name $
     renderer = renderIn wrapper
 
 
+actionsRender
+  :: forall f
+   . Foldable f
+  => ReactClass { appContext :: AppContext
+                , isDisabled :: Boolean
+                , actions    :: f DiagTreeSlideAction
+                }
+
+actionsRender = createClassStatelessWithName name $
+  \ { appContext, isDisabled, actions } -> renderer $ do
+
+  label !. "control-label" $ text "Рекомендация"
+
+  -- TODO typeahead component
+
+  where
+    name = "DiagTreeEditorSlideEditorActions"
+    classSfx s = name <> "--" <> s
+    wrapper = R.div [className $ "form-group" <.> name]
+    renderer = renderIn wrapper
+
+
 diagTreeEditorSlideEditorRender
   :: ReactClass
        { appContext   :: AppContext
@@ -167,8 +191,21 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
   resourcesRender ^
     { appContext, isDisabled: isProcessing, resources: slide.resources }
 
-  answersRender ^
-    { appContext, isDisabled: isProcessing, answers: slide.answers }
+  -- Rendering "answers" only if "actions" is empty
+  if not $ null slide.actions
+     then empty
+     else answersRender ^ { appContext
+                          , isDisabled: isProcessing
+                          , answers: slide.answers
+                          }
+
+  -- Rendering "actions" only if "answers" is empty
+  if not $ Map.isEmpty slide.answers
+     then empty
+     else actionsRender ^ { appContext
+                          , isDisabled: isProcessing
+                          , actions: slide.actions
+                          }
 
   div !. "btn-toolbar" $ do
 
