@@ -5,7 +5,7 @@ module Component.DiagTree.Editor.SlideEditor.Resource
 import Prelude hiding (div)
 
 import React.DOM (li) as R
-import React.DOM.Props (className, role, src, alt, title)
+import React.DOM.Props (className, role, src, title)
 import React.Spaces ((!), (!.), renderIn, text, empty)
 import React.Spaces.DOM (div, img, span, button, i)
 
@@ -21,8 +21,8 @@ import App.Store.DiagTree.Editor.Types (DiagTreeSlideResource)
 
 type Props =
   { appContext :: AppContext
-  , resource   :: DiagTreeSlideResource
   , key        :: String
+  , resource   :: DiagTreeSlideResource
   }
 
 
@@ -31,11 +31,10 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
   \ { appContext, resource } { } -> do
 
   div !. "row" $ do
-
     div !. "col-md-7" $ do
 
-      img ! role "presentation"
-          ! alt resource.text
+      img !. classSfx "image"
+          ! role "presentation"
           ! src resource.file
 
       span $ text resource.text

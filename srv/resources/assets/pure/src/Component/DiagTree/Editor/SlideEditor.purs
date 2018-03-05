@@ -42,12 +42,12 @@ import Utils.DiagTree.Editor
 import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Types (DiagTreeSlide (DiagTreeSlide))
 
-import Component.DiagTree.Editor.SlideEditor.Answer
-     ( diagTreeEditorSlideEditorAnswer
-     )
-
 import Component.DiagTree.Editor.SlideEditor.Resource
      ( diagTreeEditorSlideEditorResource
+     )
+
+import Component.DiagTree.Editor.SlideEditor.Answer
+     ( diagTreeEditorSlideEditorAnswer
      )
 
 
@@ -101,6 +101,26 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
       i !. "glyphicon glyphicon-plus" $ empty
       text " Добавить картинку"
+
+  div !. "form-group" $ do
+    label !. "control-label" $ text "Ответы"
+
+    SDyn.ul !. "list-group" <.> classSfx "answers-list" $
+
+      let itemReducer (Tuple key list) answer =
+            Tuple (key + 1) $ list `snoc`
+              createElement diagTreeEditorSlideEditorAnswer
+                            { appContext, answer, key: show key } []
+
+       in elements $ snd $ foldl itemReducer (Tuple 0 []) slide.answers
+
+    button !. "btn btn-default" <.> classSfx "answer-button"
+           ! _type "button"
+           ! disabled isProcessing
+           $ do
+
+      i !. "glyphicon glyphicon-plus" $ empty
+      text " Добавить ответ"
 
   div !. "btn-toolbar" $ do
 
