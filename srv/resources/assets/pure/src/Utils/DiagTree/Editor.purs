@@ -2,7 +2,6 @@ module Utils.DiagTree.Editor
      ( getSlideByBranch
      , eqDiagTreeSlideResource
      , eqDiagTreeSlideResources
-     , eqDiagTreeSlideAction
      , eqIshDiagTreeSlideAnswer
      , eqIshDiagTreeSlideAnswers
      ) where
@@ -14,14 +13,13 @@ import Data.Array (uncons, length, zip, fromFoldable)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Foldable (foldM)
-import Data.Maybe (Maybe (..), fromMaybe, isJust)
+import Data.Maybe (Maybe (..), fromMaybe)
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlides
      , DiagTreeSlideId
      , DiagTreeSlideResource
-     , DiagTreeSlideAction
      , DiagTreeSlideAnswer
      )
 
@@ -55,17 +53,6 @@ eqDiagTreeSlideResources a b =
         if eqDiagTreeSlideResource xa xb then Just true else Nothing
 
    in zip a b # foldM reducer true # fromMaybe false
-
-
-eqDiagTreeSlideAction
-  :: Maybe DiagTreeSlideAction -> Maybe DiagTreeSlideAction -> Boolean
-eqDiagTreeSlideAction a b =
-  isJust a == isJust b &&
-  (\x -> x == Nothing || x == Just true)
-    (do x <- a
-        y <- b
-        pure $ x.label == y.label && x.service == y.service)
-
 
 
 -- Keep in mind that in this `Ish` version we do not checking recursively all of

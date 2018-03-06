@@ -39,7 +39,6 @@ import Utils
 import Utils.DiagTree.Editor
      ( getSlideByBranch
      , eqDiagTreeSlideResources
-     , eqDiagTreeSlideAction
      , eqIshDiagTreeSlideAnswers
      )
 
@@ -262,13 +261,11 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       (DiagTreeSlide nextSlide) <- toMaybeT props.slide
 
       if nextSlide.header == prevSlide.header &&
-         nextSlide.body   == prevSlide.body &&
+         nextSlide.body   == prevSlide.body   &&
+         nextSlide.action == prevSlide.action &&
 
          eqDiagTreeSlideResources nextSlide.resources
                                   prevSlide.resources &&
-
-         eqDiagTreeSlideAction nextSlide.action
-                               prevSlide.action &&
 
          eqIshDiagTreeSlideAnswers nextSlide.answers
                                    prevSlide.answers

@@ -6,12 +6,16 @@ module Utils
      , toMaybeT
      , eventInputValue
      , eventIsChecked
+     , unfoldrBoundedEnum
      ) where
 
 import Prelude
 
 import Unsafe.Coerce (unsafeCoerce)
-import Data.Maybe (Maybe)
+import Data.Tuple (Tuple (Tuple))
+import Data.Maybe (Maybe (..))
+import Data.Enum (class BoundedEnum, succ)
+import Data.Unfoldable (class Unfoldable, unfoldr)
 
 import Control.Monad.Maybe.Trans (MaybeT (MaybeT))
 
@@ -36,3 +40,7 @@ eventInputValue = unsafeCoerce >>> _.currentTarget.value
 
 eventIsChecked :: Event -> Boolean
 eventIsChecked = unsafeCoerce >>> _.currentTarget.checked
+
+
+unfoldrBoundedEnum :: forall f a. Unfoldable f => BoundedEnum a => f a
+unfoldrBoundedEnum = unfoldr (_ <#> \x -> Tuple x (succ x)) $ Just bottom

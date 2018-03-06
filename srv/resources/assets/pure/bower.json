@@ -52,7 +52,10 @@
     "purescript-typelevel-prelude": "^2.6.0",
     "purescript-symbols": "^3.0.0",
     "purescript-type-equality": "^2.1.0",
-    "purescript-proxy": "^2.1.0"
+    "purescript-proxy": "^2.1.0",
+    "purescript-enums": "^3.2.1",
+    "purescript-generics-rep": "^5.4.0",
+    "purescript-lists": "^4.12.0"
   },
   "devDependencies": {},
   "resolutions": {

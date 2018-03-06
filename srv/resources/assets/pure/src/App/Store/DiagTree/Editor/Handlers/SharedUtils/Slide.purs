@@ -9,6 +9,7 @@ import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Maybe.Trans (MaybeT)
 import Control.MonadZero (guard)
 
+import Data.Maybe (Maybe (..))
 import Data.JSDate (LOCALE, parse, toDateTime)
 import Data.Map (Map)
 import Data.Map as Map
@@ -24,6 +25,7 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendSlide
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlideId
      , DiagTreeSlide (DiagTreeSlide)
+     , diagTreeSlideActionFromBackend
      )
 
 
@@ -45,7 +47,13 @@ getSlide flatSlides slideId = do
   slideAnswers <- foldM answerReducer Map.empty answers
 
   -- "actions" must be an array of one element or empty array)
-  guard $ let x = length actions in x == 0 || x == 1
+  action <- toMaybeT $ do
+    let len = length actions
+    guard $ len == 0 || len == 1
+
+    if len == 1
+       then head actions >>= diagTreeSlideActionFromBackend <#> Just
+       else pure Nothing
 
   toMaybeT $ pure $
     DiagTreeSlide
@@ -55,7 +63,7 @@ getSlide flatSlides slideId = do
       , header
       , body
       , resources
-      , action: head actions
+      , action
       , answers: slideAnswers
       }
 
