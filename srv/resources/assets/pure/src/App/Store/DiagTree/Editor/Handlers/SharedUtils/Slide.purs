@@ -17,6 +17,7 @@ import Data.Foldable (foldM)
 import Data.Array (length, head)
 
 import Utils (toMaybeT)
+import Utils.DiagTree.Editor (diagTreeSlideActionFromBackend)
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendSlide
      ( BackendSlide
@@ -25,7 +26,6 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendSlide
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlideId
      , DiagTreeSlide (DiagTreeSlide)
-     , diagTreeSlideActionFromBackend
      )
 
 

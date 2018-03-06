@@ -4,6 +4,8 @@ module Utils.DiagTree.Editor
      , eqDiagTreeSlideResources
      , eqIshDiagTreeSlideAnswer
      , eqIshDiagTreeSlideAnswers
+     , diagTreeSlideActionToBackend
+     , diagTreeSlideActionFromBackend
      ) where
 
 import Prelude
@@ -20,7 +22,12 @@ import App.Store.DiagTree.Editor.Types
      , DiagTreeSlides
      , DiagTreeSlideId
      , DiagTreeSlideResource
+     , DiagTreeSlideAction (..)
      , DiagTreeSlideAnswer
+     )
+
+import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAction
+     ( BackendAction
      )
 
 
@@ -83,3 +90,38 @@ eqIshDiagTreeSlideAnswers a b =
    in zip (fromFoldable a) (fromFoldable b)
     # foldM reducer true
     # fromMaybe false
+
+
+diagTreeSlideActionToBackend :: DiagTreeSlideAction -> BackendAction
+diagTreeSlideActionToBackend Towage       = aTowage
+diagTreeSlideActionToBackend BikeTowage   = aBikeTowage
+diagTreeSlideActionToBackend Tech         = aTech
+diagTreeSlideActionToBackend Consultation = aConsultation
+
+diagTreeSlideActionFromBackend :: BackendAction -> Maybe DiagTreeSlideAction
+diagTreeSlideActionFromBackend { label, service }
+  | label   == aTowage.label &&
+    service == aTowage.service = Just Towage
+
+  | label   == aBikeTowage.label &&
+    service == aBikeTowage.service = Just BikeTowage
+
+  | label   == aTech.label &&
+    service == aTech.service = Just Tech
+
+  | label   == aConsultation.label &&
+    service == aConsultation.service = Just Consultation
+
+  | otherwise = Nothing
+
+aTowage :: BackendAction
+aTowage = { label: "Создать Эвакуацию", service: "Towage" }
+
+aBikeTowage :: BackendAction
+aBikeTowage = { label: "Создать Мотоэвакуация", service: "BikeTowage" }
+
+aTech :: BackendAction
+aTech = { label: "Создать Техпомощь", service: "Tech" }
+
+aConsultation :: BackendAction
+aConsultation = { label: "Создать Консультацию", service: "Consultation" }

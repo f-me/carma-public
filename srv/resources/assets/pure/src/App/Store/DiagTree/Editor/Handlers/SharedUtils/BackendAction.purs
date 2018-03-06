@@ -1,5 +1,6 @@
 module App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAction
-     ( module Types
+     ( BackendAction
+     , BackendActionFields
      , fromBackendAction
      , toBackendAction
      ) where
@@ -17,13 +18,9 @@ import Data.Argonaut.Core as A
 import Data.Record (get)
 import Data.Symbol (SProxy (SProxy), class IsSymbol)
 
-import App.Store.DiagTree.Editor.Types (BackendAction, BackendActionFields)
-    as Types
 
-import App.Store.DiagTree.Editor.Types
-     ( BackendAction, BackendActionFields
-     , diagTreeSlideActionFromBackend
-     )
+type BackendActionFields = (label :: String, service :: String)
+type BackendAction = Record BackendActionFields
 
 
 class ActionKeyToBackendKey k where
@@ -38,6 +35,7 @@ instance actionKeyToBackendKeyLabel :: ActionKeyToBackendKey "label" where
 instance actionKeyToBackendKeyService :: ActionKeyToBackendKey "service" where
   actionKeyToBackendKey SProxy = "svc"
 
+
 backendActionValidKeys :: Set String
 backendActionValidKeys = Set.fromFoldable
   [ k (SProxy :: SProxy "label")
@@ -45,6 +43,7 @@ backendActionValidKeys = Set.fromFoldable
   ]
   where
     k = actionKeyToBackendKey
+
 
 fromBackendAction :: A.Json -> Maybe BackendAction
 fromBackendAction json = do
@@ -61,8 +60,9 @@ fromBackendAction json = do
 
   label   <- l (SProxy :: SProxy "label")   >>= A.toString
   service <- l (SProxy :: SProxy "service") >>= A.toString
-  let record = { label, service }
-  record <$ diagTreeSlideActionFromBackend record
+
+  pure { label, service }
+
 
 toBackendAction :: BackendAction -> A.Json
 toBackendAction x = A.fromObject $ StrMap.fromFoldable

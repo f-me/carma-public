@@ -4,17 +4,13 @@ module App.Store.DiagTree.Editor.Types
      , DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlideResource
      , DiagTreeSlideAction (..)
-     , BackendAction
-     , BackendActionFields
-     , diagTreeSlideActionToBackend
-     , diagTreeSlideActionFromBackend
      , DiagTreeSlideAnswer
      ) where
 
 import Prelude
 
 import Data.Map (Map)
-import Data.Maybe (Maybe (..))
+import Data.Maybe (Maybe)
 import Data.DateTime (DateTime)
 import Data.Generic (class Generic, gShow)
 import Data.Enum (class Enum, class BoundedEnum)
@@ -33,9 +29,6 @@ type DiagTreeSlideResource =
   , file :: String
   }
 
-
-type BackendActionFields = (label :: String, service :: String)
-type BackendAction = Record BackendActionFields
 
 data DiagTreeSlideAction
   = Towage
@@ -56,7 +49,7 @@ derive instance genericRepDiagTreeSlideAction ::
 instance genericRepBoundedDiagTreeSlideAction :: Bounded DiagTreeSlideAction
   where
   bottom = GRepBounded.genericBottom
-  top = GRepBounded.genericTop
+  top    = GRepBounded.genericTop
 
 instance genericRepEnumDiagTreeSlideAction :: Enum DiagTreeSlideAction where
   pred = GRepEnum.genericPred
@@ -68,40 +61,6 @@ instance genericRepBoundedEnumDiagTreeSlideAction ::
   cardinality = GRepEnum.genericCardinality
   toEnum      = GRepEnum.genericToEnum
   fromEnum    = GRepEnum.genericFromEnum
-
-aTowage :: BackendAction
-aTowage = { label: "Создать Эвакуацию", service: "Towage" }
-
-aBikeTowage :: BackendAction
-aBikeTowage = { label: "Создать Мотоэвакуация", service: "BikeTowage" }
-
-aTech :: BackendAction
-aTech = { label: "Создать Техпомощь", service: "Tech" }
-
-aConsultation :: BackendAction
-aConsultation = { label: "Создать Консультацию", service: "Consultation" }
-
-diagTreeSlideActionToBackend :: DiagTreeSlideAction -> BackendAction
-diagTreeSlideActionToBackend Towage       = aTowage
-diagTreeSlideActionToBackend BikeTowage   = aBikeTowage
-diagTreeSlideActionToBackend Tech         = aTech
-diagTreeSlideActionToBackend Consultation = aConsultation
-
-diagTreeSlideActionFromBackend :: BackendAction -> Maybe DiagTreeSlideAction
-diagTreeSlideActionFromBackend { label, service }
-  | label   == aTowage.label &&
-    service == aTowage.service = Just Towage
-
-  | label   == aBikeTowage.label &&
-    service == aBikeTowage.service = Just BikeTowage
-
-  | label   == aTech.label &&
-    service == aTech.service = Just Tech
-
-  | label   == aConsultation.label &&
-    service == aConsultation.service = Just Consultation
-
-  | otherwise = Nothing
 
 
 type DiagTreeSlideAnswer =
