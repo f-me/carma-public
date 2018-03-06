@@ -243,6 +243,17 @@ There's also single command to do the same:
 npm run full-clean
 ```
 
+#### "Pure" frontend
+
+**WARNING!** Do not forget to also build "pure" frontend,
+the commands look almost the same as you saw above.
+See ["pure" frontend README][pure-readme] for details.
+
+This is partly rewritten frontend (some rewritten parts of it),
+some parts of it included to the main frontend using `<iframe>`s.
+
+Ideally the whole frontend must be rewritten in this "pure" version.
+
 ### CI build
 
 [CircleCI][ci] is configured to build CaRMa on every push. If you have
@@ -312,3 +323,4 @@ docker-compose -f docker/carma-bundle.yml up
 [haskell-stack]: https://docs.haskellstack.org/en/stable/README/
 [hub-bundle]: https://hub.docker.com/r/formalmethods/carma-bundle/tags/
 [docker/dev-pg-9.3]: docker/dev-pg-9.3
+[pure-readme]: srv/resources/assets/pure/README.md

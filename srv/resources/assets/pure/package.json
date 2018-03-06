@@ -29,7 +29,8 @@
     "debug-clean-build": "npm run clean && npm run debug-build",
     "prod-build": "env NODE_ENV=production npm run webpack -- --progress --colors",
     "prod-clean-build": "npm run clean && npm run prod-build",
-    "watch": "npm run webpack -- --progress --colors --watch"
+    "watch": "npm run webpack -- --progress --colors --watch",
+    "prod-release": "npm i && npm run bower i && npm run prod-clean-build"
   },
   "devDependencies": {
     "bower": "^1.8.2",

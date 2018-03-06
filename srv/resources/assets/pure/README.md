@@ -11,6 +11,13 @@
 - `npm run watch`
   to start watcher daemon that will automatically rebuild your changes
 
+If you're about to deploy next release to the production server, just run
+(this includes `npm i`, `npm run bower i` and `prod-clean-build`):
+
+```bash
+npm run prod-release
+```
+
 ### Additional tasks
 
 - `npm run debug-build` to build debug bundle
