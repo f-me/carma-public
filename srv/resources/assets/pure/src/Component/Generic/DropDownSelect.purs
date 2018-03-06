@@ -1,10 +1,11 @@
 module Component.Generic.DropDownSelect
      ( dropDownSelect
+     , OnSelectedEff
      ) where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
+import Control.Monad.Eff (Eff, kind Effect)
 import Control.Alt ((<|>))
 
 import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust)
@@ -29,16 +30,19 @@ import Utils ((<.>))
 import App.Store (AppContext)
 
 
+type OnSelectedEff eff =
+  ( props :: ReactProps
+  , state :: ReactState ReadWrite
+  , refs  :: ReactRefs  ReadOnly
+  | eff
+  ) :: # Effect
+
 type Props f a eff =
   { appContext  :: AppContext
   , variants    :: f a
   , selected    :: Maybe a
   , variantView :: a -> String -- Used to show variant title
-  , onSelected  :: Maybe ( Maybe a -> Eff ( props :: ReactProps
-                                          , state :: ReactState ReadWrite
-                                          , refs  :: ReactRefs  ReadOnly
-                                          | eff
-                                          ) Unit )
+  , onSelected  :: Maybe (Maybe a -> Eff (OnSelectedEff eff) Unit)
 
   , placeholder :: Maybe String
     -- ^ Shown as a dropdown button title when `selected` is `Nothing`

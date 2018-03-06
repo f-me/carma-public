@@ -4,6 +4,7 @@ module Component.DiagTree.Editor.SlideEditor
 
 import Prelude hiding (div)
 
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Maybe.Trans (runMaybeT)
 
@@ -44,7 +45,7 @@ import Utils.DiagTree.Editor
      )
 
 import App.Store (AppContext)
-import Component.Generic.DropDownSelect (dropDownSelect)
+import Component.Generic.DropDownSelect (OnSelectedEff, dropDownSelect)
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
@@ -137,13 +138,17 @@ answersRender = createClassStatelessWithName name $
 
 
 actionRender
-  :: ReactClass { appContext :: AppContext
+  :: forall eff
+   . ReactClass { appContext :: AppContext
                 , isDisabled :: Boolean
                 , action     :: Maybe DiagTreeSlideAction
+
+                , onSelected :: Maybe DiagTreeSlideAction
+                             -> Eff (OnSelectedEff eff) Unit
                 }
 
 actionRender = createClassStatelessWithName name $
-  \ { appContext, isDisabled, action } -> renderer $ do
+  \ { appContext, isDisabled, action, onSelected } -> renderer $ do
 
   label !. "control-label" $ text "Рекомендация"
 
@@ -152,7 +157,7 @@ actionRender = createClassStatelessWithName name $
     , variants
     , selected: action
     , variantView: show
-    , onSelected: Nothing
+    , onSelected: Just onSelected
     , placeholder: Just "Что делать?"
     , notSelectedTitle: Just "(не выбрано)"
     }
@@ -178,6 +183,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     , isChanged
     , onChangeHeader
     , onChangeBody
+    , onSelectAction
     , onCancel
     , onSave
     } -> do
@@ -213,6 +219,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
      else actionRender ^ { appContext
                          , isDisabled: isProcessing
                          , action: slide.action
+                         , onSelected: onSelectAction
                          }
 
   div !. "btn-toolbar" $ do
@@ -243,17 +250,23 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       let x = eventInputValue event
 
       transformState this $
-        \s -> s { slide = s.slide <#> headerUpdater x, isChanged = true }
+        \s -> s { slide = s.slide <#> updater x, isChanged = true }
 
-      where headerUpdater x (DiagTreeSlide s) = DiagTreeSlide $ s { header = x }
+      where updater x (DiagTreeSlide s) = DiagTreeSlide $ s { header = x }
 
     changeBodyHandler this event = do
       let x = eventInputValue event
 
       transformState this $
-        \s -> s { slide = s.slide <#> bodyUpdater x, isChanged = true }
+        \s -> s { slide = s.slide <#> updater x, isChanged = true }
 
-      where bodyUpdater x (DiagTreeSlide s) = DiagTreeSlide $ s { body = x }
+      where updater x (DiagTreeSlide s) = DiagTreeSlide $ s { body = x }
+
+    selectActionHandler this action =
+      transformState this $
+        \s -> s { slide = s.slide <#> updater, isChanged = true }
+
+      where updater (DiagTreeSlide s) = DiagTreeSlide $ s { action = action }
 
     cancelHandler this event = do
       { slide } <- getProps this
@@ -288,6 +301,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
            , isChanged      : false
            , onChangeHeader : changeHeaderHandler this
            , onChangeBody   : changeBodyHandler   this
+           , onSelectAction : selectActionHandler this
            , onCancel       : cancelHandler       this
            , onSave         : saveHandler         this
            }
