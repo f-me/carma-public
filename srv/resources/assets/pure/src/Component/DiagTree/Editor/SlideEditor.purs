@@ -145,7 +145,7 @@ actionRender = createClassStatelessWithName name $
 
   label !. "control-label" $ text "Рекомендация"
 
-  -- TODO implement
+  -- TODO implement dropdown select here
 
   where
     name = "DiagTreeEditorSlideEditorActions"

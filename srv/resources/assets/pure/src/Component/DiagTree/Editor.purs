@@ -26,7 +26,7 @@ import React.Spaces ((!), (!.), (^), renderIn, text, empty)
 
 import Utils ((<.>), storeConnect)
 import Utils.DiagTree.Editor (getSlideByBranch)
-import Component.Spinner (spinner)
+import Component.Generic.Spinner (spinner)
 import Component.DiagTree.Editor.Tree (diagTreeEditorTree)
 import Component.DiagTree.Editor.TreeSearch (diagTreeEditorTreeSearch)
 import Component.DiagTree.Editor.SlideEditor (diagTreeEditorSlideEditor)

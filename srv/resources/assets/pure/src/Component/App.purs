@@ -16,7 +16,7 @@ import React.Spaces ((^), renderIn, text)
 import Utils (storeConnect, createClassStatelessWithSpec)
 import Router (Location (..))
 import App.Store (AppContext)
-import Component.Spinner (spinner)
+import Component.Generic.Spinner (spinner)
 import Component.DiagTree.Editor (diagTreeEditor)
 
 

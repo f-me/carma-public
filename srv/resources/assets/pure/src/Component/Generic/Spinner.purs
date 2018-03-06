@@ -1,4 +1,4 @@
-module Component.Spinner
+module Component.Generic.Spinner
      ( spinner
      ) where
 
