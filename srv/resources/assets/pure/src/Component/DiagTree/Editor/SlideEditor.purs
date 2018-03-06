@@ -34,6 +34,7 @@ import React
 import Utils
      ( (<.>), storeConnect, toMaybeT, eventInputValue
      , createClassStatelessWithName
+     , unfoldrBoundedEnum
      )
 
 import Utils.DiagTree.Editor
@@ -43,6 +44,7 @@ import Utils.DiagTree.Editor
      )
 
 import App.Store (AppContext)
+import Component.Generic.DropDownSelect (dropDownSelect)
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
@@ -145,13 +147,22 @@ actionRender = createClassStatelessWithName name $
 
   label !. "control-label" $ text "Рекомендация"
 
-  -- TODO implement dropdown select here
+  dropDownSelect ^
+    { appContext
+    , variants
+    , selected: action
+    , variantView: show
+    , onSelected: Nothing
+    , placeholder: Just "Что делать?"
+    , notSelectedTitle: Just "(не выбрано)"
+    }
 
   where
     name = "DiagTreeEditorSlideEditorActions"
     classSfx s = name <> "--" <> s
     wrapper = R.div [className $ "form-group" <.> name]
     renderer = renderIn wrapper
+    variants = (unfoldrBoundedEnum :: Array DiagTreeSlideAction)
 
 
 diagTreeEditorSlideEditorRender
@@ -264,11 +275,8 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
          nextSlide.body   == prevSlide.body   &&
          nextSlide.action == prevSlide.action &&
 
-         eqDiagTreeSlideResources nextSlide.resources
-                                  prevSlide.resources &&
-
-         eqIshDiagTreeSlideAnswers nextSlide.answers
-                                   prevSlide.answers
+         eqDiagTreeSlideResources  nextSlide.resources prevSlide.resources &&
+         eqIshDiagTreeSlideAnswers nextSlide.answers   prevSlide.answers
 
          then toMaybeT $ pure unit
          else liftEff $ resetChanges this props.slide

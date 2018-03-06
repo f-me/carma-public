@@ -1,0 +1,19 @@
+name = DropDownSelect
+
+.{name}
+  display block
+  position relative
+
+  .{name}--selected
+    &
+    &:hover
+    & > a
+    &:hover > a
+      color #333
+      background #d4d4d4
+      font-weight bold
+      cursor default
+
+  .{name}--not-selected-label
+    color #777
+    font-style italic

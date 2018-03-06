@@ -115,13 +115,13 @@ diagTreeSlideActionFromBackend { label, service }
   | otherwise = Nothing
 
 aTowage :: BackendAction
-aTowage = { label: "Создать Эвакуацию", service: "Towage" }
+aTowage = { label: show Towage, service: "Towage" }
 
 aBikeTowage :: BackendAction
-aBikeTowage = { label: "Создать Мотоэвакуация", service: "BikeTowage" }
+aBikeTowage = { label: show BikeTowage, service: "BikeTowage" }
 
 aTech :: BackendAction
-aTech = { label: "Создать Техпомощь", service: "Tech" }
+aTech = { label: show Tech, service: "Tech" }
 
 aConsultation :: BackendAction
-aConsultation = { label: "Создать Консультацию", service: "Consultation" }
+aConsultation = { label: show Consultation, service: "Consultation" }

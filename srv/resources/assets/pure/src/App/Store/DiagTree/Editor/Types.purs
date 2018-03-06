@@ -12,7 +12,7 @@ import Prelude
 import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.DateTime (DateTime)
-import Data.Generic (class Generic, gShow)
+import Data.Generic (class Generic)
 import Data.Enum (class Enum, class BoundedEnum)
 
 import Data.Generic.Rep as GRep
@@ -41,7 +41,10 @@ derive instance eqDiagTreeSlideAction      :: Eq      DiagTreeSlideAction
 derive instance ordDiagTreeSlideAction     :: Ord     DiagTreeSlideAction
 
 instance showDiagTreeSlideAction :: Show DiagTreeSlideAction where
-  show = gShow
+  show Towage       = "Создать Эвакуацию"
+  show BikeTowage   = "Создать Мотоэвакуация"
+  show Tech         = "Создать Техпомощь"
+  show Consultation = "Создать Консультацию"
 
 derive instance genericRepDiagTreeSlideAction ::
   GRep.Generic DiagTreeSlideAction _
