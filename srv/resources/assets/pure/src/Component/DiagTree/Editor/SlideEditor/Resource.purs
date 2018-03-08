@@ -15,8 +15,13 @@ import React
      )
 
 import Utils ((<.>))
+import Utils.DiagTree.Editor (getDiagTreeSlideResourcePath)
 import App.Store (AppContext)
-import App.Store.DiagTree.Editor.Types (DiagTreeSlideResource)
+
+import App.Store.DiagTree.Editor.Types
+     ( DiagTreeSlideResource
+     , DiagTreeSlideResourceAttachment (..)
+     )
 
 
 type Props =
@@ -33,9 +38,14 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
   div !. "row" $ do
     div !. "col-md-7" $ do
 
+      let imagePath =
+            case resource.attachment of
+                 Legacy x -> x
+                 Modern x -> getDiagTreeSlideResourcePath x.filename
+
       img !. classSfx "image"
           ! role "presentation"
-          ! src resource.file
+          ! src imagePath
 
       span $ text resource.text
 

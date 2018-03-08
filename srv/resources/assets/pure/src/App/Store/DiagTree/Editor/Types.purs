@@ -3,6 +3,7 @@ module App.Store.DiagTree.Editor.Types
      , DiagTreeSlides
      , DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlideResource
+     , DiagTreeSlideResourceAttachment (..)
      , DiagTreeSlideAction (..)
      , DiagTreeSlideAnswer
      ) where
@@ -24,9 +25,30 @@ type DiagTreeSlideId = Int
 type DiagTreeSlides  = Map DiagTreeSlideId DiagTreeSlide
 
 
+data DiagTreeSlideResourceAttachment
+  = Legacy String
+  -- ^ This is legacy field with inlined uploaded file as a string of base64
+  --   (this is only for old uploads).
+  --   TODO Get rid of this field, write some migration, and then type
+  --   `DiagTreeSlideResourceAttachment` must be removed too, only record from
+  --   `Modern` must be type of `attachment` field of `DiagTreeSlideResource`.
+
+  | Modern { id :: Int, hash :: String, filename :: String }
+
+instance eqDiagTreeSlideResourceAttachment :: Eq DiagTreeSlideResourceAttachment
+  where
+
+  eq (Modern a) (Modern b) =
+    a.id       == b.id   &&
+    a.hash     == b.hash &&
+    a.filename == b.filename
+
+  eq (Legacy a) (Legacy b) = a == b
+  eq _ _ = false
+
 type DiagTreeSlideResource =
-  { text :: String
-  , file :: String
+  { text       :: String
+  , attachment :: DiagTreeSlideResourceAttachment
   }
 
 

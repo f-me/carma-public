@@ -75,10 +75,7 @@ toBackendAction x = A.fromObject $ StrMap.fromFoldable
        . RowCons k a r' BackendActionFields
       => IsSymbol k
       => ActionKeyToBackendKey k
-      => BackendAction
-      -> SProxy k
-      -> (a -> A.Json)
-      -> Tuple String A.Json
+      => BackendAction -> SProxy k -> (a -> A.Json) -> Tuple String A.Json
 
     f record key converter =
       Tuple (actionKeyToBackendKey key) $ converter $ key `get` record

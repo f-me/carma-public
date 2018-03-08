@@ -2,6 +2,7 @@ module Utils.DiagTree.Editor
      ( getSlideByBranch
      , eqDiagTreeSlideResource
      , eqDiagTreeSlideResources
+     , getDiagTreeSlideResourcePath
      , eqIshDiagTreeSlideAnswer
      , eqIshDiagTreeSlideAnswers
      , diagTreeSlideActionToBackend
@@ -49,7 +50,7 @@ getSlideByBranch slides branch = do
 eqDiagTreeSlideResource
   :: DiagTreeSlideResource -> DiagTreeSlideResource -> Boolean
 eqDiagTreeSlideResource a b =
-  a.text == b.text && a.file == b.file
+  a.text == b.text && a.attachment == b.attachment
 
 eqDiagTreeSlideResources
   :: Array DiagTreeSlideResource -> Array DiagTreeSlideResource -> Boolean
@@ -60,6 +61,10 @@ eqDiagTreeSlideResources a b =
         if eqDiagTreeSlideResource xa xb then Just true else Nothing
 
    in zip a b # foldM reducer true # fromMaybe false
+
+
+getDiagTreeSlideResourcePath :: String -> String
+getDiagTreeSlideResourcePath = ("/s/fileupload/attachment/" <> _)
 
 
 -- Keep in mind that in this `Ish` version we do not checking recursively all of

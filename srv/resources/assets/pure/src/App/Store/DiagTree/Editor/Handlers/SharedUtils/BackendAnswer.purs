@@ -23,6 +23,8 @@ import Data.Symbol (SProxy (SProxy), class IsSymbol, reflectSymbol)
 import App.Store.DiagTree.Editor.Types (DiagTreeSlideId)
 
 
+type BackendAnswer = Record BackendAnswerFields
+
 type BackendAnswerFields =
   ( nextSlide :: DiagTreeSlideId
   , header    :: String
@@ -30,7 +32,6 @@ type BackendAnswerFields =
   , file      :: Maybe String -- could be not set or `null`
   )
 
-type BackendAnswer = Record BackendAnswerFields
 
 class AnswerKeyToBackendKey k where
   answerKeyToBackendKey
@@ -50,6 +51,7 @@ instance answerKeyToBackendKeyGeneric
 answerActionFieldName :: String
 answerActionFieldName = "action"
 
+
 backendAnswerValidKeys :: Set String
 backendAnswerValidKeys = Set.fromFoldable
   [ k (SProxy :: SProxy "nextSlide")
@@ -64,6 +66,7 @@ backendAnswerValidKeys = Set.fromFoldable
   where
     k = answerKeyToBackendKey
 
+
 toBackendAnswer :: BackendAnswer -> A.Json
 toBackendAnswer x = A.fromObject $ StrMap.fromFoldable
   [ f x (SProxy :: SProxy "nextSlide") $ toNumber >>> A.fromNumber
@@ -77,13 +80,11 @@ toBackendAnswer x = A.fromObject $ StrMap.fromFoldable
        . RowCons k a r' BackendAnswerFields
       => IsSymbol k
       => AnswerKeyToBackendKey k
-      => BackendAnswer
-      -> SProxy k
-      -> (a -> A.Json)
-      -> Tuple String A.Json
+      => BackendAnswer -> SProxy k -> (a -> A.Json) -> Tuple String A.Json
 
     f record key converter =
       Tuple (answerKeyToBackendKey key) $ converter $ key `get` record
+
 
 fromBackendAnswer :: A.Json -> Maybe BackendAnswer
 fromBackendAnswer json = do
