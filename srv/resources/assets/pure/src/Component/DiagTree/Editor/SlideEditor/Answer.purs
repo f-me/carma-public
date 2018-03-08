@@ -32,30 +32,26 @@ diagTreeEditorSlideEditorAnswerRender :: ReactClass Props
 diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
   \ { appContext, answer } { } -> do
 
-  div !. "row" $ do
-    div !. "col-md-7" $ do
+  div !. "list-group-item" <.> classSfx "answer" $ do
+    h4 !. "list-group-item-heading" $
+      text answer.header
 
-      div !. "list-group-item" <.> classSfx "answer" $ do
-        h4 !. "list-group-item-heading" $
-          text answer.header
+    p !. "list-group-item-text" $ do
+      case answer.file of
+           Nothing -> empty
+           Just x  -> img !. classSfx "image"
+                          ! role "presentation"
+                          ! src x
 
-        p !. "list-group-item-text" $ do
-          case answer.file of
-               Nothing -> empty
-               Just x  -> img !. classSfx "image"
-                              ! role "presentation"
-                              ! src x
+      span $ text answer.text
 
-          span $ text answer.text
+  div !. "btn-toolbar" <.> classSfx "buttons" ! role "toolbar" $ do
 
-    div !. "col-md-2" $ do
-      div !. "btn-toolbar" <.> classSfx "buttons" ! role "toolbar" $ do
+    button !. "btn btn-success" ! title "Редактировать" $
+      i !. "glyphicon glyphicon-pencil" $ empty
 
-        button !. "btn btn-success" ! title "Редактировать" $
-          i !. "glyphicon glyphicon-pencil" $ empty
-
-        button !. "btn btn-danger" ! title "Удалить" $
-          i !. "glyphicon glyphicon-trash" $ empty
+    button !. "btn btn-danger" ! title "Удалить" $
+      i !. "glyphicon glyphicon-trash" $ empty
 
   where
     name = "DiagTreeEditorSlideEditorAnswer"

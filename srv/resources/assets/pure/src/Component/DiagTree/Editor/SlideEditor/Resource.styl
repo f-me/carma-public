@@ -5,18 +5,23 @@ name = DiagTreeEditorSlideEditorResource
   position relative
   border none
   padding 0 8px
-  margin 1px
+  margin 2px
   outline 1px dashed rgba(255, 255, 255, 0)
   transition outline-color .3s ease-in-out
 
   .{name}--buttons
-    display none
+    transition opacity .3s ease-in-out
+    opacity 0
+    position absolute
+    right 10px
+    top 50%
+    transform translateY(-50%)
 
   &:hover
     outline-color silver
 
     .{name}--buttons
-      display block
+      opacity 1
 
   .{name}--image
     margin 10px

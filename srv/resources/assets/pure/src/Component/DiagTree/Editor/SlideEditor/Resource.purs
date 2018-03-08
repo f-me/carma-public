@@ -35,36 +35,32 @@ diagTreeEditorSlideEditorResourceRender :: ReactClass Props
 diagTreeEditorSlideEditorResourceRender = createClass $ spec $
   \ { appContext, resource } { } -> do
 
-  div !. "row" $ do
-    div !. "col-md-7" $ do
+  case resource.attachment of
+       Legacy _ -> div $ do
+         span !. "label label-warning" $ text "Внимание"
+         text " Картинка хранится в базе неэффективным образом,\
+              \ рекомендуется загрузить её заново."
 
-      case resource.attachment of
-           Legacy _ -> div $ do
-             span !. "label label-warning" $ text "Внимание"
-             text " Картинка хранится в базе неэффективным образом,\
-                  \ рекомендуется загрузить её заново."
+       _ -> empty
 
-           _ -> empty
+  let imagePath =
+        case resource.attachment of
+             Legacy x -> x
+             Modern x -> getDiagTreeSlideResourcePath x.filename
 
-      let imagePath =
-            case resource.attachment of
-                 Legacy x -> x
-                 Modern x -> getDiagTreeSlideResourcePath x.filename
+  img !. classSfx "image"
+      ! role "presentation"
+      ! src imagePath
 
-      img !. classSfx "image"
-          ! role "presentation"
-          ! src imagePath
+  span $ text resource.text
 
-      span $ text resource.text
+  div !. "btn-toolbar" <.> classSfx "buttons" ! role "toolbar" $ do
 
-    div !. "col-md-2" $
-      div !. "btn-toolbar" <.> classSfx "buttons" ! role "toolbar" $ do
+    button !. "btn btn-success" ! title "Редактировать" $
+      i !. "glyphicon glyphicon-pencil" $ empty
 
-        button !. "btn btn-success" ! title "Редактировать" $
-          i !. "glyphicon glyphicon-pencil" $ empty
-
-        button !. "btn btn-danger" ! title "Удалить" $
-          i !. "glyphicon glyphicon-trash" $ empty
+    button !. "btn btn-danger" ! title "Удалить" $
+      i !. "glyphicon glyphicon-trash" $ empty
 
   where
     name = "DiagTreeEditorSlideEditorResource"
