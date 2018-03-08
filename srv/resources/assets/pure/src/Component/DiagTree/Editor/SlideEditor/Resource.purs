@@ -38,6 +38,14 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
   div !. "row" $ do
     div !. "col-md-7" $ do
 
+      case resource.attachment of
+           Legacy _ -> div $ do
+             span !. "label label-warning" $ text "Внимание"
+             text " Картинка хранится в базе неэффективным образом,\
+                  \ рекомендуется загрузить её заново."
+
+           _ -> empty
+
       let imagePath =
             case resource.attachment of
                  Legacy x -> x
