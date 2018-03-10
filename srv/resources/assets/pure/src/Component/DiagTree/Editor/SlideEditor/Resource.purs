@@ -9,12 +9,12 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 
 import Data.Maybe (Maybe (..), fromMaybe, isJust, isNothing)
-import Data.Nullable (Nullable)
+import Data.Nullable (Nullable, toNullable)
 
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
 import React.DOM (li) as R
-import React.Spaces ((!), (!.), renderIn, text, empty)
+import React.Spaces ((!), (!.), (^^), renderIn, text, empty)
 import React.Spaces.DOM (div, img, span, button, i, input)
 
 import React.DOM.Props
@@ -30,6 +30,7 @@ import React
 
 import Utils ((<.>), eventInputValue)
 import App.Store (AppContext)
+import Bindings.ReactDropzone (dropzone, dropzoneDefaultProps, handle3)
 
 import Utils.DiagTree.Editor
      ( getDiagTreeSlideResourcePath
@@ -135,7 +136,13 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
     editRender isDisabled resource state imgM = do
       div !. "form-group" $ do
-        div $ text "TODO drop zone"
+        dropzone ^^ dropzoneDefaultProps
+          { className = toNullable $ Just $ classSfx "dropzone"
+          , disabled  = toNullable $ Just isDisabled
+          , accept    = toNullable $ Just "image/jpeg,image/png,image/svg+xml"
+          --, onDrop    = toNullable $ Just $ handle3 $ \a b c -> TODO
+          } $ text "Нажмите для добавления картинки или перетащите её сюда"
+
         imgM
 
         input !. "form-control"
