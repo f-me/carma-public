@@ -9,6 +9,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 
 import Data.Maybe (Maybe (..), fromMaybe, isJust, isNothing)
+import Data.Nullable (Nullable)
 
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
@@ -43,8 +44,8 @@ import App.Store.DiagTree.Editor.Types
 
 type Props eff =
   { appContext :: AppContext
-  , key        :: String
-  , itemIndex  :: Int
+  , key        :: Nullable String
+  , itemIndex  :: Maybe Int
   , isDisabled :: Boolean
 
   , resource   :: Maybe DiagTreeSlideResource
@@ -184,7 +185,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
       if not isChanged && not (isNothing resource && isNothing state.file)
          then pure unit
-         else updateResource (resource <#> const itemIndex) $
+         else updateResource (resource *> itemIndex) $
                 Just { text: state.text, file: state.file }
 
     deleteHandler this _ = do
@@ -193,11 +194,11 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
       wnd         <- DOM.window
       isConfirmed <- DOM.confirm "Вы действительно хотите удалить картинку?" wnd
 
-      if not isConfirmed
+      if not isConfirmed || isNothing itemIndex
          then pure unit
          else -- Coercing to not infect parent handler
               -- with DOM and CONFIRM effects.
-              unsafeCoerceEff $ updateResource (Just itemIndex) Nothing
+              unsafeCoerceEff $ updateResource itemIndex Nothing
 
     changeTextHandler this event = do
       let newText = eventInputValue event

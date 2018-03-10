@@ -15,6 +15,7 @@ import Data.Foldable (class Foldable, foldl)
 import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..), isJust, maybe)
 import Data.Map as Map
+import Data.Nullable (toNullable)
 
 import React.DOM (form, div) as R
 import React.Spaces ((!), (!.), (^), renderIn, text, empty, elements)
@@ -101,8 +102,8 @@ resourcesRender = createClass $ spec $
           Tuple (itemIndex + 1) $ list `snoc`
 
             let props = { appContext
-                        , key: show itemIndex
-                        , itemIndex
+                        , key: toNullable $ Just $ show itemIndex
+                        , itemIndex: Just itemIndex
                         , isDisabled
                         , resource: Just resource
                         , updateResource
@@ -116,8 +117,8 @@ resourcesRender = createClass $ spec $
   if isAdding
      then diagTreeEditorSlideEditorResource ^
             { appContext
-            , key: "-1"
-            , itemIndex: -1
+            , key: toNullable Nothing
+            , itemIndex: Nothing
             , isDisabled
             , resource: Nothing
             , updateResource
