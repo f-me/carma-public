@@ -2,6 +2,7 @@ module Bindings.ReactDropzone
      ( Props
      , dropzone
      , dropzoneDefaultProps
+     , dropzoneName
 
      , Bytes
      , toBytes
@@ -32,12 +33,12 @@ toBytes = Bytes
 type Props inputProps style activeStyle acceptStyle rejectStyle disabledStyle =
   { accept                :: Nullable String -- PropTypes.string
   -- children: PropTypes.oneOfType([PropTypes.node, PropTypes.func])
-  , disableClick          :: Nullable Boolean -- PropTypes.bool
-  , disabled              :: Nullable Boolean -- PropTypes.bool
-  , disablePreview        :: Nullable Boolean -- PropTypes.bool
-  , preventDropOnDocument :: Nullable Boolean -- PropTypes.bool
+  , disableClick          :: Boolean -- PropTypes.bool
+  , disabled              :: Boolean -- PropTypes.bool
+  , disablePreview        :: Boolean -- PropTypes.bool
+  , preventDropOnDocument :: Boolean -- PropTypes.bool
   , inputProps            :: Nullable (Record inputProps) -- PropTypes.object
-  , multiple              :: Nullable Boolean -- PropTypes.bool
+  , multiple              :: Boolean -- PropTypes.bool
   , name                  :: Nullable String -- PropTypes.string
   , maxSize               :: Bytes -- PropTypes.number
   , minSize               :: Bytes -- PropTypes.number
@@ -75,12 +76,12 @@ dropzoneDefaultProps :: Props () () () () () ()
 dropzoneDefaultProps =
   { accept                : toNullable Nothing
   -- children
-  , disableClick          : toNullable $ Just false
-  , disabled              : toNullable $ Just false
-  , disablePreview        : toNullable $ Just false
-  , preventDropOnDocument : toNullable $ Just true
+  , disableClick          : false
+  , disabled              : false
+  , disablePreview        : false
+  , preventDropOnDocument : true
   , inputProps            : toNullable Nothing
-  , multiple              : toNullable $ Just true
+  , multiple              : true
   , name                  : toNullable Nothing
   , maxSize               : bytesInfinity
   , minSize               : Bytes 0
@@ -115,6 +116,9 @@ dropzoneDefaultProps =
     maxSize: Infinity
     minSize: 0
   -}
+
+dropzoneName :: String
+dropzoneName = "ReactDropzone"
 
 
 foreign import dropzone

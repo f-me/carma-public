@@ -51,6 +51,7 @@ import Component.Generic.DropDownSelect (OnSelectedEff, dropDownSelect)
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
+     , DiagTreeSlideId
      , DiagTreeSlideResource
      , DiagTreeSlideResourceAttachment (Modern)
      , DiagTreeSlideAction
@@ -70,6 +71,7 @@ resourcesRender
   :: forall f eff
    . Foldable f
   => ReactClass { appContext :: AppContext
+                , slideId    :: DiagTreeSlideId
                 , isDisabled :: Boolean
                 , resources  :: f DiagTreeSlideResource
 
@@ -91,7 +93,7 @@ resourcesRender
                 }
 
 resourcesRender = createClass $ spec $
-  \ { appContext, isDisabled, resources, updateResource }
+  \ { appContext, slideId, isDisabled, resources, updateResource }
     { isAdding, turnAddingOn, turnAddingOff } -> do
 
   label !. "control-label" $ text "Картинки"
@@ -102,6 +104,7 @@ resourcesRender = createClass $ spec $
           Tuple (itemIndex + 1) $ list `snoc`
 
             let props = { appContext
+                        , slideId
                         , key: toNullable $ Just $ show itemIndex
                         , itemIndex: Just itemIndex
                         , isDisabled
@@ -117,6 +120,7 @@ resourcesRender = createClass $ spec $
   if isAdding
      then diagTreeEditorSlideEditorResource ^
             { appContext
+            , slideId
             , key: toNullable Nothing
             , itemIndex: Nothing
             , isDisabled
@@ -264,6 +268,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
   resourcesRender ^
     { appContext
+    , slideId: slide.id
     , isDisabled: isProcessing
     , resources: slide.resources
     , updateResource

@@ -63,8 +63,10 @@ eqDiagTreeSlideResources a b =
    in zip a b # foldM reducer true # fromMaybe false
 
 
-getDiagTreeSlideResourcePath :: String -> String
-getDiagTreeSlideResourcePath = ("/s/fileupload/attachment/" <> _)
+getDiagTreeSlideResourcePath
+  :: forall props. { id :: Int, filename :: String | props } -> String
+getDiagTreeSlideResourcePath x =
+  "/s/fileupload/attachment/" <> show x.id <> "/" <> x.filename
 
 
 -- Keep in mind that in this `Ish` version we do not checking recursively all of

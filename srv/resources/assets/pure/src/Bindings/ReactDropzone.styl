@@ -1,0 +1,38 @@
+name = 'ReactDropzone'
+drop-active-animation = name + '--drop-active-animation'
+
+.{name}
+  width 50%
+  margin 10px
+  padding 10px
+  border 2px #666 dashed
+  border-radius 5px
+
+  transition \
+    background .3s ease-in-out,
+    color .3s ease-in-out,
+    border-color .3s ease-in-out
+
+.{name}--active
+  animation drop-active-animation 1s infinite linear
+
+.{name}--accept
+  background rgba(0, 255, 0, .1)
+
+.{name}--reject
+  background rgba(255, 0, 0, .1)
+  cursor not-allowed
+
+.{name}--disabled
+  color rgba(85, 85, 85, .6)
+  background #eee
+  border-color #999
+  cursor not-allowed
+
+@keyframes {drop-active-animation}
+  0%
+    border-color #666
+  50%
+    border-color #fff
+  100%
+    border-color #666

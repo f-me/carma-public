@@ -8,8 +8,9 @@ import Data.Typeable
 import Data.Model
 import Data.Model.View
 
-import Carma.Model.Types()
-import Carma.Model.PgTypes()
+import Carma.Model.Types ()
+import Carma.Model.PgTypes ()
+import Carma.Model.LegacyTypes (Reference)
 
 
 data DiagSlide = DiagSlide
@@ -22,6 +23,7 @@ data DiagSlide = DiagSlide
   , actions   :: F Aeson.Value "actions" "Рекомендации"
   , isRoot    :: F Bool "isRoot" "Начало опроса"
   , isActive  :: F Bool "isActive" "Активно"
+  , files     :: F (Maybe Reference) "files" "Загруженные файлы"
   } deriving Typeable
 
 

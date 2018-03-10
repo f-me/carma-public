@@ -4,7 +4,9 @@ module App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendResource
      , BackendResourceAttachment
      , BackendResourceAttachmentFields
      , fromBackendResource
+     , fromAttachment
      , toBackendResource
+     , toAttachment
      ) where
 
 import Prelude hiding (id)
@@ -79,6 +81,7 @@ backendResourceAttachmentValidKeys = Set.fromFoldable
   [ k (SProxy :: SProxy "id")
   , k (SProxy :: SProxy "hash")
   , k (SProxy :: SProxy "filename")
+  , "ctime"
   ]
   where
     k = resourceAttachmentKeyToBackendKey
@@ -106,7 +109,7 @@ fromBackendResource json = do
   attachment <-
     case l (SProxy :: SProxy "attachment") of
          Nothing -> pure Nothing -- TODO Temporarly optional
-         Just jsonAttachment -> A.toObject jsonAttachment >>= parseAttachment
+         Just jsonAttachment -> fromAttachment jsonAttachment <#> Just
 
   -- TODO Get rid of this legacy deprecated field completely.
   file <-
@@ -116,25 +119,28 @@ fromBackendResource json = do
 
   pure { text, attachment, file }
 
-  where
-    parseAttachment obj = do
-      guard $
-        Set.fromFoldable (StrMap.keys obj)
-          `Set.subset` backendResourceAttachmentValidKeys
 
-      let l :: forall k a r'
-             . RowCons k a r' BackendResourceAttachmentFields
-            => IsSymbol k
-            => ResourceAttachmentKeyToBackendKey k
-            => SProxy k -> Maybe A.Json
+fromAttachment :: A.Json -> Maybe BackendResourceAttachment
+fromAttachment json = do
+  obj <- A.toObject json
 
-          l key = resourceAttachmentKeyToBackendKey key `StrMap.lookup` obj
+  guard $
+    Set.fromFoldable (StrMap.keys obj)
+      `Set.subset` backendResourceAttachmentValidKeys
 
-      id       <- l (SProxy :: SProxy "id")       >>= A.toNumber >>= fromNumber
-      hash     <- l (SProxy :: SProxy "hash")     >>= A.toString
-      filename <- l (SProxy :: SProxy "filename") >>= A.toString
+  let l :: forall k a r'
+         . RowCons k a r' BackendResourceAttachmentFields
+        => IsSymbol k
+        => ResourceAttachmentKeyToBackendKey k
+        => SProxy k -> Maybe A.Json
 
-      pure $ Just { id, hash, filename }
+      l key = resourceAttachmentKeyToBackendKey key `StrMap.lookup` obj
+
+  id       <- l (SProxy :: SProxy "id")       >>= A.toNumber >>= fromNumber
+  hash     <- l (SProxy :: SProxy "hash")     >>= A.toString
+  filename <- l (SProxy :: SProxy "filename") >>= A.toString
+
+  pure { id, hash, filename }
 
 
 toBackendResource :: BackendResource -> A.Json
@@ -169,21 +175,23 @@ toBackendResource x = A.fromObject $ StrMap.fromFoldable $
            Just y  -> cons $
              f x (SProxy :: SProxy "attachment") $ const $ converter y
 
-    toAttachment y = A.fromObject $ StrMap.fromFoldable
-      [ fAtt y (SProxy :: SProxy "id")       $ toNumber >>> A.fromNumber
-      , fAtt y (SProxy :: SProxy "hash")     A.fromString
-      , fAtt y (SProxy :: SProxy "filename") A.fromString
-      ]
 
-      where
-        fAtt -- "Att" is for "Attachment"
-          :: forall k a r'
-           . RowCons k a r' BackendResourceAttachmentFields
-          => IsSymbol k
-          => ResourceAttachmentKeyToBackendKey k
-          => BackendResourceAttachment
-          -> SProxy k -> (a -> A.Json) -> Tuple String A.Json
+toAttachment :: BackendResourceAttachment -> A.Json
+toAttachment y = A.fromObject $ StrMap.fromFoldable
+  [ fAtt y (SProxy :: SProxy "id")       $ toNumber >>> A.fromNumber
+  , fAtt y (SProxy :: SProxy "hash")     A.fromString
+  , fAtt y (SProxy :: SProxy "filename") A.fromString
+  ]
 
-        fAtt record key converter =
-          Tuple (resourceAttachmentKeyToBackendKey key) $
-            converter $ key `get` record
+  where
+    fAtt -- "Att" is for "Attachment"
+      :: forall k a r'
+       . RowCons k a r' BackendResourceAttachmentFields
+      => IsSymbol k
+      => ResourceAttachmentKeyToBackendKey k
+      => BackendResourceAttachment
+      -> SProxy k -> (a -> A.Json) -> Tuple String A.Json
+
+    fAtt record key converter =
+      Tuple (resourceAttachmentKeyToBackendKey key) $
+        converter $ key `get` record

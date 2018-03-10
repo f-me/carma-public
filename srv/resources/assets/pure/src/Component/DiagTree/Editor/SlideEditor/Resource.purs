@@ -2,19 +2,35 @@ module Component.DiagTree.Editor.SlideEditor.Resource
      ( diagTreeEditorSlideEditorResource
      ) where
 
-import Prelude hiding (div)
+import Prelude hiding (div, id)
 
 import Control.Alt ((<|>))
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
+import Control.Monad.Eff.Console (error)
+import Control.Monad.Eff.Exception (message, stack)
+import Control.Monad.Aff (launchAff_)
+import Control.Monad.Error.Class (catchError)
 
-import Data.Maybe (Maybe (..), fromMaybe, isJust, isNothing)
+import Data.Tuple (Tuple (Tuple))
+import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
+import Data.Either (Either (..))
 import Data.Nullable (Nullable, toNullable)
+import Data.Array (head)
+import Data.Foreign (Foreign, unsafeFromForeign)
+import Data.MediaType.Common (applicationJSON)
+import Data.Argonaut.Core as A
+
+import Network.HTTP.Affjax (AffjaxResponse, affjax)
+import Network.HTTP.RequestHeader (RequestHeader (..))
 
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
+import DOM.File.File as File
+import DOM.XHR.FormData as FormData
 import React.DOM (li) as R
-import React.Spaces ((!), (!.), (^^), renderIn, text, empty)
+import React.Spaces ((!), (!.), (^), (^^), renderIn, text, empty)
 import React.Spaces.DOM (div, img, span, button, i, input)
 
 import React.DOM.Props
@@ -29,8 +45,14 @@ import React
      )
 
 import Utils ((<.>), eventInputValue)
+import Utils.Affjax (postRequest)
 import App.Store (AppContext)
-import Bindings.ReactDropzone (dropzone, dropzoneDefaultProps, handle3)
+import Component.Generic.Spinner (spinner)
+
+import Bindings.ReactDropzone
+     ( dropzone, dropzoneDefaultProps, dropzoneName
+     , handle2
+     )
 
 import Utils.DiagTree.Editor
      ( getDiagTreeSlideResourcePath
@@ -38,14 +60,20 @@ import Utils.DiagTree.Editor
      )
 
 import App.Store.DiagTree.Editor.Types
-     ( DiagTreeSlideResource
+     ( DiagTreeSlideId
+     , DiagTreeSlideResource
      , DiagTreeSlideResourceAttachment (..)
+     )
+
+import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendResource
+     ( fromAttachment
      )
 
 
 type Props eff =
   { appContext :: AppContext
   , key        :: Nullable String
+  , slideId    :: DiagTreeSlideId
   , itemIndex  :: Maybe Int
   , isDisabled :: Boolean
 
@@ -80,9 +108,10 @@ type Props eff =
 
 diagTreeEditorSlideEditorResourceRender :: forall eff. ReactClass (Props eff)
 diagTreeEditorSlideEditorResourceRender = createClass $ spec $
-  \ { resource, isDisabled } state@{ file, isEditing } -> do
+  \ { appContext, resource, isDisabled }
+    state@{ file, isEditing, isProcessing, isUploadingFailed } -> do
 
-  case resource <#> _.attachment of
+  case (Modern <$> file) <|> (resource <#> _.attachment) of
        Just (Legacy _) -> div $ do
          span !. "label label-warning" $ text "Внимание"
          text " Картинка хранится в базе неэффективным образом,\
@@ -90,10 +119,21 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
        _ -> empty
 
+  if not isUploadingFailed
+     then empty
+     else div $ do
+            span !. "label label-danger" $ text "Ошибка"
+            text " Произошла ошибка при попытке загрузить картинку."
+
+  if not isProcessing
+     then empty
+     else spinner ^ { withLabel: Right "Загрузка…"
+                    , appContext
+                    }
+
   let imgSrc =
         let
-          modern = file <#> _.filename >>> getDiagTreeSlideResourcePath
-
+          modern = file <#> getDiagTreeSlideResourcePath
           legacy = resource <#> _.attachment >>= case _ of
                                                       Legacy x -> Just x
                                                       Modern _ -> Nothing
@@ -107,9 +147,11 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
                             ! role "presentation"
                             ! src x
 
+  let isBlocked = isDisabled || isProcessing
+
   if isEditing || isNothing resource
-     then editRender isDisabled resource state imgM
-     else viewRender isDisabled state imgM
+     then editRender isBlocked resource state imgM
+     else viewRender isBlocked state imgM
 
   where
     name = "DiagTreeEditorSlideEditorResource"
@@ -137,11 +179,22 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
     editRender isDisabled resource state imgM = do
       div !. "form-group" $ do
         dropzone ^^ dropzoneDefaultProps
-          { className = toNullable $ Just $ classSfx "dropzone"
-          , disabled  = toNullable $ Just isDisabled
-          , accept    = toNullable $ Just "image/jpeg,image/png,image/svg+xml"
-          --, onDrop    = toNullable $ Just $ handle3 $ \a b c -> TODO
-          } $ text "Нажмите для добавления картинки или перетащите её сюда"
+          { accept   = toNullable $ Just "image/jpeg,image/png,image/svg+xml"
+          , disabled = isDisabled
+          , multiple = false
+
+          , className         = toNullable $ Just $ dropzoneName
+          , activeClassName   = toNullable $ Just $ dropzoneName <> "--active"
+          , acceptClassName   = toNullable $ Just $ dropzoneName <> "--accept"
+          , rejectClassName   = toNullable $ Just $ dropzoneName <> "--reject"
+          , disabledClassName = toNullable $ Just $ dropzoneName <> "--disabled"
+
+          , onDropAccepted = toNullable $ Just $ handle2 $
+              \files _ -> case head files of
+                               Nothing -> pure unit
+                               Just x  -> state.onFileDropped x
+          }
+          $ text "Нажмите для добавления картинки или перетащите её сюда"
 
         imgM
 
@@ -214,6 +267,50 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
     enterEditingHandler this _ =
       transformState this _ { isEditing = true }
 
+    fileDroppedHandler this file = guardNotProcessing $ do
+      { slideId } <- getProps this
+      transformState this _ { isProcessing = true, isUploadingFailed = false }
+
+      launchAff_ $ flip catchError handleError $ do
+        let url = "/upload/DiagSlide/" <> show slideId <> "/files"
+            fdFile = FormData.FormDataFile (File.name file) file
+            formData = FormData.toFormData [Tuple "file" fdFile]
+
+        (res :: AffjaxResponse Foreign) <- affjax $
+          postRequest url formData # _ { headers = [Accept applicationJSON] }
+
+        let json = unsafeFromForeign res.response :: A.Json
+
+        liftEff $
+          case fromAttachment json of
+               Just x ->
+                 transformState this _
+                   { isProcessing = false
+                   , isUploadingFailed = false
+                   , isChanged = true
+                   , file = Just x
+                   }
+
+               Nothing -> do
+                 error $ "Parsing upload response of file (" <>
+                   File.name file <> ") failed!"
+
+                 transformState this _
+                   { isProcessing = false, isUploadingFailed = true }
+
+      where
+        guardNotProcessing m = do
+          { isProcessing } <- readState this
+          if isProcessing then pure unit else m
+
+        handleError err = do
+          liftEff $ error $
+            "Uploading file (" <> File.name file <> ") failed: " <> message err
+            # \x -> maybe x (\y -> x <> "\nStack trace:\n" <> y) (stack err)
+
+          liftEff $ transformState this _
+            { isProcessing = false, isUploadingFailed = true }
+
     buildIntervalValues
       :: Maybe DiagTreeSlideResource
       -> { text :: String
@@ -238,9 +335,12 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
            , file: values.file
            , isEditing: false
            , isChanged: false
+           , isProcessing: false
+           , isUploadingFailed: false
            , enterEditing: enterEditingHandler this
            , onChangeText: changeTextHandler this
            , cancelEditing: cancelEditingHandler this
+           , onFileDropped: fileDroppedHandler this
            , save: saveHandler this
            , delete: deleteHandler this
            }

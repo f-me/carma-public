@@ -69,6 +69,7 @@ backendSlideValidKeys = Set.fromFoldable
   , k (SProxy :: SProxy "resources")
   , k (SProxy :: SProxy "actions")
   , k (SProxy :: SProxy "answers")
+  , "files"
   ]
   where
     k = slideKeyToBackendKey
