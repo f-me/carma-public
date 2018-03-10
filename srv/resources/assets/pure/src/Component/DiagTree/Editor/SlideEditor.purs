@@ -10,7 +10,7 @@ import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Alt ((<|>))
 
 import Data.Tuple (Tuple (Tuple), snd)
-import Data.Array ((!!), snoc, updateAt)
+import Data.Array ((!!), snoc, updateAt, deleteAt)
 import Data.Foldable (class Foldable, foldl)
 import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..), isJust, maybe)
@@ -75,12 +75,12 @@ resourcesRender
                 , updateResource
                     :: Int
 
-                    -> { text :: String
-                       , file :: Maybe { id       :: Int
-                                       , hash     :: String
-                                       , filename :: String
-                                       }
-                       }
+                    -> Maybe { text :: String
+                             , file :: Maybe { id       :: Int
+                                             , hash     :: String
+                                             , filename :: String
+                                             }
+                             }
 
                     -> Eff ( props :: ReactProps
                            , state :: ReactState ReadWrite
@@ -302,21 +302,30 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
     updateResourceHandler this idx resource =
       transformState this $ \s ->
-        let newSlide = do
-              (DiagTreeSlide slide) <- s.slide
-              old <- slide.resources !! idx
+        let
+          newSlide =
+            case resource of
+                 -- `Nothing` means deleting a resource
+                 Nothing -> do
+                   (DiagTreeSlide slide) <- s.slide
 
-              let newResource =
-                    { text       : resource.text
-                    , attachment : maybe old.attachment Modern resource.file
-                    }
+                   DiagTreeSlide <$> slide { resources = _ }
+                                 <$> deleteAt idx slide.resources
 
-              DiagTreeSlide <$> slide { resources = _ } <$>
-                updateAt idx newResource slide.resources
+                 -- `Just` means updating a resource
+                 Just x -> do
+                   (DiagTreeSlide slide) <- s.slide
+                   old <- slide.resources !! idx
 
-         in s { slide     = newSlide <|> s.slide
-              , isChanged = true
-              }
+                   let newResource =
+                         { text       : x.text
+                         , attachment : maybe old.attachment Modern x.file
+                         }
+
+                   DiagTreeSlide <$> slide { resources = _ }
+                                 <$> updateAt idx newResource slide.resources
+        in
+          s { slide = newSlide <|> s.slide, isChanged = true }
 
     cancelHandler this event = do
       { slide } <- getProps this

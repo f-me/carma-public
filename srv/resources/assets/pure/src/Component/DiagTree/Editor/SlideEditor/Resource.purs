@@ -6,9 +6,12 @@ import Prelude hiding (div)
 
 import Control.Alt ((<|>))
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 
 import Data.Maybe (Maybe (..), fromMaybe, isJust)
 
+import DOM.HTML (window) as DOM
+import DOM.HTML.Window (confirm) as DOM
 import React.DOM (li) as R
 import React.Spaces ((!), (!.), renderIn, text, empty)
 import React.Spaces.DOM (div, img, span, button, i, input)
@@ -48,12 +51,12 @@ type Props eff =
   , updateResource
       :: Int
 
-      -> { text :: String
-         , file :: Maybe { id       :: Int
-                         , hash     :: String
-                         , filename :: String
-                         }
-         }
+      -> Maybe { text :: String
+               , file :: Maybe { id       :: Int
+                               , hash     :: String
+                               , filename :: String
+                               }
+               }
 
       -> Eff ( props :: ReactProps
              , state :: ReactState ReadWrite
@@ -115,6 +118,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
         button !. "btn btn-danger"
                ! title "Удалить"
+               ! onClick state.delete
                ! disabled isDisabled
                $ i !. "glyphicon glyphicon-trash" $ empty
 
@@ -160,7 +164,21 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
       if not isChanged
          then pure unit
          else do { updateResource, itemIndex } <- getProps this
-                 updateResource itemIndex { text: state.text, file: state.file }
+
+                 updateResource itemIndex $
+                   Just { text: state.text, file: state.file }
+
+    deleteHandler this _ = do
+      { updateResource, itemIndex } <- getProps this
+
+      wnd         <- DOM.window
+      isConfirmed <- DOM.confirm "Вы действительно хотите удалить картинку?" wnd
+
+      if not isConfirmed
+         then pure unit
+         else -- Coercing to not infect parent handler
+              -- with DOM and CONFIRM effects.
+              unsafeCoerceEff $ updateResource itemIndex Nothing
 
     changeTextHandler this event = do
       let newText = eventInputValue event
@@ -197,6 +215,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
            , onChangeText: changeTextHandler this
            , cancelEditing: cancelEditingHandler this
            , save: saveHandler this
+           , delete: deleteHandler this
            }
 
     spec renderFn =
