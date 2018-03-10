@@ -73,7 +73,7 @@ resourcesRender
                 , resources  :: f DiagTreeSlideResource
 
                 , updateResource
-                    :: Int
+                    :: Maybe Int -- ^ `Nothing` to add new one
 
                     -> Maybe { text :: String
                              , file :: Maybe { id       :: Int
@@ -89,8 +89,9 @@ resourcesRender
                            ) Unit
                 }
 
-resourcesRender = createClassStatelessWithName name $
-  \ { appContext, isDisabled, resources, updateResource } -> renderer $ do
+resourcesRender = createClass $ spec $
+  \ { appContext, isDisabled, resources, updateResource }
+    { isAdding, turnAddingOn, turnAddingOff } -> do
 
   label !. "control-label" $ text "Картинки"
 
@@ -100,30 +101,60 @@ resourcesRender = createClassStatelessWithName name $
           Tuple (itemIndex + 1) $ list `snoc`
 
             let props = { appContext
+                        , key: show itemIndex
                         , itemIndex
                         , isDisabled
                         , resource: Just resource
                         , updateResource
-                        , key: show itemIndex
+                        , onCancel: Nothing
                         }
 
              in createElement diagTreeEditorSlideEditorResource props []
 
      in elements $ snd $ foldl itemReducer (Tuple 0 []) resources
 
-  button !. "btn btn-default" <.> classSfx "add-button"
-         ! _type "button"
-         ! disabled isDisabled
-         $ do
+  if isAdding
+     then diagTreeEditorSlideEditorResource ^
+            { appContext
+            , key: "-1"
+            , itemIndex: -1
+            , isDisabled
+            , resource: Nothing
+            , updateResource
+            , onCancel: Just turnAddingOff
+            }
 
-    i !. "glyphicon glyphicon-plus" $ empty
-    text " Добавить картинку"
+     else button !. "btn btn-default" <.> classSfx "add-button"
+                 ! _type "button"
+                 ! onClick turnAddingOn
+                 ! disabled isDisabled
+                 $ do
+
+            i !. "glyphicon glyphicon-plus" $ empty
+            text " Добавить картинку"
 
   where
     name = "DiagTreeEditorSlideEditorResources"
     classSfx s = name <> "--" <> s
     wrapper = R.div [className $ "form-group" <.> name]
     renderer = renderIn wrapper
+
+    turnAddingHandler this isOn =
+      transformState this _ { isAdding = isOn }
+
+    getInitialState this = pure
+      { isAdding: false
+      , turnAddingOn: const $ turnAddingHandler this true
+      , turnAddingOff: turnAddingHandler this false
+      }
+
+    spec renderFn =
+      spec' getInitialState renderHandler # _ { displayName = name }
+      where
+        renderHandler this = do
+          props <- getProps  this
+          state <- readState this
+          pure $ renderer $ renderFn props state
 
 
 answersRender
@@ -300,20 +331,21 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
       where updater (DiagTreeSlide s) = DiagTreeSlide $ s { action = action }
 
-    updateResourceHandler this idx resource =
+    updateResourceHandler this itemIndex resource =
       transformState this $ \s ->
         let
           newSlide =
-            case resource of
+            case resource <#> Tuple itemIndex of
                  -- `Nothing` means deleting a resource
                  Nothing -> do
                    (DiagTreeSlide slide) <- s.slide
+                   idx <- itemIndex
 
                    DiagTreeSlide <$> slide { resources = _ }
                                  <$> deleteAt idx slide.resources
 
-                 -- `Just` means updating a resource
-                 Just x -> do
+                 -- Updating an existing resource
+                 Just (Tuple (Just idx) x) -> do
                    (DiagTreeSlide slide) <- s.slide
                    old <- slide.resources !! idx
 
@@ -324,8 +356,21 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
                    DiagTreeSlide <$> slide { resources = _ }
                                  <$> updateAt idx newResource slide.resources
+
+                 -- Adding a new resources
+                 Just (Tuple Nothing x) -> do
+                   (DiagTreeSlide slide) <- s.slide
+
+                   newResource <-
+                     x.file <#> Modern <#> { text: x.text, attachment: _ }
+
+                   pure $ DiagTreeSlide
+                        $ slide { resources = _ }
+                        $ slide.resources `snoc` newResource
         in
-          s { slide = newSlide <|> s.slide, isChanged = true }
+          s { slide     = newSlide <|> s.slide
+            , isChanged = isJust newSlide
+            }
 
     cancelHandler this event = do
       { slide } <- getProps this

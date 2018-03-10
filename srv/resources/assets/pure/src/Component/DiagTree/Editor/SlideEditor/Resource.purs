@@ -8,7 +8,7 @@ import Control.Alt ((<|>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 
-import Data.Maybe (Maybe (..), fromMaybe, isJust)
+import Data.Maybe (Maybe (..), fromMaybe, isJust, isNothing)
 
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
@@ -46,10 +46,12 @@ type Props eff =
   , key        :: String
   , itemIndex  :: Int
   , isDisabled :: Boolean
+
   , resource   :: Maybe DiagTreeSlideResource
+    -- ^ When resource is `Nothing` is means adding new one
 
   , updateResource
-      :: Int
+      :: Maybe Int -- ^ `Nothing` to add new one
 
       -> Maybe { text :: String
                , file :: Maybe { id       :: Int
@@ -63,6 +65,14 @@ type Props eff =
              , refs  :: ReactRefs  ReadOnly
              | eff
              ) Unit
+
+  , onCancel
+      :: Maybe ( Eff ( props :: ReactProps
+                     , state :: ReactState ReadWrite
+                     , refs  :: ReactRefs  ReadOnly
+                     | eff
+                     ) Unit )
+      -- ^ Only for adding new one (when `resource` is `Nothing`)
   }
 
 
@@ -95,8 +105,8 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
                             ! role "presentation"
                             ! src x
 
-  if isEditing
-     then editRender isDisabled state imgM
+  if isEditing || isNothing resource
+     then editRender isDisabled resource state imgM
      else viewRender isDisabled state imgM
 
   where
@@ -122,7 +132,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
                ! disabled isDisabled
                $ i !. "glyphicon glyphicon-trash" $ empty
 
-    editRender isDisabled state imgM = do
+    editRender isDisabled resource state imgM = do
       div !. "form-group" $ do
         div $ text "TODO drop zone"
         imgM
@@ -141,32 +151,41 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
                ! disabled isDisabled
                $ text "Отменить"
 
+        let isSaveBlocked =
+              isDisabled || not state.isChanged ||
+              (isNothing resource && isNothing state.file)
+
         button !. "btn btn-success"
                ! _type "button"
                ! onClick state.save
-               ! disabled (isDisabled || not state.isChanged)
+               ! disabled isSaveBlocked
                $ text "Сохранить"
 
     cancelEditingHandler this _ = do
-      { resource } <- getProps this
-      let values = buildIntervalValues resource
+      { resource, onCancel } <- getProps this
 
-      transformState this _
-        { text      = values.text
-        , file      = values.file
-        , isEditing = false
-        , isChanged = false
-        }
+      if isNothing resource
+
+         then case onCancel of
+                   Nothing -> pure unit
+                   Just f  -> f
+
+         else let values = buildIntervalValues resource
+               in transformState this _
+                    { text      = values.text
+                    , file      = values.file
+                    , isEditing = false
+                    , isChanged = false
+                    }
 
     saveHandler this _ = do
       state@{ isChanged } <- readState this
+      { resource, updateResource, itemIndex } <- getProps this
 
-      if not isChanged
+      if not isChanged && not (isNothing resource && isNothing state.file)
          then pure unit
-         else do { updateResource, itemIndex } <- getProps this
-
-                 updateResource itemIndex $
-                   Just { text: state.text, file: state.file }
+         else updateResource (resource <#> const itemIndex) $
+                Just { text: state.text, file: state.file }
 
     deleteHandler this _ = do
       { updateResource, itemIndex } <- getProps this
@@ -178,7 +197,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
          then pure unit
          else -- Coercing to not infect parent handler
               -- with DOM and CONFIRM effects.
-              unsafeCoerceEff $ updateResource itemIndex Nothing
+              unsafeCoerceEff $ updateResource (Just itemIndex) Nothing
 
     changeTextHandler this event = do
       let newText = eventInputValue event
