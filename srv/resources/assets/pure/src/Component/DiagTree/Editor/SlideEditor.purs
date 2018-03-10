@@ -7,12 +7,13 @@ import Prelude hiding (div)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.Alt ((<|>))
 
 import Data.Tuple (Tuple (Tuple), snd)
-import Data.Array (snoc)
+import Data.Array ((!!), snoc, updateAt)
 import Data.Foldable (class Foldable, foldl)
 import Data.Record.Builder (merge)
-import Data.Maybe (Maybe (..), isJust)
+import Data.Maybe (Maybe (..), isJust, maybe)
 import Data.Map as Map
 
 import React.DOM (form, div) as R
@@ -26,7 +27,7 @@ import React.DOM.Props
      )
 
 import React
-     ( ReactClass
+     ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
      , createClass, spec', createElement
      , getProps, readState, transformState
      , preventDefault
@@ -50,6 +51,7 @@ import Component.Generic.DropDownSelect (OnSelectedEff, dropDownSelect)
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlideResource
+     , DiagTreeSlideResourceAttachment (Modern)
      , DiagTreeSlideAction
      , DiagTreeSlideAnswer
      )
@@ -64,24 +66,48 @@ import Component.DiagTree.Editor.SlideEditor.Answer
 
 
 resourcesRender
-  :: forall f
+  :: forall f eff
    . Foldable f
   => ReactClass { appContext :: AppContext
                 , isDisabled :: Boolean
                 , resources  :: f DiagTreeSlideResource
+
+                , updateResource
+                    :: Int
+
+                    -> { text :: String
+                       , file :: Maybe { id       :: Int
+                                       , hash     :: String
+                                       , filename :: String
+                                       }
+                       }
+
+                    -> Eff ( props :: ReactProps
+                           , state :: ReactState ReadWrite
+                           , refs  :: ReactRefs  ReadOnly
+                           | eff
+                           ) Unit
                 }
 
 resourcesRender = createClassStatelessWithName name $
-  \ { appContext, isDisabled, resources } -> renderer $ do
+  \ { appContext, isDisabled, resources, updateResource } -> renderer $ do
 
   label !. "control-label" $ text "Картинки"
 
   SDyn.ul !. "list-group" <.> classSfx "list" $
 
-    let itemReducer (Tuple key list) resource =
-          Tuple (key + 1) $ list `snoc`
-            createElement diagTreeEditorSlideEditorResource
-                          { appContext, resource, key: show key } []
+    let itemReducer (Tuple itemIndex list) resource =
+          Tuple (itemIndex + 1) $ list `snoc`
+
+            let props = { appContext
+                        , itemIndex
+                        , isDisabled
+                        , resource: Just resource
+                        , updateResource
+                        , key: show itemIndex
+                        }
+
+             in createElement diagTreeEditorSlideEditorResource props []
 
      in elements $ snd $ foldl itemReducer (Tuple 0 []) resources
 
@@ -154,6 +180,7 @@ actionRender = createClassStatelessWithName name $
 
   dropDownSelect ^
     { appContext
+    , isDisabled
     , variants
     , selected: action
     , variantView: show
@@ -183,6 +210,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     , isChanged
     , onChangeHeader
     , onChangeBody
+    , updateResource
     , onSelectAction
     , onCancel
     , onSave
@@ -203,7 +231,11 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
              ! onChange onChangeBody
 
   resourcesRender ^
-    { appContext, isDisabled: isProcessing, resources: slide.resources }
+    { appContext
+    , isDisabled: isProcessing
+    , resources: slide.resources
+    , updateResource
+    }
 
   -- Rendering "answers" only if "action" is not set
   if isJust slide.action
@@ -268,6 +300,24 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
       where updater (DiagTreeSlide s) = DiagTreeSlide $ s { action = action }
 
+    updateResourceHandler this idx resource =
+      transformState this $ \s ->
+        let newSlide = do
+              (DiagTreeSlide slide) <- s.slide
+              old <- slide.resources !! idx
+
+              let newResource =
+                    { text       : resource.text
+                    , attachment : maybe old.attachment Modern resource.file
+                    }
+
+              DiagTreeSlide <$> slide { resources = _ } <$>
+                updateAt idx newResource slide.resources
+
+         in s { slide     = newSlide <|> s.slide
+              , isChanged = true
+              }
+
     cancelHandler this event = do
       { slide } <- getProps this
       resetChanges this slide
@@ -299,11 +349,12 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
       pure { slide
            , isChanged      : false
-           , onChangeHeader : changeHeaderHandler this
-           , onChangeBody   : changeBodyHandler   this
-           , onSelectAction : selectActionHandler this
-           , onCancel       : cancelHandler       this
-           , onSave         : saveHandler         this
+           , onChangeHeader : changeHeaderHandler   this
+           , onChangeBody   : changeBodyHandler     this
+           , updateResource : updateResourceHandler this
+           , onSelectAction : selectActionHandler   this
+           , onCancel       : cancelHandler         this
+           , onSave         : saveHandler           this
            }
 
     spec renderFn =

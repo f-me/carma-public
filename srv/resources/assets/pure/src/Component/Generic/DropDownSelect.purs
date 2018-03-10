@@ -14,7 +14,7 @@ import Data.Foldable (class Foldable, foldl)
 import Data.Array (snoc)
 
 import React.DOM (div, li) as R
-import React.DOM.Props (className, key, _type, href, role, onClick)
+import React.DOM.Props (className, key, _type, href, role, disabled, onClick)
 import React.Spaces ((!), (!.), renderIn, text, empty, elements)
 import React.Spaces.DOM (span, button, li, a)
 import React.Spaces.DOM.Dynamic (ul)
@@ -39,6 +39,7 @@ type OnSelectedEff eff =
 
 type Props f a eff =
   { appContext  :: AppContext
+  , isDisabled  :: Boolean
   , variants    :: f a
   , selected    :: Maybe a
   , variantView :: a -> String -- Used to show variant title
@@ -59,12 +60,16 @@ dropDownSelectRender
   :: forall f a eff. Foldable f => Eq a => ReactClass (Props f a eff)
 
 dropDownSelectRender = createClass $ spec $
-  \ props@{ variants, selected, variantView, placeholder, notSelectedTitle }
+  \ props@{ isDisabled, variants, selected, variantView, placeholder
+          , notSelectedTitle
+          }
+
     state@{ isOpened, onToggle, onSelect } -> do
 
   button !. "btn btn-default dropdown-toggle"
          ! _type "button"
          ! onClick onToggle
+         ! disabled isDisabled
          $ do
 
     let variantTitle = variantView <$> selected
@@ -122,14 +127,20 @@ dropDownSelectRender = createClass $ spec $
     selectHandler this item event = do
       preventDefault event
       transformState this _ { isOpened = false }
-      { onSelected } <- getProps this
+      { onSelected, isDisabled } <- getProps this
 
-      case onSelected of
-           Nothing -> pure unit
-           Just f  -> f item
+      if isDisabled
+         then pure unit
+         else case onSelected of
+                   Nothing -> pure unit
+                   Just f  -> f item
 
-    toggleHandler this _ =
-      transformState this \s -> s { isOpened = not s.isOpened }
+    toggleHandler this _ = do
+      { isDisabled } <- getProps this
+
+      if isDisabled
+         then pure unit
+         else transformState this \s -> s { isOpened = not s.isOpened }
 
     getInitialState this = pure
       { isOpened: false
@@ -144,7 +155,8 @@ dropDownSelectRender = createClass $ spec $
         renderHandler this = do
           props <- getProps  this
           state <- readState this
-          pure $ renderIn (wrapper state.isOpened) $ renderFn props state
+          let w = wrapper $ state.isOpened && not props.isDisabled
+          pure $ renderIn w $ renderFn props state
 
         wrapper isOpened = R.div [className $ addOpenClass "dropdown" <.> name]
           where addOpenClass x = if isOpened then x <.> "open" else x

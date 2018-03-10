@@ -4,19 +4,33 @@ module Component.DiagTree.Editor.SlideEditor.Resource
 
 import Prelude hiding (div)
 
-import React.DOM (li) as R
-import React.DOM.Props (className, role, src, title)
-import React.Spaces ((!), (!.), renderIn, text, empty)
-import React.Spaces.DOM (div, img, span, button, i)
+import Control.Alt ((<|>))
+import Control.Monad.Eff (Eff)
 
-import React
-     ( ReactClass
-     , getProps, readState, createClass, spec'
+import Data.Maybe (Maybe (..), fromMaybe, isJust)
+
+import React.DOM (li) as R
+import React.Spaces ((!), (!.), renderIn, text, empty)
+import React.Spaces.DOM (div, img, span, button, i, input)
+
+import React.DOM.Props
+     ( className, role, src, title, placeholder, _type, value, disabled
+     , onClick, onChange
      )
 
-import Utils ((<.>))
-import Utils.DiagTree.Editor (getDiagTreeSlideResourcePath)
+import React
+     ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
+     , createClass, spec'
+     , getProps, readState, transformState
+     )
+
+import Utils ((<.>), eventInputValue)
 import App.Store (AppContext)
+
+import Utils.DiagTree.Editor
+     ( getDiagTreeSlideResourcePath
+     , eqDiagTreeSlideResource
+     )
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlideResource
@@ -24,56 +38,186 @@ import App.Store.DiagTree.Editor.Types
      )
 
 
-type Props =
+type Props eff =
   { appContext :: AppContext
   , key        :: String
-  , resource   :: DiagTreeSlideResource
+  , itemIndex  :: Int
+  , isDisabled :: Boolean
+  , resource   :: Maybe DiagTreeSlideResource
+
+  , updateResource
+      :: Int
+
+      -> { text :: String
+         , file :: Maybe { id       :: Int
+                         , hash     :: String
+                         , filename :: String
+                         }
+         }
+
+      -> Eff ( props :: ReactProps
+             , state :: ReactState ReadWrite
+             , refs  :: ReactRefs  ReadOnly
+             | eff
+             ) Unit
   }
 
 
-diagTreeEditorSlideEditorResourceRender :: ReactClass Props
+diagTreeEditorSlideEditorResourceRender :: forall eff. ReactClass (Props eff)
 diagTreeEditorSlideEditorResourceRender = createClass $ spec $
-  \ { appContext, resource } { } -> do
+  \ { resource, isDisabled } state@{ file, isEditing } -> do
 
-  case resource.attachment of
-       Legacy _ -> div $ do
+  case resource <#> _.attachment of
+       Just (Legacy _) -> div $ do
          span !. "label label-warning" $ text "Внимание"
          text " Картинка хранится в базе неэффективным образом,\
               \ рекомендуется загрузить её заново."
 
        _ -> empty
 
-  let imagePath =
-        case resource.attachment of
-             Legacy x -> x
-             Modern x -> getDiagTreeSlideResourcePath x.filename
+  let imgSrc =
+        let
+          modern = file <#> _.filename >>> getDiagTreeSlideResourcePath
 
-  img !. classSfx "image"
-      ! role "presentation"
-      ! src imagePath
+          legacy = resource <#> _.attachment >>= case _ of
+                                                      Legacy x -> Just x
+                                                      Modern _ -> Nothing
+        in
+          modern <|> legacy
 
-  span $ text resource.text
+      imgM =
+        case imgSrc of
+             Nothing -> empty
+             Just x  -> img !. classSfx "image"
+                            ! role "presentation"
+                            ! src x
 
-  div !. "btn-toolbar" <.> classSfx "buttons" ! role "toolbar" $ do
-
-    button !. "btn btn-success" ! title "Редактировать" $
-      i !. "glyphicon glyphicon-pencil" $ empty
-
-    button !. "btn btn-danger" ! title "Удалить" $
-      i !. "glyphicon glyphicon-trash" $ empty
+  if isEditing
+     then editRender isDisabled state imgM
+     else viewRender isDisabled state imgM
 
   where
     name = "DiagTreeEditorSlideEditorResource"
     classSfx s = name <> "--" <> s
     wrapper = R.li [className $ "list-group-item" <.> name]
 
+    viewRender isDisabled state imgM = do
+      imgM
+      span $ text state.text
+
+      div !. "btn-toolbar" <.> classSfx "buttons" ! role "toolbar" $ do
+
+        button !. "btn btn-success"
+               ! title "Редактировать"
+               ! onClick state.enterEditing
+               ! disabled isDisabled
+               $ i !. "glyphicon glyphicon-pencil" $ empty
+
+        button !. "btn btn-danger"
+               ! title "Удалить"
+               ! disabled isDisabled
+               $ i !. "glyphicon glyphicon-trash" $ empty
+
+    editRender isDisabled state imgM = do
+      div !. "form-group" $ do
+        div $ text "TODO drop zone"
+        imgM
+
+        input !. "form-control"
+              ! _type "text"
+              ! placeholder "Подпись к картинке"
+              ! value state.text
+              ! onChange state.onChangeText
+              ! disabled isDisabled
+
+      div !. "btn-toolbar" $ do
+        button !. "btn btn-default"
+               ! _type "button"
+               ! onClick state.cancelEditing
+               ! disabled isDisabled
+               $ text "Отменить"
+
+        button !. "btn btn-success"
+               ! _type "button"
+               ! onClick state.save
+               ! disabled (isDisabled || not state.isChanged)
+               $ text "Сохранить"
+
+    cancelEditingHandler this _ = do
+      { resource } <- getProps this
+      let values = buildIntervalValues resource
+
+      transformState this _
+        { text      = values.text
+        , file      = values.file
+        , isEditing = false
+        , isChanged = false
+        }
+
+    saveHandler this _ = do
+      state@{ isChanged } <- readState this
+
+      if not isChanged
+         then pure unit
+         else do { updateResource, itemIndex } <- getProps this
+                 updateResource itemIndex { text: state.text, file: state.file }
+
+    changeTextHandler this event = do
+      let newText = eventInputValue event
+      transformState this _ { text = newText, isChanged = true }
+
+    enterEditingHandler this _ =
+      transformState this _ { isEditing = true }
+
+    buildIntervalValues
+      :: Maybe DiagTreeSlideResource
+      -> { text :: String
+         , file :: Maybe { id :: Int, hash :: String, filename :: String }
+         }
+
+    buildIntervalValues resource =
+      { text: fromMaybe "" $ resource <#> _.text
+
+      , file:
+          resource <#> _.attachment >>=
+            case _ of
+                 Modern x -> Just x
+                 Legacy _ -> Nothing
+      }
+
     getInitialState this = do
-      { appContext } <- getProps this
-      pure { }
+      { appContext, resource } <- getProps this
+      let values = buildIntervalValues resource
+
+      pure { text: values.text
+           , file: values.file
+           , isEditing: false
+           , isChanged: false
+           , enterEditing: enterEditingHandler this
+           , onChangeText: changeTextHandler this
+           , cancelEditing: cancelEditingHandler this
+           , save: saveHandler this
+           }
 
     spec renderFn =
       spec' getInitialState renderHandler # _
-        { displayName = name }
+        { displayName = name
+
+        , componentWillReceiveProps = \this nextProps -> do
+            prevProps <- getProps this
+
+            if isJust nextProps.resource == isJust prevProps.resource &&
+               Just true == (eqDiagTreeSlideResource <$> nextProps.resource
+                                                     <*> prevProps.resource)
+               then pure unit
+               else let values = buildIntervalValues nextProps.resource
+                     in transformState this _
+                          { text      = values.text
+                          , file      = values.file
+                          , isEditing = false
+                          , isChanged = false
+                          }
+        }
 
       where
         renderHandler this = do
@@ -82,5 +226,5 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
           pure $ renderIn wrapper $ renderFn props state
 
 
-diagTreeEditorSlideEditorResource :: ReactClass Props
+diagTreeEditorSlideEditorResource :: forall eff. ReactClass (Props eff)
 diagTreeEditorSlideEditorResource = diagTreeEditorSlideEditorResourceRender
