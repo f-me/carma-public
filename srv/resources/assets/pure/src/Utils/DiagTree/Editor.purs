@@ -2,18 +2,20 @@ module Utils.DiagTree.Editor
      ( getSlideByBranch
      , eqDiagTreeSlideResource
      , eqDiagTreeSlideResources
-     , getDiagTreeSlideResourcePath
+     , getDiagTreeSlideAttachmentPath
      , eqIshDiagTreeSlideAnswer
      , eqIshDiagTreeSlideAnswers
      , diagTreeSlideActionToBackend
      , diagTreeSlideActionFromBackend
      , uploadFile
      , dropzoneDefaultProps
+     , rejectedFilesAlert
      ) where
 
 import Prelude
 
 import Control.Monad.Aff (Aff)
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE, error)
 import Control.Monad.Eff.Exception (message, stack)
@@ -24,13 +26,17 @@ import Data.Tuple (Tuple (Tuple))
 import Data.Array (uncons, length, zip, fromFoldable)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Foldable (foldM)
+import Data.Foldable (foldM, foldl)
 import Data.Nullable (toNullable)
 import Data.Maybe (Maybe (..), maybe, fromMaybe)
 import Data.Foreign (Foreign, unsafeFromForeign)
 import Data.MediaType.Common (applicationJSON)
 import Data.Argonaut.Core as A
 
+import DOM.HTML (window) as DOM
+import DOM.HTML.Window (alert) as DOM
+import DOM (DOM)
+import DOM.HTML.Types (ALERT)
 import DOM.File.Types (File)
 import DOM.File.File as File
 import DOM.XHR.FormData as FormData
@@ -91,9 +97,9 @@ eqDiagTreeSlideResources a b =
    in zip a b # foldM reducer true # fromMaybe false
 
 
-getDiagTreeSlideResourcePath
+getDiagTreeSlideAttachmentPath
   :: forall props. { id :: Int, filename :: String | props } -> String
-getDiagTreeSlideResourcePath x =
+getDiagTreeSlideAttachmentPath x =
   "/s/fileupload/attachment/" <> show x.id <> "/" <> x.filename
 
 
@@ -209,3 +215,16 @@ dropzoneDefaultProps = ReactDropzone.dropzoneDefaultProps
   }
 
   where setClassName f = toNullable $ Just $ f ReactDropzone.dropzoneName
+
+
+rejectedFilesAlert
+  :: forall eff. Array File -> Eff (dom :: DOM, alert :: ALERT | eff) Unit
+
+rejectedFilesAlert files = DOM.window >>= DOM.alert message
+  where
+    fileReducer acc file = acc <> "\n  • \"" <> File.name file <> "\""
+
+    message =
+      "Допустимые расширения загружаемых файлов: .jpg, .jpeg, .png, .svg."
+        <> "\n\nСледующие файлы не могут быть загружены:"
+        <> foldl fileReducer "" files

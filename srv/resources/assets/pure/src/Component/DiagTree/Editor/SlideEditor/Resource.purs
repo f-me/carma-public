@@ -38,10 +38,11 @@ import Component.Generic.Spinner (spinner)
 import Bindings.ReactDropzone (dropzone, handle2)
 
 import Utils.DiagTree.Editor
-     ( getDiagTreeSlideResourcePath
+     ( getDiagTreeSlideAttachmentPath
      , eqDiagTreeSlideResource
      , uploadFile
      , dropzoneDefaultProps
+     , rejectedFilesAlert
      )
 
 import App.Store.DiagTree.Editor.Types
@@ -62,7 +63,7 @@ type Props eff =
     -- ^ When resource is `Nothing` is means adding new one
 
   , updateResource
-      :: Maybe Int -- ^ `Nothing` to add new one
+      :: Maybe Int -- ^ Item index (`Nothing` to add new resource)
 
       -> Maybe { text :: String
                , file :: Maybe { id       :: Int
@@ -84,7 +85,7 @@ type Props eff =
                      , refs  :: ReactRefs  ReadOnly
                      | eff
                      ) Unit )
-      -- ^ Only for adding new one (when `resource` is `Nothing`)
+      -- ^ Only for adding new one (when `resource` prop is `Nothing`)
   }
 
 
@@ -115,7 +116,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
   let imgSrc =
         let
-          modern = file <#> getDiagTreeSlideResourcePath
+          modern = file <#> getDiagTreeSlideAttachmentPath
           legacy = resource <#> _.attachment >>= case _ of
                                                       Legacy x -> Just x
                                                       Modern _ -> Nothing
@@ -129,7 +130,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
                             ! role "presentation"
                             ! src x
 
-  let isBlocked = isDisabled || isProcessing
+      isBlocked = isDisabled || isProcessing
 
   if isEditing || isNothing resource
      then editRender isBlocked resource state imgM
@@ -148,14 +149,14 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
         button !. "btn btn-success"
                ! title "Редактировать"
-               ! onClick state.enterEditing
                ! disabled isDisabled
+               ! onClick state.enterEditing
                $ i !. "glyphicon glyphicon-pencil" $ empty
 
         button !. "btn btn-danger"
                ! title "Удалить"
-               ! onClick state.delete
                ! disabled isDisabled
+               ! onClick state.delete
                $ i !. "glyphicon glyphicon-trash" $ empty
 
     editRender isDisabled resource state imgM = do
@@ -167,6 +168,9 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
               \files _ -> case head files of
                                Nothing -> pure unit
                                Just x  -> state.onFileDropped x
+
+          , onDropRejected = toNullable $ Just $ handle2 $
+              \files _ -> state.onFilesRejected files
           }
           $ text "Нажмите для добавления картинки или перетащите её сюда"
 
@@ -283,7 +287,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
       }
 
     getInitialState this = do
-      { appContext, resource } <- getProps this
+      { resource } <- getProps this
       let values = buildIntervalValues resource
 
       pure { text: values.text
@@ -296,6 +300,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
            , onChangeText: changeTextHandler this
            , cancelEditing: cancelEditingHandler this
            , onFileDropped: fileDroppedHandler this
+           , onFilesRejected: rejectedFilesAlert
            , save: saveHandler this
            , delete: deleteHandler this
            }

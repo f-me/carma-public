@@ -166,28 +166,56 @@ answersRender
   :: forall f
    . Foldable f
   => ReactClass { appContext :: AppContext
+                , slideId    :: DiagTreeSlideId
                 , isDisabled :: Boolean
                 , answers    :: f DiagTreeSlideAnswer
                 }
 
-answersRender = createClassStatelessWithName name $
-  \ { appContext, isDisabled, answers } -> renderer $ do
+answersRender = createClass $ spec $
+  \ { appContext, slideId, isDisabled, answers }
+    { isAdding, turnAddingOn, turnAddingOff } -> do
 
   label !. "control-label" $ text "Ответы"
 
   SDyn.ul !. "list-group" <.> classSfx "list" $
 
-    let itemReducer (Tuple key list) answer =
-          Tuple (key + 1) $ list `snoc`
-            createElement diagTreeEditorSlideEditorAnswer
-                          { appContext, answer, key: show key } []
+    let itemReducer (Tuple itemIndex list) answer =
+          Tuple (itemIndex + 1) $ list `snoc`
+
+            let props = { appContext
+                        , slideId
+                        , key: toNullable $ Just $ show itemIndex
+                        , itemIndex: Just itemIndex
+                        , isDisabled
+
+                        , answer: Just { header: answer.header
+                                       , text: answer.text
+                                       , attachment: answer.attachment
+                                       }
+
+                        , onCancel: Nothing
+                        }
+
+             in createElement diagTreeEditorSlideEditorAnswer props []
 
      in elements $ snd $ foldl itemReducer (Tuple 0 []) answers
 
-  button !. "btn btn-default" <.> classSfx "add-button"
-         ! _type "button"
-         ! disabled isDisabled
-         $ do
+  if isAdding
+     then diagTreeEditorSlideEditorAnswer ^
+            { appContext
+            , slideId
+            , key: toNullable Nothing
+            , itemIndex: Nothing
+            , isDisabled
+            , answer: Nothing
+            , onCancel: Just turnAddingOff
+            }
+
+     else button !. "btn btn-default" <.> classSfx "add-button"
+                 ! _type "button"
+                 ! onClick turnAddingOn
+                 ! disabled isDisabled
+                 $ do
 
     i !. "glyphicon glyphicon-plus" $ empty
     text " Добавить ответ"
@@ -197,6 +225,23 @@ answersRender = createClassStatelessWithName name $
     classSfx s = name <> "--" <> s
     wrapper = R.div [className $ "form-group" <.> name]
     renderer = renderIn wrapper
+
+    turnAddingHandler this isOn =
+      transformState this _ { isAdding = isOn }
+
+    getInitialState this = pure
+      { isAdding: false
+      , turnAddingOn: const $ turnAddingHandler this true
+      , turnAddingOff: turnAddingHandler this false
+      }
+
+    spec renderFn =
+      spec' getInitialState renderHandler # _ { displayName = name }
+      where
+        renderHandler this = do
+          props <- getProps  this
+          state <- readState this
+          pure $ renderer $ renderFn props state
 
 
 actionRender
@@ -278,6 +323,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
   if isJust slide.action
      then empty
      else answersRender ^ { appContext
+                          , slideId: slide.id
                           , isDisabled: isProcessing
                           , answers: slide.answers
                           }

@@ -9,6 +9,9 @@ name = DiagTreeEditorSlideEditorAnswer
   outline 1px dashed rgba(255, 255, 255, 0)
   transition outline-color .3s ease-in-out
 
+  .{name}--wrap
+    border none
+
   .{name}--buttons
     transition opacity .3s ease-in-out
     opacity 0
@@ -23,9 +26,9 @@ name = DiagTreeEditorSlideEditorAnswer
     .{name}--buttons
       opacity 1
 
-  .{name}--answer
-    border none
-
   .{name}--image
     margin 10px
     max-width 30%
+
+  .{name}--deprecation-warning
+    display block
