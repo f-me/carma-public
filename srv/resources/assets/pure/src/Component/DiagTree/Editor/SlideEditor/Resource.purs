@@ -8,27 +8,15 @@ import Control.Alt ((<|>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
-import Control.Monad.Eff.Console (error)
-import Control.Monad.Eff.Exception (message, stack)
 import Control.Monad.Aff (launchAff_)
-import Control.Monad.Error.Class (catchError)
 
-import Data.Tuple (Tuple (Tuple))
 import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
 import Data.Either (Either (..))
 import Data.Nullable (Nullable, toNullable)
 import Data.Array (head)
-import Data.Foreign (Foreign, unsafeFromForeign)
-import Data.MediaType.Common (applicationJSON)
-import Data.Argonaut.Core as A
-
-import Network.HTTP.Affjax (AffjaxResponse, affjax)
-import Network.HTTP.RequestHeader (RequestHeader (..))
 
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
-import DOM.File.File as File
-import DOM.XHR.FormData as FormData
 import React.DOM (li) as R
 import React.Spaces ((!), (!.), (^), (^^), renderIn, text, empty)
 import React.Spaces.DOM (div, img, span, button, i, input)
@@ -45,7 +33,6 @@ import React
      )
 
 import Utils ((<.>), eventInputValue)
-import Utils.Affjax (postRequest)
 import App.Store (AppContext)
 import Component.Generic.Spinner (spinner)
 
@@ -57,16 +44,13 @@ import Bindings.ReactDropzone
 import Utils.DiagTree.Editor
      ( getDiagTreeSlideResourcePath
      , eqDiagTreeSlideResource
+     , uploadFile
      )
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlideId
      , DiagTreeSlideResource
      , DiagTreeSlideResourceAttachment (..)
-     )
-
-import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendResource
-     ( fromAttachment
      )
 
 
@@ -89,6 +73,7 @@ type Props eff =
                                , filename :: String
                                }
                }
+         -- ^ `Nothing` means to delete a resource
 
       -> Eff ( props :: ReactProps
              , state :: ReactState ReadWrite
@@ -271,45 +256,26 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
       { slideId } <- getProps this
       transformState this _ { isProcessing = true, isUploadingFailed = false }
 
-      launchAff_ $ flip catchError handleError $ do
-        let url = "/upload/DiagSlide/" <> show slideId <> "/files"
-            fdFile = FormData.FormDataFile (File.name file) file
-            formData = FormData.toFormData [Tuple "file" fdFile]
-
-        (res :: AffjaxResponse Foreign) <- affjax $
-          postRequest url formData # _ { headers = [Accept applicationJSON] }
-
-        let json = unsafeFromForeign res.response :: A.Json
-
-        liftEff $
-          case fromAttachment json of
-               Just x ->
-                 transformState this _
-                   { isProcessing = false
-                   , isUploadingFailed = false
-                   , isChanged = true
-                   , file = Just x
-                   }
-
-               Nothing -> do
-                 error $ "Parsing upload response of file (" <>
-                   File.name file <> ") failed!"
-
-                 transformState this _
-                   { isProcessing = false, isUploadingFailed = true }
+      launchAff_ $
+        uploadFile slideId file >>=
+          liftEff <<< maybe failProcessing doneProcessing
 
       where
         guardNotProcessing m = do
           { isProcessing } <- readState this
           if isProcessing then pure unit else m
 
-        handleError err = do
-          liftEff $ error $
-            "Uploading file (" <> File.name file <> ") failed: " <> message err
-            # \x -> maybe x (\y -> x <> "\nStack trace:\n" <> y) (stack err)
-
-          liftEff $ transformState this _
+        failProcessing =
+          transformState this _
             { isProcessing = false, isUploadingFailed = true }
+
+        doneProcessing attachment =
+          transformState this _
+            { isProcessing = false
+            , isUploadingFailed = false
+            , isChanged = true
+            , file = Just attachment
+            }
 
     buildIntervalValues
       :: Maybe DiagTreeSlideResource

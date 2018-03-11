@@ -7,16 +7,36 @@ module Utils.DiagTree.Editor
      , eqIshDiagTreeSlideAnswers
      , diagTreeSlideActionToBackend
      , diagTreeSlideActionFromBackend
+     , uploadFile
      ) where
 
 import Prelude
 
+import Control.Monad.Aff (Aff)
+import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Console (CONSOLE, error)
+import Control.Monad.Eff.Exception (message, stack)
+import Control.Monad.Error.Class (catchError)
+
+import Data.Functor (voidRight)
 import Data.Tuple (Tuple (Tuple))
 import Data.Array (uncons, length, zip, fromFoldable)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Foldable (foldM)
-import Data.Maybe (Maybe (..), fromMaybe)
+import Data.Maybe (Maybe (..), maybe, fromMaybe)
+import Data.Foreign (Foreign, unsafeFromForeign)
+import Data.MediaType.Common (applicationJSON)
+import Data.Argonaut.Core as A
+
+import DOM.File.Types (File)
+import DOM.File.File as File
+import DOM.XHR.FormData as FormData
+
+import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax)
+import Network.HTTP.RequestHeader (RequestHeader (..))
+
+import Utils.Affjax (postRequest)
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
@@ -25,6 +45,11 @@ import App.Store.DiagTree.Editor.Types
      , DiagTreeSlideResource
      , DiagTreeSlideAction (..)
      , DiagTreeSlideAnswer
+     )
+
+import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendResource
+     ( BackendResourceAttachment
+     , fromAttachment
      )
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAction
@@ -132,3 +157,37 @@ aTech = { label: show Tech, service: "Tech" }
 
 aConsultation :: BackendAction
 aConsultation = { label: show Consultation, service: "Consultation" }
+
+
+-- Uploading a file attaching it to a slide
+uploadFile
+  :: forall eff
+   . DiagTreeSlideId
+  -> File
+  -> Aff ( ajax    :: AJAX
+         , console :: CONSOLE
+         | eff
+         ) (Maybe BackendResourceAttachment)
+
+uploadFile slideId file = flip catchError handleError $ do
+  let url      = "/upload/DiagSlide/" <> show slideId <> "/files"
+      fdFile   = FormData.FormDataFile (File.name file) file
+      formData = FormData.toFormData [Tuple "file" fdFile]
+
+  (res :: AffjaxResponse Foreign) <- affjax $
+    postRequest url formData # _ { headers = [Accept applicationJSON] }
+
+  let json       = unsafeFromForeign res.response :: A.Json
+      attachment = fromAttachment json
+
+  case attachment of
+       Nothing -> logParseError
+       _       -> pure attachment
+
+  where
+    handleError err = voidRight Nothing $ liftEff $ error $
+      "Uploading file (" <> File.name file <> ") failed: " <> message err
+      # \x -> maybe x (\y -> x <> "\nStack trace:\n" <> y) (stack err)
+
+    logParseError = voidRight Nothing $ liftEff $ error $
+      "Parsing upload response of file (" <> File.name file <> ") failed!"
