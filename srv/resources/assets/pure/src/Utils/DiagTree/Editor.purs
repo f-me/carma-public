@@ -8,6 +8,7 @@ module Utils.DiagTree.Editor
      , diagTreeSlideActionToBackend
      , diagTreeSlideActionFromBackend
      , uploadFile
+     , dropzoneDefaultProps
      ) where
 
 import Prelude
@@ -24,6 +25,7 @@ import Data.Array (uncons, length, zip, fromFoldable)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Foldable (foldM)
+import Data.Nullable (toNullable)
 import Data.Maybe (Maybe (..), maybe, fromMaybe)
 import Data.Foreign (Foreign, unsafeFromForeign)
 import Data.MediaType.Common (applicationJSON)
@@ -37,6 +39,7 @@ import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax)
 import Network.HTTP.RequestHeader (RequestHeader (..))
 
 import Utils.Affjax (postRequest)
+import Bindings.ReactDropzone as ReactDropzone
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
@@ -191,3 +194,18 @@ uploadFile slideId file = flip catchError handleError $ do
 
     logParseError = voidRight Nothing $ liftEff $ error $
       "Parsing upload response of file (" <> File.name file <> ") failed!"
+
+
+dropzoneDefaultProps :: ReactDropzone.Props () () () () () ()
+dropzoneDefaultProps = ReactDropzone.dropzoneDefaultProps
+  { accept   = toNullable $ Just "image/jpeg,image/png,image/svg+xml"
+  , multiple = false
+
+  , className         = setClassName id
+  , activeClassName   = setClassName (_ <> "--active")
+  , acceptClassName   = setClassName (_ <> "--accept")
+  , rejectClassName   = setClassName (_ <> "--reject")
+  , disabledClassName = setClassName (_ <> "--disabled")
+  }
+
+  where setClassName f = toNullable $ Just $ f ReactDropzone.dropzoneName

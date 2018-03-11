@@ -35,16 +35,13 @@ import React
 import Utils ((<.>), eventInputValue)
 import App.Store (AppContext)
 import Component.Generic.Spinner (spinner)
-
-import Bindings.ReactDropzone
-     ( dropzone, dropzoneDefaultProps, dropzoneName
-     , handle2
-     )
+import Bindings.ReactDropzone (dropzone, handle2)
 
 import Utils.DiagTree.Editor
      ( getDiagTreeSlideResourcePath
      , eqDiagTreeSlideResource
      , uploadFile
+     , dropzoneDefaultProps
      )
 
 import App.Store.DiagTree.Editor.Types
@@ -164,15 +161,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
     editRender isDisabled resource state imgM = do
       div !. "form-group" $ do
         dropzone ^^ dropzoneDefaultProps
-          { accept   = toNullable $ Just "image/jpeg,image/png,image/svg+xml"
-          , disabled = isDisabled
-          , multiple = false
-
-          , className         = toNullable $ Just $ dropzoneName
-          , activeClassName   = toNullable $ Just $ dropzoneName <> "--active"
-          , acceptClassName   = toNullable $ Just $ dropzoneName <> "--accept"
-          , rejectClassName   = toNullable $ Just $ dropzoneName <> "--reject"
-          , disabledClassName = toNullable $ Just $ dropzoneName <> "--disabled"
+          { disabled = isDisabled
 
           , onDropAccepted = toNullable $ Just $ handle2 $
               \files _ -> case head files of
