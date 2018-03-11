@@ -50,9 +50,9 @@ import App.Store.DiagTree.Editor.Types
      , DiagTreeSlideAnswer
      )
 
-import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendResource
-     ( BackendResourceAttachment
-     , fromAttachment
+import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
+     ( BackendAttachment
+     , fromBackendAttachment
      )
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAction
@@ -103,9 +103,9 @@ eqIshDiagTreeSlideAnswer
   :: DiagTreeSlideAnswer -> DiagTreeSlideAnswer -> Boolean
 
 eqIshDiagTreeSlideAnswer a b =
-  a.header == b.header &&
-  a.text == b.text &&
-  a.file == b.file &&
+  a.header                == b.header &&
+  a.text                  == b.text &&
+  a.attachment            == b.attachment &&
   slideIdLens a.nextSlide == slideIdLens b.nextSlide
 
   where
@@ -170,7 +170,7 @@ uploadFile
   -> Aff ( ajax    :: AJAX
          , console :: CONSOLE
          | eff
-         ) (Maybe BackendResourceAttachment)
+         ) (Maybe BackendAttachment)
 
 uploadFile slideId file = flip catchError handleError $ do
   let url      = "/upload/DiagSlide/" <> show slideId <> "/files"
@@ -181,7 +181,7 @@ uploadFile slideId file = flip catchError handleError $ do
     postRequest url formData # _ { headers = [Accept applicationJSON] }
 
   let json       = unsafeFromForeign res.response :: A.Json
-      attachment = fromAttachment json
+      attachment = fromBackendAttachment json
 
   case attachment of
        Nothing -> logParseError

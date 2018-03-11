@@ -10,7 +10,7 @@ import Control.Monad.Maybe.Trans (MaybeT)
 import Control.MonadZero (guard)
 import Control.Alt ((<|>))
 
-import Data.Maybe (Maybe (..), isJust)
+import Data.Maybe (Maybe (..), isJust, isNothing)
 import Data.JSDate (LOCALE, parse, toDateTime)
 import Data.Map (Map)
 import Data.Map as Map
@@ -27,7 +27,7 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendSlide
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlideId
      , DiagTreeSlide (DiagTreeSlide)
-     , DiagTreeSlideResourceAttachment (..)
+     , DiagTreeSlideAttachment (..)
      )
 
 
@@ -71,7 +71,15 @@ getSlide flatSlides slideId = do
         <$> { text, attachment: _ }
         <$> ((attachment <#> Modern) <|> (file <#> Legacy))
 
-    answerReducer acc { nextSlide, header, text, file } =
-      getSlide flatSlides nextSlide <#> \slide ->
-        let x = { nextSlide: slide, header, text, file }
-         in Map.insert nextSlide x acc
+    answerReducer acc { nextSlide, header, text, attachment, file } = do
+      -- Either legacy deprecated `file` or `attachment` must be set,
+      -- both of them set at the same time is not allowed but both are optional.
+      guard $ (isNothing attachment && isNothing file)
+           || let xor = notEq in isJust attachment `xor` isJust file
+
+      slide <- getSlide flatSlides nextSlide
+
+      let a = (attachment <#> Modern) <|> (file <#> Legacy)
+          x = { nextSlide: slide, header, text, attachment: a }
+
+      pure $ Map.insert nextSlide x acc

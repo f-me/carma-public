@@ -53,7 +53,7 @@ import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlideId
      , DiagTreeSlideResource
-     , DiagTreeSlideResourceAttachment (Modern)
+     , DiagTreeSlideAttachment (Modern)
      , DiagTreeSlideAction
      , DiagTreeSlideAnswer
      )

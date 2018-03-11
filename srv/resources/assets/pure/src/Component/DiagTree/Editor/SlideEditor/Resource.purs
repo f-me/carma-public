@@ -47,7 +47,7 @@ import Utils.DiagTree.Editor
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlideId
      , DiagTreeSlideResource
-     , DiagTreeSlideResourceAttachment (..)
+     , DiagTreeSlideAttachment (..)
      )
 
 

@@ -3,7 +3,7 @@ module App.Store.DiagTree.Editor.Types
      , DiagTreeSlides
      , DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlideResource
-     , DiagTreeSlideResourceAttachment (..)
+     , DiagTreeSlideAttachment (..)
      , DiagTreeSlideAction (..)
      , DiagTreeSlideAnswer
      ) where
@@ -25,17 +25,17 @@ type DiagTreeSlideId = Int
 type DiagTreeSlides  = Map DiagTreeSlideId DiagTreeSlide
 
 
-data DiagTreeSlideResourceAttachment
+data DiagTreeSlideAttachment
   = Legacy String
   -- ^ This is legacy field with inlined uploaded file as a string of base64
   --   (this is only for old uploads).
   --   TODO Get rid of this field, write some migration, and then type
-  --   `DiagTreeSlideResourceAttachment` must be removed too, only record from
+  --   `DiagTreeSlideAttachment` must be removed too, only record from
   --   `Modern` must be type of `attachment` field of `DiagTreeSlideResource`.
 
   | Modern { id :: Int, hash :: String, filename :: String }
 
-instance eqDiagTreeSlideResourceAttachment :: Eq DiagTreeSlideResourceAttachment
+instance eqDiagTreeSlideAttachment :: Eq DiagTreeSlideAttachment
   where
 
   eq (Modern a) (Modern b) =
@@ -48,7 +48,7 @@ instance eqDiagTreeSlideResourceAttachment :: Eq DiagTreeSlideResourceAttachment
 
 type DiagTreeSlideResource =
   { text       :: String
-  , attachment :: DiagTreeSlideResourceAttachment
+  , attachment :: DiagTreeSlideAttachment
   }
 
 
@@ -89,14 +89,14 @@ instance genericRepBoundedEnumDiagTreeSlideAction ::
 
 
 type DiagTreeSlideAnswer =
-  { nextSlide :: DiagTreeSlide
+  { nextSlide  :: DiagTreeSlide
 
-  , header    :: String
+  , header     :: String
   -- ^ Also known as "answer" of a slide
   --   (a user's answer that leads to this slide - `nextSlide`).
 
-  , text      :: String
-  , file      :: Maybe String
+  , text       :: String
+  , attachment :: Maybe DiagTreeSlideAttachment
   }
 
 

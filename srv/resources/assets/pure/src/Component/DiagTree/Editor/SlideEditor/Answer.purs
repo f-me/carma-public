@@ -17,8 +17,13 @@ import React
      )
 
 import Utils ((<.>))
+import Utils.DiagTree.Editor (getDiagTreeSlideResourcePath)
 import App.Store (AppContext)
-import App.Store.DiagTree.Editor.Types (DiagTreeSlideAnswer)
+
+import App.Store.DiagTree.Editor.Types
+     ( DiagTreeSlideAnswer
+     , DiagTreeSlideAttachment (..)
+     )
 
 
 type Props =
@@ -37,11 +42,15 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
       text answer.header
 
     p !. "list-group-item-text" $ do
-      case answer.file of
+      case answer.attachment of
            Nothing -> empty
-           Just x  -> img !. classSfx "image"
-                          ! role "presentation"
-                          ! src x
+           Just x  ->
+             let f (Legacy y) = y
+                 f (Modern y) = getDiagTreeSlideResourcePath y
+
+              in img !. classSfx "image"
+                     ! role "presentation"
+                     ! src (f x)
 
       span $ text answer.text
 
