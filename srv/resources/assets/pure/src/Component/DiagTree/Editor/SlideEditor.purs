@@ -215,10 +215,8 @@ answersRender = createClass $ spec $
                  ! _type "button"
                  ! onClick turnAddingOn
                  ! disabled isDisabled
-                 $ do
-
-    i !. "glyphicon glyphicon-plus" $ empty
-    text " Добавить ответ"
+                 $ do i !. "glyphicon glyphicon-plus" $ empty
+                      text " Добавить ответ"
 
   where
     name = "DiagTreeEditorSlideEditorAnswers"

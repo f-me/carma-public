@@ -94,14 +94,6 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
   \ { appContext, resource, isDisabled }
     state@{ file, isEditing, isProcessing, isUploadingFailed } -> do
 
-  case (Modern <$> file) <|> (resource <#> _.attachment) of
-       Just (Legacy _) -> div $ do
-         span !. "label label-warning" $ text "Внимание"
-         text " Картинка хранится в базе неэффективным образом,\
-              \ рекомендуется загрузить её заново."
-
-       _ -> empty
-
   if not isUploadingFailed
      then empty
      else div $ do
@@ -114,7 +106,16 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
                     , appContext
                     }
 
-  let imgSrc =
+  let legacyWarnM =
+        case (Modern <$> file) <|> (resource <#> _.attachment) of
+             Just (Legacy _) -> span !. classSfx "deprecation-warning" $ do
+               span !. "label label-warning" $ text "Внимание"
+               text " Картинка хранится в базе неэффективным образом,\
+                    \ рекомендуется загрузить её заново."
+
+             _ -> empty
+
+      imgSrc =
         let
           modern = file <#> getDiagTreeSlideAttachmentPath
           legacy = resource <#> _.attachment >>= case _ of
@@ -126,9 +127,9 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
       imgM =
         case imgSrc of
              Nothing -> empty
-             Just x  -> img !. classSfx "image"
-                            ! role "presentation"
-                            ! src x
+             Just x  -> do
+               legacyWarnM
+               img !. classSfx "image" ! role "presentation" ! src x
 
       isBlocked = isDisabled || isProcessing
 
@@ -174,7 +175,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
           }
           $ text "Нажмите для добавления картинки или перетащите её сюда"
 
-        imgM
+        span !. classSfx "edit-image-wrap" $ imgM
 
         input !. "form-control"
               ! _type "text"
@@ -229,8 +230,8 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
     deleteHandler this _ = do
       { updateResource, itemIndex } <- getProps this
 
-      wnd         <- DOM.window
-      isConfirmed <- DOM.confirm "Вы действительно хотите удалить картинку?" wnd
+      isConfirmed <-
+        DOM.window >>= DOM.confirm "Вы действительно хотите удалить картинку?"
 
       if not isConfirmed || isNothing itemIndex
          then pure unit
@@ -326,10 +327,12 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
         }
 
       where
+        wrap = div !. "list-group-item" <.> classSfx "wrap"
+
         renderHandler this = do
           props <- getProps  this
           state <- readState this
-          pure $ renderIn wrapper $ renderFn props state
+          pure $ renderIn wrapper $ wrap $ renderFn props state
 
 
 diagTreeEditorSlideEditorResource :: forall eff. ReactClass (Props eff)
