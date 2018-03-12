@@ -12,7 +12,17 @@ class CaseHistoryAnswersItem extends Record(
   # action    : {}
 )
   @plainObjScalarProps: ["nextSlide", "header", "text"]
-  @fromPlain: (plainObj) => new @ pick plainObj, @plainObjScalarProps
+  @fromPlain: (plainObj) =>
+    x = pick plainObj, @plainObjScalarProps
+    { attachment } = plainObj
+
+    x.file =
+      if attachment
+        "/s/fileupload/attachment/#{attachment.id}/#{attachment.filename}"
+      else if plainObj.file
+        plainObj.file
+
+    new @ x
 
 
 class CaseHistoryAnswersList extends List
@@ -41,8 +51,18 @@ class CaseHistoryResourcesItem extends Record(
   file : ""
   text : ""
 )
-  @plainObjScalarProps: ["file", "text"]
-  @fromPlain: (plainObj) => new @ pick plainObj, @plainObjScalarProps
+  @plainObjScalarProps: ["text"]
+  @fromPlain: (plainObj) =>
+    x = pick plainObj, @plainObjScalarProps
+    { attachment } = plainObj
+
+    x.file =
+      if attachment
+        "/s/fileupload/attachment/#{attachment.id}/#{attachment.filename}"
+      else
+        plainObj.file
+
+    new @ x
 
 
 class CaseHistoryResourcesList extends List
