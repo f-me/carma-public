@@ -8,26 +8,32 @@ import Prelude
 import Control.Monad.Eff (Eff, kind Effect)
 import Control.Alt ((<|>))
 
-import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust)
+import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
 import Data.Tuple (Tuple (Tuple), snd)
 import Data.Foldable (class Foldable, foldl)
 import Data.Array (snoc)
 
 import React.DOM (div, li) as R
-import React.DOM.Props (className, key, _type, href, role, disabled, onClick)
 import React.Spaces ((!), (!.), renderIn, text, empty, elements)
 import React.Spaces.DOM (span, button, li, a)
 import React.Spaces.DOM.Dynamic (ul)
+
+import React.DOM.Props
+     ( className, _type, href, role, disabled
+     , key, withRef
+     , onClick
+     )
 
 import React
      ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
      , createClass, spec'
      , getProps, readState, transformState
-     , preventDefault
+     , writeRef, readRef, preventDefault
      )
 
 import Utils ((<.>))
 import App.Store (AppContext)
+import Utils.React.OutsideClick (subscribeOutsideClick, unsubscribeOutsideClick)
 
 
 type OnSelectedEff eff =
@@ -142,23 +148,80 @@ dropDownSelectRender = createClass $ spec $
          then pure unit
          else transformState this \s -> s { isOpened = not s.isOpened }
 
+    rootRefName = "componentRoot"
+
+    hookOutsideClick this outsideSubscription = do
+      case outsideSubscription of
+           Nothing -> pure unit
+           Just x  -> unsubscribeOutsideClick x
+
+      rootRef <- readRef this rootRefName
+
+      case rootRef of
+           Nothing ->
+             if isNothing outsideSubscription
+                then pure unit
+                else transformState this _ { outsideSubscription = Nothing }
+
+           Just ref -> do
+             subscription <-
+               flip subscribeOutsideClick ref $
+                 transformState this _ { isOpened = false }
+
+             transformState this _ { outsideSubscription = Just subscription }
+
+    unhookOutsideClick this outsideSubscription = do
+      case outsideSubscription of
+           Nothing -> pure unit
+           Just x  -> do
+             unsubscribeOutsideClick x
+             transformState this _ { outsideSubscription = Nothing }
+
     getInitialState this = pure
       { isOpened: false
       , onToggle: toggleHandler this
       , onSelect: selectHandler this
+      , refSetter: writeRef this rootRefName
+      , outsideSubscription: Nothing
       }
 
     spec renderFn =
-      spec' getInitialState renderHandler # _ { displayName = name }
+      spec' getInitialState renderHandler # _
+        { displayName = name
+
+        , componentWillUpdate =
+            \this _ { isOpened, outsideSubscription } -> do
+              { isOpened: prevIsOpened } <- readState this
+
+              if (not prevIsOpened && isOpened) ||
+                 (isOpened && isNothing outsideSubscription)
+                 then hookOutsideClick this outsideSubscription
+                 else pure unit
+
+              if (not isOpened && prevIsOpened) ||
+                 (not isOpened && isJust outsideSubscription)
+                 then unhookOutsideClick this outsideSubscription
+                 else pure unit
+
+        , componentWillUnmount = \this -> do
+            { outsideSubscription } <- readState this
+
+            case outsideSubscription of
+                 Nothing -> pure unit
+                 Just x  -> unsubscribeOutsideClick x
+        }
 
       where
         renderHandler this = do
-          props <- getProps  this
-          state <- readState this
-          let w = wrapper $ state.isOpened && not props.isDisabled
+          props@{ isDisabled } <- getProps  this
+          state@{ refSetter, isOpened } <- readState this
+          let w = wrapper refSetter $ isOpened && not isDisabled
           pure $ renderIn w $ renderFn props state
 
-        wrapper isOpened = R.div [className $ addOpenClass "dropdown" <.> name]
+        wrapper refSetter isOpened = R.div
+          [ className $ addOpenClass "dropdown" <.> name
+          , withRef refSetter
+          ]
           where addOpenClass x = if isOpened then x <.> "open" else x
 
 
