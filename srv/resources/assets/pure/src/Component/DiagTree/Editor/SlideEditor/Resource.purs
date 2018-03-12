@@ -19,7 +19,7 @@ import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
 import React.DOM (li) as R
 import React.Spaces ((!), (!.), (^), (^^), renderIn, text, empty)
-import React.Spaces.DOM (div, img, span, button, i, input)
+import React.Spaces.DOM (div, img, span, button, i, input, p)
 
 import React.DOM.Props
      ( className, role, src, title, placeholder, _type, value, disabled
@@ -93,6 +93,10 @@ diagTreeEditorSlideEditorResourceRender :: forall eff. ReactClass (Props eff)
 diagTreeEditorSlideEditorResourceRender = createClass $ spec $
   \ { appContext, resource, isDisabled }
     state@{ file, isEditing, isProcessing, isUploadingFailed } -> do
+
+  case resource of
+       Nothing -> p $ span !. "label label-primary" $ text "Новая картинка"
+       _ -> empty
 
   if not isUploadingFailed
      then empty

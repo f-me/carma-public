@@ -7,10 +7,11 @@ import Prelude hiding (div)
 import Control.Alt ((<|>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Aff (launchAff_)
 
 import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
-import Data.Either (Either (..))
+import Data.Either (Either (..), isRight)
 import Data.Nullable (Nullable, toNullable)
 import Data.Array (head)
 import Data.String (null)
@@ -54,7 +55,7 @@ type Props eff =
   { appContext :: AppContext
   , key        :: Nullable String
   , slideId    :: DiagTreeSlideId
-  , itemIndex  :: Maybe Int
+  , identity   :: Maybe (Either DiagTreeSlideId Int)
   , isDisabled :: Boolean
 
   , answer
@@ -63,23 +64,24 @@ type Props eff =
                , attachment :: Maybe DiagTreeSlideAttachment
                }
 
-  --, updateAnswer
-  --    :: Maybe Int -- ^ Item index (`Nothing` to add new answer)
+  , updateAnswer
+      :: Maybe (Either DiagTreeSlideId Int)
+         -- ^ Item identity (`Nothing` to add new answer)
 
-  --    -> Maybe { header     :: String
-  --             , text       :: String
-  --             , attachment :: Maybe { id       :: Int
-  --                                   , hash     :: String
-  --                                   , filename :: String
-  --                                   }
-  --             }
-  --       -- ^ `Nothing` means to delete an answer
+      -> Maybe { header     :: String
+               , text       :: String
+               , attachment :: Maybe { id       :: Int
+                                     , hash     :: String
+                                     , filename :: String
+                                     }
+               }
+         -- ^ `Nothing` means to delete an answer
 
-  --    -> Eff ( props :: ReactProps
-  --           , state :: ReactState ReadWrite
-  --           , refs  :: ReactRefs  ReadOnly
-  --           | eff
-  --           ) Unit
+      -> Eff ( props :: ReactProps
+             , state :: ReactState ReadWrite
+             , refs  :: ReactRefs  ReadOnly
+             | eff
+             ) Unit
 
   , onCancel
       :: Maybe ( Eff ( props :: ReactProps
@@ -93,9 +95,13 @@ type Props eff =
 
 diagTreeEditorSlideEditorAnswerRender :: forall eff. ReactClass (Props eff)
 diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
-  \ { appContext, answer, isDisabled }
+  \ { appContext, identity, answer, isDisabled }
     state@{ isEditing, isProcessing, isUploadingFailed, isAttachmentDeleted }
     -> do
+
+  if isNothing answer || map isRight identity == Just true
+     then p $ span !. "label label-primary" $ text "Новый ответ"
+     else empty
 
   if not isUploadingFailed
      then empty
@@ -166,6 +172,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
         button !. "btn btn-danger"
                ! title "Удалить"
                ! disabled isDisabled
+               ! onClick state.delete
                $ i !. "glyphicon glyphicon-trash" $ empty
 
     editRender isDisabled hasImage state imgM = do
@@ -222,7 +229,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
 
         button !. "btn btn-success"
                ! _type "button"
-               {-- ! onClick state.save --}
+               ! onClick state.save
                ! disabled isSaveBlocked
                $ text "Сохранить ответ"
 
@@ -292,6 +299,30 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
             , attachment = Just attachment
             }
 
+    saveHandler this _ = do
+      state@{ isChanged } <- readState this
+      { answer, updateAnswer, identity } <- getProps this
+
+      if not isChanged
+         then pure unit
+         else updateAnswer (answer *> identity) $ Just
+                { header: state.header
+                , text: state.text
+                , attachment: state.attachment
+                }
+
+    deleteHandler this _ = do
+      { updateAnswer, identity } <- getProps this
+
+      isConfirmed <-
+        DOM.window >>= DOM.confirm "Вы действительно хотите удалить ответ?"
+
+      if not isConfirmed || isNothing identity
+         then pure unit
+         else -- Coercing to not infect parent handler
+              -- with DOM and CONFIRM effects.
+              unsafeCoerceEff $ updateAnswer identity Nothing
+
     buildIntervalValues answer =
       { header     : fromMaybe "" $ answer <#> _.header
       , text       : fromMaybe "" $ answer <#> _.text
@@ -320,6 +351,8 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
            , deleteAttachment: deleteAttachmentHandler this
            , onFileDropped: fileDroppedHandler this
            , onFilesRejected: rejectedFilesAlert
+           , save: saveHandler this
+           , delete: deleteHandler this
            }
 
     spec renderFn =

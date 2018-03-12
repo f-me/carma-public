@@ -10,10 +10,11 @@ import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Alt ((<|>))
 
 import Data.Tuple (Tuple (Tuple), snd)
-import Data.Array ((!!), snoc, updateAt, deleteAt)
+import Data.Array ((!!), snoc, updateAt, modifyAt, deleteAt)
 import Data.Foldable (class Foldable, foldl)
 import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..), isJust, maybe)
+import Data.Either (Either (..))
 import Data.Map as Map
 import Data.Nullable (toNullable)
 
@@ -75,8 +76,8 @@ resourcesRender
                 , isDisabled :: Boolean
                 , resources  :: f DiagTreeSlideResource
 
-                , updateResource
-                    :: Maybe Int -- ^ `Nothing` to add new one
+                , updateResource -- See item component for details
+                    :: Maybe Int
 
                     -> Maybe { text :: String
                              , file :: Maybe { id       :: Int
@@ -163,51 +164,91 @@ resourcesRender = createClass $ spec $
 
 
 answersRender
-  :: forall f
+  :: forall f f2 eff
    . Foldable f
+  => Foldable f2
   => ReactClass { appContext :: AppContext
                 , slideId    :: DiagTreeSlideId
                 , isDisabled :: Boolean
                 , answers    :: f DiagTreeSlideAnswer
+
+                , newAnswers :: f2 { header     :: String
+                                   , text       :: String
+                                   , attachment :: Maybe DiagTreeSlideAttachment
+                                   }
+
+                , updateAnswer -- See item component for details
+                    :: Maybe (Either DiagTreeSlideId Int)
+
+                    -> Maybe { header     :: String
+                             , text       :: String
+                             , attachment :: Maybe { id       :: Int
+                                                   , hash     :: String
+                                                   , filename :: String
+                                                   }
+                             }
+
+                    -> Eff ( props :: ReactProps
+                           , state :: ReactState ReadWrite
+                           , refs  :: ReactRefs  ReadOnly
+                           | eff
+                           ) Unit
                 }
 
 answersRender = createClass $ spec $
-  \ { appContext, slideId, isDisabled, answers }
+  \ { appContext, slideId, isDisabled, answers, newAnswers, updateAnswer }
     { isAdding, turnAddingOn, turnAddingOff } -> do
 
   label !. "control-label" $ text "Ответы"
 
   SDyn.ul !. "list-group" <.> classSfx "list" $
 
-    let itemReducer (Tuple itemIndex list) answer =
-          Tuple (itemIndex + 1) $ list `snoc`
+    let
+      reducer list answer = list `snoc`
+        let
+          p = props (Left $ answer.nextSlide # \(DiagTreeSlide x) -> x.id)
+            { header: answer.header
+            , text: answer.text
+            , attachment: answer.attachment
+            }
+        in
+          createElement diagTreeEditorSlideEditorAnswer p []
 
-            let props = { appContext
-                        , slideId
-                        , key: toNullable $ Just $ show itemIndex
-                        , itemIndex: Just itemIndex
-                        , isDisabled
+      newReducer (Tuple itemIndex list) answer =
+        Tuple (itemIndex + 1) $ list `snoc`
+          let
+            p = props (Right itemIndex)
+              { header: answer.header
+              , text: answer.text
+              , attachment: answer.attachment
+              }
+          in
+            createElement diagTreeEditorSlideEditorAnswer p []
 
-                        , answer: Just { header: answer.header
-                                       , text: answer.text
-                                       , attachment: answer.attachment
-                                       }
+      props identity item =
+        { appContext
+        , slideId
+        , key: toNullable $ Just $ show identity
+        , identity: Just identity
+        , isDisabled
+        , answer: Just item
+        , updateAnswer
+        , onCancel: Nothing
+        }
 
-                        , onCancel: Nothing
-                        }
-
-             in createElement diagTreeEditorSlideEditorAnswer props []
-
-     in elements $ snd $ foldl itemReducer (Tuple 0 []) answers
+    in do
+      elements $ foldl reducer [] answers
+      elements $ snd $ foldl newReducer (Tuple 0 []) newAnswers
 
   if isAdding
      then diagTreeEditorSlideEditorAnswer ^
             { appContext
             , slideId
             , key: toNullable Nothing
-            , itemIndex: Nothing
+            , identity: Nothing
             , isDisabled
             , answer: Nothing
+            , updateAnswer
             , onCancel: Just turnAddingOff
             }
 
@@ -286,10 +327,12 @@ diagTreeEditorSlideEditorRender
 diagTreeEditorSlideEditorRender = createClass $ spec $
   \ { appContext, isProcessing }
     { slide: (DiagTreeSlide slide)
+    , newAnswers
     , isChanged
     , onChangeHeader
     , onChangeBody
     , updateResource
+    , updateAnswer
     , onSelectAction
     , onCancel
     , onSave
@@ -324,6 +367,8 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
                           , slideId: slide.id
                           , isDisabled: isProcessing
                           , answers: slide.answers
+                          , newAnswers
+                          , updateAnswer
                           }
 
   -- Rendering "action" only if "answers" is empty
@@ -381,46 +426,107 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
       where updater (DiagTreeSlide s) = DiagTreeSlide $ s { action = action }
 
-    updateResourceHandler this itemIndex resource =
+    updateResourceHandler this itemIndex resource = transformState this $ \s ->
+      let
+        newSlide =
+          case resource <#> Tuple itemIndex of
+               -- `Nothing` means deleting a resource
+               Nothing -> do
+                 (DiagTreeSlide slide) <- s.slide
+                 idx <- itemIndex
+
+                 DiagTreeSlide <$> slide { resources = _ }
+                               <$> deleteAt idx slide.resources
+
+               -- Updating an existing resource
+               Just (Tuple (Just idx) x) -> do
+                 (DiagTreeSlide slide) <- s.slide
+                 old <- slide.resources !! idx
+
+                 let newResource =
+                       { text       : x.text
+                       , attachment : maybe old.attachment Modern x.file
+                       }
+
+                 DiagTreeSlide <$> slide { resources = _ }
+                               <$> updateAt idx newResource slide.resources
+
+               -- Adding a new resources
+               Just (Tuple Nothing x) -> do
+                 (DiagTreeSlide slide) <- s.slide
+
+                 newResource <-
+                   x.file <#> Modern <#> { text: x.text, attachment: _ }
+
+                 pure $ DiagTreeSlide
+                      $ slide { resources = _ }
+                      $ slide.resources `snoc` newResource
+      in
+        s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
+
+    -- Adding new answer
+    updateAnswerHandler this Nothing (Just answer) =
+      transformState this $ \s -> s
+        { isChanged = true
+
+        , newAnswers = s.newAnswers `snoc`
+            { header     : answer.header
+            , text       : answer.text
+            , attachment : Modern <$> answer.attachment
+            }
+        }
+
+    -- Deleting existing answer
+    updateAnswerHandler this (Just (Left nextSlideId)) Nothing =
       transformState this $ \s ->
         let
-          newSlide =
-            case resource <#> Tuple itemIndex of
-                 -- `Nothing` means deleting a resource
-                 Nothing -> do
-                   (DiagTreeSlide slide) <- s.slide
-                   idx <- itemIndex
+          f (DiagTreeSlide slide) = DiagTreeSlide $
+            slide { answers = nextSlideId `Map.delete` slide.answers }
 
-                   DiagTreeSlide <$> slide { resources = _ }
-                                 <$> deleteAt idx slide.resources
-
-                 -- Updating an existing resource
-                 Just (Tuple (Just idx) x) -> do
-                   (DiagTreeSlide slide) <- s.slide
-                   old <- slide.resources !! idx
-
-                   let newResource =
-                         { text       : x.text
-                         , attachment : maybe old.attachment Modern x.file
-                         }
-
-                   DiagTreeSlide <$> slide { resources = _ }
-                                 <$> updateAt idx newResource slide.resources
-
-                 -- Adding a new resources
-                 Just (Tuple Nothing x) -> do
-                   (DiagTreeSlide slide) <- s.slide
-
-                   newResource <-
-                     x.file <#> Modern <#> { text: x.text, attachment: _ }
-
-                   pure $ DiagTreeSlide
-                        $ slide { resources = _ }
-                        $ slide.resources `snoc` newResource
+          newSlide = s.slide <#> f
         in
-          s { slide     = newSlide <|> s.slide
-            , isChanged = isJust newSlide
+          s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
+
+    -- Updating existing answer
+    updateAnswerHandler this (Just (Left nextSlideId)) (Just answer) =
+      transformState this $ \s ->
+        let
+          updater = Just <<< _
+            { header     = answer.header
+            , text       = answer.text
+            , attachment = Modern <$> answer.attachment
             }
+
+          f (DiagTreeSlide slide) = DiagTreeSlide $
+            slide { answers = Map.update updater nextSlideId slide.answers }
+
+          newSlide = s.slide <#> f
+        in
+          s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
+
+    -- Deleting new added answer
+    updateAnswerHandler this (Just (Right itemIndex)) Nothing =
+      transformState this $ \s ->
+        case itemIndex `deleteAt` s.newAnswers of
+             Nothing -> s
+             Just x  -> s { isChanged = true, newAnswers = x }
+
+    -- Updating new added answer
+    updateAnswerHandler this (Just (Right itemIndex)) (Just answer) =
+      transformState this $ \s ->
+        let
+          updater = _
+            { header     = answer.header
+            , text       = answer.text
+            , attachment = Modern <$> answer.attachment
+            }
+        in
+          case modifyAt itemIndex updater s.newAnswers of
+               Nothing -> s
+               Just x  -> s { isChanged = true, newAnswers = x }
+
+    -- Unexpected behavior (may be just better type it?)
+    updateAnswerHandler this Nothing Nothing = pure unit
 
     cancelHandler this event = do
       { slide } <- getProps this
@@ -432,7 +538,8 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       preventDefault event
 
     resetChanges this slide =
-      transformState this _ { slide = slide, isChanged = false }
+      transformState this _
+        { slide = slide, newAnswers = [], isChanged = false }
 
     fetchSlide this state props = do
       (DiagTreeSlide prevSlide) <- toMaybeT state.slide
@@ -452,10 +559,15 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       { slide } <- getProps this
 
       pure { slide
+
+           , newAnswers: [] -- It hasn't `nextSlide` yet,
+                            -- that's why it's separated.
+
            , isChanged      : false
            , onChangeHeader : changeHeaderHandler   this
            , onChangeBody   : changeBodyHandler     this
            , updateResource : updateResourceHandler this
+           , updateAnswer   : updateAnswerHandler   this
            , onSelectAction : selectActionHandler   this
            , onCancel       : cancelHandler         this
            , onSave         : saveHandler           this
