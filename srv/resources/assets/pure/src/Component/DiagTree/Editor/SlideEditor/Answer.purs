@@ -68,12 +68,20 @@ type Props eff =
       :: Maybe (Either DiagTreeSlideId Int)
          -- ^ Item identity (`Nothing` to add new answer)
 
-      -> Maybe { header     :: String
-               , text       :: String
+      -> Maybe { header :: String
+               , text   :: String
+
                , attachment :: Maybe { id       :: Int
                                      , hash     :: String
                                      , filename :: String
                                      }
+
+               , isAttachmentDeleted :: Boolean
+                 -- ^ Makes sense only for legacy `file` field.
+                 --   Also it's only for previously created answers, saving
+                 --   legacy type of attachment is not allowed for new answers.
+                 --   TODO FIXME Remove this flag after removing
+                 --              deprecated `file` field.
                }
          -- ^ `Nothing` means to delete an answer
 
@@ -263,8 +271,11 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
       let x = eventInputValue event
       transformState this _ { text = x, isChanged = true }
 
-    deleteAttachmentHandler this _ = guardConfirmed $ do
-      transformState this _ { isAttachmentDeleted = true, isChanged = true }
+    deleteAttachmentHandler this _ = guardConfirmed $ transformState this _
+      { attachment = Nothing
+      , isAttachmentDeleted = true
+      , isChanged = true
+      }
 
       where
         guardConfirmed m = do
@@ -309,6 +320,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                 { header: state.header
                 , text: state.text
                 , attachment: state.attachment
+                , isAttachmentDeleted: state.isAttachmentDeleted
                 }
 
     deleteHandler this _ = do

@@ -8,6 +8,7 @@ import Control.Monad.Aff (launchAff_)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.MonadZero (guard)
 import Control.Alt ((<|>))
 
 import Data.Tuple (Tuple (Tuple), snd)
@@ -60,7 +61,7 @@ import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlideId
      , DiagTreeSlideResource
-     , DiagTreeSlideAttachment (Modern)
+     , DiagTreeSlideAttachment (..)
      , DiagTreeSlideAction
      , DiagTreeSlideAnswer
      )
@@ -77,27 +78,28 @@ import Component.DiagTree.Editor.SlideEditor.Answer
 resourcesRender
   :: forall f eff
    . Foldable f
-  => ReactClass { appContext :: AppContext
-                , slideId    :: DiagTreeSlideId
-                , isDisabled :: Boolean
-                , resources  :: f DiagTreeSlideResource
+  => ReactClass
+       { appContext :: AppContext
+       , slideId    :: DiagTreeSlideId
+       , isDisabled :: Boolean
+       , resources  :: f DiagTreeSlideResource
 
-                , updateResource -- See item component for details
-                    :: Maybe Int
+       , updateResource -- See item component for details
+           :: Maybe Int
 
-                    -> Maybe { text :: String
-                             , file :: Maybe { id       :: Int
-                                             , hash     :: String
-                                             , filename :: String
-                                             }
-                             }
+           -> Maybe { text :: String
+                    , file :: Maybe { id       :: Int
+                                    , hash     :: String
+                                    , filename :: String
+                                    }
+                    }
 
-                    -> Eff ( props :: ReactProps
-                           , state :: ReactState ReadWrite
-                           , refs  :: ReactRefs  ReadOnly
-                           | eff
-                           ) Unit
-                }
+           -> Eff ( props :: ReactProps
+                  , state :: ReactState ReadWrite
+                  , refs  :: ReactRefs  ReadOnly
+                  | eff
+                  ) Unit
+       }
 
 resourcesRender = createClass $ spec $
   \ { appContext, slideId, isDisabled, resources, updateResource }
@@ -173,33 +175,37 @@ answersRender
   :: forall f f2 eff
    . Foldable f
   => Foldable f2
-  => ReactClass { appContext :: AppContext
-                , slideId    :: DiagTreeSlideId
-                , isDisabled :: Boolean
-                , answers    :: f DiagTreeSlideAnswer
+  => ReactClass
+       { appContext :: AppContext
+       , slideId    :: DiagTreeSlideId
+       , isDisabled :: Boolean
+       , answers    :: f DiagTreeSlideAnswer
 
-                , newAnswers :: f2 { header     :: String
-                                   , text       :: String
-                                   , attachment :: Maybe DiagTreeSlideAttachment
-                                   }
+       , newAnswers :: f2 { header     :: String
+                          , text       :: String
+                          , attachment :: Maybe DiagTreeSlideAttachment
+                          }
 
-                , updateAnswer -- See item component for details
-                    :: Maybe (Either DiagTreeSlideId Int)
+       , updateAnswer -- See answer item component for details
+           :: Maybe (Either DiagTreeSlideId Int)
 
-                    -> Maybe { header     :: String
-                             , text       :: String
-                             , attachment :: Maybe { id       :: Int
-                                                   , hash     :: String
-                                                   , filename :: String
-                                                   }
-                             }
+           -> Maybe { header :: String
+                    , text   :: String
 
-                    -> Eff ( props :: ReactProps
-                           , state :: ReactState ReadWrite
-                           , refs  :: ReactRefs  ReadOnly
-                           | eff
-                           ) Unit
-                }
+                    , attachment :: Maybe { id       :: Int
+                                          , hash     :: String
+                                          , filename :: String
+                                          }
+
+                    , isAttachmentDeleted :: Boolean
+                    }
+
+           -> Eff ( props :: ReactProps
+                  , state :: ReactState ReadWrite
+                  , refs  :: ReactRefs  ReadOnly
+                  | eff
+                  ) Unit
+       }
 
 answersRender = createClass $ spec $
   \ { appContext, slideId, isDisabled, answers, newAnswers, updateAnswer }
@@ -410,8 +416,6 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
            ! onClick onSave
            $ text "Сохранить"
 
-    -- TODO save message here
-
   where
     name = "DiagTreeEditorSlideEditor"
     classSfx s = name <> "--" <> s
@@ -508,8 +512,17 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
           updater = Just <<< _
             { header     = answer.header
             , text       = answer.text
-            , attachment = Modern <$> answer.attachment
+            , attachment = (Modern <$> answer.attachment) <|> legacyAttachment
             }
+
+          legacyAttachment = do
+            guard $ not answer.isAttachmentDeleted
+            (DiagTreeSlide slide) <- s.slide
+            foundAnswer <- nextSlideId `Map.lookup` slide.answers
+
+            case foundAnswer.attachment of
+                 x@(Just (Legacy _)) -> x
+                 _ -> Nothing
 
           f (DiagTreeSlide slide) = DiagTreeSlide $
             slide { answers = Map.update updater nextSlideId slide.answers }
