@@ -1,5 +1,6 @@
 module App.Store.DiagTree.Editor.Handlers.SharedUtils.Slide
      ( getSlide
+     , extractPartialBackendSlideFromSlide
      ) where
 
 import Prelude hiding (id)
@@ -10,18 +11,24 @@ import Control.Monad.Maybe.Trans (MaybeT)
 import Control.MonadZero (guard)
 import Control.Alt ((<|>))
 
-import Data.Maybe (Maybe (..), isJust, isNothing)
+import Data.Maybe (Maybe (..), maybe, isJust, isNothing)
 import Data.JSDate (LOCALE, parse, toDateTime)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Foldable (foldM)
-import Data.Array (length, head, snoc)
+import Data.Array (length, head, snoc, fromFoldable)
 
 import Utils (toMaybeT)
-import Utils.DiagTree.Editor (diagTreeSlideActionFromBackend)
+
+import Utils.DiagTree.Editor
+     ( diagTreeSlideActionFromBackend
+     , diagTreeSlideActionToBackend
+     )
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendSlide
      ( BackendSlide
+     , PartialBackendSlide
+     , defaultPartialBackendSlide
      )
 
 import App.Store.DiagTree.Editor.Types
@@ -83,3 +90,45 @@ getSlide flatSlides slideId = do
           x = { nextSlide: slide, header, text, attachment: a }
 
       pure $ Map.insert nextSlide x acc
+
+
+extractPartialBackendSlideFromSlide :: DiagTreeSlide -> PartialBackendSlide
+extractPartialBackendSlideFromSlide slide@(DiagTreeSlide s) =
+  defaultPartialBackendSlide
+    { header = Just s.header
+    , body   = Just s.body
+
+    , resources = Just $ s.resources <#> \x ->
+        { text: x.text
+
+        , attachment:
+            case x.attachment of
+                 Modern y -> Just y
+                 _ -> Nothing
+
+        , file:
+            case x.attachment of
+                 Legacy y -> Just y
+                 _ -> Nothing
+        }
+
+    , actions = Just $
+        maybe [] (\x -> [diagTreeSlideActionToBackend x]) s.action
+
+    , answers = Just $ fromFoldable $
+        s.answers <#> \x@{ nextSlide: (DiagTreeSlide nextS) } ->
+          { nextSlide: nextS.id
+          , header: x.header
+          , text: x.text
+
+          , attachment:
+              case x.attachment of
+                   Just (Modern y) -> Just y
+                   _ -> Nothing
+
+          , file:
+              case x.attachment of
+                   Just (Legacy y) -> Just y
+                   _ -> Nothing
+          }
+    }

@@ -21,7 +21,7 @@ import Data.Nullable (toNullable)
 
 import React.DOM (form, div) as R
 import React.Spaces ((!), (!.), (^), renderIn, text, empty, elements)
-import React.Spaces.DOM (div, input, button, textarea, label, i)
+import React.Spaces.DOM (div, input, button, textarea, label, i, p, span)
 import React.Spaces.DOM.Dynamic (ul) as SDyn
 
 import React.DOM.Props
@@ -329,10 +329,11 @@ diagTreeEditorSlideEditorRender
        , slide        :: Maybe DiagTreeSlide
        , slidePath    :: Maybe (Array DiagTreeSlideId)
        , isProcessing :: Boolean
+       , isFailed     :: Boolean
        }
 
 diagTreeEditorSlideEditorRender = createClass $ spec $
-  \ { appContext, isProcessing }
+  \ { appContext, isProcessing, isFailed }
     { slide: (DiagTreeSlide slide)
     , newAnswers
     , isChanged
@@ -344,6 +345,12 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     , onCancel
     , onSave
     } -> do
+
+  if not isFailed
+     then pure unit
+     else div $ p $ do
+            span !. "label label-danger" $ text "Ошибка"
+            text " Произошла ошибка при сохранении изменений."
 
   div !. "form-group" $
     input !. "form-control" <.> classSfx "header"
@@ -618,4 +625,6 @@ diagTreeEditorSlideEditor = storeConnect f diagTreeEditorSlideEditorRender
       -- processing is done, so we check processing only of slide editing
       -- actions.
       , isProcessing: branch.slideSaving.isProcessing
+
+      , isFailed: branch.slideSaving.isFailed
       }
