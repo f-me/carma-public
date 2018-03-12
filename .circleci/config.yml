@@ -20,11 +20,17 @@ jobs:
       - run:
           name: Build CaRMa frontend
           command: |
-            (cd srv && npm run prod-release)
+            cd srv
+            npm install
+            npm run prod-build
+            npm run build-backend-templates
       - run:
           name: Build CaRMa frontend ("pure" part)
           command: |
-            (cd srv/resources/assets/pure && npm run prod-release)
+            cd srv/resources/assets/pure
+            npm install
+            npm run bower -- install --allow-root
+            npm run prod-clean-build
       - persist_to_workspace:
           root: .
           paths:
