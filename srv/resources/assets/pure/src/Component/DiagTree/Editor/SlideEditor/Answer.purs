@@ -9,6 +9,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Aff (launchAff_)
+import Control.MonadZero (guard)
 
 import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
 import Data.Either (Either (..), isRight)
@@ -34,9 +35,10 @@ import React
      )
 
 import Utils ((<.>), eventInputValue)
-import Component.Generic.Spinner (spinner)
-import Bindings.ReactDropzone (dropzone, handle2)
 import App.Store (AppContext)
+import Bindings.ReactDropzone (dropzone, handle2)
+import Component.Generic.Spinner (spinner)
+import Component.DiagTree.Editor.SlideEditor.Helpers (ItemModification (..))
 
 import Utils.DiagTree.Editor
      ( getDiagTreeSlideAttachmentPath
@@ -48,6 +50,10 @@ import Utils.DiagTree.Editor
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlideId
      , DiagTreeSlideAttachment (..)
+     )
+
+import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
+     ( BackendAttachment
      )
 
 
@@ -65,25 +71,18 @@ type Props eff =
                }
 
   , updateAnswer
-      :: Maybe (Either DiagTreeSlideId Int)
-         -- ^ Item identity (`Nothing` to add new answer)
+      :: ItemModification (Either DiagTreeSlideId Int)
+           { header     :: String
+           , text       :: String
+           , attachment :: Maybe BackendAttachment
 
-      -> Maybe { header :: String
-               , text   :: String
-
-               , attachment :: Maybe { id       :: Int
-                                     , hash     :: String
-                                     , filename :: String
-                                     }
-
-               , isAttachmentDeleted :: Boolean
-                 -- ^ Makes sense only for legacy `file` field.
-                 --   Also it's only for previously created answers, saving
-                 --   legacy type of attachment is not allowed for new answers.
-                 --   TODO FIXME Remove this flag after removing
-                 --              deprecated `file` field.
-               }
-         -- ^ `Nothing` means to delete an answer
+           , isAttachmentDeleted :: Boolean
+             -- ^ Makes sense only for legacy `file` field.
+             --   Also it's only for previously created answers, saving
+             --   legacy type of attachment is not allowed for new answers.
+             --   TODO FIXME Remove this flag after removing
+             --              deprecated `file` field.
+           }
 
       -> Eff ( props :: ReactProps
              , state :: ReactState ReadWrite
@@ -312,28 +311,39 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
 
     saveHandler this _ = do
       state@{ isChanged } <- readState this
-      { answer, updateAnswer, identity } <- getProps this
+      { isDisabled, answer, updateAnswer, identity } <- getProps this
 
-      if not isChanged
-         then pure unit
-         else updateAnswer (answer *> identity) $ Just
-                { header: state.header
-                , text: state.text
-                , attachment: state.attachment
-                , isAttachmentDeleted: state.isAttachmentDeleted
-                }
+      let existing = answer *> (Left <$> identity)
+          new = Just $ Right unit
+
+          value = { header: state.header
+                  , text: state.text
+                  , attachment: state.attachment
+                  , isAttachmentDeleted: state.isAttachmentDeleted
+                  }
+
+          able = do guard $ not isDisabled
+                    guard isChanged
+                    guard $ not $ null state.header
+
+      case able *> (existing <|> new) of
+           Just (Left ident) -> updateAnswer $ ChangeItem ident value
+           Just (Right _)    -> updateAnswer $ NewItem value
+           Nothing           -> pure unit
 
     deleteHandler this _ = do
-      { updateAnswer, identity } <- getProps this
+      { isDisabled, updateAnswer, identity } <- getProps this
 
       isConfirmed <-
         DOM.window >>= DOM.confirm "Вы действительно хотите удалить ответ?"
 
-      if not isConfirmed || isNothing identity
-         then pure unit
-         else -- Coercing to not infect parent handler
-              -- with DOM and CONFIRM effects.
-              unsafeCoerceEff $ updateAnswer identity Nothing
+      case guard (not isDisabled) *> guard isConfirmed *> identity of
+           Just ident ->
+             -- Coercing to not infect parent handler
+             -- with DOM and CONFIRM effects.
+             unsafeCoerceEff $ updateAnswer $ DeleteItem ident
+
+           _ -> pure unit
 
     buildIntervalValues answer =
       { header     : fromMaybe "" $ answer <#> _.header

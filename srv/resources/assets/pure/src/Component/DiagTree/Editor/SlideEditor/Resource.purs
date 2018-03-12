@@ -9,6 +9,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Aff (launchAff_)
+import Control.MonadZero (guard)
 
 import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
 import Data.Either (Either (..))
@@ -34,8 +35,9 @@ import React
 
 import Utils ((<.>), eventInputValue)
 import App.Store (AppContext)
-import Component.Generic.Spinner (spinner)
 import Bindings.ReactDropzone (dropzone, handle2)
+import Component.Generic.Spinner (spinner)
+import Component.DiagTree.Editor.SlideEditor.Helpers (ItemModification (..))
 
 import Utils.DiagTree.Editor
      ( getDiagTreeSlideAttachmentPath
@@ -51,6 +53,10 @@ import App.Store.DiagTree.Editor.Types
      , DiagTreeSlideAttachment (..)
      )
 
+import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
+     ( BackendAttachment
+     )
+
 
 type Props eff =
   { appContext :: AppContext
@@ -63,15 +69,10 @@ type Props eff =
     -- ^ When resource is `Nothing` is means adding new one
 
   , updateResource
-      :: Maybe Int -- ^ Item index (`Nothing` to add new resource)
-
-      -> Maybe { text :: String
-               , file :: Maybe { id       :: Int
-                               , hash     :: String
-                               , filename :: String
-                               }
-               }
-         -- ^ `Nothing` means to delete a resource
+      :: ItemModification Int
+           { text :: String
+           , file :: Maybe BackendAttachment
+           }
 
       -> Eff ( props :: ReactProps
              , state :: ReactState ReadWrite
@@ -224,24 +225,30 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
     saveHandler this _ = do
       state@{ isChanged } <- readState this
-      { resource, updateResource, itemIndex } <- getProps this
+      { isDisabled, resource, updateResource, itemIndex } <- getProps this
 
-      if not isChanged && not (isNothing resource && isNothing state.file)
-         then pure unit
-         else updateResource (resource *> itemIndex) $
-                Just { text: state.text, file: state.file }
+      let existing = resource *> (Left <$> itemIndex)
+          new = Right <$> state.file -- To create new one `file` must be set
+          value = { text: state.text, file: state.file }
+
+      case guard (not isDisabled) *> guard isChanged *> (existing <|> new) of
+           Just (Left idx) -> updateResource $ ChangeItem idx value
+           Just (Right _)  -> updateResource $ NewItem value
+           Nothing         -> pure unit
 
     deleteHandler this _ = do
-      { updateResource, itemIndex } <- getProps this
+      { isDisabled, updateResource, itemIndex } <- getProps this
 
       isConfirmed <-
         DOM.window >>= DOM.confirm "Вы действительно хотите удалить картинку?"
 
-      if not isConfirmed || isNothing itemIndex
-         then pure unit
-         else -- Coercing to not infect parent handler
-              -- with DOM and CONFIRM effects.
-              unsafeCoerceEff $ updateResource itemIndex Nothing
+      case guard (not isDisabled) *> guard isConfirmed *> itemIndex of
+           Just idx ->
+             -- Coercing to not infect parent handler
+             -- with DOM and CONFIRM effects.
+             unsafeCoerceEff $ updateResource $ DeleteItem idx
+
+           _ -> pure unit
 
     changeTextHandler this event = do
       let newText = eventInputValue event
