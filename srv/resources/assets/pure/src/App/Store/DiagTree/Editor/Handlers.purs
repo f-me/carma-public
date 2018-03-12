@@ -19,6 +19,7 @@ import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction (..))
 import App.Store.DiagTree.Editor.Handlers.NewSlide (newSlide)
 import App.Store.DiagTree.Editor.Handlers.LoadSlides (loadSlides)
 import App.Store.DiagTree.Editor.Handlers.DeleteSlide (deleteSlide)
+import App.Store.DiagTree.Editor.Handlers.SaveSlide (saveSlide)
 
 
 diagTreeEditorHandler
@@ -52,6 +53,11 @@ diagTreeEditorHandler appCtx prevState nextState action = case action of
        else let state = fromMaybe prevState nextState
              in deleteSlide appCtx state.slides slidePath
 
+  SaveSlideRequest slidePath { slide, newAnswers } ->
+    if isProcessing
+       then ignore
+       else saveSlide appCtx slidePath slide newAnswers
+
   _ -> ignore
 
   where
@@ -61,3 +67,4 @@ diagTreeEditorHandler appCtx prevState nextState action = case action of
        = prevState.isSlidesLoading
       || prevState.newSlide.isProcessing
       || prevState.slideDeleting.isProcessing
+      || prevState.slideSaving.isProcessing

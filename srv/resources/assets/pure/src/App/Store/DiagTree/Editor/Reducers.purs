@@ -80,6 +80,12 @@ type DiagTreeEditorState =
       :: { isProcessing :: Boolean
          , isFailed     :: Boolean
          }
+
+  , slideSaving
+      :: { isProcessing :: Boolean
+         , isFailed     :: Boolean
+         , branch       :: Maybe (Array DiagTreeSlideId)
+         }
   }
 
 diagTreeEditorInitialState :: DiagTreeEditorState
@@ -105,6 +111,12 @@ diagTreeEditorInitialState =
       { isProcessing : false
       , isFailed     : false
       }
+
+  , slideSaving:
+      { isProcessing : false
+      , isFailed     : false
+      , branch       : Nothing
+      }
   }
 
 
@@ -113,7 +125,7 @@ diagTreeEditorReducer
 
 
 diagTreeEditorReducer state LoadSlidesRequest = do
-  guard $ not state.isSlidesLoading
+  guard $ not $ isAnyProcessing state
 
   Just state { slides                    = (Map.empty :: DiagTreeSlides)
 
@@ -158,7 +170,7 @@ diagTreeEditorReducer _ (SelectSlide []) = Nothing
 diagTreeEditorReducer _ (DeleteSlideRequest []) = Nothing
 
 diagTreeEditorReducer state (DeleteSlideRequest slidePath) = do
-  guard $ not state.slideDeleting.isProcessing
+  guard $ not $ isAnyProcessing state
 
   Just state { slideDeleting
                  { isProcessing = true
@@ -188,7 +200,7 @@ diagTreeEditorReducer state (DeleteSlideFailure slidePath) = do
 
 
 diagTreeEditorReducer state NewSlideRequest = do
-  guard $ not state.newSlide.isProcessing
+  guard $ not $ isAnyProcessing state
   Just state { newSlide { isProcessing = true, isFailed = false } }
 
 diagTreeEditorReducer state (NewSlideSuccess slide@(DiagTreeSlide x)) =
@@ -250,3 +262,36 @@ diagTreeEditorReducer state (TreeSearch subAction) =
                  then matches
                  else matches `snoc`
                         Tuple parents { id: slide.id, answer, question }
+
+
+diagTreeEditorReducer state (SaveSlideRequest slidePath _) = do
+  guard $ not $ isAnyProcessing state
+
+  Just state { slideSaving
+                 { isProcessing = true
+                 , isFailed     = false
+                 , branch       = Just slidePath
+                 }
+             }
+
+diagTreeEditorReducer state (SaveSlideSuccess slidePath) = do
+  guard =<< map (_ == slidePath) state.slideSaving.branch
+
+  Just state { slideSaving
+                 { isProcessing = false
+                 , isFailed     = false
+                 , branch       = Nothing
+                 }
+             }
+
+diagTreeEditorReducer state (SaveSlideFailure slidePath) = do
+  guard =<< map (_ == slidePath) state.slideSaving.branch
+  Just state { slideSaving { isProcessing = false, isFailed = true } }
+
+
+isAnyProcessing :: DiagTreeEditorState -> Boolean
+isAnyProcessing x
+   = x.isSlidesLoading
+  || x.newSlide.isProcessing
+  || x.slideDeleting.isProcessing
+  || x.slideSaving.isProcessing

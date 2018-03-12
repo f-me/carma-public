@@ -4,6 +4,7 @@ module Component.DiagTree.Editor.SlideEditor
 
 import Prelude hiding (div)
 
+import Control.Monad.Aff (launchAff_)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Maybe.Trans (runMaybeT)
@@ -32,7 +33,6 @@ import React
      ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
      , createClass, spec', createElement
      , getProps, readState, transformState
-     , preventDefault
      )
 
 import Utils
@@ -47,8 +47,14 @@ import Utils.DiagTree.Editor
      , eqIshDiagTreeSlideAnswers
      )
 
-import App.Store (AppContext)
 import Component.Generic.DropDownSelect (OnSelectedEff, dropDownSelect)
+import App.Store (AppContext, dispatch)
+import App.Store.Actions (AppAction (DiagTree))
+import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
+
+import App.Store.DiagTree.Editor.Actions
+     ( DiagTreeEditorAction (SaveSlideRequest)
+     )
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
@@ -321,6 +327,7 @@ diagTreeEditorSlideEditorRender
   :: ReactClass
        { appContext   :: AppContext
        , slide        :: Maybe DiagTreeSlide
+       , slidePath    :: Maybe (Array DiagTreeSlideId)
        , isProcessing :: Boolean
        }
 
@@ -531,11 +538,16 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     cancelHandler this event = do
       { slide } <- getProps this
       resetChanges this slide
-      preventDefault event
 
     saveHandler this event = do
-      -- TODO
-      preventDefault event
+      { appContext, slidePath } <- getProps this
+      { slide, newAnswers } <- readState this
+
+      case Tuple <$> slidePath <*> slide of
+           Nothing -> pure unit
+           Just (Tuple x y) -> launchAff_ $
+             dispatch appContext $ DiagTree $ Editor $
+               SaveSlideRequest x { slide: y, newAnswers }
 
     resetChanges this slide =
       transformState this _
@@ -600,8 +612,10 @@ diagTreeEditorSlideEditor = storeConnect f diagTreeEditorSlideEditorRender
       { slide:
           branch.selectedSlideBranch >>= getSlideByBranch branch.slides
 
+      , slidePath: branch.selectedSlideBranch
+
       -- This component supposed to be rendered only when any upper editor
       -- processing is done, so we check processing only of slide editing
       -- actions.
-      , isProcessing: false
+      , isProcessing: branch.slideSaving.isProcessing
       }
