@@ -305,7 +305,7 @@ actionRender = createClassStatelessWithName name $
 
   label !. "control-label" $ text "Рекомендация"
 
-  dropDownSelect ^
+  div $ dropDownSelect ^
     { appContext
     , isDisabled
     , variants
