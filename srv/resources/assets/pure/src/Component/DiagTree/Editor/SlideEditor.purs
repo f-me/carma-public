@@ -12,7 +12,7 @@ import Control.MonadZero (guard)
 import Control.Alt ((<|>))
 
 import Data.Tuple (Tuple (Tuple), snd)
-import Data.Array ((!!), snoc, updateAt, modifyAt, deleteAt)
+import Data.Array ((!!), snoc, updateAt, modifyAt, deleteAt, null)
 import Data.Foldable (class Foldable, foldl)
 import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..), isJust, maybe)
@@ -380,8 +380,12 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     , updateResource
     }
 
+  let hasAction  = isJust slide.action
+      hasAnswers = not $ Map.isEmpty slide.answers && null newAnswers
+      hasBoth    = hasAction && hasAnswers
+
   -- Rendering "answers" only if "action" is not set
-  if isJust slide.action
+  if hasAction && not hasBoth
      then empty
      else answersRender ^ { appContext
                           , slideId: slide.id
@@ -392,13 +396,20 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
                           }
 
   -- Rendering "action" only if "answers" is empty
-  if not $ Map.isEmpty slide.answers
+  if hasAnswers && not hasBoth
      then empty
      else actionRender ^ { appContext
                          , isDisabled: isProcessing
                          , action: slide.action
                          , onSelected: onSelectAction
                          }
+
+  if not hasBoth
+     then pure unit
+     else div $ p $ do
+            span !. "label label-danger" $ text "Ошибка"
+            text " Одновременно заданы «рекомендация» и «ответы»\
+                 \ (необходимо оставить либо «рекомендацию», либо «ответы»)."
 
   div !. "btn-toolbar" $ do
 
@@ -412,7 +423,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
     button !. "btn btn-success"
            ! _type "button"
-           ! disabled isBlocked
+           ! disabled (isBlocked || hasBoth)
            ! onClick onSave
            $ text "Сохранить"
 
