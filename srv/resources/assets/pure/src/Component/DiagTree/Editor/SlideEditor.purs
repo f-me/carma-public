@@ -22,7 +22,7 @@ import Data.Nullable (toNullable)
 
 import React.DOM (form, div) as R
 import React.Spaces ((!), (!.), (^), renderIn, text, empty, elements)
-import React.Spaces.DOM (div, input, button, textarea, label, i, p, span)
+import React.Spaces.DOM (div, input, button, label, i, p, span)
 import React.Spaces.DOM.Dynamic (ul) as SDyn
 
 import React.DOM.Props
@@ -34,6 +34,7 @@ import React
      ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
      , createClass, spec', createElement
      , getProps, readState, transformState
+     , handle
      )
 
 import Utils
@@ -53,6 +54,16 @@ import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
 import Component.DiagTree.Editor.SlideEditor.Helpers (ItemModification (..))
+
+import Bindings.ReactRichTextEditor
+     ( RTE
+     , EditorValue
+     , EditorValueFormat (Markdown)
+     , createValueFromString
+     , richTextEditor
+     , richTextEditorDefaultProps
+     , valueToString
+     )
 
 import App.Store.DiagTree.Editor.Actions
      ( DiagTreeEditorAction (SaveSlideRequest)
@@ -336,6 +347,7 @@ diagTreeEditorSlideEditorRender
 diagTreeEditorSlideEditorRender = createClass $ spec $
   \ { appContext, isProcessing, isFailed }
     { slide: (DiagTreeSlide slide)
+    , rteSlideBody
     , newAnswers
     , isChanged
     , onChangeHeader
@@ -357,15 +369,16 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     input !. "form-control" <.> classSfx "header"
           ! _type "text"
           ! placeholder "Заголовок"
+          ! disabled isProcessing
           ! value slide.header
           ! onChange onChangeHeader
 
   div !. "form-group" $
-    -- TODO write bindings to RichTextEditor (react-rte) and use it here
-    textarea !. "form-control"
-             ! placeholder "Описание"
-             ! value slide.body
-             ! onChange onChangeBody
+    richTextEditor ^ (richTextEditorDefaultProps rteSlideBody)
+      { placeholder = toNullable $ Just "Описание"
+      , disabled    = toNullable $ Just isProcessing
+      , onChange    = toNullable $ Just $ handle onChangeBody
+      }
 
   resourcesRender ^
     { appContext
@@ -434,21 +447,24 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       transformState this $
         \s -> s { slide = s.slide <#> updater x, isChanged = true }
 
-      where updater x (DiagTreeSlide s) = DiagTreeSlide $ s { header = x }
+      where updater x (DiagTreeSlide s) = DiagTreeSlide s { header = x }
 
-    changeBodyHandler this event = do
-      let x = eventInputValue event
+    changeBodyHandler this value = do
+      let x = valueToString value Markdown
 
-      transformState this $
-        \s -> s { slide = s.slide <#> updater x, isChanged = true }
+      transformState this $ \s -> s
+        { slide = s.slide <#> updater x
+        , rteSlideBody = value
+        , isChanged = true
+        }
 
-      where updater x (DiagTreeSlide s) = DiagTreeSlide $ s { body = x }
+      where updater x (DiagTreeSlide s) = DiagTreeSlide s { body = x }
 
     selectActionHandler this action =
       transformState this $
         \s -> s { slide = s.slide <#> updater, isChanged = true }
 
-      where updater (DiagTreeSlide s) = DiagTreeSlide $ s { action = action }
+      where updater (DiagTreeSlide s) = DiagTreeSlide s { action = action }
 
     updateResourceHandler this (NewItem resource) =
       transformState this $ \s ->
@@ -510,7 +526,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     updateAnswerHandler this (DeleteItem (Left nextSlideId)) =
       transformState this $ \s ->
         let
-          f (DiagTreeSlide slide) = DiagTreeSlide $
+          f (DiagTreeSlide slide) = DiagTreeSlide
             slide { answers = nextSlideId `Map.delete` slide.answers }
 
           newSlide = s.slide <#> f
@@ -536,7 +552,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
                  x@(Just (Legacy _)) -> x
                  _ -> Nothing
 
-          f (DiagTreeSlide slide) = DiagTreeSlide $
+          f (DiagTreeSlide slide) = DiagTreeSlide
             slide { answers = Map.update updater nextSlideId slide.answers }
 
           newSlide = s.slide <#> f
@@ -578,9 +594,15 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
              dispatch appContext $ DiagTree $ Editor $
                SaveSlideRequest x { slide: y, newAnswers }
 
-    resetChanges this slide =
+    resetChanges this slide = do
+      rteSlideBody <- buildRteSlideBody slide
+
       transformState this _
-        { slide = slide, newAnswers = [], isChanged = false }
+        { slide        = slide
+        , rteSlideBody = rteSlideBody
+        , newAnswers   = []
+        , isChanged    = false
+        }
 
     fetchSlide this state props = do
       (DiagTreeSlide prevSlide) <- toMaybeT state.slide
@@ -596,10 +618,18 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
          then toMaybeT $ pure unit
          else liftEff $ resetChanges this props.slide
 
+    buildRteSlideBody
+      :: forall eff. Maybe DiagTreeSlide -> Eff (rte :: RTE | eff) EditorValue
+    buildRteSlideBody slide =
+      let f = maybe "" (\(DiagTreeSlide x) -> x.body) slide
+       in createValueFromString f Markdown
+
     getInitialState this = do
       { slide } <- getProps this
+      rteSlideBody <- buildRteSlideBody slide
 
       pure { slide
+           , rteSlideBody
 
            , newAnswers: [] -- It hasn't `nextSlide` yet,
                             -- that's why it's separated.

@@ -27,6 +27,8 @@ module.exports = {
     vendor: [
       'react',
       'react-dom',
+      'react-rte',
+      'react-dropzone',
       'create-react-class',
       'rxjs',
     ],

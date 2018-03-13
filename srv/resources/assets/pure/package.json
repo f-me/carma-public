@@ -50,6 +50,7 @@
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-dropzone": "^4.2.9",
+    "react-rte": "^0.16.1",
     "rxjs": "^5.5.6"
   }
 }
