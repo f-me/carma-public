@@ -16,6 +16,7 @@ require "blueimp-md5"
 
 require "underscore"
 require "mustache"
+require "markdown"
 require "knockout"
 require "finch"
 

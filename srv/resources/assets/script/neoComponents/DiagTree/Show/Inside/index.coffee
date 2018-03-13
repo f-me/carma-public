@@ -1,4 +1,4 @@
-{ko, Immutable: {Map, List}} = require "carma/vendor"
+{ko, markdown, Immutable: {Map, List}} = require "carma/vendor"
 {backgrounds} = require "./precompiled"
 {store} = require "carma/neoComponents/store"
 
@@ -54,7 +54,8 @@ class DiagTreeShowInsideViewModel
     @slideAnswers    = ko.pureComputed => @slide().get("answers").toArray()
     @slideAnswerIdx  = ko.pureComputed => @slide().get("answerIx")
     @isSlideAnswered = ko.pureComputed => @slideAnswerIdx() isnt null
-    @slideBody       = ko.pureComputed => @slide().get("body").trim()
+    @slideBodyRaw    = ko.pureComputed => @slide().get("body").trim()
+    @slideBody       = ko.pureComputed => markdown.toHTML @slide().get("body")
 
     @isItYesNoAnswer = ko.pureComputed =>
       slide = @slide()

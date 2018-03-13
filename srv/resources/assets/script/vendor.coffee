@@ -15,6 +15,7 @@ md5      = require "blueimp-md5"
 _         = require "underscore"
 Immutable = require "immutable"
 Mustache  = require "mustache"
+markdown  = require("markdown").markdown
 ko        = require "knockout"
 {Finch}   = require "finch"
 
@@ -112,6 +113,7 @@ module.exports = {
   d3
   md5
   moment
+  markdown
 
   Redux
   ReduxThunk

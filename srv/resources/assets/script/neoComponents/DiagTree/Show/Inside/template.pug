@@ -168,7 +168,7 @@ mixin errors
         class=`${pfx}--slide-body`
         data-bind=`
           html: $component.slideBody(),
-          visible: $component.slideBody() !== "",
+          visible: $component.slideBodyRaw() !== "",
         `)
 
       div(data-bind=`
