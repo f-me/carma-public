@@ -60,25 +60,25 @@ class ContractsDict extends m.dict
     # We explicitly pass dictionary object so that it is accessible
     # inside fetchResults (we can store original search response
     # this way to use later after ARC loading finishes)
-    firstFetch = fetchResults(this)
+    firstFetch = fetchResults this
 
     if @needArc
       parentThis = this
-      $.getJSON(arcQuery)
-        .always(() ->
-          parentThis.needArc = false)
-        .done((ar) ->
+      $.getJSON arcQuery
+        .always () ->
+          parentThis.needArc = false
+        .done (ar) ->
           # New contracts? Repeat contract search.
           if ar[0] > 0
             firstFetch.done () ->
               items = parentThis.orig
               items.push inlineSpinner "<div class='inline-spinner'></div>"
               cb items
-              fetchResults(parentThis)
+              fetchResults parentThis
           # Remove trailing spinner
           else
             if parentThis.orig?
-              cb parentThis.orig)
+              cb parentThis.orig
 
   # returns html representation of contract
   contr2html: (c, fs = [], q = "") ->
