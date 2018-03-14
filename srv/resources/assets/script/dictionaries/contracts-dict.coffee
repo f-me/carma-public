@@ -36,8 +36,9 @@ class ContractsDict extends m.dict
         for i in r
           do (i) =>
             # fields which matched search query
-            fields = _.filter(_.keys(i), (f) ->
-              i[f] && String(i[f]).indexOf(q) != -1)
+            fields = _.filter _.keys(i), (f) ->
+              # upper-casing fixes https://github.com/f-me/carma/issues/2910
+              i[f] && String(i[f]).toUpperCase().indexOf(q.toUpperCase()) != -1
             @found.push
               id: i.id
               matched: _.pick(i, fields)
