@@ -128,6 +128,8 @@ sendSMS tplId svcId sendBy sendTo =
           where $(F|CarModel.ident)$ = cs.$(F|Case.car_model)$
         ), ''),
 
+      'case.car_plateNum=' || coalesce(cs.$(F|Case.car_plateNum)$, ''),
+
       'service.towage.towage_to_address=' ||
         coalesce(towage.$(F|Towage.towAddress_address)$, ''),
 
