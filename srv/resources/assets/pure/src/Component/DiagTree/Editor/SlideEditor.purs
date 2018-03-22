@@ -13,7 +13,7 @@ import Control.Alt ((<|>))
 
 import Data.Tuple (Tuple (Tuple), snd)
 import Data.Array ((!!), snoc, updateAt, modifyAt, deleteAt, null)
-import Data.Foldable (class Foldable, foldl)
+import Data.Foldable (class Foldable, foldl, foldM, length)
 import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..), isJust, maybe)
 import Data.Either (Either (..))
@@ -114,10 +114,24 @@ resourcesRender
                   , refs  :: ReactRefs  ReadOnly
                   | eff
                   ) Unit
+
+       , onMoveUp   :: Int -> Eff ( props :: ReactProps
+                                  , state :: ReactState ReadWrite
+                                  , refs  :: ReactRefs  ReadOnly
+                                  | eff
+                                  ) Unit
+
+       , onMoveDown :: Int -> Eff ( props :: ReactProps
+                                  , state :: ReactState ReadWrite
+                                  , refs  :: ReactRefs  ReadOnly
+                                  | eff
+                                  ) Unit
        }
 
 resourcesRender = createClass $ spec $
-  \ { appContext, slideId, isDisabled, resources, updateResource }
+  \ { appContext, slideId, isDisabled, resources
+    , updateResource, onMoveUp, onMoveDown
+    }
     { isAdding, turnAddingOn, turnAddingOff } -> do
 
   label !. "control-label" $ text "Прикреплённые файлы"
@@ -135,6 +149,16 @@ resourcesRender = createClass $ spec $
                         , resource: Just resource
                         , updateResource
                         , onCancel: Nothing
+
+                        , onMoveUp:
+                            if itemIndex <= 0
+                               then Nothing
+                               else Just onMoveUp
+
+                        , onMoveDown:
+                            if itemIndex >= (length resources - 1)
+                               then Nothing
+                               else Just onMoveDown
                         }
 
              in createElement diagTreeEditorSlideEditorResource props []
@@ -151,6 +175,8 @@ resourcesRender = createClass $ spec $
             , resource: Nothing
             , updateResource
             , onCancel: Just turnAddingOff
+            , onMoveUp: Nothing
+            , onMoveDown: Nothing
             }
 
      else button !. "btn btn-default" <.> classSfx "add-button"
@@ -357,7 +383,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     , isChanged
     , onChangeHeader
     , onChangeBody
-    , updateResource
+    , updateResource, onResourceMoveUp, onResourceMoveDown
     , updateAnswer
     , onSelectAction
     , onCancel
@@ -391,6 +417,8 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     , isDisabled: isProcessing
     , resources: slide.resources
     , updateResource
+    , onMoveUp: onResourceMoveUp
+    , onMoveDown: onResourceMoveDown
     }
 
   let hasAction  = isJust slide.action
@@ -494,7 +522,6 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
             DiagTreeSlide <$> slide { resources = _ }
                           <$> deleteAt itemIndex slide.resources
-
         in
           s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
 
@@ -512,7 +539,42 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
             DiagTreeSlide <$> slide { resources = _ }
                           <$> updateAt itemIndex newResource slide.resources
+        in
+          s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
 
+    moveResourceHandler this isUp idx =
+      transformState this $ \s ->
+        let
+          newSlide = do
+            (DiagTreeSlide slide@{ resources }) <- s.slide
+
+            DiagTreeSlide <$> slide { resources = _ } <<< snd
+                          <$> foldM (reducer resources) (Tuple 0 []) resources
+
+          reducer resources =
+            if isUp then reducerUp resources else reducerDown resources
+
+          reducerUp resources (Tuple n acc) x
+            | (idx - 1) == n = do
+                next <- resources !! idx
+                pure $ Tuple (n + 1) $ acc `snoc` next
+
+            | idx == n = do
+                prev <- resources !! (idx - 1)
+                pure $ Tuple (n + 1) $ acc `snoc` prev
+
+            | otherwise = pure $ Tuple (n + 1) $ acc `snoc` x
+
+          reducerDown resources (Tuple n acc) x
+            | idx == n = do
+                next <- resources !! (idx + 1)
+                pure $ Tuple (n + 1) $ acc `snoc` next
+
+            | (idx + 1) == n = do
+                prev <- resources !! idx
+                pure $ Tuple (n + 1) $ acc `snoc` prev
+
+            | otherwise = pure $ Tuple (n + 1) $ acc `snoc` x
         in
           s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
 
@@ -639,14 +701,16 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
            , newAnswers: [] -- It hasn't `nextSlide` yet,
                             -- that's why it's separated.
 
-           , isChanged      : false
-           , onChangeHeader : changeHeaderHandler   this
-           , onChangeBody   : changeBodyHandler     this
-           , updateResource : updateResourceHandler this
-           , updateAnswer   : updateAnswerHandler   this
-           , onSelectAction : selectActionHandler   this
-           , onCancel       : cancelHandler         this
-           , onSave         : saveHandler           this
+           , isChanged          : false
+           , onChangeHeader     : changeHeaderHandler   this
+           , onChangeBody       : changeBodyHandler     this
+           , updateResource     : updateResourceHandler this
+           , onResourceMoveUp   : moveResourceHandler   this true
+           , onResourceMoveDown : moveResourceHandler   this false
+           , updateAnswer       : updateAnswerHandler   this
+           , onSelectAction     : selectActionHandler   this
+           , onCancel           : cancelHandler         this
+           , onSave             : saveHandler           this
            }
 
     spec renderFn =

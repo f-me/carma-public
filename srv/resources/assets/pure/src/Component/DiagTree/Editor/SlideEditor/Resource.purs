@@ -101,12 +101,24 @@ type Props eff =
                      | eff
                      ) Unit )
       -- ^ Only for adding new one (when `resource` prop is `Nothing`)
+
+  , onMoveUp   :: Maybe ( Int -> Eff ( props :: ReactProps
+                                     , state :: ReactState ReadWrite
+                                     , refs  :: ReactRefs  ReadOnly
+                                     | eff
+                                     ) Unit )
+
+  , onMoveDown :: Maybe ( Int -> Eff ( props :: ReactProps
+                                     , state :: ReactState ReadWrite
+                                     , refs  :: ReactRefs  ReadOnly
+                                     | eff
+                                     ) Unit )
   }
 
 
 diagTreeEditorSlideEditorResourceRender :: forall eff. ReactClass (Props eff)
 diagTreeEditorSlideEditorResourceRender = createClass $ spec $
-  \ { appContext, resource, isDisabled }
+  \ { appContext, resource, isDisabled, onMoveUp, onMoveDown }
     state@{ file, mediaType, isEditing, isProcessing, isUploadingFailed } -> do
 
   case resource of
@@ -181,18 +193,33 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
   if isEditing || isNothing resource
      then editRender isBlocked appContext resource state previewM
-     else viewRender isBlocked state previewM
+     else viewRender isBlocked onMoveUp onMoveDown state previewM
 
   where
     name = "DiagTreeEditorSlideEditorResource"
     classSfx s = name <> "--" <> s
     wrapper = R.li [className $ "list-group-item" <.> name]
 
-    viewRender isDisabled state previewM = do
+    viewRender isDisabled onMoveUp onMoveDown state previewM = do
       previewM
       span $ text state.text
 
       div !. "btn-toolbar" <.> classSfx "buttons" ! role "toolbar" $ do
+
+        if isNothing onMoveUp && isNothing onMoveDown
+           then empty
+           else do
+                button !. "btn btn-default"
+                       ! title "Поднять вверх"
+                       ! disabled (isNothing onMoveUp)
+                       ! onClick state.onMoveUp
+                       $ i !. "glyphicon glyphicon-arrow-up" $ empty
+
+                button !. "btn btn-default"
+                       ! title "Опустить вниз"
+                       ! disabled (isNothing onMoveDown)
+                       ! onClick state.onMoveDown
+                       $ i !. "glyphicon glyphicon-arrow-down" $ empty
 
         button !. "btn btn-success"
                ! title "Редактировать"
@@ -341,6 +368,12 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
     mediaTypeSelectedHandler this =
       maybe (pure unit) \x -> transformState this _ { mediaType = x }
 
+    moveHandler this isUp _ = do
+      { itemIndex, onMoveUp, onMoveDown } <- getProps this
+
+      fromMaybe (pure unit) $
+        itemIndex >>= \x -> map (_ $ x) (if isUp then onMoveUp else onMoveDown)
+
     buildIntervalValues
       :: Maybe DiagTreeSlideResource
       -> { text :: String
@@ -381,6 +414,8 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
            , onFileDropped: fileDroppedHandler this
            , onFilesRejected: rejectedFilesAlert
            , onMediaTypeSelected: mediaTypeSelectedHandler this
+           , onMoveUp: moveHandler this true
+           , onMoveDown: moveHandler this false
            , save: saveHandler this
            , delete: deleteHandler this
            }
