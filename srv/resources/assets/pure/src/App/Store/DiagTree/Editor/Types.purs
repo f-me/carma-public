@@ -20,6 +20,10 @@ import Data.Generic.Rep as GRep
 import Data.Generic.Rep.Bounded as GRepBounded
 import Data.Generic.Rep.Enum as GRepEnum
 
+import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
+     ( BackendAttachmentMediaType
+     )
+
 
 type DiagTreeSlideId = Int
 type DiagTreeSlides  = Map DiagTreeSlideId DiagTreeSlide
@@ -33,15 +37,20 @@ data DiagTreeSlideAttachment
   --   `DiagTreeSlideAttachment` must be removed too, only record from
   --   `Modern` must be type of `attachment` field of `DiagTreeSlideResource`.
 
-  | Modern { id :: Int, hash :: String, filename :: String }
+  | Modern { id        :: Int
+           , hash      :: String
+           , filename  :: String
+           , mediaType :: BackendAttachmentMediaType
+           }
 
 instance eqDiagTreeSlideAttachment :: Eq DiagTreeSlideAttachment
   where
 
   eq (Modern a) (Modern b) =
-    a.id       == b.id   &&
-    a.hash     == b.hash &&
-    a.filename == b.filename
+    a.id        == b.id       &&
+    a.hash      == b.hash     &&
+    a.filename  == b.filename &&
+    a.mediaType == b.mediaType
 
   eq (Legacy a) (Legacy b) = a == b
   eq _ _ = false

@@ -55,7 +55,8 @@
     "purescript-proxy": "^2.1.0",
     "purescript-enums": "^3.2.1",
     "purescript-generics-rep": "^5.4.0",
-    "purescript-lists": "^4.12.0"
+    "purescript-lists": "^4.12.0",
+    "purescript-read": "^1.0.0"
   },
   "devDependencies": {},
   "resolutions": {

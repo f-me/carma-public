@@ -2,6 +2,10 @@
 module App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      ( BackendAttachment
      , BackendAttachmentFields
+
+     , module
+         App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment.Types
+
      , fromBackendAttachment
      , toBackendAttachment
      ) where
@@ -12,23 +16,28 @@ import Control.MonadZero (guard)
 
 import Data.Int (fromNumber, toNumber)
 import Data.Tuple (Tuple (Tuple))
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe (..), isJust)
 import Data.StrMap as StrMap
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Argonaut.Core as A
 import Data.Record (get)
 import Data.Symbol (SProxy (SProxy), class IsSymbol, reflectSymbol)
+import Data.String.Read (read)
+
+import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment.Types
+     ( BackendAttachmentMediaType (..)
+     )
 
 
 type BackendAttachment = Record BackendAttachmentFields
 
 type BackendAttachmentFields =
-  ( id       :: Int
-  , hash     :: String
-  , filename :: String
+  ( id        :: Int
+  , hash      :: String
+  , filename  :: String
+  , mediaType :: BackendAttachmentMediaType
   )
-
 
 class AttachmentKeyToBackendKey k where
   resourceAttachmentKeyToBackendKey
@@ -47,6 +56,7 @@ backendAttachmentValidKeys = Set.fromFoldable
   [ k (SProxy :: SProxy "id")
   , k (SProxy :: SProxy "hash")
   , k (SProxy :: SProxy "filename")
+  , k (SProxy :: SProxy "mediaType")
   , "ctime"
   ]
   where
@@ -73,14 +83,20 @@ fromBackendAttachment json = do
   hash     <- l (SProxy :: SProxy "hash")     >>= A.toString
   filename <- l (SProxy :: SProxy "filename") >>= A.toString
 
-  pure { id, hash, filename }
+  mediaType <- let x = l (SProxy :: SProxy "mediaType") in
+    if isJust x
+       then x >>= A.toString >>= read
+       else Just ImageMediaType -- If `mediaType` isn't set
+
+  pure { id, hash, filename, mediaType }
 
 
 toBackendAttachment :: BackendAttachment -> A.Json
 toBackendAttachment y = A.fromObject $ StrMap.fromFoldable
-  [ fAtt y (SProxy :: SProxy "id")       $ toNumber >>> A.fromNumber
-  , fAtt y (SProxy :: SProxy "hash")     A.fromString
-  , fAtt y (SProxy :: SProxy "filename") A.fromString
+  [ fAtt y (SProxy :: SProxy "id")        $ toNumber >>> A.fromNumber
+  , fAtt y (SProxy :: SProxy "hash")      A.fromString
+  , fAtt y (SProxy :: SProxy "filename")  A.fromString
+  , fAtt y (SProxy :: SProxy "mediaType") $ show >>> A.fromString
   ]
 
   where

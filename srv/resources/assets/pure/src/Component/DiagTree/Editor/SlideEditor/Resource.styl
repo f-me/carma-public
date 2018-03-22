@@ -27,10 +27,20 @@ name = DiagTreeEditorSlideEditorResource
       opacity 1
 
   .{name}--image
+  .{name}--audio
+  .{name}--video
+    display inline-block
+    vertical-align middle
     margin-right 10px
     max-width 30%
 
+  .{name}--video
+  .{name}--audio
+    max-width 60%
+
   .{name}--edit-image-wrap > .{name}--image
+  .{name}--edit-image-wrap > .{name}--audio
+  .{name}--edit-image-wrap > .{name}--video
     margin 10px
 
   .{name}--deprecation-warning

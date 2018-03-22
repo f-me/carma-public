@@ -204,9 +204,7 @@ uploadFile slideId file = flip catchError handleError $ do
 
 dropzoneDefaultProps :: ReactDropzone.Props () () () () () ()
 dropzoneDefaultProps = ReactDropzone.dropzoneDefaultProps
-  { accept   = toNullable $ Just "image/jpeg,image/png,image/svg+xml"
-  , multiple = false
-
+  { multiple          = false
   , className         = setClassName id
   , activeClassName   = setClassName (_ <> "--active")
   , acceptClassName   = setClassName (_ <> "--accept")
@@ -225,6 +223,9 @@ rejectedFilesAlert files = DOM.window >>= DOM.alert message
     fileReducer acc file = acc <> "\n  • \"" <> File.name file <> "\""
 
     message =
-      "Допустимые расширения загружаемых файлов: .jpg, .jpeg, .png, .svg."
+      "Допустимые расширения загружаемых файлов:"
+        <> "\n  • Для картинок: .jpg, .jpeg, .png, .svg"
+        <> "\n  • Для видеофайлов: .mp4, .ogv, .webm"
+        <> "\n  • Для аудиофайлов: .mp3, .ogg, .wav"
         <> "\n\nСледующие файлы не могут быть загружены:"
         <> foldl fileReducer "" files

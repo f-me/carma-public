@@ -19,6 +19,7 @@ import Data.Maybe (Maybe (..), isJust, maybe)
 import Data.Either (Either (..))
 import Data.Map as Map
 import Data.Nullable (toNullable)
+import Data.String (joinWith)
 
 import React.DOM (form, div) as R
 import React.Spaces ((!), (!.), (^), renderIn, text, empty, elements)
@@ -41,6 +42,7 @@ import Utils
      ( (<.>), storeConnect, toMaybeT, eventInputValue
      , createClassStatelessWithName
      , unfoldrBoundedEnum
+     , showAccusative
      )
 
 import Utils.DiagTree.Editor
@@ -80,6 +82,7 @@ import App.Store.DiagTree.Editor.Types
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      ( BackendAttachment
+     , BackendAttachmentMediaType
      )
 
 import Component.DiagTree.Editor.SlideEditor.Resource
@@ -117,7 +120,7 @@ resourcesRender = createClass $ spec $
   \ { appContext, slideId, isDisabled, resources, updateResource }
     { isAdding, turnAddingOn, turnAddingOff } -> do
 
-  label !. "control-label" $ text "Картинки"
+  label !. "control-label" $ text "Прикреплённые файлы"
 
   SDyn.ul !. "list-group" <.> classSfx "list" $
 
@@ -157,7 +160,9 @@ resourcesRender = createClass $ spec $
                  $ do
 
             i !. "glyphicon glyphicon-plus" $ empty
-            text " Добавить картинку"
+            text $ (" Добавить " <> _) $
+              joinWith "/" $ map showAccusative
+                (unfoldrBoundedEnum :: Array BackendAttachmentMediaType)
 
   where
     name = "DiagTreeEditorSlideEditorResources"
@@ -198,7 +203,7 @@ answersRender
                           , attachment :: Maybe DiagTreeSlideAttachment
                           }
 
-       , updateAnswer -- See answer item component for details
+       , updateAnswer -- See answer item props type component for details
            :: ItemModification (Either DiagTreeSlideId Int)
                 { header              :: String
                 , text                :: String
