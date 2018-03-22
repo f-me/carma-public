@@ -7,6 +7,7 @@ class CaseHistoryAnswersItem extends Record(
   header    : ""
   text      : ""
   file      : null # null or string
+  mediaType : "image"
 
   # unknown types
   # action    : {}
@@ -22,6 +23,8 @@ class CaseHistoryAnswersItem extends Record(
       else if plainObj.file
         plainObj.file
 
+    mediaType = attachment?.mediaType
+    x.mediaType = mediaType if mediaType?
     new @ x
 
 

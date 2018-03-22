@@ -103,11 +103,39 @@ mixin historyItem
 
 mixin answerItemInside
   h4.list-group-item-heading(data-bind='text: answer.get("header")')
+
+  //
+    ko if: answer.get('file') &&
+      ['image', 'audio', 'video'].indexOf(answer.get('mediaType')) == -1
   p.list-group-item-text
-    // ko if: answer.get("file")
-    img(class=`${pfx}--img` data-bind='attr: {src: answer.get("file")}')
+    span.label.label-danger Ошибка
+    |
+    |
+    span(data-bind=`
+      text:
+        'Неподдерживаемый тип прикреплённого файла: ' +
+        answer.get('mediaType'),
+    `)
+  // /ko
+
+  p.list-group-item-text
+    // ko if: answer.get('file') && answer.get('mediaType') == 'image'
+    img(class=`${pfx}--img` data-bind=`attr: {src: answer.get('file')}`)
     // /ko
-    span(data-bind='text: answer.get("text")')
+
+    // ko if: answer.get('file') && answer.get('mediaType') == 'audio'
+    audio(class=`${pfx}--audio` controls)
+      source(data-bind=`attr: {src: answer.get('file')}`)
+      | Ваш браузер не поддерживает отображение аудиофайлов
+    // /ko
+
+    // ko if: answer.get('file') && answer.get('mediaType') == 'video'
+    video(class=`${pfx}--video` controls)
+      source(data-bind=`attr: {src: answer.get('file')}`)
+      | Ваш браузер не поддерживает отображение видеофайлов
+    // /ko
+
+    span(data-bind=`text: answer.get('text')`)
 
 mixin answerItem
   - var css = `{"${pfx}--selected": $component.slideAnswerIdx() === $index()}`
@@ -176,19 +204,19 @@ mixin errors
       `)
         div
           // ko if: resource.get('mediaType') == 'image'
-          img(class=`${pfx}--img` data-bind=`attr: {src: resource.get("file")}`)
+          img(class=`${pfx}--img` data-bind=`attr: {src: resource.get('file')}`)
           // /ko
 
           // ko if: resource.get('mediaType') == 'audio'
           audio(class=`${pfx}--audio` controls)
-            source(data-bind=`attr: {src: resource.get("file")}`)
-            text "Ваш браузер не поддерживает отображение аудиофайлов"
+            source(data-bind=`attr: {src: resource.get('file')}`)
+            | Ваш браузер не поддерживает отображение аудиофайлов
           // /ko
 
           // ko if: resource.get('mediaType') == 'video'
           video(class=`${pfx}--video` controls)
-            source(data-bind=`attr: {src: resource.get("file")}`)
-            text "Ваш браузер не поддерживает отображение видеофайлов"
+            source(data-bind=`attr: {src: resource.get('file')}`)
+            | Ваш браузер не поддерживает отображение видеофайлов
           // /ko
 
           //
@@ -200,12 +228,12 @@ mixin errors
             |
             span(data-bind=`
               text:
-                "Неподдерживаемый тип прикреплённого файла: " +
+                'Неподдерживаемый тип прикреплённого файла: ' +
                 resource.get('mediaType'),
             `)
           // /ko
 
-          span(data-bind='text: resource.get("text")')
+          span(data-bind=`text: resource.get('text')`)
 
       // ko if: $component.isItYesNoAnswer
       .row(data-bind=`
