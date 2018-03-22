@@ -21,11 +21,16 @@ import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
 import React.DOM (li) as R
 import React.Spaces ((!), (!.), (^), (^^), renderIn, text, empty)
-import React.Spaces.DOM (div, img, span, button, i, p, h4, input)
+
+import React.Spaces.DOM
+     ( div, img, span, button, i, p, h4, input
+     , audio, video, source
+     )
 
 import React.DOM.Props
      ( className, src, role, title, disabled, _type, placeholder, value
      , onClick, onChange
+     , controls
      )
 
 import React
@@ -34,11 +39,19 @@ import React
      , transformState
      )
 
-import Utils ((<.>), eventInputValue)
 import App.Store (AppContext)
 import Bindings.ReactDropzone (dropzone, handle2)
 import Component.Generic.Spinner (spinner)
+import Component.Generic.DropDownSelect (dropDownSelect)
 import Component.DiagTree.Editor.SlideEditor.Helpers (ItemModification (..))
+
+import Utils
+     ( (<.>)
+     , showNominative, showGenitive, showAccusative
+     , getSex, sexyShow, capitalize
+     , eventInputValue
+     , unfoldrBoundedEnum
+     )
 
 import Utils.DiagTree.Editor
      ( getDiagTreeSlideAttachmentPath
@@ -54,6 +67,7 @@ import App.Store.DiagTree.Editor.Types
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      ( BackendAttachment
+     , BackendAttachmentMediaType (..)
      )
 
 
@@ -103,8 +117,13 @@ type Props eff =
 diagTreeEditorSlideEditorAnswerRender :: forall eff. ReactClass (Props eff)
 diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
   \ { appContext, identity, answer, isDisabled }
-    state@{ isEditing, isProcessing, isUploadingFailed, isAttachmentDeleted }
-    -> do
+    state@{ mediaType
+          , attachment
+          , isEditing
+          , isProcessing
+          , isUploadingFailed
+          , isAttachmentDeleted
+          } -> do
 
   if isNothing answer || map isRight identity == Just true
      then p $ span !. "label label-primary" $ text "Новый ответ"
@@ -114,7 +133,9 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
      then empty
      else div $ do
             span !. "label label-danger" $ text "Ошибка"
-            text " Произошла ошибка при попытке загрузить картинку."
+            text $
+              " Произошла ошибка при попытке загрузить " <>
+              showAccusative mediaType <> "."
 
   if not isProcessing
      then empty
@@ -123,9 +144,10 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                     }
 
   let legacyWarnM =
-        case (Modern <$> state.attachment) <|> (answer >>= _.attachment) of
+        case (Modern <$> attachment) <|> (answer >>= _.attachment) of
              Just (Legacy _) -> span !. classSfx "deprecation-warning" $ do
                span !. "label label-warning" $ text "Внимание"
+               -- It can be only `ImageMediaType` in case of legacy attachment
                text " Картинка хранится в базе неэффективным образом,\
                     \ рекомендуется загрузить её заново."
 
@@ -133,7 +155,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
 
       imgSrc =
         let
-          modern = state.attachment <#> getDiagTreeSlideAttachmentPath
+          modern = attachment <#> getDiagTreeSlideAttachmentPath
           legacy = answer >>= _.attachment >>= case _ of
                                                     Legacy x -> Just x
                                                     Modern _ -> Nothing
@@ -142,30 +164,51 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
              then Nothing
              else modern <|> legacy
 
-      imgM =
-        case imgSrc of
-             Nothing -> empty
-             Just x  -> do
-               legacyWarnM
-               img !. classSfx "image" ! role "presentation" ! src x
+      imgM = do
+        guard $ mediaType == ImageMediaType
+        x <- imgSrc
 
+        pure $ do
+          legacyWarnM
+          img !. classSfx "image" ! role "presentation" ! src x
+
+      audioM = do
+        guard $ mediaType == AudioMediaType
+        filePath <- attachment <#> getDiagTreeSlideAttachmentPath
+
+        pure $
+          audio !. classSfx "audio" ! controls true $ do
+            source ! src filePath $ empty
+            text "Ваш браузер не поддерживает отображение аудиофайлов"
+
+      videoM = do
+        guard $ mediaType == VideoMediaType
+        filePath <- attachment <#> getDiagTreeSlideAttachmentPath
+
+        pure $ do
+          video !. classSfx "video" ! controls true $ do
+            source ! src filePath $ empty
+            text "Ваш браузер не поддерживает отображение видеофайлов"
+
+      previewM = fromMaybe empty $ imgM <|> audioM <|> videoM
+      hasAttachment = isJust imgSrc || isJust (imgM <|> audioM <|> videoM)
       isBlocked = isDisabled || isProcessing
 
   if isEditing || isNothing answer
-     then editRender isBlocked (isJust imgSrc) state imgM
-     else viewRender isBlocked state imgM
+     then editRender isBlocked appContext hasAttachment state previewM
+     else viewRender isBlocked state previewM
 
   where
     name = "DiagTreeEditorSlideEditorAnswer"
     classSfx s = name <> "--" <> s
     wrapper = R.li [className $ "list-group-item" <.> name]
 
-    viewRender isDisabled state imgM = do
+    viewRender isDisabled state previewM = do
 
       h4 !. "list-group-item-heading" $ text state.header
 
       p !. "list-group-item-text" $ do
-        imgM
+        previewM
         span $ text state.text
 
       div !. "btn-toolbar" <.> classSfx "buttons" ! role "toolbar" $ do
@@ -182,7 +225,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                ! onClick state.delete
                $ i !. "glyphicon glyphicon-trash" $ empty
 
-    editRender isDisabled hasImage state imgM = do
+    editRender isDisabled appContext hasAttachment state previewM = do
       div !. "form-group" $
         input !. "form-control"
               ! _type "text"
@@ -200,7 +243,18 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
               ! disabled isDisabled
 
       div !. "form-group" $ do
-        dropzone ^^ dropzoneDefaultProps
+        div $ dropDownSelect ^
+          { appContext
+          , isDisabled: isDisabled || isJust state.attachment || hasAttachment
+          , variants: (unfoldrBoundedEnum :: Array BackendAttachmentMediaType)
+          , selected: Just state.mediaType
+          , variantView: showNominative >>> capitalize
+          , onSelected: Just state.onMediaTypeSelected
+          , placeholder: Just "Тип прикрепляемого файла"
+          , notSelectedTitle: Nothing
+          }
+
+        dropzone ^^ (dropzoneDefaultProps state.mediaType)
           { disabled = isDisabled
 
           , onDropAccepted = toNullable $ Just $ handle2 $
@@ -211,18 +265,22 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
           , onDropRejected = toNullable $ Just $ handle2 $
               \files _ -> state.onFilesRejected files
           }
-          $ text "Нажмите для добавления картинки или перетащите её сюда"
+          $ text $
+            "Нажмите для добавления " <> showGenitive state.mediaType <>
+            " или перетащите " <>
+            sexyShow "его" "файл" "её" (getSex state.mediaType) <> " сюда"
 
-        imgM
+        previewM
 
-        if not hasImage
+        if not hasAttachment
            then empty
            else do text " "
                    button !. "btn btn-danger"
                           ! disabled isDisabled
                           ! onClick state.deleteAttachment
                           $ do i !. "glyphicon glyphicon-trash" $ empty
-                               text " Удалить картинку"
+                               text $ " Удалить " <>
+                                 showAccusative state.mediaType
 
       div !. "btn-toolbar" $ do
         button !. "btn btn-default"
@@ -257,6 +315,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                     { header              = values.header
                     , text                = values.text
                     , attachment          = values.attachment
+                    , mediaType           = values.mediaType
                     , isEditing           = false
                     , isChanged           = false
                     , isAttachmentDeleted = false
@@ -270,16 +329,20 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
       let x = eventInputValue event
       transformState this _ { text = x, isChanged = true }
 
-    deleteAttachmentHandler this _ = guardConfirmed $ transformState this _
-      { attachment = Nothing
-      , isAttachmentDeleted = true
-      , isChanged = true
-      }
+    deleteAttachmentHandler this _ = do
+      { mediaType } <- readState this
+
+      guardConfirmed mediaType $ transformState this _
+        { attachment          = Nothing
+        , isAttachmentDeleted = true
+        , isChanged           = true
+        }
 
       where
-        guardConfirmed m = do
+        guardConfirmed mediaType m = do
           isConfirmed <- DOM.window >>= DOM.confirm
-            "Вы действительно хотите удалить картинку?"
+            ("Вы действительно хотите удалить " <>
+              showAccusative mediaType <> "?")
 
           if isConfirmed then m else pure unit
 
@@ -301,12 +364,12 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
             { isProcessing = false, isUploadingFailed = true }
 
         doneProcessing attachment =
-          transformState this _
+          transformState this \s -> s
             { isProcessing = false
             , isUploadingFailed = false
             , isAttachmentDeleted = false
             , isChanged = true
-            , attachment = Just attachment
+            , attachment = Just attachment { mediaType = s.mediaType }
             }
 
     saveHandler this _ = do
@@ -345,14 +408,20 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
 
            _ -> pure unit
 
+    mediaTypeSelectedHandler this =
+      maybe (pure unit) \x -> transformState this _ { mediaType = x }
+
     buildIntervalValues answer =
       { header     : fromMaybe "" $ answer <#> _.header
       , text       : fromMaybe "" $ answer <#> _.text
-      , attachment : answer <#> _.attachment >>=
-                       case _ of
-                            Just (Modern x) -> Just x
-                            _ -> Nothing
+      , mediaType  : fromMaybe ImageMediaType $ attachment <#> _.mediaType
+      , attachment
       }
+      where
+        attachment =
+          answer <#> _.attachment >>= case _ of
+                                           Just (Modern x) -> Just x
+                                           _ -> Nothing
 
     getInitialState this = do
       { answer } <- getProps this
@@ -361,6 +430,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
       pure { header: values.header
            , text: values.text
            , attachment: values.attachment
+           , mediaType: values.mediaType -- For attachment
            , isEditing: false
            , isChanged: false
            , isAttachmentDeleted: false
@@ -373,6 +443,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
            , deleteAttachment: deleteAttachmentHandler this
            , onFileDropped: fileDroppedHandler this
            , onFilesRejected: rejectedFilesAlert
+           , onMediaTypeSelected: mediaTypeSelectedHandler this
            , save: saveHandler this
            , delete: deleteHandler this
            }
@@ -392,6 +463,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                           { header              = values.header
                           , text                = values.text
                           , attachment          = values.attachment
+                          , mediaType           = values.mediaType
                           , isEditing           = false
                           , isChanged           = false
                           , isAttachmentDeleted = false

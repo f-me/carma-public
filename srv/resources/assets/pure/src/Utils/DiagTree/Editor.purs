@@ -58,6 +58,7 @@ import App.Store.DiagTree.Editor.Types
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      ( BackendAttachment
+     , BackendAttachmentMediaType (..)
      , fromBackendAttachment
      )
 
@@ -202,9 +203,21 @@ uploadFile slideId file = flip catchError handleError $ do
       "Parsing upload response of file (" <> File.name file <> ") failed!"
 
 
-dropzoneDefaultProps :: ReactDropzone.Props () () () () () ()
-dropzoneDefaultProps = ReactDropzone.dropzoneDefaultProps
-  { multiple          = false
+dropzoneDefaultProps
+  :: BackendAttachmentMediaType -> ReactDropzone.Props () () () () () ()
+
+dropzoneDefaultProps mediaType = ReactDropzone.dropzoneDefaultProps
+  { accept = toNullable $ Just
+      case mediaType of
+           ImageMediaType -> "image/jpeg, image/png, image/svg+xml"
+           AudioMediaType -> "audio/mpeg, audio/ogg, audio/wav"
+
+           VideoMediaType ->
+             "video/mp4, application/mp4,\
+             \ video/ogg, application/ogg,\
+             \ video/webm"
+
+  , multiple          = false
   , className         = setClassName id
   , activeClassName   = setClassName (_ <> "--active")
   , acceptClassName   = setClassName (_ <> "--accept")

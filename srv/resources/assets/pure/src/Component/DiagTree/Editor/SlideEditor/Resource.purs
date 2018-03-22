@@ -219,18 +219,8 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
           , notSelectedTitle: Nothing
           }
 
-        dropzone ^^ dropzoneDefaultProps
+        dropzone ^^ (dropzoneDefaultProps state.mediaType)
           { disabled = isDisabled
-
-          , accept = toNullable $ Just
-              case state.mediaType of
-                   ImageMediaType -> "image/jpeg, image/png, image/svg+xml"
-                   AudioMediaType -> "audio/mpeg, audio/ogg, audio/wav"
-
-                   VideoMediaType ->
-                     "video/mp4, application/mp4,\
-                     \ video/ogg, application/ogg,\
-                     \ video/webm"
 
           , onDropAccepted = toNullable $ Just $ handle2 $
               \files _ -> case head files of
