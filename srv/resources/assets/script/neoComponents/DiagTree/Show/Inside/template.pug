@@ -175,7 +175,36 @@ mixin errors
         foreach: {data: $component.slideResources, as: "resource"},
       `)
         div
-          img(class=`${pfx}--img` data-bind='attr: {src: resource.get("file")}')
+          // ko if: resource.get('mediaType') == 'image'
+          img(class=`${pfx}--img` data-bind=`attr: {src: resource.get("file")}`)
+          // /ko
+
+          // ko if: resource.get('mediaType') == 'audio'
+          audio(class=`${pfx}--audio` controls)
+            source(data-bind=`attr: {src: resource.get("file")}`)
+            text "Ваш браузер не поддерживает отображение аудиофайлов"
+          // /ko
+
+          // ko if: resource.get('mediaType') == 'video'
+          video(class=`${pfx}--video` controls)
+            source(data-bind=`attr: {src: resource.get("file")}`)
+            text "Ваш браузер не поддерживает отображение видеофайлов"
+          // /ko
+
+          //
+            ko if: ['image', 'audio', 'video']
+              .indexOf(resource.get('mediaType')) == -1
+          p
+            span.label.label-danger Ошибка
+            |
+            |
+            span(data-bind=`
+              text:
+                "Неподдерживаемый тип прикреплённого файла: " +
+                resource.get('mediaType'),
+            `)
+          // /ko
+
           span(data-bind='text: resource.get("text")')
 
       // ko if: $component.isItYesNoAnswer

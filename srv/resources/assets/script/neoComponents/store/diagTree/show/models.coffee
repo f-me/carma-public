@@ -48,8 +48,9 @@ class CaseHistoryActionsList extends List
 
 class CaseHistoryResourcesItem extends Record(
   # scalar types
-  file : ""
-  text : ""
+  file      : ""
+  text      : ""
+  mediaType : "image"
 )
   @plainObjScalarProps: ["text"]
   @fromPlain: (plainObj) =>
@@ -62,6 +63,8 @@ class CaseHistoryResourcesItem extends Record(
       else
         plainObj.file
 
+    mediaType = attachment?.mediaType
+    x.mediaType = mediaType if mediaType?
     new @ x
 
 

@@ -68,9 +68,18 @@ diag-tree-show-inside {
     font-size: 125%;
   }
 
-  .@{pfx}--img, .@{pfx}--slide-body img {
+  .@{pfx}--img,
+  .@{pfx}--slide-body img,
+  .@{pfx}--audio,
+  .@{pfx}--video {
+    display: inline-block;
     font-size: 36px;
     margin: 10px;
     max-width: 30%;
+  }
+
+  .@{pfx}--audio,
+  .@{pfx}--video {
+    max-width: 60%;
   }
 }
