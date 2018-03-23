@@ -551,30 +551,13 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
             DiagTreeSlide <$> slide { resources = _ } <<< snd
                           <$> foldM (reducer resources) (Tuple 0 []) resources
 
-          reducer resources =
-            if isUp then reducerUp resources else reducerDown resources
+          swapIdx = if isUp then idx - 1 else idx + 1
 
-          reducerUp resources (Tuple n acc) x
-            | (idx - 1) == n = do
-                next <- resources !! idx
-                pure $ Tuple (n + 1) $ acc `snoc` next
-
-            | idx == n = do
-                prev <- resources !! (idx - 1)
-                pure $ Tuple (n + 1) $ acc `snoc` prev
-
-            | otherwise = pure $ Tuple (n + 1) $ acc `snoc` x
-
-          reducerDown resources (Tuple n acc) x
-            | idx == n = do
-                next <- resources !! (idx + 1)
-                pure $ Tuple (n + 1) $ acc `snoc` next
-
-            | (idx + 1) == n = do
-                prev <- resources !! idx
-                pure $ Tuple (n + 1) $ acc `snoc` prev
-
-            | otherwise = pure $ Tuple (n + 1) $ acc `snoc` x
+          reducer resources (Tuple n acc) x =
+            Tuple (n + 1) <<< snoc acc <$>
+              if idx     == n then resources !! swapIdx else
+              if swapIdx == n then resources !! idx     else
+              pure x
         in
           s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
 
