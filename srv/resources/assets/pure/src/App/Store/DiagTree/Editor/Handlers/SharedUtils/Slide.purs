@@ -11,6 +11,7 @@ import Control.Monad.Maybe.Trans (MaybeT)
 import Control.MonadZero (guard)
 import Control.Alt ((<|>))
 
+import Data.Tuple (Tuple (Tuple))
 import Data.Maybe (Maybe (..), maybe, isJust, isNothing)
 import Data.JSDate (LOCALE, parse, toDateTime)
 import Data.Map (Map)
@@ -54,7 +55,9 @@ getSlide flatSlides slideId = do
     toMaybeT $ toDateTime jsDate
 
   resources <- toMaybeT $ foldM resourceReducer [] s.resources
-  answers   <- foldM answerReducer Map.empty s.answers
+
+  (Tuple answers answersIndexes) <-
+    foldM answerReducer (Tuple [] Map.empty) s.answers
 
   -- "actions" must be an array of one element or empty array)
   action <- toMaybeT $ do
@@ -65,31 +68,37 @@ getSlide flatSlides slideId = do
        then head actions >>= diagTreeSlideActionFromBackend <#> Just
        else pure Nothing
 
-  toMaybeT $ pure $
-    DiagTreeSlide
-      { id, isRoot, ctime, header, body, resources, action, answers }
+  toMaybeT $ pure $ DiagTreeSlide
+    { id, isRoot, ctime, header, body, resources, action
+    , answers, answersIndexes
+    }
 
   where
     resourceReducer acc { text, file, attachment } = do
       -- Either legacy deprecated `file` or `attachment` must be set,
       -- both of them set is not allowed as both of them not set.
       guard $ let xor = notEq in isJust attachment `xor` isJust file
+
       snoc acc
         <$> { text, attachment: _ }
         <$> ((attachment <#> Modern) <|> (file <#> Legacy))
 
-    answerReducer acc { nextSlide, header, text, attachment, file } = do
+    answerReducer
+      (Tuple answers answersIndexes)
+      { nextSlide: nextSlideId, header, text, attachment, file } = do
+
       -- Either legacy deprecated `file` or `attachment` must be set,
       -- both of them set at the same time is not allowed but both are optional.
       guard $ (isNothing attachment && isNothing file)
            || let xor = notEq in isJust attachment `xor` isJust file
 
-      slide <- getSlide flatSlides nextSlide
+      slide <- getSlide flatSlides nextSlideId
 
       let a = (attachment <#> Modern) <|> (file <#> Legacy)
           x = { nextSlide: slide, header, text, attachment: a }
 
-      pure $ Map.insert nextSlide x acc
+      pure $ Tuple (answers `snoc` x)
+           $ Map.insert nextSlideId (length answers) answersIndexes
 
 
 extractPartialBackendSlideFromSlide :: DiagTreeSlide -> PartialBackendSlide

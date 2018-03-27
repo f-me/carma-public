@@ -72,6 +72,15 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      )
 
 
+type MoveHandler eff = Int -> ParentHandler eff
+
+type ParentHandler eff =
+  Eff ( props :: ReactProps
+      , state :: ReactState ReadWrite
+      , refs  :: ReactRefs  ReadOnly
+      | eff
+      ) Unit
+
 type Props eff =
   { appContext :: AppContext
   , key        :: Nullable String
@@ -88,31 +97,13 @@ type Props eff =
            , file :: Maybe BackendAttachment
            }
 
-      -> Eff ( props :: ReactProps
-             , state :: ReactState ReadWrite
-             , refs  :: ReactRefs  ReadOnly
-             | eff
-             ) Unit
+      -> ParentHandler eff
 
-  , onCancel
-      :: Maybe ( Eff ( props :: ReactProps
-                     , state :: ReactState ReadWrite
-                     , refs  :: ReactRefs  ReadOnly
-                     | eff
-                     ) Unit )
-      -- ^ Only for adding new one (when `resource` prop is `Nothing`)
+  , onCancel :: Maybe (ParentHandler eff)
+    -- ^ Only for adding new one (when `resource` prop is `Nothing`)
 
-  , onMoveUp   :: Maybe ( Int -> Eff ( props :: ReactProps
-                                     , state :: ReactState ReadWrite
-                                     , refs  :: ReactRefs  ReadOnly
-                                     | eff
-                                     ) Unit )
-
-  , onMoveDown :: Maybe ( Int -> Eff ( props :: ReactProps
-                                     , state :: ReactState ReadWrite
-                                     , refs  :: ReactRefs  ReadOnly
-                                     | eff
-                                     ) Unit )
+  , onMoveUp   :: Maybe (MoveHandler eff)
+  , onMoveDown :: Maybe (MoveHandler eff)
   }
 
 

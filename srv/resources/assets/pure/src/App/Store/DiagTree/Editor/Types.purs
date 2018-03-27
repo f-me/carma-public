@@ -101,8 +101,8 @@ type DiagTreeSlideAnswer =
   { nextSlide  :: DiagTreeSlide
 
   , header     :: String
-  -- ^ Also known as "answer" of a slide
-  --   (a user's answer that leads to this slide - `nextSlide`).
+    -- ^ Also known as "answer" of a slide
+    --   (a user's answer that leads to this slide - `nextSlide`).
 
   , text       :: String
   , attachment :: Maybe DiagTreeSlideAttachment
@@ -120,6 +120,7 @@ newtype DiagTreeSlide
   , resources :: Array DiagTreeSlideResource
   , action    :: Maybe DiagTreeSlideAction
 
-  , answers   :: Map DiagTreeSlideId DiagTreeSlideAnswer
-  -- ^ You could read "answers" here as "children slides"
+  , answers        :: Array DiagTreeSlideAnswer
+  , answersIndexes :: Map DiagTreeSlideId Int
+    -- ^ You could read "answers" here as "children slides"
   }

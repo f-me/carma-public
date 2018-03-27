@@ -12,7 +12,6 @@ import Control.MonadZero (guard)
 import Control.Alt ((<|>))
 
 import Data.Tuple (Tuple (Tuple), snd)
-import Data.Array ((!!), snoc, updateAt, modifyAt, deleteAt, null)
 import Data.Foldable (class Foldable, foldl, foldM, length)
 import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..), isJust, maybe)
@@ -20,7 +19,7 @@ import Data.Either (Either (..))
 import Data.Map as Map
 import Data.Nullable (toNullable)
 import Data.String (joinWith)
-
+import Data.Array ((!!), index, snoc, updateAt, modifyAt, deleteAt, null)
 import React.DOM (form, div) as R
 import React.Spaces ((!), (!.), (^), renderIn, text, empty, elements)
 import React.Spaces.DOM (div, input, button, label, i, p, span)
@@ -138,7 +137,7 @@ resourcesRender = createClass $ spec $
 
   SDyn.ul !. "list-group" <.> classSfx "list" $
 
-    let itemReducer (Tuple itemIndex list) resource =
+    let itemReducer lastIndex (Tuple itemIndex list) resource =
           Tuple (itemIndex + 1) $ list `snoc`
 
             let props = { appContext
@@ -156,14 +155,15 @@ resourcesRender = createClass $ spec $
                                else Just onMoveUp
 
                         , onMoveDown:
-                            if itemIndex >= (length resources - 1)
+                            if itemIndex >= lastIndex
                                then Nothing
                                else Just onMoveDown
                         }
 
              in createElement diagTreeEditorSlideEditorResource props []
 
-     in elements $ snd $ foldl itemReducer (Tuple 0 []) resources
+     in elements $ snd $
+          foldl (itemReducer $ length resources - 1) (Tuple 0 []) resources
 
   if isAdding
      then diagTreeEditorSlideEditorResource ^
@@ -242,10 +242,27 @@ answersRender
                   , refs  :: ReactRefs  ReadOnly
                   | eff
                   ) Unit
+
+       , onMoveUp   :: (Either DiagTreeSlideId Int)
+                    -> Eff ( props :: ReactProps
+                           , state :: ReactState ReadWrite
+                           , refs  :: ReactRefs  ReadOnly
+                           | eff
+                           ) Unit
+
+       , onMoveDown :: (Either DiagTreeSlideId Int)
+                    -> Eff ( props :: ReactProps
+                           , state :: ReactState ReadWrite
+                           , refs  :: ReactRefs  ReadOnly
+                           | eff
+                           ) Unit
        }
 
 answersRender = createClass $ spec $
-  \ { appContext, slideId, isDisabled, answers, newAnswers, updateAnswer }
+  \ { appContext, slideId, isDisabled
+    , answers, newAnswers, updateAnswer
+    , onMoveUp, onMoveDown
+    }
     { isAdding, turnAddingOn, turnAddingOff } -> do
 
   label !. "control-label" $ text "Ответы"
@@ -253,20 +270,24 @@ answersRender = createClass $ spec $
   SDyn.ul !. "list-group" <.> classSfx "list" $
 
     let
-      reducer list answer = list `snoc`
-        let
-          p = props (Left $ answer.nextSlide # \(DiagTreeSlide x) -> x.id)
-            { header: answer.header
-            , text: answer.text
-            , attachment: answer.attachment
-            }
-        in
-          createElement diagTreeEditorSlideEditorAnswer p []
+      getMoveUp itemIndex =
+        if itemIndex <= 0
+           then Nothing
+           else Just onMoveUp
 
-      newReducer (Tuple itemIndex list) answer =
+      getMoveDown itemIndex lastIndex =
+        if itemIndex >= lastIndex
+           then Nothing
+           else Just onMoveDown
+
+      reducer lastIndex (Tuple itemIndex list) answer =
         Tuple (itemIndex + 1) $ list `snoc`
           let
-            p = props (Right itemIndex)
+            answerSlideId = answer.nextSlide # \(DiagTreeSlide x) -> x.id
+            moveUp = getMoveUp itemIndex
+            moveDown = getMoveDown itemIndex lastIndex
+
+            p = props (Left answerSlideId) moveUp moveDown
               { header: answer.header
               , text: answer.text
               , attachment: answer.attachment
@@ -274,7 +295,21 @@ answersRender = createClass $ spec $
           in
             createElement diagTreeEditorSlideEditorAnswer p []
 
-      props identity item =
+      newReducer lastIndex (Tuple itemIndex list) answer =
+        Tuple (itemIndex + 1) $ list `snoc`
+          let
+            moveUp = getMoveUp itemIndex
+            moveDown = getMoveDown itemIndex lastIndex
+
+            p = props (Right itemIndex) moveUp moveDown
+              { header: answer.header
+              , text: answer.text
+              , attachment: answer.attachment
+              }
+          in
+            createElement diagTreeEditorSlideEditorAnswer p []
+
+      props identity moveUp moveDown item =
         { appContext
         , slideId
         , key: toNullable $ Just $ show identity
@@ -283,11 +318,16 @@ answersRender = createClass $ spec $
         , answer: Just item
         , updateAnswer
         , onCancel: Nothing
+        , onMoveUp: moveUp
+        , onMoveDown: moveDown
         }
 
     in do
-      elements $ foldl reducer [] answers
-      elements $ snd $ foldl newReducer (Tuple 0 []) newAnswers
+      elements $ snd $
+        foldl (reducer $ length answers - 1) (Tuple 0 []) answers
+
+      elements $ snd $
+        foldl (newReducer $ length newAnswers - 1) (Tuple 0 []) newAnswers
 
   if isAdding
      then diagTreeEditorSlideEditorAnswer ^
@@ -299,6 +339,8 @@ answersRender = createClass $ spec $
             , answer: Nothing
             , updateAnswer
             , onCancel: Just turnAddingOff
+            , onMoveUp: Nothing
+            , onMoveDown: Nothing
             }
 
      else button !. "btn btn-default" <.> classSfx "add-button"
@@ -384,7 +426,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     , onChangeHeader
     , onChangeBody
     , updateResource, onResourceMoveUp, onResourceMoveDown
-    , updateAnswer
+    , updateAnswer,   onAnswerMoveUp,   onAnswerMoveDown
     , onSelectAction
     , onCancel
     , onSave
@@ -422,7 +464,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     }
 
   let hasAction  = isJust slide.action
-      hasAnswers = not $ Map.isEmpty slide.answers && null newAnswers
+      hasAnswers = not $ null slide.answers && null newAnswers
       hasBoth    = hasAction && hasAnswers
 
   -- Rendering "answers" only if "action" is not set
@@ -434,6 +476,8 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
                           , answers: slide.answers
                           , newAnswers
                           , updateAnswer
+                          , onMoveUp: onAnswerMoveUp
+                          , onMoveDown: onAnswerMoveDown
                           }
 
   -- Rendering "action" only if "answers" is empty
@@ -512,7 +556,9 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
                  $ slide { resources = _ }
                  $ slide.resources `snoc` newResource
         in
-          s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
+          s { slide     = newSlide <|> s.slide
+            , isChanged = s.isChanged || isJust newSlide
+            }
 
     updateResourceHandler this (DeleteItem itemIndex) =
       transformState this $ \s ->
@@ -523,7 +569,9 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
             DiagTreeSlide <$> slide { resources = _ }
                           <$> deleteAt itemIndex slide.resources
         in
-          s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
+          s { slide     = newSlide <|> s.slide
+            , isChanged = s.isChanged || isJust newSlide
+            }
 
     updateResourceHandler this (ChangeItem itemIndex resource) =
       transformState this $ \s ->
@@ -540,7 +588,9 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
             DiagTreeSlide <$> slide { resources = _ }
                           <$> updateAt itemIndex newResource slide.resources
         in
-          s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
+          s { slide     = newSlide <|> s.slide
+            , isChanged = s.isChanged || isJust newSlide
+            }
 
     moveResourceHandler this isUp idx =
       transformState this $ \s ->
@@ -559,7 +609,56 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
               if swapIdx == n then resources !! idx     else
               pure x
         in
-          s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
+          s { slide     = newSlide <|> s.slide
+            , isChanged = s.isChanged || isJust newSlide
+            }
+
+    moveAnswerHandler this isUp (Left slideId) = -- For existing answer
+      transformState this $ \s ->
+        let
+          newSlide = do
+            (DiagTreeSlide slide) <- s.slide
+            idx <- slideId `Map.lookup` slide.answersIndexes
+
+            let swapIdx = if isUp then idx - 1 else idx + 1
+                reducerApplied = reducer idx swapIdx slide.answers
+
+            answers <- snd <$> foldM reducerApplied (Tuple 0 []) slide.answers
+
+            let answersIndexes =
+                  snd $ foldl idxReducer (Tuple 0 Map.empty) answers
+                  where
+                    idxReducer (Tuple n acc) {nextSlide: DiagTreeSlide x} =
+                      Tuple (n + 1) $ acc # x.id `Map.insert` n
+
+            pure $ DiagTreeSlide slide
+              { answers = answers, answersIndexes = answersIndexes }
+
+          reducer idx swapIdx answers (Tuple n acc) x =
+            Tuple (n + 1) <<< snoc acc <$>
+              if idx     == n then answers !! swapIdx else
+              if swapIdx == n then answers !! idx     else
+              pure x
+        in
+          s { slide     = newSlide <|> s.slide
+            , isChanged = s.isChanged || isJust newSlide
+            }
+
+    moveAnswerHandler this isUp (Right idx) = -- For one of new answers
+      transformState this $ \s ->
+        let
+          newAnswers = foldM reducer (Tuple 0 []) s.newAnswers
+          swapIdx = if isUp then idx - 1 else idx + 1
+
+          reducer (Tuple n acc) x =
+            Tuple (n + 1) <<< snoc acc <$>
+              if idx     == n then s.newAnswers !! swapIdx else
+              if swapIdx == n then s.newAnswers !! idx     else
+              pure x
+        in
+          s { newAnswers = maybe s.newAnswers snd newAnswers
+            , isChanged  = s.isChanged || isJust newAnswers
+            }
 
     updateAnswerHandler this (NewItem answer) =
       transformState this $ \s -> s
@@ -573,21 +672,28 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
         }
 
     -- Deleting existing answer
-    updateAnswerHandler this (DeleteItem (Left nextSlideId)) =
+    updateAnswerHandler this (DeleteItem (Left slideId)) =
       transformState this $ \s ->
         let
-          f (DiagTreeSlide slide) = DiagTreeSlide
-            slide { answers = nextSlideId `Map.delete` slide.answers }
+          f (DiagTreeSlide slide) = do
+            let answersIndexes = slideId `Map.delete` slide.answersIndexes
+            idx     <- slideId `Map.lookup` slide.answersIndexes
+            answers <- deleteAt idx slide.answers
 
-          newSlide = s.slide <#> f
+            pure $ DiagTreeSlide
+              slide { answers = answers, answersIndexes = answersIndexes }
+
+          newSlide = s.slide >>= f
         in
-          s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
+          s { slide     = newSlide <|> s.slide
+            , isChanged = s.isChanged || isJust newSlide
+            }
 
     -- Updating existing answer
-    updateAnswerHandler this (ChangeItem (Left nextSlideId) answer) =
+    updateAnswerHandler this (ChangeItem (Left slideId) answer) =
       transformState this $ \s ->
         let
-          updater = Just <<< _
+          updater = _
             { header     = answer.header
             , text       = answer.text
             , attachment = (Modern <$> answer.attachment) <|> legacyAttachment
@@ -596,18 +702,24 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
           legacyAttachment = do
             guard $ not answer.isAttachmentDeleted
             (DiagTreeSlide slide) <- s.slide
-            foundAnswer <- nextSlideId `Map.lookup` slide.answers
+
+            foundAnswer <-
+              slideId `Map.lookup` slide.answersIndexes >>= index slide.answers
 
             case foundAnswer.attachment of
                  x@(Just (Legacy _)) -> x
                  _ -> Nothing
 
-          f (DiagTreeSlide slide) = DiagTreeSlide
-            slide { answers = Map.update updater nextSlideId slide.answers }
+          f (DiagTreeSlide slide) = do
+            idx     <- slideId `Map.lookup` slide.answersIndexes
+            answers <- modifyAt idx updater slide.answers
+            pure $ DiagTreeSlide slide { answers = answers }
 
-          newSlide = s.slide <#> f
+          newSlide = s.slide >>= f
         in
-          s { slide = newSlide <|> s.slide, isChanged = isJust newSlide }
+          s { slide     = newSlide <|> s.slide
+            , isChanged = s.isChanged || isJust newSlide
+            }
 
     -- Deleting new added answer
     updateAnswerHandler this (DeleteItem (Right itemIndex)) =
@@ -691,6 +803,8 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
            , onResourceMoveUp   : moveResourceHandler   this true
            , onResourceMoveDown : moveResourceHandler   this false
            , updateAnswer       : updateAnswerHandler   this
+           , onAnswerMoveUp     : moveAnswerHandler     this true
+           , onAnswerMoveDown   : moveAnswerHandler     this false
            , onSelectAction     : selectActionHandler   this
            , onCancel           : cancelHandler         this
            , onSave             : saveHandler           this

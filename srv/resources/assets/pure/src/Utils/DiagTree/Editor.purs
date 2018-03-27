@@ -23,8 +23,7 @@ import Control.Monad.Error.Class (catchError)
 
 import Data.Functor (voidRight)
 import Data.Tuple (Tuple (Tuple))
-import Data.Array (uncons, length, zip, fromFoldable)
-import Data.Map (Map)
+import Data.Array (index, uncons, length, zip)
 import Data.Map as Map
 import Data.Foldable (foldM, foldl)
 import Data.Nullable (toNullable)
@@ -76,8 +75,8 @@ getSlideByBranch slides branch = do
   { head: x, tail: xs } <- uncons branch
   first@(DiagTreeSlide firstSlide) <- x `Map.lookup` slides
 
-  let f (DiagTreeSlide { answers }) slideId =
-        slideId `Map.lookup` answers <#> _.nextSlide
+  let f (DiagTreeSlide { answers, answersIndexes }) slideId = do
+        slideId `Map.lookup` answersIndexes >>= index answers <#> _.nextSlide
 
   foldM f first xs
 
@@ -119,19 +118,17 @@ eqIshDiagTreeSlideAnswer a b =
     slideIdLens (DiagTreeSlide x) = x.id
 
 eqIshDiagTreeSlideAnswers
-  :: Map DiagTreeSlideId DiagTreeSlideAnswer
-  -> Map DiagTreeSlideId DiagTreeSlideAnswer
+  :: Array DiagTreeSlideAnswer
+  -> Array DiagTreeSlideAnswer
   -> Boolean
 
 eqIshDiagTreeSlideAnswers a b =
-  Map.size a == Map.size b &&
+  length a == length b &&
 
   let reducer _ (Tuple xa xb) =
         if eqIshDiagTreeSlideAnswer xa xb then Just true else Nothing
 
-   in zip (fromFoldable a) (fromFoldable b)
-    # foldM reducer true
-    # fromMaybe false
+   in zip a b # foldM reducer true # fromMaybe false
 
 
 diagTreeSlideActionToBackend :: DiagTreeSlideAction -> BackendAction

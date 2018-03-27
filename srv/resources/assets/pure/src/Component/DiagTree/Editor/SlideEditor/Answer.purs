@@ -71,6 +71,15 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      )
 
 
+type MoveHandler eff = (Either DiagTreeSlideId Int) -> ParentHandler eff
+
+type ParentHandler eff =
+  Eff ( props :: ReactProps
+      , state :: ReactState ReadWrite
+      , refs  :: ReactRefs  ReadOnly
+      | eff
+      ) Unit
+
 type Props eff =
   { appContext :: AppContext
   , key        :: Nullable String
@@ -98,25 +107,19 @@ type Props eff =
              --              deprecated `file` field.
            }
 
-      -> Eff ( props :: ReactProps
-             , state :: ReactState ReadWrite
-             , refs  :: ReactRefs  ReadOnly
-             | eff
-             ) Unit
+      -> ParentHandler eff
 
-  , onCancel
-      :: Maybe ( Eff ( props :: ReactProps
-                     , state :: ReactState ReadWrite
-                     , refs  :: ReactRefs  ReadOnly
-                     | eff
-                     ) Unit )
-      -- ^ Only for adding new one (when `answer` prop is `Nothing`)
+  , onCancel :: Maybe (ParentHandler eff)
+    -- ^ Only for adding new one (when `answer` prop is `Nothing`)
+
+  , onMoveUp   :: Maybe (MoveHandler eff)
+  , onMoveDown :: Maybe (MoveHandler eff)
   }
 
 
 diagTreeEditorSlideEditorAnswerRender :: forall eff. ReactClass (Props eff)
 diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
-  \ { appContext, identity, answer, isDisabled }
+  \ { appContext, identity, answer, isDisabled, onMoveUp, onMoveDown }
     state@{ mediaType
           , attachment
           , isEditing
@@ -196,14 +199,14 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
 
   if isEditing || isNothing answer
      then editRender isBlocked appContext hasAttachment state previewM
-     else viewRender isBlocked state previewM
+     else viewRender isBlocked onMoveUp onMoveDown state previewM
 
   where
     name = "DiagTreeEditorSlideEditorAnswer"
     classSfx s = name <> "--" <> s
     wrapper = R.li [className $ "list-group-item" <.> name]
 
-    viewRender isDisabled state previewM = do
+    viewRender isDisabled onMoveUp onMoveDown state previewM = do
 
       h4 !. "list-group-item-heading" $ text state.header
 
@@ -212,6 +215,21 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
         span $ text state.text
 
       div !. "btn-toolbar" <.> classSfx "buttons" ! role "toolbar" $ do
+
+        if isNothing onMoveUp && isNothing onMoveDown
+           then empty
+           else do
+                button !. "btn btn-default"
+                       ! title "Поднять вверх"
+                       ! disabled (isNothing onMoveUp)
+                       ! onClick state.onMoveUp
+                       $ i !. "glyphicon glyphicon-arrow-up" $ empty
+
+                button !. "btn btn-default"
+                       ! title "Опустить вниз"
+                       ! disabled (isNothing onMoveDown)
+                       ! onClick state.onMoveDown
+                       $ i !. "glyphicon glyphicon-arrow-down" $ empty
 
         button !. "btn btn-success"
                ! title "Редактировать"
@@ -411,6 +429,12 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
     mediaTypeSelectedHandler this =
       maybe (pure unit) \x -> transformState this _ { mediaType = x }
 
+    moveHandler this isUp _ = do
+      { identity, onMoveUp, onMoveDown } <- getProps this
+
+      fromMaybe (pure unit) $
+        identity >>= \x -> map (_ $ x) (if isUp then onMoveUp else onMoveDown)
+
     buildIntervalValues answer =
       { header     : fromMaybe "" $ answer <#> _.header
       , text       : fromMaybe "" $ answer <#> _.text
@@ -444,6 +468,8 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
            , onFileDropped: fileDroppedHandler this
            , onFilesRejected: rejectedFilesAlert
            , onMediaTypeSelected: mediaTypeSelectedHandler this
+           , onMoveUp: moveHandler this true
+           , onMoveDown: moveHandler this false
            , save: saveHandler this
            , delete: deleteHandler this
            }

@@ -87,7 +87,7 @@ diagTreeEditorTreeItemRender = f $
     --   * "lead" for items that have no children (end of a branch)
     wClass = name
       # (if isJust children then addUnfoldedClass else id)
-      # (if Map.isEmpty slide.answers then addLeafClass else id)
+      # (if null slide.answers then addLeafClass else id)
       # case selectedSlide of
              Just x | last x == Just slide.id -> addSelectedClass
                     | isJust $ slide.id `elemIndex` x ->

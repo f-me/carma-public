@@ -8,7 +8,7 @@ import Data.Tuple (Tuple (Tuple))
 import Data.Maybe (Maybe (..), isJust, fromMaybe, maybe)
 import Data.Record.Builder (merge, build)
 import Data.String.NonEmpty (toString)
-import Data.Array ((!!), last, head, take, init, length)
+import Data.Array ((!!), index, last, head, take, init, length)
 import Data.Foldable (foldr)
 import Data.Map (Map)
 import Data.Map as Map
@@ -228,15 +228,20 @@ diagTreeEditorTreeRender = createClass $ spec $
 
     -- Reduce visible levels of slide path
     -- (some parents will be hidden).
-    shiftSlideBranch branch n answer slide@(DiagTreeSlide { answers })
+    shiftSlideBranch branch n answer
+      slide@(DiagTreeSlide { answers, answersIndexes })
+
       | (length branch - n) <= maxTreeDepth =
           if n == 0
              then Nothing
              else Just { parents: take n branch, answer, slide }
       | otherwise = do
           let nextN = n + 1
-          nextSlideId <- branch !! nextN
-          { header, nextSlide } <- nextSlideId `Map.lookup` answers
+          slideId <- branch !! nextN
+
+          { header, nextSlide } <-
+            slideId `Map.lookup` answersIndexes >>= index answers
+
           shiftSlideBranch branch nextN (Just header) nextSlide
 
     changeDontShiftLevelsHandler this event = do
