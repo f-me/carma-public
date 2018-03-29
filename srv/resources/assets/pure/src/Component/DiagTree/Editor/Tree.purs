@@ -50,6 +50,7 @@ import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlides
      , DiagTreeSlideId
      , DiagTreeSlide (DiagTreeSlide)
+     , fromIndexedAnswers
      )
 
 import Component.DiagTree.Editor.Tree.Item (diagTreeEditorTreeItem)
@@ -229,15 +230,17 @@ diagTreeEditorTreeRender = createClass $ spec $
     -- Reduce visible levels of slide path
     -- (some parents will be hidden).
     shiftSlideBranch branch n answer
-      slide@(DiagTreeSlide { answers, answersIndexes })
+      slide@(DiagTreeSlide x)
 
       | (length branch - n) <= maxTreeDepth =
           if n == 0
              then Nothing
              else Just { parents: take n branch, answer, slide }
+
       | otherwise = do
           let nextN = n + 1
           slideId <- branch !! nextN
+          let Tuple answers answersIndexes = fromIndexedAnswers x.answers
 
           { header, nextSlide } <-
             slideId `Map.lookup` answersIndexes >>= index answers

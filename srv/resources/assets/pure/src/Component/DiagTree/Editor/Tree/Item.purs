@@ -15,7 +15,7 @@ import Data.Map as Map
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Foldable (foldl)
-import Data.Tuple (Tuple (Tuple))
+import Data.Tuple (Tuple (Tuple), fst)
 
 import React
      ( ReactClass, ReactProps, ReactRefs, ReactState, ReadOnly, ReadWrite
@@ -35,6 +35,7 @@ import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlideId
      , DiagTreeSlide (DiagTreeSlide)
+     , fromIndexedAnswers
      )
 
 
@@ -80,6 +81,8 @@ diagTreeEditorTreeItemRender = f $
     -- Full path of slides ids to current one
     slideBranch = parents `snoc` slide.id
 
+    answers = fst $ fromIndexedAnswers slide.answers
+
     -- Constructing class name:
     --   * "selected" for currently selected one
     --   * "parent-selected" for all parents of currently selected
@@ -87,7 +90,7 @@ diagTreeEditorTreeItemRender = f $
     --   * "lead" for items that have no children (end of a branch)
     wClass = name
       # (if isJust children then addUnfoldedClass else id)
-      # (if null slide.answers then addLeafClass else id)
+      # (if null answers then addLeafClass else id)
       # case selectedSlide of
              Just x | last x == Just slide.id -> addSelectedClass
                     | isJust $ slide.id `elemIndex` x ->
@@ -96,7 +99,7 @@ diagTreeEditorTreeItemRender = f $
 
     children =
       if isJust search || slide.id `Set.member` unfoldedSlides
-         then let x = foldl childReducer [] slide.answers
+         then let x = foldl childReducer [] answers
                in if null x then Nothing else Just x
          else Nothing
 

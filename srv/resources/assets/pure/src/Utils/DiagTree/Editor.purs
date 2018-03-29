@@ -53,6 +53,7 @@ import App.Store.DiagTree.Editor.Types
      , DiagTreeSlideResource
      , DiagTreeSlideAction (..)
      , DiagTreeSlideAnswer
+     , fromIndexedAnswers
      )
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
@@ -75,8 +76,9 @@ getSlideByBranch slides branch = do
   { head: x, tail: xs } <- uncons branch
   first@(DiagTreeSlide firstSlide) <- x `Map.lookup` slides
 
-  let f (DiagTreeSlide { answers, answersIndexes }) slideId = do
-        slideId `Map.lookup` answersIndexes >>= index answers <#> _.nextSlide
+  let f (DiagTreeSlide slide) slideId = do
+        let Tuple answers indexes = fromIndexedAnswers slide.answers
+        slideId `Map.lookup` indexes >>= index answers <#> _.nextSlide
 
   foldM f first xs
 

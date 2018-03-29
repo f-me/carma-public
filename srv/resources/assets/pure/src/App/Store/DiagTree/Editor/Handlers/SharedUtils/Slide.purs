@@ -11,7 +11,7 @@ import Control.Monad.Maybe.Trans (MaybeT)
 import Control.MonadZero (guard)
 import Control.Alt ((<|>))
 
-import Data.Tuple (Tuple (Tuple))
+import Data.Tuple (fst)
 import Data.Maybe (Maybe (..), maybe, isJust, isNothing)
 import Data.JSDate (LOCALE, parse, toDateTime)
 import Data.Map (Map)
@@ -36,6 +36,8 @@ import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlideId
      , DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlideAttachment (..)
+     , fromIndexedAnswers
+     , toIndexedAnswers
      )
 
 
@@ -55,9 +57,7 @@ getSlide flatSlides slideId = do
     toMaybeT $ toDateTime jsDate
 
   resources <- toMaybeT $ foldM resourceReducer [] s.resources
-
-  (Tuple answers answersIndexes) <-
-    foldM answerReducer (Tuple [] Map.empty) s.answers
+  answers   <- toIndexedAnswers <$> foldM answerReducer [] s.answers
 
   -- "actions" must be an array of one element or empty array)
   action <- toMaybeT $ do
@@ -69,9 +69,7 @@ getSlide flatSlides slideId = do
        else pure Nothing
 
   toMaybeT $ pure $ DiagTreeSlide
-    { id, isRoot, ctime, header, body, resources, action
-    , answers, answersIndexes
-    }
+    { id, isRoot, ctime, header, body, resources, action, answers }
 
   where
     resourceReducer acc { text, file, attachment } = do
@@ -83,8 +81,7 @@ getSlide flatSlides slideId = do
         <$> { text, attachment: _ }
         <$> ((attachment <#> Modern) <|> (file <#> Legacy))
 
-    answerReducer
-      (Tuple answers answersIndexes)
+    answerReducer answers
       { nextSlide: nextSlideId, header, text, attachment, file } = do
 
       -- Either legacy deprecated `file` or `attachment` must be set,
@@ -97,8 +94,7 @@ getSlide flatSlides slideId = do
       let a = (attachment <#> Modern) <|> (file <#> Legacy)
           x = { nextSlide: slide, header, text, attachment: a }
 
-      pure $ Tuple (answers `snoc` x)
-           $ Map.insert nextSlideId (length answers) answersIndexes
+      pure $ answers `snoc` x
 
 
 extractPartialBackendSlideFromSlide :: DiagTreeSlide -> PartialBackendSlide
@@ -125,19 +121,20 @@ extractPartialBackendSlideFromSlide slide@(DiagTreeSlide s) =
         maybe [] (\x -> [diagTreeSlideActionToBackend x]) s.action
 
     , answers = Just $ fromFoldable $
-        s.answers <#> \x@{ nextSlide: (DiagTreeSlide nextS) } ->
-          { nextSlide: nextS.id
-          , header: x.header
-          , text: x.text
+        fst (fromIndexedAnswers s.answers) <#>
+          \ x@{ nextSlide: (DiagTreeSlide nextS) } ->
+            { nextSlide: nextS.id
+            , header: x.header
+            , text: x.text
 
-          , attachment:
-              case x.attachment of
-                   Just (Modern y) -> Just y
-                   _ -> Nothing
+            , attachment:
+                case x.attachment of
+                     Just (Modern y) -> Just y
+                     _ -> Nothing
 
-          , file:
-              case x.attachment of
-                   Just (Legacy y) -> Just y
-                   _ -> Nothing
-          }
+            , file:
+                case x.attachment of
+                     Just (Legacy y) -> Just y
+                     _ -> Nothing
+            }
     }

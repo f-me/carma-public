@@ -16,7 +16,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Tuple (Tuple (Tuple))
+import Data.Tuple (Tuple (Tuple), fst)
 import Data.String (Pattern (Pattern), toLower, indexOf)
 import Data.String.NonEmpty (toString)
 import Data.Foldable (foldl, foldr)
@@ -27,6 +27,7 @@ import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlides
      , DiagTreeSlideId
      , DiagTreeSlide (DiagTreeSlide)
+     , fromIndexedAnswers
      )
 
 import App.Store.DiagTree.Editor.Actions
@@ -239,8 +240,11 @@ diagTreeEditorReducer state (TreeSearch subAction) =
           where
             m pos = Map.insert x.id { answer: Nothing, question: Just pos }
 
+        getAnswers = _.answers >>> fromIndexedAnswers >>> fst
+
         -- Matching all children deep to end of the branches
-        rootChildren = foldl (childReduce $ Set.singleton x.id) [] x.answers
+        rootChildren =
+          foldl (childReduce $ Set.singleton x.id) [] $ getAnswers x
 
         -- Merging found matches to root accumulator
         rootChildrenReduce rootAcc (Tuple parents { id, answer, question }) =
@@ -251,7 +255,7 @@ diagTreeEditorReducer state (TreeSearch subAction) =
 
         -- Traverser for an "answer" (single child with all his children)
         childReduce parents matches item@{ nextSlide: (DiagTreeSlide slide) } =
-          foldl ownChildReduce newMatches slide.answers
+          foldl ownChildReduce newMatches $ getAnswers slide
           where
             answer         = query `indexOf` toLower item.header
             question       = query `indexOf` toLower slide.header

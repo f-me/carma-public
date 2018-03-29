@@ -11,7 +11,7 @@ import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.MonadZero (guard)
 import Control.Alt ((<|>))
 
-import Data.Tuple (Tuple (Tuple), snd)
+import Data.Tuple (Tuple (Tuple), fst, snd)
 import Data.Foldable (class Foldable, foldl, foldM, length)
 import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..), isJust, maybe)
@@ -77,6 +77,8 @@ import App.Store.DiagTree.Editor.Types
      , DiagTreeSlideAttachment (..)
      , DiagTreeSlideAction
      , DiagTreeSlideAnswer
+     , fromIndexedAnswers
+     , toIndexedAnswers
      )
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
@@ -464,7 +466,8 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     }
 
   let hasAction  = isJust slide.action
-      hasAnswers = not $ null slide.answers && null newAnswers
+      answers    = fst $ fromIndexedAnswers slide.answers
+      hasAnswers = not $ null answers && null newAnswers
       hasBoth    = hasAction && hasAnswers
 
   -- Rendering "answers" only if "action" is not set
@@ -473,7 +476,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
      else answersRender ^ { appContext
                           , slideId: slide.id
                           , isDisabled: isProcessing
-                          , answers: slide.answers
+                          , answers: fst $ fromIndexedAnswers slide.answers
                           , newAnswers
                           , updateAnswer
                           , onMoveUp: onAnswerMoveUp
@@ -618,21 +621,14 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
         let
           newSlide = do
             (DiagTreeSlide slide) <- s.slide
-            idx <- slideId `Map.lookup` slide.answersIndexes
+            let Tuple answers answersIndexes = fromIndexedAnswers slide.answers
+            idx <- slideId `Map.lookup` answersIndexes
 
             let swapIdx = if isUp then idx - 1 else idx + 1
-                reducerApplied = reducer idx swapIdx slide.answers
+                reducerApplied = reducer idx swapIdx answers
 
-            answers <- snd <$> foldM reducerApplied (Tuple 0 []) slide.answers
-
-            let answersIndexes =
-                  snd $ foldl idxReducer (Tuple 0 Map.empty) answers
-                  where
-                    idxReducer (Tuple n acc) {nextSlide: DiagTreeSlide x} =
-                      Tuple (n + 1) $ acc # x.id `Map.insert` n
-
-            pure $ DiagTreeSlide slide
-              { answers = answers, answersIndexes = answersIndexes }
+            newAnswers <- snd <$> foldM reducerApplied (Tuple 0 []) answers
+            pure $ DiagTreeSlide slide { answers = toIndexedAnswers newAnswers }
 
           reducer idx swapIdx answers (Tuple n acc) x =
             Tuple (n + 1) <<< snoc acc <$>
@@ -676,12 +672,10 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       transformState this $ \s ->
         let
           f (DiagTreeSlide slide) = do
-            let answersIndexes = slideId `Map.delete` slide.answersIndexes
-            idx     <- slideId `Map.lookup` slide.answersIndexes
-            answers <- deleteAt idx slide.answers
-
-            pure $ DiagTreeSlide
-              slide { answers = answers, answersIndexes = answersIndexes }
+            let Tuple answers answersIndexes = fromIndexedAnswers slide.answers
+            idx     <- slideId `Map.lookup` answersIndexes
+            answers <- deleteAt idx answers
+            pure $ DiagTreeSlide slide { answers = toIndexedAnswers answers }
 
           newSlide = s.slide >>= f
         in
@@ -702,18 +696,18 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
           legacyAttachment = do
             guard $ not answer.isAttachmentDeleted
             (DiagTreeSlide slide) <- s.slide
-
-            foundAnswer <-
-              slideId `Map.lookup` slide.answersIndexes >>= index slide.answers
+            let Tuple answers answersIndexes = fromIndexedAnswers slide.answers
+            foundAnswer <- slideId `Map.lookup` answersIndexes >>= index answers
 
             case foundAnswer.attachment of
                  x@(Just (Legacy _)) -> x
                  _ -> Nothing
 
           f (DiagTreeSlide slide) = do
-            idx     <- slideId `Map.lookup` slide.answersIndexes
-            answers <- modifyAt idx updater slide.answers
-            pure $ DiagTreeSlide slide { answers = answers }
+            let Tuple answers answersIndexes = fromIndexedAnswers slide.answers
+            idx     <- slideId `Map.lookup` answersIndexes
+            answers <- modifyAt idx updater answers
+            pure $ DiagTreeSlide slide { answers = toIndexedAnswers answers }
 
           newSlide = s.slide >>= f
         in
@@ -775,7 +769,11 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
          nextSlide.action == prevSlide.action &&
 
          eqDiagTreeSlideResources  nextSlide.resources prevSlide.resources &&
-         eqIshDiagTreeSlideAnswers nextSlide.answers   prevSlide.answers
+
+         let nextAnswers = fst $ fromIndexedAnswers nextSlide.answers
+             prevAnswers = fst $ fromIndexedAnswers prevSlide.answers
+
+          in eqIshDiagTreeSlideAnswers nextAnswers prevAnswers
 
          then toMaybeT $ pure unit
          else liftEff $ resetChanges this props.slide

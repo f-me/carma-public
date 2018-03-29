@@ -6,11 +6,17 @@ module App.Store.DiagTree.Editor.Types
      , DiagTreeSlideAttachment (..)
      , DiagTreeSlideAction (..)
      , DiagTreeSlideAnswer
+     , IndexedAnswers
+     , toIndexedAnswers
+     , fromIndexedAnswers
      ) where
 
 import Prelude
 
+import Data.Tuple (Tuple (Tuple), snd)
+import Data.Foldable (foldl)
 import Data.Map (Map)
+import Data.Map as Map
 import Data.Maybe (Maybe)
 import Data.DateTime (DateTime)
 import Data.Generic (class Generic)
@@ -120,7 +126,29 @@ newtype DiagTreeSlide
   , resources :: Array DiagTreeSlideResource
   , action    :: Maybe DiagTreeSlideAction
 
-  , answers        :: Array DiagTreeSlideAnswer
-  , answersIndexes :: Map DiagTreeSlideId Int
-    -- ^ You could read "answers" here as "children slides"
+  , answers   :: IndexedAnswers -- ^ You could read "answers" here
+                                --   kinda as "children slides".
+                                --   It is a list of answer data which
+                                --   references to some child slide.
   }
+
+
+-- Constructor isn't supposed to be exported, the main reason why this type
+-- exists is to prevent broken `Map` of indexes, so, everytime we get new list
+-- of answers new `Map` of indexes must be created. By this type we're avoiding
+-- errors caused by human factor.
+data IndexedAnswers =
+  IndexedAnswers (Array DiagTreeSlideAnswer) (Map DiagTreeSlideId Int)
+
+toIndexedAnswers :: Array DiagTreeSlideAnswer -> IndexedAnswers
+toIndexedAnswers answers = IndexedAnswers answers indexes
+  where
+    indexes = snd $ foldl reducer (Tuple 0 Map.empty) answers
+    reducer (Tuple n acc) { nextSlide: DiagTreeSlide x } =
+      Tuple (n + 1) $ acc # x.id `Map.insert` n
+
+fromIndexedAnswers
+  :: IndexedAnswers
+  -> Tuple (Array DiagTreeSlideAnswer) (Map DiagTreeSlideId Int)
+
+fromIndexedAnswers (IndexedAnswers x y) = Tuple x y
