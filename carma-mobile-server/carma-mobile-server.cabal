@@ -40,6 +40,7 @@ Executable carma-mobile-server
     old-locale,
     postgresql-simple,
     snap,
+    snap-extras >= 0.12.2.0,
     snap-core,
     snap-server,
     snap-loader-static,

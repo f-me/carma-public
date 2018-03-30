@@ -47,7 +47,7 @@ import qualified Data.Text as T
 import Network.HTTP as H (simpleHTTP, getRequest, getResponseBody, urlEncode)
 
 import Snap.Core
-import Snap.Extras.JSON
+import Snap.Extras
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
 
@@ -83,19 +83,9 @@ coords = (,) <$> double <* anyChar <*> double
 
 
 ------------------------------------------------------------------------------
--- | Apply a parser to read data from a named request parameter.
-getParamWith :: MonadSnap m => Parser a -> ByteString -> m (Maybe a)
-getParamWith parser name = do
-  input <- fmap (parseOnly parser) <$> getParam name
-  return $ case input of
-             Just (Right p) -> Just p
-             _ -> Nothing
-
-
-------------------------------------------------------------------------------
 -- | Get a pair of coordinates from a named request parameter.
 getCoordsParam :: MonadSnap m => ByteString -> m (Maybe (Double, Double))
-getCoordsParam = getParamWith coords
+getCoordsParam = parseMayParam coords
 
 
 ------------------------------------------------------------------------------
@@ -166,7 +156,7 @@ withinPartners = do
   city <- fromMaybe ""  <$> getParam "city[]"
   make <- fromMaybe ""  <$> getParam "make[]"
   srv  <- fromMaybe ""  <$> getParam "services[]"
-  sub  <- getParamWith decimal "subtype"
+  sub  <- parseMayParam decimal "subtype"
   pr2  <- fromMaybe ""  <$> getParam "priority2"
   pr3  <- fromMaybe ""  <$> getParam "priority3"
   dlr  <- fromMaybe "0" <$> getParam "isDealer"

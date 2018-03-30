@@ -51,6 +51,7 @@ import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)
 import qualified Network.HTTP as H
 
 import           Snap.Core
+import           Snap.Extras
 import           Snap.Snaplet
 import           Snap.Snaplet.PostgresqlSimple
 
@@ -130,10 +131,10 @@ revGeocode lon lat = do
 -- setting new address if possible.
 updatePosition :: Handler b GeoApp ()
 updatePosition = do
-  lon' <- getParamWith double "lon"
-  lat' <- getParamWith double "lat"
-  free <- getParamWith bool "isFree"
-  pid' <- getParamWith decimal "pid"
+  lon' <- parseMayParam double "lon"
+  lat' <- parseMayParam double "lat"
+  free <- parseMayParam bool "isFree"
+  pid' <- parseMayParam decimal "pid"
   case (lon', lat', pid') of
     (Just lon, Just lat, Just pid) -> do
        addr <- snd <$> revGeocode lon lat
@@ -371,10 +372,10 @@ LIMIT ?;
 -- serve a JSON list of partners around a point.
 partnersAround :: Handler b GeoApp ()
 partnersAround = do
-  cds <- getParamWith coords "coords"
+  cds <- parseMayParam coords "coords"
   limit <- getParam "limit"
   brand <- getParam "car_make"
-  dist  <- getParamWith decimal "dist"
+  dist  <- parseMayParam decimal "dist"
   case cds of
     Just (lon, lat) -> do
       let qParams = ( lon
@@ -418,17 +419,3 @@ coords = (,) <$> double <* anyChar <*> double
 -- | Parse "true" or "false" into boolean.
 bool :: Parser Bool
 bool = (string "true" >> return True) <|> (string "false" >> return False)
-
-
-------------------------------------------------------------------------------
--- | Apply a parser to read data from a named request parameter.
-getParamWith :: MonadSnap m =>
-                Parser a
-             -> ByteString
-             -- ^ Parameter name.
-             -> m (Maybe a)
-getParamWith parser name = do
-  input <- fmap (parseOnly parser) <$> getParam name
-  return $ case input of
-             Just (Right p) -> Just p
-             _ -> Nothing

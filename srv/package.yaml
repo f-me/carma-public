@@ -49,7 +49,7 @@ dependencies:
   - singletons
   - snap
   - snap-core
-  - snap-extras
+  - snap-extras >= 0.12.2.0
   - snap-loader-static
   - snap-server
   - snaplet-persistent
