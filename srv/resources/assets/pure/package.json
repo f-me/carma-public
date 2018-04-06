@@ -9,13 +9,10 @@
   "keywords": [],
   "author": "",
   "license": "",
-  "homepage": "https://github.com/f-me/carma",
+  "homepage": "https://github.com/ruamk/carma",
   "repository": {
     "type": "git",
-    "url": "git://github.com/f-me/carma"
-  },
-  "bugs": {
-    "url": "https://github.com/f-me/carma/issues"
+    "url": "git://github.com/ruamk/carma"
   },
   "scripts": {
     "bower": "bower",

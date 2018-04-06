@@ -6,5 +6,5 @@
 An image for building Dockerized Haskell apps, intended to be used
 with Haskell Stack on CircleCI. It's based on `fpco/stack-build`, but
 also contains Docker. Refer to
-[`.circleci/config.yml`](https://github.com/f-me/carma/blob/master/.circleci/config.yml)
+[`.circleci/config.yml`](https://github.com/ruamk/carma/blob/master/.circleci/config.yml)
 for usage example.

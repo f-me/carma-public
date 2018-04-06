@@ -275,20 +275,28 @@ nextState :: UserStateVal
           -> Maybe UserStateVal
 nextState lastState' delayed' evt mname patch =
   execUserStateEnv (UserStateEnv lastState' delayed' evt mname patch) $ do
+
     change ([Busy] >>> Ready) $
+
       -- TODO Remove redundant Call.endDate clause here as a call
       -- action is always closed when an associated call is closed
       on Update $ Fields
-        [field Call.endDate
-        -- Don't switch to Ready state if needAnoterService button is pressed:
-        -- https://github.com/f-me/carma/issues/2593#issuecomment-202555443
-        ,fieldVal Action.result $ (/= Just ActionResult.needAnotherService)]
+        [ field Call.endDate
+
+          -- Don't switch to Ready state if needAnoterService button is pressed.
+          -- TODO FIXME This is ad-hoc fix, out of main logic, it would be better
+          --            to refactor this.
+        , fieldVal Action.result (/= Just ActionResult.needAnotherService)
+        ]
+
     change ([Ready] >>> Busy) $ do
       on Update $ Fields [field Action.openTime]
+
     change ([LoggedOut] >>> Ready)     $ on Login  NoModel
     change (allStates   >>> LoggedOut) $ on Logout NoModel
     change (allStates   >>> NA)        $ on AvayaNA NoModel
     change ([NA]        >>> Ready)     $ on AvayaReady NoModel
+
     case delayed' of
       Nothing     -> change ([ServiceBreak, NA] >>> Ready) $
         on Update $ Fields [field delayedState]

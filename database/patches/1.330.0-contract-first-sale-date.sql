@@ -14,7 +14,7 @@ INSERT INTO "FieldPermission" (role, model, field, r, w)
  FROM "FieldPermission" WHERE model = 'Case' AND field = 'car_buyDate');
 
 /*
-  See https://github.com/f-me/carma/issues/2812
+  See https://github.com/f-me/carma/issues/2812 (Formal Methods)
 
   Only for:
     - BMW New [590, 594]

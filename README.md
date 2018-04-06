@@ -1,6 +1,6 @@
 # CaRMa
 
-[![Circle CI](https://circleci.com/gh/f-me/carma.svg?style=shield&circle-token=ed097e1dbbde9591b7b2bec9ce252ddc840deb54)][ci]
+[![Circle CI](https://circleci.com/gh/ruamk/carma.svg?style=shield&circle-token=ed097e1dbbde9591b7b2bec9ce252ddc840deb54)][ci]
 [![](https://images.microbadger.com/badges/image/formalmethods/carma-bundle.svg)](https://microbadger.com/images/formalmethods/carma-bundle)
 
 ## Building
@@ -99,7 +99,7 @@ Refer to [`.circleci/config.yml`][ci-config] for full building instructions.
 2. Clone **CaRMa** Git repository:
 
    ```bash
-   git clone git@github.com:f-me/carma.git
+   git clone git@github.com:ruamk/carma
    cd carma
    ```
 
@@ -316,10 +316,10 @@ docker-compose -f docker/carma-bundle.yml up
    ```
 
 [carma-bundle.yml]: docker/carma-bundle.yml
-[carma-configs]: https://github.com/f-me/carma-configs
+[carma-configs]: https://github.com/ruamk/carma-configs
 [ci-cli]: https://circleci.com/docs/2.0/local-jobs/#installing-the-cli-locally
 [ci-config]: .circleci/config.yml
-[ci]: https://circleci.com/gh/f-me/carma
+[ci]: https://circleci.com/gh/ruamk/carma
 [haskell-stack]: https://docs.haskellstack.org/en/stable/README/
 [hub-bundle]: https://hub.docker.com/r/formalmethods/carma-bundle/tags/
 [docker/dev-pg-9.3]: docker/dev-pg-9.3

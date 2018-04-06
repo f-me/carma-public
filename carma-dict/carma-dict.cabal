@@ -1,7 +1,7 @@
 name:                carma-dict
 version:             0.1.2.2
 synopsis:            Load and query legacy CaRMa dictionaries
-homepage:            https://github.com/f-me/carma-dict
+homepage:            https://github.com/ruamk/carma
 license:             BSD3
 license-file:        LICENSE
 author:              Dmitry Dzhus

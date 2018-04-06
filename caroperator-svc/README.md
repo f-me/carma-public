@@ -3,7 +3,7 @@
 
 Спецификация: https://docs.google.com/document/d/1nsgjiUg2UKklqpV3byJhTVqgCxo8BM6BtsUCxsEv1lo/edit
 
-Тикет: https://github.com/f-me/carma/issues/2548
+Тикет: https://github.com/f-me/carma/issues/2548 (Formal Methods)
 
 
 Необходимая инфраструктура

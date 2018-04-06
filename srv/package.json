@@ -28,17 +28,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/f-me/carma"
+    "url": "git://github.com/ruamk/carma"
   },
   "keywords": [
     "best-ever-made-crm-with-haskell-inside"
   ],
   "author": "",
   "license": "",
-  "bugs": {
-    "url": "https://github.com/f-me/carma/issues"
-  },
-  "homepage": "https://github.com/f-me/carma",
+  "homepage": "https://github.com/ruamk/carma",
   "devDependencies": {
     "coffee-loader": "^0.9.0",
     "coffeescript": "^1.12.7",
@@ -84,7 +81,7 @@
     "mustache": "~0.8.2",
     "normalize.css": "~3.0.0",
     "notify": "github:jpillora/notifyjs#0.3.2",
-    "openlayers-2-build": "github:f-me/openlayers-2-build#v2.13.1",
+    "openlayers-2-build": "github:ruamk/openlayers-2-build#v2.13.1",
     "redux": "^3.7.2",
     "redux-actions": "^2.2.1",
     "redux-immutable": "^4.0.0",
