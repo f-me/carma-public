@@ -43,7 +43,9 @@
     "webpack": "^3.10.0"
   },
   "dependencies": {
+    "array.prototype.fill": "^1.0.2",
     "create-react-class": "^15.6.3",
+    "mdn-polyfills": "^5.5.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-dropzone": "^4.2.9",

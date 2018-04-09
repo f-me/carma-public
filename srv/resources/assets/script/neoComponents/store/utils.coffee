@@ -1,4 +1,4 @@
-{_: {identity}, Promise, ReduxActions: {createAction}} = require "carma/vendor"
+{_: {identity}, ReduxActions: {createAction}} = require "carma/vendor"
 
 isActionMapObjValid = (v) ->
   Object.keys(v).every (x) ->

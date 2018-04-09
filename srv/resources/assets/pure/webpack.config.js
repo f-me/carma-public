@@ -25,6 +25,15 @@ module.exports = {
     ],
 
     vendor: [
+      // polyfills for IE11
+      'mdn-polyfills/Object.assign',
+      'mdn-polyfills/Object.create',
+      'mdn-polyfills/Array.from',
+      'mdn-polyfills/Array.of',
+      'array.prototype.fill',
+      'mdn-polyfills/String.prototype.startsWith',
+      'mdn-polyfills/String.prototype.endsWith',
+
       'react',
       'react-dom',
       'react-rte',

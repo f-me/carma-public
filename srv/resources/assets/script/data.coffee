@@ -1,5 +1,3 @@
-{Promise} = require "carma/vendor"
-
 mapping = Object.freeze
 
   cfg: Object.freeze

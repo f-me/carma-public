@@ -3,7 +3,7 @@
 # Uses "Attachment" model and /upload/Case/[bulk|<n>]/files server
 # handlers.
 
-{$, _, ko, Promise} = require "carma/vendor"
+{$, _, ko} = require "carma/vendor"
 
 upl = require "carma/lib/upload"
 mu  = require "carma/model/utils"

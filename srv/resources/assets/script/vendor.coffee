@@ -1,3 +1,8 @@
+# polyfills for IE11
+require "mdn-polyfills/Object.assign"
+window.Promise = require "bluebird"
+require "whatwg-fetch"
+
 $ = require "oldLegacy3p/jquery-2.2.4"
 # Not using it right now:
 # compatibility with jquery 2.x
@@ -97,8 +102,6 @@ OpenLayers.Util.getImageLocation = (img) ->
     else
       throw new Error "Unexpected requested OpenLayers image: '#{img}'"
 
-Promise = require "bluebird"
-
 # TODO maybe replace it with the moment library?
 require "oldLegacy3p/date/core"
 require "oldLegacy3p/date/ru-RU.js"
@@ -123,7 +126,6 @@ module.exports = {
   Finch
   Base64
   Spinner
-  Promise
   Mustache
   Immutable
   Mousetrap

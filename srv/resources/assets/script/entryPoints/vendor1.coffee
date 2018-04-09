@@ -1,5 +1,10 @@
 # dependencies that goes to 'vendor' bundle
 
+# polyfills for IE11
+require "mdn-polyfills/Object.assign"
+require "bluebird"
+require "whatwg-fetch"
+
 require "oldLegacy3p/jquery-2.2.4"
 # Not using it right now:
 # require "oldLegacy3p/myJQuery"
