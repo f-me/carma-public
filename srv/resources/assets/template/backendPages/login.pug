@@ -3,33 +3,36 @@ html(lang='ru')
   head
     meta(charset='utf-8')
     title Вход в систему — CaRMa
+  style.
+    #loginlogo { margin-top: 15px; }
   body
-    .row
-      .col-md-4
-      .box.col-md-4#loginblock
-        #loginlogo
-          img(src='/s/img/logo.png', alt='')
-        form.form-horizontal(action='/login/', method='POST')
-          fieldset
-            legend Вход в систему
-            .form-group
-              label.control-label.col-sm-4 Имя пользователя
-              .col-sm-8
-                input.field.form-control(type='text', name='login')
-            .form-group
-              label.control-label.col-sm-4 Пароль
-              .col-sm-8
-                input.field.form-control(type='password', name='password')
-            .form-group
-              .col-sm-offset-4.col.sm-8
-                .checkbox
-                  label
-                    input.field(type='checkbox', name='remember')
-                    | Запомнить меня
-            .form-group
-              .col-sm-offset-4.col.sm-8
-                button.btn.btn-large.btn-success(type='submit') Войти
-        .box#browser-msg
+    .container
+      .row
+        .col-md-4
+        .box.col-md-4#loginblock
+          p#loginlogo
+            img(src='/s/img/logo.png', alt='')
+          form.form-horizontal(action='/login/', method='POST')
+            fieldset
+              legend Вход в систему
+              .form-group
+                label.control-label.col-sm-4 Имя пользователя
+                .col-sm-8
+                  input.field.form-control(type='text', name='login')
+              .form-group
+                label.control-label.col-sm-4 Пароль
+                .col-sm-8
+                  input.field.form-control(type='password', name='password')
+              .form-group
+                .col-sm-offset-4.col.sm-8
+                  .checkbox
+                    label
+                      input.field(type='checkbox', name='remember')
+                      | Запомнить меня
+              .form-group
+                .col-sm-offset-4.col.sm-8
+                  button.btn.btn-large.btn-success(type='submit') Войти
+          .box#browser-msg
     script.
       document.querySelector('input[name=login]').focus();
     link(rel="stylesheet" type="text/css" href="/s/frontend/bundle.carma.css")
