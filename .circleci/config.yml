@@ -98,14 +98,6 @@ jobs:
             docker push formalmethods/carma-bundle:$CIRCLE_SHA1
             docker logout
 
-  build:
-    <<: *defaults
-    steps:
-      - run:
-          name: Say hi
-          command: |
-            echo hi
-
 workflows:
   version: 2
   build_all:
