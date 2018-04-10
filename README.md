@@ -1,6 +1,6 @@
 # CaRMa
 
-[![Circle CI](https://circleci.com/gh/ruamk/carma.svg?style=shield&circle-token=ed097e1dbbde9591b7b2bec9ce252ddc840deb54)][ci]
+[![CircleCI](https://circleci.com/gh/ruamk/carma/tree/master.svg?style=svg)](https://circleci.com/gh/ruamk/carma/tree/master)
 [![](https://images.microbadger.com/badges/image/formalmethods/carma-bundle.svg)](https://microbadger.com/images/formalmethods/carma-bundle)
 
 ## Building
