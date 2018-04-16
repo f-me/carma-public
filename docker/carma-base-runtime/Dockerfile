@@ -1,5 +1,5 @@
 # Runtime system libraries must match those used in
-# formalmethods/carma-stack-build
+# ruamc/carma-stack-build
 FROM bitnami/minideb:stretch
 RUN install_packages dirmngr gnupg && \
     echo "deb http://security.ubuntu.com/ubuntu xenial-security main" | \
