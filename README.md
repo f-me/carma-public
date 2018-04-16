@@ -1,7 +1,7 @@
 # CaRMa
 
 [![CircleCI](https://circleci.com/gh/ruamk/carma/tree/master.svg?style=svg)](https://circleci.com/gh/ruamk/carma/tree/master)
-[![](https://images.microbadger.com/badges/image/formalmethods/carma-bundle.svg)](https://microbadger.com/images/formalmethods/carma-bundle)
+[![](https://images.microbadger.com/badges/image/ruamc/carma-bundle.svg)](https://microbadger.com/images/ruamc/carma-bundle)
 
 ## Building
 
@@ -286,8 +286,7 @@ CaRMa server executable inside the container is located at
 This is what [`build_bundle`][ci-config] CI step does.
 
 Alternatively, you may skip building CaRMa altogether and just pick an
-image from [formalmethods/carma-bundle][hub-bundle] repo on Docker
-Hub.
+image from [ruamc/carma-bundle][hub-bundle] repo on Docker Hub.
 
 To run the bundle, use [carma-bundle.yml][] Docker Compose file, which
 combines a CaRMa bundle and PostgreSQL.
@@ -321,6 +320,6 @@ docker-compose -f docker/carma-bundle.yml up
 [ci-config]: .circleci/config.yml
 [ci]: https://circleci.com/gh/ruamk/carma
 [haskell-stack]: https://docs.haskellstack.org/en/stable/README/
-[hub-bundle]: https://hub.docker.com/r/formalmethods/carma-bundle/tags/
+[hub-bundle]: https://hub.docker.com/r/ruamc/carma-bundle/tags/
 [docker/dev-pg-9.3]: docker/dev-pg-9.3
 [pure-readme]: srv/resources/assets/pure/README.md
