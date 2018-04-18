@@ -25,6 +25,12 @@ objsToRows = (objs) ->
 
 screenSetup = (viewName, args) ->
   modelName = "Partner"
+
+  # ad-hoc fix for broken z-index
+  # TODO geo modals must be rewritten
+  $("#injected-modal").html ""
+  $("#partnerMapModal").appendTo "#injected-modal"
+
   kvm = modelSetup modelName, viewName, args
 
   tableParams =

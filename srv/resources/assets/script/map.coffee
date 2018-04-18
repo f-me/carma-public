@@ -506,14 +506,14 @@ mapPicker = (field_name, el) ->
 
     # Activate simple map search
     search.keypress (e) ->
-      if e.which == 13
-        search_button.trigger "click"
+      search_button.trigger "click" if e.which == 13
     search_button.click () ->
       osmap = $(map_el).data("osmap")
-      spliceAddress search.val(), kvm,
-        coord_field: coord_field
-        osmap: osmap
-        current_blip_type: current_blip_type
+      spliceAddress search.val(), kvm, {
+        coord_field
+        osmap
+        current_blip_type
+      }
 
     initOSM map_el, view_name
 
