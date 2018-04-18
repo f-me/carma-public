@@ -129,6 +129,11 @@ setupButtonPanel = (kvm, table, args, objUrl) ->
 
 
 screenSetup = (viewName, args) ->
+  # ad-hoc fix for broken z-index
+  # TODO refactor
+  $("#injected-modal").html ""
+  $("#ctr-copy-modal").appendTo "#injected-modal"
+
   # FIXME: remove this hack when custom ko handler will be made with rjs
   $("#hidden-fields-container").append($(Flds))
   # show choose dict controls

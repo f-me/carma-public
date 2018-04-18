@@ -30,7 +30,12 @@
           button#active-items-btn.btn(type='button', data-toggle='button')
             i.icon.icon-eye-close
             | Aктивные
-        // copy constructor options
+
+        // Copy constructor options.
+        // See "screen constructor" dictionary.
+        // WARNING! this model injects into
+        //          body>#top-level-modals>#injected-modal
+        //          when 'partner' screen is initialized
         #ctr-copy-modal.modal.fade
           .modal-dialog
             .modal-content
@@ -48,6 +53,7 @@
                 button.btn.btn-primary(
                     data-bind='enable: kvm.canCopy, click: kvm.doCopy')
                   | Копировать
+
         #dictionaries-view.form-horizontal
         #permissions
           permission-block(params=`
