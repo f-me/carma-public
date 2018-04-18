@@ -1,3 +1,10 @@
+###
+Part of the "tasks" field implementation for "emergency comissioner" service
+(see "case" screen). In russian you see "аварийный коммисар".
+
+This store branch contains data of all tasks you could select in typeahead menu.
+###
+
 {Immutable: {Record}} = require "carma/vendor"
 
 {makeActions, catchFailure, fetchGet} =

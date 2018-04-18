@@ -1,3 +1,10 @@
+###
+You see letter icon in navigation bar (at top of the page),
+when click on it this form appears.
+
+This component rendered into body>#top-level-modals, so it is modal form.
+###
+
 {ko} = require "carma/vendor"
 {simpleFuzzySearch} = require "carma/lib/search"
 {store} = require "carma/neoComponents/store"

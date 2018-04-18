@@ -1,3 +1,8 @@
+###
+See route #diag/show/CASE_ID
+See also description of parent-component for details.
+###
+
 {ko, markdown, Immutable: {Map, List}} = require "carma/vendor"
 {backgrounds} = require "./precompiled"
 {store} = require "carma/neoComponents/store"

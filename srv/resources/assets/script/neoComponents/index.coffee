@@ -1,6 +1,7 @@
 {ko} = require "carma/vendor"
 
 registerComponents = ->
+  # Every new component must be placed here (otherwise it won't be initialized)
   components = [
     require "carma/neoComponents/SmsForm"
     require "carma/neoComponents/AvarcomTasks"

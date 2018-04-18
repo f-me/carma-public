@@ -1,3 +1,7 @@
+###
+See "sms-form" component for details.
+###
+
 {
   Immutable: {Record}
   ReduxActions: {handleActions}

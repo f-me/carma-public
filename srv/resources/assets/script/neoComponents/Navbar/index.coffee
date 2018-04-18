@@ -1,3 +1,7 @@
+###
+You see this component at top of the page (on almost every route).
+###
+
 {ko} = require "carma/vendor"
 {store} = require "carma/neoComponents/store"
 actions = require "carma/neoComponents/store/navbar/actions"

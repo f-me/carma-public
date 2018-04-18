@@ -1,3 +1,7 @@
+###
+See "diag-tree-show" component descriptions for details.
+###
+
 {
   Immutable: {Record, Map}
   ReduxActions: {handleActions}

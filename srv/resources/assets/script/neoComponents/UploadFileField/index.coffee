@@ -1,3 +1,10 @@
+###
+Implementation of upload-file field.
+
+It is generic and configurable, used in multiple places.
+You could see it on "case" screen for example.
+###
+
 {ko} = require "carma/vendor"
 
 

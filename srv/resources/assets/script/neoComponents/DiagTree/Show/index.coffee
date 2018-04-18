@@ -1,3 +1,17 @@
+###
+See route #diag/show/%CASE_ID%
+
+To see this component you supposed to:
+  1. Edit some "subprogram" dictionary (see #dict route);
+  2. Choose some tree root in "diag tree type"
+     (in russian "тип дерева неисправностей") field;
+  3. Create some "case" (see #case/%CASE_ID%)
+  4. Set a program and that subprogram with "diag tree type" set
+  5. Now you supposed to see a link "start diagnostics"
+     (in russian "начать диагностику"), click it and new window/tab with this
+     component will appear
+###
+
 {ko} = require "carma/vendor"
 {store} = require "carma/neoComponents/store"
 

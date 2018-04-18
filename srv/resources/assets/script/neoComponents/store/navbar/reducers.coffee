@@ -1,3 +1,7 @@
+###
+See "navbar" component for details.
+###
+
 {
   Immutable: {Record}
   ReduxActions: {handleActions}

@@ -1,3 +1,8 @@
+###
+"Tasks" field implementation for "emergency comissioner" service
+(see "case" screen). In russian you see "аварийный коммисар".
+###
+
 {ko} = require "carma/vendor"
 {simpleFuzzySearch} = require "carma/lib/search"
 {store} = require "carma/neoComponents/store"

@@ -1,3 +1,10 @@
+###
+This is for compatibility with old legacy code.
+TODO FIXME Get rid of global variables (caused by old legacy code).
+
+See also "permission-block" component where this used (but not only there).
+###
+
 {Immutable: {Record}} = require "carma/vendor"
 {makeActions} = require "carma/neoComponents/store/utils"
 

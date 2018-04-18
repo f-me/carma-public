@@ -1,3 +1,13 @@
+###
+It is implementation of "save" button part of a form.
+Used in many places, in every form that have "save" button.
+It could show "readonly" warning instead of button when proper argument set.
+It also shows indicator if model saved correctly.
+
+Any form uses this component have model representation,
+so when it saves it triggers saving model data.
+###
+
 {ko} = require "carma/vendor"
 {store} = require "carma/neoComponents/store"
 

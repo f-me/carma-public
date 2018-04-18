@@ -174,7 +174,7 @@ withinPartners = do
                       :* lonc :* latc
                       :* city :* make
                       :* srv  :* (sub :: Maybe Int)
-                      :* pr2 :* pr3
+                      :* pr2  :* pr3
                       :* dlr  :* mp
         results <- recode <$> withLens postgres (query withinQuery qParams)
         -- Do not serve useless distance if center point is not cet
