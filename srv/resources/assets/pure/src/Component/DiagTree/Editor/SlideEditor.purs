@@ -14,7 +14,7 @@ import Control.Alt ((<|>))
 import Data.Tuple (Tuple (Tuple), fst, snd)
 import Data.Foldable (class Foldable, foldl, foldM, length)
 import Data.Record.Builder (merge)
-import Data.Maybe (Maybe (..), isJust, maybe)
+import Data.Maybe (Maybe (..), isJust, maybe, fromMaybe)
 import Data.Either (Either (..))
 import Data.Map as Map
 import Data.Nullable (toNullable)
@@ -530,15 +530,24 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       where updater x (DiagTreeSlide s) = DiagTreeSlide s { header = x }
 
     changeBodyHandler this value = do
-      let x = valueToString value Markdown
+      let valueStr = valueToString value Markdown
 
-      transformState this $ \s -> s
-        { slide = s.slide <#> updater x
-        , rteSlideBody = value
-        , isChanged = true
-        }
+      transformState this $ \s ->
+        let
+          newState = do
+            (DiagTreeSlide slide) <- s.slide
 
-      where updater x (DiagTreeSlide s) = DiagTreeSlide s { body = x }
+            -- This checks whether something is changed.
+            -- This check solves the issue when RTE field just focused and it
+            -- triggered change event and then slide marked as it have changes.
+            guard $ slide.body /= valueStr
+
+            pure s { slide = pure $ DiagTreeSlide slide { body = valueStr }
+                   , rteSlideBody = value
+                   , isChanged = true
+                   }
+        in
+          fromMaybe s newState
 
     selectActionHandler this action =
       transformState this $
