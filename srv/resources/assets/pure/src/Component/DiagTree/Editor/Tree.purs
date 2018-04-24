@@ -135,7 +135,7 @@ diagTreeEditorTreeRender = createClass $ spec $
                            , slide
                            }
 
-          itemRender x = createElement diagTreeEditorTreeItem p []
+          itemRender x = itemEl p []
             where p = build (itemPropsBuilder x) itemProps
 
       elements $ map itemRender slidesList
@@ -144,6 +144,7 @@ diagTreeEditorTreeRender = createClass $ spec $
     name = "DiagTreeEditorTree"
     classSfx s = name <> "--" <> s
     wrapper = R.div [className name]
+    itemEl = createElement diagTreeEditorTreeItem
 
     shiftedSlidesMenuFn selectRoot selectOneLevelUp levelsHidden = do
 

@@ -7,11 +7,11 @@ import Prelude hiding (div)
 import Data.Record.Builder (merge)
 import Data.Either (Either (..))
 
-import React (ReactClass, getProps)
+import React (ReactClass, getProps, createElement)
 import React.DOM (div)
 import React.DOM.Props (className)
 import React.Spaces.DOM (h1)
-import React.Spaces ((^), renderIn, text)
+import React.Spaces (renderIn, element, text)
 
 import Utils (storeConnect, createClassStatelessWithSpec)
 import Router (Location (..))
@@ -30,19 +30,19 @@ appRender = f $ \ { appContext, location } -> renderIn wrapper $
   case location of
 
     DiagTreeEditPartial ->
-      diagTreeEditor ^ { appContext }
+      element $ editorEl { appContext } []
 
     NotFound ->
       h1 $ text "Страница не найдена"
 
     Empty ->
-      spinner ^ { withLabel: Left true
-                , appContext
-                }
+      element $ spinnerEl { withLabel: Left true, appContext } []
 
   where
     name = "CarmaApp"
     wrapper = div [className name]
+    editorEl = createElement diagTreeEditor
+    spinnerEl = createElement spinner
     f = createClassStatelessWithSpec specMiddleware
 
     specMiddleware = _

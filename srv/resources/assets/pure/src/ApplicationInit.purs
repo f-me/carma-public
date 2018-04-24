@@ -48,7 +48,7 @@ runApplication :: Eff ( ref     :: REF
                       ) Unit
 
 runApplication = do
-  (appEl :: DOM.Element) <-
+  (appDOMEl :: DOM.Element) <-
     DOM.window
     >>= DOM.document
     >>= DOM.getElementById (DOM.ElementId "app")
@@ -65,4 +65,6 @@ runApplication = do
     subscribeHandlers appContext
 
     liftEff $ void $
-      flip render appEl $ createElement app { appContext } []
+      flip render appDOMEl $ appEl { appContext } []
+
+  where appEl = createElement app

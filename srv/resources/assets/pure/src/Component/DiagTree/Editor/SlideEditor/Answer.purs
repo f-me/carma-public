@@ -19,8 +19,8 @@ import Data.String (null)
 
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
-import React.DOM (li) as R
-import React.Spaces ((!), (!.), (^), (^^), renderIn, text, empty)
+import React.DOM (text, li) as R
+import React.Spaces ((!), (!.), renderIn, element, text, empty)
 
 import React.Spaces.DOM
      ( div, img, span, button, i, p, h4, input
@@ -35,7 +35,7 @@ import React.DOM.Props
 
 import React
      ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
-     , getProps, readState, createClass, spec'
+     , getProps, readState, createClass, createElement, spec'
      , transformState
      )
 
@@ -142,9 +142,11 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
 
   if not isProcessing
      then empty
-     else spinner ^ { withLabel: Right "Загрузка…"
-                    , appContext
-                    }
+     else element $
+            spinnerEl
+              { withLabel: Right "Загрузка…"
+              , appContext
+              } []
 
   let legacyWarnM =
         case (Modern <$> attachment) <|> (answer >>= _.attachment) of
@@ -206,6 +208,10 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
     classSfx s = name <> "--" <> s
     wrapper = R.li [className $ "list-group-item" <.> name]
 
+    spinnerEl        = createElement spinner
+    dropDownSelectEl = createElement dropDownSelect
+    dropzoneEl       = createElement dropzone
+
     viewRender isDisabled onMoveUp onMoveDown state previewM = do
 
       h4 !. "list-group-item-heading" $ text state.header
@@ -261,32 +267,33 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
               ! disabled isDisabled
 
       div !. "form-group" $ do
-        div $ dropDownSelect ^
-          { appContext
-          , isDisabled: isDisabled || isJust state.attachment || hasAttachment
-          , variants: (unfoldrBoundedEnum :: Array BackendAttachmentMediaType)
-          , selected: Just state.mediaType
-          , variantView: showNominative >>> capitalize
-          , onSelected: Just state.onMediaTypeSelected
-          , placeholder: Just "Тип прикрепляемого файла"
-          , notSelectedTitle: Nothing
-          }
+        div $ element $
+          dropDownSelectEl
+            { appContext
+            , isDisabled: isDisabled || isJust state.attachment || hasAttachment
+            , variants: (unfoldrBoundedEnum :: Array BackendAttachmentMediaType)
+            , selected: Just state.mediaType
+            , variantView: showNominative >>> capitalize
+            , onSelected: Just state.onMediaTypeSelected
+            , placeholder: Just "Тип прикрепляемого файла"
+            , notSelectedTitle: Nothing
+            } []
 
-        dropzone ^^ (dropzoneDefaultProps state.mediaType)
-          { disabled = isDisabled
+        element $
+          dropzoneEl (dropzoneDefaultProps state.mediaType)
+            { disabled = isDisabled
 
-          , onDropAccepted = toNullable $ Just $ handle2 $
-              \files _ -> case head files of
-                               Nothing -> pure unit
-                               Just x  -> state.onFileDropped x
+            , onDropAccepted = toNullable $ Just $ handle2 $
+                \files _ -> case head files of
+                                 Nothing -> pure unit
+                                 Just x  -> state.onFileDropped x
 
-          , onDropRejected = toNullable $ Just $ handle2 $
-              \files _ -> state.onFilesRejected files
-          }
-          $ text $
-            "Нажмите для добавления " <> showGenitive state.mediaType <>
-            " или перетащите " <>
-            sexyShow "его" "файл" "её" (getSex state.mediaType) <> " сюда"
+            , onDropRejected = toNullable $ Just $ handle2 $
+                \files _ -> state.onFilesRejected files
+            } [ R.text $
+                "Нажмите для добавления " <> showGenitive state.mediaType <>
+                " или перетащите " <>
+                sexyShow "его" "файл" "её" (getSex state.mediaType) <> " сюда" ]
 
         previewM
 

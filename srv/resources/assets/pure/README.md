@@ -25,6 +25,22 @@ npm run prod-release
 - `npm run debug-clean-build` to build debug bundle
   (optimized but not minified, unreachable code is eliminated) from scratch
 
+## Development WARNINGS
+
+- When you use `createElement` always prebind it in `where` section of a class
+  otherwise a class will be always new and will be mounted every render.
+
+  Like this:
+  ```purescript
+  -- some class
+  where
+    resourcesRenderEl = createElement resourcesRender
+    richTextEditorEl = createElement richTextEditor
+  ```
+
+  And never use `(^)` or `(^^)` from `React.Spaces`,
+  instead use prebound `createElement` and `element` from `React.Spaces`.
+
 ## About PureScript
 
 Compact instruction that will help you to understand it from Haskell perspective

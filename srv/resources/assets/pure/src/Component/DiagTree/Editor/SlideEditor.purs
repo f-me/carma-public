@@ -12,18 +12,17 @@ import Control.MonadZero (guard)
 import Control.Alt ((<|>))
 
 import Data.Tuple (Tuple (Tuple), fst, snd)
-import Data.Foldable (class Foldable, foldl, foldM, length)
+import Data.Foldable (foldM)
 import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..), isJust, maybe, fromMaybe)
 import Data.Either (Either (..))
 import Data.Map as Map
 import Data.Nullable (toNullable)
-import Data.String (joinWith)
 import Data.Array ((!!), index, snoc, updateAt, modifyAt, deleteAt, null)
-import React.DOM (form, div) as R
-import React.Spaces ((!), (!.), (^), renderIn, text, empty, elements)
-import React.Spaces.DOM (div, input, button, label, i, p, span)
-import React.Spaces.DOM.Dynamic (ul) as SDyn
+
+import React.DOM (form) as R
+import React.Spaces ((!), (!.), renderIn, text, empty, element)
+import React.Spaces.DOM (div, input, button, p, span)
 
 import React.DOM.Props
      ( className, _type, placeholder, value, disabled
@@ -31,7 +30,7 @@ import React.DOM.Props
      )
 
 import React
-     ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
+     ( ReactClass
      , createClass, spec', createElement
      , getProps, readState, transformState
      , handle
@@ -39,9 +38,6 @@ import React
 
 import Utils
      ( (<.>), storeConnect, toMaybeT, eventInputValue
-     , createClassStatelessWithName
-     , unfoldrBoundedEnum
-     , showAccusative
      )
 
 import Utils.DiagTree.Editor
@@ -50,7 +46,6 @@ import Utils.DiagTree.Editor
      , eqIshDiagTreeSlideAnswers
      )
 
-import Component.Generic.DropDownSelect (OnSelectedEff, dropDownSelect)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
@@ -73,341 +68,22 @@ import App.Store.DiagTree.Editor.Actions
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlideId
-     , DiagTreeSlideResource
      , DiagTreeSlideAttachment (..)
-     , DiagTreeSlideAction
-     , DiagTreeSlideAnswer
      , fromIndexedAnswers
      , toIndexedAnswers
      )
 
-import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
-     ( BackendAttachment
-     , BackendAttachmentMediaType
+import Component.DiagTree.Editor.SlideEditor.Resources
+     ( diagTreeEditorSlideEditorResources
      )
 
-import Component.DiagTree.Editor.SlideEditor.Resource
-     ( diagTreeEditorSlideEditorResource
+import Component.DiagTree.Editor.SlideEditor.Answers
+     ( diagTreeEditorSlideEditorAnswers
      )
 
-import Component.DiagTree.Editor.SlideEditor.Answer
-     ( diagTreeEditorSlideEditorAnswer
+import Component.DiagTree.Editor.SlideEditor.Action
+     ( diagTreeEditorSlideEditorAction
      )
-
-
-resourcesRender
-  :: forall f eff
-   . Foldable f
-  => ReactClass
-       { appContext :: AppContext
-       , slideId    :: DiagTreeSlideId
-       , isDisabled :: Boolean
-       , resources  :: f DiagTreeSlideResource
-
-       , updateResource -- See item component for details
-           :: ItemModification Int
-                { text :: String
-                , file :: Maybe BackendAttachment
-                }
-
-           -> Eff ( props :: ReactProps
-                  , state :: ReactState ReadWrite
-                  , refs  :: ReactRefs  ReadOnly
-                  | eff
-                  ) Unit
-
-       , onMoveUp   :: Int -> Eff ( props :: ReactProps
-                                  , state :: ReactState ReadWrite
-                                  , refs  :: ReactRefs  ReadOnly
-                                  | eff
-                                  ) Unit
-
-       , onMoveDown :: Int -> Eff ( props :: ReactProps
-                                  , state :: ReactState ReadWrite
-                                  , refs  :: ReactRefs  ReadOnly
-                                  | eff
-                                  ) Unit
-       }
-
-resourcesRender = createClass $ spec $
-  \ { appContext, slideId, isDisabled, resources
-    , updateResource, onMoveUp, onMoveDown
-    }
-    { isAdding, turnAddingOn, turnAddingOff } -> do
-
-  label !. "control-label" $ text "Прикреплённые файлы"
-
-  SDyn.ul !. "list-group" <.> classSfx "list" $
-
-    let itemReducer lastIndex (Tuple itemIndex list) resource =
-          Tuple (itemIndex + 1) $ list `snoc`
-
-            let props = { appContext
-                        , slideId
-                        , key: toNullable $ Just $ show itemIndex
-                        , itemIndex: Just itemIndex
-                        , isDisabled
-                        , resource: Just resource
-                        , updateResource
-                        , onCancel: Nothing
-
-                        , onMoveUp:
-                            if itemIndex <= 0
-                               then Nothing
-                               else Just onMoveUp
-
-                        , onMoveDown:
-                            if itemIndex >= lastIndex
-                               then Nothing
-                               else Just onMoveDown
-                        }
-
-             in createElement diagTreeEditorSlideEditorResource props []
-
-     in elements $ snd $
-          foldl (itemReducer $ length resources - 1) (Tuple 0 []) resources
-
-  if isAdding
-     then diagTreeEditorSlideEditorResource ^
-            { appContext
-            , slideId
-            , key: toNullable Nothing
-            , itemIndex: Nothing
-            , isDisabled
-            , resource: Nothing
-            , updateResource
-            , onCancel: Just turnAddingOff
-            , onMoveUp: Nothing
-            , onMoveDown: Nothing
-            }
-
-     else button !. "btn btn-default" <.> classSfx "add-button"
-                 ! _type "button"
-                 ! onClick turnAddingOn
-                 ! disabled isDisabled
-                 $ do
-
-            i !. "glyphicon glyphicon-plus" $ empty
-            text $ (" Добавить " <> _) $
-              joinWith "/" $ map showAccusative
-                (unfoldrBoundedEnum :: Array BackendAttachmentMediaType)
-
-  where
-    name = "DiagTreeEditorSlideEditorResources"
-    classSfx s = name <> "--" <> s
-    wrapper = R.div [className $ "form-group" <.> name]
-    renderer = renderIn wrapper
-
-    turnAddingHandler this isOn =
-      transformState this _ { isAdding = isOn }
-
-    getInitialState this = pure
-      { isAdding: false
-      , turnAddingOn: const $ turnAddingHandler this true
-      , turnAddingOff: turnAddingHandler this false
-      }
-
-    spec renderFn =
-      spec' getInitialState renderHandler # _ { displayName = name }
-      where
-        renderHandler this = do
-          props <- getProps  this
-          state <- readState this
-          pure $ renderer $ renderFn props state
-
-
-answersRender
-  :: forall f f2 eff
-   . Foldable f
-  => Foldable f2
-  => ReactClass
-       { appContext :: AppContext
-       , slideId    :: DiagTreeSlideId
-       , isDisabled :: Boolean
-       , answers    :: f DiagTreeSlideAnswer
-
-       , newAnswers :: f2 { header     :: String
-                          , text       :: String
-                          , attachment :: Maybe DiagTreeSlideAttachment
-                          }
-
-       , updateAnswer -- See answer item props type component for details
-           :: ItemModification (Either DiagTreeSlideId Int)
-                { header              :: String
-                , text                :: String
-                , attachment          :: Maybe BackendAttachment
-                , isAttachmentDeleted :: Boolean
-                }
-
-           -> Eff ( props :: ReactProps
-                  , state :: ReactState ReadWrite
-                  , refs  :: ReactRefs  ReadOnly
-                  | eff
-                  ) Unit
-
-       , onMoveUp   :: (Either DiagTreeSlideId Int)
-                    -> Eff ( props :: ReactProps
-                           , state :: ReactState ReadWrite
-                           , refs  :: ReactRefs  ReadOnly
-                           | eff
-                           ) Unit
-
-       , onMoveDown :: (Either DiagTreeSlideId Int)
-                    -> Eff ( props :: ReactProps
-                           , state :: ReactState ReadWrite
-                           , refs  :: ReactRefs  ReadOnly
-                           | eff
-                           ) Unit
-       }
-
-answersRender = createClass $ spec $
-  \ { appContext, slideId, isDisabled
-    , answers, newAnswers, updateAnswer
-    , onMoveUp, onMoveDown
-    }
-    { isAdding, turnAddingOn, turnAddingOff } -> do
-
-  label !. "control-label" $ text "Ответы"
-
-  SDyn.ul !. "list-group" <.> classSfx "list" $
-
-    let
-      getMoveUp itemIndex =
-        if itemIndex <= 0
-           then Nothing
-           else Just onMoveUp
-
-      getMoveDown itemIndex lastIndex =
-        if itemIndex >= lastIndex
-           then Nothing
-           else Just onMoveDown
-
-      reducer lastIndex (Tuple itemIndex list) answer =
-        Tuple (itemIndex + 1) $ list `snoc`
-          let
-            answerSlideId = answer.nextSlide # \(DiagTreeSlide x) -> x.id
-            moveUp = getMoveUp itemIndex
-            moveDown = getMoveDown itemIndex lastIndex
-
-            p = props (Left answerSlideId) moveUp moveDown
-              { header: answer.header
-              , text: answer.text
-              , attachment: answer.attachment
-              }
-          in
-            createElement diagTreeEditorSlideEditorAnswer p []
-
-      newReducer lastIndex (Tuple itemIndex list) answer =
-        Tuple (itemIndex + 1) $ list `snoc`
-          let
-            moveUp = getMoveUp itemIndex
-            moveDown = getMoveDown itemIndex lastIndex
-
-            p = props (Right itemIndex) moveUp moveDown
-              { header: answer.header
-              , text: answer.text
-              , attachment: answer.attachment
-              }
-          in
-            createElement diagTreeEditorSlideEditorAnswer p []
-
-      props identity moveUp moveDown item =
-        { appContext
-        , slideId
-        , key: toNullable $ Just $ show identity
-        , identity: Just identity
-        , isDisabled
-        , answer: Just item
-        , updateAnswer
-        , onCancel: Nothing
-        , onMoveUp: moveUp
-        , onMoveDown: moveDown
-        }
-
-    in do
-      elements $ snd $
-        foldl (reducer $ length answers - 1) (Tuple 0 []) answers
-
-      elements $ snd $
-        foldl (newReducer $ length newAnswers - 1) (Tuple 0 []) newAnswers
-
-  if isAdding
-     then diagTreeEditorSlideEditorAnswer ^
-            { appContext
-            , slideId
-            , key: toNullable Nothing
-            , identity: Nothing
-            , isDisabled
-            , answer: Nothing
-            , updateAnswer
-            , onCancel: Just turnAddingOff
-            , onMoveUp: Nothing
-            , onMoveDown: Nothing
-            }
-
-     else button !. "btn btn-default" <.> classSfx "add-button"
-                 ! _type "button"
-                 ! onClick turnAddingOn
-                 ! disabled isDisabled
-                 $ do i !. "glyphicon glyphicon-plus" $ empty
-                      text " Добавить ответ"
-
-  where
-    name = "DiagTreeEditorSlideEditorAnswers"
-    classSfx s = name <> "--" <> s
-    wrapper = R.div [className $ "form-group" <.> name]
-    renderer = renderIn wrapper
-
-    turnAddingHandler this isOn =
-      transformState this _ { isAdding = isOn }
-
-    getInitialState this = pure
-      { isAdding: false
-      , turnAddingOn: const $ turnAddingHandler this true
-      , turnAddingOff: turnAddingHandler this false
-      }
-
-    spec renderFn =
-      spec' getInitialState renderHandler # _ { displayName = name }
-      where
-        renderHandler this = do
-          props <- getProps  this
-          state <- readState this
-          pure $ renderer $ renderFn props state
-
-
-actionRender
-  :: forall eff
-   . ReactClass { appContext :: AppContext
-                , isDisabled :: Boolean
-                , action     :: Maybe DiagTreeSlideAction
-
-                , onSelected :: Maybe DiagTreeSlideAction
-                             -> Eff (OnSelectedEff eff) Unit
-                }
-
-actionRender = createClassStatelessWithName name $
-  \ { appContext, isDisabled, action, onSelected } -> renderer $ do
-
-  label !. "control-label" $ text "Рекомендация"
-
-  div $ dropDownSelect ^
-    { appContext
-    , isDisabled
-    , variants
-    , selected: action
-    , variantView: show
-    , onSelected: Just onSelected
-    , placeholder: Just "Что делать?"
-    , notSelectedTitle: Just "(не выбрано)"
-    }
-
-  where
-    name = "DiagTreeEditorSlideEditorActions"
-    classSfx s = name <> "--" <> s
-    wrapper = R.div [className $ "form-group" <.> name]
-    renderer = renderIn wrapper
-    variants = (unfoldrBoundedEnum :: Array DiagTreeSlideAction)
 
 
 diagTreeEditorSlideEditorRender
@@ -421,8 +97,7 @@ diagTreeEditorSlideEditorRender
 
 diagTreeEditorSlideEditorRender = createClass $ spec $
   \ { appContext, isProcessing, isFailed }
-    { slide: (DiagTreeSlide slide)
-    , rteSlideBody
+    { rteSlideBody
     , newAnswers
     , isChanged
     , onChangeHeader
@@ -432,10 +107,10 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     , onSelectAction
     , onCancel
     , onSave
-    } -> do
+    } (DiagTreeSlide slide) -> do
 
   if not isFailed
-     then pure unit
+     then empty
      else div $ p $ do
             span !. "label label-danger" $ text "Ошибка"
             text " Произошла ошибка при сохранении изменений."
@@ -448,22 +123,23 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
           ! value slide.header
           ! onChange onChangeHeader
 
-  div !. "form-group" $
-    richTextEditor ^ (richTextEditorDefaultProps rteSlideBody)
+  div !. "form-group" $ element $
+    rteEl (richTextEditorDefaultProps rteSlideBody)
       { placeholder = toNullable $ Just "Описание"
       , disabled    = toNullable $ Just isProcessing
       , onChange    = toNullable $ Just $ handle onChangeBody
-      }
+      } []
 
-  resourcesRender ^
-    { appContext
-    , slideId: slide.id
-    , isDisabled: isProcessing
-    , resources: slide.resources
-    , updateResource
-    , onMoveUp: onResourceMoveUp
-    , onMoveDown: onResourceMoveDown
-    }
+  element $
+    resourcesEl
+      { appContext
+      , slideId: slide.id
+      , isDisabled: isProcessing
+      , resources: slide.resources
+      , updateResource
+      , onMoveUp: onResourceMoveUp
+      , onMoveDown: onResourceMoveDown
+      } []
 
   let hasAction  = isJust slide.action
       answers    = fst $ fromIndexedAnswers slide.answers
@@ -473,24 +149,28 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
   -- Rendering "answers" only if "action" is not set
   if hasAction && not hasBoth
      then empty
-     else answersRender ^ { appContext
-                          , slideId: slide.id
-                          , isDisabled: isProcessing
-                          , answers: fst $ fromIndexedAnswers slide.answers
-                          , newAnswers
-                          , updateAnswer
-                          , onMoveUp: onAnswerMoveUp
-                          , onMoveDown: onAnswerMoveDown
-                          }
+     else element $
+            answersEl
+              { appContext
+              , slideId: slide.id
+              , isDisabled: isProcessing
+              , answers: fst $ fromIndexedAnswers slide.answers
+              , newAnswers
+              , updateAnswer
+              , onMoveUp: onAnswerMoveUp
+              , onMoveDown: onAnswerMoveDown
+              } []
 
   -- Rendering "action" only if "answers" is empty
   if hasAnswers && not hasBoth
      then empty
-     else actionRender ^ { appContext
-                         , isDisabled: isProcessing
-                         , action: slide.action
-                         , onSelected: onSelectAction
-                         }
+     else element $
+            actionEl
+              { appContext
+              , isDisabled: isProcessing
+              , action: slide.action
+              , onSelected: onSelectAction
+              } []
 
   if not hasBoth
      then pure unit
@@ -520,6 +200,11 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     classSfx s = name <> "--" <> s
     wrapper = R.form [className name]
     renderer = renderIn wrapper
+
+    rteEl       = createElement richTextEditor
+    resourcesEl = createElement diagTreeEditorSlideEditorResources
+    answersEl   = createElement diagTreeEditorSlideEditorAnswers
+    actionEl    = createElement diagTreeEditorSlideEditorAction
 
     changeHeaderHandler this event = do
       let x = eventInputValue event
@@ -834,7 +519,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
           pure $ renderer $
             case state.slide of
                  Nothing -> text "…"
-                 Just x  -> renderFn props state { slide = x }
+                 Just x  -> renderFn props state x
 
 
 diagTreeEditorSlideEditor :: ReactClass { appContext :: AppContext }

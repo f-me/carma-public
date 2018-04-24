@@ -43,12 +43,12 @@ storeConnect
   -> ReactClass { appContext :: AppContext | props1 }
 
 storeConnect storeSelector child = createClass spec
-
   where
+    childEl = createElement child
 
     renderFn this = do
       state <- readState this
-      pure $ createElement child state.mappedProps []
+      pure $ childEl state.mappedProps []
 
     initialState this = do
       props    <- getProps this

@@ -12,7 +12,7 @@ import Control.Monad.Aff (launchAff_)
 
 import React
      ( ReactClass
-     , getProps, readState, createClass, spec'
+     , getProps, readState, createClass, createElement, spec'
      , preventDefault
      )
 
@@ -22,7 +22,7 @@ import DOM.HTML.Window (confirm) as DOM
 import React.DOM.Props (className, onClick, disabled)
 import React.DOM (div) as R
 import React.Spaces.DOM (div, p, span, button, i, ul, li, h5)
-import React.Spaces ((!), (!.), (^), renderIn, text, empty)
+import React.Spaces ((!), (!.), renderIn, element, text, empty)
 
 import Utils ((<.>), storeConnect)
 import Utils.DiagTree.Editor (getSlideByBranch)
@@ -71,11 +71,13 @@ diagTreeEditorRender = createClass $ spec $
         i !. "glyphicon glyphicon-plus" $ empty
         text " Новое дерево"
 
-    diagTreeEditorTreeSearch ^ { appContext, isDisabled: isProcessing }
+    element $ treeSearchEl { appContext, isDisabled: isProcessing } []
 
     if isProcessing
-       then div !. classSfx "processing" $ spinner ^ processingSpinnerProps
-       else diagTreeEditorTree ^ { appContext }
+       then div !. classSfx "processing" $ element $
+              spinnerEl processingSpinnerProps []
+
+       else element $ treeEl { appContext } []
 
     -- A hint for a user
     div !. classSfx "tree-hints" $ do
@@ -103,13 +105,20 @@ diagTreeEditorRender = createClass $ spec $
                    text " Произошла ошибка при попытке создать новое дерево."
 
     if isProcessing
-       then div !. classSfx "processing" $ spinner ^ processingSpinnerProps
-       else diagTreeEditorSlideEditor ^ { appContext }
+       then div !. classSfx "processing" $ element $
+              spinnerEl processingSpinnerProps []
+
+       else element $ slideEditorEl { appContext } []
 
   where
     name = "DiagTreeEditor"
     classSfx s = name <> "--" <> s
     wrapper = R.div [className name]
+
+    spinnerEl     = createElement spinner
+    treeSearchEl  = createElement diagTreeEditorTreeSearch
+    treeEl        = createElement diagTreeEditorTree
+    slideEditorEl = createElement diagTreeEditorSlideEditor
 
     renderFn mainRender props state =
       renderIn wrapper $ do
@@ -127,10 +136,11 @@ diagTreeEditorRender = createClass $ spec $
                     else " Произошла ошибка при загрузке данных"
 
       | props.isSlidesLoading =
-          div !. "text-center" $
-            spinner ^ { withLabel  : Left true
-                      , appContext : props.appContext
-                      }
+          div !. "text-center" $ element $
+            spinnerEl
+              { withLabel  : Left true
+              , appContext : props.appContext
+              } []
 
       | props.isSlidesLoaded = mainRender props state
 
