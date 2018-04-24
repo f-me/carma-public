@@ -76,9 +76,9 @@ type Props f eff =
                              ) Unit
   }
 
+
 diagTreeEditorSlideEditorResourcesRender
   :: forall f eff . Foldable f => ReactClass (Props f eff)
-
 
 diagTreeEditorSlideEditorResourcesRender = createClass $ spec $
   \ { appContext, slideId, isDisabled, resources

@@ -20,7 +20,7 @@ import Data.Map as Map
 import Data.Nullable (toNullable)
 import Data.Array ((!!), index, snoc, updateAt, modifyAt, deleteAt, null)
 
-import React.DOM (form) as R
+import React.DOM (form, div) as R
 import React.Spaces ((!), (!.), renderIn, text, empty, element)
 import React.Spaces.DOM (div, input, button, p, span)
 
@@ -30,11 +30,15 @@ import React.DOM.Props
      )
 
 import React
-     ( ReactClass
+     ( ReactClass, ReactProps, ReactState, ReactRefs
+     , ReadWrite, Disallowed
      , createClass, spec', createElement
      , getProps, readState, transformState
      , handle
      )
+
+import RxJS.ReplaySubject (just, debounceTime, send, subscribeNext)
+import RxJS.Subscription (unsubscribe)
 
 import Utils
      ( (<.>), storeConnect, toMaybeT, eventInputValue
@@ -53,7 +57,6 @@ import Component.DiagTree.Editor.SlideEditor.Helpers (ItemModification (..))
 
 import Bindings.ReactRichTextEditor
      ( RTE
-     , EditorValue
      , EditorValueFormat (Markdown)
      , createValueFromString
      , richTextEditor
@@ -97,8 +100,7 @@ diagTreeEditorSlideEditorRender
 
 diagTreeEditorSlideEditorRender = createClass $ spec $
   \ { appContext, isProcessing, isFailed }
-    { rteSlideBody
-    , newAnswers
+    { newAnswers
     , isChanged
     , onChangeHeader
     , onChangeBody
@@ -123,11 +125,12 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
           ! value slide.header
           ! onChange onChangeHeader
 
-  div !. "form-group" $ element $
-    rteEl (richTextEditorDefaultProps rteSlideBody)
-      { placeholder = toNullable $ Just "Описание"
-      , disabled    = toNullable $ Just isProcessing
-      , onChange    = toNullable $ Just $ handle onChangeBody
+  element $
+    rteWrapEl
+      { appContext
+      , isProcessing
+      , value: slide.body
+      , onChange: onChangeBody
       } []
 
   element $
@@ -201,7 +204,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     wrapper = R.form [className name]
     renderer = renderIn wrapper
 
-    rteEl       = createElement richTextEditor
+    rteWrapEl   = createElement rteWrap
     resourcesEl = createElement diagTreeEditorSlideEditorResources
     answersEl   = createElement diagTreeEditorSlideEditorAnswers
     actionEl    = createElement diagTreeEditorSlideEditorAction
@@ -214,9 +217,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
       where updater x (DiagTreeSlide s) = DiagTreeSlide s { header = x }
 
-    changeBodyHandler this value = do
-      let valueStr = valueToString value Markdown
-
+    changeBodyHandler this valueStr = do
       transformState this $ \s ->
         let
           newState = do
@@ -228,7 +229,6 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
             guard $ slide.body /= valueStr
 
             pure s { slide = pure $ DiagTreeSlide slide { body = valueStr }
-                   , rteSlideBody = value
                    , isChanged = true
                    }
         in
@@ -445,13 +445,10 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
                SaveSlideRequest x { slide: y, newAnswers }
 
     resetChanges this slide = do
-      rteSlideBody <- buildRteSlideBody slide
-
       transformState this _
-        { slide        = slide
-        , rteSlideBody = rteSlideBody
-        , newAnswers   = []
-        , isChanged    = false
+        { slide      = slide
+        , newAnswers = []
+        , isChanged  = false
         }
 
     fetchSlide this state props = do
@@ -472,18 +469,10 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
          then toMaybeT $ pure unit
          else liftEff $ resetChanges this props.slide
 
-    buildRteSlideBody
-      :: forall eff. Maybe DiagTreeSlide -> Eff (rte :: RTE | eff) EditorValue
-    buildRteSlideBody slide =
-      let f = maybe "" (\(DiagTreeSlide x) -> x.body) slide
-       in createValueFromString f Markdown
-
     getInitialState this = do
       { slide } <- getProps this
-      rteSlideBody <- buildRteSlideBody slide
 
       pure { slide
-           , rteSlideBody
 
            , newAnswers: [] -- It hasn't `nextSlide` yet,
                             -- that's why it's separated.
@@ -538,3 +527,80 @@ diagTreeEditorSlideEditor = storeConnect f diagTreeEditorSlideEditorRender
 
       , isFailed: branch.slideSaving.isFailed
       }
+
+
+rteWrap
+  :: forall eff
+   . ReactClass { appContext   :: AppContext
+                , isProcessing :: Boolean
+                , value        :: String -- ^ Markdown
+                , onChange     :: String -> Eff ( props :: ReactProps
+                                                , state :: ReactState ReadWrite
+                                                , refs  :: ReactRefs  Disallowed
+                                                , rte   :: RTE
+                                                | eff
+                                                ) Unit
+                }
+
+rteWrap = createClass $ spec $
+  \ { isProcessing } { onRTEChange, rteValue } ->
+
+  rteEl (richTextEditorDefaultProps rteValue)
+    { placeholder = toNullable $ Just "Описание"
+    , disabled    = toNullable $ Just isProcessing
+    , onChange    = toNullable $ Just $ handle onRTEChange
+    } []
+
+  where
+    name = "DiagTreeEditorSlideEditorRTEWrap"
+    wrapper = R.div [className $ name <.> "form-group"]
+    rteEl = createElement richTextEditor
+
+    onRTEChangeHandler this value = do
+      { changeObservable } <- readState this
+      let valueStr = valueToString value Markdown
+      transformState this _ { rteValue = value }
+      valueStr `send` changeObservable
+
+    getInitialState this = do
+      { appContext, value } <- getProps this
+      rteValue <- createValueFromString value Markdown
+
+      pure { changeObservable   : just "" # debounceTime 500
+           , changeSubscription : Nothing
+           , onRTEChange        : onRTEChangeHandler this
+           , rteValue
+           }
+
+    spec renderFn =
+      spec' getInitialState renderHandler # _
+        { displayName = name
+
+        , componentWillMount = \this -> do
+            { onChange } <- getProps this
+            { changeObservable } <- readState this
+            subscription <- subscribeNext onChange changeObservable
+            -- FIXME See https://github.com/jasonzoladz/purescript-rxjs/issues/22
+            {-- transformState this _ { changeSubscription = Just subscription } --}
+            pure unit
+
+        , componentWillReceiveProps = \this { value: newValue } -> do
+            { changeObservable, rteValue } <- readState this
+            let oldValue = valueToString rteValue Markdown
+
+            if oldValue == newValue
+               then pure unit
+               else do newRTEValue <- createValueFromString newValue Markdown
+                       newValue `send` changeObservable
+                       transformState this _ { rteValue = newRTEValue }
+
+        , componentWillUnmount = \this -> do
+            { changeSubscription } <- readState this
+            maybe (pure unit) unsubscribe changeSubscription
+        }
+
+      where
+        renderHandler this = do
+          props <- getProps  this
+          state <- readState this
+          pure $ wrapper [renderFn props state]
