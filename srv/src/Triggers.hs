@@ -421,17 +421,22 @@ beforeUpdate = Map.unionsWith (++) $
         currentCtr <- getIdent >>= dbRead
         modifyPatch
           $ Patch.put Contract.isActive
-            $ get' currentCtr Contract.isActive
+          $ get' currentCtr Contract.isActive
 
   , trigOn Case.car_plateNum $ \case
       Nothing -> return ()
       Just val ->
         when (T.length val > 5) $
-        modifyPatch (Patch.put Case.car_plateNum (Just $ T.toUpper val))
+          modifyPatch
+            $ Patch.put Case.car_plateNum
+            $ Just $ T.toUpper val
 
   , trigOn Case.comment $ \case
       Nothing -> return ()
       Just wi -> fillWazzup wi
+
+  , trigOn Case.program $ \_ ->
+      modifyPatch $ Patch.put Case.subprogram Nothing
 
   , trigOn Service.times_expectedServiceStart $ \case
       Nothing -> return ()
@@ -733,6 +738,8 @@ copyFromContract cId = do
          => (Contract -> Field (Maybe t) (FOpt n d a))
          -> Patch Contract -> Patch Contract
       cp f = maybe (Patch.put f (get' protoCtr f)) (const id) $ get' currentCtr f
+
+  -- TODO serialize generic fields?
   modifyPatch
     $ cp Contract.name
     . cp Contract.email

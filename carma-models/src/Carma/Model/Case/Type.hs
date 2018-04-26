@@ -46,6 +46,7 @@ data Case = Case
     :: F (Maybe Text) "customerComment" "Неисправность со слов клиента"
   , comment
     :: F (Maybe (IdentI Wazzup)) "comment" "Что случилось"
+
   , diagnosis1
     :: F (Maybe (IdentI System)) "diagnosis1" "Система"
   , diagnosis2
@@ -54,6 +55,7 @@ data Case = Case
     :: F (Maybe (IdentI Cause)) "diagnosis3" "Описание причины неисправности"
   , diagnosis4
     :: F (Maybe (IdentI Suggestion)) "diagnosis4" "Рекомендация"
+
   , contact_name
     :: F (Maybe Text) "contact_name" "Звонящий"
   , contact_phone1
@@ -80,15 +82,17 @@ data Case = Case
     :: F (Maybe Phone) "contact_ownerPhone4" ""
   , contact_ownerEmail
     :: F (Maybe Text) "contact_ownerEmail" "Email владельца"
+
   , program
     :: F (IdentI Program) "program" "Программа"
   , subprogram
-    :: F (Maybe (IdentI SubProgram))  "subprogram" "Подпрограмма"
+    :: F (Maybe (IdentI SubProgram)) "subprogram" "Подпрограмма"
 
   , contractIdentifier
     :: F (Maybe Text) "contractIdentifier" "Идентификатор контракта"
   , contract
     :: F (Maybe (IdentI Contract)) "contract" "Контракт"
+
   , car_vin
     :: F (Maybe Text) "car_vin" "Автомобиль (VIN)"
   , car_make
