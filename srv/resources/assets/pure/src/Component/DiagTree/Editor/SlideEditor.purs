@@ -7,6 +7,7 @@ import Prelude hiding (div)
 import Control.Monad.Aff (launchAff_)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.MonadZero (guard)
 import Control.Alt ((<|>))
@@ -128,6 +129,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
   element $
     rteWrapEl
       { appContext
+      , slideId: slide.id
       , isProcessing
       , value: slide.body
       , onChange: onChangeBody
@@ -529,9 +531,11 @@ diagTreeEditorSlideEditor = storeConnect f diagTreeEditorSlideEditorRender
       }
 
 
+-- For debouncing `onChange` triggering (for optimization purposes)
 rteWrap
   :: forall eff
    . ReactClass { appContext   :: AppContext
+                , slideId      :: DiagTreeSlideId
                 , isProcessing :: Boolean
                 , value        :: String -- ^ Markdown
                 , onChange     :: String -> Eff ( props :: ReactProps
@@ -593,6 +597,34 @@ rteWrap = createClass $ spec $
                else do newRTEValue <- createValueFromString newValue Markdown
                        newValue `send` changeObservable
                        transformState this _ { rteValue = newRTEValue }
+
+        -- This fixes a bug when you edit RTE value and change other value of a
+        -- field really quick before debounced `onChange` is triggered and then
+        -- your RTE value changes is resetted.
+        , componentDidUpdate = \this { value: prevValue
+                                     , slideId: prevSlideId
+                                     , onChange
+                                     } _ -> do
+
+            { value, slideId } <- getProps this
+            { rteValue } <- readState this
+            let rteValueStr = valueToString rteValue Markdown
+
+            if slideId == prevSlideId && -- If another slide selected we musn't
+                                         -- trigger a change that was indended
+                                         -- for the previous one.
+               value == prevValue && -- If a value updated for some reason, for
+                                     -- example slide changes was resetted, we
+                                     -- don't trigger a change.
+               value /= rteValueStr -- If RTE value and slide value are the same
+                                    -- no need to trigger a change.
+               then -- Coercing because it requires `ReactState ReadWrite`
+                    -- effect but `componentDidUpdate` provides only
+                    -- `ReactState ReadOnly` but it's okay because `onChange`
+                    -- doesn't affects current component but parent so these
+                    -- effects kinda belongs to parent component.
+                    unsafeCoerceEff $ onChange rteValueStr
+               else pure unit
 
         , componentWillUnmount = \this -> do
             { changeSubscription } <- readState this
