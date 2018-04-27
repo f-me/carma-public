@@ -5,9 +5,7 @@ module Component.DiagTree.Editor.SlideEditor
 import Prelude hiding (div)
 
 import Control.Monad.Aff (launchAff_)
-import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.MonadZero (guard)
 import Control.Alt ((<|>))
@@ -31,8 +29,7 @@ import React.DOM.Props
      )
 
 import React
-     ( ReactClass, ReactProps, ReactState, ReactRefs
-     , ReadWrite, Disallowed
+     ( ReactClass, EventHandler
      , createClass, spec', createElement
      , getProps, readState, transformState
      , handle
@@ -42,7 +39,7 @@ import RxJS.ReplaySubject (just, debounceTime, send, subscribeNext)
 import RxJS.Subscription (unsubscribe)
 
 import Utils
-     ( (<.>), storeConnect, toMaybeT, eventInputValue
+     ( (<.>), storeConnect, toMaybeT, eventInputValue, callEventHandler
      )
 
 import Utils.DiagTree.Editor
@@ -57,8 +54,7 @@ import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
 import Component.DiagTree.Editor.SlideEditor.Helpers (ItemModification (..))
 
 import Bindings.ReactRichTextEditor
-     ( RTE
-     , EditorValueFormat (Markdown)
+     ( EditorValueFormat (Markdown)
      , createValueFromString
      , richTextEditor
      , richTextEditorDefaultProps
@@ -481,7 +477,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
            , isChanged          : false
            , onChangeHeader     : changeHeaderHandler   this
-           , onChangeBody       : changeBodyHandler     this
+           , onChangeBody       : handle $ changeBodyHandler this
            , updateResource     : updateResourceHandler this
            , onResourceMoveUp   : moveResourceHandler   this true
            , onResourceMoveDown : moveResourceHandler   this false
@@ -533,17 +529,11 @@ diagTreeEditorSlideEditor = storeConnect f diagTreeEditorSlideEditorRender
 
 -- For debouncing `onChange` triggering (for optimization purposes)
 rteWrap
-  :: forall eff
-   . ReactClass { appContext   :: AppContext
+  :: ReactClass { appContext   :: AppContext
                 , slideId      :: DiagTreeSlideId
                 , isProcessing :: Boolean
                 , value        :: String -- ^ Markdown
-                , onChange     :: String -> Eff ( props :: ReactProps
-                                                , state :: ReactState ReadWrite
-                                                , refs  :: ReactRefs  Disallowed
-                                                , rte   :: RTE
-                                                | eff
-                                                ) Unit
+                , onChange     :: EventHandler String
                 }
 
 rteWrap = createClass $ spec $
@@ -583,7 +573,10 @@ rteWrap = createClass $ spec $
         , componentWillMount = \this -> do
             { onChange } <- getProps this
             { changeObservable } <- readState this
-            subscription <- subscribeNext onChange changeObservable
+
+            subscription <-
+              callEventHandler onChange `subscribeNext` changeObservable
+
             -- FIXME See https://github.com/jasonzoladz/purescript-rxjs/issues/22
             {-- transformState this _ { changeSubscription = Just subscription } --}
             pure unit
@@ -618,12 +611,7 @@ rteWrap = createClass $ spec $
                                      -- don't trigger a change.
                value /= rteValueStr -- If RTE value and slide value are the same
                                     -- no need to trigger a change.
-               then -- Coercing because it requires `ReactState ReadWrite`
-                    -- effect but `componentDidUpdate` provides only
-                    -- `ReactState ReadOnly` but it's okay because `onChange`
-                    -- doesn't affects current component but parent so these
-                    -- effects kinda belongs to parent component.
-                    unsafeCoerceEff $ onChange rteValueStr
+               then callEventHandler onChange $ rteValueStr
                else pure unit
 
         , componentWillUnmount = \this -> do
