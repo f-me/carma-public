@@ -34,6 +34,7 @@ import React
      , getProps, readState, transformState, createClass, spec'
      , preventDefault
      , createElement
+     , handle
      )
 
 import Utils ((<.>), storeConnect, eventIsChecked, toMaybeT)
@@ -263,7 +264,7 @@ diagTreeEditorTreeRender = createClass $ spec $
 
           changeDontShiftLevels = changeDontShiftLevelsHandler this
 
-          selectSlide =
+          selectSlide = handle $
             selectSlideHandler appContext this
                                toggleSlideFold unfoldSlideBranch
 
@@ -273,7 +274,7 @@ diagTreeEditorTreeRender = createClass $ spec $
 
       pure { selectSlide
            , unfoldedSlides
-           , deleteSlide       : deleteSlideHandler appContext this
+           , deleteSlide       : handle $ deleteSlideHandler appContext this
            , shiftedSlidesMenu : shiftedSlidesMenuFn selectRoot selectOneLevelUp
            , dontShiftLevels   : false
            , changeDontShiftLevels

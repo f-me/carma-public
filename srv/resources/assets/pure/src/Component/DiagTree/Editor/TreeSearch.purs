@@ -141,14 +141,14 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
               { searchQuery: oldQuery } <- getProps this
 
               if newQuery == oldQuery
-                then pure unit
-                else case newQuery <#> toString of
-                          Nothing -> transformState this _ { query = "" }
-                          Just x  -> do
-                            { query } <- readState this
-                            if trim query /= x
-                               then transformState this _ { query = x }
-                               else pure unit
+                 then pure unit
+                 else case newQuery <#> toString of
+                           Nothing -> transformState this _ { query = "" }
+                           Just x  -> do
+                             { query } <- readState this
+                             if trim query /= x
+                                then transformState this _ { query = x }
+                                else pure unit
 
           , componentWillUnmount = \this -> do
               { changeSubscription } <- readState this

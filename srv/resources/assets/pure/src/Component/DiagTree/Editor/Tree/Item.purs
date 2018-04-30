@@ -5,7 +5,6 @@ module Component.DiagTree.Editor.Tree.Item
 import Prelude hiding (div)
 
 import Control.Lazy (fix)
-import Control.Monad.Eff (Eff)
 
 import Data.String (length, splitAt)
 import Data.Array (elemIndex, snoc, last, null)
@@ -17,19 +16,14 @@ import Data.Set as Set
 import Data.Foldable (foldl)
 import Data.Tuple (Tuple (Tuple), fst)
 
-import React
-     ( ReactClass, ReactProps, ReactRefs, ReactState, ReadOnly, ReadWrite
-     , preventDefault, stopPropagation
-     )
-
+import React (ReactClass, EventHandler, preventDefault, stopPropagation)
 import React.DOM (div) as R
 import React.DOM.Props (className, key, onClick, title)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
 import React.Spaces.DOM (div, button, i, span)
 import React.Spaces.DOM (div) as SDyn
 
-import Utils ((<.>), createClassStatelessWithName)
-
+import Utils ((<.>), createClassStatelessWithName, callEventHandler)
 import App.Store (AppContext)
 
 import App.Store.DiagTree.Editor.Types
@@ -39,14 +33,7 @@ import App.Store.DiagTree.Editor.Types
      )
 
 
-type MethodEff eff =
-  Eff ( props :: ReactProps
-      , refs  :: ReactRefs  ReadOnly
-      , state :: ReactState ReadWrite
-      | eff
-      ) Unit
-
-type Props eff =
+type Props =
   { appContext     :: AppContext
   , key            :: String
 
@@ -62,8 +49,8 @@ type Props eff =
                                  }
                }
 
-  , select       :: Array DiagTreeSlideId -> MethodEff eff
-  , delete       :: Array DiagTreeSlideId -> MethodEff eff
+  , select       :: EventHandler (Array DiagTreeSlideId)
+  , delete       :: EventHandler (Array DiagTreeSlideId)
 
   , answerHeader :: Maybe String
   , parents      :: Array DiagTreeSlideId
@@ -71,7 +58,7 @@ type Props eff =
   }
 
 
-diagTreeEditorTreeItemRender :: forall eff. ReactClass (Props eff)
+diagTreeEditorTreeItemRender :: ReactClass Props
 diagTreeEditorTreeItemRender = f $
   \props@{ selectedSlide, unfoldedSlides, search, select, delete } ->
   (\r -> r props.answerHeader props.parents props.slide) $ -- first level call
@@ -118,12 +105,12 @@ diagTreeEditorTreeItemRender = f $
 
     onHeaderClick event = do
       preventDefault event
-      select slideBranch
+      callEventHandler select slideBranch
 
     onDeleteClick event = do
       preventDefault event
       stopPropagation event
-      delete slideBranch
+      callEventHandler delete slideBranch
   in
     renderIn (R.div [className wClass, key $ show slide.id]) $ do
       div !. classSfx "header" ! onClick onHeaderClick $ do
@@ -196,5 +183,5 @@ diagTreeEditorTreeItemRender = f $
         if sfx /= "" then text sfx else empty
 
 
-diagTreeEditorTreeItem :: forall eff. ReactClass (Props eff)
+diagTreeEditorTreeItem :: ReactClass Props
 diagTreeEditorTreeItem = diagTreeEditorTreeItemRender
