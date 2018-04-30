@@ -4,8 +4,6 @@ module Component.DiagTree.Editor.SlideEditor.Answers
 
 import Prelude hiding (div)
 
-import Control.Monad.Eff (Eff)
-
 import Data.Tuple (Tuple (Tuple), snd)
 import Data.Foldable (class Foldable, foldl, length)
 import Data.Maybe (Maybe (..))
@@ -20,9 +18,10 @@ import React.Spaces.DOM.Dynamic (ul) as SDyn
 import React.DOM.Props (className, _type, disabled, onClick)
 
 import React
-     ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
+     ( ReactClass, EventHandler
      , createClass, spec', createElement
      , getProps, readState, transformState
+     , handle
      )
 
 import Utils ((<.>))
@@ -46,7 +45,7 @@ import Component.DiagTree.Editor.SlideEditor.Answer
      )
 
 
-type Props answers newAnswers eff =
+type Props answers newAnswers =
   { appContext :: AppContext
   , slideId    :: DiagTreeSlideId
   , isDisabled :: Boolean
@@ -58,40 +57,21 @@ type Props answers newAnswers eff =
                              }
 
   , updateAnswer -- See answer item props type component for details
-      :: ItemModification (Either DiagTreeSlideId Int)
-           { header              :: String
-           , text                :: String
-           , attachment          :: Maybe BackendAttachment
-           , isAttachmentDeleted :: Boolean
-           }
+      :: EventHandler
+           ( ItemModification (Either DiagTreeSlideId Int)
+               { header              :: String
+               , text                :: String
+               , attachment          :: Maybe BackendAttachment
+               , isAttachmentDeleted :: Boolean
+               } )
 
-      -> Eff ( props :: ReactProps
-             , state :: ReactState ReadWrite
-             , refs  :: ReactRefs  ReadOnly
-             | eff
-             ) Unit
-
-  , onMoveUp   :: (Either DiagTreeSlideId Int)
-               -> Eff ( props :: ReactProps
-                      , state :: ReactState ReadWrite
-                      , refs  :: ReactRefs  ReadOnly
-                      | eff
-                      ) Unit
-
-  , onMoveDown :: (Either DiagTreeSlideId Int)
-               -> Eff ( props :: ReactProps
-                      , state :: ReactState ReadWrite
-                      , refs  :: ReactRefs  ReadOnly
-                      | eff
-                      ) Unit
+  , onMoveUp   :: EventHandler (Either DiagTreeSlideId Int)
+  , onMoveDown :: EventHandler (Either DiagTreeSlideId Int)
   }
 
 
 diagTreeEditorSlideEditorAnswersRender
-  :: forall f1 f2 eff
-   . Foldable f1
-  => Foldable f2
-  => ReactClass (Props f1 f2 eff)
+  :: forall f1 f2 . Foldable f1 => Foldable f2 => ReactClass (Props f1 f2)
 
 diagTreeEditorSlideEditorAnswersRender = createClass $ spec $
   \ { appContext, slideId, isDisabled
@@ -199,7 +179,7 @@ diagTreeEditorSlideEditorAnswersRender = createClass $ spec $
     getInitialState this = pure
       { isAdding: false
       , turnAddingOn: const $ turnAddingHandler this true
-      , turnAddingOff: turnAddingHandler this false
+      , turnAddingOff: let f = turnAddingHandler this false in handle \unit -> f
       }
 
     spec renderFn =
@@ -212,9 +192,6 @@ diagTreeEditorSlideEditorAnswersRender = createClass $ spec $
 
 
 diagTreeEditorSlideEditorAnswers
-  :: forall f1 f2 eff
-   . Foldable f1
-  => Foldable f2
-  => ReactClass (Props f1 f2 eff)
+  :: forall f1 f2 . Foldable f1 => Foldable f2 => ReactClass (Props f1 f2)
 
 diagTreeEditorSlideEditorAnswers = diagTreeEditorSlideEditorAnswersRender

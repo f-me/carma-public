@@ -18,14 +18,14 @@ import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Types (DiagTreeSlideAction)
 
 
-type Props eff =
+type Props =
   { appContext :: AppContext
   , isDisabled :: Boolean
   , action     :: Maybe DiagTreeSlideAction
   , onSelected :: EventHandler (Maybe DiagTreeSlideAction)
   }
 
-diagTreeEditorSlideEditorActionRender :: forall eff . ReactClass (Props eff)
+diagTreeEditorSlideEditorActionRender :: ReactClass Props
 diagTreeEditorSlideEditorActionRender = createClassStatelessWithName name $
   \ { appContext, isDisabled, action, onSelected } -> renderer $ do
 
@@ -52,5 +52,5 @@ diagTreeEditorSlideEditorActionRender = createClassStatelessWithName name $
     dropDownSelectEl = createElement dropDownSelect
 
 
-diagTreeEditorSlideEditorAction :: forall eff . ReactClass (Props eff)
+diagTreeEditorSlideEditorAction :: ReactClass Props
 diagTreeEditorSlideEditorAction = diagTreeEditorSlideEditorActionRender

@@ -475,18 +475,18 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
            , newAnswers: [] -- It hasn't `nextSlide` yet,
                             -- that's why it's separated.
 
-           , isChanged          : false
-           , onChangeHeader     : changeHeaderHandler   this
-           , onChangeBody       : handle $ changeBodyHandler this
-           , updateResource     : updateResourceHandler this
-           , onResourceMoveUp   : moveResourceHandler   this true
-           , onResourceMoveDown : moveResourceHandler   this false
-           , updateAnswer       : updateAnswerHandler   this
-           , onAnswerMoveUp     : moveAnswerHandler     this true
-           , onAnswerMoveDown   : moveAnswerHandler     this false
-           , onSelectAction     : handle $ selectActionHandler this
-           , onCancel           : cancelHandler         this
-           , onSave             : saveHandler           this
+           , isChanged          :          false
+           , onChangeHeader     :          changeHeaderHandler   this
+           , onChangeBody       : handle $ changeBodyHandler     this
+           , updateResource     :          updateResourceHandler this
+           , onResourceMoveUp   :          moveResourceHandler   this true
+           , onResourceMoveDown :          moveResourceHandler   this false
+           , updateAnswer       : handle $ updateAnswerHandler   this
+           , onAnswerMoveUp     : handle $ moveAnswerHandler     this true
+           , onAnswerMoveDown   : handle $ moveAnswerHandler     this false
+           , onSelectAction     : handle $ selectActionHandler   this
+           , onCancel           :          cancelHandler         this
+           , onSave             :          saveHandler           this
            }
 
     spec renderFn =

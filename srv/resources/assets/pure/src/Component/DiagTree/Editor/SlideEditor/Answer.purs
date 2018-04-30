@@ -5,9 +5,7 @@ module Component.DiagTree.Editor.SlideEditor.Answer
 import Prelude hiding (div)
 
 import Control.Alt ((<|>))
-import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Aff (launchAff_)
 import Control.MonadZero (guard)
 
@@ -34,7 +32,7 @@ import React.DOM.Props
      )
 
 import React
-     ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
+     ( ReactClass, EventHandler
      , getProps, readState, createClass, createElement, spec'
      , transformState
      , handle
@@ -52,6 +50,7 @@ import Utils
      , getSex, sexyShow, capitalize
      , eventInputValue
      , unfoldrBoundedEnum
+     , callEventHandler
      )
 
 import Utils.DiagTree.Editor
@@ -72,16 +71,7 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      )
 
 
-type MoveHandler eff = (Either DiagTreeSlideId Int) -> ParentHandler eff
-
-type ParentHandler eff =
-  Eff ( props :: ReactProps
-      , state :: ReactState ReadWrite
-      , refs  :: ReactRefs  ReadOnly
-      | eff
-      ) Unit
-
-type Props eff =
+type Props =
   { appContext :: AppContext
   , key        :: Nullable String
   , slideId    :: DiagTreeSlideId
@@ -95,30 +85,29 @@ type Props eff =
                }
 
   , updateAnswer
-      :: ItemModification (Either DiagTreeSlideId Int)
-           { header     :: String
-           , text       :: String
-           , attachment :: Maybe BackendAttachment
+      :: EventHandler
+           ( ItemModification (Either DiagTreeSlideId Int)
+               { header     :: String
+               , text       :: String
+               , attachment :: Maybe BackendAttachment
 
-           , isAttachmentDeleted :: Boolean
-             -- ^ Makes sense only for legacy `file` field.
-             --   Also it's only for previously created answers, saving
-             --   legacy type of attachment is not allowed for new answers.
-             --   TODO FIXME Remove this flag after removing
-             --              deprecated `file` field.
-           }
+               , isAttachmentDeleted :: Boolean
+                 -- ^ Makes sense only for legacy `file` field.
+                 --   Also it's only for previously created answers, saving
+                 --   legacy type of attachment is not allowed for new answers.
+                 --   TODO FIXME Remove this flag after removing
+                 --              deprecated `file` field.
+               } )
 
-      -> ParentHandler eff
-
-  , onCancel :: Maybe (ParentHandler eff)
+  , onCancel :: Maybe (EventHandler Unit)
     -- ^ Only for adding new one (when `answer` prop is `Nothing`)
 
-  , onMoveUp   :: Maybe (MoveHandler eff)
-  , onMoveDown :: Maybe (MoveHandler eff)
+  , onMoveUp   :: Maybe (EventHandler (Either DiagTreeSlideId Int))
+  , onMoveDown :: Maybe (EventHandler (Either DiagTreeSlideId Int))
   }
 
 
-diagTreeEditorSlideEditorAnswerRender :: forall eff. ReactClass (Props eff)
+diagTreeEditorSlideEditorAnswerRender :: ReactClass Props
 diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
   \ { appContext, identity, answer, isDisabled, onMoveUp, onMoveDown }
     state@{ mediaType
@@ -334,7 +323,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
 
          then case onCancel of
                    Nothing -> pure unit
-                   Just f  -> f
+                   Just f  -> callEventHandler f unit
 
          else let values = buildIntervalValues answer
                in transformState this _
@@ -416,9 +405,11 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                     guard $ not $ null state.header
 
       case able *> (existing <|> new) of
-           Just (Left ident) -> updateAnswer $ ChangeItem ident value
-           Just (Right _)    -> updateAnswer $ NewItem value
-           Nothing           -> pure unit
+           Just (Left ident) ->
+             callEventHandler updateAnswer $ ChangeItem ident value
+           Just (Right _) ->
+             callEventHandler updateAnswer $ NewItem value
+           Nothing -> pure unit
 
     deleteHandler this _ = do
       { isDisabled, updateAnswer, identity } <- getProps this
@@ -427,11 +418,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
         DOM.window >>= DOM.confirm "Вы действительно хотите удалить ответ?"
 
       case guard (not isDisabled) *> guard isConfirmed *> identity of
-           Just ident ->
-             -- Coercing to not infect parent handler
-             -- with DOM and CONFIRM effects.
-             unsafeCoerceEff $ updateAnswer $ DeleteItem ident
-
+           Just ident -> callEventHandler updateAnswer $ DeleteItem ident
            _ -> pure unit
 
     mediaTypeSelectedHandler this =
@@ -441,7 +428,9 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
       { identity, onMoveUp, onMoveDown } <- getProps this
 
       fromMaybe (pure unit) $
-        identity >>= \x -> map (_ $ x) (if isUp then onMoveUp else onMoveDown)
+        identity >>= \x ->
+          map (callEventHandler >>> (_ $ x))
+              (if isUp then onMoveUp else onMoveDown)
 
     buildIntervalValues answer =
       { header     : fromMaybe "" $ answer <#> _.header
@@ -518,7 +507,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
           a.attachment == b.attachment
 
 
-diagTreeEditorSlideEditorAnswer :: forall eff. ReactClass (Props eff)
+diagTreeEditorSlideEditorAnswer :: ReactClass Props
 diagTreeEditorSlideEditorAnswer = diagTreeEditorSlideEditorAnswerRender
 
 
