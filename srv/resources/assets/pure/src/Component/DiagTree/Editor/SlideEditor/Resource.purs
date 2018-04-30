@@ -5,9 +5,7 @@ module Component.DiagTree.Editor.SlideEditor.Resource
 import Prelude hiding (div, id)
 
 import Control.Alt ((<|>))
-import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Aff (launchAff_)
 import Control.MonadZero (guard)
 
@@ -33,7 +31,7 @@ import React.DOM.Props
      )
 
 import React
-     ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
+     ( ReactClass, EventHandler
      , createClass, createElement, spec'
      , getProps, readState, transformState
      , handle
@@ -51,6 +49,7 @@ import Utils
      , getSex, sexyShow, capitalize
      , unfoldrBoundedEnum
      , eventInputValue
+     , callEventHandler
      )
 
 import Utils.DiagTree.Editor
@@ -73,16 +72,7 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      )
 
 
-type MoveHandler eff = Int -> ParentHandler eff
-
-type ParentHandler eff =
-  Eff ( props :: ReactProps
-      , state :: ReactState ReadWrite
-      , refs  :: ReactRefs  ReadOnly
-      | eff
-      ) Unit
-
-type Props eff =
+type Props =
   { appContext :: AppContext
   , key        :: Nullable String
   , slideId    :: DiagTreeSlideId
@@ -93,22 +83,21 @@ type Props eff =
     -- ^ When resource is `Nothing` is means adding new one
 
   , updateResource
-      :: ItemModification Int
-           { text :: String
-           , file :: Maybe BackendAttachment
-           }
+      :: EventHandler
+           ( ItemModification Int
+               { text :: String
+               , file :: Maybe BackendAttachment
+               } )
 
-      -> ParentHandler eff
-
-  , onCancel :: Maybe (ParentHandler eff)
+  , onCancel :: Maybe (EventHandler Unit)
     -- ^ Only for adding new one (when `resource` prop is `Nothing`)
 
-  , onMoveUp   :: Maybe (MoveHandler eff)
-  , onMoveDown :: Maybe (MoveHandler eff)
+  , onMoveUp   :: Maybe (EventHandler Int)
+  , onMoveDown :: Maybe (EventHandler Int)
   }
 
 
-diagTreeEditorSlideEditorResourceRender :: forall eff. ReactClass (Props eff)
+diagTreeEditorSlideEditorResourceRender :: ReactClass Props
 diagTreeEditorSlideEditorResourceRender = createClass $ spec $
   \ { appContext, resource, isDisabled, onMoveUp, onMoveDown }
     state@{ file, mediaType, isEditing, isProcessing, isUploadingFailed } -> do
@@ -294,7 +283,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
          then case onCancel of
                    Nothing -> pure unit
-                   Just f  -> f
+                   Just f  -> callEventHandler f unit
 
          else let values = buildIntervalValues resource
                in transformState this _
@@ -313,9 +302,11 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
           value = { text: state.text, file: state.file }
 
       case guard (not isDisabled) *> guard isChanged *> (existing <|> new) of
-           Just (Left idx) -> updateResource $ ChangeItem idx value
-           Just (Right _)  -> updateResource $ NewItem value
-           Nothing         -> pure unit
+           Just (Left idx) ->
+             callEventHandler updateResource $ ChangeItem idx value
+           Just (Right _) ->
+             callEventHandler updateResource $ NewItem value
+           Nothing -> pure unit
 
     deleteHandler this _ = do
       { isDisabled, updateResource, itemIndex } <- getProps this
@@ -325,11 +316,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
         ("Вы действительно хотите удалить " <> showAccusative mediaType <> "?")
 
       case guard (not isDisabled) *> guard isConfirmed *> itemIndex of
-           Just idx ->
-             -- Coercing to not infect parent handler
-             -- with DOM and CONFIRM effects.
-             unsafeCoerceEff $ updateResource $ DeleteItem idx
-
+           Just idx -> callEventHandler updateResource $ DeleteItem idx
            _ -> pure unit
 
     changeTextHandler this event = do
@@ -371,7 +358,9 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
       { itemIndex, onMoveUp, onMoveDown } <- getProps this
 
       fromMaybe (pure unit) $
-        itemIndex >>= \x -> map (_ $ x) (if isUp then onMoveUp else onMoveDown)
+        itemIndex >>= \x ->
+          map (\f -> callEventHandler f x)
+              (if isUp then onMoveUp else onMoveDown)
 
     buildIntervalValues
       :: Maybe DiagTreeSlideResource
@@ -449,5 +438,5 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
           pure $ renderIn wrapper $ wrap $ renderFn props state
 
 
-diagTreeEditorSlideEditorResource :: forall eff. ReactClass (Props eff)
+diagTreeEditorSlideEditorResource :: ReactClass Props
 diagTreeEditorSlideEditorResource = diagTreeEditorSlideEditorResourceRender

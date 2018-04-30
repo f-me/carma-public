@@ -4,8 +4,6 @@ module Component.DiagTree.Editor.SlideEditor.Resources
 
 import Prelude hiding (div)
 
-import Control.Monad.Eff (Eff)
-
 import Data.Tuple (Tuple (Tuple), snd)
 import Data.Foldable (class Foldable, foldl, length)
 import Data.Maybe (Maybe (..))
@@ -20,9 +18,10 @@ import React.Spaces.DOM (button, label, i)
 import React.Spaces.DOM.Dynamic (ul) as SDyn
 
 import React
-     ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
+     ( ReactClass, EventHandler
      , createClass, spec', createElement
      , getProps, readState, transformState
+     , handle
      )
 
 import Utils ((<.>), unfoldrBoundedEnum, showAccusative)
@@ -45,40 +44,26 @@ import Component.DiagTree.Editor.SlideEditor.Resource
      )
 
 
-type Props f eff =
+type Props f =
   { appContext :: AppContext
   , slideId    :: DiagTreeSlideId
   , isDisabled :: Boolean
   , resources  :: f DiagTreeSlideResource
 
   , updateResource -- See item component for details
-      :: ItemModification Int
-           { text :: String
-           , file :: Maybe BackendAttachment
-           }
+      :: EventHandler
+           ( ItemModification Int
+               { text :: String
+               , file :: Maybe BackendAttachment
+               } )
 
-      -> Eff ( props :: ReactProps
-             , state :: ReactState ReadWrite
-             , refs  :: ReactRefs  ReadOnly
-             | eff
-             ) Unit
-
-  , onMoveUp   :: Int -> Eff ( props :: ReactProps
-                             , state :: ReactState ReadWrite
-                             , refs  :: ReactRefs  ReadOnly
-                             | eff
-                             ) Unit
-
-  , onMoveDown :: Int -> Eff ( props :: ReactProps
-                             , state :: ReactState ReadWrite
-                             , refs  :: ReactRefs  ReadOnly
-                             | eff
-                             ) Unit
+  , onMoveUp   :: EventHandler Int
+  , onMoveDown :: EventHandler Int
   }
 
 
 diagTreeEditorSlideEditorResourcesRender
-  :: forall f eff . Foldable f => ReactClass (Props f eff)
+  :: forall f . Foldable f => ReactClass (Props f)
 
 diagTreeEditorSlideEditorResourcesRender = createClass $ spec $
   \ { appContext, slideId, isDisabled, resources
@@ -157,7 +142,7 @@ diagTreeEditorSlideEditorResourcesRender = createClass $ spec $
     getInitialState this = pure
       { isAdding: false
       , turnAddingOn: const $ turnAddingHandler this true
-      , turnAddingOff: turnAddingHandler this false
+      , turnAddingOff: let f = turnAddingHandler this false in handle \unit -> f
       }
 
     spec renderFn =
@@ -170,5 +155,5 @@ diagTreeEditorSlideEditorResourcesRender = createClass $ spec $
 
 
 diagTreeEditorSlideEditorResources
-  :: forall f eff . Foldable f => ReactClass (Props f eff)
+  :: forall f . Foldable f => ReactClass (Props f)
 diagTreeEditorSlideEditorResources = diagTreeEditorSlideEditorResourcesRender

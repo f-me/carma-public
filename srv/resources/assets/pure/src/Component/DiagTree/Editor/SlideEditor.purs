@@ -478,9 +478,9 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
            , isChanged          :          false
            , onChangeHeader     :          changeHeaderHandler   this
            , onChangeBody       : handle $ changeBodyHandler     this
-           , updateResource     :          updateResourceHandler this
-           , onResourceMoveUp   :          moveResourceHandler   this true
-           , onResourceMoveDown :          moveResourceHandler   this false
+           , updateResource     : handle $ updateResourceHandler this
+           , onResourceMoveUp   : handle $ moveResourceHandler   this true
+           , onResourceMoveDown : handle $ moveResourceHandler   this false
            , updateAnswer       : handle $ updateAnswerHandler   this
            , onAnswerMoveUp     : handle $ moveAnswerHandler     this true
            , onAnswerMoveDown   : handle $ moveAnswerHandler     this false

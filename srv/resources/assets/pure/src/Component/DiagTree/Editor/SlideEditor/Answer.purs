@@ -429,7 +429,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
 
       fromMaybe (pure unit) $
         identity >>= \x ->
-          map (callEventHandler >>> (_ $ x))
+          map (\f -> callEventHandler f x)
               (if isUp then onMoveUp else onMoveDown)
 
     buildIntervalValues answer =
