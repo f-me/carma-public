@@ -484,7 +484,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
            , updateAnswer       : updateAnswerHandler   this
            , onAnswerMoveUp     : moveAnswerHandler     this true
            , onAnswerMoveDown   : moveAnswerHandler     this false
-           , onSelectAction     : selectActionHandler   this
+           , onSelectAction     : handle $ selectActionHandler this
            , onCancel           : cancelHandler         this
            , onSave             : saveHandler           this
            }

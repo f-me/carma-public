@@ -37,6 +37,7 @@ import React
      ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
      , getProps, readState, createClass, createElement, spec'
      , transformState
+     , handle
      )
 
 import App.Store (AppContext)
@@ -474,7 +475,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
            , deleteAttachment: deleteAttachmentHandler this
            , onFileDropped: fileDroppedHandler this
            , onFilesRejected: rejectedFilesAlert
-           , onMediaTypeSelected: mediaTypeSelectedHandler this
+           , onMediaTypeSelected: handle $ mediaTypeSelectedHandler this
            , onMoveUp: moveHandler this true
            , onMoveDown: moveHandler this false
            , save: saveHandler this

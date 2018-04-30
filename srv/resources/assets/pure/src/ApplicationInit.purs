@@ -63,8 +63,6 @@ runApplication = do
     void $ forkAff $ reduceLoop appContext appReducer
     liftEff $ initRouter $ launchAff_ <<< dispatch appContext <<< Navigate
     subscribeHandlers appContext
-
-    liftEff $ void $
-      flip render appDOMEl $ appEl { appContext } []
+    liftEff $ void $ flip render appDOMEl $ appEl { appContext } []
 
   where appEl = createElement app

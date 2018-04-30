@@ -4,18 +4,16 @@ module Component.DiagTree.Editor.SlideEditor.Action
 
 import Prelude hiding (div)
 
-import Control.Monad.Eff (Eff)
-
 import Data.Maybe (Maybe (..))
 
-import React (ReactClass, createElement)
+import React (ReactClass, EventHandler, createElement)
 import React.DOM (div) as R
 import React.DOM.Props (className)
 import React.Spaces ((!.), renderIn, text, element)
 import React.Spaces.DOM (div, label)
 
 import Utils ((<.>), createClassStatelessWithName, unfoldrBoundedEnum)
-import Component.Generic.DropDownSelect (OnSelectedEff, dropDownSelect)
+import Component.Generic.DropDownSelect (dropDownSelect)
 import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Types (DiagTreeSlideAction)
 
@@ -24,7 +22,7 @@ type Props eff =
   { appContext :: AppContext
   , isDisabled :: Boolean
   , action     :: Maybe DiagTreeSlideAction
-  , onSelected :: Maybe DiagTreeSlideAction -> Eff (OnSelectedEff eff) Unit
+  , onSelected :: EventHandler (Maybe DiagTreeSlideAction)
   }
 
 diagTreeEditorSlideEditorActionRender :: forall eff . ReactClass (Props eff)

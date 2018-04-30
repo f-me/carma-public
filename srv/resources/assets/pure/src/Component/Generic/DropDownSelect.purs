@@ -1,11 +1,9 @@
 module Component.Generic.DropDownSelect
      ( dropDownSelect
-     , OnSelectedEff
      ) where
 
 import Prelude
 
-import Control.Monad.Eff (Eff, kind Effect)
 import Control.Alt ((<|>))
 
 import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
@@ -25,23 +23,16 @@ import React.DOM.Props
      )
 
 import React
-     ( ReactClass, ReactProps, ReactState, ReactRefs, ReadWrite, ReadOnly
+     ( ReactClass, EventHandler
      , createClass, spec'
      , getProps, readState, transformState
      , writeRef, readRef, preventDefault
      )
 
-import Utils ((<.>))
+import Utils ((<.>), callEventHandler)
 import App.Store (AppContext)
 import Utils.React.OutsideClick (subscribeOutsideClick, unsubscribeOutsideClick)
 
-
-type OnSelectedEff eff =
-  ( props :: ReactProps
-  , state :: ReactState ReadWrite
-  , refs  :: ReactRefs  ReadOnly
-  | eff
-  ) :: # Effect
 
 type Props f a eff =
   { appContext  :: AppContext
@@ -49,7 +40,7 @@ type Props f a eff =
   , variants    :: f a
   , selected    :: Maybe a
   , variantView :: a -> String -- Used to show variant title
-  , onSelected  :: Maybe (Maybe a -> Eff (OnSelectedEff eff) Unit)
+  , onSelected  :: Maybe (EventHandler (Maybe a))
 
   , placeholder :: Maybe String
     -- ^ Shown as a dropdown button title when `selected` is `Nothing`
@@ -139,7 +130,7 @@ dropDownSelectRender = createClass $ spec $
          then pure unit
          else case onSelected of
                    Nothing -> pure unit
-                   Just f  -> f item
+                   Just f  -> callEventHandler f item
 
     toggleHandler this _ = do
       { isDisabled } <- getProps this
