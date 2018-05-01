@@ -10,34 +10,25 @@
 --      be notified even if state haven't changed), only one thread with started
 --      `reduceLoop` is allowed;
 --
---   3. TODO update
---      Subscribe to store updates by `subscribe`
+--   3. Subscribe to the store updates by `subscribe`
 --      (e.g. inside `componentWillMount`), it returns unique
---      `StoreSubscription` which you could use to unsubscribe (e.g. in
---      `componentWillUnmount`) and to get a bus to read events from,
---      subscriber will be notified only if state change by reducer (use
---      `subscribe'` to get notifications every time action is raised,
---      notwithstanding if state change or not);
+--      `StoreSubscription` which you could use to `unsubscribe`
+--      (e.g. inside `componentWillUnmount`).
+--      To `subscribe` you need a `StoreListener`,
+--      to make one use `toStoreListener`
+--      (it wraps some `Eff` monad that takes an update context as an argument).
+--      Subscriber will be notified only if state is changed by a reducer
+--      (use `subscribe'` to get notifications every time action is raised,
+--      notwithstanding if state changes or not);
 --
---   4. TODO update
---      Start another `Aff` thread and get unique `SubscriberBus` (`AVar`) by
---      passed `StoreSubscription` (a bus is unique for `StoreSubscription`),
---      then you could infinitely recursively read from bus in blocking mode by
---      `takeVar` and react on these events (for the same `StoreSubscription`
---      the same `AVar` bus will be returned), you could use a `Fiber` returned
---      by `forkAff` to kill it before unsubscribing;
---
---   5. TODO update
---      `dispatch` some actions any time you want, store reducer passed in 2st
+--   4. `dispatch` some actions any time you want, store reducer passed in 2st
 --      step handles state updates looking at actions you dispatch, and
 --      subscribers can trigger some side-effect such as API requests looking at
 --      actions you dispatch and they could dispatch another actions with some
 --      response data;
 --
---   6. TODO update
---      Do not forget to `unsubscribe` using `StoreSubscription` in
---      `componentWillUnmount` (if you try to read from bus after you
---      unsubscribe it will fail).
+--   5. Do not forget to `unsubscribe` using `StoreSubscription` in
+--      `componentWillUnmount`.
 --
 -- The purpuse of this is to create efficient state storage. You supposed to use
 -- some HOC (High-Order Component) to bind to specific values from store and
@@ -197,41 +188,43 @@ reduceLoop
   -> Aff (ref :: REF, avar :: AVAR | eff) Unit
 
 reduceLoop appCtx@(AppContext ctx) appReducer = do
-  guardOnlyOneInstance
+  liftEff guardOnlyOneInstance
 
   forever $ do
     action <- takeVar ctx.actionsBus
 
-    subscriberData <-
-      liftEff $ modifyRef' ctx.store $ \state ->
-        let
-          reduced = appReducer state action
-        in
-          { state: fromMaybe state reduced
-          , value: { prevState: state, nextState: reduced, action }
-          }
+    liftEff $ do
 
-    subscribersMap <- liftEff $ readRef ctx.subscribers
+      subscriberData <-
+        modifyRef' ctx.store $ \state ->
+          let
+            reduced = appReducer state action
+          in
+            { state: fromMaybe state reduced
+            , value: { prevState: state, nextState: reduced, action }
+            }
 
-    liftEff $ notify subscriberData $
-      case subscriberData.nextState of
-           -- State wasn't changed, notifying only strict subscribers
-           Nothing -> filter fst subscribersMap
-           -- State was changed, notifying all subscribers
-           Just _  -> subscribersMap
+      subscribersMap <- readRef ctx.subscribers
+
+      notify subscriberData $
+        case subscriberData.nextState of
+             -- State wasn't changed, notifying only strict subscribers
+             Nothing -> filter fst subscribersMap
+             -- State was changed, notifying all subscribers
+             Just _  -> subscribersMap
 
   where
     notify updateCtx =
       foldM (\_ (Tuple _ x) -> callStoreListener x updateCtx) unit
 
     guardOnlyOneInstance = do
-      isReduceLoopStarted <- liftEff $ readRef ctx.isReduceLoopStarted
+      isReduceLoopStarted <- readRef ctx.isReduceLoopStarted
 
       if isReduceLoopStarted -- `when` here would fail because of strictness
          then unsafeThrow "Only one reduce loop is allowed"
          else pure unit
 
-      liftEff $ writeRef ctx.isReduceLoopStarted true
+      writeRef ctx.isReduceLoopStarted true
 
 
 getAppState
