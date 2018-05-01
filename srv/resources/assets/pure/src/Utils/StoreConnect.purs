@@ -8,13 +8,6 @@ import Prelude
 import Data.Maybe (Maybe (..), fromMaybe)
 import Data.Record.Builder (Builder, build)
 
-import Control.Monad.Rec.Class (forever)
-import Control.Monad.Error.Class (catchError, throwError)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Exception (message)
-import Control.Monad.Aff (launchAff_)
-import Control.Monad.Aff.AVar (takeVar)
-
 import React
      ( ReactClass
      , createClass, spec', createElement
@@ -24,8 +17,7 @@ import React
 import App.Store.Reducers (AppState)
 
 import App.Store
-     ( AppContext
-     , subscribe, unsubscribe, getAppState, getSubscriberBus
+     ( AppContext, toStoreListener, subscribe, unsubscribe, getAppState
      )
 
 
@@ -62,25 +54,13 @@ storeConnect storeSelector child = createClass spec
       { displayName = "StoreConnect"
 
       , componentWillMount = \this -> do
-          { appContext } <- getProps  this
-          subscription   <- subscribe appContext
+          let listener = toStoreListener \{ prevState, nextState } -> do
+                let appState = fromMaybe prevState nextState
+                x <- getProps this <#> build (storeSelector appState)
+                transformState this $ _ { mappedProps = x }
 
-          launchAff_ $ do
-            bus <- getSubscriberBus appContext subscription
-
-            let transformer appState = do
-                  x <- getProps this <#> build (storeSelector appState)
-                  transformState this $ _ { mappedProps = x }
-
-                catchUnsubscribed err = do
-                  if message err == "Unsubscribed"
-                     then pure unit -- It's okay, we're done
-                     else throwError err -- Unknown exception
-
-            flip catchError catchUnsubscribed $ forever $ do
-              event <- takeVar bus
-              liftEff $ transformer $ fromMaybe event.prevState event.nextState
-
+          { appContext } <- getProps this
+          subscription   <- subscribe appContext listener
           transformState this $ _ { subscription = Just subscription }
 
       , componentWillReceiveProps = \this nextProps -> do
@@ -90,9 +70,9 @@ storeConnect storeSelector child = createClass spec
 
       , componentWillUnmount = \this -> do
           { appContext } <- getProps this
-          state <- readState this
+          { subscription } <- readState this
 
-          case state.subscription of
+          case subscription of
                Nothing -> pure unit
                Just x  -> unsubscribe appContext x
       }

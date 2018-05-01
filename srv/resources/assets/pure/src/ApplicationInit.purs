@@ -9,6 +9,8 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Eff.Now (NOW)
+import Control.Monad.Eff.Random (RANDOM)
 import Control.Monad.Eff.Exception.Unsafe (unsafeThrow)
 import Control.Monad.Aff (launchAff_, forkAff)
 import Control.Monad.Aff.AVar (AVAR)
@@ -43,7 +45,9 @@ runApplication :: Eff ( ref     :: REF
                       , avar    :: AVAR
                       , dom     :: DOM
                       , ajax    :: AJAX
+                      , now     :: NOW
                       , locale  :: LOCALE
+                      , random  :: RANDOM
                       , console :: CONSOLE
                       ) Unit
 
