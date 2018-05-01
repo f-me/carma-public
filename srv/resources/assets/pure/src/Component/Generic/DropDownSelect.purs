@@ -52,7 +52,6 @@ type Props f a eff =
   }
 
 
--- TODO click outside should close dropdown
 dropDownSelectRender
   :: forall f a eff. Foldable f => Eq a => ReactClass (Props f a eff)
 
