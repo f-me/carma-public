@@ -23,6 +23,7 @@ dependencies:
   - dmcc
   - easy-file
   - errors
+  - exceptions
   - fgl
   - filepath
   - free
@@ -32,6 +33,8 @@ dependencies:
   - heist
   - hsyslog
   - HTTP
+  - http-conduit
+  - http-types
   - lens
   - lifted-base
   - map-syntax
@@ -43,8 +46,8 @@ dependencies:
   - postgresql-simple
   - process-extras
   - qm-interpolated-string
-  - resource-pool
   - random
+  - resource-pool
   - SHA
   - singletons
   - snap

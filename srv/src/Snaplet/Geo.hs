@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE BangPatterns #-}
 
 {-|
 
@@ -38,13 +39,18 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Map as M
 import Data.HashMap.Strict as HM (delete)
 import Data.Maybe as Maybe
+import Data.String (fromString)
+import Data.Monoid ((<>))
 
 import Data.Configurator
 import Database.PostgreSQL.Simple.SqlQQ
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T (encodeUtf8)
+import Data.List (isSuffixOf)
 
-import Network.HTTP as H (simpleHTTP, getRequest, getResponseBody, urlEncode)
+import qualified Network.HTTP.Conduit as HttpC
+import qualified Network.HTTP.Types.Header as HttpT
 
 import Snap.Core
 import Snap.Extras
@@ -57,7 +63,7 @@ import Util
 
 data Geo b = Geo
     { postgres      :: SnapletLens b Postgres
-    , nominatimUrl  :: String
+    , nominatimReq  :: String -> IO HttpC.Request
     -- ^ Nominatim installation URL (with trailing slash).
     , nominatimLang :: String
     -- ^ Preferred language for search results (in RFC 2616
@@ -204,7 +210,7 @@ distance = twoPointHandler distanceQuery (head . head :: [[Double]] -> Double)
 -- | True only for names of Russian cities which are federal subjects
 -- (in UTF-8, ru-RU).
 isFederal :: Text -> Bool
-isFederal s = s == "Москва" || s == "Санкт-Петербург" || s == "Севастополь"
+isFederal = (`elem` ["Москва", "Санкт-Петербург", "Севастополь"])
 
 
 ------------------------------------------------------------------------------
@@ -262,25 +268,27 @@ instance ToJSON FullAddress where
 -- completely.
 revSearch :: Handler b (Geo b) ()
 revSearch = do
-  nom <- gets nominatimUrl
-  lang <- gets nominatimLang
-  coords' <- getCoordsParam "coords"
-  case coords' of
-    Nothing -> error "Bad request"
-    -- Read coords and send reverse geocoding request to Nominatim
-    Just (lon, lat) -> do
-        let fullUrl = nom ++
-                      "reverse.php?format=json" ++
-                      "&accept-language=" ++ lang ++
-                      "&lon=" ++ show lon ++
-                      "&lat=" ++ show lat
-        addr' <- liftIO $ do
-            rsb <- simpleHTTP (H.getRequest fullUrl) >>= getResponseBody
-            return $ eitherDecode' $ BSL.pack rsb
-        -- Repack Nominatim response into a nicer JSON
-        case addr' of
-          Right addr -> writeJSON (addr :: FullAddress)
-          Left msg -> writeJSON (M.singleton ("error" :: String) msg)
+  req          <- gets nominatimReq <*> pure "reverse.php" >>= liftIO
+  lang         <- gets nominatimLang
+  (!lon, !lat) <- fromMaybe (error "Bad request") <$> getCoordsParam "coords"
+
+  -- Read coords and send reverse geocoding request to Nominatim
+
+  let req' = flip HttpC.setQueryString req
+           [ ("format", Just "json")
+           , ("accept-language", Just $ fromString lang)
+           , ("lon", Just $ fromString $ show lon)
+           , ("lat", Just $ fromString $ show lat)
+           ]
+
+  addr' <- liftIO
+         $ fmap (eitherDecode' . HttpC.responseBody)
+         $ HttpC.newManager HttpC.tlsManagerSettings >>= HttpC.httpLbs req'
+
+  -- Repack Nominatim response into a nicer JSON
+  case addr' of
+    Right addr -> writeJSON (addr :: FullAddress)
+    Left  msg  -> writeJSON $ M.singleton ("error" :: String) msg
 
 
 -- | Use Nominatim to perform a search for objects at an address
@@ -288,25 +296,41 @@ revSearch = do
 -- to Nominatim's original response.
 search :: Handler b (Geo b) ()
 search = do
-  nom <- gets nominatimUrl
+  req  <- gets nominatimReq <*> pure "search" >>= liftIO
   lang <- gets nominatimLang
-  q <- getParamT "query"
-  case q of
-    Nothing -> error "Empty query"
-    Just q' -> do
-      let --qD = fromMaybe (error "Bad query encoding") $ urlDecode q'
-          fullUrl = nom ++ "search?format=json" ++
-                    "&accept-language=" ++ lang ++
-                    "&q=" ++ H.urlEncode (T.unpack q')
-      rsb <- liftIO $ simpleHTTP (H.getRequest fullUrl) >>= getResponseBody
-      writeLBS $ BSL.pack rsb
+  !q   <- fromMaybe (error "Empty query") <$> getParamT "query"
+
+  let req' = flip HttpC.setQueryString req
+           [ ("format", Just "json")
+           , ("accept-language", Just $ fromString lang)
+           , ("q", Just $ T.encodeUtf8 q)
+           ]
+
+  res <- liftIO
+       $ fmap HttpC.responseBody
+       $ HttpC.newManager HttpC.tlsManagerSettings >>= HttpC.httpLbs req'
+
+  modifyResponse $ setContentType "application/json"
+  writeLBS res
 
 
 geoInit :: SnapletLens b Postgres -> SnapletInit b (Geo b)
 geoInit db = makeSnaplet "geo" "Geoservices" Nothing $ do
-    cfg <- getSnapletUserConfig
-    nom <- liftIO $ lookupDefault "http://nominatim.openstreetmap.org/"
-           cfg "nominatim-url"
-    lang <- liftIO $ lookupDefault "ru-RU,ru" cfg "nominatim-lang"
-    addRoutes routes
-    return $ Geo db nom lang
+  cfg <- getSnapletUserConfig
+
+  nomReq <- liftIO $ do
+    userAgent <- lookupDefault "CaRMa backend" cfg "nominatim-client-user-agent"
+
+    lookupDefault "https://nominatim.openstreetmap.org" cfg "nominatim-url"
+      <&> (\x -> if "/" `isSuffixOf` x then x else x <> "/")
+      <&> buildRequest userAgent
+
+  lang <- liftIO $ lookupDefault "ru-RU,ru" cfg "nominatim-lang"
+  addRoutes routes
+  pure $ Geo db nomReq lang
+
+  where
+    buildRequest userAgent url pathSfx =
+      HttpC.parseUrlThrow (url <> pathSfx)
+        <&> \x -> x { HttpC.requestHeaders = HttpC.requestHeaders x <> h }
+      where h = [(HttpT.hUserAgent, userAgent)]
