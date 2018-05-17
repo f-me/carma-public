@@ -1,0 +1,13 @@
+port = 8165
+# host = "127.0.0.1"
+
+nominatim {
+  # Nominatim API root URL.
+  # "https://nominatim.openstreetmap.org" is used by default.
+  # url = "http://192.168.10.14/nominatim/"
+
+  # User-Agent used for requests to Nominatim API.
+  # Shared Nominatim server (used by default)
+  # requires User-Agent to be provided by a client.
+  client-user-agent = "CaRMa backend (RuAMC)"
+}

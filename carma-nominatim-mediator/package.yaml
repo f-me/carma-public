@@ -1,0 +1,49 @@
+name:        carma-nominatim-mediator
+version:     1.0.0.0
+license:     BSD3
+author:      Viacheslav Lotsmanov
+maintainer:  <lotsmanov89@gmail.com>
+category:    Web
+synopsis:    Middleware between CaRMa and community Nominatim server
+
+description:
+  Middleware between CaRMa and community Nominatim server.
+  .
+  It caches results and guards intervals between requests to not exceed limits.
+
+dependencies:
+  - aeson
+  - attoparsec
+  - base
+  - bytestring
+  - configurator
+  - containers
+  - exceptions
+  - http-api-data
+  - http-client
+  - http-client-tls
+  - monad-logger
+  - mtl
+  - qm-interpolated-string
+  - servant
+  - servant-client
+  - servant-server
+  - text
+  - time
+  - warp
+
+ghc-options:
+  - -Wall
+  # - -Werror
+  - -threaded
+  - -O2
+  - -funbox-strict-fields
+
+library:
+  source-dirs: src
+
+executables:
+  carma-nominatim-mediator:
+    source-dirs: app
+    main: Main.hs
+    dependencies: [carma-nominatim-mediator]

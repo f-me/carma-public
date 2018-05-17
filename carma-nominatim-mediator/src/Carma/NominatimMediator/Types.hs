@@ -1,0 +1,212 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE QuasiQuotes #-}
+
+module Carma.NominatimMediator.Types where
+
+import           GHC.Generics
+
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T (encodeUtf8)
+import           Data.Attoparsec.ByteString.Char8
+import           Data.String (fromString)
+import           Data.IORef
+import qualified Data.Map as M
+import           Data.Aeson
+import           Data.Aeson.Types (fieldLabelModifier)
+import qualified Data.Time.Clock as Time
+import qualified Data.Time.Format as Time
+import           Text.InterpolatedString.QM
+
+import           Control.Concurrent.MVar
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+
+import           Web.HttpApiData
+import           Servant.Client
+import qualified Servant
+
+import           Carma.NominatimMediator.Utils
+
+
+-- Some type wrappers to avoid human-factor mistakes and also to parse stuff
+
+
+newtype Lang =
+  Lang { fromLang :: T.Text }
+  deriving (Eq, Show, Read, Ord)
+
+instance FromHttpApiData Lang where
+  parseUrlPiece = Right . Lang
+
+instance ToHttpApiData Lang where
+  toUrlPiece = fromLang
+
+
+newtype SearchQuery =
+  SearchQuery { fromSearchQuery :: T.Text }
+  deriving (Eq, Show, Read, Ord)
+
+instance FromHttpApiData SearchQuery where
+  parseUrlPiece = Right . SearchQuery
+
+instance ToHttpApiData SearchQuery where
+  toUrlPiece = fromSearchQuery
+
+
+newtype UserAgent =
+  UserAgent { fromUserAgent :: T.Text }
+  deriving (Eq, Show)
+
+instance FromHttpApiData UserAgent where
+  parseUrlPiece = Right . UserAgent
+
+instance ToHttpApiData UserAgent where
+  toUrlPiece = fromUserAgent
+
+
+data Coords = Coords Double Double deriving (Eq, Show, Read, Ord)
+
+instance FromHttpApiData Coords where
+  parseUrlPiece
+    = T.encodeUtf8
+    ? parseOnly coordsParser
+    ? \case Left  e -> Left (T.pack e)
+            Right x -> Right x
+
+    where -- Parses "52.32,3.45" (no spaces)
+          coordsParser :: Parser Coords
+          coordsParser = Coords <$> double <* char ',' <*> double
+
+
+-- Representation of a request, used as a key to reach cached response
+data RequestParams
+  = SearchQueryReq Lang SearchQuery
+  | RevSearchQueryReq Lang Coords
+    deriving (Eq, Show, Read, Ord)
+
+type ResponsesCache = M.Map RequestParams ()
+
+
+data AppContext
+  = AppContext
+  { responsesCache  :: IORef ResponsesCache
+
+    -- Shared Nominatim community server requires User-Agent to be provided
+  , clientUserAgent :: UserAgent
+
+    -- For client requests to Nominatim,
+    -- it contains created HTTP `Manager` and `BaseUrl` of Nominatim server.
+  , clientEnv       :: ClientEnv
+
+    -- A bus to send log messages to
+  , loggerBus       :: MVar LogMessage
+  }
+
+
+data SearchByQueryResponse
+  = SearchByQueryResponse
+  { place_id     :: T.Text
+  , licence      :: T.Text
+  , osm_type     :: T.Text
+  , osm_id       :: T.Text
+  , boundingbox  :: [T.Text]
+  , lat          :: T.Text
+  , lon          :: T.Text
+  , display_name :: T.Text
+  , _class       :: T.Text
+  , _type        :: T.Text
+  , importance   :: Double
+  , icon         :: Maybe T.Text
+  } deriving (Generic, Eq, Show, Read)
+
+instance FromJSON SearchByQueryResponse where
+  parseJSON = genericParseJSON defaultOptions
+    { fieldLabelModifier = namerWithReservedKeywords }
+
+instance ToJSON SearchByQueryResponse where
+  toJSON = genericToJSON defaultOptions
+    { fieldLabelModifier = namerWithReservedKeywords }
+
+-- Fixes field constructors such as `class` and `type`
+namerWithReservedKeywords :: String -> String
+namerWithReservedKeywords ('_' : xs) = xs
+namerWithReservedKeywords x = x
+
+
+data SearchByCoordsResponseAddress
+  = SearchByCoordsResponseAddress
+  { state        :: T.Text
+  , country      :: T.Text
+  , country_code :: T.Text
+  } deriving (Generic, Eq, Show, Read)
+
+instance FromJSON SearchByCoordsResponseAddress
+instance ToJSON   SearchByCoordsResponseAddress
+
+data SearchByCoordsResponse
+  = SearchByCoordsResponse
+  { place_id     :: T.Text
+  , licence      :: T.Text
+  , osm_type     :: T.Text
+  , osm_id       :: T.Text
+  , lat          :: T.Text
+  , lon          :: T.Text
+  , display_name :: T.Text
+  , address      :: SearchByCoordsResponseAddress
+  , boundingbox  :: [T.Text]
+  } deriving (Generic, Eq, Show, Read)
+
+instance FromJSON SearchByCoordsResponse
+instance ToJSON   SearchByCoordsResponse
+
+
+-- Types for requests to Nominatim
+
+data NominatimAPIFormat = NominatimJSONFormat deriving (Show, Eq)
+
+instance ToHttpApiData NominatimAPIFormat where
+  toUrlPiece NominatimJSONFormat = "json"
+
+newtype NominatimLon =
+  NominatimLon { fromNominatimLon :: Double }
+  deriving (Show, Eq)
+
+instance ToHttpApiData NominatimLon where
+  toUrlPiece = fromNominatimLon ? show ? fromString
+
+newtype NominatimLat =
+  NominatimLat { fromNominatimLat :: Double }
+  deriving (Show, Eq)
+
+instance ToHttpApiData NominatimLat where
+  toUrlPiece = fromNominatimLat ? show ? fromString
+
+
+-- Logger
+
+data LogMessageType = LogInfo | LogError deriving (Show, Eq)
+data LogMessage = LogMessage LogMessageType T.Text deriving (Show, Eq)
+
+class Monad m => LoggerBus m where
+  logInfo  :: AppContext -> T.Text -> m ()
+  logError :: AppContext -> T.Text -> m ()
+
+instance (Monad m, MonadIO m) => LoggerBus m where
+  logInfo appCtx msg = liftIO $ do
+    utc <- Time.getCurrentTime
+    loggerBus appCtx `putMVar` LogMessage LogInfo
+      [qms| [{Time.formatTime Time.defaultTimeLocale loggerTimeFormat utc} UTC]
+            {msg} |]
+
+  logError appCtx msg = liftIO $ do
+    utc <- Time.getCurrentTime
+    loggerBus appCtx `putMVar` LogMessage LogError
+      [qms| [{Time.formatTime Time.defaultTimeLocale loggerTimeFormat utc} UTC]
+            {msg} |]
+
+loggerTimeFormat :: String
+loggerTimeFormat = "%Y-%m-%d %H:%M:%S"
