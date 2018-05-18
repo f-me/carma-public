@@ -34,8 +34,7 @@ dependencies:
 
 ghc-options:
   - -Wall
-  # - -Werror
-  - -threaded
+  - -Werror
   - -O2
   - -funbox-strict-fields
 
@@ -47,3 +46,4 @@ executables:
     source-dirs: app
     main: Main.hs
     dependencies: [carma-nominatim-mediator]
+    ghc-options: [-threaded]

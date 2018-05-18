@@ -8,21 +8,17 @@
 module Main (main) where
 
 import qualified Data.Configurator as Conf
-import           Data.Monoid ((<>))
 import           Data.String (fromString)
 import           Data.IORef
-import           Data.Maybe
 import qualified Data.Map as M
 import           Data.Proxy
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
 import           Data.Function ((&))
 import           Text.InterpolatedString.QM
 
 import           Control.Monad
+import           Control.Monad.Catch (MonadThrow, throwM, toException)
+import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Control.Monad.Catch (throwM)
-import qualified Control.Monad.Logger as MLogger
 import           Control.Concurrent
 
 import           Servant
@@ -31,8 +27,10 @@ import qualified Network.Wai.Handler.Warp as Warp
 import           Network.HTTP.Client (Manager, newManager)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
 
-import           Carma.NominatimMediator.Utils
 import           Carma.NominatimMediator.Types
+import           Carma.NominatimMediator.Logger
+import           Carma.NominatimMediator.CacheGC
+import           Carma.NominatimMediator.Utils
 
 
 -- Server routes
@@ -91,14 +89,16 @@ main = do
   !(manager :: Manager) <- newManager tlsManagerSettings
 
   loggerBus' <- newEmptyMVar
+  requestExecutorBus' <- newEmptyMVar
   resCache <- newIORef M.empty
 
   let appCtx
         = AppContext
-        { responsesCache  = resCache
-        , clientUserAgent = nominatimUA
-        , clientEnv       = ClientEnv manager nominatimBaseUrl
-        , loggerBus       = loggerBus'
+        { responsesCache     = resCache
+        , clientUserAgent    = nominatimUA
+        , clientEnv          = ClientEnv manager nominatimBaseUrl
+        , loggerBus          = loggerBus'
+        , requestExecutorBus = requestExecutorBus'
         }
 
       app = serve (Proxy :: Proxy AppRoutes) $ appServer appCtx
@@ -109,7 +109,14 @@ main = do
         & Warp.setHost (fromString host)
 
   -- Running logger thread
-  _ <- forkIO $ MLogger.runStdoutLoggingT $ loggerInit appCtx
+  _ <- forkIO $ runStdoutLoggingT $ loggerInit appCtx
+
+  -- Running cache garbage collector thread
+  -- which cleans outdated cached responses.
+  _ <- forkIO $ cacheGCInit appCtx
+
+  -- Running requests queue handler
+  _ <- forkIO $ requestExecutorInit appCtx
 
   logInfo appCtx
     [qmb| Nominatim config:
@@ -136,34 +143,38 @@ appServer app
 
 search :: AppContext -> Lang -> SearchQuery -> Handler [SearchByQueryResponse]
 search appCtx lang query = do
-  logInfo appCtx "Searching by query..."
+  let reqParams = SearchQueryReq lang query
 
-  result <- liftIO $
-    flip runClientM (clientEnv appCtx) $
-      searchByQuery (Just $ clientUserAgent appCtx)
-                    (Just NominatimJSONFormat)
-                    (Just lang)
-                    (Just query)
+      req = SearchByQueryResponse' <$>
+            searchByQuery (Just $ clientUserAgent appCtx)
+                          (Just NominatimJSONFormat)
+                          (Just lang)
+                          (Just query)
+
+  logInfo appCtx [qm| Searching by query with params: {reqParams}... |]
+  result <- requestResponse appCtx reqParams req
 
   case result of
-       Left  e -> throwM e
-       Right x -> pure x
+       SearchByQueryResponse' x -> pure x
+       x -> throwUnexpectedResponse appCtx x
 
 revSearch :: AppContext -> Lang -> Coords -> Handler SearchByCoordsResponse
-revSearch appCtx lang (Coords lon lat) = do
-  logInfo appCtx "Searching by coordinates..."
+revSearch appCtx lang coords@(Coords lon' lat') = do
+  let reqParams = RevSearchQueryReq lang coords
 
-  result <- liftIO $
-    flip runClientM (clientEnv appCtx) $
-      reverseSearchByCoords (Just $ clientUserAgent appCtx)
-                            (Just NominatimJSONFormat)
-                            (Just lang)
-                            (Just $ NominatimLon lon)
-                            (Just $ NominatimLat lat)
+      req = SearchByCoordsResponse' <$>
+            reverseSearchByCoords (Just $ clientUserAgent appCtx)
+                                  (Just NominatimJSONFormat)
+                                  (Just lang)
+                                  (Just $ NominatimLon lon')
+                                  (Just $ NominatimLat lat')
+
+  logInfo appCtx [qm| Searching by coordinates with params: {reqParams}... |]
+  result <- requestResponse appCtx reqParams req
 
   case result of
-       Left  e -> throwM e
-       Right x -> pure x
+       SearchByCoordsResponse' x -> pure x
+       x -> throwUnexpectedResponse appCtx x
 
 debugCachedQueries :: AppContext -> Handler [()]
 debugCachedQueries appCtx = do
@@ -197,26 +208,78 @@ reverseSearchByCoords
   = client (Proxy :: Proxy NominatimAPIRoutes)
 
 
--- Cleans outdated cached responses.
+-- Throwing `UnexpectedResponseResultException` with logging this error
+throwUnexpectedResponse
+  :: (MonadThrow m, LoggerBus m) => AppContext -> Response -> m a
+throwUnexpectedResponse appCtx x = do
+  logError appCtx [qm| Unexpected response result: {x}! |]
+  throwM $ UnexpectedResponseResultException x
+
+
+-- Requests queue.
 -- Supposed to be run in own thread.
-cacheGCInit :: (LoggerBus m, MonadIO m) => AppContext -> m ()
-cacheGCInit appCtx = forever $ do
-  liftIO $ threadDelay cacheGCInterval
-  logInfo appCtx "GC goes..."
+-- It writes response to provided `MVar`.
+requestExecutorInit :: (LoggerBus m, MonadIO m) => AppContext -> m ()
+requestExecutorInit appCtx = do
+  logInfo appCtx [qms| Running request executor,
+                       waiting for {intervalBetweenRequestsInSeconds} seconds
+                       before start in case application restarted quickly just
+                       after previous request... |]
+
+  liftIO $ threadDelay intervalBetweenRequests
+  logInfo appCtx [qn| Request executor is ready and waiting for requests... |]
+
+  forever $ do
+    (reqParams, req, responseBus) <-
+      liftIO $ takeMVar $ requestExecutorBus appCtx
+
+    logInfo appCtx [qm| Executing request with params: {reqParams}... |]
+    result <- liftIO $ runClientM req $ clientEnv appCtx
+
+    case result of
+         Left e -> logInfo appCtx [qms| Request by params {reqParams}
+                                        is failed with exception: {e}. |]
+         _ -> pure ()
+
+    liftIO $ putMVar responseBus result
+
+    logInfo appCtx [qms| Request executor will wait for
+                         {intervalBetweenRequestsInSeconds} seconds
+                         before handling next request... |]
+
+    liftIO $ threadDelay intervalBetweenRequests
 
   where
-    cacheGCInterval = hour -- Every hour in microseconds
-      where second = 1000 * 1000
-            minute = 60 * second
-            hour   = 60 * minute
+    -- Minimum interval is one second, making it little more safe
+    intervalBetweenRequests = round $ secondInMicroseconds * 1.5
+
+    intervalBetweenRequestsInSeconds =
+      fromIntegral intervalBetweenRequests / secondInMicroseconds
 
 
--- Writes log messages somewhere.
--- Supposed to be run in own thread.
-loggerInit :: (MLogger.MonadLogger m, MonadIO m) => AppContext -> m ()
-loggerInit appCtx = forever $ do
-  (LogMessage msgType msg) <- liftIO $ takeMVar $ loggerBus appCtx
+-- Sends request to requests executor bus
+-- and creates response bus and waits for response.
+requestResponse :: (MonadIO m, MonadThrow m, LoggerBus m)
+                => AppContext
+                -> RequestParams
+                -> ClientM Response
+                -> m Response
 
-  case msgType of
-       LogInfo  -> MLogger.logInfoN  msg
-       LogError -> MLogger.logErrorN msg
+requestResponse appCtx reqParams req = do
+  responseBus <- liftIO newEmptyMVar
+
+  -- Handling timeout case
+  thread <- liftIO $ forkIO $ do
+    threadDelay timeout
+    putMVar responseBus $ Left $
+      ConnectionError $ toException $ RequestTimeoutException reqParams
+
+  liftIO $ requestExecutorBus appCtx `putMVar` (reqParams, req, responseBus)
+  result <- liftIO $ takeMVar responseBus
+  liftIO $ killThread thread -- No need for timeout thread anymore
+
+  case result of
+       Left  e -> throwM e
+       Right x -> pure x
+
+  where timeout = round $ 15 * secondInMicroseconds

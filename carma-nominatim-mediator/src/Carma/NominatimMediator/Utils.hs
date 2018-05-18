@@ -9,3 +9,6 @@ infixl 9 ?
 (<&>) = flip (<$>)
 {-# INLINE (<&>) #-}
 infixr 5 <&>
+
+secondInMicroseconds :: Float
+secondInMicroseconds = 1000 * 1000

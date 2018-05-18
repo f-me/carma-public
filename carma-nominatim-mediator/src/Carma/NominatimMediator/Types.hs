@@ -2,9 +2,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE QuasiQuotes #-}
 
 module Carma.NominatimMediator.Types where
 
@@ -18,16 +15,13 @@ import           Data.IORef
 import qualified Data.Map as M
 import           Data.Aeson
 import           Data.Aeson.Types (fieldLabelModifier)
-import qualified Data.Time.Clock as Time
-import qualified Data.Time.Format as Time
-import           Text.InterpolatedString.QM
+import           Data.Time.Clock (UTCTime)
 
+import           Control.Exception.Base
 import           Control.Concurrent.MVar
-import           Control.Monad.IO.Class (MonadIO, liftIO)
 
 import           Web.HttpApiData
 import           Servant.Client
-import qualified Servant
 
 import           Carma.NominatimMediator.Utils
 
@@ -88,22 +82,33 @@ data RequestParams
   | RevSearchQueryReq Lang Coords
     deriving (Eq, Show, Read, Ord)
 
-type ResponsesCache = M.Map RequestParams ()
+data Response
+  = SearchByQueryResponse'  [SearchByQueryResponse]
+  | SearchByCoordsResponse' SearchByCoordsResponse
+    deriving (Eq, Show, Read)
+
+type ResponsesCache = M.Map RequestParams (UTCTime, Response)
 
 
 data AppContext
   = AppContext
-  { responsesCache  :: IORef ResponsesCache
+  { responsesCache :: IORef ResponsesCache
 
     -- Shared Nominatim community server requires User-Agent to be provided
   , clientUserAgent :: UserAgent
 
     -- For client requests to Nominatim,
     -- it contains created HTTP `Manager` and `BaseUrl` of Nominatim server.
-  , clientEnv       :: ClientEnv
+  , clientEnv :: ClientEnv
 
     -- A bus to send log messages to
-  , loggerBus       :: MVar LogMessage
+  , loggerBus :: MVar LogMessage
+
+    -- A bus to send request monads to
+  , requestExecutorBus :: MVar ( RequestParams
+                               , ClientM Response
+                               , MVar (Either ServantError Response)
+                               )
   }
 
 
@@ -186,27 +191,21 @@ instance ToHttpApiData NominatimLat where
   toUrlPiece = fromNominatimLat ? show ? fromString
 
 
--- Logger
+-- Logger types
 
 data LogMessageType = LogInfo | LogError deriving (Show, Eq)
 data LogMessage = LogMessage LogMessageType T.Text deriving (Show, Eq)
 
-class Monad m => LoggerBus m where
-  logInfo  :: AppContext -> T.Text -> m ()
-  logError :: AppContext -> T.Text -> m ()
 
-instance (Monad m, MonadIO m) => LoggerBus m where
-  logInfo appCtx msg = liftIO $ do
-    utc <- Time.getCurrentTime
-    loggerBus appCtx `putMVar` LogMessage LogInfo
-      [qms| [{Time.formatTime Time.defaultTimeLocale loggerTimeFormat utc} UTC]
-            {msg} |]
+-- Custom exceptions
 
-  logError appCtx msg = liftIO $ do
-    utc <- Time.getCurrentTime
-    loggerBus appCtx `putMVar` LogMessage LogError
-      [qms| [{Time.formatTime Time.defaultTimeLocale loggerTimeFormat utc} UTC]
-            {msg} |]
+data RequestTimeoutException =
+     RequestTimeoutException RequestParams
+     deriving (Show)
 
-loggerTimeFormat :: String
-loggerTimeFormat = "%Y-%m-%d %H:%M:%S"
+data UnexpectedResponseResultException =
+     UnexpectedResponseResultException Response
+     deriving (Show)
+
+instance Exception RequestTimeoutException
+instance Exception UnexpectedResponseResultException
