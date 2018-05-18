@@ -15,7 +15,6 @@ import           Data.Proxy
 import           Data.Function ((&))
 import           Text.InterpolatedString.QM
 
-import           Control.Monad
 import           Control.Monad.Catch (MonadThrow, throwM, toException)
 import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
@@ -31,6 +30,7 @@ import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Logger
 import           Carma.NominatimMediator.CacheGC
 import           Carma.NominatimMediator.Utils
+import           Carma.NominatimMediator.RequestExecutor
 
 
 -- Server routes
@@ -88,9 +88,9 @@ main = do
   !(nominatimBaseUrl :: BaseUrl) <- parseBaseUrl nominatimUrl
   !(manager :: Manager) <- newManager tlsManagerSettings
 
-  loggerBus' <- newEmptyMVar
+  resCache            <- newIORef M.empty
+  loggerBus'          <- newEmptyMVar
   requestExecutorBus' <- newEmptyMVar
-  resCache <- newIORef M.empty
 
   let appCtx
         = AppContext
@@ -214,49 +214,6 @@ throwUnexpectedResponse
 throwUnexpectedResponse appCtx x = do
   logError appCtx [qm| Unexpected response result: {x}! |]
   throwM $ UnexpectedResponseResultException x
-
-
--- Requests queue.
--- Supposed to be run in own thread.
--- It writes response to provided `MVar`.
-requestExecutorInit :: (LoggerBus m, MonadIO m) => AppContext -> m ()
-requestExecutorInit appCtx = do
-  logInfo appCtx [qms| Running request executor,
-                       waiting for {intervalBetweenRequestsInSeconds} seconds
-                       before start in case application restarted quickly just
-                       after previous request... |]
-
-  liftIO $ threadDelay intervalBetweenRequests
-  logInfo appCtx [qn| Request executor is ready and waiting for requests... |]
-
-  forever $ do
-    (reqParams, req, responseBus) <-
-      liftIO $ takeMVar $ requestExecutorBus appCtx
-
-    logInfo appCtx [qm| Executing request with params: {reqParams}... |]
-    result <- liftIO $ runClientM req $ clientEnv appCtx
-
-    case result of
-         Left e -> logError appCtx [qms| Request by params {reqParams}
-                                         is failed with exception: {e}. |]
-
-         Right _ -> logInfo appCtx [qms| Request by params {reqParams}
-                                         is succeeded. |]
-
-    liftIO $ putMVar responseBus result
-
-    logInfo appCtx [qms| Request executor will wait for
-                         {intervalBetweenRequestsInSeconds} seconds
-                         before handling next request... |]
-
-    liftIO $ threadDelay intervalBetweenRequests
-
-  where
-    -- Minimum interval is one second, making it little more safe
-    intervalBetweenRequests = round $ secondInMicroseconds * 1.5
-
-    intervalBetweenRequestsInSeconds =
-      fromIntegral intervalBetweenRequests / secondInMicroseconds
 
 
 -- Sends request to requests executor bus

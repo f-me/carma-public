@@ -14,8 +14,8 @@ import           Carma.NominatimMediator.Logger
 -- Supposed to be run in own thread.
 cacheGCInit :: (LoggerBus m, MonadIO m) => AppContext -> m ()
 cacheGCInit appCtx = forever $ do
-  liftIO $ threadDelay cacheGCInterval
   logInfo appCtx "GC goes..."
+  liftIO $ threadDelay cacheGCInterval
 
   where
     cacheGCInterval = hour -- Every hour in microseconds
