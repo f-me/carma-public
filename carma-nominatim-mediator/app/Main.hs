@@ -237,9 +237,11 @@ requestExecutorInit appCtx = do
     result <- liftIO $ runClientM req $ clientEnv appCtx
 
     case result of
-         Left e -> logInfo appCtx [qms| Request by params {reqParams}
-                                        is failed with exception: {e}. |]
-         _ -> pure ()
+         Left e -> logError appCtx [qms| Request by params {reqParams}
+                                         is failed with exception: {e}. |]
+
+         Right _ -> logInfo appCtx [qms| Request by params {reqParams}
+                                         is succeeded. |]
 
     liftIO $ putMVar responseBus result
 
