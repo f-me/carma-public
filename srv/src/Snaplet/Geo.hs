@@ -36,21 +36,21 @@ import Data.Aeson as A
 import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 as BS (ByteString)
 import qualified Data.ByteString.Lazy.Char8 as BSL
+import qualified Data.ByteString.Builder as BS (toLazyByteString)
+import Data.List (isSuffixOf)
 import Data.Map as M
 import Data.HashMap.Strict as HM (delete)
 import Data.Maybe as Maybe
-import Data.String (fromString)
 import Data.Monoid ((<>))
 
 import Data.Configurator
 import Database.PostgreSQL.Simple.SqlQQ
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T (encodeUtf8)
-import Data.List (isSuffixOf)
+import Text.InterpolatedString.QM
 
 import qualified Network.HTTP.Conduit as HttpC
-import qualified Network.HTTP.Types.Header as HttpT
+import qualified Network.HTTP.Types.URI as HttpT
 
 import Snap.Core
 import Snap.Extras
@@ -65,7 +65,7 @@ data Geo b = Geo
     { postgres      :: SnapletLens b Postgres
     , nominatimReq  :: String -> IO HttpC.Request
     -- ^ Nominatim installation URL (with trailing slash).
-    , nominatimLang :: String
+    , nominatimLang :: T.Text
     -- ^ Preferred language for search results (in RFC 2616
     -- Accept-Language format, or a comma-separated list of language
     -- codes).
@@ -77,8 +77,8 @@ makeLenses ''Geo
 routes :: [(ByteString, Handler b (Geo b) ())]
 routes = [ ("/partners/:coords1/:coords2", method GET withinPartners)
          , ("/distance/:coords1/:coords2", method GET distance)
-         , ("/revSearch/:coords", method GET revSearch)
-         , ("/search/:query", method GET search)
+         , ("/revSearch/:coords",          method GET revSearch)
+         , ("/search/:query",              method GET search)
          ]
 
 
@@ -261,29 +261,28 @@ instance ToJSON FullAddress where
 
 
 ------------------------------------------------------------------------------
--- | Use Nominatim to perform a reverse search for an address at
--- coordinates provided in @coords@ request parameter. Response body
--- is a JSON object with keys @city@ and @address@ (possibly with null
--- values), or a single key @error@ if Nominatim geocoding failed
--- completely.
+-- | Use Nominatim ("mediator", see `carma-nominatim-mediator` package)
+-- to perform a reverse search for an address at coordinates provided
+-- in @coords@ request parameter. Response body is a JSON object
+-- with keys @city@ and @address@ (possibly with `null` values),
+-- or a single key @error@ if Nominatim geocoding failed completely.
 revSearch :: Handler b (Geo b) ()
 revSearch = do
-  req          <- gets nominatimReq <*> pure "reverse.php" >>= liftIO
-  lang         <- gets nominatimLang
   (!lon, !lat) <- fromMaybe (error "Bad request") <$> getCoordsParam "coords"
+  lang         <- gets nominatimLang
+
+  let urlpath = BSL.unpack
+              $ BS.toLazyByteString
+              $ HttpT.encodePathSegments
+                ["reverse-search", lang, [qm| {lon},{lat} |]]
+
+  req <- gets nominatimReq <*> pure urlpath >>= liftIO
 
   -- Read coords and send reverse geocoding request to Nominatim
 
-  let req' = flip HttpC.setQueryString req
-           [ ("format", Just "json")
-           , ("accept-language", Just $ fromString lang)
-           , ("lon", Just $ fromString $ show lon)
-           , ("lat", Just $ fromString $ show lat)
-           ]
-
   addr' <- liftIO
          $ fmap (eitherDecode' . HttpC.responseBody)
-         $ HttpC.newManager HttpC.tlsManagerSettings >>= HttpC.httpLbs req'
+         $ HttpC.newManager HttpC.tlsManagerSettings >>= HttpC.httpLbs req
 
   -- Repack Nominatim response into a nicer JSON
   case addr' of
@@ -291,24 +290,24 @@ revSearch = do
     Left  msg  -> writeJSON $ M.singleton ("error" :: String) msg
 
 
--- | Use Nominatim to perform a search for objects at an address
--- provided in @query@ request parameter. Response body is identical
+-- | Use Nominatim ("mediator", see `carma-nominatim-mediator` package)
+-- to perform a search for objects at an address provided
+-- in @query@ request parameter. Response body is identical
 -- to Nominatim's original response.
 search :: Handler b (Geo b) ()
 search = do
-  req  <- gets nominatimReq <*> pure "search" >>= liftIO
-  lang <- gets nominatimLang
   !q   <- fromMaybe (error "Empty query") <$> getParamT "query"
+  lang <- gets nominatimLang
 
-  let req' = flip HttpC.setQueryString req
-           [ ("format", Just "json")
-           , ("accept-language", Just $ fromString lang)
-           , ("q", Just $ T.encodeUtf8 q)
-           ]
+  let urlpath = BSL.unpack
+              $ BS.toLazyByteString
+              $ HttpT.encodePathSegments ["search", lang, q]
+
+  req <- liftIO =<< gets nominatimReq <*> pure urlpath
 
   res <- liftIO
        $ fmap HttpC.responseBody
-       $ HttpC.newManager HttpC.tlsManagerSettings >>= HttpC.httpLbs req'
+       $ HttpC.newManager HttpC.tlsManagerSettings >>= HttpC.httpLbs req
 
   modifyResponse $ setContentType "application/json"
   writeLBS res
@@ -317,20 +316,14 @@ search = do
 geoInit :: SnapletLens b Postgres -> SnapletInit b (Geo b)
 geoInit db = makeSnaplet "geo" "Geoservices" Nothing $ do
   cfg <- getSnapletUserConfig
-
-  nomReq <- liftIO $ do
-    userAgent <- lookupDefault "CaRMa backend" cfg "nominatim-client-user-agent"
-
-    lookupDefault "https://nominatim.openstreetmap.org" cfg "nominatim-url"
-      <&> (\x -> if "/" `isSuffixOf` x then x else x <> "/")
-      <&> buildRequest userAgent
-
   lang <- liftIO $ lookupDefault "ru-RU,ru" cfg "nominatim-lang"
+
+  nomReq <- liftIO $
+    require cfg "nominatim-mediator-url"
+      <&> -- Removing trailing slash if it is there,
+          -- `HttpT.encodePathSegments` adds it.
+          (\x -> if "/" `isSuffixOf` x then init x else x)
+      <&> \url pathSfx -> HttpC.parseUrlThrow (url <> pathSfx)
+
   addRoutes routes
   pure $ Geo db nomReq lang
-
-  where
-    buildRequest userAgent url pathSfx =
-      HttpC.parseUrlThrow (url <> pathSfx)
-        <&> \x -> x { HttpC.requestHeaders = HttpC.requestHeaders x <> h }
-      where h = [(HttpT.hUserAgent, userAgent)]
