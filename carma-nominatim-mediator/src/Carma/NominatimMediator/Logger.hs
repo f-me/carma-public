@@ -1,3 +1,5 @@
+-- This module handles logging messages.
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}

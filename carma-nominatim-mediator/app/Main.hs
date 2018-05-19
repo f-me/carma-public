@@ -1,3 +1,7 @@
+-- A microservice which handles requests to Nominatim.
+-- It controls intervals between requests (to prevent exceeding the limits of
+-- shared community Nominatim server) and caches responses.
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -5,12 +9,12 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Main (main) where
 
 import qualified Data.Configurator as Conf
 import           Data.String (fromString)
-import           Data.IORef
 import qualified Data.Map as M
 import           Data.Aeson (toJSON)
 import           Data.Proxy
@@ -18,10 +22,13 @@ import           Data.List (sortBy)
 import           Data.Function ((&), on)
 import           Text.InterpolatedString.QM
 
+import           Control.Monad
 import           Control.Monad.Catch (MonadThrow, throwM, toException)
 import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Concurrent
+
+import           System.Directory (makeAbsolute)
 
 import           Servant
 import           Servant.Client
@@ -32,6 +39,7 @@ import           Network.HTTP.Client.TLS (tlsManagerSettings)
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Logger
 import           Carma.NominatimMediator.CacheGC
+import           Carma.NominatimMediator.CacheSync
 import           Carma.NominatimMediator.Utils
 import           Carma.NominatimMediator.RequestExecutor
 
@@ -82,6 +90,11 @@ main = do
   (port :: Warp.Port) <- Conf.require cfg "port"
   (host :: String)    <- Conf.lookupDefault "127.0.0.1" cfg "host"
 
+  !(cacheFile :: Maybe FilePath) <-
+    Conf.lookup cfg "cache-file" >>=
+      \case Nothing -> pure Nothing
+            Just x  -> Just <$!> makeAbsolute x
+
   !(nominatimUA :: UserAgent) <-
     UserAgent <$> Conf.require cfg "nominatim.client-user-agent"
 
@@ -89,9 +102,9 @@ main = do
     Conf.lookupDefault "https://nominatim.openstreetmap.org" cfg "nominatim.url"
 
   !(nominatimBaseUrl :: BaseUrl) <- parseBaseUrl nominatimUrl
-  !(manager :: Manager) <- newManager tlsManagerSettings
+  !(manager          :: Manager) <- newManager tlsManagerSettings
 
-  resCache            <- newIORef M.empty
+  resCache            <- newIORefWithCounter M.empty
   loggerBus'          <- newEmptyMVar
   requestExecutorBus' <- newEmptyMVar
 
@@ -114,9 +127,23 @@ main = do
   -- Running logger thread
   _ <- forkIO $ runStdoutLoggingT $ loggerInit appCtx
 
+  -- Trying to fill cache with initial snapshot
+  maybe (pure ()) (fillCacheWithSnapshot appCtx) cacheFile
+
   -- Running cache garbage collector thread
   -- which cleans outdated cached responses.
   _ <- forkIO $ cacheGCInit appCtx
+
+  -- Syncing with file is optional,
+  -- if you don't wanna this feature
+  -- just remove "cache-file" from config.
+  -- Running cache synchronizer thread
+  -- which stores cache snapshot to a file
+  -- to be able to load it after restart.
+  maybe (logInfo appCtx [qms| Cache file to save snapshots to isn't set,
+                              cache synchronizer feature is disabled. |])
+        (void . forkIO . cacheSyncInit appCtx)
+        cacheFile
 
   -- Running requests queue handler
   _ <- forkIO $ requestExecutorInit appCtx
@@ -134,12 +161,9 @@ appServer :: AppContext -> Server AppRoutes
 appServer app
     =  search app
   :<|> revSearch app
-  :<|> debugServer
-
-  where
-    debugServer
-        =  debugCachedQueries app
-      :<|> debugCachedResponses app
+  :<|> (    debugCachedQueries app
+       :<|> debugCachedResponses app
+       )
 
 
 -- Server routes handlers
@@ -182,7 +206,7 @@ revSearch appCtx lang coords@(Coords lon' lat') = do
 debugCachedQueries :: AppContext -> Handler [DebugCachedQuery]
 debugCachedQueries appCtx = do
   logInfo appCtx "Debugging cached queries..."
-  liftIO $ readIORef (responsesCache appCtx) <&>
+  readIORefWithCounter (responsesCache appCtx) <&>
     M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
 
   where reducer acc (k, (t, _)) =
@@ -191,7 +215,7 @@ debugCachedQueries appCtx = do
 debugCachedResponses :: AppContext -> Handler [DebugCachedResponse]
 debugCachedResponses appCtx = do
   logInfo appCtx "Debugging cached responses..."
-  liftIO $ readIORef (responsesCache appCtx) <&>
+  readIORefWithCounter (responsesCache appCtx) <&>
     M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
 
   where

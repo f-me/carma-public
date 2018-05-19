@@ -1,3 +1,5 @@
+-- This module contains data types used in this service.
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
@@ -12,7 +14,6 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T (encodeUtf8)
 import           Data.Attoparsec.ByteString.Char8
 import           Data.String (fromString)
-import           Data.IORef
 import qualified Data.Map as M
 import           Data.Aeson
 import           Data.Aeson.Types (fieldLabelModifier)
@@ -130,7 +131,11 @@ data DebugCachedResponse
 
 data AppContext
    = AppContext
-   { responsesCache :: IORef ResponsesCache
+   { -- First section is just a counter, it is used to check if it's changed
+     -- that means the cache was changed, you urged to increase it everytime
+     -- you update the cache. Cache synchronizer looks at this counter to
+     -- choose whether it needs to sync anything.
+     responsesCache :: IORefWithCounter ResponsesCache
 
      -- Shared Nominatim community server requires User-Agent to be provided
    , clientUserAgent :: UserAgent

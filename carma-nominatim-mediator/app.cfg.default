@@ -1,6 +1,10 @@
 port = 8165
 # host = "127.0.0.1"
 
+# If cache file isn't set then cache wouldn't be synchronized,
+# every restart you start from scratch.
+cache-file = "cache-snapshot.db"
+
 nominatim {
   # Nominatim API root URL.
   # "https://nominatim.openstreetmap.org" is used by default.

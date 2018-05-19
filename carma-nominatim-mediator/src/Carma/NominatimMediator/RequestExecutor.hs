@@ -1,3 +1,5 @@
+-- This module handles requests for Nominatim responses.
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TupleSections #-}
@@ -5,15 +7,14 @@
 
 module Carma.NominatimMediator.RequestExecutor where
 
-import           Data.IORef
 import qualified Data.Map as M
 import qualified Data.Time.Clock as Time
 import           Text.InterpolatedString.QM
 
 import           Control.Monad
+import qualified Control.Monad.Trans.State.Strict as S
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Concurrent
-import qualified Control.Monad.Trans.State.Strict as S
 
 import           Servant.Client
 
@@ -25,7 +26,8 @@ import           Carma.NominatimMediator.Logger
 -- Requests queue.
 -- Supposed to be run in own thread.
 -- It writes response to provided `MVar`.
-requestExecutorInit :: (LoggerBus m, MonadIO m) => AppContext -> m ()
+requestExecutorInit
+  :: (LoggerBus m, IORefWithCounterM m, MonadIO m) => AppContext -> m ()
 requestExecutorInit appCtx = do
   -- First request also will be checked for interval
   -- notwithstanding there isn't previous request,
@@ -33,11 +35,11 @@ requestExecutorInit appCtx = do
   -- this service is restarted quickly just after previous request
   -- before restart and interval could be smaller than required.
   -- This initial state contains request counter and time of last response.
-  initState <- liftIO Time.getCurrentTime <&> ((0 :: Integer),)
+  initialState <- liftIO Time.getCurrentTime <&> ((0 :: Integer),)
 
   logInfo appCtx [qn| Request executor is ready and waiting for requests... |]
 
-  flip S.evalStateT initState $ forever $ do
+  flip S.evalStateT initialState $ forever $ do
     -- Waiting for next request
     requestArgs@(reqParams, _, responseBus) <-
       liftIO $ takeMVar $ requestExecutorBus appCtx
@@ -49,8 +51,8 @@ requestExecutorInit appCtx = do
       logInfo appCtx [qm| Executing request #{n} with params: {reqParams}... |]
 
     -- Checking if there's cached response by this request params
-    cachedResponse <- liftIO $
-      M.lookup reqParams <$> readIORef (responsesCache appCtx)
+    cachedResponse <-
+      M.lookup reqParams <$> readIORefWithCounter (responsesCache appCtx)
 
     case cachedResponse of
          -- Nothing found in cache for this request, requesting it
@@ -118,8 +120,8 @@ requestExecutorInit appCtx = do
              utc <- liftIO Time.getCurrentTime
              S.modify' $ fmap $ const utc
 
-             liftIO $
-               responsesCache appCtx `modifyIORef'` M.insert reqParams (utc, x)
+             responsesCache appCtx `modifyIORefWithCounter'`
+               M.insert reqParams (utc, x)
 
       -- Sending response back
       liftIO $ putMVar responseBus result

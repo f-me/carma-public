@@ -1,9 +1,10 @@
+-- This modules claens outdated cached responses.
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Carma.NominatimMediator.CacheGC where
 
-import           Data.IORef
 import           Data.Monoid ((<>))
 import qualified Data.Map as M
 import qualified Data.Time.Clock as Time
@@ -21,13 +22,14 @@ import           Carma.NominatimMediator.Logger
 
 -- Cleans outdated cached responses.
 -- Supposed to be run in own thread.
-cacheGCInit :: (LoggerBus m, MonadIO m) => AppContext -> m ()
+cacheGCInit
+  :: (LoggerBus m, IORefWithCounterM m, MonadIO m) => AppContext -> m ()
 cacheGCInit appCtx = forever $ do
-  logInfo appCtx [qm| Cache garbage collector goes... |]
+  logInfo appCtx [qn| Cache garbage collector goes... |]
   currentTime <- liftIO Time.getCurrentTime
 
-  outdatedItems <- liftIO $
-    atomicModifyIORef' (responsesCache appCtx) $
+  outdatedItems <-
+    atomicModifyIORefWithCounter' (responsesCache appCtx) $
       M.partition $ fst
                   ? Time.diffUTCTime currentTime
                   ? round

@@ -18,6 +18,7 @@ dependencies:
   - bytestring
   - configurator
   - containers
+  - directory
   - exceptions
   - http-api-data
   - http-client
