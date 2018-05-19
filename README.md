@@ -153,6 +153,34 @@ Refer to [`.circleci/config.yml`][ci-config] for full building instructions.
    curl localhost:8000/meta
    ```
 
+9. **WARNING!** To work with *Geo* API (e.g. search on maps, addresses, etc.)
+   you need to run [Nominatim Mediator][nominatim-mediator] microservice,
+   to do so locally:
+
+   1. Go to the directory of that package:
+
+      ```bash
+      cd carma-nominatim-mediator
+      ```
+
+   2. Copy default config:
+
+      ```bash
+      cp app.cfg.default app.cfg
+      ```
+
+   3. Run the microservice (being in `carma-nominatim-mediator` directory):
+
+      ```bash
+      stack exec carma-nominatim-mediator
+      ```
+
+   4. Now you can ashure that it's working by this command:
+
+      ```bash
+      curl -v 'http://127.0.0.1:8165/reverse-search/ru-RU,ru/52.51719785,13.3978352028938'
+      ```
+
 #### macOS
 
 On macOS with `openssl` and `icu4c` installed via Homebrew, build with
@@ -323,3 +351,4 @@ docker-compose -f docker/carma-bundle.yml up
 [hub-bundle]: https://hub.docker.com/r/ruamc/carma-bundle/tags/
 [docker/dev-pg-9.3]: docker/dev-pg-9.3
 [pure-readme]: srv/resources/assets/pure/README.md
+[nominatim-mediator]: carma-nominatim-mediator/
