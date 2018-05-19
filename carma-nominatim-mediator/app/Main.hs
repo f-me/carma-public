@@ -4,6 +4,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module Main (main) where
 
@@ -11,6 +12,7 @@ import qualified Data.Configurator as Conf
 import           Data.String (fromString)
 import           Data.IORef
 import qualified Data.Map as M
+import           Data.Aeson (toJSON)
 import           Data.Proxy
 import           Data.Function ((&))
 import           Text.InterpolatedString.QM
@@ -49,10 +51,10 @@ type AppRoutes
 
   :<|> -- /debug/...
        "debug" :> (    -- GET /debug/cached-queries
-                       "cached-queries" :> Get '[JSON] [()]
+                       "cached-queries" :> Get '[JSON] [DebugCachedQuery]
 
                   :<|> -- GET /debug/cached-responses
-                       "cached-responses" :> Get '[JSON] [()]
+                       "cached-responses" :> Get '[JSON] [DebugCachedResponse]
                   )
 
 
@@ -176,15 +178,29 @@ revSearch appCtx lang coords@(Coords lon' lat') = do
        SearchByCoordsResponse' x -> pure x
        x -> throwUnexpectedResponse appCtx x
 
-debugCachedQueries :: AppContext -> Handler [()]
+debugCachedQueries :: AppContext -> Handler [DebugCachedQuery]
 debugCachedQueries appCtx = do
   logInfo appCtx "Debugging cached queries..."
-  pure []
+  liftIO $ readIORef (responsesCache appCtx) <&> M.foldrWithKey reducer []
+  where reducer k (t, _) = (DebugCachedQuery k [qm| {formatTime t} UTC |] :)
 
-debugCachedResponses :: AppContext -> Handler [()]
+debugCachedResponses :: AppContext -> Handler [DebugCachedResponse]
 debugCachedResponses appCtx = do
   logInfo appCtx "Debugging cached responses..."
-  pure []
+  liftIO $ readIORef (responsesCache appCtx) <&> M.foldrWithKey reducer []
+
+  where
+    reducer k (t, response') acc
+      = DebugCachedResponse
+      { request_params = k
+      , time           = [qm| {formatTime t} UTC |]
+      , response_type  = rtype
+      , response       = rjson
+      } : acc
+      where (rtype, rjson) =
+              case response' of
+                   SearchByQueryResponse'  x -> ("search",         toJSON x)
+                   SearchByCoordsResponse' x -> ("reverse-search", toJSON x)
 
 
 -- Client requests to Nominatim

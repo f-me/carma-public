@@ -7,7 +7,6 @@ module Carma.NominatimMediator.Logger where
 
 import qualified Data.Text as T
 import qualified Data.Time.Clock as Time
-import qualified Data.Time.Format as Time
 import           Text.InterpolatedString.QM
 
 import           Control.Monad
@@ -16,6 +15,7 @@ import           Control.Monad.Logger (MonadLogger, logInfoN, logErrorN)
 import           Control.Concurrent.MVar
 
 import           Carma.NominatimMediator.Types
+import           Carma.NominatimMediator.Utils
 
 
 class Monad m => LoggerBus m where
@@ -26,17 +26,12 @@ instance (Monad m, MonadIO m) => LoggerBus m where
   logInfo appCtx msg = liftIO $ do
     utc <- Time.getCurrentTime
     loggerBus appCtx `putMVar` LogMessage LogInfo
-      [qms| [{Time.formatTime Time.defaultTimeLocale loggerTimeFormat utc} UTC]
-            {msg} |]
+      [qms| [{formatTime utc} UTC] {msg} |]
 
   logError appCtx msg = liftIO $ do
     utc <- Time.getCurrentTime
     loggerBus appCtx `putMVar` LogMessage LogError
-      [qms| [{Time.formatTime Time.defaultTimeLocale loggerTimeFormat utc} UTC]
-            {msg} |]
-
-loggerTimeFormat :: String
-loggerTimeFormat = "%Y-%m-%d %H:%M:%S"
+      [qms| [{formatTime utc} UTC] {msg} |]
 
 
 -- Writes log messages somewhere.
