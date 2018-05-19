@@ -14,7 +14,8 @@ import           Data.IORef
 import qualified Data.Map as M
 import           Data.Aeson (toJSON)
 import           Data.Proxy
-import           Data.Function ((&))
+import           Data.List (sortBy)
+import           Data.Function ((&), on)
 import           Text.InterpolatedString.QM
 
 import           Control.Monad.Catch (MonadThrow, throwM, toException)
@@ -181,16 +182,20 @@ revSearch appCtx lang coords@(Coords lon' lat') = do
 debugCachedQueries :: AppContext -> Handler [DebugCachedQuery]
 debugCachedQueries appCtx = do
   logInfo appCtx "Debugging cached queries..."
-  liftIO $ readIORef (responsesCache appCtx) <&> M.foldrWithKey reducer []
-  where reducer k (t, _) = (DebugCachedQuery k [qm| {formatTime t} UTC |] :)
+  liftIO $ readIORef (responsesCache appCtx) <&>
+    M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
+
+  where reducer acc (k, (t, _)) =
+          DebugCachedQuery k [qm| {formatTime t} UTC |] : acc
 
 debugCachedResponses :: AppContext -> Handler [DebugCachedResponse]
 debugCachedResponses appCtx = do
   logInfo appCtx "Debugging cached responses..."
-  liftIO $ readIORef (responsesCache appCtx) <&> M.foldrWithKey reducer []
+  liftIO $ readIORef (responsesCache appCtx) <&>
+    M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
 
   where
-    reducer k (t, response') acc
+    reducer acc (k, (t, response'))
       = DebugCachedResponse
       { request_params = k
       , time           = [qm| {formatTime t} UTC |]
