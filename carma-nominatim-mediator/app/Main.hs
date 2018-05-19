@@ -241,4 +241,4 @@ requestResponse appCtx reqParams req = do
        Left  e -> throwM e
        Right x -> pure x
 
-  where timeout = round $ 15 * secondInMicroseconds
+  where timeout = round $ 15 * secondInMicroseconds :: Int
