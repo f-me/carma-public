@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Carma.NominatimMediator.RequestExecutor where
 
@@ -11,6 +13,7 @@ import           Text.InterpolatedString.QM
 import           Control.Monad
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Concurrent
+import qualified Control.Monad.Trans.State.Strict as S
 
 import           Servant.Client
 
@@ -24,22 +27,30 @@ import           Carma.NominatimMediator.Logger
 -- It writes response to provided `MVar`.
 requestExecutorInit :: (LoggerBus m, MonadIO m) => AppContext -> m ()
 requestExecutorInit appCtx = do
-  logInfo appCtx [qms| Running request executor,
-                       waiting for {intervalBetweenRequestsInSeconds} seconds
-                       before start in case application is restarted quickly
-                       just after previous request... |]
+  -- First request also will be checked for interval
+  -- notwithstanding there isn't previous request,
+  -- this is okay because it solves possible case when
+  -- this service is restarted quickly just after previous request
+  -- before restart and interval could be smaller than required.
+  -- This initial state contains request counter and time of last response.
+  initState <- liftIO Time.getCurrentTime <&> ((0 :: Integer),)
 
-  liftIO $ threadDelay intervalBetweenRequests
   logInfo appCtx [qn| Request executor is ready and waiting for requests... |]
 
-  forever $ do
+  flip S.evalStateT initState $ forever $ do
+    -- Waiting for next request
     requestArgs@(reqParams, _, responseBus) <-
       liftIO $ takeMVar $ requestExecutorBus appCtx
 
-    logInfo appCtx [qm| Executing request with params: {reqParams}... |]
+    -- Increasing request counter
+    S.modify' $ \(a, b) -> (a + 1, b)
 
+    withCounter $ \n ->
+      logInfo appCtx [qm| Executing request #{n} with params: {reqParams}... |]
+
+    -- Checking if there's cached response by this request params
     cachedResponse <- liftIO $
-      fmap (M.lookup reqParams) $ readIORef $ responsesCache appCtx
+      M.lookup reqParams <$> readIORef (responsesCache appCtx)
 
     case cachedResponse of
          -- Nothing found in cache for this request, requesting it
@@ -47,8 +58,9 @@ requestExecutorInit appCtx = do
 
          -- Found cached result, using it to return to user immediately
          Just (_, x) -> do
-           logInfo appCtx [qms| Response for request by params {reqParams}
-                                is taken from cache. |]
+           withCounter $ \n ->
+             logInfo appCtx [qms| Response for request #{n}
+                                  by params {reqParams} is taken from cache. |]
 
            liftIO $ putMVar responseBus $ Right x
 
@@ -59,34 +71,55 @@ requestExecutorInit appCtx = do
     intervalBetweenRequestsInSeconds =
       fromIntegral intervalBetweenRequests / secondInMicroseconds
 
+    withCounter = (S.gets fst >>=)
+
     -- Real request, when nothing found in cache.
     -- Successful request will be added to cache.
     request (reqParams, req, responseBus) = do
+      -- Handling minimal invervals between requests
+      do lastTime <- S.gets snd
+         curTime  <- liftIO Time.getCurrentTime
+
+         let timeDiffInMicroseconds = round $ secondInMicroseconds * x :: Int
+               where
+                 x = fromRational
+                   $ toRational
+                   $ Time.diffUTCTime curTime lastTime
+
+         when (timeDiffInMicroseconds < intervalBetweenRequests) $ do
+           let waitTime = intervalBetweenRequests - timeDiffInMicroseconds
+               waitTimeInSeconds = fromIntegral waitTime / secondInMicroseconds
+
+           withCounter $ \n ->
+             logInfo appCtx [qms| Request #{n} by params {reqParams}
+                                  is delayed by {waitTimeInSeconds} seconds
+                                  to satisfy interval between requests
+                                  which is {intervalBetweenRequestsInSeconds}
+                                  seconds... |]
+
+           liftIO $ threadDelay waitTime
+
       result <- liftIO $ runClientM req $ clientEnv appCtx
 
       case result of
-           Left e ->
-             logError appCtx [qms| Request by params {reqParams}
-                                   is failed with exception: {e}. |]
+           Left e -> do
+             withCounter $ \n ->
+               logError appCtx [qms| Request #{n} by params {reqParams}
+                                     is failed with exception: {e}. |]
+
+             liftIO Time.getCurrentTime >>= S.modify' . fmap . const
 
            Right x -> do
-             logInfo appCtx [qms| Request by params {reqParams} is succeeded,
-                                  adding result to the cache... |]
+             withCounter $ \n ->
+               logInfo appCtx
+                 [qms| Request #{n} by params {reqParams} is succeeded,
+                       adding result to the cache... |]
 
              utc <- liftIO Time.getCurrentTime
+             S.modify' $ fmap $ const utc
 
              liftIO $
                responsesCache appCtx `modifyIORef'` M.insert reqParams (utc, x)
 
+      -- Sending response back
       liftIO $ putMVar responseBus result
-
-      logInfo appCtx [qms| Request executor will wait for
-                           {intervalBetweenRequestsInSeconds} seconds
-                           before handling next request... |]
-
-      -- TODO No need to wait in next response would be taken from cache,
-      --      it would be a good idea to calculate time delta
-      --      and wait only when it makes sense.
-      --      I think I would use StateT monad for `forever` to update last
-      --      request finish time (and also served requests counter).
-      liftIO $ threadDelay intervalBetweenRequests

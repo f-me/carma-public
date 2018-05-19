@@ -30,6 +30,7 @@ dependencies:
   - servant-server
   - text
   - time
+  - transformers
   - warp
 
 ghc-options:
