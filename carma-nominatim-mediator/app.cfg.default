@@ -1,11 +1,33 @@
 port = 8165
+
+# [OPTIONAL]
 # host = "127.0.0.1"
 
-# If cache file isn't set then cache wouldn't be synchronized,
-# every restart you start from scratch.
-cache-file = "cache-snapshot.db"
+cache {
+  synchronizer {
+    # [OPTIONAL]
+    # If this file isn't set then cache wouldn't be synchronized,
+    # every restart you start from scratch.
+    snapshot-file = "cache-snapshot.db"
+
+    # In hours (with floating point).
+    interval = 1
+  }
+
+  # GC is for "Garbage Collector" (cleans outdated cached responses).
+  gc {
+    # In hours (with floating point).
+    interval = 1
+
+    # In hours (with floating point).
+    # Indicates how long cached response lives,
+    # after this period it will be eliminated by GC.
+    lifetime = 24
+  }
+}
 
 nominatim {
+  # [OPTIONAL]
   # Nominatim API root URL.
   # "https://nominatim.openstreetmap.org" is used by default.
   # url = "http://192.168.10.14/nominatim/"
@@ -14,4 +36,9 @@ nominatim {
   # Shared Nominatim server (used by default)
   # requires User-Agent to be provided by a client.
   client-user-agent = "CaRMa backend (RuAMC)"
+
+  # In seconds (with floating point).
+  # If next request triggered earlier
+  # then it waits for this gap being satisfied.
+  gap-between-requests = 1.5
 }

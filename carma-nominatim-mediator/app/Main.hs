@@ -87,19 +87,26 @@ main :: IO ()
 main = do
   cfg <- Conf.load [Conf.Required "app.cfg"]
 
-  (port :: Warp.Port) <- Conf.require cfg "port"
-  (host :: String)    <- Conf.lookupDefault "127.0.0.1" cfg "host"
+  !(port :: Warp.Port) <- Conf.require cfg "port"
+  !(host :: String)    <- Conf.lookupDefault "127.0.0.1" cfg "host"
 
   !(cacheFile :: Maybe FilePath) <-
-    Conf.lookup cfg "cache-file" >>=
+    Conf.lookup cfg "cache.synchronizer.snapshot-file" >>=
       \case Nothing -> pure Nothing
             Just x  -> Just <$!> makeAbsolute x
+
+  !(syncInterval   :: Float) <- Conf.require cfg "cache.synchronizer.interval"
+  !(gcInterval     :: Float) <- Conf.require cfg "cache.gc.interval"
+  !(cachedLifetime :: Float) <- Conf.require cfg "cache.gc.lifetime"
 
   !(nominatimUA :: UserAgent) <-
     UserAgent <$> Conf.require cfg "nominatim.client-user-agent"
 
-  (nominatimUrl :: String) <-
+  !(nominatimUrl :: String) <-
     Conf.lookupDefault "https://nominatim.openstreetmap.org" cfg "nominatim.url"
+
+  !(nominatimReqGap :: Float) <-
+    Conf.require cfg "nominatim.gap-between-requests"
 
   !(nominatimBaseUrl :: BaseUrl) <- parseBaseUrl nominatimUrl
   !(manager          :: Manager) <- newManager tlsManagerSettings
@@ -132,7 +139,7 @@ main = do
 
   -- Running cache garbage collector thread
   -- which cleans outdated cached responses.
-  _ <- forkIO $ cacheGCInit appCtx
+  _ <- forkIO $ cacheGCInit appCtx gcInterval cachedLifetime
 
   -- Syncing with file is optional,
   -- if you don't wanna this feature
@@ -142,16 +149,21 @@ main = do
   -- to be able to load it after restart.
   maybe (logInfo appCtx [qms| Cache file to save snapshots to isn't set,
                               cache synchronizer feature is disabled. |])
-        (void . forkIO . cacheSyncInit appCtx)
+        (void . forkIO . cacheSyncInit appCtx syncInterval)
         cacheFile
 
   -- Running requests queue handler
-  _ <- forkIO $ requestExecutorInit appCtx
+  _ <- forkIO $ requestExecutorInit appCtx nominatimReqGap
 
   logInfo appCtx
-    [qmb| Nominatim config:
+    [qmb| Subsystems is initialized.
+          GC config:
+          \  Checks interval: {gcInterval} hour(s)
+          \  Cached response lifetime: {cachedLifetime} hour(s)
+          Nominatim config:
           \  URL: "{nominatimUrl}"
-          \  Client User-Agent: "{fromUserAgent nominatimUA}" |]
+          \  Client User-Agent: "{fromUserAgent nominatimUA}"
+          \  Gap between requests: {nominatimReqGap} second(s) |]
 
   logInfo appCtx [qm| Listening on http://{host}:{port}... |]
   Warp.runSettings warpSettings app

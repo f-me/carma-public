@@ -23,39 +23,47 @@ import           Carma.NominatimMediator.Logger
 -- Cleans outdated cached responses.
 -- Supposed to be run in own thread.
 cacheGCInit
-  :: (LoggerBus m, IORefWithCounterM m, MonadIO m) => AppContext -> m ()
-cacheGCInit appCtx = forever $ do
-  logInfo appCtx [qn| Cache garbage collector goes... |]
-  currentTime <- liftIO Time.getCurrentTime
+  :: (LoggerBus m, IORefWithCounterM m, MonadIO m)
+  => AppContext -> Float -> Float -> m ()
+cacheGCInit appCtx gcIntervalInHours cacheItemLifetimeInHours = do
+  logInfo appCtx
+    [qmb| Cache garbage collector is initialized.
+          Intervals between checks is {gcIntervalInHours} hour(s).
+          Cached response lifetime is {cacheItemLifetimeInHours} hour(s). |]
 
-  outdatedItems <-
-    atomicModifyIORefWithCounter' (responsesCache appCtx) $
-      M.partition $ fst
-                  ? Time.diffUTCTime currentTime
-                  ? round
-                  ? (<= cacheItemLifetime)
+  forever $ do
+    logInfo appCtx [qn| Cache garbage collector goes... |]
+    currentTime <- liftIO Time.getCurrentTime
 
-  when (M.size outdatedItems > 0) $
-    logInfo appCtx [qms| These responses is outdated
-                         and they were removed from cache.
-                         They will be requested again next time.
-                         Request params of responses
-                         which were removed from cache:\
-                         { T.pack $ mconcat
-                         $ show ? ("\n  - " <>) <$> M.keys outdatedItems
-                         } |]
+    outdatedItems <-
+      atomicModifyIORefWithCounter' (responsesCache appCtx) $
+        M.partition $ fst
+                    ? Time.diffUTCTime currentTime
+                    ? round
+                    ? (<= cacheItemLifetime)
 
-  logInfo appCtx [qms| Cache garbage collector will wait for
-                       {cacheGCIntervalInMinutes} minutes
-                       before next check... |]
+    when (M.size outdatedItems > 0) $
+      logInfo appCtx [qms| These responses is outdated
+                           and they were removed from cache.
+                           They will be requested again next time.
+                           Request params of responses
+                           which were removed from cache:\
+                           { T.pack $ mconcat
+                           $ show ? ("\n  - " <>) <$> M.keys outdatedItems
+                           } |]
 
-  liftIO $ threadDelay cacheGCInterval
+    logInfo appCtx [qms| Cache garbage collector will wait for
+                         {cacheGCIntervalInMinutes} minute(s)
+                         before next check... |]
+
+    liftIO $ threadDelay cacheGCInterval
 
   where
-    cacheGCInterval = round $ secondInMicroseconds * 60 * 60 :: Int
+    gcIntervalInSeconds = gcIntervalInHours * 60 * 60 :: Float
+    cacheGCInterval = round $ secondInMicroseconds * gcIntervalInSeconds :: Int
 
     cacheGCIntervalInMinutes =
       round $ fromIntegral cacheGCInterval / secondInMicroseconds / 60 :: Int
 
-    cacheItemLifetime = 24 * hourInSeconds :: Int
-    hourInSeconds = 60 * 60 :: Int
+    cacheItemLifetimeInSeconds = cacheItemLifetimeInHours * 60 * 60 :: Float
+    cacheItemLifetime = round $ 24 * cacheItemLifetimeInSeconds :: Int

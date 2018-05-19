@@ -25,11 +25,14 @@ import           Carma.NominatimMediator.Logger
 
 -- Checks if cache was updated and saves new cache snapshot to a file.
 -- Supposed to be run in own thread.
-cacheSyncInit :: (LoggerBus m, MonadIO m) => AppContext -> FilePath -> m ()
-cacheSyncInit appCtx cacheFile = do
+cacheSyncInit
+  :: (LoggerBus m, MonadIO m) => AppContext -> Float -> FilePath -> m ()
+cacheSyncInit appCtx syncIntervalInHours cacheFile = do
   logInfo appCtx
     [qmb| Cache synchronizer is initialized.
-          Cache file "{cacheFile}" will be used to sync cache snapshot. |]
+          Cache file "{cacheFile}" will be used to sync cache snapshot.
+          Interval between synchronizations is: \
+          {syncIntervalInHours} hour(s). |]
 
   initialState <- fst <$> readNextCache
 
@@ -60,11 +63,12 @@ cacheSyncInit appCtx cacheFile = do
                                     to a file "{cacheFile}"... |]
 
     logInfo appCtx [qms| Cache synchronizer will wait for
-                         {syncIntervalInMinutes} minutes
+                         {syncIntervalInMinutes} minute(s)
                          before next check... |]
 
   where
-    syncInterval = round $ secondInMicroseconds * 60 * 60 :: Int
+    syncIntervalInSeconds = syncIntervalInHours * 60 * 60 :: Float
+    syncInterval = round $ secondInMicroseconds * syncIntervalInSeconds :: Int
 
     syncIntervalInMinutes =
       round $ fromIntegral syncInterval / secondInMicroseconds / 60 :: Int
@@ -88,8 +92,8 @@ fillCacheWithSnapshot appCtx cacheFile = void $ runExceptT $ do
                             nothing to read. |]
        throwE ()
 
-  logInfo appCtx [qm| Cache snapshot file "{cacheFile}" does exist,
-                      reading and parsing snapshot... |]
+  logInfo appCtx [qms| Cache snapshot file "{cacheFile}" does exist,
+                       reading and parsing snapshot... |]
 
   (cacheSnapshot :: ResponsesCache) <- liftIO $ readFile cacheFile <&!> read
 

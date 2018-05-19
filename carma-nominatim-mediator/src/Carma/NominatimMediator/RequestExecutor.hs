@@ -27,8 +27,9 @@ import           Carma.NominatimMediator.Logger
 -- Supposed to be run in own thread.
 -- It writes response to provided `MVar`.
 requestExecutorInit
-  :: (LoggerBus m, IORefWithCounterM m, MonadIO m) => AppContext -> m ()
-requestExecutorInit appCtx = do
+  :: (LoggerBus m, IORefWithCounterM m, MonadIO m)
+  => AppContext -> Float -> m ()
+requestExecutorInit appCtx nominatimReqGapInSeconds = do
   -- First request also will be checked for interval
   -- notwithstanding there isn't previous request,
   -- this is okay because it solves possible case when
@@ -37,7 +38,10 @@ requestExecutorInit appCtx = do
   -- This initial state contains request counter and time of last response.
   initialState <- liftIO Time.getCurrentTime <&> ((0 :: Integer),)
 
-  logInfo appCtx [qn| Request executor is ready and waiting for requests... |]
+  logInfo appCtx
+    [qmb| Request executor is ready.
+          Gap between requests is {nominatimReqGapInSeconds} second(s).
+          Waiting for requests...  |]
 
   flip S.evalStateT initialState $ forever $ do
     -- Waiting for next request
@@ -68,7 +72,8 @@ requestExecutorInit appCtx = do
 
   where
     -- Minimum interval is one second, making it little more safe
-    intervalBetweenRequests = round $ secondInMicroseconds * 1.5
+    intervalBetweenRequests =
+      round $ secondInMicroseconds * nominatimReqGapInSeconds
 
     intervalBetweenRequestsInSeconds =
       fromIntegral intervalBetweenRequests / secondInMicroseconds
@@ -94,10 +99,10 @@ requestExecutorInit appCtx = do
 
            withCounter $ \n ->
              logInfo appCtx [qms| Request #{n} by params {reqParams}
-                                  is delayed by {waitTimeInSeconds} seconds
+                                  is delayed by {waitTimeInSeconds} second(s)
                                   to satisfy interval between requests
                                   which is {intervalBetweenRequestsInSeconds}
-                                  seconds... |]
+                                  second(s)... |]
 
            liftIO $ threadDelay waitTime
 
