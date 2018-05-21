@@ -255,7 +255,7 @@ instance FromJSON FullAddress where
 
 
 instance ToJSON FullAddress where
-    toJSON (FullAddress c s) = object [ "city" .= c
+    toJSON (FullAddress c s) = object [ "city"    .= c
                                       , "address" .= s
                                       ]
 
@@ -287,7 +287,9 @@ revSearch = do
   -- Repack Nominatim response into a nicer JSON
   case addr' of
     Right addr -> writeJSON (addr :: FullAddress)
-    Left  msg  -> writeJSON $ M.singleton ("error" :: String) msg
+    Left  msg  -> do
+      modifyResponse $ setResponseCode 500
+      writeJSON $ M.singleton ("error" :: String) msg
 
 
 -- | Use Nominatim ("mediator", see `carma-nominatim-mediator` package)

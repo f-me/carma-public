@@ -75,12 +75,12 @@ type NominatimAPIRoutes
                 :> QueryParam "q" SearchQuery
                 :> Get '[JSON] [SearchByQueryResponse]
 
-  :<|> "reverse.php" :> Header "User-Agent" UserAgent
-                     :> QueryParam "format" NominatimAPIFormat
-                     :> QueryParam "accept-language" Lang
-                     :> QueryParam "lon" NominatimLon
-                     :> QueryParam "lat" NominatimLat
-                     :> Get '[JSON] SearchByCoordsResponse
+  :<|> "reverse" :> Header "User-Agent" UserAgent
+                 :> QueryParam "format" NominatimAPIFormat
+                 :> QueryParam "accept-language" Lang
+                 :> QueryParam "lon" NominatimLon
+                 :> QueryParam "lat" NominatimLat
+                 :> Get '[JSON] SearchByCoordsResponse
 
 
 main :: IO ()

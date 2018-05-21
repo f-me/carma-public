@@ -187,9 +187,20 @@ namerWithReservedKeywords x = x
 
 data SearchByCoordsResponseAddress
    = SearchByCoordsResponseAddress
-   { state        :: T.Text
-   , country      :: T.Text
-   , country_code :: T.Text
+   { attraction     :: Maybe T.Text
+   , city           :: Maybe T.Text
+   , city_district  :: Maybe T.Text
+   , country        :: T.Text
+   , country_code   :: T.Text
+   , county         :: Maybe T.Text
+   , house_number   :: Maybe T.Text
+   , postcode       :: Maybe T.Text
+   , road           :: Maybe T.Text
+   , state          :: T.Text
+   , state_district :: Maybe T.Text
+   , suburb         :: Maybe T.Text
+   , town           :: Maybe T.Text
+   , village        :: Maybe T.Text
    } deriving (Eq, Show, Read, Generic, FromJSON, ToJSON)
 
 data SearchByCoordsResponse

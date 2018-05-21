@@ -41,7 +41,7 @@ requestExecutorInit appCtx nominatimReqGapInSeconds = do
   logInfo appCtx
     [qmb| Request executor is ready.
           Gap between requests is {nominatimReqGapInSeconds} second(s).
-          Waiting for requests...  |]
+          Waiting for requests... |]
 
   flip S.evalStateT initialState $ forever $ do
     -- Waiting for next request
