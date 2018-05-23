@@ -3,6 +3,47 @@
 [![CircleCI](https://circleci.com/gh/ruamk/carma/tree/master.svg?style=svg)](https://circleci.com/gh/ruamk/carma/tree/master)
 [![](https://images.microbadger.com/badges/image/ruamc/carma-bundle.svg)](https://microbadger.com/images/ruamc/carma-bundle)
 
+## About documentation
+
+This is important. Project lives relatively for many years (since 2012), and
+developers switches from one to another and this makes it more clear we need a
+good documentation and comments for the code and everything must be written in
+English (some parts still written in Russian, since for a long period of time it
+have been used and developed only in single country) to make it available to
+work on the project to anyone (any serious developer supposed to be able to deal
+with English, if you don't then go learn it or please leave the profession, no
+offence).
+
+Any documentation related to the project supposed to be placed in [docs][docs]
+directory using Markdown (but for some exceptional cases it may be something
+different but please use open standard formats such as XML, HTML, ODF, CSV, SVG,
+LaTeX, etc. but not DOC, DOCX, XLS, PSD and other formats from closed
+ecosystems).
+
+Some documents for the project have been written as separated Google Docs files,
+they're supposed to be migrated to this repo (to the docs [docs][docs]), they
+also was written in Russian, supposed to be rewritten in English. Only very
+secret documents may live separately.
+
+Please keep in mind that you, as a developer, may die unexpectedly (or you just
+may leave the poject) as any other creature, and even if you don't (at least not
+unexpectedly) after you other people probably will work with this project.
+Please do your job like you die just after your last commit that means not to be
+paranoid, depressive or crazy but means that it would be a good idea to leave a
+good comments for your code, for your changes, it would be a good idea to add or
+expand some documents which explains things for developers, and try to avoid
+ad-hoc fixes/features which is almost always hard to deal with. Just try to not
+leave stuff with thoughs like "I'll refactor this later", "I'll add comments for
+this later", etc., please make sure you did right thing before you commit, at
+least make sure another developer can deal with it after you, it may be adding
+**TODO** or **FIXME** comments which explains what you or another developer
+supposed to do. For a function or a monad it would be a good idea to write few
+simple usage examples and explain what issues it helps/supposed to solve.
+
+When your changes or new features affects deploy process, please check that docs
+are still exhaustive, and project may be deployed just using these instructions
+without contacting you personally.
+
 ## Building
 
 Refer to [`.circleci/config.yml`][ci-config] for full building instructions.
@@ -352,3 +393,4 @@ docker-compose -f docker/carma-bundle.yml up
 [docker/dev-pg-9.3]: docker/dev-pg-9.3
 [pure-readme]: srv/resources/assets/pure/README.md
 [nominatim-mediator]: carma-nominatim-mediator/
+[docs]: docs/
