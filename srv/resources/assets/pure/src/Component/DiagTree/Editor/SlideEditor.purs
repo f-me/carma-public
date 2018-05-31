@@ -35,11 +35,15 @@ import React
      , handle
      )
 
-import RxJS.ReplaySubject (just, debounceTime, send, subscribeNext)
-import RxJS.Subscription (unsubscribe)
-
 import Utils
      ( (<.>), storeConnect, toMaybeT, eventInputValue, callEventHandler
+     )
+
+import Utils.Debouncer
+     ( newDebouncer
+     , subscribeToDebouncer
+     , unsubscribeFromDebouncer
+     , sendToDebouncer
      )
 
 import Utils.DiagTree.Editor
@@ -551,16 +555,17 @@ rteWrap = createClass $ spec $
     rteEl = createElement richTextEditor
 
     onRTEChangeHandler this value = do
-      { changeObservable } <- readState this
+      { changeDebouncer } <- readState this
       let valueStr = valueToString value Markdown
       transformState this _ { rteValue = value }
-      valueStr `send` changeObservable
+      sendToDebouncer changeDebouncer valueStr
 
     getInitialState this = do
       { appContext, value } <- getProps this
       rteValue <- createValueFromString value Markdown
+      changeDebouncer <- newDebouncer 500
 
-      pure { changeObservable   : just "" # debounceTime 500
+      pure { changeDebouncer
            , changeSubscription : Nothing
            , onRTEChange        : onRTEChangeHandler this
            , rteValue
@@ -572,23 +577,21 @@ rteWrap = createClass $ spec $
 
         , componentWillMount = \this -> do
             { onChange } <- getProps this
-            { changeObservable } <- readState this
+            { changeDebouncer } <- readState this
 
             subscription <-
-              callEventHandler onChange `subscribeNext` changeObservable
+              changeDebouncer `subscribeToDebouncer` callEventHandler onChange
 
-            -- FIXME See https://github.com/jasonzoladz/purescript-rxjs/issues/22
-            {-- transformState this _ { changeSubscription = Just subscription } --}
-            pure unit
+            transformState this _ { changeSubscription = Just subscription }
 
         , componentWillReceiveProps = \this { value: newValue } -> do
-            { changeObservable, rteValue } <- readState this
+            { changeDebouncer, rteValue } <- readState this
             let oldValue = valueToString rteValue Markdown
 
             if oldValue == newValue
                then pure unit
                else do newRTEValue <- createValueFromString newValue Markdown
-                       newValue `send` changeObservable
+                       sendToDebouncer changeDebouncer newValue
                        transformState this _ { rteValue = newRTEValue }
 
         -- This fixes a bug when you edit RTE value and change other value of a
@@ -615,8 +618,11 @@ rteWrap = createClass $ spec $
                else pure unit
 
         , componentWillUnmount = \this -> do
-            { changeSubscription } <- readState this
-            maybe (pure unit) unsubscribe changeSubscription
+            { changeDebouncer, changeSubscription } <- readState this
+
+            case changeSubscription of
+                 Nothing -> pure unit
+                 Just x  -> unsubscribeFromDebouncer changeDebouncer x
         }
 
       where

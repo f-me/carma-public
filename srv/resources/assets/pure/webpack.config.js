@@ -39,7 +39,6 @@ module.exports = {
       'react-rte',
       'react-dropzone',
       'create-react-class',
-      'rxjs',
     ],
   },
 

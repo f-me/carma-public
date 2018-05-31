@@ -28,10 +28,15 @@ import React.DOM.Props
      , onChange, onClick, onKeyUp
      )
 
-import RxJS.ReplaySubject (just, debounceTime, send, subscribeNext)
-import RxJS.Subscription (unsubscribe)
-
 import Utils ((<.>), storeConnect, eventInputValue)
+
+import Utils.Debouncer
+     ( newDebouncer
+     , subscribeToDebouncer
+     , unsubscribeFromDebouncer
+     , sendToDebouncer
+     )
+
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
@@ -52,28 +57,22 @@ diagTreeEditorTreeSearchRender
                 }
 
 diagTreeEditorTreeSearchRender = createClass $ spec $
-  \ { isDisabled }
-    { changeObservable
-    , changeHandler
-    , clearHandler
-    , keyHandler
-    , query
-    } -> do
+  \ { isDisabled } { changeHandler, clearHandler, keyHandler, query } -> do
 
-      input !. classSfx "search-input"
-            ! _type "text"
-            ! placeholder "Поиск"
-            ! value query
-            ! disabled isDisabled
-            ! onChange changeHandler
-            ! onKeyUp keyHandler
+    input !. classSfx "search-input"
+          ! _type "text"
+          ! placeholder "Поиск"
+          ! value query
+          ! disabled isDisabled
+          ! onChange changeHandler
+          ! onKeyUp keyHandler
 
-      button !. classSfx "clear"
-             ! disabled (isDisabled || null query)
-             ! onClick clearHandler
-             ! title "Очистить строку поиска" $
+    button !. classSfx "clear"
+           ! disabled (isDisabled || null query)
+           ! onClick clearHandler
+           ! title "Очистить строку поиска" $
 
-        i !. "glyphicon" <.> "glyphicon-remove" $ empty
+      i !. "glyphicon" <.> "glyphicon-remove" $ empty
 
   where
     name = "DiagTreeEditorTreeSearch"
@@ -81,10 +80,10 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
     wrapper = div [className name]
 
     onChangeHandler this event = do
-      { changeObservable } <- readState this
+      { changeDebouncer } <- readState this
       let query = eventInputValue event
       transformState this _ { query = query }
-      send query changeObservable
+      sendToDebouncer changeDebouncer query
 
     onClearHandler appCtx this event = do
       preventDefault event
@@ -96,11 +95,11 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
          else pure unit
 
     resetSearch appCtx this = do
-      { changeObservable } <- readState this
+      { changeDebouncer } <- readState this
       act appCtx ResetSearch
 
       -- In case escape pressed before debounced request
-      send "" changeObservable
+      sendToDebouncer changeDebouncer ""
       transformState this _ { query = "" }
 
     searchHandler appCtx query = act appCtx $
@@ -110,8 +109,9 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
 
     getInitialState this = do
       { appContext, searchQuery } <- getProps this
+      changeDebouncer <- newDebouncer 500
 
-      pure { changeObservable   : just "" # debounceTime 500
+      pure { changeDebouncer
            , changeSubscription : Nothing
            , changeHandler      : onChangeHandler this
            , clearHandler       : onClearHandler appContext this
@@ -131,10 +131,9 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
           { displayName = name
 
           , componentWillMount = \this -> do
-              { changeObservable, search } <- readState this
-              subscription <- subscribeNext search changeObservable
-              -- FIXME See https://github.com/jasonzoladz/purescript-rxjs/issues/22
-              {-- transformState this _ { changeSubscription = Just subscription } --}
+              { changeDebouncer, search } <- readState this
+              subscription <- subscribeToDebouncer changeDebouncer search
+              transformState this _ { changeSubscription = Just subscription }
               pure unit
 
           , componentWillReceiveProps = \this { searchQuery: newQuery } -> do
@@ -151,8 +150,11 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
                                 else pure unit
 
           , componentWillUnmount = \this -> do
-              { changeSubscription } <- readState this
-              maybe (pure unit) unsubscribe changeSubscription
+              { changeDebouncer, changeSubscription } <- readState this
+
+              case changeSubscription of
+                   Nothing -> pure unit
+                   Just x  -> unsubscribeFromDebouncer changeDebouncer x
           }
 
 

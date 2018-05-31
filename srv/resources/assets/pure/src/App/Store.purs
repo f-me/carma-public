@@ -70,17 +70,15 @@ import Data.Map (Map, empty, insert, delete, filter)
 import Data.Tuple (Tuple (Tuple), fst)
 import Data.Maybe (Maybe (..), fromMaybe)
 import Data.Foldable (foldM)
-import Data.JSDate (now, getTime)
-import Data.List.Lazy (replicate)
 
 import Control.Monad.Rec.Class (forever)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Now (NOW)
-import Control.Monad.Eff.Random (RANDOM, randomInt)
+import Control.Monad.Eff.Random (RANDOM)
 import Control.Monad.Eff.Exception.Unsafe (unsafeThrow)
 import Control.Monad.Aff (Aff)
-import Control.Monad.Aff.AVar (AVAR, AVar , makeEmptyVar, takeVar, putVar)
+import Control.Monad.Aff.AVar (AVAR, AVar, makeEmptyVar, takeVar, putVar)
 
 import Control.Monad.Eff.Ref
      ( Ref, REF
@@ -89,6 +87,7 @@ import Control.Monad.Eff.Ref
 
 import App.Store.Actions (AppAction)
 import App.Store.Reducers (AppState)
+import Utils.SubscriberId (SubscriberId, newSubscriberId)
 
 
 -- An identity of a subscrition that could be used to `unsubscribe`.
@@ -139,22 +138,6 @@ newtype AppContext
   -- Only one reducer loop is allowed!
   , isReduceLoopStarted :: Ref Boolean
   }
-
-
-newtype SubscriberId = SubscriberId String
-derive instance eqStoreSubscriberId  :: Eq SubscriberId
-derive instance ordStoreSubscriberId :: Ord SubscriberId
-
-newSubscriberId
-  :: forall eff . Eff (now :: NOW, random :: RANDOM | eff) SubscriberId
-newSubscriberId = do
-  timeMark <- now <#> getTime >>> show
-
-  randMark <- foldM (\acc x -> x <#> show >>> (acc <> _)) ""
-            $ replicate 10
-            $ randomInt 0 9
-
-  pure $ SubscriberId $ timeMark <> "_" <> randMark
 
 
 createAppContext
