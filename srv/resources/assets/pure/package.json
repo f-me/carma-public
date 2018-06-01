@@ -28,7 +28,7 @@
     "prod-clean-build": "npm run clean && npm run prod-build",
     "watch": "npm run webpack -- --progress --colors --watch",
     "prod-release": "npm i && npm run bower i && npm run prod-clean-build",
-    "postinstall": "git submodule update --init purescript-react-dropzone && git submodule update --init purescript-react-rich-text-editor"
+    "postinstall": "git submodule update --init --recursive purescript-react-dropzone && git submodule update --init --recursive purescript-react-rich-text-editor"
   },
   "devDependencies": {
     "bower": "^1.8.4",
