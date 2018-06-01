@@ -1,0 +1,6 @@
+[submodule "srv/resources/assets/pure/purescript-react-dropzone"]
+	path = srv/resources/assets/pure/purescript-react-dropzone
+	url = git://github.com/unclechu/purescript-react-dropzone.git
+[submodule "srv/resources/assets/pure/purescript-react-rich-text-editor"]
+	path = srv/resources/assets/pure/purescript-react-rich-text-editor
+	url = git://github.com/unclechu/purescript-react-rich-text-editor.git

@@ -224,7 +224,7 @@ dropzoneDefaultProps mediaType = ReactDropzone.dropzoneDefaultProps
   , disabledClassName = setClassName (_ <> "--disabled")
   }
 
-  where setClassName f = toNullable $ Just $ f ReactDropzone.dropzoneName
+  where setClassName f = toNullable $ Just $ f "ReactDropzone"
 
 
 rejectedFilesAlert
