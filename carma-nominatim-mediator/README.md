@@ -52,11 +52,11 @@ it satisfying those limits.
 
 - If cache file exists it will be loaded when app starts;
 
-- From time to time it runs GC check which removed outdates cached responses
+- From time to time it runs GC check which removes outdated cached responses
   (how long single cached response lives is specified in `app.cfg` config).
 
 ## TODO
 
-- Return cached response immediately notwithstanding if new requests is
-  processing. Currently if new requests is processing requests for cached
-  response will wait until it finishes.
+- Return cached response immediately notwithstanding if new request is
+  processing. Currently if new request is processing request for cached response
+  will wait until actual request to Nominatim finishes.
