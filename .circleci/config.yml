@@ -29,6 +29,8 @@ jobs:
           command: |
             cd srv/resources/assets/pure
             npm install
+            git submodule update --init --recursive purescript-react-dropzone
+            git submodule update --init --recursive purescript-react-rich-text-editor
             npm run bower -- install --allow-root
             npm run prod-clean-build
       - persist_to_workspace:

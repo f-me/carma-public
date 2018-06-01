@@ -25,7 +25,7 @@ npm run prod-release
 - `npm run debug-clean-build` to build debug bundle
   (optimized but not minified, unreachable code is eliminated) from scratch
 
-## Development WARNINGS
+## Development **WARNINGS**
 
 - When you use `createElement` always prebind it in `where` section of a class
   otherwise a class will be always new and will be mounted every render.
@@ -40,6 +40,18 @@ npm run prod-release
 
   And never use `(^)` or `(^^)` from `React.Spaces`,
   instead use prebound `createElement` and `element` from `React.Spaces`.
+
+- Some dependencies are attached as git submodules such as these:
+
+  - purescript-react-dropzone
+  - purescript-react-rich-text-editor
+
+  They will be fetched during `npm install` command (see `postinstall` task in
+  [package.json](package.json)) but for Circle-CI for some reason it seems
+  they're not fetched. That's why `git submodule ...` commands added to
+  Circle-CI task for “pure” frontend explicitly after `npm install` and that's
+  working. If you're about to add another dependency this way, you may face same
+  issue and now you know how you could fix it.
 
 ## About PureScript
 
