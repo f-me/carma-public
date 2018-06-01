@@ -41,7 +41,10 @@ it satisfying those limits.
 
 ## How it works
 
-- It handles requests to the Nominatim in separated thread which controls that
+- It starts HTTP server on port and host specified in `app.cfg` config and
+  handles few routes you could look at in [Main](app/Main.hs) module;
+
+- Handles requests to the Nominatim in separated thread which controls that
   next request will be triggered only after minimal inverval specified in
   `app.cfg` config;
 
