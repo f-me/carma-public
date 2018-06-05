@@ -1,0 +1,51 @@
+name:        carma-era-glonass-integration
+version:     1.0.0.0
+license:     BSD3
+author:      Viacheslav Lotsmanov
+maintainer:  <lotsmanov89@gmail.com>
+category:    Web
+synopsis:    Integration between CaRMa and Era Glonass microservice
+
+description:
+  Integration between CaRMa and Era Glonass microservice.
+  .
+  It provides proper API to handle everything realted to this integration.
+
+dependencies:
+  - aeson
+  - attoparsec
+  - base
+  - bytestring
+  - configurator
+  - containers
+  - directory
+  - exceptions
+  - http-api-data
+  - http-client
+  - http-client-tls
+  - monad-logger
+  - mtl
+  - qm-interpolated-string
+  - servant
+  - servant-client
+  - servant-server
+  - text
+  - time
+  - transformers
+  - warp
+
+ghc-options:
+  - -Wall
+  - -Werror
+  - -O2
+  - -funbox-strict-fields
+
+library:
+  source-dirs: src
+
+executables:
+  carma-era-glonass-integration:
+    source-dirs: app
+    main: Main.hs
+    dependencies: [carma-era-glonass-integration]
+    ghc-options: [-threaded]
