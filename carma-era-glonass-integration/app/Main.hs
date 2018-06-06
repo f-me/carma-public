@@ -1,3 +1,12 @@
+import           Carma.EraGlonass.RequestId
+
+
 main :: IO ()
-main =
+main = do
   putStrLn "testing…"
+  x <- newRequestId
+  y <- newRequestId
+  z <- newRequestId
+  print x
+  print y
+  print z

@@ -24,7 +24,9 @@ dependencies:
   - http-client
   - http-client-tls
   - monad-logger
+  - MonadRandom
   - mtl
+  - pureMD5
   - qm-interpolated-string
   - servant
   - servant-client
