@@ -3,15 +3,15 @@
 {-# LANGUAGE DataKinds #-}
 
 module Carma.EraGlonass.Routes
-     ( type IncomingRoutes
-     , type OutcomingRoutes
+     ( type IncomingAPI
+     , type OutcomingAPI
      ) where
 
 import           Servant
 
 
 -- Routes which CaRMa provides for outside requests by Era Glonass.
-type IncomingRoutes
+type IncomingAPI
    = -- Integration point with code "EG.CRM.01".
      --
      -- Era Glonass supposed to upload data about its "call card" to this route.
@@ -23,7 +23,7 @@ type IncomingRoutes
      "calls" :> "status" :> Post '[JSON] ()
 
 
-type OutcomingRoutes
+type OutcomingAPI
     =  -- Integration point with code "CRM.EG.02".
        --
        -- Uploading CaRMa contracts to Era Glonass

@@ -31,6 +31,8 @@ dependencies:
   - servant
   - servant-client
   - servant-server
+  - servant-swagger
+  - swagger2
   - text
   - time
   - transformers
