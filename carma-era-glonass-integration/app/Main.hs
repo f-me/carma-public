@@ -1,47 +1,28 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Main (main) where
 
-import           Data.Proxy
-import           Data.String (fromString)
 import           Data.Function ((&))
-import           Data.Swagger (Swagger)
+import           Data.String (fromString)
+import           Text.InterpolatedString.QM
 
 import qualified Network.Wai.Handler.Warp as Warp
 
-import           Servant
-import           Servant.Swagger (toSwagger)
-
-import           Carma.EraGlonass.Routes
-
-
-type ServerAPI
-    =  IncomingAPI
-  :<|> "debug" :> "swagger" :> Get '[JSON] Swagger
+import           Carma.EraGlonass.Server (serverApplicaton)
 
 
 main :: IO ()
-main = Warp.runSettings warpSettings app
+main = do
+  putStrLn [qm| Running incoming server on http://{host}:{port}... |]
+  runIncomingServer port $ fromString host
 
-  where app = serve (Proxy :: Proxy ServerAPI) server
+  where port = 8166
+        host = "127.0.0.1"
 
-        port = 8166                   :: Warp.Port
-        host = fromString "127.0.0.1" :: Warp.HostPreference
 
-        warpSettings
+runIncomingServer :: Warp.Port -> Warp.HostPreference -> IO ()
+runIncomingServer port host = Warp.runSettings warpSettings serverApplicaton
+  where warpSettings
           = Warp.defaultSettings
           & Warp.setPort port
           & Warp.setHost host
-
-
-server :: Server ServerAPI
-server = egCRM01 :<|> swagger
-
-
-egCRM01 :: Handler ()
-egCRM01 = pure ()
-
-
-swagger :: Handler Swagger
-swagger = pure $ toSwagger (Proxy :: Proxy IncomingAPI)
