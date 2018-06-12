@@ -21,6 +21,7 @@ import           Data.Proxy
 import           Data.List (sortBy)
 import           Data.Function ((&), on)
 import           Text.InterpolatedString.QM
+import           Data.Swagger (Swagger)
 
 import           Control.Monad
 import           Control.Monad.Catch (MonadThrow, throwM, toException)
@@ -32,6 +33,7 @@ import           System.Directory (makeAbsolute)
 
 import           Servant
 import           Servant.Client
+import           Servant.Swagger (toSwagger)
 import qualified Network.Wai.Handler.Warp as Warp
 import           Network.HTTP.Client (Manager, newManager)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
@@ -46,7 +48,7 @@ import           Carma.NominatimMediator.RequestExecutor
 
 -- Server routes
 type AppRoutes
-    =  -- Search coordinates by search query.
+  =    -- Search coordinates by search query.
        -- Example: GET /search/ru-RU,ru/foobarbaz
        "search" :> Capture "lang" Lang
                 :> Capture "query" SearchQuery
@@ -66,10 +68,19 @@ type AppRoutes
                        "cached-responses" :> Get '[JSON] [DebugCachedResponse]
                   )
 
+type SwaggerHeaders a
+   = Headers '[Header "Access-Control-Allow-Origin" String] a
+
+-- Server routes + swagger debug route
+type AppRoutesWithSwagger
+  =    AppRoutes
+  :<|> -- GET /debug/swagger.json
+       "debug" :> "swagger.json" :> Get '[JSON] (SwaggerHeaders Swagger)
+
 
 -- Client Nominatim routes
 type NominatimAPIRoutes
-    =  "search" :> Header "User-Agent" UserAgent
+  =    "search" :> Header "User-Agent" UserAgent
                 :> QueryParam "format" NominatimAPIFormat
                 :> QueryParam "accept-language" Lang
                 :> QueryParam "q" SearchQuery
@@ -124,7 +135,7 @@ main = do
         , requestExecutorBus = requestExecutorBus'
         }
 
-      app = serve (Proxy :: Proxy AppRoutes) $ appServer appCtx
+      app = serve (Proxy :: Proxy AppRoutesWithSwagger) $ appServer appCtx
 
       warpSettings
         = Warp.defaultSettings
@@ -169,13 +180,15 @@ main = do
   Warp.runSettings warpSettings app
 
 
-appServer :: AppContext -> Server AppRoutes
-appServer app
-    =  search app
-  :<|> revSearch app
-  :<|> (    debugCachedQueries app
-       :<|> debugCachedResponses app
-       )
+appServer :: AppContext -> Server AppRoutesWithSwagger
+appServer app =
+  ( search app
+    :<|> revSearch app
+    :<|> ( debugCachedQueries app
+           :<|> debugCachedResponses app
+         )
+  )
+  :<|> debugSwaggerAPI app
 
 
 -- Server routes handlers
@@ -235,13 +248,19 @@ debugCachedResponses appCtx = do
       = DebugCachedResponse
       { request_params = k
       , time           = [qm| {formatTime t} UTC |]
-      , response_type  = rtype
+      , response_type  = requestType response'
       , response       = rjson
       } : acc
-      where (rtype, rjson) =
-              case response' of
-                   SearchByQueryResponse'  x -> ("search",         toJSON x)
-                   SearchByCoordsResponse' x -> ("reverse-search", toJSON x)
+      where rjson = case response' of
+                         SearchByQueryResponse'  x -> toJSON x
+                         SearchByCoordsResponse' x -> toJSON x
+
+-- Allowing cross-origin requests to be able to use online swagger-codegen.
+debugSwaggerAPI
+  :: AppContext
+  -> Handler (Headers '[Header "Access-Control-Allow-Origin" String] Swagger)
+debugSwaggerAPI _
+  = pure $ addHeader "*" $ toSwagger (Proxy :: Proxy AppRoutes)
 
 
 -- Client requests to Nominatim

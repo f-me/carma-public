@@ -58,6 +58,14 @@ it satisfying those limits.
 - From time to time it runs GC check which removes outdated cached responses
   (how long single cached response lives is specified in `app.cfg` config).
 
+## Swagger API
+
+You can get generated Swagger spec by this command:
+
+```bash
+curl 'http://127.0.0.1:8165/debug/swagger.json'
+```
+
 ## TODO
 
 - Return cached response immediately notwithstanding if new request is

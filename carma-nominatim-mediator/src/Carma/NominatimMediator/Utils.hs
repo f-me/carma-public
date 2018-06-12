@@ -10,6 +10,7 @@ module Carma.NominatimMediator.Utils
      , secondInMicroseconds
      , timeFormat
      , formatTime
+     , unwrapperToProxy
 
        -- Constructor isn't exported.
        -- Only `IORefWithCounterM` allowed for manipulations
@@ -21,6 +22,7 @@ module Carma.NominatimMediator.Utils
      , IORefWithCounterM (..)
      ) where
 
+import           Data.Proxy
 import           Data.IORef
 import qualified Data.Time.Format as Time
 
@@ -52,6 +54,9 @@ timeFormat = "%Y-%m-%d %H:%M:%S"
 
 formatTime :: Time.FormatTime t => t -> String
 formatTime = Time.formatTime Time.defaultTimeLocale timeFormat
+
+unwrapperToProxy :: (a -> b) -> Proxy b
+unwrapperToProxy _ = Proxy
 
 
 newtype IORefWithCounter a = IORefWithCounter (IORef (Integer, a))
