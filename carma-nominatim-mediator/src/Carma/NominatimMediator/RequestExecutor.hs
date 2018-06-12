@@ -4,6 +4,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Carma.NominatimMediator.RequestExecutor where
 
@@ -27,7 +28,7 @@ import           Carma.NominatimMediator.Logger
 -- Supposed to be run in own thread.
 -- It writes response to provided `MVar`.
 requestExecutorInit
-  :: (LoggerBus m, IORefWithCounterM m, MonadIO m)
+  :: (LoggerBusMonad m, IORefWithCounterM m, MonadIO m)
   => AppContext -> Float -> m ()
 requestExecutorInit appCtx nominatimReqGapInSeconds = do
   -- First request also will be checked for interval

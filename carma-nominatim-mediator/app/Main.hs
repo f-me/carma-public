@@ -106,6 +106,9 @@ main = do
       \case Nothing -> pure Nothing
             Just x  -> Just <$!> makeAbsolute x
 
+  !(noCacheForRevSearch :: Bool) <-
+    Conf.lookupDefault True cfg "cache.disable-cache-for-reverse-search"
+
   !(syncInterval   :: Float) <- Conf.require cfg "cache.synchronizer.interval"
   !(gcInterval     :: Float) <- Conf.require cfg "cache.gc.interval"
   !(cachedLifetime :: Float) <- Conf.require cfg "cache.gc.lifetime"
@@ -128,11 +131,12 @@ main = do
 
   let appCtx
         = AppContext
-        { responsesCache     = resCache
-        , clientUserAgent    = nominatimUA
-        , clientEnv          = ClientEnv manager nominatimBaseUrl
-        , loggerBus          = loggerBus'
-        , requestExecutorBus = requestExecutorBus'
+        { responsesCache              = resCache
+        , clientUserAgent             = nominatimUA
+        , clientEnv                   = ClientEnv manager nominatimBaseUrl
+        , cacheForRevSearchIsDisabled = noCacheForRevSearch
+        , loggerBus                   = loggerBus'
+        , requestExecutorBus          = requestExecutorBus'
         }
 
       app = serve (Proxy :: Proxy AppRoutesWithSwagger) $ appServer appCtx
@@ -286,7 +290,7 @@ reverseSearchByCoords
 
 -- Throwing `UnexpectedResponseResultException` with logging this error
 throwUnexpectedResponse
-  :: (MonadThrow m, LoggerBus m) => AppContext -> Response -> m a
+  :: (MonadThrow m, LoggerBusMonad m) => AppContext -> Response -> m a
 throwUnexpectedResponse appCtx x = do
   logError appCtx [qm| Unexpected response result: {x}! |]
   throwM $ UnexpectedResponseResultException x
@@ -294,7 +298,7 @@ throwUnexpectedResponse appCtx x = do
 
 -- Sends request to requests executor bus
 -- and creates response bus and waits for response.
-requestResponse :: (MonadIO m, MonadThrow m, LoggerBus m)
+requestResponse :: (MonadIO m, MonadThrow m, LoggerBusMonad m)
                 => AppContext
                 -> RequestParams
                 -> ClientM Response

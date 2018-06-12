@@ -288,6 +288,13 @@ data AppContext
      -- it contains created HTTP `Manager` and `BaseUrl` of Nominatim server.
    , clientEnv :: ClientEnv
 
+     -- Disable cache for reverse search (search by coordinates).
+     -- It makes sence when you realize that searching by coordinates is almost
+     -- always unique, so response probably never being taken from cache, no
+     -- need to waste resourses by storing cache for it since we have thousands
+     -- of requests.
+   , cacheForRevSearchIsDisabled :: Bool
+
      -- A bus to send log messages to
    , loggerBus :: MVar LogMessage
 

@@ -23,7 +23,7 @@ import           Carma.NominatimMediator.Logger
 -- Cleans outdated cached responses.
 -- Supposed to be run in own thread.
 cacheGCInit
-  :: (LoggerBus m, IORefWithCounterM m, MonadIO m)
+  :: (LoggerBusMonad m, IORefWithCounterM m, MonadIO m)
   => AppContext -> Float -> Float -> m ()
 cacheGCInit appCtx gcIntervalInHours cacheItemLifetimeInHours = do
   logInfo appCtx

@@ -4,6 +4,11 @@ port = 8165
 # host = "127.0.0.1"
 
 cache {
+  # [OPTIONAL] Disabled by default.
+  # Usually request by coordinates is always unique, so there's no reasons to
+  # cache it since response probably never being taken from cache.
+  # disable-cache-for-reverse-search = true
+
   synchronizer {
     # [OPTIONAL]
     # If this file isn't set then cache wouldn't be synchronized,

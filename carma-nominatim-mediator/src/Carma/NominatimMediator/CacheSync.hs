@@ -26,7 +26,7 @@ import           Carma.NominatimMediator.Logger
 -- Checks if cache was updated and saves new cache snapshot to a file.
 -- Supposed to be run in own thread.
 cacheSyncInit
-  :: (LoggerBus m, MonadIO m) => AppContext -> Float -> FilePath -> m ()
+  :: (LoggerBusMonad m, MonadIO m) => AppContext -> Float -> FilePath -> m ()
 cacheSyncInit appCtx syncIntervalInHours cacheFile = do
   logInfo appCtx
     [qmb| Cache synchronizer is initialized.
@@ -79,7 +79,7 @@ cacheSyncInit appCtx syncIntervalInHours cacheFile = do
 -- Checks if cache snapshot file exists and adds this snapshot to the cache
 -- otherwise (if a file doesn't exist) just does nothing (except log messasge).
 fillCacheWithSnapshot
-  :: (LoggerBus m, IORefWithCounterM m, MonadIO m)
+  :: (LoggerBusMonad m, IORefWithCounterM m, MonadIO m)
   => AppContext -> FilePath -> m ()
 fillCacheWithSnapshot appCtx cacheFile = void $ runExceptT $ do
   logInfo appCtx
