@@ -40,5 +40,5 @@ nominatim {
   # In seconds (with floating point).
   # If next request triggered earlier
   # then it waits for this gap being satisfied.
-  gap-between-requests = 1.5
+  gap-between-requests = 1.1
 }
