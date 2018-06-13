@@ -35,7 +35,6 @@ dependencies:
   - swagger2
   - text
   - time
-  - transformers
   - transformers-base
   - warp
 
