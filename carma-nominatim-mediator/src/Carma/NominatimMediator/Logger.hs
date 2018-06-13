@@ -24,7 +24,6 @@ class MonadReader AppContext m => LoggerBusMonad m where
   logError :: T.Text -> m ()
   readLog  :: m LogMessage
 
--- instance LoggerBusMonad (ReaderT AppContext IO) where
 instance ( MonadReader AppContext m
          , MVarMonad m
          , TimeMonad m
