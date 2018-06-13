@@ -10,6 +10,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Main (main) where
 
@@ -26,8 +27,9 @@ import           Data.Swagger (Swagger)
 import           Control.Monad
 import           Control.Monad.Catch (MonadThrow, throwM, toException)
 import           Control.Monad.Logger (runStdoutLoggingT)
-import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Control.Concurrent
+import           Control.Monad.Reader.Class (MonadReader, reader)
+import           Control.Monad.Reader (runReaderT)
+import           Control.Monad.IO.Class (MonadIO)
 
 import           System.Directory (makeAbsolute)
 
@@ -146,106 +148,141 @@ main = do
         & Warp.setPort port
         & Warp.setHost (fromString host)
 
-  -- Running logger thread
-  _ <- forkIO $ runStdoutLoggingT $ loggerInit appCtx
+  flip runReaderT appCtx $ do
 
-  -- Trying to fill cache with initial snapshot
-  maybe (pure ()) (fillCacheWithSnapshot appCtx) cacheFile
+    -- Running logger thread
+    _ <- fork $ runStdoutLoggingT $ loggerInit
 
-  -- Running cache garbage collector thread
-  -- which cleans outdated cached responses.
-  _ <- forkIO $ cacheGCInit appCtx gcInterval cachedLifetime
+    -- Trying to fill cache with initial snapshot
+    maybe (pure ()) fillCacheWithSnapshot cacheFile
 
-  -- Syncing with file is optional,
-  -- if you don't wanna this feature
-  -- just remove "cache-file" from config.
-  -- Running cache synchronizer thread
-  -- which stores cache snapshot to a file
-  -- to be able to load it after restart.
-  maybe (logInfo appCtx [qms| Cache file to save snapshots to isn't set,
-                              cache synchronizer feature is disabled. |])
-        (void . forkIO . cacheSyncInit appCtx syncInterval)
-        cacheFile
+    -- Running cache garbage collector thread
+    -- which cleans outdated cached responses.
+    _ <- fork $ cacheGCInit gcInterval cachedLifetime
 
-  -- Running requests queue handler
-  _ <- forkIO $ requestExecutorInit appCtx nominatimReqGap
+    -- Syncing with file is optional,
+    -- if you don't wanna this feature
+    -- just remove "cache-file" from config.
+    -- Running cache synchronizer thread
+    -- which stores cache snapshot to a file
+    -- to be able to load it after restart.
+    case cacheFile of
+         Just x  -> void $ fork $ cacheSyncInit syncInterval x
+         Nothing -> logInfo [qms| Cache file to save snapshots to isn't set,
+                                  cache synchronizer feature is disabled. |]
 
-  logInfo appCtx
-    [qmb| Subsystems is initialized.
-          GC config:
-          \  Checks interval: {gcInterval} hour(s)
-          \  Cached response lifetime: {cachedLifetime} hour(s)
-          Nominatim config:
-          \  URL: "{nominatimUrl}"
-          \  Client User-Agent: "{fromUserAgent nominatimUA}"
-          \  Gap between requests: {nominatimReqGap} second(s) |]
+    -- Running requests queue handler
+    _ <- fork $ requestExecutorInit nominatimReqGap
 
-  logInfo appCtx [qm| Listening on http://{host}:{port}... |]
+    logInfo
+      [qmb| Subsystems is initialized.
+            GC config:
+            \  Checks interval: {gcInterval} hour(s)
+            \  Cached response lifetime: {cachedLifetime} hour(s)
+            Nominatim config:
+            \  URL: "{nominatimUrl}"
+            \  Client User-Agent: "{fromUserAgent nominatimUA}"
+            \  Gap between requests: {nominatimReqGap} second(s) |]
+
+    logInfo [qm| Listening on http://{host}:{port}... |]
+
   Warp.runSettings warpSettings app
 
 
 appServer :: AppContext -> Server AppRoutesWithSwagger
-appServer app =
-  ( search app
-    :<|> revSearch app
-    :<|> ( debugCachedQueries app
-           :<|> debugCachedResponses app
+appServer appCtx =
+  ( (\lang query -> wrap $ search lang query)
+    :<|> (\lang coords -> wrap $ revSearch lang coords)
+    :<|> ( wrap debugCachedQueries
+           :<|> wrap debugCachedResponses
          )
   )
-  :<|> debugSwaggerAPI app
+  :<|> wrap debugSwaggerAPI
+
+  where wrap = flip runReaderT appCtx
 
 
 -- Server routes handlers
 
-search :: AppContext -> Lang -> SearchQuery -> Handler [SearchByQueryResponse]
-search appCtx lang query = do
+search
+  :: ( MonadReader AppContext m
+     , MonadThrow m
+     , ThreadMonad m
+     , DelayMonad m
+     , MVarMonad m
+     , MonadIO m
+     )
+  => Lang -> SearchQuery -> m [SearchByQueryResponse]
+search lang query = do
   let reqParams = SearchQueryReq lang query
+  clientUserAgent' <- reader clientUserAgent
 
-      req = SearchByQueryResponse' <$>
-            searchByQuery (Just $ clientUserAgent appCtx)
+  let req = SearchByQueryResponse' <$>
+            searchByQuery (Just clientUserAgent')
                           (Just NominatimJSONFormat)
                           (Just lang)
                           (Just query)
 
-  logInfo appCtx [qm| Searching by query with params: {reqParams}... |]
-  result <- requestResponse appCtx reqParams req
+  logInfo [qm| Searching by query with params: {reqParams}... |]
+  result <- requestResponse reqParams req
 
   case result of
        SearchByQueryResponse' x -> pure x
-       x -> throwUnexpectedResponse appCtx x
+       x -> throwUnexpectedResponse x
 
-revSearch :: AppContext -> Lang -> Coords -> Handler SearchByCoordsResponse
-revSearch appCtx lang coords@(Coords lon' lat') = do
+revSearch
+  :: ( MonadReader AppContext m
+     , MonadThrow m
+     , ThreadMonad m
+     , DelayMonad m
+     , MVarMonad m
+     , MonadIO m
+     )
+  => Lang -> Coords -> m SearchByCoordsResponse
+revSearch lang coords@(Coords lon' lat') = do
   let reqParams = RevSearchQueryReq lang coords
+  clientUserAgent' <- reader clientUserAgent
 
-      req = SearchByCoordsResponse' <$>
-            reverseSearchByCoords (Just $ clientUserAgent appCtx)
+  let req = SearchByCoordsResponse' <$>
+            reverseSearchByCoords (Just clientUserAgent')
                                   (Just NominatimJSONFormat)
                                   (Just lang)
                                   (Just $ NominatimLon lon')
                                   (Just $ NominatimLat lat')
 
-  logInfo appCtx [qm| Searching by coordinates with params: {reqParams}... |]
-  result <- requestResponse appCtx reqParams req
+  logInfo [qm| Searching by coordinates with params: {reqParams}... |]
+  result <- requestResponse reqParams req
 
   case result of
        SearchByCoordsResponse' x -> pure x
-       x -> throwUnexpectedResponse appCtx x
+       x -> throwUnexpectedResponse x
 
-debugCachedQueries :: AppContext -> Handler [DebugCachedQuery]
-debugCachedQueries appCtx = do
-  logInfo appCtx "Debugging cached queries..."
-  readIORefWithCounter (responsesCache appCtx) <&>
-    M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
+debugCachedQueries
+  :: ( MonadReader AppContext m
+     , LoggerBusMonad m
+     , IORefWithCounterMonad m
+     )
+  => m [DebugCachedQuery]
+debugCachedQueries = do
+  logInfo "Debugging cached queries..."
+
+  (reader responsesCache >>= readIORefWithCounter)
+    <&> M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
 
   where reducer acc (k, (t, _)) =
           DebugCachedQuery k [qm| {formatTime t} UTC |] : acc
 
-debugCachedResponses :: AppContext -> Handler [DebugCachedResponse]
-debugCachedResponses appCtx = do
-  logInfo appCtx "Debugging cached responses..."
-  readIORefWithCounter (responsesCache appCtx) <&>
-    M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
+debugCachedResponses
+  :: ( MonadReader AppContext m
+     , LoggerBusMonad m
+     , IORefWithCounterMonad m
+     )
+  => m [DebugCachedResponse]
+debugCachedResponses = do
+  logInfo "Debugging cached responses..."
+
+  (reader responsesCache >>= readIORefWithCounter)
+    <&> M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
 
   where
     reducer acc (k, (t, response'))
@@ -261,10 +298,9 @@ debugCachedResponses appCtx = do
 
 -- Allowing cross-origin requests to be able to use online swagger-codegen.
 debugSwaggerAPI
-  :: AppContext
-  -> Handler (Headers '[Header "Access-Control-Allow-Origin" String] Swagger)
-debugSwaggerAPI _
-  = pure $ addHeader "*" $ toSwagger (Proxy :: Proxy AppRoutes)
+  :: Applicative m
+  => m (Headers '[Header "Access-Control-Allow-Origin" String] Swagger)
+debugSwaggerAPI = pure $ addHeader "*" $ toSwagger (Proxy :: Proxy AppRoutes)
 
 
 -- Client requests to Nominatim
@@ -290,32 +326,41 @@ reverseSearchByCoords
 
 -- Throwing `UnexpectedResponseResultException` with logging this error
 throwUnexpectedResponse
-  :: (MonadThrow m, LoggerBusMonad m) => AppContext -> Response -> m a
-throwUnexpectedResponse appCtx x = do
-  logError appCtx [qm| Unexpected response result: {x}! |]
+  :: (MonadThrow m, MonadReader AppContext m, LoggerBusMonad m)
+  => Response
+  -> m a
+throwUnexpectedResponse x = do
+  logError [qm| Unexpected response result: {x}! |]
   throwM $ UnexpectedResponseResultException x
 
 
 -- Sends request to requests executor bus
 -- and creates response bus and waits for response.
-requestResponse :: (MonadIO m, MonadThrow m, LoggerBusMonad m)
-                => AppContext
-                -> RequestParams
-                -> ClientM Response
-                -> m Response
-
-requestResponse appCtx reqParams req = do
-  responseBus <- liftIO newEmptyMVar
+requestResponse
+  :: ( MonadReader AppContext m
+     , LoggerBusMonad m
+     , MonadThrow m
+     , ThreadMonad m
+     , DelayMonad m
+     , MVarMonad m
+     )
+  => RequestParams
+  -> ClientM Response
+  -> m Response
+requestResponse reqParams req = do
+  responseBus <- newEmptyMVar
 
   -- Handling timeout case
-  thread <- liftIO $ forkIO $ do
-    threadDelay timeout
+  thread <- fork $ do
+    delay timeout
     putMVar responseBus $ Left $
       ConnectionError $ toException $ RequestTimeoutException reqParams
 
-  liftIO $ requestExecutorBus appCtx `putMVar` (reqParams, req, responseBus)
-  result <- liftIO $ takeMVar responseBus
-  liftIO $ killThread thread -- No need for timeout thread anymore
+  reader requestExecutorBus >>=
+    flip putMVar (reqParams, req, responseBus)
+
+  result <- takeMVar responseBus
+  killThread thread -- No need for timeout thread anymore
 
   case result of
        Left  e -> throwM e

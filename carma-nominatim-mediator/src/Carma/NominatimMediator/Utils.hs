@@ -13,22 +13,45 @@ module Carma.NominatimMediator.Utils
      , unwrapperToProxy
 
        -- Constructor isn't exported.
-       -- Only `IORefWithCounterM` allowed for manipulations
+       -- Only `IORefWithCounterMonad` allowed for manipulations
        -- to prevent human-factor mistakes.
        -- If you missed something for `IORef` please just implement it in
-       -- `IORefWithCounterM` and do not forget to update a counter if you
+       -- `IORefWithCounterMonad` and do not forget to update a counter if you
        -- modify something.
      , IORefWithCounter
-     , IORefWithCounterM (..)
+     , IORefWithCounterMonad (..)
+
+       -- Moands for side-effects abstractions
+     , HandlerMonad (..)
+     , ThreadMonad (..)
+     , DelayMonad (..)
+     , MVarMonad (..)
+     , TimeMonad (..)
+     , FileMonad (..)
+     , ServantClientMonad (..)
      ) where
+
+import           Prelude hiding (readFile, writeFile)
+import qualified Prelude
 
 import           Data.Proxy
 import           Data.IORef
 import qualified Data.Time.Format as Time
+import qualified Data.Time.Clock as Time
 
 import           Control.Arrow
 import           Control.Monad
 import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Control.Monad.Base (MonadBase)
+import           Control.Monad.Trans.Class (MonadTrans, lift)
+import           Control.Monad.Trans.Control (MonadBaseControl)
+import qualified Control.Concurrent.Lifted as Lifted
+
+import qualified System.Directory (doesFileExist)
+
+import           Servant.Server (Handler)
+import qualified Servant.Client (runClientM)
+import           Servant.Client (ServantError, ClientM, ClientEnv)
 
 
 (?) :: (a -> b) -> (b -> c) -> (a -> c)
@@ -61,7 +84,7 @@ unwrapperToProxy _ = Proxy
 
 newtype IORefWithCounter a = IORefWithCounter (IORef (Integer, a))
 
-class Monad m => IORefWithCounterM m where
+class Monad m => IORefWithCounterMonad m where
   newIORefWithCounter           :: a -> m (IORefWithCounter a)
 
   {-# INLINE readIORefWithCounter #-}
@@ -73,7 +96,7 @@ class Monad m => IORefWithCounterM m where
   modifyIORefWithCounter'       :: IORefWithCounter a -> (a -> a) -> m ()
   atomicModifyIORefWithCounter' :: IORefWithCounter a -> (a -> (a, b)) -> m b
 
-instance (Monad m, MonadIO m) => IORefWithCounterM m where
+instance (Monad m, MonadIO m) => IORefWithCounterMonad m where
   newIORefWithCounter x = liftIO $ newIORef (0, x) <&!> IORefWithCounter
   readIORefWithCounter' (IORefWithCounter x) = liftIO $ readIORef x
 
@@ -83,3 +106,60 @@ instance (Monad m, MonadIO m) => IORefWithCounterM m where
   atomicModifyIORefWithCounter' (IORefWithCounter x) f =
     liftIO $ x `atomicModifyIORef'`
       \(c, v) -> let (v', a) = f v in ((c + 1, v'), a)
+
+
+-- Some monads to abstract side-effects
+
+class HandlerMonad m where
+  liftHandler :: Handler a -> m a
+
+instance MonadTrans t => HandlerMonad (t Handler) where
+  liftHandler = lift
+
+class Monad m => ThreadMonad m where
+  fork       :: m () -> m Lifted.ThreadId
+  killThread :: Lifted.ThreadId -> m ()
+
+instance (Monad m, MonadBaseControl IO m) => ThreadMonad m where
+  fork       = Lifted.fork
+  killThread = Lifted.killThread
+
+class Monad m => DelayMonad m where
+  delay :: Int -> m ()
+
+instance (Monad m, MonadBase IO m) => DelayMonad m where
+  delay = Lifted.threadDelay
+
+class Monad m => MVarMonad m where
+  newEmptyMVar :: m (Lifted.MVar a)
+  newMVar      :: a -> m (Lifted.MVar a)
+  putMVar      :: Lifted.MVar a -> a -> m ()
+  takeMVar     :: Lifted.MVar a -> m a
+
+instance (Monad m, MonadBase IO m) => MVarMonad m where
+  newEmptyMVar = Lifted.newEmptyMVar
+  newMVar      = Lifted.newMVar
+  putMVar      = Lifted.putMVar
+  takeMVar     = Lifted.takeMVar
+
+class Monad m => TimeMonad m where
+  getCurrentTime :: m Time.UTCTime
+
+instance (Monad m, MonadIO m) => TimeMonad m where
+  getCurrentTime = liftIO Time.getCurrentTime
+
+class Monad m => ServantClientMonad m where
+  runClientM :: ClientM a -> ClientEnv -> m (Either ServantError a)
+
+instance (Monad m, MonadIO m) => ServantClientMonad m where
+  runClientM x = liftIO . Servant.Client.runClientM x
+
+class Monad m => FileMonad m where
+  readFile      :: FilePath -> m String
+  writeFile     :: FilePath -> String -> m ()
+  doesFileExist :: FilePath -> m Bool
+
+instance (Monad m, MonadIO m) => FileMonad m where
+  readFile      = liftIO . Prelude.readFile
+  writeFile x   = liftIO . Prelude.writeFile x
+  doesFileExist = liftIO . System.Directory.doesFileExist
