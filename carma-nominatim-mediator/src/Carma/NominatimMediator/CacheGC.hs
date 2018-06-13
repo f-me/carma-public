@@ -13,7 +13,7 @@ import qualified Data.Text as T
 import           Text.InterpolatedString.QM
 
 import           Control.Monad
-import           Control.Monad.Reader.Class (MonadReader, reader)
+import           Control.Monad.Reader.Class (MonadReader, asks)
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
@@ -43,7 +43,7 @@ cacheGCInit gcIntervalInHours cacheItemLifetimeInHours = do
     currentTime <- getCurrentTime
 
     outdatedItems <-
-      reader responsesCache >>=
+      asks responsesCache >>=
         flip atomicModifyIORefWithCounter'
           (M.partition $ fst
                        ? Time.diffUTCTime currentTime

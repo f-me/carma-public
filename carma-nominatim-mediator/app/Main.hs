@@ -27,9 +27,9 @@ import           Data.Swagger (Swagger)
 import           Control.Monad
 import           Control.Monad.Catch (MonadThrow, throwM, toException)
 import           Control.Monad.Logger (runStdoutLoggingT)
-import           Control.Monad.Reader.Class (MonadReader, reader)
+import           Control.Monad.Reader.Class (MonadReader, asks)
 import           Control.Monad.Reader (runReaderT)
-import           Control.Monad.IO.Class (MonadIO)
+import           Control.Monad.Except (runExceptT)
 
 import           System.Directory (makeAbsolute)
 
@@ -154,7 +154,7 @@ main = do
     _ <- fork $ runStdoutLoggingT $ loggerInit
 
     -- Trying to fill cache with initial snapshot
-    maybe (pure ()) fillCacheWithSnapshot cacheFile
+    maybe (pure ()) (void . runExceptT . fillCacheWithSnapshot) cacheFile
 
     -- Running cache garbage collector thread
     -- which cleans outdated cached responses.
@@ -206,16 +206,16 @@ appServer appCtx =
 
 search
   :: ( MonadReader AppContext m
+     , LoggerBusMonad m
      , MonadThrow m
      , ThreadMonad m
      , DelayMonad m
      , MVarMonad m
-     , MonadIO m
      )
   => Lang -> SearchQuery -> m [SearchByQueryResponse]
 search lang query = do
   let reqParams = SearchQueryReq lang query
-  clientUserAgent' <- reader clientUserAgent
+  clientUserAgent' <- asks clientUserAgent
 
   let req = SearchByQueryResponse' <$>
             searchByQuery (Just clientUserAgent')
@@ -232,16 +232,16 @@ search lang query = do
 
 revSearch
   :: ( MonadReader AppContext m
+     , LoggerBusMonad m
      , MonadThrow m
      , ThreadMonad m
      , DelayMonad m
      , MVarMonad m
-     , MonadIO m
      )
   => Lang -> Coords -> m SearchByCoordsResponse
 revSearch lang coords@(Coords lon' lat') = do
   let reqParams = RevSearchQueryReq lang coords
-  clientUserAgent' <- reader clientUserAgent
+  clientUserAgent' <- asks clientUserAgent
 
   let req = SearchByCoordsResponse' <$>
             reverseSearchByCoords (Just clientUserAgent')
@@ -266,7 +266,7 @@ debugCachedQueries
 debugCachedQueries = do
   logInfo "Debugging cached queries..."
 
-  (reader responsesCache >>= readIORefWithCounter)
+  (asks responsesCache >>= readIORefWithCounter)
     <&> M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
 
   where reducer acc (k, (t, _)) =
@@ -281,7 +281,7 @@ debugCachedResponses
 debugCachedResponses = do
   logInfo "Debugging cached responses..."
 
-  (reader responsesCache >>= readIORefWithCounter)
+  (asks responsesCache >>= readIORefWithCounter)
     <&> M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
 
   where
@@ -356,7 +356,7 @@ requestResponse reqParams req = do
     putMVar responseBus $ Left $
       ConnectionError $ toException $ RequestTimeoutException reqParams
 
-  reader requestExecutorBus >>=
+  asks requestExecutorBus >>=
     flip putMVar (reqParams, req, responseBus)
 
   result <- takeMVar responseBus

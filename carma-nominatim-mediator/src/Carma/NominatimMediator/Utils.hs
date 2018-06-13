@@ -22,7 +22,6 @@ module Carma.NominatimMediator.Utils
      , IORefWithCounterMonad (..)
 
        -- Moands for side-effects abstractions
-     , HandlerMonad (..)
      , ThreadMonad (..)
      , DelayMonad (..)
      , MVarMonad (..)
@@ -43,13 +42,11 @@ import           Control.Arrow
 import           Control.Monad
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Monad.Base (MonadBase)
-import           Control.Monad.Trans.Class (MonadTrans, lift)
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import qualified Control.Concurrent.Lifted as Lifted
 
 import qualified System.Directory (doesFileExist)
 
-import           Servant.Server (Handler)
 import qualified Servant.Client (runClientM)
 import           Servant.Client (ServantError, ClientM, ClientEnv)
 
@@ -109,12 +106,6 @@ instance (Monad m, MonadIO m) => IORefWithCounterMonad m where
 
 
 -- Some monads to abstract side-effects
-
-class HandlerMonad m where
-  liftHandler :: Handler a -> m a
-
-instance MonadTrans t => HandlerMonad (t Handler) where
-  liftHandler = lift
 
 class Monad m => ThreadMonad m where
   fork       :: m () -> m Lifted.ThreadId

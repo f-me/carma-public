@@ -12,19 +12,20 @@ import qualified Data.Text as T
 import           Text.InterpolatedString.QM
 
 import           Control.Monad
-import           Control.Monad.Reader.Class (MonadReader, reader)
+import           Control.Monad.Reader.Class (MonadReader, asks)
 import           Control.Monad.Logger (MonadLogger, logInfoN, logErrorN)
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
 
 
-class MonadReader AppContext m => LoggerBusMonad m where
+class Monad m => LoggerBusMonad m where
   logInfo  :: T.Text -> m ()
   logError :: T.Text -> m ()
   readLog  :: m LogMessage
 
-instance ( MonadReader AppContext m
+instance ( Monad m
+         , MonadReader AppContext m
          , MVarMonad m
          , TimeMonad m
          ) => LoggerBusMonad m
@@ -32,17 +33,17 @@ instance ( MonadReader AppContext m
 
   logInfo msg = do
     utc <- getCurrentTime
-    loggerBus' <- reader loggerBus
+    loggerBus' <- asks loggerBus
     putMVar loggerBus' $ LogMessage LogInfo
-      [qms| [{formatTime utc} UTC] {msg} |]
+      [qm| [{formatTime utc} UTC] {msg} |]
 
   logError msg = do
     utc <- getCurrentTime
-    loggerBus' <- reader loggerBus
+    loggerBus' <- asks loggerBus
     putMVar loggerBus' $ LogMessage LogError
-      [qms| [{formatTime utc} UTC] {msg} |]
+      [qm| [{formatTime utc} UTC] {msg} |]
 
-  readLog = reader loggerBus >>= takeMVar
+  readLog = asks loggerBus >>= takeMVar
 
 
 -- Writes log messages somewhere.
