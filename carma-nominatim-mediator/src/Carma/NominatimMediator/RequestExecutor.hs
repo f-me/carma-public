@@ -9,6 +9,7 @@ module Carma.NominatimMediator.RequestExecutor
      ( requestExecutorInit
      ) where
 
+import           Data.Monoid ((<>))
 import qualified Data.Map as M
 import qualified Data.Time.Clock as Time
 import           Text.InterpolatedString.QM
@@ -58,7 +59,11 @@ prepare nominatimReqGapInSeconds = do
 
 handleRequest
   :: ( MonadReader AppContext m
+
+       -- State represents request counter and time of last request
+       -- (to handle minimal interval between requests).
      , S.MonadState (Integer, Time.UTCTime) m
+
      , LoggerBusMonad m
      , TimeMonad m
      , DelayMonad m
@@ -80,8 +85,7 @@ handleRequest nominatimReqGapInSeconds = do
 
   -- Checking if there's cached response by this request params
   cachedResponse <-
-    M.lookup reqParams <$>
-      (asks responsesCache >>= readIORefWithCounter)
+    M.lookup reqParams <$> (asks responsesCache >>= readIORefWithCounter)
 
   case cachedResponse of
        -- Nothing found in cache for this request, requesting it
@@ -97,10 +101,16 @@ handleRequest nominatimReqGapInSeconds = do
 
 
 -- Real request, when nothing found in cache.
--- Successful request will be added to cache.
+-- Successful request will be added to cache
+-- (except reverse search requests when it is disabled in app config
+-- it makes sense because requests is almost always unique).
 realRequest
   :: ( MonadReader AppContext m
+
+       -- State represents request counter and time of last request
+       -- (to handle minimal interval between requests).
      , S.MonadState (Integer, Time.UTCTime) m
+
      , LoggerBusMonad m
      , TimeMonad m
      , DelayMonad m
@@ -116,11 +126,11 @@ realRequest nominatimReqGapInSeconds (reqParams, req, responseBus) = do
   do lastTime <- S.gets snd
      curTime  <- getCurrentTime
 
-     let timeDiffInMicroseconds = round $ secondInMicroseconds * x :: Int
-           where
-             x = fromRational
-               $ toRational
-               $ Time.diffUTCTime curTime lastTime
+     let timeDiffInMicroseconds :: Int
+         timeDiffInMicroseconds = round $ secondInMicroseconds * x
+           where x = fromRational
+                   $ toRational
+                   $ Time.diffUTCTime curTime lastTime
 
      when (timeDiffInMicroseconds < intervalBetweenRequests) $ do
        let waitTime = intervalBetweenRequests - timeDiffInMicroseconds
@@ -146,16 +156,25 @@ realRequest nominatimReqGapInSeconds (reqParams, req, responseBus) = do
          getCurrentTime >>= S.modify' . fmap . const
 
        Right x -> do
+         isCacheDisabledForRevSearch <- asks cacheForRevSearchIsDisabled
+         let isRevSearchRequest = requestType reqParams == ReverseSearch
+             isResultGoingToCache =
+               not $ isRevSearchRequest && isCacheDisabledForRevSearch
+
          withCounter $ \n ->
-           logInfo
-             [qms| Request #{n} by params {reqParams} is succeeded,
-                   adding result to the cache... |]
+           logInfo $
+             [qm| Request #{n} by params {reqParams} is succeeded,\ |]
+               <> if isResultGoingToCache
+                     then [qns| adding result to the cache... |]
+                     else [qns| result won't be added to the cache because
+                                it is disabled for this type of request. |]
 
          utc <- getCurrentTime
          S.modify' $ fmap $ const utc
 
-         asks responsesCache >>=
-           flip modifyIORefWithCounter' (M.insert reqParams (utc, x))
+         when isResultGoingToCache $
+           asks responsesCache >>=
+             flip modifyIORefWithCounter' (M.insert reqParams (utc, x))
 
   -- Sending response back
   putMVar responseBus result
