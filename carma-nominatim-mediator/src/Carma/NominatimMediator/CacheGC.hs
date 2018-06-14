@@ -9,8 +9,10 @@ module Carma.NominatimMediator.CacheGC where
 import           Data.Monoid ((<>))
 import qualified Data.Map as M
 import qualified Data.Time.Clock as Time
+import qualified Data.Time.Calendar as Calendar
 import qualified Data.Text as T
 import           Text.InterpolatedString.QM
+import           Data.Function ((&))
 
 import           Control.Monad
 import           Control.Monad.Reader.Class (MonadReader, asks)
@@ -32,12 +34,17 @@ cacheGCInit
      )
   => Float
   -> Float
+  -> Integer
   -> m ()
-cacheGCInit gcIntervalInHours cacheItemLifetimeInHours = do
+cacheGCInit gcIntervalInHours
+            cacheItemLifetimeInHours
+            statisticsLifetimeInDays = do
   logInfo
     [qmb| Cache garbage collector is initialized.
           Intervals between checks is {gcIntervalInHours} hour(s).
-          Cached response lifetime is {cacheItemLifetimeInHours} hour(s). |]
+          Cached response lifetime is {cacheItemLifetimeInHours} hour(s).
+          Collected statistics of a day lifetime is \
+            {statisticsLifetimeInDays} day(s). |]
 
   forever $ do
     logInfo [qn| Cache garbage collector goes... |]
@@ -51,14 +58,29 @@ cacheGCInit gcIntervalInHours cacheItemLifetimeInHours = do
                        ? round
                        ? (<= cacheItemLifetime))
 
+    outdatedDaysOfStatistics <-
+      asks statisticsData >>=
+        flip atomicModifyIORefWithCounter'
+          (M.partitionWithKey $ \day _ -> day
+                              & Calendar.diffDays (Time.utctDay currentTime)
+                              & (<= statisticsLifetimeInDays))
+
     when (M.size outdatedItems > 0) $
       logInfo [qms| These responses is outdated
                     and they were removed from cache.
                     They will be requested again next time.
-                    Request params of responses
-                    which were removed from cache:\
+                    Request params of responses which were removed from cache:\
                     { T.pack $ mconcat
                     $ show ? ("\n  - " <>) <$> M.keys outdatedItems
+                    } |]
+
+    when (M.size outdatedDaysOfStatistics > 0) $
+      logInfo [qms| These collected days of statistics is outdated
+                    and they were removed from cache.
+                    They will be requested again next time.
+                    Days of collected statistics which were removed from cache:\
+                    { T.pack $ mconcat
+                    $ show ? ("\n  - " <>) <$> M.keys outdatedDaysOfStatistics
                     } |]
 
     logInfo [qms| Cache garbage collector will wait for

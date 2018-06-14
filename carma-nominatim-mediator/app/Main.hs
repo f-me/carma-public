@@ -117,6 +117,9 @@ main = do
   !(gcInterval     :: Float) <- Conf.require cfg "cache.gc.interval"
   !(cachedLifetime :: Float) <- Conf.require cfg "cache.gc.lifetime"
 
+  !(statisticsLifetime :: Integer) <-
+    Conf.require cfg "cache.gc.statistics-lifetime"
+
   !(nominatimUA :: UserAgent) <-
     UserAgent <$> Conf.require cfg "nominatim.client-user-agent"
 
@@ -164,7 +167,7 @@ main = do
 
     -- Running cache garbage collector thread
     -- which cleans outdated cached responses.
-    _ <- fork $ cacheGCInit gcInterval cachedLifetime
+    _ <- fork $ cacheGCInit gcInterval cachedLifetime statisticsLifetime
 
     -- Syncing with file is optional,
     -- if you don't wanna this feature
