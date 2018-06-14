@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE TupleSections #-}
 
 module Carma.NominatimMediator.Utils
      ( (?), (<&>), (<&!>)
@@ -23,6 +24,7 @@ module Carma.NominatimMediator.Utils
 
        -- Moands for side-effects abstractions
      , ThreadMonad (..)
+     , forkWithWaitBus
      , DelayMonad (..)
      , MVarMonad (..)
      , TimeMonad (..)
@@ -39,6 +41,7 @@ import qualified Data.Time.Format as Time
 import qualified Data.Time.Clock as Time
 
 import           Control.Arrow
+import           Control.Exception (SomeException)
 import           Control.Monad
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Monad.Base (MonadBase)
@@ -108,12 +111,22 @@ instance (Monad m, MonadIO m) => IORefWithCounterMonad m where
 -- Some monads to abstract side-effects
 
 class Monad m => ThreadMonad m where
-  fork       :: m () -> m Lifted.ThreadId
-  killThread :: Lifted.ThreadId -> m ()
+  fork        :: m () -> m Lifted.ThreadId
+  forkFinally :: m a -> (Either SomeException a -> m ()) -> m Lifted.ThreadId
+  killThread  :: Lifted.ThreadId -> m ()
 
 instance (Monad m, MonadBaseControl IO m) => ThreadMonad m where
-  fork       = Lifted.fork
-  killThread = Lifted.killThread
+  fork        = Lifted.fork
+  forkFinally = Lifted.forkFinally
+  killThread  = Lifted.killThread
+
+-- Forks and returns `MVar` which will be notified when thread is done.
+forkWithWaitBus
+  :: (ThreadMonad m, MVarMonad m)
+  => m () -> m (Lifted.ThreadId, Lifted.MVar ())
+forkWithWaitBus m = do
+  waitBus <- newEmptyMVar
+  (,waitBus) <$> forkFinally m (\_ -> putMVar waitBus ())
 
 class Monad m => DelayMonad m where
   delay :: Int -> m ()

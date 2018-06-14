@@ -17,7 +17,7 @@ import           Text.InterpolatedString.QM
 import           Control.Monad
 import qualified Control.Monad.State.Strict as S
 import           Control.Monad.Reader.Class (MonadReader, asks)
-import           Control.Monad.Base (MonadBase)
+import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Control.Monad.IO.Class (MonadIO)
 import           Control.Concurrent (MVar)
 
@@ -28,102 +28,106 @@ import           Carma.NominatimMediator.Utils
 import           Carma.NominatimMediator.Logger
 
 
+type RealRequestQueue
+   = MVar ( Integer -- Countered number of request (for logging)
+          , RequestParams
+          , ClientM Response -- Request monad to execute
+          , MVar (Either ServantError Response) -- Response bus
+          )
+
+
 -- Requests queue.
 -- Supposed to be run in own thread.
 -- It writes response to provided `MVar`.
 requestExecutorInit
-  :: (MonadReader AppContext m, MonadBase IO m, MonadIO m)
+  :: (MonadReader AppContext m, MonadBaseControl IO m, MonadIO m)
   => Float -> m ()
-requestExecutorInit nominatimReqGapInSeconds =
-  prepare nominatimReqGapInSeconds
-    >>= S.evalStateT (forever $ handleRequest nominatimReqGapInSeconds)
+requestExecutorInit nominatimReqGapInSeconds = do
+  realRequestQueue <- newEmptyMVar
 
+  (_, requestHandlerForkWaiter) <-
+    forkWithWaitBus $ flip S.evalStateT 0 $ forever $
+      handleRequest realRequestQueue
 
-prepare
-  :: (MonadReader AppContext m, LoggerBusMonad m, TimeMonad m)
-  => Float -> m (Integer, Time.UTCTime)
-prepare nominatimReqGapInSeconds = do
+  (_, realRequestHandlerForkWaiter) <-
+    -- First request also will be checked for interval
+    -- (becase using current time here as initial state)
+    -- notwithstanding there isn't previous request,
+    -- this is okay because it solves possible case when
+    -- this service is restarted quickly just after previous request
+    -- before restart and interval could be smaller than required.
+    getCurrentTime >>= \utc ->
+      forkWithWaitBus $ flip S.evalStateT utc $ forever $
+        handleRealRequest nominatimReqGapInSeconds realRequestQueue
+
   logInfo
     [qmb| Request executor is ready.
           Gap between requests is {nominatimReqGapInSeconds} second(s).
           Waiting for requests... |]
 
-  -- First request also will be checked for interval
-  -- notwithstanding there isn't previous request,
-  -- this is okay because it solves possible case when
-  -- this service is restarted quickly just after previous request
-  -- before restart and interval could be smaller than required.
-  -- This initial state contains request counter and time of last response.
-  getCurrentTime <&> ((0 :: Integer),)
+  -- Block until nested threads is done (they usually never ends).
+  mapM_ takeMVar [requestHandlerForkWaiter, realRequestHandlerForkWaiter]
 
 
 handleRequest
   :: ( MonadReader AppContext m
-
-       -- State represents request counter and time of last request
-       -- (to handle minimal interval between requests).
-     , S.MonadState (Integer, Time.UTCTime) m
-
+     , S.MonadState Integer m -- Request counter
      , LoggerBusMonad m
-     , TimeMonad m
-     , DelayMonad m
-     , MVarMonad m
-     , IORefWithCounterMonad m
-     , ServantClientMonad m
+     , MVarMonad m -- To read next request and write real request
+     , IORefWithCounterMonad m -- To read from cache
      )
-  => Float -> m ()
-handleRequest nominatimReqGapInSeconds = do
+  => RealRequestQueue -> m ()
+handleRequest realRequestQueue = do
   -- Waiting for next request
-  requestArgs@(reqParams, _, responseBus) <-
-    asks requestExecutorBus >>= takeMVar
+  (reqParams, reqMonad, responseBus) <- asks requestExecutorBus >>= takeMVar
 
-  -- Increasing request counter
-  S.modify' $ \(a, b) -> (a + 1, b)
-
-  withCounter $ \n ->
-    logInfo [qm| Executing request #{n} with params: {reqParams}... |]
+  S.modify' (+1) -- Increasing request counter
+  n <- S.get -- Current countered number of request
+  logInfo [qm| Executing request #{n} with params: {reqParams}... |]
 
   -- Checking if there's cached response by this request params
   cachedResponse <-
     M.lookup reqParams <$> (asks responsesCache >>= readIORefWithCounter)
 
   case cachedResponse of
-       -- Nothing found in cache for this request, requesting it
-       Nothing -> realRequest nominatimReqGapInSeconds requestArgs
+       -- Nothing found in cache for this request,
+       -- adding task to real requests queue.
+       Nothing -> do
+         logInfo [qms| Response for request #{n} by params {reqParams}
+                       not found in cache, sending this request
+                       to the real requests queue...|]
+
+         putMVar realRequestQueue (n, reqParams, reqMonad, responseBus)
 
        -- Found cached result, using it to return to user immediately
        Just (_, x) -> do
-         withCounter $ \n ->
-           logInfo [qms| Response for request #{n}
-                         by params {reqParams} is taken from cache. |]
+         logInfo [qms| Response for request #{n} by params {reqParams}
+                       is taken from cache. |]
 
          putMVar responseBus $ Right x
 
 
--- Real request, when nothing found in cache.
--- Successful request will be added to cache
--- (except reverse search requests when it is disabled in app config
+-- Real request handling, when nothing found in cache.
+-- Successful request will be added to the cache
+-- (except reverse search requests when it is disabled in app config,
 -- it makes sense because requests is almost always unique).
-realRequest
+handleRealRequest
   :: ( MonadReader AppContext m
-
-       -- State represents request counter and time of last request
-       -- (to handle minimal interval between requests).
-     , S.MonadState (Integer, Time.UTCTime) m
-
+     , S.MonadState Time.UTCTime m -- Time of last request (for intervals)
      , LoggerBusMonad m
-     , TimeMonad m
-     , DelayMonad m
-     , MVarMonad m
-     , IORefWithCounterMonad m
-     , ServantClientMonad m
+     , TimeMonad m -- Handle intervals by comparing time
+     , DelayMonad m -- Waiting intervals
+     , MVarMonad m -- Reading next request
+     , IORefWithCounterMonad m -- Writing to cache
+     , ServantClientMonad m -- Real client requests
      )
-  => Float
-  -> (RequestParams, ClientM Response, MVar (Either ServantError Response))
-  -> m ()
-realRequest nominatimReqGapInSeconds (reqParams, req, responseBus) = do
-  -- Handling minimal invervals between requests
-  do lastTime <- S.gets snd
+  => Float -> RealRequestQueue -> m ()
+handleRealRequest nominatimReqGapInSeconds realRequestQueue = do
+  -- Waiting for next real request
+  (n, reqParams, reqMonad, responseBus) <- takeMVar realRequestQueue
+
+  -- Handling minimal invervals between requests.
+  do lastTime <- S.get
      curTime  <- getCurrentTime
 
      let timeDiffInMicroseconds :: Int
@@ -136,24 +140,22 @@ realRequest nominatimReqGapInSeconds (reqParams, req, responseBus) = do
        let waitTime = intervalBetweenRequests - timeDiffInMicroseconds
            waitTimeInSeconds = fromIntegral waitTime / secondInMicroseconds
 
-       withCounter $ \n ->
-         logInfo [qms| Request #{n} by params {reqParams}
-                       is delayed by {waitTimeInSeconds} second(s)
-                       to satisfy interval between requests
-                       which is {intervalBetweenRequestsInSeconds}
-                       second(s)... |]
+       logInfo [qms| Request #{n} by params {reqParams}
+                     is delayed by {waitTimeInSeconds} second(s)
+                     to satisfy interval between requests
+                     which is {intervalBetweenRequestsInSeconds}
+                     second(s)... |]
 
        delay waitTime
 
-  result <- asks clientEnv >>= runClientM req
+  result <- asks clientEnv >>= runClientM reqMonad
 
   case result of
        Left e -> do
-         withCounter $ \n ->
-           logError [qms| Request #{n} by params {reqParams}
-                          is failed with exception: {e}. |]
+         logError [qms| Request #{n} by params {reqParams}
+                        is failed with exception: {e}. |]
 
-         getCurrentTime >>= S.modify' . fmap . const
+         getCurrentTime >>= S.put
 
        Right x -> do
          isCacheDisabledForRevSearch <- asks cacheForRevSearchIsDisabled
@@ -161,16 +163,15 @@ realRequest nominatimReqGapInSeconds (reqParams, req, responseBus) = do
              isResultGoingToCache =
                not $ isRevSearchRequest && isCacheDisabledForRevSearch
 
-         withCounter $ \n ->
-           logInfo $
-             [qm| Request #{n} by params {reqParams} is succeeded,\ |]
-               <> if isResultGoingToCache
-                     then [qns| adding result to the cache... |]
-                     else [qns| result won't be added to the cache because
-                                it is disabled for this type of request. |]
+         logInfo $
+           [qm| Request #{n} by params {reqParams} is succeeded,\ |]
+             <> if isResultGoingToCache
+                   then [qns| adding result to the cache... |]
+                   else [qns| result won't be added to the cache because
+                              it is disabled for this type of requests. |]
 
          utc <- getCurrentTime
-         S.modify' $ fmap $ const utc
+         S.put utc
 
          when isResultGoingToCache $
            asks responsesCache >>=
@@ -180,13 +181,9 @@ realRequest nominatimReqGapInSeconds (reqParams, req, responseBus) = do
   putMVar responseBus result
 
   where
-    -- Minimum interval is one second, making it little more safe
+    -- Minimum interval in microseconds
     intervalBetweenRequests =
       round $ secondInMicroseconds * nominatimReqGapInSeconds :: Int
 
     intervalBetweenRequestsInSeconds =
       fromIntegral intervalBetweenRequests / secondInMicroseconds :: Float
-
-
-withCounter :: S.MonadState (Integer, a) m => (Integer -> m ()) -> m ()
-withCounter = (S.gets fst >>=)
