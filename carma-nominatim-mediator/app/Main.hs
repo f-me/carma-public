@@ -25,11 +25,11 @@ import           Text.InterpolatedString.QM
 import           Data.Swagger (Swagger)
 
 import           Control.Monad
-import           Control.Monad.Catch (MonadThrow, throwM, toException)
 import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.Reader.Class (MonadReader, asks)
 import           Control.Monad.Reader (runReaderT)
 import           Control.Monad.Except (runExceptT)
+import           Control.Monad.Catch (MonadThrow, MonadCatch, throwM, catchAll)
 
 import           System.Directory (makeAbsolute)
 
@@ -45,6 +45,8 @@ import           Carma.NominatimMediator.Logger
 import           Carma.NominatimMediator.CacheGC
 import           Carma.NominatimMediator.CacheSync
 import           Carma.NominatimMediator.Utils
+import           Carma.NominatimMediator.Utils.StatisticsWriterMonad
+import           Carma.NominatimMediator.Utils.RequestExecutionMonad
 import           Carma.NominatimMediator.RequestExecutor
 
 
@@ -127,9 +129,15 @@ main = do
   !(nominatimBaseUrl :: BaseUrl) <- parseBaseUrl nominatimUrl
   !(manager          :: Manager) <- newManager tlsManagerSettings
 
-  resCache            <- newIORefWithCounter M.empty
+  resCache            <- newIORefWithCounter mempty
   loggerBus'          <- newEmptyMVar
   requestExecutorBus' <- newEmptyMVar
+  statisticsData'     <- newIORefWithCounter mempty
+  statisticsBus'      <- newEmptyMVar
+
+  -- TODO remove it, it's temporary plug to prevent deadlocks
+  --      since nothing reads from this bus yet.
+  _ <- fork $ forever $ void $ takeMVar statisticsBus'
 
   let appCtx
         = AppContext
@@ -139,6 +147,8 @@ main = do
         , cacheForRevSearchIsDisabled = noCacheForRevSearch
         , loggerBus                   = loggerBus'
         , requestExecutorBus          = requestExecutorBus'
+        , statisticsData              = statisticsData'
+        , statisticsBus               = statisticsBus'
         }
 
       app = serve (Proxy :: Proxy AppRoutesWithSwagger) $ appServer appCtx
@@ -207,14 +217,16 @@ appServer appCtx =
 search
   :: ( MonadReader AppContext m
      , LoggerBusMonad m
-     , MonadThrow m
-     , ThreadMonad m
-     , DelayMonad m
-     , MVarMonad m
+     , MonadCatch m
+     , TimeMonad m -- For statistics
+     , StatisticsWriterMonad m -- To notify about failure cases
+     , RequestExecutionMonad m
      )
   => Lang -> SearchQuery -> m [SearchByQueryResponse]
-search lang query = do
-  let reqParams = SearchQueryReq lang query
+search lang query =
+  -- Writing statistics about any failure case
+  flip catchAll (\e -> writeFailureToStatistics reqType >> throwM e) $ do
+
   clientUserAgent' <- asks clientUserAgent
 
   let req = SearchByQueryResponse' <$>
@@ -224,23 +236,31 @@ search lang query = do
                           (Just query)
 
   logInfo [qm| Searching by query with params: {reqParams}... |]
-  result <- requestResponse reqParams req
+  result <- executeRequest reqParams req
 
   case result of
-       SearchByQueryResponse' x -> pure x
-       x -> throwUnexpectedResponse x
+       (statResolve, SearchByQueryResponse' x) -> do
+         utcTime <- getCurrentTime
+         x <$ writeStatistics utcTime reqType statResolve
+
+       (_, x) -> throwUnexpectedResponse x
+
+  where reqParams = SearchQueryReq lang query
+        reqType   = requestType reqParams
 
 revSearch
   :: ( MonadReader AppContext m
      , LoggerBusMonad m
-     , MonadThrow m
-     , ThreadMonad m
-     , DelayMonad m
-     , MVarMonad m
+     , MonadCatch m
+     , TimeMonad m -- For statistics
+     , StatisticsWriterMonad m -- To notify about failure cases
+     , RequestExecutionMonad m
      )
   => Lang -> Coords -> m SearchByCoordsResponse
-revSearch lang coords@(Coords lon' lat') = do
-  let reqParams = RevSearchQueryReq lang coords
+revSearch lang coords@(Coords lon' lat') =
+  -- Writing statistics about any failure case
+  flip catchAll (\e -> writeFailureToStatistics reqType >> throwM e) $ do
+
   clientUserAgent' <- asks clientUserAgent
 
   let req = SearchByCoordsResponse' <$>
@@ -251,11 +271,17 @@ revSearch lang coords@(Coords lon' lat') = do
                                   (Just $ NominatimLat lat')
 
   logInfo [qm| Searching by coordinates with params: {reqParams}... |]
-  result <- requestResponse reqParams req
+  result <- executeRequest reqParams req
 
   case result of
-       SearchByCoordsResponse' x -> pure x
-       x -> throwUnexpectedResponse x
+       (statResolve, SearchByCoordsResponse' x) -> do
+         utcTime <- getCurrentTime
+         x <$ writeStatistics utcTime reqType statResolve
+
+       (_, x) -> throwUnexpectedResponse x
+
+  where reqParams = RevSearchQueryReq lang coords
+        reqType   = requestType reqParams
 
 debugCachedQueries
   :: ( MonadReader AppContext m
@@ -327,43 +353,15 @@ reverseSearchByCoords
 -- Throwing `UnexpectedResponseResultException` with logging this error
 throwUnexpectedResponse
   :: (MonadThrow m, MonadReader AppContext m, LoggerBusMonad m)
-  => Response
-  -> m a
+  => Response -> m a
 throwUnexpectedResponse x = do
   logError [qm| Unexpected response result: {x}! |]
   throwM $ UnexpectedResponseResultException x
 
 
--- Sends request to requests executor bus
--- and creates response bus and waits for response.
-requestResponse
-  :: ( MonadReader AppContext m
-     , LoggerBusMonad m
-     , MonadThrow m
-     , ThreadMonad m
-     , DelayMonad m
-     , MVarMonad m
-     )
-  => RequestParams
-  -> ClientM Response
-  -> m Response
-requestResponse reqParams req = do
-  responseBus <- newEmptyMVar
-
-  -- Handling timeout case
-  thread <- fork $ do
-    delay timeout
-    putMVar responseBus $ Left $
-      ConnectionError $ toException $ RequestTimeoutException reqParams
-
-  asks requestExecutorBus >>=
-    flip putMVar (reqParams, req, responseBus)
-
-  result <- takeMVar responseBus
-  killThread thread -- No need for timeout thread anymore
-
-  case result of
-       Left  e -> throwM e
-       Right x -> pure x
-
-  where timeout = round $ 15 * secondInMicroseconds :: Int
+writeFailureToStatistics
+  :: (MonadReader AppContext m, TimeMonad m, StatisticsWriterMonad m)
+  => RequestType -> m ()
+writeFailureToStatistics reqType = do
+  utcTime <- getCurrentTime
+  writeStatistics utcTime reqType RequestIsFailed

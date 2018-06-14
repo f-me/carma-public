@@ -15,6 +15,11 @@ cache {
     # every restart you start from scratch.
     snapshot-file = "cache-snapshot.db"
 
+    # [OPTIONAL]
+    # If this file isn't set then statistics wouldn't be synchronized,
+    # every restart you start from scratch.
+    statistics-file = "statistics.db"
+
     # In hours (with floating point).
     interval = 1
   }
@@ -28,6 +33,11 @@ cache {
     # Indicates how long cached response lives,
     # after this period it will be eliminated by GC.
     lifetime = 24
+
+    # In days.
+    # Indicates how long collected statistics for a day lives until it will be
+    # eliminated by GC.
+    statistics-lifetime = 30
   }
 }
 

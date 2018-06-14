@@ -20,6 +20,7 @@ dependencies:
   - containers
   - directory
   - exceptions
+  - hashable
   - http-api-data
   - http-client
   - http-client-tls
@@ -36,6 +37,7 @@ dependencies:
   - text
   - time
   - transformers-base
+  - unordered-containers
   - warp
 
 ghc-options:

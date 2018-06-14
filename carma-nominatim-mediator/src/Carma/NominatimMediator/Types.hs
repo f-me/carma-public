@@ -1,12 +1,12 @@
 -- This module contains data types used in this service.
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedLists #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Carma.NominatimMediator.Types where
 
@@ -17,15 +17,18 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T (encodeUtf8)
 import           Data.Attoparsec.ByteString.Char8
 import           Data.String (fromString)
-import qualified Data.Map as M
+import           Data.Map (Map)
+import           Data.HashMap.Strict (HashMap)
+import           Data.Hashable (Hashable)
 import           Data.Aeson
 import           Data.Aeson.Types (fieldLabelModifier)
 import           Data.Time.Clock (UTCTime)
+import           Data.Time.Calendar (Day)
 import           Data.Swagger hiding (Response)
 import           Text.InterpolatedString.QM
 
 import           Control.Exception.Base
-import           Control.Concurrent.MVar
+import           Control.Concurrent.MVar (MVar)
 
 import           Web.HttpApiData
 import           Servant.Client
@@ -109,7 +112,7 @@ class HasRequestType a where
 data RequestType
    = Search
    | ReverseSearch
-     deriving Eq
+     deriving (Eq, Generic, Hashable)
 
 instance Show RequestType where
   show Search        = "search"
@@ -200,7 +203,9 @@ instance HasRequestType Response where
   requestType (SearchByQueryResponse' _)  = Search
   requestType (SearchByCoordsResponse' _) = ReverseSearch
 
-type ResponsesCache = M.Map RequestParams (UTCTime, Response)
+-- First section of the tuple here indicates time when response have been added
+-- to the cache so it could be garbage collected later.
+type ResponsesCache = Map RequestParams (UTCTime, Response)
 
 
 data DebugCachedQuery
@@ -273,12 +278,20 @@ instance ToSchema DebugCachedResponse where
           unwrapperToProxy' = unwrapperToProxy
 
 
+data StatisticResolve
+   = RequestIsFailed
+   | RequestIsSucceeded Bool -- Indicates if response is added to the cache
+   | ResponseIsTakenFromCache
+     deriving (Show, Eq, Generic, Hashable)
+
+type StatisticsData
+   = Map Day (HashMap (RequestType, StatisticResolve) Integer)
+
+
 data AppContext
    = AppContext
-   { -- First section is just a counter, it is used to check if it's changed
-     -- that means the cache was changed, you urged to increase it everytime
-     -- you update the cache. Cache synchronizer looks at this counter to
-     -- choose whether it needs to sync anything.
+   { -- Counter for IORef here is for cache synchronizer, it checks if cache
+     -- have been changed since last check and if it's not it does nothing.
      responsesCache :: IORefWithCounter ResponsesCache
 
      -- Shared Nominatim community server requires User-Agent to be provided
@@ -299,10 +312,19 @@ data AppContext
    , loggerBus :: MVar LogMessage
 
      -- A bus to send request monads to
-   , requestExecutorBus :: MVar ( RequestParams
-                                , ClientM Response
-                                , MVar (Either ServantError Response)
-                                )
+   , requestExecutorBus ::
+       MVar ( RequestParams
+            , ClientM Response
+            , MVar (Either ServantError (StatisticResolve, Response))
+            )
+
+     -- Collected statistics data.
+     -- Counter for IORef is for statistics synchronizer with file to pass
+     -- writing to a file if statistics haven't change since last check.
+   , statisticsData :: IORefWithCounter StatisticsData
+
+     -- A bus for notifying about statistic increments of requests
+   , statisticsBus :: MVar (UTCTime, RequestType, StatisticResolve)
    }
 
 

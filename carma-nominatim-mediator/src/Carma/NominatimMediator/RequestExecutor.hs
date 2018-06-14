@@ -32,7 +32,8 @@ type RealRequestQueue
    = MVar ( Integer -- Countered number of request (for logging)
           , RequestParams
           , ClientM Response -- Request monad to execute
-          , MVar (Either ServantError Response) -- Response bus
+          , MVar (Either ServantError (StatisticResolve, Response))
+            -- ^ Response bus
           )
 
 
@@ -104,7 +105,7 @@ handleRequest realRequestQueue = do
          logInfo [qms| Response for request #{n} by params {reqParams}
                        is taken from cache. |]
 
-         putMVar responseBus $ Right x
+         putMVar responseBus $ Right (ResponseIsTakenFromCache, x)
 
 
 -- Real request handling, when nothing found in cache.
@@ -150,6 +151,11 @@ handleRealRequest nominatimReqGapInSeconds realRequestQueue = do
 
   result <- asks clientEnv >>= runClientM reqMonad
 
+  isResultGoingToCache <-
+    if requestType reqParams == ReverseSearch
+       then not <$> asks cacheForRevSearchIsDisabled
+       else pure True
+
   case result of
        Left e -> do
          logError [qms| Request #{n} by params {reqParams}
@@ -158,11 +164,6 @@ handleRealRequest nominatimReqGapInSeconds realRequestQueue = do
          getCurrentTime >>= S.put
 
        Right x -> do
-         isCacheDisabledForRevSearch <- asks cacheForRevSearchIsDisabled
-         let isRevSearchRequest = requestType reqParams == ReverseSearch
-             isResultGoingToCache =
-               not $ isRevSearchRequest && isCacheDisabledForRevSearch
-
          logInfo $
            [qm| Request #{n} by params {reqParams} is succeeded,\ |]
              <> if isResultGoingToCache
@@ -178,7 +179,7 @@ handleRealRequest nominatimReqGapInSeconds realRequestQueue = do
              flip modifyIORefWithCounter' (M.insert reqParams (utc, x))
 
   -- Sending response back
-  putMVar responseBus result
+  putMVar responseBus $ (RequestIsSucceeded isResultGoingToCache,) <$> result
 
   where
     -- Minimum interval in microseconds

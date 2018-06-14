@@ -20,7 +20,8 @@ import           Carma.NominatimMediator.Utils
 import           Carma.NominatimMediator.Logger
 
 
--- Cleans outdated cached responses.
+-- Cleans outdated cached responses and statistics for days older than N days
+-- (specified in app config).
 -- Supposed to be run in own thread.
 cacheGCInit
   :: ( MonadReader AppContext m
