@@ -19,7 +19,7 @@ import           Control.Monad
 import qualified Control.Monad.State.Strict as S
 import           Control.Monad.IO.Class (MonadIO)
 import           Control.Monad.Reader.Class (MonadReader, asks)
-import           Control.Monad.Base (MonadBase)
+import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Control.Monad.Except (MonadError (throwError))
 
 import           Carma.NominatimMediator.Types
@@ -28,7 +28,7 @@ import           Carma.NominatimMediator.Logger
 
 
 cacheSyncInit
-  :: (MonadReader AppContext m, MonadBase IO m, MonadIO m)
+  :: (MonadReader AppContext m, MonadBaseControl IO m, MonadIO m)
   => Float -> FilePath -> m ()
 cacheSyncInit syncIntervalInHours cacheFile =
   prepare syncIntervalInHours cacheFile

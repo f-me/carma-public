@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE BangPatterns #-}
 
 module Carma.NominatimMediator.Logger where
 
@@ -28,20 +29,25 @@ instance ( Monad m
          , MonadReader AppContext m
          , MVarMonad m
          , TimeMonad m
+         , ThreadMonad m
          ) => LoggerBusMonad m
          where
 
   logInfo msg = do
-    utc <- getCurrentTime
+    !utc <- getCurrentTime
     loggerBus' <- asks loggerBus
-    putMVar loggerBus' $ LogMessage LogInfo
-      [qm| [{formatTime utc} UTC] {msg} |]
+
+    void $ fork $ -- Forking for non-blocking writing to MVar
+      putMVar loggerBus' $ LogMessage LogInfo
+        [qm| [{formatTime utc} UTC] {msg} |]
 
   logError msg = do
-    utc <- getCurrentTime
+    !utc <- getCurrentTime
     loggerBus' <- asks loggerBus
-    putMVar loggerBus' $ LogMessage LogError
-      [qm| [{formatTime utc} UTC] {msg} |]
+
+    void $ fork $ -- Forking for non-blocking writing to MVar
+      putMVar loggerBus' $ LogMessage LogError
+        [qm| [{formatTime utc} UTC] {msg} |]
 
   readLog = asks loggerBus >>= takeMVar
 

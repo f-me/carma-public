@@ -135,10 +135,6 @@ main = do
   statisticsData'     <- newIORefWithCounter mempty
   statisticsBus'      <- newEmptyMVar
 
-  -- TODO remove it, it's temporary plug to prevent deadlocks
-  --      since nothing reads from this bus yet.
-  _ <- fork $ forever $ void $ takeMVar statisticsBus'
-
   let appCtx
         = AppContext
         { responsesCache              = resCache
