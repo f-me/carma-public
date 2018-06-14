@@ -141,13 +141,13 @@ instance HasRequestType RequestParams where
 
 instance ToJSON RequestParams where
   toJSON x@(SearchQueryReq lang query) = object
-    [ "type"  .= String (fromString $ show $ requestType x)
+    [ "type"  .= requestType x
     , "lang"  .= fromLang lang
     , "query" .= fromSearchQuery query
     ]
 
   toJSON x@(RevSearchQueryReq lang (Coords lon' lat')) = object
-    [ "type" .= String (fromString $ show $ requestType x)
+    [ "type" .= requestType x
     , "lang" .= fromLang lang
     , "lon"  .= lon'
     , "lat"  .= lat'
