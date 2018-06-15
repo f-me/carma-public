@@ -47,6 +47,7 @@ import           Carma.NominatimMediator.CacheSync
 import           Carma.NominatimMediator.Utils
 import           Carma.NominatimMediator.Utils.StatisticsWriterMonad
 import           Carma.NominatimMediator.Utils.RequestExecutionMonad
+import           Carma.NominatimMediator.StatisticsWriter
 import           Carma.NominatimMediator.RequestExecutor
 
 
@@ -179,6 +180,9 @@ main = do
          Just x  -> void $ fork $ cacheSyncInit syncInterval x
          Nothing -> logInfo [qms| Cache file to save snapshots to isn't set,
                                   cache synchronizer feature is disabled. |]
+
+    -- Running handler of statistics increments
+    _ <- fork statisticsWriterInit
 
     -- Running requests queue handler
     _ <- fork $ requestExecutorInit nominatimReqGap

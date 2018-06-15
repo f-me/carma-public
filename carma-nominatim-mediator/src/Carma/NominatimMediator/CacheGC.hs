@@ -76,9 +76,8 @@ cacheGCInit gcIntervalInHours
 
     when (M.size outdatedDaysOfStatistics > 0) $
       logInfo [qms| These collected days of statistics is outdated
-                    and they were removed from cache.
-                    They will be requested again next time.
-                    Days of collected statistics which were removed from cache:\
+                    and they were eliminated.
+                    Days of collected statistics which were eliminated:\
                     { T.pack $ mconcat
                     $ show ? ("\n  - " <>) <$> M.keys outdatedDaysOfStatistics
                     } |]
