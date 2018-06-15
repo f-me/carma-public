@@ -98,7 +98,7 @@ instance ToParamSchema Coords where
   toParamSchema _ = mempty
     { _paramSchemaType    = SwaggerString
     , _paramSchemaFormat  = Just "coordinates"
-    , _paramSchemaPattern = Just [qm| ^
+    , _paramSchemaPattern = Just [qn| ^
                                       -?[0-9]+(\.[0-9]+)?
                                       ,
                                       -?[0-9]+(\.[0-9]+)?
@@ -169,7 +169,7 @@ instance ToSchema RequestParams where
       { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
 
       , _schemaDescription = Just
-          [qms| Request params, only "type" and "lang" keys will always be
+          [qns| Request params, only "type" and "lang" keys will always be
                 there but either "query" or "lon" & "lat" would be provided
                 depending on "type" of request ("query" for "search" and
                 "lon" & "lat" for "reverse-search"). |]
@@ -245,7 +245,7 @@ instance ToSchema DebugCachedResponse where
       , _schemaDiscriminator = Just "response_type"
 
       , _schemaDescription = Just
-          [qms| "response" may vary depending on "response_type" value that
+          [qns| "response" may vary depending on "response_type" value that
                 in case depends on "type" of "request_params". |]
 
       , _schemaRequired =

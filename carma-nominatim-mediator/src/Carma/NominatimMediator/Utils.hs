@@ -11,6 +11,7 @@ module Carma.NominatimMediator.Utils
      , secondInMicroseconds
      , timeFormat
      , formatTime
+     , floatShow
      , unwrapperToProxy
 
        -- Constructor isn't exported.
@@ -39,6 +40,7 @@ import           Data.Proxy
 import           Data.IORef
 import qualified Data.Time.Format as Time
 import qualified Data.Time.Clock as Time
+import           Text.Printf (printf)
 
 import           Control.Arrow
 import           Control.Exception (SomeException)
@@ -77,6 +79,9 @@ timeFormat = "%Y-%m-%d %H:%M:%S"
 
 formatTime :: Time.FormatTime t => t -> String
 formatTime = Time.formatTime Time.defaultTimeLocale timeFormat
+
+floatShow :: Float -> String
+floatShow = printf "%f"
 
 unwrapperToProxy :: (a -> b) -> Proxy b
 unwrapperToProxy _ = Proxy

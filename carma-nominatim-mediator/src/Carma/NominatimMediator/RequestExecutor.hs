@@ -63,7 +63,8 @@ requestExecutorInit nominatimReqGapInSeconds = do
 
   logInfo
     [qmb| Request executor is ready.
-          Gap between requests is {nominatimReqGapInSeconds} second(s).
+          Gap between requests is \
+            {floatShow nominatimReqGapInSeconds} second(s).
           Waiting for requests... |]
 
   -- Block until nested threads is done (they usually never ends).
@@ -142,9 +143,9 @@ handleRealRequest nominatimReqGapInSeconds realRequestQueue = do
            waitTimeInSeconds = fromIntegral waitTime / secondInMicroseconds
 
        logInfo [qms| Request #{n} by params {reqParams}
-                     is delayed by {waitTimeInSeconds} second(s)
+                     is delayed by {floatShow waitTimeInSeconds} second(s)
                      to satisfy interval between requests
-                     which is {intervalBetweenRequestsInSeconds}
+                     which is {floatShow intervalBetweenRequestsInSeconds}
                      second(s)... |]
 
        delay waitTime

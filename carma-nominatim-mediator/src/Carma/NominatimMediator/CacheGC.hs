@@ -41,8 +41,9 @@ cacheGCInit gcIntervalInHours
             statisticsLifetimeInDays = do
   logInfo
     [qmb| Cache garbage collector is initialized.
-          Intervals between checks is {gcIntervalInHours} hour(s).
-          Cached response lifetime is {cacheItemLifetimeInHours} hour(s).
+          Intervals between checks is {floatShow gcIntervalInHours} hour(s).
+          Cached response lifetime is \
+            {floatShow cacheItemLifetimeInHours} hour(s).
           Collected statistics of a day lifetime is \
             {statisticsLifetimeInDays} day(s). |]
 
@@ -50,6 +51,7 @@ cacheGCInit gcIntervalInHours
     logInfo [qn| Cache garbage collector goes... |]
     currentTime <- getCurrentTime
 
+    -- Eliminating outdated cached responses and extracting them to use in log.
     outdatedItems <-
       asks responsesCache >>=
         flip atomicModifyIORefWithCounter'
@@ -58,6 +60,7 @@ cacheGCInit gcIntervalInHours
                        ? round
                        ? (<= cacheItemLifetime))
 
+    -- Eliminating outdated statistics days and extracting them to use in log.
     outdatedDaysOfStatistics <-
       asks statisticsData >>=
         flip atomicModifyIORefWithCounter'
@@ -65,6 +68,7 @@ cacheGCInit gcIntervalInHours
                               & Calendar.diffDays (Time.utctDay currentTime)
                               & (<= statisticsLifetimeInDays))
 
+    -- If there's some eliminated outdated cached responses we're logging it.
     when (M.size outdatedItems > 0) $
       logInfo [qms| These responses is outdated
                     and they were removed from cache.
@@ -74,6 +78,7 @@ cacheGCInit gcIntervalInHours
                     $ show ? ("\n  - " <>) <$> M.keys outdatedItems
                     } |]
 
+    -- If there's some eliminated outdated statistics days we're logging it.
     when (M.size outdatedDaysOfStatistics > 0) $
       logInfo [qms| These collected days of statistics is outdated
                     and they were eliminated.

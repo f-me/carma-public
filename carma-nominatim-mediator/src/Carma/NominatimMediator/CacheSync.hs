@@ -4,15 +4,19 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TupleSections #-}
 
 module Carma.NominatimMediator.CacheSync
-     ( cacheSyncInit
+     ( CacheSyncFile (..)
+     , cacheSyncInit
      , fillCacheWithSnapshot
      ) where
 
 import           Prelude hiding (readFile, writeFile)
 
 import qualified Data.Map as M
+import           Data.Text (Text, toLower)
+import           Data.Monoid ((<>))
 import           Text.InterpolatedString.QM
 
 import           Control.Monad
@@ -27,69 +31,124 @@ import           Carma.NominatimMediator.Utils
 import           Carma.NominatimMediator.Logger
 
 
-cacheSyncInit
-  :: (MonadReader AppContext m, MonadBaseControl IO m, MonadIO m)
-  => Float -> FilePath -> m ()
-cacheSyncInit syncIntervalInHours cacheFile =
-  prepare syncIntervalInHours cacheFile
-    >>= S.evalStateT (forever $ syncCache syncIntervalInHours cacheFile)
+data CacheSyncFile
+   = OnlyResponsesCacheFile FilePath
+   | OnlyStatisticsFile FilePath
+   | ResponsesCacheAndStatisticsFiles FilePath FilePath
+     deriving (Eq, Show)
 
 
+-- Entry-point which depends on IO (don't know how to avoid this yet).
 -- Checks if cache was updated and saves new cache snapshot to a file.
 -- Supposed to be run in own thread.
-prepare
+cacheSyncInit
+  :: (MonadReader AppContext m, MonadBaseControl IO m, MonadIO m)
+  => Float -> CacheSyncFile -> m ()
+cacheSyncInit syncIntervalInHours syncFile =
+  prepare syncIntervalInHours syncFile
+    >>= S.evalStateT (forever $ syncCache syncIntervalInHours syncFile)
+
+
+prepare -- Log and provide initial state
   :: (MonadReader AppContext m, LoggerBusMonad m, IORefWithCounterMonad m)
-  => Float -> FilePath -> m Integer
-prepare syncIntervalInHours cacheFile = do
+  => Float -> CacheSyncFile -> m (Integer, Integer)
+prepare syncIntervalInHours syncFile = do
   logInfo
     [qmb| Cache synchronizer is initialized.
-          Cache file "{cacheFile}" will be used to sync cache snapshot.
+          {fileLog}
           Interval between synchronizations is: \
-          {syncIntervalInHours} hour(s). |]
+            {floatShow syncIntervalInHours} hour(s). |]
 
-  fst <$> readNextCache
+  -- Just taking counter(s) to check if something changed since last check
+  (,) <$> (fst <$> readNextCache) <*> (fst <$> readNextStatistics)
+
+  where fileS :: FilePath -> Text -> Text
+        fileS file title =
+          [qmb| File "{file}" will be used to sync {title} snapshot. |]
+
+        fileLog =
+          case syncFile of
+               OnlyResponsesCacheFile file -> fileS file "responses cache"
+               OnlyStatisticsFile file -> fileS file "statistics"
+               ResponsesCacheAndStatisticsFiles cacheFile statisticsFile ->
+                 fileS cacheFile "responses cache" <> "\n" <>
+                 fileS statisticsFile "statistics"
 
 
 syncCache
   :: ( MonadReader AppContext m
-     , S.MonadState Integer m
+     , S.MonadState (Integer, Integer) m -- Counters that indicates
+                                         -- if something is changed
      , LoggerBusMonad m
-     , IORefWithCounterMonad m
-     , DelayMonad m
-     , FileMonad m
+     , IORefWithCounterMonad m -- Accessing responses cache or statistics data
+     , DelayMonad m -- Waiting before checks
+     , FileMonad m -- Saving snapshots to files
      )
-  => Float -> FilePath -> m ()
-syncCache syncIntervalInHours cacheFile = do
+  => Float -> CacheSyncFile -> m ()
+syncCache syncIntervalInHours syncFile = do
   -- Waiting at start too, because at start cache snapshot is supposed to be
   -- just loaded from a file, and there would be nothing to sync.
   delay syncInterval
 
-  logInfo [qn| Cache synchronizer goes... |]
-  prevState <- S.get
-  (nextState, cacheSnapshot) <- readNextCache
+  logInfo [qn| Synchronizer goes... |]
+  (prevCacheState,      prevStatisticsState) <- S.get
+  (nextCacheState,      cacheSnapshot)       <- readNextCache
+  (nextStatisticsState, statisticsSnapshot)  <- readNextStatistics
 
-  if nextState == prevState
-     then logInfo [qns| Cache haven't changed since last check,
-                        nothing to synchronize. |]
+  let isCacheUpdated      = nextCacheState      /= prevCacheState
+      isStatisticsUpdated = nextStatisticsState /= prevStatisticsState
 
-     else do logInfo [qms| Cache have changed since last check,
-                           saving current cache snapshot
-                           ({M.size cacheSnapshot} elements)
-                           to a file "{cacheFile}"... |]
+  case syncFile of
+       OnlyResponsesCacheFile file ->
+         sync "Responses cache" "elements" isCacheUpdated file cacheSnapshot
 
-             writeFile cacheFile $ show cacheSnapshot
-             S.put nextState
+       OnlyStatisticsFile file ->
+         sync "Statistics" "days" isStatisticsUpdated file statisticsSnapshot
 
-             logInfo [qms| Cache snapshot with
-                           {M.size cacheSnapshot} elements
-                           successfully saved
-                           to a file "{cacheFile}"... |]
+       ResponsesCacheAndStatisticsFiles cacheFile statisticsFile -> do
+         sync "Responses cache" "elements"
+              isCacheUpdated cacheFile cacheSnapshot
 
-  logInfo [qms| Cache synchronizer will wait for
-                {syncIntervalInMinutes} minute(s)
+         sync "Statistics" "days"
+              isStatisticsUpdated statisticsFile statisticsSnapshot
+
+  when (isCacheUpdated || isStatisticsUpdated) $
+    S.put (nextCacheState, nextStatisticsState)
+
+  logInfo [qms| Synchronizer will wait for {syncIntervalInMinutes} minute(s)
                 before next check... |]
 
   where
+    sync
+      :: ( MonadReader AppContext m
+         , LoggerBusMonad m
+         , FileMonad m
+         , Show k
+         , Show v
+         )
+      => Text
+      -> Text
+      -> Bool -- Something is updated since last check
+      -> FilePath
+      -> M.Map k v -- Snapshot
+      -> m ()
+    sync title sizeSfx isUpdated snapshotFile snapshot =
+      if not isUpdated
+         then logInfo [qms| {title} haven't changed since last check,
+                            nothing to synchronize. |]
+
+         else do logInfo [qms| {title} have been updated since last check,
+                               saving current {toLower title} snapshot
+                               ({M.size snapshot} {sizeSfx})
+                               to a file "{snapshotFile}"... |]
+
+                 writeFile snapshotFile $ show snapshot
+
+                 logInfo [qms| {title} snapshot with
+                               {M.size snapshot} {sizeSfx}
+                               successfully saved
+                               to a file "{snapshotFile}"... |]
+
     syncIntervalInSeconds = syncIntervalInHours * 60 * 60 :: Float
     syncInterval = round $ secondInMicroseconds * syncIntervalInSeconds :: Int
 
@@ -97,9 +156,10 @@ syncCache syncIntervalInHours cacheFile = do
       round $ fromIntegral syncInterval / secondInMicroseconds / 60 :: Int
 
 
-
--- Checks if cache snapshot file exists and adds this snapshot to the cache
--- otherwise (if a file doesn't exist) just does nothing (except log messasge).
+-- Checks if cache snapshot file (or/and statistics snapshot file) exists and
+-- adds this snapshot to the cache otherwise (if a file doesn't exist) just does
+-- nothing (except log messasge).
+-- TODO implement filling statistics
 fillCacheWithSnapshot
   :: ( MonadReader AppContext m
      , MonadError () m -- For interrupting, just ignore the exception
@@ -107,8 +167,7 @@ fillCacheWithSnapshot
      , IORefWithCounterMonad m
      , FileMonad m
      )
-  => FilePath
-  -> m ()
+  => FilePath -> m ()
 fillCacheWithSnapshot cacheFile = do
   logInfo [qm| Trying to read cache snapshot from file "{cacheFile}"... |]
 
@@ -138,3 +197,8 @@ readNextCache
   :: (MonadReader AppContext m, IORefWithCounterMonad m)
   => m (Integer, ResponsesCache)
 readNextCache = asks responsesCache >>= readIORefWithCounter'
+
+readNextStatistics
+  :: (MonadReader AppContext m, IORefWithCounterMonad m)
+  => m (Integer, StatisticsData)
+readNextStatistics = asks statisticsData >>= readIORefWithCounter'

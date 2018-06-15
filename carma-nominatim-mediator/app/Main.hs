@@ -21,8 +21,9 @@ import           Data.Aeson (toJSON)
 import           Data.Proxy
 import           Data.List (sortBy)
 import           Data.Function ((&), on)
-import           Text.InterpolatedString.QM
 import           Data.Swagger (Swagger)
+import           Data.Text (Text)
+import           Text.InterpolatedString.QM
 
 import           Control.Monad
 import           Control.Monad.Logger (runStdoutLoggingT)
@@ -111,6 +112,11 @@ main = do
       \case Nothing -> pure Nothing
             Just x  -> Just <$!> makeAbsolute x
 
+  !(statisticsFile :: Maybe FilePath) <-
+    Conf.lookup cfg "cache.synchronizer.statistics-file" >>=
+      \case Nothing -> pure Nothing
+            Just x  -> Just <$!> makeAbsolute x
+
   !(noCacheForRevSearch :: Bool) <-
     Conf.lookupDefault True cfg "cache.disable-cache-for-reverse-search"
 
@@ -164,22 +170,33 @@ main = do
     _ <- fork $ runStdoutLoggingT $ loggerInit
 
     -- Trying to fill cache with initial snapshot
+    -- TODO implement filling statistics
     maybe (pure ()) (void . runExceptT . fillCacheWithSnapshot) cacheFile
 
     -- Running cache garbage collector thread
     -- which cleans outdated cached responses.
     _ <- fork $ cacheGCInit gcInterval cachedLifetime statisticsLifetime
 
-    -- Syncing with file is optional,
-    -- if you don't wanna this feature
-    -- just remove "cache-file" from config.
-    -- Running cache synchronizer thread
-    -- which stores cache snapshot to a file
-    -- to be able to load it after restart.
-    case cacheFile of
-         Just x  -> void $ fork $ cacheSyncInit syncInterval x
-         Nothing -> logInfo [qms| Cache file to save snapshots to isn't set,
-                                  cache synchronizer feature is disabled. |]
+    -- Syncing with file is optional, if you don't wanna this feature
+    -- just remove "cache-file" or/and "statistics-file" from config.
+    -- Running cache synchronizer thread which stores cache snapshot or/and
+    -- collected statistics to a file to be able to load it after restart.
+    case (cacheFile, statisticsFile) of
+         (Just cacheFile', Just statisticsFile') ->
+           void $ fork $ cacheSyncInit syncInterval
+                $ ResponsesCacheAndStatisticsFiles cacheFile' statisticsFile'
+
+         (Just cacheFile', Nothing) ->
+           void $ fork $ cacheSyncInit syncInterval
+                $ OnlyResponsesCacheFile cacheFile'
+
+         (Nothing, Just statisticsFile') ->
+           void $ fork $ cacheSyncInit syncInterval
+                $ OnlyStatisticsFile statisticsFile'
+
+         (Nothing, Nothing) ->
+           logInfo [qms| Neither responses cache nor statistics snapshot file
+                         is set, synchronizer feature is disabled. |]
 
     -- Running handler of statistics increments
     _ <- fork statisticsWriterInit
@@ -187,15 +204,28 @@ main = do
     -- Running requests queue handler
     _ <- fork $ requestExecutorInit nominatimReqGap
 
-    logInfo
-      [qmb| Subsystems is initialized.
-            GC config:
-            \  Checks interval: {gcInterval} hour(s)
-            \  Cached response lifetime: {cachedLifetime} hour(s)
-            Nominatim config:
-            \  URL: "{nominatimUrl}"
-            \  Client User-Agent: "{fromUserAgent nominatimUA}"
-            \  Gap between requests: {nominatimReqGap} second(s) |]
+    logInfo $
+      let
+        syncDisabled :: Text -> Text
+        syncDisabled x = [qm| not set, {x} synchronizer is disabled |]
+      in
+        [qmb| Subsystems is initialized.
+              GC config:
+              \  Checks interval: {floatShow gcInterval} hour(s)
+              \  Cached response lifetime: {floatShow cachedLifetime} hour(s)
+              Synchronizer:
+              \  Responses cache file: \
+                   { case cacheFile of
+                          Nothing -> syncDisabled "cache"
+                          Just x  -> fromString $ show x }
+              \  Statistics file: \
+                   { case statisticsFile of
+                          Nothing -> syncDisabled "statistics"
+                          Just x  -> fromString $ show x }
+              Nominatim config:
+              \  URL: "{nominatimUrl}"
+              \  Client User-Agent: "{fromUserAgent nominatimUA}"
+              \  Gap between requests: {floatShow nominatimReqGap} second(s) |]
 
     logInfo [qm| Listening on http://{host}:{port}... |]
 
