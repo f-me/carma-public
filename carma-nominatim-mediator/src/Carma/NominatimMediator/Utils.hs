@@ -42,7 +42,6 @@ import qualified Data.Time.Format as Time
 import qualified Data.Time.Clock as Time
 import           Text.Printf (printf)
 
-import           Control.Arrow
 import           Control.Exception (SomeException)
 import           Control.Monad
 import           Control.Monad.IO.Class (MonadIO, liftIO)
@@ -89,7 +88,7 @@ unwrapperToProxy _ = Proxy
 
 newtype IORefWithCounter a = IORefWithCounter (IORef (Integer, a))
 
-class Monad m => IORefWithCounterMonad m where
+class (Monad m) => IORefWithCounterMonad m where
   newIORefWithCounter           :: a -> m (IORefWithCounter a)
 
   {-# INLINE readIORefWithCounter #-}
@@ -98,19 +97,25 @@ class Monad m => IORefWithCounterMonad m where
 
   readIORefWithCounter'         :: IORefWithCounter a -> m (Integer, a)
 
-  modifyIORefWithCounter'       :: IORefWithCounter a -> (a -> a) -> m ()
-  atomicModifyIORefWithCounter' :: IORefWithCounter a -> (a -> (a, b)) -> m b
+  -- `Eq` is needed to check if something changed to increment the counter
+  modifyIORefWithCounter'       :: Eq a
+                                => IORefWithCounter a -> (a -> a) -> m ()
+
+  -- `Eq` is needed to check if something changed to increment the counter
+  atomicModifyIORefWithCounter' :: Eq a
+                                => IORefWithCounter a -> (a -> (a, b)) -> m b
 
 instance (Monad m, MonadIO m) => IORefWithCounterMonad m where
   newIORefWithCounter x = liftIO $ newIORef (0, x) <&!> IORefWithCounter
   readIORefWithCounter' (IORefWithCounter x) = liftIO $ readIORef x
 
   modifyIORefWithCounter' (IORefWithCounter x) f =
-    liftIO $ x `modifyIORef'` ((+ 1) *** f)
+    liftIO $ x `modifyIORef'`
+      \(c, v) -> let v' = f v in (if v' /= v then succ c else c, v')
 
   atomicModifyIORefWithCounter' (IORefWithCounter x) f =
     liftIO $ x `atomicModifyIORef'`
-      \(c, v) -> let (v', a) = f v in ((c + 1, v'), a)
+      \(c, v) -> let (v', a) = f v in ((if v' /= v then succ c else c, v'), a)
 
 
 -- Some monads to abstract side-effects
