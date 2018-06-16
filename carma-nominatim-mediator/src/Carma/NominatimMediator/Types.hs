@@ -15,7 +15,7 @@ import           GHC.Generics
 import           Data.Proxy
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T (encodeUtf8)
-import           Data.Attoparsec.ByteString.Char8
+import           Data.Attoparsec.ByteString.Char8 hiding (choice, string)
 import           Data.String (fromString)
 import           Data.Map (Map)
 import           Data.HashMap.Strict (HashMap)
@@ -26,6 +26,8 @@ import           Data.Time.Clock (UTCTime)
 import           Data.Time.Calendar (Day)
 import           Data.Swagger hiding (Response)
 import           Text.InterpolatedString.QM
+import           Text.Read (Read (readPrec), lift, choice)
+import           Text.ParserCombinators.ReadP (string)
 
 import           Control.Exception.Base
 import           Control.Concurrent.MVar (MVar)
@@ -117,6 +119,12 @@ data RequestType
 instance Show RequestType where
   show Search        = "search"
   show ReverseSearch = "reverse-search"
+
+instance Read RequestType where
+  readPrec = choice $ lift <$>
+    [ Search        <$ string "search"
+    , ReverseSearch <$ string "reverse-search"
+    ]
 
 instance ToJSON RequestType where
   toJSON = String . fromString . show
@@ -282,7 +290,7 @@ data StatisticResolve
    = RequestIsFailed
    | RequestIsSucceeded Bool -- Indicates if response is added to the cache
    | ResponseIsTakenFromCache
-     deriving (Show, Eq, Generic, Hashable)
+     deriving (Show, Read, Eq, Generic, Hashable)
 
 type StatisticsData
    = Map Day (HashMap (RequestType, StatisticResolve) Integer)

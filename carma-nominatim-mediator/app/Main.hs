@@ -29,7 +29,6 @@ import           Control.Monad
 import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.Reader.Class (MonadReader, asks)
 import           Control.Monad.Reader (runReaderT)
-import           Control.Monad.Except (runExceptT)
 import           Control.Monad.Catch (MonadThrow, MonadCatch, throwM, catchAll)
 
 import           System.Directory (makeAbsolute)
@@ -169,9 +168,19 @@ main = do
     -- Running logger thread
     _ <- fork $ runStdoutLoggingT $ loggerInit
 
-    -- Trying to fill cache with initial snapshot
-    -- TODO implement filling statistics
-    maybe (pure ()) (void . runExceptT . fillCacheWithSnapshot) cacheFile
+    -- Trying to fill responses cache or/and statistics with initial snapshot
+    case (cacheFile, statisticsFile) of
+         (Nothing, Nothing) -> pure ()
+
+         (Just cacheFile', Just statisticsFile') ->
+           fillCacheWithSnapshot $
+             ResponsesCacheAndStatisticsFiles cacheFile' statisticsFile'
+
+         (Just cacheFile', Nothing) ->
+           fillCacheWithSnapshot $ OnlyResponsesCacheFile cacheFile'
+
+         (Nothing, Just statisticsFile') ->
+           fillCacheWithSnapshot $ OnlyStatisticsFile statisticsFile'
 
     -- Running cache garbage collector thread
     -- which cleans outdated cached responses.

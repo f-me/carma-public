@@ -5,6 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Carma.NominatimMediator.CacheSync
      ( CacheSyncFile (..)
@@ -24,7 +25,6 @@ import qualified Control.Monad.State.Strict as S
 import           Control.Monad.IO.Class (MonadIO)
 import           Control.Monad.Reader.Class (MonadReader, asks)
 import           Control.Monad.Trans.Control (MonadBaseControl)
-import           Control.Monad.Except (MonadError (throwError))
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
@@ -159,36 +159,73 @@ syncCache syncIntervalInHours syncFile = do
 -- Checks if cache snapshot file (or/and statistics snapshot file) exists and
 -- adds this snapshot to the cache otherwise (if a file doesn't exist) just does
 -- nothing (except log messasge).
--- TODO implement filling statistics
 fillCacheWithSnapshot
   :: ( MonadReader AppContext m
-     , MonadError () m -- For interrupting, just ignore the exception
      , LoggerBusMonad m
      , IORefWithCounterMonad m
      , FileMonad m
      )
-  => FilePath -> m ()
-fillCacheWithSnapshot cacheFile = do
-  logInfo [qm| Trying to read cache snapshot from file "{cacheFile}"... |]
+  => CacheSyncFile -> m ()
+fillCacheWithSnapshot = \case
+  OnlyResponsesCacheFile file -> do
+    fileExists <- checkFileExistence "Cached responses" file
+    when fileExists $ loadCacheSnapshot file
 
-  do x <- doesFileExist cacheFile
+  OnlyStatisticsFile file -> do
+    fileExists <- checkFileExistence "Statistics" file
+    when fileExists $ loadStatisticsSnapshot file
 
-     unless x $ do
-       logInfo [qms| Cache snapshot file "{cacheFile}" doesn't exist,
-                     nothing to read. |]
-       throwError ()
+  ResponsesCacheAndStatisticsFiles cacheFile statisticsFile -> do
+    cacheFileExists <- checkFileExistence "Cached responses" cacheFile
+    when cacheFileExists $ loadCacheSnapshot cacheFile
 
-  logInfo [qms| Cache snapshot file "{cacheFile}" does exist,
-                reading and parsing snapshot... |]
+    statisticsFileExists <- checkFileExistence "Statistics" statisticsFile
+    when statisticsFileExists $ loadStatisticsSnapshot statisticsFile
 
-  (cacheSnapshot :: ResponsesCache) <- readFile cacheFile <&!> read
+  where
+    checkFileExistence
+      :: (LoggerBusMonad m, FileMonad m)
+      => Text -> FilePath -> m Bool
+    checkFileExistence title file = do
+      logInfo
+        [qm| Trying to read {toLower title} snapshot from file "{file}"... |]
 
-  logInfo
-    [qmb| Cache snapshot is successfully read from file "{cacheFile}".
-          Elements in snapshot: {M.size cacheSnapshot}.
-          Merging it with existing cache... |]
+      x <- doesFileExist file
+      x <$ if x then logInfo [qms| {title} snapshot file "{file}" does exist,
+                                   reading and parsing snapshot... |]
 
-  asks responsesCache >>= flip modifyIORefWithCounter' (M.union cacheSnapshot)
+                else logInfo [qms| {title} snapshot file "{file}" doesn't exist,
+                                   nothing to read. |]
+
+    loadCacheSnapshot
+      :: ( MonadReader AppContext m
+         , LoggerBusMonad m
+         , FileMonad m
+         , IORefWithCounterMonad m
+         )
+      => FilePath -> m ()
+    loadCacheSnapshot file = do
+      (snapshot :: ResponsesCache) <- readFile file <&!> read
+      logInfo $ loadedMsg "Cached responses" "Elements" file snapshot
+      asks responsesCache >>= flip modifyIORefWithCounter' (M.union snapshot)
+
+    loadStatisticsSnapshot
+      :: ( MonadReader AppContext m
+         , LoggerBusMonad m
+         , FileMonad m
+         , IORefWithCounterMonad m
+         )
+      => FilePath -> m ()
+    loadStatisticsSnapshot file = do
+      (snapshot :: StatisticsData) <- readFile file <&!> read
+      logInfo $ loadedMsg "Statistics" "Days" file snapshot
+      asks statisticsData >>= flip modifyIORefWithCounter' (M.union snapshot)
+
+    loadedMsg :: Text -> Text -> FilePath -> M.Map k v -> Text
+    loadedMsg title sizeTitle file snapshot =
+      [qmb| {title} snapshot is successfully read from file "{file}".
+            {sizeTitle} in the snapshot: {M.size snapshot}.
+            Merging it with existing data... |]
 
 
 -- Helpers
