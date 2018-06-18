@@ -66,8 +66,27 @@ You can get generated Swagger spec by this command:
 curl 'http://127.0.0.1:8165/debug/swagger.json'
 ```
 
-## TODO
+## Statistics
 
-- Return cached response immediately notwithstanding if new request is
-  processing. Currently if new request is processing request for cached response
-  will wait until actual request to Nominatim finishes.
+This microservice collects some statistics about requests it's handling.
+You could obtain this statistics in JSON format by this command:
+
+```bash
+curl 'http://127.0.0.1:8165/debug/statistics'
+```
+
+You also able to process this data for specific purposes by for example `jq`
+tool. Here is an example of getting hash-map where key is ISO 8601 date and
+value is total requests count of "reverse-search" type of request:
+
+```bash
+curl -s 'http://127.0.0.1:8165/debug/statistics' | jq '[.[] | {(.iso_day): .by_request_type[] | select(.request_type == "reverse-search") | .statistics.total_requests}] | add'
+```
+
+An example of result:
+```json
+{
+  "2018-06-18": 8,
+  "2018-06-15": 1
+}
+```
