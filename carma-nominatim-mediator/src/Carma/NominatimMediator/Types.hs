@@ -13,6 +13,7 @@ module Carma.NominatimMediator.Types where
 import           GHC.Generics
 
 import           Data.Proxy
+import           Data.Function (on)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T (encodeUtf8)
 import           Data.Attoparsec.ByteString.Char8 hiding (choice, string)
@@ -23,7 +24,7 @@ import           Data.Hashable (Hashable)
 import           Data.Aeson
 import           Data.Aeson.Types (fieldLabelModifier)
 import           Data.Time.Clock (UTCTime)
-import           Data.Time.Calendar (Day)
+import           Data.Time.Calendar (Day (ModifiedJulianDay), showGregorian)
 import           Data.Swagger hiding (Response)
 import           Text.InterpolatedString.QM
 import           Text.Read (Read (readPrec), lift, choice)
@@ -114,7 +115,7 @@ class HasRequestType a where
 data RequestType
    = Search
    | ReverseSearch
-     deriving (Eq, Generic, Hashable)
+     deriving (Eq, Enum, Bounded, Generic, Hashable)
 
 instance Show RequestType where
   show Search        = "search"
@@ -410,6 +411,82 @@ data SearchByCoordsResponse
 
 instance HasRequestType SearchByCoordsResponse where
   requestType _ = ReverseSearch
+
+
+-- Types for statistics routes
+
+-- A standard count of days, with zero being the day 1858-11-17.
+-- Useful for simple ordering for example by `curl | jq` commands.
+newtype JulianDay = JulianDay Day deriving (Eq, Show)
+
+instance ToJSON JulianDay where
+  toJSON (JulianDay (ModifiedJulianDay x)) = Number $ fromInteger x
+
+instance ToSchema JulianDay where
+  declareNamedSchema _ = pure
+    $ NamedSchema (Just "JulianDay") mempty
+    { _schemaParamSchema = mempty { _paramSchemaType = SwaggerInteger } }
+
+-- Human-readable representation of day such as "1858-11-17" (yyyy-mm-dd).
+-- ISO 8601.
+newtype ISODay = ISODay Day deriving (Eq, Show)
+
+instance ToJSON ISODay where
+  toJSON (ISODay day) = String $ fromString $ showGregorian day
+
+instance ToSchema ISODay where
+  declareNamedSchema _ = pure
+    $ NamedSchema (Just "ISODay") mempty
+    { _schemaParamSchema = mempty { _paramSchemaType = SwaggerString } }
+
+data RequestsStatistics
+   = RequestsStatistics
+   { total_requests                    :: Integer
+   , total_failed                      :: Integer
+   , total_succeeded                   :: Integer
+   , succeeded_taken_from_cache        :: Integer
+   , succeeded_real_requests           :: Integer
+   , succeeded_real_added_to_cache     :: Integer
+   , succeeded_real_not_added_to_cache :: Integer
+   } deriving (Eq, Show, Generic, ToJSON, ToSchema)
+
+instance Monoid RequestsStatistics where
+  mempty
+    = RequestsStatistics
+    { total_requests                    = 0
+    , total_failed                      = 0
+    , total_succeeded                   = 0
+    , succeeded_taken_from_cache        = 0
+    , succeeded_real_requests           = 0
+    , succeeded_real_added_to_cache     = 0
+    , succeeded_real_not_added_to_cache = 0
+    }
+
+  mappend a b
+    = a
+    { total_requests                    = f total_requests a b
+    , total_failed                      = f total_failed a b
+    , total_succeeded                   = f total_succeeded a b
+    , succeeded_taken_from_cache        = f succeeded_taken_from_cache a b
+    , succeeded_real_requests           = f succeeded_real_requests a b
+    , succeeded_real_added_to_cache     = f succeeded_real_added_to_cache a b
+    , succeeded_real_not_added_to_cache =
+        f succeeded_real_not_added_to_cache a b
+    }
+    where f field = (+) `on` field
+
+data StatisticsByRequestType
+   = StatisticsByRequestType
+   { request_type :: Maybe RequestType -- `Nothing` means all request types
+   , statistics   :: RequestsStatistics
+   } deriving (Eq, Show, Generic, ToJSON, ToSchema)
+
+data StatisticsDay
+   = StatisticsDay
+   { julian_day      :: JulianDay
+   , iso_day         :: ISODay
+   , by_request_type :: [StatisticsByRequestType]
+   } deriving (Eq, Show, Generic, ToJSON, ToSchema)
 
 
 -- Types for requests to Nominatim

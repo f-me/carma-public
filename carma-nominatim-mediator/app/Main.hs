@@ -14,9 +14,11 @@
 
 module Main (main) where
 
+import           Data.Monoid ((<>))
 import qualified Data.Configurator as Conf
 import           Data.String (fromString)
 import qualified Data.Map as M
+import qualified Data.HashMap.Strict as HM
 import           Data.Aeson (toJSON)
 import           Data.Proxy
 import           Data.List (sortBy)
@@ -71,6 +73,9 @@ type AppRoutes
 
                   :<|> -- GET /debug/cached-responses
                        "cached-responses" :> Get '[JSON] [DebugCachedResponse]
+
+                  :<|> -- GET /debug/statistics
+                       "statistics" :> Get '[JSON] [StatisticsDay]
                   )
 
 type SwaggerHeaders a
@@ -247,6 +252,7 @@ appServer appCtx =
     :<|> (\lang coords -> wrap $ revSearch lang coords)
     :<|> ( wrap debugCachedQueries
            :<|> wrap debugCachedResponses
+           :<|> wrap debugStatistics
          )
   )
   :<|> wrap debugSwaggerAPI
@@ -363,6 +369,70 @@ debugCachedResponses = do
       where rjson = case response' of
                          SearchByQueryResponse'  x -> toJSON x
                          SearchByCoordsResponse' x -> toJSON x
+
+debugStatistics
+  :: ( MonadReader AppContext m
+     , LoggerBusMonad m
+     , IORefWithCounterMonad m
+     )
+  => m [StatisticsDay]
+debugStatistics = do
+  logInfo "Reading collected statistics..."
+  (asks statisticsData >>= readIORefWithCounter) <&> M.foldlWithKey reducer []
+
+  where
+    reducer acc k v = day k v : acc
+    reqTypes = Nothing : fmap Just [minBound, maxBound] :: [Maybe RequestType]
+
+    day k v
+      = StatisticsDay
+      { julian_day      = JulianDay k
+      , iso_day         = ISODay k
+      , by_request_type =
+          reqTypes <&> \x -> StatisticsByRequestType
+            { request_type = x
+            , statistics   = HM.toList v <&> byReqType x & mconcat
+            }
+      }
+
+    byReqType
+      :: Maybe RequestType
+      -> ((RequestType, StatisticResolve), Integer)
+      -> RequestsStatistics
+    byReqType reqTypeFilter ((reqType, resolve), c) =
+      case reqTypeFilter of
+           Nothing               -> x
+           Just y | y == reqType -> x
+                  | otherwise    -> mempty
+
+      where x = mempty { total_requests = c }
+                <> succeeded resolve c
+                <> failed resolve c
+
+    failed :: StatisticResolve -> Integer -> RequestsStatistics
+    failed RequestIsFailed          c = mempty { total_failed = c }
+    failed (RequestIsSucceeded _)   _ = mempty
+    failed ResponseIsTakenFromCache _ = mempty
+
+    succeeded :: StatisticResolve -> Integer -> RequestsStatistics
+    succeeded RequestIsFailed _ = mempty
+    succeeded (RequestIsSucceeded True) c
+      = mempty
+      { total_succeeded               = c
+      , succeeded_real_requests       = c
+      , succeeded_real_added_to_cache = c
+      }
+    succeeded (RequestIsSucceeded False) c
+      = mempty
+      { total_succeeded                   = c
+      , succeeded_real_requests           = c
+      , succeeded_real_not_added_to_cache = c
+      }
+    succeeded ResponseIsTakenFromCache c
+      = mempty
+      { total_succeeded            = c
+      , succeeded_taken_from_cache = c
+      }
 
 -- Allowing cross-origin requests to be able to use online swagger-codegen.
 debugSwaggerAPI
