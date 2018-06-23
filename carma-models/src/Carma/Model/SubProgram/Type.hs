@@ -8,13 +8,11 @@ collisions.
 -}
 
 module Carma.Model.SubProgram.Type
-    ( SubProgram(..)
-    , SubProgramContact(..)
-    , SubProgramContractPermission(..)
-    , SubProgramService(..)
-    )
-
-where
+     ( SubProgram(..)
+     , SubProgramContact(..)
+     , SubProgramContractPermission(..)
+     , SubProgramService(..)
+     ) where
 
 import Data.Text
 import Data.Typeable
@@ -81,6 +79,10 @@ data SubProgram = SubProgram
   , smsProgram  :: F Text
                    "smsProgram"
                    "Название программы в SMS"
+  , eraGlonassParticipant
+                :: F Bool
+                   "eraGlonassParticipant"
+                   "Обмен данными с ЭРА-ГЛОНАСС"
   , contractPrs :: F (IdentList SubProgramContractPermission)
                    "contractPermissions"
                    "Настройка партнёрского интерфейса"
