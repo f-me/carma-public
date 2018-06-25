@@ -193,4 +193,6 @@ data Case = Case
     :: F (IdentI CaseSource) "source" "Источник кейса"
   , acStart
     :: F (Maybe UTCTime) "acStart" "Время начала постзызывной обработки"
+  , isCreatedByEraGlonass
+    :: F Bool "isCreatedByEraGlonass" "Заявка от ЭРА-ГЛОНАСС"
   } deriving Typeable
