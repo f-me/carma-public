@@ -19,8 +19,8 @@ import           Control.Monad
 import           Control.Monad.Reader.Class (MonadReader, asks)
 
 import           Carma.NominatimMediator.Types
-import           Carma.NominatimMediator.Utils
 import           Carma.NominatimMediator.Logger
+import           Carma.Monad
 
 
 -- Handler which waits for new statistics write and adds it to the app's state.
@@ -28,8 +28,8 @@ import           Carma.NominatimMediator.Logger
 statisticsWriterInit
   :: ( MonadReader AppContext m
      , LoggerBusMonad m
-     , MVarMonad m -- To read next request and write real request
-     , IORefWithCounterMonad m -- To read from cache
+     , MonadMVar m -- To read next request and write real request
+     , MonadIORefWithCounter m -- To read from cache
      )
   => m ()
 statisticsWriterInit = do

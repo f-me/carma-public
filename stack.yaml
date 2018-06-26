@@ -7,9 +7,10 @@ packages:
 - carma-utils
 - carma-models
 - carma-model-utils
-- carma-mobile-server
+- carma-monads
 - carma-http
 - carma-dict
+- carma-mobile-server
 - carma-nominatim-mediator
 - carma-era-glonass-integration
 extra-deps:

@@ -49,10 +49,12 @@ import           Carma.NominatimMediator.Logger
 import           Carma.NominatimMediator.CacheGC
 import           Carma.NominatimMediator.CacheSync
 import           Carma.NominatimMediator.Utils
-import           Carma.NominatimMediator.Utils.StatisticsWriterMonad
-import           Carma.NominatimMediator.Utils.RequestExecutionMonad
+import           Carma.NominatimMediator.Utils.MonadStatisticsWriter
+import           Carma.NominatimMediator.Utils.MonadRequestExecution
 import           Carma.NominatimMediator.StatisticsWriter
 import           Carma.NominatimMediator.RequestExecutor
+import           Carma.Utils.Operators
+import           Carma.Monad
 
 
 -- Server routes
@@ -284,9 +286,9 @@ search
   :: ( MonadReader AppContext m
      , LoggerBusMonad m
      , MonadCatch m
-     , TimeMonad m -- For statistics
-     , StatisticsWriterMonad m -- To notify about failure cases
-     , RequestExecutionMonad m
+     , MonadClock m -- For statistics
+     , MonadStatisticsWriter m -- To notify about failure cases
+     , MonadRequestExecution m
      )
   => Lang -> SearchQuery -> m [SearchByQueryResponse]
 search lang query =
@@ -318,9 +320,9 @@ revSearch
   :: ( MonadReader AppContext m
      , LoggerBusMonad m
      , MonadCatch m
-     , TimeMonad m -- For statistics
-     , StatisticsWriterMonad m -- To notify about failure cases
-     , RequestExecutionMonad m
+     , MonadClock m -- For statistics
+     , MonadStatisticsWriter m -- To notify about failure cases
+     , MonadRequestExecution m
      )
   => Lang -> Coords -> m SearchByCoordsResponse
 revSearch lang coords@(Coords lon' lat') =
@@ -352,7 +354,7 @@ revSearch lang coords@(Coords lon' lat') =
 debugCachedQueries
   :: ( MonadReader AppContext m
      , LoggerBusMonad m
-     , IORefWithCounterMonad m
+     , MonadIORefWithCounter m
      )
   => m [DebugCachedQuery]
 debugCachedQueries = do
@@ -367,7 +369,7 @@ debugCachedQueries = do
 debugCachedResponses
   :: ( MonadReader AppContext m
      , LoggerBusMonad m
-     , IORefWithCounterMonad m
+     , MonadIORefWithCounter m
      )
   => m [DebugCachedResponse]
 debugCachedResponses = do
@@ -391,7 +393,7 @@ debugCachedResponses = do
 debugStatistics
   :: ( MonadReader AppContext m
      , LoggerBusMonad m
-     , IORefWithCounterMonad m
+     , MonadIORefWithCounter m
      )
   => m [StatisticsDay]
 debugStatistics = do
@@ -490,7 +492,7 @@ throwUnexpectedResponse x = do
 
 
 writeFailureToStatistics
-  :: (MonadReader AppContext m, TimeMonad m, StatisticsWriterMonad m)
+  :: (MonadReader AppContext m, MonadClock m, MonadStatisticsWriter m)
   => RequestType -> m ()
 writeFailureToStatistics reqType = do
   utcTime <- getCurrentTime

@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Carma.NominatimMediator.Utils.RequestExecutionMonad where
+module Carma.NominatimMediator.Utils.MonadRequestExecution where
 
 import           Control.Monad.Reader.Class (MonadReader, asks)
 import           Control.Monad.Catch (MonadThrow, throwM, toException)
@@ -11,9 +11,10 @@ import           Servant.Client
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
+import           Carma.Monad
 
 
-class Monad m => RequestExecutionMonad m where
+class Monad m => MonadRequestExecution m where
   -- Sends request to requests executor bus
   -- and creates response bus and waits for response.
   executeRequest
@@ -25,10 +26,10 @@ class Monad m => RequestExecutionMonad m where
 instance ( Monad m
          , MonadReader AppContext m
          , MonadThrow m
-         , ThreadMonad m
-         , DelayMonad m
-         , MVarMonad m
-         ) => RequestExecutionMonad m
+         , MonadThread m
+         , MonadDelay m
+         , MonadMVar m
+         ) => MonadRequestExecution m
          where
 
   executeRequest reqParams reqMonad = do

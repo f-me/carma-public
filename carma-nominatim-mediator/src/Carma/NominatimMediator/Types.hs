@@ -37,6 +37,8 @@ import           Web.HttpApiData
 import           Servant.Client
 
 import           Carma.NominatimMediator.Utils
+import           Carma.Monad.IORefWithCounter
+import           Carma.Utils.Operators
 
 
 -- Some type wrappers to avoid human-factor mistakes and also to parse stuff

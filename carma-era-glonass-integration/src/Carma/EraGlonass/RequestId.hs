@@ -13,7 +13,7 @@ import           Data.Digest.Pure.MD5 (md5)
 
 import           Control.Monad.Random.Class (MonadRandom, getRandoms)
 
-import           Carma.EraGlonass.Monad.Clock (MonadClock, getCurrentTime)
+import           Carma.Monad.Clock
 
 
 -- `RequestId` is a free string that looks like:

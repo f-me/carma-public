@@ -18,6 +18,7 @@ import           Control.Monad.Logger (MonadLogger, logInfoN, logErrorN)
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
+import           Carma.Monad
 
 
 class Monad m => LoggerBusMonad m where
@@ -27,9 +28,9 @@ class Monad m => LoggerBusMonad m where
 
 instance ( Monad m
          , MonadReader AppContext m
-         , MVarMonad m
-         , TimeMonad m
-         , ThreadMonad m
+         , MonadMVar m
+         , MonadClock m
+         , MonadThread m
          ) => LoggerBusMonad m
          where
 

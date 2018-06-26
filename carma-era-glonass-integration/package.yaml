@@ -16,6 +16,7 @@ dependencies:
   - attoparsec
   - base
   - bytestring
+  - carma-monads
   - configurator
   - containers
   - directory
