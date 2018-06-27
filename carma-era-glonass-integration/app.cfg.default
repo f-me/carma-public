@@ -1,0 +1,5 @@
+# port for incoming requests
+port = 8166
+
+# [OPTIONAL]
+# host = "127.0.0.1"
