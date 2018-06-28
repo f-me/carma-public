@@ -19,7 +19,7 @@ import           Control.Monad
 import           Control.Monad.Reader.Class (MonadReader, asks)
 
 import           Carma.NominatimMediator.Types
-import           Carma.NominatimMediator.Logger
+import           Carma.NominatimMediator.Logger ()
 import           Carma.Monad
 
 
@@ -27,7 +27,7 @@ import           Carma.Monad
 -- Supposed to be run in own thread.
 statisticsWriterInit
   :: ( MonadReader AppContext m
-     , LoggerBusMonad m
+     , MonadLoggerBus m
      , MonadMVar m -- To read next request and write real request
      , MonadIORefWithCounter m -- To read from cache
      )

@@ -38,6 +38,7 @@ import           Servant.Client
 
 import           Carma.NominatimMediator.Utils
 import           Carma.Monad.IORefWithCounter
+import           Carma.Monad.LoggerBus.Types (LogMessage)
 import           Carma.Utils.Operators
 
 
@@ -511,12 +512,6 @@ newtype NominatimLat =
 
 instance ToHttpApiData NominatimLat where
   toUrlPiece = fromNominatimLat ? show ? fromString
-
-
--- Logger types
-
-data LogMessageType = LogInfo | LogError deriving (Show, Eq)
-data LogMessage     = LogMessage LogMessageType T.Text deriving (Show, Eq)
 
 
 -- Custom exceptions

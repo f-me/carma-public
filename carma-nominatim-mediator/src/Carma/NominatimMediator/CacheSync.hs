@@ -28,7 +28,7 @@ import           Control.Monad.Trans.Control (MonadBaseControl)
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
-import           Carma.NominatimMediator.Logger
+import           Carma.NominatimMediator.Logger ()
 import           Carma.Monad
 import           Carma.Utils.Operators
 
@@ -52,7 +52,7 @@ cacheSyncInit syncIntervalInHours syncFile =
 
 
 prepare -- Log and provide initial state
-  :: (MonadReader AppContext m, LoggerBusMonad m, MonadIORefWithCounter m)
+  :: (MonadReader AppContext m, MonadLoggerBus m, MonadIORefWithCounter m)
   => Float -> CacheSyncFile -> m (Integer, Integer)
 prepare syncIntervalInHours syncFile = do
   logInfo
@@ -81,7 +81,7 @@ syncCache
   :: ( MonadReader AppContext m
      , S.MonadState (Integer, Integer) m -- Counters that indicates
                                          -- if something is changed
-     , LoggerBusMonad m
+     , MonadLoggerBus m
      , MonadIORefWithCounter m -- Accessing responses cache or statistics data
      , MonadDelay m -- Waiting before checks
      , MonadFile m -- Saving snapshots to files
@@ -123,7 +123,7 @@ syncCache syncIntervalInHours syncFile = do
   where
     sync
       :: ( MonadReader AppContext m
-         , LoggerBusMonad m
+         , MonadLoggerBus m
          , MonadFile m
          , Show k
          , Show v
@@ -163,7 +163,7 @@ syncCache syncIntervalInHours syncFile = do
 -- nothing (except log messasge).
 fillCacheWithSnapshot
   :: ( MonadReader AppContext m
-     , LoggerBusMonad m
+     , MonadLoggerBus m
      , MonadIORefWithCounter m
      , MonadFile m
      )
@@ -186,7 +186,7 @@ fillCacheWithSnapshot = \case
 
   where
     checkFileExistence
-      :: (LoggerBusMonad m, MonadFile m)
+      :: (MonadLoggerBus m, MonadFile m)
       => Text -> FilePath -> m Bool
     checkFileExistence title file = do
       logInfo
@@ -201,7 +201,7 @@ fillCacheWithSnapshot = \case
 
     loadCacheSnapshot
       :: ( MonadReader AppContext m
-         , LoggerBusMonad m
+         , MonadLoggerBus m
          , MonadFile m
          , MonadIORefWithCounter m
          )
@@ -213,7 +213,7 @@ fillCacheWithSnapshot = \case
 
     loadStatisticsSnapshot
       :: ( MonadReader AppContext m
-         , LoggerBusMonad m
+         , MonadLoggerBus m
          , MonadFile m
          , MonadIORefWithCounter m
          )

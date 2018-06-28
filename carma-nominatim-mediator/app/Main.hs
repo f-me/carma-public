@@ -26,6 +26,7 @@ import           Data.Function ((&), on)
 import           Data.Swagger (Swagger)
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
+import qualified Data.Time.Format as Time
 
 import           Control.Monad
 import           Control.Monad.Logger (runStdoutLoggingT)
@@ -45,7 +46,7 @@ import           Network.HTTP.Client (Manager, newManager)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
 
 import           Carma.NominatimMediator.Types
-import           Carma.NominatimMediator.Logger
+import           Carma.NominatimMediator.Logger ()
 import           Carma.NominatimMediator.CacheGC
 import           Carma.NominatimMediator.CacheSync
 import           Carma.NominatimMediator.Utils
@@ -54,6 +55,7 @@ import           Carma.NominatimMediator.Utils.MonadRequestExecution
 import           Carma.NominatimMediator.StatisticsWriter
 import           Carma.NominatimMediator.RequestExecutor
 import           Carma.Utils.Operators
+import           Carma.Monad.LoggerBus.MonadLogger
 import           Carma.Monad
 
 
@@ -186,7 +188,7 @@ main = do
   flip runReaderT appCtx $ do
 
     -- Running logger thread
-    _ <- fork $ runStdoutLoggingT $ loggerInit
+    _ <- fork $ runStdoutLoggingT $ writeLoggerBusEventsToMonadLogger
 
     -- Trying to fill responses cache or/and statistics with initial snapshot
     case (cacheFile, statisticsFile) of
@@ -284,7 +286,7 @@ appServer =
 
 search
   :: ( MonadReader AppContext m
-     , LoggerBusMonad m
+     , MonadLoggerBus m
      , MonadCatch m
      , MonadClock m -- For statistics
      , MonadStatisticsWriter m -- To notify about failure cases
@@ -318,7 +320,7 @@ search lang query =
 
 revSearch
   :: ( MonadReader AppContext m
-     , LoggerBusMonad m
+     , MonadLoggerBus m
      , MonadCatch m
      , MonadClock m -- For statistics
      , MonadStatisticsWriter m -- To notify about failure cases
@@ -353,7 +355,7 @@ revSearch lang coords@(Coords lon' lat') =
 
 debugCachedQueries
   :: ( MonadReader AppContext m
-     , LoggerBusMonad m
+     , MonadLoggerBus m
      , MonadIORefWithCounter m
      )
   => m [DebugCachedQuery]
@@ -364,11 +366,11 @@ debugCachedQueries = do
     <&> M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
 
   where reducer acc (k, (t, _)) =
-          DebugCachedQuery k [qm| {formatTime t} UTC |] : acc
+          DebugCachedQuery k [qm| {debugFormatTime t} UTC |] : acc
 
 debugCachedResponses
   :: ( MonadReader AppContext m
-     , LoggerBusMonad m
+     , MonadLoggerBus m
      , MonadIORefWithCounter m
      )
   => m [DebugCachedResponse]
@@ -382,7 +384,7 @@ debugCachedResponses = do
     reducer acc (k, (t, response'))
       = DebugCachedResponse
       { request_params = k
-      , time           = [qm| {formatTime t} UTC |]
+      , time           = [qm| {debugFormatTime t} UTC |]
       , response_type  = requestType response'
       , response       = rjson
       } : acc
@@ -392,7 +394,7 @@ debugCachedResponses = do
 
 debugStatistics
   :: ( MonadReader AppContext m
-     , LoggerBusMonad m
+     , MonadLoggerBus m
      , MonadIORefWithCounter m
      )
   => m [StatisticsDay]
@@ -484,7 +486,7 @@ reverseSearchByCoords
 
 -- Throwing `UnexpectedResponseResultException` with logging this error
 throwUnexpectedResponse
-  :: (MonadThrow m, MonadReader AppContext m, LoggerBusMonad m)
+  :: (MonadThrow m, MonadReader AppContext m, MonadLoggerBus m)
   => Response -> m a
 throwUnexpectedResponse x = do
   logError [qm| Unexpected response result: {x}! |]
@@ -497,3 +499,6 @@ writeFailureToStatistics
 writeFailureToStatistics reqType = do
   utcTime <- getCurrentTime
   writeStatistics utcTime reqType RequestIsFailed
+
+debugFormatTime :: Time.FormatTime t => t -> String
+debugFormatTime = Time.formatTime Time.defaultTimeLocale "%Y-%m-%d %H:%M:%S"

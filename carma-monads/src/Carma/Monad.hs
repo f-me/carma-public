@@ -1,6 +1,7 @@
 module Carma.Monad
      ( module Carma.Monad.IORefWithCounter
      , module Carma.Monad.ServantClient
+     , module Carma.Monad.LoggerBus
      , module Carma.Monad.Thread
      , module Carma.Monad.Clock
      , module Carma.Monad.Delay
@@ -10,6 +11,7 @@ module Carma.Monad
 
 import           Carma.Monad.IORefWithCounter
 import           Carma.Monad.ServantClient
+import           Carma.Monad.LoggerBus
 import           Carma.Monad.Thread
 import           Carma.Monad.Clock
 import           Carma.Monad.Delay
