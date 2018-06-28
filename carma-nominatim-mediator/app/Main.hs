@@ -363,7 +363,8 @@ debugCachedQueries = do
   logInfo "Debugging cached queries..."
 
   (asks responsesCache >>= readIORefWithCounter)
-    <&> M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
+    <&> -- Ordering by adding to cache time
+        M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
 
   where reducer acc (k, (t, _)) =
           DebugCachedQuery k [qm| {debugFormatTime t} UTC |] : acc
@@ -378,7 +379,8 @@ debugCachedResponses = do
   logInfo "Debugging cached responses..."
 
   (asks responsesCache >>= readIORefWithCounter)
-    <&> M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
+    <&> -- Ordering by adding to cache time
+        M.assocs ? sortBy (compare `on` snd ? fst) ? foldl reducer []
 
   where
     reducer acc (k, (t, response'))
@@ -499,6 +501,7 @@ writeFailureToStatistics
 writeFailureToStatistics reqType = do
   utcTime <- getCurrentTime
   writeStatistics utcTime reqType RequestIsFailed
+
 
 debugFormatTime :: Time.FormatTime t => t -> String
 debugFormatTime = Time.formatTime Time.defaultTimeLocale "%Y-%m-%d %H:%M:%S"

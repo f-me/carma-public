@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 -- Incoming server implementation to provide an API for Era Glonass side
 -- and also some debug stuff for internal usage.
@@ -10,10 +11,13 @@ module Carma.EraGlonass.Server
 import           Data.Proxy
 import           Data.Swagger (Swagger)
 
+import           Control.Monad.Reader (runReaderT)
+
 import           Servant
 import           Servant.Swagger (toSwagger)
 
 import           Carma.EraGlonass.Routes
+import           Carma.EraGlonass.Types (AppContext)
 
 
 type ServerAPI
@@ -21,17 +25,20 @@ type ServerAPI
   :<|> "debug" :> "swagger" :> Get '[JSON] Swagger
 
 
-serverApplicaton :: Application
-serverApplicaton = serve (Proxy :: Proxy ServerAPI) server
+serverApplicaton :: AppContext -> Application
+serverApplicaton appContext
+  = serve (Proxy :: Proxy ServerAPI)
+  $ server appContext
 
 
-server :: Server ServerAPI
-server = egCRM01 :<|> swagger
+server :: AppContext -> Server ServerAPI
+server appContext = wrap egCRM01 :<|> wrap swagger
+  where wrap = flip runReaderT appContext
 
 
-egCRM01 :: Handler ()
+egCRM01 :: Applicative m => m ()
 egCRM01 = pure ()
 
 
-swagger :: Handler Swagger
+swagger :: Applicative m => m Swagger
 swagger = pure $ toSwagger (Proxy :: Proxy IncomingAPI)

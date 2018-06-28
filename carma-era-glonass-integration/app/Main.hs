@@ -10,9 +10,18 @@ import qualified Data.Configurator as Conf
 import           Data.String (fromString)
 import           Text.InterpolatedString.QM
 
+import           Control.Monad.Reader (runReaderT)
+import           Control.Monad.Logger (runStdoutLoggingT)
+
 import qualified Network.Wai.Handler.Warp as Warp
 
 import           Carma.EraGlonass.Server (serverApplicaton)
+import           Carma.EraGlonass.Types (AppContext (..))
+import           Carma.EraGlonass.Logger () -- MonadLoggerBus instance
+import           Carma.Monad.LoggerBus.MonadLogger
+import           Carma.Monad.LoggerBus
+import           Carma.Monad.Thread
+import           Carma.Monad.MVar
 
 
 main :: IO ()
@@ -22,12 +31,28 @@ main = do
   !(port :: Warp.Port) <- Conf.require cfg "port"
   !(host :: String)    <- Conf.lookupDefault "127.0.0.1" cfg "host"
 
-  putStrLn [qm| Running incoming server on http://{host}:{port}... |]
-  runIncomingServer port $ fromString host
+  loggerBus' <- newEmptyMVar
+
+  let appContext
+        = AppContext
+        { loggerBus = loggerBus'
+        }
+
+  flip runReaderT appContext $ do
+
+    -- Running logger thread
+    _ <- fork $ runStdoutLoggingT $ writeLoggerBusEventsToMonadLogger
+
+    logInfo [qm| Running incoming server on http://{host}:{port}... |]
+
+  runIncomingServer appContext port $ fromString host
 
 
-runIncomingServer :: Warp.Port -> Warp.HostPreference -> IO ()
-runIncomingServer port host = Warp.runSettings warpSettings serverApplicaton
+runIncomingServer :: AppContext -> Warp.Port -> Warp.HostPreference -> IO ()
+runIncomingServer appContext port host
+  = Warp.runSettings warpSettings
+  $ serverApplicaton appContext
+
   where warpSettings
           = Warp.defaultSettings
           & Warp.setPort port

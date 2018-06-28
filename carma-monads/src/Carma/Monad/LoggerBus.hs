@@ -22,6 +22,7 @@ import           Carma.Monad.LoggerBus.Types
 import           Carma.Monad.LoggerBus.Class
 
 
+-- Generic implementation of `logInfo` from `MonadLoggerBus`
 logInfoImpl
   :: (MonadMVar m, MonadClock m, MonadThread m)
   => MVar LogMessage -> T.Text -> m ()
@@ -33,6 +34,7 @@ logInfoImpl loggerBus' msg = do
       [qm| [{formatTime utc} UTC] {msg} |]
 
 
+-- Generic implementation of `logError` from `MonadLoggerBus`
 logErrorImpl
   :: (MonadMVar m, MonadClock m, MonadThread m)
   => MVar LogMessage -> T.Text -> m ()
@@ -44,6 +46,7 @@ logErrorImpl loggerBus' msg = do
       [qm| [{formatTime utc} UTC] {msg} |]
 
 
+-- Generic implementation of `readLog` from `MonadLoggerBus`
 readLogImpl :: MonadMVar m => MVar LogMessage -> m LogMessage
 readLogImpl = takeMVar
 
