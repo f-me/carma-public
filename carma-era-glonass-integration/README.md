@@ -14,6 +14,15 @@ Short and simplified description is:
 
 A system that is integrated to a car to provide rapid emergency assistance.
 
+# Testing
+
+You could simulate *EG.CRM.01* request from Era Glonass by this command
+(keep in mind that `carma-era-glonass-integration` server must be run to do so):
+
+```bash
+stack test :simulate-create-call-card
+```
+
 ## TODO
 
 - Add more description to this document
