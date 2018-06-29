@@ -9,6 +9,8 @@ module Carma.EraGlonass.Routes
 
 import           Servant
 
+import           Carma.EraGlonass.Types
+
 
 -- Routes which CaRMa provides for outside requests by Era Glonass.
 type IncomingAPI
@@ -20,7 +22,8 @@ type IncomingAPI
      --
      -- POST /calls/status
      --
-     "calls" :> "status" :> Post '[JSON] ()
+     "calls" :> "status" :> ReqBody '[JSON] EraGlonassCreateCallCardRequest
+                         :> Post    '[JSON] ()
 
 
 type OutcomingAPI

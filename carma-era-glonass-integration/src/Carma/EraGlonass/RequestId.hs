@@ -1,4 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE LambdaCase #-}
 
 -- A module that helps to deal with `RequestId` of Era Glonass service
 module Carma.EraGlonass.RequestId
@@ -6,10 +9,18 @@ module Carma.EraGlonass.RequestId
      , newRequestId
      ) where
 
+import           Data.Word
 import           Data.Monoid ((<>))
+import           Data.Function ((&))
 import           Data.ByteString.Char8 (ByteString, pack)
 import           Data.ByteString.Lazy.Char8 (pack)
 import           Data.Digest.Pure.MD5 (md5)
+import           Text.InterpolatedString.QM
+import           Data.Text.Encoding (encodeUtf8)
+import           Data.Swagger
+import           Data.Aeson
+import           Data.Aeson.Types hiding (Parser)
+import           Data.Attoparsec.ByteString.Char8 hiding (take)
 
 import           Control.Monad.Random.Class (MonadRandom, getRandoms)
 
@@ -27,6 +38,39 @@ import           Carma.Monad.Clock
 --
 newtype RequestId = RequestId ByteString deriving (Eq, Show)
 
+requestIdParser :: Parser RequestId
+requestIdParser = f
+  <$> count (allDashesParts !! 0) hexadecimal
+  <*> count (allDashesParts !! 1) hexadecimal
+  <*> count (allDashesParts !! 2) hexadecimal
+  <*> count (allDashesParts !! 3) hexadecimal
+  <*> count (allDashesParts !! 4) hexadecimal
+  where f :: [Word8] -> [Word8] -> [Word8] -> [Word8] -> [Word8] -> RequestId
+        -- TODO transform to hex parts back
+        f a b c d e = RequestId [qm| {a}-{b}-{c}-{d}-{e} |]
+
+instance FromJSON RequestId where
+  parseJSON v@(String x)
+    = parseOnly requestIdParser (encodeUtf8 x)
+    & \case Left  _ -> typeMismatch "RequestId" v
+            Right y -> pure y
+
+  parseJSON invalid = typeMismatch "RequestId" invalid
+
+instance ToSchema RequestId where
+  declareNamedSchema _ = pure $ NamedSchema (Just "RequestId") mempty
+    { _schemaParamSchema = mempty
+        { _paramSchemaType    = SwaggerString
+        , _paramSchemaFormat  = Just "UUID"
+        , _paramSchemaPattern = Just [qm| ^[0-9A-Za-f]\{{allDashesParts !! 0}}
+                                          -[0-9A-Za-f]\{{allDashesParts !! 1}}
+                                          -[0-9A-Za-f]\{{allDashesParts !! 2}}
+                                          -[0-9A-Za-f]\{{allDashesParts !! 3}}
+                                          -[0-9A-Za-f]\{{allDashesParts !! 4}}
+                                          $ |]
+        }
+    }
+
 
 -- Builds new unique `RequestId`.
 newRequestId :: (MonadRandom m, MonadClock m) => m RequestId
@@ -41,14 +85,16 @@ newRequestId = do
        $ Data.ByteString.Lazy.Char8.pack
        $ randomPart <> ('|' : currentTime)
 
-  where -- Lengths of parts of hash to interleave with dashes.
-        -- Last part length is omitted.
-        dashesParts = [8, 4, 4, 4] :: [Int]
-
-        -- Puts dashes to proper places of hash string
+  where -- Puts dashes to proper places of hash string
         interleaveWithDashes :: String -> String
-        interleaveWithDashes x = uncurry f $ foldl reducer ("", x) dashesParts
+        interleaveWithDashes x =
+          uncurry f $ foldl reducer ("", x) $ init allDashesParts
           where f a b = a <> ('-' : b)
                 reducer (prevAcc, rest) i = (newAcc, b)
                   where (a, b) = splitAt i rest
                         newAcc = if null prevAcc then a else f prevAcc a
+
+
+-- Lengths of parts between dashes in UUID of "RequestId".
+allDashesParts :: [Int]
+allDashesParts = [8, 4, 4, 4, 12]

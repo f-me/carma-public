@@ -17,7 +17,7 @@ import           Servant
 import           Servant.Swagger (toSwagger)
 
 import           Carma.EraGlonass.Routes
-import           Carma.EraGlonass.Types (AppContext)
+import           Carma.EraGlonass.Types
 
 
 type ServerAPI
@@ -32,12 +32,12 @@ serverApplicaton appContext
 
 
 server :: AppContext -> Server ServerAPI
-server appContext = wrap egCRM01 :<|> wrap swagger
+server appContext = (\req -> wrap $ egCRM01 req) :<|> wrap swagger
   where wrap = flip runReaderT appContext
 
 
-egCRM01 :: Applicative m => m ()
-egCRM01 = pure ()
+egCRM01 :: Applicative m => EraGlonassCreateCallCardRequest -> m ()
+egCRM01 _ = pure ()
 
 
 swagger :: Applicative m => m Swagger
