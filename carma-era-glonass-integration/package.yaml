@@ -59,7 +59,16 @@ executables:
 tests:
   # "carma-era-glonass-integration" server must be run to simulate request.
   # It simulates request from Era Glonass' side.
-  simulate-create-call-card:
+  carma-era-glonass-integration-simulate-create-call-card:
     source-dirs: test
     main: SimulateCreateCallCard.hs
-    dependencies: [carma-era-glonass-integration]
+    dependencies:
+      - carma-era-glonass-integration
+
+  carma-era-glonass-integration-utils:
+    source-dirs: test
+    main: Utils.hs
+    dependencies:
+      - carma-era-glonass-integration
+      - hspec
+      - random

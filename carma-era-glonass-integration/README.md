@@ -20,7 +20,7 @@ You could simulate *EG.CRM.01* request from Era Glonass by this command
 (keep in mind that `carma-era-glonass-integration` server must be run to do so):
 
 ```bash
-stack test :simulate-create-call-card
+stack test :carma-era-glonass-integration-simulate-create-call-card
 ```
 
 ## TODO
