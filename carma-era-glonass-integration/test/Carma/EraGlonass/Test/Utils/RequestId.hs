@@ -20,6 +20,7 @@ import           System.Random
 
 import           Carma.EraGlonass.RequestId
 import           Carma.Monad.Clock
+import           Carma.Utils.Operators
 
 
 -- Value contatiner with action mark accumulator
@@ -60,11 +61,19 @@ instance MonadRandom TestState where
 spec :: Spec
 spec = do
   describe "Entropy is enough" $ do
-    it "Gets current time" $
-      state `shouldSatisfy` elem "MonadClock.getCurrentTime"
+    describe "Gets current time" $ do
+      it "Gets it" $
+        state `shouldSatisfy` elem "MonadClock.getCurrentTime"
+      it "Gets it only once" $
+        state `shouldSatisfy`
+          filter (== "MonadClock.getCurrentTime") ? length ? (==1)
 
-    it "Gets random number" $
-      state `shouldSatisfy` elem "MonadRandom.getRandoms"
+    describe "Gets random values" $ do
+      it "Gets it" $
+        state `shouldSatisfy` elem "MonadRandom.getRandoms"
+      it "Gets it only once" $
+        state `shouldSatisfy`
+          filter (== "MonadRandom.getRandoms") ? length ? (==1)
 
     it "Does not touche other random functions" $ do
       state `shouldNotSatisfy` elem "MonadRandom.getRandomR"
