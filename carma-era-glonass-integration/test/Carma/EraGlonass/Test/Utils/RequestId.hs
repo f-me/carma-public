@@ -16,7 +16,7 @@ import           Data.Function ((&))
 import           Data.Time.Calendar
 import           Data.Time.Clock hiding (getCurrentTime)
 import           Data.Attoparsec.ByteString.Char8 (parseOnly)
-import           Data.ByteString.Char8 (unpack)
+import           Data.ByteString.Char8 (pack, unpack)
 import           Text.InterpolatedString.QM
 
 import           Control.Monad (ap)
@@ -81,7 +81,7 @@ spec = do
         state `shouldSatisfy`
           filter (== "MonadRandom.getRandoms") ? length ? (==1)
 
-    it "Does not touche other random functions" $ do
+    it "Does not touch other random functions" $ do
       state `shouldNotSatisfy` elem "MonadRandom.getRandomR"
       state `shouldNotSatisfy` elem "MonadRandom.getRandom"
       state `shouldNotSatisfy` elem "MonadRandom.getRandomRs"
@@ -172,5 +172,18 @@ spec = do
       (show <$> parseOnly requestIdParser referenceVal3) `shouldSatisfy` isLeft
       (show <$> parseOnly requestIdParser referenceVal4) `shouldSatisfy` isLeft
       (show <$> parseOnly requestIdParser referenceVal5) `shouldSatisfy` isLeft
+
+    it [qns| Getting new, converting to string and parsing it back to RequestId
+             (full cycle) |] $ do
+
+      let referenceVal = "7fa07404-59a6-bae3-5591-3b39ce9708fa"
+
+          ('R':'e':'q':'u':'e':'s':'t':'I':'d':' ':'"':
+            (init -> pack -> x)) = value
+
+      x `shouldBe` referenceVal
+
+      (show <$> parseOnly requestIdParser x) `shouldBe`
+        Right [qm| RequestId "{referenceVal}" |]
 
   where (TestState state (show -> value)) = newRequestId :: TestState RequestId
