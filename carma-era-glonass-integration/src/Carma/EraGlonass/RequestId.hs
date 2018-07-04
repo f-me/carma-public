@@ -7,9 +7,11 @@
 module Carma.EraGlonass.RequestId
      ( RequestId
      , newRequestId
+     , requestIdParser
      ) where
 
-import           Data.Word
+import           Numeric (showHex)
+import           Data.Char (digitToInt)
 import           Data.Monoid ((<>))
 import           Data.Function ((&))
 import           Data.ByteString.Char8 (ByteString, pack)
@@ -40,14 +42,19 @@ newtype RequestId = RequestId ByteString deriving (Eq, Show)
 
 requestIdParser :: Parser RequestId
 requestIdParser = f
-  <$> count (allDashesParts !! 0) hexadecimal
-  <*> count (allDashesParts !! 1) hexadecimal
-  <*> count (allDashesParts !! 2) hexadecimal
-  <*> count (allDashesParts !! 3) hexadecimal
-  <*> count (allDashesParts !! 4) hexadecimal
-  where f :: [Word8] -> [Word8] -> [Word8] -> [Word8] -> [Word8] -> RequestId
-        -- TODO transform to hex parts back
-        f a b c d e = RequestId [qm| {a}-{b}-{c}-{d}-{e} |]
+  <$> count (allDashesParts !! 0) hexDigit <* char '-'
+  <*> count (allDashesParts !! 1) hexDigit <* char '-'
+  <*> count (allDashesParts !! 2) hexDigit <* char '-'
+  <*> count (allDashesParts !! 3) hexDigit <* char '-'
+  <*> count (allDashesParts !! 4) hexDigit <* endOfInput
+
+  where hexDigit = digitToInt <$> satisfy (`elem` chars)
+          where chars = ['a'..'f'] <> ['A' .. 'F'] <> ['0'..'9']
+
+        f :: [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> RequestId
+        f a b c d e = RequestId [qm| {g a}-{g b}-{g c}-{g d}-{g e} |]
+          where g :: [Int] -> String
+                g = mconcat . map (flip showHex "")
 
 instance FromJSON RequestId where
   parseJSON v@(String x)

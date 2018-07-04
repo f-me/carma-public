@@ -1,6 +1,8 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Carma.EraGlonass.Test.Utils.RequestId
      ( spec
@@ -8,9 +10,13 @@ module Carma.EraGlonass.Test.Utils.RequestId
 
 import           Test.Hspec
 
+import           Data.Either
+import           Data.Char (toLower)
 import           Data.Function ((&))
 import           Data.Time.Calendar
 import           Data.Time.Clock hiding (getCurrentTime)
+import           Data.Attoparsec.ByteString.Char8 (parseOnly)
+import           Data.ByteString.Char8 (unpack)
 import           Text.InterpolatedString.QM
 
 import           Control.Monad (ap)
@@ -89,5 +95,82 @@ spec = do
 
     it "Produced RequestId is correct" $
       value `shouldBe` [qn| RequestId "7fa07404-59a6-bae3-5591-3b39ce9708fa" |]
+
+  describe "RequestId Parser" $ do
+    it "Usual RequestId from string" $ do
+      let referenceVal1 = "00000000-0000-0000-0000-000000000000"
+          referenceVal2 = "7fa07404-59a6-bae3-5591-3b39ce9708fa"
+          referenceVal3 = "ffffffff-ffff-ffff-ffff-ffffffffffff"
+
+      (show <$> parseOnly requestIdParser referenceVal1) `shouldBe`
+        Right [qm| RequestId "{referenceVal1}" |]
+      (show <$> parseOnly requestIdParser referenceVal2) `shouldBe`
+        Right [qm| RequestId "{referenceVal2}" |]
+      (show <$> parseOnly requestIdParser referenceVal3) `shouldBe`
+        Right [qm| RequestId "{referenceVal3}" |]
+
+    it "Upper-case hash" $ do
+      let referenceVal1 = "7FA07404-59A6-BAE3-5591-3B39CE9708FA"
+          referenceVal2 = "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
+
+      (show <$> parseOnly requestIdParser referenceVal1) `shouldBe`
+        Right [qm| RequestId "{toLower <$> unpack referenceVal1}" |]
+      (show <$> parseOnly requestIdParser referenceVal2) `shouldBe`
+        Right [qm| RequestId "{toLower <$> unpack referenceVal2}" |]
+
+    it "Out of hex range is failing" $ do
+      let referenceVal1 = "0000f000-0000-0000-0000-000000000000"
+          referenceVal2 = "0000g000-0000-0000-0000-000000000000"
+          referenceVal3 = "0000F000-0000-0000-0000-000000000000"
+          referenceVal4 = "0000G000-0000-0000-0000-000000000000"
+
+      (show <$> parseOnly requestIdParser referenceVal1) `shouldBe`
+        Right [qm| RequestId "{referenceVal1}" |]
+      (show <$> parseOnly requestIdParser referenceVal2) `shouldSatisfy` isLeft
+      (show <$> parseOnly requestIdParser referenceVal3) `shouldBe`
+        Right [qm| RequestId "{toLower <$> unpack referenceVal3}" |]
+      (show <$> parseOnly requestIdParser referenceVal4) `shouldSatisfy` isLeft
+
+    it "Misplaced dash is failing" $ do
+      let referenceVal = "0000000-00000-0000-0000-000000000000"
+      (show <$> parseOnly requestIdParser referenceVal) `shouldSatisfy` isLeft
+
+    it "No dashes is failing" $ do
+      let referenceVal = "00000000000000000000000000000000"
+      (show <$> parseOnly requestIdParser referenceVal) `shouldSatisfy` isLeft
+
+    it "Trailing dash is failing" $ do
+      let referenceVal = "00000000-0000-0000-0000-000000000000-"
+      (show <$> parseOnly requestIdParser referenceVal) `shouldSatisfy` isLeft
+
+    it "Prefixed dash is failing" $ do
+      let referenceVal = "-00000000-0000-0000-0000-000000000000"
+      (show <$> parseOnly requestIdParser referenceVal) `shouldSatisfy` isLeft
+
+    it "Not enough digits is failing" $ do
+      let referenceVal1 = "00000000-0000-0000-0000-00000000000"
+          referenceVal2 = "00000000-0000-0000-000-000000000000"
+          referenceVal3 = "00000000-0000-000-0000-000000000000"
+          referenceVal4 = "00000000-000-0000-0000-000000000000"
+          referenceVal5 = "0000000-0000-0000-0000-000000000000"
+
+      (show <$> parseOnly requestIdParser referenceVal1) `shouldSatisfy` isLeft
+      (show <$> parseOnly requestIdParser referenceVal2) `shouldSatisfy` isLeft
+      (show <$> parseOnly requestIdParser referenceVal3) `shouldSatisfy` isLeft
+      (show <$> parseOnly requestIdParser referenceVal4) `shouldSatisfy` isLeft
+      (show <$> parseOnly requestIdParser referenceVal5) `shouldSatisfy` isLeft
+
+    it "Extra digits is failing" $ do
+      let referenceVal1 = "00000000-0000-0000-0000-0000000000000"
+          referenceVal2 = "00000000-0000-0000-00000-000000000000"
+          referenceVal3 = "00000000-0000-00000-0000-000000000000"
+          referenceVal4 = "00000000-00000-0000-0000-000000000000"
+          referenceVal5 = "000000000-0000-0000-0000-000000000000"
+
+      (show <$> parseOnly requestIdParser referenceVal1) `shouldSatisfy` isLeft
+      (show <$> parseOnly requestIdParser referenceVal2) `shouldSatisfy` isLeft
+      (show <$> parseOnly requestIdParser referenceVal3) `shouldSatisfy` isLeft
+      (show <$> parseOnly requestIdParser referenceVal4) `shouldSatisfy` isLeft
+      (show <$> parseOnly requestIdParser referenceVal5) `shouldSatisfy` isLeft
 
   where (TestState state (show -> value)) = newRequestId :: TestState RequestId
