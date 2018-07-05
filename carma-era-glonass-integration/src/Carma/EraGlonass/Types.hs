@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Carma.EraGlonass.Types
      ( AppContext (..)
@@ -10,11 +12,18 @@ import           GHC.Generics (Generic)
 
 import           Data.Int
 import           Data.Word
-import           Data.Text
-import           Data.Swagger.Schema (ToSchema)
-import           Data.Aeson (FromJSON)
+import           Data.Maybe
+import           Data.String (fromString)
+import           Data.Text hiding (count)
+import           Data.Text.Encoding (encodeUtf8)
+import           Text.InterpolatedString.QM
+import           Data.Aeson
+import           Data.Aeson.Types (typeMismatch)
+import           Data.Swagger
+import           Data.Attoparsec.ByteString.Char8
 
 import           Control.Concurrent.MVar (MVar)
+import           Control.Applicative ((<|>))
 
 import           Carma.Monad.LoggerBus.Types (LogMessage)
 import           Carma.EraGlonass.RequestId (RequestId)
@@ -38,7 +47,7 @@ data EraGlonassCreateCallCardRequest
        -- ^ Identity of "Call Card" (required to answer)
        --   CaRMa field: TODO
 
-   , atPhoneNumber :: Text
+   , atPhoneNumber :: EGPhoneNumber
        -- ^ A contact phone number.
        --   A string from 1 to 18 chars of numbers which could be prefixed with
        --   '+'.
@@ -58,7 +67,7 @@ data EraGlonassCreateCallCardRequest
        -- ^ A string of 50 chars.
        --   CaRMa field: "contact_name"
 
-   , callerPhoneNumber :: Text
+   , callerPhoneNumber :: EGPhoneNumber
        -- ^ A phone number of a customer (where "atPhoneNumber" could be some
        --   EG operator's phone I believe, TODO need to clarify this).
        --   A string from 1 to 18 chars of numbers which could be prefixed with
@@ -104,3 +113,34 @@ data EraGlonassCreateCallCardRequest
        --   CaRMa field: "caseAddress_address"
 
    } deriving (Generic, ToSchema, FromJSON)
+
+
+-- A string from 1 to 18 chars of numbers which could be prefixed with '+'
+data EGPhoneNumber = EGPhoneNumber Text deriving (Show, Eq)
+
+instance FromJSON EGPhoneNumber where
+  -- TODO tests for parser
+  parseJSON _x@(String x) =
+    case parseOnly parser (encodeUtf8 x) of
+         Left  _ -> typeMismatch "EGPhoneNumber" _x
+         Right y -> pure y
+
+    where parser = f
+            <$> (optionalPlus *> digit)
+            <*> count 16 optionalDigit
+            <*  endOfInput
+            where optionalPlus  = (Just <$> char '+') <|> pure Nothing
+                  optionalDigit = (Just <$> digit)    <|> pure Nothing
+                  f a b = EGPhoneNumber $ fromString $ a : catMaybes b
+
+  parseJSON x = typeMismatch "EGPhoneNumber" x
+
+instance ToSchema EGPhoneNumber where
+  declareNamedSchema _ = pure
+    $ NamedSchema (Just "EGPhoneNumber") mempty
+    { _schemaParamSchema = mempty
+        { _paramSchemaType    = SwaggerString
+        , _paramSchemaFormat  = Just "phone"
+        , _paramSchemaPattern = Just [qn| ^\+?[0-9]{1,17}$ |]
+        }
+    }
