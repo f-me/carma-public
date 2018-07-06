@@ -22,7 +22,8 @@ import           Carma.EraGlonass.Types
 
 type ServerAPI
     =  IncomingAPI
-  :<|> "debug" :> "swagger" :> Get '[JSON] Swagger
+  :<|> -- GET /debug/swagger.json
+       "debug" :> "swagger.json" :> Get '[JSON] Swagger
 
 
 serverApplicaton :: AppContext -> Application

@@ -7,6 +7,8 @@ module Carma.EraGlonass.Types
      ( AppContext (..)
      , EraGlonassCreateCallCardRequest (..)
      , EGPhoneNumber (EGPhoneNumber)
+     , EGLatitude (EGLatitude)
+     , EGLongitude (EGLongitude)
      ) where
 
 import           GHC.Generics (Generic)
@@ -54,14 +56,12 @@ data EraGlonassCreateCallCardRequest
        --   '+'.
        --   CaRMa field: "contact_phone2"
 
-   , lastTrustedLatitude :: Int32
+   , lastTrustedLatitude :: EGLatitude
        -- ^ An integer in range of -648000000 .. 648000000
-       --                Int32 is -2147483648 .. 2147483647
        --   CaRMa field: "caseAddress_coords" (alongwith "lastTrustedLongitude")
 
-   , lastTrustedLongitude :: Int32
+   , lastTrustedLongitude :: EGLongitude
        -- ^ An integer in range of -324000000 .. 324000000
-       --                Int32 is -2147483648 .. 2147483647
        --   CaRMa field: "caseAddress_coords" (alongwith "lastTrustedLatitude")
 
    , callerFullName :: Text
@@ -117,15 +117,21 @@ data EraGlonassCreateCallCardRequest
 
 
 -- A string from 1 to 18 chars of numbers which could be prefixed with '+'
-data EGPhoneNumber = EGPhoneNumber Text deriving (Show, Eq)
+newtype EGPhoneNumber = EGPhoneNumber Text deriving (Show, Eq)
 
 instance FromJSON EGPhoneNumber where
-  parseJSON _x@(String x) =
+  parseJSON j@(String x) =
     case parseOnly parser (encodeUtf8 x) of
-         Left  _ -> typeMismatch "EGPhoneNumber" _x
+         Left  _ -> typeMismatch "EGPhoneNumber" j
          Right y -> pure y
 
-    where parser = f
+    where -- Optional plus prefix (1 char)
+          --   + 1 required digit
+          --   + 16 optional digits
+          --   = 18 chars
+          -- Maximum amount of digits is 17 where 18th char is just optional
+          -- plus prefix.
+          parser = f
             <$> optionalPlus
             <*> digit
             <*> count 16 optionalDigit
@@ -147,5 +153,56 @@ instance ToSchema EGPhoneNumber where
         { _paramSchemaType    = SwaggerString
         , _paramSchemaFormat  = Just "phone"
         , _paramSchemaPattern = Just [qn| ^\+?[0-9]{1,17}$ |]
+        }
+    }
+
+
+newtype EGLatitude
+      = EGLatitude { fromEGLatitude :: Int32 }
+        deriving (Show, Eq)
+
+instance Bounded EGLatitude where
+  minBound = EGLatitude (-648000000)
+  maxBound = EGLatitude   648000000
+
+instance FromJSON EGLatitude where
+  parseJSON j@(Number x)
+    | x >= fromIntegral (fromEGLatitude minBound) &&
+      x <= fromIntegral (fromEGLatitude maxBound) =
+        pure $ EGLatitude $ fst $ properFraction x
+    | otherwise = typeMismatch "EGLatitude" j
+  parseJSON x = typeMismatch "EGLatitude" x
+
+instance ToSchema EGLatitude where
+  declareNamedSchema _ = pure $ NamedSchema (Just "EGLatitude") mempty
+    { _schemaParamSchema = mempty
+        { _paramSchemaType    = SwaggerInteger
+        , _paramSchemaMinimum = Just $ fromIntegral $ fromEGLatitude minBound
+        , _paramSchemaMaximum = Just $ fromIntegral $ fromEGLatitude maxBound
+        }
+    }
+
+newtype EGLongitude
+      = EGLongitude { fromEGLongitude :: Int32 }
+        deriving (Show, Eq)
+
+instance Bounded EGLongitude where
+  minBound = EGLongitude (-324000000)
+  maxBound = EGLongitude   324000000
+
+instance FromJSON EGLongitude where
+  parseJSON j@(Number x)
+    | x >= fromIntegral (fromEGLongitude minBound) &&
+      x <= fromIntegral (fromEGLongitude maxBound) =
+        pure $ EGLongitude $ fst $ properFraction x
+    | otherwise = typeMismatch "EGLongitude" j
+  parseJSON x = typeMismatch "EGLongitude" x
+
+instance ToSchema EGLongitude where
+  declareNamedSchema _ = pure $ NamedSchema (Just "EGLongitude") mempty
+    { _schemaParamSchema = mempty
+        { _paramSchemaType    = SwaggerInteger
+        , _paramSchemaMinimum = Just $ fromIntegral $ fromEGLongitude minBound
+        , _paramSchemaMaximum = Just $ fromIntegral $ fromEGLongitude maxBound
         }
     }
