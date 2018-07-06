@@ -72,3 +72,10 @@ tests:
       - carma-era-glonass-integration
       - hspec
       - random
+
+  carma-era-glonass-integration-types:
+    source-dirs: test
+    main: Types.hs
+    dependencies:
+      - carma-era-glonass-integration
+      - hspec

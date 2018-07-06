@@ -6,6 +6,7 @@
 module Carma.EraGlonass.Types
      ( AppContext (..)
      , EraGlonassCreateCallCardRequest (..)
+     , EGPhoneNumber (EGPhoneNumber)
      ) where
 
 import           GHC.Generics (Generic)
@@ -119,19 +120,23 @@ data EraGlonassCreateCallCardRequest
 data EGPhoneNumber = EGPhoneNumber Text deriving (Show, Eq)
 
 instance FromJSON EGPhoneNumber where
-  -- TODO tests for parser
   parseJSON _x@(String x) =
     case parseOnly parser (encodeUtf8 x) of
          Left  _ -> typeMismatch "EGPhoneNumber" _x
          Right y -> pure y
 
     where parser = f
-            <$> (optionalPlus *> digit)
+            <$> optionalPlus
+            <*> digit
             <*> count 16 optionalDigit
             <*  endOfInput
             where optionalPlus  = (Just <$> char '+') <|> pure Nothing
                   optionalDigit = (Just <$> digit)    <|> pure Nothing
-                  f a b = EGPhoneNumber $ fromString $ a : catMaybes b
+
+                  f plus a b = EGPhoneNumber
+                             $ fromString
+                             $ maybe id (:) plus
+                             $ a : catMaybes b
 
   parseJSON x = typeMismatch "EGPhoneNumber" x
 
