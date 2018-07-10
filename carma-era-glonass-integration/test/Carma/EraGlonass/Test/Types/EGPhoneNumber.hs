@@ -27,6 +27,9 @@ spec =
       parseMaybe jsonParser (String "79005001020") `shouldBe`
         Just (EGPhoneNumber "79005001020")
 
+    it "Incorrect JSON type" $
+      parseMaybe jsonParser (Number 79005001020) `shouldBe` Nothing
+
     it "Minimum correct" $ do
       parseMaybe jsonParser (String "0") `shouldBe` Just (EGPhoneNumber "0")
       parseMaybe jsonParser (String "1") `shouldBe` Just (EGPhoneNumber "1")

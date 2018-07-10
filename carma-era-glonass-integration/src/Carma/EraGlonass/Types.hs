@@ -7,11 +7,11 @@ module Carma.EraGlonass.Types
      , EGPhoneNumber.EGPhoneNumber (EGPhoneNumber.EGPhoneNumber)
      , EGLatLon.EGLatitude (EGLatLon.EGLatitude)
      , EGLatLon.EGLongitude (EGLatLon.EGLongitude)
+     , EGCallCardId.EGCallCardId (EGCallCardId.EGCallCardId)
      ) where
 
 import           GHC.Generics (Generic)
 
-import           Data.Word
 import           Data.Text (Text)
 import           Data.Aeson
 import           Data.Swagger
@@ -22,6 +22,7 @@ import           Carma.Monad.LoggerBus.Types (LogMessage)
 import           Carma.EraGlonass.RequestId (RequestId)
 import qualified Carma.EraGlonass.Types.EGPhoneNumber as EGPhoneNumber
 import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
+import qualified Carma.EraGlonass.Types.EGCallCardId as EGCallCardId
 
 
 data AppContext
@@ -38,7 +39,7 @@ data EraGlonassCreateCallCardRequest
        -- ^ Unique request identifier (required to answer)
        --   CaRMa field: TODO
 
-   , cardIdCC :: Word64
+   , cardIdCC :: EGCallCardId.EGCallCardId
        -- ^ Identity of "Call Card" (required to answer)
        --   CaRMa field: TODO
 

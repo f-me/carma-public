@@ -49,7 +49,7 @@ requestIdParser = f
   <*> count (allDashesParts !! 4) hexDigit <* endOfInput
 
   where hexDigit = digitToInt <$> satisfy (`elem` chars)
-          where chars = ['a'..'f'] <> ['A' .. 'F'] <> ['0'..'9']
+          where chars = ['a'..'f'] <> ['A'..'F'] <> ['0'..'9']
 
         f :: [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> RequestId
         f a b c d e = RequestId [qm| {g a}-{g b}-{g c}-{g d}-{g e} |]
