@@ -15,7 +15,7 @@ import           Data.String (fromString)
 import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
-import           Data.Attoparsec.ByteString.Char8 hiding (take)
+import           Data.Attoparsec.ByteString.Char8
 
 
 newtype EGCallCardId = EGCallCardId Text deriving (Eq, Show)

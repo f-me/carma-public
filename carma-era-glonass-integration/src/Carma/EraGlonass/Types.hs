@@ -8,6 +8,7 @@ module Carma.EraGlonass.Types
      , EGLatLon.EGLatitude (EGLatLon.EGLatitude)
      , EGLatLon.EGLongitude (EGLatLon.EGLongitude)
      , EGCallCardId.EGCallCardId (EGCallCardId.EGCallCardId)
+     , EGCallerFullName.EGCallerFullName (EGCallerFullName.EGCallerFullName)
      ) where
 
 import           GHC.Generics (Generic)
@@ -23,6 +24,7 @@ import           Carma.EraGlonass.RequestId (RequestId)
 import qualified Carma.EraGlonass.Types.EGPhoneNumber as EGPhoneNumber
 import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
 import qualified Carma.EraGlonass.Types.EGCallCardId as EGCallCardId
+import qualified Carma.EraGlonass.Types.EGCallerFullName as EGCallerFullName
 
 
 data AppContext
@@ -57,7 +59,7 @@ data EraGlonassCreateCallCardRequest
        -- ^ An integer in range of -324000000 .. 324000000
        --   CaRMa field: "caseAddress_coords" (alongwith "lastTrustedLatitude")
 
-   , callerFullName :: Text
+   , callerFullName :: EGCallerFullName.EGCallerFullName
        -- ^ A string of 50 chars.
        --   CaRMa field: "contact_name"
 
