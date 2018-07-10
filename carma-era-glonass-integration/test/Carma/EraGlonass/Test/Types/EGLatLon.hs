@@ -9,9 +9,9 @@ import           Test.Hspec
 import           Data.Aeson
 import           Data.Aeson.Types
 
-import           Carma.EraGlonass.Types ( EGLatitude  (EGLatitude)
-                                        , EGLongitude (EGLongitude)
-                                        )
+import           Carma.EraGlonass.Types.EGLatLon ( EGLatitude  (EGLatitude)
+                                                 , EGLongitude (EGLongitude)
+                                                 )
 
 
 spec :: Spec

@@ -9,7 +9,8 @@ import           Test.Hspec
 import           Data.Aeson
 import           Data.Aeson.Types
 
-import           Carma.EraGlonass.Types (EGPhoneNumber (EGPhoneNumber))
+import           Carma.EraGlonass.Types.EGPhoneNumber
+                   (EGPhoneNumber (EGPhoneNumber))
 
 
 spec :: Spec
