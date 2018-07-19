@@ -1,0 +1,42 @@
+name:        carma-configurator
+version:     1.0.0.0
+license:     BSD3
+author:      Viacheslav Lotsmanov
+maintainer:  <lotsmanov89@gmail.com>
+category:    Web
+synopsis:    CaRMa tools configuration helper utility
+
+description:
+  CaRMa tools configuration helper utility.
+  .
+  It helps to make sure that config is actualized and correct by parsing proper
+  models. A config is written as an YAML file to be more readable for a human
+  and as an output of this tool you get a JSON which you could parse by **jq**
+  tool in some bash script.
+  .
+  In a tool's code such as some bash script make sure you have this
+  **carma-configurator** executable in *PATH* environment variable.
+
+dependencies:
+  - aeson
+  - base
+  - bytestring
+  - carma-utils
+  - qm-interpolated-string
+  - text
+  - yaml
+
+ghc-options:
+  - -Wall
+  - -Werror
+  - -O2
+  - -funbox-strict-fields
+
+library:
+  source-dirs: src
+
+executables:
+  carma-configurator:
+    source-dirs: app
+    main: Main.hs
+    dependencies: [carma-configurator]

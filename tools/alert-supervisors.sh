@@ -1,11 +1,22 @@
 #!/bin/bash
 
-DB_NAME=${1:-carma}
+# helper to not continue if command is failed
+fail_protect () { exit_code=$?; (( $exit_code != 0 )) && exit $exit_code; }
+
+# WARNING! "carma-configurator" must be presented in $PATH
+CONFIG_JSON=$(carma-configurator carma-tools alert_supervisors); fail_protect
+cfg () { printf "%s" "$CONFIG_JSON"; }
+
+DEFAULT_DB_NAME=$(cfg | jq -r .default_db_name); fail_protect
+DB_NAME=${1:-$DEFAULT_DB_NAME}
 
 SUBJECT="[Действия] - Сообщение от CaRMa"
-EMAIL_TO="supervisor@ruamc.ru, robots@formalmethods.ru"
-EMAIL_FROM="carma@carma.ruamc.ru"
-EMAIL_SENDER="psa@carma.ruamc.ru"
+EMAIL_TO=$(cfg | jq -r '.email_to | join(", ")'); fail_protect
+EMAIL_FROM=$(cfg | jq -r .email_from -r); fail_protect
+EMAIL_SENDER=$(cfg | jq -r .email_sender -r); fail_protect
+
+CARMA_PORT=$(cfg | jq -r .carma_port); fail_protect
+CARMA_HOST=$(cfg | jq -r .carma_host); fail_protect
 
 run_query () {
   psql \
@@ -62,7 +73,7 @@ EOF
 unassigned () {
 run_query <<EOF
   SELECT
-    'http://carma:8000/#case/' || caseid,
+    'http://$CARMA_HOST:$CARMA_PORT/#case/' || caseid,
     caseid,
     u.realName,
     date_trunc('seconds', now() - ctime),
@@ -91,7 +102,7 @@ EOF
 outstanding () {
 run_query <<EOF
   SELECT
-    'http://carma:8000/#case/' || caseid,
+    'http://$CARMA_HOST:$CARMA_PORT/#case/' || caseid,
     caseid,
     u.realName,
     date_trunc('seconds', now() - assigntime),

@@ -1,0 +1,9 @@
+alert_supervisors:
+  email_to:
+    - supervisor1@domain.org
+    - supervisor2@domain.org
+  email_from: noreply@domain.org
+  email_sender: email-to-report-delivery-problems-to@domain.org
+  carma_port: 8000
+  carma_host: carma
+  default_db_name: carma

@@ -2,7 +2,9 @@ resolver: lts-9.21
 packages:
 - srv
 - tools/vinnie
+- tools/carma-configurator
 - caroperator-svc
+- carma-utils
 - carma-models
 - carma-mobile-server
 - carma-http
