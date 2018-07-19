@@ -22,30 +22,43 @@ import           Carma.Configurator.Model.ToolsConfig
 
 main :: IO ()
 main = do
-  (configType, etcArgs) <-
-    getArgs <&!> \case
-      []     -> error [qm| At least config name argument is required! |]
-      (x:xs) -> case configTypeFromStr x of
-                     Nothing -> error [qm| Unknown config type: "{x}" |]
-                     Just  a -> (a, xs)
+  (isTesting, !configType, etcArgs) <- let
+    cfgTypeIsRequired = [qm| At least config name argument is required! |]
 
-  let configFile = configTypeToStr configType <> ".cfg.yaml"
+    f []     = error cfgTypeIsRequired
+    f ["-t"] = error cfgTypeIsRequired
+
+    -- testing flag to test if it's working using config example
+    f ("-t" : x : xs) = g True x xs
+
+    f (x : xs) = g False x xs
+
+    g isTesting x xs =
+      case configTypeFromStr x of
+           Nothing -> error [qm| Unknown config type: "{x}" |]
+           Just  a -> (isTesting, a, xs)
+
+    in f <$!> getArgs
+
+  let configFile = configTypeToStr configType <> if isTesting
+                                                    then ".cfg.yaml.example"
+                                                    else ".cfg.yaml"
 
   case configType of
-       ToolsConfigType -> do
-         let !lensedEncode = case etcArgs of
-               [] -> Aeson.encode
-               ["alert_supervisors"] -> Aeson.encode . alert_supervisors
-               ["arc_vin_import"]    -> Aeson.encode . arc_vin_import
+       ToolsConfigType -> let
+         !lensedEncode = case etcArgs of
+           [] -> Aeson.encode
+           ["alert_supervisors"] -> Aeson.encode . alert_supervisors
+           ["arc_vin_import"]    -> Aeson.encode . arc_vin_import
 
-               [x] -> error [qms|
-                 Unknown "{configTypeToStr configType :: String}"
-                 config branch: "{x}"
-               |]
+           [x] -> error [qms|
+             Unknown "{configTypeToStr configType :: String}"
+             config branch: "{x}"
+           |]
 
-               x -> error [qm| Unexpected additional arguments: {x} |]
+           x -> error [qm| Unexpected additional arguments: {x} |]
 
-         readConfig (Proxy :: Proxy ToolsConfig) lensedEncode configFile
+         in readConfig (Proxy :: Proxy ToolsConfig) lensedEncode configFile
 
   where
     -- Reads YAML file, parses it as "a" type provided by "Proxy"
@@ -56,9 +69,9 @@ main = do
       => Proxy a -> (a -> BS.ByteString) -> FilePath -> IO ()
     readConfig p@Proxy lensedEncode configFile =
       Yaml.decodeFileEither configFile
-        <&> either fErr (fOk p)
-        <&> lensedEncode
-        >>= BS.putStrLn
+        <&!> either fErr (fOk p)
+        <&!> lensedEncode
+        >>=  BS.putStrLn
 
       where
         fErr e = error [qms| Error while reading config "{configFile}": {e} |]

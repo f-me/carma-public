@@ -54,6 +54,11 @@ jobs:
           name: Build CaRMa backend
           command: |
             stack --install-ghc -j2 build
+      - run:
+          name: Run tests
+          command: |
+            cd tools
+            stack exec carma-configurator -- -t carma-tools >/dev/null
       - save_cache:
           key: stack-cache-{{ checksum "stack.yaml" }}
           paths:
