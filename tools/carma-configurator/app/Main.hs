@@ -36,6 +36,7 @@ main = do
          let !lensedEncode = case etcArgs of
                [] -> Aeson.encode
                ["alert_supervisors"] -> Aeson.encode . alert_supervisors
+               ["arc_vin_import"]    -> Aeson.encode . arc_vin_import
 
                [x] -> error [qms|
                  Unknown "{configTypeToStr configType :: String}"

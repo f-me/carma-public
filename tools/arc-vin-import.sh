@@ -10,6 +10,7 @@
 # vinnie, mailing a report afterwards.
 #
 # sendemail(1), sftp(1), unzip(1) and sshpass(1) must be available.
+# "carma-configurator" must be presented in $PATH.
 #
 # .netrc file must contain SFTP credentials for ARC host in one line.
 
@@ -22,23 +23,38 @@ fi
 
 # CONFIGURATION:
 
+# WARNING! "carma-configurator" must be presented in $PATH
+CONFIG_JSON=$(carma-configurator carma-tools arc_vin_import)
+cfg () { printf %s "$CONFIG_JSON"; }
+
 # ARC VinFormat id
-FORMAT="1000"
+FORMAT=$(cfg | jq -r .format)
 # Contract commiter (PSA user)
-COMMITTER="387"
+COMMITTER=$(cfg | jq -r .committer)
 
 # ARC host data
-USER="ramc"
-HOST="arcftp.arceurope.com"
-DIR="Production/Vehicle_info/Common"
+USER=$(cfg | jq -r .arc.user)
+HOST=$(cfg | jq -r .arc.host)
+DIR=$(cfg | jq -r .arc.dir)
 
 # CaRMa Postgres connection info
-PG="localhost,5432,carma_db_sync,pass,carma"
+PG="$(cfg | jq -r .postgresql.host
+  ),$(cfg | jq -r .postgresql.port
+  ),$(cfg | jq -r .postgresql.user
+  ),$(cfg | jq -r .postgresql.password
+  ),$(cfg | jq -r .postgresql.db_name
+  )"
 
 # Report mail parameters
-MAIL_FROM="carma@carma.ruamc.ru"
-MAIL_TO=("robots@formalmethods.ru" "Alexander.Dimakov@ruamc.ru" "Pavel.Golovnin@ruamc.ru")
-MAIL_SUBJECT="Отчёт о загрузке контрактов PSA `date +%F`"
+MAIL_FROM=$(cfg | jq -r .report_email.from)
+IFS=';' read -ra MAIL_TO <<< "$(cfg | jq -r '.report_email.to | join(";")')"
+MAIL_SUBJECT=$(cfg \
+  | jq -r .report_email.subject \
+  | perl -e '
+      use v5.10;
+      BEGIN { $x=$ARGV[0]; @ARGV=() }
+      chomp($_=<>); s/%DATE%/$x/; say
+    ' -- "`date +%F`")
 
 # END OF CONFIGURATION
 

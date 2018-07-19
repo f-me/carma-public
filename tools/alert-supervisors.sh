@@ -1,22 +1,31 @@
 #!/bin/bash
 
 # helper to not continue if command is failed
+# TODO maybe using `set -e` or `#!/bin/bash -e` shebang instead?
+#      not sure if it will work correctly, i haven't written this script.
+#      this proposal date is 20 July 2018 by Viacheslav Lotsmanov
 fail_protect () { exit_code=$?; (( $exit_code != 0 )) && exit $exit_code; }
+
+
+# CONFIGURATION:
 
 # WARNING! "carma-configurator" must be presented in $PATH
 CONFIG_JSON=$(carma-configurator carma-tools alert_supervisors); fail_protect
-cfg () { printf "%s" "$CONFIG_JSON"; }
+cfg () { printf %s "$CONFIG_JSON"; }
 
 DEFAULT_DB_NAME=$(cfg | jq -r .default_db_name); fail_protect
 DB_NAME=${1:-$DEFAULT_DB_NAME}
 
 SUBJECT="[Действия] - Сообщение от CaRMa"
 EMAIL_TO=$(cfg | jq -r '.email_to | join(", ")'); fail_protect
-EMAIL_FROM=$(cfg | jq -r .email_from -r); fail_protect
-EMAIL_SENDER=$(cfg | jq -r .email_sender -r); fail_protect
+EMAIL_FROM=$(cfg | jq -r .email_from); fail_protect
+EMAIL_SENDER=$(cfg | jq -r .email_sender); fail_protect
 
 CARMA_PORT=$(cfg | jq -r .carma_port); fail_protect
 CARMA_HOST=$(cfg | jq -r .carma_host); fail_protect
+
+# END OF CONFIGURATION
+
 
 run_query () {
   psql \

@@ -1,3 +1,4 @@
+# see "alert-supervisors.sh"
 alert_supervisors:
   email_to:
     - supervisor1@domain.org
@@ -7,3 +8,24 @@ alert_supervisors:
   carma_port: 8000
   carma_host: carma
   default_db_name: carma
+
+# see "arc-vin-import.sh"
+arc_vin_import:
+  format: 1000 # ARC VinFormat id
+  committer: 387 # Contract commiter (PSA user)
+  arc: # FTP server params
+    user: login
+    host: ftp.domain.org
+    dir: Foo/Bar/Baz
+  postgresql:
+    host: localhost
+    port: 5432
+    user: carma_db_sync
+    password: pass
+    db_name: carma
+  report_email:
+    from: noreply@domain.org
+    to:
+      - user1@domain.org
+      - user2@domain.org
+    subject: Report about uploading contracts PSA %DATE%
