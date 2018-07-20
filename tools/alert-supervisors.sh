@@ -10,7 +10,9 @@ fail_protect () { exit_code=$?; (( $exit_code != 0 )) && exit $exit_code; }
 # CONFIGURATION:
 
 # WARNING! "carma-configurator" must be presented in $PATH
-CONFIG_JSON=$(carma-configurator carma-tools alert_supervisors); fail_protect
+CONFIG_JSON=$(
+  cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && \
+  carma-configurator carma-tools alert_supervisors); fail_protect
 cfg () { printf %s "$CONFIG_JSON"; }
 
 DEFAULT_DB_NAME=$(cfg | jq -r .default_db_name); fail_protect

@@ -24,7 +24,9 @@ fi
 # CONFIGURATION:
 
 # WARNING! "carma-configurator" must be presented in $PATH
-CONFIG_JSON=$(carma-configurator carma-tools arc_vin_import)
+CONFIG_JSON=$(
+  cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && \
+  carma-configurator carma-tools arc_vin_import)
 cfg () { printf %s "$CONFIG_JSON"; }
 
 # ARC VinFormat id
