@@ -15,6 +15,8 @@ import           Data.Word (Word64, Word16)
 import           Data.Text (Text)
 import           Data.Aeson
 
+import           Carma.Configurator.Types
+
 
 data ArcVinImport
    = ArcVinImport
@@ -46,7 +48,7 @@ data ArcVinImportPostgreSQL
 
 data ArcVinImportReportEmail
    = ArcVinImportReportEmail
-   { from    :: Text
-   , to      :: [Text]
+   { from    :: Email
+   , to      :: [Email]
    , subject :: Text
    } deriving (Show, Eq, Generic, FromJSON, ToJSON)

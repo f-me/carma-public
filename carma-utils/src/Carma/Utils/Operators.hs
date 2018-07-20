@@ -1,8 +1,10 @@
 module Carma.Utils.Operators
      ( (?), (<&>), (<&!>)
+     , module Data.Function
      , module Control.Monad
      ) where
 
+import           Data.Function ((&))
 import           Control.Monad ((<$!>))
 
 
