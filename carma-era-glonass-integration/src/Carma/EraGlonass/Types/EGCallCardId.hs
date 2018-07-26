@@ -8,20 +8,19 @@ module Carma.EraGlonass.Types.EGCallCardId
 
 import           Data.Function ((&))
 import           Data.Text
-import           Data.Text.Encoding (encodeUtf8)
 import           Text.InterpolatedString.QM
 import           Data.String (fromString)
 import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
-import           Data.Attoparsec.ByteString.Char8
+import           Data.Attoparsec.Text
 
 
 newtype EGCallCardId = EGCallCardId Text deriving (Eq, Show)
 
 instance FromJSON EGCallCardId where
   parseJSON v@(String x)
-    = parseOnly parser (encodeUtf8 x)
+    = parseOnly parser x
     & \case Left  _ -> typeMismatch "EGCallCardId" v
             Right y -> pure y
 

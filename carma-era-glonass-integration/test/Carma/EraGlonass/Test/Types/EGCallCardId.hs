@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Carma.EraGlonass.Test.Types.EGCallCardId
      ( spec
@@ -9,6 +10,10 @@ import           Test.Hspec
 
 import           Data.Aeson
 import           Data.Aeson.Types
+import qualified Data.Text
+
+import           Control.Monad (forM, forM_)
+import           Control.Monad.Random.Class (getRandoms)
 
 import           Carma.EraGlonass.Types.EGCallCardId
                    (EGCallCardId (EGCallCardId))
@@ -39,3 +44,11 @@ spec =
     it "It is possible to have case-sensitive value" $ do
       testParse (String "ffAAbbCC") `shouldBe` Just (EGCallCardId "ffAAbbCC")
       testParse (String "1a2B3c4D") `shouldBe` Just (EGCallCardId "1a2B3c4D")
+
+    it "It is a free string" $ do
+      (randomStrings :: [Data.Text.Text]) <-
+        forM ([1..10] :: [Int]) $ const $
+          Data.Text.pack . take 100 <$> getRandoms
+
+      forM_ randomStrings $ \x ->
+        testParse (String x) `shouldBe` Just (EGCallCardId x)
