@@ -43,6 +43,9 @@ data EraGlonassCreateCallCardRequest
 
    , cardIdCC :: EGCallCardId.EGCallCardId
        -- ^ Identity of "Call Card" (required to answer)
+       --   Just a string, documentation says it's unsigned integer but in an
+       --   example it is "597b53edf0f012e5e00d8a9a", after clarifying we know
+       --   it is a free string value.
        --   CaRMa field: TODO
 
    , atPhoneNumber :: EGPhoneNumber.EGPhoneNumber

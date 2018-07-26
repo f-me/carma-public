@@ -36,13 +36,6 @@ spec =
       testParse (String "f") `shouldBe` Just (EGCallCardId "f")
       testParse (String "") `shouldBe` Nothing
 
-    it "Out of HEX chars bounds is failing" $ do
-      testParse (String "g") `shouldBe` Nothing
-      testParse (String "123g") `shouldBe` Nothing
-      testParse (String "g123") `shouldBe` Nothing
-      testParse (String "q") `shouldBe` Nothing
-      testParse (String "z") `shouldBe` Nothing
-
-    it "It is possible to have case-sensitive hash" $ do
+    it "It is possible to have case-sensitive value" $ do
       testParse (String "ffAAbbCC") `shouldBe` Just (EGCallCardId "ffAAbbCC")
       testParse (String "1a2B3c4D") `shouldBe` Just (EGCallCardId "1a2B3c4D")

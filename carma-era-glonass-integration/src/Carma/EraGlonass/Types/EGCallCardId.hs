@@ -6,7 +6,6 @@ module Carma.EraGlonass.Types.EGCallCardId
      ( EGCallCardId (EGCallCardId)
      ) where
 
-import           Data.Monoid ((<>))
 import           Data.Function ((&))
 import           Data.Text
 import           Data.Text.Encoding (encodeUtf8)
@@ -26,10 +25,7 @@ instance FromJSON EGCallCardId where
     & \case Left  _ -> typeMismatch "EGCallCardId" v
             Right y -> pure y
 
-    where parser = EGCallCardId . fromString
-            <$> many1 (satisfy (`elem` chars))
-            <*  endOfInput
-            where chars = ['a'..'f'] <> ['A'..'F'] <> ['0'..'9']
+    where parser = EGCallCardId . fromString <$> many1 anyChar <* endOfInput
 
   parseJSON invalid = typeMismatch "EGCallCardId" invalid
 
@@ -37,7 +33,6 @@ instance ToSchema EGCallCardId where
   declareNamedSchema _ = pure $ NamedSchema (Just "EGCallCardId") mempty
     { _schemaParamSchema = mempty
         { _paramSchemaType    = SwaggerString
-        , _paramSchemaFormat  = Just "hex-hash"
-        , _paramSchemaPattern = Just [qn| ^[0-9a-zA-Z]+$ |]
+        , _paramSchemaPattern = Just [qn| .+ |]
         }
     }
