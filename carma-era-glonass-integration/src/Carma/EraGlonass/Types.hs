@@ -3,7 +3,9 @@
 
 module Carma.EraGlonass.Types
      ( AppContext (..)
-     , EraGlonassCreateCallCardRequest (..)
+     , EGCreateCallCardRequest (..)
+     , EGCreateCallCardRequestGis (..)
+     , EGCreateCallCardRequestVehicle (..)
      , EGPhoneNumber.EGPhoneNumber (EGPhoneNumber.EGPhoneNumber)
      , EGLatLon.EGLatitude (EGLatLon.EGLatitude)
      , EGLatLon.EGLongitude (EGLatLon.EGLongitude)
@@ -13,8 +15,9 @@ module Carma.EraGlonass.Types
 
 import           GHC.Generics (Generic)
 
-import           Data.Text (Text)
+import           Data.Text (Text, length)
 import           Data.Aeson
+import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
 
 import           Control.Concurrent.MVar (MVar)
@@ -34,9 +37,8 @@ data AppContext
    }
 
 
--- TODO restructure looking at JSON example from EG documentation
-data EraGlonassCreateCallCardRequest
-   = EraGlonassCreateCallCardRequest
+data EGCreateCallCardRequest
+   = EGCreateCallCardRequest
    { requestId :: RequestId
        -- ^ Unique request identifier (required to answer)
        --   CaRMa field: TODO
@@ -77,11 +79,43 @@ data EraGlonassCreateCallCardRequest
        -- ^ String with max length of 180 symbols.
        --   CaRMa field: "caseAddress_comment"
 
-   , vin :: Text
+   , vehicle :: EGCreateCallCardRequestVehicle
+   , gis :: [EGCreateCallCardRequestGis]
+   } deriving (Eq, Show, Generic, ToSchema)
+
+instance FromJSON EGCreateCallCardRequest where
+  parseJSON src = do
+    parsed <- genericParseJSON defaultOptions src
+
+    if Data.Text.length (locationDescription parsed) > 180
+       then typeMismatch "EGCreateCallCardRequest.locationDescription" src
+       else pure ()
+
+    pure parsed
+
+
+data EGCreateCallCardRequestGis
+   = EGCreateCallCardRequestGis
+   { regionName :: Text
+       --   CaRMa field: "caseAddress_address"
+   , settlementName :: Text
+       --   CaRMa field: "caseAddress_address"
+   , streetName :: Text
+       --   CaRMa field: "caseAddress_address"
+   , building :: Text
+       -- ^ Number of a building as a string.
+       --   CaRMa field: "caseAddress_address"
+   } deriving (Eq, Show, Generic, ToSchema, FromJSON)
+
+
+data EGCreateCallCardRequestVehicle
+   = EGCreateCallCardRequestVehicle
+   { vin :: Text
        -- ^ A car's VIN ("Alphanumeric")
        --   CaRMa field: "car_vin"
        --   TODO need to ask why "contractIdentifier" is proposed alongwith
        --        "car_vin".
+       --   TODO "alphanumeric", not just text
 
    , propulsion :: Text
        -- ^ Enum of:
@@ -93,22 +127,13 @@ data EraGlonassCreateCallCardRequest
        --     "GASOLINE"
        --   CaRMa field: "car_engine"
        --   TODO extend "Engine" model with missed engine types
+       --   TODO implement NOT as string, also it is optional (Maybe)
 
    , color :: Text
        -- ^ A color of a car (string with max length of 50 symbols).
        --   CaRMa field: "car_color"
+       --   TODO max length check
 
    , registrationNumber :: Text
        --   CaRMa field: "car_plateNum"
-
-   , regionName :: Text
-       --   CaRMa field: "caseAddress_address"
-   , settlementName :: Text
-       --   CaRMa field: "caseAddress_address"
-   , streetName :: Text
-       --   CaRMa field: "caseAddress_address"
-   , building :: Text
-       -- ^ Number of a building as a string.
-       --   CaRMa field: "caseAddress_address"
-
-   } deriving (Generic, ToSchema, FromJSON)
+   } deriving (Eq, Show, Generic, ToSchema, FromJSON)

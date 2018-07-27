@@ -37,7 +37,7 @@ server appContext = (\req -> wrap $ egCRM01 req) :<|> wrap swagger
   where wrap = flip runReaderT appContext
 
 
-egCRM01 :: Applicative m => EraGlonassCreateCallCardRequest -> m ()
+egCRM01 :: Applicative m => EGCreateCallCardRequest -> m ()
 egCRM01 _ = pure ()
 
 

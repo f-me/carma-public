@@ -7,6 +7,8 @@ import qualified Carma.EraGlonass.Test.Types.EGPhoneNumber as EGPhoneNumber
 import qualified Carma.EraGlonass.Test.Types.EGLatLon as EGLatLon
 import qualified Carma.EraGlonass.Test.Types.EGCallerFullName
                    as EGCallerFullName
+import qualified Carma.EraGlonass.Test.Types.EGCreateCallCardRequest
+                   as EGCreateCallCardRequest
 
 
 main :: IO ()
@@ -15,3 +17,5 @@ main = hspec $ do
   describe "EGPhoneNumber" EGPhoneNumber.spec
   describe "EGCallerFullName" EGCallerFullName.spec
   describe "EGLatitude & EGLongitude" EGLatLon.spec
+  describe "EGCreateCallCardRequest"
+            EGCreateCallCardRequest.spec

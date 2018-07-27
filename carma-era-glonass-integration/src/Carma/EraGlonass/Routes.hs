@@ -22,7 +22,7 @@ type IncomingAPI
      --
      -- POST /calls/status
      --
-     "calls" :> "status" :> ReqBody '[JSON] EraGlonassCreateCallCardRequest
+     "calls" :> "status" :> ReqBody '[JSON] EGCreateCallCardRequest
                          :> Post    '[JSON] ()
 
 
