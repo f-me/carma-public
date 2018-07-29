@@ -94,14 +94,15 @@ spec =
 
       exceededValue' `shouldSatisfy` \case
         Right _ -> False
-        Left  x -> isRight $ ParsecText.parseOnly
-          ( let
-              findSubstring str
-                = ParsecText.try (ParsecText.string str)
-                <|> (ParsecText.anyChar *> findSubstring str)
-            in
-              findSubstring "EGCreateCallCardRequest.locationDescription" )
-          (fromString x)
+        Left  x -> let
+
+          findSubstring str =
+            ParsecText.try (ParsecText.string str)
+              <|> (ParsecText.anyChar *> findSubstring str)
+
+          parser = findSubstring "EGCreateCallCardRequest.locationDescription"
+
+          in isRight $ ParsecText.parseOnly parser $ fromString x
 
 testData :: Either String Value
 testData = eitherDecodeStrict [qn|
