@@ -38,12 +38,12 @@ spec =
 
           pure EGCreateCallCardRequest
                  { requestId = requestId'
-                 , cardIdCC = EGCallCardId "597b53edf0f012e5e00d8a9a"
-                 , atPhoneNumber = EGPhoneNumber "9411000003"
-                 , lastTrustedLatitude = EGLatitude 200692000
-                 , lastTrustedLongitude = EGLongitude 135459000
-                 , callerFullName = EGCallerFullName "Иванов Иван Иванович"
-                 , callerPhoneNumber = EGPhoneNumber "79999999999"
+                 , cardIdCC = "597b53edf0f012e5e00d8a9a"
+                 , atPhoneNumber = "9411000003"
+                 , lastTrustedLatitude = toEGLatitude 200692000
+                 , lastTrustedLongitude = toEGLongitude 135459000
+                 , callerFullName = "Иванов Иван Иванович"
+                 , callerPhoneNumber = "79999999999"
                  , locationDescription =
                      "Описание местонахождения (заполнено операторм ФКЦ)"
                  , vehicle = EGCreateCallCardRequestVehicle

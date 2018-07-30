@@ -9,7 +9,7 @@ module Carma.EraGlonass.Types.EGCallCardId
 import           Data.Function ((&))
 import           Data.Text
 import           Text.InterpolatedString.QM
-import           Data.String (fromString)
+import           Data.String (IsString (fromString))
 import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
@@ -17,6 +17,9 @@ import           Data.Attoparsec.Text
 
 
 newtype EGCallCardId = EGCallCardId Text deriving (Eq, Show)
+
+instance IsString EGCallCardId where
+  fromString = EGCallCardId . fromString
 
 instance FromJSON EGCallCardId where
   parseJSON v@(String x)

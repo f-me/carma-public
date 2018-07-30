@@ -7,10 +7,11 @@ module Carma.EraGlonass.Types
      , EGCreateCallCardRequestGis (..)
      , EGCreateCallCardRequestVehicle (..)
      , EGPhoneNumber.EGPhoneNumber (EGPhoneNumber.EGPhoneNumber)
-     , EGLatLon.EGLatitude (EGLatLon.EGLatitude)
-     , EGLatLon.EGLongitude (EGLatLon.EGLongitude)
+     , EGLatLon.EGLatitude, EGLatLon.toEGLatitude, EGLatLon.fromEGLatitude
+     , EGLatLon.EGLongitude, EGLatLon.toEGLongitude, EGLatLon.fromEGLongitude
      , EGCallCardId.EGCallCardId (EGCallCardId.EGCallCardId)
      , EGCallerFullName.EGCallerFullName (EGCallerFullName.EGCallerFullName)
+     , EGVin.EGVin (EGVin.EGVin)
      ) where
 
 import           GHC.Generics (Generic)
@@ -28,6 +29,7 @@ import qualified Carma.EraGlonass.Types.EGPhoneNumber as EGPhoneNumber
 import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
 import qualified Carma.EraGlonass.Types.EGCallCardId as EGCallCardId
 import qualified Carma.EraGlonass.Types.EGCallerFullName as EGCallerFullName
+import qualified Carma.EraGlonass.Types.EGVin as EGVin
 
 
 data AppContext
@@ -110,12 +112,11 @@ data EGCreateCallCardRequestGis
 
 data EGCreateCallCardRequestVehicle
    = EGCreateCallCardRequestVehicle
-   { vin :: Text
+   { vin :: EGVin.EGVin
        -- ^ A car's VIN ("Alphanumeric")
        --   CaRMa field: "car_vin"
        --   TODO need to ask why "contractIdentifier" is proposed alongwith
        --        "car_vin".
-       --   TODO "alphanumeric", not just text
 
    , propulsion :: Text
        -- ^ Enum of:

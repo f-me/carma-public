@@ -19,6 +19,7 @@ import           Data.ByteString.Lazy.Char8 (pack)
 import           Data.Digest.Pure.MD5 (md5)
 import           Text.InterpolatedString.QM
 import           Data.Text.Encoding (encodeUtf8)
+import           Data.String (IsString (fromString))
 import           Data.Swagger
 import           Data.Aeson
 import           Data.Aeson.Types hiding (Parser)
@@ -39,6 +40,9 @@ import           Carma.Monad.Clock
 -- it must be unique for each request to Era Glonass.
 --
 newtype RequestId = RequestId ByteString deriving (Eq, Show)
+
+instance IsString RequestId where
+  fromString = RequestId . fromString
 
 requestIdParser :: Parser RequestId
 requestIdParser = f

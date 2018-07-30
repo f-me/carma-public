@@ -10,7 +10,7 @@ import           Data.Maybe
 import           Data.Function ((&))
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
-import           Data.String (fromString)
+import           Data.String (IsString (fromString))
 import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
@@ -20,6 +20,9 @@ import           Control.Applicative ((<|>))
 
 
 newtype EGCallerFullName = EGCallerFullName Text deriving (Eq, Show)
+
+instance IsString EGCallerFullName where
+  fromString = EGCallerFullName . fromString
 
 instance FromJSON EGCallerFullName where
   parseJSON v@(String x)

@@ -7,7 +7,7 @@ module Carma.EraGlonass.Types.EGPhoneNumber
 
 import           Data.Maybe
 import           Data.Text hiding (count)
-import           Data.String (fromString)
+import           Data.String (IsString (fromString))
 import           Data.Text.Encoding (encodeUtf8)
 import           Text.InterpolatedString.QM
 import           Data.Aeson
@@ -20,6 +20,9 @@ import           Control.Applicative ((<|>))
 
 -- A string from 1 to 18 chars of numbers which could be prefixed with '+'
 newtype EGPhoneNumber = EGPhoneNumber Text deriving (Show, Eq)
+
+instance IsString EGPhoneNumber where
+  fromString = EGPhoneNumber . fromString
 
 instance FromJSON EGPhoneNumber where
   parseJSON j@(String x) =
