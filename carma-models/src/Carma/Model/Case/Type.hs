@@ -88,13 +88,40 @@ data Case = Case
   , subprogram
     :: F (Maybe (IdentI SubProgram)) "subprogram" "Подпрограмма"
 
+    -- This field usually have the same value as "car_vin".
+    --
+    -- Historically there were only big "Program" participants,
+    -- and all of their contracts were umambiguously attached to a VIN
+    -- (and nowadays it is usual case when "contractIdentifier" is equal to
+    -- "car_vin" in context of case-insensetivity, "contractIdentifier" is
+    -- filled by drop-down by selection an option and "car_vin" could be
+    -- changed by bare hands where you could expect lower and upper case).
+    --
+    -- Later some "micro-programs" have been appeared, where some association
+    -- with a customer playing role as "contractIdentifier", for example a
+    -- card could be sold to a customer and then a customer could be identified
+    -- by the number of a sold card, and that number will be the value of
+    -- "contractIdentifier", or it could be customer's phone number, etc.
+    --
+    -- But "car_vin" in its turn is definite parameter (VIN) of a car,
+    -- so now it's separated field. Anyway, it will be automatically filled by
+    -- selecting a "Contract" for a "Case" from drop-down menu of
+    -- "contractIdentifier" (from "vin" field of a "Contract"), see
+    -- "contractToCase" from "Triggers" module for details.
+    --
+    -- To summorize we could say "contractIdentifier" is a variate value which
+    -- is usually VIN but sometimes it's customer's phone number or a card
+    -- number, etc.
   , contractIdentifier
     :: F (Maybe Text) "contractIdentifier" "Идентификатор контракта"
   , contract
     :: F (Maybe (IdentI Contract)) "contract" "Контракт"
 
+    -- See about VIN:
+    -- https://en.wikipedia.org/wiki/Vehicle_identification_number
   , car_vin
     :: F (Maybe Text) "car_vin" "Автомобиль (VIN)"
+
   , car_make
     :: F (Maybe (IdentI CarMake)) "car_make" "Марка"
   , car_model
