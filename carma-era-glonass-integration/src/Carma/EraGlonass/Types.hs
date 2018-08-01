@@ -114,9 +114,13 @@ data EGCreateCallCardRequestVehicle
    = EGCreateCallCardRequestVehicle
    { vin :: EGVin.EGVin
        -- ^ A car's VIN ("Alphanumeric")
-       --   CaRMa field: "car_vin"
-       --   TODO need to ask why "contractIdentifier" is proposed alongwith
-       --        "car_vin".
+       --   We expect it to have length of 17 alphanumeric chars
+       --   excluding "I", "O" and "Q" as declared in VIN spec.
+       --   See also:
+       --     https://en.wikipedia.org/wiki/Vehicle_identification_number
+       --   CaRMa field: "contractIdentifier" and "car_vin" (just duplicate),
+       --                see comments for these fields in "Case" model for
+       --                details.
 
    , propulsion :: Text
        -- ^ Enum of:
