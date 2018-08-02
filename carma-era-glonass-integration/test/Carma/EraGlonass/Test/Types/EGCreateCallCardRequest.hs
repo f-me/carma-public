@@ -16,8 +16,11 @@ import qualified Data.Attoparsec.ByteString.Char8 as ParsecBS
 import qualified Data.Attoparsec.Text as ParsecText
 import qualified Data.HashMap.Lazy as HM
 import           Data.String (fromString)
+import           Data.Text (Text)
 
+import           Control.Monad (forM_)
 import           Control.Applicative ((<|>))
+import           Control.Monad.Random.Class
 
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.RequestId (requestIdParser)
@@ -27,82 +30,199 @@ import           Carma.Utils.Operators
 spec :: Spec
 spec =
   describe "Correctness of JSON parser" $ do
-    let jsonParser :: Value -> Parser EGCreateCallCardRequest
-        jsonParser = parseJSON
-
-        testReferenceValue :: Either String EGCreateCallCardRequest
-        testReferenceValue = do
-          requestId' <-
-            ParsecBS.parseOnly requestIdParser
-              "c94eea91-d647-43d2-af04-109fbb53d8dc"
-
-          pure EGCreateCallCardRequest
-                 { requestId = requestId'
-                 , cardIdCC = "597b53edf0f012e5e00d8a9a"
-                 , atPhoneNumber = "9411000003"
-                 , lastTrustedLatitude = toEGLatitude 200692000
-                 , lastTrustedLongitude = toEGLongitude 135459000
-                 , callerFullName = "Иванов Иван Иванович"
-                 , callerPhoneNumber = "79999999999"
-                 , locationDescription =
-                     "Описание местонахождения (заполнено операторм ФКЦ)"
-                 , vehicle = EGCreateCallCardRequestVehicle
-                     { vin = "1G6A85SS8H0138585"
-                     , propulsion = ""
-                     , color = "черный"
-                     , registrationNumber = "А435УК66"
-                     }
-                 , gis = (:[]) EGCreateCallCardRequestGis
-                     { regionName = "Москва"
-                     , settlementName = "Москва"
-                     , streetName = "Новолесная"
-                     , building = "3"
-                     }
-                 }
-
     it "Usual test data" $ do
       let x = testData >>= parseEither jsonParser
-      x `shouldBe` testReferenceValue
+      x `shouldBe` testReference
       isRight x `shouldBe` True
-      isRight testReferenceValue `shouldBe` True
+      isRight testReference `shouldBe` True
 
-    it [qn| "locationDescription" is limited by 180 symbols |] $ do
-      let maxValue = fromString $ replicate 180 'x'
-          exceededValue = fromString $ replicate 181 'x'
+    describe [qn| "locationDescription" key |] $
+      locationDescriptionJSONParserSpec
 
-          maxValue' = testData
-            >>= (\case Object x -> Right $ Object $
-                         HM.insert "locationDescription" (String maxValue) x
-                       x -> Left [qm| Incorrect "locationDescription"
-                                      JSON type: {x} |])
-            >>= parseEither jsonParser
+    describe [qns| Sub-type "EGCreateCallCardRequestVehicle"
+                   ("vehicle" branch of JSON object) |] $
 
-          exceededValue' = testData
-            >>= (\case Object x -> Right $ Object $
-                         HM.insert "locationDescription"
-                                   (String exceededValue) x
-                       x -> Left [qm| Incorrect "locationDescription"
-                                      JSON type: {x} |])
-            >>= parseEither jsonParser
+      describe [qn| "color" key |] $
+        vehicleColorJSONSpec
 
-          testReferenceValueWithMaximum = testReferenceValue
-            <&> \x -> x { locationDescription = maxValue }
 
-      maxValue' `shouldBe` testReferenceValueWithMaximum
-      isRight maxValue' `shouldBe` True
-      isRight testReferenceValueWithMaximum `shouldBe` True
+locationDescriptionJSONParserSpec :: Spec
+locationDescriptionJSONParserSpec = do
+  let objLens x obj = obj { locationDescription = x }
 
-      exceededValue' `shouldSatisfy` \case
+  let overrideObjKey newValue = \case
+        Object x -> Right $ Object $ HM.insert objKey newValue x
+        x -> Left [qms| Incorrect JSON type of root of test data: {x} |]
+
+  it [qn| Empty value is allowed |] $ do
+    let reference = testReference <&> objLens ""
+
+    let parsed =
+          testData >>= overrideObjKey (String "") >>= parseEither jsonParser
+
+    parsed `shouldBe` reference
+    isRight parsed `shouldBe` True
+    isRight reference `shouldBe` True
+
+  it [qms| Limited by {limitedBy} symbols |] $ do
+
+    let f maxValue exceededValue = -- Producing data for testing
+          (maximumReference, parsedMax, parsedExceeded)
+          where
+            maximumReference = testReference <&> objLens maxValue
+
+            parsedMax = testData
+              >>= overrideObjKey (String maxValue)
+              >>= parseEither jsonParser
+
+            parsedExceeded = testData
+              >>= overrideObjKey (String exceededValue)
+              >>= parseEither jsonParser
+
+    do -- Determinted testing
+      let (maximumReference, parsedMax, parsedExceeded) =
+            f (fromString $ replicate limitedBy        'x')
+              (fromString $ replicate (succ limitedBy) 'x')
+
+      parsedMax `shouldBe` maximumReference
+      isRight parsedMax `shouldBe` True
+      isRight maximumReference `shouldBe` True
+
+      parsedExceeded `shouldSatisfy` \case
         Right _ -> False
-        Left  x -> let
+        Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
 
-          findSubstring str =
-            ParsecText.try (ParsecText.string str)
-              <|> (ParsecText.anyChar *> findSubstring str)
+    forM_ ([1..10] :: [Int]) $ const $ do -- Randomized ten times testing
+      (maximumReference, parsedMax, parsedExceeded) <-
+        f <$> (fromString . take limitedBy        <$> getRandoms)
+          <*> (fromString . take (succ limitedBy) <$> getRandoms)
 
-          parser = findSubstring "EGCreateCallCardRequest.locationDescription"
+      parsedMax `shouldBe` maximumReference
+      isRight parsedMax `shouldBe` True
+      isRight maximumReference `shouldBe` True
 
-          in isRight $ ParsecText.parseOnly parser $ fromString x
+      parsedExceeded `shouldSatisfy` \case
+        Right _ -> False
+        Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
+
+  where limitedBy = 180
+        objKey    = "locationDescription" :: Text
+        substr    = findSubstring [qm| EGCreateCallCardRequest.{objKey} |]
+
+
+vehicleColorJSONSpec :: Spec
+vehicleColorJSONSpec = do
+  let objLens x obj = obj { vehicle = (vehicle obj) { color = x } }
+
+  let overrideObjKey newValue = \case
+        Object rootObj -> case HM.lookup "vehicle" rootObj of
+          Just (Object vehicleObj) ->
+            Right $ Object $ flip (HM.insert "vehicle") rootObj
+                  $ Object $ HM.insert objKey newValue vehicleObj
+          Nothing ->
+            Left [qm| "vehicle" key not found in test data |]
+          Just x ->
+            Left [qm| "vehicle" key has incorrect JSON type: {x} |]
+
+        x ->
+          Left [qms| Incorrect JSON type of root of test data: {x} |]
+
+  it [qn| Empty value is allowed |] $ do
+    let reference = testReference <&> objLens ""
+
+    let parsed =
+          testData >>= overrideObjKey (String "") >>= parseEither jsonParser
+
+    parsed `shouldBe` reference
+    isRight parsed `shouldBe` True
+    isRight reference `shouldBe` True
+
+  it [qm| Limited by {limitedBy} symbols |] $ do
+
+    let f maxValue exceededValue = -- Producing data for testing
+          (maximumReference, parsedMax, parsedExceeded)
+          where
+            maximumReference = testReference <&> objLens maxValue
+
+            parsedMax = testData
+              >>= overrideObjKey (String maxValue)
+              >>= parseEither jsonParser
+
+            parsedExceeded = testData
+              >>= overrideObjKey (String exceededValue)
+              >>= parseEither jsonParser
+
+    do -- Determinted testing
+      let (maximumReference, parsedMax, parsedExceeded) =
+            f (fromString $ replicate limitedBy        'x')
+              (fromString $ replicate (succ limitedBy) 'x')
+
+      parsedMax `shouldBe` maximumReference
+      isRight parsedMax `shouldBe` True
+      isRight maximumReference `shouldBe` True
+
+      parsedExceeded `shouldSatisfy` \case
+        Right _ -> False
+        Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
+
+    forM_ ([1..10] :: [Int]) $ const $ do -- Randomized ten times testing
+      (maximumReference, parsedMax, parsedExceeded) <-
+        f <$> (fromString . take limitedBy        <$> getRandoms)
+          <*> (fromString . take (succ limitedBy) <$> getRandoms)
+
+      parsedMax `shouldBe` maximumReference
+      isRight parsedMax `shouldBe` True
+      isRight maximumReference `shouldBe` True
+
+      parsedExceeded `shouldSatisfy` \case
+        Right _ -> False
+        Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
+
+  where limitedBy = 50
+        objKey    = "color" :: Text
+        substr    = findSubstring [qm|EGCreateCallCardRequestVehicle.{objKey}|]
+
+
+findSubstring :: Text -> ParsecText.Parser Text
+findSubstring str =
+  ParsecText.try (ParsecText.string str)
+    <|> (ParsecText.anyChar *> findSubstring str)
+
+
+jsonParser :: Value -> Parser EGCreateCallCardRequest
+jsonParser = parseJSON
+
+
+testReference :: Either String EGCreateCallCardRequest
+testReference = do
+  requestId' <-
+    ParsecBS.parseOnly requestIdParser
+      "c94eea91-d647-43d2-af04-109fbb53d8dc"
+
+  pure EGCreateCallCardRequest
+         { requestId = requestId'
+         , cardIdCC = "597b53edf0f012e5e00d8a9a"
+         , atPhoneNumber = "9411000003"
+         , lastTrustedLatitude = toEGLatitude 200692000
+         , lastTrustedLongitude = toEGLongitude 135459000
+         , callerFullName = "Иванов Иван Иванович"
+         , callerPhoneNumber = "79999999999"
+         , locationDescription =
+             "Описание местонахождения (заполнено операторм ФКЦ)"
+         , vehicle = EGCreateCallCardRequestVehicle
+             { vin = "1G6A85SS8H0138585"
+             , propulsion = ""
+             , color = "черный"
+             , registrationNumber = "А435УК66"
+             }
+         , gis = (:[]) EGCreateCallCardRequestGis
+             { regionName = "Москва"
+             , settlementName = "Москва"
+             , streetName = "Новолесная"
+             , building = "3"
+             }
+         }
+
 
 testData :: Either String Value
 testData = eitherDecodeStrict [qn|

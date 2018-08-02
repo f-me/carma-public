@@ -137,8 +137,17 @@ data EGCreateCallCardRequestVehicle
    , color :: Text
        -- ^ A color of a car (string with max length of 50 symbols).
        --   CaRMa field: "car_color"
-       --   TODO max length check
 
    , registrationNumber :: Text
        --   CaRMa field: "car_plateNum"
-   } deriving (Eq, Show, Generic, ToSchema, FromJSON)
+   } deriving (Eq, Show, Generic, ToSchema)
+
+instance FromJSON EGCreateCallCardRequestVehicle where
+  parseJSON src = do
+    parsed <- genericParseJSON defaultOptions src
+
+    if Data.Text.length (color parsed) > 50
+       then typeMismatch "EGCreateCallCardRequestVehicle.color" src
+       else pure ()
+
+    pure parsed
