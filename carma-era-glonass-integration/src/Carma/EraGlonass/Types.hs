@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Carma.EraGlonass.Types
      ( AppContext (..)
@@ -12,10 +13,12 @@ module Carma.EraGlonass.Types
      , EGCallCardId.EGCallCardId (EGCallCardId.EGCallCardId)
      , EGCallerFullName.EGCallerFullName (EGCallerFullName.EGCallerFullName)
      , EGVin.EGVin (EGVin.EGVin)
+     , module Carma.EraGlonass.Types.EGPropulsion
      ) where
 
 import           GHC.Generics (Generic)
 
+import qualified Data.HashMap.Lazy as HM
 import           Data.Text (Text, length)
 import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)
@@ -30,6 +33,7 @@ import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
 import qualified Carma.EraGlonass.Types.EGCallCardId as EGCallCardId
 import qualified Carma.EraGlonass.Types.EGCallerFullName as EGCallerFullName
 import qualified Carma.EraGlonass.Types.EGVin as EGVin
+import           Carma.EraGlonass.Types.EGPropulsion
 
 
 data AppContext
@@ -122,7 +126,7 @@ data EGCreateCallCardRequestVehicle
        --                see comments for these fields in "Case" model for
        --                details.
 
-   , propulsion :: Text
+   , propulsion :: Maybe EGPropulsion
        -- ^ Enum of:
        --     "HYDROGEN"
        --     "ELECTRICITY"
@@ -130,9 +134,9 @@ data EGCreateCallCardRequestVehicle
        --     "LNG" - Liquefied Natural Gas
        --     "DIESEL"
        --     "GASOLINE"
+       --   Looking at the example
        --   CaRMa field: "car_engine"
-       --   TODO extend "Engine" model with missed engine types
-       --   TODO implement NOT as string, also it is optional (Maybe)
+       --   TODO extend "Engine" CaRMa model with missed engine types
 
    , color :: Text
        -- ^ A color of a car (string with max length of 50 symbols).
@@ -143,11 +147,17 @@ data EGCreateCallCardRequestVehicle
    } deriving (Eq, Show, Generic, ToSchema)
 
 instance FromJSON EGCreateCallCardRequestVehicle where
-  parseJSON src = do
-    parsed <- genericParseJSON defaultOptions src
+  parseJSON src@(Object rootObj) = do
+    parsed <-
+      genericParseJSON defaultOptions $
+        case HM.lookup "propulsion" rootObj of
+             Just (String "") -> Object $ HM.delete "propulsion" rootObj
+             _ -> src
 
     if Data.Text.length (color parsed) > 50
        then typeMismatch "EGCreateCallCardRequestVehicle.color" src
        else pure ()
 
     pure parsed
+
+  parseJSON x = typeMismatch "EGCreateCallCardRequestVehicle" x

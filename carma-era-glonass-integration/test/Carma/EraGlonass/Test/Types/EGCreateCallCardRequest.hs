@@ -64,6 +64,9 @@ locationDescriptionJSONParserSpec = do
     isRight parsed `shouldBe` True
     isRight reference `shouldBe` True
 
+    -- Making sure we really changed something
+    parsed `shouldNotBe` testReference
+
   it [qms| Limited by {limitedBy} symbols |] $ do
 
     let f maxValue exceededValue = -- Producing data for testing
@@ -92,6 +95,9 @@ locationDescriptionJSONParserSpec = do
         Right _ -> False
         Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
 
+      -- Making sure we really changed something
+      parsedMax `shouldNotBe` testReference
+
     forM_ ([1..10] :: [Int]) $ const $ do -- Randomized ten times testing
       (maximumReference, parsedMax, parsedExceeded) <-
         f <$> (fromString . take limitedBy        <$> getRandoms)
@@ -104,6 +110,9 @@ locationDescriptionJSONParserSpec = do
       parsedExceeded `shouldSatisfy` \case
         Right _ -> False
         Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
+
+      -- Making sure we really changed something
+      parsedMax `shouldNotBe` testReference
 
   where limitedBy = 180
         objKey    = "locationDescription" :: Text
@@ -137,6 +146,9 @@ vehicleColorJSONSpec = do
     isRight parsed `shouldBe` True
     isRight reference `shouldBe` True
 
+    -- Making sure we really changed something
+    parsed `shouldNotBe` testReference
+
   it [qm| Limited by {limitedBy} symbols |] $ do
 
     let f maxValue exceededValue = -- Producing data for testing
@@ -165,6 +177,9 @@ vehicleColorJSONSpec = do
         Right _ -> False
         Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
 
+      -- Making sure we really changed something
+      parsedMax `shouldNotBe` testReference
+
     forM_ ([1..10] :: [Int]) $ const $ do -- Randomized ten times testing
       (maximumReference, parsedMax, parsedExceeded) <-
         f <$> (fromString . take limitedBy        <$> getRandoms)
@@ -177,6 +192,9 @@ vehicleColorJSONSpec = do
       parsedExceeded `shouldSatisfy` \case
         Right _ -> False
         Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
+
+      -- Making sure we really changed something
+      parsedMax `shouldNotBe` testReference
 
   where limitedBy = 50
         objKey    = "color" :: Text
@@ -211,7 +229,7 @@ testReference = do
              "Описание местонахождения (заполнено операторм ФКЦ)"
          , vehicle = EGCreateCallCardRequestVehicle
              { vin = "1G6A85SS8H0138585"
-             , propulsion = ""
+             , propulsion = Nothing
              , color = "черный"
              , registrationNumber = "А435УК66"
              }
