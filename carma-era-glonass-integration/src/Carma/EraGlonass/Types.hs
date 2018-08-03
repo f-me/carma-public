@@ -134,7 +134,10 @@ data EGCreateCallCardRequestVehicle
        --     "LNG" - Liquefied Natural Gas
        --     "DIESEL"
        --     "GASOLINE"
-       --   Looking at the example
+       --   Looking at the example I realized this field is optional
+       --   (since empty string is presented for "propulsion",
+       --   so I realized it is possible, and empty string is taken
+       --   as "Nothing").
        --   CaRMa field: "car_engine"
        --   TODO extend "Engine" CaRMa model with missed engine types
 

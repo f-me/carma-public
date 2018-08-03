@@ -19,9 +19,9 @@ import           Data.String (fromString)
 import           Data.Text (Text)
 
 import           Control.Monad (forM_)
-import           Control.Applicative ((<|>))
 import           Control.Monad.Random.Class
 
+import           Carma.EraGlonass.Test.Helpers
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.RequestId (requestIdParser)
 import           Carma.Utils.Operators
@@ -199,12 +199,6 @@ vehicleColorJSONSpec = do
   where limitedBy = 50
         objKey    = "color" :: Text
         substr    = findSubstring [qm|EGCreateCallCardRequestVehicle.{objKey}|]
-
-
-findSubstring :: Text -> ParsecText.Parser Text
-findSubstring str =
-  ParsecText.try (ParsecText.string str)
-    <|> (ParsecText.anyChar *> findSubstring str)
 
 
 jsonParser :: Value -> Parser EGCreateCallCardRequest
