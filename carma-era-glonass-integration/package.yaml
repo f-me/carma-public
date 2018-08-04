@@ -26,6 +26,7 @@ dependencies:
   - http-api-data
   - http-client
   - http-client-tls
+  - http-types
   - monad-logger
   - MonadRandom
   - mtl
@@ -66,6 +67,7 @@ tests:
     main: SimulateCreateCallCard.hs
     dependencies:
       - carma-era-glonass-integration
+      - hspec
 
   carma-era-glonass-integration-utils:
     source-dirs: test

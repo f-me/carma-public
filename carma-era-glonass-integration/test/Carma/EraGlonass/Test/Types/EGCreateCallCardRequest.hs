@@ -4,6 +4,7 @@
 
 module Carma.EraGlonass.Test.Types.EGCreateCallCardRequest
      ( spec
+     , testData
      ) where
 
 import           Test.Hspec
@@ -245,14 +246,24 @@ testData = [qn|
     "atPhoneNumber": "9411000003",
     "lastTrustedLatitude": 200692000,
     "lastTrustedLongitude": 135459000,
-    "callerFullName": "\u0418\u0432\u0430\u043d\u043e\u0432 \u0418\u0432\u0430\u043d \u0418\u0432\u0430\u043d\u043e\u0432\u0438\u0447",
+    "callerFullName":
+      "\u0418\u0432\u0430\u043d\u043e\u0432
+      \ \u0418\u0432\u0430\u043d
+      \ \u0418\u0432\u0430\u043d\u043e\u0432\u0438\u0447",
     "callerPhoneNumber": "79999999999",
-    "locationDescription": "\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435 \u043c\u0435\u0441\u0442\u043e\u043d\u0430\u0445\u043e\u0436\u0434\u0435\u043d\u0438\u044f (\u0437\u0430\u043f\u043e\u043b\u043d\u0435\u043d\u043e \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u043c \u0424\u041a\u0426)",
+    "locationDescription":
+      "\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435
+      \ \u043c\u0435\u0441\u0442\u043e\u043d\u0430\u0445\u043e\u0436\u0434\u0435
+      \u043d\u0438\u044f
+      \ (\u0437\u0430\u043f\u043e\u043b\u043d\u0435\u043d\u043e
+      \ \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u043c
+      \ \u0424\u041a\u0426)",
     "gis": [
       {
         "regionName": "\u041c\u043e\u0441\u043a\u0432\u0430",
         "settlementName": "\u041c\u043e\u0441\u043a\u0432\u0430",
-        "streetName": "\u041d\u043e\u0432\u043e\u043b\u0435\u0441\u043d\u0430\u044f",
+        "streetName":
+          "\u041d\u043e\u0432\u043e\u043b\u0435\u0441\u043d\u0430\u044f",
         "building": "3"
       }
     ],
