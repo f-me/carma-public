@@ -21,6 +21,7 @@ dependencies:
   - configurator
   - containers
   - directory
+  - either
   - exceptions
   - http-api-data
   - http-client

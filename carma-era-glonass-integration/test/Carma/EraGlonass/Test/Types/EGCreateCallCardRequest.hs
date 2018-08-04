@@ -8,7 +8,9 @@ module Carma.EraGlonass.Test.Types.EGCreateCallCardRequest
 
 import           Test.Hspec
 
+import           Data.Monoid ((<>))
 import           Data.Either (isRight)
+import           Data.Either.Combinators (mapLeft)
 import           Text.InterpolatedString.QM
 import           Data.Aeson
 import           Data.Aeson.Types
@@ -237,7 +239,7 @@ testReference = do
 
 
 testData :: Either String Value
-testData = eitherDecodeStrict [qn|
+testData = [qn|
   {
     "requestId": "c94eea91-d647-43d2-af04-109fbb53d8dc",
     "atPhoneNumber": "9411000003",
@@ -262,5 +264,5 @@ testData = eitherDecodeStrict [qn|
     },
     "cardIdCC": "597b53edf0f012e5e00d8a9a"
   }
-|] & \case Left msg -> Left [qm| Error while parsing test data: {msg} |]
-           x -> x
+|] & eitherDecodeStrict
+   & mapLeft ("Error while parsing test data: " <>)
