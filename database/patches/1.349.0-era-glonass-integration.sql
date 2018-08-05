@@ -28,4 +28,22 @@ INSERT INTO "FieldPermission"
       WHERE model = 'Case' AND field = 'id'
   );
 
+-- Adding new car engine types to CaRMa "Engine" model
+-- which could be provided by EG side.
+INSERT INTO "Engine"
+  (id, label)
+  VALUES -- Hydrogen
+         (3, 'Водород')
+       , -- Electricity
+         (4, 'Электричество')
+       , -- LPG - Liquefied Petroleum Gas (propane)
+         -- See https://ru.wikipedia.org/wiki/Сжиженные_углеводородные_газы
+         --     (about Russian abbreviation).
+         (5, 'СУГ')
+       , -- LNG - Liquefied Natural Gas
+         -- See https://ru.wikipedia.org/wiki/Сжиженный_природный_газ
+         --     (about Russian abbreviation).
+         (6, 'СПГ')
+       ;
+
 COMMIT;

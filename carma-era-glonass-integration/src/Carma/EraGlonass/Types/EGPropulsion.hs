@@ -3,12 +3,16 @@
 
 module Carma.EraGlonass.Types.EGPropulsion
      ( EGPropulsion (..)
+     , egPropulsionToEngineIdent
      ) where
 
 import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
 import           Text.InterpolatedString.QM
+
+import           Data.Model.Types (Ident)
+import qualified Carma.Model.Engine as Engine
 
 
 data EGPropulsion
@@ -45,3 +49,14 @@ instance ToSchema EGPropulsion where
                   )$ |]
         }
     }
+
+
+egPropulsionToEngineIdent :: EGPropulsion -> Ident Int Engine.Engine
+egPropulsionToEngineIdent Hydrogen    = Engine.hydrogen
+egPropulsionToEngineIdent Electricity = Engine.electricity
+egPropulsionToEngineIdent LPG         = Engine.lpg
+egPropulsionToEngineIdent LNG         = Engine.lng
+egPropulsionToEngineIdent Diesel      = Engine.diesel
+egPropulsionToEngineIdent Gasoline    = Engine.petrol
+                                          -- "Petrol"   (British English)
+                                          -- "Gasoline" (American English)

@@ -93,6 +93,7 @@ instance FromJSON EGCreateCallCardRequest where
   parseJSON src = do
     parsed <- genericParseJSON defaultOptions src
 
+    -- Handling max length of "locationDescription"
     if Data.Text.length (locationDescription parsed) > 180
        then typeMismatch "EGCreateCallCardRequest.locationDescription" src
        else pure ()
@@ -139,7 +140,6 @@ data EGCreateCallCardRequestVehicle
        --   so I realized it is possible, and empty string is taken
        --   as "Nothing").
        --   CaRMa field: "car_engine"
-       --   TODO extend "Engine" CaRMa model with missed engine types
 
    , color :: Text
        -- ^ A color of a car (string with max length of 50 symbols).
@@ -153,10 +153,12 @@ instance FromJSON EGCreateCallCardRequestVehicle where
   parseJSON src@(Object rootObj) = do
     parsed <-
       genericParseJSON defaultOptions $
+        -- Interpreting empty string of "propulsion" as "Nothing"
         case HM.lookup "propulsion" rootObj of
              Just (String "") -> Object $ HM.delete "propulsion" rootObj
              _ -> src
 
+    -- Handling max length of "color"
     if Data.Text.length (color parsed) > 50
        then typeMismatch "EGCreateCallCardRequestVehicle.color" src
        else pure ()
