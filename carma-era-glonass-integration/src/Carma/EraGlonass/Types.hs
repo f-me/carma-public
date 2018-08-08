@@ -57,9 +57,10 @@ data EGCreateCallCardRequest
        --   CaRMa field: TODO
 
    , atPhoneNumber :: EGPhoneNumber.EGPhoneNumber
-       -- ^ A contact phone number.
-       --   A string from 1 to 18 chars of numbers which could be prefixed with
-       --   '+'.
+       -- ^ Phone number of a car emergency terminal
+       --   (embedded SIM card or something like that).
+       --   A string from 1 to 18 chars of numbers
+       --   which could be prefixed with "+".
        --   CaRMa field: "contact_phone2"
 
    , lastTrustedLatitude :: EGLatLon.EGLatitude
@@ -75,10 +76,10 @@ data EGCreateCallCardRequest
        --   CaRMa field: "contact_name"
 
    , callerPhoneNumber :: EGPhoneNumber.EGPhoneNumber
-       -- ^ A phone number of a customer (where "atPhoneNumber" could be some
-       --   EG operator's phone I believe, TODO need to clarify this).
-       --   A string from 1 to 18 chars of numbers which could be prefixed with
-       --   '+'.
+       -- ^ A phone number of a customer, his personal phone number,
+       --   where "atPhoneNumber" is phone number of a car emergency terminal.
+       --   A string from 1 to 18 chars of numbers
+       --   which could be prefixed with '+'.
        --   CaRMa field: "contact_phone1"
 
    , locationDescription :: Text
