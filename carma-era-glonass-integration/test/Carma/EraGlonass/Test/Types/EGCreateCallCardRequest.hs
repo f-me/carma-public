@@ -25,7 +25,8 @@ import           Control.Monad (forM_)
 import           Control.Monad.Random.Class
 
 import           Carma.EraGlonass.Test.Helpers
-import           Carma.EraGlonass.Types
+import           Carma.EraGlonass.Types.EGCreateCallCardRequest
+import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
 import           Carma.EraGlonass.RequestId (requestIdParser)
 import           Carma.Utils.Operators
 
@@ -218,8 +219,8 @@ testReference = do
          { requestId = requestId'
          , cardIdCC = "597b53edf0f012e5e00d8a9a"
          , atPhoneNumber = "9411000003"
-         , lastTrustedLatitude = toEGLatitude 200692000
-         , lastTrustedLongitude = toEGLongitude 135459000
+         , lastTrustedLatitude = EGLatLon.toEGLatitude 200692000
+         , lastTrustedLongitude = EGLatLon.toEGLongitude 135459000
          , callerFullName = "Иванов Иван Иванович"
          , callerPhoneNumber = "79999999999"
          , locationDescription =
