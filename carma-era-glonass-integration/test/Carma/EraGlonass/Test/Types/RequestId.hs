@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Carma.EraGlonass.Test.Utils.RequestId
+module Carma.EraGlonass.Test.Types.RequestId
      ( spec
      ) where
 
@@ -24,7 +24,7 @@ import           Control.Monad.Random.Class
 
 import           System.Random
 
-import           Carma.EraGlonass.RequestId
+import           Carma.EraGlonass.Types.RequestId
 import           Carma.Monad.Clock
 import           Carma.Utils.Operators
 

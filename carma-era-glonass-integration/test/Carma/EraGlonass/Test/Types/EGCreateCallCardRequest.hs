@@ -27,7 +27,7 @@ import           Control.Monad.Random.Class
 import           Carma.EraGlonass.Test.Helpers
 import           Carma.EraGlonass.Types.EGCreateCallCardRequest
 import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
-import           Carma.EraGlonass.RequestId (requestIdParser)
+import           Carma.EraGlonass.Types.RequestId (requestIdParser)
 import           Carma.Utils.Operators
 
 

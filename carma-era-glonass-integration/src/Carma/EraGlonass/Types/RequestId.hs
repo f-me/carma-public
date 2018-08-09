@@ -3,8 +3,8 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE LambdaCase #-}
 
--- A module that helps to deal with `RequestId` of Era Glonass service
-module Carma.EraGlonass.RequestId
+-- A module that helps to deal with "RequestId" of Era Glonass service
+module Carma.EraGlonass.Types.RequestId
      ( RequestId
      , newRequestId
      , requestIdParser
@@ -30,7 +30,7 @@ import           Control.Monad.Random.Class (MonadRandom, getRandoms)
 import           Carma.Monad.Clock
 
 
--- `RequestId` is a free string that looks like:
+-- "RequestId" is a free string that looks like:
 --   "c94eea91-d647-43d2-af04-109fbb53d8dc".
 --
 -- Looking at this example we could see it looks like it is just an MD5 hash
@@ -83,7 +83,7 @@ instance ToSchema RequestId where
     }
 
 
--- Builds new unique `RequestId`.
+-- Builds new unique "RequestId".
 newRequestId :: (MonadRandom m, MonadClock m) => m RequestId
 newRequestId = do
   (randomPart  :: [Char]) <- take 128 <$> getRandoms

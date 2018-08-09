@@ -16,7 +16,7 @@ import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
 
-import           Carma.EraGlonass.RequestId (RequestId)
+import           Carma.EraGlonass.Types.RequestId (RequestId)
 import qualified Carma.EraGlonass.Types.EGPhoneNumber as EGPhoneNumber
 import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
 import qualified Carma.EraGlonass.Types.EGCallCardId as EGCallCardId
