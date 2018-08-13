@@ -1,11 +1,13 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module Carma.EraGlonass.Types.EGCreateCallCardRequest
      ( EGCreateCallCardRequest (..)
      , EGCreateCallCardRequestGis (..)
      , EGCreateCallCardRequestVehicle (..)
+     , EGCreateCallCardResponse (..)
      ) where
 
 import           GHC.Generics (Generic)
@@ -21,6 +23,7 @@ import qualified Carma.EraGlonass.Types.EGPhoneNumber as EGPhoneNumber
 import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
 import qualified Carma.EraGlonass.Types.EGCallCardId as EGCallCardId
 import qualified Carma.EraGlonass.Types.EGCallerFullName as EGCallerFullName
+import qualified Carma.EraGlonass.Types.EGAcceptCode as EGAcceptCode
 import qualified Carma.EraGlonass.Types.EGVin as EGVin
 import           Carma.EraGlonass.Types.EGPropulsion
 
@@ -153,10 +156,19 @@ instance FromJSON EGCreateCallCardRequestVehicle where
 
 -- EG.CRM.01 response example:
 -- {
---   "responseId":"177551",
---   "cardidProvider":"120010001823039",
---   "acceptId":"597b53edf0f012e5e00d8a9a",
---   "requestId":"9db7cf43-deab-4c27-a8df-74bec0b75df1",
---   "acceptCode":"OK",
---   "statusDescription":""
+--   "responseId": "177551",
+--   "cardidProvider": "120010001823039",
+--   "acceptId": "597b53edf0f012e5e00d8a9a",
+--   "requestId": "9db7cf43-deab-4c27-a8df-74bec0b75df1",
+--   "acceptCode": "OK",
+--   "statusDescription": ""
 -- }
+data EGCreateCallCardResponse
+   = EGCreateCallCardResponse
+   { responseId :: Text
+   , cardidProvider :: Text
+   , acceptId :: Text
+   , requestId :: RequestId
+   , acceptCode :: EGAcceptCode.EGAcceptCode
+   , statusDescription :: Text -- Optional, could be empty string
+   } deriving (Eq, Show, Generic, ToSchema, ToJSON)

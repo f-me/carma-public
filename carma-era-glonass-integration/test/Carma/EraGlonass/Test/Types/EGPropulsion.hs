@@ -7,7 +7,6 @@ module Carma.EraGlonass.Test.Types.EGPropulsion
      ( spec
      ) where
 
-
 import           Test.Hspec
 
 import           Data.Aeson

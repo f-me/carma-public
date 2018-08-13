@@ -18,7 +18,7 @@ import           Data.ByteString.Char8 (ByteString, pack)
 import           Data.ByteString.Lazy.Char8 (pack)
 import           Data.Digest.Pure.MD5 (md5)
 import           Text.InterpolatedString.QM
-import           Data.Text.Encoding (encodeUtf8)
+import           Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import           Data.String (IsString (fromString))
 import           Data.Swagger
 import           Data.Aeson
@@ -67,6 +67,9 @@ instance FromJSON RequestId where
             Right y -> pure y
 
   parseJSON invalid = typeMismatch "RequestId" invalid
+
+instance ToJSON RequestId where
+  toJSON (RequestId x) = String $ decodeUtf8 x
 
 instance ToSchema RequestId where
   declareNamedSchema _ = pure $ NamedSchema (Just "RequestId") mempty
