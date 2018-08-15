@@ -47,7 +47,10 @@ import           Carma.Monad.Clock
 newtype RequestId = RequestId ByteString deriving (Eq, Show)
 
 instance IsString RequestId where
-  fromString = RequestId . fromString
+  fromString x
+    = parseOnly requestIdParser (fromString x)
+    & \case Left  e -> error [qm| RequestId "{x}" is incorrect, error: {e} |]
+            Right y -> y
 
 requestIdParser :: Parser RequestId
 requestIdParser = f

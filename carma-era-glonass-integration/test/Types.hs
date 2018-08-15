@@ -13,6 +13,8 @@ import qualified Carma.EraGlonass.Test.Types.EGCallerFullName
                    as EGCallerFullName
 import qualified Carma.EraGlonass.Test.Types.EGCreateCallCardRequest
                    as EGCreateCallCardRequest
+import qualified Carma.EraGlonass.Test.Types.EGCreateCallCardResponse
+                   as EGCreateCallCardResponse
 
 
 main :: IO ()
@@ -26,3 +28,4 @@ main = hspec $ do
   describe "EGPropulsion" EGPropulsion.spec
   describe "EGAcceptCode" EGAcceptCode.spec
   describe "EGCreateCallCardRequest" EGCreateCallCardRequest.spec
+  describe "EGCreateCallCardResponse" EGCreateCallCardResponse.spec

@@ -15,6 +15,7 @@ import           GHC.Generics (Generic)
 import qualified Data.HashMap.Lazy as HM
 import           Data.Text (Text, length)
 import           Data.Aeson
+import           Data.Aeson.TH (Options (omitNothingFields))
 import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
 
@@ -157,15 +158,6 @@ instance FromJSON EGCreateCallCardRequestVehicle where
   parseJSON x = typeMismatch "EGCreateCallCardRequestVehicle" x
 
 
--- EG.CRM.01 response example:
--- {
---   "responseId": "177551",
---   "cardidProvider": "120010001823039",
---   "acceptId": "597b53edf0f012e5e00d8a9a",
---   "requestId": "9db7cf43-deab-4c27-a8df-74bec0b75df1",
---   "acceptCode": "OK",
---   "statusDescription": ""
--- }
 data EGCreateCallCardResponse
    = EGCreateCallCardResponse
    { responseId :: Text
@@ -194,4 +186,7 @@ data EGCreateCallCardResponse
        -- ^ It's a free string, just a meta information, could be "OK" or an
        --   error's stack trace which would help to debug stuff.
 
-   } deriving (Eq, Show, Generic, ToSchema, ToJSON)
+   } deriving (Eq, Show, Generic, ToSchema)
+
+instance ToJSON EGCreateCallCardResponse where
+  toJSON = genericToJSON defaultOptions { omitNothingFields = True }

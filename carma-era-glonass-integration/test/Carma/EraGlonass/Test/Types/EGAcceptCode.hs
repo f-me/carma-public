@@ -61,7 +61,7 @@ spec = do
         Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
 
   describe "Correctness of JSON encoder" $
-    it "Usual case" $
+    it "All correct cases" $
       -- Producing list of all values to reduce human-factor mistakes,
       -- so if new value is added we'll get incomplete pattern-matching error.
       forM_ [minBound..maxBound] $ \x -> case x of
