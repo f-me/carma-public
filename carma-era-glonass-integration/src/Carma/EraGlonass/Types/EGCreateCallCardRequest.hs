@@ -32,6 +32,9 @@ data EGCreateCallCardRequest
    = EGCreateCallCardRequest
    { requestId :: RequestId
        -- ^ Unique request identifier (required to answer)
+       --   We also have been told it is an UUID.
+       --   Read about UUID here:
+       --     https://en.wikipedia.org/wiki/Universally_unique_identifier
        --   CaRMa field: TODO
 
    , cardIdCC :: EGCallCardId.EGCallCardId
@@ -170,5 +173,5 @@ data EGCreateCallCardResponse
    , acceptId :: Text
    , requestId :: RequestId
    , acceptCode :: EGAcceptCode.EGAcceptCode
-   , statusDescription :: Text -- Optional, could be empty string
+   , statusDescription :: Maybe Text
    } deriving (Eq, Show, Generic, ToSchema, ToJSON)
