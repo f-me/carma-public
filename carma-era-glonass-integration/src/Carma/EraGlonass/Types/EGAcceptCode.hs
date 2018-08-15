@@ -13,14 +13,21 @@ import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
 
 
--- TODO clarify if another value is possible
 data EGAcceptCode
    = OK
-     deriving (Eq, Show, Generic, ToSchema)
+   | IncorrectFormat
+   | InternalError
+     deriving (Eq, Enum, Bounded, Show, Generic, ToSchema)
 
 instance FromJSON EGAcceptCode where
-  parseJSON (String "OK") = pure OK
-  parseJSON x = typeMismatch "EGAcceptCode" x
+  -- Producing list of all values to reduce human-factor mistakes,
+  -- so it is handled automatically when we add a new value.
+  parseJSON jsonValue = f [minBound..(maxBound :: EGAcceptCode)]
+    where f [] = typeMismatch "EGAcceptCode" jsonValue
+          f (x:xs) | toJSON x == jsonValue = pure x
+                   | otherwise             = f xs
 
 instance ToJSON EGAcceptCode where
-  toJSON OK = String "OK"
+  toJSON OK              = String "OK"
+  toJSON IncorrectFormat = String "INCORRECT_FORMAT"
+  toJSON InternalError   = String "INTERNAL_ERROR"

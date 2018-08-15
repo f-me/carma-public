@@ -30,8 +30,13 @@ import           Control.Monad.Random.Class (MonadRandom, getRandoms)
 import           Carma.Monad.Clock
 
 
--- "RequestId" is a free string that looks like:
+-- | "RequestId" is a free string that looks like:
 --   "c94eea91-d647-43d2-af04-109fbb53d8dc".
+--
+-- We also have been told it is an UUID.
+-- So I think it IS a free string but usually it is an UUID.
+-- Read about UUID here:
+--   https://en.wikipedia.org/wiki/Universally_unique_identifier
 --
 -- Looking at this example we could see it looks like it is just an MD5 hash
 -- with some dashes.

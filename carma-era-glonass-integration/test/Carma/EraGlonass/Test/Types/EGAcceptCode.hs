@@ -13,6 +13,8 @@ import qualified Data.Attoparsec.Text as ParsecText
 import           Data.Either (isRight)
 import           Data.String (IsString (fromString))
 
+import           Control.Monad (forM_)
+
 import           Carma.EraGlonass.Test.Helpers
 import           Carma.EraGlonass.Types.EGAcceptCode
 
@@ -21,7 +23,15 @@ spec :: Spec
 spec = do
   describe "Correctness of JSON parser" $ do
     it "All correct cases" $
-      parseEither jsonParser (String "OK") `shouldBe` Right OK
+      -- Producing list of all values to reduce human-factor mistakes,
+      -- so if new value is added we'll get incomplete pattern-matching error.
+      forM_ [minBound..maxBound] $ \x -> case x of
+        OK ->
+          parseEither jsonParser (String "OK") `shouldBe` Right x
+        IncorrectFormat ->
+          parseEither jsonParser (String "INCORRECT_FORMAT") `shouldBe` Right x
+        InternalError ->
+          parseEither jsonParser (String "INTERNAL_ERROR") `shouldBe` Right x
 
     it "Fails on empty value" $ do
       let substr = findSubstring "expected EGAcceptCode"
@@ -52,7 +62,12 @@ spec = do
 
   describe "Correctness of JSON encoder" $
     it "Usual case" $
-      toJSON OK `shouldBe` String "OK"
+      -- Producing list of all values to reduce human-factor mistakes,
+      -- so if new value is added we'll get incomplete pattern-matching error.
+      forM_ [minBound..maxBound] $ \x -> case x of
+        OK              -> toJSON x `shouldBe` String "OK"
+        IncorrectFormat -> toJSON x `shouldBe` String "INCORRECT_FORMAT"
+        InternalError   -> toJSON x `shouldBe` String "INTERNAL_ERROR"
 
 
 jsonParser :: Value -> Parser EGAcceptCode

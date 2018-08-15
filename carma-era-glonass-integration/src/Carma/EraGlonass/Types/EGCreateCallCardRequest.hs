@@ -169,9 +169,29 @@ instance FromJSON EGCreateCallCardRequestVehicle where
 data EGCreateCallCardResponse
    = EGCreateCallCardResponse
    { responseId :: Text
+       -- ^ We're supposed to form it by ourselves.
+       --   I think it could be just random string.
+
    , cardidProvider :: Text
+       -- ^ CaRMa "Case" id.
+
    , acceptId :: Text
+       -- ^ It supposed to be equal to "cardIdCC" obtained from
+       --   "EGCreateCallCardRequest",
+       --   just getting it from request and putting it here.
+
    , requestId :: RequestId
+       -- ^ It supposed to be equal to "requestId" obtained from
+       --   "EGCreateCallCardRequest",
+       --   just getting it from request and putting it here.
+
    , acceptCode :: EGAcceptCode.EGAcceptCode
+       -- ^ "OK"               - If data successfully accepted
+       --   "INCORRECT_FORMAT" - If accepted data is incorrect
+       --   "INTERNAL_ERROR"   - Internal CaRMa-side error
+
    , statusDescription :: Maybe Text
+       -- ^ It's a free string, just a meta information, could be "OK" or an
+       --   error's stack trace which would help to debug stuff.
+
    } deriving (Eq, Show, Generic, ToSchema, ToJSON)
