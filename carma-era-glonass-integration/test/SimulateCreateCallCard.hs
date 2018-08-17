@@ -42,7 +42,7 @@ type ServerAPI
        -- POST /calls/status
        --
        "calls" :> "status" :> ReqBody '[JSON] Value
-                           :> Post    '[JSON] ()
+                           :> Post    '[JSON] Value
 
 
 main :: IO ()
@@ -79,7 +79,7 @@ egCRM01 =
     --      different.
 
   where
-    getRequestMaker :: IO (Value -> IO (Either ServantError ()))
+    getRequestMaker :: IO (Value -> IO (Either ServantError Value))
     getRequestMaker =
       getClientEnv <&!> \clientEnv reqBody ->
         runClientM (createCallCard reqBody) clientEnv
@@ -92,7 +92,7 @@ statusCodePredicate code = \case
   _ -> False
 
 
-createCallCard :: Value -> ClientM ()
+createCallCard :: Value -> ClientM Value
 createCallCard = client (Proxy :: Proxy ServerAPI)
 
 

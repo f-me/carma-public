@@ -3,6 +3,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Carma.EraGlonass.Types.EGCreateCallCardRequest
      ( EGCreateCallCardRequest (..)
      , EGCreateCallCardRequestGis (..)
@@ -10,14 +16,16 @@ module Carma.EraGlonass.Types.EGCreateCallCardRequest
      , EGCreateCallCardResponse (..)
      ) where
 
-import           GHC.Generics (Generic)
+import           GHC.Generics
 
+import           Data.Proxy
 import qualified Data.HashMap.Lazy as HM
 import           Data.Text (Text, length)
 import           Data.Aeson
 import           Data.Aeson.TH (Options (omitNothingFields))
-import           Data.Aeson.Types (typeMismatch)
+import           Data.Aeson.Types (typeMismatch, parseEither)
 import           Data.Swagger
+import           Data.Swagger.Internal.Schema
 
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import qualified Carma.EraGlonass.Types.EGPhoneNumber as EGPhoneNumber
@@ -30,7 +38,12 @@ import           Carma.EraGlonass.Types.EGPropulsion
 
 
 data EGCreateCallCardRequest
-   = EGCreateCallCardRequest
+   = EGCreateCallCardRequestIncorrect String Value
+     -- ^ A constructor for failure case to be able to handle incorrect request
+     --   in a more flexible way (log it, store incorrect request for debugging
+     --   purposes, etc.).
+
+   | EGCreateCallCardRequest
    { requestId :: RequestId
        -- ^ Unique request identifier (required to answer)
        --   We also have been told it is an UUID.
@@ -77,18 +90,51 @@ data EGCreateCallCardRequest
 
    , vehicle :: EGCreateCallCardRequestVehicle
    , gis :: [EGCreateCallCardRequestGis]
-   } deriving (Eq, Show, Generic, ToSchema)
+   } deriving (Eq, Show, Generic)
 
 instance FromJSON EGCreateCallCardRequest where
-  parseJSON src = do
-    parsed <- genericParseJSON defaultOptions src
+  -- | Handling multiple constructors here.
+  --   "EGCreateCallCardRequest" is default successful case
+  --   but if source JSON is incorrect we just constructing
+  --   "EGCreateCallCardRequestIncorrect" and taking is it as correctly parsed
+  --   keeping parse failure message and original JSON data in failure
+  --   constructor.
+  parseJSON src = pure $
+    -- Parsing here to extract parsing error message
+    case parseEither (const successfulCase) src of
+         Left msg -> EGCreateCallCardRequestIncorrect msg src
+         Right x  -> x
 
-    -- Handling max length of "locationDescription"
-    if Data.Text.length (locationDescription parsed) > 180
-       then typeMismatch "EGCreateCallCardRequest.locationDescription" src
-       else pure ()
+    where
+      successfulCase = do
+        -- Extracting hash-map from JSON "Object"
+        obj <- case src of
+                    Object x -> pure x
+                    _        -> typeMismatch "EGCreateCallCardRequest" src
 
-    pure parsed
+        parsed <- genericParseJSON defaultOptions $
+          -- Associating it with default constructor for successful case
+          Object $ HM.insert "tag" (String "EGCreateCallCardRequest") obj
+
+        -- Handling max length of "locationDescription"
+        if Data.Text.length (locationDescription parsed) > 180
+           then typeMismatch "EGCreateCallCardRequest.locationDescription" src
+           else pure ()
+
+        pure parsed
+
+-- Slicing "Incorrect" constructor from Swagger spec
+-- WARNING! Hack, orphan instance. It would be better to implement it somehow in
+--          "ToSchema EGCreateCallCardRequest" instance, maybe using type
+--          families. This is safe enough only because name of the constructor
+--          is pretty unique in the whole microservice.
+instance {-# OVERLAPS #-} (GToSchema g) => GToSchema
+  (C1 ('MetaCons "EGCreateCallCardRequestIncorrect" 'PrefixI 'False) a :+: g)
+  where
+  gdeclareNamedSchema opts _ = gdeclareNamedSchema opts (Proxy :: Proxy g)
+
+-- Generic implementation after sliced "Incorrect" constructor
+instance ToSchema EGCreateCallCardRequest
 
 
 data EGCreateCallCardRequestGis

@@ -88,33 +88,41 @@ locationDescriptionJSONParserSpec = do
               >>= parseEither jsonParser
 
     do -- Determinted testing
-      let (maximumReference, parsedMax, parsedExceeded) =
-            f (fromString $ replicate limitedBy        'x')
-              (fromString $ replicate (succ limitedBy) 'x')
+      let maxValue      = fromString $ replicate limitedBy        'x'
+          exceededValue = fromString $ replicate (succ limitedBy) 'x'
+
+          (maximumReference, parsedMax, parsedExceeded) =
+            f maxValue exceededValue
 
       parsedMax `shouldBe` maximumReference
       isRight parsedMax `shouldBe` True
       isRight maximumReference `shouldBe` True
 
       parsedExceeded `shouldSatisfy` \case
-        Right _ -> False
-        Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
+        Right (EGCreateCallCardRequestIncorrect msg (Object obj))
+          | isRight (ParsecText.parseOnly substr $ fromString msg) &&
+            HM.lookup objKey obj == Just (String exceededValue) -> True
+        _ -> False
 
       -- Making sure we really changed something
       parsedMax `shouldNotBe` testReference
 
     forM_ ([1..10] :: [Int]) $ const $ do -- Randomized ten times testing
-      (maximumReference, parsedMax, parsedExceeded) <-
-        f <$> (fromString . take limitedBy        <$> getRandoms)
-          <*> (fromString . take (succ limitedBy) <$> getRandoms)
+      maxValue      <- fromString . take limitedBy        <$> getRandoms
+      exceededValue <- fromString . take (succ limitedBy) <$> getRandoms
+
+      let (maximumReference, parsedMax, parsedExceeded) =
+            f maxValue exceededValue
 
       parsedMax `shouldBe` maximumReference
       isRight parsedMax `shouldBe` True
       isRight maximumReference `shouldBe` True
 
       parsedExceeded `shouldSatisfy` \case
-        Right _ -> False
-        Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
+        Right (EGCreateCallCardRequestIncorrect msg (Object obj))
+          | isRight (ParsecText.parseOnly substr $ fromString msg) &&
+            HM.lookup objKey obj == Just (String exceededValue) -> True
+        _ -> False
 
       -- Making sure we really changed something
       parsedMax `shouldNotBe` testReference
@@ -170,33 +178,43 @@ vehicleColorJSONSpec = do
               >>= parseEither jsonParser
 
     do -- Determinted testing
-      let (maximumReference, parsedMax, parsedExceeded) =
-            f (fromString $ replicate limitedBy        'x')
-              (fromString $ replicate (succ limitedBy) 'x')
+      let maxValue      = fromString $ replicate limitedBy        'x'
+          exceededValue = fromString $ replicate (succ limitedBy) 'x'
+
+          (maximumReference, parsedMax, parsedExceeded) =
+            f maxValue exceededValue
 
       parsedMax `shouldBe` maximumReference
       isRight parsedMax `shouldBe` True
       isRight maximumReference `shouldBe` True
 
       parsedExceeded `shouldSatisfy` \case
-        Right _ -> False
-        Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
+        Right (EGCreateCallCardRequestIncorrect msg (Object obj))
+          | isRight (ParsecText.parseOnly substr $ fromString msg) &&
+            (HM.lookup "vehicle" obj >>= unObject >>= HM.lookup objKey) ==
+              Just (String exceededValue) -> True
+        _ -> False
 
       -- Making sure we really changed something
       parsedMax `shouldNotBe` testReference
 
     forM_ ([1..10] :: [Int]) $ const $ do -- Randomized ten times testing
-      (maximumReference, parsedMax, parsedExceeded) <-
-        f <$> (fromString . take limitedBy        <$> getRandoms)
-          <*> (fromString . take (succ limitedBy) <$> getRandoms)
+      maxValue      <- fromString . take limitedBy        <$> getRandoms
+      exceededValue <- fromString . take (succ limitedBy) <$> getRandoms
+
+      let (maximumReference, parsedMax, parsedExceeded) =
+            f maxValue exceededValue
 
       parsedMax `shouldBe` maximumReference
       isRight parsedMax `shouldBe` True
       isRight maximumReference `shouldBe` True
 
       parsedExceeded `shouldSatisfy` \case
-        Right _ -> False
-        Left  x -> isRight $ ParsecText.parseOnly substr $ fromString x
+        Right (EGCreateCallCardRequestIncorrect msg (Object obj))
+          | isRight (ParsecText.parseOnly substr $ fromString msg) &&
+            (HM.lookup "vehicle" obj >>= unObject >>= HM.lookup objKey) ==
+              Just (String exceededValue) -> True
+        _ -> False
 
       -- Making sure we really changed something
       parsedMax `shouldNotBe` testReference
@@ -208,6 +226,11 @@ vehicleColorJSONSpec = do
 
 jsonParser :: Value -> Parser EGCreateCallCardRequest
 jsonParser = parseJSON
+
+
+unObject :: Value -> Maybe Object
+unObject (Object x) = Just x
+unObject _          = Nothing
 
 
 testReference :: Either String EGCreateCallCardRequest
