@@ -4,6 +4,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 -- Incoming server implementation to provide an API for Era Glonass side
 -- and also some debug stuff for internal usage.
@@ -13,12 +15,15 @@ module Carma.EraGlonass.Server
 
 import           Data.Proxy
 import           Data.Swagger (Swagger)
+import           Text.InterpolatedString.QM
 
-import           Control.Monad.Reader (MonadReader, runReaderT)
+import           Control.Monad.Reader (MonadReader, runReaderT, ReaderT)
+import           Control.Monad.Error.Class (MonadError, throwError)
 
 import           Servant
 import           Servant.Swagger (toSwagger)
 
+import           Carma.Utils.Operators
 import           Carma.Monad.LoggerBus
 import           Carma.EraGlonass.Logger () -- instance
 import           Carma.EraGlonass.Routes
@@ -30,33 +35,56 @@ type ServerAPI
   :<|> -- GET /debug/swagger.json
        "debug" :> "swagger.json" :> Get '[JSON] Swagger
 
-
+-- WARNING! Way to transform monad here is deprecated in newer Servant version.
+--          Read about "hoistServer" from "servant-server" when you will be
+--          migrating from lts-9.21 to newer one.
 serverApplicaton :: AppContext -> Application
-serverApplicaton appContext
-  = serve (Proxy :: Proxy ServerAPI)
-  $ server appContext
+serverApplicaton appContext =
+  serve (Proxy :: Proxy ServerAPI) $ enter withReader server
+
+  where withReader' :: ReaderT AppContext Handler a -> Handler a
+        withReader' r = runReaderT r appContext
+
+        withReader :: ReaderT AppContext Handler :~> Handler
+        withReader = NT withReader'
 
 
-server :: AppContext -> Server ServerAPI
-server appContext = (\req -> wrap $ egCRM01 req) :<|> wrap swagger
-  where wrap = flip runReaderT appContext
+server
+  :: ( MonadReader AppContext m
+     , MonadLoggerBus m
+     , MonadError ServantErr m
+     )
+  => ServerT ServerAPI m
+server = egCRM01 :<|> swagger
 
 
 egCRM01
   :: ( MonadReader AppContext m
      , MonadLoggerBus m
+     , MonadError ServantErr m
      )
   => EGCreateCallCardRequest
   -> m EGCreateCallCardResponse
-egCRM01 _ = do
-  logError "TODO EG.CRM.01"
+
+-- TODO store original JSON data somewhere to debug later
+egCRM01 (EGCreateCallCardRequestIncorrect msg _) = do
+  logError [qm| EG.CRM.01: Failed to parse request body, error message: {msg} |]
+
+  throwError err400
+    { errBody = "Error while parsing EG.CRM.01 request JSON data." }
+
+egCRM01 EGCreateCallCardRequest {..} = do
+  logError "TODO EG.CRM.01 SUCCESS"
+
+  -- TODO create "Case"
+  -- TODO generate some "responseId"
 
   pure EGCreateCallCardResponse
-    { responseId = "foo"
-    , cardidProvider = "bar"
-    , acceptId = "baz"
-    , requestId = "9db7cf43-deab-4c27-a8df-74bec0b75df1"
-    , acceptCode = OK
+    { responseId        = "some random stuff"
+    , cardidProvider    = "case id"
+    , acceptId          = cardIdCC & \(EGCallCardId x) -> x
+    , requestId         = requestId
+    , acceptCode        = OK
     , statusDescription = Nothing
     }
 
