@@ -3,11 +3,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Carma.EraGlonass.Types.EGCreateCallCardRequest
      ( EGCreateCallCardRequest (..)
@@ -123,18 +121,21 @@ instance FromJSON EGCreateCallCardRequest where
 
         pure parsed
 
--- Slicing "Incorrect" constructor from Swagger spec
--- WARNING! Hack, orphan instance. It would be better to implement it somehow in
---          "ToSchema EGCreateCallCardRequest" instance, maybe using type
---          families. This is safe enough only because name of the constructor
---          is pretty unique in the whole microservice.
-instance {-# OVERLAPS #-} (GToSchema g) => GToSchema
-  (C1 ('MetaCons "EGCreateCallCardRequestIncorrect" 'PrefixI 'False) a :+: g)
-  where
-  gdeclareNamedSchema opts _ = gdeclareNamedSchema opts (Proxy :: Proxy g)
+type FailureConsMeta
+   = 'MetaCons "EGCreateCallCardRequestIncorrect" 'PrefixI 'False
 
--- Generic implementation after sliced "Incorrect" constructor
-instance ToSchema EGCreateCallCardRequest
+-- Slicing "Incorrect" constructor from Swagger spec.
+type family CutOffFailureCons (k1 :: * -> *) where
+  CutOffFailureCons (D1 a (C1 FailureConsMeta _ :+: y)) = D1 a y
+
+-- Generic implementation with cutting off "Incorrect" constructor from
+-- type-level type representation ("Rep").
+instance ToSchema EGCreateCallCardRequest where
+  declareNamedSchema _ = gdeclareNamedSchema defaultSchemaOptions proxy mempty
+    where proxy
+            :: (x ~ CutOffFailureCons (Rep EGCreateCallCardRequest))
+            => Proxy x
+          proxy = Proxy
 
 
 data EGCreateCallCardRequestGis
