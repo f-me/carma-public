@@ -8,3 +8,7 @@ end_of_line = lf
 [*.{hs,md,cabal,yaml,yml,yaml.example,json,js,coffee,pug,html,css,less,sh,sql,cfg,cfg.default}]
 indent_style = space
 indent_size = 2
+
+[*.sh]
+indent_style = space
+indent_size = 4

@@ -20,19 +20,11 @@ jobs:
       - run:
           name: Build CaRMa frontend
           command: |
-            cd srv
-            npm install
-            npm run prod-build
-            npm run build-backend-templates
+            tools/builder.sh --ci --clean --production frontend-legacy frontend-backend-templates
       - run:
           name: Build CaRMa frontend ("pure" part)
           command: |
-            cd srv/resources/assets/pure
-            npm install
-            git submodule update --init --recursive purescript-react-dropzone
-            git submodule update --init --recursive purescript-react-rich-text-editor
-            npm run bower -- install --allow-root
-            npm run prod-clean-build
+            tools/builder.sh --ci --clean --production frontend-pure
       - persist_to_workspace:
           root: .
           paths:
@@ -53,12 +45,11 @@ jobs:
       - run:
           name: Build CaRMa backend
           command: |
-            stack --install-ghc -j2 build
+            tools/builder.sh --ci --production backend
       - run:
           name: Run tests
           command: |
-            cd tools
-            stack exec carma-configurator -- -t carma-tools >/dev/null
+            tools/builder.sh --ci --production backend-test
       - save_cache:
           key: stack-cache-{{ checksum "stack.yaml" }}
           paths:
