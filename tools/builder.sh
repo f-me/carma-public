@@ -9,13 +9,14 @@ Usage: $0 [-c|--clean] [--soft-clean] [-p|--parallel] [--production] [--ci] COMM
 
 Commands (multiple tasks):
     $0 all       Build everything
+    $0 backend   Build backend
     $0 frontend  Build frontend
     $0 test      Run all tests
 
 Commands (single task):
-    $0 backend                     Build backend
-    $0 backend-test                Run all tests for backend
     $0 backend-configs             Copy configs examples if needed
+    $0 backend-carma               Just build CaRMa backend
+    $0 backend-test                Run all tests for backend
     $0 frontend-pure               Build "pure" frontend
     $0 frontend-legacy             Build "legacy" frontend
     $0 frontend-backend-templates  Build templates which used by backend
@@ -63,7 +64,7 @@ is_clean_soft=false
 
 available_commands=(
     all test
-    backend backend-test backend-configs
+    backend backend-configs backend-carma backend-test
     frontend frontend-pure frontend-legacy frontend-backend-templates
 )
 
@@ -305,19 +306,35 @@ backend_configs_task() {
     task_log 'backend-configs' done
 }
 
-backend_task__covered_by=(all)
-backend_task() {
-    task_log 'backend' run
-    backend_configs_task
+backend_carma_task__covered_by=(all backend)
+backend_carma_task() {
+    task_log 'backend-carma' run
 
     if [[ $is_clean_build == true ]]; then
+        task_log 'backend-carma' step 'Cleaning...'
         local clean_flags=(--full)
         [[ $is_clean_soft == true ]] && clean_flags=()
         stack clean "${clean_flags[@]}"
     fi
 
     local cpus=$(nproc --all)
+    task_log 'backend-carma' step "Building ($[$cpus] jobs)..."
     stack --install-ghc "-j$[$cpus]" build
+
+    task_log 'backend-carma' done
+}
+
+backend_task__covered_by=(all)
+backend_task() {
+    task_log 'backend' run
+    if [[ $run_in_parallel == true ]]; then
+        backend_configs_task &
+        backend_carma_task &
+        wait
+    else
+        backend_configs_task
+        backend_carma_task
+    fi
     task_log 'backend' done
 }
 
@@ -391,14 +408,19 @@ for cmd in "${positional[@]}"; do
             already_covered_handle "$cmd" "${backend_task__covered_by[@]}"
             backend_task
             ;;
-        backend-test)
-            already_covered_handle "$cmd" "${backend_test_task__covered_by[@]}"
-            backend_test_task
-            ;;
         backend-configs)
             already_covered_handle "$cmd" \
                 "${backend_configs_task__covered_by[@]}"
             backend_configs_task
+            ;;
+        backend-carma)
+            already_covered_handle "$cmd" \
+                "${backend_carma_task__covered_by[@]}"
+            backend_carma_task
+            ;;
+        backend-test)
+            already_covered_handle "$cmd" "${backend_test_task__covered_by[@]}"
+            backend_test_task
             ;;
         frontend)
             already_covered_handle "$cmd" "${frontend_task__covered_by[@]}"
