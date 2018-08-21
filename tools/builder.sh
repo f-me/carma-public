@@ -5,22 +5,26 @@
 # Use -h or --help option to show it
 show_usage() {
     cat << USAGE
-Usage: $0 [-c|--clean] [-p|--parallel] [--production] [--ci] COMMANDS...
+Usage: $0 [-c|--clean] [--soft-clean] [-p|--parallel] [--production] [--ci] COMMANDS...
 
 Commands (multiple tasks):
-    $0 all           Build everything
-    $0 frontend      Build frontend
-    $0 test          Run all tests
+    $0 all       Build everything
+    $0 frontend  Build frontend
+    $0 test      Run all tests
 
 Commands (single task):
     $0 backend                     Build backend
     $0 backend-test                Run all tests for backend
+    $0 backend-configs             Copy configs examples if needed
     $0 frontend-pure               Build "pure" frontend
     $0 frontend-legacy             Build "legacy" frontend
     $0 frontend-backend-templates  Build templates which used by backend
 
 Options:
     -c, --clean     Clean previous bundles before build
+    --soft-clean    Softly clean if possible
+                    (for backend means don't fully clean .stack-work but just
+                    built CaRMa modules, useful for reducing build time)
     -p, --parallel  If a command have multiple tasks they run in parallel
     --production    Make a build for production (minify, no debug stuff, etc.)
     --ci            Marking that build happens inside CI container
@@ -55,9 +59,11 @@ run_in_parallel=false
 is_production_build=false
 is_ci_container=false
 is_clean_build=false
+is_clean_soft=false
 
 available_commands=(
-    all backend backend-test test
+    all test
+    backend backend-test backend-configs
     frontend frontend-pure frontend-legacy frontend-backend-templates
 )
 
@@ -83,6 +89,10 @@ for arg in "$@"; do
                 ;;
             -c|--clean)
                 is_clean_build=true
+                ;;
+            --soft-clean)
+                is_clean_build=true
+                is_clean_soft=true
                 ;;
             -p|--parallel)
                 run_in_parallel=true
@@ -116,20 +126,28 @@ fi
 
 
 # $1 is task name.
-# [[ $2 == done ]] means task is done (or it's just running otherwise).
+# [[ $2 == run ]] means task is running
+# [[ $2 == done ]] means task is done
+# [[ $2 == step ]] to log particular sub-tasks
+# $3 is log message when [[ $2 == step ]]
 task_log() {
     local d=$(date '+%Y-%m-%d %H:%M:%S')
-    if [[ $2 == done ]]; then
-        printf '[%s] "%s" task is done.\n' "$d" "$1"
-    else
+    if [[ $2 == run ]]; then
         printf '[%s] "%s" task is running...\n' "$d" "$1"
+    elif [[ $2 == done ]]; then
+        printf '[%s] "%s" task is done.\n' "$d" "$1"
+    elif [[ $2 == step ]]; then
+        printf '[%s] "%s" task: %s\n' "$d" "$1" "$3"
+    else
+        printf '[%s] Unexpected "%s" task "%s" action!\n' "$d" "$1" "$2" >&2
+        exit 1
     fi
 }
 
 
 frontend_pure_task__covered_by=(frontend all)
 frontend_pure_task() {
-    task_log "frontend-pure"
+    task_log 'frontend-pure' run
     local dir='srv/resources/assets/pure'
 
     # Installing dependencies
@@ -160,7 +178,7 @@ frontend_pure_task() {
 
     (cd -- "$dir" && npm run "${prod_prefix}${clean_infix}build")
 
-    task_log "frontend-pure" done
+    task_log 'frontend-pure' done
 }
 
 # Preparation for legacy frontend build.
@@ -174,7 +192,7 @@ frontend_legacy_pre() {
 frontend_legacy_task__covered_by=(frontend all)
 # [[ $1 == true ]] means that preparations is already done.
 frontend_legacy_task() {
-    task_log "frontend-legacy"
+    task_log 'frontend-legacy' run
     local dir='srv'
     [[ $1 == true ]] || frontend_legacy_pre
 
@@ -186,7 +204,7 @@ frontend_legacy_task() {
 
     (cd -- "$dir" && npm run "${prod_prefix}${clean_infix}build")
 
-    task_log "frontend-legacy" done
+    task_log 'frontend-legacy' done
 }
 
 frontend_backend_templates_task__covered_by=(frontend all)
@@ -194,7 +212,7 @@ frontend_backend_templates_task__covered_by=(frontend all)
 # It's part of a legacy frontend, so it's kinda connected to it
 # (that's why they're both shared "frontend_legacy_pre").
 frontend_backend_templates_task() {
-    task_log "frontend-backend-templates"
+    task_log 'frontend-backend-templates' run
     local dir='srv'
     [[ $1 == true ]] || frontend_legacy_pre
 
@@ -203,7 +221,7 @@ frontend_backend_templates_task() {
 
     (cd -- "$dir" && npm run "${clean_prefix}build-backend-templates")
 
-    task_log "frontend-backend-templates" done
+    task_log 'frontend-backend-templates' done
 }
 
 # Helper to run legacy tasks in parallel
@@ -215,7 +233,7 @@ frontend_task_parallel_legacy() {
 
 frontend_task__covered_by=(all)
 frontend_task() {
-    task_log "frontend"
+    task_log 'frontend' run
     if [[ $run_in_parallel == true ]]; then
         frontend_pure_task &
         (frontend_legacy_pre && frontend_task_parallel_legacy) &
@@ -226,31 +244,95 @@ frontend_task() {
         frontend_legacy_task true
         frontend_backend_templates_task true
     fi
-    task_log "frontend" done
+    task_log 'frontend' done
 }
 
 
+# $1 - task name for log
+# $2 - label of a config
+# $3 - config example file (as a source to copy from)
+# $4 - destination of a config
+config_copy() {
+    task_log "$1" step $"Checking $2 config file: \"$4\"..."
+    if [[ -f $4 ]]; then
+        task_log "$1" step $"$2 config file \"$4\" exists."
+    else
+        local x=$"$2 config file \"$4\" doesn't exist,"
+        x=$"$x copying from \"$3\" to \"$4\"..."
+        task_log "$1" step "$x"
+        cp -- "$3" "$4"
+        task_log "$1" step $"$2 config file \"$4\" is copied."
+    fi
+}
+
+backend_configs_task__covered_by=(all backend)
+backend_configs_task() {
+    task_log 'backend-configs' run
+
+    # Snaplets configs
+    task_log 'backend-configs' step 'Checking snaplets configs directory...'
+    if [[ ! -d srv/snaplets ]]; then
+        local x=$'Snaplets configs directory doesn\'t exists, copying it'
+        x="$x from srv/snaplets-default to srv/snaplets..."
+        task_log 'backend-configs' step "$x"
+        cp -r srv/snaplets-default srv/snaplets
+        task_log 'backend-configs' step 'Snaplets configs directory is copied.'
+    else
+        task_log 'backend-configs' step \
+            'Snaplets configs directory exists, checking particular configs...'
+
+        ls srv/snaplets-default | while read dir; do
+            mkdir -p -- "srv/snaplets/$dir"
+            ls -- "srv/snaplets-default/$dir/"* | while read file; do
+                config_copy 'backend-configs' 'Snaplet' \
+                    "$file" "srv/snaplets/$dir/$(basename -- "$file")"
+            done
+        done
+
+        task_log 'backend-configs' step 'Done with snaplets particular configs.'
+    fi
+
+    # Nominatim Mediator config
+    config_copy 'backend-configs' 'Nominatim Mediator' \
+        'carma-nominatim-mediator/app.cfg.default' \
+        'carma-nominatim-mediator/app.cfg'
+
+    # Config for CaRMa tools
+    config_copy 'backend-configs' 'Tools' \
+        'tools/carma-tools.cfg.yaml.example' \
+        'tools/carma-tools.cfg.yaml'
+
+    task_log 'backend-configs' done
+}
+
 backend_task__covered_by=(all)
 backend_task() {
-    task_log "backend"
-    [[ $is_clean_build == true ]] && stack clean --full
+    task_log 'backend' run
+    backend_configs_task
+
+    if [[ $is_clean_build == true ]]; then
+        local clean_flags=(--full)
+        [[ $is_clean_soft == true ]] && clean_flags=()
+        stack clean "${clean_flags[@]}"
+    fi
+
     local cpus=$(nproc --all)
     stack --install-ghc "-j$[$cpus]" build
-    task_log "backend" done
+    task_log 'backend' done
 }
 
 backend_test_task__covered_by=(test)
 # TODO handle auto build before test
 backend_test_task() {
-    task_log "backend-test"
+    task_log 'backend-test' run
     (cd tools && stack exec carma-configurator -- -t carma-tools >/dev/null)
-    task_log "backend-test" done
+    task_log 'backend-test' done
 }
 
 
 all_task__covered_by=()
 all_task() {
-    task_log "all"
+    task_log 'all' run
     if [[ $run_in_parallel == true ]]; then
         backend_task &
         frontend_task &
@@ -259,20 +341,20 @@ all_task() {
         backend_task
         frontend_task
     fi
-    task_log "all" done
+    task_log 'all' done
 }
 
 test_task__covered_by=()
 # TODO handle auto build before test
 test_task() {
-    task_log "test"
+    task_log 'test' run
     if [[ $run_in_parallel == true ]]; then
         backend_test_task &
         wait
     else
         backend_test_task
     fi
-    task_log "test" done
+    task_log 'test' done
 }
 
 
@@ -301,6 +383,10 @@ for cmd in "${positional[@]}"; do
             already_covered_handle "$cmd" "${all_task__covered_by[@]}"
             all_task
             ;;
+        test)
+            already_covered_handle "$cmd" "${test_task__covered_by[@]}"
+            test_task
+            ;;
         backend)
             already_covered_handle "$cmd" "${backend_task__covered_by[@]}"
             backend_task
@@ -309,9 +395,10 @@ for cmd in "${positional[@]}"; do
             already_covered_handle "$cmd" "${backend_test_task__covered_by[@]}"
             backend_test_task
             ;;
-        test)
-            already_covered_handle "$cmd" "${test_task__covered_by[@]}"
-            test_task
+        backend-configs)
+            already_covered_handle "$cmd" \
+                "${backend_configs_task__covered_by[@]}"
+            backend_configs_task
             ;;
         frontend)
             already_covered_handle "$cmd" "${frontend_task__covered_by[@]}"
