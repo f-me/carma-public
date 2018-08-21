@@ -29,9 +29,11 @@ import           Text.InterpolatedString.QM
 
 import           Control.Monad
 import           Control.Monad.Logger (runStdoutLoggingT)
-import           Control.Monad.Reader.Class (MonadReader, asks)
-import           Control.Monad.Reader (runReaderT)
+import           Control.Monad.Reader (MonadReader, asks, ReaderT, runReaderT)
 import           Control.Monad.Catch (MonadThrow, MonadCatch, throwM, catchAll)
+import           Control.Monad.Trans.Control (MonadBaseControl)
+import           Control.Monad.Base (MonadBase)
+import           Control.Monad.IO.Class (MonadIO)
 
 import           System.Directory (makeAbsolute)
 
@@ -161,7 +163,18 @@ main = do
         , statisticsBus               = statisticsBus'
         }
 
-      app = serve (Proxy :: Proxy AppRoutesWithSwagger) $ appServer appCtx
+      -- WARNING! Way to transform monad here is deprecated in newer Servant
+      --          version. Read about "hoistServer" from "servant-server" when
+      --          you will be migrating from lts-9.21 to newer one.
+      app
+        = serve (Proxy :: Proxy AppRoutesWithSwagger)
+        $ enter withReader appServer
+        where
+          withReader' :: ReaderT AppContext Handler a -> Handler a
+          withReader' r = runReaderT r appCtx
+
+          withReader :: ReaderT AppContext Handler :~> Handler
+          withReader = NT withReader'
 
       warpSettings
         = Warp.defaultSettings
@@ -246,18 +259,23 @@ main = do
   Warp.runSettings warpSettings app
 
 
-appServer :: AppContext -> Server AppRoutesWithSwagger
-appServer appCtx =
-  ( (\lang query -> wrap $ search lang query)
-    :<|> (\lang coords -> wrap $ revSearch lang coords)
-    :<|> ( wrap debugCachedQueries
-           :<|> wrap debugCachedResponses
-           :<|> wrap debugStatistics
+appServer
+  :: ( MonadReader AppContext m
+     , MonadCatch m
+     , MonadBaseControl IO m
+     , MonadBase IO m
+     , MonadIO m
+     )
+  => ServerT AppRoutesWithSwagger m
+appServer =
+  ( search
+    :<|> revSearch
+    :<|> ( debugCachedQueries
+           :<|> debugCachedResponses
+           :<|> debugStatistics
          )
   )
-  :<|> wrap debugSwaggerAPI
-
-  where wrap = flip runReaderT appCtx
+  :<|> debugSwaggerAPI
 
 
 -- Server routes handlers
