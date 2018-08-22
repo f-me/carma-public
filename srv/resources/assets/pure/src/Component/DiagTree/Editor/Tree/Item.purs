@@ -3,6 +3,7 @@ module Component.DiagTree.Editor.Tree.Item
      ) where
 
 import Prelude hiding (div)
+import Control.Monad.Eff.Console (log)
 
 import Control.Lazy (fix)
 
@@ -111,6 +112,22 @@ diagTreeEditorTreeItemRender = f $
       preventDefault event
       stopPropagation event
       callEventHandler delete slideBranch
+
+    onCopyClick event = do
+      preventDefault event
+      stopPropagation event
+      log "Copy"
+
+    onCutClick event = do
+      preventDefault event
+      stopPropagation event
+      log "Cut"
+
+    onPasteClick event = do
+      preventDefault event
+      stopPropagation event
+      log "Paste"
+
   in
     renderIn (R.div [className wClass, key $ show slide.id]) $ do
       div !. classSfx "header" ! onClick onHeaderClick $ do
@@ -120,6 +137,25 @@ diagTreeEditorTreeItemRender = f $
                ! title "Удалить ветвь" $
 
           i !. "glyphicon" <.> "glyphicon-trash" $ empty
+
+        button !. "btn" <.> classSfx "copy"
+               ! onClick onCopyClick
+               ! title "Скопировать ветвь" $
+
+          i !. "glyphicon" <.> "glyphicon-copy" $ empty
+
+        button !. "btn" <.> classSfx "cut"
+               ! onClick onCutClick
+               ! title "Переместить ветвь" $
+
+          i !. "glyphicon" <.> "glyphicon-scissors" $ empty
+
+        button !. "btn" <.> classSfx "paste"
+               ! onClick onPasteClick
+               ! title "Вставить ветвь" $
+
+          i !. "glyphicon" <.> "glyphicon-paste" $ empty
+
 
         let searchPatterns = do
               { query, patterns }  <- search

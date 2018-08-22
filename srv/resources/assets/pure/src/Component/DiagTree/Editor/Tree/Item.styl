@@ -52,6 +52,55 @@ name = DiagTreeEditorTreeItem
     &:hover .{name}--delete
       opacity 1
 
+    .{name}--copy
+      position absolute
+      right 90px
+      top 50%
+      transform translateY(-50%)
+      padding 2px 5px 1px 4px
+      cursor pointer
+      opacity 0
+      transition \
+        opacity .3s ease-in-out,
+        color .3s ease-in-out,
+        background-color .3s ease-in-out
+
+    &:hover .{name}--copy
+      opacity 1
+
+    .{name}--cut
+      position absolute
+      right 60px
+      top 50%
+      transform translateY(-50%)
+      padding 2px 5px 1px 4px
+      cursor pointer
+      opacity 0
+      transition \
+        opacity .3s ease-in-out,
+        color .3s ease-in-out,
+        background-color .3s ease-in-out
+
+    &:hover .{name}--cut
+      opacity 1
+
+
+    .{name}--paste
+      position absolute
+      right 30px
+      top 50%
+      transform translateY(-50%)
+      padding 2px 5px 1px 4px
+      cursor pointer
+      opacity 0
+      transition \
+        opacity .3s ease-in-out,
+        color .3s ease-in-out,
+        background-color .3s ease-in-out
+
+    &:hover .{name}--paste
+      opacity 1
+
     .{name}--search-match
       background-color yellow
 
