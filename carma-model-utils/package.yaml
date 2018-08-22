@@ -1,0 +1,31 @@
+name:        carma-model-utils
+version:     1.0.0.0
+license:     BSD3
+author:      Viacheslav Lotsmanov
+maintainer:  lotsmanov89@gmail.com
+category:    Web
+synopsis:    Utilitarian helpers for CaRMa models.
+
+description:
+  Utilitarian helpers for CaRMa models.
+  .
+  Types, functions and quasi-quoters.
+
+dependencies:
+  - base
+  - bytestring
+  - carma-models
+  - haskell-src-meta
+  - postgresql-simple
+  - qm-interpolated-string
+  - template-haskell
+  - text
+
+ghc-options:
+  - -Wall
+  - -Werror
+  - -O2
+  - -funbox-strict-fields
+
+library:
+  source-dirs: src

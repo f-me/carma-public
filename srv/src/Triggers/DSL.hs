@@ -86,10 +86,10 @@ import Data.Model.Patch (Object, Patch)
 import qualified Data.Model.Sql as Sql
 import qualified Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as Patch
+import Data.Model.Utils.LegacyModel (mkIdentTopic)
 
 import Snaplet.Messenger (sendMessage)
 import Snaplet.Messenger.Class (withMsg)
-import Utils.LegacyModel (mkIdentTopic)
 
 import qualified Carma.Model.Action as Action
 import qualified Carma.Model.Call   as Call

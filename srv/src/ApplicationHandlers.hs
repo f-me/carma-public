@@ -79,8 +79,8 @@ import Carma.Model.Event (EventType(..))
 
 import Application
 import AppHandlers.Util
-import Util as U hiding (render)
-import Utils.LegacyModel (readIdent)
+import Util hiding (render)
+import Data.Model.Utils.LegacyModel (readIdent)
 
 import Utils.Events (logLogin, logCRUD, updateUserState)
 

@@ -1,16 +1,15 @@
 {-# LANGUAGE ScopedTypeVariables, QuasiQuotes, FlexibleContexts, DataKinds #-}
 
 module Utils.Events
-    (
-      logCRUD
-    , updateUserState
-    , logLogin
-    , logCRUDState
+     ( logCRUD
+     , updateUserState
+     , logLogin
+     , logCRUDState
 
-    , switchToNA
-    , switchToReady
-    , forceBusyUserToServiceBreak
-    )
+     , switchToNA
+     , switchToReady
+     , forceBusyUserToServiceBreak
+     )
 
 where
 
@@ -38,14 +37,12 @@ import           Data.Model
 import           Data.Model.Patch (Patch)
 import qualified Data.Model.Patch     as P
 import qualified Data.Model.Patch.Sql as P
+import           Data.Model.Utils.LegacyModel (mkIdentTopic)
 
 import           Snap
 import           Snap.Snaplet.Auth
 import           Snaplet.Auth.Class
-import           Snap.Snaplet.PostgresqlSimple ( liftPG'
-                                               , Only(..)
-                                               , query
-                                               )
+import           Snap.Snaplet.PostgresqlSimple (liftPG', Only(..), query)
 import           Database.PostgreSQL.Simple.SqlQQ
 
 import           Carma.Model.Event (Event, EventType(..))
@@ -66,8 +63,6 @@ import           Snaplet.Messenger.Class
 import           Application
 import {-# SOURCE #-} AppHandlers.Avaya
 import           AppHandlers.KPI (updateOperKPI)
-
-import           Utils.LegacyModel
 
 
 -- | Create `Event` for login/logout fact

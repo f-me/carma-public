@@ -6,6 +6,7 @@ packages:
 - caroperator-svc
 - carma-utils
 - carma-models
+- carma-model-utils
 - carma-mobile-server
 - carma-http
 - carma-dict

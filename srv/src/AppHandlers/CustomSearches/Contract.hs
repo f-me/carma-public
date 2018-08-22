@@ -33,6 +33,7 @@ import           Snap
 import           Snap.Snaplet.PostgresqlSimple
 
 import           Data.Model
+import           Data.Model.Utils.PostgreSQL.InterpolationHelpers
 import           Carma.Model.CarMake
 import           Carma.Model.CarModel
 import           Carma.Model.Case as Case
@@ -159,49 +160,49 @@ searchContracts = do
       -- Fields selected from matching rows
       selectedFieldsParam =
           map PT $ C.identifierNames ++ extraContractFieldNames
-      contractTable   = tableQT C.ident
-      programTable    = tableQT P.ident
-      subProgramTable = tableQT S.ident
+      contractTable   = plainTableName C.ident
+      programTable    = plainTableName P.ident
+      subProgramTable = plainTableName S.ident
 
   res <- query (fromString $ T.unpack totalQuery) $
           ()
           -- 1
-          :. Only (fieldPT C.ident)
+          :. Only (plainFieldName C.ident)
           -- 4
-          :. ( fieldPT Case.callDate
-             , fieldPT C.validSince
-             , fieldPT C.validUntil
-             , fieldPT Case.callDate
+          :. ( plainFieldName Case.callDate
+             , plainFieldName C.validSince
+             , plainFieldName C.validUntil
+             , plainFieldName Case.callDate
              )
           -- M + N
           :. selectedFieldsParam
           -- 1
           :. Only contractTable
           -- 3
-          :. ( tableQT Case.ident
-             , fieldPT Case.ident
+          :. ( plainTableName Case.ident
+             , plainFieldName Case.ident
              , caseId
              )
           -- 3
           :. Only subProgramTable
-          :. (fieldPT C.subprogram, fieldPT S.ident)
+          :. (plainFieldName C.subprogram, plainFieldName S.ident)
           -- 3
           :. Only programTable
-          :. (fieldPT S.parent, fieldPT P.ident)
+          :. (plainFieldName S.parent, plainFieldName P.ident)
           -- 1 fts_key ~* q
           :. Only q
           -- 2*M
           :. ToRowList fieldParams
           -- 3
           :. sqlFlagPair (0::Int) id sid
-          :. (Only $ fieldPT C.subprogram)
+          :. (Only $ plainFieldName C.subprogram)
           -- 3
           :. sqlFlagPair (0::Int) id pid
-          :. Only (fieldPT P.ident)
+          :. Only (plainFieldName P.ident)
           -- 2
-          :. (fieldPT C.dixi, fieldPT C.isActive)
+          :. (plainFieldName C.dixi, plainFieldName C.isActive)
           -- 2
-          :. (fieldPT P.active, fieldPT S.active)
+          :. (plainFieldName P.active, plainFieldName S.active)
           -- 1
           :. Only limit
 

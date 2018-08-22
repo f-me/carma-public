@@ -110,7 +110,7 @@ import qualified Triggers.Action.MailToDealer as BOAction (sendMailToDealer)
 import           Triggers.DSL as Dsl
 
 import           Util (Priority(..), syslogJSON, (.=))
-import           Utils.Model.MSqlQQ hiding (parseQuery)
+import           Data.Model.Utils.PostgreSQL.MSqlQQ hiding (parseQuery)
 
 
 -- TODO: rename

@@ -20,6 +20,7 @@ import           Data.Text (Text)
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.ToField
 
+import           Data.Model.Utils.PostgreSQL.InterpolationHelpers
 import           Carma.Model.Role as Role
 
 import           Snap
@@ -31,7 +32,6 @@ import           Snaplet.SiteConfig.Models
 import           Snaplet.SiteConfig.Config
 
 import           AppHandlers.Util
-import           Util
 
 q :: Query
 q = [sql|

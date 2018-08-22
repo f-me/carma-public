@@ -31,6 +31,7 @@ import           Snap.Snaplet.PostgresqlSimple
 
 import           Data.Model (IdentI)
 import           Data.Model.Patch
+import           Data.Model.Utils.LegacyModel (rawBSFieldValueToIdent)
 import qualified Carma.Model.KPI.Stat  as S
 import qualified Carma.Model.KPI.Oper  as O
 import qualified Carma.Model.KPI.Group as G
@@ -39,7 +40,6 @@ import           Carma.Model.Types (UserStateVal(..))
 import qualified Carma.Model.CallType as CT
 
 import           AppHandlers.Util
-import           Util (fvIdentBs)
 
 
 getStatFiles :: AppHandler ()
@@ -75,7 +75,8 @@ selectStatDays rawuid from to = do
     RWS.execRWST fillKPIsDays (V.singleton(raw2uid rawuid), from, to) M.empty
   return $ M.elems states
   where
-    raw2uid bs = fromMaybe (error "Can't parse ident") (fvIdentBs bs)
+    raw2uid bs =
+      fromMaybe (error "Can't parse ident") (rawBSFieldValueToIdent bs)
 
 activeUsersQ :: Query
 activeUsersQ = [sql|
