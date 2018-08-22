@@ -23,13 +23,11 @@ import           Data.Model
 
 
 -- | Convert an @Ident@ to an untyped field value.
--- "identFv"
 identToRawFieldValue :: Model m => IdentI m -> Text
 identToRawFieldValue (Ident v) = [qm|{v}|]
 
 
 -- | Convert an untyped field value to an @Ident@ if it's a numeric string.
--- "fvIdent"
 rawFieldValueToIdent :: Model m => Text -> Maybe (IdentI m)
 rawFieldValueToIdent s =
   case T.decimal s of
@@ -38,7 +36,6 @@ rawFieldValueToIdent s =
 
 
 -- | Same as @fvIdent@ but for @ByteString@.
--- "fvIdentBs"
 rawBSFieldValueToIdent :: Model m => ByteString -> Maybe (IdentI m)
 rawBSFieldValueToIdent = rawFieldValueToIdent . T.decodeUtf8
 

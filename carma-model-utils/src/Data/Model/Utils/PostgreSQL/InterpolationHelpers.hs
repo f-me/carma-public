@@ -31,12 +31,10 @@ instance ToField PlainText where
 
 
 -- | Field name, unquoted.
--- "fieldPT"
 plainFieldName :: KnownSymbol n => (m -> Field t (FOpt n d a)) -> PlainText
 plainFieldName = PT . fieldName
 
 
 -- | Table name, in double quotes.
--- "tableQT"
 plainTableName :: forall m t d . Model m => (m -> PK t m d) -> PlainText
 plainTableName _ = PT [qm|"{tableName (modelInfo :: ModelInfo m)}"|]
