@@ -73,9 +73,11 @@ import Snap.Util.FileUploads (getMaximumFormInputSize)
 import Snaplet.FileUpload (FileUpload(cfg))
 
 import Carma.Model
+import Data.Model
 import Data.Model.CRUD
 import Data.Model.Patch as Patch (Patch(..), differenceFrom)
 import Carma.Model.Event (EventType(..))
+import Carma.Model.Partner (Partner)
 
 import Application
 import AppHandlers.Util
@@ -201,9 +203,20 @@ readHandler = do
 
 readManyHandler :: AppHandler ()
 readManyHandler = do
-  Just model  <- getParamT "mdl" -- NB: this param can shadow query params
-  limit  <- maybe 4000 readInt <$> getParam "limit"
-  offset <- maybe    0 readInt <$> getParam "offset"
+  Just model <- getParamT "mdl" -- NB: this param can shadow query params
+
+  -- TODO FIXME We defenetely should refactor this limits,
+  --            add some pagination,
+  --            interactive completion search
+  --            (loading huge data structures to user's RAM isn't cool)
+  let defaultLimit =
+        if model == modelName (modelInfo :: ModelInfo Partner)
+           then 5000 -- Now we have more than 4000 partners,
+                     -- and some elements not found in dictionary on frontend.
+           else 4000
+
+  limit  <- maybe defaultLimit readInt <$> getParam "limit"
+  offset <- maybe            0 readInt <$> getParam "offset"
   params <- getQueryParams
   let queryFilter =
           [(T.decodeUtf8 k, T.decodeUtf8 v)
