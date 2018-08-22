@@ -317,7 +317,15 @@ backend_carma_task() {
         stack clean "${clean_flags[@]}"
     fi
 
-    local cpus=$(nproc --all)
+    local cpus=
+    if [[ $is_ci_container == true ]]; then
+        # Trying to reduce memory usage on CI
+        # (on Circle CI `nproc --all` returns 32).
+        cpus=2
+    else
+        cpus=$(nproc --all)
+    fi
+
     task_log 'backend-carma' step "Building ($[$cpus] jobs)..."
     stack --install-ghc "-j$[$cpus]" build
 
