@@ -43,6 +43,7 @@ import           WeatherApi                         (getWeather', tempC)
 
 import           Data.Model
 import qualified Data.Model.Sql                     as Sql
+import           Data.Model.Utils.LegacyModel
 
 import qualified Carma.Model.ActionResult           as AResult
 import qualified Carma.Model.ActionType             as AType
@@ -55,7 +56,7 @@ import qualified Carma.Model.ServiceType            as ST
 
 import           AppHandlers.Util
 import           Application
-import           Util                               as U
+import           Util
 
 -- rkc helpers
 getFromTo :: AppHandler (Maybe Day, Maybe Day)
@@ -64,7 +65,7 @@ getFromTo = do
   toDate <- getParam "to"
   let
     parseDate :: ByteString -> Maybe Day
-    parseDate = parseTimeM True defaultTimeLocale "%d.%m.%Y" . U.bToString
+    parseDate = parseTimeM True defaultTimeLocale "%d.%m.%Y" . bToString
 
     fromDate' = parseDate =<< fromDate
     toDate' = parseDate =<< toDate
@@ -229,19 +230,21 @@ orderBy tbl col = preQuery_ [] [tbl] [] [] [T.concat [tbl, ".", col]]
 
 -- | Done services
 doneServices :: PreQuery
-doneServices = inList "servicetbl" "status" $ map identFv
-               [ SS.inProgress
-               , SS.ok
-               , SS.closed]
+doneServices =
+  inList "servicetbl" "status" $
+    map identToRawFieldValue [SS.inProgress, SS.ok, SS.closed]
 
 serviceCaseRel :: PreQuery
-serviceCaseRel = cond ["casetbl", "servicetbl"] "casetbl.id = servicetbl.parentId"
+serviceCaseRel =
+  cond ["casetbl", "servicetbl"] "casetbl.id = servicetbl.parentId"
 
 consultationCaseRel :: PreQuery
-consultationCaseRel = cond ["casetbl", "consultationtbl"] "casetbl.id = consultationtbl.parentId"
+consultationCaseRel =
+  cond ["casetbl", "consultationtbl"] "casetbl.id = consultationtbl.parentId"
 
 towageTech :: PreQuery
-towageTech = inList "servicetbl" "type" $ map identFv [ST.tech, ST.towage]
+towageTech =
+  inList "servicetbl" "type" $ map identToRawFieldValue [ST.tech, ST.towage]
 
 averageTowageTechStart :: PreQuery
 averageTowageTechStart = averageStart `mappend` towageTech
@@ -263,7 +266,7 @@ averageEnd = mconcat [
 satisfaction :: PreQuery
 satisfaction = mconcat [
   count,
-  equals "servicetbl" "clientSatisfied" (identFv Satis.ok)]
+  equals "servicetbl" "clientSatisfied" (identToRawFieldValue Satis.ok)]
 
 satisfactionCount :: PreQuery
 satisfactionCount = mconcat [
@@ -363,20 +366,24 @@ caseSummary (Filter fromDate toDate program city partner) constraints = logExcep
       -- ifNotNull city $ equals "calltbl" "city"
       ]
       -- TODO: partner?
-    (mechanicR, mechanicRActions) = strQuery $ mconcat [
-      count' "cnt",
-      equals "consultationtbl" "constype" (identFv CT.mech),
-      inList "consultationtbl" "status" $
-             map identFv [ SS.inProgress
-                         , SS.ok
-                         , SS.closed
-                         , SS.ordered
-                         , SS.delayed],
-      betweenTime fromDate toDate "consultationtbl" "createTime",
-      consultationCaseRel,
-      ifNotNull program $ equals "casetbl" "program",
-      ifNotNull city $ equals "casetbl" "city",
-      ifNotNull partner $ equalsTo "consultationtbl" "trim(consultationtbl.contractor_partner)"]
+    (mechanicR, mechanicRActions) = strQuery $ mconcat
+      [ count' "cnt"
+      , equals "consultationtbl" "constype" (identToRawFieldValue CT.mech)
+      , inList "consultationtbl" "status" $
+               map identToRawFieldValue [ SS.inProgress
+                                        , SS.ok
+                                        , SS.closed
+                                        , SS.ordered
+                                        , SS.delayed
+                                        ]
+      , betweenTime fromDate toDate "consultationtbl" "createTime"
+      , consultationCaseRel
+      , ifNotNull program $ equals "casetbl" "program"
+      , ifNotNull city $ equals "casetbl" "city"
+      , ifNotNull partner $
+                  equalsTo "consultationtbl"
+                           "trim(consultationtbl.contractor_partner)"
+      ]
 
     mech = liftM oneInt $ query
       (fromString $ "select sum(cnt)::integer from (" ++ mechanicL ++ " union " ++ mechanicR ++ ") as foo")
@@ -505,7 +512,7 @@ rkcComplaints fromDate toDate constraints = logExceptions "rkc/rkcComplaints" $ 
     notNull "servicetbl" "type",
     selectExp ["servicetbl"] "string_agg(servicetbl.type::text, ' ')",
     betweenTime fromDate toDate "servicetbl" "createTime",
-    equals "servicetbl" "clientSatisfied" (identFv Satis.none),
+    equals "servicetbl" "clientSatisfied" (identToRawFieldValue Satis.none),
     groupBy "casetbl" "id",
     orderBy "casetbl" "id"]
   return $ toJSON $ map toCaseId compls
@@ -527,9 +534,9 @@ rkcStats (Filter from to program city partner) = logExceptions "rkc/rkcStats" $ 
                            , AResult.serviceOrderedSMS
                            ]
       city' :: Maybe (IdentI City)
-      city' = fvIdent city
+      city' = rawFieldValueToIdent city
       program' :: Maybe (IdentI Program)
-      program' = fvIdent program
+      program' = rawFieldValueToIdent program
   rsp1 <- PS.query procAvgTimeQuery $
           (orders, orderResults) PS.:. qParams
   rsp2 <- PS.query towStartAvgTimeQuery

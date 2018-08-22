@@ -63,6 +63,8 @@ import           DMCC.WebHook
 import           Data.Model
 import qualified Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as Patch
+import           Data.Model.Utils.LegacyModel (mkIdentTopic)
+import           Data.Model.Utils.PostgreSQL.InterpolationHelpers
 
 import qualified Carma.Model.Action as Action
 import           Carma.Model.AvayaEvent as AE
@@ -81,9 +83,7 @@ import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers
 import           Snaplet.Messenger (sendMessage)
 import           Snaplet.Messenger.Class (HasMsg, withMsg)
-import           Util
 import           Utils.Events
-import           Utils.LegacyModel (mkIdentTopic)
 
 
 -- | Check if a user has access to CTI.
@@ -261,16 +261,16 @@ userStateAction uid = do
     \c -> uncurry (query c)
     [sql|
      SELECT
-     s.$(fieldPT UserState.state)$,
-     e.$(fieldPT Event.modelName)$,
-     e.$(fieldPT Event.modelId)$
+     s.$(plainFieldName UserState.state)$,
+     e.$(plainFieldName Event.modelName)$,
+     e.$(plainFieldName Event.modelId)$
      FROM
-     $(tableQT UserState.ident)$ s,
-     $(tableQT Event.ident)$ e
+     $(plainTableName UserState.ident)$ s,
+     $(plainTableName Event.ident)$ e
      WHERE
-     e.$(fieldPT Event.ident)$ = s.$(fieldPT UserState.eventId)$
-     AND s.$(fieldPT UserState.userId)$ = $(uid)$
-     ORDER BY s.$(fieldPT UserState.ident)$
+     e.$(plainFieldName Event.ident)$ = s.$(plainFieldName UserState.eventId)$
+     AND s.$(plainFieldName UserState.userId)$ = $(uid)$
+     ORDER BY s.$(plainFieldName UserState.ident)$
      DESC LIMIT 1
      |]
   case res of

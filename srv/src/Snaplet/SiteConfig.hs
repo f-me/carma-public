@@ -35,9 +35,9 @@ import Snaplet.SiteConfig.Dictionaries
 
 import AppHandlers.Util
 import Utils.HttpErrors
-import Utils.Model.MSqlQQ hiding (parseQuery)
 
 import qualified Data.Model as Model
+import Data.Model.Utils.PostgreSQL.MSqlQQ hiding (parseQuery)
 import qualified Carma.Model as Model
 import qualified Carma.Model.FieldPermission as FieldPermission
 import qualified Carma.Model.Usermeta as Usermeta

@@ -45,8 +45,10 @@ import           Snap
 import           Snap.Snaplet.PostgresqlSimple hiding (query)
 
 import Data.Model
-import Data.Model.Patch     as Patch
+import Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as Patch
+import Data.Model.Utils.LegacyModel (readIdent)
+import Data.Model.Utils.PostgreSQL.InterpolationHelpers
 
 import Carma.Model.Role      as Role
 import Carma.Model.Usermeta  as Usermeta
@@ -56,9 +58,6 @@ import Application
 import AppHandlers.Util
 import Snaplet.Auth.PGUsers
 import Snaplet.Search.Types (mkSel)
-
-import Util
-import Utils.LegacyModel (readIdent)
 
 
 ------------------------------------------------------------------------------
@@ -154,22 +153,25 @@ userIsReady uid = fromMaybe False <$> userIsInState [Ready] uid
 -- Response is a list of triples: @[["realName", "login", <id>],...]@
 usersInStates :: [IdentI Role.Role] -> [UserStateVal] -> AppHandler ()
 usersInStates roles uStates = do
+  -- TODO use @msql@ instead of @sql@
   rows <- liftPG' $ \c -> uncurry (query c) [sql|
    SELECT
-   u.$(fieldPT Usermeta.realName)$,
-   u.$(fieldPT Usermeta.login)$,
-   u.$(fieldPT Usermeta.ident)$
-   FROM $(tableQT Usermeta.ident)$ u
-   LEFT JOIN (SELECT DISTINCT ON ($(fieldPT UserState.userId)$)
-              $(fieldPT UserState.state)$, $(fieldPT UserState.userId)$
-              FROM $(tableQT UserState.ident)$
+   u.$(plainFieldName Usermeta.realName)$,
+   u.$(plainFieldName Usermeta.login)$,
+   u.$(plainFieldName Usermeta.ident)$
+   FROM $(plainTableName Usermeta.ident)$ u
+   LEFT JOIN (SELECT DISTINCT ON ($(plainFieldName UserState.userId)$)
+                $(plainFieldName UserState.state)$,
+                $(plainFieldName UserState.userId)$
+              FROM $(plainTableName UserState.ident)$
               WHERE range IS NULL
               ORDER BY
-              $(fieldPT UserState.userId)$,
-              $(fieldPT UserState.ident)$ DESC) s
-   ON u.$(fieldPT Usermeta.ident)$ = s.$(fieldPT UserState.userId)$
-   WHERE s.$(fieldPT UserState.state)$ IN $(In uStates)$
-   AND u.$(fieldPT Usermeta.roles)$ && ($(V.fromList roles)$)::int[];
+              $(plainFieldName UserState.userId)$,
+              $(plainFieldName UserState.ident)$ DESC) s
+   ON u.$(plainFieldName Usermeta.ident)$ =
+        s.$(plainFieldName UserState.userId)$
+   WHERE s.$(plainFieldName UserState.state)$ IN $(In uStates)$
+   AND u.$(plainFieldName Usermeta.roles)$ && ($(V.fromList roles)$)::int[];
    |]
   writeJSON (rows :: [(Text, Text, Int)])
 

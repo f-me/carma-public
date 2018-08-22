@@ -65,11 +65,11 @@ import Data.Model
 import Carma.Model.LegacyTypes
 import qualified Data.Model.Patch as Patch
 import qualified Data.Model.Patch.Sql as DB
+import Data.Model.Utils.LegacyModel
 
 import Carma.Model.Attachment as Attachment
 
 import AppHandlers.Util as U
-import Util
 
 
 data FileUpload b = FU { cfg      :: UploadPolicy
@@ -257,7 +257,7 @@ getAttachmentPath aid = do
   let fName = obj `Patch.get'` Attachment.filename
   return $
     fPath </> "attachment" </>
-    (T.unpack $ identFv aid) </> T.unpack fName
+    (T.unpack $ identToRawFieldValue aid) </> T.unpack fName
 
 
 -- | Append a reference of form @attachment:213@ to a field of another
@@ -307,7 +307,7 @@ attachToField instanceId field ref = do
         Just $ Reference $ T.concat [val, ",", r]
       lockName = T.concat [ modelName (modelInfo :: ModelInfo m)
                           , ":"
-                          , identFv instanceId
+                          , identToRawFieldValue instanceId
                           , "/"
                           , field
                           ]

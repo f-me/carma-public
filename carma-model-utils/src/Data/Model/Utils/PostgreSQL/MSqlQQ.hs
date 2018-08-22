@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 {-
   An QuasiQuoter for postresql-simple that helps extracts data from model
   that kinda more safe and robust than deal with plain text SQL and only
@@ -40,36 +42,37 @@
   quasi-quoters. For instance you could implement kinda ORM DSL and produce
   String that will be parsed using `parseQuery` later.
 -}
-module Utils.Model.MSqlQQ
-  ( msql
-  , parseQuery
+module Data.Model.Utils.PostgreSQL.MSqlQQ
+     ( msql
+     , parseQuery
 
-  , Only (..)
-  , (:.) (..)
-  , tableQT
-  , fieldPT
-  ) where
+     , Only (..)
+     , (:.) (..)
+     , plainTableName
+     , plainFieldName
+     ) where
 
-import Language.Haskell.TH
-import Language.Haskell.TH.Quote (QuasiQuoter (..))
-import Language.Haskell.Meta (parseExp)
+import           Language.Haskell.TH
+import           Language.Haskell.TH.Quote (QuasiQuoter (..))
+import           Language.Haskell.Meta (parseExp)
 
-import Database.PostgreSQL.Simple (Only (..), (:.) (..))
-import Data.List (dropWhileEnd)
+import           Database.PostgreSQL.Simple (Only (..), (:.) (..))
+import           Data.List (dropWhileEnd)
 
-import Utils.Model (fieldPT, tableQT)
+import           Data.Model.Utils.PostgreSQL.InterpolationHelpers
+                   (plainFieldName, plainTableName)
 
 
 data SQL
-  = PlainSQL String
-  | Interpolation InterpolationBlock
-  deriving (Eq, Show)
+   = PlainSQL String
+   | Interpolation InterpolationBlock
+   deriving (Eq, Show)
 
 data InterpolationBlock
-  = T String -- Table name
-  | F String -- Field name
-  | V String -- Value
-  deriving (Eq, Show)
+   = T String -- Table name
+   | F String -- Field name
+   | V String -- Value
+   deriving (Eq, Show)
 
 
 {-
@@ -91,9 +94,9 @@ msql = QuasiQuoter
   To template that will produce query like this:
     ( "select ?, ? from ?"
     , (  ()
-      :. Only (fieldPT Usermeta.group)
+      :. Only (plainFieldName Usermeta.group)
       :. Only (100 + 500)
-      :. Only (tableQT Usermeta.ident)
+      :. Only (plainTableName Usermeta.ident)
       )
     )
 -}
@@ -173,8 +176,8 @@ buildExp s = tupE [stringE queryStr, buildInterpolations interpolations]
     foldr (\x acc -> case x of Interpolation y -> y : acc ; _ -> acc) [] s
 
   interpolationToExp = appE (conE $ mkName "Only") . \case
-    T x -> appE (varE $ mkName "tableQT") (varE $ mkName $ x ++ ".ident")
-    F x -> appE (varE $ mkName "fieldPT") (varE $ mkName x)
+    T x -> appE (varE $ mkName "plainTableName") (varE $ mkName $ x ++ ".ident")
+    F x -> appE (varE $ mkName "plainFieldName") (varE $ mkName x)
     V x -> pure $ case parseExp x of Right y -> y ; Left e -> error e
 
   buildInterpolations :: [ExpQ] -> ExpQ

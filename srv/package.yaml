@@ -15,6 +15,7 @@ dependencies:
   - basic-prelude
   - blaze-builder
   - bytestring
+  - carma-model-utils
   - carma-models
   - case-insensitive
   - configurator

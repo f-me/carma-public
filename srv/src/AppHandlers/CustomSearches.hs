@@ -58,6 +58,8 @@ import           Snap.Snaplet.PostgresqlSimple
 import           Snaplet.Auth.PGUsers
 
 import           Data.Model.Types
+import           Data.Model.Utils.PostgreSQL.InterpolationHelpers
+import           Data.Model.Utils.LegacyModel (rawBSFieldValueToIdent)
 
 import qualified Carma.Model.ActionType              as AType
 import           Carma.Model.Contract.Persistent
@@ -69,8 +71,8 @@ import           AppHandlers.CustomSearches.Contract
 import           AppHandlers.Users
 import           AppHandlers.Util
 import           Application
-import           Util
 import           Utils.HttpErrors
+import           Util
 
 
 type MBS = Maybe ByteString
@@ -306,7 +308,7 @@ boUsers
 
 loggedUsers :: AppHandler ()
 loggedUsers = do
-  Just role <- (>>= fvIdentBs) <$> getParam "role"
+  Just role <- (>>= rawBSFieldValueToIdent) <$> getParam "role"
   usersInStates [role]
     [ UserState.Ready, UserState.Busy
     , UserState.Rest, UserState.Dinner

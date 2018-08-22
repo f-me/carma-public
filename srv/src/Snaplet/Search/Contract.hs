@@ -34,6 +34,7 @@ import           Snap.Snaplet.PostgresqlSimple (liftPG')
 
 import           Data.Model
 import           Data.Model.Patch as Patch
+import           Data.Model.Utils.PostgreSQL.InterpolationHelpers
 
 import           Carma.Model.Contract
 import qualified Carma.Model.Usermeta as Usermeta
@@ -43,7 +44,6 @@ import           Snaplet.Search.Types
 import           Snaplet.Search.Utils
 
 import           AppHandlers.Util
-import           Util
 
 
 contractSearch :: SearchHandler b

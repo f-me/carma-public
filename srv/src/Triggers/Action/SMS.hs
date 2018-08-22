@@ -22,7 +22,7 @@ import qualified Carma.Model.CarMake        as CarMake
 import qualified Carma.Model.CarModel       as CarModel
 import qualified Carma.Model.Usermeta       as Usermeta
 
-import Utils.Model.MSqlQQ hiding (parseQuery)
+import Data.Model.Utils.PostgreSQL.MSqlQQ hiding (parseQuery)
 import Application (AppHandler)
 import Util (syslogJSON, render, Priority (Error), (.=))
 import Text.InterpolatedString.QM

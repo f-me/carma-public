@@ -11,7 +11,7 @@ module Util
   , mbreadDouble
   , readDouble
 
-   -- * String helpers
+    -- * String helpers
   , upCaseName
   , bToString
   , stringToB
@@ -20,17 +20,9 @@ module Util
     -- * Time and date
   , projNow
 
-    -- * Legacy interoperability for Idents
-  , identFv
-  , fvIdent
-  , fvIdentBs
-
     -- * Postgres helpers
-  , PlainText(..)
-  , fieldPT
-  , tableQT
-  , (:*)(..)
-  , ToRowList(..)
+  , (:*) (..)
+  , ToRowList (..)
   , sqlFlagPair
 
     -- * Logging
@@ -84,7 +76,6 @@ import qualified System.Posix.Syslog.Functions as Syslog
 
 import           Foreign.C.Types (CInt)
 
-import Utils.Model
 
 data JSONParseException
   = AttoparsecError FilePath String
