@@ -5,12 +5,15 @@ defaults: &defaults
   docker:
     - image: ruamc/carma-stack-build:stack-1.6.5@sha256:f12669a586c621493be9cd08b2751a0ffa89de9a4fa9ffbdb1fd1b4f1068791a
 
+nodejs: &nodejs
+  docker:
+    - image: node:8.11.1@sha256:26e4c77f9f797c3993780943239fa79419f011dd93ae4e0097089e2145aeaa24
+
 jobs:
 
   build_client:
     <<: *defaults
-    docker:
-      - image: node:8.11.1@sha256:26e4c77f9f797c3993780943239fa79419f011dd93ae4e0097089e2145aeaa24
+    <<: *nodejs
     steps:
       - checkout
       - run:
@@ -96,12 +99,27 @@ jobs:
             docker push ruamc/carma-bundle:$CIRCLE_SHA1
             docker logout
 
+  build_all_in_parallel:
+    <<: *defaults
+    <<: *nodejs
+    steps:
+      - checkout
+      - run:
+          name: Node.js and NPM version
+          command: |
+            printf 'node: %s, npm: %s\n' "`node --version`" "`npm --version`"
+      - run:
+          name: Build all CaRMa frontend in parallel
+          command: |
+            tools/builder.sh --ci --clean --production --parallel frontend
+
 workflows:
   version: 2
   build_all:
     jobs:
       - build_client
       - build_server
+      - build_all_in_parallel
       - build_bundle:
           requires:
             - build_client
