@@ -4,7 +4,7 @@
 
 # Use -h or --help option to show it
 show_usage() {
-    cat << USAGE
+cat << USAGE
 Usage: $0 [-c|--clean] [--soft-clean] [-p|--parallel] [--production] [--ci] COMMANDS...
 
 Commands (multiple tasks):
@@ -136,6 +136,9 @@ stdout_fifo=$(mk_tmp_fifo)
 stderr_fifo=$(mk_tmp_fifo)
 logger_pids=()
 
+# General centralized logger.
+# All tasks supposed to write their logs to FIFOs handled in this function.
+# $1 - "1" or "2", means either stdout or stderr logger.
 logger() {
     local f=
 
@@ -191,11 +194,17 @@ task_log() {
 # $2 - FIFO file descriptor
 # $3 - task name to log
 # $4 - application name to log
-# Usage example:
-#   local out_fifo=$(mk_tmp_fifo 1 'task name' 'app name')
-#   local err_fifo=$(mk_tmp_fifo 2 'task name' 'app name')
+#
+# Usage example (usual general template used in the script):
+#   local task_name='some-task-name' dir='srv'
 #   ...
-#   kill_loggers "$out_fifo" "$err_fifo"
+#   local app_name='npm install'
+#   local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
+#   app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+#   app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+#   (cd -- "$dir" && npm install) 1>"$lout" 2>"$lerr"
+#   wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+#
 app_logger() {
     local action=
     (( $1 == 1 )) && action=app-stdout || action=app-stderr
