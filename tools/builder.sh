@@ -1,11 +1,15 @@
 #!/bin/bash -e
-
+#
 # Abstract helper for building CaRMa.
+#
+# WARNING! Unicode symbols are used in this script,
+#          so make sure you have UTF-8 in your $LANG.
+#
 
 # Use -h or --help option to show it
 show_usage() {
 cat << USAGE
-Usage: $0 [-c|--clean] [--soft-clean] [-p|--parallel] [--production] [--ci] COMMANDS...
+Usage: $0 [-c|--clean] [--soft-clean] [-p|--parallel] [--production] [--ci] COMMANDS…
 
 Commands (multiple tasks):
     $0 all       Build everything
@@ -172,16 +176,24 @@ task_log() {
     local d=$(date '+%Y-%m-%d %H:%M:%S')
 
     if [[ $2 == run ]]; then
-        printf '[%s] "%s" task is running...\n' "$d" "$1"
+        printf '[%s] "%s" task is running…\n' "$d" "$1"
     elif [[ $2 == done ]]; then
         printf '[%s] "%s" task is done.\n' "$d" "$1"
     elif [[ $2 == step ]]; then
         printf '[%s] "%s" task: %s\n' "$d" "$1" "$3"
 
-    elif [[ $2 == app-stdout ]]; then
-        printf '[%s] "%s" task "%s" app [STDOUT]: %s\n' "$d" "$1" "$4" "$3"
-    elif [[ $2 == app-stderr ]]; then
-        printf '[%s] "%s" task "%s" app [STDERR]: %s\n' "$d" "$1" "$4" "$3" >&2
+    elif [[ $2 == app-stdout ]] || [[ $2 == app-stderr ]]; then
+        local sep= std=
+        [[ $2 == app-stdout ]] && std=OUT || std=ERR
+
+        local pfx=$(
+            printf '[%s] "%s" task "%s" app [STD%s]: ' "$d" "$1" "$4" "$std")
+
+        (( ${#pfx} > 40 )) && sep=$'\n  ↪ '
+
+        [[ $2 == app-stdout ]] \
+            && printf '%s%s%s\n' "$pfx" "$sep" "$3" \
+            || printf '%s%s%s\n' "$pfx" "$sep" "$3" >&2
 
     else
         printf '[%s] Unexpected "%s" task "%s" action!\n' "$d" "$1" "$2" >&2
@@ -197,7 +209,7 @@ task_log() {
 #
 # Usage example (usual general template used in the script):
 #   local task_name='some-task-name' dir='srv'
-#   ...
+#   …
 #   local app_name='npm install'
 #   local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
 #   app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
@@ -221,7 +233,7 @@ frontend_pure_task() {
     task_log "$task_name" run
 
     # Installing dependencies
-    task_log "$task_name" step 'Installing dependencies...'
+    task_log "$task_name" step 'Installing dependencies…'
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" 'npm install' & pids+=($!)
     app_logger 2 "$lerr" "$task_name" 'npm install' & pids+=($!)
@@ -230,7 +242,7 @@ frontend_pure_task() {
 
     # Fetching submodules for Circle CI container
     if [[ $is_ci_container == true ]]; then
-        task_log "$task_name" step 'Cloning git submodules...'
+        task_log "$task_name" step 'Cloning git submodules…'
 
         local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
         local app_name='purescript-react-dropzone git submodule'
@@ -257,7 +269,7 @@ frontend_pure_task() {
 
     # Installing PureScript dependencies
     task_log "$task_name" step \
-        'Installing PureScript dependencies (using bower)...'
+        'Installing PureScript dependencies (using bower)…'
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" 'bower install' & pids+=($!)
     app_logger 2 "$lerr" "$task_name" 'bower install' & pids+=($!)
@@ -272,7 +284,7 @@ frontend_pure_task() {
     [[ $is_production_build == true ]] && prod_prefix='prod-'
 
     local npm_task=${prod_prefix}${clean_infix}build
-    task_log "$task_name" step $"Running npm \"$npm_task\" script..."
+    task_log "$task_name" step $"Running npm \"$npm_task\" script…"
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" "npm run $npm_task" & pids+=($!)
     app_logger 2 "$lerr" "$task_name" "npm run $npm_task" & pids+=($!)
@@ -288,7 +300,7 @@ frontend_pure_task() {
 frontend_legacy_pre() {
     local task_name='frontend-legacy[pre]' dir='srv'
 
-    task_log "$task_name" step 'Installing dependencies...'
+    task_log "$task_name" step 'Installing dependencies…'
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" 'npm install' & pids+=($!)
     app_logger 2 "$lerr" "$task_name" 'npm install' & pids+=($!)
@@ -310,7 +322,7 @@ frontend_legacy_task() {
     [[ $is_production_build == true ]] && prod_prefix='prod-'
 
     local npm_task="${prod_prefix}${clean_infix}build"
-    task_log "$task_name" step $"Running npm \"$npm_task\" script..."
+    task_log "$task_name" step $"Running npm \"$npm_task\" script…"
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" "npm run $npm_task" & pids+=($!)
     app_logger 2 "$lerr" "$task_name" "npm run $npm_task" & pids+=($!)
@@ -333,7 +345,7 @@ frontend_backend_templates_task() {
     [[ $is_clean_build == true ]] && clean_prefix='clean-'
 
     local npm_task=${clean_prefix}build-backend-templates
-    task_log "$task_name" step $"Running npm \"$npm_task\" script..."
+    task_log "$task_name" step $"Running npm \"$npm_task\" script…"
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" "npm run $npm_task" & pids+=($!)
     app_logger 2 "$lerr" "$task_name" "npm run $npm_task" & pids+=($!)
@@ -376,12 +388,12 @@ frontend_task() {
 # $3 - config example file (as a source to copy from)
 # $4 - destination of a config
 config_copy() {
-    task_log "$1" step $"Checking $2 config file: \"$4\"..."
+    task_log "$1" step $"Checking $2 config file: \"$4\"…"
     if [[ -f $4 ]]; then
         task_log "$1" step $"$2 config file \"$4\" exists."
     else
         local x=$"$2 config file \"$4\" doesn't exist,"
-        x=$"$x copying from \"$3\" to \"$4\"..."
+        x=$"$x copying from \"$3\" to \"$4\"…"
         task_log "$1" step "$x"
 
         local app_name="cp -- '$3' '$4'"
@@ -401,10 +413,10 @@ backend_configs_task() {
     task_log "$task_name" run
 
     # Snaplets configs
-    task_log "$task_name" step 'Checking snaplets configs directory...'
+    task_log "$task_name" step 'Checking snaplets configs directory…'
     if [[ ! -d srv/snaplets ]]; then
         local x=$'Snaplets configs directory doesn\'t exists, copying it'
-        x="$x from srv/snaplets-default to srv/snaplets..."
+        x="$x from srv/snaplets-default to srv/snaplets…"
         task_log "$task_name" step "$x"
 
         local app_name='cp -r srv/snaplets-default srv/snaplets'
@@ -417,7 +429,7 @@ backend_configs_task() {
         task_log "$task_name" step 'Snaplets configs directory is copied.'
     else
         task_log "$task_name" step \
-            'Snaplets configs directory exists, checking particular configs...'
+            'Snaplets configs directory exists, checking particular configs…'
 
         ls srv/snaplets-default | while read dir; do
             local app_name="mkdir -p -- 'srv/snaplets/$dir'"
@@ -455,7 +467,7 @@ backend_carma_task() {
     task_log "$task_name" run
 
     if [[ $is_clean_build == true ]]; then
-        task_log "$task_name" step 'Cleaning...'
+        task_log "$task_name" step 'Cleaning…'
         local clean_flags=(--full)
         [[ $is_clean_soft == true ]] && clean_flags=()
 
@@ -476,7 +488,7 @@ backend_carma_task() {
         cpus=$(nproc --all)
     fi
 
-    task_log "$task_name" step "Building ($[$cpus] jobs)..."
+    task_log "$task_name" step "Building ($[$cpus] jobs)…"
 
     local app_name="stack --install-ghc '-j$[$cpus]' build"
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
