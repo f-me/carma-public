@@ -221,7 +221,7 @@ task_log() {
             printf '[%s] "%s" task "%s" app [%s]: ' \
                 "$d" "$task_name" "$app_name" "$std")
 
-        (( ${#pfx} > 40 )) && sep=$'\n  ↪ '
+        (( ${#pfx} > 40 )) && sep=$'\n  '$"$(c bold)$(c yellow)↪$(c reset) "
 
         local std_c=$(
             [[ $2 == app-stdout ]] \
@@ -233,8 +233,8 @@ task_log() {
                 "$d_c" "$task_name_c" "$app_name_c" "$std_c")
 
         [[ $2 == app-stdout ]] \
-            && printf '%s%s%s\n' "$pfx" "$sep" "$3" \
-            || printf '%s%s%s\n' "$pfx" "$sep" "$3" >&2
+            && printf '%s%s%s%s\n' "$pfx" "$sep" "$3" "$(c reset)" \
+            || printf '%s%s%s%s\n' "$pfx" "$sep" "$3" "$(c reset)" >&2
 
     else
         printf '[%s] Unexpected "%s" task "%s" action!\n' \
