@@ -163,6 +163,30 @@ logger 2 & logger_pids+=($!)
 exec 3>"$stdout_fifo" 4>"$stderr_fifo"
 
 
+# Wrapper for "tput" which helps to color stuff.
+# Doesn't color when run with --ci.
+# $1 - color name ('black', 'red', 'green', etc.) or 'bold' or 'reset'
+c() {
+    # not coloring on CI ($TERM is not set there)
+    [[ $is_ci_container == true ]] && return 0
+
+    local black=0 red=1 green=2 yellow=3 blue=4 magenta=5 cyan=6 white=7
+    if   [[ $1 == black ]];   then tput setaf -- "$black"
+    elif [[ $1 == red ]];     then tput setaf -- "$red"
+    elif [[ $1 == green ]];   then tput setaf -- "$green"
+    elif [[ $1 == yellow ]];  then tput setaf -- "$yellow"
+    elif [[ $1 == blue ]];    then tput setaf -- "$blue"
+    elif [[ $1 == magenta ]]; then tput setaf -- "$magenta"
+    elif [[ $1 == cyan ]];    then tput setaf -- "$cyan"
+    elif [[ $1 == white ]];   then tput setaf -- "$white"
+    elif [[ $1 == bold ]];    then tput bold
+    elif [[ $1 == reset ]];   then tput sgr0
+    else
+        printf 'Unexpected coloring command: %s\n' "$1" >&2
+        return 1
+    fi
+}
+
 # $1 is task name.
 # [[ $2 == run ]] means task is running
 # [[ $2 == done ]] means task is done
@@ -173,26 +197,25 @@ exec 3>"$stdout_fifo" 4>"$stderr_fifo"
 # $4 is application name when [[ $2 == app-stdout ]] || [[ $2 == app-stderr ]]
 task_log() {
     (
-    local black=0 red=1 green=2 yellow=3 blue=4 magenta=5 cyan=6 white=7
     local task_name=$1
-    local task_name_c="$(tput setaf -- "$cyan")${task_name}$(tput sgr0)"
+    local task_name_c="$(c cyan)${task_name}$(c reset)"
     local d=$(date '+%Y-%m-%d %H:%M:%S')
-    local d_c="$(tput setaf -- "$blue")${d}$(tput sgr0)"
+    local d_c="$(c blue)${d}$(c reset)"
 
     if [[ $2 == run ]]; then
         printf '[%s] "%s" task is %srunning%s…\n' "$d_c" "$task_name_c" \
-            "$(tput bold)$(tput setaf -- "$magenta")" "$(tput sgr0)"
+            "$(c bold)$(c magenta)" "$(c reset)"
     elif [[ $2 == done ]]; then
         printf '[%s] "%s" task is %sdone%s.\n' "$d_c" "$task_name_c" \
-            "$(tput bold)$(tput setaf -- "$green")" "$(tput sgr0)"
+            "$(c bold)$(c green)" "$(c reset)"
     elif [[ $2 == step ]]; then
         printf '[%s] "%s" task: %s\n' "$d_c" "$task_name_c" \
-            "$(tput setaf -- "$yellow")${3}$(tput sgr0)"
+            "$(c yellow)${3}$(c reset)"
 
     elif [[ $2 == app-stdout ]] || [[ $2 == app-stderr ]]; then
         local sep= std= app_name=$4
         [[ $2 == app-stdout ]] && std=STDOUT || std=STDERR
-        local app_name_c="$(tput setaf -- "$cyan")${app_name}$(tput sgr0)"
+        local app_name_c="$(c cyan)${app_name}$(c reset)"
 
         local pfx=$(
             printf '[%s] "%s" task "%s" app [%s]: ' \
@@ -200,15 +223,14 @@ task_log() {
 
         (( ${#pfx} > 40 )) && sep=$'\n  ↪ '
 
-        if [[ $2 == app-stdout ]]; then
-            std="$(tput bold)$(tput setaf -- "$green")${std}$(tput sgr0)"
-        else
-            std="$(tput bold)$(tput setaf -- "$red")${std}$(tput sgr0)"
-        fi
+        local std_c=$(
+            [[ $2 == app-stdout ]] \
+                && printf '%s' "$(c bold)$(c green)${std}$(c reset)" \
+                || printf '%s' "$(c bold)$(c red)${std}$(c reset)")
 
         pfx=$(
             printf '[%s] "%s" task "%s" app [%s]: ' \
-                "$d_c" "$task_name_c" "$app_name_c" "$std")
+                "$d_c" "$task_name_c" "$app_name_c" "$std_c")
 
         [[ $2 == app-stdout ]] \
             && printf '%s%s%s\n' "$pfx" "$sep" "$3" \
@@ -216,7 +238,7 @@ task_log() {
 
     else
         printf '[%s] Unexpected "%s" task "%s" action!\n' \
-            "$d_c" "$task_name_c" "$(tput setaf -- "$red")${2}$(tput sgr0)" >&2
+            "$d_c" "$task_name_c" "$(c red)${2}$(c reset)" >&2
         exit 1
     fi
     ) 1>&3 2>&4
