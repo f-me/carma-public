@@ -173,30 +173,50 @@ exec 3>"$stdout_fifo" 4>"$stderr_fifo"
 # $4 is application name when [[ $2 == app-stdout ]] || [[ $2 == app-stderr ]]
 task_log() {
     (
+    local black=0 red=1 green=2 yellow=3 blue=4 magenta=5 cyan=6 white=7
+    local task_name=$1
+    local task_name_c="$(tput setaf -- "$cyan")${task_name}$(tput sgr0)"
     local d=$(date '+%Y-%m-%d %H:%M:%S')
+    local d_c="$(tput setaf -- "$blue")${d}$(tput sgr0)"
 
     if [[ $2 == run ]]; then
-        printf '[%s] "%s" task is running…\n' "$d" "$1"
+        printf '[%s] "%s" task is %srunning%s…\n' "$d_c" "$task_name_c" \
+            "$(tput bold)$(tput setaf -- "$magenta")" "$(tput sgr0)"
     elif [[ $2 == done ]]; then
-        printf '[%s] "%s" task is done.\n' "$d" "$1"
+        printf '[%s] "%s" task is %sdone%s.\n' "$d_c" "$task_name_c" \
+            "$(tput bold)$(tput setaf -- "$green")" "$(tput sgr0)"
     elif [[ $2 == step ]]; then
-        printf '[%s] "%s" task: %s\n' "$d" "$1" "$3"
+        printf '[%s] "%s" task: %s\n' "$d_c" "$task_name_c" \
+            "$(tput setaf -- "$yellow")${3}$(tput sgr0)"
 
     elif [[ $2 == app-stdout ]] || [[ $2 == app-stderr ]]; then
-        local sep= std=
-        [[ $2 == app-stdout ]] && std=OUT || std=ERR
+        local sep= std= app_name=$4
+        [[ $2 == app-stdout ]] && std=STDOUT || std=STDERR
+        local app_name_c="$(tput setaf -- "$cyan")${app_name}$(tput sgr0)"
 
         local pfx=$(
-            printf '[%s] "%s" task "%s" app [STD%s]: ' "$d" "$1" "$4" "$std")
+            printf '[%s] "%s" task "%s" app [%s]: ' \
+                "$d" "$task_name" "$app_name" "$std")
 
         (( ${#pfx} > 40 )) && sep=$'\n  ↪ '
+
+        if [[ $2 == app-stdout ]]; then
+            std="$(tput bold)$(tput setaf -- "$green")${std}$(tput sgr0)"
+        else
+            std="$(tput bold)$(tput setaf -- "$red")${std}$(tput sgr0)"
+        fi
+
+        pfx=$(
+            printf '[%s] "%s" task "%s" app [%s]: ' \
+                "$d_c" "$task_name_c" "$app_name_c" "$std")
 
         [[ $2 == app-stdout ]] \
             && printf '%s%s%s\n' "$pfx" "$sep" "$3" \
             || printf '%s%s%s\n' "$pfx" "$sep" "$3" >&2
 
     else
-        printf '[%s] Unexpected "%s" task "%s" action!\n' "$d" "$1" "$2" >&2
+        printf '[%s] Unexpected "%s" task "%s" action!\n' \
+            "$d_c" "$task_name_c" "$(tput setaf -- "$red")${2}$(tput sgr0)" >&2
         exit 1
     fi
     ) 1>&3 2>&4
