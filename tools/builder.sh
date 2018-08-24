@@ -47,7 +47,7 @@ USAGE
 #   fi
 #
 elem() {
-    value=$1
+    local value=$1
     shift
     for it in "$@"; do
         [[ $it == $value ]] && return 0
@@ -187,6 +187,9 @@ c() {
     fi
 }
 
+tasks_counter=$(mktemp)
+echo 0 >"$tasks_counter"
+
 # $1 is task name.
 # [[ $2 == run ]] means task is running
 # [[ $2 == done ]] means task is done
@@ -198,24 +201,46 @@ c() {
 task_log() {
     (
     local task_name=$1
-    local task_name_c="$(c cyan)${task_name}$(c reset)"
+    local task_name_c=$(c cyan)${task_name}$(c reset)
     local d=$(date '+%Y-%m-%d %H:%M:%S')
-    local d_c="$(c blue)${d}$(c reset)"
+    local d_c=$(c blue)${d}$(c reset)
 
-    if [[ $2 == run ]]; then
-        printf '[%s] "%s" task is %srunning%s…\n' "$d_c" "$task_name_c" \
-            "$(c bold)$(c magenta)" "$(c reset)"
-    elif [[ $2 == done ]]; then
-        printf '[%s] "%s" task is %sdone%s.\n' "$d_c" "$task_name_c" \
-            "$(c bold)$(c green)" "$(c reset)"
+    if [[ $2 == run ]] || [[ $2 == done ]]; then
+        local pfx=$(printf '[%s] "%s" task is ' "$d_c" "$task_name_c") sfx=
+
+        if [[ $2 == run ]]; then
+            pfx=$(printf '%s%srunning%s' \
+                "$pfx" "$(c bold)$(c magenta)" "$(c reset)")
+
+            local c=$[$(
+                flock --exclusive -- "$tasks_counter" \
+                    perl -p -i -e 'print STDERR;$_++' -- "$tasks_counter" 2>&1)]
+            (( $c > 0 )) && sfx=" ($(
+                c bold)$(c magenta)$c$(c reset) other task(s) is active)"
+
+            sfx="${sfx}…"
+        else
+            pfx=$(printf '%s%sdone%s' "$pfx" "$(c bold)$(c green)" "$(c reset)")
+
+            local c=$[$(
+                flock --exclusive -- "$tasks_counter" \
+                    perl -p -i -e '$_--;print STDERR' -- "$tasks_counter" 2>&1)]
+            (( $c > 0 )) && sfx=" ($(
+                c bold)$(c magenta)$c$(c reset) other task(s) is still active)"
+
+            sfx="${sfx}."
+        fi
+
+        printf '%s%s\n' "$pfx" "$sfx"
+
     elif [[ $2 == step ]]; then
         printf '[%s] "%s" task: %s\n' "$d_c" "$task_name_c" \
             "$(c yellow)${3}$(c reset)"
 
     elif [[ $2 == app-stdout ]] || [[ $2 == app-stderr ]]; then
-        local sep= std= app_name=$4
-        [[ $2 == app-stdout ]] && std=STDOUT || std=STDERR
-        local app_name_c="$(c cyan)${app_name}$(c reset)"
+        local std=$([[ $2 == app-stdout ]] && echo STDOUT || echo STDERR)
+        local sep= app_name=$4
+        local app_name_c=$(c cyan)${app_name}$(c reset)
 
         local pfx=$(
             printf '[%s] "%s" task "%s" app [%s]: ' \
@@ -685,4 +710,4 @@ done
 # cleanup
 exec 3>&- 4>&-
 wait -- "${logger_pids[@]}"
-rm -- "$stdout_fifo" "$stderr_fifo"
+rm -- "$stdout_fifo" "$stderr_fifo" "$tasks_counter"
