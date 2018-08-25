@@ -245,6 +245,7 @@ commonMeta =
     , readonly committer
     , color `completeWith` Color.label
     , partnerKey seller
+    , setMeta "filterBy" "isDealer" seller
     , setType "Integer" ident
     , widget "text" ident
     , partnerKey lastCheckDealer

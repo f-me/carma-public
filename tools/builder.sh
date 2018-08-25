@@ -1,11 +1,15 @@
 #!/bin/bash -e
-
+#
 # Abstract helper for building CaRMa.
+#
+# WARNING! Unicode symbols are used in this script,
+#          so make sure you have UTF-8 in your $LANG.
+#
 
 # Use -h or --help option to show it
 show_usage() {
-    cat << USAGE
-Usage: $0 [-c|--clean] [--soft-clean] [-p|--parallel] [--production] [--ci] COMMANDS...
+cat << USAGE
+Usage: $0 [-c|--clean] [--soft-clean] [-p|--parallel] [--production] [--ci] COMMANDS…
 
 Commands (multiple tasks):
     $0 all       Build everything
@@ -43,7 +47,7 @@ USAGE
 #   fi
 #
 elem() {
-    value=$1
+    local value=$1
     shift
     for it in "$@"; do
         [[ $it == $value ]] && return 0
@@ -136,6 +140,9 @@ stdout_fifo=$(mk_tmp_fifo)
 stderr_fifo=$(mk_tmp_fifo)
 logger_pids=()
 
+# General centralized logger.
+# All tasks supposed to write their logs to FIFOs handled in this function.
+# $1 - "1" or "2", means either stdout or stderr logger.
 logger() {
     local f=
 
@@ -156,6 +163,33 @@ logger 2 & logger_pids+=($!)
 exec 3>"$stdout_fifo" 4>"$stderr_fifo"
 
 
+# Wrapper for "tput" which helps to color stuff.
+# Doesn't color when run with --ci.
+# $1 - color name ('black', 'red', 'green', etc.) or 'bold' or 'reset'
+c() {
+    # not coloring on CI ($TERM is not set there)
+    [[ $is_ci_container == true ]] && return 0
+
+    local black=0 red=1 green=2 yellow=3 blue=4 magenta=5 cyan=6 white=7
+    if   [[ $1 == black ]];   then tput setaf -- "$black"
+    elif [[ $1 == red ]];     then tput setaf -- "$red"
+    elif [[ $1 == green ]];   then tput setaf -- "$green"
+    elif [[ $1 == yellow ]];  then tput setaf -- "$yellow"
+    elif [[ $1 == blue ]];    then tput setaf -- "$blue"
+    elif [[ $1 == magenta ]]; then tput setaf -- "$magenta"
+    elif [[ $1 == cyan ]];    then tput setaf -- "$cyan"
+    elif [[ $1 == white ]];   then tput setaf -- "$white"
+    elif [[ $1 == bold ]];    then tput bold
+    elif [[ $1 == reset ]];   then tput sgr0
+    else
+        printf 'Unexpected coloring command: %s\n' "$1" >&2
+        return 1
+    fi
+}
+
+tasks_counter=$(mktemp)
+echo 0 >"$tasks_counter"
+
 # $1 is task name.
 # [[ $2 == run ]] means task is running
 # [[ $2 == done ]] means task is done
@@ -166,22 +200,70 @@ exec 3>"$stdout_fifo" 4>"$stderr_fifo"
 # $4 is application name when [[ $2 == app-stdout ]] || [[ $2 == app-stderr ]]
 task_log() {
     (
+    local task_name=$1
+    local task_name_c=$(c cyan)${task_name}$(c reset)
     local d=$(date '+%Y-%m-%d %H:%M:%S')
+    local d_c=$(c blue)${d}$(c reset)
 
-    if [[ $2 == run ]]; then
-        printf '[%s] "%s" task is running...\n' "$d" "$1"
-    elif [[ $2 == done ]]; then
-        printf '[%s] "%s" task is done.\n' "$d" "$1"
+    if [[ $2 == run ]] || [[ $2 == done ]]; then
+        local pfx=$(printf '[%s] "%s" task is ' "$d_c" "$task_name_c") sfx=
+
+        if [[ $2 == run ]]; then
+            pfx=$(printf '%s%srunning%s' \
+                "$pfx" "$(c bold)$(c magenta)" "$(c reset)")
+
+            local c=$[$(
+                flock --exclusive -- "$tasks_counter" \
+                    perl -p -i -e 'print STDERR;$_++' -- "$tasks_counter" 2>&1)]
+            (( $c > 0 )) && sfx=" ($(
+                c bold)$(c magenta)$c$(c reset) other task(s) is active)"
+
+            sfx="${sfx}…"
+        else
+            pfx=$(printf '%s%sdone%s' "$pfx" "$(c bold)$(c green)" "$(c reset)")
+
+            local c=$[$(
+                flock --exclusive -- "$tasks_counter" \
+                    perl -p -i -e '$_--;print STDERR' -- "$tasks_counter" 2>&1)]
+            (( $c > 0 )) && sfx=" ($(
+                c bold)$(c magenta)$c$(c reset) other task(s) is still active)"
+
+            sfx="${sfx}."
+        fi
+
+        printf '%s%s\n' "$pfx" "$sfx"
+
     elif [[ $2 == step ]]; then
-        printf '[%s] "%s" task: %s\n' "$d" "$1" "$3"
+        printf '[%s] "%s" task: %s\n' "$d_c" "$task_name_c" \
+            "$(c yellow)${3}$(c reset)"
 
-    elif [[ $2 == app-stdout ]]; then
-        printf '[%s] "%s" task "%s" app [STDOUT]: %s\n' "$d" "$1" "$4" "$3"
-    elif [[ $2 == app-stderr ]]; then
-        printf '[%s] "%s" task "%s" app [STDERR]: %s\n' "$d" "$1" "$4" "$3" >&2
+    elif [[ $2 == app-stdout ]] || [[ $2 == app-stderr ]]; then
+        local std=$([[ $2 == app-stdout ]] && echo STDOUT || echo STDERR)
+        local sep= app_name=$4
+        local app_name_c=$(c cyan)${app_name}$(c reset)
+
+        local pfx=$(
+            printf '[%s] "%s" task "%s" app [%s]: ' \
+                "$d" "$task_name" "$app_name" "$std")
+
+        (( ${#pfx} > 40 )) && sep=$'\n  '$"$(c bold)$(c yellow)↪$(c reset) "
+
+        local std_c=$(
+            [[ $2 == app-stdout ]] \
+                && printf '%s' "$(c bold)$(c green)${std}$(c reset)" \
+                || printf '%s' "$(c bold)$(c red)${std}$(c reset)")
+
+        pfx=$(
+            printf '[%s] "%s" task "%s" app [%s]: ' \
+                "$d_c" "$task_name_c" "$app_name_c" "$std_c")
+
+        [[ $2 == app-stdout ]] \
+            && printf '%s%s%s%s\n' "$pfx" "$sep" "$3" "$(c reset)" \
+            || printf '%s%s%s%s\n' "$pfx" "$sep" "$3" "$(c reset)" >&2
 
     else
-        printf '[%s] Unexpected "%s" task "%s" action!\n' "$d" "$1" "$2" >&2
+        printf '[%s] Unexpected "%s" task "%s" action!\n' \
+            "$d_c" "$task_name_c" "$(c red)${2}$(c reset)" >&2
         exit 1
     fi
     ) 1>&3 2>&4
@@ -191,11 +273,17 @@ task_log() {
 # $2 - FIFO file descriptor
 # $3 - task name to log
 # $4 - application name to log
-# Usage example:
-#   local out_fifo=$(mk_tmp_fifo 1 'task name' 'app name')
-#   local err_fifo=$(mk_tmp_fifo 2 'task name' 'app name')
-#   ...
-#   kill_loggers "$out_fifo" "$err_fifo"
+#
+# Usage example (usual general template used in the script):
+#   local task_name='some-task-name' dir='srv'
+#   …
+#   local app_name='npm install'
+#   local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
+#   app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+#   app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+#   (cd -- "$dir" && npm install) 1>"$lout" 2>"$lerr"
+#   wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+#
 app_logger() {
     local action=
     (( $1 == 1 )) && action=app-stdout || action=app-stderr
@@ -212,7 +300,7 @@ frontend_pure_task() {
     task_log "$task_name" run
 
     # Installing dependencies
-    task_log "$task_name" step 'Installing dependencies...'
+    task_log "$task_name" step 'Installing dependencies…'
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" 'npm install' & pids+=($!)
     app_logger 2 "$lerr" "$task_name" 'npm install' & pids+=($!)
@@ -221,7 +309,7 @@ frontend_pure_task() {
 
     # Fetching submodules for Circle CI container
     if [[ $is_ci_container == true ]]; then
-        task_log "$task_name" step 'Cloning git submodules...'
+        task_log "$task_name" step 'Cloning git submodules…'
 
         local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
         local app_name='purescript-react-dropzone git submodule'
@@ -248,7 +336,7 @@ frontend_pure_task() {
 
     # Installing PureScript dependencies
     task_log "$task_name" step \
-        'Installing PureScript dependencies (using bower)...'
+        'Installing PureScript dependencies (using bower)…'
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" 'bower install' & pids+=($!)
     app_logger 2 "$lerr" "$task_name" 'bower install' & pids+=($!)
@@ -263,7 +351,7 @@ frontend_pure_task() {
     [[ $is_production_build == true ]] && prod_prefix='prod-'
 
     local npm_task=${prod_prefix}${clean_infix}build
-    task_log "$task_name" step $"Running npm \"$npm_task\" script..."
+    task_log "$task_name" step $"Running npm \"$npm_task\" script…"
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" "npm run $npm_task" & pids+=($!)
     app_logger 2 "$lerr" "$task_name" "npm run $npm_task" & pids+=($!)
@@ -279,7 +367,7 @@ frontend_pure_task() {
 frontend_legacy_pre() {
     local task_name='frontend-legacy[pre]' dir='srv'
 
-    task_log "$task_name" step 'Installing dependencies...'
+    task_log "$task_name" step 'Installing dependencies…'
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" 'npm install' & pids+=($!)
     app_logger 2 "$lerr" "$task_name" 'npm install' & pids+=($!)
@@ -301,7 +389,7 @@ frontend_legacy_task() {
     [[ $is_production_build == true ]] && prod_prefix='prod-'
 
     local npm_task="${prod_prefix}${clean_infix}build"
-    task_log "$task_name" step $"Running npm \"$npm_task\" script..."
+    task_log "$task_name" step $"Running npm \"$npm_task\" script…"
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" "npm run $npm_task" & pids+=($!)
     app_logger 2 "$lerr" "$task_name" "npm run $npm_task" & pids+=($!)
@@ -324,7 +412,7 @@ frontend_backend_templates_task() {
     [[ $is_clean_build == true ]] && clean_prefix='clean-'
 
     local npm_task=${clean_prefix}build-backend-templates
-    task_log "$task_name" step $"Running npm \"$npm_task\" script..."
+    task_log "$task_name" step $"Running npm \"$npm_task\" script…"
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" "npm run $npm_task" & pids+=($!)
     app_logger 2 "$lerr" "$task_name" "npm run $npm_task" & pids+=($!)
@@ -367,12 +455,12 @@ frontend_task() {
 # $3 - config example file (as a source to copy from)
 # $4 - destination of a config
 config_copy() {
-    task_log "$1" step $"Checking $2 config file: \"$4\"..."
+    task_log "$1" step $"Checking $2 config file: \"$4\"…"
     if [[ -f $4 ]]; then
         task_log "$1" step $"$2 config file \"$4\" exists."
     else
         local x=$"$2 config file \"$4\" doesn't exist,"
-        x=$"$x copying from \"$3\" to \"$4\"..."
+        x=$"$x copying from \"$3\" to \"$4\"…"
         task_log "$1" step "$x"
 
         local app_name="cp -- '$3' '$4'"
@@ -392,10 +480,10 @@ backend_configs_task() {
     task_log "$task_name" run
 
     # Snaplets configs
-    task_log "$task_name" step 'Checking snaplets configs directory...'
+    task_log "$task_name" step 'Checking snaplets configs directory…'
     if [[ ! -d srv/snaplets ]]; then
         local x=$'Snaplets configs directory doesn\'t exists, copying it'
-        x="$x from srv/snaplets-default to srv/snaplets..."
+        x="$x from srv/snaplets-default to srv/snaplets…"
         task_log "$task_name" step "$x"
 
         local app_name='cp -r srv/snaplets-default srv/snaplets'
@@ -408,7 +496,7 @@ backend_configs_task() {
         task_log "$task_name" step 'Snaplets configs directory is copied.'
     else
         task_log "$task_name" step \
-            'Snaplets configs directory exists, checking particular configs...'
+            'Snaplets configs directory exists, checking particular configs…'
 
         ls srv/snaplets-default | while read dir; do
             local app_name="mkdir -p -- 'srv/snaplets/$dir'"
@@ -446,7 +534,7 @@ backend_carma_task() {
     task_log "$task_name" run
 
     if [[ $is_clean_build == true ]]; then
-        task_log "$task_name" step 'Cleaning...'
+        task_log "$task_name" step 'Cleaning…'
         local clean_flags=(--full)
         [[ $is_clean_soft == true ]] && clean_flags=()
 
@@ -467,7 +555,7 @@ backend_carma_task() {
         cpus=$(nproc --all)
     fi
 
-    task_log "$task_name" step "Building ($[$cpus] jobs)..."
+    task_log "$task_name" step "Building ($[$cpus] jobs)…"
 
     local app_name="stack --install-ghc '-j$[$cpus]' build"
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
@@ -622,4 +710,4 @@ done
 # cleanup
 exec 3>&- 4>&-
 wait -- "${logger_pids[@]}"
-rm -- "$stdout_fifo" "$stderr_fifo"
+rm -- "$stdout_fifo" "$stderr_fifo" "$tasks_counter"
