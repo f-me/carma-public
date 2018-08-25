@@ -9,6 +9,7 @@
 # Use -h or --help option to show it
 show_usage() {
 cat << USAGE
+
 Usage: $0 [-c|--clean] [--soft-clean] [-p|--parallel] [--production] [--ci] COMMANDS…
 
 Commands (multiple tasks):
@@ -21,19 +22,26 @@ Commands (single task):
     $0 backend-configs             Copy configs examples if needed
     $0 backend-carma               Just build CaRMa backend
     $0 backend-test                Run all tests for backend
+    $0 backend-test-configurator   Run tests for configs handled by "carma-configurator" tool
     $0 frontend-pure               Build "pure" frontend
     $0 frontend-legacy             Build "legacy" frontend
     $0 frontend-backend-templates  Build templates which used by backend
 
 Options:
     -c, --clean     Clean previous bundles before build
+
     --soft-clean    Softly clean if possible
-                    (for backend means don't fully clean .stack-work but just
+                    (for backend it means don't fully clean .stack-work but just
                     built CaRMa modules, useful for reducing build time)
+                    P.S. When this flag is set you don't have to set --clean
+
     -p, --parallel  If a command have multiple tasks they run in parallel
+
     --production    Make a build for production (minify, no debug stuff, etc.)
+
     --ci            Marking that build happens inside CI container
                     (see .circleci/config.yml)
+
 USAGE
 }
 
@@ -69,6 +77,7 @@ is_clean_soft=false
 available_commands=(
     all test
     backend backend-configs backend-carma backend-test
+    backend-test-configurator
     frontend frontend-pure frontend-legacy frontend-backend-templates
 )
 
@@ -163,29 +172,20 @@ logger 2 & logger_pids+=($!)
 exec 3>"$stdout_fifo" 4>"$stderr_fifo"
 
 
-# Wrapper for "tput" which helps to color stuff.
-# Doesn't color when run with --ci.
-# $1 - color name ('black', 'red', 'green', etc.) or 'bold' or 'reset'
-c() {
-    # not coloring on CI ($TERM is not set there)
-    [[ $is_ci_container == true ]] && return 0
-
-    local black=0 red=1 green=2 yellow=3 blue=4 magenta=5 cyan=6 white=7
-    if   [[ $1 == black ]];   then tput setaf -- "$black"
-    elif [[ $1 == red ]];     then tput setaf -- "$red"
-    elif [[ $1 == green ]];   then tput setaf -- "$green"
-    elif [[ $1 == yellow ]];  then tput setaf -- "$yellow"
-    elif [[ $1 == blue ]];    then tput setaf -- "$blue"
-    elif [[ $1 == magenta ]]; then tput setaf -- "$magenta"
-    elif [[ $1 == cyan ]];    then tput setaf -- "$cyan"
-    elif [[ $1 == white ]];   then tput setaf -- "$white"
-    elif [[ $1 == bold ]];    then tput bold
-    elif [[ $1 == reset ]];   then tput sgr0
-    else
-        printf 'Unexpected coloring command: %s\n' "$1" >&2
-        return 1
-    fi
-}
+# Pre-cached command results (for optimization purposes).
+# Doesn't color when run with --ci ($TERM is not set there, "tput" is failing).
+if [[ $is_ci_container != true ]]; then
+    c_black=$(tput setaf 0)
+    c_red=$(tput setaf 1)
+    c_green=$(tput setaf 2)
+    c_yellow=$(tput setaf 3)
+    c_blue=$(tput setaf 4)
+    c_magenta=$(tput setaf 5)
+    c_cyan=$(tput setaf 6)
+    c_white=$(tput setaf 7)
+    c_bold=$(tput bold)
+    c_reset=$(tput sgr0)
+fi
 
 tasks_counter=$(mktemp)
 echo 0 >"$tasks_counter"
@@ -201,32 +201,36 @@ echo 0 >"$tasks_counter"
 task_log() {
     (
     local task_name=$1
-    local task_name_c=$(c cyan)${task_name}$(c reset)
+    local task_name_c=${c_cyan}${task_name}${c_reset}
     local d=$(date '+%Y-%m-%d %H:%M:%S')
-    local d_c=$(c blue)${d}$(c reset)
+    local d_c=${c_blue}${d}${c_reset}
 
     if [[ $2 == run ]] || [[ $2 == done ]]; then
         local pfx=$(printf '[%s] "%s" task is ' "$d_c" "$task_name_c") sfx=
 
         if [[ $2 == run ]]; then
             pfx=$(printf '%s%srunning%s' \
-                "$pfx" "$(c bold)$(c magenta)" "$(c reset)")
+                "$pfx" "${c_bold}${c_magenta}" "${c_reset}")
 
-            local c=$[$(
+            local c=$[`
                 flock --exclusive -- "$tasks_counter" \
-                    perl -p -i -e 'print STDERR;$_++' -- "$tasks_counter" 2>&1)]
-            (( $c > 0 )) && sfx=" ($(
-                c bold)$(c magenta)$c$(c reset) other task(s) is active)"
+                    perl -p -i -e 'print STDERR;$_++' -- "$tasks_counter" 2>&1`]
+            if (( $c > 0 )); then
+                sfx=" (${c_bold}${c_magenta}${c}${c_reset}"
+                sfx="${sfx} other task(s) is active)"
+            fi
 
             sfx="${sfx}…"
         else
-            pfx=$(printf '%s%sdone%s' "$pfx" "$(c bold)$(c green)" "$(c reset)")
+            pfx=$(printf '%s%sdone%s' "$pfx" "${c_bold}${c_green}" "${c_reset}")
 
-            local c=$[$(
+            local c=$[`
                 flock --exclusive -- "$tasks_counter" \
-                    perl -p -i -e '$_--;print STDERR' -- "$tasks_counter" 2>&1)]
-            (( $c > 0 )) && sfx=" ($(
-                c bold)$(c magenta)$c$(c reset) other task(s) is still active)"
+                    perl -p -i -e '$_--;print STDERR' -- "$tasks_counter" 2>&1`]
+            if (( $c > 0 )); then
+                sfx=" (${c_bold}${c_magenta}${c}${c_reset}"
+                sfx="${sfx} other task(s) is still active)"
+            fi
 
             sfx="${sfx}."
         fi
@@ -235,35 +239,35 @@ task_log() {
 
     elif [[ $2 == step ]]; then
         printf '[%s] "%s" task: %s\n' "$d_c" "$task_name_c" \
-            "$(c yellow)${3}$(c reset)"
+            "${c_yellow}${3}${c_reset}"
 
     elif [[ $2 == app-stdout ]] || [[ $2 == app-stderr ]]; then
         local std=$([[ $2 == app-stdout ]] && echo STDOUT || echo STDERR)
         local sep= app_name=$4
-        local app_name_c=$(c cyan)${app_name}$(c reset)
+        local app_name_c=${c_cyan}${app_name}${c_reset}
 
         local pfx=$(
             printf '[%s] "%s" task "%s" app [%s]: ' \
                 "$d" "$task_name" "$app_name" "$std")
 
-        (( ${#pfx} > 40 )) && sep=$'\n  '$"$(c bold)$(c yellow)↪$(c reset) "
+        (( ${#pfx} > 40 )) && sep=$'\n  '$"${c_bold}${c_yellow}↪${c_reset} "
 
         local std_c=$(
             [[ $2 == app-stdout ]] \
-                && printf '%s' "$(c bold)$(c green)${std}$(c reset)" \
-                || printf '%s' "$(c bold)$(c red)${std}$(c reset)")
+                && printf '%s' "${c_bold}${c_green}${std}${c_reset}" \
+                || printf '%s' "${c_bold}${c_red}${std}${c_reset}")
 
         pfx=$(
             printf '[%s] "%s" task "%s" app [%s]: ' \
                 "$d_c" "$task_name_c" "$app_name_c" "$std_c")
 
         [[ $2 == app-stdout ]] \
-            && printf '%s%s%s%s\n' "$pfx" "$sep" "$3" "$(c reset)" \
-            || printf '%s%s%s%s\n' "$pfx" "$sep" "$3" "$(c reset)" >&2
+            && printf '%s%s%s%s\n' "$pfx" "$sep" "$3" "${c_reset}" \
+            || printf '%s%s%s%s\n' "$pfx" "$sep" "$3" "${c_reset}" >&2
 
     else
         printf '[%s] Unexpected "%s" task "%s" action!\n' \
-            "$d_c" "$task_name_c" "$(c red)${2}$(c reset)" >&2
+            "$d_c" "$task_name_c" "${c_red}${2}${c_reset}" >&2
         exit 1
     fi
     ) 1>&3 2>&4
@@ -294,6 +298,7 @@ app_logger() {
 }
 
 
+# "frontend-pure" task
 frontend_pure_task__covered_by=(frontend all)
 frontend_pure_task() {
     local task_name='frontend-pure' dir='srv/resources/assets/pure'
@@ -375,6 +380,7 @@ frontend_legacy_pre() {
     wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
 }
 
+# "frontend-legacy" task
 frontend_legacy_task__covered_by=(frontend all)
 # [[ $1 == true ]] means that preparations is already done.
 frontend_legacy_task() {
@@ -399,6 +405,7 @@ frontend_legacy_task() {
     task_log "$task_name" done
 }
 
+# "frontend-backend-templates" task
 frontend_backend_templates_task__covered_by=(frontend all)
 # [[ $1 == true ]] means that preparations is already done.
 # It's part of a legacy frontend, so it's kinda connected to it
@@ -430,6 +437,7 @@ frontend_task_parallel_legacy() {
     wait -- "${pids[@]}"
 }
 
+# "frontend" task
 frontend_task__covered_by=(all)
 frontend_task() {
     local task_name='frontend'
@@ -450,6 +458,7 @@ frontend_task() {
 }
 
 
+# A helper for copying example configs to real configs paths.
 # $1 - task name for log
 # $2 - label of a config
 # $3 - config example file (as a source to copy from)
@@ -474,6 +483,7 @@ config_copy() {
     fi
 }
 
+# "backend-configs" task
 backend_configs_task__covered_by=(all backend)
 backend_configs_task() {
     local task_name='backend-configs'
@@ -528,6 +538,7 @@ backend_configs_task() {
     task_log "$task_name" done
 }
 
+# "backend-carma" task
 backend_carma_task__covered_by=(all backend)
 backend_carma_task() {
     local task_name='backend-carma'
@@ -567,6 +578,7 @@ backend_carma_task() {
     task_log "$task_name" done
 }
 
+# "backend" task
 backend_task__covered_by=(all)
 backend_task() {
     local task_name='backend'
@@ -583,13 +595,15 @@ backend_task() {
     task_log "$task_name" done
 }
 
-backend_test_task__covered_by=(test)
+# "backend-test-configurator" task
+backend_test_configurator_task__covered_by=(test backend-test)
 # TODO handle auto build before test
-backend_test_task() {
-    local task_name='backend-test'
+backend_test_configurator_task() {
+    local task_name='backend-test-configurator'
     task_log "$task_name" run
 
-    local app_name='carma-tools example config testing'
+    local app_name='Testing example config of "carma-tools"'
+    task_log "$task_name" step "$app_name"
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
     app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
@@ -597,10 +611,37 @@ backend_test_task() {
         1>"$lout" 2>"$lerr"
     wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
 
+    # TODO handle running "backend-configs" before this task
+    local app_name='Testing real config of "carma-tools"'
+    task_log "$task_name" step "$app_name"
+    local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
+    app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+    app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+    (cd tools && stack exec carma-configurator -- carma-tools >/dev/null)
+        1>"$lout" 2>"$lerr"
+    wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+
+    task_log "$task_name" done
+}
+
+# "backend-test" task
+backend_test_task__covered_by=(test)
+# TODO handle auto build before test
+backend_test_task() {
+    local task_name='backend-test'
+    task_log "$task_name" run
+    if [[ $run_in_parallel == true ]]; then
+        local pids=()
+        backend_test_configurator_task & pids+=($!)
+        wait -- "${pids[@]}"
+    else
+        backend_test_configurator_task
+    fi
     task_log "$task_name" done
 }
 
 
+# "all" task
 all_task__covered_by=()
 all_task() {
     local task_name='all'
@@ -617,8 +658,8 @@ all_task() {
     task_log "$task_name" done
 }
 
+# "test" task
 test_task__covered_by=()
-# TODO handle auto build before test
 test_task() {
     local task_name='test'
     task_log "$task_name" run
@@ -652,6 +693,7 @@ already_covered_handle() {
 }
 
 
+# TODO detect already covered state earlier than tasks is executing
 for cmd in "${positional[@]}"; do
     case $cmd in
         all)
@@ -679,6 +721,11 @@ for cmd in "${positional[@]}"; do
         backend-test)
             already_covered_handle "$cmd" "${backend_test_task__covered_by[@]}"
             backend_test_task
+            ;;
+        backend-test-configurator)
+            already_covered_handle "$cmd" \
+                "${backend_test_configurator_task__covered_by[@]}"
+            backend_test_configurator_task
             ;;
         frontend)
             already_covered_handle "$cmd" "${frontend_task__covered_by[@]}"
