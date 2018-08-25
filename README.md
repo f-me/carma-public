@@ -50,8 +50,8 @@ Refer to [`.circleci/config.yml`][ci-config] for full building instructions.
 
 ### tools/builder.sh
 
-There's tool that could build everything from scratch in parallel for you,
-just run:
+There's [tool](tools/builder.sh) that could build everything from scratch in
+parallel for you, just run:
 
 ```bash
 tools/builder.sh -p all
