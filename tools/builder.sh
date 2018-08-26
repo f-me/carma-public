@@ -10,18 +10,18 @@
 show_usage() {
 cat << USAGE
 
-Usage: $0 [-c|--clean] [--soft-clean] [-p|--parallel] [--production] [--ci] COMMANDS…
+Usage: $0 [-c|--clean] [--soft-clean] [-p|--parallel] [--production] [--ci] TASKS…
 
-Commands (multiple tasks):
-    $0 all       Build everything
-    $0 backend   Build backend
-    $0 frontend  Build frontend
-    $0 test      Run all tests
+Multiple tasks (task groups, runs other tasks inside):
+    $0 all           Build everything
+    $0 backend       Build backend
+    $0 backend-test  Run all tests for backend
+    $0 frontend      Build frontend
+    $0 test          Run all tests
 
-Commands (single task):
+Singular tasks:
     $0 backend-configs             Copy configs examples if needed
     $0 backend-carma               Just build CaRMa backend
-    $0 backend-test                Run all tests for backend
     $0 backend-test-configurator   Run tests for configs handled by "carma-configurator" tool
     $0 frontend-pure               Build "pure" frontend
     $0 frontend-legacy             Build "legacy" frontend
@@ -35,7 +35,7 @@ Options:
                     built CaRMa modules, useful for reducing build time)
                     P.S. When this flag is set you don't have to set --clean
 
-    -p, --parallel  If a command have multiple tasks they run in parallel
+    -p, --parallel  To run tasks in parallel
 
     --production    Make a build for production (minify, no debug stuff, etc.)
 
@@ -66,7 +66,7 @@ elem() {
 # Working directory is CaRMa's root
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 
-positional=() # COMMANDS
+positional=() # TASKS
 positional_split=false
 run_in_parallel=false
 is_production_build=false
@@ -74,7 +74,7 @@ is_ci_container=false
 is_clean_build=false
 is_clean_soft=false
 
-available_commands=(
+available_tasks=(
     all test
     backend backend-configs backend-carma backend-test
     backend-test-configurator
@@ -83,10 +83,10 @@ available_commands=(
 
 for arg in "$@"; do
     if [[ $positional_split == true ]]; then
-        if elem "$arg" "${available_commands[@]}"; then
+        if elem "$arg" "${available_tasks[@]}"; then
             positional+=("$arg")
         else
-            printf 'Unknown command: "%s"\n' "$arg" >&2
+            printf 'Unknown task: "%s"\n' "$arg" >&2
             show_usage >&2
             exit 1
         fi
@@ -121,10 +121,10 @@ for arg in "$@"; do
                 exit 1
                 ;;
             *)
-                if elem "$arg" "${available_commands[@]}"; then
+                if elem "$arg" "${available_tasks[@]}"; then
                     positional+=("$arg")
                 else
-                    printf 'Unknown command: "%s"\n' "$arg" >&2
+                    printf 'Unknown task: "%s"\n' "$arg" >&2
                     show_usage >&2
                     exit 1
                 fi
@@ -133,7 +133,7 @@ for arg in "$@"; do
 done
 
 if (( ${#positional[*]} == 0 )); then
-    echo 'No command specified!' >&2
+    echo 'No task specified!' >&2
     show_usage >&2
     exit 1
 fi
@@ -191,7 +191,7 @@ exit_hook() {
 trap exit_hook EXIT
 
 
-# Pre-cached command results (for optimization purposes).
+# Pre-cached "tput" command results (for optimization purposes).
 # Doesn't color when run with --ci ($TERM is not set there, "tput" is failing).
 if [[ $is_ci_container != true ]]; then
     c_black=$(tput setaf 0)
@@ -822,82 +822,142 @@ test_task() {
 # *** END OF TASKS SECTION ***
 
 
-# A helper that checks if a command is already included to another specified
-# complex command. In that case it fails whole script to avoid unexpected
-# behavior.
+# A helper that checks if a task is already included into another specified
+# complex (multiple) task. In that case it fails whole script to avoid
+# unexpected behavior.
 #
 # Usage example:
-#   already_covered_handle "$cmd" "${some_cmd_task__covered_by[@]}"
+#   solo "$task" "${some_cmd_task__covered_by[@]}"
 #
-already_covered_handle() {
-    cmd_to_log=$1
+solo() {
+    task_to_log=$1
     shift
-    for cmd in "${positional[@]}"; do
-        if elem "$cmd" "$@"; then
-            printf '"%s" is already covered by "%s"!\n' "$cmd_to_log" "$cmd" >&2
+    for task in "${positional[@]}"; do
+        if elem "$task" "$@"; then
+            printf \
+                '"%s" is already covered by "%s"!\n' \
+                "$task_to_log" "$task" >&2
             exit 1
         fi
     done
 }
 
-
-# TODO detect already covered state earlier than tasks is executing
-for cmd in "${positional[@]}"; do
-    case $cmd in
+# Detecting already covered tasks error first
+for task in "${positional[@]}"; do
+    case $task in
         all)
-            already_covered_handle "$cmd" "${all_task__covered_by[@]}"
-            all_task
+            solo "$task" "${all_task__covered_by[@]}"
             ;;
         test)
-            already_covered_handle "$cmd" "${test_task__covered_by[@]}"
-            test_task
+            solo "$task" "${test_task__covered_by[@]}"
             ;;
         backend)
-            already_covered_handle "$cmd" "${backend_task__covered_by[@]}"
-            backend_task
+            solo "$task" "${backend_task__covered_by[@]}"
             ;;
         backend-configs)
-            already_covered_handle "$cmd" \
-                "${backend_configs_task__covered_by[@]}"
-            backend_configs_task
+            solo "$task" "${backend_configs_task__covered_by[@]}"
             ;;
         backend-carma)
-            already_covered_handle "$cmd" \
-                "${backend_carma_task__covered_by[@]}"
-            backend_carma_task
+            solo "$task" "${backend_carma_task__covered_by[@]}"
             ;;
         backend-test)
-            already_covered_handle "$cmd" "${backend_test_task__covered_by[@]}"
-            backend_test_task
+            solo "$task" "${backend_test_task__covered_by[@]}"
             ;;
         backend-test-configurator)
-            already_covered_handle "$cmd" \
-                "${backend_test_configurator_task__covered_by[@]}"
-            backend_test_configurator_task
+            solo "$task" "${backend_test_configurator_task__covered_by[@]}"
             ;;
         frontend)
-            already_covered_handle "$cmd" "${frontend_task__covered_by[@]}"
-            frontend_task
+            solo "$task" "${frontend_task__covered_by[@]}"
             ;;
         frontend-pure)
-            already_covered_handle "$cmd" "${frontend_pure_task__covered_by[@]}"
-            frontend_pure_task
+            solo "$task" "${frontend_pure_task__covered_by[@]}"
             ;;
         frontend-legacy)
-            already_covered_handle "$cmd" \
-                "${frontend_legacy_task__covered_by[@]}"
-            frontend_legacy_task
+            solo "$task" "${frontend_legacy_task__covered_by[@]}"
             ;;
         frontend-backend-templates)
-            already_covered_handle "$cmd" \
-                "${frontend_backend_templates_task__covered_by[@]}"
-            frontend_backend_templates_task
+            solo "$task" "${frontend_backend_templates_task__covered_by[@]}"
             ;;
         *)
             printf \
-                'Unknown "%s" command, probably error in the script!\n' \
-                "$cmd" >&2
+                'Unknown "%s" task, probably error in the script!\n' \
+                "$task" >&2
             exit 1
             ;;
     esac
 done
+
+
+# Running tasks
+[[ $run_in_parallel == true ]] && task_pids=()
+for task in "${positional[@]}"; do
+    case $task in
+        all)
+            if [[ $run_in_parallel == true ]]
+                then all_task & task_pids+=($!)
+                else all_task; fi
+            ;;
+        test)
+            if [[ $run_in_parallel == true ]]
+                then test_task & task_pids+=($!)
+                else test_task; fi
+            ;;
+        backend)
+            if [[ $run_in_parallel == true ]]
+                then backend_task & task_pids+=($!)
+                else backend_task; fi
+            ;;
+        backend-configs)
+            if [[ $run_in_parallel == true ]]
+                then backend_configs_task & task_pids+=($!)
+                else backend_configs_task; fi
+            ;;
+        backend-carma)
+            if [[ $run_in_parallel == true ]]
+                then backend_carma_task & task_pids+=($!)
+                else backend_carma_task; fi
+            ;;
+        backend-test)
+            if [[ $run_in_parallel == true ]]
+                then backend_test_task & task_pids+=($!)
+                else backend_test_task; fi
+            ;;
+        backend-test-configurator)
+            if [[ $run_in_parallel == true ]]
+                then backend_test_configurator_task & task_pids+=($!)
+                else backend_test_configurator_task; fi
+            ;;
+        frontend)
+            if [[ $run_in_parallel == true ]]
+                then frontend_task & task_pids+=($!)
+                else frontend_task; fi
+            ;;
+        frontend-pure)
+            if [[ $run_in_parallel == true ]]
+                then frontend_pure_task & task_pids+=($!)
+                else frontend_pure_task; fi
+            ;;
+        frontend-legacy)
+            if [[ $run_in_parallel == true ]]
+                then frontend_legacy_task & task_pids+=($!)
+                else frontend_legacy_task; fi
+            ;;
+        frontend-backend-templates)
+            if [[ $run_in_parallel == true ]]
+                then frontend_backend_templates_task & task_pids+=($!)
+                else frontend_backend_templates_task; fi
+            ;;
+        *)
+            printf \
+                'Unknown "%s" task, probably error in the script!\n' \
+                "$task" >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [[ $run_in_parallel == true ]]; then
+    rv=0
+    for pid in "${task_pids[@]}"; do wait -- "$pid" || rv=$?; done
+    if (( $rv != 0 )); then exit -- "$rv"; fi
+fi
