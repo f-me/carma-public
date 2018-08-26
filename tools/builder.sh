@@ -263,7 +263,9 @@ task_log() {
             sfx="${sfx}."
         fi
 
-        printf '%s%s\n' "$pfx" "$sfx"
+        if [[ $2 == fail ]]
+            then printf '%s%s\n' "$pfx" "$sfx" >&2
+            else printf '%s%s\n' "$pfx" "$sfx"; fi
 
     elif [[ $2 == step ]]; then
         printf '[%s] "%s" task: %s\n' "$d_c" "$task_name_c" \
