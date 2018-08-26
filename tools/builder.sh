@@ -177,7 +177,7 @@ exit_hook() {
     # Cleanup
 
     exec 3>&- 4>&-
-    wait -- "${logger_pids[@]}"
+    for pid in "${logger_pids[@]}"; do wait -- "$pid"; done
 
     # Writing at the end of log
     if (( $rv != 0 )); then
