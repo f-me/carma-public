@@ -171,6 +171,25 @@ logger 1 & logger_pids+=($!)
 logger 2 & logger_pids+=($!)
 exec 3>"$stdout_fifo" 4>"$stderr_fifo"
 
+exit_hook() {
+    local rv=$?
+
+    # Cleanup
+
+    exec 3>&- 4>&-
+    wait -- "${logger_pids[@]}"
+
+    # Writing at the end of log
+    if (( $rv != 0 )); then
+        printf '%s: Application is failed with status: %d%s\n' \
+            "$0" "$rv" ' (probably because some task is failed)!' >&2
+    fi
+
+    rm -- "$stdout_fifo" "$stderr_fifo" "$tasks_counter"
+}
+
+trap exit_hook EXIT
+
 
 # Pre-cached command results (for optimization purposes).
 # Doesn't color when run with --ci ($TERM is not set there, "tput" is failing).
@@ -193,10 +212,12 @@ echo 0 >"$tasks_counter"
 # $1 is task name.
 # [[ $2 == run ]] means task is running
 # [[ $2 == done ]] means task is done
+# [[ $2 == fail ]] means task is failed
 # [[ $2 == step ]] to log particular sub-tasks
 # [[ $2 == app-stdout ]] to log application's messsage
 # [[ $2 == app-stderr ]] to log application's error message
 # $3 is log message when [[ $2 == step ]]
+# $3 is exit status when [[ $2 == failed ]]
 # $4 is application name when [[ $2 == app-stdout ]] || [[ $2 == app-stderr ]]
 task_log() {
     (
@@ -205,7 +226,7 @@ task_log() {
     local d=$(date '+%Y-%m-%d %H:%M:%S')
     local d_c=${c_blue}${d}${c_reset}
 
-    if [[ $2 == run ]] || [[ $2 == done ]]; then
+    if [[ $2 == run ]] || [[ $2 == done ]] || [[ $2 == fail ]]; then
         local pfx=$(printf '[%s] "%s" task is ' "$d_c" "$task_name_c") sfx=
 
         if [[ $2 == run ]]; then
@@ -221,8 +242,15 @@ task_log() {
             fi
 
             sfx="${sfx}…"
-        else
-            pfx=$(printf '%s%sdone%s' "$pfx" "${c_bold}${c_green}" "${c_reset}")
+        else # [[ $2 == done ]] || [[ $2 == fail ]]
+            if [[ $2 == done ]]; then
+                pfx=$(printf '%s%sdone%s' \
+                    "$pfx" "${c_bold}${c_green}" "${c_reset}")
+            else
+                pfx=$(printf '%s%sfailed%s with exit status %s' \
+                    "$pfx" "${c_bold}${c_red}" "${c_reset}" \
+                    "${c_bold}${c_red}${3}${c_reset}")
+            fi
 
             local c=$[`
                 flock --exclusive -- "$tasks_counter" \
@@ -273,6 +301,18 @@ task_log() {
     ) 1>&3 2>&4
 }
 
+# Log end of task and fail if needed.
+# $1 - task name
+# $2 - exit status
+task_resolve() {
+    if (( $2 == 0 )); then
+        task_log "$1" done
+    else
+        task_log "$1" fail "$2"
+        return -- "$2"
+    fi
+}
+
 # $1 - '1' for stdout and '2' for stderr
 # $2 - FIFO file descriptor
 # $3 - task name to log
@@ -285,8 +325,12 @@ task_log() {
 #   local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
 #   app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
 #   app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
-#   (cd -- "$dir" && npm install) 1>"$lout" 2>"$lerr"
-#   wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+#   (cd -- "$dir" && npm install) \
+#       1>"$lout" 2>"$lerr" \
+#       || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+#       || return -- "$?"
+#   for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+#   rm -- "$lout" "$lerr"
 #
 app_logger() {
     local action=
@@ -297,6 +341,26 @@ app_logger() {
     done
 }
 
+# $1 - task name (leave empty if it's task helper to avoid task resolving)
+# $2 - a string of PIDs separated by spaces (logger PIDs to wait for)
+# $@ - FIFOs files to cleanup
+fail_trap() {
+    local rv=$? task_name=$1 pids=($2)
+    shift
+    shift
+    for pid in "${pids[@]}"; do wait -- "$pid"; done
+    (( $# > 0 )) && rm -- "$@"
+
+    if [[ ! -z $task_name ]]; then
+        task_resolve "$task_name" "$rv"
+    else
+        return -- "$rv"
+    fi
+}
+
+
+# *** START OF TASKS SECTION ***
+
 
 # "frontend-pure" task
 frontend_pure_task__covered_by=(frontend all)
@@ -306,33 +370,46 @@ frontend_pure_task() {
 
     # Installing dependencies
     task_log "$task_name" step 'Installing dependencies…'
+    local app_name='npm install'
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
-    app_logger 1 "$lout" "$task_name" 'npm install' & pids+=($!)
-    app_logger 2 "$lerr" "$task_name" 'npm install' & pids+=($!)
-    (cd -- "$dir" && npm install) 1>"$lout" 2>"$lerr"
-    wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+    app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+    app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+    (cd -- "$dir" && npm install) \
+        1>"$lout" 2>"$lerr" \
+        || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+        || return -- "$?"
+    for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+    rm -- "$lout" "$lerr"
 
     # Fetching submodules for Circle CI container
     if [[ $is_ci_container == true ]]; then
         task_log "$task_name" step 'Cloning git submodules…'
 
-        local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
         local app_name='purescript-react-dropzone git submodule'
-        app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
-        app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
-        (cd -- "$dir" && \
-            git submodule update --init --recursive \
-            purescript-react-dropzone) 1>"$lout" 2>"$lerr"
-        wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
-
         local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
-        local app_name='purescript-react-rich-text-editor git submodule'
         app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
         app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
         (cd -- "$dir" && \
             git submodule update --init --recursive \
-            purescript-react-rich-text-editor) 1>"$lout" 2>"$lerr"
-        wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+            purescript-react-dropzone) \
+            1>"$lout" 2>"$lerr" \
+            || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+            || return -- "$?"
+        for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+        rm -- "$lout" "$lerr"
+
+        local app_name='purescript-react-rich-text-editor git submodule'
+        local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
+        app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+        app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+        (cd -- "$dir" && \
+            git submodule update --init --recursive \
+            purescript-react-rich-text-editor) \
+            1>"$lout" 2>"$lerr" \
+            || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+            || return -- "$?"
+        for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+        rm -- "$lout" "$lerr"
     fi
 
     local ci_flags=()
@@ -342,12 +419,16 @@ frontend_pure_task() {
     # Installing PureScript dependencies
     task_log "$task_name" step \
         'Installing PureScript dependencies (using bower)…'
+    local app_name='bower install'
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
-    app_logger 1 "$lout" "$task_name" 'bower install' & pids+=($!)
-    app_logger 2 "$lerr" "$task_name" 'bower install' & pids+=($!)
+    app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+    app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
     (cd -- "$dir" && npm run bower -- install "${ci_flags[@]}") \
-        1>"$lout" 2>"$lerr"
-    wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+        1>"$lout" 2>"$lerr" \
+        || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+        || return -- "$?"
+    for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+    rm -- "$lout" "$lerr"
 
     local clean_infix=
     [[ $is_clean_build == true ]] && clean_infix='clean-'
@@ -357,13 +438,18 @@ frontend_pure_task() {
 
     local npm_task=${prod_prefix}${clean_infix}build
     task_log "$task_name" step $"Running npm \"$npm_task\" script…"
+    local app_name="npm run $npm_task"
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
-    app_logger 1 "$lout" "$task_name" "npm run $npm_task" & pids+=($!)
-    app_logger 2 "$lerr" "$task_name" "npm run $npm_task" & pids+=($!)
-    (cd -- "$dir" && npm run "$npm_task") 1>"$lout" 2>"$lerr"
-    wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+    app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+    app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+    (cd -- "$dir" && npm run "$npm_task") \
+        1>"$lout" 2>"$lerr" \
+        || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+        || return -- "$?"
+    for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+    rm -- "$lout" "$lerr"
 
-    task_log 'frontend-pure' done
+    task_log "$task_name" done
 }
 
 # Preparation for legacy frontend build.
@@ -371,13 +457,21 @@ frontend_pure_task() {
 # tasks when they're both specified, no need to do it twice.
 frontend_legacy_pre() {
     local task_name='frontend-legacy[pre]' dir='srv'
+    task_log "$task_name" run
 
     task_log "$task_name" step 'Installing dependencies…'
+    local app_name='npm install'
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
-    app_logger 1 "$lout" "$task_name" 'npm install' & pids+=($!)
-    app_logger 2 "$lerr" "$task_name" 'npm install' & pids+=($!)
-    (cd -- "$dir" && npm install) 1>"$lout" 2>"$lerr"
-    wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+    app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+    app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+    (cd -- "$dir" && npm install) \
+        1>"$lout" 2>"$lerr" \
+        || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+        || return -- "$?"
+    for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+    rm -- "$lout" "$lerr"
+
+    task_log "$task_name" done
 }
 
 # "frontend-legacy" task
@@ -386,7 +480,11 @@ frontend_legacy_task__covered_by=(frontend all)
 frontend_legacy_task() {
     local task_name='frontend-legacy' dir='srv'
     task_log "$task_name" run
-    [[ $1 == true ]] || frontend_legacy_pre
+
+    [[ $1 == true ]] \
+        || frontend_legacy_pre \
+        || fail_trap "$task_name" '' \
+        || return -- "$?"
 
     local clean_infix=
     [[ $is_clean_build == true ]] && clean_infix='clean-'
@@ -396,11 +494,16 @@ frontend_legacy_task() {
 
     local npm_task="${prod_prefix}${clean_infix}build"
     task_log "$task_name" step $"Running npm \"$npm_task\" script…"
+    local app_name="npm run $npm_task"
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
-    app_logger 1 "$lout" "$task_name" "npm run $npm_task" & pids+=($!)
-    app_logger 2 "$lerr" "$task_name" "npm run $npm_task" & pids+=($!)
-    (cd -- "$dir" && npm run "$npm_task") 1>"$lout" 2>"$lerr"
-    wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+    app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+    app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+    (cd -- "$dir" && npm run "$npm_task") \
+        1>"$lout" 2>"$lerr" \
+        || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+        || return -- "$?"
+    for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+    rm -- "$lout" "$lerr"
 
     task_log "$task_name" done
 }
@@ -413,48 +516,58 @@ frontend_backend_templates_task__covered_by=(frontend all)
 frontend_backend_templates_task() {
     local task_name='frontend-backend-templates' dir='srv'
     task_log "$task_name" run
-    [[ $1 == true ]] || frontend_legacy_pre
+
+    [[ $1 == true ]] \
+        || frontend_legacy_pre \
+        || fail_trap "$task_name" \
+        || return -- "$?"
 
     local clean_prefix=
     [[ $is_clean_build == true ]] && clean_prefix='clean-'
 
     local npm_task=${clean_prefix}build-backend-templates
     task_log "$task_name" step $"Running npm \"$npm_task\" script…"
+    local app_name="npm run $npm_task"
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
-    app_logger 1 "$lout" "$task_name" "npm run $npm_task" & pids+=($!)
-    app_logger 2 "$lerr" "$task_name" "npm run $npm_task" & pids+=($!)
-    (cd -- "$dir" && npm run "$npm_task") 1>"$lout" 2>"$lerr"
-    wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+    app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+    app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+    (cd -- "$dir" && npm run "$npm_task") \
+        1>"$lout" 2>"$lerr" \
+        || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+        || return -- "$?"
+    for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+    rm -- "$lout" "$lerr"
 
     task_log "$task_name" done
 }
 
 # Helper to run legacy tasks in parallel
 frontend_task_parallel_legacy() {
-    local pids=()
+    frontend_legacy_pre
+    local pids=() rv=0
     frontend_legacy_task true & pids+=($!)
     frontend_backend_templates_task true & pids+=($!)
-    wait -- "${pids[@]}"
+    for pid in "${pids[@]}"; do wait -- "$pid" || rv=$?; done
+    return -- "$rv"
 }
 
 # "frontend" task
 frontend_task__covered_by=(all)
 frontend_task() {
-    local task_name='frontend'
-
+    local task_name='frontend' rv=0
     task_log "$task_name" run
     if [[ $run_in_parallel == true ]]; then
         local pids=()
         frontend_pure_task & pids+=($!)
-        (frontend_legacy_pre && frontend_task_parallel_legacy) & pids+=($!)
-        wait -- "${pids[@]}"
+        frontend_task_parallel_legacy & pids+=($!)
+        for pid in "${pids[@]}"; do wait -- "$pid" || rv=$?; done
     else
         frontend_pure_task
         frontend_legacy_pre
         frontend_legacy_task true
         frontend_backend_templates_task true
     fi
-    task_log "$task_name" done
+    task_resolve "$task_name" "$rv"
 }
 
 
@@ -476,8 +589,12 @@ config_copy() {
         local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
         app_logger 1 "$lout" "$1" "$app_name" & pids+=($!)
         app_logger 2 "$lerr" "$1" "$app_name" & pids+=($!)
-        cp -- "$3" "$4" 1>"$lout" 2>"$lerr"
-        wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+        cp -- "$3" "$4" \
+            1>"$lout" 2>"$lerr" \
+            || fail_trap '' "${pids[*]}" "$lout" "$lerr" \
+            || return -- "$?"
+        for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+        rm -- "$lout" "$lerr"
 
         task_log "$1" step $"$2 config file \"$4\" is copied."
     fi
@@ -500,8 +617,12 @@ backend_configs_task() {
         local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
         app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
         app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
-        cp -r srv/snaplets-default srv/snaplets 1>"$lout" 2>"$lerr"
-        wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+        cp -r srv/snaplets-default srv/snaplets \
+            1>"$lout" 2>"$lerr" \
+            || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+            || return -- "$?"
+        for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+        rm -- "$lout" "$lerr"
 
         task_log "$task_name" step 'Snaplets configs directory is copied.'
     else
@@ -513,12 +634,18 @@ backend_configs_task() {
             local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
             app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
             app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
-            mkdir -p -- "srv/snaplets/$dir" 1>"$lout" 2>"$lerr"
-            wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+            mkdir -p -- "srv/snaplets/$dir" \
+                1>"$lout" 2>"$lerr" \
+                || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+                || return -- "$?"
+            for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+            rm -- "$lout" "$lerr"
 
             ls -- "srv/snaplets-default/$dir/"* | while read file; do
                 config_copy "$task_name" 'Snaplet' \
-                    "$file" "srv/snaplets/$dir/$(basename -- "$file")"
+                    "$file" "srv/snaplets/$dir/$(basename -- "$file")" \
+                    || fail_trap "$task_name" \
+                    || return -- "$?"
             done
         done
 
@@ -528,12 +655,16 @@ backend_configs_task() {
     # Nominatim Mediator config
     config_copy "$task_name" 'Nominatim Mediator' \
         'carma-nominatim-mediator/app.cfg.default' \
-        'carma-nominatim-mediator/app.cfg'
+        'carma-nominatim-mediator/app.cfg' \
+        || fail_trap "$task_name" \
+        || return -- "$?"
 
     # Config for CaRMa tools
     config_copy "$task_name" 'Tools' \
         'tools/carma-tools.cfg.yaml.example' \
-        'tools/carma-tools.cfg.yaml'
+        'tools/carma-tools.cfg.yaml' \
+        || fail_trap "$task_name" \
+        || return -- "$?"
 
     task_log "$task_name" done
 }
@@ -553,8 +684,12 @@ backend_carma_task() {
         local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
         app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
         app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
-        stack clean "${clean_flags[@]}" 1>"$lout" 2>"$lerr"
-        wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+        stack clean "${clean_flags[@]}" \
+            1>"$lout" 2>"$lerr" \
+            || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+            || return -- "$?"
+        for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+        rm -- "$lout" "$lerr"
     fi
 
     local cpus=
@@ -572,8 +707,12 @@ backend_carma_task() {
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
     app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
-    stack --install-ghc "-j$[$cpus]" build 1>"$lout" 2>"$lerr"
-    wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+    stack --install-ghc "-j$[$cpus]" build \
+        1>"$lout" 2>"$lerr" \
+        || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+        || return -- "$?"
+    for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+    rm -- "$lout" "$lerr"
 
     task_log "$task_name" done
 }
@@ -581,18 +720,18 @@ backend_carma_task() {
 # "backend" task
 backend_task__covered_by=(all)
 backend_task() {
-    local task_name='backend'
+    local task_name='backend' rv=0
     task_log "$task_name" run
     if [[ $run_in_parallel == true ]]; then
         local pids=()
         backend_configs_task & pids+=($!)
         backend_carma_task & pids+=($!)
-        wait -- "${pids[@]}"
+        for pid in "${pids[@]}"; do wait -- "$pid" || rv=$?; done
     else
         backend_configs_task
         backend_carma_task
     fi
-    task_log "$task_name" done
+    task_resolve "$task_name" "$rv"
 }
 
 # "backend-test-configurator" task
@@ -608,8 +747,11 @@ backend_test_configurator_task() {
     app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
     app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
     (cd tools && stack exec carma-configurator -- -t carma-tools >/dev/null) \
-        1>"$lout" 2>"$lerr"
-    wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+        1>"$lout" 2>"$lerr" \
+        || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+        || return -- "$?"
+    for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+    rm -- "$lout" "$lerr"
 
     # TODO handle running "backend-configs" before this task
     local app_name='Testing real config of "carma-tools"'
@@ -617,9 +759,12 @@ backend_test_configurator_task() {
     local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
     app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
     app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
-    (cd tools && stack exec carma-configurator -- carma-tools >/dev/null)
-        1>"$lout" 2>"$lerr"
-    wait -- "${pids[@]}" && rm -- "$lout" "$lerr" && pids=()
+    (cd tools && stack exec carma-configurator -- carma-tools >/dev/null) \
+        1>"$lout" 2>"$lerr" \
+        || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+        || return -- "$?"
+    for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+    rm -- "$lout" "$lerr"
 
     task_log "$task_name" done
 }
@@ -628,50 +773,53 @@ backend_test_configurator_task() {
 backend_test_task__covered_by=(test)
 # TODO handle auto build before test
 backend_test_task() {
-    local task_name='backend-test'
+    local task_name='backend-test' rv=0
     task_log "$task_name" run
     if [[ $run_in_parallel == true ]]; then
         local pids=()
         backend_test_configurator_task & pids+=($!)
-        wait -- "${pids[@]}"
+        for pid in "${pids[@]}"; do wait -- "$pid" || rv=$?; done
     else
         backend_test_configurator_task
     fi
-    task_log "$task_name" done
+    task_resolve "$task_name" "$rv"
 }
 
 
 # "all" task
 all_task__covered_by=()
 all_task() {
-    local task_name='all'
+    local task_name='all' rv=0
     task_log "$task_name" run
     if [[ $run_in_parallel == true ]]; then
         local pids=()
         backend_task & pids+=($!)
         frontend_task & pids+=($!)
-        wait -- "${pids[@]}"
+        for pid in "${pids[@]}"; do wait -- "$pid" || rv=$?; done
     else
         backend_task
         frontend_task
     fi
-    task_log "$task_name" done
+    task_resolve "$task_name" "$rv"
 }
 
 # "test" task
 test_task__covered_by=()
 test_task() {
-    local task_name='test'
+    local task_name='test' rv=0
     task_log "$task_name" run
     if [[ $run_in_parallel == true ]]; then
         local pids=()
         backend_test_task & pids+=($!)
-        wait -- "${pids[@]}"
+        for pid in "${pids[@]}"; do wait -- "$pid" || rv=$?; done
     else
         backend_test_task
     fi
-    task_log "$task_name" done
+    task_resolve "$task_name" "$rv"
 }
+
+
+# *** END OF TASKS SECTION ***
 
 
 # A helper that checks if a command is already included to another specified
@@ -753,8 +901,3 @@ for cmd in "${positional[@]}"; do
             ;;
     esac
 done
-
-# cleanup
-exec 3>&- 4>&-
-wait -- "${logger_pids[@]}"
-rm -- "$stdout_fifo" "$stderr_fifo" "$tasks_counter"
