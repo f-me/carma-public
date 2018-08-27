@@ -11,7 +11,7 @@ show_usage() {
 local s=$(printf '%s' "$0" | sed 's/./ /g')
 cat << USAGE
 
-Usage: $0 [-c|--clean] [--soft-clean]
+Usage: $0 [-c|--clean] [--full-clean]
        $s [-p|--parallel] [--production] [--ci]
        $s TASKS…
 
@@ -32,12 +32,10 @@ Singular tasks:
     $0 frontend-backend-templates  Build templates which used by backend
 
 Options:
-    -c, --clean     Clean previous bundles before build
+    -c, --clean     Clean previous built executables/bundles before build
 
-    --soft-clean    Softly clean if possible.
-
-                    For backend it means don't fully clean .stack-work but
-                    just built CaRMa modules. Useful for reducing build time.
+    --full-clean    Apart from regular cleaning also removes directories like
+                    .stack-work for backend or node_modules for frontend.
 
                     P.S. When this flag is set you don't have to set --clean.
 
@@ -90,7 +88,7 @@ run_in_parallel=false
 is_production_build=false
 is_ci_container=false
 is_clean_build=false
-is_clean_soft=false
+is_fully_clean_build=false
 is_bare_app_log=false
 
 available_tasks=(
@@ -123,9 +121,9 @@ for arg in "$@"; do
             -c|--clean)
                 is_clean_build=true
                 ;;
-            --soft-clean)
+            --full-clean)
                 is_clean_build=true
-                is_clean_soft=true
+                is_fully_clean_build=true
                 ;;
             -p|--parallel)
                 run_in_parallel=true
@@ -398,6 +396,21 @@ frontend_pure_task() {
     local task_name='frontend-pure' dir='srv/resources/assets/pure'
     task_log "$task_name" run
 
+    # Full clean
+    if [[ $is_fully_clean_build == true ]]; then
+        task_log "$task_name" step $"Removing \"$dir/node_modules\" directory…"
+        local app_name='rm -rf node_modules'
+        local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
+        app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+        app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+        (cd -- "$dir" && rm -rf node_modules) \
+            1>"$lout" 2>"$lerr" \
+            || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+            || return -- "$?"
+        for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+        rm -- "$lout" "$lerr"
+    fi
+
     # Installing dependencies
     task_log "$task_name" step 'Installing dependencies…'
     local app_name='npm install'
@@ -446,6 +459,22 @@ frontend_pure_task() {
     # For Circle CI container allowing installing packages by superuser
     [[ $is_ci_container == true ]] && ci_flags=('--allow-root')
 
+    # Full clean
+    if [[ $is_fully_clean_build == true ]]; then
+        task_log "$task_name" step \
+            $"Removing \"$dir/bower_components\" directory…"
+        local app_name='rm -rf bower_components'
+        local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
+        app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+        app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+        (cd -- "$dir" && rm -rf bower_components) \
+            1>"$lout" 2>"$lerr" \
+            || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+            || return -- "$?"
+        for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+        rm -- "$lout" "$lerr"
+    fi
+
     # Installing PureScript dependencies
     task_log "$task_name" step \
         'Installing PureScript dependencies (using bower)…'
@@ -460,12 +489,8 @@ frontend_pure_task() {
     for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
     rm -- "$lout" "$lerr"
 
-    local clean_infix=
-    [[ $is_clean_build == true ]] && clean_infix='clean-'
-
-    local prod_prefix=
-    [[ $is_production_build == true ]] && prod_prefix='prod-'
-
+    local clean_infix=`[[ $is_clean_build == true ]] && echo clean-`
+    local prod_prefix=`[[ $is_production_build == true ]] && echo prod-`
     local npm_task=${prod_prefix}${clean_infix}build
     task_log "$task_name" step $"Running npm \"$npm_task\" script…"
     local app_name="npm run $npm_task"
@@ -488,6 +513,20 @@ frontend_pure_task() {
 frontend_legacy_pre() {
     local task_name='frontend-legacy[pre]' dir='srv'
     task_log "$task_name" run
+
+    if [[ $is_fully_clean_build == true ]]; then
+        task_log "$task_name" step $"Removing \"$dir/node_modules\" directory…"
+        local app_name='rm -rf node_modules'
+        local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
+        app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+        app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+        (cd -- "$dir" && rm -rf node_modules) \
+            1>"$lout" 2>"$lerr" \
+            || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+            || return -- "$?"
+        for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+        rm -- "$lout" "$lerr"
+    fi
 
     task_log "$task_name" step 'Installing dependencies…'
     local app_name='npm install'
@@ -706,9 +745,13 @@ backend_carma_task() {
     task_log "$task_name" run
 
     if [[ $is_clean_build == true ]]; then
-        task_log "$task_name" step 'Cleaning…'
-        local clean_flags=(--full)
-        [[ $is_clean_soft == true ]] && clean_flags=()
+        local clean_flags=()
+        if [[ $is_fully_clean_build == true ]]; then
+            clean_flags=(--full)
+            task_log "$task_name" step 'Cleaning (with --full)…'
+        else
+            task_log "$task_name" step 'Cleaning…'
+        fi
 
         local app_name="stack clean ${clean_flags[*]}"
         local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()

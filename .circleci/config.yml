@@ -48,7 +48,7 @@ jobs:
       - run:
           name: Build CaRMa backend
           command: |
-            tools/builder.sh -b --ci --soft-clean --production backend
+            tools/builder.sh -b --ci --clean --production backend
       - run:
           name: Run tests
           command: |
