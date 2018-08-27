@@ -8,9 +8,12 @@
 
 # Use -h or --help option to show it
 show_usage() {
+local s=$(printf '%s' "$0" | sed 's/./ /g')
 cat << USAGE
 
-Usage: $0 [-c|--clean] [--soft-clean] [-p|--parallel] [--production] [--ci] TASKS…
+Usage: $0 [-c|--clean] [--soft-clean]
+       $s [-p|--parallel] [--production] [--ci]
+       $s TASKS…
 
 Multiple tasks (task groups, runs other tasks inside):
     $0 all           Build everything
@@ -22,7 +25,8 @@ Multiple tasks (task groups, runs other tasks inside):
 Singular tasks:
     $0 backend-configs             Copy configs examples if needed
     $0 backend-carma               Just build CaRMa backend
-    $0 backend-test-configurator   Run tests for configs handled by "carma-configurator" tool
+    $0 backend-test-configurator   Run tests for configs
+    $s                             handled by "carma-configurator" tool
     $0 frontend-pure               Build "pure" frontend
     $0 frontend-legacy             Build "legacy" frontend
     $0 frontend-backend-templates  Build templates which used by backend
@@ -30,12 +34,26 @@ Singular tasks:
 Options:
     -c, --clean     Clean previous bundles before build
 
-    --soft-clean    Softly clean if possible
-                    (for backend it means don't fully clean .stack-work but just
-                    built CaRMa modules, useful for reducing build time)
-                    P.S. When this flag is set you don't have to set --clean
+    --soft-clean    Softly clean if possible.
+
+                    For backend it means don't fully clean .stack-work but
+                    just built CaRMa modules. Useful for reducing build time.
+
+                    P.S. When this flag is set you don't have to set --clean.
 
     -p, --parallel  To run tasks in parallel
+
+    -b, --bare-app-log
+
+                    Disable adding label before each line of an application's
+                    log which shows task name, current application/command that
+                    log message belongs to, marks separately STDOUT/STDERR.
+
+                    When you don't run tasks in parallel labels for each line of
+                    an application's log could be just noisy since they doesn't
+                    bring anything useful in this case. For case of parallelism
+                    they allow you to separate log messages of one application
+                    from another.
 
     --production    Make a build for production (minify, no debug stuff, etc.)
 
@@ -73,6 +91,7 @@ is_production_build=false
 is_ci_container=false
 is_clean_build=false
 is_clean_soft=false
+is_bare_app_log=false
 
 available_tasks=(
     all test
@@ -110,6 +129,9 @@ for arg in "$@"; do
                 ;;
             -p|--parallel)
                 run_in_parallel=true
+                ;;
+            -b|--bare-app-log)
+                is_bare_app_log=true
                 ;;
             -h|--help|help)
                 show_usage
@@ -272,6 +294,13 @@ task_log() {
             "${c_yellow}${3}${c_reset}"
 
     elif [[ $2 == app-stdout ]] || [[ $2 == app-stderr ]]; then
+        if [[ $is_bare_app_log == true ]]; then
+            if [[ $2 == app-stderr ]]
+                then printf '%s\n' "$3" >&2
+                else printf '%s\n' "$3"; fi
+            return 0
+        fi
+
         local std=$([[ $2 == app-stdout ]] && echo STDOUT || echo STDERR)
         local sep= app_name=$4
         local app_name_c=${c_cyan}${app_name}${c_reset}
@@ -291,9 +320,9 @@ task_log() {
             printf '[%s] "%s" task "%s" app [%s]: ' \
                 "$d_c" "$task_name_c" "$app_name_c" "$std_c")
 
-        [[ $2 == app-stdout ]] \
-            && printf '%s%s%s%s\n' "$pfx" "$sep" "$3" "${c_reset}" \
-            || printf '%s%s%s%s\n' "$pfx" "$sep" "$3" "${c_reset}" >&2
+        if [[ $2 == app-stderr ]]
+            then printf '%s%s%s%s\n' "$pfx" "$sep" "$3" "${c_reset}" >&2
+            else printf '%s%s%s%s\n' "$pfx" "$sep" "$3" "${c_reset}"; fi
 
     else
         printf '[%s] Unexpected "%s" task "%s" action!\n' \
@@ -335,8 +364,7 @@ task_resolve() {
 #   rm -- "$lout" "$lerr"
 #
 app_logger() {
-    local action=
-    (( $1 == 1 )) && action=app-stdout || action=app-stderr
+    local action=`(( $1 == 1 )) && echo app-stdout || echo app-stderr`
 
     cat -- "$2" | while IFS= read -r x; do
         task_log "$3" "$action" "$x" "$4"
