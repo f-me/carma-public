@@ -213,22 +213,20 @@ exit_hook() {
 trap exit_hook EXIT
 
 
-if [[ $is_ci_container != true ]]; then
-    # "tput" is failing on CI because $TERM is not set.
-    export TERM=xterm
-fi
-
 # Pre-cached "tput" command results (for optimization purposes).
-c_black=$(tput setaf 0)
-c_red=$(tput setaf 1)
-c_green=$(tput setaf 2)
-c_yellow=$(tput setaf 3)
-c_blue=$(tput setaf 4)
-c_magenta=$(tput setaf 5)
-c_cyan=$(tput setaf 6)
-c_white=$(tput setaf 7)
-c_bold=$(tput bold)
-c_reset=$(tput sgr0)
+# Doesn't color when run with --ci ($TERM is not set there, "tput" is failing).
+if [[ $is_ci_container != true ]]; then
+    c_black=$(tput setaf 0)
+    c_red=$(tput setaf 1)
+    c_green=$(tput setaf 2)
+    c_yellow=$(tput setaf 3)
+    c_blue=$(tput setaf 4)
+    c_magenta=$(tput setaf 5)
+    c_cyan=$(tput setaf 6)
+    c_white=$(tput setaf 7)
+    c_bold=$(tput bold)
+    c_reset=$(tput sgr0)
+fi
 
 tasks_counter=$(mktemp)
 echo 0 >"$tasks_counter"
