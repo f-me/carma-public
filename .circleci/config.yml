@@ -21,13 +21,13 @@ jobs:
           command: |
             printf 'node: %s, npm: %s\n' "`node --version`" "`npm --version`"
       - run:
-          name: Build CaRMa frontend
+          name: Build CaRMa frontend ("legacy" part)
           command: |
-            tools/builder.sh --ci --clean --production frontend-legacy frontend-backend-templates
+            tools/builder.sh -b --ci --clean --production frontend-legacy frontend-backend-templates
       - run:
           name: Build CaRMa frontend ("pure" part)
           command: |
-            tools/builder.sh --ci --clean --production frontend-pure
+            tools/builder.sh -b --ci --clean --production frontend-pure
       - persist_to_workspace:
           root: .
           paths:
@@ -48,11 +48,11 @@ jobs:
       - run:
           name: Build CaRMa backend
           command: |
-            tools/builder.sh --ci --soft-clean --production backend
+            tools/builder.sh -b --ci --soft-clean --production backend
       - run:
           name: Run tests
           command: |
-            tools/builder.sh --ci --production backend-test
+            tools/builder.sh -b --ci --production backend-test
       - save_cache:
           key: stack-cache-{{ checksum "stack.yaml" }}
           paths:
