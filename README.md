@@ -70,7 +70,7 @@ If your next release doesn't require to apply any migrations, to create or
 update any configs then your production release could be built by this command:
 
 ```bash
-tools/builder.sh -p --production --soft-clean all
+tools/builder.sh -p --production --clean all
 ```
 
 If your server setup implies **CaRMa**'s binaries to be presented in
