@@ -4,6 +4,7 @@
 
 module Carma.Monad.MVar
      ( MonadMVar (..)
+     , Lifted.MVar
      ) where
 
 import           Control.Monad.Base (MonadBase)

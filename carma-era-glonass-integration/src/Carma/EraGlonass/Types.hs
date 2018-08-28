@@ -15,7 +15,11 @@ module Carma.EraGlonass.Types
      , module Carma.EraGlonass.Types.EGPropulsion
      ) where
 
+import           Data.Pool (Pool)
+
 import           Control.Concurrent.MVar (MVar)
+
+import           Database.Persist.Sql (SqlBackend)
 
 import           Carma.Monad.LoggerBus.Types (LogMessage)
 import qualified Carma.EraGlonass.Types.EGPhoneNumber as EGPhoneNumber
@@ -30,6 +34,9 @@ import           Carma.EraGlonass.Types.EGCreateCallCardRequest
 
 data AppContext
    = AppContext
-   { -- A bus to send log messages to
-     loggerBus :: MVar LogMessage
+   { loggerBus :: MVar LogMessage
+     -- ^ A bus to send log messages to
+
+   , dbConnectionPool :: Pool SqlBackend
+     -- ^ A @Pool@ of connections to PostgreSQL
    }

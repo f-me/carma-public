@@ -9,7 +9,6 @@ module Carma.Monad.LoggerBus
      ) where
 
 import qualified Data.Text as T
-import qualified Data.Time.Format as Time
 import           Text.InterpolatedString.QM
 
 import           Control.Monad
@@ -20,6 +19,7 @@ import           Carma.Monad.Clock
 import           Carma.Monad.Thread
 import           Carma.Monad.LoggerBus.Types
 import           Carma.Monad.LoggerBus.Class
+import           Carma.Monad.LoggerBus.Helpers
 
 
 -- Generic implementation of `logInfo` from `MonadLoggerBus`
@@ -49,7 +49,3 @@ logErrorImpl loggerBus' msg = do
 -- Generic implementation of `readLog` from `MonadLoggerBus`
 readLogImpl :: MonadMVar m => MVar LogMessage -> m LogMessage
 readLogImpl = takeMVar
-
-
-formatTime :: Time.FormatTime t => t -> String
-formatTime = Time.formatTime Time.defaultTimeLocale "%Y-%m-%d %H:%M:%S"

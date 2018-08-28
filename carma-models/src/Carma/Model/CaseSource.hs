@@ -9,8 +9,8 @@ import Data.Model
 import Data.Model.View
 import Data.Model.TH
 
-import Carma.Model.Types()
-import Carma.Model.PgTypes()
+import Carma.Model.Types ()
+import Carma.Model.PgTypes ()
 
 data CaseSource = CaseSource
   { ident
@@ -19,6 +19,7 @@ data CaseSource = CaseSource
     :: F Text "label" "Тип"
   } deriving Typeable
 
+-- TODO add Era Glonass source
 mkIdents [t|CaseSource|]
  [ ("op", 1)
  , ("mobile", 2)

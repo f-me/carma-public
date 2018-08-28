@@ -2,7 +2,7 @@ name:        carma-era-glonass-integration
 version:     1.0.0.0
 license:     BSD3
 author:      Viacheslav Lotsmanov
-maintainer:  <lotsmanov89@gmail.com>
+maintainer:  lotsmanov89@gmail.com
 category:    Web
 synopsis:    Integration between CaRMa and Era Glonass microservice
 
@@ -24,15 +24,20 @@ dependencies:
   - directory
   - either
   - exceptions
+  - fast-logger
   - http-api-data
   - http-client
   - http-client-tls
   - http-types
+  - monad-control
   - monad-logger
   - MonadRandom
   - mtl
+  - persistent
+  - persistent-postgresql
   - pureMD5
   - qm-interpolated-string
+  - resource-pool
   - servant
   - servant-client
   - servant-server
@@ -41,6 +46,7 @@ dependencies:
   - text
   - time
   - transformers
+  - transformers-base
   - unordered-containers
   - warp
 
@@ -49,6 +55,7 @@ ghc-options:
   - -Werror
   - -O2
   - -funbox-strict-fields
+  - -fprint-potential-instances
 
 library:
   source-dirs: src

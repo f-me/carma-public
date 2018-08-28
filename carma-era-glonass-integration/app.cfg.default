@@ -3,3 +3,13 @@ port = 8166
 
 # [OPTIONAL]
 # host = "127.0.0.1"
+
+db {
+  postgresql {
+    connection-string =
+      "host='localhost' dbname='carma' user='carma_db_sync' password='pass'"
+
+    # How many parallel connections are open to handle database requests
+    pool-size = 3
+  }
+}

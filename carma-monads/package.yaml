@@ -17,9 +17,12 @@ dependencies:
   - base
   - carma-utils
   - directory
+  - fast-logger
   - lifted-base
   - monad-control
   - monad-logger
+  - mtl
+  - persistent
   - qm-interpolated-string
   - servant-client
   - text
