@@ -1,21 +1,30 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module AppHandlers.DiagTree
     ( diagInfo
     , diagHistory
     , retryQuestion
+
+    , MoveOrCopyDiagSlide (..)
+    , moveOrCopyDiagSlide
     )
 
 where
 
 import           Data.Aeson as A
+import           Database.Persist
 import           Database.PostgreSQL.Simple.SqlQQ
 
+import           Control.Monad.IO.Class (liftIO)
+
 import           Snap
+import           Snap.Snaplet.Persistent
 import           Snap.Snaplet.PostgresqlSimple
 import           Snaplet.Auth.PGUsers (currentUserMetaId)
 
+import           Carma.Model.DiagSlide.Persistent
 import           AppHandlers.Util
 import           Application
 
@@ -85,4 +94,16 @@ retryQuestion = do
             and h.ctime >= h1.ctime
             and h.deprecatedBy is null
     |] (userId, histId, histId)
+  writeJSON ()
+
+
+data MoveOrCopyDiagSlide = MoveDiagSlide | CopyDiagSlide
+
+moveOrCopyDiagSlide :: MoveOrCopyDiagSlide -> AppHandler ()
+moveOrCopyDiagSlide _ = do
+  (res :: [Entity DiagSlide]) <-
+    with db2 $ runPersist $
+      selectList [] [LimitTo 10]
+
+  liftIO $ print res
   writeJSON ()

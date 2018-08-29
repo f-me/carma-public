@@ -148,6 +148,10 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/diag/info/:caseId",       chkAuth . method GET $ diagInfo)
          , ("/diag/history/:caseId",    chkAuth . method GET $ diagHistory)
          , ("/diag/retry/:histId",      chkAuth . method POST $ retryQuestion)
+         , ("/diag/slide/move/",        chkAuth . method POST $
+                                          moveOrCopyDiagSlide MoveDiagSlide)
+         , ("/diag/slide/copy/",        chkAuth . method POST $
+                                          moveOrCopyDiagSlide CopyDiagSlide)
          , ("/meta",                    method GET serveMeta)
          ]
 
