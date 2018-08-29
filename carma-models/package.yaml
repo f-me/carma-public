@@ -18,9 +18,11 @@ dependencies:
  - containers
  - errors
  - parsec
+ - persistent
  - persistent-template
  - postgresql-libpq
  - postgresql-simple
+ - qm-interpolated-string
  - scientific
  - singletons
  - template-haskell
@@ -29,7 +31,6 @@ dependencies:
  - transformers
  - unordered-containers
  - vector
- - qm-interpolated-string
 
 default-extensions:
  - DataKinds
