@@ -444,19 +444,16 @@ defFieldView
   :: forall nm desc a m t
   .  (SingI nm, SingI desc, FieldKindSing a)
   => (m -> FF t nm desc a) -> FieldView
-defFieldView f = FieldView
-  {fv_name = fieldName f
-  ,fv_type = "undefined"
-  ,fv_canWrite = True
-  ,fv_meta = Map.fromList
-    [("label",    Aeson.String $ fieldDesc f)
-    ,("app",      Aeson.String fieldKind)
-    ]
+defFieldView f
+  = FieldView
+  { fv_name = fieldName f
+  , fv_type = "undefined"
+  , fv_canWrite = True
+  , fv_meta = Map.fromList
+     [ ("label", Aeson.String $ fieldDesc f)
+     , ("app",   Aeson.String $ fieldKindStr (Proxy :: Proxy a))
+     ]
   }
-  where
-    fieldKind = case fieldKindSing :: FieldKindSingleton a of
-      FKSDefault   -> "default"
-      FKSEphemeral -> "ephemeral"
 
 
 instance DefaultFieldView DiffTime where

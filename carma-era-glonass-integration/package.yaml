@@ -35,6 +35,8 @@ dependencies:
   - mtl
   - persistent
   - persistent-postgresql
+  - persistent-template
+  - postgresql-simple
   - pureMD5
   - qm-interpolated-string
   - resource-pool

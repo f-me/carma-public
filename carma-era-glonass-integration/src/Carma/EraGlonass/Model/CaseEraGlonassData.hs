@@ -1,7 +1,6 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds, TypeFamilies #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Carma.EraGlonass.Model.CaseEraGlonassData where
 

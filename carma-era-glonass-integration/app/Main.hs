@@ -2,6 +2,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Main (main) where
 
@@ -28,7 +29,7 @@ import           Carma.Monad.LoggerBus
 import           Carma.Monad.Thread
 import           Carma.Monad.MVar
 
-import           Carma.Model.Program.Persistent
+import           Carma.Model.Usermeta.Persistent
 
 
 main :: IO ()
@@ -50,22 +51,17 @@ main = do
 
   flip runReaderT loggerBus' $ do
 
-    -- TODO Better log message about connecting to the database.
-    logError [qmb|
-      postgresConnStr: "{pgConnStr pgConf}"
-      postgresPoolSize: {pgPoolSize pgConf}
-    |]
+    logInfo [qms| Creating PostgreSQL connection pool
+                  (pool size is: {pgPoolSize pgConf})... |]
 
     !(pgPool :: Pool SqlBackend) <- liftIO $
       createPostgresqlPool (pgConnStr pgConf) (pgPoolSize pgConf)
         `runLoggerForward` loggerBus'
 
-    -- Request at start to check if it's connected (connection is lazy).
-    -- TODO Check for @Just@ instead of @print@.
-    testProgram <- liftIO (runSqlPool (get ford) pgPool)
-    logInfo [qm| Test "Program": {testProgram} |]
-
-    logInfo [qm| Running incoming server on http://{host}:{port}... |]
+    -- Request at start to check if it's connected (DB connection is lazy).
+    liftIO (get admin `runSqlPool` pgPool)
+      >>= \case Nothing -> fail "Initial test database request is failed!"
+                Just _  -> pure ()
 
     let appContext
           = AppContext
@@ -73,6 +69,7 @@ main = do
           , dbConnectionPool = pgPool
           }
 
+    logInfo [qm| Running incoming server on http://{host}:{port}... |]
     liftIO $ runIncomingServer appContext port $ fromString host
 
 
