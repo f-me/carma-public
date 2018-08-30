@@ -3,7 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 
 -- | A model to collect failures of Era Glonass integration calls.
-module Carma.EraGlonass.Model.CaseEraGlonassFailures where
+module Carma.EraGlonass.Model.CaseEraGlonassFailure where
 
 import           Data.Typeable
 
@@ -15,13 +15,13 @@ import           Data.Aeson
 
 import           Carma.Model.Types ()
 import           Carma.Model.PgTypes ()
-import           Carma.EraGlonass.Model.CaseEraGlonassFailures.Types
+import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 
 
-data CaseEraGlonassFailures
-   = CaseEraGlonassFailures
+data CaseEraGlonassFailure
+   = CaseEraGlonassFailure
    { ident
-     :: PK Int CaseEraGlonassFailures
+     :: PK Int CaseEraGlonassFailure
         "Информация об ошибке вызова точки интеграции с ЭРА-ГЛОНАСС"
    , integrationPoint
      :: F EGIntegrationPoint "integrationPoint" "Точка интеграции"
@@ -32,9 +32,9 @@ data CaseEraGlonassFailures
    } deriving Typeable
 
 
-instance Model CaseEraGlonassFailures where
-  type TableName CaseEraGlonassFailures = "CaseEraGlonassFailures"
-  modelInfo = mkModelInfo CaseEraGlonassFailures ident
+instance Model CaseEraGlonassFailure where
+  type TableName CaseEraGlonassFailure = "CaseEraGlonassFailure"
+  modelInfo = mkModelInfo CaseEraGlonassFailure ident
   modelView = \case
     "" -> Just defaultView
     _  -> Nothing

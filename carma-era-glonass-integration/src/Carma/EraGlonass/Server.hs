@@ -1,10 +1,7 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE DuplicateRecordFields, RecordWildCards #-}
+{-# LANGUAGE DataKinds, TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 -- Incoming server implementation to provide an API for Era Glonass side
@@ -23,11 +20,17 @@ import           Control.Monad.Error.Class (MonadError, throwError)
 import           Servant
 import           Servant.Swagger (toSwagger)
 
+-- import           Database.Persist.Class
+
 import           Carma.Utils.Operators
 import           Carma.Monad.LoggerBus
+import           Carma.Monad.PersistentSql
 import           Carma.EraGlonass.Logger () -- instance
+import           Carma.EraGlonass.Persistent () -- instance
 import           Carma.EraGlonass.Routes
 import           Carma.EraGlonass.Types
+import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
+import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
 
 
 type ServerAPI
@@ -53,6 +56,7 @@ server
   :: ( MonadReader AppContext m
      , MonadLoggerBus m
      , MonadError ServantErr m
+     , MonadPersistentSql m
      )
   => ServerT ServerAPI m
 server = egCRM01 :<|> swagger
@@ -62,16 +66,30 @@ egCRM01
   :: ( MonadReader AppContext m
      , MonadLoggerBus m
      , MonadError ServantErr m
+     , MonadPersistentSql m
      )
   => EGCreateCallCardRequest
   -> m EGCreateCallCardResponse
 
 -- TODO store original JSON data somewhere to debug later
-egCRM01 (EGCreateCallCardRequestIncorrect msg _) = do
-  logError [qm| EG.CRM.01: Failed to parse request body, error message: {msg} |]
+egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
+  logError [qmb| {iPoint}: Failed to parse request body, error message: {msg}
+                 Saving data of this failure to the database... |]
+
+  failureId <- runSql
+    $ insert CaseEraGlonassFailure
+    { caseEraGlonassFailureIntegrationPoint = iPoint
+    , caseEraGlonassFailureRequestBody      = Just badReqBody
+    , caseEraGlonassFailureComment          = Just [qm| Error message: {msg} |]
+    }
+
+  logError [qms| {iPoint}: Failure data successfully saved to the database.
+                 Failure id: {failureId} |]
 
   throwError err400
-    { errBody = "Error while parsing EG.CRM.01 request JSON data." }
+    { errBody = [qm| Error while parsing {iPoint} request JSON data. |] }
+
+  where iPoint = EgCrm01
 
 egCRM01 EGCreateCallCardRequest {..} = do
   logError "TODO EG.CRM.01 SUCCESS"

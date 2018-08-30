@@ -46,4 +46,18 @@ INSERT INTO "Engine"
          (6, 'СПГ')
        ;
 
+-- Creating table for "CaseEraGlonassFailure" model.
+CREATE TABLE "CaseEraGlonassFailure"
+  ( id               SERIAL PRIMARY KEY
+  , integrationPoint TEXT NOT NULL
+                     CHECK (integrationPoint IN ( 'EG.CRM.01'
+                                                , 'CRM.EG.02'
+                                                , 'CRM.EG.03'
+                                                ))
+  , requestBody      JSON     NULL
+  , comment          TEXT     NULL
+  );
+GRANT ALL ON "CaseEraGlonassFailure" TO carma_db_sync;
+GRANT ALL ON "CaseEraGlonassFailure_id_seq" TO carma_db_sync;
+
 COMMIT;

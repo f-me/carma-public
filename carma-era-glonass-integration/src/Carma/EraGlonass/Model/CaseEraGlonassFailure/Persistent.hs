@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses, TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 
-module Carma.EraGlonass.Model.CaseEraGlonassFailures.Persistent where
+module Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent where
 
 import           Data.Typeable
 import           Data.Text (Text)
@@ -11,12 +11,12 @@ import           Data.Aeson
 import           Database.Persist.TH
 import           Database.Persist.Postgresql.JSON ()
 
-import           Carma.EraGlonass.Model.CaseEraGlonassFailures.Types
+import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 
 
--- | @CaseEraGlonassFailures@ persistent model.
+-- | @CaseEraGlonassFailure@ persistent model.
 mkPersist sqlSettings [persistLowerCase|
-CaseEraGlonassFailures sql=CaseEraGlonassFailures
+CaseEraGlonassFailure sql=CaseEraGlonassFailure
   integrationPoint EGIntegrationPoint sql=integrationpoint
   requestBody Value Maybe sql=requestbody
   comment Text Maybe sql=comment
