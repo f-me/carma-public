@@ -18,7 +18,7 @@ import           System.Log.FastLogger (fromLogStr)
 import           Carma.EraGlonass.Logger.LoggerForward
 import           Carma.EraGlonass.Types (AppContext (loggerBus))
 import           Carma.Monad.LoggerBus.Helpers (formatTime)
-import           Carma.Monad.LoggerBus.Types (LogMessage (..))
+import           Carma.Monad.LoggerBus.Types
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.Thread
 import           Carma.Monad.Clock
@@ -32,8 +32,10 @@ instance ( Monad m
          ) => MonadLoggerBus (ReaderT AppContext m)
          where
 
-  logInfo  msg = asks loggerBus >>= lift . flip logInfoImpl  msg
-  logError msg = asks loggerBus >>= lift . flip logErrorImpl msg
+  logDebug msg = asks loggerBus >>= lift . flip (genericLogImpl LogDebug) msg
+  logInfo  msg = asks loggerBus >>= lift . flip (genericLogImpl LogInfo ) msg
+  logWarn  msg = asks loggerBus >>= lift . flip (genericLogImpl LogWarn ) msg
+  logError msg = asks loggerBus >>= lift . flip (genericLogImpl LogError) msg
   readLog      = asks loggerBus >>= lift . readLogImpl
 
 
@@ -45,8 +47,10 @@ instance ( Monad m
          ) => MonadLoggerBus (ReaderT (MVar LogMessage) m)
          where
 
-  logInfo  msg = ask >>= lift . flip logInfoImpl  msg
-  logError msg = ask >>= lift . flip logErrorImpl msg
+  logDebug msg = ask >>= lift . flip (genericLogImpl LogDebug) msg
+  logInfo  msg = ask >>= lift . flip (genericLogImpl LogInfo ) msg
+  logWarn  msg = ask >>= lift . flip (genericLogImpl LogWarn ) msg
+  logError msg = ask >>= lift . flip (genericLogImpl LogError) msg
   readLog      = ask >>= lift . readLogImpl
 
 

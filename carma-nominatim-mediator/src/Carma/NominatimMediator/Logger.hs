@@ -10,6 +10,7 @@ module Carma.NominatimMediator.Logger where
 import           Control.Monad.Reader.Class (MonadReader, asks)
 
 import           Carma.NominatimMediator.Types
+import           Carma.Monad.LoggerBus.Types
 import           Carma.Monad
 
 
@@ -21,6 +22,8 @@ instance ( Monad m
          ) => MonadLoggerBus m
          where
 
-  logInfo  msg = asks loggerBus >>= flip logInfoImpl  msg
-  logError msg = asks loggerBus >>= flip logErrorImpl msg
+  logDebug msg = asks loggerBus >>= flip (genericLogImpl LogDebug) msg
+  logInfo  msg = asks loggerBus >>= flip (genericLogImpl LogInfo ) msg
+  logWarn  msg = asks loggerBus >>= flip (genericLogImpl LogWarn ) msg
+  logError msg = asks loggerBus >>= flip (genericLogImpl LogError) msg
   readLog      = asks loggerBus >>= readLogImpl

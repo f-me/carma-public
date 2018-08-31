@@ -2,8 +2,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 module Carma.Monad.LoggerBus
-     ( logInfoImpl
-     , logErrorImpl
+     ( genericLogImpl
      , readLogImpl
      , module Carma.Monad.LoggerBus.Class
      ) where
@@ -22,30 +21,20 @@ import           Carma.Monad.LoggerBus.Class
 import           Carma.Monad.LoggerBus.Helpers
 
 
--- Generic implementation of `logInfo` from `MonadLoggerBus`
-logInfoImpl
+-- | Generic implementation of log function from @MonadLoggerBus@
+--
+-- Could be used to implement @logDebug@, @logInfo@, @logWarn@ and @logError@.
+genericLogImpl
   :: (MonadMVar m, MonadClock m, MonadThread m)
-  => MVar LogMessage -> T.Text -> m ()
-logInfoImpl loggerBus' msg = do
+  => LogMessageType -> MVar LogMessage -> T.Text -> m ()
+genericLogImpl logMsgType loggerBus' msg = do
   !utc <- getCurrentTime
 
-  void $ fork $ -- Forking for non-blocking writing to MVar
-    putMVar loggerBus' $ LogMessage LogInfo
+  void $ fork $ -- Forking for non-blocking writing to @MVar@
+    putMVar loggerBus' $ LogMessage logMsgType
       [qm| [{formatTime utc} UTC] {msg} |]
 
 
--- Generic implementation of `logError` from `MonadLoggerBus`
-logErrorImpl
-  :: (MonadMVar m, MonadClock m, MonadThread m)
-  => MVar LogMessage -> T.Text -> m ()
-logErrorImpl loggerBus' msg = do
-  !utc <- getCurrentTime
-
-  void $ fork $ -- Forking for non-blocking writing to MVar
-    putMVar loggerBus' $ LogMessage LogError
-      [qm| [{formatTime utc} UTC] {msg} |]
-
-
--- Generic implementation of `readLog` from `MonadLoggerBus`
+-- | Generic implementation of @readLog@ from @MonadLoggerBus@
 readLogImpl :: MonadMVar m => MVar LogMessage -> m LogMessage
 readLogImpl = takeMVar

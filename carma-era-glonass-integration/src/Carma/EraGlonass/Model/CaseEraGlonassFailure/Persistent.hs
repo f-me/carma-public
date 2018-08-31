@@ -1,6 +1,7 @@
 {-# LANGUAGE GADTs, GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses, TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent where
 
@@ -16,7 +17,7 @@ import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 
 -- | @CaseEraGlonassFailure@ persistent model.
 mkPersist sqlSettings [persistLowerCase|
-CaseEraGlonassFailure sql=CaseEraGlonassFailure
+CaseEraGlonassFailure json sql=CaseEraGlonassFailure
   integrationPoint EGIntegrationPoint sql=integrationpoint
   requestBody Value Maybe sql=requestbody
   comment Text Maybe sql=comment

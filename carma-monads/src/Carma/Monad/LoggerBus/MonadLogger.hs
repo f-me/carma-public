@@ -21,5 +21,7 @@ writeLoggerBusEventsToMonadLogger =
 
     LogMessage msgType msg ->
       case msgType of
+           LogDebug -> logDebugN msg
            LogInfo  -> logInfoN  msg
+           LogWarn  -> logWarnN  msg
            LogError -> logErrorN msg

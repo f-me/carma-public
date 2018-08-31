@@ -20,7 +20,7 @@ import           Control.Monad.Error.Class (MonadError, throwError)
 import           Servant
 import           Servant.Swagger (toSwagger)
 
--- import           Database.Persist.Class
+import           Database.Persist.Types
 
 import           Carma.Utils.Operators
 import           Carma.Monad.LoggerBus
@@ -33,10 +33,23 @@ import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
 
 
+type FaliuresAPI
+    =  -- GET /debug/failures/count.json
+       "count.json" :> Get '[JSON] Word
+
+  :<|> -- GET /debug/failures/list.json
+       "list.json" :>
+       QueryParam "limit" Word :>
+       Get '[JSON] [Entity CaseEraGlonassFailure]
+
+
 type ServerAPI
     =  IncomingAPI
-  :<|> -- GET /debug/swagger.json
-       "debug" :> "swagger.json" :> Get '[JSON] Swagger
+  :<|> "debug" :> (    -- GET /debug/swagger.json
+                       "swagger.json" :> Get '[JSON] Swagger
+
+                  :<|> "failures" :> FaliuresAPI
+                  )
 
 -- WARNING! Way to transform monad here is deprecated in newer Servant version.
 --          Read about "hoistServer" from "servant-server" when you will be
@@ -59,7 +72,7 @@ server
      , MonadPersistentSql m
      )
   => ServerT ServerAPI m
-server = egCRM01 :<|> swagger
+server = egCRM01 :<|> (swagger :<|> getFailuresCount :<|> getFailuresList)
 
 
 egCRM01
@@ -71,7 +84,6 @@ egCRM01
   => EGCreateCallCardRequest
   -> m EGCreateCallCardResponse
 
--- TODO store original JSON data somewhere to debug later
 egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
   logError [qmb| {iPoint}: Failed to parse request body, error message: {msg}
                  Saving data of this failure to the database... |]
@@ -109,3 +121,49 @@ egCRM01 EGCreateCallCardRequest {..} = do
 
 swagger :: Applicative m => m Swagger
 swagger = pure $ toSwagger (Proxy :: Proxy IncomingAPI)
+
+
+getFailuresCount
+  :: ( MonadReader AppContext m
+     , MonadLoggerBus m
+     , MonadError ServantErr m
+     , MonadPersistentSql m
+     )
+  => m Word
+
+getFailuresCount = do
+  logDebug [qn| Obtaining EG failures total count... |]
+
+  totalCount <-
+    fromIntegral <$> runSql (count ([] :: [Filter CaseEraGlonassFailure]))
+
+  logDebug [qm| Total EG failures is obtained: {totalCount} |]
+  pure totalCount
+
+
+getFailuresList
+  :: ( MonadReader AppContext m
+     , MonadLoggerBus m
+     , MonadError ServantErr m
+     , MonadPersistentSql m
+     )
+  => Maybe Word
+  -> m [Entity CaseEraGlonassFailure]
+
+getFailuresList Nothing = do
+  logError [qn| Attempt to obtain EG failures list without specified limit! |]
+
+  throwError err400
+    { errBody = [qns| Getting EG failures list
+                      without specified limit isn't allowed! |] }
+
+getFailuresList (Just n) = do
+  logDebug [qm| Obtaining EG failures list limited to last {n} elements... |]
+
+  result <- runSql $
+    selectList [] [ Desc CaseEraGlonassFailureId
+                  , LimitTo $ fromIntegral n
+                  ]
+
+  logDebug [qm| EG failures list is obtained, total elements: {length result} |]
+  pure result

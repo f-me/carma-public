@@ -13,7 +13,12 @@ import           Control.Monad.Logger
 import           System.Log.FastLogger (fromLogStr)
 
 
-data LogMessageType = LogInfo | LogError deriving (Show, Eq)
+data LogMessageType
+   = LogDebug
+   | LogInfo
+   | LogWarn
+   | LogError
+     deriving (Show, Eq)
 
 
 data LogMessage
