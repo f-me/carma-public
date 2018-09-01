@@ -3,6 +3,7 @@
 
 module Carma.Monad.Clock
      ( MonadClock (..)
+     , Clock.UTCTime
      ) where
 
 import qualified Data.Time.Clock as Clock

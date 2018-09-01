@@ -49,6 +49,7 @@ INSERT INTO "Engine"
 -- Creating table for "CaseEraGlonassFailure" model.
 CREATE TABLE "CaseEraGlonassFailure"
   ( id               SERIAL PRIMARY KEY
+  , ctime            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
   , integrationPoint TEXT NOT NULL
                      CHECK (integrationPoint IN ( 'EG.CRM.01'
                                                 , 'CRM.EG.02'

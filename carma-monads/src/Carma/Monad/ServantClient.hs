@@ -3,6 +3,9 @@
 
 module Carma.Monad.ServantClient
      ( MonadServantClient (..)
+     , ServantError
+     , ClientEnv
+     , ClientM
      ) where
 
 import           Control.Monad.IO.Class (MonadIO, liftIO)

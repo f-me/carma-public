@@ -5,6 +5,8 @@
 
 module Carma.Monad.Thread
      ( MonadThread (..)
+     , Lifted.ThreadId
+     , SomeException
      , forkWithWaitBus
      ) where
 

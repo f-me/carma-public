@@ -23,6 +23,7 @@ import           Servant.Swagger (toSwagger)
 import           Database.Persist.Types
 
 import           Carma.Utils.Operators
+import           Carma.Monad.Clock
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.PersistentSql
 import           Carma.EraGlonass.Logger () -- instance
@@ -70,6 +71,7 @@ server
      , MonadLoggerBus m
      , MonadError ServantErr m
      , MonadPersistentSql m
+     , MonadClock m
      )
   => ServerT ServerAPI m
 server = egCRM01 :<|> (swagger :<|> getFailuresCount :<|> getFailuresList)
@@ -80,6 +82,7 @@ egCRM01
      , MonadLoggerBus m
      , MonadError ServantErr m
      , MonadPersistentSql m
+     , MonadClock m
      )
   => EGCreateCallCardRequest
   -> m EGCreateCallCardResponse
@@ -88,9 +91,12 @@ egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
   logError [qmb| {iPoint}: Failed to parse request body, error message: {msg}
                  Saving data of this failure to the database... |]
 
+  time <- getCurrentTime
+
   failureId <- runSql
     $ insert CaseEraGlonassFailure
-    { caseEraGlonassFailureIntegrationPoint = iPoint
+    { caseEraGlonassFailureCtime            = time
+    , caseEraGlonassFailureIntegrationPoint = iPoint
     , caseEraGlonassFailureRequestBody      = Just badReqBody
     , caseEraGlonassFailureComment          = Just [qm| Error message: {msg} |]
     }
