@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Carma.EraGlonass.Persistent where
 
@@ -11,7 +12,10 @@ import           Control.Monad.Trans.Control (MonadBaseControl)
 import qualified Database.Persist.Sql as DB
 
 import           Carma.Monad.PersistentSql
-import           Carma.EraGlonass.Types (AppContext (dbConnectionPool))
+import           Carma.EraGlonass.Types
+                   ( AppContext (dbConnection)
+                   , DBConnection (..)
+                   )
 
 
 instance ( Monad m
@@ -21,7 +25,10 @@ instance ( Monad m
          ) => MonadPersistentSql m
          where
 
-  runSql m = DB.runSqlPool m =<< asks dbConnectionPool
+  runSql m =
+    asks dbConnection >>= \case
+      DBConnection     x -> DB.runSqlConn m x
+      DBConnectionPool x -> DB.runSqlPool m x
 
   -- | TODO Look at Database.Persist.Sql.Run.withResourceTimeout
   runSqlTimeout = error "Not implemented yet"

@@ -58,6 +58,19 @@ instance ( Monad m
          , MonadMVar m
          , MonadClock m
          , MonadThread m
+         ) => MonadLoggerBus (LoggerForward m) where
+
+  logDebug msg = askLoggerForward >>= lift . flip (genericLogImpl LogDebug) msg
+  logInfo  msg = askLoggerForward >>= lift . flip (genericLogImpl LogInfo ) msg
+  logWarn  msg = askLoggerForward >>= lift . flip (genericLogImpl LogWarn ) msg
+  logError msg = askLoggerForward >>= lift . flip (genericLogImpl LogError) msg
+  readLog      = askLoggerForward >>= lift . readLogImpl
+
+
+instance ( Monad m
+         , MonadMVar m
+         , MonadClock m
+         , MonadThread m
          ) => MonadLogger (LoggerForward m) where
 
   monadLoggerLog loc src lvl msg = do

@@ -1,6 +1,8 @@
 
 module Carma.EraGlonass.Types
      ( AppContext (..)
+     , AppMode (..)
+     , DBConnection (..)
      , EGCreateCallCardRequest (..)
      , EGCreateCallCardRequestGis (..)
      , EGCreateCallCardRequestVehicle (..)
@@ -34,9 +36,28 @@ import           Carma.EraGlonass.Types.EGCreateCallCardRequest
 
 data AppContext
    = AppContext
-   { loggerBus :: MVar LogMessage
+   { appMode :: AppMode
+     -- ^ See @AppMode@ description for details.
+     --   This field placed to @AppContext@ for a situation where it have to be
+     --   checked inside some route.
+
+   , loggerBus :: MVar LogMessage
      -- ^ A bus to send log messages to
 
-   , dbConnectionPool :: Pool SqlBackend
-     -- ^ A @Pool@ of connections to PostgreSQL
+   , dbConnection :: DBConnection
+     -- ^ A @Pool@ of connections to PostgreSQL or single connection
    }
+
+
+-- | Application mode that indicates if it's production mode that connects to
+-- PostgreSQL database or it is testing with SQLite in-memory database.
+data AppMode
+   = ProductionAppMode
+   | TestingAppMode
+     deriving (Show, Eq)
+
+
+data DBConnection
+   = DBConnection SqlBackend
+     -- ^ In-memory SQLite database cannot have @Pool@
+   | DBConnectionPool (Pool SqlBackend)

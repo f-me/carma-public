@@ -69,6 +69,14 @@ executables:
     dependencies: [carma-era-glonass-integration]
     ghc-options: [-threaded]
 
+  carma-era-glonass-integration-test-server:
+    source-dirs: app
+    main: TestServer.hs
+    dependencies:
+      - carma-era-glonass-integration
+      - persistent-sqlite
+    ghc-options: [-threaded]
+
 tests:
   # "carma-era-glonass-integration" server must be run to simulate request.
   # It simulates request from Era Glonass' side.

@@ -81,9 +81,9 @@ instance MonadBase b m => MonadBase b (LoggerForward m) where
 instance MonadBaseControl b m => MonadBaseControl b (LoggerForward m) where
   type StM (LoggerForward m) a = ComposeSt LoggerForward m a
   liftBaseWith = defaultLiftBaseWith
-  {-# INLINE liftBaseWith #-}
+  {-# INLINABLE liftBaseWith #-}
   restoreM = defaultRestoreM
-  {-# INLINE restoreM #-}
+  {-# INLINABLE restoreM #-}
 
 instance MonadTransControl LoggerForward where
   type StT LoggerForward a = a
