@@ -7,39 +7,22 @@ module App.Store.DiagTree.Editor.Reducers
 
 import Prelude
 
+import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction(..), LoadSlidesFailureReason(..))
+import App.Store.DiagTree.Editor.TreeSearch.Reducers (DiagTreeEditorTreeSearchState, diagTreeEditorTreeSearchInitialState, diagTreeEditorTreeSearchReducer)
+import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId, DiagTreeSlide(DiagTreeSlide), fromIndexedAnswers)
 import Control.Alt ((<|>))
 import Control.MonadZero (guard)
-
-import Data.Maybe (Maybe (..), fromMaybe, isNothing)
 import Data.Array (snoc, init, length)
+import Data.Foldable (foldl, foldr)
 import Data.Map (Map)
 import Data.Map as Map
+import Data.Maybe (Maybe(..), fromMaybe, isNothing)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Tuple (Tuple (Tuple), fst)
-import Data.String (Pattern (Pattern), toLower, indexOf)
+import Data.String (Pattern(Pattern), toLower, indexOf)
 import Data.String.NonEmpty (toString)
-import Data.Foldable (foldl, foldr)
-
+import Data.Tuple (Tuple(Tuple), fst)
 import Utils.DiagTree.Editor (getSlideByBranch)
-
-import App.Store.DiagTree.Editor.Types
-     ( DiagTreeSlides
-     , DiagTreeSlideId
-     , DiagTreeSlide (DiagTreeSlide)
-     , fromIndexedAnswers
-     )
-
-import App.Store.DiagTree.Editor.Actions
-     ( DiagTreeEditorAction (..)
-     , LoadSlidesFailureReason (..)
-     )
-
-import App.Store.DiagTree.Editor.TreeSearch.Reducers
-     ( DiagTreeEditorTreeSearchState
-     , diagTreeEditorTreeSearchInitialState
-     , diagTreeEditorTreeSearchReducer
-     )
 
 
 type FoundSlides =
@@ -77,6 +60,24 @@ type DiagTreeEditorState =
          , branch       :: Maybe (Array DiagTreeSlideId)
          }
 
+  , slideCoping
+      :: { isProcessing :: Boolean
+         , isFailed     :: Boolean
+         , branch       :: Maybe (Array DiagTreeSlideId)
+         }
+
+  , slideCutting
+      :: { isProcessing :: Boolean
+         , isFailed     :: Boolean
+         , branch       :: Maybe (Array DiagTreeSlideId)
+         }
+
+  , slidePasting
+      :: { isProcessing :: Boolean
+         , isFailed     :: Boolean
+         , branch       :: Maybe (Array DiagTreeSlideId)
+         }
+
   , newSlide
       :: { isProcessing :: Boolean
          , isFailed     :: Boolean
@@ -103,6 +104,24 @@ diagTreeEditorInitialState =
   , treeSearch                : diagTreeEditorTreeSearchInitialState
 
   , slideDeleting:
+      { isProcessing : false
+      , isFailed     : false
+      , branch       : Nothing
+      }
+
+  , slideCoping:
+      { isProcessing : false
+      , isFailed     : false
+      , branch       : Nothing
+      }
+
+  , slideCutting:
+      { isProcessing : false
+      , isFailed     : false
+      , branch       : Nothing
+      }
+
+  , slidePasting:
       { isProcessing : false
       , isFailed     : false
       , branch       : Nothing
@@ -199,6 +218,98 @@ diagTreeEditorReducer state (DeleteSlideFailure slidePath) = do
                  }
              }
 
+diagTreeEditorReducer _ (CopySlideRequest []) = Nothing
+
+diagTreeEditorReducer state (CopySlideRequest slidePath) = do
+  guard $ not $ isAnyProcessing state
+
+  Just state { slideCoping
+                 { isProcessing = true
+                 , isFailed     = false
+                 , branch       = Just slidePath
+                 }
+             }
+
+diagTreeEditorReducer state (CopySlideSuccess slidePath) = do
+  guard =<< map (_ == slidePath) state.slideCoping.branch
+
+  Just state { slideCoping
+                 { isProcessing = false
+                 , isFailed     = false
+                 , branch       = Nothing
+                 }
+             }
+
+diagTreeEditorReducer state (CopySlideFailure slidePath) = do
+  guard =<< map (_ == slidePath) state.slideCoping.branch
+
+  Just state { slideCoping
+                 { isProcessing = false
+                 , isFailed     = true
+                 }
+             }
+
+diagTreeEditorReducer _ (CutSlideRequest []) = Nothing
+
+diagTreeEditorReducer state (CutSlideRequest slidePath) = do
+  guard $ not $ isAnyProcessing state
+
+  Just state { slideCutting
+                 { isProcessing = true
+                 , isFailed     = false
+                 , branch       = Just slidePath
+                 }
+             }
+
+diagTreeEditorReducer state (CutSlideSuccess slidePath) = do
+  guard =<< map (_ == slidePath) state.slideCutting.branch
+
+  Just state { slideCutting
+                 { isProcessing = false
+                 , isFailed     = false
+                 , branch       = Nothing
+                 }
+             }
+
+diagTreeEditorReducer state (CutSlideFailure slidePath) = do
+  guard =<< map (_ == slidePath) state.slideCutting.branch
+
+  Just state { slideCutting
+                 { isProcessing = false
+                 , isFailed     = true
+                 }
+             }
+
+diagTreeEditorReducer _ (PasteSlideRequest []) = Nothing
+
+diagTreeEditorReducer state (PasteSlideRequest slidePath) = do
+  guard $ not $ isAnyProcessing state
+
+  Just state { slidePasting
+                 { isProcessing = true
+                 , isFailed     = false
+                 , branch       = Just slidePath
+                 }
+             }
+
+diagTreeEditorReducer state (PasteSlideSuccess slidePath) = do
+  guard =<< map (_ == slidePath) state.slideCutting.branch
+
+  Just state { slidePasting
+                 { isProcessing = false
+                 , isFailed     = false
+                 , branch       = Nothing
+                 }
+             }
+
+diagTreeEditorReducer state (PasteSlideFailure slidePath) = do
+  guard =<< map (_ == slidePath) state.slideCutting.branch
+
+  Just state { slidePasting
+                 { isProcessing = false
+                 , isFailed     = true
+                 }
+             }
 
 diagTreeEditorReducer state NewSlideRequest = do
   guard $ not $ isAnyProcessing state

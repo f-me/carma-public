@@ -3,7 +3,6 @@ module Component.DiagTree.Editor.Tree.Item
      ) where
 
 import Prelude hiding (div)
-import Control.Monad.Eff.Console (log)
 
 import Control.Lazy (fix)
 
@@ -52,6 +51,9 @@ type Props =
 
   , select       :: EventHandler (Array DiagTreeSlideId)
   , delete       :: EventHandler (Array DiagTreeSlideId)
+  , copy         :: EventHandler (Array DiagTreeSlideId)
+  , cut          :: EventHandler (Array DiagTreeSlideId)
+  , paste        :: EventHandler (Array DiagTreeSlideId)
 
   , answerHeader :: Maybe String
   , parents      :: Array DiagTreeSlideId
@@ -61,7 +63,7 @@ type Props =
 
 diagTreeEditorTreeItemRender :: ReactClass Props
 diagTreeEditorTreeItemRender = f $
-  \props@{ selectedSlide, unfoldedSlides, search, select, delete } ->
+  \props@{ selectedSlide, unfoldedSlides, search, select, delete, copy, cut, paste } ->
   (\r -> r props.answerHeader props.parents props.slide) $ -- first level call
   fix $ \again answerHeader parents (DiagTreeSlide slide) ->
 
@@ -116,17 +118,17 @@ diagTreeEditorTreeItemRender = f $
     onCopyClick event = do
       preventDefault event
       stopPropagation event
-      log "Copy"
+      callEventHandler copy slideBranch
 
     onCutClick event = do
       preventDefault event
       stopPropagation event
-      log "Cut"
+      callEventHandler cut slideBranch
 
     onPasteClick event = do
       preventDefault event
       stopPropagation event
-      log "Paste"
+      callEventHandler paste slideBranch
 
   in
     renderIn (R.div [className wClass, key $ show slide.id]) $ do

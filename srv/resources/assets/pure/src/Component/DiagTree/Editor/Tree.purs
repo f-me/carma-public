@@ -4,57 +4,36 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import Data.Tuple (Tuple (Tuple))
-import Data.Maybe (Maybe (..), isJust, fromMaybe, maybe)
-import Data.Record.Builder (merge, build)
-import Data.String.NonEmpty (toString)
-import Data.Array ((!!), index, last, head, take, init, length)
-import Data.Foldable (foldr)
-import Data.Map (Map)
-import Data.Map as Map
-import Data.Set (Set)
-import Data.Set as Set
-
+import App.Store (AppContext, dispatch)
+import App.Store.Actions (AppAction(..))
+import App.Store.DiagTree.Actions (DiagTreeAction(Editor))
+import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction(..))
+import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId, DiagTreeSlide(DiagTreeSlide), fromIndexedAnswers)
+import Component.DiagTree.Editor.Tree.Item (diagTreeEditorTreeItem)
 import Control.Monad.Aff (launchAff_)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.MonadZero (guard)
-
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
-
+import Data.Array ((!!), index, last, head, take, init, length)
+import Data.Foldable (foldr)
+import Data.Map (Map)
+import Data.Map as Map
+import Data.Maybe (Maybe(..), isJust, fromMaybe, maybe)
+import Data.Record.Builder (merge, build)
+import Data.Set (Set)
+import Data.Set as Set
+import Data.String.NonEmpty (toString)
+import Data.Tuple (Tuple(Tuple))
+import React (ReactClass, getProps, readState, transformState, createClass, spec', preventDefault, createElement, handle)
 import React.DOM (div) as R
 import React.DOM.Props (className, onClick, onChange, _type, checked)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
 import React.Spaces.DOM (div, button, i, label, input)
 import React.Spaces.DOM.Dynamic (div) as SDyn
-
-import React
-     ( ReactClass
-     , getProps, readState, transformState, createClass, spec'
-     , preventDefault
-     , createElement
-     , handle
-     )
-
 import Utils ((<.>), storeConnect, eventIsChecked, toMaybeT)
 import Utils.DiagTree.Editor (getSlideByBranch)
-import App.Store (AppContext, dispatch)
-import App.Store.Actions (AppAction (DiagTree))
-import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
-
-import App.Store.DiagTree.Editor.Actions
-     ( DiagTreeEditorAction (SelectSlide, DeleteSlideRequest)
-     )
-
-import App.Store.DiagTree.Editor.Types
-     ( DiagTreeSlides
-     , DiagTreeSlideId
-     , DiagTreeSlide (DiagTreeSlide)
-     , fromIndexedAnswers
-     )
-
-import Component.DiagTree.Editor.Tree.Item (diagTreeEditorTreeItem)
 
 
 -- If selected slides has more parents they will be hidden.
@@ -87,7 +66,7 @@ diagTreeEditorTreeRender
 
 diagTreeEditorTreeRender = createClass $ spec $
   \ { appContext, slides, selectedSlideBranch, search }
-    { selectSlide, deleteSlide, unfoldedSlides
+    { selectSlide, deleteSlide, copySlide, cutSlide, pasteSlide, unfoldedSlides
     , shiftedSlidesMenu, dontShiftLevels, changeDontShiftLevels
     } -> do
 
@@ -116,6 +95,9 @@ diagTreeEditorTreeRender = createClass $ spec $
             { appContext
             , selectedSlide: selectedSlideBranch, unfoldedSlides, search
             , select: selectSlide, delete: deleteSlide
+            , copy: copySlide
+            , cut: cutSlide
+            , paste: pasteSlide
             }
 
           Tuple slidesList itemPropsBuilder =
@@ -193,6 +175,21 @@ diagTreeEditorTreeRender = createClass $ spec $
          then pure unit
          else launchAff_ $ dispatch appContext $
                 DiagTree $ Editor $ DeleteSlideRequest slideBranch
+
+    copySlideHandler appContext this slideBranch = do
+      getSlide <- getProps this <#> _.slides <#> getSlideByBranch
+      launchAff_ $ dispatch appContext $
+        DiagTree $ Editor $ CopySlideRequest slideBranch
+
+    cutSlideHandler appContext this slideBranch = do
+      getSlide <- getProps this <#> _.slides <#> getSlideByBranch
+      launchAff_ $ dispatch appContext $
+        DiagTree $ Editor $ CutSlideRequest slideBranch
+
+    pasteSlideHandler appContext this slideBranch = do
+      getSlide <- getProps this <#> _.slides <#> getSlideByBranch
+      launchAff_ $ dispatch appContext $
+        DiagTree $ Editor $ PasteSlideRequest slideBranch
 
     toggleSlideFoldHandler this slideId =
       transformState this $ \s@{ unfoldedSlides } ->
@@ -275,6 +272,9 @@ diagTreeEditorTreeRender = createClass $ spec $
       pure { selectSlide
            , unfoldedSlides
            , deleteSlide       : handle $ deleteSlideHandler appContext this
+           , copySlide         : handle $ copySlideHandler appContext this
+           , cutSlide          : handle $ cutSlideHandler appContext this
+           , pasteSlide        : handle $ pasteSlideHandler appContext this
            , shiftedSlidesMenu : shiftedSlidesMenuFn selectRoot selectOneLevelUp
            , dontShiftLevels   : false
            , changeDontShiftLevels

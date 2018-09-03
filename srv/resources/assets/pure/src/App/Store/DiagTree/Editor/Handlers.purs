@@ -4,22 +4,22 @@ module App.Store.DiagTree.Editor.Handlers
 
 import Prelude
 
+import App.Store (AppContext)
+import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction(..))
+import App.Store.DiagTree.Editor.Handlers.CopySlide (copySlide)
+import App.Store.DiagTree.Editor.Handlers.CutSlide (cutSlide)
+import App.Store.DiagTree.Editor.Handlers.PasteSlide (pasteSlide)
+import App.Store.DiagTree.Editor.Handlers.DeleteSlide (deleteSlide)
+import App.Store.DiagTree.Editor.Handlers.LoadSlides (loadSlides)
+import App.Store.DiagTree.Editor.Handlers.NewSlide (newSlide)
+import App.Store.DiagTree.Editor.Handlers.SaveSlide (saveSlide)
+import App.Store.DiagTree.Editor.Reducers (DiagTreeEditorState)
 import Control.Monad.Aff (Aff)
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff.Console (CONSOLE)
-
 import Data.JSDate (LOCALE)
 import Data.Maybe (Maybe, fromMaybe)
-
 import Network.HTTP.Affjax (AJAX)
-
-import App.Store (AppContext)
-import App.Store.DiagTree.Editor.Reducers (DiagTreeEditorState)
-import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction (..))
-import App.Store.DiagTree.Editor.Handlers.NewSlide (newSlide)
-import App.Store.DiagTree.Editor.Handlers.LoadSlides (loadSlides)
-import App.Store.DiagTree.Editor.Handlers.DeleteSlide (deleteSlide)
-import App.Store.DiagTree.Editor.Handlers.SaveSlide (saveSlide)
 
 
 diagTreeEditorHandler
@@ -53,6 +53,24 @@ diagTreeEditorHandler appCtx prevState nextState action = case action of
        else let state = fromMaybe prevState nextState
              in deleteSlide appCtx state.slides slidePath
 
+  CopySlideRequest slidePath ->
+    if isProcessing
+       then ignore
+       else let state = fromMaybe prevState nextState
+            in copySlide appCtx state.slides slidePath
+
+  CutSlideRequest slidePath ->
+    if isProcessing
+       then ignore
+       else let state = fromMaybe prevState nextState
+            in cutSlide appCtx state.slides slidePath
+
+  PasteSlideRequest slidePath ->
+    if isProcessing
+       then ignore
+       else let state = fromMaybe prevState nextState
+            in pasteSlide appCtx state.slides slidePath
+
   SaveSlideRequest slidePath { slide, newAnswers } ->
     if isProcessing
        then ignore
@@ -67,4 +85,7 @@ diagTreeEditorHandler appCtx prevState nextState action = case action of
        = prevState.isSlidesLoading
       || prevState.newSlide.isProcessing
       || prevState.slideDeleting.isProcessing
+      || prevState.slideCoping.isProcessing
+      || prevState.slideCutting.isProcessing
+      || prevState.slidePasting.isProcessing
       || prevState.slideSaving.isProcessing
