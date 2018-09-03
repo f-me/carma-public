@@ -54,7 +54,7 @@ jobs:
           name: Run tests
           command: |
             # TODO automatically run "backend-configs" as dependency task
-            tools/builder.sh -b --ci --production backend-configs backend-test
+            tools/builder.sh -b --ci --production backend-test
       - save_cache:
           key: stack-cache-{{ checksum "stack.yaml" }}
           paths:

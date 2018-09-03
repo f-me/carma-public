@@ -728,6 +728,13 @@ backend_configs_task() {
         || fail_trap "$task_name" \
         || return -- "$?"
 
+    # Era Glonass Integration config
+    config_copy "$task_name" 'Era Glonass Integration' \
+        'carma-era-glonass-integration/app.cfg.default' \
+        'carma-era-glonass-integration/app.cfg' \
+        || fail_trap "$task_name" \
+        || return -- "$?"
+
     # Config for CaRMa tools
     config_copy "$task_name" 'Tools' \
         'tools/carma-tools.cfg.yaml.example' \
