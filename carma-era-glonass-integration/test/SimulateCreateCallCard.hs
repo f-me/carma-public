@@ -9,9 +9,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 
--- TODO run this test from the Circle-CI container,
---      i think we need to mock database stuff for that.
-
 module Main (main) where
 
 import           Test.Hspec
@@ -21,6 +18,16 @@ import           Data.Either (isRight)
 import           Text.InterpolatedString.QM
 import qualified Data.Configurator as Conf
 import           Data.Aeson
+import qualified Data.Attoparsec.Text as ParsecText
+import           Data.String (IsString (fromString))
+import qualified Data.Text as Text
+import qualified Data.Text.IO as Text
+
+import           Control.Monad
+import           Control.Concurrent
+
+import           System.Process
+import           System.IO
 
 import qualified Network.Wai.Handler.Warp as Warp
 import           Network.HTTP.Client (newManager)
@@ -31,6 +38,7 @@ import           Servant
 import           Servant.Client
 
 import           Carma.Utils.Operators
+import           Carma.EraGlonass.Test.Helpers
 import           Carma.EraGlonass.Test.Types.EGCreateCallCardRequest (testData)
 
 
@@ -50,26 +58,73 @@ main = hspec $
   describe "EG.CRM.01" egCRM01
 
 
+withTestingServer :: Expectation -> Expectation
+withTestingServer runTest = do
+  (Nothing, Just hOut, Just hErr, hProc) <- createProcess serverCmd
+  errLogMVar <- newEmptyMVar
+
+  _ <-
+    let
+      f :: Text.Text -> IO ()
+      f accumulator = do
+        isReadable <- (&&) <$> (not <$> hIsEOF hErr) <*> hIsReadable hErr
+        if not isReadable
+           then putMVar errLogMVar accumulator
+           else Text.hGetLine hErr >>= \x -> f [qm| {accumulator}  {x}\n |]
+    in
+      forkIO $ f mempty
+
+  let readLog :: IO ()
+      readLog = do
+        getProcessExitCode hProc >>= \case
+          Nothing -> pure ()
+          Just x  -> do errLog <- takeMVar errLogMVar
+                        fail [qmb| Testing server is failed with exit code: {x}!
+                                   Error log:\n{errLog} |]
+
+        isReadable <- (&&) <$> (not <$> hIsEOF hOut) <*> hIsReadable hOut
+        if not isReadable
+           then readLog -- ^ Recursive repeat to catch unexpected termination
+           else ParsecText.parseOnly substr . fromString <$> hGetLine hOut
+                  >>= \case Left  _ -> readLog -- ^ Recursive repeat
+                            Right _ -> pure () -- ^ Server is ready
+
+  readLog
+  runTest
+  void $ terminateProcess hProc >> waitForProcess hProc
+
+  where
+    substr = findSubstring "Running incoming server on"
+
+    serverCmd =
+      (proc "stack" ["exec", "carma-era-glonass-integration-test-server"])
+        { std_in  = Inherit
+        , std_out = CreatePipe
+        , std_err = CreatePipe
+        }
+
+
 egCRM01 :: Spec
 egCRM01 =
-  describe [qns| Simulating creating Call Card by Era Glonass
-                 ("carma-era-glonass-integration" server must be run) |] $ do
+  describe [qns| Simulating creating Call Card by Era Glonass |] $ do
 
     let !testData' = either error id testData
 
-    it [qms| Usual successful creating EG Call Card |] $ do
-      result <- getRequestMaker >>= \f -> f testData'
-      result `shouldSatisfy` isRight
+    it [qms| Usual successful creating EG Call Card |] $
+      withTestingServer $ do
+        result <- getRequestMaker >>= \f -> f testData'
+        result `shouldSatisfy` isRight
 
-    it [qms| Incorrect request body |] $ do
-      requestMaker <- getRequestMaker
-      requestMaker Null >>= flip shouldSatisfy (statusCodePredicate 400)
-      requestMaker (String "foo")
-        >>= flip shouldSatisfy (statusCodePredicate 400)
-      requestMaker (Object [("foo", String "bar")])
-        >>= flip shouldSatisfy (statusCodePredicate 400)
-      requestMaker (Array [testData'])
-        >>= flip shouldSatisfy (statusCodePredicate 400)
+    it [qms| Incorrect request body |] $
+      withTestingServer $ do
+        requestMaker <- getRequestMaker
+        requestMaker Null >>= flip shouldSatisfy (statusCodePredicate 400)
+        requestMaker (String "foo")
+          >>= flip shouldSatisfy (statusCodePredicate 400)
+        requestMaker (Object [("foo", String "bar")])
+          >>= flip shouldSatisfy (statusCodePredicate 400)
+        requestMaker (Array [testData'])
+          >>= flip shouldSatisfy (statusCodePredicate 400)
 
     -- TODO implement and test response of the EG.CRM.01 request
     -- TODO check if it's saved to a database (CaRMa "Case" is created)

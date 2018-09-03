@@ -12,6 +12,8 @@ import           Text.InterpolatedString.QM
 import           Control.Monad.Reader
 import           Control.Monad.Trans.Class (lift)
 
+import           System.IO
+
 import           Database.Persist.Sqlite
 
 import           Carma.Monad.LoggerBus
@@ -24,21 +26,26 @@ import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
 
 
 main :: IO ()
-main = app TestingAppMode $ \_ runServer -> do
-  logInfo [qms| Creating in-memory SQLite database... |]
-  loggerBus' <- ask
+main = do
+  -- Needed for reading output in tests
+  hSetBuffering stdout NoBuffering
+  hSetBuffering stderr NoBuffering
 
-  flip runLoggerForward loggerBus' $
-    withSqliteConn ":memory:" $ \sqliteConnection -> do
+  app TestingAppMode $ \_ runServer -> do
+    logInfo [qms| Creating in-memory SQLite database... |]
+    loggerBus' <- ask
 
-      let migrateModel (trep, migration) = do
-            logDebug [qm| Applying migration for "{trep}" model... |]
-            runMigration migration `runReaderT` sqliteConnection
+    flip runLoggerForward loggerBus' $
+      withSqliteConn ":memory:" $ \sqliteConnection -> do
 
-      mapM_ migrateModel
-        [ ( typeRep (Proxy :: Proxy CaseEraGlonassFailure)
-          , CaseEraGlonassFailure.migrateAll
-          )
-        ]
+        let migrateModel (trep, migration) = do
+              logDebug [qm| Applying migration for "{trep}" model... |]
+              runMigration migration `runReaderT` sqliteConnection
 
-      lift $ runServer $ DBConnection sqliteConnection
+        mapM_ migrateModel
+          [ ( typeRep (Proxy :: Proxy CaseEraGlonassFailure)
+            , CaseEraGlonassFailure.migrateAll
+            )
+          ]
+
+        lift $ runServer $ DBConnection sqliteConnection

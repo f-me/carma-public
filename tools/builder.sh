@@ -807,6 +807,31 @@ backend_task() {
     task_resolve "$task_name" "$rv"
 }
 
+# "backend-test-era-glonass-integration" task
+backend_test_era_glonass_integration_task__covered_by=(test backend-test)
+backend_test_era_glonass_integration_task() {
+    local task_name='backend-test-era-glonass-integration'
+    task_log "$task_name" run
+
+    local test_tasks=(
+        :carma-era-glonass-integration-types
+        :carma-era-glonass-integration-simulate-create-call-card
+    )
+    local app_name="stack test ${test_tasks[*]}"
+    task_log "$task_name" step "$app_name"
+    local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
+    app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+    app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+    $app_name \
+        1>"$lout" 2>"$lerr" \
+        || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+        || return -- "$?"
+    for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+    rm -- "$lout" "$lerr"
+
+    task_log "$task_name" done
+}
+
 # "backend-test-configurator" task
 backend_test_configurator_task__covered_by=(test backend-test)
 # TODO handle auto build before test

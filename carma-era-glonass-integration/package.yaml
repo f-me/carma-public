@@ -86,6 +86,7 @@ tests:
     dependencies:
       - carma-era-glonass-integration
       - hspec
+      - process
 
   carma-era-glonass-integration-types:
     source-dirs: test
