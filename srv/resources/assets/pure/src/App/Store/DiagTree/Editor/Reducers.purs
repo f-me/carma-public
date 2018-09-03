@@ -7,9 +7,21 @@ module App.Store.DiagTree.Editor.Reducers
 
 import Prelude
 
-import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction(..), LoadSlidesFailureReason(..))
-import App.Store.DiagTree.Editor.TreeSearch.Reducers (DiagTreeEditorTreeSearchState, diagTreeEditorTreeSearchInitialState, diagTreeEditorTreeSearchReducer)
-import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId, DiagTreeSlide(DiagTreeSlide), fromIndexedAnswers)
+import App.Store.DiagTree.Editor.Actions
+  ( DiagTreeEditorAction (..)
+  , LoadSlidesFailureReason (..)
+  )
+import App.Store.DiagTree.Editor.TreeSearch.Reducers
+  ( DiagTreeEditorTreeSearchState
+  , diagTreeEditorTreeSearchInitialState
+  , diagTreeEditorTreeSearchReducer
+  )
+import App.Store.DiagTree.Editor.Types
+  ( DiagTreeSlides
+  , DiagTreeSlideId
+  , DiagTreeSlide (DiagTreeSlide)
+  , fromIndexedAnswers
+  )
 import Control.Alt ((<|>))
 import Control.MonadZero (guard)
 import Data.Array (snoc, init, length)
@@ -60,7 +72,7 @@ type DiagTreeEditorState =
          , branch       :: Maybe (Array DiagTreeSlideId)
          }
 
-  , slideCoping
+  , slideCopying
       :: { isProcessing :: Boolean
          , isFailed     :: Boolean
          , branch       :: Maybe (Array DiagTreeSlideId)
@@ -109,7 +121,7 @@ diagTreeEditorInitialState =
       , branch       : Nothing
       }
 
-  , slideCoping:
+  , slideCopying:
       { isProcessing : false
       , isFailed     : false
       , branch       : Nothing
@@ -223,17 +235,17 @@ diagTreeEditorReducer _ (CopySlideRequest []) = Nothing
 diagTreeEditorReducer state (CopySlideRequest slidePath) = do
   guard $ not $ isAnyProcessing state
 
-  Just state { slideCoping
-                 { isProcessing = true
+  Just state { slideCopying
+                 { isProcessing = false
                  , isFailed     = false
                  , branch       = Just slidePath
                  }
              }
 
 diagTreeEditorReducer state (CopySlideSuccess slidePath) = do
-  guard =<< map (_ == slidePath) state.slideCoping.branch
+  guard =<< map (_ == slidePath) state.slideCopying.branch
 
-  Just state { slideCoping
+  Just state { slideCopying
                  { isProcessing = false
                  , isFailed     = false
                  , branch       = Nothing
@@ -241,9 +253,9 @@ diagTreeEditorReducer state (CopySlideSuccess slidePath) = do
              }
 
 diagTreeEditorReducer state (CopySlideFailure slidePath) = do
-  guard =<< map (_ == slidePath) state.slideCoping.branch
+  guard =<< map (_ == slidePath) state.slideCopying.branch
 
-  Just state { slideCoping
+  Just state { slideCopying
                  { isProcessing = false
                  , isFailed     = true
                  }

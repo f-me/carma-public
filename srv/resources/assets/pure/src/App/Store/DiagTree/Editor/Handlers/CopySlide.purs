@@ -42,7 +42,7 @@ copySlide appCtx slides slidePath = flip catchError handleError $ do
     act = sendAction appCtx
 
     reportErr err = errLog $
-      "Coping slide (" <> show slidePath <> ") failed: " <> message err
+      "Copyng slide (" <> show slidePath <> ") failed: " <> message err
       # \x -> maybe x (\y -> x <> "\nStacktrace:\n" <> y) (stack err)
 
     handleError err = do

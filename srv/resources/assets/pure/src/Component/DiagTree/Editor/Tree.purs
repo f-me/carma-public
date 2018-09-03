@@ -8,7 +8,12 @@ import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction(..))
 import App.Store.DiagTree.Actions (DiagTreeAction(Editor))
 import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction(..))
-import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId, DiagTreeSlide(DiagTreeSlide), fromIndexedAnswers)
+import App.Store.DiagTree.Editor.Types
+  ( DiagTreeSlides
+  , DiagTreeSlideId
+  , DiagTreeSlide (DiagTreeSlide)
+  , fromIndexedAnswers
+  )
 import Component.DiagTree.Editor.Tree.Item (diagTreeEditorTreeItem)
 import Control.Monad.Aff (launchAff_)
 import Control.Monad.Eff.Class (liftEff)

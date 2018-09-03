@@ -5,7 +5,7 @@ module App.Store.DiagTree.Editor.Handlers
 import Prelude
 
 import App.Store (AppContext)
-import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction(..))
+import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction (..))
 import App.Store.DiagTree.Editor.Handlers.CopySlide (copySlide)
 import App.Store.DiagTree.Editor.Handlers.CutSlide (cutSlide)
 import App.Store.DiagTree.Editor.Handlers.PasteSlide (pasteSlide)
@@ -85,7 +85,7 @@ diagTreeEditorHandler appCtx prevState nextState action = case action of
        = prevState.isSlidesLoading
       || prevState.newSlide.isProcessing
       || prevState.slideDeleting.isProcessing
-      || prevState.slideCoping.isProcessing
+      || prevState.slideCopying.isProcessing
       || prevState.slideCutting.isProcessing
       || prevState.slidePasting.isProcessing
       || prevState.slideSaving.isProcessing
