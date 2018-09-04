@@ -22,8 +22,11 @@ import qualified Data.Attoparsec.Text as ParsecText
 import           Data.String (IsString (fromString))
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
+import qualified Data.HashMap.Lazy as HM
+import           Data.Foldable (toList)
 
 import           Control.Monad
+import           Control.Monad.Catch
 import           Control.Concurrent
 
 import           System.Process
@@ -40,6 +43,7 @@ import           Servant.Client
 import           Carma.Utils.Operators
 import           Carma.EraGlonass.Test.Helpers
 import           Carma.EraGlonass.Test.Types.EGCreateCallCardRequest (testData)
+import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 
 
 type ServerAPI
@@ -52,14 +56,32 @@ type ServerAPI
        "calls" :> "status" :> ReqBody '[JSON] Value
                            :> Post    '[JSON] Value
 
+  :<|> "debug"
+       :> "failures"
+       :> (
+               -- GET /debug/failures/count.json
+               "count.json" :> Get '[JSON] Word
+
+          :<|> -- GET /debug/failures/list.json?limit=10
+               "list.json" :> QueryParam "limit" Word :> Get '[JSON] Value
+          )
+
 
 main :: IO ()
-main = hspec $
-  describe "EG.CRM.01" egCRM01
+main = do
+  serverLock <- newMVar ()
+
+  hspec $
+    describe "EG.CRM.01" $ egCRM01 serverLock
 
 
-withTestingServer :: Expectation -> Expectation
-withTestingServer runTest = do
+-- | Wrapper that starts testing HTTP server in background.
+--
+-- It terminates it (testing HTTP server) when wrapped monad is done.
+-- Testing server using new clean SQLite in-memory database.
+withTestingServer :: MVar () -> Expectation -> Expectation
+withTestingServer locker runTest = do
+  () <- takeMVar locker
   (Nothing, Just hOut, Just hErr, hProc) <- createProcess serverCmd
   errLogMVar <- newEmptyMVar
 
@@ -90,8 +112,10 @@ withTestingServer runTest = do
                             Right _ -> pure () -- ^ Server is ready
 
   readLog
-  runTest
-  void $ terminateProcess hProc >> waitForProcess hProc
+
+  finally runTest $ do
+    _ <- terminateProcess hProc >> waitForProcess hProc
+    putMVar locker ()
 
   where
     substr = findSubstring "Running incoming server on"
@@ -104,27 +128,82 @@ withTestingServer runTest = do
         }
 
 
-egCRM01 :: Spec
-egCRM01 =
-  describe [qns| Simulating creating Call Card by Era Glonass |] $ do
+egCRM01 :: MVar () -> Spec
+egCRM01 serverLock =
+  describe "Simulating creating Call Card by Era Glonass" $ do
 
     let !testData' = either error id testData
 
-    it [qms| Usual successful creating EG Call Card |] $
-      withTestingServer $ do
-        result <- getRequestMaker >>= \f -> f testData'
+    it "Usual successful creating EG Call Card" $
+      withTestingServer serverLock $ do
+        result <- getRequestMaker >>= \f -> f $ createCallCard testData'
         result `shouldSatisfy` isRight
 
-    it [qms| Incorrect request body |] $
-      withTestingServer $ do
-        requestMaker <- getRequestMaker
-        requestMaker Null >>= flip shouldSatisfy (statusCodePredicate 400)
-        requestMaker (String "foo")
-          >>= flip shouldSatisfy (statusCodePredicate 400)
-        requestMaker (Object [("foo", String "bar")])
-          >>= flip shouldSatisfy (statusCodePredicate 400)
-        requestMaker (Array [testData'])
-          >>= flip shouldSatisfy (statusCodePredicate 400)
+    describe "Incorrect request body" $ do
+
+      let jsonA = Null
+          jsonB = String "foo"
+          jsonC = Object [("foo", String "bar")]
+          jsonD = Array [testData']
+
+      let checkFailures = do
+            requestMaker <- getRequestMaker <&> \f x -> f $ createCallCard x
+            requestMaker jsonA >>= flip shouldSatisfy (statusCodePredicate 400)
+            requestMaker jsonB >>= flip shouldSatisfy (statusCodePredicate 400)
+            requestMaker jsonC >>= flip shouldSatisfy (statusCodePredicate 400)
+            requestMaker jsonD >>= flip shouldSatisfy (statusCodePredicate 400)
+
+      it "Incorrect request body" $
+        withTestingServer serverLock checkFailures
+
+      describe "Incorrect requests failures are stored in the database" $ do
+        it "Count of stored failures is correct" $
+          withTestingServer serverLock $ do
+            checkFailures
+            requestMaker <- getRequestMaker <&> \f -> f getFailuresCount
+            requestMaker >>= flip shouldBe (Right 4)
+
+        it "Stored correct failures data" $
+          withTestingServer serverLock $ do
+            checkFailures
+            requestMaker <-
+              getRequestMaker <&> \f x -> f $ getFailuresList $ Just x
+            jsonListResult <- requestMaker 10
+
+            jsonList <-
+              case jsonListResult of
+                   Left err -> throwM err
+                   Right x  -> pure x
+
+            let list :: Either String [Object]
+                list = do
+                  extractedList <-
+                    case jsonList of
+                      Array x -> Right $ toList x
+                      _       -> Left "Root value is not an Array"
+
+                  let f _ x@(Left _) = x
+                      f [] x@(Right _) = x
+                      f (Object x : xs) (Right acc) = f xs $ Right $ x : acc
+                      f _ _ = Left "Element value of an Array is not an Object"
+
+                  f extractedList (Right [])
+
+            fmap length list `shouldBe` Right 4
+
+            zippedList <-
+              case list of
+                   Left msg -> fail msg
+                   Right x  -> pure $ zip [jsonA, jsonB, jsonC, jsonD] x
+
+            length zippedList `shouldBe` 4
+
+            forM_ zippedList $ \(reference, failure) -> do
+
+              HM.lookup "integrationPoint" failure
+                `shouldBe` Just (String [qm|{EgCrm01}|])
+
+              HM.lookup "requestBody" failure `shouldBe` Just reference
 
     -- TODO implement and test response of the EG.CRM.01 request
     -- TODO check if it's saved to a database (CaRMa "Case" is created)
@@ -134,10 +213,10 @@ egCRM01 =
     --      different.
 
   where
-    getRequestMaker :: IO (Value -> IO (Either ServantError Value))
+    -- | Produces @ClientEnv@ and returns requester monad.
+    getRequestMaker :: forall a. IO (ClientM a -> IO (Either ServantError a))
     getRequestMaker =
-      getClientEnv <&!> \clientEnv reqBody ->
-        runClientM (createCallCard reqBody) clientEnv
+      getClientEnv <&!> \clientEnv req -> runClientM req clientEnv
 
 
 statusCodePredicate :: Int -> Either ServantError a -> Bool
@@ -147,8 +226,11 @@ statusCodePredicate code = \case
   _ -> False
 
 
-createCallCard :: Value -> ClientM Value
-createCallCard = client (Proxy :: Proxy ServerAPI)
+createCallCard   :: Value -> ClientM Value
+getFailuresCount :: ClientM Word
+getFailuresList  :: Maybe Word -> ClientM Value
+(createCallCard :<|> (getFailuresCount :<|> getFailuresList))
+  = client (Proxy :: Proxy ServerAPI)
 
 
 getClientEnv :: IO ClientEnv

@@ -38,7 +38,7 @@ type FaliuresAPI
     =  -- GET /debug/failures/count.json
        "count.json" :> Get '[JSON] Word
 
-  :<|> -- GET /debug/failures/list.json
+  :<|> -- GET /debug/failures/list.json?limit=10
        "list.json" :>
        QueryParam "limit" Word :>
        Get '[JSON] [Entity CaseEraGlonassFailure]
