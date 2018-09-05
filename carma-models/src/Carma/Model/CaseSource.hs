@@ -19,11 +19,11 @@ data CaseSource = CaseSource
     :: F Text "label" "Тип"
   } deriving Typeable
 
--- TODO add Era Glonass source
 mkIdents [t|CaseSource|]
  [ ("op", 1)
  , ("mobile", 2)
  , ("mobileAccident", 3)
+ , ("eraGlonass", 4)
  ]
 
 instance Model CaseSource where

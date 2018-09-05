@@ -61,4 +61,7 @@ CREATE TABLE "CaseEraGlonassFailure"
 GRANT ALL ON "CaseEraGlonassFailure" TO carma_db_sync;
 GRANT ALL ON "CaseEraGlonassFailure_id_seq" TO carma_db_sync;
 
+-- Adding "Era Glonass" "Case" source to use it when accepting EG Call Card.
+INSERT INTO "CaseSource" (id, label) VALUES (4, 'ЭРА-ГЛОНАСС');
+
 COMMIT;
