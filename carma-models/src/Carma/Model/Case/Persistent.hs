@@ -20,7 +20,7 @@ import           Carma.Model.CaseStatus.Persistent (CaseStatusId)
 import           Carma.Model.Program.Persistent (ProgramId)
 -- import           Carma.Model.SubProgram.Persistent (SubProgramId)
 -- import           Carma.Model.Transmission.Persistent (TransmissionId)
--- import           Carma.Model.Engine.Persistent (EngineId)
+import           Carma.Model.Engine.Persistent (EngineId)
 -- import           Carma.Model.CarClass.Persistent (CarClassId)
 -- import           Carma.Model.CarGeneration.Persistent (CarGenerationId)
 -- import           Carma.Model.CarMake.Persistent (CarMakeId)
@@ -87,7 +87,7 @@ Case sql=casetbl
   -- TODO car_dealerTO PartnerId Maybe sql=car_dealerto
   car_mileage Int Maybe sql=car_mileage
   -- TODO car_transmission TransmissionId Maybe sql=car_transmission
-  -- TODO car_engine EngineId Maybe sql=car_engine
+  car_engine EngineId Maybe sql=car_engine
   car_liters Text Maybe sql=car_liters
   -- TODO car_class CarClassId Maybe sql=car_class
 
