@@ -11,6 +11,7 @@ import           Data.String (fromString)
 import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)
 import           Text.InterpolatedString.QM
+import           Data.Text.Encoding (encodeUtf8)
 
 import           Database.PostgreSQL.Simple.FromField
                    ( FromField (..)
@@ -84,6 +85,8 @@ instance PersistField EGIntegrationPoint where
     where f [] = Left [qm| Expected EGIntegrationPoint, received: {x} |]
           f (z:zs) | toPersistValue z == x = pure z
                    | otherwise             = f zs
+  fromPersistValue (PersistText x) =
+    fromPersistValue $ PersistDbSpecific $ encodeUtf8 x
   fromPersistValue x =
     Left [qms| Expected PersistDbSpecific for EGIntegrationPoint,
                received: {x} |]

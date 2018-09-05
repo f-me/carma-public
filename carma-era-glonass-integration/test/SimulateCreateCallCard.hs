@@ -2,12 +2,10 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE OverloadedLists #-}
+{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
 
 -- For Servant's stuff
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds, TypeOperators #-}
 
 module Main (main) where
 
@@ -19,9 +17,8 @@ import           Text.InterpolatedString.QM
 import qualified Data.Configurator as Conf
 import           Data.Aeson
 import qualified Data.Attoparsec.Text as ParsecText
-import           Data.String (IsString (fromString))
-import qualified Data.Text as Text
-import qualified Data.Text.IO as Text
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import qualified Data.HashMap.Lazy as HM
 import           Data.Foldable (toList)
 
@@ -83,21 +80,22 @@ withTestingServer :: MVar () -> Expectation -> Expectation
 withTestingServer locker runTest = do
   () <- takeMVar locker
   (Nothing, Just hOut, Just hErr, hProc) <- createProcess serverCmd
-  errLogMVar <- newEmptyMVar
+  (outLogMVar :: MVar T.Text) <- newEmptyMVar
+  (errLogMVar :: MVar T.Text) <- newEmptyMVar
 
   _ <-
     let
-      f :: Text.Text -> IO ()
+      f :: T.Text -> IO ()
       f accumulator = do
         isReadable <- (&&) <$> (not <$> hIsEOF hErr) <*> hIsReadable hErr
         if not isReadable
            then putMVar errLogMVar accumulator
-           else Text.hGetLine hErr >>= \x -> f [qm| {accumulator}  {x}\n |]
+           else T.hGetLine hErr >>= \x -> f [qm| {accumulator}  {x}\n |]
     in
       forkIO $ f mempty
 
-  let readLog :: IO ()
-      readLog = do
+  let readLog :: T.Text -> IO ()
+      readLog outLog = do
         getProcessExitCode hProc >>= \case
           Nothing -> pure ()
           Just x  -> do errLog <- takeMVar errLogMVar
@@ -106,14 +104,31 @@ withTestingServer locker runTest = do
 
         isReadable <- (&&) <$> (not <$> hIsEOF hOut) <*> hIsReadable hOut
         if not isReadable
-           then readLog -- ^ Recursive repeat to catch unexpected termination
-           else ParsecText.parseOnly substr . fromString <$> hGetLine hOut
-                  >>= \case Left  _ -> readLog -- ^ Recursive repeat
-                            Right _ -> pure () -- ^ Server is ready
+           then readLog outLog
+                -- ^ Recursive repeat to catch unexpected termination
+           else T.hGetLine hOut
+                  <&> (\x -> (x, ParsecText.parseOnly substr x))
+                  >>= \case (l, Left  _) -> readLog [qm| {outLog}  {l}\n |]
+                            (l, Right _) ->
+                              putMVar outLogMVar [qm| {outLog}  {l}\n |]
+                              -- ^ Server is ready, we're done here
 
-  readLog
+  let testFailureHandler :: ServantError -> IO ()
+      testFailureHandler exception = do
+        _ <- terminateProcess hProc >> waitForProcess hProc
+        errLog <- takeMVar errLogMVar
+        outLog <- takeMVar outLogMVar
 
-  finally runTest $ do
+        fail [qmb|
+          Test is failed because of test server response:
+          \  {exception}
+          Testing server stderr:
+            {if errLog == mempty then "  <log is empty>\n" else errLog}\
+          Testing server stdout:
+            {if outLog == mempty then "  <log is empty>\n" else outLog}
+        |]
+
+  finally (readLog mempty >> (runTest `catch` testFailureHandler)) $ do
     _ <- terminateProcess hProc >> waitForProcess hProc
     putMVar locker ()
 
