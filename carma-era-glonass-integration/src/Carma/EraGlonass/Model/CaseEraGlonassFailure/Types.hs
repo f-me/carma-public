@@ -75,17 +75,18 @@ instance ToField EGIntegrationPoint where
   toField = toJSONField
 
 instance PersistField EGIntegrationPoint where
-  toPersistValue = PersistText . fromString . show
+  toPersistValue = PersistDbSpecific . fromString . show
 
   -- Producing list of all values to reduce human-factor mistakes,
   -- so it is handled automatically when we add a new value.
-  fromPersistValue x@(PersistText _) =
+  fromPersistValue x@(PersistDbSpecific _) =
     f [minBound..(maxBound :: EGIntegrationPoint)]
     where f [] = Left [qm| Expected EGIntegrationPoint, received: {x} |]
           f (z:zs) | toPersistValue z == x = pure z
                    | otherwise             = f zs
   fromPersistValue x =
-    Left [qm| Expected PersistText for EGIntegrationPoint, received: {x} |]
+    Left [qms| Expected PersistDbSpecific for EGIntegrationPoint,
+               received: {x} |]
 
 instance PersistFieldSql EGIntegrationPoint where
   sqlType Proxy = SqlString

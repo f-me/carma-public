@@ -1,5 +1,5 @@
+{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE LambdaCase #-}
 
@@ -10,6 +10,7 @@ module Carma.EraGlonass.Types.RequestId
      , requestIdParser
      ) where
 
+import           Data.Proxy
 import           Numeric (showHex)
 import           Data.Char (digitToInt)
 import           Data.Monoid ((<>))
@@ -27,6 +28,24 @@ import           Data.Attoparsec.ByteString.Char8 hiding (take)
 
 import           Control.Monad.Random.Class (MonadRandom, getRandoms)
 
+import           Database.PostgreSQL.Simple.FromField
+                   ( FromField (..)
+                   , fromJSONField
+                   )
+import           Database.PostgreSQL.Simple.ToField
+                   ( ToField (..)
+                   , toJSONField
+                   )
+import           Database.Persist.Sql (PersistFieldSql (sqlType))
+import           Database.Persist.Types (SqlType (..))
+import           Database.Persist.Class
+                   ( PersistField (toPersistValue, fromPersistValue)
+                   , toPersistValueJSON
+                   , fromPersistValueJSON
+                   )
+
+import           Data.Model
+import           Data.Model.Types
 import           Carma.Monad.Clock
 
 
@@ -61,7 +80,7 @@ requestIdParser = f
   <*> count (allDashesParts !! 4) hexDigit <* endOfInput
 
   where hexDigit = digitToInt <$> satisfy (`elem` chars)
-          where chars = ['a'..'f'] <> ['A'..'F'] <> ['0'..'9']
+          where chars = ['a'..'f'] <> ['A'..'F'] <> ['0'..'9'] :: [Char]
 
         f :: [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> RequestId
         f a b c d e = RequestId [qm| {g a}-{g b}-{g c}-{g d}-{g e} |]
@@ -92,6 +111,35 @@ instance ToSchema RequestId where
                                           $ |]
         }
     }
+
+instance PersistField RequestId where
+  toPersistValue = toPersistValueJSON
+  fromPersistValue = fromPersistValueJSON
+
+instance PersistFieldSql RequestId where
+  sqlType Proxy = SqlString
+
+instance FromField RequestId where
+  fromField = fromJSONField
+
+instance ToField RequestId where
+  toField = toJSONField
+
+instance PgTypeable RequestId where
+  pgTypeOf _ = PgType "text" True
+
+instance DefaultFieldView RequestId where
+  defaultFieldView f
+    = FieldView
+    { fv_name = fieldName f
+    , fv_type = "text"
+    , fv_canWrite = False
+    , fv_meta =
+        [ ("label", String $ fieldDesc f)
+        , ("app",   String $ fieldKindStr $ fieldToFieldKindProxy f)
+        ]
+    } where fieldToFieldKindProxy :: (m -> FF t nm desc a) -> Proxy a
+            fieldToFieldKindProxy _ = Proxy
 
 
 -- Builds new unique "RequestId".

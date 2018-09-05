@@ -1,9 +1,11 @@
 BEGIN;
 
+
 -- Adding "eraGlonassParticipant" field to "SubProgram" model
 ALTER TABLE "SubProgram"
   ADD COLUMN eraGlonassParticipant
   BOOLEAN NOT NULL DEFAULT FALSE;
+
 
 -- Copying field permissions of "SubProgram" model
 -- from "smsProgram" to "eraGlonassParticipant" field
@@ -14,10 +16,12 @@ INSERT INTO "FieldPermission"
       WHERE model = 'SubProgram' AND field = 'smsProgram'
   );
 
+
 -- Adding "isCreatedByEraGlonass" field to "Case" model
 ALTER TABLE "casetbl"
   ADD COLUMN isCreatedByEraGlonass
   BOOLEAN NOT NULL DEFAULT FALSE;
+
 
 -- Copying field permissions of "Case" model
 -- from "id" to "isCreatedByEraGlonass" field
@@ -27,6 +31,7 @@ INSERT INTO "FieldPermission"
       FROM "FieldPermission"
       WHERE model = 'Case' AND field = 'id'
   );
+
 
 -- Adding new car engine types to CaRMa "Engine" model
 -- which could be provided by EG side.
@@ -46,22 +51,40 @@ INSERT INTO "Engine"
          (6, 'СПГ')
        ;
 
+
+-- Adding "Era Glonass" "Case" source to use it when accepting EG Call Card.
+INSERT INTO "CaseSource" (id, label) VALUES (4, 'ЭРА-ГЛОНАСС');
+
+
 -- Creating table for "CaseEraGlonassFailure" model.
+CREATE TYPE "EraGlonassIntegrationPoint"
+  AS ENUM( 'EG.CRM.01'
+         , 'CRM.EG.02'
+         , 'CRM.EG.03'
+         );
 CREATE TABLE "CaseEraGlonassFailure"
   ( id               SERIAL PRIMARY KEY
   , ctime            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
-  , integrationPoint TEXT NOT NULL
-                     CHECK (integrationPoint IN ( 'EG.CRM.01'
-                                                , 'CRM.EG.02'
-                                                , 'CRM.EG.03'
-                                                ))
-  , requestBody      JSON     NULL
-  , comment          TEXT     NULL
+  , integrationPoint "EraGlonassIntegrationPoint" NOT NULL
+  , requestBody      JSON NULL
+  , comment          TEXT NULL
   );
 GRANT ALL ON "CaseEraGlonassFailure" TO carma_db_sync;
 GRANT ALL ON "CaseEraGlonassFailure_id_seq" TO carma_db_sync;
 
--- Adding "Era Glonass" "Case" source to use it when accepting EG Call Card.
-INSERT INTO "CaseSource" (id, label) VALUES (4, 'ЭРА-ГЛОНАСС');
+
+-- Creating table for "CaseEraGlonassCreateRequest" model.
+CREATE TABLE "CaseEraGlonassCreateRequest"
+  ( id               SERIAL PRIMARY KEY
+  , ctime            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+  , caseId           INTEGER NOT NULL
+  , requestId        TEXT NOT NULL
+  , callCardId       TEXT NOT NULL
+  , responseId       TEXT NOT NULL
+  , FOREIGN KEY (caseId) REFERENCES "casetbl" (id)
+  );
+GRANT ALL ON "CaseEraGlonassCreateRequest" TO carma_db_sync;
+GRANT ALL ON "CaseEraGlonassCreateRequest_id_seq" TO carma_db_sync;
+
 
 COMMIT;
