@@ -23,6 +23,8 @@ import           Control.Monad
 import           Control.Monad.Catch
 import           Control.Concurrent.MVar
 
+import           System.Environment
+
 import qualified Network.Wai.Handler.Warp as Warp
 import           Network.HTTP.Client (newManager)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
@@ -62,18 +64,25 @@ main :: IO ()
 main = do
   serverLock <- newMVar ()
 
+  -- Run with @CARMA_EG_TEST_WITHOUT_TESTING_SERVER=Y@ environment variable to
+  -- use separately started server (prevents starting testing server
+  -- automatically for each test). This feature just for debugging purposes
+  -- during development.
+  withoutTestingServer <-
+    lookupEnv "CARMA_EG_TEST_WITHOUT_TESTING_SERVER" <&> (== Just "Y")
+
   hspec $
-    describe "EG.CRM.01" $ egCRM01 serverLock
+    describe "EG.CRM.01" $ egCRM01 withoutTestingServer serverLock
 
 
-egCRM01 :: MVar () -> Spec
-egCRM01 serverLock =
+egCRM01 :: Bool -> MVar () -> Spec
+egCRM01 withoutTestingServer serverLock =
   describe "Simulating creating Call Card by Era Glonass" $ do
 
     let !testData' = either error id testData
 
     it "Usual successful creating EG Call Card" $
-      withTestingServer serverLock $ do
+      withTestingServer withoutTestingServer serverLock $ do
         result <- getRequestMaker >>= \f -> f $ createCallCard testData'
         result `shouldSatisfy` isRight
 
@@ -92,17 +101,17 @@ egCRM01 serverLock =
             requestMaker jsonD >>= flip shouldSatisfy (statusCodePredicate 400)
 
       it "Incorrect request body" $
-        withTestingServer serverLock checkFailures
+        withTestingServer withoutTestingServer serverLock checkFailures
 
       describe "Incorrect requests failures are stored in the database" $ do
         it "Count of stored failures is correct" $
-          withTestingServer serverLock $ do
+          withTestingServer withoutTestingServer serverLock $ do
             checkFailures
             requestMaker <- getRequestMaker <&> \f -> f getFailuresCount
             requestMaker >>= flip shouldBe (Right 4)
 
         it "Stored correct failures data" $
-          withTestingServer serverLock $ do
+          withTestingServer withoutTestingServer serverLock $ do
             checkFailures
             requestMaker <-
               getRequestMaker <&> \f x -> f $ getFailuresList $ Just x
