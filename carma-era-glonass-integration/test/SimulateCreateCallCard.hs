@@ -1,8 +1,8 @@
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings, OverloadedLists #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE LambdaCase #-}
 
 -- For Servant's stuff
 {-# LANGUAGE DataKinds, TypeOperators #-}
@@ -16,18 +16,12 @@ import           Data.Either (isRight)
 import           Text.InterpolatedString.QM
 import qualified Data.Configurator as Conf
 import           Data.Aeson
-import qualified Data.Attoparsec.Text as ParsecText
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
 import qualified Data.HashMap.Lazy as HM
 import           Data.Foldable (toList)
 
 import           Control.Monad
 import           Control.Monad.Catch
-import           Control.Concurrent
-
-import           System.Process
-import           System.IO
+import           Control.Concurrent.MVar
 
 import qualified Network.Wai.Handler.Warp as Warp
 import           Network.HTTP.Client (newManager)
@@ -70,77 +64,6 @@ main = do
 
   hspec $
     describe "EG.CRM.01" $ egCRM01 serverLock
-
-
--- | Wrapper that starts testing HTTP server in background.
---
--- It terminates it (testing HTTP server) when wrapped monad is done.
--- Testing server using new clean SQLite in-memory database.
-withTestingServer :: MVar () -> Expectation -> Expectation
-withTestingServer locker runTest = do
-  () <- takeMVar locker
-  (Nothing, Just hOut, Just hErr, hProc) <- createProcess serverCmd
-  (outLogMVar :: MVar T.Text) <- newEmptyMVar
-  (errLogMVar :: MVar T.Text) <- newEmptyMVar
-
-  _ <-
-    let
-      f :: T.Text -> IO ()
-      f accumulator = do
-        isReadable <- (&&) <$> (not <$> hIsEOF hErr) <*> hIsReadable hErr
-        if not isReadable
-           then putMVar errLogMVar accumulator
-           else T.hGetLine hErr >>= \x -> f [qm| {accumulator}  {x}\n |]
-    in
-      forkIO $ f mempty
-
-  let readLog :: T.Text -> IO ()
-      readLog outLog = do
-        getProcessExitCode hProc >>= \case
-          Nothing -> pure ()
-          Just x  -> do errLog <- takeMVar errLogMVar
-                        fail [qmb| Testing server is failed with exit code: {x}!
-                                   Error log:\n{errLog} |]
-
-        isReadable <- (&&) <$> (not <$> hIsEOF hOut) <*> hIsReadable hOut
-        if not isReadable
-           then readLog outLog
-                -- ^ Recursive repeat to catch unexpected termination
-           else T.hGetLine hOut
-                  <&> (\x -> (x, ParsecText.parseOnly substr x))
-                  >>= \case (l, Left  _) -> readLog [qm| {outLog}  {l}\n |]
-                            (l, Right _) ->
-                              putMVar outLogMVar [qm| {outLog}  {l}\n |]
-                              -- ^ Server is ready, we're done here
-
-  let testFailureHandler :: ServantError -> IO ()
-      testFailureHandler exception = do
-        _ <- terminateProcess hProc >> waitForProcess hProc
-        errLog <- takeMVar errLogMVar
-        outLog <- takeMVar outLogMVar
-
-        fail [qmb|
-          Test is failed because of test server response:
-          \  {exception}
-          Testing server stderr:
-            {if errLog == mempty then "  <log is empty>\n" else errLog}\
-          Testing server stdout:
-            {if outLog == mempty then "  <log is empty>\n" else outLog}
-        |]
-
-  finally (readLog mempty >> (runTest `catch` testFailureHandler)) $ do
-    _ <- terminateProcess hProc >> waitForProcess hProc
-    putMVar locker ()
-
-  where
-    substr = findSubstring "Running incoming server on"
-
-    serverCmd =
-      (proc "stack" ["exec", "carma-era-glonass-integration-test-server"])
-        { std_in  = Inherit
-        , std_out = CreatePipe
-        , std_err = CreatePipe
-        }
 
 
 egCRM01 :: MVar () -> Spec
@@ -229,7 +152,7 @@ egCRM01 serverLock =
 
   where
     -- | Produces @ClientEnv@ and returns requester monad.
-    getRequestMaker :: forall a. IO (ClientM a -> IO (Either ServantError a))
+    getRequestMaker :: IO (ClientM a -> IO (Either ServantError a))
     getRequestMaker =
       getClientEnv <&!> \clientEnv req -> runClientM req clientEnv
 
