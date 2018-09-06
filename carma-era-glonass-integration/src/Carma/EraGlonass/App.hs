@@ -28,9 +28,8 @@ import           Carma.Monad.LoggerBus
 import           Carma.Monad.Thread
 import           Carma.Monad.MVar
 import           Carma.EraGlonass.Types
-import           Carma.EraGlonass.Logger ()
+import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Server (serverApplicaton)
-import           Carma.EraGlonass.Persistent ()
 
 
 -- | Application starter which abstract from specific database.

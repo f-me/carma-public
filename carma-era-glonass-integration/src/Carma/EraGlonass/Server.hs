@@ -31,9 +31,7 @@ import           Carma.Utils.Operators
 import           Carma.Monad.Clock
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.PersistentSql
-import           Carma.EraGlonass.Logger () -- instance
-import           Carma.EraGlonass.Persistent () -- instance
-import           Carma.EraGlonass.MonadRandom () -- instance
+import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Routes
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Carma.EraGlonass.MonadRandom () where
+module Carma.EraGlonass.Instance.MonadRandom () where
 
 import           Control.Monad.Random.Class
 import           Control.Monad.IO.Class (liftIO)

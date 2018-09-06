@@ -19,7 +19,7 @@ import           Database.Persist.Sqlite
 import           Carma.Monad.LoggerBus
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.App
-import           Carma.EraGlonass.Logger ()
+import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Logger.LoggerForward (runLoggerForward)
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
                    as CaseEraGlonassFailure

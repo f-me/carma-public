@@ -3,7 +3,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE BangPatterns #-}
 
-module Carma.EraGlonass.Logger () where
+module Carma.EraGlonass.Instance.Logger () where
 
 import           Text.InterpolatedString.QM
 import           Data.ByteString (ByteString)
