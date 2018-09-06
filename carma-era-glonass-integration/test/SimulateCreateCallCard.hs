@@ -197,8 +197,8 @@ egCRM01 serverLock =
                       Array x -> Right $ toList x
                       _       -> Left "Root value is not an Array"
 
-                  let f _ x@(Left _) = x
-                      f [] x@(Right _) = x
+                  let f _               x@(Left  _) = x
+                      f []              x@(Right _) = x
                       f (Object x : xs) (Right acc) = f xs $ Right $ x : acc
                       f _ _ = Left "Element value of an Array is not an Object"
 

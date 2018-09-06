@@ -3,7 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Carma.EraGlonass.Persistent where
+module Carma.EraGlonass.Persistent () where
 
 import           Control.Monad.IO.Class (MonadIO)
 import           Control.Monad.Reader (MonadReader, asks)

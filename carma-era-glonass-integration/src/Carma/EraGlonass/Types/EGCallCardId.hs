@@ -4,7 +4,7 @@
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 
 module Carma.EraGlonass.Types.EGCallCardId
-     ( EGCallCardId (EGCallCardId)
+     ( EGCallCardId (..)
      ) where
 
 import           GHC.Generics
@@ -39,7 +39,9 @@ import           Data.Model
 import           Data.Model.Types
 
 
-newtype EGCallCardId = EGCallCardId Text deriving (Eq, Show, Generic, ToJSON)
+newtype EGCallCardId
+      = EGCallCardId { fromEGCallCardId :: Text }
+        deriving (Eq, Show, Generic, ToJSON)
 
 instance IsString EGCallCardId where
   fromString = EGCallCardId . fromString

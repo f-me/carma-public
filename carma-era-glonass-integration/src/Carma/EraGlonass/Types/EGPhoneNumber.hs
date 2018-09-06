@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Carma.EraGlonass.Types.EGPhoneNumber
-     ( EGPhoneNumber (EGPhoneNumber)
+     ( EGPhoneNumber (..)
      ) where
 
 import           Data.Maybe
@@ -19,7 +19,9 @@ import           Control.Applicative ((<|>))
 
 
 -- A string from 1 to 18 chars of numbers which could be prefixed with '+'
-newtype EGPhoneNumber = EGPhoneNumber Text deriving (Show, Eq)
+newtype EGPhoneNumber
+      = EGPhoneNumber { fromEGPhoneNumber :: Text }
+        deriving (Show, Eq)
 
 instance IsString EGPhoneNumber where
   fromString = EGPhoneNumber . fromString

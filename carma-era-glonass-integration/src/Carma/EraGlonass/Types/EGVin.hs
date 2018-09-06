@@ -2,7 +2,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 module Carma.EraGlonass.Types.EGVin
-     ( EGVin (EGVin)
+     ( EGVin (..)
      ) where
 
 import           Data.Text.Encoding (encodeUtf8)
@@ -23,7 +23,9 @@ import           Carma.Utils.Operators
 -- You could read about VIN here:
 -- https://en.wikipedia.org/wiki/Vehicle_identification_number
 -- So it is alphanumeric of 17 characters excluding O/o, I/i and Q/q.
-newtype EGVin = EGVin ByteString deriving (Show, Eq)
+newtype EGVin
+      = EGVin { fromEGVin :: ByteString }
+        deriving (Show, Eq)
 
 instance IsString EGVin where
   fromString = EGVin . fromString

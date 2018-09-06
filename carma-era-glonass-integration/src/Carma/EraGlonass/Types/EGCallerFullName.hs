@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Carma.EraGlonass.Types.EGCallerFullName
-     ( EGCallerFullName (EGCallerFullName)
+     ( EGCallerFullName (..)
      ) where
 
 import           Data.Maybe
@@ -19,7 +19,9 @@ import           Data.Attoparsec.Text
 import           Control.Applicative ((<|>))
 
 
-newtype EGCallerFullName = EGCallerFullName Text deriving (Eq, Show)
+newtype EGCallerFullName
+      = EGCallerFullName { fromEGCallerFullName :: Text }
+        deriving (Eq, Show)
 
 instance IsString EGCallerFullName where
   fromString = EGCallerFullName . fromString

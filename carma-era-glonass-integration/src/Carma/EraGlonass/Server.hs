@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- Incoming server implementation to provide an API for Era Glonass side
 -- and also some debug stuff for internal usage.
@@ -13,9 +14,13 @@ module Carma.EraGlonass.Server
 import           Data.Proxy
 import           Data.Swagger (Swagger)
 import           Text.InterpolatedString.QM
+import           Data.Monoid ((<>))
+import           Data.String (fromString)
+import           Data.Text (Text)
 
 import           Control.Monad.Reader (MonadReader, runReaderT, ReaderT)
 import           Control.Monad.Error.Class (MonadError, throwError)
+import           Control.Monad.Random.Class (MonadRandom (..))
 
 import           Servant
 import           Servant.Swagger (toSwagger)
@@ -28,6 +33,7 @@ import           Carma.Monad.LoggerBus
 import           Carma.Monad.PersistentSql
 import           Carma.EraGlonass.Logger () -- instance
 import           Carma.EraGlonass.Persistent () -- instance
+import           Carma.EraGlonass.MonadRandom () -- instance
 import           Carma.EraGlonass.Routes
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
@@ -72,6 +78,7 @@ server
      , MonadError ServantErr m
      , MonadPersistentSql m
      , MonadClock m
+     , MonadRandom m
      )
   => ServerT ServerAPI m
 server = egCRM01 :<|> (swagger :<|> getFailuresCount :<|> getFailuresList)
@@ -83,6 +90,7 @@ egCRM01
      , MonadError ServantErr m
      , MonadPersistentSql m
      , MonadClock m
+     , MonadRandom m
      )
   => EGCreateCallCardRequest
   -> m EGCreateCallCardResponse
@@ -110,19 +118,31 @@ egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
   where iPoint = EgCrm01
 
 egCRM01 EGCreateCallCardRequest {..} = do
-  logError "TODO EG.CRM.01 SUCCESS"
 
+  let logPfx :: Text
+      logPfx = [qms| Incoming Creating Call Card request
+                     (Call Card id: "{fromEGCallCardId cardIdCC}",
+                      Request id: "{fromRequestId requestId}"): |]
+
+  -- logDebug [qm| {logPfx} Creating CaRMa "Case"... |]
   -- TODO create "Case"
-  -- TODO generate some "responseId"
+
+  (randomResponseId :: Text) <-
+    getRandomRs (0, pred $ length randomChars)
+      <&> fmap (randomChars !!) ? take 50 ? fromString
+
+  logDebug [qm| {logPfx} Response id: "{randomResponseId}" |]
 
   pure EGCreateCallCardResponse
-    { responseId        = "some random stuff"
+    { responseId        = randomResponseId
     , cardidProvider    = "case id"
-    , acceptId          = cardIdCC & \(EGCallCardId x) -> x
+    , acceptId          = fromEGCallCardId cardIdCC
     , requestId         = requestId
     , acceptCode        = OK
     , statusDescription = Nothing
     }
+
+  where randomChars = ['a'..'z'] <> ['0'..'9'] :: String
 
 
 swagger :: Applicative m => m Swagger

@@ -6,6 +6,7 @@
 -- A module that helps to deal with "RequestId" of Era Glonass service
 module Carma.EraGlonass.Types.RequestId
      ( RequestId
+     , fromRequestId
      , newRequestId
      , requestIdParser
      ) where
@@ -64,6 +65,9 @@ import           Carma.Monad.Clock
 -- it must be unique for each request to Era Glonass.
 --
 newtype RequestId = RequestId ByteString deriving (Eq, Show)
+
+fromRequestId :: RequestId -> ByteString
+fromRequestId (RequestId x) = x
 
 instance IsString RequestId where
   fromString x

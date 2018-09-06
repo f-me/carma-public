@@ -7,14 +7,15 @@ module Carma.EraGlonass.Types
      , EGCreateCallCardRequestGis (..)
      , EGCreateCallCardRequestVehicle (..)
      , EGCreateCallCardResponse (..)
-     , EGPhoneNumber.EGPhoneNumber (EGPhoneNumber.EGPhoneNumber)
+     , EGPhoneNumber.EGPhoneNumber (..)
      , EGLatLon.EGLatitude, EGLatLon.toEGLatitude, EGLatLon.fromEGLatitude
      , EGLatLon.EGLongitude, EGLatLon.toEGLongitude, EGLatLon.fromEGLongitude
-     , EGCallCardId.EGCallCardId (EGCallCardId.EGCallCardId)
-     , EGCallerFullName.EGCallerFullName (EGCallerFullName.EGCallerFullName)
-     , EGVin.EGVin (EGVin.EGVin)
+     , EGCallCardId.EGCallCardId (..)
+     , EGCallerFullName.EGCallerFullName (..)
+     , EGVin.EGVin (..)
      , EGAcceptCode (..)
      , module Carma.EraGlonass.Types.EGPropulsion
+     , module Carma.EraGlonass.Types.RequestId
      ) where
 
 import           Data.Pool (Pool)
@@ -32,6 +33,7 @@ import qualified Carma.EraGlonass.Types.EGVin as EGVin
 import           Carma.EraGlonass.Types.EGPropulsion
 import           Carma.EraGlonass.Types.EGAcceptCode
 import           Carma.EraGlonass.Types.EGCreateCallCardRequest
+import           Carma.EraGlonass.Types.RequestId
 
 
 data AppContext
