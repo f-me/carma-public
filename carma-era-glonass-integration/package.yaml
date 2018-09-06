@@ -95,3 +95,4 @@ tests:
       - carma-era-glonass-integration
       - hspec
       - random
+      - process
