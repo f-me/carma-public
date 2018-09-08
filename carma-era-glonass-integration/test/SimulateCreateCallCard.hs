@@ -94,7 +94,7 @@ egCRM01 withoutTestingServer serverLock =
           jsonD = Array [testData']
 
       let checkFailures = do
-            requestMaker <- getRequestMaker <&> \f x -> f $ createCallCard x
+            requestMaker <- getRequestMaker <&> \f -> f . createCallCard
             requestMaker jsonA >>= flip shouldSatisfy (statusCodePredicate 400)
             requestMaker jsonB >>= flip shouldSatisfy (statusCodePredicate 400)
             requestMaker jsonC >>= flip shouldSatisfy (statusCodePredicate 400)
@@ -113,8 +113,7 @@ egCRM01 withoutTestingServer serverLock =
         it "Stored correct failures data" $
           withTestingServer withoutTestingServer serverLock $ do
             checkFailures
-            requestMaker <-
-              getRequestMaker <&> \f x -> f $ getFailuresList $ Just x
+            requestMaker <- getRequestMaker <&> \f -> f . getFailuresList . Just
             jsonListResult <- requestMaker 10
 
             jsonList <-
