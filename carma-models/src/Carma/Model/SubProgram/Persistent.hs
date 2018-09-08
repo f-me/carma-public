@@ -14,6 +14,7 @@ import           Carma.Model.LegacyTypes (Reference)
 
 import           Carma.Model.Program.Persistent (ProgramId)
 import           Carma.Model.DiagSlide.Persistent (DiagSlideId)
+import           Carma.Model.CarMake.Persistent (CarMakeId)
 
 
 -- | Partially implemented @SubProgram@ persistent model.
@@ -38,7 +39,7 @@ SubProgram sql=SubProgram
   checkPeriod Int Maybe sql=checkperiod
   validFor    Int Maybe sql=validfor
 
-  -- TODO defaultMake CarMakeId Maybe sql=defaultmake
+  defaultMake CarMakeId Maybe sql=defaultmake
 
   smsSender  Text sql=smssender
   smsContact Text sql=smscontact
