@@ -10,9 +10,10 @@ import           Data.Typeable
 import           Database.Persist.TH
 import           Database.Persist.Sql (toSqlKey)
 
-import           Carma.Model.LegacyTypes
+import           Carma.Model.LegacyTypes (Reference)
 
 import           Carma.Model.Program.Persistent (ProgramId)
+import           Carma.Model.DiagSlide.Persistent (DiagSlideId)
 
 
 -- | Partially implemented @SubProgram@ persistent model.
@@ -26,7 +27,7 @@ SubProgram sql=SubProgram
 
   synonyms (Vector Text) Maybe sql=synonyms
 
-  -- TODO diagTree DiagSlideId Maybe sql=diagtree
+  diagTree DiagSlideId Maybe sql=diagtree
 
   mailAddr Text Maybe sql=mailaddr
   mailPass Text Maybe sql=mailpass
