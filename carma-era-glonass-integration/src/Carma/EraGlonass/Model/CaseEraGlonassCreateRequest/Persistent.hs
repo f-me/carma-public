@@ -18,7 +18,7 @@ import           Carma.EraGlonass.Types.EGCallCardId (EGCallCardId)
 -- | @CaseEraGlonassCreateRequest@ persistent model.
 mkPersist sqlSettings [persistLowerCase|
 CaseEraGlonassCreateRequest sql=CaseEraGlonassCreateRequest
-  ctime UTCTime sql=ctime
+  ctime UTCTime sql=ctime default=CURRENT_TIME
   associatedCase CaseId sql=caseid
   requestId RequestId sql=requestid
   callCardId EGCallCardId sql=callcardid

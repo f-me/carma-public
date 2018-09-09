@@ -19,7 +19,7 @@ import           Carma.Monad.Clock (UTCTime)
 -- | @CaseEraGlonassFailure@ persistent model.
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 CaseEraGlonassFailure json sql=CaseEraGlonassFailure
-  ctime UTCTime sql=ctime
+  ctime UTCTime sql=ctime default=CURRENT_TIME
   integrationPoint EGIntegrationPoint sql=integrationpoint
   requestBody Value Maybe sql=requestbody
   comment Text Maybe sql=comment

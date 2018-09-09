@@ -4,7 +4,6 @@
 module Carma.Model.SubProgram.Persistent where
 
 import           Data.Text (Text)
-import           Data.Vector (Vector)
 import           Data.Typeable
 
 import           Database.Persist.TH
@@ -26,15 +25,15 @@ SubProgram sql=SubProgram
   active Bool sql=active
   leader Bool sql=leader
 
-  synonyms (Vector Text) Maybe sql=synonyms
+  synonyms Text Vector Maybe sql=synonyms
 
   diagTree DiagSlideId Maybe sql=diagtree
 
   mailAddr Text Maybe sql=mailaddr
   mailPass Text Maybe sql=mailpass
 
-  -- TODO contacts (IdentList SubProgramContact) sql=contacts
-  -- TODO services (IdentList SubProgramService) sql=services
+  contacts SubProgramContactId Vector sql=contacts
+  -- TODO services SubProgramServiceId Vector sql=services
 
   checkPeriod Int Maybe sql=checkperiod
   validFor    Int Maybe sql=validfor
@@ -47,13 +46,34 @@ SubProgram sql=SubProgram
 
   eraGlonassParticipant Bool sql=eraglonassparticipant
 
-  -- TODO contractPrs (IdentList SubProgramContractPermission) sql=contractpermissions
+  contractPrs SubProgramContractPermissionId Vector sql=contractpermissions
 
   template Reference Maybe sql=template
   logo     Reference Maybe sql=logo
 
   help       Text Maybe sql=help
   dealerHelp Text Maybe sql=dealerhelp
+
+  deriving Typeable Show
+
+SubProgramContact sql=SubProgramContact
+  cParent SubProgramId sql=parent
+  name    Text Maybe   sql=name
+  email   Text Maybe   sql=email
+  phone   Text Maybe   sql=phone
+
+  deriving Typeable Show
+
+SubProgramContractPermission sql=SubProgramContractPermission
+  fParent   SubProgramId sql=parent
+
+  -- TODO This must be limited to @Contract@ field names only.
+  --
+  -- Wrapped in @Maybe@ just like the type field in @SubProgramService@.
+  field     Text Maybe   sql=contractfield
+
+  showTable Bool         sql=showtable
+  showForm  Bool         sql=showform
 
   deriving Typeable Show
 |]
