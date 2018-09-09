@@ -14,9 +14,10 @@ import           Carma.Model.LegacyTypes (Reference)
 import           Carma.Model.Program.Persistent (ProgramId)
 import           Carma.Model.DiagSlide.Persistent (DiagSlideId)
 import           Carma.Model.CarMake.Persistent (CarMakeId)
+import           Carma.Model.ServiceType.Persistent (ServiceTypeId)
 
 
--- | Partially implemented @SubProgram@ persistent model.
+-- | @SubProgram@ persistent model.
 mkPersist sqlSettings [persistLowerCase|
 SubProgram sql=SubProgram
   parent ProgramId sql=parent
@@ -33,7 +34,7 @@ SubProgram sql=SubProgram
   mailPass Text Maybe sql=mailpass
 
   contacts SubProgramContactId Vector sql=contacts
-  -- TODO services SubProgramServiceId Vector sql=services
+  services SubProgramServiceId Vector sql=services
 
   checkPeriod Int Maybe sql=checkperiod
   validFor    Int Maybe sql=validfor
@@ -53,6 +54,21 @@ SubProgram sql=SubProgram
 
   help       Text Maybe sql=help
   dealerHelp Text Maybe sql=dealerhelp
+
+  deriving Typeable Show
+
+SubProgramService sql=SubProgramService
+  sParent SubProgramId sql=parent
+
+  -- TODO This is wrapped in @Maybe@ only because the client first
+  -- creates an empty instance, then rendering a form where the type
+  -- may be selected.
+  sType ServiceTypeId Maybe sql=type
+
+  maxCost     Text Maybe sql=maxcost
+  maxDistance Int  Maybe sql=maxdistance
+  maxPeriod   Int  Maybe sql=maxperiod
+  maxCount    Int  Maybe sql=maxcount
 
   deriving Typeable Show
 
