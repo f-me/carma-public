@@ -4,7 +4,6 @@
 module Carma.Model.Engine.Persistent where
 
 import           Data.Text
-import           Data.Vector
 import           Data.Typeable
 
 import           Database.Persist.Sql (toSqlKey)
@@ -15,7 +14,8 @@ import           Database.Persist.TH
 mkPersist sqlSettings [persistLowerCase|
 Engine sql=Engine
   label Text sql=label
-  synonyms (Vector Text) Maybe sql=synonyms
+  synonyms Text Vector Maybe sql=synonyms
+
   deriving Typeable Show
 |]
 

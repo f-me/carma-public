@@ -23,5 +23,6 @@ CaseEraGlonassCreateRequest sql=CaseEraGlonassCreateRequest
   requestId RequestId sql=requestid
   callCardId EGCallCardId sql=callcardid
   responseId Text sql=responseid
+
   deriving Typeable Show
 |]

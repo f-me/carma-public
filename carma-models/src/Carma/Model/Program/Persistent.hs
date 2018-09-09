@@ -5,7 +5,6 @@ module Carma.Model.Program.Persistent where
 
 import           Data.Typeable
 import           Data.Text (Text)
-import           Data.Vector (Vector)
 
 import           Database.Persist.Sql (toSqlKey)
 import           Database.Persist.TH
@@ -23,9 +22,10 @@ Program sql=Program
   clientAddress Text Maybe sql=clientaddress
   clientCode Text Maybe sql=clientcode
   fdds Text Maybe sql=fdds
-  managers (Vector UsermetaId) Maybe sql=managers
+  managers UsermetaId Vector Maybe sql=managers
   pType ProgramTypeId Maybe sql=ptype
   help Text Maybe sql=help
+
   deriving Typeable Show
 |]
 

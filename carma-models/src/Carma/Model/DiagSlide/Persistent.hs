@@ -27,5 +27,6 @@ DiagSlide sql=DiagSlide
   isRoot     Bool             sql=isroot
   isActive   Bool             sql=isactive
   files      Reference Maybe  sql=files
+
   deriving Typeable Show
 |]

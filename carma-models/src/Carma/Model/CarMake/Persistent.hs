@@ -4,7 +4,6 @@
 module Carma.Model.CarMake.Persistent where
 
 import           Data.Text (Text)
-import           Data.Vector (Vector)
 import           Data.Typeable
 
 import           Database.Persist.TH
@@ -14,10 +13,11 @@ import           Database.Persist.Sql (toSqlKey)
 -- | @CarMake@ persistent model.
 mkPersist sqlSettings [persistLowerCase|
 CarMake sql=CarMake
-  value    Text                sql=value
-  label    Text                sql=label
-  synonyms (Vector Text) Maybe sql=synonyms
-  fdds     Text          Maybe sql=fdds
+  value    Text              sql=value
+  label    Text              sql=label
+  synonyms Text Vector Maybe sql=synonyms
+  fdds     Text        Maybe sql=fdds
+
   deriving Typeable Show
 |]
 
