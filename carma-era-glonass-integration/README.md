@@ -17,10 +17,24 @@ A system that is integrated to a car to provide rapid emergency assistance.
 # Testing
 
 You could simulate *EG.CRM.01* request from Era Glonass by this command
-(keep in mind that `carma-era-glonass-integration` server must be run to do so):
+(it will run testing server with mocked in-memory SQLite database inside):
 
 ```bash
-stack test :carma-era-glonass-integration-simulate-create-call-card
+stack build && stack test :carma-era-glonass-integration-simulate-create-call-card
+```
+
+You also could run this simulation without mocking database, to make request to
+existing server which works on real database (may be useful for development
+purpuses) by using environment variable:
+
+```bash
+stack build && env CARMA_EG_TEST_WITHOUT_TESTING_SERVER=Y stack test :carma-era-glonass-integration-simulate-create-call-card
+```
+
+To run all tests related to this microservice just run:
+
+```bash
+tools/builder.sh -b backend-test-era-glonass-integration
 ```
 
 ## TODO
