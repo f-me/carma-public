@@ -106,20 +106,22 @@ egCRM01 withoutTestingServer serverLock =
       describe "Incorrect requests failures are stored in the database" $ do
         it "Count of stored failures is correct" $
           withTestingServer withoutTestingServer serverLock $ do
+            requestMaker  <- getRequestMaker <&> \f -> f getFailuresCount
+            previousCount <- requestMaker
+            unless withoutTestingServer $ previousCount `shouldBe` Right 0
             checkFailures
-            requestMaker <- getRequestMaker <&> \f -> f getFailuresCount
-            requestMaker >>= flip shouldBe (Right 4)
+            requestMaker >>= flip shouldBe (previousCount <&> (+ 4))
 
         it "Stored correct failures data" $
           withTestingServer withoutTestingServer serverLock $ do
             checkFailures
             requestMaker <- getRequestMaker <&> \f -> f . getFailuresList . Just
-            jsonListResult <- requestMaker 10
+            jsonListResult <- requestMaker 4
 
             jsonList <-
               case jsonListResult of
-                   Left err -> throwM err
-                   Right x  -> pure x
+                   Left  e -> throwM e
+                   Right x -> pure x
 
             let list :: Either String [Object]
                 list = do
@@ -128,7 +130,8 @@ egCRM01 withoutTestingServer serverLock =
                       Array x -> Right $ toList x
                       _       -> Left "Root value is not an Array"
 
-                  let f _               x@(Left  _) = x
+                  let -- | Accumulates in reversed order
+                      f _               x@(Left  _) = x
                       f []              x@(Right _) = x
                       f (Object x : xs) (Right acc) = f xs $ Right $ x : acc
                       f _ _ = Left "Element value of an Array is not an Object"
@@ -139,8 +142,8 @@ egCRM01 withoutTestingServer serverLock =
 
             zippedList <-
               case list of
-                   Left msg -> fail msg
-                   Right x  -> pure $ zip [jsonA, jsonB, jsonC, jsonD] x
+                   Left  msg -> fail msg
+                   Right x   -> pure $ zip [jsonA, jsonB, jsonC, jsonD] x
 
             length zippedList `shouldBe` 4
 
