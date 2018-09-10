@@ -38,7 +38,7 @@ import           Carma.Model.CarMake.Persistent (CarMakeId)
 
 
 -- | Partially implemented @Case@ persistent model.
-mkPersist sqlSettings [persistLowerCase|
+share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Case sql=casetbl
   callDate        UTCTime Maybe sql=calldate
   vwcreatedate    UTCTime Maybe sql=vwcreatedate

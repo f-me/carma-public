@@ -17,6 +17,9 @@ import           System.IO
 import           Database.Persist.Sqlite
 
 import           Carma.Monad.LoggerBus
+import           Carma.Model.Program.Persistent as Program
+import           Carma.Model.SubProgram.Persistent as SubProgram
+import           Carma.Model.Case.Persistent as Case
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.App
 import           Carma.EraGlonass.Instances ()
@@ -46,6 +49,68 @@ main = do
           [ ( typeRep (Proxy :: Proxy CaseEraGlonassFailure)
             , CaseEraGlonassFailure.migrateAll
             )
+          , ( typeRep (Proxy :: Proxy Program)
+            , Program.migrateAll
+            )
+          , ( typeRep (Proxy :: Proxy SubProgram)
+            , SubProgram.migrateAll
+            )
+          , ( typeRep (Proxy :: Proxy Case)
+            , Case.migrateAll
+            )
           ]
+
+        logDebug [qns| Creating new testing plug "Program" and "SubProgram"
+                       which are Era Glonass participants... |]
+
+        flip runReaderT sqliteConnection $ do
+
+          testingProgramId <-
+            insert Program { programActive        = True
+                           , programLabel         = "Testing Program plug"
+                           , programClient        = Nothing
+                           , programClientAddress = Nothing
+                           , programClientCode    = Nothing
+                           , programFdds          = Nothing
+                           , programManagers      = Nothing
+                           , programPType         = Nothing
+                           , programHelp          = Nothing
+                           }
+
+          insert_ SubProgram { subProgramParent = testingProgramId
+
+                             , subProgramLabel  = "Testing SubProgram plug"
+                             , subProgramActive = True
+                             , subProgramLeader = True
+
+                             , subProgramSynonyms = Nothing
+
+                             , subProgramDiagTree = Nothing
+
+                             , subProgramMailAddr = Nothing
+                             , subProgramMailPass = Nothing
+
+                             , subProgramContacts = []
+                             , subProgramServices = []
+
+                             , subProgramCheckPeriod = Nothing
+                             , subProgramValidFor    = Nothing
+
+                             , subProgramDefaultMake = Nothing
+
+                             , subProgramSmsSender  = ""
+                             , subProgramSmsContact = ""
+                             , subProgramSmsProgram = ""
+
+                             , subProgramEraGlonassParticipant = True
+
+                             , subProgramContractPrs = []
+
+                             , subProgramTemplate = Nothing
+                             , subProgramLogo     = Nothing
+
+                             , subProgramHelp       = Nothing
+                             , subProgramDealerHelp = Nothing
+                             }
 
         lift $ runServer $ DBConnection sqliteConnection

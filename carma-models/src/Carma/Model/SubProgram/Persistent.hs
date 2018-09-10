@@ -18,7 +18,7 @@ import           Carma.Model.ServiceType.Persistent (ServiceTypeId)
 
 
 -- | @SubProgram@ persistent model.
-mkPersist sqlSettings [persistLowerCase|
+share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 SubProgram sql=SubProgram
   parent ProgramId sql=parent
 

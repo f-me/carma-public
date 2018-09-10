@@ -14,7 +14,7 @@ import           Carma.Model.ProgramType.Persistent (ProgramTypeId)
 
 
 -- | @Program@ persistent model.
-mkPersist sqlSettings [persistLowerCase|
+share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Program sql=Program
   active Bool sql=active
   label Text sql=label
