@@ -26,15 +26,15 @@ SubProgram sql=SubProgram
   active Bool sql=active
   leader Bool sql=leader
 
-  synonyms Text Vector Maybe sql=synonyms
+  synonyms [Text] Maybe sql=synonyms
 
   diagTree DiagSlideId Maybe sql=diagtree
 
   mailAddr Text Maybe sql=mailaddr
   mailPass Text Maybe sql=mailpass
 
-  contacts SubProgramContactId Vector sql=contacts
-  services SubProgramServiceId Vector sql=services
+  contacts [SubProgramContactId] sql=contacts
+  services [SubProgramServiceId] sql=services
 
   checkPeriod Int Maybe sql=checkperiod
   validFor    Int Maybe sql=validfor
@@ -47,7 +47,7 @@ SubProgram sql=SubProgram
 
   eraGlonassParticipant Bool sql=eraglonassparticipant
 
-  contractPrs SubProgramContractPermissionId Vector sql=contractpermissions
+  contractPrs [SubProgramContractPermissionId] sql=contractpermissions
 
   template Reference Maybe sql=template
   logo     Reference Maybe sql=logo

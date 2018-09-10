@@ -14,7 +14,7 @@ import           Database.Persist.TH
 mkPersist sqlSettings [persistLowerCase|
 Engine sql=Engine
   label Text sql=label
-  synonyms Text Vector Maybe sql=synonyms
+  synonyms [Text] Maybe sql=synonyms
 
   deriving Typeable Show
 |]

@@ -22,7 +22,7 @@ Program sql=Program
   clientAddress Text Maybe sql=clientaddress
   clientCode Text Maybe sql=clientcode
   fdds Text Maybe sql=fdds
-  managers UsermetaId Vector Maybe sql=managers
+  managers [UsermetaId] Maybe sql=managers
   pType ProgramTypeId Maybe sql=ptype
   help Text Maybe sql=help
 

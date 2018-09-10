@@ -13,10 +13,10 @@ import           Database.Persist.Sql (toSqlKey)
 -- | @CarMake@ persistent model.
 mkPersist sqlSettings [persistLowerCase|
 CarMake sql=CarMake
-  value    Text              sql=value
-  label    Text              sql=label
-  synonyms Text Vector Maybe sql=synonyms
-  fdds     Text        Maybe sql=fdds
+  value    Text         sql=value
+  label    Text         sql=label
+  synonyms [Text] Maybe sql=synonyms
+  fdds     Text   Maybe sql=fdds
 
   deriving Typeable Show
 |]

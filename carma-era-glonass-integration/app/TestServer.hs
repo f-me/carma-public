@@ -38,8 +38,8 @@ main = do
     flip runLoggerForward loggerBus' $
       withSqliteConn ":memory:" $ \sqliteConnection -> do
 
-        let migrateModel (trep, migration) = do
-              logDebug [qm| Applying migration for "{trep}" model... |]
+        let migrateModel (typeRep', migration) = do
+              logDebug [qm| Applying migration for "{typeRep'}" model... |]
               runMigration migration `runReaderT` sqliteConnection
 
         mapM_ migrateModel

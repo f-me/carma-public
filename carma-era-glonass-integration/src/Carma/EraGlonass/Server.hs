@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns, LambdaCase, TupleSections #-}
 
 -- Incoming server implementation to provide an API for Era Glonass side
 -- and also some debug stuff for internal usage.
@@ -25,12 +26,15 @@ import           Control.Monad.Random.Class (MonadRandom (..))
 import           Servant
 import           Servant.Swagger (toSwagger)
 
+import           Database.Persist ((==.))
 import           Database.Persist.Types
 
 import           Carma.Utils.Operators
 import           Carma.Monad.Clock
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.PersistentSql
+import           Carma.Model.Program.Persistent
+import           Carma.Model.SubProgram.Persistent
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Routes
 import           Carma.EraGlonass.Types
@@ -121,6 +125,24 @@ egCRM01 EGCreateCallCardRequest {..} = do
       logPfx = [qms| Incoming Creating Call Card request
                      (Call Card id: "{fromEGCallCardId cardIdCC}",
                       Request id: "{fromRequestId requestId}"): |]
+
+  logDebug [qms| {logPfx} Attempt to find any "Program" which have "SubProgram"
+                 which is Era Glonass participant (since "Program" is required
+                 field of "Case" model so we couldn't leave it empty) |]
+
+  !(anyEGProgram :: ProgramId) <-
+    runSql (selectFirst [SubProgramEraGlonassParticipant ==. True] [])
+      <&> fmap (subProgramParent . entityVal)
+      >>= \case Just x  -> pure x
+                Nothing ->
+                  throwError err500
+                    { errBody = [qns| Not found any "Program" for "Case"
+                                      which is Era Glonass participant
+                                      (have some "SubProgram" which is
+                                       Era Glonass participant). |] }
+
+  logDebug [qms| {logPfx} Era Glonass participant "Program" is successfully
+                 obtained: {anyEGProgram} |]
 
   -- logDebug [qm| {logPfx} Creating CaRMa "Case"... |]
   -- TODO create "Case"

@@ -18,12 +18,12 @@ import           Carma.Model.CaseStatus.Persistent (CaseStatusId)
 -- import           Carma.Model.City.Persistent (CityId)
 -- import           Carma.Model.Partner.Persistent (PartnerId)
 import           Carma.Model.Program.Persistent (ProgramId)
--- import           Carma.Model.SubProgram.Persistent (SubProgramId)
+import           Carma.Model.SubProgram.Persistent (SubProgramId)
 -- import           Carma.Model.Transmission.Persistent (TransmissionId)
 import           Carma.Model.Engine.Persistent (EngineId)
 -- import           Carma.Model.CarClass.Persistent (CarClassId)
 -- import           Carma.Model.CarGeneration.Persistent (CarGenerationId)
--- import           Carma.Model.CarMake.Persistent (CarMakeId)
+import           Carma.Model.CarMake.Persistent (CarMakeId)
 -- import           Carma.Model.CarModel.Persistent (CarModelId)
 -- import           Carma.Model.Contract.Persistent (ContractId)
 -- import           Carma.Model.ContractCheckStatus.Persistent
@@ -68,14 +68,14 @@ Case sql=casetbl
   contact_ownerEmail Text Maybe sql=contact_owneremail
 
   program ProgramId sql=program
-  -- TODO subprogram SubProgramId Maybe sql=subprogram
+  subprogram SubProgramId Maybe sql=subprogram
 
   contractIdentifier Text Maybe sql=contractidentifier
   -- TODO contract ContractId Maybe sql=contract
 
   -- Data about a car
   car_vin Text Maybe sql=car_vin
-  -- TODO car_make CarMakeId Maybe sql=car_make
+  car_make CarMakeId Maybe sql=car_make
   -- TODO car_model CarModelId Maybe sql=car_model
   -- TODO car_generation CarGenerationId Maybe sql=car_generation
   -- TODO car_seller PartnerId Maybe sql=car_seller
