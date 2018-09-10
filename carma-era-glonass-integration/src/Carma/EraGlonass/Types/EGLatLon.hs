@@ -38,6 +38,9 @@ instance FromJSON EGLatitude where
     | otherwise = typeMismatch "EGLatitude" j
   parseJSON x = typeMismatch "EGLatitude" x
 
+instance ToJSON EGLatitude where
+  toJSON (EGLatitude x) = toJSON x
+
 instance ToSchema EGLatitude where
   declareNamedSchema _ = pure $ NamedSchema (Just "EGLatitude") mempty
     { _schemaParamSchema = mempty
@@ -72,6 +75,9 @@ instance FromJSON EGLongitude where
         pure $ toEGLongitude $ fst $ properFraction x
     | otherwise = typeMismatch "EGLongitude" j
   parseJSON x = typeMismatch "EGLongitude" x
+
+instance ToJSON EGLongitude where
+  toJSON (EGLongitude x) = toJSON x
 
 instance ToSchema EGLongitude where
   declareNamedSchema _ = pure $ NamedSchema (Just "EGLongitude") mempty

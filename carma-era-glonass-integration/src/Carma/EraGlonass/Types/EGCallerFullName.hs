@@ -38,6 +38,9 @@ instance FromJSON EGCallerFullName where
 
   parseJSON invalid = typeMismatch "EGCallerFullName" invalid
 
+instance ToJSON EGCallerFullName where
+  toJSON (EGCallerFullName x) = toJSON x
+
 instance ToSchema EGCallerFullName where
   declareNamedSchema _ = pure $ NamedSchema (Just "EGCallerFullName") mempty
     { _schemaParamSchema = mempty

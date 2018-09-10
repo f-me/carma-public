@@ -22,16 +22,23 @@ data EGPropulsion
    | LNG
    | Diesel
    | Gasoline
-     deriving (Show, Eq)
+     deriving (Show, Eq, Enum, Bounded)
+
+instance ToJSON EGPropulsion where
+  toJSON Hydrogen    = String "HYDROGEN"
+  toJSON Electricity = String "ELECTRICITY"
+  toJSON LPG         = String "LPG"
+  toJSON LNG         = String "LNG"
+  toJSON Diesel      = String "DIESEL"
+  toJSON Gasoline    = String "GASOLINE"
 
 instance FromJSON EGPropulsion where
-  parseJSON (String "HYDROGEN")    = pure Hydrogen
-  parseJSON (String "ELECTRICITY") = pure Electricity
-  parseJSON (String "LPG")         = pure LPG
-  parseJSON (String "LNG")         = pure LNG
-  parseJSON (String "DIESEL")      = pure Diesel
-  parseJSON (String "GASOLINE")    = pure Gasoline
-  parseJSON x                      = typeMismatch "EGPropulsion" x
+  -- Producing list of all values to reduce human-factor mistakes,
+  -- so it is handled automatically when we add a new value.
+  parseJSON jsonValue = f [minBound..(maxBound :: EGPropulsion)]
+    where f [] = typeMismatch "EGPropulsion" jsonValue
+          f (x:xs) | toJSON x == jsonValue = pure x
+                   | otherwise             = f xs
 
 instance ToSchema EGPropulsion where
   declareNamedSchema _ = pure

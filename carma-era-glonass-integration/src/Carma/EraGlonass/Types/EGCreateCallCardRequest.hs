@@ -1,11 +1,8 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DataKinds, TypeOperators, TypeFamilies #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Carma.EraGlonass.Types.EGCreateCallCardRequest
      ( EGCreateCallCardRequest (..)
@@ -24,6 +21,7 @@ import           Data.Aeson.TH (Options (omitNothingFields))
 import           Data.Aeson.Types (typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
+import           Text.InterpolatedString.QM
 
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import qualified Carma.EraGlonass.Types.EGPhoneNumber as EGPhoneNumber
@@ -121,6 +119,9 @@ instance FromJSON EGCreateCallCardRequest where
 
         pure parsed
 
+instance ToJSON EGCreateCallCardRequest where
+  toJSON = genericToJSON defaultOptions { omitNothingFields = True }
+
 type FailureConsMeta
    = 'MetaCons "EGCreateCallCardRequestIncorrect" 'PrefixI 'False
 
@@ -150,6 +151,9 @@ data EGCreateCallCardRequestGis
        -- ^ Number of a building as a string.
        --   CaRMa field: "caseAddress_address"
    } deriving (Eq, Show, Generic, ToSchema, FromJSON)
+
+instance ToJSON EGCreateCallCardRequestGis where
+  toJSON = genericToJSON defaultOptions { omitNothingFields = True }
 
 
 data EGCreateCallCardRequestVehicle
@@ -204,6 +208,9 @@ instance FromJSON EGCreateCallCardRequestVehicle where
 
   parseJSON x = typeMismatch "EGCreateCallCardRequestVehicle" x
 
+instance ToJSON EGCreateCallCardRequestVehicle where
+  toJSON = genericToJSON defaultOptions { omitNothingFields = True }
+
 
 data EGCreateCallCardResponse
    = EGCreateCallCardResponse
@@ -233,7 +240,18 @@ data EGCreateCallCardResponse
        -- ^ It's a free string, just a meta information, could be "OK" or an
        --   error's stack trace which would help to debug stuff.
 
-   } deriving (Eq, Show, Generic, ToSchema)
+   }
+
+   | EGCreateCallCardResponseFailure
+   { responseId        :: Text
+   , acceptCode        :: EGAcceptCode.EGAcceptCode
+   , statusDescription :: Maybe Text
+   }
+
+     deriving (Eq, Show, Generic, ToSchema)
 
 instance ToJSON EGCreateCallCardResponse where
-  toJSON = genericToJSON defaultOptions { omitNothingFields = True }
+  toJSON = f . genericToJSON defaultOptions { omitNothingFields = True }
+    where f (Object rootObj) = Object $ HM.delete "tag" rootObj
+          f x = error [qms| ToJSON EGCreateCallCardResponse:
+                            Unexpected root JSON type: {x} |]

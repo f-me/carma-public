@@ -5,7 +5,7 @@ module Carma.EraGlonass.Types.EGVin
      ( EGVin (..)
      ) where
 
-import           Data.Text.Encoding (encodeUtf8)
+import           Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import           Data.String (IsString (fromString))
 import           Text.InterpolatedString.QM
 import           Data.Aeson
@@ -51,6 +51,9 @@ instance FromJSON EGVin where
 
 
   parseJSON x = typeMismatch "EGPhoneNumber" x
+
+instance ToJSON EGVin where
+  toJSON (EGVin x) = toJSON $ decodeUtf8 x
 
 instance ToSchema EGVin where
   declareNamedSchema _ = pure

@@ -23,6 +23,7 @@ CaseEraGlonassFailure json sql=CaseEraGlonassFailure
   integrationPoint EGIntegrationPoint sql=integrationpoint
   requestBody Value Maybe sql=requestbody
   comment Text Maybe sql=comment
+  responseId Text Maybe sql=responseid
 
   deriving Typeable Show
 |]

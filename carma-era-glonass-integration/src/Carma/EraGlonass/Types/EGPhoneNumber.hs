@@ -53,6 +53,9 @@ instance FromJSON EGPhoneNumber where
 
   parseJSON x = typeMismatch "EGPhoneNumber" x
 
+instance ToJSON EGPhoneNumber where
+  toJSON (EGPhoneNumber x) = toJSON x
+
 instance ToSchema EGPhoneNumber where
   declareNamedSchema _ = pure
     $ NamedSchema (Just "EGPhoneNumber") mempty

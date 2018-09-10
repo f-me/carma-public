@@ -1,10 +1,11 @@
 {-# LANGUAGE DuplicateRecordFields, RecordWildCards #-}
 {-# LANGUAGE DataKinds, TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE BangPatterns, LambdaCase, TupleSections #-}
+{-# LANGUAGE BangPatterns, LambdaCase #-}
 
 -- Incoming server implementation to provide an API for Era Glonass side
 -- and also some debug stuff for internal usage.
@@ -18,9 +19,10 @@ import           Text.InterpolatedString.QM
 import           Data.Monoid ((<>))
 import           Data.String (fromString)
 import           Data.Text (Text)
+import           Data.Aeson (toJSON)
 
 import           Control.Monad.Reader (MonadReader, runReaderT, ReaderT)
-import           Control.Monad.Error.Class (MonadError, throwError)
+import           Control.Monad.Error.Class (MonadError, throwError, catchError)
 import           Control.Monad.Random.Class (MonadRandom (..))
 
 import           Servant
@@ -31,6 +33,7 @@ import           Database.Persist.Types
 
 import           Carma.Utils.Operators
 import           Carma.Monad.Clock
+import           Carma.Monad.Thread
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.PersistentSql
 import           Carma.Model.Program.Persistent
@@ -81,24 +84,29 @@ server
      , MonadPersistentSql m
      , MonadClock m
      , MonadRandom m
+     , MonadThread m
      )
   => ServerT ServerAPI m
 server = egCRM01 :<|> (swagger :<|> getFailuresCount :<|> getFailuresList)
 
 
+type EgCrm01Monad m =
+   ( MonadReader AppContext m
+   , MonadLoggerBus m
+   , MonadError ServantErr m
+   , MonadPersistentSql m
+   , MonadClock m
+   , MonadRandom m
+   , MonadThread m
+   )
+
 egCRM01
-  :: ( MonadReader AppContext m
-     , MonadLoggerBus m
-     , MonadError ServantErr m
-     , MonadPersistentSql m
-     , MonadClock m
-     , MonadRandom m
-     )
+  :: EgCrm01Monad m
   => EGCreateCallCardRequest
   -> m EGCreateCallCardResponse
 
 egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
-  logError [qmb| {iPoint}: Failed to parse request body, error message: {msg}
+  logError [qmb| {EgCrm01}: Failed to parse request body, error message: {msg}
                  Saving data of this failure to the database... |]
 
   time <- getCurrentTime
@@ -106,25 +114,19 @@ egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
   failureId <- runSql
     $ insert CaseEraGlonassFailure
     { caseEraGlonassFailureCtime            = time
-    , caseEraGlonassFailureIntegrationPoint = iPoint
+    , caseEraGlonassFailureIntegrationPoint = EgCrm01
     , caseEraGlonassFailureRequestBody      = Just badReqBody
     , caseEraGlonassFailureComment          = Just [qm| Error message: {msg} |]
+    , caseEraGlonassFailureResponseId       = Nothing
     }
 
-  logError [qms| {iPoint}: Failure data successfully saved to the database.
+  logError [qms| {EgCrm01}: Failure data is successfully saved to the database.
                  Failure id: {failureId} |]
 
   throwError err400
-    { errBody = [qm| Error while parsing {iPoint} request JSON data. |] }
+    { errBody = [qm| Error while parsing {EgCrm01} request JSON data. |] }
 
-  where iPoint = EgCrm01
-
-egCRM01 EGCreateCallCardRequest {..} = do
-
-  let logPfx :: Text
-      logPfx = [qms| Incoming Creating Call Card request
-                     (Call Card id: "{fromEGCallCardId cardIdCC}",
-                      Request id: "{fromRequestId requestId}"): |]
+egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
 
   logDebug [qms| {logPfx} Attempt to find any "Program" which have "SubProgram"
                  which is Era Glonass participant (since "Program" is required
@@ -132,8 +134,7 @@ egCRM01 EGCreateCallCardRequest {..} = do
 
   !(anyEGProgram :: ProgramId) <-
     runSql (selectFirst [SubProgramEraGlonassParticipant ==. True] [])
-      <&> fmap (subProgramParent . entityVal)
-      >>= \case Just x  -> pure x
+      >>= \case Just x  -> pure $ subProgramParent $ entityVal x
                 Nothing ->
                   throwError err500
                     { errBody = [qns| Not found any "Program" for "Case"
@@ -147,22 +148,73 @@ egCRM01 EGCreateCallCardRequest {..} = do
   -- logDebug [qm| {logPfx} Creating CaRMa "Case"... |]
   -- TODO create "Case"
 
-  (randomResponseId :: Text) <-
-    getRandomRs (0, pred $ length randomChars)
-      <&> fmap (randomChars !!) ? take 50 ? fromString
-
+  randomResponseId <- getRandomResponseId
   logDebug [qm| {logPfx} Response id: "{randomResponseId}" |]
 
   pure EGCreateCallCardResponse
-    { responseId        = randomResponseId
-    , cardidProvider    = "case id"
-    , acceptId          = fromEGCallCardId cardIdCC
-    , requestId         = requestId
-    , acceptCode        = OK
-    , statusDescription = Nothing
-    }
+     { responseId        = randomResponseId
+     , cardidProvider    = "case id"
+     , acceptId          = fromEGCallCardId cardIdCC
+     , requestId         = requestId
+     , acceptCode        = OK
+     , statusDescription = Nothing
+     }
 
-  where randomChars = ['a'..'z'] <> ['0'..'9'] :: String
+  where
+    getRandomResponseId :: MonadRandom m => m Text
+    getRandomResponseId =
+      getRandomRs (0, pred $ length randomChars)
+        <&> fmap (randomChars !!) ? take 50 ? fromString
+
+      where randomChars = ['a'..'z'] <> ['0'..'9'] :: String
+
+    logPfx :: Text
+    logPfx = [qms| Incoming Creating Call Card request
+                   (Call Card id: "{fromEGCallCardId cardIdCC}",
+                    Request id: "{fromRequestId requestId}"): |]
+
+    handleFailure
+      :: EgCrm01Monad m
+      => m EGCreateCallCardResponse
+      -> m EGCreateCallCardResponse
+    handleFailure m =
+      m `catchError` \(exception :: ServantErr) -> do
+        logError [qms| {logPfx} Request handler is failed
+                                with exception: {exception} |]
+
+        logDebug [qms| {logPfx} Producing random response id
+                                for failure response... |]
+
+        randomResponseId <- getRandomResponseId
+
+        logError [qms| {logPfx} Response id for failure response is:
+                                "{randomResponseId}" |]
+
+        logDebug [qms| {logPfx} Saving failure data to the database
+                                (but returning proper response notwithstanding
+                                 if this failure data saving is succeeded or
+                                 failed by running it in another thread)... |]
+        _ <- fork $ do
+          time <- getCurrentTime
+
+          failureId <- runSql
+            $ insert CaseEraGlonassFailure
+            { caseEraGlonassFailureCtime = time
+            , caseEraGlonassFailureIntegrationPoint = EgCrm01
+            , caseEraGlonassFailureRequestBody = Just $ toJSON reqBody
+            , caseEraGlonassFailureComment = Just "Request handler is failed"
+            , caseEraGlonassFailureResponseId = Just randomResponseId
+            }
+
+          logDebug [qms| {logPfx}
+                         Failure data is successfully saved to the database.
+                         Failure id: {failureId} |]
+
+        pure EGCreateCallCardResponseFailure
+           { responseId = randomResponseId
+           , acceptCode = InternalError
+           , statusDescription = Just "Request handling is failed"
+           }
 
 
 swagger :: Applicative m => m Swagger

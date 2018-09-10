@@ -29,6 +29,8 @@ data CaseEraGlonassFailure
      :: F (Maybe Value) "requestBody" "Содержимое неудачного запроса"
    , comment
      :: F (Maybe Text) "comment" "Дополнительный комментарий"
+   , responseId
+     :: F (Maybe Text) "responseId" "Идентификатор ответа"
    } deriving Typeable
 
 

@@ -68,6 +68,7 @@ CREATE TABLE "CaseEraGlonassFailure"
   , integrationPoint "EraGlonassIntegrationPoint" NOT NULL
   , requestBody      JSON NULL
   , comment          TEXT NULL
+  , responseId       TEXT NULL
   );
 GRANT ALL ON "CaseEraGlonassFailure" TO carma_db_sync;
 GRANT ALL ON "CaseEraGlonassFailure_id_seq" TO carma_db_sync;
