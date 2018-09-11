@@ -5,12 +5,20 @@
 
 module Carma.EraGlonass.Instance.Persistent () where
 
-import           Control.Monad.IO.Class (MonadIO)
+import           Data.Maybe (isJust)
+import qualified Data.Pool as P
+
+import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Reader (MonadReader, asks)
 import           Control.Monad.Trans.Control (MonadBaseControl)
 
+import           System.Timeout (timeout)
+
 import qualified Database.Persist.Sql as DB
 
+import           Carma.Monad.MVar
+import           Carma.Monad.Delay
+import           Carma.Monad.Thread
 import           Carma.Monad.PersistentSql
 import           Carma.EraGlonass.Types
                    ( AppContext (dbConnection)
@@ -30,8 +38,33 @@ instance ( Monad m
       DBConnection     x -> DB.runSqlConn m x
       DBConnectionPool x -> DB.runSqlPool m x
 
-  -- | TODO Look at Database.Persist.Sql.Run.withResourceTimeout
-  runSqlTimeout = error "Not implemented yet"
+  runSqlTimeout n m =
+    asks dbConnection >>= \case
+      DBConnection     x -> fConn x
+      DBConnectionPool x -> fPool x
+    where
+      fConn conn = do
+        responseMVar <- newEmptyMVar
+        timeoutThreadId <- fork $ delay n >> putMVar responseMVar Nothing
+
+        dbReqThreadId <-
+          DB.runSqlConn m conn `forkFinally` \case
+            Left  _ -> putMVar responseMVar Nothing
+            Right x -> putMVar responseMVar $ Just x
+
+        response <- takeMVar responseMVar
+        killThread timeoutThreadId
+        killThread dbReqThreadId
+        pure response
+
+      fPool connPool =
+        liftIO (timeout n $ P.takeResource connPool) >>= \case
+          Nothing -> pure Nothing
+          Just (conn, local) ->
+            fConn conn >>= \x ->
+              x <$ if isJust x
+                      then liftIO $ P.putResource local conn
+                      else liftIO $ P.destroyResource connPool local conn
 
 
 

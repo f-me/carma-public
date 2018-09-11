@@ -21,6 +21,7 @@ import           Data.String (fromString)
 import           Data.Text (Text)
 import           Data.Aeson (toJSON)
 
+import           Control.Monad
 import           Control.Monad.Reader (MonadReader, runReaderT, ReaderT)
 import           Control.Monad.Error.Class (MonadError, throwError, catchError)
 import           Control.Monad.Random.Class (MonadRandom (..))
@@ -29,6 +30,7 @@ import           Servant
 import           Servant.Swagger (toSwagger)
 
 import           Database.Persist ((==.))
+import           Database.Persist.Sql (SqlBackend)
 import           Database.Persist.Types
 
 import           Carma.Utils.Operators
@@ -111,18 +113,21 @@ egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
 
   time <- getCurrentTime
 
-  failureId <- runSql
-    $ insert CaseEraGlonassFailure
-    { caseEraGlonassFailureCtime            = time
-    , caseEraGlonassFailureIntegrationPoint = EgCrm01
-    , caseEraGlonassFailureRequestBody      = Just badReqBody
-    , caseEraGlonassFailureComment          = Just [qm| Error message: {msg} |]
-    , caseEraGlonassFailureResponseId       = Nothing
-    }
+  failureId <-
+    runSqlProtected
+      [qm| {EgCrm01}: Failed to save failure data to the database! |]
+      $ insert CaseEraGlonassFailure
+      { caseEraGlonassFailureCtime            = time
+      , caseEraGlonassFailureIntegrationPoint = EgCrm01
+      , caseEraGlonassFailureRequestBody      = Just badReqBody
+      , caseEraGlonassFailureComment          = Just [qm| Error message: {msg} |]
+      , caseEraGlonassFailureResponseId       = Nothing
+      }
 
   logError [qms| {EgCrm01}: Failure data is successfully saved to the database.
                  Failure id: {failureId} |]
 
+  -- TODO 200 HTTP status with @acceptCode@ as @IncorrectFormat@
   throwError err400
     { errBody = [qm| Error while parsing {EgCrm01} request JSON data. |] }
 
@@ -133,14 +138,19 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
                  field of "Case" model so we couldn't leave it empty) |]
 
   !(anyEGProgram :: ProgramId) <-
-    runSql (selectFirst [SubProgramEraGlonassParticipant ==. True] [])
+    runSqlProtected
+      [qms| {logPfx} Failed to request "SubProgram"
+                     which is Era Glonass participant! |]
+      (selectFirst [SubProgramEraGlonassParticipant ==. True] [])
       >>= \case Just x  -> pure $ subProgramParent $ entityVal x
-                Nothing ->
-                  throwError err500
-                    { errBody = [qns| Not found any "Program" for "Case"
-                                      which is Era Glonass participant
-                                      (have some "SubProgram" which is
-                                       Era Glonass participant). |] }
+                Nothing -> do
+                  let logMsg = [qns| Not found any "Program" for "Case"
+                                     which is Era Glonass participant
+                                     (have some "SubProgram" which is
+                                      Era Glonass participant). |]
+
+                  logError [qm| {logPfx} {logMsg} |]
+                  throwError err500 { errBody = logMsg }
 
   logDebug [qms| {logPfx} Era Glonass participant "Program" is successfully
                  obtained: {anyEGProgram} |]
@@ -178,7 +188,7 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
       => m EGCreateCallCardResponse
       -> m EGCreateCallCardResponse
     handleFailure m =
-      m `catchError` \(exception :: ServantErr) -> do
+      m `catchError` \exception -> do
         logError [qms| {logPfx} Request handler is failed
                                 with exception: {exception} |]
 
@@ -197,14 +207,16 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
         _ <- fork $ do
           time <- getCurrentTime
 
-          failureId <- runSql
-            $ insert CaseEraGlonassFailure
-            { caseEraGlonassFailureCtime = time
-            , caseEraGlonassFailureIntegrationPoint = EgCrm01
-            , caseEraGlonassFailureRequestBody = Just $ toJSON reqBody
-            , caseEraGlonassFailureComment = Just "Request handler is failed"
-            , caseEraGlonassFailureResponseId = Just randomResponseId
-            }
+          failureId <-
+            runSqlProtected
+              [qm| {logPfx} Failed to save failure data to the database! |]
+              $ insert CaseEraGlonassFailure
+              { caseEraGlonassFailureCtime = time
+              , caseEraGlonassFailureIntegrationPoint = EgCrm01
+              , caseEraGlonassFailureRequestBody = Just $ toJSON reqBody
+              , caseEraGlonassFailureComment = Just "Request handler is failed"
+              , caseEraGlonassFailureResponseId = Just randomResponseId
+              }
 
           logDebug [qms| {logPfx}
                          Failure data is successfully saved to the database.
@@ -233,7 +245,10 @@ getFailuresCount = do
   logDebug [qn| Obtaining EG failures total count... |]
 
   totalCount <-
-    fromIntegral <$> runSql (count ([] :: [Filter CaseEraGlonassFailure]))
+    fromIntegral <$>
+      runSqlProtected
+        [qm| Failed to request EG failures total count! |]
+        (count ([] :: [Filter CaseEraGlonassFailure]))
 
   logDebug [qm| Total EG failures is obtained: {totalCount} |]
   pure totalCount
@@ -258,10 +273,35 @@ getFailuresList Nothing = do
 getFailuresList (Just n) = do
   logDebug [qm| Obtaining EG failures list limited to last {n} elements... |]
 
-  result <- runSql $
-    selectList [] [ Desc CaseEraGlonassFailureId
-                  , LimitTo $ fromIntegral n
-                  ]
+  result <-
+    runSqlProtected
+      [qm| Failed to request EG failures list! |]
+      $ selectList [] [ Desc CaseEraGlonassFailureId
+                      , LimitTo $ fromIntegral n
+                      ]
 
   logDebug [qm| EG failures list is obtained, total elements: {length result} |]
   pure result
+
+
+runSqlProtected
+  :: ( MonadLoggerBus m
+     , MonadPersistentSql m
+     , MonadError ServantErr m
+     )
+  => Text -- ^ Fail message
+  -> ReaderT SqlBackend m a
+  -> m a
+
+runSqlProtected errMsg =
+  runSqlInTime >=> \case
+    Just x  -> pure x
+    Nothing -> do
+      let logMsg = [qm| Database request is failed: {errMsg} |]
+      logError [qm| {logMsg} |]
+      throwError err500 { errBody = logMsg }
+
+
+runSqlInTime :: MonadPersistentSql m => ReaderT SqlBackend m a -> m (Maybe a)
+runSqlInTime = runSqlTimeout timeout
+  where timeout = 15 * 1000 * 1000
