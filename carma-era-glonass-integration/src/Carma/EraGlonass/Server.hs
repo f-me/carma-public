@@ -214,8 +214,9 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
               { caseEraGlonassFailureCtime = time
               , caseEraGlonassFailureIntegrationPoint = EgCrm01
               , caseEraGlonassFailureRequestBody = Just $ toJSON reqBody
-              , caseEraGlonassFailureComment = Just "Request handler is failed"
               , caseEraGlonassFailureResponseId = Just randomResponseId
+              , caseEraGlonassFailureComment = Just
+                  [qm| Request handler is failed, exception: {exception} |]
               }
 
           logDebug [qms| {logPfx}
