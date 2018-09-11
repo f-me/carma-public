@@ -23,9 +23,10 @@ import           Carma.Model.Usermeta.Persistent (admin)
 
 
 main :: IO ()
-main = app ProductionAppMode $ \pgConf runServer -> do
+main = app ProductionAppMode $ \pgConf reqTimeout runServer -> do
   logInfo [qms| Creating PostgreSQL connection pool
-                (pool size is: {pgPoolSize pgConf})... |]
+                (pool size is: {pgPoolSize pgConf},
+                 request timeout: {reqTimeout})... |]
 
   loggerBus' <- ask
   !(pgPool :: Pool SqlBackend) <- liftIO $

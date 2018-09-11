@@ -22,7 +22,7 @@ import           Data.Text (Text)
 import           Data.Aeson (toJSON)
 
 import           Control.Monad
-import           Control.Monad.Reader (MonadReader, runReaderT, ReaderT)
+import           Control.Monad.Reader (MonadReader, asks, runReaderT, ReaderT)
 import           Control.Monad.Error.Class (MonadError, throwError, catchError)
 import           Control.Monad.Random.Class (MonadRandom (..))
 
@@ -285,7 +285,8 @@ getFailuresList (Just n) = do
 
 
 runSqlProtected
-  :: ( MonadLoggerBus m
+  :: ( MonadReader AppContext m
+     , MonadLoggerBus m
      , MonadPersistentSql m
      , MonadError ServantErr m
      )
@@ -302,6 +303,9 @@ runSqlProtected errMsg =
       throwError err500 { errBody = logMsg }
 
 
-runSqlInTime :: MonadPersistentSql m => ReaderT SqlBackend m a -> m (Maybe a)
-runSqlInTime = runSqlTimeout timeout
-  where timeout = 15 * 1000 * 1000
+runSqlInTime
+  :: (MonadReader AppContext m, MonadPersistentSql m)
+  => ReaderT SqlBackend m a
+  -> m (Maybe a)
+
+runSqlInTime m = asks dbRequestTimeout >>= flip runSqlTimeout m

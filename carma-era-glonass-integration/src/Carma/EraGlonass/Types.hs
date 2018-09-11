@@ -48,6 +48,9 @@ data AppContext
 
    , dbConnection :: DBConnection
      -- ^ A @Pool@ of connections to PostgreSQL or single connection
+
+   , dbRequestTimeout :: Int
+     -- ^ Timeout in microseconds after which database request will fail
    }
 
 

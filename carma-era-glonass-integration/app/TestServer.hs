@@ -34,7 +34,7 @@ main = do
   hSetBuffering stdout NoBuffering
   hSetBuffering stderr NoBuffering
 
-  app TestingAppMode $ \_ runServer -> do
+  app TestingAppMode $ \_ _ runServer -> do
     logInfo [qms| Creating in-memory SQLite database... |]
     loggerBus' <- ask
 

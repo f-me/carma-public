@@ -41,6 +41,7 @@ app
   :: (MonadIO m, MonadBaseControl IO m)
   => AppMode
   -> ( PostgresConf
+       -> Float
        -> (DBConnection -> ReaderT (MVar LogMessage) m ())
        -> ReaderT (MVar LogMessage) m ()
      ) -- ^ Database connection creator that wraps server runner
@@ -54,6 +55,9 @@ app appMode' dbConnectionCreator = do
   !pgConf <- liftIO $ PostgresConf
     <$> Conf.require cfg "db.postgresql.connection-string"
     <*> Conf.require cfg "db.postgresql.pool-size"
+
+  !(dbRequestTimeout' :: Float) <-
+    liftIO $ Conf.require cfg "db.postgresql.request-timeout"
 
   loggerBus' <- newEmptyMVar
 
@@ -70,6 +74,7 @@ app appMode' dbConnectionCreator = do
                 { appMode = appMode'
                 , loggerBus = loggerBus'
                 , dbConnection = dbConnection'
+                , dbRequestTimeout = round $ dbRequestTimeout' * 1000 * 1000
                 }
 
           logInfo [qm| Running incoming server on http://{host}:{port}... |]
@@ -78,7 +83,7 @@ app appMode' dbConnectionCreator = do
     when (appMode' == TestingAppMode) $
       logWarn "Starting testing server with in-memory SQLite database..."
 
-    dbConnectionCreator pgConf runServer
+    dbConnectionCreator pgConf dbRequestTimeout' runServer
 
 
 runIncomingServer :: AppContext -> Warp.Port -> Warp.HostPreference -> IO ()

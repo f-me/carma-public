@@ -11,5 +11,8 @@ db {
 
     # How many parallel connections are open to handle database requests
     pool-size = 3
+
+    # In seconds
+    request-timeout = 15.0
   }
 }
