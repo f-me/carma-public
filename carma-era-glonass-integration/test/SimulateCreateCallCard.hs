@@ -12,7 +12,6 @@ module Main (main) where
 import           Test.Hspec
 
 import           Data.Proxy
-import           Data.Either (isRight)
 import           Text.InterpolatedString.QM
 import qualified Data.Configurator as Conf
 import           Data.Aeson
@@ -28,7 +27,6 @@ import           System.Environment
 import qualified Network.Wai.Handler.Warp as Warp
 import           Network.HTTP.Client (newManager)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
-import           Network.HTTP.Types.Status (Status (..))
 
 import           Servant
 import           Servant.Client
@@ -84,7 +82,15 @@ egCRM01 withoutTestingServer serverLock =
     it "Usual successful creating EG Call Card" $
       withTestingServer withoutTestingServer serverLock $ do
         result <- getRequestMaker >>= \f -> f $ createCallCard testData'
-        result `shouldSatisfy` isRight
+        result `shouldSatisfy` \case
+          Right (Object kv) -> let
+
+            hasCaseId = HM.member "cardidProvider" kv
+            -- ^ Only successful constructor have this field
+
+            in HM.lookup "acceptCode" kv == Just (String "OK") && hasCaseId
+
+          _ -> False
 
     describe "Incorrect request body" $ do
 
@@ -93,12 +99,23 @@ egCRM01 withoutTestingServer serverLock =
           jsonC = Object [("foo", String "bar")]
           jsonD = Array [testData']
 
-      let checkFailures = do
+      let failurePredicate (Right (Object kv)) =
+            not hasCaseId && acceptCode == Just (String "INCORRECT_FORMAT")
+
+            where hasCaseId = HM.member "cardidProvider" kv
+                  -- ^ Only successful constructor has this field.
+                  --   Failure constructor supposed to NOT have it.
+
+                  acceptCode = HM.lookup "acceptCode" kv
+
+          failurePredicate _ = False
+
+          checkFailures = do
             requestMaker <- getRequestMaker <&> \f -> f . createCallCard
-            requestMaker jsonA >>= flip shouldSatisfy (statusCodePredicate 400)
-            requestMaker jsonB >>= flip shouldSatisfy (statusCodePredicate 400)
-            requestMaker jsonC >>= flip shouldSatisfy (statusCodePredicate 400)
-            requestMaker jsonD >>= flip shouldSatisfy (statusCodePredicate 400)
+            requestMaker jsonA >>= flip shouldSatisfy failurePredicate
+            requestMaker jsonB >>= flip shouldSatisfy failurePredicate
+            requestMaker jsonC >>= flip shouldSatisfy failurePredicate
+            requestMaker jsonD >>= flip shouldSatisfy failurePredicate
 
       it "Incorrect request body" $
         withTestingServer withoutTestingServer serverLock checkFailures
@@ -166,13 +183,6 @@ egCRM01 withoutTestingServer serverLock =
     getRequestMaker :: IO (ClientM a -> IO (Either ServantError a))
     getRequestMaker =
       getClientEnv <&!> \clientEnv req -> runClientM req clientEnv
-
-
-statusCodePredicate :: Int -> Either ServantError a -> Bool
-statusCodePredicate code = \case
-  Left FailureResponse { responseStatus = Status { statusCode = code' } }
-    | code' == code -> True
-  _ -> False
 
 
 createCallCard   :: Value -> ClientM Value

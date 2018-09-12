@@ -102,6 +102,10 @@ type EgCrm01Monad m =
    , MonadThread m
    )
 
+-- | EG.CRM.01 integration point handler.
+--
+-- WARNING! For failure cases it returns 200 HTTP status with
+--          @EGCreateCallCardResponse@ which have @acceptCode@ that is not @OK@.
 egCRM01
   :: EgCrm01Monad m
   => EGCreateCallCardRequest
@@ -109,27 +113,45 @@ egCRM01
 
 egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
   logError [qmb| {EgCrm01}: Failed to parse request body, error message: {msg}
-                 Saving data of this failure to the database... |]
+                 Saving data of this failure to the database in separated \
+                 thread and returning response immediately... |]
 
-  time <- getCurrentTime
+  logDebug [qms| {EgCrm01}: Saving failure data to the database
+                            (but returning proper response notwithstanding
+                             if this failure data saving is succeeded or
+                             failed by running it in another thread)... |]
 
-  failureId <-
-    runSqlProtected
-      [qm| {EgCrm01}: Failed to save failure data to the database! |]
-      $ insert CaseEraGlonassFailure
-      { caseEraGlonassFailureCtime            = time
-      , caseEraGlonassFailureIntegrationPoint = EgCrm01
-      , caseEraGlonassFailureRequestBody      = Just badReqBody
-      , caseEraGlonassFailureComment          = Just [qm| Error message: {msg} |]
-      , caseEraGlonassFailureResponseId       = Nothing
-      }
+  _ <- fork $ do -- Saving failure data in another thread.
+    time <- getCurrentTime
 
-  logError [qms| {EgCrm01}: Failure data is successfully saved to the database.
-                 Failure id: {failureId} |]
+    failureId <-
+      runSqlProtected
+        [qm| {EgCrm01}: Failed to save failure data to the database! |]
+        $ insert CaseEraGlonassFailure
+        { caseEraGlonassFailureCtime = time
+        , caseEraGlonassFailureIntegrationPoint = EgCrm01
+        , caseEraGlonassFailureRequestBody = Just badReqBody
+        , caseEraGlonassFailureResponseId = Nothing
+        , caseEraGlonassFailureComment = Just [qm| Error message: {msg} |]
+        }
 
-  -- TODO 200 HTTP status with @acceptCode@ as @IncorrectFormat@
-  throwError err400
-    { errBody = [qm| Error while parsing {EgCrm01} request JSON data. |] }
+    logError [qms| {EgCrm01}:
+                   Failure data is successfully saved to the database.
+                   Failure id: {failureId} |]
+
+  logDebug [qms| {EgCrm01}: Producing random response id
+                            for failure response... |]
+
+  randomResponseId <- getRandomResponseId
+
+  logError [qms| {EgCrm01}: Response id for failure response is:
+                            "{randomResponseId}" |]
+
+  pure EGCreateCallCardResponseFailure
+     { responseId = randomResponseId
+     , acceptCode = IncorrectFormat
+     , statusDescription = Just "400 Bad Request"
+     }
 
 egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
 
@@ -171,13 +193,6 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
      }
 
   where
-    getRandomResponseId :: MonadRandom m => m Text
-    getRandomResponseId =
-      getRandomRs (0, pred $ length randomChars)
-        <&> fmap (randomChars !!) ? take 50 ? fromString
-
-      where randomChars = ['a'..'z'] <> ['0'..'9'] :: String
-
     logPfx :: Text
     logPfx = [qms| Incoming Creating Call Card request
                    (Call Card id: "{fromEGCallCardId cardIdCC}",
@@ -204,7 +219,8 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
                                 (but returning proper response notwithstanding
                                  if this failure data saving is succeeded or
                                  failed by running it in another thread)... |]
-        _ <- fork $ do
+
+        _ <- fork $ do -- Saving failure data in another thread.
           time <- getCurrentTime
 
           failureId <-
@@ -310,3 +326,12 @@ runSqlInTime
   -> m (Maybe a)
 
 runSqlInTime m = asks dbRequestTimeout >>= flip runSqlTimeout m
+
+
+getRandomResponseId :: MonadRandom m => m Text
+getRandomResponseId =
+  getRandomRs (0, pred $ length randomChars)
+    <&> fmap (randomChars !!) ? take responseIdLength ? fromString
+  where
+    randomChars = ['a'..'z'] <> ['0'..'9'] :: String
+    responseIdLength = 50 -- ^ Chars count
