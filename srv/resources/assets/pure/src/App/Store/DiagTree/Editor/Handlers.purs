@@ -57,19 +57,19 @@ diagTreeEditorHandler appCtx prevState nextState action = case action of
     if isProcessing
        then ignore
        else let state = fromMaybe prevState nextState
-            in copySlide appCtx state.slides slidePath
+            in copySlide appCtx state
 
   CutSlideRequest slidePath ->
     if isProcessing
        then ignore
        else let state = fromMaybe prevState nextState
-            in cutSlide appCtx state.slides slidePath
+            in cutSlide appCtx state
 
   PasteSlideRequest slidePath ->
     if isProcessing
        then ignore
        else let state = fromMaybe prevState nextState
-            in pasteSlide appCtx state.slides slidePath
+            in pasteSlide appCtx prevState slidePath
 
   SaveSlideRequest slidePath { slide, newAnswers } ->
     if isProcessing
@@ -85,7 +85,5 @@ diagTreeEditorHandler appCtx prevState nextState action = case action of
        = prevState.isSlidesLoading
       || prevState.newSlide.isProcessing
       || prevState.slideDeleting.isProcessing
-      || prevState.slideCopying.isProcessing
-      || prevState.slideCutting.isProcessing
-      || prevState.slidePasting.isProcessing
+      || prevState.copyPasteBuffer.isProcessing
       || prevState.slideSaving.isProcessing

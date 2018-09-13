@@ -72,22 +72,11 @@ type DiagTreeEditorState =
          , branch       :: Maybe (Array DiagTreeSlideId)
          }
 
-  , slideCopying
+  , copyPasteBuffer
       :: { isProcessing :: Boolean
          , isFailed     :: Boolean
          , branch       :: Maybe (Array DiagTreeSlideId)
-         }
-
-  , slideCutting
-      :: { isProcessing :: Boolean
-         , isFailed     :: Boolean
-         , branch       :: Maybe (Array DiagTreeSlideId)
-         }
-
-  , slidePasting
-      :: { isProcessing :: Boolean
-         , isFailed     :: Boolean
-         , branch       :: Maybe (Array DiagTreeSlideId)
+         , cutting      :: Boolean
          }
 
   , newSlide
@@ -120,23 +109,11 @@ diagTreeEditorInitialState =
       , isFailed     : false
       , branch       : Nothing
       }
-
-  , slideCopying:
+  , copyPasteBuffer:
       { isProcessing : false
       , isFailed     : false
       , branch       : Nothing
-      }
-
-  , slideCutting:
-      { isProcessing : false
-      , isFailed     : false
-      , branch       : Nothing
-      }
-
-  , slidePasting:
-      { isProcessing : false
-      , isFailed     : false
-      , branch       : Nothing
+      , cutting      : false
       }
 
   , newSlide:
@@ -235,29 +212,33 @@ diagTreeEditorReducer _ (CopySlideRequest []) = Nothing
 diagTreeEditorReducer state (CopySlideRequest slidePath) = do
   guard $ not $ isAnyProcessing state
 
-  Just state { slideCopying
+  Just state { copyPasteBuffer
                  { isProcessing = false
                  , isFailed     = false
                  , branch       = Just slidePath
+                 , cutting      = false
                  }
              }
 
 diagTreeEditorReducer state (CopySlideSuccess slidePath) = do
-  guard =<< map (_ == slidePath) state.slideCopying.branch
+  guard =<< map (_ == slidePath) state.copyPasteBuffer.branch
 
-  Just state { slideCopying
+  Just state { copyPasteBuffer
                  { isProcessing = false
                  , isFailed     = false
-                 , branch       = Nothing
+                 , branch       = Just slidePath
+                 , cutting      = false
                  }
              }
 
 diagTreeEditorReducer state (CopySlideFailure slidePath) = do
-  guard =<< map (_ == slidePath) state.slideCopying.branch
+  guard =<< map (_ == slidePath) state.copyPasteBuffer.branch
 
-  Just state { slideCopying
+  Just state { copyPasteBuffer
                  { isProcessing = false
                  , isFailed     = true
+                 , branch       = Nothing
+                 , cutting      = false
                  }
              }
 
@@ -266,29 +247,33 @@ diagTreeEditorReducer _ (CutSlideRequest []) = Nothing
 diagTreeEditorReducer state (CutSlideRequest slidePath) = do
   guard $ not $ isAnyProcessing state
 
-  Just state { slideCutting
-                 { isProcessing = true
+  Just state { copyPasteBuffer
+                 { isProcessing = false
                  , isFailed     = false
                  , branch       = Just slidePath
+                 , cutting      = true
                  }
              }
 
 diagTreeEditorReducer state (CutSlideSuccess slidePath) = do
-  guard =<< map (_ == slidePath) state.slideCutting.branch
+  guard =<< map (_ == slidePath) state.copyPasteBuffer.branch
 
-  Just state { slideCutting
+  Just state { copyPasteBuffer
                  { isProcessing = false
                  , isFailed     = false
-                 , branch       = Nothing
+                 , branch       = Just slidePath
+                 , cutting      = false
                  }
              }
 
 diagTreeEditorReducer state (CutSlideFailure slidePath) = do
-  guard =<< map (_ == slidePath) state.slideCutting.branch
+  guard =<< map (_ == slidePath) state.copyPasteBuffer.branch
 
-  Just state { slideCutting
+  Just state { copyPasteBuffer
                  { isProcessing = false
                  , isFailed     = true
+                 , branch       = Nothing
+                 , cutting      = true
                  }
              }
 
@@ -297,27 +282,29 @@ diagTreeEditorReducer _ (PasteSlideRequest []) = Nothing
 diagTreeEditorReducer state (PasteSlideRequest slidePath) = do
   guard $ not $ isAnyProcessing state
 
-  Just state { slidePasting
+  Just state { copyPasteBuffer
                  { isProcessing = true
                  , isFailed     = false
                  , branch       = Just slidePath
+                 , cutting      = false
                  }
              }
 
 diagTreeEditorReducer state (PasteSlideSuccess slidePath) = do
-  guard =<< map (_ == slidePath) state.slideCutting.branch
+  guard =<< map (_ == slidePath) state.copyPasteBuffer.branch
 
-  Just state { slidePasting
+  Just state { copyPasteBuffer
                  { isProcessing = false
                  , isFailed     = false
                  , branch       = Nothing
+                 , cutting      = false
                  }
              }
 
 diagTreeEditorReducer state (PasteSlideFailure slidePath) = do
-  guard =<< map (_ == slidePath) state.slideCutting.branch
+  guard =<< map (_ == slidePath) state.copyPasteBuffer.branch
 
-  Just state { slidePasting
+  Just state { copyPasteBuffer
                  { isProcessing = false
                  , isFailed     = true
                  }
