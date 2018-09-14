@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns, LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -13,11 +13,19 @@ import qualified Data.Configurator as Conf
 import           Data.String (fromString)
 import           Text.InterpolatedString.QM
 
-import           Control.Monad (when)
+import           Control.Monad
 import           Control.Monad.Reader
 import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Trans.Control (MonadBaseControl)
+import           Control.Concurrent.MVar (tryReadMVar)
+
+import           System.Posix.Signals
+                   ( installHandler
+                   , Handler (Catch)
+                   , sigINT
+                   , sigTERM
+                   )
 
 import qualified Network.Wai.Handler.Warp as Warp
 import           Database.Persist.Postgresql (PostgresConf (PostgresConf))
@@ -26,6 +34,7 @@ import           Carma.Monad.LoggerBus.Types (LogMessage)
 import           Carma.Monad.LoggerBus.MonadLogger
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.Thread
+import           Carma.Monad.Delay
 import           Carma.Monad.MVar
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.Instances ()
@@ -62,10 +71,11 @@ app appMode' dbConnectionCreator = do
   loggerBus' <- newEmptyMVar
 
   -- Running logger thread
-  _ <- fork $ runStdoutLoggingT $
-    writeLoggerBusEventsToMonadLogger `runReaderT` loggerBus'
+  (_, loggerThreadWaiter) <-
+    forkWithWaitBus $ runStdoutLoggingT $
+      writeLoggerBusEventsToMonadLogger `runReaderT` loggerBus'
 
-  flip runReaderT loggerBus' $ do
+  (serverThreadId, serverThreadWaiter) <- flip runReaderT loggerBus' $ do
 
     let runServer dbConnection' = do
 
@@ -83,7 +93,32 @@ app appMode' dbConnectionCreator = do
     when (appMode' == TestingAppMode) $
       logWarn "Starting testing server with in-memory SQLite database..."
 
-    dbConnectionCreator pgConf dbRequestTimeout' runServer
+    forkWithWaitBus $ dbConnectionCreator pgConf dbRequestTimeout' runServer
+
+  -- Trapping termination of the application
+  liftIO $ forM_ [sigINT, sigTERM] $ \sig ->
+    let terminateHook = killThread serverThreadId
+     in installHandler sig (Catch terminateHook) Nothing
+
+  -- Wait for server thread
+  takeMVar serverThreadWaiter
+
+  let waitForLogger =
+        tryReadMVar loggerBus' >>= \case
+          Nothing -> pure () -- We're done, successfully exiting
+          Just _ -> -- Logger still have something to handle
+            tryReadMVar loggerThreadWaiter >>= \case
+              Nothing ->
+                -- Waiting for 100 milliseconds before next iteration
+                -- to avoid high CPU usage.
+                delay (100 * 1000) >> waitForLogger
+              Just _ ->
+                -- Something went wrong
+                fail [qns| Logger thread is probably failed
+                           before it finished handling all log messages! |]
+
+  -- Making sure that logger handled all the messages from logger bus
+  liftIO waitForLogger
 
 
 runIncomingServer :: AppContext -> Warp.Port -> Warp.HostPreference -> IO ()

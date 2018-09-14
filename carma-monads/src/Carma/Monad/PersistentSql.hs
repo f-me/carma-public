@@ -6,6 +6,7 @@ module Carma.Monad.PersistentSql
      ) where
 
 import           Control.Monad.Reader (ReaderT)
+import           Control.Exception (SomeException)
 
 import           Database.Persist.Sql
 
@@ -17,7 +18,7 @@ import           Database.Persist.Sql
 class Monad m => MonadPersistentSql m where
 
   runSql :: ReaderT SqlBackend m a -> m a
-  runSqlTimeout :: Int -> ReaderT SqlBackend m a -> m (Maybe a)
+  runSqlTimeout :: Int -> ReaderT SqlBackend m a -> m (Either SomeException a)
 
 
 

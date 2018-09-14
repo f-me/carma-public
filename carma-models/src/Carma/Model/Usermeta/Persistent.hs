@@ -12,15 +12,13 @@ import           Database.Persist.TH
 -- | Partially implemented @Usermeta@ persistent model.
 --
 -- For now just for IDs.
-mkPersist sqlSettings [persistLowerCase|
+share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Usermeta sql=usermetatbl
   deriving Typeable Show
 |]
 
 
 -- | @Usermeta@ predefined IDs.
---
--- TODO add Era Glonass source.
 psa, arc, admin :: UsermetaId
 psa = toSqlKey 387
 arc = toSqlKey 728

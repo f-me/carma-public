@@ -3,11 +3,15 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Carma.EraGlonass.Instance.Persistent () where
+module Carma.EraGlonass.Instance.Persistent
+     ( TimeoutException (..)
+     ) where
 
-import           Data.Maybe (isJust)
+import           Data.Typeable
+import           Data.Either (isRight)
 import qualified Data.Pool as P
 
+import           Control.Exception
 import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Reader (MonadReader, asks)
 import           Control.Monad.Trans.Control (MonadBaseControl)
@@ -43,14 +47,19 @@ instance ( Monad m
       DBConnection     x -> fConn x
       DBConnectionPool x -> fPool x
     where
+      timeoutException = toException $ TimeoutExceeded n
+
       fConn conn = do
         responseMVar <- newEmptyMVar
-        timeoutThreadId <- fork $ delay n >> putMVar responseMVar Nothing
+
+        timeoutThreadId <- fork $ do
+          delay n
+          putMVar responseMVar $ Left timeoutException
 
         dbReqThreadId <-
           DB.runSqlConn m conn `forkFinally` \case
-            Left  _ -> putMVar responseMVar Nothing
-            Right x -> putMVar responseMVar $ Just x
+            Left  e -> putMVar responseMVar $ Left  e
+            Right x -> putMVar responseMVar $ Right x
 
         response <- takeMVar responseMVar
         killThread timeoutThreadId
@@ -59,10 +68,10 @@ instance ( Monad m
 
       fPool connPool =
         liftIO (timeout n $ P.takeResource connPool) >>= \case
-          Nothing -> pure Nothing
+          Nothing -> pure $ Left timeoutException
           Just (conn, local) ->
             fConn conn >>= \x ->
-              x <$ if isJust x
+              x <$ if isRight x
                       then liftIO $ P.putResource local conn
                       else liftIO $ P.destroyResource connPool local conn
 
@@ -153,3 +162,7 @@ instance ( Monad m
 
   updateWhere = DB.updateWhere
   deleteWhere = DB.deleteWhere
+
+
+data TimeoutException = TimeoutExceeded Int deriving (Show, Eq, Typeable)
+instance Exception TimeoutException

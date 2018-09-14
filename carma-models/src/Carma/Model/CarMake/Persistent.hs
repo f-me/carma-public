@@ -11,7 +11,7 @@ import           Database.Persist.Sql (toSqlKey)
 
 
 -- | @CarMake@ persistent model.
-mkPersist sqlSettings [persistLowerCase|
+share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 CarMake sql=CarMake
   value    Text         sql=value
   label    Text         sql=label

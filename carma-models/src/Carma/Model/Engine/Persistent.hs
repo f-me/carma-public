@@ -11,7 +11,7 @@ import           Database.Persist.TH
 
 
 -- | @Engine@ persistent model.
-mkPersist sqlSettings [persistLowerCase|
+share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Engine sql=Engine
   label Text sql=label
   synonyms [Text] Maybe sql=synonyms

@@ -239,7 +239,6 @@ data EGCreateCallCardResponse
    , statusDescription :: Maybe Text
        -- ^ It's a free string, just a meta information, could be "OK" or an
        --   error's stack trace which would help to debug stuff.
-
    }
 
    | EGCreateCallCardResponseFailure

@@ -9,12 +9,14 @@ module Carma.EraGlonass.Test.Helpers
      ) where
 
 import           Test.Hspec
+import           Test.HUnit.Lang
 
 import           Data.Text (Text)
 import qualified Data.Text.IO as T
 import qualified Data.Attoparsec.Text as ParsecText
 import           Text.InterpolatedString.QM
 
+import           Control.Monad
 import           Control.Arrow
 import           Control.Applicative ((<|>))
 import           Control.Concurrent
@@ -55,26 +57,27 @@ withTestingServer withoutOwnServer locker runTest =
         }
 
     runWithoutServer = do
-      () <- takeMVar locker -- lock
-      finally runTest $
-       putMVar locker () -- unlock
+      () <- takeMVar locker -- Waiting for lock
+      finally runTest $ putMVar locker () -- Unlock
+
+    isPipeReadable pipeHandler =
+      (&&) <$> (not <$> hIsEOF pipeHandler) <*> hIsReadable pipeHandler
 
     runWithServer = do
-      () <- takeMVar locker -- lock
+      () <- takeMVar locker -- Waiting for lock
       (Nothing, Just hOut, Just hErr, hProc) <- createProcess serverCmd
       (outLogMVar :: MVar Text) <- newEmptyMVar
       (errLogMVar :: MVar Text) <- newEmptyMVar
 
-      _ <-
-        let
-          f :: Text -> IO ()
-          f accumulator = do
-            isReadable <- (&&) <$> (not <$> hIsEOF hErr) <*> hIsReadable hErr
-            if not isReadable
-               then putMVar errLogMVar accumulator
-               else T.hGetLine hErr >>= \x -> f [qm| {accumulator}  {x}\n |]
-        in
-          forkIO $ f mempty
+      _ <- let
+        f :: Text -> IO ()
+        f accumulator = do
+          isReadable <- isPipeReadable hErr
+          if not isReadable
+             then putMVar errLogMVar accumulator
+             else T.hGetLine hErr >>= \x -> f [qm| {accumulator}  {x}\n |]
+
+        in forkIO $ f mempty
 
       let readLog :: Text -> IO ()
           readLog outLog = do
@@ -85,7 +88,7 @@ withTestingServer withoutOwnServer locker runTest =
                 fail [qmb| Testing server is failed with exit code: {x}!
                            Error log:\n{errLog} |]
 
-            isReadable <- (&&) <$> (not <$> hIsEOF hOut) <*> hIsReadable hOut
+            isReadable <- isPipeReadable hOut
             if not isReadable
                then readLog outLog
                     -- ^ Recursive repeat to catch unexpected termination
@@ -93,24 +96,66 @@ withTestingServer withoutOwnServer locker runTest =
                       <&> (id &&& ParsecText.parseOnly substr)
                       >>= \case (l, Left  _) -> readLog [qm| {outLog}  {l}\n |]
                                 (l, Right _) ->
-                                  putMVar outLogMVar [qm| {outLog}  {l}\n |]
-                                  -- ^ Server is ready, we're done here
+                                  -- Server is ready.
+                                  -- Reading rest of the log in background.
+                                  void $ forkIO $
+                                    readRestOfLog [qm| {outLog}  {l}\n |]
+            where
+              readRestOfLog :: Text -> IO ()
+              readRestOfLog accumulator = do
+                isReadable <- isPipeReadable hOut
+                if not isReadable
+                   then putMVar outLogMVar accumulator
+                   else T.hGetLine hOut
+                          >>= \x -> readRestOfLog [qm| {accumulator}  {x}\n |]
 
-      let testFailureHandler :: ServantError -> IO ()
-          testFailureHandler exception = do
+      let finishServer :: IO Text
+          finishServer = do
             _ <- terminateProcess hProc >> waitForProcess hProc
             errLog <- takeMVar errLogMVar
             outLog <- takeMVar outLogMVar
 
-            fail [qmb|
-              Test is failed because of test server response:
-              \  {exception}
+            pure [qmb|
               Testing server stderr:
                 {if errLog == mempty then "  <log is empty>\n" else errLog}\
               Testing server stdout:
                 {if outLog == mempty then "  <log is empty>\n" else outLog}
             |]
 
-      finally (readLog mempty >> (runTest `catch` testFailureHandler)) $ do
-        _ <- terminateProcess hProc >> waitForProcess hProc
-        putMVar locker () -- unlock
+      let serverFailureHandler :: ServantError -> IO ()
+          serverFailureHandler exception = do
+            absorbedLog <- finishServer
+
+            fail [qmb|
+              Test is failed because of test server response:
+              \  {exception}
+              {absorbedLog}
+            |]
+
+      let testFailureHandler :: HUnitFailure -> IO ()
+          testFailureHandler exception = do
+            absorbedLog <- finishServer
+
+            -- Adding absorbed server log to the exception
+            throwM $ case exception of
+              HUnitFailure srcLoc failureReason ->
+                HUnitFailure srcLoc $ case failureReason of
+                  Reason msg ->
+                    Reason [qm| {msg}\n{absorbedLog} |]
+
+                  ExpectedButGot Nothing expected got ->
+                    ExpectedButGot (Just [qm| {absorbedLog} |]) expected got
+
+                  ExpectedButGot (Just comment) expected got ->
+                    ExpectedButGot
+                      (Just [qm| {comment}\n{absorbedLog} |]) expected got
+
+      let testRunner =
+            runTest
+              `catch` serverFailureHandler
+              `catch` testFailureHandler
+
+      finally (readLog mempty >> testRunner) $ do
+        terminateProcess hProc
+        _ <- waitForProcess hProc
+        putMVar locker () -- Unlock

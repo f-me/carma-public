@@ -25,19 +25,25 @@ import           Control.Monad
 import           Control.Monad.Reader (MonadReader, asks, runReaderT, ReaderT)
 import           Control.Monad.Error.Class (MonadError, throwError, catchError)
 import           Control.Monad.Random.Class (MonadRandom (..))
+import           Control.Exception (SomeException)
 
 import           Servant
 import           Servant.Swagger (toSwagger)
 
 import           Database.Persist ((==.))
-import           Database.Persist.Sql (SqlBackend)
+import           Database.Persist.Sql (SqlBackend, fromSqlKey)
 import           Database.Persist.Types
 
 import           Carma.Utils.Operators
+import           Carma.Monad.MVar
 import           Carma.Monad.Clock
 import           Carma.Monad.Thread
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.PersistentSql
+import           Carma.Model.Case.Persistent
+import           Carma.Model.CaseSource.Persistent
+import           Carma.Model.CaseStatus.Persistent
+import           Carma.Model.Usermeta.Persistent
 import           Carma.Model.Program.Persistent
 import           Carma.Model.SubProgram.Persistent
 import           Carma.EraGlonass.Instances ()
@@ -45,6 +51,7 @@ import           Carma.EraGlonass.Routes
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
+import           Carma.EraGlonass.Model.CaseEraGlonassCreateRequest.Persistent
 
 
 type FaliuresAPI
@@ -87,6 +94,7 @@ server
      , MonadClock m
      , MonadRandom m
      , MonadThread m
+     , MonadMVar m
      )
   => ServerT ServerAPI m
 server = egCRM01 :<|> (swagger :<|> getFailuresCount :<|> getFailuresList)
@@ -100,6 +108,7 @@ type EgCrm01Monad m =
    , MonadClock m
    , MonadRandom m
    , MonadThread m
+   , MonadMVar m
    )
 
 -- | EG.CRM.01 integration point handler.
@@ -114,14 +123,15 @@ egCRM01
 egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
   logError [qmb| {EgCrm01}: Failed to parse request body, error message: {msg}
                  Saving data of this failure to the database in separated \
-                 thread and returning response immediately... |]
+                 thread and returning response... |]
 
   logDebug [qms| {EgCrm01}: Saving failure data to the database
                             (but returning proper response notwithstanding
                              if this failure data saving is succeeded or
                              failed by running it in another thread)... |]
 
-  _ <- fork $ do -- Saving failure data in another thread.
+  -- Saving failure data in another thread.
+  (_, waitBus) <- forkWithWaitBus $ do
     time <- getCurrentTime
 
     failureId <-
@@ -138,6 +148,9 @@ egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
     logError [qms| {EgCrm01}:
                    Failure data is successfully saved to the database.
                    Failure id: {failureId} |]
+
+  -- Waiting for thread to get correct testing results without timeouts
+  () <- takeMVar waitBus
 
   logDebug [qms| {EgCrm01}: Producing random response id
                             for failure response... |]
@@ -159,33 +172,119 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
                  which is Era Glonass participant (since "Program" is required
                  field of "Case" model so we couldn't leave it empty) |]
 
-  !(anyEGProgram :: ProgramId) <-
+  (!(anyEGProgram :: ProgramId), !(anyEGSubProgram :: SubProgramId)) <-
     runSqlProtected
       [qms| {logPfx} Failed to request "SubProgram"
                      which is Era Glonass participant! |]
       (selectFirst [SubProgramEraGlonassParticipant ==. True] [])
-      >>= \case Just x  -> pure $ subProgramParent $ entityVal x
+
+      >>= \case Just subProgram -> pure
+                  ( subProgramParent $ entityVal subProgram
+                  , entityKey subProgram
+                  )
+
                 Nothing -> do
-                  let logMsg = [qns| Not found any "Program" for "Case"
-                                     which is Era Glonass participant
-                                     (have some "SubProgram" which is
-                                      Era Glonass participant). |]
+                  let logMsg = [qns| Not found any "SubProgram" for "Case"
+                                     which is Era Glonass participant! |]
 
                   logError [qm| {logPfx} {logMsg} |]
                   throwError err500 { errBody = logMsg }
 
-  logDebug [qms| {logPfx} Era Glonass participant "Program" is successfully
-                 obtained: {anyEGProgram} |]
+  logDebug [qms| {logPfx} Era Glonass participant "SubProgram" and its "Program"
+                          is successfully obtained:
+                          {anyEGSubProgram}
+                          {anyEGProgram} |]
 
-  -- logDebug [qm| {logPfx} Creating CaRMa "Case"... |]
-  -- TODO create "Case"
-
+  time <- getCurrentTime
   randomResponseId <- getRandomResponseId
-  logDebug [qm| {logPfx} Response id: "{randomResponseId}" |]
+
+  logDebug [qm| {logPfx} Creation time: "{time}",
+                         response id: "{randomResponseId}" |]
+
+  logDebug [qm| {logPfx} Creating "Case"... |]
+
+  caseId <-
+    runSqlProtected
+      [qm| {logPfx} Failed to create "Case" for Era Glonass Call Card! |]
+      $ insert Case
+      -- TODO fill with proper data from @EGCreateCallCardRequest@
+      { caseCallDate = Just time
+      , caseVwcreatedate = Nothing
+      , caseCallTaker = admin
+      , caseCustomerComment = Nothing
+
+      , caseContact_name = Nothing
+      , caseContact_phone1 = Nothing
+      , caseContact_phone2 = Nothing
+      , caseContact_phone3 = Nothing
+      , caseContact_phone4 = Nothing
+      , caseContact_email = Nothing
+      , caseContact_contactOwner = Nothing
+      , caseContact_ownerName = Nothing
+      , caseContact_ownerPhone1 = Nothing
+      , caseContact_ownerPhone2 = Nothing
+      , caseContact_ownerPhone3 = Nothing
+      , caseContact_ownerPhone4 = Nothing
+      , caseContact_ownerEmail = Nothing
+
+      , caseProgram = anyEGProgram
+      , caseSubprogram = Nothing
+
+      , caseContractIdentifier = Nothing
+
+      , caseCar_vin = Nothing
+      , caseCar_make = Nothing
+      , caseCar_plateNum = Nothing
+      , caseCar_makeYear = Nothing
+      , caseCar_color = Nothing
+      , caseCar_buyDate = Nothing
+      , caseCar_firstSaleDate = Nothing
+      , caseCar_mileage = Nothing
+      , caseCar_engine = Nothing
+      , caseCar_liters = Nothing
+
+      , caseCaseAddress_address = Nothing
+      , caseCaseAddress_comment = Nothing
+      , caseCaseAddress_notRussia = Nothing
+      , caseCaseAddress_coords = Nothing
+      , caseCaseAddress_map = Nothing
+      , caseTemperature = Nothing
+      , caseRepair = Nothing
+      , caseAccord = Nothing
+      , caseDealerCause = Nothing
+      , caseCaseStatus = front
+      , casePsaExportNeeded = Nothing
+      , casePsaExported = Nothing
+      , caseClaim = Nothing
+
+      , caseFiles = Nothing
+      , caseSource = eraGlonass
+      , caseAcStart = Nothing
+      , caseIsCreatedByEraGlonass = True
+      }
+
+  logDebug [qm| {logPfx} "Case" is successfully created: {caseId} |]
+  logDebug [qm| {logPfx} Creating "CaseEraGlonassCreateRequest"... |]
+
+  caseEGCreateRequestId <-
+    runSqlProtected
+      [qm| {logPfx} Failed to create "CaseEraGlonassCreateRequest"! |]
+      $ insert CaseEraGlonassCreateRequest
+      { caseEraGlonassCreateRequestCtime          = time
+      , caseEraGlonassCreateRequestAssociatedCase = caseId
+      , caseEraGlonassCreateRequestRequestId      = requestId
+      , caseEraGlonassCreateRequestCallCardId     = cardIdCC
+      , caseEraGlonassCreateRequestResponseId     = randomResponseId
+      }
+
+  logDebug [qms| {logPfx} "CaseEraGlonassCreateRequest" is created:
+                          {caseEGCreateRequestId} |]
+
+  logDebug [qm| {logPfx} Responding about success... |]
 
   pure EGCreateCallCardResponse
      { responseId        = randomResponseId
-     , cardidProvider    = "case id"
+     , cardidProvider    = [qm| {fromSqlKey caseId} |]
      , acceptId          = fromEGCallCardId cardIdCC
      , requestId         = requestId
      , acceptCode        = OK
@@ -220,7 +319,8 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
                                  if this failure data saving is succeeded or
                                  failed by running it in another thread)... |]
 
-        _ <- fork $ do -- Saving failure data in another thread.
+        -- Saving failure data in another thread.
+        (_, waitBus) <- forkWithWaitBus $ do
           time <- getCurrentTime
 
           failureId <-
@@ -239,10 +339,14 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
                          Failure data is successfully saved to the database.
                          Failure id: {failureId} |]
 
+        -- Waiting for thread to get correct testing results without timeouts
+        () <- takeMVar waitBus
+
         pure EGCreateCallCardResponseFailure
            { responseId = randomResponseId
            , acceptCode = InternalError
-           , statusDescription = Just "Request handling is failed"
+           , statusDescription = Just
+               [qm| Request handling is failed with exception: {exception} |]
            }
 
 
@@ -264,7 +368,7 @@ getFailuresCount = do
   totalCount <-
     fromIntegral <$>
       runSqlProtected
-        [qm| Failed to request EG failures total count! |]
+        [qn| Failed to request EG failures total count! |]
         (count ([] :: [Filter CaseEraGlonassFailure]))
 
   logDebug [qm| Total EG failures is obtained: {totalCount} |]
@@ -292,7 +396,7 @@ getFailuresList (Just n) = do
 
   result <-
     runSqlProtected
-      [qm| Failed to request EG failures list! |]
+      [qn| Failed to request EG failures list! |]
       $ selectList [] [ Desc CaseEraGlonassFailureId
                       , LimitTo $ fromIntegral n
                       ]
@@ -313,9 +417,11 @@ runSqlProtected
 
 runSqlProtected errMsg =
   runSqlInTime >=> \case
-    Just x  -> pure x
-    Nothing -> do
-      let logMsg = [qm| Database request is failed: {errMsg} |]
+    Right x -> pure x
+    Left  e -> do
+      let logMsg = [qmb| Database request is failed: {errMsg}
+                         Exception: {e} |]
+
       logError [qm| {logMsg} |]
       throwError err500 { errBody = logMsg }
 
@@ -323,7 +429,7 @@ runSqlProtected errMsg =
 runSqlInTime
   :: (MonadReader AppContext m, MonadPersistentSql m)
   => ReaderT SqlBackend m a
-  -> m (Maybe a)
+  -> m (Either SomeException a)
 
 runSqlInTime m = asks dbRequestTimeout >>= flip runSqlTimeout m
 

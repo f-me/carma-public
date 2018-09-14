@@ -11,7 +11,7 @@ import           Database.Persist.TH
 
 
 -- | @CaseStatus@ persistent model.
-mkPersist sqlSettings [persistLowerCase|
+share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 CaseStatus sql=CaseStatus
   label Text sql=label
   deriving Typeable Show

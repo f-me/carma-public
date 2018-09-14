@@ -49,6 +49,7 @@ dependencies:
   - time
   - transformers
   - transformers-base
+  - unix
   - unordered-containers
   - warp
 
@@ -86,6 +87,7 @@ tests:
     dependencies:
       - carma-era-glonass-integration
       - hspec
+      - HUnit
       - process
 
   carma-era-glonass-integration-types:
@@ -94,5 +96,6 @@ tests:
     dependencies:
       - carma-era-glonass-integration
       - hspec
+      - HUnit
       - random
       - process

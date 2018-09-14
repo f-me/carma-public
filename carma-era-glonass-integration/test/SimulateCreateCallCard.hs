@@ -144,8 +144,8 @@ egCRM01 withoutTestingServer serverLock =
                 list = do
                   extractedList <-
                     case jsonList of
-                      Array x -> Right $ toList x
-                      _       -> Left "Root value is not an Array"
+                         Array x -> Right $ toList x
+                         _       -> Left "Root value is not an Array"
 
                   let -- | Accumulates in reversed order
                       f _               x@(Left  _) = x
@@ -153,7 +153,7 @@ egCRM01 withoutTestingServer serverLock =
                       f (Object x : xs) (Right acc) = f xs $ Right $ x : acc
                       f _ _ = Left "Element value of an Array is not an Object"
 
-                  f extractedList (Right [])
+                  f extractedList $ Right []
 
             fmap length list `shouldBe` Right 4
 

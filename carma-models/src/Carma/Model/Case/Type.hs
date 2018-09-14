@@ -38,8 +38,11 @@ data Case = Case
   { ident :: PK Int Case "Номер кейса"
   , callDate
     :: F (Maybe UTCTime) "callDate" "Дата звонка"
+
+    -- TODO Explain what this field for and in which cases it is not null
   , vwcreatedate
     :: F (Maybe UTCTime) "vwcreatedate" "Дата звонка"
+
   , callTaker
     :: F (IdentI Usermeta) "callTaker" "Сотрудник РАМК"
   , customerComment
