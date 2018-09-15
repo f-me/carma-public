@@ -26,7 +26,7 @@ main :: IO ()
 main = app ProductionAppMode $ \pgConf reqTimeout runServer -> do
   logInfo [qms| Creating PostgreSQL connection pool
                 (pool size is: {pgPoolSize pgConf},
-                 request timeout: {reqTimeout})... |]
+                 request timeout: {reqTimeout} seconds)... |]
 
   loggerBus' <- ask
   !(pgPool :: Pool SqlBackend) <- liftIO $
