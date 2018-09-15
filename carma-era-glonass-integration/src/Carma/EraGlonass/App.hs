@@ -21,6 +21,7 @@ import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Control.Concurrent.MVar (tryReadMVar)
 import           Control.Concurrent.STM.TQueue
 import           Control.Concurrent.STM.TVar
+import           Control.Concurrent.STM.TSem
 
 import           System.Posix.Signals
                    ( installHandler
@@ -37,7 +38,6 @@ import           Carma.Monad.LoggerBus.MonadLogger
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.Thread
 import           Carma.Monad.Delay
-import           Carma.Monad.MVar
 import           Carma.Monad.STM
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.Instances ()
@@ -74,13 +74,13 @@ app appMode' dbConnectionCreator = do
   loggerBus' <- atomically newTQueue
 
   -- Running logger thread
-  (_, loggerThreadWaiter) <-
+  (_, loggerThreadWaitBus) <-
     forkWithWaitBus $ runStdoutLoggingT $
       writeLoggerBusEventsToMonadLogger `runReaderT` loggerBus'
 
   backgroundTasksCounter' <- atomically $ newTVar 0
 
-  (serverThreadId, serverThreadWaiter) <- flip runReaderT loggerBus' $ do
+  (serverThreadId, serverThreadSem) <- flip runReaderT loggerBus' $ do
 
     let runServer dbConnection' = do
 
@@ -99,7 +99,7 @@ app appMode' dbConnectionCreator = do
     when (appMode' == TestingAppMode) $
       logWarn "Starting testing server with in-memory SQLite database..."
 
-    forkWithWaitBus $ dbConnectionCreator pgConf dbRequestTimeout' runServer
+    forkWithSem $ dbConnectionCreator pgConf dbRequestTimeout' runServer
 
   -- Trapping termination of the application
   liftIO $ forM_ [sigINT, sigTERM] $ \sig ->
@@ -107,13 +107,13 @@ app appMode' dbConnectionCreator = do
      in installHandler sig (Catch terminateHook) Nothing
 
   -- Wait for server thread
-  takeMVar serverThreadWaiter
+  atomically $ waitTSem serverThreadSem
 
   let waitForLogger =
         atomically (tryPeekTQueue loggerBus') >>= \case
           Nothing -> pure () -- We're done, successfully exiting
           Just _ -> -- Logger still have something to handle
-            tryReadMVar loggerThreadWaiter >>= \case
+            tryReadMVar loggerThreadWaitBus >>= \case
               Nothing ->
                 -- Waiting for 100 milliseconds before next iteration
                 -- to avoid high CPU usage.
