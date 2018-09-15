@@ -26,6 +26,7 @@ import           Control.Monad.Reader (MonadReader, asks, runReaderT, ReaderT)
 import           Control.Monad.Error.Class (MonadError, throwError, catchError)
 import           Control.Monad.Random.Class (MonadRandom (..))
 import           Control.Exception (SomeException)
+import           Control.Concurrent.STM.TVar
 
 import           Servant
 import           Servant.Swagger (toSwagger)
@@ -35,6 +36,7 @@ import           Database.Persist.Sql (SqlBackend, fromSqlKey)
 import           Database.Persist.Types
 
 import           Carma.Utils.Operators
+import           Carma.Monad.STM
 import           Carma.Monad.MVar
 import           Carma.Monad.Clock
 import           Carma.Monad.Thread
@@ -70,6 +72,9 @@ type ServerAPI
                        "swagger.json" :> Get '[JSON] Swagger
 
                   :<|> "failures" :> FaliuresAPI
+
+                  :<|> -- GET /debug/background-tasks/count.json
+                       "background-tasks" :> "count.json" :> Get '[JSON] Word
                   )
 
 -- WARNING! Way to transform monad here is deprecated in newer Servant version.
@@ -95,9 +100,16 @@ server
      , MonadRandom m
      , MonadThread m
      , MonadMVar m
+     , MonadSTM m
      )
   => ServerT ServerAPI m
-server = egCRM01 :<|> (swagger :<|> getFailuresCount :<|> getFailuresList)
+
+server
+  =    egCRM01
+  :<|> (    swagger
+       :<|> (getFailuresCount :<|> getFailuresList)
+       :<|> getBackgroundTasksCount
+       )
 
 
 type EgCrm01Monad m =
@@ -109,6 +121,7 @@ type EgCrm01Monad m =
    , MonadRandom m
    , MonadThread m
    , MonadMVar m
+   , MonadSTM m
    )
 
 -- | EG.CRM.01 integration point handler.
@@ -128,10 +141,10 @@ egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
   logDebug [qms| {EgCrm01}: Saving failure data to the database
                             (but returning proper response notwithstanding
                              if this failure data saving is succeeded or
-                             failed by running it in another thread)... |]
+                             failed by running it in background)... |]
 
-  -- Saving failure data in another thread.
-  (_, waitBus) <- forkWithWaitBus $ do
+  -- Saving failure data in background
+  inBackground $ do
     time <- getCurrentTime
 
     failureId <-
@@ -148,9 +161,6 @@ egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
     logError [qms| {EgCrm01}:
                    Failure data is successfully saved to the database.
                    Failure id: {failureId} |]
-
-  -- Waiting for thread to get correct testing results without timeouts
-  () <- takeMVar waitBus
 
   logDebug [qms| {EgCrm01}: Producing random response id
                             for failure response... |]
@@ -317,10 +327,10 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
         logDebug [qms| {logPfx} Saving failure data to the database
                                 (but returning proper response notwithstanding
                                  if this failure data saving is succeeded or
-                                 failed by running it in another thread)... |]
+                                 failed by running it in background)... |]
 
-        -- Saving failure data in another thread.
-        (_, waitBus) <- forkWithWaitBus $ do
+        -- Saving failure data in background
+        inBackground $ do
           time <- getCurrentTime
 
           failureId <-
@@ -338,9 +348,6 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
           logDebug [qms| {logPfx}
                          Failure data is successfully saved to the database.
                          Failure id: {failureId} |]
-
-        -- Waiting for thread to get correct testing results without timeouts
-        () <- takeMVar waitBus
 
         pure EGCreateCallCardResponseFailure
            { responseId = randomResponseId
@@ -403,6 +410,37 @@ getFailuresList (Just n) = do
 
   logDebug [qm| EG failures list is obtained, total elements: {length result} |]
   pure result
+
+
+getBackgroundTasksCount
+  :: ( MonadReader AppContext m
+     , MonadLoggerBus m
+     , MonadSTM m
+     )
+  => m Word
+
+getBackgroundTasksCount = do
+  logDebug [qn| Reading background tasks counter... |]
+  result <- asks backgroundTasksCounter >>= atomically . readTVar
+  logDebug [qm| Background tasks count: {result} |]
+  pure result
+
+
+inBackground
+  :: ( MonadReader AppContext m
+     , MonadError ServantErr m
+     , MonadThread m
+     , MonadSTM m
+     )
+  => m ()
+  -> m ()
+
+inBackground m = do
+  counter <- asks backgroundTasksCounter
+  atomically $ modifyTVar' counter succ
+  void $ fork $ do
+    m `catchError` \_ -> pure () -- ^ Ignore @ServantErr@ exception
+    atomically $ modifyTVar' counter pred
 
 
 runSqlProtected

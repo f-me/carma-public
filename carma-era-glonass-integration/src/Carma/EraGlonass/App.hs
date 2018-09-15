@@ -19,6 +19,7 @@ import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Control.Concurrent.MVar (tryReadMVar)
+import           Control.Concurrent.STM.TVar (newTVar)
 
 import           System.Posix.Signals
                    ( installHandler
@@ -36,6 +37,7 @@ import           Carma.Monad.LoggerBus
 import           Carma.Monad.Thread
 import           Carma.Monad.Delay
 import           Carma.Monad.MVar
+import           Carma.Monad.STM
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Server (serverApplicaton)
@@ -75,6 +77,8 @@ app appMode' dbConnectionCreator = do
     forkWithWaitBus $ runStdoutLoggingT $
       writeLoggerBusEventsToMonadLogger `runReaderT` loggerBus'
 
+  backgroundTasksCounter' <- atomically $ newTVar 0
+
   (serverThreadId, serverThreadWaiter) <- flip runReaderT loggerBus' $ do
 
     let runServer dbConnection' = do
@@ -85,6 +89,7 @@ app appMode' dbConnectionCreator = do
                 , loggerBus = loggerBus'
                 , dbConnection = dbConnection'
                 , dbRequestTimeout = round $ dbRequestTimeout' * 1000 * 1000
+                , backgroundTasksCounter = backgroundTasksCounter'
                 }
 
           logInfo [qm| Running incoming server on http://{host}:{port}... |]

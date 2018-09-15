@@ -21,6 +21,8 @@ module Carma.EraGlonass.Types
 import           Data.Pool (Pool)
 
 import           Control.Concurrent.MVar (MVar)
+import           Control.Concurrent.STM.TVar (TVar)
+import           Control.Concurrent.STM.TSem (TSem)
 
 import           Database.Persist.Sql (SqlBackend)
 
@@ -51,6 +53,11 @@ data AppContext
 
    , dbRequestTimeout :: Int
      -- ^ Timeout in microseconds after which database request will fail
+
+   , backgroundTasksCounter :: TVar Word
+     -- ^ Every big operation or an operation which affects DB data supposed to
+     -- increment this counter and decrement it when it finishes. For tests it
+     -- helps to detect when everything is done at the moment.
    }
 
 
@@ -63,6 +70,6 @@ data AppMode
 
 
 data DBConnection
-   = DBConnection SqlBackend
+   = DBConnection TSem SqlBackend
      -- ^ In-memory SQLite database cannot have @Pool@
    | DBConnectionPool (Pool SqlBackend)

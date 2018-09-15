@@ -11,15 +11,17 @@ import           Data.Typeable
 import           Data.Either (isRight)
 import qualified Data.Pool as P
 
-import           Control.Exception
+import           Control.Exception.Lifted
 import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Reader (MonadReader, asks)
 import           Control.Monad.Trans.Control (MonadBaseControl)
+import           Control.Concurrent.STM.TSem
 
 import           System.Timeout (timeout)
 
 import qualified Database.Persist.Sql as DB
 
+import           Carma.Monad.STM
 import           Carma.Monad.MVar
 import           Carma.Monad.Delay
 import           Carma.Monad.Thread
@@ -39,13 +41,18 @@ instance ( Monad m
 
   runSql m =
     asks dbConnection >>= \case
-      DBConnection     x -> DB.runSqlConn m x
       DBConnectionPool x -> DB.runSqlPool m x
+      DBConnection sem x -> do
+        atomically $ waitTSem sem
+        DB.runSqlConn m x `finally` atomically (signalTSem sem)
 
   runSqlTimeout n m =
     asks dbConnection >>= \case
-      DBConnection     x -> fConn x
       DBConnectionPool x -> fPool x
+      DBConnection sem x -> do
+        atomically $ waitTSem sem
+        fConn x `finally` atomically (signalTSem sem)
+
     where
       timeoutException = toException $ TimeoutExceeded n
 

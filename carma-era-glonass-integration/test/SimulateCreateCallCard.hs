@@ -20,7 +20,9 @@ import           Data.Foldable (toList)
 
 import           Control.Monad
 import           Control.Monad.Catch
+import           Control.Concurrent (threadDelay)
 import           Control.Concurrent.MVar
+import           Control.Exception (throw)
 
 import           System.Environment
 
@@ -37,6 +39,14 @@ import           Carma.EraGlonass.Test.Types.EGCreateCallCardRequest (testData)
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 
 
+type FailuresAPI
+    =  -- GET /debug/failures/count.json
+       "count.json" :> Get '[JSON] Word
+
+  :<|> -- GET /debug/failures/list.json?limit=10
+       "list.json" :> QueryParam "limit" Word :> Get '[JSON] Value
+
+
 type ServerAPI
     =  -- Just JSON-ny representation of EG.CRM.01,
        -- without strong typing for testing purpuses,
@@ -47,15 +57,11 @@ type ServerAPI
        "calls" :> "status" :> ReqBody '[JSON] Value
                            :> Post    '[JSON] Value
 
-  :<|> "debug"
-       :> "failures"
-       :> (
-               -- GET /debug/failures/count.json
-               "count.json" :> Get '[JSON] Word
+  :<|> "debug" :> (    "failures" :> FailuresAPI
 
-          :<|> -- GET /debug/failures/list.json?limit=10
-               "list.json" :> QueryParam "limit" Word :> Get '[JSON] Value
-          )
+                  :<|> -- GET /debug/background-tasks/count.json
+                       "background-tasks" :> "count.json" :> Get '[JSON] Word
+                  )
 
 
 main :: IO ()
@@ -116,6 +122,7 @@ egCRM01 withoutTestingServer serverLock =
             requestMaker jsonB >>= flip shouldSatisfy failurePredicate
             requestMaker jsonC >>= flip shouldSatisfy failurePredicate
             requestMaker jsonD >>= flip shouldSatisfy failurePredicate
+            waitForBackgroundTasks
 
       it "Incorrect request body" $
         withTestingServer withoutTestingServer serverLock checkFailures
@@ -156,20 +163,24 @@ egCRM01 withoutTestingServer serverLock =
                   f extractedList $ Right []
 
             fmap length list `shouldBe` Right 4
+            let references = [jsonA, jsonB, jsonC, jsonD] :: [Value]
+            length references `shouldBe` 4
 
-            zippedList <-
+            failuresList <-
               case list of
                    Left  msg -> fail msg
-                   Right x   -> pure $ zip [jsonA, jsonB, jsonC, jsonD] x
+                   Right x   -> pure x
 
-            length zippedList `shouldBe` 4
-
-            forM_ zippedList $ \(reference, failure) -> do
+            forM_ failuresList $ \failure -> do
 
               HM.lookup "integrationPoint" failure
                 `shouldBe` Just (String [qm|{EgCrm01}|])
 
-              HM.lookup "requestBody" failure `shouldBe` Just reference
+              -- WARNING! Failures may be written in background threads so order
+              --          of them in the database may be kinda random.
+              HM.lookup "requestBody" failure `shouldSatisfy` \case
+                Nothing -> False
+                Just x  -> x `elem` references
 
     -- TODO implement and test response of the EG.CRM.01 request
     -- TODO check if it's saved to a database (CaRMa "Case" is created)
@@ -184,12 +195,25 @@ egCRM01 withoutTestingServer serverLock =
     getRequestMaker =
       getClientEnv <&!> \clientEnv req -> runClientM req clientEnv
 
+    -- | Waits until all background tasks is done
+    waitForBackgroundTasks :: Expectation
+    waitForBackgroundTasks = do
+      requestMaker <- getRequestMaker <&> \f -> f getBackgroundTasksCount
+      requestMaker >>= \case
+        Left exception -> throw exception
+        Right 0 -> pure ()
+        Right _ -> threadDelay (100 * 1000) >> waitForBackgroundTasks
 
-createCallCard   :: Value -> ClientM Value
-getFailuresCount :: ClientM Word
-getFailuresList  :: Maybe Word -> ClientM Value
-(createCallCard :<|> (getFailuresCount :<|> getFailuresList))
-  = client (Proxy :: Proxy ServerAPI)
+
+createCallCard          :: Value -> ClientM Value
+getFailuresCount        :: ClientM Word
+getFailuresList         :: Maybe Word -> ClientM Value
+getBackgroundTasksCount :: ClientM Word
+(      createCallCard
+  :<|> (    (getFailuresCount :<|> getFailuresList)
+       :<|> getBackgroundTasksCount
+       )
+  ) = client (Proxy :: Proxy ServerAPI)
 
 
 getClientEnv :: IO ClientEnv

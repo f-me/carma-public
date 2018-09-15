@@ -29,6 +29,7 @@ dependencies:
   - http-client
   - http-client-tls
   - http-types
+  - lifted-base
   - monad-control
   - monad-logger
   - MonadRandom
@@ -44,6 +45,7 @@ dependencies:
   - servant-client
   - servant-server
   - servant-swagger
+  - stm
   - swagger2
   - text
   - time

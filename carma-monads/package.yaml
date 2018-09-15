@@ -25,6 +25,7 @@ dependencies:
   - persistent
   - qm-interpolated-string
   - servant-client
+  - stm
   - text
   - time
   - transformers-base
