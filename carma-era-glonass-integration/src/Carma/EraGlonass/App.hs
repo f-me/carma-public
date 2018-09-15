@@ -19,7 +19,8 @@ import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Control.Concurrent.MVar (tryReadMVar)
-import           Control.Concurrent.STM.TVar (newTVar)
+import           Control.Concurrent.STM.TQueue
+import           Control.Concurrent.STM.TVar
 
 import           System.Posix.Signals
                    ( installHandler
@@ -53,8 +54,8 @@ app
   => AppMode
   -> ( PostgresConf
        -> Float
-       -> (DBConnection -> ReaderT (MVar LogMessage) m ())
-       -> ReaderT (MVar LogMessage) m ()
+       -> (DBConnection -> ReaderT (TQueue LogMessage) m ())
+       -> ReaderT (TQueue LogMessage) m ()
      ) -- ^ Database connection creator that wraps server runner
   -> m ()
 app appMode' dbConnectionCreator = do
@@ -70,7 +71,7 @@ app appMode' dbConnectionCreator = do
   !(dbRequestTimeout' :: Float) <-
     liftIO $ Conf.require cfg "db.postgresql.request-timeout"
 
-  loggerBus' <- newEmptyMVar
+  loggerBus' <- atomically newTQueue
 
   -- Running logger thread
   (_, loggerThreadWaiter) <-
@@ -109,7 +110,7 @@ app appMode' dbConnectionCreator = do
   takeMVar serverThreadWaiter
 
   let waitForLogger =
-        tryReadMVar loggerBus' >>= \case
+        atomically (tryPeekTQueue loggerBus') >>= \case
           Nothing -> pure () -- We're done, successfully exiting
           Just _ -> -- Logger still have something to handle
             tryReadMVar loggerThreadWaiter >>= \case

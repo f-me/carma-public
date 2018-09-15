@@ -23,11 +23,11 @@ import           Control.Monad.Trans.Control
                    )
 
 import           Carma.Monad.LoggerBus.Types (LogMessage)
-import           Carma.Monad.MVar
+import           Control.Concurrent.STM.TQueue
 
 
 newtype LoggerForward m a
-      = LoggerForward { runLoggerForward :: MVar LogMessage -> m a }
+      = LoggerForward { runLoggerForward :: TQueue LogMessage -> m a }
 
 liftLoggerForward :: m a -> LoggerForward m a
 liftLoggerForward = LoggerForward . const
@@ -37,7 +37,7 @@ mapLoggerForward :: (m a -> n b) -> LoggerForward m a -> LoggerForward n b
 mapLoggerForward f m = LoggerForward $ f . runLoggerForward m
 {-# INLINE mapLoggerForward #-}
 
-askLoggerForward :: Monad m => LoggerForward m (MVar LogMessage)
+askLoggerForward :: Monad m => LoggerForward m (TQueue LogMessage)
 askLoggerForward = LoggerForward return
 {-# INLINE askLoggerForward #-}
 

@@ -20,7 +20,7 @@ module Carma.EraGlonass.Types
 
 import           Data.Pool (Pool)
 
-import           Control.Concurrent.MVar (MVar)
+import           Control.Concurrent.STM.TQueue (TQueue)
 import           Control.Concurrent.STM.TVar (TVar)
 import           Control.Concurrent.STM.TSem (TSem)
 
@@ -45,7 +45,7 @@ data AppContext
      --   This field placed to @AppContext@ for a situation where it have to be
      --   checked inside some route.
 
-   , loggerBus :: MVar LogMessage
+   , loggerBus :: TQueue LogMessage
      -- ^ A bus to send log messages to
 
    , dbConnection :: DBConnection

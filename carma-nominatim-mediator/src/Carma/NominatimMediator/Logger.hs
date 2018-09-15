@@ -22,8 +22,8 @@ instance ( Monad m
          ) => MonadLoggerBus m
          where
 
-  logDebug msg = asks loggerBus >>= flip (genericLogImpl LogDebug) msg
-  logInfo  msg = asks loggerBus >>= flip (genericLogImpl LogInfo ) msg
-  logWarn  msg = asks loggerBus >>= flip (genericLogImpl LogWarn ) msg
-  logError msg = asks loggerBus >>= flip (genericLogImpl LogError) msg
-  readLog      = asks loggerBus >>= readLogImpl
+  logDebug msg = asks loggerBus >>= flip (genericMVarLog LogDebug) msg
+  logInfo  msg = asks loggerBus >>= flip (genericMVarLog LogInfo ) msg
+  logWarn  msg = asks loggerBus >>= flip (genericMVarLog LogWarn ) msg
+  logError msg = asks loggerBus >>= flip (genericMVarLog LogError) msg
+  readLog      = asks loggerBus >>= genericMVarReadLog
