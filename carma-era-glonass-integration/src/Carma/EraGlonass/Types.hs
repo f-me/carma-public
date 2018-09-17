@@ -38,6 +38,7 @@ import           Carma.EraGlonass.Types.EGCreateCallCardRequest
 import           Carma.EraGlonass.Types.RequestId
 
 
+-- | Application context which holds shared data
 data AppContext
    = AppContext
    { appMode :: AppMode
@@ -62,13 +63,14 @@ data AppContext
 
 
 -- | Application mode that indicates if it's production mode that connects to
--- PostgreSQL database or it is testing with SQLite in-memory database.
+--   PostgreSQL database or it is testing with SQLite in-memory database.
 data AppMode
    = ProductionAppMode
    | TestingAppMode
      deriving (Show, Eq)
 
 
+-- | A container to bring database connection to route handlers
 data DBConnection
    = DBConnection TSem SqlBackend
      -- ^ In-memory SQLite database cannot have @Pool@

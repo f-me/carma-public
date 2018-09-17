@@ -47,7 +47,7 @@ inBackground m = do
   counter <- asks backgroundTasksCounter
   atomically $ modifyTVar' counter succ
   void $ fork $ do
-    m `catchError` \_ -> pure () -- ^ Ignore @ServantErr@ exception
+    m `catchError` \_ -> pure () -- Ignoring @ServantErr@ exception
     atomically $ modifyTVar' counter pred
 
 
@@ -86,4 +86,4 @@ getRandomResponseId =
     <&> fmap (randomChars !!) ? take responseIdLength ? fromString
   where
     randomChars = ['a'..'z'] <> ['0'..'9'] :: String
-    responseIdLength = 50 -- ^ Chars count
+    responseIdLength = 50 -- Chars count

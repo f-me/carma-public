@@ -37,6 +37,14 @@ To run all tests related to this microservice just run:
 tools/builder.sh -b backend-test-era-glonass-integration
 ```
 
+# Documentation
+
+To generate **haddock** documentation run:
+
+```bash
+stack exec -- haddock `find carma-era-glonass-integration/src/ -name '*.hs' | xargs` --html --hyperlinked-source -o haddock
+```
+
 ## TODO
 
 - Add more description to this document
