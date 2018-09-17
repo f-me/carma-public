@@ -159,7 +159,7 @@ egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
 
     logError [qms| {EgCrm01}:
                    Failure data is successfully saved to the database.
-                   Failure id: {failureId} |]
+                   Failure id: {fromSqlKey failureId} |]
 
   logDebug [qms| {EgCrm01}: Producing random response id
                             for failure response... |]
@@ -199,10 +199,10 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
                   logError [qm| {logPfx} {logMsg} |]
                   throwError err500 { errBody = logMsg }
 
-  logDebug [qms| {logPfx} Era Glonass participant "SubProgram" and its "Program"
-                          is successfully obtained:
-                          {anyEGSubProgram}
-                          {anyEGProgram} |]
+  logDebug [qmb| {logPfx} Era Glonass participant "SubProgram" \
+                          and its "Program" are successfully obtained:
+                          \  "SubProgram" id: {fromSqlKey anyEGSubProgram};
+                          \  "Program" id: {fromSqlKey anyEGProgram}. |]
 
   time <- getCurrentTime
   randomResponseId <- getRandomResponseId
@@ -214,8 +214,8 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
 
   (caseId, caseEGCreateRequestId) <-
     runSqlProtected
-      [qm| {logPfx} Failed to create "Case" and "CaseEraGlonassCreateRequest"
-                    for Era Glonass Call Card! |] $ do
+      [qms| {logPfx} Failed to create "Case" and "CaseEraGlonassCreateRequest"
+                     for Era Glonass Call Card! |] $ do
 
       caseId <-
         insert Case
@@ -304,10 +304,10 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
            , caseEGCreateRequestId :: CaseEraGlonassCreateRequestId
            )
 
-  logDebug [qms| {logPfx} "Case" and "CaseEraGlonassCreateRequest" are created.
-                          "Case" id: {fromSqlKey caseId},
-                          "CaseEraGlonassCreateRequest" id:
-                          {fromSqlKey caseEGCreateRequestId}. |]
+  logDebug [qmb| {logPfx} "Case" and "CaseEraGlonassCreateRequest" are created.
+                          \  "Case" id: {fromSqlKey caseId},
+                          \  "CaseEraGlonassCreateRequest" id: \
+                               {fromSqlKey caseEGCreateRequestId}. |]
 
   logDebug [qm| {logPfx} Responding about success... |]
 
@@ -366,7 +366,7 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
 
           logDebug [qms| {logPfx}
                          Failure data is successfully saved to the database.
-                         Failure id: {failureId} |]
+                         Failure id: {fromSqlKey failureId} |]
 
         pure EGCreateCallCardResponseFailure
            { responseId = randomResponseId
