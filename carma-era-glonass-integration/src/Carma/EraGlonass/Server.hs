@@ -207,102 +207,107 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
   time <- getCurrentTime
   randomResponseId <- getRandomResponseId
 
-  logDebug [qm| {logPfx} Creation time: "{time}",
-                         response id: "{randomResponseId}" |]
+  logDebug [qms| {logPfx} Creation time: "{time}",
+                          response id: "{randomResponseId}".
+                          Creating "Case" and "CaseEraGlonassCreateRequest"
+                          in single transaction... |]
 
-  logDebug [qm| {logPfx} Creating "Case"... |]
-
-  caseId <-
+  (caseId, caseEGCreateRequestId) <-
     runSqlProtected
-      [qm| {logPfx} Failed to create "Case" for Era Glonass Call Card! |]
-      $ insert Case
-      { caseCallDate = Just time
-      , caseVwcreatedate = Nothing
-      , caseCallTaker = admin
-      , caseCustomerComment = Nothing
+      [qm| {logPfx} Failed to create "Case" and "CaseEraGlonassCreateRequest"
+                    for Era Glonass Call Card! |] $ do
 
-      , caseContact_name = Just $ fromEGCallerFullName callerFullName
-      , caseContact_phone1 = Just $ Phone $ fromEGPhoneNumber callerPhoneNumber
-      , caseContact_phone2 = Just $ Phone $ fromEGPhoneNumber atPhoneNumber
-      , caseContact_phone3 = Nothing
-      , caseContact_phone4 = Nothing
-      , caseContact_email = Nothing
-      , caseContact_contactOwner = Nothing
-      , caseContact_ownerName = Nothing
-      , caseContact_ownerPhone1 = Nothing
-      , caseContact_ownerPhone2 = Nothing
-      , caseContact_ownerPhone3 = Nothing
-      , caseContact_ownerPhone4 = Nothing
-      , caseContact_ownerEmail = Nothing
+      caseId <-
+        insert Case
+          { caseCallDate = Just time
+          , caseVwcreatedate = Nothing
+          , caseCallTaker = admin
+          , caseCustomerComment = Nothing
 
-      , caseProgram = anyEGProgram
-      , caseSubprogram = Nothing
+          , caseContact_name = Just $ fromEGCallerFullName callerFullName
+          , caseContact_phone1 =
+              Just $ Phone $ fromEGPhoneNumber callerPhoneNumber
+          , caseContact_phone2 = Just $ Phone $ fromEGPhoneNumber atPhoneNumber
+          , caseContact_phone3 = Nothing
+          , caseContact_phone4 = Nothing
+          , caseContact_email = Nothing
+          , caseContact_contactOwner = Nothing
+          , caseContact_ownerName = Nothing
+          , caseContact_ownerPhone1 = Nothing
+          , caseContact_ownerPhone2 = Nothing
+          , caseContact_ownerPhone3 = Nothing
+          , caseContact_ownerPhone4 = Nothing
+          , caseContact_ownerEmail = Nothing
 
-      , caseContractIdentifier = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
+          , caseProgram = anyEGProgram
+          , caseSubprogram = Nothing
 
-      , caseCar_vin = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
-      , caseCar_make = Nothing
-      , caseCar_plateNum = Just $ registrationNumber vehicle
-      , caseCar_makeYear = Nothing
-      , caseCar_color = Just $ color vehicle
-      , caseCar_buyDate = Nothing
-      , caseCar_firstSaleDate = Nothing
-      , caseCar_mileage = Nothing
-      , caseCar_engine = egPropulsionToEngineId <$> propulsion vehicle
-      , caseCar_liters = Nothing
+          , caseContractIdentifier = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
 
-      , caseCaseAddress_address =
-          case gis of
-               [] -> Nothing
-               (EGCreateCallCardRequestGis {..} : _) -> let
-                 partsList =
-                   filter (/= mempty) $
-                     ( if regionName == settlementName
-                          then [regionName]
-                          else [regionName, settlementName]
-                     ) <> [streetName, building]
-                 in Just $ PickerField $ Just $ intercalate ", " partsList
-      , caseCaseAddress_comment = Just locationDescription
-      , caseCaseAddress_notRussia = Nothing
-      , caseCaseAddress_coords = let
-          lon, lat, toAngularMillisecondsCoeff :: Double
-          lon = fromIntegral $ fromEGLongitude lastTrustedLongitude
-          lat = fromIntegral $ fromEGLatitude lastTrustedLatitude
-          toAngularMillisecondsCoeff = 3600 * 1000
-          toGradus = (/ toAngularMillisecondsCoeff)
-          in Just $ PickerField $ Just [qm| {toGradus lon},{toGradus lat} |]
-      , caseCaseAddress_map = Nothing
-      , caseTemperature = Nothing
-      , caseRepair = Nothing
-      , caseAccord = Nothing
-      , caseDealerCause = Nothing
-      , caseCaseStatus = front
-      , casePsaExportNeeded = Nothing
-      , casePsaExported = Nothing
-      , caseClaim = Nothing
+          , caseCar_vin = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
+          , caseCar_make = Nothing
+          , caseCar_plateNum = Just $ registrationNumber vehicle
+          , caseCar_makeYear = Nothing
+          , caseCar_color = Just $ color vehicle
+          , caseCar_buyDate = Nothing
+          , caseCar_firstSaleDate = Nothing
+          , caseCar_mileage = Nothing
+          , caseCar_engine = egPropulsionToEngineId <$> propulsion vehicle
+          , caseCar_liters = Nothing
 
-      , caseFiles = Nothing
-      , caseSource = eraGlonass
-      , caseAcStart = Nothing
-      , caseIsCreatedByEraGlonass = True
-      }
+          , caseCaseAddress_address =
+              case gis of
+                   [] -> Nothing
+                   (EGCreateCallCardRequestGis {..} : _) -> let
+                     partsList =
+                       filter (/= mempty) $
+                         ( if regionName == settlementName
+                              then [regionName]
+                              else [regionName, settlementName]
+                         ) <> [streetName, building]
+                     in Just $ PickerField $ Just $ intercalate ", " partsList
+          , caseCaseAddress_comment = Just locationDescription
+          , caseCaseAddress_notRussia = Nothing
+          , caseCaseAddress_coords = let
+              lon, lat, toAngularMillisecondsCoeff :: Double
+              lon = fromIntegral $ fromEGLongitude lastTrustedLongitude
+              lat = fromIntegral $ fromEGLatitude lastTrustedLatitude
+              toAngularMillisecondsCoeff = 3600 * 1000
+              toGradus = (/ toAngularMillisecondsCoeff)
+              in Just $ PickerField $ Just [qm| {toGradus lon},{toGradus lat} |]
+          , caseCaseAddress_map = Nothing
+          , caseTemperature = Nothing
+          , caseRepair = Nothing
+          , caseAccord = Nothing
+          , caseDealerCause = Nothing
+          , caseCaseStatus = front
+          , casePsaExportNeeded = Nothing
+          , casePsaExported = Nothing
+          , caseClaim = Nothing
 
-  logDebug [qm| {logPfx} "Case" is successfully created: {caseId} |]
-  logDebug [qm| {logPfx} Creating "CaseEraGlonassCreateRequest"... |]
+          , caseFiles = Nothing
+          , caseSource = eraGlonass
+          , caseAcStart = Nothing
+          , caseIsCreatedByEraGlonass = True
+          }
 
-  caseEGCreateRequestId <-
-    runSqlProtected
-      [qm| {logPfx} Failed to create "CaseEraGlonassCreateRequest"! |]
-      $ insert CaseEraGlonassCreateRequest
-      { caseEraGlonassCreateRequestCtime          = time
-      , caseEraGlonassCreateRequestAssociatedCase = caseId
-      , caseEraGlonassCreateRequestRequestId      = requestId
-      , caseEraGlonassCreateRequestCallCardId     = cardIdCC
-      , caseEraGlonassCreateRequestResponseId     = randomResponseId
-      }
+      caseEGCreateRequestId <-
+        insert CaseEraGlonassCreateRequest
+          { caseEraGlonassCreateRequestCtime          = time
+          , caseEraGlonassCreateRequestAssociatedCase = caseId
+          , caseEraGlonassCreateRequestRequestId      = requestId
+          , caseEraGlonassCreateRequestCallCardId     = cardIdCC
+          , caseEraGlonassCreateRequestResponseId     = randomResponseId
+          }
 
-  logDebug [qms| {logPfx} "CaseEraGlonassCreateRequest" is created:
-                          {caseEGCreateRequestId} |]
+      pure ( caseId :: CaseId
+           , caseEGCreateRequestId :: CaseEraGlonassCreateRequestId
+           )
+
+  logDebug [qms| {logPfx} "Case" and "CaseEraGlonassCreateRequest" are created.
+                          "Case" id: {fromSqlKey caseId},
+                          "CaseEraGlonassCreateRequest" id:
+                          {fromSqlKey caseEGCreateRequestId}. |]
 
   logDebug [qm| {logPfx} Responding about success... |]
 
