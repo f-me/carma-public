@@ -15,8 +15,10 @@ module Carma.EraGlonass.Server
 
 import           Data.Proxy
 import           Data.Swagger (Swagger)
+import           Data.Monoid ((<>))
 import           Text.InterpolatedString.QM
-import           Data.Text (Text)
+import           Data.Text (Text, intercalate)
+import           Data.Text.Encoding (decodeUtf8)
 import           Data.Aeson (toJSON)
 
 import           Control.Monad.Reader (MonadReader, asks, runReaderT, ReaderT)
@@ -43,6 +45,7 @@ import           Carma.Model.CaseStatus.Persistent
 import           Carma.Model.Usermeta.Persistent
 import           Carma.Model.Program.Persistent
 import           Carma.Model.SubProgram.Persistent
+import           Carma.Model.LegacyTypes
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Routes
 import           Carma.EraGlonass.Types
@@ -213,15 +216,14 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
     runSqlProtected
       [qm| {logPfx} Failed to create "Case" for Era Glonass Call Card! |]
       $ insert Case
-      -- TODO fill with proper data from @EGCreateCallCardRequest@
       { caseCallDate = Just time
       , caseVwcreatedate = Nothing
       , caseCallTaker = admin
       , caseCustomerComment = Nothing
 
-      , caseContact_name = Nothing
-      , caseContact_phone1 = Nothing
-      , caseContact_phone2 = Nothing
+      , caseContact_name = Just $ fromEGCallerFullName callerFullName
+      , caseContact_phone1 = Just $ Phone $ fromEGPhoneNumber callerPhoneNumber
+      , caseContact_phone2 = Just $ Phone $ fromEGPhoneNumber atPhoneNumber
       , caseContact_phone3 = Nothing
       , caseContact_phone4 = Nothing
       , caseContact_email = Nothing
@@ -236,23 +238,39 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
       , caseProgram = anyEGProgram
       , caseSubprogram = Nothing
 
-      , caseContractIdentifier = Nothing
+      , caseContractIdentifier = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
 
-      , caseCar_vin = Nothing
+      , caseCar_vin = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
       , caseCar_make = Nothing
-      , caseCar_plateNum = Nothing
+      , caseCar_plateNum = Just $ registrationNumber vehicle
       , caseCar_makeYear = Nothing
-      , caseCar_color = Nothing
+      , caseCar_color = Just $ color vehicle
       , caseCar_buyDate = Nothing
       , caseCar_firstSaleDate = Nothing
       , caseCar_mileage = Nothing
-      , caseCar_engine = Nothing
+      , caseCar_engine = egPropulsionToEngineId <$> propulsion vehicle
       , caseCar_liters = Nothing
 
-      , caseCaseAddress_address = Nothing
-      , caseCaseAddress_comment = Nothing
+      , caseCaseAddress_address =
+          case gis of
+               [] -> Nothing
+               (EGCreateCallCardRequestGis {..} : _) -> let
+                 partsList =
+                   filter (/= mempty) $
+                     ( if regionName == settlementName
+                          then [regionName]
+                          else [regionName, settlementName]
+                     ) <> [streetName, building]
+                 in Just $ PickerField $ Just $ intercalate ", " partsList
+      , caseCaseAddress_comment = Just locationDescription
       , caseCaseAddress_notRussia = Nothing
-      , caseCaseAddress_coords = Nothing
+      , caseCaseAddress_coords = let
+          lon, lat, toAngularMillisecondsCoeff :: Double
+          lon = fromIntegral $ fromEGLongitude lastTrustedLongitude
+          lat = fromIntegral $ fromEGLatitude lastTrustedLatitude
+          toAngularMillisecondsCoeff = 3600 * 1000
+          toGradus = (/ toAngularMillisecondsCoeff)
+          in Just $ PickerField $ Just [qm| {toGradus lon},{toGradus lat} |]
       , caseCaseAddress_map = Nothing
       , caseTemperature = Nothing
       , caseRepair = Nothing
