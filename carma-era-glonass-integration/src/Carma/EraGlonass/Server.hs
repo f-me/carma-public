@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE BangPatterns, LambdaCase #-}
+{-# LANGUAGE LambdaCase #-}
 
 -- Incoming server implementation to provide an API for Era Glonass side
 -- and also some debug stuff for internal usage.
@@ -176,46 +176,50 @@ egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
      }
 
 egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
-
-  logDebug [qms| {logPfx} Attempt to find any "Program" which have "SubProgram"
-                 which is Era Glonass participant (since "Program" is required
-                 field of "Case" model so we couldn't leave it empty) |]
-
-  (!(anyEGProgram :: ProgramId), !(anyEGSubProgram :: SubProgramId)) <-
-    runSqlProtected
-      [qms| {logPfx} Failed to request "SubProgram"
-                     which is Era Glonass participant! |]
-      (selectFirst [SubProgramEraGlonassParticipant ==. True] [])
-
-      >>= \case Just subProgram -> pure
-                  ( subProgramParent $ entityVal subProgram
-                  , entityKey subProgram
-                  )
-
-                Nothing -> do
-                  let logMsg = [qns| Not found any "SubProgram" for "Case"
-                                     which is Era Glonass participant! |]
-
-                  logError [qm| {logPfx} {logMsg} |]
-                  throwError err500 { errBody = logMsg }
-
-  logDebug [qmb| {logPfx} Era Glonass participant "SubProgram" \
-                          and its "Program" are successfully obtained:
-                          \  "SubProgram" id: {fromSqlKey anyEGSubProgram};
-                          \  "Program" id: {fromSqlKey anyEGProgram}. |]
-
-  time <- getCurrentTime
+  time             <- getCurrentTime
   randomResponseId <- getRandomResponseId
 
-  logDebug [qms| {logPfx} Creation time: "{time}",
-                          response id: "{randomResponseId}".
-                          Creating "Case" and "CaseEraGlonassCreateRequest"
-                          in single transaction... |]
+  logDebug [qms|
+    {logPfx} Creation time: "{time}", response id: "{randomResponseId}".
+    Finding any "Program" which have "SubProgram" which is Era Glonass
+    participant (since "Program" is required field of "Case" model so we
+    couldn't leave it empty) then creating "Case" and
+    "CaseEraGlonassCreateRequest" in single transaction...
+  |]
 
-  (caseId, caseEGCreateRequestId) <-
+  ( caseId                :: CaseId,
+    caseEGCreateRequestId :: CaseEraGlonassCreateRequestId,
+    anyEGSubProgram       :: SubProgramId,
+    anyEGProgram          :: ProgramId ) <-
+
     runSqlProtected
       [qms| {logPfx} Failed to create "Case" and "CaseEraGlonassCreateRequest"
                      for Era Glonass Call Card! |] $ do
+
+      logDebug [qms| {logPfx} Obtaining Era Glonass participant "SubProgram"
+                              and its "Program"... |]
+
+      (anyEGProgram :: ProgramId, anyEGSubProgram :: SubProgramId) <-
+        selectFirst [SubProgramEraGlonassParticipant ==. True] [] >>= \case
+
+          Just subProgram -> pure
+            ( subProgramParent $ entityVal subProgram
+            , entityKey subProgram
+            )
+
+          Nothing -> do
+            let logMsg = [qns| Not found any "SubProgram" for "Case"
+                               which is Era Glonass participant! |]
+
+            logError [qm| {logPfx} {logMsg} |]
+            throwError err500 { errBody = logMsg }
+
+      logDebug [qmb| {logPfx} Era Glonass participant "SubProgram" \
+                              and its "Program" are successfully obtained:
+                              \  "SubProgram" id: {fromSqlKey anyEGSubProgram};
+                              \  "Program" id: {fromSqlKey anyEGProgram}. |]
+
+      logDebug [qms| {logPfx} Creating "Case"... |]
 
       caseId <-
         insert Case
@@ -291,6 +295,11 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
           , caseIsCreatedByEraGlonass = True
           }
 
+      logDebug [qmb| {logPfx} "Case" is successfully created:
+                              \  "Case" id: {fromSqlKey caseId}. |]
+
+      logDebug [qms| {logPfx} Creating "CaseEraGlonassCreateRequest"... |]
+
       caseEGCreateRequestId <-
         insert CaseEraGlonassCreateRequest
           { caseEraGlonassCreateRequestCtime          = time
@@ -300,12 +309,19 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
           , caseEraGlonassCreateRequestResponseId     = randomResponseId
           }
 
-      pure ( caseId :: CaseId
-           , caseEGCreateRequestId :: CaseEraGlonassCreateRequestId
-           )
+      logDebug [qmb| {logPfx} "CaseEraGlonassCreateRequest" is \
+                              successfully created:
+                              \  "CaseEraGlonassCreateRequest" id: \
+                                   {fromSqlKey caseId}. |]
 
-  logDebug [qmb| {logPfx} "Case" and "CaseEraGlonassCreateRequest" are created.
-                          \  "Case" id: {fromSqlKey caseId},
+      pure (caseId, caseEGCreateRequestId, anyEGSubProgram, anyEGProgram)
+
+  logDebug [qmb| {logPfx} "Case" and "CaseEraGlonassCreateRequest" \
+                          are successfully created:
+                          \  Found Era Glonass participant "SubProgram" id: \
+                               {fromSqlKey anyEGSubProgram};
+                          \  Found "Program" id: {fromSqlKey anyEGProgram};
+                          \  "Case" id: {fromSqlKey caseId};
                           \  "CaseEraGlonassCreateRequest" id: \
                                {fromSqlKey caseEGCreateRequestId}. |]
 

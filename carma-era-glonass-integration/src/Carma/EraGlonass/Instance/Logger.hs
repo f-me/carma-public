@@ -15,11 +15,13 @@ import           Control.Concurrent.STM.TQueue
 
 import           System.Log.FastLogger (fromLogStr)
 
+import           Database.Persist.Sql (SqlBackend)
+
 import           Carma.EraGlonass.Logger.LoggerForward
 import           Carma.EraGlonass.Types (AppContext (loggerBus))
 import           Carma.Monad.LoggerBus.Helpers (formatTime)
 import           Carma.Monad.LoggerBus.Types
-import           Carma.Monad.LoggerBus
+import           Carma.Monad.LoggerBus as LB
 import           Carma.Monad.Clock
 import           Carma.Monad.STM
 
@@ -49,6 +51,19 @@ instance ( Monad m
   logWarn  msg = ask >>= lift . flip (genericTQueueLog LogWarn ) msg
   logError msg = ask >>= lift . flip (genericTQueueLog LogError) msg
   readLog      = ask >>= lift . genericTQueueReadLog
+
+
+instance ( Monad m
+         , MonadLoggerBus m
+         ) => MonadLoggerBus (ReaderT SqlBackend m)
+         where
+
+  logDebug = lift . LB.logDebug
+  logInfo  = lift . LB.logInfo
+  logWarn  = lift . LB.logWarn
+  logError = lift . LB.logError
+  readLog  = lift   LB.readLog
+
 
 
 instance ( Monad m
