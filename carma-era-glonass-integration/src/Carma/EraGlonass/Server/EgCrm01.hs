@@ -1,28 +1,32 @@
-{-# LANGUAGE DuplicateRecordFields, RecordWildCards #-}
+{-# LANGUAGE DuplicateRecordFields, RecordWildCards, NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables, ConstraintKinds #-}
+{-# LANGUAGE ScopedTypeVariables, ConstraintKinds, RankNTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE LambdaCase #-}
 
+{-# OPTIONS_HADDOCK ignore-exports #-}
+
+-- | EG.CRM.01 handler module.
 module Carma.EraGlonass.Server.EgCrm01
      ( egCRM01
      ) where
 
 import           Data.Monoid ((<>))
-import           Data.Text (Text, intercalate)
+import           Data.Text (Text, intercalate, unpack)
 import           Data.Text.Encoding (decodeUtf8)
 import           Text.InterpolatedString.QM
+import           Data.Time.Clock (addUTCTime)
 import           Data.Aeson (toJSON)
 
-import           Control.Monad.Reader (MonadReader)
+import           Control.Monad.Reader (MonadReader, ReaderT)
 import           Control.Monad.Error.Class (MonadError, throwError, catchError)
 import           Control.Monad.Random.Class (MonadRandom)
 
 import           Servant
 
-import           Database.Persist ((==.))
-import           Database.Persist.Sql (fromSqlKey)
+import           Database.Persist ((==.), (>=.))
+import           Database.Persist.Sql (SqlBackend, fromSqlKey)
 import           Database.Persist.Types
 
 import           Carma.Monad.STM
@@ -69,14 +73,18 @@ egCRM01
   -> m EGCreateCallCardResponse
 
 egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
-  logError [qmb| {EgCrm01}: Failed to parse request body, error message: {msg}
-                 Saving data of this failure to the database in separated \
-                 thread and returning response... |]
+  logError [qmb|
+    {EgCrm01}: Failed to parse request body, error message: {msg}
+    Saving data of this failure to the database in separated \
+    thread and returning response...
+  |]
 
-  logDebug [qms| {EgCrm01}: Saving failure data to the database
-                            (but returning proper response notwithstanding
-                             if this failure data saving is succeeded or
-                             failed by running it in background)... |]
+  logDebug [qms|
+    {EgCrm01}: Saving failure data to the database
+    (but returning proper response notwithstanding
+     if this failure data saving is succeeded or
+     failed by running it in background)...
+  |]
 
   -- Saving failure data in background
   inBackground $ do
@@ -93,17 +101,15 @@ egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
         , caseEraGlonassFailureComment = Just [qm| Error message: {msg} |]
         }
 
-    logError [qms| {EgCrm01}:
-                   Failure data is successfully saved to the database.
-                   Failure id: {fromSqlKey failureId} |]
-
-  logDebug [qms| {EgCrm01}: Producing random response id
-                            for failure response... |]
+    logError [qmb|
+      {EgCrm01}: Failure data is successfully saved to the database:
+      \  Failure id: {fromSqlKey failureId}.
+    |]
 
   randomResponseId <- getRandomResponseId
 
-  logError [qms| {EgCrm01}: Response id for failure response is:
-                            "{randomResponseId}" |]
+  logError
+    [qm| {EgCrm01}: Response id for failure response is: "{randomResponseId}" |]
 
   pure EGCreateCallCardResponseFailure
      { responseId = randomResponseId
@@ -112,171 +118,65 @@ egCRM01 (EGCreateCallCardRequestIncorrect msg badReqBody) = do
      }
 
 egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
-  time             <- getCurrentTime
-  randomResponseId <- getRandomResponseId
+  time        <- getCurrentTime
+  responseId' <- ResponseId <$> getRandomResponseId
 
-  logDebug [qms|
-    {logPfx} Creation time: "{time}", response id: "{randomResponseId}".
-    Finding any "Program" which have "SubProgram" which is Era Glonass
-    participant (since "Program" is required field of "Case" model so we
-    couldn't leave it empty) then creating "Case" and
-    "CaseEraGlonassCreateRequest" in single transaction...
-  |]
+  runSqlProtected [qm| {logPfx} Transaction is failed! |] $ do
 
-  ( caseId                :: CaseId,
-    caseEGCreateRequestId :: CaseEraGlonassCreateRequestId,
-    anyEGSubProgram       :: SubProgramId,
-    anyEGProgram          :: ProgramId ) <-
+    let time24HoursAgo' = time24HoursAgo time
 
-    runSqlProtected
-      [qms| {logPfx} Failed to create "Case" and "CaseEraGlonassCreateRequest"
-                     for Era Glonass Call Card! |] $ do
+    prefixedLog logDebug [qms|
+      Trying to find already existing Era Glonass "Case" with same car VIN
+      ("{fromEGVin $ vin vehicle}") and creation time not older than 24 hours
+      ({time24HoursAgo'}) to use that "Case" instead of creating new one...
+    |]
 
-      logDebug [qms| {logPfx} Obtaining any Era Glonass participant "SubProgram"
-                              and its "Program"... |]
+    lastCaseWithSameVinInLast24Hours <-
+      selectFirst
+        [ CaseIsCreatedByEraGlonass ==. True
+        , CaseCar_vin ==. Just (decodeUtf8 $ fromEGVin $ vin vehicle)
+        , CaseCallDate >=. Just time24HoursAgo'
+        ]
+        [ Desc CaseCallDate
+        ]
 
-      (anyEGProgram :: ProgramId, anyEGSubProgram :: SubProgramId) <-
-        selectFirst [SubProgramEraGlonassParticipant ==. True] [] >>= \case
+    case lastCaseWithSameVinInLast24Hours of
+         Nothing -> do
+           prefixedLog logDebug [qms|
+             Creation time: "{time}", response id: "{responseId'}".
+             Finding any "Program" which have "SubProgram" which is Era Glonass
+             participant (since "Program" is required field of "Case" model
+             so we couldn't leave it empty) then creating "Case" and
+             "CaseEraGlonassCreateRequest" in single transaction...
+           |]
 
-          Just subProgram -> pure
-            ( subProgramParent $ entityVal subProgram
-            , entityKey subProgram
-            )
+           createCase reqBody prefixedLog time responseId'
 
-          Nothing -> do
-            let logMsg = [qns| Not found any "SubProgram" for "Case"
-                               which is Era Glonass participant! |]
+         Just Entity { entityKey } -> do
+           prefixedLog logDebug [qms|
+             Creation time (of new "CaseEraGlonassCreateRequest"
+             for already existing "Case" {fromSqlKey entityKey}): "{time}",
+             response id: "{responseId'}".
+             Adding new "CaseEraGlonassCreateRequest"
+             for already existing "Case": {fromSqlKey entityKey}...
+           |]
 
-            logError [qm| {logPfx} {logMsg} |]
-            throwError err500 { errBody = logMsg }
-
-      logDebug [qmb| {logPfx} Era Glonass participant "SubProgram" \
-                              and its "Program" are successfully obtained:
-                              \  "SubProgram" id: {fromSqlKey anyEGSubProgram};
-                              \  "Program" id: {fromSqlKey anyEGProgram}. |]
-
-      logDebug [qms| {logPfx} Creating "Case"... |]
-
-      caseId <-
-        insert Case
-          { caseCallDate = Just time
-          , caseVwcreatedate = Nothing
-          , caseCallTaker = admin
-          , caseCustomerComment = Nothing
-
-          , caseContact_name = Just $ fromEGCallerFullName callerFullName
-          , caseContact_phone1 =
-              Just $ Phone $ fromEGPhoneNumber callerPhoneNumber
-          , caseContact_phone2 = Just $ Phone $ fromEGPhoneNumber atPhoneNumber
-          , caseContact_phone3 = Nothing
-          , caseContact_phone4 = Nothing
-          , caseContact_email = Nothing
-          , caseContact_contactOwner = Nothing
-          , caseContact_ownerName = Nothing
-          , caseContact_ownerPhone1 = Nothing
-          , caseContact_ownerPhone2 = Nothing
-          , caseContact_ownerPhone3 = Nothing
-          , caseContact_ownerPhone4 = Nothing
-          , caseContact_ownerEmail = Nothing
-
-          , caseProgram = anyEGProgram
-          , caseSubprogram = Nothing
-
-          , caseContractIdentifier = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
-
-          , caseCar_vin = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
-          , caseCar_make = Nothing
-          , caseCar_plateNum = Just $ registrationNumber vehicle
-          , caseCar_makeYear = Nothing
-          , caseCar_color = Just $ color vehicle
-          , caseCar_buyDate = Nothing
-          , caseCar_firstSaleDate = Nothing
-          , caseCar_mileage = Nothing
-          , caseCar_engine = egPropulsionToEngineId <$> propulsion vehicle
-          , caseCar_liters = Nothing
-
-          , caseCaseAddress_address =
-              case gis of
-                   [] -> Nothing
-                   (EGCreateCallCardRequestGis {..} : _) -> let
-                     partsList =
-                       filter (/= mempty) $
-                         ( if regionName == settlementName
-                              then [regionName]
-                              else [regionName, settlementName]
-                         ) <> [streetName, building]
-                     in Just $ PickerField $ Just $ intercalate ", " partsList
-          , caseCaseAddress_comment = Just locationDescription
-          , caseCaseAddress_notRussia = Nothing
-          , caseCaseAddress_coords = let
-              lon, lat, toAngularMillisecondsCoeff :: Double
-              lon = fromIntegral $ fromEGLongitude lastTrustedLongitude
-              lat = fromIntegral $ fromEGLatitude lastTrustedLatitude
-              toAngularMillisecondsCoeff = 3600 * 1000
-              toGradus = (/ toAngularMillisecondsCoeff)
-              in Just $ PickerField $ Just [qm| {toGradus lon},{toGradus lat} |]
-          , caseCaseAddress_map = Nothing
-          , caseTemperature = Nothing
-          , caseRepair = Nothing
-          , caseAccord = Nothing
-          , caseDealerCause = Nothing
-          , caseCaseStatus = front
-          , casePsaExportNeeded = Nothing
-          , casePsaExported = Nothing
-          , caseClaim = Nothing
-
-          , caseFiles = Nothing
-          , caseSource = eraGlonass
-          , caseAcStart = Nothing
-          , caseIsCreatedByEraGlonass = True
-          }
-
-      logDebug [qmb| {logPfx} "Case" is successfully created:
-                              \  "Case" id: {fromSqlKey caseId}. |]
-
-      logDebug [qms| {logPfx} Creating "CaseEraGlonassCreateRequest"... |]
-
-      caseEGCreateRequestId <-
-        insert CaseEraGlonassCreateRequest
-          { caseEraGlonassCreateRequestCtime          = time
-          , caseEraGlonassCreateRequestAssociatedCase = caseId
-          , caseEraGlonassCreateRequestRequestId      = requestId
-          , caseEraGlonassCreateRequestCallCardId     = cardIdCC
-          , caseEraGlonassCreateRequestResponseId     = randomResponseId
-          }
-
-      logDebug [qmb| {logPfx} "CaseEraGlonassCreateRequest" is \
-                              successfully created:
-                              \  "CaseEraGlonassCreateRequest" id: \
-                                   {fromSqlKey caseId}. |]
-
-      pure (caseId, caseEGCreateRequestId, anyEGSubProgram, anyEGProgram)
-
-  logDebug [qmb| {logPfx} "Case" and "CaseEraGlonassCreateRequest" \
-                          are successfully created:
-                          \  Found Era Glonass participant "SubProgram" id: \
-                               {fromSqlKey anyEGSubProgram};
-                          \  Found "Program" id: {fromSqlKey anyEGProgram};
-                          \  "Case" id: {fromSqlKey caseId};
-                          \  "CaseEraGlonassCreateRequest" id: \
-                               {fromSqlKey caseEGCreateRequestId}. |]
-
-  logDebug [qm| {logPfx} Responding about success... |]
-
-  pure EGCreateCallCardResponse
-     { responseId        = randomResponseId
-     , cardidProvider    = [qm| {fromSqlKey caseId} |]
-     , acceptId          = fromEGCallCardId cardIdCC
-     , requestId         = requestId
-     , acceptCode        = OK
-     , statusDescription = Nothing
-     }
+           updateCase reqBody entityKey prefixedLog time responseId'
 
   where
     logPfx :: Text
-    logPfx = [qms| Incoming Creating Call Card request
-                   (Call Card id: "{fromEGCallCardId cardIdCC}",
-                    Request id: "{fromRequestId requestId}"): |]
+    logPfx = [qms|
+      Incoming Creating Call Card request
+      (Call Card id: "{fromEGCallCardId cardIdCC}",
+       Request id: "{fromRequestId requestId}"):
+    |]
+
+    prefixedLog
+      :: MonadLoggerBus mlogger
+      => (Text -> mlogger ())
+      -> (Text -> mlogger ())
+
+    prefixedLog logFn msg = logFn $ logPfx <> " " <> msg
 
     handleFailure
       :: EgCrm01Monad m
@@ -284,21 +184,20 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
       -> m EGCreateCallCardResponse
     handleFailure m =
       m `catchError` \exception -> do
-        logError [qms| {logPfx} Request handler is failed
-                                with exception: {exception} |]
-
-        logDebug [qms| {logPfx} Producing random response id
-                                for failure response... |]
+        prefixedLog logError
+          [qm| Request handler is failed with exception: {exception} |]
 
         randomResponseId <- getRandomResponseId
 
-        logError [qms| {logPfx} Response id for failure response is:
-                                "{randomResponseId}" |]
+        prefixedLog logError
+          [qm| Response id for failure response is: "{randomResponseId}" |]
 
-        logDebug [qms| {logPfx} Saving failure data to the database
-                                (but returning proper response notwithstanding
-                                 if this failure data saving is succeeded or
-                                 failed by running it in background)... |]
+        prefixedLog logDebug [qms|
+          Saving failure data to the database
+          (but returning proper response notwithstanding
+           if this failure data saving is succeeded or
+           failed by running it in background)...
+        |]
 
         -- Saving failure data in background
         inBackground $ do
@@ -316,9 +215,10 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
                   [qm| Request handler is failed, exception: {exception} |]
               }
 
-          logDebug [qms| {logPfx}
-                         Failure data is successfully saved to the database.
-                         Failure id: {fromSqlKey failureId} |]
+          prefixedLog logDebug [qmb|
+            Failure data is successfully saved to the database:
+            \  Failure id: {fromSqlKey failureId}.
+          |]
 
         pure EGCreateCallCardResponseFailure
            { responseId = randomResponseId
@@ -326,3 +226,242 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
            , statusDescription = Just
                [qm| Request handling is failed with exception: {exception} |]
            }
+
+
+-- | Handler of regular case when we're creating new
+-- 'Carma.Model.Case.Persistent.Case' and
+-- 'Carma.EraGlonass.Model.CaseEraGlonassCreateRequest.Persistent.CaseEraGlonassCreateRequest'.
+createCase
+  :: EgCrm01Monad m
+  => EGCreateCallCardRequest
+  -> (  forall mlogger . MonadLoggerBus mlogger
+     => (Text -> mlogger ())
+     -> (Text -> mlogger ())
+     )
+  -> UTCTime
+  -> ResponseId
+  -> ReaderT SqlBackend m EGCreateCallCardResponse
+
+createCase reqBody@EGCreateCallCardRequestIncorrect {} prefixedLog _ _ = do
+  let logMsg = [qm| Unexpected request body constructor: {reqBody} |]
+  prefixedLog logError [qm| {logMsg} |]
+  throwError err500 { errBody = logMsg }
+
+createCase EGCreateCallCardRequest {..} prefixedLog time responseId' = do
+
+  prefixedLog logDebug [qn|
+    Obtaining any Era Glonass participant "SubProgram" and its "Program"...
+  |]
+
+  (anyEGProgram :: ProgramId, anyEGSubProgram :: SubProgramId) <-
+    selectFirst [SubProgramEraGlonassParticipant ==. True] [] >>= \case
+
+      Just subProgram -> pure
+        ( subProgramParent $ entityVal subProgram
+        , entityKey subProgram
+        )
+
+      Nothing -> do
+        let logMsg = [qns|
+              Not found any "SubProgram" for "Case"
+              which is Era Glonass participant!
+            |]
+
+        prefixedLog logError [qm| {logMsg} |]
+        throwError err500 { errBody = logMsg }
+
+  prefixedLog logDebug [qmb|
+    Era Glonass participant "SubProgram" \
+    and its "Program" are successfully obtained:
+    \  "SubProgram" id: {fromSqlKey anyEGSubProgram};
+    \  "Program" id: {fromSqlKey anyEGProgram}.
+  |]
+
+  prefixedLog logDebug [qn| Creating "Case"... |]
+
+  caseId <-
+    insert Case
+      { caseCallDate = Just time
+      , caseVwcreatedate = Nothing
+      , caseCallTaker = admin
+      , caseCustomerComment = Nothing
+
+      , caseContact_name = Just $ fromEGCallerFullName callerFullName
+      , caseContact_phone1 =
+          Just $ Phone $ fromEGPhoneNumber callerPhoneNumber
+      , caseContact_phone2 = Just $ Phone $ fromEGPhoneNumber atPhoneNumber
+      , caseContact_phone3 = Nothing
+      , caseContact_phone4 = Nothing
+      , caseContact_email = Nothing
+      , caseContact_contactOwner = Nothing
+      , caseContact_ownerName = Nothing
+      , caseContact_ownerPhone1 = Nothing
+      , caseContact_ownerPhone2 = Nothing
+      , caseContact_ownerPhone3 = Nothing
+      , caseContact_ownerPhone4 = Nothing
+      , caseContact_ownerEmail = Nothing
+
+      , caseProgram = anyEGProgram
+      , caseSubprogram = Nothing
+
+      , caseContractIdentifier = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
+
+      , caseCar_vin = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
+      , caseCar_make = Nothing
+      , caseCar_plateNum = Just $ registrationNumber vehicle
+      , caseCar_makeYear = Nothing
+      , caseCar_color = Just $ color vehicle
+      , caseCar_buyDate = Nothing
+      , caseCar_firstSaleDate = Nothing
+      , caseCar_mileage = Nothing
+      , caseCar_engine = egPropulsionToEngineId <$> propulsion vehicle
+      , caseCar_liters = Nothing
+
+      , caseCaseAddress_address =
+          case gis of
+               [] -> Nothing
+               (EGCreateCallCardRequestGis {..} : _) -> let
+                 partsList =
+                   filter (/= mempty) $
+                     ( if regionName == settlementName
+                          then [regionName]
+                          else [regionName, settlementName]
+                     ) <> [streetName, building]
+                 in Just $ PickerField $ Just $ intercalate ", " partsList
+      , caseCaseAddress_comment = Just locationDescription
+      , caseCaseAddress_notRussia = Nothing
+      , caseCaseAddress_coords = let
+          lon, lat, toAngularMillisecondsCoeff :: Double
+          lon = fromIntegral $ fromEGLongitude lastTrustedLongitude
+          lat = fromIntegral $ fromEGLatitude lastTrustedLatitude
+          toAngularMillisecondsCoeff = 3600 * 1000
+          toGradus = (/ toAngularMillisecondsCoeff)
+          in Just $ PickerField $ Just [qm| {toGradus lon},{toGradus lat} |]
+      , caseCaseAddress_map = Nothing
+      , caseTemperature = Nothing
+      , caseRepair = Nothing
+      , caseAccord = Nothing
+      , caseDealerCause = Nothing
+      , caseCaseStatus = front
+      , casePsaExportNeeded = Nothing
+      , casePsaExported = Nothing
+      , caseClaim = Nothing
+
+      , caseFiles = Nothing
+      , caseSource = eraGlonass
+      , caseAcStart = Nothing
+      , caseIsCreatedByEraGlonass = True
+      }
+
+  prefixedLog logDebug [qmb|
+    "Case" is successfully created:
+    \  "Case" id: {fromSqlKey caseId}.
+  |]
+
+  prefixedLog logDebug [qn| Creating "CaseEraGlonassCreateRequest"... |]
+
+  caseEGCreateRequestId <-
+    insert CaseEraGlonassCreateRequest
+      { caseEraGlonassCreateRequestCtime          = time
+      , caseEraGlonassCreateRequestAssociatedCase = caseId
+      , caseEraGlonassCreateRequestRequestId      = requestId
+      , caseEraGlonassCreateRequestCallCardId     = cardIdCC
+      , caseEraGlonassCreateRequestResponseId     = fromResponseId responseId'
+      }
+
+  prefixedLog logDebug [qmb|
+    "CaseEraGlonassCreateRequest" is successfully created:
+    \  "CaseEraGlonassCreateRequest" id: {fromSqlKey caseId}.
+  |]
+
+  prefixedLog logDebug [qmb|
+    "Case" and "CaseEraGlonassCreateRequest" are successfully created:
+    \  Found Era Glonass participant "SubProgram" id: \
+         {fromSqlKey anyEGSubProgram};
+    \  Found "Program" id: {fromSqlKey anyEGProgram};
+    \  "Case" id: {fromSqlKey caseId};
+    \  "CaseEraGlonassCreateRequest" id: {fromSqlKey caseEGCreateRequestId}.
+  |]
+
+  prefixedLog logDebug [qn| Responding about success... |]
+
+  pure EGCreateCallCardResponse
+     { responseId        = fromResponseId responseId'
+     , cardidProvider    = [qm| {fromSqlKey caseId} |]
+     , acceptId          = fromEGCallCardId cardIdCC
+     , requestId         = requestId
+     , acceptCode        = OK
+     , statusDescription = Nothing
+     }
+
+
+-- | Handler of a sitation when we already received Call Card with same VIN in
+-- last 24 hours.
+--
+-- In such case:
+--
+--   * Creating new
+--     'Carma.EraGlonass.Model.CaseEraGlonassCreateRequest.Persistent.CaseEraGlonassCreateRequest';
+--   * Updating 'Carma.Model.Case.Persistent.Case' history
+--     (with shown info from Call Card);
+--   * Creating \"urgent matter" 'Carma.Model.Action.Action';
+--   * If there's some 'Carma.Model.Action.Action' without assigned responsible
+--     or there's no open 'Carma.Model.Action.Action' then trigger new
+--     'Carma.Model.Action.Action'
+--     according to Back Office 'Carma.Model.Action.Action' logic.
+--
+updateCase
+  :: EgCrm01Monad m
+  => EGCreateCallCardRequest
+  -> CaseId
+  -> (  forall mlogger . MonadLoggerBus mlogger
+     => (Text -> mlogger ())
+     -> (Text -> mlogger ())
+     )
+  -> UTCTime
+  -> ResponseId
+  -> ReaderT SqlBackend m EGCreateCallCardResponse
+
+updateCase reqBody@EGCreateCallCardRequestIncorrect {} _ prefixedLog _ _ = do
+  let logMsg = [qm| Unexpected request body constructor: {reqBody} |]
+  prefixedLog logError [qm| {logMsg} |]
+  throwError err500 { errBody = logMsg }
+
+updateCase EGCreateCallCardRequest {..} caseId prefixedLog time responseId' = do
+  prefixedLog logDebug [qn| Creating "CaseEraGlonassCreateRequest"... |]
+
+  caseEGCreateRequestId <-
+    insert CaseEraGlonassCreateRequest
+      { caseEraGlonassCreateRequestCtime          = time
+      , caseEraGlonassCreateRequestAssociatedCase = caseId
+      , caseEraGlonassCreateRequestRequestId      = requestId
+      , caseEraGlonassCreateRequestCallCardId     = cardIdCC
+      , caseEraGlonassCreateRequestResponseId     = fromResponseId responseId'
+      }
+
+  prefixedLog logDebug [qmb|
+    "CaseEraGlonassCreateRequest" is successfully created:
+    \  "CaseEraGlonassCreateRequest" id: {fromSqlKey caseEGCreateRequestId}.
+  |]
+
+  pure EGCreateCallCardResponse
+     { responseId        = fromResponseId responseId'
+     , cardidProvider    = [qm| {fromSqlKey caseId} |]
+     , acceptId          = fromEGCallCardId cardIdCC
+     , requestId         = requestId
+     , acceptCode        = OK
+     , statusDescription = Just [qms|
+         Already existing CaRMa "Case" is updated.
+         "Case" id: {fromSqlKey caseId},
+         new "CaseEraGlonassCreateRequest" id:
+         {fromSqlKey caseEGCreateRequestId}.
+       |]
+     }
+
+
+time24HoursAgo :: UTCTime -> UTCTime
+time24HoursAgo = addUTCTime $ fromInteger $ (-3600) * 24
+
+
+newtype ResponseId = ResponseId { fromResponseId :: Text }
+instance Show ResponseId where show = unpack . fromResponseId
