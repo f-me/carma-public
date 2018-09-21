@@ -1,13 +1,10 @@
 {-# LANGUAGE OverloadedStrings, OverloadedLists #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 
 module Carma.EraGlonass.Types.EGCallCardId
      ( EGCallCardId (..)
      ) where
-
-import           GHC.Generics
 
 import           Data.Proxy
 import           Data.Function ((&))
@@ -28,10 +25,9 @@ import           Database.PostgreSQL.Simple.ToField
                    , toJSONField
                    )
 import           Database.Persist.Sql (PersistFieldSql (sqlType))
-import           Database.Persist.Types (SqlType (..))
+import           Database.Persist.Types (SqlType (..), PersistValue (..))
 import           Database.Persist.Class
                    ( PersistField (toPersistValue, fromPersistValue)
-                   , toPersistValueJSON
                    , fromPersistValueJSON
                    )
 
@@ -41,10 +37,13 @@ import           Data.Model.Types
 
 newtype EGCallCardId
       = EGCallCardId { fromEGCallCardId :: Text }
-        deriving (Eq, Show, Generic, ToJSON)
+        deriving (Eq, Show)
 
 instance IsString EGCallCardId where
   fromString = EGCallCardId . fromString
+
+instance ToJSON EGCallCardId where
+  toJSON = String . fromEGCallCardId
 
 instance FromJSON EGCallCardId where
   parseJSON v@(String x)
@@ -65,7 +64,7 @@ instance ToSchema EGCallCardId where
     }
 
 instance PersistField EGCallCardId where
-  toPersistValue = toPersistValueJSON
+  toPersistValue = PersistText . fromEGCallCardId
   fromPersistValue = fromPersistValueJSON
 
 instance PersistFieldSql EGCallCardId where

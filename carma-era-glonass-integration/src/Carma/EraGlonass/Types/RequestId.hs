@@ -38,10 +38,9 @@ import           Database.PostgreSQL.Simple.ToField
                    , toJSONField
                    )
 import           Database.Persist.Sql (PersistFieldSql (sqlType))
-import           Database.Persist.Types (SqlType (..))
+import           Database.Persist.Types (SqlType (..), PersistValue (..))
 import           Database.Persist.Class
                    ( PersistField (toPersistValue, fromPersistValue)
-                   , toPersistValueJSON
                    , fromPersistValueJSON
                    )
 
@@ -117,7 +116,7 @@ instance ToSchema RequestId where
     }
 
 instance PersistField RequestId where
-  toPersistValue = toPersistValueJSON
+  toPersistValue (RequestId x) = PersistText $ decodeUtf8 x
   fromPersistValue = fromPersistValueJSON
 
 instance PersistFieldSql RequestId where
