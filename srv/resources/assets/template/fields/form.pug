@@ -788,6 +788,15 @@ mixin caseFilesList
                 click : histTogglePartnerSms,
               `)
                 i.glyphicon.glyphicon-envelope
+            // ko if: isCreatedByEraGlonass()
+            .btn.btn-default(
+              title="Показать поступления «Карточек Вызова» ЭРА-ГЛОНАСС",
+              data-bind=`
+                css   : {active: histShowEGCallCard},
+                click : histToggleEGCallCard,
+              `)
+                i.glyphicon.glyphicon-globe
+            // /ko
           |
           |
           input.form-control(
@@ -803,8 +812,11 @@ mixin caseFilesList
           div
             .history-datetime
               span(data-bind=`text: datetime`)
+            // For that type "who" doesn't mean anything.
+            // ko if: json.type !== 'eraGlonassIncomingCallCard'
             .history-who
               span(data-bind=`text: who`)
+            // /ko
             .history-body(data-bind=`with: json`)
               // ko if: $data.actiontype
               div
@@ -909,6 +921,22 @@ mixin caseFilesList
                 = ' (обновлено: '
                 span(data-bind=`text: mtime`)
                 = ')'
+              // /ko
+              // ko if: $data.type === 'eraGlonassIncomingCallCard'
+              div
+                i.glyphicon.glyphicon-globe
+                | &nbsp;
+                b
+                  | Поступление «Карточки Вызова» от ЭРА-ГЛОНАСС.
+              div
+                b
+                  | Идентификатор «Карточки Вызова»:&nbsp;
+                span(data-bind=`text: callcardid`)
+              div
+                b.
+                  Идентификатор ответа на запрос
+                  поступления «Карточки Вызова»:&nbsp;
+                span(data-bind=`text: responseid`)
               // /ko
               // ko if: $data.aetype
               div
