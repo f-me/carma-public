@@ -928,13 +928,19 @@ mixin caseFilesList
                 | &nbsp;
                 b Поступление «Карточки Вызова» от ЭРА-ГЛОНАСС.
               div
-                b Идентификатор «Карточки Вызова»:&nbsp;
+                b Идентификатор «Карточки Вызова»:
+                |
+                |
                 span(data-bind=`text: callCardId`)
               div
-                b Идентификатор ответа на поступление:&nbsp;
+                b Идентификатор ответа на поступление:
+                |
+                |
                 span(data-bind=`text: responseId`)
               div
-                b Имя звонящего:&nbsp;
+                b Имя звонящего:
+                |
+                |
                 span(data-bind=`text: $root.safeGetProp($data, [
                   'requestBody', 'callerFullName'
                 ], '✗')`)
@@ -943,34 +949,46 @@ mixin caseFilesList
                 | &nbsp;
                 b Номера телефонов:
                 div
-                  i Терминала авто:&nbsp;
+                  i Терминала авто:
+                  |
+                  |
                   span(data-bind=`text: $root.safeGetProp($data, [
                     'requestBody', 'atPhoneNumber'
                   ], '✗')`)
                 div
-                  i Звонящий:&nbsp;
+                  i Звонящий:
+                  |
+                  |
                   span(data-bind=`text: $root.safeGetProp($data, [
                     'requestBody', 'callerPhoneNumber'
                   ], '✗')`)
               div
-                b Транспорт:&nbsp;
+                b Транспорт:
                 div
-                  i VIN:&nbsp;
+                  i VIN:
+                  |
+                  |
                   span(data-bind=`text: $root.safeGetProp($data, [
                     'requestBody', 'vehicle', 'vin'
                   ], '✗')`)
                 div
-                  i Регистрационный номер:&nbsp;
+                  i Регистрационный номер:
+                  |
+                  |
                   span(data-bind=`text: $root.safeGetProp($data, [
                     'requestBody', 'vehicle', 'registrationNumber'
                   ], '✗')`)
                 div
-                  i Цвет:&nbsp;
+                  i Цвет:
+                  |
+                  |
                   span(data-bind=`text: $root.safeGetProp($data, [
                     'requestBody', 'vehicle', 'color'
                   ], '✗')`)
               div
-                b Адрес:&nbsp;
+                b Адрес:
+                |
+                |
                 span(data-bind=`text: $root.safeGetProp($data, [
                   'requestBody', 'gis', 0, 'regionName'
                 ], '✗')`)
@@ -987,7 +1005,9 @@ mixin caseFilesList
                   'requestBody', 'gis', 0, 'building'
                 ], '✗')`)
               div
-                b Описание местонахождения:&nbsp;
+                b Описание местонахождения:
+                |
+                |
                 span(data-bind=`text: $root.safeGetProp($data, [
                   'requestBody', 'locationDescription'
                 ], '✗')`)
@@ -996,7 +1016,9 @@ mixin caseFilesList
                 | &nbsp;
                 b Координаты:
                 div
-                  i Широта:&nbsp;
+                  i Широта:
+                  |
+                  |
                   span(data-bind=`text: ($root.safeGetProp($data, [
                     'requestBody', 'lastTrustedLatitude'
                   ], 0) / (3600 * 1000)).toLocaleString('ru-RU', {
@@ -1005,7 +1027,9 @@ mixin caseFilesList
                   })`)
                   span °
                 div
-                  i Долгота:&nbsp;
+                  i Долгота:
+                  |
+                  |
                   span(data-bind=`text: ($root.safeGetProp($data, [
                     'requestBody', 'lastTrustedLongitude'
                   ], 0) / (3600 * 1000)).toLocaleString('ru-RU', {
