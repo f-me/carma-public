@@ -82,6 +82,7 @@ CREATE TABLE "CaseEraGlonassCreateRequest"
   , requestId        TEXT NOT NULL
   , callCardId       TEXT NOT NULL
   , responseId       TEXT NOT NULL
+  , requestBody      JSON NOT NULL
   , FOREIGN KEY (caseId) REFERENCES "casetbl" (id)
   );
 GRANT ALL ON "CaseEraGlonassCreateRequest" TO carma_db_sync;

@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE DataKinds, TypeOperators, TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -27,6 +27,24 @@ import           Data.Aeson.Types (typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
 import           Text.InterpolatedString.QM
+
+import           Database.PostgreSQL.Simple.FromField
+                   ( FromField (..)
+                   , fromJSONField
+                   )
+import           Database.PostgreSQL.Simple.ToField
+                   ( ToField (..)
+                   , toJSONField
+                   )
+import           Database.Persist.Postgresql.JSON ()
+import           Database.Persist.Sql (PersistFieldSql (sqlType))
+import           Database.Persist.Class
+                   ( PersistField (toPersistValue, fromPersistValue)
+                   , fromPersistValueJSON
+                   )
+
+import           Data.Model
+import           Data.Model.Types
 
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import qualified Carma.EraGlonass.Types.EGPhoneNumber as EGPhoneNumber
@@ -166,6 +184,35 @@ instance ToSchema EGCreateCallCardRequest where
             :: (x ~ CutOffFailureCons (Rep EGCreateCallCardRequest))
             => Proxy x
           proxy = Proxy
+
+instance PersistField EGCreateCallCardRequest where
+  toPersistValue = toPersistValue . toJSON
+  fromPersistValue = fromPersistValueJSON
+
+instance PersistFieldSql EGCreateCallCardRequest where
+  sqlType Proxy = sqlType (Proxy :: Proxy Value)
+
+instance PgTypeable EGCreateCallCardRequest where
+  pgTypeOf _ = PgType "json" True
+
+instance DefaultFieldView EGCreateCallCardRequest where
+  defaultFieldView f
+    = FieldView
+    { fv_name = fieldName f
+    , fv_type = "JSON"
+    , fv_canWrite = False
+    , fv_meta =
+        [ ("label", String $ fieldDesc f)
+        , ("app",   String $ fieldKindStr $ fieldToFieldKindProxy f)
+        ]
+    } where fieldToFieldKindProxy :: (m -> FF t nm desc a) -> Proxy a
+            fieldToFieldKindProxy _ = Proxy
+
+instance FromField EGCreateCallCardRequest where
+  fromField = fromJSONField
+
+instance ToField EGCreateCallCardRequest where
+  toField = toJSONField
 
 
 -- | /\"gis"/ 'EGCreateCallCardRequest' branch data type

@@ -16,6 +16,8 @@ import           Carma.Model.Types ()
 import           Carma.Model.PgTypes ()
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGCallCardId (EGCallCardId)
+import           Carma.EraGlonass.Types.EGCreateCallCardRequest
+                   (EGCreateCallCardRequest)
 
 
 data CaseEraGlonassCreateRequest
@@ -35,6 +37,10 @@ data CaseEraGlonassCreateRequest
      :: F EGCallCardId "callCardId" "Идентификатор Карточки Вызова"
    , responseId
      :: F Text "responseId" "Идентификатор ответа, отданный ЭГ"
+   , requestBody
+     :: F EGCreateCallCardRequest
+          "requestBody"
+          "Полученные данные при поступлении Карточки Вызова"
    } deriving Typeable
 
 

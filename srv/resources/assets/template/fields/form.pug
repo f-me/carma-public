@@ -926,17 +926,93 @@ mixin caseFilesList
               div
                 i.glyphicon.glyphicon-globe
                 | &nbsp;
-                b
-                  | Поступление «Карточки Вызова» от ЭРА-ГЛОНАСС.
+                b Поступление «Карточки Вызова» от ЭРА-ГЛОНАСС.
               div
-                b
-                  | Идентификатор «Карточки Вызова»:&nbsp;
-                span(data-bind=`text: callcardid`)
+                b Идентификатор «Карточки Вызова»:&nbsp;
+                span(data-bind=`text: callCardId`)
               div
-                b.
-                  Идентификатор ответа на запрос
-                  поступления «Карточки Вызова»:&nbsp;
-                span(data-bind=`text: responseid`)
+                b Идентификатор ответа на поступление:&nbsp;
+                span(data-bind=`text: responseId`)
+              div
+                b Имя звонящего:&nbsp;
+                span(data-bind=`text: $root.safeGetProp($data, [
+                  'requestBody', 'callerFullName'
+                ], '✗')`)
+              div
+                i.glyphicon.glyphicon-earphone
+                | &nbsp;
+                b Номера телефонов:
+                div
+                  i Терминала авто:&nbsp;
+                  span(data-bind=`text: $root.safeGetProp($data, [
+                    'requestBody', 'atPhoneNumber'
+                  ], '✗')`)
+                div
+                  i Звонящий:&nbsp;
+                  span(data-bind=`text: $root.safeGetProp($data, [
+                    'requestBody', 'callerPhoneNumber'
+                  ], '✗')`)
+              div
+                b Транспорт:&nbsp;
+                div
+                  i VIN:&nbsp;
+                  span(data-bind=`text: $root.safeGetProp($data, [
+                    'requestBody', 'vehicle', 'vin'
+                  ], '✗')`)
+                div
+                  i Регистрационный номер:&nbsp;
+                  span(data-bind=`text: $root.safeGetProp($data, [
+                    'requestBody', 'vehicle', 'registrationNumber'
+                  ], '✗')`)
+                div
+                  i Цвет:&nbsp;
+                  span(data-bind=`text: $root.safeGetProp($data, [
+                    'requestBody', 'vehicle', 'color'
+                  ], '✗')`)
+              div
+                b Адрес:&nbsp;
+                span(data-bind=`text: $root.safeGetProp($data, [
+                  'requestBody', 'gis', 0, 'regionName'
+                ], '✗')`)
+                span=', '
+                span(data-bind=`text: $root.safeGetProp($data, [
+                  'requestBody', 'gis', 0, 'settlementName'
+                ], '✗')`)
+                span=', '
+                span(data-bind=`text: $root.safeGetProp($data, [
+                  'requestBody', 'gis', 0, 'streetName'
+                ], '✗')`)
+                span=', '
+                span(data-bind=`text: $root.safeGetProp($data, [
+                  'requestBody', 'gis', 0, 'building'
+                ], '✗')`)
+              div
+                b Описание местонахождения:&nbsp;
+                span(data-bind=`text: $root.safeGetProp($data, [
+                  'requestBody', 'locationDescription'
+                ], '✗')`)
+              div
+                i.glyphicon.glyphicon-screenshot
+                | &nbsp;
+                b Координаты:
+                div
+                  i Широта:&nbsp;
+                  span(data-bind=`text: ($root.safeGetProp($data, [
+                    'requestBody', 'lastTrustedLatitude'
+                  ], 0) / (3600 * 1000)).toLocaleString('ru-RU', {
+                    minimumFractionDigits: 6,
+                    maximumFractionDigits: 6,
+                  })`)
+                  span °
+                div
+                  i Долгота:&nbsp;
+                  span(data-bind=`text: ($root.safeGetProp($data, [
+                    'requestBody', 'lastTrustedLongitude'
+                  ], 0) / (3600 * 1000)).toLocaleString('ru-RU', {
+                    minimumFractionDigits: 6,
+                    maximumFractionDigits: 6,
+                  })`)
+                  span °
               // /ko
               // ko if: $data.aetype
               div

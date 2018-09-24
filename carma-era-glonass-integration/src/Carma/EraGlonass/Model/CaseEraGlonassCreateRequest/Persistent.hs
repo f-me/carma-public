@@ -13,6 +13,8 @@ import           Database.Persist.TH
 import           Carma.Model.Case.Persistent (CaseId)
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGCallCardId (EGCallCardId)
+import           Carma.EraGlonass.Types.EGCreateCallCardRequest
+                   (EGCreateCallCardRequest)
 
 
 -- | @CaseEraGlonassCreateRequest@ persistent model.
@@ -23,6 +25,7 @@ CaseEraGlonassCreateRequest sql=CaseEraGlonassCreateRequest
   requestId RequestId sql=requestid
   callCardId EGCallCardId sql=callcardid
   responseId Text sql=responseid
+  requestBody EGCreateCallCardRequest sql=requestbody
 
   deriving Typeable Show
 |]

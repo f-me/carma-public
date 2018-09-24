@@ -245,10 +245,11 @@ CREATE VIEW "CaseHistory" AS
     FROM ( SELECT 'eraGlonassIncomingCallCard'::TEXT AS "type"
                 , t.caseId                           AS caseId
                 , t.ctime                            AS datetime
-                , t.id                               AS id
-                , t.callCardId                       AS callCardId
-                , t.responseId                       AS responseId
                 , casetbl.callTaker                  AS userId
+                , t.id                               AS id
+                , t.callCardId                       AS "callCardId"
+                , t.responseId                       AS "responseId"
+                , t.requestBody                      AS "requestBody"
 
            FROM "CaseEraGlonassCreateRequest" AS t
            INNER JOIN casetbl ON casetbl.id = t.caseId

@@ -247,7 +247,10 @@ createCase reqBody@EGCreateCallCardRequestIncorrect {} prefixedLog _ _ = do
   prefixedLog logError [qm| {logMsg} |]
   throwError err500 { errBody = logMsg }
 
-createCase EGCreateCallCardRequest {..} prefixedLog time responseId' = do
+createCase reqBody@EGCreateCallCardRequest {..}
+           prefixedLog
+           time
+           responseId' = do
 
   prefixedLog logDebug [qn|
     Obtaining any Era Glonass participant "SubProgram" and its "Program"...
@@ -367,6 +370,7 @@ createCase EGCreateCallCardRequest {..} prefixedLog time responseId' = do
       , caseEraGlonassCreateRequestRequestId      = requestId
       , caseEraGlonassCreateRequestCallCardId     = cardIdCC
       , caseEraGlonassCreateRequestResponseId     = fromResponseId responseId'
+      , caseEraGlonassCreateRequestRequestBody    = reqBody
       }
 
   prefixedLog logDebug [qmb|
@@ -427,7 +431,12 @@ updateCase reqBody@EGCreateCallCardRequestIncorrect {} _ prefixedLog _ _ = do
   prefixedLog logError [qm| {logMsg} |]
   throwError err500 { errBody = logMsg }
 
-updateCase EGCreateCallCardRequest {..} caseId prefixedLog time responseId' = do
+updateCase reqBody@EGCreateCallCardRequest {..}
+           caseId
+           prefixedLog
+           time
+           responseId' = do
+
   prefixedLog logDebug [qn| Creating "CaseEraGlonassCreateRequest"... |]
 
   caseEGCreateRequestId <-
@@ -437,6 +446,7 @@ updateCase EGCreateCallCardRequest {..} caseId prefixedLog time responseId' = do
       , caseEraGlonassCreateRequestRequestId      = requestId
       , caseEraGlonassCreateRequestCallCardId     = cardIdCC
       , caseEraGlonassCreateRequestResponseId     = fromResponseId responseId'
+      , caseEraGlonassCreateRequestRequestBody    = reqBody
       }
 
   prefixedLog logDebug [qmb|
