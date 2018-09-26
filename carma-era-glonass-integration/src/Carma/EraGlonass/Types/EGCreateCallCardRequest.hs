@@ -47,12 +47,12 @@ import           Data.Model
 import           Data.Model.Types
 
 import           Carma.EraGlonass.Types.RequestId (RequestId)
-import qualified Carma.EraGlonass.Types.EGPhoneNumber as EGPhoneNumber
+import           Carma.EraGlonass.Types.EGPhoneNumber (EGPhoneNumber)
 import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
-import qualified Carma.EraGlonass.Types.EGCallCardId as EGCallCardId
-import qualified Carma.EraGlonass.Types.EGCallerFullName as EGCallerFullName
-import qualified Carma.EraGlonass.Types.EGAcceptCode as EGAcceptCode
-import qualified Carma.EraGlonass.Types.EGVin as EGVin
+import           Carma.EraGlonass.Types.EGCallCardId (EGCallCardId)
+import           Carma.EraGlonass.Types.EGCallerFullName (EGCallerFullName)
+import           Carma.EraGlonass.Types.EGAcceptCode (EGAcceptCode)
+import           Carma.EraGlonass.Types.EGVin (EGVin)
 import           Carma.EraGlonass.Types.EGPropulsion
 
 
@@ -82,7 +82,7 @@ data EGCreateCallCardRequest
        -- CaRMa field:
        --   'Carma.EraGlonass.Model.CaseEraGlonassCreateRequest.Persistent.caseEraGlonassCreateRequestRequestId'
 
-   , cardIdCC :: EGCallCardId.EGCallCardId
+   , cardIdCC :: EGCallCardId
        -- ^ Identity of \"Call Card" (required to answer).
        --
        -- Just a string, documentation says it's unsigned integer but in an
@@ -92,7 +92,7 @@ data EGCreateCallCardRequest
        -- CaRMa field:
        --   'Carma.EraGlonass.Model.CaseEraGlonassCreateRequest.Persistent.caseEraGlonassCreateRequestCallCardId'
 
-   , atPhoneNumber :: EGPhoneNumber.EGPhoneNumber
+   , atPhoneNumber :: EGPhoneNumber
        -- ^ Phone number of a car emergency terminal
        --   (embedded SIM card or something like that).
        --
@@ -111,12 +111,12 @@ data EGCreateCallCardRequest
        --
        -- CaRMa field: @caseAddress_coords@ (alongwith /@lastTrustedLatitude@/)
 
-   , callerFullName :: EGCallerFullName.EGCallerFullName
+   , callerFullName :: EGCallerFullName
        -- ^ A string of 50 chars.
        --
        -- CaRMa field: @contact_name@
 
-   , callerPhoneNumber :: EGPhoneNumber.EGPhoneNumber
+   , callerPhoneNumber :: EGPhoneNumber
        -- ^ A phone number of a customer, his personal phone number,
        --   where /@atPhoneNumber@/ is phone number of a car emergency terminal.
        --
@@ -237,7 +237,7 @@ instance ToJSON EGCreateCallCardRequestGis where
 -- | /\"vehicle"/ 'EGCreateCallCardRequest' branch data type
 data EGCreateCallCardRequestVehicle
    = EGCreateCallCardRequestVehicle
-   { vin :: EGVin.EGVin
+   { vin :: EGVin
        -- ^ A car's VIN (\"Alphanumeric").
        --
        -- We expect it to have length of 17 alphanumeric chars
@@ -319,7 +319,7 @@ data EGCreateCallCardResponse
        --   'EGCreateCallCardRequest'./@requestId@/,
        --   just getting it from request and putting it here.
 
-   , acceptCode :: EGAcceptCode.EGAcceptCode
+   , acceptCode :: EGAcceptCode
        -- ^ Possible values:
        --     @\"OK"@               - If data successfully accepted;
        --     @\"INCORRECT_FORMAT"@ - If accepted data is incorrect;
@@ -332,7 +332,7 @@ data EGCreateCallCardResponse
 
    | EGCreateCallCardResponseFailure
    { responseId        :: Text
-   , acceptCode        :: EGAcceptCode.EGAcceptCode
+   , acceptCode        :: EGAcceptCode
    , statusDescription :: Maybe Text
    }
 
