@@ -46,6 +46,7 @@ import           Database.Persist.Class
 import           Data.Model
 import           Data.Model.Types
 
+import           Carma.Model.Case.Persistent (Case)
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGPhoneNumber (EGPhoneNumber)
 import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
@@ -54,6 +55,7 @@ import           Carma.EraGlonass.Types.EGCallerFullName (EGCallerFullName)
 import           Carma.EraGlonass.Types.EGAcceptCode (EGAcceptCode)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
 import           Carma.EraGlonass.Types.EGPropulsion
+import           Carma.EraGlonass.Types.PersistentTextKey (PersistentTextKey)
 
 
 -- | Request body data-type of __EG.CRM.01__.
@@ -304,12 +306,12 @@ data EGCreateCallCardResponse
    { responseId :: Text
        -- ^ We're supposed to form it by ourselves.
        --
-       -- I think it could be just random string.
+       --   It can be just random string.
 
-   , cardidProvider :: Text
+   , cardidProvider :: PersistentTextKey Case
        -- ^ CaRMa 'Carma.Model.Case.Persistent.Case' id.
 
-   , acceptId :: Text
+   , acceptId :: EGCallCardId
        -- ^ It supposed to be equal to obtained from
        --   'EGCreateCallCardRequest'./@cardIdCC@/,
        --   just getting it from request and putting it here.

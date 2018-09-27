@@ -15,6 +15,8 @@ import qualified Carma.EraGlonass.Test.Types.EGCreateCallCardRequest
                    as EGCreateCallCardRequest
 import qualified Carma.EraGlonass.Test.Types.EGCreateCallCardResponse
                    as EGCreateCallCardResponse
+import qualified Carma.EraGlonass.Test.Types.PersistentTextKey
+                   as PersistentTextKey
 
 
 main :: IO ()
@@ -29,3 +31,4 @@ main = hspec $ do
   describe "EGAcceptCode" EGAcceptCode.spec
   describe "EGCreateCallCardRequest" EGCreateCallCardRequest.spec
   describe "EGCreateCallCardResponse" EGCreateCallCardResponse.spec
+  describe "PersistentTextKey" PersistentTextKey.spec

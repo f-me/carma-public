@@ -44,6 +44,7 @@ import           Carma.Model.SubProgram.Persistent
 import           Carma.Model.LegacyTypes
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Types
+import           Carma.EraGlonass.Types.PersistentTextKey
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
 import           Carma.EraGlonass.Model.CaseEraGlonassCreateRequest.Persistent
@@ -391,8 +392,8 @@ createCase reqBody@EGCreateCallCardRequest {..}
 
   pure EGCreateCallCardResponse
      { responseId        = fromResponseId responseId'
-     , cardidProvider    = [qm| {fromSqlKey caseId} |]
-     , acceptId          = fromEGCallCardId cardIdCC
+     , cardidProvider    = PersistentTextKey caseId
+     , acceptId          = cardIdCC
      , requestId         = requestId
      , acceptCode        = OK
      , statusDescription = Nothing
@@ -456,8 +457,8 @@ updateCase reqBody@EGCreateCallCardRequest {..}
 
   pure EGCreateCallCardResponse
      { responseId        = fromResponseId responseId'
-     , cardidProvider    = [qm| {fromSqlKey caseId} |]
-     , acceptId          = fromEGCallCardId cardIdCC
+     , cardidProvider    = PersistentTextKey caseId
+     , acceptId          = cardIdCC
      , requestId         = requestId
      , acceptCode        = OK
      , statusDescription = Just [qms|

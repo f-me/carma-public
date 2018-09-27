@@ -15,6 +15,9 @@ import           Data.Aeson
 import qualified Data.HashMap.Lazy as HM
 import           Text.InterpolatedString.QM
 
+import           Database.Persist.Sql (toSqlKey)
+
+import           Carma.EraGlonass.Types.PersistentTextKey
 import           Carma.EraGlonass.Types.EGCreateCallCardRequest
 import           Carma.EraGlonass.Types.EGAcceptCode
 
@@ -67,7 +70,7 @@ testReference :: EGCreateCallCardResponse
 testReference
   = EGCreateCallCardResponse
   { responseId        = "177551"
-  , cardidProvider    = "120010001823039"
+  , cardidProvider    = PersistentTextKey $ toSqlKey 120010001823039
   , acceptId          = "597b53edf0f012e5e00d8a9a"
   , requestId         = "9db7cf43-deab-4c27-a8df-74bec0b75df1"
   , acceptCode        = OK
