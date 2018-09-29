@@ -319,14 +319,18 @@ createCase reqBody@EGCreateCallCardRequest {..}
 
       , caseCar_vin = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
       , caseCar_make = Nothing
+      , caseCar_model = Nothing
+      , caseCar_generation = Nothing
       , caseCar_plateNum = Just $ registrationNumber vehicle
       , caseCar_makeYear = Nothing
       , caseCar_color = Just $ color vehicle
       , caseCar_buyDate = Nothing
       , caseCar_firstSaleDate = Nothing
       , caseCar_mileage = Nothing
+      , caseCar_transmission = Nothing
       , caseCar_engine = egPropulsionToEngineId <$> propulsion vehicle
       , caseCar_liters = Nothing
+      , caseCar_class = Nothing
 
       , caseVinChecked = Nothing
       , caseCity = Nothing

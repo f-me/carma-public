@@ -19,12 +19,12 @@ import           Carma.Model.City.Persistent (CityId)
 -- import           Carma.Model.Partner.Persistent (PartnerId)
 import           Carma.Model.Program.Persistent (ProgramId)
 import           Carma.Model.SubProgram.Persistent (SubProgramId)
--- import           Carma.Model.Transmission.Persistent (TransmissionId)
+import           Carma.Model.Transmission.Persistent (TransmissionId)
 import           Carma.Model.Engine.Persistent (EngineId)
--- import           Carma.Model.CarClass.Persistent (CarClassId)
--- import           Carma.Model.CarGeneration.Persistent (CarGenerationId)
+import           Carma.Model.CarClass.Persistent (CarClassId)
+import           Carma.Model.CarGeneration.Persistent (CarGenerationId)
 import           Carma.Model.CarMake.Persistent (CarMakeId)
--- import           Carma.Model.CarModel.Persistent (CarModelId)
+import           Carma.Model.CarModel.Persistent (CarModelId)
 import           Carma.Model.Contract.Persistent (ContractId)
 import           Carma.Model.ContractCheckStatus.Persistent
                    (ContractCheckStatusId)
@@ -76,8 +76,8 @@ Case sql=casetbl
   -- Data about a car
   car_vin Text Maybe sql=car_vin
   car_make CarMakeId Maybe sql=car_make
-  -- TODO car_model CarModelId Maybe sql=car_model
-  -- TODO car_generation CarGenerationId Maybe sql=car_generation
+  car_model CarModelId Maybe sql=car_model
+  car_generation CarGenerationId Maybe sql=car_generation
   -- TODO car_seller PartnerId Maybe sql=car_seller
   car_plateNum Text Maybe sql=car_platenum
   car_makeYear Int Maybe sql=car_makeyear
@@ -86,10 +86,10 @@ Case sql=casetbl
   car_firstSaleDate Day Maybe sql=car_firstsaledate
   -- TODO car_dealerTO PartnerId Maybe sql=car_dealerto
   car_mileage Int Maybe sql=car_mileage
-  -- TODO car_transmission TransmissionId Maybe sql=car_transmission
+  car_transmission TransmissionId Maybe sql=car_transmission
   car_engine EngineId Maybe sql=car_engine
   car_liters Text Maybe sql=car_liters
-  -- TODO car_class CarClassId Maybe sql=car_class
+  car_class CarClassId Maybe sql=car_class
 
   vinChecked ContractCheckStatusId Maybe sql=vinchecked
   city CityId Maybe sql=city
