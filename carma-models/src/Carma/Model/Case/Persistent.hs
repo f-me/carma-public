@@ -30,27 +30,27 @@ import           Carma.Model.ContractCheckStatus.Persistent
                    (ContractCheckStatusId)
 
 -- Diagnostics models
--- import           Carma.Model.Diagnostics.Cause.Persistent (CauseId)
--- import           Carma.Model.Diagnostics.Part.Persistent (PartId)
--- import           Carma.Model.Diagnostics.Suggestion.Persistent (SuggestionId)
--- import           Carma.Model.Diagnostics.System.Persistent (SystemId)
--- import           Carma.Model.Diagnostics.Wazzup.Persistent (WazzupId)
+import           Carma.Model.Diagnostics.Cause.Persistent (CauseId)
+import           Carma.Model.Diagnostics.Part.Persistent (PartId)
+import           Carma.Model.Diagnostics.Suggestion.Persistent (SuggestionId)
+import           Carma.Model.Diagnostics.System.Persistent (SystemId)
+import           Carma.Model.Diagnostics.Wazzup.Persistent (WazzupId)
 
 
 -- | Partially implemented @Case@ persistent model.
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Case sql=casetbl
-  callDate        UTCTime Maybe sql=calldate
-  vwcreatedate    UTCTime Maybe sql=vwcreatedate
-  callTaker       UsermetaId    sql=calltaker
-  customerComment Text    Maybe sql=customercomment
-  -- TODO comment WazzupId Maybe sql=comment
+  callDate        UTCTime  Maybe sql=calldate
+  vwcreatedate    UTCTime  Maybe sql=vwcreatedate
+  callTaker       UsermetaId     sql=calltaker
+  customerComment Text     Maybe sql=customercomment
+  comment         WazzupId Maybe sql=comment
 
   -- Diagnostic fields
-  -- TODO diagnosis1 SystemId     Maybe sql=diagnosis1
-  -- TODO diagnosis2 PartId       Maybe sql=diagnosis2
-  -- TODO diagnosis3 CauseId      Maybe sql=diagnosis3
-  -- TODO diagnosis4 SuggestionId Maybe sql=diagnosis4
+  diagnosis1 SystemId     Maybe sql=diagnosis1
+  diagnosis2 PartId       Maybe sql=diagnosis2
+  diagnosis3 CauseId      Maybe sql=diagnosis3
+  diagnosis4 SuggestionId Maybe sql=diagnosis4
 
   -- Contacts fields
   contact_name Text Maybe sql=contact_name

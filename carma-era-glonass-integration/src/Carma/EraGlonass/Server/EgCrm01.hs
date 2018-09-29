@@ -289,6 +289,12 @@ createCase reqBody@EGCreateCallCardRequest {..}
       , caseVwcreatedate = Nothing
       , caseCallTaker = admin
       , caseCustomerComment = Nothing
+      , caseComment = Nothing
+
+      , caseDiagnosis1 = Nothing
+      , caseDiagnosis2 = Nothing
+      , caseDiagnosis3 = Nothing
+      , caseDiagnosis4 = Nothing
 
       , caseContact_name = Just $ fromEGCallerFullName callerFullName
       , caseContact_phone1 =
