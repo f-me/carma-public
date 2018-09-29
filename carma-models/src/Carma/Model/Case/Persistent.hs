@@ -15,7 +15,7 @@ import           Carma.Model.LegacyTypes
 import           Carma.Model.Usermeta.Persistent (UsermetaId)
 import           Carma.Model.CaseSource.Persistent (CaseSourceId)
 import           Carma.Model.CaseStatus.Persistent (CaseStatusId)
--- import           Carma.Model.City.Persistent (CityId)
+import           Carma.Model.City.Persistent (CityId)
 -- import           Carma.Model.Partner.Persistent (PartnerId)
 import           Carma.Model.Program.Persistent (ProgramId)
 import           Carma.Model.SubProgram.Persistent (SubProgramId)
@@ -25,9 +25,9 @@ import           Carma.Model.Engine.Persistent (EngineId)
 -- import           Carma.Model.CarGeneration.Persistent (CarGenerationId)
 import           Carma.Model.CarMake.Persistent (CarMakeId)
 -- import           Carma.Model.CarModel.Persistent (CarModelId)
--- import           Carma.Model.Contract.Persistent (ContractId)
--- import           Carma.Model.ContractCheckStatus.Persistent
---                    (ContractCheckStatusId)
+import           Carma.Model.Contract.Persistent (ContractId)
+import           Carma.Model.ContractCheckStatus.Persistent
+                   (ContractCheckStatusId)
 
 -- Diagnostics models
 -- import           Carma.Model.Diagnostics.Cause.Persistent (CauseId)
@@ -71,7 +71,7 @@ Case sql=casetbl
   subprogram SubProgramId Maybe sql=subprogram
 
   contractIdentifier Text Maybe sql=contractidentifier
-  -- TODO contract ContractId Maybe sql=contract
+  contract ContractId Maybe sql=contract
 
   -- Data about a car
   car_vin Text Maybe sql=car_vin
@@ -91,9 +91,9 @@ Case sql=casetbl
   car_liters Text Maybe sql=car_liters
   -- TODO car_class CarClassId Maybe sql=car_class
 
-  -- TODO vinChecked ContractCheckStatusId Maybe sql=vinchecked
-  -- TODO city CityId Maybe sql=city
-  -- TODO caseAddress_city CityId Maybe sql=caseaddress_city
+  vinChecked ContractCheckStatusId Maybe sql=vinchecked
+  city CityId Maybe sql=city
+  caseAddress_city CityId Maybe sql=caseaddress_city
   caseAddress_address PickerField Maybe sql=caseaddress_address
   caseAddress_comment Text Maybe sql=caseaddress_comment
   caseAddress_notRussia Checkbox Maybe sql=caseaddress_notrussia

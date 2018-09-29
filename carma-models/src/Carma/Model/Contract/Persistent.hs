@@ -20,6 +20,10 @@ import Data.Text (Text)
 
 import Database.Persist.TH
 
+
+-- | Partially implemented @Contract@ persistent model.
+--
+-- TODO extend with other fields
 share [mkPersist sqlSettings] [persistLowerCase|
 Contract json sql=Contract
   ctime UTCTime

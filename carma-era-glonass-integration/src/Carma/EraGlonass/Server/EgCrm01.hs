@@ -309,6 +309,7 @@ createCase reqBody@EGCreateCallCardRequest {..}
       , caseSubprogram = Nothing
 
       , caseContractIdentifier = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
+      , caseContract = Nothing
 
       , caseCar_vin = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
       , caseCar_make = Nothing
@@ -321,6 +322,9 @@ createCase reqBody@EGCreateCallCardRequest {..}
       , caseCar_engine = egPropulsionToEngineId <$> propulsion vehicle
       , caseCar_liters = Nothing
 
+      , caseVinChecked = Nothing
+      , caseCity = Nothing
+      , caseCaseAddress_city = Nothing
       , caseCaseAddress_address =
           case gis of
                [] -> Nothing
