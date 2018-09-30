@@ -38,6 +38,7 @@ import           Carma.Monad.PersistentSql
 import           Carma.Model.Case.Persistent
 import           Carma.Model.CaseSource.Persistent
 import           Carma.Model.CaseStatus.Persistent
+import           Carma.Model.City.Persistent
 import           Carma.Model.Usermeta.Persistent
 import           Carma.Model.Program.Persistent
 import           Carma.Model.SubProgram.Persistent
@@ -281,6 +282,31 @@ createCase reqBody@EGCreateCallCardRequest {..}
     \  "Program" id: {fromSqlKey anyEGProgram}.
   |]
 
+  maybeCityId <-
+    case gis of
+         [] -> pure Nothing
+
+         (EGCreateCallCardRequestGis { settlementName } : _) -> do
+           prefixedLog logDebug [qmb|
+             Trying to find a "City" with label equals to "{settlementName}"
+             to fill "Case" fields
+             "city" and "caseAddress_city" with that "CityId"...
+           |]
+
+           foundCity <- selectFirst [ CityLabel ==. settlementName ] []
+
+           case foundCity of
+                Nothing ->
+                  Nothing <$ prefixedLog logDebug [qmb|
+                    "City" with label "{settlementName}" not found.
+                  |]
+                Just Entity {..} ->
+                  Just entityKey <$ prefixedLog logDebug [qmb|
+                    "City" with label "{settlementName}" \
+                    is successfully obtained:
+                    \  "City" id: {fromSqlKey entityKey}
+                  |]
+
   prefixedLog logDebug [qn| Creating "Case"... |]
 
   caseId <-
@@ -333,8 +359,8 @@ createCase reqBody@EGCreateCallCardRequest {..}
       , caseCar_class = Nothing
 
       , caseVinChecked = Nothing
-      , caseCity = Nothing
-      , caseCaseAddress_city = Nothing
+      , caseCity = maybeCityId
+      , caseCaseAddress_city = maybeCityId
       , caseCaseAddress_address =
           case gis of
                [] -> Nothing

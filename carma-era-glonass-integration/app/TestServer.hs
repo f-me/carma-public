@@ -22,6 +22,7 @@ import           Carma.Monad.STM
 import           Carma.Model.Usermeta.Persistent as Usermeta
 import           Carma.Model.Program.Persistent as Program
 import           Carma.Model.SubProgram.Persistent as SubProgram
+import           Carma.Model.City.Persistent as City
 import           Carma.Model.Case.Persistent as Case
 import           Carma.Model.CaseSource.Persistent as CaseSource
 import           Carma.Model.CaseStatus.Persistent as CaseStatus
@@ -63,6 +64,9 @@ main = do
             )
           , ( typeRep (Proxy :: Proxy SubProgram)
             , SubProgram.migrateAll
+            )
+          , ( typeRep (Proxy :: Proxy City)
+            , City.migrateAll
             )
           , ( typeRep (Proxy :: Proxy Case)
             , Case.migrateAll
