@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE BangPatterns, LambdaCase #-}
+{-# LANGUAGE BangPatterns, LambdaCase, RecordWildCards #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 -- | Production server implementation
@@ -23,10 +23,10 @@ import           Carma.Model.Usermeta.Persistent (admin)
 
 
 main :: IO ()
-main = app ProductionAppMode $ \pgConf reqTimeout runServer -> do
+main = app ProductionAppMode $ \AppConfig {..} runServer -> do
   logInfo [qms| Creating PostgreSQL connection pool
                 (pool size is: {pgPoolSize pgConf},
-                 request timeout: {reqTimeout} seconds)... |]
+                 request timeout: {dbRequestTimeout} seconds)... |]
 
   loggerBus' <- ask
   !(pgPool :: Pool SqlBackend) <- liftIO $

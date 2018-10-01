@@ -3,9 +3,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module Carma.EraGlonass.App
-     ( app
+     ( AppConfig (..)
+     , app
      ) where
 
 import           Data.Function ((&))
@@ -44,6 +46,14 @@ import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Server (serverApplicaton)
 
 
+-- | Application config data to provide to particular implementation.
+data AppConfig
+   = AppConfig
+   { pgConf :: PostgresConf
+   , dbRequestTimeout :: Float
+   }
+
+
 -- | Application starter which abstract from specific database.
 --
 -- It takes a monad that wraps server runner and provides specific database
@@ -52,8 +62,7 @@ import           Carma.EraGlonass.Server (serverApplicaton)
 app
   :: (MonadIO m, MonadBaseControl IO m)
   => AppMode
-  -> ( PostgresConf
-       -> Float
+  -> ( AppConfig
        -> (DBConnection -> ReaderT (TQueue LogMessage) m ())
        -> ReaderT (TQueue LogMessage) m ()
      ) -- ^ Database connection creator that wraps server runner
@@ -64,7 +73,7 @@ app appMode' dbConnectionCreator = do
   !(port :: Warp.Port) <- liftIO $ Conf.require cfg "port"
   !(host :: String)    <- liftIO $ Conf.lookupDefault "127.0.0.1" cfg "host"
 
-  !pgConf <- liftIO $ PostgresConf
+  !pgConf' <- liftIO $ PostgresConf
     <$> Conf.require cfg "db.postgresql.connection-string"
     <*> Conf.require cfg "db.postgresql.pool-size"
 
@@ -99,7 +108,14 @@ app appMode' dbConnectionCreator = do
     when (appMode' == TestingAppMode) $
       logWarn "Starting testing server with in-memory SQLite database..."
 
-    forkWithSem $ dbConnectionCreator pgConf dbRequestTimeout' runServer
+    forkWithSem $ let
+
+      x = AppConfig
+        { pgConf           = pgConf'
+        , dbRequestTimeout = dbRequestTimeout'
+        }
+
+      in dbConnectionCreator x runServer
 
   -- Trapping termination of the application
   liftIO $ forM_ [sigINT, sigTERM] $ \sig ->
