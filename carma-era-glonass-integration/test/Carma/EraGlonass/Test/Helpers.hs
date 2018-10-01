@@ -6,6 +6,7 @@
 module Carma.EraGlonass.Test.Helpers
      ( findSubstring
      , withTestingServer
+     , withTestingServerLogged
      ) where
 
 import           Test.Hspec
@@ -40,10 +41,14 @@ findSubstring str =
 --
 -- It terminates it (testing HTTP server) when wrapped monad is done.
 -- Testing server using new clean SQLite in-memory database.
-withTestingServer :: Bool -> MVar () -> Expectation -> Expectation
-withTestingServer withoutOwnServer locker runTest =
+--
+-- As a result it returns absorbed __stdout__ and __stderr__ of the testing
+-- server or @Nothing@ if testing server haven't been started.
+withTestingServerLogged
+  :: Bool -> MVar () -> Expectation -> IO (Maybe (Text, Text))
+withTestingServerLogged withoutOwnServer locker runTest =
   if withoutOwnServer
-     then runWithoutServer
+     then Nothing <$ runWithoutServer
      else runWithServer
 
   where
@@ -155,7 +160,22 @@ withTestingServer withoutOwnServer locker runTest =
               `catch` serverFailureHandler
               `catch` testFailureHandler
 
-      finally (readLog mempty >> testRunner) $ do
+      let returnLog = do
+            _ <- terminateProcess hProc >> waitForProcess hProc
+            errLog <- takeMVar errLogMVar
+            outLog <- takeMVar outLogMVar
+            pure $ Just (outLog, errLog)
+
+      finally (readLog mempty >> testRunner >> returnLog) $ do
         terminateProcess hProc
         _ <- waitForProcess hProc
         putMVar locker () -- Unlock
+
+
+-- | Wrapper that starts testing HTTP server in background.
+--
+-- It terminates it (testing HTTP server) when wrapped monad is done.
+-- Testing server using new clean SQLite in-memory database.
+withTestingServer :: Bool -> MVar () -> Expectation -> IO ()
+withTestingServer withoutOwnServer locker runTest =
+  void $ withTestingServerLogged withoutOwnServer locker runTest
