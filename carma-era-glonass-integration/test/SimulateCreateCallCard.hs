@@ -24,6 +24,7 @@ import           Control.Monad.Catch
 import           Control.Concurrent (threadDelay)
 import           Control.Concurrent.MVar
 import           Control.Exception (throw)
+import           Control.Monad.Random.Class (getRandomRs)
 
 import           System.Environment
 
@@ -167,10 +168,21 @@ egCRM01 withoutTestingServer serverLock =
           caseData `shouldSatisfy` cityFieldsAreFilledPredicate
           caseData `shouldNotSatisfy` cityFieldsAreNotFilledPredicate
 
-      it "City with such label not exists" $
+      it "City with such label not exists" $ do
+        -- Random VIN to avoid merging with already exiting @Case@
+        randomVin <-
+          getRandomRs ('A', 'Z')
+            <&> take 17
+            <&> map (\case 'I' -> '0'
+                           'O' -> '1'
+                           'Q' -> '2'
+                           x -> x)
+
         withTestingServer withoutTestingServer serverLock $ do
           result <- getRequestMaker >>= \f -> f $ createCallCard $ let
 
+            -- | Modifier of "gis.settlementName" key to prevent city
+            -- dictionary __@Case@__'s field from detecting.
             fGisList :: Object -> Either String Value
             fGisList kv = case HM.lookup k kv of
               Just (Array (V.toList -> (Object x : xs))) -> do
@@ -194,9 +206,37 @@ egCRM01 withoutTestingServer serverLock =
                 Left [qm| "{k}" key not found in hash-map: {kv} |]
               where k = "settlementName"
 
+            -- | "vehicle.vin" key modifier to prevent from merging with already
+            -- existing __@Case@__.
+            fVehicle :: Object -> Either String Value
+            fVehicle kv = case HM.lookup k kv of
+              Just (Object kv') -> do
+                let k' = "vin"
+
+                newVehicle <-
+                  case HM.lookup k' kv' of
+                       Just (String _) ->
+                         Right $ HM.insert k' (String [qm| {randomVin} |]) kv'
+                       Just x ->
+                         Left [qm| "{k'}" key is not a "String": {x} |]
+                       Nothing ->
+                         Left [qm| "{k'}" key not found in hash-map: {kv'} |]
+
+                Right $ Object $ HM.insert k (Object newVehicle) kv
+
+              Just x ->
+                Left [qm| "{k}" key is not an "Object": {x} |]
+              Nothing ->
+                Left [qm| "{k}" key not found in hash-map: {kv} |]
+
+              where k = "vehicle"
+
             rootF :: Value -> Either String Value
-            rootF (Object x) = fGisList x
-            rootF x          = Left [qm| Root element is not an "Object": {x} |]
+            rootF (Object x) =
+              fGisList x >>= \case
+                Object y -> fVehicle y
+                y -> Left [qm| Root element is not an "Object": {y} |]
+            rootF x = Left [qm| Root element is not an "Object": {x} |]
 
             in either error id $ testData >>= rootF
 
