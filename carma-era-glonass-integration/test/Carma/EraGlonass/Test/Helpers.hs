@@ -31,6 +31,14 @@ import           Servant.Client
 import           Carma.Utils.Operators
 
 
+{-|
+A parser to find specified substring.
+
+@
+hasFoo :: Text -> Bool
+hasFoo = either (const False) (const True) . parseOnly (findSubstring "foo")
+@
+-}
 findSubstring :: Text -> ParsecText.Parser Text
 findSubstring str =
   ParsecText.try (ParsecText.string str)
