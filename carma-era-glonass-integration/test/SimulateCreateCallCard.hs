@@ -183,62 +183,30 @@ egCRM01 withoutTestingServer serverLock =
 
             -- | Modifier of "gis.settlementName" key to prevent city
             -- dictionary __@Case@__'s field from detecting.
-            fGisList :: Object -> Either String Value
-            fGisList kv = case HM.lookup k kv of
-              Just (Array (V.toList -> (Object x : xs))) -> do
-                newGis <- fGisItem x
-                Right $ Object $
-                  HM.insert k (Array $ V.fromList (newGis : xs)) kv
-              Just x ->
-                Left [qm| "{k}" key is not an "Array" of "Object"s: {x} |]
-              Nothing ->
-                Left [qm| "{k}" key not found in hash-map: {kv} |]
-              where k = "gis"
+            fGisList :: Value -> Either String Value
+            fGisList = modifyObjectProp "gis" $ \case
 
-            fGisItem :: Object -> Either String Value
-            fGisItem kv = case HM.lookup k kv of
-              Just (String _) ->
-                Right $ Object $
-                  HM.insert k (String "unknown city label plug") kv
-              Just x ->
-                Left [qm| "{k}" key is not a "String": {x} |]
-              Nothing ->
-                Left [qm| "{k}" key not found in hash-map: {kv} |]
-              where k = "settlementName"
+              Array (V.toList -> (x@(Object _) : xs)) -> do
+                newGis <- fGisItem x
+                Right $ Array $ V.fromList (newGis : xs)
+
+              x -> Left [qm| Not an "Array" of "Object"s: {x} |]
+
+            fGisItem :: Value -> Either String Value
+            fGisItem = modifyObjectProp "settlementName" $ \case
+              String _ -> Right $ String "unknown city label plug"
+              x        -> Left [qm| Not a "String": {x} |]
 
             -- | "vehicle.vin" key modifier to prevent from merging with already
             -- existing __@Case@__.
-            fVehicle :: Object -> Either String Value
-            fVehicle kv = case HM.lookup k kv of
-              Just (Object kv') -> do
-                let k' = "vin"
+            fVehicle :: Value -> Either String Value
+            fVehicle
+              = modifyObjectProp "vehicle"
+              $ modifyObjectProp "vin"
+              $ \case String _ -> Right $ String [qm| {randomVin} |]
+                      x        -> Left [qm| Not a "String": {x} |]
 
-                newVehicle <-
-                  case HM.lookup k' kv' of
-                       Just (String _) ->
-                         Right $ HM.insert k' (String [qm| {randomVin} |]) kv'
-                       Just x ->
-                         Left [qm| "{k'}" key is not a "String": {x} |]
-                       Nothing ->
-                         Left [qm| "{k'}" key not found in hash-map: {kv'} |]
-
-                Right $ Object $ HM.insert k (Object newVehicle) kv
-
-              Just x ->
-                Left [qm| "{k}" key is not an "Object": {x} |]
-              Nothing ->
-                Left [qm| "{k}" key not found in hash-map: {kv} |]
-
-              where k = "vehicle"
-
-            rootF :: Value -> Either String Value
-            rootF (Object x) =
-              fGisList x >>= \case
-                Object y -> fVehicle y
-                y -> Left [qm| Root element is not an "Object": {y} |]
-            rootF x = Left [qm| Root element is not an "Object": {x} |]
-
-            in either error id $ testData >>= rootF
+            in either error id $ testData >>= fGisList >>= fVehicle
 
           caseId <- obtainCase result
           caseData <- getRequestMaker >>= \f -> f $ getCase caseId

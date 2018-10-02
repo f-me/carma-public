@@ -1,10 +1,11 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Carma.EraGlonass.Test.Helpers
      ( findSubstring
+     , modifyObjectProp
      , withTestingServer
      , withTestingServerLogged
      ) where
@@ -16,6 +17,8 @@ import           Data.Text (Text)
 import qualified Data.Text.IO as T
 import qualified Data.Attoparsec.Text as ParsecText
 import           Text.InterpolatedString.QM
+import qualified Data.HashMap.Lazy as HM
+import           Data.Aeson
 
 import           Control.Monad
 import           Control.Arrow
@@ -43,6 +46,33 @@ findSubstring :: Text -> ParsecText.Parser Text
 findSubstring str =
   ParsecText.try (ParsecText.string str)
     <|> (ParsecText.anyChar *> findSubstring str)
+
+
+-- | Generic modification of an JSON (Aeson) @Object@'s property.
+--
+-- It checks if specified property exists and provided @Value@ is @Object@.
+modifyObjectProp
+  :: Text -- ^ A name of a @Object@'s property to modify
+  -> (Value -> Either String Value)
+  -- ^ A modifier of a property value
+  --   (returns new value or modification failure message)
+  -> Value -- ^ @Object@ to modify (supposed to be an @Object@)
+  -> Either String Value -- ^ New modified @Object@ or failure message
+modifyObjectProp propName modifier = rootObjMatch
+  where
+    rootObjMatch (Object x) = Object <$> propMap x
+    rootObjMatch x =
+      Left [qm| A JSON value is not an "Object" (but supposed to be): {x} |]
+
+    propMap kv =
+      case HM.lookup propName kv of
+           Just x -> f $ modifier x
+           Nothing -> Left [qm| {propPfx} not found in hash-map: {kv} |]
+      where
+        f (Right x) = Right $ HM.insert propName x kv
+        f (Left  e) = Left [qm| {propPfx} modification is failed: {e} |]
+
+    propPfx = [qm| "{propName}" property |] :: String
 
 
 -- | Wrapper that starts testing HTTP server in background.
