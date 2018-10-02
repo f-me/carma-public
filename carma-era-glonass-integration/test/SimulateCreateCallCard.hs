@@ -1,8 +1,7 @@
 {-# LANGUAGE OverloadedStrings, OverloadedLists #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns, LambdaCase, ViewPatterns #-}
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE LambdaCase #-}
 
 -- For Servant's stuff
 {-# LANGUAGE DataKinds, TypeOperators #-}
@@ -12,6 +11,8 @@ module Main (main) where
 import           Test.Hspec
 
 import           Data.Proxy
+import           Data.Maybe (isJust)
+import qualified Data.Vector as V
 import           Text.InterpolatedString.QM
 import qualified Data.Configurator as Conf
 import           Data.Aeson
@@ -26,6 +27,8 @@ import           Control.Exception (throw)
 
 import           System.Environment
 
+import           Database.Persist.Sql (toSqlKey)
+
 import qualified Network.Wai.Handler.Warp as Warp
 import           Network.HTTP.Client (newManager)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
@@ -34,6 +37,7 @@ import           Servant
 import           Servant.Client
 
 import           Carma.Utils.Operators
+import           Carma.Model.Case.Persistent
 import           Carma.EraGlonass.Test.Helpers
 import           Carma.EraGlonass.Test.Types.EGCreateCallCardRequest (testData)
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
@@ -61,6 +65,12 @@ type ServerAPI
 
                   :<|> -- GET /debug/background-tasks/count.json
                        "background-tasks" :> "count.json" :> Get '[JSON] Word
+
+                  :<|> -- GET /debug/case/:caseid/get.json
+                       "case"
+                       :> Capture "caseid" CaseId
+                       :> "get.json"
+                       :> Get '[JSON] Value
                   )
 
 
@@ -97,6 +107,103 @@ egCRM01 withoutTestingServer serverLock =
             in HM.lookup "acceptCode" kv == Just (String "OK") && hasCaseId
 
           _ -> False
+
+    describe "Dictionary city fields of a case are filled by gis data" $ do
+
+      let obtainCase = \case
+            Right (Object kv) ->
+              case HM.lookup k kv of
+                   Just (String textCaseId) ->
+                     pure $ toSqlKey $ read [qm| {textCaseId} |]
+                   Just x -> fail [qm| "{k}" key is not a "String": {x} |]
+                   Nothing -> fail [qm| "{k}" key not found! |]
+
+            Right x -> fail [qm| Root is not an "Object": {x} |]
+            Left err -> throwM err
+
+            where k = "cardidProvider"
+
+      let cityFieldsAreFilledPredicate = \case
+            Right (Object kv) -> let
+
+              firstField =
+                case HM.lookup "caseAddress_city" kv of
+                     Just (Number x) -> Just x
+                     _ -> Nothing
+
+              secondField =
+                case HM.lookup "city" kv of
+                     Just (Number x) -> Just x
+                     _ -> Nothing
+
+              in isJust firstField
+              && isJust secondField
+              && firstField == secondField
+
+            _ -> False
+
+      let cityFieldsAreNotFilledPredicate = \case
+            Right (Object kv) -> let
+
+              firstField =
+                case HM.lookup "caseAddress_city" kv of
+                     Just Null -> True
+                     _ -> False
+
+              secondField =
+                case HM.lookup "city" kv of
+                     Just Null -> True
+                     _ -> False
+
+              in firstField && secondField
+
+            _ -> False
+
+      it "Found city by its label" $
+        withTestingServer withoutTestingServer serverLock $ do
+          result <- getRequestMaker >>= \f -> f $ createCallCard testData'
+          caseId <- obtainCase result
+          caseData <- getRequestMaker >>= \f -> f $ getCase caseId
+          caseData `shouldSatisfy` cityFieldsAreFilledPredicate
+          caseData `shouldNotSatisfy` cityFieldsAreNotFilledPredicate
+
+      it "City with such label not exists" $
+        withTestingServer withoutTestingServer serverLock $ do
+          result <- getRequestMaker >>= \f -> f $ createCallCard $ let
+
+            fGisList :: Object -> Either String Value
+            fGisList kv = case HM.lookup k kv of
+              Just (Array (V.toList -> (Object x : xs))) -> do
+                newGis <- fGisItem x
+                Right $ Object $
+                  HM.insert k (Array $ V.fromList (newGis : xs)) kv
+              Just x ->
+                Left [qm| "{k}" key is not an "Array" of "Object"s: {x} |]
+              Nothing ->
+                Left [qm| "{k}" key not found in hash-map: {kv} |]
+              where k = "gis"
+
+            fGisItem :: Object -> Either String Value
+            fGisItem kv = case HM.lookup k kv of
+              Just (String _) ->
+                Right $ Object $
+                  HM.insert k (String "unknown city label plug") kv
+              Just x ->
+                Left [qm| "{k}" key is not a "String": {x} |]
+              Nothing ->
+                Left [qm| "{k}" key not found in hash-map: {kv} |]
+              where k = "settlementName"
+
+            rootF :: Value -> Either String Value
+            rootF (Object x) = fGisList x
+            rootF x          = Left [qm| Root element is not an "Object": {x} |]
+
+            in either error id $ testData >>= rootF
+
+          caseId <- obtainCase result
+          caseData <- getRequestMaker >>= \f -> f $ getCase caseId
+          caseData `shouldNotSatisfy` cityFieldsAreFilledPredicate
+          caseData `shouldSatisfy` cityFieldsAreNotFilledPredicate
 
     describe "Incorrect request body" $ do
 
@@ -209,9 +316,11 @@ createCallCard          :: Value -> ClientM Value
 getFailuresCount        :: ClientM Word
 getFailuresList         :: Maybe Word -> ClientM Value
 getBackgroundTasksCount :: ClientM Word
+getCase                 :: CaseId -> ClientM Value
 (      createCallCard
   :<|> (    (getFailuresCount :<|> getFailuresList)
        :<|> getBackgroundTasksCount
+       :<|> getCase
        )
   ) = client (Proxy :: Proxy ServerAPI)
 

@@ -53,6 +53,7 @@ dependencies:
   - transformers-base
   - unix
   - unordered-containers
+  - vector
   - warp
 
 ghc-options:

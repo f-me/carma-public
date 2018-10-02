@@ -146,6 +146,15 @@ main = do
                              }
 
 
+        logDebug [qm| Creating testing plug "City" for Moscow city... |]
+
+        flip runReaderT sqliteConnection $
+          insert_ City { cityValue = "Moskva"
+                       , cityLabel = "Москва"
+                       , cityTimezone = "Europe/Moscow"
+                       }
+
+
         logDebug [qm| Creating testing plug "Usermeta" "admin" {admin}... |]
         flip runReaderT sqliteConnection $ insertKey admin Usermeta
 

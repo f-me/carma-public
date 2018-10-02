@@ -1,4 +1,5 @@
-{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE DuplicateRecordFields, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables, ConstraintKinds #-}
 {-# LANGUAGE DataKinds, TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -12,6 +13,7 @@ module Carma.EraGlonass.Server
 
 import           Data.Proxy
 import           Data.Swagger (Swagger)
+import           Data.Aeson
 import           Text.InterpolatedString.QM
 
 import           Control.Monad.Reader (MonadReader, asks, runReaderT, ReaderT)
@@ -23,7 +25,9 @@ import           Servant
 import           Servant.Swagger (toSwagger)
 
 import           Database.Persist.Types
+import           Database.Persist.Sql (fromSqlKey)
 
+import           Carma.Model.Case.Persistent
 import           Carma.Monad.STM
 import           Carma.Monad.MVar
 import           Carma.Monad.Clock
@@ -58,6 +62,12 @@ type ServerAPI
 
                   :<|> -- GET /debug/background-tasks/count.json
                        "background-tasks" :> "count.json" :> Get '[JSON] Word
+
+                  :<|> -- GET /debug/case/:caseid/get.json
+                       "case"
+                       :> Capture "caseid" CaseId
+                       :> "get.json"
+                       :> Get '[JSON] Value
                   )
 
 
@@ -95,6 +105,7 @@ server
   :<|> (    swagger
        :<|> (getFailuresCount :<|> getFailuresList)
        :<|> getBackgroundTasksCount
+       :<|> getCase
        )
 
 
@@ -165,3 +176,38 @@ getBackgroundTasksCount = do
   result <- asks backgroundTasksCounter >>= atomically . readTVar
   logDebug [qm| Background tasks count: {result} |]
   pure result
+
+
+getCase
+  :: ( MonadReader AppContext m
+     , MonadLoggerBus m
+     , MonadPersistentSql m
+     , MonadError ServantErr m
+     )
+  => CaseId
+  -> m Value
+
+getCase caseId = do
+  logDebug [qm| Getting "Case" by id {fromSqlKey caseId}... |]
+
+  result <-
+    runSqlProtected
+      [qm| Failed to obtain "Case" by id {fromSqlKey caseId}! |]
+      $ get caseId
+
+  case result of
+       Nothing -> do
+         let logMsg = [qm| "Case" by id {fromSqlKey caseId} not found! |]
+         logError [qm| {logMsg} |]
+         throwError err404 { errBody = logMsg }
+
+       Just Case {..} -> do
+         let x = object
+               [ "city"             .= caseCity
+               , "caseAddress_city" .= caseCaseAddress_city
+               ]
+
+         x <$ logDebug [qms|
+           "Case" by id {fromSqlKey caseId} is successfully obtained,
+           returning JSON of fields used in tests: {encode x}
+         |]
