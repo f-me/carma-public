@@ -195,31 +195,50 @@ egCRM01 withoutTestingServer serverLock =
 
             _ -> False
 
-      it "Found city by its label" $
+      let -- | Generates random VIN.
+          --
+          -- Useful to avoid merging with already exiting @Case@.
+          genRandomVin :: IO String
+          genRandomVin =
+            getRandomRs ('A', 'Z')
+              <&> take 17
+              <&> map (\case 'I' -> '0'
+                             'O' -> '1'
+                             'Q' -> '2'
+                             x -> x)
+
+      let -- | "vehicle.vin" key modifier to prevent from merging with already
+          -- existing __@Case@__.
+          setRandomVin :: String -> Value -> Either String Value
+          setRandomVin randomVin
+            = modifyObjectProp "vehicle"
+            $ modifyObjectProp "vin"
+            $ \case String _ -> Right $ String [qm| {randomVin} |]
+                    x        -> Left [qm| Not a "String": {x} |]
+
+      it "Found city by its label" $ do
+        randomVin <- genRandomVin
+
         withTestingServer withoutTestingServer serverLock $ do
-          result <- getRequestMaker >>= \f -> f $ createCallCard testData'
+          result <-
+            getRequestMaker >>= \f -> f $ createCallCard $
+              either error id $ testData >>= setRandomVin randomVin
+
           caseId <- obtainCase result
           caseData <- getRequestMaker >>= \f -> f $ getCase caseId
           caseData `shouldSatisfy` cityFieldsAreFilledPredicate
           caseData `shouldNotSatisfy` cityFieldsAreNotFilledPredicate
 
       it "City with such label not exists" $ do
-        -- Random VIN to avoid merging with already exiting @Case@
-        randomVin <-
-          getRandomRs ('A', 'Z')
-            <&> take 17
-            <&> map (\case 'I' -> '0'
-                           'O' -> '1'
-                           'Q' -> '2'
-                           x -> x)
+        randomVin <- genRandomVin
 
         withTestingServer withoutTestingServer serverLock $ do
           result <- getRequestMaker >>= \f -> f $ createCallCard $ let
 
             -- | Modifier of "gis.settlementName" key to prevent city
             -- dictionary __@Case@__'s field from detecting.
-            fGisList :: Value -> Either String Value
-            fGisList = modifyObjectProp "gis" $ \case
+            setUnknownCity :: Value -> Either String Value
+            setUnknownCity = modifyObjectProp "gis" $ \case
 
               Array (V.toList -> (x@(Object _) : xs)) -> do
                 newGis <- fGisItem x
@@ -232,16 +251,8 @@ egCRM01 withoutTestingServer serverLock =
               String _ -> Right $ String "unknown city label plug"
               x        -> Left [qm| Not a "String": {x} |]
 
-            -- | "vehicle.vin" key modifier to prevent from merging with already
-            -- existing __@Case@__.
-            fVehicle :: Value -> Either String Value
-            fVehicle
-              = modifyObjectProp "vehicle"
-              $ modifyObjectProp "vin"
-              $ \case String _ -> Right $ String [qm| {randomVin} |]
-                      x        -> Left [qm| Not a "String": {x} |]
-
-            in either error id $ testData >>= fGisList >>= fVehicle
+            in either error id $
+                 testData >>= setUnknownCity >>= setRandomVin randomVin
 
           caseId <- obtainCase result
           caseData <- getRequestMaker >>= \f -> f $ getCase caseId

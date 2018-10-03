@@ -66,7 +66,7 @@ modifyObjectProp propName modifier = rootObjMatch
 
     propMap kv =
       case HM.lookup propName kv of
-           Just x -> f $ modifier x
+           Just x  -> f $ modifier x
            Nothing -> Left [qm| {propPfx} not found in hash-map: {kv} |]
       where
         f (Right x) = Right $ HM.insert propName x kv
