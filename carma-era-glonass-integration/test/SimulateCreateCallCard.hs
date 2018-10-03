@@ -97,7 +97,7 @@ egCRM01 withoutTestingServer serverLock =
     let !testData' = either error id testData
 
     it "Usual successful creating EG Call Card" $
-      withTestingServer withoutTestingServer serverLock $ do
+      withTestingServerWrap $ do
         result <- getRequestMaker >>= \f -> f $ createCallCard testData'
         result `shouldSatisfy` \case
           Right (Object kv) -> let
@@ -110,7 +110,7 @@ egCRM01 withoutTestingServer serverLock =
           _ -> False
 
     it "Returned Case does exist" $
-      withTestingServer withoutTestingServer serverLock $ do
+      withTestingServerWrap $ do
         result <-
           (getRequestMaker >>= \f -> f $ createCallCard testData')
             <&> fmap (\case Object x -> HM.lookup "cardidProvider" x
@@ -219,7 +219,7 @@ egCRM01 withoutTestingServer serverLock =
       it "Found city by its label" $ do
         randomVin <- genRandomVin
 
-        withTestingServer withoutTestingServer serverLock $ do
+        withTestingServerWrap $ do
           result <-
             getRequestMaker >>= \f -> f $ createCallCard $
               either error id $ testData >>= setRandomVin randomVin
@@ -232,7 +232,7 @@ egCRM01 withoutTestingServer serverLock =
       it "City with such label not exists" $ do
         randomVin <- genRandomVin
 
-        withTestingServer withoutTestingServer serverLock $ do
+        withTestingServerWrap $ do
           result <- getRequestMaker >>= \f -> f $ createCallCard $ let
 
             -- | Modifier of "gis.settlementName" key to prevent city
@@ -286,11 +286,11 @@ egCRM01 withoutTestingServer serverLock =
             waitForBackgroundTasks
 
       it "Incorrect request body" $
-        withTestingServer withoutTestingServer serverLock checkFailures
+        withTestingServerWrap checkFailures
 
       describe "Incorrect requests failures are stored in the database" $ do
         it "Count of stored failures is correct" $
-          withTestingServer withoutTestingServer serverLock $ do
+          withTestingServerWrap $ do
             requestMaker  <- getRequestMaker <&> \f -> f getFailuresCount
             previousCount <- requestMaker
             unless withoutTestingServer $ previousCount `shouldBe` Right 0
@@ -298,7 +298,7 @@ egCRM01 withoutTestingServer serverLock =
             requestMaker >>= flip shouldBe (previousCount <&> (+ 4))
 
         it "Stored correct failures data" $
-          withTestingServer withoutTestingServer serverLock $ do
+          withTestingServerWrap $ do
             checkFailures
             requestMaker <- getRequestMaker <&> \f -> f . getFailuresList . Just
             jsonListResult <- requestMaker 4
@@ -349,6 +349,8 @@ egCRM01 withoutTestingServer serverLock =
     --      different.
 
   where
+    withTestingServerWrap = withTestingServer withoutTestingServer serverLock
+
     -- | Produces @ClientEnv@ and returns requester monad.
     getRequestMaker :: IO (ClientM a -> IO (Either ServantError a))
     getRequestMaker =
