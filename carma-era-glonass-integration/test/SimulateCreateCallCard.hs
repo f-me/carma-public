@@ -13,6 +13,7 @@ import           Test.Hspec
 import           Data.Proxy
 import           Data.Maybe (isJust, fromJust)
 import qualified Data.Vector as V
+import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 import qualified Data.Configurator as Conf
 import           Data.Aeson
@@ -146,7 +147,8 @@ egCRM01 withoutTestingServer serverLock =
 
     describe "Dictionary city fields of a case are filled by gis data" $ do
 
-      let obtainCase = \case
+      let obtainCase :: MonadThrow m => Either ServantError Value -> m CaseId
+          obtainCase = \case
             Right (Object kv) ->
               case HM.lookup k kv of
                    Just (String textCaseId) ->
@@ -159,7 +161,8 @@ egCRM01 withoutTestingServer serverLock =
 
             where k = "cardidProvider"
 
-      let cityFieldsAreFilledPredicate = \case
+      let cityFieldsAreFilledPredicate :: Either a Value -> Bool
+          cityFieldsAreFilledPredicate = \case
             Right (Object kv) -> let
 
               firstField =
@@ -178,7 +181,8 @@ egCRM01 withoutTestingServer serverLock =
 
             _ -> False
 
-      let cityFieldsAreNotFilledPredicate = \case
+      let cityFieldsAreNotFilledPredicate :: Either a Value -> Bool
+          cityFieldsAreNotFilledPredicate = \case
             Right (Object kv) -> let
 
               firstField =
@@ -194,27 +198,6 @@ egCRM01 withoutTestingServer serverLock =
               in firstField && secondField
 
             _ -> False
-
-      let -- | Generates random VIN.
-          --
-          -- Useful to avoid merging with already exiting @Case@.
-          genRandomVin :: IO String
-          genRandomVin =
-            getRandomRs ('A', 'Z')
-              <&> take 17
-              <&> map (\case 'I' -> '0'
-                             'O' -> '1'
-                             'Q' -> '2'
-                             x -> x)
-
-      let -- | "vehicle.vin" key modifier to prevent from merging with already
-          -- existing __@Case@__.
-          setRandomVin :: String -> Value -> Either String Value
-          setRandomVin randomVin
-            = modifyObjectProp "vehicle"
-            $ modifyObjectProp "vin"
-            $ \case String _ -> Right $ String [qm| {randomVin} |]
-                    x        -> Left [qm| Not a "String": {x} |]
 
       it "Found city by its label" $ do
         randomVin <- genRandomVin
@@ -258,6 +241,38 @@ egCRM01 withoutTestingServer serverLock =
           caseData <- getRequestMaker >>= \f -> f $ getCase caseId
           caseData `shouldNotSatisfy` cityFieldsAreFilledPredicate
           caseData `shouldSatisfy` cityFieldsAreNotFilledPredicate
+
+    describe "Call Card merged with already existing Case" $ do
+
+      let obtainCaseId :: MonadThrow m => Either ServantError Value -> m Text
+
+          obtainCaseId (Right
+                       (Object
+                       (HM.lookup "cardidProvider" -> Just (String x)))) =
+                         pure x
+
+          obtainCaseId (Right x) = fail [qm| Incorrect response: {x} |]
+          obtainCaseId (Left exception) = throwM exception
+
+      it "Merged when VIN is the same (in next 24 hours)" $
+        withTestingServerWrap $ do
+          createCC <- getRequestMaker <&> \f -> f . createCallCard
+          caseIdFirst <- createCC testData' >>= obtainCaseId
+          caseIdSecond <- createCC testData' >>= obtainCaseId
+          caseIdFirst `shouldBe` caseIdSecond
+
+      it "Not merged when VIN is different" $ do
+        randomVin <- genRandomVin
+
+        withTestingServerWrap $ do
+          createCC <- getRequestMaker <&> \f -> f . createCallCard
+          caseIdFirst <- createCC testData' >>= obtainCaseId
+
+          caseIdSecond <-
+            createCC (either error id $ testData >>= setRandomVin randomVin)
+              >>= obtainCaseId
+
+          caseIdFirst `shouldNotBe` caseIdSecond
 
     describe "Incorrect request body" $ do
 
@@ -343,12 +358,8 @@ egCRM01 withoutTestingServer serverLock =
                 Nothing -> False
                 Just x  -> x `elem` references
 
-    -- TODO check condition when another EG Call Card with same VIN is coming
-    --      in next 24 hours from last one just using same CaRMa "Case" for
-    --      that, but also check that new CaRMa "Case" created when VIN is
-    --      different.
-
   where
+    -- | Shorthand for testing server wrapper.
     withTestingServerWrap = withTestingServer withoutTestingServer serverLock
 
     -- | Produces @ClientEnv@ and returns requester monad.
@@ -364,6 +375,27 @@ egCRM01 withoutTestingServer serverLock =
         Left exception -> throw exception
         Right 0 -> pure ()
         Right _ -> threadDelay (100 * 1000) >> waitForBackgroundTasks
+
+    -- | Generates random VIN.
+    --
+    -- Useful to avoid merging with already exiting @Case@.
+    genRandomVin :: IO String
+    genRandomVin =
+      getRandomRs ('A', 'Z')
+        <&> take 17
+        <&> map (\case 'I' -> '0'
+                       'O' -> '1'
+                       'Q' -> '2'
+                       x -> x)
+
+    -- | "vehicle.vin" key modifier to prevent from merging with already
+    -- existing __@Case@__.
+    setRandomVin :: String -> Value -> Either String Value
+    setRandomVin randomVin
+      = modifyObjectProp "vehicle"
+      $ modifyObjectProp "vin"
+      $ \case String _ -> Right $ String [qm| {randomVin} |]
+              x        -> Left [qm| Not a "String": {x} |]
 
 
 createCallCard          :: Value -> ClientM Value
