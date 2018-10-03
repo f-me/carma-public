@@ -11,7 +11,7 @@ module Main (main) where
 import           Test.Hspec
 
 import           Data.Proxy
-import           Data.Maybe (isJust)
+import           Data.Maybe (isJust, fromJust)
 import qualified Data.Vector as V
 import           Text.InterpolatedString.QM
 import qualified Data.Configurator as Conf
@@ -28,7 +28,7 @@ import           Control.Monad.Random.Class (getRandomRs)
 
 import           System.Environment
 
-import           Database.Persist.Sql (toSqlKey)
+import           Database.Persist.Sql (fromSqlKey, toSqlKey)
 
 import qualified Network.Wai.Handler.Warp as Warp
 import           Network.HTTP.Client (newManager)
@@ -108,6 +108,41 @@ egCRM01 withoutTestingServer serverLock =
             in HM.lookup "acceptCode" kv == Just (String "OK") && hasCaseId
 
           _ -> False
+
+    it "Returned Case does exist" $
+      withTestingServer withoutTestingServer serverLock $ do
+        result <-
+          (getRequestMaker >>= \f -> f $ createCallCard testData')
+            <&> fmap (\case Object x -> HM.lookup "cardidProvider" x
+                            _        -> Nothing)
+            <&> fmap (\case Just (String x) -> Just x
+                            _               -> Nothing)
+
+        result `shouldSatisfy` \case
+          Right (Just _) -> True
+          _ -> False
+
+        getCaseRequest <- getRequestMaker <&> \f -> f . getCase
+
+        let caseId :: CaseId
+            caseId =
+              result
+              & either (\e -> error [qm| unexpected exception: {e} |]) id
+              & fromJust
+              & toSqlKey . (\x -> read [qm|{x}|])
+
+        getCaseRequest caseId >>= \caseData ->
+          caseData `shouldSatisfy` \case
+            Right _ -> True
+            Left  _ -> False
+
+        let fakeCaseId = toSqlKey $ fromSqlKey caseId + 100 :: CaseId
+
+        -- Case with fake ID must not exist
+        getCaseRequest fakeCaseId >>= \caseData ->
+          caseData `shouldSatisfy` \case
+            Right _ -> False
+            Left  _ -> True
 
     describe "Dictionary city fields of a case are filled by gis data" $ do
 
@@ -297,8 +332,6 @@ egCRM01 withoutTestingServer serverLock =
                 Nothing -> False
                 Just x  -> x `elem` references
 
-    -- TODO implement and test response of the EG.CRM.01 request
-    -- TODO check if it's saved to a database (CaRMa "Case" is created)
     -- TODO check condition when another EG Call Card with same VIN is coming
     --      in next 24 hours from last one just using same CaRMa "Case" for
     --      that, but also check that new CaRMa "Case" created when VIN is
