@@ -3,6 +3,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds, TypeOperators, TypeFamilies #-}
 
+-- Fixes issue when record-fields aren't exported. Probably related to:
+--   https://stackoverflow.com/questions/46357747/haddock-data-record-fields-names-not-being-generated
+{-# OPTIONS_HADDOCK ignore-exports #-}
+
 -- | Data-types for __CRM.EG.03__ request and response.
 module Carma.EraGlonass.Types.EGUpdateCallCardStatusRequest
      ( EGUpdateCallCardStatusRequest (..)
