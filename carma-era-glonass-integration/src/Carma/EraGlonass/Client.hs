@@ -6,6 +6,7 @@ import           Data.Proxy
 import           Servant
 import           Servant.Client
 
+import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.Routes
 
 
@@ -19,11 +20,8 @@ crmEG02Post
   :: ClientM ()
 
 
-crmEG03Put
-  :: ClientM ()
-
 crmEG03Post
-  :: ClientM ()
+  :: EGUpdateCallCardStatusRequest -> ClientM EGUpdateCallCardStatusResponse
 
 
 (
@@ -32,10 +30,6 @@ crmEG03Post
   :<|> crmEG02Post
   )
 
-  :<|>
-
-  (    crmEG03Put
   :<|> crmEG03Post
-  )
 
   ) = client (Proxy :: Proxy OutcomingAPI)

@@ -3,10 +3,6 @@ module Carma.EraGlonass.Types
      ( AppContext (..)
      , AppMode (..)
      , DBConnection (..)
-     , EGCreateCallCardRequest (..)
-     , EGCreateCallCardRequestGis (..)
-     , EGCreateCallCardRequestVehicle (..)
-     , EGCreateCallCardResponse (..)
      , EGPhoneNumber.EGPhoneNumber (..)
      , EGLatLon.EGLatitude, EGLatLon.toEGLatitude, EGLatLon.fromEGLatitude
      , EGLatLon.EGLongitude, EGLatLon.toEGLongitude, EGLatLon.fromEGLongitude
@@ -16,6 +12,17 @@ module Carma.EraGlonass.Types
      , EGAcceptCode (..)
      , module Carma.EraGlonass.Types.EGPropulsion
      , module Carma.EraGlonass.Types.RequestId
+
+     , EGCreateCallCardRequest (..)
+     , EGCreateCallCardRequestGis (..)
+     , EGCreateCallCardRequestVehicle (..)
+     , EGCreateCallCardResponse (..)
+
+     , EGUpdateCallCardStatusRequest (..)
+     , EGUpdateCallCardStatusRequestRequests (..)
+     , EGUpdateCallCardStatusRequestStatus (..)
+     , EGUpdateCallCardStatusResponse (..)
+     , EGUpdateCallCardStatusResponseResponses (..)
      ) where
 
 import           Data.Pool (Pool)
@@ -34,8 +41,9 @@ import qualified Carma.EraGlonass.Types.EGCallerFullName as EGCallerFullName
 import qualified Carma.EraGlonass.Types.EGVin as EGVin
 import           Carma.EraGlonass.Types.EGPropulsion
 import           Carma.EraGlonass.Types.EGAcceptCode
-import           Carma.EraGlonass.Types.EGCreateCallCardRequest
 import           Carma.EraGlonass.Types.RequestId
+import           Carma.EraGlonass.Types.EGCreateCallCardRequest
+import           Carma.EraGlonass.Types.EGUpdateCallCardStatusRequest
 
 
 -- | Application context which holds shared data

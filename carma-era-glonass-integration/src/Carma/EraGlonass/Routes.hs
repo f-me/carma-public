@@ -54,7 +54,9 @@ Routes which CaRMa uses to make requests to Era Glonass.
 
 * Integration point with code __CRM.EG.03__.
 
-  * @PUT \/calls/status@ - To add data about customer, to close a Call Card;
+  * @PUT \/calls/status@ - To add data about customer, to close a Call Card
+                           (currently not implemented);
+
   * @POST \/calls/status@ - To update status of a Call Card.
 
   Uploading new CaRMa 'Carma.Model.Case.Persistent.Case' data
@@ -72,6 +74,5 @@ type OutcomingAPI
 
   :<|> -- CRM.EG.03
        -- PUT, POST /calls/status
-       "calls" :> "status" :> (    Put  '[JSON] ()
-                              :<|> Post '[JSON] ()
-                              )
+       "calls" :> "status" :> ReqBody '[JSON] EGUpdateCallCardStatusRequest
+                           :> Post    '[JSON] EGUpdateCallCardStatusResponse

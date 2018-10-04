@@ -47,16 +47,21 @@ type FaliuresAPI
        "count.json" :> Get '[JSON] Word
 
   :<|> -- GET /debug/failures/list.json?limit=10
-       "list.json" :>
-       QueryParam "limit" Word :>
-       Get '[JSON] [Entity CaseEraGlonassFailure]
+       "list.json"
+       :> QueryParam "limit" Word
+       :> Get '[JSON] [Entity CaseEraGlonassFailure]
 
 
 type ServerAPI
   =    IncomingAPI
 
-  :<|> "debug" :> (    -- GET /debug/swagger.json
-                       "swagger.json" :> Get '[JSON] Swagger
+  :<|> "debug" :> (    "swagger"
+                       :> (    -- GET /debug/swagger/incoming.json
+                               "incoming.json" :> Get '[JSON] Swagger
+
+                          :<|> -- GET /debug/swagger/outcoming.json
+                               "outcoming.json" :> Get '[JSON] Swagger
+                          )
 
                   :<|> "failures" :> FaliuresAPI
 
@@ -102,15 +107,18 @@ serverApplicaton appContext =
 server :: ServerMonad m => ServerT ServerAPI m
 server
   =    egCRM01
-  :<|> (    swagger
+  :<|> (    (incomingSwagger :<|> outcomingSwagger)
        :<|> (getFailuresCount :<|> getFailuresList)
        :<|> getBackgroundTasksCount
        :<|> getCase
        )
 
 
-swagger :: Applicative m => m Swagger
-swagger = pure $ toSwagger (Proxy :: Proxy IncomingAPI)
+incomingSwagger :: Applicative m => m Swagger
+incomingSwagger = pure $ toSwagger (Proxy :: Proxy IncomingAPI)
+
+outcomingSwagger :: Applicative m => m Swagger
+outcomingSwagger = pure $ toSwagger (Proxy :: Proxy OutcomingAPI)
 
 
 getFailuresCount
