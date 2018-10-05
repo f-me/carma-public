@@ -114,7 +114,7 @@ instance FromJSON EGCheckVinResponse where
 type FailureConsMeta
    = 'MetaCons "EGCheckVinResponseIncorrect" 'PrefixI 'True
 
--- | Slicing EGCheckVinResponseIncorrect constructor from Swagger spec.
+-- | Slicing 'EGCheckVinResponseIncorrect' constructor from Swagger spec.
 type family CutOffFailureCons (k1 :: * -> *) where
   CutOffFailureCons (D1 a (C1 FailureConsMeta _ :+: y)) = D1 a y
 
@@ -130,7 +130,7 @@ data EGCheckVinResponseResponses
    = EGCheckVinResponseResponses
    { vinStatus :: Bool
    , vin :: EGVin
-   , vinProviders :: [EGCheckVinResponseVinProviders]
+   , vinProviders :: Maybe [EGCheckVinResponseVinProviders]
    } deriving (Eq, Show, Generic, FromJSON, ToSchema)
 
 
