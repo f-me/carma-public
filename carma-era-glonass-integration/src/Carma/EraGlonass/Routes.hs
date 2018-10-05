@@ -68,7 +68,9 @@ type OutcomingAPI
     =  -- CRM.EG.02
        -- DELETE, PUT, POST /providers/vehicles
        "providers" :> "vehicles" :> (    Delete '[JSON] ()
-                                    :<|> Put    '[JSON] ()
+
+                                    :<|> ReqBody '[JSON] EGAddVinRequest
+                                         :> Put  '[JSON] EGAddVinResponse
 
                                     :<|> ReqBody '[JSON] EGCheckVinRequest
                                          :> Post '[JSON] EGCheckVinResponse
