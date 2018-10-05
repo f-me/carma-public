@@ -67,7 +67,8 @@ Routes which CaRMa uses to make requests to Era Glonass.
 type OutcomingAPI
     =  -- CRM.EG.02
        -- DELETE, PUT, POST /providers/vehicles
-       "providers" :> "vehicles" :> (    Delete '[JSON] ()
+       "providers" :> "vehicles" :> (    ReqBody   '[JSON] EGDeleteVinRequest
+                                         :> Delete '[JSON] EGDeleteVinResponse
 
                                     :<|> ReqBody '[JSON] EGAddVinRequest
                                          :> Put  '[JSON] EGAddVinResponse

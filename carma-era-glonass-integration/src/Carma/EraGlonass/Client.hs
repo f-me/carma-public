@@ -11,7 +11,7 @@ import           Carma.EraGlonass.Routes
 
 
 crmEG02Delete
-  :: ClientM ()
+  :: EGDeleteVinRequest -> ClientM EGDeleteVinResponse
 
 crmEG02Put
   :: EGAddVinRequest -> ClientM EGAddVinResponse
