@@ -5,6 +5,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE LambdaCase #-}
 
+-- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
 
 -- | EG.CRM.01 handler module.
@@ -129,14 +130,17 @@ egCRM01 reqBody@EGCreateCallCardRequest {..} = handleFailure $ do
 
     prefixedLog logDebug [qms|
       Trying to find already existing Era Glonass "Case" with same car VIN
-      ("{fromEGVin $ vin vehicle}") and creation time not older than 24 hours
-      ({time24HoursAgo'}) to use that "Case" instead of creating new one...
+      ("{fromEGVin $ vin (vehicle :: EGCreateCallCardRequestVehicle)}")
+      and creation time not older than 24 hours ({time24HoursAgo'})
+      to use that "Case" instead of creating new one...
     |]
 
     lastCaseWithSameVinInLast24Hours <-
       selectFirst
         [ CaseIsCreatedByEraGlonass ==. True
-        , CaseCar_vin ==. Just (decodeUtf8 $ fromEGVin $ vin vehicle)
+        , CaseCar_vin ==. let
+            x = vin (vehicle :: EGCreateCallCardRequestVehicle)
+            in Just $ decodeUtf8 $ fromEGVin x
         , CaseCallDate >=. Just time24HoursAgo'
         ]
         [ Desc CaseCallDate
@@ -340,10 +344,14 @@ createCase reqBody@EGCreateCallCardRequest {..}
       , caseProgram = anyEGProgram
       , caseSubprogram = Nothing
 
-      , caseContractIdentifier = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
+      , caseContractIdentifier =
+          Just $ decodeUtf8 $ fromEGVin $
+            vin (vehicle :: EGCreateCallCardRequestVehicle)
       , caseContract = Nothing
 
-      , caseCar_vin = Just $ decodeUtf8 $ fromEGVin $ vin vehicle
+      , caseCar_vin =
+          Just $ decodeUtf8 $ fromEGVin $
+            vin (vehicle :: EGCreateCallCardRequestVehicle)
       , caseCar_make = Nothing
       , caseCar_model = Nothing
       , caseCar_generation = Nothing

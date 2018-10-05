@@ -17,7 +17,7 @@ crmEG02Put
   :: ClientM ()
 
 crmEG02Post
-  :: ClientM ()
+  :: EGCheckVinRequest -> ClientM EGCheckVinResponse
 
 
 crmEG03Post

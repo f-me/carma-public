@@ -23,6 +23,12 @@ module Carma.EraGlonass.Types
      , EGUpdateCallCardStatusRequestStatus (..)
      , EGUpdateCallCardStatusResponse (..)
      , EGUpdateCallCardStatusResponseResponses (..)
+
+     , EGCheckVinRequest (..)
+     , EGCheckVinRequestRequests (..)
+     , EGCheckVinResponse (..)
+     , EGCheckVinResponseResponses (..)
+     , EGCheckVinResponseVinProviders (..)
      ) where
 
 import           Data.Pool (Pool)
@@ -44,6 +50,7 @@ import           Carma.EraGlonass.Types.EGAcceptCode
 import           Carma.EraGlonass.Types.RequestId
 import           Carma.EraGlonass.Types.EGCreateCallCardRequest
 import           Carma.EraGlonass.Types.EGUpdateCallCardStatusRequest
+import           Carma.EraGlonass.Types.EGCheckVinRequest
 
 
 -- | Application context which holds shared data

@@ -58,6 +58,9 @@ import           Carma.EraGlonass.Types.EGPropulsion
 import           Carma.EraGlonass.Types.PersistentTextKey (PersistentTextKey)
 
 
+-- *** Request ***
+
+
 -- | Request body data-type of __EG.CRM.01__.
 data EGCreateCallCardRequest
    -- | A constructor for failure case to be able to handle incorrect request
@@ -297,6 +300,9 @@ instance FromJSON EGCreateCallCardRequestVehicle where
 
 instance ToJSON EGCreateCallCardRequestVehicle where
   toJSON = genericToJSON defaultOptions { omitNothingFields = True }
+
+
+-- *** Response ***
 
 
 -- | __EG.CRM.01__ response data-type.

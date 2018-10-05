@@ -34,6 +34,9 @@ import           Carma.EraGlonass.Types.EGAcceptCode (EGAcceptCode)
 import           Carma.EraGlonass.Types.EGCallCardStatus (EGCallCardStatus)
 
 
+-- *** Request ***
+
+
 data EGUpdateCallCardStatusRequest
    = EGUpdateCallCardStatusRequest
    { requestId :: RequestId
@@ -64,6 +67,9 @@ data EGUpdateCallCardStatusRequestStatus
 
 instance ToJSON EGUpdateCallCardStatusRequestStatus where
   toJSON = genericToJSON defaultOptions { omitNothingFields = True }
+
+
+-- *** Response ***
 
 
 data EGUpdateCallCardStatusResponse
