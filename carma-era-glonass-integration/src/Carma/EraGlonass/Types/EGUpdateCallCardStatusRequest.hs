@@ -30,8 +30,10 @@ import           Data.Swagger.Internal.Schema
 
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGCallCardId (EGCallCardId)
-import           Carma.EraGlonass.Types.EGAcceptCode (EGAcceptCode)
 import           Carma.EraGlonass.Types.EGCallCardStatus (EGCallCardStatus)
+import           Carma.EraGlonass.Types.EGUpdateCallCardAcceptCode
+                   ( EGUpdateCallCardAcceptCode
+                   )
 
 
 -- *** Request ***
@@ -124,6 +126,6 @@ instance ToSchema EGUpdateCallCardStatusResponse where
 data EGUpdateCallCardStatusResponseResponses
    = EGUpdateCallCardStatusResponseResponses
    { acceptId :: Text
-   , acceptCode :: EGAcceptCode -- TODO FIXME add "CARD_NOT_FOUND" code
+   , acceptCode :: EGUpdateCallCardAcceptCode
    , statusDescription :: Maybe Text
    } deriving (Eq, Show, Generic, FromJSON, ToSchema)

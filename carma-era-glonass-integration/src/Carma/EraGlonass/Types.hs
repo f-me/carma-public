@@ -9,9 +9,11 @@ module Carma.EraGlonass.Types
      , EGCallCardId.EGCallCardId (..)
      , EGCallerFullName.EGCallerFullName (..)
      , EGVin.EGVin (..)
-     , EGAcceptCode (..)
      , module Carma.EraGlonass.Types.EGPropulsion
      , module Carma.EraGlonass.Types.RequestId
+     , EGCreateCallCardAcceptCode
+     , EGUpdateCallCardAcceptCode
+     , EGVinOperationAcceptCode
 
      , EGCreateCallCardRequest (..)
      , EGCreateCallCardRequestGis (..)
@@ -56,8 +58,10 @@ import qualified Carma.EraGlonass.Types.EGCallCardId as EGCallCardId
 import qualified Carma.EraGlonass.Types.EGCallerFullName as EGCallerFullName
 import qualified Carma.EraGlonass.Types.EGVin as EGVin
 import           Carma.EraGlonass.Types.EGPropulsion
-import           Carma.EraGlonass.Types.EGAcceptCode
 import           Carma.EraGlonass.Types.RequestId
+import           Carma.EraGlonass.Types.EGCreateCallCardAcceptCode
+import           Carma.EraGlonass.Types.EGUpdateCallCardAcceptCode
+import           Carma.EraGlonass.Types.EGVinOperationAcceptCode
 import           Carma.EraGlonass.Types.EGCreateCallCardRequest
 import           Carma.EraGlonass.Types.EGUpdateCallCardStatusRequest
 import           Carma.EraGlonass.Types.EGAddVinRequest

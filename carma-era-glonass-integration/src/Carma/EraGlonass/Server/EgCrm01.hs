@@ -47,6 +47,7 @@ import           Carma.Model.LegacyTypes
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.Types.PersistentTextKey
+import           Carma.EraGlonass.Types.EGCreateCallCardAcceptCode
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
 import           Carma.EraGlonass.Model.CaseEraGlonassCreateRequest.Persistent

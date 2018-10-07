@@ -52,10 +52,12 @@ import           Carma.EraGlonass.Types.EGPhoneNumber (EGPhoneNumber)
 import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
 import           Carma.EraGlonass.Types.EGCallCardId (EGCallCardId)
 import           Carma.EraGlonass.Types.EGCallerFullName (EGCallerFullName)
-import           Carma.EraGlonass.Types.EGAcceptCode (EGAcceptCode)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
 import           Carma.EraGlonass.Types.EGPropulsion
 import           Carma.EraGlonass.Types.PersistentTextKey (PersistentTextKey)
+import           Carma.EraGlonass.Types.EGCreateCallCardAcceptCode
+                   ( EGCreateCallCardAcceptCode
+                   )
 
 
 -- *** Request ***
@@ -327,7 +329,7 @@ data EGCreateCallCardResponse
        --   'EGCreateCallCardRequest'./@requestId@/,
        --   just getting it from request and putting it here.
 
-   , acceptCode :: EGAcceptCode
+   , acceptCode :: EGCreateCallCardAcceptCode
        -- ^ Possible values:
        --     @\"OK"@               - If data successfully accepted;
        --     @\"INCORRECT_FORMAT"@ - If accepted data is incorrect;
@@ -340,7 +342,7 @@ data EGCreateCallCardResponse
 
    | EGCreateCallCardResponseFailure
    { responseId        :: Text
-   , acceptCode        :: EGAcceptCode
+   , acceptCode        :: EGCreateCallCardAcceptCode
    , statusDescription :: Maybe Text
    }
 

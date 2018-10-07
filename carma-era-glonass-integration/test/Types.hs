@@ -8,7 +8,12 @@ import qualified Carma.EraGlonass.Test.Types.EGPhoneNumber as EGPhoneNumber
 import qualified Carma.EraGlonass.Test.Types.EGLatLon as EGLatLon
 import qualified Carma.EraGlonass.Test.Types.EGVin as EGVin
 import qualified Carma.EraGlonass.Test.Types.EGPropulsion as EGPropulsion
-import qualified Carma.EraGlonass.Test.Types.EGAcceptCode as EGAcceptCode
+import qualified Carma.EraGlonass.Test.Types.EGCreateCallCardAcceptCode
+                   as EGCreateCallCardAcceptCode
+import qualified Carma.EraGlonass.Test.Types.EGUpdateCallCardAcceptCode
+                   as EGUpdateCallCardAcceptCode
+import qualified Carma.EraGlonass.Test.Types.EGVinOperationAcceptCode
+                   as EGVinOperationAcceptCode
 import qualified Carma.EraGlonass.Test.Types.EGCallerFullName
                    as EGCallerFullName
 import qualified Carma.EraGlonass.Test.Types.EGCreateCallCardRequest
@@ -28,7 +33,9 @@ main = hspec $ do
   describe "EGLatitude & EGLongitude" EGLatLon.spec
   describe "EGVin" EGVin.spec
   describe "EGPropulsion" EGPropulsion.spec
-  describe "EGAcceptCode" EGAcceptCode.spec
+  describe "EGCreateCallCardAcceptCode" EGCreateCallCardAcceptCode.spec
+  describe "EGUpdateCallCardAcceptCode" EGUpdateCallCardAcceptCode.spec
+  describe "EGVinOperationAcceptCode" EGVinOperationAcceptCode.spec
   describe "EGCreateCallCardRequest" EGCreateCallCardRequest.spec
   describe "EGCreateCallCardResponse" EGCreateCallCardResponse.spec
   describe "PersistentTextKey" PersistentTextKey.spec

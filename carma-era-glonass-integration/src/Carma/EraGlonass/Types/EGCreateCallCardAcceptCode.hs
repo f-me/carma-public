@@ -2,8 +2,9 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
-module Carma.EraGlonass.Types.EGAcceptCode
-     ( EGAcceptCode (..)
+-- | Type of the "acceptCode" field for Call Card operations requests.
+module Carma.EraGlonass.Types.EGCreateCallCardAcceptCode
+     ( EGCreateCallCardAcceptCode (..)
      ) where
 
 import           GHC.Generics (Generic)
@@ -13,21 +14,21 @@ import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
 
 
-data EGAcceptCode
+data EGCreateCallCardAcceptCode
    = OK
    | IncorrectFormat
    | InternalError
      deriving (Eq, Enum, Bounded, Show, Generic, ToSchema)
 
-instance FromJSON EGAcceptCode where
+instance FromJSON EGCreateCallCardAcceptCode where
   -- Producing list of all values to reduce human-factor mistakes,
   -- so it is handled automatically when we add a new value.
-  parseJSON jsonValue = f [minBound..(maxBound :: EGAcceptCode)]
-    where f [] = typeMismatch "EGAcceptCode" jsonValue
+  parseJSON jsonValue = f [minBound..(maxBound :: EGCreateCallCardAcceptCode)]
+    where f [] = typeMismatch "EGCreateCallCardAcceptCode" jsonValue
           f (x:xs) | toJSON x == jsonValue = pure x
                    | otherwise             = f xs
 
-instance ToJSON EGAcceptCode where
+instance ToJSON EGCreateCallCardAcceptCode where
   toJSON OK              = String "OK"
   toJSON IncorrectFormat = String "INCORRECT_FORMAT"
   toJSON InternalError   = String "INTERNAL_ERROR"

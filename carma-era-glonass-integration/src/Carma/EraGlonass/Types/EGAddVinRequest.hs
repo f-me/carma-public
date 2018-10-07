@@ -32,7 +32,9 @@ import           Data.Swagger.Internal.Schema
 import           Carma.Utils.Operators
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
-import           Carma.EraGlonass.Types.EGAcceptCode (EGAcceptCode)
+import           Carma.EraGlonass.Types.EGVinOperationAcceptCode
+                   ( EGVinOperationAcceptCode
+                   )
 
 
 -- *** Request ***
@@ -128,7 +130,7 @@ instance ToSchema EGAddVinResponse where
 
 data EGAddVinResponseResponses
    = EGAddVinResponseResponses
-   { acceptCode :: EGAcceptCode -- ^ TODO FIXME add "VIN_NOT_FOUND"
+   { acceptCode :: EGVinOperationAcceptCode
    , statusDescription :: Maybe Text
    , vin :: Maybe EGVin
    } deriving (Eq, Show, Generic, FromJSON, ToSchema)

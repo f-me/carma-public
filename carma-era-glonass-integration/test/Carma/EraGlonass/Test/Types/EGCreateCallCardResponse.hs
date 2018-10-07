@@ -19,7 +19,7 @@ import           Database.Persist.Sql (toSqlKey)
 
 import           Carma.EraGlonass.Types.PersistentTextKey
 import           Carma.EraGlonass.Types.EGCreateCallCardRequest
-import           Carma.EraGlonass.Types.EGAcceptCode
+import           Carma.EraGlonass.Types.EGCreateCallCardAcceptCode
 
 
 spec :: Spec
