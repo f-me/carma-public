@@ -67,6 +67,7 @@ type EgCrm01Monad m =
    , MonadSTM m
    )
 
+
 -- | EG.CRM.01 integration point handler.
 --
 -- WARNING! For failure cases it returns 200 HTTP status with

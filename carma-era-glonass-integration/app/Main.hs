@@ -23,7 +23,7 @@ import           Carma.Model.Usermeta.Persistent (admin)
 
 
 main :: IO ()
-main = app ProductionAppMode $ \AppConfig {..} runServer -> do
+main = app ProductionAppMode $ \AppConfig {..} withDbConnection -> do
   logInfo [qms| Creating PostgreSQL connection pool
                 (pool size is: {pgPoolSize pgConf},
                  request timeout: {dbRequestTimeout} seconds)... |]
@@ -38,4 +38,4 @@ main = app ProductionAppMode $ \AppConfig {..} runServer -> do
     >>= \case Just _  -> pure ()
               Nothing -> fail "Initial test database request is failed!"
 
-  runServer $ DBConnectionPool pgPool
+  withDbConnection $ DBConnectionPool pgPool

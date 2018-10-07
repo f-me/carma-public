@@ -11,15 +11,18 @@ module Carma.EraGlonass.App
      ) where
 
 import           Data.Function ((&))
+import           Data.Typeable
 import qualified Data.Configurator as Conf
 import           Data.String (fromString)
 import           Text.InterpolatedString.QM
 
+import           Control.Exception (Exception)
 import           Control.Monad
 import           Control.Monad.Reader
 import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Trans.Control (MonadBaseControl)
+import           Control.Monad.Catch (MonadCatch (catch))
 import           Control.Concurrent.MVar (tryReadMVar)
 import           Control.Concurrent.STM.TQueue
 import           Control.Concurrent.STM.TVar
@@ -35,6 +38,7 @@ import           System.Posix.Signals
 import qualified Network.Wai.Handler.Warp as Warp
 import           Database.Persist.Postgresql (PostgresConf (PostgresConf))
 
+import           Carma.Utils.Operators
 import           Carma.Monad.LoggerBus.Types (LogMessage)
 import           Carma.Monad.LoggerBus.MonadLogger
 import           Carma.Monad.LoggerBus
@@ -44,6 +48,7 @@ import           Carma.Monad.STM
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Server (serverApplicaton)
+import           Carma.EraGlonass.VinSynchronizer (runVinSynchronizer)
 
 
 -- | Application config data to provide to particular implementation.
@@ -60,14 +65,15 @@ data AppConfig
 -- connection to the server. Server runner constructs @AppContext@ with provided
 -- database connection and runs a server.
 app
-  :: (MonadIO m, MonadBaseControl IO m)
+  :: (MonadIO m, MonadBaseControl IO m, MonadCatch m)
   => AppMode
   -> ( AppConfig
        -> (DBConnection -> ReaderT (TQueue LogMessage) m ())
        -> ReaderT (TQueue LogMessage) m ()
-     ) -- ^ Database connection creator that wraps server runner
+     )
+  -- ^ Database connection creator that wraps monad that depends on database
   -> m ()
-app appMode' dbConnectionCreator = do
+app appMode' withDbConnection = do
   cfg <- liftIO $ Conf.load [Conf.Required "app.cfg"]
 
   !(port :: Warp.Port) <- liftIO $ Conf.require cfg "port"
@@ -89,9 +95,17 @@ app appMode' dbConnectionCreator = do
 
   backgroundTasksCounter' <- atomically $ newTVar 0
 
-  (serverThreadId, serverThreadSem) <- flip runReaderT loggerBus' $ do
+  let appConfig
+        = AppConfig
+        { pgConf           = pgConf'
+        , dbRequestTimeout = dbRequestTimeout'
+        }
 
-    let runServer dbConnection' = do
+  (workersThreadId, workersThreadSem) <-
+    flip runReaderT loggerBus'
+      $ forkWithSem
+      $ withDbConnection appConfig
+      $ \dbConnection' -> do
 
           let appContext
                 = AppContext
@@ -102,28 +116,53 @@ app appMode' dbConnectionCreator = do
                 , backgroundTasksCounter = backgroundTasksCounter'
                 }
 
-          logInfo [qm| Running incoming server on http://{host}:{port}... |]
-          liftIO $ runIncomingServer appContext port $ fromString host
+          (serverThreadId, serverThreadSem) <-
+            forkWithSem $ do
+              when (appMode' == TestingAppMode) $
+                logWarn
+                  "Starting testing server with in-memory SQLite database..."
 
-    when (appMode' == TestingAppMode) $
-      logWarn "Starting testing server with in-memory SQLite database..."
+              logInfo [qm| Running incoming server on http://{host}:{port}... |]
+              liftIO $ runIncomingServer appContext port $ fromString host
 
-    forkWithSem $ let
+          vinSynchronizer <-
+            if appMode' == TestingAppMode
+               then do logWarn [qns| Not running VIN synchronizer because it is
+                                     testing mode. |]
+                       pure Nothing
 
-      x = AppConfig
-        { pgConf           = pgConf'
-        , dbRequestTimeout = dbRequestTimeout'
-        }
+               else fmap Just $ forkWithSem $ do
+                      logInfo [qn| Running VIN synchronizer worker thread... |]
+                      runVinSynchronizer `runReaderT` appContext
 
-      in dbConnectionCreator x runServer
+          let waitForWorkers = do
+                -- Wait for server thread
+                atomically $ waitTSem serverThreadSem
+
+                -- Wait for VIN synchronizer thread
+                maybe (pure ()) (snd ? waitTSem ? atomically) vinSynchronizer
+
+          waitForWorkers `catch` \e@KillWorkersException -> do
+
+            logDebug
+              [qm| Caught {e} in workers thread, killing workers threads... |]
+
+            logDebug [qn| Killing server thread... |]
+            killThread serverThreadId
+
+            case vinSynchronizer of
+                 Nothing -> pure ()
+                 Just (threadId, _) -> do
+                   logDebug [qn| Killing VIN synchronizer thread... |]
+                   killThread threadId
 
   -- Trapping termination of the application
-  liftIO $ forM_ [sigINT, sigTERM] $ \sig ->
-    let terminateHook = killThread serverThreadId
-     in installHandler sig (Catch terminateHook) Nothing
+  liftIO $ forM_ [sigINT, sigTERM] $ \sig -> let
+    terminateHook = throwTo workersThreadId KillWorkersException
+    in installHandler sig (Catch terminateHook) Nothing
 
-  -- Wait for server thread
-  atomically $ waitTSem serverThreadSem
+  -- Wait for workers thread
+  atomically $ waitTSem workersThreadSem
 
   let waitForLogger =
         atomically (tryPeekTQueue loggerBus') >>= \case
@@ -152,3 +191,10 @@ runIncomingServer appContext port host
           = Warp.defaultSettings
           & Warp.setPort port
           & Warp.setHost host
+
+
+data KillWorkersException
+   = KillWorkersException
+     deriving (Show, Typeable)
+
+instance Exception KillWorkersException

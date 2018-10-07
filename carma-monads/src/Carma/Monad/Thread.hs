@@ -11,7 +11,7 @@ module Carma.Monad.Thread
      , forkWithSem
      ) where
 
-import           Control.Exception (SomeException)
+import           Control.Exception (Exception, SomeException)
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import qualified Control.Concurrent.Lifted as Lifted
 import           Control.Concurrent.STM.TSem
@@ -24,12 +24,14 @@ class Monad m => MonadThread m where
   fork        :: m () -> m Lifted.ThreadId
   forkFinally :: m a -> (Either SomeException a -> m ()) -> m Lifted.ThreadId
   killThread  :: Lifted.ThreadId -> m ()
+  throwTo     :: Exception e => Lifted.ThreadId -> e -> m ()
 
 
 instance (Monad m, MonadBaseControl IO m) => MonadThread m where
   fork        = Lifted.fork
   forkFinally = Lifted.forkFinally
   killThread  = Lifted.killThread
+  throwTo     = Lifted.throwTo
 
 
 -- | Forks and returns @MVar@ which will be notified when thread is done.

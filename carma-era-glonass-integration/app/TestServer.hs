@@ -44,7 +44,7 @@ main = do
   hSetBuffering stdout NoBuffering
   hSetBuffering stderr NoBuffering
 
-  app TestingAppMode $ \_ runServer -> do
+  app TestingAppMode $ \_ withDbConnection -> do
     logInfo [qms| Creating in-memory SQLite database... |]
     loggerBus' <- ask
 
@@ -174,4 +174,4 @@ main = do
 
 
         dbLock <- atomically $ newTSem 1
-        lift $ runServer $ DBConnection dbLock sqliteConnection
+        lift $ withDbConnection $ DBConnection dbLock sqliteConnection
