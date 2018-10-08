@@ -16,6 +16,7 @@ import           Text.InterpolatedString.QM
 import           Text.Printf (printf)
 
 import           Control.Arrow
+import           Control.Monad
 import           Control.Monad.Reader (MonadReader)
 
 import           Carma.Utils.Operators
@@ -29,6 +30,7 @@ type VinSynchronizerMonad m =
    ( MonadReader AppContext m
    , MonadLoggerBus m
    , MonadClock m
+   , MonadDelay m
    )
 
 
@@ -36,26 +38,38 @@ type VinSynchronizerMonad m =
 runVinSynchronizer :: VinSynchronizerMonad m => TimeZone -> m ()
 runVinSynchronizer tz = do
   logInfo [qm| Running VIN synchronizer worker (timezone is {tz})... |]
-  (hoursToWait, minutesToWait) <- getTimeToWait tz
 
-  logDebug $ let zeroPad x = printf "%02d" (x :: Word) :: String in [qms|
-    Waiting for {zeroPad $ floor hoursToWait}:{zeroPad minutesToWait}
-    before 00:00 to trigger next VIN synchronization...
-  |]
+  forever $ do
+    (hoursToWait, minutesToWait) <- getTimeToWait tz
 
-  -- TODO
+    logDebug $ let zeroPad x = printf "%02d" (x :: Word) :: String in [qms|
+      Waiting for {zeroPad $ floor hoursToWait}:{zeroPad minutesToWait}
+      before 00:00 to trigger next VIN synchronization...
+    |]
+
+    delay $ round $ hoursToWait * 3600 * (10 ** 6)
+
+    logDebug [qn| It's about 00:00, initiating VIN synchronization process... |]
+    synchronizeVins
+
+
+-- | VINs synchronization logic handler.
+synchronizeVins :: VinSynchronizerMonad m => m ()
+synchronizeVins = do
+  logInfo [qn| Synchronizing VINs... |]
 
 
 {-|
 Returns hours and minutes to wait before triggering next VIN synchronization.
 
-Minutes already included to hours as fractional part.
+Minutes already included into hours as fractional part.
 -}
 getTimeToWait :: MonadClock m => TimeZone -> m (Float, Word)
 getTimeToWait tz = getCurrentTime <&> utcToZonedTime tz ? f
   where
     format = formatTime defaultTimeLocale
     readFloat = read :: String -> Float
+    split = id &&& id
 
     f =
       format "%H" &&& format "%M" -- Getting hours and minutes
@@ -63,8 +77,9 @@ getTimeToWait tz = getCurrentTime <&> utcToZonedTime tz ? f
       >>> second (/ 60) -- Minutes to fractional part of an hour
 
       >>> -- Sum hours and fractional part of an hour (minutes),
-          -- getting hours left to 00:00 (with fractional part).
-          arr (uncurry (+) ? (`subtract` 24) ? (id &&& id))
+          -- getting hours left to 00:00 (with fractional part),
+          -- then split united result.
+          arr (uncurry (+) ? (`subtract` 24) ? split)
 
       >>> -- Getting minutes left (as a remainder apart from hours).
           second ( (properFraction :: Float -> (Int, Float))
