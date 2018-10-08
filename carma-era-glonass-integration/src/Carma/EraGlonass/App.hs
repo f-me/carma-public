@@ -12,6 +12,7 @@ module Carma.EraGlonass.App
 
 import           Data.Function ((&))
 import           Data.Typeable
+import           Data.Time.LocalTime (getCurrentTimeZone)
 import qualified Data.Configurator as Conf
 import           Data.String (fromString)
 import           Text.InterpolatedString.QM
@@ -74,6 +75,8 @@ app
   -- ^ Database connection creator that wraps monad that depends on database
   -> m ()
 app appMode' withDbConnection = do
+  timeZone <- liftIO getCurrentTimeZone
+
   cfg <- liftIO $ Conf.load [Conf.Required "app.cfg"]
 
   !(port :: Warp.Port) <- liftIO $ Conf.require cfg "port"
@@ -133,7 +136,7 @@ app appMode' withDbConnection = do
 
                else fmap Just $ forkWithSem $ do
                       logInfo [qn| Running VIN synchronizer worker thread... |]
-                      runVinSynchronizer `runReaderT` appContext
+                      runVinSynchronizer timeZone `runReaderT` appContext
 
           let waitForWorkers = do
                 -- Wait for server thread
