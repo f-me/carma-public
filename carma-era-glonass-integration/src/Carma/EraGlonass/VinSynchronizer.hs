@@ -52,20 +52,23 @@ Returns hours and minutes to wait before triggering next VIN synchronization.
 Minutes already included to hours as fractional part.
 -}
 getTimeToWait :: MonadClock m => TimeZone -> m (Float, Word)
-getTimeToWait tz =
-  getCurrentTime <&> utcToZonedTime tz <&>
-    let f = formatTime defaultTimeLocale
-     in f "%H" &&& f "%M" -- Getting hours and minutes
-        >>> (read :: String -> Float) *** (read :: String -> Float)
-        >>> second (/ 60) -- Minutes to fractional part of an hour
+getTimeToWait tz = getCurrentTime <&> utcToZonedTime tz ? f
+  where
+    format = formatTime defaultTimeLocale
+    readFloat = read :: String -> Float
 
-        >>> -- Sum hours and fractional part of an hour (minutes),
-            -- getting hours left to 00:00 (with fractional part).
-            arr (uncurry (+) ? (`subtract` 24) ? (id &&& id))
+    f =
+      format "%H" &&& format "%M" -- Getting hours and minutes
+      >>> readFloat *** readFloat
+      >>> second (/ 60) -- Minutes to fractional part of an hour
 
-        >>> -- Getting minutes left (as a remainder apart from hours).
-            second ( (properFraction :: Float -> (Int, Float))
-                   ? snd    -- Only remainder
-                   ? (* 60) -- Back to real minutes
-                   ? round
-                   )
+      >>> -- Sum hours and fractional part of an hour (minutes),
+          -- getting hours left to 00:00 (with fractional part).
+          arr (uncurry (+) ? (`subtract` 24) ? (id &&& id))
+
+      >>> -- Getting minutes left (as a remainder apart from hours).
+          second ( (properFraction :: Float -> (Int, Float))
+                 ? snd    -- Only remainder
+                 ? (* 60) -- Back to real minutes
+                 ? round
+                 )
