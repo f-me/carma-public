@@ -1,4 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase, ViewPatterns #-}
 {-# LANGUAGE FlexibleContexts, ConstraintKinds #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -6,22 +8,31 @@
 {-# OPTIONS_HADDOCK ignore-exports #-}
 
 -- | VIN synchronizer worker module.
+--
+-- Also known as integration point __CRM.EG.02__.
 module Carma.EraGlonass.VinSynchronizer
      ( runVinSynchronizer
      ) where
 
+import           Data.Function (fix)
 import           Data.Time.LocalTime (TimeZone, utcToZonedTime)
 import           Data.Time.Format
+import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 import           Text.Printf (printf)
 
 import           Control.Arrow
 import           Control.Monad
-import           Control.Monad.Reader (MonadReader)
+import           Control.Monad.Reader (MonadReader, ReaderT, asks)
+import           Control.Monad.Catch
+import           Control.Exception (fromException)
+
+import           Database.Persist.Sql (SqlBackend)
 
 import           Carma.Utils.Operators
 import           Carma.Monad
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Instance.Persistent (TimeoutException (..))
 import           Carma.EraGlonass.Types
 
 
@@ -31,6 +42,8 @@ type VinSynchronizerMonad m =
    , MonadLoggerBus m
    , MonadClock m
    , MonadDelay m
+   , MonadPersistentSql m
+   , MonadThrow m
    )
 
 
@@ -47,14 +60,61 @@ runVinSynchronizer tz = do
       before 00:00 to trigger next VIN synchronization...
     |]
 
-    delay $ round $ hoursToWait * 3600 * (10 ** 6)
+    -- delay $ round $ hoursToWait * 3600 * (10 ** 6) -- TODO uncomment
+    delay $ 3 * (10 ^ (6 :: Int)) -- TODO remove (for testing purposes)
 
     logDebug [qn| It's about 00:00, initiating VIN synchronization process... |]
-    synchronizeVins
+    retryInterval <- asks vinSynchronizerRetryInterval
+
+    fix $ \again ->
+      asks vinSynchronizerTimeout
+        >>= flip runSqlTimeout synchronizeVins
+        >>= \case Right _ ->
+                    logInfo [qn|
+                      VINs synchronization iteration is finished successfully.
+                    |]
+
+                  Left (fromException -> Just (TimeoutExceeded n)) -> do
+                    logError [qms|
+                      Synchronization of VINs is failed becuase it is exceeded
+                        timeout of
+                        {round $ (fromIntegral n / 1000 / 1000 :: Float) :: Int}
+                        second(s).
+                      {willBeRetried retryInterval}
+                    |]
+
+                    delay retryInterval
+                    logInfo $ retrying retryInterval
+                    again
+
+                  Left exception -> do
+                    logError [qms|
+                      Synchronization of VINs is failed with exception:
+                        {exception}.
+                      {willBeRetried retryInterval}
+                    |]
+
+                    delay retryInterval
+                    logInfo $ retrying retryInterval
+                    again
+
+  where
+    inHours :: Int -> Float
+    inHours microseconds = fromIntegral microseconds / 1000 / 1000 / 3600
+
+    willBeRetried interval = [qms|
+      Synchronization of VINs will be retried in
+      {printf "%.2f" (inHours interval) :: String} hour(s).
+    |] :: Text
+
+    retrying interval = [qms|
+      Retrying to synchronize VINs after an interval of
+      {printf "%.2f" (inHours interval) :: String} hour(s)...
+    |] :: Text
 
 
 -- | VINs synchronization logic handler.
-synchronizeVins :: VinSynchronizerMonad m => m ()
+synchronizeVins :: VinSynchronizerMonad m => ReaderT SqlBackend m ()
 synchronizeVins = do
   logInfo [qn| Synchronizing VINs... |]
 

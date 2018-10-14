@@ -86,8 +86,17 @@ app appMode' withDbConnection = do
     <$> Conf.require cfg "db.postgresql.connection-string"
     <*> Conf.require cfg "db.postgresql.pool-size"
 
+  -- In seconds
   !(dbRequestTimeout' :: Float) <-
     liftIO $ Conf.require cfg "db.postgresql.request-timeout"
+
+  -- In seconds
+  !(vinSynchronizerTimeout' :: Float) <-
+    liftIO $ Conf.require cfg "vin-synchronizer.timeout"
+
+  -- In minutes
+  !(vinSynchronizerRetryInterval' :: Float) <-
+    liftIO $ Conf.require cfg "vin-synchronizer.retry-interval"
 
   loggerBus' <- atomically newTQueue
 
@@ -114,9 +123,16 @@ app appMode' withDbConnection = do
                 = AppContext
                 { appMode = appMode'
                 , loggerBus = loggerBus'
+
                 , dbConnection = dbConnection'
-                , dbRequestTimeout = round $ dbRequestTimeout' * 1000 * 1000
+                , dbRequestTimeout = round $ dbRequestTimeout' * (10 ** 6)
+
                 , backgroundTasksCounter = backgroundTasksCounter'
+
+                , vinSynchronizerTimeout =
+                    round $ vinSynchronizerTimeout' * (10 ** 6)
+                , vinSynchronizerRetryInterval =
+                    round $ vinSynchronizerRetryInterval' * 60 * (10 ** 6)
                 }
 
           (serverThreadId, serverThreadSem) <-

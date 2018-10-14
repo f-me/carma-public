@@ -90,6 +90,14 @@ data AppContext
      -- ^ Every big operation or an operation which affects DB data supposed to
      -- increment this counter and decrement it when it finishes. For tests it
      -- helps to detect when everything is done at the moment.
+
+   , vinSynchronizerTimeout :: Int
+     -- ^ VIN synchronization iteration timeout in microseconds.
+     -- One iteration includes requests to EG side and own database requests.
+
+   , vinSynchronizerRetryInterval :: Int
+     -- ^ An interval (in microseconds) between next VIN synchronization attempt
+     -- if previous one is failed.
    }
 
 

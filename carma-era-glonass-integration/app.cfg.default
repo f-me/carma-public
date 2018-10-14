@@ -16,3 +16,14 @@ db {
     request-timeout = 15.0
   }
 }
+
+vin-synchronizer {
+  # In seconds.
+  # Synchronization iteration timeout.
+  # One iteration includes requests to EG side and own database requests.
+  timeout = 60.0
+
+  # In minutes.
+  # If synchronization iteration is failed it will retry after this interval.
+  retry-interval = 60.0
+}
