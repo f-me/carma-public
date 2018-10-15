@@ -26,6 +26,7 @@ jobs:
             tools/builder.sh -b --ci --clean --production frontend-legacy frontend-backend-templates
       - run:
           name: Build CaRMa frontend ("pure" part)
+          no_output_timeout: 30m # default 10 minutes isn't enough
           command: |
             tools/builder.sh -b --ci --clean --production frontend-pure
       - persist_to_workspace:
@@ -52,6 +53,7 @@ jobs:
       - run:
           name: Run tests
           command: |
+            # TODO automatically run "backend-configs" as dependency task
             tools/builder.sh -b --ci --production backend-test
       - save_cache:
           key: stack-cache-{{ checksum "stack.yaml" }}
@@ -110,6 +112,7 @@ jobs:
             printf 'node: %s, npm: %s\n' "`node --version`" "`npm --version`"
       - run:
           name: Build all CaRMa frontend in parallel
+          no_output_timeout: 30m # default 10 minutes isn't enough
           command: |
             tools/builder.sh --ci --clean --production --parallel frontend
 
