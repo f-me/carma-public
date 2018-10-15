@@ -153,7 +153,8 @@ getTree key = do
       return $ Node (fromIntegral key, diagSlide) children
     Nothing -> error $ "invalid id " ++ show key
 
--- |
+-- | Walk throw DiagSlide tree and insert slides into DB.
+-- | Returns - (old slide key, new slide key).
 treeToCopyTransaction :: (BaseBackend backend ~ Database.Persist.Sql.Types.Internal.SqlBackend
                         , PersistQueryRead backend, PersistStoreWrite backend
                         , MonadIO m)
