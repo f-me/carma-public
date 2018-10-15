@@ -9,15 +9,20 @@ import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction(LoadSlidesRequest, PasteSlideSuccess, PasteSlideFailure))
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
 import App.Store.DiagTree.Editor.Reducers (DiagTreeEditorState)
-import App.Store.DiagTree.Editor.Types (DiagTreeSlideId, DiagTreeSlides, DiagTreeSlide(DiagTreeSlide))
+import App.Store.DiagTree.Editor.Types (DiagTreeSlideId)
 import Control.Monad.Aff (Aff)
 import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Aff.Console (logShow)
 import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Exception (error, message, stack)
-import Control.Monad.Error.Class (catchError, throwError)
-import Data.Maybe (Maybe(..), maybe, fromMaybe)
+import Control.Monad.Eff.Exception (message, stack)
+import Control.Monad.Error.Class (catchError)
+import Data.Argonaut.Core as A
+import Data.Foreign (Foreign)
+import Data.Int (toNumber)
+import Data.Maybe (maybe, fromMaybe)
+import Data.Tuple (Tuple (Tuple))
+import Data.StrMap as StrMap
 import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax)
+import Utils.Affjax (postRequest)
 
 
 pasteSlide
@@ -29,15 +34,23 @@ pasteSlide
 
 pasteSlide appCtx state destinationSlidePath = flip catchError handleError $ do
   if null sourceSlidePath
-    then do logShow "pasteSlide: source slide path is empty"
-            act $ PasteSlideFailure sourceSlidePath
+    then act $ PasteSlideFailure sourceSlidePath
     else if null destinationSlidePath
-         then do logShow "pasteSlide: destination slide path is empty"
-                 act $ PasteSlideFailure destinationSlidePath
-         else do logShow $ "pasteSlide: paste " <> show sourceSlidePath <> " into " <> show destinationSlidePath
-                 act $ PasteSlideSuccess []
+         then act $ PasteSlideFailure destinationSlidePath
+         else do (res :: AffjaxResponse Foreign) <- affjax $ postRequest url jsonRequest
+                 act $ PasteSlideSuccess destinationSlidePath
+                 act LoadSlidesRequest -- Reload slides again
 
   where
+    url = if state.copyPasteBuffer.cutting
+          then "/diag/slide/move"
+          else "/diag/slide/copy"
+
+    jsonRequest = A.fromObject $
+                  StrMap.fromFoldable [ Tuple "source" $ A.fromArray $ map A.fromNumber $ map toNumber sourceSlidePath
+                                      , Tuple "destination" $ A.fromArray $ map A.fromNumber $ map toNumber destinationSlidePath
+                                      ]
+
     sourceSlidePath = fromMaybe [] state.copyPasteBuffer.branch
 
     act = sendAction appCtx
