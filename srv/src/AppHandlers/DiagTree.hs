@@ -144,8 +144,8 @@ getDiagSlide key = do
     selectFirst [ DiagSlideId ==. mkKey key ] []
 
   case res of
-    Just entityDiagSlide -> return $ Just $ entityVal entityDiagSlide
-    Nothing              -> return Nothing
+    Just entityDiagSlide -> pure $ Just $ entityVal entityDiagSlide
+    Nothing              -> pure Nothing
 
 
 -- | Get tree of @DiagSlide@s by a key
@@ -166,7 +166,7 @@ getTree key = do
         -- TODO FIXME fix for Nothing in HM.lookup
         let (Just (A.Number n)) = HM.lookup "nextSlide" answer
         getTree $ floor n
-      return $ Node (fromIntegral key, diagSlide) children
+      pure $ Node (fromIntegral key, diagSlide) children
     Nothing -> error $ "invalid id " ++ show key
 
 
@@ -185,7 +185,7 @@ treeToCopyTransaction tree =
   case tree of
     Node (oldKey, slide) [] -> do
       newKey <- insert slide
-      return (oldKey, fromSqlKey newKey)
+      pure (oldKey, fromSqlKey newKey)
     Node (oldKey, slide) children -> do
       childrenIds <- mapM treeToCopyTransaction children
       let (A.Array answers) = diagSlideAnswers slide
@@ -206,7 +206,7 @@ treeToCopyTransaction tree =
                          }
 
       newKey <- insert slide'
-      return (oldKey, fromSqlKey newKey)
+      pure (oldKey, fromSqlKey newKey)
 
 
 moveOrCopyDiagSlide :: MoveOrCopyDiagSlide -> AppHandler ()
