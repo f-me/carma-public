@@ -5,6 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE LambdaCase          #-}
 
 module AppHandlers.DiagTree
     ( diagInfo
@@ -13,21 +14,28 @@ module AppHandlers.DiagTree
 
     , MoveOrCopyDiagSlide (..)
     , moveOrCopyDiagSlide
+
+    , GetTreeException (..)
     )
 
 where
 
 import           GHC.Generics
 
-import           Control.Monad                       (forM)
+import           Control.Monad                       (forM, when)
 import           Control.Monad.IO.Class              (MonadIO)
 import           Control.Monad.Reader                (ReaderT)
+import           Control.Monad.Catch                 (MonadThrow, throwM)
+import           Control.Monad.Except                (runExceptT, throwError)
+import           Control.Monad.Trans.Class           (lift)
+import           Control.Exception                   (Exception)
 import           Data.Aeson                          as A
 import qualified Data.HashMap.Strict                 as HM
 import           Data.List                           (find)
 import           Data.Tree
 import           Data.Vector                         ((!), (//))
 import qualified Data.Vector                         as Vector
+import           Data.Typeable                       (Typeable)
 import           Database.Persist
 import           Database.Persist.Sql                ( fromSqlKey
                                                      , transactionSave
@@ -41,6 +49,7 @@ import           Snap.Snaplet.Persistent
 import           Snap.Snaplet.PostgresqlSimple
 import           Snaplet.Auth.PGUsers                (currentUserMetaId)
 
+import           Utils.HttpErrors                    (finishWithError)
 import           AppHandlers.Util
 import           Application
 import           Carma.Model.DiagSlide.Persistent
@@ -148,10 +157,15 @@ getDiagSlide key = do
     Nothing              -> pure Nothing
 
 
+data GetTreeException = InvalidId Int deriving (Show, Typeable)
+instance Exception GetTreeException
+
+
 -- | Get tree of @DiagSlide@s by a key
 getTree
   :: ( BaseBackend backend ~ Database.Persist.Sql.Types.Internal.SqlBackend
      , PersistQueryRead backend
+     , MonadThrow m
      , MonadIO m
      )
   => Int
@@ -167,7 +181,7 @@ getTree key = do
         let (Just (A.Number n)) = HM.lookup "nextSlide" answer
         getTree $ floor n
       pure $ Node (fromIntegral key, diagSlide) children
-    Nothing -> error $ "invalid id " ++ show key
+    Nothing -> throwM $ InvalidId key
 
 
 -- | Walk throw DiagSlide tree and insert slides into DB.
@@ -213,20 +227,24 @@ moveOrCopyDiagSlide :: MoveOrCopyDiagSlide -> AppHandler ()
 moveOrCopyDiagSlide CopyDiagSlide = do
   body <- getJSONBody :: AppHandler CopyMoveOperation
   let sourcePath = source body
-      destinationPath = destination body
+  let destinationPath = destination body
 
-  if null sourcePath
-    then error "source is empty"
-    else if null destinationPath
-         then error "destination is empty"
-         else if sourcePath == destinationPath
-              then error "unable to copy to the same point"
-              else do res <- with db2 $ runPersist $
-                             getDiagSlide $ last destinationPath
-                      case res of
-                        Just destinationSlide ->
-                          copyTree sourcePath destinationPath destinationSlide
-                        Nothing -> error "destination is not exists"
+  res <-
+    runExceptT $ do
+      when (null sourcePath) $ throwError (400, "Source is empty")
+      when (null destinationPath) $ throwError (400, "Destination is empty")
+
+      when (sourcePath == destinationPath) $
+        throwError (400, "Unable to copy to the same point")
+
+      lift (with db2 $ runPersist $ getDiagSlide $ last destinationPath)
+        >>= \case Just destinationSlide -> pure destinationSlide
+                  Nothing -> throwError (404, "Destination not exists")
+
+  case res of
+       Left (code, message) -> finishWithError code message
+       Right destinationSlide ->
+         copyTree sourcePath destinationPath destinationSlide
 
   where
     copyTree sourcePath destinationPath destinationSlide = do
