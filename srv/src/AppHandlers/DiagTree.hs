@@ -236,7 +236,7 @@ moveOrCopyDiagSlide CopyDiagSlide = do
 
         transactionSave
 
-      writeJSON $ toJSON ()
+      writeJSON ()
 
 moveOrCopyDiagSlide MoveDiagSlide = do
   _ <- getJSONBody :: AppHandler CopyMoveOperation
@@ -245,4 +245,4 @@ moveOrCopyDiagSlide MoveDiagSlide = do
     with db2 $ runPersist $
       selectList [] [LimitTo 10]
 
-  writeJSON $ toJSON ()
+  writeJSON ()
