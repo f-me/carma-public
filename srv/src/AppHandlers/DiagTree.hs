@@ -246,6 +246,3 @@ moveOrCopyDiagSlide MoveDiagSlide = do
       selectList [] [LimitTo 10]
 
   writeJSON $ toJSON ()
-
-
-
