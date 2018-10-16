@@ -3,6 +3,8 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DeriveAnyClass      #-}
 
 module AppHandlers.DiagTree
     ( diagInfo
@@ -15,7 +17,9 @@ module AppHandlers.DiagTree
 
 where
 
-import           Control.Monad                       (forM, mzero)
+import           GHC.Generics
+
+import           Control.Monad                       (forM)
 import           Control.Monad.IO.Class              (MonadIO)
 import           Control.Monad.Reader                (ReaderT)
 import           Data.Aeson                          as A
@@ -116,13 +120,7 @@ data MoveOrCopyDiagSlide = MoveDiagSlide | CopyDiagSlide
 data CopyMoveOperation = CopyMoveOperation
   { source      :: [Int]
   , destination :: [Int]
-  } deriving (Show)
-
-instance FromJSON CopyMoveOperation where
-  parseJSON (Object o) =
-    CopyMoveOperation <$> o .: "source" <*> o .: "destination"
-
-  parseJSON _ = mzero
+  } deriving (Show, Generic, FromJSON)
 
 
 type DiagSlideTree = Tree (Int64, DiagSlide)
