@@ -4,6 +4,9 @@
            , RankNTypes
            , DeriveGeneric
            , GADTs
+           , OverloadedStrings
+           , QuasiQuotes
+           , ViewPatterns
  #-}
 
 module Carma.Model.Types ( Dict(..)
@@ -18,16 +21,21 @@ module Carma.Model.Types ( Dict(..)
                          ) where
 
 import Control.Monad (void)
+import Control.Arrow
 
+import Data.Proxy
 import Data.Maybe
 import Data.Aeson as Aeson
 import Data.String
 import Data.Text (Text)
+import Data.Text.Encoding (encodeUtf8)
 import Data.Scientific
 import qualified Data.Text          as T
 import qualified Data.Text.Read     as T
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Base16 as B16
+import Data.ByteString.Lazy (toStrict, fromStrict)
+import Text.InterpolatedString.QM
 
 import Data.Int (Int16, Int32)
 
@@ -56,6 +64,9 @@ import Database.PostgreSQL.Simple.FromField (FromField(..)
                                             ,typeOid)
 import Database.PostgreSQL.Simple.ToField   (ToField(..), Action(..), inQuotes)
 import Database.PostgreSQL.Simple.TypeInfo.Static (interval, typoid)
+import Database.Persist.Types (PersistValue (..), SqlType (..))
+import Database.Persist.Class (PersistField (toPersistValue, fromPersistValue))
+import Database.Persist.Sql (PersistFieldSql (sqlType))
 
 import qualified Blaze.ByteString.Builder.Char8 as Builder
 
@@ -434,6 +445,21 @@ instance ToJSON Coords where
 
 instance DefaultFieldView Coords where
   defaultFieldView f = (defFieldView f) {fv_type = "coords"}
+
+
+instance PersistField Coords where
+  toPersistValue = PersistByteString . toStrict . encode
+
+  fromPersistValue (PersistByteString (fromStrict -> x)) =
+    (\e -> [qm| Error while parsing Coords: {e} |]) `left` eitherDecode x
+  fromPersistValue (PersistText x) =
+    fromPersistValue $ PersistDbSpecific $ encodeUtf8 x
+  fromPersistValue x =
+    Left [qm| Expected PersistByteString for Coords, received: {x} |]
+
+
+instance PersistFieldSql Coords where
+  sqlType Proxy = SqlString
 
 
 typeName :: forall t . Typeable t => t -> Text
