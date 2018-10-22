@@ -8,7 +8,6 @@ import           Data.Typeable
 import           Data.Time.Clock (UTCTime)
 import           Data.Time.Calendar (Day)
 import           Data.Text (Text)
--- import           Data.Scientific (Scientific)
 import           Data.Aeson (Value)
 
 import           Database.Persist.TH
@@ -16,6 +15,7 @@ import           Database.Persist.TH
 import           Database.Persist.Postgresql.JSON ()
                  -- ^ @PersistFieldSql Value@ instance
 
+import           Carma.Model.Types (Price)
 import           Carma.Model.CarMake.Persistent (CarMakeId)
 import           Carma.Model.CarModel.Persistent (CarModelId)
 import           Carma.Model.CarGeneration.Persistent (CarGenerationId)
@@ -31,10 +31,10 @@ import           Carma.Model.LegalForm.Persistent (LegalFormId)
 import           Carma.Model.Usermeta.Persistent (UsermetaId)
 
 
--- | Partially implemented @Contract@ persistent model.
---
--- TODO resolve @priceInOrder@ field with @Scientific@ type which has no
---      @PersistFieldSql@ instance.
+type PriceInOrder = Price 10 2
+
+
+-- | @Contract@ persistent model.
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Contract json sql=Contract
   ctime UTCTime sql=ctime
@@ -64,10 +64,7 @@ Contract json sql=Contract
   firstSaleDate Day Maybe sql=firstsaledate
   seller PartnerId Maybe sql=seller
   registrationReason ContractRegistrationReasonId Maybe sql=registrationreason
-
-  -- priceInOrder Scientific Maybe sql=priceinorder
-  -- ^ TODO FIXME no @PersistFieldSql@ instance for @Scientific@
-
+  priceInOrder PriceInOrder Maybe sql=priceinorder
   lastCheckDealer PartnerId Maybe sql=lastcheckdealer
   checkPeriod Int Maybe sql=checkperiod
   checkType CheckTypeId Maybe sql=checktype
