@@ -14,6 +14,7 @@ dependencies:
  - blaze-builder
  - blaze-textual
  - bytestring
+ - carma-utils
  - cereal
  - containers
  - errors

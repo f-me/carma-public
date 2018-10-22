@@ -83,6 +83,7 @@ import Data.Model
 import Data.Model.View.Regexp
 import Data.Model.Types
 import Carma.Model.LegacyTypes
+import Carma.Utils.Numbers (digitsCountInLimit)
 
 
 newtype Dict m = Dict Text
@@ -557,37 +558,44 @@ newtype Price (int :: Nat) (frac :: Nat)
         deriving (Show, Eq, ToJSON, FromJSON)
 
 instance (KnownNat int, KnownNat frac) => PersistField (Price int frac) where
-  toPersistValue x'@(Price x)
-    | isFloating (x * (10 ^ natVal (Proxy :: Proxy frac))) =
-        error [qms|
-          Price value doesn't fit precision limit of
-          {natVal (Proxy :: Proxy frac)} digits after floating point: {x'}
-        |]
-    | digitsCount (floor x :: Integer) > natVal (Proxy :: Proxy int) =
-        error [qms|
-          Price value doesn't fit precision limit of
-          {natVal (Proxy :: Proxy int)} digits of integer part: {x'}
-        |]
-    | otherwise = PersistRational $ toRational x
+  toPersistValue x'@(Price x) =
+    if | isFloating (x * (10 ^ frac')) ->
+           error [qms|
+             Price value doesn't fit precision limit of
+             {frac'} digits after floating point: {x'}
+           |]
+       | not $ int' `digitsCountInLimit` (floor x :: Integer) ->
+           error [qms|
+             Price value doesn't fit precision limit of
+             {int'} digits of integer part: {x'}
+           |]
+       | otherwise -> PersistRational $ toRational x
+    where
+      int'  = natVal (Proxy :: Proxy int)
+      frac' = natVal (Proxy :: Proxy frac)
 
   fromPersistValue x'@(PersistRational x) =
     if | denominator shifted /= 1 ->
            Left $ failMsg [qms|
              its fractional part is more precise than defined in type
-             ({natVal (Proxy :: Proxy frac)} digits after floating point)
+             ({frac'} digits after floating point)
            |]
-       | digitsCount (floor x :: Integer) > natVal (Proxy :: Proxy int) ->
+       | not $ int' `digitsCountInLimit` (floor x :: Integer) ->
            Left $ failMsg [qms|
              its integer part is more precise than defined in type
-             ({natVal (Proxy :: Proxy int)} digits)
+             ({int'} digits)
            |]
        | otherwise -> Right $ Price $ fromRational x
     where
+      int'  = natVal (Proxy :: Proxy int)
+      frac' = natVal (Proxy :: Proxy frac)
+
       -- | With fractional part shifted to integer part.
       --
       -- Fractional part will be completely shifted
-      -- only if fractional part has correct precision.
-      shifted = x * (10 ^ natVal (Proxy :: Proxy frac))
+      -- only if fractional part has correct precision
+      -- so denominator would be @1@.
+      shifted = x * (10 ^ frac')
 
       failMsg :: Text -> Text
       failMsg reasonInfix = [qms|
@@ -607,12 +615,3 @@ instance (KnownNat int, KnownNat frac) => PersistFieldSql (Price int frac) where
     SqlNumeric
       (fromInteger $ natVal (Proxy :: Proxy int))
       (fromInteger $ natVal (Proxy :: Proxy frac))
-
-
--- | Counts how many digits in an integral number.
---
--- Complexity is @O(n)@.
-digitsCount :: (Integral a, Integral b) => a -> b
-digitsCount = f 1 . abs
-  where f i n | n >= 10   = f (succ i) (n `div` 10)
-              | otherwise = i
