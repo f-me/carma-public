@@ -135,6 +135,7 @@ app appMode' withDbConnection = do
                     round $ vinSynchronizerRetryInterval' * 60 * (10 ** 6)
                 }
 
+          -- Running server thread
           (serverThreadId, serverThreadSem) <-
             forkWithSem $ do
               when (appMode' == TestingAppMode) $
@@ -144,6 +145,7 @@ app appMode' withDbConnection = do
               logInfo [qm| Running incoming server on http://{host}:{port}... |]
               liftIO $ runIncomingServer appContext port $ fromString host
 
+          -- Running VIN synchronizer thread
           vinSynchronizer <-
             if appMode' == TestingAppMode
                then do logWarn [qns| Not running VIN synchronizer because it is

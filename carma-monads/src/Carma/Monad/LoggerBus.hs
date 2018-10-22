@@ -34,10 +34,10 @@ genericMVarLog
   => LogMessageType -> MVar LogMessage -> T.Text -> m ()
 genericMVarLog logMsgType loggerBus' msg = do
   !utc <- getCurrentTime
+  let !logMsg = LogMessage logMsgType [qm| [{formatTime utc} UTC] {msg} |]
 
-  void $ fork $ -- Forking for non-blocking writing to @MVar@
-    putMVar loggerBus' $ LogMessage logMsgType
-      [qm| [{formatTime utc} UTC] {msg} |]
+  -- Forking for non-blocking writing to @MVar@
+  void $ fork $ putMVar loggerBus' logMsg
 
 
 -- | Generic implementation of @readLog@
@@ -55,10 +55,8 @@ genericTQueueLog
   => LogMessageType -> TQueue LogMessage -> T.Text -> m ()
 genericTQueueLog logMsgType loggerBus' msg = do
   !utc <- getCurrentTime
-
-  atomically
-    $ writeTQueue loggerBus'
-    $ LogMessage logMsgType [qm| [{formatTime utc} UTC] {msg} |]
+  let !logMsg = LogMessage logMsgType [qm| [{formatTime utc} UTC] {msg} |]
+  atomically $ writeTQueue loggerBus' logMsg
 
 
 -- | Generic implementation of @readLog@

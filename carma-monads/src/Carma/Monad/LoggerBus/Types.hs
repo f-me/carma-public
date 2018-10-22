@@ -21,9 +21,10 @@ data LogMessageType
      deriving (Show, Eq)
 
 
+-- | Bangs to avoid lazy errors when they reach logger thread.
 data LogMessage
-   = LogMessage LogMessageType T.Text
-   | LogForward Loc LogSource LogLevel LogStr
+   = LogMessage !LogMessageType !T.Text
+   | LogForward !Loc !LogSource !LogLevel !LogStr
 
 instance Show LogMessage where
   show (LogMessage logType msg) =
