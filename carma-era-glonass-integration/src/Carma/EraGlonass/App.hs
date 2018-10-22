@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
 
 module Carma.EraGlonass.App
      ( AppConfig (..)
@@ -17,18 +18,23 @@ import qualified Data.Configurator as Conf
 import           Data.String (fromString)
 import           Text.InterpolatedString.QM
 
-import           Control.Exception (Exception)
 import           Control.Monad
 import           Control.Monad.Reader
 import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Trans.Control (MonadBaseControl)
-import           Control.Monad.Catch (MonadCatch (catch))
+import           Control.Monad.Catch (MonadCatch (catch), finally)
 import           Control.Concurrent.MVar (tryReadMVar)
 import           Control.Concurrent.STM.TQueue
 import           Control.Concurrent.STM.TVar
 import           Control.Concurrent.STM.TSem
+import           Control.Exception
+                   ( Exception (displayException)
+                   , SomeException (..)
+                   )
 
+import           Foreign.C.Types (CInt (..))
+import           System.IO (hPutStrLn, stderr)
 import           System.Posix.Signals
                    ( installHandler
                    , Handler (Catch)
@@ -50,6 +56,8 @@ import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Server (serverApplicaton)
 import           Carma.EraGlonass.VinSynchronizer (runVinSynchronizer)
+
+foreign import ccall "exit" exit :: CInt -> IO ()
 
 
 -- | Application config data to provide to particular implementation.
@@ -102,8 +110,13 @@ app appMode' withDbConnection = do
 
   -- Running logger thread
   (_, loggerThreadWaitBus) <-
-    forkWithWaitBus $ runStdoutLoggingT $
-      writeLoggerBusEventsToMonadLogger `runReaderT` loggerBus'
+    forkWithWaitBus $ do
+      let logReader = writeLoggerBusEventsToMonadLogger `runReaderT` loggerBus'
+      runStdoutLoggingT logReader `catch` \(SomeException e) ->
+        liftIO $ hPutStrLn stderr [qms|
+          Logger reader thread is failed with an unexpected exception:
+          {displayException e}
+        |] `finally` exit 1
 
   backgroundTasksCounter' <- atomically $ newTVar 0
 
