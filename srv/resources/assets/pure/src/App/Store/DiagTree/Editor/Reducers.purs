@@ -262,7 +262,7 @@ diagTreeEditorReducer state (CutSlideSuccess slidePath) = do
                  { isProcessing = false
                  , isFailed     = false
                  , branch       = Just slidePath
-                 , cutting      = false
+                 , cutting      = true
                  }
              }
 
