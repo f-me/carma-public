@@ -37,9 +37,7 @@ cutSlide
 cutSlide appCtx state = flip catchError handleError $ do
   case slidePath of
     [ ] -> throwError $ error "Slide path is empty"
-    _   -> do
-      logShow $ "cutSlide: copyPasteBuffer = " <> show slidePath <> " / " <> show state.copyPasteBuffer.cutting
-      act $ CutSlideSuccess slidePath
+    _   -> act $ CutSlideSuccess slidePath
 
   where
     slidePath = fromMaybe [] state.copyPasteBuffer.branch
