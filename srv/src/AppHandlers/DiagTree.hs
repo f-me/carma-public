@@ -1,11 +1,12 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE LambdaCase          #-}
+
 
 module AppHandlers.DiagTree
     ( diagInfo
@@ -22,24 +23,24 @@ where
 
 import           GHC.Generics
 
+import           Control.Exception                   (Exception)
 import           Control.Monad                       (forM, when)
-import           Control.Monad.IO.Class              (MonadIO)
-import           Control.Monad.Reader                (ReaderT)
 import           Control.Monad.Catch                 (MonadThrow, throwM)
 import           Control.Monad.Except                (runExceptT, throwError)
+import           Control.Monad.IO.Class              (MonadIO)
+import           Control.Monad.Reader                (ReaderT)
 import           Control.Monad.Trans.Class           (lift)
-import           Control.Exception                   (Exception)
 import           Data.Aeson                          as A
 import qualified Data.HashMap.Strict                 as HM
 import           Data.List                           (find)
+import           Data.Maybe                          (isJust, isNothing)
 import           Data.Tree
+import           Data.Typeable                       (Typeable)
 import           Data.Vector                         ((!), (//))
 import qualified Data.Vector                         as Vector
-import           Data.Typeable                       (Typeable)
 import           Database.Persist
-import           Database.Persist.Sql                ( fromSqlKey
-                                                     , transactionSave
-                                                     )
+import           Database.Persist.Sql                (Single (..), fromSqlKey,
+                                                      rawSql, transactionSave)
 import           Database.Persist.Sql.Types.Internal
 import           Database.PostgreSQL.Simple.SqlQQ
 import           GHC.Int
@@ -49,10 +50,10 @@ import           Snap.Snaplet.Persistent
 import           Snap.Snaplet.PostgresqlSimple
 import           Snaplet.Auth.PGUsers                (currentUserMetaId)
 
-import           Utils.HttpErrors                    (finishWithError)
 import           AppHandlers.Util
 import           Application
 import           Carma.Model.DiagSlide.Persistent
+import           Utils.HttpErrors                    (finishWithError)
 
 
 -- | Check if idag is possible or has started already
@@ -157,7 +158,7 @@ getDiagSlide key = do
     Nothing              -> pure Nothing
 
 
-data GetTreeException = InvalidId Int deriving (Show, Typeable)
+newtype GetTreeException = InvalidId Int deriving (Show, Typeable)
 instance Exception GetTreeException
 
 
@@ -195,8 +196,8 @@ treeToCopyTransaction
   => DiagSlideTree
   -> ReaderT backend m (Int64, Int64)
 
-treeToCopyTransaction tree =
-  case tree of
+treeToCopyTransaction =
+  \case
     Node (oldKey, slide) [] -> do
       newKey <- insert slide
       pure (oldKey, fromSqlKey newKey)
@@ -223,11 +224,15 @@ treeToCopyTransaction tree =
       pure (oldKey, fromSqlKey newKey)
 
 
+getPasteParams :: Handler App App ([Int], [Int])
+getPasteParams = do
+  body <- getJSONBody :: AppHandler CopyMoveOperation
+  pure (source body, destination body)
+
+
 moveOrCopyDiagSlide :: MoveOrCopyDiagSlide -> AppHandler ()
 moveOrCopyDiagSlide CopyDiagSlide = do
-  body <- getJSONBody :: AppHandler CopyMoveOperation
-  let sourcePath = source body
-  let destinationPath = destination body
+  (sourcePath, destinationPath) <- getPasteParams
 
   res <-
     runExceptT $ do
@@ -235,7 +240,7 @@ moveOrCopyDiagSlide CopyDiagSlide = do
       when (null destinationPath) $ throwError (400, "Destination is empty")
 
       when (sourcePath == destinationPath) $
-        throwError (400, "Unable to copy to the same point")
+        throwError (400, "Unable to copy&paste to the same point")
 
       lift (with db2 $ runPersist $ getDiagSlide $ last destinationPath)
         >>= \case Just destinationSlide -> pure destinationSlide
@@ -289,10 +294,132 @@ moveOrCopyDiagSlide CopyDiagSlide = do
       writeJSON ()
 
 moveOrCopyDiagSlide MoveDiagSlide = do
-  _ <- getJSONBody :: AppHandler CopyMoveOperation
+  (sourcePath, destinationPath) <- getPasteParams
+  -- sourcePath and destinationPath are untrusted arrays of DiagSlide
+  -- identifiers, so we can use only last ids to build real entire trees
+  -- from database.
 
-  (_ :: [Entity DiagSlide]) <-
-    with db2 $ runPersist $
-      selectList [] [LimitTo 10]
+  res <-
+    runExceptT $ do
+      when (null sourcePath) $ throwError (400, "Source is empty")
+      when (null destinationPath) $ throwError (400, "Destination is empty")
 
-  writeJSON ()
+      when (sourcePath == destinationPath) $
+           throwError (400, "Unable to cut&paste to the same point")
+
+      let sourceId = last sourcePath
+      let destinationId = (fromIntegral $ last destinationPath) :: Int64
+
+      sourceSubTree <- lift (with db2 $ runPersist $ getTree sourceId)
+
+      when (isJust $ find ((== destinationId) . fst) sourceSubTree) $
+           throwError (404, "Destination inside source")
+
+      sourceSlide' <- lift $ with db2 $ runPersist $ getDiagSlide sourceId
+      when (isNothing sourceSlide') $
+           throwError (404, "Source not exists")
+
+      let Just sourceSlide = sourceSlide'
+
+      destinationSlide' <- lift $ with db2 $ runPersist $
+                          getDiagSlide $ last destinationPath
+      when (isNothing destinationSlide') $
+           throwError (404, "Destination not exists")
+      let Just destinationSlide = destinationSlide'
+
+      parent <- if diagSlideIsRoot sourceSlide
+                  then pure $ Right Nothing
+                  else lift $ with db2 $ runPersist $ getParentSlide sourceId
+
+      case parent of
+        Left (code, message) -> throwError (code, message)
+        Right parent'        -> pure (parent', destinationSlide)
+
+  case res of
+    Left (code, message) -> finishWithError code message
+    Right (parent, destinationSlide) ->
+      moveTree parent (last sourcePath) (last destinationPath) destinationSlide
+
+  where
+    getParentSlide childId = do
+      parentId <- getParentId childId
+      case parentId of
+        Just parentId' ->
+          do parentSlide <- getDiagSlide $ fromIntegral parentId'
+             case parentSlide of
+               Just parentSlide' ->
+                 pure $ Right $ Just (parentId', parentSlide')
+               Nothing ->
+                 pure $ Left (404, "Unable to get parent slide for "
+                                   ++ show parentId')
+
+        Nothing -> pure $ Left (404, "Unable to get parent identifier for  "
+                                    ++ show childId)
+
+
+    getParentId sourceId = do
+      parentId <- rawSql
+                 "select id from \
+                 \ (select id, json_array_elements(answers) \
+                 \ as answer \
+                 \ from \"DiagSlide\") as answers \
+                 \ where (answer->>'nextSlide')::int = ?"
+                 [PersistInt64 $ fromIntegral sourceId]
+                 :: MonadIO m => ReaderT SqlBackend m [Single Int64]
+
+      case parentId of
+        (Single a : _) -> pure $ Just a
+        _              -> pure Nothing
+
+    moveTree parent sourceId destinationId destinationSlide = do
+      let (A.Array destinationAnswers) = diagSlideAnswers destinationSlide
+
+      with db2 $ runPersist $ do
+
+        transactionSave
+
+        newDestinationAnswers <-
+          case parent of
+            Just (parentId, parentSlide) ->
+              -- move from one branch to another
+              do let (A.Array answers) = diagSlideAnswers parentSlide
+                 let (newParentAnswers, parentAnswerForSource) =
+                       flip Vector.partition answers $ \(A.Object answer) ->
+                         case HM.lookup "nextSlide" answer of
+                           Just (A.Number sid) -> sourceId /= floor sid
+                           _                   -> True
+
+                 -- remove source slide from parent slide
+                 update (mkKey $ fromIntegral parentId)
+                        [ DiagSlideAnswers =. A.toJSON
+                                              (Vector.toList newParentAnswers) ]
+
+                 -- TODO FIXME parentAnswerForSource can be empty
+
+                 pure $ Vector.toList $
+                      Vector.snoc destinationAnswers $
+                      Vector.head parentAnswerForSource
+
+            Nothing ->
+              -- move from root
+              do update (mkKey sourceId)
+                        [ DiagSlideIsRoot =. False ]
+
+                 pure $ Vector.toList $
+                      Vector.snoc destinationAnswers $
+                      A.Object $
+                      HM.fromList [ ("text", A.String "")
+                                  , ("header", A.String $
+                                               diagSlideHeader destinationSlide)
+                                  , ("action", A.Object $ HM.fromList [])
+                                  , ("nextSlide", numberFromInt $
+                                                  fromIntegral sourceId)
+                                  ]
+
+        -- add source slide to destination
+        update (mkKey destinationId)
+               [ DiagSlideAnswers =. A.toJSON newDestinationAnswers ]
+
+        transactionSave
+
+      writeJSON ()
