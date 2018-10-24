@@ -89,4 +89,19 @@ GRANT ALL ON "CaseEraGlonassCreateRequest" TO carma_db_sync;
 GRANT ALL ON "CaseEraGlonassCreateRequest_id_seq" TO carma_db_sync;
 
 
+-- Creating table for "EraGlonassSynchronizedContract" model.
+CREATE TABLE "EraGlonassSynchronizedContract"
+  ( id               SERIAL PRIMARY KEY
+  , ctime            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+  , contractId       INTEGER NOT NULL
+  , vin              TEXT NOT NULL
+  , isSynchronized   BOOLEAN NOT NULL
+  , lastStatusChangeTime
+                     TIMESTAMP WITH TIME ZONE NULL DEFAULT CURRENT_TIMESTAMP
+  , FOREIGN KEY (contractId) REFERENCES "Contract" (id)
+  );
+GRANT ALL ON "EraGlonassSynchronizedContract" TO carma_db_sync;
+GRANT ALL ON "EraGlonassSynchronizedContract_id_seq" TO carma_db_sync;
+
+
 COMMIT;
