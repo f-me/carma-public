@@ -25,7 +25,7 @@ import           Control.Arrow
 import           Control.Monad
 import           Control.Monad.Reader (MonadReader, ReaderT, asks)
 import           Control.Monad.Catch
-import           Control.Exception (fromException)
+import           Control.Exception (SomeException, fromException)
 
 import           Database.Persist.Sql (SqlBackend)
 
@@ -62,41 +62,13 @@ runVinSynchronizer tz = do
 
     -- delay $ round $ hoursToWait * 3600 * (10 ** 6) -- TODO uncomment
     delay $ 3 * (10 ^ (6 :: Int)) -- TODO remove (for testing purposes)
-
     logDebug [qn| It's about 00:00, initiating VIN synchronization process... |]
-    retryInterval <- asks vinSynchronizerRetryInterval
 
     fix $ \again ->
       asks vinSynchronizerTimeout
         >>= flip runSqlTimeout synchronizeVins
-        >>= \case Right _ ->
-                    logInfo [qn|
-                      VINs synchronization iteration is finished successfully.
-                    |]
-
-                  Left (fromException -> Just (TimeoutExceeded n)) -> do
-                    logError [qms|
-                      Synchronization of VINs is failed becuase it is exceeded
-                        timeout of
-                        {round $ (fromIntegral n / 1000 / 1000 :: Float) :: Int}
-                        second(s).
-                      {willBeRetried retryInterval}
-                    |]
-
-                    delay retryInterval
-                    logInfo $ retrying retryInterval
-                    again
-
-                  Left exception -> do
-                    logError [qms|
-                      Synchronization of VINs is failed with exception:
-                        {exception}.
-                      {willBeRetried retryInterval}
-                    |]
-
-                    delay retryInterval
-                    logInfo $ retrying retryInterval
-                    again
+        >>= synchronizationResolve
+        >>= flip unless again
 
   where
     inHours :: Int -> Float
@@ -111,6 +83,48 @@ runVinSynchronizer tz = do
       Retrying to synchronize VINs after an interval of
       {printf "%.2f" (inHours interval) :: String} hour(s)...
     |] :: Text
+
+
+    -- | Returned @Bool@ indicates successfulness status.
+    --
+    -- @True@ means it is done, @False@ means it is failed.
+    synchronizationResolve
+      :: ( MonadReader AppContext m
+         , MonadLoggerBus m
+         , MonadDelay m
+         )
+      => Either SomeException ()
+      -> m Bool
+
+    synchronizationResolve (Right ()) = True <$
+      logInfo [qn|
+        VINs synchronization iteration is finished successfully.
+      |]
+
+    synchronizationResolve ( Left (fromException -> Just (TimeoutExceeded n))
+                           ) = False <$ do
+
+      retryInterval <- asks vinSynchronizerRetryInterval
+
+      logError [qms|
+        Synchronization of VINs is failed becuase it is exceeded timeout of
+          {round $ (fromIntegral n / 1000 / 1000 :: Float) :: Int} second(s).
+        {willBeRetried retryInterval}
+      |]
+
+      delay retryInterval
+      logInfo $ retrying retryInterval
+
+    synchronizationResolve (Left exception) = False <$ do
+      retryInterval <- asks vinSynchronizerRetryInterval
+
+      logError [qms|
+        Synchronization of VINs is failed with exception: {exception}.
+        {willBeRetried retryInterval}
+      |]
+
+      delay retryInterval
+      logInfo $ retrying retryInterval
 
 
 -- | VINs synchronization logic handler.
