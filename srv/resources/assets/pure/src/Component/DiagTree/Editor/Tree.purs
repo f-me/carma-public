@@ -4,7 +4,7 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import App.Store (AppContext, dispatch)
+import App.Store (AppContext, dispatch, getAppState)
 import App.Store.Actions (AppAction(..))
 import App.Store.DiagTree.Actions (DiagTreeAction(Editor))
 import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction(..))
@@ -25,7 +25,7 @@ import Data.Array ((!!), index, last, head, take, init, length)
 import Data.Foldable (foldr)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust, fromMaybe, maybe)
+import Data.Maybe (Maybe(..), isJust, fromMaybe, maybe, fromJust)
 import Data.Record.Builder (merge, build)
 import Data.Set (Set)
 import Data.Set as Set
@@ -39,7 +39,7 @@ import React.Spaces.DOM (div, button, i, label, input)
 import React.Spaces.DOM.Dynamic (div) as SDyn
 import Utils ((<.>), storeConnect, eventIsChecked, toMaybeT)
 import Utils.DiagTree.Editor (getSlideByBranch)
-
+import Partial.Unsafe (unsafePartial)
 
 -- If selected slides has more parents they will be hidden.
 -- Two button also will be shown:
@@ -193,8 +193,30 @@ diagTreeEditorTreeRender = createClass $ spec $
 
     pasteSlideHandler appContext this slideBranch = do
       getSlide <- getProps this <#> _.slides <#> getSlideByBranch
-      launchAff_ $ dispatch appContext $
-        DiagTree $ Editor $ PasteSlideRequest slideBranch
+
+      state <- getAppState appContext
+      paste <-
+        let sfx = fromMaybe "" $
+              getSlide slideBranch <#> \(DiagTreeSlide x) ->
+                " #" <> show x.id <> " (\"" <> x.header <> "\")"
+
+            source = fromMaybe "" $
+              getSlide (unsafePartial $
+                        fromJust state.diagTree.editor.copyPasteBuffer.branch) <#>
+              \(DiagTreeSlide x) -> " #" <> show x.id <> " (\"" <> x.header <> "\")"
+
+            operation = if state.diagTree.editor.copyPasteBuffer.cutting
+                           then "переместить"
+                           else "скопировать"
+            msg = "Вы уверены, что хотите "  <> operation <> " " <> source
+                  <> " в " <> sfx <> "?"
+
+        in DOM.window >>= DOM.confirm msg
+
+      if not paste
+         then pure unit
+         else launchAff_ $ dispatch appContext $
+                DiagTree $ Editor $ PasteSlideRequest slideBranch
 
     toggleSlideFoldHandler this slideId =
       transformState this $ \s@{ unfoldedSlides } ->
