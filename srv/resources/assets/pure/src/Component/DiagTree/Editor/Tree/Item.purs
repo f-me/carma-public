@@ -4,33 +4,32 @@ module Component.DiagTree.Editor.Tree.Item
 
 import Prelude hiding (div)
 
+import App.Store (AppContext)
+import App.Store.DiagTree.Editor.Types ( DiagTreeSlideId
+                                       , DiagTreeSlide(DiagTreeSlide)
+                                       , fromIndexedAnswers
+                                       )
 import Control.Lazy (fix)
-
-import Data.String (length, splitAt)
 import Data.Array (elemIndex, snoc, last, null)
-import Data.Maybe (Maybe (..), isJust, fromMaybe, maybe)
+import Data.Foldable (foldl)
 import Data.Map (Map)
 import Data.Map as Map
+import Data.Maybe (Maybe(..), isJust, fromMaybe, maybe)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Foldable (foldl)
-import Data.Tuple (Tuple (Tuple), fst)
-
+import Data.String (length, splitAt)
+import Data.Tuple (Tuple(Tuple), fst)
 import React (ReactClass, EventHandler, preventDefault, stopPropagation)
 import React.DOM (div) as R
 import React.DOM.Props (className, key, onClick, title, disabled)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
-import React.Spaces.DOM (div, button, i, span)
 import React.Spaces.DOM (div) as SDyn
-
-import Utils ((<.>), createClassStatelessWithName, callEventHandler)
-import App.Store (AppContext)
-
-import App.Store.DiagTree.Editor.Types
-     ( DiagTreeSlideId
-     , DiagTreeSlide (DiagTreeSlide)
-     , fromIndexedAnswers
-     )
+import React.Spaces.DOM (div, button, i, span)
+import Utils ( CopyPasteBufferState(..)
+             , callEventHandler
+             , createClassStatelessWithName
+             , (<.>)
+             )
 
 
 type Props =
@@ -54,7 +53,7 @@ type Props =
   , copy            :: EventHandler (Array DiagTreeSlideId)
   , cut             :: EventHandler (Array DiagTreeSlideId)
   , paste           :: EventHandler (Array DiagTreeSlideId)
-  , isPasteDisabled :: Boolean
+  , copyPasteBuffer :: CopyPasteBufferState
 
   , answerHeader    :: Maybe String
   , parents         :: Array DiagTreeSlideId
@@ -65,7 +64,7 @@ type Props =
 diagTreeEditorTreeItemRender :: ReactClass Props
 diagTreeEditorTreeItemRender = f $
   \props@{ selectedSlide, unfoldedSlides, search, select, delete, copy, cut
-         , paste, isPasteDisabled } ->
+         , paste, copyPasteBuffer } ->
   (\r -> r props.answerHeader props.parents props.slide) $ -- first level call
   fix $ \again answerHeader parents (DiagTreeSlide slide) ->
 
@@ -132,9 +131,15 @@ diagTreeEditorTreeItemRender = f $
       stopPropagation event
       callEventHandler paste slideBranch
 
+    headerClasses =
+      case copyPasteBuffer of
+        Cutout i | i == slide.id -> "header-cutout"
+        Copied i | i == slide.id -> "header-copied"
+        _ -> ""
   in
     renderIn (R.div [className wClass, key $ show slide.id]) $ do
-      div !. classSfx "header" ! onClick onHeaderClick $ do
+      div !. classSfx "header" <.> classSfx headerClasses
+          ! onClick onHeaderClick $ do
 
         button !. "btn" <.> "btn-danger" <.> classSfx "delete"
                ! onClick onDeleteClick
@@ -156,7 +161,7 @@ diagTreeEditorTreeItemRender = f $
 
         button !. "btn" <.> classSfx "paste"
                ! onClick onPasteClick
-               ! disabled isPasteDisabled
+               ! disabled (copyPasteBuffer == EmptyBuffer)
                ! title "Вставить ветвь" $
 
           i !. "glyphicon" <.> "glyphicon-paste" $ empty

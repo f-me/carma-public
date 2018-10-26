@@ -25,7 +25,7 @@ import Data.Array ((!!), index, last, head, take, init, length)
 import Data.Foldable (foldr)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust, fromMaybe, maybe, fromJust, isNothing)
+import Data.Maybe (Maybe(..), isJust, fromMaybe, maybe, fromJust)
 import Data.Record.Builder (merge, build)
 import Data.Set (Set)
 import Data.Set as Set
@@ -37,7 +37,7 @@ import React.DOM.Props (className, onClick, onChange, _type, checked)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
 import React.Spaces.DOM (div, button, i, label, input)
 import React.Spaces.DOM.Dynamic (div) as SDyn
-import Utils ((<.>), storeConnect, eventIsChecked, toMaybeT)
+import Utils ((<.>), storeConnect, eventIsChecked, toMaybeT, CopyPasteBufferState(..))
 import Utils.DiagTree.Editor (getSlideByBranch)
 import Partial.Unsafe (unsafePartial)
 
@@ -67,11 +67,11 @@ diagTreeEditorTreeRender
                                       , question :: Maybe Int
                                       }
                     }
-       , isPasteDisabled :: Boolean
+       , copyPasteBuffer :: CopyPasteBufferState
        }
 
 diagTreeEditorTreeRender = createClass $ spec $
-  \ { appContext, slides, selectedSlideBranch, search, isPasteDisabled }
+  \ { appContext, slides, selectedSlideBranch, search, copyPasteBuffer }
     { selectSlide, deleteSlide, copySlide, cutSlide, pasteSlide, unfoldedSlides
     , shiftedSlidesMenu, dontShiftLevels, changeDontShiftLevels
     } -> do
@@ -104,7 +104,7 @@ diagTreeEditorTreeRender = createClass $ spec $
             , copy: copySlide
             , cut: cutSlide
             , paste: pasteSlide
-            , isPasteDisabled
+            , copyPasteBuffer
             }
 
           Tuple slidesList itemPropsBuilder =
@@ -348,5 +348,10 @@ diagTreeEditorTree = storeConnect f diagTreeEditorTreeRender
             >>= \ { matchedParents: parents, matchedPatterns: patterns } -> do
                   query <- branch.treeSearch.searchQuery <#> toString
                   pure { query, parents, patterns }
-      , isPasteDisabled: isNothing branch.copyPasteBuffer.branch
+      , copyPasteBuffer:
+        case branch.copyPasteBuffer.branch, branch.copyPasteBuffer.cutting of
+          Just ids, cutting -> if cutting
+                                  then Cutout $ unsafePartial $ fromJust $ last ids
+                                  else Copied $ unsafePartial $ fromJust $ last ids
+          Nothing, _        -> EmptyBuffer
       }
