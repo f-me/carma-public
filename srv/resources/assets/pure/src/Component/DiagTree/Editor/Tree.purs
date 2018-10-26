@@ -210,8 +210,8 @@ diagTreeEditorTreeRender = createClass $ spec $
             operation = if state.diagTree.editor.copyPasteBuffer.cutting
                            then "переместить"
                            else "скопировать"
-            msg = "Вы уверены, что хотите "  <> operation <> " " <> source
-                  <> " в " <> sfx <> "?"
+            msg = "Вы уверены, что хотите" <.> operation <.> source
+                  <.> "в" <.> sfx <> "?"
 
         in DOM.window >>= DOM.confirm msg
 
