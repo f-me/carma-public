@@ -25,7 +25,7 @@ import Data.Array ((!!), index, last, head, take, init, length)
 import Data.Foldable (foldr)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust, fromMaybe, maybe, fromJust)
+import Data.Maybe (Maybe(..), isJust, fromMaybe, maybe, fromJust, isNothing)
 import Data.Record.Builder (merge, build)
 import Data.Set (Set)
 import Data.Set as Set
@@ -67,10 +67,11 @@ diagTreeEditorTreeRender
                                       , question :: Maybe Int
                                       }
                     }
+       , isPasteDisabled :: Boolean
        }
 
 diagTreeEditorTreeRender = createClass $ spec $
-  \ { appContext, slides, selectedSlideBranch, search }
+  \ { appContext, slides, selectedSlideBranch, search, isPasteDisabled }
     { selectSlide, deleteSlide, copySlide, cutSlide, pasteSlide, unfoldedSlides
     , shiftedSlidesMenu, dontShiftLevels, changeDontShiftLevels
     } -> do
@@ -103,6 +104,7 @@ diagTreeEditorTreeRender = createClass $ spec $
             , copy: copySlide
             , cut: cutSlide
             , paste: pasteSlide
+            , isPasteDisabled
             }
 
           Tuple slidesList itemPropsBuilder =
@@ -346,4 +348,5 @@ diagTreeEditorTree = storeConnect f diagTreeEditorTreeRender
             >>= \ { matchedParents: parents, matchedPatterns: patterns } -> do
                   query <- branch.treeSearch.searchQuery <#> toString
                   pure { query, parents, patterns }
+      , isPasteDisabled: isNothing branch.copyPasteBuffer.branch
       }

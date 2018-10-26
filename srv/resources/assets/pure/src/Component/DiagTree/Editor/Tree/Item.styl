@@ -98,8 +98,14 @@ name = DiagTreeEditorTreeItem
         color .3s ease-in-out,
         background-color .3s ease-in-out
 
+    .{name}--paste:disabled, .{name}--paste[disabled]
+      cursor not-allowed
+
     &:hover .{name}--paste
       opacity 1
+
+    &:hover .{name}--paste:disabled, &:hover .{name}--paste[disabled]
+      opacity 0.3
 
     .{name}--search-match
       background-color yellow

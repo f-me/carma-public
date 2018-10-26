@@ -18,7 +18,7 @@ import Data.Tuple (Tuple (Tuple), fst)
 
 import React (ReactClass, EventHandler, preventDefault, stopPropagation)
 import React.DOM (div) as R
-import React.DOM.Props (className, key, onClick, title)
+import React.DOM.Props (className, key, onClick, title, disabled)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
 import React.Spaces.DOM (div, button, i, span)
 import React.Spaces.DOM (div) as SDyn
@@ -49,21 +49,23 @@ type Props =
                                  }
                }
 
-  , select       :: EventHandler (Array DiagTreeSlideId)
-  , delete       :: EventHandler (Array DiagTreeSlideId)
-  , copy         :: EventHandler (Array DiagTreeSlideId)
-  , cut          :: EventHandler (Array DiagTreeSlideId)
-  , paste        :: EventHandler (Array DiagTreeSlideId)
+  , select          :: EventHandler (Array DiagTreeSlideId)
+  , delete          :: EventHandler (Array DiagTreeSlideId)
+  , copy            :: EventHandler (Array DiagTreeSlideId)
+  , cut             :: EventHandler (Array DiagTreeSlideId)
+  , paste           :: EventHandler (Array DiagTreeSlideId)
+  , isPasteDisabled :: Boolean
 
-  , answerHeader :: Maybe String
-  , parents      :: Array DiagTreeSlideId
-  , slide        :: DiagTreeSlide
+  , answerHeader    :: Maybe String
+  , parents         :: Array DiagTreeSlideId
+  , slide           :: DiagTreeSlide
   }
 
 
 diagTreeEditorTreeItemRender :: ReactClass Props
 diagTreeEditorTreeItemRender = f $
-  \props@{ selectedSlide, unfoldedSlides, search, select, delete, copy, cut, paste } ->
+  \props@{ selectedSlide, unfoldedSlides, search, select, delete, copy, cut
+         , paste, isPasteDisabled } ->
   (\r -> r props.answerHeader props.parents props.slide) $ -- first level call
   fix $ \again answerHeader parents (DiagTreeSlide slide) ->
 
@@ -154,6 +156,7 @@ diagTreeEditorTreeItemRender = f $
 
         button !. "btn" <.> classSfx "paste"
                ! onClick onPasteClick
+               ! disabled isPasteDisabled
                ! title "Вставить ветвь" $
 
           i !. "glyphicon" <.> "glyphicon-paste" $ empty
