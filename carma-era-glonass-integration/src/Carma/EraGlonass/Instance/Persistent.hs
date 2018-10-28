@@ -82,6 +82,9 @@ instance ( Monad m
                       then liftIO $ P.putResource local conn
                       else liftIO $ P.destroyResource connPool local conn
 
+  transactionSave = DB.transactionSave
+  transactionUndo = DB.transactionUndo
+
 
 
   -- @PersistStoreRead@

@@ -20,6 +20,9 @@ class Monad m => MonadPersistentSql m where
   runSql :: ReaderT SqlBackend m a -> m a
   runSqlTimeout :: Int -> ReaderT SqlBackend m a -> m (Either SomeException a)
 
+  transactionSave :: ReaderT SqlBackend m ()
+  transactionUndo :: ReaderT SqlBackend m ()
+
 
 
   -- @PersistStoreRead@
