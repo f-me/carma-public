@@ -59,17 +59,15 @@ runSqlProtected
   -> ReaderT SqlBackend m a
   -> m a
 
-runSqlProtected errMsg m =
-  runSqlInTime (
-    transactionSave >> m >>= (<$ transactionSave)
-  ) >>= \case
-           Right x -> pure x
-           Left  e -> do
-             let logMsg = [qmb| Database request is failed: {errMsg}
-                                Exception: {e} |]
+runSqlProtected errMsg =
+  runSqlInTime >=> \case
+    Right x -> pure x
+    Left  e -> do
+      let logMsg = [qmb| Database request is failed: {errMsg}
+                         Exception: {e} |]
 
-             logError [qm| {logMsg} |]
-             throwError err500 { errBody = logMsg }
+      logError [qm| {logMsg} |]
+      throwError err500 { errBody = logMsg }
 
 
 runSqlInTime
