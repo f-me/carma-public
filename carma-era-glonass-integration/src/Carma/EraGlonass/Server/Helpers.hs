@@ -1,11 +1,9 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE LambdaCase, QuasiQuotes #-}
 
 module Carma.EraGlonass.Server.Helpers
      ( inBackground
      , runSqlProtected
-     , runSqlInTime
      , getRandomResponseId
      ) where
 
@@ -61,15 +59,17 @@ runSqlProtected
   -> ReaderT SqlBackend m a
   -> m a
 
-runSqlProtected errMsg =
-  runSqlInTime >=> \case
-    Right x -> pure x
-    Left  e -> do
-      let logMsg = [qmb| Database request is failed: {errMsg}
-                         Exception: {e} |]
+runSqlProtected errMsg m =
+  runSqlInTime (
+    transactionSave >> m >>= (<$ transactionSave)
+  ) >>= \case
+           Right x -> pure x
+           Left  e -> do
+             let logMsg = [qmb| Database request is failed: {errMsg}
+                                Exception: {e} |]
 
-      logError [qm| {logMsg} |]
-      throwError err500 { errBody = logMsg }
+             logError [qm| {logMsg} |]
+             throwError err500 { errBody = logMsg }
 
 
 runSqlInTime
