@@ -4,7 +4,6 @@ module Utils
      , module ReactMisc
      , module ShowCase
      , module Sex
-     , CopyPasteBufferState (..)
      , (<.>)
      , addClassName
      , toMaybeT
@@ -44,11 +43,3 @@ unfoldrBoundedEnum = unfoldr (_ <#> \x -> Tuple x (succ x)) $ Just bottom
 capitalize :: String -> String
 capitalize = uncons >>> maybe "" f
   where f { head, tail } = toUpper (singleton head) <> tail
-
-
-data CopyPasteBufferState
-  = Copied Int
-  | Cutout Int
-  | EmptyBuffer
-
-derive instance eqCopyPasteBufferState :: Eq CopyPasteBufferState

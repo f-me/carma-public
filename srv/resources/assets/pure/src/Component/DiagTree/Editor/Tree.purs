@@ -37,7 +37,13 @@ import React.DOM.Props (className, onClick, onChange, _type, checked)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
 import React.Spaces.DOM (div, button, i, label, input)
 import React.Spaces.DOM.Dynamic (div) as SDyn
-import Utils ((<.>), storeConnect, eventIsChecked, toMaybeT, CopyPasteBufferState(..))
+import Utils
+  ( (<.>)
+  , storeConnect
+  , eventIsChecked
+  , toMaybeT
+  )
+import Utils.CopyPasteBuffer (CopyPasteBufferState, getCopyPasteState)
 import Utils.DiagTree.Editor (getSlideByBranch)
 import Partial.Unsafe (unsafePartial)
 
@@ -67,11 +73,11 @@ diagTreeEditorTreeRender
                                       , question :: Maybe Int
                                       }
                     }
-       , copyPasteBuffer :: CopyPasteBufferState
+       , copyPasteState :: CopyPasteBufferState
        }
 
 diagTreeEditorTreeRender = createClass $ spec $
-  \ { appContext, slides, selectedSlideBranch, search, copyPasteBuffer }
+  \ { appContext, slides, selectedSlideBranch, search, copyPasteState }
     { selectSlide, deleteSlide, copySlide, cutSlide, pasteSlide, unfoldedSlides
     , shiftedSlidesMenu, dontShiftLevels, changeDontShiftLevels
     } -> do
@@ -104,7 +110,7 @@ diagTreeEditorTreeRender = createClass $ spec $
             , copy: copySlide
             , cut: cutSlide
             , paste: pasteSlide
-            , copyPasteBuffer
+            , copyPasteState
             }
 
           Tuple slidesList itemPropsBuilder =
@@ -348,10 +354,5 @@ diagTreeEditorTree = storeConnect f diagTreeEditorTreeRender
             >>= \ { matchedParents: parents, matchedPatterns: patterns } -> do
                   query <- branch.treeSearch.searchQuery <#> toString
                   pure { query, parents, patterns }
-      , copyPasteBuffer:
-        case branch.copyPasteBuffer.branch, branch.copyPasteBuffer.cutting of
-          Just ids, cutting -> if cutting
-                                  then Cutout $ unsafePartial $ fromJust $ last ids
-                                  else Copied $ unsafePartial $ fromJust $ last ids
-          Nothing, _        -> EmptyBuffer
+      , copyPasteState: getCopyPasteState branch.copyPasteBuffer
       }

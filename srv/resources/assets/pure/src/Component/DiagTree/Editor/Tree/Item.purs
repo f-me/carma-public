@@ -25,12 +25,11 @@ import React.DOM.Props (className, key, onClick, title, disabled)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
 import React.Spaces.DOM (div) as SDyn
 import React.Spaces.DOM (div, button, i, span)
-import Utils ( CopyPasteBufferState(..)
-             , callEventHandler
+import Utils ( callEventHandler
              , createClassStatelessWithName
              , (<.>)
              )
-
+import Utils.CopyPasteBuffer (CopyPasteBufferState (..))
 
 type Props =
   { appContext     :: AppContext
@@ -53,7 +52,7 @@ type Props =
   , copy            :: EventHandler (Array DiagTreeSlideId)
   , cut             :: EventHandler (Array DiagTreeSlideId)
   , paste           :: EventHandler (Array DiagTreeSlideId)
-  , copyPasteBuffer :: CopyPasteBufferState
+  , copyPasteState  :: CopyPasteBufferState
 
   , answerHeader    :: Maybe String
   , parents         :: Array DiagTreeSlideId
@@ -64,7 +63,7 @@ type Props =
 diagTreeEditorTreeItemRender :: ReactClass Props
 diagTreeEditorTreeItemRender = f $
   \props@{ selectedSlide, unfoldedSlides, search, select, delete, copy, cut
-         , paste, copyPasteBuffer } ->
+         , paste, copyPasteState } ->
   (\r -> r props.answerHeader props.parents props.slide) $ -- first level call
   fix $ \again answerHeader parents (DiagTreeSlide slide) ->
 
@@ -132,7 +131,7 @@ diagTreeEditorTreeItemRender = f $
       callEventHandler paste slideBranch
 
     headerClasses =
-      case copyPasteBuffer of
+      case copyPasteState of
         Cutout i | i == slide.id -> "header-cutout"
         Copied i | i == slide.id -> "header-copied"
         _ -> ""
@@ -161,7 +160,7 @@ diagTreeEditorTreeItemRender = f $
 
         button !. "btn" <.> classSfx "paste"
                ! onClick onPasteClick
-               ! disabled (copyPasteBuffer == EmptyBuffer)
+               ! disabled (copyPasteState == EmptyBuffer)
                ! title "Вставить ветвь" $
 
           i !. "glyphicon" <.> "glyphicon-paste" $ empty

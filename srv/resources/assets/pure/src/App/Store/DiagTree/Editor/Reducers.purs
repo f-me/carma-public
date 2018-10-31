@@ -34,6 +34,7 @@ import Data.Set as Set
 import Data.String (Pattern(Pattern), toLower, indexOf)
 import Data.String.NonEmpty (toString)
 import Data.Tuple (Tuple(Tuple), fst)
+import Utils.CopyPasteBuffer (CopyPasteBuffer)
 import Utils.DiagTree.Editor (getSlideByBranch)
 
 
@@ -72,12 +73,7 @@ type DiagTreeEditorState =
          , branch       :: Maybe (Array DiagTreeSlideId)
          }
 
-  , copyPasteBuffer
-      :: { isProcessing :: Boolean
-         , isFailed     :: Boolean
-         , branch       :: Maybe (Array DiagTreeSlideId)
-         , cutting      :: Boolean
-         }
+  , copyPasteBuffer           :: CopyPasteBuffer
 
   , newSlide
       :: { isProcessing :: Boolean
@@ -276,8 +272,6 @@ diagTreeEditorReducer state (CutSlideFailure slidePath) = do
                  , cutting      = true
                  }
              }
-
-diagTreeEditorReducer _ (PasteSlideRequest []) = Nothing
 
 diagTreeEditorReducer state (PasteSlideRequest slidePath) = do
   guard $ not $ isAnyProcessing state

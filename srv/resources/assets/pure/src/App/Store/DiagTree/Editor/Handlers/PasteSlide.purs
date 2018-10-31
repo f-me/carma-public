@@ -35,11 +35,9 @@ pasteSlide
 pasteSlide appCtx state destinationSlidePath = flip catchError handleError $ do
   if null sourceSlidePath
     then act $ PasteSlideFailure sourceSlidePath
-    else if null destinationSlidePath
-         then act $ PasteSlideFailure destinationSlidePath
-         else do (res :: AffjaxResponse Foreign) <- affjax $ postRequest url jsonRequest
-                 act $ PasteSlideSuccess destinationSlidePath
-                 act LoadSlidesRequest -- Reload slides again
+    else do (res :: AffjaxResponse Foreign) <- affjax $ postRequest url jsonRequest
+            act $ PasteSlideSuccess destinationSlidePath
+            act LoadSlidesRequest -- Reload slides again
 
   where
     url = if state.copyPasteBuffer.cutting

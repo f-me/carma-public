@@ -6,7 +6,7 @@ import Prelude hiding (div)
 
 import Data.Record.Builder (merge)
 import Data.Either (Either (..))
-import Data.Maybe (Maybe (..))
+import Data.Maybe (Maybe (..), fromJust, fromMaybe)
 
 import Control.Monad.Aff (launchAff_)
 
@@ -19,12 +19,17 @@ import React
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
 
-import React.DOM.Props (className, onClick, disabled)
+import React.DOM.Props (className, onClick, disabled, title)
 import React.DOM (div) as R
 import React.Spaces.DOM (div, p, span, button, i, ul, li, h5)
 import React.Spaces ((!), (!.), renderIn, element, text, empty)
 
 import Utils ((<.>), storeConnect)
+import Utils.CopyPasteBuffer
+     ( CopyPasteBufferState (..)
+     , CopyPasteBuffer
+     , getCopyPasteState
+     )
 import Utils.DiagTree.Editor (getSlideByBranch)
 import Component.Generic.Spinner (spinner)
 import Component.DiagTree.Editor.Tree (diagTreeEditorTree)
@@ -33,11 +38,16 @@ import Component.DiagTree.Editor.SlideEditor (diagTreeEditorSlideEditor)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
-import App.Store.DiagTree.Editor.Types (DiagTreeSlide (DiagTreeSlide))
-
-import App.Store.DiagTree.Editor.Actions
-     ( DiagTreeEditorAction (LoadSlidesRequest, NewSlideRequest)
+import App.Store.DiagTree.Editor.Types
+     ( DiagTreeSlide (DiagTreeSlide)
+     , DiagTreeSlides
      )
+import App.Store.DiagTree.Editor.Actions
+     ( DiagTreeEditorAction ( LoadSlidesRequest
+                            , NewSlideRequest
+                            , PasteSlideRequest)
+     )
+import Partial.Unsafe (unsafePartial)
 
 
 diagTreeEditorRender
@@ -50,6 +60,9 @@ diagTreeEditorRender
                 , slideDeletingFailureSfx   :: Maybe String
                 , isNewSlideFailed          :: Boolean
                 , isProcessing              :: Boolean
+                , isPasteFailed             :: Boolean
+                , copyPasteBuffer           :: CopyPasteBuffer
+                , slides                    :: DiagTreeSlides
                 }
 
 diagTreeEditorRender = createClass $ spec $
@@ -58,8 +71,10 @@ diagTreeEditorRender = createClass $ spec $
     , slideDeletingFailureSfx
     , isNewSlideFailed
     , isProcessing
+    , isPasteFailed
+    , copyPasteBuffer
     }
-    { newSlide, processingSpinnerProps } -> do
+    { newSlide, pasteSlide, processingSpinnerProps } -> do
 
   div !. "col-md-4" <.> classSfx "tree-panel" $ do
 
@@ -70,6 +85,13 @@ diagTreeEditorRender = createClass $ spec $
 
         i !. "glyphicon glyphicon-plus" $ empty
         text " Новое дерево"
+
+      button !. "btn" <.> classSfx "paste"
+             ! onClick pasteSlide
+             ! disabled (getCopyPasteState copyPasteBuffer == EmptyBuffer)
+             ! title "Вставить ветвь" $
+
+        i !. "glyphicon" <.> "glyphicon-paste" $ empty
 
     element $ treeSearchEl { appContext, isDisabled: isProcessing } []
 
@@ -164,12 +186,39 @@ diagTreeEditorRender = createClass $ spec $
               else launchAff_
                  $ dispatch appContext $ DiagTree $ Editor NewSlideRequest
 
+    pasteSlideHandler appContext this event = do
+      preventDefault event
+      { isProcessing } <- getProps this
+      getSlide <- getProps this <#> _.slides <#> getSlideByBranch
+      copyPasteBuffer <- getProps this <#> _.copyPasteBuffer
+
+      if isProcessing
+         then pure unit
+         else do
+           paste <-
+             let source = fromMaybe "" $
+                   getSlide (unsafePartial $
+                             fromJust copyPasteBuffer.branch) <#>
+                   \(DiagTreeSlide x) -> " #" <> show x.id <> " (\"" <>
+                                         x.header <> "\")"
+                 operation = if copyPasteBuffer.cutting
+                                then "переместить"
+                                else "скопировать"
+                 msg = "Вы уверены, что хотите" <.> operation <.> source
+                       <.> "в корень?"
+             in DOM.window >>= DOM.confirm msg
+
+           if paste
+              then launchAff_ $ dispatch appContext $ DiagTree $
+                     Editor $ PasteSlideRequest []
+              else pure unit
+
     getInitialState this = do
       { appContext } <- getProps this
 
       -- Handlers with prebound `AppContext`
       pure { newSlide: newSlideHandler appContext this
-
+           , pasteSlide: pasteSlideHandler appContext this
            , processingSpinnerProps:
                { withLabel: Right "Обработка…", appContext }
            }
@@ -205,11 +254,15 @@ diagTreeEditor = storeConnect f diagTreeEditorRender
       , isSlidesLoadingFailed     : branch.isSlidesLoadingFailed
       , isParsingSlidesDataFailed : branch.isParsingSlidesDataFailed
       , isNewSlideFailed          : branch.newSlide.isFailed
+      , isPasteFailed             : branch.copyPasteBuffer.isFailed
       , isProcessing              : branch.slideDeleting.isProcessing
                                       || branch.newSlide.isProcessing
+                                      || branch.copyPasteBuffer.isProcessing
 
       , isSlideDeletingFailed     : branch.slideDeleting.isFailed
       , slideDeletingFailureSfx   : getSlideDeletingFailureSfx branch
+      , copyPasteBuffer           : branch.copyPasteBuffer
+      , slides                    : branch.slides
       }
 
     getSlideDeletingFailureSfx branch = do
