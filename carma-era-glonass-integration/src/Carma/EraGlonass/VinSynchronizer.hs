@@ -140,36 +140,42 @@ synchronizeVins :: VinSynchronizerMonad m => ReaderT SqlBackend m ()
 synchronizeVins = do
   logInfo [qn| Synchronizing VINs... |]
 
-  -- Getting list of currently handled VINs to check if some of them
-  -- should be marked for EG service as not handled by CaRMa anymore.
-  handledContracts <-
+  handledContracts <- do
+    logDebug [qns|
+      Getting list of currently handled VINs to check if some of them
+      should be marked for EG service as not handled by CaRMa anymore...
+    |]
+
     selectList [ EraGlonassSynchronizedContractIsHandledByCarma ==. True ] []
 
-  -- Getting list of active EG participants @SubProgram@s.
-  egSubPrograms <-
+  egSubPrograms <- do
+    logDebug [qn| Getting list of active EG participants "SubProgram"s... |]
     selectKeysList [ SubProgramActive                ==. True
                    , SubProgramEraGlonassParticipant ==. True
                    ] []
 
   nowDay <- utctDay <$> lift getCurrentTime
 
-  let handledVINs =
-        handledContracts <&>
-          Just . eraGlonassSynchronizedContractVin . entityVal
+  let handledVINs :: [Text]
+      handledVINs =
+        handledContracts <&> eraGlonassSynchronizedContractVin . entityVal
 
-  -- Getting list of @Contract@s (VINs actually) which are used to be handled.
-  -- Now we need to notify EG service that they aren't handled by CaRMa anymore.
-  contractsToUnmarkAsHandled <- let
+  contractsToUnmarkAsHandled <- do
+    logDebug [qns|
+      Getting list of "Contract"s (VINs actually) which are used to be handled
+      (now we need to notify EG service that they aren't handled by CaRMa
+      anymore)...
+    |]
 
-    selectFilter
-      = -- @Contract@'s VIN is handled by CaRMa.
-        ( ContractVin <-. handledVINs )
+    flip selectList []
+      $ -- @Contract@'s VIN is handled by CaRMa.
+        ( ContractVin <-. fmap Just handledVINs )
 
       : (   -- @Contract@ has been deactivated.
             [ ContractIsActive ==. False ]
 
         ||. -- @SubProgram@ of a @Contract@ has been unmarked as EG participant.
-            [ ContractSubprogram /<-. (Just <$> egSubPrograms) ]
+            [ ContractSubprogram /<-. fmap Just egSubPrograms ]
 
         ||. -- Validity date of a @Contract@ has been expired.
             [ ContractValidUntil !=. Nothing
@@ -177,15 +183,17 @@ synchronizeVins = do
             ]
         )
 
-    in selectList selectFilter []
+  ephemeralVINsToUnmarkAsHandled <- do
+    logDebug [qns|
+      Searching for incorrect data ("ephemeral VINs"), when some VIN is handled
+      by CaRMa but no longer represented in "Contract"s list
+      (usually it doesn't happen but if for instance you change "vin" field
+      value of a "Contract" and previous "vin" have been marked as handled
+      by CaRMa for EG service we supposed to notify EG that we don't handle
+      these anymore)...
+    |]
 
-  -- Searching for incorrect data, when some VIN is handled by CaRMa but no
-  -- longer represented in @Contract@s list.
-  -- Usually it doesn't happen but if for instance you change @vin@ field value
-  -- of a @Contract@ and previous @vin@ have been marked as handled by CaRMa for
-  -- EG service we supposed to notify EG that we don't handle these anymore.
-  ephemeralVINsToUnmarkAsHandled <-
-    selectList [ ContractVin <-. handledVINs ] []
+    selectList [ ContractVin <-. fmap Just handledVINs ] []
       <&> fmap (entityVal ? contractVin) ? catMaybes -- Extracting only VINs
       <&> \contractVINs ->
             let vinLens = entityVal ? eraGlonassSynchronizedContractVin
@@ -197,21 +205,26 @@ synchronizeVins = do
 
                 in foldl f [] handledContracts
 
-  -- Checking for data correctness.
-  unless ( let vinsA =
-                 catMaybes $
-                   contractsToUnmarkAsHandled <&> entityVal ? contractVin
-
-               vinsB =
-                 ephemeralVINsToUnmarkAsHandled <&>
-                   entityVal ? eraGlonassSynchronizedContractVin
-
-               in null $ vinsA `intersect` vinsB ) $
-
-    fail [qns|
-      Ephemeral VINs and outdated/deactivated VINs cannot intersect,
-      something wrong...
+  do
+    logDebug [qns|
+      Checking for data correctness
+      ("ephemeral VINs" and outdated/deactivated VINs cannot intersect)...
     |]
+
+    unless ( let vinsA =
+                   catMaybes $
+                     contractsToUnmarkAsHandled <&> entityVal ? contractVin
+
+                 vinsB =
+                   ephemeralVINsToUnmarkAsHandled <&>
+                     entityVal ? eraGlonassSynchronizedContractVin
+
+                 in null $ vinsA `intersect` vinsB ) $
+
+      fail [qns|
+        Ephemeral VINs and outdated/deactivated VINs cannot intersect,
+        something wrong...
+      |]
 
   logDebug [qn| testing... |]
 
