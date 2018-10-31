@@ -32,7 +32,7 @@ import           Control.Monad.Reader                (ReaderT)
 import           Control.Monad.Trans.Class           (lift)
 import           Data.Aeson                          as A
 import qualified Data.HashMap.Strict                 as HM
-import           Data.List                           (find)
+import           Data.List                           (find, init)
 import           Data.Maybe                          (isJust, isNothing)
 import           Data.Tree
 import           Data.Typeable                       (Typeable)
@@ -237,14 +237,15 @@ moveOrCopyDiagSlide CopyDiagSlide = do
   res <-
     runExceptT $ do
       when (null sourcePath) $ throwError (400, "Source is empty")
-      when (null destinationPath) $ throwError (400, "Destination is empty")
 
       when (sourcePath == destinationPath) $
         throwError (400, "Unable to copy&paste to the same point")
 
-      lift (with db2 $ runPersist $ getDiagSlide $ last destinationPath)
-        >>= \case Just destinationSlide -> pure destinationSlide
-                  Nothing -> throwError (404, "Destination not exists")
+      if null destinationPath
+         then pure Nothing
+         else lift (with db2 $ runPersist $ getDiagSlide $ last destinationPath)
+                >>= \case Just slide -> pure $ Just slide
+                          Nothing -> throwError (404, "Destination not exists")
 
   case res of
        Left (code, message) -> finishWithError code message
@@ -252,7 +253,23 @@ moveOrCopyDiagSlide CopyDiagSlide = do
          copyTree sourcePath destinationPath destinationSlide
 
   where
-    copyTree sourcePath destinationPath destinationSlide = do
+    -- copy branch to root
+    copyTree sourcePath _ Nothing = do
+      with db2 $ runPersist $ do
+        transactionSave
+
+        slideTree <- getTree $ fromIntegral $ last sourcePath
+
+        (_, newId) <- treeToCopyTransaction slideTree
+
+        update (mkKey $ fromIntegral newId) [ DiagSlideIsRoot =. True ]
+
+        transactionSave
+
+      writeJSON ()
+
+    -- copy branch to another branch
+    copyTree sourcePath destinationPath (Just destinationSlide) = do
       with db2 $ runPersist $ do
         transactionSave
 
@@ -299,48 +316,65 @@ moveOrCopyDiagSlide MoveDiagSlide = do
   -- identifiers, so we can use only last ids to build real entire trees
   -- from database.
 
+  let sourceId = last sourcePath
+  let destinationId = last destinationPath
+
   res <-
     runExceptT $ do
       when (null sourcePath) $ throwError (400, "Source is empty")
-      when (null destinationPath) $ throwError (400, "Destination is empty")
 
-      when (sourcePath == destinationPath) $
+      when (init sourcePath == destinationPath) $
            throwError (400, "Unable to cut&paste to the same point")
 
-      let sourceId = last sourcePath
-      let destinationId = (fromIntegral $ last destinationPath) :: Int64
+      sourceSubTree <- lift (withDB $ getTree sourceId)
 
-      sourceSubTree <- lift (with db2 $ runPersist $ getTree sourceId)
-
-      when (isJust $ find ((== destinationId) . fst) sourceSubTree) $
-           throwError (404, "Destination inside source")
-
-      sourceSlide' <- lift $ with db2 $ runPersist $ getDiagSlide sourceId
+      sourceSlide' <- lift $ withDB $ getDiagSlide sourceId
       when (isNothing sourceSlide') $
            throwError (404, "Source not exists")
 
       let Just sourceSlide = sourceSlide'
 
-      destinationSlide' <- lift $ with db2 $ runPersist $
-                          getDiagSlide $ last destinationPath
-      when (isNothing destinationSlide') $
-           throwError (404, "Destination not exists")
-      let Just destinationSlide = destinationSlide'
+      if null destinationPath
+         then do -- move slide to root
+           when (diagSlideIsRoot sourceSlide) $
+                throwError (404, "")
 
-      parent <- if diagSlideIsRoot sourceSlide
-                  then pure $ Right Nothing
-                  else lift $ with db2 $ runPersist $ getParentSlide sourceId
+           parent <- if diagSlideIsRoot sourceSlide
+                       then pure $ Left (400, "Unable to cut&paste to the same point")
+                       else lift $ withDB $ getParentSlide sourceId
 
-      case parent of
-        Left (code, message) -> throwError (code, message)
-        Right parent'        -> pure (parent', destinationSlide)
+           case parent of
+             Left err      -> throwError err
+             Right parent' -> pure (parent', Nothing)
+
+         else do -- move slide to non root destination
+           when (isJust $ find ((== fromIntegral destinationId) . fst)
+                               sourceSubTree) $
+                throwError (404, "Destination inside source")
+
+           destinationSlide' <- lift $ withDB $ getDiagSlide destinationId
+           when (isNothing destinationSlide') $
+                throwError (404, "Destination not exists")
+           let Just destinationSlide = destinationSlide'
+
+           parent <- if diagSlideIsRoot sourceSlide
+                       then pure $ Right Nothing
+                       else lift $ withDB $ getParentSlide sourceId
+
+           case parent of
+             Left err      -> throwError err
+             Right parent' -> pure (parent', Just destinationSlide)
 
   case res of
     Left (code, message) -> finishWithError code message
-    Right (parent, destinationSlide) ->
-      moveTree parent (last sourcePath) (last destinationPath) destinationSlide
+    Right (parent, Nothing) -> moveTree parent sourceId Nothing
+    Right (parent, Just destinationSlide) ->
+      moveTree parent sourceId $
+               Just (last destinationPath, destinationSlide)
 
   where
+    withDB = with db2 . runPersist
+
     getParentSlide childId = do
       parentId <- getParentId childId
       case parentId of
@@ -371,10 +405,42 @@ moveOrCopyDiagSlide MoveDiagSlide = do
         (Single a : _) -> pure $ Just a
         _              -> pure Nothing
 
-    moveTree parent sourceId destinationId destinationSlide = do
+    -- move to root
+    moveTree parent sourceId Nothing = do
+      withDB $ do
+        transactionSave
+
+        case parent of
+          Just (parentId, parentSlide) -> do
+            -- move to root
+
+            let (A.Array answers) = diagSlideAnswers parentSlide
+            let newParentAnswers =
+                  flip Vector.filter answers $ \(A.Object answer) ->
+                    case HM.lookup "nextSlide" answer of
+                      Just (A.Number sid) -> sourceId /= floor sid
+                      _                   -> True
+            -- remove source slide id from parent slide answers
+            update (mkKey $ fromIntegral parentId)
+                   [ DiagSlideAnswers =. A.toJSON
+                                         (Vector.toList newParentAnswers) ]
+
+          Nothing ->
+            -- do nothing, because source and destination are in root
+            pure ()
+
+        -- set as root slide
+        update (mkKey sourceId)
+               [ DiagSlideIsRoot =. True ]
+
+        transactionSave
+
+      writeJSON ()
+
+    moveTree parent sourceId (Just (destinationId, destinationSlide)) = do
       let (A.Array destinationAnswers) = diagSlideAnswers destinationSlide
 
-      with db2 $ runPersist $ do
+      withDB $ do
 
         transactionSave
 
