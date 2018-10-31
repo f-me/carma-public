@@ -5,24 +5,17 @@ module App.Store.DiagTree.Editor.Handlers.CutSlide
 import Prelude
 import Control.Monad.Aff (Aff)
 import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Aff.Console (logShow)
 import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Exception (error, message, stack)
 import Control.Monad.Error.Class (catchError, throwError)
-import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax)
-import Data.Maybe (Maybe (..), maybe, fromMaybe)
+import Network.HTTP.Affjax (AJAX)
+import Data.Maybe (maybe, fromMaybe)
 
 import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
 import App.Store.DiagTree.Editor.Reducers (DiagTreeEditorState)
-import App.Store.DiagTree.Editor.Types
-     ( DiagTreeSlideId
-     , DiagTreeSlides
-     , DiagTreeSlide (DiagTreeSlide)
-     )
 import App.Store.DiagTree.Editor.Actions
-     ( DiagTreeEditorAction ( LoadSlidesRequest
-                            , CutSlideSuccess
+     ( DiagTreeEditorAction ( CutSlideSuccess
                             , CutSlideFailure
                             )
      )
