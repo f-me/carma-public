@@ -95,7 +95,7 @@ CREATE TABLE "EraGlonassSynchronizedContract"
   , ctime            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
   , contractId       INTEGER NOT NULL
   , vin              TEXT NOT NULL
-  , isSynchronized   BOOLEAN NOT NULL
+  , isHandledByCarma BOOLEAN NOT NULL
   , lastStatusChangeTime
                      TIMESTAMP WITH TIME ZONE NULL DEFAULT CURRENT_TIMESTAMP
   , FOREIGN KEY (contractId) REFERENCES "Contract" (id)

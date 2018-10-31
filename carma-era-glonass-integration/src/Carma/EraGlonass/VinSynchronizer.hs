@@ -143,7 +143,7 @@ synchronizeVins = do
   -- Getting list of currently handled VINs to check if some of them
   -- should be marked for EG service as not handled by CaRMa anymore.
   handledContracts <-
-    selectList [ EraGlonassSynchronizedContractIsSynchronized ==. True ] []
+    selectList [ EraGlonassSynchronizedContractIsHandledByCarma ==. True ] []
 
   -- Getting list of active EG participants @SubProgram@s.
   egSubPrograms <-

@@ -27,8 +27,8 @@ data EraGlonassSynchronizedContract
      :: F (IdentI Contract) "contractId" "Контракт"
    , vin
      :: F Text "vin" "Первичный VIN"
-   , isSynchronized
-     :: F Bool "isSynchronized" "Синхронизирован"
+   , isHandledByCarma
+     :: F Bool "isHandledByCarma" "Синхронизирован"
    , lastStatusChangeTime
      :: F (Maybe UTCTime) "lastStatusChangeTime" "Время последней смены статуса"
    } deriving Typeable

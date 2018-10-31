@@ -25,11 +25,11 @@ EraGlonassSynchronizedContract json sql=EraGlonassSynchronizedContract
     -- Could be useful for debugging in case some @Contract@'s
     -- data have been changed after a synchronization.
 
-  isSynchronized Bool sql=issynchronized
+  isHandledByCarma Bool sql=ishandledbycarma
     -- ^ Indicates if a contract (VIN) is handled by CaRMa
     -- which means Era Glonass service is notified about that.
-    -- @False@ means that a @Contract@ was used to be handled earlier.
-    -- TODO FIXME rename to \"isHandledByCarma"
+    -- @False@ means that a @Contract@ was used to be handled earlier,
+    -- but EG service have been notified that it is not longer true.
 
   lastStatusChangeTime UTCTime Maybe sql=laststatuschangetime
 
