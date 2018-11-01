@@ -340,7 +340,8 @@ moveOrCopyDiagSlide MoveDiagSlide = do
                 throwError (404, "")
 
            parent <- if diagSlideIsRoot sourceSlide
-                       then pure $ Left (400, "Unable to cut&paste to the same point")
+                       then pure $
+                            Left (400, "Unable to cut&paste to the same point")
                        else lift $ withDB $ getParentSlide sourceId
 
            case parent of
