@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 {-# LANGUAGE ScopedTypeVariables, FlexibleContexts, ConstraintKinds #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 
 -- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
@@ -20,8 +20,9 @@ import           Data.Time.Format
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 import           Text.Printf (printf)
-import           Data.List (intersect)
 import           Data.Maybe (catMaybes)
+import           Data.List (intersect)
+import           Data.List.NonEmpty (NonEmpty (..))
 
 import           Control.Arrow
 import           Control.Monad
@@ -32,7 +33,7 @@ import           Control.Exception (SomeException, fromException)
 
 import           Database.Persist ((==.), (!=.), (>=.), (<-.), (/<-.), (||.))
 import           Database.Persist.Sql (SqlBackend)
-import           Database.Persist.Types (entityVal)
+import           Database.Persist.Types (Entity (entityVal))
 
 import           Carma.Utils.Operators
 import           Carma.Monad
@@ -140,93 +141,162 @@ synchronizeVins :: VinSynchronizerMonad m => ReaderT SqlBackend m ()
 synchronizeVins = do
   logInfo [qn| Synchronizing VINs... |]
 
-  handledContracts <- do
-    logDebug [qns|
-      Getting list of currently handled VINs to check if some of them
-      should be marked for EG service as not handled by CaRMa anymore...
-    |]
+  fix $ \(( let preLog = logDebug [qns|
+                  Committing VIN synchronization transaction
+                  before running it again...
+                |]
 
-    selectList [ EraGlonassSynchronizedContractIsHandledByCarma ==. True ] []
+                postLog = logDebug [qn| Running VIN synchronization again... |]
 
-  egSubPrograms <- do
-    logDebug [qn| Getting list of active EG participants "SubProgram"s... |]
-    selectKeysList [ SubProgramActive                ==. True
-                   , SubProgramEraGlonassParticipant ==. True
-                   ] []
+                in (preLog >> transactionSave >> postLog >>)
 
-  nowDay <- utctDay <$> lift getCurrentTime
+          ) -> runAgain) -> do
 
-  let handledVINs :: [Text]
-      handledVINs =
-        handledContracts <&> eraGlonassSynchronizedContractVin . entityVal
-
-  contractsToUnmarkAsHandled <- do
-    logDebug [qns|
-      Getting list of "Contract"s (VINs actually) which are used to be handled
-      (now we need to notify EG service that they aren't handled by CaRMa
-      anymore)...
-    |]
-
-    flip selectList []
-      $ -- @Contract@'s VIN is handled by CaRMa.
-        ( ContractVin <-. fmap Just handledVINs )
-
-      : (   -- @Contract@ has been deactivated.
-            [ ContractIsActive ==. False ]
-
-        ||. -- @SubProgram@ of a @Contract@ has been unmarked as EG participant.
-            [ ContractSubprogram /<-. fmap Just egSubPrograms ]
-
-        ||. -- Validity date of a @Contract@ has been expired.
-            [ ContractValidUntil !=. Nothing
-            , ContractValidUntil >=. Just nowDay
-            ]
-        )
-
-  ephemeralVINsToUnmarkAsHandled <- do
-    logDebug [qns|
-      Searching for incorrect data ("ephemeral VINs"), when some VIN is handled
-      by CaRMa but no longer represented in "Contract"s list
-      (usually it doesn't happen but if for instance you change "vin" field
-      value of a "Contract" and previous "vin" have been marked as handled
-      by CaRMa for EG service we supposed to notify EG that we don't handle
-      these anymore)...
-    |]
-
-    selectList [ ContractVin <-. fmap Just handledVINs ] []
-      <&> fmap (entityVal ? contractVin) ? catMaybes -- Extracting only VINs
-      <&> \contractVINs ->
-            let vinLens = entityVal ? eraGlonassSynchronizedContractVin
-
-                f acc x =
-                  if vinLens x `notElem` contractVINs
-                     then x : acc
-                     else acc
-
-                in foldl f [] handledContracts
-
-  do
-    logDebug [qns|
-      Checking for data correctness
-      ("ephemeral VINs" and outdated/deactivated VINs cannot intersect)...
-    |]
-
-    unless ( let vinsA =
-                   catMaybes $
-                     contractsToUnmarkAsHandled <&> entityVal ? contractVin
-
-                 vinsB =
-                   ephemeralVINsToUnmarkAsHandled <&>
-                     entityVal ? eraGlonassSynchronizedContractVin
-
-                 in null $ vinsA `intersect` vinsB ) $
-
-      fail [qns|
-        Ephemeral VINs and outdated/deactivated VINs cannot intersect,
-        something wrong...
+    handledContracts <- do
+      logDebug [qns|
+        Getting list of currently handled VINs to check if some of them
+        should be marked for EG service as not handled by CaRMa anymore...
       |]
 
-  logDebug [qn| testing... |]
+      selectList [ EraGlonassSynchronizedContractIsHandledByCarma ==. True ] []
+
+    egSubPrograms <- do
+      logDebug [qn| Getting list of active EG participants "SubProgram"s... |]
+      selectKeysList [ SubProgramActive                ==. True
+                     , SubProgramEraGlonassParticipant ==. True
+                     ] []
+
+    nowDay <- utctDay <$> lift getCurrentTime
+
+    let handledVINs :: [Text]
+        handledVINs =
+          handledContracts <&> eraGlonassSynchronizedContractVin . entityVal
+
+    contractsToUnmarkAsHandled <- do
+      logDebug [qns|
+        Getting list of "Contract"s (VINs actually) which are used to be handled
+        (now we need to notify EG service that they aren't handled by CaRMa
+        anymore)...
+      |]
+
+      flip selectList []
+        $ -- @Contract@'s VIN is handled by CaRMa.
+          ( ContractVin <-. fmap Just handledVINs )
+
+        : (   -- @Contract@ has been deactivated.
+              [ ContractIsActive ==. False ]
+
+          ||. -- @SubProgram@ of a @Contract@ has been unmarked
+              -- as EG participant.
+              [ ContractSubprogram /<-. fmap Just egSubPrograms ]
+
+          ||. -- Validity date of a @Contract@ has been expired.
+              [ ContractValidUntil !=. Nothing
+              , ContractValidUntil >=. Just nowDay
+              ]
+          )
+
+    ephemeralVINsToUnmarkAsHandled <- do
+      logDebug [qns|
+        Searching for incorrect data ("ephemeral VINs"), when some VIN is
+        handled by CaRMa but no longer represented in "Contract"s list
+        (usually it doesn't happen but if for instance you change "vin" field
+        value of a "Contract" and previous "vin" have been marked as handled
+        by CaRMa for EG service we supposed to notify EG that we don't handle
+        these anymore)...
+      |]
+
+      selectList [ ContractVin <-. fmap Just handledVINs ] []
+        <&> fmap (entityVal ? contractVin) ? catMaybes -- Extracting only VINs
+        <&> \contractVINs ->
+              let vinLens = entityVal ? eraGlonassSynchronizedContractVin
+
+                  f acc x =
+                    if vinLens x `notElem` contractVINs
+                       then x : acc
+                       else acc
+
+                  in foldl f [] handledContracts
+
+    do
+      logDebug [qns|
+        Checking for data correctness
+        ("ephemeral VINs" and outdated/deactivated VINs cannot intersect)...
+      |]
+
+      unless ( let vinsA =
+                     catMaybes $
+                       contractsToUnmarkAsHandled <&> entityVal ? contractVin
+
+                   vinsB =
+                     ephemeralVINsToUnmarkAsHandled <&>
+                       entityVal ? eraGlonassSynchronizedContractVin
+
+                   in null $ vinsA `intersect` vinsB ) $
+
+        fail [qns|
+          Ephemeral VINs and outdated/deactivated VINs cannot intersect,
+          something wrong...
+        |]
+
+    let vinsToUnmark
+          :: Maybe ( OneOrTwoNonEmptyLists
+                       (Entity Contract)
+                       (Entity EraGlonassSynchronizedContract)
+                   )
+        vinsToUnmark =
+          case (contractsToUnmarkAsHandled, ephemeralVINsToUnmarkAsHandled) of
+               (x : xs, y : ys) -> Just $ BothNonEmptyLists  (x :| xs) (y :| ys)
+               (x : xs, []    ) -> Just $ FirstNonEmptyList  (x :| xs)
+               ([],     x : xs) -> Just $ SecondNonEmptyList (x :| xs)
+               ([],     []    ) -> Nothing
+
+    case vinsToUnmark of
+         Just x -> do
+           logDebug [qmb|
+             There's some VINs to unmark as handled by CaRMa first:
+             \  Outdated/deactivated VINs count: \
+                  { case x of
+                         FirstNonEmptyList  y   -> length y
+                         SecondNonEmptyList _   -> 0
+                         BothNonEmptyLists  y _ -> length y
+                  }
+             \  Ephemeral VINs (not represented in "Contract"s anymore) count: \
+                  { case x of
+                         FirstNonEmptyList  _   -> 0
+                         SecondNonEmptyList y   -> length y
+                         BothNonEmptyLists  _ y -> length y
+                  }
+           |]
+
+           unmarkAsHandled x
+
+           logDebug [qns|
+             Done with unmarking some VINs as handled by CaRMa, so,
+             running whole VIN synchronization operation again...
+           |]
+
+           runAgain
+
+         Nothing -> do
+           logDebug [qn|
+             There's no VINs to unmark as handled by CaRMa, so, continuing...
+           |]
+
+           foo
+
+  where
+    unmarkAsHandled
+      :: VinSynchronizerMonad m
+      => OneOrTwoNonEmptyLists
+           (Entity Contract)
+           (Entity EraGlonassSynchronizedContract)
+      -> ReaderT SqlBackend m ()
+
+    unmarkAsHandled = fail "TODO implement"
+
+    foo :: VinSynchronizerMonad m => ReaderT SqlBackend m ()
+    foo = fail "TODO implement"
 
 
 {-|
@@ -257,3 +327,11 @@ getTimeToWait tz = getCurrentTime <&> utcToZonedTime tz ? f
                  ? (* 60) -- Back to real minutes
                  ? round
                  )
+
+
+-- | Helper type for VINs unmarking.
+data OneOrTwoNonEmptyLists first second
+   = FirstNonEmptyList  (NonEmpty first)
+   | SecondNonEmptyList (NonEmpty second)
+   | BothNonEmptyLists  (NonEmpty first) (NonEmpty second)
+     deriving (Show, Eq)
