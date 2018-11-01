@@ -4,16 +4,11 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import App.Store (AppContext, dispatch, getAppState)
+import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction(..))
 import App.Store.DiagTree.Actions (DiagTreeAction(Editor))
 import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction(..))
-import App.Store.DiagTree.Editor.Types
-  ( DiagTreeSlides
-  , DiagTreeSlideId
-  , DiagTreeSlide (DiagTreeSlide)
-  , fromIndexedAnswers
-  )
+import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId, DiagTreeSlide(DiagTreeSlide), fromIndexedAnswers)
 import Component.DiagTree.Editor.Tree.Item (diagTreeEditorTreeItem)
 import Control.Monad.Aff (launchAff_)
 import Control.Monad.Eff.Class (liftEff)
@@ -31,21 +26,30 @@ import Data.Set (Set)
 import Data.Set as Set
 import Data.String.NonEmpty (toString)
 import Data.Tuple (Tuple(Tuple))
-import React (ReactClass, getProps, readState, transformState, createClass, spec', preventDefault, createElement, handle)
+import Partial.Unsafe (unsafePartial)
+import React
+       ( ReactClass
+       , getProps
+       , readState
+       , transformState
+       , createClass
+       , spec'
+       , preventDefault
+       , createElement
+       , handle
+       )
 import React.DOM (div) as R
 import React.DOM.Props (className, onClick, onChange, _type, checked)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
 import React.Spaces.DOM (div, button, i, label, input)
 import React.Spaces.DOM.Dynamic (div) as SDyn
-import Utils
-  ( (<.>)
-  , storeConnect
-  , eventIsChecked
-  , toMaybeT
-  )
-import Utils.CopyPasteBuffer (CopyPasteBufferState, getCopyPasteState)
+import Utils (eventIsChecked, storeConnect, toMaybeT, (<.>))
+import Utils.CopyPasteBuffer
+       ( CopyPasteBuffer
+       , CopyPasteBufferState
+       , getCopyPasteState
+       )
 import Utils.DiagTree.Editor (getSlideByBranch)
-import Partial.Unsafe (unsafePartial)
 
 -- If selected slides has more parents they will be hidden.
 -- Two button also will be shown:
@@ -73,11 +77,13 @@ diagTreeEditorTreeRender
                                       , question :: Maybe Int
                                       }
                     }
-       , copyPasteState :: CopyPasteBufferState
+       , copyPasteState      :: CopyPasteBufferState
+       , copyPasteBuffer     :: CopyPasteBuffer
        }
 
 diagTreeEditorTreeRender = createClass $ spec $
-  \ { appContext, slides, selectedSlideBranch, search, copyPasteState }
+  \ { appContext, slides, selectedSlideBranch, search
+    , copyPasteState, copyPasteBuffer }
     { selectSlide, deleteSlide, copySlide, cutSlide, pasteSlide, unfoldedSlides
     , shiftedSlidesMenu, dontShiftLevels, changeDontShiftLevels
     } -> do
@@ -202,7 +208,7 @@ diagTreeEditorTreeRender = createClass $ spec $
     pasteSlideHandler appContext this slideBranch = do
       getSlide <- getProps this <#> _.slides <#> getSlideByBranch
 
-      state <- getAppState appContext
+      copyPasteBuffer <- getProps this <#> _.copyPasteBuffer
       paste <-
         let sfx = fromMaybe "" $
               getSlide slideBranch <#> \(DiagTreeSlide x) ->
@@ -210,10 +216,10 @@ diagTreeEditorTreeRender = createClass $ spec $
 
             source = fromMaybe "" $
               getSlide (unsafePartial $
-                        fromJust state.diagTree.editor.copyPasteBuffer.branch) <#>
+                        fromJust copyPasteBuffer.branch) <#>
               \(DiagTreeSlide x) -> " #" <> show x.id <> " (\"" <> x.header <> "\")"
 
-            operation = if state.diagTree.editor.copyPasteBuffer.cutting
+            operation = if copyPasteBuffer.cutting
                            then "переместить"
                            else "скопировать"
             msg = "Вы уверены, что хотите" <.> operation <.> source
@@ -355,4 +361,5 @@ diagTreeEditorTree = storeConnect f diagTreeEditorTreeRender
                   query <- branch.treeSearch.searchQuery <#> toString
                   pure { query, parents, patterns }
       , copyPasteState: getCopyPasteState branch.copyPasteBuffer
+      , copyPasteBuffer: branch.copyPasteBuffer
       }
