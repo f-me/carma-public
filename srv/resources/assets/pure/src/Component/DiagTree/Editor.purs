@@ -4,6 +4,7 @@ module Component.DiagTree.Editor
 
 import Prelude hiding (div)
 
+import Data.Array as A
 import Data.Record.Builder (merge)
 import Data.Either (Either (..))
 import Data.Maybe (Maybe (..), fromJust, fromMaybe)
@@ -88,7 +89,10 @@ diagTreeEditorRender = createClass $ spec $
 
       button !. "btn" <.> classSfx "paste"
              ! onClick pasteSlide
-             ! disabled (getCopyPasteState copyPasteBuffer == EmptyBuffer)
+             -- disabled if buffer contains root element or empty
+             ! disabled ( A.length (fromMaybe [] copyPasteBuffer.branch) == 1 ||
+                          getCopyPasteState copyPasteBuffer == EmptyBuffer
+                        )
              ! title "Вставить ветвь" $
 
         i !. "glyphicon" <.> "glyphicon-paste" $ empty

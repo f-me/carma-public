@@ -31,6 +31,7 @@ derive instance eqCopyPasteBufferState :: Eq CopyPasteBufferState
 getCopyPasteState :: CopyPasteBuffer -> CopyPasteBufferState
 getCopyPasteState buffer =
   case buffer.branch, buffer.cutting of
+    Just [], _ -> EmptyBuffer
     Just ids, cutting ->
       if cutting
          then Cutout $ unsafePartial $ fromJust $ last ids
