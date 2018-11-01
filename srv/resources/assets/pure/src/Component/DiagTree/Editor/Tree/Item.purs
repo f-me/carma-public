@@ -10,7 +10,7 @@ import App.Store.DiagTree.Editor.Types ( DiagTreeSlideId
                                        , fromIndexedAnswers
                                        )
 import Control.Lazy (fix)
-import Data.Array (elemIndex, snoc, last, null)
+import Data.Array (elemIndex, snoc, last, null, unsnoc)
 import Data.Foldable (foldl)
 import Data.Map (Map)
 import Data.Map as Map
@@ -29,7 +29,7 @@ import Utils ( callEventHandler
              , createClassStatelessWithName
              , (<.>)
              )
-import Utils.CopyPasteBuffer (CopyPasteBufferState (..))
+import Utils.CopyPasteBuffer (CopyPasteBufferState (..), CopyPasteBuffer)
 
 type Props =
   { appContext     :: AppContext
@@ -53,6 +53,7 @@ type Props =
   , cut             :: EventHandler (Array DiagTreeSlideId)
   , paste           :: EventHandler (Array DiagTreeSlideId)
   , copyPasteState  :: CopyPasteBufferState
+  , copyPasteBuffer :: CopyPasteBuffer
 
   , answerHeader    :: Maybe String
   , parents         :: Array DiagTreeSlideId
@@ -63,7 +64,7 @@ type Props =
 diagTreeEditorTreeItemRender :: ReactClass Props
 diagTreeEditorTreeItemRender = f $
   \props@{ selectedSlide, unfoldedSlides, search, select, delete, copy, cut
-         , paste, copyPasteState } ->
+         , paste, copyPasteState, copyPasteBuffer } ->
   (\r -> r props.answerHeader props.parents props.slide) $ -- first level call
   fix $ \again answerHeader parents (DiagTreeSlide slide) ->
 
@@ -135,6 +136,15 @@ diagTreeEditorTreeItemRender = f $
         Cutout i | i == slide.id -> "header-cutout"
         Copied i | i == slide.id -> "header-copied"
         _ -> ""
+
+    isPasteDisabled =
+      copyPasteState == EmptyBuffer ||
+      case copyPasteBuffer.branch of
+        Just a  ->
+          case unsnoc a of
+            Just { init: _, last: id } -> slide.id == id
+            Nothing -> true
+        Nothing -> true
   in
     renderIn (R.div [className wClass, key $ show slide.id]) $ do
       div !. classSfx "header" <.> classSfx headerClasses
@@ -160,7 +170,7 @@ diagTreeEditorTreeItemRender = f $
 
         button !. "btn" <.> classSfx "paste"
                ! onClick onPasteClick
-               ! disabled (copyPasteState == EmptyBuffer)
+               ! disabled isPasteDisabled
                ! title "Вставить ветвь" $
 
           i !. "glyphicon" <.> "glyphicon-paste" $ empty

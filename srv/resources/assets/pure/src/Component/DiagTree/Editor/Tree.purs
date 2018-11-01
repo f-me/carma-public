@@ -117,6 +117,7 @@ diagTreeEditorTreeRender = createClass $ spec $
             , cut: cutSlide
             , paste: pasteSlide
             , copyPasteState
+            , copyPasteBuffer
             }
 
           Tuple slidesList itemPropsBuilder =
