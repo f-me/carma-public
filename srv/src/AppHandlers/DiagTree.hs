@@ -243,7 +243,7 @@ moveOrCopyDiagSlide CopyDiagSlide = do
 
       if null destinationPath
          then pure Nothing
-         else lift (with db2 $ runPersist $ getDiagSlide $ last destinationPath)
+         else lift (withDB $ getDiagSlide $ last destinationPath)
                 >>= \case Just slide -> pure $ Just slide
                           Nothing -> throwError (404, "Destination not exists")
 
@@ -253,9 +253,11 @@ moveOrCopyDiagSlide CopyDiagSlide = do
          copyTree sourcePath destinationPath destinationSlide
 
   where
+    withDB = with db2 . runPersist
+
     -- copy branch to root
     copyTree sourcePath _ Nothing = do
-      with db2 $ runPersist $ do
+      withDB $ do
         transactionSave
 
         slideTree <- getTree $ fromIntegral $ last sourcePath
@@ -270,7 +272,7 @@ moveOrCopyDiagSlide CopyDiagSlide = do
 
     -- copy branch to another branch
     copyTree sourcePath destinationPath (Just destinationSlide) = do
-      with db2 $ runPersist $ do
+      withDB $ do
         transactionSave
 
         slideTree@(Node (_, topSlide) _) <-
