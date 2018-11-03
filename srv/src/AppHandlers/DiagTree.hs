@@ -390,7 +390,7 @@ moveOrCopyDiagSlide MoveDiagSlide = do
                  pure $ Left (404, "Unable to get parent slide for "
                                    ++ show parentId')
 
-        Nothing -> pure $ Left (404, "Unable to get parent identifier for  "
+        Nothing -> pure $ Left (404, "Unable to get parent identifier for "
                                     ++ show childId)
 
 
