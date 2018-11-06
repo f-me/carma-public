@@ -158,6 +158,54 @@ getDiagSlide key = do
     Nothing              -> pure Nothing
 
 
+getParentId
+  :: (Integral t, MonadIO m) => t -> ReaderT SqlBackend m (Maybe Int64)
+
+getParentId sourceId = do
+  parentId <- rawSql
+             "select id from \
+             \ (select id, json_array_elements(answers) \
+             \ as answer \
+             \ from \"DiagSlide\") as answers \
+             \ where (answer->>'nextSlide')::int = ?"
+             [PersistInt64 $ fromIntegral sourceId]
+             :: MonadIO m => ReaderT SqlBackend m [Single Int64]
+
+  case parentId of
+    (Single a : _) -> pure $ Just a
+    _              -> pure Nothing
+
+
+getParentIds :: MonadIO m => Int64 -> ReaderT SqlBackend m [Int64]
+getParentIds childId = go [childId]
+  where go res = do
+          parentId' <- getParentId $ head res
+          case parentId' of
+            Just parentId -> go $ parentId:res
+            Nothing       -> pure res
+
+
+getParentSlide
+  :: (Num t, Show a, MonadIO m, Integral a)
+  => a -> ReaderT SqlBackend m (Either (t, String) (Maybe (Int64, DiagSlide)))
+
+getParentSlide childId = do
+  parentId <- getParentId childId
+  case parentId of
+    Just parentId' ->
+      do parentSlide <- getDiagSlide $ fromIntegral parentId'
+         case parentSlide of
+           Just parentSlide' ->
+             pure $ Right $ Just (parentId', parentSlide')
+           Nothing ->
+             pure $ Left (404, "Unable to get parent slide for "
+                               ++ show parentId')
+
+    Nothing -> pure $ Left (404, "Unable to get parent identifier for "
+                                ++ show childId)
+
+
+
 newtype GetTreeException = InvalidId Int deriving (Show, Typeable)
 instance Exception GetTreeException
 
@@ -268,7 +316,9 @@ moveOrCopyDiagSlide CopyDiagSlide = do
 
         transactionSave
 
-      writeJSON ()
+        pure newId
+
+      >>= \newId -> writeJSON ([A.toJSON newId] :: [A.Value])
 
     -- copy branch to another branch
     copyTree sourcePath destinationPath (Just destinationSlide) = do
@@ -310,7 +360,11 @@ moveOrCopyDiagSlide CopyDiagSlide = do
 
         transactionSave
 
-      writeJSON ()
+        pure newId
+
+      >>= \childId -> withDB (getParentIds $ fromIntegral childId)
+      >>= \parentIds -> writeJSON (A.toJSON parentIds :: A.Value)
+
 
 moveOrCopyDiagSlide MoveDiagSlide = do
   (sourcePath, destinationPath) <- getPasteParams
@@ -378,36 +432,6 @@ moveOrCopyDiagSlide MoveDiagSlide = do
   where
     withDB = with db2 . runPersist
 
-    getParentSlide childId = do
-      parentId <- getParentId childId
-      case parentId of
-        Just parentId' ->
-          do parentSlide <- getDiagSlide $ fromIntegral parentId'
-             case parentSlide of
-               Just parentSlide' ->
-                 pure $ Right $ Just (parentId', parentSlide')
-               Nothing ->
-                 pure $ Left (404, "Unable to get parent slide for "
-                                   ++ show parentId')
-
-        Nothing -> pure $ Left (404, "Unable to get parent identifier for "
-                                    ++ show childId)
-
-
-    getParentId sourceId = do
-      parentId <- rawSql
-                 "select id from \
-                 \ (select id, json_array_elements(answers) \
-                 \ as answer \
-                 \ from \"DiagSlide\") as answers \
-                 \ where (answer->>'nextSlide')::int = ?"
-                 [PersistInt64 $ fromIntegral sourceId]
-                 :: MonadIO m => ReaderT SqlBackend m [Single Int64]
-
-      case parentId of
-        (Single a : _) -> pure $ Just a
-        _              -> pure Nothing
-
     -- move to root
     moveTree parent sourceId Nothing = do
       withDB $ do
@@ -438,7 +462,7 @@ moveOrCopyDiagSlide MoveDiagSlide = do
 
         transactionSave
 
-      writeJSON ()
+      writeJSON ([A.toJSON sourceId] :: [A.Value])
 
     moveTree parent sourceId (Just (destinationId, destinationSlide)) = do
       let (A.Array destinationAnswers) = diagSlideAnswers destinationSlide
@@ -465,9 +489,9 @@ moveOrCopyDiagSlide MoveDiagSlide = do
 
                  -- TODO FIXME parentAnswerForSource can be empty
 
-                 pure $ Vector.toList $
-                      Vector.snoc destinationAnswers $
-                      Vector.head parentAnswerForSource
+                 pure $ Vector.toList
+                      $ Vector.snoc destinationAnswers
+                      $ Vector.head parentAnswerForSource
 
             Nothing ->
               -- move from root
@@ -491,4 +515,7 @@ moveOrCopyDiagSlide MoveDiagSlide = do
 
         transactionSave
 
-      writeJSON ()
+        pure sourceId
+
+      >>= \childId -> withDB (getParentIds $ fromIntegral childId)
+      >>= \parentIds -> writeJSON (A.toJSON parentIds :: A.Value)
