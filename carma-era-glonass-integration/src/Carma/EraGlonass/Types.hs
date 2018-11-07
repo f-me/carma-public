@@ -14,6 +14,7 @@ module Carma.EraGlonass.Types
      , EGCreateCallCardAcceptCode
      , EGUpdateCallCardAcceptCode
      , EGVinOperationAcceptCode
+     , EGVinOperationFailureAcceptCode
 
      , EGCreateCallCardRequest (..)
      , EGCreateCallCardRequestGis (..)
