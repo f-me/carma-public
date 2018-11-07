@@ -40,9 +40,9 @@ stringyEnumNamedSchema p = do
     wholeEnum p' =
        enum' p' <&> toJSON <&> \case
          y@(String _) -> y
-         _ -> error [qms| "stringyEnumNamedSchema":
+         y -> error [qms| "stringyEnumNamedSchema":
                           Every constructor must be resolved to
-                          "String" by using "toJSON" |]
+                          "String" by using "toJSON", recieved this: {y} |]
 
       where enum' :: (Enum a, Bounded a) => proxy a -> [a]
             enum' _ = [minBound..maxBound]
