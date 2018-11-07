@@ -1,5 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE OverloadedStrings, QuasiQuotes, LambdaCase #-}
 
 module Carma.EraGlonass.Types.EGPropulsion
      ( EGPropulsion (..)
@@ -11,10 +10,13 @@ import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
 import           Text.InterpolatedString.QM
+import           Data.Text (intercalate)
 
 import           Data.Model.Types (Ident)
 import qualified Carma.Model.Engine as Engine
 import qualified Carma.Model.Engine.Persistent as EnginePersistent
+
+import           Carma.Utils.Operators
 
 
 data EGPropulsion
@@ -48,16 +50,19 @@ instance ToSchema EGPropulsion where
     { _schemaParamSchema = mempty
         { _paramSchemaType    = SwaggerString
         , _paramSchemaFormat  = Just "propulsion"
-        , _paramSchemaPattern = Just
-            [qn| ^(HYDROGEN
-                  |ELECTRICITY
-                  |LPG
-                  |LNG
-                  |DIESEL
-                  |GASOLINE
-                  )$ |]
+        , _paramSchemaEnum    = Just $ fst <$> wholeEnum
+        , _paramSchemaPattern =
+            Just [qm| ^({intercalate "|" $ snd <$> wholeEnum})$ |]
         }
     }
+
+    where
+      wholeEnum =
+        [minBound..maxBound :: EGPropulsion] <&> toJSON ? \case
+          x@(String y) -> (x, y)
+          x -> error [qms| "declareNamedSchema" of "EGPropulsion":
+                           Every constructor must be resolved to "String"
+                           by using "toJSON", recieved this: {x} |]
 
 
 egPropulsionToEngineIdent :: EGPropulsion -> Ident Int Engine.Engine

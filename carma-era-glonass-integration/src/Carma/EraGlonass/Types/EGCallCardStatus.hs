@@ -1,6 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 
 module Carma.EraGlonass.Types.EGCallCardStatus
      ( EGCallCardStatus (..)
@@ -12,13 +10,15 @@ import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
 
+import           Carma.EraGlonass.Types.Helpers (stringyEnumNamedSchema)
+
 
 data EGCallCardStatus
    = WorkInProgress
    | Done
    | ClientDenial
    | ServiceUnsupported
-     deriving (Eq, Enum, Bounded, Show, Generic, ToSchema)
+     deriving (Eq, Enum, Bounded, Show, Generic)
 
 instance FromJSON EGCallCardStatus where
   -- Producing list of all values to reduce human-factor mistakes,
@@ -33,3 +33,6 @@ instance ToJSON EGCallCardStatus where
   toJSON Done               = String "DONE"
   toJSON ClientDenial       = String "CLIENT_DENIAL"
   toJSON ServiceUnsupported = String "SERVICE_UNSUPPORTED"
+
+instance ToSchema EGCallCardStatus where
+  declareNamedSchema = stringyEnumNamedSchema
