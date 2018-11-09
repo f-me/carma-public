@@ -13,19 +13,17 @@ module Utils
 
 import Prelude
 
-import Data.Tuple (Tuple (Tuple))
-import Data.Maybe (Maybe (..), maybe)
+import Control.Monad.Maybe.Trans (MaybeT(MaybeT))
 import Data.Enum (class BoundedEnum, succ)
-import Data.Unfoldable (class Unfoldable, unfoldr)
+import Data.Maybe (Maybe(..), maybe)
 import Data.String (uncons, toUpper, singleton)
-
-import Control.Monad.Maybe.Trans (MaybeT (MaybeT))
-
-import Utils.StoreConnect as StoreConnect
+import Data.Tuple (Tuple(Tuple))
+import Data.Unfoldable (class Unfoldable, unfoldr)
 import Utils.ReactComponent as ReactComponent
 import Utils.ReactMisc as ReactMisc
-import Utils.ShowCase as ShowCase
 import Utils.Sex as Sex
+import Utils.ShowCase as ShowCase
+import Utils.StoreConnect as StoreConnect
 
 
 addClassName :: String -> String -> String

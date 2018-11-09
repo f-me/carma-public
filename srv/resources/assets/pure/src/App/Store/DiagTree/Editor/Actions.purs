@@ -38,6 +38,18 @@ data DiagTreeEditorAction
   | DeleteSlideSuccess SlideIdentity
   | DeleteSlideFailure SlideIdentity
 
+  | CopySlideRequest SlideIdentity
+  | CopySlideSuccess SlideIdentity
+  | CopySlideFailure SlideIdentity
+
+  | CutSlideRequest SlideIdentity
+  | CutSlideSuccess SlideIdentity
+  | CutSlideFailure SlideIdentity
+
+  | PasteSlideRequest SlideIdentity
+  | PasteSlideSuccess SlideIdentity
+  | PasteSlideFailure SlideIdentity
+
   | NewSlideRequest
   | NewSlideSuccess DiagTreeSlide
   | NewSlideFailure

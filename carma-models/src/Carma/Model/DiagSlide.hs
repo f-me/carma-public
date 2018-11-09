@@ -33,4 +33,3 @@ instance Model DiagSlide where
   modelView = \case
     "" -> Just defaultView
     _  -> Nothing
-

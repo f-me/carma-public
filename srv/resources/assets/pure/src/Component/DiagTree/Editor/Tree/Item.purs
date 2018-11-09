@@ -4,34 +4,32 @@ module Component.DiagTree.Editor.Tree.Item
 
 import Prelude hiding (div)
 
+import App.Store (AppContext)
+import App.Store.DiagTree.Editor.Types ( DiagTreeSlideId
+                                       , DiagTreeSlide(DiagTreeSlide)
+                                       , fromIndexedAnswers
+                                       )
 import Control.Lazy (fix)
-
-import Data.String (length, splitAt)
-import Data.Array (elemIndex, snoc, last, null)
-import Data.Maybe (Maybe (..), isJust, fromMaybe, maybe)
+import Data.Array (elemIndex, snoc, last, null, unsnoc)
+import Data.Foldable (foldl)
 import Data.Map (Map)
 import Data.Map as Map
+import Data.Maybe (Maybe(..), isJust, fromMaybe, maybe)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Foldable (foldl)
-import Data.Tuple (Tuple (Tuple), fst)
-
+import Data.String (length, splitAt)
+import Data.Tuple (Tuple(Tuple), fst)
 import React (ReactClass, EventHandler, preventDefault, stopPropagation)
 import React.DOM (div) as R
-import React.DOM.Props (className, key, onClick, title)
+import React.DOM.Props (className, key, onClick, title, disabled)
 import React.Spaces ((!), (!.), renderIn, text, elements, empty)
-import React.Spaces.DOM (div, button, i, span)
 import React.Spaces.DOM (div) as SDyn
-
-import Utils ((<.>), createClassStatelessWithName, callEventHandler)
-import App.Store (AppContext)
-
-import App.Store.DiagTree.Editor.Types
-     ( DiagTreeSlideId
-     , DiagTreeSlide (DiagTreeSlide)
-     , fromIndexedAnswers
-     )
-
+import React.Spaces.DOM (div, button, i, span)
+import Utils ( callEventHandler
+             , createClassStatelessWithName
+             , (<.>)
+             )
+import Utils.CopyPasteBuffer (CopyPasteBufferState (..), CopyPasteBuffer)
 
 type Props =
   { appContext     :: AppContext
@@ -49,18 +47,24 @@ type Props =
                                  }
                }
 
-  , select       :: EventHandler (Array DiagTreeSlideId)
-  , delete       :: EventHandler (Array DiagTreeSlideId)
+  , select          :: EventHandler (Array DiagTreeSlideId)
+  , delete          :: EventHandler (Array DiagTreeSlideId)
+  , copy            :: EventHandler (Array DiagTreeSlideId)
+  , cut             :: EventHandler (Array DiagTreeSlideId)
+  , paste           :: EventHandler (Array DiagTreeSlideId)
+  , copyPasteState  :: CopyPasteBufferState
+  , copyPasteBuffer :: CopyPasteBuffer
 
-  , answerHeader :: Maybe String
-  , parents      :: Array DiagTreeSlideId
-  , slide        :: DiagTreeSlide
+  , answerHeader    :: Maybe String
+  , parents         :: Array DiagTreeSlideId
+  , slide           :: DiagTreeSlide
   }
 
 
 diagTreeEditorTreeItemRender :: ReactClass Props
 diagTreeEditorTreeItemRender = f $
-  \props@{ selectedSlide, unfoldedSlides, search, select, delete } ->
+  \props@{ selectedSlide, unfoldedSlides, search, select, delete, copy, cut
+         , paste, copyPasteState, copyPasteBuffer } ->
   (\r -> r props.answerHeader props.parents props.slide) $ -- first level call
   fix $ \again answerHeader parents (DiagTreeSlide slide) ->
 
@@ -111,15 +115,66 @@ diagTreeEditorTreeItemRender = f $
       preventDefault event
       stopPropagation event
       callEventHandler delete slideBranch
+
+    onCopyClick event = do
+      preventDefault event
+      stopPropagation event
+      callEventHandler copy slideBranch
+
+    onCutClick event = do
+      preventDefault event
+      stopPropagation event
+      callEventHandler cut slideBranch
+
+    onPasteClick event = do
+      preventDefault event
+      stopPropagation event
+      callEventHandler paste slideBranch
+
+    headerClasses =
+      case copyPasteState of
+        Cutout i | i == slide.id -> "header-cutout"
+        Copied i | i == slide.id -> "header-copied"
+        _ -> ""
+
+    isPasteDisabled =
+      copyPasteState == EmptyBuffer ||
+      case copyPasteBuffer.branch of
+        Just a  ->
+          case unsnoc a of
+            Just { init: _, last: id } -> slide.id == id
+            Nothing -> true
+        Nothing -> true
   in
     renderIn (R.div [className wClass, key $ show slide.id]) $ do
-      div !. classSfx "header" ! onClick onHeaderClick $ do
+      div !. classSfx "header" <.> classSfx headerClasses
+          ! onClick onHeaderClick $ do
 
         button !. "btn" <.> "btn-danger" <.> classSfx "delete"
                ! onClick onDeleteClick
                ! title "Удалить ветвь" $
 
           i !. "glyphicon" <.> "glyphicon-trash" $ empty
+
+        button !. "btn" <.> classSfx "copy"
+               ! onClick onCopyClick
+               ! title "Скопировать ветвь" $
+
+          i !. "glyphicon" <.> "glyphicon-copy" $ empty
+
+        button !. "btn" <.> classSfx "cut"
+               ! onClick onCutClick
+               ! title "Переместить ветвь" $
+
+          i !. "glyphicon" <.> "glyphicon-scissors" $ empty
+
+        button !. "btn" <.> classSfx "paste"
+               ! onClick onPasteClick
+               ! disabled isPasteDisabled
+               ! title "Вставить ветвь" $
+
+          i !. "glyphicon" <.> "glyphicon-paste" $ empty
+
 
         let searchPatterns = do
               { query, patterns }  <- search
