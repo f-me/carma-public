@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings, DeriveGeneric, LambdaCase #-}
 
 -- | Type of the "acceptCode" field for Call Card operations requests.
 module Carma.EraGlonass.Types.EGCreateCallCardAcceptCode
@@ -11,7 +11,10 @@ import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
 
-import           Carma.EraGlonass.Types.Helpers (stringyEnumNamedSchema)
+import           Carma.EraGlonass.Types.Helpers
+                   ( StringyEnum (..)
+                   , stringyEnumNamedSchema
+                   )
 
 
 data EGCreateCallCardAcceptCode
@@ -19,6 +22,12 @@ data EGCreateCallCardAcceptCode
    | IncorrectFormat
    | InternalError
      deriving (Eq, Enum, Bounded, Show, Generic)
+
+instance StringyEnum EGCreateCallCardAcceptCode where
+  toStringy = \case
+    OK              -> "OK"
+    IncorrectFormat -> "INCORRECT_FORMAT"
+    InternalError   -> "INTERNAL_ERROR"
 
 instance FromJSON EGCreateCallCardAcceptCode where
   -- Producing list of all values to reduce human-factor mistakes,
@@ -29,9 +38,7 @@ instance FromJSON EGCreateCallCardAcceptCode where
                    | otherwise             = f xs
 
 instance ToJSON EGCreateCallCardAcceptCode where
-  toJSON OK              = String "OK"
-  toJSON IncorrectFormat = String "INCORRECT_FORMAT"
-  toJSON InternalError   = String "INTERNAL_ERROR"
+  toJSON = String . toStringy
 
 instance ToSchema EGCreateCallCardAcceptCode where
   declareNamedSchema = stringyEnumNamedSchema

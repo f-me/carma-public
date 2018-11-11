@@ -1,26 +1,24 @@
-{-# LANGUAGE FlexibleContexts, QuasiQuotes, LambdaCase #-}
-{-# LANGUAGE DataKinds, TypeFamilies #-}
+{-# LANGUAGE DataKinds, TypeFamilies, FlexibleContexts #-}
 
 module Carma.EraGlonass.Types.Helpers
-     ( ReplaceFieldKey
+     ( StringyEnum (..)
+     , ReplaceFieldKey
      , stringyEnumNamedSchema
      ) where
 
 import           GHC.Generics
 import           GHC.TypeLits
 
-import           Text.InterpolatedString.QM
+import           Data.Text (Text)
 import           Data.Proxy
 import           Data.Aeson
 import           Data.Swagger
 import           Data.Swagger.Declare
 import           Data.Swagger.Internal.Schema
 
-import           Carma.Utils.Operators
-
 
 stringyEnumNamedSchema
-  :: (GToSchema (Rep a), ToJSON a, Enum a, Bounded a)
+  :: (GToSchema (Rep a), ToJSON a, StringyEnum a, Enum a, Bounded a)
   => proxy a
   -> Declare (Definitions Schema) NamedSchema
 
@@ -39,16 +37,14 @@ stringyEnumNamedSchema p = do
     repProxy :: proxy p -> Proxy (Rep p)
     repProxy _ = Proxy
 
-    wholeEnum :: (ToJSON a, Enum a, Bounded a) => proxy a -> [Value]
-    wholeEnum p' =
-       enum' p' <&> toJSON <&> \case
-         y@(String _) -> y
-         y -> error [qms| "stringyEnumNamedSchema":
-                          Every constructor must be resolved to
-                          "String" by using "toJSON", recieved this: {y} |]
-
-      where enum' :: (Enum a, Bounded a) => proxy a -> [a]
+    wholeEnum :: (StringyEnum a, Enum a, Bounded a) => proxy a -> [Value]
+    wholeEnum = fmap (String . toStringy) . enum'
+      where enum' :: (StringyEnum a, Enum a, Bounded a) => proxy a -> [a]
             enum' _ = [minBound..maxBound]
+
+
+class StringyEnum a where
+  toStringy :: a -> Text
 
 
 -- | Helps to rename a field of a record

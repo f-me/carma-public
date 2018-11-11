@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings, DuplicateRecordFields, LambdaCase #-}
 {-# LANGUAGE DeriveGeneric, FlexibleContexts  #-}
 
 -- | Type of the "acceptCode" field for Call Card operations requests.
@@ -13,7 +13,10 @@ import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)
 import           Data.Swagger
 
-import           Carma.EraGlonass.Types.Helpers (stringyEnumNamedSchema)
+import           Carma.EraGlonass.Types.Helpers
+                   ( StringyEnum (..)
+                   , stringyEnumNamedSchema
+                   )
 
 
 data EGVinOperationAcceptCode
@@ -21,6 +24,12 @@ data EGVinOperationAcceptCode
    | IncorrectFormat
    | VinNotFound
      deriving (Eq, Enum, Bounded, Show, Generic)
+
+instance StringyEnum EGVinOperationAcceptCode where
+  toStringy = \case
+    OK              -> "OK"
+    IncorrectFormat -> "INCORRECT_FORMAT"
+    VinNotFound     -> "VIN_NOT_FOUND"
 
 instance FromJSON EGVinOperationAcceptCode where
   -- Producing list of all values to reduce human-factor mistakes,
@@ -31,9 +40,7 @@ instance FromJSON EGVinOperationAcceptCode where
                    | otherwise             = f xs
 
 instance ToJSON EGVinOperationAcceptCode where
-  toJSON OK              = String "OK"
-  toJSON IncorrectFormat = String "INCORRECT_FORMAT"
-  toJSON VinNotFound     = String "VIN_NOT_FOUND"
+  toJSON = String . toStringy
 
 instance ToSchema EGVinOperationAcceptCode where
   declareNamedSchema = stringyEnumNamedSchema
@@ -47,6 +54,11 @@ data EGVinOperationFailureAcceptCode
    | FailureVinNotFound
      deriving (Eq, Enum, Bounded, Show, Generic)
 
+instance StringyEnum EGVinOperationFailureAcceptCode where
+  toStringy = \case
+    FailureIncorrectFormat -> toStringy IncorrectFormat
+    FailureVinNotFound     -> toStringy VinNotFound
+
 instance FromJSON EGVinOperationFailureAcceptCode where
   -- Producing list of all values to reduce human-factor mistakes,
   -- so it is handled automatically when we add a new value.
@@ -57,8 +69,7 @@ instance FromJSON EGVinOperationFailureAcceptCode where
                    | otherwise             = f xs
 
 instance ToJSON EGVinOperationFailureAcceptCode where
-  toJSON FailureIncorrectFormat = toJSON IncorrectFormat
-  toJSON FailureVinNotFound     = toJSON VinNotFound
+  toJSON = String . toStringy
 
 instance ToSchema EGVinOperationFailureAcceptCode where
   declareNamedSchema = stringyEnumNamedSchema
