@@ -1,10 +1,13 @@
 {-# LANGUAGE FlexibleContexts, QuasiQuotes, LambdaCase #-}
+{-# LANGUAGE DataKinds, TypeFamilies #-}
 
 module Carma.EraGlonass.Types.Helpers
-     ( stringyEnumNamedSchema
+     ( ReplaceFieldKey
+     , stringyEnumNamedSchema
      ) where
 
-import           GHC.Generics (Rep)
+import           GHC.Generics
+import           GHC.TypeLits
 
 import           Text.InterpolatedString.QM
 import           Data.Proxy
@@ -46,3 +49,9 @@ stringyEnumNamedSchema p = do
 
       where enum' :: (Enum a, Bounded a) => proxy a -> [a]
             enum' _ = [minBound..maxBound]
+
+
+-- | Helps to rename a field of a record
+type family ReplaceFieldKey (from :: Symbol) (to :: Symbol) field where
+  ReplaceFieldKey from to (S1 ('MetaSel ('Just from) a b c) d) =
+    S1 ('MetaSel ('Just to) a b c) d

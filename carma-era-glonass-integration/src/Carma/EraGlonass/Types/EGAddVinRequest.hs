@@ -1,5 +1,5 @@
 {-# LANGUAGE DuplicateRecordFields, OverloadedStrings, OverloadedLists #-}
-{-# LANGUAGE DataKinds, TypeOperators, TypeFamilies #-}
+{-# LANGUAGE DataKinds, TypeOperators, TypeFamilies, ScopedTypeVariables #-}
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE QuasiQuotes, MultiWayIf #-}
 
@@ -17,6 +17,7 @@ module Carma.EraGlonass.Types.EGAddVinRequest
      ) where
 
 import           GHC.Generics
+import           GHC.TypeLits (symbolVal)
 
 import           Data.Proxy
 import           Data.String (fromString)
@@ -30,7 +31,7 @@ import           Data.Aeson.Types (typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
 
-import           Carma.Utils.Operators
+import           Carma.EraGlonass.Types.Helpers (ReplaceFieldKey)
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
 import           Carma.EraGlonass.Types.EGVinOperationAcceptCode
@@ -55,29 +56,22 @@ instance ToJSON EGAddVinRequest where
 data EGAddVinRequestRequests
    = EGAddVinRequestRequests
    { vin :: EGVin
-   } deriving (Eq, Show, Generic, ToSchema)
+   } deriving (Eq, Show, Generic)
 
 instance ToJSON EGAddVinRequestRequests where
-  toJSON
-    = genericToJSON defaultOptions { omitNothingFields = True }
-    ? renameVinField
-    where
-      -- | In JSON in supposed to be uppercase.
-      vinKeyAlias = ("vin", "VIN") :: (Text, Text)
+  toJSON (EGAddVinRequestRequests (vin' :: EGVin)) =
+    object [fromString (symbolVal (Proxy :: Proxy VinFieldName)) .= vin']
 
-      renameVinField :: Value -> Value
+instance ToSchema EGAddVinRequestRequests where
+  declareNamedSchema _ = gdeclareNamedSchema defaultSchemaOptions proxy mempty
+    where proxy :: Proxy (UppercaseVinField (Rep EGAddVinRequestRequests))
+          proxy = Proxy
 
-      renameVinField (Object kv) =
-        case HM.lookup (fst vinKeyAlias) kv of
-             Just x ->
-               Object $ kv
-                 & HM.delete (fst vinKeyAlias)
-                 & HM.insert (snd vinKeyAlias) x
-             Nothing ->
-               error [qms| Property by key "{fst vinKeyAlias}"
-                           not found in hash-map: {kv} |]
+type family UppercaseVinField (k1 :: * -> *) where
+  UppercaseVinField (D1 a (C1 x field)) =
+    D1 a (C1 x (ReplaceFieldKey "vin" VinFieldName field))
 
-      renameVinField x = error [qm| Unexpected JSON type: {x} |]
+type VinFieldName = "VIN"
 
 
 -- *** Response ***
