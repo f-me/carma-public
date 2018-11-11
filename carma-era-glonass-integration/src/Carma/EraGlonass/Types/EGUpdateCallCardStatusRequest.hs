@@ -117,10 +117,9 @@ type family CutOffFailureCons (k1 :: * -> *) where
 
 instance ToSchema EGUpdateCallCardStatusResponse where
   declareNamedSchema _ = gdeclareNamedSchema defaultSchemaOptions proxy mempty
-    where proxy
-            :: (x ~ CutOffFailureCons (Rep EGUpdateCallCardStatusResponse))
-            => Proxy x
-          proxy = Proxy
+    where
+      proxy :: Proxy (CutOffFailureCons (Rep EGUpdateCallCardStatusResponse))
+      proxy = Proxy
 
 
 data EGUpdateCallCardStatusResponseResponses

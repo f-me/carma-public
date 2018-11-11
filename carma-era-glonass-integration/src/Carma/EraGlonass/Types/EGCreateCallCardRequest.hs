@@ -187,9 +187,7 @@ type family CutOffFailureCons (k1 :: * -> *) where
 --   constructor from type-level type representation (@Rep@).
 instance ToSchema EGCreateCallCardRequest where
   declareNamedSchema _ = gdeclareNamedSchema defaultSchemaOptions proxy mempty
-    where proxy
-            :: (x ~ CutOffFailureCons (Rep EGCreateCallCardRequest))
-            => Proxy x
+    where proxy :: Proxy (CutOffFailureCons (Rep EGCreateCallCardRequest))
           proxy = Proxy
 
 instance PersistField EGCreateCallCardRequest where

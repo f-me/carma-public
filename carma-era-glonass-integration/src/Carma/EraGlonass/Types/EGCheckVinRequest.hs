@@ -113,9 +113,7 @@ type family CutOffFailureCons (k1 :: * -> *) where
 
 instance ToSchema EGCheckVinResponse where
   declareNamedSchema _ = gdeclareNamedSchema defaultSchemaOptions proxy mempty
-    where proxy
-            :: (x ~ CutOffFailureCons (Rep EGCheckVinResponse))
-            => Proxy x
+    where proxy :: Proxy (CutOffFailureCons (Rep EGCheckVinResponse))
           proxy = Proxy
 
 
