@@ -1,7 +1,7 @@
 {-# LANGUAGE DuplicateRecordFields, OverloadedStrings, OverloadedLists #-}
 {-# LANGUAGE DataKinds, TypeOperators, TypeFamilies, ScopedTypeVariables #-}
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
-{-# LANGUAGE QuasiQuotes, MultiWayIf #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 -- Fixes issue when record-fields aren't exported. Probably related to:
 --   https://stackoverflow.com/questions/46357747/haddock-data-record-fields-names-not-being-generated
@@ -31,7 +31,7 @@ import           Data.Aeson.Types (typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
 
-import           Carma.EraGlonass.Types.Helpers (ReplaceFieldKey)
+import           Carma.EraGlonass.Types.Helpers (toStringy, ReplaceFieldKey)
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
 import           Carma.EraGlonass.Types.EGVinOperationAcceptCode
@@ -123,7 +123,7 @@ instance ToSchema EGAddVinResponse where
 
 
 data EGAddVinResponseResponses
-   = EGAddVinResponseResponsesOk
+   = EGAddVinResponseResponsesOk -- ^ When @acceptCode@ is @\"OK"@
    { statusDescription :: Maybe Text
    , vin :: EGVin
    }
@@ -131,54 +131,48 @@ data EGAddVinResponseResponses
    | EGAddVinResponseResponsesFailure -- ^ When @acceptCode@ is not @\"OK"@
    { acceptCode :: EGVinOperationFailureAcceptCode
    , statusDescription :: Maybe Text
-   , optionalVin :: Maybe EGVin
    }
 
      deriving (Eq, Show, Generic)
 
 instance FromJSON EGAddVinResponseResponses where
-  parseJSON src@(Object obj) =
-    if hasRequiredFields
-       then if | isOk && keys `Set.isSubsetOf` okFields ->
-                   genericParseJSON defaultOptions $
-                     Object $ HM.insert "tag"
-                       (String okConstructor) obj
+  parseJSON src@(Object obj) = go where
+    go =
+      if acceptCodeKey `Set.member` keys
+         then branching
+         else typeMismatch typeName src
 
-               | isNonOk && keys `Set.isSubsetOf` failureFields ->
-                   genericParseJSON defaultOptions $
-                     Object $
-                       let x = HM.insert "tag" (String failureConstructor) obj
-                       in  case HM.lookup vinKey obj of
-                                Nothing -> x
-                                Just y  -> HM.insert optionalVinKey y x
+    branching
+      | isOk && keys `Set.isSubsetOf` okFields =
+          genericParseJSON defaultOptions $
+            Object $ HM.insert "tag" (String okConstructor) obj
 
-               | otherwise -> typeMismatch typeName src
+      | isNonOk && keys `Set.isSubsetOf` failureFields =
+          genericParseJSON defaultOptions $
+            Object $ HM.insert "tag" (String failureConstructor) obj
 
-       else typeMismatch typeName src
+      | otherwise = typeMismatch typeName src
 
-    where
-      keys = Set.fromList $ HM.keys obj
+    acceptCodeKey        = "acceptCode"
+    statusDescriptionKey = "statusDescription"
+    vinKey               = "vin"
 
-      acceptCodeKey        = "acceptCode"
-      statusDescriptionKey = "statusDescription"
-      vinKey               = "vin"
-      optionalVinKey       = "optionalVin"
+    typeName           = "EGAddVinResponseResponses"
+    okConstructor      = "EGAddVinResponseResponsesOk"
+    failureConstructor = "EGAddVinResponseResponsesFailure"
 
-      okFields      = Set.fromList [acceptCodeKey, statusDescriptionKey]
-      failureFields = Set.insert vinKey okFields
+    keys, okFields, failureFields :: Set.Set Text
+    keys          = Set.fromList $ HM.keys obj
+    okFields      = [acceptCodeKey, statusDescriptionKey, vinKey]
+    failureFields = [acceptCodeKey, statusDescriptionKey]
 
-      typeName           = "EGAddVinResponseResponses"
-      okConstructor      = "EGAddVinResponseResponsesOk"
-      failureConstructor = "EGAddVinResponseResponsesFailure"
+    parsedAcceptCode = fromJSON <$> HM.lookup acceptCodeKey obj
+    isOk = parsedAcceptCode == Just (Success OK)
 
-      hasRequiredFields = acceptCodeKey `Set.member` keys
-      parsedAcceptCode = fromJSON <$> HM.lookup acceptCodeKey obj
-      isOk = parsedAcceptCode == Just (Success OK)
-
-      isNonOk =
-        case parsedAcceptCode of
-             Just (Success x) -> x /= OK
-             _ -> False
+    isNonOk =
+      case parsedAcceptCode of
+           Just (Success x) -> x /= OK
+           _ -> False
 
   parseJSON invalid = typeMismatch "EGAddVinResponseResponses" invalid
 
@@ -188,7 +182,7 @@ instance ToSchema EGAddVinResponseResponses where
       pure $ Inline $ mempty
         { _schemaParamSchema = mempty
             { _paramSchemaType = SwaggerString
-            , _paramSchemaEnum = Just $ String . fromString . show <$> [OK]
+            , _paramSchemaEnum = Just $ String . toStringy <$> [OK]
             }
         }
 
@@ -198,7 +192,6 @@ instance ToSchema EGAddVinResponseResponses where
       declareSchemaRef $ unwrapperToProxy statusDescription
 
     vinRef <- declareSchemaRef $ unwrapperToProxy vin
-    optionalVinRef <- declareSchemaRef $ unwrapperToProxy optionalVin
 
     okConstructorRef <-
       pure $ Inline $ mempty
@@ -223,7 +216,6 @@ instance ToSchema EGAddVinResponseResponses where
         , _schemaProperties =
             [ ("acceptCode",        failureAcceptCodeRef)
             , ("statusDescription", statusDescriptionRef)
-            , ("vin",               optionalVinRef)
             ]
 
         , _schemaRequired =
@@ -237,7 +229,7 @@ instance ToSchema EGAddVinResponseResponses where
       , _schemaDiscriminator = Just "acceptCode"
 
       , _schemaDescription =
-          Just [qn| "vin" is required if "acceptCode" is "OK". |]
+          Just [qn| "vin" is added only when "acceptCode" is "OK". |]
 
       , _schemaProperties =
           [ ("EGAddVinResponseResponsesOk",      okConstructorRef)

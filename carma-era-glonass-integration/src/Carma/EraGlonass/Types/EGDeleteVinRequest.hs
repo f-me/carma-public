@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE DataKinds, TypeOperators, TypeFamilies, ScopedTypeVariables #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, OverloadedLists, QuasiQuotes #-}
 
 -- Fixes issue when record-fields aren't exported. Probably related to:
 --   https://stackoverflow.com/questions/46357747/haddock-data-record-fields-names-not-being-generated
@@ -22,18 +22,21 @@ import           GHC.TypeLits (symbolVal)
 import           Data.Proxy
 import           Data.Text (Text)
 import           Data.String (fromString)
+import           Text.InterpolatedString.QM
 import qualified Data.HashMap.Lazy as HM
+import qualified Data.Set as Set
 import           Data.Aeson
 import           Data.Aeson.TH (Options (omitNothingFields))
 import           Data.Aeson.Types (typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
 
-import           Carma.EraGlonass.Types.Helpers (ReplaceFieldKey)
+import           Carma.EraGlonass.Types.Helpers (toStringy, ReplaceFieldKey)
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
 import           Carma.EraGlonass.Types.EGVinOperationAcceptCode
-                   ( EGVinOperationAcceptCode
+                   ( EGVinOperationAcceptCode (OK, IncorrectFormat, VinNotFound)
+                   , EGVinOperationDeletionIsSucceededAcceptCode
                    )
 
 
@@ -120,8 +123,128 @@ instance ToSchema EGDeleteVinResponse where
 
 
 data EGDeleteVinResponseResponses
-   = EGDeleteVinResponseResponses
-   { acceptCode :: EGVinOperationAcceptCode
+   = EGDeleteVinResponseResponsesSuccess
+   -- ^ When @acceptCode@ is either @\"OK"@ or @\"VIN_NOT_FOUND"@
+   { acceptCode :: EGVinOperationDeletionIsSucceededAcceptCode
    , statusDescription :: Maybe Text
-   , vin :: Maybe EGVin
-   } deriving (Eq, Show, Generic, FromJSON, ToSchema)
+   , vin :: EGVin
+   }
+
+   | EGDeleteVinResponseResponsesIncorrectFormat
+   -- ^ When @acceptCode@ is @\"INCORRECT_FORMAT"@
+   { statusDescription :: Maybe Text
+   }
+
+     deriving (Eq, Show, Generic)
+
+instance FromJSON EGDeleteVinResponseResponses where
+  parseJSON src@(Object obj) = go where
+    go =
+      if acceptCodeKey `Set.member` keys
+         then branching
+         else typeMismatch typeName src
+
+    branching
+      | isSuccess && keys `Set.isSubsetOf` successFields =
+          genericParseJSON defaultOptions $
+            Object $ HM.insert "tag" (String successConstructor) obj
+
+      | isIncorrectFormat && keys `Set.isSubsetOf` incorrectFormatFields =
+          genericParseJSON defaultOptions $
+            Object $ HM.insert "tag" (String incorrectFormatConstructor) obj
+
+      | otherwise = typeMismatch typeName src
+
+    typeName                   = "EGDeleteVinResponseResponses"
+    successConstructor         = "EGDeleteVinResponseResponsesSuccess"
+    incorrectFormatConstructor = "EGDeleteVinResponseResponsesIncorrectFormat"
+
+    acceptCodeKey        = "acceptCode"
+    statusDescriptionKey = "statusDescription"
+    vinKey               = "vin"
+
+    keys, successFields, incorrectFormatFields :: Set.Set Text
+    keys                  = Set.fromList $ HM.keys obj
+    successFields         = [acceptCodeKey, statusDescriptionKey, vinKey]
+    incorrectFormatFields = [acceptCodeKey, statusDescriptionKey]
+
+    parsedAcceptCode = fromJSON <$> HM.lookup acceptCodeKey obj
+    isIncorrectFormat = parsedAcceptCode == Just (Success IncorrectFormat)
+
+    isSuccess =
+      case parsedAcceptCode of
+           Just (Success x) -> x == OK || x == VinNotFound
+           _ -> False
+
+  parseJSON invalid = typeMismatch "EGDeleteVinResponseResponses" invalid
+
+instance ToSchema EGDeleteVinResponseResponses where
+  declareNamedSchema _ = do
+    successAcceptCodeRef <- declareSchemaRef $ unwrapperToProxy acceptCode
+
+    incorrectFormatAcceptCodeRef <-
+      pure $ Inline $ mempty
+        { _schemaParamSchema = mempty
+            { _paramSchemaType = SwaggerString
+            , _paramSchemaEnum = Just $ String . toStringy <$> [IncorrectFormat]
+            }
+        }
+
+    statusDescriptionRef <-
+      declareSchemaRef $ unwrapperToProxy statusDescription
+
+    vinRef <- declareSchemaRef $ unwrapperToProxy vin
+
+    successConstructorRef <-
+      pure $ Inline $ mempty
+        { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+
+        , _schemaProperties =
+            [ ("acceptCode",        successAcceptCodeRef)
+            , ("statusDescription", statusDescriptionRef)
+            , ("vin",               vinRef)
+            ]
+
+        , _schemaRequired =
+            [ "acceptCode"
+            , "vin"
+            ]
+        }
+
+    incorrectFormatConstructorRef <-
+      pure $ Inline $ mempty
+        { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+
+        , _schemaProperties =
+            [ ("acceptCode",        incorrectFormatAcceptCodeRef)
+            , ("statusDescription", statusDescriptionRef)
+            ]
+
+        , _schemaRequired =
+            [ "acceptCode"
+            ]
+        }
+
+    pure
+      $ NamedSchema (Just "EGDeleteVinResponseResponses") mempty
+      { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+      , _schemaDiscriminator = Just "acceptCode"
+
+      , _schemaDescription =
+          Just [qns| "vin" is added only when "acceptCode" is either
+                     "OK" or "VIN_NOT_FOUND" (both cases means success). |]
+
+      , _schemaProperties =
+          [ ("EGDeleteVinResponseResponsesSuccess", successConstructorRef)
+          , ( "EGDeleteVinResponseResponsesIncorrectFormat"
+            , incorrectFormatConstructorRef
+            )
+          ]
+
+      , _schemaMinProperties = Just 1
+      , _schemaMaxProperties = Just 1
+      }
+
+    where
+      unwrapperToProxy :: (EGDeleteVinResponseResponses -> b) -> Proxy b
+      unwrapperToProxy _ = Proxy
