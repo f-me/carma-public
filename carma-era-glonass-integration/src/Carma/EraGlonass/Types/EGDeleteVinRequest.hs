@@ -31,7 +31,12 @@ import           Data.Aeson.Types (typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
 
-import           Carma.EraGlonass.Types.Helpers (toStringy, ReplaceFieldKey)
+import           Carma.EraGlonass.Types.Helpers
+                   ( ReplaceFieldKey
+                   , toStringy
+                   , typeName
+                   , constructorName
+                   )
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
 import           Carma.EraGlonass.Types.EGVinOperationAcceptCode
@@ -142,7 +147,7 @@ instance FromJSON EGDeleteVinResponseResponses where
     go =
       if acceptCodeKey `Set.member` keys
          then branching
-         else typeMismatch typeName src
+         else typeMismatch typeName' src
 
     branching
       | isSuccess && keys `Set.isSubsetOf` successFields =
@@ -153,11 +158,19 @@ instance FromJSON EGDeleteVinResponseResponses where
           genericParseJSON defaultOptions $
             Object $ HM.insert "tag" (String incorrectFormatConstructor) obj
 
-      | otherwise = typeMismatch typeName src
+      | otherwise = typeMismatch typeName' src
 
-    typeName                   = "EGDeleteVinResponseResponses"
-    successConstructor         = "EGDeleteVinResponseResponsesSuccess"
-    incorrectFormatConstructor = "EGDeleteVinResponseResponsesIncorrectFormat"
+    typeName' = typeName (Proxy :: Proxy EGDeleteVinResponseResponses)
+
+    successConstructor =
+      constructorName (Proxy :: Proxy
+        '(EGDeleteVinResponseResponses, "EGDeleteVinResponseResponsesSuccess"))
+
+    incorrectFormatConstructor =
+      constructorName (Proxy :: Proxy
+        '( EGDeleteVinResponseResponses
+         , "EGDeleteVinResponseResponsesIncorrectFormat"
+         ))
 
     acceptCodeKey        = "acceptCode"
     statusDescriptionKey = "statusDescription"
@@ -176,7 +189,8 @@ instance FromJSON EGDeleteVinResponseResponses where
            Just (Success x) -> x == OK || x == VinNotFound
            _ -> False
 
-  parseJSON invalid = typeMismatch "EGDeleteVinResponseResponses" invalid
+  parseJSON x =
+    typeMismatch (typeName (Proxy :: Proxy EGDeleteVinResponseResponses)) x
 
 instance ToSchema EGDeleteVinResponseResponses where
   declareNamedSchema _ = do
@@ -226,7 +240,7 @@ instance ToSchema EGDeleteVinResponseResponses where
         }
 
     pure
-      $ NamedSchema (Just "EGDeleteVinResponseResponses") mempty
+      $ NamedSchema (Just typeName') mempty
       { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
       , _schemaDiscriminator = Just "acceptCode"
 
@@ -246,5 +260,7 @@ instance ToSchema EGDeleteVinResponseResponses where
       }
 
     where
+      typeName' = typeName (Proxy :: Proxy EGDeleteVinResponseResponses)
+
       unwrapperToProxy :: (EGDeleteVinResponseResponses -> b) -> Proxy b
       unwrapperToProxy _ = Proxy
