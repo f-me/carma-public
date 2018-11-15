@@ -30,9 +30,13 @@ import           Data.Aeson.Types (typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
 
-import           Carma.EraGlonass.Types.Helpers (ReplaceFieldKey)
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
+import           Carma.EraGlonass.Types.Helpers
+                   ( ReplaceFieldKey
+                   , typeName
+                   , constructorName
+                   )
 
 
 -- *** Request ***
@@ -92,15 +96,21 @@ instance FromJSON EGCheckVinResponse where
          Right x  -> x
 
     where
+      typeName' = typeName (Proxy :: Proxy EGCheckVinResponse)
+
+      okConstructor =
+        constructorName (Proxy :: Proxy
+          '(EGCheckVinResponse, "EGCheckVinResponse"))
+
       successfulCase = do
         obj <- -- Extracting hash-map from JSON @Object@
           case src of
                Object x -> pure x
-               _        -> typeMismatch "EGCheckVinResponse" src
+               _        -> typeMismatch typeName' src
 
         parsed <- genericParseJSON defaultOptions $
           -- Associating it with successful case constructor
-          Object $ HM.insert "tag" (String "EGCheckVinResponse") obj
+          Object $ HM.insert "tag" (String okConstructor) obj
 
         pure parsed
 
