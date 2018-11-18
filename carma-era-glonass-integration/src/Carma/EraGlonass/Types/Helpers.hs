@@ -40,6 +40,8 @@ module Carma.EraGlonass.Types.Helpers
      , typeSafeSchemaSeparatedProperties
      , TypeSafeSchemaProperty
      , typeSafeSchemaProperty
+
+     , constructorsBranchingSchemaProto
      ) where
 
 import           GHC.Generics
@@ -476,6 +478,15 @@ instance ( KnownSymbol propName
            then fromString (symbolVal (Proxy :: Proxy propName)) : b
            else b
       )
+
+
+-- | Prototype "Schema" for branching constructors
+constructorsBranchingSchemaProto :: Schema
+constructorsBranchingSchemaProto = mempty
+  { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+  , _schemaMinProperties = Just 1
+  , _schemaMaxProperties = Just 1
+  }
 
 
 class KnownBool (b :: Bool) where boolVal :: forall proxy . proxy b -> Bool

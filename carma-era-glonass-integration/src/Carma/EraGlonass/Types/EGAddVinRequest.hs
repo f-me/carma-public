@@ -34,6 +34,7 @@ import           Data.Swagger
 import           Data.Swagger.Internal.Schema
 import           Data.Swagger.Declare (Declare)
 
+import           Carma.Utils.Operators
 import           Carma.EraGlonass.Types.Helpers
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
@@ -217,38 +218,34 @@ instance ToSchema EGAddVinResponseResponses where
     -> Declare (Definitions Schema) NamedSchema
 
   declareNamedSchema _ = do
-    okAcceptCodeProp <-
-      pure $ (acceptCodeKey,) $ Inline $ mempty
-        { _schemaParamSchema = mempty
-            { _paramSchemaType = SwaggerString
-            , _paramSchemaEnum = Just $ String . toStringy <$> [OK]
-            }
-        }
-
-    (okProps, okRequiredProps) <-
-      typeSafeSchemaSeparatedProperties okConstructorProxy
-
     okConstructorRef <-
-      pure $ Inline $ mempty
-        { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
-        , _schemaProperties = fromList $ okAcceptCodeProp : okProps
-        , _schemaRequired = fromList $ fst okAcceptCodeProp : okRequiredProps
-        }
-
-    (failureProps, failureRequiredProps) <-
-      typeSafeSchemaSeparatedProperties failureConstructorProxy
+      typeSafeSchemaSeparatedProperties okConstructorProxy <&>
+        \(props, requiredProps) ->
+          let
+            acceptCodeProp = (acceptCodeKey,) $ Inline $ mempty
+              { _schemaParamSchema = mempty
+                  { _paramSchemaType = SwaggerString
+                  , _paramSchemaEnum = Just $ String . toStringy <$> [OK]
+                  }
+              }
+          in
+            Inline $ mempty
+              { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+              , _schemaProperties = fromList $ acceptCodeProp : props
+              , _schemaRequired = fromList $ fst acceptCodeProp : requiredProps
+              }
 
     failureConstructorRef <-
-      pure $ Inline $ mempty
-        { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
-        , _schemaProperties  = fromList failureProps
-        , _schemaRequired    = fromList failureRequiredProps
-        }
+      typeSafeSchemaSeparatedProperties failureConstructorProxy <&>
+        \(props, requiredProps) -> Inline $ mempty
+          { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+          , _schemaProperties  = fromList props
+          , _schemaRequired    = fromList requiredProps
+          }
 
     pure
-      $ NamedSchema (Just typeName') mempty
-      { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
-      , _schemaDiscriminator = Just acceptCodeKey
+      $ NamedSchema (Just typeName') constructorsBranchingSchemaProto
+      { _schemaDiscriminator = Just acceptCodeKey
 
       , _schemaDescription =
           Just [qms| "{vinKey :: Text}" is added only when
@@ -258,9 +255,6 @@ instance ToSchema EGAddVinResponseResponses where
           [ ("EGAddVinResponseResponsesOk",      okConstructorRef)
           , ("EGAddVinResponseResponsesFailure", failureConstructorRef)
           ]
-
-      , _schemaMinProperties = Just 1
-      , _schemaMaxProperties = Just 1
       }
 
     where
