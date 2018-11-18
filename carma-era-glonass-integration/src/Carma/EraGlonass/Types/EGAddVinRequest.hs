@@ -2,7 +2,7 @@
 {-# LANGUAGE DataKinds, TypeOperators, TypeFamilies #-}
 {-# LANGUAGE ScopedTypeVariables, InstanceSigs #-}
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes, TupleSections #-}
 
 -- Fixes issue when record-fields aren't exported. Probably related to:
 --   https://stackoverflow.com/questions/46357747/haddock-data-record-fields-names-not-being-generated
@@ -19,6 +19,7 @@ module Carma.EraGlonass.Types.EGAddVinRequest
 
 import           GHC.Generics
 import           GHC.TypeLits
+import           GHC.Exts (IsList (..))
 
 import           Data.Proxy
 import           Data.String (fromString)
@@ -216,57 +217,32 @@ instance ToSchema EGAddVinResponseResponses where
     -> Declare (Definitions Schema) NamedSchema
 
   declareNamedSchema _ = do
-    okAcceptCodeRef <-
-      pure $ Inline $ mempty
+    okAcceptCodeProp <-
+      pure $ (acceptCodeKey,) $ Inline $ mempty
         { _schemaParamSchema = mempty
             { _paramSchemaType = SwaggerString
             , _paramSchemaEnum = Just $ String . toStringy <$> [OK]
             }
         }
 
-    failureAcceptCodeRef
-      <- declareSchemaRef
-      $  constructorFieldType
-      $  proxyPair2Triplet failureConstructorProxy (Proxy :: Proxy "acceptCode")
-
-    statusDescriptionRef
-      <- declareSchemaRef
-      $  fieldType
-      $  withTypeProxy (Proxy :: Proxy "statusDescription")
-
-    vinRef
-      <- declareSchemaRef
-      $  constructorFieldType
-      $  proxyPair2Triplet okConstructorProxy (Proxy :: Proxy "vin")
+    (okProps, okRequiredProps) <-
+      typeSafeSchemaSeparatedProperties okConstructorProxy
 
     okConstructorRef <-
       pure $ Inline $ mempty
         { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
-
-        , _schemaProperties =
-            [ ("acceptCode",        okAcceptCodeRef)
-            , ("statusDescription", statusDescriptionRef)
-            , ("vin",               vinRef)
-            ]
-
-        , _schemaRequired =
-            [ "acceptCode"
-            , "vin"
-            ]
+        , _schemaProperties = fromList $ okAcceptCodeProp : okProps
+        , _schemaRequired = fromList $ fst okAcceptCodeProp : okRequiredProps
         }
+
+    (failureProps, failureRequiredProps) <-
+      typeSafeSchemaSeparatedProperties failureConstructorProxy
 
     failureConstructorRef <-
       pure $ Inline $ mempty
         { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
-
-        , _schemaProperties =
-            [ ("acceptCode",        failureAcceptCodeRef)
-            , ("statusDescription", statusDescriptionRef)
-            ]
-
-        , _schemaRequired =
-            [ "acceptCode"
-            ]
+        , _schemaProperties  = fromList failureProps
+        , _schemaRequired    = fromList failureRequiredProps
         }
 
     pure
@@ -275,7 +251,7 @@ instance ToSchema EGAddVinResponseResponses where
       , _schemaDiscriminator = Just acceptCodeKey
 
       , _schemaDescription =
-          Just [qms| "{vinKey}" is added only when
+          Just [qms| "{vinKey :: Text}" is added only when
                      "{acceptCodeKey}" is "{toStringy OK}". |]
 
       , _schemaProperties =
@@ -304,4 +280,3 @@ instance ToSchema EGAddVinResponseResponses where
       vinKey
         = constructorFieldName
         $ proxyPair2Triplet okConstructorProxy (Proxy :: Proxy "vin")
-        :: Text

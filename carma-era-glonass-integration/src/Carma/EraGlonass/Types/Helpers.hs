@@ -1,7 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DataKinds, TypeFamilies, TypeOperators, FlexibleContexts #-}
-{-# LANGUAGE PolyKinds, UndecidableInstances #-}
+{-# LANGUAGE DataKinds, PolyKinds, TypeFamilies, TypeOperators #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, UndecidableInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
+-- | Helpers for building/defining Era Glonass types.
+--
+-- TODO particular sets of helpers could be separated to own modules,
+--      this one is pretty fat already.
+--
+-- TODO some of helpers here could be generic to whole project not just this
+--      particular branch of modules hierarchy, maybe move most of them to the
+--      @carma-utils@ package?
+--
 module Carma.EraGlonass.Types.Helpers
      ( StringyEnum (..)
      , ReplaceFieldKey
@@ -24,6 +34,12 @@ module Carma.EraGlonass.Types.Helpers
      , proxyPair
      , proxyTriplet
      , proxyPair2Triplet
+
+     , TypeSafeSchemaProperties
+     , typeSafeSchemaProperties
+     , typeSafeSchemaSeparatedProperties
+     , TypeSafeSchemaProperty
+     , typeSafeSchemaProperty
      ) where
 
 import           GHC.Generics
@@ -37,6 +53,8 @@ import           Data.Aeson
 import           Data.Swagger
 import           Data.Swagger.Declare
 import           Data.Swagger.Internal.Schema
+
+import           Carma.Utils.Operators
 
 
 stringyEnumNamedSchema
@@ -269,3 +287,197 @@ type family MaybeAlternative (k1 :: Maybe k)
   MaybeAlternative ('Just x) _        = 'Just x
   MaybeAlternative 'Nothing ('Just x) = 'Just x
   MaybeAlternative 'Nothing 'Nothing  = 'Nothing
+
+
+-- | Kinda like "Applicative" stuff
+type family MaybePair (k1 :: Maybe kk1)
+                      (k2 :: Maybe kk2)
+                          :: Maybe (kk1, kk2) where
+  MaybePair ('Just a) ('Just b) = 'Just '(a, b)
+  MaybePair _ _ = 'Nothing
+
+-- | Kinda like "Applicative" stuff
+type family MaybeTriplet (k1 :: Maybe kk1)
+                         (k2 :: Maybe kk2)
+                         (k3 :: Maybe kk3)
+                             :: Maybe (kk1, kk2, kk3) where
+  MaybeTriplet ('Just a) ('Just b) ('Just c) = 'Just '(a, b, c)
+  MaybeTriplet _ _ _ = 'Nothing
+
+
+type family TypeIsMaybe (k1 :: *) :: Bool where
+  TypeIsMaybe (Maybe _) = 'True
+  TypeIsMaybe _         = 'False
+
+type family MaybeTypeIsMaybe (k1 :: Maybe *) :: Maybe Bool where
+  MaybeTypeIsMaybe 'Nothing  = 'Nothing
+  MaybeTypeIsMaybe ('Just x) = 'Just (TypeIsMaybe x)
+
+
+type family Not (k1 :: Bool) :: Bool where
+  Not 'True  = 'False
+  Not 'False = 'True
+
+type family MaybeNot (k1 :: Maybe Bool) :: Maybe Bool where
+  MaybeNot 'Nothing  = 'Nothing
+  MaybeNot ('Just x) = 'Just (Not x)
+
+
+type family MaybeMaybeCons (k1 :: Maybe a) (k2 :: Maybe [a]) :: Maybe [a] where
+  MaybeMaybeCons ('Just x) ('Just xs) = 'Just (x ': xs)
+  MaybeMaybeCons _ _ = 'Nothing
+
+
+-- | Helps to construct property definition reference in a type-safe way.
+--
+-- Result:
+--
+--   1. @Symbol@ is a field name
+--   2. @Bool@ indicates a field is required
+--   3. @*@ is a field type
+type family TypeSafeSchemaProperty
+            (k1 :: * -> *)
+            (k2 :: Either Symbol (Symbol, Symbol))
+            :: Maybe (Symbol, Bool, *)
+            where
+  TypeSafeSchemaProperty t ('Left fieldName) =
+    MaybeTriplet
+      (FieldName t fieldName)
+      (MaybeNot (MaybeTypeIsMaybe (FieldType t fieldName)))
+      (FieldType t fieldName)
+  TypeSafeSchemaProperty t ('Right '(constructorName, fieldName)) =
+    MaybeTriplet
+      (ConstructorFieldName t constructorName fieldName)
+      (MaybeNot (MaybeTypeIsMaybe
+                (ConstructorFieldType t constructorName fieldName)))
+      (ConstructorFieldType t constructorName fieldName)
+
+typeSafeSchemaProperty
+  :: forall recordType field propName fieldName isFieldRequired fieldType
+  .  ( IsString propName
+     , KnownSymbol fieldName
+     , KnownBool isFieldRequired
+     , ToSchema fieldType
+     , TypeSafeSchemaProperty (Rep recordType) field
+         ~ 'Just '(fieldName, isFieldRequired, fieldType)
+     )
+  => Proxy '(recordType, (field :: Either Symbol (Symbol, Symbol)))
+  -- ^ Second value of type-level tuple is either just field name or constructor
+  -- name and field name in that order to constrain specified constructor.
+  -> Declare (Definitions Schema) (propName, Bool, Referenced Schema)
+
+typeSafeSchemaProperty Proxy =
+  declareSchemaRef (Proxy :: Proxy fieldType) <&> \schemaRef ->
+    ( fromString $ symbolVal (Proxy :: Proxy fieldName)
+    , boolVal (Proxy :: Proxy isFieldRequired)
+    , schemaRef
+    )
+
+
+type family TypeSafeSchemaProperties
+            (k1 :: * -> *)
+            (k2 :: Symbol)
+            :: Maybe [(Symbol, Bool, *)]
+            where
+  TypeSafeSchemaProperties (D1 a (C1 ('MetaCons c b 'True) x)) c =
+    ConstructorProperties (D1 a (C1 ('MetaCons c b 'True) x)) c x ('Just '[])
+  TypeSafeSchemaProperties (D1 a (C1 ('MetaCons c b 'True) x :+: _)) c =
+    ConstructorProperties (D1 a (C1 ('MetaCons c b 'True) x)) c x ('Just '[])
+  TypeSafeSchemaProperties (D1 a (C1 ('MetaCons _ _ _) _ :+: xs)) c =
+    TypeSafeSchemaProperties (D1 a xs) c
+  TypeSafeSchemaProperties (D1 _ _) _ = 'Nothing
+
+type family ConstructorProperties
+            (k1 :: * -> *)
+            (k2 :: Symbol)
+            (k3 :: * -> *)
+            (k4 :: Maybe [(Symbol, Bool, *)])
+            :: Maybe [(Symbol, Bool, *)]
+            where
+
+  ConstructorProperties t c
+                        (S1 ('MetaSel ('Just f) _ _ _) (Rec0 _))
+                        ('Just acc) =
+    MaybeMaybeCons (TypeSafeSchemaProperty t ('Right '(c, f))) ('Just acc)
+
+  ConstructorProperties t c
+                        (S1 ('MetaSel ('Just f) _ _ _) (Rec0 _) :*: xs)
+                        ('Just acc) =
+    MaybeMaybeCons
+      (TypeSafeSchemaProperty t ('Right '(c, f)))
+      (ConstructorProperties t c xs ('Just acc))
+
+  ConstructorProperties (D1 a b) _ (S1 _ _) _ = 'Nothing
+
+typeSafeSchemaProperties
+  :: forall recordType constructorName propName list
+  .  ( TypeSafeSchemaProperties (Rep recordType) constructorName ~ 'Just list
+     , TypeSafeSchemaPropertiesI list
+     , IsString propName
+     )
+  => Proxy '(recordType, constructorName)
+  -> Declare (Definitions Schema) [(propName, Bool, Referenced Schema)]
+
+typeSafeSchemaProperties Proxy =
+  typeSafeSchemaPropertiesI (Proxy :: Proxy list)
+
+typeSafeSchemaSeparatedProperties
+  :: forall recordType constructorName propName requiredPropName list
+  .  ( TypeSafeSchemaProperties (Rep recordType) constructorName ~ 'Just list
+     , TypeSafeSchemaPropertiesI list
+     , IsString propName
+     , IsString requiredPropName
+     )
+  => Proxy '(recordType, constructorName)
+  -> Declare (Definitions Schema)
+             ([(propName, Referenced Schema)], [requiredPropName])
+
+typeSafeSchemaSeparatedProperties Proxy =
+  typeSafeSchemaSeparatedPropertiesI (Proxy :: Proxy list)
+
+
+class TypeSafeSchemaPropertiesI (a :: [(Symbol, Bool, *)]) where
+
+  typeSafeSchemaPropertiesI
+    :: IsString propName
+    => Proxy a
+    -> Declare (Definitions Schema) [(propName, Bool, Referenced Schema)]
+
+  typeSafeSchemaSeparatedPropertiesI
+    :: (IsString propName, IsString requiredPropName)
+    => Proxy a
+    -> Declare (Definitions Schema)
+               ([(propName, Referenced Schema)], [requiredPropName])
+
+instance TypeSafeSchemaPropertiesI '[] where
+  typeSafeSchemaPropertiesI Proxy = pure []
+  typeSafeSchemaSeparatedPropertiesI Proxy = pure ([], [])
+
+instance ( KnownSymbol propName
+         , KnownBool isRequired
+         , ToSchema t
+         , TypeSafeSchemaPropertiesI xs
+         ) => TypeSafeSchemaPropertiesI ('(propName, isRequired, t) ': xs)
+         where
+
+  typeSafeSchemaPropertiesI Proxy = (:)
+    <$> (declareSchemaRef (Proxy :: Proxy t) <&> \schemaRef ->
+          ( fromString $ symbolVal (Proxy :: Proxy propName)
+          , boolVal (Proxy :: Proxy isRequired)
+          , schemaRef
+          ))
+    <*> typeSafeSchemaPropertiesI (Proxy :: Proxy xs)
+
+  typeSafeSchemaSeparatedPropertiesI Proxy = do
+    schemaRef <- declareSchemaRef (Proxy :: Proxy t)
+    typeSafeSchemaSeparatedPropertiesI (Proxy :: Proxy xs) <&> \(a, b) ->
+      ( (fromString (symbolVal (Proxy :: Proxy propName)), schemaRef) : a
+      , if boolVal (Proxy :: Proxy isRequired)
+           then fromString (symbolVal (Proxy :: Proxy propName)) : b
+           else b
+      )
+
+
+class KnownBool (b :: Bool) where boolVal :: forall proxy . proxy b -> Bool
+instance KnownBool 'True    where boolVal _ = True
+instance KnownBool 'False   where boolVal _ = False
