@@ -1,5 +1,6 @@
 {-# LANGUAGE DuplicateRecordFields, OverloadedStrings, OverloadedLists #-}
 {-# LANGUAGE DataKinds, TypeOperators, TypeFamilies, ScopedTypeVariables #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -17,7 +18,7 @@ module Carma.EraGlonass.Types.EGAddVinRequest
      ) where
 
 import           GHC.Generics
-import           GHC.TypeLits (symbolVal)
+import           GHC.TypeLits
 
 import           Data.Proxy
 import           Data.String (fromString)
@@ -36,6 +37,7 @@ import           Carma.EraGlonass.Types.Helpers
                    , toStringy
                    , typeName
                    , fieldName
+                   , ConstructorFieldName
                    , constructorFieldName
                    , addConstructorTag
                    , proxyPair
@@ -150,6 +152,7 @@ data EGAddVinResponseResponses
      deriving (Eq, Show, Generic)
 
 instance FromJSON EGAddVinResponseResponses where
+  parseJSON :: forall t. (t ~ EGAddVinResponseResponses) => Value -> Parser t
   parseJSON src@(Object obj) = go where
     go =
       if acceptCodeKey `Set.member` keys
@@ -167,24 +170,35 @@ instance FromJSON EGAddVinResponseResponses where
 
       | otherwise = typeMismatch typeName' src
 
-    typeProxy = f go where f :: Parser t -> Proxy t ; f _ = Proxy
-    typeName' = typeName typeProxy
+    typeName' = typeName (Proxy :: Proxy t)
+
+    withTypeProxy :: Proxy (a :: Symbol) -> Proxy '(t, a)
+    withTypeProxy = proxyPair Proxy
 
     okConstructorProxy =
-      proxyPair typeProxy (Proxy :: Proxy "EGAddVinResponseResponsesOk")
+      withTypeProxy (Proxy :: Proxy "EGAddVinResponseResponsesOk")
 
     failureConstructorProxy =
-      proxyPair typeProxy (Proxy :: Proxy "EGAddVinResponseResponsesFailure")
+      withTypeProxy (Proxy :: Proxy "EGAddVinResponseResponsesFailure")
 
-    acceptCodeKey =
-      fieldName $ proxyPair typeProxy (Proxy :: Proxy "acceptCode")
+    acceptCodeKey = fieldName $ withTypeProxy (Proxy :: Proxy "acceptCode")
 
+    -- | Proving by type-constraint that "vin" field is provided only for
+    -- successful case.
+    vinKey
+      :: ( Generic t
+         , ConstructorFieldName (Rep t)
+             "EGAddVinResponseResponsesOk" "vin" ~ 'Just "vin"
+         , ConstructorFieldName (Rep t)
+             "EGAddVinResponseResponsesFailure" "vin" ~ 'Nothing
+         )
+      => Text
     vinKey
       = constructorFieldName
       $ proxyPair2Triplet okConstructorProxy (Proxy :: Proxy "vin")
 
     statusDescriptionKey =
-      fieldName $ proxyPair typeProxy (Proxy :: Proxy "statusDescription")
+      fieldName $ withTypeProxy (Proxy :: Proxy "statusDescription")
 
     keys, okFields, failureFields :: Set.Set Text
     keys          = Set.fromList $ HM.keys obj
@@ -199,9 +213,7 @@ instance FromJSON EGAddVinResponseResponses where
            Just (Success x) -> x /= OK
            _ -> False
 
-  parseJSON x = go where
-    go = typeMismatch (typeName typeProxy) x
-    typeProxy = f go where f :: Parser t -> Proxy t ; f _ = Proxy
+  parseJSON invalid = typeMismatch (typeName (Proxy :: Proxy t)) invalid
 
 instance ToSchema EGAddVinResponseResponses where
   declareNamedSchema _ = do
