@@ -27,7 +27,7 @@ import qualified Data.HashMap.Lazy as HM
 import qualified Data.Set as Set
 import           Data.Aeson
 import           Data.Aeson.TH (Options (omitNothingFields))
-import           Data.Aeson.Types (typeMismatch, parseEither)
+import           Data.Aeson.Types (Parser, typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
 
@@ -35,7 +35,8 @@ import           Carma.EraGlonass.Types.Helpers
                    ( ReplaceFieldKey
                    , toStringy
                    , typeName
-                   , constructorName
+                   , addConstructorTag
+                   , proxyPair
                    )
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
@@ -95,24 +96,29 @@ data EGAddVinResponse
      deriving (Eq, Show, Generic)
 
 instance FromJSON EGAddVinResponse where
-  parseJSON src = pure $
-    -- Parsing here to extract parsing error message
-    case parseEither (const successfulCase) src of
-         Left msg -> EGAddVinResponseIncorrect msg src
-         Right x  -> x
+  parseJSON src = pure result where
+    result =
+      -- Parsing here to extract parsing error message
+      case parseEither (const successfulCase) src of
+           Left msg -> EGAddVinResponseIncorrect msg src
+           Right x  -> x
 
-    where
-      successfulCase = do
-        obj <- -- Extracting hash-map from JSON @Object@
-          case src of
-               Object x -> pure x
-               _        -> typeMismatch "EGAddVinResponse" src
+    typeName' = typeName $ pure result
 
-        parsed <- genericParseJSON defaultOptions $
-          -- Associating it with successful case constructor
-          Object $ HM.insert "tag" (String "EGAddVinResponse") obj
+    okConstructorProxy =
+      proxyPair (pure result) (Proxy :: Proxy "EGAddVinResponse")
 
-        pure parsed
+    successfulCase = do
+      obj <- -- Extracting hash-map from JSON @Object@
+        case src of
+             Object x -> pure x
+             _        -> typeMismatch typeName' src
+
+      parsed <- genericParseJSON defaultOptions $
+        -- Associating it with successful case constructor
+        Object $ addConstructorTag okConstructorProxy obj
+
+      pure parsed
 
 type FailureConsMeta
    = 'MetaCons "EGAddVinResponseIncorrect" 'PrefixI 'True
@@ -150,23 +156,22 @@ instance FromJSON EGAddVinResponseResponses where
     branching
       | isOk && keys `Set.isSubsetOf` okFields =
           genericParseJSON defaultOptions $
-            Object $ HM.insert "tag" (String okConstructor) obj
+            Object $ addConstructorTag okConstructorProxy obj
 
       | isNonOk && keys `Set.isSubsetOf` failureFields =
           genericParseJSON defaultOptions $
-            Object $ HM.insert "tag" (String failureConstructor) obj
+            Object $ addConstructorTag failureConstructorProxy obj
 
       | otherwise = typeMismatch typeName' src
 
-    typeName' = typeName (Proxy :: Proxy EGAddVinResponseResponses)
+    typeProxy = f go where f :: Parser t -> Proxy t ; f _ = Proxy
+    typeName' = typeName typeProxy
 
-    okConstructor =
-      constructorName (Proxy :: Proxy
-        '(EGAddVinResponseResponses, "EGAddVinResponseResponsesOk"))
+    okConstructorProxy =
+      proxyPair typeProxy (Proxy :: Proxy "EGAddVinResponseResponsesOk")
 
-    failureConstructor =
-      constructorName (Proxy :: Proxy
-        '(EGAddVinResponseResponses, "EGAddVinResponseResponsesFailure"))
+    failureConstructorProxy =
+      proxyPair typeProxy (Proxy :: Proxy "EGAddVinResponseResponsesFailure")
 
     acceptCodeKey        = "acceptCode"
     statusDescriptionKey = "statusDescription"
@@ -185,8 +190,9 @@ instance FromJSON EGAddVinResponseResponses where
            Just (Success x) -> x /= OK
            _ -> False
 
-  parseJSON x =
-    typeMismatch (typeName (Proxy :: Proxy EGAddVinResponseResponses)) x
+  parseJSON x = go where
+    go = typeMismatch (typeName typeProxy) x
+    typeProxy = f go where f :: Parser t -> Proxy t ; f _ = Proxy
 
 instance ToSchema EGAddVinResponseResponses where
   declareNamedSchema _ = do

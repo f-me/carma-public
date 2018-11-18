@@ -1,4 +1,6 @@
 {-# LANGUAGE DataKinds, TypeFamilies, TypeOperators, FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PolyKinds #-}
 
 module Carma.EraGlonass.Types.Helpers
      ( StringyEnum (..)
@@ -9,14 +11,18 @@ module Carma.EraGlonass.Types.Helpers
      , typeName
      , ConstructorName
      , constructorName
+
+     , addConstructorTag
+     , proxyPair
      ) where
 
 import           GHC.Generics
 import           GHC.TypeLits
 
+import           Data.Proxy
+import qualified Data.HashMap.Lazy as HM
 import           Data.String (IsString (fromString))
 import           Data.Text (Text)
-import           Data.Proxy
 import           Data.Aeson
 import           Data.Swagger
 import           Data.Swagger.Declare
@@ -97,3 +103,29 @@ constructorName
 constructorName = fromString . symbolVal . f where
   f :: KnownSymbol b => Proxy '(a, b) -> Proxy b
   f Proxy = Proxy
+
+
+-- | Helps to build custom @FromJSON@ instances.
+--
+-- For example when you have different set of required fields in raw JSON data
+-- depending on some field. So you're looking at that field first and then
+-- decide which constructor to use by adding a "tag" field to raw JSON data to
+-- give that extended raw JSON to generic @FromJSON@ implementation. It could be
+-- a separation between successful and failure cases (two constructors).
+--
+-- Also this function is type-level protected, so if you passed a correct
+-- proxied type with constructors, which one of them you're adding here, you
+-- can't compile until you set correct name of one.
+addConstructorTag
+  :: ( Generic t
+     , ConstructorName (Rep t) constructor ~ 'Just constructor
+     , KnownSymbol constructor
+     )
+  => Proxy '(t, constructor)
+  -> Object
+  -> Object
+addConstructorTag p@Proxy = HM.insert "tag" $ String $ constructorName p
+
+
+proxyPair :: Proxy a -> Proxy b -> Proxy '(a, b)
+proxyPair Proxy Proxy = Proxy
