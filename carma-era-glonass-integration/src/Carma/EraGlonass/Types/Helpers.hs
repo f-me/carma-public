@@ -78,11 +78,7 @@ type family TypeName (k1 :: * -> *) :: Symbol where
 -- | Helps to extract type name from "Generic" instance.
 --
 -- To any string type just by using type proxy.
-typeName
-  :: (Generic a, KnownSymbol (TypeName (Rep a)), IsString str)
-  => Proxy a
-  -> str
-
+typeName :: (KnownSymbol (TypeName (Rep a)), IsString str) => Proxy a -> str
 typeName = fromString . symbolVal . f where
   f :: Proxy p -> Proxy (TypeName (Rep p))
   f Proxy = Proxy
@@ -93,13 +89,12 @@ type family ConstructorName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
   ConstructorName (D1 _ (C1 ('MetaCons x _ _) _ :+: _)) x = 'Just x
   ConstructorName (D1 a (C1 _ _ :+: xs)) x = ConstructorName (D1 a xs) x
   ConstructorName (D1 _ (C1 ('MetaCons x _ _) _)) x = 'Just x
-  ConstructorName _ _ = 'Nothing
+  ConstructorName (D1 _ _) _ = 'Nothing
 
 -- | Helps to use constructor name of a proxied type with protection of its
 -- correctness.
 constructorName
-  :: ( Generic t
-     , ConstructorName (Rep t) constructor ~ 'Just constructor
+  :: ( ConstructorName (Rep t) constructor ~ 'Just constructor
      , KnownSymbol constructor
      , IsString str
      )
@@ -117,13 +112,12 @@ type family FieldName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
   FieldName (D1 a (C1 ('MetaCons _ _ _) x :+: xs)) s =
     MaybeAlternative (RecordFieldName x s) (FieldName (D1 a xs) s)
   FieldName (D1 _ (C1 ('MetaCons _ _ _) x)) s = RecordFieldName x s
-  FieldName _ _ = 'Nothing
+  FieldName (D1 _ _) _ = 'Nothing
 
 -- | Helps to use field name of a proxied record type with protection of its
 -- correctness.
 fieldName
-  :: ( Generic t
-     , FieldName (Rep t) field ~ 'Just field
+  :: ( FieldName (Rep t) field ~ 'Just field
      , KnownSymbol field
      , IsString str
      )
@@ -146,13 +140,12 @@ type family ConstructorFieldName (k1 :: * -> *)
   ConstructorFieldName (D1 a (C1 ('MetaCons c _ _) x :+: xs)) c f =
     MaybeAlternative (RecordFieldName x f) (ConstructorFieldName (D1 a xs) c f)
   ConstructorFieldName (D1 _ (C1 ('MetaCons c _ _) x)) c f = RecordFieldName x f
-  ConstructorFieldName _ _ _ = 'Nothing
+  ConstructorFieldName (D1 _ _) _ _ = 'Nothing
 
 -- | Helps to use a field name of a proxied record type with protection of its
 -- correctness and that this field defined inside provided constructor.
 constructorFieldName
-  :: ( Generic t
-     , ConstructorFieldName (Rep t) constructor field ~ 'Just field
+  :: ( ConstructorFieldName (Rep t) constructor field ~ 'Just field
      , KnownSymbol field
      , IsString str
      )
@@ -169,7 +162,7 @@ type family RecordFieldName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
   RecordFieldName (S1 ('MetaSel ('Just x) _ _ _) _ :*: _) x = 'Just x
   RecordFieldName (S1 ('MetaSel _ _ _ _) _ :*: xs) x = RecordFieldName xs x
   RecordFieldName (S1 ('MetaSel ('Just x) _ _ _) _) x = 'Just x
-  RecordFieldName _ _ = 'Nothing
+  RecordFieldName (S1 _ _) _ = 'Nothing
 
 
 -- | Helps to build custom @FromJSON@ instances.
@@ -184,8 +177,7 @@ type family RecordFieldName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
 -- proxied type with constructors, which one of them you're adding here, you
 -- can't compile until you set correct name of one.
 addConstructorTag
-  :: ( Generic t
-     , ConstructorName (Rep t) constructor ~ 'Just constructor
+  :: ( ConstructorName (Rep t) constructor ~ 'Just constructor
      , KnownSymbol constructor
      )
   => Proxy '(t, constructor)
@@ -208,6 +200,6 @@ proxyPair2Triplet Proxy Proxy = Proxy
 type family MaybeAlternative (k1 :: Maybe k)
                              (k2 :: Maybe k)
                                  :: Maybe k where
-  MaybeAlternative ('Just x) _ = 'Just x
-  MaybeAlternative _ ('Just x) = 'Just x
-  MaybeAlternative _ _ = 'Nothing
+  MaybeAlternative ('Just x) _        = 'Just x
+  MaybeAlternative 'Nothing ('Just x) = 'Just x
+  MaybeAlternative 'Nothing 'Nothing  = 'Nothing

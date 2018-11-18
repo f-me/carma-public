@@ -152,6 +152,8 @@ data EGAddVinResponseResponses
      deriving (Eq, Show, Generic)
 
 instance FromJSON EGAddVinResponseResponses where
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
   parseJSON :: forall t. (t ~ EGAddVinResponseResponses) => Value -> Parser t
   parseJSON src@(Object obj) = go where
     go =
@@ -186,8 +188,7 @@ instance FromJSON EGAddVinResponseResponses where
     -- | Proving by type-constraint that "vin" field is provided only for
     -- successful case.
     vinKey
-      :: ( Generic t
-         , ConstructorFieldName (Rep t)
+      :: ( ConstructorFieldName (Rep t)
              "EGAddVinResponseResponsesOk" "vin" ~ 'Just "vin"
          , ConstructorFieldName (Rep t)
              "EGAddVinResponseResponsesFailure" "vin" ~ 'Nothing
