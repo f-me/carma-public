@@ -1,6 +1,6 @@
 {-# LANGUAGE DuplicateRecordFields, OverloadedStrings, OverloadedLists #-}
-{-# LANGUAGE DataKinds, TypeOperators, TypeFamilies, ScopedTypeVariables #-}
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE DataKinds, TypeOperators, TypeFamilies #-}
+{-# LANGUAGE ScopedTypeVariables, InstanceSigs #-}
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -31,18 +31,9 @@ import           Data.Aeson.TH (Options (omitNothingFields))
 import           Data.Aeson.Types (Parser, typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
+import           Data.Swagger.Declare (Declare)
 
 import           Carma.EraGlonass.Types.Helpers
-                   ( ReplaceFieldKey
-                   , toStringy
-                   , typeName
-                   , fieldName
-                   , ConstructorFieldName
-                   , constructorFieldName
-                   , addConstructorTag
-                   , proxyPair
-                   , proxyPair2Triplet
-                   )
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
 import           Carma.EraGlonass.Types.EGVinOperationAcceptCode
@@ -217,6 +208,13 @@ instance FromJSON EGAddVinResponseResponses where
   parseJSON invalid = typeMismatch (typeName (Proxy :: Proxy t)) invalid
 
 instance ToSchema EGAddVinResponseResponses where
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t. (t ~ EGAddVinResponseResponses)
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
+
   declareNamedSchema _ = do
     okAcceptCodeRef <-
       pure $ Inline $ mempty
@@ -226,12 +224,20 @@ instance ToSchema EGAddVinResponseResponses where
             }
         }
 
-    failureAcceptCodeRef <- declareSchemaRef $ unwrapperToProxy acceptCode
+    failureAcceptCodeRef
+      <- declareSchemaRef
+      $  constructorFieldType
+      $  proxyPair2Triplet failureConstructorProxy (Proxy :: Proxy "acceptCode")
 
-    statusDescriptionRef <-
-      declareSchemaRef $ unwrapperToProxy statusDescription
+    statusDescriptionRef
+      <- declareSchemaRef
+      $  fieldType
+      $  withTypeProxy (Proxy :: Proxy "statusDescription")
 
-    vinRef <- declareSchemaRef $ unwrapperToProxy vin
+    vinRef
+      <- declareSchemaRef
+      $  constructorFieldType
+      $  proxyPair2Triplet okConstructorProxy (Proxy :: Proxy "vin")
 
     okConstructorRef <-
       pure $ Inline $ mempty
@@ -266,10 +272,11 @@ instance ToSchema EGAddVinResponseResponses where
     pure
       $ NamedSchema (Just typeName') mempty
       { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
-      , _schemaDiscriminator = Just "acceptCode"
+      , _schemaDiscriminator = Just acceptCodeKey
 
       , _schemaDescription =
-          Just [qn| "vin" is added only when "acceptCode" is "OK". |]
+          Just [qms| "{vinKey}" is added only when
+                     "{acceptCodeKey}" is "{toStringy OK}". |]
 
       , _schemaProperties =
           [ ("EGAddVinResponseResponsesOk",      okConstructorRef)
@@ -281,7 +288,20 @@ instance ToSchema EGAddVinResponseResponses where
       }
 
     where
-      typeName' = typeName (Proxy :: Proxy EGAddVinResponseResponses)
+      typeName' = typeName (Proxy :: Proxy t)
 
-      unwrapperToProxy :: (EGAddVinResponseResponses -> b) -> Proxy b
-      unwrapperToProxy _ = Proxy
+      withTypeProxy :: Proxy (a :: Symbol) -> Proxy '(t, a)
+      withTypeProxy = proxyPair Proxy
+
+      okConstructorProxy =
+        withTypeProxy (Proxy :: Proxy "EGAddVinResponseResponsesOk")
+
+      failureConstructorProxy =
+        withTypeProxy (Proxy :: Proxy "EGAddVinResponseResponsesFailure")
+
+      acceptCodeKey = fieldName $ withTypeProxy (Proxy :: Proxy "acceptCode")
+
+      vinKey
+        = constructorFieldName
+        $ proxyPair2Triplet okConstructorProxy (Proxy :: Proxy "vin")
+        :: Text
