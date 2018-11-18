@@ -13,9 +13,13 @@ module Carma.EraGlonass.Types.Helpers
      , constructorName
      , FieldName
      , fieldName
+     , ConstructorFieldName
+     , constructorFieldName
 
      , addConstructorTag
      , proxyPair
+     , proxyTriplet
+     , proxyPair2Triplet
      ) where
 
 import           GHC.Generics
@@ -107,28 +111,13 @@ constructorName = fromString . symbolVal . f where
   f Proxy = Proxy
 
 
--- | Helps to use field name of a record type with protection of its
+-- | Helps to use a field name of a record type with protection of its
 -- correctness.
 type family FieldName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
   FieldName (D1 a (C1 ('MetaCons _ _ _) x :+: xs)) s =
-    FieldNameAlt (RecordFieldName x s) (FieldName (D1 a xs) s)
+    MaybeAlternative (RecordFieldName x s) (FieldName (D1 a xs) s)
   FieldName (D1 _ (C1 ('MetaCons _ _ _) x)) s = RecordFieldName x s
   FieldName _ _ = 'Nothing
-
--- | Sub-helper of @FieldName@
-type family FieldNameAlt (k1 :: Maybe Symbol)
-                         (k2 :: Maybe Symbol)
-                             :: Maybe Symbol where
-  FieldNameAlt ('Just x) _ = 'Just x
-  FieldNameAlt _ ('Just x) = 'Just x
-  FieldNameAlt _ _ = 'Nothing
-
--- | Sub-helper of @FieldName@
-type family RecordFieldName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
-  RecordFieldName (S1 ('MetaSel ('Just x) _ _ _) _ :*: _) x = 'Just x
-  RecordFieldName (S1 ('MetaSel _ _ _ _) _ :*: xs) x = RecordFieldName xs x
-  RecordFieldName (S1 ('MetaSel ('Just x) _ _ _) _) x = 'Just x
-  RecordFieldName _ _ = 'Nothing
 
 -- | Helps to use field name of a proxied record type with protection of its
 -- correctness.
@@ -144,6 +133,43 @@ fieldName
 fieldName = fromString . symbolVal . f where
   f :: KnownSymbol b => Proxy '(a, b) -> Proxy b
   f Proxy = Proxy
+
+-- | Helps to use a field name of a record type with protection of its
+-- correctness and that this field defined inside provided constructor.
+--
+-- It will return @Nothing@ if neither there's no such constructor for provided
+-- type nor if such field name not found inside definition of that constructor.
+type family ConstructorFieldName (k1 :: * -> *)
+                                 (k2 :: Symbol)
+                                 (k3 :: Symbol)
+                                     :: Maybe Symbol where
+  ConstructorFieldName (D1 a (C1 ('MetaCons c _ _) x :+: xs)) c f =
+    MaybeAlternative (RecordFieldName x f) (ConstructorFieldName (D1 a xs) c f)
+  ConstructorFieldName (D1 _ (C1 ('MetaCons c _ _) x)) c f = RecordFieldName x f
+  ConstructorFieldName _ _ _ = 'Nothing
+
+-- | Helps to use a field name of a proxied record type with protection of its
+-- correctness and that this field defined inside provided constructor.
+constructorFieldName
+  :: ( Generic t
+     , ConstructorFieldName (Rep t) constructor field ~ 'Just field
+     , KnownSymbol field
+     , IsString str
+     )
+  => Proxy '(t, constructor, field)
+  -> str
+
+constructorFieldName = fromString . symbolVal . f where
+  f :: KnownSymbol c => Proxy '(a, b, c) -> Proxy c
+  f Proxy = Proxy
+
+-- | Sub-helper of @FieldName@ and @ConstructorName@ to iterate over fields
+-- definitions inside a constructor.
+type family RecordFieldName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
+  RecordFieldName (S1 ('MetaSel ('Just x) _ _ _) _ :*: _) x = 'Just x
+  RecordFieldName (S1 ('MetaSel _ _ _ _) _ :*: xs) x = RecordFieldName xs x
+  RecordFieldName (S1 ('MetaSel ('Just x) _ _ _) _) x = 'Just x
+  RecordFieldName _ _ = 'Nothing
 
 
 -- | Helps to build custom @FromJSON@ instances.
@@ -171,3 +197,17 @@ addConstructorTag p@Proxy = HM.insert "tag" $ String $ constructorName p
 
 proxyPair :: Proxy a -> Proxy b -> Proxy '(a, b)
 proxyPair Proxy Proxy = Proxy
+
+proxyTriplet :: Proxy a -> Proxy b -> Proxy c -> Proxy '(a, b, c)
+proxyTriplet Proxy Proxy Proxy = Proxy
+
+proxyPair2Triplet :: Proxy '(a, b) -> Proxy c -> Proxy '(a, b, c)
+proxyPair2Triplet Proxy Proxy = Proxy
+
+
+type family MaybeAlternative (k1 :: Maybe k)
+                             (k2 :: Maybe k)
+                                 :: Maybe k where
+  MaybeAlternative ('Just x) _ = 'Just x
+  MaybeAlternative _ ('Just x) = 'Just x
+  MaybeAlternative _ _ = 'Nothing
