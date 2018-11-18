@@ -1,6 +1,6 @@
-{-# LANGUAGE DataKinds, TypeFamilies, TypeOperators, FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE DataKinds, TypeFamilies, TypeOperators, FlexibleContexts #-}
+{-# LANGUAGE PolyKinds, UndecidableInstances #-}
 
 module Carma.EraGlonass.Types.Helpers
      ( StringyEnum (..)
@@ -11,6 +11,8 @@ module Carma.EraGlonass.Types.Helpers
      , typeName
      , ConstructorName
      , constructorName
+     , FieldName
+     , fieldName
 
      , addConstructorTag
      , proxyPair
@@ -105,6 +107,45 @@ constructorName = fromString . symbolVal . f where
   f Proxy = Proxy
 
 
+-- | Helps to use field name of a record type with protection of its
+-- correctness.
+type family FieldName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
+  FieldName (D1 a (C1 ('MetaCons _ _ _) x :+: xs)) s =
+    FieldNameAlt (RecordFieldName x s) (FieldName (D1 a xs) s)
+  FieldName (D1 _ (C1 ('MetaCons _ _ _) x)) s = RecordFieldName x s
+  FieldName _ _ = 'Nothing
+
+-- | Sub-helper of @FieldName@
+type family FieldNameAlt (k1 :: Maybe Symbol)
+                         (k2 :: Maybe Symbol)
+                             :: Maybe Symbol where
+  FieldNameAlt ('Just x) _ = 'Just x
+  FieldNameAlt _ ('Just x) = 'Just x
+  FieldNameAlt _ _ = 'Nothing
+
+-- | Sub-helper of @FieldName@
+type family RecordFieldName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
+  RecordFieldName (S1 ('MetaSel ('Just x) _ _ _) _ :*: _) x = 'Just x
+  RecordFieldName (S1 ('MetaSel _ _ _ _) _ :*: xs) x = RecordFieldName xs x
+  RecordFieldName (S1 ('MetaSel ('Just x) _ _ _) _) x = 'Just x
+  RecordFieldName _ _ = 'Nothing
+
+-- | Helps to use field name of a proxied record type with protection of its
+-- correctness.
+fieldName
+  :: ( Generic t
+     , FieldName (Rep t) field ~ 'Just field
+     , KnownSymbol field
+     , IsString str
+     )
+  => Proxy '(t, field)
+  -> str
+
+fieldName = fromString . symbolVal . f where
+  f :: KnownSymbol b => Proxy '(a, b) -> Proxy b
+  f Proxy = Proxy
+
+
 -- | Helps to build custom @FromJSON@ instances.
 --
 -- For example when you have different set of required fields in raw JSON data
@@ -124,6 +165,7 @@ addConstructorTag
   => Proxy '(t, constructor)
   -> Object
   -> Object
+
 addConstructorTag p@Proxy = HM.insert "tag" $ String $ constructorName p
 
 

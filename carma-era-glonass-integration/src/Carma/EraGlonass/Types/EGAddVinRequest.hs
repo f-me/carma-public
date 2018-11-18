@@ -35,6 +35,7 @@ import           Carma.EraGlonass.Types.Helpers
                    ( ReplaceFieldKey
                    , toStringy
                    , typeName
+                   , fieldName
                    , addConstructorTag
                    , proxyPair
                    )
@@ -173,9 +174,13 @@ instance FromJSON EGAddVinResponseResponses where
     failureConstructorProxy =
       proxyPair typeProxy (Proxy :: Proxy "EGAddVinResponseResponsesFailure")
 
-    acceptCodeKey        = "acceptCode"
-    statusDescriptionKey = "statusDescription"
-    vinKey               = "vin"
+    acceptCodeKey =
+      fieldName $ proxyPair typeProxy (Proxy :: Proxy "acceptCode")
+
+    vinKey = fieldName $ proxyPair typeProxy (Proxy :: Proxy "vin")
+
+    statusDescriptionKey =
+      fieldName $ proxyPair typeProxy (Proxy :: Proxy "statusDescription")
 
     keys, okFields, failureFields :: Set.Set Text
     keys          = Set.fromList $ HM.keys obj
