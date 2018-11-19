@@ -94,29 +94,30 @@ data EGAddVinResponse
      deriving (Eq, Show, Generic)
 
 instance FromJSON EGAddVinResponse where
-  parseJSON src = pure result where
-    result =
-      -- Parsing here to extract parsing error message
-      case parseEither (const successfulCase) src of
-           Left msg -> EGAddVinResponseIncorrect msg src
-           Right x  -> x
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON :: forall t. (t ~ EGAddVinResponse) => Value -> Parser t
+  parseJSON src = pure $
+    -- Parsing here to extract parsing error message
+    case parseEither (const successfulCase) src of
+         Left msg -> EGAddVinResponseIncorrect msg src
+         Right x  -> x
 
-    typeName' = typeName $ pure result
+    where
+      typeName' = typeName (Proxy :: Proxy t)
 
-    okConstructorProxy =
-      proxyPair (pure result) (Proxy :: Proxy "EGAddVinResponse")
+      okConstructorProxy :: Proxy '(t, "EGAddVinResponse")
+      okConstructorProxy = Proxy
 
-    successfulCase = do
-      obj <- -- Extracting hash-map from JSON @Object@
-        case src of
-             Object x -> pure x
-             _        -> typeMismatch typeName' src
+      successfulCase = do
+        obj <- -- Extracting hash-map from JSON @Object@
+          case src of
+               Object x -> pure x
+               _        -> typeMismatch typeName' src
 
-      parsed <- genericParseJSON defaultOptions $
-        -- Associating it with successful case constructor
-        Object $ addConstructorTag okConstructorProxy obj
-
-      pure parsed
+        genericParseJSON defaultOptions $
+          -- Associating it with successful case constructor
+          Object $ addConstructorTag okConstructorProxy obj
 
 type FailureConsMeta
    = 'MetaCons "EGAddVinResponseIncorrect" 'PrefixI 'True

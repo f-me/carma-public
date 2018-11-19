@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE DataKinds, TypeOperators, TypeFamilies, ScopedTypeVariables #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 -- Fixes issue when record-fields aren't exported. Probably related to:
 --   https://stackoverflow.com/questions/46357747/haddock-data-record-fields-names-not-being-generated
@@ -18,25 +18,20 @@ module Carma.EraGlonass.Types.EGCheckVinRequest
      ) where
 
 import           GHC.Generics
-import           GHC.TypeLits (symbolVal)
+import           GHC.TypeLits
 
 import           Data.Proxy
 import           Data.Text (Text)
 import           Data.String (fromString)
-import qualified Data.HashMap.Lazy as HM
 import           Data.Aeson
 import           Data.Aeson.TH (Options (omitNothingFields))
-import           Data.Aeson.Types (typeMismatch, parseEither)
+import           Data.Aeson.Types (Parser, typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
 
+import           Carma.EraGlonass.Types.Helpers
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
-import           Carma.EraGlonass.Types.Helpers
-                   ( ReplaceFieldKey
-                   , typeName
-                   , constructorName
-                   )
 
 
 -- *** Request ***
@@ -89,6 +84,9 @@ data EGCheckVinResponse
      deriving (Eq, Show, Generic)
 
 instance FromJSON EGCheckVinResponse where
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON :: forall t. (t ~ EGCheckVinResponse) => Value -> Parser t
   parseJSON src = pure $
     -- Parsing here to extract parsing error message
     case parseEither (const successfulCase) src of
@@ -96,11 +94,10 @@ instance FromJSON EGCheckVinResponse where
          Right x  -> x
 
     where
-      typeName' = typeName (Proxy :: Proxy EGCheckVinResponse)
+      typeName' = typeName (Proxy :: Proxy t)
 
-      okConstructor =
-        constructorName (Proxy :: Proxy
-          '(EGCheckVinResponse, "EGCheckVinResponse"))
+      okConstructorProxy :: Proxy '(t, "EGCheckVinResponse")
+      okConstructorProxy = Proxy
 
       successfulCase = do
         obj <- -- Extracting hash-map from JSON @Object@
@@ -108,11 +105,9 @@ instance FromJSON EGCheckVinResponse where
                Object x -> pure x
                _        -> typeMismatch typeName' src
 
-        parsed <- genericParseJSON defaultOptions $
+        genericParseJSON defaultOptions $
           -- Associating it with successful case constructor
-          Object $ HM.insert "tag" (String okConstructor) obj
-
-        pure parsed
+          Object $ addConstructorTag okConstructorProxy obj
 
 type FailureConsMeta
    = 'MetaCons "EGCheckVinResponseIncorrect" 'PrefixI 'True
