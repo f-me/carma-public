@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds, PolyKinds, TypeFamilies, TypeOperators #-}
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, UndecidableInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 
 -- | Helpers for building/defining Era Glonass types.
 --
@@ -40,12 +41,16 @@ module Carma.EraGlonass.Types.Helpers
      , typeSafeSchemaSeparatedProperties
      , TypeSafeSchemaProperty
      , typeSafeSchemaProperty
+     , TypeSafeSchemaConstructorsAsProperties
+     , typeSafeSchemaConstructorsAsProperties
+     , typeSafeSchemaMapConstructorsAsProperties
 
      , constructorsBranchingSchemaProto
      ) where
 
 import           GHC.Generics
 import           GHC.TypeLits
+import           GHC.Exts (IsList (..))
 
 import           Data.Proxy
 import qualified Data.HashMap.Lazy as HM
@@ -316,6 +321,20 @@ type family MaybeTypeIsMaybe (k1 :: Maybe *) :: Maybe Bool where
   MaybeTypeIsMaybe ('Just x) = 'Just (TypeIsMaybe x)
 
 
+type family MaybeList (k1 :: Maybe a) :: Maybe [a] where
+  MaybeList ('Just x) = 'Just '[x]
+  MaybeList _ = 'Nothing
+
+
+type family LiftFstMaybe (k1 :: (Maybe a, b)) :: Maybe (a, b) where
+  LiftFstMaybe '( 'Just a, b ) = 'Just '(a, b)
+  LiftFstMaybe _ = 'Nothing
+
+type family LiftSndMaybe (k1 :: (a, Maybe b)) :: Maybe (a, b) where
+  LiftSndMaybe '( a, 'Just b ) = 'Just '(a, b)
+  LiftSndMaybe _ = 'Nothing
+
+
 type family Not (k1 :: Bool) :: Bool where
   Not 'True  = 'False
   Not 'False = 'True
@@ -478,6 +497,100 @@ instance ( KnownSymbol propName
            then fromString (symbolVal (Proxy :: Proxy propName)) : b
            else b
       )
+
+
+type family TypeSafeSchemaConstructorsAsProperties
+            (k1 :: * -> *)
+            :: Maybe [( Symbol, [(Symbol, Bool, *)] )]
+            where
+
+  TypeSafeSchemaConstructorsAsProperties (D1 a (C1 ('MetaCons c b 'True) x)) =
+    MaybeList
+      (LiftSndMaybe
+        '(c, TypeSafeSchemaProperties (D1 a (C1 ('MetaCons c b 'True) x)) c))
+
+  TypeSafeSchemaConstructorsAsProperties
+    (D1 a (C1 ('MetaCons c b 'True) x :+: xs)) =
+      MaybeMaybeCons
+        (LiftSndMaybe
+          '(c, (TypeSafeSchemaProperties
+               (D1 a (C1 ('MetaCons c b 'True) x)) c)))
+        (TypeSafeSchemaConstructorsAsProperties (D1 a xs))
+
+  TypeSafeSchemaConstructorsAsProperties (D1 _ _) = 'Nothing
+
+typeSafeSchemaConstructorsAsProperties
+  :: forall recordType constructorName list
+  .  ( TypeSafeSchemaConstructorsAsProperties (Rep recordType) ~ 'Just list
+     , TypeSafeSchemaConstructorsAsPropertiesI list
+     , IsString constructorName
+     )
+  => Proxy recordType
+  -> Declare (Definitions Schema) [(constructorName, Referenced Schema)]
+
+typeSafeSchemaConstructorsAsProperties p@Proxy =
+  typeSafeSchemaMapConstructorsAsProperties p $ const id
+
+typeSafeSchemaMapConstructorsAsProperties
+  :: forall recordType constructorName list
+  .  ( TypeSafeSchemaConstructorsAsProperties (Rep recordType) ~ 'Just list
+     , TypeSafeSchemaConstructorsAsPropertiesI list
+     , IsString constructorName
+     )
+  => Proxy recordType
+  -> (constructorName -> Schema -> Schema)
+  -> Declare (Definitions Schema) [(constructorName, Referenced Schema)]
+
+typeSafeSchemaMapConstructorsAsProperties Proxy schemaMapFn =
+  typeSafeSchemaConstructorsAsSeparatedPropertiesI (Proxy :: Proxy list)
+    <&> fmap f
+  where
+    f (constructor, (props, requiredProps)) =
+      ( constructor
+      , Inline $ schemaMapFn constructor $ mempty
+          { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+          , _schemaProperties  = fromList props
+          , _schemaRequired    = fromList requiredProps
+          }
+      )
+
+class TypeSafeSchemaConstructorsAsPropertiesI
+      (a :: [( Symbol, [(Symbol, Bool, *)] )]) where
+
+  typeSafeSchemaConstructorsAsPropertiesI
+    :: (IsString constructorName, IsString propName)
+    => Proxy a
+    -> Declare (Definitions Schema)
+               [(constructorName, [(propName, Bool, Referenced Schema)])]
+
+  typeSafeSchemaConstructorsAsSeparatedPropertiesI
+    :: (IsString constructorName, IsString propName, IsString requiredPropName)
+    => Proxy a
+    -> Declare (Definitions Schema)
+               [ ( constructorName
+                 , ([(propName, Referenced Schema)], [requiredPropName])
+                 ) ]
+
+instance TypeSafeSchemaConstructorsAsPropertiesI '[] where
+  typeSafeSchemaConstructorsAsPropertiesI Proxy = pure []
+  typeSafeSchemaConstructorsAsSeparatedPropertiesI Proxy = pure []
+
+instance ( KnownSymbol constructorName
+         , TypeSafeSchemaPropertiesI props
+         , TypeSafeSchemaConstructorsAsPropertiesI xs
+         ) => TypeSafeSchemaConstructorsAsPropertiesI
+              ('(constructorName, props) ': xs)
+         where
+
+  typeSafeSchemaConstructorsAsPropertiesI Proxy = (:)
+    <$> ((c,) <$> typeSafeSchemaPropertiesI (Proxy :: Proxy props))
+    <*> typeSafeSchemaConstructorsAsPropertiesI (Proxy :: Proxy xs)
+    where c = fromString $ symbolVal (Proxy :: Proxy constructorName)
+
+  typeSafeSchemaConstructorsAsSeparatedPropertiesI Proxy = (:)
+    <$> ((c,) <$> typeSafeSchemaSeparatedPropertiesI (Proxy :: Proxy props))
+    <*> typeSafeSchemaConstructorsAsSeparatedPropertiesI (Proxy :: Proxy xs)
+    where c = fromString $ symbolVal (Proxy :: Proxy constructorName)
 
 
 -- | Prototype "Schema" for branching constructors

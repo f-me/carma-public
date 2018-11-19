@@ -1,8 +1,8 @@
-{-# LANGUAGE DuplicateRecordFields, OverloadedStrings, OverloadedLists #-}
+{-# LANGUAGE DuplicateRecordFields, OverloadedLists #-}
 {-# LANGUAGE DataKinds, TypeOperators, TypeFamilies #-}
 {-# LANGUAGE ScopedTypeVariables, InstanceSigs #-}
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
-{-# LANGUAGE QuasiQuotes, TupleSections #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 -- Fixes issue when record-fields aren't exported. Probably related to:
 --   https://stackoverflow.com/questions/46357747/haddock-data-record-fields-names-not-being-generated
@@ -22,6 +22,7 @@ import           GHC.TypeLits
 import           GHC.Exts (IsList (..))
 
 import           Data.Proxy
+import           Data.Monoid
 import           Data.String (fromString)
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
@@ -34,7 +35,6 @@ import           Data.Swagger
 import           Data.Swagger.Internal.Schema
 import           Data.Swagger.Declare (Declare)
 
-import           Carma.Utils.Operators
 import           Carma.EraGlonass.Types.Helpers
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
@@ -218,30 +218,9 @@ instance ToSchema EGAddVinResponseResponses where
     -> Declare (Definitions Schema) NamedSchema
 
   declareNamedSchema _ = do
-    okConstructorRef <-
-      typeSafeSchemaSeparatedProperties okConstructorProxy <&>
-        \(props, requiredProps) ->
-          let
-            acceptCodeProp = (acceptCodeKey,) $ Inline $ mempty
-              { _schemaParamSchema = mempty
-                  { _paramSchemaType = SwaggerString
-                  , _paramSchemaEnum = Just $ String . toStringy <$> [OK]
-                  }
-              }
-          in
-            Inline $ mempty
-              { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
-              , _schemaProperties = fromList $ acceptCodeProp : props
-              , _schemaRequired = fromList $ fst acceptCodeProp : requiredProps
-              }
-
-    failureConstructorRef <-
-      typeSafeSchemaSeparatedProperties failureConstructorProxy <&>
-        \(props, requiredProps) -> Inline $ mempty
-          { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
-          , _schemaProperties  = fromList props
-          , _schemaRequired    = fromList requiredProps
-          }
+    constructors <-
+      typeSafeSchemaMapConstructorsAsProperties
+        (Proxy :: Proxy t) constructorMapFn
 
     pure
       $ NamedSchema (Just typeName') constructorsBranchingSchemaProto
@@ -251,10 +230,7 @@ instance ToSchema EGAddVinResponseResponses where
           Just [qms| "{vinKey :: Text}" is added only when
                      "{acceptCodeKey}" is "{toStringy OK}". |]
 
-      , _schemaProperties =
-          [ ("EGAddVinResponseResponsesOk",      okConstructorRef)
-          , ("EGAddVinResponseResponsesFailure", failureConstructorRef)
-          ]
+      , _schemaProperties = fromList constructors
       }
 
     where
@@ -266,10 +242,23 @@ instance ToSchema EGAddVinResponseResponses where
       okConstructorProxy =
         withTypeProxy (Proxy :: Proxy "EGAddVinResponseResponsesOk")
 
-      failureConstructorProxy =
-        withTypeProxy (Proxy :: Proxy "EGAddVinResponseResponsesFailure")
-
       acceptCodeKey = fieldName $ withTypeProxy (Proxy :: Proxy "acceptCode")
+
+      acceptCodeSchema = Inline $ mempty
+        { _schemaParamSchema = mempty
+            { _paramSchemaType = SwaggerString
+            , _paramSchemaEnum = Just $ String . toStringy <$> [OK]
+            }
+        }
+
+      constructorMapFn constructor scheme
+        | constructor == constructorName okConstructorProxy = scheme
+            { _schemaProperties =
+                fromList [(acceptCodeKey, acceptCodeSchema)]
+                  <> _schemaProperties scheme
+            , _schemaRequired = acceptCodeKey : _schemaRequired scheme
+            }
+        | otherwise = scheme
 
       vinKey
         = constructorFieldName
