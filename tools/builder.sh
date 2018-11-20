@@ -25,8 +25,14 @@ Multiple tasks (task groups, runs other tasks inside):
 Singular tasks:
     $0 backend-configs             Copy configs examples if needed
     $0 backend-carma               Just build CaRMa backend
+
     $0 backend-test-configurator   Run tests for configs
     $s                             handled by "carma-configurator" tool
+
+    $0 backend-test-era-glonass-integration
+    $s                             Run tests for Era Glonass
+    $s                             integration microservice
+
     $0 frontend-pure               Build "pure" frontend
     $0 frontend-legacy             Build "legacy" frontend
     $0 frontend-backend-templates  Build templates which used by backend
@@ -94,7 +100,7 @@ is_bare_app_log=false
 available_tasks=(
     all test
     backend backend-configs backend-carma backend-test
-    backend-test-configurator
+    backend-test-configurator backend-test-era-glonass-integration
     frontend frontend-pure frontend-legacy frontend-backend-templates
 )
 
@@ -883,9 +889,11 @@ backend_test_task() {
     if [[ $run_in_parallel == true ]]; then
         local pids=()
         backend_test_configurator_task & pids+=($!)
+        backend_test_era_glonass_integration_task & pids+=($!)
         for pid in "${pids[@]}"; do wait -- "$pid" || rv=$?; done
     else
         backend_test_configurator_task
+        backend_test_era_glonass_integration_task
     fi
     task_resolve "$task_name" "$rv"
 }
@@ -971,6 +979,10 @@ for task in "${positional[@]}"; do
         backend-test-configurator)
             solo "$task" "${backend_test_configurator_task__covered_by[@]}"
             ;;
+        backend-test-era-glonass-integration)
+            solo "$task" \
+                "${backend_test_era_glonass_integration_task__covered_by[@]}"
+            ;;
         frontend)
             solo "$task" "${frontend_task__covered_by[@]}"
             ;;
@@ -1031,6 +1043,11 @@ for task in "${positional[@]}"; do
             if [[ $run_in_parallel == true ]]
                 then backend_test_configurator_task & task_pids+=($!)
                 else backend_test_configurator_task; fi
+            ;;
+        backend-test-era-glonass-integration)
+            if [[ $run_in_parallel == true ]]
+                then backend_test_era_glonass_integration_task & task_pids+=($!)
+                else backend_test_era_glonass_integration_task; fi
             ;;
         frontend)
             if [[ $run_in_parallel == true ]]
