@@ -153,6 +153,8 @@ type family ConstructorName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
   ConstructorName (D1 _ (C1 ('MetaCons x _ _) _)) x = 'Just x
   ConstructorName (D1 _ (C1 ('MetaCons x _ _) _ :+: _)) x = 'Just x
   ConstructorName (D1 a (C1 _ _ :+: xs)) x = ConstructorName (D1 a xs) x
+  ConstructorName (D1 a (xs :+: ys)) x =
+    MaybeAlternative (ConstructorName (D1 a xs) x) (ConstructorName (D1 a ys) x)
   ConstructorName (D1 _ _) _ = 'Nothing
 
 -- | Helps to use constructor name of a proxied type with protection of its
@@ -191,6 +193,8 @@ type family FieldName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
   FieldName (D1 _ (C1 ('MetaCons _ _ _) x)) s = RecordFieldName x s
   FieldName (D1 a (C1 ('MetaCons _ _ _) x :+: xs)) s =
     MaybeAlternative (RecordFieldName x s) (FieldName (D1 a xs) s)
+  FieldName (D1 a (xs :+: ys)) s =
+    MaybeAlternative (FieldName (D1 a xs) s) (FieldName (D1 a ys) s)
   FieldName (D1 _ _) _ = 'Nothing
 
 -- | Helps to use field name of a proxied record type with protection of its
@@ -237,6 +241,10 @@ type family ConstructorFieldName (k1 :: * -> *)
     RecordFieldName x f
   ConstructorFieldName (D1 a (C1 ('MetaCons _ _ _) _ :+: xs)) c f =
     ConstructorFieldName (D1 a xs) c f
+  ConstructorFieldName (D1 a (xs :+: ys)) c f =
+    MaybeAlternative
+      (ConstructorFieldName (D1 a xs) c f)
+      (ConstructorFieldName (D1 a ys) c f)
   ConstructorFieldName (D1 _ _) _ _ = 'Nothing
 
 -- | Helps to use a field name of a proxied record type with protection of its
@@ -277,6 +285,8 @@ type family FieldType (k1 :: * -> *) (k2 :: Symbol) :: Maybe * where
   FieldType (D1 _ (C1 ('MetaCons _ _ 'True) x)) s = RecordFieldType x s
   FieldType (D1 a (C1 ('MetaCons _ _ 'True) x :+: xs)) s =
     MaybeAlternative (RecordFieldType x s) (FieldType (D1 a xs) s)
+  FieldType (D1 a (xs :+: ys)) s =
+    MaybeAlternative (FieldType (D1 a xs) s) (FieldType (D1 a ys) s)
   FieldType (D1 _ _) _ = 'Nothing
 
 -- | Helps to use a field type of a proxied record type with protection of its
@@ -318,6 +328,10 @@ type family ConstructorFieldType (k1 :: * -> *)
     RecordFieldType x f
   ConstructorFieldType (D1 a (C1 ('MetaCons _ _ _) _ :+: xs)) c f =
     ConstructorFieldType (D1 a xs) c f
+  ConstructorFieldType (D1 a (xs :+: ys)) c f =
+    MaybeAlternative
+      (ConstructorFieldType (D1 a xs) c f)
+      (ConstructorFieldType (D1 a ys) c f)
   ConstructorFieldType (D1 _ _) _ _ = 'Nothing
 
 -- | Helps to use a field type of a proxied record type with protection of its
@@ -587,6 +601,10 @@ type family TypeSafeSchemaProperties
     ConstructorProperties (D1 a (C1 ('MetaCons c b 'True) x)) c x ('Just '[])
   TypeSafeSchemaProperties (D1 a (C1 ('MetaCons _ _ _) _ :+: xs)) c =
     TypeSafeSchemaProperties (D1 a xs) c
+  TypeSafeSchemaProperties (D1 a (xs :+: ys)) c =
+    MaybeAlternative
+      (TypeSafeSchemaProperties (D1 a xs) c)
+      (TypeSafeSchemaProperties (D1 a ys) c)
   TypeSafeSchemaProperties (D1 _ _) _ = 'Nothing
 
 type family ConstructorProperties
@@ -738,6 +756,11 @@ type family TypeSafeSchemaConstructorsAsProperties
           '(c, (TypeSafeSchemaProperties
                (D1 a (C1 ('MetaCons c b 'True) x)) c)))
         (TypeSafeSchemaConstructorsAsProperties (D1 a xs))
+
+  TypeSafeSchemaConstructorsAsProperties (D1 a (xs :+: ys)) =
+    MaybeMaybeConcat
+      (TypeSafeSchemaConstructorsAsProperties (D1 a xs))
+      (TypeSafeSchemaConstructorsAsProperties (D1 a ys))
 
   TypeSafeSchemaConstructorsAsProperties (D1 _ _) = 'Nothing
 
