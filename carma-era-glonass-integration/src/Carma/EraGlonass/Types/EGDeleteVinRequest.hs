@@ -104,7 +104,7 @@ instance FromJSON EGDeleteVinResponse where
          Right x  -> x
 
     where
-      typeName' = typeName (Proxy :: Proxy t)
+      typeName'' = typeName (Proxy :: Proxy t)
 
       okConstructorProxy :: Proxy '(t, "EGDeleteVinResponse")
       okConstructorProxy = Proxy
@@ -113,7 +113,7 @@ instance FromJSON EGDeleteVinResponse where
         obj <- -- Extracting hash-map from JSON @Object@
           case src of
                Object x -> pure x
-               _        -> typeMismatch typeName' src
+               _        -> typeMismatch typeName'' src
 
         genericParseJSON defaultOptions $
           -- Associating it with successful case constructor
@@ -155,7 +155,7 @@ instance FromJSON EGDeleteVinResponseResponses where
     go =
       if acceptCodeKey `Set.member` keys
          then branching
-         else typeMismatch typeName' src
+         else typeMismatch typeName'' src
 
     branching
       | isSuccess && keys `Set.isSubsetOf` successFields =
@@ -166,9 +166,9 @@ instance FromJSON EGDeleteVinResponseResponses where
           genericParseJSON defaultOptions $
             Object $ addConstructorTag incorrectFormatConstructorProxy obj
 
-      | otherwise = typeMismatch typeName' src
+      | otherwise = typeMismatch typeName'' src
 
-    typeName' = typeName (Proxy :: Proxy t)
+    typeName'' = typeName (Proxy :: Proxy t)
 
     withTypeProxy :: Proxy (a :: Symbol) -> Proxy '(t, a)
     withTypeProxy = proxyPair Proxy
@@ -220,7 +220,7 @@ instance ToSchema EGDeleteVinResponseResponses where
         (Proxy :: Proxy t) constructorMapFn
 
     pure
-      $ NamedSchema (Just typeName') constructorsBranchingSchemaProto
+      $ NamedSchema (Just typeName'') constructorsBranchingSchemaProto
       { _schemaDiscriminator = Just acceptCodeKey
 
       , _schemaDescription =
@@ -232,7 +232,7 @@ instance ToSchema EGDeleteVinResponseResponses where
       }
 
     where
-      typeName' = typeName (Proxy :: Proxy t)
+      typeName'' = typeName (Proxy :: Proxy t)
 
       withTypeProxy :: Proxy (a :: Symbol) -> Proxy '(t, a)
       withTypeProxy = proxyPair Proxy

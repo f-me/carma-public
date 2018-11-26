@@ -20,30 +20,44 @@ module Carma.EraGlonass.Types.Helpers
 
      , TypeName
      , typeName
+     , typeName'
      , ConstructorName
      , constructorName
+     , constructorName'
      , FieldName
      , fieldName
+     , fieldName'
      , ConstructorFieldName
      , constructorFieldName
+     , constructorFieldName'
      , FieldType
      , fieldType
+     , fieldType'
      , ConstructorFieldType
      , constructorFieldType
+     , constructorFieldType'
 
      , addConstructorTag
+     , addConstructorTag'
+     , removeConstructorTag
+
      , proxyPair
      , proxyTriplet
      , proxyPair2Triplet
 
-     , TypeSafeSchemaProperties
-     , typeSafeSchemaProperties
-     , typeSafeSchemaSeparatedProperties
      , TypeSafeSchemaProperty
      , typeSafeSchemaProperty
+     , typeSafeSchemaProperty'
+     , TypeSafeSchemaProperties
+     , typeSafeSchemaProperties
+     , typeSafeSchemaProperties'
+     , typeSafeSchemaSeparatedProperties
+     , typeSafeSchemaSeparatedProperties'
      , TypeSafeSchemaConstructorsAsProperties
      , typeSafeSchemaConstructorsAsProperties
+     , typeSafeSchemaConstructorsAsProperties'
      , typeSafeSchemaMapConstructorsAsProperties
+     , typeSafeSchemaMapConstructorsAsProperties'
 
      , constructorsBranchingSchemaProto
      ) where
@@ -65,29 +79,28 @@ import           Carma.Utils.Operators
 
 
 stringyEnumNamedSchema
-  :: (GToSchema (Rep a), ToJSON a, StringyEnum a, Enum a, Bounded a)
+  :: forall a typeRep proxy
+  .  ( typeRep ~ Rep a
+     , GToSchema typeRep
+     , ToJSON a
+     , StringyEnum a
+     , Enum a
+     , Bounded a
+     )
   => proxy a
   -> Declare (Definitions Schema) NamedSchema
 
-stringyEnumNamedSchema p = do
+stringyEnumNamedSchema _ = do
   NamedSchema name' schema' <-
-    gdeclareNamedSchema defaultSchemaOptions (repProxy p) mempty
+    gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy typeRep) mempty
 
   pure $ NamedSchema name' schema'
     { _schemaParamSchema = (_schemaParamSchema schema')
         { _paramSchemaType = SwaggerString
-        , _paramSchemaEnum = Just $ wholeEnum p
+        , _paramSchemaEnum =
+            Just $ String . toStringy <$> [minBound .. maxBound :: a]
         }
     }
-
-  where
-    repProxy :: proxy p -> Proxy (Rep p)
-    repProxy _ = Proxy
-
-    wholeEnum :: (StringyEnum a, Enum a, Bounded a) => proxy a -> [Value]
-    wholeEnum = fmap (String . toStringy) . enum'
-      where enum' :: (StringyEnum a, Enum a, Bounded a) => proxy a -> [a]
-            enum' _ = [minBound..maxBound]
 
 
 class StringyEnum a where
@@ -107,10 +120,32 @@ type family TypeName (k1 :: * -> *) :: Symbol where
 -- | Helps to extract type name from "Generic" instance.
 --
 -- To any string type just by using type proxy.
-typeName :: (KnownSymbol (TypeName (Rep a)), IsString str) => Proxy a -> str
-typeName = fromString . symbolVal . f where
-  f :: Proxy p -> Proxy (TypeName (Rep p))
-  f Proxy = Proxy
+typeName
+  :: forall t typeRep typeName str
+  .  ( typeRep ~ Rep t
+     , typeName ~ TypeName (Rep t)
+     , KnownSymbol typeName
+     , IsString str
+     )
+  => Proxy t
+  -> str
+
+typeName Proxy = typeName' (Proxy :: Proxy typeRep)
+
+-- | Alternative version of "typeName" which presumes that provided type is
+-- already a @(Rep ofSomething)@.
+--
+-- Could be useful in cases when @Rep ofType@ is modified.
+typeName'
+  :: forall typeRep typeName str
+  . ( typeName ~ TypeName typeRep
+    , KnownSymbol typeName
+    , IsString str
+    )
+  => Proxy typeRep
+  -> str
+
+typeName' Proxy = fromString $ symbolVal (Proxy :: Proxy typeName)
 
 
 -- | Helps to use constructor name of a type with protection of its correctness.
@@ -123,16 +158,31 @@ type family ConstructorName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
 -- | Helps to use constructor name of a proxied type with protection of its
 -- correctness.
 constructorName
-  :: ( ConstructorName (Rep t) constructor ~ 'Just constructor
+  :: forall t typeRep constructor str
+  .  ( typeRep ~ Rep t
+     , ConstructorName typeRep constructor ~ 'Just constructor
      , KnownSymbol constructor
      , IsString str
      )
   => Proxy '(t, constructor)
   -> str
 
-constructorName = fromString . symbolVal . f where
-  f :: KnownSymbol b => Proxy '(a, b) -> Proxy b
-  f Proxy = Proxy
+constructorName Proxy = fromString $ symbolVal (Proxy :: Proxy constructor)
+
+-- | Alternative version of "constructorName" which presumes that provided type
+-- is already a @(Rep ofSomething)@.
+--
+-- Could be useful in cases when @Rep ofType@ is modified.
+constructorName'
+  :: forall typeRep constructor str
+  .  ( ConstructorName typeRep constructor ~ 'Just constructor
+     , KnownSymbol constructor
+     , IsString str
+     )
+  => Proxy '(typeRep, constructor)
+  -> str
+
+constructorName' Proxy = fromString $ symbolVal (Proxy :: Proxy constructor)
 
 
 -- | Helps to use a field name of a record type with protection of its
@@ -146,16 +196,31 @@ type family FieldName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
 -- | Helps to use field name of a proxied record type with protection of its
 -- correctness.
 fieldName
-  :: ( FieldName (Rep t) field ~ 'Just field
+  :: forall t typeRep field str
+  .  ( typeRep ~ Rep t
+     , FieldName typeRep field ~ 'Just field
      , KnownSymbol field
      , IsString str
      )
   => Proxy '(t, field)
   -> str
 
-fieldName = fromString . symbolVal . f where
-  f :: KnownSymbol b => Proxy '(a, b) -> Proxy b
-  f Proxy = Proxy
+fieldName Proxy = fieldName' (Proxy :: Proxy '(typeRep, field))
+
+-- | Alternative version of "fieldName" which presumes that provided type is
+-- already a @(Rep ofSomething)@.
+--
+-- Could be useful in cases when @Rep ofType@ is modified.
+fieldName'
+  :: forall typeRep field str
+  .  ( FieldName typeRep field ~ 'Just field
+     , KnownSymbol field
+     , IsString str
+     )
+  => Proxy '(typeRep, field)
+  -> str
+
+fieldName' Proxy = fromString $ symbolVal (Proxy :: Proxy field)
 
 -- | Helps to use a field name of a record type with protection of its
 -- correctness and that this field defined inside provided constructor.
@@ -177,16 +242,32 @@ type family ConstructorFieldName (k1 :: * -> *)
 -- | Helps to use a field name of a proxied record type with protection of its
 -- correctness and that this field defined inside provided constructor.
 constructorFieldName
-  :: ( ConstructorFieldName (Rep t) constructor field ~ 'Just field
+  :: forall t typeRep constructor field str
+  .  ( typeRep ~ Rep t
+     , ConstructorFieldName typeRep constructor field ~ 'Just field
      , KnownSymbol field
      , IsString str
      )
   => Proxy '(t, constructor, field)
   -> str
 
-constructorFieldName = fromString . symbolVal . f where
-  f :: KnownSymbol c => Proxy '(a, b, c) -> Proxy c
-  f Proxy = Proxy
+constructorFieldName Proxy =
+  constructorFieldName' (Proxy :: Proxy '(typeRep, constructor, field))
+
+-- | Alternative version of "constructorFieldName" which presumes that provided
+-- type is already a @(Rep ofSomething)@.
+--
+-- Could be useful in cases when @Rep ofType@ is modified.
+constructorFieldName'
+  :: forall typeRep constructor field str
+  .  ( ConstructorFieldName typeRep constructor field ~ 'Just field
+     , KnownSymbol field
+     , IsString str
+     )
+  => Proxy '(typeRep, constructor, field)
+  -> str
+
+constructorFieldName' Proxy = fromString $ symbolVal (Proxy :: Proxy field)
 
 
 -- | Helps to use a field type of a record type with protection of its
@@ -202,11 +283,24 @@ type family FieldType (k1 :: * -> *) (k2 :: Symbol) :: Maybe * where
 -- correctness (you couldn't obtain a type by name of a field which isn't
 -- defined).
 fieldType
-  :: (FieldType (Rep recordType) fieldName ~ 'Just fieldType)
-  => Proxy '(recordType, fieldName)
+  :: ( typeRep ~ Rep t
+     , FieldType typeRep fieldName ~ 'Just fieldType
+     )
+  => Proxy '(t, fieldName)
   -> Proxy fieldType
 
 fieldType Proxy = Proxy
+
+-- | Alternative version of "fieldType" which presumes that provided type is
+-- already a @(Rep ofSomething)@.
+--
+-- Could be useful in cases when @Rep ofType@ is modified.
+fieldType'
+  :: (FieldType typeRep fieldName ~ 'Just fieldType)
+  => Proxy '(typeRep, fieldName)
+  -> Proxy fieldType
+
+fieldType' Proxy = Proxy
 
 -- | Helps to use a field type of a record type with protection of its
 -- correctness and that this field defined inside provided constructor
@@ -230,13 +324,27 @@ type family ConstructorFieldType (k1 :: * -> *)
 -- correctness and that this field defined inside provided constructor
 -- (you couldn't obtain a type by name of a field which isn't defined).
 constructorFieldType
-  :: ( ConstructorFieldType (Rep recordType) constructorName fieldName
-     ~ 'Just fieldType
+  :: ( typeRep ~ Rep t
+     , ConstructorFieldType typeRep constructorName fieldName
+         ~ 'Just fieldType
      )
-  => Proxy '(recordType, constructorName, fieldName)
+  => Proxy '(t, constructorName, fieldName)
   -> Proxy fieldType
 
 constructorFieldType Proxy = Proxy
+
+-- | Alternative version of "constructorFieldType" which presumes that provided
+-- type is already a @(Rep ofSomething)@.
+--
+-- Could be useful in cases when @Rep ofType@ is modified.
+constructorFieldType'
+  :: ( ConstructorFieldType typeRep constructorName fieldName
+         ~ 'Just fieldType
+     )
+  => Proxy '(typeRep, constructorName, fieldName)
+  -> Proxy fieldType
+
+constructorFieldType' Proxy = Proxy
 
 
 -- | Sub-helper of @FieldName@ and @ConstructorName@ to iterate over fields
@@ -245,6 +353,8 @@ type family RecordFieldName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
   RecordFieldName (S1 ('MetaSel ('Just x) _ _ _) _) x = 'Just x
   RecordFieldName (S1 ('MetaSel ('Just x) _ _ _) _ :*: _) x = 'Just x
   RecordFieldName (S1 ('MetaSel _ _ _ _) _ :*: xs) x = RecordFieldName xs x
+  RecordFieldName (xs :*: ys) x =
+    MaybeAlternative (RecordFieldName xs x) (RecordFieldName ys x)
   RecordFieldName (S1 _ _) _ = 'Nothing
 
 -- | Sub-helper of @FieldType@ and @ConstructorFieldType@ to iterate over fields
@@ -253,6 +363,8 @@ type family RecordFieldType (k1 :: * -> *) (k2 :: Symbol) :: Maybe * where
   RecordFieldType (S1 ('MetaSel ('Just x) _ _ _) (Rec0 t)) x = 'Just t
   RecordFieldType (S1 ('MetaSel ('Just x) _ _ _) (Rec0 t) :*: _) x = 'Just t
   RecordFieldType (S1 ('MetaSel _ _ _ _) _ :*: xs) x = RecordFieldType xs x
+  RecordFieldType (xs :*: ys) x =
+    MaybeAlternative (RecordFieldType xs x) (RecordFieldType ys x)
   RecordFieldType (S1 _ _) _ = 'Nothing
 
 
@@ -268,14 +380,36 @@ type family RecordFieldType (k1 :: * -> *) (k2 :: Symbol) :: Maybe * where
 -- proxied type with constructors, which one of them you're adding here, you
 -- can't compile until you set correct name of one.
 addConstructorTag
-  :: ( ConstructorName (Rep t) constructor ~ 'Just constructor
+  :: forall t typeRep constructor
+  .  ( typeRep ~ Rep t
+     , ConstructorName typeRep constructor ~ 'Just constructor
      , KnownSymbol constructor
      )
   => Proxy '(t, constructor)
   -> Object
   -> Object
 
-addConstructorTag p@Proxy = HM.insert "tag" $ String $ constructorName p
+addConstructorTag Proxy =
+  addConstructorTag' (Proxy :: Proxy '(typeRep, constructor))
+
+-- | Alternative version of "addConstructorTag'" which presumes that provided
+-- type is already a @(Rep ofSomething)@.
+--
+-- Could be useful in cases when @Rep ofType@ is modified.
+addConstructorTag'
+  :: ( ConstructorName typeRep constructor ~ 'Just constructor
+     , KnownSymbol constructor
+     )
+  => Proxy '(typeRep, constructor)
+  -> Object
+  -> Object
+
+addConstructorTag' p@Proxy = HM.insert "tag" $ String $ constructorName' p
+
+-- | Helps to build custom @ToJSON@ instances avoiding injecting custom
+-- implementation artefacts to the result output.
+removeConstructorTag :: Object -> Object
+removeConstructorTag = HM.delete "tag"
 
 
 proxyPair :: Proxy a -> Proxy b -> Proxy '(a, b)
@@ -344,9 +478,33 @@ type family MaybeNot (k1 :: Maybe Bool) :: Maybe Bool where
   MaybeNot ('Just x) = 'Just (Not x)
 
 
+type family Uncons (k1 :: [a]) :: Maybe (a, [a]) where
+  Uncons '[] = 'Nothing
+  Uncons (x ': xs) = 'Just '(x, xs)
+
+type family MaybeCons (k1 :: Maybe a) (k2 :: [a]) :: Maybe [a] where
+  MaybeCons ('Just x) xs = 'Just (x ': xs)
+  MaybeCons _ _ = 'Nothing
+
+type family MaybeListCons (k1 :: a) (k2 :: Maybe [a]) :: Maybe [a] where
+  MaybeListCons x ('Just xs) = 'Just (x ': xs)
+  MaybeListCons _ _ = 'Nothing
+
 type family MaybeMaybeCons (k1 :: Maybe a) (k2 :: Maybe [a]) :: Maybe [a] where
   MaybeMaybeCons ('Just x) ('Just xs) = 'Just (x ': xs)
   MaybeMaybeCons _ _ = 'Nothing
+
+type family Concat (k1 :: [a]) (k2 :: [a]) :: [a] where
+  Concat '[] xs = xs
+  Concat (x ': xs) ys = x ': Concat xs ys
+
+type family MaybeMaybeConcat (k1 :: Maybe [a])
+                             (k2 :: Maybe [a])
+                                 :: Maybe [a] where
+  MaybeMaybeConcat 'Nothing _ = 'Nothing
+  MaybeMaybeConcat _ 'Nothing = 'Nothing
+  MaybeMaybeConcat ('Just '[]) ('Just ys) = 'Just ys
+  MaybeMaybeConcat ('Just (x ': xs)) ('Just ys) = 'Just (x ': Concat xs ys)
 
 
 -- | Helps to construct property definition reference in a type-safe way.
@@ -374,20 +532,43 @@ type family TypeSafeSchemaProperty
       (ConstructorFieldType t constructorName fieldName)
 
 typeSafeSchemaProperty
-  :: forall recordType field propName fieldName isFieldRequired fieldType
+  :: forall t typeRep field propName fieldName isFieldRequired fieldType
   .  ( IsString propName
      , KnownSymbol fieldName
      , KnownBool isFieldRequired
      , ToSchema fieldType
-     , TypeSafeSchemaProperty (Rep recordType) field
+     , typeRep ~ Rep t
+     , TypeSafeSchemaProperty typeRep field
          ~ 'Just '(fieldName, isFieldRequired, fieldType)
      )
-  => Proxy '(recordType, (field :: Either Symbol (Symbol, Symbol)))
+  => Proxy '(t, (field :: Either Symbol (Symbol, Symbol)))
   -- ^ Second value of type-level tuple is either just field name or constructor
   -- name and field name in that order to constrain specified constructor.
   -> Declare (Definitions Schema) (propName, Bool, Referenced Schema)
 
 typeSafeSchemaProperty Proxy =
+  typeSafeSchemaProperty' (Proxy :: Proxy
+    '(typeRep, (field :: Either Symbol (Symbol, Symbol))))
+
+-- | Alternative version of "typeSafeSchemaProperty" which presumes that
+-- provided type is already a @(Rep ofSomething)@.
+--
+-- Could be useful in cases when @Rep ofType@ is modified.
+typeSafeSchemaProperty'
+  :: forall typeRep field propName fieldName isFieldRequired fieldType
+  .  ( IsString propName
+     , KnownSymbol fieldName
+     , KnownBool isFieldRequired
+     , ToSchema fieldType
+     , TypeSafeSchemaProperty typeRep field
+         ~ 'Just '(fieldName, isFieldRequired, fieldType)
+     )
+  => Proxy '(typeRep, (field :: Either Symbol (Symbol, Symbol)))
+  -- ^ Second value of type-level tuple is either just field name or constructor
+  -- name and field name in that order to constrain specified constructor.
+  -> Declare (Definitions Schema) (propName, Bool, Referenced Schema)
+
+typeSafeSchemaProperty' Proxy =
   declareSchemaRef (Proxy :: Proxy fieldType) <&> \schemaRef ->
     ( fromString $ symbolVal (Proxy :: Proxy fieldName)
     , boolVal (Proxy :: Proxy isFieldRequired)
@@ -428,32 +609,73 @@ type family ConstructorProperties
       (TypeSafeSchemaProperty t ('Right '(c, f)))
       (ConstructorProperties t c xs ('Just acc))
 
+  ConstructorProperties t c (xs :*: ys) ('Just acc) =
+    MaybeMaybeConcat
+      (ConstructorProperties t c xs ('Just '[]))
+      (ConstructorProperties t c ys ('Just acc))
+
   ConstructorProperties (D1 a b) _ (S1 _ _) _ = 'Nothing
 
 typeSafeSchemaProperties
-  :: forall recordType constructorName propName list
-  .  ( TypeSafeSchemaProperties (Rep recordType) constructorName ~ 'Just list
+  :: forall t typeRep constructorName propName list
+  .  ( typeRep ~ Rep t
+     , TypeSafeSchemaProperties typeRep constructorName ~ 'Just list
      , TypeSafeSchemaPropertiesI list
      , IsString propName
      )
-  => Proxy '(recordType, constructorName)
+  => Proxy '(t, constructorName)
   -> Declare (Definitions Schema) [(propName, Bool, Referenced Schema)]
 
 typeSafeSchemaProperties Proxy =
   typeSafeSchemaPropertiesI (Proxy :: Proxy list)
 
+-- | Alternative version of "typeSafeSchemaProperties" which presumes that
+-- provided type is already a @(Rep ofSomething)@.
+--
+-- Could be useful in cases when @Rep ofType@ is modified.
+typeSafeSchemaProperties'
+  :: forall typeRep constructorName propName list
+  .  ( TypeSafeSchemaProperties typeRep constructorName ~ 'Just list
+     , TypeSafeSchemaPropertiesI list
+     , IsString propName
+     )
+  => Proxy '(typeRep, constructorName)
+  -> Declare (Definitions Schema) [(propName, Bool, Referenced Schema)]
+
+typeSafeSchemaProperties' Proxy =
+  typeSafeSchemaPropertiesI (Proxy :: Proxy list)
+
 typeSafeSchemaSeparatedProperties
-  :: forall recordType constructorName propName requiredPropName list
-  .  ( TypeSafeSchemaProperties (Rep recordType) constructorName ~ 'Just list
+  :: forall t typeRep constructorName propName requiredPropName list
+  .  ( typeRep ~ Rep t
+     , TypeSafeSchemaProperties typeRep constructorName ~ 'Just list
      , TypeSafeSchemaPropertiesI list
      , IsString propName
      , IsString requiredPropName
      )
-  => Proxy '(recordType, constructorName)
+  => Proxy '(t, constructorName)
   -> Declare (Definitions Schema)
              ([(propName, Referenced Schema)], [requiredPropName])
 
 typeSafeSchemaSeparatedProperties Proxy =
+  typeSafeSchemaSeparatedPropertiesI (Proxy :: Proxy list)
+
+-- | Alternative version of "typeSafeSchemaSeparatedProperties" which presumes
+-- that provided type is already a @(Rep ofSomething)@.
+--
+-- Could be useful in cases when @Rep ofType@ is modified.
+typeSafeSchemaSeparatedProperties'
+  :: forall typeRep constructorName propName requiredPropName list
+  .  ( TypeSafeSchemaProperties typeRep constructorName ~ 'Just list
+     , TypeSafeSchemaPropertiesI list
+     , IsString propName
+     , IsString requiredPropName
+     )
+  => Proxy '(typeRep, constructorName)
+  -> Declare (Definitions Schema)
+             ([(propName, Referenced Schema)], [requiredPropName])
+
+typeSafeSchemaSeparatedProperties' Proxy =
   typeSafeSchemaSeparatedPropertiesI (Proxy :: Proxy list)
 
 
@@ -520,28 +742,63 @@ type family TypeSafeSchemaConstructorsAsProperties
   TypeSafeSchemaConstructorsAsProperties (D1 _ _) = 'Nothing
 
 typeSafeSchemaConstructorsAsProperties
-  :: forall recordType constructorName list
-  .  ( TypeSafeSchemaConstructorsAsProperties (Rep recordType) ~ 'Just list
+  :: forall t typeRep constructorName list
+  .  ( typeRep ~ Rep t
+     , TypeSafeSchemaConstructorsAsProperties typeRep ~ 'Just list
      , TypeSafeSchemaConstructorsAsPropertiesI list
      , IsString constructorName
      )
-  => Proxy recordType
+  => Proxy t
   -> Declare (Definitions Schema) [(constructorName, Referenced Schema)]
 
-typeSafeSchemaConstructorsAsProperties p@Proxy =
-  typeSafeSchemaMapConstructorsAsProperties p $ const id
+typeSafeSchemaConstructorsAsProperties Proxy =
+  typeSafeSchemaConstructorsAsProperties' (Proxy :: Proxy typeRep)
 
-typeSafeSchemaMapConstructorsAsProperties
-  :: forall recordType constructorName list
-  .  ( TypeSafeSchemaConstructorsAsProperties (Rep recordType) ~ 'Just list
+-- | Alternative version of "typeSafeSchemaConstructorsAsProperties" which
+-- presumes that provided type is already a @(Rep ofSomething)@.
+--
+-- Could be useful in cases when @Rep ofType@ is modified.
+typeSafeSchemaConstructorsAsProperties'
+  :: forall typeRep constructorName list
+  .  ( TypeSafeSchemaConstructorsAsProperties typeRep ~ 'Just list
      , TypeSafeSchemaConstructorsAsPropertiesI list
      , IsString constructorName
      )
-  => Proxy recordType
+  => Proxy typeRep
+  -> Declare (Definitions Schema) [(constructorName, Referenced Schema)]
+
+typeSafeSchemaConstructorsAsProperties' p@Proxy =
+  typeSafeSchemaMapConstructorsAsProperties' p $ const id
+
+typeSafeSchemaMapConstructorsAsProperties
+  :: forall t typeRep constructorName list
+  .  ( typeRep ~ Rep t
+     , TypeSafeSchemaConstructorsAsProperties typeRep ~ 'Just list
+     , TypeSafeSchemaConstructorsAsPropertiesI list
+     , IsString constructorName
+     )
+  => Proxy t
   -> (constructorName -> Schema -> Schema)
   -> Declare (Definitions Schema) [(constructorName, Referenced Schema)]
 
-typeSafeSchemaMapConstructorsAsProperties Proxy schemaMapFn =
+typeSafeSchemaMapConstructorsAsProperties Proxy =
+  typeSafeSchemaMapConstructorsAsProperties' (Proxy :: Proxy typeRep)
+
+-- | Alternative version of "typeSafeSchemaMapConstructorsAsProperties" which
+-- presumes that provided type is already a @(Rep ofSomething)@.
+--
+-- Could be useful in cases when @Rep ofType@ is modified.
+typeSafeSchemaMapConstructorsAsProperties'
+  :: forall typeRep constructorName list
+  .  ( TypeSafeSchemaConstructorsAsProperties typeRep ~ 'Just list
+     , TypeSafeSchemaConstructorsAsPropertiesI list
+     , IsString constructorName
+     )
+  => Proxy typeRep
+  -> (constructorName -> Schema -> Schema)
+  -> Declare (Definitions Schema) [(constructorName, Referenced Schema)]
+
+typeSafeSchemaMapConstructorsAsProperties' Proxy schemaMapFn =
   typeSafeSchemaConstructorsAsSeparatedPropertiesI (Proxy :: Proxy list)
     <&> fmap f
   where

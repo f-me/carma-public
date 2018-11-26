@@ -1,8 +1,8 @@
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
-{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
+{-# LANGUAGE OverloadedStrings, OverloadedLists, QuasiQuotes #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE DataKinds, TypeOperators, TypeFamilies #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE DataKinds, TypeOperators, TypeFamilies, RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables, InstanceSigs #-}
 
 -- Fixes issue when record-fields aren't exported. Probably related to:
 --   https://stackoverflow.com/questions/46357747/haddock-data-record-fields-names-not-being-generated
@@ -17,15 +17,17 @@ module Carma.EraGlonass.Types.EGCreateCallCardRequest
      ) where
 
 import           GHC.Generics
+import           GHC.Exts (fromList)
 
 import           Data.Proxy
 import qualified Data.HashMap.Lazy as HM
 import           Data.Text (Text, length)
 import           Data.Aeson
 import           Data.Aeson.TH (Options (omitNothingFields))
-import           Data.Aeson.Types (typeMismatch, parseEither)
+import           Data.Aeson.Types (Parser, typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
+import           Data.Swagger.Declare (Declare)
 import           Text.InterpolatedString.QM
 
 import           Database.PostgreSQL.Simple.FromField
@@ -46,7 +48,9 @@ import           Database.Persist.Class
 import           Data.Model
 import           Data.Model.Types
 
+import           Carma.Utils.Operators
 import           Carma.Model.Case.Persistent (Case)
+import           Carma.EraGlonass.Types.Helpers hiding (fieldName)
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGPhoneNumber (EGPhoneNumber)
 import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
@@ -133,13 +137,17 @@ data EGCreateCallCardRequest
        -- CaRMa field: @contact_phone1@
 
    , locationDescription :: Text
-       -- ^ String with max length of 180 symbols.
+       -- ^ String with max length of 180 symbols
+       --   (see "egCreateCallCardRequestLocationDescriptionMaxLength").
        --
        -- CaRMa field: @caseAddress_comment@
 
    , vehicle :: EGCreateCallCardRequestVehicle
    , gis :: [EGCreateCallCardRequestGis]
    } deriving (Eq, Show, Generic)
+
+egCreateCallCardRequestLocationDescriptionMaxLength :: Int
+egCreateCallCardRequestLocationDescriptionMaxLength = 180
 
 -- | Handling multiple constructors here.
 --
@@ -149,6 +157,16 @@ data EGCreateCallCardRequest
 -- keeping parse failure message and original JSON data in failure
 -- constructor.
 instance FromJSON EGCreateCallCardRequest where
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON
+    :: forall t t2
+    .  ( t ~ EGCreateCallCardRequest
+       , t2 ~ CutOffFailureCons (Rep t)
+       )
+    => Value
+    -> Parser t
+
   parseJSON src = pure $
     -- Parsing here to extract parsing error message
     case parseEither (const successfulCase) src of
@@ -156,19 +174,31 @@ instance FromJSON EGCreateCallCardRequest where
          Right x  -> x
 
     where
+      typeName'' = typeName' (Proxy :: Proxy t2)
+
+      okConstructorProxy :: Proxy '(t2, "EGCreateCallCardRequest")
+      okConstructorProxy = Proxy
+
+      locationDescriptionKey :: String
+      locationDescriptionKey
+        = constructorFieldName'
+        $ proxyPair2Triplet okConstructorProxy
+                            (Proxy :: Proxy "locationDescription")
+
       successfulCase = do
         -- Extracting hash-map from JSON @Object@
         obj <- case src of
                     Object x -> pure x
-                    _        -> typeMismatch "EGCreateCallCardRequest" src
+                    _        -> typeMismatch typeName'' src
 
         parsed <- genericParseJSON defaultOptions $
           -- Associating it with default constructor for successful case
-          Object $ HM.insert "tag" (String "EGCreateCallCardRequest") obj
+          Object $ addConstructorTag' okConstructorProxy obj
 
         -- Handling max length of /@locationDescription@/
-        if Data.Text.length (locationDescription parsed) > 180
-           then typeMismatch "EGCreateCallCardRequest.locationDescription" src
+        if Data.Text.length (locationDescription parsed) >
+           egCreateCallCardRequestLocationDescriptionMaxLength
+           then typeMismatch [qm| {typeName''}.{locationDescriptionKey} |] src
            else pure ()
 
         pure parsed
@@ -185,10 +215,51 @@ type family CutOffFailureCons (k1 :: * -> *) where
 
 -- | Generic implementation with cutting off 'EGCreateCallCardRequestIncorrect'
 --   constructor from type-level type representation (@Rep@).
+--
+-- Also adding @MaxLength@ to some string field.
 instance ToSchema EGCreateCallCardRequest where
-  declareNamedSchema _ = gdeclareNamedSchema defaultSchemaOptions proxy mempty
-    where proxy :: Proxy (CutOffFailureCons (Rep EGCreateCallCardRequest))
-          proxy = Proxy
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t t2
+    .  ( t ~ EGCreateCallCardRequest
+       , t2 ~ CutOffFailureCons (Rep t)
+       )
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
+
+  declareNamedSchema _ = do
+    NamedSchema name' schema' <-
+      gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy t2) mempty
+
+    (okProps, _ :: [Text]) <-
+      typeSafeSchemaSeparatedProperties' okConstructorProxy
+
+    let newSchema = schema' { _schemaProperties = fromList props } where
+          props = okProps <&>
+            \x@(k, _) -> if k == locationDescriptionKey
+                            then (k, Inline locationDescriptionFieldSchema)
+                            else x
+
+          locationDescriptionFieldSchema =
+            mempty { _schemaParamSchema = param } where
+              param = mempty
+                { _paramSchemaType = SwaggerString
+                , _paramSchemaMaxLength = Just $ fromIntegral
+                    egCreateCallCardRequestLocationDescriptionMaxLength
+                }
+
+    pure $ NamedSchema name' newSchema
+
+    where
+      okConstructorProxy :: Proxy '(t2, "EGCreateCallCardRequest")
+      okConstructorProxy = Proxy
+
+      locationDescriptionKey :: Text
+      locationDescriptionKey
+        = constructorFieldName'
+        $ proxyPair2Triplet okConstructorProxy
+                            (Proxy :: Proxy "locationDescription")
 
 instance PersistField EGCreateCallCardRequest where
   toPersistValue = toPersistValue . toJSON
@@ -272,34 +343,101 @@ data EGCreateCallCardRequestVehicle
        -- CaRMa field: @car_engine@
 
    , color :: Text
-       -- ^ A color of a car (string with max length of 50 symbols).
+       -- ^ A color of a car
+       --   (string with max length of 50 symbols,
+       --   see "egCreateCallCardRequestVehicleColorMaxLength").
        --
        -- CaRMa field: @car_color@
 
    , registrationNumber :: Text
        -- CaRMa field: @car_plateNum@
-   } deriving (Eq, Show, Generic, ToSchema)
+   } deriving (Eq, Show, Generic)
 
+egCreateCallCardRequestVehicleColorMaxLength :: Int
+egCreateCallCardRequestVehicleColorMaxLength = 50
+
+-- | Custom implementation to add some constraints to simple fields.
 instance FromJSON EGCreateCallCardRequestVehicle where
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON
+    :: forall t. (t ~ EGCreateCallCardRequestVehicle) => Value -> Parser t
+
   parseJSON src@(Object rootObj) = do
     parsed <-
       genericParseJSON defaultOptions $
         -- Interpreting empty string of @propulsion@ as @Nothing@
-        case HM.lookup "propulsion" rootObj of
-             Just (String "") -> Object $ HM.delete "propulsion" rootObj
+        case HM.lookup propulsionKey rootObj of
+             Just (String "") -> Object $ HM.delete propulsionKey rootObj
              _ -> src
 
     -- Handling max length of @color@
-    if Data.Text.length (color parsed) > 50
-       then typeMismatch "EGCreateCallCardRequestVehicle.color" src
+    if Data.Text.length (color parsed) >
+       egCreateCallCardRequestVehicleColorMaxLength
+       then typeMismatch [qm| {typeName'' :: String}.{colorKey :: String} |] src
        else pure ()
 
     pure parsed
 
-  parseJSON x = typeMismatch "EGCreateCallCardRequestVehicle" x
+    where
+      typeName'' = typeName (Proxy :: Proxy t)
+      constructorProxy = Proxy :: Proxy '(t, "EGCreateCallCardRequestVehicle")
+
+      propulsionKey
+        = constructorFieldName
+        $ proxyPair2Triplet constructorProxy (Proxy :: Proxy "propulsion")
+
+      colorKey
+        = constructorFieldName
+        $ proxyPair2Triplet constructorProxy (Proxy :: Proxy "color")
+
+  parseJSON invalid = typeMismatch (typeName (Proxy :: Proxy t)) invalid
 
 instance ToJSON EGCreateCallCardRequestVehicle where
   toJSON = genericToJSON defaultOptions { omitNothingFields = True }
+
+-- | Custom implementation to add some constraints to simple fields.
+instance ToSchema EGCreateCallCardRequestVehicle where
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t typeRep
+    .  ( t ~ EGCreateCallCardRequestVehicle
+       , typeRep ~ Rep t
+       )
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
+
+  declareNamedSchema _ = do
+    NamedSchema name' schema' <-
+      gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy typeRep) mempty
+
+    (props, _ :: [Text]) <- typeSafeSchemaSeparatedProperties constructorProxy
+
+    let newSchema = schema' { _schemaProperties = fromList props' } where
+          props' = props <&>
+            \x@(k, _) -> if k == colorKey
+                            then (k, Inline colorFieldSchema)
+                            else x
+
+          colorFieldSchema =
+            mempty { _schemaParamSchema = param } where
+              param = mempty
+                { _paramSchemaType = SwaggerString
+                , _paramSchemaMaxLength = Just $ fromIntegral
+                    egCreateCallCardRequestVehicleColorMaxLength
+                }
+
+    pure $ NamedSchema name' newSchema
+
+    where
+      constructorProxy :: Proxy '(t, "EGCreateCallCardRequestVehicle")
+      constructorProxy = Proxy
+
+      colorKey :: Text
+      colorKey
+        = constructorFieldName
+        $ proxyPair2Triplet constructorProxy (Proxy :: Proxy "color")
 
 
 -- *** Response ***
@@ -347,7 +485,10 @@ data EGCreateCallCardResponse
      deriving (Eq, Show, Generic, ToSchema)
 
 instance ToJSON EGCreateCallCardResponse where
-  toJSON = f . genericToJSON defaultOptions { omitNothingFields = True }
-    where f (Object rootObj) = Object $ HM.delete "tag" rootObj
-          f x = error [qms| ToJSON EGCreateCallCardResponse:
-                            Unexpected root JSON type: {x} |]
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  toJSON :: forall t. t ~ EGCreateCallCardResponse => t -> Value
+  toJSON = f . genericToJSON defaultOptions { omitNothingFields = True } where
+    f (Object rootObj) = Object $ removeConstructorTag rootObj
+    f x = error [qms| ToJSON {typeName (Proxy :: Proxy t) :: String}:
+                      Unexpected root JSON type: {x} |]

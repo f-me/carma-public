@@ -104,7 +104,7 @@ instance FromJSON EGAddVinResponse where
          Right x  -> x
 
     where
-      typeName' = typeName (Proxy :: Proxy t)
+      typeName'' = typeName (Proxy :: Proxy t)
 
       okConstructorProxy :: Proxy '(t, "EGAddVinResponse")
       okConstructorProxy = Proxy
@@ -113,7 +113,7 @@ instance FromJSON EGAddVinResponse where
         obj <- -- Extracting hash-map from JSON @Object@
           case src of
                Object x -> pure x
-               _        -> typeMismatch typeName' src
+               _        -> typeMismatch typeName'' src
 
         genericParseJSON defaultOptions $
           -- Associating it with successful case constructor
@@ -153,7 +153,7 @@ instance FromJSON EGAddVinResponseResponses where
     go =
       if acceptCodeKey `Set.member` keys
          then branching
-         else typeMismatch typeName' src
+         else typeMismatch typeName'' src
 
     branching
       | isOk && keys `Set.isSubsetOf` okFields =
@@ -164,9 +164,9 @@ instance FromJSON EGAddVinResponseResponses where
           genericParseJSON defaultOptions $
             Object $ addConstructorTag failureConstructorProxy obj
 
-      | otherwise = typeMismatch typeName' src
+      | otherwise = typeMismatch typeName'' src
 
-    typeName' = typeName (Proxy :: Proxy t)
+    typeName'' = typeName (Proxy :: Proxy t)
 
     withTypeProxy :: Proxy (a :: Symbol) -> Proxy '(t, a)
     withTypeProxy = proxyPair Proxy
@@ -224,7 +224,7 @@ instance ToSchema EGAddVinResponseResponses where
         (Proxy :: Proxy t) constructorMapFn
 
     pure
-      $ NamedSchema (Just typeName') constructorsBranchingSchemaProto
+      $ NamedSchema (Just typeName'') constructorsBranchingSchemaProto
       { _schemaDiscriminator = Just acceptCodeKey
 
       , _schemaDescription =
@@ -235,7 +235,7 @@ instance ToSchema EGAddVinResponseResponses where
       }
 
     where
-      typeName' = typeName (Proxy :: Proxy t)
+      typeName'' = typeName (Proxy :: Proxy t)
 
       withTypeProxy :: Proxy (a :: Symbol) -> Proxy '(t, a)
       withTypeProxy = proxyPair Proxy

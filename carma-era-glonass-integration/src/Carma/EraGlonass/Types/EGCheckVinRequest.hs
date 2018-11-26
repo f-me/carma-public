@@ -94,7 +94,7 @@ instance FromJSON EGCheckVinResponse where
          Right x  -> x
 
     where
-      typeName' = typeName (Proxy :: Proxy t)
+      typeName'' = typeName (Proxy :: Proxy t)
 
       okConstructorProxy :: Proxy '(t, "EGCheckVinResponse")
       okConstructorProxy = Proxy
@@ -103,7 +103,7 @@ instance FromJSON EGCheckVinResponse where
         obj <- -- Extracting hash-map from JSON @Object@
           case src of
                Object x -> pure x
-               _        -> typeMismatch typeName' src
+               _        -> typeMismatch typeName'' src
 
         genericParseJSON defaultOptions $
           -- Associating it with successful case constructor
