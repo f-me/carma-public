@@ -1,10 +1,11 @@
-{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings, OverloadedLists, QuasiQuotes, LambdaCase #-}
+{-# LANGUAGE DeriveGeneric, ScopedTypeVariables, TypeFamilies, InstanceSigs #-}
 
 module Carma.EraGlonass.Types.EGCallCardId
      ( EGCallCardId (..)
      ) where
+
+import           GHC.Generics
 
 import           Data.Proxy
 import           Data.Function ((&))
@@ -12,9 +13,10 @@ import           Data.Text
 import           Text.InterpolatedString.QM
 import           Data.String (IsString (fromString))
 import           Data.Aeson
-import           Data.Aeson.Types (typeMismatch)
+import           Data.Aeson.Types (Parser, typeMismatch)
 import           Data.Swagger
-import           Data.Attoparsec.Text
+import           Data.Swagger.Declare (Declare)
+import           Data.Attoparsec.Text hiding (Parser)
 
 import           Database.PostgreSQL.Simple.FromField
                    ( FromField (..)
@@ -34,10 +36,12 @@ import           Database.Persist.Class
 import           Data.Model
 import           Data.Model.Types
 
+import           Carma.EraGlonass.Types.Helpers hiding (fieldName)
+
 
 newtype EGCallCardId
       = EGCallCardId { fromEGCallCardId :: Text }
-        deriving (Eq, Show)
+        deriving (Eq, Show, Generic)
 
 instance IsString EGCallCardId where
   fromString = EGCallCardId . fromString
@@ -46,22 +50,35 @@ instance ToJSON EGCallCardId where
   toJSON = String . fromEGCallCardId
 
 instance FromJSON EGCallCardId where
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON :: forall t. t ~ EGCallCardId => Value -> Parser t
+
   parseJSON v@(String x)
     = parseOnly parser x
-    & \case Left  _ -> typeMismatch "EGCallCardId" v
+    & \case Left  _ -> typeMismatch (typeName (Proxy :: Proxy t)) v
             Right y -> pure y
 
     where parser = EGCallCardId . fromString <$> many1 anyChar <* endOfInput
 
-  parseJSON invalid = typeMismatch "EGCallCardId" invalid
+  parseJSON invalid = typeMismatch (typeName (Proxy :: Proxy t)) invalid
 
 instance ToSchema EGCallCardId where
-  declareNamedSchema _ = pure $ NamedSchema (Just "EGCallCardId") mempty
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t. t ~ EGCallCardId
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
+
+  declareNamedSchema _ = pure $ NamedSchema (Just typeName'') mempty
     { _schemaParamSchema = mempty
-        { _paramSchemaType    = SwaggerString
-        , _paramSchemaPattern = Just [qn| .+ |]
+        { _paramSchemaType      = SwaggerString
+        , _paramSchemaPattern   = Just [qn| .+ |]
+        , _paramSchemaMinLength = Just 1
         }
     }
+    where typeName'' = typeName (Proxy :: Proxy t)
 
 instance PersistField EGCallCardId where
   toPersistValue = PersistText . fromEGCallCardId
