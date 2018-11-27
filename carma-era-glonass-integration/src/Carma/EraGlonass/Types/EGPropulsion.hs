@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings, QuasiQuotes, LambdaCase #-}
+{-# LANGUAGE DeriveGeneric, ScopedTypeVariables, TypeFamilies, InstanceSigs #-}
 
 module Carma.EraGlonass.Types.EGPropulsion
      ( EGPropulsion (..)
@@ -6,9 +7,13 @@ module Carma.EraGlonass.Types.EGPropulsion
      , egPropulsionToEngineId
      ) where
 
+import           GHC.Generics
+
+import           Data.Proxy
 import           Data.Aeson
-import           Data.Aeson.Types (typeMismatch)
+import           Data.Aeson.Types (Parser, typeMismatch)
 import           Data.Swagger
+import           Data.Swagger.Declare (Declare)
 import           Text.InterpolatedString.QM
 import           Data.Text (intercalate)
 
@@ -16,7 +21,7 @@ import           Data.Model.Types (Ident)
 import qualified Carma.Model.Engine as Engine
 import qualified Carma.Model.Engine.Persistent as EnginePersistent
 
-import           Carma.Utils.Operators
+import           Carma.EraGlonass.Types.Helpers
 
 
 data EGPropulsion
@@ -26,43 +31,55 @@ data EGPropulsion
    | LNG
    | Diesel
    | Gasoline
-     deriving (Show, Eq, Enum, Bounded)
+     deriving (Eq, Enum, Bounded, Show, Generic)
+
+instance StringyEnum EGPropulsion where
+  toStringy = \case
+    Hydrogen    -> "HYDROGEN"
+    Electricity -> "ELECTRICITY"
+    LPG         -> "LPG"
+    LNG         -> "LNG"
+    Diesel      -> "DIESEL"
+    Gasoline    -> "GASOLINE"
 
 instance ToJSON EGPropulsion where
-  toJSON Hydrogen    = String "HYDROGEN"
-  toJSON Electricity = String "ELECTRICITY"
-  toJSON LPG         = String "LPG"
-  toJSON LNG         = String "LNG"
-  toJSON Diesel      = String "DIESEL"
-  toJSON Gasoline    = String "GASOLINE"
+  toJSON = String . toStringy
 
 instance FromJSON EGPropulsion where
-  -- Producing list of all values to reduce human-factor mistakes,
+  -- | Producing list of all values to reduce human-factor mistakes,
   -- so it is handled automatically when we add a new value.
+  --
+  -- Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON :: forall t. t ~ EGPropulsion => Value -> Parser t
   parseJSON jsonValue = f [minBound..(maxBound :: EGPropulsion)]
-    where f [] = typeMismatch "EGPropulsion" jsonValue
+    where f [] = typeMismatch (typeName (Proxy :: Proxy t)) jsonValue
           f (x:xs) | toJSON x == jsonValue = pure x
                    | otherwise             = f xs
 
 instance ToSchema EGPropulsion where
-  declareNamedSchema _ = pure
-    $ NamedSchema (Just "EGPropulsion") mempty
-    { _schemaParamSchema = mempty
-        { _paramSchemaType    = SwaggerString
-        , _paramSchemaFormat  = Just "propulsion"
-        , _paramSchemaEnum    = Just $ fst <$> wholeEnum
-        , _paramSchemaPattern =
-            Just [qm| ^({intercalate "|" $ snd <$> wholeEnum})$ |]
-        }
-    }
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t. t ~ EGPropulsion
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
 
-    where
-      wholeEnum =
-        [minBound..maxBound :: EGPropulsion] <&> toJSON ? \case
-          x@(String y) -> (x, y)
-          x -> error [qms| "declareNamedSchema" of "EGPropulsion":
-                           Every constructor must be resolved to "String"
-                           by using "toJSON", recieved this: {x} |]
+  declareNamedSchema p =
+    stringyEnumMappedNamedSchema p $ \x ->
+      let
+        schema' = _namedSchemaSchema x
+        strEnum = toStringy <$> [minBound..maxBound :: t]
+      in
+        pure x
+          { _namedSchemaSchema = schema'
+              { _schemaParamSchema = (_schemaParamSchema schema')
+                  { _paramSchemaFormat  = Just "propulsion"
+                  , _paramSchemaPattern =
+                      Just [qm| ^({intercalate "|" strEnum})$ |]
+                  }
+              }
+          }
 
 
 egPropulsionToEngineIdent :: EGPropulsion -> Ident Int Engine.Engine

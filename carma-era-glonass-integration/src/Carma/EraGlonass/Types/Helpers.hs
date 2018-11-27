@@ -17,6 +17,7 @@ module Carma.EraGlonass.Types.Helpers
      ( StringyEnum (..)
      , ReplaceFieldKey
      , stringyEnumNamedSchema
+     , stringyEnumMappedNamedSchema
 
      , TypeName
      , typeName
@@ -90,11 +91,28 @@ stringyEnumNamedSchema
   => proxy a
   -> Declare (Definitions Schema) NamedSchema
 
-stringyEnumNamedSchema _ = do
+stringyEnumNamedSchema = flip stringyEnumMappedNamedSchema pure
+
+-- | An alternative version of "stringyEnumNamedSchema" with ability to modify
+-- produced "NamedSchema".
+stringyEnumMappedNamedSchema
+  :: forall a typeRep proxy
+  .  ( typeRep ~ Rep a
+     , GToSchema typeRep
+     , ToJSON a
+     , StringyEnum a
+     , Enum a
+     , Bounded a
+     )
+  => proxy a
+  -> (NamedSchema -> Declare (Definitions Schema) NamedSchema)
+  -> Declare (Definitions Schema) NamedSchema
+
+stringyEnumMappedNamedSchema _ mapFn = do
   NamedSchema name' schema' <-
     gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy typeRep) mempty
 
-  pure $ NamedSchema name' schema'
+  mapFn $ NamedSchema name' schema'
     { _schemaParamSchema = (_schemaParamSchema schema')
         { _paramSchemaType = SwaggerString
         , _paramSchemaEnum =
