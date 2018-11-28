@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings, DeriveGeneric, LambdaCase #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
+{-# LANGUAGE DeriveGeneric, ScopedTypeVariables, TypeFamilies, InstanceSigs #-}
 
 -- | Type of the "acceptCode" field for Call Card operations requests.
 module Carma.EraGlonass.Types.EGUpdateCallCardAcceptCode
@@ -7,14 +8,12 @@ module Carma.EraGlonass.Types.EGUpdateCallCardAcceptCode
 
 import           GHC.Generics (Generic)
 
+import           Data.Proxy
 import           Data.Aeson
-import           Data.Aeson.Types (typeMismatch)
+import           Data.Aeson.Types (Parser, typeMismatch)
 import           Data.Swagger
 
 import           Carma.EraGlonass.Types.Helpers
-                   ( StringyEnum (..)
-                   , stringyEnumNamedSchema
-                   )
 
 
 data EGUpdateCallCardAcceptCode
@@ -30,10 +29,14 @@ instance StringyEnum EGUpdateCallCardAcceptCode where
     CardNotFound    -> "CARD_NOT_FOUND"
 
 instance FromJSON EGUpdateCallCardAcceptCode where
-  -- Producing list of all values to reduce human-factor mistakes,
+  -- | Producing list of all values to reduce human-factor mistakes,
   -- so it is handled automatically when we add a new value.
+  --
+  -- Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON :: forall t. t ~ EGUpdateCallCardAcceptCode => Value -> Parser t
   parseJSON jsonValue = f [minBound..(maxBound :: EGUpdateCallCardAcceptCode)]
-    where f [] = typeMismatch "EGUpdateCallCardAcceptCode" jsonValue
+    where f [] = typeMismatch (typeName (Proxy :: Proxy t)) jsonValue
           f (x:xs) | toJSON x == jsonValue = pure x
                    | otherwise             = f xs
 

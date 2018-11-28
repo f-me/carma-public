@@ -1,5 +1,5 @@
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE UndecidableInstances, QuasiQuotes #-}
+{-# LANGUAGE ScopedTypeVariables, TypeFamilies, InstanceSigs #-}
 
 -- | A helper to wrap persistent key to transform it to/from JSON as string.
 module Carma.EraGlonass.Types.PersistentTextKey
@@ -7,11 +7,12 @@ module Carma.EraGlonass.Types.PersistentTextKey
      ) where
 
 import           Data.Proxy
+import           Data.Typeable
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 import           Data.Aeson
 import           Data.Swagger
-import           Data.Aeson.Types (typeMismatch)
+import           Data.Aeson.Types (Parser, typeMismatch)
 import qualified Data.Attoparsec.Text as P
 
 import           Control.Applicative ((<|>))
@@ -27,6 +28,7 @@ import           Database.Persist.Sql (SqlBackend, fromSqlKey, toSqlKey)
 -- to/from string (@Text@).
 newtype PersistentTextKey record
       = PersistentTextKey { fromPersistentTextKey :: Key record }
+        deriving Typeable
 
 instance ToBackendKey SqlBackend record => Eq (PersistentTextKey record) where
   PersistentTextKey modelIdA == PersistentTextKey modelIdB =
@@ -44,17 +46,21 @@ instance ToBackendKey SqlBackend record
 
   toJSON (PersistentTextKey key) = String [qm|{fromSqlKey key}|]
 
-instance ToBackendKey SqlBackend record
+instance (ToBackendKey SqlBackend record, Typeable record)
       => FromJSON (PersistentTextKey record)
          where
 
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON :: forall t. t ~ PersistentTextKey record => Value -> Parser t
+
   parseJSON src@(String x) =
     case P.parseOnly parser x of
-         Left  _ -> typeMismatch "PersistentTextKey" src
+         Left  _ -> typeMismatch (show $ typeRep (Proxy :: Proxy t)) src
          Right y -> pure $ PersistentTextKey $ toSqlKey y
 
     where parser = (negativeParser <|> positiveParser) <* P.endOfInput
           negativeParser = negate <$> (P.char '-' *> P.decimal)
           positiveParser = P.decimal
 
-  parseJSON incorrect = typeMismatch "PersistentTextKey" incorrect
+  parseJSON x = typeMismatch (show $ typeRep (Proxy :: Proxy t)) x

@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings, DuplicateRecordFields, LambdaCase #-}
-{-# LANGUAGE DeriveGeneric, FlexibleContexts  #-}
+{-# LANGUAGE DeriveGeneric, FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables, TypeFamilies, InstanceSigs #-}
 
 -- | Type of the "acceptCode" field for Call Card operations requests.
 module Carma.EraGlonass.Types.EGVinOperationAcceptCode
@@ -10,14 +11,12 @@ module Carma.EraGlonass.Types.EGVinOperationAcceptCode
 
 import           GHC.Generics (Generic)
 
+import           Data.Proxy
 import           Data.Aeson
-import           Data.Aeson.Types (typeMismatch)
+import           Data.Aeson.Types (Parser, typeMismatch)
 import           Data.Swagger
 
 import           Carma.EraGlonass.Types.Helpers
-                   ( StringyEnum (..)
-                   , stringyEnumNamedSchema
-                   )
 
 
 data EGVinOperationAcceptCode
@@ -33,10 +32,14 @@ instance StringyEnum EGVinOperationAcceptCode where
     VinNotFound     -> "VIN_NOT_FOUND"
 
 instance FromJSON EGVinOperationAcceptCode where
-  -- Producing list of all values to reduce human-factor mistakes,
+  -- | Producing list of all values to reduce human-factor mistakes,
   -- so it is handled automatically when we add a new value.
-  parseJSON jsonValue = f [minBound..(maxBound :: EGVinOperationAcceptCode)]
-    where f [] = typeMismatch "EGVinOperationAcceptCode" jsonValue
+  --
+  -- Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON :: forall t. t ~ EGVinOperationAcceptCode => Value -> Parser t
+  parseJSON jsonValue = f [minBound..maxBound :: t]
+    where f [] = typeMismatch (typeName (Proxy :: Proxy t)) jsonValue
           f (x:xs) | toJSON x == jsonValue = pure x
                    | otherwise             = f xs
 
@@ -61,11 +64,17 @@ instance StringyEnum EGVinOperationFailureAcceptCode where
     FailureVinNotFound     -> toStringy VinNotFound
 
 instance FromJSON EGVinOperationFailureAcceptCode where
-  -- Producing list of all values to reduce human-factor mistakes,
+  -- | Producing list of all values to reduce human-factor mistakes,
   -- so it is handled automatically when we add a new value.
+  --
+  -- Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON
+    :: forall t. t ~ EGVinOperationFailureAcceptCode => Value -> Parser t
+
   parseJSON jsonValue =
-    f [minBound..(maxBound :: EGVinOperationFailureAcceptCode)]
-    where f [] = typeMismatch "EGVinOperationFailureAcceptCode" jsonValue
+    f [minBound..maxBound :: t]
+    where f [] = typeMismatch (typeName (Proxy :: Proxy t)) jsonValue
           f (x:xs) | toJSON x == jsonValue = pure x
                    | otherwise             = f xs
 
@@ -91,12 +100,19 @@ instance StringyEnum EGVinOperationDeletionIsSucceededAcceptCode where
     DeletionIsSucceededVinNotFound -> toStringy VinNotFound
 
 instance FromJSON EGVinOperationDeletionIsSucceededAcceptCode where
-  -- Producing list of all values to reduce human-factor mistakes,
+  -- | Producing list of all values to reduce human-factor mistakes,
   -- so it is handled automatically when we add a new value.
+  --
+  -- Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON
+    :: forall t. t ~ EGVinOperationDeletionIsSucceededAcceptCode
+    => Value
+    -> Parser t
+
   parseJSON jsonValue =
-    f [minBound..(maxBound :: EGVinOperationDeletionIsSucceededAcceptCode)]
-    where f [] = typeMismatch "EGVinOperationDeletionIsSucceededAcceptCode"
-                              jsonValue
+    f [minBound..maxBound :: t]
+    where f [] = typeMismatch (typeName (Proxy :: Proxy t)) jsonValue
           f (x:xs) | toJSON x == jsonValue = pure x
                    | otherwise             = f xs
 

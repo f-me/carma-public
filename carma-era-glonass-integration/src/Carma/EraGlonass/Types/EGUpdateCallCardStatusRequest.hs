@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds, TypeOperators, TypeFamilies #-}
+{-# LANGUAGE ScopedTypeVariables, InstanceSigs #-}
 
 -- Fixes issue when record-fields aren't exported. Probably related to:
 --   https://stackoverflow.com/questions/46357747/haddock-data-record-fields-names-not-being-generated
@@ -21,13 +21,14 @@ import           GHC.Generics
 import           Data.Proxy
 import           Data.Word
 import           Data.Text (Text)
-import qualified Data.HashMap.Lazy as HM
 import           Data.Aeson
 import           Data.Aeson.TH (Options (omitNothingFields))
-import           Data.Aeson.Types (typeMismatch, parseEither)
+import           Data.Aeson.Types (Parser, typeMismatch, parseEither)
 import           Data.Swagger
+import           Data.Swagger.Declare (Declare)
 import           Data.Swagger.Internal.Schema
 
+import           Carma.EraGlonass.Types.Helpers
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGCallCardId (EGCallCardId)
 import           Carma.EraGlonass.Types.EGCallCardStatus (EGCallCardStatus)
@@ -88,6 +89,11 @@ data EGUpdateCallCardStatusResponse
      deriving (Eq, Show, Generic)
 
 instance FromJSON EGUpdateCallCardStatusResponse where
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON
+    :: forall t. t ~ EGUpdateCallCardStatusResponse => Value -> Parser t
+
   parseJSON src = pure $
     -- Parsing here to extract parsing error message
     case parseEither (const successfulCase) src of
@@ -95,15 +101,20 @@ instance FromJSON EGUpdateCallCardStatusResponse where
          Right x  -> x
 
     where
+      typeName'' = typeName (Proxy :: Proxy t)
+
+      okConstructorProxy :: Proxy '(t, "EGUpdateCallCardStatusResponse")
+      okConstructorProxy = Proxy
+
       successfulCase = do
         obj <- -- Extracting hash-map from JSON @Object@
           case src of
                Object x -> pure x
-               _        -> typeMismatch "EGUpdateCallCardStatusResponse" src
+               _        -> typeMismatch typeName'' src
 
         parsed <- genericParseJSON defaultOptions $
           -- Associating it with successful case constructor
-          Object $ HM.insert "tag" (String "EGUpdateCallCardStatusResponse") obj
+          Object $ addConstructorTag okConstructorProxy obj
 
         pure parsed
 
@@ -116,10 +127,19 @@ type family CutOffFailureCons (k1 :: * -> *) where
   CutOffFailureCons (D1 a (C1 FailureConsMeta _ :+: y)) = D1 a y
 
 instance ToSchema EGUpdateCallCardStatusResponse where
-  declareNamedSchema _ = gdeclareNamedSchema defaultSchemaOptions proxy mempty
-    where
-      proxy :: Proxy (CutOffFailureCons (Rep EGUpdateCallCardStatusResponse))
-      proxy = Proxy
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t typeRep t2
+    .  ( t ~ EGUpdateCallCardStatusResponse
+       , typeRep ~ Rep t
+       , t2 ~ CutOffFailureCons typeRep
+       )
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
+
+  declareNamedSchema _ =
+    gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy t2) mempty
 
 
 data EGUpdateCallCardStatusResponseResponses

@@ -1,9 +1,7 @@
-{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings, OverloadedLists, QuasiQuotes, LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables, TypeFamilies, InstanceSigs #-}
 
--- A module that helps to deal with "RequestId" of Era Glonass service
+-- | A module that helps to deal with "RequestId" of Era Glonass service
 module Carma.EraGlonass.Types.RequestId
      ( RequestId
      , fromRequestId
@@ -12,6 +10,7 @@ module Carma.EraGlonass.Types.RequestId
      ) where
 
 import           Data.Proxy
+import           Data.Typeable
 import           Numeric (showHex)
 import           Data.Char (digitToInt)
 import           Data.Monoid ((<>))
@@ -23,8 +22,10 @@ import           Text.InterpolatedString.QM
 import           Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import           Data.String (IsString (fromString))
 import           Data.Swagger
+import           Data.Swagger.Declare (Declare)
 import           Data.Aeson
 import           Data.Aeson.Types hiding (Parser)
+import qualified Data.Aeson.Types
 import           Data.Attoparsec.ByteString.Char8 hiding (take)
 
 import           Control.Monad.Random.Class (MonadRandom, getRandoms)
@@ -63,16 +64,20 @@ import           Carma.Monad.Clock
 -- It's part of Era Glonass system, so we don't know what actually it is except
 -- it must be unique for each request to Era Glonass.
 --
-newtype RequestId = RequestId ByteString deriving (Eq, Show)
+newtype RequestId = RequestId ByteString deriving (Eq, Show, Typeable)
 
 fromRequestId :: RequestId -> ByteString
 fromRequestId (RequestId x) = x
 
 instance IsString RequestId where
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  fromString :: forall t. t ~ RequestId => String -> t
   fromString x
     = parseOnly requestIdParser (fromString x)
-    & \case Left  e -> error [qm| RequestId "{x}" is incorrect, error: {e} |]
-            Right y -> y
+    & \case Right y -> y
+            Left  e -> error [qms| {typeRep (Proxy :: Proxy t)}
+                                   "{x}" is incorrect, error: {e} |]
 
 requestIdParser :: Parser RequestId
 requestIdParser = f
@@ -91,18 +96,31 @@ requestIdParser = f
                 g = mconcat . map (flip showHex "")
 
 instance FromJSON RequestId where
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON :: forall t. t ~ RequestId => Value -> Data.Aeson.Types.Parser t
+
   parseJSON v@(String x)
     = parseOnly requestIdParser (encodeUtf8 x)
-    & \case Left  _ -> typeMismatch "RequestId" v
+    & \case Left  _ -> typeMismatch (show $ typeRep (Proxy :: Proxy t)) v
             Right y -> pure y
 
-  parseJSON invalid = typeMismatch "RequestId" invalid
+  parseJSON invalid = typeMismatch (show $ typeRep (Proxy :: Proxy t)) invalid
 
 instance ToJSON RequestId where
   toJSON (RequestId x) = String $ decodeUtf8 x
 
 instance ToSchema RequestId where
-  declareNamedSchema _ = pure $ NamedSchema (Just "RequestId") mempty
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t. t ~ RequestId
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
+
+  declareNamedSchema _
+    = pure
+    $ NamedSchema (Just [qm|{typeRep (Proxy :: Proxy t)}|]) mempty
     { _schemaParamSchema = mempty
         { _paramSchemaType    = SwaggerString
         , _paramSchemaFormat  = Just "UUID"
@@ -145,7 +163,7 @@ instance DefaultFieldView RequestId where
             fieldToFieldKindProxy _ = Proxy
 
 
--- Builds new unique "RequestId".
+-- | Builds new unique "RequestId".
 newRequestId :: (MonadRandom m, MonadClock m) => m RequestId
 newRequestId = do
   (randomPart  :: [Char]) <- take 128 <$> getRandoms
@@ -168,6 +186,6 @@ newRequestId = do
                         newAcc = if null prevAcc then a else f prevAcc a
 
 
--- Lengths of parts between dashes in UUID of "RequestId".
+-- | Lengths of parts between dashes in UUID of "RequestId".
 allDashesParts :: [Int]
 allDashesParts = [8, 4, 4, 4, 12]
