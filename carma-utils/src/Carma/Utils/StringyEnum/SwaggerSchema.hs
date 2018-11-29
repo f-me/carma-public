@@ -1,5 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables, TypeFamilies #-}
 
+-- | Default implementations for "ToSchema" based on "StringyEnum" instance.
 module Carma.Utils.StringyEnum.SwaggerSchema
      ( stringyEnumNamedSchema
      , stringyEnumMappedNamedSchema

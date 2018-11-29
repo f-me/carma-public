@@ -68,6 +68,7 @@ import           Data.Swagger
 import           Data.Swagger.Declare
 
 import           Carma.Utils.Operators
+import           Carma.Utils.TypeSafe.KnownBool
 
 
 -- | Helps to rename a field of a record
@@ -833,8 +834,3 @@ constructorsBranchingSchemaProto = mempty
   , _schemaMinProperties = Just 1
   , _schemaMaxProperties = Just 1
   }
-
-
-class KnownBool (b :: Bool) where boolVal :: forall proxy . proxy b -> Bool
-instance KnownBool 'True    where boolVal _ = True
-instance KnownBool 'False   where boolVal _ = False
