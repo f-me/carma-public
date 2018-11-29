@@ -29,7 +29,9 @@ import           Data.Aeson.Types (Parser, typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
 
-import           Carma.EraGlonass.Types.Helpers
+import           Carma.Utils.TypeSafe.Generic.DataType
+import           Carma.Utils.TypeSafe.Generic.Record
+import           Carma.Utils.TypeSafe.Generic.Aeson
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
 

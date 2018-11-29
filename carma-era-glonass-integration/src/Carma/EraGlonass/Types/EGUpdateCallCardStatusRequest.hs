@@ -28,7 +28,8 @@ import           Data.Swagger
 import           Data.Swagger.Declare (Declare)
 import           Data.Swagger.Internal.Schema
 
-import           Carma.EraGlonass.Types.Helpers
+import           Carma.Utils.TypeSafe.Generic.DataType
+import           Carma.Utils.TypeSafe.Generic.Aeson
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGCallCardId (EGCallCardId)
 import           Carma.EraGlonass.Types.EGCallCardStatus (EGCallCardStatus)

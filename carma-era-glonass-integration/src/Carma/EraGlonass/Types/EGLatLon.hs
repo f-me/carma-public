@@ -16,7 +16,7 @@ import           Data.Swagger
 import           Data.Swagger.Declare (Declare)
 import           Text.InterpolatedString.QM
 
-import           Carma.EraGlonass.Types.Helpers
+import           Carma.Utils.TypeSafe.Generic.DataType
 
 
 newtype EGLatitude

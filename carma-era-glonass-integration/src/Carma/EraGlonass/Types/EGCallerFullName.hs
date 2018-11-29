@@ -21,7 +21,7 @@ import           Data.Attoparsec.Text hiding (Parser)
 
 import           Control.Applicative ((<|>))
 
-import           Carma.EraGlonass.Types.Helpers
+import           Carma.Utils.TypeSafe.Generic.DataType
 
 
 newtype EGCallerFullName

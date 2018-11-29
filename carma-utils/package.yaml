@@ -14,6 +14,7 @@ dependencies:
   - base
   - swagger2
   - text
+  - unordered-containers
 
 ghc-options:
   - -Wall

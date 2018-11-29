@@ -22,7 +22,7 @@ import           Data.Char (toUpper)
 import           Data.Monoid ((<>))
 
 import           Carma.Utils.Operators
-import           Carma.EraGlonass.Types.Helpers
+import           Carma.Utils.TypeSafe.Generic.DataType
 
 
 -- You could read about VIN here:

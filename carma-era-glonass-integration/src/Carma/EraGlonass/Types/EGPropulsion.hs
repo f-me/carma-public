@@ -23,7 +23,7 @@ import qualified Carma.Model.Engine.Persistent as EnginePersistent
 
 import           Carma.Utils.StringyEnum
 import           Carma.Utils.StringyEnum.SwaggerSchema
-import           Carma.EraGlonass.Types.Helpers
+import           Carma.Utils.TypeSafe.Generic.DataType
 
 
 data EGPropulsion

@@ -21,7 +21,7 @@ import           Data.Attoparsec.ByteString.Char8 hiding (Parser)
 
 import           Control.Applicative ((<|>))
 
-import           Carma.EraGlonass.Types.Helpers
+import           Carma.Utils.TypeSafe.Generic.DataType
 
 
 -- | A string from 1 to 18 chars of numbers which could be prefixed with @\'+'@

@@ -36,7 +36,7 @@ import           Database.Persist.Class
 import           Data.Model
 import           Data.Model.Types
 
-import           Carma.EraGlonass.Types.Helpers hiding (fieldName)
+import           Carma.Utils.TypeSafe.Generic.DataType
 
 
 newtype EGCallCardId

@@ -50,8 +50,11 @@ import           Data.Model.Types
 
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Proxy
+import           Carma.Utils.TypeSafe.Generic.DataType
+import           Carma.Utils.TypeSafe.Generic.Record hiding (fieldName)
+import           Carma.Utils.TypeSafe.Generic.Aeson
+import           Carma.Utils.TypeSafe.Generic.Swagger
 import           Carma.Model.Case.Persistent (Case)
-import           Carma.EraGlonass.Types.Helpers hiding (fieldName)
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGPhoneNumber (EGPhoneNumber)
 import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
