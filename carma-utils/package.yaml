@@ -10,7 +10,10 @@ description:
   Generic utils for CaRMa used over the CaRMa's packages.
 
 dependencies:
+  - aeson
   - base
+  - swagger2
+  - text
 
 ghc-options:
   - -Wall

@@ -14,10 +14,7 @@
 --      @carma-utils@ package?
 --
 module Carma.EraGlonass.Types.Helpers
-     ( StringyEnum (..)
-     , ReplaceFieldKey
-     , stringyEnumNamedSchema
-     , stringyEnumMappedNamedSchema
+     ( ReplaceFieldKey
 
      , TypeName
      , typeName
@@ -70,59 +67,11 @@ import           GHC.Exts (IsList (..))
 import           Data.Proxy
 import qualified Data.HashMap.Lazy as HM
 import           Data.String (IsString (fromString))
-import           Data.Text (Text)
 import           Data.Aeson
 import           Data.Swagger
 import           Data.Swagger.Declare
-import           Data.Swagger.Internal.Schema
 
 import           Carma.Utils.Operators
-
-
-stringyEnumNamedSchema
-  :: forall a typeRep proxy
-  .  ( typeRep ~ Rep a
-     , GToSchema typeRep
-     , ToJSON a
-     , StringyEnum a
-     , Enum a
-     , Bounded a
-     )
-  => proxy a
-  -> Declare (Definitions Schema) NamedSchema
-
-stringyEnumNamedSchema = flip stringyEnumMappedNamedSchema pure
-
--- | An alternative version of "stringyEnumNamedSchema" with ability to modify
--- produced "NamedSchema".
-stringyEnumMappedNamedSchema
-  :: forall a typeRep proxy
-  .  ( typeRep ~ Rep a
-     , GToSchema typeRep
-     , ToJSON a
-     , StringyEnum a
-     , Enum a
-     , Bounded a
-     )
-  => proxy a
-  -> (NamedSchema -> Declare (Definitions Schema) NamedSchema)
-  -> Declare (Definitions Schema) NamedSchema
-
-stringyEnumMappedNamedSchema _ mapFn = do
-  NamedSchema name' schema' <-
-    gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy typeRep) mempty
-
-  mapFn $ NamedSchema name' schema'
-    { _schemaParamSchema = (_schemaParamSchema schema')
-        { _paramSchemaType = SwaggerString
-        , _paramSchemaEnum =
-            Just $ String . toStringy <$> [minBound .. maxBound :: a]
-        }
-    }
-
-
-class StringyEnum a where
-  toStringy :: a -> Text
 
 
 -- | Helps to rename a field of a record

@@ -35,6 +35,7 @@ import           Data.Swagger
 import           Data.Swagger.Internal.Schema
 import           Data.Swagger.Declare (Declare)
 
+import           Carma.Utils.StringyEnum
 import           Carma.EraGlonass.Types.Helpers
 import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)

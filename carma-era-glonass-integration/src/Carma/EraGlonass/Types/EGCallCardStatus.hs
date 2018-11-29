@@ -12,6 +12,8 @@ import           Data.Aeson
 import           Data.Aeson.Types (Parser, typeMismatch)
 import           Data.Swagger
 
+import           Carma.Utils.StringyEnum
+import           Carma.Utils.StringyEnum.SwaggerSchema
 import           Carma.EraGlonass.Types.Helpers
 
 
