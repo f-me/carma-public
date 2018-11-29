@@ -69,6 +69,7 @@ import           Data.Swagger.Declare
 
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.KnownBool
+import           Carma.Utils.TypeSafe.TypeFamilies
 
 
 -- | Helps to rename a field of a record
@@ -388,91 +389,6 @@ addConstructorTag' p@Proxy = HM.insert "tag" $ String $ constructorName' p
 -- implementation artefacts to the result output.
 removeConstructorTag :: Object -> Object
 removeConstructorTag = HM.delete "tag"
-
-
-type family MaybeAlternative (k1 :: Maybe k)
-                             (k2 :: Maybe k)
-                                 :: Maybe k where
-  MaybeAlternative ('Just x) _        = 'Just x
-  MaybeAlternative 'Nothing ('Just x) = 'Just x
-  MaybeAlternative 'Nothing 'Nothing  = 'Nothing
-
-
--- | Kinda like "Applicative" stuff
-type family MaybePair (k1 :: Maybe kk1)
-                      (k2 :: Maybe kk2)
-                          :: Maybe (kk1, kk2) where
-  MaybePair ('Just a) ('Just b) = 'Just '(a, b)
-  MaybePair _ _ = 'Nothing
-
--- | Kinda like "Applicative" stuff
-type family MaybeTriplet (k1 :: Maybe kk1)
-                         (k2 :: Maybe kk2)
-                         (k3 :: Maybe kk3)
-                             :: Maybe (kk1, kk2, kk3) where
-  MaybeTriplet ('Just a) ('Just b) ('Just c) = 'Just '(a, b, c)
-  MaybeTriplet _ _ _ = 'Nothing
-
-
-type family TypeIsMaybe (k1 :: *) :: Bool where
-  TypeIsMaybe (Maybe _) = 'True
-  TypeIsMaybe _         = 'False
-
-type family MaybeTypeIsMaybe (k1 :: Maybe *) :: Maybe Bool where
-  MaybeTypeIsMaybe 'Nothing  = 'Nothing
-  MaybeTypeIsMaybe ('Just x) = 'Just (TypeIsMaybe x)
-
-
-type family MaybeList (k1 :: Maybe a) :: Maybe [a] where
-  MaybeList ('Just x) = 'Just '[x]
-  MaybeList _ = 'Nothing
-
-
-type family LiftFstMaybe (k1 :: (Maybe a, b)) :: Maybe (a, b) where
-  LiftFstMaybe '( 'Just a, b ) = 'Just '(a, b)
-  LiftFstMaybe _ = 'Nothing
-
-type family LiftSndMaybe (k1 :: (a, Maybe b)) :: Maybe (a, b) where
-  LiftSndMaybe '( a, 'Just b ) = 'Just '(a, b)
-  LiftSndMaybe _ = 'Nothing
-
-
-type family Not (k1 :: Bool) :: Bool where
-  Not 'True  = 'False
-  Not 'False = 'True
-
-type family MaybeNot (k1 :: Maybe Bool) :: Maybe Bool where
-  MaybeNot 'Nothing  = 'Nothing
-  MaybeNot ('Just x) = 'Just (Not x)
-
-
-type family Uncons (k1 :: [a]) :: Maybe (a, [a]) where
-  Uncons '[] = 'Nothing
-  Uncons (x ': xs) = 'Just '(x, xs)
-
-type family MaybeCons (k1 :: Maybe a) (k2 :: [a]) :: Maybe [a] where
-  MaybeCons ('Just x) xs = 'Just (x ': xs)
-  MaybeCons _ _ = 'Nothing
-
-type family MaybeListCons (k1 :: a) (k2 :: Maybe [a]) :: Maybe [a] where
-  MaybeListCons x ('Just xs) = 'Just (x ': xs)
-  MaybeListCons _ _ = 'Nothing
-
-type family MaybeMaybeCons (k1 :: Maybe a) (k2 :: Maybe [a]) :: Maybe [a] where
-  MaybeMaybeCons ('Just x) ('Just xs) = 'Just (x ': xs)
-  MaybeMaybeCons _ _ = 'Nothing
-
-type family Concat (k1 :: [a]) (k2 :: [a]) :: [a] where
-  Concat '[] xs = xs
-  Concat (x ': xs) ys = x ': Concat xs ys
-
-type family MaybeMaybeConcat (k1 :: Maybe [a])
-                             (k2 :: Maybe [a])
-                                 :: Maybe [a] where
-  MaybeMaybeConcat 'Nothing _ = 'Nothing
-  MaybeMaybeConcat _ 'Nothing = 'Nothing
-  MaybeMaybeConcat ('Just '[]) ('Just ys) = 'Just ys
-  MaybeMaybeConcat ('Just (x ': xs)) ('Just ys) = 'Just (x ': Concat xs ys)
 
 
 -- | Helps to construct property definition reference in a type-safe way.
