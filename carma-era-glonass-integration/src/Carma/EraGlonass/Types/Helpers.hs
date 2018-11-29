@@ -39,10 +39,6 @@ module Carma.EraGlonass.Types.Helpers
      , addConstructorTag'
      , removeConstructorTag
 
-     , proxyPair
-     , proxyTriplet
-     , proxyPair2Triplet
-
      , TypeSafeSchemaProperty
      , typeSafeSchemaProperty
      , typeSafeSchemaProperty'
@@ -391,16 +387,6 @@ addConstructorTag' p@Proxy = HM.insert "tag" $ String $ constructorName' p
 -- implementation artefacts to the result output.
 removeConstructorTag :: Object -> Object
 removeConstructorTag = HM.delete "tag"
-
-
-proxyPair :: Proxy a -> Proxy b -> Proxy '(a, b)
-proxyPair Proxy Proxy = Proxy
-
-proxyTriplet :: Proxy a -> Proxy b -> Proxy c -> Proxy '(a, b, c)
-proxyTriplet Proxy Proxy Proxy = Proxy
-
-proxyPair2Triplet :: Proxy '(a, b) -> Proxy c -> Proxy '(a, b, c)
-proxyPair2Triplet Proxy Proxy = Proxy
 
 
 type family MaybeAlternative (k1 :: Maybe k)

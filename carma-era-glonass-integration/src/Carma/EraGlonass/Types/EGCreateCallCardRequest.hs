@@ -49,6 +49,7 @@ import           Data.Model
 import           Data.Model.Types
 
 import           Carma.Utils.Operators
+import           Carma.Utils.TypeSafe.Proxy
 import           Carma.Model.Case.Persistent (Case)
 import           Carma.EraGlonass.Types.Helpers hiding (fieldName)
 import           Carma.EraGlonass.Types.RequestId (RequestId)
