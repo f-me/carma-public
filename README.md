@@ -214,7 +214,7 @@ And restart proper **CaRMa** services.
 
    - [srv/snaplets/persist/devel.cfg](srv/snaplets-default/persist/devel.cfg)
    - [srv/snaplets/postgresql-simple/devel.cfg](srv/snaplets-default/postgresql-simple/devel.cfg)
-   - [carma-mobile-server/snaplets/postgresql-simple/devel.cfg](carma-mobile-server/snaplets/postgresql-simple/devel.cfg)
+   - [carma-mobile-server/snaplets/postgresql-simple/devel.cfg](carma-mobile-server/snaplets-default/postgresql-simple/devel.cfg)
 
 6. **WARNING!** Before going to next step you supposed to build
    [frontend](#frontend) first, because templates for backend must be built
