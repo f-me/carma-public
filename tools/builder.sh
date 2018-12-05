@@ -669,57 +669,70 @@ config_copy() {
     fi
 }
 
+# A helper for copying default snaplets configs to actual snaplets configs path.
+# $1 - task name for log
+# $2 - snaplets configs directory path
+#      (default snaplets configs directory path
+#       will be suffixed with `-default`)
+snaplet_config_copy() {
+    task_log "$1" step "Checking $2 configs directory…"
+    if [[ ! -d $2 ]]; then
+        local x="$2 configs directory doesn't exists, copying it"
+        x="$x from ${2}-default to ${2}…"
+        task_log "$1" step "$x"
+
+        local app_name="cp -r -- '${2}-default' '$2'"
+        local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
+        app_logger 1 "$lout" "$1" "$app_name" & pids+=($!)
+        app_logger 2 "$lerr" "$1" "$app_name" & pids+=($!)
+        cp -r -- "${2}-default" "$2" \
+            1>"$lout" 2>"$lerr" \
+            || fail_trap "$1" "${pids[*]}" "$lout" "$lerr" \
+            || return -- "$?"
+        for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+        rm -- "$lout" "$lerr"
+
+        task_log "$1" step "$2 configs directory is copied."
+    else
+        local t="$2 configs directory exists,"
+        t="$t checking particular configs…"
+        task_log "$1" step "$t"
+
+        ls -- "${2}-default" | while read dir; do
+            local app_name="mkdir -p -- '$2/$dir'"
+            local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
+            app_logger 1 "$lout" "$1" "$app_name" & pids+=($!)
+            app_logger 2 "$lerr" "$1" "$app_name" & pids+=($!)
+            mkdir -p -- "$2/$dir" \
+                1>"$lout" 2>"$lerr" \
+                || fail_trap "$1" "${pids[*]}" "$lout" "$lerr" \
+                || return -- "$?"
+            for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+            rm -- "$lout" "$lerr"
+
+            ls -- "${2}-default/$dir/"* | while read file; do
+                config_copy "$1" 'Snaplet' \
+                    "$file" "$2/$dir/$(basename -- "$file")" \
+                    || fail_trap "$1" \
+                    || return -- "$?"
+            done
+        done
+
+        task_log "$1" step "Done with $2 particular configs."
+    fi
+}
+
 # "backend-configs" task
 backend_configs_task__covered_by=(all backend)
 backend_configs_task() {
     local task_name='backend-configs'
     task_log "$task_name" run
 
-    # Snaplets configs
-    task_log "$task_name" step 'Checking snaplets configs directory…'
-    if [[ ! -d srv/snaplets ]]; then
-        local x=$'Snaplets configs directory doesn\'t exists, copying it'
-        x="$x from srv/snaplets-default to srv/snaplets…"
-        task_log "$task_name" step "$x"
+    # srv/snaplets configs
+    snaplet_config_copy "$task_name" srv/snaplets
 
-        local app_name='cp -r srv/snaplets-default srv/snaplets'
-        local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
-        app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
-        app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
-        cp -r srv/snaplets-default srv/snaplets \
-            1>"$lout" 2>"$lerr" \
-            || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
-            || return -- "$?"
-        for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
-        rm -- "$lout" "$lerr"
-
-        task_log "$task_name" step 'Snaplets configs directory is copied.'
-    else
-        task_log "$task_name" step \
-            'Snaplets configs directory exists, checking particular configs…'
-
-        ls srv/snaplets-default | while read dir; do
-            local app_name="mkdir -p -- 'srv/snaplets/$dir'"
-            local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
-            app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
-            app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
-            mkdir -p -- "srv/snaplets/$dir" \
-                1>"$lout" 2>"$lerr" \
-                || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
-                || return -- "$?"
-            for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
-            rm -- "$lout" "$lerr"
-
-            ls -- "srv/snaplets-default/$dir/"* | while read file; do
-                config_copy "$task_name" 'Snaplet' \
-                    "$file" "srv/snaplets/$dir/$(basename -- "$file")" \
-                    || fail_trap "$task_name" \
-                    || return -- "$?"
-            done
-        done
-
-        task_log "$task_name" step 'Done with snaplets particular configs.'
-    fi
+    # carma-mobile-server/snaplets configs
+    snaplet_config_copy "$task_name" carma-mobile-server/snaplets
 
     # Nominatim Mediator config
     config_copy "$task_name" 'Nominatim Mediator' \

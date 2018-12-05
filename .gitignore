@@ -39,6 +39,7 @@ srv/resources/static/build/pureFrontend
 
 # no configs in git repo anymore
 srv/snaplets/*
+carma-mobile-server/snaplets/*
 carma-nominatim-mediator/app.cfg
 carma-nominatim-mediator/*.db
 tools/carma-tools.cfg.yaml
