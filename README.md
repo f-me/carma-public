@@ -206,13 +206,15 @@ And restart proper **CaRMa** services.
 
    ```bash
    cp -r srv/snaplets-default srv/snaplets
+   cp -r carma-mobile-server/snaplets-default carma-mobile-server/snaplets
    ```
 
    Keep in mind that if you change database configuration or credentials to
    access to it you need to update these files (links points to default ones):
 
-   - [srv/snaplets/persist/devel.cfg](./srv/snaplets-default/persist/devel.cfg)
-   - [srv/snaplets/postgresql-simple/devel.cfg](./srv/snaplets-default/postgresql-simple/devel.cfg)
+   - [srv/snaplets/persist/devel.cfg](srv/snaplets-default/persist/devel.cfg)
+   - [srv/snaplets/postgresql-simple/devel.cfg](srv/snaplets-default/postgresql-simple/devel.cfg)
+   - [carma-mobile-server/snaplets/postgresql-simple/devel.cfg](carma-mobile-server/snaplets-default/postgresql-simple/devel.cfg)
 
 6. **WARNING!** Before going to next step you supposed to build
    [frontend](#frontend) first, because templates for backend must be built

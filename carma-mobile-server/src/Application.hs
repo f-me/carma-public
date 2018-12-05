@@ -3,6 +3,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE TupleSections #-}
 
 {-|
 
@@ -13,17 +16,18 @@ applications.
 -}
 
 module Application
-    ( GeoApp
-    , geoAppInit)
-
-where
+     ( GeoApp
+     , geoAppInit
+     ) where
 
 import           Control.Applicative
-import           Control.Lens hiding ((.=))
+import           Control.Lens hiding ((.=), (<&>))
 import           Control.Monad
 import           Control.Monad.Reader
 import           Control.Monad.State hiding (ap)
 
+import           Data.Semigroup ((<>))
+import           Data.List (find)
 import           Data.Aeson as Aeson
 import           Data.Aeson.Types (emptyArray)
 import qualified Data.HashMap.Strict as HM
@@ -31,6 +35,7 @@ import           Data.Scientific (toRealFloat, toBoundedInteger)
 
 import           Data.Attoparsec.ByteString.Char8
 
+import qualified Data.ByteString.Char8 as BS
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.Dict.New
@@ -55,6 +60,7 @@ import           Snap.Extras
 import           Snap.Snaplet
 import           Snap.Snaplet.PostgresqlSimple
 
+import           Carma.Utils.Operators
 import           Carma.Model.Types       (Coords(..))
 import           Carma.Model.LegacyTypes (PickerField(..), Phone(..))
 import           Data.Model              as Model
@@ -71,8 +77,16 @@ import qualified Carma.HTTP.Base as CH (runCarma)
 import           Carma.HTTP.New
 
 
+data SSLClientCertificate
+   = SSLClientCertificate
+   { knownCertificates :: [(ByteString, Text)]
+   -- ^ @fst@ is a certificate file contents and @snd@ is a partner title
+   }
+
+
 data GeoApp = GeoApp
     { _postgres :: Snaplet Postgres
+    , _sslClientCertificate :: Snaplet SSLClientCertificate
     , carmaOptions :: CarmaOptions
     -- ^ Options of CaRMa running on localhost.
     , cityDict :: NewDict
@@ -85,6 +99,7 @@ makeLenses ''GeoApp
 instance HasPostgres (Handler b GeoApp) where
     getPostgresState = with postgres get
     setLocalPostgresState s = local (set (postgres . snapletValue) s)
+
 
 routes :: [(ByteString, Handler b GeoApp ())]
 routes = [ ("/geo/partner/:pid",           method PUT updatePosition)
@@ -207,6 +222,52 @@ newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
   rqb <- readRequestBody 4096
+
+  -- Obtaining custom header with @$ssl_client_cert@ value from
+  -- nginx's @ssl_verify_client@ feature to authenticate external service
+  -- by SSL client certificate and to add proper mark to @contact_name@
+  -- to indicate where a @Case@ came from.
+  --
+  -- If it's @Nothing@ it means we're testing or using old legacy ports.
+  --
+  -- It's supposed to be forwarded like this (part of nginx config):
+  --
+  -- @
+  -- location / {
+  --   proxy_pass http://127.0.0.1:40443;
+  --   proxy_set_header SSLClientCertificate $ssl_client_cert;
+  -- }
+  -- @
+  sslClientCert <-
+    getRequest
+    <&> getHeader "SSLClientCertificate" -- Custom header (@proxy_set_header@)
+    <&> fmap cleanSSLCertificate -- Map inside @Maybe@
+
+  !partnerTitle <-
+    case sslClientCert of
+         Nothing ->
+           -- SSL Client Certificate isn't provided,
+           -- we're testing or using legacy old ports.
+           pure Nothing
+
+         Just cert ->
+           -- SSL Client Certificate is provided,
+           -- validating it and obtaining associated partner title.
+           obtainPartnerTitle cert >>= \case
+             Nothing -> do
+               -- Such certificate not found in known client certificates list!
+               modifyResponse $ setResponseStatus 406 "Not Acceptable"
+
+               writeBS
+                 "Not Acceptable! Your SSL client certificate not found\
+                 \ in our known certificates list!"
+
+               getResponse >>= finishWith
+
+             Just partnerTitle ->
+               -- Partner title is successfully obtained.
+               pure $ Just partnerTitle
+
   let -- Do not enforce typing on values when reading JSON
       Just (Object jsonRq0) = Aeson.decode rqb
       coords' = (,) <$> HM.lookup "lon" jsonRq0 <*> HM.lookup "lat" jsonRq0
@@ -214,9 +275,29 @@ newCase = do
       program'    = HM.lookup (fieldName Case.program) jsonRq0
       subprogram' = HM.lookup (fieldName Case.subprogram) jsonRq0
 
-      -- Now read all values but coords and program as Texts
-      jsonRq = HM.fromList
-               [(k, s) | (k, String s) <- HM.toList jsonRq0]
+      -- Now read all values but @coords@ and @program@ as @Text@s
+      jsonRq =
+        let
+          l = HM.fromList [(k, s) | (k, String s) <- HM.toList jsonRq0]
+          fieldKey = fieldName Case.contact_name
+        in
+          flip (maybe l) partnerTitle $ \p ->
+            case HM.lookup fieldKey l of
+                 Nothing ->
+                   -- "contact_name" is not set, just adding it with only
+                   -- partner's mark.
+                   HM.insert fieldKey p l
+
+                 Just v | v == p ->
+                            -- Partner is already makred new @Case@ properly,
+                            -- avoiding doubling a partner's mark.
+                            l
+
+                        | otherwise ->
+                            -- "contact_name" is already set, just adding
+                            -- partner's mark as suffix inside parenthesis.
+                            HM.insert fieldKey (v <> " (" <> p <> ")") l
+
       car_make = HM.lookup "car_make" jsonRq
       -- Add a text field from the request to a patch
       putFromRequest acc =
@@ -395,6 +476,11 @@ partnersAround = do
 geoAppInit :: SnapletInit b GeoApp
 geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     db <- nestSnaplet "postgres" postgres pgsInit
+
+    sslClientCertificate' <-
+      nestSnaplet "ssl-client-certificate"
+        sslClientCertificate sslClientCertificateInit
+
     cfg <- getSnapletUserConfig
 
     cp <- liftIO $ lookupDefault 8000 cfg "carma_port"
@@ -404,9 +490,49 @@ geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
 
     addRoutes routes
     cDict' <- liftIO $ CH.runCarma cOpts $ readDictionary dName
+
     case cDict' of
-      Just cDict -> return $ GeoApp db cOpts (loadNewDict' cDict)
       Nothing -> error "Could not load cities dictionary from CaRMa"
+      Just cDict ->
+        return $ GeoApp db sslClientCertificate' cOpts $ loadNewDict' cDict
+
+
+-- | Helper for obtaining known SSL client certificates associated with proper
+-- partner title which is used to mark @Case@ caller name with it.
+--
+-- So we're identifying partners by SSL client certificates they're using
+-- and then we know exactly from which partner a @Case@ came from.
+sslClientCertificateInit :: SnapletInit b SSLClientCertificate
+sslClientCertificateInit = makeSnaplet snapletId snapletTitle Nothing $ do
+  cfg <- getSnapletUserConfig
+
+  !knownCertificates' <-
+    liftIO (lookupDefault [] cfg "client-certificates")
+      >>= mapM (\case [a, b] ->
+                        liftIO (BS.readFile $ T.unpack a)
+                          <&> cleanSSLCertificate
+                          <&> (, b)
+                      x ->
+                        error $
+                          "Incorrect client certificates format: " ++ show x)
+
+  pure $ SSLClientCertificate { knownCertificates = knownCertificates' }
+
+  where
+    snapletId = "ssl-client-certificate"
+    snapletTitle = "SSL Client Certificate"
+
+
+obtainPartnerTitle :: ByteString -> Handler b GeoApp (Maybe Text)
+obtainPartnerTitle sslClientCert =
+   with sslClientCertificate get
+   <&> knownCertificates
+   <&> find (\(x, _) -> sslClientCert == x)
+   <&> fmap snd
+
+
+cleanSSLCertificate :: ByteString -> ByteString
+cleanSSLCertificate = BS.filter (`notElem` ("\t\r\n " :: [Char]))
 
 
 ------------------------------------------------------------------------------
