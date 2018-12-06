@@ -2,13 +2,11 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Carma.Model.SubProgram
-    ( module Carma.Model.SubProgram.Type
-    , module Carma.Model.SubProgram
-    )
+     ( module Carma.Model.SubProgram.Type
+     , module Carma.Model.SubProgram
+     ) where
 
-where
-
-import Data.Aeson as A (Value(Bool, String))
+import Data.Aeson as A (Value (Bool, String))
 
 import Data.Model
 import Data.Model.TH

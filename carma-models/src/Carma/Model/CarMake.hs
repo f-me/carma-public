@@ -10,7 +10,7 @@ import Data.Model
 import Data.Model.View
 import Data.Model.TH
 
-import Carma.Model.PgTypes()
+import Carma.Model.PgTypes ()
 
 
 data CarMake = CarMake

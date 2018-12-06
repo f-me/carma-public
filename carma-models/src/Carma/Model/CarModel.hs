@@ -14,7 +14,7 @@ import Carma.Model.Search (searchView, one)
 data CarModel = CarModel
   { ident    :: PK Int CarModel ""
   , value    :: F Text             "value"    "value"
-  -- ^ Used for carma-mobile-server case creation API
+  -- ^ Used for __carma-mobile-server__ case creation API
   , label    :: F Text             "label"    "Модель"
   , info     :: F Text             "info"     "Информация о модели"
   , parent   :: F (IdentI CarMake) "parent"   "Марка машины"

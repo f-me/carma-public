@@ -38,8 +38,11 @@ data Case = Case
   { ident :: PK Int Case "Номер кейса"
   , callDate
     :: F (Maybe UTCTime) "callDate" "Дата звонка"
+
+    -- TODO Explain what this field for and in which cases it is not null
   , vwcreatedate
     :: F (Maybe UTCTime) "vwcreatedate" "Дата звонка"
+
   , callTaker
     :: F (IdentI Usermeta) "callTaker" "Сотрудник РАМК"
   , customerComment
@@ -141,7 +144,9 @@ data Case = Case
   , car_firstSaleDate
     :: F (Maybe Day) "car_firstSaleDate" "Дата первой продажи"
   , car_dealerTO
-    :: F (Maybe (IdentI Partner)) "car_dealerTO" "Дилер, у которого проходило последнее ТО"
+    :: F (Maybe (IdentI Partner))
+         "car_dealerTO"
+         "Дилер, у которого проходило последнее ТО"
   , car_mileage
     :: F (Maybe Int) "car_mileage" "Текущий пробег"
   , car_transmission
