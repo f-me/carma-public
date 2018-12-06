@@ -45,8 +45,6 @@ SubProgram sql=SubProgram
   smsContact Text sql=smscontact
   smsProgram Text sql=smsprogram
 
-  eraGlonassParticipant Bool sql=eraglonassparticipant
-
   contractPrs [SubProgramContractPermissionId] sql=contractpermissions
 
   template Reference Maybe sql=template
