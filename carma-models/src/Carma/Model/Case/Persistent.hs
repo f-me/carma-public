@@ -114,6 +114,7 @@ Case sql=casetbl
   files Reference Maybe sql=files
   source CaseSourceId sql=source
   acStart UTCTime Maybe sql=acstart
+  isCreatedByEraGlonass Bool sql=iscreatedbyeraglonass
 
   deriving Typeable Show
 |]
