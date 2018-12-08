@@ -18,6 +18,7 @@ dependencies:
   - carma-utils
   - directory
   - fast-logger
+  - lifted-async
   - lifted-base
   - monad-control
   - monad-logger
