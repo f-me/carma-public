@@ -22,7 +22,7 @@ import           Carma.Model.TaxScheme.Persistent (TaxSchemeId)
 
 -- | @Partner@ persistent model.
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
-Partner json sql=Partner
+Partner json sql=partnertbl
   isActive Bool sql=isactive
   isDealer Bool sql=isdealer
   isMobile Bool sql=ismobile
