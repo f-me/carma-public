@@ -8,7 +8,7 @@ module Carma.EraGlonass.Types
      , EGLatLon.EGLongitude, EGLatLon.toEGLongitude, EGLatLon.fromEGLongitude
      , EGCallCardId.EGCallCardId (..)
      , EGCallerFullName.EGCallerFullName (..)
-     , EGVin.EGVin (..)
+     , module Carma.EraGlonass.Types.EGVin
      , module Carma.EraGlonass.Types.EGPropulsion
      , module Carma.EraGlonass.Types.RequestId
      , EGCreateCallCardAcceptCode
@@ -57,7 +57,7 @@ import qualified Carma.EraGlonass.Types.EGPhoneNumber as EGPhoneNumber
 import qualified Carma.EraGlonass.Types.EGLatLon as EGLatLon
 import qualified Carma.EraGlonass.Types.EGCallCardId as EGCallCardId
 import qualified Carma.EraGlonass.Types.EGCallerFullName as EGCallerFullName
-import qualified Carma.EraGlonass.Types.EGVin as EGVin
+import           Carma.EraGlonass.Types.EGVin
 import           Carma.EraGlonass.Types.EGPropulsion
 import           Carma.EraGlonass.Types.RequestId
 import           Carma.EraGlonass.Types.EGCreateCallCardAcceptCode

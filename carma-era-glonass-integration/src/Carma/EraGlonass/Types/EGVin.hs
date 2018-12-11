@@ -3,16 +3,19 @@
 
 module Carma.EraGlonass.Types.EGVin
      ( EGVin (..)
+     , stringToProofedEGVin
+     , textToProofedEGVin
      ) where
 
 import           GHC.Generics
 
 import           Data.Proxy
+import           Data.Text (Text)
 import           Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import           Data.String (IsString (fromString))
 import           Text.InterpolatedString.QM
 import           Data.Aeson
-import           Data.Aeson.Types (Parser, typeMismatch)
+import           Data.Aeson.Types (Parser, typeMismatch, parseEither)
 import           Data.Swagger hiding (delete)
 import           Data.Swagger.Declare (Declare)
 import           Data.Attoparsec.ByteString.Char8 hiding (Parser)
@@ -34,6 +37,12 @@ newtype EGVin
 
 instance IsString EGVin where
   fromString = EGVin . fromString
+
+stringToProofedEGVin :: String -> Either String EGVin
+stringToProofedEGVin = textToProofedEGVin . fromString
+
+textToProofedEGVin :: Text -> Either String EGVin
+textToProofedEGVin = parseEither parseJSON . String
 
 instance FromJSON EGVin where
   -- | Type annotation added here to provide type-variable @t@ inside

@@ -1,7 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, DuplicateRecordFields, RecordWildCards #-}
 {-# LANGUAGE QuasiQuotes, ViewPatterns #-}
-{-# LANGUAGE ScopedTypeVariables, FlexibleContexts, ConstraintKinds #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ScopedTypeVariables, ConstraintKinds, TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances, FlexibleInstances, FlexibleContexts #-}
 
 -- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
@@ -22,18 +22,20 @@ import           Text.InterpolatedString.QM
 import           Text.Printf (printf)
 import           Data.Maybe (catMaybes)
 import           Data.List (intersect)
-import           Data.List.NonEmpty (NonEmpty (..))
+import           Data.List.NonEmpty (NonEmpty (..), toList)
+import qualified Data.Vector as Vec
 
 import           Control.Arrow
 import           Control.Monad
 import           Control.Monad.Reader (MonadReader, ReaderT, asks)
 import           Control.Monad.Catch
 import           Control.Monad.Trans.Class (lift)
+import           Control.Monad.Random.Class (MonadRandom)
 import           Control.Exception (SomeException, fromException)
 
 import           Database.Persist ((==.), (!=.), (>=.), (<-.), (/<-.), (||.))
-import           Database.Persist.Sql (SqlBackend)
-import           Database.Persist.Types (Entity (entityVal))
+import           Database.Persist.Sql (SqlBackend, fromSqlKey)
+import           Database.Persist.Types (Entity (..))
 
 import           Carma.Utils.Operators
 import           Carma.Monad
@@ -53,6 +55,8 @@ type VinSynchronizerMonad m =
    , MonadDelay m
    , MonadPersistentSql m
    , MonadThrow m
+   , MonadRandom m -- For creating new @RequestId@
+   , MonadConcurrently m
    )
 
 
@@ -137,6 +141,9 @@ runVinSynchronizer tz = do
 
 
 -- | VINs synchronization logic handler.
+--
+-- Instead of comments you could just read log messages added all over the
+-- place.
 synchronizeVins :: VinSynchronizerMonad m => ReaderT SqlBackend m ()
 synchronizeVins = do
   logInfo [qn| Synchronizing VINs... |]
@@ -236,7 +243,7 @@ synchronizeVins = do
 
         fail [qns|
           Ephemeral VINs and outdated/deactivated VINs cannot intersect,
-          something wrong...
+          something is wrong...
         |]
 
     let vinsToUnmark
@@ -293,7 +300,94 @@ synchronizeVins = do
            (Entity EraGlonassSynchronizedContract)
       -> ReaderT SqlBackend m ()
 
-    unmarkAsHandled = fail "TODO implement"
+    unmarkAsHandled lists = do
+      (contracts, ephemerals) <- lift $ runConcurrently $ (,)
+        <$> Concurrently ( maybe (pure []) (toList ? checkContracts)
+                         $ getFirstNonEmptyList lists
+                         )
+        <*> Concurrently ( maybe (pure []) (toList ? checkEphemeral)
+                         $ getSecondNonEmptyList lists
+                         )
+
+      logDebug [qm| CHECKPOINT! |]
+      contracts `seq` ephemerals `seq` pure ()
+
+      where
+        checkContracts
+          :: VinSynchronizerMonad m
+          => [Entity Contract]
+          -> m [ContractId]
+          -- ^ Returns a list of "Contract"s which are handled by us, so these
+          --   we're supposed to /unmark/ (filtered only those who match our own
+          --   provider).
+
+        checkContracts entities = do
+          logDebug [qns|
+            Checking status of CaRMa outdated/deactivated "Contract"s
+            on Era Glonass side (checking whether they're handled by us
+            so we have to "unmark" them as handled by us)...
+          |]
+
+          let requests :: Either String [EGCheckVinRequestRequests]
+              requests = Vec.toList <$> foldM reduceFn Vec.empty entities where
+                reduceFn acc Entity {..} =
+                  case contractVin entityVal of
+                       Just (textToProofedEGVin -> parsedVin) ->
+                         case parsedVin of
+                              Right proofedVin ->
+                                Right $ Vec.snoc acc
+                                  EGCheckVinRequestRequests { vin = proofedVin }
+
+                              Left msg -> Left [qms|
+                                VIN of a "Contract" with id
+                                {fromSqlKey entityKey} is incorrect.
+                                Error message: {msg}
+                              |]
+
+                       Nothing -> Left [qms|
+                         VIN of a "Contract" with id {fromSqlKey entityKey}
+                         could not be "Nothing", it supposed to be checked
+                         earlier.
+                       |]
+
+          requestsList <- case requests of
+            Right x -> pure x
+            Left  e ->
+              logError [qms|
+                Failed to construct request to check status of
+                CaRMa outdated/deactivated "Contract"s.
+                Error: {e}
+              |] >> fail e
+
+          reqId <- newRequestId
+
+          let egRequestData =
+                EGCheckVinRequest
+                  { requestId = reqId
+                  , requests  = requestsList
+                  }
+
+          -- TODO commit request
+          egRequestData `seq` pure []
+
+        checkEphemeral
+          :: VinSynchronizerMonad m
+          => [Entity EraGlonassSynchronizedContract]
+          -> m [EraGlonassSynchronizedContractId]
+          -- ^ Returns a list of "EraGlonassSynchronizedContract"s which are
+          --   handled by us, so these we're supposed to /unmark/ (filtered only
+          --   those who match our own provider).
+
+        checkEphemeral entities = do
+          logDebug [qns|
+            Checking status of CaRMa "ephemeral VINs"
+            on Era Glonass side (checking whether they're handled by us
+            so we have to "unmark" them as handled by us)...
+          |]
+
+          reqId <- newRequestId
+          -- TODO commit request
+          reqId `seq` entities `seq` pure []
 
     foo :: VinSynchronizerMonad m => ReaderT SqlBackend m ()
     foo = fail "TODO implement"
@@ -335,3 +429,14 @@ data OneOrTwoNonEmptyLists first second
    | SecondNonEmptyList (NonEmpty second)
    | BothNonEmptyLists  (NonEmpty first) (NonEmpty second)
      deriving (Show, Eq)
+
+
+getFirstNonEmptyList :: OneOrTwoNonEmptyLists a b -> Maybe (NonEmpty a)
+getFirstNonEmptyList (FirstNonEmptyList  x  ) = Just x
+getFirstNonEmptyList (SecondNonEmptyList _  ) = Nothing
+getFirstNonEmptyList (BothNonEmptyLists  x _) = Just x
+
+getSecondNonEmptyList :: OneOrTwoNonEmptyLists a b -> Maybe (NonEmpty b)
+getSecondNonEmptyList (FirstNonEmptyList  _  ) = Nothing
+getSecondNonEmptyList (SecondNonEmptyList x  ) = Just x
+getSecondNonEmptyList (BothNonEmptyLists  _ x) = Just x

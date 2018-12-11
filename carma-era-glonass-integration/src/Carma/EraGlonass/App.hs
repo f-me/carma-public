@@ -24,6 +24,7 @@ import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Control.Monad.Catch (MonadCatch (catch), finally)
+import           Control.Monad.Random.Class (MonadRandom)
 import           Control.Concurrent.MVar (tryReadMVar)
 import           Control.Concurrent.STM.TQueue
 import           Control.Concurrent.STM.TVar
@@ -74,7 +75,7 @@ data AppConfig
 -- connection to the server. Server runner constructs @AppContext@ with provided
 -- database connection and runs a server.
 app
-  :: (MonadIO m, MonadBaseControl IO m, MonadCatch m)
+  :: (MonadIO m, MonadBaseControl IO m, MonadCatch m, MonadRandom m)
   => AppMode
   -> ( AppConfig
        -> (DBConnection -> ReaderT (TQueue LogMessage) m ())
