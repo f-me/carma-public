@@ -74,6 +74,9 @@ data AppConfig
 -- It takes a monad that wraps server runner and provides specific database
 -- connection to the server. Server runner constructs @AppContext@ with provided
 -- database connection and runs a server.
+--
+-- About monad constraint: top-level abstract IO monad,
+-- all sub-systems has explicit monads set abstracted from any IO.
 app
   :: (MonadIO m, MonadBaseControl IO m, MonadCatch m, MonadRandom m)
   => AppMode

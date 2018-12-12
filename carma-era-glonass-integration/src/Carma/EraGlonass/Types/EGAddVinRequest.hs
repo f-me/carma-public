@@ -50,7 +50,7 @@ import           Carma.EraGlonass.Types.EGVinOperationAcceptCode
                    )
 
 
--- *** Request ***
+-- *** Request
 
 
 data EGAddVinRequest
@@ -84,7 +84,7 @@ type family UppercaseVinField (k1 :: * -> *) where
 type VinFieldName = "VIN"
 
 
--- *** Response ***
+-- *** Response
 
 
 data EGAddVinResponse
@@ -139,15 +139,15 @@ instance ToSchema EGAddVinResponse where
 
 
 data EGAddVinResponseResponses
-   = EGAddVinResponseResponsesOk -- ^ When @acceptCode@ is @\"OK"@
+   = EGAddVinResponseResponsesOk
    { statusDescription :: Maybe Text
    , vin :: EGVin
-   }
+   } -- ^ When @acceptCode@ is @\"OK"@
 
-   | EGAddVinResponseResponsesFailure -- ^ When @acceptCode@ is not @\"OK"@
+   | EGAddVinResponseResponsesFailure
    { acceptCode :: EGVinOperationFailureAcceptCode
    , statusDescription :: Maybe Text
-   }
+   } -- ^ When @acceptCode@ is not @\"OK"@
 
      deriving (Eq, Show, Generic)
 

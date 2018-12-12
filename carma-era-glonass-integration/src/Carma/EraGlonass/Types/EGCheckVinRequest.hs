@@ -36,7 +36,7 @@ import           Carma.EraGlonass.Types.RequestId (RequestId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
 
 
--- *** Request ***
+-- *** Request
 
 
 data EGCheckVinRequest
@@ -70,7 +70,7 @@ type family UppercaseVinField (k1 :: * -> *) where
 type VinFieldName = "VIN"
 
 
--- *** Response ***
+-- *** Response
 
 
 data EGCheckVinResponse

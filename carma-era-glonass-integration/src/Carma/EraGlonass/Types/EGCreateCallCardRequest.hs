@@ -68,7 +68,7 @@ import           Carma.EraGlonass.Types.EGCreateCallCardAcceptCode
                    )
 
 
--- *** Request ***
+-- *** Request
 
 
 -- | Request body data-type of __EG.CRM.01__.
@@ -444,7 +444,7 @@ instance ToSchema EGCreateCallCardRequestVehicle where
         $ proxyPair2Triplet constructorProxy (Proxy :: Proxy "color")
 
 
--- *** Response ***
+-- *** Response
 
 
 -- | __EG.CRM.01__ response data-type.

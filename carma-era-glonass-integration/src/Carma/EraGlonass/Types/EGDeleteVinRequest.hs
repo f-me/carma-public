@@ -50,7 +50,7 @@ import           Carma.EraGlonass.Types.EGVinOperationAcceptCode
                    )
 
 
--- *** Request ***
+-- *** Request
 
 
 data EGDeleteVinRequest
@@ -84,7 +84,7 @@ type family UppercaseVinField (k1 :: * -> *) where
 type VinFieldName = "VIN"
 
 
--- *** Response ***
+-- *** Response
 
 
 data EGDeleteVinResponse
@@ -140,16 +140,14 @@ instance ToSchema EGDeleteVinResponse where
 
 data EGDeleteVinResponseResponses
    = EGDeleteVinResponseResponsesSuccess
-   -- ^ When @acceptCode@ is either @\"OK"@ or @\"VIN_NOT_FOUND"@
    { acceptCode :: EGVinOperationDeletionIsSucceededAcceptCode
    , statusDescription :: Maybe Text
    , vin :: EGVin
-   }
+   } -- ^ When @acceptCode@ is either @\"OK"@ or @\"VIN_NOT_FOUND"@
 
    | EGDeleteVinResponseResponsesIncorrectFormat
-   -- ^ When @acceptCode@ is @\"INCORRECT_FORMAT"@
    { statusDescription :: Maybe Text
-   }
+   } -- ^ When @acceptCode@ is @\"INCORRECT_FORMAT"@
 
      deriving (Eq, Show, Generic)
 

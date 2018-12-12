@@ -38,7 +38,7 @@ import           Carma.EraGlonass.Types.EGUpdateCallCardAcceptCode
                    )
 
 
--- *** Request ***
+-- *** Request
 
 
 data EGUpdateCallCardStatusRequest
@@ -73,7 +73,7 @@ instance ToJSON EGUpdateCallCardStatusRequestStatus where
   toJSON = genericToJSON defaultOptions { omitNothingFields = True }
 
 
--- *** Response ***
+-- *** Response
 
 
 data EGUpdateCallCardStatusResponse

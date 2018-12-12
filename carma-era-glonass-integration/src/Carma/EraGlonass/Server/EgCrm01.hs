@@ -520,6 +520,7 @@ updateCase reqBody@EGCreateCallCardRequest {..}
      }
 
 
+-- | Takes @UTCTime@ and returns @UTCTime@ 24 hours ago from that moment.
 time24HoursAgo :: UTCTime -> UTCTime
 time24HoursAgo = addUTCTime $ fromInteger $ (-3600) * 24
 
