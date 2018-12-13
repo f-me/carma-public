@@ -4,6 +4,12 @@ port = 8166
 # [OPTIONAL]
 # host = "127.0.0.1"
 
+# Just an example of base url for CaRMa -> Era Glonass requests.
+eg-base-url = "https://10.10.10.10:8888/api/v1/sp"
+
+# Predefined on Era Glonass side code for identifying us as a VIN handler.
+carma-service-code = "CaRMa RuAMC"
+
 db {
   postgresql {
     connection-string =

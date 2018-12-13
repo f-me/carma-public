@@ -1,9 +1,6 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE OverloadedStrings, QuasiQuotes, DuplicateRecordFields #-}
 {-# LANGUAGE BangPatterns, LambdaCase #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE ScopedTypeVariables, FlexibleContexts #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
 module Carma.EraGlonass.App
@@ -16,6 +13,7 @@ import           Data.Typeable
 import           Data.Time.LocalTime (getCurrentTimeZone)
 import qualified Data.Configurator as Conf
 import           Data.String (fromString)
+import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 
 import           Control.Monad
@@ -23,7 +21,7 @@ import           Control.Monad.Reader
 import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Trans.Control (MonadBaseControl)
-import           Control.Monad.Catch (MonadCatch (catch), finally)
+import           Control.Monad.Catch (MonadCatch (catch), MonadThrow, finally)
 import           Control.Monad.Random.Class (MonadRandom)
 import           Control.Concurrent.MVar (tryReadMVar)
 import           Control.Concurrent.STM.TQueue
@@ -44,7 +42,11 @@ import           System.Posix.Signals
                    )
 
 import qualified Network.Wai.Handler.Warp as Warp
+import           Network.HTTP.Client (Manager, newManager)
+import           Network.HTTP.Client.TLS (tlsManagerSettings)
 import           Database.Persist.Postgresql (PostgresConf (PostgresConf))
+
+import           Servant.Client (ClientEnv (ClientEnv), BaseUrl, parseBaseUrl)
 
 import           Carma.Utils.Operators
 import           Carma.Monad.LoggerBus.Types (LogMessage)
@@ -78,7 +80,12 @@ data AppConfig
 -- About monad constraint: top-level abstract IO monad,
 -- all sub-systems has explicit monads set abstracted from any IO.
 app
-  :: (MonadIO m, MonadBaseControl IO m, MonadCatch m, MonadRandom m)
+  :: ( MonadIO m
+     , MonadBaseControl IO m
+     , MonadCatch m
+     , MonadRandom m
+     , MonadThrow m
+     )
   => AppMode
   -> ( AppConfig
        -> (DBConnection -> ReaderT (TQueue LogMessage) m ())
@@ -93,6 +100,15 @@ app appMode' withDbConnection = do
 
   !(port :: Warp.Port) <- liftIO $ Conf.require cfg "port"
   !(host :: String)    <- liftIO $ Conf.lookupDefault "127.0.0.1" cfg "host"
+
+  !(egBaseUrl :: BaseUrl) <-
+    parseBaseUrl =<< liftIO (Conf.require cfg "eg-base-url")
+
+  -- It required to construct @ClientEnv@ alongwith @BaseUrl@.
+  !(manager :: Manager) <- liftIO $ newManager tlsManagerSettings
+
+  !(carmaEgServiceCode' :: Text) <-
+    liftIO $ Conf.require cfg "carma-service-code"
 
   !pgConf' <- liftIO $ PostgresConf
     <$> Conf.require cfg "db.postgresql.connection-string"
@@ -145,6 +161,9 @@ app appMode' withDbConnection = do
                 , dbRequestTimeout = round $ dbRequestTimeout' * (10 ** 6)
 
                 , backgroundTasksCounter = backgroundTasksCounter'
+
+                , egClientEnv = ClientEnv manager egBaseUrl
+                , carmaEgServiceCode = carmaEgServiceCode'
 
                 , vinSynchronizerTimeout =
                     round $ vinSynchronizerTimeout' * (10 ** 6)

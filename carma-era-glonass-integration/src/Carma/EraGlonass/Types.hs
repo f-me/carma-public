@@ -45,12 +45,15 @@ module Carma.EraGlonass.Types
      ) where
 
 import           Data.Pool (Pool)
+import           Data.Text (Text)
 
 import           Control.Concurrent.STM.TQueue (TQueue)
 import           Control.Concurrent.STM.TVar (TVar)
 import           Control.Concurrent.STM.TSem (TSem)
 
 import           Database.Persist.Sql (SqlBackend)
+
+import           Servant.Client (ClientEnv)
 
 import           Carma.Monad.LoggerBus.Types (LogMessage)
 import qualified Carma.EraGlonass.Types.EGPhoneNumber as EGPhoneNumber
@@ -91,6 +94,13 @@ data AppContext
      -- ^ Every big operation or an operation which affects DB data supposed to
      -- increment this counter and decrement it when it finishes. For tests it
      -- helps to detect when everything is done at the moment.
+
+   , egClientEnv :: ClientEnv
+     -- ^ @ClientEnv@ with bound base URL for CaRMa -> Era Glonass requests.
+
+   , carmaEgServiceCode :: Text
+     -- ^ Predefined on Era Glonass side code for identifying us
+     -- as a VIN handler.
 
    , vinSynchronizerTimeout :: Int
      -- ^ VIN synchronization iteration timeout in microseconds.
