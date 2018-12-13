@@ -19,8 +19,11 @@ Multiple tasks (task groups, runs other tasks inside):
     $0 all           Build everything
     $0 backend       Build backend
     $0 backend-test  Run all tests for backend
+    $0 backend-docs  Build haddock documentation for backend
+    $s               (tests that haddock syntax in modules is correct)
     $0 frontend      Build frontend
     $0 test          Run all tests
+    $0 docs          Run all documentation generation tasks
 
 Singular tasks:
     $0 backend-configs             Copy configs examples if needed
@@ -31,6 +34,10 @@ Singular tasks:
 
     $0 backend-test-era-glonass-integration
     $s                             Run tests for Era Glonass
+    $s                             integration microservice
+
+    $0 backend-docs-era-glonass-integration
+    $s                             Build haddock documentation for Era Glonass
     $s                             integration microservice
 
     $0 frontend-pure               Build "pure" frontend
@@ -98,9 +105,10 @@ is_fully_clean_build=false
 is_bare_app_log=false
 
 available_tasks=(
-    all test
-    backend backend-configs backend-carma backend-test
+    all test docs
+    backend backend-configs backend-carma backend-test backend-docs
     backend-test-configurator backend-test-era-glonass-integration
+    backend-docs-era-glonass-integration
     frontend frontend-pure frontend-legacy frontend-backend-templates
 )
 
@@ -912,6 +920,51 @@ backend_test_task() {
 }
 
 
+# "backend-docs-era-glonass-integration" task
+backend_docs_era_glonass_integration_task__covered_by=(docs backend-docs)
+backend_docs_era_glonass_integration_task() {
+    local task_name='backend-docs-era-glonass-integration'
+    task_log "$task_name" run
+
+    local pre_cmd='stack exec -- haddock'
+    local get_modules_cmd='find carma-era-glonass-integration/src/ -name *.hs'
+    local post_cmd='--html --hyperlinked-source -o haddock'
+    local app_name=$(
+        printf '%s `%s | xargs` %s' "$pre_cmd" "$get_modules_cmd" "$post_cmd"
+    )
+    local app_cmd=$(
+        printf '%s %s %s' "$pre_cmd" "`$get_modules_cmd | xargs`" "$post_cmd"
+    )
+    task_log "$task_name" step "$app_name"
+    local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
+    app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+    app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+    $app_cmd \
+        1>"$lout" 2>"$lerr" \
+        || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+        || return -- "$?"
+    for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+    rm -- "$lout" "$lerr"
+
+    task_log "$task_name" done
+}
+
+# "backend-docs" task
+backend_docs_task__covered_by=(docs)
+backend_docs_task() {
+    local task_name='backend-docs' rv=0
+    task_log "$task_name" run
+    if [[ $run_in_parallel == true ]]; then
+        local pids=()
+        backend_docs_era_glonass_integration_task & pids+=($!)
+        for pid in "${pids[@]}"; do wait -- "$pid" || rv=$?; done
+    else
+        backend_docs_era_glonass_integration_task
+    fi
+    task_resolve "$task_name" "$rv"
+}
+
+
 # "all" task
 all_task__covered_by=()
 all_task() {
@@ -940,6 +993,21 @@ test_task() {
         for pid in "${pids[@]}"; do wait -- "$pid" || rv=$?; done
     else
         backend_test_task
+    fi
+    task_resolve "$task_name" "$rv"
+}
+
+# "docs" task
+docs_task__covered_by=()
+docs_task() {
+    local task_name='docs' rv=0
+    task_log "$task_name" run
+    if [[ $run_in_parallel == true ]]; then
+        local pids=()
+        backend_docs_task & pids+=($!)
+        for pid in "${pids[@]}"; do wait -- "$pid" || rv=$?; done
+    else
+        backend_docs_task
     fi
     task_resolve "$task_name" "$rv"
 }
@@ -977,6 +1045,9 @@ for task in "${positional[@]}"; do
         test)
             solo "$task" "${test_task__covered_by[@]}"
             ;;
+        docs)
+            solo "$task" "${docs_task__covered_by[@]}"
+            ;;
         backend)
             solo "$task" "${backend_task__covered_by[@]}"
             ;;
@@ -995,6 +1066,13 @@ for task in "${positional[@]}"; do
         backend-test-era-glonass-integration)
             solo "$task" \
                 "${backend_test_era_glonass_integration_task__covered_by[@]}"
+            ;;
+        backend-docs)
+            solo "$task" "${backend_docs_task__covered_by[@]}"
+            ;;
+        backend-docs-era-glonass-integration)
+            solo "$task" \
+                "${backend_docs_era_glonass_integration_task__covered_by[@]}"
             ;;
         frontend)
             solo "$task" "${frontend_task__covered_by[@]}"
@@ -1032,6 +1110,11 @@ for task in "${positional[@]}"; do
                 then test_task & task_pids+=($!)
                 else test_task; fi
             ;;
+        docs)
+            if [[ $run_in_parallel == true ]]
+                then docs_task & task_pids+=($!)
+                else docs_task; fi
+            ;;
         backend)
             if [[ $run_in_parallel == true ]]
                 then backend_task & task_pids+=($!)
@@ -1061,6 +1144,16 @@ for task in "${positional[@]}"; do
             if [[ $run_in_parallel == true ]]
                 then backend_test_era_glonass_integration_task & task_pids+=($!)
                 else backend_test_era_glonass_integration_task; fi
+            ;;
+        backend-docs)
+            if [[ $run_in_parallel == true ]]
+                then backend_docs_task & task_pids+=($!)
+                else backend_docs_task; fi
+            ;;
+        backend-docs-era-glonass-integration)
+            if [[ $run_in_parallel == true ]]
+                then backend_docs_era_glonass_integration_task & task_pids+=($!)
+                else backend_docs_era_glonass_integration_task; fi
             ;;
         frontend)
             if [[ $run_in_parallel == true ]]

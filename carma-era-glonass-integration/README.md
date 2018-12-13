@@ -45,6 +45,12 @@ To generate **haddock** documentation run:
 stack exec -- haddock `find carma-era-glonass-integration/src/ -name '*.hs' | xargs` --html --hyperlinked-source -o haddock
 ```
 
+And to open generated docs in browser:
+
+```bash
+xdg-open haddock/index.html
+```
+
 ## TODO
 
 - Add more description to this document
