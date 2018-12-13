@@ -921,10 +921,27 @@ backend_test_task() {
 
 
 # "backend-docs-era-glonass-integration" task
+# TODO FIXME "haddock" directory could be shared directory between different
+#            modules, so cleaning or overwriting could happen.
 backend_docs_era_glonass_integration_task__covered_by=(docs backend-docs)
 backend_docs_era_glonass_integration_task() {
     local task_name='backend-docs-era-glonass-integration'
     task_log "$task_name" run
+
+    if [[ $is_clean_build == true ]]; then
+        task_log "$task_name" step 'Cleaning…'
+
+        local app_name='rm -rf -- haddock'
+        local lout=$(mk_tmp_fifo) lerr=$(mk_tmp_fifo) pids=()
+        app_logger 1 "$lout" "$task_name" "$app_name" & pids+=($!)
+        app_logger 2 "$lerr" "$task_name" "$app_name" & pids+=($!)
+        $app_name \
+            1>"$lout" 2>"$lerr" \
+            || fail_trap "$task_name" "${pids[*]}" "$lout" "$lerr" \
+            || return -- "$?"
+        for pid in "${pids[@]}"; do wait -- "$pid"; done && pids=()
+        rm -- "$lout" "$lerr"
+    fi
 
     local pre_cmd='stack exec -- haddock'
     local get_modules_cmd='find carma-era-glonass-integration/src/ -name *.hs'
