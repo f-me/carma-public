@@ -1,5 +1,6 @@
-{-# LANGUAGE DoAndIfThenElse #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE DoAndIfThenElse     #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-| Bulk import handlers. -}
@@ -14,44 +15,61 @@ where
 import           BasicPrelude
 
 import           Control.Monad.State.Class
-import qualified Data.Aeson as Aeson
-import qualified Data.ByteString.Char8 as B
-import qualified Data.Map as Map
-import           Data.Pool (withResource)
-import qualified Data.Vector as V
-import           Data.Text (pack, unpack)
-import qualified Data.Configurator                 as Cfg
+import qualified Data.Aeson                        as Aeson
+import qualified Data.ByteString.Char8             as B
 import           Data.Char                         (toLower)
+import qualified Data.Configurator                 as Cfg
+import           Data.Either                       (isLeft)
+import qualified Data.Map                          as Map
+import           Data.Pool                         (withResource)
+import           Data.Text                         (pack, unpack)
+import qualified Data.Vector                       as V
 import           Database.Persist
-import           Database.Persist.Sql (SqlBackend, fromSqlKey)
+import           Database.Persist.Sql              (SqlBackend, fromSqlKey)
 
 import           System.Directory
-import           System.IO
 import           System.FilePath                   (pathSeparators,
                                                     takeExtension, (</>))
+import           System.IO
 
 
-import           Snap
 import           Carma.VIN
+import           Snap
 
-import           Application
 import           AppHandlers.Util
+import           Application
 
-import           Data.Model (Ident(..))
-import qualified Data.Model.Patch as Patch
-import qualified Carma.Model.Role as Role
-import qualified Carma.Model.Usermeta as Usermeta
 import           Carma.Model.Program.Persistent
+import qualified Carma.Model.Role                  as Role
 import           Carma.Model.SubProgram.Persistent
+import qualified Carma.Model.Usermeta              as Usermeta
 import           Carma.Model.VinFormat.Persistent
+import           Data.Model                        (Ident (..))
+import qualified Data.Model.Patch                  as Patch
 
-import           Snaplet.Auth.PGUsers
-import           Snaplet.FileUpload (tmp, doUploadTmp, oneUpload)
-import           Snap.Snaplet.PostgresqlSimple
 import           Snap.Snaplet.Persistent
-import           Snaplet.TaskManager as TM
-import           Util as U
+import           Snap.Snaplet.PostgresqlSimple
+import           Snaplet.Auth.PGUsers
+import           Snaplet.FileUpload                (doUploadTmp, oneUpload, tmp)
+import           Snaplet.TaskManager               as TM
+import           Util                              as U
 
+
+-- Check user permissions
+-- Allow users with partner role to upload files only to their
+-- assigned subprograms.
+checkUserPermissions :: Handler App App Int
+checkUserPermissions = do
+  Just user <- currentUserMeta
+  let Just (Ident uid) = Patch.get user Usermeta.ident
+  let Just roles       = Patch.get user Usermeta.roles
+
+  unless ( V.elem Role.partner roles
+         || V.elem Role.vinAdmin roles
+         || V.elem Role.psaanalyst roles) $
+         handleError 403
+
+  return uid
 
 -- | Read @program@/@subprogram@/@format@ parameters and upload a VIN
 -- file.
@@ -70,21 +88,7 @@ vinImport = logExceptions "Bulk/vinImport" $ do
     (Just (sid, _), Just (fid, _)) -> do
       syslogJSON Info "Bulk/vinImport" ["subprogram" .= sid, "format" .= fid]
 
-      -- Check user permissions
-      -- Allow users with partner role to upload files only to their
-      -- assigned subprograms.
-      Just user <- currentUserMeta
-      let Just (Ident uid)  = Patch.get user Usermeta.ident
-      let Just isUserActive = Patch.get user Usermeta.isActive
-      let Just roles        = Patch.get user Usermeta.roles
-      let Just subPrograms  = Patch.get user Usermeta.subPrograms
-
-      unless isUserActive $ handleError 403
-
-      unless (  (V.elem Role.partner roles && V.elem (Ident sid) subPrograms)
-             ||  V.elem Role.vinAdmin roles
-             ||  V.elem Role.psaanalyst roles
-             ) $ handleError 403
+      uid <- checkUserPermissions
 
       (inName, inPath) <- with fileUpload $ oneUpload =<< doUploadTmp
 
@@ -101,7 +105,7 @@ vinImport = logExceptions "Bulk/vinImport" $ do
                    fid Nothing (Just sid) False
             connGetter = case pgs of
                            PostgresPool pool -> withResource pool
-                           PostgresConn c -> ($ c)
+                           PostgresConn c    -> ($ c)
         res <- connGetter (doImport opts)
 
         removeFile inPath
@@ -133,7 +137,7 @@ contractExtension = ".csv"
 inDirectory = "IN"
 errorDirectory = "ERR"
 
--- | Upload VIN files from shared directory.
+-- | Import VIN files from shared directory.
 -- | Format of directory name is "program - subprogram/format".
 -- | Directory hierarhy will be created after first call and
 -- | restored after each call
@@ -169,17 +173,7 @@ vinImportDirectory = do
 
     pure (programs, subPrograms, vinFormats)
 
-  -- Check user permissions
-  -- Allow users with partner role to upload files only to their
-  -- assigned subprograms.
-  Just user <- currentUserMeta
-  let Just (Ident uid) = Patch.get user Usermeta.ident
-  let Just roles       = Patch.get user Usermeta.roles
-
-  unless ( V.elem Role.partner roles
-         || V.elem Role.vinAdmin roles
-         || V.elem Role.psaanalyst roles) $
-         handleError 403
+  uid <- checkUserPermissions
 
   with taskMgr $ TM.create $ do
     let paths = concat $
@@ -213,8 +207,8 @@ vinImportDirectory = do
 
                   pure =<< fmap (map (\f -> ( inDir </> f
                                            , errDir </> f
-                                           , subProgramId
-                                           , vinFormatId
+                                           , fromIntegral subProgramId
+                                           , fromIntegral vinFormatId
                                            )
                                      ) .
                                  filter ((extension ==) . takeLowerExtension) ) $
@@ -222,35 +216,33 @@ vinImportDirectory = do
 
     let connGetter = case pgs of
                        PostgresPool pool -> withResource pool
-                       PostgresConn c -> ($ c)
+                       PostgresConn c    -> ($ c)
 
-    contracts <- forM files $ \(inPath, outPath, subProgramId, vinFormatId) -> do
-                  let options = Options inPath
-                                        outPath
-                                        uid
-                                        (fromIntegral vinFormatId)
-                                        Nothing
-                                        (Just $ fromIntegral subProgramId)
-                                        False
-                  res <- connGetter (doImport options)
+    (messages, filenames) <-
+      fmap ((unzip . map (\(Left message, filename) -> (message, filename)))
+            . filter (isLeft . fst)) $
+      forM files $ \(inPath, outPath, subProgramId, vinFormatId) -> do
+        let options = Options inPath outPath uid vinFormatId
+                              Nothing (Just subProgramId) False
+        res <- connGetter (doImport options)
 
-                  case res of
-                    Right (ImportResult (total, good, bad)) ->
-                      if bad == 0
-                      then removeFile inPath >>
-                           return (Right $ Aeson.String $ pack . show $ good, inPath)
-                      else return $ (Right $ Aeson.toJSON stats, outPath)
-                        where stats = Map.fromList [ ("good",  good)
-                                                   , ("bad",   bad)
-                                                   , ("total", total)
-                                                   ] :: Map String Int64
+        case res of
+          Right (ImportResult (total, good, bad)) ->
+            if bad == 0
+            then removeFile inPath >>
+                 return (Right $ Aeson.String $ pack . show $ good, outPath)
+            else return (Right $ Aeson.toJSON stats, outPath)
+              where stats = Map.fromList [ ("good",  good)
+                                         , ("bad",   bad)
+                                         , ("total", total)
+                                         ] :: Map String Int64
 
-                    Left e -> do
-                      exist <- doesFileExist outPath
-                      when exist $ removeFile outPath
-                      return (Left $ Aeson.toJSON e, inPath)
+          Left e -> do
+            exist <- doesFileExist outPath
+            when exist $ removeFile outPath
+            return (Left $ Aeson.toJSON e, inPath)
 
-    return $ Right (Aeson.toJSON contracts, [])
+    return $ Right (Aeson.toJSON messages, filenames)
 
     where cleanPath = filter (`notElem` invalidChars) . unpack
           invalidChars = '"' : pathSeparators ++ "«»"
