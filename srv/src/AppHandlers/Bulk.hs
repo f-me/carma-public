@@ -12,47 +12,46 @@ module AppHandlers.Bulk
 
 where
 
-import           BasicPrelude
+import BasicPrelude
 
-import           Control.Monad.State.Class
-import qualified Data.Aeson                        as Aeson
-import qualified Data.ByteString.Char8             as B
-import           Data.Char                         (toLower)
-import qualified Data.Configurator                 as Cfg
-import           Data.Either                       (isLeft)
-import qualified Data.Map                          as Map
-import           Data.Pool                         (withResource)
-import           Data.Text                         (pack, unpack)
-import qualified Data.Vector                       as V
-import           Database.Persist
-import           Database.Persist.Sql              (SqlBackend, fromSqlKey)
+import Control.Monad.State.Class
+import qualified Data.Aeson as Aeson
+import qualified Data.ByteString.Char8 as B
+import Data.Char (toLower)
+import qualified Data.Configurator as Cfg
+import Data.Either (isLeft)
+import qualified Data.Map as Map
+import Data.Pool (withResource)
+import Data.Text (pack, unpack)
+import qualified Data.Vector as V
+import Database.Persist
+import Database.Persist.Sql (SqlBackend, fromSqlKey)
 
-import           System.Directory
-import           System.FilePath                   (pathSeparators,
-                                                    takeExtension, (</>))
-import           System.IO
+import System.Directory
+import System.FilePath (pathSeparators, takeExtension, (</>))
+import System.IO
 
 
-import           Carma.VIN
-import           Snap
+import Carma.VIN
+import Snap
 
-import           AppHandlers.Util
-import           Application
+import AppHandlers.Util
+import Application
 
-import           Carma.Model.Program.Persistent
-import qualified Carma.Model.Role                  as Role
-import           Carma.Model.SubProgram.Persistent
-import qualified Carma.Model.Usermeta              as Usermeta
-import           Carma.Model.VinFormat.Persistent
-import           Data.Model                        (Ident (..))
-import qualified Data.Model.Patch                  as Patch
+import Carma.Model.Program.Persistent
+import qualified Carma.Model.Role as Role
+import Carma.Model.SubProgram.Persistent
+import qualified Carma.Model.Usermeta as Usermeta
+import Carma.Model.VinFormat.Persistent
+import Data.Model (Ident (..))
+import qualified Data.Model.Patch as Patch
 
-import           Snap.Snaplet.Persistent
-import           Snap.Snaplet.PostgresqlSimple
-import           Snaplet.Auth.PGUsers
-import           Snaplet.FileUpload                (doUploadTmp, oneUpload, tmp)
-import           Snaplet.TaskManager               as TM
-import           Util                              as U
+import Snap.Snaplet.Persistent
+import Snap.Snaplet.PostgresqlSimple
+import Snaplet.Auth.PGUsers
+import Snaplet.FileUpload (doUploadTmp, oneUpload, tmp)
+import Snaplet.TaskManager as TM
+import Util as U
 
 
 -- Check user permissions
@@ -144,12 +143,9 @@ errorDirectory = "ERR"
 vinImportDirectory :: AppHandler ()
 vinImportDirectory = do
   cfg <- getSnapletUserConfig
-  importDir <- liftIO $
-              Cfg.require cfg "contracts-import-dir"
-                :: Handler App App String
-  extension <- liftIO $ toLowerCase <$>
-              Cfg.lookupDefault contractExtension cfg "contracts-extension"
-                :: Handler App App String
+  (importDir :: String) <- liftIO $ Cfg.require cfg "contracts-import-dir"
+  (extension :: String) <- liftIO $ toLowerCase <$>
+    Cfg.lookupDefault contractExtension cfg "contracts-extension"
 
   pgs <- with db getPostgresState
 
@@ -180,7 +176,9 @@ vinImportDirectory = do
                 for programs $ \(programLabel, programId) ->
                   let programDir = toLowerCase programLabel
                       -- select subPrograms for program by programId
-                      subPrograms' = filter (\(_, _, parent) -> programId == parent)
+                      subPrograms' = filter (\(_, _, parent) ->
+                                               programId == parent
+                                            )
                                      subPrograms
                   in concat $
                      for subPrograms' $ \(subProgramLabel, subProgramId, _) ->
@@ -205,14 +203,15 @@ vinImportDirectory = do
                   createDirectoryIfMissing True inDir
                   createDirectoryIfMissing True errDir
 
-                  pure =<< fmap (map (\f -> ( inDir </> f
-                                           , errDir </> f
-                                           , fromIntegral subProgramId
-                                           , fromIntegral vinFormatId
-                                           )
-                                     ) .
-                                 filter ((extension ==) . takeLowerExtension) ) $
-                           listDirectory inDir
+                  fmap (map (\f -> ( inDir </> f
+                                  , errDir </> f
+                                  , fromIntegral subProgramId
+                                  , fromIntegral vinFormatId
+                                  )
+                            ) .
+                        filter ((extension ==) . takeLowerExtension)
+                       ) $
+                     listDirectory inDir
 
     let connGetter = case pgs of
                        PostgresPool pool -> withResource pool
