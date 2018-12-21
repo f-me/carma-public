@@ -1,59 +1,57 @@
 module ApplicationInit (appInit) where
 
-import Control.Concurrent.STM
-import Control.Exception.Lifted hiding (Handler)
-import Control.Monad (when)
-import Control.Monad.IO.Class
+import           Control.Concurrent.STM
+import           Control.Exception.Lifted hiding (Handler)
+import           Control.Monad (when)
+import           Control.Monad.IO.Class
 
-import Data.ByteString (ByteString)
-import Data.Configurator as Cfg
+import           Data.ByteString (ByteString)
+import           Data.Configurator as Cfg
 import qualified Data.Map as Map
 import qualified Data.Text.Encoding as T
 import qualified Data.Time.Clock as Clock
 
-import Snap.Core
-import Snap.Snaplet
-import Snap.Snaplet.Auth hiding (session)
-import Snap.Snaplet.Auth.Backends.PostgresqlSimple
-import Snap.Snaplet.Heist
-import Snap.Snaplet.Persistent
-import Snap.Snaplet.PostgresqlSimple (pgsInit)
-import Snap.Snaplet.Session.Backends.CookieSession
-import Snap.Util.FileServe ( DirectoryConfig (..)
-                           , serveDirectoryWith
-                           , serveFile
-                           , simpleDirectoryConfig
-                           )
+import           Snap.Core
+import           Snap.Snaplet
+import           Snap.Snaplet.Auth hiding (session)
+import           Snap.Snaplet.Auth.Backends.PostgresqlSimple
+import           Snap.Snaplet.Heist
+import           Snap.Snaplet.Persistent
+import           Snap.Snaplet.PostgresqlSimple (pgsInit)
+import           Snap.Snaplet.Session.Backends.CookieSession
+import           Snap.Util.FileServe ( DirectoryConfig (..)
+                                     , serveDirectoryWith
+                                     , serveFile
+                                     , simpleDirectoryConfig
+                                     )
 
-
-
-import WeatherApi.OpenWeatherMap (initApi)
+import           WeatherApi.OpenWeatherMap (initApi)
 
 ------------------------------------------------------------------------------
-import Snaplet.ChatManager
+import           Snaplet.ChatManager
 import qualified Snaplet.FileUpload as FU
-import Snaplet.Geo
-import Snaplet.Messenger
-import Snaplet.Search
-import Snaplet.SiteConfig
-import Snaplet.TaskManager
+import           Snaplet.Geo
+import           Snaplet.Messenger
+import           Snaplet.Search
+import           Snaplet.SiteConfig
+import           Snaplet.TaskManager
 ------------------------------------------------------------------------------
-import AppHandlers.ActionAssignment
-import AppHandlers.Avaya
-import Application
-import ApplicationHandlers
---import AppHandlers.ARC
-import AppHandlers.Backoffice
-import AppHandlers.Bulk
-import AppHandlers.ContractGenerator
-import AppHandlers.CustomSearches
-import AppHandlers.DiagTree
-import AppHandlers.KPI
-import AppHandlers.PSA
-import AppHandlers.RKC
-import AppHandlers.Screens
-import AppHandlers.Users
-import Util
+import           AppHandlers.ActionAssignment
+import           AppHandlers.Avaya
+import           Application
+import           ApplicationHandlers
+--import           AppHandlers.ARC
+import           AppHandlers.Backoffice
+import           AppHandlers.Bulk
+import           AppHandlers.ContractGenerator
+import           AppHandlers.CustomSearches
+import           AppHandlers.DiagTree
+import           AppHandlers.KPI
+import           AppHandlers.PSA
+import           AppHandlers.RKC
+import           AppHandlers.Screens
+import           AppHandlers.Users
+import           Util
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
