@@ -230,8 +230,8 @@ vinImportDirectory = do
           Right (ImportResult (total, good, bad)) ->
             if bad == 0
             then removeFile inPath >>
-                 return (Right $ Aeson.String $ pack . show $ good, outPath)
-            else return (Right $ Aeson.toJSON stats, outPath)
+                 return (Right $ Aeson.String $ pack . show $ good, [])
+            else return (Left $ Aeson.toJSON stats, outPath)
               where stats = Map.fromList [ ("good",  good)
                                          , ("bad",   bad)
                                          , ("total", total)
