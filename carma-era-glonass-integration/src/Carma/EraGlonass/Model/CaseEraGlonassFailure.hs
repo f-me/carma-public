@@ -25,12 +25,19 @@ data CaseEraGlonassFailure
         "Информация об ошибке вызова точки интеграции с ЭРА-ГЛОНАСС"
    , integrationPoint
      :: F EGIntegrationPoint "integrationPoint" "Точка интеграции"
+
    , requestBody
      :: F (Maybe Value) "requestBody" "Содержимое неудачного запроса"
+   -- , responseBody -- TODO
+   --   :: F (Maybe Value) "responseBody" "Содержимое неудачного ответа"
+
    , comment
      :: F (Maybe Text) "comment" "Дополнительный комментарий"
+
    , responseId
      :: F (Maybe Text) "responseId" "Идентификатор ответа"
+   -- , requestId -- TODO
+   --   :: F (Maybe Text) "requestId" "Идентификатор запроса"
    } deriving Typeable
 
 
