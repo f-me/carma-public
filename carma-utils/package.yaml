@@ -12,6 +12,7 @@ description:
 dependencies:
   - aeson
   - base
+  - qm-interpolated-string
   - swagger2
   - text
   - unordered-containers
