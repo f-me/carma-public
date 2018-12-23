@@ -23,7 +23,9 @@ import           GHC.TypeLits
 
 import           Data.Proxy
 import           Data.String (IsString (fromString))
+import           Data.Type.Equality
 
+import           Carma.Utils.TypeSafe.Generic.DataType (ConstructorName)
 import           Carma.Utils.TypeSafe.TypeFamilies
 
 
@@ -75,17 +77,31 @@ type family ConstructorFieldName (k1 :: * -> *)
                                  (k2 :: Symbol)
                                  (k3 :: Symbol)
                                      :: Maybe Symbol where
-  ConstructorFieldName (D1 _ (C1 ('MetaCons c _ 'True) x)) c f =
+  ConstructorFieldName t c f =
+    If (ConstructorName t c == 'Just c)
+       (ConstructorFieldNameInternal t c f)
+       (     TypeError
+       (     'Text "Constructor " ':<>: 'ShowType c
+       ':<>: 'Text " not found in " ':<>: 'ShowType t ':<>: 'Text " type"
+       ))
+
+-- | Internal implementation for "ConstructorFieldName",
+-- to move constructor existence checking out of implementation.
+type family ConstructorFieldNameInternal (k1 :: * -> *)
+                                         (k2 :: Symbol)
+                                         (k3 :: Symbol)
+                                             :: Maybe Symbol where
+  ConstructorFieldNameInternal (D1 _ (C1 ('MetaCons c _ 'True) x)) c f =
     RecordFieldName x f
-  ConstructorFieldName (D1 a (C1 ('MetaCons c _ 'True) x :+: _)) c f =
+  ConstructorFieldNameInternal (D1 a (C1 ('MetaCons c _ 'True) x :+: _)) c f =
     RecordFieldName x f
-  ConstructorFieldName (D1 a (C1 ('MetaCons _ _ _) _ :+: xs)) c f =
-    ConstructorFieldName (D1 a xs) c f
-  ConstructorFieldName (D1 a (xs :+: ys)) c f =
+  ConstructorFieldNameInternal (D1 a (C1 ('MetaCons _ _ _) _ :+: xs)) c f =
+    ConstructorFieldNameInternal (D1 a xs) c f
+  ConstructorFieldNameInternal (D1 a (xs :+: ys)) c f =
     MaybeAlternative
-      (ConstructorFieldName (D1 a xs) c f)
-      (ConstructorFieldName (D1 a ys) c f)
-  ConstructorFieldName (D1 _ _) _ _ = 'Nothing
+      (ConstructorFieldNameInternal (D1 a xs) c f)
+      (ConstructorFieldNameInternal (D1 a ys) c f)
+  ConstructorFieldNameInternal (D1 _ _) _ _ = 'Nothing
 
 -- | Helps to use a field name of a proxied record type with protection of its
 -- correctness and that this field defined inside provided constructor.
@@ -162,17 +178,31 @@ type family ConstructorFieldType (k1 :: * -> *)
                                  (k2 :: Symbol)
                                  (k3 :: Symbol)
                                      :: Maybe * where
-  ConstructorFieldType (D1 _ (C1 ('MetaCons c _ 'True) x)) c f =
+  ConstructorFieldType t c f =
+    If (ConstructorName t c == 'Just c)
+       (ConstructorFieldTypeInternal t c f)
+       (     TypeError
+       (     'Text "Constructor " ':<>: 'ShowType c
+       ':<>: 'Text " not found in " ':<>: 'ShowType t ':<>: 'Text " type"
+       ))
+
+-- | Internal implementation for "ConstructorFieldType",
+-- to move constructor existence checking out of implementation.
+type family ConstructorFieldTypeInternal (k1 :: * -> *)
+                                         (k2 :: Symbol)
+                                         (k3 :: Symbol)
+                                             :: Maybe * where
+  ConstructorFieldTypeInternal (D1 _ (C1 ('MetaCons c _ 'True) x)) c f =
     RecordFieldType x f
-  ConstructorFieldType (D1 a (C1 ('MetaCons c _ 'True) x :+: _)) c f =
+  ConstructorFieldTypeInternal (D1 a (C1 ('MetaCons c _ 'True) x :+: _)) c f =
     RecordFieldType x f
-  ConstructorFieldType (D1 a (C1 ('MetaCons _ _ _) _ :+: xs)) c f =
-    ConstructorFieldType (D1 a xs) c f
-  ConstructorFieldType (D1 a (xs :+: ys)) c f =
+  ConstructorFieldTypeInternal (D1 a (C1 ('MetaCons _ _ _) _ :+: xs)) c f =
+    ConstructorFieldTypeInternal (D1 a xs) c f
+  ConstructorFieldTypeInternal (D1 a (xs :+: ys)) c f =
     MaybeAlternative
-      (ConstructorFieldType (D1 a xs) c f)
-      (ConstructorFieldType (D1 a ys) c f)
-  ConstructorFieldType (D1 _ _) _ _ = 'Nothing
+      (ConstructorFieldTypeInternal (D1 a xs) c f)
+      (ConstructorFieldTypeInternal (D1 a ys) c f)
+  ConstructorFieldTypeInternal (D1 _ _) _ _ = 'Nothing
 
 -- | Helps to use a field type of a proxied record type with protection of its
 -- correctness and that this field defined inside provided constructor

@@ -2,7 +2,10 @@
 {-# LANGUAGE ExplicitNamespaces #-}
 
 module Carma.Utils.TypeSafe.TypeFamilies
-     ( type MaybeAlternative
+     ( type If
+     , type Unless
+
+     , type MaybeAlternative
 
      , type MaybePair
      , type MaybeTriplet
@@ -24,6 +27,28 @@ module Carma.Utils.TypeSafe.TypeFamilies
      , type Concat
      , type MaybeMaybeConcat
      ) where
+
+
+-- | Type-level \"if" condition
+type family If (condition  :: Bool)
+               (thenBranch :: a)
+               (elseBranch :: a)
+                           :: a where
+  If 'True  x _ = x
+  If 'False _ x = x
+
+-- | Type-level \"unless" condition
+type family Unless (condition  :: Bool)
+                   (thenBranch :: a)
+                   (elseBranch :: a)
+                               :: a where
+  Unless 'False x _ = x
+  Unless 'True  _ x = x
+
+-- | Just inverts type-level "Bool"
+type family Not (k1 :: Bool) :: Bool where
+  Not 'True  = 'False
+  Not 'False = 'True
 
 
 -- | Just like @(<|>)@ operator of "Alternative" instance for "Maybe" only on
@@ -90,12 +115,6 @@ type family LiftFstMaybe (k1 :: (Maybe a, b)) :: Maybe (a, b) where
 type family LiftSndMaybe (k1 :: (a, Maybe b)) :: Maybe (a, b) where
   LiftSndMaybe '( a, 'Just b ) = 'Just '(a, b)
   LiftSndMaybe _ = 'Nothing
-
-
--- | Just inverts type-level "Bool"
-type family Not (k1 :: Bool) :: Bool where
-  Not 'True  = 'False
-  Not 'False = 'True
 
 -- | Alternative version of "Not" when value is wrapped to "Maybe".
 --
