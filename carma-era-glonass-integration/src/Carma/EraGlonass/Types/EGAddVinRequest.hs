@@ -102,7 +102,7 @@ data EGAddVinResponse
 instance FromJSON EGAddVinResponse where
   -- | Type annotation added here to provide type-variable @t@ inside
   -- (for type-safety reasons).
-  parseJSON :: forall t. (t ~ EGAddVinResponse) => Value -> Parser t
+  parseJSON :: forall t. t ~ EGAddVinResponse => Value -> Parser t
   parseJSON src = pure $
     -- Parsing here to extract parsing error message
     case parseEither (const successfulCase) src of
@@ -110,16 +110,14 @@ instance FromJSON EGAddVinResponse where
          Right x  -> x
 
     where
-      typeName'' = typeName (Proxy :: Proxy t)
-
-      okConstructorProxy :: Proxy '(t, "EGAddVinResponse")
-      okConstructorProxy = Proxy
+      mismatch = typeMismatch (typeName (Proxy :: Proxy t)) src
+      okConstructorProxy = Proxy :: Proxy '(t, "EGAddVinResponse")
 
       successfulCase = do
         obj <- -- Extracting hash-map from JSON @Object@
           case src of
                Object x -> pure x
-               _        -> typeMismatch typeName'' src
+               _        -> mismatch
 
         genericParseJSON defaultOptions $
           -- Associating it with successful case constructor
@@ -133,11 +131,21 @@ type family CutOffFailureCons (k1 :: * -> *) where
   CutOffFailureCons (D1 a (C1 FailureConsMeta _ :+: y)) = D1 a y
 
 instance ToSchema EGAddVinResponse where
-  declareNamedSchema _ = gdeclareNamedSchema defaultSchemaOptions proxy mempty
-    where proxy :: Proxy (CutOffFailureCons (Rep EGAddVinResponse))
-          proxy = Proxy
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t t2
+    .  ( t ~ EGAddVinResponse
+       , t2 ~ CutOffFailureCons (Rep t)
+       )
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
+
+  declareNamedSchema _ =
+    gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy t2) mempty
 
 
+-- | List item type of "responses" field of "EGAddVinResponse"
 data EGAddVinResponseResponses
    = EGAddVinResponseResponsesOk
    { statusDescription :: Maybe Text
@@ -154,12 +162,16 @@ data EGAddVinResponseResponses
 instance FromJSON EGAddVinResponseResponses where
   -- | Type annotation added here to provide type-variable @t@ inside
   -- (for type-safety reasons).
-  parseJSON :: forall t. (t ~ EGAddVinResponseResponses) => Value -> Parser t
+  parseJSON
+    :: forall t typeRep
+    .  ( t ~ EGAddVinResponseResponses
+       , typeRep ~ Rep t
+       )
+    => Value
+    -> Parser t
+
   parseJSON src@(Object obj) = go where
-    go =
-      if acceptCodeKey `Set.member` keys
-         then branching
-         else typeMismatch typeName'' src
+    go = if Set.member acceptCodeKey keys then branching else mismatch
 
     branching
       | isOk && keys `Set.isSubsetOf` okFields =
@@ -170,27 +182,25 @@ instance FromJSON EGAddVinResponseResponses where
           genericParseJSON defaultOptions $
             Object $ addConstructorTag failureConstructorProxy obj
 
-      | otherwise = typeMismatch typeName'' src
+      | otherwise = mismatch
 
-    typeName'' = typeName (Proxy :: Proxy t)
-
-    withTypeProxy :: Proxy (a :: Symbol) -> Proxy '(t, a)
-    withTypeProxy = proxyPair Proxy
+    mismatch :: Parser a -- Making it polymorphic
+    mismatch = typeMismatch (typeName (Proxy :: Proxy t)) src
 
     okConstructorProxy =
-      withTypeProxy (Proxy :: Proxy "EGAddVinResponseResponsesOk")
+      Proxy :: Proxy '(t, "EGAddVinResponseResponsesOk")
 
     failureConstructorProxy =
-      withTypeProxy (Proxy :: Proxy "EGAddVinResponseResponsesFailure")
+      Proxy :: Proxy '(t, "EGAddVinResponseResponsesFailure")
 
-    acceptCodeKey = fieldName $ withTypeProxy (Proxy :: Proxy "acceptCode")
+    acceptCodeKey = fieldName (Proxy :: Proxy '(t, "acceptCode"))
 
     -- | Proving by type-constraint that "vin" field is provided only for
     -- successful case.
     vinKey
-      :: ( ConstructorFieldName (Rep t)
+      :: ( ConstructorFieldName typeRep
              "EGAddVinResponseResponsesOk" "vin" ~ 'Just "vin"
-         , ConstructorFieldName (Rep t)
+         , ConstructorFieldName typeRep
              "EGAddVinResponseResponsesFailure" "vin" ~ 'Nothing
          )
       => Text
@@ -198,8 +208,7 @@ instance FromJSON EGAddVinResponseResponses where
       = constructorFieldName
       $ proxyPair2Triplet okConstructorProxy (Proxy :: Proxy "vin")
 
-    statusDescriptionKey =
-      fieldName $ withTypeProxy (Proxy :: Proxy "statusDescription")
+    statusDescriptionKey = fieldName (Proxy :: Proxy '(t, "statusDescription"))
 
     keys, okFields, failureFields :: Set.Set Text
     keys          = Set.fromList $ HM.keys obj
@@ -220,7 +229,7 @@ instance ToSchema EGAddVinResponseResponses where
   -- | Type annotation added here to provide type-variable @t@ inside
   -- (for type-safety reasons).
   declareNamedSchema
-    :: forall proxy t. (t ~ EGAddVinResponseResponses)
+    :: forall proxy t. t ~ EGAddVinResponseResponses
     => proxy t
     -> Declare (Definitions Schema) NamedSchema
 
@@ -243,13 +252,8 @@ instance ToSchema EGAddVinResponseResponses where
     where
       typeName'' = typeName (Proxy :: Proxy t)
 
-      withTypeProxy :: Proxy (a :: Symbol) -> Proxy '(t, a)
-      withTypeProxy = proxyPair Proxy
-
-      okConstructorProxy =
-        withTypeProxy (Proxy :: Proxy "EGAddVinResponseResponsesOk")
-
-      acceptCodeKey = fieldName $ withTypeProxy (Proxy :: Proxy "acceptCode")
+      okConstructorProxy = Proxy :: Proxy '(t, "EGAddVinResponseResponsesOk")
+      acceptCodeKey = fieldName (Proxy :: Proxy '(t, "acceptCode"))
 
       acceptCodeSchema = Inline $ mempty
         { _schemaParamSchema = mempty

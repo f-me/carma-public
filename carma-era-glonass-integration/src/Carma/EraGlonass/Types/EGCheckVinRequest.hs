@@ -28,7 +28,9 @@ import           Data.Aeson.TH (Options (omitNothingFields))
 import           Data.Aeson.Types (Parser, typeMismatch, parseEither)
 import           Data.Swagger
 import           Data.Swagger.Internal.Schema
+import           Data.Swagger.Declare (Declare)
 
+import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.Utils.TypeSafe.Generic.Record
 import           Carma.Utils.TypeSafe.Generic.Aeson
@@ -59,9 +61,18 @@ instance ToJSON EGCheckVinRequestRequests where
     object [fromString (symbolVal (Proxy :: Proxy VinFieldName)) .= vin']
 
 instance ToSchema EGCheckVinRequestRequests where
-  declareNamedSchema _ = gdeclareNamedSchema defaultSchemaOptions proxy mempty
-    where proxy :: Proxy (UppercaseVinField (Rep EGCheckVinRequestRequests))
-          proxy = Proxy
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t t2
+    .  ( t ~ EGCheckVinRequestRequests
+       , t2 ~ UppercaseVinField (Rep t)
+       )
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
+
+  declareNamedSchema _ =
+    gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy t2) mempty
 
 type family UppercaseVinField (k1 :: * -> *) where
   UppercaseVinField (D1 a (C1 x field)) =
@@ -88,7 +99,7 @@ data EGCheckVinResponse
 instance FromJSON EGCheckVinResponse where
   -- | Type annotation added here to provide type-variable @t@ inside
   -- (for type-safety reasons).
-  parseJSON :: forall t. (t ~ EGCheckVinResponse) => Value -> Parser t
+  parseJSON :: forall t. t ~ EGCheckVinResponse => Value -> Parser t
   parseJSON src = pure $
     -- Parsing here to extract parsing error message
     case parseEither (const successfulCase) src of
@@ -119,17 +130,96 @@ type family CutOffFailureCons (k1 :: * -> *) where
   CutOffFailureCons (D1 a (C1 FailureConsMeta _ :+: y)) = D1 a y
 
 instance ToSchema EGCheckVinResponse where
-  declareNamedSchema _ = gdeclareNamedSchema defaultSchemaOptions proxy mempty
-    where proxy :: Proxy (CutOffFailureCons (Rep EGCheckVinResponse))
-          proxy = Proxy
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t t2
+    .  ( t ~ EGCheckVinResponse
+       , t2 ~ CutOffFailureCons (Rep t)
+       )
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
+
+  declareNamedSchema _ =
+    gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy t2) mempty
 
 
+-- | List item type of "responses" field of "EGCheckVinResponse"
 data EGCheckVinResponseResponses
-   = EGCheckVinResponseResponses
-   { vinStatus :: Bool
-   , vin :: EGVin
-   , vinProviders :: Maybe [EGCheckVinResponseVinProviders]
-   } deriving (Eq, Show, Generic, FromJSON, ToSchema)
+   = EGCheckVinResponseResponsesVinExists
+   { vin :: EGVin
+   , vinProviders :: [EGCheckVinResponseVinProviders]
+   } -- ^ When @\"vinStatus"@ is @true@ (JSON)
+
+   | EGCheckVinResponseResponsesVinNotExists
+   { vin :: EGVin
+   } -- ^ When @\"vinStatus"@ is @false@ (JSON)
+
+     deriving (Eq, Show, Generic)
+
+instance FromJSON EGCheckVinResponseResponses where
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  parseJSON
+    :: forall t t2
+    .  ( t ~ EGCheckVinResponseResponses
+       , t2 ~ AddEphemeralVinStatusField (Rep t)
+       )
+    => Value
+    -> Parser t
+
+  parseJSON src = do
+    obj <- case src of
+      Object x -> pure x
+      _        -> mismatch
+
+    vinStatus <-
+      either (const mismatch) pure $
+        getFieldValue' (Proxy :: Proxy '(t2, "vinStatus")) obj
+
+    genericParseJSON defaultOptions $
+      Object $ (obj &) $
+        if vinStatus
+           then addConstructorTag (Proxy :: Proxy
+                  '(t, "EGCheckVinResponseResponsesVinExists"))
+           else addConstructorTag (Proxy :: Proxy
+                  '(t, "EGCheckVinResponseResponsesVinNotExists"))
+    where
+      mismatch :: Parser a -- Making it polymorphic
+      mismatch = typeMismatch (typeName (Proxy :: Proxy t)) src
+
+instance ToSchema EGCheckVinResponseResponses where
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t t2
+    .  ( t ~ EGCheckVinResponseResponses
+       , t2 ~ AddEphemeralVinStatusField (Rep t)
+       )
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
+
+  declareNamedSchema _ =
+    gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy t2) mempty
+
+type family AddEphemeralVinStatusField (k1 :: * -> *) where
+  AddEphemeralVinStatusField
+    (D1 a (C1 VinExistsMetaCons f1 :+: C1 VinNotExistsMetaCons f2)) =
+      D1 a (   C1 VinExistsMetaCons    (VinStatusField :*: f1)
+           :+: C1 VinNotExistsMetaCons (VinStatusField :*: f2)
+           )
+
+type VinExistsMetaCons
+   = 'MetaCons "EGCheckVinResponseResponsesVinExists" 'PrefixI 'True
+type VinNotExistsMetaCons
+   = 'MetaCons "EGCheckVinResponseResponsesVinNotExists" 'PrefixI 'True
+type VinStatusFieldName = "vinStatus"
+type VinStatusField
+   = S1 ( 'MetaSel ('Just VinStatusFieldName)
+                   'NoSourceUnpackedness
+                   'NoSourceStrictness
+                   'DecidedLazy
+        ) (Rec0 Bool)
 
 
 data EGCheckVinResponseVinProviders

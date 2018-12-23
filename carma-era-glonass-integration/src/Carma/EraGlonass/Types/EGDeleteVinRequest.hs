@@ -73,9 +73,18 @@ instance ToJSON EGDeleteVinRequestRequests where
     object [fromString (symbolVal (Proxy :: Proxy VinFieldName)) .= vin']
 
 instance ToSchema EGDeleteVinRequestRequests where
-  declareNamedSchema _ = gdeclareNamedSchema defaultSchemaOptions proxy mempty
-    where proxy :: Proxy (UppercaseVinField (Rep EGDeleteVinRequestRequests))
-          proxy = Proxy
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t t2
+    .  ( t ~ EGDeleteVinRequestRequests
+       , t2 ~ UppercaseVinField (Rep t)
+       )
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
+
+  declareNamedSchema _ =
+    gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy t2) mempty
 
 type family UppercaseVinField (k1 :: * -> *) where
   UppercaseVinField (D1 a (C1 x field)) =
@@ -102,7 +111,7 @@ data EGDeleteVinResponse
 instance FromJSON EGDeleteVinResponse where
   -- | Type annotation added here to provide type-variable @t@ inside
   -- (for type-safety reasons).
-  parseJSON :: forall t. (t ~ EGDeleteVinResponse) => Value -> Parser t
+  parseJSON :: forall t. t ~ EGDeleteVinResponse => Value -> Parser t
   parseJSON src = pure $
     -- Parsing here to extract parsing error message
     case parseEither (const successfulCase) src of
@@ -133,11 +142,21 @@ type family CutOffFailureCons (k1 :: * -> *) where
   CutOffFailureCons (D1 a (C1 FailureConsMeta _ :+: y)) = D1 a y
 
 instance ToSchema EGDeleteVinResponse where
-  declareNamedSchema _ = gdeclareNamedSchema defaultSchemaOptions proxy mempty
-    where proxy :: Proxy (CutOffFailureCons (Rep EGDeleteVinResponse))
-          proxy = Proxy
+  -- | Type annotation added here to provide type-variable @t@ inside
+  -- (for type-safety reasons).
+  declareNamedSchema
+    :: forall proxy t t2
+    .  ( t ~ EGDeleteVinResponse
+       , t2 ~ CutOffFailureCons (Rep t)
+       )
+    => proxy t
+    -> Declare (Definitions Schema) NamedSchema
+
+  declareNamedSchema _ =
+    gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy t2) mempty
 
 
+-- | List item type of "responses" field of "EGDeleteVinResponse"
 data EGDeleteVinResponseResponses
    = EGDeleteVinResponseResponsesSuccess
    { acceptCode :: EGVinOperationDeletionIsSucceededAcceptCode
@@ -154,12 +173,9 @@ data EGDeleteVinResponseResponses
 instance FromJSON EGDeleteVinResponseResponses where
   -- | Type annotation added here to provide type-variable @t@ inside
   -- (for type-safety reasons).
-  parseJSON :: forall t. (t ~ EGDeleteVinResponseResponses) => Value -> Parser t
+  parseJSON :: forall t. t ~ EGDeleteVinResponseResponses => Value -> Parser t
   parseJSON src@(Object obj) = go where
-    go =
-      if acceptCodeKey `Set.member` keys
-         then branching
-         else typeMismatch typeName'' src
+    go = if Set.member acceptCodeKey keys then branching else mismatch
 
     branching
       | isSuccess && keys `Set.isSubsetOf` successFields =
@@ -170,26 +186,22 @@ instance FromJSON EGDeleteVinResponseResponses where
           genericParseJSON defaultOptions $
             Object $ addConstructorTag incorrectFormatConstructorProxy obj
 
-      | otherwise = typeMismatch typeName'' src
+      | otherwise = mismatch
 
-    typeName'' = typeName (Proxy :: Proxy t)
-
-    withTypeProxy :: Proxy (a :: Symbol) -> Proxy '(t, a)
-    withTypeProxy = proxyPair Proxy
+    mismatch :: Parser a -- Making it polymorphic
+    mismatch = typeMismatch (typeName (Proxy :: Proxy t)) src
 
     successConstructorProxy =
-      withTypeProxy (Proxy :: Proxy "EGDeleteVinResponseResponsesSuccess")
+      Proxy :: Proxy '(t, "EGDeleteVinResponseResponsesSuccess")
 
     incorrectFormatConstructorProxy =
-      withTypeProxy
-        (Proxy :: Proxy "EGDeleteVinResponseResponsesIncorrectFormat")
+      Proxy :: Proxy '(t, "EGDeleteVinResponseResponsesIncorrectFormat")
 
     acceptCodeKey
       = constructorFieldName
       $ proxyPair2Triplet successConstructorProxy (Proxy :: Proxy "acceptCode")
 
-    statusDescriptionKey =
-      fieldName $ withTypeProxy (Proxy :: Proxy "statusDescription")
+    statusDescriptionKey = fieldName (Proxy :: Proxy '(t, "statusDescription"))
 
     vinKey
       = constructorFieldName
@@ -214,7 +226,7 @@ instance ToSchema EGDeleteVinResponseResponses where
   -- | Type annotation added here to provide type-variable @t@ inside
   -- (for type-safety reasons).
   declareNamedSchema
-    :: forall proxy t. (t ~ EGDeleteVinResponseResponses)
+    :: forall proxy t. t ~ EGDeleteVinResponseResponses
     => proxy t
     -> Declare (Definitions Schema) NamedSchema
 
@@ -238,17 +250,13 @@ instance ToSchema EGDeleteVinResponseResponses where
     where
       typeName'' = typeName (Proxy :: Proxy t)
 
-      withTypeProxy :: Proxy (a :: Symbol) -> Proxy '(t, a)
-      withTypeProxy = proxyPair Proxy
-
       successConstructorProxy =
-        withTypeProxy (Proxy :: Proxy "EGDeleteVinResponseResponsesSuccess")
+        Proxy :: Proxy '(t, "EGDeleteVinResponseResponsesSuccess")
 
       incorrectFormatConstructorProxy =
-        withTypeProxy
-          (Proxy :: Proxy "EGDeleteVinResponseResponsesIncorrectFormat")
+        Proxy :: Proxy '(t, "EGDeleteVinResponseResponsesIncorrectFormat")
 
-      acceptCodeKey = fieldName $ withTypeProxy (Proxy :: Proxy "acceptCode")
+      acceptCodeKey = fieldName (Proxy :: Proxy '(t, "acceptCode"))
 
       vinKey
         = constructorFieldName
